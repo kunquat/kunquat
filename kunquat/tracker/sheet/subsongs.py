@@ -18,17 +18,77 @@ from PyQt4 import QtGui, QtCore
 
 import kunquat.tracker.kqt_limits as lim
 
+class AlbumTree(QtGui.QTreeView):
+
+    def __init__(self):
+        QtGui.QTreeView.__init__(self)
+
+    def currentChanged(self, new_index, old_index):
+        model = new_index.model()
+	item = model.itemFromIndex(new_index)
+        data = item.data()
+        obj = data.toPyObject()
+        items = obj.items()
+        pyitems = [(str(a), b) for (a, b) in items]
+        pydict = dict(pyitems)
+        item_type = pydict['type']
+        print(item_type)
+        '''
+        if self._section_signal:
+            print('signal loop')
+            return
+        QtGui.QTreeView.currentChanged(self, new_index, old_index)
+        item = self._model.itemFromIndex(new_index)
+        if not item:
+            return
+        parent = item.parent()
+        if not parent:
+            QtCore.QObject.emit(self, QtCore.SIGNAL('compositionParams()'))
+            if self._cur_subsong != -1:
+                self._cur_subsong = -1
+                QtCore.QObject.emit(self,
+                                    QtCore.SIGNAL('subsongChanged(int)'),
+                                    self._cur_subsong)
+            return
+        child = item.child(0)
+        if child or not parent.parent():
+            if item.row() >= len(self._slists):
+                assert item.row() == len(self._slists)
+                return
+            QtCore.QObject.emit(self, QtCore.SIGNAL('subsongParams(int)'),
+                                item.row())
+            if self._cur_subsong != item.row():
+                self._cur_subsong = item.row()
+                QtCore.QObject.emit(self,
+                                    QtCore.SIGNAL('subsongChanged(int)'),
+                                    self._cur_subsong)
+            return
+        self._section_signal = True
+        self._section_manager.set(parent.row(), item.row())
+        self._section_signal = False
+        if self._cur_subsong != parent.row():
+            self._cur_subsong = parent.row()
+            QtCore.QObject.emit(self, QtCore.SIGNAL('subsongChanged(int)'),
+                                self._cur_subsong)
+    '''
+
 
 class Subsongs(QtGui.QWidget):
+    '''
+    comp_signal = QtCore.pyqtSignal(name='compositionParams')
+    subsong_params = QtCore.pyqtSignal(int, name='subsongParams')
+    subsong_changed = QtCore.pyqtSignal(int, name='subsongChanged')
+    '''
 
     def __init__(self, p):
         QtGui.QWidget.__init__(self)
         self.p = p
 
-        song_list = QtGui.QTreeView()
+        song_list = AlbumTree()
         song_list.setHeaderHidden(True)
         song_list.setRootIsDecorated(False)
         #song_list.setDragDropMode(QtGui.QAbstractItemView.InternalMove)
+        #song_list.connect(self.currentChanged)
         self._song_list = song_list
 
         but_layout = QtGui.QVBoxLayout()
@@ -66,6 +126,7 @@ class Subsongs(QtGui.QWidget):
             pattern_item = QtGui.QStandardItem(ptt)
             #pattern_item.setToolTip(ptt)
             pattern_item.setEditable(True)
+            pattern_item.setData({'type':'system'})
             yield pattern_item
 
     def create_songs(self, song_ids):
@@ -78,6 +139,7 @@ class Subsongs(QtGui.QWidget):
             song_item = QtGui.QStandardItem(stt)
             #song_item.setToolTip(stt)
             song_item.setEditable(False)
+            song_item.setData({'type':'song'})
             order_list = song.get_order_list()
             for pattern_item in self.create_systems(order_list):
                 song_item.appendRow(pattern_item)
@@ -86,6 +148,7 @@ class Subsongs(QtGui.QWidget):
     def create_trash(self):
         trash_item = QtGui.QStandardItem('Trash')
         trash_item.setEditable(False)
+        trash_item.setData({'type':'trash'})
         trash_ids = self.p.project._composition.left_over_patterns()
         trash = [int(i.split('_')[1]) for i in trash_ids]
         for system_item in self.create_systems(sorted(trash)):
@@ -94,16 +157,17 @@ class Subsongs(QtGui.QWidget):
 
     def update(self):
         project = self.p.project
-        album = QtGui.QStandardItem('untitled album')
-        album.setEditable(False)
+        album_item = QtGui.QStandardItem('untitled album')
+        album_item.setEditable(False)
+        album_item.setData({'type':'album'})
         songs = self.p.project._composition.song_ids()
         for song_item in self.create_songs(songs):
-            album.appendRow(song_item)
+            album_item.appendRow(song_item)
         trash = self.create_trash()
-        album.appendRow(trash)
+        album_item.appendRow(trash)
         model = QtGui.QStandardItemModel()
         root = model.invisibleRootItem()
-        root.appendRow(album)
+        root.appendRow(album_item)
         self._song_list.setModel(model)
         self._song_list.expandAll()
 
