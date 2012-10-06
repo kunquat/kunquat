@@ -43,7 +43,6 @@ class Subsongs(QtGui.QWidget):
         song_list.setHeaderHidden(True)
         song_list.setRootIsDecorated(False)
         #song_list.setDragDropMode(QtGui.QAbstractItemView.InternalMove)
-        #song_list.connect(self.currentChanged)
         self._song_list = song_list
 
         but_layout = QtGui.QVBoxLayout()
