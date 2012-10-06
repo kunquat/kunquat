@@ -42,6 +42,7 @@ class PatternEditor(QtGui.QWidget):
         top_layout = QtGui.QHBoxLayout(top_control)
 
         name = QtGui.QLabel('[pattern num/name]')
+        self.name = name
 
         autoinst = QtGui.QCheckBox('Autoinst')
         autoinst.setChecked(True)
@@ -96,8 +97,9 @@ class PatternEditor(QtGui.QWidget):
                                QtCore.SIGNAL('tsChanged(int, int)'),
                                self._pattern.length_changed)
 
-    def section_changed(self, subsong, section):
-        pattern = self._project._composition.get_pattern(subsong, section)
+    def section_changed(self, song, system):
+        self.name.setText('Song {0}, System {1}'.format(song + 1, system + 1))
+        pattern = self._project._composition.get_pattern(song, system)
         if pattern != None:
             key = 'pat_{0:03d}/p_pattern.json'.format(pattern)
             self._length.set_key(key)
