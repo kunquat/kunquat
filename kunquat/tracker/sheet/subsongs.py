@@ -108,7 +108,7 @@ class Subsongs(QtGui.QWidget):
                                 song_number)
         elif item_type == 'trash':
             self.show_trash()
-        elif item_type == 'section':
+        elif item_type == 'system':
             pattern_number = int(parts[1])
             song_item = item.parent()
             song_data = self.data_from_item(song_item)
@@ -129,13 +129,14 @@ class Subsongs(QtGui.QWidget):
     def create_systems(self, order_list):
         for i2, pattern in enumerate(order_list):
             system_number = i2 + 1
-            pattern_id = 'section_{0}'.format(i2)
-            ptt = 'System {1}'.format(system_number, pattern)
-            pname = str(system_number) + ': ' + str(pattern)
-            pattern_item = QtGui.QStandardItem(ptt)
-            #pattern_item.setToolTip(ptt)
+            system_id = 'system_{0}'.format(i2)
+            pname = 'pattern {0}'.format(pattern)
+            pt = '{0}: {1}'.format(system_number, pname)
+            ptt = 'System {0}: {1}'.format(system_number, pname)
+            pattern_item = QtGui.QStandardItem(pt)
+            pattern_item.setToolTip(ptt)
             pattern_item.setEditable(True)
-            pattern_item.setData({'type':pattern_id})
+            pattern_item.setData({'type':system_id})
             yield pattern_item
 
     def create_songs(self, song_ids):
