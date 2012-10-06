@@ -58,7 +58,7 @@ class Sheet(QtGui.QSplitter):
         self._edit_area.addWidget(self._subsong_params)
         self._edit_area.addWidget(self._pattern_editor)
 
-        self._subsongs = Subsongs(self.p)
+        self._subsongs = Subsongs(self.p, self._section)
         playorder = QtGui.QWidget(self)
         playout = QtGui.QVBoxLayout(playorder)
         playout.setMargin(0)

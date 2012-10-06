@@ -20,58 +20,12 @@ import kunquat.tracker.kqt_limits as lim
 
 class AlbumTree(QtGui.QTreeView):
 
-    def __init__(self):
+    def __init__(self, song_view):
         QtGui.QTreeView.__init__(self)
+        self.song_view = song_view
 
     def currentChanged(self, new_index, old_index):
-        model = new_index.model()
-	item = model.itemFromIndex(new_index)
-        data = item.data()
-        obj = data.toPyObject()
-        items = obj.items()
-        pyitems = [(str(a), b) for (a, b) in items]
-        pydict = dict(pyitems)
-        item_type = pydict['type']
-        print(item_type)
-        '''
-        if self._section_signal:
-            print('signal loop')
-            return
-        QtGui.QTreeView.currentChanged(self, new_index, old_index)
-        item = self._model.itemFromIndex(new_index)
-        if not item:
-            return
-        parent = item.parent()
-        if not parent:
-            QtCore.QObject.emit(self, QtCore.SIGNAL('compositionParams()'))
-            if self._cur_subsong != -1:
-                self._cur_subsong = -1
-                QtCore.QObject.emit(self,
-                                    QtCore.SIGNAL('subsongChanged(int)'),
-                                    self._cur_subsong)
-            return
-        child = item.child(0)
-        if child or not parent.parent():
-            if item.row() >= len(self._slists):
-                assert item.row() == len(self._slists)
-                return
-            QtCore.QObject.emit(self, QtCore.SIGNAL('subsongParams(int)'),
-                                item.row())
-            if self._cur_subsong != item.row():
-                self._cur_subsong = item.row()
-                QtCore.QObject.emit(self,
-                                    QtCore.SIGNAL('subsongChanged(int)'),
-                                    self._cur_subsong)
-            return
-        self._section_signal = True
-        self._section_manager.set(parent.row(), item.row())
-        self._section_signal = False
-        if self._cur_subsong != parent.row():
-            self._cur_subsong = parent.row()
-            QtCore.QObject.emit(self, QtCore.SIGNAL('subsongChanged(int)'),
-                                self._cur_subsong)
-    '''
-
+        return self.song_view.currentChanged(new_index, old_index)
 
 class Subsongs(QtGui.QWidget):
     '''
@@ -80,11 +34,12 @@ class Subsongs(QtGui.QWidget):
     subsong_changed = QtCore.pyqtSignal(int, name='subsongChanged')
     '''
 
-    def __init__(self, p):
+    def __init__(self, p, section):
         QtGui.QWidget.__init__(self)
         self.p = p
+        self._section_manager = section
 
-        song_list = AlbumTree()
+        song_list = AlbumTree(self)
         song_list.setHeaderHidden(True)
         song_list.setRootIsDecorated(False)
         #song_list.setDragDropMode(QtGui.QAbstractItemView.InternalMove)
@@ -118,15 +73,69 @@ class Subsongs(QtGui.QWidget):
     def init(self):
         self.update()
 
+    def data_from_item(self, item):
+        data = item.data()
+        obj = data.toPyObject()
+        items = obj.items()
+        pyitems = [(str(a), b) for (a, b) in items]
+        pydict = dict(pyitems)
+        return pydict
+
+    def show_album(self):
+        QtCore.QObject.emit(self, QtCore.SIGNAL('compositionParams()'))
+        QtCore.QObject.emit(self,
+                            QtCore.SIGNAL('subsongChanged(int)'),
+                            -1)
+
+    def show_trash(self):
+        self.show_album()
+
+    def currentChanged(self, new_index, old_index):
+        model = new_index.model()
+	item = model.itemFromIndex(new_index)
+        item_data = self.data_from_item(item)
+        item_id = item_data['type']
+	parts = item_id.split('_')
+        item_type = parts[0]
+        if item_type == 'album':
+            self.show_album()
+        elif item_type == 'song':
+            song_number = int(parts[1])
+            QtCore.QObject.emit(self, QtCore.SIGNAL('subsongParams(int)'),
+                                song_number)
+            QtCore.QObject.emit(self,
+                                QtCore.SIGNAL('subsongChanged(int)'),
+                                song_number)
+        elif item_type == 'trash':
+            self.show_trash()
+        elif item_type == 'section':
+            pattern_number = int(parts[1])
+            song_item = item.parent()
+            song_data = self.data_from_item(song_item)
+            song_id = song_data['type']
+	    song_id_parts = song_id.split('_')
+            song_type = song_id_parts[0]
+            if song_type == 'trash':
+                self.show_trash()
+            else:
+                song_number = int(song_id_parts[1]) 
+                self._section_manager.set(song_number, pattern_number)
+                QtCore.QObject.emit(self,
+                                    QtCore.SIGNAL('subsongChanged(int)'),
+                                    song_number)
+        else:
+            assert False
+
     def create_systems(self, order_list):
         for i2, pattern in enumerate(order_list):
             system_number = i2 + 1
+            pattern_id = 'section_{0}'.format(i2)
             ptt = 'System {1}'.format(system_number, pattern)
             pname = str(system_number) + ': ' + str(pattern)
             pattern_item = QtGui.QStandardItem(ptt)
             #pattern_item.setToolTip(ptt)
             pattern_item.setEditable(True)
-            pattern_item.setData({'type':'system'})
+            pattern_item.setData({'type':pattern_id})
             yield pattern_item
 
     def create_songs(self, song_ids):
@@ -139,7 +148,7 @@ class Subsongs(QtGui.QWidget):
             song_item = QtGui.QStandardItem(stt)
             #song_item.setToolTip(stt)
             song_item.setEditable(False)
-            song_item.setData({'type':'song'})
+            song_item.setData({'type':song_id})
             order_list = song.get_order_list()
             for pattern_item in self.create_systems(order_list):
                 song_item.appendRow(pattern_item)
