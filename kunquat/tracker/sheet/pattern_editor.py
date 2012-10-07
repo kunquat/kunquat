@@ -98,7 +98,7 @@ class PatternEditor(QtGui.QWidget):
                                self._pattern.length_changed)
 
     def section_changed(self, song, system):
-        self.name.setText('Song {0}, System {1}'.format(song + 1, system + 1))
+        self.name.setText('Song {0}, System {1}'.format(song, system))
         pattern = self._project._composition.get_pattern(song, system)
         if pattern != None:
             key = 'pat_{0:03d}/p_pattern.json'.format(pattern)
