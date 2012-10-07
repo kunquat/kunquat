@@ -86,9 +86,6 @@ class Subsongs(QtGui.QWidget):
                             QtCore.SIGNAL('subsongChanged(int)'),
                             -1)
 
-    def show_trash(self):
-        self.show_album()
-
     def currentChanged(self, new_index, old_index):
         model = new_index.model()
 	item = model.itemFromIndex(new_index)
@@ -105,8 +102,6 @@ class Subsongs(QtGui.QWidget):
             QtCore.QObject.emit(self,
                                 QtCore.SIGNAL('subsongChanged(int)'),
                                 song_number)
-        elif item_type == 'trash':
-            self.show_trash()
         elif item_type == 'system':
             pattern_number = int(parts[1])
             song_item = item.parent()
@@ -114,14 +109,11 @@ class Subsongs(QtGui.QWidget):
             song_id = song_data['type']
 	    song_id_parts = song_id.split('_')
             song_type = song_id_parts[0]
-            if song_type == 'trash':
-                self.show_trash()
-            else:
-                song_number = int(song_id_parts[1]) 
-                self._section_manager.set(song_number, pattern_number)
-                QtCore.QObject.emit(self,
-                                    QtCore.SIGNAL('subsongChanged(int)'),
-                                    song_number)
+            song_number = int(song_id_parts[1]) 
+            self._section_manager.set(song_number, pattern_number)
+            QtCore.QObject.emit(self,
+                                QtCore.SIGNAL('subsongChanged(int)'),
+                                song_number)
         else:
             assert False
 
@@ -154,16 +146,6 @@ class Subsongs(QtGui.QWidget):
                 song_item.appendRow(pattern_item)
             yield song_item
 
-    def create_trash(self):
-        trash_item = QtGui.QStandardItem('Trash')
-        trash_item.setEditable(False)
-        trash_item.setData({'type':'trash'})
-        trash_ids = self.p.project._composition.left_over_patterns()
-        trash = [int(i.split('_')[1]) for i in trash_ids]
-        for system_item in self.create_systems(sorted(trash)):
-            trash_item.appendRow(system_item)
-        return trash_item
-
     def update(self):
         project = self.p.project
         album_item = QtGui.QStandardItem('untitled album')
@@ -172,8 +154,6 @@ class Subsongs(QtGui.QWidget):
         songs = self.p.project._composition.song_ids()
         for song_item in self.create_songs(songs):
             album_item.appendRow(song_item)
-        trash = self.create_trash()
-        album_item.appendRow(trash)
         model = QtGui.QStandardItemModel()
         root = model.invisibleRootItem()
         root.appendRow(album_item)
