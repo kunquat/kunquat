@@ -118,9 +118,8 @@ class Subsongs(QtGui.QWidget):
             assert False
 
     def create_systems(self, order_list):
-        for i2, pattern in enumerate(order_list):
-            system_number = i2 + 1
-            system_id = 'system_{0}'.format(i2)
+        for system_number, pattern in enumerate(order_list):
+            system_id = 'system_{0}'.format(system_number)
             pname = 'pattern {0}'.format(pattern)
             pt = '{0}: {1}'.format(system_number, pname)
             ptt = 'System {0}: {1}'.format(system_number, pname)
@@ -131,8 +130,7 @@ class Subsongs(QtGui.QWidget):
             yield pattern_item
 
     def create_songs(self, song_ids):
-        for i, song_id in enumerate(song_ids):
-            song_number = i + 1
+        for song_number, song_id in enumerate(song_ids):
             song = self.p.project._composition.get_song(song_id)
             song_name = song.get_name()
             name = '{0}: {1}'.format(song_number, song_name)
