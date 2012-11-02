@@ -28,14 +28,8 @@ class TypewriterView(QAbstractScrollArea):
         # Reserving 0 pixels does not work properly
         self.setMinimumHeight(1)
 
-    def all_ints(self):
-        i = 0
-        while True:
-            yield i
-            i += 1
-
     def create_rows(self, button_layout):
-        for (i, buttons) in zip(self.all_ints(), button_layout):
+        for (i, buttons) in enumerate(button_layout):
             yield self.create_row(i, buttons)
 
     def special_button(self, rowc):
