@@ -120,7 +120,8 @@ class Subsongs(QtGui.QWidget):
             piname = self.pattern_instance_name(patterns, pattern_instance)
             pattern_item = QtGui.QStandardItem(piname)
             pattern_item.setEditable(True)
-            pattern_item.setData({'type':piname})
+            system_id = u'system_{0}'.format(system_number)
+            pattern_item.setData({'type':system_id})
             yield pattern_item
 
     def create_songs(self, song_ids):
