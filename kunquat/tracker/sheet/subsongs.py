@@ -45,27 +45,10 @@ class Subsongs(QtGui.QWidget):
         #song_list.setDragDropMode(QtGui.QAbstractItemView.InternalMove)
         self._song_list = song_list
 
-        but_layout = QtGui.QVBoxLayout()
-        buttons = QtGui.QWidget()
-        buttons.setLayout(but_layout)
-        new_song = QtGui.QPushButton('new song')
-        new_song = QtGui.QPushButton('delete song')
-        duplicate_section = QtGui.QPushButton('duplicate section')
-        reuse_section = QtGui.QPushButton('reuse section')
-        rm_section = QtGui.QPushButton('remove section')
-        new_section = QtGui.QPushButton('new section')
-        but_layout.addWidget(new_song)
-        but_layout.addWidget(duplicate_section)
-        but_layout.addWidget(reuse_section)
-        but_layout.addWidget(new_section)
-        but_layout.setMargin(0)
-        but_layout.setSpacing(0)
-
         layout = QtGui.QVBoxLayout()
         #layout.setMargin(0)
         layout.setSpacing(0)
         layout.addWidget(song_list)
-        layout.addWidget(buttons)
 
         self.setLayout(layout)
 
@@ -117,12 +100,19 @@ class Subsongs(QtGui.QWidget):
         else:
             assert False
 
+    def subscript(self, number):
+        nums = [int(i) for i in str(number)]
+        subs = [unichr(0x2080 + i) for i in nums]
+        return u''.join(subs)
+
     def create_systems(self, order_list):
-        for system_number, pattern in enumerate(order_list):
-            system_id = 'system_{0}'.format(system_number)
-            pname = 'pattern {0}'.format(pattern)
-            pt = '{0}: {1}'.format(system_number, pname)
-            ptt = 'System {0}: {1}'.format(system_number, pname)
+        for system_number, pattern_instance in enumerate(order_list):
+            pattern, instance = pattern_instance
+            system_id = u'system_{0}'.format(system_number)
+            pname = u'pattern{0}'.format(pattern)
+            piname = pname + self.subscript(instance)
+            pt = u'{0}: {1}'.format(system_number, piname)
+            ptt = u'System {0}: {1}'.format(system_number, piname)
             pattern_item = QtGui.QStandardItem(pt)
             pattern_item.setToolTip(ptt)
             pattern_item.setEditable(True)
@@ -133,10 +123,9 @@ class Subsongs(QtGui.QWidget):
         for song_number, song_id in enumerate(song_ids):
             song = self.p.project._composition.get_song(song_id)
             song_name = song.get_name()
-            name = '{0}: {1}'.format(song_number, song_name)
-            stt = 'Song {0}: {1}'.format(song_number, song_name)
-            song_item = QtGui.QStandardItem(stt)
-            #song_item.setToolTip(stt)
+            song_name = 'song{0}'.format(song_number)
+            st = 'Track {0}: {1}'.format(song_number, song_name)
+            song_item = QtGui.QStandardItem(st)
             song_item.setEditable(False)
             song_item.setData({'type':song_id})
             order_list = song.get_order_list()
@@ -146,7 +135,9 @@ class Subsongs(QtGui.QWidget):
 
     def update(self):
         project = self.p.project
-        album_item = QtGui.QStandardItem('untitled album')
+        album_name = 'untitled album'
+        at = '{0}'.format(album_name)
+        album_item = QtGui.QStandardItem(at)
         album_item.setEditable(False)
         album_item.setData({'type':'album'})
         songs = self.p.project._composition.song_ids()

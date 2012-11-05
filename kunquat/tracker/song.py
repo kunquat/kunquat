@@ -10,7 +10,21 @@ class Song():
         name = self._view.get_json('m_name.json') or '-'
         return name
 
+    def _count_each(self, l):
+        counters = {}
+        for item in l:
+            try:
+                value = counters[item]
+            except KeyError:
+                value = 0
+            yield [item, value]
+            counters[item] = value + 1
+        
     def get_order_list(self):
-        songdata = self._view.get_json('p_song.json')
-        order_list = songdata['patterns']
-        return order_list
+        if 'p_orderlist.json' not in self._view.keys():
+            songdata = self._view.get_json('p_song.json')
+            old_list = songdata['patterns']
+            instances = list(self._count_each(old_list))
+            self._view.put('p_orderlist.json', instances)
+        orderlist = self._view.get_json('p_orderlist.json')
+        return orderlist
