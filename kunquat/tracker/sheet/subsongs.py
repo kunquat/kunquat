@@ -107,7 +107,7 @@ class Subsongs(QtGui.QWidget):
 
     def pattern_instance_name(self, patterns, pattern_instance):
         pattern, instance = pattern_instance
-        pname = u'pattern{0}'.format(pattern)
+        pname = u'pattern {0}'.format(pattern)
         if len([i for i in patterns if i == pattern]) > 1:
              piname = pname + self.subscript(instance)
         else:
@@ -119,7 +119,7 @@ class Subsongs(QtGui.QWidget):
         for system_number, pattern_instance in enumerate(order_list):
             piname = self.pattern_instance_name(patterns, pattern_instance)
             pattern_item = QtGui.QStandardItem(piname)
-            pattern_item.setEditable(True)
+            pattern_item.setEditable(False)
             system_id = u'system_{0}'.format(system_number)
             pattern_item.setData({'type':system_id})
             yield pattern_item
@@ -128,8 +128,8 @@ class Subsongs(QtGui.QWidget):
         for song_number, song_id in enumerate(song_ids):
             song = self.p.project._composition.get_song(song_id)
             song_name = song.get_name()
-            song_name = 'song{0}'.format(song_number)
-            st = 'Track {0}: {1}'.format(song_number, song_name)
+            song_name = 'song {0}'.format(song_number)
+            st = '{0}: {1}'.format(song_number, song_name)
             song_item = QtGui.QStandardItem(st)
             song_item.setEditable(False)
             song_item.setData({'type':song_id})
