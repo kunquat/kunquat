@@ -52,11 +52,17 @@ class Sheet(QtGui.QSplitter):
                                              octave_spin,
                                              instrument_spin,
                                              typewriter)
-        self._edit_area = QtGui.QStackedWidget()
-        self._edit_area.setFrameShape(QtGui.QFrame.StyledPanel)
-        self._edit_area.addWidget(self._comp_params)
-        self._edit_area.addWidget(self._subsong_params)
-        self._edit_area.addWidget(self._pattern_editor)
+
+        tools = QtGui.QWidget(self)
+        tool_layout = QtGui.QVBoxLayout(tools)
+        tool_layout.addWidget(self._comp_params)
+        tool_layout.addWidget(self._subsong_params)
+
+        edit_area = QtGui.QSplitter()
+        edit_area.setOrientation(QtCore.Qt.Horizontal)
+        edit_area.addWidget(self._pattern_editor)
+        edit_area.addWidget(tools)
+        self._edit_area = edit_area
 
         self._subsongs = Subsongs(self.p, self._section)
         playorder = QtGui.QWidget(self)
@@ -99,13 +105,13 @@ class Sheet(QtGui.QSplitter):
                                self._subsong_params.subsong_changed)
 
     def section_changed(self, *args):
-        self._edit_area.setCurrentWidget(self._pattern_editor)
+        pass
 
     def to_comp_params(self, *args):
-        self._edit_area.setCurrentWidget(self._comp_params)
+        pass
 
     def to_subsong_params(self, num):
-        self._edit_area.setCurrentWidget(self._subsong_params)
+        pass
 
     def sync(self):
         self._comp_params.sync()
