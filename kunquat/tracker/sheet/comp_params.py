@@ -20,10 +20,10 @@ from kunquat.tracker.param_slider import ParamSlider
 from kunquat.tracker.param_spin import ParamSpin
 
 
-class CompParams(QtGui.QWidget):
+class CompParams(QtGui.QGroupBox):
 
-    def __init__(self, project, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+    def __init__(self, project):
+        QtGui.QGroupBox.__init__(self, 'album')
         self._project = project
         self._layout = QtGui.QVBoxLayout(self)
 

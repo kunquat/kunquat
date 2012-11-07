@@ -14,9 +14,12 @@
 from PyQt4 import QtGui, QtCore
 
 import kunquat.tracker.kqt_limits as lim
-from comp_params import CompParams
 from pattern_editor import PatternEditor
+from comp_params import CompParams
 from subsong_params import SubsongParams
+from pattern_params import PatternParams
+from instance_params import InstanceParams
+from trigger_params import TriggerParams
 from subsongs import Subsongs
 
 
@@ -44,6 +47,10 @@ class Sheet(QtGui.QSplitter):
 
         self._comp_params = CompParams(project)
         self._subsong_params = SubsongParams(project)
+        self._pattern_params = PatternParams(project)
+        self._instance_params = InstanceParams(project)
+        self._trigger_params = TriggerParams(project)
+
         self._pattern_editor = PatternEditor(project,
                                              playback,
                                              self._section,
@@ -57,6 +64,9 @@ class Sheet(QtGui.QSplitter):
         tool_layout = QtGui.QVBoxLayout(tools)
         tool_layout.addWidget(self._comp_params)
         tool_layout.addWidget(self._subsong_params)
+        tool_layout.addWidget(self._pattern_params)
+        tool_layout.addWidget(self._instance_params)
+        tool_layout.addWidget(self._trigger_params)
 
         edit_area = QtGui.QSplitter()
         edit_area.setOrientation(QtCore.Qt.Horizontal)

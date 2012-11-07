@@ -17,10 +17,10 @@ import kunquat.tracker.kqt_limits as lim
 from kunquat.tracker.param_slider import ParamSlider
 
 
-class SubsongParams(QtGui.QWidget):
+class SubsongParams(QtGui.QGroupBox):
 
-    def __init__(self, project, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+    def __init__(self, project):
+        QtGui.QWidget.__init__(self, 'song')
         self._project = project
         self._layout = QtGui.QVBoxLayout(self)
         self._subsong = 0
