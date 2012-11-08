@@ -41,9 +41,6 @@ class PatternEditor(QtGui.QWidget):
         top_control = QtGui.QWidget()
         top_layout = QtGui.QHBoxLayout(top_control)
 
-        name = QtGui.QLabel('[pattern num/name]')
-        self.name = name
-
         autoinst = QtGui.QCheckBox('Autoinst')
         autoinst.setChecked(True)
 
@@ -61,11 +58,10 @@ class PatternEditor(QtGui.QWidget):
                                      'length',
                                      2)
 
-        top_layout.addWidget(name, 1)
         top_layout.addWidget(autoinst, 0)
         top_layout.addWidget(grid, 0)
         top_layout.addWidget(snap_to_grid, 0)
-        top_layout.addWidget(self._length, 0)
+        #top_layout.addWidget(self._length, 0)
 
         self._pattern = Pattern(project,
                                 section_manager,
@@ -74,7 +70,7 @@ class PatternEditor(QtGui.QWidget):
                                 octave_spin,
                                 instrument_spin,
                                 typewriter)
-        layout.addWidget(top_control, 0)
+        #layout.addWidget(top_control, 0)
         layout.addWidget(self._pattern, 1)
 
         QtCore.QObject.connect(self._pattern,
@@ -98,7 +94,6 @@ class PatternEditor(QtGui.QWidget):
                                self._pattern.length_changed)
 
     def section_changed(self, song, system):
-        self.name.setText('Song {0}, System {1}'.format(song, system))
         pattern = self._project._composition.get_pattern(song, system)
         if pattern != None:
             key = 'pat_{0:03d}/p_pattern.json'.format(pattern)

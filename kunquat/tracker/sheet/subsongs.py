@@ -46,7 +46,7 @@ class Subsongs(QtGui.QWidget):
         self._song_list = song_list
 
         layout = QtGui.QVBoxLayout()
-        #layout.setMargin(0)
+        layout.setMargin(0)
         layout.setSpacing(0)
         layout.addWidget(song_list)
 

@@ -12,6 +12,7 @@
 #
 
 from PyQt4 import QtGui, QtCore
+from PyQt4.QtGui import QLabel, QFrame
 
 import kunquat.tracker.kqt_limits as lim
 from pattern_editor import PatternEditor
@@ -23,7 +24,7 @@ from trigger_params import TriggerParams
 from subsongs import Subsongs
 
 
-class Sheet(QtGui.QSplitter):
+class Sheet(QtGui.QWidget):
 
     def __init__(self,
                  p,
@@ -38,7 +39,37 @@ class Sheet(QtGui.QSplitter):
                  typewriter,
                  playbackbar,
                  parent=None):
-        QtGui.QSplitter.__init__(self, parent)
+        QtGui.QWidget.__init__(self)
+
+        layout = QtGui.QVBoxLayout(self)
+        layout.setMargin(0)
+        layout.setSpacing(0)
+        self._layout = layout
+
+
+        autoinst = QtGui.QCheckBox('Autoinst')
+        autoinst.setChecked(True)
+
+        grid = QtGui.QCheckBox('Grid')
+        grid.setChecked(True)
+
+        snap_to_grid = QtGui.QCheckBox('Snap')
+        snap_to_grid.setChecked(True)
+
+
+        splitter = QtGui.QSplitter()
+        topbar = QtGui.QWidget()
+        topbar.setMaximumHeight(40)
+        top_layout = QtGui.QHBoxLayout(topbar)
+        top_layout.setMargin(5)
+        top_layout.setSpacing(5)
+        top_layout.addWidget(playbackbar)
+        top_layout.addWidget(autoinst, 0)
+        top_layout.addWidget(grid, 0)
+        top_layout.addWidget(snap_to_grid, 0)
+
+        self._layout.addWidget(topbar)
+        self._layout.addWidget(splitter)
 
         self.p = p
         self._project = project
@@ -68,10 +99,27 @@ class Sheet(QtGui.QSplitter):
         tool_layout.addWidget(self._instance_params)
         tool_layout.addWidget(self._trigger_params)
 
-        edit_area = QtGui.QSplitter()
-        edit_area.setOrientation(QtCore.Qt.Horizontal)
-        edit_area.addWidget(self._pattern_editor)
-        edit_area.addWidget(tools)
+        tool_scroller = QtGui.QScrollArea()
+        tool_scroller.setWidgetResizable(True)
+        tool_scroller.setEnabled(True)
+        tool_scroller.setWidget(tools)
+        tool_scroller.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+
+        edit_splitter = QtGui.QSplitter()
+        edit_splitter.setOrientation(QtCore.Qt.Horizontal)
+        edit_splitter.addWidget(self._pattern_editor)
+        edit_splitter.addWidget(tool_scroller)
+        edit_splitter.setStretchFactor(0, 0)
+        edit_splitter.setStretchFactor(1, 1)
+        edit_splitter.setSizes([480, 1])
+        edit_area = QtGui.QFrame()
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
+        edit_area.setSizePolicy(sizePolicy)
+        edit_area.setFrameStyle(QFrame.Panel | QFrame.Sunken)
+        edit_area_layout = QtGui.QVBoxLayout(edit_area)
+        edit_area_layout.setMargin(0)
+        edit_area_layout.setSpacing(0)
+        edit_area_layout.addWidget(edit_splitter)
         self._edit_area = edit_area
 
         self._subsongs = Subsongs(self.p, self._section)
@@ -80,7 +128,6 @@ class Sheet(QtGui.QSplitter):
         playout.setMargin(0)
         playout.setSpacing(0)
 
-        playout.addWidget(playbackbar)
         playout.addWidget(self._subsongs)
 
         QtCore.QObject.connect(self._subsongs,
@@ -89,12 +136,12 @@ class Sheet(QtGui.QSplitter):
         QtCore.QObject.connect(self._subsongs,
                                QtCore.SIGNAL('subsongChanged(int)'),
                                subsong_changed_slot)
-        self.addWidget(playorder)
-        self.addWidget(self._edit_area)
-        self.setStretchFactor(0, 0)
-        self.setStretchFactor(1, 1)
-        self.setSizes([180, 1])
-        self.setMinimumHeight(200)
+        splitter.addWidget(playorder)
+        splitter.addWidget(self._edit_area)
+        splitter.setStretchFactor(0, 0)
+        splitter.setStretchFactor(1, 1)
+        splitter.setSizes([180, 1])
+        splitter.setMinimumHeight(200)
 
         self._section.connect(self.section_changed)
         self._section.connect(section_changed_slot)

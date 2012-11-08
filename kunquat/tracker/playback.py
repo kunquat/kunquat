@@ -25,13 +25,13 @@ class Playback(QtCore.QObject):
 
     def get_view(self):
         widget = QtGui.QWidget()
-        layout = QtGui.QVBoxLayout(widget)
+        layout = QtGui.QHBoxLayout(widget)
         bwidget = QtGui.QWidget()
         blayout = QtGui.QHBoxLayout(bwidget)
         layout.setMargin(0)
         layout.setSpacing(0)
         blayout.setMargin(0)
-        blayout.setSpacing(5)
+        blayout.setSpacing(0)
 
         play = QtGui.QToolButton()
         play.setText('Play')
@@ -84,8 +84,8 @@ class Playback(QtCore.QObject):
         blayout.addWidget(seek_for)
         blayout.addWidget(state_but)
 
-        layout.addWidget(self._pos_display)
         layout.addWidget(bwidget)
+        layout.addWidget(self._pos_display)
         #layout.addWidget(subsong_select)
         #layout.addWidget(tempo_factor)
 
