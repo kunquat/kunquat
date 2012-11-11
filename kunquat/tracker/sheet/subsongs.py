@@ -41,7 +41,7 @@ class Subsongs(QtGui.QWidget):
 
         song_list = AlbumTree(self)
         song_list.setHeaderHidden(True)
-        song_list.setRootIsDecorated(False)
+        song_list.setRootIsDecorated(True)
         #song_list.setDragDropMode(QtGui.QAbstractItemView.InternalMove)
         self._song_list = song_list
 
@@ -140,17 +140,11 @@ class Subsongs(QtGui.QWidget):
 
     def update(self):
         project = self.p.project
-        album_name = 'untitled album'
-        at = '{0}'.format(album_name)
-        album_item = QtGui.QStandardItem(at)
-        album_item.setEditable(False)
-        album_item.setData({'type':'album'})
         songs = self.p.project._composition.song_ids()
-        for song_item in self.create_songs(songs):
-            album_item.appendRow(song_item)
         model = QtGui.QStandardItemModel()
         root = model.invisibleRootItem()
-        root.appendRow(album_item)
+        for song_item in self.create_songs(songs):
+            root.appendRow(song_item)
         self._song_list.setModel(model)
         self._song_list.expandAll()
 
