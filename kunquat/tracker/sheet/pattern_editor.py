@@ -41,27 +41,6 @@ class PatternEditor(QtGui.QWidget):
         top_control = QtGui.QWidget()
         top_layout = QtGui.QHBoxLayout(top_control)
 
-        autoinst = QtGui.QCheckBox('Autoinst')
-        autoinst.setChecked(True)
-
-        grid = QtGui.QCheckBox('Grid')
-        grid.setChecked(True)
-
-        snap_to_grid = QtGui.QCheckBox('Snap')
-        snap_to_grid.setChecked(True)
-
-        self._length = TimestampSpin(project,
-                                     'Length:',
-                                     (ts.Timestamp(0), ts.Timestamp(1024, 0)),
-                                     ts.Timestamp(16),
-                                     'pat_000/p_pattern.json',
-                                     'length',
-                                     2)
-
-        top_layout.addWidget(autoinst, 0)
-        top_layout.addWidget(grid, 0)
-        top_layout.addWidget(snap_to_grid, 0)
-        #top_layout.addWidget(self._length, 0)
 
         self._pattern = Pattern(project,
                                 section_manager,
@@ -79,19 +58,13 @@ class PatternEditor(QtGui.QWidget):
 
     def init(self):
         self._pattern.init()
-        self._length.init()
-        QtCore.QObject.connect(self._length,
-                               QtCore.SIGNAL('tsChanged(int, int)'),
-                               self._pattern.length_changed)
 
     def section_changed(self, song, system):
         pattern = self._project._composition.get_pattern(song, system)
         if pattern != None:
             key = 'pat_{0:03d}/p_pattern.json'.format(pattern)
-            self._length.set_key(key)
 
     def sync(self):
-        self._length.sync()
         self._pattern.sync()
 
 

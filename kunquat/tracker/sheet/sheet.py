@@ -96,7 +96,7 @@ class Sheet(QtGui.QWidget):
 
         self._comp_params = CompParams(project)
         self._subsong_params = SubsongParams(project)
-        self._pattern_params = PatternParams(project)
+        self._pattern_params = PatternParams(project, self)
         self._instance_params = InstanceParams(project)
         self._trigger_params = TriggerParams(project)
 
@@ -159,6 +159,7 @@ class Sheet(QtGui.QWidget):
         self._subsongs.init()
         self._comp_params.init()
         self._subsong_params.init()
+        self._pattern_params.init()
         self._pattern_editor.init()
         QtCore.QObject.connect(self._subsongs,
                                QtCore.SIGNAL('compositionParams()'),
@@ -171,13 +172,16 @@ class Sheet(QtGui.QWidget):
                                self._subsong_params.subsong_changed)
 
     def section_changed(self, *args):
-        pass
+        self._pattern_params.section_changed(self._section.subsong, self._section.section)
 
     def to_comp_params(self, *args):
         pass
 
     def to_subsong_params(self, num):
         pass
+
+    def length_changed(self):
+        self._pattern_editor._pattern.length_changed()
 
     def sync(self):
         self._comp_params.sync()
