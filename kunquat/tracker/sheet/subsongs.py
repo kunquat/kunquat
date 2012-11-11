@@ -27,6 +27,10 @@ class AlbumTree(QtGui.QTreeView):
     def currentChanged(self, new_index, old_index):
         return self.song_view.currentChanged(new_index, old_index)
 
+    def dragEnterEvent(self, e):
+        super(AlbumTree, self).dragEnterEvent(e) # this fails, I think
+        self.song_view.drag_enter(e)
+
 class Subsongs(QtGui.QWidget):
     '''
     comp_signal = QtCore.pyqtSignal(name='compositionParams')
@@ -42,13 +46,16 @@ class Subsongs(QtGui.QWidget):
         song_list = AlbumTree(self)
         song_list.setHeaderHidden(True)
         song_list.setRootIsDecorated(True)
-        #song_list.setDragDropMode(QtGui.QAbstractItemView.InternalMove)
+        song_list.setDragDropMode(QtGui.QAbstractItemView.InternalMove)
         self._song_list = song_list
 
         layout = QtGui.QVBoxLayout()
         layout.setMargin(0)
         layout.setSpacing(0)
         layout.addWidget(song_list)
+
+        self._songs = set()
+        self._patterns = set()
 
         self.setLayout(layout)
 
@@ -112,6 +119,7 @@ class Subsongs(QtGui.QWidget):
             piname = self.pattern_instance_name(patterns, pattern_instance)
             pattern_item = QtGui.QStandardItem(piname)
             pattern_item.setEditable(False)
+            pattern_item.setDropEnabled(False)
             system_id = u'system_{0}'.format(system_number)
             pattern_item.setData({'type':system_id})
             yield pattern_item
@@ -123,18 +131,53 @@ class Subsongs(QtGui.QWidget):
             song_name = 'song {0}'.format(song_number)
             st = '{1}'.format(song_number, song_name)
             song_item = QtGui.QStandardItem(st)
+            song_item.setDragEnabled(True)
             song_item.setEditable(False)
             song_item.setData({'type':song_id})
             order_list = song.get_order_list()
             for pattern_item in self.create_systems(order_list):
                 song_item.appendRow(pattern_item)
+            self._songs.add(song_item)
             yield song_item
+
+    def song_drag(self):
+        self._root.setDropEnabled(True)
+        for song in self._songs:
+            song.setDropEnabled(False)
+
+    def pattern_drag(self):
+        self._root.setDropEnabled(False)
+        for song in self._songs:
+            song.setDropEnabled(True)
+
+    def drag_enter(self, e):
+        mt = 'application/x-qabstractitemmodeldatalist'
+        md = e.mimeData()
+        if not md.hasFormat(mt): # invalid type
+            e.ignore()
+        model = QtGui.QStandardItemModel()
+        model.dropMimeData(md, QtCore.Qt.CopyAction, 0,0, QtCore.QModelIndex())
+        root = model.invisibleRootItem()
+        rc = root.rowCount()
+        if rc != 1: # multi drag
+            e.ignore()
+        item = root.child(0,0)
+        item_data = self.data_from_item(item)
+        item_id = item_data['type']
+	parts = item_id.split('_')
+        item_type = parts[0]
+        if item_type == 'system':
+            self.pattern_drag()
+        elif item_type == 'song':
+            self.song_drag()
 
     def update(self):
         project = self.p.project
         songs = self.p.project._composition.song_ids()
         model = QtGui.QStandardItemModel()
         root = model.invisibleRootItem()
+        self._root = root
+        self._model = model
         for song_item in self.create_songs(songs):
             root.appendRow(song_item)
         self._song_list.setModel(model)
