@@ -77,16 +77,15 @@ class Subsongs(QtGui.QWidget):
         pydict = dict(pyitems)
         return pydict
 
-    def currentChanged(self, new_index, old_index):
-        model = new_index.model()
-	item = model.itemFromIndex(new_index)
+    def deal_with(self, item):
         item_data = self.data_from_item(item)
         item_id = item_data['type']
 	parts = item_id.split('_')
         item_type = parts[0]
         if item_type == 'song':
             song_number = int(parts[1])
-            QtCore.QObject.emit(self, QtCore.SIGNAL('subsongParams(int)'),
+            QtCore.QObject.emit(self,
+                                QtCore.SIGNAL('subsongParams(int)'),
                                 song_number)
             QtCore.QObject.emit(self,
                                 QtCore.SIGNAL('subsongChanged(int)'),
@@ -98,13 +97,20 @@ class Subsongs(QtGui.QWidget):
             song_id = song_data['type']
 	    song_id_parts = song_id.split('_')
             song_type = song_id_parts[0]
-            song_number = int(song_id_parts[1]) 
+            song_number = int(song_id_parts[1])
             self._section_manager.set(song_number, pattern_number)
             QtCore.QObject.emit(self,
                                 QtCore.SIGNAL('subsongChanged(int)'),
                                 song_number)
+            parent = item.parent()
+            self.deal_with(parent)
         else:
             assert False
+
+    def currentChanged(self, new_index, old_index):
+        model = new_index.model()
+	item = model.itemFromIndex(new_index)
+        self.deal_with(item)
 
     def subscript(self, number):
         nums = [int(i) for i in str(number)]
