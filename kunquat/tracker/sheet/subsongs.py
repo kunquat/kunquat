@@ -28,7 +28,7 @@ class AlbumTree(QtGui.QTreeView):
         return self.song_view.currentChanged(new_index, old_index)
 
     def dragEnterEvent(self, e):
-        super(AlbumTree, self).dragEnterEvent(e) # this fails, I think
+        QtGui.QTreeView.dragEnterEvent(self, e)
         self.song_view.drag_enter(e)
 
 class Subsongs(QtGui.QWidget):
@@ -54,13 +54,20 @@ class Subsongs(QtGui.QWidget):
         layout.setSpacing(0)
         layout.addWidget(song_list)
 
-        self._songs = set()
-        self._patterns = set()
-
         self.setLayout(layout)
 
     def init(self):
         self.update()
+
+    @property
+    def _songs(self):
+        song_count = self._root.rowCount()
+        songs = set()
+        for i in range(song_count):
+            song = self._root.child(i, 0)
+            songs.add(song)
+        return songs
+
 
     def data_from_item(self, item):
         data = item.data()
@@ -137,7 +144,6 @@ class Subsongs(QtGui.QWidget):
             order_list = song.get_order_list()
             for pattern_item in self.create_systems(order_list):
                 song_item.appendRow(pattern_item)
-            self._songs.add(song_item)
             yield song_item
 
     def song_drag(self):
