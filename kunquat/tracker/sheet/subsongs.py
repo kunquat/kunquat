@@ -63,12 +63,6 @@ class Subsongs(QtGui.QWidget):
         pydict = dict(pyitems)
         return pydict
 
-    def show_album(self):
-        QtCore.QObject.emit(self, QtCore.SIGNAL('compositionParams()'))
-        QtCore.QObject.emit(self,
-                            QtCore.SIGNAL('subsongChanged(int)'),
-                            -1)
-
     def currentChanged(self, new_index, old_index):
         model = new_index.model()
 	item = model.itemFromIndex(new_index)
@@ -76,9 +70,7 @@ class Subsongs(QtGui.QWidget):
         item_id = item_data['type']
 	parts = item_id.split('_')
         item_type = parts[0]
-        if item_type == 'album':
-            self.show_album()
-        elif item_type == 'song':
+        if item_type == 'song':
             song_number = int(parts[1])
             QtCore.QObject.emit(self, QtCore.SIGNAL('subsongParams(int)'),
                                 song_number)
