@@ -129,7 +129,7 @@ class Subsongs(QtGui.QWidget):
             song = self.p.project._composition.get_song(song_id)
             song_name = song.get_name()
             song_name = 'song {0}'.format(song_number)
-            st = '{0}: {1}'.format(song_number, song_name)
+            st = '{1}'.format(song_number, song_name)
             song_item = QtGui.QStandardItem(st)
             song_item.setEditable(False)
             song_item.setData({'type':song_id})
