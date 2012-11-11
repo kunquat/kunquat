@@ -38,10 +38,6 @@ class PatternEditor(QtGui.QWidget):
         layout.setMargin(0)
         layout.setSpacing(0)
 
-        top_control = QtGui.QWidget()
-        top_layout = QtGui.QHBoxLayout(top_control)
-
-
         self._pattern = Pattern(project,
                                 section_manager,
                                 playback_manager,
@@ -49,7 +45,6 @@ class PatternEditor(QtGui.QWidget):
                                 octave_spin,
                                 instrument_spin,
                                 typewriter)
-        #layout.addWidget(top_control, 0)
         layout.addWidget(self._pattern, 1)
 
         QtCore.QObject.connect(self._pattern,
