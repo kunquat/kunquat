@@ -76,15 +76,6 @@ class PatternEditor(QtGui.QWidget):
         QtCore.QObject.connect(self._pattern,
                                QtCore.SIGNAL('patternChanged(int)'),
                                pattern_changed_slot)
-        QtCore.QObject.connect(autoinst,
-                               QtCore.SIGNAL('stateChanged(int)'),
-                               self._pattern.autoinst_changed)
-        QtCore.QObject.connect(grid,
-                               QtCore.SIGNAL('stateChanged(int)'),
-                               self._pattern.grid_changed)
-        QtCore.QObject.connect(snap_to_grid,
-                               QtCore.SIGNAL('stateChanged(int)'),
-                               self._pattern.snap_to_grid_changed)
 
     def init(self):
         self._pattern.init()

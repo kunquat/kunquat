@@ -41,11 +41,24 @@ class Sheet(QtGui.QWidget):
                  parent=None):
         QtGui.QWidget.__init__(self)
 
+        self.p = p
+        self._project = project
+        self._playback = playback
+        self._section = Section(project, self)
+
         layout = QtGui.QVBoxLayout(self)
         layout.setMargin(0)
         layout.setSpacing(0)
         self._layout = layout
 
+        self._pattern_editor = PatternEditor(project,
+                                             playback,
+                                             self._section,
+                                             pattern_changed_slot,
+                                             pattern_offset_changed_slot,
+                                             octave_spin,
+                                             instrument_spin,
+                                             typewriter)
 
         autoinst = QtGui.QCheckBox('Autoinst')
         autoinst.setChecked(True)
@@ -56,6 +69,15 @@ class Sheet(QtGui.QWidget):
         snap_to_grid = QtGui.QCheckBox('Snap')
         snap_to_grid.setChecked(True)
 
+        QtCore.QObject.connect(autoinst,
+                               QtCore.SIGNAL('stateChanged(int)'),
+                               self._pattern_editor._pattern.autoinst_changed)
+        QtCore.QObject.connect(grid,
+                               QtCore.SIGNAL('stateChanged(int)'),
+                               self._pattern_editor._pattern.grid_changed)
+        QtCore.QObject.connect(snap_to_grid,
+                               QtCore.SIGNAL('stateChanged(int)'),
+                               self._pattern_editor._pattern.snap_to_grid_changed)
 
         splitter = QtGui.QSplitter()
         topbar = QtGui.QWidget()
@@ -71,25 +93,12 @@ class Sheet(QtGui.QWidget):
         self._layout.addWidget(topbar)
         self._layout.addWidget(splitter)
 
-        self.p = p
-        self._project = project
-        self._playback = playback
-        self._section = Section(project, self)
 
         self._comp_params = CompParams(project)
         self._subsong_params = SubsongParams(project)
         self._pattern_params = PatternParams(project)
         self._instance_params = InstanceParams(project)
         self._trigger_params = TriggerParams(project)
-
-        self._pattern_editor = PatternEditor(project,
-                                             playback,
-                                             self._section,
-                                             pattern_changed_slot,
-                                             pattern_offset_changed_slot,
-                                             octave_spin,
-                                             instrument_spin,
-                                             typewriter)
 
         tools = QtGui.QWidget(self)
         tool_layout = QtGui.QVBoxLayout(tools)
