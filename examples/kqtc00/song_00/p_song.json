@@ -3,9 +3,7 @@
 {
     "tempo" : 110,
     "global_vol" : 0,
-    "scale" : 0,
-
-    "patterns" : [0, 1, 2]
+    "scale" : 0
 }
 
 

@@ -117,21 +117,20 @@ bool Pattern_parse_header(Pattern* pat, char* str, Read_state* state)
 }
 
 
-bool Pattern_set_location(Pattern* pat, int subsong, int section)
+bool Pattern_set_location(Pattern* pat, int subsong, int system)
 {
     assert(pat != NULL);
     assert(subsong >= 0);
     assert(subsong < KQT_SONGS_MAX);
-    assert(section >= 0);
-    assert(section < KQT_SECTIONS_MAX);
+    assert(system >= 0);
     Pattern_location* key = PATTERN_LOCATION_AUTO;
     key->subsong = subsong;
-    key->section = section;
+    key->section = system;
     if (AAtree_get_exact(pat->locations, key) != NULL)
     {
         return true;
     }
-    key = new_Pattern_location(subsong, section);
+    key = new_Pattern_location(subsong, system);
     if (key == NULL || !AAtree_ins(pat->locations, key))
     {
         xfree(key);
@@ -253,7 +252,20 @@ uint32_t Pattern_mix(Pattern* pat,
         {
             return 0;
         }
-        ++play->section;
+        ++play->system;
+
+        assert(play->order_lists != NULL);
+        Order_list* ol = play->order_lists[play->subsong];
+        if (ol != NULL && play->system < Order_list_get_len(ol))
+        {
+            Pat_inst_ref* ref = Order_list_get_pat_inst_ref(ol, play->system);
+            play->pattern = ref->pat;
+        }
+        else
+        {
+            play->pattern = -1;
+        }
+#if 0
         if (play->section >= KQT_SECTIONS_MAX)
         {
             play->section = 0;
@@ -268,6 +280,7 @@ uint32_t Pattern_mix(Pattern* pat,
                 play->pattern = Subsong_get(ss, play->section);
             }
         }
+#endif
         return 0;
     }
     while (mixed < nframes
@@ -340,7 +353,7 @@ uint32_t Pattern_mix(Pattern* pat,
             }
             if (*target_section >= 0)
             {
-                play->section = *target_section;
+                play->system = *target_section; // TODO: remove
             }
             Reltime_copy(&play->pos, target_row);
             break;
@@ -355,7 +368,20 @@ uint32_t Pattern_mix(Pattern* pat,
                 Reltime_set(&play->pos, 0, 0);
                 break;
             }
-            ++play->section;
+            ++play->system;
+
+            assert(play->order_lists != NULL);
+            Order_list* ol = play->order_lists[play->subsong];
+            if (ol != NULL && play->system < Order_list_get_len(ol))
+            {
+                Pat_inst_ref* ref = Order_list_get_pat_inst_ref(ol, play->system);
+                play->pattern = ref->pat;
+            }
+            else
+            {
+                play->pattern = -1;
+            }
+#if 0
             if (play->section >= KQT_SECTIONS_MAX)
             {
                 play->section = 0;
@@ -370,6 +396,7 @@ uint32_t Pattern_mix(Pattern* pat,
                     play->pattern = Subsong_get(ss, play->section);
                 }
             }
+#endif
             break;
         }
         assert(next == NULL || next_pos != NULL);

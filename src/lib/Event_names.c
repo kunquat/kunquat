@@ -63,7 +63,7 @@ static Name_info event_specs[] =
     { "I.T",  EVENT_CONTROL_ENV_SET_TIMESTAMP, VALUE_TYPE_TIMESTAMP, v_any_ts, false },
 
     { "I.gr", EVENT_CONTROL_SET_GOTO_ROW,     VALUE_TYPE_TIMESTAMP, v_nonneg_ts, false },
-    { "I.gs", EVENT_CONTROL_SET_GOTO_SECTION, VALUE_TYPE_INT, v_section, false },
+    { "I.gs", EVENT_CONTROL_SET_GOTO_SECTION, VALUE_TYPE_INT, v_system, false },
     { "I.gss", EVENT_CONTROL_SET_GOTO_SONG,   VALUE_TYPE_INT, v_subsong, false },
     { "Ig",   EVENT_CONTROL_GOTO,             VALUE_TYPE_NONE, NULL, false },
 
@@ -87,7 +87,7 @@ static Name_info event_specs[] =
     { "mpd",   EVENT_GLOBAL_PATTERN_DELAY,    VALUE_TYPE_TIMESTAMP, v_nonneg_ts, false },
     { "m.jc",  EVENT_GLOBAL_SET_JUMP_COUNTER, VALUE_TYPE_INT, v_counter, false },
     { "m.jr",  EVENT_GLOBAL_SET_JUMP_ROW,     VALUE_TYPE_TIMESTAMP, v_nonneg_ts, false },
-    { "m.js",  EVENT_GLOBAL_SET_JUMP_SECTION, VALUE_TYPE_INT, v_section, false },
+    { "m.js",  EVENT_GLOBAL_SET_JUMP_SECTION, VALUE_TYPE_INT, v_system, false },
     { "m.jss", EVENT_GLOBAL_SET_JUMP_SONG,    VALUE_TYPE_INT, v_subsong, false },
 
     { "m.s",   EVENT_GLOBAL_SET_SCALE,        VALUE_TYPE_INT, v_scale, false },
@@ -184,7 +184,7 @@ static Name_info event_specs[] =
     { "qf",    EVENT_QUERY_ACTUAL_FORCE,      VALUE_TYPE_INT, v_gen, false },
 
     { "Asong", EVENT_AUTO_LOCATION_SONG,      VALUE_TYPE_INT, v_subsong, false },
-    { "Asection", EVENT_AUTO_LOCATION_SECTION, VALUE_TYPE_INT, v_section, false },
+    { "Asystem", EVENT_AUTO_LOCATION_SYSTEM, VALUE_TYPE_INT, v_system, false },
     { "Apattern", EVENT_AUTO_LOCATION_PATTERN, VALUE_TYPE_INT, v_pattern, false },
     { "Arow",  EVENT_AUTO_LOCATION_ROW,       VALUE_TYPE_TIMESTAMP, v_any_ts, false },
     { "Avoices", EVENT_AUTO_VOICE_COUNT,      VALUE_TYPE_INT, v_any_int, false },

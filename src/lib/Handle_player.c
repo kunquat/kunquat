@@ -197,8 +197,8 @@ int kqt_Handle_set_position(kqt_Handle* handle, int subsong, long long nanosecon
         handle->song->skip_state->mode = PLAY_SUBSONG;
         Playdata_set_subsong(handle->song->skip_state, subsong, true);
     }
-    handle->song->play_state->section = 0;
-    handle->song->skip_state->section = 0;
+    handle->song->play_state->system = 0;
+    handle->song->skip_state->system = 0;
     Reltime_set(&handle->song->play_state->pos, 0, 0);
     Reltime_set(&handle->song->skip_state->pos, 0, 0);
     handle->song->play_state->play_frames = 0;

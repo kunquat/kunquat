@@ -758,8 +758,8 @@ static void Event_handler_handle_query(Event_handler* eh,
                 snprintf(auto_event, 128, "[\"Asong\", %" PRIu16 "]",
                          eh->global_state->subsong);
                 Event_handler_trigger_const(eh, index, auto_event, silent);
-                snprintf(auto_event, 128, "[\"Asection\", %" PRIu16 "]",
-                         eh->global_state->section);
+                snprintf(auto_event, 128, "[\"Asystem\", %" PRIu16 "]",
+                         eh->global_state->system);
                 Event_handler_trigger_const(eh, index, auto_event, silent);
             }
             snprintf(auto_event, 128, "[\"Apattern\", %" PRId16 "]",

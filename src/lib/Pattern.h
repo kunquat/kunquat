@@ -78,12 +78,11 @@ bool Pattern_parse_header(Pattern* pat, char* str, Read_state* state);
  * \param pat       The Pattern -- must not be \c NULL.
  * \param subsong   The subsong number -- must be >= \c 0 and
  *                  < \c KQT_SONGS_MAX.
- * \param section   The section number -- must be >= \c 0 and
- *                  < \c KQT_SECTIONS_MAX.
+ * \param system    The system number -- must be >= \c 0.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Pattern_set_location(Pattern* pat, int subsong, int section);
+bool Pattern_set_location(Pattern* pat, int subsong, int system);
 
 
 /**

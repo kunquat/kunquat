@@ -27,6 +27,7 @@
 #include <Environment.h>
 #include <Event_names.h>
 #include <General_state.h>
+#include <Order_list.h>
 #include <Random.h>
 #include <Slider.h>
 #include <Voice_pool.h>
@@ -58,6 +59,7 @@ typedef struct Playdata
     uint32_t freq;                    ///< Mixing frequency.
     uint32_t old_freq;                ///< Old mixing frequency (used to detect freq change).
     Subsong_table* subsongs;          ///< The Subsongs.
+    Order_list** order_lists;         ///< The Order lists.
     Reltime play_time;                ///< The number of beats played since the start of playback.
     uint64_t play_frames;             ///< The number of frames mixed since the start of playback.
     Random* random;                   ///< Random source.
@@ -108,7 +110,7 @@ typedef struct Playdata
 
     uint16_t orig_subsong;            ///< Subsong at the start of playback.
     uint16_t subsong;                 ///< Current subsong -- used when \a play == \c PLAY_SONG.
-    uint16_t section;                 ///< Current section -- used when \a play == \c PLAY_SONG.
+    uint16_t system;                  ///< Current system -- used when \a play == \c PLAY_SONG.
     int16_t pattern;                  ///< Current pattern.
     Reltime pos;                      ///< Current position inside a pattern.
     Voice_pool* voice_pool;           ///< The Voice pool used.
