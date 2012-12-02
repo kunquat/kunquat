@@ -31,6 +31,16 @@ class AlbumTree(QtGui.QTreeView):
         QtGui.QTreeView.dragEnterEvent(self, e)
         self.song_view.drag_enter(e)
 
+class PIMo(object):
+    def __init__(self, song_number, songmo):
+        self.song_number = song_number
+        self.songmo = songmo
+
+class SongMo(object):
+    def __init__(self, song_number, song):
+        self.song_number = song_number
+        self.song = song
+
 class Subsongs(QtGui.QWidget):
     '''
     comp_signal = QtCore.pyqtSignal(name='compositionParams')
@@ -186,16 +196,90 @@ class Subsongs(QtGui.QWidget):
     def update(self):
         project = self.p.project
         songs = self.p.project._composition.song_ids()
-        model = QtGui.QStandardItemModel()
-        root = model.invisibleRootItem()
-        self._root = root
-        self._model = model
-        for song_item in self.create_songs(songs):
-            root.appendRow(song_item)
+        model = OrderList(self.p)
+
+        #root = model.invisibleRootItem()
+        #self._root = root
+        #self._model = model
+        #for song_item in self.create_songs(songs):
+        #    root.appendRow(song_item)
         self._song_list.setModel(model)
         self._song_list.expandAll()
 
+class OrderList(QtCore.QAbstractItemModel):
 
+    def __init__(self, p):
+        QtCore.QAbstractItemModel.__init__(self)
+        self.p = p
+        self.rubbish = []
 
+    def columnCount(self, _):
+        return 1
+
+    def _song_count(self):
+        songs = self.p.project._composition.song_ids()
+        count = len(songs)
+        return count
+
+    def _pattern_instance_count(self, parent):
+        song_number = parent.row()
+        song = self.p.project._composition.get_song('song_%02d' % song_number)
+        order_list = song.get_order_list()
+        count = len(order_list)
+        return count
+
+    def rowCount(self, parent):
+        if not parent.isValid():
+            return self._song_count()
+        maybe_pimo = parent.internalPointer()
+        if isinstance(maybe_pimo, PIMo):
+            return 0
+        return self._pattern_instance_count(parent)
+
+    def _song_index(self, row, col, parent):
+        song_number = row
+        song = self.p.project._composition.get_song('song_%02d' % song_number)
+        somo = SongMo(song_number, song)
+        self.rubbish.append(somo)
+        return self.createIndex(row, col, somo)
+
+    def _pattern_instance_index(self, row, col, parent):
+        song_number = parent.row()
+        songmo = parent.internalPointer()
+        pi = PIMo(song_number, songmo)
+        self.rubbish.append(pi)
+        return self.createIndex(row, col, pi)
+
+    def index(self, row, col, parent):
+        if not parent.isValid():
+            return self._song_index(row, col, parent)
+        return self._pattern_instance_index(row, col, parent)
+
+    def parent(self, index):
+        if not index.isValid():
+            return QtCore.QModelIndex()
+        maybe_songmo = index.internalPointer()
+        if isinstance(maybe_songmo, SongMo):
+            return QtCore.QModelIndex()
+        pi = index.internalPointer()
+        return self.createIndex(pi.song_number, 0, pi.songmo)
+
+    def _song_data(self, index, role):
+        if role == QtCore.Qt.DisplayRole:
+            songmo = index.internalPointer()
+            song = songmo.song
+            song_name = song.get_name()
+            return song_name
+
+    def _pattern_instance_data(self, index, role):
+        if role == QtCore.Qt.DisplayRole:
+            return u'lol'
+
+    def data(self, index, role):
+        parent = index.parent()
+        maybe_songmo = index.internalPointer()
+        if isinstance(maybe_songmo, SongMo):
+            return self._song_data(index, role)
+        return self._pattern_instance_data(index, role)
 
 
