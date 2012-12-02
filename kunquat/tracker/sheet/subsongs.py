@@ -32,9 +32,10 @@ class AlbumTree(QtGui.QTreeView):
         self.song_view.drag_enter(e)
 
 class PIMo(object):
-    def __init__(self, song_number, songmo):
+    def __init__(self, song_number, songmo, system):
         self.song_number = song_number
         self.songmo = songmo
+        self.system = system
 
 class SongMo(object):
     def __init__(self, song_number, song):
@@ -246,7 +247,7 @@ class OrderList(QtCore.QAbstractItemModel):
     def _pattern_instance_index(self, row, col, parent):
         song_number = parent.row()
         songmo = parent.internalPointer()
-        pi = PIMo(song_number, songmo)
+        pi = PIMo(song_number, songmo, row)
         self.rubbish.append(pi)
         return self.createIndex(row, col, pi)
 
@@ -271,9 +272,29 @@ class OrderList(QtCore.QAbstractItemModel):
             song_name = song.get_name()
             return song_name
 
+    def subscript(self, number):
+        nums = [int(i) for i in str(number)]
+        subs = [unichr(0x2080 + i) for i in nums]
+        return u''.join(subs)
+
+    def pattern_instance_name(self, pimo):
+        song = pimo.songmo.song
+        system = pimo.system
+        order_list = song.get_order_list()
+        patterns = [i for (i, _) in order_list]
+        pattern_instance = order_list[system]
+        pattern, instance = pattern_instance
+        pname = u'pattern {0}'.format(pattern)
+        if len([i for i in patterns if i == pattern]) > 1:
+             piname = pname + self.subscript(instance)
+        else:
+             piname = pname
+        return piname
+
     def _pattern_instance_data(self, index, role):
         if role == QtCore.Qt.DisplayRole:
-            return u'lol'
+            pimo = index.internalPointer()
+            return self.pattern_instance_name(pimo)
 
     def data(self, index, role):
         parent = index.parent()
