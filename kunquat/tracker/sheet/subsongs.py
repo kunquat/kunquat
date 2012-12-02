@@ -88,40 +88,38 @@ class Subsongs(QtGui.QWidget):
         pydict = dict(pyitems)
         return pydict
 
-    def deal_with(self, item):
-        item_data = self.data_from_item(item)
-        item_id = item_data['type']
-	parts = item_id.split('_')
-        item_type = parts[0]
-        if item_type == 'song':
-            song_number = int(parts[1])
+    def deal_with(self, node):
+
+        if isinstance(node, SongMo):
+            song_number = node.song_number
             QtCore.QObject.emit(self,
                                 QtCore.SIGNAL('subsongParams(int)'),
                                 song_number)
             QtCore.QObject.emit(self,
                                 QtCore.SIGNAL('subsongChanged(int)'),
                                 song_number)
-        elif item_type == 'system':
-            pattern_number = int(parts[1])
-            song_item = item.parent()
-            song_data = self.data_from_item(song_item)
-            song_id = song_data['type']
-	    song_id_parts = song_id.split('_')
-            song_type = song_id_parts[0]
-            song_number = int(song_id_parts[1])
-            self._section_manager.set(song_number, pattern_number)
+        elif isinstance(node, PIMo):
+
+            songmo = node.songmo
+            song = songmo.song
+            system = node.system
+            order_list = song.get_order_list()
+            patterns = [i for (i, _) in order_list]
+            pattern_instance = order_list[system]
+            pattern, instance = pattern_instance
+            song_number = songmo.song_number
+            self._section_manager.set(song_number, pattern)
             QtCore.QObject.emit(self,
                                 QtCore.SIGNAL('subsongChanged(int)'),
                                 song_number)
-            parent = item.parent()
+            parent = songmo
             self.deal_with(parent)
         else:
             assert False
 
     def currentChanged(self, new_index, old_index):
-        model = new_index.model()
-	item = model.itemFromIndex(new_index)
-        self.deal_with(item)
+        node = new_index.internalPointer()
+        self.deal_with(node)
 
     def subscript(self, number):
         nums = [int(i) for i in str(number)]
