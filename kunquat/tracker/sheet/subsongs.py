@@ -65,16 +65,6 @@ class Subsongs(QtGui.QWidget):
     def init(self):
         self.update()
 
-    @property
-    def _songs(self):
-        song_count = self._root.rowCount()
-        songs = set()
-        for i in range(song_count):
-            song = self._root.child(i, 0)
-            songs.add(song)
-        return songs
-
-
     def deal_with(self, node):
 
         if isinstance(node, SongMo):
