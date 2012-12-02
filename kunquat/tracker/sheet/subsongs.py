@@ -36,6 +36,26 @@ class PIMo(object):
         self.song_number = song_number
         self.songmo = songmo
         self.system = system
+        self.name = self.pattern_instance_name(songmo.song, system)
+
+    def subscript(self, number):
+        nums = [int(i) for i in str(number)]
+        subs = [unichr(0x2080 + i) for i in nums]
+        return u''.join(subs)
+
+    def pattern_instance_name(self, song, system):
+        order_list = song.get_order_list()
+        patterns = [i for (i, _) in order_list]
+        pattern_instance = order_list[system]
+        pattern, instance = pattern_instance
+        self.pattern = pattern
+        self.instance = instance
+        pname = u'pattern {0}'.format(pattern)
+        if len([i for i in patterns if i == pattern]) > 1:
+             piname = pname + self.subscript(instance)
+        else:
+             piname = pname
+        return piname
 
 class SongMo(object):
     def __init__(self, song_number, song):
@@ -79,13 +99,8 @@ class Subsongs(QtGui.QWidget):
 
             songmo = node.songmo
             song = songmo.song
-            system = node.system
-            order_list = song.get_order_list()
-            patterns = [i for (i, _) in order_list]
-            pattern_instance = order_list[system]
-            pattern, instance = pattern_instance
             song_number = songmo.song_number
-            self._section_manager.set(song_number, pattern)
+            self._section_manager.set(song_number, node.pattern)
             QtCore.QObject.emit(self,
                                 QtCore.SIGNAL('subsongChanged(int)'),
                                 song_number)
@@ -171,29 +186,11 @@ class OrderList(QtCore.QAbstractItemModel):
             song_name = song.get_name()
             return song_name
 
-    def subscript(self, number):
-        nums = [int(i) for i in str(number)]
-        subs = [unichr(0x2080 + i) for i in nums]
-        return u''.join(subs)
-
-    def pattern_instance_name(self, pimo):
-        song = pimo.songmo.song
-        system = pimo.system
-        order_list = song.get_order_list()
-        patterns = [i for (i, _) in order_list]
-        pattern_instance = order_list[system]
-        pattern, instance = pattern_instance
-        pname = u'pattern {0}'.format(pattern)
-        if len([i for i in patterns if i == pattern]) > 1:
-             piname = pname + self.subscript(instance)
-        else:
-             piname = pname
-        return piname
 
     def _pattern_instance_data(self, index, role):
         if role == QtCore.Qt.DisplayRole:
             pimo = index.internalPointer()
-            return self.pattern_instance_name(pimo)
+            return pimo.name
 
     def data(self, index, role):
         parent = index.parent()
