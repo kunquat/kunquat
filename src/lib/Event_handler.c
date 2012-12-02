@@ -1028,9 +1028,9 @@ bool Event_handler_trigger(Event_handler* eh,
                     return false;
                 }
             } break;
-            case VALUE_TYPE_PAT_INSTANCE:
+            case VALUE_TYPE_PAT_INST_REF:
             {
-                if (value->type != VALUE_TYPE_PAT_INSTANCE)
+                if (value->type != VALUE_TYPE_PAT_INST_REF)
                 {
                     Read_state_set_error(state, "Type mismatch");
                     return false;
@@ -1109,12 +1109,12 @@ bool Event_handler_trigger_const(Event_handler* eh,
             desc = read_string(desc, value->value.string_type,
                                ENV_VAR_NAME_MAX, state);
         } break;
-        case VALUE_TYPE_PAT_INSTANCE:
+        case VALUE_TYPE_PAT_INST_REF:
         {
-            value->type = VALUE_TYPE_PAT_INSTANCE;
-            desc = read_pat_instance(
+            value->type = VALUE_TYPE_PAT_INST_REF;
+            desc = read_pat_inst_ref(
                     desc,
-                    &value->value.Pat_instance_type,
+                    &value->value.Pat_inst_ref_type,
                     state);
         } break;
         default:

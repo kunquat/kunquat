@@ -70,7 +70,7 @@ int serialise_float(char* dest, int size, double value)
 }
 
 
-int serialise_Pat_instance(char* dest, int size, Pat_instance* value)
+int serialise_Pat_inst_ref(char* dest, int size, Pat_inst_ref* value)
 {
     assert(dest != NULL);
     assert(size > 0);

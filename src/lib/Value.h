@@ -20,7 +20,7 @@
 #include <stdint.h>
 
 #include <Env_var.h>
-#include <Pat_instance.h>
+#include <Pat_inst_ref.h>
 #include <Real.h>
 #include <Reltime.h>
 
@@ -34,7 +34,7 @@ typedef enum
     VALUE_TYPE_REAL,
     VALUE_TYPE_TIMESTAMP,
     VALUE_TYPE_STRING,
-    VALUE_TYPE_PAT_INSTANCE,
+    VALUE_TYPE_PAT_INST_REF,
     VALUE_TYPE_COUNT,
 } Value_type;
 
@@ -50,7 +50,7 @@ typedef struct Value
         Real Real_type;
         Reltime Timestamp_type;
         char string_type[ENV_VAR_NAME_MAX];
-        Pat_instance Pat_instance_type;
+        Pat_inst_ref Pat_inst_ref_type;
     } value;
 } Value;
 

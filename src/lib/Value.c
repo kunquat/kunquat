@@ -71,10 +71,10 @@ int Value_serialise(Value* value, int len, char* str)
                                      value->value.string_type);
             return MIN(len - 1, print_len);
         } break;
-        case VALUE_TYPE_PAT_INSTANCE:
+        case VALUE_TYPE_PAT_INST_REF:
         {
-            return serialise_Pat_instance(str, len,
-                    &value->value.Pat_instance_type);
+            return serialise_Pat_inst_ref(str, len,
+                    &value->value.Pat_inst_ref_type);
         } break;
         default:
             assert(false);

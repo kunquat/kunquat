@@ -565,7 +565,7 @@ char* read_reltime(char* str, Reltime* result, Read_state* state)
 }
 
 
-char* read_pat_instance(char* str, Pat_instance* result, Read_state* state)
+char* read_pat_inst_ref(char* str, Pat_inst_ref* result, Read_state* state)
 {
     assert(str != NULL);
     assert(state != NULL);

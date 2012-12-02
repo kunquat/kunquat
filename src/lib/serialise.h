@@ -15,7 +15,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#include <Pat_instance.h>
+#include <Pat_inst_ref.h>
 #include <Real.h>
 #include <Reltime.h>
 
@@ -63,7 +63,7 @@ int serialise_float(char* dest, int size, double value);
 
 
 /**
- * Creates a JSON representation of a Pattern instance value.
+ * Creates a JSON representation of a Pattern instance reference.
  *
  * \param dest    The destination string buffer -- must not be \c NULL.
  * \param size    The size of the string buffer including the terminating
@@ -73,7 +73,7 @@ int serialise_float(char* dest, int size, double value);
  * \return   The number of characters written to \a dest, not including the
  *           terminating byte.
  */
-int serialise_Pat_instance(char* dest, int size, Pat_instance* value);
+int serialise_Pat_inst_ref(char* dest, int size, Pat_inst_ref* value);
 
 
 /**

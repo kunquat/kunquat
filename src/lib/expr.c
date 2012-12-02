@@ -24,7 +24,7 @@
 #include <expr.h>
 #include <File_base.h>
 #include <math_common.h>
-#include <Pat_instance.h>
+#include <Pat_inst_ref.h>
 #include <Random.h>
 #include <string_common.h>
 #include <xassert.h>
@@ -1441,15 +1441,15 @@ static bool func_pinst(
     {
         return false;
     }
-    res->type = VALUE_TYPE_PAT_INSTANCE;
-    res->value.Pat_instance_type = *PAT_INSTANCE_AUTO;
+    res->type = VALUE_TYPE_PAT_INST_REF;
+    res->value.Pat_inst_ref_type = *PAT_INST_REF_AUTO;
 
     // Read pattern number
     if (args[0].type == VALUE_TYPE_NONE)
     {
         return true;
     }
-    else if (args[0].type == VALUE_TYPE_PAT_INSTANCE)
+    else if (args[0].type == VALUE_TYPE_PAT_INST_REF)
     {
         Value_copy(res, &args[0]);
         return true;
@@ -1463,7 +1463,7 @@ static bool func_pinst(
             Read_state_set_error(state, "Invalid pattern number");
             return false;
         }
-        res->value.Pat_instance_type.pat = args[0].value.int_type;
+        res->value.Pat_inst_ref_type.pat = args[0].value.int_type;
     }
     else
     {
@@ -1486,7 +1486,7 @@ static bool func_pinst(
             Read_state_set_error(state, "Invalid pattern instance value");
             return false;
         }
-        res->value.Pat_instance_type.inst = args[1].value.int_type;
+        res->value.Pat_inst_ref_type.inst = args[1].value.int_type;
     }
     else
     {
