@@ -117,12 +117,12 @@ class Subsongs(QtGui.QTreeView):
                 self._project.start_group(
                         'Insert subsong {0:d}'.format(subsong_number))
                 try:
-                    key_format = 'song_{0:02x}/p_song.json'
+                    key_format = 'song_{0:02x}/p_order_list.json'
                     for i in xrange(len(self._slists), subsong_number, -1):
                         #print('move', i - 1, 'to', i)
                         self._project[key_format.format(i)] = \
                                 self._project[key_format.format(i - 1)]
-                    ss_info = {'patterns': []}
+                    ss_info = []
                     self._project[key_format.format(subsong_number)] = ss_info
                 finally:
                     self._project.end_group()
@@ -133,7 +133,7 @@ class Subsongs(QtGui.QTreeView):
                 add_section.setEditable(False)
                 add_section.setFont(QtGui.QFont('Decorative', italic=True))
                 new_ss.appendRow(add_section)
-                self._slists[subsong_number:subsong_number] = [[]]
+                self._slists[subsong_number:subsong_number] = []
                 parent = item.parent()
                 for i in xrange(subsong_number + 1, len(self._slists)):
                     parent.child(i).setText('Song {0}'.format(i))
@@ -156,7 +156,7 @@ class Subsongs(QtGui.QTreeView):
                 self._project.start_group(
                         'Remove song {0:d}'.format(subsong_number))
                 try:
-                    key_format = 'song_{0:02x}/p_song.json'
+                    key_format = 'song_{0:02x}/p_order_list.json'
                     #print('remove', subsong_number)
                     self._project[key_format.format(subsong_number)] = None
                     for i in xrange(subsong_number + 1, len(self._slists)):
@@ -214,11 +214,11 @@ class Subsongs(QtGui.QTreeView):
                     if len(self._slists[subsong_number]) <= 0:
                         return
                 pattern_number = int(item.text())
-                path = 'song_{0:02x}/p_song.json'.format(subsong_number)
+                path = 'song_{0:02x}/p_order_list.json'.format(subsong_number)
                 ss_info = self._project[path]
-                slist = ss_info['patterns']
+                slist = ss_info
                 if ev.key() == QtCore.Qt.Key_Insert:
-                    slist[section_number:section_number] = [pattern_number]
+                    slist[section_number:section_number] = [[pattern_number, 0]]
                 else:
                     slist[section_number:section_number + 1] = []
                 self._project[path] = ss_info
@@ -253,13 +253,13 @@ class Subsongs(QtGui.QTreeView):
                 else:
                     if pattern_number <= 0:
                         return
-                path = 'song_{0:02x}/p_song.json'.format(subsong_number)
+                path = 'song_{0:02x}/p_order_list.json'.format(subsong_number)
                 ss_info = self._project[path]
-                slist = ss_info['patterns']
+                slist = ss_info
                 if ev.key() == QtCore.Qt.Key_Plus:
-                    slist[section_number] += 1
+                    slist[section_number][0] += 1
                 else:
-                    slist[section_number] -= 1
+                    slist[section_number][0] -= 1
                 self._project[path] = ss_info
                 #self._slists[subsong_number] = slist
                 #item.setText(str(slist[section_number]))
@@ -270,7 +270,7 @@ class Subsongs(QtGui.QTreeView):
     def modified(self, item):
         subsong, section = self.resolve_location(item)
         if subsong >= 0:
-            path = 'song_{0:02x}/p_song.json'.format(subsong)
+            path = 'song_{0:02x}/p_order_list.json'.format(subsong)
             if section >= 0:
                 if section >= len(self._slists[subsong]):
                     return
@@ -280,15 +280,15 @@ class Subsongs(QtGui.QTreeView):
                     if pat < 0 or pat >= lim.PATTERNS_MAX:
                         raise ValueError
                 except ValueError:
-                    item.setText(str(self._slists[subsong][section]))
+                    item.setText(str(self._slists[subsong][section][0]))
                     return
-                slist = ss_info['patterns']
+                slist = ss_info
                 assert slist
-                if pat == slist[section]:
+                if pat == slist[section][0]:
                     return
-                slist[section] = pat
+                slist[section][0] = pat
                 self._project[path] = ss_info
-                self._slists[subsong][section] = pat
+                self._slists[subsong][section][0] = pat
                 self._section_manager.set(subsong, section)
             else:
                 pass
@@ -309,21 +309,20 @@ class Subsongs(QtGui.QTreeView):
         item = self._model.itemFromIndex(index)
         subsong, section = self.resolve_location(item)
         if subsong >= 0:
-            path = 'song_{0:02x}/p_song.json'.format(subsong)
+            path = 'song_{0:02x}/p_order_list.json'.format(subsong)
             if section >= 0:
                 if section == len(self._slists[subsong]):
                     pattern_number = 0
                     ss_info = self._project[path]
-                    if ss_info and 'patterns' in ss_info:
-                        slist = ss_info['patterns']
+                    if ss_info:
+                        slist = ss_info
                     else:
-                        if ss_info == None:
-                            ss_info = {}
-                        ss_info['patterns'] = []
-                        slist = ss_info['patterns']
+                        ss_info = []
+                        slist = ss_info
                     if slist:
                         pattern_number = slist[-1]
-                    slist.append(pattern_number)
+                    # XXX: increasing instance number, doesn't always work
+                    slist.append([pattern_number[0], pattern_number[1] + 1])
                     self._project[path] = ss_info
                     """
                     self._slists[subsong] = slist
@@ -341,9 +340,9 @@ class Subsongs(QtGui.QTreeView):
                 if subsong == len(self._slists):
                     ss_info = self._project[path]
                     if ss_info == None:
-                        ss_info = { 'patterns': [] }
-                    if 'patterns' in ss_info:
-                        self._slists.append(ss_info['patterns'])
+                        ss_info = []
+                    if ss_info:
+                        self._slists.append(ss_info)
                     else:
                         self._slists.append([])
                     parent = item.parent()
@@ -383,12 +382,12 @@ class Subsongs(QtGui.QTreeView):
     def sync(self):
         self._slists = []
         for num in xrange(lim.SONGS_MAX):
-            path = 'song_{0:02x}/p_song.json'.format(num)
+            path = 'song_{0:02x}/p_order_list.json'.format(num)
             subsong = self._project[path]
             if subsong == None:
                 break
-            if 'patterns' in subsong:
-                self._slists.append(subsong['patterns'])
+            elif subsong:
+                self._slists.append(subsong)
             else:
                 self._slists.append([])
 
@@ -420,7 +419,7 @@ class Subsongs(QtGui.QTreeView):
             subsong_item.setEditable(False)
             composition.appendRow(subsong_item)
             for section, pattern in enumerate(slist):
-                pattern_item = QtGui.QStandardItem(str(pattern))
+                pattern_item = QtGui.QStandardItem(str(pattern[0]))
                 pattern_item.setEditable(True)
                 subsong_item.appendRow(pattern_item)
             if len(slist) < lim.SECTIONS_MAX:

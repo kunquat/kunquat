@@ -86,13 +86,12 @@ class Composition():
             raise IndexError, 'Invalid song number'
         if section < 0 or section >= lim.SECTIONS_MAX:
             raise IndexError, 'Invalid section number'
-        ss = self['song_{0:02x}/p_song.json'.format(song)]
-        if not ss or 'patterns' not in ss:
+        orderlist = self['song_{0:02x}/p_order_list.json'.format(song)]
+        if not orderlist:
             return None
-        patterns = ss['patterns']
-        if len(patterns) <= section:
+        if len(orderlist) <= section:
             return None
-        return patterns[section]
+        return orderlist[section][0]
 
     def get_effect(self, base_path, index):
         name = 'eff_{0:02x}'.format(index)
