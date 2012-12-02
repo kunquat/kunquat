@@ -565,3 +565,43 @@ char* read_reltime(char* str, Reltime* result, Read_state* state)
 }
 
 
+char* read_pat_instance(char* str, Pat_instance* result, Read_state* state)
+{
+    assert(str != NULL);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return str;
+    }
+    int64_t pat = 0;
+    int64_t inst = 0;
+    str = read_const_char(str, '[', state);
+    str = read_int(str, &pat, state);
+    str = read_const_char(str, ',', state);
+    str = read_int(str, &inst, state);
+    str = read_const_char(str, ']', state);
+    if (state->error)
+    {
+        Read_state_set_error(state, "Expected a valid Pattern instance");
+        return str;
+    }
+    if (pat < 0 || pat >= KQT_PATTERNS_MAX)
+    {
+        Read_state_set_error(state,
+                "Pattern number out of range [0..%ld) in Pattern instance",
+                KQT_PATTERNS_MAX);
+        return str;
+    }
+    if (inst < 0 || pat >= KQT_PAT_INSTANCES_MAX)
+    {
+        Read_state_set_error(state,
+                "Pattern instance number out of range [0..%ld)"
+                " in Pattern instance", KQT_PAT_INSTANCES_MAX);
+        return str;
+    }
+    result->pat = pat;
+    result->inst = inst;
+    return str;
+}
+
+

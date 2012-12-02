@@ -87,6 +87,12 @@ extern "C" {
 
 
 /**
+ * Maximum number of Pattern instances in a Pattern.
+ */
+#define KQT_PAT_INSTANCES_MAX KQT_PATTERNS_MAX
+
+
+/**
  * Maximum number of Voice Columns in a Kunquat Handle (Global Column not
  * included).
  */

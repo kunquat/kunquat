@@ -19,6 +19,7 @@
 #include <stdbool.h>
 
 #include <Event_type.h>
+#include <Value.h>
 
 
 #define EVENT_NAME_MAX 12 // includes "
@@ -80,8 +81,9 @@ Event_type Event_names_get(Event_names* names, const char* name);
  *
  * \return   The parameter type.
  */
-Event_field_type Event_names_get_param_type(Event_names* names,
-                                            const char* name);
+Value_type Event_names_get_param_type(
+        Event_names* names,
+        const char* name);
 
 
 /**

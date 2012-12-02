@@ -63,13 +63,18 @@ int Value_serialise(Value* value, int len, char* str)
         case VALUE_TYPE_TIMESTAMP:
         {
             return serialise_Timestamp(str, len,
-                                       &value->value.Timestamp_type);
+                    &value->value.Timestamp_type);
         } break;
         case VALUE_TYPE_STRING:
         {
             int print_len = snprintf(str, len, "\"%s\"",
                                      value->value.string_type);
             return MIN(len - 1, print_len);
+        } break;
+        case VALUE_TYPE_PAT_INSTANCE:
+        {
+            return serialise_Pat_instance(str, len,
+                    &value->value.Pat_instance_type);
         } break;
         default:
             assert(false);

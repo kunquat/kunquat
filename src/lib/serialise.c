@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2012
  *
  * This file is part of Kunquat.
  *
@@ -66,6 +66,17 @@ int serialise_float(char* dest, int size, double value)
     snprintf(format, strlen(format) + 1, "%%.%df", prec);
     assert(format[strlen(format) - 1] == 'f');
     int printed = snprintf(dest, size, format, value);
+    return MIN(printed, size - 1);
+}
+
+
+int serialise_Pat_instance(char* dest, int size, Pat_instance* value)
+{
+    assert(dest != NULL);
+    assert(size > 0);
+    assert(value != NULL);
+    int printed = snprintf(dest, size, "[%" PRId16 ", %" PRId16 "]",
+            value->pat, value->inst);
     return MIN(printed, size - 1);
 }
 

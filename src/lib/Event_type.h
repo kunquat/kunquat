@@ -268,21 +268,6 @@ typedef enum
                                   EVENT_IS_AUTO((type)))
 
 
-typedef enum
-{
-    EVENT_FIELD_NONE = 0,
-    EVENT_FIELD_BOOL,
-    EVENT_FIELD_INT,
-//    EVENT_FIELD_NOTE,
-//    EVENT_FIELD_NOTE_MOD,
-    EVENT_FIELD_DOUBLE,
-    EVENT_FIELD_REAL,
-    EVENT_FIELD_RELTIME,
-    EVENT_FIELD_STRING,
-    EVENT_FIELD_LAST
-} Event_field_type;
-
-
 #endif // K_EVENT_TYPE_H
 
 

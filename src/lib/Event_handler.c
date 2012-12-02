@@ -935,9 +935,10 @@ bool Event_handler_trigger(Event_handler* eh,
     }
     assert(!state->error);
     Value* value = VALUE_AUTO;
-    Event_field_type field_type = Event_names_get_param_type(eh->event_names,
-                                                             event_name);
-    if (field_type == EVENT_FIELD_NONE)
+    Value_type field_type = Event_names_get_param_type(
+            eh->event_names,
+            event_name);
+    if (field_type == VALUE_TYPE_NONE)
     {
         value->type = VALUE_TYPE_NONE;
         desc = read_null(desc, state);
@@ -959,7 +960,7 @@ bool Event_handler_trigger(Event_handler* eh,
         }
         switch (field_type)
         {
-            case EVENT_FIELD_BOOL:
+            case VALUE_TYPE_BOOL:
             {
                 if (value->type != VALUE_TYPE_BOOL)
                 {
@@ -967,7 +968,7 @@ bool Event_handler_trigger(Event_handler* eh,
                     return false;
                 }
             } break;
-            case EVENT_FIELD_INT:
+            case VALUE_TYPE_INT:
             {
                 if (value->type == VALUE_TYPE_FLOAT)
                 {
@@ -980,7 +981,7 @@ bool Event_handler_trigger(Event_handler* eh,
                     return false;
                 }
             } break;
-            case EVENT_FIELD_DOUBLE:
+            case VALUE_TYPE_FLOAT:
             {
                 if (value->type == VALUE_TYPE_INT)
                 {
@@ -993,11 +994,11 @@ bool Event_handler_trigger(Event_handler* eh,
                     return false;
                 }
             } break;
-            case EVENT_FIELD_REAL:
+            case VALUE_TYPE_REAL:
             {
                 assert(false);
             } break;
-            case EVENT_FIELD_RELTIME:
+            case VALUE_TYPE_TIMESTAMP:
             {
                 if (value->type == VALUE_TYPE_INT)
                 {
@@ -1019,9 +1020,17 @@ bool Event_handler_trigger(Event_handler* eh,
                     return false;
                 }
             } break;
-            case EVENT_FIELD_STRING:
+            case VALUE_TYPE_STRING:
             {
                 if (value->type != VALUE_TYPE_STRING)
+                {
+                    Read_state_set_error(state, "Type mismatch");
+                    return false;
+                }
+            } break;
+            case VALUE_TYPE_PAT_INSTANCE:
+            {
+                if (value->type != VALUE_TYPE_PAT_INSTANCE)
                 {
                     Read_state_set_error(state, "Type mismatch");
                     return false;
@@ -1060,44 +1069,53 @@ bool Event_handler_trigger_const(Event_handler* eh,
     }
     assert(!state->error);
     Value* value = VALUE_AUTO;
-    Event_field_type field_type = Event_names_get_param_type(eh->event_names,
-                                                             event_name);
+    Value_type field_type = Event_names_get_param_type(
+            eh->event_names,
+            event_name);
     switch (field_type)
     {
-        case EVENT_FIELD_NONE:
+        case VALUE_TYPE_NONE:
         {
             value->type = VALUE_TYPE_NONE;
             desc = read_null(desc, state);
         } break;
-        case EVENT_FIELD_BOOL:
+        case VALUE_TYPE_BOOL:
         {
             value->type = VALUE_TYPE_BOOL;
             desc = read_bool(desc, &value->value.bool_type, state);
         } break;
-        case EVENT_FIELD_INT:
+        case VALUE_TYPE_INT:
         {
             value->type = VALUE_TYPE_INT;
             desc = read_int(desc, &value->value.int_type, state);
         } break;
-        case EVENT_FIELD_DOUBLE:
+        case VALUE_TYPE_FLOAT:
         {
             value->type = VALUE_TYPE_FLOAT;
             desc = read_double(desc, &value->value.float_type, state);
         } break;
-        case EVENT_FIELD_REAL:
+        case VALUE_TYPE_REAL:
         {
             assert(false);
         } break;
-        case EVENT_FIELD_RELTIME:
+        case VALUE_TYPE_TIMESTAMP:
         {
             value->type = VALUE_TYPE_TIMESTAMP;
             desc = read_reltime(desc, &value->value.Timestamp_type, state);
         } break;
-        case EVENT_FIELD_STRING:
+        case VALUE_TYPE_STRING:
         {
             value->type = VALUE_TYPE_STRING;
             desc = read_string(desc, value->value.string_type,
                                ENV_VAR_NAME_MAX, state);
+        } break;
+        case VALUE_TYPE_PAT_INSTANCE:
+        {
+            value->type = VALUE_TYPE_PAT_INSTANCE;
+            desc = read_pat_instance(
+                    desc,
+                    &value->value.Pat_instance_type,
+                    state);
         } break;
         default:
             assert(false);
