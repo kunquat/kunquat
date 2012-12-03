@@ -13,6 +13,7 @@
 #
 
 from instrument import Instrument
+from pattern_instance import Pattern_instance
 from song import Song
 from copy import deepcopy
 from itertools import izip, takewhile
@@ -100,6 +101,9 @@ class Composition():
         base = self._view.get_view(base_path)
         effect = base.get_view(name)
         return effect
+
+    def get_pattern_instance(self, pattern_instance_ref):
+        return Pattern_instance(self, pattern_instance_ref)
 
     def get_instrument(self, slot):
         return Instrument(self, slot)
@@ -284,4 +288,10 @@ class Composition():
         left_over = all_systems - in_use
         left_over_ids = ['pat_{0:02x}'.format(i) for i in left_over]
         return left_over_ids
+
+    def song_count(self):
+        return len(self.song_ids())
+        
+    def get_song_by_track(self, track):
+        return self.get_song('song_%02d' % track)
 
