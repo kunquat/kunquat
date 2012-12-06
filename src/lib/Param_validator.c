@@ -320,14 +320,14 @@ bool v_scale(char* param)
 }
 
 
-bool v_section(char* param)
+bool v_system(char* param)
 {
     assert(param != NULL);
     begin();
-    int64_t section = -2;
-    param = read_int(param, &section, state);
+    int64_t system = -2;
+    param = read_int(param, &system, state);
     end();
-    return !state->error && section >= -1 && section < KQT_SECTIONS_MAX;
+    return !state->error && system >= -1;
 }
 
 

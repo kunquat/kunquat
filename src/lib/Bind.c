@@ -679,8 +679,8 @@ static Target_event* new_Target_event(char** str,
         del_Target_event(event);
         return NULL;
     }
-    Event_field_type type = Event_names_get_param_type(names, event_name);
-    if (type == EVENT_FIELD_NONE)
+    Value_type type = Event_names_get_param_type(names, event_name);
+    if (type == VALUE_TYPE_NONE)
     {
         desc = read_null(desc, state);
     }

@@ -31,7 +31,7 @@
 
 #define KT_VALUES(fmt, expected, actual) \
     "\n    Expected: " fmt \
-    "\n    Actual:   " fmt , expected, actual
+    "\n      Actual: " fmt , expected, actual
 
 
 #endif // KT_TEST_COMMON_H

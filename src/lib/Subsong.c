@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -133,6 +133,7 @@ static bool Subsong_parse(Subsong* ss, char* str, Read_state* state)
             }
             ss->scale = num;
         }
+#if 0
         else if (string_eq(key, "patterns"))
         {
             str = read_const_char(str, '[', state);
@@ -176,6 +177,7 @@ static bool Subsong_parse(Subsong* ss, char* str, Read_state* state)
                 }
             }
         }
+#endif
         else
         {
             Read_state_set_error(state, "Unrecognised key in Subsong: %s\n", key);
@@ -196,6 +198,7 @@ static bool Subsong_parse(Subsong* ss, char* str, Read_state* state)
 }
 
 
+#if 0
 bool Subsong_set(Subsong* ss, int index, int16_t pat)
 {
     assert(ss != NULL);
@@ -237,6 +240,7 @@ int16_t Subsong_get(Subsong* ss, int index)
     }
     return ss->pats[index];
 }
+#endif
 
 
 int16_t Subsong_get_length(Subsong* ss)

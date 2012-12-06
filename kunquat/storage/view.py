@@ -64,10 +64,14 @@ class View():
         return view
 
     def keys(self):
-        return [key for (key, _) in self.items()]
+        keys = [key for (key, _) in self.items()]
+        return keys
 
     def items(self):
-        path = '%s' % self.prefix
+        if self.prefix == '':
+            path = ''
+        else:
+            path = '%s/' % self.prefix
         memory = self._store._memory.items()
         valid = [(key[len(path):], value) for (key, value) in memory if key.startswith(path)]
         return valid

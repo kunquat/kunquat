@@ -21,6 +21,7 @@
 #include <Event_type.h>
 #include <Event_global_jump.h>
 #include <string_common.h>
+#include <Value.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -89,12 +90,12 @@ Event* new_Event_from_string(char** str, Read_state* state,
     {
         return NULL;
     }
-    Event_field_type field_type = EVENT_FIELD_NONE;
+    Value_type field_type = VALUE_TYPE_NONE;
     if (!string_eq(type_str, "mj"))
     {
         field_type = Event_names_get_param_type(names, type_str);
     }
-    if (field_type == EVENT_FIELD_NONE)
+    if (field_type == VALUE_TYPE_NONE)
     {
         *str = read_null(*str, state);
     }

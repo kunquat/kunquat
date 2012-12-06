@@ -106,6 +106,8 @@ Song* new_Song(uint32_t buf_size)
     Device_set_buffer_size_changer(&song->parent, Song_set_buffer_size);
     Device_set_sync(&song->parent, Song_sync);
     Device_register_port(&song->parent, DEVICE_PORT_TYPE_RECEIVE, 0);
+
+    // Clear fields
     song->subsongs = NULL;
     song->pats = NULL;
     song->insts = NULL;
@@ -118,10 +120,16 @@ Song* new_Song(uint32_t buf_size)
     song->random = NULL;
     song->env = NULL;
     song->bind = NULL;
+    for (int i = 0; i < KQT_SONGS_MAX; ++i)
+    {
+        song->order_lists[i] = NULL;
+    }
     for (int i = 0; i < KQT_SCALES_MAX; ++i)
     {
         song->scales[i] = NULL;
     }
+
+    // Create fields
     song->random = new_Random();
     song->subsongs = new_Subsong_table();
     song->pats = new_Pat_table(KQT_PATTERNS_MAX);
@@ -158,6 +166,7 @@ Song* new_Song(uint32_t buf_size)
         return NULL;
     }
     song->play_state->subsongs = Song_get_subsongs(song);
+    song->play_state->order_lists = song->order_lists;
     song->play_state->scales = song->scales;
     song->play_state->active_scale = &song->play_state->scales[0];
     song->skip_state = new_Playdata_silent(song->env, 1000000000);
@@ -167,6 +176,7 @@ Song* new_Song(uint32_t buf_size)
         return NULL;
     }
     song->skip_state->subsongs = Song_get_subsongs(song);
+    song->skip_state->order_lists = song->order_lists;
 
     if (!Device_init_buffer(&song->parent, DEVICE_PORT_TYPE_RECEIVE, 0))
     {
@@ -411,11 +421,19 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
         Pattern* pat = NULL;
         if (play->mode >= PLAY_SUBSONG)
         {
+            Order_list* ol = song->order_lists[play->subsong];
+            if (ol != NULL && play->system < Order_list_get_len(ol))
+            {
+                Pat_inst_ref* ref = Order_list_get_pat_inst_ref(ol, play->system);
+                play->pattern = ref->pat;
+            }
+#if 0
             Subsong* ss = Subsong_table_get(song->subsongs, play->subsong);
             if (ss != NULL)
             {
                 play->pattern = Subsong_get(ss, play->section);
             }
+#endif
             if (play->pattern >= 0)
             {
                 pat = Pat_table_get(song->pats, play->pattern);
@@ -831,6 +849,10 @@ void del_Song(Song* song)
     del_Connections(song->connections);
     del_Ins_table(song->insts);
     del_Effect_table(song->effects);
+    for (int i = 0; i < KQT_SONGS_MAX; ++i)
+    {
+        del_Order_list(song->order_lists[i]);
+    }
     for (int i = 0; i < KQT_SCALES_MAX; ++i)
     {
         del_Scale(song->scales[i]);

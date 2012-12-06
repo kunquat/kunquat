@@ -28,6 +28,7 @@
 #include <Pat_table.h>
 #include <Effect_table.h>
 #include <Ins_table.h>
+#include <Order_list.h>
 #include <Random.h>
 #include <Scale.h>
 #include <Playdata.h>
@@ -41,6 +42,7 @@ typedef struct Song
     uint64_t random_seed;               ///< The master random seed of the composition.
     Random* random;                     ///< The source for random data in the composition.
     Subsong_table* subsongs;            ///< The Subsongs.
+    Order_list* order_lists[KQT_SONGS_MAX]; ///< Order lists.
     Pat_table* pats;                    ///< The Patterns.
     Ins_table* insts;                   ///< The Instruments.
     Effect_table* effects;              ///< The global Effects.

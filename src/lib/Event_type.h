@@ -222,7 +222,7 @@ typedef enum
     EVENT_AUTO_LOWER,
 
     EVENT_AUTO_LOCATION_SONG,
-    EVENT_AUTO_LOCATION_SECTION,
+    EVENT_AUTO_LOCATION_SYSTEM,
     EVENT_AUTO_LOCATION_PATTERN,
     EVENT_AUTO_LOCATION_ROW,
     EVENT_AUTO_VOICE_COUNT,
@@ -266,21 +266,6 @@ typedef enum
 #define EVENT_IS_TRIGGER(type)   EVENT_IS_PG((type))
 #define EVENT_IS_VALID(type)     (EVENT_IS_TRIGGER((type)) || \
                                   EVENT_IS_AUTO((type)))
-
-
-typedef enum
-{
-    EVENT_FIELD_NONE = 0,
-    EVENT_FIELD_BOOL,
-    EVENT_FIELD_INT,
-//    EVENT_FIELD_NOTE,
-//    EVENT_FIELD_NOTE_MOD,
-    EVENT_FIELD_DOUBLE,
-    EVENT_FIELD_REAL,
-    EVENT_FIELD_RELTIME,
-    EVENT_FIELD_STRING,
-    EVENT_FIELD_LAST
-} Event_field_type;
 
 
 #endif // K_EVENT_TYPE_H

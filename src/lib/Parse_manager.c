@@ -212,8 +212,30 @@ bool parse_data(kqt_Handle* handle,
         Pattern* new_pat = Pat_table_get(Song_get_pats(handle->song), index);
         if (success && pat != new_pat && new_pat != NULL)
         {
+            // Update pattern location information
+            // This is needed for correct jump counter updates
+            // when a Pattern with jumps is used multiple times.
             for (int subsong = 0; subsong < KQT_SONGS_MAX; ++subsong)
             {
+                const Order_list* ol = handle->song->order_lists[subsong];
+                if (ol == NULL)
+                    continue;
+
+                const size_t ol_len = Order_list_get_len(ol);
+                for (size_t system = 0; system < ol_len; ++system)
+                {
+                    Pat_inst_ref* ref = Order_list_get_pat_inst_ref(ol, system);
+                    if (ref->pat == index)
+                    {
+                        if (!Pattern_set_location(new_pat, subsong, system))
+                        {
+                            kqt_Handle_set_error(handle, ERROR_MEMORY,
+                                    "Couldn't allocate memory");
+                            return false;
+                        }
+                    }
+                }
+#if 0
                 Subsong* ss = Subsong_table_get_hidden(
                                       Song_get_subsongs(handle->song),
                                       subsong);
@@ -233,6 +255,7 @@ bool parse_data(kqt_Handle* handle,
                         }
                     }
                 }
+#endif
             }
         }
     }
@@ -1337,13 +1360,40 @@ static bool parse_subsong_level(kqt_Handle* handle,
             }
             return false;
         }
-        for (int i = 0; i < KQT_SECTIONS_MAX; ++i)
+        Subsong_table* st = Song_get_subsongs(handle->song);
+        if (!Subsong_table_set(st, index, ss))
         {
-            int16_t pat_index = Subsong_get(ss, i);
-            if (pat_index == KQT_SECTION_NONE)
+            kqt_Handle_set_error(handle, ERROR_MEMORY,
+                    "Couldn't allocate memory");
+            del_Subsong(ss);
+            return false;
+        }
+    }
+    else if (string_eq(subkey, "p_order_list.json"))
+    {
+        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+        Order_list* ol = new_Order_list(data, state);
+        if (ol == NULL)
+        {
+            if (!state->error)
             {
-                break;
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
             }
+            else
+            {
+                set_parse_error(handle, state);
+            }
+            return false;
+        }
+
+        // Update pattern location information
+        // This is required for correct update of jump counters.
+        const size_t ol_len = Order_list_get_len(ol);
+        for (size_t i = 0; i < ol_len; ++i)
+        {
+            Pat_inst_ref* ref = Order_list_get_pat_inst_ref(ol, i);
+            int16_t pat_index = ref->pat;
             Pat_table* pats = Song_get_pats(handle->song);
             assert(pats != NULL);
             Pattern* pat = Pat_table_get(pats, pat_index);
@@ -1355,18 +1405,16 @@ static bool parse_subsong_level(kqt_Handle* handle,
             {
                 kqt_Handle_set_error(handle, ERROR_MEMORY,
                         "Couldn't allocate memory");
-                del_Subsong(ss);
+                del_Order_list(ol);
                 return false;
             }
         }
-        Subsong_table* st = Song_get_subsongs(handle->song);
-        if (!Subsong_table_set(st, index, ss))
+
+        if (handle->song->order_lists[index] != NULL)
         {
-            kqt_Handle_set_error(handle, ERROR_MEMORY,
-                    "Couldn't allocate memory");
-            del_Subsong(ss);
-            return false;
+            del_Order_list(handle->song->order_lists[index]);
         }
+        handle->song->order_lists[index] = ol;
     }
     return true;
 }

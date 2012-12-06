@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -73,7 +73,7 @@ Subsong* new_Subsong_from_string(char* str, Read_state* state);
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Subsong_set(Subsong* ss, int index, int16_t pat);
+//bool Subsong_set(Subsong* ss, int index, int16_t pat);
 
 
 /**
@@ -84,7 +84,7 @@ bool Subsong_set(Subsong* ss, int index, int16_t pat);
  *
  * \return   The pattern number if one exists, otherwise KQT_SECTION_NONE.
  */
-int16_t Subsong_get(Subsong* ss, int index);
+//int16_t Subsong_get(Subsong* ss, int index);
 
 
 /**

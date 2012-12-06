@@ -24,6 +24,7 @@
 #include <expr.h>
 #include <File_base.h>
 #include <math_common.h>
+#include <Pat_inst_ref.h>
 #include <Random.h>
 #include <string_common.h>
 #include <xassert.h>
@@ -129,17 +130,24 @@ typedef struct Func_desc
 } Func_desc;
 
 
-static bool func_ts(Value* args, Value* res, Random* rand, Read_state* state);
+#define FUNC_PROTO(fn) static bool func_##fn( \
+        Value* args,                          \
+        Value* res,                           \
+        Random* rand,                         \
+        Read_state* state)
 
+FUNC_PROTO(ts);
+FUNC_PROTO(rand);
+FUNC_PROTO(pinst);
 
-static bool func_rand(Value* args, Value* res, Random* rand,
-                      Read_state* state);
+#undef FUNC_PROTO
 
 
 static Func_desc funcs[] =
 {
     { .name = "ts",   .func = func_ts },
     { .name = "rand", .func = func_rand },
+    { .name = "pinst", .func = func_pinst },
     { .name = NULL,   .func = NULL }
 };
 
@@ -1301,7 +1309,11 @@ static bool op_pow(Value* op1, Value* op2, Value* res, Read_state* state)
 }
 
 
-static bool func_ts(Value* args, Value* res, Random* rand, Read_state* state)
+static bool func_ts(
+        Value* args,
+        Value* res,
+        Random* rand,
+        Read_state* state)
 {
     assert(args != NULL);
     assert(res != NULL);
@@ -1376,8 +1388,11 @@ static bool func_ts(Value* args, Value* res, Random* rand, Read_state* state)
 }
 
 
-static bool func_rand(Value* args, Value* res, Random* rand,
-                      Read_state* state)
+static bool func_rand(
+        Value* args,
+        Value* res,
+        Random* rand,
+        Read_state* state)
 {
     assert(args != NULL);
     assert(res != NULL);
@@ -1406,6 +1421,77 @@ static bool func_rand(Value* args, Value* res, Random* rand,
     {
         res->type = VALUE_TYPE_NONE;
         Read_state_set_error(state, "Invalid argument");
+        return false;
+    }
+    return true;
+}
+
+
+static bool func_pinst(
+        Value* args,
+        Value* res,
+        Random* rand,
+        Read_state* state)
+{
+    assert(args != NULL);
+    assert(res != NULL);
+    (void)rand;
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
+    res->type = VALUE_TYPE_PAT_INST_REF;
+    res->value.Pat_inst_ref_type = *PAT_INST_REF_AUTO;
+
+    // Read pattern number
+    if (args[0].type == VALUE_TYPE_NONE)
+    {
+        return true;
+    }
+    else if (args[0].type == VALUE_TYPE_PAT_INST_REF)
+    {
+        Value_copy(res, &args[0]);
+        return true;
+    }
+    else if (args[0].type == VALUE_TYPE_INT)
+    {
+        if (args[0].value.int_type < 0 ||
+                args[0].value.int_type >= KQT_PATTERNS_MAX)
+        {
+            res->type = VALUE_TYPE_NONE;
+            Read_state_set_error(state, "Invalid pattern number");
+            return false;
+        }
+        res->value.Pat_inst_ref_type.pat = args[0].value.int_type;
+    }
+    else
+    {
+        res->type = VALUE_TYPE_NONE;
+        Read_state_set_error(state, "Invalid pattern value type");
+        return false;
+    }
+
+    // Read instance number
+    if (args[1].type == VALUE_TYPE_NONE)
+    {
+        return true;
+    }
+    else if (args[1].type == VALUE_TYPE_INT)
+    {
+        if (args[1].value.int_type < 0 ||
+                args[1].value.int_type >= KQT_PAT_INSTANCES_MAX)
+        {
+            res->type = VALUE_TYPE_NONE;
+            Read_state_set_error(state, "Invalid pattern instance value");
+            return false;
+        }
+        res->value.Pat_inst_ref_type.inst = args[1].value.int_type;
+    }
+    else
+    {
+        res->type = VALUE_TYPE_NONE;
+        Read_state_set_error(state, "Invalid pattern instance value type");
         return false;
     }
     return true;

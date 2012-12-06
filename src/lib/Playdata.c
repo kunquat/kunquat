@@ -61,6 +61,7 @@ Playdata* new_Playdata(Ins_table* insts,
     play->freq = 48000;
     play->old_freq = play->freq;
     play->subsongs = NULL;
+    play->order_lists = NULL;
 //    play->events = NULL;
 
     play->scales = NULL;
@@ -105,7 +106,7 @@ Playdata* new_Playdata(Ins_table* insts,
 
     play->orig_subsong = 0;
     play->subsong = 0;
-    play->section = 0;
+    play->system = 0;
     play->pattern = -1;
     Reltime_init(&play->play_time);
     play->play_frames = 0;
@@ -143,6 +144,7 @@ Playdata* new_Playdata_silent(Environment* env, uint32_t freq)
     play->freq = freq;
     play->old_freq = play->freq;
     play->subsongs = NULL;
+    play->order_lists = NULL;
 //    play->events = NULL;
 
     play->scales = NULL;
@@ -187,7 +189,7 @@ Playdata* new_Playdata_silent(Environment* env, uint32_t freq)
 
     play->orig_subsong = 0;
     play->subsong = 0;
-    play->section = 0;
+    play->system = 0;
     play->pattern = -1;
     Reltime_init(&play->play_time);
     play->play_frames = 0;
@@ -214,7 +216,7 @@ void Playdata_set_subsong(Playdata* play, int subsong, bool reset)
     assert(subsong >= 0);
     assert(subsong < KQT_SONGS_MAX);
     play->orig_subsong = play->subsong = subsong;
-    play->section = 0;
+    play->system = 0;
     if (!play->silent)
     {
         assert(play->voice_pool != NULL);
@@ -280,7 +282,7 @@ void Playdata_reset(Playdata* play)
     play->event_index = 0;
     play->delay_event_index = -1;
     play->play_frames = 0;
-    play->section = 0;
+    play->system = 0;
     play->pattern = -1;
     Reltime_init(&play->play_time);
     Reltime_init(&play->pos);

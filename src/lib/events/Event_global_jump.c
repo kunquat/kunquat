@@ -105,7 +105,7 @@ void Trigger_global_jump_process(Event* event, Playdata* play)
     else
     {
         key->subsong = play->subsong;
-        key->section = play->section;
+        key->section = play->system; // TODO: implement jump to pattern instance
     }
     Jump_context* jc = AAtree_get_exact(jump->counters, key);
     assert(jc != NULL);

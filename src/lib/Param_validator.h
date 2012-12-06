@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2012
  *
  * This file is part of Kunquat.
  *
@@ -68,7 +68,7 @@ bool v_resonance(char* param);
 
 bool v_scale(char* param);
 
-bool v_section(char* param);
+bool v_system(char* param);
 
 bool v_subsong(char* param);
 
