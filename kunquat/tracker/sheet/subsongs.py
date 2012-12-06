@@ -25,6 +25,7 @@ class AlbumTree(QtGui.QTreeView):
         self.song_view = song_view
 
     def currentChanged(self, new_index, old_index):
+        QtGui.QTreeView.currentChanged(self, new_index, old_index)
         return self.song_view.currentChanged(new_index, old_index)
 
     def dragEnterEvent(self, e):
