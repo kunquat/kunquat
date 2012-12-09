@@ -168,7 +168,7 @@ if not env.GetOption('clean') and not env.GetOption('help'):
         print('Warning: WavPack support is disabled!'
               ' Sample support will be very minimal.')
 
-    if not conf.CheckLibWithHeader('archive', 'archive.h', 'C'):
+    if not conf.CheckLibWithHeader('archive', ['archive_entry.h', 'archive.h'], 'C'):
         conf_errors.append('libarchive was not found.')
 
     if env['enable_player']:
