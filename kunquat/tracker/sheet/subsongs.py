@@ -27,10 +27,11 @@ class AlbumTree(QtGui.QTreeView):
     def currentChanged(self, new_index, old_index):
         QtGui.QTreeView.currentChanged(self, new_index, old_index)
         return self.song_view.currentChanged(new_index, old_index)
-
+    '''
     def dragEnterEvent(self, e):
         QtGui.QTreeView.dragEnterEvent(self, e)
         self.song_view.drag_enter(e)
+    '''
 
 class Subsongs(QtGui.QWidget):
 
