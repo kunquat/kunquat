@@ -189,3 +189,8 @@ class OrderList(QtCore.QAbstractItemModel):
             return self._pattern_instance_data(index, role)
         else:
             assert False
+
+    def flags(self, index):
+        flagval = QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled | QtCore.Qt.ItemIsEnabled
+        flagses = QtCore.Qt.ItemFlags(flagval)
+        return flagses
