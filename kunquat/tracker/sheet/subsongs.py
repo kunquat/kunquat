@@ -195,3 +195,6 @@ class OrderList(QtCore.QAbstractItemModel):
         flagval = QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled | QtCore.Qt.ItemIsEnabled
         flagses = QtCore.Qt.ItemFlags(flagval)
         return flagses
+
+    def supportedDropActions (self):
+        return QtCore.Qt.MoveAction
