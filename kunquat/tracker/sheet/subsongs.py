@@ -44,6 +44,8 @@ class Subsongs(QtGui.QWidget):
         song_list.setHeaderHidden(True)
         song_list.setRootIsDecorated(True)
         song_list.setDragDropMode(QtGui.QAbstractItemView.InternalMove)
+        song_list.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        song_list.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
         self._song_list = song_list
 
         layout = QtGui.QVBoxLayout()
@@ -88,12 +90,17 @@ class Subsongs(QtGui.QWidget):
             e.ignore()
             return False
         serials = data.data('application/json')
+        nodes = json.loads(str(serials))
+        assert len(nodes) == 1
+        node = nodes[0]
+        (node_type, _) = node
         '''
-        if item_type == 'system':
+        if node_type == 'pi':
             self.pattern_drag()
-        elif item_type == 'song':
+        elif node_type == 'song':
             self.song_drag()
         '''
+        print(node_type)
 
     def update(self):
         project = self.p.project
@@ -153,9 +160,9 @@ class OrderList(QtCore.QAbstractItemModel):
     def _song_index(self, row, col):
         track = row
         song = self.p.project._composition.get_song_by_track(track)
-        somo = Song_node(track, song)
-        self.rubbish.append(somo)
-        return self.createIndex(row, col, somo)
+        sno = Song_node(track, song)
+        self.rubbish.append(sno)
+        return self.createIndex(row, col, sno)
 
     def _pattern_instance_index(self, row, col, parent):
         parent = parent.internalPointer()
@@ -190,10 +197,10 @@ class OrderList(QtCore.QAbstractItemModel):
 
     def _pattern_instance_data(self, index, role):
         if role == QtCore.Qt.DisplayRole:
-            pimo = index.internalPointer()
-            parent = pimo.parent
+            pino = index.internalPointer()
+            parent = pino.parent
             song = parent.song
-            return pimo.pattern_instance.get_name(song)
+            return pino.pattern_instance.get_name(song)
 
     def data(self, index, role):
         node = index.internalPointer()
@@ -218,11 +225,15 @@ class OrderList(QtCore.QAbstractItemModel):
     def _item_pair(self, index):
         node = index.internalPointer()
         if isinstance(node, Song_node):
-            songmo = node
-            return songmo.song.get_ref()
+            sno = node
+            track = sno.song.get_ref()
+            return ('song', track)
         elif isinstance(node, Pattern_instance_node):
-            pimo = node
-            return pimo.pattern_instance.get_ref()
+            pino = node
+            sno = pino.parent
+            track = sno.song.get_ref()
+            system = pino.system
+            return ('pi', (track, system))
         else:
             assert False
 
