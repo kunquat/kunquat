@@ -12,6 +12,9 @@ class Pattern_instance():
         subs = [unichr(0x2080 + i) for i in nums]
         return u''.join(subs)
 
+    def get_ref(self):
+        return (self.pattern, self.instance)
+
     def get_name(self, song = None):
         ambiguous_name = u'pattern {0}'.format(self.pattern)
         fullname = ambiguous_name + self.subscript(self.instance)

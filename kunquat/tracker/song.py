@@ -7,6 +7,10 @@ class Song():
         self._composition = composition
         self._view = composition.get_view(path)
 
+    def get_ref(self):
+        ref = int(self._song_id.split('_')[1])
+        return ref
+
     def get_name(self):
         name = self._view.get_json('m_name.json') or '-'
         return name

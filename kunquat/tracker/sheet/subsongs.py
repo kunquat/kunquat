@@ -17,6 +17,7 @@ from __future__ import print_function
 from PyQt4 import QtGui, QtCore
 
 import kunquat.tracker.kqt_limits as lim
+import json
 
 class AlbumTree(QtGui.QTreeView):
 
@@ -27,11 +28,10 @@ class AlbumTree(QtGui.QTreeView):
     def currentChanged(self, new_index, old_index):
         QtGui.QTreeView.currentChanged(self, new_index, old_index)
         return self.song_view.currentChanged(new_index, old_index)
-    '''
+
     def dragEnterEvent(self, e):
         QtGui.QTreeView.dragEnterEvent(self, e)
         self.song_view.drag_enter(e)
-    '''
 
 class Subsongs(QtGui.QWidget):
 
@@ -81,6 +81,32 @@ class Subsongs(QtGui.QWidget):
     def currentChanged(self, new_index, old_index):
         node = new_index.internalPointer()
         self.deal_with(node)
+
+    def drag_enter(self, e):
+        md = e.mimeData()
+        '''
+        mt = 'application/x-qabstractitemmodeldatalist'
+        if not md.hasFormat(mt): # invalid type
+            e.ignore()
+            return
+        model = QtGui.QStandardItemModel()
+        model.dropMimeData(md, QtCore.Qt.CopyAction, 0, 0, QtCore.QModelIndex())
+        root = model.invisibleRootItem()
+        rc = root.rowCount()
+        if rc != 1: # multi drag
+            e.ignore()
+            return
+        item = root.child(0, 0)
+        item_data = self.data_from_item(item)
+        print(item)
+        item_id = item_data['type']
+        parts = item_id.split('_')
+        item_type = parts[0]
+        if item_type == 'system':
+            self.pattern_drag()
+        elif item_type == 'song':
+            self.song_drag()
+        '''
 
     def update(self):
         project = self.p.project
@@ -196,5 +222,36 @@ class OrderList(QtCore.QAbstractItemModel):
         flagses = QtCore.Qt.ItemFlags(flagval)
         return flagses
 
-    def supportedDropActions (self):
+    def supportedDropActions(self):
         return QtCore.Qt.MoveAction
+
+    def mimeTypes(self):
+        return ['application/json']
+
+    def _item_pair(self, index):
+        node = index.internalPointer()
+        if isinstance(node, Song_node):
+            songmo = node
+            return songmo.song.get_ref()
+        elif isinstance(node, Pattern_instance_node):
+            pimo = node
+            return pimo.pattern_instance.get_ref()
+        else:
+            assert False
+
+    def mimeData(self, indexes):
+        serials = [self._item_pair(i) for i in indexes]
+        data = json.dumps(serials)
+        mimedata = QtCore.QMimeData()
+        mimedata.setData('application/json', data)
+        return mimedata
+
+    def dropMimeData(self, data, action, row, column, parent):
+        if not action == QtCore.Qt.MoveAction:
+            return False
+        if not data.hasFormat('application/json'):
+            return False
+        serials = data.data('application/json')
+        print('%s dropped at %s %s' % (serials, row, parent) )
+        return True
+
