@@ -94,20 +94,17 @@ class Subsongs(QtGui.QWidget):
         assert len(nodes) == 1
         node = nodes[0]
         (node_type, _) = node
-        '''
         if node_type == 'pi':
-            self.pattern_drag()
+            self.model.setSongDrag(False)
         elif node_type == 'song':
-            self.song_drag()
-        '''
-        print(node_type)
+            self.model.setSongDrag(True)
 
     def update(self):
         project = self.p.project
         songs = self.p.project._composition.song_ids()
-        model = OrderList(self.p)
+        self.model = OrderList(self.p)
 
-        self._song_list.setModel(model)
+        self._song_list.setModel(self.model)
         self._song_list.expandAll()
 
 class Pattern_instance_node(object):
@@ -133,6 +130,7 @@ class OrderList(QtCore.QAbstractItemModel):
         QtCore.QAbstractItemModel.__init__(self)
         self.p = p
         self.rubbish = []
+        self.songdrag = False
 
     def columnCount(self, _):
         return 1
@@ -211,8 +209,25 @@ class OrderList(QtCore.QAbstractItemModel):
         else:
             assert False
 
+    def setSongDrag(self, b):
+        self.songdrag = b
+
     def flags(self, index):
-        flagval = QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled | QtCore.Qt.ItemIsEnabled
+        enabled = QtCore.Qt.ItemIsEnabled
+        selectable = enabled | QtCore.Qt.ItemIsSelectable
+        drag = selectable | QtCore.Qt.ItemIsDragEnabled
+        drop = drag | QtCore.Qt.ItemIsDropEnabled
+        if not index.isValid(): # root
+            flagval = drop
+        else:
+            if self.songdrag:
+                flagval = drag
+            else: 
+                parent = index.parent()
+                if not parent.isValid(): # song
+                    flagval = drop
+                else: # pattern instance
+                    flagval = drag
         flagses = QtCore.Qt.ItemFlags(flagval)
         return flagses
 
@@ -223,6 +238,7 @@ class OrderList(QtCore.QAbstractItemModel):
         return ['application/json']
 
     def _item_pair(self, index):
+        assert index.isValid()
         node = index.internalPointer()
         if isinstance(node, Song_node):
             sno = node
