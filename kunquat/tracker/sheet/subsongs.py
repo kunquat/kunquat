@@ -83,25 +83,12 @@ class Subsongs(QtGui.QWidget):
         self.deal_with(node)
 
     def drag_enter(self, e):
-        md = e.mimeData()
+        data = e.mimeData()
+        if not data.hasFormat('application/json'):
+            e.ignore()
+            return False
+        serials = data.data('application/json')
         '''
-        mt = 'application/x-qabstractitemmodeldatalist'
-        if not md.hasFormat(mt): # invalid type
-            e.ignore()
-            return
-        model = QtGui.QStandardItemModel()
-        model.dropMimeData(md, QtCore.Qt.CopyAction, 0, 0, QtCore.QModelIndex())
-        root = model.invisibleRootItem()
-        rc = root.rowCount()
-        if rc != 1: # multi drag
-            e.ignore()
-            return
-        item = root.child(0, 0)
-        item_data = self.data_from_item(item)
-        print(item)
-        item_id = item_data['type']
-        parts = item_id.split('_')
-        item_type = parts[0]
         if item_type == 'system':
             self.pattern_drag()
         elif item_type == 'song':
