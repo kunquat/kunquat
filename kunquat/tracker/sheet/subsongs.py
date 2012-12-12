@@ -269,6 +269,25 @@ class OrderList(QtCore.QAbstractItemModel):
         if not data.hasFormat('application/json'):
             return False
         serials = data.data('application/json')
-        print('%s dropped at %s %s' % (serials, row, parent) )
+        nodes = json.loads(str(serials))
+        assert len(nodes) == 1
+        node = nodes[0]
+        (node_type, node_data) = node
+        composition = self.p.project._composition
+        if node_type == 'song':
+            assert not parent.isValid()
+            track = node_data
+            target = row
+            composition.move_track(track, target)
+        elif node_type == 'pi':
+            assert parent.isValid()
+            global_system = tuple(node_data)
+            sno = parent.internalPointer()
+            target_track = sno.track
+            target_row = row
+            global_target = (target_track, target_row)
+            composition.move_system(global_system, global_target)
+        else:
+           assert False
         return True
 

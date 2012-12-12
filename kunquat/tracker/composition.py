@@ -294,3 +294,11 @@ class Composition():
     def get_song_by_track(self, track):
         return self.get_song('song_%02d' % track)
 
+    def move_track(self, track, target):
+        print('move track %s to %s' % (track, target))
+
+    def move_system(self, global_system, global_target):
+        (source_track, source_row) = global_system
+        (target_track, target_row) = global_target
+        print('move system %s to %s' % (global_system, global_target))
+
