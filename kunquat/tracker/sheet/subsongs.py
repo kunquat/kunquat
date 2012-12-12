@@ -218,7 +218,10 @@ class OrderList(QtCore.QAbstractItemModel):
         drag = selectable | QtCore.Qt.ItemIsDragEnabled
         drop = drag | QtCore.Qt.ItemIsDropEnabled
         if not index.isValid(): # root
-            flagval = drop
+            if self.songdrag:
+                flagval = drop
+            else:
+                flagval = drag
         else:
             if self.songdrag:
                 flagval = drag
