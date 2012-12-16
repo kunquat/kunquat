@@ -31,6 +31,7 @@
 #include <Order_list.h>
 #include <Random.h>
 #include <Scale.h>
+#include <Track_list.h>
 #include <Playdata.h>
 #include <File_base.h>
 #include <Event_handler.h>
@@ -42,6 +43,7 @@ typedef struct Song
     uint64_t random_seed;               ///< The master random seed of the composition.
     Random* random;                     ///< The source for random data in the composition.
     Subsong_table* subsongs;            ///< The Subsongs.
+    Track_list* track_list;             ///< Track list.
     Order_list* order_lists[KQT_SONGS_MAX]; ///< Order lists.
     Pat_table* pats;                    ///< The Patterns.
     Ins_table* insts;                   ///< The Instruments.
@@ -50,7 +52,7 @@ typedef struct Song
     Scale* scales[KQT_SCALES_MAX];      ///< The Scales.
     double mix_vol_dB;                  ///< Mixing volume in dB.
     double mix_vol;                     ///< Mixing volume.
-    uint16_t init_subsong;              ///< Initial subsong number.
+//    uint16_t init_subsong;              ///< Initial subsong number.
     Playdata* play_state;               ///< Playback state.
     Event_handler* event_handler;       ///< The Event handler.
     Playdata* skip_state;               ///< Skip state (used for length calculation).
@@ -156,7 +158,7 @@ double Song_get_mix_vol(Song* song);
  * \param song   The Song -- must not be \c NULL.
  * \param num    The subsong number -- must be < \c KQT_SONGS_MAX.
  */
-void Song_set_subsong(Song* song, uint16_t num);
+//void Song_set_subsong(Song* song, uint16_t num);
 
 
 /**
@@ -166,7 +168,7 @@ void Song_set_subsong(Song* song, uint16_t num);
  *
  * \return   The initial subsong number.
  */
-uint16_t Song_get_subsong(Song* song);
+//uint16_t Song_get_subsong(Song* song);
 
 
 /**

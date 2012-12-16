@@ -67,6 +67,8 @@ void Vector_get(const Vector* v, size_t index, void* dest);
  * \param v       The Vector -- must not be \c NULL.
  * \param index   The index of the element -- must be >= \c 0 and
  *                < Vector_size(\a v).
+ *
+ * \return   The address of the element.
  */
 void* Vector_get_ref(const Vector* v, size_t index);
 

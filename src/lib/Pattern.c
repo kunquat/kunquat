@@ -254,16 +254,19 @@ uint32_t Pattern_mix(Pattern* pat,
         }
         ++play->system;
 
-        assert(play->order_lists != NULL);
-        Order_list* ol = play->order_lists[play->subsong];
-        if (ol != NULL && play->system < Order_list_get_len(ol))
+        play->pattern = -1;
+        Track_list* tl = play->track_list;
+        if (tl != NULL && play->track < Track_list_get_len(tl))
         {
-            Pat_inst_ref* ref = Order_list_get_pat_inst_ref(ol, play->system);
-            play->pattern = ref->pat;
-        }
-        else
-        {
-            play->pattern = -1;
+            int16_t song_index = Track_list_get_song_index(tl, play->track);
+
+            assert(play->order_lists != NULL);
+            Order_list* ol = play->order_lists[song_index];
+            if (ol != NULL && play->system < Order_list_get_len(ol))
+            {
+                Pat_inst_ref* ref = Order_list_get_pat_inst_ref(ol, play->system);
+                play->pattern = ref->pat;
+            }
         }
 #if 0
         if (play->section >= KQT_SECTIONS_MAX)
@@ -349,7 +352,7 @@ uint32_t Pattern_mix(Pattern* pat,
             }
             if (*target_subsong >= 0)
             {
-                play->subsong = *target_subsong;
+                play->track = *target_subsong;
             }
             if (*target_section >= 0)
             {
@@ -370,16 +373,19 @@ uint32_t Pattern_mix(Pattern* pat,
             }
             ++play->system;
 
-            assert(play->order_lists != NULL);
-            Order_list* ol = play->order_lists[play->subsong];
-            if (ol != NULL && play->system < Order_list_get_len(ol))
+            play->pattern = -1;
+            const Track_list* tl = play->track_list;
+            if (tl != NULL && play->track < Track_list_get_len(tl))
             {
-                Pat_inst_ref* ref = Order_list_get_pat_inst_ref(ol, play->system);
-                play->pattern = ref->pat;
-            }
-            else
-            {
-                play->pattern = -1;
+                int16_t song_index = Track_list_get_song_index(
+                        tl, play->track);
+                assert(play->order_lists != NULL);
+                Order_list* ol = play->order_lists[song_index];
+                if (ol != NULL && play->system < Order_list_get_len(ol))
+                {
+                    Pat_inst_ref* ref = Order_list_get_pat_inst_ref(ol, play->system);
+                    play->pattern = ref->pat;
+                }
             }
 #if 0
             if (play->section >= KQT_SECTIONS_MAX)

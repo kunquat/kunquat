@@ -42,7 +42,7 @@ Order_list* new_Order_list(char* str, Read_state* state);
 /**
  * Returns the length of the Order list.
  *
- * \param ol      The Order list -- must not be \c NULL.
+ * \param ol   The Order list -- must not be \c NULL.
  *
  * \return   The length.
  */

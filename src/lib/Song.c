@@ -120,6 +120,7 @@ Song* new_Song(uint32_t buf_size)
     song->random = NULL;
     song->env = NULL;
     song->bind = NULL;
+    song->track_list = NULL;
     for (int i = 0; i < KQT_SONGS_MAX; ++i)
     {
         song->order_lists[i] = NULL;
@@ -166,6 +167,7 @@ Song* new_Song(uint32_t buf_size)
         return NULL;
     }
     song->play_state->subsongs = Song_get_subsongs(song);
+    song->play_state->track_list = song->track_list;
     song->play_state->order_lists = song->order_lists;
     song->play_state->scales = song->scales;
     song->play_state->active_scale = &song->play_state->scales[0];
@@ -176,6 +178,7 @@ Song* new_Song(uint32_t buf_size)
         return NULL;
     }
     song->skip_state->subsongs = Song_get_subsongs(song);
+    song->skip_state->track_list = song->track_list;
     song->skip_state->order_lists = song->order_lists;
 
     if (!Device_init_buffer(&song->parent, DEVICE_PORT_TYPE_RECEIVE, 0))
@@ -261,7 +264,7 @@ Song* new_Song(uint32_t buf_size)
     }
     song->mix_vol_dB = SONG_DEFAULT_MIX_VOL;
     song->mix_vol = exp2(song->mix_vol_dB / 6);
-    song->init_subsong = SONG_DEFAULT_INIT_SUBSONG;
+    //song->init_subsong = SONG_DEFAULT_INIT_SUBSONG;
     Song_set_random_seed(song, 0);
     return song;
 }
@@ -348,7 +351,7 @@ bool Song_parse_composition(Song* song, char* str, Read_state* state)
     }
     song->mix_vol_dB = mix_vol;
     song->mix_vol = exp2(song->mix_vol_dB / 6);
-    Song_set_subsong(song, init_subsong);
+    //Song_set_subsong(song, init_subsong);
     return true;
 }
 
@@ -407,25 +410,45 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
     {
         // FIXME: setting the tempo on both states breaks initial tempo
         //        if it is set after calculating duration
-        if (isnan(song->play_state->tempo))
+        Playdata* states[2] = { song->play_state, song->skip_state, };
+        for (int i = 0; i < 2; ++i)
         {
-            Subsong* ss = Subsong_table_get(play->subsongs, play->subsong);
-            song->play_state->tempo = (ss == NULL) ? 120 : Subsong_get_tempo(ss);
-        }
-        if (isnan(song->skip_state->tempo))
-        {
-            Subsong* ss = Subsong_table_get(play->subsongs, play->subsong);
-            song->skip_state->tempo = (ss == NULL) ? 120 : Subsong_get_tempo(ss);
+            Playdata* state = states[i];
+            if (isnan(state->tempo))
+            {
+                state->tempo = 120;
+                const uint16_t track_index = state->track;
+                const Track_list* tl = state->track_list;
+                if (tl != NULL && track_index < Track_list_get_len(tl))
+                {
+                    int16_t song_index = Track_list_get_song_index(
+                            tl, state->track);
+                    Subsong* ss = Subsong_table_get(
+                            play->subsongs,
+                            song_index);
+                    if (ss != NULL)
+                        state->tempo = Subsong_get_tempo(ss);
+                }
+            }
         }
 
         Pattern* pat = NULL;
         if (play->mode >= PLAY_SUBSONG)
         {
-            Order_list* ol = song->order_lists[play->subsong];
-            if (ol != NULL && play->system < Order_list_get_len(ol))
+            // XXX: editing the track list while playing may work unexpectedly
+            const uint16_t track_index = play->track;
+            const Track_list* tl = play->track_list;
+            if (tl != NULL && track_index < Track_list_get_len(tl))
             {
-                Pat_inst_ref* ref = Order_list_get_pat_inst_ref(ol, play->system);
-                play->pattern = ref->pat;
+                const int16_t song_index = Track_list_get_song_index(
+                        tl, track_index);
+                const Order_list* ol = song->order_lists[song_index];
+                if (ol != NULL && play->system < Order_list_get_len(ol))
+                {
+                    Pat_inst_ref* ref = Order_list_get_pat_inst_ref(
+                            ol, play->system);
+                    play->pattern = ref->pat;
+                }
             }
 #if 0
             Subsong* ss = Subsong_table_get(song->subsongs, play->subsong);
@@ -454,7 +477,7 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
             {
                 if (play->infinite && play->play_frames + mixed > 0)
                 {
-                    Playdata_set_subsong(play, play->orig_subsong, false);
+                    Playdata_set_track(play, play->orig_track, false);
                     continue;
                 }
                 else
@@ -464,9 +487,9 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
                 }
             }
             assert(play->mode == PLAY_SONG);
-            if (play->subsong >= KQT_SONGS_MAX - 1)
+            if (play->track >= KQT_TRACKS_MAX - 1)
             {
-                Playdata_set_subsong(play, 0, !play->infinite);
+                Playdata_set_track(play, 0, !play->infinite);
                 if (play->infinite && play->play_frames + mixed > 0)
                 {
                     continue;
@@ -477,8 +500,8 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
                     break;
                 }
             }
-            Playdata_set_subsong(play, play->orig_subsong + 1,
-                                 !play->infinite);
+            Playdata_set_track(play, play->track + 1,
+                    !play->infinite);
             continue;
         }
         mixed += Pattern_mix(pat, nframes, mixed, eh, song->channels,
@@ -574,6 +597,7 @@ double Song_get_mix_vol(Song* song)
 }
 
 
+#if 0
 void Song_set_subsong(Song* song, uint16_t num)
 {
     assert(song != NULL);
@@ -581,13 +605,16 @@ void Song_set_subsong(Song* song, uint16_t num)
     song->init_subsong = num;
     return;
 }
+#endif
 
 
+#if 0
 uint16_t Song_get_subsong(Song* song)
 {
     assert(song != NULL);
     return song->init_subsong;
 }
+#endif
 
 
 Subsong_table* Song_get_subsongs(Song* song)
@@ -849,6 +876,7 @@ void del_Song(Song* song)
     del_Connections(song->connections);
     del_Ins_table(song->insts);
     del_Effect_table(song->effects);
+    del_Track_list(song->track_list);
     for (int i = 0; i < KQT_SONGS_MAX; ++i)
     {
         del_Order_list(song->order_lists[i]);

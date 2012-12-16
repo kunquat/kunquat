@@ -364,6 +364,17 @@ bool v_tempo(char* param)
 }
 
 
+bool v_track(char* param)
+{
+    assert(param != NULL);
+    begin();
+    int64_t track = -2;
+    param = read_int(param, &track, state);
+    end();
+    return !state->error && track >= -1 && track < KQT_TRACKS_MAX;
+}
+
+
 bool v_tremolo_depth(char* param)
 {
     assert(param != NULL);
