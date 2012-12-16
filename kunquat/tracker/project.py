@@ -193,13 +193,15 @@ class Project(QtCore.QObject):
 
     def _store_init(self, store, **_):
         self._store = store
-        self._composition = Composition(store)
+        self._composition = Composition(store, self.p)
 
-    def _store_value_update(self, key, **_):
+    def _store_value_update(self, key, value, **_):
         self._update_player(key)
         self.p._toolbar.update_songs()
         self.p._toolbar.update_instruments()
         self.p._toolbar.update_scales()
+        if key == 'p_tracks.json':
+            self._composition.update_tracks(value)
         QtCore.QObject.emit(self, QtCore.SIGNAL('sync()'))
 
     def _store_import_start(self, prefix, path, key_names, **_):

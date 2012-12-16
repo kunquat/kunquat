@@ -60,7 +60,8 @@ class Subsongs(QtGui.QWidget):
 
     def deal_with(self, node):
         if isinstance(node, Song_node):
-            track = node.track
+            song = node.song
+            track = self.p.project._composition.get_track_by_song(song)
             QtCore.QObject.emit(self,
                                 QtCore.SIGNAL('subsongParams(int)'),
                                 track)
@@ -70,7 +71,7 @@ class Subsongs(QtGui.QWidget):
         elif isinstance(node, Pattern_instance_node):
             parent = node.parent
             song = parent.song
-            track = parent.track
+            track = self.p.project._composition.get_track_by_song(song)
             system = node.system
             self._section_manager.set(track, system)
             QtCore.QObject.emit(self,
@@ -120,8 +121,7 @@ class Pattern_instance_node(object):
         return pattern_instance
 
 class Song_node(object):
-    def __init__(self, track, song):
-        self.track = track
+    def __init__(self, song):
         self.song = song
 
 class OrderList(QtCore.QAbstractItemModel):
@@ -158,7 +158,7 @@ class OrderList(QtCore.QAbstractItemModel):
     def _song_index(self, row, col):
         track = row
         song = self.p.project._composition.get_song_by_track(track)
-        sno = Song_node(track, song)
+        sno = Song_node(song)
         self.rubbish.append(sno)
         return self.createIndex(row, col, sno)
 
@@ -182,7 +182,9 @@ class OrderList(QtCore.QAbstractItemModel):
             return QtCore.QModelIndex()
         elif isinstance(node, Pattern_instance_node):
             parent = node.parent
-            return self.createIndex(parent.track, 0, parent)
+            song = parent.song
+            track = self.p.project._composition.get_track_by_song(song)
+            return self.createIndex(track, 0, parent)
         else:
             assert False
 
@@ -245,7 +247,8 @@ class OrderList(QtCore.QAbstractItemModel):
         node = index.internalPointer()
         if isinstance(node, Song_node):
             sno = node
-            track = sno.song.get_ref()
+            song = sno.song
+            track = self.p.project._composition.get_track_by_song(song)
             return ('song', track)
         elif isinstance(node, Pattern_instance_node):
             pino = node
@@ -291,3 +294,5 @@ class OrderList(QtCore.QAbstractItemModel):
            assert False
         return True
 
+    def update(self):
+        self.emit(QtCore.SIGNAL("layoutChanged()"))

@@ -21,13 +21,56 @@ from history import History
 import kqt_limits as lim
 import re
 
+
+def list_move(lst, index, target):
+    '''
+    >>> list_move([0, 1, 2], 0, 0)
+    [0, 1, 2]
+    >>> list_move([0, 1, 2], 0, 1)
+    [0, 1, 2]
+    >>> list_move([0, 1, 2], 0, 2)
+    [1, 0, 2]
+    >>> list_move([0, 1, 2], 0, 3)
+    [1, 2, 0]
+    >>> list_move([0, 1, 2], 1, 0)
+    [1, 0, 2]
+    >>> list_move([0, 1, 2], 1, 1)
+    [0, 1, 2]
+    >>> list_move([0, 1, 2], 1, 2)
+    [0, 1, 2]
+    >>> list_move([0, 1, 2], 1, 3)
+    [0, 2, 1]
+    >>> list_move([0, 1, 2], 2, 0)
+    [2, 0, 1]
+    >>> list_move([0, 1, 2], 2, 1)
+    [0, 2, 1]
+    >>> list_move([0, 1, 2], 2, 2)
+    [0, 1, 2]
+    >>> list_move([0, 1, 2], 2, 3)
+    [0, 1, 2]
+    '''
+    def _list_move(lst, index, target):
+        item = lst[index]
+        for i, v in enumerate(lst):
+            if i == target:
+                yield item
+            if i != index:
+                yield v
+        if target == len(lst):
+                yield item
+    result_generator = _list_move(lst, index, target)
+    result = list(result_generator)
+    return result
+
 class Composition():
 
-    def __init__(self, store):
+    def __init__(self, store, p):
         root = ''
         self._history = History(self)
         self._store = store
         self._view = store
+        self.p = p
+        self._tracks = []
 
     def get(self, key):
         suffix = key.split('.').pop()
@@ -289,21 +332,38 @@ class Composition():
         return left_over_ids
 
     def song_count(self):
-        return len(self.song_ids())
+        return len(self._tracks)
 
     def get_tracks(self):
-        tracks = self._view.get_json('p_tracks.json')
-        return tracks
+        return self._tracks
+
+    def set_tracks(self, tracks):
+        self._view.put('p_tracks.json', tracks)
+
+    def update_tracks(self, tracks_json):
+        import json
+        self._tracks = json.loads(tracks_json)
+        print('update: %s' % self._tracks)
+        try:
+            songlist_model = self.p._sheet._subsongs.model
+        except:
+            return
+        songlist_model.update()
         
+    def get_track_by_song(self, song):
+        song_ref = song.get_ref()
+        track = self._tracks.index(song_ref)
+        return track
+
     def get_song_by_track(self, track):
-        tracks = self.get_tracks()
-        assert track < len(tracks)
-        song_number = tracks[track]
+        song_number = self._tracks[track]
         song = self.get_song('song_%02d' % song_number)
         return song
 
-    def move_track(self, track, target):
-        print('move track %s to %s' % (track, target))
+    def move_track(self, track_number, target):
+        print('move track %s to %s' % (track_number, target))
+        tracks = list_move(self._tracks, track_number, target)
+        self.set_tracks(tracks)
 
     def move_system(self, global_system, global_target):
         (source_track, source_row) = global_system

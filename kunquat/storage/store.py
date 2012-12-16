@@ -62,15 +62,22 @@ class Store(object):
             return value
         return json.dumps(value)
 
+    def _signal_value_update(self, key):
+        if key in self._memory.keys():
+            value = self._memory[key]
+        else:
+            value = None
+        self.signal(Value_update(key=key, value=value))
+
     def delete(self, key):
         if key in self._memory.keys():
             del self._memory[key]
-            self.signal(Value_update(key=key))
+            self._signal_value_update(key)
 
     def put(self, key, value):
         assert not key.startswith('/')
         self._memory[key] = self._encode(value)
-        self.signal(Value_update(key=key))
+        self._signal_value_update(key)
 
     def _get(self, key):
         return self._memory[key]
