@@ -290,9 +290,17 @@ class Composition():
 
     def song_count(self):
         return len(self.song_ids())
+
+    def get_tracks(self):
+        tracks = self._view.get_json('p_tracks.json')
+        return tracks
         
     def get_song_by_track(self, track):
-        return self.get_song('song_%02d' % track)
+        tracks = self.get_tracks()
+        assert track < len(tracks)
+        song_number = tracks[track]
+        song = self.get_song('song_%02d' % song_number)
+        return song
 
     def move_track(self, track, target):
         print('move track %s to %s' % (track, target))
