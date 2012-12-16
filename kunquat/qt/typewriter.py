@@ -74,18 +74,12 @@ class Typewriter():
     def get_view(self):
         return self._twview
 
-    def all_ints(self):
-        i = 0
-        while True:
-            yield i
-            i += 1
-
     def get_keymap(self):
         return dict(self.keymap_helper(self.keys))
 
     def keymap_helper(self, mapping):
-        for row, buttons in zip(self.all_ints(), mapping):
-            for but, key in zip(self.all_ints(), buttons):
+        for row, buttons in enumerate(mapping):
+            for but, key in enumerate(buttons):
                 yield (key, (row, but))
 
     def count_rows(self):

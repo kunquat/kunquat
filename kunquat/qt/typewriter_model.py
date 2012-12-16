@@ -18,15 +18,9 @@ class TypewriterModel():
         self._dice = [unichr(i) for i in dice_code]
         self._die = self._dice[4]
 
-    def all_ints(self):
-        i = 0
-        while True:
-            yield i
-            i += 1
-
     def notemap_helper(self, mapping):
-        for row, buttons in zip(self.all_ints(), mapping):
-            for but, note in zip(self.all_ints(), buttons):
+        for row, buttons in enumerate(mapping):
+            for but, note in enumerate(buttons):
                 yield ((row, but), note)
 
     def get_notemap(self):

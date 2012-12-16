@@ -174,16 +174,10 @@ class Toolbar():
         index = self._scale_selector.findText(s)
         self._scale_selector.setCurrentIndex(index)
 
-    def all_ints(self):
-        i = 0
-        while True:
-            yield i
-            i += 1
-
     def update_scales(self):
         current = 0
 
-        for i, s in zip(self.all_ints(), self.p._scales):
+        for i, s in enumerate(self.p._scales):
             if s == self.p._scale:
                 current = i
 
