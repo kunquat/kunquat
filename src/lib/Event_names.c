@@ -183,7 +183,7 @@ static Name_info event_specs[] =
     { "qvoices", EVENT_QUERY_VOICE_COUNT,     VALUE_TYPE_NONE, NULL, false },
     { "qf",    EVENT_QUERY_ACTUAL_FORCE,      VALUE_TYPE_INT, v_gen, false },
 
-    { "Asong", EVENT_AUTO_LOCATION_SONG,      VALUE_TYPE_INT, v_subsong, false },
+    { "Atrack", EVENT_AUTO_LOCATION_TRACK,    VALUE_TYPE_INT, v_track, false },
     { "Asystem", EVENT_AUTO_LOCATION_SYSTEM, VALUE_TYPE_INT, v_system, false },
     { "Apattern", EVENT_AUTO_LOCATION_PATTERN, VALUE_TYPE_INT, v_pattern, false },
     { "Arow",  EVENT_AUTO_LOCATION_ROW,       VALUE_TYPE_TIMESTAMP, v_any_ts, false },

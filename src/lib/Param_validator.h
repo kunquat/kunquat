@@ -76,6 +76,8 @@ bool v_sustain(char* param);
 
 bool v_tempo(char* param);
 
+bool v_track(char* param);
+
 bool v_tremolo_depth(char* param);
 
 bool v_volume(char* param);

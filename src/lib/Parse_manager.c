@@ -370,7 +370,7 @@ static bool parse_song_level(kqt_Handle* handle,
             if (!state->error)
             {
                 kqt_Handle_set_error(handle, ERROR_MEMORY,
-                                     "Couldn't allocate memory");
+                        "Couldn't allocate memory");
             }
             else
             {
@@ -381,9 +381,31 @@ static bool parse_song_level(kqt_Handle* handle,
         if (!Song_set_bind(handle->song, map))
         {
             kqt_Handle_set_error(handle, ERROR_MEMORY,
-                                 "Couldn't allocate memory");
+                    "Couldn't allocate memory");
             return false;
         }
+    }
+    else if (string_eq(key, "p_tracks.json"))
+    {
+        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+        Track_list* tl = new_Track_list(data, state);
+        if (tl == NULL)
+        {
+            if (!state->error)
+            {
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
+            }
+            else
+            {
+                set_parse_error(handle, state);
+            }
+            return false;
+        }
+        del_Track_list(handle->song->track_list);
+        handle->song->track_list = tl;
+        handle->song->play_state->track_list = tl;
+        handle->song->skip_state->track_list = tl;
     }
     return true;
 }

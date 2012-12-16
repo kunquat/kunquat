@@ -75,6 +75,12 @@ extern "C" {
 
 
 /**
+ * Maximum number of tracks in a Kunquat Handle.
+ */
+#define KQT_TRACKS_MAX KQT_SONGS_MAX
+
+
+/**
  * Maximum number of Patterns in a Kunquat Handle.
  */
 #define KQT_PATTERNS_MAX 1024

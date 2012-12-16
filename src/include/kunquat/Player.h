@@ -151,19 +151,19 @@ long kqt_Handle_get_buffer_size(kqt_Handle* handle);
 
 
 /**
- * Estimates the duration of a song in the Kunquat Handle.
+ * Estimates the duration of a track in the Kunquat Handle.
  *
- * This function will not calculate the length of a song further
+ * This function will not calculate the length of a track further
  * than 30 days.
  *
  * \param handle   The Handle -- should not be \c NULL.
- * \param song     The song number -- should be >= \c -1 and
- *                 < \c KQT_SONGS_MAX (\c -1 indicates all songs).
+ * \param track    The track number -- should be >= \c -1 and
+ *                 < \c KQT_TRACKS_MAX (\c -1 indicates all tracks).
  *
  * \return   The length in nanoseconds, or KQT_MAX_CALC_DURATION if the
  *           length is 30 days or longer, or \c -1 if failed.
  */
-long long kqt_Handle_get_duration(kqt_Handle* handle, int song);
+long long kqt_Handle_get_duration(kqt_Handle* handle, int track);
 
 
 /**
@@ -173,14 +173,17 @@ long long kqt_Handle_get_duration(kqt_Handle* handle, int song);
  * Notes that start playing before the given position will not be played.
  *
  * \param handle        The Handle -- should not be \c NULL.
- * \param song          The song number -- should be >= \c -1 and
- *                      < \c KQT_SUBSONGS_MAX (\c -1 indicates all songs).
+ * \param track         The track number -- should be >= \c -1 and
+ *                      < \c KQT_TRACKS_MAX (\c -1 indicates all tracks).
  * \param nanoseconds   The number of nanoseconds from the beginning --
  *                      should not be negative.
  *
  * \return   \c 1 if successful, otherwise \c 0.
  */
-int kqt_Handle_set_position(kqt_Handle* handle, int song, long long nanoseconds);
+int kqt_Handle_set_position(
+        kqt_Handle* handle,
+        int track,
+        long long nanoseconds);
 
 
 /**

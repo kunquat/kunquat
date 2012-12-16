@@ -755,8 +755,8 @@ static void Event_handler_handle_query(Event_handler* eh,
         {
             if (eh->global_state->mode >= PLAY_SUBSONG)
             {
-                snprintf(auto_event, 128, "[\"Asong\", %" PRIu16 "]",
-                         eh->global_state->subsong);
+                snprintf(auto_event, 128, "[\"Atrack\", %" PRIu16 "]",
+                         eh->global_state->track);
                 Event_handler_trigger_const(eh, index, auto_event, silent);
                 snprintf(auto_event, 128, "[\"Asystem\", %" PRIu16 "]",
                          eh->global_state->system);

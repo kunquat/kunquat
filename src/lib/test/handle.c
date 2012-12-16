@@ -259,6 +259,7 @@ START_TEST(Empty_pattern_contains_silence)
 {
     set_mixing_rate(mixing_rates[_i]);
 
+    set_data("p_tracks.json", "[0]");
     set_data("song_00/p_order_list.json", "[ [0, 0] ]");
     set_data("pat_000/p_pattern.json", "{ \"length\": [16, 0] }");
 
@@ -303,6 +304,7 @@ START_TEST(Note_on_at_pattern_end_is_handled)
     set_mix_volume(0);
     setup_debug_single_pulse();
 
+    set_data("p_tracks.json", "[0]");
     set_data("song_00/p_order_list.json", "[ [0, 0], [1, 0] ]");
 
     char pat0_def[128] = "";
@@ -332,6 +334,7 @@ START_TEST(Note_on_after_pattern_end_is_ignored)
     set_mix_volume(0);
     setup_debug_single_pulse();
 
+    set_data("p_tracks.json", "[0]");
     set_data("song_00/p_order_list.json", "[ [0, 0], [1, 0] ]");
 
     char pat0_def[128] = "";
@@ -362,6 +365,7 @@ START_TEST(Initial_tempo_is_set_correctly)
 
     int tempos[] = { 30, 60, 120, 240, 0 }; // 0 is guard, shouldn't be used
 
+    set_data("p_tracks.json", "[0]");
     set_data("song_00/p_order_list.json", "[ [0, 0] ]");
     char ss_def[128] = "";
     snprintf(ss_def, sizeof(ss_def), "{ \"tempo\": %d }", tempos[_i]);
@@ -387,6 +391,7 @@ START_TEST(Infinite_mode_loops_composition)
     set_mix_volume(0);
     setup_debug_single_pulse();
 
+    set_data("p_tracks.json", "[0]");
     set_data("song_00/p_order_list.json", "[ [0, 0] ]");
     set_data("pat_000/p_pattern.json", "{ \"length\": [2, 0] }");
     set_data("pat_000/col_00/p_triggers.json", "[ [[0, 0], [\"n+\", \"0\"]] ]");
