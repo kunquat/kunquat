@@ -21,32 +21,32 @@ from history import History
 import kqt_limits as lim
 import re
 
-
 def list_move(lst, index, target):
     '''
-    >>> list_move([0, 1, 2], 0, 0)
+    >>> l = [0, 1, 2]
+    >>> list_move(l, 0, 0)
     [0, 1, 2]
-    >>> list_move([0, 1, 2], 0, 1)
+    >>> list_move(l, 0, 1)
     [0, 1, 2]
-    >>> list_move([0, 1, 2], 0, 2)
+    >>> list_move(l, 0, 2)
     [1, 0, 2]
-    >>> list_move([0, 1, 2], 0, 3)
+    >>> list_move(l, 0, 3)
     [1, 2, 0]
-    >>> list_move([0, 1, 2], 1, 0)
+    >>> list_move(l, 1, 0)
     [1, 0, 2]
-    >>> list_move([0, 1, 2], 1, 1)
+    >>> list_move(l, 1, 1)
     [0, 1, 2]
-    >>> list_move([0, 1, 2], 1, 2)
+    >>> list_move(l, 1, 2)
     [0, 1, 2]
-    >>> list_move([0, 1, 2], 1, 3)
+    >>> list_move(l, 1, 3)
     [0, 2, 1]
-    >>> list_move([0, 1, 2], 2, 0)
+    >>> list_move(l, 2, 0)
     [2, 0, 1]
-    >>> list_move([0, 1, 2], 2, 1)
+    >>> list_move(l, 2, 1)
     [0, 2, 1]
-    >>> list_move([0, 1, 2], 2, 2)
+    >>> list_move(l, 2, 2)
     [0, 1, 2]
-    >>> list_move([0, 1, 2], 2, 3)
+    >>> list_move(l, 2, 3)
     [0, 1, 2]
     '''
     def _list_move(lst, index, target):
