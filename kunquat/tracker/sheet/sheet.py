@@ -202,19 +202,19 @@ class Section(QtCore.QObject):
     def connect(self, func):
         self.section_changed.connect(func)
 
-    def set(self, subsong, section):
-        assert subsong < lim.SONGS_MAX
-        assert section < lim.SECTIONS_MAX
-        pat = self._project._composition.get_pattern(subsong, section)
+    def set(self, track, system):
+        assert track < lim.SONGS_MAX
+        assert system < lim.SECTIONS_MAX
+        pat = self._project._composition.get_pattern(track, system)
         if pat == None:
             return
-        if self._subsong == subsong and self._section == section:
+        if self._subsong == track and self._section == system:
             pass
             #print('repeat signal for {0}:{1}'.format(subsong, section))
-        self._subsong = subsong
-        self._section = section
+        self._subsong = track
+        self._section = system
         QtCore.QObject.emit(self, QtCore.SIGNAL('sectionChanged(int, int)'),
-                            subsong, section)
+                            track, system)
 
     @property
     def subsong(self):

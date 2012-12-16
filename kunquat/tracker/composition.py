@@ -82,18 +82,18 @@ class Composition():
     def __delitem__(self, key):
         self.delete(key)
 
-    def get_pattern(self, song, section):
-        """Get a pattern number based on song and section number."""
-        if song < 0 or song >= lim.SONGS_MAX:
-            raise IndexError, 'Invalid song number'
-        if section < 0 or section >= lim.SECTIONS_MAX:
-            raise IndexError, 'Invalid section number'
-        orderlist = self['song_{0:02x}/p_order_list.json'.format(song)]
+    def get_pattern(self, track, system):
+        """Get a pattern number based on track and system number."""
+        if track < 0 or track >= lim.SONGS_MAX:
+            raise IndexError, 'Invalid track number'
+        if system < 0 or system >= lim.SECTIONS_MAX:
+            raise IndexError, 'Invalid system number'
+        orderlist = self['song_{0:02x}/p_order_list.json'.format(track)]
         if not orderlist:
             return None
-        if len(orderlist) <= section:
+        if len(orderlist) <= system:
             return None
-        return orderlist[section][0]
+        return orderlist[system][0]
 
     def get_effect(self, base_path, index):
         name = 'eff_{0:02x}'.format(index)
