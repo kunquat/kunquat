@@ -71,8 +71,8 @@ class Subsongs(QtGui.QWidget):
             parent = node.parent
             song = parent.song
             track = parent.track
-            pattern = node.pattern_instance.pattern
-            self._section_manager.set(track, pattern)
+            system = node.system
+            self._section_manager.set(track, system)
             QtCore.QObject.emit(self,
                                 QtCore.SIGNAL('subsongChanged(int)'),
                                 track)
