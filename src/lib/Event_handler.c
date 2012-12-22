@@ -835,9 +835,9 @@ static bool Event_handler_act(Event_handler* eh,
         {
             Event_buffer_add(eh->event_buffer, index, event_name, value);
         }
-        if ((event_type >= EVENT_CONTROL_ENV_SET_BOOL_NAME &&
-                event_type <= EVENT_CONTROL_ENV_SET_TIMESTAMP) ||
-            EVENT_IS_AUTO(event_type))
+        //if ((event_type >= EVENT_CONTROL_ENV_SET_BOOL_NAME &&
+        //        event_type <= EVENT_CONTROL_ENV_SET_TIMESTAMP) ||
+        //    EVENT_IS_AUTO(event_type))
         {
             Event_buffer_add(eh->tracker_buffer, index, event_name, value);
         }
