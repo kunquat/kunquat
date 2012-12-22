@@ -170,7 +170,7 @@ def play(options, file_name, pa_handle, key_handler, list_pos):
         pa_handle.write(*bufs)
         if not options['quiet']:
             voice_count = 0
-            handle.fire(0, ['Qvoices', None])
+            handle.fire(0, ['qvoices', None])
             events = handle.treceive()
             try:
                 vc = ifilter(lambda x: x[1][0] == 'Avoices',
