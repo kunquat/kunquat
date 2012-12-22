@@ -20,47 +20,7 @@ from itertools import izip, takewhile
 from history import History
 import kqt_limits as lim
 import re
-
-def list_move(lst, index, target):
-    '''
-    >>> l = [0, 1, 2]
-    >>> list_move(l, 0, 0)
-    [0, 1, 2]
-    >>> list_move(l, 0, 1)
-    [0, 1, 2]
-    >>> list_move(l, 0, 2)
-    [1, 0, 2]
-    >>> list_move(l, 0, 3)
-    [1, 2, 0]
-    >>> list_move(l, 1, 0)
-    [1, 0, 2]
-    >>> list_move(l, 1, 1)
-    [0, 1, 2]
-    >>> list_move(l, 1, 2)
-    [0, 1, 2]
-    >>> list_move(l, 1, 3)
-    [0, 2, 1]
-    >>> list_move(l, 2, 0)
-    [2, 0, 1]
-    >>> list_move(l, 2, 1)
-    [0, 2, 1]
-    >>> list_move(l, 2, 2)
-    [0, 1, 2]
-    >>> list_move(l, 2, 3)
-    [0, 1, 2]
-    '''
-    def _list_move(lst, index, target):
-        item = lst[index]
-        for i, v in enumerate(lst):
-            if i == target:
-                yield item
-            if i != index:
-                yield v
-        if target == len(lst):
-                yield item
-    result_generator = _list_move(lst, index, target)
-    result = list(result_generator)
-    return result
+import tools
 
 class Composition():
 
@@ -362,11 +322,27 @@ class Composition():
 
     def move_track(self, track_number, target):
         print('move track %s to %s' % (track_number, target))
-        tracks = list_move(self._tracks, track_number, target)
+        tracks = tools.list_move(self._tracks, track_number, target)
         self.set_tracks(tracks)
 
     def move_system(self, global_system, global_target):
-        (source_track, source_row) = global_system
-        (target_track, target_row) = global_target
         print('move system %s to %s' % (global_system, global_target))
+        (source_track, source_row) = global_system
+        (target_track, target_place) = global_target
+        if source_track == target_track:
+            print('internal')
+            song = self.get_song_by_track(source_track)
+            song.move_system(source_row, target_place)
+        else:
+            print('from song %s to song %s' % (source_track, target_track))
+            source_song = self.get_song_by_track(source_track)
+            target_song = self.get_song_by_track(target_track)
+            source_systems = source_song.get_order_list()
+            target_systems = target_song.get_order_list()
+            new_source_systems = list(source_systems)
+            new_target_systems = list(target_systems)
+            item = new_source_systems.pop(source_row)
+            new_target_systems.insert(target_place, item)
+            source_song.set_order_list(new_source_systems)
+            target_song.set_order_list(new_target_systems)
 

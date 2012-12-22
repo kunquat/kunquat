@@ -252,8 +252,9 @@ class OrderList(QtCore.QAbstractItemModel):
             return ('song', track)
         elif isinstance(node, Pattern_instance_node):
             pino = node
-            sno = pino.parent
-            track = sno.song.get_ref()
+            parent_sno = pino.parent
+            parent_song = parent_sno.song
+            track = self.p.project._composition.get_track_by_song(parent_song)
             system = pino.system
             return ('pi', (track, system))
         else:
@@ -285,8 +286,9 @@ class OrderList(QtCore.QAbstractItemModel):
         elif node_type == 'pi':
             assert parent.isValid()
             global_system = tuple(node_data)
-            sno = parent.internalPointer()
-            target_track = sno.track
+            parent_sno = parent.internalPointer()
+            parent_song = parent_sno.song
+            target_track = self.p.project._composition.get_track_by_song(parent_song)
             target_row = row
             global_target = (target_track, target_row)
             composition.move_system(global_system, global_target)

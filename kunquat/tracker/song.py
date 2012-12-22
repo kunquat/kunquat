@@ -1,3 +1,4 @@
+import tools
 
 class Song():
 
@@ -23,6 +24,14 @@ class Song():
     def get_order_list(self):
         orderlist = self._view.get_json('p_order_list.json')
         return orderlist
+
+    def set_order_list(self, order_list):
+        self._view.put('p_order_list.json', order_list)
+
+    def move_system(self, system_number, target):
+        ol = self.get_order_list()
+        systems = tools.list_move(ol, system_number, target)
+        self.set_order_list(systems)
 
     def system_count(self):
         order_list = self.get_order_list()
