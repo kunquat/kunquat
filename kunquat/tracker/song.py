@@ -37,3 +37,13 @@ class Song():
         order_list = self.get_order_list()
         count = len(order_list)
         return count
+
+    def update_order_list(self, order_list_json):
+        import json
+        self._order_list = json.loads(order_list_json)
+        try:
+            songlist_model = self.p._sheet._subsongs.model
+        except:
+            return
+        songlist_model.update()
+        

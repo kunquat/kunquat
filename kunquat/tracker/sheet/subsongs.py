@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2010-2012
+# Authors: Toni Ruottu, Finland 2012
+#          Tomi Jylhä-Ollila, Finland 2010-2012
 #
 # This file is part of Kunquat.
 #
@@ -55,6 +56,14 @@ class Subsongs(QtGui.QWidget):
 
         self.setLayout(layout)
 
+    def select_track(self, track):
+        QtCore.QObject.emit(self,
+                            QtCore.SIGNAL('subsongParams(int)'),
+                            track)
+        QtCore.QObject.emit(self,
+                            QtCore.SIGNAL('subsongChanged(int)'),
+                            track)
+
     def init(self):
         self.update()
 
@@ -62,12 +71,7 @@ class Subsongs(QtGui.QWidget):
         if isinstance(node, Song_node):
             song = node.song
             track = self.p.project._composition.get_track_by_song(song)
-            QtCore.QObject.emit(self,
-                                QtCore.SIGNAL('subsongParams(int)'),
-                                track)
-            QtCore.QObject.emit(self,
-                                QtCore.SIGNAL('subsongChanged(int)'),
-                                track)
+            self.select_track(track)
         elif isinstance(node, Pattern_instance_node):
             parent = node.parent
             song = parent.song
@@ -77,7 +81,8 @@ class Subsongs(QtGui.QWidget):
             QtCore.QObject.emit(self,
                                 QtCore.SIGNAL('subsongChanged(int)'),
                                 track)
-            self.deal_with(parent)
+            track = self.p.project._composition.get_track_by_song(song)
+            self.select_track(track)
         else:
             assert False
 
@@ -103,7 +108,7 @@ class Subsongs(QtGui.QWidget):
     def update(self):
         project = self.p.project
         songs = self.p.project._composition.song_ids()
-        self.model = OrderList(self.p)
+        self.model = OrderList(self.p, self)
 
         self._song_list.setModel(self.model)
         self._song_list.expandAll()
@@ -126,11 +131,12 @@ class Song_node(object):
 
 class OrderList(QtCore.QAbstractItemModel):
 
-    def __init__(self, p):
+    def __init__(self, p, view):
         QtCore.QAbstractItemModel.__init__(self)
         self.p = p
         self.rubbish = []
         self.songdrag = False
+        self.view = view
 
     def columnCount(self, _):
         return 1
@@ -272,6 +278,7 @@ class OrderList(QtCore.QAbstractItemModel):
             return False
         if not data.hasFormat('application/json'):
             return False
+        #self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
         serials = data.data('application/json')
         nodes = json.loads(str(serials))
         assert len(nodes) == 1
@@ -297,4 +304,6 @@ class OrderList(QtCore.QAbstractItemModel):
         return True
 
     def update(self):
+        #self.view.update()
         self.emit(QtCore.SIGNAL("layoutChanged()"))
+

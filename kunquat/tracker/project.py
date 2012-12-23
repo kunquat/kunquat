@@ -202,6 +202,10 @@ class Project(QtCore.QObject):
         self.p._toolbar.update_scales()
         if key == 'p_tracks.json':
             self._composition.update_tracks(value)
+        if 'p_order_list.json' in key:
+            song_id, _ = key.split('/')
+            song = self._composition.get_song(song_id)
+            song.update_order_list(value)
         QtCore.QObject.emit(self, QtCore.SIGNAL('sync()'))
 
     def _store_import_start(self, prefix, path, key_names, **_):
