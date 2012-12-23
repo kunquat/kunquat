@@ -20,6 +20,7 @@ class InstanceParams(QtGui.QGroupBox):
         self._project = project
         self._layout = QtGui.QVBoxLayout(self)
 
+
     def init(self):
         pass
 

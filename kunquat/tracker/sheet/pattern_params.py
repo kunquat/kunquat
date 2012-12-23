@@ -33,6 +33,14 @@ class PatternParams(QtGui.QGroupBox):
                                      2)
         self._layout.addWidget(self._length)
 
+        self._button_delete_pattern = QtGui.QPushButton('delete pattern') 
+        self._layout.addWidget(self._button_delete_pattern)
+        self._button_reuse_pattern = QtGui.QPushButton('reuse pattern')
+        self._layout.addWidget(self._button_reuse_pattern)
+        self._button_new_pattern = QtGui.QPushButton('new pattern')
+        self._layout.addWidget(self._button_new_pattern)
+
+
     def init(self):
         self._length.init()
         QtCore.QObject.connect(self._length,

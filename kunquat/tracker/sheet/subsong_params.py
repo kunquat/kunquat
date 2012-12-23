@@ -43,6 +43,12 @@ class SubsongParams(QtGui.QGroupBox):
                                           decimals=1,
                                           unit='dB')
         self._layout.addWidget(self._global_volume)
+        self._button_delete_song = QtGui.QPushButton('delete song')
+        self._layout.addWidget(self._button_delete_song)
+        self._button_new_song = QtGui.QPushButton('new song')
+        self._layout.addWidget(self._button_new_song)
+
+
 
     def init(self):
         self._tempo.init()
