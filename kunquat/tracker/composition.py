@@ -274,7 +274,7 @@ class Composition():
         return foo
 
     def get_song(self, song_id):
-        return Song(self, song_id)
+        return Song(self, self.p, song_id)
 
     def left_over_patterns(self):
         system_ids = self.pattern_ids()

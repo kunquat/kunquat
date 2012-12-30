@@ -2,7 +2,8 @@ import tools
 
 class Song():
 
-    def __init__(self, composition, song_id):
+    def __init__(self, composition, p, song_id):
+        self.p = p
         self._song_id = song_id
         path = song_id
         self._composition = composition
