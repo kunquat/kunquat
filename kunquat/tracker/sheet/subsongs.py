@@ -16,6 +16,7 @@ from __future__ import division
 from __future__ import print_function
 
 from PyQt4 import QtGui, QtCore
+from PyQt4.QtCore import Qt
 
 import kunquat.tracker.kqt_limits as lim
 import json
@@ -220,27 +221,38 @@ class OrderList(QtCore.QAbstractItemModel):
     def setSongDrag(self, b):
         self.songdrag = b
 
-    def flags(self, index):
-        enabled = QtCore.Qt.ItemIsEnabled
-        selectable = enabled | QtCore.Qt.ItemIsSelectable
-        drag = selectable | QtCore.Qt.ItemIsDragEnabled
-        drop = drag | QtCore.Qt.ItemIsDropEnabled
-        if not index.isValid(): # root
-            if self.songdrag:
-                flagval = drop
-            else:
-                flagval = drag
+    def _root_flags(self):
+        default = Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsDragEnabled
+        drop_target = default | Qt.ItemIsDropEnabled
+        if self.songdrag:
+            flagval = drop_target
         else:
-            if self.songdrag:
-                flagval = drag
-            else: 
-                parent = index.parent()
-                if not parent.isValid(): # song
-                    flagval = drop
-                else: # pattern instance
-                    flagval = drag
-        flagses = QtCore.Qt.ItemFlags(flagval)
+            flagval = default
+        flagses = Qt.ItemFlags(flagval)
         return flagses
+
+    def _song_flags(self):
+        default = Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsDragEnabled
+        drop_target = default | Qt.ItemIsDropEnabled
+        if self.songdrag:
+            flagval = default
+        else: 
+            flagval = drop_target
+        flagses = Qt.ItemFlags(flagval)
+        return flagses
+
+    def _pattern_instance_flags(self):
+        default = Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsDragEnabled
+        flagses = Qt.ItemFlags(default)
+        return flagses
+
+    def flags(self, index):
+        if not index.isValid():
+            return self._root_flags()
+        parent = index.parent()
+        if parent.isValid():
+            return self._pattern_instance_flags()
+        return self._song_flags()
 
     def supportedDropActions(self):
         return QtCore.Qt.MoveAction
