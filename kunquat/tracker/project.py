@@ -81,7 +81,10 @@ class Project(QtCore.QObject):
 
         self._changed = False
         self.status_view = None
-        self._callbacks = defaultdict(list)
+        self._callbacks = {
+                'music': defaultdict(list),
+                'ui': defaultdict(list),
+            }
 
         projects = storage.Storage(root_path, prefix='kqtc00', create=True)
         store_callbacks = [self.from_store]
@@ -126,15 +129,17 @@ class Project(QtCore.QObject):
         self.set_raw('p_random_seed.json', value)
         QtCore.QObject.emit(self, QtCore.SIGNAL('sync()'))
 
-    def set_callback(self, event_name, func, *args):
+    def set_callback(self, cb_type, event_name, func, *args):
         """Set a callback function for an event type."""
-        self._callbacks[event_name].extend([(func, args)])
+        assert cb_type in ('music', 'ui')
+        self._callbacks[cb_type][event_name].extend([(func, args)])
 
-    def tfire(self, ch, event):
+    def process_event(self, cb_type, ch, event):
         """Mark an event fired."""
+        assert cb_type in ('music', 'ui')
         if event[0].endswith('"'):
             event[0] = event[0][:-1]
-        for func, args in self._callbacks[event[0]]:
+        for func, args in self._callbacks[cb_type][event[0]]:
             func(ch, event, *args)
 
     def set_raw(self, key, value):
