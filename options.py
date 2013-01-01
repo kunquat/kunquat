@@ -43,13 +43,4 @@ optimise = 2
 # Build WavPack support (recommended).
 with_wavpack = True
 
-# Build PulseAudio support.
-with_pulse = True
-
-# Build JACK support.
-with_jack = False
-
-# Build OpenAL support.
-with_openal = False
-
 
