@@ -86,7 +86,7 @@ class PosDisplay(QtGui.QWidget):
         self.set_stop()
 
     def init(self):
-        self._project.set_callback('Asubsong', self._update_loc)
+        self._project.set_callback('Atrack', self._update_loc)
         self._project.set_callback('Asystem', self._update_loc)
         self._project.set_callback('Apattern', self._update_loc)
         self._project.set_callback('Arow', self._update_loc)
