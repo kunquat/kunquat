@@ -305,8 +305,8 @@ class Pattern(QtGui.QWidget):
         self.update()
 
     def section_changed(self, *args):
-        subsong, section = args
-        pattern = self.project._composition.get_pattern(subsong, section)
+        track, system = args
+        pattern = self.project._composition.get_pattern(track, system)
         if pattern != None:
             self.set_pattern(pattern)
             self.update()
