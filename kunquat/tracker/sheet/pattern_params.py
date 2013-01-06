@@ -24,6 +24,8 @@ class PatternParams(QtGui.QGroupBox):
 
         self._project = project
         self._layout = QtGui.QVBoxLayout(self)
+        self._title = QtGui.QLabel()
+        self._layout.addWidget(self._title)
         self._length = TimestampSpin(project,
                                      'Length:',
                                      (ts.Timestamp(0), ts.Timestamp(1024, 0)),
@@ -47,10 +49,14 @@ class PatternParams(QtGui.QGroupBox):
                                QtCore.SIGNAL('tsChanged(int, int)'),
                                self._sheet.length_changed)
 
-    def section_changed(self, song, system):
-        pattern = self._project._composition.get_pattern(song, system)
-        if pattern != None:
-            key = 'pat_{0:03d}/p_pattern.json'.format(pattern)
+    def section_changed(self, track, system):
+        pattern_num = self._project._composition.get_pattern(track, system)
+        if pattern_num != None:
+            song = self._project._composition.get_song_by_track(track)
+            pattern_instance = song.get_pattern_instance(system)
+            pattern_instance_name = pattern_instance.get_name(song)
+            self._title.setText(pattern_instance_name)
+            key = 'pat_{0:03d}/p_pattern.json'.format(pattern_num)
             self._length.set_key(key)
 
     def sync(self):
