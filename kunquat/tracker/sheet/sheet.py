@@ -19,7 +19,6 @@ from pattern_editor import PatternEditor
 from comp_params import CompParams
 from subsong_params import SubsongParams
 from pattern_params import PatternParams
-#from instance_params import InstanceParams
 from trigger_params import TriggerParams
 from subsongs import Subsongs
 
@@ -97,7 +96,6 @@ class Sheet(QtGui.QWidget):
         self._comp_params = CompParams(project)
         self._subsong_params = SubsongParams(project)
         self._pattern_params = PatternParams(project, self)
-        #self._instance_params = InstanceParams(project)
         self._trigger_params = TriggerParams(project)
 
         tools = QtGui.QWidget(self)
@@ -105,7 +103,6 @@ class Sheet(QtGui.QWidget):
         tool_layout.addWidget(self._comp_params)
         tool_layout.addWidget(self._subsong_params)
         tool_layout.addWidget(self._pattern_params)
-        #tool_layout.addWidget(self._instance_params)
         #tool_layout.addWidget(self._trigger_params)
 
         tool_scroller = QtGui.QScrollArea()
