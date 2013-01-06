@@ -304,7 +304,6 @@ class Composition():
     def update_tracks(self, tracks_json):
         import json
         self._tracks = json.loads(tracks_json)
-        print('update: %s' % self._tracks)
         try:
             songlist_model = self.p._sheet._subsongs.model
         except:
