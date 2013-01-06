@@ -193,6 +193,10 @@ class KqtEditor(QtGui.QMainWindow):
         self.pa_debug_timer.start(1)
         """
 
+    def error(self, message):
+        qem = QtGui.QErrorMessage()
+        qem.showMessage(message)
+
     def _finalise(self, obj):
         fw = self.focusWidget()
         fw.clearFocus()
