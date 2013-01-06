@@ -91,7 +91,8 @@ class Composition():
             raise IndexError, 'Invalid track number'
         if system < 0 or system >= lim.SECTIONS_MAX:
             raise IndexError, 'Invalid system number'
-        orderlist = self['song_{0:02x}/p_order_list.json'.format(track)]
+        song = self._tracks[track]
+        orderlist = self['song_{0:02x}/p_order_list.json'.format(song)]
         if not orderlist:
             return None
         if len(orderlist) <= system:
@@ -309,7 +310,7 @@ class Composition():
         except:
             return
         songlist_model.update()
-        
+
     def get_track_by_song(self, song):
         song_ref = song.get_ref()
         track = self._tracks.index(song_ref)

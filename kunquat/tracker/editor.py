@@ -234,29 +234,38 @@ class KqtEditor(QtGui.QMainWindow):
 
     def mix(self):
         if self._playback.playing:
-            if not self.bufs[0]:
+            mix_more = False
+            if self.bufs[0]:
+                # Send audio forward
+                if self.pa.try_write(*self.bufs):
+                    mix_more = True
+                    dB = [float('-inf')] * 2
+                    abs_max = [0] * 2
+                    for ch in (0, 1):
+                        min_val = min(self.bufs[ch])
+                        max_val = max(self.bufs[ch])
+                        abs_max[ch] = max(abs(min_val), abs(max_val))
+                        amp = (max_val - min_val) / 2
+                        if amp > 0:
+                            dB[ch] = math.log(amp, 2) * 6
+                    self._peak_meter.set_peaks(
+                            dB[0], dB[1],
+                            abs_max[0], abs_max[1],
+                            len(self.bufs[0]))
+            else:
+                mix_more = True
+                self.pa.iterate()
+
+            if mix_more:
+                # Pass location info to components that need it
                 self.handle.fire(0, ['qlocation', None])
+                for ch, event in self.handle.treceive():
+                    self.project.process_event('ui', ch, event)
+
+                # Render audio and send user events forward
                 self.bufs = self.handle.mix()
-                if not self.bufs[0]:
-                    self._playback.stop()
-                    return
-            for ch, event in self.handle.treceive():
-                self.project.tfire(ch, event)
-            if self.pa.try_write(*self.bufs):
-                dB = [float('-inf')] * 2
-                abs_max = [0] * 2
-                for ch in (0, 1):
-                    min_val = min(self.bufs[ch])
-                    max_val = max(self.bufs[ch])
-                    abs_max[ch] = max(abs(min_val), abs(max_val))
-                    amp = (max_val - min_val) / 2
-                    if amp > 0:
-                        dB[ch] = math.log(amp, 2) * 6
-                self._peak_meter.set_peaks(dB[0], dB[1],
-                                           abs_max[0], abs_max[1],
-                                           len(self.bufs[0]))
-                self.handle.fire(0, ['qlocation', None])
-                self.bufs = self.handle.mix()
+                for ch, event in self.handle.treceive():
+                    self.project.process_event('music', ch, event)
         else:
             self.pa.iterate()
 

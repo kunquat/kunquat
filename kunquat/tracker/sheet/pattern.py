@@ -271,8 +271,8 @@ class Pattern(QtGui.QWidget):
         self.setAttribute(QtCore.Qt.WA_NoSystemBackground)
 
     def init(self):
-        self.project.set_callback('Apattern', self._update_play_pattern)
-        self.project.set_callback('Arow', self._update_play_row)
+        self.project.set_callback('ui', 'Apattern', self._update_play_pattern)
+        self.project.set_callback('ui', 'Arow', self._update_play_row)
 
     def get_cursor(self):
         return self.cursor
@@ -305,8 +305,8 @@ class Pattern(QtGui.QWidget):
         self.update()
 
     def section_changed(self, *args):
-        subsong, section = args
-        pattern = self.project._composition.get_pattern(subsong, section)
+        track, system = args
+        pattern = self.project._composition.get_pattern(track, system)
         if pattern != None:
             self.set_pattern(pattern)
             self.update()
