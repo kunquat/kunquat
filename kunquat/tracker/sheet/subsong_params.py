@@ -60,7 +60,7 @@ class SubsongParams(QtGui.QGroupBox):
         self._subsong = subsong
         song_id = 'song_{0:02d}'.format(subsong)
         key = '%s/p_song.json' % song_id
-        song = self.-project._composition.get_song(song_id)
+        song = self._project._composition.get_song(song_id)
         song_name = song.get_name()
         self._title.setText(song_name)
         self._tempo.set_key(key)
