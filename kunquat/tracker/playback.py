@@ -80,8 +80,8 @@ class Playback(QtCore.QObject):
         blayout.addWidget(play)
         blayout.addWidget(play_inf)
         blayout.addWidget(stop)
-        blayout.addWidget(seek_back)
-        blayout.addWidget(seek_for)
+        #blayout.addWidget(seek_back)
+        #blayout.addWidget(seek_for)
         blayout.addWidget(state_but)
 
         layout.addWidget(bwidget)
