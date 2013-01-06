@@ -106,7 +106,7 @@ class Sheet(QtGui.QWidget):
         tool_layout.addWidget(self._subsong_params)
         tool_layout.addWidget(self._pattern_params)
         #tool_layout.addWidget(self._instance_params)
-        tool_layout.addWidget(self._trigger_params)
+        #tool_layout.addWidget(self._trigger_params)
 
         tool_scroller = QtGui.QScrollArea()
         tool_scroller.setWidgetResizable(True)
