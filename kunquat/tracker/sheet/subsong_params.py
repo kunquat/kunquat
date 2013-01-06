@@ -26,6 +26,8 @@ class SubsongParams(QtGui.QGroupBox):
         self._subsong = 0
 
         key = 'song_00/p_song.json'
+        self._title = QtGui.QLabel()
+        self._layout.addWidget(self._title)
         self._tempo = ParamSlider(project,
                                   'Initial tempo:',
                                   (6, 360),
@@ -56,7 +58,11 @@ class SubsongParams(QtGui.QGroupBox):
 
     def subsong_changed(self, subsong):
         self._subsong = subsong
-        key = 'song_{0:02d}/p_song.json'.format(subsong)
+        song_id = 'song_{0:02d}'.format(subsong)
+        key = '%s/p_song.json' % song_id
+        song = self.-project._composition.get_song(song_id)
+        song_name = song.get_name()
+        self._title.setText(song_name)
         self._tempo.set_key(key)
         self._global_volume.set_key(key)
 
