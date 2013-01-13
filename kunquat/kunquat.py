@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2010-2012
+# Author: Tomi Jylhä-Ollila, Finland 2010-2013
 #
 # This file is part of Kunquat.
 #
@@ -45,22 +45,32 @@ class BaseHandle(object):
 
     @property
     def song(self):
-        """The current song ([0,255], or None for all songs)"""
-        return self._song
+        """Obsolete"""
+        assert False
 
     @song.setter
     def song(self, value):
-        """Set the song number.
+        """Obsolete"""
+        assert False
 
-        Note that setting the song number also resets nanoseconds to
+    @property
+    def track(self):
+        """The current track ([0, 255], or None for all tracks)"""
+        return self._track
+
+    @track.setter
+    def track(self, value):
+        """Set the track number.
+
+        Note that setting the track number also resets nanoseconds to
         zero.
 
         """
-        song = value
-        if song is None:
-            song = -1
-        _kunquat.kqt_Handle_set_position(self._handle, song, 0)
-        self._song = value
+        track = value
+        if track is None:
+            track = -1
+        _kunquat.kqt_Handle_set_position(self._handle, track, 0)
+        self._track = value
         self._nanoseconds = 0
 
     @property
@@ -70,16 +80,16 @@ class BaseHandle(object):
 
     @nanoseconds.setter
     def nanoseconds(self, value):
-        """Set the song position in nanoseconds.
+        """Set the track position in nanoseconds.
 
         Note that setting a new nanoseconds value may take a while for
         very large values.
 
         """
-        song = self.song
-        if song is None:
-            song = -1
-        _kunquat.kqt_Handle_set_position(self._handle, song, value)
+        track = self.track
+        if track is None:
+            track = -1
+        _kunquat.kqt_Handle_set_position(self._handle, track, value)
         self._nanoseconds = value
 
     @property
@@ -114,24 +124,24 @@ class BaseHandle(object):
         _kunquat.kqt_Handle_set_buffer_size(self._handle, value)
         self._buffer_size = value
 
-    def get_duration(self, song=None):
+    def get_duration(self, track=None):
         """Count the duration of the composition in nanoseconds.
 
         Arguments:
-        song -- The song of which length is to be calculated.  If this
-                parameter is omitted, the function returns the total
-                length of all songs.
+        track -- The track of which length is to be calculated.  If
+                 this parameter is omitted, the function returns the
+                 total length of all tracks.
 
         Return value:
         The duration in nanoseconds.
 
         Exceptions:
-        KunquatArgumentError -- The song number is not valid.
+        KunquatArgumentError -- The track number is not valid.
 
         """
-        if song is None:
-            song = -1
-        return _kunquat.kqt_Handle_get_duration(self._handle, song)
+        if track is None:
+            track = -1
+        return _kunquat.kqt_Handle_get_duration(self._handle, track)
 
     def mix(self, frame_count=None):
         """Mix audio according to the state of the handle.
@@ -220,7 +230,7 @@ class Handle(BaseHandle):
 
     Public methods:
     set_data     -- Set composition data.
-    get_duration -- Calculate the length of a song.
+    get_duration -- Calculate the length of a track.
     mix          -- Mix audio data.
     fire         -- Fire an event.
 
@@ -228,7 +238,7 @@ class Handle(BaseHandle):
     buffer_size -- Mixing buffer size.
     mixing_rate -- Mixing rate.
     nanoseconds -- The current position in nanoseconds.
-    song        -- The current song (None or [0,255]).
+    track       -- The current track (None or [0,255]).
 
     """
 
@@ -249,7 +259,7 @@ class Handle(BaseHandle):
             if not self._handle:
                 raise _get_error(json.loads(
                                  _kunquat.kqt_Handle_get_error(None)))
-        self._song = None
+        self._track = None
         self._nanoseconds = 0
         self._buffer_size = _kunquat.kqt_Handle_get_buffer_size(self._handle)
         if mixing_rate <= 0:

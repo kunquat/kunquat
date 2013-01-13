@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2010-2012
+# Author: Tomi Jylhä-Ollila, Finland 2010-2013
 #
 # This file is part of Kunquat.
 #
@@ -91,26 +91,28 @@ class KqtEditor(QtGui.QMainWindow):
                 (QtCore.Qt.Key_Down, QtCore.Qt.ShiftModifier):
                         (self._next_ins, None),
                 (QtCore.Qt.Key_F5, QtCore.Qt.NoModifier):
-                        (self._playback._play_subsong, None),
+                        (self._playback._play_track, None),
                 (QtCore.Qt.Key_F5, QtCore.Qt.ShiftModifier):
-                        (lambda x: self._playback.play_subsong(self._playback._cur_subsong,
-                                                               True),
+                        (lambda x: self._playback.play_track(
+                                self._playback._cur_track,
+                                True),
                             None),
                 (QtCore.Qt.Key_F6, QtCore.Qt.NoModifier):
                         (self._play_pattern, None),
                 (QtCore.Qt.Key_F6, QtCore.Qt.ShiftModifier):
-                        (lambda x: self._playback.play_pattern(self._playback._cur_pattern,
-                                                               True),
+                        (lambda x: self._playback.play_pattern(
+                                self._playback._cur_pattern,
+                                True),
                             None),
                 (QtCore.Qt.Key_F7, QtCore.Qt.NoModifier):
                         (self._play_from, None),
                 (QtCore.Qt.Key_F7, QtCore.Qt.ShiftModifier):
                         (lambda x: self._playback.play_from(
-                                        self._playback._cur_subsong,
-                                        self._playback._cur_section,
-                                        self._playback._cur_pattern_offset[0],
-                                        self._playback._cur_pattern_offset[1], True),
-                                    None),
+                                self._playback._cur_track,
+                                self._playback._cur_section,
+                                self._playback._cur_pattern_offset[0],
+                                self._playback._cur_pattern_offset[1], True),
+                            None),
                 (QtCore.Qt.Key_F8, QtCore.Qt.NoModifier):
                         (self._stop, None),
                 (QtCore.Qt.Key_Less, None):

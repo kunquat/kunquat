@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2013
  *
  * This file is part of Kunquat.
  *
@@ -59,6 +59,20 @@ size_t Track_list_get_len(const Track_list* tl);
  * \return   The song index.
  */
 int16_t Track_list_get_song_index(const Track_list* tl, size_t index);
+
+
+/**
+ * Returns a track number by song index.
+ *
+ * Current implementation does a linear-time search.
+ *
+ * \param tl           The Track list -- must not be \c NULL.
+ * \param song_index   The song index -- must be >= \c 0.
+ *
+ * \return   The track that contains the song with \a song_index, or \c -1 if
+ *           not found.
+ */
+int16_t Track_list_get_track_by_song(const Track_list* tl, int16_t song_index);
 
 
 /**

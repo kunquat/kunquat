@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -227,7 +227,7 @@ bool parse_data(kqt_Handle* handle,
                     Pat_inst_ref* ref = Order_list_get_pat_inst_ref(ol, system);
                     if (ref->pat == index)
                     {
-                        if (!Pattern_set_location(new_pat, subsong, system))
+                        if (!Pattern_set_location(new_pat, subsong, ref))
                         {
                             kqt_Handle_set_error(handle, ERROR_MEMORY,
                                     "Couldn't allocate memory");
@@ -1423,7 +1423,7 @@ static bool parse_subsong_level(kqt_Handle* handle,
             {
                 continue;
             }
-            if (!Pattern_set_location(pat, index, i))
+            if (!Pattern_set_location(pat, index, ref))
             {
                 kqt_Handle_set_error(handle, ERROR_MEMORY,
                         "Couldn't allocate memory");

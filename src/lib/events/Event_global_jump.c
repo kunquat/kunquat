@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -47,8 +47,7 @@ static Jump_context* new_Jump_context(Pattern_location* loc)
     {
         return NULL;
     }
-    jc->location.subsong = loc->subsong;
-    jc->location.section = loc->section;
+    jc->location = *loc;
     jc->play_id = 0;
     jc->counter = 0;
     jc->subsong = -1;
@@ -99,13 +98,21 @@ void Trigger_global_jump_process(Event* event, Playdata* play)
     Pattern_location* key = PATTERN_LOCATION_AUTO;
     if (play->mode == PLAY_PATTERN)
     {
-        key->subsong = -1;
-        key->section = -1;
+        key->song = -1;
+        key->piref.pat = -1;
+        key->piref.inst = -1;
     }
     else
     {
-        key->subsong = play->track; // TODO: implement jump to song
-        key->section = play->system; // TODO: implement jump to pattern instance
+        Track_list* tl = play->track_list;
+        assert(tl != NULL);
+        key->song = Track_list_get_song_index(tl, play->track);
+
+        Order_list* ol = play->order_lists[key->song];
+        assert(ol != NULL);
+        Pat_inst_ref* piref = Order_list_get_pat_inst_ref(ol, play->system);
+        assert(piref != NULL);
+        key->piref = *piref;
     }
     Jump_context* jc = AAtree_get_exact(jump->counters, key);
     assert(jc != NULL);
@@ -147,8 +154,9 @@ bool Trigger_global_jump_set_locations(Event_global_jump* event,
     (void)locations;
     assert(locations_iter != NULL);
     Pattern_location* noloc = PATTERN_LOCATION_AUTO;
-    noloc->subsong = -1;
-    noloc->section = -1;
+    noloc->song = -1;
+    noloc->piref.pat = -1;
+    noloc->piref.inst = -1;
     Jump_context* context = AAtree_get_exact(event->counters, noloc);
     if (context == NULL)
     {

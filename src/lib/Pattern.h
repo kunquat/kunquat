@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -22,6 +22,7 @@
 #include <Column.h>
 #include <Connections.h>
 #include <Channel.h>
+#include <Pat_inst_ref.h>
 #include <Reltime.h>
 #include <Event_handler.h>
 #include <kunquat/limits.h>
@@ -75,14 +76,14 @@ bool Pattern_parse_header(Pattern* pat, char* str, Read_state* state);
  * This function must be called whenever the Pattern is placed in a new
  * location. Calling it with old locations does (successfully) nothing.
  *
- * \param pat       The Pattern -- must not be \c NULL.
- * \param subsong   The subsong number -- must be >= \c 0 and
- *                  < \c KQT_SONGS_MAX.
- * \param system    The system number -- must be >= \c 0.
+ * \param pat     The Pattern -- must not be \c NULL.
+ * \param song    The song number -- must be >= \c 0 and
+ *                < \c KQT_SONGS_MAX.
+ * \param piref   The Pattern instance reference -- must be valid.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Pattern_set_location(Pattern* pat, int subsong, int system);
+bool Pattern_set_location(Pattern* pat, int subsong, Pat_inst_ref* piref);
 
 
 /**

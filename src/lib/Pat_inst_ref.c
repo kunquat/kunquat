@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2013
  *
  * This file is part of Kunquat.
  *
@@ -20,12 +20,13 @@
 
 static bool Pat_inst_ref_is_valid(const Pat_inst_ref* p)
 {
-    return
+    const bool is_normal =
         (p != NULL) &&
         (p->pat >= 0) &&
         (p->pat < KQT_PATTERNS_MAX) &&
         (p->inst >= 0) &&
         (p->inst < KQT_PAT_INSTANCES_MAX);
+    return is_normal || (p->pat == -1 && p->inst == -1);
 }
 
 

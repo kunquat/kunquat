@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -117,20 +117,20 @@ bool Pattern_parse_header(Pattern* pat, char* str, Read_state* state)
 }
 
 
-bool Pattern_set_location(Pattern* pat, int subsong, int system)
+bool Pattern_set_location(Pattern* pat, int song, Pat_inst_ref* piref)
 {
     assert(pat != NULL);
-    assert(subsong >= 0);
-    assert(subsong < KQT_SONGS_MAX);
-    assert(system >= 0);
+    assert(song >= 0);
+    assert(song < KQT_SONGS_MAX);
+    assert(piref != NULL);
     Pattern_location* key = PATTERN_LOCATION_AUTO;
-    key->subsong = subsong;
-    key->section = system;
+    key->song = song;
+    key->piref = *piref;
     if (AAtree_get_exact(pat->locations, key) != NULL)
     {
         return true;
     }
-    key = new_Pattern_location(subsong, system);
+    key = new_Pattern_location(song, piref);
     if (key == NULL || !AAtree_ins(pat->locations, key))
     {
         xfree(key);
