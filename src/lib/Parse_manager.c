@@ -32,69 +32,85 @@
 #include <xmemory.h>
 
 
-static bool parse_song_level(kqt_Handle* handle,
-                             const char* key,
-                             void* data,
-                             long length);
+static bool parse_song_level(
+        kqt_Handle* handle,
+        const char* key,
+        void* data,
+        long length);
 
 
-static bool parse_instrument_level(kqt_Handle* handle,
-                                   const char* key,
-                                   const char* subkey,
-                                   void* data,
-                                   long length,
-                                   int index);
+static bool parse_album_level(
+        kqt_Handle* handle,
+        const char* key,
+        const char* subkey,
+        void* data,
+        long length);
 
 
-static bool parse_effect_level(kqt_Handle* handle,
-                               Instrument* ins,
-                               const char* key,
-                               const char* subkey,
-                               void* data,
-                               long length,
-                               int eff_index);
+static bool parse_instrument_level(
+        kqt_Handle* handle,
+        const char* key,
+        const char* subkey,
+        void* data,
+        long length,
+        int index);
 
 
-static bool parse_generator_level(kqt_Handle* handle,
-                                  const char* key,
-                                  const char* subkey,
-                                  void* data,
-                                  long length,
-                                  int ins_index,
-                                  int gen_index);
+static bool parse_effect_level(
+        kqt_Handle* handle,
+        Instrument* ins,
+        const char* key,
+        const char* subkey,
+        void* data,
+        long length,
+        int eff_index);
 
 
-static bool parse_dsp_level(kqt_Handle* handle,
-                            Effect* eff,
-                            const char* key,
-                            const char* subkey,
-                            void* data,
-                            long length,
-                            int dsp_index);
+static bool parse_generator_level(
+        kqt_Handle* handle,
+        const char* key,
+        const char* subkey,
+        void* data,
+        long length,
+        int ins_index,
+        int gen_index);
 
 
-static bool parse_pattern_level(kqt_Handle* handle,
-                                const char* key,
-                                const char* subkey,
-                                void* data,
-                                long length,
-                                int index);
+static bool parse_dsp_level(
+        kqt_Handle* handle,
+        Effect* eff,
+        const char* key,
+        const char* subkey,
+        void* data,
+        long length,
+        int dsp_index);
 
 
-static bool parse_scale_level(kqt_Handle* handle,
-                              const char* key,
-                              const char* subkey,
-                              void* data,
-                              long length,
-                              int index);
+static bool parse_pattern_level(
+        kqt_Handle* handle,
+        const char* key,
+        const char* subkey,
+        void* data,
+        long length,
+        int index);
 
 
-static bool parse_subsong_level(kqt_Handle* handle,
-                                const char* key,
-                                const char* subkey,
-                                void* data,
-                                long length,
-                                int index);
+static bool parse_scale_level(
+        kqt_Handle* handle,
+        const char* key,
+        const char* subkey,
+        void* data,
+        long length,
+        int index);
+
+
+static bool parse_subsong_level(
+        kqt_Handle* handle,
+        const char* key,
+        const char* subkey,
+        void* data,
+        long length,
+        int index);
 
 
 static bool key_is_for_text(const char* key);
@@ -269,6 +285,10 @@ bool parse_data(kqt_Handle* handle,
         success = parse_subsong_level(handle, key, second_element,
                                       data, length, index);
     }
+    else if (string_has_prefix(key, "album/"))
+    {
+        success = parse_album_level(handle, key, second_element, data, length);
+    }
     xfree(json);
     return success;
 }
@@ -385,7 +405,23 @@ static bool parse_song_level(kqt_Handle* handle,
             return false;
         }
     }
-    else if (string_eq(key, "p_tracks.json"))
+    return true;
+}
+
+
+static bool parse_album_level(
+        kqt_Handle* handle,
+        const char* key,
+        const char* subkey,
+        void* data,
+        long length)
+{
+    assert(handle_is_valid(handle));
+    assert(key != NULL);
+    assert(subkey != NULL);
+    assert((data == NULL) == (length == 0));
+    assert(length >= 0);
+    if (string_eq(subkey, "p_tracks.json"))
     {
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
         Track_list* tl = new_Track_list(data, state);

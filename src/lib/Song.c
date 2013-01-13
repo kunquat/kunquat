@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -279,7 +279,7 @@ bool Song_parse_composition(Song* song, char* str, Read_state* state)
         return false;
     }
     double mix_vol = SONG_DEFAULT_MIX_VOL;
-    int64_t init_subsong = SONG_DEFAULT_INIT_SUBSONG;
+
     if (str != NULL)
     {
         str = read_const_char(str, '{', state);
@@ -315,21 +315,6 @@ bool Song_parse_composition(Song* song, char* str, Read_state* state)
                         return false;
                     }
                 }
-                else if (string_eq(key, "init_subsong"))
-                {
-                    str = read_int(str, &init_subsong, state);
-                    if (state->error)
-                    {
-                        return false;
-                    }
-                    if (init_subsong < 0 || init_subsong >= KQT_SONGS_MAX)
-                    {
-                        Read_state_set_error(state,
-                                 "Invalid initial Subsong number: %" PRId64,
-                                 init_subsong);
-                        return false;
-                    }
-                }
                 else
                 {
                     Read_state_set_error(state,
@@ -349,9 +334,9 @@ bool Song_parse_composition(Song* song, char* str, Read_state* state)
             }
         }
     }
+
     song->mix_vol_dB = mix_vol;
     song->mix_vol = exp2(song->mix_vol_dB / 6);
-    //Song_set_subsong(song, init_subsong);
     return true;
 }
 
