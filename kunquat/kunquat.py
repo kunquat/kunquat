@@ -291,7 +291,7 @@ class Handle(BaseHandle):
 
         """
         if key[key.index('.'):].startswith('.json'):
-            value = json.dumps(value) if value else ''
+            value = json.dumps(value) if value != None else ''
         elif value == None:
             value = ''
         data = buffer(value)

@@ -21,12 +21,13 @@
 #include <Bind.h>
 #include <Connections.h>
 #include <Connections_search.h>
-#include <Environment.h>
-#include <File_base.h>
 #include <Device_event_keys.h>
 #include <Device_params.h>
+#include <Environment.h>
+#include <File_base.h>
 #include <Gen_type.h>
 #include <Handle_private.h>
+#include <manifest.h>
 #include <string_common.h>
 #include <xassert.h>
 #include <xmemory.h>
@@ -476,6 +477,8 @@ static bool parse_instrument_level(kqt_Handle* handle,
 #endif
     int gen_index = -1;
     int eff_index = -1;
+
+    // Subdevices
     if ((gen_index = string_extract_index(subkey, "gen_", 2, "/")) >= 0)
     {
         subkey = strchr(subkey, '/');
@@ -545,10 +548,49 @@ static bool parse_instrument_level(kqt_Handle* handle,
         }
         return success;
     }
-    if (string_eq(subkey, "p_instrument.json"))
+
+    // Instrument data
+    if (string_eq(subkey, "p_manifest.json"))
     {
         Instrument* ins = Ins_table_get(Song_get_insts(handle->song), index);
-        bool new_ins = ins == NULL;
+        bool new_ins = (ins == NULL);
+        if (new_ins)
+        {
+            ins = new_Instrument(Device_get_buffer_size((Device*)handle->song),
+                                 Device_get_mix_rate((Device*)handle->song),
+                                 Song_get_scales(handle->song),
+                                 Song_get_active_scale(handle->song));
+            if (ins == NULL)
+            {
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
+                return false;
+            }
+        }
+
+        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+        const bool existent = read_default_manifest(data, state);
+        if (state->error)
+        {
+            set_parse_error(handle, state);
+            if (new_ins)
+                del_Instrument(ins);
+            return false;
+        }
+        Device_set_existent((Device*)ins, existent);
+
+        if (new_ins && !Ins_table_set(Song_get_insts(handle->song), index, ins))
+        {
+            kqt_Handle_set_error(handle, ERROR_MEMORY,
+                    "Couldn't allocate memory");
+            del_Instrument(ins);
+            return false;
+        }
+    }
+    else if (string_eq(subkey, "p_instrument.json"))
+    {
+        Instrument* ins = Ins_table_get(Song_get_insts(handle->song), index);
+        bool new_ins = (ins == NULL);
         if (new_ins)
         {
             ins = new_Instrument(Device_get_buffer_size((Device*)handle->song),
@@ -594,7 +636,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
         }
         else
         {
-            bool new_ins = ins == NULL;
+            bool new_ins = (ins == NULL);
             if (new_ins)
             {
                 ins = new_Instrument(Device_get_buffer_size(
@@ -787,7 +829,7 @@ static bool parse_generator_level(kqt_Handle* handle,
     ++subkey;
 #endif
     Instrument* ins = Ins_table_get(Song_get_insts(handle->song), ins_index);
-    bool new_ins = ins == NULL;
+    bool new_ins = (ins == NULL);
     if (new_ins)
     {
         ins = new_Instrument(Device_get_buffer_size((Device*)handle->song),
@@ -801,7 +843,23 @@ static bool parse_generator_level(kqt_Handle* handle,
             return false;
         }
     }
-    if (string_eq(subkey, "p_gen_type.json"))
+    if (string_eq(subkey, "p_manifest.json"))
+    {
+        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+        const bool existent = read_default_manifest(data, state);
+        if (state->error)
+        {
+            set_parse_error(handle, state);
+            if (new_ins)
+                del_Instrument(ins);
+            return false;
+        }
+
+        Gen_table* table = Instrument_get_gens(ins);
+        assert(table != NULL);
+        Gen_table_set_existent(table, gen_index, existent);
+    }
+    else if (string_eq(subkey, "p_gen_type.json"))
     {
         if (data == NULL)
         {
@@ -1022,6 +1080,37 @@ static bool parse_effect_level(kqt_Handle* handle,
         }
         return success;
     }
+    else if (string_eq(subkey, "p_manifest.json"))
+    {
+        Effect* eff = Effect_table_get(table, eff_index);
+        const bool new_eff = (eff == NULL);
+        if (new_eff)
+        {
+            eff = new_Effect(Device_get_buffer_size(
+                                    (Device*)handle->song),
+                             Device_get_mix_rate(
+                                    (Device*)handle->song));
+            if (eff == NULL || !Effect_table_set(table, eff_index, eff))
+            {
+                del_Effect(eff);
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
+                return false;
+            }
+        }
+        assert(eff != NULL);
+
+        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+        const bool existent = read_default_manifest(data, state);
+        if (state->error)
+        {
+            set_parse_error(handle, state);
+            if (new_eff)
+                Effect_table_remove(table, eff_index);
+            return false;
+        }
+        Device_set_existent((Device*)eff, existent);
+    }
     else if (string_eq(subkey, "p_connections.json"))
     {
         bool reconnect = false;
@@ -1036,7 +1125,7 @@ static bool parse_effect_level(kqt_Handle* handle,
         }
         else
         {
-            bool new_eff = eff == NULL;
+            const bool new_eff = (eff == NULL);
             if (new_eff)
             {
                 eff = new_Effect(Device_get_buffer_size(
@@ -1130,7 +1219,19 @@ static bool parse_dsp_level(kqt_Handle* handle,
 #endif
     DSP_table* dsp_table = Effect_get_dsps(eff);
     assert(dsp_table != NULL);
-    if (string_eq(subkey, "p_dsp_type.json"))
+    if (string_eq(subkey, "p_manifest.json"))
+    {
+        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+        const bool existent = read_default_manifest(data, state);
+        if (state->error)
+        {
+            set_parse_error(handle, state);
+            return false;
+        }
+
+        DSP_table_set_existent(dsp_table, dsp_index, existent);
+    }
+    else if (string_eq(subkey, "p_dsp_type.json"))
     {
 //        fprintf(stderr, "%s\n", subkey);
         if (data == NULL)

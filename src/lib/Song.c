@@ -101,6 +101,7 @@ Song* new_Song(uint32_t buf_size)
         xfree(song);
         return NULL;
     }
+    Device_set_existent(&song->parent, true);
     Device_set_reset(&song->parent, Song_reset);
     Device_set_mix_rate_changer(&song->parent, Song_set_mix_rate);
     Device_set_buffer_size_changer(&song->parent, Song_set_buffer_size);

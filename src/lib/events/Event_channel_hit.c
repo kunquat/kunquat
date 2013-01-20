@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2013
  *
  * This file is part of Kunquat.
  *
@@ -51,7 +51,8 @@ bool Event_channel_hit_process(Channel_state* ch_state, Value* value)
     double force_var = NAN;
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
-        if (Instrument_get_gen(ins, i) == NULL)
+        const Generator* gen = Instrument_get_gen(ins, i);
+        if (gen == NULL || !Device_is_existent((const Device*)gen))
         {
             continue;
         }

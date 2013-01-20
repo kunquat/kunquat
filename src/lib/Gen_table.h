@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -37,6 +37,17 @@ typedef struct Gen_table Gen_table;
  *           allocation failed.
  */
 Gen_table* new_Gen_table(int size);
+
+
+/**
+ * Sets existent status of a Generator.
+ *
+ * \param table      The Generator table -- must not be \c NULL.
+ * \param index      The target index -- must be >= \c 0 and less than the
+ *                   table size.
+ * \param existent   The new existent status.
+ */
+void Gen_table_set_existent(Gen_table* table, int index, bool existent);
 
 
 /**

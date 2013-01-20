@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -29,6 +29,7 @@ bool Device_init(Device* device, uint32_t buffer_size, uint32_t mix_rate)
     assert(buffer_size <= KQT_BUFFER_SIZE_MAX);
     assert(mix_rate > 0);
 
+    device->existent = false;
     device->mix_rate = mix_rate;
     device->buffer_size = buffer_size;
     device->set_mix_rate = NULL;
@@ -53,8 +54,24 @@ bool Device_init(Device* device, uint32_t buffer_size, uint32_t mix_rate)
 }
 
 
-void Device_set_mix_rate_changer(Device* device,
-                                 bool (*changer)(Device*, uint32_t))
+void Device_set_existent(Device* device, bool existent)
+{
+    assert(device != NULL);
+    device->existent = existent;
+    return;
+}
+
+
+bool Device_is_existent(const Device* device)
+{
+    assert(device != NULL);
+    return device->existent;
+}
+
+
+void Device_set_mix_rate_changer(
+        Device* device,
+        bool (*changer)(Device*, uint32_t))
 {
     assert(device != NULL);
     device->set_mix_rate = changer;
@@ -62,8 +79,9 @@ void Device_set_mix_rate_changer(Device* device,
 }
 
 
-void Device_set_buffer_size_changer(Device* device,
-                                    bool (*changer)(Device*, uint32_t))
+void Device_set_buffer_size_changer(
+        Device* device,
+        bool (*changer)(Device*, uint32_t))
 {
     assert(device != NULL);
     device->set_buffer_size = changer;
@@ -89,8 +107,9 @@ void Device_set_sync(Device* device, bool (*sync)(Device*))
 }
 
 
-void Device_set_update_key(Device* device,
-                           bool (*update_key)(struct Device*, const char*))
+void Device_set_update_key(
+        Device* device,
+        bool (*update_key)(struct Device*, const char*))
 {
     assert(device != NULL);
     assert(update_key != NULL);
@@ -99,9 +118,9 @@ void Device_set_update_key(Device* device,
 }
 
 
-void Device_set_process(Device* device,
-                        void (*process)(Device*, uint32_t, uint32_t,
-                                                 uint32_t, double))
+void Device_set_process(
+        Device* device,
+        void (*process)(Device*, uint32_t, uint32_t, uint32_t, double))
 {
     assert(device != NULL);
     assert(process != NULL);
@@ -132,9 +151,10 @@ void Device_unregister_port(Device* device, Device_port_type type, int port)
 }
 
 
-bool Device_port_is_registered(Device* device,
-                               Device_port_type type,
-                               int port)
+bool Device_port_is_registered(
+        const Device* device,
+        Device_port_type type,
+        int port)
 {
     assert(device != NULL);
     assert(type < DEVICE_PORT_TYPES);
@@ -201,9 +221,10 @@ void Device_set_direct_receive(Device* device, int port)
 }
 
 
-void Device_set_direct_send(Device* device,
-                            int port,
-                            Audio_buffer* buffer)
+void Device_set_direct_send(
+        Device* device,
+        int port,
+        Audio_buffer* buffer)
 {
     assert(device != NULL);
     assert(port >= 0);
@@ -252,7 +273,7 @@ bool Device_set_mix_rate(Device* device, uint32_t rate)
 }
 
 
-uint32_t Device_get_mix_rate(Device* device)
+uint32_t Device_get_mix_rate(const Device* device)
 {
     assert(device != NULL);
     return device->mix_rate;
@@ -288,16 +309,17 @@ bool Device_set_buffer_size(Device* device, uint32_t size)
 }
 
 
-uint32_t Device_get_buffer_size(Device* device)
+uint32_t Device_get_buffer_size(const Device* device)
 {
     assert(device != NULL);
     return device->buffer_size;
 }
 
 
-Audio_buffer* Device_get_buffer(Device* device,
-                                Device_port_type type,
-                                int port)
+Audio_buffer* Device_get_buffer(
+        const Device* device,
+        Device_port_type type,
+        int port)
 {
     assert(device != NULL);
     assert(type < DEVICE_PORT_TYPES);
@@ -381,11 +403,12 @@ bool Device_update_key(Device* device, const char* key)
 }
 
 
-void Device_process(Device* device,
-                    uint32_t start,
-                    uint32_t until,
-                    uint32_t freq,
-                    double tempo)
+void Device_process(
+        Device* device,
+        uint32_t start,
+        uint32_t until,
+        uint32_t freq,
+        double tempo)
 {
     assert(device != NULL);
     assert(start < device->buffer_size);
