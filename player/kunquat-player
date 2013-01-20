@@ -143,6 +143,9 @@ def play(options, file_name, pa_handle, key_handler, list_pos):
         return KeyHandler.RETURN
     try:
         handle, meta = load_kqt(file_name, options['rate'])
+    except IOError as e:
+        print('Couldn\'t open \'{0}\': {1}'.format(file_name, e), end='')
+        return KeyHandler.RETURN
     except kunquat.KunquatError as e:
         print('Couldn\'t load \'{0}\': {1}'.format(file_name, e), end='')
         return KeyHandler.RETURN
