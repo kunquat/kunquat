@@ -1338,7 +1338,19 @@ static bool parse_pattern_level(kqt_Handle* handle,
     {
         return true;
     }
-    if (string_eq(subkey, "p_pattern.json"))
+    if (string_eq(subkey, "p_manifest.json"))
+    {
+        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+        const bool existent = read_default_manifest(data, state);
+        if (state->error)
+        {
+            set_parse_error(handle, state);
+            return false;
+        }
+        Pat_table* pats = Song_get_pats(handle->song);
+        Pat_table_set_existent(pats, index, existent);
+    }
+    else if (string_eq(subkey, "p_pattern.json"))
     {
         Pattern* pat = Pat_table_get(Song_get_pats(handle->song), index);
         bool new_pattern = pat == NULL;

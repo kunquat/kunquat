@@ -446,11 +446,15 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
             if (play->pattern >= 0)
             {
                 pat = Pat_table_get(song->pats, play->pattern);
+                if (!Pat_table_get_existent(song->pats, play->pattern))
+                    pat = NULL;
             }
         }
         else if (play->mode == PLAY_PATTERN && play->pattern >= 0)
         {
             pat = Pat_table_get(song->pats, play->pattern);
+            if (!Pat_table_get_existent(song->pats, play->pattern))
+                pat = NULL;
         }
         if (pat == NULL && !play->parent.pause)
         {

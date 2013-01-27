@@ -261,6 +261,7 @@ START_TEST(Empty_pattern_contains_silence)
 
     set_data("album/p_tracks.json", "[0]");
     set_data("song_00/p_order_list.json", "[ [0, 0] ]");
+    set_data("pat_000/p_manifest.json", "{}");
     set_data("pat_000/p_pattern.json", "{ \"length\": [16, 0] }");
 
     const long expected_length = 8 * mixing_rates[_i];
@@ -309,12 +310,14 @@ START_TEST(Note_on_at_pattern_end_is_handled)
 
     char pat0_def[128] = "";
     snprintf(pat0_def, sizeof(pat0_def), "{ \"length\": [%d, 0] }", _i);
+    set_data("pat_000/p_manifest.json", "{}");
     set_data("pat_000/p_pattern.json", pat0_def);
 
     char col_def[128] = "";
     snprintf(col_def, sizeof(col_def), "[ [[%d, 0], [\"n+\", \"0\"]] ]", _i);
     set_data("pat_000/col_00/p_triggers.json", col_def);
 
+    set_data("pat_001/p_manifest.json", "{}");
     set_data("pat_001/p_pattern.json", "{ \"length\": [8, 0] }");
 
     float actual_buf[buf_len] = { 0.0f };
@@ -339,12 +342,14 @@ START_TEST(Note_on_after_pattern_end_is_ignored)
 
     char pat0_def[128] = "";
     snprintf(pat0_def, sizeof(pat0_def), "{ \"length\": [%d, 0] }", _i);
+    set_data("pat_000/p_manifest.json", "{}");
     set_data("pat_000/p_pattern.json", pat0_def);
 
     char col_def[128] = "";
     snprintf(col_def, sizeof(col_def), "[ [[%d, 1], [\"n+\", \"0\"]] ]", _i);
     set_data("pat_000/col_00/p_triggers.json", col_def);
 
+    set_data("pat_001/p_manifest.json", "{}");
     set_data("pat_001/p_pattern.json", "{ \"length\": [8, 0] }");
 
     float actual_buf[buf_len] = { 0.0f };
@@ -370,6 +375,7 @@ START_TEST(Initial_tempo_is_set_correctly)
     char ss_def[128] = "";
     snprintf(ss_def, sizeof(ss_def), "{ \"tempo\": %d }", tempos[_i]);
     set_data("song_00/p_song.json", ss_def);
+    set_data("pat_000/p_manifest.json", "{}");
     set_data("pat_000/p_pattern.json", "{ \"length\": [4, 0] }");
     set_data("pat_000/col_00/p_triggers.json",
             "[ [[0, 0], [\"n+\", \"0\"]], [[1, 0], [\"n+\", \"0\"]] ]");
@@ -393,6 +399,7 @@ START_TEST(Infinite_mode_loops_composition)
 
     set_data("album/p_tracks.json", "[0]");
     set_data("song_00/p_order_list.json", "[ [0, 0] ]");
+    set_data("pat_000/p_manifest.json", "{}");
     set_data("pat_000/p_pattern.json", "{ \"length\": [2, 0] }");
     set_data("pat_000/col_00/p_triggers.json", "[ [[0, 0], [\"n+\", \"0\"]] ]");
 

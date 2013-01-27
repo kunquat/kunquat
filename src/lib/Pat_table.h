@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -22,11 +22,7 @@
 #include <Pattern.h>
 
 
-typedef struct Pat_table
-{
-    int size;
-    Etable* pats;
-} Pat_table;
+typedef struct Pat_table Pat_table;
 
 
 /**
@@ -41,14 +37,35 @@ Pat_table* new_Pat_table(int size);
 /**
  * Sets the pattern for the specified Pattern table position.
  *
- * \param table     The Pattern table -- must not be \c NULL.
- * \param index     The pattern index -- must be >= \c 0 and
- *                  less than the table size.
- * \param pat       The Pattern -- must not be \c NULL.
+ * \param table   The Pattern table -- must not be \c NULL.
+ * \param index   The pattern index -- must be >= \c 0 and
+ *                less than the table size.
+ * \param pat     The Pattern -- must not be \c NULL.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Pat_table_set(Pat_table* table, int index, Pattern* pat);
+
+
+/**
+ * Sets existent status of a Pattern.
+ *
+ * \param table      The Pattern table -- must not be \c NULL.
+ * \param index      The target index -- must be >= \c 0 and less than the
+ *                   table size.
+ * \param existent   The new existent status.
+ */
+void Pat_table_set_existent(Pat_table* table, int index, bool existent);
+
+
+/**
+ * Gets existent status of a Pattern.
+ *
+ * \param table   The Pattern table -- must not be \c NULL.
+ * \param index   The target index -- must be >= \c 0 and less than the
+ *                table size.
+ */
+bool Pat_table_get_existent(const Pat_table* table, int index);
 
 
 /**

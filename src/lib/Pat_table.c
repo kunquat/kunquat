@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -15,11 +15,20 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <Bit_array.h>
 #include <Pat_table.h>
 #include <Pattern.h>
 #include <kunquat/limits.h>
 #include <xassert.h>
 #include <xmemory.h>
+
+
+struct Pat_table
+{
+    int size;
+    Etable* pats;
+    Bit_array* existents;
+};
 
 
 Pat_table* new_Pat_table(int size)
@@ -30,10 +39,14 @@ Pat_table* new_Pat_table(int size)
     {
         return NULL;
     }
+    table->pats = NULL;
+    table->existents = NULL;
+
     table->pats = new_Etable(size, (void (*)(void*))del_Pattern);
-    if (table->pats == NULL)
+    table->existents = new_Bit_array(size);
+    if (table->pats == NULL || table->existents == NULL)
     {
-        xfree(table);
+        del_Pat_table(table);
         return NULL;
     }
     table->size = size;
@@ -51,11 +64,34 @@ bool Pat_table_set(Pat_table* table, int index, Pattern* pat)
 }
 
 
+void Pat_table_set_existent(Pat_table* table, int index, bool existent)
+{
+    assert(table != NULL);
+    assert(index >= 0);
+    assert(index < table->size);
+
+    Bit_array_set(table->existents, index, existent);
+
+    return;
+}
+
+
+bool Pat_table_get_existent(const Pat_table* table, int index)
+{
+    assert(table != NULL);
+    assert(index >= 0);
+    assert(index < table->size);
+
+    return Bit_array_get(table->existents, index);
+}
+
+
 Pattern* Pat_table_get(Pat_table* table, int index)
 {
     assert(table != NULL);
     assert(index >= 0);
     assert(index < table->size);
+
     return Etable_get(table->pats, index);
 }
 
@@ -85,6 +121,7 @@ void del_Pat_table(Pat_table* table)
         return;
     }
     del_Etable(table->pats);
+    del_Bit_array(table->existents);
     xfree(table);
     return;
 }
