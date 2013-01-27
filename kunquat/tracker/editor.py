@@ -45,6 +45,7 @@ from statusbar import Statusbar
 from toolbar import Toolbar
 from scales import chromatic, slendro
 from piano import Piano
+from icon_bank import Icon_bank
 
 PROGRAM_NAME = 'Kunquat Tracker'
 PROGRAM_VERSION = '0.5.4'
@@ -62,6 +63,11 @@ class KqtEditor(QtGui.QMainWindow):
 
     def __init__(self, args, app):
         QtGui.QMainWindow.__init__(self)
+        script_path = os.path.realpath(sys.argv[0])
+        bin_dir, _ = os.path.split(script_path)
+        prefix, _ = os.path.split(bin_dir)
+        self.icon_bank = Icon_bank(prefix)
+        self.setWindowIcon(QtGui.QIcon(self.icon_bank.kunquat_icon))
         self._app = app
         self.windows = {}
 
