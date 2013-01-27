@@ -65,7 +65,7 @@ class Playback(QtCore.QObject):
 
         state_but = QtGui.QToolButton()
         state_but.setText('State')
-        state_but.setIcon(QtGui.QIcon.fromTheme('computer'))
+        state_but.setIcon(QtGui.QIcon(self.p.icon_bank.state_icon))
         state_but.setAutoRaise(True)
         QtCore.QObject.connect(state_but, QtCore.SIGNAL('clicked()'),
                                self.p.state_window)
