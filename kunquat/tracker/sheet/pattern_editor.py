@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2010-2012
+# Author: Tomi Jylhä-Ollila, Finland 2010-2013
 #
 # This file is part of Kunquat.
 #
@@ -48,7 +48,7 @@ class PatternEditor(QtGui.QWidget):
         layout.addWidget(self._pattern, 1)
 
         QtCore.QObject.connect(self._pattern,
-                               QtCore.SIGNAL('patternChanged(int)'),
+                               QtCore.SIGNAL('patternChanged(int, int)'),
                                pattern_changed_slot)
 
     def init(self):
@@ -57,7 +57,7 @@ class PatternEditor(QtGui.QWidget):
     def section_changed(self, song, system):
         pattern = self._project._composition.get_pattern(song, system)
         if pattern != None:
-            key = 'pat_{0:03d}/p_pattern.json'.format(pattern)
+            key = 'pat_{0:03d}/p_pattern.json'.format(pattern[0])
 
     def sync(self):
         self._pattern.sync()

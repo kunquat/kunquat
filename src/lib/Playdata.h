@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -28,6 +28,7 @@
 #include <Event_names.h>
 #include <General_state.h>
 #include <Order_list.h>
+#include <Pat_inst_ref.h>
 #include <Random.h>
 #include <Slider.h>
 #include <Track_list.h>
@@ -113,7 +114,7 @@ typedef struct Playdata
     uint16_t orig_track;              ///< Track at the start of playback.
     uint16_t track;                   ///< Current track -- used when \a play == \c PLAY_SONG.
     uint16_t system;                  ///< Current system -- used when \a play == \c PLAY_SONG.
-    int16_t pattern;                  ///< Current pattern.
+    Pat_inst_ref piref;               ///< Current pattern instance.
     Reltime pos;                      ///< Current position inside a pattern.
     Voice_pool* voice_pool;           ///< The Voice pool used.
     Column_iter* citer;               ///< Column iterator.

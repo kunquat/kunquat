@@ -433,7 +433,8 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
                 {
                     Pat_inst_ref* ref = Order_list_get_pat_inst_ref(
                             ol, play->system);
-                    play->pattern = ref->pat;
+                    assert(ref != NULL);
+                    play->piref = *ref;
                 }
             }
 #if 0
@@ -443,17 +444,23 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
                 play->pattern = Subsong_get(ss, play->section);
             }
 #endif
-            if (play->pattern >= 0)
+            if (play->piref.pat >= 0)
             {
-                pat = Pat_table_get(song->pats, play->pattern);
-                if (!Pat_table_get_existent(song->pats, play->pattern))
+                pat = Pat_table_get(song->pats, play->piref.pat);
+                if (!Pat_table_get_existent(song->pats, play->piref.pat))
+                    pat = NULL;
+                if (pat != NULL &&
+                        !Pattern_get_inst_existent(pat, play->piref.inst))
                     pat = NULL;
             }
         }
-        else if (play->mode == PLAY_PATTERN && play->pattern >= 0)
+        else if (play->mode == PLAY_PATTERN && play->piref.pat >= 0)
         {
-            pat = Pat_table_get(song->pats, play->pattern);
-            if (!Pat_table_get_existent(song->pats, play->pattern))
+            pat = Pat_table_get(song->pats, play->piref.pat);
+            if (!Pat_table_get_existent(song->pats, play->piref.pat))
+                pat = NULL;
+            if (pat != NULL &&
+                    !Pattern_get_inst_existent(pat, play->piref.inst))
                 pat = NULL;
         }
         if (pat == NULL && !play->parent.pause)

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2010-2012
+# Author: Tomi Jylhä-Ollila, Finland 2010-2013
 #
 # This file is part of Kunquat.
 #
@@ -103,7 +103,7 @@ default_input = ni.NoteInput()
 
 class Pattern(QtGui.QWidget):
 
-    pattern_changed = QtCore.pyqtSignal(int, name='patternChanged')
+    pattern_changed = QtCore.pyqtSignal(int, int, name='patternChanged')
 
     def __init__(self,
                  project,
@@ -117,6 +117,7 @@ class Pattern(QtGui.QWidget):
         QtGui.QWidget.__init__(self, parent)
         section.connect(self.section_changed)
         self.number = 0
+        self.inst_num = 0
         self._typewriter = typewriter
         self.section_manager = section
         self.playback_manager = playback
@@ -301,20 +302,20 @@ class Pattern(QtGui.QWidget):
         self.cursor.inst_num = number
 
     def length_changed(self, *flength):
-        self.set_pattern(self.number)
+        self.set_pattern(self.number, self.inst_num)
         self.update()
 
     def section_changed(self, *args):
         track, system = args
         pattern = self.project._composition.get_pattern(track, system)
         if pattern != None:
-            self.set_pattern(pattern)
+            self.set_pattern(pattern[0], pattern[1])
             self.update()
 
     def octave_changed(self, octave):
         self.note_input.base_octave = octave
 
-    def set_pattern(self, num):
+    def set_pattern(self, num, inst_num):
         self.path = 'pat_{0:03x}'.format(num)
         pat_info = self.project['/'.join((self.path, 'p_pattern.json'))]
         if pat_info and 'length' in pat_info:
@@ -333,19 +334,20 @@ class Pattern(QtGui.QWidget):
             col_dir = 'col_{0:02x}'.format(col.get_num())
             path = '/'.join((self.path, col_dir, 'p_triggers.json'))
             col.arrange_triggers(self.project[path])
-        if self.number != num:
-            QtCore.QObject.emit(self, QtCore.SIGNAL('patternChanged(int)'),
-                                num)
+        if self.number != num or self.inst_num != inst_num:
+            QtCore.QObject.emit(self, QtCore.SIGNAL('patternChanged(int, int)'),
+                                num, inst_num)
         self.number = num
+        self.inst_num = inst_num
 
     def sync(self):
-        self.set_pattern(self.number)
+        self.set_pattern(self.number, self.inst_num)
         self.update()
 
     def set_project(self, project):
         self.project = project
         self.cursor.set_project(project)
-        self.set_pattern(0)
+        self.set_pattern(0, 0)
 
     def value_changed(self):
         self.cursor.set_value()

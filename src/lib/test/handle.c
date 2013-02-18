@@ -263,6 +263,7 @@ START_TEST(Empty_pattern_contains_silence)
     set_data("song_00/p_order_list.json", "[ [0, 0] ]");
     set_data("pat_000/p_manifest.json", "{}");
     set_data("pat_000/p_pattern.json", "{ \"length\": [16, 0] }");
+    set_data("pat_000/instance_000/p_manifest.json", "{}");
 
     const long expected_length = 8 * mixing_rates[_i];
     long actual_length = 0;
@@ -312,6 +313,7 @@ START_TEST(Note_on_at_pattern_end_is_handled)
     snprintf(pat0_def, sizeof(pat0_def), "{ \"length\": [%d, 0] }", _i);
     set_data("pat_000/p_manifest.json", "{}");
     set_data("pat_000/p_pattern.json", pat0_def);
+    set_data("pat_000/instance_000/p_manifest.json", "{}");
 
     char col_def[128] = "";
     snprintf(col_def, sizeof(col_def), "[ [[%d, 0], [\"n+\", \"0\"]] ]", _i);
@@ -319,6 +321,7 @@ START_TEST(Note_on_at_pattern_end_is_handled)
 
     set_data("pat_001/p_manifest.json", "{}");
     set_data("pat_001/p_pattern.json", "{ \"length\": [8, 0] }");
+    set_data("pat_001/instance_000/p_manifest.json", "{}");
 
     float actual_buf[buf_len] = { 0.0f };
     mix_and_fill(actual_buf, buf_len);
@@ -344,6 +347,7 @@ START_TEST(Note_on_after_pattern_end_is_ignored)
     snprintf(pat0_def, sizeof(pat0_def), "{ \"length\": [%d, 0] }", _i);
     set_data("pat_000/p_manifest.json", "{}");
     set_data("pat_000/p_pattern.json", pat0_def);
+    set_data("pat_000/instance_000/p_manifest.json", "{}");
 
     char col_def[128] = "";
     snprintf(col_def, sizeof(col_def), "[ [[%d, 1], [\"n+\", \"0\"]] ]", _i);
@@ -351,6 +355,7 @@ START_TEST(Note_on_after_pattern_end_is_ignored)
 
     set_data("pat_001/p_manifest.json", "{}");
     set_data("pat_001/p_pattern.json", "{ \"length\": [8, 0] }");
+    set_data("pat_001/instance_000/p_manifest.json", "{}");
 
     float actual_buf[buf_len] = { 0.0f };
     mix_and_fill(actual_buf, buf_len);
@@ -377,6 +382,7 @@ START_TEST(Initial_tempo_is_set_correctly)
     set_data("song_00/p_song.json", ss_def);
     set_data("pat_000/p_manifest.json", "{}");
     set_data("pat_000/p_pattern.json", "{ \"length\": [4, 0] }");
+    set_data("pat_000/instance_000/p_manifest.json", "{}");
     set_data("pat_000/col_00/p_triggers.json",
             "[ [[0, 0], [\"n+\", \"0\"]], [[1, 0], [\"n+\", \"0\"]] ]");
 
@@ -401,6 +407,7 @@ START_TEST(Infinite_mode_loops_composition)
     set_data("song_00/p_order_list.json", "[ [0, 0] ]");
     set_data("pat_000/p_manifest.json", "{}");
     set_data("pat_000/p_pattern.json", "{ \"length\": [2, 0] }");
+    set_data("pat_000/instance_000/p_manifest.json", "{}");
     set_data("pat_000/col_00/p_triggers.json", "[ [[0, 0], [\"n+\", \"0\"]] ]");
 
     kqt_Handle_fire(handle, 0, "[\"I.infinite\", true]");

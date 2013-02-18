@@ -186,6 +186,7 @@ class KqtEditor(QtGui.QMainWindow):
         self._cur_subsong = 0
         self._cur_section = 0
         self._cur_pattern = 0
+        self._cur_pattern_inst = 0
         self._cur_pattern_offset = ts.Timestamp()
 
         """
@@ -212,7 +213,7 @@ class KqtEditor(QtGui.QMainWindow):
         self._instrument.setValue(self._instrument.value() + 1)
 
     def _play_pattern(self, ev):
-        self._playback.play_pattern(self._cur_pattern)
+        self._playback.play_pattern(self._cur_pattern, self._cur_pattern_inst)
 
     def _play_from(self, ev):
         self._playback.play_from(self._cur_subsong, self._cur_section,
@@ -271,8 +272,9 @@ class KqtEditor(QtGui.QMainWindow):
         else:
             self.pa.iterate()
 
-    def pattern_changed(self, num):
+    def pattern_changed(self, num, inst):
         self._cur_pattern = num
+        self._cur_pattern_inst = inst
 
     def section_changed(self, subsong, section):
         self._cur_subsong = subsong

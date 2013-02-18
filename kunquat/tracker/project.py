@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2010-2012
+# Authors: Tomi Jylhä-Ollila, Finland 2010-2013
 #          Toni Ruottu,       Finland 2012
 #
 # This file is part of Kunquat.
@@ -205,7 +205,7 @@ class Project(QtCore.QObject):
         self.p._toolbar.update_songs()
         self.p._toolbar.update_instruments()
         self.p._toolbar.update_scales()
-        if key == 'p_tracks.json':
+        if key == 'album/p_tracks.json':
             self._composition.update_tracks(value)
         if 'p_order_list.json' in key:
             song_id, _ = key.split('/')

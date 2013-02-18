@@ -96,6 +96,16 @@ static bool parse_pattern_level(
         int index);
 
 
+static bool parse_pat_inst_level(
+        kqt_Handle* handle,
+        Pattern* pat,
+        const char* key,
+        const char* subkey,
+        void* data,
+        long length,
+        int index);
+
+
 static bool parse_scale_level(
         kqt_Handle* handle,
         const char* key,
@@ -1333,7 +1343,6 @@ static bool parse_pattern_level(kqt_Handle* handle,
     assert(subkey != NULL);
     assert((data == NULL) == (length == 0));
     assert(length >= 0);
-    (void)length;
     if (index < 0 || index >= KQT_PATTERNS_MAX)
     {
         return true;
@@ -1388,12 +1397,12 @@ static bool parse_pattern_level(kqt_Handle* handle,
     {
         return true;
     }
-    int col_index = 0;
+    int sub_index = 0;
     ++second_element;
-    if ((col_index = string_extract_index(subkey, "col_", 2, "/")) >= 0 &&
+    if ((sub_index = string_extract_index(subkey, "col_", 2, "/")) >= 0 &&
                 string_eq(second_element, "p_triggers.json"))
     {
-        if (col_index >= KQT_COLUMNS_MAX)
+        if (sub_index >= KQT_COLUMNS_MAX)
         {
             return true;
         }
@@ -1437,7 +1446,7 @@ static bool parse_pattern_level(kqt_Handle* handle,
             }
             return false;
         }
-        if (!Pattern_set_col(pat, col_index, col))
+        if (!Pattern_set_col(pat, sub_index, col))
         {
             kqt_Handle_set_error(handle, ERROR_MEMORY,
                     "Couldn't allocate memory");
@@ -1458,6 +1467,80 @@ static bool parse_pattern_level(kqt_Handle* handle,
             }
         }
     }
+    else if ((sub_index = string_extract_index(subkey, "instance_", 3, "/")) >= 0)
+    {
+        Pattern* pat = Pat_table_get(Song_get_pats(handle->song), index);
+        bool new_pattern = (pat == NULL);
+        if (new_pattern)
+        {
+            pat = new_Pattern();
+            if (pat == NULL)
+            {
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
+                return false;
+            }
+        }
+
+        assert(pat != NULL);
+        if (!parse_pat_inst_level(
+                    handle,
+                    pat,
+                    key,
+                    second_element,
+                    data,
+                    length,
+                    sub_index))
+        {
+            if (new_pattern)
+            {
+                del_Pattern(pat);
+            }
+            return false;
+        }
+
+        if (new_pattern && !Pat_table_set(Song_get_pats(handle->song), index, pat))
+        {
+            kqt_Handle_set_error(handle, ERROR_MEMORY,
+                    "Couldn't allocate memory");
+            del_Pattern(pat);
+            return false;
+        }
+        return true;
+    }
+    return true;
+}
+
+
+static bool parse_pat_inst_level(
+        kqt_Handle* handle,
+        Pattern* pat,
+        const char* key,
+        const char* subkey,
+        void* data,
+        long length,
+        int index)
+{
+    assert(handle_is_valid(handle));
+    assert(key != NULL);
+    assert(subkey != NULL);
+    assert((data == NULL) == (length == 0));
+    assert(length >= 0);
+    (void)length;
+
+    if (string_eq(subkey, "p_manifest.json"))
+    {
+        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+        const bool existent = read_default_manifest(data, state);
+        if (state->error)
+        {
+            set_parse_error(handle, state);
+            return false;
+        }
+
+        Pattern_set_inst_existent(pat, index, existent);
+    }
+
     return true;
 }
 

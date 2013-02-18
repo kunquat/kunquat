@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2013
  *
  * This file is part of Kunquat.
  *
@@ -138,7 +138,7 @@ typedef struct Func_desc
 
 FUNC_PROTO(ts);
 FUNC_PROTO(rand);
-FUNC_PROTO(pinst);
+FUNC_PROTO(pat);
 
 #undef FUNC_PROTO
 
@@ -147,7 +147,7 @@ static Func_desc funcs[] =
 {
     { .name = "ts",   .func = func_ts },
     { .name = "rand", .func = func_rand },
-    { .name = "pinst", .func = func_pinst },
+    { .name = "pat",  .func = func_pat },
     { .name = NULL,   .func = NULL }
 };
 
@@ -1427,7 +1427,7 @@ static bool func_rand(
 }
 
 
-static bool func_pinst(
+static bool func_pat(
         Value* args,
         Value* res,
         Random* rand,

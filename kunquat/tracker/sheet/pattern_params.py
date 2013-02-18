@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Toni Ruottu, Finland 2012
+# Authors: Toni Ruottu, Finland 2012
+#          Tomi Jylhä-Ollila, Finland 2013
 #
 # This file is part of Kunquat.
 #
@@ -50,7 +51,7 @@ class PatternParams(QtGui.QGroupBox):
     def section_changed(self, song, system):
         pattern = self._project._composition.get_pattern(song, system)
         if pattern != None:
-            key = 'pat_{0:03d}/p_pattern.json'.format(pattern)
+            key = 'pat_{0:03d}/p_pattern.json'.format(pattern[0])
             self._length.set_key(key)
 
     def sync(self):

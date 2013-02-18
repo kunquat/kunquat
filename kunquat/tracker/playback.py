@@ -114,7 +114,7 @@ class Playback(QtCore.QObject):
         self.playing = True
         self._set_infinite(infinite)
 
-    def play_pattern(self, pattern, infinite=False):
+    def play_pattern(self, pattern, inst, infinite=False):
         self._pos_display.set_play(infinite)
         self.p._peak_meter.reset()
         if self.playing:
@@ -122,7 +122,7 @@ class Playback(QtCore.QObject):
         self.p.handle.track = self._cur_track
         self.p.handle.nanoseconds = 0
         self.playing = True
-        self.p.handle.fire(0, ['Ipattern', pattern])
+        self.p.handle.fire(0, ['Ipattern', [pattern, inst]])
         self._set_infinite(infinite)
 
     def play_from(self, track, section, beats, rem, infinite=False):
