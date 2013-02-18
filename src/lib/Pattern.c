@@ -293,11 +293,15 @@ uint32_t Pattern_mix(Pattern* pat,
         Track_list* tl = play->track_list;
         if (tl != NULL && play->track < Track_list_get_len(tl))
         {
-            int16_t song_index = Track_list_get_song_index(tl, play->track);
+            const int16_t song_index = Track_list_get_song_index(
+                    tl, play->track);
 
+            const bool existent = Subsong_table_get_existent(
+                    play->subsongs,
+                    song_index);
             assert(play->order_lists != NULL);
-            Order_list* ol = play->order_lists[song_index];
-            if (ol != NULL && play->system < Order_list_get_len(ol))
+            const Order_list* ol = play->order_lists[song_index];
+            if (existent && ol != NULL && play->system < Order_list_get_len(ol))
             {
                 Pat_inst_ref* ref = Order_list_get_pat_inst_ref(ol, play->system);
                 assert(ref != NULL);
@@ -413,11 +417,15 @@ uint32_t Pattern_mix(Pattern* pat,
             const Track_list* tl = play->track_list;
             if (tl != NULL && play->track < Track_list_get_len(tl))
             {
-                int16_t song_index = Track_list_get_song_index(
+                const int16_t song_index = Track_list_get_song_index(
                         tl, play->track);
+
+                const bool existent = Subsong_table_get_existent(
+                        play->subsongs,
+                        song_index);
                 assert(play->order_lists != NULL);
-                Order_list* ol = play->order_lists[song_index];
-                if (ol != NULL && play->system < Order_list_get_len(ol))
+                const Order_list* ol = play->order_lists[song_index];
+                if (existent && ol != NULL && play->system < Order_list_get_len(ol))
                 {
                     Pat_inst_ref* ref = Order_list_get_pat_inst_ref(ol, play->system);
                     assert(ref != NULL);

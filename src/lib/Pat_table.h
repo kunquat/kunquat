@@ -64,6 +64,8 @@ void Pat_table_set_existent(Pat_table* table, int index, bool existent);
  * \param table   The Pattern table -- must not be \c NULL.
  * \param index   The target index -- must be >= \c 0 and less than the
  *                table size.
+ *
+ * \return   The existent status.
  */
 bool Pat_table_get_existent(const Pat_table* table, int index);
 

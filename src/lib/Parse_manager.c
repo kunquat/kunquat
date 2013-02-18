@@ -1628,7 +1628,19 @@ static bool parse_subsong_level(kqt_Handle* handle,
     {
         return true;
     }
-    if (string_eq(subkey, "p_song.json"))
+
+    if (string_eq(subkey, "p_manifest.json"))
+    {
+        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+        const bool existent = read_default_manifest(data, state);
+        if (state->error)
+        {
+            set_parse_error(handle, state);
+            return false;
+        }
+        Subsong_table_set_existent(handle->song->subsongs, index, existent);
+    }
+    else if (string_eq(subkey, "p_song.json"))
     {
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
         Subsong* ss = new_Subsong_from_string(data, state);

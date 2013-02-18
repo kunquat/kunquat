@@ -408,10 +408,13 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
                 {
                     int16_t song_index = Track_list_get_song_index(
                             tl, state->track);
+                    const bool existent = Subsong_table_get_existent(
+                            play->subsongs,
+                            song_index);
                     Subsong* ss = Subsong_table_get(
                             play->subsongs,
                             song_index);
-                    if (ss != NULL)
+                    if (existent && ss != NULL)
                         state->tempo = Subsong_get_tempo(ss);
                 }
             }
@@ -427,8 +430,11 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
             {
                 const int16_t song_index = Track_list_get_song_index(
                         tl, track_index);
+                const bool existent = Subsong_table_get_existent(
+                        song->subsongs,
+                        song_index);
                 const Order_list* ol = song->order_lists[song_index];
-                if (ol != NULL && play->system < Order_list_get_len(ol))
+                if (existent && ol != NULL && play->system < Order_list_get_len(ol))
                 {
                     Pat_inst_ref* ref = Order_list_get_pat_inst_ref(
                             ol, play->system);

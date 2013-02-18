@@ -261,6 +261,7 @@ START_TEST(Empty_pattern_contains_silence)
 
     set_data("album/p_manifest.json", "{}");
     set_data("album/p_tracks.json", "[0]");
+    set_data("song_00/p_manifest.json", "{}");
     set_data("song_00/p_order_list.json", "[ [0, 0] ]");
     set_data("pat_000/p_manifest.json", "{}");
     set_data("pat_000/p_pattern.json", "{ \"length\": [16, 0] }");
@@ -309,6 +310,7 @@ START_TEST(Note_on_at_pattern_end_is_handled)
 
     set_data("album/p_manifest.json", "{}");
     set_data("album/p_tracks.json", "[0]");
+    set_data("song_00/p_manifest.json", "{}");
     set_data("song_00/p_order_list.json", "[ [0, 0], [1, 0] ]");
 
     char pat0_def[128] = "";
@@ -344,6 +346,7 @@ START_TEST(Note_on_after_pattern_end_is_ignored)
 
     set_data("album/p_manifest.json", "{}");
     set_data("album/p_tracks.json", "[0]");
+    set_data("song_00/p_manifest.json", "{}");
     set_data("song_00/p_order_list.json", "[ [0, 0], [1, 0] ]");
 
     char pat0_def[128] = "";
@@ -380,6 +383,7 @@ START_TEST(Initial_tempo_is_set_correctly)
 
     set_data("album/p_manifest.json", "{}");
     set_data("album/p_tracks.json", "[0]");
+    set_data("song_00/p_manifest.json", "{}");
     set_data("song_00/p_order_list.json", "[ [0, 0] ]");
     char ss_def[128] = "";
     snprintf(ss_def, sizeof(ss_def), "{ \"tempo\": %d }", tempos[_i]);
@@ -409,6 +413,7 @@ START_TEST(Infinite_mode_loops_composition)
 
     set_data("album/p_manifest.json", "{}");
     set_data("album/p_tracks.json", "[0]");
+    set_data("song_00/p_manifest.json", "{}");
     set_data("song_00/p_order_list.json", "[ [0, 0] ]");
     set_data("pat_000/p_manifest.json", "{}");
     set_data("pat_000/p_pattern.json", "{ \"length\": [2, 0] }");

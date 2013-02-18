@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -253,9 +253,11 @@ int kqt_Handle_fire(kqt_Handle* handle, int channel, char* event)
         {
             int16_t song_index = Track_list_get_song_index(
                     tl, global_state->track);
+            const bool existent = Subsong_table_get_existent(
+                    global_state->subsongs, song_index);
             Subsong* ss = Subsong_table_get(
                     global_state->subsongs, song_index);
-            if (ss != NULL)
+            if (existent && ss != NULL)
                 global_state->tempo = Subsong_get_tempo(ss);
         }
     }
