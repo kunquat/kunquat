@@ -121,6 +121,7 @@ Song* new_Song(uint32_t buf_size)
     song->random = NULL;
     song->env = NULL;
     song->bind = NULL;
+    song->album_is_existent = false;
     song->track_list = NULL;
     for (int i = 0; i < KQT_SONGS_MAX; ++i)
     {
@@ -168,7 +169,6 @@ Song* new_Song(uint32_t buf_size)
         return NULL;
     }
     song->play_state->subsongs = Song_get_subsongs(song);
-    song->play_state->track_list = song->track_list;
     song->play_state->order_lists = song->order_lists;
     song->play_state->scales = song->scales;
     song->play_state->active_scale = &song->play_state->scales[0];
@@ -179,7 +179,6 @@ Song* new_Song(uint32_t buf_size)
         return NULL;
     }
     song->skip_state->subsongs = Song_get_subsongs(song);
-    song->skip_state->track_list = song->track_list;
     song->skip_state->order_lists = song->order_lists;
 
     if (!Device_init_buffer(&song->parent, DEVICE_PORT_TYPE_RECEIVE, 0))

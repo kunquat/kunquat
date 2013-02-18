@@ -432,7 +432,30 @@ static bool parse_album_level(
     assert(subkey != NULL);
     assert((data == NULL) == (length == 0));
     assert(length >= 0);
-    if (string_eq(subkey, "p_tracks.json"))
+
+    if (string_eq(subkey, "p_manifest.json"))
+    {
+        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+        const bool existent = read_default_manifest(data, state);
+        if (state->error)
+        {
+            set_parse_error(handle, state);
+            return false;
+        }
+        handle->song->album_is_existent = existent;
+        if (existent)
+        {
+            Track_list* tl = handle->song->track_list;
+            handle->song->play_state->track_list = tl;
+            handle->song->skip_state->track_list = tl;
+        }
+        else
+        {
+            handle->song->play_state->track_list = NULL;
+            handle->song->skip_state->track_list = NULL;
+        }
+    }
+    else if (string_eq(subkey, "p_tracks.json"))
     {
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
         Track_list* tl = new_Track_list(data, state);
@@ -451,8 +474,16 @@ static bool parse_album_level(
         }
         del_Track_list(handle->song->track_list);
         handle->song->track_list = tl;
-        handle->song->play_state->track_list = tl;
-        handle->song->skip_state->track_list = tl;
+        if (handle->song->album_is_existent)
+        {
+            handle->song->play_state->track_list = tl;
+            handle->song->skip_state->track_list = tl;
+        }
+        else
+        {
+            assert(handle->song->play_state->track_list == NULL);
+            assert(handle->song->skip_state->track_list == NULL);
+        }
     }
     return true;
 }
