@@ -193,6 +193,7 @@ class Project(QtCore.QObject):
     def _update_player(self, key):
         value = self._composition.get(key)
         self._handle.set_data(key, value)
+        self._handle.validate() # FIXME: temp, just to make things work for now
 
     # STORE EVENT INTERFACE
 

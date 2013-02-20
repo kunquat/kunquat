@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -70,12 +70,22 @@ kqt_Handle* kqt_new_Handle(void);
 /**
  * Sets data of the Kunquat Handle associated with the given key.
  *
+ * After a successful call of this function, the handle is set as not
+ * validated. As long as the handle is not validated, only the following
+ * functions can be called successfully:
+ *
+ * \li kqt_Handle_set_data
+ * \li kqt_Handle_get_error
+ * \li kqt_Handle_clear_error
+ * \li kqt_Handle_validate
+ * \li kqt_del_Handle
+ *
  * \param handle   The Kunquat Handle -- should be valid and should support
  *                 writing.
  * \param key      The key of the data -- should not be \c NULL.
  * \param data     The data to be set -- should not be \c NULL unless
  *                 \a length is \c 0.
- * \param length   The length of \ə data -- must not exceed the real length.
+ * \param length   The length of \a data -- must not exceed the real length.
  *
  * \return   \c 1 if successful. Otherwise, \c 0 is returned and the Kunquat
  *           Handle error is set accordingly.
@@ -93,11 +103,11 @@ int kqt_Handle_set_data(kqt_Handle* handle,
  * "type" and "message". The value of "type" is one of the following:
  *
  * \li "ArgumentError" -- a Kunquat function was called with an inappropriate
- *                      argument value.
+ *                        argument value.
  * \li "FormatError"   -- an input file or value to be stored was invalid.
  * \li "MemoryError"   -- memory allocation failed.
  * \li "ResourceError" -- libkunquat couldn't get service from an external
- *                      resource.
+ *                        resource.
  *
  * The value of "message" is a human-readable description of the error.
  *
@@ -126,6 +136,21 @@ char* kqt_Handle_get_error(kqt_Handle* handle);
  *                 be cleared.
  */
 void kqt_Handle_clear_error(kqt_Handle* handle);
+
+
+/**
+ * Validates the Kunquat Handle.
+ *
+ * This function needs to be called after one or more successful calls of
+ * kqt_Handle_set_data before the Handle can be fully utilised again.
+ *
+ * \param handle   The Handle -- should not be \c NULL.
+ *
+ * \return   \c 1 if successful, \c 0 if failed. If the validation fails,
+ *           the Handle can no longer be used and should be deallocated by
+ *           calling kqt_del_Handle(\a handle).
+ */
+int kqt_Handle_validate(kqt_Handle* handle);
 
 
 /**

@@ -303,6 +303,17 @@ class Handle(BaseHandle):
                                          ctypes.POINTER(ctypes.c_ubyte)),
                                      len(data))
 
+    def validate(self):
+        """Validate data in the handle.
+
+        Exceptions:
+        KunquatFormatError -- The module data is not valid.  This
+                              indicates that the handle is useless and
+                              should be discarded.
+
+        """
+        _kunquat.kqt_Handle_validate(self._handle)
+
     def __del__(self):
         if self._handle:
             _kunquat.kqt_del_Handle(self._handle)
@@ -373,6 +384,10 @@ _kunquat.kqt_Handle_get_error.argtypes = [ctypes.c_void_p]
 _kunquat.kqt_Handle_get_error.restype = ctypes.c_char_p
 _kunquat.kqt_Handle_clear_error.argtypes = [ctypes.c_void_p]
 _kunquat.kqt_Handle_clear_error.restype = None
+
+_kunquat.kqt_Handle_validate.argtypes = [ctypes.c_void_p]
+_kunquat.kqt_Handle_validate.restype = ctypes.c_int
+_kunquat.kqt_Handle_validate.errcheck = _error_check
 
 _kunquat.kqt_Handle_set_data.argtypes = [ctypes.c_void_p,
                                          ctypes.c_char_p,

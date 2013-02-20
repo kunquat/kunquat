@@ -41,6 +41,8 @@ START_TEST(Trivial_effect_is_identity)
             "[ [\"ins_00/out_00\", \"eff_00/in_00\"],"
             "  [\"eff_00/out_00\", \"out_00\"] ]");
 
+    validate();
+
     float actual_buf[buf_len] = { 0.0f };
     kqt_Handle_fire(handle, 0, Note_On_55_Hz);
     check_unexpected_error();
@@ -77,6 +79,8 @@ START_TEST(Effect_with_default_volume_dsp_is_identity)
     set_data("p_connections.json",
             "[ [\"ins_00/out_00\", \"eff_00/in_00\"],"
             "  [\"eff_00/out_00\", \"out_00\"] ]");
+
+    validate();
 
     float actual_buf[buf_len] = { 0.0f };
     kqt_Handle_fire(handle, 0, Note_On_55_Hz);
@@ -117,6 +121,8 @@ START_TEST(Effect_with_double_volume_dsp_and_bypass_triples_volume)
             "[ [\"ins_00/out_00\", \"eff_00/in_00\"],"
             "  [\"eff_00/out_00\", \"out_00\"] ]");
 
+    validate();
+
     float actual_buf[buf_len] = { 0.0f };
     kqt_Handle_fire(handle, 0, Note_On_55_Hz);
     check_unexpected_error();
@@ -145,6 +151,9 @@ START_TEST(Connect_instrument_effect_with_unconnected_dsp_and_mix)
             "[ [\"ins_00/out_00\", \"out_00\"] ]");
     set_data("ins_00/p_connections.json",
             "[ [\"eff_00/out_00\", \"out_00\"] ]");
+
+    validate();
+
     kqt_Handle_mix(handle, 128);
 
     return;

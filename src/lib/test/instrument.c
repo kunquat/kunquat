@@ -36,6 +36,8 @@ void setup_single_pulse_without_instrument_manifest(void)
     set_data("ins_00/gen_00/p_gen_type.json", "\"debug\"");
     set_data("ins_00/gen_00/c/p_single_pulse.jsonb", "true");
 
+    validate();
+
     check_unexpected_error();
 
     return;
@@ -69,6 +71,7 @@ START_TEST(Adding_manifest_enables_instrument)
 
     setup_single_pulse_without_instrument_manifest();
     set_data("ins_00/p_manifest.json", "{}");
+    validate();
     check_unexpected_error();
 
     float actual_buf[buf_len] = { 0.0f };
@@ -92,6 +95,7 @@ START_TEST(Removing_manifest_disables_instrument)
     setup_debug_instrument();
     setup_debug_single_pulse();
     set_data("ins_00/p_manifest.json", "");
+    validate();
     check_unexpected_error();
 
     float actual_buf[buf_len] = { 0.0f };

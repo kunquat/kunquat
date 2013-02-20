@@ -121,6 +121,7 @@ def load_kqt(path, rate):
                 meta[key] = value
 
     tfile.close()
+    handle.validate()
     return handle, meta
 
 
