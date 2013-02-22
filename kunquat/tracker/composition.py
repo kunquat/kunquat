@@ -305,7 +305,6 @@ class Composition():
     def update_tracks(self, tracks_json):
         import json
         self._tracks = json.loads(tracks_json)
-        print('update: %s' % self._tracks)
         try:
             songlist_model = self.p._sheet._subsongs.model
         except:
@@ -345,7 +344,7 @@ class Composition():
             new_target_systems = list(target_systems)
             item = new_source_systems.pop(source_row)
             if item in target_systems:
-                print 'ERROR: Only one copy of pattern instance per song'
+                self.p.error('ERROR: Only one copy of pattern instance per song')
                 return
             new_target_systems.insert(target_place, item)
             source_song.set_order_list(new_source_systems)

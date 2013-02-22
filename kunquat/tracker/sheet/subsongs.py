@@ -300,7 +300,10 @@ class OrderList(QtCore.QAbstractItemModel):
         if node_type == 'song':
             assert not parent.isValid()
             track = node_data
-            target = row
+            if row < 0:
+                target = composition.song_count()
+            else:
+                target = row
             composition.move_track(track, target)
         elif node_type == 'pi':
             assert parent.isValid()
@@ -308,7 +311,10 @@ class OrderList(QtCore.QAbstractItemModel):
             parent_sno = parent.internalPointer()
             parent_song = parent_sno.song
             target_track = self.p.project._composition.get_track_by_song(parent_song)
-            target_row = row
+            if row < 0:
+                target_row = parent_song.system_count()
+            else:
+                target_row = row
             global_target = (target_track, target_row)
             composition.move_system(global_system, global_target)
         else:

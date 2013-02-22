@@ -42,20 +42,21 @@ class Toolbar():
 
         env_ter = QtGui.QToolButton()
         env_ter.setText('Bindigs')
-        env_ter.setIcon(QtGui.QIcon.fromTheme('modem'))
+        env_ter.setIcon(QtGui.QIcon(self.p.icon_bank.events_icon))
         env_ter.setAutoRaise(True)
         QtCore.QObject.connect(env_ter, QtCore.SIGNAL('clicked()'),
                                self.p.environment_window)
 
         sheet_but = QtGui.QToolButton()
-        sheet_but.setText(u'♫')
+        #sheet_but.setText(u'♫')
+        sheet_but.setIcon(QtGui.QIcon(self.p.icon_bank.music_icon))
         sheet_but.setAutoRaise(True)
         QtCore.QObject.connect(sheet_but, QtCore.SIGNAL('clicked()'),
                                self.p.show_sheet)
 
         instrument_ter = QtGui.QToolButton()
         instrument_ter.setText('Instrument Configuration')
-        instrument_ter.setIcon(QtGui.QIcon.fromTheme('audio-card'))
+        instrument_ter.setIcon(QtGui.QIcon(self.p.icon_bank.instruments_icon))
         instrument_ter.setAutoRaise(True)
         QtCore.QObject.connect(instrument_ter, QtCore.SIGNAL('clicked()'),
                                self.p.instruments_window)
