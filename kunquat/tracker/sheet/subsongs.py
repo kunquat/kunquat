@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2012
-#          Tomi Jylhä-Ollila, Finland 2010-2012
+#          Tomi Jylhä-Ollila, Finland 2010-2013
 #
 # This file is part of Kunquat.
 #
@@ -67,6 +67,7 @@ class Subsongs(QtGui.QWidget):
 
     def init(self):
         self.update()
+        self._song_list.expandAll()
 
     def deal_with(self, node):
         if isinstance(node, Song_node):
@@ -102,17 +103,15 @@ class Subsongs(QtGui.QWidget):
         node = nodes[0]
         (node_type, _) = node
         if node_type == 'pi':
-            self.model.setSongDrag(False)
+            self._model.setSongDrag(False)
         elif node_type == 'song':
-            self.model.setSongDrag(True)
+            self._model.setSongDrag(True)
 
     def update(self):
         project = self.p.project
         songs = self.p.project._composition.song_ids()
-        self.model = OrderList(self.p, self)
-
-        self._song_list.setModel(self.model)
-        self._song_list.expandAll()
+        self._model = OrderList(self.p, self)
+        self._song_list.setModel(self._model)
 
 class Pattern_instance_node(object):
     def __init__(self, parent, system):
