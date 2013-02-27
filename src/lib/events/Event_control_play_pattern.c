@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -30,12 +30,12 @@ bool Event_control_play_pattern_process(General_state* gstate, Value* value)
 {
     assert(gstate != NULL);
     assert(value != NULL);
-    if (value->type != VALUE_TYPE_INT || !gstate->global)
+    if (value->type != VALUE_TYPE_PAT_INST_REF || !gstate->global)
     {
         return false;
     }
     Playdata* global_state = (Playdata*)gstate;
-    global_state->pattern = value->value.int_type;
+    global_state->piref = value->value.Pat_inst_ref_type;
     global_state->mode = PLAY_PATTERN;
     Reltime_set(&global_state->pos, 0, 0);
     return true;

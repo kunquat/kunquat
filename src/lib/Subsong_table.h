@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -68,6 +68,32 @@ Subsong* Subsong_table_get(Subsong_table* table, uint16_t index);
 
 
 /**
+ * Sets existent status of a Subsong.
+ *
+ * \param table      The Subsong table -- must not be \c NULL.
+ * \param index      The subsong number -- must be >= \c 0 and
+ *                   < \c KQT_SONGS_MAX.
+ * \param existent   The new existent status.
+ */
+void Subsong_table_set_existent(
+        Subsong_table* table,
+        uint16_t index,
+        bool existent);
+
+
+/**
+ * Gets existent status of a Subsong.
+ *
+ * \param table   The Subsong table -- must not be \c NULL.
+ * \param index   The subsong number -- must be >= \c 0 and
+ *                < \c KQT_SONGS_MAX.
+ *
+ * \return   The existent status.
+ */
+bool Subsong_table_get_existent(Subsong_table* table, uint16_t index);
+
+
+/**
  * Gets a Subsong from the Subsong table, even if hidden.
  *
  * \param table   The Subsong table -- must not be \c NULL.
@@ -76,7 +102,7 @@ Subsong* Subsong_table_get(Subsong_table* table, uint16_t index);
  *
  * \return   The Subsong if one exists, otherwise \c NULL.
  */
-Subsong* Subsong_table_get_hidden(Subsong_table* table, uint16_t index);
+//Subsong* Subsong_table_get_hidden(Subsong_table* table, uint16_t index);
 
 
 /**

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2013
  *
  * This file is part of Kunquat.
  *
@@ -35,6 +35,7 @@ Effect_interface* new_Effect_interface(uint32_t buf_len,
         del_Effect_interface(ei);
         return NULL;
     }
+    Device_set_existent(&ei->parent, true);
     return ei;
 }
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -55,6 +55,8 @@ typedef enum
 
 struct kqt_Handle
 {
+    bool data_is_valid;
+    bool data_is_validated;
     Song* song;
     kqt_Access_mode mode;
     AAtree* returned_values;
@@ -152,6 +154,50 @@ int kqt_Handle_get_buffer_count(kqt_Handle* handle);
                     "Invalid Kunquat Handle: %p", (void*)(handle)); \
             return;                                                 \
         }                                                           \
+    } else (void)0
+
+
+#define check_data_is_valid(handle, ret) \
+    if (true)                            \
+    {                                    \
+        if (!handle->data_is_valid)      \
+        {                                \
+            return (ret);                \
+        }                                \
+    } else (void)0
+
+#define check_data_is_valid_void(handle) \
+    if (true)                            \
+    {                                    \
+        if (!handle->data_is_valid)      \
+        {                                \
+            return;                      \
+        }                                \
+    } else (void)0
+
+
+#define check_data_is_validated(handle, ret)                          \
+    if (true)                                                         \
+    {                                                                 \
+        if (!handle->data_is_validated)                               \
+        {                                                             \
+            kqt_Handle_set_error((handle), ERROR_ARGUMENT,            \
+                    "Data is not validated (call kqt_Handle_validate" \
+                    " before calling this function)");                \
+            return (ret);                                             \
+        }                                                             \
+    } else (void)0
+
+#define check_data_is_validated_void(handle)                          \
+    if (true)                                                         \
+    {                                                                 \
+        if (!handle->data_is_validated)                               \
+        {                                                             \
+            kqt_Handle_set_error((handle), ERROR_ARGUMENT,            \
+                    "Data is not validated (call kqt_Handle_validate" \
+                    " before calling this function)");                \
+            return;                                                   \
+        }                                                             \
     } else (void)0
 
 

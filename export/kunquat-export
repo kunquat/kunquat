@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2012
+# Author: Tomi Jylhä-Ollila, Finland 2012-2013
 #
 # This file is part of Kunquat.
 #
@@ -53,20 +53,24 @@ def load_kqt(path, freq):
                 meta[key] = value
 
     tfile.close()
+    handle.validate()
     return handle, meta
 
 
 def export(in_path, out_path, options):
-    if not options['quiet']:
-        print('Exporting {0} to {1}'.format(in_path, out_path))
-
     try:
         handle, _ = load_kqt(in_path, options['rate'])
-    except kunquat.KunquatError as e:
-        print('Couldn\'t load \'{0}\': {1}'.format(file_name, e), end='')
+    except IOError as e:
+        print('Couldn\'t open \'{0}\': {1}'.format(in_path, e))
         return
-    handle.song = options['song']
-    duration = handle.get_duration(options['song'])
+    except kunquat.KunquatError as e:
+        print('Couldn\'t load \'{0}\': {1}'.format(in_path, e))
+        return
+    handle.track = options['track']
+    duration = handle.get_duration(options['track'])
+
+    if not options['quiet']:
+        print('Exporting {0} to {1}'.format(in_path, out_path))
 
     try:
         sf = sndfile.SndFileW(
@@ -204,7 +208,7 @@ def print_help():
     print('  --float             Use floating point format')
     print('  -r, --rate n        Set audio rate to n frames/second\n'
           '                      Valid range is [1000,384000]')
-    print('  -s, --song n        Export song n\n'
+    print('  -t, --track n       Export track n\n'
           '                      Valid range is [0,255] (or `all`)')
     print('  -h, --help          Show this help and exit')
     print('  -q, --quiet         '
@@ -214,7 +218,7 @@ def print_help():
 
 
 def option_error(msg):
-    sys.exit(msg + 'Use -h for help.')
+    sys.exit(msg + '\nUse -h for help.')
 
 
 def main():
@@ -222,7 +226,7 @@ def main():
             'help',
             'quiet',
             'output=',
-            'song=',
+            'track=',
             'format=',
             'bits=',
             'float',
@@ -230,7 +234,7 @@ def main():
             'version',
             ]
     try:
-        opts, paths = getopt.getopt(sys.argv[1:], ':hqo:r:s:f:b:', long_opts)
+        opts, paths = getopt.getopt(sys.argv[1:], ':hqo:r:t:f:b:', long_opts)
     except getopt.GetoptError as e:
         print(e.msg, e.opt)
         option_error(e)
@@ -239,7 +243,7 @@ def main():
             'bits': 16,
             'float': False,
             'rate': 48000,
-            'song': None,
+            'track': None,
             'quiet': False,
             }
 
@@ -249,7 +253,7 @@ def main():
             '-b': set_bits, '--bits': set_bits,
             '--float': set_float,
             '-r': set_rate, '--rate': set_rate,
-            '-s': set_song, '--song': set_song,
+            '-t': set_track, '--track': set_track,
             '-q': set_quiet, '--quiet': set_quiet,
             }
 
@@ -337,17 +341,17 @@ def set_rate(options, value):
                 ' between 1000 and 384000')
 
 
-def set_song(options, value):
+def set_track(options, value):
     if 'all'.startswith(value): # allow user to specify prefix
-        options['song'] = None
+        options['track'] = None
     else:
         try:
             num = int(value)
             if not 0 <= num < 256:
                 raise ValueError
-            options['song'] = num
+            options['track'] = num
         except ValueError:
-            option_error('Song must be a number between 0 and'
+            option_error('Track must be a number between 0 and'
                     ' 255 (or all)')
 
 

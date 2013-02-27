@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2013
  *
  * This file is part of Kunquat.
  *
@@ -22,6 +22,7 @@
 #include <File_base.h>
 #include <kunquat/limits.h>
 #include <Param_validator.h>
+#include <Pat_inst_ref.h>
 #include <xassert.h>
 
 
@@ -288,6 +289,18 @@ bool v_pattern(char* param)
     param = read_int(param, &pat, state);
     end();
     return !state->error && pat >= 0 && pat < KQT_PATTERNS_MAX;
+}
+
+
+bool v_piref(char* param)
+{
+    assert(param != NULL);
+    begin();
+    Pat_inst_ref* piref = PAT_INST_REF_AUTO;
+    piref->pat = -1;
+    param = read_pat_inst_ref(param, piref, state);
+    end();
+    return !state->error;
 }
 
 

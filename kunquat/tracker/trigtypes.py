@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2011-2012
+# Author: Tomi Jylhä-Ollila, Finland 2011-2013
 #
 # This file is part of Kunquat.
 #
@@ -71,6 +71,8 @@ pitch = (Note, isfinite, '0')
 note_entry = (int, lambda x: x >= 0, '0') # FIXME
 any_str = (str, lambda x: x != None, '')
 #cond_str = (str, lambda x: all(is_cond_char(c) for c in str(x)), '')
+piref = (tuple, lambda x: len(x) == 2 and 0 <= x[0] < lim.PATTERNS_MAX and
+        0 <= x[1] < lim.PAT_INSTANCES_MAX, 'pat(0)')
 
 
 triggers = {
@@ -196,7 +198,7 @@ triggers = {
 
         'Ipause': [],
         'Iresume': [],
-        'Ipattern': [(int, lambda x: 0 <= x < lim.PATTERNS_MAX, '0')],
+        'Ipattern': [piref],
 
         'I.Bn': [key],
         'I.B': [any_bool],

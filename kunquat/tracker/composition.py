@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2010-2012
+# Authors: Tomi Jylhä-Ollila, Finland 2010-2013
 #          Toni Ruottu,       Finland 2012
 #
 # This file is part of Kunquat.
@@ -39,7 +39,8 @@ class Composition():
             value = self._view.get_json(key)
         else:
             value = self._view.get(key)
-        return value if value else None
+            value = value if value else None
+        return value
 
     def __getitem__(self, key):
         return self.get(key)
@@ -97,7 +98,7 @@ class Composition():
             return None
         if len(orderlist) <= system:
             return None
-        return orderlist[system][0]
+        return orderlist[system]
 
     def get_effect(self, base_path, index):
         name = 'eff_{0:02x}'.format(index)

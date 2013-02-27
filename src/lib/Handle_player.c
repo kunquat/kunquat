@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -34,6 +34,8 @@
 long kqt_Handle_mix(kqt_Handle* handle, long nframes)
 {
     check_handle(handle, 0);
+    check_data_is_valid(handle, 0);
+    check_data_is_validated(handle, 0);
     if (handle->song == NULL || !handle->song->play_state->mode)
     {
         return 0;
@@ -53,6 +55,8 @@ long kqt_Handle_mix(kqt_Handle* handle, long nframes)
 int kqt_Handle_set_mixing_rate(kqt_Handle* handle, long rate)
 {
     check_handle(handle, 0);
+    check_data_is_valid(handle, 0);
+    check_data_is_validated(handle, 0);
     if (rate <= 0)
     {
         kqt_Handle_set_error(handle, ERROR_ARGUMENT, "Mixing rate must be"
@@ -72,6 +76,8 @@ int kqt_Handle_set_mixing_rate(kqt_Handle* handle, long rate)
 long kqt_Handle_get_mixing_rate(kqt_Handle* handle)
 {
     check_handle(handle, 0);
+    check_data_is_valid(handle, 0);
+    check_data_is_validated(handle, 0);
     return Device_get_mix_rate((Device*)handle->song);
 }
 
@@ -79,6 +85,8 @@ long kqt_Handle_get_mixing_rate(kqt_Handle* handle)
 int kqt_Handle_set_buffer_size(kqt_Handle* handle, long size)
 {
     check_handle(handle, 0);
+    check_data_is_valid(handle, 0);
+    check_data_is_validated(handle, 0);
     if (size <= 0)
     {
         kqt_Handle_set_error(handle, ERROR_ARGUMENT, "Buffer size must be"
@@ -104,6 +112,8 @@ int kqt_Handle_set_buffer_size(kqt_Handle* handle, long size)
 long kqt_Handle_get_buffer_size(kqt_Handle* handle)
 {
     check_handle(handle, 0);
+    check_data_is_valid(handle, 0);
+    check_data_is_validated(handle, 0);
     return Device_get_buffer_size((Device*)handle->song);
 }
 
@@ -111,6 +121,8 @@ long kqt_Handle_get_buffer_size(kqt_Handle* handle)
 int kqt_Handle_get_buffer_count(kqt_Handle* handle)
 {
     check_handle(handle, 0);
+    check_data_is_valid(handle, 0);
+    check_data_is_validated(handle, 0);
     return KQT_BUFFERS_MAX;
 }
 
@@ -118,6 +130,8 @@ int kqt_Handle_get_buffer_count(kqt_Handle* handle)
 float* kqt_Handle_get_buffer(kqt_Handle* handle, int index)
 {
     check_handle(handle, NULL);
+    check_data_is_valid(handle, NULL);
+    check_data_is_validated(handle, NULL);
     if (index < 0 || index >= KQT_BUFFERS_MAX)
     {
         kqt_Handle_set_error(handle, ERROR_ARGUMENT,
@@ -134,6 +148,8 @@ float* kqt_Handle_get_buffer(kqt_Handle* handle, int index)
 long long kqt_Handle_get_duration(kqt_Handle* handle, int track)
 {
     check_handle(handle, -1);
+    check_data_is_valid(handle, -1);
+    check_data_is_validated(handle, -1);
     if (track < -1 || track >= KQT_TRACKS_MAX)
     {
         kqt_Handle_set_error(handle, ERROR_ARGUMENT,
@@ -170,6 +186,8 @@ int kqt_Handle_set_position(
         long long nanoseconds)
 {
     check_handle(handle, 0);
+    check_data_is_valid(handle, 0);
+    check_data_is_validated(handle, 0);
     if (track < -1 || track >= KQT_TRACKS_MAX)
     {
         kqt_Handle_set_error(handle, ERROR_ARGUMENT,
@@ -221,6 +239,8 @@ int kqt_Handle_set_position(
 long long kqt_Handle_get_position(kqt_Handle* handle)
 {
     check_handle(handle, 0);
+    check_data_is_valid(handle, 0);
+    check_data_is_validated(handle, 0);
     return ((long long)handle->song->play_state->play_frames * 1000000000L) /
            handle->song->play_state->freq;
 }
@@ -229,6 +249,8 @@ long long kqt_Handle_get_position(kqt_Handle* handle)
 int kqt_Handle_fire(kqt_Handle* handle, int channel, char* event)
 {
     check_handle(handle, 0);
+    check_data_is_valid(handle, 0);
+    check_data_is_validated(handle, 0);
     if (channel < 0 || channel >= KQT_COLUMNS_MAX)
     {
         kqt_Handle_set_error(handle, ERROR_ARGUMENT,
@@ -253,9 +275,11 @@ int kqt_Handle_fire(kqt_Handle* handle, int channel, char* event)
         {
             int16_t song_index = Track_list_get_song_index(
                     tl, global_state->track);
+            const bool existent = Subsong_table_get_existent(
+                    global_state->subsongs, song_index);
             Subsong* ss = Subsong_table_get(
                     global_state->subsongs, song_index);
-            if (ss != NULL)
+            if (existent && ss != NULL)
                 global_state->tempo = Subsong_get_tempo(ss);
         }
     }
@@ -268,6 +292,8 @@ int kqt_Handle_fire(kqt_Handle* handle, int channel, char* event)
 int kqt_Handle_receive(kqt_Handle* handle, char* dest, int size)
 {
     check_handle(handle, 0);
+    check_data_is_valid(handle, 0);
+    check_data_is_validated(handle, 0);
     if (dest == NULL)
     {
         kqt_Handle_set_error(handle, ERROR_ARGUMENT,
@@ -287,6 +313,8 @@ int kqt_Handle_receive(kqt_Handle* handle, char* dest, int size)
 int kqt_Handle_treceive(kqt_Handle* handle, char* dest, int size)
 {
     check_handle(handle, 0);
+    check_data_is_valid(handle, 0);
+    check_data_is_validated(handle, 0);
     if (dest == NULL)
     {
         kqt_Handle_set_error(handle, ERROR_ARGUMENT,

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -50,7 +50,7 @@ static Name_info event_specs[] =
 {
     { "Ipause", EVENT_CONTROL_PAUSE,          VALUE_TYPE_NONE, NULL, false },
     { "Iresume", EVENT_CONTROL_RESUME,        VALUE_TYPE_NONE, NULL, false },
-    { "Ipattern", EVENT_CONTROL_PLAY_PATTERN, VALUE_TYPE_INT, v_pattern, false },
+    { "Ipattern", EVENT_CONTROL_PLAY_PATTERN, VALUE_TYPE_PAT_INST_REF, v_piref, false },
     { "Ireceive", EVENT_CONTROL_RECEIVE_EVENT, VALUE_TYPE_STRING, NULL, false },
 
     { "I.Bn", EVENT_CONTROL_ENV_SET_BOOL_NAME, VALUE_TYPE_STRING, v_key, false },

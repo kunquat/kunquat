@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -54,6 +54,8 @@ bool kqt_Handle_init(kqt_Handle* handle, long buffer_size)
     {
         return false;
     }
+    handle->data_is_valid = true;
+    handle->data_is_validated = true;
     handle->mode = KQT_READ;
     handle->song = NULL;
     handle->destroy = NULL;
@@ -104,6 +106,7 @@ char* kqt_Handle_get_error(kqt_Handle* handle)
 
 void kqt_Handle_clear_error(kqt_Handle* handle)
 {
+    check_data_is_valid_void(handle);
     if (!handle_is_valid(handle))
     {
         null_error[0] = '\0';
@@ -111,6 +114,18 @@ void kqt_Handle_clear_error(kqt_Handle* handle)
     }
     handle->error[0] = '\0';
     return;
+}
+
+
+int kqt_Handle_validate(kqt_Handle* handle)
+{
+    check_handle(handle, 0);
+    check_data_is_valid(handle, 0);
+
+    // TODO: do something useful here
+
+    handle->data_is_validated = true;
+    return 1;
 }
 
 
@@ -254,6 +269,7 @@ int kqt_Handle_set_data(kqt_Handle* handle,
                         long length)
 {
     check_handle(handle, 0);
+    check_data_is_valid(handle, 0);
     check_key(handle, key, 0);
     if (handle->mode == KQT_READ)
     {

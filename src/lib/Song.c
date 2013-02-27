@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -101,6 +101,7 @@ Song* new_Song(uint32_t buf_size)
         xfree(song);
         return NULL;
     }
+    Device_set_existent(&song->parent, true);
     Device_set_reset(&song->parent, Song_reset);
     Device_set_mix_rate_changer(&song->parent, Song_set_mix_rate);
     Device_set_buffer_size_changer(&song->parent, Song_set_buffer_size);
@@ -120,6 +121,7 @@ Song* new_Song(uint32_t buf_size)
     song->random = NULL;
     song->env = NULL;
     song->bind = NULL;
+    song->album_is_existent = false;
     song->track_list = NULL;
     for (int i = 0; i < KQT_SONGS_MAX; ++i)
     {
@@ -167,7 +169,6 @@ Song* new_Song(uint32_t buf_size)
         return NULL;
     }
     song->play_state->subsongs = Song_get_subsongs(song);
-    song->play_state->track_list = song->track_list;
     song->play_state->order_lists = song->order_lists;
     song->play_state->scales = song->scales;
     song->play_state->active_scale = &song->play_state->scales[0];
@@ -178,7 +179,6 @@ Song* new_Song(uint32_t buf_size)
         return NULL;
     }
     song->skip_state->subsongs = Song_get_subsongs(song);
-    song->skip_state->track_list = song->track_list;
     song->skip_state->order_lists = song->order_lists;
 
     if (!Device_init_buffer(&song->parent, DEVICE_PORT_TYPE_RECEIVE, 0))
@@ -279,7 +279,7 @@ bool Song_parse_composition(Song* song, char* str, Read_state* state)
         return false;
     }
     double mix_vol = SONG_DEFAULT_MIX_VOL;
-    int64_t init_subsong = SONG_DEFAULT_INIT_SUBSONG;
+
     if (str != NULL)
     {
         str = read_const_char(str, '{', state);
@@ -315,21 +315,6 @@ bool Song_parse_composition(Song* song, char* str, Read_state* state)
                         return false;
                     }
                 }
-                else if (string_eq(key, "init_subsong"))
-                {
-                    str = read_int(str, &init_subsong, state);
-                    if (state->error)
-                    {
-                        return false;
-                    }
-                    if (init_subsong < 0 || init_subsong >= KQT_SONGS_MAX)
-                    {
-                        Read_state_set_error(state,
-                                 "Invalid initial Subsong number: %" PRId64,
-                                 init_subsong);
-                        return false;
-                    }
-                }
                 else
                 {
                     Read_state_set_error(state,
@@ -349,9 +334,9 @@ bool Song_parse_composition(Song* song, char* str, Read_state* state)
             }
         }
     }
+
     song->mix_vol_dB = mix_vol;
     song->mix_vol = exp2(song->mix_vol_dB / 6);
-    //Song_set_subsong(song, init_subsong);
     return true;
 }
 
@@ -423,10 +408,13 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
                 {
                     int16_t song_index = Track_list_get_song_index(
                             tl, state->track);
+                    const bool existent = Subsong_table_get_existent(
+                            play->subsongs,
+                            song_index);
                     Subsong* ss = Subsong_table_get(
                             play->subsongs,
                             song_index);
-                    if (ss != NULL)
+                    if (existent && ss != NULL)
                         state->tempo = Subsong_get_tempo(ss);
                 }
             }
@@ -442,12 +430,16 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
             {
                 const int16_t song_index = Track_list_get_song_index(
                         tl, track_index);
+                const bool existent = Subsong_table_get_existent(
+                        song->subsongs,
+                        song_index);
                 const Order_list* ol = song->order_lists[song_index];
-                if (ol != NULL && play->system < Order_list_get_len(ol))
+                if (existent && ol != NULL && play->system < Order_list_get_len(ol))
                 {
                     Pat_inst_ref* ref = Order_list_get_pat_inst_ref(
                             ol, play->system);
-                    play->pattern = ref->pat;
+                    assert(ref != NULL);
+                    play->piref = *ref;
                 }
             }
 #if 0
@@ -457,14 +449,24 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
                 play->pattern = Subsong_get(ss, play->section);
             }
 #endif
-            if (play->pattern >= 0)
+            if (play->piref.pat >= 0)
             {
-                pat = Pat_table_get(song->pats, play->pattern);
+                pat = Pat_table_get(song->pats, play->piref.pat);
+                if (!Pat_table_get_existent(song->pats, play->piref.pat))
+                    pat = NULL;
+                if (pat != NULL &&
+                        !Pattern_get_inst_existent(pat, play->piref.inst))
+                    pat = NULL;
             }
         }
-        else if (play->mode == PLAY_PATTERN && play->pattern >= 0)
+        else if (play->mode == PLAY_PATTERN && play->piref.pat >= 0)
         {
-            pat = Pat_table_get(song->pats, play->pattern);
+            pat = Pat_table_get(song->pats, play->piref.pat);
+            if (!Pat_table_get_existent(song->pats, play->piref.pat))
+                pat = NULL;
+            if (pat != NULL &&
+                    !Pattern_get_inst_existent(pat, play->piref.inst))
+                pat = NULL;
         }
         if (pat == NULL && !play->parent.pause)
         {

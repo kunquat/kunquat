@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -14,6 +14,7 @@
 
 #include <stdlib.h>
 
+#include <Bit_array.h>
 #include <Subsong.h>
 #include <Etable.h>
 #include <Subsong_table.h>
@@ -25,6 +26,7 @@ struct Subsong_table
 {
     int effective_size;
     Etable* subs;
+    Bit_array* existents;
 };
 
 
@@ -35,11 +37,15 @@ Subsong_table* new_Subsong_table(void)
     {
         return NULL;
     }
+    table->subs = NULL;
+    table->existents = NULL;
+
     table->effective_size = 0;
     table->subs = new_Etable(KQT_SONGS_MAX, (void(*)(void*))del_Subsong);
-    if (table->subs == NULL)
+    table->existents = new_Bit_array(KQT_SONGS_MAX);
+    if (table->subs == NULL || table->existents == NULL)
     {
-        xfree(table);
+        del_Subsong_table(table);
         return NULL;
     }
     return table;
@@ -80,12 +86,37 @@ Subsong* Subsong_table_get(Subsong_table* table, uint16_t index)
 }
 
 
+void Subsong_table_set_existent(
+        Subsong_table* table,
+        uint16_t index,
+        bool existent)
+{
+    assert(table != NULL);
+    assert(index < KQT_SONGS_MAX);
+
+    Bit_array_set(table->existents, index, existent);
+
+    return;
+}
+
+
+bool Subsong_table_get_existent(Subsong_table* table, uint16_t index)
+{
+    assert(table != NULL);
+    assert(index < KQT_SONGS_MAX);
+
+    return Bit_array_get(table->existents, index);
+}
+
+
+#if 0
 Subsong* Subsong_table_get_hidden(Subsong_table* table, uint16_t index)
 {
     assert(table != NULL);
     assert(index < KQT_SONGS_MAX);
     return Etable_get(table->subs, index);
 }
+#endif
 
 
 bool Subsong_table_is_empty(Subsong_table* table, uint16_t subsong)
@@ -115,6 +146,7 @@ void del_Subsong_table(Subsong_table* table)
         return;
     }
     del_Etable(table->subs);
+    del_Bit_array(table->existents);
     xfree(table);
     return;
 }

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -763,7 +763,7 @@ static void Event_handler_handle_query(Event_handler* eh,
                 Event_handler_trigger_const(eh, index, auto_event, silent);
             }
             snprintf(auto_event, 128, "[\"Apattern\", %" PRId16 "]",
-                     eh->global_state->pattern);
+                     eh->global_state->piref.pat);
             Event_handler_trigger_const(eh, index, auto_event, silent);
             snprintf(auto_event, 128,
                      "[\"Arow\", [%" PRId64 ", %" PRId32 "]]",

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2013
  *
  * This file is part of Kunquat.
  *
@@ -125,6 +125,21 @@ int16_t Track_list_get_song_index(const Track_list* tl, size_t index)
     Vector_get(tl->songs, index, &song_index);
     assert(song_index >= 0);
     return song_index;
+}
+
+
+int16_t Track_list_get_track_by_song(const Track_list* tl, int16_t song_index)
+{
+    assert(tl != NULL);
+    assert(song_index >= 0);
+
+    for (size_t i = 0; i < Vector_size(tl->songs); ++i)
+    {
+        const int16_t* cur_index = Vector_get_ref(tl->songs, i);
+        if (*cur_index == song_index)
+            return (int16_t)i;
+    }
+    return -1;
 }
 
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -14,6 +14,7 @@
 
 #include <stdlib.h>
 
+#include <Bit_array.h>
 #include <Gen_conf.h>
 #include <Gen_table.h>
 #include <Generator.h>
@@ -27,6 +28,7 @@ struct Gen_table
     int size;
     Etable* confs;
     Etable* gens;
+    Bit_array* existents;
 };
 
 
@@ -40,21 +42,36 @@ Gen_table* new_Gen_table(int size)
     }
     table->confs = NULL;
     table->gens = NULL;
+    table->existents = NULL;
 
     table->confs = new_Etable(size, (void (*)(void*))del_Gen_conf);
-    if (table->confs == NULL)
-    {
-        del_Gen_table(table);
-        return NULL;
-    }
     table->gens = new_Etable(size, (void (*)(void*))del_Generator);
-    if (table->gens == NULL)
+    table->existents = new_Bit_array(size);
+    if (table->confs == NULL ||
+        table->gens == NULL ||
+        table->existents == NULL)
     {
         del_Gen_table(table);
         return NULL;
     }
     table->size = size;
     return table;
+}
+
+
+void Gen_table_set_existent(Gen_table* table, int index, bool existent)
+{
+    assert(table != NULL);
+    assert(index >= 0);
+    assert(index < table->size);
+
+    Bit_array_set(table->existents, index, existent);
+
+    Generator* gen = Etable_get(table->gens, index);
+    if (gen != NULL)
+        Device_set_existent((Device*)gen, existent);
+
+    return;
 }
 
 
@@ -118,6 +135,7 @@ bool Gen_table_set_gen(Gen_table* table, int index, Generator* gen)
         return false;
     }
     Generator_set_conf(gen, conf);
+    Device_set_existent((Device*)gen, Bit_array_get(table->existents, index));
     return Device_sync((Device*)gen);
 }
 
@@ -158,6 +176,7 @@ void del_Gen_table(Gen_table* table)
     }
     del_Etable(table->confs);
     del_Etable(table->gens);
+    del_Bit_array(table->existents);
     xfree(table);
     return;
 }

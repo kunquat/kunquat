@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -35,6 +35,7 @@ typedef enum
 
 typedef struct Device
 {
+    bool existent;
     uint32_t mix_rate;
     uint32_t buffer_size;
     bool (*set_mix_rate)(struct Device*, uint32_t);
@@ -64,13 +65,33 @@ bool Device_init(Device* device, uint32_t buffer_size, uint32_t mix_rate);
 
 
 /**
+ * Sets the existent status of the Device.
+ *
+ * \param device     The Device -- must not be \c NULL.
+ * \param existent   The existent flag.
+ */
+void Device_set_existent(Device* device, bool existent);
+
+
+/**
+ * Gets the existent status of the Device.
+ *
+ * \param device   The Device -- must not be \c NULL.
+ *
+ * \return   \c true if the Device is existent, otherwise \c false.
+ */
+bool Device_is_existent(const Device* device);
+
+
+/**
  * Sets the function for changing the mixing rate of the Device.
  *
  * \param device    The Device -- must not be \c NULL.
  * \param changer   The change function, or \c NULL.
  */
-void Device_set_mix_rate_changer(Device* device,
-                                 bool (*changer)(Device*, uint32_t));
+void Device_set_mix_rate_changer(
+        Device* device,
+        bool (*changer)(Device*, uint32_t));
 
 
 /**
@@ -79,8 +100,9 @@ void Device_set_mix_rate_changer(Device* device,
  * \param device    The Device -- must not be \c NULL.
  * \param changer   The change function, or \c NULL.
  */
-void Device_set_buffer_size_changer(Device* device,
-                                    bool (*changer)(Device*, uint32_t));
+void Device_set_buffer_size_changer(
+        Device* device,
+        bool (*changer)(Device*, uint32_t));
 
 
 /**
@@ -108,8 +130,9 @@ void Device_set_sync(Device* device, bool (*sync)(Device*));
  * \param update_key   The update notification function
  *                     -- must not be \c NULL.
  */
-void Device_set_update_key(Device* device,
-                           bool (*update_key)(struct Device*, const char*));
+void Device_set_update_key(
+        Device* device,
+        bool (*update_key)(struct Device*, const char*));
 
 
 /**
@@ -118,9 +141,9 @@ void Device_set_update_key(Device* device,
  * \param device    The Device -- must not be \c NULL.
  * \param process   The process function -- must not be \c NULL.
  */
-void Device_set_process(Device* device,
-                        void (*process)(Device*, uint32_t, uint32_t,
-                                                 uint32_t, double));
+void Device_set_process(
+        Device* device,
+        void (*process)(Device*, uint32_t, uint32_t, uint32_t, double));
 
 
 /**
@@ -157,9 +180,10 @@ void Device_unregister_port(Device* device, Device_port_type type, int port);
  *
  * \return   \c true if the port is registered, otherwise \c false.
  */
-bool Device_port_is_registered(Device* device,
-                               Device_port_type type,
-                               int port);
+bool Device_port_is_registered(
+        const Device* device,
+        Device_port_type type,
+        int port);
 
 
 /**
@@ -198,9 +222,10 @@ void Device_set_direct_receive(Device* device, int port);
  *                 < \c KQT_DEVICE_PORTS_MAX.
  * \param buffer   The Audio buffer, or \c NULL.
  */
-void Device_set_direct_send(Device* device,
-                            int port,
-                            Audio_buffer* buffer);
+void Device_set_direct_send(
+        Device* device,
+        int port,
+        Audio_buffer* buffer);
 
 
 /**
@@ -221,9 +246,10 @@ void Device_remove_direct_buffers(Device* device);
  *
  * \return   The buffer, or \c NULL if the port is not registered.
  */
-Audio_buffer* Device_get_buffer(Device* device,
-                                Device_port_type type,
-                                int port);
+Audio_buffer* Device_get_buffer(
+        const Device* device,
+        Device_port_type type,
+        int port);
 
 
 /**
@@ -257,7 +283,7 @@ bool Device_set_mix_rate(Device* device, uint32_t rate);
  *
  * \return   The mixing rate.
  */
-uint32_t Device_get_mix_rate(Device* device);
+uint32_t Device_get_mix_rate(const Device* device);
 
 
 /**
@@ -279,7 +305,7 @@ bool Device_set_buffer_size(Device* device, uint32_t size);
  *
  * \return   The buffer size.
  */
-uint32_t Device_get_buffer_size(Device* device);
+uint32_t Device_get_buffer_size(const Device* device);
 
 
 /**
@@ -338,11 +364,12 @@ bool Device_update_key(Device* device, const char* key);
  * \param freq     The mixing frequency -- must be > \c 0.
  * \param tempo    The tempo -- must be > \c 0 and finite.
  */
-void Device_process(Device* device,
-                    uint32_t start,
-                    uint32_t until,
-                    uint32_t freq,
-                    double tempo);
+void Device_process(
+        Device* device,
+        uint32_t start,
+        uint32_t until,
+        uint32_t freq,
+        double tempo);
 
 
 /**

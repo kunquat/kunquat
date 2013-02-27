@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -22,23 +22,16 @@
 #include <Column.h>
 #include <Connections.h>
 #include <Channel.h>
+#include <Pat_inst_ref.h>
 #include <Reltime.h>
 #include <Event_handler.h>
 #include <kunquat/limits.h>
 
 
 /**
- * This object contains a section of music.
+ * This object contains a (typically short) section of music.
  */
-typedef struct Pattern
-{
-    Column* global;
-    Column* aux;
-    Column* cols[KQT_COLUMNS_MAX];
-    AAtree* locations;
-    AAiter* locations_iter;
-    Reltime length;
-} Pattern;
+typedef struct Pattern Pattern;
 
 
 #define PATTERN_DEFAULT_LENGTH (Reltime_set(RELTIME_AUTO, 16, 0))
@@ -70,19 +63,40 @@ bool Pattern_parse_header(Pattern* pat, char* str, Read_state* state);
 
 
 /**
+ * Sets existent status of a Pattern instance.
+ *
+ * \param pat        The Pattern -- must not be \c NULL
+ * \param index      The instance index -- must be >= \c 0 and
+ *                   < \c KQT_PAT_INSTANCES_MAX.
+ * \param existent   The new existence status.
+ */
+void Pattern_set_inst_existent(Pattern* pat, int index, bool existent);
+
+
+/**
+ * Sets existent status of a Pattern instance.
+ *
+ * \param pat     The Pattern -- must not be \c NULL
+ * \param index   The instance index -- must be >= \c 0 and
+ *                < \c KQT_PAT_INSTANCES_MAX.
+ */
+bool Pattern_get_inst_existent(Pattern* pat, int index);
+
+
+/**
  * Sets a location where the Pattern is stored.
  *
  * This function must be called whenever the Pattern is placed in a new
  * location. Calling it with old locations does (successfully) nothing.
  *
- * \param pat       The Pattern -- must not be \c NULL.
- * \param subsong   The subsong number -- must be >= \c 0 and
- *                  < \c KQT_SONGS_MAX.
- * \param system    The system number -- must be >= \c 0.
+ * \param pat     The Pattern -- must not be \c NULL.
+ * \param song    The song number -- must be >= \c 0 and
+ *                < \c KQT_SONGS_MAX.
+ * \param piref   The Pattern instance reference -- must be valid.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Pattern_set_location(Pattern* pat, int subsong, int system);
+bool Pattern_set_location(Pattern* pat, int subsong, Pat_inst_ref* piref);
 
 
 /**

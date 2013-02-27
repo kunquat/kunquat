@@ -217,6 +217,7 @@ if not env.GetOption('help'):
     if env['enable_examples']:
         SConscript('examples/SConscript')
     SConscript('src/SConscript')
+    SConscript('share/SConscript')
     if env['enable_python_bindings'] and 'install' in COMMAND_LINE_TARGETS:
         if 'install' in COMMAND_LINE_TARGETS:
             if not env.GetOption('clean'):

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -19,6 +19,7 @@
 #include <inttypes.h>
 #include <math.h>
 
+#include <Bit_array.h>
 #include <Connections_search.h>
 #include <Pattern.h>
 #include <Pattern_location.h>
@@ -28,6 +29,18 @@
 #include <events/Event_global_jump.h>
 #include <xassert.h>
 #include <xmemory.h>
+
+
+struct Pattern
+{
+    Column* global;
+    Column* aux;
+    Column* cols[KQT_COLUMNS_MAX];
+    AAtree* locations;
+    AAiter* locations_iter;
+    Reltime length;
+    Bit_array* existents;
+};
 
 
 static void evaluate_row(Pattern* pat,
@@ -44,13 +57,19 @@ Pattern* new_Pattern(void)
     {
         return NULL;
     }
+
+    pat->global = NULL;
     pat->aux = NULL;
-    pat->global = new_Column(NULL);
+    for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
+        pat->cols[i] = NULL;
     pat->locations = NULL;
     pat->locations_iter = NULL;
+    pat->existents = NULL;
+
+    pat->global = new_Column(NULL);
     if (pat->global == NULL)
     {
-        xfree(pat);
+        del_Pattern(pat);
         return NULL;
     }
     for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
@@ -58,25 +77,19 @@ Pattern* new_Pattern(void)
         pat->cols[i] = new_Column(NULL);
         if (pat->cols[i] == NULL)
         {
-            for (--i; i >= 0; --i)
-            {
-                del_Column(pat->cols[i]);
-            }
-            del_Column(pat->global);
-            xfree(pat);
+            del_Pattern(pat);
             return NULL;
         }
     }
     pat->aux = new_Column_aux(NULL, pat->cols[0], 0);
-    if (pat->aux == NULL)
-    {
-        del_Pattern(pat);
-        return NULL;
-    }
     pat->locations = new_AAtree(
             (int (*)(const void*, const void*))Pattern_location_cmp, free);
     pat->locations_iter = new_AAiter(pat->locations);
-    if (pat->locations == NULL || pat->locations_iter == NULL)
+    pat->existents = new_Bit_array(KQT_PAT_INSTANCES_MAX);
+    if (pat->aux == NULL ||
+            pat->locations == NULL ||
+            pat->locations_iter == NULL ||
+            pat->existents == NULL)
     {
         del_Pattern(pat);
         return NULL;
@@ -117,20 +130,42 @@ bool Pattern_parse_header(Pattern* pat, char* str, Read_state* state)
 }
 
 
-bool Pattern_set_location(Pattern* pat, int subsong, int system)
+void Pattern_set_inst_existent(Pattern* pat, int index, bool existent)
 {
     assert(pat != NULL);
-    assert(subsong >= 0);
-    assert(subsong < KQT_SONGS_MAX);
-    assert(system >= 0);
+    assert(index >= 0);
+    assert(index < KQT_PAT_INSTANCES_MAX);
+
+    Bit_array_set(pat->existents, index, existent);
+
+    return;
+}
+
+
+bool Pattern_get_inst_existent(Pattern* pat, int index)
+{
+    assert(pat != NULL);
+    assert(index >= 0);
+    assert(index < KQT_PAT_INSTANCES_MAX);
+
+    return Bit_array_get(pat->existents, index);
+}
+
+
+bool Pattern_set_location(Pattern* pat, int song, Pat_inst_ref* piref)
+{
+    assert(pat != NULL);
+    assert(song >= 0);
+    assert(song < KQT_SONGS_MAX);
+    assert(piref != NULL);
     Pattern_location* key = PATTERN_LOCATION_AUTO;
-    key->subsong = subsong;
-    key->section = system;
+    key->song = song;
+    key->piref = *piref;
     if (AAtree_get_exact(pat->locations, key) != NULL)
     {
         return true;
     }
-    key = new_Pattern_location(subsong, system);
+    key = new_Pattern_location(song, piref);
     if (key == NULL || !AAtree_ins(pat->locations, key))
     {
         xfree(key);
@@ -254,18 +289,23 @@ uint32_t Pattern_mix(Pattern* pat,
         }
         ++play->system;
 
-        play->pattern = -1;
+        play->piref.pat = -1;
         Track_list* tl = play->track_list;
         if (tl != NULL && play->track < Track_list_get_len(tl))
         {
-            int16_t song_index = Track_list_get_song_index(tl, play->track);
+            const int16_t song_index = Track_list_get_song_index(
+                    tl, play->track);
 
+            const bool existent = Subsong_table_get_existent(
+                    play->subsongs,
+                    song_index);
             assert(play->order_lists != NULL);
-            Order_list* ol = play->order_lists[song_index];
-            if (ol != NULL && play->system < Order_list_get_len(ol))
+            const Order_list* ol = play->order_lists[song_index];
+            if (existent && ol != NULL && play->system < Order_list_get_len(ol))
             {
                 Pat_inst_ref* ref = Order_list_get_pat_inst_ref(ol, play->system);
-                play->pattern = ref->pat;
+                assert(ref != NULL);
+                play->piref = *ref;
             }
         }
 #if 0
@@ -373,18 +413,23 @@ uint32_t Pattern_mix(Pattern* pat,
             }
             ++play->system;
 
-            play->pattern = -1;
+            play->piref.pat = -1;
             const Track_list* tl = play->track_list;
             if (tl != NULL && play->track < Track_list_get_len(tl))
             {
-                int16_t song_index = Track_list_get_song_index(
+                const int16_t song_index = Track_list_get_song_index(
                         tl, play->track);
+
+                const bool existent = Subsong_table_get_existent(
+                        play->subsongs,
+                        song_index);
                 assert(play->order_lists != NULL);
-                Order_list* ol = play->order_lists[song_index];
-                if (ol != NULL && play->system < Order_list_get_len(ol))
+                const Order_list* ol = play->order_lists[song_index];
+                if (existent && ol != NULL && play->system < Order_list_get_len(ol))
                 {
                     Pat_inst_ref* ref = Order_list_get_pat_inst_ref(ol, play->system);
-                    play->pattern = ref->pat;
+                    assert(ref != NULL);
+                    play->piref = *ref;
                 }
             }
 #if 0

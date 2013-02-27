@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2010-2012
+# Authors: Tomi Jylhä-Ollila, Finland 2010-2013
 #          Toni Ruottu,       Finland 2012
 #
 # This file is part of Kunquat.
@@ -193,6 +193,7 @@ class Project(QtCore.QObject):
     def _update_player(self, key):
         value = self._composition.get(key)
         self._handle.set_data(key, value)
+        self._handle.validate() # FIXME: temp, just to make things work for now
 
     # STORE EVENT INTERFACE
 
@@ -205,7 +206,7 @@ class Project(QtCore.QObject):
         self.p._toolbar.update_songs()
         self.p._toolbar.update_instruments()
         self.p._toolbar.update_scales()
-        if key == 'p_tracks.json':
+        if key == 'album/p_tracks.json':
             self._composition.update_tracks(value)
         if 'p_order_list.json' in key:
             song_id, _ = key.split('/')
