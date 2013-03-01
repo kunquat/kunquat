@@ -107,6 +107,9 @@ class Subsongs(QtGui.QWidget):
         elif node_type == 'song':
             self._model.setSongDrag(True)
 
+    def update_model(self):
+        self._model.update()
+
     def update(self):
         project = self.p.project
         songs = self.p.project._composition.song_ids()

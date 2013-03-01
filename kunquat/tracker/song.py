@@ -43,8 +43,8 @@ class Song():
         import json
         self._order_list = json.loads(order_list_json)
         try:
-            songlist_model = self.p._sheet._subsongs.model
+            songlist = self.p._sheet._subsongs
         except:
             return
-        songlist_model.update()
+        songlist.update_model()
         
