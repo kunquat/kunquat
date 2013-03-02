@@ -304,13 +304,12 @@ class Composition():
 
     def update_tracks(self, tracks_json):
         import json
-        print 1000 * '-'
         self._tracks = json.loads(tracks_json)
         try:
-            songlist_model = self.p._sheet._subsongs.model
+            songlist = self.p._sheet._subsongs
         except:
             return
-        songlist_model.update()
+        songlist.update_model()
 
     def delete_track(self, track):
         song = self.get_song_by_track(track)
