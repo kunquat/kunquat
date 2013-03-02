@@ -39,12 +39,21 @@ class Song():
     def delete(self):
         del self._view['p_manifest.json']
 
-    def new_pattern(self, target):
-        pattern_instance = self._composition.new_pattern()
+    def _add_pattern(self, pattern_instance, target):
         ol = self.get_order_list() + [pattern_instance]
         system_number = len(ol) - 1
         systems = tools.list_move(ol, system_number, target)
         self.set_order_list(systems)
+
+    def new_pattern(self, target):
+        pattern_instance = self._composition.new_pattern()
+        self._add_pattern(pattern_instance, target)
+
+    def reuse(self, system):
+        old_pattern_instance = self.get_pattern_instance(system)
+        new_pattern_instance = old_pattern_instance.duplicate()
+        target = system + 1
+        self._add_pattern(new_pattern_instance, target)
 
     def move_system(self, system_number, target):
         ol = self.get_order_list()

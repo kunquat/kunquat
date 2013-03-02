@@ -40,6 +40,7 @@ class PatternParams(QtGui.QGroupBox):
         self._button_delete_pattern.clicked.connect(self.delete_current)
         self._layout.addWidget(self._button_delete_pattern)
         self._button_reuse_pattern = QtGui.QPushButton('reuse pattern')
+        self._button_reuse_pattern.clicked.connect(self.reuse_current)
         self._layout.addWidget(self._button_reuse_pattern)
         self._button_new_pattern = QtGui.QPushButton('new pattern')
         self._button_new_pattern.clicked.connect(self.new_after_current)
@@ -59,6 +60,10 @@ class PatternParams(QtGui.QGroupBox):
         song = self._project._composition.get_song_by_track(self._track)
         target = self._system + 1
         song.new_pattern(target)
+
+    def reuse_current(self):
+        song = self._project._composition.get_song_by_track(self._track)
+        song.reuse(self._system)
 
     def section_changed(self, track, system):
         self._track = track

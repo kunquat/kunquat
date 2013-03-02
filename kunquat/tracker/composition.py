@@ -352,19 +352,24 @@ class Composition():
         manifest = {}
         self._view.put(manifest_path, manifest)
 
-    def _init_pattern(self, pattern_id):
-        instance = 0
+    def _init_instance(self, pattern_instance):
+        (pattern, instance) = pattern_instance
+        pattern_id = 'pat_%03d' % pattern
         instance_folder = 'instance_%03d' % instance
         instance_path = '%s/%s' % (pattern_id, instance_folder)
-        self._create_manifest(pattern_id)
         self._create_manifest(instance_path)
+
+    def _init_pattern(self, pattern_id):
+        self._create_manifest(pattern_id)
+        instance = 0
         pattern = int(pattern_id.split('_')[1])
         pattern_instance = (pattern, instance)
+        self._init_instance(pattern_instance)
         return pattern_instance
 
     def new_pattern(self):
         existing = self.pattern_ids()
-        pattern_ids = ('pat_%03d' % i for i in xrange(999))
+        pattern_ids = ('pat_%03d' % i for i in xrange(1000))
         for pattern_id in pattern_ids:
             if pattern_id not in existing:
                 pattern_instance = self._init_pattern(pattern_id)
