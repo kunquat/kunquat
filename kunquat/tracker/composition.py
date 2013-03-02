@@ -299,6 +299,14 @@ class Composition():
     def get_tracks(self):
         return self._tracks
 
+    def get_pattern_instances(self):
+        pattern_instances = []
+        for track in self.get_tracks():
+            song = self.get_song_by_track(track)
+            order_list = song.get_order_list()
+            pattern_instances += order_list
+        return pattern_instances
+
     def set_tracks(self, tracks):
         self._view.put('album/p_tracks.json', tracks)
 

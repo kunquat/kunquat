@@ -17,13 +17,11 @@ class Pattern_instance():
     def get_ref(self):
         return (self.pattern, self.instance)
 
-    def get_name(self, song = None):
+    def get_name(self, song):
         ambiguous_name = u'pattern {0}'.format(self.pattern)
         fullname = ambiguous_name + self.subscript(self.instance)
-        if song == None:
-            return fullname
-        order_list = song.get_order_list()
-        if len([p for (p, _) in order_list if p == self.pattern]) > 1:
+        pattern_instances = self._composition.get_pattern_instances()
+        if len([p for (p, _) in pattern_instances if p == self.pattern]) > 1:
             return fullname
         return ambiguous_name
 
