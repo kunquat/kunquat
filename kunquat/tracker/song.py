@@ -40,7 +40,7 @@ class Song():
         del self._view['p_manifest.json']
 
     def _add_pattern(self, pattern_instance, target):
-        ol = self.get_order_list() + [pattern_instance]
+        ol = (self.get_order_list() or []) + [pattern_instance]
         system_number = len(ol) - 1
         systems = tools.list_move(ol, system_number, target)
         self.set_order_list(systems)

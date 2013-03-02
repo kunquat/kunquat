@@ -49,6 +49,7 @@ class SubsongParams(QtGui.QGroupBox):
         self._button_delete_song.clicked.connect(self.delete_current)
         self._layout.addWidget(self._button_delete_song)
         self._button_new_song = QtGui.QPushButton('new song')
+        self._button_new_song.clicked.connect(self.new_after_current)
         self._layout.addWidget(self._button_new_song)
 
 
@@ -59,6 +60,9 @@ class SubsongParams(QtGui.QGroupBox):
 
     def delete_current(self):
         self._project._composition.delete_track(self._subsong)
+
+    def new_after_current(self):
+        self._project._composition.new_track(self._subsong)
 
     def subsong_changed(self, subsong):
         self._subsong = subsong

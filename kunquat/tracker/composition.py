@@ -261,7 +261,7 @@ class Composition():
         return foo
 
     def song_ids(self):
-        folders = [f.split('/')[0] for f in self._store.keys()]
+        folders = [f.split('/')[0] for f in self._store.keys() if len(f.split('/')) > 1 and f.split('/')[1] == 'p_manifest.json']
         foo =  set([f for f in folders if f.startswith('subs')])
         return foo
 
@@ -335,6 +335,26 @@ class Composition():
         song_number = self._tracks[track]
         song = self.get_song('song_%02d' % song_number)
         return song
+
+    def create_next_song(self):
+        existing = self.song_ids()
+        song_ids = ('song_%02d' % i for i in xrange(100))
+        for song_id in song_ids:
+            if song_id not in existing:
+                self._create_manifest(song_id)
+                song = self.get_song(song_id)
+                song.new_pattern(0)
+                return song_id
+        raise Exception
+
+    def new_track(self, current):
+        target = current + 1
+        song_id = self.create_next_song()
+        new_song = int(song_id.split('_')[1])
+        new_tracks = self._tracks + [new_song]
+        track_number = len(new_tracks) - 1
+        tracks = tools.list_move(new_tracks, track_number, target)
+        self.set_tracks(tracks)
 
     def move_track(self, track_number, target):
         print('move track %s to %s' % (track_number, target))
