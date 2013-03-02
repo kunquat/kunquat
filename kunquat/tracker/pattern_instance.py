@@ -17,7 +17,7 @@ class Pattern_instance():
     def get_ref(self):
         return (self.pattern, self.instance)
 
-    def get_name(self, song):
+    def get_name(self):
         ambiguous_name = u'pattern {0}'.format(self.pattern)
         fullname = ambiguous_name + self.subscript(self.instance)
         pattern_instances = self._composition.get_pattern_instances()

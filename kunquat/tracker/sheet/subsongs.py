@@ -211,8 +211,7 @@ class OrderList(QtCore.QAbstractItemModel):
         if role == QtCore.Qt.DisplayRole:
             pino = index.internalPointer()
             parent = pino.parent
-            song = parent.song
-            return pino.pattern_instance.get_name(song)
+            return pino.pattern_instance.get_name()
 
     def data(self, index, role):
         node = index.internalPointer()

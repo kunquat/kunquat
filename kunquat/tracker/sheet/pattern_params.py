@@ -61,7 +61,7 @@ class PatternParams(QtGui.QGroupBox):
         if pattern_num != None:
             song = self._project._composition.get_song_by_track(track)
             pattern_instance = song.get_pattern_instance(system)
-            pattern_instance_name = pattern_instance.get_name(song)
+            pattern_instance_name = pattern_instance.get_name()
             self._title.setText(pattern_instance_name)
             key = 'pat_{0:03d}/p_pattern.json'.format(pattern_num[0])
             self._length.set_key(key)
