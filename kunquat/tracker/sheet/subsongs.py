@@ -108,7 +108,10 @@ class Subsongs(QtGui.QWidget):
             self._model.setSongDrag(True)
 
     def update_model(self):
-        self._model.update()
+        # this is expected to be lighter,
+        # but does not work at the moment
+        #self._model.update()
+        self.update()
 
     def update(self):
         project = self.p.project
