@@ -256,7 +256,7 @@ class Composition():
         #self._history.show_latest_branch()
 
     def pattern_ids(self):
-        folders = [f.split('/')[0] for f in self._store.keys()]
+        folders = [f.split('/')[0] for f in self._store.keys() if len(f.split('/')) > 1 and f.split('/')[1] == 'p_manifest.json']
         foo =  set([f for f in folders if f.startswith('pat')])
         return foo
 
@@ -345,6 +345,31 @@ class Composition():
         (track, system) = global_system
         song = self.get_song_by_track(track)
         song.delete_system(system)
+
+    def _create_manifest(self, path):
+        manifest_name = 'p_manifest.json'
+        manifest_path = '%s/%s' % (path, manifest_name)
+        manifest = {}
+        self._view.put(manifest_path, manifest)
+
+    def _init_pattern(self, pattern_id):
+        instance = 0
+        instance_folder = 'instance_%03d' % instance
+        instance_path = '%s/%s' % (pattern_id, instance_folder)
+        self._create_manifest(pattern_id)
+        self._create_manifest(instance_path)
+        pattern = int(pattern_id.split('_')[1])
+        pattern_instance = (pattern, instance)
+        return pattern_instance
+
+    def new_pattern(self):
+        existing = self.pattern_ids()
+        pattern_ids = ('pat_%03d' % i for i in xrange(999))
+        for pattern_id in pattern_ids:
+            if pattern_id not in existing:
+                pattern_instance = self._init_pattern(pattern_id)
+                return pattern_instance
+        raise Exception
 
     def move_system(self, global_system, global_target):
         print('move system %s to %s' % (global_system, global_target))
