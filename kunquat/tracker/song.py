@@ -29,6 +29,13 @@ class Song():
     def set_order_list(self, order_list):
         self._view.put('p_order_list.json', order_list)
 
+    def delete_system(self, system_number):
+        ol = self.get_order_list()
+        pattern_instance = self.get_pattern_instance(system_number)
+        pattern_instance.delete()
+        del ol[system_number]
+        self.set_order_list(ol)
+
     def move_system(self, system_number, target):
         ol = self.get_order_list()
         systems = tools.list_move(ol, system_number, target)

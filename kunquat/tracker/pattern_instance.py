@@ -6,6 +6,8 @@ class Pattern_instance():
         pattern, instance = pattern_instance_ref
         self.pattern = pattern
         self.instance = instance
+        path = 'pat_%03d/instance_%03d' % (pattern, instance)
+        self._view = composition.get_view(path)
 
     def subscript(self, number):
         nums = [int(i) for i in str(number)]
@@ -25,4 +27,5 @@ class Pattern_instance():
             return fullname
         return ambiguous_name
 
-    
+    def delete(self):
+        del self._view['p_manifest.json']

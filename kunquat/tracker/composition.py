@@ -326,6 +326,11 @@ class Composition():
         tracks = tools.list_move(self._tracks, track_number, target)
         self.set_tracks(tracks)
 
+    def delete_from_system(self, global_system):
+        (track, system) = global_system
+        song = self.get_song_by_track(track)
+        song.delete_system(system)
+
     def move_system(self, global_system, global_target):
         print('move system %s to %s' % (global_system, global_target))
         (source_track, source_row) = global_system

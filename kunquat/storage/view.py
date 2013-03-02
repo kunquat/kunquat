@@ -19,6 +19,9 @@ class View():
     def __setitem__(self, key, value):
         self.put(key, value)
 
+    def __delitem__(self, key):
+        self.delete(key)
+
     def _path(self, key):
         pparts = [i for i in self.prefix.split('/') if i != '']
         kparts = [i for i in         key.split('/') if i != '']
