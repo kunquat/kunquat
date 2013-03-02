@@ -46,6 +46,7 @@ class SubsongParams(QtGui.QGroupBox):
                                           unit='dB')
         self._layout.addWidget(self._global_volume)
         self._button_delete_song = QtGui.QPushButton('delete song')
+        self._button_delete_song.clicked.connect(self.delete_current)
         self._layout.addWidget(self._button_delete_song)
         self._button_new_song = QtGui.QPushButton('new song')
         self._layout.addWidget(self._button_new_song)
@@ -55,6 +56,9 @@ class SubsongParams(QtGui.QGroupBox):
     def init(self):
         self._tempo.init()
         self._global_volume.init()
+
+    def delete_current(self):
+        self._project._composition.delete_track(self._subsong)
 
     def subsong_changed(self, subsong):
         self._subsong = subsong

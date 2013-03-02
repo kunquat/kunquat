@@ -36,6 +36,9 @@ class Song():
         del ol[system_number]
         self.set_order_list(ol)
 
+    def delete(self):
+        del self._view['p_manifest.json']
+
     def move_system(self, system_number, target):
         ol = self.get_order_list()
         systems = tools.list_move(ol, system_number, target)

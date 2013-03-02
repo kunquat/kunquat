@@ -300,16 +300,24 @@ class Composition():
         return self._tracks
 
     def set_tracks(self, tracks):
-        self._view.put('p_tracks.json', tracks)
+        self._view.put('album/p_tracks.json', tracks)
 
     def update_tracks(self, tracks_json):
         import json
+        print 1000 * '-'
         self._tracks = json.loads(tracks_json)
         try:
             songlist_model = self.p._sheet._subsongs.model
         except:
             return
         songlist_model.update()
+
+    def delete_track(self, track):
+        song = self.get_song_by_track(track)
+        song.delete()
+        tracks = self.get_tracks()
+        del tracks[track]
+        self.set_tracks(tracks)
 
     def get_track_by_song(self, song):
         song_ref = song.get_ref()
