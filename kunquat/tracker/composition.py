@@ -344,6 +344,7 @@ class Composition():
                 self._create_manifest(song_id)
                 song = self.get_song(song_id)
                 song.new_pattern(0)
+                song.set_name('song %d' % (len(existing) + 1))
                 return song_id
         raise Exception
 

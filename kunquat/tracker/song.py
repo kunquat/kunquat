@@ -17,6 +17,9 @@ class Song():
         name = self._view.get_json('m_name.json') or '-'
         return name
 
+    def set_name(self, name):
+        self._view.put('m_name.json', unicode(name))
+
     def get_pattern_instance(self, system):
         order_list = self.get_order_list()
         pattern_instance_ref = order_list[system]
