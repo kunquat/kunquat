@@ -262,17 +262,12 @@ class Composition():
 
     def song_ids(self):
         folders = [f.split('/')[0] for f in self._store.keys() if len(f.split('/')) > 1 and f.split('/')[1] == 'p_manifest.json']
-        foo =  set([f for f in folders if f.startswith('subs')])
+        foo =  set([f for f in folders if f.startswith('song')])
         return foo
 
     def instrument_ids(self):
         folders = [f.split('/')[0] for f in self._store.keys()]
         foo =  set([f for f in folders if f.startswith('ins')])
-        return foo
-
-    def song_ids(self):
-        folders = [f.split('/')[0] for f in self._store.keys()]
-        foo =  set([f for f in folders if f.startswith('song')])
         return foo
 
     def get_song(self, song_id):
@@ -301,8 +296,9 @@ class Composition():
 
     def get_pattern_instances(self):
         pattern_instances = []
-        for track in self.get_tracks():
-            song = self.get_song_by_track(track)
+        for song_num in self.get_tracks():
+            song_id = 'song_{0:02x}'.format(song_num)
+            song = self.get_song(song_id)
             order_list = song.get_order_list()
             pattern_instances += order_list
         return pattern_instances
