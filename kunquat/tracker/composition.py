@@ -304,6 +304,7 @@ class Composition():
         return pattern_instances
 
     def set_tracks(self, tracks):
+        assert(len(tracks) > 0)
         self._view.put('album/p_tracks.json', tracks)
 
     def update_tracks(self, tracks_json):
