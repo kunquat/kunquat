@@ -34,8 +34,10 @@ class Song():
         self._view.put('p_order_list.json', order_list)
 
     def delete_system(self, system_number):
-        ol = self.get_order_list()
         pattern_instance = self.get_pattern_instance(system_number)
+        ol = self.get_order_list()
+        if len(ol) < 2:
+            raise Exception('something attempted to delete the last pattern of a song')
         pattern_instance.delete()
         del ol[system_number]
         self.set_order_list(ol)

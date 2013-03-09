@@ -318,8 +318,10 @@ class Composition():
 
     def delete_track(self, track):
         song = self.get_song_by_track(track)
-        song.delete()
         tracks = self.get_tracks()
+        if len(tracks) < 2:
+            raise Exception('something attempted to delete the last track')
+        song.delete()
         del tracks[track]
         self.set_tracks(tracks)
 
