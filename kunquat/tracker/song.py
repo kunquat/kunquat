@@ -34,6 +34,7 @@ class Song():
 
     def delete_system(self, system_number):
         ol = self.get_order_list()
+        assert(len(ol) > 1) # last item should never be deleted
         pattern_instance = self.get_pattern_instance(system_number)
         pattern_instance.delete()
         del ol[system_number]
