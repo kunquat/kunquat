@@ -15,33 +15,36 @@
 import Queue
 import threading
 
-from backend.backend import Backend
 from command import Command
+from drivers.pulseaudio import Pulseaudio
 
 
-class BackendThread(threading.Thread):
+class AudioThread(threading.Thread):
 
     def __init__(self):
         threading.Thread.__init__(self)
+        self._cp = None
         self._q = Queue.Queue()
-        self._backend = Backend()
+        self._driver = Pulseaudio()
 
-    def set_audio_processor(self, ap):
-        self._backend.set_audio_processor(ap)
+    def set_command_processor(self, cp):
+        self._cp = cp
 
-    def set_event_processor(self, ep):
-        self._backend.set_event_processor(ep)
-
-    def queue_command(self, cmd):
+    def process_audio(self, cmd):
         self._q.put(cmd)
 
     def halt(self):
-        self.queue_command(Command('halt', None))
+        self.process_audio(Command('halt', None))
+
+    def _get_audio(self, nframes):
+        self._cp(Command('generate', nframes))
+        cmd = self._q.get()
+        if cmd.name == 'halt':
+            return None
+        return cmd.arg
 
     def run(self):
-        cmd = self._q.get()
-        while cmd.name != 'halt':
-            self._backend.process_command(cmd)
-            cmd = self._q.get()
+        self._driver.set_audio_generator(self._get_audio)
+        self._driver.start()
 
 

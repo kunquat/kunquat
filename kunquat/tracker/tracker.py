@@ -14,17 +14,22 @@
 
 import time
 
+from audiothread import AudioThread
 from backendthread import BackendThread
 from frontendthread import FrontendThread
 
 
 def main():
+    at = AudioThread()
     bt = BackendThread()
     ft = FrontendThread()
 
+    at.set_command_processor(bt.queue_command)
     bt.set_event_processor(ft.queue_event)
+    bt.set_audio_processor(at.process_audio)
     ft.set_command_processor(bt.queue_command)
 
+    at.start()
     bt.start()
     ft.start()
 
@@ -37,7 +42,9 @@ def main():
 
     ft.halt()
     bt.halt()
+    at.halt()
     ft.join()
     bt.join()
+    at.join()
 
 

@@ -12,16 +12,36 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from itertools import islice
+import math
+
+from kunquat.tracker.command import Command
+
+
+def gen_sine(rate):
+    phase = 0
+    while True:
+        phase += 440 * 2 * math.pi / rate
+        phase %= 2 * math.pi
+        yield math.sin(phase)
+
+
 class Backend():
 
     def __init__(self):
+        self._ap = None
         self._ep = None
 
+        self._sine = gen_sine(48000)
+
     def process_command(self, cmd):
-        pass
+        if cmd.name == 'generate':
+            data_mono = list(islice(self._sine, cmd.arg))
+            data = (data_mono, data_mono)
+            self._ap(Command('audio', data))
 
     def set_audio_processor(self, ap):
-        pass
+        self._ap = ap
 
     def set_event_processor(self, ep):
         """storage, environment and tracker events"""
