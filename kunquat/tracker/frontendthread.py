@@ -13,38 +13,11 @@
 #
 
 import Queue
-import sys
 import threading
-
-from PyQt4.QtCore import SIGNAL
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
 
 from command import Command
 from frontend.frontend import Frontend
-
-
-class TestWindow(QMainWindow):
-
-    def __init__(self):
-        QMainWindow.__init__(self)
-
-        self._process_queue_timer = QTimer(self)
-        self._qp = None
-
-    def set_queue_processor(self, qp):
-        self._qp = qp
-        QObject.connect(
-                self._process_queue_timer,
-                SIGNAL('timeout()'),
-                self._qp_proc)
-        self._process_queue_timer.start(20)
-
-    def _qp_proc(self):
-        self._qp()
-
-    def __del__(self):
-        self._process_queue_timer.stop()
+from qt.ui import Ui
 
 
 class FrontendThread(threading.Thread):
@@ -53,6 +26,7 @@ class FrontendThread(threading.Thread):
         threading.Thread.__init__(self)
         self._q = Queue.Queue()
         self._frontend = Frontend()
+        self._ui = None
 
     def set_command_processor(self, cp):
         self._frontend.set_command_processor(cp)
@@ -63,25 +37,22 @@ class FrontendThread(threading.Thread):
     def halt(self):
         self.queue_event(Command('halt', None))
 
-    def process_queue(self):
+    def _process_queue(self):
         count_estimate = self._q.qsize()
         for _ in range(count_estimate):
             try:
                 event = self._q.get_nowait()
-                self._frontend.process_event(event)
+                if event.name == 'halt':
+                    self._ui.halt()
+                else:
+                    self._frontend.process_event(event)
             except Queue.Empty:
                 break
 
     def run(self):
-        app = QApplication(sys.argv)
-        tracker = TestWindow()
-        tracker.set_queue_processor(self.process_queue)
-        tracker.show()
-        app.exec_()
-
-        """
-        while event.name != 'halt':
-            self.process_queue()
-        """
+        self._ui = Ui()
+        self._ui.set_frontend(self._frontend)
+        self._ui.set_queue_processor(self._process_queue)
+        self._ui.run()
 
 
