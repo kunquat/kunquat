@@ -29,7 +29,7 @@ def main():
     ft.start()
 
     try:
-        while True:
+        while ft.is_alive():
             print('main')
             time.sleep(1)
     except:

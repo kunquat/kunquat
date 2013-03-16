@@ -13,10 +13,38 @@
 #
 
 import Queue
+import sys
 import threading
+
+from PyQt4.QtCore import SIGNAL
+from PyQt4.QtCore import *
+from PyQt4.QtGui import *
 
 from command import Command
 from frontend.frontend import Frontend
+
+
+class TestWindow(QMainWindow):
+
+    def __init__(self):
+        QMainWindow.__init__(self)
+
+        self._process_queue_timer = QTimer(self)
+        self._qp = None
+
+    def set_queue_processor(self, qp):
+        self._qp = qp
+        QObject.connect(
+                self._process_queue_timer,
+                SIGNAL('timeout()'),
+                self._qp_proc)
+        self._process_queue_timer.start(20)
+
+    def _qp_proc(self):
+        self._qp()
+
+    def __del__(self):
+        self._process_queue_timer.stop()
 
 
 class FrontendThread(threading.Thread):
@@ -35,10 +63,25 @@ class FrontendThread(threading.Thread):
     def halt(self):
         self.queue_event(Command('halt', None))
 
+    def process_queue(self):
+        count_estimate = self._q.qsize()
+        for _ in range(count_estimate):
+            try:
+                event = self._q.get_nowait()
+                self._frontend.process_event(event)
+            except Queue.Empty:
+                break
+
     def run(self):
-        event = self._q.get()
+        app = QApplication(sys.argv)
+        tracker = TestWindow()
+        tracker.set_queue_processor(self.process_queue)
+        tracker.show()
+        app.exec_()
+
+        """
         while event.name != 'halt':
-            self._frontend.process_event(event)
-            event = self._q.get()
+            self.process_queue()
+        """
 
 
