@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2013
  *
  * This file is part of Kunquat.
  *
@@ -16,29 +16,31 @@
 #define K_PATTERN_LOCATION_H
 
 
+#include <Pat_inst_ref.h>
+
+
 typedef struct Pattern_location
 {
-    int subsong;
-    int section;
+    int song;
+    Pat_inst_ref piref;
 } Pattern_location;
 
 
-#define PATTERN_LOCATION_AUTO (&(Pattern_location){ .subsong = 0, \
-                                                    .section = 0 })
+#define PATTERN_LOCATION_AUTO \
+    (&(Pattern_location){ .song = 0, .piref = *PAT_INST_REF_AUTO })
 
 
 /**
  * Creates a new Pattern location.
  *
- * \param subsong   The subsong number -- must be >= \c 0 and
- *                  < \c KQT_SONGS_MAX.
- * \param section   The section number -- must be >= \c 0 and
- *                  < \c KQT_SECTIONS_MAX.
+ * \param song    The subsong number -- must be >= \c 0 and
+ *                < \c KQT_SONGS_MAX.
+ * \param piref   The Pattern instance reference -- must be valid.
  *
  * \return   The new Pattern location if successful, or \c NULL if memory
  *           allocation failed.
  */
-Pattern_location* new_Pattern_location(int subsong, int section);
+Pattern_location* new_Pattern_location(int song, Pat_inst_ref* piref);
 
 
 /**

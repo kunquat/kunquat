@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2010-2012
+# Author: Tomi Jylhä-Ollila, Finland 2010-2013
 #
 # This file is part of Kunquat.
 #
@@ -38,34 +38,6 @@ class PatternEditor(QtGui.QWidget):
         layout.setMargin(0)
         layout.setSpacing(0)
 
-        top_control = QtGui.QWidget()
-        top_layout = QtGui.QHBoxLayout(top_control)
-
-        name = QtGui.QLabel('[pattern num/name]')
-
-        autoinst = QtGui.QCheckBox('Autoinst')
-        autoinst.setChecked(True)
-
-        grid = QtGui.QCheckBox('Grid')
-        grid.setChecked(True)
-
-        snap_to_grid = QtGui.QCheckBox('Snap')
-        snap_to_grid.setChecked(True)
-
-        self._length = TimestampSpin(project,
-                                     'Length:',
-                                     (ts.Timestamp(0), ts.Timestamp(1024, 0)),
-                                     ts.Timestamp(16),
-                                     'pat_000/p_pattern.json',
-                                     'length',
-                                     2)
-
-        top_layout.addWidget(name, 1)
-        top_layout.addWidget(autoinst, 0)
-        top_layout.addWidget(grid, 0)
-        top_layout.addWidget(snap_to_grid, 0)
-        top_layout.addWidget(self._length, 0)
-
         self._pattern = Pattern(project,
                                 section_manager,
                                 playback_manager,
@@ -73,37 +45,21 @@ class PatternEditor(QtGui.QWidget):
                                 octave_spin,
                                 instrument_spin,
                                 typewriter)
-        layout.addWidget(top_control, 0)
         layout.addWidget(self._pattern, 1)
 
         QtCore.QObject.connect(self._pattern,
-                               QtCore.SIGNAL('patternChanged(int)'),
+                               QtCore.SIGNAL('patternChanged(int, int)'),
                                pattern_changed_slot)
-        QtCore.QObject.connect(autoinst,
-                               QtCore.SIGNAL('stateChanged(int)'),
-                               self._pattern.autoinst_changed)
-        QtCore.QObject.connect(grid,
-                               QtCore.SIGNAL('stateChanged(int)'),
-                               self._pattern.grid_changed)
-        QtCore.QObject.connect(snap_to_grid,
-                               QtCore.SIGNAL('stateChanged(int)'),
-                               self._pattern.snap_to_grid_changed)
 
     def init(self):
         self._pattern.init()
-        self._length.init()
-        QtCore.QObject.connect(self._length,
-                               QtCore.SIGNAL('tsChanged(int, int)'),
-                               self._pattern.length_changed)
 
-    def section_changed(self, subsong, section):
-        pattern = self._project._composition.get_pattern(subsong, section)
+    def section_changed(self, song, system):
+        pattern = self._project._composition.get_pattern(song, system)
         if pattern != None:
-            key = 'pat_{0:03d}/p_pattern.json'.format(pattern)
-            self._length.set_key(key)
+            key = 'pat_{0:03d}/p_pattern.json'.format(pattern[0])
 
     def sync(self):
-        self._length.sync()
         self._pattern.sync()
 
 

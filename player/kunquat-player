@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2010-2012
+# Authors: Tomi Jylhä-Ollila, Finland 2010-2013
 #          Toni Ruottu, Finland 2010
 #
 # This file is part of Kunquat.
@@ -62,9 +62,9 @@ def print_interactive_help():
             '  Space        Pause/resume playback.',
             '  Left         Seek backwards 10 seconds.',
             '  Right        Seek forwards 10 seconds.',
-            '  [0-9], `a`   Select song (`a` plays all songs).',
-            '  `p`          Select previous song.',
-            '  `n`          Select next song.',
+            '  [0-9], `a`   Select track (`a` plays all tracks).',
+            '  `p`          Select previous track.',
+            '  `n`          Select next track.',
             '  Backspace    Select previous file.',
             '  Return       Select next file.',
             '  `q`          Quit.']
@@ -117,18 +117,19 @@ def load_kqt(path, rate):
             handle.set_data(key, value)
 
             last_elem = key.split('/')[-1]
-            if last_elem.startswith('m_') or key.startswith('song'):
+            if last_elem.startswith('m_') or key == 'album/p_tracks.json':
                 meta[key] = value
 
     tfile.close()
+    handle.validate()
     return handle, meta
 
 
-def song_exists(keys, num):
-    ss_key = 'song_{:02x}/p_song.json'.format(int(num))
-    if ss_key in keys:
-        ss = keys[ss_key]
-        return 'patterns' in ss and ss['patterns']
+def track_exists(keys, num):
+    tl_key = 'album/p_tracks.json'
+    if tl_key in keys:
+        tl = keys[tl_key]
+        return num < len(tl)
     return False
 
 
@@ -143,13 +144,16 @@ def play(options, file_name, pa_handle, key_handler, list_pos):
         return KeyHandler.RETURN
     try:
         handle, meta = load_kqt(file_name, options['rate'])
+    except IOError as e:
+        print('Couldn\'t open \'{0}\': {1}'.format(file_name, e), end='')
+        return KeyHandler.RETURN
     except kunquat.KunquatError as e:
         print('Couldn\'t load \'{0}\': {1}'.format(file_name, e), end='')
         return KeyHandler.RETURN
     handle.buffer_size = options['buffer-size']
-    handle.song = options['song']
+    handle.track = options['track']
     status = Status(options['rate'])
-    duration = handle.get_duration(options['song'])
+    duration = handle.get_duration(options['track'])
     if not options['quiet']:
         print('Playing', file_name)
         print_meta(meta)
@@ -220,27 +224,26 @@ def play(options, file_name, pa_handle, key_handler, list_pos):
                 elif key == KeyHandler.RIGHT:
                     handle.nanoseconds = handle.nanoseconds + 10000000000
                 elif key == 'a':
-                    handle.song = None
-                    duration = handle.get_duration(handle.song)
+                    handle.track = None
+                    duration = handle.get_duration(handle.track)
                 elif key in string.digits:
-                    if song_exists(meta, int(key)):
-                        handle.song = int(key)
-                        duration = handle.get_duration(handle.song)
+                    if track_exists(meta, int(key)):
+                        handle.track = int(key)
+                        duration = handle.get_duration(handle.track)
                 elif key == 'p':
-                    if handle.song == 0:
-                        handle.song = None
-                        duration = handle.get_duration(handle.song)
-                    elif handle.song:
-                        handle.song = handle.song - 1
-                        duration = handle.get_duration(handle.song)
+                    if handle.track == 0:
+                        handle.track = None
+                        duration = handle.get_duration(handle.track)
+                    elif handle.track:
+                        handle.track = handle.track - 1
+                        duration = handle.get_duration(handle.track)
                 elif key == 'n':
-                    if handle.song is None:
-                        handle.song = 0
-                        duration = handle.get_duration(handle.song)
-                    elif (song_exists(meta, handle.song + 1) and
-                            handle.song < 255):
-                        handle.song = handle.song + 1
-                        duration = handle.get_duration(handle.song)
+                    if handle.track is None:
+                        handle.track = 0
+                        duration = handle.get_duration(handle.track)
+                    elif track_exists(meta, handle.track + 1):
+                        handle.track = handle.track + 1
+                        duration = handle.get_duration(handle.track)
                 """
                 elif key == '§':
                     #handle.fire(63, '["c.i", [1]]')
@@ -298,7 +301,7 @@ def print_help():
           '                    Valid range is [64,262144]')
     print('  -r, --rate n      Set audio rate to n frames/second\n'
           '                    Valid range is [2000,192000]')
-    print('  -s, --song n      Play song n\n'
+    print('  -t, --track n     Play track n\n'
           '                    Valid values are'
           ' numbers in the range [0,255] and `all`')
     print('  -h, --help        Show this help and exit')
@@ -322,11 +325,11 @@ def main():
             'quiet',
             'buffer-size=',
             'rate=',
-            'song=',
+            'track=',
             'version',
             ]
     try:
-        opts, paths = getopt.getopt(sys.argv[1:], ':hqr:s:', long_opts)
+        opts, paths = getopt.getopt(sys.argv[1:], ':hqr:t:', long_opts)
     except getopt.GetoptError as e:
         print(e.msg, e.opt)
         option_error(e)
@@ -334,14 +337,14 @@ def main():
     options = {
             'buffer-size': 2048,
             'rate': 48000,
-            'song': None,
+            'track': None,
             'quiet': False
             }
 
     setters = {
             '--buffer-size': set_buffer_size,
             '-r': set_rate, '--rate': set_rate,
-            '-s': set_song, '--song': set_song,
+            '-t': set_track, '--track': set_track,
             '-q': set_quiet, '--quiet': set_quiet,
             }
 
@@ -387,17 +390,17 @@ def set_rate(options, value):
                 ' between 2000 and 192000')
 
 
-def set_song(options, value):
+def set_track(options, value):
     if 'all'.startswith(value): # allow user to specify prefix
-        options['song'] = None
+        options['track'] = None
     else:
         try:
             num = int(value)
             if not 0 <= num < 256:
                 raise ValueError
-            options['song'] = num
+            options['track'] = num
         except ValueError:
-            option_error('Song must be a number between 0 and'
+            option_error('Track must be a number between 0 and'
                     ' 255 (or all)')
 
 
@@ -501,10 +504,10 @@ class Status(object):
 
     def get_status_line(self, handle, duration, bufs, mix_load, voice_count):
         components = []
-        if handle.song is None:
-            components.append('All songs')
+        if handle.track is None:
+            components.append('All tracks')
         else:
-            components.append('Song: {0}'.format(handle.song))
+            components.append('Track: {0}'.format(handle.track))
         elapsed = 'Time: {0}'.format(self.dur_to_str(handle.nanoseconds))
         if handle.nanoseconds <= duration:
             if duration == 2592000000000000:

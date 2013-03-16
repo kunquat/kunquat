@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2013
  *
  * This file is part of Kunquat.
  *
@@ -22,6 +22,7 @@
 #include <File_base.h>
 #include <kunquat/limits.h>
 #include <Param_validator.h>
+#include <Pat_inst_ref.h>
 #include <xassert.h>
 
 
@@ -291,6 +292,18 @@ bool v_pattern(char* param)
 }
 
 
+bool v_piref(char* param)
+{
+    assert(param != NULL);
+    begin();
+    Pat_inst_ref* piref = PAT_INST_REF_AUTO;
+    piref->pat = -1;
+    param = read_pat_inst_ref(param, piref, state);
+    end();
+    return !state->error;
+}
+
+
 bool v_pitch(char* param)
 {
     assert(param != NULL);
@@ -320,14 +333,14 @@ bool v_scale(char* param)
 }
 
 
-bool v_section(char* param)
+bool v_system(char* param)
 {
     assert(param != NULL);
     begin();
-    int64_t section = -2;
-    param = read_int(param, &section, state);
+    int64_t system = -2;
+    param = read_int(param, &system, state);
     end();
-    return !state->error && section >= -1 && section < KQT_SECTIONS_MAX;
+    return !state->error && system >= -1;
 }
 
 
@@ -361,6 +374,17 @@ bool v_tempo(char* param)
     param = read_double(param, &tempo, state);
     end();
     return !state->error && tempo >= 1 && tempo <= 999;
+}
+
+
+bool v_track(char* param)
+{
+    assert(param != NULL);
+    begin();
+    int64_t track = -2;
+    param = read_int(param, &track, state);
+    end();
+    return !state->error && track >= -1 && track < KQT_TRACKS_MAX;
 }
 
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2013
  *
  * This file is part of Kunquat.
  *
@@ -67,6 +67,7 @@ static int Handle_m_set_data(kqt_Handle* handle,
     {
         return 0;
     }
+    handle->data_is_validated = false;
     return 1;
 }
 

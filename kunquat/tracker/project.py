@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2010-2012
+# Authors: Tomi Jylhä-Ollila, Finland 2010-2013
 #          Toni Ruottu,       Finland 2012
 #
 # This file is part of Kunquat.
@@ -81,7 +81,10 @@ class Project(QtCore.QObject):
 
         self._changed = False
         self.status_view = None
-        self._callbacks = defaultdict(list)
+        self._callbacks = {
+                'music': defaultdict(list),
+                'ui': defaultdict(list),
+            }
 
         projects = storage.Storage(root_path, prefix='kqtc00', create=True)
         store_callbacks = [self.from_store]
@@ -126,15 +129,17 @@ class Project(QtCore.QObject):
         self.set_raw('p_random_seed.json', value)
         QtCore.QObject.emit(self, QtCore.SIGNAL('sync()'))
 
-    def set_callback(self, event_name, func, *args):
+    def set_callback(self, cb_type, event_name, func, *args):
         """Set a callback function for an event type."""
-        self._callbacks[event_name].extend([(func, args)])
+        assert cb_type in ('music', 'ui')
+        self._callbacks[cb_type][event_name].extend([(func, args)])
 
-    def tfire(self, ch, event):
+    def process_event(self, cb_type, ch, event):
         """Mark an event fired."""
+        assert cb_type in ('music', 'ui')
         if event[0].endswith('"'):
             event[0] = event[0][:-1]
-        for func, args in self._callbacks[event[0]]:
+        for func, args in self._callbacks[cb_type][event[0]]:
             func(ch, event, *args)
 
     def set_raw(self, key, value):
@@ -188,18 +193,25 @@ class Project(QtCore.QObject):
     def _update_player(self, key):
         value = self._composition.get(key)
         self._handle.set_data(key, value)
+        self._handle.validate() # FIXME: temp, just to make things work for now
 
     # STORE EVENT INTERFACE
 
     def _store_init(self, store, **_):
         self._store = store
-        self._composition = Composition(store)
+        self._composition = Composition(store, self.p)
 
-    def _store_value_update(self, key, **_):
+    def _store_value_update(self, key, value, **_):
         self._update_player(key)
         self.p._toolbar.update_songs()
         self.p._toolbar.update_instruments()
         self.p._toolbar.update_scales()
+        if key == 'album/p_tracks.json':
+            self._composition.update_tracks(value)
+        if 'p_order_list.json' in key:
+            song_id, _ = key.split('/')
+            song = self._composition.get_song(song_id)
+            song.update_order_list(value)
         QtCore.QObject.emit(self, QtCore.SIGNAL('sync()'))
 
     def _store_import_start(self, prefix, path, key_names, **_):

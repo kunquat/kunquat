@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2010-2012
+# Authors: Tomi Jylhä-Ollila, Finland 2010-2013
 #          Toni Ruottu,       Finland 2012
 #
 # This file is part of Kunquat.
@@ -13,19 +13,24 @@
 #
 
 from instrument import Instrument
+from pattern_instance import Pattern_instance
+from song import Song
 from copy import deepcopy
 from itertools import izip, takewhile
 from history import History
 import kqt_limits as lim
 import re
+import tools
 
 class Composition():
 
-    def __init__(self, store):
+    def __init__(self, store, p):
         root = ''
         self._history = History(self)
         self._store = store
         self._view = store
+        self.p = p
+        self._tracks = []
 
     def get(self, key):
         suffix = key.split('.').pop()
@@ -34,7 +39,8 @@ class Composition():
             value = self._view.get_json(key)
         else:
             value = self._view.get(key)
-        return value if value else None
+            value = value if value else None
+        return value
 
     def __getitem__(self, key):
         return self.get(key)
@@ -80,25 +86,28 @@ class Composition():
     def __delitem__(self, key):
         self.delete(key)
 
-    def get_pattern(self, song, section):
-        """Get a pattern number based on song and section number."""
-        if song < 0 or song >= lim.SONGS_MAX:
-            raise IndexError, 'Invalid song number'
-        if section < 0 or section >= lim.SECTIONS_MAX:
-            raise IndexError, 'Invalid section number'
-        ss = self['song_{0:02x}/p_song.json'.format(song)]
-        if not ss or 'patterns' not in ss:
+    def get_pattern(self, track, system):
+        """Get a pattern number based on track and system number."""
+        if track < 0 or track >= lim.SONGS_MAX:
+            raise IndexError, 'Invalid track number'
+        if system < 0 or system >= lim.SECTIONS_MAX:
+            raise IndexError, 'Invalid system number'
+        song = self._tracks[track]
+        orderlist = self['song_{0:02x}/p_order_list.json'.format(song)]
+        if not orderlist:
             return None
-        patterns = ss['patterns']
-        if len(patterns) <= section:
+        if len(orderlist) <= system:
             return None
-        return patterns[section]
+        return orderlist[system]
 
     def get_effect(self, base_path, index):
         name = 'eff_{0:02x}'.format(index)
         base = self._view.get_view(base_path)
         effect = base.get_view(name)
         return effect
+
+    def get_pattern_instance(self, pattern_instance_ref):
+        return Pattern_instance(self, pattern_instance_ref)
 
     def get_instrument(self, slot):
         return Instrument(self, slot)
@@ -247,13 +256,13 @@ class Composition():
         #self._history.show_latest_branch()
 
     def pattern_ids(self):
-        folders = [f.split('/')[0] for f in self._store.keys()]
+        folders = [f.split('/')[0] for f in self._store.keys() if len(f.split('/')) > 1 and f.split('/')[1] == 'p_manifest.json']
         foo =  set([f for f in folders if f.startswith('pat')])
         return foo
 
     def song_ids(self):
-        folders = [f.split('/')[0] for f in self._store.keys()]
-        foo =  set([f for f in folders if f.startswith('subs')])
+        folders = [f.split('/')[0] for f in self._store.keys() if len(f.split('/')) > 1 and f.split('/')[1] == 'p_manifest.json']
+        foo =  set([f for f in folders if f.startswith('song')])
         return foo
 
     def instrument_ids(self):
@@ -261,5 +270,153 @@ class Composition():
         foo =  set([f for f in folders if f.startswith('ins')])
         return foo
 
+    def get_song(self, song_id):
+        return Song(self, self.p, song_id)
 
+    def left_over_patterns(self):
+        system_ids = self.pattern_ids()
+        systems = [int(i.split('_')[1]) for i in system_ids]
+        all_systems = set(systems)
+
+        in_use = set()
+        for song_id in self.song_ids():
+            song = self.get_song(song_id)
+            order_list = song.get_order_list()
+            in_use.update(order_list)
+
+        left_over = all_systems - in_use
+        left_over_ids = ['pat_{0:02x}'.format(i) for i in left_over]
+        return left_over_ids
+
+    def song_count(self):
+        return len(self._tracks)
+
+    def get_tracks(self):
+        return self._tracks
+
+    def get_pattern_instances(self):
+        pattern_instances = []
+        for song_num in self.get_tracks():
+            song_id = 'song_{0:02x}'.format(song_num)
+            song = self.get_song(song_id)
+            order_list = song.get_order_list()
+            pattern_instances += order_list
+        return pattern_instances
+
+    def set_tracks(self, tracks):
+        assert(len(tracks) > 0)
+        self._view.put('album/p_tracks.json', tracks)
+
+    def update_tracks(self, tracks_json):
+        import json
+        self._tracks = json.loads(tracks_json)
+        try:
+            songlist = self.p._sheet._subsongs
+        except:
+            return
+        songlist.update_model()
+
+    def delete_track(self, track):
+        song = self.get_song_by_track(track)
+        tracks = self.get_tracks()
+        if len(tracks) < 2:
+            raise Exception('something attempted to delete the last track')
+        song.delete()
+        del tracks[track]
+        self.set_tracks(tracks)
+
+    def get_track_by_song(self, song):
+        song_ref = song.get_ref()
+        track = self._tracks.index(song_ref)
+        return track
+
+    def get_song_by_track(self, track):
+        song_number = self._tracks[track]
+        song = self.get_song('song_%02d' % song_number)
+        return song
+
+    def create_next_song(self):
+        existing = self.song_ids()
+        song_ids = ('song_%02d' % i for i in xrange(100))
+        for song_id in song_ids:
+            if song_id not in existing:
+                self._create_manifest(song_id)
+                song = self.get_song(song_id)
+                song.new_pattern(0)
+                song.set_name('song %d' % (len(existing) + 1))
+                return song_id
+        raise Exception
+
+    def new_track(self, current):
+        target = current + 1
+        song_id = self.create_next_song()
+        new_song = int(song_id.split('_')[1])
+        new_tracks = self._tracks + [new_song]
+        track_number = len(new_tracks) - 1
+        tracks = tools.list_move(new_tracks, track_number, target)
+        self.set_tracks(tracks)
+
+    def move_track(self, track_number, target):
+        print('move track %s to %s' % (track_number, target))
+        tracks = tools.list_move(self._tracks, track_number, target)
+        self.set_tracks(tracks)
+
+    def delete_from_system(self, global_system):
+        (track, system) = global_system
+        song = self.get_song_by_track(track)
+        song.delete_system(system)
+
+    def _create_manifest(self, path):
+        manifest_name = 'p_manifest.json'
+        manifest_path = '%s/%s' % (path, manifest_name)
+        manifest = {}
+        self._view.put(manifest_path, manifest)
+
+    def _init_instance(self, pattern_instance):
+        (pattern, instance) = pattern_instance
+        pattern_id = 'pat_%03d' % pattern
+        instance_folder = 'instance_%03d' % instance
+        instance_path = '%s/%s' % (pattern_id, instance_folder)
+        self._create_manifest(instance_path)
+
+    def _init_pattern(self, pattern_id):
+        self._create_manifest(pattern_id)
+        instance = 0
+        pattern = int(pattern_id.split('_')[1])
+        pattern_instance = (pattern, instance)
+        self._init_instance(pattern_instance)
+        return pattern_instance
+
+    def new_pattern(self):
+        existing = self.pattern_ids()
+        pattern_ids = ('pat_%03d' % i for i in xrange(1000))
+        for pattern_id in pattern_ids:
+            if pattern_id not in existing:
+                pattern_instance = self._init_pattern(pattern_id)
+                return pattern_instance
+        raise Exception
+
+    def move_system(self, global_system, global_target):
+        print('move system %s to %s' % (global_system, global_target))
+        (source_track, source_row) = global_system
+        (target_track, target_place) = global_target
+        if source_track == target_track:
+            print('internal')
+            song = self.get_song_by_track(source_track)
+            song.move_system(source_row, target_place)
+        else:
+            print('from song %s to song %s' % (source_track, target_track))
+            source_song = self.get_song_by_track(source_track)
+            target_song = self.get_song_by_track(target_track)
+            source_systems = source_song.get_order_list()
+            target_systems = target_song.get_order_list()
+            new_source_systems = list(source_systems)
+            new_target_systems = list(target_systems)
+            item = new_source_systems.pop(source_row)
+            if item in target_systems:
+                self.p.error('ERROR: Only one copy of pattern instance per song')
+                return
+            new_target_systems.insert(target_place, item)
+            source_song.set_order_list(new_source_systems)
+            target_song.set_order_list(new_target_systems)
 

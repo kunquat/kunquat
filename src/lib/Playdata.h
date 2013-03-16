@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -27,8 +27,11 @@
 #include <Environment.h>
 #include <Event_names.h>
 #include <General_state.h>
+#include <Order_list.h>
+#include <Pat_inst_ref.h>
 #include <Random.h>
 #include <Slider.h>
+#include <Track_list.h>
 #include <Voice_pool.h>
 #include <Ins_table.h>
 #include <kunquat/limits.h>
@@ -58,6 +61,8 @@ typedef struct Playdata
     uint32_t freq;                    ///< Mixing frequency.
     uint32_t old_freq;                ///< Old mixing frequency (used to detect freq change).
     Subsong_table* subsongs;          ///< The Subsongs.
+    Track_list* track_list;           ///< The Track list.
+    Order_list** order_lists;         ///< The Order lists.
     Reltime play_time;                ///< The number of beats played since the start of playback.
     uint64_t play_frames;             ///< The number of frames mixed since the start of playback.
     Random* random;                   ///< Random source.
@@ -106,10 +111,10 @@ typedef struct Playdata
     int event_index;                  ///< Current event index.
     int delay_event_index;            ///< Position of the delay event.
 
-    uint16_t orig_subsong;            ///< Subsong at the start of playback.
-    uint16_t subsong;                 ///< Current subsong -- used when \a play == \c PLAY_SONG.
-    uint16_t section;                 ///< Current section -- used when \a play == \c PLAY_SONG.
-    int16_t pattern;                  ///< Current pattern.
+    uint16_t orig_track;              ///< Track at the start of playback.
+    uint16_t track;                   ///< Current track -- used when \a play == \c PLAY_SONG.
+    uint16_t system;                  ///< Current system -- used when \a play == \c PLAY_SONG.
+    Pat_inst_ref piref;               ///< Current pattern instance.
     Reltime pos;                      ///< Current position inside a pattern.
     Voice_pool* voice_pool;           ///< The Voice pool used.
     Column_iter* citer;               ///< Column iterator.
@@ -163,16 +168,16 @@ void Playdata_set_mix_freq(Playdata* play, uint32_t freq);
 
 
 /**
- * Sets the subsong in the Playdata.
+ * Sets the track in the Playdata.
  *
- * This should only be called when starting playback of a subsong, i.e. it
+ * This should only be called when starting playback of a track, i.e. it
  * should not be used by events that jump between subsongs.
  *
- * \param play      The Playdata -- must not be \c NULL.
- * \param subsong   The subsong number -- must be >= \c 0 and < \c KQT_SONGS_MAX.
- * \param reset     Reset the Voice pool.
+ * \param play    The Playdata -- must not be \c NULL.
+ * \param track   The subsong number -- must be >= \c 0 and < \c KQT_TRACKS_MAX.
+ * \param reset   Reset the Voice pool.
  */
-void Playdata_set_subsong(Playdata* play, int subsong, bool reset);
+void Playdata_set_track(Playdata* play, int track, bool reset);
 
 
 /**

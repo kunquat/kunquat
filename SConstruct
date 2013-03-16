@@ -1,7 +1,7 @@
 # coding=utf-8
 
 
-# Author: Tomi Jylhä-Ollila, Finland 2010-2012
+# Author: Tomi Jylhä-Ollila, Finland 2010-2013
 #
 # This file is part of Kunquat.
 #
@@ -40,9 +40,6 @@ opts.AddVariables(
     BoolVariable('enable_export', 'Enable kunquat-export (requires libsndfile).', False),
     BoolVariable('enable_examples', 'Build example Kunquat files.', True),
     BoolVariable('with_wavpack', 'Build WavPack support (recommended).', True),
-    BoolVariable('with_pulse', 'Build PulseAudio support.', True),
-    BoolVariable('with_jack', 'Build JACK support.', False),
-    BoolVariable('with_openal', 'Build OpenAL support.', False),
 )
 
 
@@ -183,41 +180,10 @@ if not env.GetOption('clean') and not env.GetOption('help'):
                   ' without Python bindings -- disabling kunquat-tracker.')
             env['enable_tracker'] = False
 
-    if env['with_pulse']:
-        if conf.CheckLibWithHeader('pulse-simple', 'pulse/simple.h', 'C'):
-            audio_found = True
-            conf.env.Append(CCFLAGS = '-DWITH_PULSE')
-        else:
-            print('Warning: PulseAudio support was requested'
-                  ' but PulseAudio was not found.')
-            env['with_pulse'] = False
-
-    if env['with_jack']:
-        if conf.CheckLibWithHeader('jack', 'jack/jack.h', 'C'):
-            audio_found = True
-            conf.env.Append(CCFLAGS = '-DWITH_JACK')
-        else:
-            print('Warning: JACK support was requested'
-                  ' but JACK was not found.')
-            env['with_jack'] = False
-
-    if env['with_openal']:
-        if conf.CheckLibWithHeader('openal', ['AL/al.h', 'AL/alc.h'], 'C') and\
-           conf.CheckLibWithHeader('alut', 'AL/alut.h', 'C'):
-            audio_found = True
-            conf.env.Append(CCFLAGS = '-DWITH_OPENAL')
-        else:
-            print('Warning: OpenAL support was requested'
-                  ' but OpenAL was not found.')
-            env['with_openal'] = False
-
     if env['enable_export']:
-        if conf.CheckLibWithHeader('sndfile', 'sndfile.h', 'C'):
-            env.ParseConfig('pkg-config --cflags --libs sndfile')
-            conf.env.Append(CCFLAGS = '-DWITH_SNDFILE')
-        else:
+        if not env['enable_python_bindings']:
             print('Warning: kunquat-export was requested'
-                  ' but libsndfile was not found.')
+                  ' without Python bindings -- disabling kunquat-export.')
             env['enable_export'] = False
 
     if env['enable_tests'] and not conf.CheckLibWithHeader('check', 'check.h', 'C'):
@@ -251,6 +217,7 @@ if not env.GetOption('help'):
     if env['enable_examples']:
         SConscript('examples/SConscript')
     SConscript('src/SConscript')
+    SConscript('share/SConscript')
     if env['enable_python_bindings'] and 'install' in COMMAND_LINE_TARGETS:
         if 'install' in COMMAND_LINE_TARGETS:
             if not env.GetOption('clean'):

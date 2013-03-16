@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -61,6 +61,8 @@ Playdata* new_Playdata(Ins_table* insts,
     play->freq = 48000;
     play->old_freq = play->freq;
     play->subsongs = NULL;
+    play->track_list = NULL;
+    play->order_lists = NULL;
 //    play->events = NULL;
 
     play->scales = NULL;
@@ -103,10 +105,11 @@ Playdata* new_Playdata(Ins_table* insts,
     play->event_index = 0;
     play->delay_event_index = -1;
 
-    play->orig_subsong = 0;
-    play->subsong = 0;
-    play->section = 0;
-    play->pattern = -1;
+    //play->orig_subsong = 0;
+    //play->subsong = 0;
+    play->system = 0;
+    play->piref.pat = -1;
+    play->piref.inst = 0;
     Reltime_init(&play->play_time);
     play->play_frames = 0;
     Reltime_init(&play->pos);
@@ -143,6 +146,8 @@ Playdata* new_Playdata_silent(Environment* env, uint32_t freq)
     play->freq = freq;
     play->old_freq = play->freq;
     play->subsongs = NULL;
+    play->track_list = NULL;
+    play->order_lists = NULL;
 //    play->events = NULL;
 
     play->scales = NULL;
@@ -185,10 +190,11 @@ Playdata* new_Playdata_silent(Environment* env, uint32_t freq)
     play->event_index = 0;
     play->delay_event_index = -1;
 
-    play->orig_subsong = 0;
-    play->subsong = 0;
-    play->section = 0;
-    play->pattern = -1;
+    //play->orig_subsong = 0;
+    //play->subsong = 0;
+    play->system = 0;
+    play->piref.pat = -1;
+    play->piref.inst = 0;
     Reltime_init(&play->play_time);
     play->play_frames = 0;
     Reltime_init(&play->pos);
@@ -208,13 +214,13 @@ void Playdata_set_mix_freq(Playdata* play, uint32_t freq)
 }
 
 
-void Playdata_set_subsong(Playdata* play, int subsong, bool reset)
+void Playdata_set_track(Playdata* play, int track, bool reset)
 {
     assert(play != NULL);
-    assert(subsong >= 0);
-    assert(subsong < KQT_SONGS_MAX);
-    play->orig_subsong = play->subsong = subsong;
-    play->section = 0;
+    assert(track >= 0);
+    assert(track < KQT_TRACKS_MAX);
+    play->orig_track = play->track = track;
+    play->system = 0;
     if (!play->silent)
     {
         assert(play->voice_pool != NULL);
@@ -280,8 +286,9 @@ void Playdata_reset(Playdata* play)
     play->event_index = 0;
     play->delay_event_index = -1;
     play->play_frames = 0;
-    play->section = 0;
-    play->pattern = -1;
+    play->system = 0;
+    play->piref.pat = -1;
+    play->piref.inst = 0;
     Reltime_init(&play->play_time);
     Reltime_init(&play->pos);
     return;

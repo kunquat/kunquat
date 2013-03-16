@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2013
  *
  * This file is part of Kunquat.
  *
@@ -28,15 +28,20 @@ START_TEST(Trivial_effect_is_identity)
     set_mix_volume(0);
     pause();
 
+    set_data("ins_00/p_manifest.json", "{}");
     set_data("ins_00/p_connections.json",
             "[ [\"gen_00/C/out_00\", \"out_00\"] ]");
+    set_data("ins_00/gen_00/p_manifest.json", "{}");
     set_data("ins_00/gen_00/p_gen_type.json", "\"debug\"");
 
+    set_data("eff_00/p_manifest.json", "{}");
     set_data("eff_00/p_connections.json", "[ [\"in_00\", \"out_00\"] ]");
 
     set_data("p_connections.json",
             "[ [\"ins_00/out_00\", \"eff_00/in_00\"],"
             "  [\"eff_00/out_00\", \"out_00\"] ]");
+
+    validate();
 
     float actual_buf[buf_len] = { 0.0f };
     kqt_Handle_fire(handle, 0, Note_On_55_Hz);
@@ -58,10 +63,14 @@ START_TEST(Effect_with_default_volume_dsp_is_identity)
     set_mix_volume(0);
     pause();
 
+    set_data("ins_00/p_manifest.json", "{}");
     set_data("ins_00/p_connections.json",
             "[ [\"gen_00/C/out_00\", \"out_00\"] ]");
+    set_data("ins_00/gen_00/p_manifest.json", "{}");
     set_data("ins_00/gen_00/p_gen_type.json", "\"debug\"");
 
+    set_data("eff_00/p_manifest.json", "{}");
+    set_data("eff_00/dsp_00/p_manifest.json", "{}");
     set_data("eff_00/dsp_00/p_dsp_type.json", "\"volume\"");
     set_data("eff_00/p_connections.json",
             "[ [\"in_00\", \"dsp_00/C/in_00\"],"
@@ -70,6 +79,8 @@ START_TEST(Effect_with_default_volume_dsp_is_identity)
     set_data("p_connections.json",
             "[ [\"ins_00/out_00\", \"eff_00/in_00\"],"
             "  [\"eff_00/out_00\", \"out_00\"] ]");
+
+    validate();
 
     float actual_buf[buf_len] = { 0.0f };
     kqt_Handle_fire(handle, 0, Note_On_55_Hz);
@@ -91,10 +102,14 @@ START_TEST(Effect_with_double_volume_dsp_and_bypass_triples_volume)
     set_mix_volume(0);
     pause();
 
+    set_data("ins_00/p_manifest.json", "{}");
     set_data("ins_00/p_connections.json",
             "[ [\"gen_00/C/out_00\", \"out_00\"] ]");
+    set_data("ins_00/gen_00/p_manifest.json", "{}");
     set_data("ins_00/gen_00/p_gen_type.json", "\"debug\"");
 
+    set_data("eff_00/p_manifest.json", "{}");
+    set_data("eff_00/dsp_00/p_manifest.json", "{}");
     set_data("eff_00/dsp_00/p_dsp_type.json", "\"volume\"");
     set_data("eff_00/dsp_00/c/p_volume.jsonf", "6");
     set_data("eff_00/p_connections.json",
@@ -105,6 +120,8 @@ START_TEST(Effect_with_double_volume_dsp_and_bypass_triples_volume)
     set_data("p_connections.json",
             "[ [\"ins_00/out_00\", \"eff_00/in_00\"],"
             "  [\"eff_00/out_00\", \"out_00\"] ]");
+
+    validate();
 
     float actual_buf[buf_len] = { 0.0f };
     kqt_Handle_fire(handle, 0, Note_On_55_Hz);
@@ -126,11 +143,17 @@ START_TEST(Connect_instrument_effect_with_unconnected_dsp_and_mix)
 
     pause();
 
+    set_data("ins_00/p_manifest.json", "{}");
+    set_data("ins_00/eff_00/p_manifest.json", "{}");
+    set_data("ins_00/eff_00/dsp_00/p_manifest.json", "{}");
     set_data("ins_00/eff_00/dsp_00/p_dsp_type.json", "\"volume\"");
     set_data("p_connections.json",
             "[ [\"ins_00/out_00\", \"out_00\"] ]");
     set_data("ins_00/p_connections.json",
             "[ [\"eff_00/out_00\", \"out_00\"] ]");
+
+    validate();
+
     kqt_Handle_mix(handle, 128);
 
     return;
@@ -142,7 +165,7 @@ Suite* Connections_suite(void)
 {
     Suite* s = suite_create("Connections");
 
-    int timeout = 4;
+    const int timeout = 4;
 
     TCase* tc_effects = tcase_create("effects");
     suite_add_tcase(s, tc_effects);

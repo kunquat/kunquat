@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -674,7 +674,7 @@ void Device_node_mix(Device_node* node,
     }
     Device_node_set_state(node, DEVICE_NODE_STATE_REACHED);
     Device* node_device = Device_node_get_device(node);
-    if (node_device == NULL)
+    if (node_device == NULL || !Device_is_existent(node_device))
     {
         Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
         return;

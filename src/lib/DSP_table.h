@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -37,6 +37,17 @@ typedef struct DSP_table DSP_table;
  *           failed.
  */
 DSP_table* new_DSP_table(int size);
+
+
+/**
+ * Sets existent status of a DSP.
+ *
+ * \param table      The DSP table -- must not be \c NULL.
+ * \param index      The target index -- must be >= \c 0 and less than the
+ *                   table size.
+ * \param existent   The new existent status.
+ */
+void DSP_table_set_existent(DSP_table* table, int index, bool existent);
 
 
 /**

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -21,80 +21,107 @@
 #include <Bind.h>
 #include <Connections.h>
 #include <Connections_search.h>
-#include <Environment.h>
-#include <File_base.h>
 #include <Device_event_keys.h>
 #include <Device_params.h>
+#include <Environment.h>
+#include <File_base.h>
 #include <Gen_type.h>
 #include <Handle_private.h>
+#include <manifest.h>
 #include <string_common.h>
 #include <xassert.h>
 #include <xmemory.h>
 
 
-static bool parse_song_level(kqt_Handle* handle,
-                             const char* key,
-                             void* data,
-                             long length);
+static bool parse_song_level(
+        kqt_Handle* handle,
+        const char* key,
+        void* data,
+        long length);
 
 
-static bool parse_instrument_level(kqt_Handle* handle,
-                                   const char* key,
-                                   const char* subkey,
-                                   void* data,
-                                   long length,
-                                   int index);
+static bool parse_album_level(
+        kqt_Handle* handle,
+        const char* key,
+        const char* subkey,
+        void* data,
+        long length);
 
 
-static bool parse_effect_level(kqt_Handle* handle,
-                               Instrument* ins,
-                               const char* key,
-                               const char* subkey,
-                               void* data,
-                               long length,
-                               int eff_index);
+static bool parse_instrument_level(
+        kqt_Handle* handle,
+        const char* key,
+        const char* subkey,
+        void* data,
+        long length,
+        int index);
 
 
-static bool parse_generator_level(kqt_Handle* handle,
-                                  const char* key,
-                                  const char* subkey,
-                                  void* data,
-                                  long length,
-                                  int ins_index,
-                                  int gen_index);
+static bool parse_effect_level(
+        kqt_Handle* handle,
+        Instrument* ins,
+        const char* key,
+        const char* subkey,
+        void* data,
+        long length,
+        int eff_index);
 
 
-static bool parse_dsp_level(kqt_Handle* handle,
-                            Effect* eff,
-                            const char* key,
-                            const char* subkey,
-                            void* data,
-                            long length,
-                            int dsp_index);
+static bool parse_generator_level(
+        kqt_Handle* handle,
+        const char* key,
+        const char* subkey,
+        void* data,
+        long length,
+        int ins_index,
+        int gen_index);
 
 
-static bool parse_pattern_level(kqt_Handle* handle,
-                                const char* key,
-                                const char* subkey,
-                                void* data,
-                                long length,
-                                int index);
+static bool parse_dsp_level(
+        kqt_Handle* handle,
+        Effect* eff,
+        const char* key,
+        const char* subkey,
+        void* data,
+        long length,
+        int dsp_index);
 
 
-static bool parse_scale_level(kqt_Handle* handle,
-                              const char* key,
-                              const char* subkey,
-                              void* data,
-                              long length,
-                              int index);
+static bool parse_pattern_level(
+        kqt_Handle* handle,
+        const char* key,
+        const char* subkey,
+        void* data,
+        long length,
+        int index);
 
 
-static bool parse_subsong_level(kqt_Handle* handle,
-                                const char* key,
-                                const char* subkey,
-                                void* data,
-                                long length,
-                                int index);
+static bool parse_pat_inst_level(
+        kqt_Handle* handle,
+        Pattern* pat,
+        const char* key,
+        const char* subkey,
+        void* data,
+        long length,
+        int index);
+
+
+static bool parse_scale_level(
+        kqt_Handle* handle,
+        const char* key,
+        const char* subkey,
+        void* data,
+        long length,
+        int index);
+
+
+static bool parse_subsong_level(
+        kqt_Handle* handle,
+        const char* key,
+        const char* subkey,
+        void* data,
+        long length,
+        int index);
 
 
 static bool key_is_for_text(const char* key);
@@ -212,8 +239,30 @@ bool parse_data(kqt_Handle* handle,
         Pattern* new_pat = Pat_table_get(Song_get_pats(handle->song), index);
         if (success && pat != new_pat && new_pat != NULL)
         {
+            // Update pattern location information
+            // This is needed for correct jump counter updates
+            // when a Pattern with jumps is used multiple times.
             for (int subsong = 0; subsong < KQT_SONGS_MAX; ++subsong)
             {
+                const Order_list* ol = handle->song->order_lists[subsong];
+                if (ol == NULL)
+                    continue;
+
+                const size_t ol_len = Order_list_get_len(ol);
+                for (size_t system = 0; system < ol_len; ++system)
+                {
+                    Pat_inst_ref* ref = Order_list_get_pat_inst_ref(ol, system);
+                    if (ref->pat == index)
+                    {
+                        if (!Pattern_set_location(new_pat, subsong, ref))
+                        {
+                            kqt_Handle_set_error(handle, ERROR_MEMORY,
+                                    "Couldn't allocate memory");
+                            return false;
+                        }
+                    }
+                }
+#if 0
                 Subsong* ss = Subsong_table_get_hidden(
                                       Song_get_subsongs(handle->song),
                                       subsong);
@@ -233,6 +282,7 @@ bool parse_data(kqt_Handle* handle,
                         }
                     }
                 }
+#endif
             }
         }
     }
@@ -245,6 +295,10 @@ bool parse_data(kqt_Handle* handle,
     {
         success = parse_subsong_level(handle, key, second_element,
                                       data, length, index);
+    }
+    else if (string_has_prefix(key, "album/"))
+    {
+        success = parse_album_level(handle, key, second_element, data, length);
     }
     xfree(json);
     return success;
@@ -347,7 +401,7 @@ static bool parse_song_level(kqt_Handle* handle,
             if (!state->error)
             {
                 kqt_Handle_set_error(handle, ERROR_MEMORY,
-                                     "Couldn't allocate memory");
+                        "Couldn't allocate memory");
             }
             else
             {
@@ -358,8 +412,77 @@ static bool parse_song_level(kqt_Handle* handle,
         if (!Song_set_bind(handle->song, map))
         {
             kqt_Handle_set_error(handle, ERROR_MEMORY,
-                                 "Couldn't allocate memory");
+                    "Couldn't allocate memory");
             return false;
+        }
+    }
+    return true;
+}
+
+
+static bool parse_album_level(
+        kqt_Handle* handle,
+        const char* key,
+        const char* subkey,
+        void* data,
+        long length)
+{
+    assert(handle_is_valid(handle));
+    assert(key != NULL);
+    assert(subkey != NULL);
+    assert((data == NULL) == (length == 0));
+    assert(length >= 0);
+
+    if (string_eq(subkey, "p_manifest.json"))
+    {
+        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+        const bool existent = read_default_manifest(data, state);
+        if (state->error)
+        {
+            set_parse_error(handle, state);
+            return false;
+        }
+        handle->song->album_is_existent = existent;
+        if (existent)
+        {
+            Track_list* tl = handle->song->track_list;
+            handle->song->play_state->track_list = tl;
+            handle->song->skip_state->track_list = tl;
+        }
+        else
+        {
+            handle->song->play_state->track_list = NULL;
+            handle->song->skip_state->track_list = NULL;
+        }
+    }
+    else if (string_eq(subkey, "p_tracks.json"))
+    {
+        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+        Track_list* tl = new_Track_list(data, state);
+        if (tl == NULL)
+        {
+            if (!state->error)
+            {
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
+            }
+            else
+            {
+                set_parse_error(handle, state);
+            }
+            return false;
+        }
+        del_Track_list(handle->song->track_list);
+        handle->song->track_list = tl;
+        if (handle->song->album_is_existent)
+        {
+            handle->song->play_state->track_list = tl;
+            handle->song->skip_state->track_list = tl;
+        }
+        else
+        {
+            assert(handle->song->play_state->track_list == NULL);
+            assert(handle->song->skip_state->track_list == NULL);
         }
     }
     return true;
@@ -395,6 +518,8 @@ static bool parse_instrument_level(kqt_Handle* handle,
 #endif
     int gen_index = -1;
     int eff_index = -1;
+
+    // Subdevices
     if ((gen_index = string_extract_index(subkey, "gen_", 2, "/")) >= 0)
     {
         subkey = strchr(subkey, '/');
@@ -464,10 +589,49 @@ static bool parse_instrument_level(kqt_Handle* handle,
         }
         return success;
     }
-    if (string_eq(subkey, "p_instrument.json"))
+
+    // Instrument data
+    if (string_eq(subkey, "p_manifest.json"))
     {
         Instrument* ins = Ins_table_get(Song_get_insts(handle->song), index);
-        bool new_ins = ins == NULL;
+        bool new_ins = (ins == NULL);
+        if (new_ins)
+        {
+            ins = new_Instrument(Device_get_buffer_size((Device*)handle->song),
+                                 Device_get_mix_rate((Device*)handle->song),
+                                 Song_get_scales(handle->song),
+                                 Song_get_active_scale(handle->song));
+            if (ins == NULL)
+            {
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
+                return false;
+            }
+        }
+
+        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+        const bool existent = read_default_manifest(data, state);
+        if (state->error)
+        {
+            set_parse_error(handle, state);
+            if (new_ins)
+                del_Instrument(ins);
+            return false;
+        }
+        Device_set_existent((Device*)ins, existent);
+
+        if (new_ins && !Ins_table_set(Song_get_insts(handle->song), index, ins))
+        {
+            kqt_Handle_set_error(handle, ERROR_MEMORY,
+                    "Couldn't allocate memory");
+            del_Instrument(ins);
+            return false;
+        }
+    }
+    else if (string_eq(subkey, "p_instrument.json"))
+    {
+        Instrument* ins = Ins_table_get(Song_get_insts(handle->song), index);
+        bool new_ins = (ins == NULL);
         if (new_ins)
         {
             ins = new_Instrument(Device_get_buffer_size((Device*)handle->song),
@@ -513,7 +677,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
         }
         else
         {
-            bool new_ins = ins == NULL;
+            bool new_ins = (ins == NULL);
             if (new_ins)
             {
                 ins = new_Instrument(Device_get_buffer_size(
@@ -706,7 +870,7 @@ static bool parse_generator_level(kqt_Handle* handle,
     ++subkey;
 #endif
     Instrument* ins = Ins_table_get(Song_get_insts(handle->song), ins_index);
-    bool new_ins = ins == NULL;
+    bool new_ins = (ins == NULL);
     if (new_ins)
     {
         ins = new_Instrument(Device_get_buffer_size((Device*)handle->song),
@@ -720,7 +884,23 @@ static bool parse_generator_level(kqt_Handle* handle,
             return false;
         }
     }
-    if (string_eq(subkey, "p_gen_type.json"))
+    if (string_eq(subkey, "p_manifest.json"))
+    {
+        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+        const bool existent = read_default_manifest(data, state);
+        if (state->error)
+        {
+            set_parse_error(handle, state);
+            if (new_ins)
+                del_Instrument(ins);
+            return false;
+        }
+
+        Gen_table* table = Instrument_get_gens(ins);
+        assert(table != NULL);
+        Gen_table_set_existent(table, gen_index, existent);
+    }
+    else if (string_eq(subkey, "p_gen_type.json"))
     {
         if (data == NULL)
         {
@@ -941,6 +1121,37 @@ static bool parse_effect_level(kqt_Handle* handle,
         }
         return success;
     }
+    else if (string_eq(subkey, "p_manifest.json"))
+    {
+        Effect* eff = Effect_table_get(table, eff_index);
+        const bool new_eff = (eff == NULL);
+        if (new_eff)
+        {
+            eff = new_Effect(Device_get_buffer_size(
+                                    (Device*)handle->song),
+                             Device_get_mix_rate(
+                                    (Device*)handle->song));
+            if (eff == NULL || !Effect_table_set(table, eff_index, eff))
+            {
+                del_Effect(eff);
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
+                return false;
+            }
+        }
+        assert(eff != NULL);
+
+        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+        const bool existent = read_default_manifest(data, state);
+        if (state->error)
+        {
+            set_parse_error(handle, state);
+            if (new_eff)
+                Effect_table_remove(table, eff_index);
+            return false;
+        }
+        Device_set_existent((Device*)eff, existent);
+    }
     else if (string_eq(subkey, "p_connections.json"))
     {
         bool reconnect = false;
@@ -955,7 +1166,7 @@ static bool parse_effect_level(kqt_Handle* handle,
         }
         else
         {
-            bool new_eff = eff == NULL;
+            const bool new_eff = (eff == NULL);
             if (new_eff)
             {
                 eff = new_Effect(Device_get_buffer_size(
@@ -1049,7 +1260,19 @@ static bool parse_dsp_level(kqt_Handle* handle,
 #endif
     DSP_table* dsp_table = Effect_get_dsps(eff);
     assert(dsp_table != NULL);
-    if (string_eq(subkey, "p_dsp_type.json"))
+    if (string_eq(subkey, "p_manifest.json"))
+    {
+        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+        const bool existent = read_default_manifest(data, state);
+        if (state->error)
+        {
+            set_parse_error(handle, state);
+            return false;
+        }
+
+        DSP_table_set_existent(dsp_table, dsp_index, existent);
+    }
+    else if (string_eq(subkey, "p_dsp_type.json"))
     {
 //        fprintf(stderr, "%s\n", subkey);
         if (data == NULL)
@@ -1151,12 +1374,23 @@ static bool parse_pattern_level(kqt_Handle* handle,
     assert(subkey != NULL);
     assert((data == NULL) == (length == 0));
     assert(length >= 0);
-    (void)length;
     if (index < 0 || index >= KQT_PATTERNS_MAX)
     {
         return true;
     }
-    if (string_eq(subkey, "p_pattern.json"))
+    if (string_eq(subkey, "p_manifest.json"))
+    {
+        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+        const bool existent = read_default_manifest(data, state);
+        if (state->error)
+        {
+            set_parse_error(handle, state);
+            return false;
+        }
+        Pat_table* pats = Song_get_pats(handle->song);
+        Pat_table_set_existent(pats, index, existent);
+    }
+    else if (string_eq(subkey, "p_pattern.json"))
     {
         Pattern* pat = Pat_table_get(Song_get_pats(handle->song), index);
         bool new_pattern = pat == NULL;
@@ -1194,12 +1428,12 @@ static bool parse_pattern_level(kqt_Handle* handle,
     {
         return true;
     }
-    int col_index = 0;
+    int sub_index = 0;
     ++second_element;
-    if ((col_index = string_extract_index(subkey, "col_", 2, "/")) >= 0 &&
+    if ((sub_index = string_extract_index(subkey, "col_", 2, "/")) >= 0 &&
                 string_eq(second_element, "p_triggers.json"))
     {
-        if (col_index >= KQT_COLUMNS_MAX)
+        if (sub_index >= KQT_COLUMNS_MAX)
         {
             return true;
         }
@@ -1243,7 +1477,7 @@ static bool parse_pattern_level(kqt_Handle* handle,
             }
             return false;
         }
-        if (!Pattern_set_col(pat, col_index, col))
+        if (!Pattern_set_col(pat, sub_index, col))
         {
             kqt_Handle_set_error(handle, ERROR_MEMORY,
                     "Couldn't allocate memory");
@@ -1264,6 +1498,80 @@ static bool parse_pattern_level(kqt_Handle* handle,
             }
         }
     }
+    else if ((sub_index = string_extract_index(subkey, "instance_", 3, "/")) >= 0)
+    {
+        Pattern* pat = Pat_table_get(Song_get_pats(handle->song), index);
+        bool new_pattern = (pat == NULL);
+        if (new_pattern)
+        {
+            pat = new_Pattern();
+            if (pat == NULL)
+            {
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
+                return false;
+            }
+        }
+
+        assert(pat != NULL);
+        if (!parse_pat_inst_level(
+                    handle,
+                    pat,
+                    key,
+                    second_element,
+                    data,
+                    length,
+                    sub_index))
+        {
+            if (new_pattern)
+            {
+                del_Pattern(pat);
+            }
+            return false;
+        }
+
+        if (new_pattern && !Pat_table_set(Song_get_pats(handle->song), index, pat))
+        {
+            kqt_Handle_set_error(handle, ERROR_MEMORY,
+                    "Couldn't allocate memory");
+            del_Pattern(pat);
+            return false;
+        }
+        return true;
+    }
+    return true;
+}
+
+
+static bool parse_pat_inst_level(
+        kqt_Handle* handle,
+        Pattern* pat,
+        const char* key,
+        const char* subkey,
+        void* data,
+        long length,
+        int index)
+{
+    assert(handle_is_valid(handle));
+    assert(key != NULL);
+    assert(subkey != NULL);
+    assert((data == NULL) == (length == 0));
+    assert(length >= 0);
+    (void)length;
+
+    if (string_eq(subkey, "p_manifest.json"))
+    {
+        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+        const bool existent = read_default_manifest(data, state);
+        if (state->error)
+        {
+            set_parse_error(handle, state);
+            return false;
+        }
+
+        Pattern_set_inst_existent(pat, index, existent);
+    }
+
     return true;
 }
 
@@ -1320,7 +1628,19 @@ static bool parse_subsong_level(kqt_Handle* handle,
     {
         return true;
     }
-    if (string_eq(subkey, "p_song.json"))
+
+    if (string_eq(subkey, "p_manifest.json"))
+    {
+        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+        const bool existent = read_default_manifest(data, state);
+        if (state->error)
+        {
+            set_parse_error(handle, state);
+            return false;
+        }
+        Subsong_table_set_existent(handle->song->subsongs, index, existent);
+    }
+    else if (string_eq(subkey, "p_song.json"))
     {
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
         Subsong* ss = new_Subsong_from_string(data, state);
@@ -1337,28 +1657,6 @@ static bool parse_subsong_level(kqt_Handle* handle,
             }
             return false;
         }
-        for (int i = 0; i < KQT_SECTIONS_MAX; ++i)
-        {
-            int16_t pat_index = Subsong_get(ss, i);
-            if (pat_index == KQT_SECTION_NONE)
-            {
-                break;
-            }
-            Pat_table* pats = Song_get_pats(handle->song);
-            assert(pats != NULL);
-            Pattern* pat = Pat_table_get(pats, pat_index);
-            if (pat == NULL)
-            {
-                continue;
-            }
-            if (!Pattern_set_location(pat, index, i))
-            {
-                kqt_Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory");
-                del_Subsong(ss);
-                return false;
-            }
-        }
         Subsong_table* st = Song_get_subsongs(handle->song);
         if (!Subsong_table_set(st, index, ss))
         {
@@ -1367,6 +1665,53 @@ static bool parse_subsong_level(kqt_Handle* handle,
             del_Subsong(ss);
             return false;
         }
+    }
+    else if (string_eq(subkey, "p_order_list.json"))
+    {
+        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+        Order_list* ol = new_Order_list(data, state);
+        if (ol == NULL)
+        {
+            if (!state->error)
+            {
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
+            }
+            else
+            {
+                set_parse_error(handle, state);
+            }
+            return false;
+        }
+
+        // Update pattern location information
+        // This is required for correct update of jump counters.
+        const size_t ol_len = Order_list_get_len(ol);
+        for (size_t i = 0; i < ol_len; ++i)
+        {
+            Pat_inst_ref* ref = Order_list_get_pat_inst_ref(ol, i);
+            int16_t pat_index = ref->pat;
+            Pat_table* pats = Song_get_pats(handle->song);
+            assert(pats != NULL);
+            Pattern* pat = Pat_table_get(pats, pat_index);
+            if (pat == NULL)
+            {
+                continue;
+            }
+            if (!Pattern_set_location(pat, index, ref))
+            {
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
+                del_Order_list(ol);
+                return false;
+            }
+        }
+
+        if (handle->song->order_lists[index] != NULL)
+        {
+            del_Order_list(handle->song->order_lists[index]);
+        }
+        handle->song->order_lists[index] = ol;
     }
     return true;
 }

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -19,6 +19,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include <Pat_inst_ref.h>
 #include <Real.h>
 #include <Reltime.h>
 #include <kunquat/Handle.h>
@@ -213,6 +214,19 @@ char* read_tuning(char* str, Real* result, double* cents, Read_state* state);
  * \return   The position of \a str after parsing.
  */
 char* read_reltime(char* str, Reltime* result, Read_state* state);
+
+
+/**
+ * Reads a Pattern instance reference.
+ *
+ * \param str      The input string -- must not be \c NULL.
+ * \param result   The address where the Pattern instance reference will be
+ *                 stored, or \c NULL for parsing without storing the value.
+ * \param state    The Read state -- must not be \c NULL.
+ *
+ * \return   The position of \a str after parsing.
+ */
+char* read_pat_inst_ref(char* str, Pat_inst_ref* result, Read_state* state);
 
 
 #endif // K_FILE_BASE_H

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2012
  *
  * This file is part of Kunquat.
  *
@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+#include <Pat_inst_ref.h>
 #include <Real.h>
 #include <Reltime.h>
 
@@ -59,6 +60,20 @@ int serialise_int(char* dest, int size, int64_t value);
  *           terminating byte.
  */
 int serialise_float(char* dest, int size, double value);
+
+
+/**
+ * Creates a JSON representation of a Pattern instance reference.
+ *
+ * \param dest    The destination string buffer -- must not be \c NULL.
+ * \param size    The size of the string buffer including the terminating
+ *                byte -- must be positive.
+ * \param value   The value to be serialised -- must not be \c NULL.
+ *
+ * \return   The number of characters written to \a dest, not including the
+ *           terminating byte.
+ */
+int serialise_Pat_inst_ref(char* dest, int size, Pat_inst_ref* value);
 
 
 /**

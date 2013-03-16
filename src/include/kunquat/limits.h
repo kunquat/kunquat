@@ -75,15 +75,21 @@ extern "C" {
 
 
 /**
- * Maximum number of sections in a song.
+ * Maximum number of tracks in a Kunquat Handle.
  */
-#define KQT_SECTIONS_MAX 256
+#define KQT_TRACKS_MAX KQT_SONGS_MAX
 
 
 /**
  * Maximum number of Patterns in a Kunquat Handle.
  */
 #define KQT_PATTERNS_MAX 1024
+
+
+/**
+ * Maximum number of Pattern instances in a Pattern.
+ */
+#define KQT_PAT_INSTANCES_MAX KQT_PATTERNS_MAX
 
 
 /**

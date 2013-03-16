@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2010-2012
+# Author: Tomi Jylhä-Ollila, Finland 2010-2013
 #
 # This file is part of Kunquat.
 #
@@ -45,6 +45,7 @@ from statusbar import Statusbar
 from toolbar import Toolbar
 from scales import chromatic, slendro
 from piano import Piano
+from icon_bank import Icon_bank
 
 PROGRAM_NAME = 'Kunquat Tracker'
 PROGRAM_VERSION = '0.5.4'
@@ -62,6 +63,11 @@ class KqtEditor(QtGui.QMainWindow):
 
     def __init__(self, args, app):
         QtGui.QMainWindow.__init__(self)
+        script_path = os.path.realpath(sys.argv[0])
+        bin_dir, _ = os.path.split(script_path)
+        prefix, _ = os.path.split(bin_dir)
+        self.icon_bank = Icon_bank(prefix)
+        self.setWindowIcon(QtGui.QIcon(self.icon_bank.kunquat_icon))
         self._app = app
         self.windows = {}
 
@@ -91,26 +97,28 @@ class KqtEditor(QtGui.QMainWindow):
                 (QtCore.Qt.Key_Down, QtCore.Qt.ShiftModifier):
                         (self._next_ins, None),
                 (QtCore.Qt.Key_F5, QtCore.Qt.NoModifier):
-                        (self._playback._play_subsong, None),
+                        (self._playback._play_track, None),
                 (QtCore.Qt.Key_F5, QtCore.Qt.ShiftModifier):
-                        (lambda x: self._playback.play_subsong(self._playback._cur_subsong,
-                                                               True),
+                        (lambda x: self._playback.play_track(
+                                self._playback._cur_track,
+                                True),
                             None),
                 (QtCore.Qt.Key_F6, QtCore.Qt.NoModifier):
                         (self._play_pattern, None),
                 (QtCore.Qt.Key_F6, QtCore.Qt.ShiftModifier):
-                        (lambda x: self._playback.play_pattern(self._playback._cur_pattern,
-                                                               True),
+                        (lambda x: self._playback.play_pattern(
+                                self._playback._cur_pattern,
+                                True),
                             None),
                 (QtCore.Qt.Key_F7, QtCore.Qt.NoModifier):
                         (self._play_from, None),
                 (QtCore.Qt.Key_F7, QtCore.Qt.ShiftModifier):
                         (lambda x: self._playback.play_from(
-                                        self._playback._cur_subsong,
-                                        self._playback._cur_section,
-                                        self._playback._cur_pattern_offset[0],
-                                        self._playback._cur_pattern_offset[1], True),
-                                    None),
+                                self._playback._cur_track,
+                                self._playback._cur_section,
+                                self._playback._cur_pattern_offset[0],
+                                self._playback._cur_pattern_offset[1], True),
+                            None),
                 (QtCore.Qt.Key_F8, QtCore.Qt.NoModifier):
                         (self._stop, None),
                 (QtCore.Qt.Key_Less, None):
@@ -155,7 +163,7 @@ class KqtEditor(QtGui.QMainWindow):
         self._peak_meter = PeakMeter(-96, 0, self.handle.mixing_rate)
 
         playback_bar = self._playback.get_view()
-        self._sheet = Sheet(self.project, self._playback,
+        self._sheet = Sheet(self.p, self.project, self._playback,
                             self._playback.subsong_changed, self.section_changed,
                             self.pattern_changed, self.pattern_offset_changed,
                             self._toolbar._octave, self._toolbar._instrument, self._tw, playback_bar)
@@ -184,6 +192,7 @@ class KqtEditor(QtGui.QMainWindow):
         self._cur_subsong = 0
         self._cur_section = 0
         self._cur_pattern = 0
+        self._cur_pattern_inst = 0
         self._cur_pattern_offset = ts.Timestamp()
 
         """
@@ -192,6 +201,10 @@ class KqtEditor(QtGui.QMainWindow):
                                self.print_pa_state)
         self.pa_debug_timer.start(1)
         """
+
+    def error(self, message):
+        qem = QtGui.QErrorMessage()
+        qem.showMessage(message)
 
     def _finalise(self, obj):
         fw = self.focusWidget()
@@ -210,7 +223,7 @@ class KqtEditor(QtGui.QMainWindow):
         self._instrument.setValue(self._instrument.value() + 1)
 
     def _play_pattern(self, ev):
-        self._playback.play_pattern(self._cur_pattern)
+        self._playback.play_pattern(self._cur_pattern, self._cur_pattern_inst)
 
     def _play_from(self, ev):
         self._playback.play_from(self._cur_subsong, self._cur_section,
@@ -234,34 +247,44 @@ class KqtEditor(QtGui.QMainWindow):
 
     def mix(self):
         if self._playback.playing:
-            if not self.bufs[0]:
+            mix_more = False
+            if self.bufs[0]:
+                # Send audio forward
+                if self.pa.try_write(*self.bufs):
+                    mix_more = True
+                    dB = [float('-inf')] * 2
+                    abs_max = [0] * 2
+                    for ch in (0, 1):
+                        min_val = min(self.bufs[ch])
+                        max_val = max(self.bufs[ch])
+                        abs_max[ch] = max(abs(min_val), abs(max_val))
+                        amp = (max_val - min_val) / 2
+                        if amp > 0:
+                            dB[ch] = math.log(amp, 2) * 6
+                    self._peak_meter.set_peaks(
+                            dB[0], dB[1],
+                            abs_max[0], abs_max[1],
+                            len(self.bufs[0]))
+            else:
+                mix_more = True
+                self.pa.iterate()
+
+            if mix_more:
+                # Pass location info to components that need it
                 self.handle.fire(0, ['qlocation', None])
+                for ch, event in self.handle.treceive():
+                    self.project.process_event('ui', ch, event)
+
+                # Render audio and send user events forward
                 self.bufs = self.handle.mix()
-                if not self.bufs[0]:
-                    self._playback.stop()
-                    return
-            for ch, event in self.handle.treceive():
-                self.project.tfire(ch, event)
-            if self.pa.try_write(*self.bufs):
-                dB = [float('-inf')] * 2
-                abs_max = [0] * 2
-                for ch in (0, 1):
-                    min_val = min(self.bufs[ch])
-                    max_val = max(self.bufs[ch])
-                    abs_max[ch] = max(abs(min_val), abs(max_val))
-                    amp = (max_val - min_val) / 2
-                    if amp > 0:
-                        dB[ch] = math.log(amp, 2) * 6
-                self._peak_meter.set_peaks(dB[0], dB[1],
-                                           abs_max[0], abs_max[1],
-                                           len(self.bufs[0]))
-                self.handle.fire(0, ['qlocation', None])
-                self.bufs = self.handle.mix()
+                for ch, event in self.handle.treceive():
+                    self.project.process_event('music', ch, event)
         else:
             self.pa.iterate()
 
-    def pattern_changed(self, num):
+    def pattern_changed(self, num, inst):
         self._cur_pattern = num
+        self._cur_pattern_inst = inst
 
     def section_changed(self, subsong, section):
         self._cur_subsong = subsong

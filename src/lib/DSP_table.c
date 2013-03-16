@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+#include <Bit_array.h>
 #include <DSP.h>
 #include <DSP_table.h>
 #include <Etable.h>
@@ -27,6 +28,7 @@ struct DSP_table
     int size;
     Etable* confs;
     Etable* dsps;
+    Bit_array* existents;
 };
 
 
@@ -40,21 +42,36 @@ DSP_table* new_DSP_table(int size)
     }
     table->confs = NULL;
     table->dsps = NULL;
+    table->existents = NULL;
 
     table->confs = new_Etable(size, (void (*)(void*))del_DSP_conf);
-    if (table->confs == NULL)
-    {
-        del_DSP_table(table);
-        return NULL;
-    }
     table->dsps = new_Etable(size, (void (*)(void*))del_DSP);
-    if (table->dsps == NULL)
+    table->existents = new_Bit_array(size);
+    if (table->confs == NULL ||
+        table->dsps == NULL ||
+        table->existents == NULL)
     {
         del_DSP_table(table);
         return NULL;
     }
     table->size = size;
     return table;
+}
+
+
+void DSP_table_set_existent(DSP_table* table, int index, bool existent)
+{
+    assert(table != NULL);
+    assert(index >= 0);
+    assert(index < table->size);
+
+    Bit_array_set(table->existents, index, existent);
+
+    DSP* dsp = Etable_get(table->dsps, index);
+    if (dsp != NULL)
+        Device_set_existent((Device*)dsp, existent);
+
+    return;
 }
 
 
@@ -127,6 +144,7 @@ bool DSP_table_set_dsp(DSP_table* table, int index, DSP* dsp)
         return false;
     }
     DSP_set_conf(dsp, conf);
+    Device_set_existent((Device*)dsp, Bit_array_get(table->existents, index));
     return Device_sync((Device*)dsp);
 }
 
@@ -167,6 +185,7 @@ void del_DSP_table(DSP_table* table)
     }
     del_Etable(table->confs);
     del_Etable(table->dsps);
+    del_Bit_array(table->existents);
     xfree(table);
     return;
 }

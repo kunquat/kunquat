@@ -1,7 +1,7 @@
 # coding=utf-8
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2010-2012
+# Author: Tomi Jylhä-Ollila, Finland 2010-2013
 #
 # This file is part of Kunquat.
 #
@@ -19,7 +19,7 @@ Import('env')
 
 env_head = env.Clone()
 
-include_path = env_head['prefix'] + '/include/kunquat'
+include_path = os.path.join(env_head['prefix'], 'include', 'kunquat')
 files = glob.glob('*.h')
 ih = env_head.InstallCreatePath(include_path, files)
 env_head.Clean(ih, include_path)
@@ -56,7 +56,7 @@ def InstallManCreatePath(env, path, source):
 
 env_head.AddMethod(InstallManCreatePath)
 
-man_path = env_head['prefix'] + '/share/man/man3'
+man_path = os.path.join(env_head['prefix'], 'share', 'man', 'man3')
 man_pages = glob.glob('kunquat-*.3')
 env_head.InstallManCreatePath(man_path, man_pages)
 

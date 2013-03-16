@@ -19,6 +19,9 @@ class View():
     def __setitem__(self, key, value):
         self.put(key, value)
 
+    def __delitem__(self, key):
+        self.delete(key)
+
     def _path(self, key):
         pparts = [i for i in self.prefix.split('/') if i != '']
         kparts = [i for i in         key.split('/') if i != '']
@@ -64,10 +67,14 @@ class View():
         return view
 
     def keys(self):
-        return [key for (key, _) in self.items()]
+        keys = [key for (key, _) in self.items()]
+        return keys
 
     def items(self):
-        path = '%s' % self.prefix
+        if self.prefix == '':
+            path = ''
+        else:
+            path = '%s/' % self.prefix
         memory = self._store._memory.items()
         valid = [(key[len(path):], value) for (key, value) in memory if key.startswith(path)]
         return valid

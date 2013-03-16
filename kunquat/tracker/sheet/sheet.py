@@ -12,17 +12,21 @@
 #
 
 from PyQt4 import QtGui, QtCore
+from PyQt4.QtGui import QLabel, QFrame
 
 import kunquat.tracker.kqt_limits as lim
-from comp_params import CompParams
 from pattern_editor import PatternEditor
+from comp_params import CompParams
 from subsong_params import SubsongParams
+from pattern_params import PatternParams
+from trigger_params import TriggerParams
 from subsongs import Subsongs
 
 
-class Sheet(QtGui.QSplitter):
+class Sheet(QtGui.QWidget):
 
     def __init__(self,
+                 p,
                  project,
                  playback,
                  subsong_changed_slot,
@@ -34,14 +38,18 @@ class Sheet(QtGui.QSplitter):
                  typewriter,
                  playbackbar,
                  parent=None):
-        QtGui.QSplitter.__init__(self, parent)
+        QtGui.QWidget.__init__(self)
 
+        self.p = p
         self._project = project
         self._playback = playback
         self._section = Section(project, self)
 
-        self._comp_params = CompParams(project)
-        self._subsong_params = SubsongParams(project)
+        layout = QtGui.QVBoxLayout(self)
+        layout.setMargin(0)
+        layout.setSpacing(0)
+        self._layout = layout
+
         self._pattern_editor = PatternEditor(project,
                                              playback,
                                              self._section,
@@ -50,19 +58,82 @@ class Sheet(QtGui.QSplitter):
                                              octave_spin,
                                              instrument_spin,
                                              typewriter)
-        self._edit_area = QtGui.QStackedWidget()
-        self._edit_area.setFrameShape(QtGui.QFrame.StyledPanel)
-        self._edit_area.addWidget(self._comp_params)
-        self._edit_area.addWidget(self._subsong_params)
-        self._edit_area.addWidget(self._pattern_editor)
 
-        self._subsongs = Subsongs(project, self._section)
+        autoinst = QtGui.QCheckBox('Autoinst')
+        autoinst.setChecked(True)
+
+        grid = QtGui.QCheckBox('Grid')
+        grid.setChecked(True)
+
+        snap_to_grid = QtGui.QCheckBox('Snap')
+        snap_to_grid.setChecked(True)
+
+        QtCore.QObject.connect(autoinst,
+                               QtCore.SIGNAL('stateChanged(int)'),
+                               self._pattern_editor._pattern.autoinst_changed)
+        QtCore.QObject.connect(grid,
+                               QtCore.SIGNAL('stateChanged(int)'),
+                               self._pattern_editor._pattern.grid_changed)
+        QtCore.QObject.connect(snap_to_grid,
+                               QtCore.SIGNAL('stateChanged(int)'),
+                               self._pattern_editor._pattern.snap_to_grid_changed)
+
+        splitter = QtGui.QSplitter()
+        topbar = QtGui.QWidget()
+        topbar.setMaximumHeight(40)
+        top_layout = QtGui.QHBoxLayout(topbar)
+        top_layout.setMargin(5)
+        top_layout.setSpacing(5)
+        top_layout.addWidget(playbackbar)
+        top_layout.addWidget(autoinst, 0)
+        top_layout.addWidget(grid, 0)
+        top_layout.addWidget(snap_to_grid, 0)
+
+        self._layout.addWidget(topbar)
+        self._layout.addWidget(splitter)
+
+
+        self._comp_params = CompParams(project)
+        self._subsong_params = SubsongParams(project)
+        self._pattern_params = PatternParams(project, self)
+        self._trigger_params = TriggerParams(project)
+
+        tools = QtGui.QWidget(self)
+        tool_layout = QtGui.QVBoxLayout(tools)
+        #tool_layout.addWidget(self._trigger_params)
+        tool_layout.addWidget(self._pattern_params)
+        tool_layout.addWidget(self._subsong_params)
+        tool_layout.addWidget(self._comp_params)
+
+        tool_scroller = QtGui.QScrollArea()
+        tool_scroller.setWidgetResizable(True)
+        tool_scroller.setEnabled(True)
+        tool_scroller.setWidget(tools)
+        tool_scroller.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+
+        edit_splitter = QtGui.QSplitter()
+        edit_splitter.setOrientation(QtCore.Qt.Horizontal)
+        edit_splitter.addWidget(self._pattern_editor)
+        edit_splitter.addWidget(tool_scroller)
+        edit_splitter.setStretchFactor(0, 0)
+        edit_splitter.setStretchFactor(1, 1)
+        edit_splitter.setSizes([480, 1])
+        edit_area = QtGui.QFrame()
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
+        edit_area.setSizePolicy(sizePolicy)
+        edit_area.setFrameStyle(QFrame.Panel | QFrame.Sunken)
+        edit_area_layout = QtGui.QVBoxLayout(edit_area)
+        edit_area_layout.setMargin(0)
+        edit_area_layout.setSpacing(0)
+        edit_area_layout.addWidget(edit_splitter)
+        self._edit_area = edit_area
+
+        self._subsongs = Subsongs(self.p, self._section)
         playorder = QtGui.QWidget(self)
         playout = QtGui.QVBoxLayout(playorder)
         playout.setMargin(0)
         playout.setSpacing(0)
 
-        playout.addWidget(playbackbar)
         playout.addWidget(self._subsongs)
 
         QtCore.QObject.connect(self._subsongs,
@@ -71,12 +142,12 @@ class Sheet(QtGui.QSplitter):
         QtCore.QObject.connect(self._subsongs,
                                QtCore.SIGNAL('subsongChanged(int)'),
                                subsong_changed_slot)
-        self.addWidget(playorder)
-        self.addWidget(self._edit_area)
-        self.setStretchFactor(0, 0)
-        self.setStretchFactor(1, 1)
-        self.setSizes([180, 1])
-        self.setMinimumHeight(200)
+        splitter.addWidget(playorder)
+        splitter.addWidget(self._edit_area)
+        splitter.setStretchFactor(0, 0)
+        splitter.setStretchFactor(1, 1)
+        splitter.setSizes([180, 1])
+        splitter.setMinimumHeight(200)
 
         self._section.connect(self.section_changed)
         self._section.connect(section_changed_slot)
@@ -85,6 +156,7 @@ class Sheet(QtGui.QSplitter):
         self._subsongs.init()
         self._comp_params.init()
         self._subsong_params.init()
+        self._pattern_params.init()
         self._pattern_editor.init()
         QtCore.QObject.connect(self._subsongs,
                                QtCore.SIGNAL('compositionParams()'),
@@ -97,16 +169,18 @@ class Sheet(QtGui.QSplitter):
                                self._subsong_params.subsong_changed)
 
     def section_changed(self, *args):
-        self._edit_area.setCurrentWidget(self._pattern_editor)
+        self._pattern_params.section_changed(self._section.subsong, self._section.section)
 
     def to_comp_params(self, *args):
-        self._edit_area.setCurrentWidget(self._comp_params)
+        pass
 
     def to_subsong_params(self, num):
-        self._edit_area.setCurrentWidget(self._subsong_params)
+        pass
+
+    def length_changed(self):
+        self._pattern_editor._pattern.length_changed()
 
     def sync(self):
-        self._subsongs.sync()
         self._comp_params.sync()
         self._subsong_params.sync()
         self._pattern_editor.sync()
@@ -125,19 +199,19 @@ class Section(QtCore.QObject):
     def connect(self, func):
         self.section_changed.connect(func)
 
-    def set(self, subsong, section):
-        assert subsong < lim.SONGS_MAX
-        assert section < lim.SECTIONS_MAX
-        pat = self._project._composition.get_pattern(subsong, section)
+    def set(self, track, system):
+        assert track < lim.SONGS_MAX
+        assert system < lim.SECTIONS_MAX
+        pat = self._project._composition.get_pattern(track, system)
         if pat == None:
             return
-        if self._subsong == subsong and self._section == section:
+        if self._subsong == track and self._section == system:
             pass
             #print('repeat signal for {0}:{1}'.format(subsong, section))
-        self._subsong = subsong
-        self._section = section
+        self._subsong = track
+        self._section = system
         QtCore.QObject.emit(self, QtCore.SIGNAL('sectionChanged(int, int)'),
-                            subsong, section)
+                            track, system)
 
     @property
     def subsong(self):

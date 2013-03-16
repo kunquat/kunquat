@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2013
  *
  * This file is part of Kunquat.
  *
@@ -111,6 +111,15 @@ void set_data(char* key, char* data)
 }
 
 
+void validate(void)
+{
+    assert(handle != NULL);
+
+    kqt_Handle_validate(handle);
+    check_unexpected_error();
+}
+
+
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #define max(a, b) ((a) > (b) ? (a) : (b))
 
@@ -206,6 +215,7 @@ void set_mix_volume(double vol)
     char comp_def[] = "{ \"mix_vol\": -384.00000000 }";
     snprintf(comp_def, strlen(comp_def) + 1, "{ \"mix_vol\": %.4f }", vol);
     set_data("p_composition.json", comp_def);
+    validate();
 
     return;
 }
@@ -265,10 +275,16 @@ void setup_debug_instrument(void)
     set_data("p_connections.json",
             "[ [\"ins_00/out_00\", \"out_00\"] ]");
 
+    set_data("ins_00/p_manifest.json", "{}");
     set_data("ins_00/p_connections.json",
             "[ [\"gen_00/C/out_00\", \"out_00\"] ]");
 
+    set_data("ins_00/gen_00/p_manifest.json", "{}");
     set_data("ins_00/gen_00/p_gen_type.json", "\"debug\"");
+
+    validate();
+
+    check_unexpected_error();
 
     return;
 }
@@ -279,6 +295,9 @@ void setup_debug_single_pulse(void)
     assert(handle != NULL);
 
     set_data("ins_00/gen_00/c/p_single_pulse.jsonb", "true");
+
+    validate();
+
     check_unexpected_error();
 
     return;
