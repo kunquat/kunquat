@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from kunquat.tracker.editor import main
+from kunquat.tracker.tracker import main
 
 main()
 
