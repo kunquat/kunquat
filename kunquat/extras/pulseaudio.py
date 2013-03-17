@@ -20,29 +20,13 @@ becomes available in major distributions, this module will be removed.
 
 """
 
+
 from __future__ import print_function
 import ctypes
-import sys
-import time
-import wave
+
+from pulseaudio_def import *
 
 __all__ = ['Simple', 'PulseAudioError']
-
-
-if sys.byteorder == 'little':
-    SAMPLE_FLOAT32 = 5
-else:
-    SAMPLE_FLOAT32 = 6
-
-
-STREAM_PLAYBACK = 1
-STREAM_RECORD = 2
-
-
-class _SampleSpec(ctypes.Structure):
-    _fields_ = [('format', ctypes.c_int),
-                ('rate', ctypes.c_uint32),
-                ('channels', ctypes.c_uint8)]
 
 
 class Simple(object):
@@ -59,13 +43,7 @@ class Simple(object):
                  client_name,
                  stream_name,
                  rate=48000,
-                 channels=2,
-                 format=SAMPLE_FLOAT32,
-                 server_name=None,
-                 direction=STREAM_PLAYBACK,
-                 sink_name=None,
-                 channel_map=None,
-                 buffer_attr=None):
+                 latency=0.2):
         """Create a new PulseAudio connection.
 
         Arguments:
@@ -73,36 +51,47 @@ class Simple(object):
         stream_name -- A descriptive name for the stream.
 
         Optional arguments:
-        rate        -- Mixing frequency in frames per second (default:
-                       48000).
-        channels    -- Number of output channels (default: 2).
-        format      -- Frame format (default: SAMPLE_FLOAT32).
-        server_name -- Name of the server.
-        direction   -- Whether the stream is a playback (default) or
-                       recording stream.
-        sink_name   -- Sink name.
-        channel_map -- The channel map (not yet supported).
-        buffer_attr -- Buffering attributes (not yet supported).
+        rate        -- Audio rate in frames per second (default: 48000).
+        latency     -- Desired latency in seconds (default: 0.2).  The
+                       actual latency may differ.
 
         Exceptions:
         PulseAudioError -- Raised if the PulseAudio call fails.
 
         """
-        ss = _SampleSpec(format, rate, channels)
+        assert type(client_name) == str
+        assert type(stream_name) == str
+        assert rate >= 1
+        assert rate <= 192000
+        assert latency > 0
+
+        self._rate = int(rate)
+        self._channels = 2
+        self._latency = int(latency * 1000000)
+
+        ss = SampleSpec(PA_SAMPLE_FLOAT32NE, self._rate, self._channels)
+        buf_attr = BufferAttr(
+                ctypes.c_uint32(-1), # maxlength
+                _simple.pa_usec_to_bytes(self._latency, ctypes.byref(ss)),
+                ctypes.c_uint32(-1), # prebuf
+                ctypes.c_uint32(-1), # minreq
+                ctypes.c_uint32(-1), # fragsize
+                )
         error = ctypes.c_int(0)
-        self._connection = _simple.pa_simple_new(server_name,
-                                                 client_name,
-                                                 direction,
-                                                 sink_name,
-                                                 stream_name,
-                                                 ctypes.byref(ss),
-                                                 None,
-                                                 None,
-                                                 ctypes.byref(error))
+
+        # Create connection
+        self._connection = _simple.pa_simple_new(
+                None, # server name
+                client_name,
+                PA_STREAM_PLAYBACK,
+                None, # sink name
+                stream_name,
+                ctypes.byref(ss),
+                None, # channel map
+                ctypes.byref(buf_attr),
+                ctypes.byref(error))
         if not self._connection:
             raise PulseAudioError(_simple.pa_strerror(error))
-        self.rate = rate
-        self.channels = channels
 
     def write(self, *data):
         """Write audio data to the output stream.
@@ -117,15 +106,15 @@ class Simple(object):
                            buffer lengths do not match.
 
         """
-        if len(data) != self.channels:
+        if len(data) != self._channels:
             raise ValueError('Wrong number of output channel buffers')
         frame_count = len(data[0])
-        cdata = (ctypes.c_float * (frame_count * self.channels))()
-        for channel in xrange(self.channels):
+        cdata = (ctypes.c_float * (frame_count * self._channels))()
+        for channel in xrange(self._channels):
             if len(data[channel]) != frame_count:
                 raise ValueError('Output channel buffer lengths do not match')
-            cdata[channel::self.channels] = data[channel]
-        bytes_per_frame = 4 * self.channels
+            cdata[channel::self._channels] = data[channel]
+        bytes_per_frame = 4 * self._channels
         error = ctypes.c_int(0)
         if _simple.pa_simple_write(self._connection,
                                    cdata,
@@ -150,67 +139,40 @@ class Simple(object):
         self._connection = None
 
 
-class PulseAudioError(Exception):
-    """Class for PulseAudio-related errors.
-
-    This error is raised whenever an underlying PulseAudio function
-    call fails.
-
-    """
-
-
-PA_OPERATION_RUNNING = 0
-PA_OPERATION_DONE = 1
-PA_OPERATION_CANCELLED = 2
-
-PA_CONTEXT_NOFLAGS = 0
-PA_CONTEXT_NOAUTOSPAWN = 1
-PA_CONTEXT_NOFAIL = 2
-
-PA_CONTEXT_UNCONNECTED = 0
-PA_CONTEXT_CONNECTING = 1
-PA_CONTEXT_AUTHORIZING = 2
-PA_CONTEXT_SETTING_NAME = 3
-PA_CONTEXT_READY = 4
-PA_CONTEXT_FAILED = 5
-PA_CONTEXT_TERMINATED = 6
-
-PA_STREAM_UNCONNECTED = 0
-PA_STREAM_CREATING = 1
-PA_STREAM_READY = 2
-PA_STREAM_FAILED = 3
-PA_STREAM_TERMINATED = 4
-PA_STREAM_ADJUST_LATENCY = 0x2000
-
-PA_SEEK_RELATIVE = 0
-
-
 _simple = ctypes.CDLL('libpulse-simple.so')
+
+_pa_usec = ctypes.c_uint64
 
 _simple.pa_strerror.argtypes = [ctypes.c_int]
 _simple.pa_strerror.restype = ctypes.c_char_p
 
-_simple.pa_simple_new.argtypes = [ctypes.c_char_p,
-                                  ctypes.c_char_p,
-                                  ctypes.c_int, # pa_stream_direction_t
-                                  ctypes.c_char_p,
-                                  ctypes.c_char_p,
-                                  ctypes.POINTER(_SampleSpec),
-                                  ctypes.c_void_p, # channel map
-                                  ctypes.c_void_p, # buffering attrs,
-                                  ctypes.POINTER(ctypes.c_int)]
+_simple.pa_usec_to_bytes.argtypes = [_pa_usec, ctypes.POINTER(SampleSpec)]
+_simple.pa_usec_to_bytes.restype = ctypes.c_size_t
+
+_simple.pa_simple_new.argtypes = [
+        ctypes.c_char_p,
+        ctypes.c_char_p,
+        ctypes.c_int, # pa_stream_direction_t
+        ctypes.c_char_p,
+        ctypes.c_char_p,
+        ctypes.POINTER(SampleSpec),
+        ctypes.c_void_p, # channel map
+        ctypes.POINTER(BufferAttr),
+        ctypes.POINTER(ctypes.c_int)]
 _simple.pa_simple_new.restype = ctypes.c_void_p
 
 _simple.pa_simple_free.argtypes = [ctypes.c_void_p]
 
-_simple.pa_simple_write.argtypes = [ctypes.c_void_p,
-                                    ctypes.c_void_p,
-                                    ctypes.c_size_t,
-                                    ctypes.POINTER(ctypes.c_int)]
+_simple.pa_simple_write.argtypes = [
+        ctypes.c_void_p,
+        ctypes.c_void_p,
+        ctypes.c_size_t,
+        ctypes.POINTER(ctypes.c_int)]
 _simple.pa_simple_write.restype = ctypes.c_int
 
-_simple.pa_simple_drain.argtypes = [ctypes.c_void_p,
-                                    ctypes.POINTER(ctypes.c_int)]
+_simple.pa_simple_drain.argtypes = [
+        ctypes.c_void_p,
+        ctypes.POINTER(ctypes.c_int)]
 _simple.pa_simple_drain.restype = ctypes.c_int
 
 

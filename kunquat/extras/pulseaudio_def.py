@@ -112,6 +112,16 @@ _pa_stream_state = [
     ]
 _make_c_enum(_pa_stream_state)
 
+# Stream direction
+
+_pa_stream_direction = [
+        'PA_STREAM_NODIRECTION',
+        'PA_STREAM_PLAYBACK',
+        'PA_STREAM_RECORD',
+        'PA_STREAM_UPLOAD',
+    ]
+_make_c_enum(_pa_stream_direction)
+
 # Seek mode
 
 # No idea why PulseAudio specifies the values explicitly instead of

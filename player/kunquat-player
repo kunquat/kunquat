@@ -263,8 +263,7 @@ def play(options, file_name, pa_handle, key_handler, list_pos):
 
 
 def play_all(options, files):
-    pa_handle = pulseaudio.Simple(PROGRAM_NAME, 'Music',
-                                  options['rate'], 2)
+    pa_handle = pulseaudio.Simple(PROGRAM_NAME, 'Music', options['rate'])
     key_handler = KeyHandler()
     file_index = 0
     while file_index < len(files):

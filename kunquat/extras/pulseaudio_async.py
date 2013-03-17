@@ -27,6 +27,8 @@ import Queue
 
 from pulseaudio_def import *
 
+__all__ = ['Simple', 'PulseAudioError']
+
 
 class Async(object):
 
@@ -57,7 +59,7 @@ class Async(object):
                        data of one channel.
 
         Optional arguments:
-        rate        -- Audio rate in frames per second (default: 48000)
+        rate        -- Audio rate in frames per second (default: 48000).
         latency     -- Desired latency in seconds (default: 0.02).  The
                        actual latency may differ.
 
