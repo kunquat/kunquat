@@ -5,7 +5,7 @@ from distutils.core import setup
 import sys
 
 
-inc_pkgs = ['kunquat', 'kunquat.extras', 'kunquat.storage']
+inc_pkgs = ['kunquat', 'kunquat.kunquat', 'kunquat.extras']
 inc_scripts = []
 inc_data = []
 req_list = []
@@ -28,12 +28,11 @@ else:
 if '--disable-tracker' not in sys.argv:
     req_list.append('PyQt4')
     inc_pkgs[len(inc_pkgs):len(inc_pkgs)] = [
-            'kunquat.qt',
             'kunquat.tracker',
-            'kunquat.tracker.effects',
-            'kunquat.tracker.env',
-            'kunquat.tracker.instruments',
-            'kunquat.tracker.sheet',
+            'kunquat.tracker.backend',
+            'kunquat.tracker.drivers',
+            'kunquat.tracker.frontend',
+            'kunquat.tracker.qt',
             ]
     inc_scripts.append('tracker/kunquat-tracker')
 else:
