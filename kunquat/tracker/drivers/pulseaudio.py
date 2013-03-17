@@ -12,6 +12,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from __future__ import print_function
+import sys
 import time
 
 from kunquat.extras.pulseaudio_async import Async
@@ -34,7 +36,6 @@ class Pulseaudio():
         return audio_data or ([], [])
 
     def start(self):
-        time.sleep(1)
         self._pa.play()
 
 

@@ -11,7 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-"""A wrapper for the PulseAudio library.
+"""A wrapper for the simple PulseAudio library.
 
 This module provides limited support for the simple PulseAudio
 interface. Designed for Kunquat music tools, the module only exists

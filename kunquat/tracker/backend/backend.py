@@ -23,7 +23,7 @@ def gen_sine(rate):
     while True:
         phase += 440 * 2 * math.pi / rate
         phase %= 2 * math.pi
-        yield math.sin(phase)
+        yield math.sin(phase) * 0.3
 
 
 class Backend():

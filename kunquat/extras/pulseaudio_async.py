@@ -11,152 +11,21 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+"""A wrapper for the asynchronous PulseAudio library.
+
+This module provides limited support for the asynchronous PulseAudio
+interface. Designed for Kunquat music tools, the module only exists
+because there is no widespread Python wrapper yet. As soon as one
+becomes available in major distributions, this module will be removed.
+
+"""
+
 
 from __future__ import division, print_function
 import ctypes
-import math
 import Queue
-import sys
-import time
 
-
-def make_c_enum(names):
-    for i, name in enumerate(names):
-        globals()[name] = i
-
-
-# Sample format
-
-_pa_sample_format = [
-        'PA_SAMPLE_U8',
-        'PA_SAMPLE_ALAW',
-        'PA_SAMPLE_ULAW',
-        'PA_SAMPLE_S16LE',
-        'PA_SAMPLE_S16BE',
-        'PA_SAMPLE_FLOAT32LE',
-        'PA_SAMPLE_FLOAT32BE',
-        'PA_SAMPLE_S32LE',
-        'PA_SAMPLE_S32BE',
-        'PA_SAMPLE_S24LE',
-        'PA_SAMPLE_S24BE',
-        'PA_SAMPLE_S24_32LE',
-        'PA_SAMPLE_S24_32BE',
-        'PA_SAMPLE_MAX',
-    ]
-make_c_enum(_pa_sample_format)
-PA_SAMPLE_INVALID = -1
-
-if sys.byteorder == 'little':
-    PA_SAMPLE_FLOAT32NE = PA_SAMPLE_FLOAT32LE
-else:
-    PA_SAMPLE_FLOAT32NE = PA_SAMPLE_FLOAT32BE
-PA_SAMPLE_FLOAT32 = PA_SAMPLE_FLOAT32NE
-
-
-# Context flags
-
-PA_CONTEXT_NOFLAGS     = 0x0000
-PA_CONTEXT_NOAUTOSPAWN = 0x0001
-PA_CONTEXT_NOFAIL      = 0x0002
-
-# Context state
-
-_pa_context_state = [
-        'PA_CONTEXT_UNCONNECTED',
-        'PA_CONTEXT_CONNECTING',
-        'PA_CONTEXT_AUTHORIZING',
-        'PA_CONTEXT_SETTING_NAME',
-        'PA_CONTEXT_READY',
-        'PA_CONTEXT_FAILED',
-        'PA_CONTEXT_TERMINATED',
-    ]
-make_c_enum(_pa_context_state)
-
-
-# Stream flags
-
-PA_STREAM_NOFLAGS            = 0x0000
-PA_STREAM_START_CORKED       = 0x0001
-PA_STREAM_INTERPOLATE_TIMING = 0x0002
-PA_STREAM_NOT_MONOTONIC      = 0x0004
-PA_STREAM_AUTO_TIMING_UPDATE = 0x0008
-PA_STREAM_NO_REMAP_CHANNELS  = 0x0010
-PA_STREAM_NO_REMIX_CHANNELS  = 0x0020
-PA_STREAM_FIX_FORMAT         = 0x0040
-PA_STREAM_FIX_RATE           = 0x0080
-PA_STREAM_FIX_CHANNELS       = 0x0100
-PA_STREAM_DONT_MOVE          = 0x0200
-PA_STREAM_VARIABLE_RATE      = 0x0400
-PA_STREAM_PEAK_DETECT        = 0x0800
-PA_STREAM_START_MUTED        = 0x1000
-PA_STREAM_ADJUST_LATENCY     = 0x2000
-PA_STREAM_EARLY_REQUESTS     = 0x4000
-PA_STREAM_DONT_INHIBIT_AUTO_SUSPEND = 0x8000
-PA_STREAM_START_UNMUTED      = 0x10000
-PA_STREAM_FAIL_ON_SUSPEND    = 0x20000
-PA_STREAM_RELATIVE_VOLUME    = 0x40000
-PA_STREAM_PASSTHROUGH        = 0x80000
-
-# Stream state
-
-_pa_stream_state = [
-        'PA_STREAM_UNCONNECTED',
-        'PA_STREAM_CREATING',
-        'PA_STREAM_READY',
-        'PA_STREAM_FAILED',
-        'PA_STREAM_TERMINATED',
-    ]
-make_c_enum(_pa_stream_state)
-
-# Seek mode
-
-# No idea why PulseAudio specifies the values explicitly instead of
-# relying on the enum construct; following the same style here
-PA_SEEK_RELATIVE         = 0
-PA_SEEK_ABSOLUTE         = 1
-PA_SEEK_RELATIVE_ON_READ = 2
-PA_SEEK_RELATIVE_END     = 3
-
-
-# Operation state
-
-_pa_operation_state = [
-        'PA_OPERATION_RUNNING',
-        'PA_OPERATION_DONE',
-        'PA_OPERATION_CANCELLED',
-    ]
-make_c_enum(_pa_operation_state)
-
-
-class _SampleSpec(ctypes.Structure):
-    _fields_ = [
-            ('format', ctypes.c_int), # _pa_sample_format
-            ('rate', ctypes.c_uint32),
-            ('channels', ctypes.c_uint8),
-        ]
-
-class _BufferAttr(ctypes.Structure):
-    _fields_ = [
-            ('maxlength', ctypes.c_uint32),
-            ('tlength', ctypes.c_uint32),
-            ('prebuf', ctypes.c_uint32),
-            ('minreq', ctypes.c_uint32),
-            ('fragsize', ctypes.c_uint32),
-        ]
-
-"""
-PA_CHANNELS_MAX = 32
-
-PA_VOLUME_NORM = 0x10000
-PA_VOLUME_MUTED = 0
-PA_VOLUME_MAX = 2**31 - 1
-
-class _CVolume(ctypes.Structure):
-    _fields_ = [
-            ('channels', ctypes.c_uint8),
-            ('values', ctypes.c_uint32 * PA_CHANNELS_MAX), # pa_volume
-        ]
-"""
+from pulseaudio_def import *
 
 
 class Async(object):
@@ -211,6 +80,7 @@ class Async(object):
         self._context = None
         self._stream = None
         self._context_q = Queue.Queue()
+        self._stream_q = Queue.Queue()
 
         # Create C callback objects
         def cs_cb(context, userdata):
@@ -277,7 +147,7 @@ class Async(object):
 
         # Create stream
         assert not self._stream
-        ss = _SampleSpec(PA_SAMPLE_FLOAT32, self._rate, self._channels)
+        ss = SampleSpec(PA_SAMPLE_FLOAT32, self._rate, self._channels)
         self._stream = _pa.pa_stream_new(
                 self._context,
                 self._stream_name,
@@ -292,7 +162,7 @@ class Async(object):
         _pa.pa_stream_set_write_callback(self._stream, self._sw_cb, None)
 
         # Connect stream
-        buf_attr = _BufferAttr(
+        buf_attr = BufferAttr(
                 ctypes.c_uint32(-1), # maxlength
                 _pa.pa_usec_to_bytes(self._latency, ctypes.byref(ss)),
                 ctypes.c_uint32(-1), # prebuf
@@ -310,6 +180,15 @@ class Async(object):
                 ) < 0:
             raise PulseAudioError('Could not connect stream')
 
+        # Wait until stream is ready
+        state = self._stream_q.get(True, 2)
+        while state != PA_STREAM_READY:
+            if state == PA_STREAM_FAILED:
+                raise PulseAudioError('Stream creation failed: {}'.format(
+                    _pa.pa_strerror(_pa.pa_context_errno(self._context))
+                    ))
+            state = self._stream_q.get(True, 2)
+
     def _context_state_cb(self, context, userdata):
         assert context == self._context
 
@@ -320,6 +199,7 @@ class Async(object):
         assert stream == self._stream
 
         state = _pa.pa_stream_get_state(self._stream)
+        self._stream_q.put(state)
         if state == PA_STREAM_FAILED:
             print('Stream failed: {}'.format(
                 _pa.pa_strerror(_pa.pa_context_errno(self._context))
@@ -334,16 +214,19 @@ class Async(object):
         # Create buffer
         cdata = (ctypes.c_float * (frame_count * self._channels))()
 
-        # Get audio data
-        bufs = self._audio_cb(frame_count)
-        assert len(bufs) == self._channels
+        # Make sure the stream is not corked
+        # This fixes a PulseAudio annoyance after init
+        if not _pa.pa_stream_is_corked(self._stream):
+            # Get audio data
+            bufs = self._audio_cb(frame_count)
+            assert len(bufs) == self._channels
 
-        # Fill buffer with audio data
-        for ch in xrange(self._channels):
-            assert len(bufs[ch]) <= frame_count
-            buf = bufs[ch]
-            buf.extend([0] * (frame_count - len(buf)))
-            cdata[ch::self._channels] = buf
+            # Fill buffer with audio data
+            for ch in xrange(self._channels):
+                assert len(bufs[ch]) <= frame_count
+                buf = bufs[ch]
+                buf.extend([0] * (frame_count - len(buf)))
+                cdata[ch::self._channels] = buf
 
         # Write data
         if _pa.pa_stream_write(
@@ -364,8 +247,10 @@ class Async(object):
     def play(self):
         """Start playback."""
         assert self._stream
+        assert _pa.pa_stream_get_state(self._stream) == PA_STREAM_READY
         _pa.pa_threaded_mainloop_lock(self._ml)
         op = _pa.pa_stream_cork(self._stream, 0, self._ssucc_cb, None)
+        assert op
         _pa.pa_operation_unref(op)
         _pa.pa_threaded_mainloop_unlock(self._ml)
 
@@ -374,6 +259,7 @@ class Async(object):
         assert self._stream
         _pa.pa_threaded_mainloop_lock(self._ml)
         op = _pa.pa_stream_cork(self._stream, 1, self._ssucc_cb, None)
+        assert op
         _pa.pa_operation_unref(op)
         _pa.pa_threaded_mainloop_unlock(self._ml)
 
@@ -410,15 +296,6 @@ class Async(object):
     def __del__(self):
         if self._ml:
             self.deinit()
-
-
-class PulseAudioError(Exception):
-    """Class for PulseAudio-related errors.
-
-    This error is raised whenever an underlying PulseAudio function
-    call fails.
-
-    """
 
 
 _pa = ctypes.CDLL('libpulse.so')
@@ -519,7 +396,7 @@ _pa.pa_context_unref.restype = None
 _pa.pa_stream_new.argtypes = [
         _pa_context,
         ctypes.c_char_p,
-        ctypes.POINTER(_SampleSpec),
+        ctypes.POINTER(SampleSpec),
         ctypes.c_void_p] # channel map
 _pa.pa_stream_new.restype = _pa_stream
 
@@ -541,7 +418,7 @@ _pa.pa_stream_set_write_callback.restype = None
 _pa.pa_stream_connect_playback.argtypes = [
         _pa_stream,
         ctypes.c_char_p,
-        ctypes.POINTER(_BufferAttr),
+        ctypes.POINTER(BufferAttr),
         ctypes.c_int, # pa_stream_flags
         _pa_cvolume,
         _pa_stream] # sync stream
@@ -590,10 +467,10 @@ _pa.pa_operation_unref.restype = None
 
 # Helper functions
 
-_pa.pa_usec_to_bytes.argtypes = [_pa_usec, ctypes.POINTER(_SampleSpec)]
+_pa.pa_usec_to_bytes.argtypes = [_pa_usec, ctypes.POINTER(SampleSpec)]
 _pa.pa_usec_to_bytes.restype = ctypes.c_size_t
 
-_pa.pa_bytes_to_usec.argtypes = [ctypes.c_uint64, ctypes.POINTER(_SampleSpec)]
+_pa.pa_bytes_to_usec.argtypes = [ctypes.c_uint64, ctypes.POINTER(SampleSpec)]
 _pa.pa_bytes_to_usec.restype = _pa_usec
 
 
