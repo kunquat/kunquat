@@ -22,24 +22,13 @@ class TestWindow(QMainWindow):
 
     def __init__(self):
         QMainWindow.__init__(self)
-
-        self._process_queue_timer = QTimer(self)
         self._fe = None
-        self._qp = None
 
     def set_frontend(self, fe):
         self._fe = fe
 
-    def set_queue_processor(self, qp):
-        self._qp = qp
-        QObject.connect(
-                self._process_queue_timer,
-                SIGNAL('timeout()'),
-                qp)
-        self._process_queue_timer.start(20)
-
     def __del__(self):
-        self._process_queue_timer.stop()
+        pass
 
 
 class Ui():
@@ -47,12 +36,20 @@ class Ui():
     def __init__(self):
         self._app = QApplication(sys.argv)
         self._mainwindow = TestWindow()
+        self._qp = None
+        self._qp_timer = QTimer()
 
     def set_frontend(self, fe):
         self._mainwindow.set_frontend(fe)
 
     def set_queue_processor(self, qp):
-        self._mainwindow.set_queue_processor(qp)
+        assert not self._qp
+        self._qp = qp
+        QObject.connect(
+                self._qp_timer,
+                SIGNAL('timeout()'),
+                self._qp)
+        self._qp_timer.start(20)
 
     def halt(self):
         self._app.exit()
@@ -60,5 +57,6 @@ class Ui():
     def run(self):
         self._mainwindow.show()
         self._app.exec_()
+        self._qp_timer.stop()
 
 

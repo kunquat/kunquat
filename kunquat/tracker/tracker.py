@@ -46,5 +46,6 @@ def main():
     ft.join()
     bt.join()
     at.join()
+    time.sleep(0.1)
 
 
