@@ -11,7 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from drivers.pulseaudio import Pulseaudio
+from drivers.pushaudio import Pushaudio
 
 
 class Audio():
@@ -30,6 +30,8 @@ class Audio():
     def select_driver(self, name):
         if name == 'pulse':
             self._driver = Pulseaudio()
+        elif name == 'push':
+            self._driver = Pushaudio()
         else:
             assert False
         self._driver.set_audio_generator(self)
