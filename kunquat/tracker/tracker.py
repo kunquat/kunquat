@@ -26,7 +26,7 @@ def main():
 
     at.set_backend(bt)
     bt.set_frontend(ft)
-    bt.set_audio_driver(at)
+    bt.set_audio_output(at)
     ft.set_backend(bt)
 
     at.start()

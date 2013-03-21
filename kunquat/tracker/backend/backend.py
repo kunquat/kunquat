@@ -29,20 +29,20 @@ def gen_sine(rate):
 class Backend():
 
     def __init__(self):
-        self._driver = None
+        self._audio_output = None
         self._frontend = None
 
         self._sine = gen_sine(48000)
 
-    def set_audio_driver(self, driver):
-        self._driver = driver
+    def set_audio_output(self, audio_output):
+        self._audio_output = audio_output
 
     def set_frontend(self, frontend):
         self._frontend = frontend
 
-    def generate(self, nframes):
+    def generate_audio(self, nframes):
         data_mono = list(islice(self._sine, nframes))
         data = (data_mono, data_mono)
-        self._driver.put_audio(data)
+        self._audio_output.put_audio(data)
 
 

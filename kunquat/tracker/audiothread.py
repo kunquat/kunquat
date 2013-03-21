@@ -16,10 +16,11 @@ import Queue
 import threading
 
 from command import Command
-from drivers.pulseaudio import Pulseaudio
+from audio.audio import Audio
 
 C_HALT = 'halt'
 C_PUT_AUDIO = 'put_audio'
+
 
 class AudioThread(threading.Thread):
 
@@ -27,13 +28,15 @@ class AudioThread(threading.Thread):
         threading.Thread.__init__(self)
         self._backend = None
         self._q = Queue.Queue()
-        self._driver = Pulseaudio()
+        self._audio = Audio()
 
     # Driver interface
 
     def set_backend(self, backend):
-        self._backend = backend
-        self._driver.set_audio_generator(backend)
+        self._audio.set_backend(backend)
+
+    def select_driver(self, name):
+        self._audio.select_driver(name)
 
     def put_audio(self, audio):
         self._q.put(Command(C_PUT_AUDIO, audio))
@@ -44,11 +47,11 @@ class AudioThread(threading.Thread):
         self._q.put(Command(C_HALT, None))
 
     def run(self):
-        self._driver.start()
+        self.select_driver('pulse')
         cmd = self._q.get()
         while cmd.name != C_HALT:
             if cmd.name == C_PUT_AUDIO:
-                self._driver.put_audio(cmd.arg)
+                self._audio.put_audio(cmd.arg)
             else:
                 assert False
             cmd = self._q.get()

@@ -30,13 +30,13 @@ class BackendThread(threading.Thread):
 
     # Backend interface
 
-    def set_audio_driver(self, driver):
-        self._backend.set_audio_driver(driver)
+    def set_audio_output(self, audio_output):
+        self._backend.set_audio_output(audio_output)
 
     def set_frontend(self, frontend):
         self._backend.set_frontend(frontend)
 
-    def generate(self, nframes):
+    def generate_audio(self, nframes):
         self._q.put(Command(C_GENERATE, nframes))
 
     # Threading interface
@@ -48,7 +48,7 @@ class BackendThread(threading.Thread):
         cmd = self._q.get()
         while cmd.name != C_HALT:
             if cmd.name == C_GENERATE:
-                self._backend.generate(cmd.arg)
+                self._backend.generate_audio(cmd.arg)
             else:
                 assert False
             cmd = self._q.get()
