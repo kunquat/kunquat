@@ -28,6 +28,7 @@ def main():
     bt.set_frontend(ft)
     bt.set_audio_output(at)
     ft.set_backend(bt)
+    ft.set_audio_output(at)
 
     at.start()
     bt.start()

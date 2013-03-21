@@ -44,4 +44,6 @@ class Pulseaudio():
     def start(self):
         self._pa.play()
 
+    def stop(self):
+        self._pa.stop()
 

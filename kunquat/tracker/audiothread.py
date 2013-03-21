@@ -47,7 +47,6 @@ class AudioThread(threading.Thread):
         self._q.put(Command(C_HALT, None))
 
     def run(self):
-        self.select_driver('pulse')
         cmd = self._q.get()
         while cmd.name != C_HALT:
             if cmd.name == C_PUT_AUDIO:

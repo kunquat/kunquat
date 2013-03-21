@@ -35,3 +35,5 @@ class Pushaudio():
     def start(self):
         self.next()
 
+    def stop(self):
+        pass

@@ -16,8 +16,16 @@ class Frontend():
 
     def __init__(self):
         self._backend = None
+        self._audio_output = None
 
     def set_backend(self, backend):
         self._backend = backend
 
+    def set_audio_output(self, audio_output):
+        self._audio_output = audio_output
+
+    # Ui interface
+
+    def select_audio_driver(self, name):
+        self._audio_output.select_driver(name)
 

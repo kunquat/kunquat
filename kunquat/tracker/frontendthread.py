@@ -34,6 +34,9 @@ class FrontendThread(threading.Thread):
     def set_backend(self, backend):
         self._frontend.set_backend(backend)
 
+    def set_audio_output(self, audio_output):
+        self._frontend.set_audio_output(audio_output)
+
     def queue_event(self, event):
         self._q.put(event)
 
@@ -58,6 +61,7 @@ class FrontendThread(threading.Thread):
         self._ui = Ui()
         self._ui.set_frontend(self._frontend)
         self._ui.set_queue_processor(self._process_queue)
+        self._ui.start_driver_randomizer()
         self._ui.run()
 
 
