@@ -15,12 +15,9 @@
 class Frontend():
 
     def __init__(self):
-        self._cp = None
+        self._backend = None
 
-    def process_event(self, event):
-        pass
-
-    def set_command_processor(self, cp):
-        self._cp = cp
+    def set_backend(self, backend):
+        self._backend = backend
 
 

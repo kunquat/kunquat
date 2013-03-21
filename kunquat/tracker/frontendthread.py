@@ -19,6 +19,7 @@ from command import Command
 from frontend.frontend import Frontend
 from qt.ui import Ui
 
+C_HALT = 'halt'
 
 class FrontendThread(threading.Thread):
 
@@ -28,21 +29,25 @@ class FrontendThread(threading.Thread):
         self._frontend = Frontend()
         self._ui = None
 
-    def set_command_processor(self, cp):
-        self._frontend.set_command_processor(cp)
+    # Frontend interface
+
+    def set_backend(self, backend):
+        self._frontend.set_backend(backend)
 
     def queue_event(self, event):
         self._q.put(event)
 
+    # Threading interface
+
     def halt(self):
-        self.queue_event(Command('halt', None))
+        self.queue_event(Command(C_HALT, None))
 
     def _process_queue(self):
         count_estimate = self._q.qsize()
         for _ in range(count_estimate):
             try:
                 event = self._q.get_nowait()
-                if event.name == 'halt':
+                if event.name == C_HALT:
                     self._ui.halt()
                 else:
                     self._frontend.process_event(event)
