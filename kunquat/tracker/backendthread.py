@@ -18,6 +18,8 @@ import threading
 from backend.backend import Backend
 from command import Command
 
+C_GENERATE = 'generate'
+C_HALT = 'halt'
 
 class BackendThread(threading.Thread):
 
@@ -26,22 +28,29 @@ class BackendThread(threading.Thread):
         self._q = Queue.Queue()
         self._backend = Backend()
 
-    def set_audio_processor(self, ap):
-        self._backend.set_audio_processor(ap)
+    # Backend interface
 
-    def set_event_processor(self, ep):
-        self._backend.set_event_processor(ep)
+    def set_audio_output(self, audio_output):
+        self._backend.set_audio_output(audio_output)
 
-    def queue_command(self, cmd):
-        self._q.put(cmd)
+    def set_frontend(self, frontend):
+        self._backend.set_frontend(frontend)
+
+    def generate_audio(self, nframes):
+        self._q.put(Command(C_GENERATE, nframes))
+
+    # Threading interface
 
     def halt(self):
-        self.queue_command(Command('halt', None))
+        self._q.put(Command(C_HALT, None))
 
     def run(self):
         cmd = self._q.get()
-        while cmd.name != 'halt':
-            self._backend.process_command(cmd)
+        while cmd.name != C_HALT:
+            if cmd.name == C_GENERATE:
+                self._backend.generate_audio(cmd.arg)
+            else:
+                assert False
             cmd = self._q.get()
 
 

@@ -15,6 +15,7 @@
 from __future__ import print_function
 import sys
 import time
+import Queue
 
 from kunquat.extras.pulseaudio_async import Async
 
@@ -25,17 +26,24 @@ class Pulseaudio():
         self._pa = Async(
                 'Kunquat Tracker',
                 'Editor output',
-                self.get_audio)
+                self._pa_callback)
+        self._buffer = Queue.Queue()
         self._pa.init()
 
     def set_audio_generator(self, ag):
         self._ag = ag
 
-    def get_audio(self, nframes):
-        audio_data = self._ag(nframes)
-        return audio_data or ([], [])
+    def put_audio(self, audio):
+        self._buffer.put(audio)
+
+    def _pa_callback(self, nframes):
+        self._ag.generate(nframes)
+        audio_data = self._buffer.get()
+        return audio_data
 
     def start(self):
         self._pa.play()
 
+    def stop(self):
+        self._pa.stop()
 

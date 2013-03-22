@@ -24,10 +24,11 @@ def main():
     bt = BackendThread()
     ft = FrontendThread()
 
-    at.set_command_processor(bt.queue_command)
-    bt.set_event_processor(ft.queue_event)
-    bt.set_audio_processor(at.process_audio)
-    ft.set_command_processor(bt.queue_command)
+    at.set_backend(bt)
+    bt.set_frontend(ft)
+    bt.set_audio_output(at)
+    ft.set_backend(bt)
+    ft.set_audio_output(at)
 
     at.start()
     bt.start()

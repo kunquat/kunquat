@@ -29,22 +29,20 @@ def gen_sine(rate):
 class Backend():
 
     def __init__(self):
-        self._ap = None
-        self._ep = None
+        self._audio_output = None
+        self._frontend = None
 
         self._sine = gen_sine(48000)
 
-    def process_command(self, cmd):
-        if cmd.name == 'generate':
-            data_mono = list(islice(self._sine, cmd.arg))
-            data = (data_mono, data_mono)
-            self._ap(Command('audio', data))
+    def set_audio_output(self, audio_output):
+        self._audio_output = audio_output
 
-    def set_audio_processor(self, ap):
-        self._ap = ap
+    def set_frontend(self, frontend):
+        self._frontend = frontend
 
-    def set_event_processor(self, ep):
-        """storage, environment and tracker events"""
-        self._ep = ep
+    def generate_audio(self, nframes):
+        data_mono = list(islice(self._sine, nframes))
+        data = (data_mono, data_mono)
+        self._audio_output.put_audio(data)
 
 

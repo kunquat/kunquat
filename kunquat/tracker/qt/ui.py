@@ -38,8 +38,11 @@ class Ui():
         self._mainwindow = TestWindow()
         self._qp = None
         self._qp_timer = QTimer()
+        self._driver_switch_timer = QTimer()
+        self._fe = None
 
     def set_frontend(self, fe):
+        self._fe = fe
         self._mainwindow.set_frontend(fe)
 
     def set_queue_processor(self, qp):
@@ -50,6 +53,19 @@ class Ui():
                 SIGNAL('timeout()'),
                 self._qp)
         self._qp_timer.start(20)
+
+    def select_random_driver(self):
+        import random
+        one = random.choice(['pulse','push','none'])
+        print 'driver: %s' % one
+        self._fe.select_audio_driver(one)
+
+    def start_driver_randomizer(self):
+        QObject.connect(
+                self._driver_switch_timer,
+                SIGNAL('timeout()'),
+                self.select_random_driver)
+        self._driver_switch_timer.start(1000)
 
     def halt(self):
         self._app.exit()

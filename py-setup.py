@@ -30,7 +30,8 @@ if '--disable-tracker' not in sys.argv:
     inc_pkgs[len(inc_pkgs):len(inc_pkgs)] = [
             'kunquat.tracker',
             'kunquat.tracker.backend',
-            'kunquat.tracker.drivers',
+            'kunquat.tracker.audio',
+            'kunquat.tracker.audio.drivers',
             'kunquat.tracker.frontend',
             'kunquat.tracker.qt',
             ]

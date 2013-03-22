@@ -15,12 +15,17 @@
 class Frontend():
 
     def __init__(self):
-        self._cp = None
+        self._backend = None
+        self._audio_output = None
 
-    def process_event(self, event):
-        pass
+    def set_backend(self, backend):
+        self._backend = backend
 
-    def set_command_processor(self, cp):
-        self._cp = cp
+    def set_audio_output(self, audio_output):
+        self._audio_output = audio_output
 
+    # Ui interface
+
+    def select_audio_driver(self, name):
+        self._audio_output.select_driver(name)
 
