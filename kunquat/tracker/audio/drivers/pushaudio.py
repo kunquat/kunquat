@@ -30,7 +30,8 @@ class Pushaudio():
 
     def next(self):
         nframes = 20
-        self._ag.generate(nframes)
+        if self._ag != None:
+            self._ag.generate(nframes)
 
     def start(self):
         self.next()
