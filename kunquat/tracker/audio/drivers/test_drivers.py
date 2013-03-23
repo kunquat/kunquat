@@ -21,6 +21,9 @@ class TestDrivers(unittest.TestCase):
     def setUp(self):
         pass
 
+    def _quickpush(self, driver):
+        driver.put_audio(([0],[0]))
+
     def _prefeed(self, driver):
         class gen():
             def generate(self,foo):
@@ -32,13 +35,17 @@ class TestDrivers(unittest.TestCase):
         driver.put_audio((10000*[0.1],10000*[0.1]))
         driver.stop()
 
-    def test_pushaudio_prefeed(self):
-        driver = Pushaudio()
+    def _run_tests(self, DriverClass):
+        driver = DriverClass()
         self._prefeed(driver)
+        driver = DriverClass()
+        self._quickpush(driver)
+ 
+    def test_pushaudio(self):
+        self._run_tests(Pushaudio)
 
-    def test_pulseaudio_prefeed(self):
-        driver = Pulseaudio()
-        self._prefeed(driver)
+    def test_pulseaudio(self):
+        self._run_tests(Pulseaudio)
 
 if __name__ == '__main__':
     unittest.main()
