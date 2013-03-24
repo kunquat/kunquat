@@ -14,10 +14,8 @@
 import threading
 import unittest
 from time import sleep
-from pulseaudio import Pulseaudio
-from pushaudio import Pushaudio
 
-class TestDrivers(unittest.TestCase):
+class TestAbstractDriver(unittest.TestCase):
 
     def setUp(self):
         pass
@@ -45,7 +43,7 @@ class TestDrivers(unittest.TestCase):
                 pass
         driver.set_audio_generator(gen())
         driver.start()
-        driver.stop()
+        #driver.close()
 
     def _driver_cleanup(self, DriverClass):
         initial_threads = threading.active_count()
@@ -54,17 +52,9 @@ class TestDrivers(unittest.TestCase):
         remaining_threads = threading.active_count()
         self.assertEqual(initial_threads, remaining_threads)
 
-    def _run_tests(self, DriverClass):
+    def run_tests(self, DriverClass):
         self._prefeed(DriverClass)
         self._quickpush(DriverClass)
         self._driver_cleanup(DriverClass)
 
-    def test_pushaudio(self):
-        self._run_tests(Pushaudio)
-
-    def test_pulseaudio(self):
-        self._run_tests(Pulseaudio)
-
-if __name__ == '__main__':
-    unittest.main()
 

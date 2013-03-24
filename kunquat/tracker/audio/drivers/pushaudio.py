@@ -38,3 +38,8 @@ class Pushaudio():
 
     def stop(self):
         pass
+
+    def close(self):
+        self.stop()
+
+
