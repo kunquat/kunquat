@@ -14,7 +14,7 @@
 
 import time
 
-from kunquat.tracker.qt.ui import QtLauncher
+from kunquat.tracker.qt.launcher import QtLauncher
 from kunquat.tracker.threads.audiothread import AudioThread
 from kunquat.tracker.threads.backendthread import BackendThread
 from kunquat.tracker.threads.frontendthread import FrontendThread
