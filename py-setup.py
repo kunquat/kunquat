@@ -34,7 +34,7 @@ if '--disable-tracker' not in sys.argv:
             'kunquat.tracker.audio.drivers',
             'kunquat.tracker.frontend',
             'kunquat.tracker.qt',
-            'kunquat.tracker.threading'
+            'kunquat.tracker.threads'
             ]
     inc_scripts.append('tracker/kunquat-tracker')
 else:

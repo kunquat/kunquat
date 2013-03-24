@@ -14,9 +14,9 @@
 
 import time
 
-from kunquat.tracker.threading.audiothread import AudioThread
-from kunquat.tracker.threading.backendthread import BackendThread
-from kunquat.tracker.threading.frontendthread import FrontendThread
+from kunquat.tracker.threads.audiothread import AudioThread
+from kunquat.tracker.threads.backendthread import BackendThread
+from kunquat.tracker.threads.frontendthread import FrontendThread
 
 
 def main():
