@@ -16,7 +16,8 @@ from ui import Ui
 
 class QtLauncher():
 
-    def __init__(self):
+    def __init__(self, show=True):
+        self._show = show
         self._frontend = None
         self._queue_processor = None
 
@@ -33,6 +34,8 @@ class QtLauncher():
         self._ui = Ui()
         self._ui.set_frontend(self._frontend)
         self._ui.set_queue_processor(self._queue_processor)
+        if self._show == True:
+            self._ui.show()
         self._ui.run()
 
 
