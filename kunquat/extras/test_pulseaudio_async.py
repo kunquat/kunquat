@@ -28,7 +28,7 @@ class TestPulseaudioAsync(unittest.TestCase):
     def test_basics(self):
         self._calls = 0
         self._pa = Async(
-                'PulseAudio Python Wrapper Unit Test',
+                'PulseAudio Asynchronous Python Wrapper Unit Test',
                 'Basic Test',
                 self._pa_callback)
         self._pa.init()
