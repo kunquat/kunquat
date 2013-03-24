@@ -21,6 +21,7 @@ from commandqueue import CommandQueue
 foo = Command('foo', '')
 bar = Command('bar', None)
 baz = Command('baz', Thread())
+quux = Command('quux', 2)
 
 incorrect_arg = Command('foo', [])
 
@@ -35,9 +36,11 @@ class TestCommandQueue(unittest.TestCase):
         q.put(foo)
         q.put(bar)
         q.put(baz)
+        q.put(quux)
         self.assertEqual(q.get(), foo)
         self.assertEqual(q.get(), bar)
         self.assertEqual(q.get(), baz)
+        self.assertEqual(q.get(), quux)
 
     def test_nowait(self):
         q = CommandQueue()
