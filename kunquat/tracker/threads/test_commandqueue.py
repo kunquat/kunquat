@@ -15,11 +15,12 @@ import unittest
 
 from Queue import Empty
 from command import Command
+from threading import Thread
 from commandqueue import CommandQueue
 
 foo = Command('foo', '')
-bar = Command('bar', '')
-baz = Command('baz', '')
+bar = Command('bar', None)
+baz = Command('baz', Thread())
 
 incorrect_arg = Command('foo', [])
 
