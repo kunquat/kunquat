@@ -15,8 +15,6 @@
 from itertools import islice
 import math
 
-from kunquat.tracker.command import Command
-
 
 def gen_sine(rate):
     phase = 0
