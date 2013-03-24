@@ -11,6 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+import threading
 import unittest
 from time import sleep
 from pulseaudio import Pulseaudio
@@ -21,10 +22,12 @@ class TestDrivers(unittest.TestCase):
     def setUp(self):
         pass
 
-    def _quickpush(self, driver):
+    def _quickpush(self, DriverClass):
+        driver = DriverClass()
         driver.put_audio(([0],[0]))
 
-    def _prefeed(self, driver):
+    def _prefeed(self, DriverClass):
+        driver = DriverClass()
         class gen():
             def generate(self,foo):
                 pass
@@ -35,12 +38,28 @@ class TestDrivers(unittest.TestCase):
         driver.put_audio((10000*[0.1],10000*[0.1]))
         driver.stop()
 
+    def _start_and_stop_new_driver(self, DriverClass):
+        driver = DriverClass()
+        class gen():
+            def generate(self,foo):
+                pass
+        driver.set_audio_generator(gen())
+        driver.start()
+        #sleep(1)
+        driver.stop()
+
+    def _threadleak(self, DriverClass):
+        initial_threads = threading.active_count()
+        for i in xrange(50):
+            self._start_and_stop_new_driver(DriverClass)
+        remaining_threads = threading.active_count()
+        self.assertEqual(initial_threads, remaining_threads)
+
     def _run_tests(self, DriverClass):
-        driver = DriverClass()
-        self._prefeed(driver)
-        driver = DriverClass()
-        self._quickpush(driver)
- 
+        self._prefeed(DriverClass)
+        self._quickpush(DriverClass)
+        self._threadleak(DriverClass)
+
     def test_pushaudio(self):
         self._run_tests(Pushaudio)
 
