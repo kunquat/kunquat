@@ -62,7 +62,7 @@ class Ui():
         print 'driver: %s' % one
         drivers.select_audio_driver(one)
 
-    def start_driver_randomizer(self):
+    def _start_driver_randomizer(self):
         QObject.connect(
                 self._driver_switch_timer,
                 SIGNAL('timeout()'),
@@ -73,8 +73,31 @@ class Ui():
         self._app.exit()
 
     def run(self):
+        self._start_driver_randomizer()
         self._mainwindow.show()
         self._app.exec_()
         self._qp_timer.stop()
+
+
+class QtLauncher():
+
+    def __init__(self):
+        self._frontend = None
+        self._queue_processor = None
+
+    def set_frontend(self, frontend):
+        self._frontend = frontend
+
+    def set_queue_processor(self, queue_processor):
+        self._queue_processor = queue_processor
+
+    def halt_ui(self):
+        self._ui.halt()
+
+    def run_ui(self):
+        self._ui = Ui()
+        self._ui.set_frontend(self._frontend)
+        self._ui.set_queue_processor(self._queue_processor)
+        self._ui.run()
 
 

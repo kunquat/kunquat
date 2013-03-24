@@ -17,7 +17,6 @@ import threading
 
 from command import Command
 from kunquat.tracker.frontend.frontend import Frontend
-from kunquat.tracker.qt.ui import Ui
 
 C_HALT = 'halt'
 C_UPDATE_DRIVERS = 'update_drivers'
@@ -28,7 +27,7 @@ class FrontendThread(threading.Thread):
         threading.Thread.__init__(self)
         self._q = Queue.Queue()
         self._frontend = Frontend()
-        self._ui = None
+        self._ui_launcher = None
 
     # Frontend interface
 
@@ -43,6 +42,11 @@ class FrontendThread(threading.Thread):
 
     # Threading interface
 
+    def set_ui_launcher(self, ui):
+        self._ui_launcher = ui
+        self._ui_launcher.set_frontend(self._frontend)
+        self._ui_launcher.set_queue_processor(self._process_queue)
+
     def halt(self):
         self._q.put(Command(C_HALT, None))
 
@@ -52,7 +56,7 @@ class FrontendThread(threading.Thread):
             try:
                 command = self._q.get_nowait()
                 if command.name == C_HALT:
-                    self._ui.halt()
+                    self._ui_launcher.halt_ui()
                 elif command.name == C_UPDATE_DRIVERS:
                     self._frontend.update_drivers(command.arg)
                 else:
@@ -61,10 +65,6 @@ class FrontendThread(threading.Thread):
                 break
 
     def run(self):
-        self._ui = Ui()
-        self._ui.set_frontend(self._frontend)
-        self._ui.set_queue_processor(self._process_queue)
-        self._ui.start_driver_randomizer()
-        self._ui.run()
+        self._ui_launcher.run_ui()
 
 

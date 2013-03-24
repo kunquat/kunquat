@@ -14,6 +14,7 @@
 
 import time
 
+from kunquat.tracker.qt.ui import QtLauncher
 from kunquat.tracker.threads.audiothread import AudioThread
 from kunquat.tracker.threads.backendthread import BackendThread
 from kunquat.tracker.threads.frontendthread import FrontendThread
@@ -23,6 +24,7 @@ def main():
     audio_thread = AudioThread()
     backend_thread = BackendThread()
     frontend_thread = FrontendThread()
+    ui_launcher = QtLauncher()
 
     audio_thread.set_backend(backend_thread)
     audio_thread.set_frontend(frontend_thread)
@@ -30,6 +32,7 @@ def main():
     backend_thread.set_audio_output(audio_thread)
     frontend_thread.set_backend(backend_thread)
     frontend_thread.set_audio_output(audio_thread)
+    frontend_thread.set_ui_launcher(ui_launcher)
 
     audio_thread.start()
     backend_thread.start()
