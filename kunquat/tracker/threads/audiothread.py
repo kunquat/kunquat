@@ -12,6 +12,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+import json
 import threading
 
 from command import Command
@@ -42,7 +43,8 @@ class AudioThread(threading.Thread):
         self._audio.select_driver(name)
 
     def put_audio(self, audio):
-        self._q.put(Command(C_PUT_AUDIO, audio))
+        arg = json.dumps(audio)
+        self._q.put(Command(C_PUT_AUDIO, arg))
 
     # Threading interface
 
@@ -54,7 +56,8 @@ class AudioThread(threading.Thread):
         cmd = self._q.get()
         while cmd.name != C_HALT:
             if cmd.name == C_PUT_AUDIO:
-                self._audio.put_audio(cmd.arg)
+                audio = tuple(json.loads(cmd.arg))
+                self._audio.put_audio(audio)
             else:
                 assert False
             cmd = self._q.get()
