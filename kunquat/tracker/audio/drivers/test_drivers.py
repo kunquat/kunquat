@@ -45,7 +45,6 @@ class TestDrivers(unittest.TestCase):
                 pass
         driver.set_audio_generator(gen())
         driver.start()
-        #sleep(1)
         driver.stop()
 
     def _driver_cleanup(self, DriverClass):
