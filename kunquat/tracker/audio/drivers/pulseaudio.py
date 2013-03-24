@@ -21,7 +21,7 @@ from kunquat.extras.pulseaudio_async import Async
 
 def split_list_at(lst, i):
     """
-    >>> split_list_at([1,2,3], 1)
+    >>> split_list_at([1, 2, 3], 1)
     ([1], [2, 3])
     """
     first = lst[:i]
@@ -29,6 +29,10 @@ def split_list_at(lst, i):
     return (first, second)
 
 def split_audio_at(audio, i):
+    """
+    >>> split_audio_at(([1, 2, 3], [4, 5, 6]), 1)
+    (([1], [4]), ([2, 3], [5, 6]))
+    """
     (left, right) = audio
     (left1, left2) = split_list_at(left, i)
     (right1, right2) = split_list_at(right, i)
@@ -37,6 +41,10 @@ def split_audio_at(audio, i):
     return (audio1, audio2)
 
 def join_audio(audio1, audio2):
+    """
+    >>> join_audio(([1], [4]), ([2, 3], [5, 6]))
+    ([1, 2, 3], [4, 5, 6])
+    """
     (left1, right1) = audio1
     (left2, right2) = audio2
     left = left1 + left2
