@@ -15,8 +15,9 @@
 import Queue
 import threading
 
-from kunquat.tracker.backend.backend import Backend
 from command import Command
+from commandqueue import CommandQueue
+from kunquat.tracker.backend.backend import Backend
 
 C_GENERATE = 'generate'
 C_HALT = 'halt'
@@ -25,7 +26,7 @@ class BackendThread(threading.Thread):
 
     def __init__(self):
         threading.Thread.__init__(self)
-        self._q = Queue.Queue()
+        self._q = CommandQueue()
         self._backend = Backend()
 
     # Backend interface
