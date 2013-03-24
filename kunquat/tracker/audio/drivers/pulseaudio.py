@@ -52,6 +52,15 @@ def join_audio(audio1, audio2):
     audio = (left, right)
     return audio
 
+def audio_len(audio):
+    """
+    >>> audio_len(([1, 2, 3], [4, 5, 6]))
+    3
+    """
+    (left, right) = audio
+    assert len(left) == len(right)
+    return len(left)
+
 class Pulseaudio():
 
     def __init__(self):
@@ -73,27 +82,38 @@ class Pulseaudio():
     def _next(self, nframes):
         self._ag.generate(nframes)
 
-    def _update_workspace(self):
+    def _add_audio_to_workspace(self, audio):
+        self._workspace = join_audio(self._workspace, audio)
+
+    def _flush_queue(self):
         items = self._buffer.qsize()
         for _ in range(items):
             fresh_audio = self._buffer.get()
-            self._workspace = join_audio(self._workspace, fresh_audio)
+            self._add_audio_to_workspace(fresh_audio)
+
+    def _update_workspace(self, nframes):
+        self._flush_queue()
+        missing = nframes - audio_len(self._workspace)
+        while missing > 0:
+            self._next(missing)
+            fresh_audio = self._buffer.get()
+            self._add_audio_to_workspace(fresh_audio)
+            missing = nframes - audio_len(self._workspace)
 
     def _read_workspace(self, nframes):
-        (left, right) = self._workspace
-        assert len(left) == len(right)
-        frames = len(left)
+        frames = audio_len(self._workspace)
         if frames > nframes:
             (audio_data, remainder) = split_audio_at(self._workspace, nframes)
-        else:
+        elif frames == nframes:
             audio_data = self._workspace
             remainder = ([],[])
+        else:
+            assert False
         self._workspace = remainder
         return audio_data
 
     def _pa_callback(self, nframes):
-        self._next(nframes)
-        self._update_workspace()
+        self._update_workspace(nframes)
         audio_data = self._read_workspace(nframes)
         return audio_data
 
