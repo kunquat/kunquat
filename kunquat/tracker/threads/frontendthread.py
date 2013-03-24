@@ -42,8 +42,8 @@ class FrontendThread(threading.Thread):
 
     # Threading interface
 
-    def set_ui_launcher(self, ui):
-        self._ui_launcher = ui
+    def set_ui_launcher(self, ui_launcher):
+        self._ui_launcher = ui_launcher
         self._ui_launcher.set_frontend(self._frontend)
         self._ui_launcher.set_queue_processor(self._process_queue)
 
