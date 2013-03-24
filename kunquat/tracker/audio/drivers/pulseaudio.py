@@ -28,7 +28,7 @@ class Pulseaudio():
                 'Editor output',
                 self._pa_callback)
         self._buffer = Queue.Queue()
-        self._current_chunk = None
+        self._workspace = ([],[])
         self._pa.init()
 
     def set_audio_generator(self, ag):
@@ -53,26 +53,40 @@ class Pulseaudio():
         audio2 = (left2, right2)
         return (audio1, audio2)
 
-    def _read_audio(self, nframes):
-        if self._current_chunk == None:
-            self._current_chunk = self._buffer.get()
-        (left, right) = self._current_chunk
+    def _join_audio(self, audio1, audio2):
+        (left1, right1) = audio1
+        (left2, right2) = audio2
+        left = left1 + left2
+        right = right1 + right2
+        audio = (left, right)
+        return audio
+
+    def _update_workspace(self):
+        items = self._buffer.qsize()
+        for _ in range(items):
+            fresh_audio = self._buffer.get()
+            self._workspace = self._join_audio(self._workspace, fresh_audio)
+
+    def _read_workspace(self, nframes):
+        (left, right) = self._workspace
         assert len(left) == len(right)
-        if len(left) > nframes:
-            (audio_data, remainder) = self._split_audio_at(self._current_chunk, nframes)
+        frames = len(left)
+        if frames > nframes:
+            (audio_data, remainder) = self._split_audio_at(self._workspace, nframes)
         else:
-            audio_data = self._current_chunk
-            remainder = None
-        self._current_chunk = remainder
+            audio_data = self._workspace
+            remainder = ([],[])
+        self._workspace = remainder
         return audio_data
 
     def _pa_callback(self, nframes):
         self._next(nframes)
-        audio_data = self._read_audio(nframes)
+        self._update_workspace()
+        audio_data = self._read_workspace(nframes)
         return audio_data
 
     def start(self):
-        self._next(20)
+        #self._next(20)
         self._pa.play()
 
     def stop(self):
