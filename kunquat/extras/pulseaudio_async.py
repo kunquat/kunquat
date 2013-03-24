@@ -50,10 +50,7 @@ class Async(object):
         audio_cb    -- Callback function to call when more audio is
                        needed.  The callback must accept the
                        following arguments:
-                       nframes -- Maximum number of frames to be
-                                  rendered.  It is OK to render less
-                                  frames (the audio buffer will be
-                                  padded with zeros), but not more.
+                       nframes -- Number of frames to be rendered.
                        The function must return the audio data in a
                        tuple/list where each element contains the audio
                        data of one channel.
@@ -230,10 +227,11 @@ class Async(object):
             # Fill buffer with audio data
             for ch in xrange(self._channels):
                 received_frames = len(bufs[ch])
-                if received_frames > frame_count:
-                    print('Expected {} frames, received {}'.format(
-                        frame_count, received_frames))
-                assert received_frames <= frame_count
+                if received_frames != frame_count:
+                    raise PulseAudioError(
+                            'Expected {} frames, received {}'.format(
+                            frame_count, received_frames)
+                        )
                 buf = bufs[ch]
                 buf.extend([0] * (frame_count - len(buf)))
                 cdata[ch::self._channels] = buf
