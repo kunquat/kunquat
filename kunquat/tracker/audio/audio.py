@@ -14,12 +14,24 @@
 from drivers.pulseaudio import Pulseaudio
 from drivers.pushaudio import Pushaudio
 
+D_NONE = 'none'
+D_PULSE = 'pulse'
+D_PUSH = 'push'
+
+drivers = {
+  D_NONE: {'name': 'no driver'},
+  D_PULSE: {'name': 'PulseAudio asynchronic pull driver'},
+  D_PUSH: {'name': 'PulseAudio synchronic push driver'}}
 
 class Audio():
 
     def __init__(self):
         self._backend = None
+        self._frontend = None
         self._driver = None
+
+    def init(self):
+        self._frontend.update_drivers(drivers)
 
     # Audio generator interface
 
@@ -31,11 +43,11 @@ class Audio():
     def select_driver(self, name):
         if self._driver:
             self._driver.stop()
-        if name == 'none':
+        if name == D_NONE:
             self._driver = None
-        elif name == 'pulse':
+        elif name == D_PULSE:
             self._driver = Pulseaudio()
-        elif name == 'push':
+        elif name == D_PUSH:
             self._driver = Pushaudio()
         else:
             assert False
@@ -45,6 +57,9 @@ class Audio():
 
     def set_backend(self, backend):
         self._backend = backend
+
+    def set_frontend(self, frontend):
+        self._frontend = frontend
 
     def put_audio(self, audio):
         if self._driver:

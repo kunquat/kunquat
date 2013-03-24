@@ -20,33 +20,34 @@ from frontendthread import FrontendThread
 
 
 def main():
-    at = AudioThread()
-    bt = BackendThread()
-    ft = FrontendThread()
+    audio_thread = AudioThread()
+    backend_thread = BackendThread()
+    frontend_thread = FrontendThread()
 
-    at.set_backend(bt)
-    bt.set_frontend(ft)
-    bt.set_audio_output(at)
-    ft.set_backend(bt)
-    ft.set_audio_output(at)
+    audio_thread.set_backend(backend_thread)
+    audio_thread.set_frontend(frontend_thread)
+    backend_thread.set_frontend(frontend_thread)
+    backend_thread.set_audio_output(audio_thread)
+    frontend_thread.set_backend(backend_thread)
+    frontend_thread.set_audio_output(audio_thread)
 
-    at.start()
-    bt.start()
-    ft.start()
+    audio_thread.start()
+    backend_thread.start()
+    frontend_thread.start()
 
     try:
-        while ft.is_alive():
+        while frontend_thread.is_alive():
             print('main')
             time.sleep(1)
     except:
         pass
 
-    ft.halt()
-    bt.halt()
-    at.halt()
-    ft.join()
-    bt.join()
-    at.join()
+    frontend_thread.halt()
+    backend_thread.halt()
+    audio_thread.halt()
+    frontend_thread.join()
+    backend_thread.join()
+    audio_thread.join()
     time.sleep(0.1)
 
 

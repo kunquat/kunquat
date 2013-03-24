@@ -20,6 +20,7 @@ from frontend.frontend import Frontend
 from qt.ui import Ui
 
 C_HALT = 'halt'
+C_UPDATE_DRIVERS = 'update_drivers'
 
 class FrontendThread(threading.Thread):
 
@@ -37,23 +38,25 @@ class FrontendThread(threading.Thread):
     def set_audio_output(self, audio_output):
         self._frontend.set_audio_output(audio_output)
 
-    def queue_event(self, event):
-        self._q.put(event)
+    def update_drivers(self, drivers):
+        self._q.put(Command(C_UPDATE_DRIVERS, drivers))
 
     # Threading interface
 
     def halt(self):
-        self.queue_event(Command(C_HALT, None))
+        self._q.put(Command(C_HALT, None))
 
     def _process_queue(self):
         count_estimate = self._q.qsize()
         for _ in range(count_estimate):
             try:
-                event = self._q.get_nowait()
-                if event.name == C_HALT:
+                command = self._q.get_nowait()
+                if command.name == C_HALT:
                     self._ui.halt()
+                elif command.name == C_UPDATE_DRIVERS:
+                    self._frontend.update_drivers(command.arg)
                 else:
-                    self._frontend.process_event(event)
+                    self._frontend.process_command(command)
             except Queue.Empty:
                 break
 

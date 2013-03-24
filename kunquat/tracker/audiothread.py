@@ -35,6 +35,9 @@ class AudioThread(threading.Thread):
     def set_backend(self, backend):
         self._audio.set_backend(backend)
 
+    def set_frontend(self, frontend):
+        self._audio.set_frontend(frontend)
+
     def select_driver(self, name):
         self._audio.select_driver(name)
 
@@ -47,6 +50,7 @@ class AudioThread(threading.Thread):
         self._q.put(Command(C_HALT, None))
 
     def run(self):
+        self._audio.init()
         cmd = self._q.get()
         while cmd.name != C_HALT:
             if cmd.name == C_PUT_AUDIO:
