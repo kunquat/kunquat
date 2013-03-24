@@ -21,7 +21,8 @@ D_PUSH = 'push'
 drivers = {
   D_NONE: {'name': 'no driver'},
   D_PULSE: {'name': 'PulseAudio asynchronic pull driver'},
-  D_PUSH: {'name': 'PulseAudio synchronic push driver'}}
+  D_PUSH: {'name': 'PulseAudio synchronic push driver'}
+}
 
 class Audio():
 
@@ -42,7 +43,7 @@ class Audio():
 
     def select_driver(self, name):
         if self._driver:
-            self._driver.stop()
+            self._driver.close()
         if name == D_NONE:
             self._driver = None
         elif name == D_PULSE:
