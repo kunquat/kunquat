@@ -43,7 +43,7 @@ class TestAbstractDriver(unittest.TestCase):
                 pass
         driver.set_audio_generator(gen())
         driver.start()
-        #driver.close()
+        driver.close()
 
     def _driver_cleanup(self, DriverClass):
         initial_threads = threading.active_count()
