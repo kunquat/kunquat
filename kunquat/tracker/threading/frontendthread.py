@@ -16,8 +16,8 @@ import Queue
 import threading
 
 from command import Command
-from frontend.frontend import Frontend
-from qt.ui import Ui
+from kunquat.tracker.frontend.frontend import Frontend
+from kunquat.tracker.qt.ui import Ui
 
 C_HALT = 'halt'
 C_UPDATE_DRIVERS = 'update_drivers'

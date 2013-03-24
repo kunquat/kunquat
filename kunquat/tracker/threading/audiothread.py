@@ -15,29 +15,34 @@
 import Queue
 import threading
 
-from backend.backend import Backend
 from command import Command
+from kunquat.tracker.audio.audio import Audio
 
-C_GENERATE = 'generate'
 C_HALT = 'halt'
+C_PUT_AUDIO = 'put_audio'
 
-class BackendThread(threading.Thread):
+
+class AudioThread(threading.Thread):
 
     def __init__(self):
         threading.Thread.__init__(self)
+        self._backend = None
         self._q = Queue.Queue()
-        self._backend = Backend()
+        self._audio = Audio()
 
-    # Backend interface
+    # Driver interface
 
-    def set_audio_output(self, audio_output):
-        self._backend.set_audio_output(audio_output)
+    def set_backend(self, backend):
+        self._audio.set_backend(backend)
 
     def set_frontend(self, frontend):
-        self._backend.set_frontend(frontend)
+        self._audio.set_frontend(frontend)
 
-    def generate_audio(self, nframes):
-        self._q.put(Command(C_GENERATE, nframes))
+    def select_driver(self, name):
+        self._audio.select_driver(name)
+
+    def put_audio(self, audio):
+        self._q.put(Command(C_PUT_AUDIO, audio))
 
     # Threading interface
 
@@ -45,10 +50,11 @@ class BackendThread(threading.Thread):
         self._q.put(Command(C_HALT, None))
 
     def run(self):
+        self._audio.init()
         cmd = self._q.get()
         while cmd.name != C_HALT:
-            if cmd.name == C_GENERATE:
-                self._backend.generate_audio(cmd.arg)
+            if cmd.name == C_PUT_AUDIO:
+                self._audio.put_audio(cmd.arg)
             else:
                 assert False
             cmd = self._q.get()
