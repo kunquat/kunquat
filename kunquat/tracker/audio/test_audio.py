@@ -46,7 +46,8 @@ class TestAudio(unittest.TestCase):
         audio_output.init()
         driver_ids = dummy_frontend._drivers.keys()
         test_ids = 4 * driver_ids
-        random.shuffle(test_ids, (lambda:0.2))
+        seed = (lambda:0.2)
+        random.shuffle(test_ids, seed)
         for driver_id in test_ids:
             audio_output.select_driver(driver_id)
 
