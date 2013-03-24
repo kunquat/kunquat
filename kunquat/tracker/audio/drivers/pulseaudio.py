@@ -104,6 +104,10 @@ class Pulseaudio():
     def stop(self):
         self._pa.stop()
 
+    def close(self):
+        self.stop()
+        self._pa.deinit()
+
 if __name__ == "__main__":
     import doctest
     doctest.testmod()
