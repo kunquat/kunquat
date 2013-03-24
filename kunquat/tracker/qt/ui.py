@@ -72,9 +72,11 @@ class Ui():
     def halt(self):
         self._app.exit()
 
+    def show(self):
+        self._mainwindow.show()
+
     def run(self):
         self._start_driver_randomizer()
-        self._mainwindow.show()
         self._app.exec_()
         self._qp_timer.stop()
 
