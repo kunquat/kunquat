@@ -33,7 +33,7 @@ class TestAbstractDriver(unittest.TestCase):
         driver.set_audio_generator(gen())
         driver.put_audio((10000*[0.1],10000*[0.1]))
         driver.start()
-        sleep(1)
+        sleep(0.2)
         driver.put_audio((10000*[0.1],10000*[0.1]))
         driver.stop()
 
