@@ -38,7 +38,7 @@ class TestDrivers(unittest.TestCase):
         driver.put_audio((10000*[0.1],10000*[0.1]))
         driver.stop()
 
-    def _start_and_stop_new_driver(self, DriverClass):
+    def _boot_driver(self, DriverClass):
         driver = DriverClass()
         class gen():
             def generate(self,foo):
@@ -48,17 +48,17 @@ class TestDrivers(unittest.TestCase):
         #sleep(1)
         driver.stop()
 
-    def _threadleak(self, DriverClass):
+    def _driver_cleanup(self, DriverClass):
         initial_threads = threading.active_count()
         for i in xrange(50):
-            self._start_and_stop_new_driver(DriverClass)
+            self._boot_driver(DriverClass)
         remaining_threads = threading.active_count()
         self.assertEqual(initial_threads, remaining_threads)
 
     def _run_tests(self, DriverClass):
         self._prefeed(DriverClass)
         self._quickpush(DriverClass)
-        self._threadleak(DriverClass)
+        self._driver_cleanup(DriverClass)
 
     def test_pushaudio(self):
         self._run_tests(Pushaudio)
