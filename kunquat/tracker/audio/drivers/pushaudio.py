@@ -26,15 +26,15 @@ class Pushaudio():
     def put_audio(self, audio):
         (left, right) = audio
         self._pa.write(left, right)
-        self.next()
+        self._next()
 
-    def next(self):
+    def _next(self):
         nframes = 20
         if self._ag != None:
             self._ag.generate(nframes)
 
     def start(self):
-        self.next()
+        self._next()
 
     def stop(self):
         pass
