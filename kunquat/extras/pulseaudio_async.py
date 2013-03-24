@@ -50,10 +50,7 @@ class Async(object):
         audio_cb    -- Callback function to call when more audio is
                        needed.  The callback must accept the
                        following arguments:
-                       nframes -- Maximum number of frames to be
-                                  rendered.  It is OK to render less
-                                  frames (the audio buffer will be
-                                  padded with zeros), but not more.
+                       nframes -- Number of frames to be rendered.
                        The function must return the audio data in a
                        tuple/list where each element contains the audio
                        data of one channel.
@@ -198,9 +195,9 @@ class Async(object):
         self._context_q.put(state)
 
     def _stream_state_cb(self, stream, userdata):
-        assert stream == self._stream
+        assert (stream == self._stream) or not self._stream
 
-        state = _pa.pa_stream_get_state(self._stream)
+        state = _pa.pa_stream_get_state(stream)
         self._stream_q.put(state)
         if state == PA_STREAM_FAILED:
             print('Stream failed: {}'.format(
@@ -209,7 +206,11 @@ class Async(object):
 
     def _stream_write_cb(self, stream, length, userdata):
         assert stream
-        assert stream == self._stream
+        assert (stream == self._stream) or not self._stream
+
+        if not self._stream:
+            return
+
         bytes_per_frame = 4 * self._channels
         frame_count = length // bytes_per_frame
 
@@ -225,7 +226,12 @@ class Async(object):
 
             # Fill buffer with audio data
             for ch in xrange(self._channels):
-                assert len(bufs[ch]) <= frame_count
+                received_frames = len(bufs[ch])
+                if received_frames != frame_count:
+                    raise PulseAudioError(
+                            'Expected {} frames, received {}'.format(
+                            frame_count, received_frames)
+                        )
                 buf = bufs[ch]
                 buf.extend([0] * (frame_count - len(buf)))
                 cdata[ch::self._channels] = buf
@@ -244,7 +250,7 @@ class Async(object):
 
     def _stream_success_cb(self, stream, success, userdata):
         assert stream
-        assert stream == self._stream
+        assert (stream == self._stream) or not self._stream
 
     def play(self):
         """Start playback."""
@@ -296,8 +302,7 @@ class Async(object):
             self._ml = None
 
     def __del__(self):
-        if self._ml:
-            self.deinit()
+        self.deinit()
 
 
 _pa = ctypes.CDLL('libpulse.so')
