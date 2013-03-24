@@ -12,6 +12,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+import json
 import Queue
 import threading
 
@@ -39,7 +40,8 @@ class FrontendThread(threading.Thread):
         self._frontend.set_audio_output(audio_output)
 
     def update_drivers(self, drivers):
-        self._q.put(Command(C_UPDATE_DRIVERS, drivers))
+        arg = json.dumps(drivers)
+        self._q.put(Command(C_UPDATE_DRIVERS, arg))
 
     # Threading interface
 
@@ -59,7 +61,8 @@ class FrontendThread(threading.Thread):
                 if command.name == C_HALT:
                     self._ui_launcher.halt_ui()
                 elif command.name == C_UPDATE_DRIVERS:
-                    self._frontend.update_drivers(command.arg)
+                    drivers = json.loads(command.arg)
+                    self._frontend.update_drivers(drivers)
                 else:
                     self._frontend.process_command(command)
             except Queue.Empty:
