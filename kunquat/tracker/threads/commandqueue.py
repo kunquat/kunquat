@@ -22,7 +22,7 @@ class CommandQueue(Queue):
 
     def put(self, command):
         arg_type = type(command.arg)
-        if not arg_type in [type(''), Thread]:
+        if not arg_type in [type(''), type(None), Thread]:
             raise TypeError
         Queue.put(self, command)
 
