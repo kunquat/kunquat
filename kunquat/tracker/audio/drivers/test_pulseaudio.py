@@ -12,8 +12,15 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+import doctest
+import pulseaudio
 from pulseaudio import Pulseaudio
 from test_abstract_driver import TestAbstractDriver
+
+
+def load_tests(loader, tests, ignore):
+    tests.addTests(doctest.DocTestSuite(pulseaudio))
+    return tests
 
 
 class TestPulseaudio(TestAbstractDriver):
