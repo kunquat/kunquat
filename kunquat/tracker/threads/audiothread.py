@@ -12,10 +12,10 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-import Queue
 import threading
 
 from command import Command
+from commandqueue import CommandQueue
 from kunquat.tracker.audio.audio import Audio
 
 C_HALT = 'halt'
@@ -27,7 +27,7 @@ class AudioThread(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
         self._backend = None
-        self._q = Queue.Queue()
+        self._q = CommandQueue()
         self._audio = Audio()
 
     # Driver interface
