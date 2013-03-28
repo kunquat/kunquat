@@ -12,10 +12,16 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+import doctest
 import unittest
 
 import kunquat as wrapper
 from kunquat import Kunquat
+
+
+def load_tests(loader, tests, ignore):
+    tests.addTests(doctest.DocTestSuite(wrapper))
+    return tests
 
 
 class TestKunquat(unittest.TestCase):
