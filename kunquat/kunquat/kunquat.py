@@ -33,7 +33,7 @@ from __future__ import print_function
 import ctypes
 import json
 
-__all__ = ['Handle',
+__all__ = ['Kunquat',
            'KunquatError', 'KunquatArgumentError',
            'KunquatFormatError', 'KunquatMemoryError',
            'KunquatResourceError']
@@ -224,9 +224,9 @@ class BaseHandle(object):
         return el
 
 
-class Handle(BaseHandle):
+class Kunquat(BaseHandle):
 
-    """Handle for playing and modifying compositions in memory.
+    """Kunquat instance for playing and modifying compositions in memory.
 
     Public methods:
     set_data     -- Set composition data.
@@ -243,7 +243,7 @@ class Handle(BaseHandle):
     """
 
     def __init__(self, mixing_rate=48000):
-        """Create a new Handle.
+        """Create a new Kunquat instance.
 
         Optional arguments:
         mixing_rate -- Mixing rate in frames per second.  Typical
@@ -267,7 +267,7 @@ class Handle(BaseHandle):
         self.mixing_rate = mixing_rate
 
     def set_data(self, key, value):
-        """Set data in the handle.
+        """Set data in the Kunquat instance.
 
         Arguments:
         key --   The key of the data in the composition.  A key
@@ -304,7 +304,7 @@ class Handle(BaseHandle):
                                      len(data))
 
     def validate(self):
-        """Validate data in the handle.
+        """Validate data in the Kunquat instance.
 
         Exceptions:
         KunquatFormatError -- The module data is not valid.  This
