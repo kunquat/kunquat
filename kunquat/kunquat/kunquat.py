@@ -240,6 +240,20 @@ class Kunquat(BaseHandle):
     nanoseconds -- The current position in nanoseconds.
     track       -- The current track (None or [0,255]).
 
+    To produce two frames of silence, do the following:
+    >>> k = Kunquat()
+    >>> k.set_data('album/p_manifest.json', {})
+    >>> k.set_data('album/p_tracks.json', [0])
+    >>> k.set_data('song_00/p_manifest.json', {})
+    >>> k.set_data('song_00/p_order_list.json', [ [0, 0] ])
+    >>> k.set_data('pat_000/p_manifest.json', {})
+    >>> k.set_data('pat_000/p_pattern.json', { 'length': [16, 0] })
+    >>> k.set_data('pat_000/instance_000/p_manifest.json', {})
+    >>> k.validate()
+    >>> audio_data = k.mix(2)
+    >>> audio_data
+    ([0.0, 0.0], [0.0, 0.0])
+
     """
 
     def __init__(self, mixing_rate=48000):
