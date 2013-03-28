@@ -15,18 +15,18 @@
 import unittest
 
 import kunquat as wrapper
-from kunquat import Handle
+from kunquat import Kunquat
 
 
 class TestKunquat(unittest.TestCase):
 
     def test_handle_creation_succeeds(self):
-        handle = Handle()
-        self.assertEqual(type(handle), Handle)
+        handle = Kunquat()
+        self.assertEqual(type(handle), Kunquat)
 
     def test_handle_creation_raises_memory_error(self):
         wrapper.fake_out_of_memory()
-        self.assertRaises(MemoryError, Handle)
+        self.assertRaises(MemoryError, Kunquat)
 
 
 if __name__ == '__main__':
