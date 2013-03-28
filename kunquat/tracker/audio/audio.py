@@ -56,6 +56,7 @@ class Audio():
         if self._driver:
             self._driver.set_audio_generator(self)
             self._driver.start()
+        self._backend.update_selected_driver(name)
 
     def set_backend(self, backend):
         self._backend = backend
