@@ -373,6 +373,10 @@ class KunquatResourceError(KunquatError):
     """Error indicating that an external service request has failed."""
 
 
+def fake_out_of_memory():
+    pass
+
+
 _kunquat = ctypes.CDLL('libkunquat.so')
 
 _kunquat.kqt_new_Handle.argtypes = []
