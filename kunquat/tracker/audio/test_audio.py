@@ -20,7 +20,10 @@ from audio import Audio
 class DummyBackend():
 
     def __init__(self):
-        pass
+        self._selected = None
+
+    def update_selected_driver(self, driver):
+        self._selected = driver
 
     def generate_audio(self, nframes):
         return ([],[])
@@ -50,6 +53,7 @@ class TestAudio(unittest.TestCase):
         random.shuffle(test_ids, seed)
         for driver_id in test_ids:
             audio_output.select_driver(driver_id)
+            self.assertEqual(dummy_backend._selected, driver_id)
 
 
 if __name__ == '__main__':
