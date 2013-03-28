@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Toni Ruottu, Finland 2013
+# Authors: Toni Ruottu, Finland 2013
+#          Tomi Jylhä-Ollila, Finland 2013
 #
 # This file is part of Kunquat.
 #
@@ -11,16 +12,27 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+import doctest
 import unittest
 
-from kunquat import Handle
+import kunquat as wrapper
+from kunquat import Kunquat
+
+
+def load_tests(loader, tests, ignore):
+    tests.addTests(doctest.DocTestSuite(wrapper))
+    return tests
 
 
 class TestKunquat(unittest.TestCase):
 
-    def test_handle_creation(self):
-        handle = Handle()
-        self.assertEqual(type(handle), Handle)
+    def test_handle_creation_succeeds(self):
+        handle = Kunquat()
+        self.assertEqual(type(handle), Kunquat)
+
+    def test_handle_creation_raises_memory_error(self):
+        wrapper.fake_out_of_memory()
+        self.assertRaises(MemoryError, Kunquat)
 
 
 if __name__ == '__main__':
