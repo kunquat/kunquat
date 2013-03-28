@@ -11,7 +11,9 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+import doctest
 import unittest
+import commandqueue
 
 from Queue import Empty
 from command import Command
@@ -23,6 +25,12 @@ bar = Command('bar', None)
 baz = Command('baz', None)
 
 incorrect_arg = Command('foo', [])
+
+
+def load_tests(loader, tests, ignore):
+    tests.addTests(doctest.DocTestSuite(commandqueue))
+    return tests
+
 
 class TestCommandQueue(unittest.TestCase):
 
