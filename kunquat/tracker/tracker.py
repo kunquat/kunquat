@@ -25,6 +25,9 @@ def main():
     backend_thread = BackendThread()
     frontend_thread = FrontendThread()
     ui_launcher = QtLauncher()
+    backend = Backend()
+
+    backend_thread.set_backend(backend)
 
     audio_thread.set_backend(backend_thread)
     audio_thread.set_frontend(frontend_thread)
