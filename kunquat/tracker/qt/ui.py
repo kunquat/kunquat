@@ -22,10 +22,10 @@ class TestWindow(QMainWindow):
 
     def __init__(self):
         QMainWindow.__init__(self)
-        self._frontend = None
+        self._ui_model = None
 
-    def set_frontend(self, frontend):
-        self._frontend = frontend
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
 
     def __del__(self):
         pass
@@ -39,11 +39,11 @@ class Ui():
         self._qp = None
         self._qp_timer = QTimer()
         self._driver_switch_timer = QTimer()
-        self._frontend = None
+        self._ui_model = None
 
-    def set_frontend(self, frontend):
-        self._frontend = frontend
-        self._mainwindow.set_frontend(frontend)
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._mainwindow.set_ui_model(ui_model)
 
     def set_queue_processor(self, qp):
         assert not self._qp
@@ -56,7 +56,7 @@ class Ui():
 
     def select_random_driver(self):
         import random
-        drivers = self._frontend.get_drivers()
+        drivers = self._ui_model.get_drivers()
         driver_ids = drivers.get_ids()
         one = random.choice(driver_ids)
         print 'driver: %s' % one

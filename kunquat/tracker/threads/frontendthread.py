@@ -18,6 +18,7 @@ import threading
 
 from command import Command
 from commandqueue import CommandQueue
+from kunquat.tracker.frontend.uimodel import UiModel
 from kunquat.tracker.frontend.frontend import Frontend
 
 C_HALT = 'halt'
@@ -28,7 +29,8 @@ class FrontendThread(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
         self._q = CommandQueue()
-        self._frontend = Frontend()
+        self._ui_model = UiModel()
+        self._frontend = Frontend(self._ui_model)
         self._ui_launcher = None
 
     # Frontend interface
@@ -47,7 +49,7 @@ class FrontendThread(threading.Thread):
 
     def set_ui_launcher(self, ui_launcher):
         self._ui_launcher = ui_launcher
-        self._ui_launcher.set_frontend(self._frontend)
+        self._ui_launcher.set_frontend(self._ui_model)
         self._ui_launcher.set_queue_processor(self._process_queue)
 
     def halt(self):

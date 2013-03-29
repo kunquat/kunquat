@@ -18,11 +18,11 @@ class QtLauncher():
 
     def __init__(self, show=True):
         self._show = show
-        self._frontend = None
+        self._ui_model = None
         self._queue_processor = None
 
-    def set_frontend(self, frontend):
-        self._frontend = frontend
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
 
     def set_queue_processor(self, queue_processor):
         self._queue_processor = queue_processor
@@ -32,7 +32,7 @@ class QtLauncher():
 
     def run_ui(self):
         self._ui = Ui()
-        self._ui.set_frontend(self._frontend)
+        self._ui.set_ui_model(self._ui_model)
         self._ui.set_queue_processor(self._queue_processor)
         if self._show == True:
             self._ui.show()

@@ -12,20 +12,23 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from drivers import Drivers
 
-class Frontend():
+class UiModel():
 
-    def __init__(self, ui_model):
-        self._ui_model = ui_model
+    def __init__(self):
+        self._audio_drivers = Drivers()
 
     def set_backend(self, backend):
         pass
 
     def set_audio_output(self, audio_output):
-        self._ui_model.set_audio_output(audio_output)
+        self._audio_drivers.set_audio_output(audio_output)
 
     def update_drivers(self, drivers):
-        drivers = self._ui_model.get_drivers()
-        drivers.update_drivers(drivers)
+        self._audio_drivers.update_drivers(drivers)
+
+    def get_drivers(self):
+        return self._audio_drivers
 
 

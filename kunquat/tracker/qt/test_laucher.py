@@ -16,7 +16,7 @@ import unittest
 from launcher import QtLauncher
 
 
-class DummyFrontend():
+class DummyUiModel():
 
     def __init__(self):
         pass
@@ -33,7 +33,7 @@ class TestLauncher(unittest.TestCase):
     def test_launcher(self):
         self._call_counter = 2
         self._ui_launcher = QtLauncher(show = False)
-        self._ui_launcher.set_frontend(DummyFrontend())
+        self._ui_launcher.set_ui_model(DummyUiModel())
         self._ui_launcher.set_queue_processor(self._dummyQueueProcessor)
         self._ui_launcher.run_ui()
 
