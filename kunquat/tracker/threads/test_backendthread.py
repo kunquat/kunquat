@@ -16,6 +16,31 @@ import unittest
 from backendthread import BackendThread
 
 
+class Recorder(object):
+
+    def __init__(self):
+        self._memory = {}
+
+    def get_record(self, name):
+        record = self._memory[name]
+        return record
+
+    def is_empty():
+        empty = len(self._memory) < 1
+        return empty
+
+    def __getattribute__(self, name):
+        try:
+            attribute = object.__getattribute__(self, name)
+            return attribute
+        except:
+            memory = self._memory
+            def method(*args, **kwargs):
+                record = (name, args, kwargs)
+                memory[name] = record
+            return method
+
+
 class TestBackendthread(unittest.TestCase):
 
     def test_halt(self):
@@ -23,6 +48,25 @@ class TestBackendthread(unittest.TestCase):
         backend_thread.halt()
         backend_thread.run()
 
+    def test_argument_passing(self):
+        calls = [
+          ('generate_audio', (123,), {}),
+          ('set_data', ('pat_000/p_pattern.json', { 'length': [16, 0] }), {}),
+          ('commit_data', (), {})
+        ]
+        backend_thread = BackendThread()
+        recorder = Recorder()
+        backend_thread.set_backend(recorder)
+        for call in calls:
+            (method, args, kwargs) = call
+            getattr(backend_thread, method)(*args, **kwargs)
+        
+        backend_thread.halt()
+        backend_thread.run()
+        for call in calls:
+            (method, _, _) = call
+            record = recorder.get_record(method)
+            self.assertEqual(call, record)
 
 if __name__ == '__main__':
     unittest.main()
