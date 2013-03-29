@@ -16,6 +16,12 @@ import threading
 import unittest
 from time import sleep
 
+
+class DummyAudioSource():
+    def generate_audio(self, nframes):
+        pass
+
+
 class TestAbstractDriver(unittest.TestCase):
 
     def setUp(self):
@@ -27,10 +33,7 @@ class TestAbstractDriver(unittest.TestCase):
 
     def _prefeed(self, DriverClass):
         driver = DriverClass()
-        class gen():
-            def generate(self,foo):
-                pass
-        driver.set_audio_generator(gen())
+        driver.set_audio_generator(DummyAudioSource())
         driver.put_audio((10000*[0.1],10000*[0.1]))
         driver.start()
         sleep(0.2)
@@ -39,10 +42,7 @@ class TestAbstractDriver(unittest.TestCase):
 
     def _boot_driver(self, DriverClass):
         driver = DriverClass()
-        class gen():
-            def generate(self,foo):
-                pass
-        driver.set_audio_generator(gen())
+        driver.set_audio_generator(DummyAudioSource())
         driver.start()
         driver.close()
 
