@@ -12,13 +12,10 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-import json
-import Queue
 import threading
 
 from command import Command
 from commandqueue import CommandQueue
-from kunquat.tracker.backend.backend import Backend
 
 C_COMMIT_DATA = 'commit_data'
 C_GENERATE = 'generate'
@@ -46,11 +43,7 @@ class BackendThread(threading.Thread):
         self._backend = backend
 
     def set_data(self, key, value):
-        if key.endswith('.json'):
-            encoded = json.dumps(value)
-        else:
-            encoded = value
-        self._q.put(Command(C_SET_DATA, (key, encoded)))
+        self._q.put(Command(C_SET_DATA, key, value))
 
     def commit_data(self):
         self._q.put(Command(C_COMMIT_DATA, None))
@@ -67,20 +60,15 @@ class BackendThread(threading.Thread):
         cmd = self._q.get()
         while cmd.name != C_HALT:
             if cmd.name == C_GENERATE:
-                self._backend.generate_audio(cmd.arg)
+                self._backend.generate_audio(*cmd.args)
             elif cmd.name == C_SET_DATA:
-                (key, value) = cmd.arg
-                if key.endswith('.json'):
-                    decoded = json.loads(value)
-                else:
-                    decoded = value
-                self._backend.set_data(key, decoded)
+                self._backend.set_data(*cmd.args)
             elif cmd.name == C_COMMIT_DATA:
                 self._backend.commit_data()
             elif cmd.name == C_SET_AUDIO_OUTPUT:
-                self._backend.set_audio_output(cmd.arg)
+                self._backend.set_audio_output(*cmd.args)
             elif cmd.name == C_SET_FRONTEND:
-                self._backend.set_frontend(cmd.arg)
+                self._backend.set_frontend(*cmd.args)
             else:
                 assert False
             cmd = self._q.get()
