@@ -52,7 +52,7 @@ class AudioThread(threading.Thread):
         self._q.put(Command(C_HALT, None))
 
     def run(self):
-        self._audio.init()
+        self._audio.request_update()
         cmd = self._q.get()
         while cmd.name != C_HALT:
             if cmd.name == C_PUT_AUDIO:
