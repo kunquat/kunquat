@@ -33,6 +33,10 @@ class DummyFrontend(threading.Thread):
     pass
 
 
+class DummyBackend():
+    pass
+
+
 def public_interface(some_class):
     members = inspect.getmembers(Backend)
     interface = [name for (name, _) in members if not name.startswith('_')]
@@ -49,7 +53,8 @@ class TestBackendthread(unittest.TestCase):
         self._records[name] = record
 
     def test_halt(self):
-        backend_thread = BackendThread()
+        dummy_backend = DummyBackend()
+        backend_thread = BackendThread(dummy_backend)
         backend_thread.halt()
         backend_thread.run()
 
@@ -67,9 +72,8 @@ class TestBackendthread(unittest.TestCase):
           ('set_data', ('pat_000/p_pattern.json', { 'length': [16, 0] }), {}),
           ('commit_data', (), {})
         ]
-        backend_thread = BackendThread()
-        recorder = Recorder(self._put_record)
-        backend_thread.set_backend(recorder)
+        recorder_backend = Recorder(self._put_record)
+        backend_thread = BackendThread(recorder_backend)
         for call in backend_calls:
             (method, args, kwargs) = call
             getattr(backend_thread, method)(*args, **kwargs)
