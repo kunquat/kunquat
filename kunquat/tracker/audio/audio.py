@@ -36,8 +36,6 @@ class Audio():
         if self._driver != None:
             self._driver.set_audio_source(self._backend)
 
-    # Audio output interface
-
     def request_update(self):
         self._frontend.update_drivers(drivers)
 
