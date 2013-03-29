@@ -14,7 +14,6 @@
 
 import threading
 
-from command import Command
 from commandqueue import CommandQueue
 
 C_COMMIT_DATA = 'commit_data'
@@ -34,43 +33,32 @@ class BackendThread(threading.Thread):
     # Backend interface
 
     def set_audio_output(self, audio_output):
-        self._q.put(Command(C_SET_AUDIO_OUTPUT, audio_output))
+        self._q.push(C_SET_AUDIO_OUTPUT, audio_output)
 
     def set_frontend(self, frontend):
-        self._q.put(Command(C_SET_FRONTEND, frontend))
+        self._q.push(C_SET_FRONTEND, frontend)
 
     def set_backend(self, backend):
         self._backend = backend
 
     def set_data(self, key, value):
-        self._q.put(Command(C_SET_DATA, key, value))
+        self._q.push(C_SET_DATA, key, value)
 
     def commit_data(self):
-        self._q.put(Command(C_COMMIT_DATA, None))
+        self._q.push(C_COMMIT_DATA, None)
 
     def generate_audio(self, nframes):
-        self._q.put(Command(C_GENERATE, nframes))
+        self._q.push(C_GENERATE, nframes)
 
     # Threading interface
 
     def halt(self):
-        self._q.put(Command(C_HALT, None))
+        self._q.push(C_HALT, None)
 
     def run(self):
         cmd = self._q.get()
         while cmd.name != C_HALT:
-            if cmd.name == C_GENERATE:
-                self._backend.generate_audio(*cmd.args)
-            elif cmd.name == C_SET_DATA:
-                self._backend.set_data(*cmd.args)
-            elif cmd.name == C_COMMIT_DATA:
-                self._backend.commit_data()
-            elif cmd.name == C_SET_AUDIO_OUTPUT:
-                self._backend.set_audio_output(*cmd.args)
-            elif cmd.name == C_SET_FRONTEND:
-                self._backend.set_frontend(*cmd.args)
-            else:
-                assert False
+            self._backend.__call__(cmd.name, *cmd.args)
             cmd = self._q.get()
 
 
