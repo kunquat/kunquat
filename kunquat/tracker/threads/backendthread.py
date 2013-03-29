@@ -16,48 +16,40 @@ import threading
 
 from commandqueue import CommandQueue
 
-C_COMMIT_DATA = 'commit_data'
-C_GENERATE_AUDIO = 'generate_audio'
-C_HALT = 'halt'
-C_SET_AUDIO_OUTPUT = 'set_audio_output'
-C_SET_FRONTEND = 'set_frontend'
-C_SET_DATA = 'set_data'
+HALT = None
 
 class BackendThread(threading.Thread):
 
-    def __init__(self):
+    def __init__(self, backend):
         threading.Thread.__init__(self)
         self._q = CommandQueue()
-        self._backend = None
+        self._backend = backend
 
     # Backend interface
 
     def set_audio_output(self, audio_output):
-        self._q.push(C_SET_AUDIO_OUTPUT, audio_output)
+        self._q.push('set_audio_output', audio_output)
 
     def set_frontend(self, frontend):
-        self._q.push(C_SET_FRONTEND, frontend)
-
-    def set_backend(self, backend):
-        self._backend = backend
+        self._q.push('set_frontend', frontend)
 
     def set_data(self, key, value):
-        self._q.push(C_SET_DATA, key, value)
+        self._q.push('set_data', key, value)
 
     def commit_data(self):
-        self._q.push(C_COMMIT_DATA)
+        self._q.push('commit_data')
 
     def generate_audio(self, nframes):
-        self._q.push(C_GENERATE_AUDIO, nframes)
+        self._q.push('generate_audio', nframes)
 
     # Threading interface
 
     def halt(self):
-        self._q.push(C_HALT, None)
+        self._q.push(HALT)
 
     def run(self):
         cmd = self._q.get()
-        while cmd.name != C_HALT:
+        while cmd.name != HALT:
             self._backend.__call__(cmd.name, *cmd.args)
             cmd = self._q.get()
 
