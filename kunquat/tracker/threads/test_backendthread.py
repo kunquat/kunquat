@@ -46,46 +46,48 @@ def public_interface(some_class):
 class TestBackendthread(unittest.TestCase):
 
     def setUp(self):
-        self._records = {}
-        self._interface_spec = set(public_interface(Backend))
-
-    def _put_record(self, record):
-        (name, _, _) = record
-        self._records[name] = record
-
-    def test_halt(self):
-        dummy_backend = DummyBackend()
-        backend_thread = BackendThread(dummy_backend)
-        backend_thread.halt()
-        backend_thread.run()
-
-    def test_interface(self):
-        implementation = set(public_interface(BackendThread))
-        missing_members = self._interface_spec - implementation
-        self.assertEqual(missing_members, set())
-
-    def test_argument_passing(self):
-        backend_calls = [
+        self._test_calls = [
           ('set_frontend', (DummyFrontend(),), {}),
           ('set_audio_output', (None,), {}),
           ('generate_audio', (123,), {}),
           ('set_data', ('pat_000/p_pattern.json', { 'length': [16, 0] }), {}),
           ('commit_data', (), {})
         ]
-        recorder_backend = Recorder(self._put_record)
-        backend_thread = BackendThread(recorder_backend)
-        for call in backend_calls:
+        self._InterfaceClass = Backend
+        self._TestClass = BackendThread
+
+    def test_halt(self):
+        thread = self._TestClass(None)
+        thread.halt()
+        thread.run()
+
+    def test_interface(self):
+        interface_spec = set(public_interface(self._InterfaceClass))
+        implementation = set(public_interface(self._TestClass))
+        missing_members = interface_spec - implementation
+        self.assertEqual(missing_members, set())
+
+    def _put_record(self, record):
+        (name, _, _) = record
+        self._records[name] = record
+
+    def test_argument_passing(self):
+        self._records = {}
+        recorder = Recorder(self._put_record)
+        thread = self._TestClass(recorder)
+        for call in self._test_calls:
             (method, args, kwargs) = call
-            getattr(backend_thread, method)(*args, **kwargs)
+            getattr(thread, method)(*args, **kwargs)
         self.assertTrue(len(self._records) < 1)
-        backend_thread.halt()
-        backend_thread.run()
-        for call in backend_calls:
+        thread.halt()
+        thread.run()
+        for call in self._test_calls:
             (name, _, _) = call
             record = self._records[name]
             self.assertEqual(call, record)
         called_methods = set(self._records.keys())
-        not_tested = self._interface_spec - called_methods
+        interface_spec = set(public_interface(self._InterfaceClass))
+        not_tested = interface_spec - called_methods
         self.assertEqual(not_tested, set())
 
 
