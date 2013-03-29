@@ -49,8 +49,8 @@ class CommandQueue(Queue):
 
     def put(self, command):
         arg = command.arg
-        if is_immutable(arg) or type(arg) == Thread:
+        if is_immutable(arg) or isinstance(arg, Thread):
             Queue.put(self, command)
         else:
-            raise TypeError
+            raise TypeError(type(arg))
 
