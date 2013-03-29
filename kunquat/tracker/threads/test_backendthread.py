@@ -11,9 +11,11 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+import inspect
 import unittest
 import threading
 
+from kunquat.tracker.backend.backend import Backend
 from backendthread import BackendThread
 
 
@@ -38,6 +40,12 @@ class DummyFrontend(threading.Thread):
     pass
 
 
+def public_interface(some_class):
+    members = inspect.getmembers(Backend)
+    interface = [name for (name, _) in members if not name.startswith('_')]
+    return interface
+
+
 class TestBackendthread(unittest.TestCase):
 
     def setUp(self):
@@ -51,6 +59,12 @@ class TestBackendthread(unittest.TestCase):
         backend_thread = BackendThread()
         backend_thread.halt()
         backend_thread.run()
+
+    def test_interface(self):
+        interface = set(public_interface(Backend))
+        implementation = set(public_interface(BackendThread))
+        missing_members = interface - implementation
+        self.assertEqual(missing_members, set())
 
     def test_argument_passing(self):
         backend_calls = [
