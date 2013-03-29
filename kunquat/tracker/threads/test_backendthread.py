@@ -47,6 +47,7 @@ class TestBackendthread(unittest.TestCase):
 
     def setUp(self):
         self._records = {}
+        self._interface_spec = set(public_interface(Backend))
 
     def _put_record(self, record):
         (name, _, _) = record
@@ -59,9 +60,8 @@ class TestBackendthread(unittest.TestCase):
         backend_thread.run()
 
     def test_interface(self):
-        interface = set(public_interface(Backend))
         implementation = set(public_interface(BackendThread))
-        missing_members = interface - implementation
+        missing_members = self._interface_spec - implementation
         self.assertEqual(missing_members, set())
 
     def test_argument_passing(self):
@@ -84,6 +84,9 @@ class TestBackendthread(unittest.TestCase):
             (name, _, _) = call
             record = self._records[name]
             self.assertEqual(call, record)
+        called_methods = set(self._records.keys())
+        not_tested = self._interface_spec - called_methods
+        self.assertEqual(not_tested, set())
 
 
 if __name__ == '__main__':
