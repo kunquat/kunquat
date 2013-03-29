@@ -12,6 +12,7 @@
 #
 
 import unittest
+import threading
 
 from backendthread import BackendThread
 
@@ -40,7 +41,7 @@ class Recorder(object):
                 memory[name] = record
             return method
 
-class DummyFrontend():
+class DummyFrontend(threading.Thread):
     pass
 
 
@@ -52,8 +53,8 @@ class TestBackendthread(unittest.TestCase):
         backend_thread.run()
 
     def test_argument_passing(self):
-        calls = [
-          ('set_frontend', (None,), {}),
+        backend_calls = [
+          ('set_frontend', (DummyFrontend(),), {}),
           ('set_audio_output', (None,), {}),
           ('generate_audio', (123,), {}),
           ('set_data', ('pat_000/p_pattern.json', { 'length': [16, 0] }), {}),
@@ -62,13 +63,13 @@ class TestBackendthread(unittest.TestCase):
         backend_thread = BackendThread()
         recorder = Recorder()
         backend_thread.set_backend(recorder)
-        for call in calls:
+        for call in backend_calls:
             (method, args, kwargs) = call
             getattr(backend_thread, method)(*args, **kwargs)
         self.assertTrue(recorder.is_empty())
         backend_thread.halt()
         backend_thread.run()
-        for call in calls:
+        for call in backend_calls:
             (method, _, _) = call
             record = recorder.get_record(method)
             self.assertEqual(call, record)
