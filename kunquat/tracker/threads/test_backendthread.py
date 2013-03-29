@@ -38,7 +38,7 @@ class DummyBackend():
 
 
 def public_interface(some_class):
-    members = inspect.getmembers(Backend)
+    members = inspect.getmembers(some_class)
     interface = [name for (name, _) in members if not name.startswith('_')]
     return interface
 
