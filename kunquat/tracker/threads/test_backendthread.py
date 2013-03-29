@@ -24,16 +24,9 @@ class Recorder(object):
     def __init__(self, put_record):
         self._put_record = put_record
 
-    def __getattribute__(self, name):
-        put_record = object.__getattribute__(self, '_put_record')
-        try:
-            attribute = object.__getattribute__(self, name)
-            return attribute
-        except AttributeError:
-            def method(*args, **kwargs):
-                record = (name, args, kwargs)
-                put_record(record)
-            return method
+    def __call__(self, name, *args, **kwargs):
+        record = (name, args, kwargs)
+        self._put_record(record)
 
 
 class DummyFrontend(threading.Thread):
