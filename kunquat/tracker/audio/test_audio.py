@@ -46,7 +46,7 @@ class TestAudio(unittest.TestCase):
         dummy_frontend = DummyFrontend()
         audio_output.set_backend(dummy_backend)
         audio_output.set_frontend(dummy_frontend)
-        audio_output.init()
+        audio_output.request_update()
         driver_ids = dummy_frontend._drivers.keys()
         test_ids = 4 * driver_ids
         seed = (lambda:0.2)
