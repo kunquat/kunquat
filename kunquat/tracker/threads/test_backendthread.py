@@ -19,33 +19,33 @@ from backendthread import BackendThread
 
 class Recorder(object):
 
-    def __init__(self):
-        self._memory = {}
-
-    def get_record(self, name):
-        record = self._memory[name]
-        return record
-
-    def is_empty(self):
-        empty = len(self._memory) < 1
-        return empty
+    def __init__(self, put_record):
+        self._put_record = put_record
 
     def __getattribute__(self, name):
+        put_record = object.__getattribute__(self, '_put_record')
         try:
             attribute = object.__getattribute__(self, name)
             return attribute
-        except:
-            memory = self._memory
+        except AttributeError:
             def method(*args, **kwargs):
                 record = (name, args, kwargs)
-                memory[name] = record
+                put_record(record)
             return method
+
 
 class DummyFrontend(threading.Thread):
     pass
 
 
 class TestBackendthread(unittest.TestCase):
+
+    def setUp(self):
+        self._records = {}
+
+    def _put_record(self, record):
+        (name, _, _) = record
+        self._records[name] = record
 
     def test_halt(self):
         backend_thread = BackendThread()
@@ -61,18 +61,19 @@ class TestBackendthread(unittest.TestCase):
           ('commit_data', (), {})
         ]
         backend_thread = BackendThread()
-        recorder = Recorder()
+        recorder = Recorder(self._put_record)
         backend_thread.set_backend(recorder)
         for call in backend_calls:
             (method, args, kwargs) = call
             getattr(backend_thread, method)(*args, **kwargs)
-        self.assertTrue(recorder.is_empty())
+        self.assertTrue(len(self._records) < 1)
         backend_thread.halt()
         backend_thread.run()
         for call in backend_calls:
-            (method, _, _) = call
-            record = recorder.get_record(method)
+            (name, _, _) = call
+            record = self._records[name]
             self.assertEqual(call, record)
+
 
 if __name__ == '__main__':
     unittest.main()
