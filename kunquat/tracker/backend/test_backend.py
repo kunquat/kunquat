@@ -41,10 +41,8 @@ class TestBackend(unittest.TestCase):
         backend.commit_data()
         backend.generate_audio(2)
         result = audio_dummy._audio
-        silent_frame = 0.0
-        mono_silence = [silent_frame, silent_frame]
-        stereo_silence = (mono_audio, mono_audio)
-        self.assertEqual(result, stereo_silence)
+        expected = ([0.0, 0.0], [0.0, 0.0])
+        self.assertEqual(result, expected)
 
 
 if __name__ == '__main__':
