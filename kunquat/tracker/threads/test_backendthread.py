@@ -25,7 +25,7 @@ class Recorder(object):
         record = self._memory[name]
         return record
 
-    def is_empty():
+    def is_empty(self):
         empty = len(self._memory) < 1
         return empty
 
@@ -40,6 +40,9 @@ class Recorder(object):
                 memory[name] = record
             return method
 
+class DummyFrontend():
+    pass
+
 
 class TestBackendthread(unittest.TestCase):
 
@@ -50,6 +53,8 @@ class TestBackendthread(unittest.TestCase):
 
     def test_argument_passing(self):
         calls = [
+          ('set_frontend', (None,), {}),
+          ('set_audio_output', (None,), {}),
           ('generate_audio', (123,), {}),
           ('set_data', ('pat_000/p_pattern.json', { 'length': [16, 0] }), {}),
           ('commit_data', (), {})
@@ -60,7 +65,7 @@ class TestBackendthread(unittest.TestCase):
         for call in calls:
             (method, args, kwargs) = call
             getattr(backend_thread, method)(*args, **kwargs)
-        
+        self.assertTrue(recorder.is_empty())
         backend_thread.halt()
         backend_thread.run()
         for call in calls:
