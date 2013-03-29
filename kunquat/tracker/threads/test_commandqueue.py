@@ -54,6 +54,15 @@ class TestCommandQueue(unittest.TestCase):
             command = Command('foo', value)
             q.put(command)
 
+    def test_push(self):
+        q = CommandQueue()
+        name = 'test'
+        args = [1, 2, 3]
+        q.push(name, *args)
+        command = q.get()
+        self.assertEqual(command.name, 'test')
+        self.assertEqual(command.args, args)
+
     def test_nowait(self):
         q = CommandQueue()
         self.assertRaises(Empty, q.get_nowait)
