@@ -20,10 +20,12 @@ from command import Command
 from commandqueue import CommandQueue
 from kunquat.tracker.backend.backend import Backend
 
-C_GENERATE = 'generate'
-C_SET_DATA = 'set_data'
 C_COMMIT_DATA = 'commit_data'
+C_GENERATE = 'generate'
 C_HALT = 'halt'
+C_SET_AUDIO_OUTPUT = 'set_audio_output'
+C_SET_FRONTEND = 'set_frontend'
+C_SET_DATA = 'set_data'
 
 class BackendThread(threading.Thread):
 
@@ -35,10 +37,10 @@ class BackendThread(threading.Thread):
     # Backend interface
 
     def set_audio_output(self, audio_output):
-        self._backend.set_audio_output(audio_output)
+        self._q.put(Command(C_SET_AUDIO_OUTPUT, audio_output))
 
     def set_frontend(self, frontend):
-        self._backend.set_frontend(frontend)
+        self._q.put(Command(C_SET_FRONTEND, frontend))
 
     def set_backend(self, backend):
         self._backend = backend
@@ -75,6 +77,10 @@ class BackendThread(threading.Thread):
                 self._backend.set_data(key, decoded)
             elif cmd.name == C_COMMIT_DATA:
                 self._backend.commit_data()
+            elif cmd.name == C_SET_AUDIO_OUTPUT:
+                self._backend.set_audio_output(cmd.arg)
+            elif cmd.name == C_SET_FRONTEND:
+                self._backend.set_frontend(cmd.arg)
             else:
                 assert False
             cmd = self._q.get()
