@@ -24,7 +24,7 @@ foo = Command('foo', None)
 bar = Command('bar', None)
 baz = Command('baz', None)
 
-incorrect_arg = Command('foo', [])
+incorrect_arg = ('foo', 1, 2, 3)
 
 
 def load_tests(loader, tests, ignore):
