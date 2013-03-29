@@ -14,6 +14,7 @@
 
 from itertools import islice
 import math
+from kunquat import Kunquat
 
 
 def gen_sine(rate):
@@ -29,6 +30,7 @@ class Backend():
     def __init__(self):
         self._audio_output = None
         self._frontend = None
+        self._kunquat = Kunquat()
 
         self._sine = gen_sine(48000)
 
@@ -38,9 +40,16 @@ class Backend():
     def set_frontend(self, frontend):
         self._frontend = frontend
 
+    def set_data(self, key, value):
+        self._kunquat.set_data(key, value)
+
+    def commit_data(self):
+        self._kunquat.validate()
+
     def generate_audio(self, nframes):
-        data_mono = list(islice(self._sine, nframes))
-        data = (data_mono, data_mono)
-        self._audio_output.put_audio(data)
+        #data_mono = list(islice(self._sine, nframes))
+        #audio_data = (data_mono, data_mono)
+        audio_data = self._kunquat.mix(nframes)
+        self._audio_output.put_audio(audio_data)
 
 
