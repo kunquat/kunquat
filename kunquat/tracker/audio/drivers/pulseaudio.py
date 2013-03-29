@@ -64,7 +64,7 @@ def audio_len(audio):
 class Pulseaudio():
 
     def __init__(self):
-        self._ag = None
+        self._audio_source = None
         self._pa = Async(
                 'Kunquat Tracker',
                 'Editor output',
@@ -73,14 +73,14 @@ class Pulseaudio():
         self._workspace = ([],[])
         self._pa.init()
 
-    def set_audio_generator(self, ag):
-        self._ag = ag
+    def set_audio_source(self, audio_source):
+        self._audio_source = audio_source
 
     def put_audio(self, audio):
         self._buffer.put(audio)
 
     def _next(self, nframes):
-        self._ag.generate_audio(nframes)
+        self._audio_source.generate_audio(nframes)
 
     def _add_audio_to_workspace(self, audio):
         self._workspace = join_audio(self._workspace, audio)

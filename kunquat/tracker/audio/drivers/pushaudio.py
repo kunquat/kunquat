@@ -17,12 +17,12 @@ from kunquat.extras.pulseaudio import Simple
 class Pushaudio():
 
     def __init__(self):
-        self._ag = None
+        self._audio_source = None
         self._pa = Simple('Kunquat Tracker',
                           'Editor output')
 
-    def set_audio_generator(self, ag):
-        self._ag = ag
+    def set_audio_source(self, audio_source):
+        self._audio_source = audio_source
 
     def put_audio(self, audio):
         (left, right) = audio
@@ -31,8 +31,8 @@ class Pushaudio():
 
     def _next(self):
         nframes = 2048
-        if self._ag != None:
-            self._ag.generate_audio(nframes)
+        if self._audio_source != None:
+            self._audio_source.generate_audio(nframes)
 
     def start(self):
         self._next()
