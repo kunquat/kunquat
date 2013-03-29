@@ -35,9 +35,9 @@ class Audio():
     def init(self):
         self._frontend.update_drivers(drivers)
 
-    def _set_audio_generator(self):
+    def _refresh_driver_audio_source(self):
         if self._driver != None:
-            self._driver.set_audio_generator(self._backend)
+            self._driver.set_audio_source(self._backend)
 
     # Audio output interface
 
@@ -53,13 +53,13 @@ class Audio():
         else:
             assert False
         if self._driver:
-            self._set_audio_generator()
+            self._refresh_driver_audio_source()
             self._driver.start()
         self._backend.update_selected_driver(name)
 
     def set_backend(self, backend):
         self._backend = backend
-        self._set_audio_generator()
+        self._refresh_driver_audio_source()
 
     def set_frontend(self, frontend):
         self._frontend = frontend
