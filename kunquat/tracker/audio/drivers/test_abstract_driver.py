@@ -33,7 +33,7 @@ class TestAbstractDriver(unittest.TestCase):
 
     def _prefeed(self, DriverClass):
         driver = DriverClass()
-        driver.set_audio_generator(DummyAudioSource())
+        driver.set_audio_source(DummyAudioSource())
         driver.put_audio((10000*[0.1],10000*[0.1]))
         driver.start()
         sleep(0.2)
@@ -42,7 +42,7 @@ class TestAbstractDriver(unittest.TestCase):
 
     def _boot_driver(self, DriverClass):
         driver = DriverClass()
-        driver.set_audio_generator(DummyAudioSource())
+        driver.set_audio_source(DummyAudioSource())
         driver.start()
         driver.close()
 
