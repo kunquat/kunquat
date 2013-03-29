@@ -34,3 +34,7 @@ class CommandQueue(Queue):
         else:
             raise TypeError(type(command))
 
+    def push(self, name, *args):
+        command = Command(name, *args)
+        self.put(command)
+
