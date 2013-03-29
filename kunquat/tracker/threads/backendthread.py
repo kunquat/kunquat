@@ -17,7 +17,7 @@ import threading
 from commandqueue import CommandQueue
 
 C_COMMIT_DATA = 'commit_data'
-C_GENERATE = 'generate'
+C_GENERATE_AUDIO = 'generate_audio'
 C_HALT = 'halt'
 C_SET_AUDIO_OUTPUT = 'set_audio_output'
 C_SET_FRONTEND = 'set_frontend'
@@ -45,10 +45,10 @@ class BackendThread(threading.Thread):
         self._q.push(C_SET_DATA, key, value)
 
     def commit_data(self):
-        self._q.push(C_COMMIT_DATA, None)
+        self._q.push(C_COMMIT_DATA)
 
     def generate_audio(self, nframes):
-        self._q.push(C_GENERATE, nframes)
+        self._q.push(C_GENERATE_AUDIO, nframes)
 
     # Threading interface
 
