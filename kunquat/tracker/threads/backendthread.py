@@ -20,10 +20,10 @@ HALT = None
 
 class BackendThread(threading.Thread):
 
-    def __init__(self, backend):
+    def __init__(self):
         threading.Thread.__init__(self)
         self._q = CommandQueue()
-        self._backend = backend
+        self._backend = None
 
     # Backend interface
 
@@ -43,6 +43,9 @@ class BackendThread(threading.Thread):
         self._q.push('generate_audio', nframes)
 
     # Threading interface
+
+    def set_handler(self, backend):
+        self._backend = backend
 
     def halt(self):
         self._q.push(HALT)
