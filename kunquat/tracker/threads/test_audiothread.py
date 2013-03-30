@@ -13,19 +13,19 @@
 
 import unittest
 
+from kunquat.tracker.audio.audio import Audio
 from audiothread import AudioThread
+from test_abstractthread import TestAbstractThread
 
 
-class TestAudiothread(unittest.TestCase):
+class TestAudiothread(TestAbstractThread, unittest.TestCase):
 
-    def test_halt(self):
-        class Fe():
-            def update_drivers(self, drivers):
-                pass
-        audio_thread = AudioThread()
-        audio_thread.set_frontend(Fe())
-        audio_thread.halt()
-        audio_thread.run()
+    def setUp(self):
+        self._test_calls = [
+        ]
+        self._InterfaceClass = Audio
+        self._TestClass = AudioThread
+        self._thread = self._TestClass()
 
 
 if __name__ == '__main__':
