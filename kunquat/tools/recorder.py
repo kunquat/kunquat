@@ -18,11 +18,13 @@ class Recorder(object):
         self._put_record = put_record
 
     def __getattribute__(self, name):
+        if name.startswith('_'):
+            attr = object.__getattribute__(self, name)
+            return attr
         recorder = self
         def newfunc(*args, **kwargs):
             record = (name, args, kwargs)
-            recorder._put_record(record)
-            return result
+            recorder._put_record(name, *args, **kwargs)
         return newfunc
 
 
