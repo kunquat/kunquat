@@ -29,7 +29,7 @@ class AudioThread(threading.Thread):
         threading.Thread.__init__(self)
         self._backend = None
         self._q = CommandQueue()
-        self._audio = Audio()
+        self._audio = None
 
     # Driver interface
 
@@ -47,6 +47,10 @@ class AudioThread(threading.Thread):
         self._q.put(Command(C_PUT_AUDIO, arg))
 
     # Threading interface
+
+    def set_handler(self, audio):
+        #self._audio = Audio()
+        self._audio = audio
 
     def halt(self):
         self._q.put(Command(C_HALT, None))
