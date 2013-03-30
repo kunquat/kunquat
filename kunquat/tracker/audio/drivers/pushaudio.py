@@ -26,7 +26,8 @@ class Pushaudio():
 
     def put_audio(self, audio):
         (left, right) = audio
-        self._pa.write(left, right)
+        if len(left) > 0:
+            self._pa.write(left, right)
         self._next()
 
     def _next(self):
