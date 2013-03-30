@@ -62,7 +62,7 @@ class FrontendThread(threading.Thread):
                 if command.name == HALT:
                     self._ui_launcher.halt_ui()
                 else:
-                    self._frontend.__call__(command.name, *command.args)
+                    getattr(self._frontend, command.name)(*command.args)
             except Queue.Empty:
                 break
 

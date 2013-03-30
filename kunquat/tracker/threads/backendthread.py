@@ -51,9 +51,9 @@ class BackendThread(threading.Thread):
         self._q.push(HALT)
 
     def run(self):
-        cmd = self._q.get()
-        while cmd.name != HALT:
-            self._backend.__call__(cmd.name, *cmd.args)
-            cmd = self._q.get()
+        command = self._q.get()
+        while command.name != HALT:
+            getattr(self._backend, command.name)(*command.args)
+            command = self._q.get()
 
 

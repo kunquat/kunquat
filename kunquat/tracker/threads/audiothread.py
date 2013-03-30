@@ -57,7 +57,7 @@ class AudioThread(threading.Thread):
     def run(self):
         command = self._q.get()
         while command.name != HALT:
-            self._audio.__call__(command.name, *command.args)
+            getattr(self._audio, command.name)(*command.args)
             command = self._q.get()
 
 
