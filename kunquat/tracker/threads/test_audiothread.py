@@ -12,16 +12,30 @@
 #
 
 import unittest
+import threading
 
 from kunquat.tracker.audio.audio import Audio
 from audiothread import AudioThread
 from test_abstractthread import TestAbstractThread
 
 
+class DummyFrontend(threading.Thread):
+    pass
+
+
+class DummyBackend(threading.Thread):
+    pass
+
+
 class TestAudiothread(TestAbstractThread, unittest.TestCase):
 
     def setUp(self):
         self._test_calls = [
+          ('select_driver', ('coolsound',), {}),
+          ('set_frontend', (DummyFrontend(),), {}),
+          ('set_backend', (DummyBackend(),), {}),
+          ('put_audio', (([0], [0]),), {}),
+          ('request_update', (), {})
         ]
         self._InterfaceClass = Audio
         self._TestClass = AudioThread
