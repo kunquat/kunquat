@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -16,8 +16,8 @@
 #include <stdbool.h>
 
 #include <AAtree.h>
+#include <memory.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 typedef struct AAnode
@@ -66,7 +66,7 @@ static bool aavalidate_(AAnode* node, char* msg);
 
 AAiter* new_AAiter(AAtree* tree)
 {
-    AAiter* iter = xalloc(AAiter);
+    AAiter* iter = memory_alloc_item(AAiter);
     if (iter == NULL)
     {
         return NULL;
@@ -91,7 +91,7 @@ void AAiter_change_tree(AAiter* iter, AAtree* tree)
 
 void del_AAiter(AAiter* iter)
 {
-    xfree(iter);
+    memory_free(iter);
     return;
 }
 
@@ -102,7 +102,7 @@ static AAnode* new_AAnode(AAnode* nil, void* data)
 {
     assert(!(nil == NULL) || (data == NULL));
     assert(!(data == NULL) || (nil == NULL));
-    AAnode* node = xalloc(AAnode);
+    AAnode* node = memory_alloc_item(AAnode);
     if (node == NULL)
     {
         return NULL;
@@ -129,7 +129,7 @@ AAtree* new_AAtree(int (*cmp)(const void*, const void*), void (*destroy)(void*))
 {
     assert(cmp != NULL);
     assert(destroy != NULL);
-    AAtree* tree = xalloc(AAtree);
+    AAtree* tree = memory_alloc_item(AAtree);
     if (tree == NULL)
     {
         return NULL;
@@ -137,7 +137,7 @@ AAtree* new_AAtree(int (*cmp)(const void*, const void*), void (*destroy)(void*))
     tree->nil = new_AAnode(NULL, NULL);
     if (tree->nil == NULL)
     {
-        xfree(tree);
+        memory_free(tree);
         return NULL;
     }
     tree->root = tree->nil;
@@ -527,8 +527,8 @@ void del_AAtree(AAtree* tree)
     }
     aavalidate(tree->root, "del");
     AAtree_clear(tree);
-    xfree(tree->nil);
-    xfree(tree);
+    memory_free(tree->nil);
+    memory_free(tree);
     return;
 }
 
@@ -640,7 +640,7 @@ static void aafree(AAnode* node, void (*destroy)(void*))
     aafree(node->left, destroy);
     aafree(node->right, destroy);
     destroy(node->data);
-    xfree(node);
+    memory_free(node);
     return;
 }
 

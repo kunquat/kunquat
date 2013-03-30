@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -18,8 +18,8 @@
 #include <Audio_buffer.h>
 #include <kunquat/limits.h>
 #include <math_common.h>
+#include <memory.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 struct Audio_buffer
@@ -33,7 +33,7 @@ Audio_buffer* new_Audio_buffer(uint32_t size)
 {
     assert(size > 0);
     assert(size <= KQT_BUFFER_SIZE_MAX);
-    Audio_buffer* buffer = xalloc(Audio_buffer);
+    Audio_buffer* buffer = memory_alloc_item(Audio_buffer);
     if (buffer == NULL)
     {
         return NULL;
@@ -45,7 +45,7 @@ Audio_buffer* new_Audio_buffer(uint32_t size)
     }
     for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
     {
-        buffer->bufs[i] = xnalloc(kqt_frame, size);
+        buffer->bufs[i] = memory_alloc_items(kqt_frame, size);
         if (buffer->bufs[i] == NULL)
         {
             //fprintf(stderr, "Calling destroy at %s:%d\n", __FILE__, __LINE__);
@@ -78,7 +78,10 @@ bool Audio_buffer_resize(Audio_buffer* buffer, uint32_t size)
     }
     for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
     {
-        kqt_frame* new_buf = xrealloc(kqt_frame, size, buffer->bufs[i]);
+        kqt_frame* new_buf = memory_realloc_items(
+                kqt_frame,
+                size,
+                buffer->bufs[i]);
         if (new_buf == NULL)
         {
             buffer->size = MIN(buffer->size, size);
@@ -157,9 +160,9 @@ void del_Audio_buffer(Audio_buffer* buffer)
     //fprintf(stderr, "Destroying %p\n", (void*)buffer);
     for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
     {
-        xfree(buffer->bufs[i]);
+        memory_free(buffer->bufs[i]);
     }
-    xfree(buffer);
+    memory_free(buffer);
     return;
 }
 

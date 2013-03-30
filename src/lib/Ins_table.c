@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -17,9 +17,8 @@
 #include <Etable.h>
 #include <Instrument.h>
 #include <Ins_table.h>
-#include <File_base.h>
+#include <memory.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 struct Ins_table
@@ -32,7 +31,7 @@ struct Ins_table
 Ins_table* new_Ins_table(int size)
 {
     assert(size > 0);
-    Ins_table* table = xalloc(Ins_table);
+    Ins_table* table = memory_alloc_item(Ins_table);
     if (table == NULL)
     {
         return NULL;
@@ -40,7 +39,7 @@ Ins_table* new_Ins_table(int size)
     table->insts = new_Etable(size, (void (*)(void*))del_Instrument);
     if (table->insts == NULL)
     {
-        xfree(table);
+        memory_free(table);
         return NULL;
     }
     table->size = size;
@@ -92,7 +91,7 @@ void del_Ins_table(Ins_table* table)
         return;
     }
     del_Etable(table->insts);
-    xfree(table);
+    memory_free(table);
     return;
 }
 

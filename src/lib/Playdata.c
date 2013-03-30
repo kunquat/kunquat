@@ -20,14 +20,14 @@
 #include <Voice_pool.h>
 #include <Channel.h>
 #include <Environment.h>
+#include <memory.h>
+#include <Playdata.h>
 #include <Random.h>
 #include <Reltime.h>
 #include <serialise.h>
 #include <Slider.h>
 #include <string_common.h>
-#include <Playdata.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 Playdata* new_Playdata(Ins_table* insts,
@@ -38,7 +38,7 @@ Playdata* new_Playdata(Ins_table* insts,
     assert(env != NULL);
     (void)insts; // FIXME: remove?
     assert(random != NULL);
-    Playdata* play = xalloc(Playdata);
+    Playdata* play = memory_alloc_item(Playdata);
     if (play == NULL)
     {
         return NULL;
@@ -123,7 +123,7 @@ Playdata* new_Playdata_silent(Environment* env, uint32_t freq)
 {
     assert(env != NULL);
     assert(freq > 0);
-    Playdata* play = xalloc(Playdata);
+    Playdata* play = memory_alloc_item(Playdata);
     if (play == NULL)
     {
         return NULL;
@@ -138,7 +138,7 @@ Playdata* new_Playdata_silent(Environment* env, uint32_t freq)
     play->voice_pool = NULL;
     if (play->citer == NULL || !General_state_init(&play->parent, true, env))
     {
-        xfree(play);
+        memory_free(play);
         return NULL;
     }
 //    play->ins_events = NULL;
@@ -347,7 +347,7 @@ void del_Playdata(Playdata* play)
     del_Voice_pool(play->voice_pool);
     del_Column_iter(play->citer);
     General_state_uninit(&play->parent);
-    xfree(play);
+    memory_free(play);
     return;
 }
 

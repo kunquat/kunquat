@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2013
  *
  * This file is part of Kunquat.
  *
@@ -24,10 +24,10 @@
 #include <Event_type.h>
 #include <expr.h>
 #include <File_base.h>
+#include <memory.h>
 #include <Random.h>
 #include <Value.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 struct Bind
@@ -127,7 +127,7 @@ Bind* new_Bind(char* str, Event_names* names, Read_state* state)
     {
         return NULL;
     }
-    Bind* map = xalloc(Bind);
+    Bind* map = memory_alloc_item(Bind);
     if (map == NULL)
     {
         return NULL;
@@ -310,7 +310,7 @@ void del_Bind(Bind* map)
     }
     del_AAiter(map->iter);
     del_AAtree(map->cblists);
-    xfree(map);
+    memory_free(map);
     return;
 }
 
@@ -468,7 +468,7 @@ static bool read_events(char** str,
 static Cblist* new_Cblist(char* event_name)
 {
     assert(event_name != NULL);
-    Cblist* list = xalloc(Cblist);
+    Cblist* list = memory_alloc_item(Cblist);
     if (list == NULL)
     {
         return NULL;
@@ -510,14 +510,14 @@ static void del_Cblist(Cblist* list)
         del_Cblist_item(cur);
         cur = next;
     }
-    xfree(list);
+    memory_free(list);
     return;
 }
 
 
 static Cblist_item* new_Cblist_item(void)
 {
-    Cblist_item* item = xalloc(Cblist_item);
+    Cblist_item* item = memory_alloc_item(Cblist_item);
     if (item == NULL)
     {
         return NULL;
@@ -550,7 +550,7 @@ static void del_Cblist_item(Cblist_item* item)
         del_Target_event(curt);
         curt = nextt;
     }
-    xfree(item);
+    memory_free(item);
     return;
 }
 
@@ -564,7 +564,7 @@ static Constraint* new_Constraint(char** str, Read_state* state)
     {
         return NULL;
     }
-    Constraint* c = xalloc(Constraint);
+    Constraint* c = memory_alloc_item(Constraint);
     if (c == NULL)
     {
         return NULL;
@@ -589,7 +589,7 @@ static Constraint* new_Constraint(char** str, Read_state* state)
         del_Constraint(c);
         return NULL;
     }
-    c->expr = xcalloc(char, len + 1);
+    c->expr = memory_calloc_items(char, len + 1);
     if (c->expr == NULL)
     {
         del_Constraint(c);
@@ -627,8 +627,8 @@ static void del_Constraint(Constraint* constraint)
     {
         return;
     }
-    xfree(constraint->expr);
-    xfree(constraint);
+    memory_free(constraint->expr);
+    memory_free(constraint);
     return;
 }
 
@@ -645,7 +645,7 @@ static Target_event* new_Target_event(char** str,
     {
         return NULL;
     }
-    Target_event* event = xalloc(Target_event);
+    Target_event* event = memory_alloc_item(Target_event);
     if (event == NULL)
     {
         return NULL;
@@ -697,7 +697,7 @@ static Target_event* new_Target_event(char** str,
     }
     int len = desc - *str;
     assert(len > 0);
-    event->desc = xnalloc(char, len + 1);
+    event->desc = memory_alloc_items(char, len + 1);
     if (event->desc == NULL)
     {
         del_Target_event(event);
@@ -717,8 +717,8 @@ static void del_Target_event(Target_event* event)
     {
         return;
     }
-    xfree(event->desc);
-    xfree(event);
+    memory_free(event->desc);
+    memory_free(event);
     return;
 }
 

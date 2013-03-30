@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2013
  *
  * This file is part of Kunquat.
  *
@@ -22,9 +22,9 @@
 #include <DSP_common.h>
 #include <DSP_conv.h>
 #include <math_common.h>
+#include <memory.h>
 #include <string_common.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 #define DEFAULT_IR_LEN 0.25
@@ -66,7 +66,7 @@ DSP* new_DSP_conv(uint32_t buffer_size, uint32_t mix_rate)
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_BUFFER_SIZE_MAX);
     assert(mix_rate > 0);
-    DSP_conv* conv = xalloc(DSP_conv);
+    DSP_conv* conv = memory_alloc_item(DSP_conv);
     if (conv == NULL)
     {
         return NULL;
@@ -74,7 +74,7 @@ DSP* new_DSP_conv(uint32_t buffer_size, uint32_t mix_rate)
     if (!DSP_init(&conv->parent, del_DSP_conv,
                   DSP_conv_process, buffer_size, mix_rate))
     {
-        xfree(conv);
+        memory_free(conv);
         return NULL;
     }
     DSP_set_clear_history(&conv->parent, DSP_conv_clear_history);
@@ -371,7 +371,7 @@ static void del_DSP_conv(DSP* dsp)
     DSP_conv* conv = (DSP_conv*)dsp;
     del_Audio_buffer(conv->ir);
     del_Audio_buffer(conv->history);
-    xfree(conv);
+    memory_free(conv);
     return;
 }
 

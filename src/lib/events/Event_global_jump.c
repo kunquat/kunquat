@@ -21,9 +21,9 @@
 #include <Event_global_jump.h>
 #include <File_base.h>
 #include <kunquat/limits.h>
+#include <memory.h>
 #include <Pattern_location.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 typedef struct Jump_context
@@ -42,7 +42,7 @@ static Jump_context* new_Jump_context(Pattern_location* loc);
 static Jump_context* new_Jump_context(Pattern_location* loc)
 {
     assert(loc != NULL);
-    Jump_context* jc = xalloc(Jump_context);
+    Jump_context* jc = memory_alloc_item(Jump_context);
     if (jc == NULL)
     {
         return NULL;
@@ -63,7 +63,7 @@ void del_Event_global_jump(Event* event);
 Event* new_Event_global_jump(Reltime* pos)
 {
     assert(pos != NULL);
-    Event_global_jump* event = xalloc(Event_global_jump);
+    Event_global_jump* event = memory_alloc_item(Event_global_jump);
     if (event == NULL)
     {
         return NULL;
@@ -73,7 +73,8 @@ Event* new_Event_global_jump(Reltime* pos)
     event->counters_iter = NULL;
     event->parent.destroy = del_Event_global_jump;
     event->counters = new_AAtree(
-            (int (*)(const void*, const void*))Pattern_location_cmp, free);
+            (int (*)(const void*, const void*))Pattern_location_cmp,
+            memory_free);
     event->counters_iter = new_AAiter(event->counters);
     if (event->counters == NULL || event->counters_iter == NULL)
     {
@@ -163,7 +164,7 @@ bool Trigger_global_jump_set_locations(Event_global_jump* event,
         context = new_Jump_context(noloc);
         if (context == NULL || !AAtree_ins(event->counters, context))
         {
-            xfree(context);
+            memory_free(context);
             return false;
         }
     }
@@ -177,7 +178,7 @@ bool Trigger_global_jump_set_locations(Event_global_jump* event,
             context = new_Jump_context(loc);
             if (context == NULL || !AAtree_ins(event->counters, context))
             {
-                xfree(context);
+                memory_free(context);
                 return false;
             }
         }

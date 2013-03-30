@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -16,11 +16,11 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <generators/File_wavpack.h>
 #include <Device_field.h>
+#include <generators/File_wavpack.h>
+#include <memory.h>
 #include <string_common.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 typedef union
@@ -112,7 +112,7 @@ Device_field* new_Device_field(const char* key, void* data)
     {
         assert(false);
     }
-    Device_field* field = xalloc(Device_field);
+    Device_field* field = memory_alloc_item(Device_field);
     if (field == NULL)
     {
         return NULL;
@@ -492,7 +492,7 @@ void del_Device_field(Device_field* field)
     {
         del_Num_list(field->data.Num_list_type);
     }
-    xfree(field);
+    memory_free(field);
     return;
 }
 

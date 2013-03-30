@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -19,9 +19,9 @@
 #include <Generator_common.h>
 #include <Generator_debug.h>
 #include <Device_params.h>
+#include <memory.h>
 #include <string_common.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 static bool Generator_debug_update_key(Device* device, const char* key);
@@ -33,7 +33,7 @@ Generator* new_Generator_debug(uint32_t buffer_size,
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_BUFFER_SIZE_MAX);
     assert(mix_rate > 0);
-    Generator_debug* debug = xalloc(Generator_debug);
+    Generator_debug* debug = memory_alloc_item(Generator_debug);
     if (debug == NULL)
     {
         return NULL;
@@ -45,7 +45,7 @@ Generator* new_Generator_debug(uint32_t buffer_size,
                         buffer_size,
                         mix_rate))
     {
-        xfree(debug);
+        memory_free(debug);
         return NULL;
     }
     Device_set_update_key(&debug->parent.parent, Generator_debug_update_key);
@@ -159,7 +159,7 @@ void del_Generator_debug(Generator* gen)
     }
     assert(string_eq(gen->type, "debug"));
     Generator_debug* debug = (Generator_debug*)gen;
-    xfree(debug);
+    memory_free(debug);
     return;
 }
 

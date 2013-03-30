@@ -19,8 +19,8 @@
 #include <DSP.h>
 #include <DSP_table.h>
 #include <Etable.h>
+#include <memory.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 struct DSP_table
@@ -35,7 +35,7 @@ struct DSP_table
 DSP_table* new_DSP_table(int size)
 {
     assert(size > 0);
-    DSP_table* table = xalloc(DSP_table);
+    DSP_table* table = memory_alloc_item(DSP_table);
     if (table == NULL)
     {
         return NULL;
@@ -186,7 +186,7 @@ void del_DSP_table(DSP_table* table)
     del_Etable(table->confs);
     del_Etable(table->dsps);
     del_Bit_array(table->existents);
-    xfree(table);
+    memory_free(table);
     return;
 }
 

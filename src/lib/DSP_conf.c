@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -17,14 +17,14 @@
 #include <Device_params.h>
 #include <DSP.h>
 #include <DSP_conf.h>
+#include <memory.h>
 #include <string_common.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 DSP_conf* new_DSP_conf(void)
 {
-    DSP_conf* conf = xalloc(DSP_conf);
+    DSP_conf* conf = memory_alloc_item(DSP_conf);
     if (conf == NULL)
     {
         return NULL;
@@ -86,7 +86,7 @@ void del_DSP_conf(DSP_conf* conf)
         return;
     }
     del_Device_params(conf->params);
-    xfree(conf);
+    memory_free(conf);
     return;
 }
 

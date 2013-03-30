@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -20,12 +20,12 @@
 #include <stdint.h>
 #include <inttypes.h>
 
-#include <Scale.h>
 #include <File_base.h>
 #include <math_common.h>
+#include <memory.h>
+#include <Scale.h>
 #include <string_common.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 typedef struct pitch_index
@@ -59,8 +59,9 @@ static bool Scale_build_pitch_map(Scale* scale);
 static bool Scale_build_pitch_map(Scale* scale)
 {
     assert(scale != NULL);
-    AAtree* pitch_map = new_AAtree((int (*)(const void*, const void*))pitch_index_cmp,
-                                   free);
+    AAtree* pitch_map = new_AAtree(
+            (int (*)(const void*, const void*))pitch_index_cmp,
+            memory_free);
     if (pitch_map == NULL)
     {
         return false;
@@ -69,7 +70,7 @@ static bool Scale_build_pitch_map(Scale* scale)
     {
         for (int note = 0; note < scale->note_count; ++note)
         {
-            pitch_index* pi = xalloc(pitch_index);
+            pitch_index* pi = memory_alloc_item(pitch_index);
             if (pi == NULL)
             {
                 del_AAtree(pitch_map);
@@ -152,7 +153,7 @@ Scale* new_Scale(pitch_t ref_pitch, Real* octave_ratio)
     assert(ref_pitch > 0);
     assert(octave_ratio != NULL);
     assert( Real_cmp(octave_ratio, Real_init_as_frac(REAL_AUTO, 0, 1)) > 0 );
-    Scale* scale = xalloc(Scale);
+    Scale* scale = memory_alloc_item(Scale);
     if (scale == NULL)
     {
         return NULL;
@@ -168,7 +169,7 @@ Scale* new_Scale(pitch_t ref_pitch, Real* octave_ratio)
     scale->oct_ratio_cents = NAN;
     if (!Scale_build_pitch_map(scale))
     {
-        xfree(scale);
+        memory_free(scale);
         return NULL;
     }
     Scale_clear(scale);
@@ -599,7 +600,7 @@ int Scale_ins_note(Scale* scale,
     }
     for (int octave = 0; octave < KQT_SCALE_OCTAVES; ++octave)
     {
-        pitch_index* pi = xalloc(pitch_index);
+        pitch_index* pi = memory_alloc_item(pitch_index);
         if (pi == NULL)
         {
             return -1;
@@ -613,7 +614,7 @@ int Scale_ins_note(Scale* scale,
         pi->octave = octave;
         if (!AAtree_ins(scale->pitch_map, pi))
         {
-            xfree(pi);
+            memory_free(pi);
             return -1;
         }
     }
@@ -902,7 +903,7 @@ void del_Scale(Scale* scale)
         return;
     }
     del_AAtree(scale->pitch_map);
-    xfree(scale);
+    memory_free(scale);
     return;
 }
 

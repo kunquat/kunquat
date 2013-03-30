@@ -15,10 +15,10 @@
 #include <inttypes.h>
 #include <stdint.h>
 
+#include <memory.h>
 #include <Track_list.h>
 #include <Vector.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 struct Track_list
@@ -34,7 +34,7 @@ Track_list* new_Track_list(char* str, Read_state* state)
         return NULL;
 
     // Create the base structure
-    Track_list* tl = xalloc(Track_list);
+    Track_list* tl = memory_alloc_item(Track_list);
     if (tl == NULL)
         return NULL;
     tl->songs = NULL;
@@ -149,7 +149,7 @@ void del_Track_list(Track_list* tl)
         return;
 
     del_Vector(tl->songs);
-    xfree(tl);
+    memory_free(tl);
     return;
 }
 

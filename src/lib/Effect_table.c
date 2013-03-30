@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2013
  *
  * This file is part of Kunquat.
  *
@@ -17,8 +17,8 @@
 #include <Effect.h>
 #include <Effect_table.h>
 #include <Etable.h>
+#include <memory.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 struct Effect_table
@@ -31,7 +31,7 @@ struct Effect_table
 Effect_table* new_Effect_table(int size)
 {
     assert(size > 0);
-    Effect_table* table = xalloc(Effect_table);
+    Effect_table* table = memory_alloc_item(Effect_table);
     if (table == NULL)
     {
         return NULL;
@@ -92,7 +92,7 @@ void del_Effect_table(Effect_table* table)
         return;
     }
     del_Etable(table->effects);
-    xfree(table);
+    memory_free(table);
     return;
 }
 

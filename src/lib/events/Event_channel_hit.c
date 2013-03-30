@@ -18,13 +18,12 @@
 #include <Event_common.h>
 #include <Event_channel_hit.h>
 #include <Event_channel_note_off.h>
+#include <kunquat/limits.h>
 #include <note_setup.h>
 #include <Reltime.h>
 #include <Value.h>
 #include <Voice.h>
-#include <kunquat/limits.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 bool Event_channel_hit_process(Channel_state* ch_state, Value* value)

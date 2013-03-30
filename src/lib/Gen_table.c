@@ -19,8 +19,8 @@
 #include <Gen_table.h>
 #include <Generator.h>
 #include <Etable.h>
+#include <memory.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 struct Gen_table
@@ -35,7 +35,7 @@ struct Gen_table
 Gen_table* new_Gen_table(int size)
 {
     assert(size > 0);
-    Gen_table* table = xalloc(Gen_table);
+    Gen_table* table = memory_alloc_item(Gen_table);
     if (table == NULL)
     {
         return NULL;
@@ -177,7 +177,7 @@ void del_Gen_table(Gen_table* table)
     del_Etable(table->confs);
     del_Etable(table->gens);
     del_Bit_array(table->existents);
-    xfree(table);
+    memory_free(table);
     return;
 }
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -20,11 +20,11 @@
 #include <Generator.h>
 #include <Generator_common.h>
 #include <Generator_sawtooth.h>
-#include <Voice_state_sawtooth.h>
 #include <kunquat/limits.h>
+#include <memory.h>
 #include <string_common.h>
+#include <Voice_state_sawtooth.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 void Generator_sawtooth_init_state(Generator* gen, Voice_state* state);
@@ -36,7 +36,7 @@ Generator* new_Generator_sawtooth(uint32_t buffer_size,
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_BUFFER_SIZE_MAX);
     assert(mix_rate > 0);
-    Generator_sawtooth* sawtooth = xalloc(Generator_sawtooth);
+    Generator_sawtooth* sawtooth = memory_alloc_item(Generator_sawtooth);
     if (sawtooth == NULL)
     {
         return NULL;
@@ -48,7 +48,7 @@ Generator* new_Generator_sawtooth(uint32_t buffer_size,
                         buffer_size,
                         mix_rate))
     {
-        xfree(sawtooth);
+        memory_free(sawtooth);
         return NULL;
     }
     return &sawtooth->parent;
@@ -151,7 +151,7 @@ void del_Generator_sawtooth(Generator* gen)
     }
     assert(string_eq(gen->type, "sawtooth"));
     Generator_sawtooth* sawtooth = (Generator_sawtooth*)gen;
-    xfree(sawtooth);
+    memory_free(sawtooth);
     return;
 }
 

@@ -19,7 +19,6 @@
 #include <Device.h>
 #include <math_common.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 bool Device_init(Device* device, uint32_t buffer_size, uint32_t mix_rate)

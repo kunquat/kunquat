@@ -16,16 +16,17 @@
 
 #include <Device.h>
 #include <Effect_interface.h>
+#include <memory.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
-Effect_interface* new_Effect_interface(uint32_t buf_len,
-                                       uint32_t mix_rate)
+Effect_interface* new_Effect_interface(
+        uint32_t buf_len,
+        uint32_t mix_rate)
 {
     assert(buf_len > 0);
     assert(mix_rate > 0);
-    Effect_interface* ei = xalloc(Effect_interface);
+    Effect_interface* ei = memory_alloc_item(Effect_interface);
     if (ei == NULL)
     {
         return NULL;
@@ -47,7 +48,7 @@ void del_Effect_interface(Effect_interface* ei)
         return;
     }
     Device_uninit(&ei->parent);
-    xfree(ei);
+    memory_free(ei);
     return;
 }
 

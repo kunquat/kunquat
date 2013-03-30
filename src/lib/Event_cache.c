@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2013
  *
  * This file is part of Kunquat.
  *
@@ -19,9 +19,9 @@
 #include <Event_cache.h>
 #include <Event_names.h>
 #include <Event_type.h>
+#include <memory.h>
 #include <Value.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 struct Event_cache
@@ -49,7 +49,7 @@ static void del_Event_state(Event_state* es);
 
 Event_cache* new_Event_cache(void)
 {
-    Event_cache* cache = xalloc(Event_cache);
+    Event_cache* cache = memory_alloc_item(Event_cache);
     if (cache == NULL)
     {
         return NULL;
@@ -131,7 +131,7 @@ void del_Event_cache(Event_cache* cache)
     }
     del_AAiter(cache->iter);
     del_AAtree(cache->cache);
-    xfree(cache);
+    memory_free(cache);
     return;
 }
 
@@ -140,7 +140,7 @@ static Event_state* new_Event_state(char* event_name)
 {
     assert(event_name != NULL);
     assert(strlen(event_name) <= EVENT_NAME_MAX);
-    Event_state* es = xalloc(Event_state);
+    Event_state* es = memory_alloc_item(Event_state);
     if (es == NULL)
     {
         return NULL;
@@ -165,7 +165,7 @@ static void del_Event_state(Event_state* es)
     {
         return;
     }
-    xfree(es);
+    memory_free(es);
     return;
 }
 

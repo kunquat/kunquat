@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -18,9 +18,9 @@
 #include <float.h>
 
 #include <Envelope.h>
+#include <memory.h>
 #include <string_common.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 struct Envelope
@@ -58,15 +58,15 @@ Envelope* new_Envelope(int nodes_max,
     assert(!isnan(min_y));
     assert(!isnan(max_y));
     assert(step_y >= 0);
-    Envelope* env = xalloc(Envelope);
+    Envelope* env = memory_alloc_item(Envelope);
     if (env == NULL)
     {
         return NULL;
     }
-    env->nodes = xnalloc(double, nodes_max * 2);
+    env->nodes = memory_alloc_items(double, nodes_max * 2);
     if (env->nodes == NULL)
     {
-        xfree(env);
+        memory_free(env);
         return NULL;
     }
     env->node_count = 0;
@@ -567,8 +567,8 @@ void del_Envelope(Envelope* env)
     {
         return;
     }
-    xfree(env->nodes);
-    xfree(env);
+    memory_free(env->nodes);
+    memory_free(env);
     return;
 }
 

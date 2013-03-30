@@ -1,7 +1,7 @@
 
 
 /*
- * Authors: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Authors: Tomi Jylhä-Ollila, Finland 2010-2013
  *          Ossi Saresoja, Finland 2010
  *
  * This file is part of Kunquat.
@@ -23,12 +23,12 @@
 #include <Generator_common.h>
 #include <Generator_noise.h>
 #include <Device_params.h>
-#include <Voice_state_noise.h>
 #include <kunquat/limits.h>
 #include <math_common.h>
+#include <memory.h>
 #include <string_common.h>
+#include <Voice_state_noise.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 void Generator_noise_init_state(Generator* gen, Voice_state* state);
@@ -40,7 +40,7 @@ Generator* new_Generator_noise(uint32_t buffer_size,
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_BUFFER_SIZE_MAX);
     assert(mix_rate > 0);
-    Generator_noise* noise = xalloc(Generator_noise);
+    Generator_noise* noise = memory_alloc_item(Generator_noise);
     if (noise == NULL)
     {
         return NULL;
@@ -52,7 +52,7 @@ Generator* new_Generator_noise(uint32_t buffer_size,
                         buffer_size,
                         mix_rate))
     {
-        xfree(noise);
+        memory_free(noise);
         return NULL;
     }
     noise->order = 0;
@@ -170,7 +170,7 @@ void del_Generator_noise(Generator* gen)
     }
     assert(string_eq(gen->type, "noise"));
     Generator_noise* noise = (Generator_noise*)gen;
-    xfree(noise);
+    memory_free(noise);
     return;
 }
 

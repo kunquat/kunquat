@@ -16,8 +16,8 @@
 #include <stdio.h>
 
 #include <Bit_array.h>
+#include <memory.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 struct Bit_array
@@ -43,13 +43,13 @@ Bit_array* new_Bit_array(size_t size)
 {
     assert(size > 0);
 
-    Bit_array* ba = xalloc(Bit_array);
+    Bit_array* ba = memory_alloc_item(Bit_array);
     if (ba == NULL)
         return NULL;
     ba->size = size;
     ba->bits = NULL;
 
-    ba->bits = xcalloc(uint8_t, byte_index(size) + 1);
+    ba->bits = memory_calloc_items(uint8_t, byte_index(size) + 1);
     if (ba->bits == NULL)
     {
         del_Bit_array(ba);
@@ -94,8 +94,8 @@ void del_Bit_array(Bit_array* ba)
     if (ba == NULL)
         return;
 
-    xfree(ba->bits);
-    xfree(ba);
+    memory_free(ba->bits);
+    memory_free(ba);
     return;
 }
 
