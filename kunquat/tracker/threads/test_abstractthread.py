@@ -44,11 +44,11 @@ class TestAbstractThread():
         missing_members = interface_spec - implementation
         self.assertEqual(missing_members, set())
 
-    def _put_record(self, record):
-        (name, _, _) = record
+    def _put_record(self, name, args, kwargs):
+        record = (name, args, kwargs)
         self._records[name] = record
 
-    def broken_test_argument_passing(self):
+    def test_argument_passing(self):
         self._records = {}
         recorder = Recorder(self._put_record)
         self._thread.set_handler(recorder)
