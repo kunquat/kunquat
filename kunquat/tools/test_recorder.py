@@ -18,7 +18,7 @@ from recorder import Recorder
 
 class TestCommand(unittest.TestCase):
 
-    def _put(self, name, *args, **kwargs):
+    def _put(self, name, args, kwargs):
         record = (name, args, kwargs)
         self._records[name] = record
 

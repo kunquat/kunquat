@@ -24,7 +24,7 @@ class Recorder(object):
         recorder = self
         def newfunc(*args, **kwargs):
             record = (name, args, kwargs)
-            recorder._put_record(name, *args, **kwargs)
+            recorder._put_record(name, args, kwargs)
         return newfunc
 
 
