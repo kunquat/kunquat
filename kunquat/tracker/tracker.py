@@ -14,6 +14,10 @@
 
 import time
 
+from kunquat.tracker.frontend.uimodel import UiModel
+from kunquat.tracker.audio.audio import Audio
+from kunquat.tracker.backend.backend import Backend
+from kunquat.tracker.frontend.frontend import Frontend
 from kunquat.tracker.qt.launcher import QtLauncher
 from kunquat.tracker.threads.audiothread import AudioThread
 from kunquat.tracker.threads.backendthread import BackendThread
@@ -21,13 +25,24 @@ from kunquat.tracker.threads.frontendthread import FrontendThread
 
 
 def main():
+
+    ui_model = UiModel()
+
+    audio_output = Audio()
+    backend = Backend()
+    frontend = Frontend(ui_model)
+
     audio_thread = AudioThread()
     backend_thread = BackendThread()
     frontend_thread = FrontendThread()
-    ui_launcher = QtLauncher()
-    backend = Backend()
 
-    backend_thread.set_backend(backend)
+    audio_thread.set_handler(audio_output)
+    backend_thread.set_handler(backend)
+    frontend_thread.set_handler(frontend)
+
+    ui_launcher = QtLauncher()
+    ui_launcher.set_ui_model(ui_model)
+    frontend_thread.set_ui_launcher(ui_launcher)
 
     audio_thread.set_backend(backend_thread)
     audio_thread.set_frontend(frontend_thread)
@@ -35,7 +50,6 @@ def main():
     backend_thread.set_audio_output(audio_thread)
     frontend_thread.set_backend(backend_thread)
     frontend_thread.set_audio_output(audio_thread)
-    frontend_thread.set_ui_launcher(ui_launcher)
 
     audio_thread.start()
     backend_thread.start()
