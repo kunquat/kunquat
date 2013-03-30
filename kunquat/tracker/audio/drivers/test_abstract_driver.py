@@ -27,6 +27,10 @@ class TestAbstractDriver(unittest.TestCase):
     def setUp(self):
         pass
 
+    def _emptypush(self, DriverClass):
+        driver = DriverClass()
+        driver.put_audio(([],[]))
+
     def _quickpush(self, DriverClass):
         driver = DriverClass()
         driver.put_audio(([0],[0]))
@@ -56,6 +60,7 @@ class TestAbstractDriver(unittest.TestCase):
     def run_tests(self, DriverClass):
         self._prefeed(DriverClass)
         self._quickpush(DriverClass)
+        self._emptypush(DriverClass)
         self._driver_cleanup(DriverClass)
 
 
