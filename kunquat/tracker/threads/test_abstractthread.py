@@ -43,9 +43,8 @@ class TestAbstractThread():
         raise NotImplementedError
 
     def test_halt(self):
-        thread = self._TestClass(None)
-        thread.halt()
-        thread.run()
+        self._thread.halt()
+        self._thread.run()
 
     def test_interface(self):
         interface_spec = set(public_interface(self._InterfaceClass))
@@ -60,13 +59,13 @@ class TestAbstractThread():
     def test_argument_passing(self):
         self._records = {}
         recorder = Recorder(self._put_record)
-        thread = self._TestClass(recorder)
+        self._thread.set_handler(recorder)
         for call in self._test_calls:
             (method, args, kwargs) = call
-            getattr(thread, method)(*args, **kwargs)
+            getattr(self._thread, method)(*args, **kwargs)
         self.assertTrue(len(self._records) < 1)
-        thread.halt()
-        thread.run()
+        self._thread.halt()
+        self._thread.run()
         for call in self._test_calls:
             (name, _, _) = call
             record = self._records[name]

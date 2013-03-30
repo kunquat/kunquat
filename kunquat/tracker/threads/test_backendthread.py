@@ -35,6 +35,7 @@ class TestBackendthread(TestAbstractThread, unittest.TestCase):
         ]
         self._InterfaceClass = Backend
         self._TestClass = BackendThread
+        self._thread = self._TestClass()
 
 
 if __name__ == '__main__':
