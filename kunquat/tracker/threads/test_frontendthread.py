@@ -12,6 +12,7 @@
 #
 
 import unittest
+import threading
 
 from kunquat.tracker.frontend.frontend import Frontend
 from frontendthread import FrontendThread
@@ -38,10 +39,22 @@ class DummyLauncher():
             self._queue_processor()
 
 
+class DummyBackend(threading.Thread):
+    pass
+
+
+class DummyAudio(threading.Thread):
+    pass
+
+
 class TestFrontendthread(TestAbstractThread, unittest.TestCase):
 
     def setUp(self):
-        self._test_calls = []
+        self._test_calls = [
+          ('set_audio_output', (DummyAudio(),), {}),
+          ('set_backend', (DummyBackend(),), {}),
+          ('update_drivers', ({'coolsound':{'name': 'coolsound test driver'}},), {})
+        ]
         self._InterfaceClass = Frontend
         self._TestClass = FrontendThread
         self._thread = self._TestClass()
