@@ -42,6 +42,9 @@ class BackendThread(threading.Thread):
     def generate_audio(self, nframes):
         self._q.push('generate_audio', nframes)
 
+    def update_selected_driver(self, name):
+        self._q.push('update_selected_driver', name)
+
     # Threading interface
 
     def set_handler(self, backend):

@@ -43,6 +43,9 @@ class Backend():
     def set_data(self, key, value):
         self._kunquat.set_data(key, value)
 
+    def update_selected_driver(self, name):
+        pass
+
     def commit_data(self):
         self._kunquat.validate()
 

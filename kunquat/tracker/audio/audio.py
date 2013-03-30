@@ -53,7 +53,7 @@ class Audio():
         if self._driver:
             self._refresh_driver_audio_source()
             self._driver.start()
-        #TODO: self._backend.update_selected_driver(name)
+        self._backend.update_selected_driver(name)
 
     def set_backend(self, backend):
         self._backend = backend
