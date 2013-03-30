@@ -31,7 +31,8 @@ class TestBackendthread(TestAbstractThread, unittest.TestCase):
           ('set_audio_output', (None,), {}),
           ('generate_audio', (123,), {}),
           ('set_data', ('pat_000/p_pattern.json', { 'length': [16, 0] }), {}),
-          ('commit_data', (), {})
+          ('commit_data', (), {}),
+          ('update_selected_driver', ('coolsound',), {})
         ]
         self._InterfaceClass = Backend
         self._TestClass = BackendThread
