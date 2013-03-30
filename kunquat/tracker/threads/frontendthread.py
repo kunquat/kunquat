@@ -49,7 +49,6 @@ class FrontendThread(threading.Thread):
     # Threading interface
 
     def set_handler(self, frontend):
-        #self._frontend = Frontend(self._ui_model)
         self._frontend = frontend
 
     def halt(self):

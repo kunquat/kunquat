@@ -49,14 +49,12 @@ class AudioThread(threading.Thread):
     # Threading interface
 
     def set_handler(self, audio):
-        #self._audio = Audio()
         self._audio = audio
 
     def halt(self):
         self._q.push(HALT)
 
     def run(self):
-        #self._audio.request_update()
         command = self._q.get()
         while command.name != HALT:
             self._audio.__call__(command.name, *command.args)
