@@ -24,8 +24,8 @@ class Frontend():
     def set_audio_output(self, audio_output):
         self._ui_model.set_audio_output(audio_output)
 
-    def update_drivers(self, drivers):
+    def update_drivers(self, update):
         drivers = self._ui_model.get_drivers()
-        drivers.update_drivers(drivers)
+        drivers.update_drivers(update)
 
 
