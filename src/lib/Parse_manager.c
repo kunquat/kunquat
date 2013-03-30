@@ -28,9 +28,9 @@
 #include <Gen_type.h>
 #include <Handle_private.h>
 #include <manifest.h>
+#include <memory.h>
 #include <string_common.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 static bool parse_song_level(
@@ -172,7 +172,7 @@ bool parse_data(kqt_Handle* handle,
     char* json = NULL;
     if (data != NULL && key_is_for_text(key))
     {
-        json = xcalloc(char, length + 1);
+        json = memory_calloc_items(char, length + 1);
         if (json == NULL)
         {
             kqt_Handle_set_error(handle, ERROR_MEMORY,
@@ -185,7 +185,7 @@ bool parse_data(kqt_Handle* handle,
     if (last_index == 0)
     {
         bool success = parse_song_level(handle, key, data, length);
-        xfree(json);
+        memory_free(json);
         return success;
     }
     int first_len = strcspn(key, "/");
@@ -300,7 +300,7 @@ bool parse_data(kqt_Handle* handle,
     {
         success = parse_album_level(handle, key, second_element, data, length);
     }
-    xfree(json);
+    memory_free(json);
     return success;
 }
 

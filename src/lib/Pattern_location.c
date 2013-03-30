@@ -15,9 +15,9 @@
 #include <stdlib.h>
 
 #include <kunquat/limits.h>
+#include <memory.h>
 #include <Pattern_location.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 Pattern_location* new_Pattern_location(int song, Pat_inst_ref* piref)
@@ -25,7 +25,7 @@ Pattern_location* new_Pattern_location(int song, Pat_inst_ref* piref)
     assert(song >= 0);
     assert(song < KQT_SONGS_MAX);
     assert(piref != NULL);
-    Pattern_location* loc = xalloc(Pattern_location);
+    Pattern_location* loc = memory_alloc_item(Pattern_location);
     if (loc == NULL)
     {
         return NULL;

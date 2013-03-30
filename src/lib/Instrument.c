@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -21,13 +21,13 @@
 #include <Device.h>
 #include <Effect.h>
 #include <Effect_table.h>
+#include <File_base.h>
 #include <Gen_table.h>
 #include <Generator.h>
 #include <Instrument.h>
-#include <File_base.h>
+#include <memory.h>
 #include <string_common.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 struct Instrument
@@ -70,7 +70,7 @@ Instrument* new_Instrument(uint32_t buf_len,
     assert(*default_scale != NULL);
     assert(*default_scale >= &scales[0]);
     assert(*default_scale <= &scales[KQT_SCALES_MAX - 1]);
-    Instrument* ins = xalloc(Instrument);
+    Instrument* ins = memory_alloc_item(Instrument);
     if (ins == NULL)
     {
         return NULL;
@@ -82,13 +82,13 @@ Instrument* new_Instrument(uint32_t buf_len,
 
     if (Instrument_params_init(&ins->params, default_scale) == NULL)
     {
-        xfree(ins);
+        memory_free(ins);
         return NULL;
     }
     if (!Device_init(&ins->parent, buf_len, mix_rate))
     {
         Instrument_params_uninit(&ins->params);
-        xfree(ins);
+        memory_free(ins);
         return NULL;
     }
     Device_set_reset(&ins->parent, Instrument_reset);
@@ -471,7 +471,7 @@ void del_Instrument(Instrument* ins)
     del_Gen_table(ins->gens);
     del_Effect_table(ins->effects);
     Device_uninit(&ins->parent);
-    xfree(ins);
+    memory_free(ins);
     return;
 }
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -16,9 +16,9 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+#include <memory.h>
 #include <Voice_pool.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 #define HEAP_PARENT(i) (((i) - 1) / 2)
@@ -77,7 +77,7 @@ Voice_pool* new_Voice_pool(uint16_t size, uint8_t events)
 {
     assert(size > 0);
     assert(events > 0);
-    Voice_pool* pool = xalloc(Voice_pool);
+    Voice_pool* pool = memory_alloc_item(Voice_pool);
     if (pool == NULL)
     {
         return NULL;
@@ -85,10 +85,10 @@ Voice_pool* new_Voice_pool(uint16_t size, uint8_t events)
     pool->size = size;
     pool->state_size = 0;
     pool->events = events;
-    pool->voices = xnalloc(Voice, size);
+    pool->voices = memory_alloc_items(Voice, size);
     if (pool->voices == NULL)
     {
-        xfree(pool);
+        memory_free(pool);
         return NULL;
     }
     for (int i = 0; i < size; ++i)
@@ -100,8 +100,8 @@ Voice_pool* new_Voice_pool(uint16_t size, uint8_t events)
             {
                 del_Voice(pool->voices[i]);
             }
-            xfree(pool->voices);
-            xfree(pool);
+            memory_free(pool->voices);
+            memory_free(pool);
             return NULL;
         }
     }
@@ -146,7 +146,7 @@ bool Voice_pool_resize(Voice_pool* pool, uint16_t size)
     {
         pool->size = new_size;
     }
-    Voice** new_voices = xrealloc(Voice*, new_size, pool->voices);
+    Voice** new_voices = memory_realloc_items(Voice*, new_size, pool->voices);
     if (new_voices == NULL)
     {
         return false;
@@ -299,8 +299,8 @@ void del_Voice_pool(Voice_pool* pool)
         del_Voice(pool->voices[i]);
         pool->voices[i] = NULL;
     }
-    xfree(pool->voices);
-    xfree(pool);
+    memory_free(pool->voices);
+    memory_free(pool);
     return;
 }
 

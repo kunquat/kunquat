@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -18,17 +18,17 @@
 #include <inttypes.h>
 
 #include <math_common.h>
+#include <memory.h>
 #include <Random.h>
 #include <Voice.h>
 #include <Voice_state.h>
 #include <Voice_params.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 Voice* new_Voice(void)
 {
-    Voice* voice = xalloc(Voice);
+    Voice* voice = memory_alloc_item(Voice);
     if (voice == NULL)
     {
         return NULL;
@@ -41,7 +41,7 @@ Voice* new_Voice(void)
     voice->state = NULL;
 
     voice->state_size = sizeof(Voice_state);
-    voice->state = xalloc(Voice_state);
+    voice->state = memory_alloc_item(Voice_state);
     voice->rand_p = new_Random();
     voice->rand_s = new_Random();
     if (voice->state == NULL || voice->rand_p == NULL ||
@@ -64,7 +64,7 @@ bool Voice_reserve_state_space(Voice* voice, size_t state_size)
     {
         return true;
     }
-    Voice_state* new_state = xrealloc(char, state_size, voice->state);
+    Voice_state* new_state = memory_realloc_items(char, state_size, voice->state);
     if (new_state == NULL)
     {
         return false;
@@ -189,8 +189,8 @@ void del_Voice(Voice* voice)
     }
     del_Random(voice->rand_p);
     del_Random(voice->rand_s);
-    xfree(voice->state);
-    xfree(voice);
+    memory_free(voice->state);
+    memory_free(voice);
     return;
 }
 

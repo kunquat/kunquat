@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2013
  *
  * This file is part of Kunquat.
  *
@@ -22,9 +22,9 @@
 #include <DSP_common.h>
 #include <DSP_delay.h>
 #include <math_common.h>
+#include <memory.h>
 #include <string_common.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 #define DB_MAX 18
@@ -72,7 +72,7 @@ DSP* new_DSP_delay(uint32_t buffer_size, uint32_t mix_rate)
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_BUFFER_SIZE_MAX);
     assert(mix_rate > 0);
-    DSP_delay* delay = xalloc(DSP_delay);
+    DSP_delay* delay = memory_alloc_item(DSP_delay);
     if (delay == NULL)
     {
         return NULL;
@@ -80,7 +80,7 @@ DSP* new_DSP_delay(uint32_t buffer_size, uint32_t mix_rate)
     if (!DSP_init(&delay->parent, del_DSP_delay,
                   DSP_delay_process, buffer_size, mix_rate))
     {
-        xfree(delay);
+        memory_free(delay);
         return NULL;
     }
     DSP_set_clear_history(&delay->parent, DSP_delay_clear_history);
@@ -363,7 +363,7 @@ static void del_DSP_delay(DSP* dsp)
     assert(string_eq(dsp->type, "delay"));
     DSP_delay* delay = (DSP_delay*)dsp;
     del_Audio_buffer(delay->buf);
-    xfree(delay);
+    memory_free(delay);
     return;
 }
 

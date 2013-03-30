@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2013
  *
  * This file is part of Kunquat.
  *
@@ -18,9 +18,9 @@
 #include <math.h>
 
 #include <File_base.h>
+#include <memory.h>
 #include <Num_list.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 struct Num_list
@@ -40,7 +40,7 @@ Num_list* new_Num_list_from_string(char* str, Read_state* state)
     {
         return NULL;
     }
-    Num_list* nl = xalloc(Num_list);
+    Num_list* nl = memory_alloc_item(Num_list);
     if (nl == NULL)
     {
         return NULL;
@@ -48,7 +48,7 @@ Num_list* new_Num_list_from_string(char* str, Read_state* state)
     nl->len = 0;
     nl->res = 8;
     nl->nums = NULL;
-    nl->nums = xnalloc(double, nl->res);
+    nl->nums = memory_alloc_items(double, nl->res);
     if (nl->nums == NULL)
     {
         del_Num_list(nl);
@@ -104,7 +104,7 @@ static bool Num_list_append(Num_list* nl, double num)
     if (nl->len >= nl->res)
     {
         assert(nl->len == nl->res);
-        double* new_nums = xrealloc(double, nl->res * 2, nl->nums);
+        double* new_nums = memory_realloc_items(double, nl->res * 2, nl->nums);
         if (new_nums == NULL)
         {
             return false;
@@ -140,8 +140,8 @@ void del_Num_list(Num_list* nl)
     {
         return;
     }
-    xfree(nl->nums);
-    xfree(nl);
+    memory_free(nl->nums);
+    memory_free(nl);
     return;
 }
 

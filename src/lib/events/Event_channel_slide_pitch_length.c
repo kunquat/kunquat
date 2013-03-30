@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -19,13 +19,12 @@
 
 #include <Event_common.h>
 #include <Event_channel_slide_pitch_length.h>
+#include <kunquat/limits.h>
 #include <Reltime.h>
+#include <Scale.h>
 #include <Value.h>
 #include <Voice.h>
-#include <Scale.h>
-#include <kunquat/limits.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 bool Event_channel_slide_pitch_length_process(Channel_state* ch_state,

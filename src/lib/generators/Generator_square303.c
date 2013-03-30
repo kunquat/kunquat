@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -20,11 +20,11 @@
 #include <Generator.h>
 #include <Generator_common.h>
 #include <Generator_square303.h>
-#include <Voice_state_square303.h>
 #include <kunquat/limits.h>
+#include <memory.h>
 #include <string_common.h>
+#include <Voice_state_square303.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 void Generator_square303_init_state(Generator* gen, Voice_state* state);
@@ -36,7 +36,7 @@ Generator* new_Generator_square303(uint32_t buffer_size,
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_BUFFER_SIZE_MAX);
     assert(mix_rate > 0);
-    Generator_square303* square303 = xalloc(Generator_square303);
+    Generator_square303* square303 = memory_alloc_item(Generator_square303);
     if (square303 == NULL)
     {
         return NULL;
@@ -48,7 +48,7 @@ Generator* new_Generator_square303(uint32_t buffer_size,
                         buffer_size,
                         mix_rate))
     {
-        xfree(square303);
+        memory_free(square303);
         return NULL;
     }
     return &square303->parent;
@@ -161,7 +161,7 @@ void del_Generator_square303(Generator* gen)
     }
     assert(string_eq(gen->type, "square303"));
     Generator_square303* square303 = (Generator_square303*)gen;
-    xfree(square303);
+    memory_free(square303);
     return;
 }
 

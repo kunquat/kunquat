@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -20,12 +20,12 @@
 #include <Generator.h>
 #include <Generator_common.h>
 #include <Generator_sine.h>
-#include <Voice_state_sine.h>
 #include <kunquat/limits.h>
 #include <math_common.h>
+#include <memory.h>
 #include <string_common.h>
+#include <Voice_state_sine.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 void Generator_sine_init_state(Generator* gen, Voice_state* state);
@@ -37,7 +37,7 @@ Generator* new_Generator_sine(uint32_t buffer_size,
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_BUFFER_SIZE_MAX);
     assert(mix_rate > 0);
-    Generator_sine* sine = xalloc(Generator_sine);
+    Generator_sine* sine = memory_alloc_item(Generator_sine);
     if (sine == NULL)
     {
         return NULL;
@@ -49,7 +49,7 @@ Generator* new_Generator_sine(uint32_t buffer_size,
                         buffer_size,
                         mix_rate))
     {
-        xfree(sine);
+        memory_free(sine);
         return NULL;
     }
     return &sine->parent;
@@ -146,7 +146,7 @@ void del_Generator_sine(Generator* gen)
     }
     assert(string_eq(gen->type, "sine"));
     Generator_sine* sine = (Generator_sine*)gen;
-    xfree(sine);
+    memory_free(sine);
     return;
 }
 

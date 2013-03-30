@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -20,18 +20,17 @@
 #include <AAtree.h>
 #include <Generator.h>
 #include <Generator_common.h>
-#include <Device_params.h>
 #include <Generator_pcm.h>
+#include <Device_params.h>
+#include <File_wavpack.h>
 #include <Hit_map.h>
-#include <Voice_state_pcm.h>
+#include <memory.h>
+#include <pitch_t.h>
 #include <Sample.h>
 #include <Sample_mix.h>
-#include <pitch_t.h>
-#include <Parse_manager.h>
-#include <File_wavpack.h>
 #include <string_common.h>
+#include <Voice_state_pcm.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 static void Generator_pcm_init_state(Generator* gen, Voice_state* state);
@@ -43,7 +42,7 @@ Generator* new_Generator_pcm(uint32_t buffer_size,
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_BUFFER_SIZE_MAX);
     assert(mix_rate > 0);
-    Generator_pcm* pcm = xalloc(Generator_pcm);
+    Generator_pcm* pcm = memory_alloc_item(Generator_pcm);
     if (pcm == NULL)
     {
         return NULL;
@@ -55,7 +54,7 @@ Generator* new_Generator_pcm(uint32_t buffer_size,
                         buffer_size,
                         mix_rate))
     {
-        xfree(pcm);
+        memory_free(pcm);
         return NULL;
     }
     return &pcm->parent;
@@ -241,7 +240,7 @@ void del_Generator_pcm(Generator* gen)
     }
     assert(string_eq(gen->type, "pcm"));
     Generator_pcm* pcm = (Generator_pcm*)gen;
-    xfree(pcm);
+    memory_free(pcm);
     return;
 }
 

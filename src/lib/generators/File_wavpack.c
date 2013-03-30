@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -17,12 +17,12 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <Sample.h>
 #include <File_wavpack.h>
 #include <Handle_private.h>
 #include <math_common.h>
+#include <memory.h>
+#include <Sample.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 #ifndef WITH_WAVPACK
@@ -321,7 +321,7 @@ bool Sample_parse_wavpack(Sample* sample,
     }
     int req_bytes = sample->bits / 8;
     sample->data[0] = sample->data[1] = NULL;
-    void* nbuf_l = xnalloc(char, sample->len * req_bytes);
+    void* nbuf_l = memory_alloc_items(char, sample->len * req_bytes);
     if (nbuf_l == NULL)
     {
         WavpackCloseFile(context);
@@ -329,10 +329,10 @@ bool Sample_parse_wavpack(Sample* sample,
     }
     if (channels == 2)
     {
-        void* nbuf_r = xnalloc(char, sample->len * req_bytes);
+        void* nbuf_r = memory_alloc_items(char, sample->len * req_bytes);
         if (nbuf_r == NULL)
         {
-            xfree(nbuf_l);
+            memory_free(nbuf_l);
             WavpackCloseFile(context);
             return false;
         }
@@ -414,8 +414,8 @@ bool Sample_parse_wavpack(Sample* sample,
     if (written < sample->len)
     {
         Read_state_set_error(state, "Couldn't read all sample data");
-        xfree(sample->data[0]);
-        xfree(sample->data[1]);
+        memory_free(sample->data[0]);
+        memory_free(sample->data[1]);
         sample->data[0] = sample->data[1] = NULL;
         sample->len = 0;
         return false;

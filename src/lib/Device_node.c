@@ -21,9 +21,9 @@
 #include <Device_node.h>
 #include <Generator.h>
 #include <kunquat/limits.h>
+#include <memory.h>
 #include <string_common.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 typedef enum
@@ -78,7 +78,7 @@ Device_node* new_Device_node(const char* name,
     assert(insts != NULL);
     assert(effects != NULL);
     assert(master != NULL);
-    Device_node* node = xalloc(Device_node);
+    Device_node* node = memory_alloc_item(Device_node);
     if (node == NULL)
     {
         return NULL;
@@ -819,15 +819,15 @@ bool Device_node_connect(Device_node* receiver,
     assert(sender != NULL);
     assert(send_port >= 0);
     assert(send_port < KQT_DEVICE_PORTS_MAX);
-    Connection* receive_edge = xalloc(Connection);
+    Connection* receive_edge = memory_alloc_item(Connection);
     if (receive_edge == NULL)
     {
         return false;
     }
-    Connection* send_edge = xalloc(Connection);
+    Connection* send_edge = memory_alloc_item(Connection);
     if (send_edge == NULL)
     {
-        xfree(receive_edge);
+        memory_free(receive_edge);
         return false;
     }
 
@@ -1012,7 +1012,7 @@ void del_Device_node(Device_node* node)
         while (cur != NULL)
         {
             next = cur->next;
-            xfree(cur);
+            memory_free(cur);
             cur = next;
         }
         cur = node->send[i];
@@ -1020,11 +1020,11 @@ void del_Device_node(Device_node* node)
         while (cur != NULL)
         {
             next = cur->next;
-            xfree(cur);
+            memory_free(cur);
             cur = next;
         }
     }
-    xfree(node);
+    memory_free(node);
     return;
 }
 

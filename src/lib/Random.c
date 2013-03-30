@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -17,9 +17,9 @@
 #include <string.h>
 
 #include <hmac.h>
+#include <memory.h>
 #include <Random.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 struct Random
@@ -32,7 +32,7 @@ struct Random
 
 Random* new_Random(void)
 {
-    Random* random = xalloc(Random);
+    Random* random = memory_alloc_item(Random);
     if (random == NULL)
     {
         return NULL;
@@ -123,7 +123,7 @@ double Random_get_float_signal(Random* random)
 
 void del_Random(Random* random)
 {
-    xfree(random);
+    memory_free(random);
     return;
 }
 

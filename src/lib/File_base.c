@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -24,12 +24,11 @@
 #include <errno.h>
 #include <stdarg.h>
 
-#include <Real.h>
-#include <Reltime.h>
 #include <File_base.h>
 #include <Handle_private.h>
+#include <Real.h>
+#include <Reltime.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 Read_state* Read_state_init(Read_state* state, const char* path)

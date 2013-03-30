@@ -19,8 +19,8 @@
 #include <Pat_table.h>
 #include <Pattern.h>
 #include <kunquat/limits.h>
+#include <memory.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 struct Pat_table
@@ -34,7 +34,7 @@ struct Pat_table
 Pat_table* new_Pat_table(int size)
 {
     assert(size > 0);
-    Pat_table* table = xalloc(Pat_table);
+    Pat_table* table = memory_alloc_item(Pat_table);
     if (table == NULL)
     {
         return NULL;
@@ -122,7 +122,7 @@ void del_Pat_table(Pat_table* table)
     }
     del_Etable(table->pats);
     del_Bit_array(table->existents);
-    xfree(table);
+    memory_free(table);
     return;
 }
 

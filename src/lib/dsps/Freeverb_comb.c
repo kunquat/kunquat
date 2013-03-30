@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -17,8 +17,8 @@
 
 #include <Freeverb_comb.h>
 #include <math_common.h>
+#include <memory.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 struct Freeverb_comb
@@ -36,7 +36,7 @@ struct Freeverb_comb
 Freeverb_comb* new_Freeverb_comb(uint32_t buffer_size)
 {
     assert(buffer_size > 0);
-    Freeverb_comb* comb = xalloc(Freeverb_comb);
+    Freeverb_comb* comb = memory_alloc_item(Freeverb_comb);
     if (comb == NULL)
     {
         return NULL;
@@ -48,7 +48,7 @@ Freeverb_comb* new_Freeverb_comb(uint32_t buffer_size)
     comb->buffer = NULL;
     comb->buffer_size = 0;
     comb->buffer_pos = 0;
-    comb->buffer = xnalloc(kqt_frame, buffer_size);
+    comb->buffer = memory_alloc_items(kqt_frame, buffer_size);
     if (comb->buffer == NULL)
     {
         del_Freeverb_comb(comb);
@@ -108,7 +108,7 @@ bool Freeverb_comb_resize_buffer(Freeverb_comb* comb, uint32_t new_size)
     {
         return true;
     }
-    kqt_frame* buffer = xrealloc(kqt_frame, new_size, comb->buffer);
+    kqt_frame* buffer = memory_realloc_items(kqt_frame, new_size, comb->buffer);
     if (buffer == NULL)
     {
         return false;
@@ -139,8 +139,8 @@ void del_Freeverb_comb(Freeverb_comb* comb)
     {
         return;
     }
-    xfree(comb->buffer);
-    xfree(comb);
+    memory_free(comb->buffer);
+    memory_free(comb);
     return;
 }
 

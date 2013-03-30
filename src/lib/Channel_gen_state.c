@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -18,10 +18,9 @@
 #include <AAtree.h>
 #include <Channel_gen_state.h>
 #include <Device_field.h>
+#include <memory.h>
 #include <string_common.h>
-
 #include <xassert.h>
-#include <xmemory.h>
 
 
 struct Channel_gen_state
@@ -33,7 +32,7 @@ struct Channel_gen_state
 
 Channel_gen_state* new_Channel_gen_state(void)
 {
-    Channel_gen_state* state = xalloc(Channel_gen_state);
+    Channel_gen_state* state = memory_alloc_item(Channel_gen_state);
     if (state == NULL)
     {
         return NULL;
@@ -205,7 +204,7 @@ void del_Channel_gen_state(Channel_gen_state* state)
     }
     del_AAiter(state->iter);
     del_AAtree(state->tree);
-    xfree(state);
+    memory_free(state);
     return;
 }
 

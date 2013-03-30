@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2013
  *
  * This file is part of Kunquat.
  *
@@ -19,12 +19,12 @@
 
 #include <Env_var.h>
 #include <File_base.h>
+#include <memory.h>
 #include <Real.h>
 #include <Reltime.h>
 #include <serialise.h>
 #include <string_common.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 typedef union
@@ -59,7 +59,7 @@ static const size_t sizes[] =
 Env_var* new_Env_var(Env_var_type type, const char* name)
 {
     assert(name != NULL);
-    Env_var* var = xalloc(Env_var);
+    Env_var* var = memory_alloc_item(Env_var);
     if (var == NULL)
     {
         return NULL;
@@ -265,7 +265,7 @@ void del_Env_var(Env_var* var)
     {
         return;
     }
-    xfree(var);
+    memory_free(var);
     return;
 }
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2013
  *
  * This file is part of Kunquat.
  *
@@ -18,8 +18,8 @@
 #include <Active_names.h>
 #include <Env_var.h>
 #include <kunquat/limits.h>
+#include <memory.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 struct Active_names
@@ -30,7 +30,7 @@ struct Active_names
 
 Active_names* new_Active_names(void)
 {
-    Active_names* names = xalloc(Active_names);
+    Active_names* names = memory_alloc_item(Active_names);
     if (names == NULL)
     {
         return NULL;
@@ -82,7 +82,7 @@ void del_Active_names(Active_names* names)
     {
         return;
     }
-    xfree(names);
+    memory_free(names);
     return;
 }
 

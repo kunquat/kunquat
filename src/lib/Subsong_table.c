@@ -15,11 +15,11 @@
 #include <stdlib.h>
 
 #include <Bit_array.h>
-#include <Subsong.h>
 #include <Etable.h>
+#include <memory.h>
+#include <Subsong.h>
 #include <Subsong_table.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 struct Subsong_table
@@ -32,7 +32,7 @@ struct Subsong_table
 
 Subsong_table* new_Subsong_table(void)
 {
-    Subsong_table* table = xalloc(Subsong_table);
+    Subsong_table* table = memory_alloc_item(Subsong_table);
     if (table == NULL)
     {
         return NULL;
@@ -147,7 +147,7 @@ void del_Subsong_table(Subsong_table* table)
     }
     del_Etable(table->subs);
     del_Bit_array(table->existents);
-    xfree(table);
+    memory_free(table);
     return;
 }
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -18,8 +18,8 @@
 
 #include <Freeverb_allpass.h>
 #include <math_common.h>
+#include <memory.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 struct Freeverb_allpass
@@ -34,7 +34,7 @@ struct Freeverb_allpass
 Freeverb_allpass* new_Freeverb_allpass(uint32_t buffer_size)
 {
     assert(buffer_size > 0);
-    Freeverb_allpass* allpass = xalloc(Freeverb_allpass);
+    Freeverb_allpass* allpass = memory_alloc_item(Freeverb_allpass);
     if (allpass == NULL)
     {
         return NULL;
@@ -43,7 +43,7 @@ Freeverb_allpass* new_Freeverb_allpass(uint32_t buffer_size)
     allpass->buffer = NULL;
     allpass->buffer_size = 0;
     allpass->buffer_pos = 0;
-    allpass->buffer = xnalloc(kqt_frame, buffer_size);
+    allpass->buffer = memory_alloc_items(kqt_frame, buffer_size);
     if (allpass->buffer == NULL)
     {
         del_Freeverb_allpass(allpass);
@@ -92,7 +92,7 @@ bool Freeverb_allpass_resize_buffer(Freeverb_allpass* allpass,
     {
         return true;
     }
-    kqt_frame* buffer = xrealloc(kqt_frame, new_size, allpass->buffer);
+    kqt_frame* buffer = memory_realloc_items(kqt_frame, new_size, allpass->buffer);
     if (buffer == NULL)
     {
         return false;
@@ -123,8 +123,8 @@ void del_Freeverb_allpass(Freeverb_allpass* allpass)
     {
         return;
     }
-    xfree(allpass->buffer);
-    xfree(allpass);
+    memory_free(allpass->buffer);
+    memory_free(allpass);
     return;
 }
 

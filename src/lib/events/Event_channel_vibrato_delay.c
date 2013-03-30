@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -19,13 +19,12 @@
 
 #include <Event_common.h>
 #include <Event_channel_vibrato_delay.h>
+#include <kunquat/limits.h>
+#include <math_common.h>
 #include <Reltime.h>
 #include <Voice.h>
-#include <math_common.h>
-#include <kunquat/limits.h>
 #include <Value.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 bool Event_channel_vibrato_delay_process(Channel_state* ch_state,

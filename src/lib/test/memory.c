@@ -18,6 +18,7 @@
 #include <test_common.h>
 
 #include <kunquat/Handle.h>
+#include <kunquat/testing.h>
 
 
 START_TEST(Out_of_mem_at_handle_creation_fails_cleanly)

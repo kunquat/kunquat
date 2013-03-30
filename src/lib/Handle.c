@@ -23,13 +23,12 @@
 #include <stdarg.h>
 
 #include <Handle_private.h>
-
 #include <kunquat/limits.h>
+#include <memory.h>
 #include <Song.h>
 #include <Playdata.h>
 #include <Voice_pool.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 static kqt_Handle* handles[KQT_HANDLES_MAX] = { NULL };
@@ -68,7 +67,7 @@ bool kqt_Handle_init(kqt_Handle* handle, long buffer_size)
 //    int buffer_count = SONG_DEFAULT_BUF_COUNT;
 //    int voice_count = 256;
 
-    handle->returned_values = new_AAtree(ptrcmp, free);
+    handle->returned_values = new_AAtree(ptrcmp, memory_free);
     if (handle->returned_values == NULL)
     {
         kqt_Handle_set_error(NULL, ERROR_MEMORY, "Couldn't allocate memory");
@@ -240,7 +239,7 @@ void* kqt_Handle_get_data(kqt_Handle* handle, const char* key)
         {
             kqt_Handle_set_error(handle, ERROR_MEMORY,
                     "Couldn't allocate memory");
-            xfree(data);
+            memory_free(data);
             return NULL;
         }
     }
@@ -296,7 +295,7 @@ int kqt_Handle_free_data(kqt_Handle* handle, void* data)
                 "Data %p does not originate from this Handle", data);
         return 0;
     }
-    xfree(target);
+    memory_free(target);
     return 1;
 }
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -21,9 +21,9 @@
 #include <Device_event_keys.h>
 #include <Device_field.h>
 #include <Device_params.h>
+#include <memory.h>
 #include <string_common.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 #if 0
@@ -68,7 +68,7 @@ static void del_Slow_sync_info(Slow_sync_info* info);
 static Slow_sync_info* new_Slow_sync_info(const char* key)
 {
     assert(key != NULL);
-    Slow_sync_info* info = xalloc(Slow_sync_info);
+    Slow_sync_info* info = memory_alloc_item(Slow_sync_info);
     if (info == NULL)
     {
         return NULL;
@@ -82,7 +82,7 @@ static Slow_sync_info* new_Slow_sync_info(const char* key)
 
 static void del_Slow_sync_info(Slow_sync_info* info)
 {
-    xfree(info);
+    memory_free(info);
 }
 
 
@@ -135,7 +135,7 @@ bool key_is_text_device_param(const char* key)
 
 Device_params* new_Device_params(void)
 {
-    Device_params* params = xalloc(Device_params);
+    Device_params* params = memory_alloc_item(Device_params);
     if (params == NULL)
     {
         return NULL;
@@ -160,7 +160,7 @@ Device_params* new_Device_params(void)
                                    (void (*)(void*))del_Slow_sync_info);
     params->slow_sync_iter = new_AAiter(params->slow_sync);
 //    params->event_names = new_AAtree((int (*)(const void*, const void*))strcmp,
-//                                     free);
+//                                     memory_free);
     if (params->implement == NULL || params->config == NULL ||
             params->event_data == NULL || params->event_data_iter == NULL ||
             params->slow_sync == NULL || params->slow_sync_iter == NULL)
@@ -308,7 +308,7 @@ bool Device_params_parse_events(Device_params* params,
 #if 0
     AAtree* old_names = params->event_names;
     params->event_names = new_AAtree((int (*)(const void*, const void*))strcmp,
-                                     free);
+                                     memory_free);
     if (params->event_names == NULL)
     {
         del_AAtree(params->event_data);
@@ -711,7 +711,7 @@ void del_Device_params(Device_params* params)
 #if 0
     del_AAtree(params->event_names);
 #endif
-    xfree(params);
+    memory_free(params);
     return;
 }
 

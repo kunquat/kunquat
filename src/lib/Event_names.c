@@ -20,10 +20,10 @@
 #include <Event.h>
 #include <Event_names.h>
 #include <Event_type.h>
+#include <memory.h>
 #include <Param_validator.h>
 #include <string_common.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 typedef struct Name_info
@@ -206,7 +206,7 @@ static int event_name_cmp(const char* e1, const char* e2);
 
 Event_names* new_Event_names(void)
 {
-    Event_names* names = xalloc(Event_names);
+    Event_names* names = memory_alloc_item(Event_names);
     if (names == NULL)
     {
         return NULL;
@@ -333,7 +333,7 @@ void del_Event_names(Event_names* names)
         return;
     }
     del_AAtree(names->names);
-    xfree(names);
+    memory_free(names);
     return;
 }
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -22,8 +22,8 @@
 #include <DSP_common.h>
 #include <DSP_volume.h>
 #include <string_common.h>
+#include <memory.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 typedef struct DSP_volume
@@ -47,7 +47,7 @@ DSP* new_DSP_volume(uint32_t buffer_size, uint32_t mix_rate)
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_BUFFER_SIZE_MAX);
     assert(mix_rate > 0);
-    DSP_volume* volume = xalloc(DSP_volume);
+    DSP_volume* volume = memory_alloc_item(DSP_volume);
     if (volume == NULL)
     {
         return NULL;
@@ -55,7 +55,7 @@ DSP* new_DSP_volume(uint32_t buffer_size, uint32_t mix_rate)
     if (!DSP_init(&volume->parent, del_DSP_volume,
                   DSP_volume_process, buffer_size, mix_rate))
     {
-        xfree(volume);
+        memory_free(volume);
         return NULL;
     }
     Device_register_port(&volume->parent.parent, DEVICE_PORT_TYPE_RECEIVE, 0);
@@ -108,7 +108,7 @@ static void del_DSP_volume(DSP* dsp)
     }
     assert(string_eq(dsp->type, "volume"));
     DSP_volume* volume = (DSP_volume*)dsp;
-    xfree(volume);
+    memory_free(volume);
     return;
 }
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -18,12 +18,12 @@
 #include <inttypes.h>
 #include <math.h>
 
-#include <kunquat/limits.h>
 #include <File_base.h>
+#include <kunquat/limits.h>
+#include <memory.h>
 #include <string_common.h>
 #include <Subsong.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 static bool Subsong_parse(Subsong* ss, char* str, Read_state* state);
@@ -31,16 +31,16 @@ static bool Subsong_parse(Subsong* ss, char* str, Read_state* state);
 
 Subsong* new_Subsong(void)
 {
-    Subsong* ss = xalloc(Subsong);
+    Subsong* ss = memory_alloc_item(Subsong);
     if (ss == NULL)
     {
         return NULL;
     }
     ss->res = 8;
-    ss->pats = xnalloc(int16_t, ss->res);
+    ss->pats = memory_alloc_items(int16_t, ss->res);
     if (ss->pats == NULL)
     {
-        xfree(ss);
+        memory_free(ss);
         return NULL;
     }
     for (int i = 0; i < ss->res; ++i)
@@ -327,8 +327,8 @@ void del_Subsong(Subsong* ss)
     {
         return;
     }
-    xfree(ss->pats);
-    xfree(ss);
+    memory_free(ss->pats);
+    memory_free(ss);
     return;
 }
 
