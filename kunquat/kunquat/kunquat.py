@@ -389,7 +389,7 @@ class KunquatResourceError(KunquatError):
 
 
 def fake_out_of_memory():
-    pass
+    _kunquat.kqt_fake_out_of_memory(0)
 
 
 _kunquat = ctypes.CDLL('libkunquat.so')
@@ -468,5 +468,8 @@ _kunquat.kqt_Handle_treceive.argtypes = [ctypes.c_void_p,
                                          ctypes.c_int]
 _kunquat.kqt_Handle_treceive.restype = ctypes.c_int
 _kunquat.kqt_Handle_treceive.errcheck = _error_check
+
+_kunquat.kqt_fake_out_of_memory.argtypes = [ctypes.c_long]
+_kunquat.kqt_fake_out_of_memory.restype = None
 
 
