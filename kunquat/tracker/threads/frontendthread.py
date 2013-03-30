@@ -30,8 +30,15 @@ class FrontendThread(threading.Thread):
         threading.Thread.__init__(self)
         self._q = CommandQueue()
         self._ui_model = UiModel()
-        self._frontend = Frontend(self._ui_model)
         self._ui_launcher = None
+        self._frontend = None
+
+    # Mystery interface
+
+    def set_ui_launcher(self, ui_launcher):
+        self._ui_launcher = ui_launcher
+        self._ui_launcher.set_frontend(self._ui_model)
+        self._ui_launcher.set_queue_processor(self._process_queue)
 
     # Frontend interface
 
@@ -47,10 +54,9 @@ class FrontendThread(threading.Thread):
 
     # Threading interface
 
-    def set_ui_launcher(self, ui_launcher):
-        self._ui_launcher = ui_launcher
-        self._ui_launcher.set_frontend(self._ui_model)
-        self._ui_launcher.set_queue_processor(self._process_queue)
+    def set_handler(self, frontend):
+        #self._frontend = Frontend(self._ui_model)
+        self._frontend = frontend
 
     def halt(self):
         self._q.put(Command(C_HALT, None))
