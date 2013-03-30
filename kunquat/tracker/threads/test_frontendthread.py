@@ -13,7 +13,9 @@
 
 import unittest
 
+from kunquat.tracker.frontend.frontend import Frontend
 from frontendthread import FrontendThread
+from test_abstractthread import TestAbstractThread
 
 class DummyLauncher():
 
@@ -35,16 +37,17 @@ class DummyLauncher():
         while(self._running == True):
             self._queue_processor()
 
-class TestFrontendthread(unittest.TestCase):
 
-    def test_halt(self):
-        frontend_thread = FrontendThread()
-        frontend_thread.set_ui_launcher(DummyLauncher())
-        frontend_thread.halt()
-        frontend_thread.run()
+class TestFrontendthread(TestAbstractThread, unittest.TestCase):
+
+    def setUp(self):
+        self._test_calls = []
+        self._InterfaceClass = Frontend
+        self._TestClass = FrontendThread
+        self._thread = self._TestClass()
+        self._thread.set_ui_launcher(DummyLauncher())
 
 
 if __name__ == '__main__':
     unittest.main()
-
 
