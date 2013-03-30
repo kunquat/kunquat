@@ -19,9 +19,7 @@ from command import Command
 from commandqueue import CommandQueue
 from kunquat.tracker.audio.audio import Audio
 
-C_HALT = 'halt'
-C_PUT_AUDIO = 'put_audio'
-
+HALT = None
 
 class AudioThread(threading.Thread):
 
@@ -34,17 +32,19 @@ class AudioThread(threading.Thread):
     # Driver interface
 
     def set_backend(self, backend):
-        self._audio.set_backend(backend)
+        self._q.push('set_backend', backend)
 
     def set_frontend(self, frontend):
-        self._audio.set_frontend(frontend)
+        self._q.push('set_frontend', frontend)
 
     def select_driver(self, name):
-        self._audio.select_driver(name)
+        self._q.push('select_driver', name)
 
     def put_audio(self, audio):
-        arg = json.dumps(audio)
-        self._q.put(Command(C_PUT_AUDIO, arg))
+        self._q.push('put_audio', arg)
+
+    def request_update(self):
+        self._q.push('request_update')
 
     # Threading interface
 
@@ -53,17 +53,13 @@ class AudioThread(threading.Thread):
         self._audio = audio
 
     def halt(self):
-        self._q.put(Command(C_HALT, None))
+        self._q.push(HALT)
 
     def run(self):
-        self._audio.request_update()
-        cmd = self._q.get()
-        while cmd.name != C_HALT:
-            if cmd.name == C_PUT_AUDIO:
-                audio = tuple(json.loads(cmd.arg))
-                self._audio.put_audio(audio)
-            else:
-                assert False
-            cmd = self._q.get()
+        #self._audio.request_update()
+        command = self._q.get()
+        while command.name != HALT:
+            self._audio.__call__(command.name, *command.args)
+            command = self._q.get()
 
 
