@@ -19,6 +19,7 @@ class Drivers():
 
     def set_audio_output(self, audio_output):
         self._audio_output = audio_output
+        self._audio_output.request_update()
 
     def update_drivers(self, drivers):
         self._drivers = drivers
