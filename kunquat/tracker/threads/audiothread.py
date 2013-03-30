@@ -40,8 +40,8 @@ class AudioThread(threading.Thread):
     def select_driver(self, name):
         self._q.push('select_driver', name)
 
-    def put_audio(self, audio):
-        self._q.push('put_audio', arg)
+    def put_audio(self, audio_data):
+        self._q.push('put_audio', audio_data)
 
     def request_update(self):
         self._q.push('request_update')
