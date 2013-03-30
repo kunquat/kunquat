@@ -15,15 +15,7 @@ import inspect
 import unittest
 import threading
 
-
-class Recorder(object):
-
-    def __init__(self, put_record):
-        self._put_record = put_record
-
-    def __call__(self, name, *args, **kwargs):
-        record = (name, args, kwargs)
-        self._put_record(record)
+from kunquat.tools.recorder import Recorder
 
 
 def public_interface(some_class):
