@@ -21,8 +21,7 @@ from commandqueue import CommandQueue
 from kunquat.tracker.frontend.uimodel import UiModel
 from kunquat.tracker.frontend.frontend import Frontend
 
-C_HALT = 'halt'
-C_UPDATE_DRIVERS = 'update_drivers'
+HALT = None
 
 class FrontendThread(threading.Thread):
 
@@ -43,14 +42,13 @@ class FrontendThread(threading.Thread):
     # Frontend interface
 
     def set_backend(self, backend):
-        self._frontend.set_backend(backend)
+        self._q.push('set_backend', backend)
 
     def set_audio_output(self, audio_output):
-        self._frontend.set_audio_output(audio_output)
+        self._q.push('set_audio_output', audio_output)
 
     def update_drivers(self, drivers):
-        arg = json.dumps(drivers)
-        self._q.put(Command(C_UPDATE_DRIVERS, arg))
+        self._q.push('update_drivers', drivers)
 
     # Threading interface
 
@@ -59,20 +57,17 @@ class FrontendThread(threading.Thread):
         self._frontend = frontend
 
     def halt(self):
-        self._q.put(Command(C_HALT, None))
+        self._q.push(HALT)
 
     def _process_queue(self):
         count_estimate = self._q.qsize()
         for _ in range(count_estimate):
             try:
                 command = self._q.get_nowait()
-                if command.name == C_HALT:
+                if command.name == HALT:
                     self._ui_launcher.halt_ui()
-                elif command.name == C_UPDATE_DRIVERS:
-                    drivers = json.loads(command.arg)
-                    self._frontend.update_drivers(drivers)
                 else:
-                    self._frontend.process_command(command)
+                    self._frontend.__call__(command.name, *command.args)
             except Queue.Empty:
                 break
 
