@@ -39,6 +39,15 @@ extern "C" {
 void kqt_fake_out_of_memory(long steps);
 
 
+/**
+ * Suppresses assert message printing to standard error output.
+ *
+ * This function may be useful in tests that check for the abort signal
+ * emitted by assertion failures.
+ */
+void kqt_suppress_assert_messages(void);
+
+
 /* \} */
 
 

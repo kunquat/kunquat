@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -21,10 +21,14 @@
 
 #include <test_common.h>
 
+#include <kunquat/testing.h>
 #include <Real.h>
 
 
-Suite* Real_suite(void);
+void silent_assert(void)
+{
+    kqt_suppress_assert_messages();
+}
 
 
 START_TEST(init)
@@ -1592,7 +1596,7 @@ Suite* Real_suite(void)
     suite_add_tcase(s, tc_mul_float);
     suite_add_tcase(s, tc_cmp);
 
-    int timeout = 10;
+    const int timeout = 4;
     tcase_set_timeout(tc_init, timeout);
     tcase_set_timeout(tc_init_as_frac, timeout);
     tcase_set_timeout(tc_init_as_double, timeout);
@@ -1620,39 +1624,45 @@ Suite* Real_suite(void)
     tcase_add_test(tc_cmp, cmp);
 
 #ifndef NDEBUG
-    tcase_add_test_raise_signal(tc_init, init_break, SIGABRT);
+    TCase* tc_asserts = tcase_create("asserts");
+    suite_add_tcase(s, tc_asserts);
+    const int assert_timeout = 10;
+    tcase_set_timeout(tc_asserts, assert_timeout);
+    tcase_add_checked_fixture(tc_asserts, silent_assert, NULL);
 
-    tcase_add_test_raise_signal(tc_init_as_frac, init_as_frac_break1, SIGABRT);
-    tcase_add_test_raise_signal(tc_init_as_frac, init_as_frac_break2, SIGABRT);
-    tcase_add_test_raise_signal(tc_init_as_frac, init_as_frac_break3, SIGABRT);
-    tcase_add_test_raise_signal(tc_init_as_frac, init_as_frac_break4, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, init_break, SIGABRT);
 
-    tcase_add_test_raise_signal(tc_init_as_double, init_as_double_break, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, init_as_frac_break1, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, init_as_frac_break2, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, init_as_frac_break3, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, init_as_frac_break4, SIGABRT);
 
-    tcase_add_test_raise_signal(tc_is_frac, is_frac_break, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, init_as_double_break, SIGABRT);
 
-    tcase_add_test_raise_signal(tc_get_numerator, get_numerator_break, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, is_frac_break, SIGABRT);
 
-    tcase_add_test_raise_signal(tc_get_denominator, get_denominator_break, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, get_numerator_break, SIGABRT);
 
-    tcase_add_test_raise_signal(tc_get_double, get_double_break, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, get_denominator_break, SIGABRT);
 
-    tcase_add_test_raise_signal(tc_copy, copy_break1, SIGABRT);
-    tcase_add_test_raise_signal(tc_copy, copy_break2, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, get_double_break, SIGABRT);
 
-    tcase_add_test_raise_signal(tc_mul, mul_break1, SIGABRT);
-    tcase_add_test_raise_signal(tc_mul, mul_break2, SIGABRT);
-    tcase_add_test_raise_signal(tc_mul, mul_break3, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, copy_break1, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, copy_break2, SIGABRT);
 
-    tcase_add_test_raise_signal(tc_div, div_break1, SIGABRT);
-    tcase_add_test_raise_signal(tc_div, div_break2, SIGABRT);
-    tcase_add_test_raise_signal(tc_div, div_break3, SIGABRT);
-    tcase_add_test_raise_signal(tc_div, div_break4, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, mul_break1, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, mul_break2, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, mul_break3, SIGABRT);
 
-    tcase_add_test_raise_signal(tc_mul_float, mul_float_break, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, div_break1, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, div_break2, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, div_break3, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, div_break4, SIGABRT);
 
-    tcase_add_test_raise_signal(tc_cmp, cmp_break1, SIGABRT);
-    tcase_add_test_raise_signal(tc_cmp, cmp_break2, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, mul_float_break, SIGABRT);
+
+    tcase_add_test_raise_signal(tc_asserts, cmp_break1, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, cmp_break2, SIGABRT);
 #endif
 
     return s;

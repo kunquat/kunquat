@@ -14,11 +14,18 @@
 
 #include <kunquat/testing.h>
 #include <memory.h>
+#include <xassert.h>
 
 
 void kqt_fake_out_of_memory(long steps)
 {
     memory_fake_out_of_memory(steps);
+}
+
+
+void kqt_suppress_assert_messages(void)
+{
+    xassert_suppress_messages();
 }
 
 
