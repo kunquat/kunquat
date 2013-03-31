@@ -18,6 +18,7 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 
 /**
@@ -84,6 +85,14 @@ void memory_free(void* ptr);
  *                the simulated error. Negative value disables error simulation.
  */
 void memory_fake_out_of_memory(int32_t steps);
+
+
+/**
+ * Gets the total number of successful memory allocations made.
+ *
+ * \return   The number of allocations made.
+ */
+int32_t memory_get_alloc_count(void);
 
 
 #endif // K_MEMORY_H
