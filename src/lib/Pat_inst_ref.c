@@ -18,7 +18,7 @@
 #include <xassert.h>
 
 
-static bool Pat_inst_ref_is_valid(const Pat_inst_ref* p)
+bool Pat_inst_ref_is_valid(const Pat_inst_ref* p)
 {
     const bool is_normal =
         (p != NULL) &&
