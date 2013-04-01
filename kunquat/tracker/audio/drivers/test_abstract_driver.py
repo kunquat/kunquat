@@ -61,6 +61,7 @@ class TestAbstractDriver(unittest.TestCase):
         for _ in range(100):
             driver = DriverClass()
             driver.start()
+            sleep(0.2)
             driver.close()
 
     def run_tests(self, DriverClass):
