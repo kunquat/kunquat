@@ -40,19 +40,21 @@ class DummyFrontend():
 
 class TestAudio(unittest.TestCase):
 
+    def setUp(self):
+        self._audio_output = Audio()
+
     def test_driver_selection(self):
-        audio_output = Audio()
         dummy_backend = DummyBackend()
         dummy_frontend = DummyFrontend()
-        audio_output.set_backend(dummy_backend)
-        audio_output.set_frontend(dummy_frontend)
-        audio_output.request_update()
+        self._audio_output.set_backend(dummy_backend)
+        self._audio_output.set_frontend(dummy_frontend)
+        self._audio_output.request_update()
         driver_ids = dummy_frontend._drivers.keys()
         test_ids = 4 * driver_ids
         seed = (lambda:0.2)
         random.shuffle(test_ids, seed)
         for driver_id in test_ids:
-            audio_output.select_driver(driver_id)
+            self._audio_output.select_driver(driver_id)
             self.assertEqual(dummy_backend._selected, driver_id)
 
 
