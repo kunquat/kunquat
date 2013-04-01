@@ -255,8 +255,8 @@ class Async(object):
     def play(self):
         """Start playback."""
         assert self._stream
-        assert _pa.pa_stream_get_state(self._stream) == PA_STREAM_READY
         _pa.pa_threaded_mainloop_lock(self._ml)
+        assert _pa.pa_stream_get_state(self._stream) == PA_STREAM_READY
         op = _pa.pa_stream_cork(self._stream, 0, self._ssucc_cb, None)
         assert op
         _pa.pa_operation_unref(op)

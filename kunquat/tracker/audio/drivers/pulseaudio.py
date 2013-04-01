@@ -96,7 +96,10 @@ class Pulseaudio():
         missing = nframes - audio_len(self._workspace)
         while missing > 0:
             self._next(missing)
-            fresh_audio = self._buffer.get()
+            try:
+                fresh_audio = self._buffer.get(True, 1.0)
+            except Queue.Empty:
+                fresh_audio = ([0.0] * missing, [0.0] * missing)
             self._add_audio_to_workspace(fresh_audio)
             missing = nframes - audio_len(self._workspace)
 
