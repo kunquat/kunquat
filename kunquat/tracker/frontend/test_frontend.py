@@ -19,8 +19,13 @@ from frontend import Frontend
 class TestFrontend(unittest.TestCase):
 
     def setUp(self):
-        self._frontend = Frontend()
+        class DummyUiModel():
+            pass
+        ui_model_dummy = DummyUiModel()
+        self._frontend = Frontend(ui_model_dummy)
 
+    def test_nothing(self):
+        pass
 
 if __name__ == '__main__':
     unittest.main()
