@@ -57,7 +57,14 @@ class TestAbstractDriver(unittest.TestCase):
         remaining_threads = threading.active_count()
         self.assertEqual(initial_threads, remaining_threads)
 
+    def _stress_test(self, DriverClass):
+        for _ in range(100):
+            driver = DriverClass()
+            driver.start()
+            driver.stop()
+
     def run_tests(self, DriverClass):
+        self._stress_test(DriverClass)
         self._prefeed(DriverClass)
         self._quickpush(DriverClass)
         self._emptypush(DriverClass)
