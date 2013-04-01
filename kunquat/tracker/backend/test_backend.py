@@ -12,17 +12,10 @@
 #
 
 import unittest
+from Queue import Queue
+from threading import Thread
 
 from backend import Backend
-
-
-class AudioDummy():
-
-    def __init__(self):
-        self._audio = None
-
-    def put_audio(self, data):
-        self._audio = data
 
 
 class TestBackend(unittest.TestCase):
@@ -31,6 +24,10 @@ class TestBackend(unittest.TestCase):
         self._backend = Backend()
 
     def test_creating_two_frames_of_silence_succeeds(self):
+        q = Queue()
+        class AudioDummy(Thread):
+            def put_audio(self, audio_data):
+                q.put(audio_data)
         audio_dummy = AudioDummy()
         self._backend.set_audio_output(audio_dummy)
         self._backend.set_data('album/p_manifest.json', {})
@@ -42,7 +39,7 @@ class TestBackend(unittest.TestCase):
         self._backend.set_data('pat_000/instance_000/p_manifest.json', {})
         self._backend.commit_data()
         self._backend.generate_audio(2)
-        result = audio_dummy._audio
+        result = q.get()
         expected = ([0.0, 0.0], [0.0, 0.0])
         self.assertEqual(result, expected)
 
