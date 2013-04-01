@@ -11,31 +11,12 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-import unittest
 import random
+import unittest
+from Queue import Queue
+from threading import Thread
 
 from audio import Audio
-
-
-class DummyBackend():
-
-    def __init__(self):
-        self._selected = None
-
-    def update_selected_driver(self, driver):
-        self._selected = driver
-
-    def generate_audio(self, nframes):
-        return ([],[])
-
-
-class DummyFrontend():
-
-    def __init__(self):
-        self._drivers = None
-
-    def update_drivers(self, drivers):
-        self._drivers = drivers
 
 
 class TestAudio(unittest.TestCase):
@@ -44,18 +25,35 @@ class TestAudio(unittest.TestCase):
         self._audio_output = Audio()
 
     def test_driver_selection(self):
+        q = Queue()
+        class DummyFrontend(Thread):
+            def update_drivers(self, drivers):
+                q.put(drivers)
+        class DummyBackend(Thread):
+            def __init__(self):
+                self._audio_output = None
+            def update_selected_driver(self, driver):
+                q.put(driver)
+            def set_audio_output(self, audio_output):
+                self._audio_output = audio_output
+            def generate_audio(self, nframes):
+                audio_data = ([],[])
+                if self._audio_output != None:
+                    self._audio_output.put_audio(audio_data)
         dummy_backend = DummyBackend()
         dummy_frontend = DummyFrontend()
         self._audio_output.set_backend(dummy_backend)
         self._audio_output.set_frontend(dummy_frontend)
         self._audio_output.request_update()
-        driver_ids = dummy_frontend._drivers.keys()
+        drivers = q.get()
+        driver_ids = drivers.keys()
         test_ids = 4 * driver_ids
         seed = (lambda:0.2)
         random.shuffle(test_ids, seed)
         for driver_id in test_ids:
             self._audio_output.select_driver(driver_id)
-            self.assertEqual(dummy_backend._selected, driver_id)
+            selected = q.get()
+            self.assertEqual(selected, driver_id)
 
 
 if __name__ == '__main__':
