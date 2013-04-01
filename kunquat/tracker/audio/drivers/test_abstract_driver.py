@@ -22,16 +22,6 @@ class DummyAudioSource():
         pass
 
 
-class SilentAudioSource():
-
-    def set_audio_output(self, audio_output):
-        self._audio_output = audio_output
-
-    def generate_audio(self, nframes):
-        silence = ([0.1] * nframes, [0.1] * nframes)
-        self._audio_output.put_audio(silence)
-
-
 class TestAbstractDriver():
 
     def setUp(self):
@@ -73,15 +63,5 @@ class TestAbstractDriver():
         driver.start()
         sleep(0.2)
         driver.close()
-
-    def disabled_stress_test(self):
-        for _ in range(100):
-            driver = self._DriverClass()
-            audio_source = SilentAudioSource()
-            audio_source.set_audio_output(driver)
-            driver.set_audio_source(audio_source)
-            driver.start()
-            sleep(0.2)
-            driver.close()
 
 
