@@ -86,7 +86,7 @@ class TestAbstractDriver(unittest.TestCase):
 
     def run_tests(self, DriverClass):
         self._interrupt_driver(DriverClass)
-        self._stress_test(DriverClass)
+        #self._stress_test(DriverClass)
         self._prefeed(DriverClass)
         self._quickpush(DriverClass)
         self._emptypush(DriverClass)
