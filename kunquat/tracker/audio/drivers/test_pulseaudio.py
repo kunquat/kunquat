@@ -13,6 +13,8 @@
 #
 
 import doctest
+import unittest
+
 import pulseaudio
 from pulseaudio import Pulseaudio
 from test_abstract_driver import TestAbstractDriver
