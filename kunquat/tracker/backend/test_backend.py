@@ -27,19 +27,21 @@ class AudioDummy():
 
 class TestBackend(unittest.TestCase):
 
+    def setUp(self):
+        self._backend = Backend()
+
     def test_creating_two_frames_of_silence_succeeds(self):
-        backend = Backend()
         audio_dummy = AudioDummy()
-        backend.set_audio_output(audio_dummy)
-        backend.set_data('album/p_manifest.json', {})
-        backend.set_data('album/p_tracks.json', [0])
-        backend.set_data('song_00/p_manifest.json', {})
-        backend.set_data('song_00/p_order_list.json', [ [0, 0] ])
-        backend.set_data('pat_000/p_manifest.json', {})
-        backend.set_data('pat_000/p_pattern.json', { 'length': [16, 0] })
-        backend.set_data('pat_000/instance_000/p_manifest.json', {})
-        backend.commit_data()
-        backend.generate_audio(2)
+        self._backend.set_audio_output(audio_dummy)
+        self._backend.set_data('album/p_manifest.json', {})
+        self._backend.set_data('album/p_tracks.json', [0])
+        self._backend.set_data('song_00/p_manifest.json', {})
+        self._backend.set_data('song_00/p_order_list.json', [ [0, 0] ])
+        self._backend.set_data('pat_000/p_manifest.json', {})
+        self._backend.set_data('pat_000/p_pattern.json', { 'length': [16, 0] })
+        self._backend.set_data('pat_000/instance_000/p_manifest.json', {})
+        self._backend.commit_data()
+        self._backend.generate_audio(2)
         result = audio_dummy._audio
         expected = ([0.0, 0.0], [0.0, 0.0])
         self.assertEqual(result, expected)
