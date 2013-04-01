@@ -16,7 +16,7 @@ import unittest
 from frontend import Frontend
 
 
-class TestBackend(unittest.TestCase):
+class TestFrontend(unittest.TestCase):
 
     def setUp(self):
         self._frontend = Frontend()
