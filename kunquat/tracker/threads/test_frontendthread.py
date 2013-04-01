@@ -51,14 +51,7 @@ class DummyAudio(threading.Thread):
 class TestFrontendthread(TestAbstractThread, unittest.TestCase):
 
     def setUp(self):
-        self._test_calls = [
-          ('set_audio_output', (DummyAudio(),), {}),
-          ('set_backend', (DummyBackend(),), {}),
-          ('update_drivers', ({'coolsound':{'name': 'coolsound test driver'}},), {})
-        ]
-        self._InterfaceClass = Frontend
-        self._TestClass = FrontendThread
-        self._thread = self._TestClass()
+        self._thread = FrontendThread()
         self._thread.set_ui_launcher(DummyLauncher())
 
 

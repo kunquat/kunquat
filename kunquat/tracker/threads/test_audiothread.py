@@ -31,16 +31,7 @@ class DummyBackend(threading.Thread):
 class TestAudiothread(TestAbstractThread, unittest.TestCase):
 
     def setUp(self):
-        self._test_calls = [
-          ('select_driver', ('coolsound',), {}),
-          ('set_frontend', (DummyFrontend(),), {}),
-          ('set_backend', (DummyBackend(),), {}),
-          ('put_audio', (([0], [0]),), {}),
-          ('request_update', (), {})
-        ]
-        self._InterfaceClass = Audio
-        self._TestClass = AudioThread
-        self._thread = self._TestClass()
+        self._thread = AudioThread()
 
 
 class TestThreadedAudio(TestAudio):
