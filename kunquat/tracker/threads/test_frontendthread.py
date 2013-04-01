@@ -14,6 +14,7 @@
 import unittest
 import threading
 
+from kunquat.tracker.frontend.test_frontend import TestFrontend
 from kunquat.tracker.frontend.frontend import Frontend
 from frontendthread import FrontendThread
 from test_abstractthread import TestAbstractThread
@@ -59,6 +60,23 @@ class TestFrontendthread(TestAbstractThread, unittest.TestCase):
         self._TestClass = FrontendThread
         self._thread = self._TestClass()
         self._thread.set_ui_launcher(DummyLauncher())
+
+
+class TestThreadedFrontend(TestFrontend):
+
+    def setUp(self):
+        class DummyUiModel():
+            pass
+        ui_model_dummy = DummyUiModel()
+        handler = Frontend(ui_model_dummy)
+        self._frontend = FrontendThread()
+        self._frontend.set_handler(handler)
+        self._frontend.set_ui_launcher(DummyLauncher())
+        self._frontend.start()
+
+    def tearDown(self):
+        self._frontend.halt()
+        self._frontend.join()
 
 
 if __name__ == '__main__':
