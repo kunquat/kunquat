@@ -32,21 +32,21 @@ class SilentAudioSource():
         self._audio_output.put_audio(silence)
 
 
-class TestAbstractDriver(unittest.TestCase):
+class TestAbstractDriver():
 
     def setUp(self):
-        pass
+        self._self._DriverClass = None
 
-    def _emptypush(self, DriverClass):
-        driver = DriverClass()
+    def test_emptypush(self):
+        driver = self._DriverClass()
         driver.put_audio(([],[]))
 
-    def _quickpush(self, DriverClass):
-        driver = DriverClass()
+    def test_quickpush(self):
+        driver = self._DriverClass()
         driver.put_audio(([0],[0]))
 
-    def _prefeed(self, DriverClass):
-        driver = DriverClass()
+    def test_prefeed(self):
+        driver = self._DriverClass()
         driver.set_audio_source(DummyAudioSource())
         driver.put_audio((10000*[0.1],10000*[0.1]))
         driver.start()
@@ -54,42 +54,34 @@ class TestAbstractDriver(unittest.TestCase):
         driver.put_audio((10000*[0.1],10000*[0.1]))
         driver.stop()
 
-    def _boot_driver(self, DriverClass):
-        driver = DriverClass()
+    def _boot_driver(self):
+        driver = self._DriverClass()
         driver.set_audio_source(DummyAudioSource())
         driver.start()
         driver.close()
 
-    def _driver_cleanup(self, DriverClass):
+    def test_driver_cleanup(self):
         initial_threads = threading.active_count()
         for i in xrange(50):
-            self._boot_driver(DriverClass)
+            self._boot_driver()
         remaining_threads = threading.active_count()
         self.assertEqual(initial_threads, remaining_threads)
 
-    def _interrupt_driver(self, DriverClass):
-        driver = DriverClass()
+    def test_interrupt_driver(self):
+        driver = self._DriverClass()
         driver.set_audio_source(DummyAudioSource())
         driver.start()
         sleep(0.2)
         driver.close()
 
-    def _stress_test(self, DriverClass):
+    def disabled_stress_test(self):
         for _ in range(100):
-            driver = DriverClass()
+            driver = self._DriverClass()
             audio_source = SilentAudioSource()
             audio_source.set_audio_output(driver)
             driver.set_audio_source(audio_source)
             driver.start()
             sleep(0.2)
             driver.close()
-
-    def run_tests(self, DriverClass):
-        self._interrupt_driver(DriverClass)
-        #self._stress_test(DriverClass)
-        self._prefeed(DriverClass)
-        self._quickpush(DriverClass)
-        self._emptypush(DriverClass)
-        self._driver_cleanup(DriverClass)
 
 

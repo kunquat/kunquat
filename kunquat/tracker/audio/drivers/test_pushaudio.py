@@ -18,10 +18,10 @@ from pushaudio import Pushaudio
 from test_abstract_driver import TestAbstractDriver
 
 
-class TestPushaudio(TestAbstractDriver):
+class TestPushaudio(TestAbstractDriver, unittest.TestCase):
 
-    def test_pushaudio(self):
-        self.run_tests(Pushaudio)
+    def setUp(self):
+        self._DriverClass = Pushaudio
 
 
 if __name__ == '__main__':

@@ -25,10 +25,10 @@ def load_tests(loader, tests, ignore):
     return tests
 
 
-class TestPulseaudio(TestAbstractDriver):
+class TestPulseaudio(TestAbstractDriver, unittest.TestCase):
 
-    def test_pulseaudio(self):
-        self.run_tests(Pulseaudio)
+    def setUp(self):
+        self._DriverClass = Pulseaudio
 
 
 if __name__ == '__main__':
