@@ -57,14 +57,23 @@ class TestAbstractDriver(unittest.TestCase):
         remaining_threads = threading.active_count()
         self.assertEqual(initial_threads, remaining_threads)
 
+    def _interrupt_driver(self, DriverClass):
+        driver = DriverClass()
+        driver.set_audio_source(DummyAudioSource())
+        driver.start()
+        sleep(0.2)
+        driver.close()
+
     def _stress_test(self, DriverClass):
         for _ in range(100):
             driver = DriverClass()
+            driver.set_audio_source(DummyAudioSource())
             driver.start()
             sleep(0.2)
             driver.close()
 
     def run_tests(self, DriverClass):
+        self._interrupt_driver(DriverClass)
         self._stress_test(DriverClass)
         self._prefeed(DriverClass)
         self._quickpush(DriverClass)
