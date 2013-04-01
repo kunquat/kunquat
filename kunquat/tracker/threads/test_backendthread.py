@@ -15,13 +15,13 @@ import unittest
 import threading
 
 from kunquat.tracker.backend.backend import Backend
+from kunquat.tracker.backend.test_backend import TestBackend
 from backendthread import BackendThread
 from test_abstractthread import TestAbstractThread
 
 
 class DummyFrontend(threading.Thread):
     pass
-
 
 class TestBackendthread(TestAbstractThread, unittest.TestCase):
 
@@ -37,6 +37,19 @@ class TestBackendthread(TestAbstractThread, unittest.TestCase):
         self._InterfaceClass = Backend
         self._TestClass = BackendThread
         self._thread = self._TestClass()
+
+
+class TestThreadedBackend(TestBackend):
+
+    def setUp(self):
+        handler = Backend()
+        self._backend = BackendThread()
+        self._backend.set_handler(handler)
+        self._backend.start()
+
+    def tearDown(self):
+        self._backend.halt()
+        self._backend.join()
 
 
 if __name__ == '__main__':
