@@ -123,6 +123,10 @@ Song* new_Song(uint32_t buf_size)
     song->bind = NULL;
     song->album_is_existent = false;
     song->track_list = NULL;
+    for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
+    {
+        song->channels[i] = NULL;
+    }
     for (int i = 0; i < KQT_SONGS_MAX; ++i)
     {
         song->order_lists[i] = NULL;
@@ -662,8 +666,8 @@ bool Song_set_bind(Song* song, Bind* bind)
             for (int k = i - 1; k >= 0; --k)
             {
                 del_Event_cache(caches[k]);
-                return false;
             }
+            return false;
         }
     }
     del_Bind(song->bind);

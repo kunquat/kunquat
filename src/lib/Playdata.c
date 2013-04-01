@@ -51,8 +51,8 @@ Playdata* new_Playdata(Ins_table* insts,
     play->silent = false;
     play->citer = new_Column_iter(NULL);
     play->voice_pool = new_Voice_pool(256, 64);
-    if (play->citer == NULL || play->voice_pool == NULL ||
-            !General_state_init(&play->parent, true, env))
+    if (!General_state_init(&play->parent, true, env) ||
+            play->citer == NULL || play->voice_pool == NULL)
     {
         del_Playdata(play);
         return NULL;
@@ -136,9 +136,9 @@ Playdata* new_Playdata_silent(Environment* env, uint32_t freq)
     play->silent = true;
     play->citer = new_Column_iter(NULL);
     play->voice_pool = NULL;
-    if (play->citer == NULL || !General_state_init(&play->parent, true, env))
+    if (!General_state_init(&play->parent, true, env) || play->citer == NULL)
     {
-        memory_free(play);
+        del_Playdata(play);
         return NULL;
     }
 //    play->ins_events = NULL;

@@ -19,6 +19,12 @@
 #include <stdlib.h>
 
 
+/**
+ * Suppresses error message printing.
+ */
+void xassert_suppress_messages(void);
+
+
 #ifdef ENABLE_KUNQUAT_ASSERT
 
 

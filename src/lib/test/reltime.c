@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -21,10 +21,14 @@
 
 #include <test_common.h>
 
+#include <kunquat/testing.h>
 #include <Reltime.h>
 
 
-Suite* Reltime_suite(void);
+void silent_assert(void)
+{
+    kqt_suppress_assert_messages();
+}
 
 
 START_TEST (init)
@@ -1381,7 +1385,7 @@ Suite* Reltime_suite(void)
     suite_add_tcase(s, tc_toframes);
     suite_add_tcase(s, tc_fromframes);
 
-    int timeout = 10;
+    const int timeout = 4;
     tcase_set_timeout(tc_init, timeout);
     tcase_set_timeout(tc_set, timeout);
     tcase_set_timeout(tc_cmp, timeout);
@@ -1401,71 +1405,77 @@ Suite* Reltime_suite(void)
     tcase_add_test(tc_fromframes, fromframes);
 
 #ifndef NDEBUG
-    tcase_add_test_raise_signal(tc_init, init_break, SIGABRT);
+    TCase* tc_asserts = tcase_create("asserts");
+    suite_add_tcase(s, tc_asserts);
+    const int assert_timeout = 10;
+    tcase_set_timeout(tc_asserts, assert_timeout);
+    tcase_add_checked_fixture(tc_asserts, silent_assert, NULL);
 
-    tcase_add_test_raise_signal(tc_set, set_break_reltime, SIGABRT);
-    tcase_add_test_raise_signal(tc_set, set_break_part1, SIGABRT);
-    tcase_add_test_raise_signal(tc_set, set_break_part2, SIGABRT);
-    tcase_add_test_raise_signal(tc_set, set_break_part3, SIGABRT);
-    tcase_add_test_raise_signal(tc_set, set_break_part4, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, init_break, SIGABRT);
 
-    tcase_add_test_raise_signal(tc_cmp, cmp_break_null1, SIGABRT);
-    tcase_add_test_raise_signal(tc_cmp, cmp_break_null2, SIGABRT);
-    tcase_add_test_raise_signal(tc_cmp, cmp_break_inv11, SIGABRT);
-    tcase_add_test_raise_signal(tc_cmp, cmp_break_inv12, SIGABRT);
-    tcase_add_test_raise_signal(tc_cmp, cmp_break_inv13, SIGABRT);
-    tcase_add_test_raise_signal(tc_cmp, cmp_break_inv14, SIGABRT);
-    tcase_add_test_raise_signal(tc_cmp, cmp_break_inv21, SIGABRT);
-    tcase_add_test_raise_signal(tc_cmp, cmp_break_inv22, SIGABRT);
-    tcase_add_test_raise_signal(tc_cmp, cmp_break_inv23, SIGABRT);
-    tcase_add_test_raise_signal(tc_cmp, cmp_break_inv24, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, set_break_reltime, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, set_break_part1, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, set_break_part2, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, set_break_part3, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, set_break_part4, SIGABRT);
 
-    tcase_add_test_raise_signal(tc_add, add_break_null1, SIGABRT);
-    tcase_add_test_raise_signal(tc_add, add_break_null2, SIGABRT);
-    tcase_add_test_raise_signal(tc_add, add_break_null3, SIGABRT);
-    tcase_add_test_raise_signal(tc_add, add_break_inv21, SIGABRT);
-    tcase_add_test_raise_signal(tc_add, add_break_inv22, SIGABRT);
-    tcase_add_test_raise_signal(tc_add, add_break_inv23, SIGABRT);
-    tcase_add_test_raise_signal(tc_add, add_break_inv24, SIGABRT);
-    tcase_add_test_raise_signal(tc_add, add_break_inv31, SIGABRT);
-    tcase_add_test_raise_signal(tc_add, add_break_inv32, SIGABRT);
-    tcase_add_test_raise_signal(tc_add, add_break_inv33, SIGABRT);
-    tcase_add_test_raise_signal(tc_add, add_break_inv34, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, cmp_break_null1, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, cmp_break_null2, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, cmp_break_inv11, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, cmp_break_inv12, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, cmp_break_inv13, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, cmp_break_inv14, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, cmp_break_inv21, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, cmp_break_inv22, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, cmp_break_inv23, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, cmp_break_inv24, SIGABRT);
 
-    tcase_add_test_raise_signal(tc_sub, sub_break_null1, SIGABRT);
-    tcase_add_test_raise_signal(tc_sub, sub_break_null2, SIGABRT);
-    tcase_add_test_raise_signal(tc_sub, sub_break_null3, SIGABRT);
-    tcase_add_test_raise_signal(tc_sub, sub_break_inv21, SIGABRT);
-    tcase_add_test_raise_signal(tc_sub, sub_break_inv22, SIGABRT);
-    tcase_add_test_raise_signal(tc_sub, sub_break_inv23, SIGABRT);
-    tcase_add_test_raise_signal(tc_sub, sub_break_inv24, SIGABRT);
-    tcase_add_test_raise_signal(tc_sub, sub_break_inv31, SIGABRT);
-    tcase_add_test_raise_signal(tc_sub, sub_break_inv32, SIGABRT);
-    tcase_add_test_raise_signal(tc_sub, sub_break_inv33, SIGABRT);
-    tcase_add_test_raise_signal(tc_sub, sub_break_inv34, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, add_break_null1, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, add_break_null2, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, add_break_null3, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, add_break_inv21, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, add_break_inv22, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, add_break_inv23, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, add_break_inv24, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, add_break_inv31, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, add_break_inv32, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, add_break_inv33, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, add_break_inv34, SIGABRT);
 
-    tcase_add_test_raise_signal(tc_copy, copy_break_null1, SIGABRT);
-    tcase_add_test_raise_signal(tc_copy, copy_break_null2, SIGABRT);
-    tcase_add_test_raise_signal(tc_copy, copy_break_inv21, SIGABRT);
-    tcase_add_test_raise_signal(tc_copy, copy_break_inv22, SIGABRT);
-    tcase_add_test_raise_signal(tc_copy, copy_break_inv23, SIGABRT);
-    tcase_add_test_raise_signal(tc_copy, copy_break_inv24, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, sub_break_null1, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, sub_break_null2, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, sub_break_null3, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, sub_break_inv21, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, sub_break_inv22, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, sub_break_inv23, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, sub_break_inv24, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, sub_break_inv31, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, sub_break_inv32, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, sub_break_inv33, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, sub_break_inv34, SIGABRT);
 
-    tcase_add_test_raise_signal(tc_toframes, toframes_break_null1, SIGABRT);
-    tcase_add_test_raise_signal(tc_toframes, toframes_break_inv11, SIGABRT);
-    tcase_add_test_raise_signal(tc_toframes, toframes_break_inv12, SIGABRT);
-    tcase_add_test_raise_signal(tc_toframes, toframes_break_inv13, SIGABRT);
-    tcase_add_test_raise_signal(tc_toframes, toframes_break_inv14, SIGABRT);
-    tcase_add_test_raise_signal(tc_toframes, toframes_break_inv15, SIGABRT);
-    tcase_add_test_raise_signal(tc_toframes, toframes_break_inv16, SIGABRT);
-    tcase_add_test_raise_signal(tc_toframes, toframes_break_inv21, SIGABRT);
-    tcase_add_test_raise_signal(tc_toframes, toframes_break_inv22, SIGABRT);
-    tcase_add_test_raise_signal(tc_toframes, toframes_break_inv31, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, copy_break_null1, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, copy_break_null2, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, copy_break_inv21, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, copy_break_inv22, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, copy_break_inv23, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, copy_break_inv24, SIGABRT);
 
-    tcase_add_test_raise_signal(tc_fromframes, fromframes_break_null1, SIGABRT);
-    tcase_add_test_raise_signal(tc_fromframes, fromframes_break_inv_tempo1, SIGABRT);
-    tcase_add_test_raise_signal(tc_fromframes, fromframes_break_inv_tempo2, SIGABRT);
-    tcase_add_test_raise_signal(tc_fromframes, fromframes_break_inv_freq, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, toframes_break_null1, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, toframes_break_inv11, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, toframes_break_inv12, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, toframes_break_inv13, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, toframes_break_inv14, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, toframes_break_inv15, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, toframes_break_inv16, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, toframes_break_inv21, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, toframes_break_inv22, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, toframes_break_inv31, SIGABRT);
+
+    tcase_add_test_raise_signal(tc_asserts, fromframes_break_null1, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, fromframes_break_inv_tempo1, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, fromframes_break_inv_tempo2, SIGABRT);
+    tcase_add_test_raise_signal(tc_asserts, fromframes_break_inv_freq, SIGABRT);
 #endif
 
     return s;

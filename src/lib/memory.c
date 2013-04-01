@@ -34,6 +34,9 @@ static int32_t out_of_memory_error_steps = -1;
     } else (void)0
 
 
+static int32_t total_alloc_count = 0;
+
+
 void* memory_alloc(size_t size)
 {
     if (size == 0)
@@ -41,7 +44,10 @@ void* memory_alloc(size_t size)
 
     update_out_of_memory_error();
 
-    return malloc(size);
+    void* block = malloc(size);
+    if (block != NULL)
+        ++total_alloc_count;
+    return block;
 }
 
 
@@ -52,7 +58,10 @@ void* memory_calloc(size_t item_count, size_t item_size)
 
     update_out_of_memory_error();
 
-    return calloc(item_count, item_size);
+    void* block = calloc(item_count, item_size);
+    if (block != NULL)
+        ++total_alloc_count;
+    return block;
 }
 
 
@@ -65,7 +74,10 @@ void* memory_realloc(void* ptr, size_t size)
 
     update_out_of_memory_error();
 
-    return realloc(ptr, size);
+    void* block = realloc(ptr, size);
+    if (block != NULL)
+        ++total_alloc_count;
+    return block;
 }
 
 
@@ -78,6 +90,12 @@ void memory_free(void* ptr)
 void memory_fake_out_of_memory(int32_t steps)
 {
     out_of_memory_error_steps = steps;
+}
+
+
+int32_t memory_get_alloc_count(void)
+{
+    return total_alloc_count;
 }
 
 

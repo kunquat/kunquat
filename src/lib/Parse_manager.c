@@ -432,6 +432,7 @@ static bool parse_album_level(
     assert(subkey != NULL);
     assert((data == NULL) == (length == 0));
     assert(length >= 0);
+    (void)length;
 
     if (string_eq(subkey, "p_manifest.json"))
     {

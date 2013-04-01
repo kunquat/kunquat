@@ -55,7 +55,6 @@ bool kqt_Handle_init(kqt_Handle* handle, long buffer_size)
     }
     handle->data_is_valid = true;
     handle->data_is_validated = true;
-    handle->mode = KQT_READ;
     handle->song = NULL;
     handle->destroy = NULL;
     handle->get_data = NULL;
@@ -220,6 +219,7 @@ void kqt_Handle_set_error_(kqt_Handle* handle,
 }
 
 
+#if 0
 void* kqt_Handle_get_data(kqt_Handle* handle, const char* key)
 {
     check_handle(handle, NULL);
@@ -260,6 +260,7 @@ long kqt_Handle_get_data_length(kqt_Handle* handle, const char* key)
     assert(handle->get_data_length != NULL);
     return handle->get_data_length(handle, key);
 }
+#endif
 
 
 int kqt_Handle_set_data(kqt_Handle* handle,
@@ -270,12 +271,14 @@ int kqt_Handle_set_data(kqt_Handle* handle,
     check_handle(handle, 0);
     check_data_is_valid(handle, 0);
     check_key(handle, key, 0);
+#if 0
     if (handle->mode == KQT_READ)
     {
         kqt_Handle_set_error(handle, ERROR_ARGUMENT,
                 "Cannot set data on a read-only Kunquat Handle.");
         return 0;
     }
+#endif
     assert(handle->set_data != NULL);
     return handle->set_data(handle, key, data, length);
 }

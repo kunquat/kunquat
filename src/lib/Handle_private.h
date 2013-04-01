@@ -44,21 +44,11 @@ typedef enum
 } Error_type;
 
 
-typedef enum
-{
-    KQT_READ = 0,
-    KQT_READ_WRITE,
-    KQT_READ_WRITE_COMMIT,
-    KQT_MEM,
-} kqt_Access_mode;
-
-
 struct kqt_Handle
 {
     bool data_is_valid;
     bool data_is_validated;
     Song* song;
-    kqt_Access_mode mode;
     AAtree* returned_values;
     void* (*get_data)(kqt_Handle* handle, const char* key);
     long (*get_data_length)(kqt_Handle* handle, const char* key);
