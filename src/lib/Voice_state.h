@@ -36,7 +36,7 @@
 typedef struct Filter_state
 {
     double coeffs[FILTER_ORDER]; ///< Coefficient table.
-    double a0;
+    double mul;
     double history1[KQT_BUFFERS_MAX][FILTER_ORDER]; ///< History buffer.
     double history2[KQT_BUFFERS_MAX][FILTER_ORDER]; ///< History buffer.
 } Filter_state;
