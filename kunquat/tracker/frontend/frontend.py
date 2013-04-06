@@ -15,7 +15,10 @@
 
 class Frontend():
 
-    def __init__(self, ui_model):
+    def __init__(self):
+        self._ui_model = None
+
+    def set_ui_model(self, ui_model):
         self._ui_model = ui_model
 
     def set_backend(self, backend):
@@ -28,4 +31,9 @@ class Frontend():
         drivers = self._ui_model.get_drivers()
         drivers.update_drivers(update)
 
+    # Audio Output Interface
+
+    def select_driver_success(self, driver_class):
+        driver_manager = self._ui_model.get_driver_manager()
+        driver_manager.select_driver_success(driver_class)
 
