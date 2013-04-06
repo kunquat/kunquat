@@ -74,18 +74,19 @@ class UiModel():
     """
 
     def __init__(self):
-        self._audio_drivers = Drivers()
+        self._driver_manager = None
 
     def set_backend(self, backend):
         pass
 
+    def set_driver_manager(self, driver_manager):
+        self._driver_manager = driver_manager
+
+    def get_driver_manager(self):
+        return self._driver_manager
+
     def set_audio_output(self, audio_output):
-        self._audio_drivers.set_audio_output(audio_output)
+        self._driver_manager.set_audio_output(audio_output)
 
-    def update_drivers(self, drivers):
-        self._audio_drivers.update_drivers(drivers)
-
-    def get_drivers(self):
-        return self._audio_drivers
 
 

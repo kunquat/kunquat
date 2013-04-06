@@ -135,6 +135,8 @@ class Pulseaudio():
     def get_id(cls):
         return 'pulseaudio'
 
+    #'PulseAudio asynchronic pull driver'
+
 if __name__ == "__main__":
     import doctest
     doctest.testmod()

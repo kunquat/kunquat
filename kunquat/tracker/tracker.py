@@ -14,6 +14,7 @@
 
 import time
 
+from kunquat.tracker.frontend.drivers import Drivers
 from kunquat.tracker.frontend.uimodel import UiModel
 from kunquat.tracker.audio.audio import Audio
 from kunquat.tracker.backend.backend import Backend
@@ -23,10 +24,16 @@ from kunquat.tracker.threads.audiothread import AudioThread
 from kunquat.tracker.threads.backendthread import BackendThread
 from kunquat.tracker.threads.frontendthread import FrontendThread
 
+from kunquat.tracker.audio.drivers.pulseaudio import Pulseaudio
+from kunquat.tracker.audio.drivers.pushaudio import Pushaudio
+
 
 def main():
-
+    drivers = [Pulseaudio, Pushaudio]
+    driver_manager = Drivers()
+    driver_manager.set_drivers(drivers)
     ui_model = UiModel()
+    ui_model.set_driver_manager(driver_manager)
 
     audio_output = Audio()
     backend = Backend()

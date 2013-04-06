@@ -56,11 +56,11 @@ class Ui():
 
     def select_random_driver(self):
         import random
-        drivers = self._ui_model.get_drivers()
-        driver_ids = drivers.get_ids()
-        one = random.choice(driver_ids)
-        print 'driver: %s' % one
-        drivers.select_audio_driver(one)
+        driver_manager = self._ui_model.get_driver_manager()
+        drivers = driver_manager.get_drivers()
+        one = random.choice(drivers)
+        print 'driver: %s' % one.get_id()
+        driver_manager.select_audio_driver(one)
 
     def _start_driver_randomizer(self):
         QObject.connect(

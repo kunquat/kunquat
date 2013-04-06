@@ -17,17 +17,20 @@ class Drivers():
         self._drivers = None
         self._audio_output = None
 
+    def set_drivers(self, drivers):
+        self._drivers = drivers
+
     def set_audio_output(self, audio_output):
         self._audio_output = audio_output
-        self._audio_output.request_update()
 
-    def update_drivers(self, drivers):
-        self._drivers = drivers
+    def get_drivers(self):
+        return self._drivers
 
     def get_ids(self):
         if self._drivers == None:
             return []
-        return self._drivers.keys()
+        ids = [i.get_id() for i in self._drivers]
+        return ids
 
     def select_audio_driver(self, name):
         self._audio_output.select_driver(name)
