@@ -32,6 +32,9 @@ class Drivers():
         ids = [i.get_id() for i in self._drivers]
         return ids
 
-    def select_audio_driver(self, name):
-        self._audio_output.select_driver(name)
+    def select_driver(self, driver_class):
+        self._audio_output.select_driver(driver_class)
+
+    def select_driver_success(self, driver_class)
+        pass
 
