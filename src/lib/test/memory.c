@@ -56,7 +56,7 @@ START_TEST(Out_of_memory_at_handle_creation_fails_cleanly)
         fail_if(error_msg == NULL,
                 "Memory allocation failure did not give an error message");
         fail_if(strstr(error_msg, "\"MemoryError\"") == NULL,
-                "Error message at memory allocation failure was not a MemoryError");
+                "Error message on memory allocation failure was not a MemoryError");
     }
 
     // Make sure that we succeed with the error step far enough
