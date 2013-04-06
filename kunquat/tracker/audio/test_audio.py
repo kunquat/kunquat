@@ -46,7 +46,6 @@ class TestAudio(unittest.TestCase):
         dummy_frontend = DummyFrontend()
         self._audio_output.set_backend(dummy_backend)
         self._audio_output.set_frontend(dummy_frontend)
-        self._audio_output.request_update()
         some_drivers = 4 * driver_classes
         seed = (lambda:0.2)
         random.shuffle(some_drivers, seed)
