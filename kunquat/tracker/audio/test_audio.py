@@ -17,7 +17,10 @@ from Queue import Queue
 from threading import Thread
 
 from audio import Audio
+from drivers.pulseaudio import Pulseaudio
+from drivers.pushaudio import Pushaudio
 
+driver_classes = [None, Pulseaudio, Pushaudio]
 
 class TestAudio(unittest.TestCase):
 
@@ -27,8 +30,7 @@ class TestAudio(unittest.TestCase):
     def test_driver_selection(self):
         q = Queue()
         class DummyFrontend(Thread):
-            def update_drivers(self, drivers):
-                q.put(drivers)
+            pass
         class DummyBackend(Thread):
             def __init__(self):
                 self._audio_output = None
@@ -45,15 +47,13 @@ class TestAudio(unittest.TestCase):
         self._audio_output.set_backend(dummy_backend)
         self._audio_output.set_frontend(dummy_frontend)
         self._audio_output.request_update()
-        drivers = q.get()
-        driver_ids = drivers.keys()
-        test_ids = 4 * driver_ids
+        some_drivers = 4 * driver_classes
         seed = (lambda:0.2)
-        random.shuffle(test_ids, seed)
-        for driver_id in test_ids:
-            self._audio_output.select_driver(driver_id)
+        random.shuffle(some_drivers, seed)
+        for driver in some_drivers:
+            self._audio_output.select_driver(driver)
             selected = q.get()
-            self.assertEqual(selected, driver_id)
+            self.assertEqual(selected, driver)
 
 
 if __name__ == '__main__':
