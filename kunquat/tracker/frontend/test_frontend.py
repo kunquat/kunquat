@@ -14,18 +14,30 @@
 import unittest
 
 from frontend import Frontend
-
+from Queue import Queue
 
 class TestFrontend(unittest.TestCase):
 
     def setUp(self):
-        class DummyUiModel():
-            pass
-        ui_model_dummy = DummyUiModel()
-        self._frontend = Frontend(ui_model_dummy)
+        self._frontend = Frontend()
 
-    def test_nothing(self):
-        pass
+    def test_select_driver_success(self):
+        q = Queue()
+        class DummyDriver():
+            pass
+        class DummyUiModel():
+            def get_driver_manager(self):
+                driver_manager_dummy = DummyDriverManager()
+                return driver_manager_dummy
+        class DummyDriverManager():
+            def select_driver_success(self, driver_class):
+                q.put(driver_class)
+        ui_model_dummy = DummyUiModel()
+        self._frontend.set_ui_model(ui_model_dummy)
+        self._frontend.select_driver_success(DummyDriver)
+        selected = q.get()
+        self.assertEqual(selected, DummyDriver)
+        
 
 if __name__ == '__main__':
     unittest.main()
