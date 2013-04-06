@@ -78,4 +78,8 @@ class Pushaudio():
     def close(self):
         self.stop()
 
+    @classmethod
+    def get_id(cls):
+        return 'pushaudio'
+
 

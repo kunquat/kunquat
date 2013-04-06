@@ -131,6 +131,10 @@ class Pulseaudio():
         self.stop()
         self._pa.deinit()
 
+    @classmethod
+    def get_id(cls):
+        return 'pulseaudio'
+
 if __name__ == "__main__":
     import doctest
     doctest.testmod()
