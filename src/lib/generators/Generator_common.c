@@ -417,10 +417,11 @@ void Generator_common_handle_filter(Generator* gen,
         {
             int new_state = 1 - abs(state->lowpass_state_used);
             double lowpass = MAX(state->actual_lowpass, 1);
-            two_pole_lowpass_filter_create(lowpass / freq,
+            two_pole_filter_create(lowpass / freq,
                     state->lowpass_resonance,
+                    0,
                     state->lowpass_state[new_state].coeffs,
-                    &state->lowpass_state[new_state].a0);
+                    &state->lowpass_state[new_state].mul);
             for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
             {
                 for (int k = 0; k < FILTER_ORDER; ++k)
@@ -462,7 +463,7 @@ void Generator_common_handle_filter(Generator* gen,
                                                       fst->coeffs,
                                                       fst->history2[i],
                                                       result[i]);
-                result[i] /= fst->a0;
+                result[i] *= fst->mul;
             }
         }
         else
@@ -497,7 +498,7 @@ void Generator_common_handle_filter(Generator* gen,
                                                                fst->coeffs,
                                                                fst->history2[i],
                                                                fade_result[i]);
-                    fade_result[i] /= fst->a0;
+                    fade_result[i] *= fst->mul;
                 }
             }
             else

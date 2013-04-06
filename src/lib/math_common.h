@@ -76,7 +76,7 @@ int64_t ceil_p2(int64_t x);
  *
  * \return   The value base^exp.
  */
-int64_t powi(int64_t base, int64_t exp);
+int64_t ipowi(int64_t base, int64_t exp);
 
 
 #endif // K_MATH_COMMON_H

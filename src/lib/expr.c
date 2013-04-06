@@ -1280,7 +1280,7 @@ static bool op_pow(Value* op1, Value* op2, Value* res, Read_state* state)
             op2->value.int_type >= 0)
     {
         res->type = VALUE_TYPE_INT;
-        res->value.int_type = powi(op1->value.int_type, op2->value.int_type);
+        res->value.int_type = ipowi(op1->value.int_type, op2->value.int_type);
         return true;
     }
     double base = NAN;
