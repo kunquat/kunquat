@@ -30,11 +30,15 @@ class Audio():
         if DriverClass == None:
             self._driver = None
         else:
-            self._driver = DriverClass()
+            try:
+                self._driver = DriverClass()
+            except:
+                self._frontend.select_driver_error(DriverClass)
+                return
         if self._driver:
             self._refresh_driver_audio_source()
             self._driver.start()
-        self._backend.update_selected_driver(DriverClass)
+        self._frontend.select_driver_success(DriverClass)
 
     def set_backend(self, backend):
         self._backend = backend
