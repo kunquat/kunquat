@@ -115,16 +115,39 @@ void kqt_Handle_clear_error(kqt_Handle* handle)
 }
 
 
+#define set_invalid_if(cond, ...)                                      \
+    if (true)                                                          \
+    {                                                                  \
+        if (cond)                                                      \
+        {                                                              \
+            kqt_Handle_set_error((handle), ERROR_FORMAT, __VA_ARGS__); \
+            (handle)->data_is_valid = false;                           \
+            return 0;                                                  \
+        }                                                              \
+    } else (void)0
+
 int kqt_Handle_validate(kqt_Handle* handle)
 {
     check_handle(handle, 0);
     check_data_is_valid(handle, 0);
 
-    // TODO: do something useful here
+    // Check album
+    if (handle->song->album_is_existent)
+    {
+        const Track_list* tl = handle->song->track_list;
+        set_invalid_if(
+                tl == NULL,
+                "Album does not contain a track list");
+        set_invalid_if(
+                Track_list_get_len(tl) == 0,
+                "Album has no tracks");
+    }
 
     handle->data_is_validated = true;
     return 1;
 }
+
+#undef set_invalid_if
 
 
 void kqt_Handle_set_error_(kqt_Handle* handle,
