@@ -62,7 +62,7 @@ bool string_contains_word(const char* haystack, const char* needle)
 }
 
 
-START_TEST(Handle_refuses_to_render_unvalidated_module)
+static void set_silent_composition()
 {
     set_data("album/p_manifest.json", "{}");
     set_data("album/p_tracks.json", "[0]");
@@ -71,6 +71,14 @@ START_TEST(Handle_refuses_to_render_unvalidated_module)
     set_data("pat_000/p_manifest.json", "{}");
     set_data("pat_000/p_pattern.json", "{ \"length\": [16, 0] }");
     set_data("pat_000/instance_000/p_manifest.json", "{}");
+
+    return;
+}
+
+
+START_TEST(Handle_refuses_to_render_unvalidated_module)
+{
+    set_silent_composition();
 
     long mixed = kqt_Handle_mix(handle, 16);
 
@@ -91,20 +99,62 @@ START_TEST(Handle_refuses_to_render_unvalidated_module)
 END_TEST
 
 
+#define check_validation_error(context_str, ...)                    \
+    if (true)                                                       \
+    {                                                               \
+        const char* error_msg = kqt_Handle_get_error(handle);       \
+        fail_if(strlen(error_msg) == 0, __VA_ARGS__);               \
+        fail_unless(string_contains(error_msg, "\"FormatError\""),  \
+                "Validation error is not a FormatError");           \
+        fail_unless(string_contains_word(error_msg, context_str),   \
+                "Validation error message does not mention \"%s\"", \
+                context_str);                                       \
+    } else (void)0
+
+
 START_TEST(Validation_rejects_album_without_tracks)
 {
-    set_data("album/p_manifest.json", "{}");
+    set_silent_composition();
+    validate();
+
     set_data("album/p_tracks.json", "[]");
 
     kqt_Handle_validate(handle);
 
-    const char* error_msg = kqt_Handle_get_error(handle);
-    fail_if(strlen(error_msg) == 0,
-            "Handle accepts an album without tracks");
-    fail_unless(string_contains(error_msg, "\"FormatError\""),
-            "Validation error is not a FormatError");
-    fail_unless(string_contains_word(error_msg, "album"),
-            "Validation error message does not mention \"album\"");
+    check_validation_error("album", "Handle accepts an album without tracks");
+}
+END_TEST
+
+
+START_TEST(Validation_rejects_orphan_songs)
+{
+    set_silent_composition();
+    validate();
+
+    const int orphan_index = _i;
+
+    if (orphan_index == 0)
+    {
+        // Set another valid song
+        set_data("album/p_tracks.json", "[1]");
+        set_data("song_01/p_manifest.json", "{}");
+        set_data("song_01/p_order_list.json", "[ [0, 0] ]");
+    }
+
+    // Set orphan song
+    char orphan_manifest[64] = "";
+    snprintf(orphan_manifest, 64, "song_%02x/p_manifest.json", orphan_index);
+    set_data(orphan_manifest, "{}");
+
+    char orphan_order_list[64] = "";
+    snprintf(orphan_order_list, 64, "song_%02x/p_order_list.json", orphan_index);
+    set_data(orphan_order_list, "[ [0, 0] ]");
+
+    kqt_Handle_validate(handle);
+
+    check_validation_error("song",
+            "Handle accepts an orphan song at index %d",
+            orphan_index);
 }
 END_TEST
 
@@ -130,6 +180,8 @@ Suite* Validation_suite(void)
     tcase_add_test(tc_refuse, Handle_refuses_to_render_unvalidated_module);
 
     tcase_add_test(tc_reject, Validation_rejects_album_without_tracks);
+    tcase_add_loop_test(tc_reject, Validation_rejects_orphan_songs,
+            0, KQT_SONGS_MAX);
 
     return s;
 }
