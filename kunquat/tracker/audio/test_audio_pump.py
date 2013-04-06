@@ -14,7 +14,7 @@
 import unittest
 from audio_pump import AudioPump
 
-class TestAbstractThread(unittest.TestCase):
+class TestAudioPump(unittest.TestCase):
 
     def setUp(self):
         self._thread = AudioPump()
