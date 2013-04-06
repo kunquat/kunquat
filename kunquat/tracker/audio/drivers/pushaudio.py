@@ -23,10 +23,6 @@ class Pushaudio():
         self._pa = Simple('Kunquat Tracker',
                           'Editor output')
 
-    def __del__(self):
-        if self._audio_pump.is_alive():
-            self.stop()
-
     def set_audio_source(self, audio_source):
         self._audio_pump.set_audio_source(audio_source)
 
