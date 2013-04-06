@@ -35,6 +35,6 @@ class Drivers():
     def select_driver(self, driver_class):
         self._audio_output.select_driver(driver_class)
 
-    def select_driver_success(self, driver_class)
+    def select_driver_success(self, driver_class):
         pass
 

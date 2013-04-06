@@ -37,7 +37,8 @@ def main():
 
     audio_output = AudioOutput()
     backend = Backend()
-    frontend = Frontend(ui_model)
+    frontend = Frontend()
+    frontend.set_ui_model(ui_model)
 
     audio_thread = AudioThread()
     backend_thread = BackendThread()
