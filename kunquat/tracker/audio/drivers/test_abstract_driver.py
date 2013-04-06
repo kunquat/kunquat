@@ -64,4 +64,6 @@ class TestAbstractDriver():
         sleep(0.2)
         driver.close()
 
+    def test_get_id(self):
+        self._DriverClass.get_id()
 
