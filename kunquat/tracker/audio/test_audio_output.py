@@ -19,6 +19,7 @@ from threading import Thread
 from audio_output import AudioOutput
 from drivers.pulseaudio import Pulseaudio
 from drivers.pushaudio import Pushaudio
+from drivers.nullaudio import Nullaudio
 
 
 class BrokenDriver():
@@ -79,7 +80,7 @@ class TestAudioOutput(unittest.TestCase):
         self.assertEqual(selected, BrokenDriver)
 
     def test_actual_driver_selection(self):
-        driver_classes = [None, Pulseaudio, Pushaudio]
+        driver_classes = [Nullaudio, Pulseaudio, Pushaudio]
         q = Queue()
         class DummyFrontend(Thread):
             def select_driver_success(self, driver):
