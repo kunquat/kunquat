@@ -46,6 +46,9 @@ class FrontendThread(threading.Thread):
     def update_drivers(self, drivers):
         self._q.push('update_drivers', drivers)
 
+    def select_driver_success(self, driver_class):
+        self._q.push('select_driver_success', driver_class)
+
     # Threading interface
 
     def set_handler(self, frontend):
