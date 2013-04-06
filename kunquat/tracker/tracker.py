@@ -27,37 +27,48 @@ from kunquat.tracker.threads.frontendthread import FrontendThread
 from kunquat.tracker.audio.drivers.pulseaudio import Pulseaudio
 from kunquat.tracker.audio.drivers.pushaudio import Pushaudio
 
-
-def main():
+def create_frontend_thread():
     drivers = [Pulseaudio, Pushaudio]
     driver_manager = Drivers()
     driver_manager.set_drivers(drivers)
     ui_model = UiModel()
     ui_model.set_driver_manager(driver_manager)
-
-    audio_output = AudioOutput()
-    backend = Backend()
     frontend = Frontend()
     frontend.set_ui_model(ui_model)
-
-    audio_thread = AudioThread()
-    backend_thread = BackendThread()
     frontend_thread = FrontendThread()
-
-    audio_thread.set_handler(audio_output)
-    backend_thread.set_handler(backend)
     frontend_thread.set_handler(frontend)
-
     ui_launcher = QtLauncher()
     ui_launcher.set_ui_model(ui_model)
     frontend_thread.set_ui_launcher(ui_launcher)
+    return frontend_thread
 
+def create_backend_thread():
+    backend = Backend()
+    backend_thread = BackendThread()
+    backend_thread.set_handler(backend)
+    return backend_thread
+
+def create_audio_thread():
+    audio_output = AudioOutput()
+    audio_thread = AudioThread()
+    audio_thread.set_handler(audio_output)
+    return audio_thread
+
+def connect_threads(frontend_thread, backend_thread, audio_thread):
     audio_thread.set_backend(backend_thread)
     audio_thread.set_frontend(frontend_thread)
     backend_thread.set_frontend(frontend_thread)
     backend_thread.set_audio_output(audio_thread)
     frontend_thread.set_backend(backend_thread)
     frontend_thread.set_audio_output(audio_thread)
+
+def main():
+
+    audio_thread = create_audio_thread()
+    backend_thread = create_backend_thread()
+    frontend_thread = create_frontend_thread()
+
+    connect_threads(frontend_thread, backend_thread, audio_thread)
 
     audio_thread.start()
     backend_thread.start()
