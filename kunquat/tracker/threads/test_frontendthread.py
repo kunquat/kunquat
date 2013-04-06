@@ -58,10 +58,8 @@ class TestFrontendthread(TestAbstractThread, unittest.TestCase):
 class TestThreadedFrontend(TestFrontend):
 
     def setUp(self):
-        class DummyUiModel():
-            pass
-        ui_model_dummy = DummyUiModel()
-        handler = Frontend(ui_model_dummy)
+        TestFrontend.setUp(self)
+        handler = self._frontend
         self._frontend = FrontendThread()
         self._frontend.set_handler(handler)
         self._frontend.set_ui_launcher(DummyLauncher())
