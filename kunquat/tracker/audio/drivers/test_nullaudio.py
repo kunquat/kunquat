@@ -12,7 +12,6 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-import doctest
 import unittest
 
 import nullaudio
