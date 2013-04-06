@@ -16,6 +16,7 @@ import unittest
 import command
 
 from command import Command
+from Queue import Queue
 from threading import Thread
 
 
@@ -28,7 +29,7 @@ class TestCommand(unittest.TestCase):
 
     def test_valid_types(self):
         name = 'foo'
-        args = ['', None, Thread(), 2, long(2), ([0],[0])]
+        args = ['', None, Thread(), 2, long(2), ([0],[0]), Queue]
         command = Command(name, *args)
         self.assertEqual(command.name, name)
         for (received, expected) in zip(command.args, args):
