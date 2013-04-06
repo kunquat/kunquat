@@ -20,22 +20,73 @@ from audio import Audio
 from drivers.pulseaudio import Pulseaudio
 from drivers.pushaudio import Pushaudio
 
-driver_classes = [None, Pulseaudio, Pushaudio]
+
+class BrokenDriver():
+    def __init__(self):
+        raise Exception
+
+class WorkingDriver():
+
+    def __init__(self):
+        self._audio_source = None
+
+    def set_audio_source(self, audio_source):
+        self._audio_source = audio_source
+
+    def start(self):
+        pass
 
 class TestAudio(unittest.TestCase):
 
     def setUp(self):
         self._audio_output = Audio()
 
-    def test_driver_selection(self):
+    def test_select_driver_success(self):
         q = Queue()
         class DummyFrontend(Thread):
-            pass
+            def select_driver_success(self, driver):
+                q.put(driver)
         class DummyBackend(Thread):
             def __init__(self):
                 self._audio_output = None
-            def update_selected_driver(self, driver):
+            def set_audio_output(self, audio_output):
+                self._audio_output = audio_output
+            def generate_audio(self, nframes):
+                audio_data = ([],[])
+                if self._audio_output != None:
+                    self._audio_output.put_audio(audio_data)
+        dummy_backend = DummyBackend()
+        dummy_frontend = DummyFrontend()
+        self._audio_output.set_backend(dummy_backend)
+        self._audio_output.set_frontend(dummy_frontend)
+        self._audio_output.select_driver(WorkingDriver)
+        selected = q.get()
+        self.assertEqual(selected, WorkingDriver)
+
+    def test_select_driver_error(self):
+        q = Queue()
+        class DummyFrontend(Thread):
+            def select_driver_error(self, driver):
                 q.put(driver)
+        class DummyBackend(Thread):
+            pass
+        dummy_backend = DummyBackend()
+        dummy_frontend = DummyFrontend()
+        self._audio_output.set_backend(dummy_backend)
+        self._audio_output.set_frontend(dummy_frontend)
+        self._audio_output.select_driver(BrokenDriver)
+        selected = q.get()
+        self.assertEqual(selected, BrokenDriver)
+
+    def test_actual_driver_selection(self):
+        driver_classes = [None, Pulseaudio, Pushaudio]
+        q = Queue()
+        class DummyFrontend(Thread):
+            def select_driver_success(self, driver):
+                q.put(driver)
+        class DummyBackend(Thread):
+            def __init__(self):
+                self._audio_output = None
             def set_audio_output(self, audio_output):
                 self._audio_output = audio_output
             def generate_audio(self, nframes):
