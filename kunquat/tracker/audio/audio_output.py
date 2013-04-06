@@ -13,7 +13,7 @@
 #
 
 
-class Audio():
+class AudioOutput():
 
     def __init__(self):
         self._backend = None

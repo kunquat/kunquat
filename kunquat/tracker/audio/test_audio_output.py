@@ -16,7 +16,7 @@ import unittest
 from Queue import Queue
 from threading import Thread
 
-from audio import Audio
+from audio_output import AudioOutput
 from drivers.pulseaudio import Pulseaudio
 from drivers.pushaudio import Pushaudio
 
@@ -36,10 +36,10 @@ class WorkingDriver():
     def start(self):
         pass
 
-class TestAudio(unittest.TestCase):
+class TestAudioOutput(unittest.TestCase):
 
     def setUp(self):
-        self._audio_output = Audio()
+        self._audio_output = AudioOutput()
 
     def test_select_driver_success(self):
         q = Queue()

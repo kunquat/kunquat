@@ -16,7 +16,7 @@ import time
 
 from kunquat.tracker.frontend.drivers import Drivers
 from kunquat.tracker.frontend.uimodel import UiModel
-from kunquat.tracker.audio.audio import Audio
+from kunquat.tracker.audio.audio_output import AudioOutput
 from kunquat.tracker.backend.backend import Backend
 from kunquat.tracker.frontend.frontend import Frontend
 from kunquat.tracker.qt.launcher import QtLauncher
@@ -35,7 +35,7 @@ def main():
     ui_model = UiModel()
     ui_model.set_driver_manager(driver_manager)
 
-    audio_output = Audio()
+    audio_output = AudioOutput()
     backend = Backend()
     frontend = Frontend(ui_model)
 
