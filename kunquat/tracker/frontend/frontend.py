@@ -21,6 +21,8 @@ class Frontend():
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
 
+    # Frontend Interface
+
     def set_backend(self, backend):
         pass
 
@@ -30,8 +32,6 @@ class Frontend():
     def update_drivers(self, update):
         drivers = self._ui_model.get_drivers()
         drivers.update_drivers(update)
-
-    # Audio Output Interface
 
     def select_driver_success(self, driver_class):
         driver_manager = self._ui_model.get_driver_manager()
