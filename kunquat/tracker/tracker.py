@@ -12,7 +12,9 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+import os
 import time
+from signal import SIGHUP, SIGKILL
 
 from kunquat.tracker.frontend.drivers import Drivers
 from kunquat.tracker.frontend.uimodel import UiModel
@@ -89,5 +91,8 @@ def main():
     backend_thread.join()
     audio_thread.join()
     time.sleep(0.1)
-
+    pgrp = os.getpgrp()
+    os.killpg(pgrp, SIGHUP)
+    time.sleep(1)
+    os.killpg(pgrp, SIGKILL)
 
