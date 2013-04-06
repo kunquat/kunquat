@@ -12,18 +12,6 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from drivers.pulseaudio import Pulseaudio
-from drivers.pushaudio import Pushaudio
-
-D_NONE = 'none'
-D_PULSE = 'pulse'
-D_PUSH = 'push'
-
-drivers = {
-  D_NONE: {'name': 'no driver'},
-  D_PULSE: {'name': 'PulseAudio asynchronic pull driver'},
-  D_PUSH: {'name': 'PulseAudio synchronic push driver'}
-}
 
 class Audio():
 
@@ -36,24 +24,17 @@ class Audio():
         if self._driver != None:
             self._driver.set_audio_source(self._backend)
 
-    def request_update(self):
-        self._frontend.update_drivers(drivers)
-
-    def select_driver(self, name):
+    def select_driver(self, DriverClass):
         if self._driver:
             self._driver.close()
-        if name == D_NONE:
+        if DriverClass == None:
             self._driver = None
-        elif name == D_PULSE:
-            self._driver = Pulseaudio()
-        elif name == D_PUSH:
-            self._driver = Pushaudio()
         else:
-            assert False
+            self._driver = DriverClass()
         if self._driver:
             self._refresh_driver_audio_source()
             self._driver.start()
-        self._backend.update_selected_driver(name)
+        self._backend.update_selected_driver(DriverClass)
 
     def set_backend(self, backend):
         self._backend = backend
