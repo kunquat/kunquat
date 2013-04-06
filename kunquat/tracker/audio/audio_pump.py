@@ -25,11 +25,6 @@ class AudioPump(threading.Thread):
         self._buffer = Queue()
         self._write_method = None
 
-    def __del__(self):
-        if self.is_alive():
-            self.halt()
-            self.join()
-
     def set_audio_source(self, audio_source):
         self._audio_source = audio_source
 
