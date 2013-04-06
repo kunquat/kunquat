@@ -53,7 +53,7 @@ START_TEST(Out_of_memory_at_handle_creation_fails_cleanly)
                 "kqt_new_Handle returned a handle with fake out of memory");
 
         const char* error_msg = kqt_Handle_get_error(NULL);
-        fail_if(error_msg == NULL,
+        fail_if(strlen(error_msg) == 0,
                 "Memory allocation failure did not give an error message");
         fail_if(strstr(error_msg, "\"MemoryError\"") == NULL,
                 "Error message on memory allocation failure was not a MemoryError");
@@ -101,6 +101,5 @@ int main(void)
     srunner_free(sr);
     exit(fail_count > 0);
 }
-
 
 
