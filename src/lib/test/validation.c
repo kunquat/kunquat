@@ -126,12 +126,31 @@ START_TEST(Validation_rejects_album_without_tracks)
 END_TEST
 
 
+typedef enum
+{
+    TEST_SONG_FIRST,
+    TEST_SONG_SECOND,
+    TEST_SONG_PENULTIMATE,
+    TEST_SONG_LAST,
+    TEST_SONG_COUNT
+} Test_song;
+
+
+static const int test_songs[] =
+{
+    [TEST_SONG_FIRST]       = 0,
+    [TEST_SONG_SECOND]      = 1,
+    [TEST_SONG_PENULTIMATE] = KQT_SONGS_MAX - 2,
+    [TEST_SONG_LAST]        = KQT_SONGS_MAX - 1,
+};
+
+
 START_TEST(Validation_rejects_orphan_songs)
 {
     set_silent_composition();
     validate();
 
-    const int orphan_index = _i;
+    const int orphan_index = test_songs[_i];
 
     if (orphan_index == 0)
     {
@@ -159,6 +178,27 @@ START_TEST(Validation_rejects_orphan_songs)
 END_TEST
 
 
+START_TEST(Validation_rejects_nonexistent_songs_in_album)
+{
+    set_silent_composition();
+    validate();
+
+    set_data("song_00/p_manifest.json", "");
+
+    const int missing_index = test_songs[_i];
+
+    char track_list[16] = "";
+    snprintf(track_list, 16, "[%d]", missing_index);
+    set_data("album/p_tracks.json", track_list);
+
+    kqt_Handle_validate(handle);
+
+    check_validation_error("song",
+            "Handle accepts an album with nonexistent song %d", missing_index);
+}
+END_TEST
+
+
 Suite* Validation_suite(void)
 {
     Suite* s = suite_create("Validation");
@@ -181,7 +221,9 @@ Suite* Validation_suite(void)
 
     tcase_add_test(tc_reject, Validation_rejects_album_without_tracks);
     tcase_add_loop_test(tc_reject, Validation_rejects_orphan_songs,
-            0, KQT_SONGS_MAX);
+            0, TEST_SONG_COUNT);
+    tcase_add_loop_test(tc_reject, Validation_rejects_nonexistent_songs_in_album,
+            0, TEST_SONG_COUNT);
 
     return s;
 }

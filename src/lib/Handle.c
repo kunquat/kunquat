@@ -167,6 +167,21 @@ int kqt_Handle_validate(kqt_Handle* handle)
                 "Song %d is not included in the album", i);
     }
 
+    // Check for nonexistent songs in the track list
+    if (handle->song->album_is_existent)
+    {
+        const Track_list* tl = handle->song->track_list;
+        assert(tl != NULL);
+
+        for (size_t i = 0; i < Track_list_get_len(tl); ++i)
+        {
+            set_invalid_if(
+                    !Subsong_table_get_existent(handle->song->subsongs,
+                        Track_list_get_song_index(tl, i)),
+                    "Album includes nonexistent song %d", i);
+        }
+    }
+
     handle->data_is_validated = true;
     return 1;
 }
