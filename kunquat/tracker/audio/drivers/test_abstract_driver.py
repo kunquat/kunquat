@@ -27,6 +27,17 @@ class TestAbstractDriver():
     def setUp(self):
         self._self._DriverClass = None
 
+    def test_threadleak_on_close(self):
+        start = threading.active_count()
+        driver = self._DriverClass()
+        driver.set_audio_source(DummyAudioSource())
+        driver.start()
+        sleep(0.2)
+        driver.close()
+        sleep(0.2)
+        end = threading.active_count()
+        self.assertEqual(start, end)
+
     def test_emptypush(self):
         driver = self._DriverClass()
         driver.put_audio(([],[]))
