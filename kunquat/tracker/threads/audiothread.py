@@ -12,7 +12,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-import json
+import time
 import threading
 
 from command import Command
@@ -54,10 +54,16 @@ class AudioThread(threading.Thread):
     def halt(self):
         self._q.push(HALT)
 
+    def _close_devices(self):
+        if self._audio:
+            self._audio.select_driver(None)
+            time.sleep(0.1)
+
     def run(self):
         command = self._q.get()
         while command.name != HALT:
             getattr(self._audio, command.name)(*command.args)
             command = self._q.get()
+        self._close_devices()
 
 

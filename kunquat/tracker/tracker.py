@@ -84,8 +84,6 @@ def main():
     except:
         pass
 
-    audio_thread.select_driver(None)
-    time.sleep(0.1)
     frontend_thread.halt()
     backend_thread.halt()
     audio_thread.halt()
