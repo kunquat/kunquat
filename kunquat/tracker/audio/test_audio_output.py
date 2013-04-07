@@ -11,8 +11,10 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+import time
 import random
 import unittest
+import threading
 from Queue import Queue
 from threading import Thread
 
@@ -44,9 +46,6 @@ class TestAudioOutput(unittest.TestCase):
 
     def setUp(self):
         self._audio_output = AudioOutput()
-
-    def tearDown(self):
-        self._audio_output.select_driver(None)
 
     def test_select_driver_success(self):
         q = Queue()
@@ -88,6 +87,7 @@ class TestAudioOutput(unittest.TestCase):
         self.assertEqual(selected, BrokenDriver)
 
     def test_actual_driver_selection(self):
+        start = threading.active_count()
         driver_classes = [Nullaudio, Pulseaudio, Pushaudio]
         q = Queue()
         class DummyFrontend(Thread):
@@ -113,6 +113,10 @@ class TestAudioOutput(unittest.TestCase):
             self._audio_output.select_driver(driver)
             selected = q.get()
             self.assertEqual(selected, driver)
+        self._audio_output.select_driver(None)
+        time.sleep(0.2)
+        end = threading.active_count()
+        self.assertEqual(start, end)
 
 
 if __name__ == '__main__':
