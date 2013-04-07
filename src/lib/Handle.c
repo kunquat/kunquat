@@ -143,12 +143,13 @@ int kqt_Handle_validate(kqt_Handle* handle)
                 "Album has no tracks");
     }
 
-    // Check for orphan songs
+    // Check songs
     for (int i = 0; i < KQT_SONGS_MAX; ++i)
     {
         if (!Subsong_table_get_existent(handle->song->subsongs, i))
             continue;
 
+        // Check for orphans
         const Track_list* tl = handle->song->track_list;
         set_invalid_if(
                 !handle->song->album_is_existent || tl == NULL,
@@ -164,6 +165,12 @@ int kqt_Handle_validate(kqt_Handle* handle)
             }
         }
         set_invalid_if(!found, "Song %d is not included in the album", i);
+
+        // Check for empty songs
+        const Order_list* ol = handle->song->order_lists[i];
+        set_invalid_if(
+                ol == NULL || Order_list_get_len(ol) == 0,
+                "Song %d does not contain systems", i);
     }
 
     // Check for nonexistent songs in the track list

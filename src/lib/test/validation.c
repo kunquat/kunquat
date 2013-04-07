@@ -126,6 +126,21 @@ START_TEST(Validation_rejects_album_without_tracks)
 END_TEST
 
 
+START_TEST(Validation_rejects_empty_songs)
+{
+    set_silent_composition();
+    validate();
+
+    set_data("song_00/p_order_list.json", "[]");
+    set_data("pat_000/p_manifest.json", "");
+
+    kqt_Handle_validate(handle);
+
+    check_validation_error("song", "Handle accepts a song without systems");
+}
+END_TEST
+
+
 typedef enum
 {
     TEST_SONG_FIRST,
@@ -359,6 +374,7 @@ Suite* Validation_suite(void)
     tcase_add_test(tc_refuse, Handle_refuses_to_render_unvalidated_module);
 
     tcase_add_test(tc_reject, Validation_rejects_album_without_tracks);
+    tcase_add_test(tc_reject, Validation_rejects_empty_songs);
     tcase_add_loop_test(tc_reject, Validation_rejects_orphan_songs,
             0, TEST_SONG_COUNT);
     tcase_add_loop_test(tc_reject, Validation_rejects_nonexistent_songs_in_album,
