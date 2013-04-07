@@ -150,7 +150,8 @@ int kqt_Handle_validate(kqt_Handle* handle)
             continue;
 
         const Track_list* tl = handle->song->track_list;
-        set_invalid_if(!handle->song->album_is_existent || tl == NULL,
+        set_invalid_if(
+                !handle->song->album_is_existent || tl == NULL,
                 "Module contains song %d but no album", i);
 
         bool found = false;
@@ -162,9 +163,7 @@ int kqt_Handle_validate(kqt_Handle* handle)
                 break;
             }
         }
-        set_invalid_if(
-                !found,
-                "Song %d is not included in the album", i);
+        set_invalid_if(!found, "Song %d is not included in the album", i);
     }
 
     // Check for nonexistent songs in the track list
@@ -193,18 +192,57 @@ int kqt_Handle_validate(kqt_Handle* handle)
                 pat == NULL,
                 "Pattern %d exists but contains no data", i);
 
-        bool inst_found = false;
+        bool pattern_has_instance = false;
         for (int k = 0; k < KQT_PAT_INSTANCES_MAX; ++k)
         {
-            // Check that an instance exists
             if (Pattern_get_inst_existent(pat, k))
             {
-                inst_found = true;
+                // Mark found instance
+                pattern_has_instance = true;
+
+                // Check that the instance is used in the album
+                set_invalid_if(
+                        !handle->song->album_is_existent,
+                        "Pattern instance [%d, %d] exists but no album"
+                        " is present", i, k);
+
+                bool instance_found = false;
+
+                const Track_list* tl = handle->song->track_list;
+                assert(tl != NULL);
+
+                for (size_t track = 0; track < Track_list_get_len(tl); ++track)
+                {
+                    const int song_index = Track_list_get_song_index(tl, track);
+
+                    if (!Subsong_table_get_existent(
+                                handle->song->subsongs,
+                                song_index))
+                        continue;
+
+                    const Order_list* ol = handle->song->order_lists[song_index];
+                    assert(ol != NULL);
+
+                    for (size_t system = 0; system < Order_list_get_len(ol); ++system)
+                    {
+                        const Pat_inst_ref* piref = Order_list_get_pat_inst_ref(
+                                ol, system);
+                        if (piref->pat == i && piref->inst == k)
+                        {
+                            instance_found = true;
+                        }
+                    }
+                }
+
+                set_invalid_if(
+                        !instance_found,
+                        "Pattern instance [%d, %d] exists but is not used",
+                        i, k);
             }
         }
 
         set_invalid_if(
-                !inst_found,
+                !pattern_has_instance,
                 "Pattern %d exists but has no instances", i);
     }
 

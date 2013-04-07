@@ -162,6 +162,24 @@ static const int test_pats[] =
 };
 
 
+typedef enum
+{
+    TEST_PAT_INST_FIRST,
+    TEST_PAT_INST_SECOND,
+    TEST_PAT_INST_PENULTIMATE,
+    TEST_PAT_INST_LAST,
+    TEST_PAT_INST_COUNT
+} Test_pat_inst;
+
+static const int test_pat_insts[] =
+{
+    [TEST_PAT_INST_FIRST]       = 0,
+    [TEST_PAT_INST_SECOND]      = 1,
+    [TEST_PAT_INST_PENULTIMATE] = KQT_PAT_INSTANCES_MAX - 2,
+    [TEST_PAT_INST_LAST]        = KQT_PAT_INSTANCES_MAX - 1,
+};
+
+
 START_TEST(Validation_rejects_orphan_songs)
 {
     set_silent_composition();
@@ -225,7 +243,7 @@ START_TEST(Validation_rejects_patterns_without_instances)
 
     if (invalid_index == 0)
     {
-        // Set another valid pattern instance
+        // Set another valid pattern
         set_data("song_00/p_order_list.json", "[ [1, 0] ]");
         set_data("pat_001/p_manifest.json", "{}");
         set_data("pat_001/p_pattern.json", "{ \"length\": [16, 0] }");
@@ -252,6 +270,35 @@ START_TEST(Validation_rejects_patterns_without_instances)
 
     check_validation_error("instance",
             "Handle accepts pattern %d without instance", invalid_index);
+}
+END_TEST
+
+
+START_TEST(Validation_rejects_orphan_pattern_instances)
+{
+    set_silent_composition();
+    validate();
+
+    const int orphan_index = test_pat_insts[_i];
+
+    if (orphan_index == 0)
+    {
+        // Set another valid pattern instance
+        set_data("song_00/p_order_list.json", "[ [0, 1] ]");
+        set_data("pat_000/instance_001/p_manifest.json", "{}");
+    }
+
+    // Set a new pattern instance
+    char orphan_manifest[64] = "";
+    snprintf(orphan_manifest, 64, "pat_000/instance_%03x/p_manifest.json",
+            orphan_index);
+    set_data(orphan_manifest, "{}");
+
+    kqt_Handle_validate(handle);
+
+    check_validation_error("instance",
+            "Handle accepts an orphan pattern instance at index %d",
+            orphan_index);
 }
 END_TEST
 
@@ -283,6 +330,8 @@ Suite* Validation_suite(void)
             0, TEST_SONG_COUNT);
     tcase_add_loop_test(tc_reject, Validation_rejects_patterns_without_instances,
             0, TEST_PAT_COUNT);
+    tcase_add_loop_test(tc_reject, Validation_rejects_orphan_pattern_instances,
+            0, TEST_PAT_INST_COUNT);
 
     return s;
 }
