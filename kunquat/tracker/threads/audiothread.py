@@ -17,7 +17,7 @@ import threading
 
 from command import Command
 from commandqueue import CommandQueue
-from kunquat.tracker.audio.audio import Audio
+from kunquat.tracker.audio.audio_output import AudioOutput
 
 HALT = None
 

@@ -15,7 +15,7 @@ import unittest
 import threading
 
 from kunquat.tracker.audio.audio_output import AudioOutput
-from kunquat.tracker.audio.test_audio import TestAudio
+from kunquat.tracker.audio.test_audio_output import TestAudioOutput
 from audiothread import AudioThread
 from test_abstractthread import TestAbstractThread
 
@@ -34,7 +34,7 @@ class TestAudiothread(TestAbstractThread, unittest.TestCase):
         self._thread = AudioThread()
 
 
-class TestThreadedAudio(TestAudio):
+class TestThreadedAudio(TestAudioOutput):
 
     def setUp(self):
         handler = AudioOutput()
