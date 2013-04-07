@@ -318,6 +318,21 @@ START_TEST(Validation_rejects_orphan_pattern_instances)
 END_TEST
 
 
+START_TEST(Validation_rejects_nonexistent_pattern_instances_in_songs)
+{
+    set_silent_composition();
+    validate();
+
+    set_data("song_00/p_order_list.json", "[ [0, 0], [0, 1] ]");
+
+    kqt_Handle_validate(handle);
+
+    check_validation_error("instance",
+            "Handle accepts an album with nonexistent pattern instance");
+}
+END_TEST
+
+
 // TODO: enable after fixing kqt_Handle_set_data interface
 #if 0
 START_TEST(Validation_rejects_reused_pattern_instances_in_song)
@@ -383,6 +398,8 @@ Suite* Validation_suite(void)
             0, TEST_PAT_COUNT);
     tcase_add_loop_test(tc_reject, Validation_rejects_orphan_pattern_instances,
             0, TEST_PAT_INST_COUNT);
+    tcase_add_test(tc_reject,
+            Validation_rejects_nonexistent_pattern_instances_in_songs);
     //tcase_add_test(tc_reject,
     //        Validation_rejects_reused_pattern_instances_in_song);
     tcase_add_test(tc_reject,

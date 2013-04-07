@@ -171,6 +171,20 @@ int kqt_Handle_validate(kqt_Handle* handle)
         set_invalid_if(
                 ol == NULL || Order_list_get_len(ol) == 0,
                 "Song %d does not contain systems", i);
+
+        // Check for missing pattern instances
+        for (size_t system = 0; system < Order_list_get_len(ol); ++system)
+        {
+            const Pat_inst_ref* piref = Order_list_get_pat_inst_ref(ol, system);
+            Pattern* pat = Pat_table_get(handle->song->pats, piref->pat);
+
+            set_invalid_if(
+                    !Pat_table_get_existent(handle->song->pats, piref->pat) ||
+                    pat == NULL ||
+                    !Pattern_get_inst_existent(pat, piref->inst),
+                    "Missing pattern instance [%" PRId16 ", %" PRId16 "]",
+                    piref->pat, piref->inst);
+        }
     }
 
     // Check for nonexistent songs in the track list
