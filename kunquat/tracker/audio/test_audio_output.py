@@ -37,10 +37,16 @@ class WorkingDriver():
     def start(self):
         pass
 
+    def close(self):
+        pass
+
 class TestAudioOutput(unittest.TestCase):
 
     def setUp(self):
         self._audio_output = AudioOutput()
+
+    def tearDown(self):
+        self._audio_output.select_driver(None)
 
     def test_select_driver_success(self):
         q = Queue()
@@ -67,8 +73,10 @@ class TestAudioOutput(unittest.TestCase):
     def test_select_driver_error(self):
         q = Queue()
         class DummyFrontend(Thread):
-            def select_driver_error(self, driver):
-                q.put(driver)
+            def select_driver_error(self, driver_class):
+                q.put(driver_class)
+            def select_driver_success(self, driver_class):
+                pass
         class DummyBackend(Thread):
             pass
         dummy_backend = DummyBackend()
