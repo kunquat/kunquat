@@ -182,6 +182,32 @@ int kqt_Handle_validate(kqt_Handle* handle)
         }
     }
 
+    // Check existing patterns
+    for (int i = 0; i < KQT_PATTERNS_MAX; ++i)
+    {
+        if (!Pat_table_get_existent(handle->song->pats, i))
+            continue;
+
+        Pattern* pat = Pat_table_get(handle->song->pats, i);
+        set_invalid_if(
+                pat == NULL,
+                "Pattern %d exists but contains no data", i);
+
+        bool inst_found = false;
+        for (int k = 0; k < KQT_PAT_INSTANCES_MAX; ++k)
+        {
+            // Check that an instance exists
+            if (Pattern_get_inst_existent(pat, k))
+            {
+                inst_found = true;
+            }
+        }
+
+        set_invalid_if(
+                !inst_found,
+                "Pattern %d exists but has no instances", i);
+    }
+
     handle->data_is_validated = true;
     return 1;
 }
