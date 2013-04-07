@@ -229,6 +229,10 @@ int kqt_Handle_validate(kqt_Handle* handle)
                                 ol, system);
                         if (piref->pat == i && piref->inst == k)
                         {
+                            set_invalid_if(
+                                    instance_found,
+                                    "Duplicate occurrence of pattern instance"
+                                    " [%d, %d]", i, k);
                             instance_found = true;
                         }
                     }
