@@ -84,6 +84,8 @@ def main():
     except:
         pass
 
+    audio_thread.select_driver(None)
+    time.sleep(0.1)
     frontend_thread.halt()
     backend_thread.halt()
     audio_thread.halt()
@@ -92,7 +94,7 @@ def main():
     audio_thread.join()
     time.sleep(0.1)
     pgrp = os.getpgrp()
-    os.killpg(pgrp, SIGHUP)
-    time.sleep(1)
-    os.killpg(pgrp, SIGKILL)
+    #os.killpg(pgrp, SIGHUP)
+    #time.sleep(1)
+    #os.killpg(pgrp, SIGKILL)
 
