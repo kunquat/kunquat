@@ -26,6 +26,7 @@
 #include <kunquat/limits.h>
 #include <memory.h>
 #include <Song.h>
+#include <string_common.h>
 #include <Playdata.h>
 #include <Voice_pool.h>
 #include <xassert.h>
@@ -60,8 +61,9 @@ bool kqt_Handle_init(kqt_Handle* handle, long buffer_size)
     handle->get_data = NULL;
     handle->get_data_length = NULL;
     handle->set_data = NULL;
-    handle->error[0] = handle->error[KQT_HANDLE_ERROR_LENGTH - 1] = '\0';
-    handle->position[0] = handle->position[POSITION_LENGTH - 1] = '\0';
+    memset(handle->error, '\0', KQT_HANDLE_ERROR_LENGTH);
+    memset(handle->validation_error, '\0', KQT_HANDLE_ERROR_LENGTH);
+    memset(handle->position, '\0', POSITION_LENGTH);
 
 //    int buffer_count = SONG_DEFAULT_BUF_COUNT;
 //    int voice_count = 256;
@@ -130,6 +132,15 @@ int kqt_Handle_validate(kqt_Handle* handle)
 {
     check_handle(handle, 0);
     check_data_is_valid(handle, 0);
+
+    // Check error from set_data
+    if (!string_eq(handle->validation_error, ""))
+    {
+        strcpy(handle->error, handle->validation_error);
+        strcpy(null_error, handle->validation_error);
+        handle->data_is_valid = false;
+        return 0;
+    }
 
     // Check album
     if (handle->song->album_is_existent)
@@ -280,6 +291,7 @@ int kqt_Handle_validate(kqt_Handle* handle)
 
 void kqt_Handle_set_error_(kqt_Handle* handle,
                            Error_type type,
+                           Error_delay_type delay_type,
                            const char* file,
                            int line,
                            const char* func,
@@ -287,6 +299,7 @@ void kqt_Handle_set_error_(kqt_Handle* handle,
 {
     assert(type > ERROR_NONE);
     assert(type < ERROR_LAST);
+    assert(delay_type == ERROR_IMMEDIATE || delay_type == ERROR_VALIDATION);
     assert(file != NULL);
     assert(line >= 0);
     assert(func != NULL);
@@ -360,11 +373,19 @@ void kqt_Handle_set_error_(kqt_Handle* handle,
     strcat(err_str, "\" }");
     err_str[KQT_HANDLE_ERROR_LENGTH - 1] = '\0';
 
-    strcpy(null_error, err_str);
+    if (delay_type == ERROR_IMMEDIATE)
+        strcpy(null_error, err_str);
+
     if (handle != NULL)
     {
         assert(handle_is_valid(handle));
-        strcpy(handle->error, err_str);
+
+        if (delay_type == ERROR_IMMEDIATE)
+            strcpy(handle->error, err_str);
+        else if (delay_type == ERROR_VALIDATION)
+            strcpy(handle->validation_error, err_str);
+        else
+            assert(false);
     }
     return;
 }
@@ -422,14 +443,12 @@ int kqt_Handle_set_data(kqt_Handle* handle,
     check_handle(handle, 0);
     check_data_is_valid(handle, 0);
     check_key(handle, key, 0);
-#if 0
-    if (handle->mode == KQT_READ)
-    {
-        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
-                "Cannot set data on a read-only Kunquat Handle.");
-        return 0;
-    }
-#endif
+
+    // Short-circuit if we have already got invalid data
+    // TODO: Remove this if we decide to collect more error info
+    if (!string_eq(handle->validation_error, ""))
+        return 1;
+
     assert(handle->set_data != NULL);
     return handle->set_data(handle, key, data, length);
 }

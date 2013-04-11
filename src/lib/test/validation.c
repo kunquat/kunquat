@@ -333,8 +333,6 @@ START_TEST(Validation_rejects_nonexistent_pattern_instances_in_songs)
 END_TEST
 
 
-// TODO: enable after fixing kqt_Handle_set_data interface
-#if 0
 START_TEST(Validation_rejects_reused_pattern_instances_in_song)
 {
     set_silent_composition();
@@ -348,7 +346,6 @@ START_TEST(Validation_rejects_reused_pattern_instances_in_song)
             "Handle accepts reused pattern instances in a song");
 }
 END_TEST
-#endif
 
 
 START_TEST(Validation_rejects_shared_pattern_instances_between_songs)
@@ -400,8 +397,8 @@ Suite* Validation_suite(void)
             0, TEST_PAT_INST_COUNT);
     tcase_add_test(tc_reject,
             Validation_rejects_nonexistent_pattern_instances_in_songs);
-    //tcase_add_test(tc_reject,
-    //        Validation_rejects_reused_pattern_instances_in_song);
+    tcase_add_test(tc_reject,
+            Validation_rejects_reused_pattern_instances_in_song);
     tcase_add_test(tc_reject,
             Validation_rejects_shared_pattern_instances_between_songs);
 

@@ -128,7 +128,7 @@ static bool key_is_for_text(const char* key);
 
 
 #define set_parse_error(handle, state) \
-    (kqt_Handle_set_error((handle), ERROR_FORMAT, "Parse error in" \
+    (kqt_Handle_set_validation_error((handle), ERROR_FORMAT, "Parse error in" \
             " %s:%d: %s", (state)->path, (state)->row, (state)->message))
 
 
