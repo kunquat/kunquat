@@ -299,10 +299,6 @@ class Kunquat(BaseHandle):
 
         Exceptions:
         KunquatArgumentError -- The key is not valid.
-        KunquatFormatError   -- The data is not valid.  Only the data
-                                that may audibly affect mixing is
-                                validated.
-        KunquatResourceError -- File system access failed.
 
         """
         if key[key.index('.'):].startswith('.json'):

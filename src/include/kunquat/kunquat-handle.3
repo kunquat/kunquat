@@ -1,4 +1,4 @@
-.TH kunquat\-handle 3 "2012\-08\-20" "" "Kunquat"
+.TH kunquat\-handle 3 "2013\-04\-11" "" "Kunquat"
 
 .SH NAME
 
@@ -11,6 +11,8 @@ Kunquat Handle interface
 .BI "kqt_Handle* kqt_new_Handle(void);
 
 .BI "int kqt_Handle_set_data(kqt_Handle* " handle ", char* " key ", void* " data ", long " length );
+
+.BI "int kqt_Handle_validate(kqt_Handle* " handle );
 
 .BI "char* kqt_Handle_get_error(kqt_Handle* " handle );
 .br
@@ -59,9 +61,14 @@ ins_01/p_instrument.json
 Sets data in \fIhandle\fR associated with \fIkey\fR. The \fIlength\fR argument
 specifies the number of bytes in \fIdata\fR and must not exceed the real
 length of \fIdata\fR. If \fIlength\fR is 0, the data associated with \fIkey\fR
-is removed. If \fIkey\fR affects the way the music is mixed, \fIdata\fR is
-validated before setting. Otherwise, no checking is performed -- this is done
-to allow future extensions. This function returns 1 on success, 0 on failure.
+is removed. This function returns 1 on success, 0 on failure.
+
+.IP "\fBint kqt_Handle_validate(kqt_Handle*\fR \fIhandle\fR\fB);\fR"
+Validates data in \fIhandle\fR. This function needs to be called after one or
+more successful calls of \fBkqt_Handle_set_data\fR before \fIhandle\fR can be
+fully utilised again. This function returns 1 on success, 0 on failure. If the
+validation fails, \fIhandle\fR can no longer be used and should be deallocated
+by calling \fBkqt_del_Handle(\fR\fIhandle\fR\fB)\fR.
 
 .SH ERRORS
 
@@ -80,7 +87,7 @@ composition data, the data may be corrupted.
 
 .IP \fBResourceError\fR
 The Kunquat library could not get service from an external resource such as
-another library or the file system.
+another library.
 
 .PP
 Error messages are JSON object strings that contain at least two keys: "type"

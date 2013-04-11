@@ -44,6 +44,13 @@ typedef enum
 } Error_type;
 
 
+typedef enum
+{
+    ERROR_IMMEDIATE,
+    ERROR_VALIDATION,
+} Error_delay_type;
+
+
 struct kqt_Handle
 {
     bool data_is_valid;
@@ -55,6 +62,7 @@ struct kqt_Handle
     int (*set_data)(kqt_Handle* handle, const char* key, void* data, long length);
     void (*destroy)(struct kqt_Handle* handle);
     char error[KQT_HANDLE_ERROR_LENGTH];
+    char validation_error[KQT_HANDLE_ERROR_LENGTH];
     char position[POSITION_LENGTH];
 };
 
@@ -74,7 +82,7 @@ bool kqt_Handle_init(kqt_Handle* handle, long buffer_size);
 /**
  * Sets an error message for a Kunquat Handle.
  *
- * The caller should always use the macro version.
+ * The caller should always use one of the macro versions.
  *
  * \param handle    The Kunquat Handle, or \c NULL if not applicable.
  * \param type      The error type -- must be > \c ERROR_NONE and
@@ -84,10 +92,16 @@ bool kqt_Handle_init(kqt_Handle* handle, long buffer_size);
  *                  printf family of functions.
  */
 #define kqt_Handle_set_error(handle, type, ...) \
-    (kqt_Handle_set_error_((handle), (type), \
+    (kqt_Handle_set_error_((handle), (type), ERROR_IMMEDIATE, \
                            __FILE__, __LINE__, __func__, __VA_ARGS__))
+
+#define kqt_Handle_set_validation_error(handle, type, ...) \
+    (kqt_Handle_set_error_((handle), (type), ERROR_VALIDATION, \
+                           __FILE__, __LINE__, __func__, __VA_ARGS__))
+
 void kqt_Handle_set_error_(kqt_Handle* handle,
                            Error_type type,
+                           Error_delay_type delay_type,
                            const char* file,
                            int line,
                            const char* func,
