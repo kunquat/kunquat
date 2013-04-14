@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -23,7 +23,6 @@
 #include <Filter.h>
 #include <pitch_t.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 Generator* new_Generator(char* str,

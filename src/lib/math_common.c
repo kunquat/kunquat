@@ -47,7 +47,7 @@ int64_t ceil_p2(int64_t x)
 }
 
 
-int64_t powi(int64_t base, int64_t exp)
+int64_t ipowi(int64_t base, int64_t exp)
 {
     assert(exp >= 0);
     if (exp == 0)
@@ -56,9 +56,9 @@ int64_t powi(int64_t base, int64_t exp)
     }
     else if (exp % 2 == 0)
     {
-        return powi(base * base, exp / 2);
+        return ipowi(base * base, exp / 2);
     }
-    return base * powi(base * base, exp / 2);
+    return base * ipowi(base * base, exp / 2);
 }
 
 

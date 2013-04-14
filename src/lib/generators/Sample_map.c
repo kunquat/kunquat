@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -15,10 +15,10 @@
 #include <stdlib.h>
 #include <math.h>
 
+#include <memory.h>
 #include <pitch_t.h>
 #include <Sample_map.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 struct Sample_map
@@ -71,7 +71,7 @@ static int Random_list_cmp(const Random_list* list1, const Random_list* list2)
 
 static void del_Random_list(Random_list* list)
 {
-    xfree(list);
+    memory_free(list);
     return;
 }
 
@@ -82,7 +82,7 @@ Sample_map* new_Sample_map_from_string(char* str, Read_state* state)
     {
         return NULL;
     }
-    Sample_map* map = xalloc(Sample_map);
+    Sample_map* map = memory_alloc_item(Sample_map);
     if (map == NULL)
     {
         return NULL;
@@ -122,7 +122,7 @@ Sample_map* new_Sample_map_from_string(char* str, Read_state* state)
     bool expect_list = true;
     while (expect_list)
     {
-        Random_list* list = xalloc(Random_list);
+        Random_list* list = memory_alloc_item(Random_list);
         if (list == NULL)
         {
             del_Sample_map(map);
@@ -141,21 +141,21 @@ Sample_map* new_Sample_map_from_string(char* str, Read_state* state)
         str = read_const_char(str, '[', state);
         if (state->error)
         {
-            xfree(list);
+            memory_free(list);
             del_Sample_map(map);
             return NULL;
         }
         if (!isfinite(cents))
         {
             Read_state_set_error(state, "Mapping cents is not finite");
-            xfree(list);
+            memory_free(list);
             del_Sample_map(map);
             return NULL;
         }
         if (!isfinite(force))
         {
             Read_state_set_error(state, "Mapping force is not finite");
-            xfree(list);
+            memory_free(list);
             del_Sample_map(map);
             return NULL;
         }
@@ -166,7 +166,7 @@ Sample_map* new_Sample_map_from_string(char* str, Read_state* state)
         if (!AAtree_ins(map->map, list))
         {
             Read_state_set_error(state, "Couldn't allocate memory for sample mapping");
-            xfree(list);
+            memory_free(list);
             del_Sample_map(map);
             return NULL;
         }
@@ -218,10 +218,10 @@ bool Sample_map_add_entry(Sample_map* map,
     Random_list* list = AAtree_get_exact(map->map, key);
     if (list == NULL)
     {
-        Random_list* list = xalloc(Random_list);
+        Random_list* list = memory_alloc_item(Random_list);
         if (list == NULL || !AAtree_ins(map->map, list))
         {
-            xfree(list);
+            memory_free(list);
             return false;
         }
         list->freq = exp2(cents / 1200) * 440;
@@ -332,7 +332,7 @@ void del_Sample_map(Sample_map* map)
     }
     del_AAiter(map->iter);
     del_AAtree(map->map);
-    xfree(map);
+    memory_free(map);
     return;
 }
 

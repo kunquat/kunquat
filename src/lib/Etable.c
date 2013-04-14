@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -15,8 +15,8 @@
 #include <stdlib.h>
 
 #include <Etable.h>
+#include <memory.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 struct Etable
@@ -31,7 +31,7 @@ struct Etable
 Etable* new_Etable(int size, void (*destroy)(void*))
 {
     assert(size > 0);
-    Etable* table = xalloc(Etable);
+    Etable* table = memory_alloc_item(Etable);
     if (table == NULL)
     {
         return NULL;
@@ -42,10 +42,10 @@ Etable* new_Etable(int size, void (*destroy)(void*))
     {
         table->res = size;
     }
-    table->els = xnalloc(void*, table->res);
+    table->els = memory_alloc_items(void*, table->res);
     if (table->els == NULL)
     {
-        xfree(table);
+        memory_free(table);
         return NULL;
     }
     for (int i = 0; i < table->res; ++i)
@@ -76,7 +76,7 @@ bool Etable_set(Etable* table, int index, void* el)
         {
             new_res = index + 1;
         }
-        void** new_els = xrealloc(void*, new_res, table->els);
+        void** new_els = memory_realloc_items(void*, new_res, table->els);
         if (new_els == NULL)
         {
             return false;
@@ -144,8 +144,8 @@ void del_Etable(Etable* table)
         return;
     }
     Etable_clear(table);
-    xfree(table->els);
-    xfree(table);
+    memory_free(table->els);
+    memory_free(table);
     return;
 }
 

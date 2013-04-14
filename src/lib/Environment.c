@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2013
  *
  * This file is part of Kunquat.
  *
@@ -19,8 +19,8 @@
 #include <Env_var.h>
 #include <Environment.h>
 #include <File_base.h>
+#include <memory.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 struct Environment
@@ -32,7 +32,7 @@ struct Environment
 
 Environment* new_Environment(void)
 {
-    Environment* env = xalloc(Environment);
+    Environment* env = memory_alloc_item(Environment);
     if (env == NULL)
     {
         return NULL;
@@ -147,7 +147,7 @@ void del_Environment(Environment* env)
     }
     del_AAiter(env->iter);
     del_AAtree(env->vars);
-    xfree(env);
+    memory_free(env);
     return;
 }
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -25,9 +25,9 @@
 #include <Freeverb_allpass.h>
 #include <Freeverb_comb.h>
 #include <math_common.h>
+#include <memory.h>
 #include <string_common.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 #define FREEVERB_COMBS 8
@@ -93,7 +93,7 @@ DSP* new_DSP_freeverb(uint32_t buffer_size, uint32_t mix_rate)
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_BUFFER_SIZE_MAX);
     assert(mix_rate > 0);
-    DSP_freeverb* freeverb = xalloc(DSP_freeverb);
+    DSP_freeverb* freeverb = memory_alloc_item(DSP_freeverb);
     if (freeverb == NULL)
     {
         return NULL;
@@ -101,7 +101,7 @@ DSP* new_DSP_freeverb(uint32_t buffer_size, uint32_t mix_rate)
     if (!DSP_init(&freeverb->parent, del_DSP_freeverb,
                   DSP_freeverb_process, buffer_size, mix_rate))
     {
-        xfree(freeverb);
+        memory_free(freeverb);
         return NULL;
     }
     DSP_set_clear_history(&freeverb->parent, DSP_freeverb_clear_history);
@@ -480,7 +480,7 @@ static void del_DSP_freeverb(DSP* dsp)
         del_Freeverb_allpass(freeverb->allpass_left[i]);
         del_Freeverb_allpass(freeverb->allpass_right[i]);
     }
-    xfree(freeverb);
+    memory_free(freeverb);
     return;
 }
 

@@ -28,7 +28,6 @@
 #include <string_common.h>
 #include <Voice_pool.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 long kqt_Handle_mix(kqt_Handle* handle, long nframes)

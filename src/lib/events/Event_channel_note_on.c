@@ -20,15 +20,14 @@
 #include <Event_common.h>
 #include <Event_channel_note_on.h>
 #include <Event_channel_note_off.h>
+#include <kunquat/limits.h>
 #include <note_setup.h>
 #include <Random.h>
 #include <Reltime.h>
-#include <Voice.h>
 #include <Scale.h>
-#include <kunquat/limits.h>
+#include <Voice.h>
 #include <Value.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 bool Event_channel_note_on_process(Channel_state* ch_state, Value* value)

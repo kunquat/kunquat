@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -20,7 +20,6 @@
 #include <Instrument_params.h>
 #include <Value.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 bool Event_ins_set_sustain_process(Instrument_params* ins_state, Value* value)

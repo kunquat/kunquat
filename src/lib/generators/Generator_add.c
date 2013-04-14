@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2013
  *
  * This file is part of Kunquat.
  *
@@ -23,13 +23,13 @@
 #include <Generator_common.h>
 #include <kunquat/limits.h>
 #include <math_common.h>
+#include <memory.h>
 #include <Num_list.h>
 #include <Sample.h>
 #include <string_common.h>
 #include <Voice_state.h>
 #include <Voice_state_add.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 #define BASE_FUNC_SIZE 4096
@@ -91,7 +91,7 @@ Generator* new_Generator_add(uint32_t buffer_size,
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_BUFFER_SIZE_MAX);
     assert(mix_rate > 0);
-    Generator_add* add = xalloc(Generator_add);
+    Generator_add* add = memory_alloc_item(Generator_add);
     if (add == NULL)
     {
         return NULL;
@@ -103,7 +103,7 @@ Generator* new_Generator_add(uint32_t buffer_size,
                         buffer_size,
                         mix_rate))
     {
-        xfree(add);
+        memory_free(add);
         return NULL;
     }
     Device_set_sync(&add->parent.parent, Generator_add_sync);
@@ -117,27 +117,27 @@ Generator* new_Generator_add(uint32_t buffer_size,
     add->mod_env_center = 440;
     add->force_mod_env = NULL;
     add->detune = 1;
-    float* buf = xnalloc(float, BASE_FUNC_SIZE);
-    float* mod_buf = xnalloc(float, BASE_FUNC_SIZE);
+    float* buf = memory_alloc_items(float, BASE_FUNC_SIZE);
+    float* mod_buf = memory_alloc_items(float, BASE_FUNC_SIZE);
     if (buf == NULL || mod_buf == NULL)
     {
-        xfree(buf);
-        xfree(mod_buf);
+        memory_free(buf);
+        memory_free(mod_buf);
         del_Generator(&add->parent);
         return NULL;
     }
     add->base = new_Sample_from_buffers(&buf, 1, BASE_FUNC_SIZE);
     if (add->base == NULL)
     {
-        xfree(buf);
-        xfree(mod_buf);
+        memory_free(buf);
+        memory_free(mod_buf);
         del_Generator(&add->parent);
         return NULL;
     }
     add->mod = new_Sample_from_buffers(&mod_buf, 1, BASE_FUNC_SIZE);
     if (add->mod == NULL)
     {
-        xfree(mod_buf);
+        memory_free(mod_buf);
         del_Generator(&add->parent);
         return NULL;
     }
@@ -684,7 +684,7 @@ static void del_Generator_add(Generator* gen)
     Generator_add* add = (Generator_add*)gen;
     del_Sample(add->base);
     del_Sample(add->mod);
-    xfree(add);
+    memory_free(add);
     return;
 }
 

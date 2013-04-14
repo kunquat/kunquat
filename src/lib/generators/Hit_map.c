@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2013
  *
  * This file is part of Kunquat.
  *
@@ -18,8 +18,8 @@
 
 #include <AAtree.h>
 #include <Hit_map.h>
+#include <memory.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 struct Hit_map
@@ -47,7 +47,7 @@ Hit_map* new_Hit_map_from_string(char* str, Read_state* state)
     {
         return NULL;
     }
-    Hit_map* map = xalloc(Hit_map);
+    Hit_map* map = memory_alloc_item(Hit_map);
     if (map == NULL)
     {
         return NULL;
@@ -75,7 +75,7 @@ Hit_map* new_Hit_map_from_string(char* str, Read_state* state)
     bool expect_list = true;
     while (expect_list)
     {
-        Random_list* list = xalloc(Random_list);
+        Random_list* list = memory_alloc_item(Random_list);
         if (list == NULL)
         {
             del_Hit_map(map);
@@ -94,7 +94,7 @@ Hit_map* new_Hit_map_from_string(char* str, Read_state* state)
         str = read_const_char(str, '[', state);
         if (state->error)
         {
-            xfree(list);
+            memory_free(list);
             del_Hit_map(map);
             return NULL;
         }
@@ -102,7 +102,7 @@ Hit_map* new_Hit_map_from_string(char* str, Read_state* state)
         {
             Read_state_set_error(state, "Mapping hit index is outside [0, %d)",
                                         KQT_HITS_MAX);
-            xfree(list);
+            memory_free(list);
             del_Hit_map(map);
             return NULL;
         }
@@ -110,18 +110,18 @@ Hit_map* new_Hit_map_from_string(char* str, Read_state* state)
         {
             Read_state_set_error(state, "Mapping force is not finite",
                                         KQT_HITS_MAX);
-            xfree(list);
+            memory_free(list);
             del_Hit_map(map);
             return NULL;
         }
         if (map->hits[hit_index] == NULL)
         {
-            map->hits[hit_index] = new_AAtree((int (*)(const void*,
-                                                const void*))Random_list_cmp,
-                                              free);
+            map->hits[hit_index] = new_AAtree(
+                    (int (*)(const void*, const void*))Random_list_cmp,
+                    memory_free);
             if (map->hits[hit_index] == NULL)
             {
-                xfree(list);
+                memory_free(list);
                 del_Hit_map(map);
                 return NULL;
             }
@@ -130,7 +130,7 @@ Hit_map* new_Hit_map_from_string(char* str, Read_state* state)
         list->entry_count = 0;
         if (!AAtree_ins(map->hits[hit_index], list))
         {
-            xfree(list);
+            memory_free(list);
             del_Hit_map(map);
             return NULL;
         }
@@ -222,7 +222,7 @@ void del_Hit_map(Hit_map* map)
     {
         del_AAtree(map->hits[i]);
     }
-    xfree(map);
+    memory_free(map);
     return;
 }
 

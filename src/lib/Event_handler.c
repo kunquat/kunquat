@@ -164,8 +164,8 @@
 #include <Event_dsp_set_reltime_name.h>
 #include <Event_dsp_set_reltime.h>
 
+#include <memory.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 struct Event_handler
@@ -205,7 +205,7 @@ Event_handler* new_Event_handler(Playdata* global_state,
     assert(ch_states != NULL);
     assert(insts != NULL);
     assert(effects != NULL);
-    Event_handler* eh = xalloc(Event_handler);
+    Event_handler* eh = memory_alloc_item(Event_handler);
     if (eh == NULL)
     {
         return NULL;
@@ -1190,7 +1190,7 @@ void del_Event_handler(Event_handler* eh)
     del_Event_buffer(eh->event_buffer);
     del_Event_buffer(eh->tracker_buffer);
 //    del_Playdata(eh->global_state); // TODO: enable if Playdata becomes private
-    xfree(eh);
+    memory_free(eh);
     return;
 }
 

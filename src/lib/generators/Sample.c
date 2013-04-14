@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -19,19 +19,19 @@
 #include <string.h>
 #include <math.h>
 
-#include <Sample.h>
-#include <Sample_params.h>
-#include <Generator_common.h>
 #include <File_wavpack.h>
+#include <Generator_common.h>
 #include <kunquat/limits.h>
 #include <math_common.h>
+#include <memory.h>
+#include <Sample.h>
+#include <Sample_params.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 Sample* new_Sample(void)
 {
-    Sample* sample = xalloc(Sample);
+    Sample* sample = memory_alloc_item(Sample);
     if (sample == NULL)
     {
         return NULL;
@@ -468,9 +468,9 @@ void del_Sample(Sample* sample)
     {
         return;
     }
-    xfree(sample->data[0]);
-    xfree(sample->data[1]);
-    xfree(sample);
+    memory_free(sample->data[0]);
+    memory_free(sample->data[1]);
+    memory_free(sample);
     return;
 }
 

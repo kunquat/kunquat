@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2013
  *
  * This file is part of Kunquat.
  *
@@ -24,9 +24,9 @@
 #include <DSP_chorus.h>
 #include <LFO.h>
 #include <math_common.h>
+#include <memory.h>
 #include <string_common.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 #define CHORUS_BUF_TIME 0.25
@@ -83,7 +83,7 @@ DSP* new_DSP_chorus(uint32_t buffer_size, uint32_t mix_rate)
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_BUFFER_SIZE_MAX);
     assert(mix_rate > 0);
-    DSP_chorus* chorus = xalloc(DSP_chorus);
+    DSP_chorus* chorus = memory_alloc_item(DSP_chorus);
     if (chorus == NULL)
     {
         return NULL;
@@ -91,7 +91,7 @@ DSP* new_DSP_chorus(uint32_t buffer_size, uint32_t mix_rate)
     if (!DSP_init(&chorus->parent, del_DSP_chorus,
                   DSP_chorus_process, buffer_size, mix_rate))
     {
-        xfree(chorus);
+        memory_free(chorus);
         return NULL;
     }
     DSP_set_clear_history(&chorus->parent, DSP_chorus_clear_history);
@@ -427,7 +427,7 @@ static void del_DSP_chorus(DSP* dsp)
     assert(string_eq(dsp->type, "chorus"));
     DSP_chorus* chorus = (DSP_chorus*)dsp;
     del_Audio_buffer(chorus->buf);
-    xfree(chorus);
+    memory_free(chorus);
     return;
 }
 

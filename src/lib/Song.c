@@ -20,14 +20,14 @@
 #include <math.h>
 
 #include <Connections_search.h>
+#include <File_base.h>
+#include <math_common.h>
+#include <memory.h>
 #include <Random.h>
 #include <Real.h>
 #include <Song.h>
-#include <File_base.h>
-#include <math_common.h>
 #include <string_common.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 /**
@@ -91,14 +91,14 @@ Song* new_Song(uint32_t buf_size)
 {
     assert(buf_size > 0);
     assert(buf_size <= KQT_BUFFER_SIZE_MAX);
-    Song* song = xalloc(Song);
+    Song* song = memory_alloc_item(Song);
     if (song == NULL)
     {
         return NULL;
     }
     if (!Device_init(&song->parent, buf_size, 48000))
     {
-        xfree(song);
+        memory_free(song);
         return NULL;
     }
     Device_set_existent(&song->parent, true);
@@ -123,6 +123,10 @@ Song* new_Song(uint32_t buf_size)
     song->bind = NULL;
     song->album_is_existent = false;
     song->track_list = NULL;
+    for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
+    {
+        song->channels[i] = NULL;
+    }
     for (int i = 0; i < KQT_SONGS_MAX; ++i)
     {
         song->order_lists[i] = NULL;
@@ -662,8 +666,8 @@ bool Song_set_bind(Song* song, Bind* bind)
             for (int k = i - 1; k >= 0; --k)
             {
                 del_Event_cache(caches[k]);
-                return false;
             }
+            return false;
         }
     }
     del_Bind(song->bind);
@@ -898,7 +902,7 @@ void del_Song(Song* song)
     del_Random(song->random);
     del_Bind(song->bind);
     Device_uninit(&song->parent);
-    xfree(song);
+    memory_free(song);
     return;
 }
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -21,14 +21,13 @@
 #include <Channel.h>
 #include <Channel_state.h>
 #include <Environment.h>
-#include <kunquat/limits.h>
-#include <Reltime.h>
 #include <Event.h>
 #include <Event_handler.h>
-#include <Column.h>
+#include <kunquat/limits.h>
 #include <math_common.h>
+#include <memory.h>
+#include <Reltime.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 Channel* new_Channel(Ins_table* insts,
@@ -45,7 +44,7 @@ Channel* new_Channel(Ins_table* insts,
     assert(env != NULL);
     assert(tempo != NULL);
     assert(freq != NULL);
-    Channel* ch = xalloc(Channel);
+    Channel* ch = memory_alloc_item(Channel);
     if (ch == NULL)
     {
         return NULL;
@@ -55,13 +54,13 @@ Channel* new_Channel(Ins_table* insts,
     if (ch->single == NULL)
     {
         del_Event(ch->note_off);
-        xfree(ch);
+        memory_free(ch);
         return NULL;
     } */
 //    ch->single = NULL;
     if (!Channel_state_init(&ch->init_state, num, &ch->mute, env))
     {
-        xfree(ch);
+        memory_free(ch);
         return NULL;
     }
     ch->init_state.insts = insts;
@@ -182,7 +181,7 @@ void del_Channel(Channel* ch)
     Channel_state_uninit(&ch->init_state);
     // cur_state must not be uninitialised -- it merely contains references
     // to dynamic structures in init_state.
-    xfree(ch);
+    memory_free(ch);
     return;
 }
 

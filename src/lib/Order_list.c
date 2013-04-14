@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2013
  *
  * This file is part of Kunquat.
  *
@@ -16,11 +16,11 @@
 #include <stdint.h>
 
 #include <AAtree.h>
+#include <memory.h>
 #include <Order_list.h>
 #include <Pat_inst_ref.h>
 #include <Vector.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 typedef struct Index_mapping
@@ -35,7 +35,7 @@ Index_mapping* new_Index_mapping(Index_mapping* im)
 {
     assert(im != NULL);
 
-    Index_mapping* new_im = xalloc(Index_mapping);
+    Index_mapping* new_im = memory_alloc_item(Index_mapping);
     if (new_im == NULL)
         return NULL;
 
@@ -58,7 +58,7 @@ Order_list* new_Order_list(char* str, Read_state* state)
         return NULL;
 
     // Create the base structure
-    Order_list* ol = xalloc(Order_list);
+    Order_list* ol = memory_alloc_item(Order_list);
     if (ol == NULL)
         return NULL;
     ol->pat_insts = NULL;
@@ -75,7 +75,7 @@ Order_list* new_Order_list(char* str, Read_state* state)
     // Create reverse index of ol->pat_insts
     ol->index_map = new_AAtree(
             (int (*)(const void*, const void*))Pat_inst_ref_cmp,
-            free);
+            memory_free);
     if (ol->index_map == NULL)
     {
         del_Order_list(ol);
@@ -135,7 +135,7 @@ Order_list* new_Order_list(char* str, Read_state* state)
             Index_mapping* im = new_Index_mapping(key);
             if (im == NULL || !AAtree_ins(ol->index_map, im))
             {
-                xfree(im);
+                memory_free(im);
                 del_Order_list(ol);
                 return NULL;
             }
@@ -179,7 +179,7 @@ void del_Order_list(Order_list* ol)
 
     del_Vector(ol->pat_insts);
     del_AAtree(ol->index_map);
-    xfree(ol);
+    memory_free(ol);
     return;
 }
 

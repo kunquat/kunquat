@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -19,7 +19,6 @@
 #include <Event.h>
 #include <kunquat/limits.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 Reltime* Event_get_pos(Event* event)

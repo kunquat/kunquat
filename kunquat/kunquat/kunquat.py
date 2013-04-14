@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2010-2013
+# Authors: Tomi Jylhä-Ollila, Finland 2010-2013
+#          Toni Ruottu, Finland 2013
 #
 # This file is part of Kunquat.
 #
@@ -33,7 +34,7 @@ from __future__ import print_function
 import ctypes
 import json
 
-__all__ = ['Handle',
+__all__ = ['Kunquat',
            'KunquatError', 'KunquatArgumentError',
            'KunquatFormatError', 'KunquatMemoryError',
            'KunquatResourceError']
@@ -224,9 +225,9 @@ class BaseHandle(object):
         return el
 
 
-class Handle(BaseHandle):
+class Kunquat(BaseHandle):
 
-    """Handle for playing and modifying compositions in memory.
+    """Kunquat instance for playing and modifying compositions in memory.
 
     Public methods:
     set_data     -- Set composition data.
@@ -240,10 +241,24 @@ class Handle(BaseHandle):
     nanoseconds -- The current position in nanoseconds.
     track       -- The current track (None or [0,255]).
 
+    To produce two frames of silence, do the following:
+    >>> k = Kunquat()
+    >>> k.set_data('album/p_manifest.json', {})
+    >>> k.set_data('album/p_tracks.json', [0])
+    >>> k.set_data('song_00/p_manifest.json', {})
+    >>> k.set_data('song_00/p_order_list.json', [ [0, 0] ])
+    >>> k.set_data('pat_000/p_manifest.json', {})
+    >>> k.set_data('pat_000/p_pattern.json', { 'length': [16, 0] })
+    >>> k.set_data('pat_000/instance_000/p_manifest.json', {})
+    >>> k.validate()
+    >>> audio_data = k.mix(2)
+    >>> audio_data
+    ([0.0, 0.0], [0.0, 0.0])
+
     """
 
     def __init__(self, mixing_rate=48000):
-        """Create a new Handle.
+        """Create a new Kunquat instance.
 
         Optional arguments:
         mixing_rate -- Mixing rate in frames per second.  Typical
@@ -267,7 +282,7 @@ class Handle(BaseHandle):
         self.mixing_rate = mixing_rate
 
     def set_data(self, key, value):
-        """Set data in the handle.
+        """Set data in the Kunquat instance.
 
         Arguments:
         key --   The key of the data in the composition.  A key
@@ -284,10 +299,6 @@ class Handle(BaseHandle):
 
         Exceptions:
         KunquatArgumentError -- The key is not valid.
-        KunquatFormatError   -- The data is not valid.  Only the data
-                                that may audibly affect mixing is
-                                validated.
-        KunquatResourceError -- File system access failed.
 
         """
         if key[key.index('.'):].startswith('.json'):
@@ -304,7 +315,7 @@ class Handle(BaseHandle):
                                      len(data))
 
     def validate(self):
-        """Validate data in the handle.
+        """Validate data in the Kunquat instance.
 
         Exceptions:
         KunquatFormatError -- The module data is not valid.  This
@@ -371,6 +382,10 @@ class KunquatMemoryError(KunquatError, MemoryError):
 
 class KunquatResourceError(KunquatError):
     """Error indicating that an external service request has failed."""
+
+
+def fake_out_of_memory():
+    _kunquat.kqt_fake_out_of_memory(0)
 
 
 _kunquat = ctypes.CDLL('libkunquat.so')
@@ -449,5 +464,8 @@ _kunquat.kqt_Handle_treceive.argtypes = [ctypes.c_void_p,
                                          ctypes.c_int]
 _kunquat.kqt_Handle_treceive.restype = ctypes.c_int
 _kunquat.kqt_Handle_treceive.errcheck = _error_check
+
+_kunquat.kqt_fake_out_of_memory.argtypes = [ctypes.c_long]
+_kunquat.kqt_fake_out_of_memory.restype = None
 
 

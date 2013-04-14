@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -20,11 +20,11 @@
 #include <Generator.h>
 #include <Generator_common.h>
 #include <Generator_triangle.h>
-#include <Voice_state_triangle.h>
 #include <kunquat/limits.h>
+#include <memory.h>
 #include <string_common.h>
+#include <Voice_state_triangle.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 void Generator_triangle_init_state(Generator* gen, Voice_state* state);
@@ -36,7 +36,7 @@ Generator* new_Generator_triangle(uint32_t buffer_size,
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_BUFFER_SIZE_MAX);
     assert(mix_rate > 0);
-    Generator_triangle* triangle = xalloc(Generator_triangle);
+    Generator_triangle* triangle = memory_alloc_item(Generator_triangle);
     if (triangle == NULL)
     {
         return NULL;
@@ -48,7 +48,7 @@ Generator* new_Generator_triangle(uint32_t buffer_size,
                         buffer_size,
                         mix_rate))
     {
-        xfree(triangle);
+        memory_free(triangle);
         return NULL;
     }
     return &triangle->parent;
@@ -155,7 +155,7 @@ void del_Generator_triangle(Generator* gen)
     }
     assert(string_eq(gen->type, "triangle"));
     Generator_triangle* triangle = (Generator_triangle*)gen;
-    xfree(triangle);
+    memory_free(triangle);
     return;
 }
 

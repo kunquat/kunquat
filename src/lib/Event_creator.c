@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -20,10 +20,10 @@
 #include <Event_names.h>
 #include <Event_type.h>
 #include <Event_global_jump.h>
+#include <memory.h>
 #include <string_common.h>
 #include <Value.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 static void del_Event_default(Event* event);
@@ -33,7 +33,7 @@ Event* new_Event(Event_type type, Reltime* pos)
 {
     assert(EVENT_IS_VALID(type));
     assert(pos != NULL);
-    Event* event = xalloc(Event);
+    Event* event = memory_alloc_item(Event);
     if (event == NULL)
     {
         return NULL;
@@ -115,7 +115,7 @@ Event* new_Event_from_string(char** str, Read_state* state,
         del_Event(event);
         return NULL;
     }
-    event->desc = xcalloc(char, *str - event_desc + 1);
+    event->desc = memory_calloc_items(char, *str - event_desc + 1);
     if (event->desc == NULL)
     {
         del_Event(event);
@@ -139,8 +139,8 @@ static void del_Event_default(Event* event)
         return;
     }
     assert(EVENT_IS_VALID(event->type));
-    xfree(event->desc);
-    xfree(event);
+    memory_free(event->desc);
+    memory_free(event);
     return;
 }
 

@@ -72,7 +72,7 @@ kqt_Handle* kqt_new_Handle(void);
  *
  * After a successful call of this function, the handle is set as not
  * validated. As long as the handle is not validated, only the following
- * functions can be called successfully:
+ * functions can be called successfully on the handle:
  *
  * \li kqt_Handle_set_data
  * \li kqt_Handle_get_error

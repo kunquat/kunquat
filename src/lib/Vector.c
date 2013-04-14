@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2013
  *
  * This file is part of Kunquat.
  *
@@ -14,9 +14,9 @@
 
 #include <string.h>
 
+#include <memory.h>
 #include <Vector.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 struct Vector
@@ -38,14 +38,14 @@ Vector* new_Vector(size_t elem_size)
 {
     assert(elem_size > 0);
 
-    Vector* v = xalloc(Vector);
+    Vector* v = memory_alloc_item(Vector);
     if (v == NULL)
         return NULL;
 
     v->elem_size = elem_size;
     v->size = 0;
     v->cap = VECTOR_INIT_CAP;
-    v->elems = xnalloc(char, v->cap * v->elem_size);
+    v->elems = memory_alloc_items(char, v->cap * v->elem_size);
     if (v->elems == NULL)
     {
         del_Vector(v);
@@ -110,7 +110,7 @@ static bool Vector_set_capacity(Vector* v, size_t cap)
     if (cap == v->cap)
         return true;
 
-    char* new_elems = xrealloc(char, cap * v->elem_size, v->elems);
+    char* new_elems = memory_realloc_items(char, cap * v->elem_size, v->elems);
     if (new_elems == NULL)
         return false;
     v->elems = new_elems;
@@ -128,8 +128,8 @@ void del_Vector(Vector* v)
     if (v == NULL)
         return;
 
-    xfree(v->elems);
-    xfree(v);
+    memory_free(v->elems);
+    memory_free(v);
     return;
 }
 

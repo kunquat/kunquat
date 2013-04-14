@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2013
  *
  * This file is part of Kunquat.
  *
@@ -21,8 +21,8 @@
 #include <DSP_table.h>
 #include <Effect.h>
 #include <Effect_interface.h>
+#include <memory.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 struct Effect
@@ -57,7 +57,7 @@ Effect* new_Effect(uint32_t buf_len,
 {
     assert(buf_len > 0);
     assert(mix_rate > 0);
-    Effect* eff = xalloc(Effect);
+    Effect* eff = memory_alloc_item(Effect);
     if (eff == NULL)
     {
         return NULL;
@@ -357,7 +357,7 @@ void del_Effect(Effect* eff)
     del_Connections(eff->connections);
     del_DSP_table(eff->dsps);
     Device_uninit(&eff->parent);
-    xfree(eff);
+    memory_free(eff);
     return;
 }
 

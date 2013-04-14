@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -22,7 +22,6 @@
 #include <Reltime.h>
 #include <Value.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 bool Event_global_slide_volume_process(Playdata* global_state, Value* value)

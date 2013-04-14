@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2013
  *
  * This file is part of Kunquat.
  *
@@ -23,7 +23,6 @@
 #include <kunquat/limits.h>
 #include <Value.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 bool Event_channel_set_global_effects_process(Channel_state* ch_state,

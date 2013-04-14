@@ -1,1 +1,1 @@
-from kunquat import *
+from kunquat.kunquat import *

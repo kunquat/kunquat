@@ -14,9 +14,9 @@
 
 #include <Handle_m.h>
 #include <Handle_private.h>
+#include <memory.h>
 #include <Parse_manager.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 static int Handle_m_set_data(kqt_Handle* handle,
@@ -29,7 +29,7 @@ static void del_Handle_m(kqt_Handle* handle);
 
 kqt_Handle* kqt_new_Handle(void)
 {
-    Handle_m* handle_m = xalloc(Handle_m);
+    Handle_m* handle_m = memory_alloc_item(Handle_m);
     if (handle_m == NULL)
     {
         kqt_Handle_set_error(NULL, ERROR_MEMORY, "Couldn't allocate memory");
@@ -40,7 +40,6 @@ kqt_Handle* kqt_new_Handle(void)
         del_Handle_m(&handle_m->handle);
         return NULL;
     }
-    handle_m->handle.mode = KQT_MEM;
     handle_m->handle.set_data = Handle_m_set_data;
     handle_m->handle.destroy = del_Handle_m;
     if (!Device_sync((Device*)handle_m->handle.song))
@@ -59,7 +58,6 @@ static int Handle_m_set_data(kqt_Handle* handle,
                              long length)
 {
     assert(handle_is_valid(handle));
-    assert(handle->mode == KQT_MEM);
     assert(key_is_valid(handle, key));
     assert(data != NULL || length == 0);
     assert(length >= 0);
@@ -78,9 +76,8 @@ static void del_Handle_m(kqt_Handle* handle)
     {
         return;
     }
-    assert(handle->mode == KQT_MEM);
     Handle_m* handle_m = (Handle_m*)handle;
-    xfree(handle_m);
+    memory_free(handle_m);
     return;
 }
 

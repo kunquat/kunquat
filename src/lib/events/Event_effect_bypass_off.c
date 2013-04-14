@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2013
  *
  * This file is part of Kunquat.
  *
@@ -20,7 +20,6 @@
 #include <Event_effect_bypass_off.h>
 #include <Value.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 bool Event_effect_bypass_off_process(Effect* eff, Value* value)

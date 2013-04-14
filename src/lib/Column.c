@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -19,13 +19,13 @@
 #include <stdint.h>
 #include <inttypes.h>
 
-#include <Reltime.h>
+#include <Column.h>
 #include <Event_global_jump.h>
 //#include <Event_global_set_tempo.h>
 #include <Event_names.h>
-#include <Column.h>
+#include <memory.h>
+#include <Reltime.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 #define COLUMN_GLOBAL (-1)
@@ -74,7 +74,7 @@ static Event_list* new_Event_list(Event_list* nil, Event* event, bool copy)
     assert(!(nil == NULL) || (event == NULL));
     assert(!(event == NULL) || (nil == NULL));
     assert(event == NULL || (!copy || EVENT_IS_PG(Event_get_type(event))));
-    Event_list* elist = xalloc(Event_list);
+    Event_list* elist = memory_alloc_item(Event_list);
     if (elist == NULL)
     {
         return NULL;
@@ -118,7 +118,7 @@ static int Event_list_cmp(const Event_list* list1, const Event_list* list2)
 
 Column_iter* new_Column_iter(Column* col)
 {
-    Column_iter* iter = xalloc(Column_iter);
+    Column_iter* iter = memory_alloc_item(Column_iter);
     if (iter == NULL)
     {
         return NULL;
@@ -129,7 +129,7 @@ Column_iter* new_Column_iter(Column* col)
     iter->tree_iter = new_AAiter(events);
     if (iter->tree_iter == NULL)
     {
-        xfree(iter);
+        memory_free(iter);
         return NULL;
     }
     iter->elist = NULL;
@@ -214,7 +214,7 @@ void del_Column_iter(Column_iter* iter)
         return;
     }
     del_AAiter(iter->tree_iter);
-    xfree(iter);
+    memory_free(iter);
     return;
 }
 
@@ -227,7 +227,7 @@ static bool Column_parse(Column* col,
 
 Column* new_Column(Reltime* len)
 {
-    Column* col = xalloc(Column);
+    Column* col = memory_alloc_item(Column);
     if (col == NULL)
     {
         return NULL;
@@ -238,14 +238,14 @@ Column* new_Column(Reltime* len)
             (void (*)(void*))del_Event_list);
     if (col->events == NULL)
     {
-        xfree(col);
+        memory_free(col);
         return NULL;
     }
     col->edit_iter = new_Column_iter(col);
     if (col->edit_iter == NULL)
     {
         del_AAtree(col->events);
-        xfree(col);
+        memory_free(col);
         return NULL;
     }
     if (len != NULL)
@@ -609,7 +609,7 @@ bool Column_remove(Column* col, Event* event)
     {
         assert(eprev != target || enext != target);
         del_Event(elist->event);
-        xfree(elist);
+        memory_free(elist);
         eprev->next = enext;
         enext->prev = eprev;
         return true;
@@ -731,7 +731,7 @@ void del_Column(Column* col)
     }
     del_AAtree(col->events);
     del_Column_iter(col->edit_iter);
-    xfree(col);
+    memory_free(col);
     return;
 }
 
@@ -753,11 +753,11 @@ static void del_Event_list(Event_list* elist)
         {
             del_Event(cur->event);
         }
-        xfree(cur);
+        memory_free(cur);
         cur = next;
     }
     assert(cur == elist);
-    xfree(cur);
+    memory_free(cur);
     return;
 }
 

@@ -23,13 +23,13 @@
 #include <stdarg.h>
 
 #include <Handle_private.h>
-
 #include <kunquat/limits.h>
+#include <memory.h>
 #include <Song.h>
+#include <string_common.h>
 #include <Playdata.h>
 #include <Voice_pool.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 static kqt_Handle* handles[KQT_HANDLES_MAX] = { NULL };
@@ -56,19 +56,19 @@ bool kqt_Handle_init(kqt_Handle* handle, long buffer_size)
     }
     handle->data_is_valid = true;
     handle->data_is_validated = true;
-    handle->mode = KQT_READ;
     handle->song = NULL;
     handle->destroy = NULL;
     handle->get_data = NULL;
     handle->get_data_length = NULL;
     handle->set_data = NULL;
-    handle->error[0] = handle->error[KQT_HANDLE_ERROR_LENGTH - 1] = '\0';
-    handle->position[0] = handle->position[POSITION_LENGTH - 1] = '\0';
+    memset(handle->error, '\0', KQT_HANDLE_ERROR_LENGTH);
+    memset(handle->validation_error, '\0', KQT_HANDLE_ERROR_LENGTH);
+    memset(handle->position, '\0', POSITION_LENGTH);
 
 //    int buffer_count = SONG_DEFAULT_BUF_COUNT;
 //    int voice_count = 256;
 
-    handle->returned_values = new_AAtree(ptrcmp, free);
+    handle->returned_values = new_AAtree(ptrcmp, memory_free);
     if (handle->returned_values == NULL)
     {
         kqt_Handle_set_error(NULL, ERROR_MEMORY, "Couldn't allocate memory");
@@ -117,20 +117,181 @@ void kqt_Handle_clear_error(kqt_Handle* handle)
 }
 
 
+#define set_invalid_if(cond, ...)                                      \
+    if (true)                                                          \
+    {                                                                  \
+        if (cond)                                                      \
+        {                                                              \
+            kqt_Handle_set_error((handle), ERROR_FORMAT, __VA_ARGS__); \
+            (handle)->data_is_valid = false;                           \
+            return 0;                                                  \
+        }                                                              \
+    } else (void)0
+
 int kqt_Handle_validate(kqt_Handle* handle)
 {
     check_handle(handle, 0);
     check_data_is_valid(handle, 0);
 
-    // TODO: do something useful here
+    // Check error from set_data
+    if (!string_eq(handle->validation_error, ""))
+    {
+        strcpy(handle->error, handle->validation_error);
+        strcpy(null_error, handle->validation_error);
+        handle->data_is_valid = false;
+        return 0;
+    }
+
+    // Check album
+    if (handle->song->album_is_existent)
+    {
+        const Track_list* tl = handle->song->track_list;
+        set_invalid_if(
+                tl == NULL,
+                "Album does not contain a track list");
+        set_invalid_if(
+                Track_list_get_len(tl) == 0,
+                "Album has no tracks");
+    }
+
+    // Check songs
+    for (int i = 0; i < KQT_SONGS_MAX; ++i)
+    {
+        if (!Subsong_table_get_existent(handle->song->subsongs, i))
+            continue;
+
+        // Check for orphans
+        const Track_list* tl = handle->song->track_list;
+        set_invalid_if(
+                !handle->song->album_is_existent || tl == NULL,
+                "Module contains song %d but no album", i);
+
+        bool found = false;
+        for (size_t k = 0; k < Track_list_get_len(tl); ++k)
+        {
+            if (Track_list_get_song_index(tl, k) == i)
+            {
+                found = true;
+                break;
+            }
+        }
+        set_invalid_if(!found, "Song %d is not included in the album", i);
+
+        // Check for empty songs
+        const Order_list* ol = handle->song->order_lists[i];
+        set_invalid_if(
+                ol == NULL || Order_list_get_len(ol) == 0,
+                "Song %d does not contain systems", i);
+
+        // Check for missing pattern instances
+        for (size_t system = 0; system < Order_list_get_len(ol); ++system)
+        {
+            const Pat_inst_ref* piref = Order_list_get_pat_inst_ref(ol, system);
+            Pattern* pat = Pat_table_get(handle->song->pats, piref->pat);
+
+            set_invalid_if(
+                    !Pat_table_get_existent(handle->song->pats, piref->pat) ||
+                    pat == NULL ||
+                    !Pattern_get_inst_existent(pat, piref->inst),
+                    "Missing pattern instance [%" PRId16 ", %" PRId16 "]",
+                    piref->pat, piref->inst);
+        }
+    }
+
+    // Check for nonexistent songs in the track list
+    if (handle->song->album_is_existent)
+    {
+        const Track_list* tl = handle->song->track_list;
+        assert(tl != NULL);
+
+        for (size_t i = 0; i < Track_list_get_len(tl); ++i)
+        {
+            set_invalid_if(
+                    !Subsong_table_get_existent(handle->song->subsongs,
+                        Track_list_get_song_index(tl, i)),
+                    "Album includes nonexistent song %d", i);
+        }
+    }
+
+    // Check existing patterns
+    for (int i = 0; i < KQT_PATTERNS_MAX; ++i)
+    {
+        if (!Pat_table_get_existent(handle->song->pats, i))
+            continue;
+
+        Pattern* pat = Pat_table_get(handle->song->pats, i);
+        set_invalid_if(
+                pat == NULL,
+                "Pattern %d exists but contains no data", i);
+
+        bool pattern_has_instance = false;
+        for (int k = 0; k < KQT_PAT_INSTANCES_MAX; ++k)
+        {
+            if (Pattern_get_inst_existent(pat, k))
+            {
+                // Mark found instance
+                pattern_has_instance = true;
+
+                // Check that the instance is used in the album
+                set_invalid_if(
+                        !handle->song->album_is_existent,
+                        "Pattern instance [%d, %d] exists but no album"
+                        " is present", i, k);
+
+                bool instance_found = false;
+
+                const Track_list* tl = handle->song->track_list;
+                assert(tl != NULL);
+
+                for (size_t track = 0; track < Track_list_get_len(tl); ++track)
+                {
+                    const int song_index = Track_list_get_song_index(tl, track);
+
+                    if (!Subsong_table_get_existent(
+                                handle->song->subsongs,
+                                song_index))
+                        continue;
+
+                    const Order_list* ol = handle->song->order_lists[song_index];
+                    assert(ol != NULL);
+
+                    for (size_t system = 0; system < Order_list_get_len(ol); ++system)
+                    {
+                        const Pat_inst_ref* piref = Order_list_get_pat_inst_ref(
+                                ol, system);
+                        if (piref->pat == i && piref->inst == k)
+                        {
+                            set_invalid_if(
+                                    instance_found,
+                                    "Duplicate occurrence of pattern instance"
+                                    " [%d, %d]", i, k);
+                            instance_found = true;
+                        }
+                    }
+                }
+
+                set_invalid_if(
+                        !instance_found,
+                        "Pattern instance [%d, %d] exists but is not used",
+                        i, k);
+            }
+        }
+
+        set_invalid_if(
+                !pattern_has_instance,
+                "Pattern %d exists but has no instances", i);
+    }
 
     handle->data_is_validated = true;
     return 1;
 }
 
+#undef set_invalid_if
+
 
 void kqt_Handle_set_error_(kqt_Handle* handle,
                            Error_type type,
+                           Error_delay_type delay_type,
                            const char* file,
                            int line,
                            const char* func,
@@ -138,6 +299,7 @@ void kqt_Handle_set_error_(kqt_Handle* handle,
 {
     assert(type > ERROR_NONE);
     assert(type < ERROR_LAST);
+    assert(delay_type == ERROR_IMMEDIATE || delay_type == ERROR_VALIDATION);
     assert(file != NULL);
     assert(line >= 0);
     assert(func != NULL);
@@ -211,16 +373,25 @@ void kqt_Handle_set_error_(kqt_Handle* handle,
     strcat(err_str, "\" }");
     err_str[KQT_HANDLE_ERROR_LENGTH - 1] = '\0';
 
-    strcpy(null_error, err_str);
+    if (delay_type == ERROR_IMMEDIATE)
+        strcpy(null_error, err_str);
+
     if (handle != NULL)
     {
         assert(handle_is_valid(handle));
-        strcpy(handle->error, err_str);
+
+        if (delay_type == ERROR_IMMEDIATE)
+            strcpy(handle->error, err_str);
+        else if (delay_type == ERROR_VALIDATION)
+            strcpy(handle->validation_error, err_str);
+        else
+            assert(false);
     }
     return;
 }
 
 
+#if 0
 void* kqt_Handle_get_data(kqt_Handle* handle, const char* key)
 {
     check_handle(handle, NULL);
@@ -240,7 +411,7 @@ void* kqt_Handle_get_data(kqt_Handle* handle, const char* key)
         {
             kqt_Handle_set_error(handle, ERROR_MEMORY,
                     "Couldn't allocate memory");
-            xfree(data);
+            memory_free(data);
             return NULL;
         }
     }
@@ -261,6 +432,7 @@ long kqt_Handle_get_data_length(kqt_Handle* handle, const char* key)
     assert(handle->get_data_length != NULL);
     return handle->get_data_length(handle, key);
 }
+#endif
 
 
 int kqt_Handle_set_data(kqt_Handle* handle,
@@ -271,12 +443,12 @@ int kqt_Handle_set_data(kqt_Handle* handle,
     check_handle(handle, 0);
     check_data_is_valid(handle, 0);
     check_key(handle, key, 0);
-    if (handle->mode == KQT_READ)
-    {
-        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
-                "Cannot set data on a read-only Kunquat Handle.");
-        return 0;
-    }
+
+    // Short-circuit if we have already got invalid data
+    // TODO: Remove this if we decide to collect more error info
+    if (!string_eq(handle->validation_error, ""))
+        return 1;
+
     assert(handle->set_data != NULL);
     return handle->set_data(handle, key, data, length);
 }
@@ -296,7 +468,7 @@ int kqt_Handle_free_data(kqt_Handle* handle, void* data)
                 "Data %p does not originate from this Handle", data);
         return 0;
     }
-    xfree(target);
+    memory_free(target);
     return 1;
 }
 

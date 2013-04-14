@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -15,8 +15,8 @@
 #include <stdlib.h>
 
 #include <Event_common.h>
+#include <memory.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 Event* Event_init(Event* event,
@@ -41,8 +41,8 @@ void del_Event_default(Event* event)
         return;
     }
     assert(EVENT_IS_VALID(event->type));
-    xfree(event->desc);
-    xfree(event);
+    memory_free(event->desc);
+    memory_free(event);
     return;
 }
 

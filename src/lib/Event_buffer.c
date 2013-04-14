@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2013
  *
  * This file is part of Kunquat.
  *
@@ -21,9 +21,9 @@
 #include <Event_buffer.h>
 #include <kunquat/limits.h>
 #include <math_common.h>
+#include <memory.h>
 #include <Value.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 struct Event_buffer
@@ -40,12 +40,12 @@ Event_buffer* new_Event_buffer(int size)
 {
     assert(size > 0);
     assert(size < 32768);
-    Event_buffer* buf = xalloc(Event_buffer);
+    Event_buffer* buf = memory_alloc_item(Event_buffer);
     if (buf == NULL)
     {
         return NULL;
     }
-    buf->buf = xcalloc(char, size);
+    buf->buf = memory_calloc_items(char, size);
     if (buf->buf == NULL)
     {
         del_Event_buffer(buf);
@@ -181,8 +181,8 @@ void del_Event_buffer(Event_buffer* buf)
     {
         return;
     }
-    xfree(buf->buf);
-    xfree(buf);
+    memory_free(buf->buf);
+    memory_free(buf);
     return;
 }
 

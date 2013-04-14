@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -27,9 +27,9 @@
 #include <DSP_table.h>
 #include <Effect.h>
 #include <Effect_table.h>
+#include <memory.h>
 #include <string_common.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 struct Connections
@@ -111,7 +111,7 @@ Connections* new_Connections_from_string(char* str,
     {
         return NULL;
     }
-    Connections* graph = xalloc(Connections);
+    Connections* graph = memory_alloc_item(Connections);
     if (graph == NULL)
     {
         return NULL;
@@ -410,7 +410,7 @@ void del_Connections(Connections* graph)
     }
     del_AAiter(graph->iter);
     del_AAtree(graph->nodes);
-    xfree(graph);
+    memory_free(graph);
     return;
 }
 

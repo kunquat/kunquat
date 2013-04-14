@@ -21,14 +21,14 @@
 
 #include <Bit_array.h>
 #include <Connections_search.h>
-#include <Pattern.h>
-#include <Pattern_location.h>
-#include <Playdata.h>
 #include <Event.h>
 #include <Event_handler.h>
 #include <events/Event_global_jump.h>
+#include <memory.h>
+#include <Pattern.h>
+#include <Pattern_location.h>
+#include <Playdata.h>
 #include <xassert.h>
-#include <xmemory.h>
 
 
 struct Pattern
@@ -52,7 +52,7 @@ static void evaluate_row(Pattern* pat,
 
 Pattern* new_Pattern(void)
 {
-    Pattern* pat = xalloc(Pattern);
+    Pattern* pat = memory_alloc_item(Pattern);
     if (pat == NULL)
     {
         return NULL;
@@ -83,7 +83,8 @@ Pattern* new_Pattern(void)
     }
     pat->aux = new_Column_aux(NULL, pat->cols[0], 0);
     pat->locations = new_AAtree(
-            (int (*)(const void*, const void*))Pattern_location_cmp, free);
+            (int (*)(const void*, const void*))Pattern_location_cmp,
+            memory_free);
     pat->locations_iter = new_AAiter(pat->locations);
     pat->existents = new_Bit_array(KQT_PAT_INSTANCES_MAX);
     if (pat->aux == NULL ||
@@ -168,7 +169,7 @@ bool Pattern_set_location(Pattern* pat, int song, Pat_inst_ref* piref)
     key = new_Pattern_location(song, piref);
     if (key == NULL || !AAtree_ins(pat->locations, key))
     {
-        xfree(key);
+        memory_free(key);
         return false;
     }
     for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
@@ -689,7 +690,7 @@ void del_Pattern(Pattern* pat)
     del_AAtree(pat->locations);
     del_AAiter(pat->locations_iter);
     del_Bit_array(pat->existents);
-    xfree(pat);
+    memory_free(pat);
     return;
 }
 
