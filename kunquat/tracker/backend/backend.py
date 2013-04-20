@@ -13,6 +13,7 @@
 #
 
 import sys
+import json
 from itertools import islice
 import tarfile
 import math
@@ -60,7 +61,19 @@ class Backend():
                 else:
                     print value
                 print 100 * '-'
-                self._kunquat.set_data(key, value)
+                if key.endswith('.json'):
+                    decoded = json.loads(value)
+                elif key.endswith('.jsone'):
+                    decoded = json.loads(value)
+                elif key.endswith('.jsonf'):
+                    decoded = json.loads(value)
+                elif key.endswith('.jsoni'):
+                    decoded = json.loads(value)
+                elif key.endswith('.jsonln'):
+                    decoded = json.loads(value)
+                else:
+                    decoded = value
+                self._kunquat.set_data(key, decoded)
         tfile.close()
         self._kunquat.validate()
 
