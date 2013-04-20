@@ -95,9 +95,9 @@ class Backend():
         self._kunquat.validate()
 
     def generate_audio(self, nframes):
-        #data_mono = list(islice(self._sine, nframes))
-        #audio_data = (data_mono, data_mono)
-        audio_data = self._kunquat.mix(nframes)
+        data_mono = list(islice(self._sine, nframes))
+        audio_data = (data_mono, data_mono)
+        #audio_data = self._kunquat.mix(nframes)
         self._audio_output.put_audio(audio_data)
 
 
