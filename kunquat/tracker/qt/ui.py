@@ -63,7 +63,6 @@ class Ui():
         one = Pulseaudio
         print 'driver: %s' % one.get_id()
         driver_manager = self._ui_model.get_driver_manager()
-        print driver_manager
         driver_manager.select_driver(one)
 
         #import random

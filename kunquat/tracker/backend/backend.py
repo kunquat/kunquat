@@ -60,13 +60,6 @@ class Backend():
                 assert (key != None) #TODO broken file exception
                 if entry.isfile():
                     value = tfile.extractfile(entry).read()
-                    print 100 * '-'
-                    print key
-                    if key.endswith('.wv'):
-                        print '<%sB wav>' % len(value)
-                    else:
-                        print value
-                    print 100 * '-'
                     if key.endswith('.json'):
                         decoded = json.loads(value)
                     elif key.endswith('.jsone'):
