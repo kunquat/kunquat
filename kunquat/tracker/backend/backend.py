@@ -45,7 +45,7 @@ class Backend():
         self._frontend = None
         self._kunquat = Kunquat()
 
-        if len(sys.argv) > 1:
+        if len(sys.argv) > 1 and sys.argv[1][-4:] in ['.kqt', '.bz2']:
             path = sys.argv[1]
             prefix = 'kqtc00'
             tfile = tarfile.open(path, format=tarfile.USTAR_FORMAT)
