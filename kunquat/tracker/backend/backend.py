@@ -45,37 +45,38 @@ class Backend():
         self._frontend = None
         self._kunquat = Kunquat()
 
-        path = sys.argv[1]
-        prefix = 'kqtc00'
-        tfile = tarfile.open(path, format=tarfile.USTAR_FORMAT)
-        for entry in tfile.getmembers():
-            tarpath = entry.name
-            key = remove_prefix(tarpath, prefix)
-            assert (key != None) #TODO broken file exception
-            if entry.isfile():
-                value = tfile.extractfile(entry).read()
-                print 100 * '-'
-                print key
-                if key.endswith('.wv'):
-                    print '<%sB wav>' % len(value)
-                else:
-                    print value
-                print 100 * '-'
-                if key.endswith('.json'):
-                    decoded = json.loads(value)
-                elif key.endswith('.jsone'):
-                    decoded = json.loads(value)
-                elif key.endswith('.jsonf'):
-                    decoded = json.loads(value)
-                elif key.endswith('.jsoni'):
-                    decoded = json.loads(value)
-                elif key.endswith('.jsonln'):
-                    decoded = json.loads(value)
-                else:
-                    decoded = value
-                self._kunquat.set_data(key, decoded)
-        tfile.close()
-        self._kunquat.validate()
+        if len(sys.argv) > 1:
+            path = sys.argv[1]
+            prefix = 'kqtc00'
+            tfile = tarfile.open(path, format=tarfile.USTAR_FORMAT)
+            for entry in tfile.getmembers():
+                tarpath = entry.name
+                key = remove_prefix(tarpath, prefix)
+                assert (key != None) #TODO broken file exception
+                if entry.isfile():
+                    value = tfile.extractfile(entry).read()
+                    print 100 * '-'
+                    print key
+                    if key.endswith('.wv'):
+                        print '<%sB wav>' % len(value)
+                    else:
+                        print value
+                    print 100 * '-'
+                    if key.endswith('.json'):
+                        decoded = json.loads(value)
+                    elif key.endswith('.jsone'):
+                        decoded = json.loads(value)
+                    elif key.endswith('.jsonf'):
+                        decoded = json.loads(value)
+                    elif key.endswith('.jsoni'):
+                        decoded = json.loads(value)
+                    elif key.endswith('.jsonln'):
+                        decoded = json.loads(value)
+                    else:
+                        decoded = value
+                    self._kunquat.set_data(key, decoded)
+            tfile.close()
+            self._kunquat.validate()
 
         self._sine = gen_sine(48000)
 
