@@ -40,6 +40,7 @@ class Ui():
         self._qp_timer = QTimer()
         self._driver_switch_timer = QTimer()
         self._ui_model = None
+        self._asdfasdf = False
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -55,12 +56,20 @@ class Ui():
         self._qp_timer.start(20)
 
     def select_random_driver(self):
-        import random
-        driver_manager = self._ui_model.get_driver_manager()
-        drivers = driver_manager.get_drivers()
-        one = random.choice(drivers)
+        if self._asdfasdf:
+            return
+        self._asdfasdf = True
+        from kunquat.tracker.audio.drivers.pulseaudio import Pulseaudio
+        one = Pulseaudio
         print 'driver: %s' % one.get_id()
+        driver_manager = self._ui_model.get_driver_manager()
+        print driver_manager
         driver_manager.select_driver(one)
+
+        #import random
+        #driver_manager = self._ui_model.get_driver_manager()
+        #drivers = driver_manager.get_drivers()
+        #one = random.choice(drivers)
 
     def _start_driver_randomizer(self):
         QObject.connect(
