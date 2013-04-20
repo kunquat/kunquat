@@ -20,6 +20,10 @@ class TestAudioPump(unittest.TestCase):
         self._thread = AudioPump()
 
     def test_halt(self):
+        class DummyAudioSource():
+            def generate_audio(self, nframes):
+                pass
+        self._thread.set_audio_source(DummyAudioSource())
         self._thread.halt()
         self._thread.run()
 
