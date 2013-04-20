@@ -38,11 +38,6 @@ class AudioPump(threading.Thread):
         nframes = 2048
         self._audio_source.generate_audio(nframes)
 
-    def _pump(self):
-        self._request_more_audio()
-        audio_data = self._buffer.get()
-        self._write_method(audio_data)
-
     def halt(self):
         self._buffer.put(HALT)
 
@@ -50,7 +45,8 @@ class AudioPump(threading.Thread):
         self._request_more_audio()
         audio_data = self._buffer.get()
         while audio_data != HALT:
-            self._pump()
+            self._write_method(audio_data)
+            self._request_more_audio()
             audio_data = self._buffer.get()
 
 
