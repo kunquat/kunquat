@@ -12,6 +12,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from Queue import Queue
 import threading
 import unittest
 from time import sleep
@@ -37,6 +38,17 @@ class TestAbstractDriver():
         sleep(0.2)
         end = threading.active_count()
         self.assertEqual(start, end)
+
+    def test_audio_gets_requested(self):
+        q = Queue()
+        class AudioSourceWithQueue():
+            def generate_audio(self, nframes):
+                q.put('foo')
+        driver = self._DriverClass()
+        driver.set_audio_source(AudioSourceWithQueue())
+        driver.start()
+        q.get()
+        driver.close()
 
     def test_emptypush(self):
         driver = self._DriverClass()
