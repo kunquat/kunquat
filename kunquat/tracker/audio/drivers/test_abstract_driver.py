@@ -41,13 +41,15 @@ class TestAbstractDriver():
 
     def test_audio_gets_requested(self):
         q = Queue()
+        driver = self._DriverClass()
         class AudioSourceWithQueue():
             def generate_audio(self, nframes):
+                driver.put_audio(([0],[0]))
                 q.put('foo')
-        driver = self._DriverClass()
         driver.set_audio_source(AudioSourceWithQueue())
         driver.start()
-        q.get()
+        for _ in range(8):
+            q.get()
         driver.close()
 
     def test_emptypush(self):
