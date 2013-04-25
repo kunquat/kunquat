@@ -25,7 +25,7 @@
 #include <Handle_private.h>
 #include <kunquat/limits.h>
 #include <memory.h>
-#include <Song.h>
+#include <Module.h>
 #include <string_common.h>
 #include <Playdata.h>
 #include <Voice_pool.h>
@@ -56,7 +56,7 @@ bool kqt_Handle_init(kqt_Handle* handle, long buffer_size)
     }
     handle->data_is_valid = true;
     handle->data_is_validated = true;
-    handle->song = NULL;
+    handle->module = NULL;
     handle->destroy = NULL;
     handle->get_data = NULL;
     handle->get_data_length = NULL;
@@ -77,8 +77,8 @@ bool kqt_Handle_init(kqt_Handle* handle, long buffer_size)
         (void)removed;
         return false;
     }
-    handle->song = new_Song(buffer_size);
-    if (handle->song == NULL)
+    handle->module = new_Module(buffer_size);
+    if (handle->module == NULL)
     {
         kqt_Handle_set_error(NULL, ERROR_MEMORY, "Couldn't allocate memory");
         bool removed = remove_handle(handle);
@@ -143,9 +143,9 @@ int kqt_Handle_validate(kqt_Handle* handle)
     }
 
     // Check album
-    if (handle->song->album_is_existent)
+    if (handle->module->album_is_existent)
     {
-        const Track_list* tl = handle->song->track_list;
+        const Track_list* tl = handle->module->track_list;
         set_invalid_if(
                 tl == NULL,
                 "Album does not contain a track list");
@@ -157,13 +157,13 @@ int kqt_Handle_validate(kqt_Handle* handle)
     // Check songs
     for (int i = 0; i < KQT_SONGS_MAX; ++i)
     {
-        if (!Subsong_table_get_existent(handle->song->subsongs, i))
+        if (!Subsong_table_get_existent(handle->module->subsongs, i))
             continue;
 
         // Check for orphans
-        const Track_list* tl = handle->song->track_list;
+        const Track_list* tl = handle->module->track_list;
         set_invalid_if(
-                !handle->song->album_is_existent || tl == NULL,
+                !handle->module->album_is_existent || tl == NULL,
                 "Module contains song %d but no album", i);
 
         bool found = false;
@@ -178,7 +178,7 @@ int kqt_Handle_validate(kqt_Handle* handle)
         set_invalid_if(!found, "Song %d is not included in the album", i);
 
         // Check for empty songs
-        const Order_list* ol = handle->song->order_lists[i];
+        const Order_list* ol = handle->module->order_lists[i];
         set_invalid_if(
                 ol == NULL || Order_list_get_len(ol) == 0,
                 "Song %d does not contain systems", i);
@@ -187,10 +187,10 @@ int kqt_Handle_validate(kqt_Handle* handle)
         for (size_t system = 0; system < Order_list_get_len(ol); ++system)
         {
             const Pat_inst_ref* piref = Order_list_get_pat_inst_ref(ol, system);
-            Pattern* pat = Pat_table_get(handle->song->pats, piref->pat);
+            Pattern* pat = Pat_table_get(handle->module->pats, piref->pat);
 
             set_invalid_if(
-                    !Pat_table_get_existent(handle->song->pats, piref->pat) ||
+                    !Pat_table_get_existent(handle->module->pats, piref->pat) ||
                     pat == NULL ||
                     !Pattern_get_inst_existent(pat, piref->inst),
                     "Missing pattern instance [%" PRId16 ", %" PRId16 "]",
@@ -199,15 +199,15 @@ int kqt_Handle_validate(kqt_Handle* handle)
     }
 
     // Check for nonexistent songs in the track list
-    if (handle->song->album_is_existent)
+    if (handle->module->album_is_existent)
     {
-        const Track_list* tl = handle->song->track_list;
+        const Track_list* tl = handle->module->track_list;
         assert(tl != NULL);
 
         for (size_t i = 0; i < Track_list_get_len(tl); ++i)
         {
             set_invalid_if(
-                    !Subsong_table_get_existent(handle->song->subsongs,
+                    !Subsong_table_get_existent(handle->module->subsongs,
                         Track_list_get_song_index(tl, i)),
                     "Album includes nonexistent song %d", i);
         }
@@ -216,10 +216,10 @@ int kqt_Handle_validate(kqt_Handle* handle)
     // Check existing patterns
     for (int i = 0; i < KQT_PATTERNS_MAX; ++i)
     {
-        if (!Pat_table_get_existent(handle->song->pats, i))
+        if (!Pat_table_get_existent(handle->module->pats, i))
             continue;
 
-        Pattern* pat = Pat_table_get(handle->song->pats, i);
+        Pattern* pat = Pat_table_get(handle->module->pats, i);
         set_invalid_if(
                 pat == NULL,
                 "Pattern %d exists but contains no data", i);
@@ -234,13 +234,13 @@ int kqt_Handle_validate(kqt_Handle* handle)
 
                 // Check that the instance is used in the album
                 set_invalid_if(
-                        !handle->song->album_is_existent,
+                        !handle->module->album_is_existent,
                         "Pattern instance [%d, %d] exists but no album"
                         " is present", i, k);
 
                 bool instance_found = false;
 
-                const Track_list* tl = handle->song->track_list;
+                const Track_list* tl = handle->module->track_list;
                 assert(tl != NULL);
 
                 for (size_t track = 0; track < Track_list_get_len(tl); ++track)
@@ -248,11 +248,11 @@ int kqt_Handle_validate(kqt_Handle* handle)
                     const int song_index = Track_list_get_song_index(tl, track);
 
                     if (!Subsong_table_get_existent(
-                                handle->song->subsongs,
+                                handle->module->subsongs,
                                 song_index))
                         continue;
 
-                    const Order_list* ol = handle->song->order_lists[song_index];
+                    const Order_list* ol = handle->module->order_lists[song_index];
                     assert(ol != NULL);
 
                     for (size_t system = 0; system < Order_list_get_len(ol); ++system)
@@ -396,7 +396,7 @@ void* kqt_Handle_get_data(kqt_Handle* handle, const char* key)
 {
     check_handle(handle, NULL);
     check_key(handle, key, NULL);
-    if (handle->mode == KQT_MEM)
+    if (handle->modulee == KQT_MEM)
     {
         kqt_Handle_set_error(handle, ERROR_ARGUMENT,
                 "Cannot get data from a write-only Kunquat Handle.");
@@ -423,7 +423,7 @@ long kqt_Handle_get_data_length(kqt_Handle* handle, const char* key)
 {
     check_handle(handle, -1);
     check_key(handle, key, -1);
-    if (handle->mode == KQT_MEM)
+    if (handle->modulee == KQT_MEM)
     {
         kqt_Handle_set_error(handle, ERROR_ARGUMENT,
                 "Cannot get data from a write-only Kunquat Handle.");
@@ -539,6 +539,13 @@ bool key_is_valid(kqt_Handle* handle, const char* key)
 }
 
 
+Module* Handle_get_module(kqt_Handle* handle)
+{
+    assert(handle != NULL);
+    return handle->module;
+}
+
+
 void kqt_del_Handle(kqt_Handle* handle)
 {
     check_handle_void(handle);
@@ -548,10 +555,10 @@ void kqt_del_Handle(kqt_Handle* handle)
                 "Invalid Kunquat Handle: %p", (void*)handle);
         return;
     }
-    if (handle->song != NULL)
+    if (handle->module != NULL)
     {
-        del_Song(handle->song);
-        handle->song = NULL;
+        del_Module(handle->module);
+        handle->module = NULL;
     }
     if (handle->returned_values != NULL)
     {

@@ -42,7 +42,7 @@ kqt_Handle* kqt_new_Handle(void)
     }
     handle_m->handle.set_data = Handle_m_set_data;
     handle_m->handle.destroy = del_Handle_m;
-    if (!Device_sync((Device*)handle_m->handle.song))
+    if (!Device_sync((Device*)handle_m->handle.module))
     {
         kqt_Handle_set_error(NULL, ERROR_MEMORY, "Couldn't allocate memory");
         kqt_del_Handle(&handle_m->handle);

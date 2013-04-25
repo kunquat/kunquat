@@ -38,8 +38,8 @@ struct Instrument
 
 //    double default_force;       ///< Default force.
 
-    Scale** scales;             ///< The Scales of the Song.
-    Scale*** default_scale;     ///< The default Scale of the Song.
+    Scale** scales;             ///< The Scales of the Module.
+    Scale*** default_scale;     ///< The default Scale of the Module.
     int scale_index;            ///< The index of the Scale used (-1 means the default).
 
     Instrument_params params;   ///< All the Instrument parameters that Generators need.

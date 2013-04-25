@@ -1,0 +1,298 @@
+
+
+/*
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ *
+ * This file is part of Kunquat.
+ *
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
+ *
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
+ */
+
+
+#ifndef K_MODULE_H
+#define K_MODULE_H
+
+
+#include <stdint.h>
+
+#include <Bind.h>
+#include <Connections.h>
+#include <Device.h>
+#include <Environment.h>
+#include <kunquat/limits.h>
+#include <frame.h>
+#include <Subsong_table.h>
+#include <Pat_table.h>
+#include <Effect_table.h>
+#include <Ins_table.h>
+#include <Order_list.h>
+#include <Random.h>
+#include <Scale.h>
+#include <Track_list.h>
+#include <Playdata.h>
+#include <File_base.h>
+#include <Event_handler.h>
+
+
+typedef struct Module
+{
+    Device parent;
+    uint64_t random_seed;               ///< The master random seed of the Module.
+    Random* random;                     ///< The source for random data in the Module.
+    Subsong_table* subsongs;            ///< The Subsongs.
+    bool album_is_existent;             ///< Album existence status.
+    Track_list* track_list;             ///< Track list.
+    Order_list* order_lists[KQT_SONGS_MAX]; ///< Order lists.
+    Pat_table* pats;                    ///< The Patterns.
+    Ins_table* insts;                   ///< The Instruments.
+    Effect_table* effects;              ///< The global Effects.
+    Connections* connections;           ///< Device connections.
+    Scale* scales[KQT_SCALES_MAX];      ///< The Scales.
+    double mix_vol_dB;                  ///< Mixing volume in dB.
+    double mix_vol;                     ///< Mixing volume.
+//    uint16_t init_subsong;              ///< Initial subsong number.
+    Playdata* play_state;               ///< Playback state.
+    Event_handler* event_handler;       ///< The Event handler.
+    Playdata* skip_state;               ///< Skip state (used for length calculation).
+    Channel* channels[KQT_COLUMNS_MAX]; ///< The channels used.
+    Event_handler* skip_handler;        ///< Skip state Event handler.
+    Environment* env;                   ///< Environment variables.
+    Bind* bind;
+} Module;
+
+
+#define SONG_DEFAULT_BUF_COUNT (2)
+#define SONG_DEFAULT_MIX_VOL (-8)
+#define SONG_DEFAULT_INIT_SUBSONG (0)
+
+
+/**
+ * Creates a new Module.
+ *
+ * The caller shall eventually call del_Module() to destroy the Module returned.
+ *
+ * \param buf_size   Size of the mixing buffer -- must be > \c 0 and
+ *                   <= KQT_BUFFER_SIZE_MAX.
+ *
+ * \see del_Module()
+ *
+ * \return   The new Module if successful, or \c NULL if memory allocation
+ *           failed.
+ */
+Module* new_Module(uint32_t buf_size);
+
+
+/**
+ * Parses the composition header of a Module.
+ *
+ * \param module   The Module -- must not be \c NULL.
+ * \param str      The textual description -- must not be \c NULL.
+ * \param state    The Read state -- must not be \c NULL.
+ *
+ * \return   \c true if successful, otherwise \c false.
+ */
+bool Module_parse_composition(Module* module, char* str, Read_state* state);
+
+
+/**
+ * Parses the random seed of the composition.
+ *
+ * \param module   The Module -- must not be \c NULL.
+ * \param str      The textual description -- must not be \c NULL.
+ * \param state    The Read state -- must not be \c NULL.
+ *
+ * \return   \c true if successful, otherwise \c false.
+ */
+bool Module_parse_random_seed(Module* module, char* str, Read_state* state);
+
+
+/**
+ * Mixes a portion of the Module.
+ *
+ * \param module    The Module -- must not be \c NULL.
+ * \param nframes   The amount of frames to be mixed.
+ * \param eh        The Event handler -- must not be \c NULL.
+ *
+ * \return   The amount of frames actually mixed. This is always
+ *           <= \a nframes.
+ */
+uint32_t Module_mix(Module* module, uint32_t nframes, Event_handler* eh);
+
+
+/**
+ * Skips part of the Module.
+ *
+ * \param module      The Module -- must not be \c NULL.
+ * \param eh       The Event handler -- must not be \c NULL.
+ * \param amount   The amount of frames to be skipped.
+ *
+ * \return   The amount of frames actually skipped. This is <= \a amount.
+ */
+uint64_t Module_skip(Module* module, Event_handler* eh, uint64_t amount);
+
+
+/**
+ * Sets the mixing volume of the Module.
+ *
+ * \param module    The Module -- must not be \c NULL.
+ * \param mix_vol   The volume -- must be finite or -INFINITY.
+ */
+void Module_set_mix_vol(Module* module, double mix_vol);
+
+
+/**
+ * Gets the mixing volume of the Module.
+ *
+ * \param module   The Module -- must not be \c NULL.
+ *
+ * \return   The mixing volume.
+ */
+double Module_get_mix_vol(Module* module);
+
+
+/**
+ * Sets the initial subsong of the Module.
+ *
+ * \param module   The Module -- must not be \c NULL.
+ * \param num      The subsong number -- must be < \c KQT_SONGS_MAX.
+ */
+//void Module_set_subsong(Module* module, uint16_t num);
+
+
+/**
+ * Gets the initial subsong of the Module.
+ *
+ * \param module   The Module -- must not be \c NULL.
+ *
+ * \return   The initial subsong number.
+ */
+//uint16_t Module_get_subsong(Module* module);
+
+
+/**
+ * Gets the Subsong table from the Module.
+ *
+ * \param module   The Module -- must not be \c NULL.
+ *
+ * \return   The Subsong table.
+ */
+Subsong_table* Module_get_subsongs(Module* module);
+
+
+/**
+ * Gets the Patterns of the Module.
+ *
+ * \param module   The Module -- must not be \c NULL.
+ *
+ * \return   The Pattern table.
+ */
+Pat_table* Module_get_pats(Module* module);
+
+
+/**
+ * Gets the Instruments of the Module.
+ *
+ * \param module   The Module -- must not be \c NULL.
+ *
+ * \return   The Instrument table.
+ */
+Ins_table* Module_get_insts(Module* module);
+
+
+/**
+ * Gets the Effects of the Module.
+ *
+ * \param module   The Module -- must not be \c NULL.
+ *
+ * \return   The Effect table.
+ */
+Effect_table* Module_get_effects(Module* module);
+
+
+/**
+ * Sets the Bind of the Module.
+ *
+ * \param module   The Module -- must not be \c NULL.
+ * \param bind     The Bind -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Module_set_bind(Module* module, Bind* bind);
+
+
+/**
+ * Gets the array of Scales of the Module.
+ *
+ * \param module   The Module -- must not be \c NULL.
+ *
+ * \return   The Scales.
+ */
+Scale** Module_get_scales(Module* module);
+
+
+/**
+ * Sets a Scale in the Module.
+ *
+ * \param module   The Module -- must not be \c NULL.
+ * \param index    The Scale index -- must be >= 0 and < KQT_SCALES_MAX.
+ * \param scale    The Scale -- must not be \c NULL.
+ */
+void Module_set_scale(Module* module, int index, Scale* scale);
+
+
+/**
+ * Gets a Scale of the Module.
+ *
+ * \param module   The Module -- must not be \c NULL.
+ * \param index    The Scale index -- must be >= 0 and < KQT_SCALES_MAX.
+ *
+ * \return   The Scale.
+ */
+Scale* Module_get_scale(Module* module, int index);
+
+
+/**
+ * Gets an indirect reference to the active Scale of the Module.
+ *
+ * \param module   The Module -- must not be \c NULL.
+ *
+ * \return   The reference.
+ */
+Scale*** Module_get_active_scale(Module* module);
+
+
+/**
+ * Creates a new Scale for the Module.
+ *
+ * \param module   The Module -- must not be \c NULL.
+ * \param index    The Scale index -- must be >= 0 and < KQT_SCALES_MAX.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Module_create_scale(Module* module, int index);
+
+
+/**
+ * Removes a Scale from the Module.
+ *
+ * \param module   The Module -- must not be \c NULL.
+ * \param index    The Scale index -- must be >= 0 and < KQT_SCALES_MAX.
+ *                 If the Scale doesn't exist, nothing will be done.
+ */
+void Module_remove_scale(Module* module, int index);
+
+
+/**
+ * Destroys an existing Module.
+ *
+ * \param module   The Module, or \c NULL.
+ */
+void del_Module(Module* module);
+
+
+#endif // K_MODULE_H
+
+

@@ -21,7 +21,7 @@
 #include <kunquat/Handle.h>
 #include <kunquat/Player.h>
 
-#include <Song.h>
+#include <Module.h>
 #include <Playdata.h>
 #include <Voice_pool.h>
 
@@ -55,7 +55,7 @@ struct kqt_Handle
 {
     bool data_is_valid;
     bool data_is_validated;
-    Song* song;
+    Module* module;
     AAtree* returned_values;
     void* (*get_data)(kqt_Handle* handle, const char* key);
     long (*get_data_length)(kqt_Handle* handle, const char* key);
@@ -218,6 +218,16 @@ bool key_is_valid(kqt_Handle* handle, const char* key);
         }                                   \
     }                                       \
     else (void)0
+
+
+/**
+ * Gets the module associated with the Handle.
+ *
+ * \param handle   The Handle -- must not be \c NULL.
+ *
+ * \return   The Module.
+ */
+Module* Handle_get_module(kqt_Handle* handle);
 
 
 #endif // KQT_HANDLE_PRIVATE_H

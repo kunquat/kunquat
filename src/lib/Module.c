@@ -25,258 +25,258 @@
 #include <memory.h>
 #include <Random.h>
 #include <Real.h>
-#include <Song.h>
+#include <Module.h>
 #include <string_common.h>
 #include <xassert.h>
 
 
 /**
- * Resets the Song.
+ * Resets the Module.
  *
- * \param device   The Song Device -- must not be \c NULL.
+ * \param device   The Module Device -- must not be \c NULL.
  */
-static void Song_reset(Device* device);
+static void Module_reset(Device* device);
 
 
 /**
- * Sets the master random seed of the Song.
+ * Sets the master random seed of the Module.
  *
- * \param song   The Song -- must not be \c NULL.
+ * \param module   The Module -- must not be \c NULL.
  * \param seed   The random seed.
  */
-static void Song_set_random_seed(Song* song, uint64_t seed);
+static void Module_set_random_seed(Module* module, uint64_t seed);
 
 
 /**
- * Sets the mixing rate of the Song.
+ * Sets the mixing rate of the Module.
  *
  * This function sets the mixing rate for all the Instruments and Effects.
  *
- * \param device     The Song Device -- must not be \c NULL.
+ * \param device     The Module Device -- must not be \c NULL.
  * \param mix_rate   The mixing frequency -- must be > \c 0.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-static bool Song_set_mix_rate(Device* device, uint32_t mix_rate);
+static bool Module_set_mix_rate(Device* device, uint32_t mix_rate);
 
 
 /**
- * Sets the buffer size of the Song.
+ * Sets the buffer size of the Module.
  *
  * This function sets the buffer size for all the Instruments and Effects.
  *
- * \param device   The Song Device -- must not be \c NULL.
+ * \param device   The Module Device -- must not be \c NULL.
  * \param size     The new buffer size -- must be > \c 0 and
  *                 <= \c KQT_BUFFER_SIZE_MAX.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-static bool Song_set_buffer_size(Device* device, uint32_t size);
+static bool Module_set_buffer_size(Device* device, uint32_t size);
 
 
 /**
- * Synchronises the Song.
+ * Synchronises the Module.
  *
- * This function synchronises all the Devices the Song contains. It should be
+ * This function synchronises all the Devices the Module contains. It should be
  * called after loading a Kunquat composition.
  *
- * \param device   The Song Device -- must not be \c NULL.
+ * \param device   The Module Device -- must not be \c NULL.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-static bool Song_sync(Device* device);
+static bool Module_sync(Device* device);
 
 
-Song* new_Song(uint32_t buf_size)
+Module* new_Module(uint32_t buf_size)
 {
     assert(buf_size > 0);
     assert(buf_size <= KQT_BUFFER_SIZE_MAX);
-    Song* song = memory_alloc_item(Song);
-    if (song == NULL)
+    Module* module = memory_alloc_item(Module);
+    if (module == NULL)
     {
         return NULL;
     }
-    if (!Device_init(&song->parent, buf_size, 48000))
+    if (!Device_init(&module->parent, buf_size, 48000))
     {
-        memory_free(song);
+        memory_free(module);
         return NULL;
     }
-    Device_set_existent(&song->parent, true);
-    Device_set_reset(&song->parent, Song_reset);
-    Device_set_mix_rate_changer(&song->parent, Song_set_mix_rate);
-    Device_set_buffer_size_changer(&song->parent, Song_set_buffer_size);
-    Device_set_sync(&song->parent, Song_sync);
-    Device_register_port(&song->parent, DEVICE_PORT_TYPE_RECEIVE, 0);
+    Device_set_existent(&module->parent, true);
+    Device_set_reset(&module->parent, Module_reset);
+    Device_set_mix_rate_changer(&module->parent, Module_set_mix_rate);
+    Device_set_buffer_size_changer(&module->parent, Module_set_buffer_size);
+    Device_set_sync(&module->parent, Module_sync);
+    Device_register_port(&module->parent, DEVICE_PORT_TYPE_RECEIVE, 0);
 
     // Clear fields
-    song->subsongs = NULL;
-    song->pats = NULL;
-    song->insts = NULL;
-    song->effects = NULL;
-    song->connections = NULL;
-    song->play_state = NULL;
-    song->event_handler = NULL;
-    song->skip_state = NULL;
-    song->skip_handler = NULL;
-    song->random = NULL;
-    song->env = NULL;
-    song->bind = NULL;
-    song->album_is_existent = false;
-    song->track_list = NULL;
+    module->subsongs = NULL;
+    module->pats = NULL;
+    module->insts = NULL;
+    module->effects = NULL;
+    module->connections = NULL;
+    module->play_state = NULL;
+    module->event_handler = NULL;
+    module->skip_state = NULL;
+    module->skip_handler = NULL;
+    module->random = NULL;
+    module->env = NULL;
+    module->bind = NULL;
+    module->album_is_existent = false;
+    module->track_list = NULL;
     for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
     {
-        song->channels[i] = NULL;
+        module->channels[i] = NULL;
     }
     for (int i = 0; i < KQT_SONGS_MAX; ++i)
     {
-        song->order_lists[i] = NULL;
+        module->order_lists[i] = NULL;
     }
     for (int i = 0; i < KQT_SCALES_MAX; ++i)
     {
-        song->scales[i] = NULL;
+        module->scales[i] = NULL;
     }
 
     // Create fields
-    song->random = new_Random();
-    song->subsongs = new_Subsong_table();
-    song->pats = new_Pat_table(KQT_PATTERNS_MAX);
-    song->insts = new_Ins_table(KQT_INSTRUMENTS_MAX);
-    song->effects = new_Effect_table(KQT_EFFECTS_MAX);
-    if (song->random == NULL       ||
-            song->subsongs == NULL ||
-            song->pats == NULL     ||
-            song->insts == NULL    ||
-            song->effects == NULL)
+    module->random = new_Random();
+    module->subsongs = new_Subsong_table();
+    module->pats = new_Pat_table(KQT_PATTERNS_MAX);
+    module->insts = new_Ins_table(KQT_INSTRUMENTS_MAX);
+    module->effects = new_Effect_table(KQT_EFFECTS_MAX);
+    if (module->random == NULL       ||
+            module->subsongs == NULL ||
+            module->pats == NULL     ||
+            module->insts == NULL    ||
+            module->effects == NULL)
     {
-        del_Song(song);
+        del_Module(module);
         return NULL;
     }
-    song->scales[0] = new_Scale(SCALE_DEFAULT_REF_PITCH,
+    module->scales[0] = new_Scale(SCALE_DEFAULT_REF_PITCH,
             SCALE_DEFAULT_OCTAVE_RATIO);
-    if (song->scales[0] == NULL)
+    if (module->scales[0] == NULL)
     {
-        del_Song(song);
+        del_Module(module);
         return NULL;
     }
-    song->env = new_Environment();
-    if (song->env == NULL)
+    module->env = new_Environment();
+    if (module->env == NULL)
     {
-        del_Song(song);
+        del_Module(module);
         return NULL;
     }
-    song->play_state = new_Playdata(song->insts,
-                                    song->env,
-                                    song->random);
-    if (song->play_state == NULL)
+    module->play_state = new_Playdata(module->insts,
+                                    module->env,
+                                    module->random);
+    if (module->play_state == NULL)
     {
-        del_Song(song);
+        del_Module(module);
         return NULL;
     }
-    song->play_state->subsongs = Song_get_subsongs(song);
-    song->play_state->order_lists = song->order_lists;
-    song->play_state->scales = song->scales;
-    song->play_state->active_scale = &song->play_state->scales[0];
-    song->skip_state = new_Playdata_silent(song->env, 1000000000);
-    if (song->skip_state == NULL)
+    module->play_state->subsongs = Module_get_subsongs(module);
+    module->play_state->order_lists = module->order_lists;
+    module->play_state->scales = module->scales;
+    module->play_state->active_scale = &module->play_state->scales[0];
+    module->skip_state = new_Playdata_silent(module->env, 1000000000);
+    if (module->skip_state == NULL)
     {
-        del_Song(song);
+        del_Module(module);
         return NULL;
     }
-    song->skip_state->subsongs = Song_get_subsongs(song);
-    song->skip_state->order_lists = song->order_lists;
+    module->skip_state->subsongs = Module_get_subsongs(module);
+    module->skip_state->order_lists = module->order_lists;
 
-    if (!Device_init_buffer(&song->parent, DEVICE_PORT_TYPE_RECEIVE, 0))
+    if (!Device_init_buffer(&module->parent, DEVICE_PORT_TYPE_RECEIVE, 0))
     {
-        del_Song(song);
+        del_Module(module);
         return NULL;
     }
     Read_state* conn_state = READ_STATE_AUTO;
-    song->connections = new_Connections_from_string(NULL, false,
-                                                    song->insts,
-                                                    song->effects,
+    module->connections = new_Connections_from_string(NULL, false,
+                                                    module->insts,
+                                                    module->effects,
                                                     NULL,
-                                                    &song->parent,
+                                                    &module->parent,
                                                     conn_state);
-    if (song->connections == NULL)
+    if (module->connections == NULL)
     {
         assert(!conn_state->error);
-        del_Song(song);
+        del_Module(module);
         return NULL;
     }
-    if (!Connections_prepare(song->connections))
+    if (!Connections_prepare(module->connections))
     {
-        del_Song(song);
+        del_Module(module);
         return NULL;
     }
 
     for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
     {
-        song->channels[i] = new_Channel(song->insts, i,
-                                        song->play_state->voice_pool,
-                                        song->env,
-                                        &song->play_state->tempo,
-                                        &song->play_state->freq);
-        if (song->channels[i] == NULL)
+        module->channels[i] = new_Channel(module->insts, i,
+                                        module->play_state->voice_pool,
+                                        module->env,
+                                        &module->play_state->tempo,
+                                        &module->play_state->freq);
+        if (module->channels[i] == NULL)
         {
-            del_Song(song);
+            del_Module(module);
             return NULL;
         }
     }
     Channel_state* ch_states[KQT_COLUMNS_MAX] = { NULL };
     for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
     {
-        ch_states[i] = &song->channels[i]->cur_state;
+        ch_states[i] = &module->channels[i]->cur_state;
     }
 
-    song->event_handler = new_Event_handler(song->play_state,
+    module->event_handler = new_Event_handler(module->play_state,
                                             ch_states,
-                                            song->insts,
-                                            song->effects);
-    song->skip_handler = new_Event_handler(song->skip_state,
+                                            module->insts,
+                                            module->effects);
+    module->skip_handler = new_Event_handler(module->skip_state,
                                            ch_states,
-                                           song->insts,
-                                           song->effects);
-    if (song->event_handler == NULL || song->skip_handler == NULL)
+                                           module->insts,
+                                           module->effects);
+    if (module->event_handler == NULL || module->skip_handler == NULL)
     {
-        del_Song(song);
+        del_Module(module);
         return NULL;
     }
     Read_state* state = READ_STATE_AUTO;
-    Bind* bind = new_Bind(NULL, Event_handler_get_names(song->event_handler),
+    Bind* bind = new_Bind(NULL, Event_handler_get_names(module->event_handler),
                           state);
-    if (bind == NULL || !Song_set_bind(song, bind))
+    if (bind == NULL || !Module_set_bind(module, bind))
     {
         assert(!state->error);
         del_Bind(bind);
-        del_Song(song);
+        del_Module(module);
         return NULL;
     }
 
-    if (Scale_ins_note(song->scales[0], 0,
+    if (Scale_ins_note(module->scales[0], 0,
                        Real_init_as_frac(REAL_AUTO, 1, 1)) < 0)
     {
-        del_Song(song);
+        del_Module(module);
         return NULL;
     }
     for (int i = 1; i < 12; ++i)
     {
-        if (Scale_ins_note_cents(song->scales[0], i, i * 100) < 0)
+        if (Scale_ins_note_cents(module->scales[0], i, i * 100) < 0)
         {
-            del_Song(song);
+            del_Module(module);
             return NULL;
         }
     }
-    song->mix_vol_dB = SONG_DEFAULT_MIX_VOL;
-    song->mix_vol = exp2(song->mix_vol_dB / 6);
-    //song->init_subsong = SONG_DEFAULT_INIT_SUBSONG;
-    Song_set_random_seed(song, 0);
-    return song;
+    module->mix_vol_dB = SONG_DEFAULT_MIX_VOL;
+    module->mix_vol = exp2(module->mix_vol_dB / 6);
+    //module->init_subsong = SONG_DEFAULT_INIT_SUBSONG;
+    Module_set_random_seed(module, 0);
+    return module;
 }
 
 
-bool Song_parse_composition(Song* song, char* str, Read_state* state)
+bool Module_parse_composition(Module* module, char* str, Read_state* state)
 {
-    assert(song != NULL);
+    assert(module != NULL);
     assert(state != NULL);
     if (state->error)
     {
@@ -315,7 +315,7 @@ bool Song_parse_composition(Song* song, char* str, Read_state* state)
                     if (!isfinite(mix_vol) && mix_vol != -INFINITY)
                     {
                         Read_state_set_error(state,
-                                 "Invalid mixing volume: %f", song->mix_vol_dB);
+                                 "Invalid mixing volume: %f", module->mix_vol_dB);
                         return false;
                     }
                 }
@@ -339,15 +339,15 @@ bool Song_parse_composition(Song* song, char* str, Read_state* state)
         }
     }
 
-    song->mix_vol_dB = mix_vol;
-    song->mix_vol = exp2(song->mix_vol_dB / 6);
+    module->mix_vol_dB = mix_vol;
+    module->mix_vol = exp2(module->mix_vol_dB / 6);
     return true;
 }
 
 
-bool Song_parse_random_seed(Song* song, char* str, Read_state* state)
+bool Module_parse_random_seed(Module* module, char* str, Read_state* state)
 {
-    assert(song != NULL);
+    assert(module != NULL);
     assert(state != NULL);
     if (state->error)
     {
@@ -367,14 +367,14 @@ bool Song_parse_random_seed(Song* song, char* str, Read_state* state)
             return false;
         }
     }
-    Song_set_random_seed(song, seed);
+    Module_set_random_seed(module, seed);
     return true;
 }
 
 
-uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
+uint32_t Module_mix(Module* module, uint32_t nframes, Event_handler* eh)
 {
-    assert(song != NULL);
+    assert(module != NULL);
     assert(eh != NULL);
     Playdata* play = Event_handler_get_global_state(eh);
     if (play->mode == STOP)
@@ -382,15 +382,15 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
         return 0;
     }
 
-    if (nframes > Device_get_buffer_size((Device*)song) && !play->silent)
+    if (nframes > Device_get_buffer_size((Device*)module) && !play->silent)
     {
-        nframes = Device_get_buffer_size((Device*)song);
+        nframes = Device_get_buffer_size((Device*)module);
     }
     if (!play->silent)
     {
-        if (song->connections != NULL)
+        if (module->connections != NULL)
         {
-            Connections_clear_buffers(song->connections, 0, nframes);
+            Connections_clear_buffers(module->connections, 0, nframes);
         }
         Voice_pool_prepare(play->voice_pool);
     }
@@ -399,7 +399,7 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
     {
         // FIXME: setting the tempo on both states breaks initial tempo
         //        if it is set after calculating duration
-        Playdata* states[2] = { song->play_state, song->skip_state, };
+        Playdata* states[2] = { module->play_state, module->skip_state, };
         for (int i = 0; i < 2; ++i)
         {
             Playdata* state = states[i];
@@ -410,14 +410,14 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
                 const Track_list* tl = state->track_list;
                 if (tl != NULL && track_index < Track_list_get_len(tl))
                 {
-                    int16_t song_index = Track_list_get_song_index(
+                    int16_t module_index = Track_list_get_song_index(
                             tl, state->track);
                     const bool existent = Subsong_table_get_existent(
                             play->subsongs,
-                            song_index);
+                            module_index);
                     Subsong* ss = Subsong_table_get(
                             play->subsongs,
-                            song_index);
+                            module_index);
                     if (existent && ss != NULL)
                         state->tempo = Subsong_get_tempo(ss);
                 }
@@ -432,12 +432,12 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
             const Track_list* tl = play->track_list;
             if (tl != NULL && track_index < Track_list_get_len(tl))
             {
-                const int16_t song_index = Track_list_get_song_index(
+                const int16_t module_index = Track_list_get_song_index(
                         tl, track_index);
                 const bool existent = Subsong_table_get_existent(
-                        song->subsongs,
-                        song_index);
-                const Order_list* ol = song->order_lists[song_index];
+                        module->subsongs,
+                        module_index);
+                const Order_list* ol = module->order_lists[module_index];
                 if (existent && ol != NULL && play->system < Order_list_get_len(ol))
                 {
                     Pat_inst_ref* ref = Order_list_get_pat_inst_ref(
@@ -447,7 +447,7 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
                 }
             }
 #if 0
-            Subsong* ss = Subsong_table_get(song->subsongs, play->subsong);
+            Subsong* ss = Subsong_table_get(module->subsongs, play->subsong);
             if (ss != NULL)
             {
                 play->pattern = Subsong_get(ss, play->section);
@@ -455,8 +455,8 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
 #endif
             if (play->piref.pat >= 0)
             {
-                pat = Pat_table_get(song->pats, play->piref.pat);
-                if (!Pat_table_get_existent(song->pats, play->piref.pat))
+                pat = Pat_table_get(module->pats, play->piref.pat);
+                if (!Pat_table_get_existent(module->pats, play->piref.pat))
                     pat = NULL;
                 if (pat != NULL &&
                         !Pattern_get_inst_existent(pat, play->piref.inst))
@@ -465,8 +465,8 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
         }
         else if (play->mode == PLAY_PATTERN && play->piref.pat >= 0)
         {
-            pat = Pat_table_get(song->pats, play->piref.pat);
-            if (!Pat_table_get_existent(song->pats, play->piref.pat))
+            pat = Pat_table_get(module->pats, play->piref.pat);
+            if (!Pat_table_get_existent(module->pats, play->piref.pat))
                 pat = NULL;
             if (pat != NULL &&
                     !Pattern_get_inst_existent(pat, play->piref.inst))
@@ -510,14 +510,14 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
                     !play->infinite);
             continue;
         }
-        mixed += Pattern_mix(pat, nframes, mixed, eh, song->channels,
-                             song->connections);
+        mixed += Pattern_mix(pat, nframes, mixed, eh, module->channels,
+                             module->connections);
     }
     Audio_buffer* buffer = NULL;
-    if (song->connections != NULL)
+    if (module->connections != NULL)
     {
         Device* master = Device_node_get_device(
-                                 Connections_get_master(song->connections));
+                                 Connections_get_master(module->connections));
         buffer = Device_get_buffer(master,
                          DEVICE_PORT_TYPE_RECEIVE, 0);
     }
@@ -534,7 +534,7 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
         {
             for (uint32_t k = 0; k < mixed; ++k)
             {
-                bufs[i][k] *= song->mix_vol;
+                bufs[i][k] *= module->mix_vol;
                 if (bufs[i][k] < play->min_amps[i])
                 {
                     play->min_amps[i] = bufs[i][k];
@@ -562,9 +562,9 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
 }
 
 
-uint64_t Song_skip(Song* song, Event_handler* eh, uint64_t amount)
+uint64_t Module_skip(Module* module, Event_handler* eh, uint64_t amount)
 {
-    assert(song != NULL);
+    assert(module != NULL);
     assert(eh != NULL);
     Playdata* play = Event_handler_get_global_state(eh);
     bool orig_silent = play->silent;
@@ -574,9 +574,9 @@ uint64_t Song_skip(Song* song, Event_handler* eh, uint64_t amount)
     {
         uint64_t max_mix = amount - mixed;
         uint64_t nframes = MIN(max_mix, play->freq);
-        uint32_t inc = Song_mix(song, nframes, eh);
+        uint32_t inc = Module_mix(module, nframes, eh);
         mixed += inc;
-        if (inc < Device_get_buffer_size((Device*)song))
+        if (inc < Device_get_buffer_size((Device*)module))
         {
             break;
         }
@@ -586,77 +586,77 @@ uint64_t Song_skip(Song* song, Event_handler* eh, uint64_t amount)
 }
 
 
-void Song_set_mix_vol(Song* song, double mix_vol)
+void Module_set_mix_vol(Module* module, double mix_vol)
 {
-    assert(song != NULL);
+    assert(module != NULL);
     assert(isfinite(mix_vol) || mix_vol == -INFINITY);
-    song->mix_vol_dB = mix_vol;
-    song->mix_vol = exp2(mix_vol / 6);
+    module->mix_vol_dB = mix_vol;
+    module->mix_vol = exp2(mix_vol / 6);
     return;
 }
 
 
-double Song_get_mix_vol(Song* song)
+double Module_get_mix_vol(Module* module)
 {
-    assert(song != NULL);
-    return song->mix_vol_dB;
+    assert(module != NULL);
+    return module->mix_vol_dB;
 }
 
 
 #if 0
-void Song_set_subsong(Song* song, uint16_t num)
+void Module_set_subsong(Module* module, uint16_t num)
 {
-    assert(song != NULL);
+    assert(module != NULL);
     assert(num < KQT_SONGS_MAX);
-    song->init_subsong = num;
+    module->init_subsong = num;
     return;
 }
 #endif
 
 
 #if 0
-uint16_t Song_get_subsong(Song* song)
+uint16_t Module_get_subsong(Module* module)
 {
-    assert(song != NULL);
-    return song->init_subsong;
+    assert(module != NULL);
+    return module->init_subsong;
 }
 #endif
 
 
-Subsong_table* Song_get_subsongs(Song* song)
+Subsong_table* Module_get_subsongs(Module* module)
 {
-    assert(song != NULL);
-    return song->subsongs;
+    assert(module != NULL);
+    return module->subsongs;
 }
 
 
-Pat_table* Song_get_pats(Song* song)
+Pat_table* Module_get_pats(Module* module)
 {
-    assert(song != NULL);
-    return song->pats;
+    assert(module != NULL);
+    return module->pats;
 }
 
 
-Ins_table* Song_get_insts(Song* song)
+Ins_table* Module_get_insts(Module* module)
 {
-    assert(song != NULL);
-    return song->insts;
+    assert(module != NULL);
+    return module->insts;
 }
 
 
-Effect_table* Song_get_effects(Song* song)
+Effect_table* Module_get_effects(Module* module)
 {
-    assert(song != NULL);
-    return song->effects;
+    assert(module != NULL);
+    return module->effects;
 }
 
 
-bool Song_set_bind(Song* song, Bind* bind)
+bool Module_set_bind(Module* module, Bind* bind)
 {
-    assert(song != NULL);
+    assert(module != NULL);
     assert(bind != NULL);
-    assert(song->bind == song->play_state->bind);
-    assert(song->bind == song->skip_state->bind);
+    assert(module->bind == module->play_state->bind);
+    assert(module->bind == module->skip_state->bind);
     Event_cache* caches[KQT_COLUMNS_MAX] = { NULL };
     for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
     {
@@ -670,68 +670,68 @@ bool Song_set_bind(Song* song, Bind* bind)
             return false;
         }
     }
-    del_Bind(song->bind);
-    song->bind = song->play_state->bind = song->skip_state->bind = bind;
+    del_Bind(module->bind);
+    module->bind = module->play_state->bind = module->skip_state->bind = bind;
     for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
     {
-        Channel_set_event_cache(song->channels[i], caches[i]);
+        Channel_set_event_cache(module->channels[i], caches[i]);
     }
     return true;
 }
 
 
-Scale** Song_get_scales(Song* song)
+Scale** Module_get_scales(Module* module)
 {
-    assert(song != NULL);
-    return song->play_state->scales;
+    assert(module != NULL);
+    return module->play_state->scales;
 }
 
 
-Scale* Song_get_scale(Song* song, int index)
+Scale* Module_get_scale(Module* module, int index)
 {
-    assert(song != NULL);
+    assert(module != NULL);
     assert(index >= 0);
     assert(index < KQT_SCALES_MAX);
-    return song->scales[index];
+    return module->scales[index];
 }
 
 
-void Song_set_scale(Song* song, int index, Scale* scale)
+void Module_set_scale(Module* module, int index, Scale* scale)
 {
-    assert(song != NULL);
+    assert(module != NULL);
     assert(index >= 0);
     assert(index < KQT_SCALES_MAX);
     assert(scale != NULL);
-    if (song->scales[index] != NULL &&
-            song->scales[index] != scale)
+    if (module->scales[index] != NULL &&
+            module->scales[index] != scale)
     {
-        del_Scale(song->scales[index]);
+        del_Scale(module->scales[index]);
     }
-    song->scales[index] = scale;
+    module->scales[index] = scale;
     return;
 }
 
 
-Scale*** Song_get_active_scale(Song* song)
+Scale*** Module_get_active_scale(Module* module)
 {
-    assert(song != NULL);
-    return &song->play_state->active_scale;
+    assert(module != NULL);
+    return &module->play_state->active_scale;
 }
 
 
-bool Song_create_scale(Song* song, int index)
+bool Module_create_scale(Module* module, int index)
 {
-    assert(song != NULL);
+    assert(module != NULL);
     assert(index >= 0);
     assert(index < KQT_SCALES_MAX);
-    if (song->scales[index] != NULL)
+    if (module->scales[index] != NULL)
     {
-        Scale_clear(song->scales[index]);
+        Scale_clear(module->scales[index]);
         return true;
     }
-    song->scales[index] = new_Scale(SCALE_DEFAULT_REF_PITCH,
+    module->scales[index] = new_Scale(SCALE_DEFAULT_REF_PITCH,
             SCALE_DEFAULT_OCTAVE_RATIO);
-    if (song->scales[index] == NULL)
+    if (module->scales[index] == NULL)
     {
         return false;
     }
@@ -739,27 +739,27 @@ bool Song_create_scale(Song* song, int index)
 }
 
 
-void Song_remove_scale(Song* song, int index)
+void Module_remove_scale(Module* module, int index)
 {
-    assert(song != NULL);
+    assert(module != NULL);
     assert(index >= 0);
     assert(index < KQT_SCALES_MAX);
-    if (song->scales[index] != NULL)
+    if (module->scales[index] != NULL)
     {
-        del_Scale(song->scales[index]);
-        song->scales[index] = NULL;
+        del_Scale(module->scales[index]);
+        module->scales[index] = NULL;
     }
     return;
 }
 
 
-static void Song_reset(Device* device)
+static void Module_reset(Device* device)
 {
     assert(device != NULL);
-    Song* song = (Song*)device;
+    Module* module = (Module*)device;
     for (int i = 0; i < KQT_INSTRUMENTS_MAX; ++i)
     {
-        Instrument* ins = Ins_table_get(song->insts, i);
+        Instrument* ins = Ins_table_get(module->insts, i);
         if (ins != NULL)
         {
             Device_reset((Device*)ins);
@@ -767,44 +767,44 @@ static void Song_reset(Device* device)
     }
     for (int i = 0; i < KQT_EFFECTS_MAX; ++i)
     {
-        Effect* eff = Effect_table_get(song->effects, i);
+        Effect* eff = Effect_table_get(module->effects, i);
         if (eff != NULL)
         {
             Device_reset((Device*)eff);
         }
     }
-    Event_handler_clear_buffers(song->event_handler);
-    Playdata_reset(song->play_state);
-    Playdata_reset(song->skip_state);
+    Event_handler_clear_buffers(module->event_handler);
+    Playdata_reset(module->play_state);
+    Playdata_reset(module->skip_state);
     for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
     {
-        Channel_reset(song->channels[i]);
+        Channel_reset(module->channels[i]);
     }
-    Random_reset(song->random);
+    Random_reset(module->random);
     return;
 }
 
 
-static void Song_set_random_seed(Song* song, uint64_t seed)
+static void Module_set_random_seed(Module* module, uint64_t seed)
 {
-    assert(song != NULL);
-    song->random_seed = seed;
-    Random_set_seed(song->random, seed);
+    assert(module != NULL);
+    module->random_seed = seed;
+    Random_set_seed(module->random, seed);
     for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
     {
-        Channel_set_random_seed(song->channels[i], seed);
+        Channel_set_random_seed(module->channels[i], seed);
     }
     return;
 }
 
 
-static bool Song_set_mix_rate(Device* device, uint32_t mix_rate)
+static bool Module_set_mix_rate(Device* device, uint32_t mix_rate)
 {
     assert(device != NULL);
-    Song* song = (Song*)device;
+    Module* module = (Module*)device;
     for (int i = 0; i < KQT_INSTRUMENTS_MAX; ++i)
     {
-        Instrument* ins = Ins_table_get(song->insts, i);
+        Instrument* ins = Ins_table_get(module->insts, i);
         if (ins != NULL && !Device_set_mix_rate((Device*)ins, mix_rate))
         {
             return false;
@@ -812,7 +812,7 @@ static bool Song_set_mix_rate(Device* device, uint32_t mix_rate)
     }
     for (int i = 0; i < KQT_EFFECTS_MAX; ++i)
     {
-        Effect* eff = Effect_table_get(song->effects, i);
+        Effect* eff = Effect_table_get(module->effects, i);
         if (eff != NULL && !Device_set_mix_rate((Device*)eff, mix_rate))
         {
             return false;
@@ -822,13 +822,13 @@ static bool Song_set_mix_rate(Device* device, uint32_t mix_rate)
 }
 
 
-static bool Song_set_buffer_size(Device* device, uint32_t size)
+static bool Module_set_buffer_size(Device* device, uint32_t size)
 {
     assert(device != NULL);
-    Song* song = (Song*)device;
+    Module* module = (Module*)device;
     for (int i = 0; i < KQT_INSTRUMENTS_MAX; ++i)
     {
-        Instrument* ins = Ins_table_get(song->insts, i);
+        Instrument* ins = Ins_table_get(module->insts, i);
         if (ins != NULL && !Device_set_buffer_size((Device*)ins, size))
         {
             return false;
@@ -836,7 +836,7 @@ static bool Song_set_buffer_size(Device* device, uint32_t size)
     }
     for (int i = 0; i < KQT_EFFECTS_MAX; ++i)
     {
-        Effect* eff = Effect_table_get(song->effects, i);
+        Effect* eff = Effect_table_get(module->effects, i);
         if (eff != NULL && !Device_set_buffer_size((Device*)eff, size))
         {
             return false;
@@ -846,13 +846,13 @@ static bool Song_set_buffer_size(Device* device, uint32_t size)
 }
 
 
-static bool Song_sync(Device* device)
+static bool Module_sync(Device* device)
 {
     assert(device != NULL);
-    Song* song = (Song*)device;
+    Module* module = (Module*)device;
     for (int i = 0; i < KQT_INSTRUMENTS_MAX; ++i)
     {
-        Instrument* ins = Ins_table_get(song->insts, i);
+        Instrument* ins = Ins_table_get(module->insts, i);
         if (ins != NULL && !Device_sync((Device*)ins))
         {
             return false;
@@ -860,7 +860,7 @@ static bool Song_sync(Device* device)
     }
     for (int i = 0; i < KQT_EFFECTS_MAX; ++i)
     {
-        Effect* eff = Effect_table_get(song->effects, i);
+        Effect* eff = Effect_table_get(module->effects, i);
         if (eff != NULL && !Device_sync((Device*)eff))
         {
             return false;
@@ -870,39 +870,39 @@ static bool Song_sync(Device* device)
 }
 
 
-void del_Song(Song* song)
+void del_Module(Module* module)
 {
-    if (song == NULL)
+    if (module == NULL)
     {
         return;
     }
-    del_Environment(song->env);
-    del_Subsong_table(song->subsongs);
-    del_Pat_table(song->pats);
-    del_Connections(song->connections);
-    del_Ins_table(song->insts);
-    del_Effect_table(song->effects);
-    del_Track_list(song->track_list);
+    del_Environment(module->env);
+    del_Subsong_table(module->subsongs);
+    del_Pat_table(module->pats);
+    del_Connections(module->connections);
+    del_Ins_table(module->insts);
+    del_Effect_table(module->effects);
+    del_Track_list(module->track_list);
     for (int i = 0; i < KQT_SONGS_MAX; ++i)
     {
-        del_Order_list(song->order_lists[i]);
+        del_Order_list(module->order_lists[i]);
     }
     for (int i = 0; i < KQT_SCALES_MAX; ++i)
     {
-        del_Scale(song->scales[i]);
+        del_Scale(module->scales[i]);
     }
-    del_Playdata(song->play_state);
-    del_Playdata(song->skip_state);
-    for (int i = 0; i < KQT_COLUMNS_MAX && song->channels[i] != NULL; ++i)
+    del_Playdata(module->play_state);
+    del_Playdata(module->skip_state);
+    for (int i = 0; i < KQT_COLUMNS_MAX && module->channels[i] != NULL; ++i)
     {
-        del_Channel(song->channels[i]);
+        del_Channel(module->channels[i]);
     }
-    del_Event_handler(song->event_handler);
-    del_Event_handler(song->skip_handler);
-    del_Random(song->random);
-    del_Bind(song->bind);
-    Device_uninit(&song->parent);
-    memory_free(song);
+    del_Event_handler(module->event_handler);
+    del_Event_handler(module->skip_handler);
+    del_Random(module->random);
+    del_Bind(module->bind);
+    Device_uninit(&module->parent);
+    memory_free(module);
     return;
 }
 

@@ -53,13 +53,13 @@ typedef struct Channel
 /**
  * Creates a new Channel.
  *
- * \param insts        The Instrument table of the Song -- must not be \c NULL.
- * \param num          The Channel number -- must be >= \c 0 and
- *                     < \c KQT_COLUMNS_MAX.
- * \param pool         The Voice pool -- must not be \c NULL.
- * \param env          The Environment -- must not be \c NULL.
- * \param tempo        A reference to the tempo -- must not be \c NULL.
- * \param freq         A reference to the mix rate -- must not be \c NULL.
+ * \param insts   The Instrument table of the Module -- must not be \c NULL.
+ * \param num     The Channel number -- must be >= \c 0 and
+ *                < \c KQT_COLUMNS_MAX.
+ * \param pool    The Voice pool -- must not be \c NULL.
+ * \param env     The Environment -- must not be \c NULL.
+ * \param tempo   A reference to the tempo -- must not be \c NULL.
+ * \param freq    A reference to the mix rate -- must not be \c NULL.
  *
  * \return   The new Channel if successful, or \c NULL if memory allocation
  *           failed.

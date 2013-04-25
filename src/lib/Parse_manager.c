@@ -33,7 +33,7 @@
 #include <xassert.h>
 
 
-static bool parse_song_level(
+static bool parse_module_level(
         kqt_Handle* handle,
         const char* key,
         void* data,
@@ -150,10 +150,12 @@ bool parse_data(kqt_Handle* handle,
     check_key(handle, key, false);
     assert(data != NULL || length == 0);
     assert(length >= 0);
+
     if (length == 0)
     {
         data = NULL;
     }
+
     int last_index = 0;
     const char* last_element = strrchr(key, '/');
     if (last_element == NULL)
@@ -169,6 +171,7 @@ bool parse_data(kqt_Handle* handle,
     {
         return true;
     }
+
     char* json = NULL;
     if (data != NULL && key_is_for_text(key))
     {
@@ -182,24 +185,28 @@ bool parse_data(kqt_Handle* handle,
         strncpy(json, data, length);
         data = json;
     }
+
     if (last_index == 0)
     {
-        bool success = parse_song_level(handle, key, data, length);
+        bool success = parse_module_level(handle, key, data, length);
         memory_free(json);
         return success;
     }
+
+    Module* module = Handle_get_module(handle);
+
     int first_len = strcspn(key, "/");
     int index = 0;
     const char* second_element = &key[first_len + 1];
     bool success = true;
     if ((index = string_extract_index(key, "ins_", 2, "/")) >= 0)
     {
-        Instrument* ins = Ins_table_get(Song_get_insts(handle->song), index);
+        Instrument* ins = Ins_table_get(Module_get_insts(module), index);
         bool changed = ins != NULL;
         success = parse_instrument_level(handle, key, second_element,
                                          data, length, index);
-        changed ^= Ins_table_get(Song_get_insts(handle->song), index) != NULL;
-        Connections* graph = handle->song->connections;
+        changed ^= Ins_table_get(Module_get_insts(module), index) != NULL;
+        Connections* graph = module->connections;
         if (changed && graph != NULL)
         {
             if (!Connections_prepare(graph))
@@ -214,13 +221,13 @@ bool parse_data(kqt_Handle* handle,
     }
     else if ((index = string_extract_index(key, "eff_", 2, "/")) >= 0)
     {
-        Effect* eff = Effect_table_get(Song_get_effects(handle->song), index);
+        Effect* eff = Effect_table_get(Module_get_effects(module), index);
         bool changed = eff != NULL;
         success = parse_effect_level(handle, NULL, key, second_element,
                                      data, length, index);
-        changed ^= Effect_table_get(Song_get_effects(handle->song),
+        changed ^= Effect_table_get(Module_get_effects(module),
                                                      index) != NULL;
-        Connections* graph = handle->song->connections;
+        Connections* graph = module->connections;
         if (changed && graph != NULL)
         {
             if (!Connections_prepare(graph))
@@ -233,10 +240,10 @@ bool parse_data(kqt_Handle* handle,
     }
     else if ((index = string_extract_index(key, "pat_", 3, "/")) >= 0)
     {
-        Pattern* pat = Pat_table_get(Song_get_pats(handle->song), index);
+        Pattern* pat = Pat_table_get(Module_get_pats(module), index);
         success = parse_pattern_level(handle, key, second_element,
                                       data, length, index);
-        Pattern* new_pat = Pat_table_get(Song_get_pats(handle->song), index);
+        Pattern* new_pat = Pat_table_get(Module_get_pats(module), index);
         if (success && pat != new_pat && new_pat != NULL)
         {
             // Update pattern location information
@@ -244,7 +251,7 @@ bool parse_data(kqt_Handle* handle,
             // when a Pattern with jumps is used multiple times.
             for (int subsong = 0; subsong < KQT_SONGS_MAX; ++subsong)
             {
-                const Order_list* ol = handle->song->order_lists[subsong];
+                const Order_list* ol = module->order_lists[subsong];
                 if (ol == NULL)
                     continue;
 
@@ -264,7 +271,7 @@ bool parse_data(kqt_Handle* handle,
                 }
 #if 0
                 Subsong* ss = Subsong_table_get_hidden(
-                                      Song_get_subsongs(handle->song),
+                                      Module_get_subsongs(module),
                                       subsong);
                 if (ss == NULL)
                 {
@@ -305,7 +312,7 @@ bool parse_data(kqt_Handle* handle,
 }
 
 
-static bool parse_song_level(kqt_Handle* handle,
+static bool parse_module_level(kqt_Handle* handle,
                              const char* key,
                              void* data,
                              long length)
@@ -316,10 +323,13 @@ static bool parse_song_level(kqt_Handle* handle,
     assert(data != NULL || length == 0);
     assert(length >= 0);
     (void)length;
+
+    Module* module = Handle_get_module(handle);
+
     if (string_eq(key, "p_composition.json"))
     {
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        if (!Song_parse_composition(handle->song, data, state))
+        if (!Module_parse_composition(module, data, state))
         {
             set_parse_error(handle, state);
             return false;
@@ -330,10 +340,10 @@ static bool parse_song_level(kqt_Handle* handle,
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
         Connections* graph = new_Connections_from_string(data,
                                             CONNECTION_LEVEL_GLOBAL,
-                                            Song_get_insts(handle->song),
-                                            Song_get_effects(handle->song),
+                                            Module_get_insts(module),
+                                            Module_get_effects(module),
                                             NULL,
-                                            (Device*)handle->song,
+                                            (Device*)module,
                                             state);
         if (graph == NULL)
         {
@@ -348,11 +358,11 @@ static bool parse_song_level(kqt_Handle* handle,
             }
             return false;
         }
-        if (handle->song->connections != NULL)
+        if (module->connections != NULL)
         {
-            del_Connections(handle->song->connections);
+            del_Connections(module->connections);
         }
-        handle->song->connections = graph;
+        module->connections = graph;
         //fprintf(stderr, "line: %d\n", __LINE__);
         //Connections_print(graph, stderr);
         if (!Connections_prepare(graph))
@@ -367,7 +377,7 @@ static bool parse_song_level(kqt_Handle* handle,
     else if (string_eq(key, "p_random_seed.json"))
     {
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        if (!Song_parse_random_seed(handle->song, data, state))
+        if (!Module_parse_random_seed(module, data, state))
         {
             set_parse_error(handle, state);
             return false;
@@ -376,7 +386,7 @@ static bool parse_song_level(kqt_Handle* handle,
     else if (string_eq(key, "p_environment.json"))
     {
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        if (!Environment_parse(handle->song->env, data, state))
+        if (!Environment_parse(module->env, data, state))
         {
             if (!state->error)
             {
@@ -394,7 +404,7 @@ static bool parse_song_level(kqt_Handle* handle,
     {
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
         Bind* map = new_Bind(data,
-                        Event_handler_get_names(handle->song->event_handler),
+                        Event_handler_get_names(module->event_handler),
                         state);
         if (map == NULL)
         {
@@ -409,7 +419,7 @@ static bool parse_song_level(kqt_Handle* handle,
             }
             return false;
         }
-        if (!Song_set_bind(handle->song, map))
+        if (!Module_set_bind(module, map))
         {
             kqt_Handle_set_error(handle, ERROR_MEMORY,
                     "Couldn't allocate memory");
@@ -434,6 +444,8 @@ static bool parse_album_level(
     assert(length >= 0);
     (void)length;
 
+    Module* module = Handle_get_module(handle);
+
     if (string_eq(subkey, "p_manifest.json"))
     {
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
@@ -443,17 +455,17 @@ static bool parse_album_level(
             set_parse_error(handle, state);
             return false;
         }
-        handle->song->album_is_existent = existent;
+        module->album_is_existent = existent;
         if (existent)
         {
-            Track_list* tl = handle->song->track_list;
-            handle->song->play_state->track_list = tl;
-            handle->song->skip_state->track_list = tl;
+            Track_list* tl = module->track_list;
+            module->play_state->track_list = tl;
+            module->skip_state->track_list = tl;
         }
         else
         {
-            handle->song->play_state->track_list = NULL;
-            handle->song->skip_state->track_list = NULL;
+            module->play_state->track_list = NULL;
+            module->skip_state->track_list = NULL;
         }
     }
     else if (string_eq(subkey, "p_tracks.json"))
@@ -473,17 +485,17 @@ static bool parse_album_level(
             }
             return false;
         }
-        del_Track_list(handle->song->track_list);
-        handle->song->track_list = tl;
-        if (handle->song->album_is_existent)
+        del_Track_list(module->track_list);
+        module->track_list = tl;
+        if (module->album_is_existent)
         {
-            handle->song->play_state->track_list = tl;
-            handle->song->skip_state->track_list = tl;
+            module->play_state->track_list = tl;
+            module->skip_state->track_list = tl;
         }
         else
         {
-            assert(handle->song->play_state->track_list == NULL);
-            assert(handle->song->skip_state->track_list == NULL);
+            assert(module->play_state->track_list == NULL);
+            assert(module->skip_state->track_list == NULL);
         }
     }
     return true;
@@ -520,23 +532,25 @@ static bool parse_instrument_level(kqt_Handle* handle,
     int gen_index = -1;
     int eff_index = -1;
 
+    Module* module = Handle_get_module(handle);
+
     // Subdevices
     if ((gen_index = string_extract_index(subkey, "gen_", 2, "/")) >= 0)
     {
         subkey = strchr(subkey, '/');
         assert(subkey != NULL);
         ++subkey;
-        Instrument* ins = Ins_table_get(Song_get_insts(handle->song), index);
+        Instrument* ins = Ins_table_get(Module_get_insts(module), index);
         Generator* gen = ins != NULL ? Instrument_get_gen(ins, gen_index)
                                      : NULL;
         bool changed = ins != NULL && gen != NULL;
         bool success = parse_generator_level(handle, key, subkey,
                                              data, length, 
                                              index, gen_index);
-        ins = Ins_table_get(Song_get_insts(handle->song), index);
+        ins = Ins_table_get(Module_get_insts(module), index);
         gen = ins != NULL ? Instrument_get_gen(ins, gen_index) : NULL;
         changed ^= ins != NULL && gen != NULL;
-        Connections* graph = handle->song->connections;
+        Connections* graph = module->connections;
         if (changed && graph != NULL)
         {
 //            fprintf(stderr, "instrument %d, generator %d\n", index, gen_index);
@@ -556,17 +570,17 @@ static bool parse_instrument_level(kqt_Handle* handle,
         subkey = strchr(subkey, '/');
         assert(subkey != NULL);
         ++subkey;
-        Instrument* ins = Ins_table_get(Song_get_insts(handle->song), index);
+        Instrument* ins = Ins_table_get(Module_get_insts(module), index);
         bool changed = ins != NULL && Instrument_get_effect(ins,
                                                 eff_index) != NULL;
         if (ins == NULL)
         {
-            ins = new_Instrument(Device_get_buffer_size((Device*)handle->song),
-                                 Device_get_mix_rate((Device*)handle->song),
-                                 Song_get_scales(handle->song),
-                                 Song_get_active_scale(handle->song));
+            ins = new_Instrument(Device_get_buffer_size((Device*)module),
+                                 Device_get_mix_rate((Device*)module),
+                                 Module_get_scales(module),
+                                 Module_get_active_scale(module));
             if (ins == NULL ||
-                    !Ins_table_set(Song_get_insts(handle->song), index, ins))
+                    !Ins_table_set(Module_get_insts(module), index, ins))
             {
                 kqt_Handle_set_error(handle, ERROR_MEMORY,
                         "Couldn't allocate memory");
@@ -578,7 +592,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
                                           data, length, eff_index);
         changed ^= ins != NULL &&
                    Instrument_get_effect(ins, eff_index) != NULL;
-        Connections* graph = handle->song->connections;
+        Connections* graph = module->connections;
         if (changed && graph != NULL)
         {
             if (!Connections_prepare(graph))
@@ -594,14 +608,14 @@ static bool parse_instrument_level(kqt_Handle* handle,
     // Instrument data
     if (string_eq(subkey, "p_manifest.json"))
     {
-        Instrument* ins = Ins_table_get(Song_get_insts(handle->song), index);
+        Instrument* ins = Ins_table_get(Module_get_insts(module), index);
         bool new_ins = (ins == NULL);
         if (new_ins)
         {
-            ins = new_Instrument(Device_get_buffer_size((Device*)handle->song),
-                                 Device_get_mix_rate((Device*)handle->song),
-                                 Song_get_scales(handle->song),
-                                 Song_get_active_scale(handle->song));
+            ins = new_Instrument(Device_get_buffer_size((Device*)module),
+                                 Device_get_mix_rate((Device*)module),
+                                 Module_get_scales(module),
+                                 Module_get_active_scale(module));
             if (ins == NULL)
             {
                 kqt_Handle_set_error(handle, ERROR_MEMORY,
@@ -621,7 +635,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
         }
         Device_set_existent((Device*)ins, existent);
 
-        if (new_ins && !Ins_table_set(Song_get_insts(handle->song), index, ins))
+        if (new_ins && !Ins_table_set(Module_get_insts(module), index, ins))
         {
             kqt_Handle_set_error(handle, ERROR_MEMORY,
                     "Couldn't allocate memory");
@@ -631,14 +645,14 @@ static bool parse_instrument_level(kqt_Handle* handle,
     }
     else if (string_eq(subkey, "p_instrument.json"))
     {
-        Instrument* ins = Ins_table_get(Song_get_insts(handle->song), index);
+        Instrument* ins = Ins_table_get(Module_get_insts(module), index);
         bool new_ins = (ins == NULL);
         if (new_ins)
         {
-            ins = new_Instrument(Device_get_buffer_size((Device*)handle->song),
-                                 Device_get_mix_rate((Device*)handle->song),
-                                 Song_get_scales(handle->song),
-                                 Song_get_active_scale(handle->song));
+            ins = new_Instrument(Device_get_buffer_size((Device*)module),
+                                 Device_get_mix_rate((Device*)module),
+                                 Module_get_scales(module),
+                                 Module_get_active_scale(module));
             if (ins == NULL)
             {
                 kqt_Handle_set_error(handle, ERROR_MEMORY,
@@ -656,7 +670,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
             }
             return false;
         }
-        if (new_ins && !Ins_table_set(Song_get_insts(handle->song), index, ins))
+        if (new_ins && !Ins_table_set(Module_get_insts(module), index, ins))
         {
             kqt_Handle_set_error(handle, ERROR_MEMORY,
                     "Couldn't allocate memory");
@@ -667,7 +681,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
     else if (string_eq(subkey, "p_connections.json"))
     {
         bool reconnect = false;
-        Instrument* ins = Ins_table_get(Song_get_insts(handle->song), index);
+        Instrument* ins = Ins_table_get(Module_get_insts(module), index);
         if (data == NULL)
         {
             if (ins != NULL)
@@ -682,13 +696,13 @@ static bool parse_instrument_level(kqt_Handle* handle,
             if (new_ins)
             {
                 ins = new_Instrument(Device_get_buffer_size(
-                                            (Device*)handle->song),
+                                            (Device*)module),
                                      Device_get_mix_rate(
-                                            (Device*)handle->song),
-                                     Song_get_scales(handle->song),
-                                     Song_get_active_scale(handle->song));
+                                            (Device*)module),
+                                     Module_get_scales(module),
+                                     Module_get_active_scale(module));
                 if (ins == NULL ||
-                        !Ins_table_set(Song_get_insts(handle->song),
+                        !Ins_table_set(Module_get_insts(module),
                                        index, ins))
                 {
                     del_Instrument(ins);
@@ -701,7 +715,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
             Read_state* state = Read_state_init(READ_STATE_AUTO, key);
             Connections* graph = new_Connections_from_string(data,
                                                  CONNECTION_LEVEL_INSTRUMENT,
-                                                 Song_get_insts(handle->song),
+                                                 Module_get_insts(module),
                                                  Instrument_get_effects(ins),
                                                  NULL,
                                                  (Device*)ins,
@@ -710,7 +724,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
             {
                 if (new_ins)
                 {
-                    Ins_table_remove(Song_get_insts(handle->song), index);
+                    Ins_table_remove(Module_get_insts(module), index);
                 }
                 if (state->error)
                 {
@@ -729,7 +743,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
         if (reconnect)
         {
 //            fprintf(stderr, "Set connections for ins %d\n", index);
-            Connections* global_graph = handle->song->connections;
+            Connections* global_graph = module->connections;
             if (global_graph != NULL)
             {
                 if (!Connections_prepare(global_graph))
@@ -745,14 +759,14 @@ static bool parse_instrument_level(kqt_Handle* handle,
     }
     else if (string_has_prefix(subkey, "p_pitch_lock_"))
     {
-        Instrument* ins = Ins_table_get(Song_get_insts(handle->song), index);
+        Instrument* ins = Ins_table_get(Module_get_insts(module), index);
         bool new_ins = ins == NULL;
         if (new_ins)
         {
-            ins = new_Instrument(Device_get_buffer_size((Device*)handle->song),
-                                 Device_get_mix_rate((Device*)handle->song),
-                                 Song_get_scales(handle->song),
-                                 Song_get_active_scale(handle->song));
+            ins = new_Instrument(Device_get_buffer_size((Device*)module),
+                                 Device_get_mix_rate((Device*)module),
+                                 Module_get_scales(module),
+                                 Module_get_active_scale(module));
             if (ins == NULL)
             {
                 kqt_Handle_set_error(handle, ERROR_MEMORY,
@@ -770,7 +784,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
             }
             return false;
         }
-        if (new_ins && !Ins_table_set(Song_get_insts(handle->song), index, ins))
+        if (new_ins && !Ins_table_set(Module_get_insts(module), index, ins))
         {
             kqt_Handle_set_error(handle, ERROR_MEMORY,
                     "Couldn't allocate memory");
@@ -795,14 +809,14 @@ static bool parse_instrument_level(kqt_Handle* handle,
         assert(parse[i].read != NULL);
         if (string_eq(subkey, parse[i].name))
         {
-            Instrument* ins = Ins_table_get(Song_get_insts(handle->song), index);
+            Instrument* ins = Ins_table_get(Module_get_insts(module), index);
             bool new_ins = ins == NULL;
             if (new_ins)
             {
-                ins = new_Instrument(Device_get_buffer_size((Device*)handle->song),
-                                     Device_get_mix_rate((Device*)handle->song),
-                                     Song_get_scales(handle->song),
-                                     Song_get_active_scale(handle->song));
+                ins = new_Instrument(Device_get_buffer_size((Device*)module),
+                                     Device_get_mix_rate((Device*)module),
+                                     Module_get_scales(module),
+                                     Module_get_active_scale(module));
                 if (ins == NULL)
                 {
                     kqt_Handle_set_error(handle, ERROR_MEMORY,
@@ -828,7 +842,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
                 }
                 return false;
             }
-            if (new_ins && !Ins_table_set(Song_get_insts(handle->song), index, ins))
+            if (new_ins && !Ins_table_set(Module_get_insts(module), index, ins))
             {
                 kqt_Handle_set_error(handle, ERROR_MEMORY,
                         "Couldn't allocate memory");
@@ -870,14 +884,17 @@ static bool parse_generator_level(kqt_Handle* handle,
     subkey = strchr(subkey, '/');
     ++subkey;
 #endif
-    Instrument* ins = Ins_table_get(Song_get_insts(handle->song), ins_index);
+
+    Module* module = Handle_get_module(handle);
+
+    Instrument* ins = Ins_table_get(Module_get_insts(module), ins_index);
     bool new_ins = (ins == NULL);
     if (new_ins)
     {
-        ins = new_Instrument(Device_get_buffer_size((Device*)handle->song),
-                             Device_get_mix_rate((Device*)handle->song),
-                             Song_get_scales(handle->song),
-                             Song_get_active_scale(handle->song));
+        ins = new_Instrument(Device_get_buffer_size((Device*)module),
+                             Device_get_mix_rate((Device*)module),
+                             Module_get_scales(module),
+                             Module_get_active_scale(module));
         if (ins == NULL)
         {
             kqt_Handle_set_error(handle, ERROR_MEMORY,
@@ -910,7 +927,7 @@ static bool parse_generator_level(kqt_Handle* handle,
             Generator* gen = Gen_table_get_gen(table, gen_index);
             if (gen != NULL)
             {
-                //Connections_disconnect(handle->song->connections,
+                //Connections_disconnect(module->connections,
                 //                       (Device*)gen);
             }
             Gen_table_remove_gen(table, gen_index);
@@ -919,8 +936,8 @@ static bool parse_generator_level(kqt_Handle* handle,
         {
             Read_state* state = Read_state_init(READ_STATE_AUTO, key);
             Generator* gen = new_Generator(data, Instrument_get_params(ins),
-                                Device_get_buffer_size((Device*)handle->song),
-                                Device_get_mix_rate((Device*)handle->song),
+                                Device_get_buffer_size((Device*)module),
+                                Device_get_mix_rate((Device*)module),
                                 state);
             if (gen == NULL)
             {
@@ -955,7 +972,7 @@ static bool parse_generator_level(kqt_Handle* handle,
 //                    fprintf(stderr, "Reserving space for %" PRId64 " bytes\n",
 //                                    size);
                     if (!Voice_pool_reserve_state_space(
-                                handle->song->play_state->voice_pool, size))
+                                module->play_state->voice_pool, size))
                     {
                         kqt_Handle_set_error(handle, ERROR_MEMORY,
                                 "Couldn't allocate memory");
@@ -998,7 +1015,7 @@ static bool parse_generator_level(kqt_Handle* handle,
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
         if (!Device_params_parse_events(conf->params,
                                         DEVICE_EVENT_TYPE_GENERATOR,
-                                        handle->song->event_handler,
+                                        module->event_handler,
                                         data,
                                         state))
         {
@@ -1041,7 +1058,7 @@ static bool parse_generator_level(kqt_Handle* handle,
             return false;
         }
     }
-    if (new_ins && !Ins_table_set(Song_get_insts(handle->song), ins_index, ins))
+    if (new_ins && !Ins_table_set(Module_get_insts(module), ins_index, ins))
     {
         kqt_Handle_set_error(handle, ERROR_MEMORY,
                 "Couldn't allocate memory");
@@ -1082,8 +1099,11 @@ static bool parse_effect_level(kqt_Handle* handle,
     }
     subkey = strchr(subkey, '/') + 1;
 #endif
+
+    Module* module = Handle_get_module(handle);
+
     int dsp_index = -1;
-    Effect_table* table = Song_get_effects(handle->song);
+    Effect_table* table = Module_get_effects(module);
     if (ins != NULL)
     {
         table = Instrument_get_effects(ins);
@@ -1097,8 +1117,8 @@ static bool parse_effect_level(kqt_Handle* handle,
         bool changed = eff != NULL && Effect_get_dsp(eff, dsp_index) != NULL;
         if (eff == NULL)
         {
-            eff = new_Effect(Device_get_buffer_size((Device*)handle->song),
-                             Device_get_mix_rate((Device*)handle->song));
+            eff = new_Effect(Device_get_buffer_size((Device*)module),
+                             Device_get_mix_rate((Device*)module));
             if (eff == NULL || !Effect_table_set(table, eff_index, eff))
             {
                 del_Effect(eff);
@@ -1110,7 +1130,7 @@ static bool parse_effect_level(kqt_Handle* handle,
         bool success = parse_dsp_level(handle, eff, key, subkey,
                                        data, length, dsp_index);
         changed ^= eff != NULL && Effect_get_dsp(eff, dsp_index) != NULL;
-        Connections* graph = handle->song->connections;
+        Connections* graph = module->connections;
         if (changed && graph != NULL)
         {
             if (!Connections_prepare(graph))
@@ -1129,9 +1149,9 @@ static bool parse_effect_level(kqt_Handle* handle,
         if (new_eff)
         {
             eff = new_Effect(Device_get_buffer_size(
-                                    (Device*)handle->song),
+                                    (Device*)module),
                              Device_get_mix_rate(
-                                    (Device*)handle->song));
+                                    (Device*)module));
             if (eff == NULL || !Effect_table_set(table, eff_index, eff))
             {
                 del_Effect(eff);
@@ -1171,9 +1191,9 @@ static bool parse_effect_level(kqt_Handle* handle,
             if (new_eff)
             {
                 eff = new_Effect(Device_get_buffer_size(
-                                        (Device*)handle->song),
+                                        (Device*)module),
                                  Device_get_mix_rate(
-                                        (Device*)handle->song));
+                                        (Device*)module));
                 if (eff == NULL || !Effect_table_set(table, eff_index, eff))
                 {
                     del_Effect(eff);
@@ -1190,7 +1210,7 @@ static bool parse_effect_level(kqt_Handle* handle,
                 level |= CONNECTION_LEVEL_INSTRUMENT;
             }
             Connections* graph = new_Connections_from_string(data, level,
-                                                 Song_get_insts(handle->song),
+                                                 Module_get_insts(module),
                                                  table,
                                                  Effect_get_dsps(eff),
                                                  (Device*)eff,
@@ -1217,7 +1237,7 @@ static bool parse_effect_level(kqt_Handle* handle,
         }
         if (reconnect)
         {
-            Connections* global_graph = handle->song->connections;
+            Connections* global_graph = module->connections;
             if (global_graph != NULL)
             {
                 if (!Connections_prepare(global_graph))
@@ -1259,6 +1279,9 @@ static bool parse_dsp_level(kqt_Handle* handle,
     }
     subkey = strchr(subkey, '/') + 1;
 #endif
+
+    Module* module = Handle_get_module(handle);
+
     DSP_table* dsp_table = Effect_get_dsps(eff);
     assert(dsp_table != NULL);
     if (string_eq(subkey, "p_manifest.json"))
@@ -1284,8 +1307,8 @@ static bool parse_dsp_level(kqt_Handle* handle,
         {
             Read_state* state = Read_state_init(READ_STATE_AUTO, key);
             DSP* dsp = new_DSP(data,
-                               Device_get_buffer_size((Device*)handle->song),
-                               Device_get_mix_rate((Device*)handle->song),
+                               Device_get_buffer_size((Device*)module),
+                               Device_get_mix_rate((Device*)module),
                                state);
             if (dsp == NULL)
             {
@@ -1350,7 +1373,7 @@ static bool parse_dsp_level(kqt_Handle* handle,
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
         if (!Device_params_parse_events(conf->params,
                                         DEVICE_EVENT_TYPE_DSP,
-                                        handle->song->event_handler,
+                                        module->event_handler,
                                         data,
                                         state))
         {
@@ -1379,6 +1402,9 @@ static bool parse_pattern_level(kqt_Handle* handle,
     {
         return true;
     }
+
+    Module* module = Handle_get_module(handle);
+
     if (string_eq(subkey, "p_manifest.json"))
     {
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
@@ -1388,12 +1414,12 @@ static bool parse_pattern_level(kqt_Handle* handle,
             set_parse_error(handle, state);
             return false;
         }
-        Pat_table* pats = Song_get_pats(handle->song);
+        Pat_table* pats = Module_get_pats(module);
         Pat_table_set_existent(pats, index, existent);
     }
     else if (string_eq(subkey, "p_pattern.json"))
     {
-        Pattern* pat = Pat_table_get(Song_get_pats(handle->song), index);
+        Pattern* pat = Pat_table_get(Module_get_pats(module), index);
         bool new_pattern = pat == NULL;
         if (new_pattern)
         {
@@ -1415,7 +1441,7 @@ static bool parse_pattern_level(kqt_Handle* handle,
             }
             return false;
         }
-        if (new_pattern && !Pat_table_set(Song_get_pats(handle->song), index, pat))
+        if (new_pattern && !Pat_table_set(Module_get_pats(module), index, pat))
         {
             kqt_Handle_set_error(handle, ERROR_MEMORY,
                     "Couldn't allocate memory");
@@ -1438,7 +1464,7 @@ static bool parse_pattern_level(kqt_Handle* handle,
         {
             return true;
         }
-        Pattern* pat = Pat_table_get(Song_get_pats(handle->song), index);
+        Pattern* pat = Pat_table_get(Module_get_pats(module), index);
         bool new_pattern = pat == NULL;
         if (new_pattern)
         {
@@ -1454,7 +1480,7 @@ static bool parse_pattern_level(kqt_Handle* handle,
         AAiter* locations_iter = NULL;
         AAtree* locations = Pattern_get_locations(pat, &locations_iter);
         Event_names* event_names =
-                Event_handler_get_names(handle->song->event_handler);
+                Event_handler_get_names(module->event_handler);
         Column* col = new_Column_from_string(Pattern_get_length(pat),
                                              data,
                                              locations,
@@ -1490,7 +1516,7 @@ static bool parse_pattern_level(kqt_Handle* handle,
         }
         if (new_pattern)
         {
-            if (!Pat_table_set(Song_get_pats(handle->song), index, pat))
+            if (!Pat_table_set(Module_get_pats(module), index, pat))
             {
                 kqt_Handle_set_error(handle, ERROR_MEMORY,
                         "Couldn't allocate memory");
@@ -1501,7 +1527,7 @@ static bool parse_pattern_level(kqt_Handle* handle,
     }
     else if ((sub_index = string_extract_index(subkey, "instance_", 3, "/")) >= 0)
     {
-        Pattern* pat = Pat_table_get(Song_get_pats(handle->song), index);
+        Pattern* pat = Pat_table_get(Module_get_pats(module), index);
         bool new_pattern = (pat == NULL);
         if (new_pattern)
         {
@@ -1531,7 +1557,7 @@ static bool parse_pattern_level(kqt_Handle* handle,
             return false;
         }
 
-        if (new_pattern && !Pat_table_set(Song_get_pats(handle->song), index, pat))
+        if (new_pattern && !Pat_table_set(Module_get_pats(module), index, pat))
         {
             kqt_Handle_set_error(handle, ERROR_MEMORY,
                     "Couldn't allocate memory");
@@ -1595,6 +1621,9 @@ static bool parse_scale_level(kqt_Handle* handle,
     {
         return true;
     }
+
+    Module* module = Handle_get_module(handle);
+
     if (string_eq(subkey, "p_scale.json"))
     {
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
@@ -1604,7 +1633,7 @@ static bool parse_scale_level(kqt_Handle* handle,
             set_parse_error(handle, state);
             return false;
         }
-        Song_set_scale(handle->song, index, scale);
+        Module_set_scale(module, index, scale);
         return true;
     }
     return true;
@@ -1630,6 +1659,8 @@ static bool parse_subsong_level(kqt_Handle* handle,
         return true;
     }
 
+    Module* module = Handle_get_module(handle);
+
     if (string_eq(subkey, "p_manifest.json"))
     {
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
@@ -1639,7 +1670,7 @@ static bool parse_subsong_level(kqt_Handle* handle,
             set_parse_error(handle, state);
             return false;
         }
-        Subsong_table_set_existent(handle->song->subsongs, index, existent);
+        Subsong_table_set_existent(module->subsongs, index, existent);
     }
     else if (string_eq(subkey, "p_song.json"))
     {
@@ -1658,7 +1689,7 @@ static bool parse_subsong_level(kqt_Handle* handle,
             }
             return false;
         }
-        Subsong_table* st = Song_get_subsongs(handle->song);
+        Subsong_table* st = Module_get_subsongs(module);
         if (!Subsong_table_set(st, index, ss))
         {
             kqt_Handle_set_error(handle, ERROR_MEMORY,
@@ -1692,7 +1723,7 @@ static bool parse_subsong_level(kqt_Handle* handle,
         {
             Pat_inst_ref* ref = Order_list_get_pat_inst_ref(ol, i);
             int16_t pat_index = ref->pat;
-            Pat_table* pats = Song_get_pats(handle->song);
+            Pat_table* pats = Module_get_pats(module);
             assert(pats != NULL);
             Pattern* pat = Pat_table_get(pats, pat_index);
             if (pat == NULL)
@@ -1708,11 +1739,11 @@ static bool parse_subsong_level(kqt_Handle* handle,
             }
         }
 
-        if (handle->song->order_lists[index] != NULL)
+        if (module->order_lists[index] != NULL)
         {
-            del_Order_list(handle->song->order_lists[index]);
+            del_Order_list(module->order_lists[index]);
         }
-        handle->song->order_lists[index] = ol;
+        module->order_lists[index] = ol;
     }
     return true;
 }

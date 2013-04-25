@@ -22,7 +22,7 @@
 #include <Handle_private.h>
 #include <kunquat/Player.h>
 #include <kunquat/limits.h>
-#include <Song.h>
+#include <Module.h>
 #include <Playdata.h>
 #include <Event_handler.h>
 #include <string_common.h>
@@ -35,7 +35,7 @@ long kqt_Handle_mix(kqt_Handle* handle, long nframes)
     check_handle(handle, 0);
     check_data_is_valid(handle, 0);
     check_data_is_validated(handle, 0);
-    if (handle->song == NULL || !handle->song->play_state->mode)
+    if (handle->module == NULL || !handle->module->play_state->mode)
     {
         return 0;
     }
@@ -45,9 +45,9 @@ long kqt_Handle_mix(kqt_Handle* handle, long nframes)
                 " be positive.");
         return 0;
     }
-    handle->song->play_state->freq =
-            Device_get_mix_rate((Device*)handle->song);
-    return Song_mix(handle->song, nframes, handle->song->event_handler);
+    handle->module->play_state->freq =
+            Device_get_mix_rate((Device*)handle->module);
+    return Module_mix(handle->module, nframes, handle->module->event_handler);
 }
 
 
@@ -62,7 +62,7 @@ int kqt_Handle_set_mixing_rate(kqt_Handle* handle, long rate)
                 " positive");
         return 0;
     }
-    if (!Device_set_mix_rate((Device*)handle->song, rate))
+    if (!Device_set_mix_rate((Device*)handle->module, rate))
     {
         kqt_Handle_set_error(handle, ERROR_MEMORY,
                 "Couldn't allocate memory after change of mixing rate.");
@@ -77,7 +77,7 @@ long kqt_Handle_get_mixing_rate(kqt_Handle* handle)
     check_handle(handle, 0);
     check_data_is_valid(handle, 0);
     check_data_is_validated(handle, 0);
-    return Device_get_mix_rate((Device*)handle->song);
+    return Device_get_mix_rate((Device*)handle->module);
 }
 
 
@@ -98,7 +98,7 @@ int kqt_Handle_set_buffer_size(kqt_Handle* handle, long size)
                 " greater than %ld frames", KQT_BUFFER_SIZE_MAX);
         return 0;
     }
-    if (!Device_set_buffer_size((Device*)handle->song, size))
+    if (!Device_set_buffer_size((Device*)handle->module, size))
     {
         kqt_Handle_set_error(handle, ERROR_MEMORY,
                 "Couldn't allocate memory for new buffers");
@@ -113,7 +113,7 @@ long kqt_Handle_get_buffer_size(kqt_Handle* handle)
     check_handle(handle, 0);
     check_data_is_valid(handle, 0);
     check_data_is_validated(handle, 0);
-    return Device_get_buffer_size((Device*)handle->song);
+    return Device_get_buffer_size((Device*)handle->module);
 }
 
 
@@ -137,7 +137,7 @@ float* kqt_Handle_get_buffer(kqt_Handle* handle, int index)
                 "Buffer #%d does not exist", index);
         return NULL;
     }
-    Audio_buffer* buffer = Device_get_buffer(&handle->song->parent,
+    Audio_buffer* buffer = Device_get_buffer(&handle->module->parent,
                                    DEVICE_PORT_TYPE_RECEIVE, 0);
     assert(buffer != NULL);
     return (float*)Audio_buffer_get_buffer(buffer, index);
@@ -155,26 +155,26 @@ long long kqt_Handle_get_duration(kqt_Handle* handle, int track)
                 "Invalid track number: %d", track);
         return -1;
     }
-    Reltime_init(&handle->song->skip_state->play_time);
-    handle->song->skip_state->play_frames = 0;
-    Playdata_reset(handle->song->skip_state);
+    Reltime_init(&handle->module->skip_state->play_time);
+    handle->module->skip_state->play_frames = 0;
+    Playdata_reset(handle->module->skip_state);
     for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
     {
-        Channel_reset(handle->song->channels[i]);
+        Channel_reset(handle->module->channels[i]);
     }
     if (track == -1)
     {
-        handle->song->skip_state->mode = PLAY_SONG;
-        Playdata_set_track(handle->song->skip_state, 0, true);
+        handle->module->skip_state->mode = PLAY_SONG;
+        Playdata_set_track(handle->module->skip_state, 0, true);
     }
     else
     {
-        handle->song->skip_state->mode = PLAY_SUBSONG;
-        Playdata_set_track(handle->song->skip_state, track, true);
+        handle->module->skip_state->mode = PLAY_SUBSONG;
+        Playdata_set_track(handle->module->skip_state, track, true);
     }
-    Reltime_init(&handle->song->skip_state->pos);
-    handle->song->skip_state->freq = 1000000000;
-    return Song_skip(handle->song, handle->song->skip_handler,
+    Reltime_init(&handle->module->skip_state->pos);
+    handle->module->skip_state->freq = 1000000000;
+    return Module_skip(handle->module, handle->module->skip_handler,
                      KQT_MAX_CALC_DURATION);
 }
 
@@ -201,35 +201,35 @@ int kqt_Handle_set_position(
     }
 
     kqt_Handle_stop(handle);
-    Playdata_reset_stats(handle->song->play_state);
-    Playdata_reset_stats(handle->song->skip_state);
+    Playdata_reset_stats(handle->module->play_state);
+    Playdata_reset_stats(handle->module->skip_state);
     if (track == -1)
     {
-        handle->song->play_state->mode = PLAY_SONG;
-        Playdata_set_track(handle->song->play_state, 0, true);
-        handle->song->skip_state->mode = PLAY_SONG;
-        Playdata_set_track(handle->song->skip_state, 0, true);
+        handle->module->play_state->mode = PLAY_SONG;
+        Playdata_set_track(handle->module->play_state, 0, true);
+        handle->module->skip_state->mode = PLAY_SONG;
+        Playdata_set_track(handle->module->skip_state, 0, true);
     }
     else
     {
-        handle->song->play_state->mode = PLAY_SUBSONG;
-        Playdata_set_track(handle->song->play_state, track, true);
-        handle->song->skip_state->mode = PLAY_SUBSONG;
-        Playdata_set_track(handle->song->skip_state, track, true);
+        handle->module->play_state->mode = PLAY_SUBSONG;
+        Playdata_set_track(handle->module->play_state, track, true);
+        handle->module->skip_state->mode = PLAY_SUBSONG;
+        Playdata_set_track(handle->module->skip_state, track, true);
     }
-    handle->song->play_state->system = 0;
-    handle->song->skip_state->system = 0;
-    Reltime_set(&handle->song->play_state->pos, 0, 0);
-    Reltime_set(&handle->song->skip_state->pos, 0, 0);
-    handle->song->play_state->play_frames = 0;
-    handle->song->skip_state->play_frames = 0;
+    handle->module->play_state->system = 0;
+    handle->module->skip_state->system = 0;
+    Reltime_set(&handle->module->play_state->pos, 0, 0);
+    Reltime_set(&handle->module->skip_state->pos, 0, 0);
+    handle->module->play_state->play_frames = 0;
+    handle->module->skip_state->play_frames = 0;
     if (nanoseconds > 0)
     {
         uint64_t frame_skip = ((double)nanoseconds / 1000000000) *
-            handle->song->play_state->freq;
-        Song_skip(handle->song, handle->song->event_handler, frame_skip);
-        Reltime_copy(&handle->song->skip_state->pos,
-                &handle->song->play_state->pos);
+            handle->module->play_state->freq;
+        Module_skip(handle->module, handle->module->event_handler, frame_skip);
+        Reltime_copy(&handle->module->skip_state->pos,
+                &handle->module->play_state->pos);
     }
     return 1;
 }
@@ -240,8 +240,8 @@ long long kqt_Handle_get_position(kqt_Handle* handle)
     check_handle(handle, 0);
     check_data_is_valid(handle, 0);
     check_data_is_validated(handle, 0);
-    return ((long long)handle->song->play_state->play_frames * 1000000000L) /
-           handle->song->play_state->freq;
+    return ((long long)handle->module->play_state->play_frames * 1000000000L) /
+           handle->module->play_state->freq;
 }
 
 
@@ -264,12 +264,12 @@ int kqt_Handle_fire(kqt_Handle* handle, int channel, char* event)
     }
 
     // Set tempo if we haven't mixed anything yet
-    Playdata* global_state = handle->song->play_state;
+    Playdata* global_state = handle->module->play_state;
     if (isnan(global_state->tempo))
     {
         global_state->tempo = 120;
         const uint16_t track_index = global_state->track;
-        const Track_list* tl = handle->song->track_list;
+        const Track_list* tl = handle->module->track_list;
         if (tl != NULL && track_index < Track_list_get_len(tl))
         {
             int16_t song_index = Track_list_get_song_index(
@@ -283,7 +283,7 @@ int kqt_Handle_fire(kqt_Handle* handle, int channel, char* event)
         }
     }
 
-    return Event_handler_trigger_const(handle->song->event_handler, channel,
+    return Event_handler_trigger_const(handle->module->event_handler, channel,
                                        event, false);
 }
 
@@ -305,7 +305,7 @@ int kqt_Handle_receive(kqt_Handle* handle, char* dest, int size)
                 "size must be positive");
         return 0;
     }
-    return Event_handler_receive(handle->song->event_handler, dest, size);
+    return Event_handler_receive(handle->module->event_handler, dest, size);
 }
 
 
@@ -326,7 +326,7 @@ int kqt_Handle_treceive(kqt_Handle* handle, char* dest, int size)
                 "size must be positive");
         return 0;
     }
-    return Event_handler_treceive(handle->song->event_handler, dest, size);
+    return Event_handler_treceive(handle->module->event_handler, dest, size);
 }
 
 
@@ -357,7 +357,7 @@ int kqt_Handle_get_state(kqt_Handle* handle,
     }
     if (string_has_prefix(key, "env/"))
     {
-        Env_var* var = Environment_get(handle->song->env,
+        Env_var* var = Environment_get(handle->module->env,
                                        key + strlen("env/"));
         if (var == NULL)
         {
@@ -366,7 +366,7 @@ int kqt_Handle_get_state(kqt_Handle* handle,
         Env_var_get_value_json(var, dest, size);
         return 1;
     }
-    return Playdata_get_state_value(handle->song->play_state,
+    return Playdata_get_state_value(handle->module->play_state,
                                     key, dest, size);
 }
 #endif
@@ -375,17 +375,17 @@ int kqt_Handle_get_state(kqt_Handle* handle,
 void kqt_Handle_stop(kqt_Handle* handle)
 {
     assert(handle_is_valid(handle));
-    handle->song->play_state->mode = STOP;
-    Device_reset((Device*)handle->song);
+    handle->module->play_state->mode = STOP;
+    Device_reset((Device*)handle->module);
 #if 0
-    Playdata_reset(handle->song->play_state);
+    Playdata_reset(handle->module->play_state);
     for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
     {
-        Channel_reset(handle->song->channels[i]);
+        Channel_reset(handle->module->channels[i]);
     }
 #endif
-    handle->song->play_state->track = 0;
-    handle->song->play_state->tempo = NAN;
+    handle->module->play_state->track = 0;
+    handle->module->play_state->tempo = NAN;
     return;
 }
 

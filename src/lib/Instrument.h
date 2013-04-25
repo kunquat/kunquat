@@ -44,7 +44,7 @@ typedef struct Instrument Instrument;
  *
  * \param buf_len         The length of a mixing buffer -- must be > \c 0.
  * \param mix_rate        The mixing rate -- must be > \c 0.
- * \param scales          The Scales of the Song -- must not be \c NULL.
+ * \param scales          The Scales of the Module -- must not be \c NULL.
  * \param default_scale   The default Scale -- must not be \c NULL. Also,
  *                        *default_scales must be an element of \a scales.
  *
