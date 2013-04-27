@@ -16,6 +16,8 @@
 #define K_PLAYER_H
 
 
+#include <stdint.h>
+
 #include <Module.h>
 
 
@@ -31,6 +33,27 @@ typedef struct Player Player;
  *           failed.
  */
 Player* new_Player(const Module* module);
+
+
+/**
+ * Plays music.
+ *
+ * \param player    The Player -- must not be \c NULL.
+ * \param nframes   The number of frames to be rendered -- must be >= \c 0.
+ *                  The actual number of frames rendered may be anything
+ *                  between \c 0 and \a nframes.
+ */
+void Player_play(Player* player, int32_t nframes);
+
+
+/**
+ * Gets the number of frames available in the internal audio buffer.
+ *
+ * \param player   The Player -- must not be \c NULL.
+ *
+ * \return   The number of frames available.
+ */
+int32_t Player_get_frames_available(Player* player);
 
 
 /**

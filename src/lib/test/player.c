@@ -12,6 +12,7 @@
  */
 
 
+#include <stdint.h>
 #include <string.h>
 
 #include <handle_utils.h>
@@ -22,12 +23,45 @@
 #include <Handle_private.h>
 
 
+static Player* player = NULL;
+
+
+void setup_player()
+{
+    assert(player == NULL);
+    setup_empty();
+    const Module* module = Handle_get_module(handle);
+    player = new_Player(module);
+    fail_if(player == NULL, "Player creation failed");
+    return;
+}
+
+
+void player_teardown()
+{
+    assert(player != NULL);
+    del_Player(player);
+    player = NULL;
+    handle_teardown();
+    return;
+}
+
+
 START_TEST(Create_player)
 {
-    const Module* module = Handle_get_module(handle);
-    Player* player = new_Player(module);
-    fail_if(player == NULL, "Player creation failed");
-    del_Player(player);
+}
+END_TEST
+
+
+START_TEST(Empty_composition_renders_zero_frames)
+{
+    assert(player != NULL);
+    Player_play(player, 256);
+    const int32_t nframes = Player_get_frames_available(player);
+    fail_unless(
+            nframes == 0,
+            "Wrong number of frames rendered"
+            KT_VALUES("%ld", 0, nframes));
 }
 END_TEST
 
@@ -41,9 +75,10 @@ Suite* Player_suite(void)
     TCase* tc_render = tcase_create("render");
     suite_add_tcase(s, tc_render);
     tcase_set_timeout(tc_render, timeout);
-    tcase_add_checked_fixture(tc_render, setup_empty, handle_teardown);
+    tcase_add_checked_fixture(tc_render, setup_player, player_teardown);
 
     tcase_add_test(tc_render, Create_player);
+    tcase_add_test(tc_render, Empty_composition_renders_zero_frames);
 
     return s;
 }
@@ -61,6 +96,5 @@ int main(void)
     srunner_free(sr);
     exit(fail_count > 0);
 }
-
 
 

@@ -39,6 +39,24 @@ Player* new_Player(const Module* module)
 }
 
 
+void Player_play(Player* player, int32_t nframes)
+{
+    assert(player != NULL);
+    assert(nframes >= 0);
+    (void)player;
+    (void)nframes;
+    return;
+}
+
+
+int32_t Player_get_frames_available(Player* player)
+{
+    assert(player != NULL);
+    (void)player;
+    return 0;
+}
+
+
 void del_Player(Player* player)
 {
     if (player == NULL)
