@@ -24,8 +24,21 @@ class TestWindow(QMainWindow):
         QMainWindow.__init__(self)
         self._ui_model = None
 
+        self._progressBar = QProgressBar(self)
+        self._progressBar.setGeometry(QRect(30, 70, 481, 23))
+        self._progressBar.setObjectName("progressBar")
+
+    def update_progress(self):
+        position = self._ui_model.get_prog_position()
+        last = self._ui_model.get_prog_last()
+        self._progressBar.setProperty("value", last)
+        self._progressBar.setValue(position)
+
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
+
+    def run(self):
+        self.update_progress()
 
     def __del__(self):
         pass
@@ -41,6 +54,9 @@ class Ui():
         self._driver_switch_timer = QTimer()
         self._ui_model = None
         self._asdfasdf = False
+
+    def update_progress(self):
+        self._mainwindow.update_progress()
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -59,11 +75,12 @@ class Ui():
         if self._asdfasdf:
             return
         self._asdfasdf = True
-        from kunquat.tracker.audio.drivers.pulseaudio import Pulseaudio
-        one = Pulseaudio
+        from kunquat.tracker.audio.drivers.pushaudio import Pushaudio
+        one = Pushaudio
         print 'driver: %s' % one.get_id()
         driver_manager = self._ui_model.get_driver_manager()
         driver_manager.select_driver(one)
+        self._ui_model.load_module()
 
         #import random
         #driver_manager = self._ui_model.get_driver_manager()
@@ -84,6 +101,7 @@ class Ui():
         self._mainwindow.show()
 
     def run(self):
+        self._mainwindow.run()
         self._start_driver_randomizer()
         self._app.exec_()
         self._qp_timer.stop()

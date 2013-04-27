@@ -24,10 +24,14 @@ class Frontend():
     # Frontend Interface
 
     def set_backend(self, backend):
-        pass
+        self._ui_model.set_backend(backend)
+
 
     def set_audio_output(self, audio_output):
         self._ui_model.set_audio_output(audio_output)
+
+    def update_progress(self, position, last):
+        self._ui_model.update_progress(position, last)
 
     def update_drivers(self, update):
         drivers = self._ui_model.get_drivers()

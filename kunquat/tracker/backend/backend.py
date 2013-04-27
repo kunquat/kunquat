@@ -50,11 +50,30 @@ class Backend():
         self._frontend = None
         self._kunquat = Kunquat()
 
+        self._sine = gen_sine(48000)
+
+    def set_audio_output(self, audio_output):
+        self._audio_output = audio_output
+
+    def set_frontend(self, frontend):
+        self._frontend = frontend
+
+    def set_data(self, key, value):
+        self._kunquat.set_data(key, value)
+
+    def update_selected_driver(self, name):
+        pass
+
+    def load_module(self):
         if len(sys.argv) > 1 and sys.argv[1][-4:] in ['.kqt', '.bz2']:
             path = sys.argv[1]
             prefix = 'kqtc00'
             tfile = tarfile.open(path, format=tarfile.USTAR_FORMAT)
-            for entry in tfile.getmembers():
+            members = tfile.getmembers()
+            member_count = len(members)
+            for i, entry in zip(range(member_count), members):
+                if self._frontend:
+                    self._frontend.update_progress(i, member_count)
                 tarpath = entry.name
                 key = remove_prefix(tarpath, prefix)
                 assert (key != None) #TODO broken file exception
@@ -70,33 +89,23 @@ class Backend():
                         decoded = json.loads(value)
                     elif key.endswith('.jsonln'):
                         decoded = json.loads(value)
+                    elif key.endswith('.jsonsh'):
+                        decoded = json.loads(value)
+                    elif key.endswith('.jsonsm'):
+                        decoded = json.loads(value)
                     else:
                         decoded = value
                     self._kunquat.set_data(key, decoded)
             tfile.close()
             self._kunquat.validate()
 
-        self._sine = gen_sine(48000)
-
-    def set_audio_output(self, audio_output):
-        self._audio_output = audio_output
-
-    def set_frontend(self, frontend):
-        self._frontend = frontend
-
-    def set_data(self, key, value):
-        self._kunquat.set_data(key, value)
-
-    def update_selected_driver(self, name):
-        pass
-
     def commit_data(self):
         self._kunquat.validate()
 
     def generate_audio(self, nframes):
-        data_mono = list(islice(self._sine, nframes))
-        audio_data = (data_mono, data_mono)
-        #audio_data = self._kunquat.mix(nframes)
+        #data_mono = list(islice(self._sine, nframes))
+        #audio_data = (data_mono, data_mono)
+        audio_data = self._kunquat.mix(nframes)
         self._audio_output.put_audio(audio_data)
 
 

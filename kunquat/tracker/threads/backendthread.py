@@ -45,6 +45,9 @@ class BackendThread(threading.Thread):
     def update_selected_driver(self, name):
         self._q.push('update_selected_driver', name)
 
+    def load_module(self):
+        self._q.push('load_module')
+
     # Threading interface
 
     def set_handler(self, backend):

@@ -32,6 +32,7 @@ class QtLauncher():
 
     def run_ui(self):
         self._ui = Ui()
+        self._ui_model.set_ui(self._ui)
         self._ui.set_ui_model(self._ui_model)
         self._ui.set_queue_processor(self._queue_processor)
         if self._show == True:

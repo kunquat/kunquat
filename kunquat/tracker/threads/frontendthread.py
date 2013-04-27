@@ -49,6 +49,9 @@ class FrontendThread(threading.Thread):
     def select_driver_success(self, driver_class):
         self._q.push('select_driver_success', driver_class)
 
+    def update_progress(self, position, last):
+        self._q.push('update_progress', position, last)
+
     # Threading interface
 
     def set_handler(self, frontend):

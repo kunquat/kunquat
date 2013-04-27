@@ -75,9 +75,14 @@ class UiModel():
 
     def __init__(self):
         self._driver_manager = None
+        self._prog_position = 0
+        self._prog_last = 0
 
     def set_backend(self, backend):
-        pass
+        self._backend = backend
+
+    def set_ui(self, ui):
+        self._ui = ui
 
     def set_driver_manager(self, driver_manager):
         self._driver_manager = driver_manager
@@ -88,5 +93,16 @@ class UiModel():
     def set_audio_output(self, audio_output):
         self._driver_manager.set_audio_output(audio_output)
 
+    def get_prog_position(self):
+        return self._prog_position
+        
+    def get_prog_last(self):
+        return self._prog_last
 
+    def update_progress(self, position, last):
+        self._prog_position = position
+        self._prog_last = last
+        self._ui.update_progress()
 
+    def load_module(self):
+        self._backend.load_module()
