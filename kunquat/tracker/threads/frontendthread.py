@@ -24,7 +24,7 @@ HALT = None
 class FrontendThread(threading.Thread):
 
     def __init__(self):
-        threading.Thread.__init__(self)
+        threading.Thread.__init__(self, name="Frontend")
         self._q = CommandQueue()
         self._ui_launcher = None
         self._frontend = None

@@ -24,7 +24,7 @@ HALT = None
 class AudioThread(threading.Thread):
 
     def __init__(self):
-        threading.Thread.__init__(self)
+        threading.Thread.__init__(self, name="Audio")
         self._backend = None
         self._q = CommandQueue()
         self._audio = None

@@ -21,7 +21,7 @@ HALT = None
 class BackendThread(threading.Thread):
 
     def __init__(self):
-        threading.Thread.__init__(self)
+        threading.Thread.__init__(self, name="Backend")
         self._q = CommandQueue()
         self._backend = None
 
