@@ -44,13 +44,29 @@ class TestWindow(QMainWindow):
         pass
 
 
+class EventPump(QThread):
+
+    process_queue = pyqtSignal(name='process_queue')
+
+    def __init__(self):
+        QThread.__init__(self)
+
+    def set_block(self, block):
+        self._block = block
+
+    def run(self):
+        while True:
+            self._block()
+            QObject.emit(self, SIGNAL('process_queue()'))
+
+
 class Ui():
 
     def __init__(self):
         self._app = QApplication(sys.argv)
         self._mainwindow = TestWindow()
         self._qp = None
-        self._qp_timer = QTimer()
+        self._event_pump = EventPump()
         self._driver_switch_timer = QTimer()
         self._ui_model = None
         self._asdfasdf = False
@@ -62,14 +78,15 @@ class Ui():
         self._ui_model = ui_model
         self._mainwindow.set_ui_model(ui_model)
 
-    def set_queue_processor(self, qp):
+    def set_queue_processor(self, qp, block):
         assert not self._qp
         self._qp = qp
+        self._event_pump.set_block(block)
         QObject.connect(
-                self._qp_timer,
-                SIGNAL('timeout()'),
+                self._event_pump,
+                SIGNAL('process_queue()'),
                 self._qp)
-        self._qp_timer.start(20)
+        self._event_pump.start()
 
     def select_random_driver(self):
         if self._asdfasdf:
@@ -95,6 +112,7 @@ class Ui():
         self._driver_switch_timer.start(3000)
 
     def halt(self):
+        self._event_pump.terminate()
         self._app.exit()
 
     def show(self):
@@ -104,6 +122,5 @@ class Ui():
         self._mainwindow.run()
         self._start_driver_randomizer()
         self._app.exec_()
-        self._qp_timer.stop()
 
 

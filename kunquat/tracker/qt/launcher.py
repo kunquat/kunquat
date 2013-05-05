@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Toni Ruottu, Finland 2013
+# Authors: Toni Ruottu, Finland 2013
+#          Tomi Jylhä-Ollila, Finland 2013
 #
 # This file is part of Kunquat.
 #
@@ -20,12 +21,14 @@ class QtLauncher():
         self._show = show
         self._ui_model = None
         self._queue_processor = None
+        self._block = None
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
 
-    def set_queue_processor(self, queue_processor):
+    def set_queue_processor(self, queue_processor, block):
         self._queue_processor = queue_processor
+        self._block = block
 
     def halt_ui(self):
         self._ui.halt()
@@ -34,7 +37,7 @@ class QtLauncher():
         self._ui = Ui()
         self._ui_model.set_ui(self._ui)
         self._ui.set_ui_model(self._ui_model)
-        self._ui.set_queue_processor(self._queue_processor)
+        self._ui.set_queue_processor(self._queue_processor, self._block)
         if self._show == True:
             self._ui.show()
         self._ui.run()

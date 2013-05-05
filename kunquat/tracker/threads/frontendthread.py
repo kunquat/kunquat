@@ -33,7 +33,7 @@ class FrontendThread(threading.Thread):
 
     def set_ui_launcher(self, ui_launcher):
         self._ui_launcher = ui_launcher
-        self._ui_launcher.set_queue_processor(self._process_queue)
+        self._ui_launcher.set_queue_processor(self._process_queue, self._q.block)
 
     # Frontend interface
 
@@ -61,16 +61,11 @@ class FrontendThread(threading.Thread):
         self._q.push(HALT)
 
     def _process_queue(self):
-        count_estimate = self._q.qsize()
-        for _ in range(count_estimate):
-            try:
-                command = self._q.get_nowait()
-                if command.name == HALT:
-                    self._ui_launcher.halt_ui()
-                else:
-                    getattr(self._frontend, command.name)(*command.args)
-            except Queue.Empty:
-                break
+        command = self._q.get()
+        if command.name == HALT:
+            self._ui_launcher.halt_ui()
+        else:
+            getattr(self._frontend, command.name)(*command.args)
 
     def run(self):
         self._ui_launcher.run_ui()

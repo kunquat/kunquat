@@ -60,9 +60,11 @@ class AudioThread(threading.Thread):
             time.sleep(0.1)
 
     def run(self):
+        self._q.block()
         command = self._q.get()
         while command.name != HALT:
             getattr(self._audio, command.name)(*command.args)
+            self._q.block()
             command = self._q.get()
         self._close_devices()
 

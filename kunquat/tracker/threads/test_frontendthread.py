@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Toni Ruottu, Finland 2013
+# Authors: Toni Ruottu, Finland 2013
+#          Tomi Jylhä-Ollila, Finland 2013
 #
 # This file is part of Kunquat.
 #
@@ -24,12 +25,14 @@ class DummyLauncher():
     def __init__(self):
         self._running = None
         self._queue_processor = None
+        self._block = None
 
     def set_frontend(self, frontend):
         pass
 
-    def set_queue_processor(self, queue_processor):
+    def set_queue_processor(self, queue_processor, block):
         self._queue_processor = queue_processor
+        self._block = block
 
     def halt_ui(self):
         self._running = False
@@ -37,6 +40,7 @@ class DummyLauncher():
     def run_ui(self):
         self._running = True
         while(self._running == True):
+            self._block()
             self._queue_processor()
 
 

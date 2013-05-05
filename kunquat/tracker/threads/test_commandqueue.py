@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Toni Ruottu, Finland 2013
+# Authors: Toni Ruottu, Finland 2013
+#          Tomi Jylhä-Ollila, Finland 2013
 #
 # This file is part of Kunquat.
 #
@@ -43,8 +44,11 @@ class TestCommandQueue(unittest.TestCase):
         q.put(foo)
         q.put(bar)
         q.put(baz)
+        q.block()
         self.assertEqual(q.get(), foo)
+        q.block()
         self.assertEqual(q.get(), bar)
+        q.block()
         self.assertEqual(q.get(), baz)
 
     def test_valid_types(self):
@@ -59,22 +63,11 @@ class TestCommandQueue(unittest.TestCase):
         name = 'test'
         args = [1, 2, 3]
         q.push(name, *args)
+        q.block()
         command = q.get()
         self.assertEqual(command.name, 'test')
         self.assertEqual(command.args, args)
 
-    def test_nowait(self):
-        q = CommandQueue()
-        self.assertRaises(Empty, q.get_nowait)
-        
-    def test_qsize(self):
-        q = CommandQueue()
-        self.assertEqual(q.qsize(), 0)
-        q.put(foo)
-        self.assertEqual(q.qsize(), 1)
-        q.get()
-        self.assertEqual(q.qsize(), 0)
-        
 
 if __name__ == '__main__':
     unittest.main()

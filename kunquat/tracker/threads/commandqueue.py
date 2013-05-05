@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Toni Ruottu, Finland 2013
+# Authors: Toni Ruottu, Finland 2013
+#          Tomi Jylhä-Ollila, Finland 2013
 #
 # This file is part of Kunquat.
 #
@@ -16,25 +17,34 @@ from threading import Thread
 from command import Command
 
 
-class CommandQueue(Queue):
+class CommandQueue():
     """
     >>> q = CommandQueue()
     >>> command = Command('foo', 1, 2, 3)
     >>> q.put(command)
+    >>> q.block()
     >>> q.get() == command
     True
     """
 
     def __init__(self):
-        Queue.__init__(self)
+        self._in = Queue()
+        self._out = Queue()
+
+    def block(self):
+        foo = self._in.get()
+        self._out.put(foo)
 
     def put(self, command):
         if isinstance(command, Command):
-            Queue.put(self, command)
+            self._in.put(command)
         else:
             raise TypeError(type(command))
 
     def push(self, name, *args):
         command = Command(name, *args)
         self.put(command)
+
+    def get(self):
+        return self._out.get()
 
