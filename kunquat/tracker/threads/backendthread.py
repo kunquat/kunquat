@@ -39,8 +39,8 @@ class BackendThread(threading.Thread):
     def commit_data(self):
         self._q.push('commit_data')
 
-    def generate_audio(self, nframes):
-        self._q.push('generate_audio', nframes)
+    def acknowledge_audio(self):
+        self._q.push('acknowledge_audio')
 
     def update_selected_driver(self, name):
         self._q.push('update_selected_driver', name)
