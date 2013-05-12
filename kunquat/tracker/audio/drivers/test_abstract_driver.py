@@ -19,7 +19,7 @@ from time import sleep
 
 
 class DummyAudioSource():
-    def generate_audio(self, nframes):
+    def acknowledge_audio(self):
         pass
 
 
@@ -39,25 +39,36 @@ class TestAbstractDriver():
         end = threading.active_count()
         self.assertEqual(start, end)
 
-    def test_audio_gets_requested(self):
+    def test_audio_gets_acknowledged(self):
         q = Queue()
         driver = self._DriverClass()
         class AudioSourceWithQueue():
-            def generate_audio(self, nframes):
-                driver.put_audio(([0],[0]))
+            def __init__(self):
+                # in the real case there is no recursion
+                # as the calls cross thread boundaries
+                self.recursion_index = 0
+                self.recursion_limit = 8
+            def acknowledge_audio(self):
+                if self.recursion_index > self.recursion_limit:
+                    return
+                self.recursion_index += 1
                 q.put('foo')
+                driver.put_audio(([0],[0]))
         driver.set_audio_source(AudioSourceWithQueue())
         driver.start()
+        driver.put_audio(([0],[0]))
         for _ in range(8):
             q.get()
         driver.close()
 
     def test_emptypush(self):
         driver = self._DriverClass()
+        driver.set_audio_source(DummyAudioSource())
         driver.put_audio(([],[]))
 
     def test_quickpush(self):
         driver = self._DriverClass()
+        driver.set_audio_source(DummyAudioSource())
         driver.put_audio(([0],[0]))
 
     def test_prefeed(self):
