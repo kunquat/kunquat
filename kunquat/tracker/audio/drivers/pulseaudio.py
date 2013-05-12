@@ -80,7 +80,7 @@ class Pulseaudio():
         self._buffer.put(audio)
 
     def _next(self, nframes):
-        self._audio_source.generate_audio(nframes)
+        self._audio_source.acknowledge_audio()
 
     def _add_audio_to_workspace(self, audio):
         self._workspace = join_audio(self._workspace, audio)
