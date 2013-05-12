@@ -17,6 +17,7 @@ from threading import Thread
 
 from backend import Backend
 
+from kunquat.tracker.audio.drivers.pushaudio import Pushaudio
 
 class TestBackend(unittest.TestCase):
 
@@ -37,9 +38,16 @@ class TestBackend(unittest.TestCase):
         self._backend.set_data('pat_000/p_manifest.json', {})
         self._backend.set_data('pat_000/p_pattern.json', { 'length': [16, 0] })
         self._backend.set_data('pat_000/instance_000/p_manifest.json', {})
+        self._backend.update_selected_driver(Pushaudio)
         self._backend.commit_data()
-        self._backend.generate_audio(2)
-        result = q.get()
+        left = []
+        right = []
+        while len(left) < 2:
+            (gotl, gotr) = q.get()
+            left += gotl
+            right += gotr
+            self._backend.acknowledge_audio()
+        result = (left[:2], right[:2])
         expected = ([0.0, 0.0], [0.0, 0.0])
         self.assertEqual(result, expected)
 
