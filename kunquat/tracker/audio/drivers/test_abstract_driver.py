@@ -78,21 +78,21 @@ class TestAbstractDriver():
     def test_emptypush(self):
         driver = self._DriverClass()
         driver.set_audio_source(DummyAudioSource())
+        driver.start()
         driver.put_audio(([],[]))
+        driver.close()
 
     def test_quickpush(self):
         driver = self._DriverClass()
         driver.set_audio_source(DummyAudioSource())
+        driver.start()
         driver.put_audio(([0],[0]))
+        driver.close()
 
     def test_prefeed(self):
         driver = self._DriverClass()
         driver.set_audio_source(DummyAudioSource())
-        driver.put_audio((10000*[0.1],10000*[0.1]))
-        driver.start()
-        sleep(0.2)
-        driver.put_audio((10000*[0.1],10000*[0.1]))
-        driver.stop()
+        self.assertRaises(AssertionError, driver.put_audio, ([0],[0]))
 
     def _boot_driver(self):
         driver = self._DriverClass()
