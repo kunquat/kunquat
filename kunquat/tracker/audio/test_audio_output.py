@@ -53,14 +53,12 @@ class TestAudioOutput(unittest.TestCase):
             def select_driver_success(self, driver):
                 q.put(driver)
         class DummyBackend(Thread):
-            def __init__(self):
-                self._audio_output = None
             def set_audio_output(self, audio_output):
-                self._audio_output = audio_output
-            def generate_audio(self, nframes):
-                audio_data = ([],[])
-                if self._audio_output != None:
-                    self._audio_output.put_audio(audio_data)
+                pass
+            def acknowledge_audio(self):
+                pass
+            def update_selected_driver(self, DriverClass):
+                pass
         dummy_backend = DummyBackend()
         dummy_frontend = DummyFrontend()
         self._audio_output.set_backend(dummy_backend)
@@ -77,7 +75,10 @@ class TestAudioOutput(unittest.TestCase):
             def select_driver_success(self, driver_class):
                 pass
         class DummyBackend(Thread):
-            pass
+            def acknowledge_audio(self):
+                pass
+            def update_selected_driver(self, DriverClass):
+                pass
         dummy_backend = DummyBackend()
         dummy_frontend = DummyFrontend()
         self._audio_output.set_backend(dummy_backend)
@@ -94,14 +95,12 @@ class TestAudioOutput(unittest.TestCase):
             def select_driver_success(self, driver):
                 q.put(driver)
         class DummyBackend(Thread):
-            def __init__(self):
-                self._audio_output = None
             def set_audio_output(self, audio_output):
-                self._audio_output = audio_output
-            def generate_audio(self, nframes):
-                audio_data = ([],[])
-                if self._audio_output != None:
-                    self._audio_output.put_audio(audio_data)
+                pass
+            def acknowledge_audio(self):
+                pass
+            def update_selected_driver(self, DriverClass):
+                pass
         dummy_backend = DummyBackend()
         dummy_frontend = DummyFrontend()
         self._audio_output.set_backend(dummy_backend)
