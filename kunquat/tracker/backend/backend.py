@@ -61,9 +61,6 @@ class Backend():
     def set_data(self, key, value):
         self._kunquat.set_data(key, value)
 
-    def update_selected_driver(self, name):
-        pass
-
     def load_module(self):
         if len(sys.argv) > 1 and sys.argv[1][-4:] in ['.kqt', '.bz2']:
             path = sys.argv[1]
@@ -102,10 +99,15 @@ class Backend():
     def commit_data(self):
         self._kunquat.validate()
 
-    def generate_audio(self, nframes):
+    def _generate_audio(self, nframes):
         #data_mono = list(islice(self._sine, nframes))
         #audio_data = (data_mono, data_mono)
         audio_data = self._kunquat.mix(nframes)
         self._audio_output.put_audio(audio_data)
 
+    def update_selected_driver(self, name):
+        self._audio_output.put_audio(([],[]))
 
+    def acknowledge_audio(self):
+        nframes = 2048
+        self._generate_audio(nframes)
