@@ -25,7 +25,9 @@ class DummyFrontend(threading.Thread):
 
 
 class DummyBackend(threading.Thread):
-    pass
+
+    def update_selected_driver(self):
+        pass
 
 
 class TestAudiothread(TestAbstractThread, unittest.TestCase):
