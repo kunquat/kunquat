@@ -39,6 +39,7 @@ class AudioOutput():
             self._refresh_driver_audio_source()
             self._driver.start()
         self._frontend.select_driver_success(DriverClass)
+        self._backend.update_selected_driver(DriverClass)
 
     def set_backend(self, backend):
         self._backend = backend
