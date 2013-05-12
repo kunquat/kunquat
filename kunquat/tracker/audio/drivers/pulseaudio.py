@@ -78,8 +78,6 @@ class Pulseaudio():
 
     def put_audio(self, audio):
         self._buffer.put(audio)
-
-    def _next(self, nframes):
         self._audio_source.acknowledge_audio()
 
     def _add_audio_to_workspace(self, audio):
@@ -95,7 +93,6 @@ class Pulseaudio():
         self._flush_queue()
         missing = nframes - audio_len(self._workspace)
         while missing > 0:
-            self._next(missing)
             try:
                 fresh_audio = self._buffer.get(True, 1.0)
             except Queue.Empty:
@@ -121,7 +118,6 @@ class Pulseaudio():
         return audio_data
 
     def start(self):
-        #self._next(20)
         self._pa.play()
 
     def stop(self):
