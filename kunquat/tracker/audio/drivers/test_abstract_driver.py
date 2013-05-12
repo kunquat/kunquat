@@ -39,6 +39,20 @@ class TestAbstractDriver():
         end = threading.active_count()
         self.assertEqual(start, end)
 
+    def test_no_fake_acknowledge(self):
+        driver = self._DriverClass()
+        class AudioSourceWithQueue():
+            def __init__(self):
+                self.acks = 0
+            def acknowledge_audio(self):
+                self.acks += 1
+        source = AudioSourceWithQueue()
+        driver.set_audio_source(source)
+        driver.start()
+        sleep(0.2)
+        self.assertEqual(source.acks, 0)
+        driver.close()
+
     def test_audio_gets_acknowledged(self):
         q = Queue()
         driver = self._DriverClass()
