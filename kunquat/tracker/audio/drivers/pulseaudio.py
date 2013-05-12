@@ -64,12 +64,14 @@ def audio_len(audio):
 class Pulseaudio():
 
     def __init__(self):
+        self._started = False
         self._audio_source = None
         self._pa = Async(
                 'Kunquat Tracker',
                 'Editor output',
                 self._pa_callback)
         self._buffer = Queue.Queue()
+        self._acks = Queue.Queue()
         self._workspace = ([],[])
         self._pa.init()
 
@@ -77,7 +79,9 @@ class Pulseaudio():
         self._audio_source = audio_source
 
     def put_audio(self, audio):
+        assert self._started
         self._buffer.put(audio)
+        self._acks.get()
         self._audio_source.acknowledge_audio()
 
     def _add_audio_to_workspace(self, audio):
@@ -87,6 +91,7 @@ class Pulseaudio():
         items = self._buffer.qsize()
         for _ in range(items):
             fresh_audio = self._buffer.get()
+            self._acks.put('ack')
             self._add_audio_to_workspace(fresh_audio)
 
     def _update_workspace(self, nframes):
@@ -95,6 +100,7 @@ class Pulseaudio():
         while missing > 0:
             try:
                 fresh_audio = self._buffer.get(True, 1.0)
+                self._acks.put('ack')
             except Queue.Empty:
                 fresh_audio = ([0.0] * missing, [0.0] * missing)
             self._add_audio_to_workspace(fresh_audio)
@@ -118,6 +124,7 @@ class Pulseaudio():
         return audio_data
 
     def start(self):
+        self._started = True
         self._pa.play()
 
     def stop(self):

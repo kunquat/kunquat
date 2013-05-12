@@ -17,6 +17,7 @@ from kunquat.extras.pulseaudio import Simple
 class Pushaudio():
 
     def __init__(self):
+        self._started = False
         self._audio_source = None
         self._pa = Simple('Kunquat Tracker',
                           'Editor output')
@@ -25,13 +26,14 @@ class Pushaudio():
         self._audio_source = audio_source
 
     def put_audio(self, audio_data):
+        assert self._started
         (left, right) = audio_data
         if len(left) > 0:
             self._pa.write(left, right)
         self._audio_source.acknowledge_audio()
 
     def start(self):
-        pass
+        self._started = True
 
     def stop(self):
         pass

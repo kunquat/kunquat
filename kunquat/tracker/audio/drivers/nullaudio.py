@@ -15,16 +15,18 @@
 class Nullaudio():
 
     def __init__(self):
+        self._started = False
         self._audio_source = None
 
     def set_audio_source(self, audio_source):
         self._audio_source = audio_source
 
     def put_audio(self, audio_data):
+        assert self._started
         self._audio_source.acknowledge_audio()
 
     def start(self):
-        pass
+        self._started = True
 
     def stop(self):
         pass
