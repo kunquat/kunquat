@@ -68,11 +68,18 @@ class Ui():
         self._qp = None
         self._event_pump = EventPump()
         self._driver_switch_timer = QTimer()
+        self._update_timer = QTimer()
         self._ui_model = None
         self._asdfasdf = False
+        self._updaters = set()
 
     def update_progress(self):
-        self._mainwindow.update_progress()
+        self._updaters.add(self._mainwindow.update_progress)
+
+    def _run_updaters(self):
+        for u in self._updaters:
+            u()
+        self._updaters = set()
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -111,6 +118,13 @@ class Ui():
                 self.select_random_driver)
         self._driver_switch_timer.start(3000)
 
+    def _start_updater(self):
+        QObject.connect(
+                self._update_timer,
+                SIGNAL('timeout()'),
+                self._run_updaters)
+        self._update_timer.start(10)
+
     def halt(self):
         self._event_pump.terminate()
         self._app.exit()
@@ -120,6 +134,7 @@ class Ui():
 
     def run(self):
         self._mainwindow.run()
+        self._start_updater()
         self._start_driver_randomizer()
         self._app.exec_()
 
