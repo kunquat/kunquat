@@ -100,7 +100,8 @@ class Ui():
             return
         self._asdfasdf = True
         from kunquat.tracker.audio.drivers.pushaudio import Pushaudio
-        one = Pushaudio
+        from kunquat.tracker.audio.drivers.benchaudio import Benchaudio
+        one = Benchaudio
         print 'driver: %s' % one.get_id()
         driver_manager = self._ui_model.get_driver_manager()
         driver_manager.select_driver(one)
