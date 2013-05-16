@@ -137,6 +137,7 @@ class Backend():
         nframes = self._push_amount
         self._output_times.append((nframes, start, end))
         self._output_fps = math.floor((nframes / (end - start)))
-        print 'output: %s fps \trender: %s fps' % (self._output_fps, self._render_fps)
+        alert = '!' if self._render_fps < self._output_fps else ''
+        print 'output: %s fps\trender: %s fps\t%s' % (self._output_fps, self._render_fps, alert)
         self._next_audio()
 
