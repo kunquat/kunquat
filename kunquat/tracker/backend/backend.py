@@ -14,6 +14,7 @@
 
 import sys
 import json
+import time
 from itertools import islice
 import tarfile
 import math
@@ -49,6 +50,12 @@ class Backend():
         self._audio_output = None
         self._frontend = None
         self._kunquat = Kunquat()
+        self._render_times = []
+        self._output_times = []
+        self._push_time = None
+        self._push_amount = None
+        self._nframes = 2048
+        self._silence = ([0] * self._nframes, [0] * self._nframes)
 
         self._sine = gen_sine(48000)
 
@@ -99,15 +106,37 @@ class Backend():
     def commit_data(self):
         self._kunquat.validate()
 
-    def _generate_audio(self, nframes):
+    def _mix(self, nframes):
+        start = time.time()
         #data_mono = list(islice(self._sine, nframes))
         #audio_data = (data_mono, data_mono)
         audio_data = self._kunquat.mix(nframes)
+        (l,r) = audio_data
+        if len(l) < 1:
+            audio_data = self._silence
+        end = time.time()
+        self._render_times.append((nframes, start, end))
+        self._render_fps = math.floor((nframes / (end - start)))
+        return audio_data
+
+    def _generate_audio(self, nframes):
+        audio_data = self._mix(nframes)
+        self._push_time = time.time()
+        self._push_amount = nframes
         self._audio_output.put_audio(audio_data)
 
+    def _next_audio(self):
+        self._generate_audio(self._nframes)
+
     def update_selected_driver(self, name):
-        self._audio_output.put_audio(([],[]))
+        self._next_audio()
 
     def acknowledge_audio(self):
-        nframes = 2048
-        self._generate_audio(nframes)
+        start = self._push_time
+        end = time.time()
+        nframes = self._push_amount
+        self._output_times.append((nframes, start, end))
+        self._output_fps = math.floor((nframes / (end - start)))
+        print 'output: %s fps \trender: %s fps' % (self._output_fps, self._render_fps)
+        self._next_audio()
+
