@@ -27,11 +27,14 @@ class TestWindow(QMainWindow):
         self._progressBar = QProgressBar(self)
         self._progressBar.setGeometry(QRect(30, 70, 481, 23))
         self._progressBar.setObjectName("progressBar")
+        self._progressBar.setValue(1)
+        self._progressBar.setMaximum(1)
+        self._progressBar.setMinimum(0)
 
     def update_progress(self):
         position = self._ui_model.get_prog_position()
         last = self._ui_model.get_prog_last()
-        self._progressBar.setProperty("value", last)
+        self._progressBar.setMaximum(last)
         self._progressBar.setValue(position)
 
     def set_ui_model(self, ui_model):
