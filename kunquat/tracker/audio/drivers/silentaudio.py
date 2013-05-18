@@ -27,7 +27,8 @@ class Silentaudio():
         assert self._started
         (l, r) = audio_data
         frames = len(l)
-        play_time = frames / 48000
+        play_time = frames / 48000.0
+        print play_time
         time.sleep(play_time)
         self._audio_source.acknowledge_audio()
 
