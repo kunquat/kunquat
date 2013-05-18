@@ -75,9 +75,9 @@ class Backend():
             tfile = tarfile.open(path, format=tarfile.USTAR_FORMAT)
             members = tfile.getmembers()
             member_count = len(members)
+            if self._frontend:
+                self._frontend.update_progress(0, member_count)
             for i, entry in zip(range(member_count), members):
-                if self._frontend:
-                    self._frontend.update_progress(i, member_count)
                 tarpath = entry.name
                 key = remove_prefix(tarpath, prefix)
                 assert (key != None) #TODO broken file exception
@@ -100,6 +100,8 @@ class Backend():
                     else:
                         decoded = value
                     self._kunquat.set_data(key, decoded)
+                if self._frontend:
+                    self._frontend.update_progress(i + 1, member_count)
             tfile.close()
             self._kunquat.validate()
 
