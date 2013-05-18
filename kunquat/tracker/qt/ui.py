@@ -104,7 +104,8 @@ class Ui():
         self._asdfasdf = True
         from kunquat.tracker.audio.drivers.pushaudio import Pushaudio
         from kunquat.tracker.audio.drivers.nullaudio import Nullaudio
-        one = Nullaudio
+        from kunquat.tracker.audio.drivers.silentaudio import Silentaudio
+        one = Silentaudio
         print 'driver: %s' % one.get_id()
         driver_manager = self._ui_model.get_driver_manager()
         driver_manager.select_driver(one)
