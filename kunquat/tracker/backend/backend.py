@@ -15,6 +15,7 @@
 import sys
 import json
 import time
+from collections import deque
 from itertools import islice
 import tarfile
 import math
@@ -50,8 +51,8 @@ class Backend():
         self._audio_output = None
         self._frontend = None
         self._kunquat = Kunquat()
-        self._render_times = []
-        self._output_times = []
+        self._render_times = deque([], 20)
+        self._output_times = deque([], 20)
         self._push_time = None
         self._push_amount = None
         self._nframes = 2048
@@ -134,9 +135,8 @@ class Backend():
         self._next_audio()
 
     def _average_time(self, times):
-        times_tail = times[-10:]
-        total = sum(end - start for _, start, end in times_tail)
-        frames = sum(nframes for nframes, _, _ in times_tail)
+        total = sum(end - start for _, start, end in times)
+        frames = sum(nframes for nframes, _, _ in times)
         return frames / total
 
     def acknowledge_audio(self):
