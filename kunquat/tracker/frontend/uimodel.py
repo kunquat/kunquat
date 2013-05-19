@@ -77,6 +77,7 @@ class UiModel():
         self._driver_manager = None
         self._prog_position = 0
         self._prog_last = 0
+        self._render_load = 0
 
     def set_backend(self, backend):
         self._backend = backend
@@ -103,6 +104,13 @@ class UiModel():
         self._prog_position = position
         self._prog_last = last
         self._ui.update_progress()
+
+    def update_render_load(self, ratio):
+        self._render_load = ratio
+        self._ui.update_render_load()
+
+    def get_render_load(self):
+        return self._render_load
 
     def load_module(self):
         self._backend.load_module()

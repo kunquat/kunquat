@@ -33,6 +33,9 @@ class Frontend():
     def update_progress(self, position, last):
         self._ui_model.update_progress(position, last)
 
+    def update_render_load(self, ratio):
+        self._ui_model.update_render_load(ratio)
+
     def update_drivers(self, update):
         drivers = self._ui_model.get_drivers()
         drivers.update_drivers(update)

@@ -31,11 +31,17 @@ class TestWindow(QMainWindow):
         self._progressBar.setMaximum(1)
         self._progressBar.setMinimum(0)
 
+        self._render_load = QLabel(self)
+
     def update_progress(self):
         position = self._ui_model.get_prog_position()
         last = self._ui_model.get_prog_last()
         self._progressBar.setMaximum(last)
         self._progressBar.setValue(position)
+
+    def update_render_load(self):
+        ratio = self._ui_model.get_render_load()
+        self._render_load.setText('{} %'.format(int(ratio * 100)))
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -79,6 +85,9 @@ class Ui():
     def update_progress(self):
         self._updaters.add(self._mainwindow.update_progress)
 
+    def update_render_load(self):
+        self._updaters.add(self._mainwindow.update_render_load)
+
     def _run_updaters(self):
         for u in self._updaters:
             u()
@@ -105,7 +114,7 @@ class Ui():
         from kunquat.tracker.audio.drivers.pushaudio import Pushaudio
         from kunquat.tracker.audio.drivers.nullaudio import Nullaudio
         from kunquat.tracker.audio.drivers.silentaudio import Silentaudio
-        one = Silentaudio
+        one = Pushaudio
         print 'driver: %s' % one.get_id()
         driver_manager = self._ui_model.get_driver_manager()
         driver_manager.select_driver(one)

@@ -52,6 +52,9 @@ class FrontendThread(threading.Thread):
     def update_progress(self, position, last):
         self._q.push('update_progress', position, last)
 
+    def update_render_load(self, ratio):
+        self._q.push('update_render_load', ratio)
+
     # Threading interface
 
     def set_handler(self, frontend):
