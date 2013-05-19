@@ -38,8 +38,8 @@ class TestBackend(unittest.TestCase):
         self._backend.set_data('pat_000/p_manifest.json', {})
         self._backend.set_data('pat_000/p_pattern.json', { 'length': [16, 0] })
         self._backend.set_data('pat_000/instance_000/p_manifest.json', {})
-        self._backend.update_selected_driver(Pushaudio)
         self._backend.commit_data()
+        self._backend.update_selected_driver(Pushaudio)
         left = []
         right = []
         while len(left) < 2:
