@@ -123,15 +123,21 @@ class Backend():
 
     def _generate_audio(self, nframes):
         audio_data = self._mix(nframes)
-        self._push_time = time.time()
         self._push_amount = nframes
         self._audio_output.put_audio(audio_data)
 
     def _next_audio(self):
+        self._push_time = time.time()
         self._generate_audio(self._nframes)
 
     def update_selected_driver(self, name):
         self._next_audio()
+
+    def _average_time(self, times):
+        times_tail = times[-10:]
+        total = sum(end - start for _, start, end in times_tail)
+        frames = sum(nframes for nframes, _, _ in times_tail)
+        return frames / total
 
     def acknowledge_audio(self):
         start = self._push_time
@@ -139,7 +145,9 @@ class Backend():
         nframes = self._push_amount
         self._output_times.append((nframes, start, end))
         self._output_fps = math.floor((nframes / (end - start)))
-        alert = '!' if self._render_fps < self._output_fps else ''
-        print 'output: %s fps\trender: %s fps\t%s' % (self._output_fps, self._render_fps, alert)
+        output_avg = int(self._average_time(self._output_times))
+        render_avg = int(self._average_time(self._render_times))
+        alert = '!' if render_avg < output_avg else ''
+        print 'output: %s fps\trender: %s fps\t%s' % (output_avg, render_avg, alert)
         self._next_audio()
 
