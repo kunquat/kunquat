@@ -15,6 +15,7 @@ src/lib/test/generator
 src/lib/test/handle
 src/lib/test/instrument
 src/lib/test/memory
+src/lib/test/player
 src/lib/test/real
 src/lib/test/reltime
 src/lib/test/validation
