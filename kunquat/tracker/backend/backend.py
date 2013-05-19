@@ -147,7 +147,7 @@ class Backend():
         self._output_fps = math.floor((nframes / (end - start)))
         output_avg = int(self._average_time(self._output_times))
         render_avg = int(self._average_time(self._render_times))
-        alert = '!' if render_avg < output_avg else ''
-        print 'output: %s fps\trender: %s fps\t%s' % (output_avg, render_avg, alert)
+        ratio = float(output_avg) / float(render_avg)
+        print 'output: {} fps\trender: {} fps\t{:.2f}'.format(output_avg, render_avg, ratio)
         self._next_audio()
 
