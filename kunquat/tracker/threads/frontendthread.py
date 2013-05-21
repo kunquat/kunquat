@@ -52,6 +52,12 @@ class FrontendThread(threading.Thread):
     def update_import_progress(self, position, steps):
         self._q.push('update_import_progress', position, steps)
 
+    def update_output_speed(self, fps):
+        self._q.push('update_output_speed', fps)
+
+    def update_render_speed(self, fps):
+        self._q.push('update_render_speed', fps)
+
     def update_render_load(self, ratio):
         self._q.push('update_render_load', ratio)
 

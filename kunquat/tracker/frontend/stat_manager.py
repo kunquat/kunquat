@@ -17,9 +17,25 @@ class StatManager(Updater):
 
     def __init__(self):
         super(StatManager, self).__init__()
+        self._output_speed = 0
+        self._render_speed = 0
         self._render_load = 0
         self._import_progress_position = 1
         self._import_progress_steps = 1
+
+    def get_output_speed(self):
+        return self._output_speed
+
+    def update_output_speed(self, fps):
+        self._output_speed = fps
+        self._signal_update()
+
+    def get_render_speed(self):
+        return self._render_speed
+
+    def update_render_speed(self, fps):
+        self._render_speed = fps
+        self._signal_update()
 
     def get_render_load(self):
         return self._render_load

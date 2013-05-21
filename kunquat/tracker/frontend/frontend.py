@@ -33,6 +33,14 @@ class Frontend():
         stats = self._ui_model.get_stat_manager()
         stats.update_import_progress(position, steps)
 
+    def update_output_speed(self, fps):
+        stats = self._ui_model.get_stat_manager()
+        stats.update_output_speed(fps)
+
+    def update_render_speed(self, fps):
+        stats = self._ui_model.get_stat_manager()
+        stats.update_render_speed(fps)
+
     def update_render_load(self, ratio):
         stats = self._ui_model.get_stat_manager()
         stats.update_render_load(ratio)
