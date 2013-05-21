@@ -29,9 +29,9 @@ class Frontend():
     def set_audio_output(self, audio_output):
         self._ui_model.set_audio_output(audio_output)
 
-    def update_progress(self, position, last):
+    def update_import_progress(self, position, steps):
         stats = self._ui_model.get_stat_manager()
-        stats.update_import_progress(position, last)
+        stats.update_import_progress(position, steps)
 
     def update_render_load(self, ratio):
         stats = self._ui_model.get_stat_manager()

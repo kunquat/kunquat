@@ -49,8 +49,8 @@ class FrontendThread(threading.Thread):
     def select_driver_success(self, driver_class):
         self._q.push('select_driver_success', driver_class)
 
-    def update_progress(self, position, last):
-        self._q.push('update_progress', position, last)
+    def update_import_progress(self, position, steps):
+        self._q.push('update_import_progress', position, steps)
 
     def update_render_load(self, ratio):
         self._q.push('update_render_load', ratio)
