@@ -14,6 +14,7 @@
 
 from drivers import Drivers
 
+
 class UiModel():
     """
     >>> ui_model = UiModel()
@@ -79,6 +80,12 @@ class UiModel():
         self._prog_last = 0
         self._render_load = 0
 
+    def update_progress(self):
+        self._updater.queue_update('progress')
+
+    def update_render_load(self):
+        self._updater.queue_update('render_load')
+
     def set_backend(self, backend):
         self._backend = backend
 
@@ -91,6 +98,12 @@ class UiModel():
     def get_driver_manager(self):
         return self._driver_manager
 
+    def set_stat_manager(self, stat_manager):
+        self._stat_manager = stat_manager
+
+    def get_stat_manager(self):
+        return self._stat_manager
+
     def set_audio_output(self, audio_output):
         self._driver_manager.set_audio_output(audio_output)
 
@@ -99,6 +112,9 @@ class UiModel():
         
     def get_prog_last(self):
         return self._prog_last
+
+    def perform_updates(self):
+        self._stat_manager.perform_updates()
 
     def update_progress(self, position, last):
         self._prog_position = position

@@ -33,21 +33,27 @@ class TestWindow(QMainWindow):
 
         self._render_load = QLabel(self)
 
-    def update_progress(self):
-        position = self._ui_model.get_prog_position()
-        last = self._ui_model.get_prog_last()
-        self._progressBar.setMaximum(last)
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        stats = self._ui_model.get_stat_manager()
+        stats.register_updater(self.update_render_load)
+        stats.register_updater(self.update_import_progress)
+
+    def update_import_progress(self):
+        stats = self._ui_model.get_stat_manager()
+        position = stats.get_import_progress_position()
+        steps = stats.get_import_progress_steps()
+        self._progressBar.setMaximum(steps)
         self._progressBar.setValue(position)
 
     def update_render_load(self):
-        ratio = self._ui_model.get_render_load()
+        stats = self._ui_model.get_stat_manager()
+        ratio = stats.get_render_load()
         self._render_load.setText('{} %'.format(int(ratio * 100)))
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-
     def run(self):
-        self.update_progress()
+        self.update_import_progress()
+        self.update_render_load()
 
     def __del__(self):
         pass
@@ -68,30 +74,6 @@ class EventPump(QThread):
             self._block()
             QObject.emit(self, SIGNAL('process_queue()'))
 
-class Updater():
-
-    def __init__(self):
-        self._signals = set()
-        self._updaters = {}
-
-    def queue_update(self, signal):
-        self._signals.add(signal)
-
-    def register_updater(self, signal, updater):
-        if not signal in self._updaters:
-            self._updaters[signal] = set()
-        self._updaters[signal].add(updater)
-
-    def _run_updaters(self, signal):
-        if not signal in self._updaters:
-            return
-        for updater in self._updaters[signal]:
-            updater()
-
-    def perform_updates(self):
-        for signal in self._signals:
-            self._run_updaters(signal)
-        self._signals = set()
 
 class Ui():
 
@@ -104,15 +86,6 @@ class Ui():
         self._update_timer = QTimer()
         self._ui_model = None
         self._asdfasdf = False
-        self._updater = Updater()
-        self._updater.register_updater('progress', self._mainwindow.update_progress)
-        self._updater.register_updater('render_load', self._mainwindow.update_render_load)
-
-    def update_progress(self):
-        self._updater.queue_update('progress')
-
-    def update_render_load(self):
-        self._updater.queue_update('render_load')
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -157,7 +130,7 @@ class Ui():
         QObject.connect(
                 self._update_timer,
                 SIGNAL('timeout()'),
-                self._updater.perform_updates)
+                self._ui_model.perform_updates)
         self._update_timer.start(10)
 
     def halt(self):

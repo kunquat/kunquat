@@ -26,15 +26,16 @@ class Frontend():
     def set_backend(self, backend):
         self._ui_model.set_backend(backend)
 
-
     def set_audio_output(self, audio_output):
         self._ui_model.set_audio_output(audio_output)
 
     def update_progress(self, position, last):
-        self._ui_model.update_progress(position, last)
+        stats = self._ui_model.get_stat_manager()
+        stats.update_import_progress(position, last)
 
     def update_render_load(self, ratio):
-        self._ui_model.update_render_load(ratio)
+        stats = self._ui_model.get_stat_manager()
+        stats.update_render_load(ratio)
 
     def update_drivers(self, update):
         drivers = self._ui_model.get_drivers()
