@@ -16,7 +16,7 @@ import os
 import time
 from signal import SIGHUP, SIGKILL
 
-from kunquat.tracker.frontend.drivers import Drivers
+from kunquat.tracker.frontend.driver_manager import DriverManager
 from kunquat.tracker.frontend.stat_manager import StatManager
 from kunquat.tracker.frontend.uimodel import UiModel
 from kunquat.tracker.audio.audio_output import AudioOutput
@@ -34,7 +34,7 @@ from kunquat.tracker.audio.drivers.nullaudio import Nullaudio
 
 def create_frontend_thread():
     drivers = [Nullaudio, Pulseaudio, Pushaudio, Silentaudio]
-    driver_manager = Drivers()
+    driver_manager = DriverManager()
     driver_manager.set_drivers(drivers)
     stat_manager = StatManager()
     ui_model = UiModel()

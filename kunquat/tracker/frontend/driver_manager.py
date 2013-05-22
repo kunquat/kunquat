@@ -13,10 +13,10 @@
 
 from updater import Updater
 
-class Drivers(Updater):
+class DriverManager(Updater):
 
     def __init__(self):
-        super(Drivers, self).__init__()
+        super(DriverManager, self).__init__()
         self._drivers = None
         self._audio_output = None
         self._selected_driver = None
