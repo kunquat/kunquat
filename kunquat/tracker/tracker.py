@@ -27,12 +27,13 @@ from kunquat.tracker.threads.audiothread import AudioThread
 from kunquat.tracker.threads.backendthread import BackendThread
 from kunquat.tracker.threads.frontendthread import FrontendThread
 
+from kunquat.tracker.audio.drivers.silentaudio import Silentaudio
 from kunquat.tracker.audio.drivers.pulseaudio import Pulseaudio
 from kunquat.tracker.audio.drivers.pushaudio import Pushaudio
 from kunquat.tracker.audio.drivers.nullaudio import Nullaudio
 
 def create_frontend_thread():
-    drivers = [Nullaudio, Pulseaudio, Pushaudio]
+    drivers = [Nullaudio, Pulseaudio, Pushaudio, Silentaudio]
     driver_manager = Drivers()
     driver_manager.set_drivers(drivers)
     stat_manager = StatManager()
