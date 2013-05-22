@@ -49,7 +49,7 @@ class Frontend():
         drivers = self._ui_model.get_drivers()
         drivers.update_drivers(update)
 
-    def select_driver_success(self, driver_class):
+    def update_selected_driver(self, driver_class):
         driver_manager = self._ui_model.get_driver_manager()
-        driver_manager.select_driver_success(driver_class)
+        driver_manager.update_selected_driver(driver_class)
 

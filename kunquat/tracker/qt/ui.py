@@ -24,6 +24,10 @@ class TestWindow(QWidget):
         QWidget.__init__(self)
         self._ui_model = None
 
+        self._driver_selector = QComboBox()
+        self._driver_catalog = {}
+        QObject.connect(self._driver_selector, SIGNAL("currentIndexChanged(int)"), self._select_driver)
+
         self._progressBar = QProgressBar(self)
         self._progressBar.setGeometry(QRect(30, 70, 481, 23))
         self._progressBar.setObjectName("progressBar")
@@ -36,6 +40,7 @@ class TestWindow(QWidget):
         self._render_load = QLabel(self)
 
         v = QVBoxLayout()
+        v.addWidget(self._driver_selector)
         v.addWidget(self._progressBar)
         v.addWidget(self._output_speed)
         v.addWidget(self._render_speed)
@@ -44,11 +49,38 @@ class TestWindow(QWidget):
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
+        driver_manager = self._ui_model.get_driver_manager()
+        driver_manager.register_updater(self.update_drivers)
         stats = self._ui_model.get_stat_manager()
         stats.register_updater(self.update_output_speed)
         stats.register_updater(self.update_render_speed)
         stats.register_updater(self.update_render_load)
         stats.register_updater(self.update_import_progress)
+
+    def _select_driver(self, i):
+        if i < 0:
+            return
+        driver_manager = self._ui_model.get_driver_manager()
+        driver = self._driver_catalog[i]
+        driver_manager.set_selected_driver(driver)
+
+    def update_drivers(self):
+        driver_manager = self._ui_model.get_driver_manager()
+        drivers = driver_manager.get_drivers()
+        driver_catalog = dict(enumerate(drivers))
+        if self._driver_catalog != driver_catalog:
+            self._driver_catalog = driver_catalog
+            self._driver_selector.clear()
+            for _, driver in self._driver_catalog.items():
+                name = driver.get_id()
+                self._driver_selector.addItem(name)
+        selected = driver_manager.get_selected_driver()
+        if selected:
+            current = selected.get_id()
+            for i, driver in self._driver_catalog.items():
+                name = driver.get_id()
+                if name == current:
+                    self._driver_selector.setCurrentIndex(i)
 
     def update_import_progress(self):
         stats = self._ui_model.get_stat_manager()
@@ -80,6 +112,7 @@ class TestWindow(QWidget):
         self.update_output_speed()
         self.update_render_speed()
         self.update_render_load()
+        #self.update_drivers()
 
     def __del__(self):
         pass
@@ -137,7 +170,7 @@ class Ui():
         one = Pushaudio
         print 'driver: %s' % one.get_id()
         driver_manager = self._ui_model.get_driver_manager()
-        driver_manager.select_driver(one)
+        driver_manager.set_selected_driver(one)
         self._ui_model.load_module()
 
         #import random

@@ -47,10 +47,10 @@ class TestAudioOutput(unittest.TestCase):
     def setUp(self):
         self._audio_output = AudioOutput()
 
-    def test_select_driver_success(self):
+    def test_updated_selected_driver(self):
         q = Queue()
         class DummyFrontend(Thread):
-            def select_driver_success(self, driver):
+            def update_selected_driver(self, driver):
                 q.put(driver)
         class DummyBackend(Thread):
             def set_audio_output(self, audio_output):
@@ -72,7 +72,7 @@ class TestAudioOutput(unittest.TestCase):
         class DummyFrontend(Thread):
             def select_driver_error(self, driver_class):
                 q.put(driver_class)
-            def select_driver_success(self, driver_class):
+            def update_selected_driver(self, driver_class):
                 pass
         class DummyBackend(Thread):
             def acknowledge_audio(self):
@@ -92,7 +92,7 @@ class TestAudioOutput(unittest.TestCase):
         driver_classes = [Nullaudio, Pulseaudio, Pushaudio]
         q = Queue()
         class DummyFrontend(Thread):
-            def select_driver_success(self, driver):
+            def update_selected_driver(self, driver):
                 q.put(driver)
         class DummyBackend(Thread):
             def set_audio_output(self, audio_output):

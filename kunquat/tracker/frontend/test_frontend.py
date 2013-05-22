@@ -27,7 +27,7 @@ class TestFrontend(unittest.TestCase):
         q = Queue()
         self._q = q
         class DummyDriverManager():
-            def select_driver_success(self, driver_class):
+            def update_selected_driver(self, driver_class):
                 q.put(driver_class)
         class DummyUiModel():
             def get_driver_manager(self):
@@ -37,8 +37,8 @@ class TestFrontend(unittest.TestCase):
         self._frontend = Frontend()
         self._frontend.set_ui_model(ui_model_dummy)
 
-    def test_select_driver_success(self):
-        self._frontend.select_driver_success(DummyDriver)
+    def test_update_selected_driver(self):
+        self._frontend.update_selected_driver(DummyDriver)
         selected = self._q.get()
         self.assertEqual(selected, DummyDriver)
         

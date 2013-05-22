@@ -100,6 +100,7 @@ class UiModel():
 
     def perform_updates(self):
         self._stat_manager.perform_updates()
+        self._driver_manager.perform_updates()
 
     def load_module(self):
         self._backend.load_module()
