@@ -16,6 +16,30 @@ import unittest
 
 from launcher import QtLauncher
 
+class DummyStatManager():
+
+    def register_updater(self, updater):
+        pass
+
+    def get_import_progress_position(self):
+        return 1
+
+    def get_import_progress_steps(self):
+        return 1
+
+    def get_output_speed(self):
+        return 48000
+
+    def get_render_speed(self):
+        return 50000
+
+    def get_render_load(self):
+        return 0.5
+
+class DummyDriverManager():
+
+    def register_updater(self, updater):
+        pass
 
 class DummyUiModel():
 
@@ -25,12 +49,14 @@ class DummyUiModel():
     def set_ui(self, ui):
         pass
 
-    def get_prog_position(self): # TODO: remove
-        return 0
+    def get_stat_manager(self):
+        return DummyStatManager()
 
-    def get_prog_last(self): # TODO: remove
-        return 1
+    def get_driver_manager(self):
+        return DummyDriverManager()
 
+    def perform_updates(self):
+        pass
 
 class TestLauncher(unittest.TestCase):
 
