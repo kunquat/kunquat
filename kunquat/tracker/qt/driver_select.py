@@ -23,9 +23,9 @@ class DriverSelect(QComboBox):
         self._driver_catalog = {}
         QObject.connect(self, SIGNAL("currentIndexChanged(int)"), self._select_driver)
 
-    def set_driver_manager(self, driver_manager):
-        self._driver_manager = driver_manager
-        driver_manager.register_updater(self.update_drivers)
+    def set_ui_model(self, ui_model):
+        self._driver_manager = ui_model.get_driver_manager()
+        self._driver_manager.register_updater(self.update_drivers)
 
     def _select_driver(self, i):
         if i < 0:

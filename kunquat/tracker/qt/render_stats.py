@@ -32,8 +32,8 @@ class RenderStats(QWidget):
         v.addWidget(self._render_load)
         self.setLayout(v)
 
-    def set_stat_manager(self, stat_manager):
-        self._stat_manager = stat_manager
+    def set_ui_model(self, ui_model):
+        self._stat_manager = ui_model.get_stat_manager()
         self._stat_manager.register_updater(self.update_output_speed)
         self._stat_manager.register_updater(self.update_render_speed)
         self._stat_manager.register_updater(self.update_render_load)

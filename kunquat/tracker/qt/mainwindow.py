@@ -37,9 +37,7 @@ class MainWindow(QWidget):
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
-        driver_manager = self._ui_model.get_driver_manager()
-        stat_manager = self._ui_model.get_stat_manager()
-        self._driver_select.set_driver_manager(driver_manager)
-        self._render_stats.set_stat_manager(stat_manager)
-        self._import_progress.set_stat_manager(stat_manager)
+        self._driver_select.set_ui_model(ui_model)
+        self._render_stats.set_ui_model(ui_model)
+        self._import_progress.set_ui_model(ui_model)
 
