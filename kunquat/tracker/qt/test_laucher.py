@@ -40,6 +40,9 @@ class DummyDriverManager():
 
     def register_updater(self, updater):
         pass
+ 
+    def set_selected_driver(self, driver_class):
+        pass
 
 class DummyUiModel():
 
@@ -56,6 +59,12 @@ class DummyUiModel():
         return DummyDriverManager()
 
     def perform_updates(self):
+        pass
+
+    def load_module(self):
+        pass
+
+    def play(self):
         pass
 
 class TestLauncher(unittest.TestCase):
