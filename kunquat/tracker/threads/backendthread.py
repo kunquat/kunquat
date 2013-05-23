@@ -48,6 +48,9 @@ class BackendThread(threading.Thread):
     def load_module(self):
         self._q.push('load_module')
 
+    def play(self):
+        self._q.push('play')
+
     # Threading interface
 
     def set_handler(self, backend):

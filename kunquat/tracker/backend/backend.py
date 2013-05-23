@@ -106,6 +106,9 @@ class Backend():
             tfile.close()
             self._kunquat.validate()
 
+    def play(self):
+        self._kunquat.nanoseconds = 0
+
     def commit_data(self):
         self._kunquat.validate()
 

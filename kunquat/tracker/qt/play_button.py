@@ -26,8 +26,8 @@ class PlayButton(QToolButton):
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
-        #QObject.connect(self, SIGNAL('clicked()'),
-        #                self._ui_model.play)
+        QObject.connect(self, SIGNAL('clicked()'),
+                        self._ui_model.play)
 
     def _update(self):
         pass

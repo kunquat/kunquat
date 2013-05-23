@@ -104,3 +104,6 @@ class UiModel():
 
     def load_module(self):
         self._backend.load_module()
+
+    def play(self):
+        self._backend.play()
