@@ -101,7 +101,6 @@ class Ui():
         self._mainwindow.show()
 
     def run(self):
-        self._mainwindow.run()
         self._start_updater()
         self._start_driver_randomizer()
         self._app.exec_()
