@@ -16,7 +16,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 from driver_select import DriverSelect
-
+from render_stats import RenderStats
 
 class MainWindow(QWidget):
 
@@ -33,27 +33,21 @@ class MainWindow(QWidget):
         self._progressBar.setMaximum(1)
         self._progressBar.setMinimum(0)
 
-        self._output_speed = QLabel(self)
-        self._render_speed = QLabel(self)
-        self._render_load = QLabel(self)
+        self._render_stats = RenderStats()
 
         v = QVBoxLayout()
         v.addWidget(self._driver_select)
         v.addWidget(self._progressBar)
-        v.addWidget(self._output_speed)
-        v.addWidget(self._render_speed)
-        v.addWidget(self._render_load)
+        v.addWidget(self._render_stats)
         self.setLayout(v)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         driver_manager = self._ui_model.get_driver_manager()
         self._driver_select.set_driver_manager(driver_manager)
-        stats = self._ui_model.get_stat_manager()
-        stats.register_updater(self.update_output_speed)
-        stats.register_updater(self.update_render_speed)
-        stats.register_updater(self.update_render_load)
-        stats.register_updater(self.update_import_progress)
+        stat_manager = self._ui_model.get_stat_manager()
+        self._render_stats.set_stat_manager(stat_manager)
+        stat_manager.register_updater(self.update_import_progress)
 
     def update_import_progress(self):
         stats = self._ui_model.get_stat_manager()
@@ -62,29 +56,8 @@ class MainWindow(QWidget):
         self._progressBar.setMaximum(steps)
         self._progressBar.setValue(position)
 
-    def update_output_speed(self):
-        stats = self._ui_model.get_stat_manager()
-        output_speed = stats.get_output_speed()
-        text = 'output speed: {} fps'.format(int(output_speed))
-        self._output_speed.setText(text)
-
-    def update_render_speed(self):
-        stats = self._ui_model.get_stat_manager()
-        output_speed = stats.get_render_speed()
-        text = 'render speed: {} fps'.format(int(output_speed))
-        self._render_speed.setText(text)
-
-    def update_render_load(self):
-        stats = self._ui_model.get_stat_manager()
-        render_load = stats.get_render_load()
-        text = 'render load: {} %'.format(int(render_load * 100))
-        self._render_load.setText(text)
-
     def run(self):
         self.update_import_progress()
-        self.update_output_speed()
-        self.update_render_speed()
-        self.update_render_load()
 
     def __del__(self):
         pass
