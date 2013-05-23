@@ -65,20 +65,19 @@ class MainWindow(QWidget):
     def update_drivers(self):
         driver_manager = self._ui_model.get_driver_manager()
         drivers = driver_manager.get_drivers()
-        driver_catalog = dict(enumerate(drivers))
-        if self._driver_catalog != driver_catalog:
-            self._driver_catalog = driver_catalog
-            self._driver_selector.clear()
-            for _, driver in self._driver_catalog.items():
-                name = driver.get_id()
-                self._driver_selector.addItem(name)
         selected = driver_manager.get_selected_driver()
-        if selected:
-            current = selected.get_id()
-            for i, driver in self._driver_catalog.items():
+        old_block = self._driver_selector.blockSignals(True)
+        self._driver_selector.clear()
+        self._driver_catalog = dict(enumerate(drivers))
+        for i, driver in self._driver_catalog.items():
+            name = driver.get_id()
+            self._driver_selector.addItem(name)
+            if selected:
+                current = selected.get_id()
                 name = driver.get_id()
                 if name == current:
                     self._driver_selector.setCurrentIndex(i)
+        self._driver_selector.blockSignals(old_block)
 
     def update_import_progress(self):
         stats = self._ui_model.get_stat_manager()
