@@ -38,10 +38,10 @@ class FrontendThread(threading.Thread):
     # Frontend interface
 
     def set_backend(self, backend):
-        self._q.push('set_backend', backend)
+        self._frontend.set_backend(backend)
 
     def set_audio_output(self, audio_output):
-        self._q.push('set_audio_output', audio_output)
+        self._frontend.set_audio_output(audio_output)
 
     def update_drivers(self, drivers):
         self._q.push('update_drivers', drivers)

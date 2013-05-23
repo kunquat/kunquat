@@ -28,10 +28,10 @@ class BackendThread(threading.Thread):
     # Backend interface
 
     def set_audio_output(self, audio_output):
-        self._q.push('set_audio_output', audio_output)
+        self._backend.set_audio_output(audio_output)
 
     def set_frontend(self, frontend):
-        self._q.push('set_frontend', frontend)
+        self._backend.set_frontend(frontend)
 
     def set_data(self, key, value):
         self._q.push('set_data', key, value)

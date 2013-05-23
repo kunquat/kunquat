@@ -32,10 +32,10 @@ class AudioThread(threading.Thread):
     # Driver interface
 
     def set_backend(self, backend):
-        self._q.push('set_backend', backend)
+        self._audio.set_backend(backend)
 
     def set_frontend(self, frontend):
-        self._q.push('set_frontend', frontend)
+        self._audio.set_frontend(frontend)
 
     def select_driver(self, name):
         self._q.push('select_driver', name)
