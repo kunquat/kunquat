@@ -23,7 +23,6 @@ class MainWindow(QWidget):
 
     def __init__(self):
         QWidget.__init__(self)
-        self._ui_model = None
 
         self._driver_select = DriverSelect()
         self._import_progress = ImportProgress()
@@ -36,7 +35,6 @@ class MainWindow(QWidget):
         self.setLayout(v)
 
     def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
         self._driver_select.set_ui_model(ui_model)
         self._render_stats.set_ui_model(ui_model)
         self._import_progress.set_ui_model(ui_model)
