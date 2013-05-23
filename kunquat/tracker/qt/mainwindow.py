@@ -15,6 +15,8 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
+from driver_select import DriverSelect
+
 
 class MainWindow(QWidget):
 
@@ -22,9 +24,7 @@ class MainWindow(QWidget):
         QWidget.__init__(self)
         self._ui_model = None
 
-        self._driver_selector = QComboBox()
-        self._driver_catalog = {}
-        QObject.connect(self._driver_selector, SIGNAL("currentIndexChanged(int)"), self._select_driver)
+        self._driver_select = DriverSelect()
 
         self._progressBar = QProgressBar(self)
         self._progressBar.setGeometry(QRect(30, 70, 481, 23))
@@ -38,7 +38,7 @@ class MainWindow(QWidget):
         self._render_load = QLabel(self)
 
         v = QVBoxLayout()
-        v.addWidget(self._driver_selector)
+        v.addWidget(self._driver_select)
         v.addWidget(self._progressBar)
         v.addWidget(self._output_speed)
         v.addWidget(self._render_speed)
@@ -48,36 +48,12 @@ class MainWindow(QWidget):
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         driver_manager = self._ui_model.get_driver_manager()
-        driver_manager.register_updater(self.update_drivers)
+        self._driver_select.set_driver_manager(driver_manager)
         stats = self._ui_model.get_stat_manager()
         stats.register_updater(self.update_output_speed)
         stats.register_updater(self.update_render_speed)
         stats.register_updater(self.update_render_load)
         stats.register_updater(self.update_import_progress)
-
-    def _select_driver(self, i):
-        if i < 0:
-            return
-        driver_manager = self._ui_model.get_driver_manager()
-        driver = self._driver_catalog[i]
-        driver_manager.set_selected_driver(driver)
-
-    def update_drivers(self):
-        driver_manager = self._ui_model.get_driver_manager()
-        drivers = driver_manager.get_drivers()
-        selected = driver_manager.get_selected_driver()
-        old_block = self._driver_selector.blockSignals(True)
-        self._driver_selector.clear()
-        self._driver_catalog = dict(enumerate(drivers))
-        for i, driver in self._driver_catalog.items():
-            name = driver.get_id()
-            self._driver_selector.addItem(name)
-            if selected:
-                current = selected.get_id()
-                name = driver.get_id()
-                if name == current:
-                    self._driver_selector.setCurrentIndex(i)
-        self._driver_selector.blockSignals(old_block)
 
     def update_import_progress(self):
         stats = self._ui_model.get_stat_manager()
@@ -109,7 +85,6 @@ class MainWindow(QWidget):
         self.update_output_speed()
         self.update_render_speed()
         self.update_render_load()
-        #self.update_drivers()
 
     def __del__(self):
         pass
