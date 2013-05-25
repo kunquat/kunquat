@@ -112,13 +112,31 @@ class Backend():
     def commit_data(self):
         self._kunquat.validate()
 
+    def _process_event(self, channel_number, event_type, event_value):
+        SELECT_INSTRUMENT = '.i'
+        NOTE_ON = 'n+'
+        NOTE_OFF = 'n-'
+        if event_type == SELECT_INSTRUMENT:
+            instrument_number = event_value
+            self._frontend.update_selected_instrument(channel_number, instrument_number)
+        elif event_type == NOTE_OFF:
+            self._frontend.update_active_note(channel_number, None)
+        elif event_type == NOTE_ON:
+            pitch = event_value
+            self._frontend.update_active_note(channel_number, pitch)
+
+    def _process_events(self, event_data):
+        for channel_number, event in event_data:
+            event_type, event_value = tuple(event)
+            self._process_event(channel_number, event_type, event_value)
+
     def _mix(self, nframes):
         start = time.time()
         #data_mono = list(islice(self._sine, nframes))
         #audio_data = (data_mono, data_mono)
         audio_data = self._kunquat.mix(nframes)
         event_data = self._kunquat.treceive()
-        self._frontend.process_events(event_data)
+        self._process_events(event_data)
         (l,r) = audio_data
         if len(l) < 1:
             audio_data = self._silence
