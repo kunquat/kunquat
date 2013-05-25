@@ -12,7 +12,6 @@
 #
 
 from updater import Updater
-from note_manager import NoteManager
 
 
 class Instrument(Updater):
@@ -21,21 +20,29 @@ class Instrument(Updater):
         super(Instrument, self).__init__()
         self._backend = None
         self._instrument_number = None
-        self._note_manager = None
+        self._active_notes = {}
 
     def set_backend(self, backend):
         self._backend = backend
+
+    def get_active_notes(self):
+        return self._active_notes.items()
+
+    def get_active_note(self, channel_number):
+        if channel_number not in self._active_note:
+            return None
+        return self._active_notes[channel_number]
+
+    def set_active_note(self, channel_number, pitch):
+        self._backend.set_active_note(channel_number, pitch)
+
+    def update_active_note(self, channel_number, pitch):
+        self._active_notes[channel_number] = pitch
+        self._signal_update()
 
     def set_instrument_number(self, instrument_number):
         self._instrument_number = instrument_number
       
     def get_instrument_number(self):
         return self._instrument_number
-
-    def get_note_manager(self):
-        if not self._note_manager:
-            self._note_manager = NoteManager()
-            self._note_manager.set_backend(self._backend)
-            self.register_child(self._note_manager)
-        return self._note_manager
 

@@ -20,16 +20,15 @@ class ActiveNotes(QLabel):
     def __init__(self, instrument_number):
         QLabel.__init__(self)
         self._instrument_number = instrument_number
-        self._note_manager = None
+        self._instrument = None
 
     def set_ui_model(self, ui_model):
         module = ui_model.get_module()
-        instrument = module.get_instrument(self._instrument_number)
-        self._note_manager = instrument.get_note_manager()
-        self._note_manager.register_updater(self.update)
+        self._instrument = module.get_instrument(self._instrument_number)
+        self._instrument.register_updater(self.update)
 
     def update(self):
-        notes = self._note_manager.get_active_notes()
+        notes = self._instrument.get_active_notes()
         text = 'instrument{}: {}'.format(self._instrument_number, str(notes))
         self.setText(text)
 

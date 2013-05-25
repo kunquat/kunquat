@@ -41,12 +41,10 @@ class Frontend():
         channel = playback_manager.get_channel(channel_number)
         active_instrument = channel.get_active_instrument()
         if active_instrument != None:
-            note_manager = active_instrument.get_note_manager()
-            note_manager.update_active_note(channel_number, None)
+            active_instrument.update_active_note(channel_number, None)
         selected_instrument = channel.get_selected_instrument()
         if selected_instrument != None:
-            note_manager = selected_instrument.get_note_manager()
-            note_manager.update_active_note(channel_number, pitch)
+            selected_instrument.update_active_note(channel_number, pitch)
 
     def update_import_progress(self, position, steps):
         stats = self._ui_model.get_stat_manager()
