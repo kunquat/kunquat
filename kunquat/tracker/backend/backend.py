@@ -57,6 +57,7 @@ class Backend():
         self._push_amount = None
         self._nframes = 2048
         self._silence = ([0] * self._nframes, [0] * self._nframes)
+        self._audio_levels = (0, 0)
 
         self._sine = gen_sine(48000)
 
@@ -123,7 +124,16 @@ class Backend():
         end = time.time()
         self._render_times.append((nframes, start, end))
         self._render_fps = math.floor((nframes / (end - start)))
+        self._audio_levels = self._get_audio_levels(audio_data)
         return audio_data
+
+    def _get_audio_levels(self, audio_data):
+        levels = []
+        for ch in audio_data:
+            max_level = max(abs(item) for item in ch)
+            levels.append(max_level)
+        assert len(levels) == 2
+        return tuple(levels)
 
     def _generate_audio(self, nframes):
         audio_data = self._mix(nframes)
@@ -155,5 +165,6 @@ class Backend():
             self._frontend.update_output_speed(output_avg)
             self._frontend.update_render_speed(render_avg)
             self._frontend.update_render_load(ratio)
+            self._frontend.update_audio_levels(self._audio_levels)
         self._next_audio()
 

@@ -53,3 +53,7 @@ class Frontend():
         driver_manager = self._ui_model.get_driver_manager()
         driver_manager.update_selected_driver(driver_class)
 
+    def update_audio_levels(self, levels):
+        stats = self._ui_model.get_stat_manager()
+        stats.update_audio_levels(levels)
+

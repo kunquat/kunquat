@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Toni Ruottu, Finland 2013
+# Authors: Toni Ruottu, Finland 2013
+#          Tomi Jylhä-Ollila, Finland 2013
 #
 # This file is part of Kunquat.
 #
@@ -22,6 +23,7 @@ class StatManager(Updater):
         self._render_load = 0
         self._import_progress_position = 1
         self._import_progress_steps = 1
+        self._audio_levels = (0, 0)
 
     def get_output_speed(self):
         return self._output_speed
@@ -53,5 +55,12 @@ class StatManager(Updater):
     def update_import_progress(self, position, steps):
         self._import_progress_position = position
         self._import_progress_steps = steps
+        self._signal_update()
+
+    def get_audio_levels(self):
+        return self._audio_levels
+
+    def update_audio_levels(self, levels):
+        self._audio_levels = levels
         self._signal_update()
 

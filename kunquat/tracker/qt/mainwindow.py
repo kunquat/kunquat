@@ -19,6 +19,7 @@ from play_button import PlayButton
 from driver_select import DriverSelect
 from render_stats import RenderStats
 from import_progress import ImportProgress
+from peak_meter import PeakMeter
 
 class MainWindow(QWidget):
 
@@ -29,12 +30,14 @@ class MainWindow(QWidget):
         self._driver_select = DriverSelect()
         self._import_progress = ImportProgress()
         self._render_stats = RenderStats()
+        self._peak_meter = PeakMeter()
 
         v = QVBoxLayout()
         v.addWidget(self._play_button)
         v.addWidget(self._driver_select)
         v.addWidget(self._import_progress)
         v.addWidget(self._render_stats)
+        v.addWidget(self._peak_meter)
         self.setLayout(v)
 
     def set_ui_model(self, ui_model):
@@ -42,4 +45,5 @@ class MainWindow(QWidget):
         self._driver_select.set_ui_model(ui_model)
         self._render_stats.set_ui_model(ui_model)
         self._import_progress.set_ui_model(ui_model)
+        self._peak_meter.set_ui_model(ui_model)
 

@@ -61,6 +61,9 @@ class FrontendThread(threading.Thread):
     def update_render_load(self, ratio):
         self._q.push('update_render_load', ratio)
 
+    def update_audio_levels(self, levels):
+        self._q.push('update_audio_levels', levels)
+
     # Threading interface
 
     def set_handler(self, frontend):
