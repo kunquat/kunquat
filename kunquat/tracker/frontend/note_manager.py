@@ -17,7 +17,11 @@ class NoteManager(Updater):
 
     def __init__(self):
         super(NoteManager, self).__init__()
+        self._backend = None
         self._active_notes = {}
+
+    def set_backend(self, backend):
+        self._backend = backend
 
     def get_active_notes(self):
         return self._active_notes.items()
@@ -26,6 +30,9 @@ class NoteManager(Updater):
         if channel_number not in self._active_note:
             return None
         return self._active_notes[channel_number]
+
+    def set_active_note(self, channel_number, pitch):
+        pass
 
     def update_active_note(self, channel_number, pitch):
         self._active_notes[channel_number] = pitch

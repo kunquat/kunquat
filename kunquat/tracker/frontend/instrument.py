@@ -19,8 +19,12 @@ class Instrument(Updater):
 
     def __init__(self):
         super(Instrument, self).__init__()
+        self._backend = None
         self._instrument_number = None
         self._note_manager = None
+
+    def set_backend(self, backend):
+        self._backend = backend
 
     def set_instrument_number(self, instrument_number):
         self._instrument_number = instrument_number
@@ -31,6 +35,7 @@ class Instrument(Updater):
     def get_note_manager(self):
         if not self._note_manager:
             self._note_manager = NoteManager()
+            self._note_manager.set_backend(self._backend)
             self.register_child(self._note_manager)
         return self._note_manager
 
