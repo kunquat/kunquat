@@ -12,8 +12,6 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from drivers import Drivers
-
 
 class UiModel():
     """
@@ -76,6 +74,9 @@ class UiModel():
 
     def __init__(self):
         self._driver_manager = None
+        self._stat_manager = None
+        self._playback_manager = None
+        self._module = None
 
     def set_backend(self, backend):
         self._backend = backend
@@ -94,6 +95,18 @@ class UiModel():
 
     def get_stat_manager(self):
         return self._stat_manager
+
+    def set_playback_manager(self, playback_manager):
+        self._playback_manager = playback_manager
+
+    def get_playback_manager(self):
+        return self._playback_manager
+
+    def set_module(self, module):
+        self._module = module
+
+    def get_module(self):
+        return self._module
 
     def set_audio_output(self, audio_output):
         self._driver_manager.set_audio_output(audio_output)
