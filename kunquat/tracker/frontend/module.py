@@ -11,17 +11,21 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+
+from updater import Updater
 from instrument import Instrument
 
-class Module():
+class Module(Updater):
 
     def __init__(self):
+        super(Module, self).__init__()
         self._instruments = {}
 
     def get_instrument(self, instrument_number):
         if not instrument_number in self._instruments:
             new_instrument = Instrument()
             new_instrument.set_instrument_number(instrument_number)
+            self.register_child(new_instrument)
             self._instruments[instrument_number] = new_instrument
         return self._instruments[instrument_number]
 

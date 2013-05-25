@@ -11,12 +11,14 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from updater import Updater
 from note_manager import NoteManager
 
 
-class Instrument():
+class Instrument(Updater):
 
     def __init__(self):
+        super(Instrument, self).__init__()
         self._instrument_number = None
         self._note_manager = None
 
@@ -29,5 +31,6 @@ class Instrument():
     def get_note_manager(self):
         if not self._note_manager:
             self._note_manager = NoteManager()
+            self.register_child(self._note_manager)
         return self._note_manager
 

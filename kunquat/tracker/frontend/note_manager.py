@@ -11,10 +11,16 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-class NoteManager():
+from updater import Updater
+
+class NoteManager(Updater):
 
     def __init__(self):
+        super(NoteManager, self).__init__()
         self._active_notes = {}
+
+    def get_active_notes(self):
+        return self._active_notes.items()
 
     def get_active_note(self, channel_number):
         if channel_number not in self._active_note:
@@ -23,4 +29,5 @@ class NoteManager():
 
     def update_active_note(self, channel_number, pitch):
         self._active_notes[channel_number] = pitch
+        self._signal_update()
 
