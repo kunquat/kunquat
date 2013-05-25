@@ -34,7 +34,7 @@ class Instrument(Updater):
         return self._active_notes[channel_number]
 
     def set_active_note(self, channel_number, pitch):
-        self._backend.set_active_note(channel_number, pitch)
+        self._backend.set_active_note(channel_number, self._instrument_number, pitch)
 
     def update_active_note(self, channel_number, pitch):
         self._active_notes[channel_number] = pitch

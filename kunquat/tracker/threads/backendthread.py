@@ -36,6 +36,9 @@ class BackendThread(threading.Thread):
     def set_data(self, key, value):
         self._q.push('set_data', key, value)
 
+    def set_active_note(self, channel_number, instrument_number, pitch):
+        self._q.push('set_active_note', channel_number, instrument_number, pitch)
+
     def commit_data(self):
         self._q.push('commit_data')
 
