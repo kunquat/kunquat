@@ -29,6 +29,40 @@ class Frontend():
     def set_audio_output(self, audio_output):
         self._ui_model.set_audio_output(audio_output)
 
+    def process_events(self, event_data):
+        SELECT_INSTRUMENT = '.i'
+        NOTE_ON = 'n+'
+        NOTE_OFF = 'n-'
+        for channel_number, event in event_data:
+            event_type, event_value = tuple(event)
+            if event_type == SELECT_INSTRUMENT:
+                instrument_number = event_value
+                module = self._ui_model.get_module()
+                instrument = module.get_instrument(instrument_number)
+                playback_manager = self._ui_model.get_playback_manager()
+                channel = playback_manager.get_channel(channel_number)
+                channel.update_selected_instrument(instrument)
+            elif event_type == NOTE_OFF:
+                pitch = event_value
+                playback_manager = self._ui_model.get_playback_manager()
+                channel = playback_manager.get_channel(channel_number)
+                active_instrument = channel.get_active_instrument()
+                if active_instrument != None:
+                    note_manager = active_instrument.get_note_manager()
+                    note_manager.update_active_note(channel_number, None)
+            elif event_type == NOTE_ON:
+                pitch = event_value
+                playback_manager = self._ui_model.get_playback_manager()
+                channel = playback_manager.get_channel(channel_number)
+                active_instrument = channel.get_active_instrument()
+                if active_instrument != None:
+                    note_manager = active_instrument.get_note_manager()
+                    note_manager.update_active_note(channel_number, None)
+                selected_instrument = channel.get_selected_instrument()
+                if selected_instrument != None:
+                    note_manager = selected_instrument.get_note_manager()
+                    note_manager.update_active_note(channel_number, pitch)
+
     def update_import_progress(self, position, steps):
         stats = self._ui_model.get_stat_manager()
         stats.update_import_progress(position, steps)

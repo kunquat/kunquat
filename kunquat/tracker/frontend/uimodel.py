@@ -12,10 +12,10 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from drivers import Drivers
+from updater import Updater
 
 
-class UiModel():
+class UiModel(Updater):
     """
     >>> ui_model = UiModel()
     >>> project = ui_model.get_project()
@@ -75,7 +75,11 @@ class UiModel():
     """
 
     def __init__(self):
+        super(UiModel, self).__init__()
         self._driver_manager = None
+        self._stat_manager = None
+        self._playback_manager = None
+        self._module = None
 
     def set_backend(self, backend):
         self._backend = backend
@@ -85,22 +89,33 @@ class UiModel():
 
     def set_driver_manager(self, driver_manager):
         self._driver_manager = driver_manager
+        self.register_child(self._driver_manager)
 
     def get_driver_manager(self):
         return self._driver_manager
 
     def set_stat_manager(self, stat_manager):
         self._stat_manager = stat_manager
+        self.register_child(self._stat_manager)
 
     def get_stat_manager(self):
         return self._stat_manager
 
+    def set_playback_manager(self, playback_manager):
+        self._playback_manager = playback_manager
+
+    def get_playback_manager(self):
+        return self._playback_manager
+
+    def set_module(self, module):
+        self._module = module
+        self.register_child(self._module)
+
+    def get_module(self):
+        return self._module
+
     def set_audio_output(self, audio_output):
         self._driver_manager.set_audio_output(audio_output)
-
-    def perform_updates(self):
-        self._stat_manager.perform_updates()
-        self._driver_manager.perform_updates()
 
     def load_module(self):
         self._backend.load_module()
