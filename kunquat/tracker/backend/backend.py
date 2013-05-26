@@ -56,6 +56,8 @@ class Backend():
         self._audio_output = None
         self._frontend = None
         self._kunquat = Kunquat()
+        self._kunquat.nanoseconds = 0
+        self._kunquat.fire(0, ('Ipause', None))
         self._render_times = deque([], 20)
         self._output_times = deque([], 20)
         self._push_time = None
