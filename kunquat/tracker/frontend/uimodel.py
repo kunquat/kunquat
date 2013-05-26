@@ -83,6 +83,7 @@ class UiModel(Updater):
 
     def set_backend(self, backend):
         self._backend = backend
+        self._module.set_backend(self._backend)
 
     def set_ui(self, ui):
         self._ui = ui

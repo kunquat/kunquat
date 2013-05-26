@@ -43,9 +43,6 @@ class FrontendThread(threading.Thread):
     def set_audio_output(self, audio_output):
         self._frontend.set_audio_output(audio_output)
 
-    def process_events(self, event_data):
-        self._q.push('process_events', event_data)
-
     def update_drivers(self, drivers):
         self._q.push('update_drivers', drivers)
 
@@ -66,6 +63,12 @@ class FrontendThread(threading.Thread):
 
     def update_audio_levels(self, levels):
         self._q.push('update_audio_levels', levels)
+
+    def update_selected_instrument(self, channel_number, instrument_number):
+        self._q.push('update_selected_instrument', channel_number, instrument_number)
+
+    def update_active_note(self, channel_number, pitch):
+        self._q.push('update_active_note', channel_number, pitch)
 
     # Threading interface
 
