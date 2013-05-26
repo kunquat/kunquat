@@ -16,7 +16,7 @@ from PyQt4.QtGui import *
 
 class TWLed(QFrame):
 
-    def __init__(self, color_style):
+    def __init__(self):
         super(QFrame, self).__init__()
         self.setMinimumWidth(35)
         self.setMinimumHeight(15)
@@ -24,18 +24,15 @@ class TWLed(QFrame):
         self.setMaximumHeight(15)
         self.setFrameStyle(QFrame.Panel | QFrame.Sunken)
         self.setLineWidth(2)
-        self._color_style = color_style
-        self._light = 8
-        self._enabled = True
 
         self._left = QLabel()
         self._left.setMargin(0)
-        self._left.setMaximumWidth(5)
+        self._left.setMaximumWidth(10)
         self._center = QLabel()
         self._center.setMargin(0)
         self._right = QLabel()
         self._right.setMargin(0)
-        self._right.setMaximumWidth(5)
+        self._right.setMaximumWidth(10)
 
         h = QHBoxLayout()
         h.addWidget(self._left)
@@ -45,9 +42,9 @@ class TWLed(QFrame):
         h.setSpacing(0)
         self.setLayout(h)
 
-        self._set_leds(0,0,0)
+        self.set_leds(0,0,0)
 
-    def _set_leds(self, left_on, center_on, right_on):
+    def set_leds(self, left_on, center_on, right_on):
         led_colors = {
             (0,0,0): ('#400', '#400', '#400'),
             (0,0,1): ('#400', '#400', '#c00'),
@@ -67,14 +64,15 @@ class TWLed(QFrame):
 
 class TypeWriterButton(QPushButton):
 
-    def __init__(self):
+    def __init__(self, pitch):
         QPushButton.__init__(self)
+        self._pitch = pitch
         self._instrument = None
 
         self.setMinimumWidth(60)
         self.setMinimumHeight(60)
         layout = QVBoxLayout(self)
-        led = TWLed(100)
+        led = TWLed()
         self._led = led
         layout.addWidget(led)
         notename = QLabel()
@@ -84,19 +82,31 @@ class TypeWriterButton(QPushButton):
         layout.setAlignment(Qt.AlignCenter)
         self.setFocusPolicy(Qt.NoFocus)
 
-        self._notename.setText('100c')
+        self._notename.setText('%sc' % self._pitch)
         self.setStyleSheet("QLabel { background-color: #ffe; }")
         self._notename.setStyleSheet("QLabel { color: #000; }")
 
     def _play_sound(self):
-        self._instrument.set_active_note(0, 100)
+        self._instrument.set_active_note(0, self._pitch)
 
     def set_ui_model(self, ui_model):
         module = ui_model.get_module()
         self._instrument = module.get_instrument(0)
+        self._instrument.register_updater(self.update)
         QObject.connect(self, SIGNAL('clicked()'),
                         self._play_sound)
 
-    def _update(self):
-        pass
+    def update(self):
+        (left_on, center_on, right_on) = 3 * [0]
+        notes = self._instrument.get_active_notes()
+        for (_, note) in notes:
+            if note < self._pitch:
+                left_on = 1
+            elif note == self._pitch:
+                center_on = 1
+            elif note > self._pitch:
+                right_on = 1
+            else:
+                assert False
+            self._led.set_leds(left_on, center_on, right_on)
 

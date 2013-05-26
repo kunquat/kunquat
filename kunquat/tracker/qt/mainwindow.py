@@ -29,7 +29,7 @@ class MainWindow(QWidget):
         QWidget.__init__(self)
 
         self._play_button = PlayButton()
-        self._type_writer_button = TypeWriterButton()
+        self._type_writer_button = TypeWriterButton(500)
         self._driver_select = DriverSelect()
         self._import_progress = ImportProgress()
         self._render_stats = RenderStats()
