@@ -44,27 +44,26 @@ class TWLed(QFrame):
         h.setContentsMargins(0,0,0,0)
         h.setSpacing(0)
         self.setLayout(h)
-        self._silent()
 
-    def _flat(self):
-        self._left.setStyleSheet("QLabel { background-color: #f00; }")
-        self._center.setStyleSheet("QLabel { background-color: #500; }")
-        self._right.setStyleSheet("QLabel { background-color: #400; }")
+        self._set_leds(0,0,0)
 
-    def _exact(self):
-        self._left.setStyleSheet("QLabel { background-color: #f00; }")
-        self._center.setStyleSheet("QLabel { background-color: #f00; }")
-        self._right.setStyleSheet("QLabel { background-color: #f00; }")
-
-    def _sharp(self):
-        self._left.setStyleSheet("QLabel { background-color: #400; }")
-        self._center.setStyleSheet("QLabel { background-color: #500; }")
-        self._right.setStyleSheet("QLabel { background-color: #f00; }")
-
-    def _silent(self):
-        self._left.setStyleSheet("QLabel { background-color: #400; }")
-        self._center.setStyleSheet("QLabel { background-color: #400; }")
-        self._right.setStyleSheet("QLabel { background-color: #400; }")
+    def _set_leds(self, left_on, center_on, right_on):
+        led_colors = {
+            (0,0,0): ('#400', '#400', '#400'),
+            (0,0,1): ('#400', '#400', '#c00'),
+            (0,1,0): ('#c00', '#c00', '#c00'),
+            (0,1,1): ('#c00', '#c00', '#f00'),
+            (1,0,0): ('#c00', '#400', '#400'),
+            (1,0,1): ('#c00', '#400', '#c00'),
+            (1,1,0): ('#f00', '#c00', '#c00'),
+            (1,1,1): ('#f00', '#c00', '#f00')
+        }
+        bits = (left_on, center_on, right_on)
+        styles = ['QLabel { background-color: %s; }' % c for c in led_colors[bits]]
+        (left_style, center_style, right_style) = styles
+        self._left.setStyleSheet(left_style)
+        self._center.setStyleSheet(center_style)
+        self._right.setStyleSheet(right_style)
 
 class TypeWriterButton(QPushButton):
 
@@ -88,7 +87,6 @@ class TypeWriterButton(QPushButton):
         self._notename.setText('100c')
         self.setStyleSheet("QLabel { background-color: #ffe; }")
         self._notename.setStyleSheet("QLabel { color: #000; }")
-
 
     def _play_sound(self):
         self._instrument.set_active_note(0, 100)
