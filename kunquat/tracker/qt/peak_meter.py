@@ -34,6 +34,7 @@ DEFAULT_CONFIG = {
         'lowest'    : -60,
         'highest'   : 0,
         'hold_time' : 1,
+        'hold_width': 6,
         }
 
 
@@ -108,8 +109,22 @@ class PeakMeter(QWidget):
 
     def update_levels(self):
         levels = self._stat_manager.get_audio_levels()
-        for i, level in enumerate(levels):
-            self._levels_dB[i] = math.log(level, 2) if level > 0 else float('-inf')
+        cur_time = time.time()
+
+        for ch, level in enumerate(levels):
+            if level > 0:
+                self._levels_dB[ch] = math.log(level, 2)
+            else:
+                self._levels_dB[ch] = float('-inf')
+
+            # Update hold
+            hold = self._holds[ch]
+            lifetime = cur_time - hold[1]
+            if hold[0] < self._levels_dB[ch] or \
+                    lifetime > self._config['hold_time']:
+                hold[0] = self._levels_dB[ch]
+                hold[1] = cur_time
+
         self.update()
 
     def paintEvent(self, ev):
@@ -132,17 +147,31 @@ class PeakMeter(QWidget):
                     bar_width, cfg['thickness'],
                     self._bkg_grad)
 
-        # Render levels
-        for ch, level_dB in enumerate(self._levels_dB):
+        # Render lit regions
+        for ch in (0, 1):
             y_offset = ch * (cfg['thickness'] + cfg['padding'])
+            dB_range = cfg['highest'] - cfg['lowest']
 
-            # Render current peak
-            filled = (level_dB - cfg['lowest']) / (cfg['highest'] - cfg['lowest'])
+            # Render current peaks
+            level_dB = self._levels_dB[ch]
+            filled = (level_dB - cfg['lowest']) / dB_range
             filled = min(max(0, filled), 1)
             painter.fillRect(
                     0, y_offset,
                     bar_width * filled, cfg['thickness'],
                     self._grad)
+
+            # Render holds
+            hold = self._holds[ch]
+            hold_end = bar_width * (hold[0] - cfg['lowest']) / dB_range
+            hold_start = max(0, hold_end - cfg['hold_width'])
+            hold_end = min(hold_end, bar_width)
+            hold_width = hold_end - hold_start
+            if hold_width > 0:
+                painter.fillRect(
+                        hold_start, y_offset,
+                        hold_width, cfg['thickness'],
+                        self._grad)
 
         painter.end()
 
