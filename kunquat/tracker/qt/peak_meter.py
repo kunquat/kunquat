@@ -52,9 +52,12 @@ class PeakMeter(QWidget):
         self._config = None
         self._colours = None
         self._dim_colours = None
+        self._bkg_grad = None
+        self._grad = None
+        self._grad_width = 0
         self._set_config(config)
 
-        #self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)
+        self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)
 
         self._levels_dB = [float('-inf')] * 2
         self._holds = [[float('-inf'), 0], [float('-inf'), 0]]
@@ -79,6 +82,26 @@ class PeakMeter(QWidget):
             b = lerp(bg_b, b, dim_factor)
             self._dim_colours[k] = QColor(r, g, b)
 
+        self._update_gradients()
+
+    def _update_gradients(self):
+        # Common gradient properties
+        grad_width = self.width() - self._config['clip_width']
+        mid_point = ((-6 - self._config['lowest']) /
+                (self._config['highest'] - self._config['lowest']))
+
+        # Create background gradient
+        self._bkg_grad = QLinearGradient(0, 0, grad_width, 0)
+        self._bkg_grad.setColorAt(0, self._dim_colours['low'])
+        self._bkg_grad.setColorAt(mid_point, self._dim_colours['mid'])
+        self._bkg_grad.setColorAt(1, self._dim_colours['high'])
+
+        # Create foreground gradient
+        self._grad = QLinearGradient(0, 0, grad_width, 0)
+        self._grad.setColorAt(0, self._colours['low'])
+        self._grad.setColorAt(mid_point, self._colours['mid'])
+        self._grad.setColorAt(1, self._colours['high'])
+
     def set_ui_model(self, ui_model):
         self._stat_manager = ui_model.get_stat_manager()
         self._stat_manager.register_updater(self.update_levels)
@@ -90,14 +113,46 @@ class PeakMeter(QWidget):
         self.update()
 
     def paintEvent(self, ev):
-        paint = QPainter()
-        paint.begin(self)
+        painter = QPainter()
+        painter.begin(self)
 
-        colours = self._config['colours']
+        cfg = self._config
 
-        paint.setBackground(colours['bg'])
-        paint.eraseRect(ev.rect())
+        painter.setBackground(self._colours['bg'])
+        painter.eraseRect(ev.rect())
 
-        paint.end()
+        bar_width = self.width() - cfg['clip_width']
+
+        # Render background bars
+        left_y = 0
+        right_y = left_y + cfg['thickness'] + cfg['padding']
+        for y in (left_y, right_y):
+            painter.fillRect(
+                    0, y,
+                    bar_width, cfg['thickness'],
+                    self._bkg_grad)
+
+        # Render levels
+        for ch, level_dB in enumerate(self._levels_dB):
+            y_offset = ch * (cfg['thickness'] + cfg['padding'])
+
+            # Render current peak
+            filled = (level_dB - cfg['lowest']) / (cfg['highest'] - cfg['lowest'])
+            filled = min(max(0, filled), 1)
+            painter.fillRect(
+                    0, y_offset,
+                    bar_width * filled, cfg['thickness'],
+                    self._grad)
+
+        painter.end()
+
+    def resizeEvent(self, ev):
+        self._update_gradients()
+        self.update()
+
+    def sizeHint(self):
+        return QSize(
+                self._config['clip_width'] * 4,
+                self._config['thickness'] * 2 + self._config['padding'])
 
 
