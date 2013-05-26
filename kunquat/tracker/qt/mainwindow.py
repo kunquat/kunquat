@@ -16,7 +16,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 from play_button import PlayButton
-from type_writer_button import TypeWriterButton
+from type_writer import TypeWriter
 from driver_select import DriverSelect
 from render_stats import RenderStats
 from import_progress import ImportProgress
@@ -29,7 +29,7 @@ class MainWindow(QWidget):
         QWidget.__init__(self)
 
         self._play_button = PlayButton()
-        self._type_writer_button = TypeWriterButton(500)
+        self._type_writer = TypeWriter()
         self._driver_select = DriverSelect()
         self._import_progress = ImportProgress()
         self._render_stats = RenderStats()
@@ -38,7 +38,7 @@ class MainWindow(QWidget):
 
         v = QVBoxLayout()
         v.addWidget(self._play_button)
-        v.addWidget(self._type_writer_button)
+        v.addWidget(self._type_writer)
         v.addWidget(self._driver_select)
         v.addWidget(self._import_progress)
         v.addWidget(self._render_stats)
@@ -48,7 +48,7 @@ class MainWindow(QWidget):
 
     def set_ui_model(self, ui_model):
         self._play_button.set_ui_model(ui_model)
-        self._type_writer_button.set_ui_model(ui_model)
+        self._type_writer.set_ui_model(ui_model)
         self._driver_select.set_ui_model(ui_model)
         self._render_stats.set_ui_model(ui_model)
         self._import_progress.set_ui_model(ui_model)

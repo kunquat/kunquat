@@ -13,6 +13,24 @@
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
+from bisect import bisect_left
+
+keymap = [100, 200, 300, 400, 500, 600, 700, 800]
+
+def closest(x):
+    key_count = len(keymap)
+    i = bisect_left(keymap, x)
+    if i == key_count:
+        return keymap[-1]
+    elif i == 0:
+        return keymap[0]
+    else:
+         a = keymap[i]
+         b = keymap[i - 1]
+         if abs(a - x) < abs(b - x):
+             return a
+         else:
+             return b
 
 class TWLed(QFrame):
 
@@ -100,13 +118,14 @@ class TypeWriterButton(QPushButton):
         (left_on, center_on, right_on) = 3 * [0]
         notes = self._instrument.get_active_notes()
         for (_, note) in notes:
-            if note < self._pitch:
-                left_on = 1
-            elif note == self._pitch:
-                center_on = 1
-            elif note > self._pitch:
-                right_on = 1
-            else:
-                assert False
-            self._led.set_leds(left_on, center_on, right_on)
+            if closest(note) == self._pitch:
+                if note < self._pitch:
+                    left_on = 1
+                elif note == self._pitch:
+                    center_on = 1
+                elif note > self._pitch:
+                    right_on = 1
+                else:
+                    assert False
+        self._led.set_leds(left_on, center_on, right_on)
 
