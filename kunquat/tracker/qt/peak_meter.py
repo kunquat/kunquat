@@ -62,6 +62,7 @@ class PeakMeter(QWidget):
 
         self._levels_dB = [float('-inf')] * 2
         self._holds = [[float('-inf'), 0], [float('-inf'), 0]]
+        self._max_levels_dB = [float('-inf')] * 2
 
     def _set_config(self, config):
         self._config = DEFAULT_CONFIG.copy()
@@ -125,6 +126,10 @@ class PeakMeter(QWidget):
                 hold[0] = self._levels_dB[ch]
                 hold[1] = cur_time
 
+            # Update max level
+            self._max_levels_dB[ch] = max(
+                    self._levels_dB[ch], self._max_levels_dB[ch])
+
         self.update()
 
     def paintEvent(self, ev):
@@ -172,6 +177,16 @@ class PeakMeter(QWidget):
                         hold_start, y_offset,
                         hold_width, cfg['thickness'],
                         self._grad)
+
+            # Render clips
+            if self._max_levels_dB[ch] > 0:
+                clip_colour = self._colours['clip']
+            else:
+                clip_colour = self._dim_colours['clip']
+            painter.fillRect(
+                    bar_width, y_offset,
+                    self.width() - bar_width, cfg['thickness'],
+                    clip_colour)
 
         painter.end()
 
