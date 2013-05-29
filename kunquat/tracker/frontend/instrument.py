@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Toni Ruottu, Finland 2013
+# Authors: Toni Ruottu, Finland 2013
+#          Tomi Jylhä-Ollila, Finland 2013
 #
 # This file is part of Kunquat.
 #
@@ -37,7 +38,10 @@ class Instrument(Updater):
         self._backend.set_active_note(channel_number, self._instrument_number, pitch)
 
     def update_active_note(self, channel_number, pitch):
-        self._active_notes[channel_number] = pitch
+        if pitch != None:
+            self._active_notes[channel_number] = pitch
+        elif channel_number in self._active_notes:
+            del self._active_notes[channel_number]
         self._signal_update()
 
     def set_instrument_number(self, instrument_number):
