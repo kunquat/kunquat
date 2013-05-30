@@ -53,9 +53,8 @@ class PeakMeter(QWidget):
         self._config = None
         self._colours = None
         self._dim_colours = None
-        self._bkg_grad = None
-        self._grad = None
-        self._grad_width = 0
+        self._bg_bar = None
+        self._fg_bar = None
         self._set_config(config)
 
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)
@@ -63,6 +62,10 @@ class PeakMeter(QWidget):
         self._levels_dB = [float('-inf')] * 2
         self._holds = [[float('-inf'), 0], [float('-inf'), 0]]
         self._max_levels_dB = [float('-inf')] * 2
+
+        self.setAutoFillBackground(False)
+        self.setAttribute(Qt.WA_OpaquePaintEvent)
+        self.setAttribute(Qt.WA_NoSystemBackground)
 
     def _set_config(self, config):
         self._config = DEFAULT_CONFIG.copy()
@@ -84,25 +87,41 @@ class PeakMeter(QWidget):
             b = lerp(bg_b, b, dim_factor)
             self._dim_colours[k] = QColor(r, g, b)
 
-        self._update_gradients()
+        self._update_buffers()
 
-    def _update_gradients(self):
+    def _update_buffers(self):
         # Common gradient properties
         grad_width = self.width() - self._config['clip_width']
         mid_point = ((-6 - self._config['lowest']) /
                 (self._config['highest'] - self._config['lowest']))
 
         # Create background gradient
-        self._bkg_grad = QLinearGradient(0, 0, grad_width, 0)
-        self._bkg_grad.setColorAt(0, self._dim_colours['low'])
-        self._bkg_grad.setColorAt(mid_point, self._dim_colours['mid'])
-        self._bkg_grad.setColorAt(1, self._dim_colours['high'])
+        bg_grad = QLinearGradient(0, 0, grad_width, 0)
+        bg_grad.setColorAt(0, self._dim_colours['low'])
+        bg_grad.setColorAt(mid_point, self._dim_colours['mid'])
+        bg_grad.setColorAt(1, self._dim_colours['high'])
 
         # Create foreground gradient
-        self._grad = QLinearGradient(0, 0, grad_width, 0)
-        self._grad.setColorAt(0, self._colours['low'])
-        self._grad.setColorAt(mid_point, self._colours['mid'])
-        self._grad.setColorAt(1, self._colours['high'])
+        fg_grad = QLinearGradient(0, 0, grad_width, 0)
+        fg_grad.setColorAt(0, self._colours['low'])
+        fg_grad.setColorAt(mid_point, self._colours['mid'])
+        fg_grad.setColorAt(1, self._colours['high'])
+
+        # Create buffer for background bar
+        self._bg_bar = QPixmap(grad_width, self._config['thickness'])
+        painter = QPainter(self._bg_bar)
+        painter.fillRect(
+                0, 0,
+                grad_width, self._config['thickness'],
+                bg_grad)
+
+        # Create buffer for foreground bar
+        self._fg_bar = QPixmap(grad_width, self._config['thickness'])
+        painter = QPainter(self._fg_bar)
+        painter.fillRect(
+                0, 0,
+                grad_width, self._config['thickness'],
+                fg_grad)
 
     def set_ui_model(self, ui_model):
         self._stat_manager = ui_model.get_stat_manager()
@@ -133,50 +152,52 @@ class PeakMeter(QWidget):
         self.update()
 
     def paintEvent(self, ev):
-        painter = QPainter()
-        painter.begin(self)
+        painter = QPainter(self)
 
         cfg = self._config
 
-        painter.setBackground(self._colours['bg'])
-        painter.eraseRect(ev.rect())
-
         bar_width = self.width() - cfg['clip_width']
+        thickness = cfg['thickness']
 
-        # Render background bars
-        left_y = 0
-        right_y = left_y + cfg['thickness'] + cfg['padding']
-        for y in (left_y, right_y):
-            painter.fillRect(
-                    0, y,
-                    bar_width, cfg['thickness'],
-                    self._bkg_grad)
+        painter.setBackground(self._colours['bg'])
+        painter.eraseRect(QRect(0, thickness, self.width(), cfg['padding']))
 
-        # Render lit regions
+        # Render bars
         for ch in (0, 1):
-            y_offset = ch * (cfg['thickness'] + cfg['padding'])
+            y_offset = ch * (thickness + cfg['padding'])
             dB_range = cfg['highest'] - cfg['lowest']
 
-            # Render current peaks
+            # Get peak width
             level_dB = self._levels_dB[ch]
-            filled = (level_dB - cfg['lowest']) / dB_range
-            filled = min(max(0, filled), 1)
-            painter.fillRect(
-                    0, y_offset,
-                    bar_width * filled, cfg['thickness'],
-                    self._grad)
+            filled_norm = (level_dB - cfg['lowest']) / dB_range
+            filled_norm = min(max(0, filled_norm), 1)
+            filled = int(bar_width * filled_norm)
+
+            # Fill current peak
+            painter.drawPixmap(
+                    QRect(0, y_offset, filled, thickness),
+                    self._fg_bar,
+                    QRect(0, 0, filled, thickness))
+
+            # Fill background
+            painter.drawPixmap(
+                    QRect(filled, y_offset, bar_width - filled, thickness),
+                    self._bg_bar,
+                    QRect(filled, 0, bar_width - filled, thickness))
 
             # Render holds
             hold = self._holds[ch]
-            hold_end = bar_width * (hold[0] - cfg['lowest']) / dB_range
+            hold_end_norm = (hold[0] - cfg['lowest']) / dB_range
+            hold_end_norm = max(-1, hold_end_norm)
+            hold_end = int(bar_width * hold_end_norm)
             hold_start = max(0, hold_end - cfg['hold_width'])
             hold_end = min(hold_end, bar_width)
             hold_width = hold_end - hold_start
             if hold_width > 0:
-                painter.fillRect(
-                        hold_start, y_offset,
-                        hold_width, cfg['thickness'],
-                        self._grad)
+                painter.drawPixmap(
+                        QRect(hold_start, y_offset, hold_width, thickness),
+                        self._fg_bar,
+                        QRect(hold_start, 0, hold_width, thickness))
 
             # Render clips
             if self._max_levels_dB[ch] > 0:
@@ -188,10 +209,8 @@ class PeakMeter(QWidget):
                     self.width() - bar_width, cfg['thickness'],
                     clip_colour)
 
-        painter.end()
-
     def resizeEvent(self, ev):
-        self._update_gradients()
+        self._update_buffers()
         self.update()
 
     def sizeHint(self):
