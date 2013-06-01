@@ -37,6 +37,9 @@ class Tstamp(numbers.Real, tuple):
     def rem(self):
         return self[1]
 
+    def _get_rems(self):
+        return self.beats * BEAT + self.rem
+
     def __abs__(self):
         raise NotImplementedError
 
@@ -65,8 +68,16 @@ class Tstamp(numbers.Real, tuple):
     def __mod__(self):
         raise NotImplementedError
 
-    def __mul__(self):
-        raise NotImplementedError
+    def __mul__(self, other):
+        if isinstance(other, Tstamp):
+            total_rems = (
+                    self.beats * other.beats * BEAT +
+                    self.beats * other.rem +
+                    self.rem * other.beats +
+                    self.rem * other.rem / BEAT)
+            return Tstamp(0, total_rems)
+        rems = self._get_rems()
+        return Tstamp(0, rems * other)
 
     def __neg__(self):
         return Tstamp(-self.beats, -self.rem)
@@ -89,8 +100,8 @@ class Tstamp(numbers.Real, tuple):
     def __rmod__(self):
         raise NotImplementedError
 
-    def __rmul__(self):
-        raise NotImplementedError
+    def __rmul__(self, other):
+        return self.__mul__(other)
 
     def __rpow__(self):
         raise NotImplementedError

@@ -221,6 +221,53 @@ class TestTstamp(unittest.TestCase):
         ts = -tstamp.Tstamp(-5, 7)
         self._check_types_and_values(ts, 4, tstamp.BEAT - 7)
 
+    def test_mul_int(self):
+        ts = tstamp.Tstamp() * 0
+        self._check_types_and_values(ts, 0, 0)
+
+        ts = tstamp.Tstamp(3, 5) * 1
+        self._check_types_and_values(ts, 3, 5)
+
+        ts = tstamp.Tstamp(5, 7) * 3
+        self._check_types_and_values(ts, 15, 21)
+
+        ts = tstamp.Tstamp(2, 3) * (-2)
+        self._check_types_and_values(ts, -5, tstamp.BEAT - 6)
+
+    def test_rmul_int(self):
+        ts = 0 * tstamp.Tstamp()
+        self._check_types_and_values(ts, 0, 0)
+
+        ts = 1 * tstamp.Tstamp(3, 5)
+        self._check_types_and_values(ts, 3, 5)
+
+        ts = 3 * tstamp.Tstamp(5, 7)
+        self._check_types_and_values(ts, 15, 21)
+
+        ts = -2 * tstamp.Tstamp(2, 3)
+        self._check_types_and_values(ts, -5, tstamp.BEAT - 6)
+
+    def test_mul_float(self):
+        ts = tstamp.Tstamp() * 0.0
+        self._check_types_and_values(ts, 0, 0)
+
+        ts = tstamp.Tstamp(2) * 2.25
+        self._check_types_and_values(ts, 4, tstamp.BEAT // 2)
+
+    def test_rmul_float(self):
+        ts = 0.0 * tstamp.Tstamp()
+        self._check_types_and_values(ts, 0, 0)
+
+        ts = 2.25 * tstamp.Tstamp(2)
+        self._check_types_and_values(ts, 4, tstamp.BEAT // 2)
+
+    def test_mul_tstamp(self):
+        ts = tstamp.Tstamp(3) * tstamp.Tstamp(0.5)
+        self._check_types_and_values(ts, 1, tstamp.BEAT // 2)
+
+        ts = tstamp.Tstamp(2) * tstamp.Tstamp(1.25)
+        self._check_types_and_values(ts, 2, tstamp.BEAT // 2)
+
 
 if __name__ == '__main__':
     unittest.main()
