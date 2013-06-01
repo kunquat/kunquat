@@ -132,6 +132,8 @@ class Tstamp(numbers.Real, tuple):
         raise NotImplementedError
 
     def __trunc__(self):
-        raise NotImplementedError
+        if self.beats < 0 and self.rem > 0:
+            return self.beats + 1
+        return self.beats
 
 

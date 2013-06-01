@@ -467,6 +467,17 @@ class TestTstamp(unittest.TestCase):
             self.assertIsInstance(from_ts, float)
             self.assertEqual(from_ts, float_source)
 
+    def test_int(self):
+        for int_source in xrange(-4, 4):
+            from_ts = int(tstamp.Tstamp(int_source))
+            self.assertIsInstance(from_ts, int)
+            self.assertEqual(from_ts, int_source)
+
+        for source in (-0.75, -0.5, -0.25, 0.25, 0.5, 0.75):
+            from_ts = int(tstamp.Tstamp(source))
+            self.assertIsInstance(from_ts, int)
+            self.assertEqual(from_ts, 0)
+
 
 if __name__ == '__main__':
     unittest.main()
