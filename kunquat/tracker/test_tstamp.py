@@ -428,6 +428,19 @@ class TestTstamp(unittest.TestCase):
         ts = abs(tstamp.Tstamp(-5, -7))
         self._check_types_and_values(ts, 5, 7)
 
+    def test_sub_tstamp(self):
+        ts = tstamp.Tstamp() - tstamp.Tstamp()
+        self._check_types_and_values(ts, 0, 0)
+
+        ts = tstamp.Tstamp(1, 0) - tstamp.Tstamp(0, tstamp.BEAT // 4)
+        self._check_types_and_values(ts, 0, 3 * tstamp.BEAT // 4)
+
+        ts = tstamp.Tstamp(2) - tstamp.Tstamp(3)
+        self._check_types_and_values(ts, -1, 0)
+
+        ts = tstamp.Tstamp(5, 2) - tstamp.Tstamp(3, 7)
+        self._check_types_and_values(ts, 1, tstamp.BEAT - 5)
+
 
 if __name__ == '__main__':
     unittest.main()
