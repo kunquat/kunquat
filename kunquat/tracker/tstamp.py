@@ -69,7 +69,7 @@ class Tstamp(numbers.Real, tuple):
         raise NotImplementedError
 
     def __neg__(self):
-        raise NotImplementedError
+        return Tstamp(-self.beats, -self.rem)
 
     def __pos__(self):
         return self

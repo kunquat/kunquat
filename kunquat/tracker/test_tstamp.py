@@ -208,6 +208,19 @@ class TestTstamp(unittest.TestCase):
         ts = +tstamp.Tstamp(-5, 7)
         self._check_types_and_values(ts, -5, 7)
 
+    def test_neg(self):
+        ts = -tstamp.Tstamp()
+        self._check_types_and_values(ts, 0, 0)
+
+        ts = -tstamp.Tstamp(1, 0)
+        self._check_types_and_values(ts, -1, 0)
+
+        ts = -tstamp.Tstamp(2, 3)
+        self._check_types_and_values(ts, -3, tstamp.BEAT - 3)
+
+        ts = -tstamp.Tstamp(-5, 7)
+        self._check_types_and_values(ts, 4, tstamp.BEAT - 7)
+
 
 if __name__ == '__main__':
     unittest.main()
