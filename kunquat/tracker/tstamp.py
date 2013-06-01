@@ -41,7 +41,7 @@ class Tstamp(numbers.Real, tuple):
         return self.beats * BEAT + self.rem
 
     def __abs__(self):
-        raise NotImplementedError
+        return max(self, -self)
 
     def __add__(self, other):
         other_ts = Tstamp(other)

@@ -418,6 +418,16 @@ class TestTstamp(unittest.TestCase):
     def test_rle_float(self):
         self._test_ole_float(flip)
 
+    def test_abs(self):
+        ts = abs(tstamp.Tstamp())
+        self._check_types_and_values(ts, 0, 0)
+
+        ts = abs(tstamp.Tstamp(2, 3))
+        self._check_types_and_values(ts, 2, 3)
+
+        ts = abs(tstamp.Tstamp(-5, -7))
+        self._check_types_and_values(ts, 5, 7)
+
 
 if __name__ == '__main__':
     unittest.main()
