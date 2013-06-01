@@ -262,13 +262,13 @@ class TestTstamp(unittest.TestCase):
         self._check_types_and_values(ts, 2, tstamp.BEAT // 2)
 
     def _tstamp_seeds_with_order(self):
-        seeds = (-1, -0.5, 0, 0.5, 1)
+        seeds = (-2, -1, 0, 1, 2)
         return product(enumerate(seeds), enumerate(seeds))
 
     def test_eq_tstamp(self):
         for ((i, a), (k, b)) in self._tstamp_seeds_with_order():
-            ta = tstamp.Tstamp(a)
-            tb = tstamp.Tstamp(b)
+            ta = tstamp.Tstamp(float(a) * 0.5)
+            tb = tstamp.Tstamp(float(b) * 0.5)
             if i == k:
                 self.assertEqual(ta, tb)
             else:
@@ -300,8 +300,8 @@ class TestTstamp(unittest.TestCase):
 
     def _test_oeq_float(self, order=default_order):
         for ((i, a), (k, b)) in self._tstamp_seeds_with_order():
-            ta = tstamp.Tstamp(a)
-            arg1, arg2 = order(ta, b)
+            ta = tstamp.Tstamp(float(a) * 0.5)
+            arg1, arg2 = order(ta, float(b) * 0.5)
             if i == k:
                 self.assertEqual(arg1, arg2)
             else:
@@ -312,6 +312,46 @@ class TestTstamp(unittest.TestCase):
 
     def test_req_float(self):
         self._test_oeq_float(flip)
+
+    def test_lt_tstamp(self):
+        for ((i, a), (k, b)) in self._tstamp_seeds_with_order():
+            arg1 = tstamp.Tstamp(float(a) * 0.5)
+            arg2 = tstamp.Tstamp(float(b) * 0.5)
+            if i < k:
+                self.assertTrue(arg1 < arg2)
+                self.assertTrue(arg2 > arg1)
+            else:
+                self.assertFalse(arg1 < arg2)
+                self.assertFalse(arg2 > arg1)
+
+    def _test_olt_int(self, order=default_order):
+        for ((i, a), (k, b)) in self._tstamp_seeds_with_order():
+            i, k = order(i, k)
+            ta = tstamp.Tstamp(a)
+            arg1, arg2 = order(ta, b)
+            if i < k:
+                self.assertTrue(arg1 < arg2)
+                self.assertTrue(arg2 > arg1)
+            else:
+                self.assertFalse(arg1 < arg2)
+                self.assertFalse(arg2 > arg1)
+
+        if order == flip:
+            self.assertTrue(0 < tstamp.Tstamp(0.5))
+            self.assertFalse(0 > tstamp.Tstamp(0.5))
+            self.assertFalse(1 < tstamp.Tstamp(0.5))
+            self.assertTrue(1 > tstamp.Tstamp(0.5))
+        else:
+            self.assertFalse(tstamp.Tstamp(0.5) < 0)
+            self.assertTrue(tstamp.Tstamp(0.5) > 0)
+            self.assertTrue(tstamp.Tstamp(0.5) < 1)
+            self.assertFalse(tstamp.Tstamp(0.5) > 1)
+
+    def test_lt_int(self):
+        self._test_olt_int()
+
+    def test_rlt_int(self):
+        self._test_olt_int(flip)
 
 
 if __name__ == '__main__':
