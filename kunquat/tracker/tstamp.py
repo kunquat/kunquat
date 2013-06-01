@@ -40,8 +40,9 @@ class Tstamp(numbers.Real, tuple):
     def __abs__(self):
         raise NotImplementedError
 
-    def __add__(self):
-        raise NotImplementedError
+    def __add__(self, other):
+        other_ts = Tstamp(other)
+        return Tstamp(self.beats + other_ts.beats, self.rem + other_ts.rem)
 
     def __div__(self):
         raise NotImplementedError
@@ -76,8 +77,8 @@ class Tstamp(numbers.Real, tuple):
     def __pow__(self):
         raise NotImplementedError
 
-    def __radd__(self):
-        raise NotImplementedError
+    def __radd__(self, other):
+        return self.__add__(other)
 
     def __rdiv__(self):
         raise NotImplementedError

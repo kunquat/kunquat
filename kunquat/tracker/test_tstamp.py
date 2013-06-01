@@ -27,6 +27,8 @@ class TestTstamp(unittest.TestCase):
         self.assertTrue(ts.rem < tstamp.BEAT)
 
     def _check_values(self, ts, beats, rem):
+        assert rem >= 0
+        assert rem < tstamp.BEAT
         self.assertEquals(ts.beats, beats)
         self.assertEquals(ts.rem, rem)
 
@@ -128,6 +130,73 @@ class TestTstamp(unittest.TestCase):
         for beats, rem in self._simple_init_values():
             ts = tstamp.Tstamp([beats, rem])
             self._check_types_and_values(ts, beats, rem)
+
+    def test_init_from_tstamp(self):
+        for beats, rem in self._simple_init_values():
+            ts = tstamp.Tstamp(tstamp.Tstamp(beats, rem))
+            self._check_types_and_values(ts, beats, rem)
+
+    def test_add_tstamp(self):
+        ts = tstamp.Tstamp() + tstamp.Tstamp()
+        self._check_types_and_values(ts, 0, 0)
+
+        ts = tstamp.Tstamp(2) + tstamp.Tstamp(3)
+        self._check_types_and_values(ts, 5, 0)
+
+        ts = tstamp.Tstamp(2) + tstamp.Tstamp(-3)
+        self._check_types_and_values(ts, -1, 0)
+
+        ts = tstamp.Tstamp(0, 2) + tstamp.Tstamp(0, 3)
+        self._check_types_and_values(ts, 0, 5)
+
+        ts = tstamp.Tstamp(0, 2) + tstamp.Tstamp(0, -3)
+        self._check_types_and_values(ts, -1, tstamp.BEAT - 1)
+
+        ts = tstamp.Tstamp(0, tstamp.BEAT // 2) + tstamp.Tstamp(0, tstamp.BEAT // 2)
+        self._check_types_and_values(ts, 1, 0)
+
+        ts = tstamp.Tstamp(2, 3) + tstamp.Tstamp(-2, -3)
+        self._check_types_and_values(ts, 0, 0)
+
+    def test_add_int(self):
+        ts = tstamp.Tstamp() + 0
+        self._check_types_and_values(ts, 0, 0)
+
+        ts = tstamp.Tstamp(0, tstamp.BEAT // 4) + 3
+        self._check_types_and_values(ts, 3, tstamp.BEAT // 4)
+
+        ts = tstamp.Tstamp(0, tstamp.BEAT // 4) + (-3)
+        self._check_types_and_values(ts, -3, tstamp.BEAT // 4)
+
+    def test_radd_int(self):
+        ts = 0 + tstamp.Tstamp()
+        self._check_types_and_values(ts, 0, 0)
+
+        ts = 3 + tstamp.Tstamp(0, tstamp.BEAT // 4)
+        self._check_types_and_values(ts, 3, tstamp.BEAT // 4)
+
+        ts = -3 + tstamp.Tstamp(0, tstamp.BEAT // 4)
+        self._check_types_and_values(ts, -3, tstamp.BEAT // 4)
+
+    def test_add_float(self):
+        ts = tstamp.Tstamp() + 0.0
+        self._check_types_and_values(ts, 0, 0)
+
+        ts = tstamp.Tstamp(0, tstamp.BEAT // 4) + 0.5
+        self._check_types_and_values(ts, 0, 3 * tstamp.BEAT // 4)
+
+        ts = tstamp.Tstamp(0, tstamp.BEAT // 4) + (-0.5)
+        self._check_types_and_values(ts, -1, 3 * tstamp.BEAT // 4)
+
+    def test_radd_float(self):
+        ts = 0.0 + tstamp.Tstamp()
+        self._check_types_and_values(ts, 0, 0)
+
+        ts = 0.5 + tstamp.Tstamp(0, tstamp.BEAT // 4)
+        self._check_types_and_values(ts, 0, 3 * tstamp.BEAT // 4)
+
+        ts = -0.5 + tstamp.Tstamp(0, tstamp.BEAT // 4)
+        self._check_types_and_values(ts, -1, 3 * tstamp.BEAT // 4)
 
 
 if __name__ == '__main__':
