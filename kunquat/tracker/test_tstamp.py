@@ -478,6 +478,9 @@ class TestTstamp(unittest.TestCase):
             self.assertIsInstance(from_ts, int)
             self.assertEqual(from_ts, 0)
 
+        self.assertEqual(int(tstamp.Tstamp(-1, 1)), 0)
+        self.assertEqual(int(tstamp.Tstamp(1, -1)), 0)
+
 
 if __name__ == '__main__':
     unittest.main()
