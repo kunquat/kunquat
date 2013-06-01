@@ -72,7 +72,7 @@ class Tstamp(numbers.Real, tuple):
         raise NotImplementedError
 
     def __pos__(self):
-        raise NotImplementedError
+        return self
 
     def __pow__(self):
         raise NotImplementedError

@@ -88,38 +88,38 @@ class TestTstamp(unittest.TestCase):
         self._check_types_and_values(ts, 0, tstamp.BEAT // 4)
 
     def test_init_with_overflowing_rem_is_resolved(self):
-        ts = tstamp.Tstamp(0, tstamp.BEAT)
-        self._check_types_and_values(ts, 1, 0)
-
-        ts = tstamp.Tstamp(0, tstamp.BEAT + 1)
-        self._check_types_and_values(ts, 1, 1)
-
-        ts = tstamp.Tstamp(0, tstamp.BEAT * 2 - 1)
-        self._check_types_and_values(ts, 1, tstamp.BEAT - 1)
-
-        ts = tstamp.Tstamp(0, tstamp.BEAT * 2)
+        ts = tstamp.Tstamp(1, tstamp.BEAT)
         self._check_types_and_values(ts, 2, 0)
 
-        ts = tstamp.Tstamp(0, tstamp.BEAT * 2 + 1)
+        ts = tstamp.Tstamp(1, tstamp.BEAT + 1)
         self._check_types_and_values(ts, 2, 1)
 
-        ts = tstamp.Tstamp(0, -1)
+        ts = tstamp.Tstamp(1, tstamp.BEAT * 2 - 1)
+        self._check_types_and_values(ts, 2, tstamp.BEAT - 1)
+
+        ts = tstamp.Tstamp(1, tstamp.BEAT * 2)
+        self._check_types_and_values(ts, 3, 0)
+
+        ts = tstamp.Tstamp(1, tstamp.BEAT * 2 + 1)
+        self._check_types_and_values(ts, 3, 1)
+
+        ts = tstamp.Tstamp(1, -1)
+        self._check_types_and_values(ts, 0, tstamp.BEAT - 1)
+
+        ts = tstamp.Tstamp(1, -tstamp.BEAT)
+        self._check_types_and_values(ts, 0, 0)
+
+        ts = tstamp.Tstamp(1, -tstamp.BEAT - 1)
         self._check_types_and_values(ts, -1, tstamp.BEAT - 1)
 
-        ts = tstamp.Tstamp(0, -tstamp.BEAT)
+        ts = tstamp.Tstamp(1, -tstamp.BEAT * 2 + 1)
+        self._check_types_and_values(ts, -1, 1)
+
+        ts = tstamp.Tstamp(1, -tstamp.BEAT * 2)
         self._check_types_and_values(ts, -1, 0)
 
-        ts = tstamp.Tstamp(0, -tstamp.BEAT - 1)
+        ts = tstamp.Tstamp(1, -tstamp.BEAT * 2 - 1)
         self._check_types_and_values(ts, -2, tstamp.BEAT - 1)
-
-        ts = tstamp.Tstamp(0, -tstamp.BEAT * 2 + 1)
-        self._check_types_and_values(ts, -2, 1)
-
-        ts = tstamp.Tstamp(0, -tstamp.BEAT * 2)
-        self._check_types_and_values(ts, -2, 0)
-
-        ts = tstamp.Tstamp(0, -tstamp.BEAT * 2 - 1)
-        self._check_types_and_values(ts, -3, tstamp.BEAT - 1)
 
     def test_init_from_tuple(self):
         for beats, rem in self._simple_init_values():
@@ -197,6 +197,16 @@ class TestTstamp(unittest.TestCase):
 
         ts = -0.5 + tstamp.Tstamp(0, tstamp.BEAT // 4)
         self._check_types_and_values(ts, -1, 3 * tstamp.BEAT // 4)
+
+    def test_pos(self):
+        ts = +tstamp.Tstamp()
+        self._check_types_and_values(ts, 0, 0)
+
+        ts = +tstamp.Tstamp(1, 2)
+        self._check_types_and_values(ts, 1, 2)
+
+        ts = +tstamp.Tstamp(-5, 7)
+        self._check_types_and_values(ts, -5, 7)
 
 
 if __name__ == '__main__':
