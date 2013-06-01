@@ -481,6 +481,16 @@ class TestTstamp(unittest.TestCase):
         self.assertEqual(int(tstamp.Tstamp(-1, 1)), 0)
         self.assertEqual(int(tstamp.Tstamp(1, -1)), 0)
 
+    def test_hash_int(self):
+        for int_source in xrange(-256, 256):
+            ts = tstamp.Tstamp(int_source)
+            self.assertEqual(hash(ts), hash(int_source))
+
+    def test_hash_float(self):
+        for float_source in (-0.75, -0.5, -0.25, 0.25, 0.5, 0.75):
+            ts = tstamp.Tstamp(float_source)
+            self.assertEqual(hash(ts), hash(float_source))
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -68,6 +68,14 @@ class Tstamp(numbers.Real, tuple):
         other_ts = Tstamp(other)
         return other_ts < self
 
+    def __hash__(self):
+        if self.rem == 0:
+            return hash(self.beats)
+        fv = float(self)
+        if self == fv:
+            return hash(fv)
+        return hash(tuple(self))
+
     def __le__(self, other):
         other_ts = Tstamp(other)
         if self.beats < other_ts.beats:
