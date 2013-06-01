@@ -60,12 +60,21 @@ class Tstamp(numbers.Real, tuple):
     def __floordiv__(self):
         raise NotImplementedError
 
+    def __ge__(self, other):
+        other_ts = Tstamp(other)
+        return other_ts <= self
+
     def __gt__(self, other):
         other_ts = Tstamp(other)
         return other_ts < self
 
-    def __le__(self):
-        raise NotImplementedError
+    def __le__(self, other):
+        other_ts = Tstamp(other)
+        if self.beats < other_ts.beats:
+            return True
+        elif self.beats > other_ts.beats:
+            return False
+        return self.rem <= other_ts.rem
 
     def __lt__(self, other):
         other_ts = Tstamp(other)

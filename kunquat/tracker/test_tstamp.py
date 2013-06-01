@@ -353,6 +353,71 @@ class TestTstamp(unittest.TestCase):
     def test_rlt_int(self):
         self._test_olt_int(flip)
 
+    def _test_olt_float(self, order=default_order):
+        for ((i, a), (k, b)) in self._tstamp_seeds_with_order():
+            i, k = order(i, k)
+            ta = tstamp.Tstamp(float(a) * 0.5)
+            arg1, arg2 = order(ta, float(b) * 0.5)
+            if i < k:
+                self.assertTrue(arg1 < arg2)
+                self.assertTrue(arg2 > arg1)
+            else:
+                self.assertFalse(arg1 < arg2)
+                self.assertFalse(arg2 > arg1)
+
+    def test_lt_float(self):
+        self._test_olt_float()
+
+    def test_rlt_float(self):
+        self._test_olt_float(flip)
+
+    def test_le_tstamp(self):
+        for ((i, a), (k, b)) in self._tstamp_seeds_with_order():
+            arg1 = tstamp.Tstamp(float(a) * 0.5)
+            arg2 = tstamp.Tstamp(float(b) * 0.5)
+            if i <= k:
+                self.assertTrue(arg1 <= arg2)
+                self.assertTrue(arg2 >= arg1)
+            else:
+                self.assertFalse(arg1 <= arg2)
+                self.assertFalse(arg2 >= arg1)
+
+    def _test_ole_int(self, order=default_order):
+        for ((i, a), (k, b)) in self._tstamp_seeds_with_order():
+            i, k = order(i, k)
+            ta = tstamp.Tstamp(a)
+            arg1, arg2 = order(ta, b)
+            if i <= k:
+                self.assertTrue(arg1 <= arg2)
+                self.assertTrue(arg2 >= arg1)
+            else:
+                self.assertFalse(arg1 <= arg2)
+                self.assertFalse(arg2 >= arg1)
+
+    def test_le_int(self):
+        self._test_ole_int()
+
+    def test_rle_int(self):
+        self._test_ole_int(flip)
+
+    def _test_ole_float(self, order=default_order):
+        for ((i, a), (k, b)) in self._tstamp_seeds_with_order():
+            i, k = order(i, k)
+            ta = tstamp.Tstamp(float(a) * 0.5)
+            arg1, arg2 = order(ta, float(b) * 0.5)
+            if i <= k:
+                self.assertTrue(arg1 <= arg2)
+                self.assertTrue(arg2 >= arg1)
+            else:
+                self.assertFalse(arg1 <= arg2)
+                self.assertFalse(arg2 >= arg1)
+
+    def test_le_float(self):
+        self._test_ole_float()
+
+    def test_rle_float(self):
+        self._test_ole_float(flip)
+
 
 if __name__ == '__main__':
     unittest.main()
