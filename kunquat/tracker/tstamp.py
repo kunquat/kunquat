@@ -55,7 +55,7 @@ class Tstamp(numbers.Real, tuple):
         return self.beats == other_ts.beats and self.rem == other_ts.rem
 
     def __float__(self):
-        raise NotImplementedError
+        return float(self.beats) + float(self.rem) / BEAT
 
     def __floordiv__(self):
         raise NotImplementedError

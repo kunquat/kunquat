@@ -461,6 +461,12 @@ class TestTstamp(unittest.TestCase):
         ts = tstamp.Tstamp(1.5) - 0.75
         self._check_types_and_values(ts, 0, 3 * tstamp.BEAT // 4)
 
+    def test_float(self):
+        for float_source in (-1.0, -0.5, 0.0, 0.5, 1.0):
+            from_ts = float(tstamp.Tstamp(float_source))
+            self.assertIsInstance(from_ts, float)
+            self.assertEqual(from_ts, float_source)
+
 
 if __name__ == '__main__':
     unittest.main()
