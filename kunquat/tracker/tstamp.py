@@ -48,6 +48,8 @@ class Tstamp(numbers.Real, tuple):
         raise NotImplementedError
 
     def __eq__(self, other):
+        if other == None:
+            return False
         other_ts = Tstamp(other)
         return self.beats == other_ts.beats and self.rem == other_ts.rem
 

@@ -313,6 +313,11 @@ class TestTstamp(unittest.TestCase):
     def test_req_float(self):
         self._test_oeq_float(flip)
 
+    def test_eq_None(self):
+        for source in (-1, -0.5, 0, 0.5, 1):
+            self.assertNotEqual(tstamp.Tstamp(source), None)
+            self.assertNotEqual(None, tstamp.Tstamp(source))
+
     def test_lt_tstamp(self):
         for ((i, a), (k, b)) in self._tstamp_seeds_with_order():
             arg1 = tstamp.Tstamp(float(a) * 0.5)
