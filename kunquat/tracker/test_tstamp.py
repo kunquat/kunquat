@@ -496,6 +496,13 @@ class TestTstamp(unittest.TestCase):
             ts = tstamp.Tstamp(float_source)
             self.assertEqual(hash(ts), hash(float_source))
 
+    def test_repr(self):
+        for source in (-1.25, -0.5, 0.0, 0.25, 1.0):
+            ts = tstamp.Tstamp(source)
+            ts_repr = repr(ts)
+            self.assertIsInstance(ts_repr, str)
+            self.assertEqual(ts_repr, "Tstamp({}, {})".format(ts.beats, ts.rem))
+
 
 if __name__ == '__main__':
     unittest.main()

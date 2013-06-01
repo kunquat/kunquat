@@ -120,6 +120,9 @@ class Tstamp(numbers.Real, tuple):
     def __rdiv__(self):
         raise NotImplementedError
 
+    def __repr__(self):
+        return 'Tstamp{}'.format(tuple(self))
+
     def __rfloordiv__(self):
         raise NotImplementedError
 
