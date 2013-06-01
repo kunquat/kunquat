@@ -92,11 +92,32 @@ class TestTstamp(unittest.TestCase):
         ts = tstamp.Tstamp(0, tstamp.BEAT + 1)
         self._check_types_and_values(ts, 1, 1)
 
+        ts = tstamp.Tstamp(0, tstamp.BEAT * 2 - 1)
+        self._check_types_and_values(ts, 1, tstamp.BEAT - 1)
+
+        ts = tstamp.Tstamp(0, tstamp.BEAT * 2)
+        self._check_types_and_values(ts, 2, 0)
+
+        ts = tstamp.Tstamp(0, tstamp.BEAT * 2 + 1)
+        self._check_types_and_values(ts, 2, 1)
+
         ts = tstamp.Tstamp(0, -1)
         self._check_types_and_values(ts, -1, tstamp.BEAT - 1)
 
         ts = tstamp.Tstamp(0, -tstamp.BEAT)
         self._check_types_and_values(ts, -1, 0)
+
+        ts = tstamp.Tstamp(0, -tstamp.BEAT - 1)
+        self._check_types_and_values(ts, -2, tstamp.BEAT - 1)
+
+        ts = tstamp.Tstamp(0, -tstamp.BEAT * 2 + 1)
+        self._check_types_and_values(ts, -2, 1)
+
+        ts = tstamp.Tstamp(0, -tstamp.BEAT * 2)
+        self._check_types_and_values(ts, -2, 0)
+
+        ts = tstamp.Tstamp(0, -tstamp.BEAT * 2 - 1)
+        self._check_types_and_values(ts, -3, tstamp.BEAT - 1)
 
     def test_init_from_tuple(self):
         for beats, rem in self._simple_init_values():
