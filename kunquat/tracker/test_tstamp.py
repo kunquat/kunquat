@@ -16,6 +16,14 @@ import tstamp
 import unittest
 
 
+def default_order(x, y):
+    return (x, y)
+
+
+def flip(x, y):
+    return (y, x)
+
+
 class TestTstamp(unittest.TestCase):
 
     def _check_types(self, ts):
@@ -158,45 +166,37 @@ class TestTstamp(unittest.TestCase):
         ts = tstamp.Tstamp(2, 3) + tstamp.Tstamp(-2, -3)
         self._check_types_and_values(ts, 0, 0)
 
+    def _test_nadd_int(self, order=default_order):
+        arg1, arg2 = order(tstamp.Tstamp(), 0)
+        self._check_types_and_values(arg1 + arg2, 0, 0)
+
+        arg1, arg2 = order(tstamp.Tstamp(0, tstamp.BEAT // 4), 3)
+        self._check_types_and_values(arg1 + arg2, 3, tstamp.BEAT // 4)
+
+        arg1, arg2 = order(tstamp.Tstamp(0, tstamp.BEAT // 4), -3)
+        self._check_types_and_values(arg1 + arg2, -3, tstamp.BEAT // 4)
+
     def test_add_int(self):
-        ts = tstamp.Tstamp() + 0
-        self._check_types_and_values(ts, 0, 0)
-
-        ts = tstamp.Tstamp(0, tstamp.BEAT // 4) + 3
-        self._check_types_and_values(ts, 3, tstamp.BEAT // 4)
-
-        ts = tstamp.Tstamp(0, tstamp.BEAT // 4) + (-3)
-        self._check_types_and_values(ts, -3, tstamp.BEAT // 4)
+        self._test_nadd_int()
 
     def test_radd_int(self):
-        ts = 0 + tstamp.Tstamp()
-        self._check_types_and_values(ts, 0, 0)
+        self._test_nadd_int(flip)
 
-        ts = 3 + tstamp.Tstamp(0, tstamp.BEAT // 4)
-        self._check_types_and_values(ts, 3, tstamp.BEAT // 4)
+    def _test_nadd_float(self, order=default_order):
+        arg1, arg2 = order(tstamp.Tstamp(), 0.0)
+        self._check_types_and_values(arg1 + arg2, 0, 0)
 
-        ts = -3 + tstamp.Tstamp(0, tstamp.BEAT // 4)
-        self._check_types_and_values(ts, -3, tstamp.BEAT // 4)
+        arg1, arg2 = order(tstamp.Tstamp(0, tstamp.BEAT // 4), 0.5)
+        self._check_types_and_values(arg1 + arg2, 0, 3 * tstamp.BEAT // 4)
+
+        arg1, arg2 = order(tstamp.Tstamp(0, tstamp.BEAT // 4), -0.5)
+        self._check_types_and_values(arg1 + arg2, -1, 3 * tstamp.BEAT // 4)
 
     def test_add_float(self):
-        ts = tstamp.Tstamp() + 0.0
-        self._check_types_and_values(ts, 0, 0)
-
-        ts = tstamp.Tstamp(0, tstamp.BEAT // 4) + 0.5
-        self._check_types_and_values(ts, 0, 3 * tstamp.BEAT // 4)
-
-        ts = tstamp.Tstamp(0, tstamp.BEAT // 4) + (-0.5)
-        self._check_types_and_values(ts, -1, 3 * tstamp.BEAT // 4)
+        self._test_nadd_float()
 
     def test_radd_float(self):
-        ts = 0.0 + tstamp.Tstamp()
-        self._check_types_and_values(ts, 0, 0)
-
-        ts = 0.5 + tstamp.Tstamp(0, tstamp.BEAT // 4)
-        self._check_types_and_values(ts, 0, 3 * tstamp.BEAT // 4)
-
-        ts = -0.5 + tstamp.Tstamp(0, tstamp.BEAT // 4)
-        self._check_types_and_values(ts, -1, 3 * tstamp.BEAT // 4)
+        self._test_nadd_float(flip)
 
     def test_pos(self):
         ts = +tstamp.Tstamp()
@@ -221,45 +221,37 @@ class TestTstamp(unittest.TestCase):
         ts = -tstamp.Tstamp(-5, 7)
         self._check_types_and_values(ts, 4, tstamp.BEAT - 7)
 
+    def _test_nmul_int(self, order=default_order):
+        arg1, arg2 = order(tstamp.Tstamp(), 0)
+        self._check_types_and_values(arg1 * arg2, 0, 0)
+
+        arg1, arg2 = order(tstamp.Tstamp(3, 5), 1)
+        self._check_types_and_values(arg1 * arg2, 3, 5)
+
+        arg1, arg2 = order(tstamp.Tstamp(5, 7), 3)
+        self._check_types_and_values(arg1 * arg2, 15, 21)
+
+        arg1, arg2 = order(tstamp.Tstamp(2, 3), -2)
+        self._check_types_and_values(arg1 * arg2, -5, tstamp.BEAT - 6)
+
     def test_mul_int(self):
-        ts = tstamp.Tstamp() * 0
-        self._check_types_and_values(ts, 0, 0)
-
-        ts = tstamp.Tstamp(3, 5) * 1
-        self._check_types_and_values(ts, 3, 5)
-
-        ts = tstamp.Tstamp(5, 7) * 3
-        self._check_types_and_values(ts, 15, 21)
-
-        ts = tstamp.Tstamp(2, 3) * (-2)
-        self._check_types_and_values(ts, -5, tstamp.BEAT - 6)
+        self._test_nmul_int()
 
     def test_rmul_int(self):
-        ts = 0 * tstamp.Tstamp()
-        self._check_types_and_values(ts, 0, 0)
+        self._test_nmul_int(flip)
 
-        ts = 1 * tstamp.Tstamp(3, 5)
-        self._check_types_and_values(ts, 3, 5)
+    def _test_nmul_float(self, order=default_order):
+        arg1, arg2 = order(tstamp.Tstamp(), 0.0)
+        self._check_types_and_values(arg1 * arg2, 0, 0)
 
-        ts = 3 * tstamp.Tstamp(5, 7)
-        self._check_types_and_values(ts, 15, 21)
-
-        ts = -2 * tstamp.Tstamp(2, 3)
-        self._check_types_and_values(ts, -5, tstamp.BEAT - 6)
+        arg1, arg2 = order(tstamp.Tstamp(2), 2.25)
+        self._check_types_and_values(arg1 * arg2, 4, tstamp.BEAT // 2)
 
     def test_mul_float(self):
-        ts = tstamp.Tstamp() * 0.0
-        self._check_types_and_values(ts, 0, 0)
-
-        ts = tstamp.Tstamp(2) * 2.25
-        self._check_types_and_values(ts, 4, tstamp.BEAT // 2)
+        self._test_nmul_float()
 
     def test_rmul_float(self):
-        ts = 0.0 * tstamp.Tstamp()
-        self._check_types_and_values(ts, 0, 0)
-
-        ts = 2.25 * tstamp.Tstamp(2)
-        self._check_types_and_values(ts, 4, tstamp.BEAT // 2)
+        self._test_nmul_float(flip)
 
     def test_mul_tstamp(self):
         ts = tstamp.Tstamp(3) * tstamp.Tstamp(0.5)
