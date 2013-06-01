@@ -50,8 +50,9 @@ class Tstamp(numbers.Real, tuple):
     def __div__(self):
         raise NotImplementedError
 
-    def __eq__(self):
-        raise NotImplementedError
+    def __eq__(self, other):
+        other_ts = Tstamp(other)
+        return self.beats == other_ts.beats and self.rem == other_ts.rem
 
     def __float__(self):
         raise NotImplementedError

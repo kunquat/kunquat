@@ -11,6 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from itertools import product
 import numbers
 import tstamp
 import unittest
@@ -37,8 +38,8 @@ class TestTstamp(unittest.TestCase):
     def _check_values(self, ts, beats, rem):
         assert rem >= 0
         assert rem < tstamp.BEAT
-        self.assertEquals(ts.beats, beats)
-        self.assertEquals(ts.rem, rem)
+        self.assertEqual(ts.beats, beats)
+        self.assertEqual(ts.rem, rem)
 
     def _check_types_and_values(self, ts, beats, rem):
         self._check_types(ts)
@@ -166,7 +167,7 @@ class TestTstamp(unittest.TestCase):
         ts = tstamp.Tstamp(2, 3) + tstamp.Tstamp(-2, -3)
         self._check_types_and_values(ts, 0, 0)
 
-    def _test_nadd_int(self, order=default_order):
+    def _test_oadd_int(self, order=default_order):
         arg1, arg2 = order(tstamp.Tstamp(), 0)
         self._check_types_and_values(arg1 + arg2, 0, 0)
 
@@ -177,12 +178,12 @@ class TestTstamp(unittest.TestCase):
         self._check_types_and_values(arg1 + arg2, -3, tstamp.BEAT // 4)
 
     def test_add_int(self):
-        self._test_nadd_int()
+        self._test_oadd_int()
 
     def test_radd_int(self):
-        self._test_nadd_int(flip)
+        self._test_oadd_int(flip)
 
-    def _test_nadd_float(self, order=default_order):
+    def _test_oadd_float(self, order=default_order):
         arg1, arg2 = order(tstamp.Tstamp(), 0.0)
         self._check_types_and_values(arg1 + arg2, 0, 0)
 
@@ -193,10 +194,10 @@ class TestTstamp(unittest.TestCase):
         self._check_types_and_values(arg1 + arg2, -1, 3 * tstamp.BEAT // 4)
 
     def test_add_float(self):
-        self._test_nadd_float()
+        self._test_oadd_float()
 
     def test_radd_float(self):
-        self._test_nadd_float(flip)
+        self._test_oadd_float(flip)
 
     def test_pos(self):
         ts = +tstamp.Tstamp()
@@ -221,7 +222,7 @@ class TestTstamp(unittest.TestCase):
         ts = -tstamp.Tstamp(-5, 7)
         self._check_types_and_values(ts, 4, tstamp.BEAT - 7)
 
-    def _test_nmul_int(self, order=default_order):
+    def _test_omul_int(self, order=default_order):
         arg1, arg2 = order(tstamp.Tstamp(), 0)
         self._check_types_and_values(arg1 * arg2, 0, 0)
 
@@ -235,12 +236,12 @@ class TestTstamp(unittest.TestCase):
         self._check_types_and_values(arg1 * arg2, -5, tstamp.BEAT - 6)
 
     def test_mul_int(self):
-        self._test_nmul_int()
+        self._test_omul_int()
 
     def test_rmul_int(self):
-        self._test_nmul_int(flip)
+        self._test_omul_int(flip)
 
-    def _test_nmul_float(self, order=default_order):
+    def _test_omul_float(self, order=default_order):
         arg1, arg2 = order(tstamp.Tstamp(), 0.0)
         self._check_types_and_values(arg1 * arg2, 0, 0)
 
@@ -248,10 +249,10 @@ class TestTstamp(unittest.TestCase):
         self._check_types_and_values(arg1 * arg2, 4, tstamp.BEAT // 2)
 
     def test_mul_float(self):
-        self._test_nmul_float()
+        self._test_omul_float()
 
     def test_rmul_float(self):
-        self._test_nmul_float(flip)
+        self._test_omul_float(flip)
 
     def test_mul_tstamp(self):
         ts = tstamp.Tstamp(3) * tstamp.Tstamp(0.5)
@@ -259,6 +260,58 @@ class TestTstamp(unittest.TestCase):
 
         ts = tstamp.Tstamp(2) * tstamp.Tstamp(1.25)
         self._check_types_and_values(ts, 2, tstamp.BEAT // 2)
+
+    def _tstamp_seeds_with_order(self):
+        seeds = (-1, -0.5, 0, 0.5, 1)
+        return product(enumerate(seeds), enumerate(seeds))
+
+    def test_eq_tstamp(self):
+        for ((i, a), (k, b)) in self._tstamp_seeds_with_order():
+            ta = tstamp.Tstamp(a)
+            tb = tstamp.Tstamp(b)
+            if i == k:
+                self.assertEqual(ta, tb)
+            else:
+                self.assertNotEqual(ta, tb)
+
+    def _test_oeq_int(self, order=default_order):
+        equals = [
+                order(tstamp.Tstamp(), 0),
+                order(tstamp.Tstamp(-1), -1),
+                order(tstamp.Tstamp(1), 1),
+                ]
+        for (arg1, arg2) in equals:
+            self.assertEqual(arg1, arg2)
+
+        unequals = [
+                order(tstamp.Tstamp(), -1),
+                order(tstamp.Tstamp(), 1),
+                order(tstamp.Tstamp(0.5), 0),
+                order(tstamp.Tstamp(0.5), 1),
+                ]
+        for (arg1, arg2) in unequals:
+            self.assertNotEqual(arg1, arg2)
+
+    def test_eq_int(self):
+        self._test_oeq_int()
+
+    def test_req_int(self):
+        self._test_oeq_int(flip)
+
+    def _test_oeq_float(self, order=default_order):
+        for ((i, a), (k, b)) in self._tstamp_seeds_with_order():
+            ta = tstamp.Tstamp(a)
+            arg1, arg2 = order(ta, b)
+            if i == k:
+                self.assertEqual(arg1, arg2)
+            else:
+                self.assertNotEqual(arg1, arg2)
+
+    def test_eq_float(self):
+        self._test_oeq_float()
+
+    def test_req_float(self):
+        self._test_oeq_float(flip)
 
 
 if __name__ == '__main__':
