@@ -37,9 +37,6 @@ class Tstamp(numbers.Real, tuple):
     def rem(self):
         return self[1]
 
-    def _get_rems(self):
-        return self.beats * BEAT + self.rem
-
     def __abs__(self):
         return max(self, -self)
 
@@ -103,7 +100,7 @@ class Tstamp(numbers.Real, tuple):
                     self.rem * other.beats +
                     self.rem * other.rem / BEAT)
             return Tstamp(0, total_rems)
-        rems = self._get_rems()
+        rems = self.beats * BEAT + self.rem
         return Tstamp(0, rems * other)
 
     def __neg__(self):
