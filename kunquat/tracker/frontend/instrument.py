@@ -22,6 +22,7 @@ class Instrument(Updater):
         self._backend = None
         self._instrument_number = None
         self._existence = None
+        self._name = None
         self._active_notes = {}
 
     def set_backend(self, backend):
@@ -56,5 +57,12 @@ class Instrument(Updater):
 
     def update_existence(self, existence):
         self._existence = existence
+        self._signal_update()
+
+    def get_name(self):
+        return self._name
+
+    def update_name(self, name):
+        self._name = name
         self._signal_update()
 

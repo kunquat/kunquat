@@ -99,6 +99,12 @@ class Backend():
                         instrument_number = int(m.group(1))
                         self._frontend.update_instrument_existence(instrument_number, True)
 
+                    m = re.match('^ins_([0-9]{2})/m_name.json$', key)
+                    if m:
+                        instrument_number = int(m.group(1))
+                        name = json.loads(value)
+                        self._frontend.update_instrument_name(instrument_number, name)
+
                     if key.endswith('.json'):
                         decoded = json.loads(value)
                     elif key.endswith('.jsone'):

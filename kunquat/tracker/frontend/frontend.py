@@ -37,7 +37,8 @@ class Frontend():
 
     def _create_and_get_instrument(self, instrument_number):
         module = self._ui_model.get_module()
-        instrument_numbers = module.get_instrument_numbers()
+        instruments = module.get_instruments(validate=False)
+        instrument_numbers = [i.get_instrument_number() for i in instruments]
         if not instrument_number in instrument_numbers:
             new_instrument = self._InstrumentClass()
             new_instrument.set_backend(self._backend)
@@ -54,6 +55,10 @@ class Frontend():
     def update_instrument_existence(self, instrument_number, existence):
         instrument = self._create_and_get_instrument(instrument_number)
         instrument.update_existence(existence)
+
+    def update_instrument_name(self, instrument_number, name):
+        instrument = self._create_and_get_instrument(instrument_number)
+        instrument.update_name(name)
 
     def update_active_note(self, channel_number, pitch):
         module = self._ui_model.get_module()

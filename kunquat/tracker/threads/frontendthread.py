@@ -70,6 +70,9 @@ class FrontendThread(threading.Thread):
     def update_instrument_existence(self, instrument_number, existence):
         self._q.push('update_instrument_existence', instrument_number, existence)
 
+    def update_instrument_name(self, instrument_number, name):
+        self._q.push('update_instrument_name', instrument_number, name)
+
     def update_active_note(self, channel_number, pitch):
         self._q.push('update_active_note', channel_number, pitch)
 

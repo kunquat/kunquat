@@ -30,14 +30,15 @@ class Module(Updater):
     def update_instrument(self, instrument_number, instrument):
         if instrument_number in self._instruments:
             old_instrument = self._instruments[instrument_number]
-            self.unregister_child(instrument)
+            self.unregister_child(old_instrument)
         self.register_child(instrument)
         self._instruments[instrument_number] = instrument
         self._signal_update()
 
-    def get_instruments(self):
-        return [i for i in self._instruments.values() if i.get_existence()]
-
-    def get_instrument_numbers(self):
-        return [i.get_instrument_number() for i in self.get_instruments()]
+    def get_instruments(self, validate=True):
+        all_instruments = self._instruments.values()
+        if validate:
+            valid = [i for i in all_instruments if i.get_existence()]
+            return valid
+        return all_instruments
 

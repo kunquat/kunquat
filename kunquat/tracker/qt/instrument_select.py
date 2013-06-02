@@ -44,12 +44,14 @@ class InstrumentSelect(QComboBox):
         self._instrument_catalog = dict(enumerate(instruments))
         invalid_selection = True
         for i, instrument in self._instrument_catalog.items():
-            name = instrument.get_instrument_number()
-            self.addItem(str(name))
+            instrument_number = instrument.get_instrument_number()
+            instrument_name = instrument.get_name() or '-'
+            text = 'instrument %s: %s' % (instrument_number, instrument_name)
+            self.addItem(text)
             if selected:
                 current = selected.get_instrument_number()
-                name = instrument.get_instrument_number()
-                if name == current:
+                instrument_number = instrument.get_instrument_number()
+                if instrument_number == current:
                     self.setCurrentIndex(i)
                     invalid_selection = False
         self.blockSignals(old_block)
