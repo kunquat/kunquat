@@ -16,6 +16,8 @@ from __future__ import division, print_function
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
+import tstamp
+
 
 COLUMN_COUNT = 64
 
@@ -27,6 +29,8 @@ DEFAULT_CONFIG = {
         'header': {
                 'height': 20,
             },
+        'col_width' : 128,
+        'rem_per_px': tstamp.BEAT // 128,
         }
 
 
@@ -60,6 +64,13 @@ class Sheet(QAbstractScrollArea):
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
 
+        self._col_width = self._config['col_width']
+        self._rem_per_px = self._config['rem_per_px']
+
+        # XXX: testing
+        vscrollbar = self.verticalScrollBar()
+        vscrollbar.setRange(0, 2000)
+
     def _set_config(self, config):
         self._config = DEFAULT_CONFIG.copy()
         self._config.update(config)
@@ -83,6 +94,17 @@ class Sheet(QAbstractScrollArea):
     def set_ui_model(self, ui_model):
         self._stat_manager = ui_model.get_stat_manager()
         #self._stat_manager.register_update(self.update_xxx)
+
+    def resizeEvent(self, ev):
+        vp_width = self.viewport().width()
+        max_visible_cols = vp_width // self._col_width
+        hscrollbar = self.horizontalScrollBar()
+        hscrollbar.setPageStep(max_visible_cols)
+        hscrollbar.setRange(0, COLUMN_COUNT - max_visible_cols)
+
+    def scrollContentsBy(self, dx, dy):
+        hvalue = self.horizontalScrollBar().value()
+        vvalue = self.verticalScrollBar().value()
 
 
 class SheetView(QWidget):
