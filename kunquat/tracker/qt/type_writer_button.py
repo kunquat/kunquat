@@ -118,7 +118,6 @@ class TypeWriterButton(QPushButton):
             self._selected_instrument.set_active_note(0, self._pitch)
 
     def update_selected_instrument(self):
-        print 'up'
         old_instrument = self._selected_instrument
         if old_instrument:
             old_instrument.unregister_updater(self.update_leds)

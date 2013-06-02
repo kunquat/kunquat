@@ -34,7 +34,6 @@ class InstrumentSelect(QComboBox):
         if i < 0:
             return
         instrument = self._instrument_catalog[i]
-        print instrument.get_instrument_number()
         self._ui_manager.set_selected_instrument(instrument)
 
     def update_instruments(self):
