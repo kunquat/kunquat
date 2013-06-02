@@ -12,6 +12,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+import re
 import sys
 import json
 import time
@@ -84,14 +85,20 @@ class Backend():
             tfile = tarfile.open(path, format=tarfile.USTAR_FORMAT)
             members = tfile.getmembers()
             member_count = len(members)
-            if self._frontend:
-                self._frontend.update_import_progress(0, member_count)
+            assert self._frontend
+            self._frontend.update_import_progress(0, member_count)
             for i, entry in zip(range(member_count), members):
                 tarpath = entry.name
                 key = remove_prefix(tarpath, prefix)
                 assert (key != None) #TODO broken file exception
                 if entry.isfile():
                     value = tfile.extractfile(entry).read()
+
+                    m = re.match('^ins_([0-9]{2})/p_manifest.json$', key)
+                    if m:
+                        instrument_number = int(m.group(1))
+                        self._frontend.update_instrument_existence(instrument_number, True)
+
                     if key.endswith('.json'):
                         decoded = json.loads(value)
                     elif key.endswith('.jsone'):
@@ -109,8 +116,7 @@ class Backend():
                     else:
                         decoded = value
                     self._kunquat.set_data(key, decoded)
-                if self._frontend:
-                    self._frontend.update_import_progress(i + 1, member_count)
+                self._frontend.update_import_progress(i + 1, member_count)
             tfile.close()
             self._kunquat.validate()
 

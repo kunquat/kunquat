@@ -18,22 +18,26 @@ class Module(Updater):
 
     def __init__(self):
         super(Module, self).__init__()
-        self._InstrumentClass = None
         self._backend = None
         self._instruments = {}
 
     def set_backend(self, backend):
         self._backend = backend
 
-    def set_instrument_class(self, InstrumentClass):
-        self._InstrumentClass = InstrumentClass
-
     def get_instrument(self, instrument_number):
-        if not instrument_number in self._instruments:
-            new_instrument = self._InstrumentClass()
-            new_instrument.set_backend(self._backend)
-            new_instrument.set_instrument_number(instrument_number)
-            self.register_child(new_instrument)
-            self._instruments[instrument_number] = new_instrument
         return self._instruments[instrument_number]
+
+    def update_instrument(self, instrument_number, instrument):
+        if instrument_number in self._instruments:
+            old_instrument = self._instruments[instrument_number]
+            self.unregister_child(instrument)
+        self.register_child(instrument)
+        self._instruments[instrument_number] = instrument
+        self._signal_update()
+
+    def get_instruments(self):
+        return [i for i in self._instruments.values() if i.get_existence()]
+
+    def get_instrument_numbers(self):
+        return [i.get_instrument_number() for i in self.get_instruments()]
 

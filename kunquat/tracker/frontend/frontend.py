@@ -17,33 +17,55 @@ class Frontend():
 
     def __init__(self):
         self._ui_model = None
+        self._backend = None
+        self._InstrumentClass = None
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
 
+    def set_instrument_class(self, InstrumentClass):
+        self._InstrumentClass = InstrumentClass
+
     # Frontend Interface
 
     def set_backend(self, backend):
+        self._backend = backend
         self._ui_model.set_backend(backend)
 
     def set_audio_output(self, audio_output):
         self._ui_model.set_audio_output(audio_output)
 
-    def update_selected_instrument(self, channel_number, instrument_number):
+    def _create_and_get_instrument(self, instrument_number):
         module = self._ui_model.get_module()
+        instrument_numbers = module.get_instrument_numbers()
+        if not instrument_number in instrument_numbers:
+            new_instrument = self._InstrumentClass()
+            new_instrument.set_backend(self._backend)
+            new_instrument.set_instrument_number(instrument_number)
+            module.update_instrument(instrument_number, new_instrument)
         instrument = module.get_instrument(instrument_number)
+        return instrument
+
+    def update_selected_instrument(self, channel_number, instrument_number):
         playback_manager = self._ui_model.get_playback_manager()
         channel = playback_manager.get_channel(channel_number)
-        channel.update_selected_instrument(instrument)
+        channel.update_selected_instrument_number(instrument_number)
+
+    def update_instrument_existence(self, instrument_number, existence):
+        instrument = self._create_and_get_instrument(instrument_number)
+        instrument.update_existence(existence)
 
     def update_active_note(self, channel_number, pitch):
+        module = self._ui_model.get_module()
         playback_manager = self._ui_model.get_playback_manager()
         channel = playback_manager.get_channel(channel_number)
-        active_instrument = channel.get_active_instrument()
-        if active_instrument != None:
+        active_instrument_number = channel.get_active_instrument_number()
+        if active_instrument_number != None:
+            active_instrument = module.get_instrument(active_instrument_number)
             active_instrument.update_active_note(channel_number, None)
-        selected_instrument = channel.get_selected_instrument()
-        if selected_instrument != None:
+        selected_instrument_number = channel.get_selected_instrument_number()
+        if selected_instrument_number != None:
+            selected_instrument = module.get_instrument(selected_instrument_number)
             selected_instrument.update_active_note(channel_number, pitch)
 
     def update_import_progress(self, position, steps):

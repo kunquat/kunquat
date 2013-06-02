@@ -18,6 +18,7 @@ from signal import SIGHUP, SIGKILL
 
 from kunquat.tracker.frontend.driver_manager import DriverManager
 from kunquat.tracker.frontend.stat_manager import StatManager
+from kunquat.tracker.frontend.ui_manager import UiManager
 from kunquat.tracker.frontend.playback_manager import PlaybackManager
 from kunquat.tracker.frontend.instrument import Instrument
 from kunquat.tracker.frontend.module import Module
@@ -40,16 +41,18 @@ def create_frontend_thread():
     driver_manager = DriverManager()
     driver_manager.set_drivers(drivers)
     stat_manager = StatManager()
+    ui_manager = UiManager()
     playback_manager = PlaybackManager()
     module = Module()
-    module.set_instrument_class(Instrument)
     ui_model = UiModel()
     ui_model.set_driver_manager(driver_manager)
     ui_model.set_stat_manager(stat_manager)
+    ui_model.set_ui_manager(ui_manager)
     ui_model.set_playback_manager(playback_manager)
     ui_model.set_module(module)
     frontend = Frontend()
     frontend.set_ui_model(ui_model)
+    frontend.set_instrument_class(Instrument)
     frontend_thread = FrontendThread()
     frontend_thread.set_handler(frontend)
     ui_launcher = QtLauncher()

@@ -78,6 +78,7 @@ class UiModel(Updater):
         super(UiModel, self).__init__()
         self._driver_manager = None
         self._stat_manager = None
+        self._ui_manager = None
         self._playback_manager = None
         self._module = None
 
@@ -101,6 +102,13 @@ class UiModel(Updater):
 
     def get_stat_manager(self):
         return self._stat_manager
+
+    def set_ui_manager(self, ui_manager):
+        self._ui_manager = ui_manager
+        self.register_child(self._ui_manager)
+
+    def get_ui_manager(self):
+        return self._ui_manager
 
     def set_playback_manager(self, playback_manager):
         self._playback_manager = playback_manager

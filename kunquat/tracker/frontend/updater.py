@@ -25,8 +25,14 @@ class Updater(object):
     def register_updater(self, updater):
         self._updaters.add(updater)
 
+    def unregister_updater(self, updater):
+        self._updaters.remove(updater)
+
     def register_child(self, child):
         self._children.add(child)
+
+    def unregister_child(self, child):
+        self._children.remove(child)
 
     def perform_updates(self):
         for child in self._children:

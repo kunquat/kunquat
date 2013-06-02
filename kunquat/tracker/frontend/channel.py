@@ -14,18 +14,18 @@
 class Channel():
 
     def __init__(self):
-        self._active_instrument = None
-        self._selected_instrument = None
+        self._active_instrument_number = None
+        self._selected_instrument_number = None
 
-    def get_active_instrument(self):
-        return self._active_instrument
+    def get_active_instrument_number(self):
+        return self._active_instrument_number
 
-    def update_active_instrument(self, instrument):
-        self._active_instrument = instrument
+    def update_active_instrument_number(self, instrument_number):
+        self._active_instrument_number = instrument_number
 
-    def get_selected_instrument(self):
-        return self._selected_instrument
+    def get_selected_instrument_number(self):
+        return self._selected_instrument_number
 
-    def update_selected_instrument(self, instrument):
-        self._selected_instrument = instrument
+    def update_selected_instrument_number(self, instrument_number):
+        self._selected_instrument_number = instrument_number
 

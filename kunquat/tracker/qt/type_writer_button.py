@@ -85,8 +85,9 @@ class TypeWriterButton(QPushButton):
     def __init__(self, pitch):
         QPushButton.__init__(self)
         self._pitch = pitch
-        self._instrument = None
+        self._ui_manager = None
 
+        self._selected_instrument = None
         self.setMinimumWidth(60)
         self.setMinimumHeight(60)
         layout = QVBoxLayout(self)
@@ -104,19 +105,31 @@ class TypeWriterButton(QPushButton):
         self.setStyleSheet("QLabel { background-color: #ffe; }")
         self._notename.setStyleSheet("QLabel { color: #000; }")
 
-    def _play_sound(self):
-        self._instrument.set_active_note(0, self._pitch)
-
-    def set_ui_model(self, ui_model):
-        module = ui_model.get_module()
-        self._instrument = module.get_instrument(0)
-        self._instrument.register_updater(self.update)
+        self.setEnabled(False)
         QObject.connect(self, SIGNAL('clicked()'),
                         self._play_sound)
 
-    def update(self):
+    def set_ui_model(self, ui_model):
+        self._ui_manager = ui_model.get_ui_manager()
+        self._ui_manager.register_updater(self.update_selected_instrument)
+
+    def _play_sound(self):
+        if self._selected_instrument:
+            self._selected_instrument.set_active_note(0, self._pitch)
+
+    def update_selected_instrument(self):
+        print 'up'
+        old_instrument = self._selected_instrument
+        if old_instrument:
+            old_instrument.unregister_updater(self.update_leds)
+        new_instrument = self._ui_manager.get_selected_instrument()
+        new_instrument.register_updater(self.update_leds)
+        self._selected_instrument = new_instrument
+        self.setEnabled(True)
+
+    def update_leds(self):
         (left_on, center_on, right_on) = 3 * [0]
-        notes = self._instrument.get_active_notes()
+        notes = self._selected_instrument.get_active_notes()
         for (_, note) in notes:
             if closest(note) == self._pitch:
                 if note < self._pitch:
