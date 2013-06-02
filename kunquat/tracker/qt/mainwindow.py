@@ -22,6 +22,7 @@ from render_stats import RenderStats
 from import_progress import ImportProgress
 from peak_meter import PeakMeter
 from active_notes import ActiveNotes
+from sheet import Sheet
 
 class MainWindow(QWidget):
 
@@ -35,6 +36,7 @@ class MainWindow(QWidget):
         self._render_stats = RenderStats()
         self._peak_meter = PeakMeter()
         self._active_notes = ActiveNotes(0)
+        self._sheet = Sheet()
 
         v = QVBoxLayout()
         v.addWidget(self._play_button)
@@ -44,6 +46,7 @@ class MainWindow(QWidget):
         v.addWidget(self._render_stats)
         v.addWidget(self._peak_meter)
         v.addWidget(self._active_notes)
+        v.addWidget(self._sheet)
         self.setLayout(v)
 
     def set_ui_model(self, ui_model):
@@ -54,4 +57,5 @@ class MainWindow(QWidget):
         self._import_progress.set_ui_model(ui_model)
         self._peak_meter.set_ui_model(ui_model)
         self._active_notes.set_ui_model(ui_model)
+        self._sheet.set_ui_model(ui_model)
 
