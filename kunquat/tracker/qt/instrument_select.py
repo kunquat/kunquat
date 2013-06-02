@@ -42,6 +42,7 @@ class InstrumentSelect(QComboBox):
         old_block = self.blockSignals(True)
         self.clear()
         self._instrument_catalog = dict(enumerate(instruments))
+        invalid_selection = True
         for i, instrument in self._instrument_catalog.items():
             name = instrument.get_instrument_number()
             self.addItem(str(name))
@@ -50,5 +51,8 @@ class InstrumentSelect(QComboBox):
                 name = instrument.get_instrument_number()
                 if name == current:
                     self.setCurrentIndex(i)
+                    invalid_selection = False
         self.blockSignals(old_block)
+        if invalid_selection and len(instruments) > 0:
+            self._ui_manager.set_selected_instrument(instruments[0])
 
