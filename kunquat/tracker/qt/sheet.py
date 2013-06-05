@@ -24,13 +24,13 @@ COLUMN_COUNT = 64
 
 DEFAULT_CONFIG = {
         'ruler': {
-                'width': 40,
             },
         'header': {
-                'height': 20,
             },
-        'col_width' : 128,
-        'rems_per_px': tstamp.BEAT // 128,
+        'ruler_width'  : 40,
+        'header_height': 20,
+        'col_width'    : 128,
+        'rems_per_px'  : tstamp.BEAT // 128,
         }
 
 
@@ -82,13 +82,13 @@ class Sheet(QAbstractScrollArea):
                 self._config[subcfg].update(config[subcfg])
 
         self.setViewportMargins(
-                self._config['ruler']['width'],
-                self._config['header']['height'],
+                self._config['ruler_width'],
+                self._config['header_height'],
                 0, 0)
 
         self._corner.setFixedSize(
-                self._config['ruler']['width'],
-                self._config['header']['height'])
+                self._config['ruler_width'],
+                self._config['header_height'])
 
         self.viewport().set_config(self._config)
 
