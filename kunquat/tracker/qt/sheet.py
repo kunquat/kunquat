@@ -30,7 +30,7 @@ DEFAULT_CONFIG = {
                 'height': 20,
             },
         'col_width' : 128,
-        'rem_per_px': tstamp.BEAT // 128,
+        'rems_per_px': tstamp.BEAT // 128,
         }
 
 
@@ -65,11 +65,12 @@ class Sheet(QAbstractScrollArea):
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
 
         self._col_width = self._config['col_width']
-        self._rem_per_px = self._config['rem_per_px']
+        self._rems_per_px = self._config['rems_per_px']
 
         # XXX: testing
-        vscrollbar = self.verticalScrollBar()
-        vscrollbar.setRange(0, 2000)
+        self._total_length = tstamp.Tstamp(16)
+        rems = (self._total_length.beats * tstamp.BEAT + self._total_length.rem)
+        self._total_height_px = rems // self._rems_per_px
 
     def _set_config(self, config):
         self._config = DEFAULT_CONFIG.copy()
@@ -96,6 +97,11 @@ class Sheet(QAbstractScrollArea):
         #self._stat_manager.register_update(self.update_xxx)
 
     def resizeEvent(self, ev):
+        vp_height = self.viewport().height()
+        vscrollbar = self.verticalScrollBar()
+        vscrollbar.setPageStep(vp_height)
+        vscrollbar.setRange(0, self._total_height_px - vp_height)
+
         vp_width = self.viewport().width()
         max_visible_cols = vp_width // self._col_width
         hscrollbar = self.horizontalScrollBar()
