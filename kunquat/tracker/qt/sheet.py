@@ -28,7 +28,6 @@ DEFAULT_CONFIG = {
         'header': {
             },
         'ruler_width'  : 40,
-        'header_height': 20,
         'col_width'    : 128,
         'rems_per_px'  : tstamp.BEAT // 128,
         }
@@ -45,7 +44,7 @@ class Sheet(QAbstractScrollArea):
         self._corner = QWidget()
 
         self._ruler = QLabel('ruler')
-        self._header = QLabel('header')
+        self._header = SheetHeader()
 
         # Config
         self._config = None
@@ -81,15 +80,18 @@ class Sheet(QAbstractScrollArea):
             if subcfg in config:
                 self._config[subcfg].update(config[subcfg])
 
+        header_height = self._header.minimumSizeHint().height()
+
         self.setViewportMargins(
                 self._config['ruler_width'],
-                self._config['header_height'],
+                header_height,
                 0, 0)
 
         self._corner.setFixedSize(
                 self._config['ruler_width'],
-                self._config['header_height'])
+                header_height)
 
+        self._header.set_config(self._config['header'])
         self.viewport().set_config(self._config)
 
     def set_ui_model(self, ui_model):
@@ -111,6 +113,80 @@ class Sheet(QAbstractScrollArea):
     def scrollContentsBy(self, dx, dy):
         hvalue = self.horizontalScrollBar().value()
         vvalue = self.verticalScrollBar().value()
+
+
+class SheetHeader(QWidget):
+
+    def __init__(self):
+        QWidget.__init__(self)
+
+        self._col_width = DEFAULT_CONFIG['col_width']
+        self._first_col = 0
+
+        self._headers = []
+
+    def set_config(self, config):
+        self._config = config
+        self._update_contents()
+
+    def set_column_width(self, width):
+        self._col_width = width
+        self._update_contents()
+
+    def set_first_column(self, num):
+        self._first_col = num
+        self._update_contents()
+
+    def resizeEvent(self, ev):
+        self._update_contents()
+
+    def minimumSizeHint(self):
+        w = self._headers[0] if self._headers else ColumnHeader()
+        sh = w.minimumSizeHint()
+        return QSize(self._col_width * 3, sh.height())
+
+    def _update_contents(self):
+        max_visible_cols = self.width() // self._col_width + 1
+        max_visible_cols = min(max_visible_cols, COLUMN_COUNT)
+
+        # Resize layout
+        for i in xrange(len(self._headers), max_visible_cols):
+            header = ColumnHeader()
+            header.setParent(self)
+            header.show()
+            self._headers.append(header)
+        for i in xrange(max_visible_cols, len(self._headers)):
+            self._headers.pop()
+
+        # Update headers
+        for i, header in enumerate(self._headers):
+            header.set_config(self._config)
+            header.set_column(self._first_col + i)
+            header.move(i * self._col_width, 0)
+            header.setFixedWidth(self._col_width)
+
+
+class ColumnHeader(QWidget):
+
+    def __init__(self):
+        QWidget.__init__(self)
+
+        self._label = QLabel()
+        self._label.setAlignment(Qt.AlignCenter)
+
+        h = QHBoxLayout()
+        h.setMargin(0)
+        h.setSpacing(0)
+        h.addWidget(self._label)
+
+        self.setLayout(h)
+
+    def set_config(self, config):
+        self._config = config
+
+    def set_column(self, num):
+        self._num = num
+        self._label.setText('{}'.format(num))
 
 
 class SheetView(QWidget):
