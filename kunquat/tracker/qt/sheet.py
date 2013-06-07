@@ -114,6 +114,8 @@ class Sheet(QAbstractScrollArea):
         hvalue = self.horizontalScrollBar().value()
         vvalue = self.verticalScrollBar().value()
 
+        self._header.set_first_column(hvalue)
+
 
 class SheetHeader(QWidget):
 
@@ -145,18 +147,32 @@ class SheetHeader(QWidget):
         sh = w.minimumSizeHint()
         return QSize(self._col_width * 3, sh.height())
 
-    def _update_contents(self):
-        max_visible_cols = self.width() // self._col_width + 1
-        max_visible_cols = min(max_visible_cols, COLUMN_COUNT)
+    def _clamp_position(self, max_visible_cols):
+        self._first_col = min(
+                self._first_col,
+                COLUMN_COUNT - max_visible_cols + 1)
 
-        # Resize layout
+        if self._first_col + max_visible_cols > COLUMN_COUNT:
+            assert self._first_col + max_visible_cols == COLUMN_COUNT + 1
+            max_visible_cols -= 1
+
+    def _resize_layout(self, max_visible_cols):
         for i in xrange(len(self._headers), max_visible_cols):
             header = ColumnHeader()
             header.setParent(self)
             header.show()
             self._headers.append(header)
         for i in xrange(max_visible_cols, len(self._headers)):
-            self._headers.pop()
+            h = self._headers.pop()
+            h.hide()
+
+    def _update_contents(self):
+        max_visible_cols = self.width() // self._col_width + 1
+        max_visible_cols = min(max_visible_cols, COLUMN_COUNT + 1)
+
+        self._clamp_position(max_visible_cols)
+
+        self._resize_layout(max_visible_cols)
 
         # Update headers
         for i, header in enumerate(self._headers):
