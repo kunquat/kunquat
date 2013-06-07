@@ -152,17 +152,17 @@ class SheetHeader(QWidget):
                 self._first_col,
                 COLUMN_COUNT - max_visible_cols + 1)
 
-        if self._first_col + max_visible_cols > COLUMN_COUNT:
-            assert self._first_col + max_visible_cols == COLUMN_COUNT + 1
-            max_visible_cols -= 1
-
     def _resize_layout(self, max_visible_cols):
-        for i in xrange(len(self._headers), max_visible_cols):
+        visible_cols = max_visible_cols
+        if self._first_col + max_visible_cols > COLUMN_COUNT:
+            visible_cols -= 1
+
+        for i in xrange(len(self._headers), visible_cols):
             header = ColumnHeader()
             header.setParent(self)
             header.show()
             self._headers.append(header)
-        for i in xrange(max_visible_cols, len(self._headers)):
+        for i in xrange(visible_cols, len(self._headers)):
             h = self._headers.pop()
             h.hide()
 
