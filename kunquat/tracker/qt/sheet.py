@@ -120,6 +120,7 @@ class Sheet(QAbstractScrollArea):
         vvalue = self.verticalScrollBar().value()
 
         self._header.set_first_column(hvalue)
+        self._ruler.set_px_offset(vvalue)
 
 
 class SheetHeader(QWidget):
@@ -215,6 +216,7 @@ class Ruler(QWidget):
     def __init__(self):
         QWidget.__init__(self)
 
+        self._px_offset = 0
         self._cache = RulerCache()
 
         self.setAutoFillBackground(False)
@@ -224,6 +226,13 @@ class Ruler(QWidget):
     def set_config(self, config):
         self._config = config
         self._cache.set_config(config)
+        self.update()
+
+    def set_px_offset(self, offset):
+        changed = offset != self._px_offset
+        self._px_offset = offset
+        if changed:
+            self.update()
 
     def paintEvent(self, ev):
         start = time.time()
@@ -232,7 +241,8 @@ class Ruler(QWidget):
 
         # Testing
         canvas_y = 0
-        for (src_rect, pixmap) in self._cache.iter_pixmaps(0, self.height()):
+        for (src_rect, pixmap) in self._cache.iter_pixmaps(
+                self._px_offset, self.height()):
             dest_rect = QRect(0, canvas_y, self.width(), src_rect.height())
             painter.drawPixmap(dest_rect, pixmap, src_rect)
             canvas_y += src_rect.height()
