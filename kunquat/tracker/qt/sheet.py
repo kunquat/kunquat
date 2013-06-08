@@ -12,6 +12,7 @@
 #
 
 from __future__ import division, print_function
+import time
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
@@ -43,7 +44,7 @@ class Sheet(QAbstractScrollArea):
 
         self._corner = QWidget()
 
-        self._ruler = QLabel('ruler')
+        self._ruler = Ruler()
         self._header = SheetHeader()
 
         # Config
@@ -81,6 +82,7 @@ class Sheet(QAbstractScrollArea):
                 self._config[subcfg].update(config[subcfg])
 
         header_height = self._header.minimumSizeHint().height()
+        print('min header height: {}'.format(header_height))
 
         self.setViewportMargins(
                 self._config['ruler_width'],
@@ -90,13 +92,18 @@ class Sheet(QAbstractScrollArea):
         self._corner.setFixedSize(
                 self._config['ruler_width'],
                 header_height)
+        self._header.setFixedHeight(header_height)
 
         self._header.set_config(self._config['header'])
+        self._ruler.set_config(self._config['ruler'])
         self.viewport().set_config(self._config)
 
     def set_ui_model(self, ui_model):
         self._stat_manager = ui_model.get_stat_manager()
         #self._stat_manager.register_update(self.update_xxx)
+
+    def paintEvent(self, ev):
+        self.viewport().paintEvent(ev)
 
     def resizeEvent(self, ev):
         vp_height = self.viewport().height()
@@ -176,7 +183,7 @@ class SheetHeader(QWidget):
 
         # Update headers
         for i, header in enumerate(self._headers):
-            header.set_config(self._config)
+            header.set_config(self._config) # FIXME: bad idea
             header.set_column(self._first_col + i)
             header.move(i * self._col_width, 0)
             header.setFixedWidth(self._col_width)
@@ -205,6 +212,34 @@ class ColumnHeader(QWidget):
         self._label.setText('{}'.format(num))
 
 
+class Ruler(QWidget):
+
+    def __init__(self):
+        QWidget.__init__(self)
+
+        self.setAutoFillBackground(False)
+        self.setAttribute(Qt.WA_OpaquePaintEvent)
+        self.setAttribute(Qt.WA_NoSystemBackground)
+
+    def set_config(self, config):
+        self._config = config
+
+    def paintEvent(self, ev):
+        start = time.time()
+
+        painter = QPainter(self)
+
+        # Testing
+        painter.setBackground(Qt.black)
+        painter.eraseRect(QRect(0, 0, self.width(), self.height()))
+        painter.setPen(Qt.white)
+        painter.drawRect(0, 0, self.width() - 1, self.height() - 1)
+
+        end = time.time()
+        elapsed = end - start
+        print('Ruler updated in {:.2f} ms'.format(elapsed * 1000))
+
+
 class SheetView(QWidget):
 
     def __init__(self):
@@ -216,5 +251,20 @@ class SheetView(QWidget):
 
     def set_config(self, config):
         self._config = config
+
+    def paintEvent(self, ev):
+        start = time.time()
+
+        painter = QPainter(self)
+
+        # Testing
+        painter.setBackground(Qt.black)
+        painter.eraseRect(QRect(0, 0, self.width(), self.height()))
+        painter.setPen(Qt.white)
+        painter.drawRect(0, 0, self.width() - 1, self.height() - 1)
+
+        end = time.time()
+        elapsed = end - start
+        print('SheetView updated in {:.2f} ms'.format(elapsed * 1000))
 
 
