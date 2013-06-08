@@ -30,7 +30,7 @@ DEFAULT_CONFIG = {
             },
         'ruler_width'  : 40,
         'col_width'    : 128,
-        'rems_per_px'  : tstamp.BEAT // 128,
+        'px_per_beat'  : 128,
         }
 
 
@@ -65,12 +65,11 @@ class Sheet(QAbstractScrollArea):
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
 
         self._col_width = self._config['col_width']
-        self._rems_per_px = self._config['rems_per_px']
+        self._px_per_beat = self._config['px_per_beat']
 
         # XXX: testing
         self._total_length = tstamp.Tstamp(16)
-        rems = (self._total_length.beats * tstamp.BEAT + self._total_length.rem)
-        self._total_height_px = rems // self._rems_per_px
+        self._total_height_px = int(float(self._total_length) * self._px_per_beat)
 
     def _set_config(self, config):
         self._config = DEFAULT_CONFIG.copy()
@@ -82,7 +81,6 @@ class Sheet(QAbstractScrollArea):
                 self._config[subcfg].update(config[subcfg])
 
         header_height = self._header.minimumSizeHint().height()
-        print('min header height: {}'.format(header_height))
 
         self.setViewportMargins(
                 self._config['ruler_width'],
@@ -217,12 +215,15 @@ class Ruler(QWidget):
     def __init__(self):
         QWidget.__init__(self)
 
+        self._cache = RulerCache()
+
         self.setAutoFillBackground(False)
         self.setAttribute(Qt.WA_OpaquePaintEvent)
         self.setAttribute(Qt.WA_NoSystemBackground)
 
     def set_config(self, config):
         self._config = config
+        self._cache.set_config(config)
 
     def paintEvent(self, ev):
         start = time.time()
@@ -230,14 +231,83 @@ class Ruler(QWidget):
         painter = QPainter(self)
 
         # Testing
-        painter.setBackground(Qt.black)
-        painter.eraseRect(QRect(0, 0, self.width(), self.height()))
-        painter.setPen(Qt.white)
-        painter.drawRect(0, 0, self.width() - 1, self.height() - 1)
+        canvas_y = 0
+        for (src_rect, pixmap) in self._cache.iter_pixmaps(0, self.height()):
+            dest_rect = QRect(0, canvas_y, self.width(), src_rect.height())
+            painter.drawPixmap(dest_rect, pixmap, src_rect)
+            canvas_y += src_rect.height()
 
         end = time.time()
         elapsed = end - start
         print('Ruler updated in {:.2f} ms'.format(elapsed * 1000))
+
+    def resizeEvent(self, ev):
+        self._cache.set_width(ev.size().width())
+
+
+class RulerCache():
+
+    PIXMAP_HEIGHT = 256
+
+    def __init__(self):
+        self._width = 0
+        self._px_per_beat = DEFAULT_CONFIG['px_per_beat']
+        self._pixmaps = {}
+
+    def set_config(self, config):
+        self._config = config
+
+    def set_width(self, width):
+        if width != self._width:
+            self._pixmaps = {}
+        self._width = width
+
+    def set_px_per_beat(self, px_per_beat):
+        if px_per_beat != self._px_per_beat:
+            self._pixmaps = {}
+        self._px_per_beat = px_per_beat
+
+    def iter_pixmaps(self, start_px, height_px):
+        assert start_px >= 0
+        assert height_px >= 0
+
+        stop_px = start_px + height_px
+
+        # Get pixmap indices
+        start_index = start_px // RulerCache.PIXMAP_HEIGHT
+        stop_index = 1 + (start_px + height_px - 1) // RulerCache.PIXMAP_HEIGHT
+
+        for i in xrange(start_index, stop_index):
+            if i not in self._pixmaps:
+                self._pixmaps[i] = self._create_pixmap(i)
+
+            # Get rect to be used
+            pixmap_start_px = i * RulerCache.PIXMAP_HEIGHT
+            rect_start_abs = max(start_px, pixmap_start_px)
+            rect_start = rect_start_abs - pixmap_start_px
+
+            pixmap_stop_px = (i + 1) * RulerCache.PIXMAP_HEIGHT
+            rect_stop_abs = min(stop_px, pixmap_stop_px)
+            rect_stop = rect_stop_abs - pixmap_start_px
+            rect_height = rect_stop - rect_start
+
+            rect = QRect(0, rect_start, self._width, rect_height)
+
+            yield (rect, self._pixmaps[i])
+
+    def _create_pixmap(self, index):
+        pixmap = QPixmap(self._width, RulerCache.PIXMAP_HEIGHT)
+
+        # Testing
+        painter = QPainter(pixmap)
+        painter.setBackground(Qt.black)
+        painter.eraseRect(QRect(0, 0, self._width, RulerCache.PIXMAP_HEIGHT))
+        painter.setPen(Qt.white)
+        painter.drawRect(0, 0, self._width - 1, RulerCache.PIXMAP_HEIGHT - 1)
+
+        painter.drawText(QPoint(2, 12), str(index))
+
+        return pixmap
 
 
 class SheetView(QWidget):
