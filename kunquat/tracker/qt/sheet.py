@@ -279,7 +279,7 @@ class Ruler(QWidget):
 
 class RulerCache():
 
-    PIXMAP_HEIGHT = 256
+    PIXMAP_HEIGHT = 128
 
     def __init__(self):
         self._width = 0
@@ -421,24 +421,25 @@ class RulerCache():
 
         if min_dist <= self._px_per_beat:
             markers_per_beat = self._px_per_beat // min_dist
-            markers_per_beat = beat_div_base**math.floor(
-                    math.log(markers_per_beat, beat_div_base))
+            markers_per_beat = int(beat_div_base**math.floor(
+                    math.log(markers_per_beat, beat_div_base)))
 
-            # First visible line in the first beat
+            # First visible marker in the first beat
             start_beat_frac = start_ts.rem / float(tstamp.BEAT)
             start_marker_in_beat = int(
                     math.ceil(start_beat_frac * markers_per_beat))
 
-            # First non-visible line in the last beat
+            # First non-visible marker in the last beat
             stop_beat_frac = stop_ts.rem / float(tstamp.BEAT)
             stop_marker_in_beat = int(
                     math.ceil(stop_beat_frac * markers_per_beat))
 
             def normalise_marker_pos(pos):
-                if pos[1] >= markers_per_beat:
-                    assert pos[1] == markers_per_beat
-                    pos[0] += 1
-                    pos[1] = 0
+                excess = pos[1] // markers_per_beat
+                pos[0] += excess
+                pos[1] -= excess * markers_per_beat
+                assert pos[1] >= 0
+                assert pos[1] < markers_per_beat
 
             # Loop boundaries
             marker_pos = [start_ts.beats, start_marker_in_beat]
@@ -447,7 +448,7 @@ class RulerCache():
             stop_pos = [stop_ts.beats, stop_marker_in_beat]
             normalise_marker_pos(stop_pos)
 
-            # Draw lines
+            # Draw markers
             while marker_pos < stop_pos:
                 ts = tstamp.Tstamp(marker_pos[0] +
                         marker_pos[1] / float(markers_per_beat))
@@ -455,11 +456,30 @@ class RulerCache():
 
                 draw_fn(painter, y, marker_pos, markers_per_beat)
 
-                # Next line
+                # Next marker
                 marker_pos[1] += 1
                 normalise_marker_pos(marker_pos)
+
         else:
-            pass
+            # Zoomed far out -- skipping whole beats
+            beats_per_marker = (min_dist +
+                    self._px_per_beat - 1) // self._px_per_beat
+            beats_per_marker = int(beat_div_base**math.ceil(
+                    math.log(beats_per_marker, beat_div_base)))
+
+            # First beat with a visible marker
+            start_beat = (start_ts - tstamp.Tstamp(0, 1)).beats + 1
+            start_marker_in_beat = beats_per_marker * int(
+                    math.ceil(start_beat / float(beats_per_marker)))
+
+            # First non-visible beat
+            stop_beat = (stop_ts - tstamp.Tstamp(0, 1)).beats + 1
+
+            # Draw markers
+            for marker_pos in xrange(
+                    start_marker_in_beat, stop_beat, beats_per_marker):
+                y = float(marker_pos - start_ts) * self._px_per_beat
+                draw_fn(painter, y, [marker_pos, 0], 1)
 
 
 class SheetView(QWidget):
