@@ -295,9 +295,12 @@ class RulerCache():
         start_index = start_px // RulerCache.PIXMAP_HEIGHT
         stop_index = 1 + (start_px + height_px - 1) // RulerCache.PIXMAP_HEIGHT
 
+        create_count = 0
+
         for i in xrange(start_index, stop_index):
             if i not in self._pixmaps:
                 self._pixmaps[i] = self._create_pixmap(i)
+                create_count += 1
 
             # Get rect to be used
             pixmap_start_px = i * RulerCache.PIXMAP_HEIGHT
@@ -312,6 +315,10 @@ class RulerCache():
             rect = QRect(0, rect_start, self._width, rect_height)
 
             yield (rect, self._pixmaps[i])
+
+        if create_count > 0:
+            print('{} ruler pixmap{} created'.format(
+                create_count, 's' if create_count != 1 else ''))
 
     def _create_pixmap(self, index):
         pixmap = QPixmap(self._width, RulerCache.PIXMAP_HEIGHT)
@@ -351,11 +358,22 @@ class RulerCache():
 
             # First non-visible line in the last beat
             stop_beat_frac = stop_ts.rem / float(tstamp.BEAT)
-            stop_line_in_beat = int(math.floor(stop_beat_frac * lines_per_beat))
+            stop_line_in_beat = int(math.ceil(stop_beat_frac * lines_per_beat))
 
-            # Iterate over visible lines
+            def normalise_marker_pos(pos):
+                if pos[1] >= lines_per_beat:
+                    assert pos[1] == lines_per_beat
+                    pos[0] += 1
+                    pos[1] = 0
+
+            # Loop boundaries
             line_pos = [start_ts.beats, start_line_in_beat]
+            normalise_marker_pos(line_pos)
+
             stop_pos = [stop_ts.beats, stop_line_in_beat]
+            normalise_marker_pos(stop_pos)
+
+            # Draw lines
             while line_pos < stop_pos:
                 ts = tstamp.Tstamp(line_pos[0] +
                         line_pos[1] / float(lines_per_beat))
@@ -370,10 +388,7 @@ class RulerCache():
 
                 # Next line
                 line_pos[1] += 1
-                if line_pos[1] >= lines_per_beat:
-                    assert line_pos[1] == lines_per_beat
-                    line_pos[0] += 1
-                    line_pos[1] = 0
+                normalise_marker_pos(line_pos)
         else:
             pass
 
