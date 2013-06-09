@@ -409,8 +409,8 @@ class RulerCache():
                 cfg['num_min_dist'],
                 draw_number)
 
-        # Testing
-        painter.drawText(QPoint(2, 12), str(index))
+        # Draw pixmap index for debugging
+        #painter.drawText(QPoint(2, 12), str(index))
 
         return pixmap
 
