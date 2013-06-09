@@ -346,7 +346,27 @@ class RulerCache():
                 (index + 1) * RulerCache.PIXMAP_HEIGHT // self._px_per_beat)
 
         # Ruler lines
+        def draw_ruler_line(painter, y, line_pos, lines_per_beat):
+            line_length = (cfg['line_len_long']
+                    if line_pos[1] == 0
+                    else cfg['line_len_short'])
+            painter.drawLine(
+                    QPoint(self._width - 1 - line_length, y),
+                    QPoint(self._width - 1, y))
+
+        self._draw_markers(painter, start_ts, stop_ts, draw_ruler_line)
+
+        # Testing
+        painter.setFont(self._config['font'])
+        painter.drawText(QPoint(2, 12), str(index))
+
+        return pixmap
+
+    def _draw_markers(self, painter, start_ts, stop_ts, draw_fn):
+        cfg = self._config
+
         beat_div_base = 2
+
         if cfg['line_min_dist'] <= self._px_per_beat:
             lines_per_beat = self._px_per_beat // cfg['line_min_dist']
             lines_per_beat = beat_div_base**math.floor(
@@ -379,24 +399,13 @@ class RulerCache():
                         line_pos[1] / float(lines_per_beat))
                 y = float(ts - start_ts) * self._px_per_beat
 
-                line_length = (cfg['line_len_long']
-                        if line_pos[1] == 0
-                        else cfg['line_len_short'])
-                painter.drawLine(
-                        QPoint(self._width - 1 - line_length, y),
-                        QPoint(self._width - 1, y))
+                draw_fn(painter, y, line_pos, lines_per_beat)
 
                 # Next line
                 line_pos[1] += 1
                 normalise_marker_pos(line_pos)
         else:
             pass
-
-        # Testing
-        painter.setFont(self._config['font'])
-        painter.drawText(QPoint(2, 12), str(index))
-
-        return pixmap
 
 
 class SheetView(QWidget):
