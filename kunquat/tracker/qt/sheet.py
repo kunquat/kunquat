@@ -12,6 +12,7 @@
 #
 
 from __future__ import division, print_function
+import math
 import time
 
 from PyQt4.QtCore import *
@@ -25,6 +26,13 @@ COLUMN_COUNT = 64
 
 DEFAULT_CONFIG = {
         'ruler': {
+            'bg_colour'     : QColor(0x11, 0x22, 0x55),
+            'fg_colour'     : QColor(0xaa, 0xcc, 0xff),
+            'font'          : QFont(QFont().defaultFamily(), 9),
+            'line_min_dist' : 3,
+            'line_len_short': 2,
+            'line_len_long' : 4,
+            'num_min_dist'  : 48,
             },
         'header': {
             },
@@ -308,13 +316,69 @@ class RulerCache():
     def _create_pixmap(self, index):
         pixmap = QPixmap(self._width, RulerCache.PIXMAP_HEIGHT)
 
-        # Testing
-        painter = QPainter(pixmap)
-        painter.setBackground(Qt.black)
-        painter.eraseRect(QRect(0, 0, self._width, RulerCache.PIXMAP_HEIGHT))
-        painter.setPen(Qt.white)
-        painter.drawRect(0, 0, self._width - 1, RulerCache.PIXMAP_HEIGHT - 1)
+        cfg = self._config
 
+        painter = QPainter(pixmap)
+
+        # Background
+        painter.setBackground(cfg['bg_colour'])
+        painter.eraseRect(QRect(0, 0, self._width - 1, RulerCache.PIXMAP_HEIGHT))
+        painter.setPen(cfg['fg_colour'])
+        painter.drawLine(
+                QPoint(self._width - 1, 0),
+                QPoint(self._width - 1, RulerCache.PIXMAP_HEIGHT - 1))
+
+        # Start border
+        if index == 0:
+            painter.drawLine(QPoint(0, 0), QPoint(self._width - 2, 0))
+
+        # Start and stop timestamps
+        start_ts = tstamp.Tstamp(0, tstamp.BEAT *
+                index * RulerCache.PIXMAP_HEIGHT // self._px_per_beat)
+        stop_ts = tstamp.Tstamp(0, tstamp.BEAT *
+                (index + 1) * RulerCache.PIXMAP_HEIGHT // self._px_per_beat)
+
+        # Ruler lines
+        beat_div_base = 2
+        if cfg['line_min_dist'] <= self._px_per_beat:
+            lines_per_beat = self._px_per_beat // cfg['line_min_dist']
+            lines_per_beat = beat_div_base**math.floor(
+                    math.log(lines_per_beat, beat_div_base))
+
+            # First visible line in the first beat
+            start_beat_frac = start_ts.rem / float(tstamp.BEAT)
+            start_line_in_beat = int(math.ceil(start_beat_frac * lines_per_beat))
+
+            # First non-visible line in the last beat
+            stop_beat_frac = stop_ts.rem / float(tstamp.BEAT)
+            stop_line_in_beat = int(math.floor(stop_beat_frac * lines_per_beat))
+
+            # Iterate over visible lines
+            line_pos = [start_ts.beats, start_line_in_beat]
+            stop_pos = [stop_ts.beats, stop_line_in_beat]
+            while line_pos < stop_pos:
+                ts = tstamp.Tstamp(line_pos[0] +
+                        line_pos[1] / float(lines_per_beat))
+                y = float(ts - start_ts) * self._px_per_beat
+
+                line_length = (cfg['line_len_long']
+                        if line_pos[1] == 0
+                        else cfg['line_len_short'])
+                painter.drawLine(
+                        QPoint(self._width - 1 - line_length, y),
+                        QPoint(self._width - 1, y))
+
+                # Next line
+                line_pos[1] += 1
+                if line_pos[1] >= lines_per_beat:
+                    assert line_pos[1] == lines_per_beat
+                    line_pos[0] += 1
+                    line_pos[1] = 0
+        else:
+            pass
+
+        # Testing
+        painter.setFont(self._config['font'])
         painter.drawText(QPoint(2, 12), str(index))
 
         return pixmap
