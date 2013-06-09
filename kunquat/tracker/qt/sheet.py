@@ -36,7 +36,6 @@ DEFAULT_CONFIG = {
             },
         'header': {
             },
-        'ruler_width'  : 40,
         'col_width'    : 128,
         'px_per_beat'  : 128,
         }
@@ -88,20 +87,23 @@ class Sheet(QAbstractScrollArea):
             if subcfg in config:
                 self._config[subcfg].update(config[subcfg])
 
+        self._header.set_config(self._config['header'])
+        self._ruler.set_config(self._config['ruler'])
+
         header_height = self._header.minimumSizeHint().height()
+        ruler_width = self._ruler.sizeHint().width()
 
         self.setViewportMargins(
-                self._config['ruler_width'],
+                ruler_width,
                 header_height,
                 0, 0)
 
         self._corner.setFixedSize(
-                self._config['ruler_width'],
+                ruler_width,
                 header_height)
         self._header.setFixedHeight(header_height)
+        self._ruler.setFixedWidth(ruler_width)
 
-        self._header.set_config(self._config['header'])
-        self._ruler.set_config(self._config['ruler'])
         self.viewport().set_config(self._config)
 
     def set_ui_model(self, ui_model):
@@ -233,7 +235,16 @@ class Ruler(QWidget):
 
     def set_config(self, config):
         self._config = config
+
+        num_space = QFontMetrics(self._config['font']).boundingRect('00.000')
+        self._width = (num_space.width() +
+                self._config['line_len_long'] +
+                8)
+
         self._cache.set_config(config)
+        self._cache.set_width(self._width)
+        self._cache.set_num_height(num_space.height())
+
         self.update()
 
     def set_px_offset(self, offset):
@@ -262,6 +273,9 @@ class Ruler(QWidget):
     def resizeEvent(self, ev):
         self._cache.set_width(ev.size().width())
 
+    def sizeHint(self):
+        return QSize(self._width, 128)
+
 
 class RulerCache():
 
@@ -279,6 +293,9 @@ class RulerCache():
         if width != self._width:
             self._pixmaps = {}
         self._width = width
+
+    def set_num_height(self, height):
+        self._num_height = height
 
     def set_px_per_beat(self, px_per_beat):
         if px_per_beat != self._px_per_beat:
@@ -339,13 +356,12 @@ class RulerCache():
         if index == 0:
             painter.drawLine(QPoint(0, 0), QPoint(self._width - 2, 0))
 
-        # Start and stop timestamps
+        # Ruler lines
         start_ts = tstamp.Tstamp(0, tstamp.BEAT *
                 index * RulerCache.PIXMAP_HEIGHT // self._px_per_beat)
         stop_ts = tstamp.Tstamp(0, tstamp.BEAT *
                 (index + 1) * RulerCache.PIXMAP_HEIGHT // self._px_per_beat)
 
-        # Ruler lines
         def draw_ruler_line(painter, y, line_pos, lines_per_beat):
             line_length = (cfg['line_len_long']
                     if line_pos[1] == 0
@@ -355,6 +371,8 @@ class RulerCache():
                     QPoint(self._width - 1, y))
 
         self._draw_markers(painter, start_ts, stop_ts, draw_ruler_line)
+
+        # Beat numbers
 
         # Testing
         painter.setFont(self._config['font'])
