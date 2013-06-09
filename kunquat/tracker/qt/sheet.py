@@ -370,58 +370,94 @@ class RulerCache():
                     QPoint(self._width - 1 - line_length, y),
                     QPoint(self._width - 1, y))
 
-        self._draw_markers(painter, start_ts, stop_ts, draw_ruler_line)
+        self._draw_markers(
+                painter,
+                start_ts,
+                stop_ts,
+                cfg['line_min_dist'],
+                draw_ruler_line)
 
         # Beat numbers
+        num_extent = self._num_height // 2
+        start_ts = tstamp.Tstamp(0, tstamp.BEAT *
+                (index * RulerCache.PIXMAP_HEIGHT - num_extent) //
+                self._px_per_beat)
+        stop_ts = tstamp.Tstamp(0, tstamp.BEAT *
+                ((index + 1) * RulerCache.PIXMAP_HEIGHT + num_extent) //
+                self._px_per_beat)
+
+        text_option = QTextOption(Qt.AlignRight | Qt.AlignVCenter)
+        def draw_number(painter, y, num_pos, nums_per_beat):
+            if num_pos == [0, 0]:
+                return
+
+            # Text
+            num = num_pos[0] + num_pos[1] / float(nums_per_beat)
+            numi = int(num)
+            text = str(numi) if num == numi else str(round(num, 3))
+
+            # Draw
+            rect = QRectF(0, y - self._num_height,
+                    self._width - cfg['line_len_long'] - 2, self._num_height)
+            painter.drawText(rect, text, text_option)
+
+        painter.setFont(self._config['font'])
+        self._draw_markers(
+                painter,
+                start_ts,
+                stop_ts,
+                cfg['num_min_dist'],
+                draw_number)
 
         # Testing
-        painter.setFont(self._config['font'])
         painter.drawText(QPoint(2, 12), str(index))
 
         return pixmap
 
-    def _draw_markers(self, painter, start_ts, stop_ts, draw_fn):
+    def _draw_markers(self, painter, start_ts, stop_ts, min_dist, draw_fn):
         cfg = self._config
 
         beat_div_base = 2
 
-        if cfg['line_min_dist'] <= self._px_per_beat:
-            lines_per_beat = self._px_per_beat // cfg['line_min_dist']
-            lines_per_beat = beat_div_base**math.floor(
-                    math.log(lines_per_beat, beat_div_base))
+        if min_dist <= self._px_per_beat:
+            markers_per_beat = self._px_per_beat // min_dist
+            markers_per_beat = beat_div_base**math.floor(
+                    math.log(markers_per_beat, beat_div_base))
 
             # First visible line in the first beat
             start_beat_frac = start_ts.rem / float(tstamp.BEAT)
-            start_line_in_beat = int(math.ceil(start_beat_frac * lines_per_beat))
+            start_marker_in_beat = int(
+                    math.ceil(start_beat_frac * markers_per_beat))
 
             # First non-visible line in the last beat
             stop_beat_frac = stop_ts.rem / float(tstamp.BEAT)
-            stop_line_in_beat = int(math.ceil(stop_beat_frac * lines_per_beat))
+            stop_marker_in_beat = int(
+                    math.ceil(stop_beat_frac * markers_per_beat))
 
             def normalise_marker_pos(pos):
-                if pos[1] >= lines_per_beat:
-                    assert pos[1] == lines_per_beat
+                if pos[1] >= markers_per_beat:
+                    assert pos[1] == markers_per_beat
                     pos[0] += 1
                     pos[1] = 0
 
             # Loop boundaries
-            line_pos = [start_ts.beats, start_line_in_beat]
-            normalise_marker_pos(line_pos)
+            marker_pos = [start_ts.beats, start_marker_in_beat]
+            normalise_marker_pos(marker_pos)
 
-            stop_pos = [stop_ts.beats, stop_line_in_beat]
+            stop_pos = [stop_ts.beats, stop_marker_in_beat]
             normalise_marker_pos(stop_pos)
 
             # Draw lines
-            while line_pos < stop_pos:
-                ts = tstamp.Tstamp(line_pos[0] +
-                        line_pos[1] / float(lines_per_beat))
+            while marker_pos < stop_pos:
+                ts = tstamp.Tstamp(marker_pos[0] +
+                        marker_pos[1] / float(markers_per_beat))
                 y = float(ts - start_ts) * self._px_per_beat
 
-                draw_fn(painter, y, line_pos, lines_per_beat)
+                draw_fn(painter, y, marker_pos, markers_per_beat)
 
                 # Next line
-                line_pos[1] += 1
-                normalise_marker_pos(line_pos)
+                marker_pos[1] += 1
+                normalise_marker_pos(marker_pos)
         else:
             pass
 
