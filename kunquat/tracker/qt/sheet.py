@@ -41,6 +41,10 @@ DEFAULT_CONFIG = {
         }
 
 
+def pat_height(length, px_per_beat):
+    return int(math.ceil(float(length + tstamp.Tstamp(0, 1)) * px_per_beat))
+
+
 class Sheet(QAbstractScrollArea):
 
     def __init__(self, config={}):
@@ -75,8 +79,12 @@ class Sheet(QAbstractScrollArea):
         self._px_per_beat = self._config['px_per_beat']
 
         # XXX: testing
-        self._total_length = tstamp.Tstamp(16)
-        self._total_height_px = int(float(self._total_length) * self._px_per_beat)
+        pat_lengths = [
+                tstamp.Tstamp(4),
+                tstamp.Tstamp(8),
+                ]
+        self._total_height_px = self._get_total_height(pat_lengths)
+        self._ruler.set_pattern_lengths(pat_lengths)
 
     def _set_config(self, config):
         self._config = DEFAULT_CONFIG.copy()
@@ -109,6 +117,12 @@ class Sheet(QAbstractScrollArea):
     def set_ui_model(self, ui_model):
         self._stat_manager = ui_model.get_stat_manager()
         #self._stat_manager.register_update(self.update_xxx)
+
+    def _get_total_height(self, pat_lengths):
+        height = sum(pat_height(pl, self._px_per_beat) for pl in pat_lengths)
+        height -= len(pat_lengths) - 1
+        # TODO: add trigger row height
+        return height
 
     def paintEvent(self, ev):
         self.viewport().paintEvent(ev)
@@ -226,7 +240,9 @@ class Ruler(QWidget):
     def __init__(self):
         QWidget.__init__(self)
 
+        self._lengths = []
         self._px_offset = 0
+        self._px_per_beat = DEFAULT_CONFIG['px_per_beat']
         self._cache = RulerCache()
 
         self.setAutoFillBackground(False)
@@ -247,10 +263,29 @@ class Ruler(QWidget):
 
         self.update()
 
+    def set_px_per_beat(self, px_per_beat):
+        changed = self._px_per_beat != px_per_beat
+        self._px_per_beat = px_per_beat
+        self._cache.set_px_per_beat(px_per_beat)
+        if changed:
+            self._set_pattern_heights()
+            self.update()
+
+    def set_pattern_lengths(self, lengths):
+        self._lengths = lengths
+        self._set_pattern_heights()
+
+    def _set_pattern_heights(self):
+        self._heights = [pat_height(pl, self._px_per_beat) for pl in self._lengths]
+        self._start_heights = [0]
+        for h in self._heights:
+            self._start_heights.append(self._start_heights[-1] + h - 1)
+
     def set_px_offset(self, offset):
         changed = offset != self._px_offset
         self._px_offset = offset
         if changed:
+            self._set_pattern_heights()
             self.update()
 
     def paintEvent(self, ev):
@@ -258,13 +293,46 @@ class Ruler(QWidget):
 
         painter = QPainter(self)
 
+        # Find first visible pattern index
+        first_index = 0
+        for h in self._start_heights:
+            if h == self._px_offset:
+                break
+            elif h > self._px_offset:
+                first_index -= 1
+                break
+            first_index += 1
+
+        for pi in xrange(first_index, len(self._heights)):
+            if self._start_heights[pi] > self._px_offset + self.height():
+                break
+
+            # Current pattern offset and height
+            rel_start_height = self._start_heights[pi] - self._px_offset
+            rel_end_height = rel_start_height + self._heights[pi]
+            rel_end_height = min(rel_end_height, self.height())
+            cur_offset = max(0, -rel_start_height)
+
+            # Draw pixmaps
+            canvas_y = max(0, rel_start_height)
+            for (src_rect, pixmap) in self._cache.iter_pixmaps(
+                    cur_offset, rel_end_height):
+                dest_rect = QRect(0, canvas_y, self.width(), src_rect.height())
+                painter.drawPixmap(dest_rect, pixmap, src_rect)
+                canvas_y += src_rect.height()
+        else:
+            # TODO: fill trailing blank
+            pass
+
         # Testing
+        """
         canvas_y = 0
         for (src_rect, pixmap) in self._cache.iter_pixmaps(
                 self._px_offset, self.height()):
             dest_rect = QRect(0, canvas_y, self.width(), src_rect.height())
             painter.drawPixmap(dest_rect, pixmap, src_rect)
             canvas_y += src_rect.height()
+        """
 
         end = time.time()
         elapsed = end - start
