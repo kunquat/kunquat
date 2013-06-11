@@ -26,13 +26,14 @@ COLUMN_COUNT = 64
 
 DEFAULT_CONFIG = {
         'ruler': {
-            'bg_colour'     : QColor(0x11, 0x22, 0x55),
-            'fg_colour'     : QColor(0xaa, 0xcc, 0xff),
-            'font'          : QFont(QFont().defaultFamily(), 9),
-            'line_min_dist' : 3,
-            'line_len_short': 2,
-            'line_len_long' : 4,
-            'num_min_dist'  : 48,
+            'bg_colour'       : QColor(0x11, 0x22, 0x55),
+            'fg_colour'       : QColor(0xaa, 0xcc, 0xff),
+            'canvas_bg_colour': QColor(0, 0, 0),
+            'font'            : QFont(QFont().defaultFamily(), 9),
+            'line_min_dist'   : 3,
+            'line_len_short'  : 2,
+            'line_len_long'   : 4,
+            'num_min_dist'    : 48,
             },
         'header': {
             },
@@ -310,19 +311,30 @@ class Ruler(QWidget):
             # Current pattern offset and height
             rel_start_height = self._start_heights[pi] - self._px_offset
             rel_end_height = rel_start_height + self._heights[pi]
-            rel_end_height = min(rel_end_height, self.height())
             cur_offset = max(0, -rel_start_height)
 
             # Draw pixmaps
             canvas_y = max(0, rel_start_height)
             for (src_rect, pixmap) in self._cache.iter_pixmaps(
-                    cur_offset, rel_end_height):
+                    cur_offset, min(rel_end_height, self.height()) - canvas_y):
                 dest_rect = QRect(0, canvas_y, self.width(), src_rect.height())
                 painter.drawPixmap(dest_rect, pixmap, src_rect)
                 canvas_y += src_rect.height()
+
+            # Draw bottom border
+            if rel_end_height <= self.height():
+                painter.setPen(self._config['fg_colour'])
+                painter.drawLine(
+                        QPoint(0, rel_end_height - 1),
+                        QPoint(self._width - 1, rel_end_height - 1))
         else:
-            # TODO: fill trailing blank
-            pass
+            # Fill trailing blank
+            painter.setBackground(self._config['canvas_bg_colour'])
+            painter.eraseRect(
+                    QRect(
+                        0, rel_end_height,
+                        self._width, self.height() - rel_end_height)
+                    )
 
         # Testing
         """
@@ -397,7 +409,7 @@ class RulerCache():
             rect_stop = rect_stop_abs - pixmap_start_px
             rect_height = rect_stop - rect_start
 
-            rect = QRect(0, rect_start, self._width, rect_height)
+            rect = QRect(0, rect_start, self._width, min(rect_height, height_px))
 
             yield (rect, self._pixmaps[i])
 
