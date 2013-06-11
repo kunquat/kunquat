@@ -22,7 +22,7 @@ from instrument_select import InstrumentSelect
 from render_stats import RenderStats
 from import_progress import ImportProgress
 from peak_meter import PeakMeter
-from sheet import Sheet
+from sheet.sheet import Sheet
 
 class MainWindow(QWidget):
 
