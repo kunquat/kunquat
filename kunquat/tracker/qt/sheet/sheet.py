@@ -66,6 +66,7 @@ class Sheet(QAbstractScrollArea):
                 ]
         self._total_height_px = self._get_total_height(pat_lengths)
         self._ruler.set_pattern_lengths(pat_lengths)
+        self.viewport().set_pattern_lengths(pat_lengths)
 
     def _set_config(self, config):
         self._config = DEFAULT_CONFIG.copy()
