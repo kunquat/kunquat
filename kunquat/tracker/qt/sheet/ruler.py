@@ -64,10 +64,8 @@ class Ruler(QWidget):
         self._set_pattern_heights()
 
     def _set_pattern_heights(self):
-        self._heights = [pat_height(pl, self._px_per_beat) for pl in self._lengths]
-        self._start_heights = [0]
-        for h in self._heights:
-            self._start_heights.append(self._start_heights[-1] + h - 1)
+        self._heights = get_pat_heights(self._lengths, self._px_per_beat)
+        self._start_heights = get_pat_start_heights(self._heights)
 
     def set_px_offset(self, offset):
         changed = offset != self._px_offset

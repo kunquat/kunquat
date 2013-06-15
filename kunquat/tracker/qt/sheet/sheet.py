@@ -127,4 +127,8 @@ class Sheet(QAbstractScrollArea):
         self._header.set_first_column(hvalue)
         self._ruler.set_px_offset(vvalue)
 
+        vp = self.viewport()
+        vp.set_first_column(hvalue)
+        vp.set_px_offset(vvalue)
+
 
