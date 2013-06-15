@@ -114,12 +114,12 @@ class View(QWidget):
         draw_col_stop = min(draw_col_stop, COLUMN_COUNT - self._first_col)
 
         # Draw columns
-        buffer_create_count = 0
+        pixmaps_created = 0
         for rel_col_index in xrange(draw_col_start, draw_col_stop):
             x_offset = rel_col_index * self._col_width
             tfm = QTransform().translate(x_offset, 0)
             painter.setTransform(tfm)
-            buffer_create_count += self._col_rends[
+            pixmaps_created += self._col_rends[
                     self._first_col + rel_col_index].draw(painter, self.height())
 
         painter.setTransform(QTransform())
@@ -130,8 +130,11 @@ class View(QWidget):
             width = self.width() - hor_trail_start
             painter.eraseRect(QRect(hor_trail_start, 0, width, self.height()))
 
-        if buffer_create_count == 0:
-            pass # TODO: update was easy, predraw a likely next buffer
+        if pixmaps_created == 0:
+            pass # TODO: update was easy, predraw a likely next pixmap
+        else:
+            print('{} column pixmap{} created'.format(
+                pixmaps_created, 's' if pixmaps_created != 1 else ''))
 
         end = time.time()
         elapsed = end - start
@@ -176,6 +179,8 @@ class ColumnGroupRenderer():
                 self._px_offset,
                 self._start_heights)
 
+        pixmaps_created = 0
+
         # FIXME: copypasta from Ruler.paintEvent
 
         for pi in xrange(first_index, len(self._heights)):
@@ -195,6 +200,8 @@ class ColumnGroupRenderer():
                 dest_rect = QRect(0, canvas_y, self._width, src_rect.height())
                 painter.drawPixmap(dest_rect, pixmap, src_rect)
                 canvas_y += src_rect.height()
+
+            pixmaps_created += cache.get_pixmaps_created()
         else:
             # Fill trailing blank
             painter.setBackground(self._config['bg_colour'])
@@ -212,7 +219,7 @@ class ColumnGroupRenderer():
         painter.drawText(QPoint(2, 12), str(self._num))
         """
 
-        return 0
+        return pixmaps_created
 
 
 class ColumnCache():
