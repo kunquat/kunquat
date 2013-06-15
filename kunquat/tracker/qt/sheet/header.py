@@ -17,6 +17,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 from config import *
+from utils import *
 
 
 class Header(QWidget):
@@ -49,15 +50,8 @@ class Header(QWidget):
         sh = w.minimumSizeHint()
         return QSize(self._col_width * 3, sh.height())
 
-    def _clamp_position(self, max_visible_cols):
-        self._first_col = min(
-                self._first_col,
-                COLUMN_COUNT - max_visible_cols + 1)
-
     def _resize_layout(self, max_visible_cols):
-        visible_cols = max_visible_cols
-        if self._first_col + max_visible_cols > COLUMN_COUNT:
-            visible_cols -= 1
+        visible_cols = get_visible_cols(self._first_col, max_visible_cols)
 
         for i in xrange(len(self._headers), visible_cols):
             header = ColumnHeader()
@@ -69,10 +63,9 @@ class Header(QWidget):
             h.hide()
 
     def _update_contents(self):
-        max_visible_cols = self.width() // self._col_width + 1
-        max_visible_cols = min(max_visible_cols, COLUMN_COUNT + 1)
+        max_visible_cols = get_max_visible_cols(self.width(), self._col_width)
 
-        self._clamp_position(max_visible_cols)
+        self._first_col = clamp_start_col(self._first_col, max_visible_cols)
 
         self._resize_layout(max_visible_cols)
 
