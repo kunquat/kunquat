@@ -79,15 +79,10 @@ class Ruler(QWidget):
 
         painter = QPainter(self)
 
-        # Find first visible pattern index
-        first_index = 0
-        for h in self._start_heights:
-            if h == self._px_offset:
-                break
-            elif h > self._px_offset:
-                first_index -= 1
-                break
-            first_index += 1
+        # Render rulers of visible patterns
+        first_index = get_first_visible_pat_index(
+                self._px_offset,
+                self._start_heights)
 
         for pi in xrange(first_index, len(self._heights)):
             if self._start_heights[pi] > self._px_offset + self.height():
@@ -123,7 +118,7 @@ class Ruler(QWidget):
 
         end = time.time()
         elapsed = end - start
-        print('Ruler updated in {:.2f} ms'.format(elapsed * 1000))
+        #print('Ruler updated in {:.2f} ms'.format(elapsed * 1000))
 
     def resizeEvent(self, ev):
         self._cache.set_width(ev.size().width())
@@ -163,34 +158,26 @@ class RulerCache():
 
         stop_px = start_px + height_px
 
-        # Get pixmap indices
-        start_index = start_px // RulerCache.PIXMAP_HEIGHT
-        stop_index = 1 + (start_px + height_px - 1) // RulerCache.PIXMAP_HEIGHT
-
         create_count = 0
 
-        for i in xrange(start_index, stop_index):
+        for i in get_pixmap_indices(start_px, stop_px, RulerCache.PIXMAP_HEIGHT):
             if i not in self._pixmaps:
                 self._pixmaps[i] = self._create_pixmap(i)
                 create_count += 1
 
-            # Get rect to be used
-            pixmap_start_px = i * RulerCache.PIXMAP_HEIGHT
-            rect_start_abs = max(start_px, pixmap_start_px)
-            rect_start = rect_start_abs - pixmap_start_px
-
-            pixmap_stop_px = (i + 1) * RulerCache.PIXMAP_HEIGHT
-            rect_stop_abs = min(stop_px, pixmap_stop_px)
-            rect_stop = rect_stop_abs - pixmap_start_px
-            rect_height = rect_stop - rect_start
-
-            rect = QRect(0, rect_start, self._width, min(rect_height, height_px))
+            rect = get_pixmap_rect(
+                    i,
+                    start_px, stop_px,
+                    self._width,
+                    RulerCache.PIXMAP_HEIGHT)
 
             yield (rect, self._pixmaps[i])
 
         if create_count > 0:
+            """
             print('{} ruler pixmap{} created'.format(
                 create_count, 's' if create_count != 1 else ''))
+            """
 
     def _create_pixmap(self, index):
         pixmap = QPixmap(self._width, RulerCache.PIXMAP_HEIGHT)
