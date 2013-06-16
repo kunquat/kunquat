@@ -60,13 +60,22 @@ class Sheet(QAbstractScrollArea):
         self._px_per_beat = self._config['px_per_beat']
 
         # XXX: testing
-        pat_lengths = [
-                tstamp.Tstamp(4),
-                tstamp.Tstamp(8),
+        patterns = [
+                {
+                    'length': tstamp.Tstamp(4),
+                    'columns': [[] for _ in xrange(COLUMN_COUNT)],
+                },
+                {
+                    'length': tstamp.Tstamp(8),
+                    'columns': [[] for _ in xrange(COLUMN_COUNT)],
+                },
                 ]
-        self._total_height_px = self._get_total_height(pat_lengths)
+        patterns[0]['columns'][0].append([[0, 0], ['.i', '0']])
+        pat_lengths = [p['length'] for p in patterns]
+        self._total_height_px = (self._get_total_height(pat_lengths) +
+                self._config['tr_height'])
         self._ruler.set_pattern_lengths(pat_lengths)
-        self.viewport().set_pattern_lengths(pat_lengths)
+        self.viewport().set_patterns(patterns)
 
     def _set_config(self, config):
         self._config = DEFAULT_CONFIG.copy()
@@ -93,6 +102,9 @@ class Sheet(QAbstractScrollArea):
                 header_height)
         self._header.setFixedHeight(header_height)
         self._ruler.setFixedWidth(ruler_width)
+
+        tr_space = QFontMetrics(self._config['font']).boundingRect('Ag')
+        self._config['tr_height'] = tr_space.height() + 1
 
         self.viewport().set_config(self._config)
 

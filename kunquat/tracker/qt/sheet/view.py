@@ -44,17 +44,20 @@ class View(QWidget):
 
     def set_config(self, config):
         self._config = config
-        for renderer in self._col_rends:
-            renderer.set_config(self._config)
+        for cr in self._col_rends:
+            cr.set_config(self._config)
 
     def set_first_column(self, first_col):
         if self._first_col != first_col:
             self._first_col = first_col
             self.update()
 
-    def set_pattern_lengths(self, lengths):
-        self._lengths = lengths
+    def set_patterns(self, patterns):
+        self._lengths = [p['length'] for p in patterns]
         self._set_pattern_heights()
+        for i, cr in enumerate(self._col_rends):
+            columns = [p['columns'][i] for p in patterns]
+            cr.set_columns(columns)
 
     def _set_pattern_heights(self):
         self._heights = get_pat_heights(self._lengths, self._px_per_beat)
@@ -157,12 +160,14 @@ class ColumnGroupRenderer():
     def set_config(self, config):
         self._config = config
 
-        tr_space = QFontMetrics(self._config['font']).boundingRect('Ag')
-        self._tr_height = tr_space.height() + 1
-
     def set_width(self, width):
         if self._width != width:
             self._width = width
+
+    def set_columns(self, columns):
+        self._columns = columns
+        for i, cache in enumerate(self._caches):
+            cache.set_column(self._columns[i])
 
     def set_pattern_heights(self, heights, start_heights):
         self._heights = heights
@@ -180,7 +185,6 @@ class ColumnGroupRenderer():
         for cache in self._caches:
             cache.set_width(self._width)
             cache.set_px_per_beat(self._px_per_beat)
-            cache.set_tr_height(self._tr_height)
 
     def set_px_per_beat(self, px_per_beat):
         if self._px_per_beat != px_per_beat:
@@ -252,15 +256,19 @@ class ColumnCache():
         self._pixmaps = {}
         self._pixmaps_created = 0
 
+        self._tr_cache = TRCache()
+
         self._width = DEFAULT_CONFIG['col_width']
         self._px_per_beat = DEFAULT_CONFIG['px_per_beat']
 
     def set_config(self, config):
         self._config = config
         self._pixmaps = {}
+        self._tr_cache.set_config(config)
 
-    def set_tr_height(self, height):
-        self._tr_height = height
+    def set_column(self, column):
+        self._column = column
+        self._tr_cache.set_triggers(column)
 
     def set_width(self, width):
         if self._width != width:
@@ -314,5 +322,34 @@ class ColumnCache():
         painter.drawText(QPoint(2, 12), pixmap_desc)
 
         return pixmap
+
+
+class TRCache():
+
+    def __init__(self):
+        self._pixmaps = {}
+
+    def set_config(self, config):
+        self._config = config
+        self._pixmaps = {}
+
+    def set_triggers(self, triggers):
+        self._rows = self._build_trigger_rows(triggers)
+        self._pixmaps = {} # TODO: only remove out-of-date pixmaps
+
+    def _build_trigger_rows(self, triggers):
+        trs = {}
+        for ts, evspec in triggers:
+            ts = tstamp.Tstamp(ts)
+            if ts not in trs:
+                trs[ts] = []
+            trs[ts].append(evspec)
+
+        trlist = list(trs.items())
+        trlist.sort()
+        return trlist
+
+    def iter_pixmaps(self, start_ts, stop_ts):
+        pass
 
 
