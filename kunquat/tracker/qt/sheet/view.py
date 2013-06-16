@@ -155,7 +155,7 @@ class ColumnGroupRenderer():
 
         self._width = DEFAULT_CONFIG['col_width']
         self._px_offset = 0
-        self._px_per_beat = 0
+        self._px_per_beat = DEFAULT_CONFIG['px_per_beat']
 
     def set_config(self, config):
         self._config = config
@@ -276,6 +276,7 @@ class ColumnCache():
             self._pixmaps = {}
 
     def set_px_per_beat(self, px_per_beat):
+        assert px_per_beat > 0
         if self._px_per_beat != px_per_beat:
             self._px_per_beat = px_per_beat
             self._pixmaps = {}
@@ -321,6 +322,24 @@ class ColumnCache():
         pixmap_desc = '{}-{}-{}'.format(self._col_num, self._pat_num, index)
         painter.drawText(QPoint(2, 12), pixmap_desc)
 
+        # Start and stop timestamps
+        start_px = index * ColumnCache.PIXMAP_HEIGHT
+        stop_px = (index + 1) * ColumnCache.PIXMAP_HEIGHT
+
+        visible_tr_start_px = start_px - self._config['tr_height'] + 1
+        start_ts = tstamp.Tstamp(0,
+                visible_tr_start_px * tstamp.BEAT // self._px_per_beat)
+        stop_ts = tstamp.Tstamp(0,
+                stop_px * tstamp.BEAT // self._px_per_beat)
+
+        # Trigger rows
+        for ts, tpixmap in self._tr_cache.iter_pixmaps(start_ts, stop_ts):
+            rems = ts.beats * tstamp.BEAT + ts.rem
+            abs_y = rems * self._px_per_beat // tstamp.BEAT
+            y_offset = abs_y - start_px
+
+            painter.drawPixmap(QPoint(0, y_offset), tpixmap)
+
         return pixmap
 
 
@@ -350,6 +369,37 @@ class TRCache():
         return trlist
 
     def iter_pixmaps(self, start_ts, stop_ts):
-        pass
+        pixmaps_created = 0
+
+        for ts, evspec in self._rows:
+            if ts < start_ts:
+                continue
+            elif ts >= stop_ts:
+                break
+            if ts not in self._pixmaps:
+                self._pixmaps[ts] = self._create_pixmap(evspec)
+                pixmaps_created += 1
+            yield (ts, self._pixmaps[ts])
+
+        if pixmaps_created > 0:
+            print('{} trigger row pixmap{} created'.format(
+                pixmaps_created, 's' if pixmaps_created != 1 else ''))
+
+    def _create_pixmap(self, evspec):
+        pixmap = QPixmap(64, self._config['tr_height'])
+
+        painter = QPainter(pixmap)
+
+        # Testing
+        painter.setBackground(Qt.black)
+        painter.eraseRect(QRect(0, 0, pixmap.width(), pixmap.height()))
+        painter.setPen(Qt.white)
+        painter.drawRect(QRect(0, 0, pixmap.width() - 1, pixmap.height() - 1))
+        painter.setTransform(QTransform().rotate(-45))
+        for i in xrange(4):
+            side = self._config['tr_height']
+            painter.fillRect(QRect(i * side * 2, 0, side, (i + 1) * side * 3), Qt.white)
+
+        return pixmap
 
 

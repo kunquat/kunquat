@@ -31,7 +31,7 @@ DEFAULT_CONFIG = {
         'px_per_beat'     : 128,
         'canvas_bg_colour': QColor(0, 0, 0),
         'bg_colour'       : QColor(0, 0, 0),
-        'font'            : QFont(QFont().defaultFamily(), 11),
+        'font'            : QFont(QFont().defaultFamily(), 12),
         }
 
 
