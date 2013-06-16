@@ -393,12 +393,12 @@ class TRCache():
         # Testing
         painter.setBackground(Qt.black)
         painter.eraseRect(QRect(0, 0, pixmap.width(), pixmap.height()))
-        painter.setPen(Qt.white)
+        painter.setPen(Qt.red)
         painter.drawRect(QRect(0, 0, pixmap.width() - 1, pixmap.height() - 1))
         painter.setTransform(QTransform().rotate(-45))
         for i in xrange(4):
             side = self._config['tr_height']
-            painter.fillRect(QRect(i * side * 2, 0, side, (i + 1) * side * 3), Qt.white)
+            painter.fillRect(QRect(i * side * 2, 0, side, (i + 1) * side * 3), Qt.red)
 
         return pixmap
 
