@@ -104,7 +104,7 @@ class View(QWidget):
         start = time.time()
 
         painter = QPainter(self)
-        painter.setBackground(self._config['bg_colour'])
+        painter.setBackground(self._config['canvas_bg_colour'])
 
         rect = ev.rect()
 
@@ -152,26 +152,45 @@ class ColumnGroupRenderer():
 
         self._width = DEFAULT_CONFIG['col_width']
         self._px_offset = 0
+        self._px_per_beat = 0
 
     def set_config(self, config):
         self._config = config
+
+        tr_space = QFontMetrics(self._config['font']).boundingRect('Ag')
+        self._tr_height = tr_space.height() + 1
 
     def set_width(self, width):
         if self._width != width:
             self._width = width
 
     def set_pattern_heights(self, heights, start_heights):
-        self._caches = [ColumnCache(self._num, i) for i in xrange(len(heights))]
         self._heights = heights
         self._start_heights = start_heights
+        self._create_caches()
+
+    def _create_caches(self):
+        self._caches = [ColumnCache(self._num, i)
+                for i in xrange(len(self._heights))]
+        for cache in self._caches:
+            cache.set_config(self._config)
+        self._sync_caches()
+
+    def _sync_caches(self):
+        for cache in self._caches:
+            cache.set_width(self._width)
+            cache.set_px_per_beat(self._px_per_beat)
+            cache.set_tr_height(self._tr_height)
 
     def set_px_per_beat(self, px_per_beat):
-        for cache in self._caches:
-            cache.set_px_per_beat(px_per_beat)
+        if self._px_per_beat != px_per_beat:
+            self._px_per_beat = px_per_beat
+            self._sync_caches()
 
     def set_px_offset(self, px_offset):
         if self._px_offset != px_offset:
             self._px_offset = px_offset
+            self._sync_caches()
 
     def draw(self, painter, height):
         # Render columns of visible patterns
@@ -204,7 +223,7 @@ class ColumnGroupRenderer():
             pixmaps_created += cache.get_pixmaps_created()
         else:
             # Fill trailing blank
-            painter.setBackground(self._config['bg_colour'])
+            painter.setBackground(self._config['canvas_bg_colour'])
             painter.eraseRect(
                     QRect(
                         0, rel_end_height,
@@ -238,9 +257,15 @@ class ColumnCache():
 
     def set_config(self, config):
         self._config = config
+        self._pixmaps = {}
+
+    def set_tr_height(self, height):
+        self._tr_height = height
 
     def set_width(self, width):
-        self._width = width
+        if self._width != width:
+            self._width = width
+            self._pixmaps = {}
 
     def set_px_per_beat(self, px_per_beat):
         if self._px_per_beat != px_per_beat:

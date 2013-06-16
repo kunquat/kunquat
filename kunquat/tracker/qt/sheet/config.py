@@ -27,9 +27,11 @@ DEFAULT_CONFIG = {
             },
         'header': {
             },
-        'col_width'  : 128,
-        'px_per_beat': 128,
-        'bg_colour'  : QColor(0, 0, 0),
+        'col_width'       : 128,
+        'px_per_beat'     : 128,
+        'canvas_bg_colour': QColor(0, 0, 0),
+        'bg_colour'       : QColor(0, 0, 0),
+        'font'            : QFont(QFont().defaultFamily(), 11),
         }
 
 
