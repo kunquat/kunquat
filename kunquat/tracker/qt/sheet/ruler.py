@@ -40,7 +40,9 @@ class Ruler(QWidget):
     def set_config(self, config):
         self._config = config
 
-        num_space = QFontMetrics(self._config['font']).boundingRect('00.000')
+        fm = QFontMetrics(self._config['font'], self)
+        self._config['font_metrics'] = fm
+        num_space = fm.tightBoundingRect('00.000')
         self._width = (num_space.width() +
                 self._config['line_len_long'] +
                 8)
