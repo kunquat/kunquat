@@ -12,6 +12,7 @@
 #
 
 from __future__ import print_function
+from itertools import izip
 import math
 import time
 
@@ -333,12 +334,13 @@ class ColumnCache():
                 stop_px * tstamp.BEAT // self._px_per_beat)
 
         # Trigger rows
-        for ts, tpixmap in self._tr_cache.iter_pixmaps(start_ts, stop_ts):
+        painter.setCompositionMode(QPainter.CompositionMode_SourceOver)
+        for ts, image in self._tr_cache.iter_images(start_ts, stop_ts):
             rems = ts.beats * tstamp.BEAT + ts.rem
             abs_y = rems * self._px_per_beat // tstamp.BEAT
             y_offset = abs_y - start_px
 
-            painter.drawPixmap(QPoint(0, y_offset), tpixmap)
+            painter.drawImage(QPoint(0, y_offset), image)
 
         return pixmap
 
@@ -346,15 +348,15 @@ class ColumnCache():
 class TRCache():
 
     def __init__(self):
-        self._pixmaps = {}
+        self._images = {}
 
     def set_config(self, config):
         self._config = config
-        self._pixmaps = {}
+        self._images = {}
 
     def set_triggers(self, triggers):
         self._rows = self._build_trigger_rows(triggers)
-        self._pixmaps = {} # TODO: only remove out-of-date pixmaps
+        self._images = {} # TODO: only remove out-of-date images
 
     def _build_trigger_rows(self, triggers):
         trs = {}
@@ -368,38 +370,94 @@ class TRCache():
         trlist.sort()
         return trlist
 
-    def iter_pixmaps(self, start_ts, stop_ts):
-        pixmaps_created = 0
+    def iter_images(self, start_ts, stop_ts):
+        images_created = 0
 
-        for ts, evspec in self._rows:
+        for ts, evspecs in self._rows:
             if ts < start_ts:
                 continue
             elif ts >= stop_ts:
                 break
-            if ts not in self._pixmaps:
-                self._pixmaps[ts] = self._create_pixmap(evspec)
-                pixmaps_created += 1
-            yield (ts, self._pixmaps[ts])
+            if ts not in self._images:
+                self._images[ts] = self._create_image(evspecs)
+                images_created += 1
+            yield (ts, self._images[ts])
 
-        if pixmaps_created > 0:
-            print('{} trigger row pixmap{} created'.format(
-                pixmaps_created, 's' if pixmaps_created != 1 else ''))
+        if images_created > 0:
+            print('{} trigger row image{} created'.format(
+                images_created, 's' if images_created != 1 else ''))
 
-    def _create_pixmap(self, evspec):
-        pixmap = QPixmap(64, self._config['tr_height'])
+    def _create_image(self, evspecs):
+        pdev = QPixmap(1, 1)
+        rends = [TriggerRenderer(self._config) for e in evspecs]
+        widths = [r.get_trigger_width(e, pdev) for r, e in izip(rends, evspecs)]
 
-        painter = QPainter(pixmap)
+        image = QImage(
+                sum(widths),
+                self._config['tr_height'],
+                QImage.Format_ARGB32)
+        image.fill(0)
+
+        painter = QPainter(image)
+        for renderer, width in izip(rends, widths):
+            renderer.draw_trigger(painter)
+            painter.setTransform(QTransform().translate(width, 0), True)
 
         # Testing
+        """
         painter.setBackground(Qt.black)
-        painter.eraseRect(QRect(0, 0, pixmap.width(), pixmap.height()))
+        painter.eraseRect(QRect(0, 0, image.width(), image.height()))
         painter.setPen(Qt.red)
-        painter.drawRect(QRect(0, 0, pixmap.width() - 1, pixmap.height() - 1))
+        painter.drawRect(QRect(0, 0, image.width() - 1, image.height() - 1))
         painter.setTransform(QTransform().rotate(-45))
         for i in xrange(4):
             side = self._config['tr_height']
             painter.fillRect(QRect(i * side * 2, 0, side, (i + 1) * side * 3), Qt.red)
+        """
 
-        return pixmap
+        return image
+
+
+class TriggerRenderer():
+
+    def __init__(self, config):
+        self._config = config
+
+    def get_trigger_width(self, evspec, pdev): # TODO: note names
+        self._evspec = evspec
+
+        evtype, expr = self._evspec
+
+        # Padding
+        total_padding = self._config['trigger_padding'] * 2
+        if expr != None:
+            # Space between type and expression
+            total_padding += self._config['trigger_padding']
+
+        # Text
+        metrics = self._config['font_metrics']
+        self._baseline_offset = metrics.tightBoundingRect('A').height()
+        evtype_width = metrics.boundingRect(evtype).width()
+        expr_width = 0
+        if expr != None:
+            expr_width = metrics.boundingRect(expr).width()
+
+        # Drawing parameters
+        self._evtype_offset = self._config['trigger_padding']
+        self._expr_offset = (self._evtype_offset + evtype_width +
+                self._config['trigger_padding'])
+        self._width = total_padding + evtype_width + expr_width
+
+        return self._width
+
+    def draw_trigger(self, painter):
+        painter.setPen(Qt.white)
+        painter.drawLine(QPoint(0, 0), QPoint(self._width - 2, 0))
+
+        painter.setCompositionMode(QPainter.CompositionMode_Plus)
+
+        evtype, expr = self._evspec
+        painter.drawText(QPoint(self._evtype_offset, self._baseline_offset), evtype)
+        painter.drawText(QPoint(self._expr_offset, self._baseline_offset), expr)
 
 

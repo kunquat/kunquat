@@ -71,6 +71,7 @@ class Sheet(QAbstractScrollArea):
                 },
                 ]
         patterns[0]['columns'][0].append([tstamp.Tstamp(0.5), ['.i', '0']])
+        patterns[0]['columns'][0].append([tstamp.Tstamp(0.5), ['cn+', '300']])
         pat_lengths = [p['length'] for p in patterns]
         self._total_height_px = (self._get_total_height(pat_lengths) +
                 self._config['tr_height'])
@@ -103,8 +104,9 @@ class Sheet(QAbstractScrollArea):
         self._header.setFixedHeight(header_height)
         self._ruler.setFixedWidth(ruler_width)
 
-        tr_space = QFontMetrics(self._config['font']).boundingRect('Ag')
-        self._config['tr_height'] = tr_space.height() + 1
+        fm = QFontMetrics(self._config['font'], self)
+        self._config['font_metrics'] = fm
+        self._config['tr_height'] = fm.tightBoundingRect('Ag').height() + 1
 
         self.viewport().set_config(self._config)
 

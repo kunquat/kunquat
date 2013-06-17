@@ -32,6 +32,7 @@ DEFAULT_CONFIG = {
         'canvas_bg_colour': QColor(0, 0, 0),
         'bg_colour'       : QColor(0, 0, 0),
         'font'            : QFont(QFont().defaultFamily(), 12),
+        'trigger_padding' : 3,
         }
 
 
