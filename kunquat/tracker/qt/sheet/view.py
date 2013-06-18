@@ -351,8 +351,9 @@ class ColumnCache():
                 next_y_offset = ts_to_y_offset(next_ts)
                 y_dist = next_y_offset - y_offset
                 if y_dist < dest_rect.height():
-                    dest_rect.setHeight(y_dist)
-                    src_rect.setHeight(y_dist)
+                    rect_height = max(1, y_dist)
+                    dest_rect.setHeight(rect_height)
+                    src_rect.setHeight(rect_height)
 
             painter.drawImage(dest_rect, image, src_rect)
 
