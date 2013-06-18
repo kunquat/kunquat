@@ -71,7 +71,7 @@ class Sheet(QAbstractScrollArea):
                 },
                 ]
         patterns[0]['columns'][0].append([tstamp.Tstamp(0.5), ['.i', '0']])
-        patterns[0]['columns'][0].append([tstamp.Tstamp(0.5), ['cn+', '300']])
+        patterns[0]['columns'][0].append([tstamp.Tstamp(0.56), ['cn+', '300']])
         pat_lengths = [p['length'] for p in patterns]
         self._total_height_px = (self._get_total_height(pat_lengths) +
                 self._config['tr_height'])

@@ -12,7 +12,7 @@
 #
 
 from __future__ import print_function
-from itertools import izip
+from itertools import islice, izip, izip_longest
 import math
 import time
 
@@ -333,14 +333,28 @@ class ColumnCache():
         stop_ts = tstamp.Tstamp(0,
                 stop_px * tstamp.BEAT // self._px_per_beat)
 
-        # Trigger rows
-        painter.setCompositionMode(QPainter.CompositionMode_SourceOver)
-        for ts, image in self._tr_cache.iter_images(start_ts, stop_ts):
+        def ts_to_y_offset(ts):
             rems = ts.beats * tstamp.BEAT + ts.rem
             abs_y = rems * self._px_per_beat // tstamp.BEAT
             y_offset = abs_y - start_px
+            return y_offset
 
-            painter.drawImage(QPoint(0, y_offset), image)
+        # Trigger rows
+        painter.setCompositionMode(QPainter.CompositionMode_SourceOver)
+        for ts, image, next_ts in self._tr_cache.iter_images(start_ts, stop_ts):
+            y_offset = ts_to_y_offset(ts)
+
+            src_rect = image.rect()
+            dest_rect = src_rect.translated(QPoint(0, y_offset))
+
+            if next_ts != None:
+                next_y_offset = ts_to_y_offset(next_ts)
+                y_dist = next_y_offset - y_offset
+                if y_dist < dest_rect.height():
+                    dest_rect.setHeight(y_dist)
+                    src_rect.setHeight(y_dist)
+
+            painter.drawImage(dest_rect, image, src_rect)
 
         return pixmap
 
@@ -373,7 +387,10 @@ class TRCache():
     def iter_images(self, start_ts, stop_ts):
         images_created = 0
 
-        for ts, evspecs in self._rows:
+        next_tstamps = (row[0] for row in islice(self._rows, 1, None))
+
+        for row, next_ts in izip_longest(self._rows, next_tstamps):
+            ts, evspecs = row
             if ts < start_ts:
                 continue
             elif ts >= stop_ts:
@@ -381,7 +398,7 @@ class TRCache():
             if ts not in self._images:
                 self._images[ts] = self._create_image(evspecs)
                 images_created += 1
-            yield (ts, self._images[ts])
+            yield (ts, self._images[ts], next_ts)
 
         if images_created > 0:
             print('{} trigger row image{} created'.format(
