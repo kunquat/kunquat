@@ -57,6 +57,7 @@ class View(QWidget):
         self._lengths = [p['length'] for p in patterns]
         self._set_pattern_heights()
         for i, cr in enumerate(self._col_rends):
+            cr.set_pattern_lengths(self._lengths)
             columns = [p['columns'][i] for p in patterns]
             cr.set_columns(columns)
 
@@ -170,6 +171,9 @@ class ColumnGroupRenderer():
         for i, cache in enumerate(self._caches):
             cache.set_column(self._columns[i])
 
+    def set_pattern_lengths(self, lengths):
+        self._lengths = lengths
+
     def set_pattern_heights(self, heights, start_heights):
         self._heights = heights
         self._start_heights = start_heights
@@ -205,7 +209,9 @@ class ColumnGroupRenderer():
 
         pixmaps_created = 0
 
-        # FIXME: copypasta from Ruler.paintEvent
+        # FIXME: contains some copypasta from Ruler.paintEvent
+
+        overlap = None
 
         for pi in xrange(first_index, len(self._heights)):
             if self._start_heights[pi] > self._px_offset + height:
@@ -226,6 +232,30 @@ class ColumnGroupRenderer():
                 canvas_y += src_rect.height()
 
             pixmaps_created += cache.get_pixmaps_created()
+
+            # TODO: Draw overlapping part of previous pattern
+            if overlap:
+                src_rect, image = overlap
+                dest_rect = QRect(
+                        0, rel_start_height,
+                        min(self._width, src_rect.width()), src_rect.height())
+                painter.drawImage(dest_rect, image, src_rect)
+                overlap = None
+
+            # Find trigger row that overlaps with next pattern
+            last_tr = cache.get_last_trigger_row(self._lengths[pi])
+            if last_tr:
+                last_ts, last_image = last_tr
+                last_rems = last_ts.beats * tstamp.BEAT + last_ts.rem
+                last_start_y = last_rems * self._px_per_beat // tstamp.BEAT
+                last_stop_y = last_start_y + self._config['tr_height']
+                if last_stop_y >= self._heights[pi]:
+                    rect_height = last_stop_y - self._heights[pi] + 1
+                    rect_start = self._config['tr_height'] - rect_height
+                    rect = QRect(
+                            0, rect_start,
+                            last_image.rect().width(), rect_height)
+                    overlap = rect, last_image
         else:
             # Fill trailing blank
             painter.setBackground(self._config['canvas_bg_colour'])
@@ -359,6 +389,9 @@ class ColumnCache():
 
         return pixmap
 
+    def get_last_trigger_row(self, max_ts):
+        return self._tr_cache.get_last_trigger_row(max_ts)
+
 
 class TRCache():
 
@@ -434,6 +467,14 @@ class TRCache():
         """
 
         return image
+
+    def get_last_trigger_row(self, max_ts):
+        for row in reversed(self._rows):
+            ts, _ = row
+            if ts <= max_ts:
+                assert ts in self._images
+                return ts, self._images[ts]
+        return None
 
 
 class TriggerRenderer():
