@@ -212,6 +212,7 @@ class ColumnGroupRenderer():
         # FIXME: contains some copypasta from Ruler.paintEvent
 
         overlap = None
+        max_tr_width = self._width - 1
 
         for pi in xrange(first_index, len(self._heights)):
             if self._start_heights[pi] > self._px_offset + height:
@@ -249,9 +250,11 @@ class ColumnGroupRenderer():
                         tr_overlap = src_rect_stop_y - first_start_y
                         src_rect.setHeight(src_rect.height() - tr_overlap)
 
+                width = min(max_tr_width, src_rect.width())
                 dest_rect = QRect(
                         0, rel_start_height,
-                        min(self._width, src_rect.width()), src_rect.height())
+                        width, src_rect.height())
+                src_rect.setWidth(width)
                 painter.drawImage(dest_rect, image, src_rect)
                 overlap = None
 
@@ -284,9 +287,11 @@ class ColumnGroupRenderer():
                 src_rect, image = overlap
                 # Last pattern and blank do not share pixel rows
                 src_rect.setY(src_rect.y() + 1)
+                width = min(max_tr_width, src_rect.width())
                 dest_rect = QRect(
                         0, rel_end_height,
-                        min(self._width, src_rect.width()), src_rect.height())
+                        width, src_rect.height())
+                src_rect.setWidth(width)
                 painter.drawImage(dest_rect, image, src_rect)
 
         # Testing
@@ -369,13 +374,9 @@ class ColumnCache():
 
         painter = QPainter(pixmap)
 
-        # Testing
-        painter.setBackground(Qt.black)
-        painter.eraseRect(QRect(0, 0, self._width, ColumnCache.PIXMAP_HEIGHT))
-        painter.setPen(Qt.white)
-        painter.drawRect(0, 0, self._width - 1, ColumnCache.PIXMAP_HEIGHT - 1)
-        pixmap_desc = '{}-{}-{}'.format(self._col_num, self._pat_num, index)
-        painter.drawText(QPoint(2, 12), pixmap_desc)
+        # Background
+        painter.setBackground(self._config['bg_colour'])
+        painter.eraseRect(QRect(0, 0, self._width - 1, ColumnCache.PIXMAP_HEIGHT))
 
         # Start and stop timestamps
         start_px = index * ColumnCache.PIXMAP_HEIGHT
@@ -410,6 +411,22 @@ class ColumnCache():
                     src_rect.setHeight(rect_height)
 
             painter.drawImage(dest_rect, image, src_rect)
+
+        # Border
+        painter.setPen(self._config['border_colour'])
+        painter.drawLine(
+                QPoint(self._width - 1, 0),
+                QPoint(self._width - 1, ColumnCache.PIXMAP_HEIGHT))
+
+        # Testing
+        """
+        painter.setBackground(Qt.black)
+        painter.eraseRect(QRect(0, 0, self._width, ColumnCache.PIXMAP_HEIGHT))
+        painter.setPen(Qt.white)
+        painter.drawRect(0, 0, self._width - 1, ColumnCache.PIXMAP_HEIGHT - 1)
+        pixmap_desc = '{}-{}-{}'.format(self._col_num, self._pat_num, index)
+        painter.drawText(QPoint(2, 12), pixmap_desc)
+        """
 
         return pixmap
 

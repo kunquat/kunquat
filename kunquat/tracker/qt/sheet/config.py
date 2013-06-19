@@ -18,7 +18,7 @@ DEFAULT_CONFIG = {
         'ruler': {
             'bg_colour'       : QColor(0x11, 0x22, 0x55),
             'fg_colour'       : QColor(0xaa, 0xcc, 0xff),
-            'canvas_bg_colour': QColor(0, 0, 0),
+            'canvas_bg_colour': QColor(0x11, 0x11, 0x11),
             'font'            : QFont(QFont().defaultFamily(), 9),
             'line_min_dist'   : 3,
             'line_len_short'  : 2,
@@ -29,8 +29,9 @@ DEFAULT_CONFIG = {
             },
         'col_width'       : 128,
         'px_per_beat'     : 128,
-        'canvas_bg_colour': QColor(0, 0, 0),
+        'canvas_bg_colour': QColor(0x11, 0x11, 0x11),
         'bg_colour'       : QColor(0, 0, 0),
+        'border_colour'   : QColor(0x55, 0x55, 0x55),
         'font'            : QFont(QFont().defaultFamily(), 12),
         'trigger_padding' : 3,
         }
