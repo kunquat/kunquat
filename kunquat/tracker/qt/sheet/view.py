@@ -233,12 +233,13 @@ class ColumnGroupRenderer():
 
             pixmaps_created += cache.get_pixmaps_created()
 
-            # TODO: Draw overlapping part of previous pattern
+            # Draw overlapping part of previous pattern
             if overlap:
                 src_rect, image = overlap
                 dest_rect = QRect(
                         0, rel_start_height,
                         min(self._width, src_rect.width()), src_rect.height())
+                # TODO: prevent from drawing on the first trigger row
                 painter.drawImage(dest_rect, image, src_rect)
                 overlap = None
 
@@ -250,6 +251,7 @@ class ColumnGroupRenderer():
                 last_start_y = last_rems * self._px_per_beat // tstamp.BEAT
                 last_stop_y = last_start_y + self._config['tr_height']
                 if last_stop_y >= self._heights[pi]:
+                    # + 1 is the shared pixel row between patterns
                     rect_height = last_stop_y - self._heights[pi] + 1
                     rect_start = self._config['tr_height'] - rect_height
                     rect = QRect(
@@ -264,6 +266,16 @@ class ColumnGroupRenderer():
                         0, rel_end_height,
                         self._width, height - rel_end_height)
                     )
+
+            # Draw trigger row that extends beyond the last pattern
+            if overlap:
+                src_rect, image = overlap
+                # Last pattern and blank do not share pixel rows
+                src_rect.setY(src_rect.y() + 1)
+                dest_rect = QRect(
+                        0, rel_end_height,
+                        min(self._width, src_rect.width()), src_rect.height())
+                painter.drawImage(dest_rect, image, src_rect)
 
         # Testing
         """
@@ -348,10 +360,12 @@ class ColumnCache():
         # Testing
         painter.setBackground(Qt.black)
         painter.eraseRect(QRect(0, 0, self._width, ColumnCache.PIXMAP_HEIGHT))
+        """
         painter.setPen(Qt.white)
         painter.drawRect(0, 0, self._width - 1, ColumnCache.PIXMAP_HEIGHT - 1)
         pixmap_desc = '{}-{}-{}'.format(self._col_num, self._pat_num, index)
         painter.drawText(QPoint(2, 12), pixmap_desc)
+        """
 
         # Start and stop timestamps
         start_px = index * ColumnCache.PIXMAP_HEIGHT
@@ -472,7 +486,10 @@ class TRCache():
         for row in reversed(self._rows):
             ts, _ = row
             if ts <= max_ts:
-                assert ts in self._images
+                if ts not in self._images:
+                    # We haven't rendered the trigger row yet,
+                    # so it must be outside the view
+                    return None
                 return ts, self._images[ts]
         return None
 
