@@ -555,6 +555,7 @@ class TriggerRenderer():
 
         evtype, expr = self._evspec
         painter.drawText(QPoint(self._evtype_offset, self._baseline_offset), evtype)
-        painter.drawText(QPoint(self._expr_offset, self._baseline_offset), expr)
+        if expr != None:
+            painter.drawText(QPoint(self._expr_offset, self._baseline_offset), expr)
 
 
