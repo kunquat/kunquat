@@ -236,10 +236,22 @@ class ColumnGroupRenderer():
             # Draw overlapping part of previous pattern
             if overlap:
                 src_rect, image = overlap
+
+                # Prevent from drawing over the first trigger row
+                first_tr = cache.get_first_trigger_row()
+                if first_tr:
+                    first_ts, _ = first_tr
+                    first_rems = first_ts.beats * tstamp.BEAT + first_ts.rem
+                    first_start_y = first_rems * self._px_per_beat // tstamp.BEAT
+                    first_start_y += rel_start_height
+                    src_rect_stop_y = rel_start_height + src_rect.height()
+                    if src_rect_stop_y > first_start_y:
+                        tr_overlap = src_rect_stop_y - first_start_y
+                        src_rect.setHeight(src_rect.height() - tr_overlap)
+
                 dest_rect = QRect(
                         0, rel_start_height,
                         min(self._width, src_rect.width()), src_rect.height())
-                # TODO: prevent from drawing on the first trigger row
                 painter.drawImage(dest_rect, image, src_rect)
                 overlap = None
 
@@ -360,12 +372,10 @@ class ColumnCache():
         # Testing
         painter.setBackground(Qt.black)
         painter.eraseRect(QRect(0, 0, self._width, ColumnCache.PIXMAP_HEIGHT))
-        """
         painter.setPen(Qt.white)
         painter.drawRect(0, 0, self._width - 1, ColumnCache.PIXMAP_HEIGHT - 1)
         pixmap_desc = '{}-{}-{}'.format(self._col_num, self._pat_num, index)
         painter.drawText(QPoint(2, 12), pixmap_desc)
-        """
 
         # Start and stop timestamps
         start_px = index * ColumnCache.PIXMAP_HEIGHT
@@ -402,6 +412,9 @@ class ColumnCache():
             painter.drawImage(dest_rect, image, src_rect)
 
         return pixmap
+
+    def get_first_trigger_row(self):
+        return self._tr_cache.get_first_trigger_row()
 
     def get_last_trigger_row(self, max_ts):
         return self._tr_cache.get_last_trigger_row(max_ts)
@@ -481,6 +494,14 @@ class TRCache():
         """
 
         return image
+
+    def get_first_trigger_row(self):
+        if self._rows:
+            ts, _ = self._rows[0]
+            if ts not in self._images:
+                return None
+            return ts, self._images[ts]
+        return None
 
     def get_last_trigger_row(self, max_ts):
         for row in reversed(self._rows):
