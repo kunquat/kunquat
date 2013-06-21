@@ -62,8 +62,66 @@ START_TEST(Empty_composition_renders_zero_frames)
             nframes == 0,
             "Wrong number of frames rendered"
             KT_VALUES("%ld", 0, nframes));
+    fail_unless(
+            Player_has_stopped(player),
+            "Player did not reach end of composition");
 }
 END_TEST
+
+
+#if 0
+START_TEST(Empty_pattern_contains_silence)
+{
+    set_mixing_rate(mixing_rates[_i]);
+
+    set_data("album/p_manifest.json", "{}");
+    set_data("album/p_tracks.json", "[0]");
+    set_data("song_00/p_manifest.json", "{}");
+    set_data("song_00/p_order_list.json", "[ [0, 0] ]");
+    set_data("pat_000/p_manifest.json", "{}");
+    set_data("pat_000/p_pattern.json", "{ \"length\": [16, 0] }");
+    set_data("pat_000/instance_000/p_manifest.json", "{}");
+
+    validate();
+
+    const long expected_length = 8 * mixing_rates[_i];
+    int32_t actual_length = 0;
+
+    Player_play(player, 4096);
+    int32_t nframes = Player_get_frames_available(player);
+    while (nframes > 0)
+    {
+        actual_length += nframes;
+
+        // Don't want to spend too much time on this...
+        if (_i == MIXING_RATE_LOW)
+        {
+            float* bufs[] =
+            {
+                Player_get_audio(player, 0),
+                Player_get_audio(player, 1),
+            };
+            fail_if(bufs[0] == NULL,
+                    "Player_get_audio did not return a buffer");
+            fail_if(bufs[0] == NULL,
+                    "Player_get_audio did not return a buffer");
+
+            float expected_buf[128] = { 0.0f };
+            assert(nframes <= 128);
+            check_buffers_equal(expected_buf, bufs[0], nframes, 0.0f);
+            check_buffers_equal(expected_buf, bufs[1], nframes, 0.0f);
+        }
+
+        Player_play(player, 4096);
+        nframes = Player_get_frames_available(player);
+    }
+
+    fail_unless(actual_length == expected_length,
+            "Wrong number of frames rendered"
+            KT_VALUES("%ld", expected_length, actual_length));
+}
+END_TEST
+#endif
 
 
 Suite* Player_suite(void)

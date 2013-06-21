@@ -57,6 +57,14 @@ int32_t Player_get_frames_available(Player* player)
 }
 
 
+bool Player_has_stopped(Player* player)
+{
+    assert(player != NULL);
+    (void)player;
+    return true;
+}
+
+
 void del_Player(Player* player)
 {
     if (player == NULL)

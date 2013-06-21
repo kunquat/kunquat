@@ -57,6 +57,19 @@ int32_t Player_get_frames_available(Player* player);
 
 
 /**
+ * Tells whether the Player has reached the end of playback.
+ *
+ * It is still possible to render more audio, in which case the Player
+ * will act as if paused at the end of composition.
+ *
+ * \param player   The Player -- must not be \c NULL.
+ *
+ * \return   \c true if end has been reached, otherwise \c false.
+ */
+bool Player_has_stopped(Player* player);
+
+
+/**
  * Destroys the Player.
  *
  * \param player   The Player, or \c NULL.
