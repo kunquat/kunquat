@@ -18,17 +18,21 @@
 
 #include <Active_names.h>
 #include <Event_common.h>
-#include <Event_channel_set_gen_reltime.h>
+#include <Event_generator_set_tstamp.h>
+#include <File_base.h>
+#include <Generator.h>
 #include <kunquat/limits.h>
 #include <string_common.h>
 #include <Value.h>
 #include <xassert.h>
 
 
-bool Event_channel_set_gen_reltime_process(
+bool Event_generator_set_tstamp_process(
+        Generator* gen,
         Channel_state* ch_state,
         Value* value)
 {
+    assert(gen != NULL);
     assert(ch_state != NULL);
     assert(value != NULL);
     if (value->type != VALUE_TYPE_TSTAMP)
@@ -37,14 +41,14 @@ bool Event_channel_set_gen_reltime_process(
     }
     char* key = Active_names_get(
             ch_state->parent.active_names,
-            ACTIVE_CAT_CH_GEN,
+            ACTIVE_CAT_GEN,
             ACTIVE_TYPE_TSTAMP);
     if (!string_has_suffix(key, ".jsont"))
     {
         return true;
     }
-    return Channel_gen_state_modify_value(
-            ch_state->cgstate,
+    return Device_params_modify_value(
+            gen->conf->params,
             key,
             &value->value.Tstamp_type);
 }

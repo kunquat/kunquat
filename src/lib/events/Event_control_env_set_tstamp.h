@@ -12,21 +12,21 @@
  */
 
 
-#ifndef K_EVENT_GENERATOR_SET_RELTIME_NAME_H
-#define K_EVENT_GENERATOR_SET_RELTIME_NAME_H
+#ifndef K_EVENT_CONTROL_ENV_SET_TSTAMP_H
+#define K_EVENT_CONTROL_ENV_SET_TSTAMP_H
 
 
-#include <Channel_state.h>
-#include <Generator.h>
+#include <stdbool.h>
+
+#include <General_state.h>
 #include <Value.h>
 
 
-bool Event_generator_set_reltime_name_process(
-        Generator* gen,
-        Channel_state* ch_state,
+bool Event_control_env_set_tstamp_process(
+        General_state* gstate,
         Value* value);
 
 
-#endif // K_EVENT_GENERATOR_SET_RELTIME_NAME_H
+#endif // K_EVENT_CONTROL_ENV_SET_TSTAMP_H
 
 

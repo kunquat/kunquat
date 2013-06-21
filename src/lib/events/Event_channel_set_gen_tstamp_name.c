@@ -15,27 +15,28 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+#include <Active_names.h>
+#include <Event.h>
 #include <Event_common.h>
-#include <Event_control_env_set_timestamp_name.h>
-#include <Event_type.h>
+#include <Event_channel_set_gen_tstamp_name.h>
 #include <set_active_name.h>
 #include <Value.h>
 #include <xassert.h>
 
 
-bool Event_control_env_set_timestamp_name_process(
-        General_state* gstate,
+bool Event_channel_set_gen_tstamp_name_process(
+        Channel_state* ch_state,
         Value* value)
 {
-    assert(gstate != NULL);
+    assert(ch_state != NULL);
     assert(value != NULL);
-    if (value->type != VALUE_TYPE_STRING || !gstate->global)
+    if (value->type != VALUE_TYPE_STRING)
     {
         return false;
     }
     return set_active_name(
-            gstate,
-            ACTIVE_CAT_ENV,
+            &ch_state->parent,
+            ACTIVE_CAT_CH_GEN,
             ACTIVE_TYPE_TSTAMP,
             value);
 }

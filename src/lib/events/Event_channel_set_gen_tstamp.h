@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -12,19 +12,19 @@
  */
 
 
-#ifndef K_EVENT_CHANNEL_SET_GEN_RELTIME_NAME_H
-#define K_EVENT_CHANNEL_SET_GEN_RELTIME_NAME_H
+#ifndef K_EVENT_CHANNEL_SET_GEN_TSTAMP_H
+#define K_EVENT_CHANNEL_SET_GEN_TSTAMP_H
 
 
 #include <Channel_state.h>
 #include <Value.h>
 
 
-bool Event_channel_set_gen_reltime_name_process(
+bool Event_channel_set_gen_tstamp_process(
         Channel_state* ch_state,
         Value* value);
 
 
-#endif // K_EVENT_CHANNEL_SET_GEN_RELTIME_NAME_H
+#endif // K_EVENT_CHANNEL_SET_GEN_TSTAMP_H
 
 

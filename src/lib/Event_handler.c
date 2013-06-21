@@ -45,8 +45,8 @@
 #include <Event_control_env_set_int.h>
 #include <Event_control_env_set_float_name.h>
 #include <Event_control_env_set_float.h>
-#include <Event_control_env_set_timestamp_name.h>
-#include <Event_control_env_set_timestamp.h>
+#include <Event_control_env_set_tstamp_name.h>
+#include <Event_control_env_set_tstamp.h>
 
 #include <Event_control_set_goto_row.h>
 #include <Event_control_set_goto_section.h>
@@ -138,8 +138,8 @@
 #include <Event_channel_set_gen_int.h>
 #include <Event_channel_set_gen_float_name.h>
 #include <Event_channel_set_gen_float.h>
-#include <Event_channel_set_gen_reltime_name.h>
-#include <Event_channel_set_gen_reltime.h>
+#include <Event_channel_set_gen_tstamp_name.h>
+#include <Event_channel_set_gen_tstamp.h>
 
 #include <Event_ins_set_sustain.h>
 
@@ -149,8 +149,8 @@
 #include <Event_generator_set_int.h>
 #include <Event_generator_set_float_name.h>
 #include <Event_generator_set_float.h>
-#include <Event_generator_set_reltime_name.h>
-#include <Event_generator_set_reltime.h>
+#include <Event_generator_set_tstamp_name.h>
+#include <Event_generator_set_tstamp.h>
 
 #include <Event_effect_bypass_on.h>
 #include <Event_effect_bypass_off.h>
@@ -161,8 +161,8 @@
 #include <Event_dsp_set_int.h>
 #include <Event_dsp_set_float_name.h>
 #include <Event_dsp_set_float.h>
-#include <Event_dsp_set_reltime_name.h>
-#include <Event_dsp_set_reltime.h>
+#include <Event_dsp_set_tstamp_name.h>
+#include <Event_dsp_set_tstamp.h>
 
 #include <memory.h>
 #include <xassert.h>
@@ -254,9 +254,9 @@ Event_handler* new_Event_handler(Playdata* global_state,
     Event_handler_set_control_process(eh, EVENT_CONTROL_ENV_SET_FLOAT,
                                       Event_control_env_set_float_process);
     Event_handler_set_control_process(eh, EVENT_CONTROL_ENV_SET_TSTAMP_NAME,
-                                      Event_control_env_set_timestamp_name_process);
+                                      Event_control_env_set_tstamp_name_process);
     Event_handler_set_control_process(eh, EVENT_CONTROL_ENV_SET_TSTAMP,
-                                      Event_control_env_set_timestamp_process);
+                                      Event_control_env_set_tstamp_process);
 
     Event_handler_set_control_process(eh, EVENT_CONTROL_SET_GOTO_ROW,
                                       Event_control_set_goto_row_process);
@@ -430,9 +430,9 @@ Event_handler* new_Event_handler(Playdata* global_state,
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_GEN_FLOAT,
                                  Event_channel_set_gen_float_process);
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_GEN_TSTAMP_NAME,
-                                 Event_channel_set_gen_reltime_name_process);
+                                 Event_channel_set_gen_tstamp_name_process);
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_GEN_TSTAMP,
-                                 Event_channel_set_gen_reltime_process);
+                                 Event_channel_set_gen_tstamp_process);
 
     Event_handler_set_ins_process(eh, EVENT_INS_SET_SUSTAIN,
                                   Event_ins_set_sustain_process);
@@ -450,9 +450,9 @@ Event_handler* new_Event_handler(Playdata* global_state,
     Event_handler_set_generator_process(eh, EVENT_GENERATOR_SET_FLOAT,
                                         Event_generator_set_float_process);
     Event_handler_set_generator_process(eh, EVENT_GENERATOR_SET_TSTAMP_NAME,
-                                        Event_generator_set_reltime_name_process);
+                                        Event_generator_set_tstamp_name_process);
     Event_handler_set_generator_process(eh, EVENT_GENERATOR_SET_TSTAMP,
-                                        Event_generator_set_reltime_process);
+                                        Event_generator_set_tstamp_process);
 
     Event_handler_set_effect_process(eh, EVENT_EFFECT_BYPASS_ON,
                                      Event_effect_bypass_on_process);
@@ -472,9 +472,9 @@ Event_handler* new_Event_handler(Playdata* global_state,
     Event_handler_set_dsp_process(eh, EVENT_DSP_SET_FLOAT,
                                   Event_dsp_set_float_process);
     Event_handler_set_dsp_process(eh, EVENT_DSP_SET_TSTAMP_NAME,
-                                  Event_dsp_set_reltime_name_process);
+                                  Event_dsp_set_tstamp_name_process);
     Event_handler_set_dsp_process(eh, EVENT_DSP_SET_TSTAMP,
-                                  Event_dsp_set_reltime_process);
+                                  Event_dsp_set_tstamp_process);
 
     Playdata_set_event_filter(global_state, eh->event_names);
     return eh;

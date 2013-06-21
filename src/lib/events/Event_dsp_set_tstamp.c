@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -14,19 +14,21 @@
 
 #include <stdlib.h>
 #include <stdbool.h>
+#include <limits.h>
 
+#include <Active_names.h>
 #include <Channel_state.h>
 #include <DSP_conf.h>
 #include <Event_common.h>
-#include <Event_dsp_set_reltime_name.h>
+#include <Event_dsp_set_tstamp.h>
 #include <File_base.h>
-#include <set_active_name.h>
+#include <kunquat/limits.h>
 #include <string_common.h>
 #include <Value.h>
 #include <xassert.h>
 
 
-bool Event_dsp_set_reltime_name_process(
+bool Event_dsp_set_tstamp_process(
         DSP_conf* dsp_conf,
         Channel_state* ch_state,
         Value* value)
@@ -34,16 +36,22 @@ bool Event_dsp_set_reltime_name_process(
     assert(dsp_conf != NULL);
     assert(ch_state != NULL);
     assert(value != NULL);
-    (void)dsp_conf;
-    if (value->type != VALUE_TYPE_STRING)
+    if (value->type != VALUE_TYPE_TSTAMP)
     {
         return false;
     }
-    return set_active_name(
-            &ch_state->parent,
+    char* key = Active_names_get(
+            ch_state->parent.active_names,
             ACTIVE_CAT_DSP,
-            ACTIVE_TYPE_TSTAMP,
-            value);
+            ACTIVE_TYPE_TSTAMP);
+    if (!string_has_suffix(key, ".jsont"))
+    {
+        return false;
+    }
+    return Device_params_modify_value(
+            dsp_conf->params,
+            key,
+            &value->value.Tstamp_type);
 }
 
 

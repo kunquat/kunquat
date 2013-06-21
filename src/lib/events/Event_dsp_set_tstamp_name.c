@@ -15,33 +15,33 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#include <Active_names.h>
+#include <Channel_state.h>
+#include <DSP_conf.h>
 #include <Event_common.h>
-#include <Event_generator_set_reltime_name.h>
+#include <Event_dsp_set_tstamp_name.h>
 #include <File_base.h>
-#include <Generator.h>
 #include <set_active_name.h>
 #include <string_common.h>
 #include <Value.h>
 #include <xassert.h>
 
 
-bool Event_generator_set_reltime_name_process(
-        Generator* gen,
+bool Event_dsp_set_tstamp_name_process(
+        DSP_conf* dsp_conf,
         Channel_state* ch_state,
         Value* value)
 {
-    assert(gen != NULL);
+    assert(dsp_conf != NULL);
     assert(ch_state != NULL);
     assert(value != NULL);
-    (void)gen;
+    (void)dsp_conf;
     if (value->type != VALUE_TYPE_STRING)
     {
         return false;
     }
     return set_active_name(
             &ch_state->parent,
-            ACTIVE_CAT_GEN,
+            ACTIVE_CAT_DSP,
             ACTIVE_TYPE_TSTAMP,
             value);
 }

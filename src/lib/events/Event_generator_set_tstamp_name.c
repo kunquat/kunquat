@@ -16,27 +16,32 @@
 #include <stdbool.h>
 
 #include <Active_names.h>
-#include <Event.h>
 #include <Event_common.h>
-#include <Event_channel_set_gen_reltime_name.h>
+#include <Event_generator_set_tstamp_name.h>
+#include <File_base.h>
+#include <Generator.h>
 #include <set_active_name.h>
+#include <string_common.h>
 #include <Value.h>
 #include <xassert.h>
 
 
-bool Event_channel_set_gen_reltime_name_process(
+bool Event_generator_set_tstamp_name_process(
+        Generator* gen,
         Channel_state* ch_state,
         Value* value)
 {
+    assert(gen != NULL);
     assert(ch_state != NULL);
     assert(value != NULL);
+    (void)gen;
     if (value->type != VALUE_TYPE_STRING)
     {
         return false;
     }
     return set_active_name(
             &ch_state->parent,
-            ACTIVE_CAT_CH_GEN,
+            ACTIVE_CAT_GEN,
             ACTIVE_TYPE_TSTAMP,
             value);
 }

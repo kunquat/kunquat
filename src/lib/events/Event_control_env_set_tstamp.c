@@ -21,7 +21,7 @@
 #include <Environment.h>
 #include <Event.h>
 #include <Event_common.h>
-#include <Event_control_env_set_timestamp.h>
+#include <Event_control_env_set_tstamp.h>
 #include <Event_type.h>
 #include <File_base.h>
 #include <General_state.h>
@@ -31,7 +31,7 @@
 #include <xassert.h>
 
 
-bool Event_control_env_set_timestamp_process(
+bool Event_control_env_set_tstamp_process(
         General_state* gstate,
         Value* value)
 {

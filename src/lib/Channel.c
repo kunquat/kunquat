@@ -50,7 +50,7 @@ Channel* new_Channel(Ins_table* insts,
         return NULL;
     }
 //    ch->note_off = NULL;
-/*    ch->single = (Event*)new_Event_voice_note_on(Tstamp_set(RELTIME_AUTO, -1, 0));
+/*    ch->single = (Event*)new_Event_voice_note_on(Tstamp_set(TSTAMP_AUTO, -1, 0));
     if (ch->single == NULL)
     {
         del_Event(ch->note_off);

@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_EVENT_CONTROL_ENV_SET_TIMESTAMP_NAME_H
-#define K_EVENT_CONTROL_ENV_SET_TIMESTAMP_NAME_H
+#ifndef K_EVENT_CONTROL_ENV_SET_TSTAMP_NAME_H
+#define K_EVENT_CONTROL_ENV_SET_TSTAMP_NAME_H
 
 
 #include <stdbool.h>
@@ -22,11 +22,11 @@
 #include <Value.h>
 
 
-bool Event_control_env_set_timestamp_name_process(
+bool Event_control_env_set_tstamp_name_process(
         General_state* gstate,
         Value* value);
 
 
-#endif // K_EVENT_CONTROL_ENV_SET_TIMESTAMP_NAME_H
+#endif // K_EVENT_CONTROL_ENV_SET_TSTAMP_NAME_H
 
 
