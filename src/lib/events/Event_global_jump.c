@@ -33,7 +33,7 @@ typedef struct Jump_context
     int64_t counter;
     int16_t subsong;
     int16_t section;
-    Reltime row;
+    Tstamp row;
 } Jump_context;
 
 
@@ -52,7 +52,7 @@ static Jump_context* new_Jump_context(Pattern_location* loc)
     jc->counter = 0;
     jc->subsong = -1;
     jc->section = -1;
-    Reltime_set(&jc->row, 0, 0);
+    Tstamp_set(&jc->row, 0, 0);
     return jc;
 }
 
@@ -60,7 +60,7 @@ static Jump_context* new_Jump_context(Pattern_location* loc)
 void del_Event_global_jump(Event* event);
 
 
-Event* new_Event_global_jump(Reltime* pos)
+Event* new_Event_global_jump(Tstamp* pos)
 {
     assert(pos != NULL);
     Event_global_jump* event = memory_alloc_item(Event_global_jump);
@@ -85,7 +85,7 @@ Event* new_Event_global_jump(Reltime* pos)
     //event->counter = 0;
     //event->subsong = -1;
     //event->section = -1;
-    //Reltime_set(&event->row, 0, 0);
+    //Tstamp_set(&event->row, 0, 0);
     return (Event*)event;
 }
 
@@ -128,7 +128,7 @@ void Trigger_global_jump_process(Event* event, Playdata* play)
         jc->counter = play->jump_set_counter;
         jc->subsong = play->jump_set_subsong;
         jc->section = play->jump_set_section;
-        Reltime_copy(&jc->row, &play->jump_set_row);
+        Tstamp_copy(&jc->row, &play->jump_set_row);
     }
     if (jc->counter > 0)
     {
@@ -136,7 +136,7 @@ void Trigger_global_jump_process(Event* event, Playdata* play)
         play->jump = true;
         play->jump_subsong = jc->subsong;
         play->jump_section = jc->section;
-        Reltime_copy(&play->jump_row, &jc->row);
+        Tstamp_copy(&play->jump_row, &jc->row);
     }
     else
     {

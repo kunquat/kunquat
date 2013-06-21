@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -22,7 +22,7 @@
 #include <File_base.h>
 #include <Device_field.h>
 #include <Real.h>
-#include <Reltime.h>
+#include <Tstamp.h>
 
 
 typedef struct Device_params Device_params;
@@ -265,15 +265,15 @@ Real* Device_params_get_real(Device_params* params, const char* key);
 
 
 /**
- * Retrieves a Reltime value from Device parameters.
+ * Retrieves a Tstamp value from Device parameters.
  *
  * \param params   The Device parameters -- must not be \c NULL.
  * \param key      The key -- must be a valid subkey starting after the
  *                 c/ or i/ directory and must have the suffix ".jsont".
  *
- * \return   The Reltime value, or \c NULL if \a key doesn't exist.
+ * \return   The Tstamp value, or \c NULL if \a key doesn't exist.
  */
-Reltime* Device_params_get_reltime(Device_params* params, const char* key);
+Tstamp* Device_params_get_tstamp(Device_params* params, const char* key);
 
 
 /**

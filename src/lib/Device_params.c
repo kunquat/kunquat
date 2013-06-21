@@ -600,7 +600,7 @@ Real* Device_params_get_real(Device_params* params, const char* key)
 }
 
 
-Reltime* Device_params_get_reltime(Device_params* params, const char* key)
+Tstamp* Device_params_get_tstamp(Device_params* params, const char* key)
 {
     assert(params != NULL);
     assert(key != NULL);
@@ -608,7 +608,7 @@ Reltime* Device_params_get_reltime(Device_params* params, const char* key)
     {
         return NULL;
     }
-    get_of_type(params, key, reltime);
+    get_of_type(params, key, tstamp);
     return NULL;
 }
 

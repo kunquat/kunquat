@@ -24,8 +24,9 @@
 #include <xassert.h>
 
 
-bool Event_channel_set_gen_bool_name_process(Channel_state* ch_state,
-                                             Value* value)
+bool Event_channel_set_gen_bool_name_process(
+        Channel_state* ch_state,
+        Value* value)
 {
     assert(ch_state != NULL);
     assert(value != NULL);
@@ -33,8 +34,11 @@ bool Event_channel_set_gen_bool_name_process(Channel_state* ch_state,
     {
         return false;
     }
-    return set_active_name(&ch_state->parent, ACTIVE_CAT_CH_GEN,
-                           ACTIVE_TYPE_BOOL, value);
+    return set_active_name(
+            &ch_state->parent,
+            ACTIVE_CAT_CH_GEN,
+            ACTIVE_TYPE_BOOL,
+            value);
 }
 
 

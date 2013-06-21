@@ -27,11 +27,11 @@ bool Event_global_set_jump_row_process(Playdata* global_state, Value* value)
 {
     assert(global_state != NULL);
     assert(value != NULL);
-    if (value->type != VALUE_TYPE_TIMESTAMP)
+    if (value->type != VALUE_TYPE_TSTAMP)
     {
         return false;
     }
-    Reltime_copy(&global_state->jump_set_row, &value->value.Timestamp_type);
+    Tstamp_copy(&global_state->jump_set_row, &value->value.Tstamp_type);
     return true;
 }
 

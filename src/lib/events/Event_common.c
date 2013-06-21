@@ -19,15 +19,16 @@
 #include <xassert.h>
 
 
-Event* Event_init(Event* event,
-                  Reltime* pos,
-                  Event_type type)
+Event* Event_init(
+        Event* event,
+        Tstamp* pos,
+        Event_type type)
 {
     assert(event != NULL);
     assert(pos != NULL);
     assert(EVENT_IS_VALID(type));
     event->type = type;
-    Reltime_copy(&event->pos, pos);
+    Tstamp_copy(&event->pos, pos);
     event->desc = NULL;
     event->destroy = del_Event_default;
     return event;

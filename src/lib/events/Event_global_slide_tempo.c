@@ -18,7 +18,7 @@
 
 #include <Event_common.h>
 #include <Event_global_slide_tempo.h>
-#include <Reltime.h>
+#include <Tstamp.h>
 #include <Value.h>
 #include <xassert.h>
 
@@ -31,13 +31,13 @@ bool Event_global_slide_tempo_process(Playdata* global_state, Value* value)
     {
         return false;
     }
-    Reltime_init(&global_state->tempo_slide_int_left);
-    Reltime_copy(&global_state->tempo_slide_left,
+    Tstamp_init(&global_state->tempo_slide_int_left);
+    Tstamp_copy(&global_state->tempo_slide_left,
                  &global_state->tempo_slide_length);
     double rems_total =
-            (double)Reltime_get_beats(&global_state->tempo_slide_length) *
-                    KQT_RELTIME_BEAT +
-                    Reltime_get_rem(&global_state->tempo_slide_length);
+            (double)Tstamp_get_beats(&global_state->tempo_slide_length) *
+                    KQT_TSTAMP_BEAT +
+                    Tstamp_get_rem(&global_state->tempo_slide_length);
     double slices = rems_total / 36756720; // slide updated 24 times per beat
     global_state->tempo_slide_update = (value->value.float_type -
                                         global_state->tempo) / slices;

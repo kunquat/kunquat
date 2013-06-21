@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2013
  *
  * This file is part of Kunquat.
  *
@@ -22,7 +22,7 @@
 #include <Env_var.h>
 #include <Pat_inst_ref.h>
 #include <Real.h>
-#include <Reltime.h>
+#include <Tstamp.h>
 
 
 typedef enum
@@ -32,7 +32,7 @@ typedef enum
     VALUE_TYPE_INT,
     VALUE_TYPE_FLOAT,
     VALUE_TYPE_REAL,
-    VALUE_TYPE_TIMESTAMP,
+    VALUE_TYPE_TSTAMP,
     VALUE_TYPE_STRING,
     VALUE_TYPE_PAT_INST_REF,
     VALUE_TYPE_COUNT,
@@ -48,7 +48,7 @@ typedef struct Value
         int64_t int_type;
         double float_type;
         Real Real_type;
-        Reltime Timestamp_type;
+        Tstamp Tstamp_type;
         char string_type[ENV_VAR_NAME_MAX];
         Pat_inst_ref Pat_inst_ref_type;
     } value;

@@ -19,14 +19,14 @@
 #include <Event_common.h>
 #include <Event_channel_tremolo_speed.h>
 #include <math_common.h>
-#include <Reltime.h>
 #include <Value.h>
 #include <Voice.h>
 #include <xassert.h>
 
 
-bool Event_channel_tremolo_speed_process(Channel_state* ch_state,
-                                         Value* value)
+bool Event_channel_tremolo_speed_process(
+        Channel_state* ch_state,
+        Value* value)
 {
     assert(ch_state != NULL);
     assert(value != NULL);

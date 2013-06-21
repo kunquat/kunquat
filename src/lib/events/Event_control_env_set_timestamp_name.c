@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2013
  *
  * This file is part of Kunquat.
  *
@@ -23,8 +23,9 @@
 #include <xassert.h>
 
 
-bool Event_control_env_set_timestamp_name_process(General_state* gstate,
-                                                  Value* value)
+bool Event_control_env_set_timestamp_name_process(
+        General_state* gstate,
+        Value* value)
 {
     assert(gstate != NULL);
     assert(value != NULL);
@@ -32,8 +33,11 @@ bool Event_control_env_set_timestamp_name_process(General_state* gstate,
     {
         return false;
     }
-    return set_active_name(gstate, ACTIVE_CAT_ENV, ACTIVE_TYPE_TIMESTAMP,
-                           value);
+    return set_active_name(
+            gstate,
+            ACTIVE_CAT_ENV,
+            ACTIVE_TYPE_TSTAMP,
+            value);
 }
 
 

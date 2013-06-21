@@ -26,9 +26,10 @@
 #include <xassert.h>
 
 
-bool Event_generator_set_int_name_process(Generator* gen,
-                                          Channel_state* ch_state,
-                                          Value* value)
+bool Event_generator_set_int_name_process(
+        Generator* gen,
+        Channel_state* ch_state,
+        Value* value)
 {
     assert(gen != NULL);
     assert(ch_state != NULL);
@@ -38,8 +39,11 @@ bool Event_generator_set_int_name_process(Generator* gen,
     {
         return false;
     }
-    return set_active_name(&ch_state->parent, ACTIVE_CAT_GEN,
-                           ACTIVE_TYPE_INT, value);
+    return set_active_name(
+            &ch_state->parent,
+            ACTIVE_CAT_GEN,
+            ACTIVE_TYPE_INT,
+            value);
 }
 
 

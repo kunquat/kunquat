@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -21,7 +21,7 @@
 
 #include <Pat_inst_ref.h>
 #include <Real.h>
-#include <Reltime.h>
+#include <Tstamp.h>
 #include <kunquat/Handle.h>
 
 
@@ -204,16 +204,16 @@ char* read_tuning(char* str, Real* result, double* cents, Read_state* state);
 
 
 /**
- * Reads a Reltime value.
+ * Reads a Tstamp value.
  *
  * \param str      The input string -- must not be \c NULL.
- * \param result   The address where the Reltime value will be stored, or
+ * \param result   The address where the Tstamp value will be stored, or
  *                 \c NULL for parsing without storing the value.
  * \param state    The Read state -- must not be \c NULL.
  *
  * \return   The position of \a str after parsing.
  */
-char* read_reltime(char* str, Reltime* result, Read_state* state);
+char* read_tstamp(char* str, Tstamp* result, Read_state* state);
 
 
 /**

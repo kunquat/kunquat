@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -19,7 +19,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <Reltime.h>
+#include <Tstamp.h>
 
 
 typedef enum
@@ -39,7 +39,7 @@ typedef struct Slider
     double tempo;
 
     int dir;
-    Reltime length;
+    Tstamp length;
     double current_value;
     double target_value;
     double steps_left;
@@ -116,7 +116,7 @@ void Slider_break(Slider* slider);
  * \param slider   The Slider -- must not be \c NULL.
  * \param length   The new length -- must not be \c NULL or negative.
  */
-void Slider_set_length(Slider* slider, Reltime* length);
+void Slider_set_length(Slider* slider, Tstamp* length);
 
 
 /**

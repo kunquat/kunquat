@@ -20,7 +20,7 @@
 
 #include <Event_common.h>
 #include <Event_channel_arpeggio_on.h>
-#include <Reltime.h>
+#include <Tstamp.h>
 #include <Scale.h>
 #include <Value.h>
 #include <Voice.h>
@@ -111,9 +111,10 @@ bool Event_channel_arpeggio_on_process(Channel_state* ch_state, Value* value)
             vs->arpeggio_factors[last_nonzero + 1] = -1;
         }
 #endif
-        double unit_len = Reltime_toframes(Reltime_set(RELTIME_AUTO, 1, 0),
-                                           *ch_state->tempo,
-                                           *ch_state->freq);
+        double unit_len = Tstamp_toframes(
+                Tstamp_set(TSTAMP_AUTO, 1, 0),
+                *ch_state->tempo,
+                *ch_state->freq);
         vs->arpeggio_length = unit_len / ch_state->arpeggio_speed;
         vs->arpeggio_frames = 0;
         vs->arpeggio_note = 0;

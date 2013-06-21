@@ -20,7 +20,7 @@
 #include <Event_channel_note_off.h>
 #include <kunquat/limits.h>
 #include <note_setup.h>
-#include <Reltime.h>
+#include <Tstamp.h>
 #include <Value.h>
 #include <Voice.h>
 #include <xassert.h>
@@ -41,8 +41,9 @@ bool Event_channel_hit_process(Channel_state* ch_state, Value* value)
     ch_state->fg_count = 0;
     assert(ch_state->instrument >= 0);
     assert(ch_state->instrument < KQT_INSTRUMENTS_MAX);
-    Instrument* ins = Ins_table_get(ch_state->insts,
-                                    ch_state->instrument);
+    Instrument* ins = Ins_table_get(
+            ch_state->insts,
+            ch_state->instrument);
     if (ins == NULL)
     {
         return true;

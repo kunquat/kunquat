@@ -26,9 +26,10 @@
 #include <xassert.h>
 
 
-bool Event_dsp_set_int_name_process(DSP_conf* dsp_conf,
-                                    Channel_state* ch_state,
-                                    Value* value)
+bool Event_dsp_set_int_name_process(
+        DSP_conf* dsp_conf,
+        Channel_state* ch_state,
+        Value* value)
 {
     assert(dsp_conf != NULL);
     assert(ch_state != NULL);
@@ -38,8 +39,11 @@ bool Event_dsp_set_int_name_process(DSP_conf* dsp_conf,
     {
         return false;
     }
-    return set_active_name(&ch_state->parent, ACTIVE_CAT_DSP,
-                           ACTIVE_TYPE_INT, value);
+    return set_active_name(
+            &ch_state->parent,
+            ACTIVE_CAT_DSP,
+            ACTIVE_TYPE_INT,
+            value);
 }
 
 

@@ -37,7 +37,7 @@ bool Event_control_play_pattern_process(General_state* gstate, Value* value)
     Playdata* global_state = (Playdata*)gstate;
     global_state->piref = value->value.Pat_inst_ref_type;
     global_state->mode = PLAY_PATTERN;
-    Reltime_set(&global_state->pos, 0, 0);
+    Tstamp_set(&global_state->pos, 0, 0);
     return true;
 }
 

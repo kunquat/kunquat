@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -20,7 +20,7 @@
 #include <stdint.h>
 
 #include <AAtree.h>
-#include <Reltime.h>
+#include <Tstamp.h>
 #include <Playdata.h>
 
 
@@ -33,19 +33,20 @@ typedef struct Event_global_jump
     //int64_t counter;
     //int16_t subsong;
     //int16_t section;
-    //Reltime row;
+    //Tstamp row;
 } Event_global_jump;
 
 
-Event* new_Event_global_jump(Reltime* pos);
+Event* new_Event_global_jump(Tstamp* pos);
 
 
 void Trigger_global_jump_process(Event* event, Playdata* play);
 
 
-bool Trigger_global_jump_set_locations(Event_global_jump* event,
-                                       AAtree* locations,
-                                       AAiter* locations_iter);
+bool Trigger_global_jump_set_locations(
+        Event_global_jump* event,
+        AAtree* locations,
+        AAiter* locations_iter);
 
 
 #endif // K_EVENT_GLOBAL_JUMP_H

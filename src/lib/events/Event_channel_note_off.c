@@ -30,9 +30,10 @@ bool Event_channel_note_off_process(Channel_state* ch_state, Value* value)
     {
         if (ch_state->fg[i] != NULL)
         {
-            ch_state->fg[i] = Voice_pool_get_voice(ch_state->pool,
-                                                   ch_state->fg[i],
-                                                   ch_state->fg_id[i]);
+            ch_state->fg[i] = Voice_pool_get_voice(
+                    ch_state->pool,
+                    ch_state->fg[i],
+                    ch_state->fg_id[i]);
             if (ch_state->fg[i] == NULL)
             {
                 // The Voice has been given to another channel

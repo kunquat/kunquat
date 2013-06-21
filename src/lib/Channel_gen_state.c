@@ -38,8 +38,9 @@ Channel_gen_state* new_Channel_gen_state(void)
         return NULL;
     }
     state->iter = NULL;
-    state->tree = new_AAtree((int (*)(const void*, const void*))strcmp,
-                             (void (*)(void*))del_Device_field);
+    state->tree = new_AAtree(
+            (int (*)(const void*, const void*))strcmp,
+            (void (*)(void*))del_Device_field);
     if (state->tree == NULL)
     {
         del_Channel_gen_state(state);
@@ -77,9 +78,10 @@ bool Channel_gen_state_set_key(Channel_gen_state* state, const char* key)
 }
 
 
-bool Channel_gen_state_modify_value(Channel_gen_state* state,
-                                    const char* key,
-                                    void* data)
+bool Channel_gen_state_modify_value(
+        Channel_gen_state* state,
+        const char* key,
+        void* data)
 {
     assert(state != NULL);
     assert(key != NULL);
@@ -93,8 +95,9 @@ bool Channel_gen_state_modify_value(Channel_gen_state* state,
 }
 
 
-bool* Channel_gen_state_get_bool(Channel_gen_state* state,
-                                 const char* key)
+bool* Channel_gen_state_get_bool(
+        Channel_gen_state* state,
+        const char* key)
 {
     assert(state != NULL);
     assert(key != NULL);
@@ -111,8 +114,9 @@ bool* Channel_gen_state_get_bool(Channel_gen_state* state,
 }
 
 
-int64_t* Channel_gen_state_get_int(Channel_gen_state* state,
-                                   const char* key)
+int64_t* Channel_gen_state_get_int(
+        Channel_gen_state* state,
+        const char* key)
 {
     assert(state != NULL);
     assert(key != NULL);
@@ -129,8 +133,9 @@ int64_t* Channel_gen_state_get_int(Channel_gen_state* state,
 }
 
 
-double* Channel_gen_state_get_float(Channel_gen_state* state,
-                                    const char* key)
+double* Channel_gen_state_get_float(
+        Channel_gen_state* state,
+        const char* key)
 {
     assert(state != NULL);
     assert(key != NULL);
@@ -147,8 +152,9 @@ double* Channel_gen_state_get_float(Channel_gen_state* state,
 }
 
 
-Real* Channel_gen_state_get_real(Channel_gen_state* state,
-                                 const char* key)
+Real* Channel_gen_state_get_real(
+        Channel_gen_state* state,
+        const char* key)
 {
     assert(state != NULL);
     assert(key != NULL);
@@ -165,8 +171,9 @@ Real* Channel_gen_state_get_real(Channel_gen_state* state,
 }
 
 
-Reltime* Channel_gen_state_get_reltime(Channel_gen_state* state,
-                                       const char* key)
+Tstamp* Channel_gen_state_get_tstamp(
+        Channel_gen_state* state,
+        const char* key)
 {
     assert(state != NULL);
     assert(key != NULL);
@@ -179,7 +186,7 @@ Reltime* Channel_gen_state_get_reltime(Channel_gen_state* state,
     {
         return NULL;
     }
-    return Device_field_get_reltime(field);
+    return Device_field_get_tstamp(field);
 }
 
 

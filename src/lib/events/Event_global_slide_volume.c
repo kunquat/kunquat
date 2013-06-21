@@ -19,7 +19,6 @@
 
 #include <Event_common.h>
 #include <Event_global_slide_volume.h>
-#include <Reltime.h>
 #include <Value.h>
 #include <xassert.h>
 
@@ -41,8 +40,10 @@ bool Event_global_slide_volume_process(Playdata* global_state, Value* value)
     }
     else
     {
-        Slider_start(&global_state->volume_slider,
-                     target, global_state->volume);
+        Slider_start(
+                &global_state->volume_slider,
+                target,
+                global_state->volume);
     }
     return true;
 }

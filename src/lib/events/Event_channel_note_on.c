@@ -23,7 +23,7 @@
 #include <kunquat/limits.h>
 #include <note_setup.h>
 #include <Random.h>
-#include <Reltime.h>
+#include <Tstamp.h>
 #include <Scale.h>
 #include <Voice.h>
 #include <Value.h>
@@ -81,8 +81,8 @@ bool Event_channel_note_on_process(Channel_state* ch_state, Value* value)
         else
         {
             pitch_t pitch = Scale_get_pitch_from_cents(
-                                    **voice->gen->ins_params->scale,
-                                    value->value.float_type);
+                    **voice->gen->ins_params->scale,
+                    value->value.float_type);
             if (pitch > 0)
             {
                 vs->pitch = pitch;

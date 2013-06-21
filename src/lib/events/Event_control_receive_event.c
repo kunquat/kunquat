@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2013
  *
  * This file is part of Kunquat.
  *
@@ -38,8 +38,9 @@ bool Event_control_receive_event(General_state* gstate, Value* value)
     Playdata* global_state = (Playdata*)gstate;
     if (global_state->event_filter != NULL)
     {
-        Event_names_set_pass(global_state->event_filter,
-                             value->value.string_type, true);
+        Event_names_set_pass(
+                global_state->event_filter,
+                value->value.string_type, true);
     }
     return true;
 }

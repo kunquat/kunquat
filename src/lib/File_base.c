@@ -27,7 +27,7 @@
 #include <File_base.h>
 #include <Handle_private.h>
 #include <Real.h>
-#include <Reltime.h>
+#include <Tstamp.h>
 #include <xassert.h>
 
 
@@ -513,7 +513,7 @@ char* read_tuning(char* str, Real* result, double* cents, Read_state* state)
 }
 
 
-char* read_reltime(char* str, Reltime* result, Read_state* state)
+char* read_tstamp(char* str, Tstamp* result, Read_state* state)
 {
     assert(str != NULL);
     assert(state != NULL);
@@ -531,7 +531,7 @@ char* read_reltime(char* str, Reltime* result, Read_state* state)
     str = read_int(str, &beats, state);
     if (state->error)
     {
-        Read_state_set_error(state, "Expected a valid Reltime stamp");
+        Read_state_set_error(state, "Expected a valid timestamp");
         return str;
     }
     str = read_const_char(str, ',', state);
@@ -542,13 +542,13 @@ char* read_reltime(char* str, Reltime* result, Read_state* state)
     str = read_int(str, &rem, state);
     if (state->error)
     {
-        Read_state_set_error(state, "Expected a valid Reltime stamp");
+        Read_state_set_error(state, "Expected a valid timestamp");
         return str;
     }
-    if (rem < 0 || rem >= KQT_RELTIME_BEAT)
+    if (rem < 0 || rem >= KQT_TSTAMP_BEAT)
     {
         Read_state_set_error(state,
-                "Reltime stamp remainder out of range [0..%ld)", KQT_RELTIME_BEAT);
+                "Timestamp remainder out of range [0..%ld)", KQT_TSTAMP_BEAT);
         return str;
     }
     str = read_const_char(str, ']', state);
@@ -558,7 +558,7 @@ char* read_reltime(char* str, Reltime* result, Read_state* state)
     }
     if (result != NULL)
     {
-        Reltime_set(result, beats, rem);
+        Tstamp_set(result, beats, rem);
     }
     return str;
 }

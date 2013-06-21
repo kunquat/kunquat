@@ -27,26 +27,30 @@
 #include <xassert.h>
 
 
-bool Event_generator_set_reltime_process(Generator* gen,
-                                         Channel_state* ch_state,
-                                         Value* value)
+bool Event_generator_set_reltime_process(
+        Generator* gen,
+        Channel_state* ch_state,
+        Value* value)
 {
     assert(gen != NULL);
     assert(ch_state != NULL);
     assert(value != NULL);
-    if (value->type != VALUE_TYPE_TIMESTAMP)
+    if (value->type != VALUE_TYPE_TSTAMP)
     {
         return false;
     }
-    char* key = Active_names_get(ch_state->parent.active_names,
-                                 ACTIVE_CAT_GEN,
-                                 ACTIVE_TYPE_TIMESTAMP);
+    char* key = Active_names_get(
+            ch_state->parent.active_names,
+            ACTIVE_CAT_GEN,
+            ACTIVE_TYPE_TSTAMP);
     if (!string_has_suffix(key, ".jsont"))
     {
         return true;
     }
-    return Device_params_modify_value(gen->conf->params, key,
-                                      &value->value.Timestamp_type);
+    return Device_params_modify_value(
+            gen->conf->params,
+            key,
+            &value->value.Tstamp_type);
 }
 
 

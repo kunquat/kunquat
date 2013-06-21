@@ -19,28 +19,30 @@
 
 #include <Event_common.h>
 #include <Event_channel_slide_panning_length.h>
-#include <Reltime.h>
+#include <Tstamp.h>
 #include <Value.h>
 #include <Voice.h>
 #include <xassert.h>
 
 
-bool Event_channel_slide_panning_length_process(Channel_state* ch_state,
-                                                Value* value)
+bool Event_channel_slide_panning_length_process(
+        Channel_state* ch_state,
+        Value* value)
 {
     assert(ch_state != NULL);
     assert(value != NULL);
-    if (value->type != VALUE_TYPE_TIMESTAMP)
+    if (value->type != VALUE_TYPE_TSTAMP)
     {
         return false;
     }
-    Slider_set_length(&ch_state->panning_slider,
-                      &value->value.Timestamp_type);
+    Slider_set_length(
+            &ch_state->panning_slider,
+            &value->value.Tstamp_type);
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         Event_check_voice(ch_state, i);
         Voice_state* vs = ch_state->fg[i]->state;
-        Slider_set_length(&vs->panning_slider, &value->value.Timestamp_type);
+        Slider_set_length(&vs->panning_slider, &value->value.Tstamp_type);
     }
     return true;
 }

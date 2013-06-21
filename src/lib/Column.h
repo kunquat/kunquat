@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -19,7 +19,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <Reltime.h>
+#include <Tstamp.h>
 #include <Event.h>
 #include <Event_names.h>
 #include <AAtree.h>
@@ -66,7 +66,7 @@ void Column_iter_change_col(Column_iter* iter, Column* col);
  *
  * \return   The Event if one exists, otherwise \c NULL.
  */
-Event* Column_iter_get(Column_iter* iter, const Reltime* pos);
+Event* Column_iter_get(Column_iter* iter, const Tstamp* pos);
 
 
 /**
@@ -99,7 +99,7 @@ void del_Column_iter(Column_iter* iter);
  * \return   The new Column if successful, or \c NULL if memory allocation
  *           failed.
  */
-Column* new_Column(Reltime* len);
+Column* new_Column(Tstamp* len);
 
 
 /**
@@ -129,7 +129,7 @@ Column* new_Column_aux(Column* old_aux, Column* mod_col, int index);
  * \return   The new Column if successful, otherwise \c NULL. \a state
  *           will _not_ be updated if memory allocation failed.
  */
-Column* new_Column_from_string(Reltime* len,
+Column* new_Column_from_string(Tstamp* len,
                                char* str,
 //                               bool is_global,
                                AAtree* locations,
@@ -212,7 +212,7 @@ bool Column_remove(Column* col, Event* event);
  * \return   \c true if Events were found at \a pos and removed, otherwise
  *           \a false.
  */
-bool Column_remove_row(Column* col, Reltime* pos);
+bool Column_remove_row(Column* col, Tstamp* pos);
 
 
 /**
@@ -225,7 +225,7 @@ bool Column_remove_row(Column* col, Reltime* pos);
  *
  * \return   \c true if rows were found and removed, otherwise \c false.
  */
-bool Column_remove_block(Column* col, Reltime* start, Reltime* end);
+bool Column_remove_block(Column* col, Tstamp* start, Tstamp* end);
 
 
 /**
@@ -239,7 +239,7 @@ bool Column_remove_block(Column* col, Reltime* start, Reltime* end);
  *
  * \return   \c true if Events were removed, otherwise \c false.
  */
-bool Column_shift_up(Column* col, Reltime* pos, Reltime* len);
+bool Column_shift_up(Column* col, Tstamp* pos, Tstamp* len);
 
 
 /**
@@ -251,7 +251,7 @@ bool Column_shift_up(Column* col, Reltime* pos, Reltime* len);
  * \param len   The amount of shifting to be made -- must not be \c NULL.
  *              Events moved past the end of the Column will not be removed.
  */
-void Column_shift_down(Column* col, Reltime* pos, Reltime* len);
+void Column_shift_down(Column* col, Tstamp* pos, Tstamp* len);
 
 
 /**
@@ -269,7 +269,7 @@ void Column_clear(Column* col);
  * \param col   The Column -- must not be \c NULL.
  * \param len   The new Column length -- must not be \c NULL.
  */
-void Column_set_length(Column* col, Reltime* len);
+void Column_set_length(Column* col, Tstamp* len);
 
 
 /**
@@ -279,7 +279,7 @@ void Column_set_length(Column* col, Reltime* len);
  *
  * \return   The current Column length.
  */
-Reltime* Column_length(Column* col);
+Tstamp* Column_length(Column* col);
 
 
 /**

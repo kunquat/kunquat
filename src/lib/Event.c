@@ -21,18 +21,18 @@
 #include <xassert.h>
 
 
-Reltime* Event_get_pos(Event* event)
+Tstamp* Event_get_pos(Event* event)
 {
     assert(event != NULL);
     return &event->pos;
 }
 
 
-void Event_set_pos(Event* event, Reltime* pos)
+void Event_set_pos(Event* event, Tstamp* pos)
 {
     assert(event != NULL);
     assert(pos != NULL);
-    Reltime_copy(&event->pos, pos);
+    Tstamp_copy(&event->pos, pos);
     return;
 }
 

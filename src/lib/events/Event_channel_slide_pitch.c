@@ -20,7 +20,6 @@
 #include <Event_common.h>
 #include <Event_channel_slide_pitch.h>
 #include <kunquat/limits.h>
-#include <Reltime.h>
 #include <Scale.h>
 #include <Voice.h>
 #include <Value.h>
@@ -53,8 +52,9 @@ bool Event_channel_slide_pitch_process(Channel_state* ch_state, Value* value)
         }
         else
         {
-            pitch = Scale_get_pitch_from_cents(**voice->gen->ins_params->scale,
-                                               value->value.float_type);
+            pitch = Scale_get_pitch_from_cents(
+                    **voice->gen->ins_params->scale,
+                    value->value.float_type);
         }
         if (pitch <= 0)
         {

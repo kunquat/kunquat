@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -18,19 +18,20 @@
 
 #include <Voice_state.h>
 #include <Voice_params.h>
-#include <Reltime.h>
+#include <Tstamp.h>
 #include <Slider.h>
 #include <kunquat/limits.h>
 #include <xassert.h>
 
 
-Voice_state* Voice_state_init(Voice_state* state,
-                              Voice_params* params,
-                              Channel_gen_state* cgstate,
-                              Random* rand_p,
-                              Random* rand_s,
-                              uint32_t freq,
-                              double tempo)
+Voice_state* Voice_state_init(
+        Voice_state* state,
+        Voice_params* params,
+        Channel_gen_state* cgstate,
+        Random* rand_p,
+        Random* rand_s,
+        uint32_t freq,
+        double tempo)
 {
     assert(state != NULL);
     assert(params != NULL);

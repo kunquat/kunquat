@@ -32,15 +32,18 @@ bool Event_channel_set_gen_int_process(Channel_state* ch_state, Value* value)
     {
         return false;
     }
-    char* key = Active_names_get(ch_state->parent.active_names,
-                                 ACTIVE_CAT_CH_GEN,
-                                 ACTIVE_TYPE_INT);
+    char* key = Active_names_get(
+            ch_state->parent.active_names,
+            ACTIVE_CAT_CH_GEN,
+            ACTIVE_TYPE_INT);
     if (!string_has_suffix(key, ".jsoni"))
     {
         return true;
     }
-    return Channel_gen_state_modify_value(ch_state->cgstate, key,
-                                          &value->value.int_type);
+    return Channel_gen_state_modify_value(
+            ch_state->cgstate,
+            key,
+            &value->value.int_type);
 }
 
 

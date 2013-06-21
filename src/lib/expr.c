@@ -44,15 +44,26 @@ typedef struct Operator
 } Operator;
 
 
-static char* evaluate_expr_(char* str, Environment* env, Read_state* state,
-                            Value* val_stack, int vsi,
-                            Operator* op_stack, int osi,
-                            Value* meta, Value* res, int depth,
-                            bool func_arg, Random* rand);
+static char* evaluate_expr_(
+        char* str,
+        Environment* env,
+        Read_state* state,
+        Value* val_stack,
+        int vsi,
+        Operator* op_stack,
+        int osi,
+        Value* meta,
+        Value* res,
+        int depth,
+        bool func_arg,
+        Random* rand);
 
 
-static bool handle_unary(Value* val, bool found_not, bool found_minus,
-                         Read_state* state);
+static bool handle_unary(
+        Value* val,
+        bool found_not,
+        bool found_minus,
+        Read_state* state);
 
 
 static char* get_token(char* str, char* result, Read_state* state);
@@ -152,12 +163,13 @@ static Func_desc funcs[] =
 };
 
 
-char* evaluate_expr(char* str,
-                    Environment* env,
-                    Read_state* state,
-                    Value* meta,
-                    Value* res,
-                    Random* rand)
+char* evaluate_expr(
+        char* str,
+        Environment* env,
+        Read_state* state,
+        Value* meta,
+        Value* res,
+        Random* rand)
 {
     assert(str != NULL);
     assert(env != NULL);
@@ -175,8 +187,19 @@ char* evaluate_expr(char* str,
     {
         meta = VALUE_AUTO;
     }
-    return evaluate_expr_(str, env, state, val_stack, 0, op_stack, 0,
-                          meta, res, 0, false, rand);
+    return evaluate_expr_(
+            str,
+            env,
+            state,
+            val_stack,
+            0,
+            op_stack,
+            0,
+            meta,
+            res,
+            0,
+            false,
+            rand);
 }
 
 
@@ -190,11 +213,20 @@ char* evaluate_expr(char* str,
         }                                                   \
     } else (void)0
 
-static char* evaluate_expr_(char* str, Environment* env, Read_state* state,
-                            Value* val_stack, int vsi,
-                            Operator* op_stack, int osi,
-                            Value* meta, Value* res, int depth,
-                            bool func_arg, Random* rand)
+static char* evaluate_expr_(
+        char* str,
+        Environment*
+        env,
+        Read_state* state,
+        Value* val_stack,
+        int vsi,
+        Operator* op_stack,
+        int osi,
+        Value* meta,
+        Value* res,
+        int depth,
+        bool func_arg,
+        Random* rand)
 {
     assert(str != NULL);
     assert(env != NULL);
@@ -279,9 +311,19 @@ static char* evaluate_expr_(char* str, Environment* env, Read_state* state,
                 Read_state_clear_error(state);
                 for (i = 0; i < FUNC_ARGS_MAX; ++i)
                 {
-                    str = evaluate_expr_(str, env, state, val_stack, vsi,
-                                         op_stack, osi, meta, &func_args[i],
-                                         depth + 1, true, rand);
+                    str = evaluate_expr_(
+                            str,
+                            env,
+                            state,
+                            val_stack,
+                            vsi,
+                            op_stack,
+                            osi,
+                            meta,
+                            &func_args[i],
+                            depth + 1,
+                            true,
+                            rand);
                     if (state->error)
                     {
                         return str;
@@ -473,8 +515,11 @@ static bool token_is_func(char* token, Func* res)
 }
 
 
-static bool handle_unary(Value* val, bool found_not, bool found_minus,
-                         Read_state* state)
+static bool handle_unary(
+        Value* val,
+        bool found_not,
+        bool found_minus,
+        Read_state* state)
 {
     assert(val != NULL);
     assert(!(found_not && found_minus));
@@ -830,23 +875,24 @@ static bool op_eq(Value* op1, Value* op2, Value* res, Read_state* state)
         {
             case VALUE_TYPE_BOOL:
             {
-                res->value.bool_type = op1->value.bool_type ==
-                                       op2->value.bool_type;
+                res->value.bool_type =
+                    op1->value.bool_type == op2->value.bool_type;
             } break;
             case VALUE_TYPE_INT:
             {
-                res->value.bool_type = op1->value.int_type ==
-                                       op2->value.int_type;
+                res->value.bool_type =
+                    op1->value.int_type == op2->value.int_type;
             } break;
             case VALUE_TYPE_FLOAT:
             {
-                res->value.bool_type = op1->value.float_type ==
-                                       op2->value.float_type;
+                res->value.bool_type =
+                    op1->value.float_type == op2->value.float_type;
             } break;
             case VALUE_TYPE_STRING:
             {
-                res->value.bool_type = string_eq(op1->value.string_type,
-                                                 op2->value.string_type);
+                res->value.bool_type = string_eq(
+                        op1->value.string_type,
+                        op2->value.string_type);
             } break;
             default:
                 assert(false);
@@ -986,13 +1032,13 @@ static bool op_lt(Value* op1, Value* op2, Value* res, Read_state* state)
         {
             case VALUE_TYPE_INT:
             {
-                res->value.bool_type = op1->value.int_type <
-                                       op2->value.int_type;
+                res->value.bool_type =
+                    op1->value.int_type < op2->value.int_type;
             } break;
             case VALUE_TYPE_FLOAT:
             {
-                res->value.bool_type = op1->value.float_type <
-                                       op2->value.float_type;
+                res->value.bool_type =
+                    op1->value.float_type < op2->value.float_type;
             } break;
             default:
                 assert(false);
@@ -1048,13 +1094,13 @@ static bool op_add(Value* op1, Value* op2, Value* res, Read_state* state)
         {
             case VALUE_TYPE_INT:
             {
-                res->value.int_type = op1->value.int_type +
-                                      op2->value.int_type;
+                res->value.int_type =
+                    op1->value.int_type + op2->value.int_type;
             } break;
             case VALUE_TYPE_FLOAT:
             {
-                res->value.float_type = op1->value.float_type +
-                                        op2->value.float_type;
+                res->value.float_type =
+                    op1->value.float_type + op2->value.float_type;
             } break;
             default:
                 assert(false);
@@ -1070,8 +1116,7 @@ static bool op_add(Value* op1, Value* op2, Value* res, Read_state* state)
     assert(op1->type == VALUE_TYPE_INT);
     assert(op2->type == VALUE_TYPE_FLOAT);
     res->type = VALUE_TYPE_FLOAT;
-    res->value.float_type = op1->value.int_type +
-                            op2->value.float_type;
+    res->value.float_type = op1->value.int_type + op2->value.float_type;
     return true;
 }
 
@@ -1131,13 +1176,13 @@ static bool op_mul(Value* op1, Value* op2, Value* res, Read_state* state)
         {
             case VALUE_TYPE_INT:
             {
-                res->value.int_type = op1->value.int_type *
-                                      op2->value.int_type;
+                res->value.int_type =
+                    op1->value.int_type * op2->value.int_type;
             } break;
             case VALUE_TYPE_FLOAT:
             {
-                res->value.float_type = op1->value.float_type *
-                                        op2->value.float_type;
+                res->value.float_type =
+                    op1->value.float_type * op2->value.float_type;
             } break;
             default:
                 assert(false);
@@ -1153,8 +1198,7 @@ static bool op_mul(Value* op1, Value* op2, Value* res, Read_state* state)
     assert(op1->type == VALUE_TYPE_INT);
     assert(op2->type == VALUE_TYPE_FLOAT);
     res->type = VALUE_TYPE_FLOAT;
-    res->value.float_type = op1->value.int_type *
-                            op2->value.float_type;
+    res->value.float_type = op1->value.int_type * op2->value.float_type;
     return true;
 }
 
@@ -1323,26 +1367,28 @@ static bool func_ts(
     {
         return false;
     }
-    res->type = VALUE_TYPE_TIMESTAMP;
-    Reltime_init(&res->value.Timestamp_type);
+    res->type = VALUE_TYPE_TSTAMP;
+    Tstamp_init(&res->value.Tstamp_type);
     if (args[0].type == VALUE_TYPE_NONE)
     {
         return true;
     }
-    else if (args[0].type == VALUE_TYPE_TIMESTAMP)
+    else if (args[0].type == VALUE_TYPE_TSTAMP)
     {
         Value_copy(res, &args[0]);
         return true;
     }
     else if (args[0].type == VALUE_TYPE_INT)
     {
-        Reltime_set(&res->value.Timestamp_type, args[0].value.int_type, 0);
+        Tstamp_set(&res->value.Tstamp_type, args[0].value.int_type, 0);
     }
     else if (args[0].type == VALUE_TYPE_FLOAT)
     {
         double beats = floor(args[0].value.float_type);
-        Reltime_set(&res->value.Timestamp_type, beats,
-                    (args[0].value.float_type - beats) * KQT_RELTIME_BEAT);
+        Tstamp_set(
+                &res->value.Tstamp_type,
+                beats,
+                (args[0].value.float_type - beats) * KQT_TSTAMP_BEAT);
     }
     else
     {
@@ -1357,26 +1403,28 @@ static bool func_ts(
     else if (args[1].type == VALUE_TYPE_INT)
     {
         if (args[1].value.int_type < 0 ||
-                args[1].value.int_type >= KQT_RELTIME_BEAT)
+                args[1].value.int_type >= KQT_TSTAMP_BEAT)
         {
             res->type = VALUE_TYPE_NONE;
             Read_state_set_error(state, "Invalid beat value");
             return false;
         }
-        Reltime_add(&res->value.Timestamp_type, &res->value.Timestamp_type,
-                    Reltime_set(RELTIME_AUTO, 0, args[1].value.int_type));
+        Tstamp_add(
+                &res->value.Tstamp_type, &res->value.Tstamp_type,
+                Tstamp_set(TSTAMP_AUTO, 0, args[1].value.int_type));
     }
     else if (args[1].type == VALUE_TYPE_FLOAT)
     {
         if (args[1].value.float_type < 0 ||
-                args[1].value.float_type >= KQT_RELTIME_BEAT)
+                args[1].value.float_type >= KQT_TSTAMP_BEAT)
         {
             res->type = VALUE_TYPE_NONE;
             Read_state_set_error(state, "Invalid beat value");
             return false;
         }
-        Reltime_add(&res->value.Timestamp_type, &res->value.Timestamp_type,
-                    Reltime_set(RELTIME_AUTO, 0, args[1].value.float_type));
+        Tstamp_add(
+                &res->value.Tstamp_type, &res->value.Tstamp_type,
+                Tstamp_set(TSTAMP_AUTO, 0, args[1].value.float_type));
     }
     else
     {

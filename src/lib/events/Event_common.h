@@ -19,7 +19,7 @@
 #include <stdbool.h>
 
 #include <Event.h>
-#include <Reltime.h>
+#include <Tstamp.h>
 
 
 /**
@@ -34,7 +34,7 @@
  * \return   The parameter \a event.
  */
 Event* Event_init(Event* event,
-                  Reltime* pos,
+                  Tstamp* pos,
                   Event_type type);
 
 

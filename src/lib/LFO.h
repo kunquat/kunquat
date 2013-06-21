@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -19,8 +19,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <Reltime.h>
 #include <Slider.h>
+#include <Tstamp.h>
 
 
 typedef enum
@@ -107,7 +107,7 @@ void LFO_set_speed(LFO* lfo, double speed);
  * \param lfo     The LFO -- must not be \c NULL.
  * \param delay   The delay -- must not be \c NULL or negative.
  */
-void LFO_set_speed_delay(LFO* lfo, Reltime* delay);
+void LFO_set_speed_delay(LFO* lfo, Tstamp* delay);
 
 
 /**
@@ -128,7 +128,7 @@ void LFO_set_depth(LFO* lfo, double depth);
  * \param lfo     The LFO -- must not be \c NULL.
  * \param delay   The delay -- must not be \c NULL or negative.
  */
-void LFO_set_depth_delay(LFO* lfo, Reltime* delay);
+void LFO_set_depth_delay(LFO* lfo, Tstamp* delay);
 
 
 /**

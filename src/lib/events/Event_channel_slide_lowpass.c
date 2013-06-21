@@ -19,14 +19,14 @@
 
 #include <Event_common.h>
 #include <Event_channel_slide_lowpass.h>
-#include <Reltime.h>
 #include <Value.h>
 #include <Voice.h>
 #include <xassert.h>
 
 
-bool Event_channel_slide_lowpass_process(Channel_state* ch_state,
-                                         Value* value)
+bool Event_channel_slide_lowpass_process(
+        Channel_state* ch_state,
+        Value* value)
 {
     assert(ch_state != NULL);
     assert(value != NULL);

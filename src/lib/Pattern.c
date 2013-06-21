@@ -38,7 +38,7 @@ struct Pattern
     Column* cols[KQT_COLUMNS_MAX];
     AAtree* locations;
     AAiter* locations_iter;
-    Reltime length;
+    Tstamp length;
     Bit_array* existents;
 };
 
@@ -47,7 +47,7 @@ static void evaluate_row(Pattern* pat,
                          Playdata* play,
                          Event_handler* eh,
                          Event** next,
-                         Reltime** next_pos);
+                         Tstamp** next_pos);
 
 
 Pattern* new_Pattern(void)
@@ -95,7 +95,7 @@ Pattern* new_Pattern(void)
         del_Pattern(pat);
         return NULL;
     }
-    Reltime_set(&pat->length, 16, 0);
+    Tstamp_set(&pat->length, 16, 0);
     return pat;
 }
 
@@ -108,20 +108,20 @@ bool Pattern_parse_header(Pattern* pat, char* str, Read_state* state)
     {
         return false;
     }
-    Reltime* len = PATTERN_DEFAULT_LENGTH;
+    Tstamp* len = PATTERN_DEFAULT_LENGTH;
     if (str != NULL)
     {
         str = read_const_char(str, '{', state);
         str = read_const_string(str, "length", state);
         str = read_const_char(str, ':', state);
-        str = read_reltime(str, len, state);
+        str = read_tstamp(str, len, state);
         str = read_const_char(str, '}', state);
         if (state->error)
         {
             return false;
         }
     }
-    if (Reltime_get_beats(len) < 0)
+    if (Tstamp_get_beats(len) < 0)
     {
         Read_state_set_error(state, "Pattern length is negative");
         return false;
@@ -193,17 +193,17 @@ AAtree* Pattern_get_locations(Pattern* pat, AAiter** iter)
 }
 
 
-void Pattern_set_length(Pattern* pat, Reltime* length)
+void Pattern_set_length(Pattern* pat, Tstamp* length)
 {
     assert(pat != NULL);
     assert(length != NULL);
     assert(length->beats >= 0);
-    Reltime_copy(&pat->length, length);
+    Tstamp_copy(&pat->length, length);
     return;
 }
 
 
-Reltime* Pattern_get_length(Pattern* pat)
+Tstamp* Pattern_get_length(Pattern* pat)
 {
     assert(pat != NULL);
     return &pat->length;
@@ -274,16 +274,16 @@ uint32_t Pattern_mix(Pattern* pat,
     assert(play->tempo > 0);
     uint32_t mixed = offset;
 //    fprintf(stderr, "new mixing cycle from %" PRIu32 " to %" PRIu32 "\n", offset, nframes);
-    const Reltime* zero_time = Reltime_set(RELTIME_AUTO, 0, 0);
+    const Tstamp* zero_time = Tstamp_set(TSTAMP_AUTO, 0, 0);
     if (pat != NULL && play->mode == PLAY_PATTERN &&
-            Reltime_cmp(zero_time, &pat->length) == 0)
+            Tstamp_cmp(zero_time, &pat->length) == 0)
     {
         play->mode = STOP;
         return 0;
     }
-    if (pat != NULL && Reltime_cmp(&play->pos, &pat->length) > 0)
+    if (pat != NULL && Tstamp_cmp(&play->pos, &pat->length) > 0)
     {
-        Reltime_set(&play->pos, 0, 0);
+        Tstamp_set(&play->pos, 0, 0);
         if (play->mode == PLAY_PATTERN)
         {
             return 0;
@@ -329,7 +329,7 @@ uint32_t Pattern_mix(Pattern* pat,
     }
     while (mixed < nframes
             // TODO: and we still want to mix this pattern
-            && (pat == NULL || Reltime_cmp(&play->pos, &pat->length) <= 0))
+            && (pat == NULL || Tstamp_cmp(&play->pos, &pat->length) <= 0))
     {
         Event* next = NULL;
         if (pat != NULL && !play->parent.pause)
@@ -337,7 +337,7 @@ uint32_t Pattern_mix(Pattern* pat,
             Column_iter_change_col(play->citer, pat->aux);
             next = Column_iter_get(play->citer, &play->pos);
         }
-        Reltime* next_pos = NULL;
+        Tstamp* next_pos = NULL;
         if (next != NULL)
         {
             next_pos = Event_get_pos(next);
@@ -353,14 +353,14 @@ uint32_t Pattern_mix(Pattern* pat,
             play->old_freq = play->freq;
             play->old_tempo = play->tempo;
         }
-        bool delay = Reltime_cmp(&play->delay_left, zero_time) > 0;
+        bool delay = Tstamp_cmp(&play->delay_left, zero_time) > 0;
         assert(!(delay && (play->jump || play->goto_trigger)));
         if (!delay && !play->parent.pause &&
                 (play->jump || play->goto_trigger))
         {
             int16_t* target_subsong = NULL;
             int16_t* target_section = NULL;
-            Reltime* target_row = NULL;
+            Tstamp* target_row = NULL;
             if (play->jump)
             {
                 play->jump = false;
@@ -383,11 +383,11 @@ uint32_t Pattern_mix(Pattern* pat,
             {
                 if (*target_subsong < 0 && *target_section < 0)
                 {
-                    Reltime_copy(&play->pos, target_row);
+                    Tstamp_copy(&play->pos, target_row);
                 }
                 else
                 {
-                    Reltime_set(&play->pos, 0, 0);
+                    Tstamp_set(&play->pos, 0, 0);
                 }
                 break;
             }
@@ -399,17 +399,17 @@ uint32_t Pattern_mix(Pattern* pat,
             {
                 play->system = *target_section; // TODO: remove
             }
-            Reltime_copy(&play->pos, target_row);
+            Tstamp_copy(&play->pos, target_row);
             break;
         }
         if (!delay && !play->parent.pause && pat != NULL &&
-                Reltime_cmp(&play->pos, &pat->length) >= 0)
+                Tstamp_cmp(&play->pos, &pat->length) >= 0)
         {
-            assert(Reltime_cmp(&play->pos, &pat->length) == 0);
-            Reltime_init(&play->pos);
+            assert(Tstamp_cmp(&play->pos, &pat->length) == 0);
+            Tstamp_init(&play->pos);
             if (play->mode == PLAY_PATTERN)
             {
-                Reltime_set(&play->pos, 0, 0);
+                Tstamp_set(&play->pos, 0, 0);
                 break;
             }
             ++play->system;
@@ -455,12 +455,12 @@ uint32_t Pattern_mix(Pattern* pat,
         uint32_t to_be_mixed = nframes - mixed;
         if (play->tempo_slide != 0)
         {
-            if (Reltime_cmp(&play->tempo_slide_left, zero_time) <= 0)
+            if (Tstamp_cmp(&play->tempo_slide_left, zero_time) <= 0)
             {
                 play->tempo = play->tempo_slide_target;
                 play->tempo_slide = 0;
             }
-            else if (Reltime_cmp(&play->tempo_slide_int_left, zero_time) <= 0)
+            else if (Tstamp_cmp(&play->tempo_slide_int_left, zero_time) <= 0)
             {
                 play->tempo += play->tempo_slide_update;
                 if ((play->tempo_slide < 0 && play->tempo < play->tempo_slide_target)
@@ -471,51 +471,51 @@ uint32_t Pattern_mix(Pattern* pat,
                 }
                 else
                 {
-                    Reltime_set(&play->tempo_slide_int_left, 0, 36756720);
-                    if (Reltime_cmp(&play->tempo_slide_int_left, &play->tempo_slide_left) > 0)
+                    Tstamp_set(&play->tempo_slide_int_left, 0, 36756720);
+                    if (Tstamp_cmp(&play->tempo_slide_int_left, &play->tempo_slide_left) > 0)
                     {
-                        Reltime_copy(&play->tempo_slide_int_left, &play->tempo_slide_left);
+                        Tstamp_copy(&play->tempo_slide_int_left, &play->tempo_slide_left);
                     }
                 }
             }
         }
 
-        Reltime* limit = Reltime_fromframes(RELTIME_AUTO,
+        Tstamp* limit = Tstamp_fromframes(TSTAMP_AUTO,
                                             to_be_mixed,
                                             play->tempo,
                                             play->freq);
-        if (delay && Reltime_cmp(limit, &play->delay_left) > 0)
+        if (delay && Tstamp_cmp(limit, &play->delay_left) > 0)
         {
-            Reltime_copy(limit, &play->delay_left);
-            to_be_mixed = Reltime_toframes(limit, play->tempo, play->freq);
+            Tstamp_copy(limit, &play->delay_left);
+            to_be_mixed = Tstamp_toframes(limit, play->tempo, play->freq);
         }
-        if (play->tempo_slide != 0 && Reltime_cmp(limit, &play->tempo_slide_int_left) > 0)
+        if (play->tempo_slide != 0 && Tstamp_cmp(limit, &play->tempo_slide_int_left) > 0)
         {
-            Reltime_copy(limit, &play->tempo_slide_int_left);
-            to_be_mixed = Reltime_toframes(limit, play->tempo, play->freq);
+            Tstamp_copy(limit, &play->tempo_slide_int_left);
+            to_be_mixed = Tstamp_toframes(limit, play->tempo, play->freq);
         }
-        Reltime_add(limit, limit, &play->pos);
+        Tstamp_add(limit, limit, &play->pos);
         // - Check for the end of pattern
         if (!delay && !play->parent.pause && pat != NULL &&
-                Reltime_cmp(&pat->length, limit) < 0)
+                Tstamp_cmp(&pat->length, limit) < 0)
         {
-            Reltime_copy(limit, &pat->length);
-            to_be_mixed = Reltime_toframes(Reltime_sub(RELTIME_AUTO, limit, &play->pos),
+            Tstamp_copy(limit, &pat->length);
+            to_be_mixed = Tstamp_toframes(Tstamp_sub(TSTAMP_AUTO, limit, &play->pos),
                                            play->tempo,
                                            play->freq);
         }
         // - Check first upcoming event position to figure out
         //   how much we can mix for now
-        if (!delay && next != NULL && Reltime_cmp(next_pos, limit) < 0)
+        if (!delay && next != NULL && Tstamp_cmp(next_pos, limit) < 0)
         {
-            Reltime_copy(limit, next_pos);
-            to_be_mixed = Reltime_toframes(Reltime_sub(RELTIME_AUTO,
+            Tstamp_copy(limit, next_pos);
+            to_be_mixed = Tstamp_toframes(Tstamp_sub(TSTAMP_AUTO,
                                                        limit, &play->pos),
                                            play->tempo,
                                            play->freq);
         }
         // - Calculate the number of frames to be mixed
-        assert(Reltime_cmp(&play->pos, limit) <= 0);
+        assert(Tstamp_cmp(&play->pos, limit) <= 0);
         if (to_be_mixed > nframes - mixed)
         {
             to_be_mixed = nframes - mixed;
@@ -590,20 +590,20 @@ uint32_t Pattern_mix(Pattern* pat,
             }
         }
         // - Increment play->pos
-        Reltime* adv = Reltime_sub(RELTIME_AUTO, limit, &play->pos);
+        Tstamp* adv = Tstamp_sub(TSTAMP_AUTO, limit, &play->pos);
         if (play->tempo_slide != 0)
         {
-            Reltime_sub(&play->tempo_slide_int_left, &play->tempo_slide_int_left, adv);
-            Reltime_sub(&play->tempo_slide_left, &play->tempo_slide_left, adv);
+            Tstamp_sub(&play->tempo_slide_int_left, &play->tempo_slide_int_left, adv);
+            Tstamp_sub(&play->tempo_slide_left, &play->tempo_slide_left, adv);
         }
-        Reltime_add(&play->play_time, &play->play_time, adv);
-        if (Reltime_cmp(&play->delay_left, Reltime_init(RELTIME_AUTO)) > 0)
+        Tstamp_add(&play->play_time, &play->play_time, adv);
+        if (Tstamp_cmp(&play->delay_left, Tstamp_init(TSTAMP_AUTO)) > 0)
         {
-            Reltime_sub(&play->delay_left, &play->delay_left, adv);
+            Tstamp_sub(&play->delay_left, &play->delay_left, adv);
         }
         else if (!play->parent.pause)
         {
-            Reltime_copy(&play->pos, limit);
+            Tstamp_copy(&play->pos, limit);
         }
         mixed += to_be_mixed;
     }
@@ -615,18 +615,18 @@ static void evaluate_row(Pattern* pat,
                          Playdata* play,
                          Event_handler* eh,
                          Event** next,
-                         Reltime** next_pos)
+                         Tstamp** next_pos)
 {
     assert(pat != NULL);
     assert(play != NULL);
     assert(next != NULL);
     assert(next_pos != NULL);
     (void)pat;
-    const Reltime* zero_time = Reltime_set(RELTIME_AUTO, 0, 0);
+    const Tstamp* zero_time = Tstamp_set(TSTAMP_AUTO, 0, 0);
     play->event_index = 0;
     while (*next != NULL
-            && Reltime_cmp(*next_pos, &play->pos) == 0
-            && Reltime_cmp(&play->delay_left, zero_time) <= 0
+            && Tstamp_cmp(*next_pos, &play->pos) == 0
+            && Tstamp_cmp(&play->delay_left, zero_time) <= 0
             && !(play->jump || play->goto_trigger))
     {
         Event_type type = Event_get_type(*next);
@@ -642,7 +642,7 @@ static void evaluate_row(Pattern* pat,
                 *next_pos = Event_get_pos(*next);
             }
             play->delay_event_index = -1;
-            if (*next == NULL || Reltime_cmp(*next_pos, &play->pos) != 0)
+            if (*next == NULL || Tstamp_cmp(*next_pos, &play->pos) != 0)
             {
                 break;
             }

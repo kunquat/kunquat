@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -20,8 +20,9 @@
 #include <Value.h>
 
 
-bool Event_global_set_jump_song_process(Playdata* global_state,
-                                        Value* value);
+bool Event_global_set_jump_song_process(
+        Playdata* global_state,
+        Value* value);
 
 
 #endif // K_EVENT_GLOBAL_SET_JUMP_SONG_H

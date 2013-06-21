@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2013
  *
  * This file is part of Kunquat.
  *
@@ -36,10 +36,12 @@ bool Event_control_env_set_bool_process(General_state* gstate, Value* value)
     {
         return false;
     }
-    Env_var* var = Environment_get(gstate->env,
-                        Active_names_get(gstate->active_names,
-                                         ACTIVE_CAT_ENV,
-                                         ACTIVE_TYPE_BOOL));
+    Env_var* var = Environment_get(
+            gstate->env,
+            Active_names_get(
+                gstate->active_names,
+                ACTIVE_CAT_ENV,
+                ACTIVE_TYPE_BOOL));
     if (var == NULL || Env_var_get_type(var) != ENV_VAR_BOOL)
     {
         return true;

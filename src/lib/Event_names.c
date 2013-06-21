@@ -59,10 +59,10 @@ static Name_info event_specs[] =
     { "I.I",  EVENT_CONTROL_ENV_SET_INT,      VALUE_TYPE_INT, v_any_int, false },
     { "I.Fn", EVENT_CONTROL_ENV_SET_FLOAT_NAME, VALUE_TYPE_STRING, v_key, false },
     { "I.F",  EVENT_CONTROL_ENV_SET_FLOAT,    VALUE_TYPE_FLOAT, v_any_float, false },
-    { "I.Tn", EVENT_CONTROL_ENV_SET_TIMESTAMP_NAME, VALUE_TYPE_STRING, v_key, false },
-    { "I.T",  EVENT_CONTROL_ENV_SET_TIMESTAMP, VALUE_TYPE_TIMESTAMP, v_any_ts, false },
+    { "I.Tn", EVENT_CONTROL_ENV_SET_TSTAMP_NAME, VALUE_TYPE_STRING, v_key, false },
+    { "I.T",  EVENT_CONTROL_ENV_SET_TSTAMP, VALUE_TYPE_TSTAMP, v_any_ts, false },
 
-    { "I.gr", EVENT_CONTROL_SET_GOTO_ROW,     VALUE_TYPE_TIMESTAMP, v_nonneg_ts, false },
+    { "I.gr", EVENT_CONTROL_SET_GOTO_ROW,     VALUE_TYPE_TSTAMP, v_nonneg_ts, false },
     { "I.gs", EVENT_CONTROL_SET_GOTO_SECTION, VALUE_TYPE_INT, v_system, false },
     { "I.gss", EVENT_CONTROL_SET_GOTO_SONG,   VALUE_TYPE_INT, v_subsong, false },
     { "Ig",   EVENT_CONTROL_GOTO,             VALUE_TYPE_NONE, NULL, false },
@@ -84,9 +84,9 @@ static Name_info event_specs[] =
     { "callFn", EVENT_GENERAL_CALL_FLOAT_NAME, VALUE_TYPE_STRING, v_any_str, false },
     { "callF", EVENT_GENERAL_CALL_FLOAT,     VALUE_TYPE_FLOAT, v_any_float, false },
 
-    { "mpd",   EVENT_GLOBAL_PATTERN_DELAY,    VALUE_TYPE_TIMESTAMP, v_nonneg_ts, false },
+    { "mpd",   EVENT_GLOBAL_PATTERN_DELAY,    VALUE_TYPE_TSTAMP, v_nonneg_ts, false },
     { "m.jc",  EVENT_GLOBAL_SET_JUMP_COUNTER, VALUE_TYPE_INT, v_counter, false },
-    { "m.jr",  EVENT_GLOBAL_SET_JUMP_ROW,     VALUE_TYPE_TIMESTAMP, v_nonneg_ts, false },
+    { "m.jr",  EVENT_GLOBAL_SET_JUMP_ROW,     VALUE_TYPE_TSTAMP, v_nonneg_ts, false },
     { "m.js",  EVENT_GLOBAL_SET_JUMP_SECTION, VALUE_TYPE_INT, v_system, false },
     { "m.jss", EVENT_GLOBAL_SET_JUMP_SONG,    VALUE_TYPE_INT, v_subsong, false },
 
@@ -98,10 +98,10 @@ static Name_info event_specs[] =
 
     { "m.t",   EVENT_GLOBAL_SET_TEMPO,        VALUE_TYPE_FLOAT, v_tempo, false },
     { "m/t",   EVENT_GLOBAL_SLIDE_TEMPO,      VALUE_TYPE_FLOAT, v_tempo, false },
-    { "m/=t",  EVENT_GLOBAL_SLIDE_TEMPO_LENGTH, VALUE_TYPE_TIMESTAMP, v_nonneg_ts, false },
+    { "m/=t",  EVENT_GLOBAL_SLIDE_TEMPO_LENGTH, VALUE_TYPE_TSTAMP, v_nonneg_ts, false },
     { "m.v",   EVENT_GLOBAL_SET_VOLUME,       VALUE_TYPE_FLOAT, v_volume, false },
     { "m/v",   EVENT_GLOBAL_SLIDE_VOLUME,     VALUE_TYPE_FLOAT, v_volume, false },
-    { "m/=v",  EVENT_GLOBAL_SLIDE_VOLUME_LENGTH, VALUE_TYPE_TIMESTAMP, v_nonneg_ts, false },
+    { "m/=v",  EVENT_GLOBAL_SLIDE_VOLUME_LENGTH, VALUE_TYPE_TSTAMP, v_nonneg_ts, false },
 
     { ".i",   EVENT_CHANNEL_SET_INSTRUMENT,  VALUE_TYPE_INT, v_ins, false },
     { ".g",   EVENT_CHANNEL_SET_GENERATOR,   VALUE_TYPE_INT, v_gen, false },
@@ -116,16 +116,16 @@ static Name_info event_specs[] =
 
     { ".f",   EVENT_CHANNEL_SET_FORCE,       VALUE_TYPE_FLOAT, v_force, false },
     { "/f",   EVENT_CHANNEL_SLIDE_FORCE,     VALUE_TYPE_FLOAT, v_force, false },
-    { "/=f",  EVENT_CHANNEL_SLIDE_FORCE_LENGTH, VALUE_TYPE_TIMESTAMP, v_nonneg_ts, false },
+    { "/=f",  EVENT_CHANNEL_SLIDE_FORCE_LENGTH, VALUE_TYPE_TSTAMP, v_nonneg_ts, false },
     { "ts",   EVENT_CHANNEL_TREMOLO_SPEED,   VALUE_TYPE_FLOAT, v_nonneg_float, false },
     { "td",   EVENT_CHANNEL_TREMOLO_DEPTH,   VALUE_TYPE_FLOAT, v_tremolo_depth, false },
-    { "tdd",  EVENT_CHANNEL_TREMOLO_DELAY,   VALUE_TYPE_TIMESTAMP, v_nonneg_ts, false },
+    { "tdd",  EVENT_CHANNEL_TREMOLO_DELAY,   VALUE_TYPE_TSTAMP, v_nonneg_ts, false },
 
     { "/p",   EVENT_CHANNEL_SLIDE_PITCH,     VALUE_TYPE_FLOAT, v_pitch, false },
-    { "/=p",  EVENT_CHANNEL_SLIDE_PITCH_LENGTH, VALUE_TYPE_TIMESTAMP, v_nonneg_ts, false },
+    { "/=p",  EVENT_CHANNEL_SLIDE_PITCH_LENGTH, VALUE_TYPE_TSTAMP, v_nonneg_ts, false },
     { "vs",   EVENT_CHANNEL_VIBRATO_SPEED,   VALUE_TYPE_FLOAT, v_nonneg_float, false },
     { "vd",   EVENT_CHANNEL_VIBRATO_DEPTH,   VALUE_TYPE_FLOAT, v_nonneg_float, false },
-    { "vdd",  EVENT_CHANNEL_VIBRATO_DELAY,   VALUE_TYPE_TIMESTAMP, v_nonneg_ts, false },
+    { "vdd",  EVENT_CHANNEL_VIBRATO_DELAY,   VALUE_TYPE_TSTAMP, v_nonneg_ts, false },
 
     { "<arp", EVENT_CHANNEL_RESET_ARPEGGIO,  VALUE_TYPE_NONE, NULL, false },
     { ".arpn", EVENT_CHANNEL_SET_ARPEGGIO_NOTE, VALUE_TYPE_FLOAT, v_pitch, false },
@@ -136,16 +136,16 @@ static Name_info event_specs[] =
 
     { ".l",   EVENT_CHANNEL_SET_LOWPASS,     VALUE_TYPE_FLOAT, v_lowpass, false },
     { "/l",   EVENT_CHANNEL_SLIDE_LOWPASS,   VALUE_TYPE_FLOAT, v_lowpass, false },
-    { "/=l",  EVENT_CHANNEL_SLIDE_LOWPASS_LENGTH, VALUE_TYPE_TIMESTAMP, v_nonneg_ts, false },
+    { "/=l",  EVENT_CHANNEL_SLIDE_LOWPASS_LENGTH, VALUE_TYPE_TSTAMP, v_nonneg_ts, false },
     { "ws",   EVENT_CHANNEL_AUTOWAH_SPEED,   VALUE_TYPE_FLOAT, v_nonneg_float, false },
     { "wd",   EVENT_CHANNEL_AUTOWAH_DEPTH,   VALUE_TYPE_FLOAT, v_nonneg_float, false },
-    { "wdd",  EVENT_CHANNEL_AUTOWAH_DELAY,   VALUE_TYPE_TIMESTAMP, v_nonneg_ts, false },
+    { "wdd",  EVENT_CHANNEL_AUTOWAH_DELAY,   VALUE_TYPE_TSTAMP, v_nonneg_ts, false },
 
     { ".r",   EVENT_CHANNEL_SET_RESONANCE,   VALUE_TYPE_FLOAT, v_resonance, false },
 
     { ".P",   EVENT_CHANNEL_SET_PANNING,     VALUE_TYPE_FLOAT, v_panning, false },
     { "/P",   EVENT_CHANNEL_SLIDE_PANNING,   VALUE_TYPE_FLOAT, v_panning, false },
-    { "/=P",  EVENT_CHANNEL_SLIDE_PANNING_LENGTH, VALUE_TYPE_TIMESTAMP, v_nonneg_ts, false },
+    { "/=P",  EVENT_CHANNEL_SLIDE_PANNING_LENGTH, VALUE_TYPE_TSTAMP, v_nonneg_ts, false },
 
     { ".gBn", EVENT_CHANNEL_SET_GEN_BOOL_NAME, VALUE_TYPE_STRING, v_key, false },
     { ".gB",  EVENT_CHANNEL_SET_GEN_BOOL,    VALUE_TYPE_BOOL, v_any_bool, false },
@@ -153,8 +153,8 @@ static Name_info event_specs[] =
     { ".gI",  EVENT_CHANNEL_SET_GEN_INT,     VALUE_TYPE_INT, v_any_int, false },
     { ".gFn", EVENT_CHANNEL_SET_GEN_FLOAT_NAME, VALUE_TYPE_STRING, v_key, false },
     { ".gF",  EVENT_CHANNEL_SET_GEN_FLOAT,   VALUE_TYPE_FLOAT, v_any_float, false },
-    { ".gTn", EVENT_CHANNEL_SET_GEN_RELTIME_NAME, VALUE_TYPE_STRING, v_key, false },
-    { ".gT",  EVENT_CHANNEL_SET_GEN_RELTIME, VALUE_TYPE_TIMESTAMP, v_any_ts, false },
+    { ".gTn", EVENT_CHANNEL_SET_GEN_TSTAMP_NAME, VALUE_TYPE_STRING, v_key, false },
+    { ".gT",  EVENT_CHANNEL_SET_GEN_TSTAMP, VALUE_TYPE_TSTAMP, v_any_ts, false },
 
     { "i.sus", EVENT_INS_SET_SUSTAIN,         VALUE_TYPE_FLOAT, v_sustain, false },
 
@@ -164,8 +164,8 @@ static Name_info event_specs[] =
     { "g.I",   EVENT_GENERATOR_SET_INT,       VALUE_TYPE_INT, v_any_int, false },
     { "g.Fn",  EVENT_GENERATOR_SET_FLOAT_NAME, VALUE_TYPE_STRING, v_key, false },
     { "g.F",   EVENT_GENERATOR_SET_FLOAT,     VALUE_TYPE_FLOAT, v_any_float, false },
-    { "g.Tn",  EVENT_GENERATOR_SET_RELTIME_NAME, VALUE_TYPE_STRING, v_key, false },
-    { "g.T",   EVENT_GENERATOR_SET_RELTIME,   VALUE_TYPE_TIMESTAMP, v_any_ts, false },
+    { "g.Tn",  EVENT_GENERATOR_SET_TSTAMP_NAME, VALUE_TYPE_STRING, v_key, false },
+    { "g.T",   EVENT_GENERATOR_SET_TSTAMP,   VALUE_TYPE_TSTAMP, v_any_ts, false },
 
     { "ebp+",  EVENT_EFFECT_BYPASS_ON,        VALUE_TYPE_NONE, NULL, false },
     { "ebp-",  EVENT_EFFECT_BYPASS_OFF,       VALUE_TYPE_NONE, NULL, false },
@@ -176,8 +176,8 @@ static Name_info event_specs[] =
     { "d.I",   EVENT_DSP_SET_INT,             VALUE_TYPE_INT, v_any_int, false },
     { "d.Fn",  EVENT_DSP_SET_FLOAT_NAME,      VALUE_TYPE_STRING, v_key, false },
     { "d.F",   EVENT_DSP_SET_FLOAT,           VALUE_TYPE_FLOAT, v_any_float, false },
-    { "d.Tn",  EVENT_DSP_SET_RELTIME_NAME,    VALUE_TYPE_STRING, v_key, false },
-    { "d.T",   EVENT_DSP_SET_RELTIME,         VALUE_TYPE_TIMESTAMP, v_any_ts, false },
+    { "d.Tn",  EVENT_DSP_SET_TSTAMP_NAME,    VALUE_TYPE_STRING, v_key, false },
+    { "d.T",   EVENT_DSP_SET_TSTAMP,         VALUE_TYPE_TSTAMP, v_any_ts, false },
 
     { "qlocation", EVENT_QUERY_LOCATION,      VALUE_TYPE_NONE, NULL, false },
     { "qvoices", EVENT_QUERY_VOICE_COUNT,     VALUE_TYPE_NONE, NULL, false },
@@ -186,7 +186,7 @@ static Name_info event_specs[] =
     { "Atrack", EVENT_AUTO_LOCATION_TRACK,    VALUE_TYPE_INT, v_track, false },
     { "Asystem", EVENT_AUTO_LOCATION_SYSTEM, VALUE_TYPE_INT, v_system, false },
     { "Apattern", EVENT_AUTO_LOCATION_PATTERN, VALUE_TYPE_INT, v_pattern, false },
-    { "Arow",  EVENT_AUTO_LOCATION_ROW,       VALUE_TYPE_TIMESTAMP, v_any_ts, false },
+    { "Arow",  EVENT_AUTO_LOCATION_ROW,       VALUE_TYPE_TSTAMP, v_any_ts, false },
     { "Avoices", EVENT_AUTO_VOICE_COUNT,      VALUE_TYPE_INT, v_any_int, false },
     { "Af",    EVENT_AUTO_ACTUAL_FORCE,       VALUE_TYPE_FLOAT, v_any_float, false },
 

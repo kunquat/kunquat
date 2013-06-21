@@ -17,6 +17,6 @@ src/lib/test/instrument
 src/lib/test/memory
 src/lib/test/player
 src/lib/test/real
-src/lib/test/reltime
+src/lib/test/tstamp
 src/lib/test/validation
 

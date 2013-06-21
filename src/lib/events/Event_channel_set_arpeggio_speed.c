@@ -24,8 +24,9 @@
 #include <xassert.h>
 
 
-bool Event_channel_set_arpeggio_speed_process(Channel_state* ch_state,
-                                              Value* value)
+bool Event_channel_set_arpeggio_speed_process(
+        Channel_state* ch_state,
+        Value* value)
 {
     assert(ch_state != NULL);
     assert(value != NULL);
@@ -34,9 +35,10 @@ bool Event_channel_set_arpeggio_speed_process(Channel_state* ch_state,
         return false;
     }
     ch_state->arpeggio_speed = value->value.float_type;
-    double unit_len = Reltime_toframes(Reltime_set(RELTIME_AUTO, 1, 0),
-                                       *ch_state->tempo,
-                                       *ch_state->freq);
+    double unit_len = Tstamp_toframes(
+            Tstamp_set(TSTAMP_AUTO, 1, 0),
+            *ch_state->tempo,
+            *ch_state->freq);
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         Event_check_voice(ch_state, i);

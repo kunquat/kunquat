@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -123,11 +123,11 @@ void LFO_set_speed(LFO* lfo, double speed)
 }
 
 
-void LFO_set_speed_delay(LFO* lfo, Reltime* delay)
+void LFO_set_speed_delay(LFO* lfo, Tstamp* delay)
 {
     assert(lfo != NULL);
     assert(delay != NULL);
-    assert(Reltime_cmp(delay, Reltime_init(RELTIME_AUTO)) >= 0);
+    assert(Tstamp_cmp(delay, Tstamp_init(TSTAMP_AUTO)) >= 0);
     Slider_set_length(&lfo->speed_slider, delay);
     return;
 }
@@ -149,11 +149,11 @@ void LFO_set_depth(LFO* lfo, double depth)
 }
 
 
-void LFO_set_depth_delay(LFO* lfo, Reltime* delay)
+void LFO_set_depth_delay(LFO* lfo, Tstamp* delay)
 {
     assert(lfo != NULL);
     assert(delay != NULL);
-    assert(Reltime_cmp(delay, Reltime_init(RELTIME_AUTO)) >= 0);
+    assert(Tstamp_cmp(delay, Tstamp_init(TSTAMP_AUTO)) >= 0);
     Slider_set_length(&lfo->depth_slider, delay);
     return;
 }
@@ -220,9 +220,10 @@ double LFO_step(LFO* lfo)
     {
         lfo->speed = Slider_step(&lfo->speed_slider);
 #if 0
-        double unit_len = Reltime_toframes(Reltime_set(RELTIME_AUTO, 1, 0),
-                                           lfo->tempo,
-                                           lfo->mix_rate);
+        double unit_len = Tstamp_toframes(
+                Tstamp_set(TSTAMP_AUTO, 1, 0),
+                lfo->tempo,
+                lfo->mix_rate);
         lfo->update = (lfo->speed * (2 * PI)) / unit_len;
 #endif
         lfo->update = (lfo->speed * (2 * PI)) / lfo->mix_rate;

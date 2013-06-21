@@ -23,8 +23,9 @@
 #include <xassert.h>
 
 
-bool Event_global_set_jump_song_process(Playdata* global_state,
-                                        Value* value)
+bool Event_global_set_jump_song_process(
+        Playdata* global_state,
+        Value* value)
 {
     assert(global_state != NULL);
     assert(value != NULL);

@@ -26,9 +26,10 @@
 #include <xassert.h>
 
 
-bool Event_generator_set_int_process(Generator* gen,
-                                     Channel_state* ch_state,
-                                     Value* value)
+bool Event_generator_set_int_process(
+        Generator* gen,
+        Channel_state* ch_state,
+        Value* value)
 {
     assert(gen != NULL);
     assert(ch_state != NULL);
@@ -37,15 +38,18 @@ bool Event_generator_set_int_process(Generator* gen,
     {
         return false;
     }
-    char* key = Active_names_get(ch_state->parent.active_names,
-                                 ACTIVE_CAT_GEN,
-                                 ACTIVE_TYPE_INT);
+    char* key = Active_names_get(
+            ch_state->parent.active_names,
+            ACTIVE_CAT_GEN,
+            ACTIVE_TYPE_INT);
     if (!string_has_suffix(key, ".jsoni"))
     {
         return true;
     }
-    return Device_params_modify_value(gen->conf->params, key,
-                                      &value->value.int_type);
+    return Device_params_modify_value(
+            gen->conf->params,
+            key,
+            &value->value.int_type);
 }
 
 

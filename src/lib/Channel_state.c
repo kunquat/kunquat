@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -19,7 +19,7 @@
 
 #include <Channel_state.h>
 #include <Environment.h>
-#include <Reltime.h>
+#include <Tstamp.h>
 #include <xassert.h>
 
 
@@ -82,26 +82,26 @@ void Channel_state_reset(Channel_state* state)
 
     state->volume = 1;
 
-    Reltime_set(&state->force_slide_length, 0, 0);
+    Tstamp_set(&state->force_slide_length, 0, 0);
     LFO_init(&state->tremolo, LFO_MODE_EXP);
     state->tremolo_speed = 0;
-    Reltime_init(&state->tremolo_speed_delay);
+    Tstamp_init(&state->tremolo_speed_delay);
     state->tremolo_depth = 0;
-    Reltime_init(&state->tremolo_depth_delay);
+    Tstamp_init(&state->tremolo_depth_delay);
 
-    Reltime_set(&state->pitch_slide_length, 0, 0);
+    Tstamp_set(&state->pitch_slide_length, 0, 0);
     LFO_init(&state->vibrato, LFO_MODE_EXP);
     state->vibrato_speed = 0;
-    Reltime_init(&state->vibrato_speed_delay);
+    Tstamp_init(&state->vibrato_speed_delay);
     state->vibrato_depth = 0;
-    Reltime_init(&state->vibrato_depth_delay);
+    Tstamp_init(&state->vibrato_depth_delay);
 
-    Reltime_set(&state->filter_slide_length, 0, 0);
+    Tstamp_set(&state->filter_slide_length, 0, 0);
     LFO_init(&state->autowah, LFO_MODE_EXP);
     state->autowah_speed = 0;
-    Reltime_init(&state->autowah_speed_delay);
+    Tstamp_init(&state->autowah_speed_delay);
     state->autowah_depth = 0;
-    Reltime_init(&state->autowah_depth_delay);
+    Tstamp_init(&state->autowah_depth_delay);
 
     state->panning = 0;
     Slider_init(&state->panning_slider, SLIDE_MODE_LINEAR);

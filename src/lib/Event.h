@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -20,7 +20,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include <Reltime.h>
+#include <Tstamp.h>
 #include <kunquat/limits.h>
 #include <File_base.h>
 
@@ -33,7 +33,7 @@
  */
 typedef struct Event
 {
-    Reltime pos;                   ///< The Event position.
+    Tstamp pos;                   ///< The Event position.
     int ch_index;                  ///< Channel number.
     Event_type type;               ///< The Event type.
     char* desc;                    ///< Event description in JSON format.
@@ -50,7 +50,7 @@ typedef struct Event
  * \return   The new Event if successful, or \c NULL if memory allocation
  *           failed or the Event type isn't supported.
  */
-Event* new_Event(Event_type type, Reltime* pos);
+Event* new_Event(Event_type type, Tstamp* pos);
 
 
 /**
@@ -85,7 +85,7 @@ Event* new_Event_from_string(char** str, Read_state* state,
  *
  * \return   The position.
  */
-Reltime* Event_get_pos(Event* event);
+Tstamp* Event_get_pos(Event* event);
 
 
 /**
@@ -94,7 +94,7 @@ Reltime* Event_get_pos(Event* event);
  * \param event   The Event -- must not be \c NULL.
  * \param pos     The new position -- must not be \c NULL.
  */
-void Event_set_pos(Event* event, Reltime* pos);
+void Event_set_pos(Event* event, Tstamp* pos);
 
 
 /**

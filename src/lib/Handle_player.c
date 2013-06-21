@@ -155,7 +155,7 @@ long long kqt_Handle_get_duration(kqt_Handle* handle, int track)
                 "Invalid track number: %d", track);
         return -1;
     }
-    Reltime_init(&handle->module->skip_state->play_time);
+    Tstamp_init(&handle->module->skip_state->play_time);
     handle->module->skip_state->play_frames = 0;
     Playdata_reset(handle->module->skip_state);
     for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
@@ -172,7 +172,7 @@ long long kqt_Handle_get_duration(kqt_Handle* handle, int track)
         handle->module->skip_state->mode = PLAY_SUBSONG;
         Playdata_set_track(handle->module->skip_state, track, true);
     }
-    Reltime_init(&handle->module->skip_state->pos);
+    Tstamp_init(&handle->module->skip_state->pos);
     handle->module->skip_state->freq = 1000000000;
     return Module_skip(handle->module, handle->module->skip_handler,
                      KQT_MAX_CALC_DURATION);
@@ -219,8 +219,8 @@ int kqt_Handle_set_position(
     }
     handle->module->play_state->system = 0;
     handle->module->skip_state->system = 0;
-    Reltime_set(&handle->module->play_state->pos, 0, 0);
-    Reltime_set(&handle->module->skip_state->pos, 0, 0);
+    Tstamp_set(&handle->module->play_state->pos, 0, 0);
+    Tstamp_set(&handle->module->skip_state->pos, 0, 0);
     handle->module->play_state->play_frames = 0;
     handle->module->skip_state->play_frames = 0;
     if (nanoseconds > 0)
@@ -228,7 +228,8 @@ int kqt_Handle_set_position(
         uint64_t frame_skip = ((double)nanoseconds / 1000000000) *
             handle->module->play_state->freq;
         Module_skip(handle->module, handle->module->event_handler, frame_skip);
-        Reltime_copy(&handle->module->skip_state->pos,
+        Tstamp_copy(
+                &handle->module->skip_state->pos,
                 &handle->module->play_state->pos);
     }
     return 1;

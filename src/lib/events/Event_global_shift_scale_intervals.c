@@ -23,8 +23,9 @@
 #include <xassert.h>
 
 
-bool Event_global_shift_scale_intervals_process(Playdata* global_state,
-                                                Value* value)
+bool Event_global_shift_scale_intervals_process(
+        Playdata* global_state,
+        Value* value)
 {
     assert(global_state != NULL);
     assert(value != NULL);
@@ -43,8 +44,10 @@ bool Event_global_shift_scale_intervals_process(Playdata* global_state,
     {
         return true;
     }
-    Scale_retune(scale, value->value.int_type,
-                 global_state->scale_fixed_point);
+    Scale_retune(
+            scale,
+            value->value.int_type,
+            global_state->scale_fixed_point);
     return true;
 }
 

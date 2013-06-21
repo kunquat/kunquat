@@ -20,24 +20,24 @@
 #include <Event_common.h>
 #include <Event_global_slide_volume_length.h>
 #include <kunquat/limits.h>
-#include <Reltime.h>
 #include <Value.h>
 #include <xassert.h>
 
 
-bool Event_global_slide_volume_length_process(Playdata* global_state,
-                                              Value* value)
+bool Event_global_slide_volume_length_process(
+        Playdata* global_state,
+        Value* value)
 {
     assert(global_state != NULL);
     assert(value != NULL);
-    if (value->type != VALUE_TYPE_TIMESTAMP)
+    if (value->type != VALUE_TYPE_TSTAMP)
     {
         return false;
     }
     Slider_set_mix_rate(&global_state->volume_slider, global_state->freq);
     Slider_set_tempo(&global_state->volume_slider, global_state->tempo);
     Slider_set_length(&global_state->volume_slider,
-                      &value->value.Timestamp_type);
+                      &value->value.Tstamp_type);
     return true;
 }
 

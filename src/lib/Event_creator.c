@@ -29,7 +29,7 @@
 static void del_Event_default(Event* event);
 
 
-Event* new_Event(Event_type type, Reltime* pos)
+Event* new_Event(Event_type type, Tstamp* pos)
 {
     assert(EVENT_IS_VALID(type));
     assert(pos != NULL);
@@ -39,7 +39,7 @@ Event* new_Event(Event_type type, Reltime* pos)
         return NULL;
     }
     event->type = type;
-    Reltime_copy(&event->pos, pos);
+    Tstamp_copy(&event->pos, pos);
     event->desc = NULL;
     event->destroy = del_Event_default;
     return event;
@@ -58,8 +58,8 @@ Event* new_Event_from_string(char** str, Read_state* state,
         return NULL;
     }
     *str = read_const_char(*str, '[', state);
-    Reltime* pos = Reltime_init(RELTIME_AUTO);
-    *str = read_reltime(*str, pos, state);
+    Tstamp* pos = Tstamp_init(TSTAMP_AUTO);
+    *str = read_tstamp(*str, pos, state);
     *str = read_const_char(*str, ',', state);
     *str = read_const_char(*str, '[', state);
     char* event_desc = *str - 1;

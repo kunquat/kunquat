@@ -35,7 +35,7 @@ bool Event_control_goto_process(General_state* gstate, Value* value)
     global_state->goto_trigger = true;
     global_state->goto_subsong = global_state->goto_set_subsong;
     global_state->goto_section = global_state->goto_set_section;
-    Reltime_copy(&global_state->goto_row, &global_state->goto_set_row);
+    Tstamp_copy(&global_state->goto_row, &global_state->goto_set_row);
     return true;
 }
 

@@ -21,9 +21,9 @@
 #include <File_base.h>
 #include <memory.h>
 #include <Real.h>
-#include <Reltime.h>
 #include <serialise.h>
 #include <string_common.h>
+#include <Tstamp.h>
 #include <xassert.h>
 
 
@@ -33,7 +33,7 @@ typedef union
     int64_t int_type;
     double float_type;
     Real Real_type;
-    Reltime Reltime_type;
+    Tstamp Tstamp_type;
 } Container;
 
 
@@ -52,7 +52,7 @@ static const size_t sizes[] =
     [ENV_VAR_INT] = sizeof(int64_t),
     [ENV_VAR_FLOAT] = sizeof(double),
     [ENV_VAR_REAL] = sizeof(Real),
-    [ENV_VAR_RELTIME] = sizeof(Reltime),
+    [ENV_VAR_TSTAMP] = sizeof(Tstamp),
 };
 
 
@@ -85,9 +85,9 @@ Env_var* new_Env_var(Env_var_type type, const char* name)
         {
             Real_init(&var->initial.Real_type);
         } break;
-        case ENV_VAR_RELTIME:
+        case ENV_VAR_TSTAMP:
         {
-            Reltime_init(&var->initial.Reltime_type);
+            Tstamp_init(&var->initial.Tstamp_type);
         } break;
         default:
             assert(false);
@@ -151,8 +151,8 @@ Env_var* new_Env_var_from_string(char** str, Read_state* state)
     }
     else if (string_eq(type_name, "timestamp"))
     {
-        type = ENV_VAR_RELTIME;
-        *str = read_reltime(*str, &data.Reltime_type, state);
+        type = ENV_VAR_TSTAMP;
+        *str = read_tstamp(*str, &data.Tstamp_type, state);
     }
     else
     {
@@ -248,9 +248,9 @@ void Env_var_get_value_json(Env_var* var,
         {
             serialise_Real(dest, size, &var->data.Real_type);
         } break;
-        case ENV_VAR_RELTIME:
+        case ENV_VAR_TSTAMP:
         {
-            serialise_Timestamp(dest, size, &var->data.Reltime_type);
+            serialise_Tstamp(dest, size, &var->data.Tstamp_type);
         } break;
         default:
             assert(false);

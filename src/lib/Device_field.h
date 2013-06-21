@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -24,10 +24,10 @@
 #include <Hit_map.h>
 #include <Num_list.h>
 #include <Real.h>
-#include <Reltime.h>
 #include <Sample.h>
 #include <Sample_params.h>
 #include <Sample_map.h>
+#include <Tstamp.h>
 
 
 typedef enum
@@ -37,7 +37,7 @@ typedef enum
     DEVICE_FIELD_INT,
     DEVICE_FIELD_FLOAT,
     DEVICE_FIELD_REAL,
-    DEVICE_FIELD_RELTIME,
+    DEVICE_FIELD_TSTAMP,
     DEVICE_FIELD_ENVELOPE,
     DEVICE_FIELD_WAVPACK,
     DEVICE_FIELD_VORBIS,
@@ -59,7 +59,7 @@ typedef struct Device_field Device_field;
  *                  .jsonb (boolean)
  *                  .jsoni (int)
  *                  .jsonf (float)
- *                  .jsont (Reltime)
+ *                  .jsont (Tstamp)
  *                  .jsone (Envelope)
  *                  .jsonsh (Sample params)
  *                  .jsonsm (Sample map)
@@ -205,14 +205,14 @@ Real* Device_field_get_real(Device_field* field);
 
 
 /**
- * Gets a Reltime value from the Device field.
+ * Gets a Tstamp value from the Device field.
  *
  * \param field   The Device field -- must not be \c NULL and must contain
- *                a Reltime value.
+ *                a Tstamp value.
  *
- * \return   The Reltime value.
+ * \return   The Tstamp value.
  */
-Reltime* Device_field_get_reltime(Device_field* field);
+Tstamp* Device_field_get_tstamp(Device_field* field);
 
 
 /**

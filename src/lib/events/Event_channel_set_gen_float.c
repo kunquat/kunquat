@@ -23,8 +23,9 @@
 #include <xassert.h>
 
 
-bool Event_channel_set_gen_float_process(Channel_state* ch_state,
-                                         Value* value)
+bool Event_channel_set_gen_float_process(
+        Channel_state* ch_state,
+        Value* value)
 {
     assert(ch_state != NULL);
     assert(value != NULL);
@@ -32,15 +33,18 @@ bool Event_channel_set_gen_float_process(Channel_state* ch_state,
     {
         return false;
     }
-    char* key = Active_names_get(ch_state->parent.active_names,
-                                 ACTIVE_CAT_CH_GEN,
-                                 ACTIVE_TYPE_FLOAT);
+    char* key = Active_names_get(
+            ch_state->parent.active_names,
+            ACTIVE_CAT_CH_GEN,
+            ACTIVE_TYPE_FLOAT);
     if (!string_has_suffix(key, ".jsonf"))
     {
         return true;
     }
-    return Channel_gen_state_modify_value(ch_state->cgstate, key,
-                                          &value->value.float_type);
+    return Channel_gen_state_modify_value(
+            ch_state->cgstate,
+            key,
+            &value->value.float_type);
 }
 
 

@@ -33,7 +33,7 @@ bool Event_control_set_goto_row_process(General_state* gstate, Value* value)
         return false;
     }
     Playdata* global_state = (Playdata*)gstate;
-    Reltime_copy(&global_state->goto_set_row, &value->value.Timestamp_type);
+    Tstamp_copy(&global_state->goto_set_row, &value->value.Tstamp_type);
     return true;
 }
 

@@ -103,7 +103,7 @@ extern "C" {
  * This specifies how many parts one beat is. The prime factorisation of this
  * number is (2^7)*(3^4)*5*7*11*13*17.
  */
-#define KQT_RELTIME_BEAT (882161280L)
+#define KQT_TSTAMP_BEAT (882161280L)
 
 
 /**

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2013
  *
  * This file is part of Kunquat.
  *
@@ -101,13 +101,13 @@ int serialise_Real(char* dest, int size, Real* value)
 }
 
 
-int serialise_Timestamp(char* dest, int size, Reltime* value)
+int serialise_Tstamp(char* dest, int size, Tstamp* value)
 {
     assert(dest != NULL);
     assert(size > 0);
     assert(value != NULL);
     int printed = snprintf(dest, size, "[%" PRId64 ", %" PRId32 "]",
-                       Reltime_get_beats(value), Reltime_get_rem(value));
+                       Tstamp_get_beats(value), Tstamp_get_rem(value));
     return MIN(printed, size - 1);
 }
 

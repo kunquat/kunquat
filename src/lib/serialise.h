@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2013
  *
  * This file is part of Kunquat.
  *
@@ -17,7 +17,7 @@
 
 #include <Pat_inst_ref.h>
 #include <Real.h>
-#include <Reltime.h>
+#include <Tstamp.h>
 
 
 /**
@@ -91,7 +91,7 @@ int serialise_Real(char* dest, int size, Real* value);
 
 
 /**
- * Creates a JSON representation of a Timestamp value.
+ * Creates a JSON representation of a Tstamp value.
  *
  * \param dest    The destination string buffer -- must not be \c NULL.
  * \param size    The size of the string buffer including the terminating
@@ -101,6 +101,6 @@ int serialise_Real(char* dest, int size, Real* value);
  * \return   The number of characters written to \a dest, not including the
  *           terminating byte.
  */
-int serialise_Timestamp(char* dest, int size, Reltime* value);
+int serialise_Tstamp(char* dest, int size, Tstamp* value);
 
 

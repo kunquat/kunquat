@@ -20,7 +20,7 @@
 
 #include <Active_names.h>
 #include <Bind.h>
-#include <Reltime.h>
+#include <Tstamp.h>
 #include <Subsong_table.h>
 //#include <Channel.h>
 #include <Column.h>
@@ -63,7 +63,7 @@ typedef struct Playdata
     Subsong_table* subsongs;          ///< The Subsongs.
     Track_list* track_list;           ///< The Track list.
     Order_list** order_lists;         ///< The Order lists.
-    Reltime play_time;                ///< The number of beats played since the start of playback.
+    Tstamp play_time;                ///< The number of beats played since the start of playback.
     uint64_t play_frames;             ///< The number of frames mixed since the start of playback.
     Random* random;                   ///< Random source.
 
@@ -80,34 +80,34 @@ typedef struct Playdata
     int16_t jump_set_counter;         ///< Jump counter passed to a jump event.
     int16_t jump_set_subsong;         ///< Subsong number setting passed to a jump event.
     int16_t jump_set_section;         ///< Section number setting passed to a jump event.
-    Reltime jump_set_row;             ///< Pattern position passed to a jump event.
+    Tstamp jump_set_row;             ///< Pattern position passed to a jump event.
     bool jump;                        ///< Jump trigger.
     int16_t jump_subsong;             ///< Jump target subsong (-1 = no change).
     int16_t jump_section;             ///< Jump target section (-1 = no change).
-    Reltime jump_row;                 ///< Jump target pattern position.
+    Tstamp jump_row;                 ///< Jump target pattern position.
 
     int16_t goto_set_subsong;         ///< Subsong number setting passed to a goto event.
     int16_t goto_set_section;         ///< Section number setting passed to a goto event.
-    Reltime goto_set_row;             ///< Pattern position passed to a goto event.
+    Tstamp goto_set_row;             ///< Pattern position passed to a goto event.
     bool goto_trigger;                ///< Goto trigger.
     int16_t goto_subsong;             ///< Goto target subsong (-1 = no change).
     int16_t goto_section;             ///< Goto target section (-1 = no change).
-    Reltime goto_row;                 ///< Goto target pattern position.
+    Tstamp goto_row;                 ///< Goto target pattern position.
 
     double volume;                    ///< Current global volume.
     Slider volume_slider;
 
     double tempo;                     ///< Current tempo.
     int tempo_slide;                  ///< Tempo slide state (0 = no slide, -1 = down, 1 = up).
-    Reltime tempo_slide_length;
+    Tstamp tempo_slide_length;
     double tempo_slide_target;        ///< Final target tempo of the tempo slide.
-    Reltime tempo_slide_left;         ///< The total time left to finish the tempo slide.
+    Tstamp tempo_slide_left;         ///< The total time left to finish the tempo slide.
     double tempo_slide_int_target;    ///< Intermediate target tempo of the tempo slide.
-    Reltime tempo_slide_int_left;     ///< Time left until shifting tempo.
+    Tstamp tempo_slide_int_left;     ///< Time left until shifting tempo.
     double tempo_slide_update;        ///< The update amount of the tempo slide.
     double old_tempo;                 ///< Old tempo (used to detect tempo change).
 
-    Reltime delay_left;               ///< The amount of pattern delay left.
+    Tstamp delay_left;               ///< The amount of pattern delay left.
     int event_index;                  ///< Current event index.
     int delay_event_index;            ///< Position of the delay event.
 
@@ -115,7 +115,7 @@ typedef struct Playdata
     uint16_t track;                   ///< Current track -- used when \a play == \c PLAY_SONG.
     uint16_t system;                  ///< Current system -- used when \a play == \c PLAY_SONG.
     Pat_inst_ref piref;               ///< Current pattern instance.
-    Reltime pos;                      ///< Current position inside a pattern.
+    Tstamp pos;                      ///< Current position inside a pattern.
     Voice_pool* voice_pool;           ///< The Voice pool used.
     Column_iter* citer;               ///< Column iterator.
     uint16_t active_voices;             ///< Number of Voices used simultaneously.

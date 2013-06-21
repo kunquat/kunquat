@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2013
  *
  * This file is part of Kunquat.
  *
@@ -21,7 +21,7 @@
 
 #include <File_base.h>
 #include <Real.h>
-#include <Reltime.h>
+#include <Tstamp.h>
 
 
 /**
@@ -34,7 +34,7 @@ typedef enum
     ENV_VAR_INT,        ///< int64_t
     ENV_VAR_FLOAT,      ///< double
     ENV_VAR_REAL,       ///< Real
-    ENV_VAR_RELTIME,    ///< Reltime
+    ENV_VAR_TSTAMP,     ///< Tstamp
     ENV_VAR_LAST        ///< sentinel
 } Env_var_type;
 

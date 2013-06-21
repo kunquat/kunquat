@@ -23,7 +23,7 @@
 #include <Connections.h>
 #include <Channel.h>
 #include <Pat_inst_ref.h>
-#include <Reltime.h>
+#include <Tstamp.h>
 #include <Event_handler.h>
 #include <kunquat/limits.h>
 
@@ -34,7 +34,7 @@
 typedef struct Pattern Pattern;
 
 
-#define PATTERN_DEFAULT_LENGTH (Reltime_set(RELTIME_AUTO, 16, 0))
+#define PATTERN_DEFAULT_LENGTH (Tstamp_set(TSTAMP_AUTO, 16, 0))
 
 
 /**
@@ -120,7 +120,7 @@ AAtree* Pattern_get_locations(Pattern* pat, AAiter** iter);
  * \param length   The new length -- must not be \c NULL and must be
  *                 non-negative.
  */
-void Pattern_set_length(Pattern* pat, Reltime* length);
+void Pattern_set_length(Pattern* pat, Tstamp* length);
 
 
 /**
@@ -130,7 +130,7 @@ void Pattern_set_length(Pattern* pat, Reltime* length);
  *
  * \return   The length -- must not be freed.
  */
-Reltime* Pattern_get_length(Pattern* pat);
+Tstamp* Pattern_get_length(Pattern* pat);
 
 
 /**

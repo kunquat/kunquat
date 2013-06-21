@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2013
  *
  * This file is part of Kunquat.
  *
@@ -35,12 +35,13 @@
  *
  * \return   The position of \a str after parsing.
  */
-char* evaluate_expr(char* str,
-                    Environment* env,
-                    Read_state* state,
-                    Value* meta,
-                    Value* res,
-                    Random* rand);
+char* evaluate_expr(
+        char* str,
+        Environment* env,
+        Read_state* state,
+        Value* meta,
+        Value* res,
+        Random* rand);
 
 
 #endif // K_EXPR_H

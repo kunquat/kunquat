@@ -27,9 +27,10 @@
 #include <xassert.h>
 
 
-bool Event_dsp_set_float_process(DSP_conf* dsp_conf,
-                                 Channel_state* ch_state,
-                                 Value* value)
+bool Event_dsp_set_float_process(
+        DSP_conf* dsp_conf,
+        Channel_state* ch_state,
+        Value* value)
 {
     assert(dsp_conf != NULL);
     assert(ch_state != NULL);
@@ -38,15 +39,18 @@ bool Event_dsp_set_float_process(DSP_conf* dsp_conf,
     {
         return false;
     }
-    char* key = Active_names_get(ch_state->parent.active_names,
-                                 ACTIVE_CAT_DSP,
-                                 ACTIVE_TYPE_FLOAT);
+    char* key = Active_names_get(
+            ch_state->parent.active_names,
+            ACTIVE_CAT_DSP,
+            ACTIVE_TYPE_FLOAT);
     if (!string_has_suffix(key, ".jsonf"))
     {
         return true;
     }
-    return Device_params_modify_value(dsp_conf->params, key,
-                                      &value->value.float_type);
+    return Device_params_modify_value(
+            dsp_conf->params,
+            key,
+            &value->value.float_type);
 }
 
 

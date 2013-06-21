@@ -24,7 +24,7 @@
 //#include <Event_global_set_tempo.h>
 #include <Event_names.h>
 #include <memory.h>
-#include <Reltime.h>
+#include <Tstamp.h>
 #include <xassert.h>
 
 
@@ -52,7 +52,7 @@ struct Column_iter
 
 struct Column
 {
-    Reltime len;
+    Tstamp len;
     bool is_aux;
     uint32_t version;
     Column_iter* edit_iter;
@@ -112,7 +112,7 @@ static int Event_list_cmp(const Event_list* list1, const Event_list* list2)
     Event* ev2 = list2->next->event;
     assert(ev1 != NULL);
     assert(ev2 != NULL);
-    return Reltime_cmp(Event_get_pos(ev1), Event_get_pos(ev2));
+    return Tstamp_cmp(Event_get_pos(ev1), Event_get_pos(ev2));
 }
 
 
@@ -149,7 +149,7 @@ void Column_iter_change_col(Column_iter* iter, Column* col)
 }
 
 
-Event* Column_iter_get(Column_iter* iter, const Reltime* pos)
+Event* Column_iter_get(Column_iter* iter, const Tstamp* pos)
 {
     assert(iter != NULL);
     assert(pos != NULL);
@@ -159,7 +159,7 @@ Event* Column_iter_get(Column_iter* iter, const Reltime* pos)
     }
     iter->version = iter->col->version;
     Event* event = &(Event){ .type = EVENT_NONE };
-    Reltime_copy(&event->pos, pos);
+    Tstamp_copy(&event->pos, pos);
     Event_list* key = Event_list_init(&(Event_list){ .event = event });
     iter->elist = AAiter_get(iter->tree_iter, key);
     if (iter->elist == NULL)
@@ -225,7 +225,7 @@ static bool Column_parse(Column* col,
                          Read_state* state);
 
 
-Column* new_Column(Reltime* len)
+Column* new_Column(Tstamp* len)
 {
     Column* col = memory_alloc_item(Column);
     if (col == NULL)
@@ -250,11 +250,11 @@ Column* new_Column(Reltime* len)
     }
     if (len != NULL)
     {
-        Reltime_copy(&col->len, len);
+        Tstamp_copy(&col->len, len);
     }
     else
     {
-        Reltime_set(&col->len, INT64_MAX, 0);
+        Tstamp_set(&col->len, INT64_MAX, 0);
     }
     return col;
 }
@@ -280,7 +280,7 @@ Column* new_Column_aux(Column* old_aux, Column* mod_col, int index)
     if (old_aux != NULL)
     {
         Column_iter_change_col(iter, old_aux);
-        Event* event = Column_iter_get(iter, RELTIME_AUTO);
+        Event* event = Column_iter_get(iter, TSTAMP_AUTO);
         while (event != NULL)
         {
             assert(EVENT_IS_PG(Event_get_type(event)));
@@ -297,7 +297,7 @@ Column* new_Column_aux(Column* old_aux, Column* mod_col, int index)
         }
     }
     Column_iter_change_col(iter, mod_col);
-    Event* event = Column_iter_get(iter, RELTIME_AUTO);
+    Event* event = Column_iter_get(iter, TSTAMP_AUTO);
     while (event != NULL)
     {
         if (EVENT_IS_PG(Event_get_type(event)))
@@ -315,7 +315,7 @@ Column* new_Column_aux(Column* old_aux, Column* mod_col, int index)
     if (old_aux != NULL)
     {
         Column_iter_change_col(iter, old_aux);
-        Event* event = Column_iter_get(iter, RELTIME_AUTO);
+        Event* event = Column_iter_get(iter, TSTAMP_AUTO);
         while (event != NULL)
         {
             assert(EVENT_IS_PG(Event_get_type(event)));
@@ -336,7 +336,7 @@ Column* new_Column_aux(Column* old_aux, Column* mod_col, int index)
 }
 
 
-Column* new_Column_from_string(Reltime* len,
+Column* new_Column_from_string(Tstamp* len,
                                char* str,
                                AAtree* locations,
                                AAiter* locations_iter,
@@ -439,15 +439,17 @@ bool Column_update_locations(Column* col,
     assert(locations != NULL);
     assert(locations_iter != NULL);
     Column_iter_change_col(col->edit_iter, col);
-    Event* event = Column_iter_get(col->edit_iter,
-                                   Reltime_init(RELTIME_AUTO));
+    Event* event = Column_iter_get(
+            col->edit_iter,
+            Tstamp_init(TSTAMP_AUTO));
     while (event != NULL)
     {
         Event_type type = Event_get_type(event);
         if (type == EVENT_GLOBAL_JUMP &&
-                !Trigger_global_jump_set_locations((Event_global_jump*)event,
-                                                   locations,
-                                                   locations_iter))
+                !Trigger_global_jump_set_locations(
+                    (Event_global_jump*)event,
+                    locations,
+                    locations_iter))
         {
             return false;
         }
@@ -464,7 +466,7 @@ bool Column_ins(Column* col, Event* event)
     ++col->version;
     Event_list* key = Event_list_init(&(Event_list){ .event = event });
     Event_list* ret = AAtree_get(col->events, key);
-    if (ret == NULL || Reltime_cmp(Event_get_pos(event),
+    if (ret == NULL || Tstamp_cmp(Event_get_pos(event),
             Event_get_pos(ret->next->event)) != 0)
     {
         Event_list* nil = new_Event_list(NULL, NULL, false);
@@ -587,7 +589,7 @@ bool Column_remove(Column* col, Event* event)
     ++col->version;
     Event_list* key = Event_list_init(&(Event_list){ .event = event });
     Event_list* target = AAtree_get(col->events, key);
-    if (target == NULL || Reltime_cmp(Event_get_pos(event),
+    if (target == NULL || Tstamp_cmp(Event_get_pos(event),
             Event_get_pos(target->next->event)) != 0)
     {
         return false;
@@ -623,14 +625,14 @@ bool Column_remove(Column* col, Event* event)
 }
 
 
-bool Column_remove_row(Column* col, Reltime* pos)
+bool Column_remove_row(Column* col, Tstamp* pos)
 {
     assert(col != NULL);
     assert(pos != NULL);
     ++col->version;
     bool modified = false;
     Event* target = Column_iter_get(col->edit_iter, pos);
-    while (target != NULL && Reltime_cmp(Event_get_pos(target), pos) == 0)
+    while (target != NULL && Tstamp_cmp(Event_get_pos(target), pos) == 0)
     {
         modified = Column_remove(col, target);
         assert(modified);
@@ -640,7 +642,7 @@ bool Column_remove_row(Column* col, Reltime* pos)
 }
 
 
-bool Column_remove_block(Column* col, Reltime* start, Reltime* end)
+bool Column_remove_block(Column* col, Tstamp* start, Tstamp* end)
 {
     assert(col != NULL);
     assert(start != NULL);
@@ -648,7 +650,7 @@ bool Column_remove_block(Column* col, Reltime* start, Reltime* end)
     ++col->version;
     bool modified = false;
     Event* target = Column_iter_get(col->edit_iter, start);
-    while (target != NULL && Reltime_cmp(Event_get_pos(target), end) <= 0)
+    while (target != NULL && Tstamp_cmp(Event_get_pos(target), end) <= 0)
     {
         modified = Column_remove_row(col, Event_get_pos(target));
         assert(modified);
@@ -658,29 +660,29 @@ bool Column_remove_block(Column* col, Reltime* start, Reltime* end)
 }
 
 
-bool Column_shift_up(Column* col, Reltime* pos, Reltime* len)
+bool Column_shift_up(Column* col, Tstamp* pos, Tstamp* len)
 {
     assert(col != NULL);
     assert(pos != NULL);
     assert(len != NULL);
     ++col->version;
     bool removed = false;
-    Reltime* del_end = Reltime_set(RELTIME_AUTO, 0, 1);
-    del_end = Reltime_sub(del_end, len, del_end);
-    del_end = Reltime_add(del_end, pos, del_end);
+    Tstamp* del_end = Tstamp_set(TSTAMP_AUTO, 0, 1);
+    del_end = Tstamp_sub(del_end, len, del_end);
+    del_end = Tstamp_add(del_end, pos, del_end);
     removed = Column_remove_block(col, pos, del_end);
     Event* target = Column_iter_get(col->edit_iter, pos);
     while (target != NULL)
     {
-        Reltime* ev_pos = Event_get_pos(target);
-        Reltime_sub(ev_pos, ev_pos, len);
+        Tstamp* ev_pos = Event_get_pos(target);
+        Tstamp_sub(ev_pos, ev_pos, len);
         target = Column_iter_get_next(col->edit_iter);
     }
     return removed;
 }
 
 
-void Column_shift_down(Column* col, Reltime* pos, Reltime* len)
+void Column_shift_down(Column* col, Tstamp* pos, Tstamp* len)
 {
     assert(col != NULL);
     assert(pos != NULL);
@@ -689,8 +691,8 @@ void Column_shift_down(Column* col, Reltime* pos, Reltime* len)
     Event* target = Column_iter_get(col->edit_iter, pos);
     while (target != NULL)
     {
-        Reltime* ev_pos = Event_get_pos(target);
-        Reltime_add(ev_pos, ev_pos, len);
+        Tstamp* ev_pos = Event_get_pos(target);
+        Tstamp_add(ev_pos, ev_pos, len);
         target = Column_iter_get_next(col->edit_iter);
     }
     return;
@@ -707,16 +709,16 @@ void Column_clear(Column* col)
 }
 
 
-void Column_set_length(Column* col, Reltime* len)
+void Column_set_length(Column* col, Tstamp* len)
 {
     assert(col != NULL);
     assert(len != NULL);
-    Reltime_copy(&col->len, len);
+    Tstamp_copy(&col->len, len);
     return;
 }
 
 
-Reltime* Column_length(Column* col)
+Tstamp* Column_length(Column* col)
 {
     assert(col != NULL);
     return &col->len;

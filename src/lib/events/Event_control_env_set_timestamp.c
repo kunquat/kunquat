@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2013
  *
  * This file is part of Kunquat.
  *
@@ -26,29 +26,32 @@
 #include <File_base.h>
 #include <General_state.h>
 #include <kunquat/limits.h>
-#include <Reltime.h>
+#include <Tstamp.h>
 #include <Value.h>
 #include <xassert.h>
 
 
-bool Event_control_env_set_timestamp_process(General_state* gstate,
-                                             Value* value)
+bool Event_control_env_set_timestamp_process(
+        General_state* gstate,
+        Value* value)
 {
     assert(gstate != NULL);
     assert(value != NULL);
-    if (value->type != VALUE_TYPE_TIMESTAMP || !gstate->global)
+    if (value->type != VALUE_TYPE_TSTAMP || !gstate->global)
     {
         return false;
     }
-    Env_var* var = Environment_get(gstate->env,
-                        Active_names_get(gstate->active_names,
-                                         ACTIVE_CAT_ENV,
-                                         ACTIVE_TYPE_FLOAT));
-    if (var == NULL || Env_var_get_type(var) != ENV_VAR_RELTIME)
+    Env_var* var = Environment_get(
+            gstate->env,
+            Active_names_get(
+                gstate->active_names,
+                ACTIVE_CAT_ENV,
+                ACTIVE_TYPE_FLOAT));
+    if (var == NULL || Env_var_get_type(var) != ENV_VAR_TSTAMP)
     {
         return true;
     }
-    Env_var_modify_value(var, &value->value.Timestamp_type);
+    Env_var_modify_value(var, &value->value.Tstamp_type);
     return true;
 }
 

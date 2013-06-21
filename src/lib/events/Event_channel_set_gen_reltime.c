@@ -25,24 +25,28 @@
 #include <xassert.h>
 
 
-bool Event_channel_set_gen_reltime_process(Channel_state* ch_state,
-                                           Value* value)
+bool Event_channel_set_gen_reltime_process(
+        Channel_state* ch_state,
+        Value* value)
 {
     assert(ch_state != NULL);
     assert(value != NULL);
-    if (value->type != VALUE_TYPE_TIMESTAMP)
+    if (value->type != VALUE_TYPE_TSTAMP)
     {
         return false;
     }
-    char* key = Active_names_get(ch_state->parent.active_names,
-                                 ACTIVE_CAT_CH_GEN,
-                                 ACTIVE_TYPE_TIMESTAMP);
+    char* key = Active_names_get(
+            ch_state->parent.active_names,
+            ACTIVE_CAT_CH_GEN,
+            ACTIVE_TYPE_TSTAMP);
     if (!string_has_suffix(key, ".jsont"))
     {
         return true;
     }
-    return Channel_gen_state_modify_value(ch_state->cgstate, key,
-                                          &value->value.Timestamp_type);
+    return Channel_gen_state_modify_value(
+            ch_state->cgstate,
+            key,
+            &value->value.Tstamp_type);
 }
 
 

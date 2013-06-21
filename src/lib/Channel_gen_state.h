@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -20,7 +20,7 @@
 #include <stdint.h>
 
 #include <Real.h>
-#include <Reltime.h>
+#include <Tstamp.h>
 
 
 /**
@@ -58,9 +58,10 @@ bool Channel_gen_state_set_key(Channel_gen_state* state, const char* key);
  *
  * \return   \c true if the value was modified, otherwise \c false.
  */
-bool Channel_gen_state_modify_value(Channel_gen_state* state,
-                                    const char* key,
-                                    void* data);
+bool Channel_gen_state_modify_value(
+        Channel_gen_state* state,
+        const char* key,
+        void* data);
 
 
 /**
@@ -72,8 +73,9 @@ bool Channel_gen_state_modify_value(Channel_gen_state* state,
  *
  * \return   The boolean value, or \c NULL if \a key doesn't exist.
  */
-bool* Channel_gen_state_get_bool(Channel_gen_state* state,
-                                 const char* key);
+bool* Channel_gen_state_get_bool(
+        Channel_gen_state* state,
+        const char* key);
 
 
 /**
@@ -85,8 +87,9 @@ bool* Channel_gen_state_get_bool(Channel_gen_state* state,
  *
  * \return   The integer value, or \c NULL if \a key doesn't exist.
  */
-int64_t* Channel_gen_state_get_int(Channel_gen_state* state,
-                                   const char* key);
+int64_t* Channel_gen_state_get_int(
+        Channel_gen_state* state,
+        const char* key);
 
 
 /**
@@ -98,8 +101,9 @@ int64_t* Channel_gen_state_get_int(Channel_gen_state* state,
  *
  * \return   The floating-point value, or \c NULL if \a key doesn't exist.
  */
-double* Channel_gen_state_get_float(Channel_gen_state* state,
-                                    const char* key);
+double* Channel_gen_state_get_float(
+        Channel_gen_state* state,
+        const char* key);
 
 
 /**
@@ -111,21 +115,23 @@ double* Channel_gen_state_get_float(Channel_gen_state* state,
  *
  * \return   The Real value, or \c NULL if \a key doesn't exist.
  */
-Real* Channel_gen_state_get_real(Channel_gen_state* state,
-                                 const char* key);
+Real* Channel_gen_state_get_real(
+        Channel_gen_state* state,
+        const char* key);
 
 
 /**
- * Retrieves a reference to a Reltime value.
+ * Retrieves a reference to a Tstamp value.
  *
  * \param state   The Channel gen state -- must not be \c NULL.
  * \param key     The key -- must not be \c NULL and must have the suffix
  *                ".jsont".
  *
- * \return   The Reltime value, or \c NULL if \a key doesn't exist.
+ * \return   The Tstamp value, or \c NULL if \a key doesn't exist.
  */
-Reltime* Channel_gen_state_get_reltime(Channel_gen_state* state,
-                                       const char* key);
+Tstamp* Channel_gen_state_get_tstamp(
+        Channel_gen_state* state,
+        const char* key);
 
 
 /**

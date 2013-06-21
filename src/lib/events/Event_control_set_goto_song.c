@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2013
  *
  * This file is part of Kunquat.
  *
@@ -23,8 +23,9 @@
 #include <xassert.h>
 
 
-bool Event_control_set_goto_song_process(General_state* gstate,
-                                         Value* value)
+bool Event_control_set_goto_song_process(
+        General_state* gstate,
+        Value* value)
 {
     assert(gstate != NULL);
     assert(value != NULL);

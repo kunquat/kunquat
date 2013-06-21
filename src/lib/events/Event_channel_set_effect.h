@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2013
  *
  * This file is part of Kunquat.
  *
@@ -17,7 +17,6 @@
 
 
 #include <Channel_state.h>
-#include <Reltime.h>
 #include <Value.h>
 
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2013
  *
  * This file is part of Kunquat.
  *
@@ -60,10 +60,10 @@ int Value_serialise(Value* value, int len, char* str)
         {
             return serialise_Real(str, len, &value->value.Real_type);
         } break;
-        case VALUE_TYPE_TIMESTAMP:
+        case VALUE_TYPE_TSTAMP:
         {
-            return serialise_Timestamp(str, len,
-                    &value->value.Timestamp_type);
+            return serialise_Tstamp(str, len,
+                    &value->value.Tstamp_type);
         } break;
         case VALUE_TYPE_STRING:
         {

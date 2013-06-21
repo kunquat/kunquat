@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2013
  *
  * This file is part of Kunquat.
  *
@@ -19,12 +19,12 @@
 #include <stdbool.h>
 
 #include <General_state.h>
-#include <Reltime.h>
 #include <Value.h>
 
 
-bool Event_control_env_set_bool_name_process(General_state* gstate,
-                                             Value* value);
+bool Event_control_env_set_bool_name_process(
+        General_state* gstate,
+        Value* value);
 
 
 #endif // K_EVENT_CONTROL_ENV_SET_BOOL_NAME_H

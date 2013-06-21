@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -17,8 +17,6 @@
 
 
 #include <stdbool.h>
-
-#include <Reltime.h>
 
 
 typedef struct Voice_params

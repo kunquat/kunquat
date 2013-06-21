@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -25,7 +25,7 @@
 #include <General_state.h>
 #include <LFO.h>
 #include <Random.h>
-#include <Reltime.h>
+#include <Tstamp.h>
 #include <kunquat/limits.h>
 #include <Voice_params.h>
 #include <Voice_pool.h>
@@ -62,26 +62,26 @@ typedef struct Channel_state
 
     double volume;                 ///< Channel volume (linear factor).
 
-    Reltime force_slide_length;
+    Tstamp force_slide_length;
     LFO tremolo;
     double tremolo_speed;
-    Reltime tremolo_speed_delay;
+    Tstamp tremolo_speed_delay;
     double tremolo_depth;
-    Reltime tremolo_depth_delay;
+    Tstamp tremolo_depth_delay;
 
-    Reltime pitch_slide_length;
+    Tstamp pitch_slide_length;
     LFO vibrato;
     double vibrato_speed;
-    Reltime vibrato_speed_delay;
+    Tstamp vibrato_speed_delay;
     double vibrato_depth;
-    Reltime vibrato_depth_delay;
+    Tstamp vibrato_depth_delay;
 
-    Reltime filter_slide_length;
+    Tstamp filter_slide_length;
     LFO autowah;
     double autowah_speed;
-    Reltime autowah_speed_delay;
+    Tstamp autowah_speed_delay;
     double autowah_depth;
-    Reltime autowah_depth_delay;
+    Tstamp autowah_depth_delay;
 
     double panning;                ///< The current panning.
     Slider panning_slider;

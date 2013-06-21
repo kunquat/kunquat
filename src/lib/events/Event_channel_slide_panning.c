@@ -19,14 +19,14 @@
 
 #include <Event_common.h>
 #include <Event_channel_slide_panning.h>
-#include <Reltime.h>
 #include <Value.h>
 #include <Voice.h>
 #include <xassert.h>
 
 
-bool Event_channel_slide_panning_process(Channel_state* ch_state,
-                                         Value* value)
+bool Event_channel_slide_panning_process(
+        Channel_state* ch_state,
+        Value* value)
 {
     assert(ch_state != NULL);
     assert(value != NULL);
@@ -36,14 +36,16 @@ bool Event_channel_slide_panning_process(Channel_state* ch_state,
     }
     if (Slider_in_progress(&ch_state->panning_slider))
     {
-        Slider_change_target(&ch_state->panning_slider,
-                             value->value.float_type);
+        Slider_change_target(
+                &ch_state->panning_slider,
+                value->value.float_type);
     }
     else
     {
-        Slider_start(&ch_state->panning_slider,
-                     value->value.float_type,
-                     ch_state->panning);
+        Slider_start(
+                &ch_state->panning_slider,
+                value->value.float_type,
+                ch_state->panning);
     }
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {

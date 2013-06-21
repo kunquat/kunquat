@@ -19,35 +19,37 @@
 #include <Event_common.h>
 #include <Event_global_slide_tempo_length.h>
 #include <kunquat/limits.h>
-#include <Reltime.h>
+#include <Tstamp.h>
 #include <Value.h>
 #include <xassert.h>
 
 
-bool Event_global_slide_tempo_length_process(Playdata* global_state,
-                                             Value* value)
+bool Event_global_slide_tempo_length_process(
+        Playdata* global_state,
+        Value* value)
 {
     assert(global_state != NULL);
     assert(value != NULL);
-    if (value->type != VALUE_TYPE_TIMESTAMP)
+    if (value->type != VALUE_TYPE_TSTAMP)
     {
         return false;
     }
     if (global_state->tempo_slide != 0)
     {
-        Reltime_init(&global_state->tempo_slide_int_left);
-        Reltime_copy(&global_state->tempo_slide_left,
-                     &value->value.Timestamp_type);
+        Tstamp_init(&global_state->tempo_slide_int_left);
+        Tstamp_copy(&global_state->tempo_slide_left,
+                     &value->value.Tstamp_type);
         double rems_total =
-                (double)Reltime_get_beats(&value->value.Timestamp_type) *
-                            KQT_RELTIME_BEAT +
-                            Reltime_get_rem(&value->value.Timestamp_type);
+                (double)Tstamp_get_beats(&value->value.Tstamp_type) *
+                KQT_TSTAMP_BEAT +
+                Tstamp_get_rem(&value->value.Tstamp_type);
         double slices = rems_total / 36756720; // slide updated 24 times per beat
         global_state->tempo_slide_update = (global_state->tempo_slide_target -
                                             global_state->tempo) / slices;
     }
-    Reltime_copy(&global_state->tempo_slide_length,
-                 &value->value.Timestamp_type);
+    Tstamp_copy(
+            &global_state->tempo_slide_length,
+            &value->value.Tstamp_type);
     return true;
 }
 

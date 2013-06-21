@@ -28,26 +28,30 @@
 #include <xassert.h>
 
 
-bool Event_dsp_set_reltime_process(DSP_conf* dsp_conf,
-                                   Channel_state* ch_state,
-                                   Value* value)
+bool Event_dsp_set_reltime_process(
+        DSP_conf* dsp_conf,
+        Channel_state* ch_state,
+        Value* value)
 {
     assert(dsp_conf != NULL);
     assert(ch_state != NULL);
     assert(value != NULL);
-    if (value->type != VALUE_TYPE_TIMESTAMP)
+    if (value->type != VALUE_TYPE_TSTAMP)
     {
         return false;
     }
-    char* key = Active_names_get(ch_state->parent.active_names,
-                                 ACTIVE_CAT_DSP,
-                                 ACTIVE_TYPE_TIMESTAMP);
+    char* key = Active_names_get(
+            ch_state->parent.active_names,
+            ACTIVE_CAT_DSP,
+            ACTIVE_TYPE_TSTAMP);
     if (!string_has_suffix(key, ".jsont"))
     {
         return false;
     }
-    return Device_params_modify_value(dsp_conf->params, key,
-                                      &value->value.Timestamp_type);
+    return Device_params_modify_value(
+            dsp_conf->params,
+            key,
+            &value->value.Tstamp_type);
 }
 
 

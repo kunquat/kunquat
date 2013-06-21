@@ -25,8 +25,9 @@
 #include <xassert.h>
 
 
-bool Event_channel_set_arpeggio_index_process(Channel_state* ch_state,
-                                              Value* value)
+bool Event_channel_set_arpeggio_index_process(
+        Channel_state* ch_state,
+        Value* value)
 {
     assert(ch_state != NULL);
     assert(value != NULL);

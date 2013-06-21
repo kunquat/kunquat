@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2013
  *
  * This file is part of Kunquat.
  *
@@ -21,9 +21,10 @@
 #include <Value.h>
 
 
-bool Event_generator_set_reltime_name_process(Generator* gen,
-                                              Channel_state* ch_state,
-                                              Value* value);
+bool Event_generator_set_reltime_name_process(
+        Generator* gen,
+        Channel_state* ch_state,
+        Value* value);
 
 
 #endif // K_EVENT_GENERATOR_SET_RELTIME_NAME_H

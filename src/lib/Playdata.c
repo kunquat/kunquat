@@ -23,7 +23,7 @@
 #include <memory.h>
 #include <Playdata.h>
 #include <Random.h>
-#include <Reltime.h>
+#include <Tstamp.h>
 #include <serialise.h>
 #include <Slider.h>
 #include <string_common.h>
@@ -73,19 +73,19 @@ Playdata* new_Playdata(Ins_table* insts,
     play->jump_set_counter = 0;
     play->jump_set_subsong = -1;
     play->jump_set_section = -1;
-    Reltime_init(&play->jump_set_row);
+    Tstamp_init(&play->jump_set_row);
     play->jump = false;
     play->jump_subsong = -1;
     play->jump_section = -1;
-    Reltime_init(&play->jump_row);
+    Tstamp_init(&play->jump_row);
 
     play->goto_set_subsong = -1;
     play->goto_set_section = -1;
-    Reltime_init(&play->goto_set_row);
+    Tstamp_init(&play->goto_set_row);
     play->goto_trigger = false;
     play->goto_subsong = -1;
     play->goto_section = -1;
-    Reltime_init(&play->goto_row);
+    Tstamp_init(&play->goto_row);
 
     play->volume = 1;
     Slider_init(&play->volume_slider, SLIDE_MODE_EXP);
@@ -94,14 +94,14 @@ Playdata* new_Playdata(Ins_table* insts,
     play->tempo = 0;
     play->old_tempo = 0;
     play->tempo_slide = 0;
-    Reltime_init(&play->tempo_slide_length);
+    Tstamp_init(&play->tempo_slide_length);
     play->tempo_slide_target = 0;
-    Reltime_init(&play->tempo_slide_left);
+    Tstamp_init(&play->tempo_slide_left);
     play->tempo_slide_int_target = 0;
-    Reltime_init(&play->tempo_slide_int_left);
+    Tstamp_init(&play->tempo_slide_int_left);
     play->tempo_slide_update = 0;
 
-    Reltime_init(&play->delay_left);
+    Tstamp_init(&play->delay_left);
     play->event_index = 0;
     play->delay_event_index = -1;
 
@@ -110,9 +110,9 @@ Playdata* new_Playdata(Ins_table* insts,
     play->system = 0;
     play->piref.pat = -1;
     play->piref.inst = 0;
-    Reltime_init(&play->play_time);
+    Tstamp_init(&play->play_time);
     play->play_frames = 0;
-    Reltime_init(&play->pos);
+    Tstamp_init(&play->pos);
     Playdata_reset_stats(play);
 
     return play;
@@ -158,19 +158,19 @@ Playdata* new_Playdata_silent(Environment* env, uint32_t freq)
     play->jump_set_counter = 0;
     play->jump_set_subsong = -1;
     play->jump_set_section = -1;
-    Reltime_init(&play->jump_set_row);
+    Tstamp_init(&play->jump_set_row);
     play->jump = false;
     play->jump_subsong = -1;
     play->jump_section = -1;
-    Reltime_init(&play->jump_row);
+    Tstamp_init(&play->jump_row);
 
     play->goto_set_subsong = -1;
     play->goto_set_section = -1;
-    Reltime_init(&play->goto_set_row);
+    Tstamp_init(&play->goto_set_row);
     play->goto_trigger = false;
     play->goto_subsong = -1;
     play->goto_section = -1;
-    Reltime_init(&play->goto_row);
+    Tstamp_init(&play->goto_row);
 
     play->volume = 1;
     Slider_init(&play->volume_slider, SLIDE_MODE_EXP);
@@ -179,14 +179,14 @@ Playdata* new_Playdata_silent(Environment* env, uint32_t freq)
     play->tempo = 0;
     play->old_tempo = 0;
     play->tempo_slide = 0;
-    Reltime_init(&play->tempo_slide_length);
+    Tstamp_init(&play->tempo_slide_length);
     play->tempo_slide_target = 0;
-    Reltime_init(&play->tempo_slide_left);
+    Tstamp_init(&play->tempo_slide_left);
     play->tempo_slide_int_target = 0;
-    Reltime_init(&play->tempo_slide_int_left);
+    Tstamp_init(&play->tempo_slide_int_left);
     play->tempo_slide_update = 0;
 
-    Reltime_init(&play->delay_left);
+    Tstamp_init(&play->delay_left);
     play->event_index = 0;
     play->delay_event_index = -1;
 
@@ -195,9 +195,9 @@ Playdata* new_Playdata_silent(Environment* env, uint32_t freq)
     play->system = 0;
     play->piref.pat = -1;
     play->piref.inst = 0;
-    Reltime_init(&play->play_time);
+    Tstamp_init(&play->play_time);
     play->play_frames = 0;
-    Reltime_init(&play->pos);
+    Tstamp_init(&play->pos);
     Playdata_reset_stats(play);
 
     return play;
@@ -262,35 +262,35 @@ void Playdata_reset(Playdata* play)
     play->jump_set_counter = 0;
     play->jump_set_subsong = -1;
     play->jump_set_section = -1;
-    Reltime_init(&play->jump_set_row);
+    Tstamp_init(&play->jump_set_row);
     play->jump = false;
     play->jump_subsong = -1;
     play->jump_section = -1;
-    Reltime_init(&play->jump_row);
+    Tstamp_init(&play->jump_row);
 
     play->goto_set_subsong = -1;
     play->goto_set_section = -1;
-    Reltime_init(&play->goto_set_row);
+    Tstamp_init(&play->goto_set_row);
     play->goto_trigger = false;
     play->goto_subsong = -1;
     play->goto_section = -1;
-    Reltime_init(&play->goto_row);
+    Tstamp_init(&play->goto_row);
 
     play->volume = 1;
     Slider_init(&play->volume_slider, SLIDE_MODE_EXP);
 //    Slider_set_mix_rate(&play->volume_slider, play->freq);
 //    Slider_set_tempo(&play->volume_slider, play->tempo);
     play->tempo_slide = 0;
-    Reltime_init(&play->tempo_slide_length);
-    Reltime_init(&play->delay_left);
+    Tstamp_init(&play->tempo_slide_length);
+    Tstamp_init(&play->delay_left);
     play->event_index = 0;
     play->delay_event_index = -1;
     play->play_frames = 0;
     play->system = 0;
     play->piref.pat = -1;
     play->piref.inst = 0;
-    Reltime_init(&play->play_time);
-    Reltime_init(&play->pos);
+    Tstamp_init(&play->play_time);
+    Tstamp_init(&play->pos);
     return;
 }
 

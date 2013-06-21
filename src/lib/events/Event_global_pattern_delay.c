@@ -29,12 +29,12 @@ bool Event_global_pattern_delay_process(Playdata* global_state, Value* value)
 {
     assert(global_state != NULL);
     assert(value != NULL);
-    if (value->type != VALUE_TYPE_TIMESTAMP)
+    if (value->type != VALUE_TYPE_TSTAMP)
     {
         return false;
     }
     global_state->delay_event_index = global_state->event_index;
-    Reltime_copy(&global_state->delay_left, &value->value.Timestamp_type);
+    Tstamp_copy(&global_state->delay_left, &value->value.Tstamp_type);
     return true;
 }
 

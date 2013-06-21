@@ -34,7 +34,7 @@ typedef enum Active_type
     ACTIVE_TYPE_BOOL = 0,
     ACTIVE_TYPE_INT,
     ACTIVE_TYPE_FLOAT,
-    ACTIVE_TYPE_TIMESTAMP,
+    ACTIVE_TYPE_TSTAMP,
     ACTIVE_TYPE_LAST
 } Active_type;
 

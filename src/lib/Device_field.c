@@ -29,7 +29,7 @@ typedef union
     int64_t int_type;
     double float_type;
     Real Real_type;
-    Reltime Reltime_type;
+    Tstamp Tstamp_type;
     Envelope* Envelope_type;
     Sample* Sample_type;
     Sample_params Sample_params_type;
@@ -75,8 +75,8 @@ Device_field* new_Device_field(const char* key, void* data)
     }
     else if (string_has_suffix(key, ".jsont"))
     {
-        type = DEVICE_FIELD_RELTIME;
-        data_size = sizeof(Reltime);
+        type = DEVICE_FIELD_TSTAMP;
+        data_size = sizeof(Tstamp);
     }
     else if (string_has_suffix(key, ".jsone"))
     {
@@ -208,12 +208,12 @@ bool Device_field_change(Device_field* field,
                 assert(false); // TODO: implement
             }
         } break;
-        case DEVICE_FIELD_RELTIME:
+        case DEVICE_FIELD_TSTAMP:
         {
             if (data != NULL)
             {
                 char* str = data;
-                read_reltime(str, &field->data.Reltime_type, state);
+                read_tstamp(str, &field->data.Tstamp_type, state);
             }
         } break;
         case DEVICE_FIELD_ENVELOPE:
@@ -366,9 +366,9 @@ bool Device_field_modify(Device_field* field, void* data)
         {
             memcpy(&field->data.float_type, data, sizeof(double));
         } break;
-        case DEVICE_FIELD_RELTIME:
+        case DEVICE_FIELD_TSTAMP:
         {
-            memcpy(&field->data.Reltime_type, data, sizeof(Reltime));
+            memcpy(&field->data.Tstamp_type, data, sizeof(Tstamp));
         } break;
         default:
             assert(false);
@@ -410,11 +410,11 @@ Real* Device_field_get_real(Device_field* field)
 }
 
 
-Reltime* Device_field_get_reltime(Device_field* field)
+Tstamp* Device_field_get_tstamp(Device_field* field)
 {
     assert(field != NULL);
-    assert(field->type == DEVICE_FIELD_RELTIME);
-    return &field->data.Reltime_type;
+    assert(field->type == DEVICE_FIELD_TSTAMP);
+    return &field->data.Tstamp_type;
 }
 
 

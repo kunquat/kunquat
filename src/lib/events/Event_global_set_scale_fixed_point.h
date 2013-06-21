@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2013
  *
  * This file is part of Kunquat.
  *
@@ -22,8 +22,9 @@
 #include <Value.h>
 
 
-bool Event_global_set_scale_fixed_point_process(Playdata* global_state,
-                                                Value* value);
+bool Event_global_set_scale_fixed_point_process(
+        Playdata* global_state,
+        Value* value);
 
 
 #endif // K_EVENT_GLOBAL_SET_SCALE_FIXED_POINT_H

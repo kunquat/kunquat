@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -18,14 +18,14 @@
 #include <string.h>
 #include <math.h>
 
-#include <Reltime.h>
 #include <Slider.h>
 #include <xassert.h>
 
 
-static void Slider_update_time(Slider* slider,
-                               uint32_t mix_rate,
-                               double tempo);
+static void Slider_update_time(
+        Slider* slider,
+        uint32_t mix_rate,
+        double tempo);
 
 
 Slider* Slider_init(Slider* slider, Slide_mode mode)
@@ -38,7 +38,7 @@ Slider* Slider_init(Slider* slider, Slide_mode mode)
     slider->tempo = 0;
 
     slider->dir = 0;
-    Reltime_init(&slider->length);
+    Tstamp_init(&slider->length);
     slider->current_value = 0;
     slider->target_value = 0;
     slider->steps_left = 0;
@@ -66,9 +66,10 @@ void Slider_start(Slider* slider,
     assert(isfinite(target));
     assert(isfinite(start));
 
-    slider->steps_left = Reltime_toframes(&slider->length,
-                                          slider->tempo,
-                                          slider->mix_rate);
+    slider->steps_left = Tstamp_toframes(
+            &slider->length,
+            slider->tempo,
+            slider->mix_rate);
     slider->current_value = start;
     slider->target_value = target;
     int zero_slide = 0;
@@ -205,11 +206,11 @@ void Slider_change_target(Slider* slider, double target)
 }
 
 
-void Slider_set_length(Slider* slider, Reltime* length)
+void Slider_set_length(Slider* slider, Tstamp* length)
 {
     assert(slider != NULL);
     assert(length != NULL);
-    Reltime_copy(&slider->length, length);
+    Tstamp_copy(&slider->length, length);
     if (slider->dir != 0)
     {
         Slider_start(slider, slider->target_value, slider->current_value);

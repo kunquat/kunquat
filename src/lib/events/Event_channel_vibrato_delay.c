@@ -21,29 +21,30 @@
 #include <Event_channel_vibrato_delay.h>
 #include <kunquat/limits.h>
 #include <math_common.h>
-#include <Reltime.h>
+#include <Tstamp.h>
 #include <Voice.h>
 #include <Value.h>
 #include <xassert.h>
 
 
-bool Event_channel_vibrato_delay_process(Channel_state* ch_state,
-                                         Value* value)
+bool Event_channel_vibrato_delay_process(
+        Channel_state* ch_state,
+        Value* value)
 {
     assert(ch_state != NULL);
     assert(value != NULL);
-    if (value->type != VALUE_TYPE_TIMESTAMP)
+    if (value->type != VALUE_TYPE_TSTAMP)
     {
         return false;
     }
-    Reltime_copy(&ch_state->vibrato_depth_delay,
-                 &value->value.Timestamp_type);
-    LFO_set_depth_delay(&ch_state->vibrato, &value->value.Timestamp_type);
+    Tstamp_copy(&ch_state->vibrato_depth_delay,
+                 &value->value.Tstamp_type);
+    LFO_set_depth_delay(&ch_state->vibrato, &value->value.Tstamp_type);
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         Event_check_voice(ch_state, i);
         Voice_state* vs = ch_state->fg[i]->state;
-        LFO_set_depth_delay(&vs->vibrato, &value->value.Timestamp_type);
+        LFO_set_depth_delay(&vs->vibrato, &value->value.Tstamp_type);
     }
     return true;
 }

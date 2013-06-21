@@ -76,7 +76,7 @@ bool v_any_ts(char* param)
 {
     assert(param != NULL);
     begin();
-    param = read_reltime(param, NULL, state);
+    param = read_tstamp(param, NULL, state);
     end();
     return !state->error;
 }
@@ -251,11 +251,11 @@ bool v_nonneg_ts(char* param)
 {
     assert(param != NULL);
     begin();
-    Reltime* ts = RELTIME_AUTO;
-    param = read_reltime(param, ts, state);
+    Tstamp* ts = TSTAMP_AUTO;
+    param = read_tstamp(param, ts, state);
     end();
-    return !state->error && Reltime_cmp(ts,
-                            Reltime_set(RELTIME_AUTO, 0, 0)) >= 0;
+    return !state->error &&
+        Tstamp_cmp(ts, Tstamp_set(TSTAMP_AUTO, 0, 0)) >= 0;
 }
 
 

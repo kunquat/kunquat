@@ -253,9 +253,9 @@ Event_handler* new_Event_handler(Playdata* global_state,
                                       Event_control_env_set_float_name_process);
     Event_handler_set_control_process(eh, EVENT_CONTROL_ENV_SET_FLOAT,
                                       Event_control_env_set_float_process);
-    Event_handler_set_control_process(eh, EVENT_CONTROL_ENV_SET_TIMESTAMP_NAME,
+    Event_handler_set_control_process(eh, EVENT_CONTROL_ENV_SET_TSTAMP_NAME,
                                       Event_control_env_set_timestamp_name_process);
-    Event_handler_set_control_process(eh, EVENT_CONTROL_ENV_SET_TIMESTAMP,
+    Event_handler_set_control_process(eh, EVENT_CONTROL_ENV_SET_TSTAMP,
                                       Event_control_env_set_timestamp_process);
 
     Event_handler_set_control_process(eh, EVENT_CONTROL_SET_GOTO_ROW,
@@ -429,9 +429,9 @@ Event_handler* new_Event_handler(Playdata* global_state,
                                  Event_channel_set_gen_float_name_process);
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_GEN_FLOAT,
                                  Event_channel_set_gen_float_process);
-    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_GEN_RELTIME_NAME,
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_GEN_TSTAMP_NAME,
                                  Event_channel_set_gen_reltime_name_process);
-    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_GEN_RELTIME,
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_GEN_TSTAMP,
                                  Event_channel_set_gen_reltime_process);
 
     Event_handler_set_ins_process(eh, EVENT_INS_SET_SUSTAIN,
@@ -449,9 +449,9 @@ Event_handler* new_Event_handler(Playdata* global_state,
                                         Event_generator_set_float_name_process);
     Event_handler_set_generator_process(eh, EVENT_GENERATOR_SET_FLOAT,
                                         Event_generator_set_float_process);
-    Event_handler_set_generator_process(eh, EVENT_GENERATOR_SET_RELTIME_NAME,
+    Event_handler_set_generator_process(eh, EVENT_GENERATOR_SET_TSTAMP_NAME,
                                         Event_generator_set_reltime_name_process);
-    Event_handler_set_generator_process(eh, EVENT_GENERATOR_SET_RELTIME,
+    Event_handler_set_generator_process(eh, EVENT_GENERATOR_SET_TSTAMP,
                                         Event_generator_set_reltime_process);
 
     Event_handler_set_effect_process(eh, EVENT_EFFECT_BYPASS_ON,
@@ -471,9 +471,9 @@ Event_handler* new_Event_handler(Playdata* global_state,
                                   Event_dsp_set_float_name_process);
     Event_handler_set_dsp_process(eh, EVENT_DSP_SET_FLOAT,
                                   Event_dsp_set_float_process);
-    Event_handler_set_dsp_process(eh, EVENT_DSP_SET_RELTIME_NAME,
+    Event_handler_set_dsp_process(eh, EVENT_DSP_SET_TSTAMP_NAME,
                                   Event_dsp_set_reltime_name_process);
-    Event_handler_set_dsp_process(eh, EVENT_DSP_SET_RELTIME,
+    Event_handler_set_dsp_process(eh, EVENT_DSP_SET_TSTAMP,
                                   Event_dsp_set_reltime_process);
 
     Playdata_set_event_filter(global_state, eh->event_names);
@@ -767,8 +767,8 @@ static void Event_handler_handle_query(Event_handler* eh,
             Event_handler_trigger_const(eh, index, auto_event, silent);
             snprintf(auto_event, 128,
                      "[\"Arow\", [%" PRId64 ", %" PRId32 "]]",
-                     Reltime_get_beats(&eh->global_state->pos),
-                     Reltime_get_rem(&eh->global_state->pos));
+                     Tstamp_get_beats(&eh->global_state->pos),
+                     Tstamp_get_rem(&eh->global_state->pos));
             Event_handler_trigger_const(eh, index, auto_event, silent);
         } break;
         case EVENT_QUERY_VOICE_COUNT:
@@ -836,7 +836,7 @@ static bool Event_handler_act(Event_handler* eh,
             Event_buffer_add(eh->event_buffer, index, event_name, value);
         }
         //if ((event_type >= EVENT_CONTROL_ENV_SET_BOOL_NAME &&
-        //        event_type <= EVENT_CONTROL_ENV_SET_TIMESTAMP) ||
+        //        event_type <= EVENT_CONTROL_ENV_SET_TSTAMP) ||
         //    EVENT_IS_AUTO(event_type))
         {
             Event_buffer_add(eh->tracker_buffer, index, event_name, value);
@@ -998,23 +998,23 @@ bool Event_handler_trigger(Event_handler* eh,
             {
                 assert(false);
             } break;
-            case VALUE_TYPE_TIMESTAMP:
+            case VALUE_TYPE_TSTAMP:
             {
                 if (value->type == VALUE_TYPE_INT)
                 {
-                    value->type = VALUE_TYPE_TIMESTAMP;
-                    Reltime_set(&value->value.Timestamp_type,
+                    value->type = VALUE_TYPE_TSTAMP;
+                    Tstamp_set(&value->value.Tstamp_type,
                                 value->value.int_type, 0);
                 }
                 else if (value->type == VALUE_TYPE_FLOAT)
                 {
-                    value->type = VALUE_TYPE_TIMESTAMP;
+                    value->type = VALUE_TYPE_TSTAMP;
                     double beats = floor(value->value.float_type);
-                    Reltime_set(&value->value.Timestamp_type, beats,
+                    Tstamp_set(&value->value.Tstamp_type, beats,
                                 (value->value.float_type - beats) *
-                                    KQT_RELTIME_BEAT);
+                                    KQT_TSTAMP_BEAT);
                 }
-                else if (value->type != VALUE_TYPE_TIMESTAMP)
+                else if (value->type != VALUE_TYPE_TSTAMP)
                 {
                     Read_state_set_error(state, "Type mismatch");
                     return false;
@@ -1098,10 +1098,10 @@ bool Event_handler_trigger_const(Event_handler* eh,
         {
             assert(false);
         } break;
-        case VALUE_TYPE_TIMESTAMP:
+        case VALUE_TYPE_TSTAMP:
         {
-            value->type = VALUE_TYPE_TIMESTAMP;
-            desc = read_reltime(desc, &value->value.Timestamp_type, state);
+            value->type = VALUE_TYPE_TSTAMP;
+            desc = read_tstamp(desc, &value->value.Tstamp_type, state);
         } break;
         case VALUE_TYPE_STRING:
         {
