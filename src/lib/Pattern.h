@@ -74,13 +74,15 @@ void Pattern_set_inst_existent(Pattern* pat, int index, bool existent);
 
 
 /**
- * Sets existent status of a Pattern instance.
+ * Gets existent status of a Pattern instance.
  *
  * \param pat     The Pattern -- must not be \c NULL
  * \param index   The instance index -- must be >= \c 0 and
  *                < \c KQT_PAT_INSTANCES_MAX.
+ *
+ * \return   \c true if instance \a index of \a pat exists, otherwise \c false.
  */
-bool Pattern_get_inst_existent(Pattern* pat, int index);
+bool Pattern_get_inst_existent(const Pattern* pat, int index);
 
 
 /**
@@ -130,7 +132,7 @@ void Pattern_set_length(Pattern* pat, Tstamp* length);
  *
  * \return   The length -- must not be freed.
  */
-Tstamp* Pattern_get_length(Pattern* pat);
+const Tstamp* Pattern_get_length(const Pattern* pat);
 
 
 /**

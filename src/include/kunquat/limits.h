@@ -93,10 +93,15 @@ extern "C" {
 
 
 /**
- * Maximum number of Voice Columns in a Kunquat Handle (Global Column not
- * included).
+ * Maximum number of Columns in a Kunquat Handle.
  */
 #define KQT_COLUMNS_MAX 64
+
+
+/**
+ * Maximum number of channels in a Kunquat Handle.
+ */
+#define KQT_CHANNELS_MAX KQT_COLUMNS_MAX
 
 
 /**

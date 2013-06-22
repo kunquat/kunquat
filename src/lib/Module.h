@@ -110,6 +110,45 @@ bool Module_parse_random_seed(Module* module, char* str, Read_state* state);
 
 
 /**
+ * Gets the track list of the Module.
+ *
+ * \param module   The Module -- must not be \c NULL.
+ *
+ * \return   The track list if the Module has an album, otherwise \c NULL.
+ */
+const Track_list* Module_get_track_list(const Module* module);
+
+
+/**
+ * Gets an order list of the Module.
+ *
+ * \param module   The Module -- must not be \c NULL.
+ * \param song     The song number -- must be >= \c 0 and < \c KQT_SONGS_MAX.
+ *
+ * \return   The order list if \a song exists, otherwise \c NULL.
+ */
+const Order_list* Module_get_order_list(const Module* module, int16_t song);
+
+
+/**
+ * Gets a pattern of the Module.
+ *
+ * \param module   The Module -- must not be \c NULL.
+ * \param piref    The pattern instance -- must be valid.
+ *
+ * \return   The pattern if one exists, otherwise \c NULL.
+ */
+const Pattern* Module_get_pattern(
+        const Module* module,
+        const Pat_inst_ref* piref);
+
+
+/*
+ * FIXME: Old interface below, clean up
+ */
+
+
+/**
  * Mixes a portion of the Module.
  *
  * \param module    The Module -- must not be \c NULL.

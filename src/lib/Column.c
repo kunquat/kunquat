@@ -225,7 +225,7 @@ static bool Column_parse(Column* col,
                          Read_state* state);
 
 
-Column* new_Column(Tstamp* len)
+Column* new_Column(const Tstamp* len)
 {
     Column* col = memory_alloc_item(Column);
     if (col == NULL)
@@ -336,7 +336,7 @@ Column* new_Column_aux(Column* old_aux, Column* mod_col, int index)
 }
 
 
-Column* new_Column_from_string(Tstamp* len,
+Column* new_Column_from_string(const Tstamp* len,
                                char* str,
                                AAtree* locations,
                                AAiter* locations_iter,

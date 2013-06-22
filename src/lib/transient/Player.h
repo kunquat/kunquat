@@ -36,9 +36,19 @@ Player* new_Player(const Module* module);
 
 
 /**
+ * Sets audio rate.
+ *
+ * \param player   The Player -- must not be \c NULL.
+ * \param rate     The audio rate in frames per second -- must be > \c 0.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Player_set_audio_rate(Player* player, int32_t rate);
+
+
+/**
  * Plays music.
  *
- * \param player    The Player -- must not be \c NULL.
  * \param nframes   The number of frames to be rendered -- must be >= \c 0.
  *                  The actual number of frames rendered may be anything
  *                  between \c 0 and \a nframes.
@@ -47,13 +57,24 @@ void Player_play(Player* player, int32_t nframes);
 
 
 /**
- * Gets the number of frames available in the internal audio buffer.
+ * Gets the number of frames available in the internal audio chunk.
  *
  * \param player   The Player -- must not be \c NULL.
  *
  * \return   The number of frames available.
  */
 int32_t Player_get_frames_available(Player* player);
+
+
+/**
+ * Returns an internal audio buffer.
+ *
+ * \param player    The Player -- must not be \c NULL.
+ * \param channel   The channel number -- must be \c 0 or \c 1.
+ *
+ * \return   The audio buffer.
+ */
+float* Player_get_audio(Player* player, int channel);
 
 
 /**

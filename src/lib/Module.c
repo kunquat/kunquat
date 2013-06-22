@@ -372,6 +372,52 @@ bool Module_parse_random_seed(Module* module, char* str, Read_state* state)
 }
 
 
+const Track_list* Module_get_track_list(const Module* module)
+{
+    assert(module != NULL);
+
+    if (!module->album_is_existent)
+        return NULL;
+
+    assert(module->track_list != NULL);
+    return module->track_list;
+}
+
+
+const Order_list* Module_get_order_list(const Module* module, int16_t song)
+{
+    assert(module != NULL);
+    assert(song >= 0);
+    assert(song < KQT_SONGS_MAX);
+
+    if (!Subsong_table_get_existent(module->subsongs, song))
+        return NULL;
+
+    assert(module->order_lists[song] != NULL);
+    return module->order_lists[song];
+}
+
+
+const Pattern* Module_get_pattern(
+        const Module* module,
+        const Pat_inst_ref* piref)
+{
+    assert(module != NULL);
+    assert(piref != NULL);
+    assert(piref->pat >= 0);
+    assert(piref->pat < KQT_PATTERNS_MAX);
+
+    if (!Pat_table_get_existent(module->pats, piref->pat))
+        return NULL;
+
+    const Pattern* pat = Pat_table_get(module->pats, piref->pat);
+    if (pat != NULL && !Pattern_get_inst_existent(pat, piref->inst))
+        return NULL;
+
+    return pat;
+}
+
+
 uint32_t Module_mix(Module* module, uint32_t nframes, Event_handler* eh)
 {
     assert(module != NULL);

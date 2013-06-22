@@ -143,7 +143,7 @@ void Pattern_set_inst_existent(Pattern* pat, int index, bool existent)
 }
 
 
-bool Pattern_get_inst_existent(Pattern* pat, int index)
+bool Pattern_get_inst_existent(const Pattern* pat, int index)
 {
     assert(pat != NULL);
     assert(index >= 0);
@@ -203,7 +203,7 @@ void Pattern_set_length(Pattern* pat, Tstamp* length)
 }
 
 
-Tstamp* Pattern_get_length(Pattern* pat)
+const Tstamp* Pattern_get_length(const Pattern* pat)
 {
     assert(pat != NULL);
     return &pat->length;

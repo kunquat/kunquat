@@ -99,7 +99,7 @@ void del_Column_iter(Column_iter* iter);
  * \return   The new Column if successful, or \c NULL if memory allocation
  *           failed.
  */
-Column* new_Column(Tstamp* len);
+Column* new_Column(const Tstamp* len);
 
 
 /**
@@ -129,7 +129,7 @@ Column* new_Column_aux(Column* old_aux, Column* mod_col, int index);
  * \return   The new Column if successful, otherwise \c NULL. \a state
  *           will _not_ be updated if memory allocation failed.
  */
-Column* new_Column_from_string(Tstamp* len,
+Column* new_Column_from_string(const Tstamp* len,
                                char* str,
 //                               bool is_global,
                                AAtree* locations,
