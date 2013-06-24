@@ -56,6 +56,7 @@ END_TEST
 START_TEST(Empty_composition_renders_zero_frames)
 {
     assert(player != NULL);
+    Player_reset(player);
     Player_play(player, 256);
     const int32_t nframes = Player_get_frames_available(player);
     fail_unless(
@@ -85,6 +86,8 @@ START_TEST(Empty_pattern_contains_silence)
     set_data("pat_000/instance_000/p_manifest.json", "{}");
 
     validate();
+
+    Player_reset(player);
 
     const long expected_length = 8 * mixing_rates[_i];
     int32_t actual_length = 0;

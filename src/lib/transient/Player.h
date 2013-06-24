@@ -47,6 +47,14 @@ bool Player_set_audio_rate(Player* player, int32_t rate);
 
 
 /**
+ * Resets the Player state.
+ *
+ * \param player   The Player -- must not be \c NULL.
+ */
+void Player_reset(Player* player);
+
+
+/**
  * Plays music.
  *
  * \param nframes   The number of frames to be rendered -- must be >= \c 0.

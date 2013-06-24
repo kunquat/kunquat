@@ -22,6 +22,7 @@
 #include <Pat_inst_ref.h>
 #include <transient/Cgiter.h>
 #include <transient/Player.h>
+#include <transient/Position.h>
 #include <Tstamp.h>
 #include <xassert.h>
 
@@ -38,6 +39,8 @@ typedef enum
 
 struct Player
 {
+    const Module* module;
+
     int32_t audio_rate;
     int32_t audio_chunk_size;
     float*  audio_buffers[2];
@@ -46,16 +49,12 @@ struct Player
     Playback_state state;
     bool is_paused;
 
-    int16_t      cur_track;
-    int16_t      cur_system;
-    Tstamp       cur_pat_pos;
-    Pat_inst_ref cur_piref;
+    Position cur_pos;
+    double frame_remainder; // used for sub-frame time tracking
 
     Cgiter cgiters[KQT_CHANNELS_MAX];
 
     float tempo;
-
-    const Module* module;
 };
 
 
@@ -68,6 +67,8 @@ Player* new_Player(const Module* module)
         return NULL;
 
     // Sanitise fields
+    player->module = module;
+
     player->audio_rate = 48000;
     player->audio_chunk_size = 2048;
     for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
@@ -77,17 +78,12 @@ Player* new_Player(const Module* module)
     player->state = PLAYBACK_SONG;
     player->is_paused = false;
 
-    player->cur_track = 0;
-    player->cur_system = 0;
-    Tstamp_set(&player->cur_pat_pos, 0, 0);
-    player->cur_piref.pat = -1;
-    player->cur_piref.inst = 0;
+    Position_init(&player->cur_pos);
+    player->frame_remainder = 0.0;
 
     memset(player->cgiters, 0, sizeof(player->cgiters));
 
     player->tempo = 120;
-
-    player->module = NULL;
 
     // Init fields
     for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
@@ -103,12 +99,30 @@ Player* new_Player(const Module* module)
 
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
     {
-        Cgiter_init(&player->cgiters[i]);
+        Cgiter_init(&player->cgiters[i], player->module);
     }
 
-    player->module = module;
-
     return player;
+}
+
+
+void Player_reset(Player* player)
+{
+    assert(player != NULL);
+
+    // TODO: playback mode and start pos as arguments
+
+    player->frame_remainder = 0.0;
+
+    Position start_pos;
+    Position_init(&start_pos);
+    start_pos.track = 0;
+    for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
+    {
+        Cgiter_reset(&player->cgiters[i], &start_pos);
+    }
+
+    return;
 }
 
 
@@ -123,86 +137,11 @@ bool Player_set_audio_rate(Player* player, int32_t rate)
 }
 
 
-static const Pat_inst_ref* find_pat_inst_ref(
-        const Module* module,
-        int16_t track,
-        int16_t system)
-{
-    const Track_list* tl = Module_get_track_list(module);
-    if (tl != NULL && track < (int16_t)Track_list_get_len(tl))
-    {
-        const int16_t cur_song = Track_list_get_song_index(tl, track);
-        const Order_list* ol = Module_get_order_list(module, cur_song);
-        if (ol != NULL && system < (int16_t)Order_list_get_len(ol))
-        {
-            Pat_inst_ref* piref = Order_list_get_pat_inst_ref(ol, system);
-            assert(piref != NULL);
-            return piref;
-        }
-    }
-    return NULL;
-}
-
-
-static void Player_go_to_next_system(Player* player)
-{
-    assert(player != NULL);
-
-    Tstamp_set(&player->cur_pat_pos, 0, 0);
-
-    if (player->state == PLAYBACK_PATTERN)
-        return;
-
-    ++player->cur_system;
-    player->cur_piref.pat = -1;
-    const Pat_inst_ref* piref = find_pat_inst_ref(
-            player->module,
-            player->cur_track,
-            player->cur_system);
-    if (piref != NULL)
-        player->cur_piref = *piref;
-
-    return;
-}
-
-
-static int32_t Player_process_pattern(
-        Player* player,
-        const Pattern* pattern,
-        int32_t nframes)
+static int32_t Player_process_cgiters(Player* player, int32_t nframes)
 {
     assert(player != NULL);
     assert(!Player_has_stopped(player));
-    assert(pattern != NULL);
-
-    const Tstamp* zero_time = TSTAMP_AUTO;
-
-    const Tstamp* pat_length = Pattern_get_length(pattern);
-
-    // Check repeated playback of zero-length pattern
-    if (player->state == PLAYBACK_PATTERN &&
-            Tstamp_cmp(zero_time, pat_length) == 0)
-    {
-        player->state = PLAYBACK_STOPPED;
-        return 0;
-    }
-
-    // Move forwards if the cursor has reached beyond pattern end
-    // (implies edit between Player_play calls)
-    if (Tstamp_cmp(&player->cur_pat_pos, pat_length) > 0)
-    {
-        Player_go_to_next_system(player);
-        return 0;
-    }
-
-    // TODO: Process events at current position
-
-    // Move forwards if we have reached the end of pattern
-    if (Tstamp_cmp(&player->cur_pat_pos, pat_length) >= 0)
-    {
-        Player_go_to_next_system(player);
-        return 0;
-    }
+    assert(nframes >= 0);
 
     int32_t to_be_rendered = nframes;
 
@@ -212,22 +151,60 @@ static int32_t Player_process_pattern(
             nframes,
             player->tempo,
             player->audio_rate);
-    Tstamp_add(limit, limit, &player->cur_pat_pos);
 
-    if (Tstamp_cmp(limit, pat_length) > 0)
+    // Process cgiters at current position
+    for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
     {
-        Tstamp_copy(limit, pat_length);
-        int32_t max_to_be_rendered = Tstamp_toframes(
-                Tstamp_sub(TSTAMP_AUTO, limit, &player->cur_pat_pos),
-                player->tempo,
-                player->audio_rate);
-        to_be_rendered = MIN(to_be_rendered, max_to_be_rendered);
+        Cgiter* cgiter = &player->cgiters[i];
+
+        if (Cgiter_has_finished(cgiter)) // implies empty playback
+            break;
+
+        const Trigger_row* tr = Cgiter_get_trigger_row(cgiter);
+        if (tr != NULL)
+        {
+            // TODO: process trigger row
+        }
+
+        // See how much we can move forwards
+        Tstamp* dist = Tstamp_copy(TSTAMP_AUTO, limit);
+        if (Cgiter_peek(cgiter, dist) && Tstamp_cmp(dist, limit) < 0)
+            Tstamp_copy(limit, dist);
     }
 
-    assert(Tstamp_cmp(&player->cur_pat_pos, limit) <= 0);
+    bool any_cgiter_active = false;
 
-    // Increment playback position
-    Tstamp_copy(&player->cur_pat_pos, limit);
+    // Move cgiters forwards and check for playback end
+    for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
+    {
+        Cgiter* cgiter = &player->cgiters[i];
+        Cgiter_move(cgiter, limit);
+        any_cgiter_active |= !Cgiter_has_finished(cgiter);
+    }
+
+    // Stop if all cgiters have finished
+    if (!any_cgiter_active)
+    {
+        player->state = PLAYBACK_STOPPED;
+        return 0;
+    }
+
+    // Get actual number of frames to be rendered
+    double dframes = Tstamp_toframes(
+            Tstamp_sub(TSTAMP_AUTO, limit, &player->cur_pos.pat_pos),
+            player->tempo,
+            player->audio_rate);
+    assert(dframes >= 0.0);
+
+    to_be_rendered = (int32_t)dframes;
+    player->frame_remainder += dframes - to_be_rendered;
+    if (player->frame_remainder > 0.5)
+    {
+        ++to_be_rendered;
+        player->frame_remainder -= 1.0;
+    }
+
+    assert(to_be_rendered <= nframes);
 
     return to_be_rendered;
 }
@@ -247,59 +224,16 @@ void Player_play(Player* player, int32_t nframes)
     int32_t rendered = 0;
     while (rendered < nframes)
     {
-        // Find pattern to process
-        const Pattern* pat = NULL;
-        if (!player->is_paused)
+        // Process cgiters
+        int32_t to_be_rendered = nframes - rendered;
+        if (!player->is_paused && !Player_has_stopped(player))
         {
-            switch (player->state)
-            {
-                case PLAYBACK_STOPPED:
-                {
-                }
-                break;
-
-                case PLAYBACK_SONG:
-                {
-                    // Find pattern
-                    const Pat_inst_ref* piref = find_pat_inst_ref(
-                            player->module,
-                            player->cur_track,
-                            player->cur_system);
-                    if (piref != NULL)
-                    {
-                        player->cur_piref = *piref;
-                        pat = Module_get_pattern(
-                                player->module,
-                                &player->cur_piref);
-                    }
-
-                    // Handle end of playback range
-                    if (pat == NULL && !player->is_paused)
-                    {
-                        // TODO: Go back to start if in infinite mode
-                        player->state = PLAYBACK_STOPPED;
-                    }
-                }
-                break;
-
-                default:
-                    assert(false);
-            }
+            to_be_rendered = Player_process_cgiters(player, to_be_rendered);
         }
 
         // Don't add padding audio if stopped during this call
         if (was_playing && Player_has_stopped(player))
             break;
-
-        // Process pattern contents
-        int32_t to_be_rendered = nframes - rendered;
-        if (pat != NULL && !player->is_paused && !Player_has_stopped(player))
-        {
-            to_be_rendered = Player_process_pattern(
-                    player,
-                    pat,
-                    to_be_rendered);
-        }
 
         // TODO: Render audio (not just silence)
         for (int32_t i = rendered; i < to_be_rendered; ++i)
