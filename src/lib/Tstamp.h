@@ -16,6 +16,7 @@
 #define K_TSTAMP_H
 
 
+#include <inttypes.h>
 #include <stdint.h>
 
 #include <kunquat/limits.h>
@@ -39,6 +40,13 @@ typedef struct Tstamp
  * Useful for passing as a parameter to an initialiser.
  */
 #define TSTAMP_AUTO (&(Tstamp){ .beats = 0, .rem = 0 })
+
+
+/**
+ * Helpers for printf family of functions.
+ */
+#define PRIts "(%" PRId64 ", %" PRId32 ")"
+#define PRIVALts(ts) (ts).beats, (ts).rem
 
 
 /**
@@ -150,7 +158,7 @@ Tstamp* Tstamp_copy(Tstamp* dest, const Tstamp* src);
  *
  * \return   The number of frames.
  */
-uint32_t Tstamp_toframes(
+double Tstamp_toframes(
         const Tstamp* ts,
         double tempo,
         uint32_t rate);

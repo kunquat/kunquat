@@ -1137,52 +1137,52 @@ END_TEST
 START_TEST (toframes)
 {
     Tstamp* r = Tstamp_init(TSTAMP_AUTO);
-    uint32_t res = 0;
+    double res = 0;
     res = Tstamp_toframes(r, DBL_MIN, 1);
     fail_unless(res == 0,
-            "Tstamp_toframes() returned %ld instead of 0.", (long)res);
+            "Tstamp_toframes() returned %.4f instead of 0.", res);
     res = Tstamp_toframes(r, DBL_MIN, UINT32_MAX);
     fail_unless(res == 0,
-            "Tstamp_toframes() returned %ld instead of 0.", (long)res);
+            "Tstamp_toframes() returned %.4f instead of 0.", res);
     res = Tstamp_toframes(r, DBL_MAX, 1);
     fail_unless(res == 0,
-            "Tstamp_toframes() returned %ld instead of 0.", (long)res);
+            "Tstamp_toframes() returned %.4f instead of 0.", res);
     res = Tstamp_toframes(r, DBL_MAX, UINT32_MAX);
     fail_unless(res == 0,
-            "Tstamp_toframes() returned %ld instead of 0.", (long)res);
+            "Tstamp_toframes() returned %.4f instead of 0.", res);
 
     Tstamp_set(r, 1, 0);
     res = Tstamp_toframes(r, 60, 44100);
     fail_unless(res == 44100,
-            "Tstamp_toframes() returned %ld instead of 44100.", (long)res);
+            "Tstamp_toframes() returned %.4f instead of 44100.", res);
     res = Tstamp_toframes(r, 120, 44100);
     fail_unless(res == 22050,
-            "Tstamp_toframes() returned %ld instead of 22050.", (long)res);
+            "Tstamp_toframes() returned %.4f instead of 22050.", res);
     res = Tstamp_toframes(r, 60, 96000);
     fail_unless(res == 96000,
-            "Tstamp_toframes() returned %ld instead of 96000.", (long)res);
+            "Tstamp_toframes() returned %.4f instead of 96000.", res);
 
     Tstamp_set(r, 0, KQT_TSTAMP_BEAT / 2);
     res = Tstamp_toframes(r, 60, 44100);
     fail_unless(res == 22050,
-            "Tstamp_toframes() returned %ld instead of 22050.", (long)res);
+            "Tstamp_toframes() returned %.4f instead of 22050.", res);
     res = Tstamp_toframes(r, 120, 44100);
     fail_unless(res == 11025,
-            "Tstamp_toframes() returned %ld instead of 11025.", (long)res);
+            "Tstamp_toframes() returned %.4f instead of 11025.", res);
     res = Tstamp_toframes(r, 60, 96000);
     fail_unless(res == 48000,
-            "Tstamp_toframes() returned %ld instead of 48000.", (long)res);
+            "Tstamp_toframes() returned %.4f instead of 48000.", res);
 
     Tstamp_set(r, 1, KQT_TSTAMP_BEAT / 2);
     res = Tstamp_toframes(r, 60, 44100);
     fail_unless(res == 66150,
-            "Tstamp_toframes() returned %ld instead of 66150.", (long)res);
+            "Tstamp_toframes() returned %.4f instead of 66150.", res);
     res = Tstamp_toframes(r, 120, 44100);
     fail_unless(res == 33075,
-            "Tstamp_toframes() returned %ld instead of 33075.", (long)res);
+            "Tstamp_toframes() returned %.4f instead of 33075.", res);
     res = Tstamp_toframes(r, 60, 96000);
     fail_unless(res == 144000,
-            "Tstamp_toframes() returned %ld instead of 144000.", (long)res);
+            "Tstamp_toframes() returned %.4f instead of 144000.", res);
 }
 END_TEST
 

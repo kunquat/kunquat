@@ -151,7 +151,7 @@ Tstamp* Tstamp_copy(Tstamp* dest, const Tstamp* src)
 }
 
 
-uint32_t Tstamp_toframes(
+double Tstamp_toframes(
         const Tstamp* ts,
         double tempo,
         uint32_t rate)
@@ -161,12 +161,8 @@ uint32_t Tstamp_toframes(
     assert(tempo > 0);
     assert(rate > 0);
 
-    double frame_count = ((ts->beats
-            + ((double)ts->rem / KQT_TSTAMP_BEAT)) * 60 * rate / tempo);
-
-    if (frame_count > UINT32_MAX)
-        return UINT32_MAX;
-    return (uint32_t)frame_count;
+    return (ts->beats + ((double)ts->rem / KQT_TSTAMP_BEAT)) *
+            60 * rate / tempo;
 }
 
 
