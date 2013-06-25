@@ -17,7 +17,7 @@
 #include <float.h>
 
 #include <Event_common.h>
-#include <Event_global_set_scale_offset.h>
+#include <Event_master_decl.h>
 #include <Value.h>
 #include <xassert.h>
 

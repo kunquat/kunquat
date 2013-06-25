@@ -16,7 +16,7 @@
 #include <stdbool.h>
 
 #include <Event_common.h>
-#include <Event_global_mimic_scale.h>
+#include <Event_master_decl.h>
 #include <kunquat/limits.h>
 #include <Value.h>
 #include <xassert.h>

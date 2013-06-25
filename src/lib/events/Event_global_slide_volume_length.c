@@ -18,7 +18,7 @@
 #include <math.h>
 
 #include <Event_common.h>
-#include <Event_global_slide_volume_length.h>
+#include <Event_master_decl.h>
 #include <kunquat/limits.h>
 #include <Value.h>
 #include <xassert.h>

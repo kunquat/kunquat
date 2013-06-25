@@ -16,7 +16,7 @@
 #include <stdbool.h>
 
 #include <Event_common.h>
-#include <Event_global_set_scale_fixed_point.h>
+#include <Event_master_decl.h>
 #include <File_base.h>
 #include <kunquat/limits.h>
 #include <Value.h>

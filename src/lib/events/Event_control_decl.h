@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_EVENT_CONTROL_ENV_SET_TSTAMP_H
-#define K_EVENT_CONTROL_ENV_SET_TSTAMP_H
+#ifndef K_EVENT_CONTROL_DECL_H
+#define K_EVENT_CONTROL_DECL_H
 
 
 #include <stdbool.h>
@@ -22,11 +22,13 @@
 #include <Value.h>
 
 
-bool Event_control_env_set_tstamp_process(
-        General_state* gstate,
-        Value* value);
+// Process function declarations
+
+#define EVENT_TYPE_DEF(type) \
+    bool Event_control_##type##_process(General_state* gstate, Value* value);
+#include <events/Event_control_types.h>
 
 
-#endif // K_EVENT_CONTROL_ENV_SET_TSTAMP_H
+#endif // K_EVENT_CONTROL_DECL_H
 
 

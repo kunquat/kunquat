@@ -17,7 +17,7 @@
 
 #include <Event.h>
 #include <Event_common.h>
-#include <Event_control_receive_event.h>
+#include <Event_control_decl.h>
 #include <Event_names.h>
 #include <Event_type.h>
 #include <File_base.h>
@@ -27,7 +27,7 @@
 #include <xassert.h>
 
 
-bool Event_control_receive_event(General_state* gstate, Value* value)
+bool Event_control_receive_event_process(General_state* gstate, Value* value)
 {
     assert(gstate != NULL);
     assert(value != NULL);

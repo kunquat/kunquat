@@ -18,7 +18,7 @@
 #include <math.h>
 
 #include <Event_common.h>
-#include <Event_global_slide_volume.h>
+#include <Event_master_decl.h>
 #include <Value.h>
 #include <xassert.h>
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2013
  *
  * This file is part of Kunquat.
  *
@@ -16,7 +16,7 @@
 #include <stdbool.h>
 
 #include <Event_common.h>
-#include <Event_control_infinite.h>
+#include <Event_control_decl.h>
 #include <Event_type.h>
 #include <File_base.h>
 #include <General_state.h>

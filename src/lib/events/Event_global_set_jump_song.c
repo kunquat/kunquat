@@ -17,7 +17,7 @@
 #include <limits.h>
 
 #include <Event_common.h>
-#include <Event_global_set_jump_song.h>
+#include <Event_master_decl.h>
 #include <kunquat/limits.h>
 #include <Value.h>
 #include <xassert.h>

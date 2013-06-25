@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -17,7 +17,7 @@
 #include <stdio.h>
 
 #include <Event_common.h>
-#include <Event_control_pause.h>
+#include <Event_control_decl.h>
 #include <General_state.h>
 #include <Value.h>
 #include <xassert.h>
@@ -32,6 +32,19 @@ bool Event_control_pause_process(General_state* gstate, Value* value)
         return false;
     }
     gstate->pause = true;
+    return true;
+}
+
+
+bool Event_control_resume_process(General_state* gstate, Value* value)
+{
+    assert(gstate != NULL);
+    (void)value;
+    if (!gstate->global)
+    {
+        return false;
+    }
+    gstate->pause = false;
     return true;
 }
 

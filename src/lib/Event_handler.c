@@ -35,27 +35,7 @@
 #include <string_common.h>
 #include <Value.h>
 
-#include <Event_control_pause.h>
-#include <Event_control_resume.h>
-#include <Event_control_play_pattern.h>
-
-#include <Event_control_env_set_bool_name.h>
-#include <Event_control_env_set_bool.h>
-#include <Event_control_env_set_int_name.h>
-#include <Event_control_env_set_int.h>
-#include <Event_control_env_set_float_name.h>
-#include <Event_control_env_set_float.h>
-#include <Event_control_env_set_tstamp_name.h>
-#include <Event_control_env_set_tstamp.h>
-
-#include <Event_control_set_goto_row.h>
-#include <Event_control_set_goto_section.h>
-#include <Event_control_set_goto_song.h>
-#include <Event_control_goto.h>
-
-#include <Event_control_infinite.h>
-
-#include <Event_control_receive_event.h>
+#include <events/Event_control_decl.h>
 
 #include <Event_general_comment.h>
 
@@ -68,25 +48,7 @@
 #include <Event_general_call_int.h>
 #include <Event_general_call_float.h>
 
-#include <Event_global_pattern_delay.h>
-#include <Event_global_set_jump_counter.h>
-#include <Event_global_set_jump_row.h>
-#include <Event_global_set_jump_section.h>
-#include <Event_global_set_jump_song.h>
-//#include <Event_global_jump.h>
-
-#include <Event_global_set_scale.h>
-#include <Event_global_set_scale_offset.h>
-#include <Event_global_mimic_scale.h>
-#include <Event_global_set_scale_fixed_point.h>
-#include <Event_global_shift_scale_intervals.h>
-
-#include <Event_global_set_tempo.h>
-#include <Event_global_set_volume.h>
-#include <Event_global_slide_tempo.h>
-#include <Event_global_slide_tempo_length.h>
-#include <Event_global_slide_volume.h>
-#include <Event_global_slide_volume_length.h>
+#include <events/Event_master_decl.h>
 
 #include <Event_channel_set_instrument.h>
 #include <Event_channel_set_generator.h>
@@ -271,7 +233,7 @@ Event_handler* new_Event_handler(Playdata* global_state,
                                       Event_control_infinite_process);
 
     Event_handler_set_control_process(eh, EVENT_CONTROL_RECEIVE_EVENT,
-                                      Event_control_receive_event);
+                                      Event_control_receive_event_process);
 
     Event_handler_set_general_process(eh, EVENT_GENERAL_COMMENT,
                                       Event_general_comment_process);

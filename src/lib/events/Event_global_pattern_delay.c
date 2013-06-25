@@ -18,7 +18,7 @@
 #include <limits.h>
 
 #include <Event_common.h>
-#include <Event_global_pattern_delay.h>
+#include <Event_master_decl.h>
 #include <File_base.h>
 #include <kunquat/limits.h>
 #include <Value.h>
