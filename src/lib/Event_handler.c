@@ -58,14 +58,7 @@
 #include <Event_effect_bypass_on.h>
 #include <Event_effect_bypass_off.h>
 
-#include <Event_dsp_set_bool_name.h>
-#include <Event_dsp_set_bool.h>
-#include <Event_dsp_set_int_name.h>
-#include <Event_dsp_set_int.h>
-#include <Event_dsp_set_float_name.h>
-#include <Event_dsp_set_float.h>
-#include <Event_dsp_set_tstamp_name.h>
-#include <Event_dsp_set_tstamp.h>
+#include <events/Event_dsp_decl.h>
 
 #include <memory.h>
 #include <xassert.h>
