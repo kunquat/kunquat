@@ -14,13 +14,27 @@
 
 #include <stdlib.h>
 #include <stdbool.h>
-#include <limits.h>
 #include <math.h>
 
 #include <Event_common.h>
 #include <Event_master_decl.h>
 #include <Value.h>
 #include <xassert.h>
+
+
+bool Event_global_set_volume_process(Playdata* global_state, Value* value)
+{
+    assert(global_state != NULL);
+    assert(value != NULL);
+    if (value->type != VALUE_TYPE_FLOAT)
+    {
+        return false;
+    }
+    global_state->volume = exp2(value->value.float_type / 6);
+    Slider_break(&global_state->volume_slider);
+//    global_state->volume_slide = 0;
+    return true;
+}
 
 
 bool Event_global_slide_volume_process(Playdata* global_state, Value* value)
@@ -45,6 +59,24 @@ bool Event_global_slide_volume_process(Playdata* global_state, Value* value)
                 target,
                 global_state->volume);
     }
+    return true;
+}
+
+
+bool Event_global_slide_volume_length_process(
+        Playdata* global_state,
+        Value* value)
+{
+    assert(global_state != NULL);
+    assert(value != NULL);
+    if (value->type != VALUE_TYPE_TSTAMP)
+    {
+        return false;
+    }
+    Slider_set_mix_rate(&global_state->volume_slider, global_state->freq);
+    Slider_set_tempo(&global_state->volume_slider, global_state->tempo);
+    Slider_set_length(&global_state->volume_slider,
+                      &value->value.Tstamp_type);
     return true;
 }
 
