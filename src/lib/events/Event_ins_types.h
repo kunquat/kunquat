@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2013
  *
  * This file is part of Kunquat.
  *
@@ -12,17 +12,14 @@
  */
 
 
-#ifndef K_EVENT_EFFECT_BYPASS_ON_H
-#define K_EVENT_EFFECT_BYPASS_ON_H
+#ifndef EVENT_TYPE_DEF
+#error "EVENT_TYPE_DEF(type) not defined"
+#endif
 
 
-#include <Effect.h>
-#include <Value.h>
+EVENT_TYPE_DEF(set_sustain)
 
 
-bool Event_effect_bypass_on_process(Effect* eff, Value* value);
-
-
-#endif // K_EVENT_EFFECT_BYPASS_ON_H
+#undef EVENT_TYPE_DEF
 
 

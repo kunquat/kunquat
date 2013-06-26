@@ -39,14 +39,9 @@
 #include <events/Event_general_decl.h>
 #include <events/Event_master_decl.h>
 #include <events/Event_channel_decl.h>
-
-#include <Event_ins_set_sustain.h>
-
+#include <events/Event_ins_decl.h>
 #include <events/Event_generator_decl.h>
-
-#include <Event_effect_bypass_on.h>
-#include <Event_effect_bypass_off.h>
-
+#include <events/Event_effect_decl.h>
 #include <events/Event_dsp_decl.h>
 
 #include <memory.h>

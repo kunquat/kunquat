@@ -17,9 +17,18 @@
 
 #include <Effect.h>
 #include <Event_common.h>
-#include <Event_effect_bypass_off.h>
+#include <Event_effect_decl.h>
 #include <Value.h>
 #include <xassert.h>
+
+
+bool Event_effect_bypass_on_process(Effect* eff, Value* value)
+{
+    assert(eff != NULL);
+    (void)value;
+    Effect_set_bypass(eff, true);
+    return true;
+}
 
 
 bool Event_effect_bypass_off_process(Effect* eff, Value* value)

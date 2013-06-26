@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013
  *
  * This file is part of Kunquat.
  *
@@ -12,22 +12,23 @@
  */
 
 
-#include <stdlib.h>
+#ifndef K_EVENT_EFFECT_DECL_H
+#define K_EVENT_EFFECT_DECL_H
+
+
 #include <stdbool.h>
 
 #include <Effect.h>
-#include <Event_common.h>
-#include <Event_effect_bypass_on.h>
 #include <Value.h>
-#include <xassert.h>
 
 
-bool Event_effect_bypass_on_process(Effect* eff, Value* value)
-{
-    assert(eff != NULL);
-    (void)value;
-    Effect_set_bypass(eff, true);
-    return true;
-}
+// Process function declarations
+
+#define EVENT_TYPE_DEF(type) \
+    bool Event_effect_##type##_process(Effect* eff, Value* value);
+#include <events/Event_effect_types.h>
+
+
+#endif // K_EVENT_EFFECT_DECL_H
 
 

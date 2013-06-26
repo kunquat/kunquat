@@ -16,7 +16,7 @@
 #include <stdbool.h>
 
 #include <Event_common.h>
-#include <Event_ins_set_sustain.h>
+#include <Event_ins_decl.h>
 #include <Instrument_params.h>
 #include <Value.h>
 #include <xassert.h>
