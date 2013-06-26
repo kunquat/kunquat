@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_EVENT_CHANNEL_SET_ARPEGGIO_INDEX_H
-#define K_EVENT_CHANNEL_SET_ARPEGGIO_INDEX_H
+#ifndef K_EVENT_CHANNEL_DECL_H
+#define K_EVENT_CHANNEL_DECL_H
 
 
 #include <stdbool.h>
@@ -22,11 +22,13 @@
 #include <Value.h>
 
 
-bool Event_channel_set_arpeggio_index_process(
-        Channel_state* ch_state,
-        Value* value);
+// Process function declarations
+
+#define EVENT_TYPE_DEF(type) \
+    bool Event_channel_##type##_process(Channel_state* ch_state, Value* value);
+#include <events/Event_channel_types.h>
 
 
-#endif // K_EVENT_CHANNEL_SET_ARPEGGIO_INDEX_H
+#endif // K_EVENT_CHANNEL_DECL_H
 
 

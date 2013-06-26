@@ -15,13 +15,35 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <math.h>
-#include <limits.h>
 
+#include <Event_channel_decl.h>
 #include <Event_common.h>
-#include <Event_channel_slide_panning.h>
 #include <Value.h>
 #include <Voice.h>
 #include <xassert.h>
+
+
+bool Event_channel_set_panning_process(Channel_state* ch_state, Value* value)
+{
+    assert(ch_state != NULL);
+    assert(value != NULL);
+    if (value->type != VALUE_TYPE_FLOAT)
+    {
+        return false;
+    }
+    ch_state->panning = value->value.float_type;
+    Slider_break(&ch_state->panning_slider);
+//    ch_state->panning_slide = 0;
+    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    {
+        Event_check_voice(ch_state, i);
+        Voice_state* vs = ch_state->fg[i]->state;
+        vs->panning = ch_state->panning;
+        Slider_break(&vs->panning_slider);
+//        vs->panning_slide = 0;
+    }
+    return true;
+}
 
 
 bool Event_channel_slide_panning_process(
@@ -52,6 +74,29 @@ bool Event_channel_slide_panning_process(
         Event_check_voice(ch_state, i);
         Voice_state* vs = ch_state->fg[i]->state;
         Slider_copy(&vs->panning_slider, &ch_state->panning_slider);
+    }
+    return true;
+}
+
+
+bool Event_channel_slide_panning_length_process(
+        Channel_state* ch_state,
+        Value* value)
+{
+    assert(ch_state != NULL);
+    assert(value != NULL);
+    if (value->type != VALUE_TYPE_TSTAMP)
+    {
+        return false;
+    }
+    Slider_set_length(
+            &ch_state->panning_slider,
+            &value->value.Tstamp_type);
+    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    {
+        Event_check_voice(ch_state, i);
+        Voice_state* vs = ch_state->fg[i]->state;
+        Slider_set_length(&vs->panning_slider, &value->value.Tstamp_type);
     }
     return true;
 }

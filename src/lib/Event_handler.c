@@ -50,58 +50,7 @@
 
 #include <events/Event_master_decl.h>
 
-#include <Event_channel_set_instrument.h>
-#include <Event_channel_set_generator.h>
-#include <Event_channel_set_effect.h>
-#include <Event_channel_set_global_effects.h>
-#include <Event_channel_set_instrument_effects.h>
-#include <Event_channel_set_dsp.h>
-
-#include <Event_channel_note_on.h>
-#include <Event_channel_hit.h>
-#include <Event_channel_note_off.h>
-
-#include <Event_channel_set_force.h>
-#include <Event_channel_slide_force.h>
-#include <Event_channel_slide_force_length.h>
-#include <Event_channel_tremolo_speed.h>
-#include <Event_channel_tremolo_depth.h>
-#include <Event_channel_tremolo_delay.h>
-
-#include <Event_channel_slide_pitch.h>
-#include <Event_channel_slide_pitch_length.h>
-#include <Event_channel_vibrato_speed.h>
-#include <Event_channel_vibrato_depth.h>
-#include <Event_channel_vibrato_delay.h>
-
-#include <Event_channel_reset_arpeggio.h>
-#include <Event_channel_set_arpeggio_note.h>
-#include <Event_channel_set_arpeggio_index.h>
-#include <Event_channel_set_arpeggio_speed.h>
-#include <Event_channel_arpeggio_on.h>
-#include <Event_channel_arpeggio_off.h>
-
-#include <Event_channel_set_lowpass.h>
-#include <Event_channel_slide_lowpass.h>
-#include <Event_channel_slide_lowpass_length.h>
-#include <Event_channel_autowah_speed.h>
-#include <Event_channel_autowah_depth.h>
-#include <Event_channel_autowah_delay.h>
-
-#include <Event_channel_set_resonance.h>
-
-#include <Event_channel_set_panning.h>
-#include <Event_channel_slide_panning.h>
-#include <Event_channel_slide_panning_length.h>
-
-#include <Event_channel_set_gen_bool_name.h>
-#include <Event_channel_set_gen_bool.h>
-#include <Event_channel_set_gen_int_name.h>
-#include <Event_channel_set_gen_int.h>
-#include <Event_channel_set_gen_float_name.h>
-#include <Event_channel_set_gen_float.h>
-#include <Event_channel_set_gen_tstamp_name.h>
-#include <Event_channel_set_gen_tstamp.h>
+#include <events/Event_channel_decl.h>
 
 #include <Event_ins_set_sustain.h>
 

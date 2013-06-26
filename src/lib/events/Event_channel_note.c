@@ -17,9 +17,8 @@
 #include <stdio.h>
 #include <float.h>
 
+#include <Event_channel_decl.h>
 #include <Event_common.h>
-#include <Event_channel_note_on.h>
-#include <Event_channel_note_off.h>
 #include <kunquat/limits.h>
 #include <note_setup.h>
 #include <Random.h>
@@ -97,6 +96,74 @@ bool Event_channel_note_on_process(Channel_state* ch_state, Value* value)
 
         set_instrument_properties(voice, vs, ch_state, &force_var);
     }
+    return true;
+}
+
+
+bool Event_channel_hit_process(Channel_state* ch_state, Value* value)
+{
+    assert(ch_state != NULL);
+    assert(ch_state->freq != NULL);
+    assert(ch_state->tempo != NULL);
+    assert(value != NULL);
+    if (value->type != VALUE_TYPE_INT)
+    {
+        return false;
+    }
+    // move the old Voices to the background
+    Event_channel_note_off_process(ch_state, NULL);
+    ch_state->fg_count = 0;
+    assert(ch_state->instrument >= 0);
+    assert(ch_state->instrument < KQT_INSTRUMENTS_MAX);
+    Instrument* ins = Ins_table_get(
+            ch_state->insts,
+            ch_state->instrument);
+    if (ins == NULL)
+    {
+        return true;
+    }
+    double force_var = NAN;
+    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    {
+        const Generator* gen = Instrument_get_gen(ins, i);
+        if (gen == NULL || !Device_is_existent((const Device*)gen))
+        {
+            continue;
+        }
+        reserve_voice(ch_state, ins, i);
+        Voice* voice = ch_state->fg[i];
+        Voice_state* vs = voice->state;
+        vs->hit_index = value->value.int_type;
+        set_instrument_properties(voice, vs, ch_state, &force_var);
+    }
+    return true;
+}
+
+
+bool Event_channel_note_off_process(Channel_state* ch_state, Value* value)
+{
+    assert(ch_state != NULL);
+    (void)value;
+    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    {
+        if (ch_state->fg[i] != NULL)
+        {
+            ch_state->fg[i] = Voice_pool_get_voice(
+                    ch_state->pool,
+                    ch_state->fg[i],
+                    ch_state->fg_id[i]);
+            if (ch_state->fg[i] == NULL)
+            {
+                // The Voice has been given to another channel
+                continue;
+            }
+            ch_state->fg[i]->state->note_on = false;
+            ch_state->fg[i]->prio = VOICE_PRIO_BG;
+            Voice_pool_fix_priority(ch_state->pool, ch_state->fg[i]);
+            ch_state->fg[i] = NULL;
+        }
+    }
+    ch_state->fg_count = 0;
     return true;
 }
 
