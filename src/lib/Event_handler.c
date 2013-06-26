@@ -36,18 +36,7 @@
 #include <Value.h>
 
 #include <events/Event_control_decl.h>
-
-#include <Event_general_comment.h>
-
-#include <Event_general_cond.h>
-#include <Event_general_if.h>
-#include <Event_general_else.h>
-#include <Event_general_end_if.h>
-
-#include <Event_general_call_bool.h>
-#include <Event_general_call_int.h>
-#include <Event_general_call_float.h>
-
+#include <events/Event_general_decl.h>
 #include <events/Event_master_decl.h>
 #include <events/Event_channel_decl.h>
 

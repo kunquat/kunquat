@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2013
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_EVENT_GENERAL_CALL_FLOAT_H
-#define K_EVENT_GENERAL_CALL_FLOAT_H
+#ifndef K_EVENT_GENERAL_DECL_H
+#define K_EVENT_GENERAL_DECL_H
 
 
 #include <stdbool.h>
@@ -22,9 +22,13 @@
 #include <Value.h>
 
 
-bool Event_general_call_float_process(General_state* gstate, Value* value);
+// Process function declarations
+
+#define EVENT_TYPE_DEF(type) \
+    bool Event_general_##type##_process(General_state* gstate, Value* value);
+#include <events/Event_general_types.h>
 
 
-#endif // K_EVENT_GENERAL_CALL_FLOAT_H
+#endif // K_EVENT_GENERAL_DECL_H
 
 

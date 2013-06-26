@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2013
  *
  * This file is part of Kunquat.
  *
@@ -21,7 +21,7 @@
 
 #include <Env_var.h>
 #include <Event_common.h>
-#include <Event_general_cond.h>
+#include <Event_general_decl.h>
 #include <General_state.h>
 #include <Value.h>
 #include <xassert.h>
@@ -41,6 +41,68 @@ bool Event_general_cond_process(General_state* gstate, Value* value)
     }
     gstate->cond_levels[gstate->cond_level_index + 1].evaluated_cond =
             value->value.bool_type;
+    return true;
+}
+
+
+bool Event_general_if_process(General_state* gstate, Value* value)
+{
+    assert(gstate != NULL);
+    (void)value;
+    ++gstate->cond_level_index;
+    assert(gstate->cond_level_index >= 0);
+    if (gstate->cond_level_index < COND_LEVELS_MAX)
+    {
+        gstate->cond_levels[gstate->cond_level_index].cond_for_exec = true;
+        if (gstate->last_cond_match + 1 == gstate->cond_level_index &&
+                gstate->cond_levels[gstate->cond_level_index].cond_for_exec ==
+                gstate->cond_levels[gstate->cond_level_index].evaluated_cond)
+        {
+            ++gstate->last_cond_match;
+        }
+    }
+    //fprintf(stderr, "if: %d %d\n", gstate->cond_level_index,
+    //                               gstate->last_cond_match);
+    return true;
+}
+
+
+bool Event_general_else_process(General_state* gstate, Value* value)
+{
+    assert(gstate != NULL);
+    (void)value;
+    ++gstate->cond_level_index;
+    assert(gstate->cond_level_index >= 0);
+    if (gstate->cond_level_index < COND_LEVELS_MAX)
+    {
+        gstate->cond_levels[gstate->cond_level_index].cond_for_exec = false;
+        if (gstate->last_cond_match + 1 == gstate->cond_level_index &&
+                gstate->cond_levels[gstate->cond_level_index].cond_for_exec ==
+                gstate->cond_levels[gstate->cond_level_index].evaluated_cond)
+        {
+            ++gstate->last_cond_match;
+        }
+    }
+    return true;
+}
+
+
+bool Event_general_end_if_process(General_state* gstate, Value* value)
+{
+    assert(gstate != NULL);
+    (void)value;
+    if (gstate->cond_level_index >= 0)
+    {
+        --gstate->cond_level_index;
+    }
+    if (gstate->cond_level_index < gstate->last_cond_match)
+    {
+        --gstate->last_cond_match;
+        assert(gstate->cond_level_index == gstate->last_cond_match);
+    }
+#if 0
+    gstate->cond_exec_enabled = false;
+#endif
     return true;
 }
 

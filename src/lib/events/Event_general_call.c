@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2013
  *
  * This file is part of Kunquat.
  *
@@ -13,13 +13,30 @@
 
 
 #include <stdlib.h>
-#include <limits.h>
 
 #include <Event_common.h>
-#include <Event_general_call_int.h>
+#include <Event_general_decl.h>
 #include <General_state.h>
 #include <Value.h>
 #include <xassert.h>
+
+
+bool Event_general_call_bool_process(General_state* gstate, Value* value)
+{
+    assert(gstate != NULL);
+    (void)gstate;
+    assert(value != NULL);
+    return value->type == VALUE_TYPE_BOOL;
+}
+
+
+bool Event_general_call_float_process(General_state* gstate, Value* value)
+{
+    assert(gstate != NULL);
+    (void)gstate;
+    assert(value != NULL);
+    return value->type == VALUE_TYPE_FLOAT;
+}
 
 
 bool Event_general_call_int_process(General_state* gstate, Value* value)
