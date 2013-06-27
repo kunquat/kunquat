@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <Channel_state.h>
 #include <Connections_search.h>
 #include <Device_node.h>
 #include <Environment.h>
@@ -44,6 +45,8 @@ struct Player
 
     Master_params master_params;
 
+    Channel_state* channels[KQT_CHANNELS_MAX];
+
     double frame_remainder; // used for sub-frame time tracking
 
     Cgiter cgiters[KQT_CHANNELS_MAX];
@@ -69,11 +72,14 @@ Player* new_Player(const Module* module)
         player->audio_buffers[i] = NULL;
     player->audio_frames_available = 0;
 
+    player->env = NULL;
+
+    for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
+        player->channels[i] = NULL;
+
     player->frame_remainder = 0.0;
 
     memset(player->cgiters, 0, sizeof(player->cgiters));
-
-    player->env = NULL;
 
     player->tempo = 120;
 
@@ -83,6 +89,16 @@ Player* new_Player(const Module* module)
     {
         del_Player(player);
         return NULL;
+    }
+
+    for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
+    {
+        player->channels[i] = new_Channel_state(i, player->env);
+        if (player->channels[i] == NULL)
+        {
+            del_Player(player);
+            return NULL;
+        }
     }
 
     if (Master_params_init(&player->master_params, player->env) == NULL)
@@ -121,12 +137,9 @@ void Player_reset(Player* player)
 
     player->frame_remainder = 0.0;
 
-    Position start_pos;
-    Position_init(&start_pos);
-    start_pos.track = 0;
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
     {
-        Cgiter_reset(&player->cgiters[i], &start_pos);
+        Cgiter_reset(&player->cgiters[i], &player->master_params.cur_pos);
     }
 
     return;
@@ -323,6 +336,9 @@ void del_Player(Player* player)
         return;
 
     Master_params_deinit(&player->master_params);
+
+    for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
+        del_Channel_state(player->channels[i]);
 
     del_Environment(player->env);
 

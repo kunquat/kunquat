@@ -58,7 +58,7 @@ Channel* new_Channel(Ins_table* insts,
         return NULL;
     } */
 //    ch->single = NULL;
-    if (!Channel_state_init(&ch->init_state, num, &ch->mute, env))
+    if (!Channel_state_init(&ch->init_state, num, env))
     {
         memory_free(ch);
         return NULL;

@@ -19,17 +19,36 @@
 
 #include <Channel_state.h>
 #include <Environment.h>
+#include <memory.h>
 #include <Tstamp.h>
 #include <xassert.h>
 
 
-bool Channel_state_init(Channel_state* state, int num, bool* mute,
-                        Environment* env)
+Channel_state* new_Channel_state(int num, Environment* env)
+{
+    assert(num >= 0);
+    assert(num < KQT_CHANNELS_MAX);
+    assert(env != NULL);
+
+    Channel_state* ch_state = memory_alloc_item(Channel_state);
+    if (ch_state == NULL)
+        return NULL;
+
+    if (!Channel_state_init(ch_state, num, env))
+    {
+        memory_free(ch_state);
+        return NULL;
+    }
+
+    return ch_state;
+}
+
+
+bool Channel_state_init(Channel_state* state, int num, Environment* env)
 {
     assert(state != NULL);
     assert(num >= 0);
     assert(num < KQT_COLUMNS_MAX);
-    assert(mute != NULL);
     assert(env != NULL);
 
     state->cgstate = new_Channel_gen_state();
@@ -41,13 +60,15 @@ bool Channel_state_init(Channel_state* state, int num, bool* mute,
         del_Random(state->rand);
         return false;
     }
+
     char context[] = "chXX";
     snprintf(context, strlen(context) + 1, "ch%02x", num);
     Random_set_context(state->rand, context);
     state->event_cache = NULL;
-    state->mute = mute;
     state->num = num;
+
     Channel_state_reset(state);
+
     return true;
 }
 
@@ -149,10 +170,23 @@ void Channel_state_uninit(Channel_state* state)
         return;
     }
     del_Event_cache(state->event_cache);
+    state->event_cache = NULL;
     del_Channel_gen_state(state->cgstate);
-    del_Random(state->rand);
-    General_state_uninit(&state->parent);
     state->cgstate = NULL;
+    del_Random(state->rand);
+    state->rand = NULL;
+    General_state_uninit(&state->parent);
+    return;
+}
+
+
+void del_Channel_state(Channel_state* state)
+{
+    if (state == NULL)
+        return;
+
+    Channel_state_uninit(state);
+    memory_free(state);
     return;
 }
 

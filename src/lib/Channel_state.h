@@ -41,7 +41,6 @@ typedef struct Channel_state
     General_state parent;
     int num;                       ///< Channel number.
     Voice_params vp;               ///< Voice parameters.
-    bool* mute;                    ///< Channel mute.
     Channel_gen_state* cgstate;    ///< Channel-specific generator state.
     Random* rand;                  ///< Random source for this channel.
     Event_cache* event_cache;
@@ -94,19 +93,29 @@ typedef struct Channel_state
 
 
 /**
+ * Creates a new Channel state.
+ *
+ * \param num   The Channel number -- must be >= \c 0 and
+ *              < \c KQT_CHANNELS_MAX.
+ * \param env   The Environment -- must not be \c NULL.
+ *
+ * \return   The new Channel state if successful, or \c NULL if memory
+ *           allocation failed.
+ */
+Channel_state* new_Channel_state(int num, Environment* env);
+
+
+/**
  * Initialises the Channel state with default values.
  *
  * \param state   The Channel state -- must not be \c NULL.
  * \param num     The Channel number -- must be >= \c 0 and
  *                < \c KQT_COLUMNS_MAX.
- * \param mute    A reference to the channel mute state -- must not be
- *                \c NULL.
  * \param env     The Environment -- must not be \c NULL.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Channel_state_init(Channel_state* state, int num, bool* mute,
-                        Environment* env);
+bool Channel_state_init(Channel_state* state, int num, Environment* env);
 
 
 /**
@@ -165,6 +174,14 @@ double Channel_state_get_fg_force(Channel_state* state, int gen_index);
  * \param state   The Channel state, or \c NULL.
  */
 void Channel_state_uninit(Channel_state* state);
+
+
+/**
+ * Destroys an existing Channel state.
+ *
+ * \param state   The Channel state, or \c NULL.
+ */
+void del_Channel_state(Channel_state* state);
 
 
 #endif // K_CHANNEL_STATE_H

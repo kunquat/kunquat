@@ -50,7 +50,6 @@
 
 struct Event_handler
 {
-    bool mute; // FIXME: this is just to make the stupid Channel_state_init happy
     Channel_state* ch_states[KQT_COLUMNS_MAX];
     Ins_table* insts;
     Effect_table* effects;
@@ -70,16 +69,11 @@ struct Event_handler
 };
 
 
-static bool Event_handler_handle(Event_handler* eh,
-                                 int index,
-                                 Event_type type,
-                                 Value* value);
-
-
-Event_handler* new_Event_handler(Playdata* global_state,
-                                 Channel_state** ch_states,
-                                 Ins_table* insts,
-                                 Effect_table* effects)
+Event_handler* new_Event_handler(
+        Playdata* global_state,
+        Channel_state** ch_states,
+        Ins_table* insts,
+        Effect_table* effects)
 {
     assert(global_state != NULL);
     assert(ch_states != NULL);
@@ -109,7 +103,6 @@ Event_handler* new_Event_handler(Playdata* global_state,
     for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
     {
         eh->ch_states[i] = ch_states[i];
-//        Channel_state_init(&eh->ch_states[i], i, &eh->mute);
     }
     eh->insts = insts;
     eh->effects = effects;
