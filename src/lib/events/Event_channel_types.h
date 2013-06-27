@@ -56,8 +56,8 @@ EVENT_TYPE_DEF(autowah_depth)
 EVENT_TYPE_DEF(autowah_delay)
 
 EVENT_TYPE_DEF(set_resonance)
-EVENT_TYPE_DEF(slide_resonance)
-EVENT_TYPE_DEF(slide_resonance_length)
+//EVENT_TYPE_DEF(slide_resonance)
+//EVENT_TYPE_DEF(slide_resonance_length)
 
 EVENT_TYPE_DEF(set_panning)
 EVENT_TYPE_DEF(slide_panning)

@@ -32,15 +32,6 @@
 #define COLUMN_AUX (-2)
 
 
-typedef struct Event_list
-{
-    Event* event;
-    bool copy;
-    struct Event_list* prev;
-    struct Event_list* next;
-} Event_list;
-
-
 struct Column_iter
 {
     uint32_t version;
@@ -73,7 +64,7 @@ static Event_list* new_Event_list(Event_list* nil, Event* event, bool copy)
 {
     assert(!(nil == NULL) || (event == NULL));
     assert(!(event == NULL) || (nil == NULL));
-    assert(event == NULL || (!copy || EVENT_IS_PG(Event_get_type(event))));
+    assert(event == NULL || (!copy || Event_is_pg(Event_get_type(event))));
     Event_list* elist = memory_alloc_item(Event_list);
     if (elist == NULL)
     {
@@ -153,24 +144,36 @@ Event* Column_iter_get(Column_iter* iter, const Tstamp* pos)
 {
     assert(iter != NULL);
     assert(pos != NULL);
-    if (iter->col == NULL)
-    {
-        return NULL;
-    }
-    iter->version = iter->col->version;
-    Event* event = &(Event){ .type = EVENT_NONE };
-    Tstamp_copy(&event->pos, pos);
-    Event_list* key = Event_list_init(&(Event_list){ .event = event });
-    iter->elist = AAiter_get(iter->tree_iter, key);
+
+    iter->elist = Column_iter_get_row(iter, pos);
     if (iter->elist == NULL)
     {
         return NULL;
     }
+
     assert(iter->elist->event == NULL);
     assert(iter->elist->next != iter->elist);
     iter->elist = iter->elist->next;
     assert(iter->elist->event != NULL);
     return iter->elist->event;
+}
+
+
+Event_list* Column_iter_get_row(Column_iter* iter, const Tstamp* pos)
+{
+    assert(iter != NULL);
+    assert(pos != NULL);
+
+    if (iter->col == NULL)
+        return NULL;
+
+    iter->version = iter->col->version;
+    Event* event = &(Event){ .type = Event_NONE };
+    Tstamp_copy(&event->pos, pos);
+    Event_list* key = Event_list_init(&(Event_list){ .event = event });
+    iter->elist = AAiter_get(iter->tree_iter, key);
+
+    return iter->elist;
 }
 
 
@@ -194,7 +197,7 @@ Event* Column_iter_get_next(Column_iter* iter)
     {
         return iter->elist->event;
     }
-    iter->elist = AAiter_get_next(iter->tree_iter);
+    iter->elist = Column_iter_get_next_row(iter);
     if (iter->elist == NULL)
     {
         return NULL;
@@ -204,6 +207,26 @@ Event* Column_iter_get_next(Column_iter* iter)
     iter->elist = iter->elist->next;
     assert(iter->elist->event != NULL);
     return iter->elist->event;
+}
+
+
+Event_list* Column_iter_get_next_row(Column_iter* iter)
+{
+    assert(iter != NULL);
+
+    if (iter->elist == NULL || iter->col == NULL)
+        return NULL;
+
+    if (iter->version != iter->col->version)
+    {
+        iter->elist = NULL;
+        iter->version = iter->col->version;
+        return NULL;
+    }
+
+    iter->elist = AAiter_get_next(iter->tree_iter);
+
+    return iter->elist;
 }
 
 
@@ -283,7 +306,7 @@ Column* new_Column_aux(Column* old_aux, Column* mod_col, int index)
         Event* event = Column_iter_get(iter, TSTAMP_AUTO);
         while (event != NULL)
         {
-            assert(EVENT_IS_PG(Event_get_type(event)));
+            assert(Event_is_pg(Event_get_type(event)));
             if (event->ch_index < index)
             {
                 if (!Column_ins(aux, event))
@@ -300,7 +323,7 @@ Column* new_Column_aux(Column* old_aux, Column* mod_col, int index)
     Event* event = Column_iter_get(iter, TSTAMP_AUTO);
     while (event != NULL)
     {
-        if (EVENT_IS_PG(Event_get_type(event)))
+        if (Event_is_pg(Event_get_type(event)))
         {
             event->ch_index = index;
             if (!Column_ins(aux, event))
@@ -318,7 +341,7 @@ Column* new_Column_aux(Column* old_aux, Column* mod_col, int index)
         Event* event = Column_iter_get(iter, TSTAMP_AUTO);
         while (event != NULL)
         {
-            assert(EVENT_IS_PG(Event_get_type(event)));
+            assert(Event_is_pg(Event_get_type(event)));
             if (event->ch_index > index)
             {
                 if (!Column_ins(aux, event))
@@ -445,7 +468,7 @@ bool Column_update_locations(Column* col,
     while (event != NULL)
     {
         Event_type type = Event_get_type(event);
-        if (type == EVENT_GLOBAL_JUMP &&
+        if (type == Trigger_jump &&
                 !Trigger_global_jump_set_locations(
                     (Event_global_jump*)event,
                     locations,

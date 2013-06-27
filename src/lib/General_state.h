@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -61,9 +61,10 @@ typedef struct General_state
  *           General_state_uninit should be called even if this
  *           function fails.
  */
-General_state* General_state_init(General_state* state,
-                                  bool global,
-                                  Environment* env);
+General_state* General_state_init(
+        General_state* state,
+        bool global,
+        Environment* env);
 
 
 /**

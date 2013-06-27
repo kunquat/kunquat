@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -19,9 +19,10 @@
 #include <xassert.h>
 
 
-General_state* General_state_init(General_state* state,
-                                  bool global,
-                                  Environment* env)
+General_state* General_state_init(
+        General_state* state,
+        bool global,
+        Environment* env)
 {
     assert(state != NULL);
     assert(env != NULL);

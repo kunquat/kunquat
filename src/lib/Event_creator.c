@@ -31,7 +31,7 @@ static void del_Event_default(Event* event);
 
 Event* new_Event(Event_type type, Tstamp* pos)
 {
-    assert(EVENT_IS_VALID(type));
+    assert(Event_is_valid(type));
     assert(pos != NULL);
     Event* event = memory_alloc_item(Event);
     if (event == NULL)
@@ -71,7 +71,7 @@ Event* new_Event_from_string(char** str, Read_state* state,
         return NULL;
     }
     Event_type type = Event_names_get(names, type_str);
-    if (!EVENT_IS_TRIGGER(type))
+    if (!Event_is_trigger(type))
     {
         Read_state_set_error(state, "Invalid or unsupported event type:"
                                     " \"%s\"", type_str);
@@ -138,7 +138,7 @@ static void del_Event_default(Event* event)
     {
         return;
     }
-    assert(EVENT_IS_VALID(event->type));
+    assert(Event_is_valid(event->type));
     memory_free(event->desc);
     memory_free(event);
     return;

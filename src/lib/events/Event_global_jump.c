@@ -68,7 +68,7 @@ Event* new_Event_global_jump(Tstamp* pos)
     {
         return NULL;
     }
-    Event_init((Event*)event, pos, EVENT_GLOBAL_JUMP);
+    Event_init((Event*)event, pos, Trigger_jump);
     event->counters = NULL;
     event->counters_iter = NULL;
     event->parent.destroy = del_Event_global_jump;
@@ -93,7 +93,7 @@ Event* new_Event_global_jump(Tstamp* pos)
 void Trigger_global_jump_process(Event* event, Playdata* play)
 {
     assert(event != NULL);
-    assert(event->type == EVENT_GLOBAL_JUMP);
+    assert(event->type == Trigger_jump);
     assert(play != NULL);
     Event_global_jump* jump = (Event_global_jump*)event;
     Pattern_location* key = PATTERN_LOCATION_AUTO;
@@ -194,7 +194,7 @@ void del_Event_global_jump(Event* event)
     {
         return;
     }
-    assert(event->type == EVENT_GLOBAL_JUMP);
+    assert(event->type == Trigger_jump);
     Event_global_jump* jump = (Event_global_jump*)event;
     del_AAtree(jump->counters);
     del_AAiter(jump->counters_iter);

@@ -26,7 +26,7 @@
 // TODO: define proper interface in Column
 typedef struct Trigger_row
 {
-    int dummy;
+    Event_list* head;
 } Trigger_row;
 
 
@@ -35,18 +35,24 @@ typedef struct Trigger_row
  */
 typedef struct Cgiter
 {
-    Position pos;
     const Module* module;
+    int col_index;
+
+    Position pos;
+    Column_iter* citer;
+    Trigger_row cur_tr; // TODO: remove
 } Cgiter;
 
 
 /**
  * Initialises Cgiter.
  *
- * \param cgiter   The Cgiter -- must not be \c NULL.
- * \param module   The Module -- must not be \c NULL.
+ * \param cgiter      The Cgiter -- must not be \c NULL.
+ * \param module      The Module -- must not be \c NULL.
+ * \param col_index   The column index -- must be >= \c 0 and
+ *                    < \c KQT_COLUMNS_MAX.
  */
-void Cgiter_init(Cgiter* cgiter, const Module* module);
+void Cgiter_init(Cgiter* cgiter, const Module* module, int col_index);
 
 
 /**
@@ -61,11 +67,11 @@ void Cgiter_reset(Cgiter* cgiter, const Position* start_pos);
 /**
  * Returns trigger row at the current Cgiter position.
  *
- * \param cgiter   The Cgiter -- must not be \c NULL.
+ * \param cgiter   The Cgiter -- must not be \c NULL. TODO: make const
  *
  * \return   The trigger row if one exists, otherwise \c NULL.
  */
-const Trigger_row* Cgiter_get_trigger_row(const Cgiter* cgiter);
+const Trigger_row* Cgiter_get_trigger_row(Cgiter* cgiter);
 
 
 /**

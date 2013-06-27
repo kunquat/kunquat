@@ -17,24 +17,18 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <Connections_search.h>
+#include <Device_node.h>
+#include <Environment.h>
 #include <math_common.h>
 #include <memory.h>
 #include <Pat_inst_ref.h>
 #include <transient/Cgiter.h>
+#include <transient/Master_params.h>
 #include <transient/Player.h>
 #include <transient/Position.h>
 #include <Tstamp.h>
 #include <xassert.h>
-
-
-typedef enum
-{
-    PLAYBACK_STOPPED = 0,
-    PLAYBACK_PATTERN,
-    PLAYBACK_SONG,
-    PLAYBACK_MODULE,
-    PLAYBACK_COUNT
-} Playback_state;
 
 
 struct Player
@@ -46,10 +40,10 @@ struct Player
     float*  audio_buffers[2];
     int32_t audio_frames_available;
 
-    Playback_state state;
-    bool is_paused;
+    Environment* env;
 
-    Position cur_pos;
+    Master_params master_params;
+
     double frame_remainder; // used for sub-frame time tracking
 
     Cgiter cgiters[KQT_CHANNELS_MAX];
@@ -75,17 +69,28 @@ Player* new_Player(const Module* module)
         player->audio_buffers[i] = NULL;
     player->audio_frames_available = 0;
 
-    player->state = PLAYBACK_SONG;
-    player->is_paused = false;
-
-    Position_init(&player->cur_pos);
     player->frame_remainder = 0.0;
 
     memset(player->cgiters, 0, sizeof(player->cgiters));
 
+    player->env = NULL;
+
     player->tempo = 120;
 
     // Init fields
+    player->env = new_Environment();
+    if (player->env == NULL)
+    {
+        del_Player(player);
+        return NULL;
+    }
+
+    if (Master_params_init(&player->master_params, player->env) == NULL)
+    {
+        del_Player(player);
+        return NULL;
+    }
+
     for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
     {
         player->audio_buffers[i] = memory_alloc_items(
@@ -99,7 +104,7 @@ Player* new_Player(const Module* module)
 
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
     {
-        Cgiter_init(&player->cgiters[i], player->module);
+        Cgiter_init(&player->cgiters[i], player->module, i);
     }
 
     return player;
@@ -111,6 +116,8 @@ void Player_reset(Player* player)
     assert(player != NULL);
 
     // TODO: playback mode and start pos as arguments
+
+    Master_params_reset(&player->master_params);
 
     player->frame_remainder = 0.0;
 
@@ -185,15 +192,12 @@ static int32_t Player_process_cgiters(Player* player, int32_t nframes)
     // Stop if all cgiters have finished
     if (!any_cgiter_active)
     {
-        player->state = PLAYBACK_STOPPED;
+        player->master_params.playback_state = PLAYBACK_STOPPED;
         return 0;
     }
 
     // Get actual number of frames to be rendered
-    double dframes = Tstamp_toframes(
-            Tstamp_sub(TSTAMP_AUTO, limit, &player->cur_pos.pat_pos),
-            player->tempo,
-            player->audio_rate);
+    double dframes = Tstamp_toframes(limit, player->tempo, player->audio_rate);
     assert(dframes >= 0.0);
 
     to_be_rendered = (int32_t)dframes;
@@ -217,6 +221,14 @@ void Player_play(Player* player, int32_t nframes)
 
     nframes = MIN(nframes, player->audio_chunk_size);
 
+    // TODO: separate data and playback state in connections
+    Connections* connections = player->module->connections;
+
+    if (connections != NULL)
+    {
+        Connections_clear_buffers(connections, 0, nframes);
+    }
+
     // TODO: check if song or pattern instance location has changed
 
     // Composition-level progress
@@ -226,7 +238,7 @@ void Player_play(Player* player, int32_t nframes)
     {
         // Process cgiters
         int32_t to_be_rendered = nframes - rendered;
-        if (!player->is_paused && !Player_has_stopped(player))
+        if (!player->master_params.is_paused && !Player_has_stopped(player))
         {
             to_be_rendered = Player_process_cgiters(player, to_be_rendered);
         }
@@ -235,14 +247,46 @@ void Player_play(Player* player, int32_t nframes)
         if (was_playing && Player_has_stopped(player))
             break;
 
-        // TODO: Render audio (not just silence)
-        for (int32_t i = rendered; i < to_be_rendered; ++i)
+        if (connections != NULL)
         {
-            player->audio_buffers[0][i] = 0.0f;
-            player->audio_buffers[1][i] = 0.0f;
+            Connections_mix(
+                    connections,
+                    rendered,
+                    to_be_rendered,
+                    player->audio_rate,
+                    player->tempo);
         }
 
         rendered += to_be_rendered;
+    }
+
+    if (connections != NULL)
+    {
+        Device* master = Device_node_get_device(
+                Connections_get_master(connections));
+        Audio_buffer* buffer = Device_get_buffer(
+                master,
+                DEVICE_PORT_TYPE_RECEIVE,
+                0);
+        if (buffer != NULL)
+        {
+            // Apply render volume
+            kqt_frame* bufs[] =
+            {
+                Audio_buffer_get_buffer(buffer, 0),
+                Audio_buffer_get_buffer(buffer, 1),
+            };
+            assert(bufs[0] != NULL);
+            assert(bufs[1] != NULL);
+            for (int i = 0; i < 2; ++i)
+            {
+                for (int32_t k = 0; k < rendered; ++k)
+                {
+                    player->audio_buffers[i][k] =
+                        bufs[i][k] * player->module->mix_vol;
+                }
+            }
+        }
     }
 
     player->audio_frames_available = rendered;
@@ -269,7 +313,7 @@ float* Player_get_audio(Player* player, int channel)
 bool Player_has_stopped(Player* player)
 {
     assert(player != NULL);
-    return (player->state == PLAYBACK_STOPPED);
+    return (player->master_params.playback_state == PLAYBACK_STOPPED);
 }
 
 
@@ -277,6 +321,10 @@ void del_Player(Player* player)
 {
     if (player == NULL)
         return;
+
+    Master_params_deinit(&player->master_params);
+
+    del_Environment(player->env);
 
     for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
         memory_free(player->audio_buffers[i]);

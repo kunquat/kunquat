@@ -24,12 +24,12 @@ EVENT_TYPE_DEF(if)
 EVENT_TYPE_DEF(else)
 EVENT_TYPE_DEF(end_if)
 
-EVENT_TYPE_DEF(signal)
-EVENT_TYPE_DEF(call_bool_name)
+//EVENT_TYPE_DEF(signal)
+//EVENT_TYPE_DEF(call_bool_name)
 EVENT_TYPE_DEF(call_bool)
-EVENT_TYPE_DEF(call_int_name)
+//EVENT_TYPE_DEF(call_int_name)
 EVENT_TYPE_DEF(call_int)
-EVENT_TYPE_DEF(call_float_name)
+//EVENT_TYPE_DEF(call_float_name)
 EVENT_TYPE_DEF(call_float)
 
 

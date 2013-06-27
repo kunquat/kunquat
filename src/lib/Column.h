@@ -25,6 +25,15 @@
 #include <AAtree.h>
 
 
+typedef struct Event_list
+{
+    Event* event;
+    bool copy;
+    struct Event_list* prev;
+    struct Event_list* next;
+} Event_list;
+
+
 /**
  * Column_iter is used for retrieving Events from a Column.
  */
@@ -69,6 +78,9 @@ void Column_iter_change_col(Column_iter* iter, Column* col);
 Event* Column_iter_get(Column_iter* iter, const Tstamp* pos);
 
 
+Event_list* Column_iter_get_row(Column_iter* iter, const Tstamp* pos);
+
+
 /**
  * Gets the Event next to the previous Event retrieved from the Column.
  *
@@ -80,6 +92,9 @@ Event* Column_iter_get(Column_iter* iter, const Tstamp* pos);
  * \return   The Event if one exists, otherwise \c NULL.
  */
 Event* Column_iter_get_next(Column_iter* iter);
+
+
+Event_list* Column_iter_get_next_row(Column_iter* iter);
 
 
 /**

@@ -65,7 +65,7 @@ bool Pattern_parse_header(Pattern* pat, char* str, Read_state* state);
 /**
  * Sets existent status of a Pattern instance.
  *
- * \param pat        The Pattern -- must not be \c NULL
+ * \param pat        The Pattern -- must not be \c NULL.
  * \param index      The instance index -- must be >= \c 0 and
  *                   < \c KQT_PAT_INSTANCES_MAX.
  * \param existent   The new existence status.
@@ -76,13 +76,24 @@ void Pattern_set_inst_existent(Pattern* pat, int index, bool existent);
 /**
  * Gets existent status of a Pattern instance.
  *
- * \param pat     The Pattern -- must not be \c NULL
+ * \param pat     The Pattern -- must not be \c NULL.
  * \param index   The instance index -- must be >= \c 0 and
  *                < \c KQT_PAT_INSTANCES_MAX.
  *
  * \return   \c true if instance \a index of \a pat exists, otherwise \c false.
  */
 bool Pattern_get_inst_existent(const Pattern* pat, int index);
+
+
+/**
+ * Returns a column of the Pattern.
+ *
+ * \param pat     The Pattern -- must not be \c NULL.
+ * \param index   The column index -- must be >= \c 0 and < \c KQT_COLUMNS_MAX.
+ *
+ * \return   The column.
+ */
+Column* Pattern_get_column(const Pattern* pat, int index);
 
 
 /**

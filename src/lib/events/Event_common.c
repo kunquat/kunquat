@@ -26,7 +26,7 @@ Event* Event_init(
 {
     assert(event != NULL);
     assert(pos != NULL);
-    assert(EVENT_IS_VALID(type));
+    assert(Event_is_valid(type));
     event->type = type;
     Tstamp_copy(&event->pos, pos);
     event->desc = NULL;
@@ -41,7 +41,7 @@ void del_Event_default(Event* event)
     {
         return;
     }
-    assert(EVENT_IS_VALID(event->type));
+    assert(Event_is_valid(event->type));
     memory_free(event->desc);
     memory_free(event);
     return;

@@ -20,7 +20,7 @@
 EVENT_TYPE_DEF(pause)
 EVENT_TYPE_DEF(resume)
 EVENT_TYPE_DEF(play_pattern)
-EVENT_TYPE_DEF(tempo_factor)
+//EVENT_TYPE_DEF(tempo_factor)
 
 EVENT_TYPE_DEF(env_set_bool_name)
 EVENT_TYPE_DEF(env_set_bool)

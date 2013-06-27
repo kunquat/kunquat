@@ -22,250 +22,106 @@
 
 typedef enum
 {
-    EVENT_NONE = 0, ///< An uninitialised event.
+    Event_NONE = 0, ///< An uninitialised event.
 
-    EVENT_CONTROL_LOWER, ///< Control Events.
+    Event_control_START,
+#define EVENT_TYPE_DEF(type) Event_control_##type,
+#include <events/Event_control_types.h>
+    Event_control_STOP,
 
-    EVENT_CONTROL_PAUSE,
-    EVENT_CONTROL_RESUME,
-    EVENT_CONTROL_PLAY_PATTERN,
-    EVENT_CONTROL_TEMPO_FACTOR,
+    Event_general_START,
+#define EVENT_TYPE_DEF(type) Event_general_##type,
+#include <events/Event_general_types.h>
+    Event_general_STOP,
 
-    EVENT_CONTROL_ENV_SET_BOOL_NAME,
-    EVENT_CONTROL_ENV_SET_BOOL,
-    EVENT_CONTROL_ENV_SET_INT_NAME,
-    EVENT_CONTROL_ENV_SET_INT,
-    EVENT_CONTROL_ENV_SET_FLOAT_NAME,
-    EVENT_CONTROL_ENV_SET_FLOAT,
-    EVENT_CONTROL_ENV_SET_REAL_NAME,
-    EVENT_CONTROL_ENV_SET_REAL,
-    EVENT_CONTROL_ENV_SET_TSTAMP_NAME,
-    EVENT_CONTROL_ENV_SET_TSTAMP,
+    Event_master_START,
+#define EVENT_TYPE_DEF(type) Event_master_##type,
+#include <events/Event_master_types.h>
 
-    EVENT_CONTROL_SET_GOTO_SONG,
-    EVENT_CONTROL_SET_GOTO_SECTION,
-    EVENT_CONTROL_SET_GOTO_ROW,
-    EVENT_CONTROL_GOTO,
+    Trigger_jump, // TODO: handle cleanly
 
-    EVENT_CONTROL_INFINITE,
+    Event_master_STOP,
 
-    EVENT_CONTROL_RECEIVE_EVENT,
+    Event_channel_START,
+#define EVENT_TYPE_DEF(type) Event_channel_##type,
+#include <events/Event_channel_types.h>
+    Event_channel_STOP,
 
-    EVENT_CONTROL_UPPER,
+    Event_ins_START,
+#define EVENT_TYPE_DEF(type) Event_ins_##type,
+#include <events/Event_ins_types.h>
+    Event_ins_STOP,
 
-    EVENT_GENERAL_LOWER, ///< General Events.
+    Event_generator_START,
+#define EVENT_TYPE_DEF(type) Event_generator_##type,
+#include <events/Event_generator_types.h>
+    Event_generator_STOP,
 
-    EVENT_GENERAL_COMMENT, ///< A comment.
+    Event_effect_START,
+#define EVENT_TYPE_DEF(type) Event_effect_##type,
+#include <events/Event_effect_types.h>
+    Event_effect_STOP,
 
-    EVENT_GENERAL_COND,         ///< Evaluate a conditional expression.
-    EVENT_GENERAL_IF,           ///< Start conditional event handling.
-    EVENT_GENERAL_ELSE,
-    EVENT_GENERAL_END_IF,       ///< End conditional event handling.
+    Event_dsp_START,
+#define EVENT_TYPE_DEF(type) Event_dsp_##type,
+#include <events/Event_dsp_types.h>
+    Event_dsp_STOP,
 
-    EVENT_GENERAL_SIGNAL,
-    EVENT_GENERAL_CALL_BOOL_NAME,
-    EVENT_GENERAL_CALL_BOOL,
-    EVENT_GENERAL_CALL_INT_NAME,
-    EVENT_GENERAL_CALL_INT,
-    EVENT_GENERAL_CALL_FLOAT_NAME,
-    EVENT_GENERAL_CALL_FLOAT,
+    Event_query_START,
 
-    EVENT_GENERAL_UPPER,
+    Event_query_location,
+    Event_query_voice_count,
+    Event_query_actual_force,
 
-    EVENT_GLOBAL_LOWER, ///< Global Events.
+    Event_query_STOP,
 
-    EVENT_GLOBAL_SET_TEMPO,
-    EVENT_GLOBAL_SLIDE_TEMPO,
-    EVENT_GLOBAL_SLIDE_TEMPO_LENGTH,
-    EVENT_GLOBAL_PATTERN_DELAY,
+    Event_auto_START,
 
-    EVENT_GLOBAL_SET_VOLUME,
-    EVENT_GLOBAL_SLIDE_VOLUME,
-    EVENT_GLOBAL_SLIDE_VOLUME_LENGTH,
+    Event_auto_location_track,
+    Event_auto_location_system,
+    Event_auto_location_pattern,
+    Event_auto_location_row,
+    Event_auto_voice_count,
+    Event_auto_actual_force,
 
-    EVENT_GLOBAL_SET_SCALE,
-    EVENT_GLOBAL_SET_SCALE_OFFSET,
-    EVENT_GLOBAL_MIMIC_SCALE,
-    EVENT_GLOBAL_SET_SCALE_FIXED_POINT,
-    EVENT_GLOBAL_SHIFT_SCALE_INTERVALS,
+    Event_auto_STOP,
 
-    EVENT_GLOBAL_SET_JUMP_SONG,
-    EVENT_GLOBAL_SET_JUMP_SECTION,
-    EVENT_GLOBAL_SET_JUMP_ROW,
-    EVENT_GLOBAL_SET_JUMP_COUNTER,
-    EVENT_GLOBAL_JUMP,
-
-    EVENT_GLOBAL_SET_VAR, ///< Set a variable.
-
-    EVENT_GLOBAL_UPPER,
-
-    EVENT_CHANNEL_LOWER, ///< Channel Events.
-
-    EVENT_CHANNEL_SET_INSTRUMENT,
-    EVENT_CHANNEL_SET_GENERATOR,
-    EVENT_CHANNEL_SET_EFFECT,
-    EVENT_CHANNEL_SET_GLOBAL_EFFECTS,
-    EVENT_CHANNEL_SET_INSTRUMENT_EFFECTS,
-    EVENT_CHANNEL_SET_DSP,
-
-    EVENT_CHANNEL_NOTE_ON,
-    EVENT_CHANNEL_HIT,
-    EVENT_CHANNEL_NOTE_OFF,
-
-    EVENT_CHANNEL_SET_FORCE,
-    EVENT_CHANNEL_SLIDE_FORCE,
-    EVENT_CHANNEL_SLIDE_FORCE_LENGTH,
-    EVENT_CHANNEL_TREMOLO_SPEED,
-    EVENT_CHANNEL_TREMOLO_DEPTH,
-    EVENT_CHANNEL_TREMOLO_DELAY,
-
-    EVENT_CHANNEL_SLIDE_PITCH,
-    EVENT_CHANNEL_SLIDE_PITCH_LENGTH,
-    EVENT_CHANNEL_VIBRATO_SPEED,
-    EVENT_CHANNEL_VIBRATO_DEPTH,
-    EVENT_CHANNEL_VIBRATO_DELAY,
-
-    EVENT_CHANNEL_RESET_ARPEGGIO,
-    EVENT_CHANNEL_SET_ARPEGGIO_NOTE,
-    EVENT_CHANNEL_SET_ARPEGGIO_INDEX,
-    EVENT_CHANNEL_SET_ARPEGGIO_SPEED,
-    EVENT_CHANNEL_ARPEGGIO_ON,
-    EVENT_CHANNEL_ARPEGGIO_OFF,
-
-    EVENT_CHANNEL_SET_LOWPASS,
-    EVENT_CHANNEL_SLIDE_LOWPASS,
-    EVENT_CHANNEL_SLIDE_LOWPASS_LENGTH,
-    EVENT_CHANNEL_AUTOWAH_SPEED,
-    EVENT_CHANNEL_AUTOWAH_DEPTH,
-    EVENT_CHANNEL_AUTOWAH_DELAY,
-
-    EVENT_CHANNEL_SET_RESONANCE,
-    EVENT_CHANNEL_SLIDE_RESONANCE,
-    EVENT_CHANNEL_SLIDE_RESONANCE_LENGTH,
-
-    EVENT_CHANNEL_SET_PANNING,
-    EVENT_CHANNEL_SLIDE_PANNING,
-    EVENT_CHANNEL_SLIDE_PANNING_LENGTH,
-
-    EVENT_CHANNEL_SET_GEN_BOOL_NAME,
-    EVENT_CHANNEL_SET_GEN_BOOL,
-    EVENT_CHANNEL_SET_GEN_INT_NAME,
-    EVENT_CHANNEL_SET_GEN_INT,
-    EVENT_CHANNEL_SET_GEN_FLOAT_NAME,
-    EVENT_CHANNEL_SET_GEN_FLOAT,
-    EVENT_CHANNEL_SET_GEN_REAL_NAME,
-    EVENT_CHANNEL_SET_GEN_REAL,
-    EVENT_CHANNEL_SET_GEN_TSTAMP_NAME,
-    EVENT_CHANNEL_SET_GEN_TSTAMP,
-
-#if 0
-    EVENT_CHANNEL_SET_INS_DSP_BOOL,
-    EVENT_CHANNEL_SET_INS_DSP_INT,
-    EVENT_CHANNEL_SET_INS_DSP_FLOAT,
-    EVENT_CHANNEL_SET_INS_DSP_REAL,
-    EVENT_CHANNEL_SET_INS_DSP_TSTAMP,
-#endif
-
-    EVENT_CHANNEL_UPPER,
-
-    EVENT_INS_LOWER, ///< Instrument Events
-
-    EVENT_INS_SET_SUSTAIN,
-
-    EVENT_INS_UPPER,
-
-    EVENT_GENERATOR_LOWER, ///< Generator Events
-
-    EVENT_GENERATOR_SET_BOOL_NAME,
-    EVENT_GENERATOR_SET_BOOL,
-    EVENT_GENERATOR_SET_INT_NAME,
-    EVENT_GENERATOR_SET_INT,
-    EVENT_GENERATOR_SET_FLOAT_NAME,
-    EVENT_GENERATOR_SET_FLOAT,
-    EVENT_GENERATOR_SET_REAL_NAME,
-    EVENT_GENERATOR_SET_REAL,
-    EVENT_GENERATOR_SET_TSTAMP_NAME,
-    EVENT_GENERATOR_SET_TSTAMP,
-
-    EVENT_GENERATOR_UPPER,
-
-    EVENT_EFFECT_LOWER, ///< Effect Events
-
-    EVENT_EFFECT_BYPASS_ON,
-    EVENT_EFFECT_BYPASS_OFF,
-
-    EVENT_EFFECT_UPPER,
-
-    EVENT_DSP_LOWER, ///< DSP Events
-
-    EVENT_DSP_SET_BOOL_NAME,
-    EVENT_DSP_SET_BOOL,
-    EVENT_DSP_SET_INT_NAME,
-    EVENT_DSP_SET_INT,
-    EVENT_DSP_SET_FLOAT_NAME,
-    EVENT_DSP_SET_FLOAT,
-    EVENT_DSP_SET_REAL_NAME,
-    EVENT_DSP_SET_REAL,
-    EVENT_DSP_SET_TSTAMP_NAME,
-    EVENT_DSP_SET_TSTAMP,
-
-    EVENT_DSP_UPPER,
-
-    EVENT_QUERY_LOWER,
-
-    EVENT_QUERY_LOCATION,
-    EVENT_QUERY_VOICE_COUNT,
-    EVENT_QUERY_ACTUAL_FORCE,
-
-    EVENT_QUERY_UPPER,
-
-    EVENT_AUTO_LOWER,
-
-    EVENT_AUTO_LOCATION_TRACK,
-    EVENT_AUTO_LOCATION_SYSTEM,
-    EVENT_AUTO_LOCATION_PATTERN,
-    EVENT_AUTO_LOCATION_ROW,
-    EVENT_AUTO_VOICE_COUNT,
-    EVENT_AUTO_ACTUAL_FORCE,
-
-    EVENT_AUTO_UPPER,
-
-    EVENT_LAST
+    Event_STOP
 } Event_type;
 
 
-#define EVENT_IS_CONTROL(type)   ((type) > EVENT_CONTROL_LOWER && \
-                                  (type) < EVENT_CONTROL_UPPER)
-#define EVENT_IS_GENERAL(type)   ((type) > EVENT_GENERAL_LOWER && \
-                                  (type) < EVENT_GENERAL_UPPER)
-#define EVENT_IS_GLOBAL(type)    ((type) > EVENT_GLOBAL_LOWER && \
-                                  (type) < EVENT_GLOBAL_UPPER)
-#define EVENT_IS_CHANNEL(type)   ((type) > EVENT_CHANNEL_LOWER && \
-                                  (type) < EVENT_CHANNEL_UPPER)
-#define EVENT_IS_INS(type)       ((type) > EVENT_INS_LOWER && \
-                                  (type) < EVENT_INS_UPPER)
-#define EVENT_IS_GENERATOR(type) ((type) > EVENT_GENERATOR_LOWER && \
-                                  (type) < EVENT_GENERATOR_UPPER)
-#define EVENT_IS_EFFECT(type)    ((type) > EVENT_EFFECT_LOWER && \
-                                  (type) < EVENT_EFFECT_UPPER)
-#define EVENT_IS_DSP(type)       ((type) > EVENT_DSP_LOWER && \
-                                  (type) < EVENT_DSP_UPPER)
-#define EVENT_IS_QUERY(type)     ((type) > EVENT_QUERY_LOWER && \
-                                  (type) < EVENT_QUERY_UPPER)
-#define EVENT_IS_AUTO(type)      ((type) > EVENT_AUTO_LOWER && \
-                                  (type) < EVENT_AUTO_UPPER)
-#define EVENT_IS_PG(type)        (EVENT_IS_INS((type))       || \
-                                  EVENT_IS_GENERAL((type))   || \
-                                  EVENT_IS_GENERATOR((type)) || \
-                                  EVENT_IS_GLOBAL((type))    || \
-                                  EVENT_IS_EFFECT((type))    || \
-                                  EVENT_IS_DSP((type))       || \
-                                  EVENT_IS_CHANNEL((type))   || \
-                                  EVENT_IS_CONTROL((type))   || \
-                                  EVENT_IS_QUERY((type)))
-#define EVENT_IS_TRIGGER(type)   EVENT_IS_PG((type))
-#define EVENT_IS_VALID(type)     (EVENT_IS_TRIGGER((type)) || \
-                                  EVENT_IS_AUTO((type)))
+#define Event_is_control(type)   ((type) > Event_control_START && \
+                                  (type) < Event_control_STOP)
+#define Event_is_general(type)   ((type) > Event_general_START && \
+                                  (type) < Event_general_STOP)
+#define Event_is_master(type)    ((type) > Event_master_START && \
+                                  (type) < Event_master_STOP)
+#define Event_is_channel(type)   ((type) > Event_channel_START && \
+                                  (type) < Event_channel_STOP)
+#define Event_is_ins(type)       ((type) > Event_ins_START && \
+                                  (type) < Event_ins_STOP)
+#define Event_is_generator(type) ((type) > Event_generator_START && \
+                                  (type) < Event_generator_STOP)
+#define Event_is_effect(type)    ((type) > Event_effect_START && \
+                                  (type) < Event_effect_STOP)
+#define Event_is_dsp(type)       ((type) > Event_dsp_START && \
+                                  (type) < Event_dsp_STOP)
+#define Event_is_query(type)     ((type) > Event_query_START && \
+                                  (type) < Event_query_STOP)
+#define Event_is_auto(type)      ((type) > Event_auto_START && \
+                                  (type) < Event_auto_STOP)
+#define Event_is_pg(type)        (Event_is_ins((type))       || \
+                                  Event_is_general((type))   || \
+                                  Event_is_generator((type)) || \
+                                  Event_is_master((type))    || \
+                                  Event_is_effect((type))    || \
+                                  Event_is_dsp((type))       || \
+                                  Event_is_channel((type))   || \
+                                  Event_is_control((type))   || \
+                                  Event_is_query((type)))
+#define Event_is_trigger(type)   Event_is_pg((type))
+#define Event_is_valid(type)     (Event_is_trigger((type)) || \
+                                  Event_is_auto((type)))
 
 
 #endif // K_EVENT_TYPE_H

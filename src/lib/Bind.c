@@ -673,7 +673,7 @@ static Target_event* new_Target_event(char** str,
         del_Target_event(event);
         return NULL;
     }
-    if (Event_names_get(names, event_name) == EVENT_NONE)
+    if (Event_names_get(names, event_name) == Event_NONE)
     {
         Read_state_set_error(state, "Unsupported event type: %s", event_name);
         del_Target_event(event);

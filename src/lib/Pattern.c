@@ -153,6 +153,16 @@ bool Pattern_get_inst_existent(const Pattern* pat, int index)
 }
 
 
+Column* Pattern_get_column(const Pattern* pat, int index)
+{
+    assert(pat != NULL);
+    assert(index >= 0);
+    assert(index < KQT_COLUMNS_MAX);
+
+    return pat->cols[index];
+}
+
+
 bool Pattern_set_location(Pattern* pat, int song, Pat_inst_ref* piref)
 {
     assert(pat != NULL);
@@ -647,7 +657,7 @@ static void evaluate_row(Pattern* pat,
                 break;
             }
         }
-        if (Event_get_type(*next) == EVENT_GLOBAL_JUMP)
+        if (Event_get_type(*next) == Trigger_jump)
         {
             if (General_state_events_enabled((General_state*)play))
             {
@@ -656,9 +666,9 @@ static void evaluate_row(Pattern* pat,
                 Trigger_global_jump_process(*next, play);
             }
         }
-        else if ((!EVENT_IS_CONTROL(type) || play->infinite) &&
-                 (!play->silent || EVENT_IS_GLOBAL(type) ||
-                                   EVENT_IS_GENERAL(type)))
+        else if ((!Event_is_control(type) || play->infinite) &&
+                 (!play->silent || Event_is_master(type) ||
+                                   Event_is_general(type)))
         {
             //Event_pg* pg = (Event_pg*)*next;
             Event_handler_trigger(eh, (*next)->ch_index, Event_get_desc(*next),

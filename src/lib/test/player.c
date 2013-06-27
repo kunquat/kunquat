@@ -126,6 +126,52 @@ START_TEST(Empty_pattern_contains_silence)
 END_TEST
 
 
+#if 0
+START_TEST(Note_on_at_pattern_end_is_handled)
+{
+    set_mixing_rate(mixing_rates[MIXING_RATE_LOW]);
+    fail_if(
+            !Player_set_audio_rate(player, mixing_rates[MIXING_RATE_LOW]),
+            "Could not set player audio rate");
+    set_mix_volume(0);
+    setup_debug_single_pulse();
+
+    set_data("album/p_manifest.json", "{}");
+    set_data("album/p_tracks.json", "[0]");
+    set_data("song_00/p_manifest.json", "{}");
+    set_data("song_00/p_order_list.json", "[ [0, 0], [1, 0] ]");
+
+    char pat0_def[128] = "";
+    snprintf(pat0_def, sizeof(pat0_def), "{ \"length\": [%d, 0] }", _i);
+    set_data("pat_000/p_manifest.json", "{}");
+    set_data("pat_000/p_pattern.json", pat0_def);
+    set_data("pat_000/instance_000/p_manifest.json", "{}");
+
+    char col_def[128] = "";
+    snprintf(col_def, sizeof(col_def), "[ [[%d, 0], [\"n+\", \"0\"]] ]", _i);
+    set_data("pat_000/col_00/p_triggers.json", col_def);
+
+    set_data("pat_001/p_manifest.json", "{}");
+    set_data("pat_001/p_pattern.json", "{ \"length\": [8, 0] }");
+    set_data("pat_001/instance_000/p_manifest.json", "{}");
+
+    validate();
+
+    Player_reset(player);
+    Player_play(player, 2048);
+    int32_t buf_len = Player_get_frames_available(player);
+
+    float* actual_buf = Player_get_audio(player, 0);
+
+    float expected_buf[2048] = { 0.0f };
+    expected_buf[mixing_rates[MIXING_RATE_LOW] * _i / 2] = 1.0f;
+
+    check_buffers_equal(expected_buf, actual_buf, buf_len, 0.0f);
+}
+END_TEST
+#endif
+
+
 Suite* Player_suite(void)
 {
     Suite* s = suite_create("Player");
@@ -142,6 +188,7 @@ Suite* Player_suite(void)
     tcase_add_loop_test(
             tc_render, Empty_pattern_contains_silence,
             0, MIXING_RATE_COUNT);
+    //tcase_add_loop_test(tc_render, Note_on_at_pattern_end_is_handled, 0, 1); //4);
 
     return s;
 }

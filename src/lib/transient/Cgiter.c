@@ -16,13 +16,20 @@
 #include <xassert.h>
 
 
-void Cgiter_init(Cgiter* cgiter, const Module* module)
+void Cgiter_init(Cgiter* cgiter, const Module* module, int col_index)
 {
     assert(cgiter != NULL);
     assert(module != NULL);
+    assert(col_index >= 0);
+    assert(col_index < KQT_COLUMNS_MAX);
 
-    Position_init(&cgiter->pos);
     cgiter->module = module;
+    cgiter->col_index = col_index;
+    Position_init(&cgiter->pos);
+    cgiter->citer = new_Column_iter(NULL); // FIXME: handle alloc failure
+    assert(cgiter->citer != NULL);
+
+    cgiter->cur_tr.head = NULL;
 
     return;
 }
@@ -86,11 +93,39 @@ void Cgiter_reset(Cgiter* cgiter, const Position* start_pos)
 }
 
 
-const Trigger_row* Cgiter_get_trigger_row(const Cgiter* cgiter)
+const Trigger_row* Cgiter_get_trigger_row(Cgiter* cgiter)
 {
     assert(cgiter != NULL);
-    (void)cgiter;
-    return NULL;
+
+    if (Cgiter_has_finished(cgiter))
+        return NULL;
+
+    // Find pattern
+    const Pattern* pattern = NULL;
+    const Pat_inst_ref* piref = find_pat_inst_ref(
+        cgiter->module,
+        cgiter->pos.track,
+        cgiter->pos.system);
+    if (piref != NULL)
+        pattern = Module_get_pattern(cgiter->module, piref);
+
+    if (pattern == NULL)
+        return NULL;
+
+    Column* column = Pattern_get_column(pattern, cgiter->col_index);
+    if (column == NULL)
+        return NULL;
+
+    Column_iter_change_col(cgiter->citer, column);
+    cgiter->cur_tr.head = Column_iter_get_row(cgiter->citer, &cgiter->pos.pat_pos);
+    if (cgiter->cur_tr.head == NULL)
+        return NULL;
+    assert(cgiter->cur_tr.head->next != NULL);
+    assert(cgiter->cur_tr.head->next->event != NULL);
+    if (Tstamp_cmp(&cgiter->cur_tr.head->next->event->pos, &cgiter->pos.pat_pos) > 0)
+        return NULL;
+
+    return &cgiter->cur_tr;
 }
 
 
