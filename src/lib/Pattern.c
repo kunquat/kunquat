@@ -663,7 +663,7 @@ static void evaluate_row(Pattern* pat,
             {
                 // Jump events inside Patterns contain mutable state data, so
                 // they need to be handled as a special case here.
-                Trigger_global_jump_process(*next, play);
+                Trigger_global_jump_process(*next, NULL, play);
             }
         }
         else if ((!Event_is_control(type) || play->infinite) &&

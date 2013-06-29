@@ -24,11 +24,16 @@
 
 
 bool Event_global_set_jump_counter_process(
+        Master_params* master_params,
         Playdata* global_state,
         Value* value)
 {
     assert(global_state != NULL);
     assert(value != NULL);
+
+    if (master_params != NULL)
+        return false;
+
     if (value->type != VALUE_TYPE_INT)
     {
         return false;
@@ -38,10 +43,14 @@ bool Event_global_set_jump_counter_process(
 }
 
 
-bool Event_global_set_jump_row_process(Playdata* global_state, Value* value)
+bool Event_global_set_jump_row_process(Master_params* master_params, Playdata* global_state, Value* value)
 {
     assert(global_state != NULL);
     assert(value != NULL);
+
+    if (master_params != NULL)
+        return false;
+
     if (value->type != VALUE_TYPE_TSTAMP)
     {
         return false;
@@ -52,11 +61,16 @@ bool Event_global_set_jump_row_process(Playdata* global_state, Value* value)
 
 
 bool Event_global_set_jump_section_process(
+        Master_params* master_params,
         Playdata* global_state,
         Value* value)
 {
     assert(global_state != NULL);
     assert(value != NULL);
+
+    if (master_params != NULL)
+        return false;
+
     if (value->type != VALUE_TYPE_INT)
     {
         return false;
@@ -67,11 +81,16 @@ bool Event_global_set_jump_section_process(
 
 
 bool Event_global_set_jump_song_process(
+        Master_params* master_params,
         Playdata* global_state,
         Value* value)
 {
     assert(global_state != NULL);
     assert(value != NULL);
+
+    if (master_params != NULL)
+        return false;
+
     if (value->type != VALUE_TYPE_INT)
     {
         return false;

@@ -90,57 +90,64 @@ Event* new_Event_global_jump(Tstamp* pos)
 }
 
 
-void Trigger_global_jump_process(Event* event, Playdata* play)
+void Trigger_global_jump_process(Event* event, Master_params* master_params, Playdata* play)
 {
     assert(event != NULL);
     assert(event->type == Trigger_jump);
-    assert(play != NULL);
-    Event_global_jump* jump = (Event_global_jump*)event;
-    Pattern_location* key = PATTERN_LOCATION_AUTO;
-    if (play->mode == PLAY_PATTERN)
+    assert(master_params != NULL || play != NULL);
+
+    if (master_params != NULL)
     {
-        key->song = -1;
-        key->piref.pat = -1;
-        key->piref.inst = -1;
     }
     else
     {
-        Track_list* tl = play->track_list;
-        assert(tl != NULL);
-        key->song = Track_list_get_song_index(tl, play->track);
+        Event_global_jump* jump = (Event_global_jump*)event;
+        Pattern_location* key = PATTERN_LOCATION_AUTO;
+        if (play->mode == PLAY_PATTERN)
+        {
+            key->song = -1;
+            key->piref.pat = -1;
+            key->piref.inst = -1;
+        }
+        else
+        {
+            Track_list* tl = play->track_list;
+            assert(tl != NULL);
+            key->song = Track_list_get_song_index(tl, play->track);
 
-        Order_list* ol = play->order_lists[key->song];
-        assert(ol != NULL);
-        Pat_inst_ref* piref = Order_list_get_pat_inst_ref(ol, play->system);
-        assert(piref != NULL);
-        key->piref = *piref;
-    }
-    Jump_context* jc = AAtree_get_exact(jump->counters, key);
-    assert(jc != NULL);
-    if (jc->play_id != play->play_id)
-    {
-        if (play->jump_set_counter == 0)
+            Order_list* ol = play->order_lists[key->song];
+            assert(ol != NULL);
+            Pat_inst_ref* piref = Order_list_get_pat_inst_ref(ol, play->system);
+            assert(piref != NULL);
+            key->piref = *piref;
+        }
+        Jump_context* jc = AAtree_get_exact(jump->counters, key);
+        assert(jc != NULL);
+        if (jc->play_id != play->play_id)
+        {
+            if (play->jump_set_counter == 0)
+            {
+                jc->play_id = 0;
+                return;
+            }
+            jc->play_id = play->play_id;
+            jc->counter = play->jump_set_counter;
+            jc->subsong = play->jump_set_subsong;
+            jc->section = play->jump_set_section;
+            Tstamp_copy(&jc->row, &play->jump_set_row);
+        }
+        if (jc->counter > 0)
+        {
+            --jc->counter;
+            play->jump = true;
+            play->jump_subsong = jc->subsong;
+            play->jump_section = jc->section;
+            Tstamp_copy(&play->jump_row, &jc->row);
+        }
+        else
         {
             jc->play_id = 0;
-            return;
         }
-        jc->play_id = play->play_id;
-        jc->counter = play->jump_set_counter;
-        jc->subsong = play->jump_set_subsong;
-        jc->section = play->jump_set_section;
-        Tstamp_copy(&jc->row, &play->jump_set_row);
-    }
-    if (jc->counter > 0)
-    {
-        --jc->counter;
-        play->jump = true;
-        play->jump_subsong = jc->subsong;
-        play->jump_section = jc->section;
-        Tstamp_copy(&play->jump_row, &jc->row);
-    }
-    else
-    {
-        jc->play_id = 0;
     }
     return;
 }

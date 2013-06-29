@@ -24,6 +24,7 @@
 #include <Generator.h>
 #include <Ins_table.h>
 #include <Playdata.h>
+#include <transient/Master_params.h>
 #include <Event_names.h>
 #include <Event_type.h>
 #include <Value.h>
@@ -39,6 +40,7 @@ typedef struct Event_handler Event_handler;
  *           allocation failed.
  */
 Event_handler* new_Event_handler(
+        Master_params* master_params,
         Playdata* global_state,
         Channel_state** ch_states,
         Ins_table* insts,
@@ -114,7 +116,7 @@ bool Event_handler_set_ch_process(
 bool Event_handler_set_master_process(
         Event_handler* eh,
         Event_type type,
-        bool (*master_process)(Playdata*, Value*));
+        bool (*master_process)(Master_params* master_params, Playdata*, Value*));
 
 
 /**

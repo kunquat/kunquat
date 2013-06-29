@@ -228,11 +228,11 @@ Module* new_Module(uint32_t buf_size)
         ch_states[i] = &module->channels[i]->cur_state;
     }
 
-    module->event_handler = new_Event_handler(module->play_state,
+    module->event_handler = new_Event_handler(NULL, module->play_state,
                                             ch_states,
                                             module->insts,
                                             module->effects);
-    module->skip_handler = new_Event_handler(module->skip_state,
+    module->skip_handler = new_Event_handler(NULL, module->skip_state,
                                            ch_states,
                                            module->insts,
                                            module->effects);
@@ -683,14 +683,14 @@ Pat_table* Module_get_pats(Module* module)
 }
 
 
-Ins_table* Module_get_insts(Module* module)
+Ins_table* Module_get_insts(const Module* module)
 {
     assert(module != NULL);
     return module->insts;
 }
 
 
-Effect_table* Module_get_effects(Module* module)
+Effect_table* Module_get_effects(const Module* module)
 {
     assert(module != NULL);
     return module->effects;

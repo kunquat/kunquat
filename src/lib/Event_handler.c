@@ -53,6 +53,7 @@ struct Event_handler
     Channel_state* ch_states[KQT_COLUMNS_MAX];
     Ins_table* insts;
     Effect_table* effects;
+    Master_params* master_params;
     Playdata* global_state;
     Event_names* event_names;
     Event_buffer* event_buffer;
@@ -60,30 +61,37 @@ struct Event_handler
     bool (*control_process[Event_control_STOP])(General_state*, Value*);
     bool (*general_process[Event_general_STOP])(General_state*, Value*);
     bool (*ch_process[Event_channel_STOP])(Channel_state*, Value*);
-    bool (*global_process[Event_master_STOP])(Playdata*, Value*);
+    bool (*global_process[Event_master_STOP])(Master_params*, Playdata*, Value*);
     bool (*ins_process[Event_ins_STOP])(Instrument_params*, Value*);
-    bool (*generator_process[Event_generator_STOP])(Generator*,
-                                                     Channel_state*, Value*);
+    bool (*generator_process[Event_generator_STOP])(
+            Generator*,
+            Channel_state*,
+            Value*);
     bool (*effect_process[Event_effect_STOP])(Effect*, Value*);
     bool (*dsp_process[Event_dsp_STOP])(DSP_conf*, Channel_state*, Value*);
 };
 
 
 Event_handler* new_Event_handler(
+        Master_params* master_params,
         Playdata* global_state,
         Channel_state** ch_states,
         Ins_table* insts,
         Effect_table* effects)
 {
-    assert(global_state != NULL);
+    assert(master_params != NULL || global_state != NULL);
+    //assert(master_params != NULL);
+    //assert(global_state != NULL);
     assert(ch_states != NULL);
     assert(insts != NULL);
     assert(effects != NULL);
+
     Event_handler* eh = memory_alloc_item(Event_handler);
     if (eh == NULL)
     {
         return NULL;
     }
+
     eh->event_buffer = new_Event_buffer(16384);
     eh->tracker_buffer = new_Event_buffer(16384);
     eh->event_names = new_Event_names();
@@ -94,6 +102,8 @@ Event_handler* new_Event_handler(
         del_Event_handler(eh);
         return NULL;
     }
+
+    eh->master_params = master_params;
     eh->global_state = global_state;
 /*    if (eh->global_state == NULL)
     {
@@ -139,7 +149,13 @@ Event_handler* new_Event_handler(
         eh, Event_dsp_##type, Event_dsp_##type##_process);
 #include <events/Event_dsp_types.h>
 
-    Playdata_set_event_filter(global_state, eh->event_names);
+    if (eh->master_params != NULL)
+    {
+    }
+    else
+    {
+        Playdata_set_event_filter(global_state, eh->event_names);
+    }
     return eh;
 }
 
@@ -193,7 +209,7 @@ bool Event_handler_set_control_process(
 bool Event_handler_set_master_process(
         Event_handler* eh,
         Event_type type,
-        bool (*global_process)(Playdata*, Value*))
+        bool (*global_process)(Master_params*, Playdata*, Value*))
 {
     assert(eh != NULL);
     assert(Event_is_master(type));
@@ -296,7 +312,7 @@ static bool Event_handler_handle(
         {
             return false;
         }
-        return eh->global_process[type](eh->global_state, value);
+        return eh->global_process[type](eh->master_params, eh->global_state, value);
     }
     else if (Event_is_generator(type))
     {

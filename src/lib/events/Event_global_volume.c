@@ -22,10 +22,14 @@
 #include <xassert.h>
 
 
-bool Event_global_set_volume_process(Playdata* global_state, Value* value)
+bool Event_global_set_volume_process(Master_params* master_params, Playdata* global_state, Value* value)
 {
     assert(global_state != NULL);
     assert(value != NULL);
+
+    if (master_params != NULL)
+        return false;
+
     if (value->type != VALUE_TYPE_FLOAT)
     {
         return false;
@@ -37,10 +41,14 @@ bool Event_global_set_volume_process(Playdata* global_state, Value* value)
 }
 
 
-bool Event_global_slide_volume_process(Playdata* global_state, Value* value)
+bool Event_global_slide_volume_process(Master_params* master_params, Playdata* global_state, Value* value)
 {
     assert(global_state != NULL);
     assert(value != NULL);
+
+    if (master_params != NULL)
+        return false;
+
     if (value->type != VALUE_TYPE_FLOAT)
     {
         return false;
@@ -64,11 +72,16 @@ bool Event_global_slide_volume_process(Playdata* global_state, Value* value)
 
 
 bool Event_global_slide_volume_length_process(
+        Master_params* master_params,
         Playdata* global_state,
         Value* value)
 {
     assert(global_state != NULL);
     assert(value != NULL);
+
+    if (master_params != NULL)
+        return false;
+
     if (value->type != VALUE_TYPE_TSTAMP)
     {
         return false;

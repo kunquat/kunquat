@@ -26,10 +26,13 @@
 #define TEMPO_SLIDE_SLICE_LEN (KQT_TSTAMP_BEAT / 24)
 
 
-bool Event_global_set_tempo_process(Playdata* global_state, Value* value)
+bool Event_global_set_tempo_process(Master_params* master_params, Playdata* global_state, Value* value)
 {
     assert(global_state != NULL);
     assert(value != NULL);
+
+    if (master_params != NULL)
+        return false;
 
     if (value->type != VALUE_TYPE_FLOAT)
     {
@@ -43,10 +46,13 @@ bool Event_global_set_tempo_process(Playdata* global_state, Value* value)
 }
 
 
-bool Event_global_slide_tempo_process(Playdata* global_state, Value* value)
+bool Event_global_slide_tempo_process(Master_params* master_params, Playdata* global_state, Value* value)
 {
     assert(global_state != NULL);
     assert(value != NULL);
+
+    if (master_params != NULL)
+        return false;
 
     if (value->type != VALUE_TYPE_FLOAT)
     {
@@ -84,11 +90,15 @@ bool Event_global_slide_tempo_process(Playdata* global_state, Value* value)
 
 
 bool Event_global_slide_tempo_length_process(
+        Master_params* master_params,
         Playdata* global_state,
         Value* value)
 {
     assert(global_state != NULL);
     assert(value != NULL);
+
+    if (master_params != NULL)
+        return false;
 
     if (value->type != VALUE_TYPE_TSTAMP)
     {

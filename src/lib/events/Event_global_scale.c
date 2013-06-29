@@ -22,40 +22,56 @@
 #include <xassert.h>
 
 
-bool Event_global_set_scale_process(Playdata* global_state, Value* value)
+bool Event_global_set_scale_process(Master_params* master_params, Playdata* global_state, Value* value)
 {
     assert(global_state != NULL);
     assert(value != NULL);
+
+    if (master_params != NULL)
+        return false;
+
     if (value->type != VALUE_TYPE_INT)
     {
         return false;
     }
     global_state->scale = value->value.int_type;
+
     return true;
 }
 
 
 bool Event_global_set_scale_fixed_point_process(
+        Master_params* master_params,
         Playdata* global_state,
         Value* value)
 {
     assert(global_state != NULL);
     assert(value != NULL);
+
+    if (master_params != NULL)
+        return false;
+
     if (value->type != VALUE_TYPE_INT)
     {
         return false;
     }
     global_state->scale_fixed_point = value->value.int_type;
+
     return true;
 }
 
 
 bool Event_global_set_scale_offset_process(
+        Master_params* master_params,
         Playdata* global_state,
         Value* value)
 {
     assert(global_state != NULL);
     assert(value != NULL);
+
+    if (master_params != NULL)
+        return false;
+
     if (value->type != VALUE_TYPE_FLOAT)
     {
         return false;
@@ -74,10 +90,14 @@ bool Event_global_set_scale_offset_process(
 }
 
 
-bool Event_global_mimic_scale_process(Playdata* global_state, Value* value)
+bool Event_global_mimic_scale_process(Master_params* master_params, Playdata* global_state, Value* value)
 {
     assert(global_state != NULL);
     assert(value != NULL);
+
+    if (master_params != NULL)
+        return false;
+
     if (value->type != VALUE_TYPE_INT)
     {
         return false;
@@ -98,11 +118,16 @@ bool Event_global_mimic_scale_process(Playdata* global_state, Value* value)
 
 
 bool Event_global_shift_scale_intervals_process(
+        Master_params* master_params,
         Playdata* global_state,
         Value* value)
 {
     assert(global_state != NULL);
     assert(value != NULL);
+
+    if (master_params != NULL)
+        return false;
+
     if (value->type != VALUE_TYPE_INT)
     {
         return false;

@@ -20,6 +20,7 @@
 #include <stdint.h>
 
 #include <AAtree.h>
+#include <transient/Master_params.h>
 #include <Tstamp.h>
 #include <Playdata.h>
 
@@ -40,7 +41,7 @@ typedef struct Event_global_jump
 Event* new_Event_global_jump(Tstamp* pos);
 
 
-void Trigger_global_jump_process(Event* event, Playdata* play);
+void Trigger_global_jump_process(Event* event, Master_params* master_params, Playdata* play);
 
 
 bool Trigger_global_jump_set_locations(

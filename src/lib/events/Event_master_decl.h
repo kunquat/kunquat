@@ -19,13 +19,14 @@
 #include <stdbool.h>
 
 #include <Playdata.h>
+#include <transient/Master_params.h>
 #include <Value.h>
 
 
 // Process function declarations, TODO: Event_global -> Event_master
 
 #define EVENT_TYPE_DEF(type) \
-    bool Event_global_##type##_process(Playdata* global_state, Value* value);
+    bool Event_global_##type##_process(Master_params* master_params, Playdata* global_state, Value* value);
 #include <events/Event_master_types.h>
 
 

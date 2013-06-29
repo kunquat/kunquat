@@ -238,7 +238,7 @@ Pat_table* Module_get_pats(Module* module);
  *
  * \return   The Instrument table.
  */
-Ins_table* Module_get_insts(Module* module);
+Ins_table* Module_get_insts(const Module* module);
 
 
 /**
@@ -248,7 +248,7 @@ Ins_table* Module_get_insts(Module* module);
  *
  * \return   The Effect table.
  */
-Effect_table* Module_get_effects(Module* module);
+Effect_table* Module_get_effects(const Module* module);
 
 
 /**

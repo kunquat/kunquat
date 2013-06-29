@@ -21,6 +21,7 @@
 #include <Connections_search.h>
 #include <Device_node.h>
 #include <Environment.h>
+#include <Event_handler.h>
 #include <math_common.h>
 #include <memory.h>
 #include <Pat_inst_ref.h>
@@ -41,11 +42,10 @@ struct Player
     float*  audio_buffers[2];
     int32_t audio_frames_available;
 
-    Environment* env;
-
-    Master_params master_params;
-
+    Environment*   env;
+    Master_params  master_params;
     Channel_state* channels[KQT_CHANNELS_MAX];
+    Event_handler* event_handler;
 
     double frame_remainder; // used for sub-frame time tracking
 
@@ -73,9 +73,9 @@ Player* new_Player(const Module* module)
     player->audio_frames_available = 0;
 
     player->env = NULL;
-
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
         player->channels[i] = NULL;
+    player->event_handler = NULL;
 
     player->frame_remainder = 0.0;
 
@@ -102,6 +102,18 @@ Player* new_Player(const Module* module)
     }
 
     if (Master_params_init(&player->master_params, player->env) == NULL)
+    {
+        del_Player(player);
+        return NULL;
+    }
+
+    player->event_handler = new_Event_handler(
+            &player->master_params,
+            NULL,
+            player->channels,
+            Module_get_insts(player->module),
+            Module_get_effects(player->module));
+    if (player->event_handler == NULL)
     {
         del_Player(player);
         return NULL;
@@ -335,11 +347,10 @@ void del_Player(Player* player)
     if (player == NULL)
         return;
 
-    Master_params_deinit(&player->master_params);
-
+    del_Event_handler(player->event_handler);
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
         del_Channel_state(player->channels[i]);
-
+    Master_params_deinit(&player->master_params);
     del_Environment(player->env);
 
     for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
