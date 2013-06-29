@@ -187,7 +187,7 @@ Suite* Player_suite(void)
     tcase_add_loop_test(
             tc_render, Empty_pattern_contains_silence,
             0, MIXING_RATE_COUNT);
-    tcase_add_loop_test(tc_render, Note_on_at_pattern_end_is_handled, 0, 1); //4);
+    tcase_add_loop_test(tc_render, Note_on_at_pattern_end_is_handled, 0, 4);
 
     return s;
 }

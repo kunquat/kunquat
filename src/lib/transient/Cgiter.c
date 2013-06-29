@@ -156,8 +156,10 @@ bool Cgiter_peek(const Cgiter* cgiter, Tstamp* dist)
         if (pattern == NULL)
         {
             if (Tstamp_cmp(advance, TSTAMP_AUTO) == 0)
+            {
                 // We started at the end of data on this call
                 return false;
+            }
 
             break;
         }
@@ -168,8 +170,31 @@ bool Cgiter_peek(const Cgiter* cgiter, Tstamp* dist)
                 pat_length,
                 &pos.pat_pos);
 
-        // TODO: find triggers
+        // Check next trigger row
+        Column* column = Pattern_get_column(pattern, cgiter->col_index);
+        assert(column != NULL);
+        Column_iter_change_col(cgiter->citer, column);
+        const Tstamp* next_pos_min = Tstamp_add(
+                TSTAMP_AUTO,
+                &pos.pat_pos,
+                Tstamp_set(TSTAMP_AUTO, 0, 1));
+        Event_list* row = Column_iter_get_row(cgiter->citer, next_pos_min);
+        if (row != NULL)
+        {
+            assert(row->next != NULL);
+            assert(row->next->event != NULL);
+            if (Tstamp_cmp(&row->next->event->pos, pat_length) <= 0)
+            {
+                // Trigger row found inside this pattern
+                Tstamp_sub(
+                        advance,
+                        &row->next->event->pos,
+                        &pos.pat_pos);
+                break;
+            }
+        }
 
+        // No triggers found, check pattern end
         if (Tstamp_cmp(remaining, dist_to_end) > 0)
         {
             Tstamp_add(advance, advance, dist_to_end);
