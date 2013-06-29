@@ -17,6 +17,7 @@
 
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #include <Bind.h>
 #include <Environment.h>
@@ -44,7 +45,7 @@ typedef struct Master_params
 
     Bind* bind;
 
-    int active_voices;
+    int16_t active_voices;
 } Master_params;
 
 

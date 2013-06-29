@@ -519,22 +519,26 @@ static bool Event_handler_act(
     {
         Event_handler_handle_query(eh, index, event_type, value, silent);
     }
-    Target_event* bound = Bind_get_first(
-            eh->global_state->bind,
-            eh->ch_states[index]->event_cache,
-            eh->global_state->parent.env,
-            event_name,
-            value,
-            eh->ch_states[index]->rand);
-    while (bound != NULL)
+
+    if (eh->global_state != NULL)
     {
-        Event_handler_trigger(
-                eh,
-                (index + bound->ch_offset + KQT_COLUMNS_MAX) % KQT_COLUMNS_MAX,
-                bound->desc,
-                silent,
-                value);
-        bound = bound->next;
+        Target_event* bound = Bind_get_first(
+                eh->global_state->bind,
+                eh->ch_states[index]->event_cache,
+                eh->global_state->parent.env,
+                event_name,
+                value,
+                eh->ch_states[index]->rand);
+        while (bound != NULL)
+        {
+            Event_handler_trigger(
+                    eh,
+                    (index + bound->ch_offset + KQT_COLUMNS_MAX) % KQT_COLUMNS_MAX,
+                    bound->desc,
+                    silent,
+                    value);
+            bound = bound->next;
+        }
     }
     return true;
 }
@@ -636,8 +640,19 @@ bool Event_handler_trigger(
         }
         else
         {
-            desc = evaluate_expr(desc, eh->global_state->parent.env, state,
-                                 meta, value, eh->ch_states[index]->rand);
+            Environment* env = NULL;
+            if (eh->master_params != NULL)
+                env = eh->master_params->parent.env;
+            else
+                env = eh->global_state->parent.env;
+
+            desc = evaluate_expr(
+                    desc,
+                    env,
+                    state,
+                    meta,
+                    value,
+                    eh->ch_states[index]->rand);
             desc = read_const_char(desc, '"', state);
         }
         switch (field_type)

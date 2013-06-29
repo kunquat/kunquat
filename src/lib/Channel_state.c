@@ -24,11 +24,21 @@
 #include <xassert.h>
 
 
-Channel_state* new_Channel_state(int num, Environment* env)
+Channel_state* new_Channel_state(
+        int num,
+        Ins_table* insts,
+        Environment* env,
+        Voice_pool* voices,
+        double* tempo,
+        int32_t* audio_rate)
 {
     assert(num >= 0);
     assert(num < KQT_CHANNELS_MAX);
+    assert(insts != NULL);
     assert(env != NULL);
+    assert(voices != NULL);
+    assert(tempo != NULL);
+    assert(audio_rate != NULL);
 
     Channel_state* ch_state = memory_alloc_item(Channel_state);
     if (ch_state == NULL)
@@ -39,6 +49,11 @@ Channel_state* new_Channel_state(int num, Environment* env)
         memory_free(ch_state);
         return NULL;
     }
+
+    ch_state->insts = insts;
+    ch_state->pool = voices;
+    ch_state->tempo = tempo;
+    ch_state->freq = audio_rate;
 
     return ch_state;
 }

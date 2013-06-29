@@ -67,7 +67,7 @@ Channel* new_Channel(Ins_table* insts,
     ch->init_state.fg_count = 0;
     ch->init_state.pool = pool;
     ch->init_state.tempo = tempo;
-    ch->init_state.freq = freq;
+    ch->init_state.freq = (int32_t*)freq;
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         ch->init_state.fg[i] = NULL;

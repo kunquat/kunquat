@@ -126,7 +126,6 @@ START_TEST(Empty_pattern_contains_silence)
 END_TEST
 
 
-#if 0
 START_TEST(Note_on_at_pattern_end_is_handled)
 {
     set_mixing_rate(mixing_rates[MIXING_RATE_LOW]);
@@ -134,6 +133,7 @@ START_TEST(Note_on_at_pattern_end_is_handled)
             !Player_set_audio_rate(player, mixing_rates[MIXING_RATE_LOW]),
             "Could not set player audio rate");
     set_mix_volume(0);
+    setup_debug_instrument();
     setup_debug_single_pulse();
 
     set_data("album/p_manifest.json", "{}");
@@ -169,7 +169,6 @@ START_TEST(Note_on_at_pattern_end_is_handled)
     check_buffers_equal(expected_buf, actual_buf, buf_len, 0.0f);
 }
 END_TEST
-#endif
 
 
 Suite* Player_suite(void)
@@ -188,7 +187,7 @@ Suite* Player_suite(void)
     tcase_add_loop_test(
             tc_render, Empty_pattern_contains_silence,
             0, MIXING_RATE_COUNT);
-    //tcase_add_loop_test(tc_render, Note_on_at_pattern_end_is_handled, 0, 1); //4);
+    tcase_add_loop_test(tc_render, Note_on_at_pattern_end_is_handled, 0, 1); //4);
 
     return s;
 }

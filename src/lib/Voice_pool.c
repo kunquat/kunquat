@@ -73,10 +73,9 @@ static uint16_t downheap(Voice_pool* pool, uint16_t index);
 static uint16_t upheap(Voice_pool* pool, uint16_t index);
 
 
-Voice_pool* new_Voice_pool(uint16_t size, uint8_t events)
+Voice_pool* new_Voice_pool(uint16_t size)
 {
     assert(size > 0);
-    assert(events > 0);
     Voice_pool* pool = memory_alloc_item(Voice_pool);
     if (pool == NULL)
     {
@@ -84,7 +83,6 @@ Voice_pool* new_Voice_pool(uint16_t size, uint8_t events)
     }
     pool->size = size;
     pool->state_size = 0;
-    pool->events = events;
     pool->voices = memory_alloc_items(Voice, size);
     if (pool->voices == NULL)
     {

@@ -38,13 +38,11 @@ typedef struct Voice_pool
  * Creates a new Voice pool.
  *
  * \param size     The number of Voices in the Voice pool -- must be > \c 0.
- * \param events   The maximum number of events per Voice per tick -- must be
- *                 > \c 0.
  *
  * \return   The new Voice pool if successful, or \c NULL if memory allocation
  *           failed.
  */
-Voice_pool* new_Voice_pool(uint16_t size, uint8_t events);
+Voice_pool* new_Voice_pool(uint16_t size);
 
 
 /**

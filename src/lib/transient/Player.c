@@ -30,6 +30,7 @@
 #include <transient/Player.h>
 #include <transient/Position.h>
 #include <Tstamp.h>
+#include <Voice_pool.h>
 #include <xassert.h>
 
 
@@ -43,6 +44,7 @@ struct Player
     int32_t audio_frames_available;
 
     Environment*   env;
+    Voice_pool*    voices;
     Master_params  master_params;
     Channel_state* channels[KQT_CHANNELS_MAX];
     Event_handler* event_handler;
@@ -51,7 +53,7 @@ struct Player
 
     Cgiter cgiters[KQT_CHANNELS_MAX];
 
-    float tempo;
+    double tempo;
 };
 
 
@@ -73,6 +75,7 @@ Player* new_Player(const Module* module)
     player->audio_frames_available = 0;
 
     player->env = NULL;
+    player->voices = NULL;
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
         player->channels[i] = NULL;
     player->event_handler = NULL;
@@ -85,7 +88,12 @@ Player* new_Player(const Module* module)
 
     // Init fields
     player->env = new_Environment();
-    if (player->env == NULL)
+    player->voices = new_Voice_pool(256);
+    if (player->env == NULL ||
+            player->voices == NULL ||
+            !Voice_pool_reserve_state_space(
+                player->voices,
+                sizeof(Voice_state)))
     {
         del_Player(player);
         return NULL;
@@ -93,7 +101,13 @@ Player* new_Player(const Module* module)
 
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
     {
-        player->channels[i] = new_Channel_state(i, player->env);
+        player->channels[i] = new_Channel_state(
+                i,
+                Module_get_insts(player->module),
+                player->env,
+                player->voices,
+                &player->tempo,
+                &player->audio_rate);
         if (player->channels[i] == NULL)
         {
             del_Player(player);
@@ -195,7 +209,22 @@ static int32_t Player_process_cgiters(Player* player, int32_t nframes)
         const Trigger_row* tr = Cgiter_get_trigger_row(cgiter);
         if (tr != NULL)
         {
-            // TODO: process trigger row
+            // Process trigger row
+            assert(tr->head->next != NULL);
+            Event_list* el = tr->head->next;
+            while (el->event != NULL)
+            {
+                const bool success = Event_handler_trigger(
+                        player->event_handler,
+                        i,
+                        Event_get_desc(el->event),
+                        false, // not silent
+                        NULL);
+
+                (void)success;
+
+                el = el->next;
+            }
         }
 
         // See how much we can move forwards
@@ -239,6 +268,64 @@ static int32_t Player_process_cgiters(Player* player, int32_t nframes)
 }
 
 
+static void Player_process_voices(
+        Player* player,
+        int32_t render_start,
+        int32_t nframes)
+{
+    assert(player != NULL);
+    assert(render_start >= 0);
+    assert(nframes >= 0);
+
+    if (nframes == 0)
+        return;
+
+    const int32_t render_stop = render_start + nframes;
+
+    // TODO: Update tempo & freq on sliders
+
+    // Foreground voices
+    for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
+    {
+        Channel_state* ch = player->channels[i];
+        for (int k = 0; k < KQT_GENERATORS_MAX; ++k)
+        {
+            if (ch->fg[k] != NULL)
+            {
+                // Verify voice ownership
+                ch->fg[k] = Voice_pool_get_voice(
+                        player->voices,
+                        ch->fg[k],
+                        ch->fg_id[k]);
+
+                if (ch->fg[k] != NULL)
+                {
+                    // Render
+                    assert(ch->fg[k]->prio > VOICE_PRIO_INACTIVE);
+                    Voice_mix(
+                            ch->fg[k],
+                            render_stop,
+                            render_start,
+                            player->audio_rate,
+                            player->tempo);
+                }
+            }
+        }
+    }
+
+    // Background voices
+    int16_t active_voices = Voice_pool_mix_bg(
+            player->voices,
+            render_stop,
+            render_start,
+            player->tempo,
+            player->audio_rate);
+
+    player->master_params.active_voices =
+        MAX(player->master_params.active_voices, active_voices);
+}
+
+
 void Player_play(Player* player, int32_t nframes)
 {
     assert(player != NULL);
@@ -272,6 +359,10 @@ void Player_play(Player* player, int32_t nframes)
         if (was_playing && Player_has_stopped(player))
             break;
 
+        // Process voices
+        Player_process_voices(player, rendered, to_be_rendered);
+
+        // Process connection graph
         if (connections != NULL)
         {
             Connections_mix(
@@ -348,6 +439,7 @@ void del_Player(Player* player)
         return;
 
     del_Event_handler(player->event_handler);
+    del_Voice_pool(player->voices);
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
         del_Channel_state(player->channels[i]);
     Master_params_deinit(&player->master_params);

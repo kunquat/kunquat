@@ -56,7 +56,7 @@ typedef struct Channel_state
     bool inst_effects;             ///< Instrument effect control enabled.
     int dsp;                       ///< Currently active DSP.
     Ins_table* insts;
-    uint32_t* freq;
+    int32_t* freq;
     double* tempo;
 
     double volume;                 ///< Channel volume (linear factor).
@@ -95,14 +95,24 @@ typedef struct Channel_state
 /**
  * Creates a new Channel state.
  *
- * \param num   The Channel number -- must be >= \c 0 and
- *              < \c KQT_CHANNELS_MAX.
- * \param env   The Environment -- must not be \c NULL.
+ * \param num      The Channel number -- must be >= \c 0 and
+ *                 < \c KQT_CHANNELS_MAX.
+ * \param insts    The instrument table -- must not be \c NULL.
+ * \param env      The Environment -- must not be \c NULL.
+ * \param voices   The Voice pool -- must not be \c NULL.
+ * \param tempo    A reference to the current tempo -- must not be \c NULL.
+ * \param rate     A reference to the current audio rate -- must not be \c NULL.
  *
  * \return   The new Channel state if successful, or \c NULL if memory
  *           allocation failed.
  */
-Channel_state* new_Channel_state(int num, Environment* env);
+Channel_state* new_Channel_state(
+        int num,
+        Ins_table* insts,
+        Environment* env,
+        Voice_pool* voices,
+        double* tempo,
+        int32_t* audio_rate);
 
 
 /**
