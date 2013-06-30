@@ -56,7 +56,6 @@ END_TEST
 #define buf_len 128
 
 
-//#if 0
 START_TEST(Complete_debug_note_renders_correctly)
 {
     set_mixing_rate(220);
@@ -161,27 +160,59 @@ START_TEST(Note_off_stops_the_note_correctly)
     check_buffers_equal(expected_buf, actual_buf, buf_len, 0.0f);
 }
 END_TEST
-//#endif
 
 
-#if 0
 START_TEST(Note_end_is_reached_correctly_during_note_off)
 {
     set_mixing_rate(440);
     set_mix_volume(0);
-    pause();
+    fail_if(
+            !Player_set_audio_rate(player, 440),
+            "Could not set player audio rate");
+
+    setup_debug_instrument();
+
+    Player_reset(player);
+
+    Read_state* rs = READ_STATE_AUTO;
+    if (!Player_fire(player, 0, "[\"Ipause\", null]", rs))
+        fail("Could not fire event: %s", rs->message);
+
+    check_unexpected_error();
 
     float actual_buf[buf_len] = { 0.0f };
     const int note_off_frame = 70;
 
-    kqt_Handle_fire(handle, 0, Note_On_55_Hz);
+    if (!Player_fire(player, 0, Note_On_55_Hz, rs))
+        fail("Could not fire event: %s", rs->message);
     check_unexpected_error();
-    mix_and_fill(actual_buf, note_off_frame);
+    Player_play(player, note_off_frame);
+    int32_t nframes = Player_get_frames_available(player);
+    fail_unless(nframes == note_off_frame,
+            "Wrong number of frames rendered"
+            KT_VALUES("%ld", note_off_frame, nframes));
+
+    const float* ret_buf = Player_get_audio(player, 0);
+    for (int i = 0; i < note_off_frame; ++i)
+        actual_buf[i] = ret_buf[i];
+
+    check_unexpected_error();
 
     // Note Off
-    kqt_Handle_fire(handle, 0, "[\"n-\", null]");
+    if (!Player_fire(player, 0, "[\"n-\", null]", rs))
+        fail("Could not fire event: %s", rs->message);
     check_unexpected_error();
-    mix_and_fill(actual_buf + note_off_frame, buf_len - note_off_frame);
+
+    Player_play(player, buf_len - note_off_frame);
+    ret_buf = Player_get_audio(player, 0);
+
+    nframes = Player_get_frames_available(player);
+    fail_unless(nframes == buf_len - note_off_frame,
+            "Wrong number of frames rendered"
+            KT_VALUES("%ld", buf_len - note_off_frame, nframes));
+
+    for (int i = 0; i < buf_len - note_off_frame; ++i)
+        actual_buf[i + note_off_frame] = ret_buf[i];
 
     float expected_buf[buf_len] = { 0.0f };
     float seq_on[] = { 1.0f, 0.5f, 0.5f, 0.5f,
@@ -202,18 +233,50 @@ START_TEST(Implicit_note_off_is_triggered_correctly)
 {
     set_mixing_rate(220);
     set_mix_volume(0);
-    pause();
+    fail_if(
+            !Player_set_audio_rate(player, 220),
+            "Could not set player audio rate");
+
+    setup_debug_instrument();
+
+    Player_reset(player);
+
+    Read_state* rs = READ_STATE_AUTO;
+    if (!Player_fire(player, 0, "[\"Ipause\", null]", rs))
+        fail("Could not fire event: %s", rs->message);
+
+    check_unexpected_error();
 
     float actual_buf[buf_len] = { 0.0f };
     const int note_2_frame = 2;
 
-    kqt_Handle_fire(handle, 0, Note_On_55_Hz);
+    if (!Player_fire(player, 0, Note_On_55_Hz, rs))
+        fail("Could not fire event: %s", rs->message);
     check_unexpected_error();
-    mix_and_fill(actual_buf, note_2_frame);
+    Player_play(player, note_2_frame);
+    int32_t nframes = Player_get_frames_available(player);
+    fail_unless(nframes == note_2_frame,
+            "Wrong number of frames rendered"
+            KT_VALUES("%ld", note_2_frame, nframes));
 
-    kqt_Handle_fire(handle, 0, Note_On_55_Hz);
+    const float* ret_buf = Player_get_audio(player, 0);
+    for (int i = 0; i < note_2_frame; ++i)
+        actual_buf[i] = ret_buf[i];
+
+    if (!Player_fire(player, 0, Note_On_55_Hz, rs))
+        fail("Could not fire event: %s", rs->message);
     check_unexpected_error();
-    mix_and_fill(actual_buf + note_2_frame, buf_len - note_2_frame);
+
+    Player_play(player, buf_len - note_2_frame);
+    ret_buf = Player_get_audio(player, 0);
+
+    nframes = Player_get_frames_available(player);
+    fail_unless(nframes == buf_len - note_2_frame,
+            "Wrong number of frames rendered"
+            KT_VALUES("%ld", buf_len - note_2_frame, nframes));
+
+    for (int i = 0; i < buf_len - note_2_frame; ++i)
+        actual_buf[i + note_2_frame] = ret_buf[i];
 
     float expected_buf[buf_len] = { 0.0f };
     float seq_1_on[] = { 1.0f, 0.5f };
@@ -232,18 +295,50 @@ START_TEST(Independent_notes_mix_correctly)
 {
     set_mixing_rate(220);
     set_mix_volume(0);
-    pause();
+    fail_if(
+            !Player_set_audio_rate(player, 220),
+            "Could not set player audio rate");
+
+    setup_debug_instrument();
+
+    Player_reset(player);
+
+    Read_state* rs = READ_STATE_AUTO;
+    if (!Player_fire(player, 0, "[\"Ipause\", null]", rs))
+        fail("Could not fire event: %s", rs->message);
+
+    check_unexpected_error();
 
     float actual_buf[buf_len] = { 0.0f };
     const int note_2_frame = 2;
 
-    kqt_Handle_fire(handle, 0, Note_On_55_Hz);
+    if (!Player_fire(player, 0, Note_On_55_Hz, rs))
+        fail("Could not fire event: %s", rs->message);
     check_unexpected_error();
-    mix_and_fill(actual_buf, note_2_frame);
+    Player_play(player, note_2_frame);
+    int32_t nframes = Player_get_frames_available(player);
+    fail_unless(nframes == note_2_frame,
+            "Wrong number of frames rendered"
+            KT_VALUES("%ld", note_2_frame, nframes));
 
-    kqt_Handle_fire(handle, 1, Note_On_55_Hz);
+    const float* ret_buf = Player_get_audio(player, 0);
+    for (int i = 0; i < note_2_frame; ++i)
+        actual_buf[i] = ret_buf[i];
+
+    if (!Player_fire(player, 1, Note_On_55_Hz, rs))
+        fail("Could not fire event: %s", rs->message);
     check_unexpected_error();
-    mix_and_fill(actual_buf + note_2_frame, buf_len - note_2_frame);
+
+    Player_play(player, buf_len - note_2_frame);
+    ret_buf = Player_get_audio(player, 0);
+
+    nframes = Player_get_frames_available(player);
+    fail_unless(nframes == buf_len - note_2_frame,
+            "Wrong number of frames rendered"
+            KT_VALUES("%ld", buf_len - note_2_frame, nframes));
+
+    for (int i = 0; i < buf_len - note_2_frame; ++i)
+        actual_buf[i + note_2_frame] = ret_buf[i];
 
     float expected_buf[buf_len] = { 0.0f };
     float single_seq[] = { 1.0f, 0.5f, 0.5f, 0.5f };
@@ -261,24 +356,35 @@ END_TEST
 START_TEST(Debug_single_shot_renders_one_pulse)
 {
     set_mix_volume(0);
+
+    setup_debug_instrument();
     setup_debug_single_pulse();
-    pause();
 
-    float actual_buf[buf_len] = { 0.0f };
+    Player_reset(player);
 
-    kqt_Handle_fire(handle, 0, "[\"n+\", 0]");
+    Read_state* rs = READ_STATE_AUTO;
+    if (!Player_fire(player, 0, "[\"Ipause\", null]", rs))
+        fail("Could not fire event: %s", rs->message);
+
+    if (!Player_fire(player, 0, "[\"n+\", 0]", rs))
+        fail("Could not fire event: %s", rs->message);
     check_unexpected_error();
-    mix_and_fill(actual_buf, buf_len);
+
+    Player_play(player, buf_len);
+    const int32_t nframes = Player_get_frames_available(player);
+    fail_unless(nframes == buf_len,
+            "Wrong number of frames rendered"
+            KT_VALUES("%ld", buf_len, nframes));
+
+    const float* actual_buf = Player_get_audio(player, 0);
 
     float expected_buf[buf_len] = { 1.0f };
 
     check_buffers_equal(expected_buf, actual_buf, buf_len, 0.0f);
 }
 END_TEST
-#endif
 
 
-//#if 0
 START_TEST(Empty_composition_renders_zero_frames)
 {
     assert(player != NULL);
@@ -439,7 +545,6 @@ START_TEST(Note_on_after_pattern_end_is_ignored)
     check_buffers_equal(expected_buf, actual_buf, nframes, 0.0f);
 }
 END_TEST
-//#endif
 
 
 Suite* Player_suite(void)
@@ -456,26 +561,20 @@ Suite* Player_suite(void)
     tcase_add_test(tc_render, Create_player);
 
     // Note mixing
-//#if 0
     tcase_add_test(tc_render, Complete_debug_note_renders_correctly);
     tcase_add_test(tc_render, Note_off_stops_the_note_correctly);
-//#endif
-#if 0
     tcase_add_test(tc_render, Note_end_is_reached_correctly_during_note_off);
     tcase_add_test(tc_render, Implicit_note_off_is_triggered_correctly);
     tcase_add_test(tc_render, Independent_notes_mix_correctly);
     tcase_add_test(tc_render, Debug_single_shot_renders_one_pulse);
-#endif
 
     // Patterns
-//#if 0
     tcase_add_test(tc_render, Empty_composition_renders_zero_frames);
     tcase_add_loop_test(
             tc_render, Empty_pattern_contains_silence,
             0, MIXING_RATE_COUNT);
     tcase_add_loop_test(tc_render, Note_on_at_pattern_end_is_handled, 0, 4);
     tcase_add_loop_test(tc_render, Note_on_after_pattern_end_is_ignored, 0, 4);
-//#endif
 
     return s;
 }
