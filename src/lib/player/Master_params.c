@@ -12,7 +12,7 @@
  */
 
 
-#include <transient/Master_params.h>
+#include <player/Master_params.h>
 #include <xassert.h>
 
 

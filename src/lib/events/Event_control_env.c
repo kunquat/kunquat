@@ -25,7 +25,6 @@
 #include <File_base.h>
 #include <General_state.h>
 #include <set_active_name.h>
-#include <transient/Master_params.h>
 #include <Value.h>
 #include <xassert.h>
 

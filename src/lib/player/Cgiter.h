@@ -20,7 +20,7 @@
 
 #include <Column.h>
 #include <Module.h>
-#include <transient/Position.h>
+#include <player/Position.h>
 
 
 // TODO: define proper interface in Column

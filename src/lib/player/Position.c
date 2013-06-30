@@ -12,7 +12,7 @@
  */
 
 
-#include <transient/Position.h>
+#include <player/Position.h>
 #include <xassert.h>
 
 

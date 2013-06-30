@@ -25,10 +25,10 @@
 #include <math_common.h>
 #include <memory.h>
 #include <Pat_inst_ref.h>
-#include <transient/Cgiter.h>
-#include <transient/Master_params.h>
-#include <transient/Player.h>
-#include <transient/Position.h>
+#include <player/Cgiter.h>
+#include <player/Master_params.h>
+#include <player/Player.h>
+#include <player/Position.h>
 #include <Tstamp.h>
 #include <Voice_pool.h>
 #include <xassert.h>

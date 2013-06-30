@@ -43,7 +43,7 @@ Export('env_lib')
 SConscript('events/SConscript')
 SConscript('generators/SConscript')
 SConscript('dsps/SConscript')
-SConscript('transient/SConscript')
+SConscript('player/SConscript')
 
 
 env_lib['lib_version_major'] = 0

@@ -19,7 +19,7 @@
 #include <test_common.h>
 
 #include <kunquat/Handle.h>
-#include <transient/Player.h>
+#include <player/Player.h>
 #include <Handle_private.h>
 
 

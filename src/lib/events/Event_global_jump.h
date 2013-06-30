@@ -20,7 +20,7 @@
 #include <stdint.h>
 
 #include <AAtree.h>
-#include <transient/Master_params.h>
+#include <player/Master_params.h>
 #include <Tstamp.h>
 #include <Playdata.h>
 

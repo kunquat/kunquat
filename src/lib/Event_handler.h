@@ -24,7 +24,7 @@
 #include <Generator.h>
 #include <Ins_table.h>
 #include <Playdata.h>
-#include <transient/Master_params.h>
+#include <player/Master_params.h>
 #include <Event_names.h>
 #include <Event_type.h>
 #include <Value.h>
