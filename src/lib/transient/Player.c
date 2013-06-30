@@ -318,8 +318,8 @@ static void Player_process_voices(
             player->voices,
             render_stop,
             render_start,
-            player->tempo,
-            player->audio_rate);
+            player->audio_rate,
+            player->tempo);
 
     player->master_params.active_voices =
         MAX(player->master_params.active_voices, active_voices);
