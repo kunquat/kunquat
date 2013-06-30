@@ -40,7 +40,6 @@ typedef struct Master_params
     General_state parent;
 
     Playback_state playback_state;
-    bool is_paused;
     Position cur_pos;
 
     Bind* bind;

@@ -53,6 +53,52 @@ START_TEST(Create_player)
 END_TEST
 
 
+#define buf_len 128
+
+
+START_TEST(Complete_debug_note_renders_correctly)
+{
+    set_mixing_rate(220);
+    set_mix_volume(0);
+    fail_if(
+            !Player_set_audio_rate(player, 220),
+            "Could not set player audio rate");
+
+    setup_debug_instrument();
+
+    Player_reset(player);
+
+    Read_state* rs = READ_STATE_AUTO;
+    if (!Player_fire(player, 0, "[\"Ipause\", null]", rs))
+        fail("Could not fire event: %s", rs->message);
+
+    if (!Player_fire(player, 0, Note_On_55_Hz, rs))
+        fail("Could not fire event: %s", rs->message);
+
+    check_unexpected_error();
+
+    float expected_buf[buf_len] = { 0.0f };
+    const float seq[] = { 1.0f, 0.5f, 0.5f, 0.5f };
+    repeat_seq_local(expected_buf, 10, seq);
+
+    Player_play(player, buf_len);
+    const int32_t nframes = Player_get_frames_available(player);
+    fail_unless(nframes == buf_len,
+            "Wrong number of frames rendered"
+            KT_VALUES("%ld", buf_len, nframes));
+
+    check_unexpected_error();
+
+    const float* buf_l = Player_get_audio(player, 0);
+    const float* buf_r = Player_get_audio(player, 1);
+    check_unexpected_error();
+
+    check_buffers_equal(expected_buf, buf_l, buf_len, 0.0f);
+    check_buffers_equal(expected_buf, buf_r, buf_len, 0.0f);
+}
+END_TEST
+
+
 START_TEST(Empty_composition_renders_zero_frames)
 {
     assert(player != NULL);
@@ -102,7 +148,7 @@ START_TEST(Empty_pattern_contains_silence)
         // Don't want to spend too much time on this...
         if (_i == MIXING_RATE_LOW)
         {
-            float* bufs[] =
+            const float* bufs[] =
             {
                 Player_get_audio(player, 0),
                 Player_get_audio(player, 1),
@@ -159,14 +205,14 @@ START_TEST(Note_on_at_pattern_end_is_handled)
 
     Player_reset(player);
     Player_play(player, 2048);
-    int32_t buf_len = Player_get_frames_available(player);
+    const int32_t nframes = Player_get_frames_available(player);
 
-    float* actual_buf = Player_get_audio(player, 0);
+    const float* actual_buf = Player_get_audio(player, 0);
 
     float expected_buf[2048] = { 0.0f };
     expected_buf[mixing_rates[MIXING_RATE_LOW] * _i / 2] = 1.0f;
 
-    check_buffers_equal(expected_buf, actual_buf, buf_len, 0.0f);
+    check_buffers_equal(expected_buf, actual_buf, nframes, 0.0f);
 }
 END_TEST
 
@@ -204,13 +250,13 @@ START_TEST(Note_on_after_pattern_end_is_ignored)
 
     Player_reset(player);
     Player_play(player, 2048);
-    int32_t buf_len = Player_get_frames_available(player);
+    const int32_t nframes = Player_get_frames_available(player);
 
-    float* actual_buf = Player_get_audio(player, 0);
+    const float* actual_buf = Player_get_audio(player, 0);
 
     float expected_buf[2048] = { 0.0f };
 
-    check_buffers_equal(expected_buf, actual_buf, buf_len, 0.0f);
+    check_buffers_equal(expected_buf, actual_buf, nframes, 0.0f);
 }
 END_TEST
 
@@ -227,6 +273,11 @@ Suite* Player_suite(void)
     tcase_add_checked_fixture(tc_render, setup_player, player_teardown);
 
     tcase_add_test(tc_render, Create_player);
+
+    // Note mixing
+    tcase_add_test(tc_render, Complete_debug_note_renders_correctly);
+
+    // Patterns
     tcase_add_test(tc_render, Empty_composition_renders_zero_frames);
     tcase_add_loop_test(
             tc_render, Empty_pattern_contains_silence,

@@ -65,7 +65,7 @@ Event_names* Event_handler_get_names(Event_handler* eh);
 bool Event_handler_set_control_process(
         Event_handler* eh,
         Event_type type,
-        bool (*control_process)(General_state*, Value*));
+        bool (*control_process)(General_state*, General_state*, Value*));
 
 
 /**
@@ -218,6 +218,7 @@ bool Event_handler_trigger(
  *                 the Event is triggered.
  * \param desc     The Event description in JSON format -- must not be \c NULL.
  * \param silent   Silent mode indicator.
+ * \param rs       The Read state -- must not be \c NULL.
  *
  * \return   \c true if the Event was triggered successfully, otherwise
  *           \c false.
@@ -226,7 +227,8 @@ bool Event_handler_trigger_const(
         Event_handler* eh,
         int index,
         char* desc,
-        bool silent);
+        bool silent,
+        Read_state* rs);
 
 
 /**

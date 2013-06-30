@@ -58,7 +58,7 @@ struct Event_handler
     Event_names* event_names;
     Event_buffer* event_buffer;
     Event_buffer* tracker_buffer;
-    bool (*control_process[Event_control_STOP])(General_state*, Value*);
+    bool (*control_process[Event_control_STOP])(General_state*, General_state*, Value*);
     bool (*general_process[Event_general_STOP])(General_state*, Value*);
     bool (*ch_process[Event_channel_STOP])(Channel_state*, Value*);
     bool (*global_process[Event_master_STOP])(Master_params*, Playdata*, Value*);
@@ -196,7 +196,7 @@ bool Event_handler_set_general_process(
 bool Event_handler_set_control_process(
         Event_handler* eh,
         Event_type type,
-        bool (*control_process)(General_state*, Value*))
+        bool (*control_process)(General_state*, General_state*, Value*))
 {
     assert(eh != NULL);
     assert(Event_is_control(type));
@@ -399,6 +399,7 @@ static bool Event_handler_handle(
     else if (Event_is_control(type))
     {
         return eh->control_process[type](
+                (General_state*)eh->master_params,
                 (General_state*)eh->global_state,
                 value);
     }
@@ -427,8 +428,9 @@ static void Event_handler_handle_query(
     assert(index < KQT_COLUMNS_MAX);
     assert(Event_is_query(event_type));
     assert(event_arg != NULL);
-    (void)event_arg;
+
     char auto_event[128] = "";
+    Read_state* rs = READ_STATE_AUTO;
     switch (event_type)
     {
         case Event_query_location:
@@ -437,26 +439,26 @@ static void Event_handler_handle_query(
             {
                 snprintf(auto_event, 128, "[\"Atrack\", %" PRIu16 "]",
                          eh->global_state->track);
-                Event_handler_trigger_const(eh, index, auto_event, silent);
+                Event_handler_trigger_const(eh, index, auto_event, silent, rs);
                 snprintf(auto_event, 128, "[\"Asystem\", %" PRIu16 "]",
                          eh->global_state->system);
-                Event_handler_trigger_const(eh, index, auto_event, silent);
+                Event_handler_trigger_const(eh, index, auto_event, silent, rs);
             }
             snprintf(auto_event, 128, "[\"Apattern\", %" PRId16 "]",
                      eh->global_state->piref.pat);
-            Event_handler_trigger_const(eh, index, auto_event, silent);
+            Event_handler_trigger_const(eh, index, auto_event, silent, rs);
             snprintf(auto_event, 128,
                      "[\"Arow\", [%" PRId64 ", %" PRId32 "]]",
                      Tstamp_get_beats(&eh->global_state->pos),
                      Tstamp_get_rem(&eh->global_state->pos));
-            Event_handler_trigger_const(eh, index, auto_event, silent);
+            Event_handler_trigger_const(eh, index, auto_event, silent, rs);
         } break;
         case Event_query_voice_count:
         {
             snprintf(auto_event, 128, "[\"Avoices\", %d]",
                      eh->global_state->active_voices);
             eh->global_state->active_voices = 0;
-            Event_handler_trigger_const(eh, index, auto_event, silent);
+            Event_handler_trigger_const(eh, index, auto_event, silent, rs);
         } break;
         case Event_query_actual_force:
         {
@@ -468,12 +470,14 @@ static void Event_handler_handle_query(
             if (!isnan(force))
             {
                 snprintf(auto_event, 128, "[\"Af\", %f]", force);
-                Event_handler_trigger_const(eh, index, auto_event, silent);
+                Event_handler_trigger_const(eh, index, auto_event, silent, rs);
             }
         } break;
         default:
             assert(false);
     }
+
+    assert(!rs->error);
     return;
 }
 
@@ -756,13 +760,15 @@ bool Event_handler_trigger_const(
         Event_handler* eh,
         int index,
         char* desc,
-        bool silent)
+        bool silent,
+        Read_state* rs)
 {
     assert(eh != NULL);
     assert(index >= 0);
     assert(index < KQT_COLUMNS_MAX);
     assert(desc != NULL);
-    Read_state* state = READ_STATE_AUTO;
+    assert(rs != NULL);
+
     char event_name[EVENT_NAME_MAX + 2] = "";
     Event_type event_type = Event_NONE;
     if (!Event_handler_process_type(
@@ -771,11 +777,11 @@ bool Event_handler_trigger_const(
                 &desc,
                 event_name,
                 &event_type,
-                state))
+                rs))
     {
-        return !state->error;
+        return !rs->error;
     }
-    assert(!state->error);
+    assert(!rs->error);
     Value* value = VALUE_AUTO;
     Value_type field_type = Event_names_get_param_type(
             eh->event_names,
@@ -785,22 +791,22 @@ bool Event_handler_trigger_const(
         case VALUE_TYPE_NONE:
         {
             value->type = VALUE_TYPE_NONE;
-            desc = read_null(desc, state);
+            desc = read_null(desc, rs);
         } break;
         case VALUE_TYPE_BOOL:
         {
             value->type = VALUE_TYPE_BOOL;
-            desc = read_bool(desc, &value->value.bool_type, state);
+            desc = read_bool(desc, &value->value.bool_type, rs);
         } break;
         case VALUE_TYPE_INT:
         {
             value->type = VALUE_TYPE_INT;
-            desc = read_int(desc, &value->value.int_type, state);
+            desc = read_int(desc, &value->value.int_type, rs);
         } break;
         case VALUE_TYPE_FLOAT:
         {
             value->type = VALUE_TYPE_FLOAT;
-            desc = read_double(desc, &value->value.float_type, state);
+            desc = read_double(desc, &value->value.float_type, rs);
         } break;
         case VALUE_TYPE_REAL:
         {
@@ -809,7 +815,7 @@ bool Event_handler_trigger_const(
         case VALUE_TYPE_TSTAMP:
         {
             value->type = VALUE_TYPE_TSTAMP;
-            desc = read_tstamp(desc, &value->value.Tstamp_type, state);
+            desc = read_tstamp(desc, &value->value.Tstamp_type, rs);
         } break;
         case VALUE_TYPE_STRING:
         {
@@ -818,7 +824,7 @@ bool Event_handler_trigger_const(
                     desc,
                     value->value.string_type,
                     ENV_VAR_NAME_MAX,
-                    state);
+                    rs);
         } break;
         case VALUE_TYPE_PAT_INST_REF:
         {
@@ -826,13 +832,13 @@ bool Event_handler_trigger_const(
             desc = read_pat_inst_ref(
                     desc,
                     &value->value.Pat_inst_ref_type,
-                    state);
+                    rs);
         } break;
         default:
             assert(false);
     }
-    desc = read_const_char(desc, ']', state);
-    if (state->error)
+    desc = read_const_char(desc, ']', rs);
+    if (rs->error)
     {
         return false;
     }

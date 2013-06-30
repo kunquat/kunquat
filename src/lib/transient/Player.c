@@ -350,7 +350,7 @@ void Player_play(Player* player, int32_t nframes)
     {
         // Process cgiters
         int32_t to_be_rendered = nframes - rendered;
-        if (!player->master_params.is_paused && !Player_has_stopped(player))
+        if (!player->master_params.parent.pause && !Player_has_stopped(player))
         {
             to_be_rendered = Player_process_cgiters(player, to_be_rendered);
         }
@@ -430,6 +430,26 @@ bool Player_has_stopped(Player* player)
 {
     assert(player != NULL);
     return (player->master_params.playback_state == PLAYBACK_STOPPED);
+}
+
+
+bool Player_fire(Player* player, int ch, char* event_desc, Read_state* rs)
+{
+    assert(player != NULL);
+    assert(ch >= 0);
+    assert(ch < KQT_CHANNELS_MAX);
+    assert(event_desc != NULL);
+    assert(rs != NULL);
+
+    if (rs->error)
+        return false;
+
+    return Event_handler_trigger_const(
+            player->event_handler,
+            ch,
+            event_desc,
+            false,
+            rs);
 }
 
 

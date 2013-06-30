@@ -25,7 +25,7 @@
 // Process function declarations
 
 #define EVENT_TYPE_DEF(type) \
-    bool Event_control_##type##_process(General_state* gstate, Value* value);
+    bool Event_control_##type##_process(General_state* mgstate, General_state* gstate, Value* value);
 #include <events/Event_control_types.h>
 
 

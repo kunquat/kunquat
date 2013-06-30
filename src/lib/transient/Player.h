@@ -99,6 +99,20 @@ bool Player_has_stopped(Player* player);
 
 
 /**
+ * Fires an event.
+ *
+ * \param player       The Player -- must not be \c NULL.
+ * \param ch           The channel number -- must be >= \c 0 and
+ *                     < \c KQT_CHANNELS_MAX.
+ * \param event_desc   The event description -- must not be \c NULL.
+ * \param rs           The Read state -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if \a event_desc was invalid.
+ */
+bool Player_fire(Player* player, int ch, char* event_desc, Read_state* rs);
+
+
+/**
  * Destroys the Player.
  *
  * \param player   The Player, or \c NULL.

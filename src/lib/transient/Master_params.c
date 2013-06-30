@@ -23,7 +23,6 @@ Master_params* Master_params_init(Master_params* params, Environment* env)
 
     // Sanitise fields
     params->playback_state = PLAYBACK_SONG;
-    params->is_paused = false;
 
     Position_init(&params->cur_pos);
 

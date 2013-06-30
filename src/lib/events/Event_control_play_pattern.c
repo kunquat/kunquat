@@ -26,10 +26,14 @@
 #include <xassert.h>
 
 
-bool Event_control_play_pattern_process(General_state* gstate, Value* value)
+bool Event_control_play_pattern_process(General_state* mgstate, General_state* gstate, Value* value)
 {
-    assert(gstate != NULL);
+    assert(mgstate != NULL || gstate != NULL);
     assert(value != NULL);
+
+    if (mgstate != NULL)
+        return false;
+
     if (value->type != VALUE_TYPE_PAT_INST_REF || !gstate->global)
     {
         return false;

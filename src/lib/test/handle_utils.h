@@ -125,8 +125,8 @@ void validate(void)
 
 
 void fail_buffers(
-        float* expected,
-        float* actual,
+        const float* expected,
+        const float* actual,
         int offset,
         int len)
 {
@@ -170,8 +170,8 @@ void fail_buffers(
 
 
 void check_buffers_equal(
-        float* expected,
-        float* actual,
+        const float* expected,
+        const float* actual,
         int len,
         float eps)
 {
@@ -235,7 +235,7 @@ void pause(void)
 #define repeat_seq_local(dest, times, seq) \
     repeat_seq((dest), (times), sizeof((seq)) / sizeof(float), (seq))
 
-int repeat_seq(float* dest, int times, int seq_len, float* seq)
+int repeat_seq(float* dest, int times, int seq_len, const float* seq)
 {
     assert(dest != NULL);
     assert(times >= 0);

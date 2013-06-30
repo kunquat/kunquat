@@ -27,10 +27,14 @@
 #include <xassert.h>
 
 
-bool Event_control_receive_event_process(General_state* gstate, Value* value)
+bool Event_control_receive_event_process(General_state* mgstate, General_state* gstate, Value* value)
 {
-    assert(gstate != NULL);
+    assert(mgstate != NULL || gstate != NULL);
     assert(value != NULL);
+
+    if (mgstate != NULL)
+        return false;
+
     if (value->type != VALUE_TYPE_STRING || !gstate->global)
     {
         return false;

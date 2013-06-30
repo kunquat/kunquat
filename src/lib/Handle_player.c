@@ -284,8 +284,22 @@ int kqt_Handle_fire(kqt_Handle* handle, int channel, char* event)
         }
     }
 
-    return Event_handler_trigger_const(handle->module->event_handler, channel,
-                                       event, false);
+    Read_state* rs = READ_STATE_AUTO;
+    const bool success = Event_handler_trigger_const(
+            handle->module->event_handler,
+            channel,
+            event,
+            false,
+            rs);
+    if (!success)
+    {
+        assert(rs->error);
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
+                "Invalid event description `%s`: %s",
+                event, rs->message);
+        return 0;
+    }
+    return 1;
 }
 
 

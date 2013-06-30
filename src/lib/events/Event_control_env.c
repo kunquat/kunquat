@@ -25,13 +25,16 @@
 #include <File_base.h>
 #include <General_state.h>
 #include <set_active_name.h>
+#include <transient/Master_params.h>
 #include <Value.h>
 #include <xassert.h>
 
 
-bool Event_control_env_set_bool_process(General_state* gstate, Value* value)
+bool Event_control_env_set_bool_process(General_state* mgstate, General_state* gstate, Value* value)
 {
-    assert(gstate != NULL);
+    assert(mgstate != NULL || gstate != NULL);
+    if (gstate == NULL)
+        gstate = mgstate;
     assert(value != NULL);
     if (value->type != VALUE_TYPE_BOOL || !gstate->global)
     {
@@ -53,10 +56,13 @@ bool Event_control_env_set_bool_process(General_state* gstate, Value* value)
 
 
 bool Event_control_env_set_bool_name_process(
+        General_state* mgstate,
         General_state* gstate,
         Value* value)
 {
-    assert(gstate != NULL);
+    assert(mgstate != NULL || gstate != NULL);
+    if (gstate == NULL)
+        gstate = mgstate;
     assert(value != NULL);
     if (value->type != VALUE_TYPE_STRING || !gstate->global)
     {
@@ -66,9 +72,11 @@ bool Event_control_env_set_bool_name_process(
 }
 
 
-bool Event_control_env_set_float_process(General_state* gstate, Value* value)
+bool Event_control_env_set_float_process(General_state* mgstate, General_state* gstate, Value* value)
 {
-    assert(gstate != NULL);
+    assert(mgstate != NULL || gstate != NULL);
+    if (gstate == NULL)
+        gstate = mgstate;
     assert(value != NULL);
     if (value->type != VALUE_TYPE_FLOAT || !gstate->global)
     {
@@ -90,10 +98,13 @@ bool Event_control_env_set_float_process(General_state* gstate, Value* value)
 
 
 bool Event_control_env_set_float_name_process(
+        General_state* mgstate,
         General_state* gstate,
         Value* value)
 {
-    assert(gstate != NULL);
+    assert(mgstate != NULL || gstate != NULL);
+    if (gstate == NULL)
+        gstate = mgstate;
     assert(value != NULL);
     if (value->type != VALUE_TYPE_STRING || !gstate->global)
     {
@@ -103,9 +114,11 @@ bool Event_control_env_set_float_name_process(
 }
 
 
-bool Event_control_env_set_int_process(General_state* gstate, Value* value)
+bool Event_control_env_set_int_process(General_state* mgstate, General_state* gstate, Value* value)
 {
-    assert(gstate != NULL);
+    assert(mgstate != NULL || gstate != NULL);
+    if (gstate == NULL)
+        gstate = mgstate;
     assert(value != NULL);
     if (value->type != VALUE_TYPE_INT || !gstate->global)
     {
@@ -127,10 +140,13 @@ bool Event_control_env_set_int_process(General_state* gstate, Value* value)
 
 
 bool Event_control_env_set_int_name_process(
+        General_state* mgstate,
         General_state* gstate,
         Value* value)
 {
-    assert(gstate != NULL);
+    assert(mgstate != NULL || gstate != NULL);
+    if (gstate == NULL)
+        gstate = mgstate;
     assert(value != NULL);
     if (value->type != VALUE_TYPE_STRING || !gstate->global)
     {
@@ -141,10 +157,13 @@ bool Event_control_env_set_int_name_process(
 
 
 bool Event_control_env_set_tstamp_process(
+        General_state* mgstate,
         General_state* gstate,
         Value* value)
 {
-    assert(gstate != NULL);
+    assert(mgstate != NULL || gstate != NULL);
+    if (gstate == NULL)
+        gstate = mgstate;
     assert(value != NULL);
     if (value->type != VALUE_TYPE_TSTAMP || !gstate->global)
     {
@@ -166,10 +185,13 @@ bool Event_control_env_set_tstamp_process(
 
 
 bool Event_control_env_set_tstamp_name_process(
+        General_state* mgstate,
         General_state* gstate,
         Value* value)
 {
-    assert(gstate != NULL);
+    assert(mgstate != NULL || gstate != NULL);
+    if (gstate == NULL)
+        gstate = mgstate;
     assert(value != NULL);
     if (value->type != VALUE_TYPE_STRING || !gstate->global)
     {

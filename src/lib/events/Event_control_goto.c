@@ -23,10 +23,14 @@
 #include <xassert.h>
 
 
-bool Event_control_goto_process(General_state* gstate, Value* value)
+bool Event_control_goto_process(General_state* mgstate, General_state* gstate, Value* value)
 {
-    assert(gstate != NULL);
+    assert(mgstate != NULL || gstate != NULL);
     (void)value;
+
+    if (mgstate != NULL)
+        return false;
+
     if (!gstate->global)
     {
         return false;
@@ -40,10 +44,14 @@ bool Event_control_goto_process(General_state* gstate, Value* value)
 }
 
 
-bool Event_control_set_goto_row_process(General_state* gstate, Value* value)
+bool Event_control_set_goto_row_process(General_state* mgstate, General_state* gstate, Value* value)
 {
-    assert(gstate != NULL);
+    assert(mgstate != NULL || gstate != NULL);
     assert(value != NULL);
+
+    if (mgstate != NULL)
+        return false;
+
     if (!gstate->global)
     {
         return false;
@@ -55,11 +63,16 @@ bool Event_control_set_goto_row_process(General_state* gstate, Value* value)
 
 
 bool Event_control_set_goto_section_process(
+        General_state* mgstate,
         General_state* gstate,
         Value* value)
 {
-    assert(gstate != NULL);
+    assert(mgstate != NULL || gstate != NULL);
     assert(value != NULL);
+
+    if (mgstate != NULL)
+        return false;
+
     if (value->type != VALUE_TYPE_INT || !gstate->global)
     {
         return false;
@@ -71,11 +84,16 @@ bool Event_control_set_goto_section_process(
 
 
 bool Event_control_set_goto_song_process(
+        General_state* mgstate,
         General_state* gstate,
         Value* value)
 {
-    assert(gstate != NULL);
+    assert(mgstate != NULL || gstate != NULL);
     assert(value != NULL);
+
+    if (mgstate != NULL)
+        return false;
+
     if (value->type != VALUE_TYPE_INT || !gstate->global)
     {
         return false;
