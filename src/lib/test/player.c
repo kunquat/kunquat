@@ -125,7 +125,7 @@ START_TEST(Note_off_stops_the_note_correctly)
     int32_t nframes = Player_get_frames_available(player);
     fail_unless(nframes == note_off_frame,
             "Wrong number of frames rendered"
-            KT_VALUES("%ld", note_off_frame, nframes));
+            KT_VALUES("%ld", (long)note_off_frame, (long)nframes));
 
     float actual_buf[buf_len] = { 0.0f };
     const float* ret_buf = Player_get_audio(player, 0);
@@ -146,7 +146,7 @@ START_TEST(Note_off_stops_the_note_correctly)
     nframes = Player_get_frames_available(player);
     fail_unless(nframes == buf_len - note_off_frame,
             "Wrong number of frames rendered"
-            KT_VALUES("%ld", buf_len - note_off_frame, nframes));
+            KT_VALUES("%ld", (long)(buf_len - note_off_frame), (long)nframes));
 
     for (int i = 0; i < buf_len - note_off_frame; ++i)
         actual_buf[i + note_off_frame] = ret_buf[i];
@@ -190,7 +190,7 @@ START_TEST(Note_end_is_reached_correctly_during_note_off)
     int32_t nframes = Player_get_frames_available(player);
     fail_unless(nframes == note_off_frame,
             "Wrong number of frames rendered"
-            KT_VALUES("%ld", note_off_frame, nframes));
+            KT_VALUES("%ld", (long)note_off_frame, (long)nframes));
 
     const float* ret_buf = Player_get_audio(player, 0);
     for (int i = 0; i < note_off_frame; ++i)
@@ -209,7 +209,7 @@ START_TEST(Note_end_is_reached_correctly_during_note_off)
     nframes = Player_get_frames_available(player);
     fail_unless(nframes == buf_len - note_off_frame,
             "Wrong number of frames rendered"
-            KT_VALUES("%ld", buf_len - note_off_frame, nframes));
+            KT_VALUES("%ld", (long)(buf_len - note_off_frame), (long)nframes));
 
     for (int i = 0; i < buf_len - note_off_frame; ++i)
         actual_buf[i + note_off_frame] = ret_buf[i];
@@ -257,7 +257,7 @@ START_TEST(Implicit_note_off_is_triggered_correctly)
     int32_t nframes = Player_get_frames_available(player);
     fail_unless(nframes == note_2_frame,
             "Wrong number of frames rendered"
-            KT_VALUES("%ld", note_2_frame, nframes));
+            KT_VALUES("%ld", (long)note_2_frame, (long)nframes));
 
     const float* ret_buf = Player_get_audio(player, 0);
     for (int i = 0; i < note_2_frame; ++i)
@@ -273,7 +273,7 @@ START_TEST(Implicit_note_off_is_triggered_correctly)
     nframes = Player_get_frames_available(player);
     fail_unless(nframes == buf_len - note_2_frame,
             "Wrong number of frames rendered"
-            KT_VALUES("%ld", buf_len - note_2_frame, nframes));
+            KT_VALUES("%ld", (long)(buf_len - note_2_frame), (long)nframes));
 
     for (int i = 0; i < buf_len - note_2_frame; ++i)
         actual_buf[i + note_2_frame] = ret_buf[i];
@@ -319,7 +319,7 @@ START_TEST(Independent_notes_mix_correctly)
     int32_t nframes = Player_get_frames_available(player);
     fail_unless(nframes == note_2_frame,
             "Wrong number of frames rendered"
-            KT_VALUES("%ld", note_2_frame, nframes));
+            KT_VALUES("%ld", (long)note_2_frame, (long)nframes));
 
     const float* ret_buf = Player_get_audio(player, 0);
     for (int i = 0; i < note_2_frame; ++i)
@@ -335,7 +335,7 @@ START_TEST(Independent_notes_mix_correctly)
     nframes = Player_get_frames_available(player);
     fail_unless(nframes == buf_len - note_2_frame,
             "Wrong number of frames rendered"
-            KT_VALUES("%ld", buf_len - note_2_frame, nframes));
+            KT_VALUES("%ld", (long)(buf_len - note_2_frame), (long)nframes));
 
     for (int i = 0; i < buf_len - note_2_frame; ++i)
         actual_buf[i + note_2_frame] = ret_buf[i];
@@ -374,7 +374,7 @@ START_TEST(Debug_single_shot_renders_one_pulse)
     const int32_t nframes = Player_get_frames_available(player);
     fail_unless(nframes == buf_len,
             "Wrong number of frames rendered"
-            KT_VALUES("%ld", buf_len, nframes));
+            KT_VALUES("%ld", (long)buf_len, (long)nframes));
 
     const float* actual_buf = Player_get_audio(player, 0);
 
@@ -394,7 +394,7 @@ START_TEST(Empty_composition_renders_zero_frames)
     fail_unless(
             nframes == 0,
             "Wrong number of frames rendered"
-            KT_VALUES("%ld", 0, nframes));
+            KT_VALUES("%ld", 0L, (long)nframes));
     fail_unless(
             Player_has_stopped(player),
             "Player did not reach end of composition");
@@ -547,6 +547,47 @@ START_TEST(Note_on_after_pattern_end_is_ignored)
 END_TEST
 
 
+START_TEST(Initial_tempo_is_set_correctly)
+{
+    set_mixing_rate(mixing_rates[MIXING_RATE_LOW]);
+    fail_if(
+            !Player_set_audio_rate(player, mixing_rates[MIXING_RATE_LOW]),
+            "Could not set player audio rate");
+    set_mix_volume(0);
+    setup_debug_instrument();
+    setup_debug_single_pulse();
+
+    int tempos[] = { 30, 60, 120, 240, 0 }; // 0 is guard, shouldn't be used
+
+    set_data("album/p_manifest.json", "{}");
+    set_data("album/p_tracks.json", "[0]");
+    set_data("song_00/p_manifest.json", "{}");
+    set_data("song_00/p_order_list.json", "[ [0, 0] ]");
+    char ss_def[128] = "";
+    snprintf(ss_def, sizeof(ss_def), "{ \"tempo\": %d }", tempos[_i]);
+    set_data("song_00/p_song.json", ss_def);
+    set_data("pat_000/p_manifest.json", "{}");
+    set_data("pat_000/p_pattern.json", "{ \"length\": [4, 0] }");
+    set_data("pat_000/instance_000/p_manifest.json", "{}");
+    set_data("pat_000/col_00/p_triggers.json",
+            "[ [[0, 0], [\"n+\", \"0\"]], [[1, 0], [\"n+\", \"0\"]] ]");
+
+    validate();
+
+    Player_reset(player);
+    Player_play(player, buf_len);
+    const int32_t nframes = Player_get_frames_available(player);
+
+    const float* actual_buf = Player_get_audio(player, 0);
+
+    float expected_buf[buf_len] = { 1.0f };
+    expected_buf[mixing_rates[MIXING_RATE_LOW] * 60 / tempos[_i]] = 1.0f;
+
+    check_buffers_equal(expected_buf, actual_buf, nframes, 0.0f);
+}
+END_TEST
+
+
 Suite* Player_suite(void)
 {
     Suite* s = suite_create("Player");
@@ -575,6 +616,9 @@ Suite* Player_suite(void)
             0, MIXING_RATE_COUNT);
     tcase_add_loop_test(tc_render, Note_on_at_pattern_end_is_handled, 0, 4);
     tcase_add_loop_test(tc_render, Note_on_after_pattern_end_is_ignored, 0, 4);
+
+    // Songs
+    tcase_add_loop_test(tc_render, Initial_tempo_is_set_correctly, 0, 4);
 
     return s;
 }

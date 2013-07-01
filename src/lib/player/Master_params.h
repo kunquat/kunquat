@@ -20,6 +20,7 @@
 #include <stdint.h>
 
 #include <Bind.h>
+#include <Decl.h>
 #include <Environment.h>
 #include <General_state.h>
 #include <player/Position.h>
@@ -41,9 +42,11 @@ typedef struct Master_params
 
     Playback_state playback_state;
     Position cur_pos;
+    double tempo;
 
     Bind* bind;
 
+    // Statistics
     int16_t active_voices;
 } Master_params;
 
@@ -64,8 +67,9 @@ Master_params* Master_params_init(Master_params* params, Environment* env);
  * Resets the Master params.
  *
  * \param params   The Master params -- must not be \c NULL.
+ * \param module   The Module -- must not be \c NULL.
  */
-void Master_params_reset(Master_params* params);
+void Master_params_reset(Master_params* params, const Module* module);
 
 
 /**

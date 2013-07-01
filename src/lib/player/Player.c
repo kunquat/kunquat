@@ -52,8 +52,6 @@ struct Player
     double frame_remainder; // used for sub-frame time tracking
 
     Cgiter cgiters[KQT_CHANNELS_MAX];
-
-    double tempo;
 };
 
 
@@ -84,8 +82,6 @@ Player* new_Player(const Module* module)
 
     memset(player->cgiters, 0, sizeof(player->cgiters));
 
-    player->tempo = 120;
-
     // Init fields
     player->env = new_Environment();
     player->voices = new_Voice_pool(256);
@@ -106,7 +102,7 @@ Player* new_Player(const Module* module)
                 Module_get_insts(player->module),
                 player->env,
                 player->voices,
-                &player->tempo,
+                &player->master_params.tempo,
                 &player->audio_rate);
         if (player->channels[i] == NULL)
         {
@@ -159,7 +155,7 @@ void Player_reset(Player* player)
 
     // TODO: playback mode and start pos as arguments
 
-    Master_params_reset(&player->master_params);
+    Master_params_reset(&player->master_params, player->module);
 
     player->frame_remainder = 0.0;
 
@@ -195,7 +191,7 @@ static int32_t Player_process_cgiters(Player* player, int32_t nframes)
     Tstamp* limit = Tstamp_fromframes(
             TSTAMP_AUTO,
             nframes,
-            player->tempo,
+            player->master_params.tempo,
             player->audio_rate);
 
     // Process cgiters at current position
@@ -251,7 +247,10 @@ static int32_t Player_process_cgiters(Player* player, int32_t nframes)
     }
 
     // Get actual number of frames to be rendered
-    double dframes = Tstamp_toframes(limit, player->tempo, player->audio_rate);
+    double dframes = Tstamp_toframes(
+            limit,
+            player->master_params.tempo,
+            player->audio_rate);
     assert(dframes >= 0.0);
 
     to_be_rendered = (int32_t)dframes;
@@ -307,7 +306,7 @@ static void Player_process_voices(
                             render_stop,
                             render_start,
                             player->audio_rate,
-                            player->tempo);
+                            player->master_params.tempo);
                 }
             }
         }
@@ -319,7 +318,7 @@ static void Player_process_voices(
             render_stop,
             render_start,
             player->audio_rate,
-            player->tempo);
+            player->master_params.tempo);
 
     player->master_params.active_voices =
         MAX(player->master_params.active_voices, active_voices);
@@ -370,7 +369,7 @@ void Player_play(Player* player, int32_t nframes)
                     rendered,
                     to_be_rendered,
                     player->audio_rate,
-                    player->tempo);
+                    player->master_params.tempo);
         }
 
         rendered += to_be_rendered;

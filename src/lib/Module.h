@@ -20,6 +20,7 @@
 
 #include <Bind.h>
 #include <Connections.h>
+#include <Decl.h>
 #include <Device.h>
 #include <Environment.h>
 #include <kunquat/limits.h>
@@ -37,7 +38,7 @@
 #include <Event_handler.h>
 
 
-typedef struct Module
+struct Module
 {
     Device parent;
     uint64_t random_seed;               ///< The master random seed of the Module.
@@ -61,7 +62,7 @@ typedef struct Module
     Event_handler* skip_handler;        ///< Skip state Event handler.
     Environment* env;                   ///< Environment variables.
     Bind* bind;
-} Module;
+};
 
 
 #define SONG_DEFAULT_BUF_COUNT (2)
@@ -218,7 +219,7 @@ double Module_get_mix_vol(Module* module);
  *
  * \return   The Subsong table.
  */
-Subsong_table* Module_get_subsongs(Module* module);
+Subsong_table* Module_get_subsongs(const Module* module);
 
 
 /**

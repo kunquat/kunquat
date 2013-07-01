@@ -12,7 +12,9 @@
  */
 
 
+#include <Module.h>
 #include <player/Master_params.h>
+#include <Track_list.h>
 #include <xassert.h>
 
 
@@ -23,8 +25,8 @@ Master_params* Master_params_init(Master_params* params, Environment* env)
 
     // Sanitise fields
     params->playback_state = PLAYBACK_SONG;
-
     Position_init(&params->cur_pos);
+    params->tempo = 120;
 
     params->bind = NULL;
     params->active_voices = 0;
@@ -40,16 +42,33 @@ Master_params* Master_params_init(Master_params* params, Environment* env)
 }
 
 
-void Master_params_reset(Master_params* params)
+void Master_params_reset(Master_params* params, const Module* module)
 {
     assert(params != NULL);
+    assert(module != NULL);
+
+    General_state_reset(&params->parent);
 
     Position start_pos;
     Position_init(&start_pos);
     start_pos.track = 0;
     params->cur_pos = start_pos;
 
-    General_state_reset(&params->parent);
+    // Get starting tempo
+    params->tempo = 120;
+    const Track_list* tl = Module_get_track_list(module);
+    if (tl != NULL && params->cur_pos.track < (int16_t)Track_list_get_len(tl))
+    {
+        const int16_t cur_song = Track_list_get_song_index(
+                tl,
+                params->cur_pos.track);
+        Subsong_table* ss_table = Module_get_subsongs(module);
+        Subsong* ss = Subsong_table_get(ss_table, cur_song);
+        if (ss != NULL)
+        {
+            params->tempo = Subsong_get_tempo(ss);
+        }
+    }
 
     return;
 }

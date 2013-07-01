@@ -669,7 +669,7 @@ uint16_t Module_get_subsong(Module* module)
 #endif
 
 
-Subsong_table* Module_get_subsongs(Module* module)
+Subsong_table* Module_get_subsongs(const Module* module)
 {
     assert(module != NULL);
     return module->subsongs;
