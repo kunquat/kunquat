@@ -21,6 +21,7 @@
 #include <File_base.h>
 #include <General_state.h>
 #include <Playdata.h>
+#include <player/Master_params.h>
 #include <Value.h>
 #include <xassert.h>
 
@@ -31,7 +32,18 @@ bool Event_control_infinite_process(General_state* mgstate, General_state* gstat
     assert(value != NULL);
 
     if (mgstate != NULL)
-        return false;
+    {
+        if (value->type != VALUE_TYPE_BOOL)
+            return false;
+
+        if (!mgstate->global)
+            return false;
+
+        Master_params* master_params = (Master_params*)mgstate;
+        master_params->is_infinite = value->value.bool_type;
+
+        return true;
+    }
 
     if (value->type != VALUE_TYPE_BOOL)
     {

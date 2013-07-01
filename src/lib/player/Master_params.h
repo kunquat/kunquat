@@ -40,10 +40,16 @@ typedef struct Master_params
 {
     General_state parent;
 
+    // Start params
+    Position start_pos;
+
+    // Read/write state for trigger events
     Playback_state playback_state;
+    bool is_infinite;
     Position cur_pos;
     double tempo;
 
+    // Resources
     Bind* bind;
 
     // Statistics

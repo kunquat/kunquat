@@ -18,18 +18,32 @@
 #include <xassert.h>
 
 
+static void Master_params_clear(Master_params* params)
+{
+    assert(params != NULL);
+
+    Position_init(&params->start_pos);
+
+    params->playback_state = PLAYBACK_SONG;
+    params->is_infinite = false;
+    Position_init(&params->cur_pos);
+    params->tempo = 120;
+
+    params->active_voices = 0;
+
+    return;
+}
+
+
 Master_params* Master_params_init(Master_params* params, Environment* env)
 {
     assert(params != NULL);
     assert(env != NULL);
 
     // Sanitise fields
-    params->playback_state = PLAYBACK_SONG;
-    Position_init(&params->cur_pos);
-    params->tempo = 120;
+    Master_params_clear(params);
 
-    params->bind = NULL;
-    params->active_voices = 0;
+    params->bind = NULL; // TODO: init properly
 
     // Init fields
     if (General_state_init(&params->parent, true, env) == NULL)
@@ -47,15 +61,14 @@ void Master_params_reset(Master_params* params, const Module* module)
     assert(params != NULL);
     assert(module != NULL);
 
+    Master_params_clear(params);
+
     General_state_reset(&params->parent);
 
-    Position start_pos;
-    Position_init(&start_pos);
-    start_pos.track = 0;
-    params->cur_pos = start_pos;
+    params->start_pos.track = 0; // TODO: init start_pos from argument
+    params->cur_pos = params->start_pos;
 
     // Get starting tempo
-    params->tempo = 120;
     const Track_list* tl = Module_get_track_list(module);
     if (tl != NULL && params->cur_pos.track < (int16_t)Track_list_get_len(tl))
     {

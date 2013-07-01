@@ -588,6 +588,53 @@ START_TEST(Initial_tempo_is_set_correctly)
 END_TEST
 
 
+START_TEST(Infinite_mode_loops_composition)
+{
+    set_mixing_rate(mixing_rates[MIXING_RATE_LOW]);
+    fail_if(
+            !Player_set_audio_rate(player, mixing_rates[MIXING_RATE_LOW]),
+            "Could not set player audio rate");
+    set_mix_volume(0);
+    setup_debug_instrument();
+    setup_debug_single_pulse();
+
+    set_data("album/p_manifest.json", "{}");
+    set_data("album/p_tracks.json", "[0]");
+    set_data("song_00/p_manifest.json", "{}");
+    set_data("song_00/p_order_list.json", "[ [0, 0] ]");
+    set_data("pat_000/p_manifest.json", "{}");
+    set_data("pat_000/p_pattern.json", "{ \"length\": [2, 0] }");
+    set_data("pat_000/instance_000/p_manifest.json", "{}");
+    set_data("pat_000/col_00/p_triggers.json", "[ [[0, 0], [\"n+\", \"0\"]] ]");
+
+    validate();
+
+    Player_reset(player);
+
+    Read_state* rs = READ_STATE_AUTO;
+    if (!Player_fire(player, 0, "[\"I.infinite\", true]", rs))
+        fail("Could not fire event: %s", rs->message);
+    check_unexpected_error();
+
+    Player_play(player, buf_len);
+    const int32_t nframes = Player_get_frames_available(player);
+
+    const float* actual_buf = Player_get_audio(player, 0);
+    fail_unless(nframes == buf_len,
+            "Wrong number of frames mixed"
+            KT_VALUES("%ld", buf_len, nframes));
+
+    float expected_buf[buf_len] = { 0.0f };
+    for (int i = 0; i < buf_len; i += mixing_rates[MIXING_RATE_LOW])
+    {
+        expected_buf[i] = 1.0f;
+    }
+
+    check_buffers_equal(expected_buf, actual_buf, buf_len, 0.0f);
+}
+END_TEST
+
+
 Suite* Player_suite(void)
 {
     Suite* s = suite_create("Player");
@@ -619,6 +666,7 @@ Suite* Player_suite(void)
 
     // Songs
     tcase_add_loop_test(tc_render, Initial_tempo_is_set_correctly, 0, 4);
+    tcase_add_test(tc_render, Infinite_mode_loops_composition);
 
     return s;
 }

@@ -242,7 +242,28 @@ static int32_t Player_process_cgiters(Player* player, int32_t nframes)
     // Stop if all cgiters have finished
     if (!any_cgiter_active)
     {
-        player->master_params.playback_state = PLAYBACK_STOPPED;
+        // TODO: safety check for zero-length playback!
+        if (player->master_params.is_infinite)
+        {
+#if 0
+            fprintf(stderr, "Resetting to %d %d " PRIts " %d %d\n",
+                    (int)player->master_params.start_pos.track,
+                    (int)player->master_params.start_pos.system,
+                    PRIVALts(player->master_params.start_pos.pat_pos),
+                    (int)player->master_params.start_pos.piref.pat,
+                    (int)player->master_params.start_pos.piref.inst);
+#endif
+            for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
+            {
+                Cgiter_reset(
+                        &player->cgiters[i],
+                        &player->master_params.start_pos);
+            }
+        }
+        else
+        {
+            player->master_params.playback_state = PLAYBACK_STOPPED;
+        }
         return 0;
     }
 
@@ -281,7 +302,7 @@ static void Player_process_voices(
 
     const int32_t render_stop = render_start + nframes;
 
-    // TODO: Update tempo & freq on sliders
+    // TODO: Update tempo & audio rate on sliders
 
     // Foreground voices
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
@@ -367,7 +388,7 @@ void Player_play(Player* player, int32_t nframes)
             Connections_mix(
                     connections,
                     rendered,
-                    to_be_rendered,
+                    rendered + to_be_rendered,
                     player->audio_rate,
                     player->master_params.tempo);
         }
