@@ -385,23 +385,6 @@ START_TEST(Debug_single_shot_renders_one_pulse)
 END_TEST
 
 
-START_TEST(Empty_composition_renders_zero_frames)
-{
-    assert(player != NULL);
-    Player_reset(player);
-    Player_play(player, 256);
-    const int32_t nframes = Player_get_frames_available(player);
-    fail_unless(
-            nframes == 0,
-            "Wrong number of frames rendered"
-            KT_VALUES("%ld", 0L, (long)nframes));
-    fail_unless(
-            Player_has_stopped(player),
-            "Player did not reach end of composition");
-}
-END_TEST
-
-
 START_TEST(Empty_pattern_contains_silence)
 {
     set_mixing_rate(mixing_rates[_i]);
@@ -547,6 +530,23 @@ START_TEST(Note_on_after_pattern_end_is_ignored)
 END_TEST
 
 
+START_TEST(Empty_composition_renders_zero_frames)
+{
+    assert(player != NULL);
+    Player_reset(player);
+    Player_play(player, 256);
+    const int32_t nframes = Player_get_frames_available(player);
+    fail_unless(
+            nframes == 0,
+            "Wrong number of frames rendered"
+            KT_VALUES("%ld", 0L, (long)nframes));
+    fail_unless(
+            Player_has_stopped(player),
+            "Player did not reach end of composition");
+}
+END_TEST
+
+
 START_TEST(Initial_tempo_is_set_correctly)
 {
     set_mixing_rate(mixing_rates[MIXING_RATE_LOW]);
@@ -635,38 +635,94 @@ START_TEST(Infinite_mode_loops_composition)
 END_TEST
 
 
+START_TEST(Pattern_delay_extends_gap_between_trigger_rows)
+{
+    set_mixing_rate(mixing_rates[MIXING_RATE_LOW]);
+    fail_if(
+            !Player_set_audio_rate(player, mixing_rates[MIXING_RATE_LOW]),
+            "Could not set player audio rate");
+    set_mix_volume(0);
+    setup_debug_instrument();
+    setup_debug_single_pulse();
+
+    set_data("album/p_manifest.json", "{}");
+    set_data("album/p_tracks.json", "[0]");
+    set_data("song_00/p_manifest.json", "{}");
+    set_data("song_00/p_order_list.json", "[ [0, 0] ]");
+    set_data("pat_000/p_manifest.json", "{}");
+    set_data("pat_000/p_pattern.json", "{ \"length\": [4, 0] }");
+    set_data("pat_000/instance_000/p_manifest.json", "{}");
+    char triggers[128] = "";
+    snprintf(triggers, sizeof(triggers),
+            "[ [[0, 0], [\"n+\", \"0\"]],"
+            "  [[1, 0], [\"mpd\", \"%d\"]],"
+            "  [[2, 0], [\"n+\", \"0\"]] ]", _i * 2);
+    set_data("pat_000/col_00/p_triggers.json", triggers);
+
+    validate();
+
+    Player_reset(player);
+
+    Player_play(player, buf_len);
+    const int32_t nframes = Player_get_frames_available(player);
+
+    const float* actual_buf = Player_get_audio(player, 0);
+
+    float expected_buf[buf_len] = { 0.0f };
+    expected_buf[0] = 1.0f;
+    expected_buf[8 * (_i + 1)] = 1.0f;
+
+    check_buffers_equal(expected_buf, actual_buf, nframes, 0.0f);
+}
+END_TEST
+
+
 Suite* Player_suite(void)
 {
     Suite* s = suite_create("Player");
 
     const int timeout = 4;
 
-    TCase* tc_render = tcase_create("render");
-    suite_add_tcase(s, tc_render);
-    tcase_set_timeout(tc_render, timeout);
-    tcase_add_checked_fixture(tc_render, setup_player, player_teardown);
+#define BUILD_TCASE(name)                                                \
+    TCase* tc_##name = tcase_create(#name);                              \
+    suite_add_tcase(s, tc_##name);                                       \
+    tcase_set_timeout(tc_##name, timeout);                               \
+    tcase_add_checked_fixture(tc_##name, setup_player, player_teardown)
 
-    tcase_add_test(tc_render, Create_player);
+    BUILD_TCASE(general);
+    BUILD_TCASE(notes);
+    BUILD_TCASE(patterns);
+    BUILD_TCASE(songs);
+    BUILD_TCASE(events);
+
+#undef BUILD_TCASE
+
+    tcase_add_test(tc_general, Create_player);
 
     // Note mixing
-    tcase_add_test(tc_render, Complete_debug_note_renders_correctly);
-    tcase_add_test(tc_render, Note_off_stops_the_note_correctly);
-    tcase_add_test(tc_render, Note_end_is_reached_correctly_during_note_off);
-    tcase_add_test(tc_render, Implicit_note_off_is_triggered_correctly);
-    tcase_add_test(tc_render, Independent_notes_mix_correctly);
-    tcase_add_test(tc_render, Debug_single_shot_renders_one_pulse);
+    tcase_add_test(tc_notes, Complete_debug_note_renders_correctly);
+    tcase_add_test(tc_notes, Note_off_stops_the_note_correctly);
+    tcase_add_test(tc_notes, Note_end_is_reached_correctly_during_note_off);
+    tcase_add_test(tc_notes, Implicit_note_off_is_triggered_correctly);
+    tcase_add_test(tc_notes, Independent_notes_mix_correctly);
+    tcase_add_test(tc_notes, Debug_single_shot_renders_one_pulse);
 
     // Patterns
-    tcase_add_test(tc_render, Empty_composition_renders_zero_frames);
     tcase_add_loop_test(
-            tc_render, Empty_pattern_contains_silence,
+            tc_patterns, Empty_pattern_contains_silence,
             0, MIXING_RATE_COUNT);
-    tcase_add_loop_test(tc_render, Note_on_at_pattern_end_is_handled, 0, 4);
-    tcase_add_loop_test(tc_render, Note_on_after_pattern_end_is_ignored, 0, 4);
+    tcase_add_loop_test(tc_patterns, Note_on_at_pattern_end_is_handled, 0, 4);
+    tcase_add_loop_test(tc_patterns, Note_on_after_pattern_end_is_ignored, 0, 4);
 
     // Songs
-    tcase_add_loop_test(tc_render, Initial_tempo_is_set_correctly, 0, 4);
-    tcase_add_test(tc_render, Infinite_mode_loops_composition);
+    tcase_add_test(tc_songs, Empty_composition_renders_zero_frames);
+    tcase_add_loop_test(tc_songs, Initial_tempo_is_set_correctly, 0, 4);
+    tcase_add_test(tc_songs, Infinite_mode_loops_composition);
+
+    // Events
+    tcase_add_loop_test(
+            tc_events, Pattern_delay_extends_gap_between_trigger_rows,
+            0, 1); // 4);
 
     return s;
 }

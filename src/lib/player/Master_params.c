@@ -26,8 +26,11 @@ static void Master_params_clear(Master_params* params)
 
     params->playback_state = PLAYBACK_SONG;
     params->is_infinite = false;
+
     Position_init(&params->cur_pos);
+
     params->tempo = 120;
+    Tstamp_set(&params->delay_left, 0, 0);
 
     params->active_voices = 0;
 

@@ -32,7 +32,10 @@ bool Event_global_pattern_delay_process(Master_params* master_params, Playdata* 
 
     if (master_params != NULL)
     {
-        return false;
+        assert(value->type == VALUE_TYPE_TSTAMP);
+
+        Tstamp_copy(&master_params->delay_left, &value->value.Tstamp_type);
+        return true;
     }
 
     if (value->type != VALUE_TYPE_TSTAMP)

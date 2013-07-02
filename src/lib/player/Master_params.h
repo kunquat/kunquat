@@ -46,8 +46,11 @@ typedef struct Master_params
     // Read/write state for trigger events
     Playback_state playback_state;
     bool is_infinite;
+
     Position cur_pos;
+
     double tempo;
+    Tstamp delay_left;
 
     // Resources
     Bind* bind;

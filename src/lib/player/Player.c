@@ -179,20 +179,12 @@ bool Player_set_audio_rate(Player* player, int32_t rate)
 }
 
 
-static int32_t Player_process_cgiters(Player* player, int32_t nframes)
+static void Player_process_cgiters(Player* player, Tstamp* limit)
 {
     assert(player != NULL);
     assert(!Player_has_stopped(player));
-    assert(nframes >= 0);
-
-    int32_t to_be_rendered = nframes;
-
-    // Get maximum duration to move forwards
-    Tstamp* limit = Tstamp_fromframes(
-            TSTAMP_AUTO,
-            nframes,
-            player->master_params.tempo,
-            player->audio_rate);
+    assert(limit != NULL);
+    assert(Tstamp_cmp(limit, TSTAMP_AUTO) >= 0);
 
     // Process cgiters at current position
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
@@ -229,6 +221,8 @@ static int32_t Player_process_cgiters(Player* player, int32_t nframes)
             Tstamp_copy(limit, dist);
     }
 
+    // TODO: set limit to 0 and return if tempo changed
+
     bool any_cgiter_active = false;
 
     // Move cgiters forwards and check for playback end
@@ -264,8 +258,30 @@ static int32_t Player_process_cgiters(Player* player, int32_t nframes)
         {
             player->master_params.playback_state = PLAYBACK_STOPPED;
         }
-        return 0;
+
+        Tstamp_set(limit, 0, 0);
+        return;
     }
+
+    return;
+}
+
+
+static int32_t Player_move_forwards(Player* player, int32_t nframes)
+{
+    assert(player != NULL);
+    assert(!Player_has_stopped(player));
+    assert(nframes >= 0);
+
+    // Get maximum duration to move forwards
+    Tstamp* limit = Tstamp_fromframes(
+            TSTAMP_AUTO,
+            nframes,
+            player->master_params.tempo,
+            player->audio_rate);
+
+    // Process cgiters
+    Player_process_cgiters(player, limit);
 
     // Get actual number of frames to be rendered
     double dframes = Tstamp_toframes(
@@ -274,7 +290,7 @@ static int32_t Player_process_cgiters(Player* player, int32_t nframes)
             player->audio_rate);
     assert(dframes >= 0.0);
 
-    to_be_rendered = (int32_t)dframes;
+    int32_t to_be_rendered = (int32_t)dframes;
     player->frame_remainder += dframes - to_be_rendered;
     if (player->frame_remainder > 0.5)
     {
@@ -368,11 +384,11 @@ void Player_play(Player* player, int32_t nframes)
     int32_t rendered = 0;
     while (rendered < nframes)
     {
-        // Process cgiters
+        // Move forwards in composition
         int32_t to_be_rendered = nframes - rendered;
         if (!player->master_params.parent.pause && !Player_has_stopped(player))
         {
-            to_be_rendered = Player_process_cgiters(player, to_be_rendered);
+            to_be_rendered = Player_move_forwards(player, to_be_rendered);
         }
 
         // Don't add padding audio if stopped during this call
