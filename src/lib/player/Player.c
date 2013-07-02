@@ -221,7 +221,7 @@ static void Player_process_cgiters(Player* player, Tstamp* limit)
             Tstamp_copy(limit, dist);
     }
 
-    // TODO: set limit to 0 and return if tempo changed
+    // TODO: set limit to 0 and return if tempo changed or delay added
 
     bool any_cgiter_active = false;
 
@@ -280,8 +280,19 @@ static int32_t Player_move_forwards(Player* player, int32_t nframes)
             player->master_params.tempo,
             player->audio_rate);
 
-    // Process cgiters
-    Player_process_cgiters(player, limit);
+    Tstamp* delay_left = &player->master_params.delay_left;
+
+    if (Tstamp_cmp(delay_left, TSTAMP_AUTO) > 0)
+    {
+        // Apply pattern delay
+        Tstamp_min(limit, limit, delay_left);
+        Tstamp_sub(delay_left, delay_left, limit);
+    }
+    else
+    {
+        // Process cgiters
+        Player_process_cgiters(player, limit);
+    }
 
     // Get actual number of frames to be rendered
     double dframes = Tstamp_toframes(

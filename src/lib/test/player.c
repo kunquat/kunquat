@@ -722,7 +722,7 @@ Suite* Player_suite(void)
     // Events
     tcase_add_loop_test(
             tc_events, Pattern_delay_extends_gap_between_trigger_rows,
-            0, 1); // 4);
+            0, 4);
 
     return s;
 }
