@@ -76,7 +76,7 @@ Suite* Memory_suite(void)
 {
     Suite* s = suite_create("Memory");
 
-    const int timeout = 4;
+    const int timeout = 16;
 
     TCase* tc_create = tcase_create("create");
     suite_add_tcase(s, tc_create);
