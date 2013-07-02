@@ -48,6 +48,8 @@ typedef struct Master_params
     bool is_infinite;
 
     Position cur_pos;
+    int cur_ch;
+    int cur_trigger;
 
     double tempo;
     Tstamp delay_left;

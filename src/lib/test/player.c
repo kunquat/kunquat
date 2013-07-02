@@ -670,7 +670,49 @@ START_TEST(Pattern_delay_extends_gap_between_trigger_rows)
 
     float expected_buf[buf_len] = { 0.0f };
     expected_buf[0] = 1.0f;
-    expected_buf[8 * (_i + 1)] = 1.0f;
+    expected_buf[mixing_rates[MIXING_RATE_LOW] * (_i + 1)] = 1.0f;
+
+    check_buffers_equal(expected_buf, actual_buf, nframes, 0.0f);
+}
+END_TEST
+
+
+START_TEST(Pattern_delay_inserts_gap_between_adjacent_triggers)
+{
+    set_mixing_rate(mixing_rates[MIXING_RATE_LOW]);
+    fail_if(
+            !Player_set_audio_rate(player, mixing_rates[MIXING_RATE_LOW]),
+            "Could not set player audio rate");
+    set_mix_volume(0);
+    setup_debug_instrument();
+    setup_debug_single_pulse();
+
+    set_data("album/p_manifest.json", "{}");
+    set_data("album/p_tracks.json", "[0]");
+    set_data("song_00/p_manifest.json", "{}");
+    set_data("song_00/p_order_list.json", "[ [0, 0] ]");
+    set_data("pat_000/p_manifest.json", "{}");
+    set_data("pat_000/p_pattern.json", "{ \"length\": [4, 0] }");
+    set_data("pat_000/instance_000/p_manifest.json", "{}");
+    char triggers[128] = "";
+    snprintf(triggers, sizeof(triggers),
+            "[ [[0, 0], [\"n+\", \"0\"]],"
+            "  [[0, 0], [\"mpd\", \"%d\"]],"
+            "  [[0, 0], [\"n+\", \"0\"]] ]", _i * 2);
+    set_data("pat_000/col_00/p_triggers.json", triggers);
+
+    validate();
+
+    Player_reset(player);
+
+    Player_play(player, buf_len);
+    const int32_t nframes = Player_get_frames_available(player);
+
+    const float* actual_buf = Player_get_audio(player, 0);
+
+    float expected_buf[buf_len] = { 0.0f };
+    expected_buf[0] = 1.0f;
+    expected_buf[mixing_rates[MIXING_RATE_LOW] * _i] += 1.0f;
 
     check_buffers_equal(expected_buf, actual_buf, nframes, 0.0f);
 }
@@ -722,6 +764,9 @@ Suite* Player_suite(void)
     // Events
     tcase_add_loop_test(
             tc_events, Pattern_delay_extends_gap_between_trigger_rows,
+            0, 4);
+    tcase_add_loop_test(
+            tc_events, Pattern_delay_inserts_gap_between_adjacent_triggers,
             0, 4);
 
     return s;

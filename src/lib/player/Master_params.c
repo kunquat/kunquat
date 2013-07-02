@@ -28,6 +28,8 @@ static void Master_params_clear(Master_params* params)
     params->is_infinite = false;
 
     Position_init(&params->cur_pos);
+    params->cur_ch = 0;
+    params->cur_trigger = 0;
 
     params->tempo = 120;
     Tstamp_set(&params->delay_left, 0, 0);

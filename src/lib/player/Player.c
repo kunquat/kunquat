@@ -186,8 +186,8 @@ static void Player_process_cgiters(Player* player, Tstamp* limit)
     assert(limit != NULL);
     assert(Tstamp_cmp(limit, TSTAMP_AUTO) >= 0);
 
-    // Process cgiters at current position
-    for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
+    // Process trigger rows at current position
+    for (int i = player->master_params.cur_ch; i < KQT_CHANNELS_MAX; ++i)
     {
         Cgiter* cgiter = &player->cgiters[i];
 
@@ -200,6 +200,17 @@ static void Player_process_cgiters(Player* player, Tstamp* limit)
             // Process trigger row
             assert(tr->head->next != NULL);
             Event_list* el = tr->head->next;
+
+            // Skip triggers if resuming
+            int trigger_index = 0;
+            while (trigger_index < player->master_params.cur_trigger &&
+                    el->event != NULL)
+            {
+                ++trigger_index;
+                el = el->next;
+            }
+
+            // Process triggers
             while (el->event != NULL)
             {
                 const bool success = Event_handler_trigger(
@@ -210,10 +221,23 @@ static void Player_process_cgiters(Player* player, Tstamp* limit)
                         NULL);
 
                 (void)success;
+                ++player->master_params.cur_trigger;
+
+                // Break if delay added
+                if (Tstamp_cmp(&player->master_params.delay_left,
+                            TSTAMP_AUTO) > 0)
+                {
+                    Tstamp_set(limit, 0, 0);
+                    return;
+                }
 
                 el = el->next;
             }
         }
+
+        // All triggers processed in this column
+        player->master_params.cur_trigger = 0;
+        ++player->master_params.cur_ch;
 
         // See how much we can move forwards
         Tstamp* dist = Tstamp_copy(TSTAMP_AUTO, limit);
@@ -221,7 +245,11 @@ static void Player_process_cgiters(Player* player, Tstamp* limit)
             Tstamp_copy(limit, dist);
     }
 
-    // TODO: set limit to 0 and return if tempo changed or delay added
+    // All trigger rows processed
+    player->master_params.cur_ch = 0;
+    player->master_params.cur_trigger = 0;
+
+    // TODO: set limit to 0 and return if tempo changed
 
     bool any_cgiter_active = false;
 
