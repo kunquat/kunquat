@@ -149,6 +149,19 @@ Tstamp* Tstamp_copy(Tstamp* dest, const Tstamp* src);
 
 
 /**
+ * Returns the minimum of two Tstamps.
+ *
+ * \param result   The result Tstamp -- must not be \c NULL. This may
+ *                 be the same as \a ts1 and/or \a ts2.
+ * \param ts1      The first Tstamp -- must be valid.
+ * \param ts2      The second Tstamp -- must be valid.
+ *
+ * \return   The parameter \a result.
+ */
+Tstamp* Tstamp_min(Tstamp* result, const Tstamp* ts1, const Tstamp* ts2);
+
+
+/**
  * Converts the time represented by a Tstamp into frames.
  *
  * \param ts      The Tstamp -- must be valid. Also, the

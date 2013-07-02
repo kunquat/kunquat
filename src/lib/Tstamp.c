@@ -151,6 +151,21 @@ Tstamp* Tstamp_copy(Tstamp* dest, const Tstamp* src)
 }
 
 
+Tstamp* Tstamp_min(Tstamp* result, const Tstamp* ts1, const Tstamp* ts2)
+{
+    assert(result != NULL);
+    Tstamp_validate(ts1);
+    Tstamp_validate(ts2);
+
+    if (Tstamp_cmp(ts1, ts2) < 0)
+        Tstamp_copy(result, ts1);
+    else
+        Tstamp_copy(result, ts2);
+
+    return result;
+}
+
+
 double Tstamp_toframes(
         const Tstamp* ts,
         double tempo,
