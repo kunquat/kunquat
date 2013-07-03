@@ -28,11 +28,15 @@
 
 bool Event_global_set_tempo_process(Master_params* master_params, Playdata* global_state, Value* value)
 {
-    assert(global_state != NULL);
+    assert(master_params != NULL || global_state != NULL);
     assert(value != NULL);
 
     if (master_params != NULL)
-        return false;
+    {
+        assert(value->type == VALUE_TYPE_FLOAT);
+        master_params->tempo = value->value.float_type;
+        return true;
+    }
 
     if (value->type != VALUE_TYPE_FLOAT)
     {
