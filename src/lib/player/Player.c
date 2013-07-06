@@ -298,44 +298,43 @@ static void Player_process_cgiters(Player* player, Tstamp* limit)
 
 static void update_tempo_slide(Master_params* master_params)
 {
-    if (master_params->tempo_slide != 0)
+    if (master_params->tempo_slide == 0)
+        return;
+
+    if (Tstamp_cmp(
+                &master_params->tempo_slide_left,
+                TSTAMP_AUTO) <= 0)
     {
-        if (Tstamp_cmp(
-                    &master_params->tempo_slide_left,
-                    TSTAMP_AUTO) <= 0)
+        // Finish slide
+        master_params->tempo = master_params->tempo_slide_target;
+        master_params->tempo_slide = 0;
+    }
+    else if (Tstamp_cmp(
+                &master_params->tempo_slide_slice_left,
+                TSTAMP_AUTO) <= 0)
+    {
+        // New tempo
+        master_params->tempo += master_params->tempo_slide_update;
+
+        const bool is_too_low = master_params->tempo_slide < 0 &&
+            master_params->tempo < master_params->tempo_slide_target;
+        const bool is_too_high = master_params->tempo_slide > 0 &&
+            master_params->tempo > master_params->tempo_slide_target;
+        if (is_too_low || is_too_high)
         {
             // Finish slide
             master_params->tempo = master_params->tempo_slide_target;
             master_params->tempo_slide = 0;
         }
-        else if (Tstamp_cmp(
-                    &master_params->tempo_slide_slice_left,
-                    TSTAMP_AUTO) <= 0)
+        else
         {
-            // New tempo
-            master_params->tempo += master_params->tempo_slide_update;
-
-            const bool is_too_low = master_params->tempo_slide < 0 &&
-                master_params->tempo < master_params->tempo_slide_target;
-            const bool is_too_high = master_params->tempo_slide > 0 &&
-                master_params->tempo > master_params->tempo_slide_target;
-            if (is_too_low || is_too_high)
-            {
-                // Finish slide
-                master_params->tempo = master_params->tempo_slide_target;
-                master_params->tempo_slide = 0;
-            }
-            else
-            {
-                // Start next slice
-                Tstamp_set(
-                        &master_params->tempo_slide_slice_left,
-                        0, KQT_TEMPO_SLIDE_SLICE_LEN);
-                Tstamp_min(
-                        &master_params->tempo_slide_slice_left,
-                        &master_params->tempo_slide_slice_left,
-                        &master_params->tempo_slide_left);
-            }
+            // Start next slice
+            Tstamp_set(
+                    &master_params->tempo_slide_slice_left,
+                    0, KQT_TEMPO_SLIDE_SLICE_LEN);
+            Tstamp_mina(
+                    &master_params->tempo_slide_slice_left,
+                    &master_params->tempo_slide_left);
         }
     }
 }
@@ -367,12 +366,8 @@ static int32_t Player_move_forwards(Player* player, int32_t nframes)
     if (player->master_params.tempo_slide != 0)
     {
         // Apply tempo slide slice
-        Tstamp_min(limit, limit,
-                &player->master_params.tempo_slide_slice_left);
-        Tstamp_sub(
-                &player->master_params.tempo_slide_slice_left,
-                &player->master_params.tempo_slide_slice_left,
-                limit);
+        Tstamp_mina(limit, &player->master_params.tempo_slide_slice_left);
+        Tstamp_suba(&player->master_params.tempo_slide_slice_left, limit);
     }
 
     Tstamp* delay_left = &player->master_params.delay_left;
@@ -380,8 +375,8 @@ static int32_t Player_move_forwards(Player* player, int32_t nframes)
     if (Tstamp_cmp(delay_left, TSTAMP_AUTO) > 0)
     {
         // Apply pattern delay
-        Tstamp_min(limit, limit, delay_left);
-        Tstamp_sub(delay_left, delay_left, limit);
+        Tstamp_mina(limit, delay_left);
+        Tstamp_suba(delay_left, limit);
     }
     else
     {

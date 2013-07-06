@@ -703,6 +703,17 @@ START_TEST (add)
             "Tstamp_add() returned %lld:%ld (expected %lld:%ld).",
             (long long)res->beats, (long)res->rem,
             (long long)exp->beats, (long)exp->rem);
+
+    // Assignment version
+    Tstamp_set(r1, 2, 0);
+    Tstamp_set(r2, 3, 0);
+    Tstamp_set(exp, 5, 0);
+    ret = Tstamp_adda(r1, r2);
+    fail_unless(ret == r1,
+            "Tstamp_adda() returned %p instead of %p.", ret, r1);
+    fail_unless(Tstamp_cmp(r1, exp) == 0,
+            "Tstamp_adda() returned " PRIts " instead of " PRIts,
+            PRIVALts(*r1), PRIVALts(*exp));
 }
 END_TEST
 
@@ -926,6 +937,17 @@ START_TEST (sub)
             "Tstamp_sub() returned %lld:%ld (expected %lld:%ld).",
             (long long)res->beats, (long)res->rem,
             (long long)exp->beats, (long)exp->rem);
+
+    // Assignment version
+    Tstamp_set(r1, 3, 0);
+    Tstamp_set(r2, 2, 0);
+    Tstamp_set(exp, 1, 0);
+    ret = Tstamp_suba(r1, r2);
+    fail_unless(ret == r1,
+            "Tstamp_adda() returned %p instead of %p.", ret, r1);
+    fail_unless(Tstamp_cmp(r1, exp) == 0,
+            "Tstamp_adda() returned " PRIts " instead of " PRIts,
+            PRIVALts(*r1), PRIVALts(*exp));
 }
 END_TEST
 

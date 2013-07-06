@@ -122,6 +122,12 @@ Tstamp* Tstamp_add(Tstamp* result, const Tstamp* ts1, const Tstamp* ts2);
 
 
 /**
+ * Combined Tstamp addition and assignment.
+ */
+#define Tstamp_adda(ts1, ts2) Tstamp_add((ts1), (ts1), (ts2))
+
+
+/**
  * Computes the difference between two Tstamps.
  *
  * If the beat count overflows during the calculation, the behaviour is
@@ -135,6 +141,12 @@ Tstamp* Tstamp_add(Tstamp* result, const Tstamp* ts1, const Tstamp* ts2);
  * \return   The parameter \a result.
  */
 Tstamp* Tstamp_sub(Tstamp* result, const Tstamp* ts1, const Tstamp* ts2);
+
+
+/**
+ * Combined Tstamp subtraction and assignment.
+ */
+#define Tstamp_suba(ts1, ts2) Tstamp_sub((ts1), (ts1), (ts2))
 
 
 /**
@@ -159,6 +171,12 @@ Tstamp* Tstamp_copy(Tstamp* dest, const Tstamp* src);
  * \return   The parameter \a result.
  */
 Tstamp* Tstamp_min(Tstamp* result, const Tstamp* ts1, const Tstamp* ts2);
+
+
+/**
+ * Combined Tstamp minimum and assignment.
+ */
+#define Tstamp_mina(ts1, ts2) Tstamp_min((ts1), (ts1), (ts2))
 
 
 /**

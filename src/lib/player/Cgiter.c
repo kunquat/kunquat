@@ -197,15 +197,15 @@ bool Cgiter_peek(const Cgiter* cgiter, Tstamp* dist)
         // No triggers found, check pattern end
         if (Tstamp_cmp(remaining, dist_to_end) > 0)
         {
-            Tstamp_add(advance, advance, dist_to_end);
-            Tstamp_sub(remaining, remaining, dist_to_end);
+            Tstamp_adda(advance, dist_to_end);
+            Tstamp_suba(remaining, dist_to_end);
 
             // Next system, TODO: playback modes...
             ++pos.system;
         }
         else
         {
-            Tstamp_add(advance, advance, remaining);
+            Tstamp_adda(advance, remaining);
             Tstamp_set(remaining, 0, 0);
         }
     }
@@ -251,7 +251,7 @@ void Cgiter_move(Cgiter* cgiter, const Tstamp* dist)
     assert(dist != NULL);
     assert(Tstamp_cmp(dist, TSTAMP_AUTO) >= 0);
 
-    Tstamp_add(&cgiter->pos.pat_pos, &cgiter->pos.pat_pos, dist);
+    Tstamp_adda(&cgiter->pos.pat_pos, dist);
 
     Tstamp* remaining = Tstamp_copy(TSTAMP_AUTO, dist);
 
