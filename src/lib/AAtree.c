@@ -20,20 +20,13 @@
 #include <xassert.h>
 
 
-typedef struct AAnode
+struct AAnode
 {
     int level;
     void* data;
     struct AAnode* parent;
     struct AAnode* left;
     struct AAnode* right;
-} AAnode;
-
-
-struct AAiter
-{
-    AAtree* tree;
-    AAnode* node;
 };
 
 
@@ -75,8 +68,6 @@ AAiter* new_AAiter(AAtree* tree)
     iter->node = NULL;
     return iter;
 }
-
-#define AAITER_AUTO(t) (&(AAiter){ .tree = (t), .node = NULL })
 
 
 void AAiter_change_tree(AAiter* iter, AAtree* tree)
@@ -287,7 +278,8 @@ void* AAtree_get_at_least(AAtree* tree, const void* key)
 {
     assert(tree != NULL);
     assert(key != NULL);
-    AAiter* iter = AAITER_AUTO(tree);
+    AAiter* iter = AAITER_AUTO;
+    iter->tree = tree;
     return AAiter_get_at_least(iter, key);
 }
 
@@ -296,7 +288,8 @@ void* AAtree_get_exact(AAtree* tree, const void* key)
 {
     assert(tree != NULL);
     assert(key != NULL);
-    AAiter* iter = AAITER_AUTO(tree);
+    AAiter* iter = AAITER_AUTO;
+    iter->tree = tree;
     void* ret = AAiter_get_at_least(iter, key);
     if (ret != NULL && tree->cmp(ret, key) == 0)
     {
@@ -345,7 +338,8 @@ void* AAtree_get_at_most(AAtree* tree, const void* key)
 {
     assert(tree != NULL);
     assert(key != NULL);
-    AAiter* iter = AAITER_AUTO(tree);
+    AAiter* iter = AAITER_AUTO;
+    iter->tree = tree;
     return AAiter_get_at_most(iter, key);
 }
 

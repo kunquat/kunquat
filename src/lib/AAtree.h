@@ -20,12 +20,6 @@
 
 
 /**
- * AAiter is an iterator used for getting elements from an AAtree.
- */
-typedef struct AAiter AAiter;
-
-
-/**
  * This is a balanced binary tree (AA tree). It can store any type of an
  * object as long as the user provides comparison and destructor functions for
  * the type.
@@ -35,6 +29,21 @@ typedef struct AAiter AAiter;
  * these operations take O(n) time.
  */
 typedef struct AAtree AAtree;
+
+
+typedef struct AAnode AAnode;
+
+
+/**
+ * AAiter is an iterator used for getting elements from an AAtree.
+ */
+typedef struct AAiter
+{
+    AAtree* tree;
+    AAnode* node;
+} AAiter;
+
+#define AAITER_AUTO (&(AAiter){ .tree = NULL, .node = NULL })
 
 
 /**
