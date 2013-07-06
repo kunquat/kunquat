@@ -110,6 +110,14 @@ void Channel_state_reset(Channel_state* state)
 {
     assert(state != NULL);
     General_state_reset(&state->parent);
+
+    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    {
+        state->fg[i] = NULL;
+        state->fg_id[i] = 0;
+    }
+    state->fg_count = 0;
+
     state->instrument = 0;
     state->generator = 0;
     state->effect = 0;
