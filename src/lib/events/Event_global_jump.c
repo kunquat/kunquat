@@ -175,7 +175,7 @@ bool Trigger_global_jump_set_locations(Event_global_jump* event,
             return false;
         }
     }
-    Pattern_location* loc = AAiter_get(locations_iter, PATTERN_LOCATION_AUTO);
+    Pattern_location* loc = AAiter_get_at_least(locations_iter, PATTERN_LOCATION_AUTO);
     while (loc != NULL)
     {
         Jump_context* context = AAtree_get_exact(event->counters, loc);

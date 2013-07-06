@@ -360,7 +360,7 @@ static void Connections_reset(Connections* graph)
 {
     assert(graph != NULL);
     const char* name = "";
-    Device_node* node = AAiter_get(graph->iter, name);
+    Device_node* node = AAiter_get_at_least(graph->iter, name);
     while (node != NULL)
     {
         Device_node_set_state(node, DEVICE_NODE_STATE_NEW);
@@ -375,7 +375,7 @@ static bool Connections_is_cyclic(Connections* graph)
     assert(graph != NULL);
     Connections_reset(graph);
     const char* name = "";
-    Device_node* node = AAiter_get(graph->iter, name);
+    Device_node* node = AAiter_get_at_least(graph->iter, name);
     while (node != NULL)
     {
         assert(Device_node_get_state(node) != DEVICE_NODE_STATE_REACHED);

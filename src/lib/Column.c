@@ -171,7 +171,7 @@ Event_list* Column_iter_get_row(Column_iter* iter, const Tstamp* pos)
     Event* event = &(Event){ .type = Event_NONE };
     Tstamp_copy(&event->pos, pos);
     Event_list* key = Event_list_init(&(Event_list){ .event = event });
-    iter->elist = AAiter_get(iter->tree_iter, key);
+    iter->elist = AAiter_get_at_least(iter->tree_iter, key);
 
     return iter->elist;
 }
@@ -488,7 +488,7 @@ bool Column_ins(Column* col, Event* event)
     assert(event != NULL);
     ++col->version;
     Event_list* key = Event_list_init(&(Event_list){ .event = event });
-    Event_list* ret = AAtree_get(col->events, key);
+    Event_list* ret = AAtree_get_at_least(col->events, key);
     if (ret == NULL || Tstamp_cmp(Event_get_pos(event),
             Event_get_pos(ret->next->event)) != 0)
     {

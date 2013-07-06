@@ -193,7 +193,7 @@ Tstamp* Channel_gen_state_get_tstamp(
 void Channel_gen_state_clear(Channel_gen_state* state)
 {
     assert(state != NULL);
-    Device_field* field = AAiter_get(state->iter, "");
+    Device_field* field = AAiter_get_at_least(state->iter, "");
     while (field != NULL)
     {
         Device_field_set_empty(field, true);

@@ -113,7 +113,7 @@ void Event_cache_reset(Event_cache* cache)
 {
     assert(cache != NULL);
     AAiter_change_tree(cache->iter, cache->cache);
-    Event_state* es = AAiter_get(cache->iter, "");
+    Event_state* es = AAiter_get_at_least(cache->iter, "");
     while (es != NULL)
     {
         Event_state_reset(es);

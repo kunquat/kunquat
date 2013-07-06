@@ -184,7 +184,7 @@ const Sample_entry* Hit_map_get_entry(Hit_map* map,
         return NULL;
     }
     Random_list* key = &(Random_list){ .force = force };
-    Random_list* greater = AAtree_get(forces, key);
+    Random_list* greater = AAtree_get_at_least(forces, key);
     Random_list* smaller = AAtree_get_at_most(forces, key);
     Random_list* list = NULL;
     if (greater == NULL)

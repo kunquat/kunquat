@@ -729,7 +729,7 @@ pitch_t Scale_get_pitch_from_cents(Scale* scale, double cents)
         return -1;
     }
     pitch_index* key = &(pitch_index){ .cents = cents };
-    pitch_index* pi_upper = AAtree_get(scale->pitch_map, key);
+    pitch_index* pi_upper = AAtree_get_at_least(scale->pitch_map, key);
     pitch_index* pi_lower = AAtree_get_at_most(scale->pitch_map, key);
     pitch_index* pi = NULL;
     if (pi_upper == NULL && pi_lower == NULL)

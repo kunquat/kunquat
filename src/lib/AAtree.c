@@ -248,7 +248,7 @@ bool AAtree_ins(AAtree* tree, void* data)
 }
 
 
-void* AAiter_get(AAiter* iter, const void* key)
+void* AAiter_get_at_least(AAiter* iter, const void* key)
 {
     assert(iter != NULL);
     assert(key != NULL);
@@ -283,12 +283,12 @@ void* AAiter_get(AAiter* iter, const void* key)
 }
 
 
-void* AAtree_get(AAtree* tree, const void* key)
+void* AAtree_get_at_least(AAtree* tree, const void* key)
 {
     assert(tree != NULL);
     assert(key != NULL);
     AAiter* iter = AAITER_AUTO(tree);
-    return AAiter_get(iter, key);
+    return AAiter_get_at_least(iter, key);
 }
 
 
@@ -297,7 +297,7 @@ void* AAtree_get_exact(AAtree* tree, const void* key)
     assert(tree != NULL);
     assert(key != NULL);
     AAiter* iter = AAITER_AUTO(tree);
-    void* ret = AAiter_get(iter, key);
+    void* ret = AAiter_get_at_least(iter, key);
     if (ret != NULL && tree->cmp(ret, key) == 0)
     {
         return ret;

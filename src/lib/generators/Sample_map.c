@@ -286,7 +286,7 @@ const Sample_entry* Sample_map_get_entry(Sample_map* map,
             candidate = AAiter_get_prev(map->iter);
         }
     }
-    Random_list* estimate_high = AAiter_get(map->iter, key);
+    Random_list* estimate_high = AAiter_get_at_least(map->iter, key);
     if (estimate_high != NULL)
     {
         double d = distance(estimate_high, key);

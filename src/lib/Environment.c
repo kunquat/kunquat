@@ -121,7 +121,7 @@ void Environment_reset(Environment* env)
 {
     assert(env != NULL);
     AAiter_change_tree(env->iter, env->vars);
-    Env_var* var = AAiter_get(env->iter, "");
+    Env_var* var = AAiter_get_at_least(env->iter, "");
     while (var != NULL)
     {
         Env_var_reset(var);

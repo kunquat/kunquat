@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -65,7 +65,7 @@ void AAiter_change_tree(AAiter* iter, AAtree* tree);
  *
  * \return   The element if one exists, otherwise \c NULL.
  */
-void* AAiter_get(AAiter* iter, const void* key);
+void* AAiter_get_at_least(AAiter* iter, const void* key);
 
 
 /**
@@ -157,7 +157,7 @@ bool AAtree_ins(AAtree* tree, void* data);
  *
  * \return   The element if one exists, otherwise \c NULL.
  */
-void* AAtree_get(AAtree* tree, const void* key);
+void* AAtree_get_at_least(AAtree* tree, const void* key);
 
 
 /**

@@ -235,7 +235,7 @@ Event_cache* Bind_create_cache(Bind* map)
         return NULL;
     }
     AAiter_change_tree(map->iter, map->cblists);
-    Cblist* cblist = AAiter_get(map->iter, "");
+    Cblist* cblist = AAiter_get_at_least(map->iter, "");
     while (cblist != NULL)
     {
         Cblist_item* item = cblist->first;
@@ -322,7 +322,7 @@ static bool Bind_is_cyclic(Bind* map)
 {
     assert(map != NULL);
     AAiter_change_tree(map->iter, map->cblists);
-    Cblist* cblist = AAiter_get(map->iter, "");
+    Cblist* cblist = AAiter_get_at_least(map->iter, "");
     while (cblist != NULL)
     {
         assert(cblist->source_state != SOURCE_STATE_REACHED);

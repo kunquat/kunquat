@@ -238,7 +238,7 @@ const char* Device_params_get_slow_sync_key(Device_params* params)
     if (!params->slow_sync_keys_requested)
     {
         params->slow_sync_keys_requested = true;
-        info = AAiter_get(params->slow_sync_iter, "");
+        info = AAiter_get_at_least(params->slow_sync_iter, "");
     }
     else
     {
@@ -255,7 +255,7 @@ const char* Device_params_get_slow_sync_key(Device_params* params)
 void Device_params_synchronised(Device_params* params)
 {
     assert(params != NULL);
-    Slow_sync_info* info = AAiter_get(params->slow_sync_iter, "");
+    Slow_sync_info* info = AAiter_get_at_least(params->slow_sync_iter, "");
     while (info != NULL)
     {
         info->sync_needed = false;
@@ -517,7 +517,7 @@ void Device_params_reset(Device_params* params)
 {
     assert(params != NULL);
     AAiter_change_tree(params->event_data_iter, params->event_data);
-    Device_field* field = AAiter_get(params->event_data_iter, "");
+    Device_field* field = AAiter_get_at_least(params->event_data_iter, "");
     while (field != NULL)
     {
         Device_field_set_empty(field, true);
