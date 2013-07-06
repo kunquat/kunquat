@@ -31,8 +31,16 @@ static void Master_params_clear(Master_params* params)
     params->cur_ch = 0;
     params->cur_trigger = 0;
 
+    Tstamp_init(&params->delay_left);
+
+    params->tempo_settings_changed = false;
     params->tempo = 120;
-    Tstamp_set(&params->delay_left, 0, 0);
+    params->tempo_slide = 0;
+    Tstamp_init(&params->tempo_slide_length);
+    params->tempo_slide_target = 0;
+    Tstamp_init(&params->tempo_slide_left);
+    Tstamp_init(&params->tempo_slide_slice_left);
+    params->tempo_slide_update = 0;
 
     params->active_voices = 0;
 

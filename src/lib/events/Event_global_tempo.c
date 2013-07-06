@@ -23,9 +23,6 @@
 #include <xassert.h>
 
 
-#define TEMPO_SLIDE_SLICE_LEN (KQT_TSTAMP_BEAT / 24)
-
-
 bool Event_global_set_tempo_process(Master_params* master_params, Playdata* global_state, Value* value)
 {
     assert(master_params != NULL || global_state != NULL);
@@ -34,7 +31,9 @@ bool Event_global_set_tempo_process(Master_params* master_params, Playdata* glob
     if (master_params != NULL)
     {
         assert(value->type == VALUE_TYPE_FLOAT);
+        master_params->tempo_settings_changed = true;
         master_params->tempo = value->value.float_type;
+        master_params->tempo_slide = 0;
         return true;
     }
 
@@ -50,13 +49,53 @@ bool Event_global_set_tempo_process(Master_params* master_params, Playdata* glob
 }
 
 
+static void set_tempo_slide_update(Master_params* master_params)
+{
+    assert(master_params != NULL);
+
+    const double rems_total =
+            (double)Tstamp_get_beats(&master_params->tempo_slide_length) *
+            KQT_TSTAMP_BEAT +
+            Tstamp_get_rem(&master_params->tempo_slide_length);
+    double slices = rems_total / KQT_TEMPO_SLIDE_SLICE_LEN;
+    master_params->tempo_slide_update =
+        (master_params->tempo_slide_target - master_params->tempo) / slices;
+
+    return;
+}
+
+
 bool Event_global_slide_tempo_process(Master_params* master_params, Playdata* global_state, Value* value)
 {
-    assert(global_state != NULL);
+    assert(master_params != NULL || global_state != NULL);
     assert(value != NULL);
 
     if (master_params != NULL)
-        return false;
+    {
+        assert(value->type == VALUE_TYPE_FLOAT);
+
+        master_params->tempo_settings_changed = true;
+
+        Tstamp_init(&master_params->tempo_slide_slice_left);
+        Tstamp_copy(
+                &master_params->tempo_slide_left,
+                &master_params->tempo_slide_length);
+        master_params->tempo_slide_target = value->value.float_type;
+
+        set_tempo_slide_update(master_params);
+
+        if (master_params->tempo_slide_update < 0)
+            master_params->tempo_slide = -1;
+        else if (master_params->tempo_slide_update > 0)
+            master_params->tempo_slide = 1;
+        else
+        {
+            master_params->tempo_slide = 0;
+            master_params->tempo = master_params->tempo_slide_target;
+        }
+
+        return true;
+    }
 
     if (value->type != VALUE_TYPE_FLOAT)
     {
@@ -70,7 +109,7 @@ bool Event_global_slide_tempo_process(Master_params* master_params, Playdata* gl
             (double)Tstamp_get_beats(&global_state->tempo_slide_length) *
                     KQT_TSTAMP_BEAT +
                     Tstamp_get_rem(&global_state->tempo_slide_length);
-    double slices = rems_total / TEMPO_SLIDE_SLICE_LEN;
+    double slices = rems_total / KQT_TEMPO_SLIDE_SLICE_LEN;
     global_state->tempo_slide_update = (value->value.float_type -
                                         global_state->tempo) / slices;
     global_state->tempo_slide_target = value->value.float_type;
@@ -98,11 +137,31 @@ bool Event_global_slide_tempo_length_process(
         Playdata* global_state,
         Value* value)
 {
-    assert(global_state != NULL);
+    assert(master_params != NULL || global_state != NULL);
     assert(value != NULL);
 
     if (master_params != NULL)
-        return false;
+    {
+        assert(value->type == VALUE_TYPE_TSTAMP);
+
+        master_params->tempo_settings_changed = true;
+
+        Tstamp_copy(
+                &master_params->tempo_slide_length,
+                &value->value.Tstamp_type);
+
+        if (master_params->tempo_slide != 0)
+        {
+            Tstamp_init(&master_params->tempo_slide_slice_left);
+            Tstamp_copy(
+                    &master_params->tempo_slide_left,
+                    &master_params->tempo_slide_length);
+
+            set_tempo_slide_update(master_params);
+        }
+
+        return true;
+    }
 
     if (value->type != VALUE_TYPE_TSTAMP)
     {
@@ -118,7 +177,7 @@ bool Event_global_slide_tempo_length_process(
                 (double)Tstamp_get_beats(&value->value.Tstamp_type) *
                 KQT_TSTAMP_BEAT +
                 Tstamp_get_rem(&value->value.Tstamp_type);
-        double slices = rems_total / TEMPO_SLIDE_SLICE_LEN;
+        double slices = rems_total / KQT_TEMPO_SLIDE_SLICE_LEN;
         global_state->tempo_slide_update = (global_state->tempo_slide_target -
                                             global_state->tempo) / slices;
     }

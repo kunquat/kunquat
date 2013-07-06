@@ -51,8 +51,16 @@ typedef struct Master_params
     int cur_ch;
     int cur_trigger;
 
-    double tempo;
     Tstamp delay_left;
+
+    bool   tempo_settings_changed;
+    double tempo;
+    int    tempo_slide;
+    Tstamp tempo_slide_length;
+    double tempo_slide_target;
+    Tstamp tempo_slide_left;
+    Tstamp tempo_slide_slice_left;
+    double tempo_slide_update;
 
     // Resources
     Bind* bind;

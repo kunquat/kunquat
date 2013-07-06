@@ -118,6 +118,14 @@ extern "C" {
 
 
 /**
+ * Tempo slides are performed in fixed slices in composition time. This is the
+ * length of one slice in beat remainders (the final slice in a tempo slice
+ * may be shorter).
+ */
+#define KQT_TEMPO_SLIDE_SLICE_LEN (KQT_TSTAMP_BEAT / 24)
+
+
+/**
  * Maximum number of Instruments in a Kunquat Handle.
  */
 #define KQT_INSTRUMENTS_MAX 256

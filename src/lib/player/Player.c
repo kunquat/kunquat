@@ -223,8 +223,9 @@ static void Player_process_cgiters(Player* player, Tstamp* limit)
                 (void)success;
                 ++player->master_params.cur_trigger;
 
-                // Break if delay added
-                if (Tstamp_cmp(&player->master_params.delay_left,
+                // Break if tempo settings changed or delay was added
+                if (player->master_params.tempo_settings_changed ||
+                        Tstamp_cmp(&player->master_params.delay_left,
                             TSTAMP_AUTO) > 0)
                 {
                     Tstamp_set(limit, 0, 0);
@@ -295,11 +296,66 @@ static void Player_process_cgiters(Player* player, Tstamp* limit)
 }
 
 
+static void update_tempo_slide(Master_params* master_params)
+{
+    if (master_params->tempo_slide != 0)
+    {
+        if (Tstamp_cmp(
+                    &master_params->tempo_slide_left,
+                    TSTAMP_AUTO) <= 0)
+        {
+            // Finish slide
+            master_params->tempo = master_params->tempo_slide_target;
+            master_params->tempo_slide = 0;
+        }
+        else if (Tstamp_cmp(
+                    &master_params->tempo_slide_slice_left,
+                    TSTAMP_AUTO) <= 0)
+        {
+            // New tempo
+            master_params->tempo += master_params->tempo_slide_update;
+
+            const bool is_too_low = master_params->tempo_slide < 0 &&
+                master_params->tempo < master_params->tempo_slide_target;
+            const bool is_too_high = master_params->tempo_slide > 0 &&
+                master_params->tempo > master_params->tempo_slide_target;
+            if (is_too_low || is_too_high)
+            {
+                // Finish slide
+                master_params->tempo = master_params->tempo_slide_target;
+                master_params->tempo_slide = 0;
+            }
+            else
+            {
+                // Start next slice
+                Tstamp_set(
+                        &master_params->tempo_slide_slice_left,
+                        0, KQT_TEMPO_SLIDE_SLICE_LEN);
+                Tstamp_min(
+                        &master_params->tempo_slide_slice_left,
+                        &master_params->tempo_slide_slice_left,
+                        &master_params->tempo_slide_left);
+            }
+        }
+    }
+}
+
+
 static int32_t Player_move_forwards(Player* player, int32_t nframes)
 {
     assert(player != NULL);
     assert(!Player_has_stopped(player));
     assert(nframes >= 0);
+
+    // Process tempo
+    if (player->master_params.tempo_settings_changed)
+    {
+        player->master_params.tempo_settings_changed = false;
+
+        update_tempo_slide(&player->master_params);
+
+        // TODO: update sliders
+    }
 
     // Get maximum duration to move forwards
     Tstamp* limit = Tstamp_fromframes(
@@ -307,6 +363,17 @@ static int32_t Player_move_forwards(Player* player, int32_t nframes)
             nframes,
             player->master_params.tempo,
             player->audio_rate);
+
+    if (player->master_params.tempo_slide != 0)
+    {
+        // Apply tempo slide slice
+        Tstamp_min(limit, limit,
+                &player->master_params.tempo_slide_slice_left);
+        Tstamp_sub(
+                &player->master_params.tempo_slide_slice_left,
+                &player->master_params.tempo_slide_slice_left,
+                limit);
+    }
 
     Tstamp* delay_left = &player->master_params.delay_left;
 
@@ -357,7 +424,7 @@ static void Player_process_voices(
 
     const int32_t render_stop = render_start + nframes;
 
-    // TODO: Update tempo & audio rate on sliders
+    // TODO: Update audio rate on sliders
 
     // Foreground voices
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
