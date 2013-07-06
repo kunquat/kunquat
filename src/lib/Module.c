@@ -418,6 +418,48 @@ const Pattern* Module_get_pattern(
 }
 
 
+bool Module_find_pattern_location(
+        const Module* module,
+        const Pat_inst_ref* piref,
+        int16_t* track,
+        int16_t* system)
+{
+    assert(module != NULL);
+    assert(piref != NULL);
+    assert(piref->pat >= 0);
+    assert(piref->pat < KQT_PATTERNS_MAX);
+    assert(piref->inst >= 0);
+    assert(piref->inst < KQT_PAT_INSTANCES_MAX);
+    assert(track != NULL);
+    assert(system != NULL);
+
+    // Linear search all track lists
+    for (int ti = 0; ti < KQT_SONGS_MAX; ++ti)
+    {
+        if (!Subsong_table_get_existent(module->subsongs, ti))
+            continue;
+
+        const Order_list* ol = module->order_lists[ti];
+        assert(ol != NULL);
+
+        for (size_t i = 0; i < Order_list_get_len(ol); ++i)
+        {
+            const Pat_inst_ref* cur_piref = Order_list_get_pat_inst_ref(ol, i);
+            assert(cur_piref != NULL);
+
+            if (cur_piref->pat == piref->pat && cur_piref->inst == piref->inst)
+            {
+                *track = ti;
+                *system = i;
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+
 uint32_t Module_mix(Module* module, uint32_t nframes, Event_handler* eh)
 {
     assert(module != NULL);

@@ -22,6 +22,7 @@
 #include <File_base.h>
 #include <kunquat/limits.h>
 #include <memory.h>
+#include <Module.h>
 #include <Pattern_location.h>
 #include <xassert.h>
 
@@ -29,10 +30,11 @@
 typedef struct Jump_context
 {
     Pattern_location location;
-    uint64_t play_id;
+    uint64_t play_id; // TODO: match type with Master_params::playback_id
     int64_t counter;
-    int16_t subsong;
-    int16_t section;
+    int16_t subsong; // TODO: remove
+    int16_t section; // TODO: remove
+    Pat_inst_ref piref;
     Tstamp row;
 } Jump_context;
 
@@ -52,6 +54,8 @@ static Jump_context* new_Jump_context(Pattern_location* loc)
     jc->counter = 0;
     jc->subsong = -1;
     jc->section = -1;
+    jc->piref.pat = -1;
+    jc->piref.inst = -1;
     Tstamp_set(&jc->row, 0, 0);
     return jc;
 }
@@ -98,6 +102,67 @@ void Trigger_global_jump_process(Event* event, Master_params* master_params, Pla
 
     if (master_params != NULL)
     {
+        Event_global_jump* jump = (Event_global_jump*)event;
+
+        // Find jump context
+        Pattern_location* key = PATTERN_LOCATION_AUTO;
+        if (master_params->playback_state == PLAYBACK_PATTERN)
+        {
+            // Use a generic context in pattern mode
+            key->song = -1;
+            key->piref.pat = -1;
+            key->piref.inst = -1;
+        }
+        else
+        {
+            key->piref = master_params->cur_pos.piref;
+        }
+
+        Jump_context* jc = AAtree_get_exact(jump->counters, key);
+        assert(jc != NULL);
+
+        if (jc->play_id != master_params->playback_id)
+        {
+            // Set new jump target
+            jc->play_id = master_params->playback_id;
+            jc->counter = master_params->jump_counter;
+            jc->piref = master_params->jump_target_piref;
+            Tstamp_copy(&jc->row, &master_params->jump_target_row);
+        }
+
+        if (jc->counter > 0)
+        {
+            // Resolve pattern instance
+            Pat_inst_ref target_piref;
+            target_piref = jc->piref;
+            if (target_piref.pat < 0 || target_piref.inst < 0)
+                target_piref = master_params->cur_pos.piref;
+
+            if (Module_find_pattern_location(
+                        master_params->module,
+                        &target_piref,
+                        &master_params->cur_pos.track,
+                        &master_params->cur_pos.system))
+            {
+                // Perform jump
+                master_params->do_jump = true;
+                --jc->counter;
+                Tstamp_copy(&master_params->cur_pos.pat_pos, &jc->row);
+                master_params->cur_ch = 0;
+                master_params->cur_trigger = 0;
+            }
+            else
+            {
+                // Pattern instance was removed
+                jc->play_id = 0;
+                jc->counter = 0;
+            }
+        }
+        else
+        {
+            // Reset jump so that it may be initialised again
+            jc->play_id = 0;
+        }
     }
     else
     {

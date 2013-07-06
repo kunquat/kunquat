@@ -28,11 +28,17 @@ bool Event_global_set_jump_counter_process(
         Playdata* global_state,
         Value* value)
 {
-    assert(global_state != NULL);
+    assert(master_params != NULL || global_state != NULL);
     assert(value != NULL);
 
     if (master_params != NULL)
-        return false;
+    {
+        assert(value->type == VALUE_TYPE_INT);
+
+        master_params->jump_counter = value->value.int_type;
+
+        return true;
+    }
 
     if (value->type != VALUE_TYPE_INT)
     {

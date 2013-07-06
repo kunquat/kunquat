@@ -144,6 +144,25 @@ const Pattern* Module_get_pattern(
         const Pat_inst_ref* piref);
 
 
+/**
+ * Finds the location of a pattern instance inside the Module.
+ *
+ * \param module   The Module -- must not be \c NULL.
+ * \param piref    The pattern instance -- must be valid.
+ * \param track    Address where the track number will be stored -- must not
+ *                 be \c NULL.
+ * \param system   Address where the system number will be stored -- must not
+ *                 be \c NULL.
+ *
+ * \return   \c true if \a piref was found, otherwise \c false.
+ */
+bool Module_find_pattern_location(
+        const Module* module,
+        const Pat_inst_ref* piref,
+        int16_t* track,
+        int16_t* system);
+
+
 /*
  * FIXME: Old interface below, clean up
  */

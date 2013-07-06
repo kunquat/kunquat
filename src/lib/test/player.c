@@ -846,6 +846,52 @@ START_TEST(Tempo_slide_affects_playback_cursor)
 END_TEST
 
 
+START_TEST(Jump_backwards_creates_a_loop)
+{
+    set_mixing_rate(mixing_rates[MIXING_RATE_LOW]);
+    fail_if(
+            !Player_set_audio_rate(player, mixing_rates[MIXING_RATE_LOW]),
+            "Could not set player audio rate");
+    set_mix_volume(0);
+    setup_debug_instrument();
+    setup_debug_single_pulse();
+
+    set_data("album/p_manifest.json", "{}");
+    set_data("album/p_tracks.json", "[0]");
+    set_data("song_00/p_manifest.json", "{}");
+    set_data("song_00/p_order_list.json", "[ [0, 0] ]");
+    set_data("pat_000/p_manifest.json", "{}");
+    set_data("pat_000/p_pattern.json", "{ \"length\": [4, 0] }");
+    set_data("pat_000/instance_000/p_manifest.json", "{}");
+    char triggers[256] = "";
+    snprintf(triggers, sizeof(triggers),
+            "[ [[0, 0], [\"n+\", \"0\"]],"
+            "  [[2, 0], [\"m.jc\", \"%d\"]],"
+            "  [[2, 0], [\"mj\", null]] ]", _i);
+    set_data("pat_000/col_00/p_triggers.json", triggers);
+
+    validate();
+
+    Player_reset(player);
+
+    Player_play(player, buf_len);
+    const int32_t nframes = Player_get_frames_available(player);
+
+    const float* actual_buf = Player_get_audio(player, 0);
+
+    float expected_buf[buf_len] = { 0.0f };
+    expected_buf[0] = 1.0f;
+    for (int i = 0; i < _i; ++i)
+    {
+        const int dist = mixing_rates[MIXING_RATE_LOW];
+        expected_buf[dist + (i * dist)] = 1.0f;
+    }
+
+    check_buffers_equal(expected_buf, actual_buf, nframes, 0.0f);
+}
+END_TEST
+
+
 Suite* Player_suite(void)
 {
     Suite* s = suite_create("Player");
@@ -900,6 +946,9 @@ Suite* Player_suite(void)
             0, 4);
     tcase_add_loop_test(
             tc_events, Tempo_slide_affects_playback_cursor,
+            0, 4);
+    tcase_add_loop_test(
+            tc_events, Jump_backwards_creates_a_loop,
             0, 4);
 
     return s;

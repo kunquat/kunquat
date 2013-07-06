@@ -112,6 +112,9 @@ const Trigger_row* Cgiter_get_trigger_row(Cgiter* cgiter)
     if (pattern == NULL)
         return NULL;
 
+    // Store current pattern instance for reference
+    cgiter->pos.piref = *piref;
+
     Column* column = Pattern_get_column(pattern, cgiter->col_index);
     if (column == NULL)
         return NULL;

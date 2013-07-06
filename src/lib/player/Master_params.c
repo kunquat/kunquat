@@ -42,24 +42,32 @@ static void Master_params_clear(Master_params* params)
     Tstamp_init(&params->tempo_slide_slice_left);
     params->tempo_slide_update = 0;
 
+    params->do_jump = false;
+    params->jump_counter = 0;
+    params->jump_target_piref.pat = -1;
+    params->jump_target_piref.inst = -1;
+    Tstamp_init(&params->jump_target_row);
+
     params->active_voices = 0;
 
     return;
 }
 
 
-Master_params* Master_params_init(Master_params* params, Environment* env)
+Master_params* Master_params_init(Master_params* params, const Module* module)
 {
     assert(params != NULL);
-    assert(env != NULL);
+    assert(module != NULL);
 
     // Sanitise fields
+    params->playback_id = 1;
+
     Master_params_clear(params);
 
-    params->bind = NULL; // TODO: init properly
+    params->module = module;
 
     // Init fields
-    if (General_state_init(&params->parent, true, env) == NULL)
+    if (General_state_init(&params->parent, true, params->module->env) == NULL)
     {
         General_state_uninit(&params->parent);
         return NULL;
@@ -69,10 +77,11 @@ Master_params* Master_params_init(Master_params* params, Environment* env)
 }
 
 
-void Master_params_reset(Master_params* params, const Module* module)
+void Master_params_reset(Master_params* params)
 {
     assert(params != NULL);
-    assert(module != NULL);
+
+    ++params->playback_id;
 
     Master_params_clear(params);
 
@@ -82,13 +91,13 @@ void Master_params_reset(Master_params* params, const Module* module)
     params->cur_pos = params->start_pos;
 
     // Get starting tempo
-    const Track_list* tl = Module_get_track_list(module);
+    const Track_list* tl = Module_get_track_list(params->module);
     if (tl != NULL && params->cur_pos.track < (int16_t)Track_list_get_len(tl))
     {
         const int16_t cur_song = Track_list_get_song_index(
                 tl,
                 params->cur_pos.track);
-        Subsong_table* ss_table = Module_get_subsongs(module);
+        Subsong_table* ss_table = Module_get_subsongs(params->module);
         Subsong* ss = Subsong_table_get(ss_table, cur_song);
         if (ss != NULL)
         {

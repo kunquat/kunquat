@@ -19,7 +19,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <Bind.h>
 #include <Decl.h>
 #include <Environment.h>
 #include <General_state.h>
@@ -39,6 +38,9 @@ typedef enum
 typedef struct Master_params
 {
     General_state parent;
+
+    // Playback session identifier (essentially a reset counter)
+    uint32_t playback_id;
 
     // Start params
     Position start_pos;
@@ -62,8 +64,13 @@ typedef struct Master_params
     Tstamp tempo_slide_slice_left;
     double tempo_slide_update;
 
+    bool         do_jump;
+    int16_t      jump_counter;
+    Pat_inst_ref jump_target_piref;
+    Tstamp       jump_target_row;
+
     // Resources
-    Bind* bind;
+    const Module* module;
 
     // Statistics
     int16_t active_voices;
@@ -74,12 +81,12 @@ typedef struct Master_params
  * Initialises the Master params.
  *
  * \param params   The Master params -- must not be \c NULL.
- * \param env      The Environment -- must not be \c NULL.
+ * \param module   The Module -- must not be \c NULL.
  *
  * \return   The parameter \a params if successful, or \c NULL if memory
  *           allocation failed.
  */
-Master_params* Master_params_init(Master_params* params, Environment* env);
+Master_params* Master_params_init(Master_params* params, const Module* module);
 
 
 /**
@@ -88,7 +95,7 @@ Master_params* Master_params_init(Master_params* params, Environment* env);
  * \param params   The Master params -- must not be \c NULL.
  * \param module   The Module -- must not be \c NULL.
  */
-void Master_params_reset(Master_params* params, const Module* module);
+void Master_params_reset(Master_params* params);
 
 
 /**

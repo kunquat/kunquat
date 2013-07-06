@@ -22,6 +22,7 @@
 #include <Device_node.h>
 #include <Environment.h>
 #include <Event_handler.h>
+#include <events/Event_global_jump.h>
 #include <math_common.h>
 #include <memory.h>
 #include <Pat_inst_ref.h>
@@ -111,7 +112,7 @@ Player* new_Player(const Module* module)
         }
     }
 
-    if (Master_params_init(&player->master_params, player->env) == NULL)
+    if (Master_params_init(&player->master_params, player->module) == NULL)
     {
         del_Player(player);
         return NULL;
@@ -155,7 +156,7 @@ void Player_reset(Player* player)
 
     // TODO: playback mode and start pos as arguments
 
-    Master_params_reset(&player->master_params, player->module);
+    Master_params_reset(&player->master_params);
 
     player->frame_remainder = 0.0;
 
@@ -213,13 +214,45 @@ static void Player_process_cgiters(Player* player, Tstamp* limit)
             // Process triggers
             while (el->event != NULL)
             {
-                const bool success = Event_handler_trigger(
-                        player->event_handler,
-                        i,
-                        Event_get_desc(el->event),
-                        false, // not silent
-                        NULL);
+                bool success = false;
+                if (Event_get_type(el->event) == Trigger_jump)
+                {
+                    // Set current pattern instance, FIXME: hackish
+                    player->master_params.cur_pos.piref =
+                        cgiter->pos.piref;
 
+                    Trigger_global_jump_process(
+                            el->event,
+                            &player->master_params,
+                            NULL);
+                    success = true;
+
+                    // Break if jump triggered
+                    if (player->master_params.do_jump)
+                    {
+                        player->master_params.do_jump = false;
+                        Tstamp_set(limit, 0, 0);
+
+                        // Move cgiters to the new position
+                        for (int k = 0; k < KQT_CHANNELS_MAX; ++k)
+                            Cgiter_reset(
+                                    &player->cgiters[k],
+                                    &player->master_params.cur_pos);
+
+                        return;
+                    }
+                }
+                else
+                {
+                    success = Event_handler_trigger(
+                            player->event_handler,
+                            i,
+                            Event_get_desc(el->event),
+                            false, // not silent
+                            NULL);
+                }
+
+                assert(success);
                 (void)success;
                 ++player->master_params.cur_trigger;
 
