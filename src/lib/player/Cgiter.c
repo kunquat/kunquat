@@ -26,8 +26,7 @@ void Cgiter_init(Cgiter* cgiter, const Module* module, int col_index)
     cgiter->module = module;
     cgiter->col_index = col_index;
     Position_init(&cgiter->pos);
-    cgiter->citer = new_Column_iter(NULL); // FIXME: handle alloc failure
-    assert(cgiter->citer != NULL);
+    Column_iter_init(&cgiter->citer);
 
     cgiter->cur_tr.head = NULL;
 
@@ -119,8 +118,8 @@ const Trigger_row* Cgiter_get_trigger_row(Cgiter* cgiter)
     if (column == NULL)
         return NULL;
 
-    Column_iter_change_col(cgiter->citer, column);
-    cgiter->cur_tr.head = Column_iter_get_row(cgiter->citer, &cgiter->pos.pat_pos);
+    Column_iter_change_col(&cgiter->citer, column);
+    cgiter->cur_tr.head = Column_iter_get_row(&cgiter->citer, &cgiter->pos.pat_pos);
     if (cgiter->cur_tr.head == NULL)
         return NULL;
     assert(cgiter->cur_tr.head->next != NULL);
@@ -132,7 +131,7 @@ const Trigger_row* Cgiter_get_trigger_row(Cgiter* cgiter)
 }
 
 
-bool Cgiter_peek(const Cgiter* cgiter, Tstamp* dist)
+bool Cgiter_peek(Cgiter* cgiter, Tstamp* dist)
 {
     assert(cgiter != NULL);
     assert(dist != NULL);
@@ -176,12 +175,12 @@ bool Cgiter_peek(const Cgiter* cgiter, Tstamp* dist)
         // Check next trigger row
         Column* column = Pattern_get_column(pattern, cgiter->col_index);
         assert(column != NULL);
-        Column_iter_change_col(cgiter->citer, column);
+        Column_iter_change_col(&cgiter->citer, column);
         const Tstamp* next_pos_min = Tstamp_add(
                 TSTAMP_AUTO,
                 &pos.pat_pos,
                 Tstamp_set(TSTAMP_AUTO, 0, 1));
-        Event_list* row = Column_iter_get_row(cgiter->citer, next_pos_min);
+        Event_list* row = Column_iter_get_row(&cgiter->citer, next_pos_min);
         if (row != NULL)
         {
             assert(row->next != NULL);

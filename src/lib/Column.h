@@ -35,16 +35,22 @@ typedef struct Event_list
 
 
 /**
- * Column_iter is used for retrieving Events from a Column.
- */
-typedef struct Column_iter Column_iter;
-
-
-/**
  * Column is a container for Events in a Pattern. It typically contains a
  * "monophonic" section of music, or global Events.
  */
 typedef struct Column Column;
+
+
+/**
+ * Column_iter is used for retrieving Events from a Column.
+ */
+typedef struct Column_iter
+{
+    uint32_t version;
+    Column* col;
+    AAiter tree_iter;
+    Event_list* elist;
+} Column_iter;
 
 
 /**
@@ -53,6 +59,14 @@ typedef struct Column Column;
  * \param col   The Column associated with the iterator.
  */
 Column_iter* new_Column_iter(Column* col);
+
+
+/**
+ * Initialises a Column iterator.
+ *
+ * \param iter   The Column iterator -- must not be \c NULL.
+ */
+void Column_iter_init(Column_iter* iter);
 
 
 /**

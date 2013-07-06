@@ -32,15 +32,6 @@
 #define COLUMN_AUX (-2)
 
 
-struct Column_iter
-{
-    uint32_t version;
-    Column* col;
-    AAiter* tree_iter;
-    Event_list* elist;
-};
-
-
 struct Column
 {
     Tstamp len;
@@ -114,17 +105,30 @@ Column_iter* new_Column_iter(Column* col)
     {
         return NULL;
     }
-    iter->col = col;
-    iter->version = (col != NULL) ? col->version : 0;
-    AAtree* events = (col != NULL) ? col->events : NULL;
-    iter->tree_iter = new_AAiter(events);
-    if (iter->tree_iter == NULL)
+
+    Column_iter_init(iter);
+
+    if (col != NULL)
     {
-        memory_free(iter);
-        return NULL;
+        iter->version = col->version;
+        iter->col = col;
+        iter->tree_iter.tree = col->events;
     }
-    iter->elist = NULL;
+
     return iter;
+}
+
+
+void Column_iter_init(Column_iter* iter)
+{
+    assert(iter != NULL);
+
+    iter->version = 0;
+    iter->col = NULL;
+    iter->tree_iter = *AAITER_AUTO;
+    iter->elist = NULL;
+
+    return;
 }
 
 
@@ -134,7 +138,7 @@ void Column_iter_change_col(Column_iter* iter, Column* col)
     assert(col != NULL);
     iter->col = col;
     iter->version = col->version;
-    AAiter_change_tree(iter->tree_iter, col->events);
+    AAiter_change_tree(&iter->tree_iter, col->events);
     iter->elist = NULL;
     return;
 }
@@ -171,7 +175,7 @@ Event_list* Column_iter_get_row(Column_iter* iter, const Tstamp* pos)
     Event* event = &(Event){ .type = Event_NONE };
     Tstamp_copy(&event->pos, pos);
     Event_list* key = Event_list_init(&(Event_list){ .event = event });
-    iter->elist = AAiter_get_at_least(iter->tree_iter, key);
+    iter->elist = AAiter_get_at_least(&iter->tree_iter, key);
 
     return iter->elist;
 }
@@ -224,7 +228,7 @@ Event_list* Column_iter_get_next_row(Column_iter* iter)
         return NULL;
     }
 
-    iter->elist = AAiter_get_next(iter->tree_iter);
+    iter->elist = AAiter_get_next(&iter->tree_iter);
 
     return iter->elist;
 }
@@ -236,7 +240,6 @@ void del_Column_iter(Column_iter* iter)
     {
         return;
     }
-    del_AAiter(iter->tree_iter);
     memory_free(iter);
     return;
 }

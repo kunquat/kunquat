@@ -39,7 +39,7 @@ typedef struct Cgiter
     int col_index;
 
     Position pos;
-    Column_iter* citer;
+    Column_iter citer;
     Trigger_row cur_tr; // TODO: remove
 } Cgiter;
 
@@ -84,7 +84,7 @@ const Trigger_row* Cgiter_get_trigger_row(Cgiter* cgiter);
  *
  * \return   \c true if \a dist was modified, otherwise \c false.
  */
-bool Cgiter_peek(const Cgiter* cgiter, Tstamp* dist);
+bool Cgiter_peek(Cgiter* cgiter, Tstamp* dist);
 
 
 /**
