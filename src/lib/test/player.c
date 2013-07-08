@@ -892,6 +892,48 @@ START_TEST(Jump_backwards_creates_a_loop)
 END_TEST
 
 
+START_TEST(Events_appear_in_event_buffer)
+{
+    setup_debug_instrument();
+    setup_debug_single_pulse();
+
+    check_unexpected_error();
+
+    Player_reset(player);
+
+    const char* actual_events = Player_get_events(player);
+    const char expected_events_none[] = "[]";
+
+    fail_unless(strcmp(actual_events, expected_events_none) == 0,
+            "Wrong events received"
+            KT_VALUES("%s", expected_events_none, actual_events));
+
+    Read_state* rs = READ_STATE_AUTO;
+    if (!Player_fire(player, 0, "[\"Ipause\", null]", rs))
+        fail("Could not fire event: %s", rs->message);
+
+    actual_events = Player_get_events(player);
+    const char expected_events_1[] =
+        "[[0, [\"Ipause\", null]]]";
+
+    fail_unless(strcmp(actual_events, expected_events_1) == 0,
+            "Wrong events received"
+            KT_VALUES("%s", expected_events_1, actual_events));
+
+    if (!Player_fire(player, 2, "[\".arpi\", 0]", rs))
+        fail("Could not fire event: %s", rs->message);
+
+    actual_events = Player_get_events(player);
+    const char expected_events_2[] =
+        "[[2, [\".arpi\", 0]]]";
+
+    fail_unless(strcmp(actual_events, expected_events_2) == 0,
+            "Wrong events received"
+            KT_VALUES("%s", expected_events_2, actual_events));
+}
+END_TEST
+
+
 Suite* Player_suite(void)
 {
     Suite* s = suite_create("Player");
@@ -950,6 +992,7 @@ Suite* Player_suite(void)
     tcase_add_loop_test(
             tc_events, Jump_backwards_creates_a_loop,
             0, 4);
+    tcase_add_test(tc_events, Events_appear_in_event_buffer);
 
     return s;
 }

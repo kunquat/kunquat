@@ -12,6 +12,7 @@
  */
 
 
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -29,6 +30,76 @@ Value* Value_copy(Value* restrict dest, const Value* restrict src)
     assert(dest != src);
     memcpy(dest, src, sizeof(Value));
     return dest;
+}
+
+
+bool Value_convert(Value* dest, const Value* src, Value_type new_type)
+{
+    assert(dest != NULL);
+    assert(src != NULL);
+    assert(new_type > VALUE_TYPE_NONE);
+    assert(new_type < VALUE_TYPE_COUNT);
+
+    switch (new_type)
+    {
+        case VALUE_TYPE_INT:
+        {
+            if (src->type == VALUE_TYPE_FLOAT)
+            {
+                dest->type = VALUE_TYPE_INT;
+                dest->value.int_type = src->value.float_type;
+            }
+            else if (src->type != VALUE_TYPE_INT)
+                return false;
+        }
+        break;
+
+        case VALUE_TYPE_FLOAT:
+        {
+            if (src->type == VALUE_TYPE_INT)
+            {
+                dest->type = VALUE_TYPE_FLOAT;
+                dest->value.float_type = src->value.int_type;
+            }
+            else if (src->type != VALUE_TYPE_FLOAT)
+                return false;
+        }
+        break;
+
+        case VALUE_TYPE_TSTAMP:
+        {
+            if (src->type == VALUE_TYPE_INT)
+            {
+                dest->type = VALUE_TYPE_TSTAMP;
+                Tstamp_set(
+                        &dest->value.Tstamp_type,
+                        src->value.int_type, 0);
+            }
+            else if (src->type == VALUE_TYPE_FLOAT)
+            {
+                dest->type = VALUE_TYPE_TSTAMP;
+                double beats_f = src->value.float_type;
+                double beats = floor(beats_f);
+                Tstamp_set(
+                        &dest->value.Tstamp_type,
+                        beats,
+                        (beats_f - beats) * KQT_TSTAMP_BEAT);
+            }
+            else if (src->type != VALUE_TYPE_TSTAMP)
+                return false;
+        }
+        break;
+
+        default:
+        {
+            // Other types don't support conversions
+            if (src->type != new_type)
+                return false;
+        }
+        break;
+    }
+
+    return true;
 }
 
 

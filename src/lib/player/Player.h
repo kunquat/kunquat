@@ -16,7 +16,9 @@
 #define K_PLAYER_H
 
 
+#include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 #include <Module.h>
 
@@ -82,7 +84,17 @@ int32_t Player_get_frames_available(Player* player);
  *
  * \return   The audio buffer.
  */
-float* Player_get_audio(Player* player, int channel);
+const float* Player_get_audio(Player* player, int channel);
+
+
+/**
+ * Returns an internal event buffer.
+ *
+ * \param player   The Player -- must not be \c NULL.
+ *
+ * \return   The event buffer.
+ */
+const char* Player_get_events(Player* player);
 
 
 /**

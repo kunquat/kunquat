@@ -548,6 +548,31 @@ static bool Event_handler_act(
 }
 
 
+bool Event_handler_trigger_new(
+        Event_handler* eh,
+        int ch_num,
+        char* name,
+        Value* arg)
+{
+    assert(eh != NULL);
+    assert(ch_num >= 0);
+    assert(ch_num < KQT_CHANNELS_MAX);
+    assert(name != NULL);
+    assert(arg != NULL);
+
+    Event_type type = Event_names_get(eh->event_names, name);
+    assert(type != Event_NONE);
+
+    return Event_handler_act(
+            eh,
+            false, // silent
+            ch_num,
+            name,
+            type,
+            arg);
+}
+
+
 bool Event_handler_process_type(
         Event_handler* eh,
         int index,

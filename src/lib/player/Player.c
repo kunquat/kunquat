@@ -27,9 +27,11 @@
 #include <memory.h>
 #include <Pat_inst_ref.h>
 #include <player/Cgiter.h>
+#include <player/Event_buffer.h>
 #include <player/Master_params.h>
 #include <player/Player.h>
 #include <player/Position.h>
+#include <player/triggers.h>
 #include <Tstamp.h>
 #include <Voice_pool.h>
 #include <xassert.h>
@@ -45,6 +47,7 @@ struct Player
     int32_t audio_frames_available;
 
     Environment*   env;
+    Event_buffer_2* event_buffer;
     Voice_pool*    voices;
     Master_params  master_params;
     Channel_state* channels[KQT_CHANNELS_MAX];
@@ -74,6 +77,7 @@ Player* new_Player(const Module* module)
     player->audio_frames_available = 0;
 
     player->env = NULL;
+    player->event_buffer = NULL;
     player->voices = NULL;
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
         player->channels[i] = NULL;
@@ -85,8 +89,10 @@ Player* new_Player(const Module* module)
 
     // Init fields
     player->env = new_Environment();
+    player->event_buffer = new_Event_buffer_2(16384);
     player->voices = new_Voice_pool(256);
     if (player->env == NULL ||
+            player->event_buffer == NULL ||
             player->voices == NULL ||
             !Voice_pool_reserve_state_space(
                 player->voices,
@@ -165,6 +171,8 @@ void Player_reset(Player* player)
         Cgiter_reset(&player->cgiters[i], &player->master_params.cur_pos);
     }
 
+    Event_buffer_2_clear(player->event_buffer);
+
     return;
 }
 
@@ -177,6 +185,57 @@ bool Player_set_audio_rate(Player* player, int32_t rate)
     player->audio_rate = rate;
 
     return true;
+}
+
+
+static void Player_process_trigger(
+        Player* player,
+        int ch_num,
+        char* trigger_desc)
+{
+    Read_state* rs = READ_STATE_AUTO;
+    Event_names* event_names = Event_handler_get_names(player->event_handler);
+
+    char event_name[EVENT_NAME_MAX + 1] = "";
+    Event_type type = Event_NONE;
+
+    trigger_desc = get_event_type_info(
+            trigger_desc,
+            event_names,
+            rs,
+            event_name,
+            &type);
+
+    Value* arg = VALUE_AUTO;
+
+    trigger_desc = process_expr(
+            trigger_desc,
+            Event_names_get_param_type(event_names, event_name),
+            player->env,
+            player->channels[ch_num]->rand,
+            NULL,
+            rs,
+            arg);
+
+    if (rs->error)
+    {
+        fprintf(stderr, "parse fail: %s\n", rs->message);
+        return;
+    }
+
+    if (!Event_handler_trigger_new(
+            player->event_handler,
+            ch_num,
+            event_name,
+            arg))
+    {
+        fprintf(stderr, "not triggered\n");
+        return;
+    }
+
+    Event_buffer_2_add(player->event_buffer, ch_num, event_name, arg);
+
+    return;
 }
 
 
@@ -214,7 +273,6 @@ static void Player_process_cgiters(Player* player, Tstamp* limit)
             // Process triggers
             while (el->event != NULL)
             {
-                bool success = false;
                 if (Event_get_type(el->event) == Trigger_jump)
                 {
                     // Set current pattern instance, FIXME: hackish
@@ -225,7 +283,6 @@ static void Player_process_cgiters(Player* player, Tstamp* limit)
                             el->event,
                             &player->master_params,
                             NULL);
-                    success = true;
 
                     // Break if jump triggered
                     if (player->master_params.do_jump)
@@ -244,16 +301,9 @@ static void Player_process_cgiters(Player* player, Tstamp* limit)
                 }
                 else
                 {
-                    success = Event_handler_trigger(
-                            player->event_handler,
-                            i,
-                            Event_get_desc(el->event),
-                            false, // not silent
-                            NULL);
+                    Player_process_trigger(player, i, Event_get_desc(el->event));
                 }
 
-                assert(success);
-                (void)success;
                 ++player->master_params.cur_trigger;
 
                 // Break if tempo settings changed or delay was added
@@ -501,6 +551,8 @@ void Player_play(Player* player, int32_t nframes)
     assert(player != NULL);
     assert(nframes >= 0);
 
+    Event_buffer_2_clear(player->event_buffer);
+
     nframes = MIN(nframes, player->audio_chunk_size);
 
     // TODO: separate data and playback state in connections
@@ -588,11 +640,18 @@ int32_t Player_get_frames_available(Player* player)
 }
 
 
-float* Player_get_audio(Player* player, int channel)
+const float* Player_get_audio(Player* player, int channel)
 {
     assert(player != NULL);
     assert(channel == 0 || channel == 1);
     return player->audio_buffers[channel];
+}
+
+
+const char* Player_get_events(Player* player)
+{
+    assert(player != NULL);
+    return Event_buffer_2_get_events(player->event_buffer);
 }
 
 
@@ -614,12 +673,90 @@ bool Player_fire(Player* player, int ch, char* event_desc, Read_state* rs)
     if (rs->error)
         return false;
 
-    return Event_handler_trigger_const(
+    Event_buffer_2_clear(player->event_buffer);
+
+    Event_names* event_names = Event_handler_get_names(player->event_handler);
+
+    char event_name[EVENT_NAME_MAX + 1] = "";
+    Event_type type = Event_NONE;
+
+    // Get event name
+    event_desc = get_event_type_info(
+            event_desc,
+            event_names,
+            rs,
+            event_name,
+            &type);
+    if (rs->error)
+        return false;
+
+    // Get event argument
+    Value* value = VALUE_AUTO;
+    value->type = Event_names_get_param_type(event_names, event_name);
+
+    switch (value->type)
+    {
+        case VALUE_TYPE_NONE:
+            event_desc = read_null(event_desc, rs);
+            break;
+
+        case VALUE_TYPE_BOOL:
+            event_desc = read_bool(event_desc, &value->value.bool_type, rs);
+            break;
+
+        case VALUE_TYPE_INT:
+            event_desc = read_int(event_desc, &value->value.int_type, rs);
+            break;
+
+        case VALUE_TYPE_FLOAT:
+            event_desc = read_double(event_desc, &value->value.float_type, rs);
+            break;
+
+        case VALUE_TYPE_TSTAMP:
+            event_desc = read_tstamp(event_desc, &value->value.Tstamp_type, rs);
+            break;
+
+        case VALUE_TYPE_STRING:
+        {
+            event_desc = read_string(
+                    event_desc,
+                    value->value.string_type,
+                    ENV_VAR_NAME_MAX,
+                    rs);
+        }
+        break;
+
+        case VALUE_TYPE_PAT_INST_REF:
+        {
+            event_desc = read_pat_inst_ref(
+                    event_desc,
+                    &value->value.Pat_inst_ref_type,
+                    rs);
+        }
+        break;
+
+        default:
+            assert(false);
+    }
+
+    event_desc = read_const_char(event_desc, ']', rs);
+    if (rs->error)
+        return false;
+
+    // Fire
+    if (!Event_handler_trigger_new(
             player->event_handler,
             ch,
-            event_desc,
-            false,
-            rs);
+            event_name,
+            value))
+    {
+        return false;
+    }
+
+    // Add event to buffer
+    Event_buffer_2_add(player->event_buffer, ch, event_name, value);
+
+    return true;
 }
 
 
@@ -633,6 +770,7 @@ void del_Player(Player* player)
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
         del_Channel_state(player->channels[i]);
     Master_params_deinit(&player->master_params);
+    del_Event_buffer_2(player->event_buffer);
     del_Environment(player->env);
 
     for (int i = 0; i < KQT_BUFFERS_MAX; ++i)

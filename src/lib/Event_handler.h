@@ -210,6 +210,25 @@ bool Event_handler_trigger(
 
 
 /**
+ * Triggers an event.
+ *
+ * \param eh       The Event handler -- must not be \c NULL.
+ * \param ch_num   The channel number -- must be >= \c 0 and
+ *                 < \c KQT_CHANNELS_MAX.
+ * \param name     The event name -- must be a valid name.
+ * \param arg      The event argument -- must not be \c NULL.
+ *
+ * \return   \c true if the Event was triggered successfully, otherwise
+ *           \c false.
+ */
+bool Event_handler_trigger_new( // TODO: remove the old interface and rename this
+        Event_handler* eh,
+        int ch_num,
+        char* name,
+        Value* arg);
+
+
+/**
  * Triggers an Event with a const parameter.
  *
  * \param eh       The Event handler -- must not be \c NULL.

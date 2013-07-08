@@ -66,7 +66,21 @@ typedef struct Value
  *
  * \return   The parameter \a dest.
  */
-Value* Value_copy(Value* dest, const Value* src);
+Value* Value_copy(Value* restrict dest, const Value* restrict src);
+
+
+/**
+ * Converts a Value to another type.
+ *
+ * \param dest       The destination Value -- must not be \c NULL.
+ * \param src        The source Value -- must not be \c NULL (but may be
+ *                   \a dest).
+ * \param new_type   The new Value type -- must be valid.
+ *
+ * \return   \c true if successful, or \c false if \a src cannot be converted
+ *           to \a new_type.
+ */
+bool Value_convert(Value* dest, const Value* src, Value_type new_type);
 
 
 /**

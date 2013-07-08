@@ -39,7 +39,7 @@ char* evaluate_expr(
         char* str,
         Environment* env,
         Read_state* state,
-        Value* meta,
+        const Value* meta,
         Value* res,
         Random* rand);
 

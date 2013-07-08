@@ -52,7 +52,7 @@ static char* evaluate_expr_(
         int vsi,
         Operator* op_stack,
         int osi,
-        Value* meta,
+        const Value* meta,
         Value* res,
         int depth,
         bool func_arg,
@@ -74,7 +74,7 @@ static char* get_op_token(char* str, char* result, Read_state* state);
 
 
 static bool Value_from_token(Value* val, char* token,
-                             Environment* env, Value* meta);
+                             Environment* env, const Value* meta);
 
 //static void Value_print(Value* val);
 
@@ -167,7 +167,7 @@ char* evaluate_expr(
         char* str,
         Environment* env,
         Read_state* state,
-        Value* meta,
+        const Value* meta,
         Value* res,
         Random* rand)
 {
@@ -222,7 +222,7 @@ static char* evaluate_expr_(
         int vsi,
         Operator* op_stack,
         int osi,
-        Value* meta,
+        const Value* meta,
         Value* res,
         int depth,
         bool func_arg,
@@ -561,8 +561,11 @@ static bool handle_unary(
 }
 
 
-static bool Value_from_token(Value* val, char* token,
-                             Environment* env, Value* meta)
+static bool Value_from_token(
+        Value* val,
+        char* token,
+        Environment* env,
+        const Value* meta)
 {
     assert(val != NULL);
     assert(token != NULL);
