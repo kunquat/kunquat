@@ -55,8 +55,6 @@ bool kqt_Handle_init(kqt_Handle* handle, long buffer_size)
     handle->data_is_validated = true;
     handle->module = NULL;
     handle->destroy = NULL;
-    handle->get_data = NULL;
-    handle->get_data_length = NULL;
     handle->set_data = NULL;
     memset(handle->error, '\0', KQT_HANDLE_ERROR_LENGTH);
     memset(handle->validation_error, '\0', KQT_HANDLE_ERROR_LENGTH);

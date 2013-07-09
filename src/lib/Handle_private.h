@@ -57,8 +57,6 @@ struct kqt_Handle
     bool data_is_valid;
     bool data_is_validated;
     Module* module;
-    void* (*get_data)(kqt_Handle* handle, const char* key);
-    long (*get_data_length)(kqt_Handle* handle, const char* key);
     int (*set_data)(kqt_Handle* handle, const char* key, void* data, long length);
     void (*destroy)(struct kqt_Handle* handle);
     char error[KQT_HANDLE_ERROR_LENGTH];
