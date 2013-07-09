@@ -43,9 +43,6 @@ static bool add_handle(kqt_Handle* handle);
 static bool remove_handle(kqt_Handle* handle);
 
 
-static int ptrcmp(const void* ptr1, const void* ptr2);
-
-
 bool kqt_Handle_init(kqt_Handle* handle, long buffer_size)
 {
     assert(handle != NULL);
@@ -68,15 +65,6 @@ bool kqt_Handle_init(kqt_Handle* handle, long buffer_size)
 //    int buffer_count = SONG_DEFAULT_BUF_COUNT;
 //    int voice_count = 256;
 
-    handle->returned_values = new_AAtree(ptrcmp, memory_free);
-    if (handle->returned_values == NULL)
-    {
-        kqt_Handle_set_error(NULL, ERROR_MEMORY, "Couldn't allocate memory");
-        bool removed = remove_handle(handle);
-        assert(removed);
-        (void)removed;
-        return false;
-    }
     handle->module = new_Module(buffer_size);
     if (handle->module == NULL)
     {
@@ -84,7 +72,6 @@ bool kqt_Handle_init(kqt_Handle* handle, long buffer_size)
         bool removed = remove_handle(handle);
         assert(removed);
         (void)removed;
-        del_AAtree(handle->returned_values);
         return false;
     }
 
@@ -391,50 +378,6 @@ void kqt_Handle_set_error_(kqt_Handle* handle,
 }
 
 
-#if 0
-void* kqt_Handle_get_data(kqt_Handle* handle, const char* key)
-{
-    check_handle(handle, NULL);
-    check_key(handle, key, NULL);
-    if (handle->modulee == KQT_MEM)
-    {
-        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
-                "Cannot get data from a write-only Kunquat Handle.");
-        return NULL;
-    }
-    assert(handle->get_data != NULL);
-    void* data = handle->get_data(handle, key);
-    if (data != NULL)
-    {
-        assert(AAtree_get_exact(handle->returned_values, data) == NULL);
-        if (!AAtree_ins(handle->returned_values, data))
-        {
-            kqt_Handle_set_error(handle, ERROR_MEMORY,
-                    "Couldn't allocate memory");
-            memory_free(data);
-            return NULL;
-        }
-    }
-    return data;
-}
-
-
-long kqt_Handle_get_data_length(kqt_Handle* handle, const char* key)
-{
-    check_handle(handle, -1);
-    check_key(handle, key, -1);
-    if (handle->modulee == KQT_MEM)
-    {
-        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
-                "Cannot get data from a write-only Kunquat Handle.");
-        return -1;
-    }
-    assert(handle->get_data_length != NULL);
-    return handle->get_data_length(handle, key);
-}
-#endif
-
-
 int kqt_Handle_set_data(kqt_Handle* handle,
                         const char* key,
                         void* data,
@@ -451,25 +394,6 @@ int kqt_Handle_set_data(kqt_Handle* handle,
 
     assert(handle->set_data != NULL);
     return handle->set_data(handle, key, data, length);
-}
-
-
-int kqt_Handle_free_data(kqt_Handle* handle, void* data)
-{
-    check_handle(handle, 0);
-    if (data == NULL)
-    {
-        return 1;
-    }
-    void* target = NULL;
-    if ((target = AAtree_remove(handle->returned_values, data)) == NULL)
-    {
-        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
-                "Data %p does not originate from this Handle", data);
-        return 0;
-    }
-    memory_free(target);
-    return 1;
 }
 
 
@@ -555,33 +479,13 @@ void kqt_del_Handle(kqt_Handle* handle)
                 "Invalid Kunquat Handle: %p", (void*)handle);
         return;
     }
-    if (handle->module != NULL)
-    {
-        del_Module(handle->module);
-        handle->module = NULL;
-    }
-    if (handle->returned_values != NULL)
-    {
-        del_AAtree(handle->returned_values);
-        handle->returned_values = NULL;
-    }
+
+    del_Module(handle->module);
+    handle->module = NULL;
+
     assert(handle->destroy != NULL);
     handle->destroy(handle);
     return;
-}
-
-
-static int ptrcmp(const void* ptr1, const void* ptr2)
-{
-    if (ptr1 < ptr2)
-    {
-        return -1;
-    }
-    else if (ptr1 > ptr2)
-    {
-        return 1;
-    }
-    return 0;
 }
 
 

@@ -23,6 +23,7 @@
 
 #include <Module.h>
 #include <Playdata.h>
+#include <player/Player.h>
 #include <Voice_pool.h>
 
 
@@ -56,7 +57,6 @@ struct kqt_Handle
     bool data_is_valid;
     bool data_is_validated;
     Module* module;
-    AAtree* returned_values;
     void* (*get_data)(kqt_Handle* handle, const char* key);
     long (*get_data_length)(kqt_Handle* handle, const char* key);
     int (*set_data)(kqt_Handle* handle, const char* key, void* data, long length);
