@@ -60,8 +60,7 @@ START_TEST(Complete_debug_note_renders_correctly)
 {
     set_mixing_rate(220);
     set_mix_volume(0);
-    fail_if(
-            !Player_set_audio_rate(player, 220),
+    fail_if(!Player_set_audio_rate(player, 220),
             "Could not set player audio rate");
 
     setup_debug_instrument();
@@ -103,8 +102,7 @@ START_TEST(Note_off_stops_the_note_correctly)
 {
     set_mixing_rate(220);
     set_mix_volume(0);
-    fail_if(
-            !Player_set_audio_rate(player, 220),
+    fail_if(!Player_set_audio_rate(player, 220),
             "Could not set player audio rate");
 
     setup_debug_instrument();
@@ -166,8 +164,7 @@ START_TEST(Note_end_is_reached_correctly_during_note_off)
 {
     set_mixing_rate(440);
     set_mix_volume(0);
-    fail_if(
-            !Player_set_audio_rate(player, 440),
+    fail_if(!Player_set_audio_rate(player, 440),
             "Could not set player audio rate");
 
     setup_debug_instrument();
@@ -233,8 +230,7 @@ START_TEST(Implicit_note_off_is_triggered_correctly)
 {
     set_mixing_rate(220);
     set_mix_volume(0);
-    fail_if(
-            !Player_set_audio_rate(player, 220),
+    fail_if(!Player_set_audio_rate(player, 220),
             "Could not set player audio rate");
 
     setup_debug_instrument();
@@ -295,8 +291,7 @@ START_TEST(Independent_notes_mix_correctly)
 {
     set_mixing_rate(220);
     set_mix_volume(0);
-    fail_if(
-            !Player_set_audio_rate(player, 220),
+    fail_if(!Player_set_audio_rate(player, 220),
             "Could not set player audio rate");
 
     setup_debug_instrument();
@@ -388,8 +383,7 @@ END_TEST
 START_TEST(Empty_pattern_contains_silence)
 {
     set_mixing_rate(mixing_rates[_i]);
-    fail_if(
-            !Player_set_audio_rate(player, mixing_rates[_i]),
+    fail_if(!Player_set_audio_rate(player, mixing_rates[_i]),
             "Could not set player audio rate");
 
     set_data("album/p_manifest.json", "{}");
@@ -444,8 +438,7 @@ END_TEST
 START_TEST(Note_on_at_pattern_end_is_handled)
 {
     set_mixing_rate(mixing_rates[MIXING_RATE_LOW]);
-    fail_if(
-            !Player_set_audio_rate(player, mixing_rates[MIXING_RATE_LOW]),
+    fail_if(!Player_set_audio_rate(player, mixing_rates[MIXING_RATE_LOW]),
             "Could not set player audio rate");
     set_mix_volume(0);
     setup_debug_instrument();
@@ -489,8 +482,7 @@ END_TEST
 START_TEST(Note_on_after_pattern_end_is_ignored)
 {
     set_mixing_rate(mixing_rates[MIXING_RATE_LOW]);
-    fail_if(
-            !Player_set_audio_rate(player, mixing_rates[MIXING_RATE_LOW]),
+    fail_if(!Player_set_audio_rate(player, mixing_rates[MIXING_RATE_LOW]),
             "Could not set player audio rate");
     set_mix_volume(0);
     setup_debug_instrument();
@@ -550,8 +542,7 @@ END_TEST
 START_TEST(Initial_tempo_is_set_correctly)
 {
     set_mixing_rate(mixing_rates[MIXING_RATE_LOW]);
-    fail_if(
-            !Player_set_audio_rate(player, mixing_rates[MIXING_RATE_LOW]),
+    fail_if(!Player_set_audio_rate(player, mixing_rates[MIXING_RATE_LOW]),
             "Could not set player audio rate");
     set_mix_volume(0);
     setup_debug_instrument();
@@ -591,8 +582,7 @@ END_TEST
 START_TEST(Infinite_mode_loops_composition)
 {
     set_mixing_rate(mixing_rates[MIXING_RATE_LOW]);
-    fail_if(
-            !Player_set_audio_rate(player, mixing_rates[MIXING_RATE_LOW]),
+    fail_if(!Player_set_audio_rate(player, mixing_rates[MIXING_RATE_LOW]),
             "Could not set player audio rate");
     set_mix_volume(0);
     setup_debug_instrument();
@@ -635,11 +625,54 @@ START_TEST(Infinite_mode_loops_composition)
 END_TEST
 
 
+START_TEST(Skipping_moves_position_forwards)
+{
+    set_mixing_rate(mixing_rates[MIXING_RATE_LOW]);
+    fail_if(!Player_set_audio_rate(player, mixing_rates[MIXING_RATE_LOW]),
+            "Could not set player audio rate");
+    set_mix_volume(0);
+    setup_debug_instrument();
+    setup_debug_single_pulse();
+
+    set_data("album/p_manifest.json", "{}");
+    set_data("album/p_tracks.json", "[0]");
+    set_data("song_00/p_manifest.json", "{}");
+    set_data("song_00/p_order_list.json", "[ [0, 0] ]");
+    set_data("pat_000/p_manifest.json", "{}");
+    set_data("pat_000/p_pattern.json", "{ \"length\": [8, 0] }");
+    set_data("pat_000/instance_000/p_manifest.json", "{}");
+    set_data("pat_000/col_00/p_triggers.json",
+            "[ [[0, 0], [\"n+\", \"0\"]],"
+            "  [[1, 0], [\"n+\", \"0\"]],"
+            "  [[2, 0], [\"n+\", \"0\"]],"
+            "  [[3, 0], [\"n+\", \"0\"]],"
+            "  [[4, 0], [\"n+\", \"0\"]] ]");
+
+    validate();
+
+    Player_reset(player);
+
+    Player_skip(player, _i * mixing_rates[MIXING_RATE_LOW] / 2);
+    Player_play(player, buf_len);
+    const int32_t nframes = Player_get_frames_available(player);
+
+    const float* actual_buf = Player_get_audio(player, 0);
+
+    float expected_buf[buf_len] = { 0.0f };
+    for (int i = 0; i < 5 - _i; ++i)
+    {
+        expected_buf[i * mixing_rates[MIXING_RATE_LOW] / 2] = 1.0f;
+    }
+
+    check_buffers_equal(expected_buf, actual_buf, nframes, 0.0f);
+}
+END_TEST
+
+
 START_TEST(Pattern_delay_extends_gap_between_trigger_rows)
 {
     set_mixing_rate(mixing_rates[MIXING_RATE_LOW]);
-    fail_if(
-            !Player_set_audio_rate(player, mixing_rates[MIXING_RATE_LOW]),
+    fail_if(!Player_set_audio_rate(player, mixing_rates[MIXING_RATE_LOW]),
             "Could not set player audio rate");
     set_mix_volume(0);
     setup_debug_instrument();
@@ -680,8 +713,7 @@ END_TEST
 START_TEST(Pattern_delay_inserts_gap_between_adjacent_triggers)
 {
     set_mixing_rate(mixing_rates[MIXING_RATE_LOW]);
-    fail_if(
-            !Player_set_audio_rate(player, mixing_rates[MIXING_RATE_LOW]),
+    fail_if(!Player_set_audio_rate(player, mixing_rates[MIXING_RATE_LOW]),
             "Could not set player audio rate");
     set_mix_volume(0);
     setup_debug_instrument();
@@ -722,8 +754,7 @@ END_TEST
 START_TEST(Tempo_change_affects_playback_cursor)
 {
     set_mixing_rate(mixing_rates[MIXING_RATE_LOW]);
-    fail_if(
-            !Player_set_audio_rate(player, mixing_rates[MIXING_RATE_LOW]),
+    fail_if(!Player_set_audio_rate(player, mixing_rates[MIXING_RATE_LOW]),
             "Could not set player audio rate");
     set_mix_volume(0);
     setup_debug_instrument();
@@ -770,8 +801,7 @@ END_TEST
 START_TEST(Tempo_slide_affects_playback_cursor)
 {
     set_mixing_rate(mixing_rates[MIXING_RATE_LOW]);
-    fail_if(
-            !Player_set_audio_rate(player, mixing_rates[MIXING_RATE_LOW]),
+    fail_if(!Player_set_audio_rate(player, mixing_rates[MIXING_RATE_LOW]),
             "Could not set player audio rate");
     set_mix_volume(0);
     setup_debug_instrument();
@@ -849,8 +879,7 @@ END_TEST
 START_TEST(Jump_backwards_creates_a_loop)
 {
     set_mixing_rate(mixing_rates[MIXING_RATE_LOW]);
-    fail_if(
-            !Player_set_audio_rate(player, mixing_rates[MIXING_RATE_LOW]),
+    fail_if(!Player_set_audio_rate(player, mixing_rates[MIXING_RATE_LOW]),
             "Could not set player audio rate");
     set_mix_volume(0);
     setup_debug_instrument();
@@ -975,6 +1004,7 @@ Suite* Player_suite(void)
     tcase_add_test(tc_songs, Empty_composition_renders_zero_frames);
     tcase_add_loop_test(tc_songs, Initial_tempo_is_set_correctly, 0, 4);
     tcase_add_test(tc_songs, Infinite_mode_loops_composition);
+    tcase_add_loop_test(tc_songs, Skipping_moves_position_forwards, 0, 4);
 
     // Events
     tcase_add_loop_test(

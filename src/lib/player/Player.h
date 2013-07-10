@@ -59,11 +59,21 @@ void Player_reset(Player* player);
 /**
  * Plays music.
  *
+ * \param player    The Player -- must not be \c NULL.
  * \param nframes   The number of frames to be rendered -- must be >= \c 0.
  *                  The actual number of frames rendered may be anything
  *                  between \c 0 and \a nframes.
  */
 void Player_play(Player* player, int32_t nframes);
+
+
+/**
+ * Skips music.
+ *
+ * \param player    The Player -- must not be \c NULL.
+ * \param nframes   The number of frames to be skipped -- must be >= \c 0.
+ */
+void Player_skip(Player* player, int32_t nframes);
 
 
 /**

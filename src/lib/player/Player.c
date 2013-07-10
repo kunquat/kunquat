@@ -191,7 +191,8 @@ bool Player_set_audio_rate(Player* player, int32_t rate)
 static void Player_process_trigger(
         Player* player,
         int ch_num,
-        char* trigger_desc)
+        char* trigger_desc,
+        bool skip)
 {
     Read_state* rs = READ_STATE_AUTO;
     Event_names* event_names = Event_handler_get_names(player->event_handler);
@@ -233,13 +234,14 @@ static void Player_process_trigger(
         return;
     }
 
-    Event_buffer_2_add(player->event_buffer, ch_num, event_name, arg);
+    if (!skip)
+        Event_buffer_2_add(player->event_buffer, ch_num, event_name, arg);
 
     return;
 }
 
 
-static void Player_process_cgiters(Player* player, Tstamp* limit)
+static void Player_process_cgiters(Player* player, Tstamp* limit, bool skip)
 {
     assert(player != NULL);
     assert(!Player_has_stopped(player));
@@ -273,7 +275,9 @@ static void Player_process_cgiters(Player* player, Tstamp* limit)
             // Process triggers
             while (el->event != NULL)
             {
-                if (Event_get_type(el->event) == Trigger_jump)
+                const Event_type event_type = Event_get_type(el->event);
+
+                if (event_type == Trigger_jump)
                 {
                     // Set current pattern instance, FIXME: hackish
                     player->master_params.cur_pos.piref =
@@ -301,7 +305,15 @@ static void Player_process_cgiters(Player* player, Tstamp* limit)
                 }
                 else
                 {
-                    Player_process_trigger(player, i, Event_get_desc(el->event));
+                    if (!skip ||
+                            Event_is_control(event_type) ||
+                            Event_is_general(event_type) ||
+                            Event_is_master(event_type))
+                        Player_process_trigger(
+                                player,
+                                i,
+                                Event_get_desc(el->event),
+                                skip);
                 }
 
                 ++player->master_params.cur_trigger;
@@ -423,7 +435,7 @@ static void update_tempo_slide(Master_params* master_params)
 }
 
 
-static int32_t Player_move_forwards(Player* player, int32_t nframes)
+static int32_t Player_move_forwards(Player* player, int32_t nframes, bool skip)
 {
     assert(player != NULL);
     assert(!Player_has_stopped(player));
@@ -464,7 +476,7 @@ static int32_t Player_move_forwards(Player* player, int32_t nframes)
     else
     {
         // Process cgiters
-        Player_process_cgiters(player, limit);
+        Player_process_cgiters(player, limit, skip);
     }
 
     // Get actual number of frames to be rendered
@@ -574,7 +586,7 @@ void Player_play(Player* player, int32_t nframes)
         int32_t to_be_rendered = nframes - rendered;
         if (!player->master_params.parent.pause && !Player_has_stopped(player))
         {
-            to_be_rendered = Player_move_forwards(player, to_be_rendered);
+            to_be_rendered = Player_move_forwards(player, to_be_rendered, false);
         }
 
         // Don't add padding audio if stopped during this call
@@ -628,6 +640,38 @@ void Player_play(Player* player, int32_t nframes)
     }
 
     player->audio_frames_available = rendered;
+
+    return;
+}
+
+
+void Player_skip(Player* player, int32_t nframes)
+{
+    assert(player != NULL);
+    assert(nframes >= 0);
+
+    // Clear buffers as we're not providing meaningful output
+    Event_buffer_2_clear(player->event_buffer);
+    player->audio_frames_available = 0;
+
+    if (Player_has_stopped(player) || player->master_params.parent.pause)
+        return;
+
+    // TODO: check if song or pattern instance location has changed
+
+    // Composition-level progress
+    int32_t skipped = 0;
+    while (skipped < nframes)
+    {
+        // Move forwards in composition
+        int32_t to_be_skipped = nframes - skipped;
+        to_be_skipped = Player_move_forwards(player, to_be_skipped, true);
+
+        if (Player_has_stopped(player))
+            break;
+
+        skipped += to_be_skipped;
+    }
 
     return;
 }
