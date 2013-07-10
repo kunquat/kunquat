@@ -75,19 +75,26 @@ static uint16_t upheap(Voice_pool* pool, uint16_t index);
 
 Voice_pool* new_Voice_pool(uint16_t size)
 {
-    assert(size > 0);
+    //assert(size >= 0);
+
     Voice_pool* pool = memory_alloc_item(Voice_pool);
     if (pool == NULL)
     {
         return NULL;
     }
+
     pool->size = size;
     pool->state_size = 0;
-    pool->voices = memory_alloc_items(Voice, size);
-    if (pool->voices == NULL)
+    pool->voices = NULL;
+
+    if (size > 0)
     {
-        memory_free(pool);
-        return NULL;
+        pool->voices = memory_alloc_items(Voice, size);
+        if (pool->voices == NULL)
+        {
+            memory_free(pool);
+            return NULL;
+        }
     }
     for (int i = 0; i < size; ++i)
     {
@@ -110,18 +117,17 @@ Voice_pool* new_Voice_pool(uint16_t size)
 bool Voice_pool_reserve_state_space(Voice_pool* pool, size_t state_size)
 {
     assert(pool != NULL);
+
     if (state_size <= pool->state_size)
-    {
         return true;
-    }
+
     for (uint16_t i = 0; i < pool->size; ++i)
     {
         if (!Voice_reserve_state_space(pool->voices[i], state_size))
-        {
             return false;
-        }
     }
     pool->state_size = state_size;
+
     return true;
 }
 
@@ -129,31 +135,42 @@ bool Voice_pool_reserve_state_space(Voice_pool* pool, size_t state_size)
 bool Voice_pool_resize(Voice_pool* pool, uint16_t size)
 {
     assert(pool != NULL);
-    assert(size > 0);
+    //assert(size >= 0);
+
     uint16_t new_size = size;
     if (new_size == pool->size)
-    {
         return true;
-    }
+
+    // Remove excess voices if any
     for (uint16_t i = new_size; i < pool->size; ++i)
     {
         del_Voice(pool->voices[i]);
         pool->voices[i] = NULL;
     }
+
     if (new_size < pool->size)
-    {
         pool->size = new_size;
+
+    // Handle 0 voices
+    if (new_size == 0)
+    {
+        memory_free(pool->voices);
+        pool->voices = NULL;
+        return true;
     }
+
+    // Resize voice array
     Voice** new_voices = memory_realloc_items(Voice*, new_size, pool->voices);
     if (new_voices == NULL)
-    {
         return false;
-    }
+
     pool->voices = new_voices;
+
+    // Sanitise new fields if any
     for (uint16_t i = pool->size; i < new_size; ++i)
-    {
         pool->voices[i] = NULL;
-    }
+
+    // Allocate new voices
     for (uint16_t i = pool->size; i < new_size; ++i)
     {
         pool->voices[i] = new_Voice();
@@ -168,6 +185,7 @@ bool Voice_pool_resize(Voice_pool* pool, uint16_t size)
             return false;
         }
     }
+
     pool->size = new_size;
     return true;
 }
@@ -180,11 +198,16 @@ uint16_t Voice_pool_get_size(Voice_pool* pool)
 }
 
 
-Voice* Voice_pool_get_voice(Voice_pool* pool,
-                            Voice* voice,
-                            uint64_t id)
+Voice* Voice_pool_get_voice(
+        Voice_pool* pool,
+        Voice* voice,
+        uint64_t id)
 {
     assert(pool != NULL);
+
+    if (pool->size == 0)
+        return NULL;
+
     if (voice == NULL)
     {
         static uint64_t running_id = 1;
@@ -217,14 +240,19 @@ void Voice_pool_prepare(Voice_pool* pool)
 }
 
 
-uint16_t Voice_pool_mix_bg(Voice_pool* pool,
-                           uint32_t amount,
-                           uint32_t offset,
-                           uint32_t freq,
-                           double tempo)
+uint16_t Voice_pool_mix_bg(
+        Voice_pool* pool,
+        uint32_t amount,
+        uint32_t offset,
+        uint32_t freq,
+        double tempo)
 {
     assert(pool != NULL);
     assert(freq > 0);
+
+    if (pool->size == 0)
+        return 0;
+
     uint16_t active_voices = 0;
     for (uint16_t i = 0; i < pool->size; ++i)
     {
@@ -244,14 +272,19 @@ uint16_t Voice_pool_mix_bg(Voice_pool* pool,
 }
 
 
-uint16_t Voice_pool_mix(Voice_pool* pool,
-                        uint32_t amount,
-                        uint32_t offset,
-                        uint32_t freq,
-                        double tempo)
+uint16_t Voice_pool_mix(
+        Voice_pool* pool,
+        uint32_t amount,
+        uint32_t offset,
+        uint32_t freq,
+        double tempo)
 {
     assert(pool != NULL);
     assert(freq > 0);
+
+    if (pool->size == 0)
+        return 0;
+
     uint16_t active_voices = 0;
     for (uint16_t i = 0; i < pool->size; ++i)
     {
@@ -269,6 +302,7 @@ uint16_t Voice_pool_mix(Voice_pool* pool,
 void Voice_pool_fix_priority(Voice_pool* pool, Voice* voice)
 {
     assert(pool != NULL);
+    assert(pool->size > 0);
     assert(voice != NULL);
     assert(pool->voices[voice->pool_index] == voice);
     heap_mod_key(pool, voice->pool_index);
@@ -289,9 +323,8 @@ void Voice_pool_reset(Voice_pool* pool)
 void del_Voice_pool(Voice_pool* pool)
 {
     if (pool == NULL)
-    {
         return;
-    }
+
     for (uint16_t i = 0; i < pool->size; ++i)
     {
         del_Voice(pool->voices[i]);
@@ -299,6 +332,7 @@ void del_Voice_pool(Voice_pool* pool)
     }
     memory_free(pool->voices);
     memory_free(pool);
+
     return;
 }
 

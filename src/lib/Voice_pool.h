@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -37,7 +37,7 @@ typedef struct Voice_pool
 /**
  * Creates a new Voice pool.
  *
- * \param size     The number of Voices in the Voice pool -- must be > \c 0.
+ * \param size   The number of Voices in the Voice pool -- must be >= \c 0.
  *
  * \return   The new Voice pool if successful, or \c NULL if memory allocation
  *           failed.
@@ -98,11 +98,12 @@ uint16_t Voice_pool_get_size(Voice_pool* pool);
  *                  to be matched.
  *
  * \return   The Voice reserved for use, or \c NULL if \a voice is no longer
- *           under the control of the caller.
+ *           under the control of the caller or the pool size is \c 0.
  */
-Voice* Voice_pool_get_voice(Voice_pool* pool,
-                            Voice* voice,
-                            uint64_t id);
+Voice* Voice_pool_get_voice(
+        Voice_pool* pool,
+        Voice* voice,
+        uint64_t id);
 
 
 /**
@@ -123,11 +124,12 @@ void Voice_pool_prepare(Voice_pool* pool);
  *
  * \return   The number of active Voices.
  */
-uint16_t Voice_pool_mix_bg(Voice_pool* pool,
-                           uint32_t amount,
-                           uint32_t offset,
-                           uint32_t freq,
-                           double tempo);
+uint16_t Voice_pool_mix_bg(
+        Voice_pool* pool,
+        uint32_t amount,
+        uint32_t offset,
+        uint32_t freq,
+        double tempo);
 
 
 /**
@@ -136,7 +138,8 @@ uint16_t Voice_pool_mix_bg(Voice_pool* pool,
  * This function must be called if Voice_mix is called outside
  * Voice_pool_mix_bg.
  *
- * \param pool    The Voice pool -- must not be \c NULL.
+ * \param pool    The Voice pool -- must not be \c NULL and must contain
+ *                at least one voice.
  * \param voice   The Voice -- must not be \c NULL and must be an element of
  *                \a pool.
  */
@@ -153,11 +156,12 @@ void Voice_pool_fix_priority(Voice_pool* pool, Voice* voice);
  *
  * \return   The number of active Voices.
  */
-uint16_t Voice_pool_mix(Voice_pool* pool,
-                        uint32_t amount,
-                        uint32_t offset,
-                        uint32_t freq,
-                        double tempo);
+uint16_t Voice_pool_mix(
+        Voice_pool* pool,
+        uint32_t amount,
+        uint32_t offset,
+        uint32_t freq,
+        double tempo);
 
 
 /**
