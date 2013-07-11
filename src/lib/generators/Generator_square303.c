@@ -34,7 +34,7 @@ Generator* new_Generator_square303(uint32_t buffer_size,
                                    uint32_t mix_rate)
 {
     assert(buffer_size > 0);
-    assert(buffer_size <= KQT_BUFFER_SIZE_MAX);
+    assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
     assert(mix_rate > 0);
     Generator_square303* square303 = memory_alloc_item(Generator_square303);
     if (square303 == NULL)

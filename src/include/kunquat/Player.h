@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -22,6 +22,7 @@ extern "C" {
 
 
 #include <kunquat/Handle.h>
+#include <kunquat/limits.h>
 
 
 /**

@@ -20,6 +20,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include <kunquat/limits.h>
 #include <Module.h>
 
 
@@ -29,12 +30,23 @@ typedef struct Player Player;
 /**
  * Creates a new Player.
  *
- * \param module   The Module -- must not be \c NULL.
+ * \param module              The Module -- must not be \c NULL.
+ * \param audio_rate          The audio rate -- must be > \c 0.
+ * \param audio_buffer_size   The audio chunk size -- must be >= \c 0 and
+ *                            <= \c KQT_AUDIO_BUFFER_SIZE_MAX.
+ * \param event_buffer_size   The event buffer size.
+ * \param voice_count         The number of voices allocated
+ *                            -- must be >= \c 0 and <= \c KQT_VOICES_MAX.
  *
  * \return   The new Player if successful, or \c NULL if memory allocation
  *           failed.
  */
-Player* new_Player(const Module* module);
+Player* new_Player(
+        const Module* module,
+        int32_t audio_rate,
+        int32_t audio_buffer_size,
+        size_t event_buffer_size,
+        int voice_count);
 
 
 /**
@@ -59,7 +71,8 @@ void Player_reset(Player* player);
 /**
  * Plays music.
  *
- * \param player    The Player -- must not be \c NULL.
+ * \param player    The Player -- must not be \c NULL and must have audio
+ *                  buffers of positive size.
  * \param nframes   The number of frames to be rendered -- must be >= \c 0.
  *                  The actual number of frames rendered may be anything
  *                  between \c 0 and \a nframes.

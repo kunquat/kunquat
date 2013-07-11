@@ -32,7 +32,7 @@ DSP* new_DSP(char* str,
 {
     assert(str != NULL);
     assert(buffer_size > 0);
-    assert(buffer_size <= KQT_BUFFER_SIZE_MAX);
+    assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
     assert(state != NULL);
     if (state->error)
     {
@@ -82,7 +82,7 @@ bool DSP_init(DSP* dsp,
     assert(destroy != NULL);
     assert(process != NULL);
     assert(buffer_size > 0);
-    assert(buffer_size <= KQT_BUFFER_SIZE_MAX);
+    assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
     dsp->clear_history = NULL;
     dsp->destroy = destroy;
     dsp->conf = NULL;

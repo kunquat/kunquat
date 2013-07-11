@@ -36,7 +36,7 @@ Generator* new_Generator_pulse(uint32_t buffer_size,
                                uint32_t mix_rate)
 {
     assert(buffer_size > 0);
-    assert(buffer_size <= KQT_BUFFER_SIZE_MAX);
+    assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
     assert(mix_rate > 0);
     Generator_pulse* pulse = memory_alloc_item(Generator_pulse);
     if (pulse == NULL)

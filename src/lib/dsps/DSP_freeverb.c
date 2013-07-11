@@ -91,7 +91,7 @@ static void del_DSP_freeverb(DSP* dsp);
 DSP* new_DSP_freeverb(uint32_t buffer_size, uint32_t mix_rate)
 {
     assert(buffer_size > 0);
-    assert(buffer_size <= KQT_BUFFER_SIZE_MAX);
+    assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
     assert(mix_rate > 0);
     DSP_freeverb* freeverb = memory_alloc_item(DSP_freeverb);
     if (freeverb == NULL)

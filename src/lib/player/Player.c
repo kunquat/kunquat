@@ -42,7 +42,7 @@ struct Player
     const Module* module;
 
     int32_t audio_rate;
-    int32_t audio_chunk_size;
+    int32_t audio_buffer_size;
     float*  audio_buffers[2];
     int32_t audio_frames_available;
 
@@ -59,9 +59,19 @@ struct Player
 };
 
 
-Player* new_Player(const Module* module)
+Player* new_Player(
+        const Module* module,
+        int32_t audio_rate,
+        int32_t audio_buffer_size,
+        size_t event_buffer_size,
+        int voice_count)
 {
     assert(module != NULL);
+    assert(audio_rate > 0);
+    assert(audio_buffer_size >= 0);
+    assert(audio_buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
+    assert(voice_count >= 0);
+    assert(voice_count < KQT_VOICES_MAX);
 
     Player* player = memory_alloc_item(Player);
     if (player == NULL)
@@ -70,8 +80,8 @@ Player* new_Player(const Module* module)
     // Sanitise fields
     player->module = module;
 
-    player->audio_rate = 48000;
-    player->audio_chunk_size = 2048;
+    player->audio_rate = audio_rate;
+    player->audio_buffer_size = audio_buffer_size;
     for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
         player->audio_buffers[i] = NULL;
     player->audio_frames_available = 0;
@@ -89,8 +99,8 @@ Player* new_Player(const Module* module)
 
     // Init fields
     player->env = new_Environment();
-    player->event_buffer = new_Event_buffer_2(16384);
-    player->voices = new_Voice_pool(256);
+    player->event_buffer = new_Event_buffer_2(event_buffer_size);
+    player->voices = new_Voice_pool(voice_count);
     if (player->env == NULL ||
             player->event_buffer == NULL ||
             player->voices == NULL ||
@@ -136,14 +146,17 @@ Player* new_Player(const Module* module)
         return NULL;
     }
 
-    for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
+    if (player->audio_buffer_size > 0)
     {
-        player->audio_buffers[i] = memory_alloc_items(
-                float, player->audio_chunk_size);
-        if (player->audio_buffers[i] == NULL)
+        for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
         {
-            del_Player(player);
-            return NULL;
+            player->audio_buffers[i] = memory_alloc_items(
+                    float, player->audio_buffer_size);
+            if (player->audio_buffers[i] == NULL)
+            {
+                del_Player(player);
+                return NULL;
+            }
         }
     }
 
@@ -561,11 +574,12 @@ static void Player_process_voices(
 void Player_play(Player* player, int32_t nframes)
 {
     assert(player != NULL);
+    assert(player->audio_buffer_size > 0);
     assert(nframes >= 0);
 
     Event_buffer_2_clear(player->event_buffer);
 
-    nframes = MIN(nframes, player->audio_chunk_size);
+    nframes = MIN(nframes, player->audio_buffer_size);
 
     // TODO: separate data and playback state in connections
     Connections* connections = player->module->connections;

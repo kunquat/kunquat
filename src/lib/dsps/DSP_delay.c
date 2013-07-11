@@ -70,7 +70,7 @@ static void del_DSP_delay(DSP* dsp);
 DSP* new_DSP_delay(uint32_t buffer_size, uint32_t mix_rate)
 {
     assert(buffer_size > 0);
-    assert(buffer_size <= KQT_BUFFER_SIZE_MAX);
+    assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
     assert(mix_rate > 0);
     DSP_delay* delay = memory_alloc_item(DSP_delay);
     if (delay == NULL)

@@ -245,7 +245,7 @@ static bool Effect_set_buffer_size(Device* device, uint32_t size)
 {
     assert(device != NULL);
     assert(size > 0);
-    assert(size <= KQT_BUFFER_SIZE_MAX);
+    assert(size <= KQT_AUDIO_BUFFER_SIZE_MAX);
     Effect* eff = (Effect*)device;
     if (!Device_set_buffer_size((Device*)eff->out_iface, size) ||
             !Device_set_buffer_size((Device*)eff->in_iface, size))

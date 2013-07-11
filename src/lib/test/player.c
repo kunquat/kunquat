@@ -31,7 +31,7 @@ void setup_player()
     assert(player == NULL);
     setup_empty();
     const Module* module = Handle_get_module(handle);
-    player = new_Player(module);
+    player = new_Player(module, 48000, 2048, 16384, 256);
     fail_if(player == NULL, "Player creation failed");
     return;
 }

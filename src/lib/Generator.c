@@ -34,7 +34,7 @@ Generator* new_Generator(char* str,
     assert(str != NULL);
     assert(ins_params != NULL);
     assert(buffer_size > 0);
-    assert(buffer_size <= KQT_BUFFER_SIZE_MAX);
+    assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
     assert(mix_rate > 0);
     assert(state != NULL);
     if (state->error)
@@ -77,7 +77,7 @@ bool Generator_init(Generator* gen,
     assert(destroy != NULL);
     assert(mix != NULL);
     assert(buffer_size > 0);
-    assert(buffer_size <= KQT_BUFFER_SIZE_MAX);
+    assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
     assert(mix_rate > 0);
     gen->destroy = destroy;
     gen->mix = mix;

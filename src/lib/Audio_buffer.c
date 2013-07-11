@@ -32,7 +32,7 @@ struct Audio_buffer
 Audio_buffer* new_Audio_buffer(uint32_t size)
 {
     assert(size > 0);
-    assert(size <= KQT_BUFFER_SIZE_MAX);
+    assert(size <= KQT_AUDIO_BUFFER_SIZE_MAX);
     Audio_buffer* buffer = memory_alloc_item(Audio_buffer);
     if (buffer == NULL)
     {
@@ -71,7 +71,7 @@ bool Audio_buffer_resize(Audio_buffer* buffer, uint32_t size)
 {
     assert(buffer != NULL);
     assert(size > 0);
-    assert(size <= KQT_BUFFER_SIZE_MAX);
+    assert(size <= KQT_AUDIO_BUFFER_SIZE_MAX);
     if (buffer->size == size)
     {
         return true;

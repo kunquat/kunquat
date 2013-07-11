@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -51,7 +51,7 @@ extern "C" {
  * This upper limit is a safety measure. Typical applications use much smaller
  * buffer sizes, e.g. 1024 to 8192 frames.
  */
-#define KQT_BUFFER_SIZE_MAX 1048576
+#define KQT_AUDIO_BUFFER_SIZE_MAX 1048576
 
 
 /**

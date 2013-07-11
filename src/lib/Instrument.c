@@ -414,7 +414,7 @@ static bool Instrument_set_buffer_size(Device* device, uint32_t size)
 {
     assert(device != NULL);
     assert(size > 0);
-    assert(size <= KQT_BUFFER_SIZE_MAX);
+    assert(size <= KQT_AUDIO_BUFFER_SIZE_MAX);
     Instrument* ins = (Instrument*)device;
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {

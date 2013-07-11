@@ -67,7 +67,7 @@ static bool Module_set_mix_rate(Device* device, uint32_t mix_rate);
  *
  * \param device   The Module Device -- must not be \c NULL.
  * \param size     The new buffer size -- must be > \c 0 and
- *                 <= \c KQT_BUFFER_SIZE_MAX.
+ *                 <= \c KQT_AUDIO_BUFFER_SIZE_MAX.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
@@ -90,7 +90,7 @@ static bool Module_sync(Device* device);
 Module* new_Module(uint32_t buf_size)
 {
     assert(buf_size > 0);
-    assert(buf_size <= KQT_BUFFER_SIZE_MAX);
+    assert(buf_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
     Module* module = memory_alloc_item(Module);
     if (module == NULL)
     {

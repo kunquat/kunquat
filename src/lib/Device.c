@@ -25,7 +25,7 @@ bool Device_init(Device* device, uint32_t buffer_size, uint32_t mix_rate)
 {
     assert(device != NULL);
     assert(buffer_size > 0);
-    assert(buffer_size <= KQT_BUFFER_SIZE_MAX);
+    assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
     assert(mix_rate > 0);
 
     device->existent = false;
@@ -283,7 +283,7 @@ bool Device_set_buffer_size(Device* device, uint32_t size)
 {
     assert(device != NULL);
     assert(size > 0);
-    assert(size <= KQT_BUFFER_SIZE_MAX);
+    assert(size <= KQT_AUDIO_BUFFER_SIZE_MAX);
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
         for (Device_port_type type = DEVICE_PORT_TYPE_RECEIVE;
