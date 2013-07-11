@@ -61,6 +61,16 @@ bool Player_set_audio_rate(Player* player, int32_t rate);
 
 
 /**
+ * Gets audio rate.
+ *
+ * \param player   The Player -- must not be \c NULL.
+ *
+ * \return   The audio rate.
+ */
+int32_t Player_get_audio_rate(const Player* player);
+
+
+/**
  * Resets the Player state.
  *
  * \param player   The Player -- must not be \c NULL.
@@ -96,7 +106,7 @@ void Player_skip(Player* player, int32_t nframes);
  *
  * \return   The number of frames available.
  */
-int32_t Player_get_frames_available(Player* player);
+int32_t Player_get_frames_available(const Player* player);
 
 
 /**
@@ -107,7 +117,7 @@ int32_t Player_get_frames_available(Player* player);
  *
  * \return   The audio buffer.
  */
-const float* Player_get_audio(Player* player, int channel);
+const float* Player_get_audio(const Player* player, int channel);
 
 
 /**
@@ -117,7 +127,7 @@ const float* Player_get_audio(Player* player, int channel);
  *
  * \return   The event buffer.
  */
-const char* Player_get_events(Player* player);
+const char* Player_get_events(const Player* player);
 
 
 /**
@@ -130,7 +140,7 @@ const char* Player_get_events(Player* player);
  *
  * \return   \c true if end has been reached, otherwise \c false.
  */
-bool Player_has_stopped(Player* player);
+bool Player_has_stopped(const Player* player);
 
 
 /**

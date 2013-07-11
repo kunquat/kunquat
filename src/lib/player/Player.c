@@ -201,6 +201,13 @@ bool Player_set_audio_rate(Player* player, int32_t rate)
 }
 
 
+int32_t Player_get_audio_rate(const Player* player)
+{
+    assert(player != NULL);
+    return player->audio_rate;
+}
+
+
 static void Player_process_trigger(
         Player* player,
         int ch_num,
@@ -691,14 +698,14 @@ void Player_skip(Player* player, int32_t nframes)
 }
 
 
-int32_t Player_get_frames_available(Player* player)
+int32_t Player_get_frames_available(const Player* player)
 {
     assert(player != NULL);
     return player->audio_frames_available;
 }
 
 
-const float* Player_get_audio(Player* player, int channel)
+const float* Player_get_audio(const Player* player, int channel)
 {
     assert(player != NULL);
     assert(channel == 0 || channel == 1);
@@ -706,14 +713,14 @@ const float* Player_get_audio(Player* player, int channel)
 }
 
 
-const char* Player_get_events(Player* player)
+const char* Player_get_events(const Player* player)
 {
     assert(player != NULL);
     return Event_buffer_2_get_events(player->event_buffer);
 }
 
 
-bool Player_has_stopped(Player* player)
+bool Player_has_stopped(const Player* player)
 {
     assert(player != NULL);
     return (player->master_params.playback_state == PLAYBACK_STOPPED);
