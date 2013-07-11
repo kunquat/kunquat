@@ -34,8 +34,6 @@ static const char EMPTY_BUFFER[] = "[]";
 
 Event_buffer_2* new_Event_buffer_2(size_t size)
 {
-    assert(size > EVENT_LEN_MAX);
-
     Event_buffer_2* ebuf = memory_alloc_item(Event_buffer_2);
     if (ebuf == NULL)
         return NULL;
