@@ -208,6 +208,55 @@ int32_t Player_get_audio_rate(const Player* player)
 }
 
 
+bool Player_set_audio_buffer_size(Player* player, int32_t size)
+{
+    assert(player != NULL);
+    assert(size >= 0);
+
+    if (player->audio_buffer_size == size)
+        return true;
+
+    // Reduce supported size (in case we fail memory allocation)
+    player->audio_buffer_size = MIN(player->audio_buffer_size, size);
+
+    // Handle empty buffers
+    if (player->audio_buffer_size == 0)
+    {
+        for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
+        {
+            memory_free(player->audio_buffers[i]);
+            player->audio_buffers[i] = NULL;
+        }
+        return true;
+    }
+
+    // Reallocate buffers
+    for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
+    {
+        float* new_buffer = memory_realloc_items(
+                float,
+                size,
+                player->audio_buffers[i]);
+        if (new_buffer == NULL)
+            return false;
+
+        player->audio_buffers[i] = new_buffer;
+    }
+
+    // Set final supported buffer size
+    player->audio_buffer_size = size;
+
+    return true;
+}
+
+
+int32_t Player_get_audio_buffer_size(const Player* player)
+{
+    assert(player != NULL);
+    return player->audio_buffer_size;
+}
+
+
 static void Player_process_trigger(
         Player* player,
         int ch_num,

@@ -32,7 +32,7 @@ typedef struct Player Player;
  *
  * \param module              The Module -- must not be \c NULL.
  * \param audio_rate          The audio rate -- must be > \c 0.
- * \param audio_buffer_size   The audio chunk size -- must be >= \c 0 and
+ * \param audio_buffer_size   The audio buffer size -- must be >= \c 0 and
  *                            <= \c KQT_AUDIO_BUFFER_SIZE_MAX.
  * \param event_buffer_size   The event buffer size.
  * \param voice_count         The number of voices allocated
@@ -68,6 +68,27 @@ bool Player_set_audio_rate(Player* player, int32_t rate);
  * \return   The audio rate.
  */
 int32_t Player_get_audio_rate(const Player* player);
+
+
+/**
+ * Sets audio buffer size.
+ *
+ * \param player   The Player -- must not be \c NULL.
+ * \param size     The new audio buffer size -- must be >= \c 0.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Player_set_audio_buffer_size(Player* player, int32_t size);
+
+
+/**
+ * Gets audio buffer size.
+ *
+ * \param player   The Player -- must not be \c NULL.
+ *
+ * \return   The audio buffer size.
+ */
+int32_t Player_get_audio_buffer_size(const Player* player);
 
 
 /**
