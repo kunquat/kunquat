@@ -56,6 +56,10 @@ struct Player
     double frame_remainder; // used for sub-frame time tracking
 
     Cgiter cgiters[KQT_CHANNELS_MAX];
+
+    // Position tracking
+    int64_t audio_frames_processed;
+    int64_t nanoseconds_history;
 };
 
 
@@ -96,6 +100,9 @@ Player* new_Player(
     player->frame_remainder = 0.0;
 
     memset(player->cgiters, 0, sizeof(player->cgiters));
+
+    player->audio_frames_processed = 0;
+    player->nanoseconds_history = 0;
 
     // Init fields
     player->env = new_Environment();
@@ -186,6 +193,9 @@ void Player_reset(Player* player)
 
     Event_buffer_2_clear(player->event_buffer);
 
+    player->audio_frames_processed = 0;
+    player->nanoseconds_history = 0;
+
     return;
 }
 
@@ -194,6 +204,14 @@ bool Player_set_audio_rate(Player* player, int32_t rate)
 {
     assert(player != NULL);
     assert(rate > 0);
+
+    if (player->audio_rate == rate)
+        return true;
+
+    // Add current playback frame count to nanoseconds history
+    player->nanoseconds_history +=
+        player->audio_frames_processed * 1000000000LL / player->audio_rate;
+    player->audio_frames_processed = 0;
 
     player->audio_rate = rate;
 
@@ -254,6 +272,16 @@ int32_t Player_get_audio_buffer_size(const Player* player)
 {
     assert(player != NULL);
     return player->audio_buffer_size;
+}
+
+
+int64_t Player_get_nanoseconds(const Player* player)
+{
+    assert(player != NULL);
+
+    const int32_t ns_this_audio_rate =
+        player->audio_frames_processed * 1000000000LL / player->audio_rate;
+    return player->nanoseconds_history + ns_this_audio_rate;
 }
 
 
@@ -711,6 +739,8 @@ void Player_play(Player* player, int32_t nframes)
 
     player->audio_frames_available = rendered;
 
+    player->audio_frames_processed += rendered;
+
     return;
 }
 
@@ -742,6 +772,8 @@ void Player_skip(Player* player, int32_t nframes)
 
         skipped += to_be_skipped;
     }
+
+    player->audio_frames_processed += skipped;
 
     return;
 }

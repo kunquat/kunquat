@@ -92,6 +92,16 @@ int32_t Player_get_audio_buffer_size(const Player* player);
 
 
 /**
+ * Returns the length of music rendered after the last reset.
+ *
+ * \param player   The Player -- must not be \c NULL.
+ *
+ * \return   The length in nanoseconds.
+ */
+int64_t Player_get_nanoseconds(const Player* player);
+
+
+/**
  * Resets the Player state.
  *
  * \param player   The Player -- must not be \c NULL.
