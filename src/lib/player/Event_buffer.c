@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <math_common.h>
 #include <memory.h>
 #include <player/Event_buffer.h>
 #include <xassert.h>
@@ -40,12 +41,12 @@ Event_buffer_2* new_Event_buffer_2(size_t size)
         return NULL;
 
     // Sanitise fields
-    ebuf->size = size;
+    ebuf->size = MAX(strlen(EMPTY_BUFFER) + 1, size);
     ebuf->write_pos = 0;
     ebuf->buf = NULL;
 
     // Init fields
-    ebuf->buf = memory_calloc_items(char, size + 1);
+    ebuf->buf = memory_calloc_items(char, ebuf->size + 1);
     if (ebuf->buf == NULL)
     {
         del_Event_buffer_2(ebuf);
@@ -60,7 +61,8 @@ Event_buffer_2* new_Event_buffer_2(size_t size)
 bool Event_buffer_2_is_full(const Event_buffer_2* ebuf)
 {
     assert(ebuf != NULL);
-    return (ebuf->write_pos >= ebuf->size - EVENT_LEN_MAX);
+    return (ebuf->size < EVENT_LEN_MAX) ||
+        (ebuf->write_pos >= ebuf->size - EVENT_LEN_MAX);
 }
 
 

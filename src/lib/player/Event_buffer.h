@@ -34,8 +34,8 @@ typedef struct Event_buffer_2 Event_buffer_2; // TODO: fix after removing old Ev
 /**
  * Creates a new Event buffer.
  *
- * \param size   The size of the Event buffer in bytes -- must be
- *               > \c EVENT_LEN_MAX.
+ * \param size   The size of the Event buffer in bytes. If
+ *               <= \c EVENT_LEN_MAX + 1, the buffer cannot contain any events.
  *
  * \return   The new Event buffer if successful, or \c NULL if memory
  *           allocation failed.
@@ -47,7 +47,7 @@ Event_buffer_2* new_Event_buffer_2(size_t size);
  * Tells wheter the Event buffer is full.
  *
  * The Event buffer is considered full if it cannot store another event
- * of EVENT_LEN_MAX bytes.
+ * of \c EVENT_LEN_MAX bytes.
  *
  * \param ebuf   The Event buffer -- must not be \c NULL.
  *
