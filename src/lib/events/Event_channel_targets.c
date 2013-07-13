@@ -18,7 +18,6 @@
 #include <Event_channel_decl.h>
 #include <Event_common.h>
 #include <File_base.h>
-#include <Channel.h>
 #include <Channel_state.h>
 #include <kunquat/limits.h>
 #include <Value.h>

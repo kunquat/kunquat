@@ -18,7 +18,6 @@
 #include <math.h>
 
 #include <Voice_pool.h>
-#include <Channel.h>
 #include <Environment.h>
 #include <memory.h>
 #include <Playdata.h>

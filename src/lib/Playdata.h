@@ -22,7 +22,6 @@
 #include <Bind.h>
 #include <Tstamp.h>
 #include <Subsong_table.h>
-//#include <Channel.h>
 #include <Column.h>
 #include <Environment.h>
 #include <Event_names.h>

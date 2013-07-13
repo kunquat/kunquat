@@ -21,7 +21,6 @@
 #include <AAtree.h>
 #include <Column.h>
 #include <Connections.h>
-#include <Channel.h>
 #include <Pat_inst_ref.h>
 #include <Tstamp.h>
 #include <Event_handler.h>
