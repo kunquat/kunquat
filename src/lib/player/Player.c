@@ -60,7 +60,28 @@ struct Player
     // Position tracking
     int64_t audio_frames_processed;
     int64_t nanoseconds_history;
+
+    bool events_returned;
 };
+
+
+static void update_sliders_and_lfos_audio_rate(Player* player)
+{
+    assert(player != NULL);
+
+    const int32_t rate = player->audio_rate;
+
+    for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
+    {
+        Channel_state* ch = player->channels[i];
+        LFO_set_mix_rate(&ch->vibrato, rate);
+        LFO_set_mix_rate(&ch->tremolo, rate);
+        Slider_set_mix_rate(&ch->panning_slider, rate);
+        LFO_set_mix_rate(&ch->autowah, rate);
+    }
+
+    return;
+}
 
 
 Player* new_Player(
@@ -104,8 +125,10 @@ Player* new_Player(
     player->audio_frames_processed = 0;
     player->nanoseconds_history = 0;
 
+    player->events_returned = false;
+
     // Init fields
-    player->env = new_Environment();
+    player->env = player->module->env; //new_Environment(); // TODO
     player->event_buffer = new_Event_buffer_2(event_buffer_size);
     player->voices = new_Voice_pool(voice_count);
     if (player->env == NULL ||
@@ -134,6 +157,7 @@ Player* new_Player(
             return NULL;
         }
     }
+    update_sliders_and_lfos_audio_rate(player);
 
     if (Master_params_init(&player->master_params, player->module) == NULL)
     {
@@ -176,6 +200,33 @@ Player* new_Player(
 }
 
 
+bool Player_reserve_voice_state_space(Player* player, size_t size)
+{
+    assert(player != NULL);
+    return Voice_pool_reserve_state_space(player->voices, size);
+}
+
+
+static void update_sliders_and_lfos_tempo(Player* player)
+{
+    assert(player != NULL);
+
+    const double tempo = player->master_params.tempo;
+    assert(isfinite(tempo));
+
+    for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
+    {
+        Channel_state* ch = player->channels[i];
+        LFO_set_tempo(&ch->vibrato, tempo);
+        LFO_set_tempo(&ch->tremolo, tempo);
+        Slider_set_tempo(&ch->panning_slider, tempo);
+        LFO_set_tempo(&ch->autowah, tempo);
+    }
+
+    return;
+}
+
+
 void Player_reset(Player* player)
 {
     assert(player != NULL);
@@ -183,6 +234,8 @@ void Player_reset(Player* player)
     // TODO: playback mode and start pos as arguments
 
     Master_params_reset(&player->master_params);
+
+    update_sliders_and_lfos_tempo(player);
 
     player->frame_remainder = 0.0;
 
@@ -195,6 +248,8 @@ void Player_reset(Player* player)
 
     player->audio_frames_processed = 0;
     player->nanoseconds_history = 0;
+
+    player->events_returned = false;
 
     return;
 }
@@ -214,6 +269,8 @@ bool Player_set_audio_rate(Player* player, int32_t rate)
     player->audio_frames_processed = 0;
 
     player->audio_rate = rate;
+
+    update_sliders_and_lfos_audio_rate(player);
 
     return true;
 }
@@ -297,7 +354,7 @@ static void Player_process_trigger(
     char event_name[EVENT_NAME_MAX + 1] = "";
     Event_type type = Event_NONE;
 
-    trigger_desc = get_event_type_info(
+    char* str_pos = get_event_type_info(
             trigger_desc,
             event_names,
             rs,
@@ -306,8 +363,8 @@ static void Player_process_trigger(
 
     Value* arg = VALUE_AUTO;
 
-    trigger_desc = process_expr(
-            trigger_desc,
+    str_pos = process_expr(
+            str_pos,
             Event_names_get_param_type(event_names, event_name),
             player->env,
             player->channels[ch_num]->rand,
@@ -317,7 +374,7 @@ static void Player_process_trigger(
 
     if (rs->error)
     {
-        fprintf(stderr, "parse fail: %s\n", rs->message);
+        fprintf(stderr, "Couldn't parse `%s`: %s\n", trigger_desc, rs->message);
         return;
     }
 
@@ -327,7 +384,7 @@ static void Player_process_trigger(
             event_name,
             arg))
     {
-        fprintf(stderr, "not triggered\n");
+        fprintf(stderr, "`%s` not triggered\n", trigger_desc);
         return;
     }
 
@@ -507,6 +564,7 @@ static void update_tempo_slide(Master_params* master_params)
     {
         // New tempo
         master_params->tempo += master_params->tempo_slide_update;
+        master_params->tempo_settings_changed = true;
 
         const bool is_too_low = master_params->tempo_slide < 0 &&
             master_params->tempo < master_params->tempo_slide_target;
@@ -539,14 +597,24 @@ static int32_t Player_move_forwards(Player* player, int32_t nframes, bool skip)
     assert(nframes >= 0);
 
     // Process tempo
+    update_tempo_slide(&player->master_params);
     if (player->master_params.tempo_settings_changed)
     {
         player->master_params.tempo_settings_changed = false;
 
-        update_tempo_slide(&player->master_params);
-
-        // TODO: update sliders
+        update_sliders_and_lfos_tempo(player);
     }
+
+    /*
+    fprintf(stderr, "Tempo: %.2f %d " PRIts " %.2f " PRIts " " PRIts " %.2f\n",
+            player->master_params.tempo,
+            player->master_params.tempo_slide,
+            PRIVALts(player->master_params.tempo_slide_length),
+            player->master_params.tempo_slide_target,
+            PRIVALts(player->master_params.tempo_slide_left),
+            PRIVALts(player->master_params.tempo_slide_slice_left),
+            player->master_params.tempo_slide_update);
+    // */
 
     // Get maximum duration to move forwards
     Tstamp* limit = Tstamp_fromframes(
@@ -610,8 +678,6 @@ static void Player_process_voices(
         return;
 
     const int32_t render_stop = render_start + nframes;
-
-    // TODO: Update audio rate on sliders
 
     // Foreground voices
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
@@ -694,6 +760,14 @@ void Player_play(Player* player, int32_t nframes)
         // Process voices
         Player_process_voices(player, rendered, to_be_rendered);
 
+        // Update panning slides, TODO: revisit
+        for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
+        {
+            Channel_state* ch = player->channels[i];
+            if (Slider_in_progress(&ch->panning_slider))
+                Slider_skip(&ch->panning_slider, to_be_rendered);
+        }
+
         // Process connection graph
         if (connections != NULL)
         {
@@ -741,11 +815,13 @@ void Player_play(Player* player, int32_t nframes)
 
     player->audio_frames_processed += rendered;
 
+    player->events_returned = false;
+
     return;
 }
 
 
-void Player_skip(Player* player, int32_t nframes)
+void Player_skip(Player* player, int64_t nframes)
 {
     assert(player != NULL);
     assert(nframes >= 0);
@@ -760,11 +836,11 @@ void Player_skip(Player* player, int32_t nframes)
     // TODO: check if song or pattern instance location has changed
 
     // Composition-level progress
-    int32_t skipped = 0;
+    int64_t skipped = 0;
     while (skipped < nframes)
     {
         // Move forwards in composition
-        int32_t to_be_skipped = nframes - skipped;
+        int32_t to_be_skipped = MIN(nframes - skipped, INT32_MAX);
         to_be_skipped = Player_move_forwards(player, to_be_skipped, true);
 
         if (Player_has_stopped(player))
@@ -774,6 +850,8 @@ void Player_skip(Player* player, int32_t nframes)
     }
 
     player->audio_frames_processed += skipped;
+
+    player->events_returned = false;
 
     return;
 }
@@ -794,9 +872,20 @@ const float* Player_get_audio(const Player* player, int channel)
 }
 
 
-const char* Player_get_events(const Player* player)
+const char* Player_get_events(Player* player)
 {
     assert(player != NULL);
+
+    if (player->events_returned)
+    {
+        // Event buffer contains old data, clear
+        Event_buffer_2_clear(player->event_buffer);
+
+        // TODO: get more events if needed
+    }
+
+    player->events_returned = true;
+
     return Event_buffer_2_get_events(player->event_buffer);
 }
 
@@ -901,6 +990,7 @@ bool Player_fire(Player* player, int ch, char* event_desc, Read_state* rs)
 
     // Add event to buffer
     Event_buffer_2_add(player->event_buffer, ch, event_name, value);
+    player->events_returned = false;
 
     return true;
 }
@@ -917,7 +1007,7 @@ void del_Player(Player* player)
         del_Channel_state(player->channels[i]);
     Master_params_deinit(&player->master_params);
     del_Event_buffer_2(player->event_buffer);
-    del_Environment(player->env);
+    //del_Environment(player->env); // TODO
 
     for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
         memory_free(player->audio_buffers[i]);

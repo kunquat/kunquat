@@ -24,11 +24,17 @@
 
 bool Event_global_set_volume_process(Master_params* master_params, Playdata* global_state, Value* value)
 {
-    assert(global_state != NULL);
+    assert(master_params != NULL || global_state != NULL);
     assert(value != NULL);
 
     if (master_params != NULL)
-        return false;
+    {
+        assert(value->type == VALUE_TYPE_FLOAT);
+
+        // TODO: implement master volume
+
+        return true;
+    }
 
     if (value->type != VALUE_TYPE_FLOAT)
     {
@@ -43,11 +49,33 @@ bool Event_global_set_volume_process(Master_params* master_params, Playdata* glo
 
 bool Event_global_slide_volume_process(Master_params* master_params, Playdata* global_state, Value* value)
 {
-    assert(global_state != NULL);
+    assert(master_params != NULL || global_state != NULL);
     assert(value != NULL);
 
     if (master_params != NULL)
-        return false;
+    {
+        assert(value->type == VALUE_TYPE_FLOAT);
+
+        // TODO: implement
+#if 0
+        double target = exp2(value->value.float_type / 6);
+        Slider_set_mix_rate(&global_state->volume_slider, global_state->freq);
+        Slider_set_tempo(&global_state->volume_slider, global_state->tempo);
+        if (Slider_in_progress(&global_state->volume_slider))
+        {
+            Slider_change_target(&global_state->volume_slider, target);
+        }
+        else
+        {
+            Slider_start(
+                    &global_state->volume_slider,
+                    target,
+                    global_state->volume);
+        }
+#endif
+
+        return true;
+    }
 
     if (value->type != VALUE_TYPE_FLOAT)
     {
@@ -76,11 +104,17 @@ bool Event_global_slide_volume_length_process(
         Playdata* global_state,
         Value* value)
 {
-    assert(global_state != NULL);
+    assert(master_params != NULL || global_state != NULL);
     assert(value != NULL);
 
     if (master_params != NULL)
-        return false;
+    {
+        assert(value->type == VALUE_TYPE_TSTAMP);
+
+        // TODO: implement
+
+        return true;
+    }
 
     if (value->type != VALUE_TYPE_TSTAMP)
     {

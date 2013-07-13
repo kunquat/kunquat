@@ -62,6 +62,9 @@ struct kqt_Handle
     char error[KQT_HANDLE_ERROR_LENGTH];
     char validation_error[KQT_HANDLE_ERROR_LENGTH];
     char position[POSITION_LENGTH];
+
+    Player* player;
+    Player* length_counter;
 };
 
 

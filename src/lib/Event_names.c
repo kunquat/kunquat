@@ -87,8 +87,7 @@ static Name_info event_specs[] =
     { "mpd",   Event_master_pattern_delay,    VALUE_TYPE_TSTAMP, v_nonneg_ts, false },
     { "m.jc",  Event_master_set_jump_counter, VALUE_TYPE_INT, v_counter, false },
     { "m.jr",  Event_master_set_jump_row,     VALUE_TYPE_TSTAMP, v_nonneg_ts, false },
-    { "m.js",  Event_master_set_jump_section, VALUE_TYPE_INT, v_system, false },
-    { "m.jss", Event_master_set_jump_song,    VALUE_TYPE_INT, v_subsong, false },
+    { "m.jp",  Event_master_set_jump_pat_inst, VALUE_TYPE_PAT_INST_REF, v_piref, false },
 
     { "m.s",   Event_master_set_scale,        VALUE_TYPE_INT, v_scale, false },
     { "m.so",  Event_master_set_scale_offset, VALUE_TYPE_FLOAT, v_finite_float, false },

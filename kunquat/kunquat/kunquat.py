@@ -196,7 +196,7 @@ class BaseHandle(object):
         received = _kunquat.kqt_Handle_receive(self._handle, sb, len(sb))
         while received:
             try:
-                el.extend([json.loads(sb.value)])
+                el.extend(json.loads(sb.value))
             except ValueError:
                 pass
             received = _kunquat.kqt_Handle_receive(self._handle, sb, len(sb))
@@ -214,11 +214,11 @@ class BaseHandle(object):
 
         """
         el = []
-        sb = ctypes.create_string_buffer('\000' * 128)
+        sb = ctypes.create_string_buffer('\000' * 256)
         received = _kunquat.kqt_Handle_treceive(self._handle, sb, len(sb))
         while received:
             try:
-                el.extend([json.loads(sb.value)])
+                el.extend(json.loads(sb.value))
             except ValueError:
                 pass
             received = _kunquat.kqt_Handle_treceive(self._handle, sb, len(sb))

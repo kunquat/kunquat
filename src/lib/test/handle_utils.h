@@ -260,7 +260,7 @@ long mix_and_fill(float* buf, long nframes)
 
     long mixed = kqt_Handle_mix(handle, nframes);
     check_unexpected_error();
-    float* ret_buf = kqt_Handle_get_buffer(handle, 0);
+    const float* ret_buf = kqt_Handle_get_buffer(handle, 0);
     check_unexpected_error();
     memcpy(buf, ret_buf, nframes * sizeof(float));
 

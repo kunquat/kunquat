@@ -47,10 +47,7 @@ bool kqt_Handle_init(kqt_Handle* handle, long buffer_size)
 {
     assert(handle != NULL);
     assert(buffer_size > 0);
-    if (!add_handle(handle))
-    {
-        return false;
-    }
+
     handle->data_is_valid = true;
     handle->data_is_validated = true;
     handle->module = NULL;
@@ -59,12 +56,36 @@ bool kqt_Handle_init(kqt_Handle* handle, long buffer_size)
     memset(handle->error, '\0', KQT_HANDLE_ERROR_LENGTH);
     memset(handle->validation_error, '\0', KQT_HANDLE_ERROR_LENGTH);
     memset(handle->position, '\0', POSITION_LENGTH);
+    handle->player = NULL;
+    handle->length_counter = NULL;
+
+    if (!add_handle(handle))
+    {
+        return false;
+    }
 
 //    int buffer_count = SONG_DEFAULT_BUF_COUNT;
 //    int voice_count = 256;
 
     handle->module = new_Module(buffer_size);
     if (handle->module == NULL)
+    {
+        kqt_Handle_set_error(NULL, ERROR_MEMORY, "Couldn't allocate memory");
+        bool removed = remove_handle(handle);
+        assert(removed);
+        (void)removed;
+        return false;
+    }
+
+    // Create players
+    handle->player = new_Player(
+            handle->module,
+            48000,
+            2048,
+            16384,
+            256);
+    handle->length_counter = new_Player(handle->module, 1000000000L, 0, 0, 0);
+    if (handle->player == NULL || handle->length_counter == NULL)
     {
         kqt_Handle_set_error(NULL, ERROR_MEMORY, "Couldn't allocate memory");
         bool removed = remove_handle(handle);
@@ -477,6 +498,11 @@ void kqt_del_Handle(kqt_Handle* handle)
                 "Invalid Kunquat Handle: %p", (void*)handle);
         return;
     }
+
+    del_Player(handle->length_counter);
+    handle->length_counter = NULL;
+    del_Player(handle->player);
+    handle->player = NULL;
 
     del_Module(handle->module);
     handle->module = NULL;

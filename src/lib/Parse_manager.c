@@ -971,8 +971,10 @@ static bool parse_generator_level(kqt_Handle* handle,
                     assert(size >= 0);
 //                    fprintf(stderr, "Reserving space for %" PRId64 " bytes\n",
 //                                    size);
-                    if (!Voice_pool_reserve_state_space(
-                                module->play_state->voice_pool, size))
+                    if (!Player_reserve_voice_state_space(
+                                handle->player, size) ||
+                            !Player_reserve_voice_state_space(
+                                handle->length_counter, size))
                     {
                         kqt_Handle_set_error(handle, ERROR_MEMORY,
                                 "Couldn't allocate memory");

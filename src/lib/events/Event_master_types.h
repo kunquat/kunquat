@@ -33,11 +33,10 @@ EVENT_TYPE_DEF(mimic_scale)
 EVENT_TYPE_DEF(set_scale_fixed_point)
 EVENT_TYPE_DEF(shift_scale_intervals)
 
-EVENT_TYPE_DEF(set_jump_song)
-EVENT_TYPE_DEF(set_jump_section)
+EVENT_TYPE_DEF(set_jump_pat_inst)
 EVENT_TYPE_DEF(set_jump_row)
 EVENT_TYPE_DEF(set_jump_counter)
-// NOTE: jump is not an event
+// TODO: jump event
 
 
 #undef EVENT_TYPE_DEF

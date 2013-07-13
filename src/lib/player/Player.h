@@ -50,6 +50,17 @@ Player* new_Player(
 
 
 /**
+ * Reserves state space for internal voice pool.
+ *
+ * \param player   The Player -- must not be \c NULL.
+ * \param size     The new size.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Player_reserve_voice_state_space(Player* player, size_t size);
+
+
+/**
  * Sets audio rate.
  *
  * \param player   The Player -- must not be \c NULL.
@@ -127,7 +138,7 @@ void Player_play(Player* player, int32_t nframes);
  * \param player    The Player -- must not be \c NULL.
  * \param nframes   The number of frames to be skipped -- must be >= \c 0.
  */
-void Player_skip(Player* player, int32_t nframes);
+void Player_skip(Player* player, int64_t nframes);
 
 
 /**
@@ -158,7 +169,7 @@ const float* Player_get_audio(const Player* player, int channel);
  *
  * \return   The event buffer.
  */
-const char* Player_get_events(const Player* player);
+const char* Player_get_events(Player* player);
 
 
 /**

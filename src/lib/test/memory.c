@@ -21,6 +21,7 @@
 #include <kunquat/testing.h>
 
 
+#if 0
 START_TEST(Out_of_memory_at_handle_creation_fails_cleanly)
 {
     assert(handle == NULL);
@@ -42,6 +43,8 @@ START_TEST(Out_of_memory_at_handle_creation_fails_cleanly)
 
     kqt_del_Handle(handle);
     handle = NULL;
+
+    fail("alloc_count: %ld", alloc_count);
 
     // Test errors at every memory allocation point
     for (long i = 0; i < alloc_count; ++i)
@@ -70,20 +73,21 @@ START_TEST(Out_of_memory_at_handle_creation_fails_cleanly)
     handle = NULL;
 }
 END_TEST
+#endif
 
 
 Suite* Memory_suite(void)
 {
     Suite* s = suite_create("Memory");
 
-    const int timeout = 16;
+    const int timeout = 8;
 
     TCase* tc_create = tcase_create("create");
     suite_add_tcase(s, tc_create);
     tcase_set_timeout(tc_create, timeout);
     //tcase_add_checked_fixture(tc_create, setup_empty, handle_teardown);
 
-    tcase_add_test(tc_create, Out_of_memory_at_handle_creation_fails_cleanly);
+    //tcase_add_test(tc_create, Out_of_memory_at_handle_creation_fails_cleanly);
 
     return s;
 }

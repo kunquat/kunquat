@@ -50,7 +50,7 @@ Playdata* new_Playdata(Ins_table* insts,
     play->play_id = 1;
     play->silent = false;
     play->citer = new_Column_iter(NULL);
-    play->voice_pool = new_Voice_pool(256);
+    play->voice_pool = new_Voice_pool(2);
     if (!General_state_init(&play->parent, true, env) ||
             play->citer == NULL || play->voice_pool == NULL)
     {

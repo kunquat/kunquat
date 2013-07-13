@@ -51,11 +51,15 @@ bool Event_global_set_jump_counter_process(
 
 bool Event_global_set_jump_row_process(Master_params* master_params, Playdata* global_state, Value* value)
 {
-    assert(global_state != NULL);
+    assert(master_params != NULL || global_state != NULL);
     assert(value != NULL);
 
     if (master_params != NULL)
-        return false;
+    {
+        assert(value->type == VALUE_TYPE_TSTAMP);
+        Tstamp_copy(&master_params->jump_target_row, &value->value.Tstamp_type);
+        return true;
+    }
 
     if (value->type != VALUE_TYPE_TSTAMP)
     {
@@ -66,6 +70,23 @@ bool Event_global_set_jump_row_process(Master_params* master_params, Playdata* g
 }
 
 
+bool Event_global_set_jump_pat_inst_process(
+        Master_params* master_params,
+        Playdata* global_state,
+        Value* value)
+{
+    assert(master_params != NULL);
+    (void)global_state;
+    assert(value != NULL);
+    assert(value->type == VALUE_TYPE_PAT_INST_REF);
+
+    master_params->jump_target_piref = value->value.Pat_inst_ref_type;
+
+    return true;
+}
+
+
+#if 0
 bool Event_global_set_jump_section_process(
         Master_params* master_params,
         Playdata* global_state,
@@ -104,5 +125,6 @@ bool Event_global_set_jump_song_process(
     global_state->jump_set_subsong = value->value.int_type;
     return true;
 }
+#endif
 
 
