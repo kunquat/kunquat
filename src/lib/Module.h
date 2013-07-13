@@ -57,7 +57,6 @@ struct Module
 //    uint16_t init_subsong;              ///< Initial subsong number.
     Playdata* play_state;               ///< Playback state.
     Playdata* skip_state;               ///< Skip state (used for length calculation).
-    Channel* channels[KQT_COLUMNS_MAX]; ///< The channels used.
     Environment* env;                   ///< Environment variables.
     Bind* bind;
 };

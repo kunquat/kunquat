@@ -121,10 +121,6 @@ Module* new_Module(uint32_t buf_size)
     module->bind = NULL;
     module->album_is_existent = false;
     module->track_list = NULL;
-    for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
-    {
-        module->channels[i] = NULL;
-    }
     for (int i = 0; i < KQT_SONGS_MAX; ++i)
     {
         module->order_lists[i] = NULL;
@@ -205,20 +201,6 @@ Module* new_Module(uint32_t buf_size)
     {
         del_Module(module);
         return NULL;
-    }
-
-    for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
-    {
-        module->channels[i] = new_Channel(module->insts, i,
-                                        module->play_state->voice_pool,
-                                        module->env,
-                                        &module->play_state->tempo,
-                                        &module->play_state->freq);
-        if (module->channels[i] == NULL)
-        {
-            del_Module(module);
-            return NULL;
-        }
     }
 
     if (Scale_ins_note(module->scales[0], 0,
@@ -480,6 +462,7 @@ bool Module_set_bind(Module* module, Bind* bind)
     assert(bind != NULL);
     assert(module->bind == module->play_state->bind);
     assert(module->bind == module->skip_state->bind);
+#if 0
     Event_cache* caches[KQT_COLUMNS_MAX] = { NULL };
     for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
     {
@@ -499,6 +482,7 @@ bool Module_set_bind(Module* module, Bind* bind)
     {
         Channel_set_event_cache(module->channels[i], caches[i]);
     }
+#endif
     return true;
 }
 
@@ -598,10 +582,6 @@ static void Module_reset(Device* device)
     }
     Playdata_reset(module->play_state);
     Playdata_reset(module->skip_state);
-    for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
-    {
-        Channel_reset(module->channels[i]);
-    }
     Random_reset(module->random);
     return;
 }
@@ -612,10 +592,6 @@ static void Module_set_random_seed(Module* module, uint64_t seed)
     assert(module != NULL);
     module->random_seed = seed;
     Random_set_seed(module->random, seed);
-    for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
-    {
-        Channel_set_random_seed(module->channels[i], seed);
-    }
     return;
 }
 
@@ -715,10 +691,6 @@ void del_Module(Module* module)
     }
     del_Playdata(module->play_state);
     del_Playdata(module->skip_state);
-    for (int i = 0; i < KQT_COLUMNS_MAX && module->channels[i] != NULL; ++i)
-    {
-        del_Channel(module->channels[i]);
-    }
     del_Random(module->random);
     del_Bind(module->bind);
     Device_uninit(&module->parent);
