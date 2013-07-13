@@ -19,7 +19,7 @@
 
 char* get_event_type_info(
         char* desc,
-        Event_names* names,
+        const Event_names* names,
         Read_state* rs,
         char* ret_name,
         Event_type* ret_type)
@@ -103,7 +103,7 @@ char* process_expr(
 
 bool process_trigger(
         char* trigger_desc,
-        Event_names* names,
+        const Event_names* names,
         Environment* env,
         Random* random,
         const Value* meta,

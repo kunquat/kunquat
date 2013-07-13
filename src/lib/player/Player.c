@@ -200,10 +200,32 @@ Player* new_Player(
 }
 
 
+const Event_handler* Player_get_event_handler(const Player* player)
+{
+    assert(player != NULL);
+    return player->event_handler;
+}
+
+
 bool Player_reserve_voice_state_space(Player* player, size_t size)
 {
     assert(player != NULL);
     return Voice_pool_reserve_state_space(player->voices, size);
+}
+
+
+bool Player_add_channel_gen_state_key(Player* player, const char* key)
+{
+    assert(player != NULL);
+    assert(key != NULL);
+
+    for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
+    {
+        if (!Channel_gen_state_set_key(player->channels[i]->cgstate, key))
+            return false;
+    }
+
+    return true;
 }
 
 
@@ -349,7 +371,7 @@ static void Player_process_trigger(
         bool skip)
 {
     Read_state* rs = READ_STATE_AUTO;
-    Event_names* event_names = Event_handler_get_names(player->event_handler);
+    const Event_names* event_names = Event_handler_get_names(player->event_handler);
 
     char event_name[EVENT_NAME_MAX + 1] = "";
     Event_type type = Event_NONE;
@@ -910,7 +932,7 @@ bool Player_fire(Player* player, int ch, char* event_desc, Read_state* rs)
 
     Event_buffer_2_clear(player->event_buffer);
 
-    Event_names* event_names = Event_handler_get_names(player->event_handler);
+    const Event_names* event_names = Event_handler_get_names(player->event_handler);
 
     char event_name[EVENT_NAME_MAX + 1] = "";
     Event_type type = Event_NONE;

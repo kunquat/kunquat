@@ -269,10 +269,11 @@ bool Event_names_error(Event_names* names)
 }
 
 
-Event_type Event_names_get(Event_names* names, const char* name)
+Event_type Event_names_get(const Event_names* names, const char* name)
 {
     assert(names != NULL);
     assert(name != NULL);
+
     Name_info* info = AAtree_get_exact(names->names, name);
     if (info == NULL)
     {
@@ -282,18 +283,21 @@ Event_type Event_names_get(Event_names* names, const char* name)
         }
         return Event_NONE;
     }
+
     return info->type;
 }
 
 
 Value_type Event_names_get_param_type(
-        Event_names* names,
+        const Event_names* names,
         const char* name)
 {
     assert(names != NULL);
     assert(name != NULL);
+
     Name_info* info = AAtree_get_exact(names->names, name);
     assert(info != NULL);
+
     return info->param_type;
 }
 

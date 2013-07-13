@@ -65,7 +65,7 @@ Event* new_Event(Event_type type, Tstamp* pos);
  *           not be modified if memory allocation failed.
  */
 Event* new_Event_from_string(char** str, Read_state* state,
-                             Event_names* names);
+                             const Event_names* names);
 
 
 /**

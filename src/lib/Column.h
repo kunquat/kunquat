@@ -163,7 +163,7 @@ Column* new_Column_from_string(const Tstamp* len,
 //                               bool is_global,
                                AAtree* locations,
                                AAiter* locations_iter,
-                               Event_names* event_names,
+                               const Event_names* event_names,
                                Read_state* state);
 
 

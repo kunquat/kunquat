@@ -284,21 +284,21 @@ void Device_params_synchronised(Device_params* params)
 
 bool Device_params_parse_events(Device_params* params,
                                 Device_event_type type,
-                                Event_handler* eh,
+                                Player* player,
                                 char* str,
                                 Read_state* state)
 {
     assert(params != NULL);
-    assert(eh != NULL);
+    assert(player != NULL);
     assert(state != NULL);
+
     if (state->error)
-    {
         return false;
-    }
+
     AAtree* old_data = params->event_data;
-    params->event_data = new_AAtree((int (*)(const void*,
-                                             const void*))Device_field_cmp,
-                                    (void (*)(void*))del_Device_field);
+    params->event_data = new_AAtree(
+            (int (*)(const void*, const void*))Device_field_cmp,
+            (void (*)(void*))del_Device_field);
     if (params->event_data == NULL)
     {
         params->event_data = old_data;
@@ -391,7 +391,7 @@ bool Device_params_parse_events(Device_params* params,
             }
             if (type == DEVICE_EVENT_TYPE_GENERATOR)
             {
-                if (!Event_handler_add_channel_gen_state_key(eh, param))
+                if (!Player_add_channel_gen_state_key(player, param))
                 {
 //                    del_AAtree(params->event_names);
 //                    params->event_names = old_names;

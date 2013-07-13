@@ -70,7 +70,7 @@ bool Event_names_error(Event_names* names);
  * \return   The Event type of the name, or EVENT_NONE if the name does not
  *           correspond to an Event type.
  */
-Event_type Event_names_get(Event_names* names, const char* name);
+Event_type Event_names_get(const Event_names* names, const char* name);
 
 
 /**
@@ -82,7 +82,7 @@ Event_type Event_names_get(Event_names* names, const char* name);
  * \return   The parameter type.
  */
 Value_type Event_names_get_param_type(
-        Event_names* names,
+        const Event_names* names,
         const char* name);
 
 

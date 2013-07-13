@@ -20,6 +20,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include <Event_handler.h>
 #include <kunquat/limits.h>
 #include <Module.h>
 
@@ -50,6 +51,12 @@ Player* new_Player(
 
 
 /**
+ * Returns the event handler of the Player. TODO: this is a hack
+ */
+const Event_handler* Player_get_event_handler(const Player* player);
+
+
+/**
  * Reserves state space for internal voice pool.
  *
  * \param player   The Player -- must not be \c NULL.
@@ -58,6 +65,17 @@ Player* new_Player(
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Player_reserve_voice_state_space(Player* player, size_t size);
+
+
+/**
+ * Adds a key into Channel-specific generator parameter dictionaries.
+ *
+ * \param player   The Player -- must not be \c NULL.
+ * \param key      The key -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Player_add_channel_gen_state_key(Player* player, const char* key);
 
 
 /**

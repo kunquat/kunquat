@@ -402,6 +402,7 @@ static bool parse_module_level(kqt_Handle* handle,
     }
     else if (string_eq(key, "p_bind.json"))
     {
+#if 0
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
         Bind* map = new_Bind(data,
                         Event_handler_get_names(module->event_handler),
@@ -425,6 +426,7 @@ static bool parse_module_level(kqt_Handle* handle,
                     "Couldn't allocate memory");
             return false;
         }
+#endif
     }
     return true;
 }
@@ -1015,11 +1017,12 @@ static bool parse_generator_level(kqt_Handle* handle,
             return false;
         }
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        if (!Device_params_parse_events(conf->params,
-                                        DEVICE_EVENT_TYPE_GENERATOR,
-                                        module->event_handler,
-                                        data,
-                                        state))
+        if (!Device_params_parse_events(
+                    conf->params,
+                    DEVICE_EVENT_TYPE_GENERATOR,
+                    handle->player,
+                    data,
+                    state))
         {
             set_parse_error(handle, state);
             if (new_ins)
@@ -1373,11 +1376,12 @@ static bool parse_dsp_level(kqt_Handle* handle,
             return false;
         }
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        if (!Device_params_parse_events(conf->params,
-                                        DEVICE_EVENT_TYPE_DSP,
-                                        module->event_handler,
-                                        data,
-                                        state))
+        if (!Device_params_parse_events(
+                    conf->params,
+                    DEVICE_EVENT_TYPE_DSP,
+                    handle->player,
+                    data,
+                    state))
         {
             set_parse_error(handle, state);
             return false;
@@ -1481,8 +1485,8 @@ static bool parse_pattern_level(kqt_Handle* handle,
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
         AAiter* locations_iter = NULL;
         AAtree* locations = Pattern_get_locations(pat, &locations_iter);
-        Event_names* event_names =
-                Event_handler_get_names(module->event_handler);
+        const Event_names* event_names =
+                Event_handler_get_names(Player_get_event_handler(handle->player));
         Column* col = new_Column_from_string(Pattern_get_length(pat),
                                              data,
                                              locations,

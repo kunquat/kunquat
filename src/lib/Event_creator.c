@@ -47,7 +47,7 @@ Event* new_Event(Event_type type, Tstamp* pos)
 
 
 Event* new_Event_from_string(char** str, Read_state* state,
-                             Event_names* names)
+                             const Event_names* names)
 {
     assert(str != NULL);
     assert(*str != NULL);

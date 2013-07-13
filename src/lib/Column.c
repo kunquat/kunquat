@@ -247,7 +247,7 @@ void del_Column_iter(Column_iter* iter)
 
 static bool Column_parse(Column* col,
                          char* str,
-                         Event_names* event_names,
+                         const Event_names* event_names,
                          Read_state* state);
 
 
@@ -366,7 +366,7 @@ Column* new_Column_from_string(const Tstamp* len,
                                char* str,
                                AAtree* locations,
                                AAiter* locations_iter,
-                               Event_names* event_names,
+                               const Event_names* event_names,
                                Read_state* state)
 {
     assert(event_names != NULL);
@@ -407,7 +407,7 @@ Column* new_Column_from_string(const Tstamp* len,
 
 static bool Column_parse(Column* col,
                          char* str,
-                         Event_names* event_names,
+                         const Event_names* event_names,
                          Read_state* state)
 {
     assert(col != NULL);

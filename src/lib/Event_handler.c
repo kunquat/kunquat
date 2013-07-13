@@ -160,7 +160,7 @@ Event_handler* new_Event_handler(
 }
 
 
-Event_names* Event_handler_get_names(Event_handler* eh)
+const Event_names* Event_handler_get_names(const Event_handler* eh)
 {
     assert(eh != NULL);
     return eh->event_names;

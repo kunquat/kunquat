@@ -54,7 +54,7 @@ Event_handler* new_Event_handler(
  *
  * \return   The Event names.
  */
-Event_names* Event_handler_get_names(Event_handler* eh);
+const Event_names* Event_handler_get_names(const Event_handler* eh);
 
 
 /**

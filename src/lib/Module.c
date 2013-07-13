@@ -115,9 +115,7 @@ Module* new_Module(uint32_t buf_size)
     module->effects = NULL;
     module->connections = NULL;
     module->play_state = NULL;
-    module->event_handler = NULL;
     module->skip_state = NULL;
-    module->skip_handler = NULL;
     module->random = NULL;
     module->env = NULL;
     module->bind = NULL;
@@ -221,35 +219,6 @@ Module* new_Module(uint32_t buf_size)
             del_Module(module);
             return NULL;
         }
-    }
-    Channel_state* ch_states[KQT_COLUMNS_MAX] = { NULL };
-    for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
-    {
-        ch_states[i] = &module->channels[i]->cur_state;
-    }
-
-    module->event_handler = new_Event_handler(NULL, module->play_state,
-                                            ch_states,
-                                            module->insts,
-                                            module->effects);
-    module->skip_handler = new_Event_handler(NULL, module->skip_state,
-                                           ch_states,
-                                           module->insts,
-                                           module->effects);
-    if (module->event_handler == NULL || module->skip_handler == NULL)
-    {
-        del_Module(module);
-        return NULL;
-    }
-    Read_state* state = READ_STATE_AUTO;
-    Bind* bind = new_Bind(NULL, Event_handler_get_names(module->event_handler),
-                          state);
-    if (bind == NULL || !Module_set_bind(module, bind))
-    {
-        assert(!state->error);
-        del_Bind(bind);
-        del_Module(module);
-        return NULL;
     }
 
     if (Scale_ins_note(module->scales[0], 0,
@@ -627,7 +596,6 @@ static void Module_reset(Device* device)
             Device_reset((Device*)eff);
         }
     }
-    Event_handler_clear_buffers(module->event_handler);
     Playdata_reset(module->play_state);
     Playdata_reset(module->skip_state);
     for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
@@ -751,8 +719,6 @@ void del_Module(Module* module)
     {
         del_Channel(module->channels[i]);
     }
-    del_Event_handler(module->event_handler);
-    del_Event_handler(module->skip_handler);
     del_Random(module->random);
     del_Bind(module->bind);
     Device_uninit(&module->parent);

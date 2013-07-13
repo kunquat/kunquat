@@ -56,10 +56,8 @@ struct Module
     double mix_vol;                     ///< Mixing volume.
 //    uint16_t init_subsong;              ///< Initial subsong number.
     Playdata* play_state;               ///< Playback state.
-    Event_handler* event_handler;       ///< The Event handler.
     Playdata* skip_state;               ///< Skip state (used for length calculation).
     Channel* channels[KQT_COLUMNS_MAX]; ///< The channels used.
-    Event_handler* skip_handler;        ///< Skip state Event handler.
     Environment* env;                   ///< Environment variables.
     Bind* bind;
 };
