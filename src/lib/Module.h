@@ -169,31 +169,6 @@ bool Module_find_pattern_location(
 
 
 /**
- * Mixes a portion of the Module.
- *
- * \param module    The Module -- must not be \c NULL.
- * \param nframes   The amount of frames to be mixed.
- * \param eh        The Event handler -- must not be \c NULL.
- *
- * \return   The amount of frames actually mixed. This is always
- *           <= \a nframes.
- */
-uint32_t Module_mix(Module* module, uint32_t nframes, Event_handler* eh);
-
-
-/**
- * Skips part of the Module.
- *
- * \param module      The Module -- must not be \c NULL.
- * \param eh       The Event handler -- must not be \c NULL.
- * \param amount   The amount of frames to be skipped.
- *
- * \return   The amount of frames actually skipped. This is <= \a amount.
- */
-uint64_t Module_skip(Module* module, Event_handler* eh, uint64_t amount);
-
-
-/**
  * Sets the mixing volume of the Module.
  *
  * \param module    The Module -- must not be \c NULL.
@@ -210,25 +185,6 @@ void Module_set_mix_vol(Module* module, double mix_vol);
  * \return   The mixing volume.
  */
 double Module_get_mix_vol(Module* module);
-
-
-/**
- * Sets the initial subsong of the Module.
- *
- * \param module   The Module -- must not be \c NULL.
- * \param num      The subsong number -- must be < \c KQT_SONGS_MAX.
- */
-//void Module_set_subsong(Module* module, uint16_t num);
-
-
-/**
- * Gets the initial subsong of the Module.
- *
- * \param module   The Module -- must not be \c NULL.
- *
- * \return   The initial subsong number.
- */
-//uint16_t Module_get_subsong(Module* module);
 
 
 /**
