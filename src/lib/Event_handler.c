@@ -428,11 +428,13 @@ static void Event_handler_handle_query(
     assert(index < KQT_COLUMNS_MAX);
     assert(Event_is_query(event_type));
     assert(event_arg != NULL);
+    (void)silent;
 
-    char auto_event[128] = "";
+    //char auto_event[128] = "";
     Read_state* rs = READ_STATE_AUTO;
     switch (event_type)
     {
+#if 0
         case Event_query_location:
         {
             if (eh->global_state->mode >= PLAY_SUBSONG)
@@ -473,6 +475,7 @@ static void Event_handler_handle_query(
                 Event_handler_trigger_const(eh, index, auto_event, silent, rs);
             }
         } break;
+#endif
         default:
             assert(false);
     }
@@ -526,6 +529,7 @@ static bool Event_handler_act(
 
     if (eh->global_state != NULL)
     {
+#if 0
         Target_event* bound = Bind_get_first(
                 eh->global_state->bind,
                 eh->ch_states[index]->event_cache,
@@ -543,12 +547,13 @@ static bool Event_handler_act(
                     value);
             bound = bound->next;
         }
+#endif
     }
     return true;
 }
 
 
-bool Event_handler_trigger_new(
+bool Event_handler_trigger(
         Event_handler* eh,
         int ch_num,
         char* name,
@@ -615,265 +620,6 @@ bool Event_handler_process_type(
         return false;
     }
     return true;
-}
-
-
-bool Event_handler_trigger(
-        Event_handler* eh,
-        int index,
-        char* desc,
-        bool silent,
-        Value* meta)
-{
-    assert(eh != NULL);
-    assert(index >= 0);
-    assert(index < KQT_COLUMNS_MAX);
-    assert(desc != NULL);
-
-    assert(eh->ch_states[index]->freq != NULL);
-    assert(*eh->ch_states[index]->freq > 0);
-    assert(eh->ch_states[index]->tempo != NULL);
-    assert(*eh->ch_states[index]->tempo > 0);
-
-    Read_state* state = READ_STATE_AUTO;
-    char event_name[EVENT_NAME_MAX + 2] = "";
-    Event_type event_type = Event_NONE;
-    if (!Event_handler_process_type(
-                eh,
-                index,
-                &desc,
-                event_name,
-                &event_type,
-                state))
-    {
-        return !state->error;
-    }
-    assert(!state->error);
-    Value* value = VALUE_AUTO;
-    Value_type field_type = Event_names_get_param_type(
-            eh->event_names,
-            event_name);
-    if (field_type == VALUE_TYPE_NONE)
-    {
-        value->type = VALUE_TYPE_NONE;
-        desc = read_null(desc, state);
-    }
-    else
-    {
-        char* quote_pos = strrchr(event_name, '"');
-        if (quote_pos != NULL && string_eq(quote_pos, "\""))
-        {
-            value->type = VALUE_TYPE_STRING;
-            desc = read_string(desc, value->value.string_type,
-                               ENV_VAR_NAME_MAX, state);
-        }
-        else
-        {
-            Environment* env = NULL;
-            if (eh->master_params != NULL)
-                env = eh->master_params->parent.env;
-            else
-                env = eh->global_state->parent.env;
-
-            desc = evaluate_expr(
-                    desc,
-                    env,
-                    state,
-                    meta,
-                    value,
-                    eh->ch_states[index]->rand);
-            desc = read_const_char(desc, '"', state);
-        }
-        switch (field_type)
-        {
-            case VALUE_TYPE_BOOL:
-            {
-                if (value->type != VALUE_TYPE_BOOL)
-                {
-                    Read_state_set_error(state, "Type mismatch");
-                    return false;
-                }
-            } break;
-            case VALUE_TYPE_INT:
-            {
-                if (value->type == VALUE_TYPE_FLOAT)
-                {
-                    value->type = VALUE_TYPE_INT;
-                    value->value.int_type = value->value.float_type;
-                }
-                else if (value->type != VALUE_TYPE_INT)
-                {
-                    Read_state_set_error(state, "Type mismatch");
-                    return false;
-                }
-            } break;
-            case VALUE_TYPE_FLOAT:
-            {
-                if (value->type == VALUE_TYPE_INT)
-                {
-                    value->type = VALUE_TYPE_FLOAT;
-                    value->value.float_type = value->value.int_type;
-                }
-                else if (value->type != VALUE_TYPE_FLOAT)
-                {
-                    Read_state_set_error(state, "Type mismatch");
-                    return false;
-                }
-            } break;
-            case VALUE_TYPE_REAL:
-            {
-                assert(false);
-            } break;
-            case VALUE_TYPE_TSTAMP:
-            {
-                if (value->type == VALUE_TYPE_INT)
-                {
-                    value->type = VALUE_TYPE_TSTAMP;
-                    Tstamp_set(&value->value.Tstamp_type,
-                                value->value.int_type, 0);
-                }
-                else if (value->type == VALUE_TYPE_FLOAT)
-                {
-                    value->type = VALUE_TYPE_TSTAMP;
-                    double beats = floor(value->value.float_type);
-                    Tstamp_set(&value->value.Tstamp_type, beats,
-                                (value->value.float_type - beats) *
-                                    KQT_TSTAMP_BEAT);
-                }
-                else if (value->type != VALUE_TYPE_TSTAMP)
-                {
-                    Read_state_set_error(state, "Type mismatch");
-                    return false;
-                }
-            } break;
-            case VALUE_TYPE_STRING:
-            {
-                if (value->type != VALUE_TYPE_STRING)
-                {
-                    Read_state_set_error(state, "Type mismatch");
-                    return false;
-                }
-            } break;
-            case VALUE_TYPE_PAT_INST_REF:
-            {
-                if (value->type != VALUE_TYPE_PAT_INST_REF)
-                {
-                    Read_state_set_error(state, "Type mismatch");
-                    return false;
-                }
-            } break;
-            default:
-                assert(false);
-        }
-    }
-    desc = read_const_char(desc, ']', state);
-    if (state->error)
-    {
-        return false;
-    }
-    return Event_handler_act(
-            eh,
-            silent,
-            index,
-            event_name,
-            event_type,
-            value);
-}
-
-
-bool Event_handler_trigger_const(
-        Event_handler* eh,
-        int index,
-        char* desc,
-        bool silent,
-        Read_state* rs)
-{
-    assert(eh != NULL);
-    assert(index >= 0);
-    assert(index < KQT_COLUMNS_MAX);
-    assert(desc != NULL);
-    assert(rs != NULL);
-
-    char event_name[EVENT_NAME_MAX + 2] = "";
-    Event_type event_type = Event_NONE;
-    if (!Event_handler_process_type(
-                eh,
-                index,
-                &desc,
-                event_name,
-                &event_type,
-                rs))
-    {
-        return !rs->error;
-    }
-    assert(!rs->error);
-    Value* value = VALUE_AUTO;
-    Value_type field_type = Event_names_get_param_type(
-            eh->event_names,
-            event_name);
-    switch (field_type)
-    {
-        case VALUE_TYPE_NONE:
-        {
-            value->type = VALUE_TYPE_NONE;
-            desc = read_null(desc, rs);
-        } break;
-        case VALUE_TYPE_BOOL:
-        {
-            value->type = VALUE_TYPE_BOOL;
-            desc = read_bool(desc, &value->value.bool_type, rs);
-        } break;
-        case VALUE_TYPE_INT:
-        {
-            value->type = VALUE_TYPE_INT;
-            desc = read_int(desc, &value->value.int_type, rs);
-        } break;
-        case VALUE_TYPE_FLOAT:
-        {
-            value->type = VALUE_TYPE_FLOAT;
-            desc = read_double(desc, &value->value.float_type, rs);
-        } break;
-        case VALUE_TYPE_REAL:
-        {
-            assert(false);
-        } break;
-        case VALUE_TYPE_TSTAMP:
-        {
-            value->type = VALUE_TYPE_TSTAMP;
-            desc = read_tstamp(desc, &value->value.Tstamp_type, rs);
-        } break;
-        case VALUE_TYPE_STRING:
-        {
-            value->type = VALUE_TYPE_STRING;
-            desc = read_string(
-                    desc,
-                    value->value.string_type,
-                    ENV_VAR_NAME_MAX,
-                    rs);
-        } break;
-        case VALUE_TYPE_PAT_INST_REF:
-        {
-            value->type = VALUE_TYPE_PAT_INST_REF;
-            desc = read_pat_inst_ref(
-                    desc,
-                    &value->value.Pat_inst_ref_type,
-                    rs);
-        } break;
-        default:
-            assert(false);
-    }
-    desc = read_const_char(desc, ']', rs);
-    if (rs->error)
-    {
-        return false;
-    }
-    return Event_handler_act(
-            eh,
-            silent,
-            index,
-            event_name,
-            event_type,
-            value);
 }
 
 

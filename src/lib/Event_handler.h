@@ -188,28 +188,6 @@ bool Event_handler_set_dsp_process(
 
 
 /**
- * Triggers an Event with an expression parameter.
- *
- * \param eh       The Event handler -- must not be \c NULL.
- * \param index    The index number -- must be >= \c 0 and
- *                 < \c KQT_COLUMNS_MAX. This should match the channel where
- *                 the Event is triggered.
- * \param desc     The Event description in JSON format -- must not be \c NULL.
- * \param silent   Silent mode indicator.
- * \param meta     The meta variable, or \c NULL.
- *
- * \return   \c true if the Event was triggered successfully, otherwise
- *           \c false.
- */
-bool Event_handler_trigger(
-        Event_handler* eh,
-        int index,
-        char* desc, // FIXME: this should be const
-        bool silent,
-        Value* meta);
-
-
-/**
  * Triggers an event.
  *
  * \param eh       The Event handler -- must not be \c NULL.
@@ -221,59 +199,11 @@ bool Event_handler_trigger(
  * \return   \c true if the Event was triggered successfully, otherwise
  *           \c false.
  */
-bool Event_handler_trigger_new( // TODO: remove the old interface and rename this
+bool Event_handler_trigger(
         Event_handler* eh,
         int ch_num,
         char* name,
         Value* arg);
-
-
-/**
- * Triggers an Event with a const parameter.
- *
- * \param eh       The Event handler -- must not be \c NULL.
- * \param index    The index number -- must be >= \c 0 and
- *                 < \c KQT_COLUMNS_MAX. This should match the channel where
- *                 the Event is triggered.
- * \param desc     The Event description in JSON format -- must not be \c NULL.
- * \param silent   Silent mode indicator.
- * \param rs       The Read state -- must not be \c NULL.
- *
- * \return   \c true if the Event was triggered successfully, otherwise
- *           \c false.
- */
-bool Event_handler_trigger_const(
-        Event_handler* eh,
-        int index,
-        char* desc,
-        bool silent,
-        Read_state* rs);
-
-
-/**
- * Receives an event from the Event handler.
- *
- * \param eh     The Event handler -- must not be \c NULL.
- * \param dest   The destination buffer -- must not be \c NULL.
- * \param size   The size of the destination buffer including the
- *               terminating byte -- must be positive.
- *
- * \return   \c true if an event was found, otherwise \c false.
- */
-bool Event_handler_receive(Event_handler* eh, char* dest, int size);
-
-
-/**
- * Receives a tracker-specific event from the Event handler.
- *
- * \param eh     The Event handler -- must not be \c NULL.
- * \param dest   The destination buffer -- must not be \c NULL.
- * \param size   The size of the destination buffer including the
- *               terminating byte -- must be positive.
- *
- * \return   \c true if an event was found, otherwise \c false.
- */
-bool Event_handler_treceive(Event_handler* eh, char* dest, int size);
 
 
 /**

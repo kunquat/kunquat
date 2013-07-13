@@ -378,7 +378,7 @@ static void Player_process_trigger(
         return;
     }
 
-    if (!Event_handler_trigger_new(
+    if (!Event_handler_trigger(
             player->event_handler,
             ch_num,
             event_name,
@@ -979,7 +979,7 @@ bool Player_fire(Player* player, int ch, char* event_desc, Read_state* rs)
         return false;
 
     // Fire
-    if (!Event_handler_trigger_new(
+    if (!Event_handler_trigger(
             player->event_handler,
             ch,
             event_name,
