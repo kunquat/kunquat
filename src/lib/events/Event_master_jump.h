@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_EVENT_GLOBAL_JUMP_H
-#define K_EVENT_GLOBAL_JUMP_H
+#ifndef K_EVENT_MASTER_JUMP_H
+#define K_EVENT_MASTER_JUMP_H
 
 
 #include <stdbool.h>
@@ -25,7 +25,7 @@
 #include <Tstamp.h>
 
 
-typedef struct Event_global_jump
+typedef struct Event_master_jump
 {
     Event parent;
     AAtree* counters;
@@ -33,21 +33,21 @@ typedef struct Event_global_jump
     //uint64_t play_id;
     //int64_t counter;
     //Tstamp row;
-} Event_global_jump;
+} Event_master_jump;
 
 
-Event* new_Event_global_jump(Tstamp* pos);
+Event* new_Event_master_jump(Tstamp* pos);
 
 
-void Trigger_global_jump_process(Event* event, Master_params* master_params);
+void Trigger_master_jump_process(Event* event, Master_params* master_params);
 
 
-bool Trigger_global_jump_set_locations(
-        Event_global_jump* event,
+bool Trigger_master_jump_set_locations(
+        Event_master_jump* event,
         AAtree* locations,
         AAiter* locations_iter);
 
 
-#endif // K_EVENT_GLOBAL_JUMP_H
+#endif // K_EVENT_MASTER_JUMP_H
 
 

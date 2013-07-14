@@ -25,7 +25,7 @@
 #include <xassert.h>
 
 
-bool Event_global_pattern_delay_process(
+bool Event_master_pattern_delay_process(
         Master_params* master_params,
         Value* value)
 {

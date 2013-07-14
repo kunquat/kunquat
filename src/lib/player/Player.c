@@ -22,7 +22,7 @@
 #include <Device_node.h>
 #include <Environment.h>
 #include <Event_handler.h>
-#include <events/Event_global_jump.h>
+#include <events/Event_master_jump.h>
 #include <math_common.h>
 #include <memory.h>
 #include <Pat_inst_ref.h>
@@ -458,7 +458,7 @@ static void Player_process_cgiters(Player* player, Tstamp* limit, bool skip)
                     player->master_params.cur_pos.piref =
                         cgiter->pos.piref;
 
-                    Trigger_global_jump_process(
+                    Trigger_master_jump_process(
                             el->event,
                             &player->master_params);
 

@@ -25,7 +25,7 @@
 // Process function declarations, TODO: Event_global -> Event_master
 
 #define EVENT_TYPE_DEF(type) \
-    bool Event_global_##type##_process(Master_params* master_params, Value* value);
+    bool Event_master_##type##_process(Master_params* master_params, Value* value);
 #include <events/Event_master_types.h>
 
 

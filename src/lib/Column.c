@@ -20,7 +20,7 @@
 #include <inttypes.h>
 
 #include <Column.h>
-#include <Event_global_jump.h>
+#include <Event_master_jump.h>
 #include <Event_names.h>
 #include <memory.h>
 #include <Tstamp.h>
@@ -389,8 +389,8 @@ bool Column_update_locations(Column* col,
     {
         Event_type type = Event_get_type(event);
         if (type == Trigger_jump &&
-                !Trigger_global_jump_set_locations(
-                    (Event_global_jump*)event,
+                !Trigger_master_jump_set_locations(
+                    (Event_master_jump*)event,
                     locations,
                     locations_iter))
         {

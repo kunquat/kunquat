@@ -18,7 +18,7 @@
 #include <limits.h>
 
 #include <Event_common.h>
-#include <Event_global_jump.h>
+#include <Event_master_jump.h>
 #include <File_base.h>
 #include <kunquat/limits.h>
 #include <memory.h>
@@ -57,13 +57,13 @@ static Jump_context* new_Jump_context(Pattern_location* loc)
 }
 
 
-void del_Event_global_jump(Event* event);
+void del_Event_master_jump(Event* event);
 
 
-Event* new_Event_global_jump(Tstamp* pos)
+Event* new_Event_master_jump(Tstamp* pos)
 {
     assert(pos != NULL);
-    Event_global_jump* event = memory_alloc_item(Event_global_jump);
+    Event_master_jump* event = memory_alloc_item(Event_master_jump);
     if (event == NULL)
     {
         return NULL;
@@ -71,14 +71,14 @@ Event* new_Event_global_jump(Tstamp* pos)
     Event_init((Event*)event, pos, Trigger_jump);
     event->counters = NULL;
     event->counters_iter = NULL;
-    event->parent.destroy = del_Event_global_jump;
+    event->parent.destroy = del_Event_master_jump;
     event->counters = new_AAtree(
             (int (*)(const void*, const void*))Pattern_location_cmp,
             memory_free);
     event->counters_iter = new_AAiter(event->counters);
     if (event->counters == NULL || event->counters_iter == NULL)
     {
-        del_Event_global_jump(&event->parent);
+        del_Event_master_jump(&event->parent);
         return NULL;
     }
     //event->play_id = 0;
@@ -88,13 +88,13 @@ Event* new_Event_global_jump(Tstamp* pos)
 }
 
 
-void Trigger_global_jump_process(Event* event, Master_params* master_params)
+void Trigger_master_jump_process(Event* event, Master_params* master_params)
 {
     assert(event != NULL);
     assert(event->type == Trigger_jump);
     assert(master_params != NULL);
 
-    Event_global_jump* jump = (Event_global_jump*)event;
+    Event_master_jump* jump = (Event_master_jump*)event;
 
     // Find jump context
     Pattern_location* key = PATTERN_LOCATION_AUTO;
@@ -160,8 +160,8 @@ void Trigger_global_jump_process(Event* event, Master_params* master_params)
 }
 
 
-bool Trigger_global_jump_set_locations(
-        Event_global_jump* event,
+bool Trigger_master_jump_set_locations(
+        Event_master_jump* event,
         AAtree* locations,
         AAiter* locations_iter)
 {
@@ -202,14 +202,14 @@ bool Trigger_global_jump_set_locations(
 }
 
 
-void del_Event_global_jump(Event* event)
+void del_Event_master_jump(Event* event)
 {
     if (event == NULL)
     {
         return;
     }
     assert(event->type == Trigger_jump);
-    Event_global_jump* jump = (Event_global_jump*)event;
+    Event_master_jump* jump = (Event_master_jump*)event;
     del_AAtree(jump->counters);
     del_AAiter(jump->counters_iter);
     del_Event_default(event);

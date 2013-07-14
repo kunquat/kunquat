@@ -22,7 +22,7 @@
 #include <xassert.h>
 
 
-bool Event_global_set_volume_process(
+bool Event_master_set_volume_process(
         Master_params* master_params,
         Value* value)
 {
@@ -45,7 +45,7 @@ bool Event_global_set_volume_process(
 }
 
 
-bool Event_global_slide_volume_process(
+bool Event_master_slide_volume_process(
         Master_params* master_params,
         Value* value)
 {
@@ -75,7 +75,7 @@ bool Event_global_slide_volume_process(
 }
 
 
-bool Event_global_slide_volume_length_process(
+bool Event_master_slide_volume_length_process(
         Master_params* master_params,
         Value* value)
 {

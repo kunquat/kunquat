@@ -23,7 +23,7 @@
 #include <xassert.h>
 
 
-bool Event_global_set_tempo_process(
+bool Event_master_set_tempo_process(
         Master_params* master_params,
         Value* value)
 {
@@ -55,7 +55,7 @@ static void set_tempo_slide_update(Master_params* master_params)
 }
 
 
-bool Event_global_slide_tempo_process(
+bool Event_master_slide_tempo_process(
         Master_params* master_params,
         Value* value)
 {
@@ -87,7 +87,7 @@ bool Event_global_slide_tempo_process(
 }
 
 
-bool Event_global_slide_tempo_length_process(
+bool Event_master_slide_tempo_length_process(
         Master_params* master_params,
         Value* value)
 {

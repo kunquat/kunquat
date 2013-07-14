@@ -19,7 +19,7 @@
 #include <Event.h>
 #include <Event_names.h>
 #include <Event_type.h>
-#include <Event_global_jump.h>
+#include <Event_master_jump.h>
 #include <memory.h>
 #include <string_common.h>
 #include <Value.h>
@@ -80,7 +80,7 @@ Event* new_Event_from_string(char** str, Read_state* state,
     Event* event = NULL;
     if (string_eq(type_str, "mj"))
     {
-        event = new_Event_global_jump(pos);
+        event = new_Event_master_jump(pos);
     }
     else
     {

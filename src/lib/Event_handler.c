@@ -56,7 +56,7 @@ struct Event_handler
     bool (*control_process[Event_control_STOP])(General_state*, Value*);
     bool (*general_process[Event_general_STOP])(General_state*, Value*);
     bool (*ch_process[Event_channel_STOP])(Channel_state*, Value*);
-    bool (*global_process[Event_master_STOP])(Master_params*, Value*);
+    bool (*master_process[Event_master_STOP])(Master_params*, Value*);
     bool (*ins_process[Event_ins_STOP])(Instrument_params*, Value*);
     bool (*generator_process[Event_generator_STOP])(
             Generator*,
@@ -106,7 +106,7 @@ Event_handler* new_Event_handler(
 #include <events/Event_general_types.h>
 
 #define EVENT_TYPE_DEF(type) Event_handler_set_master_process( \
-        eh, Event_master_##type, Event_global_##type##_process);
+        eh, Event_master_##type, Event_master_##type##_process);
 #include <events/Event_master_types.h>
 
 #define EVENT_TYPE_DEF(type) Event_handler_set_ch_process( \
@@ -187,7 +187,7 @@ bool Event_handler_set_master_process(
     assert(eh != NULL);
     assert(Event_is_master(type));
     assert(global_process != NULL);
-    eh->global_process[type] = global_process;
+    eh->master_process[type] = global_process;
     return true;
 }
 
@@ -282,11 +282,11 @@ static bool Event_handler_handle(
     }
     else if (Event_is_master(type))
     {
-        if (eh->global_process[type] == NULL)
+        if (eh->master_process[type] == NULL)
         {
             return false;
         }
-        return eh->global_process[type](eh->master_params, value);
+        return eh->master_process[type](eh->master_params, value);
     }
     else if (Event_is_generator(type))
     {

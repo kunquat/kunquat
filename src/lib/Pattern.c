@@ -23,7 +23,6 @@
 #include <Connections_search.h>
 #include <Event.h>
 #include <Event_handler.h>
-#include <events/Event_global_jump.h>
 #include <memory.h>
 #include <Pattern.h>
 #include <Pattern_location.h>

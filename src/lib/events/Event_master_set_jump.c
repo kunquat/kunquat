@@ -23,7 +23,7 @@
 #include <xassert.h>
 
 
-bool Event_global_set_jump_counter_process(
+bool Event_master_set_jump_counter_process(
         Master_params* master_params,
         Value* value)
 {
@@ -37,7 +37,7 @@ bool Event_global_set_jump_counter_process(
 }
 
 
-bool Event_global_set_jump_row_process(
+bool Event_master_set_jump_row_process(
         Master_params* master_params,
         Value* value)
 {
@@ -51,7 +51,7 @@ bool Event_global_set_jump_row_process(
 }
 
 
-bool Event_global_set_jump_pat_inst_process(
+bool Event_master_set_jump_pat_inst_process(
         Master_params* master_params,
         Value* value)
 {
