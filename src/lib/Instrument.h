@@ -186,24 +186,6 @@ Connections* Instrument_get_connections(Instrument* ins);
 
 
 /**
- * Mixes the Instrument.
- *
- * \param ins       The Instrument -- must not be \c NULL.
- * \param states    The array of Voice states -- must not be \c NULL.
- * \param nframes   The number of frames to be mixed -- must not be greater
- *                  than the mixing buffer size.
- * \param offset    The starting frame offset (\a nframes - \a offset are
- *                  actually mixed).
- * \param freq      The mixing frequency -- must be > \c 0.
- */
-void Instrument_mix(Instrument* ins,
-                    Voice_state* states,
-                    uint32_t nframes,
-                    uint32_t offset,
-                    uint32_t freq);
-
-
-/**
  * Destroys an existing Instrument.
  *
  * \param ins   The Instrument, or \c NULL.

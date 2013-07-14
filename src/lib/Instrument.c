@@ -338,28 +338,6 @@ Connections* Instrument_get_connections(Instrument* ins)
 }
 
 
-void Instrument_mix(Instrument* ins,
-                    Voice_state* states,
-                    uint32_t nframes,
-                    uint32_t offset,
-                    uint32_t freq)
-{
-    assert(ins != NULL);
-    assert(states != NULL);
-//  assert(nframes <= ins->buf_len);
-    assert(freq > 0);
-    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
-    {
-        Generator* gen = Gen_table_get_gen(ins->gens, i);
-        if (gen != NULL)
-        {
-            Generator_mix(gen, &states[i], nframes, offset, freq, 120);
-        }
-    }
-    return;
-}
-
-
 static void Instrument_reset(Device* device)
 {
     assert(device != NULL);
