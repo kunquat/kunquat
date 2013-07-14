@@ -41,6 +41,8 @@ typedef struct Cgiter
     Position pos;
     Column_iter citer;
     Trigger_row cur_tr; // TODO: remove
+
+    bool row_returned;
 } Cgiter;
 
 
@@ -67,11 +69,20 @@ void Cgiter_reset(Cgiter* cgiter, const Position* start_pos);
 /**
  * Returns trigger row at the current Cgiter position.
  *
- * \param cgiter   The Cgiter -- must not be \c NULL. TODO: make const
+ * \param cgiter   The Cgiter -- must not be \c NULL.
  *
  * \return   The trigger row if one exists, otherwise \c NULL.
  */
 const Trigger_row* Cgiter_get_trigger_row(Cgiter* cgiter);
+
+
+/**
+ * Allow a previously returned trigger row to be returned again.
+ *
+ * \param cgiter   The Cgiter -- must not be \c NULL and must have the
+ *                 returned flag set.
+ */
+void Cgiter_clear_returned_status(Cgiter* cgiter);
 
 
 /**

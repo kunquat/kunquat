@@ -522,6 +522,49 @@ START_TEST(Note_on_after_pattern_end_is_ignored)
 END_TEST
 
 
+START_TEST(Note_on_at_pattern_start_is_handled)
+{
+    set_mixing_rate(mixing_rates[MIXING_RATE_LOW]);
+    fail_if(!Player_set_audio_rate(player, mixing_rates[MIXING_RATE_LOW]),
+            "Could not set player audio rate");
+    set_mix_volume(0);
+    setup_debug_instrument();
+    setup_debug_single_pulse();
+
+    set_data("album/p_manifest.json", "{}");
+    set_data("album/p_tracks.json", "[0]");
+    set_data("song_00/p_manifest.json", "{}");
+    set_data("song_00/p_order_list.json", "[ [0, 0], [1, 0] ]");
+
+    set_data("pat_000/p_manifest.json", "{}");
+    set_data("pat_000/p_pattern.json", "{ \"length\": [4, 0] }");
+    set_data("pat_000/instance_000/p_manifest.json", "{}");
+    set_data("pat_000/col_00/p_triggers.json",
+            "[ [[0, 0], [\"n+\", \"0\"]] ]");
+
+    set_data("pat_001/p_manifest.json", "{}");
+    set_data("pat_001/p_pattern.json", "{ \"length\": [8, 0] }");
+    set_data("pat_001/instance_000/p_manifest.json", "{}");
+    set_data("pat_001/col_00/p_triggers.json",
+            "[ [[0, 0], [\"n+\", \"0\"]] ]");
+
+    validate();
+    check_unexpected_error();
+
+    Player_reset(player);
+    Player_play(player, 2048);
+
+    const float* actual_buf = Player_get_audio(player, 0);
+
+    float expected_buf[buf_len] = { 0.0f };
+    expected_buf[0] = 1.0f;
+    expected_buf[mixing_rates[MIXING_RATE_LOW] * 2] = 1.0f;
+
+    check_buffers_equal(expected_buf, actual_buf, buf_len, 0.0f);
+}
+END_TEST
+
+
 START_TEST(Empty_composition_renders_zero_frames)
 {
     assert(player != NULL);
@@ -999,6 +1042,7 @@ Suite* Player_suite(void)
             0, MIXING_RATE_COUNT);
     tcase_add_loop_test(tc_patterns, Note_on_at_pattern_end_is_handled, 0, 4);
     tcase_add_loop_test(tc_patterns, Note_on_after_pattern_end_is_ignored, 0, 4);
+    tcase_add_test(tc_patterns, Note_on_at_pattern_start_is_handled);
 
     // Songs
     tcase_add_test(tc_songs, Empty_composition_renders_zero_frames);

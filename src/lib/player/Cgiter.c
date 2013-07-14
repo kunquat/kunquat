@@ -30,6 +30,8 @@ void Cgiter_init(Cgiter* cgiter, const Module* module, int col_index)
 
     cgiter->cur_tr.head = NULL;
 
+    cgiter->row_returned = false;
+
     return;
 }
 
@@ -76,6 +78,8 @@ void Cgiter_reset(Cgiter* cgiter, const Position* start_pos)
     else
         cgiter->pos.track = -1;
 
+    cgiter->row_returned = false;
+
 #if 0
     fprintf(stderr, "iter pos: %d %d %d %d %d %d\n",
             (int)cgiter->pos.track,
@@ -98,6 +102,11 @@ const Trigger_row* Cgiter_get_trigger_row(Cgiter* cgiter)
 
     if (Cgiter_has_finished(cgiter))
         return NULL;
+
+    // Don't return a previously returned row
+    if (cgiter->row_returned)
+        return NULL;
+    cgiter->row_returned = true;
 
     // Find pattern
     const Pattern* pattern = NULL;
@@ -131,6 +140,17 @@ const Trigger_row* Cgiter_get_trigger_row(Cgiter* cgiter)
 }
 
 
+void Cgiter_clear_returned_status(Cgiter* cgiter)
+{
+    assert(cgiter != NULL);
+    assert(cgiter->row_returned);
+
+    cgiter->row_returned = false;
+
+    return;
+}
+
+
 bool Cgiter_peek(Cgiter* cgiter, Tstamp* dist)
 {
     assert(cgiter != NULL);
@@ -140,85 +160,63 @@ bool Cgiter_peek(Cgiter* cgiter, Tstamp* dist)
     if (Cgiter_has_finished(cgiter))
         return false;
 
-    Position pos = cgiter->pos;
-    Tstamp* advance = TSTAMP_AUTO;
-    Tstamp* remaining = Tstamp_copy(TSTAMP_AUTO, dist);
+    // Find pattern
+    const Pattern* pattern = NULL;
+    const Pat_inst_ref* piref = find_pat_inst_ref(
+        cgiter->module,
+        cgiter->pos.track,
+        cgiter->pos.system);
+    if (piref != NULL)
+        pattern = Module_get_pattern(cgiter->module, piref);
 
-    while (Tstamp_cmp(advance, dist) < 0)
+    if (pattern == NULL)
+        return false;
+
+    // Check pattern end
+    const Tstamp* pat_length = Pattern_get_length(pattern);
+    const Tstamp* dist_to_end = Tstamp_sub(
+            TSTAMP_AUTO,
+            pat_length,
+            &cgiter->pos.pat_pos);
+
+    if (Tstamp_cmp(dist_to_end, TSTAMP_AUTO) <= 0)
     {
-        // Find pattern
-        const Pattern* pattern = NULL;
-        const Pat_inst_ref* piref = find_pat_inst_ref(
-            cgiter->module,
-            pos.track,
-            pos.system);
-        if (piref != NULL)
-            pattern = Module_get_pattern(cgiter->module, piref);
-
-        if (pattern == NULL)
-        {
-            if (Tstamp_cmp(advance, TSTAMP_AUTO) == 0)
-            {
-                // We started at the end of data on this call
-                return false;
-            }
-
-            break;
-        }
-
-        const Tstamp* pat_length = Pattern_get_length(pattern);
-        const Tstamp* dist_to_end = Tstamp_sub(
-                TSTAMP_AUTO,
-                pat_length,
-                &pos.pat_pos);
-
-        // Check next trigger row
-        Column* column = Pattern_get_column(pattern, cgiter->col_index);
-        assert(column != NULL);
-        Column_iter_change_col(&cgiter->citer, column);
-        const Tstamp* next_pos_min = Tstamp_add(
-                TSTAMP_AUTO,
-                &pos.pat_pos,
-                Tstamp_set(TSTAMP_AUTO, 0, 1));
-        Event_list* row = Column_iter_get_row(&cgiter->citer, next_pos_min);
-        if (row != NULL)
-        {
-            assert(row->next != NULL);
-            assert(row->next->event != NULL);
-            if (Tstamp_cmp(&row->next->event->pos, pat_length) <= 0)
-            {
-                // Trigger row found inside this pattern
-                Tstamp_sub(
-                        advance,
-                        &row->next->event->pos,
-                        &pos.pat_pos);
-                break;
-            }
-        }
-
-        // No triggers found, check pattern end
-        if (Tstamp_cmp(remaining, dist_to_end) > 0)
-        {
-            Tstamp_adda(advance, dist_to_end);
-            Tstamp_suba(remaining, dist_to_end);
-
-            // Next system, TODO: playback modes...
-            ++pos.system;
-        }
-        else
-        {
-            Tstamp_adda(advance, remaining);
-            Tstamp_set(remaining, 0, 0);
-        }
-    }
-
-    if (Tstamp_cmp(advance, dist) < 0)
-    {
-        Tstamp_copy(dist, advance);
+        // We cannot move forwards in playback time
+        Tstamp_set(dist, 0, 0);
         return true;
     }
 
-    return false;
+    // Check next trigger row
+    Column* column = Pattern_get_column(pattern, cgiter->col_index);
+    assert(column != NULL);
+    Column_iter_change_col(&cgiter->citer, column);
+
+    const Tstamp* epsilon = Tstamp_set(TSTAMP_AUTO, 0, 1);
+    Tstamp* next_pos_min = Tstamp_add(
+            TSTAMP_AUTO,
+            &cgiter->pos.pat_pos,
+            epsilon);
+    Event_list* row = Column_iter_get_row(&cgiter->citer, next_pos_min);
+
+    if (row != NULL)
+    {
+        assert(row->next != NULL);
+        assert(row->next->event != NULL);
+        if (Tstamp_cmp(&row->next->event->pos, pat_length) <= 0)
+        {
+            // Trigger row found inside this pattern
+            const Tstamp* dist_to_row = Tstamp_sub(
+                    TSTAMP_AUTO,
+                    &row->next->event->pos,
+                    &cgiter->pos.pat_pos);
+            Tstamp_mina(dist, dist_to_row);
+            return true;
+        }
+    }
+
+    // No trigger row found
+    Tstamp_mina(dist, dist_to_end);
+    return true;
 }
 
 
@@ -253,32 +251,33 @@ void Cgiter_move(Cgiter* cgiter, const Tstamp* dist)
     assert(dist != NULL);
     assert(Tstamp_cmp(dist, TSTAMP_AUTO) >= 0);
 
-    Tstamp_adda(&cgiter->pos.pat_pos, dist);
+    if (cgiter->pos.piref.pat < 0)
+        return;
 
-    Tstamp* remaining = Tstamp_copy(TSTAMP_AUTO, dist);
-
-    while (Tstamp_cmp(remaining, TSTAMP_AUTO) > 0 &&
-            cgiter->pos.track >= 0)
+    // Find current pattern
+    const Pattern* pattern = Module_get_pattern(
+            cgiter->module,
+            &cgiter->pos.piref);
+    if (pattern == NULL)
     {
-        // Find current pattern
-        const Pattern* pattern = Module_get_pattern(
-                cgiter->module,
-                &cgiter->pos.piref);
-        if (pattern == NULL)
-        {
-            cgiter->pos.track = -1;
-            return;
-        }
-
-        // See if we went past the pattern end
-        const Tstamp* pat_length = Pattern_get_length(pattern);
-        Tstamp_sub(remaining, &cgiter->pos.pat_pos, pat_length);
-        if (Tstamp_cmp(remaining, TSTAMP_AUTO) > 0)
-        {
-            Cgiter_go_to_next_system(cgiter);
-            Tstamp_copy(&cgiter->pos.pat_pos, remaining);
-        }
+        cgiter->pos.track = -1;
+        return;
     }
+
+    // Check if we are at the end of a pattern
+    const Tstamp* pat_length = Pattern_get_length(pattern);
+    if (Tstamp_cmp(&cgiter->pos.pat_pos, pat_length) >= 0)
+    {
+        // dist must be 0 or the pattern length changed
+        Cgiter_go_to_next_system(cgiter);
+        cgiter->row_returned = false;
+        return;
+    }
+
+    // Move forwards
+    Tstamp_adda(&cgiter->pos.pat_pos, dist);
+    if (Tstamp_cmp(dist, TSTAMP_AUTO) > 0)
+        cgiter->row_returned = false;
 
     return;
 }

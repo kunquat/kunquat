@@ -495,6 +495,9 @@ static void Player_process_cgiters(Player* player, Tstamp* limit, bool skip)
                             TSTAMP_AUTO) > 0)
                 {
                     Tstamp_set(limit, 0, 0);
+
+                    // Make sure we get this row again next time
+                    Cgiter_clear_returned_status(cgiter);
                     return;
                 }
 
