@@ -24,7 +24,6 @@
 #include <kunquat/limits.h>
 #include <math_common.h>
 #include <Module.h>
-#include <Playdata.h>
 #include <Event_handler.h>
 #include <string_common.h>
 #include <Voice_pool.h>

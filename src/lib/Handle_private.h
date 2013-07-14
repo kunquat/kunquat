@@ -22,7 +22,6 @@
 #include <kunquat/Player.h>
 
 #include <Module.h>
-#include <Playdata.h>
 #include <player/Player.h>
 #include <Voice_pool.h>
 

@@ -458,17 +458,6 @@ static bool parse_album_level(
             return false;
         }
         module->album_is_existent = existent;
-        if (existent)
-        {
-            Track_list* tl = module->track_list;
-            module->play_state->track_list = tl;
-            module->skip_state->track_list = tl;
-        }
-        else
-        {
-            module->play_state->track_list = NULL;
-            module->skip_state->track_list = NULL;
-        }
     }
     else if (string_eq(subkey, "p_tracks.json"))
     {
@@ -489,16 +478,6 @@ static bool parse_album_level(
         }
         del_Track_list(module->track_list);
         module->track_list = tl;
-        if (module->album_is_existent)
-        {
-            module->play_state->track_list = tl;
-            module->skip_state->track_list = tl;
-        }
-        else
-        {
-            assert(module->play_state->track_list == NULL);
-            assert(module->skip_state->track_list == NULL);
-        }
     }
     return true;
 }

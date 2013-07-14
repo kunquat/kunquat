@@ -20,7 +20,6 @@
 #include <Event_type.h>
 #include <File_base.h>
 #include <General_state.h>
-#include <Playdata.h>
 #include <player/Master_params.h>
 #include <Value.h>
 #include <xassert.h>

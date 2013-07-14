@@ -22,7 +22,6 @@
 #include <Event_type.h>
 #include <File_base.h>
 #include <General_state.h>
-#include <Playdata.h>
 #include <Value.h>
 #include <xassert.h>
 

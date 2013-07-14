@@ -33,7 +33,6 @@
 #include <Random.h>
 #include <Scale.h>
 #include <Track_list.h>
-#include <Playdata.h>
 #include <File_base.h>
 #include <Event_handler.h>
 
@@ -55,8 +54,6 @@ struct Module
     double mix_vol_dB;                  ///< Mixing volume in dB.
     double mix_vol;                     ///< Mixing volume.
 //    uint16_t init_subsong;              ///< Initial subsong number.
-    Playdata* play_state;               ///< Playback state.
-    Playdata* skip_state;               ///< Skip state (used for length calculation).
     Environment* env;                   ///< Environment variables.
     Bind* bind;
 };
@@ -236,16 +233,6 @@ bool Module_set_bind(Module* module, Bind* bind);
 
 
 /**
- * Gets the array of Scales of the Module.
- *
- * \param module   The Module -- must not be \c NULL.
- *
- * \return   The Scales.
- */
-Scale** Module_get_scales(Module* module);
-
-
-/**
  * Sets a Scale in the Module.
  *
  * \param module   The Module -- must not be \c NULL.
@@ -264,16 +251,6 @@ void Module_set_scale(Module* module, int index, Scale* scale);
  * \return   The Scale.
  */
 Scale* Module_get_scale(Module* module, int index);
-
-
-/**
- * Gets an indirect reference to the active Scale of the Module.
- *
- * \param module   The Module -- must not be \c NULL.
- *
- * \return   The reference.
- */
-Scale*** Module_get_active_scale(Module* module);
 
 
 /**

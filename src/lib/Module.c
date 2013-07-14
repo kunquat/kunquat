@@ -114,8 +114,6 @@ Module* new_Module(uint32_t buf_size)
     module->insts = NULL;
     module->effects = NULL;
     module->connections = NULL;
-    module->play_state = NULL;
-    module->skip_state = NULL;
     module->random = NULL;
     module->env = NULL;
     module->bind = NULL;
@@ -145,6 +143,7 @@ Module* new_Module(uint32_t buf_size)
         del_Module(module);
         return NULL;
     }
+
     module->scales[0] = new_Scale(SCALE_DEFAULT_REF_PITCH,
             SCALE_DEFAULT_OCTAVE_RATIO);
     if (module->scales[0] == NULL)
@@ -152,32 +151,13 @@ Module* new_Module(uint32_t buf_size)
         del_Module(module);
         return NULL;
     }
+
     module->env = new_Environment();
     if (module->env == NULL)
     {
         del_Module(module);
         return NULL;
     }
-    module->play_state = new_Playdata(module->insts,
-                                    module->env,
-                                    module->random);
-    if (module->play_state == NULL)
-    {
-        del_Module(module);
-        return NULL;
-    }
-    module->play_state->subsongs = Module_get_subsongs(module);
-    module->play_state->order_lists = module->order_lists;
-    module->play_state->scales = module->scales;
-    module->play_state->active_scale = &module->play_state->scales[0];
-    module->skip_state = new_Playdata_silent(module->env, 1000000000);
-    if (module->skip_state == NULL)
-    {
-        del_Module(module);
-        return NULL;
-    }
-    module->skip_state->subsongs = Module_get_subsongs(module);
-    module->skip_state->order_lists = module->order_lists;
 
     if (!Device_init_buffer(&module->parent, DEVICE_PORT_TYPE_RECEIVE, 0))
     {
@@ -460,8 +440,6 @@ bool Module_set_bind(Module* module, Bind* bind)
 {
     assert(module != NULL);
     assert(bind != NULL);
-    assert(module->bind == module->play_state->bind);
-    assert(module->bind == module->skip_state->bind);
 #if 0
     Event_cache* caches[KQT_COLUMNS_MAX] = { NULL };
     for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
@@ -487,13 +465,6 @@ bool Module_set_bind(Module* module, Bind* bind)
 }
 
 
-Scale** Module_get_scales(Module* module)
-{
-    assert(module != NULL);
-    return module->play_state->scales;
-}
-
-
 Scale* Module_get_scale(Module* module, int index)
 {
     assert(module != NULL);
@@ -516,13 +487,6 @@ void Module_set_scale(Module* module, int index, Scale* scale)
     }
     module->scales[index] = scale;
     return;
-}
-
-
-Scale*** Module_get_active_scale(Module* module)
-{
-    assert(module != NULL);
-    return &module->play_state->active_scale;
 }
 
 
@@ -580,8 +544,6 @@ static void Module_reset(Device* device)
             Device_reset((Device*)eff);
         }
     }
-    Playdata_reset(module->play_state);
-    Playdata_reset(module->skip_state);
     Random_reset(module->random);
     return;
 }
@@ -689,8 +651,6 @@ void del_Module(Module* module)
     {
         del_Scale(module->scales[i]);
     }
-    del_Playdata(module->play_state);
-    del_Playdata(module->skip_state);
     del_Random(module->random);
     del_Bind(module->bind);
     Device_uninit(&module->parent);
