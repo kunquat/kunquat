@@ -26,35 +26,18 @@
 #include <xassert.h>
 
 
-bool Event_control_infinite_process(General_state* mgstate, General_state* gstate, Value* value)
+bool Event_control_infinite_process(General_state* gstate, Value* value)
 {
-    assert(mgstate != NULL || gstate != NULL);
+    assert(gstate != NULL);
     assert(value != NULL);
+    assert(value->type == VALUE_TYPE_BOOL);
 
-    if (mgstate != NULL)
-    {
-        if (value->type != VALUE_TYPE_BOOL)
-            return false;
-
-        if (!mgstate->global)
-            return false;
-
-        Master_params* master_params = (Master_params*)mgstate;
-        master_params->is_infinite = value->value.bool_type;
-
-        return true;
-    }
-
-    if (value->type != VALUE_TYPE_BOOL)
-    {
-        return false;
-    }
     if (!gstate->global)
-    {
-        return true;
-    }
-    Playdata* global_state = (Playdata*)gstate;
-    global_state->infinite = value->value.bool_type;
+        return false;
+
+    Master_params* master_params = (Master_params*)gstate;
+    master_params->is_infinite = value->value.bool_type;
+
     return true;
 }
 

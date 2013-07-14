@@ -23,14 +23,14 @@
 #include <xassert.h>
 
 
-bool Event_control_goto_process(General_state* mgstate, General_state* gstate, Value* value)
+bool Event_control_goto_process(General_state* gstate, Value* value)
 {
-    assert(mgstate != NULL || gstate != NULL);
+    assert(gstate != NULL);
     (void)value;
 
-    if (mgstate != NULL)
-        return false;
+    return false;
 
+#if 0
     if (!gstate->global)
     {
         return false;
@@ -41,17 +41,18 @@ bool Event_control_goto_process(General_state* mgstate, General_state* gstate, V
     global_state->goto_section = global_state->goto_set_section;
     Tstamp_copy(&global_state->goto_row, &global_state->goto_set_row);
     return true;
+#endif
 }
 
 
-bool Event_control_set_goto_row_process(General_state* mgstate, General_state* gstate, Value* value)
+bool Event_control_set_goto_row_process(General_state* gstate, Value* value)
 {
-    assert(mgstate != NULL || gstate != NULL);
+    assert(gstate != NULL);
     assert(value != NULL);
 
-    if (mgstate != NULL)
-        return false;
+    return false;
 
+#if 0
     if (!gstate->global)
     {
         return false;
@@ -59,20 +60,20 @@ bool Event_control_set_goto_row_process(General_state* mgstate, General_state* g
     Playdata* global_state = (Playdata*)gstate;
     Tstamp_copy(&global_state->goto_set_row, &value->value.Tstamp_type);
     return true;
+#endif
 }
 
 
 bool Event_control_set_goto_section_process(
-        General_state* mgstate,
         General_state* gstate,
         Value* value)
 {
-    assert(mgstate != NULL || gstate != NULL);
+    assert(gstate != NULL);
     assert(value != NULL);
 
-    if (mgstate != NULL)
-        return false;
+    return false;
 
+#if 0
     if (value->type != VALUE_TYPE_INT || !gstate->global)
     {
         return false;
@@ -80,20 +81,20 @@ bool Event_control_set_goto_section_process(
     Playdata* global_state = (Playdata*)gstate;
     global_state->goto_set_section = value->value.int_type;
     return true;
+#endif
 }
 
 
 bool Event_control_set_goto_song_process(
-        General_state* mgstate,
         General_state* gstate,
         Value* value)
 {
-    assert(mgstate != NULL || gstate != NULL);
+    assert(gstate != NULL);
     assert(value != NULL);
 
-    if (mgstate != NULL)
-        return false;
+    return false;
 
+#if 0
     if (value->type != VALUE_TYPE_INT || !gstate->global)
     {
         return false;
@@ -101,6 +102,7 @@ bool Event_control_set_goto_song_process(
     Playdata* global_state = (Playdata*)gstate;
     global_state->goto_set_subsong = value->value.int_type;
     return true;
+#endif
 }
 
 

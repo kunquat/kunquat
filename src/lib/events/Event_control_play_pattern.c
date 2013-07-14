@@ -26,23 +26,24 @@
 #include <xassert.h>
 
 
-bool Event_control_play_pattern_process(General_state* mgstate, General_state* gstate, Value* value)
+bool Event_control_play_pattern_process(General_state* gstate, Value* value)
 {
-    assert(mgstate != NULL || gstate != NULL);
+    assert(gstate != NULL);
     assert(value != NULL);
+    assert(value->type == VALUE_TYPE_PAT_INST_REF);
 
-    if (mgstate != NULL)
+    if (!gstate->global)
         return false;
 
-    if (value->type != VALUE_TYPE_PAT_INST_REF || !gstate->global)
-    {
-        return false;
-    }
+    return false;
+
+#if 0
     Playdata* global_state = (Playdata*)gstate;
     global_state->piref = value->value.Pat_inst_ref_type;
     global_state->mode = PLAY_PATTERN;
     Tstamp_set(&global_state->pos, 0, 0);
     return true;
+#endif
 }
 
 

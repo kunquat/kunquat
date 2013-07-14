@@ -55,7 +55,7 @@ struct Event_handler
     Master_params* master_params;
     Playdata* global_state;
     Event_names* event_names;
-    bool (*control_process[Event_control_STOP])(General_state*, General_state*, Value*);
+    bool (*control_process[Event_control_STOP])(General_state*, Value*);
     bool (*general_process[Event_general_STOP])(General_state*, Value*);
     bool (*ch_process[Event_channel_STOP])(Channel_state*, Value*);
     bool (*global_process[Event_master_STOP])(Master_params*, Playdata*, Value*);
@@ -85,9 +85,7 @@ Event_handler* new_Event_handler(
 
     Event_handler* eh = memory_alloc_item(Event_handler);
     if (eh == NULL)
-    {
         return NULL;
-    }
 
     eh->event_names = new_Event_names();
     if (eh->event_names == NULL)
@@ -189,7 +187,7 @@ bool Event_handler_set_general_process(
 bool Event_handler_set_control_process(
         Event_handler* eh,
         Event_type type,
-        bool (*control_process)(General_state*, General_state*, Value*))
+        bool (*control_process)(General_state*, Value*))
 {
     assert(eh != NULL);
     assert(Event_is_control(type));
@@ -393,16 +391,11 @@ static bool Event_handler_handle(
     {
         return eh->control_process[type](
                 (General_state*)eh->master_params,
-                (General_state*)eh->global_state,
                 value);
     }
     else if (Event_is_general(type))
     {
-        General_state* gstate = (General_state*)eh->global_state;
-        if (index >= 0)
-        {
-            gstate = (General_state*)eh->ch_states[index];
-        }
+        General_state* gstate = (General_state*)eh->ch_states[index];
         return eh->general_process[type](gstate, value);
     }
     return false;

@@ -27,18 +27,18 @@
 #include <xassert.h>
 
 
-bool Event_control_receive_event_process(General_state* mgstate, General_state* gstate, Value* value)
+bool Event_control_receive_event_process(General_state* gstate, Value* value)
 {
-    assert(mgstate != NULL || gstate != NULL);
+    assert(gstate != NULL);
     assert(value != NULL);
+    assert(value->type == VALUE_TYPE_STRING);
 
-    if (mgstate != NULL)
+    if (!gstate->global)
         return false;
 
-    if (value->type != VALUE_TYPE_STRING || !gstate->global)
-    {
-        return false;
-    }
+    return false;
+
+#if 0
     Playdata* global_state = (Playdata*)gstate;
     if (global_state->event_filter != NULL)
     {
@@ -47,6 +47,7 @@ bool Event_control_receive_event_process(General_state* mgstate, General_state* 
                 value->value.string_type, true);
     }
     return true;
+#endif
 }
 
 

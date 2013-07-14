@@ -23,33 +23,27 @@
 #include <xassert.h>
 
 
-bool Event_control_pause_process(General_state* mgstate, General_state* gstate, Value* value)
+bool Event_control_pause_process(General_state* gstate, Value* value)
 {
-    assert(mgstate != NULL || gstate != NULL);
-    if (gstate == NULL)
-        gstate = mgstate;
+    assert(gstate != NULL);
     (void)value;
 
     if (!gstate->global)
-    {
         return false;
-    }
+
     gstate->pause = true;
     return true;
 }
 
 
-bool Event_control_resume_process(General_state* mgstate, General_state* gstate, Value* value)
+bool Event_control_resume_process(General_state* gstate, Value* value)
 {
-    assert(mgstate != NULL || gstate != NULL);
-    if (gstate == NULL)
-        gstate = mgstate;
+    assert(gstate != NULL);
     (void)value;
 
     if (!gstate->global)
-    {
         return false;
-    }
+
     gstate->pause = false;
     return true;
 }
