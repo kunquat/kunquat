@@ -44,18 +44,22 @@ bool Event_channel_slide_pitch_process(Channel_state* ch_state, Value* value)
         }
         Voice_state* vs = voice->state;
         pitch_t pitch = -1;
+#if 0
         if (voice->gen->ins_params->scale == NULL ||
                 *voice->gen->ins_params->scale == NULL ||
                 **voice->gen->ins_params->scale == NULL)
+#endif
         {
-            pitch = value->value.float_type;
+            pitch = exp2(value->value.float_type / 1200) * 440;
         }
+#if 0
         else
         {
             pitch = Scale_get_pitch_from_cents(
                     **voice->gen->ins_params->scale,
                     value->value.float_type);
         }
+#endif
         if (pitch <= 0)
         {
             continue;

@@ -35,8 +35,6 @@ typedef struct Pitch_lock
 
 typedef struct Instrument_params
 {
-    Scale*** scale;    ///< An indirect reference to the current Scale used.
-
     double sustain; ///< Sustain setting (0 = no sustain, 1.0 = full sustain).
 
     double global_force;           ///< Global force.
@@ -93,15 +91,12 @@ typedef struct Instrument_params
 /**
  * Initialises the Instrument parameters.
  *
- * \param ip          The Instrument parameters -- must not be \c NULL.
- * \param scale       An indirect reference to the Scale -- must not be
- *                    \c NULL.
+ * \param ip   The Instrument parameters -- must not be \c NULL.
  *
  * \return   The parameter \a ip if successful, or \c NULL if memory
  *           allocation failed.
  */
-Instrument_params* Instrument_params_init(Instrument_params* ip,
-                                          Scale*** scale);
+Instrument_params* Instrument_params_init(Instrument_params* ip);
 
 
 /**

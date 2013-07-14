@@ -34,12 +34,9 @@
         }                                                                 \
     } else (void)0
 
-Instrument_params* Instrument_params_init(Instrument_params* ip,
-                                          Scale*** scale)
+Instrument_params* Instrument_params_init(Instrument_params* ip)
 {
     assert(ip != NULL);
-    assert(scale != NULL);
-    assert(*scale != NULL);
     ip->force_volume_env = NULL;
     ip->env_force_filter = NULL;
     ip->force_pitch_env = NULL;
@@ -48,7 +45,6 @@ Instrument_params* Instrument_params_init(Instrument_params* ip,
     ip->env_pitch_pan = NULL;
     ip->filter_env = NULL;
     ip->filter_off_env = NULL;
-    ip->scale = scale;
 
     ip->sustain = 0;
     ip->volume = 1;

@@ -38,8 +38,6 @@ struct Instrument
 
 //    double default_force;       ///< Default force.
 
-    Scale** scales;             ///< The Scales of the Module.
-    Scale*** default_scale;     ///< The default Scale of the Module.
     int scale_index;            ///< The index of the Scale used (-1 means the default).
 
     Instrument_params params;   ///< All the Instrument parameters that Generators need.
@@ -59,28 +57,21 @@ static bool Instrument_sync(Device* device);
 
 
 Instrument* new_Instrument(uint32_t buf_len,
-                           uint32_t mix_rate,
-                           Scale** scales,
-                           Scale*** default_scale)
+                           uint32_t mix_rate)
 {
     assert(buf_len > 0);
     assert(mix_rate > 0);
-    assert(scales != NULL);
-    assert(default_scale != NULL);
-    assert(*default_scale != NULL);
-    assert(*default_scale >= &scales[0]);
-    assert(*default_scale <= &scales[KQT_SCALES_MAX - 1]);
+
     Instrument* ins = memory_alloc_item(Instrument);
     if (ins == NULL)
-    {
         return NULL;
-    }
+
     //fprintf(stderr, "New Instrument %p\n", (void*)ins);
     ins->connections = NULL;
     ins->gens = NULL;
     ins->effects = NULL;
 
-    if (Instrument_params_init(&ins->params, default_scale) == NULL)
+    if (Instrument_params_init(&ins->params) == NULL)
     {
         memory_free(ins);
         return NULL;
@@ -108,8 +99,6 @@ Instrument* new_Instrument(uint32_t buf_len,
 //    ins->default_force = INS_DEFAULT_FORCE;
     ins->params.force_variation = INS_DEFAULT_FORCE_VAR;
 
-    ins->scales = scales;
-    ins->default_scale = default_scale;
     ins->scale_index = INS_DEFAULT_SCALE_INDEX;
 
     return ins;
@@ -216,7 +205,6 @@ bool Instrument_parse_header(Instrument* ins, char* str, Read_state* state)
     ins->params.pitch_lock_cents = pitch_lock_cents;
     ins->params.pitch_lock_freq = exp2(ins->params.pitch_lock_cents / 1200.0) * 440;
 #endif
-    Instrument_set_scale(ins, scale_index);
     return true;
 }
 
@@ -299,23 +287,6 @@ Effect_table* Instrument_get_effects(Instrument* ins)
     assert(ins != NULL);
     assert(ins->effects != NULL);
     return ins->effects;
-}
-
-
-void Instrument_set_scale(Instrument* ins, int index)
-{
-    assert(ins != NULL);
-    assert(index >= -1);
-    assert(index < KQT_SCALES_MAX);
-    if (index == -1 || true)
-    {
-        ins->params.scale = ins->default_scale;
-    }
-    else
-    {
-//        ins->params.scale = &ins->scales[index];
-    }
-    return;
 }
 
 

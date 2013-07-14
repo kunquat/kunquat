@@ -42,19 +42,13 @@ typedef struct Instrument Instrument;
 /**
  * Creates a new Instrument.
  *
- * \param buf_len         The length of a mixing buffer -- must be > \c 0.
- * \param mix_rate        The mixing rate -- must be > \c 0.
- * \param scales          The Scales of the Module -- must not be \c NULL.
- * \param default_scale   The default Scale -- must not be \c NULL. Also,
- *                        *default_scales must be an element of \a scales.
+ * \param buf_len    The length of a mixing buffer -- must be > \c 0.
+ * \param mix_rate   The mixing rate -- must be > \c 0.
  *
  * \return   The new Instrument if successful, or \c NULL if memory allocation
  *           failed.
  */
-Instrument* new_Instrument(uint32_t buf_len,
-                           uint32_t mix_rate,
-                           Scale** scales,
-                           Scale*** default_scale);
+Instrument* new_Instrument(uint32_t buf_len, uint32_t mix_rate);
 
 
 /**
@@ -152,16 +146,6 @@ Effect* Instrument_get_effect(Instrument* ins, int index);
  * \return   The Effect table.
  */
 Effect_table* Instrument_get_effects(Instrument* ins);
-
-
-/**
- * Sets the active Scale of the Instrument.
- *
- * \param ins     The Instrument -- must not be \c NULL.
- * \param index   The index of the Scale -- must be >= \c 0 and
- *                < \c KQT_SCALES_MAX or \c -1 (default).
- */
-void Instrument_set_scale(Instrument* ins, int index);
 
 
 /**

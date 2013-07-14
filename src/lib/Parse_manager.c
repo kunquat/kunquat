@@ -577,10 +577,9 @@ static bool parse_instrument_level(kqt_Handle* handle,
                                                 eff_index) != NULL;
         if (ins == NULL)
         {
-            ins = new_Instrument(Device_get_buffer_size((Device*)module),
-                                 Device_get_mix_rate((Device*)module),
-                                 Module_get_scales(module),
-                                 Module_get_active_scale(module));
+            ins = new_Instrument(
+                    Device_get_buffer_size((Device*)module),
+                    Device_get_mix_rate((Device*)module));
             if (ins == NULL ||
                     !Ins_table_set(Module_get_insts(module), index, ins))
             {
@@ -614,10 +613,9 @@ static bool parse_instrument_level(kqt_Handle* handle,
         bool new_ins = (ins == NULL);
         if (new_ins)
         {
-            ins = new_Instrument(Device_get_buffer_size((Device*)module),
-                                 Device_get_mix_rate((Device*)module),
-                                 Module_get_scales(module),
-                                 Module_get_active_scale(module));
+            ins = new_Instrument(
+                    Device_get_buffer_size((Device*)module),
+                    Device_get_mix_rate((Device*)module));
             if (ins == NULL)
             {
                 kqt_Handle_set_error(handle, ERROR_MEMORY,
@@ -651,10 +649,9 @@ static bool parse_instrument_level(kqt_Handle* handle,
         bool new_ins = (ins == NULL);
         if (new_ins)
         {
-            ins = new_Instrument(Device_get_buffer_size((Device*)module),
-                                 Device_get_mix_rate((Device*)module),
-                                 Module_get_scales(module),
-                                 Module_get_active_scale(module));
+            ins = new_Instrument(
+                    Device_get_buffer_size((Device*)module),
+                    Device_get_mix_rate((Device*)module));
             if (ins == NULL)
             {
                 kqt_Handle_set_error(handle, ERROR_MEMORY,
@@ -697,12 +694,9 @@ static bool parse_instrument_level(kqt_Handle* handle,
             bool new_ins = (ins == NULL);
             if (new_ins)
             {
-                ins = new_Instrument(Device_get_buffer_size(
-                                            (Device*)module),
-                                     Device_get_mix_rate(
-                                            (Device*)module),
-                                     Module_get_scales(module),
-                                     Module_get_active_scale(module));
+                ins = new_Instrument(
+                        Device_get_buffer_size((Device*)module),
+                        Device_get_mix_rate((Device*)module));
                 if (ins == NULL ||
                         !Ins_table_set(Module_get_insts(module),
                                        index, ins))
@@ -765,10 +759,9 @@ static bool parse_instrument_level(kqt_Handle* handle,
         bool new_ins = ins == NULL;
         if (new_ins)
         {
-            ins = new_Instrument(Device_get_buffer_size((Device*)module),
-                                 Device_get_mix_rate((Device*)module),
-                                 Module_get_scales(module),
-                                 Module_get_active_scale(module));
+            ins = new_Instrument(
+                    Device_get_buffer_size((Device*)module),
+                    Device_get_mix_rate((Device*)module));
             if (ins == NULL)
             {
                 kqt_Handle_set_error(handle, ERROR_MEMORY,
@@ -815,10 +808,9 @@ static bool parse_instrument_level(kqt_Handle* handle,
             bool new_ins = ins == NULL;
             if (new_ins)
             {
-                ins = new_Instrument(Device_get_buffer_size((Device*)module),
-                                     Device_get_mix_rate((Device*)module),
-                                     Module_get_scales(module),
-                                     Module_get_active_scale(module));
+                ins = new_Instrument(
+                        Device_get_buffer_size((Device*)module),
+                        Device_get_mix_rate((Device*)module));
                 if (ins == NULL)
                 {
                     kqt_Handle_set_error(handle, ERROR_MEMORY,
@@ -893,10 +885,9 @@ static bool parse_generator_level(kqt_Handle* handle,
     bool new_ins = (ins == NULL);
     if (new_ins)
     {
-        ins = new_Instrument(Device_get_buffer_size((Device*)module),
-                             Device_get_mix_rate((Device*)module),
-                             Module_get_scales(module),
-                             Module_get_active_scale(module));
+        ins = new_Instrument(
+                Device_get_buffer_size((Device*)module),
+                Device_get_mix_rate((Device*)module));
         if (ins == NULL)
         {
             kqt_Handle_set_error(handle, ERROR_MEMORY,

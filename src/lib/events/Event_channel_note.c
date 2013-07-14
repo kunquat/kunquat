@@ -71,6 +71,7 @@ bool Event_channel_note_on_process(Channel_state* ch_state, Value* value)
         {
             vs->pitch = voice->gen->ins_params->pitch_locks[i].freq;
         }
+#if 0
         else if (voice->gen->ins_params->scale == NULL ||
                  *voice->gen->ins_params->scale == NULL ||
                  **voice->gen->ins_params->scale == NULL)
@@ -78,7 +79,9 @@ bool Event_channel_note_on_process(Channel_state* ch_state, Value* value)
             vs->pitch = exp2(value->value.float_type / 1200) * 440;
         }
         else
+#endif
         {
+#if 0
             pitch_t pitch = Scale_get_pitch_from_cents(
                     **voice->gen->ins_params->scale,
                     value->value.float_type);
@@ -87,6 +90,7 @@ bool Event_channel_note_on_process(Channel_state* ch_state, Value* value)
                 vs->pitch = pitch;
             }
             else
+#endif
             {
                 vs->pitch = exp2(value->value.float_type / 1200) * 440;
             }
