@@ -50,6 +50,18 @@ typedef struct General_state
 
 
 /**
+ * Pre-initialises the General state.
+ *
+ * This function must be called before General_state_init on a given state.
+ *
+ * \param state   The General state -- must not be \c NULL.
+ *
+ * \return   The parameter \a state.
+ */
+General_state* General_state_preinit(General_state* state);
+
+
+/**
  * Initialises the General state.
  *
  * \param state    The General state -- must not be \c NULL.
@@ -58,7 +70,7 @@ typedef struct General_state
  *
  * \return   The parameter \a state if successful, or \c NULL if
  *           memory allocation failed. The function
- *           General_state_uninit should be called even if this
+ *           General_state_deinit should be called even if this
  *           function fails.
  */
 General_state* General_state_init(
@@ -90,7 +102,7 @@ void General_state_reset(General_state* state);
  *
  * \param state    The General state -- must not be \c NULL.
  */
-void General_state_uninit(General_state* state);
+void General_state_deinit(General_state* state);
 
 
 #endif // K_GENERAL_STATE_H

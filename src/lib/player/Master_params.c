@@ -54,6 +54,17 @@ static void Master_params_clear(Master_params* params)
 }
 
 
+Master_params* Master_params_preinit(Master_params* params)
+{
+    assert(params != NULL);
+
+    General_state_preinit(&params->parent);
+    params->module = NULL;
+
+    return params;
+}
+
+
 Master_params* Master_params_init(Master_params* params, const Module* module)
 {
     assert(params != NULL);
@@ -69,7 +80,7 @@ Master_params* Master_params_init(Master_params* params, const Module* module)
     // Init fields
     if (General_state_init(&params->parent, true, params->module->env) == NULL)
     {
-        General_state_uninit(&params->parent);
+        General_state_deinit(&params->parent);
         return NULL;
     }
 
@@ -113,7 +124,7 @@ void Master_params_deinit(Master_params* params)
 {
     assert(params != NULL);
 
-    General_state_uninit(&params->parent);
+    General_state_deinit(&params->parent);
 
     return;
 }

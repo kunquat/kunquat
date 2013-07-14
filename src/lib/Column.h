@@ -28,7 +28,6 @@
 typedef struct Event_list
 {
     Event* event;
-    bool copy;
     struct Event_list* prev;
     struct Event_list* next;
 } Event_list;

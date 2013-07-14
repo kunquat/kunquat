@@ -79,6 +79,18 @@ typedef struct Master_params
 
 
 /**
+ * Pre-initialises the Master params.
+ *
+ * This function must be called before Maste_params_init on given parameters.
+ *
+ * \param params   The Master params -- must not be \c NULL.
+ *
+ * \return   The parameter \a params.
+ */
+Master_params* Master_params_preinit(Master_params* params);
+
+
+/**
  * Initialises the Master params.
  *
  * \param params   The Master params -- must not be \c NULL.

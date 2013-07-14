@@ -42,6 +42,9 @@ static bool add_handle(kqt_Handle* handle);
 static bool remove_handle(kqt_Handle* handle);
 
 
+void kqt_Handle_deinit(kqt_Handle* handle);
+
+
 bool kqt_Handle_init(kqt_Handle* handle, long buffer_size)
 {
     assert(handle != NULL);
@@ -70,9 +73,12 @@ bool kqt_Handle_init(kqt_Handle* handle, long buffer_size)
     if (handle->module == NULL)
     {
         kqt_Handle_set_error(NULL, ERROR_MEMORY, "Couldn't allocate memory");
+
         bool removed = remove_handle(handle);
         assert(removed);
         (void)removed;
+
+        kqt_Handle_deinit(handle);
         return false;
     }
 
@@ -87,9 +93,12 @@ bool kqt_Handle_init(kqt_Handle* handle, long buffer_size)
     if (handle->player == NULL || handle->length_counter == NULL)
     {
         kqt_Handle_set_error(NULL, ERROR_MEMORY, "Couldn't allocate memory");
+
         bool removed = remove_handle(handle);
         assert(removed);
         (void)removed;
+
+        kqt_Handle_deinit(handle);
         return false;
     }
 
@@ -488,6 +497,23 @@ Module* Handle_get_module(kqt_Handle* handle)
 }
 
 
+void kqt_Handle_deinit(kqt_Handle* handle)
+{
+    assert(handle != NULL);
+    assert(!handle_is_valid(handle));
+
+    del_Player(handle->length_counter);
+    handle->length_counter = NULL;
+    del_Player(handle->player);
+    handle->player = NULL;
+
+    del_Module(handle->module);
+    handle->module = NULL;
+
+    return;
+}
+
+
 void kqt_del_Handle(kqt_Handle* handle)
 {
     check_handle_void(handle);
@@ -498,16 +524,11 @@ void kqt_del_Handle(kqt_Handle* handle)
         return;
     }
 
-    del_Player(handle->length_counter);
-    handle->length_counter = NULL;
-    del_Player(handle->player);
-    handle->player = NULL;
-
-    del_Module(handle->module);
-    handle->module = NULL;
+    kqt_Handle_deinit(handle);
 
     assert(handle->destroy != NULL);
     handle->destroy(handle);
+
     return;
 }
 

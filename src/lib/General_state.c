@@ -19,12 +19,24 @@
 #include <xassert.h>
 
 
+General_state* General_state_preinit(General_state* state)
+{
+    assert(state != NULL);
+
+    state->env = NULL;
+    state->active_names = NULL;
+
+    return state;
+}
+
+
 General_state* General_state_init(
         General_state* state,
         bool global,
         Environment* env)
 {
     assert(state != NULL);
+    assert(state->active_names == NULL);
     assert(env != NULL);
     state->global = global;
     state->env = env;
@@ -84,7 +96,7 @@ void General_state_reset(General_state* state)
 }
 
 
-void General_state_uninit(General_state* state)
+void General_state_deinit(General_state* state)
 {
     assert(state != NULL);
     del_Active_names(state->active_names);

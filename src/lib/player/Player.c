@@ -114,13 +114,15 @@ Player* new_Player(
     player->env = NULL;
     player->event_buffer = NULL;
     player->voices = NULL;
+    Master_params_preinit(&player->master_params);
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
         player->channels[i] = NULL;
     player->event_handler = NULL;
 
     player->frame_remainder = 0.0;
 
-    memset(player->cgiters, 0, sizeof(player->cgiters));
+    for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
+        Cgiter_init(&player->cgiters[i], player->module, i);
 
     player->audio_frames_processed = 0;
     player->nanoseconds_history = 0;
@@ -188,11 +190,6 @@ Player* new_Player(
                 return NULL;
             }
         }
-    }
-
-    for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
-    {
-        Cgiter_init(&player->cgiters[i], player->module, i);
     }
 
     return player;

@@ -475,10 +475,7 @@ static void del_Event_list(Event_list* elist)
     {
         Event_list* next = cur->next;
         assert(cur->event != NULL);
-        if (!cur->copy)
-        {
-            del_Event(cur->event);
-        }
+        del_Event(cur->event);
         memory_free(cur);
         cur = next;
     }

@@ -66,6 +66,8 @@ bool Channel_state_init(Channel_state* state, int num, Environment* env)
     assert(num < KQT_COLUMNS_MAX);
     assert(env != NULL);
 
+    General_state_preinit(&state->parent);
+
     state->cgstate = new_Channel_gen_state();
     state->rand = new_Random();
     if (state->cgstate == NULL || state->rand == NULL ||
@@ -198,7 +200,7 @@ void Channel_state_uninit(Channel_state* state)
     state->cgstate = NULL;
     del_Random(state->rand);
     state->rand = NULL;
-    General_state_uninit(&state->parent);
+    General_state_deinit(&state->parent);
     return;
 }
 
