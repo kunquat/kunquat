@@ -110,7 +110,7 @@ typedef enum
                                   (type) < Event_query_STOP)
 #define Event_is_auto(type)      ((type) > Event_auto_START && \
                                   (type) < Event_auto_STOP)
-#define Event_is_pg(type)        (Event_is_ins((type))       || \
+#define Event_is_trigger(type)   (Event_is_ins((type))       || \
                                   Event_is_general((type))   || \
                                   Event_is_generator((type)) || \
                                   Event_is_master((type))    || \
@@ -119,7 +119,6 @@ typedef enum
                                   Event_is_channel((type))   || \
                                   Event_is_control((type))   || \
                                   Event_is_query((type)))
-#define Event_is_trigger(type)   Event_is_pg((type))
 #define Event_is_valid(type)     (Event_is_trigger((type)) || \
                                   Event_is_auto((type)))
 
