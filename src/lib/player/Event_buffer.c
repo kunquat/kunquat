@@ -21,7 +21,7 @@
 #include <xassert.h>
 
 
-struct Event_buffer_2
+struct Event_buffer
 {
     size_t size;
     size_t write_pos;
@@ -32,9 +32,9 @@ struct Event_buffer_2
 static const char EMPTY_BUFFER[] = "[]";
 
 
-Event_buffer_2* new_Event_buffer_2(size_t size)
+Event_buffer* new_Event_buffer(size_t size)
 {
-    Event_buffer_2* ebuf = memory_alloc_item(Event_buffer_2);
+    Event_buffer* ebuf = memory_alloc_item(Event_buffer);
     if (ebuf == NULL)
         return NULL;
 
@@ -47,16 +47,16 @@ Event_buffer_2* new_Event_buffer_2(size_t size)
     ebuf->buf = memory_calloc_items(char, ebuf->size + 1);
     if (ebuf->buf == NULL)
     {
-        del_Event_buffer_2(ebuf);
+        del_Event_buffer(ebuf);
         return NULL;
     }
-    Event_buffer_2_clear(ebuf);
+    Event_buffer_clear(ebuf);
 
     return ebuf;
 }
 
 
-bool Event_buffer_2_is_full(const Event_buffer_2* ebuf)
+bool Event_buffer_is_full(const Event_buffer* ebuf)
 {
     assert(ebuf != NULL);
     return (ebuf->size < EVENT_LEN_MAX) ||
@@ -64,21 +64,21 @@ bool Event_buffer_2_is_full(const Event_buffer_2* ebuf)
 }
 
 
-const char* Event_buffer_2_get_events(const Event_buffer_2* ebuf)
+const char* Event_buffer_get_events(const Event_buffer* ebuf)
 {
     assert(ebuf != NULL);
     return ebuf->buf;
 }
 
 
-void Event_buffer_2_add(
-        Event_buffer_2* ebuf,
+void Event_buffer_add(
+        Event_buffer* ebuf,
         int ch,
         const char* name,
         Value* arg)
 {
     assert(ebuf != NULL);
-    assert(!Event_buffer_2_is_full(ebuf));
+    assert(!Event_buffer_is_full(ebuf));
     assert(ch >= 0);
     assert(ch < KQT_CHANNELS_MAX);
     assert(name != NULL);
@@ -120,7 +120,7 @@ void Event_buffer_2_add(
 }
 
 
-void Event_buffer_2_clear(Event_buffer_2* ebuf)
+void Event_buffer_clear(Event_buffer* ebuf)
 {
     assert(ebuf != NULL);
 
@@ -131,7 +131,7 @@ void Event_buffer_2_clear(Event_buffer_2* ebuf)
 }
 
 
-void del_Event_buffer_2(Event_buffer_2* ebuf)
+void del_Event_buffer(Event_buffer* ebuf)
 {
     if (ebuf == NULL)
         return;

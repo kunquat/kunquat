@@ -47,7 +47,7 @@ struct Player
     int32_t audio_frames_available;
 
     Environment*   env;
-    Event_buffer_2* event_buffer;
+    Event_buffer*  event_buffer;
     Voice_pool*    voices;
     Master_params  master_params;
     Channel_state* channels[KQT_CHANNELS_MAX];
@@ -129,7 +129,7 @@ Player* new_Player(
 
     // Init fields
     player->env = player->module->env; //new_Environment(); // TODO
-    player->event_buffer = new_Event_buffer_2(event_buffer_size);
+    player->event_buffer = new_Event_buffer(event_buffer_size);
     player->voices = new_Voice_pool(voice_count);
     if (player->env == NULL ||
             player->event_buffer == NULL ||
@@ -266,7 +266,7 @@ void Player_reset(Player* player)
         Cgiter_reset(&player->cgiters[i], &player->master_params.cur_pos);
     }
 
-    Event_buffer_2_clear(player->event_buffer);
+    Event_buffer_clear(player->event_buffer);
 
     player->audio_frames_processed = 0;
     player->nanoseconds_history = 0;
@@ -411,7 +411,7 @@ static void Player_process_trigger(
     }
 
     if (!skip)
-        Event_buffer_2_add(player->event_buffer, ch_num, event_name, arg);
+        Event_buffer_add(player->event_buffer, ch_num, event_name, arg);
 
     return;
 }
@@ -749,7 +749,7 @@ void Player_play(Player* player, int32_t nframes)
     assert(player->audio_buffer_size > 0);
     assert(nframes >= 0);
 
-    Event_buffer_2_clear(player->event_buffer);
+    Event_buffer_clear(player->event_buffer);
 
     nframes = MIN(nframes, player->audio_buffer_size);
 
@@ -849,7 +849,7 @@ void Player_skip(Player* player, int64_t nframes)
     assert(nframes >= 0);
 
     // Clear buffers as we're not providing meaningful output
-    Event_buffer_2_clear(player->event_buffer);
+    Event_buffer_clear(player->event_buffer);
     player->audio_frames_available = 0;
 
     if (Player_has_stopped(player) || player->master_params.parent.pause)
@@ -901,14 +901,14 @@ const char* Player_get_events(Player* player)
     if (player->events_returned)
     {
         // Event buffer contains old data, clear
-        Event_buffer_2_clear(player->event_buffer);
+        Event_buffer_clear(player->event_buffer);
 
         // TODO: get more events if needed
     }
 
     player->events_returned = true;
 
-    return Event_buffer_2_get_events(player->event_buffer);
+    return Event_buffer_get_events(player->event_buffer);
 }
 
 
@@ -930,7 +930,7 @@ bool Player_fire(Player* player, int ch, char* event_desc, Read_state* rs)
     if (rs->error)
         return false;
 
-    Event_buffer_2_clear(player->event_buffer);
+    Event_buffer_clear(player->event_buffer);
 
     const Event_names* event_names = Event_handler_get_names(player->event_handler);
 
@@ -1011,7 +1011,7 @@ bool Player_fire(Player* player, int ch, char* event_desc, Read_state* rs)
     }
 
     // Add event to buffer
-    Event_buffer_2_add(player->event_buffer, ch, event_name, value);
+    Event_buffer_add(player->event_buffer, ch, event_name, value);
     player->events_returned = false;
 
     return true;
@@ -1028,7 +1028,7 @@ void del_Player(Player* player)
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
         del_Channel_state(player->channels[i]);
     Master_params_deinit(&player->master_params);
-    del_Event_buffer_2(player->event_buffer);
+    del_Event_buffer(player->event_buffer);
     //del_Environment(player->env); // TODO
 
     for (int i = 0; i < KQT_BUFFERS_MAX; ++i)

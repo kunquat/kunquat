@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_EVENT_BUFFER_2_H // TODO: fix after removing old Event_buffer
-#define K_EVENT_BUFFER_2_H
+#ifndef K_EVENT_BUFFER_H
+#define K_EVENT_BUFFER_H
 
 
 #include <stdlib.h>
@@ -22,7 +22,7 @@
 #include <Value.h>
 
 
-typedef struct Event_buffer_2 Event_buffer_2; // TODO: fix after removing old Event_buffer
+typedef struct Event_buffer Event_buffer;
 
 
 /**
@@ -40,7 +40,7 @@ typedef struct Event_buffer_2 Event_buffer_2; // TODO: fix after removing old Ev
  * \return   The new Event buffer if successful, or \c NULL if memory
  *           allocation failed.
  */
-Event_buffer_2* new_Event_buffer_2(size_t size);
+Event_buffer* new_Event_buffer(size_t size);
 
 
 /**
@@ -53,7 +53,7 @@ Event_buffer_2* new_Event_buffer_2(size_t size);
  *
  * \return   \c true if the Event buffer is full, otherwise \c false.
  */
-bool Event_buffer_2_is_full(const Event_buffer_2* ebuf);
+bool Event_buffer_is_full(const Event_buffer* ebuf);
 
 
 /**
@@ -63,7 +63,7 @@ bool Event_buffer_2_is_full(const Event_buffer_2* ebuf);
  *
  * \return   The events.
  */
-const char* Event_buffer_2_get_events(const Event_buffer_2* ebuf);
+const char* Event_buffer_get_events(const Event_buffer* ebuf);
 
 
 /**
@@ -75,8 +75,8 @@ const char* Event_buffer_2_get_events(const Event_buffer_2* ebuf);
  * \param name   The event name -- must not be \c NULL.
  * \param arg    The event argument -- must not be \c NULL.
  */
-void Event_buffer_2_add(
-        Event_buffer_2* ebuf,
+void Event_buffer_add(
+        Event_buffer* ebuf,
         int ch,
         const char* name,
         Value* arg);
@@ -87,7 +87,7 @@ void Event_buffer_2_add(
  *
  * \param ebuf   The Event buffer -- must not be \c NULL.
  */
-void Event_buffer_2_clear(Event_buffer_2* ebuf);
+void Event_buffer_clear(Event_buffer* ebuf);
 
 
 /**
@@ -95,9 +95,9 @@ void Event_buffer_2_clear(Event_buffer_2* ebuf);
  *
  * \param ebuf   The Event buffer, or \c NULL.
  */
-void del_Event_buffer_2(Event_buffer_2* ebuf);
+void del_Event_buffer(Event_buffer* ebuf);
 
 
-#endif // K_EVENT_BUFFER_2_H
+#endif // K_EVENT_BUFFER_H
 
 
