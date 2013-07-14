@@ -133,38 +133,6 @@ uint16_t Voice_pool_mix_bg(
 
 
 /**
- * Repositions a Voice with changed priority inside the Voice pool.
- *
- * This function must be called if Voice_mix is called outside
- * Voice_pool_mix_bg.
- *
- * \param pool    The Voice pool -- must not be \c NULL and must contain
- *                at least one voice.
- * \param voice   The Voice -- must not be \c NULL and must be an element of
- *                \a pool.
- */
-void Voice_pool_fix_priority(Voice_pool* pool, Voice* voice);
-
-
-/**
- * Mixes the Voice pool.
- *
- * \param pool     The Voice pool -- must not be \c NULL.
- * \param amount   The number of frames to be mixed.
- * \param offset   The buffer offset.
- * \param freq     The mixing frequency -- must be > \c 0.
- *
- * \return   The number of active Voices.
- */
-uint16_t Voice_pool_mix(
-        Voice_pool* pool,
-        uint32_t amount,
-        uint32_t offset,
-        uint32_t freq,
-        double tempo);
-
-
-/**
  * Resets all Voices in the Voice pool.
  *
  * \param pool   The Voice pool -- must not be \c NULL.

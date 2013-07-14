@@ -163,7 +163,6 @@ bool Event_channel_note_off_process(Channel_state* ch_state, Value* value)
             }
             ch_state->fg[i]->state->note_on = false;
             ch_state->fg[i]->prio = VOICE_PRIO_BG;
-            Voice_pool_fix_priority(ch_state->pool, ch_state->fg[i]);
             ch_state->fg[i] = NULL;
         }
     }

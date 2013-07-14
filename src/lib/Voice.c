@@ -33,7 +33,6 @@ Voice* new_Voice(void)
     {
         return NULL;
     }
-    voice->pool_index = 0;
     voice->id = 0;
     voice->prio = VOICE_PRIO_INACTIVE;
     voice->gen = NULL;

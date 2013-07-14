@@ -41,7 +41,6 @@ typedef enum
  */
 typedef struct Voice
 {
-    uint16_t pool_index;   ///< Storage position in the Voice pool.
     uint64_t id;           ///< An identification number for this initialisation.
     Voice_prio prio;       ///< Current priority of the Voice.
     Generator* gen;        ///< The Generator.

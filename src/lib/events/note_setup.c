@@ -46,7 +46,6 @@ void reserve_voice(Channel_state* ch_state,
                Random_get_uint64(ch_state->rand),
                *ch_state->freq,
                *ch_state->tempo);
-    Voice_pool_fix_priority(ch_state->pool, ch_state->fg[gen_num]);
     return;
 }
 

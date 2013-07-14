@@ -21,58 +21,6 @@
 #include <xassert.h>
 
 
-#define HEAP_PARENT(i) (((i) - 1) / 2)
-#define HEAP_LEFT(i)   (2 * (i) + 1)
-#define HEAP_RIGHT(i)  (2 * (i) + 2)
-
-
-/**
- * Moves a modified key into its proper position in the heap.
- * 
- * The tree must satisfy the minimum heap property apart from the given index.
- *
- * \param pool    The Voice pool -- must not be \c NULL.
- * \param index   The index of the key -- must be less than the pool size.
- *
- * \return   The target index of the modified key.
- */
-static uint16_t heap_mod_key(Voice_pool* pool, uint16_t index);
-
-
-/**
- * Arranges the Voice pool to satisfy the minimum heap property.
- *
- * \param pool   The Voice pool -- must not be \c NULL.
- */
-static void heap_build(Voice_pool* pool);
-
-
-/**
- * Performs a downheap operation starting at specified index.
- *
- * The subtrees must satisfy the minimum heap property.
- *
- * \param pool    The Voice pool -- must not be \c NULL.
- * \param index   The index of the key -- must be less than the pool size.
- *
- * \return   The target index of the modified key.
- */
-static uint16_t downheap(Voice_pool* pool, uint16_t index);
-
-
-/**
- * Performs an upheap operation starting at specified index.
- *
- * The tree must satisfy the minimum heap property apart from the given index.
- *
- * \param pool    The Voice pool -- must not be \c NULL.
- * \param index   The index of the key -- must be less than the pool size.
- *
- * \return   The target index of the modified key.
- */
-static uint16_t upheap(Voice_pool* pool, uint16_t index);
-
-
 Voice_pool* new_Voice_pool(uint16_t size)
 {
     //assert(size >= 0);
@@ -210,12 +158,20 @@ Voice* Voice_pool_get_voice(
 
     if (voice == NULL)
     {
-        static uint64_t running_id = 1;
-        downheap(pool, 0);
+        // Find a voice of lowest priority available
         Voice* new_voice = pool->voices[0];
+        for (uint16_t i = 1; i < pool->size; ++i)
+        {
+            if (Voice_cmp(pool->voices[i], new_voice) < 0)
+                new_voice = pool->voices[i];
+        }
+
+        // Pre-init the voice
+        static uint64_t running_id = 1;
         new_voice->id = running_id;
         new_voice->prio = VOICE_PRIO_INACTIVE;
         ++running_id;
+
         return new_voice;
     }
     if (voice->id == id)
@@ -267,55 +223,18 @@ uint16_t Voice_pool_mix_bg(
             ++active_voices;
         }
     }
-    heap_build(pool);
+
     return active_voices;
-}
-
-
-uint16_t Voice_pool_mix(
-        Voice_pool* pool,
-        uint32_t amount,
-        uint32_t offset,
-        uint32_t freq,
-        double tempo)
-{
-    assert(pool != NULL);
-    assert(freq > 0);
-
-    if (pool->size == 0)
-        return 0;
-
-    uint16_t active_voices = 0;
-    for (uint16_t i = 0; i < pool->size; ++i)
-    {
-        if (pool->voices[i]->prio != VOICE_PRIO_INACTIVE)
-        {
-            Voice_mix(pool->voices[i], amount, offset, freq, tempo);
-            ++active_voices;
-        }
-    }
-    heap_build(pool);
-    return active_voices;
-}
-
-
-void Voice_pool_fix_priority(Voice_pool* pool, Voice* voice)
-{
-    assert(pool != NULL);
-    assert(pool->size > 0);
-    assert(voice != NULL);
-    assert(pool->voices[voice->pool_index] == voice);
-    heap_mod_key(pool, voice->pool_index);
-    return;
 }
 
 
 void Voice_pool_reset(Voice_pool* pool)
 {
+    assert(pool != NULL);
+
     for (uint16_t i = 0; i < pool->size; ++i)
-    {
         Voice_reset(pool->voices[i]);
-    }
+
     return;
 }
 
@@ -334,80 +253,6 @@ void del_Voice_pool(Voice_pool* pool)
     memory_free(pool);
 
     return;
-}
-
-
-static uint16_t heap_mod_key(Voice_pool* pool, uint16_t index)
-{
-    assert(pool != NULL);
-    assert(index < pool->size);
-    index = upheap(pool, index);
-    return downheap(pool, index);
-}
-
-
-static void heap_build(Voice_pool* pool)
-{
-    assert(pool != NULL);
-    uint16_t index = HEAP_PARENT(pool->size + 1);
-    while (index-- > 0)
-    {
-        downheap(pool, index);
-    }
-    return;
-}
-
-
-static uint16_t downheap(Voice_pool* pool, uint16_t index)
-{
-    assert(pool != NULL);
-    assert(index < pool->size);
-    uint16_t smallest = index;
-    uint32_t left = HEAP_LEFT(index);
-    while (left < pool->size)
-    {
-        if (Voice_cmp(pool->voices[left], pool->voices[smallest]) < 0)
-        {
-            smallest = left;
-        }
-        uint32_t right = HEAP_RIGHT(index);
-        if (right < pool->size && Voice_cmp(pool->voices[right], pool->voices[smallest]) < 0)
-        {
-            smallest = right;
-        }
-        if (index == smallest)
-        {
-            return index;
-        }
-        Voice* tmp = pool->voices[index];
-        pool->voices[index] = pool->voices[smallest];
-        pool->voices[smallest] = tmp;
-        pool->voices[index]->pool_index = index;
-        pool->voices[smallest]->pool_index = smallest;
-        index = smallest;
-        left = HEAP_LEFT(index);
-    }
-    return index;
-}
-
-
-static uint16_t upheap(Voice_pool* pool, uint16_t index)
-{
-    assert(pool != NULL);
-    assert(index < pool->size);
-    uint16_t parent = HEAP_PARENT(index);
-    while (index > 0 && Voice_cmp(pool->voices[index], pool->voices[parent]) < 0)
-    {
-        assert(parent < index);
-        Voice* tmp = pool->voices[index];
-        pool->voices[index] = pool->voices[parent];
-        pool->voices[parent] = tmp;
-        pool->voices[index]->pool_index = index;
-        pool->voices[parent]->pool_index = parent;
-        index = parent;
-        parent = HEAP_PARENT(index);
-    }
-    return index;
 }
 
 
