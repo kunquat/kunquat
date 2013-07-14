@@ -35,8 +35,8 @@ typedef struct Event_list
 
 
 /**
- * Column is a container for Events in a Pattern. It typically contains a
- * "monophonic" section of music, or global Events.
+ * Column is a container for Events in a Pattern. It contains a
+ * "monophonic" section of music.
  */
 typedef struct Column Column;
 
@@ -132,18 +132,6 @@ Column* new_Column(const Tstamp* len);
 
 
 /**
- * Creates a new auxiliary global Column.
- *
- * \param old_aux   The old auxiliary global Column, or \c NULL if not
- *                  applicable.
- * \param mod_col   The Column with the new Events -- must not be \c NULL.
- * \param index     The Column index -- must be >= \c 0 and
- *                  < \c KQT_COLUMNS_MAX.
- */
-Column* new_Column_aux(Column* old_aux, Column* mod_col, int index);
-
-
-/**
  * Creates a new Column from a textual description.
  *
  * \param len              The length of the column. If this is \c NULL, the
@@ -160,7 +148,6 @@ Column* new_Column_aux(Column* old_aux, Column* mod_col, int index);
  */
 Column* new_Column_from_string(const Tstamp* len,
                                char* str,
-//                               bool is_global,
                                AAtree* locations,
                                AAiter* locations_iter,
                                const Event_names* event_names,
@@ -180,19 +167,6 @@ Column* new_Column_from_string(const Tstamp* len,
 bool Column_update_locations(Column* col,
                              AAtree* locations,
                              AAiter* locations_iter);
-
-
-/**
- * Parses a Column.
- *
- * \param col         The Column -- must not be \c NULL.
- * \param str         The textual description -- must not be \c NULL.
- * \param is_global   \c true if and only if \a col is a global Column.
- * \param state       The Read state -- must not be \c NULL.
- *
- * \return   \c true if successful, otherwise \c false.
- */
-//bool Column_parse(Column* col, char* str, bool is_global, Read_state* state);
 
 
 /**

@@ -32,8 +32,6 @@
 
 struct Pattern
 {
-    Column* global;
-    Column* aux;
     Column* cols[KQT_COLUMNS_MAX];
     AAtree* locations;
     AAiter* locations_iter;
@@ -50,20 +48,12 @@ Pattern* new_Pattern(void)
         return NULL;
     }
 
-    pat->global = NULL;
-    pat->aux = NULL;
     for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
         pat->cols[i] = NULL;
     pat->locations = NULL;
     pat->locations_iter = NULL;
     pat->existents = NULL;
 
-    pat->global = new_Column(NULL);
-    if (pat->global == NULL)
-    {
-        del_Pattern(pat);
-        return NULL;
-    }
     for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
     {
         pat->cols[i] = new_Column(NULL);
@@ -73,14 +63,12 @@ Pattern* new_Pattern(void)
             return NULL;
         }
     }
-    pat->aux = new_Column_aux(NULL, pat->cols[0], 0);
     pat->locations = new_AAtree(
             (int (*)(const void*, const void*))Pattern_location_cmp,
             memory_free);
     pat->locations_iter = new_AAiter(pat->locations);
     pat->existents = new_Bit_array(KQT_PAT_INSTANCES_MAX);
-    if (pat->aux == NULL ||
-            pat->locations == NULL ||
+    if (pat->locations == NULL ||
             pat->locations_iter == NULL ||
             pat->existents == NULL)
     {
@@ -142,6 +130,21 @@ bool Pattern_get_inst_existent(const Pattern* pat, int index)
     assert(index < KQT_PAT_INSTANCES_MAX);
 
     return Bit_array_get(pat->existents, index);
+}
+
+
+bool Pattern_set_column(Pattern* pat, int index, Column* col)
+{
+    assert(pat != NULL);
+    assert(index >= 0);
+    assert(index < KQT_COLUMNS_MAX);
+    assert(col != NULL);
+
+    Column* old_col = pat->cols[index];
+    pat->cols[index] = col;
+    del_Column(old_col);
+
+    return true;
 }
 
 
@@ -212,54 +215,6 @@ const Tstamp* Pattern_get_length(const Pattern* pat)
 }
 
 
-bool Pattern_set_col(Pattern* pat, int index, Column* col)
-{
-    assert(pat != NULL);
-    assert(index >= 0);
-    assert(index < KQT_COLUMNS_MAX);
-    assert(col != NULL);
-    Column* new_aux = new_Column_aux(pat->aux, col, index);
-    if (new_aux == NULL)
-    {
-        return false;
-    }
-    Column* old_aux = pat->aux;
-    pat->aux = new_aux;
-    del_Column(old_aux);
-    Column* old_col = pat->cols[index];
-    pat->cols[index] = col;
-    del_Column(old_col);
-    return true;
-}
-
-
-Column* Pattern_get_col(Pattern* pat, int index)
-{
-    assert(pat != NULL);
-    assert(index >= 0);
-    assert(index < KQT_COLUMNS_MAX);
-    return pat->cols[index];
-}
-
-
-void Pattern_set_global(Pattern* pat, Column* col)
-{
-    assert(pat != NULL);
-    assert(col != NULL);
-    Column* old_col = pat->global;
-    pat->global = col;
-    del_Column(old_col);
-    return;
-}
-
-
-Column* Pattern_get_global(Pattern* pat)
-{
-    assert(pat != NULL);
-    return pat->global;
-}
-
-
 void del_Pattern(Pattern* pat)
 {
     if (pat == NULL)
@@ -270,8 +225,6 @@ void del_Pattern(Pattern* pat)
     {
         del_Column(pat->cols[i]);
     }
-    del_Column(pat->global);
-    del_Column(pat->aux);
     del_AAtree(pat->locations);
     del_AAiter(pat->locations_iter);
     del_Bit_array(pat->existents);

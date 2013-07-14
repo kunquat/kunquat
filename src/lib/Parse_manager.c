@@ -1480,7 +1480,7 @@ static bool parse_pattern_level(kqt_Handle* handle,
             }
             return false;
         }
-        if (!Pattern_set_col(pat, sub_index, col))
+        if (!Pattern_set_column(pat, sub_index, col))
         {
             kqt_Handle_set_error(handle, ERROR_MEMORY,
                     "Couldn't allocate memory");

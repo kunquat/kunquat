@@ -21,28 +21,22 @@
 
 #include <Column.h>
 #include <Event_global_jump.h>
-//#include <Event_global_set_tempo.h>
 #include <Event_names.h>
 #include <memory.h>
 #include <Tstamp.h>
 #include <xassert.h>
 
 
-#define COLUMN_GLOBAL (-1)
-#define COLUMN_AUX (-2)
-
-
 struct Column
 {
     Tstamp len;
-    bool is_aux;
     uint32_t version;
     Column_iter* edit_iter;
     AAtree* events;
 };
 
 
-static Event_list* new_Event_list(Event_list* nil, Event* event, bool copy);
+static Event_list* new_Event_list(Event_list* nil, Event* event);
 
 static Event_list* Event_list_init(Event_list* elist);
 
@@ -51,11 +45,11 @@ static int Event_list_cmp(const Event_list* list1, const Event_list* list2);
 static void del_Event_list(Event_list* elist);
 
 
-static Event_list* new_Event_list(Event_list* nil, Event* event, bool copy)
+static Event_list* new_Event_list(Event_list* nil, Event* event)
 {
     assert(!(nil == NULL) || (event == NULL));
     assert(!(event == NULL) || (nil == NULL));
-    assert(event == NULL || (!copy || Event_is_pg(Event_get_type(event))));
+
     Event_list* elist = memory_alloc_item(Event_list);
     if (elist == NULL)
     {
@@ -73,7 +67,7 @@ static Event_list* new_Event_list(Event_list* nil, Event* event, bool copy)
         elist->event = event;
         elist->prev = elist->next = nil;
     }
-    elist->copy = copy;
+
     return elist;
 }
 
@@ -259,7 +253,6 @@ Column* new_Column(const Tstamp* len)
         return NULL;
     }
     col->version = 1;
-    col->is_aux = false;
     col->events = new_AAtree((int (*)(const void*, const void*))Event_list_cmp,
             (void (*)(void*))del_Event_list);
     if (col->events == NULL)
@@ -283,82 +276,6 @@ Column* new_Column(const Tstamp* len)
         Tstamp_set(&col->len, INT64_MAX, 0);
     }
     return col;
-}
-
-
-Column* new_Column_aux(Column* old_aux, Column* mod_col, int index)
-{
-    assert(mod_col != NULL);
-    assert(index >= 0);
-    assert(index < KQT_COLUMNS_MAX);
-    Column* aux = new_Column(&mod_col->len);
-    if (aux == NULL)
-    {
-        return NULL;
-    }
-    aux->is_aux = true;
-    Column_iter* iter = new_Column_iter(mod_col);
-    if (iter == NULL)
-    {
-        del_Column(aux);
-        return NULL;
-    }
-    if (old_aux != NULL)
-    {
-        Column_iter_change_col(iter, old_aux);
-        Event* event = Column_iter_get(iter, TSTAMP_AUTO);
-        while (event != NULL)
-        {
-            assert(Event_is_pg(Event_get_type(event)));
-            if (event->ch_index < index)
-            {
-                if (!Column_ins(aux, event))
-                {
-                    del_Column(aux);
-                    del_Column_iter(iter);
-                    return NULL;
-                }
-            }
-            event = Column_iter_get_next(iter);
-        }
-    }
-    Column_iter_change_col(iter, mod_col);
-    Event* event = Column_iter_get(iter, TSTAMP_AUTO);
-    while (event != NULL)
-    {
-        if (Event_is_pg(Event_get_type(event)))
-        {
-            event->ch_index = index;
-            if (!Column_ins(aux, event))
-            {
-                del_Column(aux);
-                del_Column_iter(iter);
-                return NULL;
-            }
-        }
-        event = Column_iter_get_next(iter);
-    }
-    if (old_aux != NULL)
-    {
-        Column_iter_change_col(iter, old_aux);
-        Event* event = Column_iter_get(iter, TSTAMP_AUTO);
-        while (event != NULL)
-        {
-            assert(Event_is_pg(Event_get_type(event)));
-            if (event->ch_index > index)
-            {
-                if (!Column_ins(aux, event))
-                {
-                    del_Column(aux);
-                    del_Column_iter(iter);
-                    return NULL;
-                }
-            }
-            event = Column_iter_get_next(iter);
-        }
-    }
-    del_Column_iter(iter);
-    return aux;
 }
 
 
@@ -495,12 +412,12 @@ bool Column_ins(Column* col, Event* event)
     if (ret == NULL || Tstamp_cmp(Event_get_pos(event),
             Event_get_pos(ret->next->event)) != 0)
     {
-        Event_list* nil = new_Event_list(NULL, NULL, false);
+        Event_list* nil = new_Event_list(NULL, NULL);
         if (nil == NULL)
         {
             return false;
         }
-        Event_list* node = new_Event_list(nil, event, col->is_aux);
+        Event_list* node = new_Event_list(nil, event);
         if (node == NULL)
         {
             del_Event_list(nil);
@@ -519,7 +436,7 @@ bool Column_ins(Column* col, Event* event)
     assert(ret->next != ret);
     assert(ret->prev != ret);
     assert(ret->event == NULL);
-    Event_list* node = new_Event_list(ret, event, col->is_aux);
+    Event_list* node = new_Event_list(ret, event);
     if (node == NULL)
     {
         return false;
