@@ -23,7 +23,6 @@
 #include <General_state.h>
 #include <Generator.h>
 #include <Ins_table.h>
-#include <Playdata.h>
 #include <player/Master_params.h>
 #include <Event_names.h>
 #include <Event_type.h>
@@ -41,7 +40,6 @@ typedef struct Event_handler Event_handler;
  */
 Event_handler* new_Event_handler(
         Master_params* master_params,
-        Playdata* global_state,
         Channel_state** ch_states,
         Ins_table* insts,
         Effect_table* effects);
@@ -204,16 +202,6 @@ bool Event_handler_trigger(
         int ch_num,
         char* name,
         Value* arg);
-
-
-/**
- * Returns the global state inside the Event handler.
- *
- * \param eh   The Event handler -- must not be \c NULL.
- *
- * \return   The global state.
- */
-Playdata* Event_handler_get_global_state(Event_handler* eh);
 
 
 /**

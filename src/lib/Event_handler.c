@@ -29,7 +29,6 @@
 #include <General_state.h>
 #include <Generator.h>
 #include <Ins_table.h>
-#include <Playdata.h>
 #include <kunquat/limits.h>
 #include <string_common.h>
 #include <Value.h>
@@ -50,10 +49,9 @@
 struct Event_handler
 {
     Channel_state* ch_states[KQT_COLUMNS_MAX];
+    Master_params* master_params;
     Ins_table* insts;
     Effect_table* effects;
-    Master_params* master_params;
-    Playdata* global_state;
     Event_names* event_names;
     bool (*control_process[Event_control_STOP])(General_state*, Value*);
     bool (*general_process[Event_general_STOP])(General_state*, Value*);
@@ -71,14 +69,11 @@ struct Event_handler
 
 Event_handler* new_Event_handler(
         Master_params* master_params,
-        Playdata* global_state,
         Channel_state** ch_states,
         Ins_table* insts,
         Effect_table* effects)
 {
-    assert(master_params != NULL || global_state != NULL);
-    //assert(master_params != NULL);
-    //assert(global_state != NULL);
+    assert(master_params != NULL);
     assert(ch_states != NULL);
     assert(insts != NULL);
     assert(effects != NULL);
@@ -95,12 +90,6 @@ Event_handler* new_Event_handler(
     }
 
     eh->master_params = master_params;
-    eh->global_state = global_state;
-/*    if (eh->global_state == NULL)
-    {
-        del_Event_handler(eh);
-        return NULL;
-    } */
     for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
     {
         eh->ch_states[i] = ch_states[i];
@@ -140,13 +129,6 @@ Event_handler* new_Event_handler(
         eh, Event_dsp_##type, Event_dsp_##type##_process);
 #include <events/Event_dsp_types.h>
 
-    if (eh->master_params != NULL)
-    {
-    }
-    else
-    {
-        Playdata_set_event_filter(global_state, eh->event_names);
-    }
     return eh;
 }
 
@@ -502,28 +484,25 @@ static bool Event_handler_act(
         Event_handler_handle_query(eh, index, event_type, value, silent);
     }
 
-    if (eh->global_state != NULL)
-    {
 #if 0
-        Target_event* bound = Bind_get_first(
-                eh->global_state->bind,
-                eh->ch_states[index]->event_cache,
-                eh->global_state->parent.env,
-                event_name,
-                value,
-                eh->ch_states[index]->rand);
-        while (bound != NULL)
-        {
-            Event_handler_trigger(
-                    eh,
-                    (index + bound->ch_offset + KQT_COLUMNS_MAX) % KQT_COLUMNS_MAX,
-                    bound->desc,
-                    silent,
-                    value);
-            bound = bound->next;
-        }
-#endif
+    Target_event* bound = Bind_get_first(
+            eh->global_state->bind,
+            eh->ch_states[index]->event_cache,
+            eh->global_state->parent.env,
+            event_name,
+            value,
+            eh->ch_states[index]->rand);
+    while (bound != NULL)
+    {
+        Event_handler_trigger(
+                eh,
+                (index + bound->ch_offset + KQT_COLUMNS_MAX) % KQT_COLUMNS_MAX,
+                bound->desc,
+                silent,
+                value);
+        bound = bound->next;
     }
+#endif
     return true;
 }
 
@@ -598,13 +577,6 @@ bool Event_handler_process_type(
 }
 
 
-Playdata* Event_handler_get_global_state(Event_handler* eh)
-{
-    assert(eh != NULL);
-    return eh->global_state;
-}
-
-
 bool Event_handler_add_channel_gen_state_key(
         Event_handler* eh,
         const char* key)
@@ -625,11 +597,9 @@ bool Event_handler_add_channel_gen_state_key(
 void del_Event_handler(Event_handler* eh)
 {
     if (eh == NULL)
-    {
         return;
-    }
+
     del_Event_names(eh->event_names);
-//    del_Playdata(eh->global_state); // TODO: enable if Playdata becomes private
     memory_free(eh);
     return;
 }
