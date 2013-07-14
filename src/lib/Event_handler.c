@@ -20,7 +20,6 @@
 
 #include <DSP_conf.h>
 #include <Effect.h>
-#include <Event_buffer.h>
 #include <Event_handler.h>
 #include <Event_names.h>
 #include <Event_type.h>
@@ -56,8 +55,6 @@ struct Event_handler
     Master_params* master_params;
     Playdata* global_state;
     Event_names* event_names;
-    Event_buffer* event_buffer;
-    Event_buffer* tracker_buffer;
     bool (*control_process[Event_control_STOP])(General_state*, General_state*, Value*);
     bool (*general_process[Event_general_STOP])(General_state*, Value*);
     bool (*ch_process[Event_channel_STOP])(Channel_state*, Value*);
@@ -92,12 +89,8 @@ Event_handler* new_Event_handler(
         return NULL;
     }
 
-    eh->event_buffer = new_Event_buffer(16384);
-    eh->tracker_buffer = new_Event_buffer(16384);
     eh->event_names = new_Event_names();
-    if (eh->event_buffer == NULL ||
-            eh->tracker_buffer == NULL ||
-            eh->event_names == NULL)
+    if (eh->event_names == NULL)
     {
         del_Event_handler(eh);
         return NULL;
@@ -509,19 +502,6 @@ static bool Event_handler_act(
     {
         return false;
     }
-    if (!silent)
-    {
-        if (Event_names_get_pass(eh->event_names, event_name))
-        {
-            Event_buffer_add(eh->event_buffer, index, event_name, value);
-        }
-        //if ((event_type >= Event_control_env_set_bool_name &&
-        //        event_type <= Event_control_env_set_tstamp) ||
-        //    Event_is_auto(event_type))
-        {
-            Event_buffer_add(eh->tracker_buffer, index, event_name, value);
-        }
-    }
     if (Event_is_query(event_type))
     {
         Event_handler_handle_query(eh, index, event_type, value, silent);
@@ -623,37 +603,10 @@ bool Event_handler_process_type(
 }
 
 
-bool Event_handler_receive(Event_handler* eh, char* dest, int size)
-{
-    assert(eh != NULL);
-    assert(dest != NULL);
-    assert(size > 0);
-    return Event_buffer_get(eh->event_buffer, dest, size);
-}
-
-
-bool Event_handler_treceive(Event_handler* eh, char* dest, int size)
-{
-    assert(eh != NULL);
-    assert(dest != NULL);
-    assert(size > 0);
-    return Event_buffer_get(eh->tracker_buffer, dest, size);
-}
-
-
 Playdata* Event_handler_get_global_state(Event_handler* eh)
 {
     assert(eh != NULL);
     return eh->global_state;
-}
-
-
-void Event_handler_clear_buffers(Event_handler* eh)
-{
-    assert(eh != NULL);
-    Event_buffer_clear(eh->event_buffer);
-    Event_buffer_clear(eh->tracker_buffer);
-    return;
 }
 
 
@@ -681,8 +634,6 @@ void del_Event_handler(Event_handler* eh)
         return;
     }
     del_Event_names(eh->event_names);
-    del_Event_buffer(eh->event_buffer);
-    del_Event_buffer(eh->tracker_buffer);
 //    del_Playdata(eh->global_state); // TODO: enable if Playdata becomes private
     memory_free(eh);
     return;

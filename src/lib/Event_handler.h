@@ -217,14 +217,6 @@ Playdata* Event_handler_get_global_state(Event_handler* eh);
 
 
 /**
- * Clears the buffer of the event filter.
- *
- * \param eh   The Event handler -- must not be \c NULL.
- */
-void Event_handler_clear_buffers(Event_handler* eh);
-
-
-/**
  * Adds a key into all Channel-specific generator parameter dictionaries.
  *
  * \param eh    The Event handler -- must not be \c NULL.
