@@ -30,10 +30,8 @@
 typedef struct Jump_context
 {
     Pattern_location location;
-    uint64_t play_id; // TODO: match type with Master_params::playback_id
+    uint32_t play_id;
     int64_t counter;
-    int16_t subsong; // TODO: remove
-    int16_t section; // TODO: remove
     Pat_inst_ref piref;
     Tstamp row;
 } Jump_context;
@@ -52,8 +50,6 @@ static Jump_context* new_Jump_context(Pattern_location* loc)
     jc->location = *loc;
     jc->play_id = 0;
     jc->counter = 0;
-    jc->subsong = -1;
-    jc->section = -1;
     jc->piref.pat = -1;
     jc->piref.inst = -1;
     Tstamp_set(&jc->row, 0, 0);
@@ -87,140 +83,87 @@ Event* new_Event_global_jump(Tstamp* pos)
     }
     //event->play_id = 0;
     //event->counter = 0;
-    //event->subsong = -1;
-    //event->section = -1;
     //Tstamp_set(&event->row, 0, 0);
     return (Event*)event;
 }
 
 
-void Trigger_global_jump_process(Event* event, Master_params* master_params, Playdata* play)
+void Trigger_global_jump_process(Event* event, Master_params* master_params)
 {
     assert(event != NULL);
     assert(event->type == Trigger_jump);
-    assert(master_params != NULL || play != NULL);
+    assert(master_params != NULL);
 
-    if (master_params != NULL)
+    Event_global_jump* jump = (Event_global_jump*)event;
+
+    // Find jump context
+    Pattern_location* key = PATTERN_LOCATION_AUTO;
+    if (master_params->playback_state == PLAYBACK_PATTERN)
     {
-        Event_global_jump* jump = (Event_global_jump*)event;
+        // Use a generic context in pattern mode
+        key->song = -1;
+        key->piref.pat = -1;
+        key->piref.inst = -1;
+    }
+    else
+    {
+        key->piref = master_params->cur_pos.piref;
+    }
 
-        // Find jump context
-        Pattern_location* key = PATTERN_LOCATION_AUTO;
-        if (master_params->playback_state == PLAYBACK_PATTERN)
+    Jump_context* jc = AAtree_get_exact(jump->counters, key);
+    assert(jc != NULL);
+
+    if (jc->play_id != master_params->playback_id)
+    {
+        // Set new jump target
+        jc->play_id = master_params->playback_id;
+        jc->counter = master_params->jump_counter;
+        jc->piref = master_params->jump_target_piref;
+        Tstamp_copy(&jc->row, &master_params->jump_target_row);
+    }
+
+    if (jc->counter > 0)
+    {
+        // Resolve pattern instance
+        Pat_inst_ref target_piref;
+        target_piref = jc->piref;
+        if (target_piref.pat < 0 || target_piref.inst < 0)
+            target_piref = master_params->cur_pos.piref;
+
+        if (Module_find_pattern_location(
+                    master_params->module,
+                    &target_piref,
+                    &master_params->cur_pos.track,
+                    &master_params->cur_pos.system))
         {
-            // Use a generic context in pattern mode
-            key->song = -1;
-            key->piref.pat = -1;
-            key->piref.inst = -1;
+            // Perform jump
+            master_params->do_jump = true;
+            --jc->counter;
+            Tstamp_copy(&master_params->cur_pos.pat_pos, &jc->row);
+            master_params->cur_ch = 0;
+            master_params->cur_trigger = 0;
         }
         else
         {
-            key->piref = master_params->cur_pos.piref;
-        }
-
-        Jump_context* jc = AAtree_get_exact(jump->counters, key);
-        assert(jc != NULL);
-
-        if (jc->play_id != master_params->playback_id)
-        {
-            // Set new jump target
-            jc->play_id = master_params->playback_id;
-            jc->counter = master_params->jump_counter;
-            jc->piref = master_params->jump_target_piref;
-            Tstamp_copy(&jc->row, &master_params->jump_target_row);
-        }
-
-        if (jc->counter > 0)
-        {
-            // Resolve pattern instance
-            Pat_inst_ref target_piref;
-            target_piref = jc->piref;
-            if (target_piref.pat < 0 || target_piref.inst < 0)
-                target_piref = master_params->cur_pos.piref;
-
-            if (Module_find_pattern_location(
-                        master_params->module,
-                        &target_piref,
-                        &master_params->cur_pos.track,
-                        &master_params->cur_pos.system))
-            {
-                // Perform jump
-                master_params->do_jump = true;
-                --jc->counter;
-                Tstamp_copy(&master_params->cur_pos.pat_pos, &jc->row);
-                master_params->cur_ch = 0;
-                master_params->cur_trigger = 0;
-            }
-            else
-            {
-                // Pattern instance was removed
-                jc->play_id = 0;
-                jc->counter = 0;
-            }
-        }
-        else
-        {
-            // Reset jump so that it may be initialised again
+            // Pattern instance was removed
             jc->play_id = 0;
+            jc->counter = 0;
         }
     }
     else
     {
-        Event_global_jump* jump = (Event_global_jump*)event;
-        Pattern_location* key = PATTERN_LOCATION_AUTO;
-        if (play->mode == PLAY_PATTERN)
-        {
-            key->song = -1;
-            key->piref.pat = -1;
-            key->piref.inst = -1;
-        }
-        else
-        {
-            Track_list* tl = play->track_list;
-            assert(tl != NULL);
-            key->song = Track_list_get_song_index(tl, play->track);
-
-            Order_list* ol = play->order_lists[key->song];
-            assert(ol != NULL);
-            Pat_inst_ref* piref = Order_list_get_pat_inst_ref(ol, play->system);
-            assert(piref != NULL);
-            key->piref = *piref;
-        }
-        Jump_context* jc = AAtree_get_exact(jump->counters, key);
-        assert(jc != NULL);
-        if (jc->play_id != play->play_id)
-        {
-            if (play->jump_set_counter == 0)
-            {
-                jc->play_id = 0;
-                return;
-            }
-            jc->play_id = play->play_id;
-            jc->counter = play->jump_set_counter;
-            jc->subsong = play->jump_set_subsong;
-            jc->section = play->jump_set_section;
-            Tstamp_copy(&jc->row, &play->jump_set_row);
-        }
-        if (jc->counter > 0)
-        {
-            --jc->counter;
-            play->jump = true;
-            play->jump_subsong = jc->subsong;
-            play->jump_section = jc->section;
-            Tstamp_copy(&play->jump_row, &jc->row);
-        }
-        else
-        {
-            jc->play_id = 0;
-        }
+        // Reset jump so that it may be initialised again
+        jc->play_id = 0;
     }
+
     return;
 }
 
 
-bool Trigger_global_jump_set_locations(Event_global_jump* event,
-                                       AAtree* locations,
-                                       AAiter* locations_iter)
+bool Trigger_global_jump_set_locations(
+        Event_global_jump* event,
+        AAtree* locations,
+        AAiter* locations_iter)
 {
     assert(event != NULL);
     assert(locations != NULL);
@@ -246,7 +189,6 @@ bool Trigger_global_jump_set_locations(Event_global_jump* event,
         Jump_context* context = AAtree_get_exact(event->counters, loc);
         if (context == NULL)
         {
-            //fprintf(stderr, "%d:%d\n", loc->subsong, loc->section);
             context = new_Jump_context(loc);
             if (context == NULL || !AAtree_ins(event->counters, context))
             {

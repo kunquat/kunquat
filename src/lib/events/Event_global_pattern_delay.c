@@ -25,25 +25,15 @@
 #include <xassert.h>
 
 
-bool Event_global_pattern_delay_process(Master_params* master_params, Playdata* global_state, Value* value)
+bool Event_global_pattern_delay_process(
+        Master_params* master_params,
+        Value* value)
 {
-    assert(master_params != NULL || global_state != NULL);
+    assert(master_params != NULL);
     assert(value != NULL);
+    assert(value->type == VALUE_TYPE_TSTAMP);
 
-    if (master_params != NULL)
-    {
-        assert(value->type == VALUE_TYPE_TSTAMP);
-
-        Tstamp_copy(&master_params->delay_left, &value->value.Tstamp_type);
-        return true;
-    }
-
-    if (value->type != VALUE_TYPE_TSTAMP)
-    {
-        return false;
-    }
-    global_state->delay_event_index = global_state->event_index;
-    Tstamp_copy(&global_state->delay_left, &value->value.Tstamp_type);
+    Tstamp_copy(&master_params->delay_left, &value->value.Tstamp_type);
     return true;
 }
 

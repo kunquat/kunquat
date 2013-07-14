@@ -461,8 +461,7 @@ static void Player_process_cgiters(Player* player, Tstamp* limit, bool skip)
 
                     Trigger_global_jump_process(
                             el->event,
-                            &player->master_params,
-                            NULL);
+                            &player->master_params);
 
                     // Break if jump triggered
                     if (player->master_params.do_jump)

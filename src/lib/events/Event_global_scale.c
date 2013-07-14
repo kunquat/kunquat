@@ -22,60 +22,51 @@
 #include <xassert.h>
 
 
-bool Event_global_set_scale_process(Master_params* master_params, Playdata* global_state, Value* value)
+bool Event_global_set_scale_process(Master_params* master_params, Value* value)
 {
-    assert(global_state != NULL);
+    assert(master_params != NULL);
     assert(value != NULL);
+    assert(value->type == VALUE_TYPE_INT);
 
-    if (master_params != NULL)
-        return false;
+    return false;
 
-    if (value->type != VALUE_TYPE_INT)
-    {
-        return false;
-    }
+#if 0
     global_state->scale = value->value.int_type;
 
     return true;
+#endif
 }
 
 
 bool Event_global_set_scale_fixed_point_process(
         Master_params* master_params,
-        Playdata* global_state,
         Value* value)
 {
-    assert(global_state != NULL);
+    assert(master_params != NULL);
     assert(value != NULL);
+    assert(value->type == VALUE_TYPE_INT);
 
-    if (master_params != NULL)
-        return false;
+    return false;
 
-    if (value->type != VALUE_TYPE_INT)
-    {
-        return false;
-    }
+#if 0
     global_state->scale_fixed_point = value->value.int_type;
 
     return true;
+#endif
 }
 
 
 bool Event_global_set_scale_offset_process(
         Master_params* master_params,
-        Playdata* global_state,
         Value* value)
 {
-    assert(global_state != NULL);
+    assert(master_params != NULL);
     assert(value != NULL);
+    assert(value->type == VALUE_TYPE_FLOAT);
 
-    if (master_params != NULL)
-        return false;
+    return false;
 
-    if (value->type != VALUE_TYPE_FLOAT)
-    {
-        return false;
-    }
+#if 0
     if (global_state->scales == NULL)
     {
         return true;
@@ -87,21 +78,21 @@ bool Event_global_set_scale_offset_process(
     }
     Scale_set_pitch_offset(scale, value->value.float_type);
     return true;
+#endif
 }
 
 
-bool Event_global_mimic_scale_process(Master_params* master_params, Playdata* global_state, Value* value)
+bool Event_global_mimic_scale_process(
+        Master_params* master_params,
+        Value* value)
 {
-    assert(global_state != NULL);
+    assert(master_params != NULL);
     assert(value != NULL);
+    assert(value->type == VALUE_TYPE_INT);
 
-    if (master_params != NULL)
-        return false;
+    return false;
 
-    if (value->type != VALUE_TYPE_INT)
-    {
-        return false;
-    }
+#if 0
     if (global_state->scales == NULL)
     {
         return true;
@@ -114,24 +105,21 @@ bool Event_global_mimic_scale_process(Master_params* master_params, Playdata* gl
     }
     Scale_retune_with_source(scale, modifier);
     return true;
+#endif
 }
 
 
 bool Event_global_shift_scale_intervals_process(
         Master_params* master_params,
-        Playdata* global_state,
         Value* value)
 {
-    assert(global_state != NULL);
+    assert(master_params != NULL);
     assert(value != NULL);
+    assert(value->type == VALUE_TYPE_INT);
 
-    if (master_params != NULL)
-        return false;
+    return false;
 
-    if (value->type != VALUE_TYPE_INT)
-    {
-        return false;
-    }
+#if 0
     if (global_state->scales == NULL)
     {
         return true;
@@ -148,6 +136,7 @@ bool Event_global_shift_scale_intervals_process(
             value->value.int_type,
             global_state->scale_fixed_point);
     return true;
+#endif
 }
 
 

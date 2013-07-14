@@ -58,7 +58,7 @@ struct Event_handler
     bool (*control_process[Event_control_STOP])(General_state*, Value*);
     bool (*general_process[Event_general_STOP])(General_state*, Value*);
     bool (*ch_process[Event_channel_STOP])(Channel_state*, Value*);
-    bool (*global_process[Event_master_STOP])(Master_params*, Playdata*, Value*);
+    bool (*global_process[Event_master_STOP])(Master_params*, Value*);
     bool (*ins_process[Event_ins_STOP])(Instrument_params*, Value*);
     bool (*generator_process[Event_generator_STOP])(
             Generator*,
@@ -200,7 +200,7 @@ bool Event_handler_set_control_process(
 bool Event_handler_set_master_process(
         Event_handler* eh,
         Event_type type,
-        bool (*global_process)(Master_params*, Playdata*, Value*))
+        bool (*global_process)(Master_params*, Value*))
 {
     assert(eh != NULL);
     assert(Event_is_master(type));
@@ -276,6 +276,7 @@ static bool Event_handler_handle(
     assert(*eh->ch_states[index]->freq > 0);
     assert(eh->ch_states[index]->tempo != NULL);
     assert(*eh->ch_states[index]->tempo > 0);
+
     if (Event_is_channel(type))
     {
         if (eh->ch_process[type] == NULL)
@@ -303,7 +304,7 @@ static bool Event_handler_handle(
         {
             return false;
         }
-        return eh->global_process[type](eh->master_params, eh->global_state, value);
+        return eh->global_process[type](eh->master_params, value);
     }
     else if (Event_is_generator(type))
     {
@@ -398,6 +399,7 @@ static bool Event_handler_handle(
         General_state* gstate = (General_state*)eh->ch_states[index];
         return eh->general_process[type](gstate, value);
     }
+
     return false;
 }
 

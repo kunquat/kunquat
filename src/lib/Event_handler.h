@@ -116,7 +116,7 @@ bool Event_handler_set_ch_process(
 bool Event_handler_set_master_process(
         Event_handler* eh,
         Event_type type,
-        bool (*master_process)(Master_params* master_params, Playdata*, Value*));
+        bool (*master_process)(Master_params*, Value*));
 
 
 /**
