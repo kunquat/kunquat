@@ -80,6 +80,9 @@ static void update_sliders_and_lfos_audio_rate(Player* player)
         LFO_set_mix_rate(&ch->autowah, rate);
     }
 
+    Master_params* mp = &player->master_params;
+    Slider_set_mix_rate(&mp->volume_slider, rate);
+
     return;
 }
 
@@ -241,6 +244,9 @@ static void update_sliders_and_lfos_tempo(Player* player)
         LFO_set_tempo(&ch->autowah, tempo);
     }
 
+    Master_params* mp = &player->master_params;
+    Slider_set_tempo(&mp->volume_slider, tempo);
+
     return;
 }
 
@@ -253,6 +259,7 @@ void Player_reset(Player* player)
 
     Master_params_reset(&player->master_params);
 
+    update_sliders_and_lfos_audio_rate(player);
     update_sliders_and_lfos_tempo(player);
 
     player->frame_remainder = 0.0;
@@ -779,7 +786,10 @@ void Player_play(Player* player, int32_t nframes)
 
         // Don't add padding audio if stopped during this call
         if (was_playing && Player_has_stopped(player))
+        {
+            assert(to_be_rendered == 0);
             break;
+        }
 
         // Process voices
         Player_process_voices(player, rendered, to_be_rendered);
@@ -801,6 +811,34 @@ void Player_play(Player* player, int32_t nframes)
                     rendered + to_be_rendered,
                     player->audio_rate,
                     player->master_params.tempo);
+
+            // Get access to mixed output
+            Device* master = Device_node_get_device(
+                    Connections_get_master(connections));
+            Audio_buffer* buffer = Device_get_buffer(
+                    master,
+                    DEVICE_PORT_TYPE_RECEIVE,
+                    0);
+            assert(buffer != NULL);
+
+            kqt_frame* bufs[] =
+            {
+                Audio_buffer_get_buffer(buffer, 0),
+                Audio_buffer_get_buffer(buffer, 1),
+            };
+            assert(bufs[0] != NULL);
+            assert(bufs[1] != NULL);
+
+            // Apply master volume
+            for (int32_t i = rendered; i < rendered + to_be_rendered; ++i)
+            {
+                if (Slider_in_progress(&player->master_params.volume_slider))
+                    player->master_params.volume = Slider_step(
+                            &player->master_params.volume_slider);
+
+                for (int ch = 0; ch < 2; ++ch)
+                    bufs[ch][i] *= player->master_params.volume;
+            }
         }
 
         rendered += to_be_rendered;
@@ -824,12 +862,12 @@ void Player_play(Player* player, int32_t nframes)
             };
             assert(bufs[0] != NULL);
             assert(bufs[1] != NULL);
-            for (int i = 0; i < 2; ++i)
+            for (int ch = 0; ch < 2; ++ch)
             {
-                for (int32_t k = 0; k < rendered; ++k)
+                for (int32_t i = 0; i < rendered; ++i)
                 {
-                    player->audio_buffers[i][k] =
-                        bufs[i][k] * player->module->mix_vol;
+                    player->audio_buffers[ch][i] =
+                        bufs[ch][i] * player->module->mix_vol;
                 }
             }
         }
@@ -868,7 +906,13 @@ void Player_skip(Player* player, int64_t nframes)
         to_be_skipped = Player_move_forwards(player, to_be_skipped, true);
 
         if (Player_has_stopped(player))
+        {
+            assert(to_be_skipped == 0);
             break;
+        }
+
+        // Update master volume slider
+        Slider_skip(&player->master_params.volume_slider, to_be_skipped);
 
         skipped += to_be_skipped;
     }

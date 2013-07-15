@@ -42,6 +42,9 @@ static void Master_params_clear(Master_params* params)
     Tstamp_init(&params->tempo_slide_slice_left);
     params->tempo_slide_update = 0;
 
+    params->volume = 1.0;
+    Slider_init(&params->volume_slider, SLIDE_MODE_EXP);
+
     params->do_jump = false;
     params->jump_counter = 0;
     params->jump_target_piref.pat = -1;

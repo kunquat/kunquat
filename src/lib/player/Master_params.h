@@ -24,6 +24,7 @@
 #include <Environment.h>
 #include <General_state.h>
 #include <player/Position.h>
+#include <Slider.h>
 
 
 typedef enum
@@ -64,6 +65,9 @@ typedef struct Master_params
     Tstamp tempo_slide_left;
     Tstamp tempo_slide_slice_left;
     double tempo_slide_update;
+
+    double volume;
+    Slider volume_slider;
 
     bool         do_jump;
     int16_t      jump_counter;

@@ -30,18 +30,10 @@ bool Event_master_set_volume_process(
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
-    return false;
+    master_params->volume = exp2(value->value.float_type / 6);
+    Slider_break(&master_params->volume_slider);
 
-#if 0
-    if (value->type != VALUE_TYPE_FLOAT)
-    {
-        return false;
-    }
-    global_state->volume = exp2(value->value.float_type / 6);
-    Slider_break(&global_state->volume_slider);
-//    global_state->volume_slide = 0;
     return true;
-#endif
 }
 
 
@@ -53,25 +45,17 @@ bool Event_master_slide_volume_process(
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
-    return false;
-
-#if 0
     double target = exp2(value->value.float_type / 6);
-    Slider_set_mix_rate(&global_state->volume_slider, global_state->freq);
-    Slider_set_tempo(&global_state->volume_slider, global_state->tempo);
-    if (Slider_in_progress(&global_state->volume_slider))
-    {
-        Slider_change_target(&global_state->volume_slider, target);
-    }
+
+    if (Slider_in_progress(&master_params->volume_slider))
+        Slider_change_target(&master_params->volume_slider, target);
     else
-    {
         Slider_start(
-                &global_state->volume_slider,
+                &master_params->volume_slider,
                 target,
-                global_state->volume);
-    }
+                master_params->volume);
+
     return true;
-#endif
 }
 
 
@@ -83,19 +67,11 @@ bool Event_master_slide_volume_length_process(
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_TSTAMP);
 
-    return false;
+    Slider_set_length(
+            &master_params->volume_slider,
+            &value->value.Tstamp_type);
 
-#if 0
-    if (value->type != VALUE_TYPE_TSTAMP)
-    {
-        return false;
-    }
-    Slider_set_mix_rate(&global_state->volume_slider, global_state->freq);
-    Slider_set_tempo(&global_state->volume_slider, global_state->tempo);
-    Slider_set_length(&global_state->volume_slider,
-                      &value->value.Tstamp_type);
     return true;
-#endif
 }
 
 
