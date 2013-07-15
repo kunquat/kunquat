@@ -489,9 +489,8 @@ static void Player_process_cgiters(Player* player, Tstamp* limit, bool skip)
 
                 ++player->master_params.cur_trigger;
 
-                // Break if tempo settings changed or delay was added
-                if (player->master_params.tempo_settings_changed ||
-                        Tstamp_cmp(&player->master_params.delay_left,
+                // Break if delay was added
+                if (Tstamp_cmp(&player->master_params.delay_left,
                             TSTAMP_AUTO) > 0)
                 {
                     Tstamp_set(limit, 0, 0);
@@ -519,7 +518,12 @@ static void Player_process_cgiters(Player* player, Tstamp* limit, bool skip)
     player->master_params.cur_ch = 0;
     player->master_params.cur_trigger = 0;
 
-    // TODO: set limit to 0 and return if tempo changed
+    // Break if tempo settings changed
+    if (player->master_params.tempo_settings_changed)
+    {
+        Tstamp_set(limit, 0, 0);
+        return;
+    }
 
     bool any_cgiter_active = false;
 
