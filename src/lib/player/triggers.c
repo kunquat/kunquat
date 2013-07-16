@@ -133,8 +133,6 @@ bool process_trigger(
     if (rs->error)
         return false;
 
-    // TODO: Handle quoted events (string literal argument!)
-
     trigger_desc = process_expr(
                 trigger_desc,
                 Event_names_get_param_type(names, ret_name),

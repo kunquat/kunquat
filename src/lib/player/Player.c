@@ -32,6 +32,7 @@
 #include <player/Player.h>
 #include <player/Position.h>
 #include <player/triggers.h>
+#include <string_common.h>
 #include <Tstamp.h>
 #include <Voice_pool.h>
 #include <xassert.h>
@@ -388,14 +389,34 @@ static void Player_process_trigger(
 
     Value* arg = VALUE_AUTO;
 
-    str_pos = process_expr(
-            str_pos,
-            Event_names_get_param_type(event_names, event_name),
-            player->env,
-            player->channels[ch_num]->rand,
-            NULL,
-            rs,
-            arg);
+    if (string_has_suffix(event_name, "\""))
+    {
+        if (Event_names_get_param_type(event_names, event_name) ==
+                VALUE_TYPE_STRING)
+        {
+            arg->type = VALUE_TYPE_STRING;
+            str_pos = read_string(
+                    str_pos,
+                    arg->value.string_type,
+                    ENV_VAR_NAME_MAX,
+                    rs);
+        }
+        else
+        {
+            fprintf(stderr, "Trigger `%s` has a quote suffix but the"
+                    " parameter type is not string", trigger_desc);
+            return;
+        }
+    }
+    else
+        str_pos = process_expr(
+                str_pos,
+                Event_names_get_param_type(event_names, event_name),
+                player->env,
+                player->channels[ch_num]->rand,
+                NULL,
+                rs,
+                arg);
 
     if (rs->error)
     {
