@@ -35,6 +35,7 @@ typedef enum
 
 typedef struct Device
 {
+    uint32_t id;
     bool existent;
     uint32_t mix_rate;
     uint32_t buffer_size;
@@ -62,6 +63,16 @@ typedef struct Device
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Device_init(Device* device, uint32_t buffer_size, uint32_t mix_rate);
+
+
+/**
+ * Returns the ID of the Device.
+ *
+ * \param device   The Device -- must not be \c NULL.
+ *
+ * \return   The ID of the Device.
+ */
+uint32_t Device_get_id(const Device* device);
 
 
 /**

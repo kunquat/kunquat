@@ -28,6 +28,10 @@ bool Device_init(Device* device, uint32_t buffer_size, uint32_t mix_rate)
     assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
     assert(mix_rate > 0);
 
+    static uint32_t id = 1;
+    device->id = id;
+    ++id;
+
     device->existent = false;
     device->mix_rate = mix_rate;
     device->buffer_size = buffer_size;
@@ -50,6 +54,13 @@ bool Device_init(Device* device, uint32_t buffer_size, uint32_t mix_rate)
         device->direct_send[port] = NULL;
     }
     return true;
+}
+
+
+uint32_t Device_get_id(const Device* device)
+{
+    assert(device != NULL);
+    return device->id;
 }
 
 
