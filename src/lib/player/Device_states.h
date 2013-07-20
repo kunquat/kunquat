@@ -16,6 +16,8 @@
 #define K_DEVICE_STATES_H
 
 
+#include <player/Device_state.h>
+
 typedef struct Device_states Device_states;
 
 
@@ -26,6 +28,20 @@ typedef struct Device_states Device_states;
  *           memory allocation failed.
  */
 Device_states* new_Device_states(void);
+
+
+/**
+ * Gets a Device state.
+ *
+ * \param states   The Device states -- must not be \c NULL.
+ * \param id       The Device ID -- must be > \c 0 and must match an existing
+ *                 Device state.
+ *
+ * \return   The Device state matching \a id.
+ */
+Device_state* Device_states_get_state(
+        const Device_states* states,
+        uint32_t id);
 
 
 /**
@@ -48,18 +64,6 @@ bool Device_states_set_audio_rate(Device_states* states, int32_t rate);
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Device_states_set_buffer_size(Device_states* states, int32_t size);
-
-
-/**
- * Allocates internal space for the Device states.
- *
- * \param states   The Device states -- must not be \c NULL.
- * \param key      The key that caused this allocation call --
- *                 must not be \c NULL.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-bool Device_states_allocate_space(Device_states* states, char* key);
 
 
 /**

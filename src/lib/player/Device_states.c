@@ -46,6 +46,20 @@ Device_states* new_Device_states(void)
 }
 
 
+Device_state* Device_states_get_state(
+        const Device_states* states,
+        uint32_t id)
+{
+    assert(states != NULL);
+    assert(id > 0);
+
+    const Device_state* key = DEVICE_STATE_KEY(id);
+    assert(AAtree_contains(states->states, key));
+
+    return AAtree_get_exact(states->states, key);
+}
+
+
 bool Device_states_set_audio_rate(Device_states* states, int32_t rate)
 {
     assert(states != NULL);
