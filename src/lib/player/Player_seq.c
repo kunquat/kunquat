@@ -15,10 +15,94 @@
 #include <stdio.h>
 
 #include <events/Event_master_jump.h>
+#include <expr.h>
 #include <player/Player_seq.h>
-#include <player/triggers.h>
 #include <string_common.h>
 #include <xassert.h>
+
+
+char* get_event_type_info(
+        char* desc,
+        const Event_names* names,
+        Read_state* rs,
+        char* ret_name,
+        Event_type* ret_type)
+{
+    assert(desc != NULL);
+    assert(names != NULL);
+    assert(rs != NULL);
+    assert(ret_name != NULL);
+    assert(ret_type != NULL);
+
+    if (rs->error)
+        return desc;
+
+    // Read event name
+    desc = read_const_char(desc, '[', rs);
+    desc = read_string(desc, ret_name, EVENT_NAME_MAX, rs);
+    desc = read_const_char(desc, ',', rs);
+    if (rs->error)
+        return desc;
+
+    // Check event type
+    *ret_type = Event_names_get(names, ret_name);
+    if (*ret_type == Event_NONE)
+    {
+        Read_state_set_error(
+                rs,
+                "Unsupported event type: %s",
+                ret_name);
+        return desc;
+    }
+
+    assert(Event_is_valid(*ret_type));
+    return desc;
+}
+
+
+static char* process_expr(
+        char* arg_expr,
+        Value_type field_type,
+        Environment* env,
+        Random* random,
+        const Value* meta,
+        Read_state* rs,
+        Value* ret_value)
+{
+    assert(arg_expr != NULL);
+    assert(env != NULL);
+    assert(random != NULL);
+    assert(rs != NULL);
+    assert(ret_value != NULL);
+
+    if (rs->error)
+        return arg_expr;
+
+    if (field_type == VALUE_TYPE_NONE)
+    {
+        ret_value->type = VALUE_TYPE_NONE;
+        arg_expr = read_null(arg_expr, rs);
+    }
+    else
+    {
+        arg_expr = evaluate_expr(
+                arg_expr,
+                env,
+                rs,
+                meta,
+                ret_value,
+                random);
+        arg_expr = read_const_char(arg_expr, '"', rs);
+
+        if (rs->error)
+            return arg_expr;
+
+        if (!Value_convert(ret_value, ret_value, field_type))
+            Read_state_set_error(rs, "Type mismatch");
+    }
+
+    return arg_expr;
+}
 
 
 void Player_process_trigger(
@@ -27,6 +111,11 @@ void Player_process_trigger(
         char* trigger_desc,
         bool skip)
 {
+    assert(player != NULL);
+    assert(ch_num >= 0);
+    assert(ch_num < KQT_CHANNELS_MAX);
+    assert(trigger_desc != NULL);
+
     Read_state* rs = READ_STATE_AUTO;
     const Event_names* event_names = Event_handler_get_names(player->event_handler);
 

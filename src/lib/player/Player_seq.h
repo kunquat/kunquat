@@ -23,6 +23,14 @@
 #include <player/Player_private.h>
 
 
+char* get_event_type_info(
+        char* desc,
+        const Event_names* names,
+        Read_state* rs,
+        char* ret_name,
+        Event_type* ret_type);
+
+
 void Player_process_trigger(
         Player* player,
         int ch_num,

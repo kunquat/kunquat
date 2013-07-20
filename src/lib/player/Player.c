@@ -26,7 +26,6 @@
 #include <player/Player_private.h>
 #include <player/Player_seq.h>
 #include <player/Position.h>
-#include <player/triggers.h>
 #include <string_common.h>
 #include <Tstamp.h>
 #include <Voice_pool.h>
