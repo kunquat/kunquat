@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -21,6 +21,7 @@
 #include <DSP_conf.h>
 #include <DSP_type.h>
 #include <File_base.h>
+#include <player/Device_states.h>
 #include <string_common.h>
 #include <xassert.h>
 
@@ -74,7 +75,13 @@ DSP* new_DSP(char* str,
 
 bool DSP_init(DSP* dsp,
               void (*destroy)(DSP*),
-              void (*process)(Device*, uint32_t, uint32_t, uint32_t, double),
+              void (*process)(
+                  Device*,
+                  Device_states*,
+                  uint32_t,
+                  uint32_t,
+                  uint32_t,
+                  double),
               uint32_t buffer_size,
               uint32_t mix_rate)
 {

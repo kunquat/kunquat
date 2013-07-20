@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -70,11 +70,18 @@ DSP* new_DSP(char* str,
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool DSP_init(DSP* dsp,
-              void (*destroy)(DSP*),
-              void (*process)(Device*, uint32_t, uint32_t, uint32_t, double),
-              uint32_t buffer_size,
-              uint32_t mix_rate);
+bool DSP_init(
+        DSP* dsp,
+        void (*destroy)(DSP*),
+        void (*process)(
+            Device*,
+            Device_states* states,
+            uint32_t,
+            uint32_t,
+            uint32_t,
+            double),
+        uint32_t buffer_size,
+        uint32_t mix_rate);
 
 
 /**

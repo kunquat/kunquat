@@ -22,6 +22,7 @@
 #include <Effect.h>
 #include <Effect_interface.h>
 #include <memory.h>
+#include <player/Device_states.h>
 #include <xassert.h>
 
 
@@ -45,11 +46,13 @@ static bool Effect_set_buffer_size(Device* device, uint32_t size);
 
 static bool Effect_sync(Device* device);
 
-static void Effect_process(Device* device,
-                           uint32_t start,
-                           uint32_t until,
-                           uint32_t freq,
-                           double tempo);
+static void Effect_process(
+        Device* device,
+        Device_states* states,
+        uint32_t start,
+        uint32_t until,
+        uint32_t freq,
+        double tempo);
 
 
 Effect* new_Effect(uint32_t buf_len,
@@ -280,17 +283,21 @@ static bool Effect_sync(Device* device)
 }
 
 
-static void Effect_process(Device* device,
-                           uint32_t start,
-                           uint32_t until,
-                           uint32_t freq,
-                           double tempo)
+static void Effect_process(
+        Device* device,
+        Device_states* states,
+        uint32_t start,
+        uint32_t until,
+        uint32_t freq,
+        double tempo)
 {
     assert(device != NULL);
+    assert(states != NULL);
     assert(start < device->buffer_size);
     assert(until <= device->buffer_size);
     assert(freq > 0);
     assert(isfinite(tempo));
+
     Effect* eff = (Effect*)device;
     if (eff->bypass)
     {
@@ -317,7 +324,7 @@ static void Effect_process(Device* device,
 #endif
         Connections_clear_buffers(eff->connections, start, until);
         //fprintf(stderr, "Entering effect mix\n");
-        Connections_mix(eff->connections, start, until, freq, tempo);
+        Connections_mix(eff->connections, states, start, until, freq, tempo);
         //fprintf(stderr, "Leaving effect mix\n");
 #ifndef NDEBUG
         in_effect = false;

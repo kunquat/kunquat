@@ -50,11 +50,13 @@ static void DSP_conv_clear_history(DSP* dsp);
 static bool DSP_conv_update_key(Device* device, const char* key);
 static bool DSP_conv_set_mix_rate(Device* device, uint32_t mix_rate);
 
-static void DSP_conv_process(Device* device,
-                             uint32_t start,
-                             uint32_t until,
-                             uint32_t freq,
-                             double tempo);
+static void DSP_conv_process(
+        Device* device,
+        Device_states* states,
+        uint32_t start,
+        uint32_t until,
+        uint32_t freq,
+        double tempo);
 
 static void DSP_conv_check_params(DSP_conv* conv);
 
@@ -71,8 +73,12 @@ DSP* new_DSP_conv(uint32_t buffer_size, uint32_t mix_rate)
     {
         return NULL;
     }
-    if (!DSP_init(&conv->parent, del_DSP_conv,
-                  DSP_conv_process, buffer_size, mix_rate))
+    if (!DSP_init(
+                &conv->parent,
+                del_DSP_conv,
+                DSP_conv_process,
+                buffer_size,
+                mix_rate))
     {
         memory_free(conv);
         return NULL;
@@ -301,15 +307,19 @@ static void DSP_conv_set_ir(DSP_conv* conv)
 #undef get_values
 
 
-static void DSP_conv_process(Device* device,
-                             uint32_t start,
-                             uint32_t until,
-                             uint32_t freq,
-                             double tempo)
+static void DSP_conv_process(
+        Device* device,
+        Device_states* states,
+        uint32_t start,
+        uint32_t until,
+        uint32_t freq,
+        double tempo)
 {
     assert(device != NULL);
+    assert(states != NULL);
     assert(freq > 0);
     assert(tempo > 0);
+
     (void)freq;
     (void)tempo;
     DSP_conv* conv = (DSP_conv*)device;

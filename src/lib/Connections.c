@@ -268,46 +268,6 @@ bool Connections_init_buffers(Connections* graph)
 }
 
 
-#if 0
-bool Connections_init_buffers_complex(Connections* graph)
-{
-    assert(graph != NULL);
-    Device_node* master = AAtree_get_exact(graph->nodes, "");
-    assert(master != NULL);
-//    fprintf(stderr, "\n\n!!! Entering Connections_init_buffers:\n");
-
-    Device_node_reset(master);
-    Device_node_remove_direct_buffers(master);
-//    fprintf(stderr, "After Device_node_remove_direct_buffers:\n");
-//    Connections_print(graph, stderr);
-
-    Device_node_reset(master);
-    if (!Device_node_init_input_buffers(master))
-    {
-        return false;
-    }
-//    fprintf(stderr, "After Device_node_init_input_buffers:\n");
-//    Connections_print(graph, stderr);
-
-    Device_node_reset(master);
-    if (!Device_node_init_buffers_by_suggestion(master, 0, NULL))
-    {
-        return false;
-    }
-    Device_node_reset(master);
-    if (!Device_node_init_effect_buffers(master))
-    {
-        return false;
-    }
-//    fprintf(stderr, "After Device_node_init_buffers_by_suggestion:\n");
-//    Connections_print(graph, stderr);
-
- //   fprintf(stderr, "!!! Finished Connections_init_buffers\n\n");
-    return true;
-}
-#endif
-
-
 void Connections_clear_buffers(Connections* graph,
                                uint32_t start,
                                uint32_t until)
@@ -325,13 +285,16 @@ void Connections_clear_buffers(Connections* graph,
 }
 
 
-void Connections_mix(Connections* graph,
-                     uint32_t start,
-                     uint32_t until,
-                     uint32_t freq,
-                     double tempo)
+void Connections_mix(
+        Connections* graph,
+        Device_states* states,
+        uint32_t start,
+        uint32_t until,
+        uint32_t freq,
+        double tempo)
 {
     assert(graph != NULL);
+    assert(states != NULL);
     assert(freq > 0);
     assert(isfinite(tempo));
     assert(tempo > 0);
@@ -351,7 +314,7 @@ void Connections_mix(Connections* graph,
 //    fprintf(stderr, "Mix process:\n");
 #endif
     Device_node_reset(master);
-    Device_node_mix(master, start, until, freq, tempo);
+    Device_node_mix(master, states, start, until, freq, tempo);
     return;
 }
 

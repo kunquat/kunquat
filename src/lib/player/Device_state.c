@@ -12,6 +12,7 @@
  */
 
 
+#include <Device.h>
 #include <math_common.h>
 #include <player/Device_state.h>
 #include <xassert.h>

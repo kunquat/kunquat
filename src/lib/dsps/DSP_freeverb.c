@@ -78,11 +78,13 @@ static void DSP_freeverb_set_width(DSP_freeverb* freeverb, double width);
 
 static void DSP_freeverb_check_params(DSP_freeverb* freeverb);
 
-static void DSP_freeverb_process(Device* device,
-                                 uint32_t start,
-                                 uint32_t until,
-                                 uint32_t freq,
-                                 double tempo);
+static void DSP_freeverb_process(
+        Device* device,
+        Device_states* states,
+        uint32_t start,
+        uint32_t until,
+        uint32_t freq,
+        double tempo);
 
 
 static void del_DSP_freeverb(DSP* dsp);
@@ -418,15 +420,19 @@ static void DSP_freeverb_check_params(DSP_freeverb* freeverb)
 }
 
 
-static void DSP_freeverb_process(Device* device,
-                                 uint32_t start,
-                                 uint32_t until,
-                                 uint32_t freq,
-                                 double tempo)
+static void DSP_freeverb_process(
+        Device* device,
+        Device_states* states,
+        uint32_t start,
+        uint32_t until,
+        uint32_t freq,
+        double tempo)
 {
     assert(device != NULL);
+    assert(states != NULL);
     assert(freq > 0);
     assert(tempo > 0);
+
     (void)freq;
     (void)tempo;
     DSP_freeverb* freeverb = (DSP_freeverb*)device;

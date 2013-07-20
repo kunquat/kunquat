@@ -69,11 +69,13 @@ static bool DSP_chorus_set_mix_rate(Device* device, uint32_t mix_rate);
 
 static void DSP_chorus_check_params(DSP_chorus* chorus);
 
-static void DSP_chorus_process(Device* device,
-                               uint32_t start,
-                               uint32_t until,
-                               uint32_t freq,
-                               double tempo);
+static void DSP_chorus_process(
+        Device* device,
+        Device_states* states,
+        uint32_t start,
+        uint32_t until,
+        uint32_t freq,
+        double tempo);
 
 static void del_DSP_chorus(DSP* dsp);
 
@@ -83,11 +85,11 @@ DSP* new_DSP_chorus(uint32_t buffer_size, uint32_t mix_rate)
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
     assert(mix_rate > 0);
+
     DSP_chorus* chorus = memory_alloc_item(DSP_chorus);
     if (chorus == NULL)
-    {
         return NULL;
-    }
+
     if (!DSP_init(&chorus->parent, del_DSP_chorus,
                   DSP_chorus_process, buffer_size, mix_rate))
     {
@@ -309,15 +311,19 @@ static bool DSP_chorus_set_mix_rate(Device* device, uint32_t mix_rate)
 }
 
 
-static void DSP_chorus_process(Device* device,
-                               uint32_t start,
-                               uint32_t until,
-                               uint32_t freq,
-                               double tempo)
+static void DSP_chorus_process(
+        Device* device,
+        Device_states* states,
+        uint32_t start,
+        uint32_t until,
+        uint32_t freq,
+        double tempo)
 {
     assert(device != NULL);
+    assert(states != NULL);
     assert(freq > 0);
     assert(tempo > 0);
+
     (void)freq;
     (void)tempo;
     DSP_chorus* chorus = (DSP_chorus*)device;

@@ -21,19 +21,13 @@
 #include <stdio.h>
 
 #include <Audio_buffer.h>
+#include <Decl.h>
+#include <player/Device_states.h>
 #include <frame.h>
 #include <kunquat/limits.h>
 
 
-typedef enum
-{
-    DEVICE_PORT_TYPE_RECEIVE = 0,
-    DEVICE_PORT_TYPE_SEND,
-    DEVICE_PORT_TYPES             ///< Sentinel -- not a valid type.
-} Device_port_type;
-
-
-typedef struct Device
+struct Device
 {
     uint32_t id;
     bool existent;
@@ -44,12 +38,18 @@ typedef struct Device
     void (*reset)(struct Device*);
     bool (*sync)(struct Device*);
     bool (*update_key)(struct Device*, const char*);
-    void (*process)(struct Device*, uint32_t, uint32_t, uint32_t, double);
+    void (*process)(
+            struct Device*,
+            Device_states*,
+            uint32_t,
+            uint32_t,
+            uint32_t,
+            double);
     bool reg[DEVICE_PORT_TYPES][KQT_DEVICE_PORTS_MAX];
     Audio_buffer* buffers[DEVICE_PORT_TYPES][KQT_DEVICE_PORTS_MAX];
     Audio_buffer* direct_receive[KQT_DEVICE_PORTS_MAX];
     Audio_buffer* direct_send[KQT_DEVICE_PORTS_MAX];
-} Device;
+};
 
 
 /**
@@ -154,7 +154,13 @@ void Device_set_update_key(
  */
 void Device_set_process(
         Device* device,
-        void (*process)(Device*, uint32_t, uint32_t, uint32_t, double));
+        void (*process)(
+            Device*,
+            Device_states*,
+            uint32_t,
+            uint32_t,
+            uint32_t,
+            double));
 
 
 /**
@@ -367,6 +373,7 @@ bool Device_update_key(Device* device, const char* key);
  * Processes audio in the Device.
  *
  * \param device   The Device -- must not be \c NULL.
+ * \param states   The Device states -- must not be \c NULL.
  * \param start    The first frame to be processed -- must be less than the
  *                 buffer size.
  * \param until    The first frame not to be processed -- must be less than or
@@ -377,6 +384,7 @@ bool Device_update_key(Device* device, const char* key);
  */
 void Device_process(
         Device* device,
+        Device_states* states,
         uint32_t start,
         uint32_t until,
         uint32_t freq,

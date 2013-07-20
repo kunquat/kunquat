@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -22,6 +22,7 @@
 
 #include <Device.h>
 #include <File_base.h>
+#include <player/Device_states.h>
 
 
 /**
@@ -38,20 +39,6 @@ typedef struct Connections Connections;
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Connections_init_buffers(Connections* graph);
-
-
-/**
- * Initialises Audio buffers in the Connections.
- *
- * This function uses a more sophisticated approach to allocating buffers than
- * Connections_init_buffers. Typically, it uses far less buffers, which
- * requires less mixing and saves a bit of memory.
- *
- * \param graph   The Connections -- must not be \c NULL.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-//bool Connections_init_buffers_complex(Connections* graph);
 
 
 /**
@@ -72,20 +59,23 @@ void Connections_clear_buffers(Connections* graph,
 /**
  * Mixes the audio in Connections.
  *
- * \param graph   The Connections -- must not be \c NULL.
- * \param start   The first frame to be mixed -- must be less than the
- *                buffer size.
- * \param until   The first frame not to be mixed -- must be less than or
- *                equal to the buffer size. If \a until <= \a start, nothing
- *                will be mixed.
- * \param freq    The mixing frequency -- must be > \c 0.
- * \param tempo   The tempo -- must be > \c 0 and finite.
+ * \param graph    The Connections -- must not be \c NULL.
+ * \param states   The Device states -- must not be \c NULL.
+ * \param start    The first frame to be mixed -- must be less than the
+ *                 buffer size.
+ * \param until    The first frame not to be mixed -- must be less than or
+ *                 equal to the buffer size. If \a until <= \a start, nothing
+ *                 will be mixed.
+ * \param freq     The mixing frequency -- must be > \c 0.
+ * \param tempo    The tempo -- must be > \c 0 and finite.
  */
-void Connections_mix(Connections* graph,
-                     uint32_t start,
-                     uint32_t until,
-                     uint32_t freq,
-                     double tempo);
+void Connections_mix(
+        Connections* graph,
+        Device_states* device_states,
+        uint32_t start,
+        uint32_t until,
+        uint32_t freq,
+        double tempo);
 
 
 /**

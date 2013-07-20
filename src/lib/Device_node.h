@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -24,6 +24,7 @@
 #include <Effect_table.h>
 #include <Ins_table.h>
 #include <math_common.h>
+#include <player/Device_states.h>
 
 
 /**
@@ -63,11 +64,12 @@ typedef struct Device_node Device_node;
  * \return   The new Device node if successful, or \c NULL if memory
  *           allocation failed.
  */
-Device_node* new_Device_node(const char* name,
-                             Ins_table* insts,
-                             Effect_table* effects,
-                             DSP_table* dsps,
-                             Device* master);
+Device_node* new_Device_node(
+        const char* name,
+        Ins_table* insts,
+        Effect_table* effects,
+        DSP_table* dsps,
+        Device* master);
 
 
 /**
@@ -132,20 +134,23 @@ void Device_node_clear_buffers(Device_node* node,
 /**
  * Mixes audio in the Device node and its subgraph.
  *
- * \param node    The Device node -- must not be \c NULL.
- * \param start   The first frame to be mixed -- must be less than the
- *                buffer size.
- * \param until   The first frame not to be mixed -- must be less than or
- *                equal to the buffer size. If \a until <= \a start, nothing
- *                will be mixed.
- * \param freq    The mixing frequency -- must be > \c 0.
- * \param tempo   The tempo -- must be > \c 0 and finite.
+ * \param node     The Device node -- must not be \c NULL.
+ * \param states   The Device states -- must not be \c NULL.
+ * \param start    The first frame to be mixed -- must be less than the
+ *                  buffer size.
+ * \param until    The first frame not to be mixed -- must be less than or
+ *                 equal to the buffer size. If \a until <= \a start, nothing
+ *                 will be mixed.
+ * \param freq     The mixing frequency -- must be > \c 0.
+ * \param tempo    The tempo -- must be > \c 0 and finite.
  */
-void Device_node_mix(Device_node* node,
-                     uint32_t start,
-                     uint32_t until,
-                     uint32_t freq,
-                     double tempo);
+void Device_node_mix(
+        Device_node* node,
+        Device_states* states,
+        uint32_t start,
+        uint32_t until,
+        uint32_t freq,
+        double tempo);
 
 
 /**
@@ -200,10 +205,11 @@ Device_node_state Device_node_get_state(Device_node* node);
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Device_node_connect(Device_node* receiver,
-                         int rec_port,
-                         Device_node* sender,
-                         int send_port);
+bool Device_node_connect(
+        Device_node* receiver,
+        int rec_port,
+        Device_node* sender,
+        int send_port);
 
 
 /**
@@ -223,9 +229,10 @@ void Device_node_disconnect(Device_node* node, Device* device);
  * \param new_device   The new Device -- must not be \c NULL, equal to
  *                     \a old_device or in the connections of \a node.
  */
-void Device_node_replace(Device_node* node,
-                         Device* old_device,
-                         Device* new_device);
+void Device_node_replace(
+        Device_node* node,
+        Device* old_device,
+        Device* new_device);
 
 
 /**
@@ -239,9 +246,10 @@ void Device_node_replace(Device_node* node,
  *
  * \return   The first sender if one exists, otherwise \c NULL.
  */
-Device_node* Device_node_get_sender(Device_node* node,
-                                    int rec_port,
-                                    int* send_port);
+Device_node* Device_node_get_sender(
+        Device_node* node,
+        int rec_port,
+        int* send_port);
 
 
 /**
@@ -255,9 +263,10 @@ Device_node* Device_node_get_sender(Device_node* node,
  *
  * \return   The first receiver if one exists, otherwise \c NULL.
  */
-Device_node* Device_node_get_receiver(Device_node* node,
-                                      int send_port,
-                                      int* rec_port);
+Device_node* Device_node_get_receiver(
+        Device_node* node,
+        int send_port,
+        int* rec_port);
 
 
 /**

@@ -58,11 +58,13 @@ static bool DSP_delay_set_mix_rate(Device* device, uint32_t mix_rate);
 
 static void DSP_delay_check_params(DSP_delay* delay);
 
-static void DSP_delay_process(Device* device,
-                              uint32_t start,
-                              uint32_t until,
-                              uint32_t freq,
-                              double tempo);
+static void DSP_delay_process(
+        Device* device,
+        Device_states* states,
+        uint32_t start,
+        uint32_t until,
+        uint32_t freq,
+        double tempo);
 
 static void del_DSP_delay(DSP* dsp);
 
@@ -205,15 +207,19 @@ static bool DSP_delay_set_mix_rate(Device* device, uint32_t mix_rate)
 }
 
 
-static void DSP_delay_process(Device* device,
-                              uint32_t start,
-                              uint32_t until,
-                              uint32_t freq,
-                              double tempo)
+static void DSP_delay_process(
+        Device* device,
+        Device_states* states,
+        uint32_t start,
+        uint32_t until,
+        uint32_t freq,
+        double tempo)
 {
     assert(device != NULL);
+    assert(states != NULL);
     assert(freq > 0);
     assert(tempo > 0);
+
     (void)freq;
     (void)tempo;
     DSP_delay* delay = (DSP_delay*)device;

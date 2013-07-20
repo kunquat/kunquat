@@ -16,6 +16,7 @@
 #define K_DECL_H
 
 
+typedef struct Device Device;
 typedef struct Module Module;
 
 

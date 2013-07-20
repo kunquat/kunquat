@@ -39,11 +39,13 @@ typedef struct DSP_gc
 static bool DSP_gc_sync(Device* device);
 static bool DSP_gc_update_key(Device* device, const char* key);
 
-static void DSP_gc_process(Device* device,
-                           uint32_t start,
-                           uint32_t until,
-                           uint32_t freq,
-                           double tempo);
+static void DSP_gc_process(
+        Device* device,
+        Device_states* states,
+        uint32_t start,
+        uint32_t until,
+        uint32_t freq,
+        double tempo);
 
 static void del_DSP_gc(DSP* dsp);
 
@@ -127,15 +129,19 @@ static bool DSP_gc_update_key(Device* device, const char* key)
 }
 
 
-static void DSP_gc_process(Device* device,
-                           uint32_t start,
-                           uint32_t until,
-                           uint32_t freq,
-                           double tempo)
+static void DSP_gc_process(
+        Device* device,
+        Device_states* states,
+        uint32_t start,
+        uint32_t until,
+        uint32_t freq,
+        double tempo)
 {
     assert(device != NULL);
+    assert(states != NULL);
     assert(freq > 0);
     assert(tempo > 0);
+
     (void)freq;
     (void)tempo;
     DSP_gc* gc = (DSP_gc*)device;

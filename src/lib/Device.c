@@ -130,7 +130,13 @@ void Device_set_update_key(
 
 void Device_set_process(
         Device* device,
-        void (*process)(Device*, uint32_t, uint32_t, uint32_t, double))
+        void (*process)(
+            Device*,
+            Device_states*,
+            uint32_t,
+            uint32_t,
+            uint32_t,
+            double))
 {
     assert(device != NULL);
     assert(process != NULL);
@@ -415,21 +421,23 @@ bool Device_update_key(Device* device, const char* key)
 
 void Device_process(
         Device* device,
+        Device_states* states,
         uint32_t start,
         uint32_t until,
         uint32_t freq,
         double tempo)
 {
     assert(device != NULL);
+    assert(states != NULL);
     assert(start < device->buffer_size);
     assert(until <= device->buffer_size);
     assert(freq > 0);
     assert(isfinite(tempo));
     assert(tempo > 0);
+
     if (device->process != NULL)
-    {
-        device->process(device, start, until, freq, tempo);
-    }
+        device->process(device, states, start, until, freq, tempo);
+
     return;
 }
 

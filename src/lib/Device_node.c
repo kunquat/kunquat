@@ -68,11 +68,12 @@ struct Device_node
 static Device_node* Device_node_get_ins_dual(Device_node* node);
 
 
-Device_node* new_Device_node(const char* name,
-                             Ins_table* insts,
-                             Effect_table* effects,
-                             DSP_table* dsps,
-                             Device* master)
+Device_node* new_Device_node(
+        const char* name,
+        Ins_table* insts,
+        Effect_table* effects,
+        DSP_table* dsps,
+        Device* master)
 {
     assert(name != NULL);
     assert(insts != NULL);
@@ -391,16 +392,20 @@ void Device_node_clear_buffers(Device_node* node,
 }
 
 
-void Device_node_mix(Device_node* node,
-                     uint32_t start,
-                     uint32_t until,
-                     uint32_t freq,
-                     double tempo)
+void Device_node_mix(
+        Device_node* node,
+        Device_states* states,
+        uint32_t start,
+        uint32_t until,
+        uint32_t freq,
+        double tempo)
 {
     assert(node != NULL);
+    assert(states != NULL);
     assert(freq > 0);
     assert(isfinite(tempo));
     assert(tempo > 0);
+
     //fprintf(stderr, "Entering node %p %s\n", (void*)node, node->name);
     if (Device_node_get_state(node) > DEVICE_NODE_STATE_NEW)
     {
@@ -430,7 +435,7 @@ void Device_node_mix(Device_node* node,
             Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
             return;
         }
-        Device_node_mix(ins_node, start, until, freq, tempo);
+        Device_node_mix(ins_node, states, start, until, freq, tempo);
         for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
         {
             Audio_buffer* receive = Device_get_buffer(node_device,
@@ -456,7 +461,7 @@ void Device_node_mix(Device_node* node,
                 edge = edge->next;
                 continue;
             }
-            Device_node_mix(edge->node, start, until, freq, tempo);
+            Device_node_mix(edge->node, states, start, until, freq, tempo);
             Audio_buffer* send =
                     Device_get_buffer(Device_node_get_device(edge->node),
                                          DEVICE_PORT_TYPE_SEND, edge->port);
@@ -484,7 +489,7 @@ void Device_node_mix(Device_node* node,
         }
     }
     //fprintf(stderr, "Calling Device_process on %p %s\n", (void*)node, node->name);
-    Device_process(node_device, start, until, freq, tempo);
+    Device_process(node_device, states, start, until, freq, tempo);
     Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
     return;
 }
@@ -500,27 +505,20 @@ char* Device_node_get_name(Device_node* node)
 Device* Device_node_get_device(Device_node* node)
 {
     assert(node != NULL);
+
     if (node->type == DEVICE_TYPE_MASTER)
-    {
         return node->master;
-    }
     else if (node->type == DEVICE_TYPE_INSTRUMENT)
-    {
         return (Device*)Ins_table_get(node->insts, node->index);
-    }
     else if (node->type == DEVICE_TYPE_EFFECT)
-    {
         return (Device*)Effect_table_get(node->effects, node->index);
-    }
     else if (node->type == DEVICE_TYPE_GENERATOR)
-    {
-        return (Device*)Instrument_get_gen((Instrument*)node->master,
-                                           node->index);
-    }
+        return (Device*)Instrument_get_gen(
+                (Instrument*)node->master,
+                node->index);
     else if (node->type == DEVICE_TYPE_DSP)
-    {
         return (Device*)DSP_table_get_dsp(node->dsps, node->index);
-    }
+
     assert(false);
     return NULL;
 }

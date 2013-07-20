@@ -381,6 +381,7 @@ void Player_play(Player* player, int32_t nframes)
     // TODO: separate data and playback state in connections
     Connections* connections = player->module->connections;
 
+    Device_states_clear_audio_buffers(player->device_states, 0, nframes);
     if (connections != NULL)
     {
         Connections_clear_buffers(connections, 0, nframes);
@@ -423,6 +424,7 @@ void Player_play(Player* player, int32_t nframes)
         {
             Connections_mix(
                     connections,
+                    player->device_states,
                     rendered,
                     rendered + to_be_rendered,
                     player->audio_rate,
