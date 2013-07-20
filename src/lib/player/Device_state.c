@@ -71,7 +71,7 @@ bool Device_state_set_audio_rate(Device_state* ds, int32_t rate)
 }
 
 
-bool Device_state_set_buffer_size(Device_state* ds, int32_t size)
+bool Device_state_set_audio_buffer_size(Device_state* ds, int32_t size)
 {
     assert(ds != NULL);
     assert(size >= 0);
@@ -99,6 +99,26 @@ bool Device_state_allocate_space(Device_state* ds, char* key)
     assert(key != NULL);
 
     return true;
+}
+
+
+void Device_state_clear_audio_buffers(
+        Device_state* ds,
+        uint32_t start,
+        uint32_t stop)
+{
+    assert(ds != NULL);
+
+    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+    {
+        for (Device_port_type type = DEVICE_PORT_TYPE_RECEIVE;
+                type < DEVICE_PORT_TYPES; ++type)
+        {
+            Audio_buffer* buffer = ds->buffers[type][port];
+            if (buffer != NULL)
+                Audio_buffer_clear(buffer, start, stop);
+        }
+    }
 }
 
 

@@ -63,7 +63,21 @@ bool Device_states_set_audio_rate(Device_states* states, int32_t rate);
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Device_states_set_buffer_size(Device_states* states, int32_t size);
+bool Device_states_set_audio_buffer_size(Device_states* states, int32_t size);
+
+
+/**
+ * Clears audio buffers in the Device states.
+ *
+ * \param states   The Device states -- must not be \c NULL.
+ * \param start    The first frame to be cleared.
+ * \param stop     The first frame not to be cleared -- must be less than or
+ *                 equal to the buffer size.
+ */
+void Device_states_clear_audio_buffers(
+        Device_states* states,
+        uint32_t start,
+        uint32_t stop);
 
 
 /**

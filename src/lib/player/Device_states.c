@@ -82,7 +82,7 @@ bool Device_states_set_audio_rate(Device_states* states, int32_t rate)
 }
 
 
-bool Device_states_set_buffer_size(Device_states* states, int32_t size)
+bool Device_states_set_audio_buffer_size(Device_states* states, int32_t size)
 {
     assert(states != NULL);
     assert(size >= 0);
@@ -94,7 +94,7 @@ bool Device_states_set_buffer_size(Device_states* states, int32_t size)
 
     while (ds != NULL)
     {
-        if (!Device_state_set_buffer_size(ds, size))
+        if (!Device_state_set_audio_buffer_size(ds, size))
             return false;
 
         ds = AAiter_get_next(iter);
@@ -123,6 +123,27 @@ bool Device_states_allocate_space(Device_states* states, char* key)
     }
 
     return true;
+}
+
+
+void Device_states_clear_audio_buffers(
+        Device_states* states,
+        uint32_t start,
+        uint32_t stop)
+{
+    assert(states != NULL);
+
+    AAiter* iter = AAITER_AUTO;
+    AAiter_change_tree(iter, states->states);
+
+    Device_state* ds = AAiter_get_at_least(iter, DEVICE_STATE_KEY(0));
+
+    while (ds != NULL)
+    {
+        Device_state_clear_audio_buffers(ds, start, stop);
+
+        ds = AAiter_get_next(iter);
+    }
 }
 
 
