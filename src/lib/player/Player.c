@@ -27,8 +27,6 @@
 #include <player/Player_seq.h>
 #include <player/Position.h>
 #include <string_common.h>
-#include <Tstamp.h>
-#include <Voice_pool.h>
 #include <xassert.h>
 
 
@@ -81,6 +79,7 @@ Player* new_Player(
         player->audio_buffers[i] = NULL;
     player->audio_frames_available = 0;
 
+    player->device_states = NULL;
     player->env = NULL;
     player->event_buffer = NULL;
     player->voices = NULL;
@@ -100,10 +99,12 @@ Player* new_Player(
     player->events_returned = false;
 
     // Init fields
+    player->device_states = new_Device_states();
     player->env = player->module->env; //new_Environment(); // TODO
     player->event_buffer = new_Event_buffer(event_buffer_size);
     player->voices = new_Voice_pool(voice_count);
-    if (player->env == NULL ||
+    if (player->device_states == NULL ||
+            player->env == NULL ||
             player->event_buffer == NULL ||
             player->voices == NULL ||
             !Voice_pool_reserve_state_space(
@@ -691,6 +692,7 @@ void del_Player(Player* player)
     Master_params_deinit(&player->master_params);
     del_Event_buffer(player->event_buffer);
     //del_Environment(player->env); // TODO
+    del_Device_states(player->device_states);
 
     for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
         memory_free(player->audio_buffers[i]);

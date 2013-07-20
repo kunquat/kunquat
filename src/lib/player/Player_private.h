@@ -23,9 +23,11 @@
 #include <Environment.h>
 #include <Event_handler.h>
 #include <player/Cgiter.h>
+#include <player/Device_states.h>
 #include <player/Event_buffer.h>
 #include <player/Master_params.h>
 #include <player/Player.h>
+#include <Voice_pool.h>
 
 
 struct Player
@@ -37,6 +39,7 @@ struct Player
     float*  audio_buffers[2];
     int32_t audio_frames_available;
 
+    Device_states* device_states;
     Environment*   env;
     Event_buffer*  event_buffer;
     Voice_pool*    voices;
