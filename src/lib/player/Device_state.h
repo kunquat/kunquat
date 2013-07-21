@@ -70,6 +70,25 @@ void Device_state_init(
 
 
 /**
+ * Creates a plain Device state.
+ *
+ * Most Devices should provide their own constructors and use
+ * \a Device_state_init instead.
+ *
+ * \param device              The Device -- must not be \c NULL.
+ * \param audio_rate          The audio rate -- must be > \c 0.
+ * \param audio_buffer_size   The audio buffer size -- must be >= \c 0.
+ *
+ * \return   The Device state if successful, or \c NULL if memory allocation
+ *           failed.
+ */
+Device_state* new_Device_state_plain(
+        const Device* device,
+        int32_t audio_rate,
+        int32_t audio_buffer_size);
+
+
+/**
  * Compares two Device states.
  *
  * \param ds1   The first state -- must not be \c NULL.

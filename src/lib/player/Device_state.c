@@ -14,6 +14,7 @@
 
 #include <Device.h>
 #include <math_common.h>
+#include <memory.h>
 #include <player/Device_state.h>
 #include <xassert.h>
 
@@ -42,6 +43,25 @@ void Device_state_init(
     }
 
     return;
+}
+
+
+Device_state* new_Device_state_plain(
+        const Device* device,
+        int32_t audio_rate,
+        int32_t audio_buffer_size)
+{
+    assert(device != NULL);
+    assert(audio_rate > 0);
+    assert(audio_buffer_size >= 0);
+
+    Device_state* ds = memory_alloc_item(Device_state);
+    if (ds == NULL)
+        return NULL;
+
+    Device_state_init(ds, device, audio_rate, audio_buffer_size);
+
+    return ds;
 }
 
 
