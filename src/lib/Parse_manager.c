@@ -483,6 +483,32 @@ static bool parse_album_level(
 }
 
 
+static Instrument* add_instrument(kqt_Handle* handle, int index)
+{
+    Module* module = Handle_get_module(handle);
+
+    // Return existing instrument
+    Instrument* ins = Ins_table_get(Module_get_insts(module), index);
+    if (ins != NULL)
+        return ins;
+
+    // Create new instrument
+    ins = new_Instrument(
+            Device_get_buffer_size((Device*)module),
+            Device_get_mix_rate((Device*)module));
+    if (ins == NULL || !Ins_table_set(Module_get_insts(module), index, ins))
+    {
+        kqt_Handle_set_error(
+                handle,
+                ERROR_MEMORY, "Couldn't allocate memory for a new instrument");
+        del_Instrument(ins);
+        return NULL;
+    }
+
+    return ins;
+}
+
+
 static bool parse_instrument_level(kqt_Handle* handle,
                                    const char* key,
                                    const char* subkey,
@@ -554,20 +580,11 @@ static bool parse_instrument_level(kqt_Handle* handle,
         Instrument* ins = Ins_table_get(Module_get_insts(module), index);
         bool changed = ins != NULL && Instrument_get_effect(ins,
                                                 eff_index) != NULL;
+
+        ins = add_instrument(handle, index);
         if (ins == NULL)
-        {
-            ins = new_Instrument(
-                    Device_get_buffer_size((Device*)module),
-                    Device_get_mix_rate((Device*)module));
-            if (ins == NULL ||
-                    !Ins_table_set(Module_get_insts(module), index, ins))
-            {
-                kqt_Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory");
-                del_Instrument(ins);
-                return false;
-            }
-        }
+            return false;
+
         bool success = parse_effect_level(handle, ins, key, subkey,
                                           data, length, eff_index);
         changed ^= ins != NULL &&
@@ -589,70 +606,31 @@ static bool parse_instrument_level(kqt_Handle* handle,
     if (string_eq(subkey, "p_manifest.json"))
     {
         Instrument* ins = Ins_table_get(Module_get_insts(module), index);
-        bool new_ins = (ins == NULL);
-        if (new_ins)
-        {
-            ins = new_Instrument(
-                    Device_get_buffer_size((Device*)module),
-                    Device_get_mix_rate((Device*)module));
-            if (ins == NULL)
-            {
-                kqt_Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory");
-                return false;
-            }
-        }
+        ins = add_instrument(handle, index);
+        if (ins == NULL)
+            return false;
 
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
         const bool existent = read_default_manifest(data, state);
         if (state->error)
         {
             set_parse_error(handle, state);
-            if (new_ins)
-                del_Instrument(ins);
             return false;
         }
-        Device_set_existent((Device*)ins, existent);
 
-        if (new_ins && !Ins_table_set(Module_get_insts(module), index, ins))
-        {
-            kqt_Handle_set_error(handle, ERROR_MEMORY,
-                    "Couldn't allocate memory");
-            del_Instrument(ins);
-            return false;
-        }
+        Device_set_existent((Device*)ins, existent);
     }
     else if (string_eq(subkey, "p_instrument.json"))
     {
         Instrument* ins = Ins_table_get(Module_get_insts(module), index);
-        bool new_ins = (ins == NULL);
-        if (new_ins)
-        {
-            ins = new_Instrument(
-                    Device_get_buffer_size((Device*)module),
-                    Device_get_mix_rate((Device*)module));
-            if (ins == NULL)
-            {
-                kqt_Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory");
-                return false;
-            }
-        }
+        ins = add_instrument(handle, index);
+        if (ins == NULL)
+            return false;
+
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
         if (!Instrument_parse_header(ins, data, state))
         {
             set_parse_error(handle, state);
-            if (new_ins)
-            {
-                del_Instrument(ins);
-            }
-            return false;
-        }
-        if (new_ins && !Ins_table_set(Module_get_insts(module), index, ins))
-        {
-            kqt_Handle_set_error(handle, ERROR_MEMORY,
-                    "Couldn't allocate memory");
-            del_Instrument(ins);
             return false;
         }
     }
@@ -670,23 +648,10 @@ static bool parse_instrument_level(kqt_Handle* handle,
         }
         else
         {
-            bool new_ins = (ins == NULL);
-            if (new_ins)
-            {
-                ins = new_Instrument(
-                        Device_get_buffer_size((Device*)module),
-                        Device_get_mix_rate((Device*)module));
-                if (ins == NULL ||
-                        !Ins_table_set(Module_get_insts(module),
-                                       index, ins))
-                {
-                    del_Instrument(ins);
-                    kqt_Handle_set_error(handle, ERROR_MEMORY,
-                            "Couldn't allocate memory");
-                    return false;
-                }
-            }
-            assert(ins != NULL);
+            ins = add_instrument(handle, index);
+            if (ins == NULL)
+                return false;
+
             Read_state* state = Read_state_init(READ_STATE_AUTO, key);
             Connections* graph = new_Connections_from_string(data,
                                                  CONNECTION_LEVEL_INSTRUMENT,
@@ -697,19 +662,11 @@ static bool parse_instrument_level(kqt_Handle* handle,
                                                  state);
             if (graph == NULL)
             {
-                if (new_ins)
-                {
-                    Ins_table_remove(Module_get_insts(module), index);
-                }
                 if (state->error)
-                {
                     set_parse_error(handle, state);
-                }
                 else
-                {
                     kqt_Handle_set_error(handle, ERROR_MEMORY,
                             "Couldn't allocate memory");
-                }
                 return false;
             }
             Instrument_set_connections(ins, graph);
@@ -735,34 +692,14 @@ static bool parse_instrument_level(kqt_Handle* handle,
     else if (string_has_prefix(subkey, "p_pitch_lock_"))
     {
         Instrument* ins = Ins_table_get(Module_get_insts(module), index);
-        bool new_ins = ins == NULL;
-        if (new_ins)
-        {
-            ins = new_Instrument(
-                    Device_get_buffer_size((Device*)module),
-                    Device_get_mix_rate((Device*)module));
-            if (ins == NULL)
-            {
-                kqt_Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory");
-                return false;
-            }
-        }
+        ins = add_instrument(handle, index);
+        if (ins == NULL)
+            return false;
+
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
         if (!Instrument_parse_value(ins, subkey, data, state))
         {
             set_parse_error(handle, state);
-            if (new_ins)
-            {
-                del_Instrument(ins);
-            }
-            return false;
-        }
-        if (new_ins && !Ins_table_set(Module_get_insts(module), index, ins))
-        {
-            kqt_Handle_set_error(handle, ERROR_MEMORY,
-                    "Couldn't allocate memory");
-            del_Instrument(ins);
             return false;
         }
     }
@@ -784,42 +721,18 @@ static bool parse_instrument_level(kqt_Handle* handle,
         if (string_eq(subkey, parse[i].name))
         {
             Instrument* ins = Ins_table_get(Module_get_insts(module), index);
-            bool new_ins = ins == NULL;
-            if (new_ins)
-            {
-                ins = new_Instrument(
-                        Device_get_buffer_size((Device*)module),
-                        Device_get_mix_rate((Device*)module));
-                if (ins == NULL)
-                {
-                    kqt_Handle_set_error(handle, ERROR_MEMORY,
-                            "Couldn't allocate memory");
-                    return false;
-                }
-            }
+            ins = add_instrument(handle, index);
+            if (ins == NULL)
+                return false;
+
             Read_state* state = Read_state_init(READ_STATE_AUTO, key);
             if (!parse[i].read(Instrument_get_params(ins), data, state))
             {
                 if (!state->error)
-                {
                     kqt_Handle_set_error(handle, ERROR_MEMORY,
                             "Couldn't allocate memory");
-                }
                 else
-                {
                     set_parse_error(handle, state);
-                }
-                if (new_ins)
-                {
-                    del_Instrument(ins);
-                }
-                return false;
-            }
-            if (new_ins && !Ins_table_set(Module_get_insts(module), index, ins))
-            {
-                kqt_Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory");
-                del_Instrument(ins);
                 return false;
             }
         }
@@ -861,19 +774,10 @@ static bool parse_generator_level(kqt_Handle* handle,
     Module* module = Handle_get_module(handle);
 
     Instrument* ins = Ins_table_get(Module_get_insts(module), ins_index);
-    bool new_ins = (ins == NULL);
-    if (new_ins)
-    {
-        ins = new_Instrument(
-                Device_get_buffer_size((Device*)module),
-                Device_get_mix_rate((Device*)module));
-        if (ins == NULL)
-        {
-            kqt_Handle_set_error(handle, ERROR_MEMORY,
-                    "Couldn't allocate memory");
-            return false;
-        }
-    }
+    ins = add_instrument(handle, ins_index);
+    if (ins == NULL)
+        return false;
+
     if (string_eq(subkey, "p_manifest.json"))
     {
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
@@ -881,8 +785,6 @@ static bool parse_generator_level(kqt_Handle* handle,
         if (state->error)
         {
             set_parse_error(handle, state);
-            if (new_ins)
-                del_Instrument(ins);
             return false;
         }
 
@@ -914,18 +816,10 @@ static bool parse_generator_level(kqt_Handle* handle,
             if (gen == NULL)
             {
                 if (!state->error)
-                {
                     kqt_Handle_set_error(handle, ERROR_MEMORY,
                             "Couldn't allocate memory");
-                }
                 else
-                {
                     set_parse_error(handle, state);
-                }
-                if (new_ins)
-                {
-                    del_Instrument(ins);
-                }
                 return false;
             }
 
@@ -951,10 +845,6 @@ static bool parse_generator_level(kqt_Handle* handle,
                         kqt_Handle_set_error(handle, ERROR_MEMORY,
                                 "Couldn't allocate memory");
                         del_Generator(gen);
-                        if (new_ins)
-                        {
-                            del_Instrument(ins);
-                        }
                         return false;
                     }
                 }
@@ -967,10 +857,6 @@ static bool parse_generator_level(kqt_Handle* handle,
                 kqt_Handle_set_error(handle, ERROR_MEMORY,
                         "Couldn't allocate memory");
                 del_Generator(gen);
-                if (new_ins)
-                {
-                    del_Instrument(ins);
-                }
                 return false;
             }
         }
@@ -995,10 +881,6 @@ static bool parse_generator_level(kqt_Handle* handle,
                     state))
         {
             set_parse_error(handle, state);
-            if (new_ins)
-            {
-                del_Instrument(ins);
-            }
             return false;
         }
     }
@@ -1018,28 +900,14 @@ static bool parse_generator_level(kqt_Handle* handle,
         if (!Gen_conf_parse(conf, subkey, data, length, (Device*)gen, state))
         {
             if (!state->error)
-            {
                 kqt_Handle_set_error(handle, ERROR_MEMORY,
                         "Couldn't allocate memory");
-            }
             else
-            {
                 set_parse_error(handle, state);
-            }
-            if (new_ins)
-            {
-                del_Instrument(ins);
-            }
             return false;
         }
     }
-    if (new_ins && !Ins_table_set(Module_get_insts(module), ins_index, ins))
-    {
-        kqt_Handle_set_error(handle, ERROR_MEMORY,
-                "Couldn't allocate memory");
-        del_Instrument(ins);
-        return false;
-    }
+
     return true;
 }
 
