@@ -151,6 +151,8 @@ bool AAtree_contains(AAtree* tree, const void* key);
  *
  * \param tree   The AAtree -- must not be \c NULL.
  * \param elem   The new element -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool AAtree_ins(AAtree* tree, void* data);
 
