@@ -31,6 +31,18 @@ Device_states* new_Device_states(void);
 
 
 /**
+ * Adds a Device state to the Device state collection.
+ *
+ * \param states   The Device states -- must not be \c NULL.
+ * \param ds       The Device state -- must not be \c NULL and must not match
+ *                 an existing state in \a states.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Device_states_add_state(Device_states* states, Device_state* state);
+
+
+/**
  * Gets a Device state.
  *
  * \param states   The Device states -- must not be \c NULL.

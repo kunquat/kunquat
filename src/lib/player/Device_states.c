@@ -46,6 +46,16 @@ Device_states* new_Device_states(void)
 }
 
 
+bool Device_states_add_state(Device_states* states, Device_state* state)
+{
+    assert(states != NULL);
+    assert(state != NULL);
+    assert(!AAtree_contains(states->states, state));
+
+    return AAtree_ins(states->states, state);
+}
+
+
 Device_state* Device_states_get_state(
         const Device_states* states,
         uint32_t id)
