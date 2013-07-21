@@ -130,13 +130,14 @@ Player* new_Player(
             return NULL;
         }
     }
-    Player_update_sliders_and_lfos_audio_rate(player);
 
     if (Master_params_init(&player->master_params, player->module) == NULL)
     {
         del_Player(player);
         return NULL;
     }
+
+    Player_update_sliders_and_lfos_audio_rate(player);
 
     player->event_handler = new_Event_handler(
             &player->master_params,
