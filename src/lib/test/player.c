@@ -553,6 +553,7 @@ START_TEST(Note_on_at_pattern_start_is_handled)
 
     Player_reset(player);
     Player_play(player, 2048);
+    const int32_t nframes = Player_get_frames_available(player);
 
     const float* actual_buf = Player_get_audio(player, 0);
 
@@ -560,7 +561,7 @@ START_TEST(Note_on_at_pattern_start_is_handled)
     expected_buf[0] = 1.0f;
     expected_buf[mixing_rates[MIXING_RATE_LOW] * 2] = 1.0f;
 
-    check_buffers_equal(expected_buf, actual_buf, buf_len, 0.0f);
+    check_buffers_equal(expected_buf, actual_buf, nframes, 0.0f);
 }
 END_TEST
 
