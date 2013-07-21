@@ -485,6 +485,10 @@ static bool parse_album_level(
 
 static Instrument* add_instrument(kqt_Handle* handle, int index)
 {
+    assert(handle != NULL);
+    assert(index >= 0);
+    assert(index < KQT_INSTRUMENTS_MAX);
+
     Module* module = Handle_get_module(handle);
 
     // Return existing instrument
@@ -912,6 +916,37 @@ static bool parse_generator_level(kqt_Handle* handle,
 }
 
 
+static Effect* add_effect(kqt_Handle* handle, int index, Effect_table* table)
+{
+    assert(handle != NULL);
+    assert(index >= 0);
+    assert(table != NULL);
+
+    Module* module = Handle_get_module(handle);
+
+    // Return existing effect
+    Effect* eff = Effect_table_get(table, index);
+    if (eff != NULL)
+        return eff;
+
+    // Create new effect
+    eff = new_Effect(
+            Device_get_buffer_size((Device*)module),
+            Device_get_mix_rate((Device*)module));
+    if (eff == NULL || !Effect_table_set(table, index, eff))
+    {
+        del_Effect(eff);
+        kqt_Handle_set_error(
+                handle,
+                ERROR_MEMORY,
+                "Couldn't allocate memory for a new effect");
+        return NULL;
+    }
+
+    return eff;
+}
+
+
 static bool parse_effect_level(kqt_Handle* handle,
                                Instrument* ins,
                                const char* key,
@@ -958,18 +993,11 @@ static bool parse_effect_level(kqt_Handle* handle,
         ++subkey;
         Effect* eff = Effect_table_get(table, eff_index);
         bool changed = eff != NULL && Effect_get_dsp(eff, dsp_index) != NULL;
+
+        eff = add_effect(handle, eff_index, table);
         if (eff == NULL)
-        {
-            eff = new_Effect(Device_get_buffer_size((Device*)module),
-                             Device_get_mix_rate((Device*)module));
-            if (eff == NULL || !Effect_table_set(table, eff_index, eff))
-            {
-                del_Effect(eff);
-                kqt_Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory");
-                return false;
-            }
-        }
+            return false;
+
         bool success = parse_dsp_level(handle, eff, key, subkey,
                                        data, length, dsp_index);
         changed ^= eff != NULL && Effect_get_dsp(eff, dsp_index) != NULL;
@@ -987,31 +1015,15 @@ static bool parse_effect_level(kqt_Handle* handle,
     }
     else if (string_eq(subkey, "p_manifest.json"))
     {
-        Effect* eff = Effect_table_get(table, eff_index);
-        const bool new_eff = (eff == NULL);
-        if (new_eff)
-        {
-            eff = new_Effect(Device_get_buffer_size(
-                                    (Device*)module),
-                             Device_get_mix_rate(
-                                    (Device*)module));
-            if (eff == NULL || !Effect_table_set(table, eff_index, eff))
-            {
-                del_Effect(eff);
-                kqt_Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory");
-                return false;
-            }
-        }
-        assert(eff != NULL);
+        Effect* eff = add_effect(handle, eff_index, table);
+        if (eff == NULL)
+            return false;
 
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
         const bool existent = read_default_manifest(data, state);
         if (state->error)
         {
             set_parse_error(handle, state);
-            if (new_eff)
-                Effect_table_remove(table, eff_index);
             return false;
         }
         Device_set_existent((Device*)eff, existent);
@@ -1030,22 +1042,10 @@ static bool parse_effect_level(kqt_Handle* handle,
         }
         else
         {
-            const bool new_eff = (eff == NULL);
-            if (new_eff)
-            {
-                eff = new_Effect(Device_get_buffer_size(
-                                        (Device*)module),
-                                 Device_get_mix_rate(
-                                        (Device*)module));
-                if (eff == NULL || !Effect_table_set(table, eff_index, eff))
-                {
-                    del_Effect(eff);
-                    kqt_Handle_set_error(handle, ERROR_MEMORY,
-                            "Couldn't allocate memory");
-                    return false;
-                }
-            }
-            assert(eff != NULL);
+            eff = add_effect(handle, eff_index, table);
+            if (eff == NULL)
+                return false;
+
             Read_state* state = Read_state_init(READ_STATE_AUTO, key);
             Connection_level level = CONNECTION_LEVEL_EFFECT;
             if (ins != NULL)
@@ -1060,19 +1060,11 @@ static bool parse_effect_level(kqt_Handle* handle,
                                                  state);
             if (graph == NULL)
             {
-                if (new_eff)
-                {
-                    Effect_table_remove(table, eff_index);
-                }
                 if (state->error)
-                {
                     set_parse_error(handle, state);
-                }
                 else
-                {
                     kqt_Handle_set_error(handle, ERROR_MEMORY,
                             "Couldn't allocate memory");
-                }
                 return false;
             }
             Effect_set_connections(eff, graph);
