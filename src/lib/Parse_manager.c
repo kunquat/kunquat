@@ -489,6 +489,9 @@ static Instrument* add_instrument(kqt_Handle* handle, int index)
     assert(index >= 0);
     assert(index < KQT_INSTRUMENTS_MAX);
 
+    static const char* memory_error_str =
+        "Couldn't allocate memory for a new instrument";
+
     Module* module = Handle_get_module(handle);
 
     // Return existing instrument
@@ -502,10 +505,18 @@ static Instrument* add_instrument(kqt_Handle* handle, int index)
             Device_get_mix_rate((Device*)module));
     if (ins == NULL || !Ins_table_set(Module_get_insts(module), index, ins))
     {
-        kqt_Handle_set_error(
-                handle,
-                ERROR_MEMORY, "Couldn't allocate memory for a new instrument");
+        kqt_Handle_set_error(handle, ERROR_MEMORY, memory_error_str);
         del_Instrument(ins);
+        return NULL;
+    }
+
+    // Allocate Device state(s) for the new Instrument
+    Device_state* ds = Device_make_state((Device*)ins);
+    if (ds == NULL || !Device_states_add_state(
+                Player_get_device_states(handle->player), ds))
+    {
+        kqt_Handle_set_error(handle, ERROR_MEMORY, memory_error_str);
+        Ins_table_remove(Module_get_insts(module), index);
         return NULL;
     }
 
@@ -812,6 +823,7 @@ static bool parse_generator_level(kqt_Handle* handle,
         }
         else
         {
+            // Create the Generator
             Read_state* state = Read_state_init(READ_STATE_AUTO, key);
             Generator* gen = new_Generator(data, Instrument_get_params(ins),
                                 Device_get_buffer_size((Device*)module),
@@ -827,6 +839,7 @@ static bool parse_generator_level(kqt_Handle* handle,
                 return false;
             }
 
+            // Allocate Voice state space
             char* (*property)(Generator*, const char*) =
                     Gen_type_find_property(Generator_get_type(gen));
             if (property != NULL)
@@ -854,6 +867,19 @@ static bool parse_generator_level(kqt_Handle* handle,
                 }
             }
 
+            // Allocate Device state(s) for this Generator
+            Device_state* ds = Device_make_state((Device*)gen);
+            if (ds == NULL || !Device_states_add_state(
+                        Player_get_device_states(handle->player), ds))
+            {
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
+                del_Device_state(ds);
+                del_Generator(gen);
+                return false;
+            }
+
+            // Insert Generator
             Gen_table* table = Instrument_get_gens(ins);
             assert(table != NULL);
             if (!Gen_table_set_gen(table, gen_index, gen))
@@ -863,6 +889,8 @@ static bool parse_generator_level(kqt_Handle* handle,
                 del_Generator(gen);
                 return false;
             }
+
+            // TODO: Remove old Generator Device state
         }
     }
     else if (string_eq(subkey, "p_events.json"))
@@ -922,6 +950,9 @@ static Effect* add_effect(kqt_Handle* handle, int index, Effect_table* table)
     assert(index >= 0);
     assert(table != NULL);
 
+    static const char* memory_error_str =
+        "Couldn't allocate memory for a new effect";
+
     Module* module = Handle_get_module(handle);
 
     // Return existing effect
@@ -936,10 +967,17 @@ static Effect* add_effect(kqt_Handle* handle, int index, Effect_table* table)
     if (eff == NULL || !Effect_table_set(table, index, eff))
     {
         del_Effect(eff);
-        kqt_Handle_set_error(
-                handle,
-                ERROR_MEMORY,
-                "Couldn't allocate memory for a new effect");
+        kqt_Handle_set_error(handle, ERROR_MEMORY, memory_error_str);
+        return NULL;
+    }
+
+    // Allocate Device state(s) for the new Effect
+    Device_state* ds = Device_make_state((Device*)eff);
+    if (ds == NULL || !Device_states_add_state(
+                Player_get_device_states(handle->player), ds))
+    {
+        kqt_Handle_set_error(handle, ERROR_MEMORY, memory_error_str);
+        Effect_table_remove(table, index);
         return NULL;
     }
 
@@ -1140,6 +1178,7 @@ static bool parse_dsp_level(kqt_Handle* handle,
         }
         else
         {
+            // Create the DSP
             Read_state* state = Read_state_init(READ_STATE_AUTO, key);
             DSP* dsp = new_DSP(data,
                                Device_get_buffer_size((Device*)module),
@@ -1148,16 +1187,26 @@ static bool parse_dsp_level(kqt_Handle* handle,
             if (dsp == NULL)
             {
                 if (!state->error)
-                {
                     kqt_Handle_set_error(handle, ERROR_MEMORY,
                             "Couldn't allocate memory");
-                }
                 else
-                {
                     set_parse_error(handle, state);
-                }
                 return false;
             }
+
+            // Allocate Device state(s) for this DSP
+            Device_state* ds = Device_make_state((Device*)dsp);
+            if (ds == NULL || !Device_states_add_state(
+                        Player_get_device_states(handle->player), ds))
+            {
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
+                del_Device_state(ds);
+                del_DSP(dsp);
+                return false;
+            }
+
+            // Insert DSP
             if (!DSP_table_set_dsp(dsp_table, dsp_index, dsp))
             {
                 kqt_Handle_set_error(handle, ERROR_MEMORY,
@@ -1165,6 +1214,8 @@ static bool parse_dsp_level(kqt_Handle* handle,
                 del_DSP(dsp);
                 return false;
             }
+
+            // TODO: Remove old DSP Device state
         }
     }
     else if ((string_has_prefix(subkey, "i/") ||

@@ -175,6 +175,13 @@ const Event_handler* Player_get_event_handler(const Player* player)
 }
 
 
+Device_states* Player_get_device_states(const Player* player)
+{
+    assert(player != NULL);
+    return player->device_states;
+}
+
+
 bool Player_reserve_voice_state_space(Player* player, size_t size)
 {
     assert(player != NULL);

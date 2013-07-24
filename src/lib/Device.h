@@ -33,6 +33,7 @@ struct Device
     bool existent;
     uint32_t mix_rate;
     uint32_t buffer_size;
+    Device_state* (*make_state)(const struct Device*, int32_t, int32_t);
     bool (*set_mix_rate)(struct Device*, uint32_t);
     bool (*set_buffer_size)(struct Device*, uint32_t);
     void (*reset)(struct Device*);
@@ -92,6 +93,17 @@ void Device_set_existent(Device* device, bool existent);
  * \return   \c true if the Device is existent, otherwise \c false.
  */
 bool Device_is_existent(const Device* device);
+
+
+/**
+ * Creates a new Device state for the Device.
+ *
+ * \param device   The Device -- must not be \c NULL.
+ *
+ * \return   The new Device state if successful, or \c NULL if memory
+ *           allocation failed.
+ */
+Device_state* Device_make_state(const Device* device);
 
 
 /**

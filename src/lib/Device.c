@@ -35,6 +35,8 @@ bool Device_init(Device* device, uint32_t buffer_size, uint32_t mix_rate)
     device->existent = false;
     device->mix_rate = mix_rate;
     device->buffer_size = buffer_size;
+
+    device->make_state = new_Device_state_plain;
     device->set_mix_rate = NULL;
     device->set_buffer_size = NULL;
     device->reset = NULL;
@@ -76,6 +78,15 @@ bool Device_is_existent(const Device* device)
 {
     assert(device != NULL);
     return device->existent;
+}
+
+
+Device_state* Device_make_state(const Device* device)
+{
+    assert(device != NULL);
+    assert(device->make_state != NULL);
+
+    return device->make_state(device, device->mix_rate, device->buffer_size);
 }
 
 

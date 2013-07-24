@@ -57,6 +57,16 @@ const Event_handler* Player_get_event_handler(const Player* player);
 
 
 /**
+ * Returns the Device state collection of the Player.
+ *
+ * \param player   The Player -- must not be \c NULL.
+ *
+ * \return   The Device states.
+ */
+Device_states* Player_get_device_states(const Player* player);
+
+
+/**
  * Reserves state space for internal voice pool.
  *
  * \param player   The Player -- must not be \c NULL.
