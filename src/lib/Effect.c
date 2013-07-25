@@ -149,13 +149,14 @@ void Effect_set_connections(Effect* eff, Connections* graph)
 }
 
 
-bool Effect_prepare_connections(Effect* eff)
+bool Effect_prepare_connections(Effect* eff, Device_states* states)
 {
     assert(eff != NULL);
+    assert(states != NULL);
+
     if (eff->connections == NULL)
-    {
         return true;
-    }
+
     Device_remove_direct_buffers(&eff->out_iface->parent);
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
@@ -163,27 +164,26 @@ bool Effect_prepare_connections(Effect* eff)
                                               DEVICE_PORT_TYPE_SEND,
                                               port);
         if (buf == NULL)
-        {
             continue;
-        }
+
         Device_set_direct_send(&eff->out_iface->parent, port, buf);
         Device_set_direct_receive(&eff->out_iface->parent, port);
     }
+
     Device_remove_direct_buffers(&eff->in_iface->parent);
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
         Audio_buffer* buf = Device_get_buffer(&eff->parent,
                                               DEVICE_PORT_TYPE_RECEIVE, port);
         if (buf == NULL)
-        {
             continue;
-        }
+
         Device_set_direct_send(&eff->in_iface->parent, port, buf);
     }
-    if (!Connections_prepare(eff->connections))
-    {
+
+    if (!Connections_prepare(eff->connections, states))
         return false;
-    }
+
 #if 0
     fprintf(stderr, "\n::::::::Connections::::::::\n\n");
     fprintf(stderr, "Effect input buffer: %p\n",
@@ -322,7 +322,7 @@ static void Effect_process(
         assert(!in_effect);
         in_effect = true;
 #endif
-        Connections_clear_buffers(eff->connections, start, until);
+        Connections_clear_buffers(eff->connections, states, start, until);
         //fprintf(stderr, "Entering effect mix\n");
         Connections_mix(eff->connections, states, start, until, freq, tempo);
         //fprintf(stderr, "Leaving effect mix\n");

@@ -177,11 +177,6 @@ Module* new_Module(uint32_t buf_size)
         del_Module(module);
         return NULL;
     }
-    if (!Connections_prepare(module->connections))
-    {
-        del_Module(module);
-        return NULL;
-    }
 
     if (Scale_ins_note(module->scales[0], 0,
                        Real_init_as_frac(REAL_AUTO, 1, 1)) < 0)

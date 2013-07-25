@@ -99,36 +99,41 @@ void Device_node_reset(Device_node* node);
 /**
  * Initialises all Audio buffers in the Device node and its subgraph.
  *
- * \param node   The Device node -- must not be \c NULL.
+ * \param node     The Device node -- must not be \c NULL.
+ * \param states   The Device states -- must not be \c NULL.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Device_node_init_buffers_simple(Device_node* node);
+bool Device_node_init_buffers_simple(Device_node* node, Device_states* states);
 
 
 /**
  * Initialises the graphs of the Effects in the subgraph.
  *
- * \param node   The Device node -- must not be \c NULL.
+ * \param node     The Device node -- must not be \c NULL.
+ * \param states   The Device states -- must not be \c NULL.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Device_node_init_effect_buffers(Device_node* node);
+bool Device_node_init_effect_buffers(Device_node* node, Device_states* states);
 
 
 /**
  * Clears the audio buffers in the Device node and its subgraph.
  *
- * \param node    The Device node -- must not be \c NULL.
- * \param start   The first frame to be cleared -- must be less than the
- *                buffer size.
- * \param until   The first frame not to be cleared -- must be less than or
- *                equal to the buffer size. If \a until <= \a start, nothing
- *                will be cleared.
+ * \param node     The Device node -- must not be \c NULL.
+ * \param states   The Device states -- must not be \c NULL.
+ * \param start    The first frame to be cleared -- must be less than the
+ *                 buffer size.
+ * \param until    The first frame not to be cleared -- must be less than or
+ *                 equal to the buffer size. If \a until <= \a start, nothing
+ *                 will be cleared.
  */
-void Device_node_clear_buffers(Device_node* node,
-                               uint32_t start,
-                               uint32_t until);
+void Device_node_clear_buffers(
+        Device_node* node,
+        Device_states* states,
+        uint32_t start,
+        uint32_t until);
 
 
 /**

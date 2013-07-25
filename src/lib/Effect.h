@@ -92,11 +92,12 @@ void Effect_set_connections(Effect* eff, Connections* graph);
  * This function assumes that the outer input and output buffers of the Effect
  * have been allocated.
  *
- * \param eff   The Effect -- must not be \c NULL.
+ * \param eff      The Effect -- must not be \c NULL.
+ * \param states   The Device states -- must not be \c NULL.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Effect_prepare_connections(Effect* eff);
+bool Effect_prepare_connections(Effect* eff, Device_states* states);
 
 
 /**

@@ -246,41 +246,48 @@ Device_node* Connections_get_master(Connections* graph)
 }
 
 
-bool Connections_prepare(Connections* graph)
+bool Connections_prepare(Connections* graph, Device_states* states)
 {
     assert(graph != NULL);
-    return Connections_init_buffers(graph);
+    assert(states != NULL);
+
+    return Connections_init_buffers(graph, states);
 }
 
 
-bool Connections_init_buffers(Connections* graph)
+bool Connections_init_buffers(Connections* graph, Device_states* states)
 {
     assert(graph != NULL);
+    assert(states != NULL);
+
     Device_node* master = AAtree_get_exact(graph->nodes, "");
     assert(master != NULL);
     Device_node_reset(master);
-    if (!Device_node_init_buffers_simple(master))
-    {
+    if (!Device_node_init_buffers_simple(master, states))
         return false;
-    }
+
     Device_node_reset(master);
-    return Device_node_init_effect_buffers(master);
+    return Device_node_init_effect_buffers(master, states);
 }
 
 
-void Connections_clear_buffers(Connections* graph,
-                               uint32_t start,
-                               uint32_t until)
+void Connections_clear_buffers(
+        Connections* graph,
+        Device_states* states,
+        uint32_t start,
+        uint32_t until)
 {
     assert(graph != NULL);
+    assert(states != NULL);
+
     Device_node* master = AAtree_get_exact(graph->nodes, "");
     assert(master != NULL);
     if (start >= until)
-    {
         return;
-    }
+
     Device_node_reset(master);
-    Device_node_clear_buffers(master, start, until);
+    Device_node_clear_buffers(master, states, start, until);
+
     return;
 }
 
@@ -298,12 +305,12 @@ void Connections_mix(
     assert(freq > 0);
     assert(isfinite(tempo));
     assert(tempo > 0);
+
     Device_node* master = AAtree_get_exact(graph->nodes, "");
     assert(master != NULL);
     if (start >= until)
-    {
         return;
-    }
+
 #if 0
     static bool called = false;
     if (!called)
@@ -313,6 +320,7 @@ void Connections_mix(
     called = true;
 //    fprintf(stderr, "Mix process:\n");
 #endif
+
     Device_node_reset(master);
     Device_node_mix(master, states, start, until, freq, tempo);
     return;
@@ -322,6 +330,7 @@ void Connections_mix(
 static void Connections_reset(Connections* graph)
 {
     assert(graph != NULL);
+
     const char* name = "";
     Device_node* node = AAiter_get_at_least(graph->iter, name);
     while (node != NULL)
@@ -329,6 +338,7 @@ static void Connections_reset(Connections* graph)
         Device_node_set_state(node, DEVICE_NODE_STATE_NEW);
         node = AAiter_get_next(graph->iter);
     }
+
     return;
 }
 

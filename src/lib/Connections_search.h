@@ -79,10 +79,11 @@ Device_node* Connections_get_master(Connections* graph);
  * Prepares the Connections for mixing.
  *
  * \param graph    The Connections -- must not be \c NULL.
+ * \param states   The Device states -- must not be \c NULL.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Connections_prepare(Connections* graph);
+bool Connections_prepare(Connections* graph, Device_states* states);
 
 
 #endif // K_CONNECTIONS_SEARCH_H

@@ -34,26 +34,30 @@ typedef struct Connections Connections;
 /**
  * Initialises all Audio buffers in the Connections.
  *
- * \param graph   The Connections -- must not be \c NULL.
+ * \param graph    The Connections -- must not be \c NULL.
+ * \param states   The Device states -- must not be \c NULL.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Connections_init_buffers(Connections* graph);
+bool Connections_init_buffers(Connections* graph, Device_states* states);
 
 
 /**
  * Clears the Audio buffers in the Connections.
  *
- * \param graph   The Connections -- must not be \c NULL.
- * \param start   The first frame to be cleared -- must be less than the
- *                buffer size.
- * \param until   The first frame not to be cleared -- must be less than or
- *                equal to the buffer size. If \a until <= \a start, nothing
- *                will be mixed.
+ * \param graph    The Connections -- must not be \c NULL.
+ * \param states   The Device states -- must not be \c NULL.
+ * \param start    The first frame to be cleared -- must be less than the
+ *                 buffer size.
+ * \param until    The first frame not to be cleared -- must be less than or
+ *                 equal to the buffer size. If \a until <= \a start, nothing
+ *                 will be mixed.
  */
-void Connections_clear_buffers(Connections* graph,
-                               uint32_t start,
-                               uint32_t until);
+void Connections_clear_buffers(
+        Connections* graph,
+        Device_states* states,
+        uint32_t start,
+        uint32_t until);
 
 
 /**

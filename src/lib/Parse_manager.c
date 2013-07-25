@@ -140,6 +140,26 @@ static bool key_is_for_text(const char* key)
 }
 
 
+static bool prepare_connections(kqt_Handle* handle)
+{
+    assert(handle != NULL);
+
+    Module* module = Handle_get_module(handle);
+    Connections* graph = module->connections;
+
+    Device_states* states = Player_get_device_states(handle->player);
+
+    if (!Connections_prepare(graph, states))
+    {
+        kqt_Handle_set_error(handle, ERROR_MEMORY,
+                "Couldn't allocate memory for connections");
+        return false;
+    }
+
+    return true;
+}
+
+
 bool parse_data(kqt_Handle* handle,
                 const char* key,
                 void* data,
@@ -209,12 +229,8 @@ bool parse_data(kqt_Handle* handle,
         Connections* graph = module->connections;
         if (changed && graph != NULL)
         {
-            if (!Connections_prepare(graph))
-            {
-                kqt_Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory");
+            if (!prepare_connections(handle))
                 return false;
-            }
             //fprintf(stderr, "line: %d\n", __LINE__);
             //Connections_print(graph, stderr);
         }
@@ -230,12 +246,8 @@ bool parse_data(kqt_Handle* handle,
         Connections* graph = module->connections;
         if (changed && graph != NULL)
         {
-            if (!Connections_prepare(graph))
-            {
-                kqt_Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory");
+            if (!prepare_connections(handle))
                 return false;
-            }
         }
     }
     else if ((index = string_extract_index(key, "pat_", 3, "/")) >= 0)
@@ -365,12 +377,8 @@ static bool parse_module_level(kqt_Handle* handle,
         module->connections = graph;
         //fprintf(stderr, "line: %d\n", __LINE__);
         //Connections_print(graph, stderr);
-        if (!Connections_prepare(graph))
-        {
-            kqt_Handle_set_error(handle, ERROR_MEMORY,
-                    "Couldn't allocate memory");
+        if (!prepare_connections(handle))
             return false;
-        }
         //fprintf(stderr, "line: %d\n", __LINE__);
         //Connections_print(graph, stderr);
     }
@@ -576,12 +584,8 @@ static bool parse_instrument_level(kqt_Handle* handle,
         if (changed && graph != NULL)
         {
 //            fprintf(stderr, "instrument %d, generator %d\n", index, gen_index);
-            if (!Connections_prepare(graph))
-            {
-                kqt_Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory");
+            if (!prepare_connections(handle))
                 return false;
-            }
             //fprintf(stderr, "line: %d\n", __LINE__);
             //Connections_print(graph, stderr);
         }
@@ -607,12 +611,8 @@ static bool parse_instrument_level(kqt_Handle* handle,
         Connections* graph = module->connections;
         if (changed && graph != NULL)
         {
-            if (!Connections_prepare(graph))
-            {
-                kqt_Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory");
+            if (!prepare_connections(handle))
                 return false;
-            }
         }
         return success;
     }
@@ -693,12 +693,8 @@ static bool parse_instrument_level(kqt_Handle* handle,
             Connections* global_graph = module->connections;
             if (global_graph != NULL)
             {
-                if (!Connections_prepare(global_graph))
-                {
-                    kqt_Handle_set_error(handle, ERROR_MEMORY,
-                            "Couldn't allocate memory");
+                if (!prepare_connections(handle))
                     return false;
-                }
 //                fprintf(stderr, "line: %d\n", __LINE__);
 //                Connections_print(global_graph, stderr);
             }
@@ -1042,12 +1038,8 @@ static bool parse_effect_level(kqt_Handle* handle,
         Connections* graph = module->connections;
         if (changed && graph != NULL)
         {
-            if (!Connections_prepare(graph))
-            {
-                kqt_Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory");
+            if (!prepare_connections(handle))
                 return false;
-            }
         }
         return success;
     }
@@ -1113,12 +1105,8 @@ static bool parse_effect_level(kqt_Handle* handle,
             Connections* global_graph = module->connections;
             if (global_graph != NULL)
             {
-                if (!Connections_prepare(global_graph))
-                {
-                    kqt_Handle_set_error(handle, ERROR_MEMORY,
-                            "Couldn't allocate memory");
+                if (!prepare_connections(handle))
                     return false;
-                }
             }
         }
     }

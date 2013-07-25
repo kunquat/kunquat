@@ -195,21 +195,24 @@ void Device_node_reset(Device_node* node)
 }
 
 
-bool Device_node_init_buffers_simple(Device_node* node)
+bool Device_node_init_buffers_simple(Device_node* node, Device_states* states)
 {
     assert(node != NULL);
     assert(Device_node_get_state(node) != DEVICE_NODE_STATE_REACHED);
+    assert(states != NULL);
+
     if (Device_node_get_state(node) == DEVICE_NODE_STATE_VISITED)
-    {
         return true;
-    }
+
     Device_node_set_state(node, DEVICE_NODE_STATE_REACHED);
+
     Device* node_device = Device_node_get_device(node);
     if (node_device == NULL)
     {
         Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
         return true;
     }
+
     if (node->type == DEVICE_TYPE_INSTRUMENT)
     {
         Instrument* ins = Ins_table_get(node->insts, node->index);
@@ -230,6 +233,7 @@ bool Device_node_init_buffers_simple(Device_node* node)
         Device_node_set_state(ins_node, DEVICE_NODE_STATE_REACHED);
         node = ins_node;
     }
+
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
         Connection* edge = node->receive[port];
@@ -242,14 +246,14 @@ bool Device_node_init_buffers_simple(Device_node* node)
                 edge = edge->next;
                 continue;
             }
+
             const Audio_buffer* receive_buffer =
                 Device_get_buffer(node_device, DEVICE_PORT_TYPE_RECEIVE, port);
             if (receive_buffer == NULL &&
                     !Device_init_buffer(node_device,
                                         DEVICE_PORT_TYPE_RECEIVE, port))
-            {
                 return false;
-            }
+
 #if 0
             if (node->name[0] == '\0' && node->send[0] == NULL)
             {
@@ -259,40 +263,44 @@ bool Device_node_init_buffers_simple(Device_node* node)
                         (void*)Audio_buffer_get_buffer(Device_get_buffer(node->device, DEVICE_PORT_TYPE_RECEIVE, port), 1));
             }
 #endif
+
             const Audio_buffer* send_buffer =
                 Device_get_buffer(send_device, DEVICE_PORT_TYPE_SEND, edge->port);
             if (send_buffer == NULL &&
                     !Device_init_buffer(Device_node_get_device(edge->node),
                                         DEVICE_PORT_TYPE_SEND, edge->port))
-            {
                 return false;
-            }
-            if (!Device_node_init_buffers_simple(edge->node))
-            {
+
+            if (!Device_node_init_buffers_simple(edge->node, states))
                 return false;
-            }
+
             edge = edge->next;
         }
     }
+
     Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
     return true;
 }
 
 
-bool Device_node_init_effect_buffers(Device_node* node)
+bool Device_node_init_effect_buffers(Device_node* node, Device_states* states)
 {
     assert(node != NULL);
+    assert(states != NULL);
+
     if (Device_node_get_state(node) > DEVICE_NODE_STATE_NEW)
     {
         assert(Device_node_get_state(node) != DEVICE_NODE_STATE_REACHED);
         return true;
     }
+
     Device_node_set_state(node, DEVICE_NODE_STATE_REACHED);
     if (Device_node_get_device(node) == NULL)
     {
         Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
         return true;
     }
+
     if (node->type == DEVICE_TYPE_INSTRUMENT)
     {
         Instrument* ins = Ins_table_get(node->insts, node->index);
@@ -321,11 +329,11 @@ bool Device_node_init_effect_buffers(Device_node* node)
             Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
             return true;
         }
-        if (!Effect_prepare_connections(eff))
-        {
+
+        if (!Effect_prepare_connections(eff, states))
             return false;
-        }
     }
+
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
         Connection* edge = node->receive[port];
@@ -336,34 +344,42 @@ bool Device_node_init_effect_buffers(Device_node* node)
                 edge = edge->next;
                 continue;
             }
-            if (!Device_node_init_effect_buffers(edge->node))
-            {
+
+            if (!Device_node_init_effect_buffers(edge->node, states))
                 return false;
-            }
+
             edge = edge->next;
         }
     }
+
     Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
     return true;
 }
 
 
-void Device_node_clear_buffers(Device_node* node,
-                               uint32_t start,
-                               uint32_t until)
+void Device_node_clear_buffers(
+        Device_node* node,
+        Device_states* states,
+        uint32_t start,
+        uint32_t until)
 {
     assert(node != NULL);
+    assert(states != NULL);
+
     if (Device_node_get_state(node) > DEVICE_NODE_STATE_NEW)
     {
         assert(Device_node_get_state(node) == DEVICE_NODE_STATE_VISITED);
         return;
     }
+
     Device_node_set_state(node, DEVICE_NODE_STATE_REACHED);
+
     if (Device_node_get_device(node) == NULL)
     {
         Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
         return;
     }
+
     if (node->type == DEVICE_TYPE_INSTRUMENT)
     {
         Device_node* ins_node = Device_node_get_ins_dual(node);
@@ -376,6 +392,7 @@ void Device_node_clear_buffers(Device_node* node,
         Device_node_set_state(ins_node, DEVICE_NODE_STATE_REACHED);
         node = ins_node;
     }
+
     //fprintf(stderr, "Clearing buffers of %p\n", (void*)Device_node_get_device(node));
     Device_clear_buffers(Device_node_get_device(node), start, until);
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
@@ -383,10 +400,11 @@ void Device_node_clear_buffers(Device_node* node,
         Connection* edge = node->receive[port];
         while (edge != NULL)
         {
-            Device_node_clear_buffers(edge->node, start, until);
+            Device_node_clear_buffers(edge->node, states, start, until);
             edge = edge->next;
         }
     }
+
     Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
     return;
 }
@@ -419,6 +437,7 @@ void Device_node_mix(
         Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
         return;
     }
+
     if (node->type == DEVICE_TYPE_INSTRUMENT)
     {
         Instrument* ins = Ins_table_get(node->insts, node->index);
@@ -443,14 +462,14 @@ void Device_node_mix(
             Audio_buffer* send = Device_get_buffer(node_device,
                                             DEVICE_PORT_TYPE_SEND, port);
             if (receive == NULL || send == NULL)
-            {
                 continue;
-            }
+
             Audio_buffer_mix(send, receive, start, until);
         }
         Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
         return;
     }
+
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
         Connection* edge = node->receive[port];
@@ -488,6 +507,7 @@ void Device_node_mix(
             edge = edge->next;
         }
     }
+
     //fprintf(stderr, "Calling Device_process on %p %s\n", (void*)node, node->name);
     Device_process(node_device, states, start, until, freq, tempo);
     Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
