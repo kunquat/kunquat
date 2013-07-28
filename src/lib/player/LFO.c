@@ -19,8 +19,8 @@
 #include <string.h>
 #include <math.h>
 
-#include <LFO.h>
 #include <math_common.h>
+#include <player/LFO.h>
 #include <xassert.h>
 
 

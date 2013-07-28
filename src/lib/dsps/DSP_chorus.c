@@ -22,9 +22,9 @@
 #include <DSP.h>
 #include <DSP_common.h>
 #include <DSP_chorus.h>
-#include <LFO.h>
 #include <math_common.h>
 #include <memory.h>
+#include <player/LFO.h>
 #include <string_common.h>
 #include <xassert.h>
 
