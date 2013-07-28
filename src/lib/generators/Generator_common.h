@@ -17,11 +17,11 @@
 #include <stdio.h>
 #include <math.h>
 
-#include <Voice_state.h>
-#include <Generator.h>
 #include <frame.h>
+#include <Generator.h>
 #include <kunquat/limits.h>
 #include <math_common.h>
+#include <player/Voice_state.h>
 
 
 /**

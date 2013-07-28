@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -16,7 +16,7 @@
 #define K_VOICE_STATE_PULSE_H
 
 
-#include <Voice_state.h>
+#include <player/Voice_state.h>
 
 
 typedef struct Voice_state_pulse

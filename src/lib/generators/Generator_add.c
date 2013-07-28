@@ -27,7 +27,6 @@
 #include <Num_list.h>
 #include <Sample.h>
 #include <string_common.h>
-#include <Voice_state.h>
 #include <Voice_state_add.h>
 #include <xassert.h>
 

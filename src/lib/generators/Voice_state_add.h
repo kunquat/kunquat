@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2013
  *
  * This file is part of Kunquat.
  *
@@ -16,7 +16,7 @@
 #define K_VOICE_STATE_ADD_H
 
 
-#include <Voice_state.h>
+#include <player/Voice_state.h>
 
 
 #define HARMONICS_MAX 32

@@ -19,10 +19,9 @@
 #include <stdint.h>
 #include <math.h>
 
-#include <Sample.h>
-#include <Generator.h>
-#include <Voice_state.h>
 #include <AAtree.h>
+#include <Generator.h>
+#include <Sample.h>
 
 
 #define PCM_SAMPLES_MAX (512)

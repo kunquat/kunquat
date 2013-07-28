@@ -19,7 +19,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include <Voice.h>
+#include <player/Voice.h>
 
 
 /**

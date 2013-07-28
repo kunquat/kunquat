@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -21,14 +21,14 @@
 #include <Connections.h>
 #include <Effect.h>
 #include <Effect_table.h>
-#include <Instrument_params.h>
+#include <Envelope.h>
+#include <frame.h>
 #include <Gen_table.h>
 #include <Generator.h>
-#include <frame.h>
-#include <Voice_state.h>
-#include <Scale.h>
-#include <Envelope.h>
+#include <Instrument_params.h>
 #include <kunquat/limits.h>
+#include <player/Voice_state.h>
+#include <Scale.h>
 
 
 typedef struct Instrument Instrument;
@@ -74,10 +74,11 @@ bool Instrument_parse_header(Instrument* ins, char* str, Read_state* state);
  * \return   \c true if successful, otherwise \c false. \a state will not be
  *           modified if memory allocation failed.
  */
-bool Instrument_parse_value(Instrument* ins,
-                            const char* subkey,
-                            char* str,
-                            Read_state* state);
+bool Instrument_parse_value(
+        Instrument* ins,
+        const char* subkey,
+        char* str,
+        Read_state* state);
 
 
 /**

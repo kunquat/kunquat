@@ -27,7 +27,6 @@
 #include <memory.h>
 #include <Module.h>
 #include <string_common.h>
-#include <Voice_pool.h>
 #include <xassert.h>
 
 

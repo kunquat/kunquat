@@ -25,9 +25,9 @@
 #include <kunquat/limits.h>
 #include <LFO.h>
 #include <player/Channel_gen_state.h>
+#include <player/Voice_pool.h>
 #include <Random.h>
 #include <Tstamp.h>
-#include <Voice_pool.h>
 #include <Ins_table.h>
 
 

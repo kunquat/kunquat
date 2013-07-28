@@ -19,9 +19,9 @@
 
 #include <math_common.h>
 #include <memory.h>
+#include <player/Voice.h>
+#include <player/Voice_state.h>
 #include <Random.h>
-#include <Voice.h>
-#include <Voice_state.h>
 #include <xassert.h>
 
 
@@ -90,12 +90,13 @@ uint64_t Voice_id(Voice* voice)
 }
 
 
-void Voice_init(Voice* voice,
-                Generator* gen,
-                Channel_gen_state* cgstate,
-                uint64_t seed,
-                uint32_t freq,
-                double tempo)
+void Voice_init(
+        Voice* voice,
+        Generator* gen,
+        Channel_gen_state* cgstate,
+        uint64_t seed,
+        uint32_t freq,
+        double tempo)
 {
     assert(voice != NULL);
     assert(gen != NULL);

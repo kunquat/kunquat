@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -20,8 +20,8 @@
 
 #include <frame.h>
 #include <Generator.h>
+#include <player/Voice_state.h>
 #include <Sample.h>
-#include <Voice_state.h>
 
 
 /**
@@ -43,18 +43,19 @@
  *                      \a middle_tone -- must be > \c 0.
  * \param vol_scale     Volume scaling for this sample -- must be >= \c 0.
  */
-uint32_t Sample_mix(Sample* sample,
-                    Generator* gen,
-                    Voice_state* state,
-                    uint32_t nframes,
-                    uint32_t offset,
-                    uint32_t freq,
-                    double tempo,
-//                    int buf_count,
-                    kqt_frame** bufs,
-                    double middle_tone,
-                    double middle_freq,
-                    double vol_scale);
+uint32_t Sample_mix(
+        Sample* sample,
+        Generator* gen,
+        Voice_state* state,
+        uint32_t nframes,
+        uint32_t offset,
+        uint32_t freq,
+        double tempo,
+//        int buf_count,
+        kqt_frame** bufs,
+        double middle_tone,
+        double middle_freq,
+        double vol_scale);
 
 
 #endif // K_SAMPLE_MIX_H

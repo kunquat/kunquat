@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -22,8 +22,8 @@
 #include <Generator.h>
 #include <player/Channel_gen_state.h>
 #include <player/Device_states.h>
+#include <player/Voice_state.h>
 #include <Random.h>
-#include <Voice_state.h>
 
 
 typedef enum
@@ -110,12 +110,13 @@ uint64_t Voice_id(Voice* voice);
  * \param freq      The mixing frequency -- must be > \c 0.
  * \param tempo     The current tempo -- must be > \c 0.
  */
-void Voice_init(Voice* voice,
-                Generator* gen,
-                Channel_gen_state* cgstate,
-                uint64_t seed,
-                uint32_t freq,
-                double tempo);
+void Voice_init(
+        Voice* voice,
+        Generator* gen,
+        Channel_gen_state* cgstate,
+        uint64_t seed,
+        uint32_t freq,
+        double tempo);
 
 
 /**

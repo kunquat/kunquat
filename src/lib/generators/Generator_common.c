@@ -18,7 +18,6 @@
 #include <Filter.h>
 #include <Generator_common.h>
 #include <Generator.h>
-#include <Voice_state.h>
 #include <kunquat/limits.h>
 #include <math_common.h>
 #include <xassert.h>

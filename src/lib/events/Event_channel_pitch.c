@@ -20,8 +20,8 @@
 #include <Event_channel_decl.h>
 #include <Event_common.h>
 #include <kunquat/limits.h>
+#include <player/Voice.h>
 #include <Scale.h>
-#include <Voice.h>
 #include <Value.h>
 #include <xassert.h>
 

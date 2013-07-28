@@ -21,10 +21,10 @@
 #include <Event_common.h>
 #include <kunquat/limits.h>
 #include <note_setup.h>
+#include <player/Voice.h>
 #include <Random.h>
-#include <Tstamp.h>
 #include <Scale.h>
-#include <Voice.h>
+#include <Tstamp.h>
 #include <Value.h>
 #include <xassert.h>
 

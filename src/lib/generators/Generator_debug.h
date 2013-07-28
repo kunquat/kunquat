@@ -19,7 +19,6 @@
 #include <stdint.h>
 
 #include <Generator.h>
-#include <Voice_state.h>
 
 
 typedef struct Generator_debug

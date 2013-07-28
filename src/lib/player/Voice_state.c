@@ -16,10 +16,10 @@
 #include <stdint.h>
 #include <math.h>
 
-#include <Voice_state.h>
+#include <kunquat/limits.h>
+#include <player/Voice_state.h>
 #include <Tstamp.h>
 #include <Slider.h>
-#include <kunquat/limits.h>
 #include <xassert.h>
 
 

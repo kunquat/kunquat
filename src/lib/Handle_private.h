@@ -23,7 +23,6 @@
 
 #include <Module.h>
 #include <player/Player.h>
-#include <Voice_pool.h>
 
 
 #define KQT_HANDLE_ERROR_LENGTH (512)

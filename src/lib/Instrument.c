@@ -209,10 +209,11 @@ bool Instrument_parse_header(Instrument* ins, char* str, Read_state* state)
 }
 
 
-bool Instrument_parse_value(Instrument* ins,
-                            const char* subkey,
-                            char* str,
-                            Read_state* state)
+bool Instrument_parse_value(
+        Instrument* ins,
+        const char* subkey,
+        char* str,
+        Read_state* state)
 {
     assert(ins != NULL);
     assert(subkey != NULL);

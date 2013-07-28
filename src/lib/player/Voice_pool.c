@@ -17,7 +17,7 @@
 #include <stdbool.h>
 
 #include <memory.h>
-#include <Voice_pool.h>
+#include <player/Voice_pool.h>
 #include <xassert.h>
 
 

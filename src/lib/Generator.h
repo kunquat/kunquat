@@ -21,13 +21,13 @@
 
 #include <Device.h>
 #include <Device_params.h>
+#include <File_base.h>
 #include <Gen_conf.h>
 #include <Instrument_params.h>
 #include <kunquat/limits.h>
 #include <pitch_t.h>
 #include <player/Device_states.h>
-#include <Voice_state.h>
-#include <File_base.h>
+#include <player/Voice_state.h>
 
 
 #define GEN_TYPE_LENGTH_MAX 128
@@ -70,11 +70,12 @@ typedef struct Generator
  * \return   The new Generator if successful, or \c NULL if memory allocation
  *           failed.
  */
-Generator* new_Generator(char* str,
-                         Instrument_params* ins_params,
-                         uint32_t buffer_size,
-                         uint32_t mix_rate,
-                         Read_state* state);
+Generator* new_Generator(
+        char* str,
+        Instrument_params* ins_params,
+        uint32_t buffer_size,
+        uint32_t mix_rate,
+        Read_state* state);
 
 
 /**

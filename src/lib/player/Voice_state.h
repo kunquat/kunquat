@@ -131,12 +131,13 @@ typedef struct Voice_state
  *
  * \return   The parameter \a state.
  */
-Voice_state* Voice_state_init(Voice_state* state,
-                              Channel_gen_state* cgstate,
-                              Random* rand_p,
-                              Random* rand_s,
-                              uint32_t freq,
-                              double tempo);
+Voice_state* Voice_state_init(
+        Voice_state* state,
+        Channel_gen_state* cgstate,
+        Random* rand_p,
+        Random* rand_s,
+        uint32_t freq,
+        double tempo);
 
 
 /**

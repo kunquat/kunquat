@@ -27,7 +27,7 @@
 #include <player/Event_buffer.h>
 #include <player/Master_params.h>
 #include <player/Player.h>
-#include <Voice_pool.h>
+#include <player/Voice_pool.h>
 
 
 struct Player
