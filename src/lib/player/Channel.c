@@ -170,17 +170,6 @@ void Channel_reset(Channel* ch)
 }
 
 
-#if 0
-Channel_state* Channel_state_copy(Channel_state* dest, const Channel_state* src)
-{
-    assert(dest != NULL);
-    assert(src != NULL);
-    memcpy(dest, src, sizeof(Channel_state));
-    return dest;
-}
-#endif
-
-
 double Channel_get_fg_force(Channel* ch, int gen_index)
 {
     assert(ch != NULL);

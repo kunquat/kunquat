@@ -155,17 +155,6 @@ void Channel_reset(Channel* ch);
 
 
 /**
- * Makes a shallow copy of the Channel.
- *
- * \param dest   The destination Channel -- must not be \c NULL.
- * \param src    The source Channel -- must not be \c NULL.
- *
- * \return   The parameter \a dest.
- */
-//Channel* Channel_copy(Channel* dest, const Channel* src);
-
-
-/**
  * Returns an actual force of a current foreground Voice.
  *
  * \param ch          The Channel -- must not be \c NULL.
