@@ -24,8 +24,8 @@
 #include <LFO.h>
 #include <pitch_t.h>
 #include <player/Channel_gen_state.h>
+#include <player/Slider.h>
 #include <Random.h>
-#include <Slider.h>
 #include <Tstamp.h>
 
 

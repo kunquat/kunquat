@@ -18,7 +18,7 @@
 #include <kunquat/limits.h>
 #include <note_setup.h>
 #include <player/Channel.h>
-#include <Slider.h>
+#include <player/Slider.h>
 #include <xassert.h>
 
 

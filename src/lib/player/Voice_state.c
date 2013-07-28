@@ -17,9 +17,9 @@
 #include <math.h>
 
 #include <kunquat/limits.h>
+#include <player/Slider.h>
 #include <player/Voice_state.h>
 #include <Tstamp.h>
-#include <Slider.h>
 #include <xassert.h>
 
 

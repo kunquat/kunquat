@@ -18,7 +18,7 @@
 #include <string.h>
 #include <math.h>
 
-#include <Slider.h>
+#include <player/Slider.h>
 #include <xassert.h>
 
 

@@ -24,7 +24,7 @@
 #include <Environment.h>
 #include <General_state.h>
 #include <player/Position.h>
-#include <Slider.h>
+#include <player/Slider.h>
 
 
 typedef enum

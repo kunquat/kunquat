@@ -19,7 +19,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <Slider.h>
+#include <player/Slider.h>
 #include <Tstamp.h>
 
 
