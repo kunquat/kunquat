@@ -19,14 +19,14 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <Channel_gen_state.h>
+#include <frame.h>
+#include <kunquat/limits.h>
 #include <LFO.h>
+#include <pitch_t.h>
+#include <player/Channel_gen_state.h>
 #include <Random.h>
 #include <Slider.h>
 #include <Tstamp.h>
-#include <frame.h>
-#include <kunquat/limits.h>
-#include <pitch_t.h>
 #include <Voice_params.h>
 
 

@@ -29,42 +29,40 @@
 #include <xassert.h>
 
 
-bool Event_channel_note_on_process(Channel_state* ch_state, Value* value)
+bool Event_channel_note_on_process(Channel* ch, Value* value)
 {
-    assert(ch_state != NULL);
-    assert(ch_state->freq != NULL);
-    assert(*ch_state->freq > 0);
-    assert(ch_state->tempo != NULL);
-    assert(*ch_state->tempo > 0);
+    assert(ch != NULL);
+    assert(ch->freq != NULL);
+    assert(*ch->freq > 0);
+    assert(ch->tempo != NULL);
+    assert(*ch->tempo > 0);
     assert(value != NULL);
-    if (value->type != VALUE_TYPE_FLOAT)
-    {
-        return false;
-    }
-    // move the old Voices to the background
-    Event_channel_note_off_process(ch_state, NULL);
-    ch_state->fg_count = 0;
-    assert(ch_state->instrument >= 0);
-    assert(ch_state->instrument < KQT_INSTRUMENTS_MAX);
-    Instrument* ins = Ins_table_get(ch_state->insts,
-                                    ch_state->instrument);
+    assert(value->type == VALUE_TYPE_FLOAT);
+
+    // Move the old Voices to the background
+    Event_channel_note_off_process(ch, NULL);
+
+    ch->fg_count = 0;
+    assert(ch->instrument >= 0);
+    assert(ch->instrument < KQT_INSTRUMENTS_MAX);
+    Instrument* ins = Ins_table_get(ch->insts,
+                                    ch->instrument);
     if (ins == NULL)
-    {
         return true;
-    }
-    // allocate new Voices
-//    ch_state->panning_slide = 0;
+
+    // Allocate new Voices
+//    ch->panning_slide = 0;
     double force_var = NAN;
+
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         const Generator* gen = Instrument_get_gen(ins, i);
         if (gen == NULL || !Device_is_existent((const Device*)gen))
-        {
             continue;
-        }
-        reserve_voice(ch_state, ins, i);
 
-        Voice* voice = ch_state->fg[i];
+        reserve_voice(ch, ins, i);
+
+        Voice* voice = ch->fg[i];
         Voice_state* vs = voice->state;
 
         if (voice->gen->ins_params->pitch_locks[i].enabled)
@@ -98,75 +96,77 @@ bool Event_channel_note_on_process(Channel_state* ch_state, Value* value)
         //fprintf(stderr, "Event set pitch @ %p: %f\n", (void*)&vs->pitch, vs->pitch);
         vs->orig_cents = value->value.float_type;
 
-        set_instrument_properties(voice, vs, ch_state, &force_var);
+        set_instrument_properties(voice, vs, ch, &force_var);
     }
+
     return true;
 }
 
 
-bool Event_channel_hit_process(Channel_state* ch_state, Value* value)
+bool Event_channel_hit_process(Channel* ch, Value* value)
 {
-    assert(ch_state != NULL);
-    assert(ch_state->freq != NULL);
-    assert(ch_state->tempo != NULL);
+    assert(ch != NULL);
+    assert(ch->freq != NULL);
+    assert(ch->tempo != NULL);
     assert(value != NULL);
-    if (value->type != VALUE_TYPE_INT)
-    {
-        return false;
-    }
-    // move the old Voices to the background
-    Event_channel_note_off_process(ch_state, NULL);
-    ch_state->fg_count = 0;
-    assert(ch_state->instrument >= 0);
-    assert(ch_state->instrument < KQT_INSTRUMENTS_MAX);
+    assert(value->type == VALUE_TYPE_INT);
+
+    // Move the old Voices to the background
+    Event_channel_note_off_process(ch, NULL);
+
+    ch->fg_count = 0;
+    assert(ch->instrument >= 0);
+    assert(ch->instrument < KQT_INSTRUMENTS_MAX);
     Instrument* ins = Ins_table_get(
-            ch_state->insts,
-            ch_state->instrument);
+            ch->insts,
+            ch->instrument);
     if (ins == NULL)
-    {
         return true;
-    }
+
     double force_var = NAN;
+
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         const Generator* gen = Instrument_get_gen(ins, i);
         if (gen == NULL || !Device_is_existent((const Device*)gen))
-        {
             continue;
-        }
-        reserve_voice(ch_state, ins, i);
-        Voice* voice = ch_state->fg[i];
+
+        reserve_voice(ch, ins, i);
+        Voice* voice = ch->fg[i];
         Voice_state* vs = voice->state;
         vs->hit_index = value->value.int_type;
-        set_instrument_properties(voice, vs, ch_state, &force_var);
+        set_instrument_properties(voice, vs, ch, &force_var);
     }
+
     return true;
 }
 
 
-bool Event_channel_note_off_process(Channel_state* ch_state, Value* value)
+bool Event_channel_note_off_process(Channel* ch, Value* value)
 {
-    assert(ch_state != NULL);
+    assert(ch != NULL);
     (void)value;
+
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
-        if (ch_state->fg[i] != NULL)
+        if (ch->fg[i] != NULL)
         {
-            ch_state->fg[i] = Voice_pool_get_voice(
-                    ch_state->pool,
-                    ch_state->fg[i],
-                    ch_state->fg_id[i]);
-            if (ch_state->fg[i] == NULL)
+            ch->fg[i] = Voice_pool_get_voice(
+                    ch->pool,
+                    ch->fg[i],
+                    ch->fg_id[i]);
+            if (ch->fg[i] == NULL)
             {
                 // The Voice has been given to another channel
                 continue;
             }
-            ch_state->fg[i]->state->note_on = false;
-            ch_state->fg[i]->prio = VOICE_PRIO_BG;
-            ch_state->fg[i] = NULL;
+            ch->fg[i]->state->note_on = false;
+            ch->fg[i]->prio = VOICE_PRIO_BG;
+            ch->fg[i] = NULL;
         }
     }
-    ch_state->fg_count = 0;
+    ch->fg_count = 0;
+
     return true;
 }
 

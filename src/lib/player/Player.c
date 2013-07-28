@@ -38,7 +38,7 @@ static void Player_update_sliders_and_lfos_audio_rate(Player* player)
 
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
     {
-        Channel_state* ch = player->channels[i];
+        Channel* ch = player->channels[i];
         LFO_set_mix_rate(&ch->vibrato, rate);
         LFO_set_mix_rate(&ch->tremolo, rate);
         Slider_set_mix_rate(&ch->panning_slider, rate);
@@ -127,7 +127,7 @@ Player* new_Player(
 
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
     {
-        player->channels[i] = new_Channel_state(
+        player->channels[i] = new_Channel(
                 i,
                 Module_get_insts(player->module),
                 player->env,
@@ -347,7 +347,7 @@ static void Player_process_voices(
     // Foreground voices
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
     {
-        Channel_state* ch = player->channels[i];
+        Channel* ch = player->channels[i];
         for (int k = 0; k < KQT_GENERATORS_MAX; ++k)
         {
             if (ch->fg[k] != NULL)
@@ -450,7 +450,7 @@ void Player_play(Player* player, int32_t nframes)
         // Update panning slides, TODO: revisit
         for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
         {
-            Channel_state* ch = player->channels[i];
+            Channel* ch = player->channels[i];
             if (Slider_in_progress(&ch->panning_slider))
                 Slider_skip(&ch->panning_slider, to_be_rendered);
         }
@@ -737,7 +737,7 @@ void del_Player(Player* player)
     del_Event_handler(player->event_handler);
     del_Voice_pool(player->voices);
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
-        del_Channel_state(player->channels[i]);
+        del_Channel(player->channels[i]);
     Master_params_deinit(&player->master_params);
     del_Event_buffer(player->event_buffer);
     //del_Environment(player->env); // TODO

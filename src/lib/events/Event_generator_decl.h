@@ -18,8 +18,8 @@
 
 #include <stdbool.h>
 
-#include <Channel_state.h>
 #include <Generator.h>
+#include <player/Channel.h>
 #include <Value.h>
 
 
@@ -28,7 +28,7 @@
 #define EVENT_TYPE_DEF(type)               \
     bool Event_generator_##type##_process( \
             Generator* gen,                \
-            Channel_state* ch_state,       \
+            Channel* ch,                   \
             Value* value);
 #include <events/Event_generator_types.h>
 

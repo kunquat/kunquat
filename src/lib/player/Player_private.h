@@ -19,10 +19,10 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <Channel_state.h>
 #include <Environment.h>
 #include <Event_handler.h>
 #include <player/Cgiter.h>
+#include <player/Channel.h>
 #include <player/Device_states.h>
 #include <player/Event_buffer.h>
 #include <player/Master_params.h>
@@ -44,7 +44,7 @@ struct Player
     Event_buffer*  event_buffer;
     Voice_pool*    voices;
     Master_params  master_params;
-    Channel_state* channels[KQT_CHANNELS_MAX];
+    Channel*       channels[KQT_CHANNELS_MAX];
     Event_handler* event_handler;
 
     double frame_remainder; // used for sub-frame time tracking

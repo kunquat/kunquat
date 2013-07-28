@@ -12,21 +12,21 @@
  */
 
 
-#ifndef K_CHANNEL_STATE_H
-#define K_CHANNEL_STATE_H
+#ifndef K_CHANNEL_H
+#define K_CHANNEL_H
 
 
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <Channel_gen_state.h>
 #include <Environment.h>
 #include <Event_cache.h>
 #include <General_state.h>
+#include <kunquat/limits.h>
 #include <LFO.h>
+#include <player/Channel_gen_state.h>
 #include <Random.h>
 #include <Tstamp.h>
-#include <kunquat/limits.h>
 #include <Voice_params.h>
 #include <Voice_pool.h>
 #include <Ins_table.h>
@@ -36,7 +36,7 @@
  * This structure is used for transferring channel-specific settings to
  * Voices.
  */
-typedef struct Channel_state
+typedef struct Channel
 {
     General_state parent;
     int num;                       ///< Channel number.
@@ -89,11 +89,11 @@ typedef struct Channel_state
     double arpeggio_speed;
     int arpeggio_edit_pos;
     double arpeggio_tones[KQT_ARPEGGIO_NOTES_MAX];
-} Channel_state;
+} Channel;
 
 
 /**
- * Creates a new Channel state.
+ * Creates a new Channel.
  *
  * \param num      The Channel number -- must be >= \c 0 and
  *                 < \c KQT_CHANNELS_MAX.
@@ -106,7 +106,7 @@ typedef struct Channel_state
  * \return   The new Channel state if successful, or \c NULL if memory
  *           allocation failed.
  */
-Channel_state* new_Channel_state(
+Channel* new_Channel(
         int num,
         Ins_table* insts,
         Environment* env,
@@ -116,84 +116,84 @@ Channel_state* new_Channel_state(
 
 
 /**
- * Initialises the Channel state with default values.
+ * Initialises the Channel with default values.
  *
- * \param state   The Channel state -- must not be \c NULL.
- * \param num     The Channel number -- must be >= \c 0 and
- *                < \c KQT_COLUMNS_MAX.
- * \param env     The Environment -- must not be \c NULL.
+ * \param ch    The Channel -- must not be \c NULL.
+ * \param num   The Channel number -- must be >= \c 0 and
+ *              < \c KQT_COLUMNS_MAX.
+ * \param env   The Environment -- must not be \c NULL.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Channel_state_init(Channel_state* state, int num, Environment* env);
+bool Channel_init(Channel* ch, int num, Environment* env);
 
 
 /**
  * Sets the Channel random seed.
  *
- * \param state   The Channel state -- must not be \c NULL.
- * \param seed    The random seed.
+ * \param ch     The Channel -- must not be \c NULL.
+ * \param seed   The random seed.
  */
-void Channel_state_set_random_seed(Channel_state* state, uint64_t seed);
+void Channel_set_random_seed(Channel* ch, uint64_t seed);
 
 
 /**
- * Sets the Event cache of the Channel state.
+ * Sets the Event cache of the Channel.
  *
- * \param state   The Channel state -- must not be \c NULL.
+ * \param ch      The Channel -- must not be \c NULL.
  * \param cache   The Event cache -- must not be \c NULL.
  */
-void Channel_state_set_event_cache(Channel_state* state, Event_cache* cache);
+void Channel_set_event_cache(Channel* ch, Event_cache* cache);
 
 
 /**
- * Resets the Channel state.
+ * Resets the Channel.
  *
- * \param state   The Channel state -- must not be \c NULL.
+ * \param ch   The Channel -- must not be \c NULL.
  */
-void Channel_state_reset(Channel_state* state);
+void Channel_reset(Channel* ch);
 
 
 /**
- * Makes a shallow copy of the Channel state.
+ * Makes a shallow copy of the Channel.
  *
- * \param dest   The destination Channel state -- must not be \c NULL.
- * \param src    The source Channel state -- must not be \c NULL.
+ * \param dest   The destination Channel -- must not be \c NULL.
+ * \param src    The source Channel -- must not be \c NULL.
  *
  * \return   The parameter \a dest.
  */
-Channel_state* Channel_state_copy(Channel_state* dest, const Channel_state* src);
+//Channel* Channel_copy(Channel* dest, const Channel* src);
 
 
 /**
  * Returns an actual force of a current foreground Voice.
  *
- * \param state       The Channel state -- must not be \c NULL.
+ * \param ch          The Channel -- must not be \c NULL.
  * \param gen_index   The Generator index -- must be >= \c 0 and
  *                    < \c KQT_GENERATORS_MAX.
  *
  * \return   The actual force if the active foreground Voice at \a gen_index
  *           exists, otherwise NAN.
  */
-double Channel_state_get_fg_force(Channel_state* state, int gen_index);
+double Channel_get_fg_force(Channel* ch, int gen_index);
 
 
 /**
- * Uninitialises the Channel state.
+ * Deinitialises the Channel.
  *
- * \param state   The Channel state, or \c NULL.
+ * \param ch   The Channel, or \c NULL.
  */
-void Channel_state_uninit(Channel_state* state);
+void Channel_deinit(Channel* ch);
 
 
 /**
- * Destroys an existing Channel state.
+ * Destroys an existing Channel.
  *
- * \param state   The Channel state, or \c NULL.
+ * \param ch   The Channel, or \c NULL.
  */
-void del_Channel_state(Channel_state* state);
+void del_Channel(Channel* ch);
 
 
-#endif // K_CHANNEL_STATE_H
+#endif // K_CHANNEL_H
 
 

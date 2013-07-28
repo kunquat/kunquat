@@ -16,7 +16,6 @@
 #include <stdbool.h>
 
 #include <Active_names.h>
-#include <Channel_state.h>
 #include <DSP_conf.h>
 #include <Event_common.h>
 #include <Event_dsp_decl.h>
@@ -29,24 +28,21 @@
 
 bool Event_dsp_set_bool_process(
         DSP_conf* dsp_conf,
-        Channel_state* ch_state,
+        Channel* ch,
         Value* value)
 {
     assert(dsp_conf != NULL);
-    assert(ch_state != NULL);
+    assert(ch != NULL);
     assert(value != NULL);
-    if (value->type != VALUE_TYPE_BOOL)
-    {
-        return false;
-    }
+    assert(value->type == VALUE_TYPE_BOOL);
+
     char* key = Active_names_get(
-            ch_state->parent.active_names,
+            ch->parent.active_names,
             ACTIVE_CAT_DSP,
             ACTIVE_TYPE_BOOL);
     if (!string_has_suffix(key, ".jsonb"))
-    {
         return true;
-    }
+
     return Device_params_modify_value(
             dsp_conf->params,
             key,
@@ -56,19 +52,17 @@ bool Event_dsp_set_bool_process(
 
 bool Event_dsp_set_bool_name_process(
         DSP_conf* dsp_conf,
-        Channel_state* ch_state,
+        Channel* ch,
         Value* value)
 {
     assert(dsp_conf != NULL);
-    assert(ch_state != NULL);
+    assert(ch != NULL);
     assert(value != NULL);
+    assert(value->type == VALUE_TYPE_STRING);
     (void)dsp_conf;
-    if (value->type != VALUE_TYPE_STRING)
-    {
-        return false;
-    }
+
     return set_active_name(
-            &ch_state->parent,
+            &ch->parent,
             ACTIVE_CAT_DSP,
             ACTIVE_TYPE_BOOL,
             value);
@@ -77,24 +71,21 @@ bool Event_dsp_set_bool_name_process(
 
 bool Event_dsp_set_float_process(
         DSP_conf* dsp_conf,
-        Channel_state* ch_state,
+        Channel* ch,
         Value* value)
 {
     assert(dsp_conf != NULL);
-    assert(ch_state != NULL);
+    assert(ch != NULL);
     assert(value != NULL);
-    if (value->type != VALUE_TYPE_FLOAT)
-    {
-        return false;
-    }
+    assert(value->type == VALUE_TYPE_FLOAT);
+
     char* key = Active_names_get(
-            ch_state->parent.active_names,
+            ch->parent.active_names,
             ACTIVE_CAT_DSP,
             ACTIVE_TYPE_FLOAT);
     if (!string_has_suffix(key, ".jsonf"))
-    {
         return true;
-    }
+
     return Device_params_modify_value(
             dsp_conf->params,
             key,
@@ -104,19 +95,17 @@ bool Event_dsp_set_float_process(
 
 bool Event_dsp_set_float_name_process(
         DSP_conf* dsp_conf,
-        Channel_state* ch_state,
+        Channel* ch,
         Value* value)
 {
     assert(dsp_conf != NULL);
-    assert(ch_state != NULL);
+    assert(ch != NULL);
     assert(value != NULL);
+    assert(value->type == VALUE_TYPE_STRING);
     (void)dsp_conf;
-    if (value->type != VALUE_TYPE_STRING)
-    {
-        return false;
-    }
+
     return set_active_name(
-            &ch_state->parent,
+            &ch->parent,
             ACTIVE_CAT_DSP,
             ACTIVE_TYPE_FLOAT,
             value);
@@ -125,24 +114,21 @@ bool Event_dsp_set_float_name_process(
 
 bool Event_dsp_set_int_process(
         DSP_conf* dsp_conf,
-        Channel_state* ch_state,
+        Channel* ch,
         Value* value)
 {
     assert(dsp_conf != NULL);
-    assert(ch_state != NULL);
+    assert(ch != NULL);
     assert(value != NULL);
-    if (value->type != VALUE_TYPE_INT)
-    {
-        return false;
-    }
+    assert(value->type == VALUE_TYPE_INT);
+
     char* key = Active_names_get(
-            ch_state->parent.active_names,
+            ch->parent.active_names,
             ACTIVE_CAT_DSP,
             ACTIVE_TYPE_INT);
     if (!string_has_suffix(key, ".jsoni"))
-    {
         return true;
-    }
+
     return Device_params_modify_value(
             dsp_conf->params,
             key,
@@ -152,19 +138,17 @@ bool Event_dsp_set_int_process(
 
 bool Event_dsp_set_int_name_process(
         DSP_conf* dsp_conf,
-        Channel_state* ch_state,
+        Channel* ch,
         Value* value)
 {
     assert(dsp_conf != NULL);
-    assert(ch_state != NULL);
+    assert(ch != NULL);
     assert(value != NULL);
+    assert(value->type == VALUE_TYPE_STRING);
     (void)dsp_conf;
-    if (value->type != VALUE_TYPE_STRING)
-    {
-        return false;
-    }
+
     return set_active_name(
-            &ch_state->parent,
+            &ch->parent,
             ACTIVE_CAT_DSP,
             ACTIVE_TYPE_INT,
             value);
@@ -173,24 +157,21 @@ bool Event_dsp_set_int_name_process(
 
 bool Event_dsp_set_tstamp_process(
         DSP_conf* dsp_conf,
-        Channel_state* ch_state,
+        Channel* ch,
         Value* value)
 {
     assert(dsp_conf != NULL);
-    assert(ch_state != NULL);
+    assert(ch != NULL);
     assert(value != NULL);
-    if (value->type != VALUE_TYPE_TSTAMP)
-    {
-        return false;
-    }
+    assert(value->type == VALUE_TYPE_TSTAMP);
+
     char* key = Active_names_get(
-            ch_state->parent.active_names,
+            ch->parent.active_names,
             ACTIVE_CAT_DSP,
             ACTIVE_TYPE_TSTAMP);
     if (!string_has_suffix(key, ".jsont"))
-    {
         return false;
-    }
+
     return Device_params_modify_value(
             dsp_conf->params,
             key,
@@ -200,19 +181,17 @@ bool Event_dsp_set_tstamp_process(
 
 bool Event_dsp_set_tstamp_name_process(
         DSP_conf* dsp_conf,
-        Channel_state* ch_state,
+        Channel* ch,
         Value* value)
 {
     assert(dsp_conf != NULL);
-    assert(ch_state != NULL);
+    assert(ch != NULL);
     assert(value != NULL);
+    assert(value->type == VALUE_TYPE_STRING);
     (void)dsp_conf;
-    if (value->type != VALUE_TYPE_STRING)
-    {
-        return false;
-    }
+
     return set_active_name(
-            &ch_state->parent,
+            &ch->parent,
             ACTIVE_CAT_DSP,
             ACTIVE_TYPE_TSTAMP,
             value);

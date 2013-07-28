@@ -393,7 +393,7 @@ void Player_update_sliders_and_lfos_tempo(Player* player)
 
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
     {
-        Channel_state* ch = player->channels[i];
+        Channel* ch = player->channels[i];
         LFO_set_tempo(&ch->vibrato, tempo);
         LFO_set_tempo(&ch->tremolo, tempo);
         Slider_set_tempo(&ch->panning_slider, tempo);

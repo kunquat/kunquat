@@ -18,14 +18,14 @@
 
 #include <stdbool.h>
 
-#include <Channel_state.h>
+#include <player/Channel.h>
 #include <Value.h>
 
 
 // Process function declarations
 
 #define EVENT_TYPE_DEF(type) \
-    bool Event_channel_##type##_process(Channel_state* ch_state, Value* value);
+    bool Event_channel_##type##_process(Channel* ch, Value* value);
 #include <events/Event_channel_types.h>
 
 

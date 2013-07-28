@@ -1,0 +1,225 @@
+
+
+/*
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ *
+ * This file is part of Kunquat.
+ *
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
+ *
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
+ */
+
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
+
+#include <player/Channel.h>
+#include <Environment.h>
+#include <memory.h>
+#include <Tstamp.h>
+#include <xassert.h>
+
+
+Channel* new_Channel(
+        int num,
+        Ins_table* insts,
+        Environment* env,
+        Voice_pool* voices,
+        double* tempo,
+        int32_t* audio_rate)
+{
+    assert(num >= 0);
+    assert(num < KQT_CHANNELS_MAX);
+    assert(insts != NULL);
+    assert(env != NULL);
+    assert(voices != NULL);
+    assert(tempo != NULL);
+    assert(audio_rate != NULL);
+
+    Channel* ch = memory_alloc_item(Channel);
+    if (ch == NULL)
+        return NULL;
+
+    if (!Channel_init(ch, num, env))
+    {
+        memory_free(ch);
+        return NULL;
+    }
+
+    ch->insts = insts;
+    ch->pool = voices;
+    ch->tempo = tempo;
+    ch->freq = audio_rate;
+
+    return ch;
+}
+
+
+bool Channel_init(Channel* ch, int num, Environment* env)
+{
+    assert(ch != NULL);
+    assert(num >= 0);
+    assert(num < KQT_COLUMNS_MAX);
+    assert(env != NULL);
+
+    General_state_preinit(&ch->parent);
+
+    ch->cgstate = new_Channel_gen_state();
+    ch->rand = new_Random();
+    if (ch->cgstate == NULL || ch->rand == NULL ||
+            !General_state_init(&ch->parent, false, env))
+    {
+        del_Channel_gen_state(ch->cgstate);
+        del_Random(ch->rand);
+        return false;
+    }
+
+    char context[] = "chXX";
+    snprintf(context, strlen(context) + 1, "ch%02x", num);
+    Random_set_context(ch->rand, context);
+    ch->event_cache = NULL;
+    ch->num = num;
+
+    Channel_reset(ch);
+
+    return true;
+}
+
+
+void Channel_set_random_seed(Channel* ch, uint64_t seed)
+{
+    assert(ch != NULL);
+
+    Random_set_seed(ch->rand, seed);
+
+    return;
+}
+
+
+void Channel_set_event_cache(Channel* ch, Event_cache* cache)
+{
+    assert(ch != NULL);
+    assert(cache != NULL);
+
+    del_Event_cache(ch->event_cache);
+    ch->event_cache = cache;
+
+    return;
+}
+
+
+void Channel_reset(Channel* ch)
+{
+    assert(ch != NULL);
+
+    General_state_reset(&ch->parent);
+
+    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    {
+        ch->fg[i] = NULL;
+        ch->fg_id[i] = 0;
+    }
+    ch->fg_count = 0;
+
+    ch->instrument = 0;
+    ch->generator = 0;
+    ch->effect = 0;
+    ch->inst_effects = false;
+    ch->dsp = 0;
+
+    ch->volume = 1;
+
+    Tstamp_set(&ch->force_slide_length, 0, 0);
+    LFO_init(&ch->tremolo, LFO_MODE_EXP);
+    ch->tremolo_speed = 0;
+    Tstamp_init(&ch->tremolo_speed_delay);
+    ch->tremolo_depth = 0;
+    Tstamp_init(&ch->tremolo_depth_delay);
+
+    Tstamp_set(&ch->pitch_slide_length, 0, 0);
+    LFO_init(&ch->vibrato, LFO_MODE_EXP);
+    ch->vibrato_speed = 0;
+    Tstamp_init(&ch->vibrato_speed_delay);
+    ch->vibrato_depth = 0;
+    Tstamp_init(&ch->vibrato_depth_delay);
+
+    Tstamp_set(&ch->filter_slide_length, 0, 0);
+    LFO_init(&ch->autowah, LFO_MODE_EXP);
+    ch->autowah_speed = 0;
+    Tstamp_init(&ch->autowah_speed_delay);
+    ch->autowah_depth = 0;
+    Tstamp_init(&ch->autowah_depth_delay);
+
+    ch->panning = 0;
+    Slider_init(&ch->panning_slider, SLIDE_MODE_LINEAR);
+
+    ch->arpeggio_ref = NAN;
+    ch->arpeggio_speed = 24;
+    ch->arpeggio_edit_pos = 1;
+    ch->arpeggio_tones[0] = ch->arpeggio_tones[1] = NAN;
+
+    Random_reset(ch->rand);
+    if (ch->event_cache != NULL)
+        Event_cache_reset(ch->event_cache);
+
+    return;
+}
+
+
+#if 0
+Channel_state* Channel_state_copy(Channel_state* dest, const Channel_state* src)
+{
+    assert(dest != NULL);
+    assert(src != NULL);
+    memcpy(dest, src, sizeof(Channel_state));
+    return dest;
+}
+#endif
+
+
+double Channel_get_fg_force(Channel* ch, int gen_index)
+{
+    assert(ch != NULL);
+    assert(gen_index >= 0);
+    assert(gen_index < KQT_GENERATORS_MAX);
+
+    if (ch->fg[gen_index] == NULL)
+        return NAN;
+
+    return Voice_get_actual_force(ch->fg[gen_index]);
+}
+
+
+void Channel_deinit(Channel* ch)
+{
+    if (ch == NULL)
+        return;
+
+    del_Event_cache(ch->event_cache);
+    ch->event_cache = NULL;
+    del_Channel_gen_state(ch->cgstate);
+    ch->cgstate = NULL;
+    del_Random(ch->rand);
+    ch->rand = NULL;
+    General_state_deinit(&ch->parent);
+
+    return;
+}
+
+
+void del_Channel(Channel* ch)
+{
+    if (ch == NULL)
+        return;
+
+    Channel_deinit(ch);
+    memory_free(ch);
+
+    return;
+}
+
+

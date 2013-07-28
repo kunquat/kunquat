@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2013
  *
  * This file is part of Kunquat.
  *
@@ -16,21 +16,19 @@
 #define K_NOTE_SETUP_H
 
 
-#include <Channel_state.h>
 #include <Instrument.h>
+#include <player/Channel.h>
 
 
 /**
  * Reserves a Voice for a Generator in an Instrument.
  *
- * \param ch_state   The Channel state -- must not be \c NULL.
+ * \param ch         The Channel -- must not be \c NULL.
  * \param ins        The Instrument -- must not be \c NULL.
  * \param gen_num    The number of the Generator -- must be >= \c 0 and
  *                   < \c KQT_GENERATORS_MAX.
  */
-void reserve_voice(Channel_state* ch_state,
-                   Instrument* ins,
-                   int gen_num);
+void reserve_voice(Channel* ch, Instrument* ins, int gen_num);
 
 
 /**
@@ -38,14 +36,15 @@ void reserve_voice(Channel_state* ch_state,
  *
  * \param voice       The Voice -- must not be \c NULL.
  * \param vs          The Voice state -- must not be \c NULL.
- * \param ch_state    The Channel state -- must not be \c NULL.
+ * \param ch          The Channel -- must not be \c NULL.
  * \param force_var   A reference to the force variation value -- must not be
  *                    \c NULL.
  */
-void set_instrument_properties(Voice* voice,
-                               Voice_state* vs,
-                               Channel_state* ch_state,
-                               double* force_var);
+void set_instrument_properties(
+        Voice* voice,
+        Voice_state* vs,
+        Channel* ch,
+        double* force_var);
 
 
 #endif // K_NOTE_SETUP_H

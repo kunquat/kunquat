@@ -19,8 +19,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <Channel_gen_state.h>
 #include <Generator.h>
+#include <player/Channel_gen_state.h>
 #include <player/Device_states.h>
 #include <Random.h>
 #include <Voice_params.h>

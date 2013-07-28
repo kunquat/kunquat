@@ -24,14 +24,15 @@
 #include <xassert.h>
 
 
-bool Event_channel_arpeggio_on_process(Channel_state* ch_state, Value* value)
+bool Event_channel_arpeggio_on_process(Channel* ch, Value* value)
 {
-    assert(ch_state != NULL);
+    assert(ch != NULL);
     (void)value;
+
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
-        Event_check_voice(ch_state, i);
-        Voice* voice = ch_state->fg[i];
+        Event_check_voice(ch, i);
+        Voice* voice = ch->fg[i];
         Voice_state* vs = voice->state;
         //pitch_t orig_pitch = -1;
         if (vs->arpeggio || voice->gen->ins_params->pitch_locks[i].enabled)
@@ -56,16 +57,16 @@ bool Event_channel_arpeggio_on_process(Channel_state* ch_state, Value* value)
             continue;
         }
 #endif
-        if (isnan(ch_state->arpeggio_ref))
+        if (isnan(ch->arpeggio_ref))
         {
-            ch_state->arpeggio_ref = vs->orig_cents;
+            ch->arpeggio_ref = vs->orig_cents;
         }
-        if (isnan(ch_state->arpeggio_tones[0]))
+        if (isnan(ch->arpeggio_tones[0]))
         {
-            ch_state->arpeggio_tones[0] = ch_state->arpeggio_ref;
+            ch->arpeggio_tones[0] = ch->arpeggio_ref;
         }
-        vs->arpeggio_ref = ch_state->arpeggio_ref;
-        memcpy(vs->arpeggio_tones, ch_state->arpeggio_tones,
+        vs->arpeggio_ref = ch->arpeggio_ref;
+        memcpy(vs->arpeggio_tones, ch->arpeggio_tones,
                 KQT_ARPEGGIO_NOTES_MAX * sizeof(double));
 #if 0
         int last_nonzero = -1;
@@ -110,124 +111,120 @@ bool Event_channel_arpeggio_on_process(Channel_state* ch_state, Value* value)
 #endif
         double unit_len = Tstamp_toframes(
                 Tstamp_set(TSTAMP_AUTO, 1, 0),
-                *ch_state->tempo,
-                *ch_state->freq);
-        vs->arpeggio_length = unit_len / ch_state->arpeggio_speed;
+                *ch->tempo,
+                *ch->freq);
+        vs->arpeggio_length = unit_len / ch->arpeggio_speed;
         vs->arpeggio_frames = 0;
         vs->arpeggio_note = 0;
         vs->arpeggio = true;
     }
+
     return true;
 }
 
 
-bool Event_channel_arpeggio_off_process(Channel_state* ch_state, Value* value)
+bool Event_channel_arpeggio_off_process(Channel* ch, Value* value)
 {
-    assert(ch_state != NULL);
+    assert(ch != NULL);
     (void)value;
+
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
-        Event_check_voice(ch_state, i);
-        ch_state->fg[i]->state->arpeggio = false;
+        Event_check_voice(ch, i);
+        ch->fg[i]->state->arpeggio = false;
     }
+
     return true;
 }
 
 
-bool Event_channel_set_arpeggio_index_process(
-        Channel_state* ch_state,
-        Value* value)
+bool Event_channel_set_arpeggio_index_process(Channel* ch, Value* value)
 {
-    assert(ch_state != NULL);
+    assert(ch != NULL);
     assert(value != NULL);
-    if (value->type != VALUE_TYPE_INT)
-    {
-        return false;
-    }
-    ch_state->arpeggio_edit_pos = value->value.int_type;
+    assert(value->type == VALUE_TYPE_INT);
+
+    ch->arpeggio_edit_pos = value->value.int_type;
+
     return true;
 }
 
 
-bool Event_channel_set_arpeggio_note_process(
-        Channel_state* ch_state,
-        Value* value)
+bool Event_channel_set_arpeggio_note_process(Channel* ch, Value* value)
 {
-    assert(ch_state != NULL);
+    assert(ch != NULL);
     assert(value != NULL);
-    if (value->type != VALUE_TYPE_FLOAT)
+    assert(value->type == VALUE_TYPE_FLOAT);
+
+    if (isnan(ch->arpeggio_tones[ch->arpeggio_edit_pos]) &&
+            ch->arpeggio_edit_pos < KQT_ARPEGGIO_NOTES_MAX - 1)
     {
-        return false;
-    }
-    if (isnan(ch_state->arpeggio_tones[ch_state->arpeggio_edit_pos]) &&
-            ch_state->arpeggio_edit_pos < KQT_ARPEGGIO_NOTES_MAX - 1)
-    {
-        ch_state->arpeggio_tones[ch_state->arpeggio_edit_pos + 1] = NAN;
+        ch->arpeggio_tones[ch->arpeggio_edit_pos + 1] = NAN;
         for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
         {
-            Event_check_voice(ch_state, i);
-            Voice_state* vs = ch_state->fg[i]->state;
-            vs->arpeggio_tones[ch_state->arpeggio_edit_pos + 1] = NAN;
+            Event_check_voice(ch, i);
+            Voice_state* vs = ch->fg[i]->state;
+            vs->arpeggio_tones[ch->arpeggio_edit_pos + 1] = NAN;
         }
     }
-    ch_state->arpeggio_tones[ch_state->arpeggio_edit_pos] =
+
+    ch->arpeggio_tones[ch->arpeggio_edit_pos] =
             value->value.float_type;
+
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
-        Event_check_voice(ch_state, i);
-        Voice_state* vs = ch_state->fg[i]->state;
-        vs->arpeggio_tones[ch_state->arpeggio_edit_pos] =
+        Event_check_voice(ch, i);
+        Voice_state* vs = ch->fg[i]->state;
+        vs->arpeggio_tones[ch->arpeggio_edit_pos] =
                 value->value.float_type;
     }
-    if (ch_state->arpeggio_edit_pos < KQT_ARPEGGIO_NOTES_MAX - 1)
-    {
-        ++ch_state->arpeggio_edit_pos;
-    }
+
+    if (ch->arpeggio_edit_pos < KQT_ARPEGGIO_NOTES_MAX - 1)
+        ++ch->arpeggio_edit_pos;
+
     return true;
 }
 
 
-bool Event_channel_set_arpeggio_speed_process(
-        Channel_state* ch_state,
-        Value* value)
+bool Event_channel_set_arpeggio_speed_process(Channel* ch, Value* value)
 {
-    assert(ch_state != NULL);
+    assert(ch != NULL);
     assert(value != NULL);
-    if (value->type != VALUE_TYPE_FLOAT)
-    {
-        return false;
-    }
-    ch_state->arpeggio_speed = value->value.float_type;
+    assert(value->type == VALUE_TYPE_FLOAT);
+
+    ch->arpeggio_speed = value->value.float_type;
     double unit_len = Tstamp_toframes(
             Tstamp_set(TSTAMP_AUTO, 1, 0),
-            *ch_state->tempo,
-            *ch_state->freq);
+            *ch->tempo,
+            *ch->freq);
+
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
-        Event_check_voice(ch_state, i);
-        Voice_state* vs = ch_state->fg[i]->state;
+        Event_check_voice(ch, i);
+        Voice_state* vs = ch->fg[i]->state;
         vs->arpeggio_length = unit_len / value->value.float_type;
     }
+
     return true;
 }
 
 
-bool Event_channel_reset_arpeggio_process(
-        Channel_state* ch_state,
-        Value* value)
+bool Event_channel_reset_arpeggio_process(Channel* ch, Value* value)
 {
-    assert(ch_state != NULL);
+    assert(ch != NULL);
     (void)value;
-    ch_state->arpeggio_ref = NAN;
-    ch_state->arpeggio_edit_pos = 1;
-    ch_state->arpeggio_tones[0] = ch_state->arpeggio_tones[1] = NAN;
+
+    ch->arpeggio_ref = NAN;
+    ch->arpeggio_edit_pos = 1;
+    ch->arpeggio_tones[0] = ch->arpeggio_tones[1] = NAN;
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
-        Event_check_voice(ch_state, i);
-        Voice_state* vs = ch_state->fg[i]->state;
+        Event_check_voice(ch, i);
+        Voice_state* vs = ch->fg[i]->state;
         vs->arpeggio_tones[0] = vs->arpeggio_tones[1] = NAN;
         vs->arpeggio_note = 0;
     }
+
     return true;
 }
 

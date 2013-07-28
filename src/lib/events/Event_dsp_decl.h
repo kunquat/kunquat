@@ -18,8 +18,8 @@
 
 #include <stdbool.h>
 
-#include <Channel_state.h>
 #include <DSP_conf.h>
+#include <player/Channel.h>
 #include <Value.h>
 
 
@@ -28,7 +28,7 @@
 #define EVENT_TYPE_DEF(type)         \
     bool Event_dsp_##type##_process( \
             DSP_conf* dsp_conf,      \
-            Channel_state* ch_state, \
+            Channel* ch,             \
             Value* value);
 #include <events/Event_dsp_types.h>
 

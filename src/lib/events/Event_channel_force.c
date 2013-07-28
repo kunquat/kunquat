@@ -23,148 +23,136 @@
 #include <xassert.h>
 
 
-bool Event_channel_set_force_process(Channel_state* ch_state, Value* value)
+bool Event_channel_set_force_process(Channel* ch, Value* value)
 {
-    assert(ch_state != NULL);
+    assert(ch != NULL);
     assert(value != NULL);
-    if (value->type != VALUE_TYPE_FLOAT)
-    {
-        return false;
-    }
+    assert(value->type == VALUE_TYPE_FLOAT);
+
     double force = exp2(value->value.float_type / 6);
+
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
-        Event_check_voice(ch_state, i);
-        Voice_state* vs = ch_state->fg[i]->state;
+        Event_check_voice(ch, i);
+        Voice_state* vs = ch->fg[i]->state;
         vs->force = force;
         Slider_break(&vs->force_slider);
 //        vs->force_slide = 0;
     }
+
     return true;
 }
 
 
-bool Event_channel_slide_force_process(Channel_state* ch_state, Value* value)
+bool Event_channel_slide_force_process(Channel* ch, Value* value)
 {
-    assert(ch_state != NULL);
+    assert(ch != NULL);
     assert(value != NULL);
-    if (value->type != VALUE_TYPE_FLOAT)
-    {
-        return false;
-    }
+    assert(value->type == VALUE_TYPE_FLOAT);
+
     double slide_target = exp2(value->value.float_type / 6);
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
-        Event_check_voice(ch_state, i);
-        Voice_state* vs = ch_state->fg[i]->state;
+        Event_check_voice(ch, i);
+        Voice_state* vs = ch->fg[i]->state;
+
         if (Slider_in_progress(&vs->force_slider))
-        {
             Slider_change_target(&vs->force_slider, slide_target);
-        }
         else
-        {
             Slider_start(&vs->force_slider, slide_target, vs->force);
-        }
     }
+
     return true;
 }
 
 
-bool Event_channel_slide_force_length_process(
-        Channel_state* ch_state,
-        Value* value)
+bool Event_channel_slide_force_length_process(Channel* ch, Value* value)
 {
-    assert(ch_state != NULL);
+    assert(ch != NULL);
     assert(value != NULL);
-    if (value->type != VALUE_TYPE_TSTAMP)
-    {
-        return false;
-    }
-    Tstamp_copy(&ch_state->force_slide_length, &value->value.Tstamp_type);
+    assert(value->type == VALUE_TYPE_TSTAMP);
+
+    Tstamp_copy(&ch->force_slide_length, &value->value.Tstamp_type);
+
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
-        Event_check_voice(ch_state, i);
-        Voice_state* vs = ch_state->fg[i]->state;
+        Event_check_voice(ch, i);
+        Voice_state* vs = ch->fg[i]->state;
         Slider_set_length(&vs->force_slider, &value->value.Tstamp_type);
     }
+
     return true;
 }
 
 
-bool Event_channel_tremolo_speed_process(
-        Channel_state* ch_state,
-        Value* value)
+bool Event_channel_tremolo_speed_process(Channel* ch, Value* value)
 {
-    assert(ch_state != NULL);
+    assert(ch != NULL);
     assert(value != NULL);
-    if (value->type != VALUE_TYPE_FLOAT)
-    {
-        return false;
-    }
-    ch_state->tremolo_speed = value->value.float_type;
-    LFO_set_speed(&ch_state->tremolo, value->value.float_type);
+    assert(value->type == VALUE_TYPE_FLOAT);
+
+    ch->tremolo_speed = value->value.float_type;
+    LFO_set_speed(&ch->tremolo, value->value.float_type);
+
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
-        Event_check_voice(ch_state, i);
-        Voice_state* vs = ch_state->fg[i]->state;
+        Event_check_voice(ch, i);
+        Voice_state* vs = ch->fg[i]->state;
         LFO_set_speed(&vs->tremolo, value->value.float_type);
-        if (ch_state->tremolo_depth > 0)
-        {
-            LFO_set_depth(&vs->tremolo, ch_state->tremolo_depth);
-        }
+
+        if (ch->tremolo_depth > 0)
+            LFO_set_depth(&vs->tremolo, ch->tremolo_depth);
+
         LFO_turn_on(&vs->tremolo);
     }
+
     return true;
 }
 
 
-bool Event_channel_tremolo_depth_process(
-        Channel_state* ch_state,
-        Value* value)
+bool Event_channel_tremolo_depth_process(Channel* ch, Value* value)
 {
-    assert(ch_state != NULL);
+    assert(ch != NULL);
     assert(value != NULL);
-    if (value->type != VALUE_TYPE_FLOAT)
-    {
-        return false;
-    }
+    assert(value->type == VALUE_TYPE_FLOAT);
+
     double actual_depth = value->value.float_type / 6;
-    ch_state->tremolo_depth = actual_depth;
+    ch->tremolo_depth = actual_depth;
+
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
-        Event_check_voice(ch_state, i);
-        Voice_state* vs = ch_state->fg[i]->state;
-        if (ch_state->tremolo_speed > 0)
-        {
-            LFO_set_speed(&vs->tremolo, ch_state->tremolo_speed);
-        }
+        Event_check_voice(ch, i);
+        Voice_state* vs = ch->fg[i]->state;
+
+        if (ch->tremolo_speed > 0)
+            LFO_set_speed(&vs->tremolo, ch->tremolo_speed);
+
         LFO_set_depth(&vs->tremolo, actual_depth);
         LFO_turn_on(&vs->tremolo);
     }
+
     return true;
 }
 
 
-bool Event_channel_tremolo_delay_process(
-        Channel_state* ch_state,
-        Value* value)
+bool Event_channel_tremolo_delay_process(Channel* ch, Value* value)
 {
-    assert(ch_state != NULL);
+    assert(ch != NULL);
     assert(value != NULL);
-    if (value->type != VALUE_TYPE_TSTAMP)
-    {
-        return false;
-    }
+    assert(value->type == VALUE_TYPE_TSTAMP);
+
     Tstamp_copy(
-            &ch_state->tremolo_depth_delay,
+            &ch->tremolo_depth_delay,
             &value->value.Tstamp_type);
-    LFO_set_depth_delay(&ch_state->tremolo, &value->value.Tstamp_type);
+    LFO_set_depth_delay(&ch->tremolo, &value->value.Tstamp_type);
+
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
-        Event_check_voice(ch_state, i);
-        Voice_state* vs = ch_state->fg[i]->state;
+        Event_check_voice(ch, i);
+        Voice_state* vs = ch->fg[i]->state;
         LFO_set_depth_delay(&vs->tremolo, &value->value.Tstamp_type);
     }
+
     return true;
 }
 

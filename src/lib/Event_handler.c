@@ -25,11 +25,11 @@
 #include <Event_type.h>
 #include <expr.h>
 #include <File_base.h>
-#include <Channel_state.h>
 #include <General_state.h>
 #include <Generator.h>
 #include <Ins_table.h>
 #include <kunquat/limits.h>
+#include <player/Channel.h>
 #include <string_common.h>
 #include <Value.h>
 
@@ -48,33 +48,33 @@
 
 struct Event_handler
 {
-    Channel_state* ch_states[KQT_COLUMNS_MAX];
+    Channel* channels[KQT_COLUMNS_MAX];
     Master_params* master_params;
     Ins_table* insts;
     Effect_table* effects;
     Event_names* event_names;
     bool (*control_process[Event_control_STOP])(General_state*, Value*);
     bool (*general_process[Event_general_STOP])(General_state*, Value*);
-    bool (*ch_process[Event_channel_STOP])(Channel_state*, Value*);
+    bool (*ch_process[Event_channel_STOP])(Channel*, Value*);
     bool (*master_process[Event_master_STOP])(Master_params*, Value*);
     bool (*ins_process[Event_ins_STOP])(Instrument_params*, Value*);
     bool (*generator_process[Event_generator_STOP])(
             Generator*,
-            Channel_state*,
+            Channel*,
             Value*);
     bool (*effect_process[Event_effect_STOP])(Effect*, Value*);
-    bool (*dsp_process[Event_dsp_STOP])(DSP_conf*, Channel_state*, Value*);
+    bool (*dsp_process[Event_dsp_STOP])(DSP_conf*, Channel*, Value*);
 };
 
 
 Event_handler* new_Event_handler(
         Master_params* master_params,
-        Channel_state** ch_states,
+        Channel** channels,
         Ins_table* insts,
         Effect_table* effects)
 {
     assert(master_params != NULL);
-    assert(ch_states != NULL);
+    assert(channels != NULL);
     assert(insts != NULL);
     assert(effects != NULL);
 
@@ -90,10 +90,8 @@ Event_handler* new_Event_handler(
     }
 
     eh->master_params = master_params;
-    for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
-    {
-        eh->ch_states[i] = ch_states[i];
-    }
+    for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
+        eh->channels[i] = channels[i];
     eh->insts = insts;
     eh->effects = effects;
 
@@ -143,12 +141,14 @@ const Event_names* Event_handler_get_names(const Event_handler* eh)
 bool Event_handler_set_ch_process(
         Event_handler* eh,
         Event_type type,
-        bool (*ch_process)(Channel_state*, Value*))
+        bool (*ch_process)(Channel*, Value*))
 {
     assert(eh != NULL);
     assert(Event_is_channel(type));
     assert(ch_process != NULL);
+
     eh->ch_process[type] = ch_process;
+
     return true;
 }
 
@@ -161,7 +161,9 @@ bool Event_handler_set_general_process(
     assert(eh != NULL);
     assert(Event_is_general(type));
     assert(general_process != NULL);
+
     eh->general_process[type] = general_process;
+
     return true;
 }
 
@@ -174,7 +176,9 @@ bool Event_handler_set_control_process(
     assert(eh != NULL);
     assert(Event_is_control(type));
     assert(control_process != NULL);
+
     eh->control_process[type] = control_process;
+
     return true;
 }
 
@@ -187,7 +191,9 @@ bool Event_handler_set_master_process(
     assert(eh != NULL);
     assert(Event_is_master(type));
     assert(global_process != NULL);
+
     eh->master_process[type] = global_process;
+
     return true;
 }
 
@@ -200,7 +206,9 @@ bool Event_handler_set_ins_process(
     assert(eh != NULL);
     assert(Event_is_ins(type));
     assert(ins_process != NULL);
+
     eh->ins_process[type] = ins_process;
+
     return true;
 }
 
@@ -208,12 +216,14 @@ bool Event_handler_set_ins_process(
 bool Event_handler_set_generator_process(
         Event_handler* eh,
         Event_type type,
-        bool (*gen_process)(Generator*, Channel_state*, Value*))
+        bool (*gen_process)(Generator*, Channel*, Value*))
 {
     assert(eh != NULL);
     assert(Event_is_generator(type));
     assert(gen_process != NULL);
+
     eh->generator_process[type] = gen_process;
+
     return true;
 }
 
@@ -226,7 +236,9 @@ bool Event_handler_set_effect_process(
     assert(eh != NULL);
     assert(Event_is_effect(type));
     assert(effect_process != NULL);
+
     eh->effect_process[type] = effect_process;
+
     return true;
 }
 
@@ -234,12 +246,14 @@ bool Event_handler_set_effect_process(
 bool Event_handler_set_dsp_process(
         Event_handler* eh,
         Event_type type,
-        bool (*dsp_process)(DSP_conf*, Channel_state*, Value*))
+        bool (*dsp_process)(DSP_conf*, Channel*, Value*))
 {
     assert(eh != NULL);
     assert(Event_is_dsp(type));
     assert(dsp_process != NULL);
+
     eh->dsp_process[type] = dsp_process;
+
     return true;
 }
 
@@ -254,28 +268,26 @@ static bool Event_handler_handle(
     assert(index >= 0);
     assert(index < KQT_COLUMNS_MAX);
     assert(Event_is_valid(type));
-    assert(eh->ch_states[index]->freq != NULL);
-    assert(*eh->ch_states[index]->freq > 0);
-    assert(eh->ch_states[index]->tempo != NULL);
-    assert(*eh->ch_states[index]->tempo > 0);
+    assert(eh->channels[index]->freq != NULL);
+    assert(*eh->channels[index]->freq > 0);
+    assert(eh->channels[index]->tempo != NULL);
+    assert(*eh->channels[index]->tempo > 0);
 
     if (Event_is_channel(type))
     {
         if (eh->ch_process[type] == NULL)
-        {
             return false;
-        }
-        return eh->ch_process[type](eh->ch_states[index], value);
+
+        return eh->ch_process[type](eh->channels[index], value);
     }
     else if (Event_is_ins(type))
     {
         Instrument* ins = Ins_table_get(
                 eh->insts,
-                eh->ch_states[index]->instrument);
+                eh->channels[index]->instrument);
         if (ins == NULL)
-        {
             return false;
-        }
+
         Instrument_params* ins_params = Instrument_get_params(ins);
         assert(ins_params != NULL);
         return eh->ins_process[type](ins_params, value);
@@ -283,92 +295,80 @@ static bool Event_handler_handle(
     else if (Event_is_master(type))
     {
         if (eh->master_process[type] == NULL)
-        {
             return false;
-        }
+
         return eh->master_process[type](eh->master_params, value);
     }
     else if (Event_is_generator(type))
     {
         Instrument* ins = Ins_table_get(
                 eh->insts,
-                eh->ch_states[index]->instrument);
+                eh->channels[index]->instrument);
         if (ins == NULL)
-        {
             return false;
-        }
+
         Generator* gen = Instrument_get_gen(
                 ins,
-                eh->ch_states[index]->generator);
+                eh->channels[index]->generator);
         if (gen == NULL)
-        {
             return false;
-        }
-        return eh->generator_process[type](gen, eh->ch_states[index], value);
+
+        return eh->generator_process[type](gen, eh->channels[index], value);
     }
     else if (Event_is_effect(type))
     {
         Effect_table* effects = eh->effects;
-        if (eh->ch_states[index]->inst_effects)
+        if (eh->channels[index]->inst_effects)
         {
-            if (eh->ch_states[index]->effect >= KQT_INST_EFFECTS_MAX)
-            {
+            if (eh->channels[index]->effect >= KQT_INST_EFFECTS_MAX)
                 return false;
-            }
+
             Instrument* ins = Ins_table_get(
                     eh->insts,
-                    eh->ch_states[index]->instrument);
+                    eh->channels[index]->instrument);
             if (ins == NULL)
-            {
                 return false;
-            }
+
             effects = Instrument_get_effects(ins);
         }
         if (effects == NULL)
-        {
             return false;
-        }
-        Effect* eff = Effect_table_get(effects, eh->ch_states[index]->effect);
+
+        Effect* eff = Effect_table_get(effects, eh->channels[index]->effect);
         if (eff == NULL)
-        {
             return false;
-        }
+
         return eh->effect_process[type](eff, value);
     }
     else if (Event_is_dsp(type))
     {
         Effect_table* effects = eh->effects;
-        if (eh->ch_states[index]->inst_effects)
+        if (eh->channels[index]->inst_effects)
         {
-            if (eh->ch_states[index]->effect >= KQT_INST_EFFECTS_MAX)
-            {
+            if (eh->channels[index]->effect >= KQT_INST_EFFECTS_MAX)
                 return false;
-            }
+
             Instrument* ins = Ins_table_get(
                     eh->insts,
-                    eh->ch_states[index]->instrument);
+                    eh->channels[index]->instrument);
             if (ins == NULL)
-            {
                 return false;
-            }
+
             effects = Instrument_get_effects(ins);
         }
         if (effects == NULL)
-        {
             return false;
-        }
-        Effect* eff = Effect_table_get(effects, eh->ch_states[index]->effect);
+
+        Effect* eff = Effect_table_get(effects, eh->channels[index]->effect);
         if (eff == NULL)
-        {
             return false;
-        }
+
         DSP_table* dsps = Effect_get_dsps(eff);
-        DSP_conf* conf = DSP_table_get_conf(dsps, eh->ch_states[index]->dsp);
+        DSP_conf* conf = DSP_table_get_conf(dsps, eh->channels[index]->dsp);
         if (conf == NULL)
-        {
             return false;
-        }
-        return eh->dsp_process[type](conf, eh->ch_states[index], value);
+
+        return eh->dsp_process[type](conf, eh->channels[index], value);
     }
     else if (Event_is_control(type))
     {
@@ -378,7 +378,7 @@ static bool Event_handler_handle(
     }
     else if (Event_is_general(type))
     {
-        General_state* gstate = (General_state*)eh->ch_states[index];
+        General_state* gstate = (General_state*)eh->channels[index];
         return eh->general_process[type](gstate, value);
     }
 
@@ -469,29 +469,26 @@ static bool Event_handler_act(
     assert(event_name != NULL);
     assert(value != NULL);
 
-    assert(eh->ch_states[index]->freq != NULL);
-    assert(*eh->ch_states[index]->freq > 0);
-    assert(eh->ch_states[index]->tempo != NULL);
-    assert(*eh->ch_states[index]->tempo > 0);
+    assert(eh->channels[index]->freq != NULL);
+    assert(*eh->channels[index]->freq > 0);
+    assert(eh->channels[index]->tempo != NULL);
+    assert(*eh->channels[index]->tempo > 0);
 
     if (!Event_is_query(event_type) && !Event_is_auto(event_type) &&
             !Event_handler_handle(eh, index, event_type, value))
-    {
         return false;
-    }
+
     if (Event_is_query(event_type))
-    {
         Event_handler_handle_query(eh, index, event_type, value, silent);
-    }
 
 #if 0
     Target_event* bound = Bind_get_first(
             eh->global_state->bind,
-            eh->ch_states[index]->event_cache,
+            eh->channels[index]->event_cache,
             eh->global_state->parent.env,
             event_name,
             value,
-            eh->ch_states[index]->rand);
+            eh->channels[index]->rand);
     while (bound != NULL)
     {
         Event_handler_trigger(
@@ -549,13 +546,13 @@ bool Event_handler_process_type(
     assert(event_type != NULL);
     assert(state != NULL);
     assert(!state->error);
+
     *desc = read_const_char(*desc, '[', state);
     *desc = read_string(*desc, event_name, EVENT_NAME_MAX + 2, state);
     *desc = read_const_char(*desc, ',', state);
     if (state->error)
-    {
         return false;
-    }
+
     *event_type = Event_names_get(eh->event_names, event_name);
     if (*event_type == Event_NONE)
     {
@@ -565,14 +562,14 @@ bool Event_handler_process_type(
                 event_name);
         return false;
     }
+
     assert(Event_is_valid(*event_type));
-    if (!General_state_events_enabled((General_state*)eh->ch_states[index]) &&
+    if (!General_state_events_enabled((General_state*)eh->channels[index]) &&
             *event_type != Event_general_if &&
             *event_type != Event_general_else &&
             *event_type != Event_general_end_if)
-    {
         return false;
-    }
+
     return true;
 }
 
@@ -583,13 +580,13 @@ bool Event_handler_add_channel_gen_state_key(
 {
     assert(eh != NULL);
     assert(key != NULL);
+
     for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
     {
-        if (!Channel_gen_state_set_key(eh->ch_states[i]->cgstate, key))
-        {
+        if (!Channel_gen_state_set_key(eh->channels[i]->cgstate, key))
             return false;
-        }
     }
+
     return true;
 }
 
@@ -601,6 +598,7 @@ void del_Event_handler(Event_handler* eh)
 
     del_Event_names(eh->event_names);
     memory_free(eh);
+
     return;
 }
 

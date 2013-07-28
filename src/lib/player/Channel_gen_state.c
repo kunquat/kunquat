@@ -16,9 +16,9 @@
 #include <string.h>
 
 #include <AAtree.h>
-#include <Channel_gen_state.h>
 #include <Device_field.h>
 #include <memory.h>
+#include <player/Channel_gen_state.h>
 #include <string_common.h>
 #include <xassert.h>
 

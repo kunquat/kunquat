@@ -24,167 +24,136 @@
 #include <xassert.h>
 
 
-bool Event_channel_set_gen_bool_process(Channel_state* ch_state, Value* value)
+bool Event_channel_set_gen_bool_process(Channel* ch, Value* value)
 {
-    assert(ch_state != NULL);
+    assert(ch != NULL);
     assert(value != NULL);
-    if (value->type != VALUE_TYPE_BOOL)
-    {
-        return false;
-    }
+    assert(value->type == VALUE_TYPE_BOOL);
+
     char* key = Active_names_get(
-            ch_state->parent.active_names,
+            ch->parent.active_names,
             ACTIVE_CAT_CH_GEN,
             ACTIVE_TYPE_BOOL);
     if (!string_has_suffix(key, ".jsonb"))
-    {
         return true;
-    }
+
     return Channel_gen_state_modify_value(
-            ch_state->cgstate, key,
+            ch->cgstate, key,
             &value->value.bool_type);
 }
 
 
-bool Event_channel_set_gen_bool_name_process(
-        Channel_state* ch_state,
-        Value* value)
+bool Event_channel_set_gen_bool_name_process(Channel* ch, Value* value)
 {
-    assert(ch_state != NULL);
+    assert(ch != NULL);
     assert(value != NULL);
-    if (value->type != VALUE_TYPE_STRING)
-    {
-        return false;
-    }
+    assert(value->type == VALUE_TYPE_STRING);
+
     return set_active_name(
-            &ch_state->parent,
+            &ch->parent,
             ACTIVE_CAT_CH_GEN,
             ACTIVE_TYPE_BOOL,
             value);
 }
 
 
-bool Event_channel_set_gen_float_process(
-        Channel_state* ch_state,
-        Value* value)
+bool Event_channel_set_gen_float_process(Channel* ch, Value* value)
 {
-    assert(ch_state != NULL);
+    assert(ch != NULL);
     assert(value != NULL);
-    if (value->type != VALUE_TYPE_FLOAT)
-    {
-        return false;
-    }
+    assert(value->type == VALUE_TYPE_FLOAT);
+
     char* key = Active_names_get(
-            ch_state->parent.active_names,
+            ch->parent.active_names,
             ACTIVE_CAT_CH_GEN,
             ACTIVE_TYPE_FLOAT);
     if (!string_has_suffix(key, ".jsonf"))
-    {
         return true;
-    }
+
     return Channel_gen_state_modify_value(
-            ch_state->cgstate,
+            ch->cgstate,
             key,
             &value->value.float_type);
 }
 
 
-bool Event_channel_set_gen_float_name_process(
-        Channel_state* ch_state,
-        Value* value)
+bool Event_channel_set_gen_float_name_process(Channel* ch, Value* value)
 {
-    assert(ch_state != NULL);
+    assert(ch != NULL);
     assert(value != NULL);
-    if (value->type != VALUE_TYPE_STRING)
-    {
-        return false;
-    }
+    assert(value->type == VALUE_TYPE_STRING);
+
     return set_active_name(
-            &ch_state->parent,
+            &ch->parent,
             ACTIVE_CAT_CH_GEN,
             ACTIVE_TYPE_FLOAT,
             value);
 }
 
 
-bool Event_channel_set_gen_int_process(Channel_state* ch_state, Value* value)
+bool Event_channel_set_gen_int_process(Channel* ch, Value* value)
 {
-    assert(ch_state != NULL);
+    assert(ch != NULL);
     assert(value != NULL);
-    if (value->type != VALUE_TYPE_INT)
-    {
-        return false;
-    }
+    assert(value->type == VALUE_TYPE_INT);
+
     char* key = Active_names_get(
-            ch_state->parent.active_names,
+            ch->parent.active_names,
             ACTIVE_CAT_CH_GEN,
             ACTIVE_TYPE_INT);
     if (!string_has_suffix(key, ".jsoni"))
-    {
         return true;
-    }
+
     return Channel_gen_state_modify_value(
-            ch_state->cgstate,
+            ch->cgstate,
             key,
             &value->value.int_type);
 }
 
 
-bool Event_channel_set_gen_int_name_process(
-        Channel_state* ch_state,
-        Value* value)
+bool Event_channel_set_gen_int_name_process(Channel* ch, Value* value)
 {
-    assert(ch_state != NULL);
+    assert(ch != NULL);
     assert(value != NULL);
-    if (value->type != VALUE_TYPE_STRING)
-    {
-        return false;
-    }
+    assert(value->type == VALUE_TYPE_STRING);
+
     return set_active_name(
-            &ch_state->parent,
+            &ch->parent,
             ACTIVE_CAT_CH_GEN,
             ACTIVE_TYPE_INT,
             value);
 }
 
 
-bool Event_channel_set_gen_tstamp_process(
-        Channel_state* ch_state,
-        Value* value)
+bool Event_channel_set_gen_tstamp_process(Channel* ch, Value* value)
 {
-    assert(ch_state != NULL);
+    assert(ch != NULL);
     assert(value != NULL);
-    if (value->type != VALUE_TYPE_TSTAMP)
-    {
-        return false;
-    }
+    assert(value->type == VALUE_TYPE_TSTAMP);
+
     char* key = Active_names_get(
-            ch_state->parent.active_names,
+            ch->parent.active_names,
             ACTIVE_CAT_CH_GEN,
             ACTIVE_TYPE_TSTAMP);
+
     if (!string_has_suffix(key, ".jsont"))
-    {
         return true;
-    }
+
     return Channel_gen_state_modify_value(
-            ch_state->cgstate,
+            ch->cgstate,
             key,
             &value->value.Tstamp_type);
 }
 
 
-bool Event_channel_set_gen_tstamp_name_process(
-        Channel_state* ch_state,
-        Value* value)
+bool Event_channel_set_gen_tstamp_name_process(Channel* ch, Value* value)
 {
-    assert(ch_state != NULL);
+    assert(ch != NULL);
     assert(value != NULL);
-    if (value->type != VALUE_TYPE_STRING)
-    {
-        return false;
-    }
+    assert(value->type == VALUE_TYPE_STRING);
+
     return set_active_name(
-            &ch_state->parent,
+            &ch->parent,
             ACTIVE_CAT_CH_GEN,
             ACTIVE_TYPE_TSTAMP,
             value);

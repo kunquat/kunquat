@@ -18,14 +18,14 @@
 
 #include <stdbool.h>
 
-#include <Channel_state.h>
 #include <DSP_conf.h>
+#include <Event_names.h>
+#include <Event_type.h>
 #include <General_state.h>
 #include <Generator.h>
 #include <Ins_table.h>
+#include <player/Channel.h>
 #include <player/Master_params.h>
-#include <Event_names.h>
-#include <Event_type.h>
 #include <Value.h>
 
 
@@ -40,7 +40,7 @@ typedef struct Event_handler Event_handler;
  */
 Event_handler* new_Event_handler(
         Master_params* master_params,
-        Channel_state** ch_states,
+        Channel** channels,
         Ins_table* insts,
         Effect_table* effects);
 
@@ -97,7 +97,7 @@ bool Event_handler_set_general_process(
 bool Event_handler_set_ch_process(
         Event_handler* eh,
         Event_type type,
-        bool (*ch_process)(Channel_state*, Value*));
+        bool (*ch_process)(Channel*, Value*));
 
 
 /**
@@ -148,7 +148,7 @@ bool Event_handler_set_ins_process(
 bool Event_handler_set_generator_process(
         Event_handler* eh,
         Event_type type,
-        bool (*gen_process)(Generator*, Channel_state*, Value*));
+        bool (*gen_process)(Generator*, Channel*, Value*));
 
 
 /**
@@ -182,7 +182,7 @@ bool Event_handler_set_effect_process(
 bool Event_handler_set_dsp_process(
         Event_handler* eh,
         Event_type type,
-        bool (*dsp_process)(DSP_conf*, Channel_state*, Value*));
+        bool (*dsp_process)(DSP_conf*, Channel*, Value*));
 
 
 /**
