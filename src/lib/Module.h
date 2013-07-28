@@ -23,18 +23,17 @@
 #include <Decl.h>
 #include <Device.h>
 #include <Environment.h>
-#include <kunquat/limits.h>
-#include <frame.h>
-#include <Subsong_table.h>
-#include <Pat_table.h>
 #include <Effect_table.h>
+#include <File_base.h>
+#include <frame.h>
 #include <Ins_table.h>
+#include <kunquat/limits.h>
 #include <Order_list.h>
+#include <Pat_table.h>
 #include <Random.h>
 #include <Scale.h>
+#include <Song_table.h>
 #include <Track_list.h>
-#include <File_base.h>
-#include <Event_handler.h>
 
 
 struct Module
@@ -42,7 +41,7 @@ struct Module
     Device parent;
     uint64_t random_seed;               ///< The master random seed of the Module.
     Random* random;                     ///< The source for random data in the Module.
-    Subsong_table* subsongs;            ///< The Subsongs.
+    Song_table* songs;                  ///< The Songs.
     bool album_is_existent;             ///< Album existence status.
     Track_list* track_list;             ///< Track list.
     Order_list* order_lists[KQT_SONGS_MAX]; ///< Order lists.
@@ -53,15 +52,14 @@ struct Module
     Scale* scales[KQT_SCALES_MAX];      ///< The Scales.
     double mix_vol_dB;                  ///< Mixing volume in dB.
     double mix_vol;                     ///< Mixing volume.
-//    uint16_t init_subsong;              ///< Initial subsong number.
     Environment* env;                   ///< Environment variables.
     Bind* bind;
 };
 
 
-#define SONG_DEFAULT_BUF_COUNT (2)
-#define SONG_DEFAULT_MIX_VOL (-8)
-#define SONG_DEFAULT_INIT_SUBSONG (0)
+#define MODULE_DEFAULT_BUF_COUNT (2)
+#define MODULE_DEFAULT_MIX_VOL (-8)
+#define MODULE_DEFAULT_INIT_SONG (0)
 
 
 /**
@@ -71,8 +69,6 @@ struct Module
  *
  * \param buf_size   Size of the mixing buffer -- must be > \c 0 and
  *                   <= KQT_BUFFER_SIZE_MAX.
- *
- * \see del_Module()
  *
  * \return   The new Module if successful, or \c NULL if memory allocation
  *           failed.
@@ -182,13 +178,13 @@ double Module_get_mix_vol(Module* module);
 
 
 /**
- * Gets the Subsong table from the Module.
+ * Gets the Song table of the Module.
  *
  * \param module   The Module -- must not be \c NULL.
  *
- * \return   The Subsong table.
+ * \return   The Song table.
  */
-Subsong_table* Module_get_subsongs(const Module* module);
+Song_table* Module_get_songs(const Module* module);
 
 
 /**

@@ -171,7 +171,7 @@ int kqt_Handle_validate(kqt_Handle* handle)
     // Check songs
     for (int i = 0; i < KQT_SONGS_MAX; ++i)
     {
-        if (!Subsong_table_get_existent(handle->module->subsongs, i))
+        if (!Song_table_get_existent(handle->module->songs, i))
             continue;
 
         // Check for orphans
@@ -221,7 +221,7 @@ int kqt_Handle_validate(kqt_Handle* handle)
         for (size_t i = 0; i < Track_list_get_len(tl); ++i)
         {
             set_invalid_if(
-                    !Subsong_table_get_existent(handle->module->subsongs,
+                    !Song_table_get_existent(handle->module->songs,
                         Track_list_get_song_index(tl, i)),
                     "Album includes nonexistent song %d", i);
         }
@@ -261,8 +261,8 @@ int kqt_Handle_validate(kqt_Handle* handle)
                 {
                     const int song_index = Track_list_get_song_index(tl, track);
 
-                    if (!Subsong_table_get_existent(
-                                handle->module->subsongs,
+                    if (!Song_table_get_existent(
+                                handle->module->songs,
                                 song_index))
                         continue;
 

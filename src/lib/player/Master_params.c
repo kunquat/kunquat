@@ -101,12 +101,11 @@ void Master_params_set_starting_tempo(Master_params* params)
         const int16_t cur_song = Track_list_get_song_index(
                 tl,
                 params->cur_pos.track);
-        Subsong_table* ss_table = Module_get_subsongs(params->module);
-        Subsong* ss = Subsong_table_get(ss_table, cur_song);
-        if (ss != NULL)
-        {
-            params->tempo = Subsong_get_tempo(ss);
-        }
+        Song_table* song_table = Module_get_songs(params->module);
+        Song* song = Song_table_get(song_table, cur_song);
+
+        if (song != NULL)
+            params->tempo = Song_get_tempo(song);
     }
 
     return;

@@ -1557,31 +1557,28 @@ static bool parse_subsong_level(kqt_Handle* handle,
             set_parse_error(handle, state);
             return false;
         }
-        Subsong_table_set_existent(module->subsongs, index, existent);
+        Song_table_set_existent(module->songs, index, existent);
     }
     else if (string_eq(subkey, "p_song.json"))
     {
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        Subsong* ss = new_Subsong_from_string(data, state);
-        if (ss == NULL)
+        Song* song = new_Song_from_string(data, state);
+        if (song == NULL)
         {
             if (!state->error)
-            {
                 kqt_Handle_set_error(handle, ERROR_MEMORY,
                         "Couldn't allocate memory");
-            }
             else
-            {
                 set_parse_error(handle, state);
-            }
+
             return false;
         }
-        Subsong_table* st = Module_get_subsongs(module);
-        if (!Subsong_table_set(st, index, ss))
+        Song_table* st = Module_get_songs(module);
+        if (!Song_table_set(st, index, song))
         {
             kqt_Handle_set_error(handle, ERROR_MEMORY,
                     "Couldn't allocate memory");
-            del_Subsong(ss);
+            del_Song(song);
             return false;
         }
     }
@@ -1592,14 +1589,11 @@ static bool parse_subsong_level(kqt_Handle* handle,
         if (ol == NULL)
         {
             if (!state->error)
-            {
                 kqt_Handle_set_error(handle, ERROR_MEMORY,
                         "Couldn't allocate memory");
-            }
             else
-            {
                 set_parse_error(handle, state);
-            }
+
             return false;
         }
 
@@ -1614,9 +1608,8 @@ static bool parse_subsong_level(kqt_Handle* handle,
             assert(pats != NULL);
             Pattern* pat = Pat_table_get(pats, pat_index);
             if (pat == NULL)
-            {
                 continue;
-            }
+
             if (!Pattern_set_location(pat, index, ref))
             {
                 kqt_Handle_set_error(handle, ERROR_MEMORY,
@@ -1627,9 +1620,8 @@ static bool parse_subsong_level(kqt_Handle* handle,
         }
 
         if (module->order_lists[index] != NULL)
-        {
             del_Order_list(module->order_lists[index]);
-        }
+
         module->order_lists[index] = ol;
     }
     return true;

@@ -109,7 +109,7 @@ Module* new_Module(uint32_t buf_size)
     Device_register_port(&module->parent, DEVICE_PORT_TYPE_RECEIVE, 0);
 
     // Clear fields
-    module->subsongs = NULL;
+    module->songs = NULL;
     module->pats = NULL;
     module->insts = NULL;
     module->effects = NULL;
@@ -130,12 +130,12 @@ Module* new_Module(uint32_t buf_size)
 
     // Create fields
     module->random = new_Random();
-    module->subsongs = new_Subsong_table();
+    module->songs = new_Song_table();
     module->pats = new_Pat_table(KQT_PATTERNS_MAX);
     module->insts = new_Ins_table(KQT_INSTRUMENTS_MAX);
     module->effects = new_Effect_table(KQT_EFFECTS_MAX);
     if (module->random == NULL       ||
-            module->subsongs == NULL ||
+            module->songs == NULL    ||
             module->pats == NULL     ||
             module->insts == NULL    ||
             module->effects == NULL)
@@ -189,7 +189,7 @@ Module* new_Module(uint32_t buf_size)
             return NULL;
         }
     }
-    module->mix_vol_dB = SONG_DEFAULT_MIX_VOL;
+    module->mix_vol_dB = MODULE_DEFAULT_MIX_VOL;
     module->mix_vol = exp2(module->mix_vol_dB / 6);
     //module->init_subsong = SONG_DEFAULT_INIT_SUBSONG;
     Module_set_random_seed(module, 0);
@@ -205,7 +205,7 @@ bool Module_parse_composition(Module* module, char* str, Read_state* state)
     {
         return false;
     }
-    double mix_vol = SONG_DEFAULT_MIX_VOL;
+    double mix_vol = MODULE_DEFAULT_MIX_VOL;
 
     if (str != NULL)
     {
@@ -313,7 +313,7 @@ const Order_list* Module_get_order_list(const Module* module, int16_t song)
     assert(song >= 0);
     assert(song < KQT_SONGS_MAX);
 
-    if (!Subsong_table_get_existent(module->subsongs, song))
+    if (!Song_table_get_existent(module->songs, song))
         return NULL;
 
     assert(module->order_lists[song] != NULL);
@@ -359,7 +359,7 @@ bool Module_find_pattern_location(
     // Linear search all track lists
     for (int ti = 0; ti < KQT_SONGS_MAX; ++ti)
     {
-        if (!Subsong_table_get_existent(module->subsongs, ti))
+        if (!Song_table_get_existent(module->songs, ti))
             continue;
 
         const Order_list* ol = module->order_lists[ti];
@@ -400,10 +400,10 @@ double Module_get_mix_vol(Module* module)
 }
 
 
-Subsong_table* Module_get_subsongs(const Module* module)
+Song_table* Module_get_songs(const Module* module)
 {
     assert(module != NULL);
-    return module->subsongs;
+    return module->songs;
 }
 
 
@@ -625,28 +625,28 @@ static bool Module_sync(Device* device)
 void del_Module(Module* module)
 {
     if (module == NULL)
-    {
         return;
-    }
+
     del_Environment(module->env);
-    del_Subsong_table(module->subsongs);
+    del_Song_table(module->songs);
     del_Pat_table(module->pats);
     del_Connections(module->connections);
     del_Ins_table(module->insts);
     del_Effect_table(module->effects);
     del_Track_list(module->track_list);
+
     for (int i = 0; i < KQT_SONGS_MAX; ++i)
-    {
         del_Order_list(module->order_lists[i]);
-    }
+
     for (int i = 0; i < KQT_SCALES_MAX; ++i)
-    {
         del_Scale(module->scales[i]);
-    }
+
     del_Random(module->random);
     del_Bind(module->bind);
+
     Device_uninit(&module->parent);
     memory_free(module);
+
     return;
 }
 
