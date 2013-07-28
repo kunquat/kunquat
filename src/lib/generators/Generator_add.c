@@ -75,12 +75,14 @@ static double sine(double phase, double modifier);
 static bool Generator_add_sync(Device* device);
 static bool Generator_add_update_key(Device* device, const char* key);
 
-static uint32_t Generator_add_mix(Generator* gen,
-                                  Voice_state* state,
-                                  uint32_t nframes,
-                                  uint32_t offset,
-                                  uint32_t freq,
-                                  double tempo);
+static uint32_t Generator_add_mix(
+        Generator* gen,
+        Device_states* states,
+        Voice_state* state,
+        uint32_t nframes,
+        uint32_t offset,
+        uint32_t freq,
+        double tempo);
 
 static void del_Generator_add(Generator* gen);
 
@@ -218,26 +220,36 @@ static void Generator_add_init_state(Generator* gen, Voice_state* state)
 }
 
 
-static uint32_t Generator_add_mix(Generator* gen,
-                                  Voice_state* state,
-                                  uint32_t nframes,
-                                  uint32_t offset,
-                                  uint32_t freq,
-                                  double tempo)
+static uint32_t Generator_add_mix(
+        Generator* gen,
+        Device_states* states,
+        Voice_state* state,
+        uint32_t nframes,
+        uint32_t offset,
+        uint32_t freq,
+        double tempo)
 {
     assert(gen != NULL);
     assert(string_eq(gen->type, "add"));
+    assert(states != NULL);
     assert(state != NULL);
     assert(freq > 0);
     assert(tempo > 0);
+
+    Device_state* ds = Device_states_get_state(
+            states,
+            Device_get_id((Device*)gen));
+    assert(ds != NULL);
+
     Generator_add* add = (Generator_add*)gen;
     kqt_frame* bufs[] = { NULL, NULL };
-    Generator_common_get_buffers(gen, state, offset, bufs);
+    Generator_common_get_buffers(ds, state, offset, bufs);
     Generator_common_check_active(gen, state, offset);
     Generator_common_check_relative_lengths(gen, state, freq, tempo);
     Voice_state_add* add_state = (Voice_state_add*)state;
     uint32_t mixed = offset;
     assert(is_p2(BASE_FUNC_SIZE));
+
     for (; mixed < nframes && state->active; ++mixed)
     {
         Generator_common_handle_pitch(gen, state);

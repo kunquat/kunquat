@@ -159,18 +159,15 @@ Module* new_Module(uint32_t buf_size)
         return NULL;
     }
 
-    if (!Device_init_buffer(&module->parent, DEVICE_PORT_TYPE_RECEIVE, 0))
-    {
-        del_Module(module);
-        return NULL;
-    }
     Read_state* conn_state = READ_STATE_AUTO;
-    module->connections = new_Connections_from_string(NULL, false,
-                                                    module->insts,
-                                                    module->effects,
-                                                    NULL,
-                                                    &module->parent,
-                                                    conn_state);
+    module->connections = new_Connections_from_string(
+            NULL,
+            false,
+            module->insts,
+            module->effects,
+            NULL,
+            &module->parent,
+            conn_state);
     if (module->connections == NULL)
     {
         assert(!conn_state->error);

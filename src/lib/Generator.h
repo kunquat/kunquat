@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -25,6 +25,7 @@
 #include <Instrument_params.h>
 #include <kunquat/limits.h>
 #include <pitch_t.h>
+#include <player/Device_states.h>
 #include <Voice_state.h>
 #include <File_base.h>
 
@@ -43,8 +44,14 @@ typedef struct Generator
     Gen_conf* conf;
     void (*init_state)(struct Generator*, Voice_state*);
     void (*destroy)(struct Generator*);
-    uint32_t (*mix)(struct Generator*, Voice_state*, uint32_t, uint32_t,
-                    uint32_t, double);
+    uint32_t (*mix)(
+            struct Generator*,
+            Device_states*,
+            Voice_state*,
+            uint32_t,
+            uint32_t,
+            uint32_t,
+            double);
     Instrument_params* ins_params;
 } Generator;
 
@@ -85,12 +92,20 @@ Generator* new_Generator(char* str,
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Generator_init(Generator* gen,
-                    void (*destroy)(Generator*),
-                    uint32_t (*mix)(Generator*, Voice_state*, uint32_t, uint32_t, uint32_t, double),
-                    void (*init_state)(Generator*, Voice_state*),
-                    uint32_t buffer_size,
-                    uint32_t mix_rate);
+bool Generator_init(
+        Generator* gen,
+        void (*destroy)(Generator*),
+        uint32_t (*mix)(
+            Generator*,
+            Device_states*,
+            Voice_state*,
+            uint32_t,
+            uint32_t,
+            uint32_t,
+            double),
+        void (*init_state)(Generator*, Voice_state*),
+        uint32_t buffer_size,
+        uint32_t mix_rate);
 
 
 /**
@@ -136,6 +151,7 @@ char* Generator_get_type(Generator* gen);
  * Mixes the Generator.
  *
  * \param gen       The Generator -- must not be \c NULL.
+ * \param states    The Device states -- must not be \c NULL.
  * \param state     The Voice state -- must not be \c NULL.
  * \param nframes   The number of frames to be mixed -- must not be greater
  *                  than the mixing buffer size.
@@ -144,12 +160,14 @@ char* Generator_get_type(Generator* gen);
  * \param freq      The mixing frequency -- must be > \c 0.
  * \param tempo     The current tempo -- must be > \c 0.
  */
-void Generator_mix(Generator* gen,
-                   Voice_state* state,
-                   uint32_t nframes,
-                   uint32_t offset,
-                   uint32_t freq,
-                   double tempo);
+void Generator_mix(
+        Generator* gen,
+        Device_states* states,
+        Voice_state* state,
+        uint32_t nframes,
+        uint32_t offset,
+        uint32_t freq,
+        double tempo);
 
 
 /**

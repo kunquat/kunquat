@@ -143,29 +143,30 @@ void Voice_prepare(Voice* voice)
 }
 
 
-void Voice_mix(Voice* voice,
-               uint32_t nframes,
-               uint32_t offset,
-               uint32_t freq,
-               double tempo)
+void Voice_mix(
+        Voice* voice,
+        Device_states* states,
+        uint32_t nframes,
+        uint32_t offset,
+        uint32_t freq,
+        double tempo)
 {
     assert(voice != NULL);
     assert(voice->gen != NULL);
+    assert(states != NULL);
     assert(freq > 0);
+
     if (voice->prio == VOICE_PRIO_INACTIVE)
-    {
         return;
-    }
+
     uint32_t mixed = offset;
-    Generator_mix(voice->gen, voice->state, nframes, mixed, freq, tempo);
+    Generator_mix(voice->gen, states, voice->state, nframes, mixed, freq, tempo);
+
     if (!voice->state->active)
-    {
         Voice_reset(voice);
-    }
     else if (!voice->state->note_on)
-    {
         voice->prio = VOICE_PRIO_BG;
-    }
+
     return;
 }
 

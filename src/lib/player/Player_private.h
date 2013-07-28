@@ -49,6 +49,7 @@ struct Player
 
     double frame_remainder; // used for sub-frame time tracking
 
+    bool cgiters_accessed;
     Cgiter cgiters[KQT_CHANNELS_MAX];
 
     // Position tracking

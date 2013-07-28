@@ -157,6 +157,7 @@ bool Effect_prepare_connections(Effect* eff, Device_states* states)
     if (eff->connections == NULL)
         return true;
 
+#if 0
     Device_remove_direct_buffers(&eff->out_iface->parent);
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
@@ -180,6 +181,7 @@ bool Effect_prepare_connections(Effect* eff, Device_states* states)
 
         Device_set_direct_send(&eff->in_iface->parent, port, buf);
     }
+#endif
 
     if (!Connections_prepare(eff->connections, states))
         return false;
@@ -283,6 +285,30 @@ static bool Effect_sync(Device* device)
 }
 
 
+static void mix_interface_connection(
+        Device_state* ds,
+        const Device_state* in_ds,
+        uint32_t start,
+        uint32_t stop)
+{
+    assert(ds != NULL);
+    assert(in_ds != NULL);
+
+    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+    {
+        Audio_buffer* out = Device_state_get_audio_buffer(
+                ds, DEVICE_PORT_TYPE_SEND, port);
+        const Audio_buffer* in = Device_state_get_audio_buffer(
+                in_ds, DEVICE_PORT_TYPE_RECEIVE, port);
+
+        if (in != NULL && out != NULL)
+            Audio_buffer_mix(out, in, start, stop);
+    }
+
+    return;
+}
+
+
 static void Effect_process(
         Device* device,
         Device_states* states,
@@ -301,19 +327,10 @@ static void Effect_process(
     Effect* eff = (Effect*)device;
     if (eff->bypass)
     {
-        for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
-        {
-            Audio_buffer* out = Device_get_buffer(device,
-                                                  DEVICE_PORT_TYPE_SEND,
-                                                  port);
-            Audio_buffer* in = Device_get_buffer(device,
-                                                 DEVICE_PORT_TYPE_RECEIVE,
-                                                 port);
-            if (in != NULL && out != NULL)
-            {
-                Audio_buffer_mix(out, in, start, until);
-            }
-        }
+        Device_state* ds = Device_states_get_state(
+                states, Device_get_id((Device*)device));
+
+        mix_interface_connection(ds, ds, start, until);
     }
     else if (eff->connections != NULL)
     {
@@ -323,9 +340,21 @@ static void Effect_process(
         in_effect = true;
 #endif
         Connections_clear_buffers(eff->connections, states, start, until);
-        //fprintf(stderr, "Entering effect mix\n");
+
+        // Fill input interface buffers
+        Device_state* ds = Device_states_get_state(
+                states, Device_get_id((Device*)device));
+        Device_state* in_iface_ds = Device_states_get_state(
+                states, Device_get_id(Effect_get_input_interface(eff)));
+        mix_interface_connection(in_iface_ds, ds, start, until);
+
+        // Process effect graph
         Connections_mix(eff->connections, states, start, until, freq, tempo);
-        //fprintf(stderr, "Leaving effect mix\n");
+
+        // Fill output interface buffers
+        Device_state* out_iface_ds = Device_states_get_state(
+                states, Device_get_id(Effect_get_output_interface(eff)));
+        mix_interface_connection(ds, out_iface_ds, start, until);
 #ifndef NDEBUG
         in_effect = false;
 #endif

@@ -433,6 +433,9 @@ static void DSP_freeverb_process(
     assert(freq > 0);
     assert(tempo > 0);
 
+    Device_state* ds = Device_states_get_state(states, Device_get_id(device));
+    assert(ds != NULL);
+
     (void)freq;
     (void)tempo;
     DSP_freeverb* freeverb = (DSP_freeverb*)device;
@@ -440,8 +443,8 @@ static void DSP_freeverb_process(
     DSP_freeverb_check_params(freeverb);
     kqt_frame* in_data[] = { NULL, NULL };
     kqt_frame* out_data[] = { NULL, NULL };
-    DSP_get_raw_input(device, 0, in_data);
-    DSP_get_raw_output(device, 0, out_data);
+    DSP_get_raw_input(ds, 0, in_data);
+    DSP_get_raw_output(ds, 0, out_data);
     for (uint32_t i = start; i < until; ++i)
     {
         kqt_frame out_l = 0;

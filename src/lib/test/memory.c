@@ -46,6 +46,8 @@ START_TEST(Out_of_memory_at_handle_creation_fails_cleanly)
     // Test errors at every memory allocation point
     for (long i = 0; i < alloc_count; ++i)
     {
+        //fprintf(stderr, "%ld\n", i);
+
         kqt_fake_out_of_memory(i);
 
         handle = kqt_new_Handle();

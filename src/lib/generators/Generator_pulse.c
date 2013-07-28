@@ -31,6 +31,17 @@
 
 static void Generator_pulse_init_state(Generator* gen, Voice_state* state);
 
+static uint32_t Generator_pulse_mix(
+        Generator* gen,
+        Device_states* states,
+        Voice_state* state,
+        uint32_t nframes,
+        uint32_t offset,
+        uint32_t freq,
+        double tempo);
+
+static void del_Generator_pulse(Generator* gen);
+
 
 Generator* new_Generator_pulse(uint32_t buffer_size,
                                uint32_t mix_rate)
@@ -100,20 +111,29 @@ double pulse(double phase, double pulse_width)
 }
 
 
-uint32_t Generator_pulse_mix(Generator* gen,
-                             Voice_state* state,
-                             uint32_t nframes,
-                             uint32_t offset,
-                             uint32_t freq,
-                             double tempo)
+uint32_t Generator_pulse_mix(
+        Generator* gen,
+        Device_states* states,
+        Voice_state* state,
+        uint32_t nframes,
+        uint32_t offset,
+        uint32_t freq,
+        double tempo)
 {
     assert(gen != NULL);
     assert(string_eq(gen->type, "pulse"));
+    assert(states != NULL);
     assert(state != NULL);
     assert(freq > 0);
     assert(tempo > 0);
+
+    Device_state* ds = Device_states_get_state(
+            states,
+            Device_get_id((Device*)gen));
+    assert(ds != NULL);
+
     kqt_frame* bufs[] = { NULL, NULL };
-    Generator_common_get_buffers(gen, state, offset, bufs);
+    Generator_common_get_buffers(ds, state, offset, bufs);
     Generator_common_check_active(gen, state, offset);
     Generator_common_check_relative_lengths(gen, state, freq, tempo);
 //    double max_amp = 0;

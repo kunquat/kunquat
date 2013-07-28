@@ -47,9 +47,6 @@ struct Device
             uint32_t,
             double);
     bool reg[DEVICE_PORT_TYPES][KQT_DEVICE_PORTS_MAX];
-    Audio_buffer* buffers[DEVICE_PORT_TYPES][KQT_DEVICE_PORTS_MAX];
-    Audio_buffer* direct_receive[KQT_DEVICE_PORTS_MAX];
-    Audio_buffer* direct_send[KQT_DEVICE_PORTS_MAX];
 };
 
 
@@ -216,85 +213,6 @@ bool Device_port_is_registered(
 
 
 /**
- * Initialises a buffer for the Device.
- *
- * Initialising a send buffer will replace a direct send buffer if one exists
- * for the same send port.
- *
- * \param device   The Device -- must not be \c NULL.
- * \param type     The type of the port -- must be a valid type.
- * \param port     The port number -- must be >= \c 0 and
- *                 < \c KQT_DEVICE_PORTS_MAX. If the port is not registered,
- *                 the function does nothing and succeeds.
- *
- * \param   \c true if successful, or \c false if memory allocation failed.
- */
-bool Device_init_buffer(Device* device, Device_port_type type, int port);
-
-
-/**
- * Sets a direct receive buffer for the Device.
- *
- * \param device   The Device -- must not be \c NULL.
- * \param port     The receive port number -- must be >= \c 0 and
- *                 < \c KQT_DEVICE_PORTS_MAX. Also, the send port with this
- *                 number must contain a buffer.
- */
-void Device_set_direct_receive(Device* device, int port);
-
-
-/**
- * Sets a direct send buffer for the Device.
- *
- * \param device   The Device -- must not be \c NULL.
- * \param port     The send port number -- must be >= \c 0 and
- *                 < \c KQT_DEVICE_PORTS_MAX.
- * \param buffer   The Audio buffer, or \c NULL.
- */
-void Device_set_direct_send(
-        Device* device,
-        int port,
-        Audio_buffer* buffer);
-
-
-/**
- * Removes all direct buffers from the Device.
- *
- * \param device   The Device -- must not be \c NULL.
- */
-void Device_remove_direct_buffers(Device* device);
-
-
-/**
- * Retrieves an Audio buffer from the Device.
- *
- * \param device   The Device -- must not be \c NULL.
- * \param type     The type of the port -- must be a valid type.
- * \param port     The port number -- must be >= \c 0 and
- *                 < \c KQT_DEVICE_PORTS_MAX.
- *
- * \return   The buffer, or \c NULL if the port is not registered.
- */
-Audio_buffer* Device_get_buffer(
-        const Device* device,
-        Device_port_type type,
-        int port);
-
-
-/**
- * Initialises the internal buffers of the Device.
- *
- * This function should be called after each time the Device connection graph
- * is changed.
- *
- * \param device   The Device -- must not be \c NULL.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-//bool Device_init_buffers(Device* device);
-
-
-/**
  * Sets the mixing rate of the Device.
  *
  * \param device   The Device -- must not be \c NULL.
@@ -335,21 +253,6 @@ bool Device_set_buffer_size(Device* device, uint32_t size);
  * \return   The buffer size.
  */
 uint32_t Device_get_buffer_size(const Device* device);
-
-
-/**
- * Clears all the Audio buffers owned by the Device.
- *
- * This function does not clear direct send buffers.
- *
- * \param device   The Device -- must not be \c NULL.
- * \param start    The first frame to be cleared -- must be less than the
- *                 buffer size.
- * \param until    The first frame not to be cleared -- must be less than or
- *                 equal to the buffer size. If \a until <= \a start, nothing
- *                 will be cleared.
- */
-void Device_clear_buffers(Device* device, uint32_t start, uint32_t until);
 
 
 /**

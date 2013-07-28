@@ -35,6 +35,17 @@
 
 static void Generator_pcm_init_state(Generator* gen, Voice_state* state);
 
+static uint32_t Generator_pcm_mix(
+        Generator* gen,
+        Device_states* states,
+        Voice_state* state,
+        uint32_t nframes,
+        uint32_t offset,
+        uint32_t freq,
+        double tempo);
+
+static void del_Generator_pcm(Generator* gen);
+
 
 Generator* new_Generator_pcm(uint32_t buffer_size,
                              uint32_t mix_rate)
@@ -98,20 +109,29 @@ static void Generator_pcm_init_state(Generator* gen, Voice_state* state)
 }
 
 
-uint32_t Generator_pcm_mix(Generator* gen,
-                           Voice_state* state,
-                           uint32_t nframes,
-                           uint32_t offset,
-                           uint32_t freq,
-                           double tempo)
+uint32_t Generator_pcm_mix(
+        Generator* gen,
+        Device_states* states,
+        Voice_state* state,
+        uint32_t nframes,
+        uint32_t offset,
+        uint32_t freq,
+        double tempo)
 {
     assert(gen != NULL);
     assert(string_eq(gen->type, "pcm"));
+    assert(states != NULL);
     assert(state != NULL);
     assert(freq > 0);
     assert(tempo > 0);
+
+    Device_state* ds = Device_states_get_state(
+            states,
+            Device_get_id((Device*)gen));
+    assert(ds != NULL);
+
     kqt_frame* bufs[] = { NULL, NULL };
-    Generator_common_get_buffers(gen, state, offset, bufs);
+    Generator_common_get_buffers(ds, state, offset, bufs);
     Generator_common_check_active(gen, state, offset);
 //    Generator_pcm* pcm = (Generator_pcm*)gen;
     Voice_state_pcm* pcm_state = (Voice_state_pcm*)state;
@@ -235,139 +255,12 @@ uint32_t Generator_pcm_mix(Generator* gen,
 void del_Generator_pcm(Generator* gen)
 {
     if (gen == NULL)
-    {
         return;
-    }
+
     assert(string_eq(gen->type, "pcm"));
     Generator_pcm* pcm = (Generator_pcm*)gen;
     memory_free(pcm);
     return;
 }
-
-
-#if 0
-int8_t Generator_pcm_set_sample_mapping(Generator_pcm* pcm,
-                                        uint8_t source,
-                                        uint8_t expr,
-                                        double force,
-                                        double freq,
-                                        uint8_t index,
-                                        uint16_t sample,
-                                        double sample_freq,
-                                        double vol_scale)
-{
-    assert(pcm != NULL);
-    assert(pcm->parent.type == GEN_TYPE_PCM);
-    assert(source < PCM_SOURCES_MAX);
-    assert(expr < PCM_EXPRESSIONS_MAX);
-    assert(isfinite(force));
-    assert(freq > 0);
-    assert(index < PCM_RANDOMS_MAX);
-    assert(sample < PCM_SAMPLES_MAX);
-    assert(sample_freq > 0);
-    assert(vol_scale >= 0);
-    int map_pos = (source * PCM_EXPRESSIONS_MAX) + expr;
-    AAtree* map = pcm->maps[map_pos];
-    AAtree* new_map = NULL;
-    if (map == NULL)
-    {
-        new_map = new_AAtree((int (*)(const void*, const void*))Random_list_cmp,
-                         (void (*)(void*))del_Random_list);
-        if (new_map == NULL)
-        {
-            return -1;
-        }
-        pcm->maps[map_pos] = map = new_map;
-    }
-    Random_list* key = &(Random_list){ .force = force, .freq = freq };
-    Random_list* list = AAtree_get_exact(map, key);
-    Random_list* new_list = NULL;
-    if (list == NULL)
-    {
-        new_list = xalloc(Random_list);
-        if (new_list == NULL)
-        {
-            if (new_map != NULL)
-            {
-                pcm->maps[map_pos] = NULL;
-                del_AAtree(new_map);
-            }
-            return -1;
-        }
-        new_list->force = force;
-        new_list->freq = freq;
-        new_list->freq_tone = log(freq);
-        new_list->entry_count = 0;
-        for (int i = 0; i < PCM_RANDOMS_MAX; ++i)
-        {
-            new_list->entries[i].freq = -1;
-        }
-        if (!AAtree_ins(map, new_list))
-        {
-            if (new_map != NULL)
-            {
-                pcm->maps[map_pos] = NULL;
-                del_AAtree(new_map);
-                return -1;
-            }
-        }
-        list = new_list;
-    }
-    if (index >= list->entry_count)
-    {
-        index = list->entry_count;
-        ++list->entry_count;
-    }
-    list->entries[index].freq = sample_freq;
-    list->entries[index].vol_scale = vol_scale;
-    list->entries[index].sample = sample;
-    return index;
-}
-#endif
-
-
-#if 0
-bool Generator_pcm_del_sample_mapping(Generator_pcm* pcm,
-                                      uint8_t source,
-                                      uint8_t expr,
-                                      double force,
-                                      double freq,
-                                      uint8_t index)
-{
-    assert(pcm != NULL);
-    assert(pcm->parent.type == GEN_TYPE_PCM);
-    assert(source < PCM_SOURCES_MAX);
-    assert(expr < PCM_EXPRESSIONS_MAX);
-    assert(isfinite(force));
-    assert(isfinite(freq));
-    assert(index < PCM_RANDOMS_MAX);
-    int map_pos = (source * PCM_EXPRESSIONS_MAX) + expr;
-    AAtree* map = pcm->maps[map_pos];
-    if (map == NULL)
-    {
-        return false;
-    }
-    Random_list* key = &(Random_list){ .force = force, .freq = freq };
-    Random_list* list = AAtree_get_exact(map, key);
-    if (list == NULL)
-    {
-        return false;
-    }
-    if (index >= list->entry_count)
-    {
-        return false;
-    }
-    while (index < PCM_RANDOMS_MAX - 1 && list->entries[index].freq > 0)
-    {
-        list->entries[index].freq = list->entries[index + 1].freq;
-        list->entries[index].vol_scale = list->entries[index + 1].vol_scale;
-        list->entries[index].sample = list->entries[index + 1].sample;
-        ++index;
-    }
-    list->entries[index].freq = -1;
-    --list->entry_count;
-    return true;
-}
-#endif
 
 

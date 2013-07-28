@@ -66,12 +66,20 @@ Generator* new_Generator(char* str,
 }
 
 
-bool Generator_init(Generator* gen,
-                    void (*destroy)(Generator*),
-                    uint32_t (*mix)(Generator*, Voice_state*, uint32_t, uint32_t, uint32_t, double),
-                    void (*init_state)(Generator*, Voice_state*),
-                    uint32_t buffer_size,
-                    uint32_t mix_rate)
+bool Generator_init(
+        Generator* gen,
+        void (*destroy)(Generator*),
+        uint32_t (*mix)(
+            Generator*,
+            Device_states*,
+            Voice_state*,
+            uint32_t,
+            uint32_t,
+            uint32_t,
+            double),
+        void (*init_state)(Generator*, Voice_state*),
+        uint32_t buffer_size,
+        uint32_t mix_rate)
 {
     assert(gen != NULL);
     assert(destroy != NULL);
@@ -79,13 +87,14 @@ bool Generator_init(Generator* gen,
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
     assert(mix_rate > 0);
+
     gen->destroy = destroy;
     gen->mix = mix;
     gen->init_state = init_state;
+
     if (!Device_init(&gen->parent, buffer_size, mix_rate))
-    {
         return false;
-    }
+
     Device_set_reset(&gen->parent, Generator_reset);
     Device_register_port(&gen->parent, DEVICE_PORT_TYPE_SEND, 0);
     return true;
@@ -126,22 +135,25 @@ char* Generator_get_type(Generator* gen)
 }
 
 
-void Generator_mix(Generator* gen,
-                   Voice_state* state,
-                   uint32_t nframes,
-                   uint32_t offset,
-                   uint32_t freq,
-                   double tempo)
+void Generator_mix(
+        Generator* gen,
+        Device_states* states,
+        Voice_state* state,
+        uint32_t nframes,
+        uint32_t offset,
+        uint32_t freq,
+        double tempo)
 {
     assert(gen != NULL);
     assert(gen->mix != NULL);
+    assert(states != NULL);
     assert(state != NULL);
     assert(freq > 0);
     assert(tempo > 0);
+
     if (offset < nframes)
-    {
-        gen->mix(gen, state, nframes, offset, freq, tempo);
-    }
+        gen->mix(gen, states, state, nframes, offset, freq, tempo);
+
     return;
 }
 

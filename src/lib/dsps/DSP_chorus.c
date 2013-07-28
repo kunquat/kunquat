@@ -324,19 +324,24 @@ static void DSP_chorus_process(
     assert(freq > 0);
     assert(tempo > 0);
 
+    Device_state* ds = Device_states_get_state(states, Device_get_id(device));
+    assert(ds != NULL);
+
     (void)freq;
     (void)tempo;
     DSP_chorus* chorus = (DSP_chorus*)device;
     assert(string_eq(chorus->parent.type, "chorus"));
     kqt_frame* in_data[] = { NULL, NULL };
     kqt_frame* out_data[] = { NULL, NULL };
-    DSP_get_raw_input(device, 0, in_data);
-    DSP_get_raw_output(device, 0, out_data);
+    DSP_get_raw_input(ds, 0, in_data);
+    DSP_get_raw_output(ds, 0, out_data);
     kqt_frame* buf[] = { Audio_buffer_get_buffer(chorus->buf, 0),
                          Audio_buffer_get_buffer(chorus->buf, 1) };
     int32_t buf_size = Audio_buffer_get_size(chorus->buf);
     assert(start <= until);
+
     DSP_chorus_check_params(chorus);
+
     for (uint32_t i = start; i < until; ++i)
     {
         buf[0][chorus->buf_pos] = in_data[0][i];

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -27,18 +27,18 @@
 /**
  * Gets the output buffers.
  */
-#define Generator_common_get_buffers(gen, state, mixed, bufs)     \
-    if (true)                                                     \
-    {                                                             \
-        Audio_buffer* buffer = Device_get_buffer(&(gen)->parent,  \
-                                       DEVICE_PORT_TYPE_SEND, 0); \
-        if (buffer == NULL)                                       \
-        {                                                         \
-            (state)->active = false;                              \
-            return (mixed);                                       \
-        }                                                         \
-        bufs[0] = Audio_buffer_get_buffer(buffer, 0);             \
-        bufs[1] = Audio_buffer_get_buffer(buffer, 1);             \
+#define Generator_common_get_buffers(ds, state, mixed, bufs)  \
+    if (true)                                                 \
+    {                                                         \
+        Audio_buffer* buffer = Device_state_get_audio_buffer( \
+                (ds), DEVICE_PORT_TYPE_SEND, 0);              \
+        if (buffer == NULL)                                   \
+        {                                                     \
+            (state)->active = false;                          \
+            return (mixed);                                   \
+        }                                                     \
+        bufs[0] = Audio_buffer_get_buffer(buffer, 0);         \
+        bufs[1] = Audio_buffer_get_buffer(buffer, 1);         \
     } else (void)0
 
 

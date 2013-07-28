@@ -89,7 +89,7 @@ void Audio_buffer_clear(Audio_buffer* buffer, uint32_t start, uint32_t until);
  */
 void Audio_buffer_mix(
         Audio_buffer* buffer,
-        Audio_buffer* in,
+        const Audio_buffer* in,
         uint32_t start,
         uint32_t until);
 

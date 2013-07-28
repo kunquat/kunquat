@@ -21,6 +21,7 @@
 
 #include <Channel_gen_state.h>
 #include <Generator.h>
+#include <player/Device_states.h>
 #include <Random.h>
 #include <Voice_params.h>
 #include <Voice_state.h>
@@ -140,16 +141,19 @@ void Voice_prepare(Voice* voice);
  * Mixes the Voice.
  *
  * \param voice    The Voice -- must not be \c NULL.
+ * \param states   The Device states -- must not be \c NULL.
  * \param amount   The number of frames to be mixed.
  * \param offset   The buffer offset.
  * \param freq     The mixing frequency -- must be > \c 0.
  * \param tempo    The current tempo -- must be > \c 0.
  */
-void Voice_mix(Voice* voice,
-               uint32_t amount,
-               uint32_t offset,
-               uint32_t freq,
-               double tempo);
+void Voice_mix(
+        Voice* voice,
+        Device_states* states,
+        uint32_t amount,
+        uint32_t offset,
+        uint32_t freq,
+        double tempo);
 
 
 /**

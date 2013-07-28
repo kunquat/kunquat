@@ -185,25 +185,27 @@ Voice* Voice_pool_get_voice(
 void Voice_pool_prepare(Voice_pool* pool)
 {
     assert(pool != NULL);
+
     for (uint16_t i = 0; i < pool->size; ++i)
     {
         if (pool->voices[i]->prio != VOICE_PRIO_INACTIVE)
-        {
             Voice_prepare(pool->voices[i]);
-        }
     }
+
     return;
 }
 
 
 uint16_t Voice_pool_mix_bg(
         Voice_pool* pool,
+        Device_states* states,
         uint32_t amount,
         uint32_t offset,
         uint32_t freq,
         double tempo)
 {
     assert(pool != NULL);
+    assert(states != NULL);
     assert(freq > 0);
 
     if (pool->size == 0)
@@ -217,7 +219,7 @@ uint16_t Voice_pool_mix_bg(
             if (pool->voices[i]->prio <= VOICE_PRIO_BG)
             {
 //                fprintf(stderr, "Background mix start\n");
-                Voice_mix(pool->voices[i], amount, offset, freq, tempo);
+                Voice_mix(pool->voices[i], states, amount, offset, freq, tempo);
 //                fprintf(stderr, "Background mix end\n");
             }
             ++active_voices;

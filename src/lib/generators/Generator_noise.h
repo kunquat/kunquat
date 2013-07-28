@@ -1,7 +1,7 @@
 
 
 /*
- * Authors: Tomi Jylhä-Ollila, Finland 2010
+ * Authors: Tomi Jylhä-Ollila, Finland 2010-2013
  *          Ossi Saresoja, Finland 2010
  *
  * This file is part of Kunquat.
@@ -52,22 +52,6 @@ Generator* new_Generator_noise(uint32_t buffer_size,
  *           \a property_type, or \c NULL if one does not exist.
  */
 char* Generator_noise_property(Generator* gen, const char* property_type);
-
-
-uint32_t Generator_noise_mix(Generator* gen,
-                             Voice_state* state,
-                             uint32_t nframes,
-                             uint32_t offset,
-                             uint32_t freq,
-                             double tempo);
-
-
-/**
- * Destroys an existing Noise Generator.
- *
- * \param gen   The Noise Generator, or \c NULL.
- */
-void del_Generator_noise(Generator* gen);
 
 
 #endif // K_GENERATOR_NOISE_H

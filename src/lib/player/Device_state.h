@@ -136,6 +136,22 @@ bool Device_state_allocate_space(Device_state* ds, char* key);
 
 
 /**
+ * Adds an audio buffer into the Device state.
+ *
+ * \param ds     The Device state -- must not be \c NULL.
+ * \param type   The port type -- must be valid.
+ * \param port   The port number -- must be >= \c 0 and
+ *               < \c KQT_DEVICE_PORTS_MAX.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Device_state_add_audio_buffer(
+        Device_state* ds,
+        Device_port_type type,
+        int port);
+
+
+/**
  * Clears audio buffers in the Device state.
  *
  * \param ds      The Device state -- must not be \c NULL.
@@ -147,6 +163,22 @@ void Device_state_clear_audio_buffers(
         Device_state* ds,
         uint32_t start,
         uint32_t stop);
+
+
+/**
+ * Returns an audio buffer of the Device state.
+ *
+ * \param ds     The Device state -- must not be \c NULL.
+ * \param type   The port type -- must be valid.
+ * \param port   The port number -- must be >= \c 0 and
+ *               < \c KQT_DEVICE_PORTS_MAX.
+ *
+ * \return   The Audio buffer if one exists, otherwise \c NULL.
+ */
+Audio_buffer* Device_state_get_audio_buffer(
+        const Device_state* ds,
+        Device_port_type type,
+        int port);
 
 
 /**

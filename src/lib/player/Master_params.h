@@ -107,6 +107,16 @@ Master_params* Master_params_init(Master_params* params, const Module* module);
 
 
 /**
+ * Sets the starting tempo.
+ *
+ * This function is only needed before reading patterns for the first time.
+ *
+ * \param params   The Master params -- must not be \c NULL.
+ */
+void Master_params_set_starting_tempo(Master_params* params);
+
+
+/**
  * Resets the Master params.
  *
  * \param params   The Master params -- must not be \c NULL.

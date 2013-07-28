@@ -967,14 +967,26 @@ static Effect* add_effect(kqt_Handle* handle, int index, Effect_table* table)
         return NULL;
     }
 
-    // Allocate Device state(s) for the new Effect
-    Device_state* ds = Device_make_state((Device*)eff);
-    if (ds == NULL || !Device_states_add_state(
-                Player_get_device_states(handle->player), ds))
+    // Allocate Device states for the new Effect
+    const Device* eff_devices[] =
     {
-        kqt_Handle_set_error(handle, ERROR_MEMORY, memory_error_str);
-        Effect_table_remove(table, index);
-        return NULL;
+        (Device*)eff,
+        Effect_get_input_interface(eff),
+        Effect_get_output_interface(eff),
+        NULL
+    };
+    for (int i = 0; i < 3; ++i)
+    {
+        assert(eff_devices[i] != NULL);
+        Device_state* ds = Device_make_state(eff_devices[i]);
+        if (ds == NULL || !Device_states_add_state(
+                    Player_get_device_states(handle->player), ds))
+        {
+            del_Device_state(ds);
+            kqt_Handle_set_error(handle, ERROR_MEMORY, memory_error_str);
+            Effect_table_remove(table, index);
+            return NULL;
+        }
     }
 
     return eff;

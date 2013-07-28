@@ -26,6 +26,17 @@
 
 static bool Generator_debug_update_key(Device* device, const char* key);
 
+static uint32_t Generator_debug_mix(
+        Generator* gen,
+        Device_states* states,
+        Voice_state* state,
+        uint32_t nframes,
+        uint32_t offset,
+        uint32_t freq,
+        double tempo);
+
+static void del_Generator_debug(Generator* gen);
+
 
 Generator* new_Generator_debug(uint32_t buffer_size,
                                uint32_t mix_rate)
@@ -54,21 +65,31 @@ Generator* new_Generator_debug(uint32_t buffer_size,
 }
 
 
-uint32_t Generator_debug_mix(Generator* gen,
-                             Voice_state* state,
-                             uint32_t nframes,
-                             uint32_t offset,
-                             uint32_t freq,
-                             double tempo)
+static uint32_t Generator_debug_mix(
+        Generator* gen,
+        Device_states* states,
+        Voice_state* state,
+        uint32_t nframes,
+        uint32_t offset,
+        uint32_t freq,
+        double tempo)
 {
     assert(gen != NULL);
     assert(string_eq(gen->type, "debug"));
+    assert(states != NULL);
     assert(state != NULL);
     assert(freq > 0);
     assert(tempo > 0);
     (void)tempo;
+
+    Device_state* ds = Device_states_get_state(
+            states,
+            Device_get_id((Device*)gen));
+    assert(ds != NULL);
+
     kqt_frame* bufs[] = { NULL, NULL };
-    Generator_common_get_buffers(gen, state, offset, bufs);
+    Generator_common_get_buffers(ds, state, offset, bufs);
+
     if (!state->active)
     {
         return offset;
@@ -151,12 +172,11 @@ static bool Generator_debug_update_key(Device* device, const char* key)
 }
 
 
-void del_Generator_debug(Generator* gen)
+static void del_Generator_debug(Generator* gen)
 {
     if (gen == NULL)
-    {
         return;
-    }
+
     assert(string_eq(gen->type, "debug"));
     Generator_debug* debug = (Generator_debug*)gen;
     memory_free(debug);

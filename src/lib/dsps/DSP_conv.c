@@ -320,6 +320,9 @@ static void DSP_conv_process(
     assert(freq > 0);
     assert(tempo > 0);
 
+    Device_state* ds = Device_states_get_state(states, Device_get_id(device));
+    assert(ds != NULL);
+
     (void)freq;
     (void)tempo;
     DSP_conv* conv = (DSP_conv*)device;
@@ -327,12 +330,13 @@ static void DSP_conv_process(
     DSP_conv_check_params(conv);
     kqt_frame* in_data[] = { NULL, NULL };
     kqt_frame* out_data[] = { NULL, NULL };
-    DSP_get_raw_input(device, 0, in_data);
-    DSP_get_raw_output(device, 0, out_data);
+    DSP_get_raw_input(ds, 0, in_data);
+    DSP_get_raw_output(ds, 0, out_data);
     kqt_frame* ir_data[] = { Audio_buffer_get_buffer(conv->ir, 0),
                              Audio_buffer_get_buffer(conv->ir, 1) };
     kqt_frame* history_data[] = { Audio_buffer_get_buffer(conv->history, 0),
                                   Audio_buffer_get_buffer(conv->history, 1) };
+
     for (uint32_t out_pos = start; out_pos < until; ++out_pos)
     {
         kqt_frame out_l = 0;

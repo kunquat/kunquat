@@ -80,6 +80,9 @@ static void DSP_volume_process(
     assert(isfinite(tempo));
     assert(tempo > 0);
 
+    Device_state* ds = Device_states_get_state(states, Device_get_id(device));
+    assert(ds != NULL);
+
     (void)freq;
     (void)tempo;
     DSP_volume* volume = (DSP_volume*)device;
@@ -88,8 +91,8 @@ static void DSP_volume_process(
     assert(volume->parent.conf->params != NULL);
     kqt_frame* in_data[] = { NULL, NULL };
     kqt_frame* out_data[] = { NULL, NULL };
-    DSP_get_raw_input(device, 0, in_data);
-    DSP_get_raw_output(device, 0, out_data);
+    DSP_get_raw_input(ds, 0, in_data);
+    DSP_get_raw_output(ds, 0, out_data);
     double factor = 1;
     double* dB_arg = Device_params_get_float(volume->parent.conf->params,
                                              "p_volume.jsonf");

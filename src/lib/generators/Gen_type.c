@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -20,10 +20,6 @@
 #include <Generator_noise.h>
 #include <Generator_pcm.h>
 #include <Generator_pulse.h>
-#include <Generator_sawtooth.h>
-#include <Generator_sine.h>
-#include <Generator_square303.h>
-#include <Generator_triangle.h>
 #include <string_common.h>
 #include <xassert.h>
 
@@ -43,10 +39,6 @@ const Gen_type gen_types[] =
     { "noise", new_Generator_noise, Generator_noise_property },
     { "pcm", new_Generator_pcm, Generator_pcm_property },
     { "pulse", new_Generator_pulse, Generator_pulse_property },
-    { "sawtooth", new_Generator_sawtooth, Generator_sawtooth_property },
-    { "sine", new_Generator_sine, Generator_sine_property },
-    { "square303", new_Generator_square303, Generator_square303_property },
-    { "triangle", new_Generator_triangle, Generator_triangle_property },
     { NULL, NULL, NULL }
 };
 

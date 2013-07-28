@@ -247,30 +247,29 @@ bool Device_node_init_buffers_simple(Device_node* node, Device_states* states)
                 continue;
             }
 
-            const Audio_buffer* receive_buffer =
-                Device_get_buffer(node_device, DEVICE_PORT_TYPE_RECEIVE, port);
-            if (receive_buffer == NULL &&
-                    !Device_init_buffer(node_device,
-                                        DEVICE_PORT_TYPE_RECEIVE, port))
+            // Add receive buffer
+            Device_state* receive_state = Device_states_get_state(
+                    states,
+                    Device_get_id(node_device));
+            if (receive_state != NULL &&
+                    !Device_state_add_audio_buffer(
+                        receive_state,
+                        DEVICE_PORT_TYPE_RECEIVE,
+                        port))
                 return false;
 
-#if 0
-            if (node->name[0] == '\0' && node->send[0] == NULL)
-            {
-                fprintf(stderr, "allocated receive buffers for master\n");
-                fprintf(stderr, "%p %p   \n",
-                        (void*)Audio_buffer_get_buffer(Device_get_buffer(node->device, DEVICE_PORT_TYPE_RECEIVE, port), 0),
-                        (void*)Audio_buffer_get_buffer(Device_get_buffer(node->device, DEVICE_PORT_TYPE_RECEIVE, port), 1));
-            }
-#endif
-
-            const Audio_buffer* send_buffer =
-                Device_get_buffer(send_device, DEVICE_PORT_TYPE_SEND, edge->port);
-            if (send_buffer == NULL &&
-                    !Device_init_buffer(Device_node_get_device(edge->node),
-                                        DEVICE_PORT_TYPE_SEND, edge->port))
+            // Add send buffer
+            Device_state* send_state = Device_states_get_state(
+                    states,
+                    Device_get_id(send_device));
+            if (send_state != NULL &&
+                    !Device_state_add_audio_buffer(
+                        send_state,
+                        DEVICE_PORT_TYPE_SEND,
+                        edge->port))
                 return false;
 
+            // Recurse to the sender
             if (!Device_node_init_buffers_simple(edge->node, states))
                 return false;
 
@@ -394,7 +393,12 @@ void Device_node_clear_buffers(
     }
 
     //fprintf(stderr, "Clearing buffers of %p\n", (void*)Device_node_get_device(node));
-    Device_clear_buffers(Device_node_get_device(node), start, until);
+    const Device* device = Device_node_get_device(node);
+    Device_state* ds = Device_states_get_state(states, Device_get_id(device));
+
+    if (ds != NULL)
+        Device_state_clear_audio_buffers(ds, start, until);
+
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
         Connection* edge = node->receive[port];
@@ -430,9 +434,15 @@ void Device_node_mix(
         assert(Device_node_get_state(node) == DEVICE_NODE_STATE_VISITED);
         return;
     }
+
     Device_node_set_state(node, DEVICE_NODE_STATE_REACHED);
     Device* node_device = Device_node_get_device(node);
-    if (node_device == NULL || !Device_is_existent(node_device))
+    Device_state* ds = Device_states_get_state(
+            states,
+            Device_get_id(node_device));
+    if (node_device == NULL ||
+            !Device_is_existent(node_device) ||
+            ds == NULL)
     {
         Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
         return;
@@ -446,26 +456,39 @@ void Device_node_mix(
             Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
             return;
         }
+
         Connections* ins_graph = Instrument_get_connections(ins);
         Device_node* ins_node = NULL;
+        Device_state* ins_state = Device_states_get_state(
+                states,
+                Device_get_id((Device*)ins));
         if (ins_graph == NULL ||
-                (ins_node = Connections_get_master(ins_graph)) == NULL)
+                (ins_node = Connections_get_master(ins_graph)) == NULL ||
+                ins_state == NULL)
         {
             Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
             return;
         }
+
+        // Mix audio inside the instrument
         Device_node_mix(ins_node, states, start, until, freq, tempo);
+
+        // Copy audio to instrument front end
         for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
         {
-            Audio_buffer* receive = Device_get_buffer(node_device,
-                                            DEVICE_PORT_TYPE_RECEIVE, port);
-            Audio_buffer* send = Device_get_buffer(node_device,
-                                            DEVICE_PORT_TYPE_SEND, port);
-            if (receive == NULL || send == NULL)
-                continue;
+            Audio_buffer* receive = Device_state_get_audio_buffer(
+                    ins_state,
+                    DEVICE_PORT_TYPE_RECEIVE,
+                    port);
+            Audio_buffer* send = Device_state_get_audio_buffer(
+                    ins_state,
+                    DEVICE_PORT_TYPE_SEND,
+                    port);
 
-            Audio_buffer_mix(send, receive, start, until);
+            if (receive != NULL && send != NULL)
+                Audio_buffer_mix(send, receive, start, until);
         }
+
         Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
         return;
     }
@@ -475,17 +498,32 @@ void Device_node_mix(
         Connection* edge = node->receive[port];
         while (edge != NULL)
         {
-            if (Device_node_get_device(edge->node) == NULL)
+            const Device* send_device = Device_node_get_device(edge->node);
+            if (send_device == NULL)
             {
                 edge = edge->next;
                 continue;
             }
+
+            Device_state* send_state = Device_states_get_state(
+                    states,
+                    Device_get_id(send_device));
+            if (send_state == NULL)
+            {
+                edge = edge->next;
+                continue;
+            }
+
             Device_node_mix(edge->node, states, start, until, freq, tempo);
-            Audio_buffer* send =
-                    Device_get_buffer(Device_node_get_device(edge->node),
-                                         DEVICE_PORT_TYPE_SEND, edge->port);
-            Audio_buffer* receive = Device_get_buffer(node_device,
-                                         DEVICE_PORT_TYPE_RECEIVE, port);
+
+            Audio_buffer* send = Device_state_get_audio_buffer(
+                    send_state,
+                    DEVICE_PORT_TYPE_SEND,
+                    edge->port);
+            Audio_buffer* receive = Device_state_get_audio_buffer(
+                    ds,
+                    DEVICE_PORT_TYPE_RECEIVE,
+                    port);
             if (receive == NULL || send == NULL)
             {
 #if 0
@@ -502,8 +540,12 @@ void Device_node_mix(
                 edge = edge->next;
                 continue;
             }
-            //fprintf(stderr, "%f\n", Audio_buffer_get_buffer(send, 0)[0]);
+
+            //fprintf(stderr, "%s %.1f\n",
+            //        send_device->name,
+            //        Audio_buffer_get_buffer(send, 0)[0]);
             Audio_buffer_mix(receive, send, start, until);
+
             edge = edge->next;
         }
     }

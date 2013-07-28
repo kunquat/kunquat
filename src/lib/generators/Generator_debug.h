@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -45,22 +45,6 @@ typedef struct Generator_debug
  */
 Generator* new_Generator_debug(uint32_t buffer_size,
                                uint32_t mix_rate);
-
-
-uint32_t Generator_debug_mix(Generator* gen,
-                             Voice_state* state,
-                             uint32_t nframes,
-                             uint32_t offset,
-                             uint32_t freq,
-                             double tempo);
-
-
-/**
- * Destroys an existing Debug Generator.
- *
- * \param gen   The Debug Generator, or \c NULL.
- */
-void del_Generator_debug(Generator* gen);
 
 
 #endif // K_GENERATOR_DEBUG_H

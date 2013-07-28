@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -22,17 +22,17 @@
 #include <xassert.h>
 
 
-#define DSP_get_raw_buffers(device, type, port, buffers)                \
-    if (true)                                                           \
-    {                                                                   \
-        assert((buffers) != NULL);                                      \
-        Audio_buffer* in = Device_get_buffer((device), (type), (port)); \
-        if (in == NULL)                                                 \
-        {                                                               \
-            return;                                                     \
-        }                                                               \
-        (buffers)[0] = Audio_buffer_get_buffer(in, 0);                  \
-        (buffers)[1] = Audio_buffer_get_buffer(in, 1);                  \
+#define DSP_get_raw_buffers(ds, type, port, buffers)      \
+    if (true)                                             \
+    {                                                     \
+        assert((buffers) != NULL);                        \
+        Audio_buffer* in = Device_state_get_audio_buffer( \
+                (ds), (type), (port));                    \
+        if (in == NULL)                                   \
+            return;                                       \
+                                                          \
+        (buffers)[0] = Audio_buffer_get_buffer(in, 0);    \
+        (buffers)[1] = Audio_buffer_get_buffer(in, 1);    \
     } else (void)0
 
 
@@ -41,15 +41,14 @@
  *
  * This macro stops the calling function if the buffers do not exist.
  *
- * \param device    The DSP Device -- must not be \c NULL.
+ * \param ds        The Device state -- must not be \c NULL.
  * \param num       The port number -- must be >= \c and
  *                  < \c KQT_DEVICE_PORTS_MAX.
  * \param buffers   The array where the buffers are stored -- must not
  *                  be \c NULL.
  */
-#define DSP_get_raw_input(device, port, buffers)                        \
-                DSP_get_raw_buffers((device), DEVICE_PORT_TYPE_RECEIVE, \
-                                    (port), (buffers))
+#define DSP_get_raw_input(ds, port, buffers) \
+    DSP_get_raw_buffers((ds), DEVICE_PORT_TYPE_RECEIVE, (port), (buffers))
 
 
 /**
@@ -57,15 +56,14 @@
  *
  * This macro stops the calling function if the buffers do not exist.
  *
- * \param device    The DSP Device -- must not be \c NULL.
+ * \param ds        The Device state -- must not be \c NULL.
  * \param num       The port number -- must be >= \c and
  *                  < \c KQT_DEVICE_PORTS_MAX.
  * \param buffers   The array where the buffers are stored -- must not
  *                  be \c NULL.
  */
-#define DSP_get_raw_output(device, port, buffers)                    \
-                DSP_get_raw_buffers((device), DEVICE_PORT_TYPE_SEND, \
-                                     (port), (buffers))
+#define DSP_get_raw_output(ds, port, buffers) \
+    DSP_get_raw_buffers((ds), DEVICE_PORT_TYPE_SEND, (port), (buffers))
 
 
 #endif // K_DSP_COMMON_H

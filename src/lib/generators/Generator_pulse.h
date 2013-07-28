@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -51,22 +51,6 @@ Generator* new_Generator_pulse(uint32_t buffer_size,
  *           \a property_type, or \c NULL if one does not exist.
  */
 char* Generator_pulse_property(Generator* gen, const char* property_type);
-
-
-uint32_t Generator_pulse_mix(Generator* gen,
-                             Voice_state* state,
-                             uint32_t nframes,
-                             uint32_t offset,
-                             uint32_t freq,
-                             double tempo);
-
-
-/**
- * Destroys an existing Pulse Generator.
- *
- * \param gen   The Pulse Generator, or \c NULL.
- */
-void del_Generator_pulse(Generator* gen);
 
 
 #endif // K_GENERATOR_PULSE_H

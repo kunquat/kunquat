@@ -90,6 +90,7 @@ Player* new_Player(
 
     player->frame_remainder = 0.0;
 
+    player->cgiters_accessed = false;
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
         Cgiter_init(&player->cgiters[i], player->module, i);
 
@@ -111,6 +112,15 @@ Player* new_Player(
                 player->voices,
                 sizeof(Voice_state)))
     {
+        del_Player(player);
+        return NULL;
+    }
+
+    Device_state* master_state = Device_make_state((Device*)player->module);
+    if (master_state == NULL || !Device_states_add_state(
+                player->device_states, master_state))
+    {
+        del_Device_state(master_state);
         del_Player(player);
         return NULL;
     }
@@ -354,6 +364,7 @@ static void Player_process_voices(
                     assert(ch->fg[k]->prio > VOICE_PRIO_INACTIVE);
                     Voice_mix(
                             ch->fg[k],
+                            player->device_states,
                             render_stop,
                             render_start,
                             player->audio_rate,
@@ -366,6 +377,7 @@ static void Player_process_voices(
     // Background voices
     int16_t active_voices = Voice_pool_mix_bg(
             player->voices,
+            player->device_states,
             render_stop,
             render_start,
             player->audio_rate,
@@ -410,6 +422,18 @@ void Player_play(Player* player, int32_t nframes)
         int32_t to_be_rendered = nframes - rendered;
         if (!player->master_params.parent.pause && !Player_has_stopped(player))
         {
+            if (!player->cgiters_accessed)
+            {
+                // We are reading notes for the first time, do final inits
+                player->cgiters_accessed = true;
+
+                Master_params_set_starting_tempo(&player->master_params);
+
+                for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
+                    Cgiter_reset(
+                            &player->cgiters[i],
+                            &player->master_params.cur_pos);
+            }
             to_be_rendered = Player_move_forwards(player, to_be_rendered, false);
         }
 
@@ -443,31 +467,36 @@ void Player_play(Player* player, int32_t nframes)
                     player->master_params.tempo);
 
             // Get access to mixed output
-            Device* master = Device_node_get_device(
-                    Connections_get_master(connections));
-            Audio_buffer* buffer = Device_get_buffer(
-                    master,
+            Device_state* master_state = Device_states_get_state(
+                    player->device_states,
+                    Device_get_id((Device*)player->module));
+            assert(master_state != NULL);
+
+            Audio_buffer* buffer = Device_state_get_audio_buffer(
+                    master_state,
                     DEVICE_PORT_TYPE_RECEIVE,
                     0);
-            assert(buffer != NULL);
 
-            kqt_frame* bufs[] =
+            if (buffer != NULL)
             {
-                Audio_buffer_get_buffer(buffer, 0),
-                Audio_buffer_get_buffer(buffer, 1),
-            };
-            assert(bufs[0] != NULL);
-            assert(bufs[1] != NULL);
+                kqt_frame* bufs[] =
+                {
+                    Audio_buffer_get_buffer(buffer, 0),
+                    Audio_buffer_get_buffer(buffer, 1),
+                };
+                assert(bufs[0] != NULL);
+                assert(bufs[1] != NULL);
 
-            // Apply master volume
-            for (int32_t i = rendered; i < rendered + to_be_rendered; ++i)
-            {
-                if (Slider_in_progress(&player->master_params.volume_slider))
-                    player->master_params.volume = Slider_step(
-                            &player->master_params.volume_slider);
+                // Apply master volume
+                for (int32_t i = rendered; i < rendered + to_be_rendered; ++i)
+                {
+                    if (Slider_in_progress(&player->master_params.volume_slider))
+                        player->master_params.volume = Slider_step(
+                                &player->master_params.volume_slider);
 
-                for (int ch = 0; ch < 2; ++ch)
-                    bufs[ch][i] *= player->master_params.volume;
+                    for (int ch = 0; ch < 2; ++ch)
+                        bufs[ch][i] *= player->master_params.volume;
+                }
             }
         }
 
@@ -476,12 +505,16 @@ void Player_play(Player* player, int32_t nframes)
 
     if (connections != NULL)
     {
-        Device* master = Device_node_get_device(
-                Connections_get_master(connections));
-        Audio_buffer* buffer = Device_get_buffer(
-                master,
+        Device_state* master_state = Device_states_get_state(
+                player->device_states,
+                Device_get_id((Device*)player->module));
+        assert(master_state != NULL);
+
+        Audio_buffer* buffer = Device_state_get_audio_buffer(
+                master_state,
                 DEVICE_PORT_TYPE_RECEIVE,
                 0);
+
         if (buffer != NULL)
         {
             // Apply render volume
@@ -550,6 +583,8 @@ void Player_skip(Player* player, int64_t nframes)
     player->audio_frames_processed += skipped;
 
     player->events_returned = false;
+
+    player->cgiters_accessed = true;
 
     return;
 }

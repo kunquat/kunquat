@@ -91,20 +91,10 @@ Master_params* Master_params_init(Master_params* params, const Module* module)
 }
 
 
-void Master_params_reset(Master_params* params)
+void Master_params_set_starting_tempo(Master_params* params)
 {
     assert(params != NULL);
 
-    ++params->playback_id;
-
-    Master_params_clear(params);
-
-    General_state_reset(&params->parent);
-
-    params->start_pos.track = 0; // TODO: init start_pos from argument
-    params->cur_pos = params->start_pos;
-
-    // Get starting tempo
     const Track_list* tl = Module_get_track_list(params->module);
     if (tl != NULL && params->cur_pos.track < (int16_t)Track_list_get_len(tl))
     {
@@ -118,6 +108,25 @@ void Master_params_reset(Master_params* params)
             params->tempo = Subsong_get_tempo(ss);
         }
     }
+
+    return;
+}
+
+
+void Master_params_reset(Master_params* params)
+{
+    assert(params != NULL);
+
+    ++params->playback_id;
+
+    Master_params_clear(params);
+
+    General_state_reset(&params->parent);
+
+    params->start_pos.track = 0; // TODO: init start_pos from argument
+    params->cur_pos = params->start_pos;
+
+    Master_params_set_starting_tempo(params);
 
     return;
 }

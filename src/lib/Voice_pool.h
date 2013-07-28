@@ -118,6 +118,7 @@ void Voice_pool_prepare(Voice_pool* pool);
  * Mixes the background Voices in the Voice pool.
  *
  * \param pool     The Voice pool -- must not be \c NULL.
+ * \param states   The Device states -- must not be \c NULL.
  * \param amount   The number of frames to be mixed.
  * \param offset   The buffer offset.
  * \param freq     The mixing frequency -- must be > \c 0.
@@ -126,6 +127,7 @@ void Voice_pool_prepare(Voice_pool* pool);
  */
 uint16_t Voice_pool_mix_bg(
         Voice_pool* pool,
+        Device_states* states,
         uint32_t amount,
         uint32_t offset,
         uint32_t freq,
