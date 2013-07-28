@@ -27,7 +27,6 @@
 #include <player/Channel_gen_state.h>
 #include <Random.h>
 #include <Tstamp.h>
-#include <Voice_params.h>
 #include <Voice_pool.h>
 #include <Ins_table.h>
 
@@ -40,7 +39,6 @@ typedef struct Channel
 {
     General_state parent;
     int num;                       ///< Channel number.
-    Voice_params vp;               ///< Voice parameters.
     Channel_gen_state* cgstate;    ///< Channel-specific generator state.
     Random* rand;                  ///< Random source for this channel.
     Event_cache* event_cache;

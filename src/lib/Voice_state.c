@@ -17,7 +17,6 @@
 #include <math.h>
 
 #include <Voice_state.h>
-#include <Voice_params.h>
 #include <Tstamp.h>
 #include <Slider.h>
 #include <kunquat/limits.h>
@@ -26,7 +25,6 @@
 
 Voice_state* Voice_state_init(
         Voice_state* state,
-        Voice_params* params,
         Channel_gen_state* cgstate,
         Random* rand_p,
         Random* rand_s,
@@ -34,7 +32,6 @@ Voice_state* Voice_state_init(
         double tempo)
 {
     assert(state != NULL);
-    assert(params != NULL);
     assert(cgstate != NULL);
     assert(rand_p != NULL);
     assert(rand_s != NULL);
@@ -64,7 +61,6 @@ Voice_state* Voice_state_init(
     LFO_set_mix_rate(&state->autowah, freq);
     LFO_set_tempo(&state->autowah, tempo);
 
-    Voice_params_copy(&state->params, params);
     return state;
 }
 
@@ -146,6 +142,7 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->lowpass_xfade_state_used = -1;
     state->lowpass_xfade_pos = 1;
     state->lowpass_xfade_update = 0;
+
     for (int i = 0; i < FILTER_ORDER; ++i)
     {
         state->lowpass_state[0].coeffs[i] = 0;

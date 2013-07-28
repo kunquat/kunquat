@@ -23,7 +23,6 @@
 #include <player/Channel_gen_state.h>
 #include <player/Device_states.h>
 #include <Random.h>
-#include <Voice_params.h>
 #include <Voice_state.h>
 
 
@@ -105,7 +104,6 @@ uint64_t Voice_id(Voice* voice);
  *
  * \param voice     The Voice -- must not be \c NULL.
  * \param gen       The Generator used -- must not be \c NULL.
- * \param params    The Voice parameters -- must not be \c NULL.
  * \param cgstate   The Channel-specific Generator state -- must not be
  *                  \c NULL.
  * \param seed      The random seed.
@@ -114,7 +112,6 @@ uint64_t Voice_id(Voice* voice);
  */
 void Voice_init(Voice* voice,
                 Generator* gen,
-                Voice_params* params,
                 Channel_gen_state* cgstate,
                 uint64_t seed,
                 uint32_t freq,

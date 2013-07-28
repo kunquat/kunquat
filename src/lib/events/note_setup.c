@@ -41,7 +41,6 @@ void reserve_voice(Channel* ch, Instrument* ins, int gen_num)
 
     Voice_init(ch->fg[gen_num],
                Instrument_get_gen(ins, gen_num),
-               &ch->vp,
                ch->cgstate,
                Random_get_uint64(ch->rand),
                *ch->freq,

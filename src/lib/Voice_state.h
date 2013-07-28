@@ -27,7 +27,6 @@
 #include <Random.h>
 #include <Slider.h>
 #include <Tstamp.h>
-#include <Voice_params.h>
 
 
 #define FILTER_ORDER (2)
@@ -47,7 +46,6 @@ typedef struct Voice_state
     bool active;                   ///< Whether there is anything left to process.
     uint32_t freq;                 ///< The last mixing frequency used.
     double tempo;                  ///< The last tempo setting used.
-    Voice_params params;
     Channel_gen_state* cgstate;    ///< Channel-specific Generator parameters.
     Random* rand_p;                ///< Parameter random source.
     Random* rand_s;                ///< Signal random source.
@@ -124,7 +122,6 @@ typedef struct Voice_state
  * Initialises a Voice state.
  *
  * \param state     The Voice state -- must not be \c NULL.
- * \param params    The Voice parameters -- must not be \c NULL.
  * \param cgstate   The Channel-specific Generator state -- must not be
  *                  \c NULL.
  * \param rand_p    The parameter Random source -- must not be \c NULL.
@@ -135,7 +132,6 @@ typedef struct Voice_state
  * \return   The parameter \a state.
  */
 Voice_state* Voice_state_init(Voice_state* state,
-                              Voice_params* params,
                               Channel_gen_state* cgstate,
                               Random* rand_p,
                               Random* rand_s,
