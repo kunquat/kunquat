@@ -33,7 +33,8 @@ struct Device
     bool existent;
     uint32_t mix_rate;
     uint32_t buffer_size;
-    Device_state* (*make_state)(const struct Device*, int32_t, int32_t);
+
+    Device_state* (*create_state)(const struct Device*, int32_t, int32_t);
     bool (*set_mix_rate)(struct Device*, uint32_t);
     bool (*set_buffer_size)(struct Device*, uint32_t);
     void (*reset)(struct Device*);
@@ -46,6 +47,7 @@ struct Device
             uint32_t,
             uint32_t,
             double);
+
     bool reg[DEVICE_PORT_TYPES][KQT_DEVICE_PORTS_MAX];
 };
 
@@ -100,7 +102,18 @@ bool Device_is_existent(const Device* device);
  * \return   The new Device state if successful, or \c NULL if memory
  *           allocation failed.
  */
-Device_state* Device_make_state(const Device* device);
+Device_state* Device_create_state(const Device* device);
+
+
+/**
+ * Sets a state creator for the Device.
+ *
+ * \param device    The Device -- must not be \c NULL.
+ * \param creator   The creator function, or \c NULL for default creator.
+ */
+void Device_set_state_creator(
+        Device* device,
+        Device_state* (*creator)(const Device*, int32_t, int32_t));
 
 
 /**

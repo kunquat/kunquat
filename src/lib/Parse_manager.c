@@ -519,7 +519,7 @@ static Instrument* add_instrument(kqt_Handle* handle, int index)
     }
 
     // Allocate Device state(s) for the new Instrument
-    Device_state* ds = Device_make_state((Device*)ins);
+    Device_state* ds = Device_create_state((Device*)ins);
     if (ds == NULL || !Device_states_add_state(
                 Player_get_device_states(handle->player), ds))
     {
@@ -864,7 +864,7 @@ static bool parse_generator_level(kqt_Handle* handle,
             }
 
             // Allocate Device state(s) for this Generator
-            Device_state* ds = Device_make_state((Device*)gen);
+            Device_state* ds = Device_create_state((Device*)gen);
             if (ds == NULL || !Device_states_add_state(
                         Player_get_device_states(handle->player), ds))
             {
@@ -978,7 +978,7 @@ static Effect* add_effect(kqt_Handle* handle, int index, Effect_table* table)
     for (int i = 0; i < 3; ++i)
     {
         assert(eff_devices[i] != NULL);
-        Device_state* ds = Device_make_state(eff_devices[i]);
+        Device_state* ds = Device_create_state(eff_devices[i]);
         if (ds == NULL || !Device_states_add_state(
                     Player_get_device_states(handle->player), ds))
         {
@@ -1195,7 +1195,7 @@ static bool parse_dsp_level(kqt_Handle* handle,
             }
 
             // Allocate Device state(s) for this DSP
-            Device_state* ds = Device_make_state((Device*)dsp);
+            Device_state* ds = Device_create_state((Device*)dsp);
             if (ds == NULL || !Device_states_add_state(
                         Player_get_device_states(handle->player), ds))
             {

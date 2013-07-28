@@ -36,7 +36,7 @@ bool Device_init(Device* device, uint32_t buffer_size, uint32_t mix_rate)
     device->mix_rate = mix_rate;
     device->buffer_size = buffer_size;
 
-    device->make_state = new_Device_state_plain;
+    device->create_state = new_Device_state_plain;
     device->set_mix_rate = NULL;
     device->set_buffer_size = NULL;
     device->reset = NULL;
@@ -77,12 +77,27 @@ bool Device_is_existent(const Device* device)
 }
 
 
-Device_state* Device_make_state(const Device* device)
+Device_state* Device_create_state(const Device* device)
 {
     assert(device != NULL);
-    assert(device->make_state != NULL);
+    assert(device->create_state != NULL);
 
-    return device->make_state(device, device->mix_rate, device->buffer_size);
+    return device->create_state(device, device->mix_rate, device->buffer_size);
+}
+
+
+void Device_set_state_creator(
+        Device* device,
+        Device_state* (*creator)(const Device*, int32_t, int32_t))
+{
+    assert(device != NULL);
+
+    if (creator != NULL)
+        device->create_state = creator;
+    else
+        device->create_state = new_Device_state_plain;
+
+    return;
 }
 
 
