@@ -279,7 +279,7 @@ START_TEST(Note_on_at_pattern_end_is_handled)
     float actual_buf[buf_len] = { 0.0f };
     mix_and_fill(actual_buf, buf_len);
 
-    float expected_buf[2048] = { 0.0f };
+    float expected_buf[buf_len] = { 0.0f };
     expected_buf[mixing_rates[MIXING_RATE_LOW] * _i / 2] = 1.0f;
 
     check_buffers_equal(expected_buf, actual_buf, buf_len, 0.0f);
@@ -318,7 +318,7 @@ START_TEST(Note_on_after_pattern_end_is_ignored)
     float actual_buf[buf_len] = { 0.0f };
     mix_and_fill(actual_buf, buf_len);
 
-    float expected_buf[2048] = { 0.0f };
+    float expected_buf[buf_len] = { 0.0f };
 
     check_buffers_equal(expected_buf, actual_buf, buf_len, 0.0f);
 }
