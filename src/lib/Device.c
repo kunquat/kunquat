@@ -331,7 +331,7 @@ void Device_print(Device* device, FILE* out)
 }
 
 
-void Device_uninit(Device* device)
+void Device_deinit(Device* device)
 {
     if (device == NULL)
         return;

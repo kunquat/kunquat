@@ -91,16 +91,17 @@ Module* new_Module(uint32_t buf_size)
 {
     assert(buf_size > 0);
     assert(buf_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
+
     Module* module = memory_alloc_item(Module);
     if (module == NULL)
-    {
         return NULL;
-    }
+
     if (!Device_init(&module->parent, buf_size, 48000))
     {
         memory_free(module);
         return NULL;
     }
+
     Device_set_existent(&module->parent, true);
     Device_set_reset(&module->parent, Module_reset);
     Device_set_mix_rate_changer(&module->parent, Module_set_mix_rate);
@@ -120,13 +121,9 @@ Module* new_Module(uint32_t buf_size)
     module->album_is_existent = false;
     module->track_list = NULL;
     for (int i = 0; i < KQT_SONGS_MAX; ++i)
-    {
         module->order_lists[i] = NULL;
-    }
     for (int i = 0; i < KQT_SCALES_MAX; ++i)
-    {
         module->scales[i] = NULL;
-    }
 
     // Create fields
     module->random = new_Random();
@@ -181,6 +178,7 @@ Module* new_Module(uint32_t buf_size)
         del_Module(module);
         return NULL;
     }
+
     for (int i = 1; i < 12; ++i)
     {
         if (Scale_ins_note_cents(module->scales[0], i, i * 100) < 0)
@@ -189,10 +187,12 @@ Module* new_Module(uint32_t buf_size)
             return NULL;
         }
     }
+
     module->mix_vol_dB = MODULE_DEFAULT_MIX_VOL;
     module->mix_vol = exp2(module->mix_vol_dB / 6);
     //module->init_subsong = SONG_DEFAULT_INIT_SUBSONG;
     Module_set_random_seed(module, 0);
+
     return module;
 }
 
@@ -201,19 +201,18 @@ bool Module_parse_composition(Module* module, char* str, Read_state* state)
 {
     assert(module != NULL);
     assert(state != NULL);
+
     if (state->error)
-    {
         return false;
-    }
+
     double mix_vol = MODULE_DEFAULT_MIX_VOL;
 
     if (str != NULL)
     {
         str = read_const_char(str, '{', state);
         if (state->error)
-        {
             return false;
-        }
+
         str = read_const_char(str, '}', state);
         if (state->error)
         {
@@ -225,16 +224,14 @@ bool Module_parse_composition(Module* module, char* str, Read_state* state)
                 str = read_string(str, key, 128, state);
                 str = read_const_char(str, ':', state);
                 if (state->error)
-                {
                     return false;
-                }
+
                 if (string_eq(key, "mix_vol"))
                 {
                     str = read_double(str, &mix_vol, state);
                     if (state->error)
-                    {
                         return false;
-                    }
+
                     if (!isfinite(mix_vol) && mix_vol != -INFINITY)
                     {
                         Read_state_set_error(state,
@@ -248,22 +245,22 @@ bool Module_parse_composition(Module* module, char* str, Read_state* state)
                              "Unrecognised key in composition info: %s", key);
                     return false;
                 }
+
                 if (state->error)
-                {
                     return false;
-                }
+
                 check_next(str, state, expect_key);
             }
+
             str = read_const_char(str, '}', state);
             if (state->error)
-            {
                 return false;
-            }
         }
     }
 
     module->mix_vol_dB = mix_vol;
     module->mix_vol = exp2(module->mix_vol_dB / 6);
+
     return true;
 }
 
@@ -272,25 +269,26 @@ bool Module_parse_random_seed(Module* module, char* str, Read_state* state)
 {
     assert(module != NULL);
     assert(state != NULL);
+
     if (state->error)
-    {
         return false;
-    }
+
     int64_t seed = 0;
     if (str != NULL)
     {
         str = read_int(str, &seed, state);
         if (state->error)
-        {
             return false;
-        }
+
         if (seed < 0)
         {
             Read_state_set_error(state, "Random seed must be positive");
             return false;
         }
     }
+
     Module_set_random_seed(module, seed);
+
     return true;
 }
 
@@ -387,8 +385,10 @@ void Module_set_mix_vol(Module* module, double mix_vol)
 {
     assert(module != NULL);
     assert(isfinite(mix_vol) || mix_vol == -INFINITY);
+
     module->mix_vol_dB = mix_vol;
     module->mix_vol = exp2(mix_vol / 6);
+
     return;
 }
 
@@ -432,6 +432,7 @@ bool Module_set_bind(Module* module, Bind* bind)
 {
     assert(module != NULL);
     assert(bind != NULL);
+
 #if 0
     Event_cache* caches[KQT_COLUMNS_MAX] = { NULL };
     for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
@@ -440,19 +441,16 @@ bool Module_set_bind(Module* module, Bind* bind)
         if (caches[i] == NULL)
         {
             for (int k = i - 1; k >= 0; --k)
-            {
                 del_Event_cache(caches[k]);
-            }
             return false;
         }
     }
     del_Bind(module->bind);
     module->bind = module->play_state->bind = module->skip_state->bind = bind;
     for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
-    {
         Channel_set_event_cache(module->channels[i], caches[i]);
-    }
 #endif
+
     return true;
 }
 
@@ -462,6 +460,7 @@ Scale* Module_get_scale(Module* module, int index)
     assert(module != NULL);
     assert(index >= 0);
     assert(index < KQT_SCALES_MAX);
+
     return module->scales[index];
 }
 
@@ -472,12 +471,13 @@ void Module_set_scale(Module* module, int index, Scale* scale)
     assert(index >= 0);
     assert(index < KQT_SCALES_MAX);
     assert(scale != NULL);
+
     if (module->scales[index] != NULL &&
             module->scales[index] != scale)
-    {
         del_Scale(module->scales[index]);
-    }
+
     module->scales[index] = scale;
+
     return;
 }
 
@@ -487,17 +487,18 @@ bool Module_create_scale(Module* module, int index)
     assert(module != NULL);
     assert(index >= 0);
     assert(index < KQT_SCALES_MAX);
+
     if (module->scales[index] != NULL)
     {
         Scale_clear(module->scales[index]);
         return true;
     }
+
     module->scales[index] = new_Scale(SCALE_DEFAULT_REF_PITCH,
             SCALE_DEFAULT_OCTAVE_RATIO);
     if (module->scales[index] == NULL)
-    {
         return false;
-    }
+
     return true;
 }
 
@@ -507,11 +508,13 @@ void Module_remove_scale(Module* module, int index)
     assert(module != NULL);
     assert(index >= 0);
     assert(index < KQT_SCALES_MAX);
+
     if (module->scales[index] != NULL)
     {
         del_Scale(module->scales[index]);
         module->scales[index] = NULL;
     }
+
     return;
 }
 
@@ -519,24 +522,25 @@ void Module_remove_scale(Module* module, int index)
 static void Module_reset(Device* device)
 {
     assert(device != NULL);
+
     Module* module = (Module*)device;
+
     for (int i = 0; i < KQT_INSTRUMENTS_MAX; ++i)
     {
         Instrument* ins = Ins_table_get(module->insts, i);
         if (ins != NULL)
-        {
             Device_reset((Device*)ins);
-        }
     }
+
     for (int i = 0; i < KQT_EFFECTS_MAX; ++i)
     {
         Effect* eff = Effect_table_get(module->effects, i);
         if (eff != NULL)
-        {
             Device_reset((Device*)eff);
-        }
     }
+
     Random_reset(module->random);
+
     return;
 }
 
@@ -544,8 +548,10 @@ static void Module_reset(Device* device)
 static void Module_set_random_seed(Module* module, uint64_t seed)
 {
     assert(module != NULL);
+
     module->random_seed = seed;
     Random_set_seed(module->random, seed);
+
     return;
 }
 
@@ -553,23 +559,23 @@ static void Module_set_random_seed(Module* module, uint64_t seed)
 static bool Module_set_mix_rate(Device* device, uint32_t mix_rate)
 {
     assert(device != NULL);
+
     Module* module = (Module*)device;
+
     for (int i = 0; i < KQT_INSTRUMENTS_MAX; ++i)
     {
         Instrument* ins = Ins_table_get(module->insts, i);
         if (ins != NULL && !Device_set_mix_rate((Device*)ins, mix_rate))
-        {
             return false;
-        }
     }
+
     for (int i = 0; i < KQT_EFFECTS_MAX; ++i)
     {
         Effect* eff = Effect_table_get(module->effects, i);
         if (eff != NULL && !Device_set_mix_rate((Device*)eff, mix_rate))
-        {
             return false;
-        }
     }
+
     return true;
 }
 
@@ -577,23 +583,23 @@ static bool Module_set_mix_rate(Device* device, uint32_t mix_rate)
 static bool Module_set_buffer_size(Device* device, uint32_t size)
 {
     assert(device != NULL);
+
     Module* module = (Module*)device;
+
     for (int i = 0; i < KQT_INSTRUMENTS_MAX; ++i)
     {
         Instrument* ins = Ins_table_get(module->insts, i);
         if (ins != NULL && !Device_set_buffer_size((Device*)ins, size))
-        {
             return false;
-        }
     }
+
     for (int i = 0; i < KQT_EFFECTS_MAX; ++i)
     {
         Effect* eff = Effect_table_get(module->effects, i);
         if (eff != NULL && !Device_set_buffer_size((Device*)eff, size))
-        {
             return false;
-        }
     }
+
     return true;
 }
 
@@ -601,23 +607,23 @@ static bool Module_set_buffer_size(Device* device, uint32_t size)
 static bool Module_sync(Device* device)
 {
     assert(device != NULL);
+
     Module* module = (Module*)device;
+
     for (int i = 0; i < KQT_INSTRUMENTS_MAX; ++i)
     {
         Instrument* ins = Ins_table_get(module->insts, i);
         if (ins != NULL && !Device_sync((Device*)ins))
-        {
             return false;
-        }
     }
+
     for (int i = 0; i < KQT_EFFECTS_MAX; ++i)
     {
         Effect* eff = Effect_table_get(module->effects, i);
         if (eff != NULL && !Device_sync((Device*)eff))
-        {
             return false;
-        }
     }
+
     return true;
 }
 
@@ -644,7 +650,7 @@ void del_Module(Module* module)
     del_Random(module->random);
     del_Bind(module->bind);
 
-    Device_uninit(&module->parent);
+    Device_deinit(&module->parent);
     memory_free(module);
 
     return;

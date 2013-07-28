@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -29,14 +29,20 @@
                 (ymin), (ymax), (ystep));                                 \
         if ((env) == NULL)                                                \
         {                                                                 \
-            Instrument_params_uninit(ip);                                 \
+            Instrument_params_deinit(ip);                                 \
             return NULL;                                                  \
         }                                                                 \
     } else (void)0
 
-Instrument_params* Instrument_params_init(Instrument_params* ip)
+Instrument_params* Instrument_params_init(
+        Instrument_params* ip,
+        uint32_t device_id)
 {
     assert(ip != NULL);
+    assert(device_id > 0);
+
+    ip->device_id = device_id;
+
     ip->force_volume_env = NULL;
     ip->env_force_filter = NULL;
     ip->force_pitch_env = NULL;
@@ -141,23 +147,25 @@ void Instrument_params_reset(Instrument_params* ip)
 }
 
 
-bool Instrument_params_parse_env_force_filter(Instrument_params* ip,
-                                              char* str,
-                                              Read_state* state)
+bool Instrument_params_parse_env_force_filter(
+        Instrument_params* ip,
+        char* str,
+        Read_state* state)
 {
     assert(ip != NULL);
     assert(state != NULL);
+
     if (state->error)
-    {
         return false;
-    }
+
     bool enabled = false;
+
     Envelope* env = new_Envelope(8, 0, 1, 0, 0, 1, 0);
     if (env == NULL)
-    {
         return false;
-    }
+
     bool nodes_found = false;
+
     if (str != NULL)
     {
         str = read_const_char(str, '{', state);
@@ -166,6 +174,7 @@ bool Instrument_params_parse_env_force_filter(Instrument_params* ip,
             del_Envelope(env);
             return false;
         }
+
         str = read_const_char(str, '}', state);
         if (state->error)
         {
@@ -181,6 +190,7 @@ bool Instrument_params_parse_env_force_filter(Instrument_params* ip,
                     del_Envelope(env);
                     return false;
                 }
+
                 if (string_eq(key, "enabled"))
                 {
                     str = read_bool(str, &enabled, state);
@@ -197,19 +207,23 @@ bool Instrument_params_parse_env_force_filter(Instrument_params* ip,
                     del_Envelope(env);
                     return false;
                 }
+
                 if (state->error)
                 {
                     del_Envelope(env);
                     return false;
                 }
+
                 check_next(str, state, expect_key);
             }
         }
     }
+
     ip->env_force_filter_enabled = enabled;
     Envelope* old_env = ip->env_force_filter;
     ip->env_force_filter = env;
     del_Envelope(old_env);
+
     if (!nodes_found)
     {
         assert(Envelope_node_count(env) == 0);
@@ -219,27 +233,30 @@ bool Instrument_params_parse_env_force_filter(Instrument_params* ip,
         assert(index == 1);
         (void)index;
     }
+
     return true;
 }
 
 
-bool Instrument_params_parse_env_pitch_pan(Instrument_params* ip,
-                                           char* str,
-                                           Read_state* state)
+bool Instrument_params_parse_env_pitch_pan(
+        Instrument_params* ip,
+        char* str,
+        Read_state* state)
 {
     assert(ip != NULL);
     assert(state != NULL);
+
     if (state->error)
-    {
         return false;
-    }
+
     bool enabled = false;
+
     Envelope* env = new_Envelope(32, -6000, 6000, 0, -1, 1, 0);
     if (env == NULL)
-    {
         return false;
-    }
+
     bool nodes_found = false;
+
     if (str != NULL)
     {
         str = read_const_char(str, '{', state);
@@ -248,6 +265,7 @@ bool Instrument_params_parse_env_pitch_pan(Instrument_params* ip,
             del_Envelope(env);
             return false;
         }
+
         str = read_const_char(str, '}', state);
         if (state->error)
         {
@@ -263,6 +281,7 @@ bool Instrument_params_parse_env_pitch_pan(Instrument_params* ip,
                     del_Envelope(env);
                     return false;
                 }
+
                 if (string_eq(key, "enabled"))
                 {
                     str = read_bool(str, &enabled, state);
@@ -279,19 +298,23 @@ bool Instrument_params_parse_env_pitch_pan(Instrument_params* ip,
                     del_Envelope(env);
                     return false;
                 }
+
                 if (state->error)
                 {
                     del_Envelope(env);
                     return false;
                 }
+
                 check_next(str, state, expect_key);
             }
         }
     }
+
     ip->env_pitch_pan_enabled = enabled;
     Envelope* old_env = ip->env_pitch_pan;
     ip->env_pitch_pan = env;
     del_Envelope(old_env);
+
     if (!nodes_found)
     {
         assert(Envelope_node_count(env) == 0);
@@ -301,32 +324,34 @@ bool Instrument_params_parse_env_pitch_pan(Instrument_params* ip,
         assert(index == 1);
         (void)index;
     }
+
     return true;
 }
 
 
-Envelope* parse_env_time(char* str,
-                         Read_state* state,
-                         bool* enabled,
-                         double* scale_amount,
-                         double* scale_center,
-                         bool* carry,
-                         bool release)
+Envelope* parse_env_time(
+        char* str,
+        Read_state* state,
+        bool* enabled,
+        double* scale_amount,
+        double* scale_center,
+        bool* carry,
+        bool release)
 {
     assert(state != NULL);
     assert(enabled != NULL);
     assert(scale_amount != NULL);
     assert(scale_center != NULL);
+
     if (state->error)
-    {
         return NULL;
-    }
+
     Envelope* env = new_Envelope(32, 0, INFINITY, 0, 0, 1, 0);
     if (env == NULL)
-    {
         return NULL;
-    }
+
     bool loop = false;
+
     if (str != NULL)
     {
         str = read_const_char(str, '{', state);
@@ -335,6 +360,7 @@ Envelope* parse_env_time(char* str,
             del_Envelope(env);
             return NULL;
         }
+
         str = read_const_char(str, '}', state);
         if (state->error)
         {
@@ -350,39 +376,24 @@ Envelope* parse_env_time(char* str,
                     del_Envelope(env);
                     return NULL;
                 }
+
                 if (string_eq(key, "enabled"))
-                {
                     str = read_bool(str, enabled, state);
-                }
                 else if (string_eq(key, "scale_amount"))
-                {
                     str = read_double(str, scale_amount, state);
-                }
                 else if (string_eq(key, "scale_center"))
-                {
                     str = read_double(str, scale_center, state);
-                }
                 else if (string_eq(key, "envelope"))
-                {
                     str = Envelope_read(env, str, state);
-                }
                 else if (carry != NULL && string_eq(key, "carry"))
-                {
                     str = read_bool(str, carry, state);
-                }
                 else if (!release && string_eq(key, "loop"))
-                {
                     str = read_bool(str, &loop, state);
-                }
 #if 0
                 else if (!release && string_eq(key, "loop_start"))
-                {
                     str = read_int(str, &loop_start, state);
-                }
                 else if (!release && string_eq(key, "loop_end"))
-                {
                     str = read_int(str, &loop_end, state);
-                }
 #endif
                 else
                 {
@@ -391,13 +402,16 @@ Envelope* parse_env_time(char* str,
                     del_Envelope(env);
                     return NULL;
                 }
+
                 if (state->error)
                 {
                     del_Envelope(env);
                     return NULL;
                 }
+
                 check_next(str, state, expect_key);
             }
+
             str = read_const_char(str, '}', state);
             if (state->error)
             {
@@ -406,11 +420,13 @@ Envelope* parse_env_time(char* str,
             }
         }
     }
+
     if (Envelope_node_count(env) == 0)
     {
         *enabled = false;
         return env;
     }
+
     int loop_start = Envelope_get_mark(env, 0);
     int loop_end = Envelope_get_mark(env, 1);
     if (release || !loop)
@@ -421,30 +437,30 @@ Envelope* parse_env_time(char* str,
     else if (loop_start >= 0 || loop_end >= 0)
     {
         if (loop_start == -1)
-        {
             loop_start = 0;
-        }
+
         if (loop_end < loop_start)
-        {
             loop_end = loop_start;
-        }
+
         Envelope_set_mark(env, 0, loop_start);
         Envelope_set_mark(env, 1, loop_end);
     }
+
     return env;
 }
 
 
-bool Instrument_params_parse_env_force(Instrument_params* ip,
-                                       char* str,
-                                       Read_state* state)
+bool Instrument_params_parse_env_force(
+        Instrument_params* ip,
+        char* str,
+        Read_state* state)
 {
     assert(ip != NULL);
     assert(state != NULL);
+
     if (state->error)
-    {
         return false;
-    }
+
     bool enabled = false;
     double scale_amount = 0;
     double scale_center = 0;
@@ -452,9 +468,8 @@ bool Instrument_params_parse_env_force(Instrument_params* ip,
     Envelope* env = parse_env_time(str, state, &enabled, &scale_amount,
                                    &scale_center, &carry, false);
     if (env == NULL)
-    {
         return false;
-    }
+
     assert(!state->error);
     ip->env_force_enabled = enabled;
     ip->env_force_scale_amount = scale_amount;
@@ -463,29 +478,31 @@ bool Instrument_params_parse_env_force(Instrument_params* ip,
     Envelope* old_env = ip->env_force;
     ip->env_force = env;
     del_Envelope(old_env);
+
     return true;
 }
 
 
-bool Instrument_params_parse_env_force_rel(Instrument_params* ip,
-                                           char* str,
-                                           Read_state* state)
+bool Instrument_params_parse_env_force_rel(
+        Instrument_params* ip,
+        char* str,
+        Read_state* state)
 {
     assert(ip != NULL);
     assert(state != NULL);
+
     if (state->error)
-    {
         return false;
-    }
+
     bool enabled = false;
     double scale_amount = 0;
     double scale_center = 0;
+
     Envelope* env = parse_env_time(str, state, &enabled, &scale_amount,
                                    &scale_center, NULL, true);
     if (env == NULL)
-    {
         return false;
-    }
+
     assert(!state->error);
     ip->env_force_rel_enabled = enabled;
     ip->env_force_rel_scale_amount = scale_amount;
@@ -493,6 +510,7 @@ bool Instrument_params_parse_env_force_rel(Instrument_params* ip,
     Envelope* old_env = ip->env_force_rel;
     ip->env_force_rel = env;
     del_Envelope(old_env);
+
     return true;
 }
 
@@ -504,12 +522,11 @@ bool Instrument_params_parse_env_force_rel(Instrument_params* ip,
         (env) = NULL;        \
     } else (void)0
 
-void Instrument_params_uninit(Instrument_params* ip)
+void Instrument_params_deinit(Instrument_params* ip)
 {
     if (ip == NULL)
-    {
         return;
-    }
+
     del_env_check(ip->force_volume_env);
     del_env_check(ip->env_force_filter);
     del_env_check(ip->force_pitch_env);
@@ -518,6 +535,7 @@ void Instrument_params_uninit(Instrument_params* ip)
     del_env_check(ip->env_pitch_pan);
     del_env_check(ip->filter_env);
     del_env_check(ip->filter_off_env);
+
     return;
 }
 

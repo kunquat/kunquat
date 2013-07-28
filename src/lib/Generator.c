@@ -25,11 +25,12 @@
 #include <xassert.h>
 
 
-Generator* new_Generator(char* str,
-                         Instrument_params* ins_params,
-                         uint32_t buffer_size,
-                         uint32_t mix_rate,
-                         Read_state* state)
+Generator* new_Generator(
+        char* str,
+        Instrument_params* ins_params,
+        uint32_t buffer_size,
+        uint32_t mix_rate,
+        Read_state* state)
 {
     assert(str != NULL);
     assert(ins_params != NULL);
@@ -37,31 +38,31 @@ Generator* new_Generator(char* str,
     assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
     assert(mix_rate > 0);
     assert(state != NULL);
+
     if (state->error)
-    {
         return NULL;
-    }
+
     char type[GEN_TYPE_LENGTH_MAX] = { '\0' };
     read_string(str, type, GEN_TYPE_LENGTH_MAX, state);
     if (state->error)
-    {
         return NULL;
-    }
+
     Generator_cons* cons = Gen_type_find_cons(type);
     if (cons == NULL)
     {
         Read_state_set_error(state, "Unsupported Generator type: %s", type);
         return NULL;
     }
+
     Generator* gen = cons(buffer_size, mix_rate);
     if (gen == NULL)
-    {
         return NULL;
-    }
+
     //fprintf(stderr, "New Generator %p\n", (void*)gen);
     strcpy(gen->type, type);
     gen->ins_params = ins_params;
     gen->conf = NULL;
+
     return gen;
 }
 
@@ -104,8 +105,10 @@ bool Generator_init(
 void Generator_reset(Device* device)
 {
     assert(device != NULL);
+
     Generator* gen = (Generator*)device;
     Device_params_reset(gen->conf->params);
+
     return;
 }
 
@@ -114,7 +117,9 @@ void Generator_set_conf(Generator* gen, Gen_conf* conf)
 {
     assert(gen != NULL);
     assert(conf != NULL);
+
     gen->conf = conf;
+
     return;
 }
 
@@ -124,6 +129,7 @@ Device_params* Generator_get_params(Generator* gen)
     assert(gen != NULL);
     assert(gen->conf != NULL);
     assert(gen->conf->params != NULL);
+
     return gen->conf->params;
 }
 
@@ -161,12 +167,12 @@ void Generator_mix(
 void del_Generator(Generator* gen)
 {
     if (gen == NULL)
-    {
         return;
-    }
+
     assert(gen->destroy != NULL);
-    Device_uninit(&gen->parent);
+    Device_deinit(&gen->parent);
     gen->destroy(gen);
+
     return;
 }
 

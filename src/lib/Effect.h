@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2013
  *
  * This file is part of Kunquat.
  *
@@ -37,8 +37,7 @@ typedef struct Effect Effect;
  * \return   The new Effect if successful, or \c NULL if memory allocation
  *           failed.
  */
-Effect* new_Effect(uint32_t buf_len,
-                   uint32_t mix_rate);
+Effect* new_Effect(uint32_t buf_len, uint32_t mix_rate);
 
 
 /**
@@ -50,7 +49,7 @@ Effect* new_Effect(uint32_t buf_len,
  *
  * \return   \c true if successful, otherwise \c false.
  */
-bool Effect_parse_header(Effect* eff, char* str, Read_state* state);
+//bool Effect_parse_header(Effect* eff, char* str, Read_state* state);
 
 
 /**

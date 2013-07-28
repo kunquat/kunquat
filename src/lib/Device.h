@@ -316,11 +316,11 @@ void Device_print(Device* device, FILE* out);
 
 
 /**
- * Uninitialises the Device.
+ * Deinitialises the Device.
  *
  * \param device   The Device, or \c NULL.
  */
-void Device_uninit(Device* device);
+void Device_deinit(Device* device);
 
 
 #endif // K_DEVICE_H

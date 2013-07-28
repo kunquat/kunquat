@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -35,6 +35,8 @@ typedef struct Pitch_lock
 
 typedef struct Instrument_params
 {
+    uint32_t device_id;
+
     double sustain; ///< Sustain setting (0 = no sustain, 1.0 = full sustain).
 
     double global_force;           ///< Global force.
@@ -91,12 +93,15 @@ typedef struct Instrument_params
 /**
  * Initialises the Instrument parameters.
  *
- * \param ip   The Instrument parameters -- must not be \c NULL.
+ * \param ip          The Instrument parameters -- must not be \c NULL.
+ * \param device_id   The instrument device ID -- must be > \c 0.
  *
  * \return   The parameter \a ip if successful, or \c NULL if memory
  *           allocation failed.
  */
-Instrument_params* Instrument_params_init(Instrument_params* ip);
+Instrument_params* Instrument_params_init(
+        Instrument_params* ip,
+        uint32_t device_id);
 
 
 /**
@@ -117,32 +122,36 @@ void Instrument_params_reset(Instrument_params* ip);
  * \return   \c true if successful, otherwise \c false. If memory allocation
  *           fails, state error will _not_ be set.
  */
-bool Instrument_params_parse_env_force_rel(Instrument_params* ip,
-                                           char* str,
-                                           Read_state* state);
+bool Instrument_params_parse_env_force_rel(
+        Instrument_params* ip,
+        char* str,
+        Read_state* state);
 
 
-bool Instrument_params_parse_env_force(Instrument_params* ip,
-                                       char* str,
-                                       Read_state* state);
+bool Instrument_params_parse_env_force(
+        Instrument_params* ip,
+        char* str,
+        Read_state* state);
 
 
-bool Instrument_params_parse_env_force_filter(Instrument_params* ip,
-                                              char* str,
-                                              Read_state* state);
+bool Instrument_params_parse_env_force_filter(
+        Instrument_params* ip,
+        char* str,
+        Read_state* state);
 
 
-bool Instrument_params_parse_env_pitch_pan(Instrument_params* ip,
-                                           char* str,
-                                           Read_state* state);
+bool Instrument_params_parse_env_pitch_pan(
+        Instrument_params* ip,
+        char* str,
+        Read_state* state);
 
 
 /**
- * Uninitialises the Instrument parameters.
+ * Deinitialises the Instrument parameters.
  *
  * \param ip   The Instrument parameters, or \c NULL.
  */
-void Instrument_params_uninit(Instrument_params* ip);
+void Instrument_params_deinit(Instrument_params* ip);
 
 
 #endif // K_INSTRUMENT_PARAMS_H
