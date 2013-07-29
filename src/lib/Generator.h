@@ -42,7 +42,7 @@ typedef struct Generator
     Device parent;
     char type[GEN_TYPE_LENGTH_MAX];
     Gen_conf* conf;
-    Instrument_params* ins_params;
+    const Instrument_params* ins_params;
 
     void (*init_state)(struct Generator*, Voice_state*);
     void (*destroy)(struct Generator*);
@@ -74,7 +74,7 @@ typedef struct Generator
  */
 Generator* new_Generator(
         char* str,
-        Instrument_params* ins_params,
+        const Instrument_params* ins_params,
         uint32_t buffer_size,
         uint32_t mix_rate,
         Read_state* state);

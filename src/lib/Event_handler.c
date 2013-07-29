@@ -60,7 +60,7 @@ struct Event_handler
     bool (*ch_process[Event_channel_STOP])(Channel*, Value*);
     bool (*master_process[Event_master_STOP])(Master_params*, Value*);
     bool (*ins_process[Event_ins_STOP])(
-            Instrument_params*,
+            const Instrument_params*,
             Ins_state*,
             Value*);
     bool (*generator_process[Event_generator_STOP])(
@@ -209,7 +209,7 @@ bool Event_handler_set_master_process(
 bool Event_handler_set_ins_process(
         Event_handler* eh,
         Event_type type,
-        bool (*ins_process)(Instrument_params*, Ins_state*, Value*))
+        bool (*ins_process)(const Instrument_params*, Ins_state*, Value*))
 {
     assert(eh != NULL);
     assert(Event_is_ins(type));
@@ -296,7 +296,7 @@ static bool Event_handler_handle(
         if (ins == NULL)
             return false;
 
-        Instrument_params* ins_params = Instrument_get_params(ins);
+        const Instrument_params* ins_params = Instrument_get_params(ins);
         assert(ins_params != NULL);
         Ins_state* ins_state = (Ins_state*)Device_states_get_state(
                 eh->device_states,

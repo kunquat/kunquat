@@ -25,10 +25,10 @@
 
 // Process function declarations
 
-#define EVENT_TYPE_DEF(type)               \
-    bool Event_ins_##type##_process(       \
-            Instrument_params* ins_params, \
-            Ins_state* ins_state,          \
+#define EVENT_TYPE_DEF(type)                     \
+    bool Event_ins_##type##_process(             \
+            const Instrument_params* ins_params, \
+            Ins_state* ins_state,                \
             Value* value);
 #include <events/Event_ins_types.h>
 

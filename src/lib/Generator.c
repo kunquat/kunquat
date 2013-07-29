@@ -27,7 +27,7 @@
 
 Generator* new_Generator(
         char* str,
-        Instrument_params* ins_params,
+        const Instrument_params* ins_params,
         uint32_t buffer_size,
         uint32_t mix_rate,
         Read_state* state)

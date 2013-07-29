@@ -22,7 +22,7 @@
 
 
 bool Event_ins_set_sustain_process(
-        Instrument_params* ins_params,
+        const Instrument_params* ins_params,
         Ins_state* ins_state,
         Value* value)
 {

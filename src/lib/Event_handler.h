@@ -133,7 +133,7 @@ bool Event_handler_set_master_process(
 bool Event_handler_set_ins_process(
         Event_handler* eh,
         Event_type type,
-        bool (*ins_process)(Instrument_params*, Ins_state*, Value*));
+        bool (*ins_process)(const Instrument_params*, Ins_state*, Value*));
 
 
 /**
