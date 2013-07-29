@@ -78,8 +78,6 @@ typedef struct Voice_state
     uint64_t noff_pos;             ///< Note Off position.
     double noff_pos_rem;           ///< Note Off position remainder.
 
-    double* sustain;               ///< Instrument sustain state.
-
     double fe_pos;                 ///< Force envelope position.
     int fe_next_node;              ///< Next force envelope node.
     double fe_value;               ///< Current force envelope value.

@@ -19,13 +19,17 @@
 #include <stdbool.h>
 
 #include <Instrument_params.h>
+#include <player/Ins_state.h>
 #include <Value.h>
 
 
 // Process function declarations
 
-#define EVENT_TYPE_DEF(type) \
-    bool Event_ins_##type##_process(Instrument_params* eff, Value* value);
+#define EVENT_TYPE_DEF(type)               \
+    bool Event_ins_##type##_process(       \
+            Instrument_params* ins_params, \
+            Ins_state* ins_state,          \
+            Value* value);
 #include <events/Event_ins_types.h>
 
 

@@ -30,7 +30,8 @@
  * \param sample        The Sample -- must not be \c NULL.
  * \param gen           The Generator containing the Sample -- must not be
  *                      \c NULL.
- * \param state         The Voice state -- must not be \c NULL.
+ * \param ins_state     The Instrument state -- must not be \c NULL.
+ * \param vstate        The Voice state -- must not be \c NULL.
  * \param nframes       The number of frames to be mixed.
  * \param offset        The buffer offset.
  * \param freq          The mixing frequency -- must be > \c 0.
@@ -46,7 +47,8 @@
 uint32_t Sample_mix(
         Sample* sample,
         Generator* gen,
-        Voice_state* state,
+        Ins_state* ins_state,
+        Voice_state* vstate,
         uint32_t nframes,
         uint32_t offset,
         uint32_t freq,

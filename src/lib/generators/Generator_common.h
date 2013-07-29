@@ -21,20 +21,21 @@
 #include <Generator.h>
 #include <kunquat/limits.h>
 #include <math_common.h>
+#include <player/Ins_state.h>
 #include <player/Voice_state.h>
 
 
 /**
  * Gets the output buffers.
  */
-#define Generator_common_get_buffers(ds, state, mixed, bufs)  \
+#define Generator_common_get_buffers(ds, vstate, mixed, bufs) \
     if (true)                                                 \
     {                                                         \
         Audio_buffer* buffer = Device_state_get_audio_buffer( \
                 (ds), DEVICE_PORT_TYPE_SEND, 0);              \
         if (buffer == NULL)                                   \
         {                                                     \
-            (state)->active = false;                          \
+            (vstate)->active = false;                         \
             return (mixed);                                   \
         }                                                     \
         bufs[0] = Audio_buffer_get_buffer(buffer, 0);         \
@@ -47,15 +48,15 @@
  * This should be called at the beginning of the mixing function of the
  * Generator.
  */
-#define Generator_common_check_active(gen, state, mixed)                     \
+#define Generator_common_check_active(gen, vstate, mixed)                    \
     if (true)                                                                \
     {                                                                        \
-        if (!(state)->active || (!(state)->note_on &&                        \
-                                 ((state)->pos == 0) &&                      \
-                                 ((state)->pos_rem == 0) &&                  \
+        if (!(vstate)->active || (!(vstate)->note_on &&                      \
+                                 ((vstate)->pos == 0) &&                     \
+                                 ((vstate)->pos_rem == 0) &&                 \
                                  !(gen)->ins_params->env_force_rel_enabled)) \
         {                                                                    \
-            (state)->active = false;                                         \
+            (vstate)->active = false;                                        \
             return (mixed);                                                  \
         }                                                                    \
     } else (void)0
@@ -66,41 +67,43 @@
  *
  * This should be called before the mixing loop of the Generator.
  *
- * \param gen     The Generator -- must not be \c NULL.
- * \param state   The Voice state -- must not be \c NULL.
- * \param freq    The mixing frequency -- must be > \c 0.
- * \param tempo   The tempo -- must be > \c 0 and finite.
+ * \param gen      The Generator -- must not be \c NULL.
+ * \param vstate   The Voice state -- must not be \c NULL.
+ * \param freq     The mixing frequency -- must be > \c 0.
+ * \param tempo    The tempo -- must be > \c 0 and finite.
  */
-void Generator_common_check_relative_lengths(Generator* gen,
-                                             Voice_state* state,
-                                             uint32_t freq,
-                                             double tempo);
+void Generator_common_check_relative_lengths(
+        Generator* gen,
+        Voice_state* vstate,
+        uint32_t freq,
+        double tempo);
 
 
 /**
  * Pitch handling.
  *
  * \param gen     The Generator -- must not be \c NULL.
- * \param state   The Voice state -- must not be \c NULL.
+ * \param vstate   The Voice state -- must not be \c NULL.
  */
-void Generator_common_handle_pitch(Generator* gen,
-                                   Voice_state* state);
+void Generator_common_handle_pitch(Generator* gen, Voice_state* vstate);
 
 
 /**
  * Force handling.
  *
  * \param gen           The Generator -- must not be \c NULL.
- * \param state         The Voice state -- must not be \c NULL.
+ * \param vstate        The Voice state -- must not be \c NULL.
  * \param frames        The frames to be modified -- must not be \c NULL.
  * \param frame_count   The number of frames to be modified -- must be > \c 0.
  * \param freq          The mixing frequency -- must be > \c 0.
  */
-void Generator_common_handle_force(Generator* gen,
-                                   Voice_state* state,
-                                   double frames[],
-                                   int frame_count,
-                                   uint32_t freq);
+void Generator_common_handle_force(
+        Generator* gen,
+        Ins_state* ins_state,
+        Voice_state* vstate,
+        double frames[],
+        int frame_count,
+        uint32_t freq);
 
 
 /**
@@ -109,16 +112,17 @@ void Generator_common_handle_force(Generator* gen,
  * This should be called after force handling.
  *
  * \param gen           The Generator -- must not be \c NULL.
- * \param state         The Voice state -- must not be \c NULL.
+ * \param vstate        The Voice state -- must not be \c NULL.
  * \param frames        The frames to be modified -- must not be \c NULL.
  * \param frame_count   The number of frames to be modified -- must be > \c 0.
  * \param freq          The mixing frequency -- must be > \c 0.
  */
-void Generator_common_handle_filter(Generator* gen,
-                                    Voice_state* state,
-                                    double frames[],
-                                    int frame_count,
-                                    uint32_t freq);
+void Generator_common_handle_filter(
+        Generator* gen,
+        Voice_state* vstate,
+        double frames[],
+        int frame_count,
+        uint32_t freq);
 
 
 /**
@@ -128,29 +132,31 @@ void Generator_common_handle_filter(Generator* gen,
  * need this).
  *
  * \param gen           The Generator -- must not be \c NULL.
- * \param state         The Voice state -- must not be \c NULL.
+ * \param vstate        The Voice state -- must not be \c NULL.
  * \param frames        The frames to be modified -- must not be \c NULL.
  * \param frame_count   The number of frames to be modified -- must be > \c 0.
  * \param freq          The mixing frequency -- must be > \c 0.
  */
-void Generator_common_ramp_attack(Generator* gen,
-                                  Voice_state* state,
-                                  double frames[],
-                                  int frame_count,
-                                  uint32_t freq);
+void Generator_common_ramp_attack(
+        Generator* gen,
+        Voice_state* vstate,
+        double frames[],
+        int frame_count,
+        uint32_t freq);
 
 
 /**
  * Panning handling.
  *
  * \param gen           The Generator -- must not be \c NULL.
- * \param state         The Voice state -- must not be \c NULL.
+ * \param vstate        The Voice state -- must not be \c NULL.
  * \param frames        The frames to be modified -- must not be \c NULL.
  * \param frame_count   The number of frames to be modified -- must be > \c 0.
  */
-void Generator_common_handle_panning(Generator* gen,
-                                     Voice_state* state,
-                                     double frames[],
-                                     int frame_count);
+void Generator_common_handle_panning(
+        Generator* gen,
+        Voice_state* vstate,
+        double frames[],
+        int frame_count);
 
 

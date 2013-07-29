@@ -37,8 +37,6 @@ typedef struct Instrument_params
 {
     uint32_t device_id;
 
-    double sustain; ///< Sustain setting (0 = no sustain, 1.0 = full sustain).
-
     double global_force;           ///< Global force.
     double force;                  ///< Default force.
     double force_variation;        ///< Force variation.
@@ -102,14 +100,6 @@ typedef struct Instrument_params
 Instrument_params* Instrument_params_init(
         Instrument_params* ip,
         uint32_t device_id);
-
-
-/**
- * Resets the playback settings of the Instrument parameters.
- *
- * \param ip   The Instrument parameters -- must not be \c NULL.
- */
-void Instrument_params_reset(Instrument_params* ip);
 
 
 /**

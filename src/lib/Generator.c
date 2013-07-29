@@ -72,7 +72,8 @@ bool Generator_init(
         void (*destroy)(Generator*),
         uint32_t (*mix)(
             Generator*,
-            Device_states*,
+            Device_state* gen_state,
+            Ins_state*,
             Voice_state*,
             uint32_t,
             uint32_t,
@@ -143,8 +144,8 @@ char* Generator_get_type(Generator* gen)
 
 void Generator_mix(
         Generator* gen,
-        Device_states* states,
-        Voice_state* state,
+        Device_states* dstates,
+        Voice_state* vstate,
         uint32_t nframes,
         uint32_t offset,
         uint32_t freq,
@@ -152,13 +153,22 @@ void Generator_mix(
 {
     assert(gen != NULL);
     assert(gen->mix != NULL);
-    assert(states != NULL);
-    assert(state != NULL);
+    assert(dstates != NULL);
+    assert(vstate != NULL);
     assert(freq > 0);
     assert(tempo > 0);
 
     if (offset < nframes)
-        gen->mix(gen, states, state, nframes, offset, freq, tempo);
+    {
+        Device_state* gen_state = Device_states_get_state(
+                dstates,
+                Device_get_id(&gen->parent));
+        Ins_state* ins_state = (Ins_state*)Device_states_get_state(
+                dstates,
+                gen->ins_params->device_id);
+
+        gen->mix(gen, gen_state, ins_state, vstate, nframes, offset, freq, tempo);
+    }
 
     return;
 }

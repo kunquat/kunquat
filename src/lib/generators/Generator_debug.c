@@ -28,8 +28,9 @@ static bool Generator_debug_update_key(Device* device, const char* key);
 
 static uint32_t Generator_debug_mix(
         Generator* gen,
-        Device_states* states,
-        Voice_state* state,
+        Device_state* gen_state,
+        Ins_state* ins_state,
+        Voice_state* vstate,
         uint32_t nframes,
         uint32_t offset,
         uint32_t freq,
@@ -38,17 +39,16 @@ static uint32_t Generator_debug_mix(
 static void del_Generator_debug(Generator* gen);
 
 
-Generator* new_Generator_debug(uint32_t buffer_size,
-                               uint32_t mix_rate)
+Generator* new_Generator_debug(uint32_t buffer_size, uint32_t mix_rate)
 {
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
     assert(mix_rate > 0);
+
     Generator_debug* debug = memory_alloc_item(Generator_debug);
     if (debug == NULL)
-    {
         return NULL;
-    }
+
     if (!Generator_init(&debug->parent,
                         del_Generator_debug,
                         Generator_debug_mix,
@@ -59,16 +59,19 @@ Generator* new_Generator_debug(uint32_t buffer_size,
         memory_free(debug);
         return NULL;
     }
+
     Device_set_update_key(&debug->parent.parent, Generator_debug_update_key);
     debug->single_pulse = false;
+
     return &debug->parent;
 }
 
 
 static uint32_t Generator_debug_mix(
         Generator* gen,
-        Device_states* states,
-        Voice_state* state,
+        Device_state* gen_state,
+        Ins_state* ins_state,
+        Voice_state* vstate,
         uint32_t nframes,
         uint32_t offset,
         uint32_t freq,
@@ -76,24 +79,19 @@ static uint32_t Generator_debug_mix(
 {
     assert(gen != NULL);
     assert(string_eq(gen->type, "debug"));
-    assert(states != NULL);
-    assert(state != NULL);
+    assert(gen_state != NULL);
+    assert(ins_state != NULL);
+    assert(vstate != NULL);
     assert(freq > 0);
     assert(tempo > 0);
     (void)tempo;
 
-    Device_state* ds = Device_states_get_state(
-            states,
-            Device_get_id((Device*)gen));
-    assert(ds != NULL);
-
     kqt_frame* bufs[] = { NULL, NULL };
-    Generator_common_get_buffers(ds, state, offset, bufs);
+    Generator_common_get_buffers(gen_state, vstate, offset, bufs);
 
-    if (!state->active)
-    {
+    if (!vstate->active)
         return offset;
-    }
+
     Generator_debug* debug = (Generator_debug*)gen;
     if (debug->single_pulse)
     {
@@ -101,55 +99,63 @@ static uint32_t Generator_debug_mix(
         {
             bufs[0][offset] += 1.0;
             bufs[1][offset] += 1.0;
-            state->active = false;
+            vstate->active = false;
             return offset + 1;
         }
         return offset;
     }
+
     for (uint32_t i = offset; i < nframes; ++i)
     {
         double val_l = 0;
         double val_r = 0;
-        if (state->rel_pos == 0)
+
+        if (vstate->rel_pos == 0)
         {
             val_l = 1.0;
             val_r = 1.0;
-            state->rel_pos = 1;
+            vstate->rel_pos = 1;
         }
         else
         {
             val_l = 0.5;
             val_r = 0.5;
         }
-        if (!state->note_on)
+
+        if (!vstate->note_on)
         {
             val_l = -val_l;
             val_r = -val_r;
         }
+
         bufs[0][i] += val_l;
         bufs[1][i] += val_r;
-        state->rel_pos_rem += state->pitch / freq;
-        if (!state->note_on)
+
+        vstate->rel_pos_rem += vstate->pitch / freq;
+
+        if (!vstate->note_on)
         {
-            state->noff_pos_rem += state->pitch / freq;
-            if (state->noff_pos_rem >= 2)
+            vstate->noff_pos_rem += vstate->pitch / freq;
+            if (vstate->noff_pos_rem >= 2)
             {
-                state->active = false;
+                vstate->active = false;
                 return i;
             }
         }
-        if (state->rel_pos_rem >= 1)
+
+        if (vstate->rel_pos_rem >= 1)
         {
-            ++state->pos;
-            if (state->pos >= 10)
+            ++vstate->pos;
+            if (vstate->pos >= 10)
             {
-                state->active = false;
+                vstate->active = false;
                 return i;
             }
-            state->rel_pos = 0;
-            state->rel_pos_rem -= floor(state->rel_pos_rem);
+            vstate->rel_pos = 0;
+            vstate->rel_pos_rem -= floor(vstate->rel_pos_rem);
         }
     }
+
     return nframes;
 }
 
@@ -158,16 +164,16 @@ static bool Generator_debug_update_key(Device* device, const char* key)
 {
     assert(device != NULL);
     assert(key != NULL);
+
     Generator_debug* debug = (Generator_debug*)device;
     Device_params* params = debug->parent.conf->params;
     if (string_eq(key, "p_single_pulse.jsonb"))
     {
         bool* value = Device_params_get_bool(params, key);
         if (value != NULL)
-        {
             debug->single_pulse = *value;
-        }
     }
+
     return true;
 }
 
@@ -180,6 +186,7 @@ static void del_Generator_debug(Generator* gen)
     assert(string_eq(gen->type, "debug"));
     Generator_debug* debug = (Generator_debug*)gen;
     memory_free(debug);
+
     return;
 }
 

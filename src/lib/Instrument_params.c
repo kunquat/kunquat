@@ -52,7 +52,6 @@ Instrument_params* Instrument_params_init(
     ip->filter_env = NULL;
     ip->filter_off_env = NULL;
 
-    ip->sustain = 0;
     ip->volume = 1;
     ip->global_force = 1;
     ip->force = 0;
@@ -137,14 +136,6 @@ Instrument_params* Instrument_params_init(
 }
 
 #undef new_env_or_fail
-
-
-void Instrument_params_reset(Instrument_params* ip)
-{
-    assert(ip != NULL);
-    ip->sustain = 0;
-    return;
-}
 
 
 bool Instrument_params_parse_env_force_filter(

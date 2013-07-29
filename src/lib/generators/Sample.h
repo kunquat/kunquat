@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -19,7 +19,6 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include <stdio.h>
 
 #include <frame.h>
 #include <Sample_params.h>
@@ -88,36 +87,6 @@ void Sample_set_params(Sample* sample, Sample_params* params);
  * \return   The Sample format.
  */
 Sample_format Sample_get_format(Sample* sample);
-
-
-/**
- * Loads contents from a file into a Sample.
- *
- * \param sample   The Sample -- must not be \c NULL.
- * \param in       The input file -- must not be \c NULL.
- * \param format   The input file format -- must be valid.
- */
-//bool Sample_load(Sample* sample, FILE* in, Sample_format format);
-
-
-/**
- * Loads a given path into a Sample.
- *
- * \param sample   The Sample -- must not be \c NULL.
- * \param path     The input file path -- must not be \c NULL.
- * \param format   The input file format -- must be valid.
- */
-//bool Sample_load_path(Sample* sample, char* path, Sample_format format);
-
-
-/**
- * Gets the path of the Sample.
- *
- * \param sample   The Sample -- must not be \c NULL.
- *
- * \return   The path.
- */
-//char* Sample_get_path(Sample* sample);
 
 
 /**
@@ -226,37 +195,6 @@ uint64_t Sample_get_loop_end(Sample* sample);
  * \return   The buffer.
  */
 void* Sample_get_buffer(Sample* sample, int ch);
-
-
-/**
- * Mixes a Sample.
- *
- * \param sample        The Sample -- must not be \c NULL.
- * \param gen           The Generator containing the Sample -- must not be
- *                      \c NULL.
- * \param state         The Voice state -- must not be \c NULL.
- * \param nframes       The number of frames to be mixed.
- * \param offset        The buffer offset.
- * \param freq          The mixing frequency -- must be > \c 0.
- * \param tempo         The tempo -- must be > \c 0.
- * \param middle_tone   The frequency of the sound in the native speed of the
- *                      Sample -- must be > \c 0.
- * \param middle_freq   The mixing speed of the Sample used for playing
- *                      \a middle_tone -- must be > \c 0.
- */
-#if 0
-uint32_t Sample_mix(Sample* sample,
-                    Generator* gen,
-                    Voice_state* state,
-                    uint32_t nframes,
-                    uint32_t offset,
-                    uint32_t freq,
-                    double tempo,
-                    int buf_count,
-                    kqt_frame** bufs,
-                    double middle_tone,
-                    double middle_freq);
-#endif
 
 
 /**

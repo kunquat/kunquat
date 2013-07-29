@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2013
  *
  * This file is part of Kunquat.
  *
@@ -31,8 +31,7 @@
  * \return   The new additive synthesis Generator if successful, or \c NULL if
  *           memory allocation failed.
  */
-Generator* new_Generator_add(uint32_t buffer_size,
-                             uint32_t mix_rate);
+Generator* new_Generator_add(uint32_t buffer_size, uint32_t mix_rate);
 
 
 /**

@@ -42,8 +42,7 @@ typedef struct Generator_debug
  * \return   The new Debug Generator if successful, or \c NULL if memory
  *           allocation failed.
  */
-Generator* new_Generator_debug(uint32_t buffer_size,
-                               uint32_t mix_rate);
+Generator* new_Generator_debug(uint32_t buffer_size, uint32_t mix_rate);
 
 
 #endif // K_GENERATOR_DEBUG_H

@@ -26,6 +26,7 @@
 #include <Generator.h>
 #include <Instrument.h>
 #include <memory.h>
+#include <player/Ins_state.h>
 #include <string_common.h>
 #include <xassert.h>
 
@@ -46,6 +47,11 @@ struct Instrument
     Effect_table* effects;
 };
 
+
+static Device_state* Instrument_create_state(
+        const Device* device,
+        int32_t audio_rate,
+        int32_t audio_buffer_size);
 
 static void Instrument_reset(Device* device);
 
@@ -84,6 +90,7 @@ Instrument* new_Instrument(uint32_t buf_len, uint32_t mix_rate)
         return NULL;
     }
 
+    Device_set_state_creator(&ins->parent, Instrument_create_state);
     Device_set_reset(&ins->parent, Instrument_reset);
     Device_set_mix_rate_changer(&ins->parent, Instrument_set_mix_rate);
     Device_set_buffer_size_changer(&ins->parent, Instrument_set_buffer_size);
@@ -302,6 +309,26 @@ Connections* Instrument_get_connections(Instrument* ins)
 }
 
 
+static Device_state* Instrument_create_state(
+        const Device* device,
+        int32_t audio_rate,
+        int32_t audio_buffer_size)
+{
+    assert(device != NULL);
+    assert(audio_rate > 0);
+    assert(audio_buffer_size >= 0);
+
+    Ins_state* is = memory_alloc_item(Ins_state);
+    if (is == NULL)
+        return NULL;
+
+    Device_state_init(&is->parent, device, audio_rate, audio_buffer_size);
+    is->sustain = 0.0;
+
+    return &is->parent;
+}
+
+
 static void Instrument_reset(Device* device)
 {
     assert(device != NULL);
@@ -321,8 +348,6 @@ static void Instrument_reset(Device* device)
         if (eff != NULL)
             Device_reset((Device*)eff);
     }
-
-    Instrument_params_reset(&ins->params);
 
     return;
 }

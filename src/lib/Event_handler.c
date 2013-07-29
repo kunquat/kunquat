@@ -49,15 +49,20 @@
 struct Event_handler
 {
     Channel* channels[KQT_COLUMNS_MAX];
+    Device_states* device_states;
     Master_params* master_params;
     Ins_table* insts;
     Effect_table* effects;
     Event_names* event_names;
+
     bool (*control_process[Event_control_STOP])(General_state*, Value*);
     bool (*general_process[Event_general_STOP])(General_state*, Value*);
     bool (*ch_process[Event_channel_STOP])(Channel*, Value*);
     bool (*master_process[Event_master_STOP])(Master_params*, Value*);
-    bool (*ins_process[Event_ins_STOP])(Instrument_params*, Value*);
+    bool (*ins_process[Event_ins_STOP])(
+            Instrument_params*,
+            Ins_state*,
+            Value*);
     bool (*generator_process[Event_generator_STOP])(
             Generator*,
             Channel*,
@@ -70,11 +75,13 @@ struct Event_handler
 Event_handler* new_Event_handler(
         Master_params* master_params,
         Channel** channels,
+        Device_states* device_states,
         Ins_table* insts,
         Effect_table* effects)
 {
     assert(master_params != NULL);
     assert(channels != NULL);
+    assert(device_states != NULL);
     assert(insts != NULL);
     assert(effects != NULL);
 
@@ -92,6 +99,7 @@ Event_handler* new_Event_handler(
     eh->master_params = master_params;
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
         eh->channels[i] = channels[i];
+    eh->device_states = device_states;
     eh->insts = insts;
     eh->effects = effects;
 
@@ -201,7 +209,7 @@ bool Event_handler_set_master_process(
 bool Event_handler_set_ins_process(
         Event_handler* eh,
         Event_type type,
-        bool (*ins_process)(Instrument_params*, Value*))
+        bool (*ins_process)(Instrument_params*, Ins_state*, Value*))
 {
     assert(eh != NULL);
     assert(Event_is_ins(type));
@@ -290,7 +298,11 @@ static bool Event_handler_handle(
 
         Instrument_params* ins_params = Instrument_get_params(ins);
         assert(ins_params != NULL);
-        return eh->ins_process[type](ins_params, value);
+        Ins_state* ins_state = (Ins_state*)Device_states_get_state(
+                eh->device_states,
+                Device_get_id((Device*)ins));
+
+        return eh->ins_process[type](ins_params, ins_state, value);
     }
     else if (Event_is_master(type))
     {

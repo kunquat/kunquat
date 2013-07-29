@@ -25,6 +25,7 @@
 #include <Generator.h>
 #include <Ins_table.h>
 #include <player/Channel.h>
+#include <player/Ins_state.h>
 #include <player/Master_params.h>
 #include <Value.h>
 
@@ -41,6 +42,7 @@ typedef struct Event_handler Event_handler;
 Event_handler* new_Event_handler(
         Master_params* master_params,
         Channel** channels,
+        Device_states* device_states,
         Ins_table* insts,
         Effect_table* effects);
 
@@ -131,7 +133,7 @@ bool Event_handler_set_master_process(
 bool Event_handler_set_ins_process(
         Event_handler* eh,
         Event_type type,
-        bool (*ins_process)(Instrument_params*, Value*));
+        bool (*ins_process)(Instrument_params*, Ins_state*, Value*));
 
 
 /**

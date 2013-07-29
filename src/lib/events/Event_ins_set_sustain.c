@@ -17,20 +17,22 @@
 
 #include <Event_common.h>
 #include <Event_ins_decl.h>
-#include <Instrument_params.h>
 #include <Value.h>
 #include <xassert.h>
 
 
-bool Event_ins_set_sustain_process(Instrument_params* ins_state, Value* value)
+bool Event_ins_set_sustain_process(
+        Instrument_params* ins_params,
+        Ins_state* ins_state,
+        Value* value)
 {
+    assert(ins_params != NULL);
     assert(ins_state != NULL);
     assert(value != NULL);
-    if (value->type != VALUE_TYPE_FLOAT)
-    {
-        return false;
-    }
+    assert(value->type == VALUE_TYPE_FLOAT);
+
     ins_state->sustain = value->value.float_type;
+
     return true;
 }
 

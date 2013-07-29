@@ -109,7 +109,6 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->noff_pos = 0;
     state->noff_pos_rem = 0;
 
-    state->sustain = NULL;
     state->fe_pos = 0;
     state->fe_next_node = 0;
     state->fe_value = NAN;

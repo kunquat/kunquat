@@ -35,8 +35,9 @@ void Generator_noise_init_state(Generator* gen, Voice_state* state);
 
 static uint32_t Generator_noise_mix(
         Generator* gen,
-        Device_states* states,
-        Voice_state* state,
+        Device_state* gen_state,
+        Ins_state* ins_state,
+        Voice_state* vstate,
         uint32_t nframes,
         uint32_t offset,
         uint32_t freq,
@@ -45,28 +46,30 @@ static uint32_t Generator_noise_mix(
 static void del_Generator_noise(Generator* gen);
 
 
-Generator* new_Generator_noise(uint32_t buffer_size,
-                               uint32_t mix_rate)
+Generator* new_Generator_noise(uint32_t buffer_size, uint32_t mix_rate)
 {
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
     assert(mix_rate > 0);
+
     Generator_noise* noise = memory_alloc_item(Generator_noise);
     if (noise == NULL)
-    {
         return NULL;
-    }
-    if (!Generator_init(&noise->parent,
-                        del_Generator_noise,
-                        Generator_noise_mix,
-                        Generator_noise_init_state,
-                        buffer_size,
-                        mix_rate))
+
+    if (!Generator_init(
+                &noise->parent,
+                del_Generator_noise,
+                Generator_noise_mix,
+                Generator_noise_init_state,
+                buffer_size,
+                mix_rate))
     {
         memory_free(noise);
         return NULL;
     }
+
     noise->order = 0;
+
     return &noise->parent;
 }
 
@@ -77,15 +80,15 @@ char* Generator_noise_property(Generator* gen, const char* property_type)
     assert(string_eq(gen->type, "noise"));
     assert(property_type != NULL);
     (void)gen;
+
     if (string_eq(property_type, "voice_state_size"))
     {
         static char size_str[8] = { '\0' };
         if (string_eq(size_str, ""))
-        {
             snprintf(size_str, 8, "%zd", sizeof(Voice_state_noise));
-        }
         return size_str;
     }
+
     return NULL;
 }
 
@@ -96,17 +99,20 @@ void Generator_noise_init_state(Generator* gen, Voice_state* state)
     assert(string_eq(gen->type, "noise"));
     assert(state != NULL);
     (void)gen;
+
     Voice_state_noise* noise_state = (Voice_state_noise*)state;
-    memset(noise_state->buf[0], 0, NOISE_MAX * sizeof(double)); 
-    memset(noise_state->buf[1], 0, NOISE_MAX * sizeof(double)); 
+    memset(noise_state->buf[0], 0, NOISE_MAX * sizeof(double));
+    memset(noise_state->buf[1], 0, NOISE_MAX * sizeof(double));
+
     return;
 }
 
 
 static uint32_t Generator_noise_mix(
         Generator* gen,
-        Device_states* states,
-        Voice_state* state,
+        Device_state* gen_state,
+        Ins_state* ins_state,
+        Voice_state* vstate,
         uint32_t nframes,
         uint32_t offset,
         uint32_t freq,
@@ -114,62 +120,69 @@ static uint32_t Generator_noise_mix(
 {
     assert(gen != NULL);
     assert(string_eq(gen->type, "noise"));
-    assert(states != NULL);
-    assert(state != NULL);
+    assert(gen_state != NULL);
+    assert(ins_state != NULL);
+    assert(vstate != NULL);
     assert(freq > 0);
     assert(tempo > 0);
 
-    Device_state* ds = Device_states_get_state(
-            states,
-            Device_get_id((Device*)gen));
-    assert(ds != NULL);
-
     kqt_frame* bufs[] = { NULL, NULL };
-    Generator_common_get_buffers(ds, state, offset, bufs);
-    Generator_common_check_active(gen, state, offset);
-    Generator_common_check_relative_lengths(gen, state, freq, tempo);
+    Generator_common_get_buffers(gen_state, vstate, offset, bufs);
+    Generator_common_check_active(gen, vstate, offset);
+    Generator_common_check_relative_lengths(gen, vstate, freq, tempo);
 //    double max_amp = 0;
 //  fprintf(stderr, "bufs are %p and %p\n", ins->bufs[0], ins->bufs[1]);
+
     Generator_noise* noise = (Generator_noise*)gen;
-    Voice_state_noise* noise_state = (Voice_state_noise*)state;
-    if (state->note_on)
+    Voice_state_noise* noise_state = (Voice_state_noise*)vstate;
+
+    if (vstate->note_on)
     {
-        int64_t* order_arg = Channel_gen_state_get_int(state->cgstate,
-                                                      "p_order.jsoni");
+        int64_t* order_arg = Channel_gen_state_get_int(
+                vstate->cgstate,
+                "p_order.jsoni");
         if (order_arg != NULL)
-        {
             noise->order = *order_arg;
+        else
+            noise->order = 0;
+    }
+
+    uint32_t mixed = offset;
+    for (; mixed < nframes && vstate->active; ++mixed)
+    {
+        Generator_common_handle_pitch(gen, vstate);
+        double vals[KQT_BUFFERS_MAX] = { 0 };
+
+        if(noise->order < 0)
+        {
+            vals[0] = dc_pole_filter(
+                    -noise->order,
+                    noise_state->buf[0],
+                    Random_get_float_signal(vstate->rand_s));
+            vals[1] = dc_pole_filter(
+                    -noise->order,
+                    noise_state->buf[1],
+                    Random_get_float_signal(vstate->rand_s));
         }
         else
         {
-            noise->order = 0;
+            vals[0] = dc_zero_filter(
+                    noise->order,
+                    noise_state->buf[0],
+                    Random_get_float_signal(vstate->rand_s));
+            vals[1] = dc_zero_filter(
+                    noise->order,
+                    noise_state->buf[1],
+                    Random_get_float_signal(vstate->rand_s));
         }
-    }
-    uint32_t mixed = offset;
-    for (; mixed < nframes && state->active; ++mixed)
-    {
-        Generator_common_handle_pitch(gen, state);
-        double vals[KQT_BUFFERS_MAX] = { 0 };
-        if(noise->order < 0)
-        {
-            vals[0] = dc_pole_filter(-noise->order, noise_state->buf[0],
-                                     Random_get_float_signal(state->rand_s));
-            vals[1] = dc_pole_filter(-noise->order, noise_state->buf[1],
-                                     Random_get_float_signal(state->rand_s));
-        }
-        else 
-        {
-            vals[0] = dc_zero_filter(noise->order, noise_state->buf[0],
-                                     Random_get_float_signal(state->rand_s));
-            vals[1] = dc_zero_filter(noise->order, noise_state->buf[1],
-                                     Random_get_float_signal(state->rand_s));
-        }
-        Generator_common_handle_force(gen, state, vals, 2, freq);
-        Generator_common_handle_filter(gen, state, vals, 2, freq);
-        Generator_common_ramp_attack(gen, state, vals, 2, freq);
-        state->pos = 1; // XXX: hackish
-//        Generator_common_handle_note_off(gen, state, vals, 2, freq);
-        Generator_common_handle_panning(gen, state, vals, 2);
+
+        Generator_common_handle_force(gen, ins_state, vstate, vals, 2, freq);
+        Generator_common_handle_filter(gen, vstate, vals, 2, freq);
+        Generator_common_ramp_attack(gen, vstate, vals, 2, freq);
+        vstate->pos = 1; // XXX: hackish
+
+//        Generator_common_handle_note_off(gen, vstate, vals, 2, freq);
+        Generator_common_handle_panning(gen, vstate, vals, 2);
         bufs[0][mixed] += vals[0];
         bufs[1][mixed] += vals[1];
 /*      if (fabs(val_l) > max_amp)
@@ -177,6 +190,7 @@ static uint32_t Generator_noise_mix(
             max_amp = fabs(val_l);
         } */
     }
+
 //  fprintf(stderr, "max_amp is %lf\n", max_amp);
     return mixed;
 }
@@ -190,6 +204,7 @@ static void del_Generator_noise(Generator* gen)
     assert(string_eq(gen->type, "noise"));
     Generator_noise* noise = (Generator_noise*)gen;
     memory_free(noise);
+
     return;
 }
 

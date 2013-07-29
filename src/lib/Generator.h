@@ -26,7 +26,7 @@
 #include <Instrument_params.h>
 #include <kunquat/limits.h>
 #include <pitch_t.h>
-#include <player/Device_states.h>
+#include <player/Ins_state.h>
 #include <player/Voice_state.h>
 
 
@@ -42,17 +42,19 @@ typedef struct Generator
     Device parent;
     char type[GEN_TYPE_LENGTH_MAX];
     Gen_conf* conf;
+    Instrument_params* ins_params;
+
     void (*init_state)(struct Generator*, Voice_state*);
     void (*destroy)(struct Generator*);
     uint32_t (*mix)(
             struct Generator*,
-            Device_states*,
+            Device_state* gen_state,
+            Ins_state*,
             Voice_state*,
             uint32_t,
             uint32_t,
             uint32_t,
             double);
-    Instrument_params* ins_params;
 } Generator;
 
 
@@ -98,7 +100,8 @@ bool Generator_init(
         void (*destroy)(Generator*),
         uint32_t (*mix)(
             Generator*,
-            Device_states*,
+            Device_state* gen_state,
+            Ins_state*,
             Voice_state*,
             uint32_t,
             uint32_t,
@@ -152,8 +155,8 @@ char* Generator_get_type(Generator* gen);
  * Mixes the Generator.
  *
  * \param gen       The Generator -- must not be \c NULL.
- * \param states    The Device states -- must not be \c NULL.
- * \param state     The Voice state -- must not be \c NULL.
+ * \param dstates   The Device states -- must not be \c NULL.
+ * \param vstate    The Voice state -- must not be \c NULL.
  * \param nframes   The number of frames to be mixed -- must not be greater
  *                  than the mixing buffer size.
  * \param offset    The starting frame offset (\a nframes - \a offset are
@@ -163,8 +166,8 @@ char* Generator_get_type(Generator* gen);
  */
 void Generator_mix(
         Generator* gen,
-        Device_states* states,
-        Voice_state* state,
+        Device_states* dstates,
+        Voice_state* vstate,
         uint32_t nframes,
         uint32_t offset,
         uint32_t freq,

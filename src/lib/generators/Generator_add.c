@@ -76,8 +76,9 @@ static bool Generator_add_update_key(Device* device, const char* key);
 
 static uint32_t Generator_add_mix(
         Generator* gen,
-        Device_states* states,
-        Voice_state* state,
+        Device_state* gen_state,
+        Ins_state* ins_state,
+        Voice_state* vstate,
         uint32_t nframes,
         uint32_t offset,
         uint32_t freq,
@@ -86,8 +87,7 @@ static uint32_t Generator_add_mix(
 static void del_Generator_add(Generator* gen);
 
 
-Generator* new_Generator_add(uint32_t buffer_size,
-                             uint32_t mix_rate)
+Generator* new_Generator_add(uint32_t buffer_size, uint32_t mix_rate)
 {
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
@@ -221,8 +221,9 @@ static void Generator_add_init_state(Generator* gen, Voice_state* state)
 
 static uint32_t Generator_add_mix(
         Generator* gen,
-        Device_states* states,
-        Voice_state* state,
+        Device_state* gen_state,
+        Ins_state* ins_state,
+        Voice_state* vstate,
         uint32_t nframes,
         uint32_t offset,
         uint32_t freq,
@@ -230,28 +231,24 @@ static uint32_t Generator_add_mix(
 {
     assert(gen != NULL);
     assert(string_eq(gen->type, "add"));
-    assert(states != NULL);
-    assert(state != NULL);
+    assert(gen_state != NULL);
+    assert(ins_state != NULL);
+    assert(vstate != NULL);
     assert(freq > 0);
     assert(tempo > 0);
 
-    Device_state* ds = Device_states_get_state(
-            states,
-            Device_get_id((Device*)gen));
-    assert(ds != NULL);
-
     Generator_add* add = (Generator_add*)gen;
     kqt_frame* bufs[] = { NULL, NULL };
-    Generator_common_get_buffers(ds, state, offset, bufs);
-    Generator_common_check_active(gen, state, offset);
-    Generator_common_check_relative_lengths(gen, state, freq, tempo);
-    Voice_state_add* add_state = (Voice_state_add*)state;
+    Generator_common_get_buffers(gen_state, vstate, offset, bufs);
+    Generator_common_check_active(gen, vstate, offset);
+    Generator_common_check_relative_lengths(gen, vstate, freq, tempo);
+    Voice_state_add* add_state = (Voice_state_add*)vstate;
     uint32_t mixed = offset;
     assert(is_p2(BASE_FUNC_SIZE));
 
-    for (; mixed < nframes && state->active; ++mixed)
+    for (; mixed < nframes && vstate->active; ++mixed)
     {
-        Generator_common_handle_pitch(gen, state);
+        Generator_common_handle_pitch(gen, vstate);
         double vals[KQT_BUFFERS_MAX] = { 0 };
         vals[0] = 0;
         double mod_val = 0;
@@ -274,7 +271,7 @@ static uint32_t Generator_add_mix(
                 double remainder = pos - floor(pos);
                 mod_val += (frame + remainder * frame_diff) *
                            add->mod_tones[h].volume_factor * add->mod_volume;
-                add_state->mod_tones[h].phase += state->actual_pitch *
+                add_state->mod_tones[h].phase += vstate->actual_pitch *
                                         add->mod_tones[h].pitch_factor / freq;
                 if (add_state->mod_tones[h].phase >= 1)
                 {
@@ -284,7 +281,7 @@ static uint32_t Generator_add_mix(
             }
             if (add->force_mod_env != NULL)
             {
-                double force = MIN(1, state->actual_force);
+                double force = MIN(1, vstate->actual_force);
                 double factor = Envelope_get_value(add->force_mod_env, force);
                 assert(isfinite(factor));
                 mod_val *= factor;
@@ -292,10 +289,10 @@ static uint32_t Generator_add_mix(
             if (add->mod_env != NULL)
             {
                 if (add->mod_env_scale_amount != 0 &&
-                        (state->actual_pitch != state->prev_actual_pitch ||
+                        (vstate->actual_pitch != vstate->prev_actual_pitch ||
                          isnan(add_state->mod_env_scale)))
                 {
-                    add_state->mod_env_scale = pow(state->actual_pitch /
+                    add_state->mod_env_scale = pow(vstate->actual_pitch /
                                                    add->mod_env_center,
                                                    add->mod_env_scale_amount);
                 }
@@ -370,18 +367,18 @@ static uint32_t Generator_add_mix(
                          add->tones[h].volume_factor;
             vals[0] += val * (1 - add->tones[h].panning);
             vals[1] += val * (1 + add->tones[h].panning);
-            add_state->tones[h].phase += state->actual_pitch *
+            add_state->tones[h].phase += vstate->actual_pitch *
                                          add->tones[h].pitch_factor / freq;
             if (add_state->tones[h].phase >= 1)
             {
                 add_state->tones[h].phase -= floor(add_state->tones[h].phase);
             }
         }
-        Generator_common_handle_force(gen, state, vals, 2, freq);
-        Generator_common_handle_filter(gen, state, vals, 2, freq);
-        Generator_common_ramp_attack(gen, state, vals, 2, freq);
-        state->pos = 1; // XXX: hackish
-        Generator_common_handle_panning(gen, state, vals, 2);
+        Generator_common_handle_force(gen, ins_state, vstate, vals, 2, freq);
+        Generator_common_handle_filter(gen, vstate, vals, 2, freq);
+        Generator_common_ramp_attack(gen, vstate, vals, 2, freq);
+        vstate->pos = 1; // XXX: hackish
+        Generator_common_handle_panning(gen, vstate, vals, 2);
         bufs[0][mixed] += vals[0];
         bufs[1][mixed] += vals[1];
     }

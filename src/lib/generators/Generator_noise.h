@@ -37,8 +37,7 @@ typedef struct Generator_noise
  * \return   The new Noise Generator if successful, or \c NULL if memory
  *           allocation failed.
  */
-Generator* new_Generator_noise(uint32_t buffer_size,
-                               uint32_t mix_rate);
+Generator* new_Generator_noise(uint32_t buffer_size, uint32_t mix_rate);
 
 
 /**

@@ -58,7 +58,6 @@ void set_instrument_properties(
 {
     assert(force_var != NULL);
 
-    vs->sustain = &voice->gen->ins_params->sustain;
     vs->force = exp2(voice->gen->ins_params->force / 6);
 
     if (voice->gen->ins_params->force_variation != 0)

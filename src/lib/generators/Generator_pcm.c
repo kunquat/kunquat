@@ -33,12 +33,13 @@
 #include <xassert.h>
 
 
-static void Generator_pcm_init_state(Generator* gen, Voice_state* state);
+static void Generator_pcm_init_state(Generator* gen, Voice_state* vstate);
 
 static uint32_t Generator_pcm_mix(
         Generator* gen,
-        Device_states* states,
-        Voice_state* state,
+        Device_state* gen_state,
+        Ins_state* ins_state,
+        Voice_state* vstate,
         uint32_t nframes,
         uint32_t offset,
         uint32_t freq,
@@ -47,27 +48,28 @@ static uint32_t Generator_pcm_mix(
 static void del_Generator_pcm(Generator* gen);
 
 
-Generator* new_Generator_pcm(uint32_t buffer_size,
-                             uint32_t mix_rate)
+Generator* new_Generator_pcm(uint32_t buffer_size, uint32_t mix_rate)
 {
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
     assert(mix_rate > 0);
+
     Generator_pcm* pcm = memory_alloc_item(Generator_pcm);
     if (pcm == NULL)
-    {
         return NULL;
-    }
-    if (!Generator_init(&pcm->parent,
-                        del_Generator_pcm,
-                        Generator_pcm_mix,
-                        Generator_pcm_init_state,
-                        buffer_size,
-                        mix_rate))
+
+    if (!Generator_init(
+                &pcm->parent,
+                del_Generator_pcm,
+                Generator_pcm_mix,
+                Generator_pcm_init_state,
+                buffer_size,
+                mix_rate))
     {
         memory_free(pcm);
         return NULL;
     }
+
     return &pcm->parent;
 }
 
@@ -78,26 +80,28 @@ char* Generator_pcm_property(Generator* gen, const char* property_type)
     assert(string_eq(gen->type, "pcm"));
     assert(property_type != NULL);
     (void)gen;
+
     if (string_eq(property_type, "voice_state_size"))
     {
         static char size_str[8] = { '\0' };
         if (string_eq(size_str, ""))
-        {
             snprintf(size_str, 8, "%zd", sizeof(Voice_state_pcm));
-        }
+
         return size_str;
     }
+
     return NULL;
 }
 
 
-static void Generator_pcm_init_state(Generator* gen, Voice_state* state)
+static void Generator_pcm_init_state(Generator* gen, Voice_state* vstate)
 {
     assert(gen != NULL);
     assert(string_eq(gen->type, "pcm"));
     (void)gen;
-    assert(state != NULL);
-    Voice_state_pcm* pcm_state = (Voice_state_pcm*)state;
+    assert(vstate != NULL);
+
+    Voice_state_pcm* pcm_state = (Voice_state_pcm*)vstate;
     pcm_state->sample = -1;
     pcm_state->freq = 0;
     pcm_state->volume = 0;
@@ -105,14 +109,16 @@ static void Generator_pcm_init_state(Generator* gen, Voice_state* state)
     pcm_state->expr = 0;
     pcm_state->middle_tone = 0;
     Sample_params_init(&pcm_state->params);
+
     return;
 }
 
 
 uint32_t Generator_pcm_mix(
         Generator* gen,
-        Device_states* states,
-        Voice_state* state,
+        Device_state* gen_state,
+        Ins_state* ins_state,
+        Voice_state* vstate,
         uint32_t nframes,
         uint32_t offset,
         uint32_t freq,
@@ -120,135 +126,166 @@ uint32_t Generator_pcm_mix(
 {
     assert(gen != NULL);
     assert(string_eq(gen->type, "pcm"));
-    assert(states != NULL);
-    assert(state != NULL);
+    assert(gen_state != NULL);
+    assert(ins_state != NULL);
+    assert(vstate != NULL);
     assert(freq > 0);
     assert(tempo > 0);
 
-    Device_state* ds = Device_states_get_state(
-            states,
-            Device_get_id((Device*)gen));
-    assert(ds != NULL);
-
     kqt_frame* bufs[] = { NULL, NULL };
-    Generator_common_get_buffers(ds, state, offset, bufs);
-    Generator_common_check_active(gen, state, offset);
+    Generator_common_get_buffers(gen_state, vstate, offset, bufs);
+    Generator_common_check_active(gen, vstate, offset);
+
 //    Generator_pcm* pcm = (Generator_pcm*)gen;
-    Voice_state_pcm* pcm_state = (Voice_state_pcm*)state;
+    Voice_state_pcm* pcm_state = (Voice_state_pcm*)vstate;
+
     if (nframes <= offset)
-    {
         return offset;
-    }
+
     if (pcm_state->sample < 0)
     {
         int expression = 0;
         int source = 0;
-        int64_t* expression_arg = Channel_gen_state_get_int(state->cgstate,
-                                                            "p_exp.jsoni");
+
+        int64_t* expression_arg = Channel_gen_state_get_int(
+                vstate->cgstate,
+                "p_exp.jsoni");
         if (expression_arg != NULL)
         {
             if (*expression_arg < 0 || *expression_arg >= PCM_EXPRESSIONS_MAX)
             {
-                state->active = false;
+                vstate->active = false;
                 return offset;
             }
             expression = *expression_arg;
         }
-        int64_t* source_arg = Channel_gen_state_get_int(state->cgstate,
-                                                        "p_src.jsoni");
+
+        int64_t* source_arg = Channel_gen_state_get_int(
+                vstate->cgstate,
+                "p_src.jsoni");
         if (source_arg != NULL)
         {
             if (*source_arg < 0 || *source_arg >= PCM_SOURCES_MAX)
             {
-                state->active = false;
+                vstate->active = false;
                 return offset;
             }
             source = *source_arg;
         }
+
         const Sample_entry* entry = NULL;
-        if (state->hit_index >= 0)
+        if (vstate->hit_index >= 0)
         {
-            assert(state->hit_index < KQT_HITS_MAX);
+            assert(vstate->hit_index < KQT_HITS_MAX);
+
             char map_key[] = "exp_X/src_X/p_hit_map.jsonhm";
-            snprintf(map_key, strlen(map_key) + 1,
-                     "exp_%01x/src_%01x/p_hit_map.jsonhm", expression, source);
-            Hit_map* map = Device_params_get_hit_map(gen->conf->params,
-                                                     map_key);
+            snprintf(
+                    map_key,
+                    strlen(map_key) + 1,
+                    "exp_%01x/src_%01x/p_hit_map.jsonhm",
+                    expression,
+                    source);
+            Hit_map* map = Device_params_get_hit_map(
+                    gen->conf->params,
+                    map_key);
             if (map == NULL)
             {
-                state->active = false;
+                vstate->active = false;
                 return offset;
             }
-            state->pitch = 440;
-            entry = Hit_map_get_entry(map, state->hit_index,
-                                      state->force, state->rand_p);
+
+            vstate->pitch = 440;
+            entry = Hit_map_get_entry(
+                    map,
+                    vstate->hit_index,
+                    vstate->force,
+                    vstate->rand_p);
         }
         else
         {
             char map_key[] = "exp_X/src_X/p_sample_map.jsonsm";
-            snprintf(map_key, strlen(map_key) + 1,
-                     "exp_%01x/src_%01x/p_sample_map.jsonsm", expression, source);
-            Sample_map* map = Device_params_get_sample_map(gen->conf->params,
-                                                           map_key);
+            snprintf(
+                    map_key,
+                    strlen(map_key) + 1,
+                    "exp_%01x/src_%01x/p_sample_map.jsonsm",
+                    expression,
+                    source);
+            Sample_map* map = Device_params_get_sample_map(
+                    gen->conf->params,
+                    map_key);
             if (map == NULL)
             {
-                state->active = false;
+                vstate->active = false;
                 return offset;
             }
+
             //fprintf(stderr, "pitch @ %p: %f\n", (void*)&state->pitch, state->pitch);
-            entry = Sample_map_get_entry(map,
-                                         log2(state->pitch / 440) * 1200,
-                                         state->force,
-                                         state->rand_p);
+            entry = Sample_map_get_entry(
+                    map,
+                    log2(vstate->pitch / 440) * 1200,
+                    vstate->force,
+                    vstate->rand_p);
             pcm_state->middle_tone = entry->ref_freq;
         }
+
         if (entry == NULL || entry->sample >= PCM_SAMPLES_MAX)
         {
-            state->active = false;
+            vstate->active = false;
             return offset;
         }
+
         pcm_state->sample = entry->sample;
         pcm_state->volume = entry->vol_scale;
         char header_key[] = "smp_XXX/p_sample.jsonsh";
-        snprintf(header_key, strlen(header_key) + 1,
-                 "smp_%03x/p_sample.jsonsh", pcm_state->sample);
-        Sample_params* header = Device_params_get_sample_params(gen->conf->params,
-                                                                header_key);
+        snprintf(
+                header_key,
+                strlen(header_key) + 1,
+                "smp_%03x/p_sample.jsonsh",
+                pcm_state->sample);
+        Sample_params* header = Device_params_get_sample_params(
+                gen->conf->params,
+                header_key);
         if (header == NULL)
         {
-            state->active = false;
+            vstate->active = false;
             return offset;
         }
+
         assert(header->mid_freq > 0);
-        if (state->hit_index >= 0)
-        {
+        if (vstate->hit_index >= 0)
             pcm_state->middle_tone = 440;
-        }
+
         pcm_state->freq = header->mid_freq * exp2(entry->cents / 1200);
         Sample_params_copy(&pcm_state->params, header);
     }
+
     assert(pcm_state->sample < PCM_SAMPLES_MAX);
     assert(pcm_state->params.format > SAMPLE_FORMAT_NONE);
     static const char* extensions[] =
     {
         [SAMPLE_FORMAT_WAVPACK] = "wv",
     };
+
     char sample_key[] = "smp_XXX/p_sample.NONE";
     snprintf(sample_key, strlen(sample_key) + 1,
              "smp_%03x/p_sample.%s", pcm_state->sample,
              extensions[pcm_state->params.format]);
+
     Sample* sample = Device_params_get_sample(gen->conf->params, sample_key);
     if (sample == NULL)
     {
-        state->active = false;
+        vstate->active = false;
         return offset;
     }
+
     Sample_set_loop_start(sample, pcm_state->params.loop_start);
     Sample_set_loop_end(sample, pcm_state->params.loop_end);
     Sample_set_loop(sample, pcm_state->params.loop);
-    return Sample_mix(sample, gen, state, nframes, offset, freq, tempo, bufs,
-                      pcm_state->middle_tone, pcm_state->freq,
-                      pcm_state->volume);
+
+    return Sample_mix(
+            sample, gen, ins_state, vstate, nframes, offset, freq, tempo, bufs,
+            pcm_state->middle_tone, pcm_state->freq,
+            pcm_state->volume);
 }
 
 
@@ -260,6 +297,7 @@ void del_Generator_pcm(Generator* gen)
     assert(string_eq(gen->type, "pcm"));
     Generator_pcm* pcm = (Generator_pcm*)gen;
     memory_free(pcm);
+
     return;
 }
 

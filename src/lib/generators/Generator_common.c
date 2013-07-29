@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -27,155 +27,169 @@
 #define RAMP_RELEASE_TIME (200.0)
 
 
-void Generator_common_check_relative_lengths(Generator* gen,
-                                             Voice_state* state,
-                                             uint32_t freq,
-                                             double tempo)
+void Generator_common_check_relative_lengths(
+        Generator* gen,
+        Voice_state* vstate,
+        uint32_t freq,
+        double tempo)
 {
     assert(gen != NULL);
-    assert(state != NULL);
+    assert(vstate != NULL);
     assert(freq > 0);
     assert(tempo > 0);
     assert(isfinite(tempo));
     (void)gen;
-    if (state->freq != freq || state->tempo != tempo)
+
+    if (vstate->freq != freq || vstate->tempo != tempo)
     {
-        Slider_set_mix_rate(&state->pitch_slider, freq);
-        Slider_set_tempo(&state->pitch_slider, tempo);
-        LFO_set_mix_rate(&state->vibrato, freq);
-        LFO_set_tempo(&state->vibrato, tempo);
-        if (state->arpeggio)
+        Slider_set_mix_rate(&vstate->pitch_slider, freq);
+        Slider_set_tempo(&vstate->pitch_slider, tempo);
+        LFO_set_mix_rate(&vstate->vibrato, freq);
+        LFO_set_tempo(&vstate->vibrato, tempo);
+
+        if (vstate->arpeggio)
         {
-            state->arpeggio_length *= (double)freq / state->freq;
-            state->arpeggio_length *= state->tempo / tempo;
-            state->arpeggio_frames *= (double)freq / state->freq;
-            state->arpeggio_frames *= state->tempo / tempo;
+            vstate->arpeggio_length *= (double)freq / vstate->freq;
+            vstate->arpeggio_length *= vstate->tempo / tempo;
+            vstate->arpeggio_frames *= (double)freq / vstate->freq;
+            vstate->arpeggio_frames *= vstate->tempo / tempo;
         }
 
-        Slider_set_mix_rate(&state->force_slider, freq);
-        Slider_set_tempo(&state->force_slider, tempo);
-        LFO_set_mix_rate(&state->tremolo, freq);
-        LFO_set_tempo(&state->tremolo, tempo);
+        Slider_set_mix_rate(&vstate->force_slider, freq);
+        Slider_set_tempo(&vstate->force_slider, tempo);
+        LFO_set_mix_rate(&vstate->tremolo, freq);
+        LFO_set_tempo(&vstate->tremolo, tempo);
 
-        Slider_set_mix_rate(&state->panning_slider, freq);
-        Slider_set_tempo(&state->panning_slider, tempo);
+        Slider_set_mix_rate(&vstate->panning_slider, freq);
+        Slider_set_tempo(&vstate->panning_slider, tempo);
 
-        Slider_set_mix_rate(&state->lowpass_slider, freq);
-        Slider_set_tempo(&state->lowpass_slider, tempo);
-        LFO_set_mix_rate(&state->autowah, freq);
-        LFO_set_tempo(&state->autowah, tempo);
+        Slider_set_mix_rate(&vstate->lowpass_slider, freq);
+        Slider_set_tempo(&vstate->lowpass_slider, tempo);
+        LFO_set_mix_rate(&vstate->autowah, freq);
+        LFO_set_tempo(&vstate->autowah, tempo);
 
-        state->freq = freq;
-        state->tempo = tempo;
+        vstate->freq = freq;
+        vstate->tempo = tempo;
     }
+
     return;
 }
 
 
-void Generator_common_handle_pitch(Generator* gen,
-                                   Voice_state* state)
+void Generator_common_handle_pitch(Generator* gen, Voice_state* vstate)
 {
     assert(gen != NULL);
-    assert(state != NULL);
-    state->prev_pitch = state->pitch;
-    if (Slider_in_progress(&state->pitch_slider))
-    {
-        state->pitch = Slider_step(&state->pitch_slider);
-    }
-    state->prev_actual_pitch = state->actual_pitch;
-    state->actual_pitch = state->pitch;
+    assert(vstate != NULL);
+
+    vstate->prev_pitch = vstate->pitch;
+
+    if (Slider_in_progress(&vstate->pitch_slider))
+        vstate->pitch = Slider_step(&vstate->pitch_slider);
+
+    vstate->prev_actual_pitch = vstate->actual_pitch;
+    vstate->actual_pitch = vstate->pitch;
+
     if (gen->conf->pitch_lock_enabled)
     {
-        state->pitch = state->actual_pitch = gen->conf->pitch_lock_freq;
+        vstate->pitch = vstate->actual_pitch = gen->conf->pitch_lock_freq;
         // TODO: The following alternative would enable a useful mode where
         //       the actual pitch is locked but other pitch-dependent mappings
         //       follow the original pitch.
-//        state->actual_pitch = gen->conf->pitch_lock_freq;
+//        vstate->actual_pitch = gen->conf->pitch_lock_freq;
     }
     else
     {
-        if (state->arpeggio)
+        if (vstate->arpeggio)
         {
-            assert(!isnan(state->arpeggio_tones[0]));
-            double diff = exp2((state->arpeggio_tones[state->arpeggio_note] -
-                                state->arpeggio_ref) / 1200);
-            state->actual_pitch *= diff;
+            assert(!isnan(vstate->arpeggio_tones[0]));
+            double diff = exp2(
+                    (vstate->arpeggio_tones[vstate->arpeggio_note] -
+                        vstate->arpeggio_ref) / 1200);
+            vstate->actual_pitch *= diff;
+
 #if 0
-            if (state->arpeggio_note > 0)
+            if (vstate->arpeggio_note > 0)
             {
-                state->actual_pitch *= state->arpeggio_factors[
-                                       state->arpeggio_note - 1];
+                vstate->actual_pitch *= vstate->arpeggio_factors[
+                                       vstate->arpeggio_note - 1];
             }
 #endif
-            state->arpeggio_frames += 1;
-            if (state->arpeggio_frames >= state->arpeggio_length)
+
+            vstate->arpeggio_frames += 1;
+            if (vstate->arpeggio_frames >= vstate->arpeggio_length)
             {
-                state->arpeggio_frames -= state->arpeggio_length;
-                ++state->arpeggio_note;
-                if (state->arpeggio_note > KQT_ARPEGGIO_NOTES_MAX ||
-                        isnan(state->arpeggio_tones[state->arpeggio_note]))
-                {
-                    state->arpeggio_note = 0;
-                }
+                vstate->arpeggio_frames -= vstate->arpeggio_length;
+                ++vstate->arpeggio_note;
+                if (vstate->arpeggio_note > KQT_ARPEGGIO_NOTES_MAX ||
+                        isnan(vstate->arpeggio_tones[vstate->arpeggio_note]))
+                    vstate->arpeggio_note = 0;
             }
+
 #if 0
-            if (state->arpeggio_note > 0)
+            if (vstate->arpeggio_note > 0)
             {
-                fprintf(stderr, "%f %f %f %f\n", state->arpeggio_ref,
-                        state->arpeggio_tones[0],
-                        state->arpeggio_tones[state->arpeggio_note],
+                fprintf(stderr, "%f %f %f %f\n", vstate->arpeggio_ref,
+                        vstate->arpeggio_tones[0],
+                        vstate->arpeggio_tones[vstate->arpeggio_note],
                         diff);
             }
 #endif
         }
-        if (LFO_active(&state->vibrato))
-        {
-            state->actual_pitch *= LFO_step(&state->vibrato);
-        }
+
+        if (LFO_active(&vstate->vibrato))
+            vstate->actual_pitch *= LFO_step(&vstate->vibrato);
     }
+
     return;
 }
 
 
-void Generator_common_handle_force(Generator* gen,
-                                   Voice_state* state,
-                                   double frames[],
-                                   int frame_count,
-                                   uint32_t freq)
+void Generator_common_handle_force(
+        Generator* gen,
+        Ins_state* ins_state,
+        Voice_state* vstate,
+        double frames[],
+        int frame_count,
+        uint32_t freq)
 {
     assert(gen != NULL);
-    assert(state != NULL);
+    assert(ins_state != NULL);
+    assert(vstate != NULL);
     assert(frames != NULL);
     assert(frame_count > 0);
-    if (Slider_in_progress(&state->force_slider))
-    {
-        state->force = Slider_step(&state->force_slider);
-    }
-    state->actual_force = state->force * gen->ins_params->global_force;
-    if (LFO_active(&state->tremolo))
-    {
-        state->actual_force *= LFO_step(&state->tremolo);
-    }
+
+    if (Slider_in_progress(&vstate->force_slider))
+        vstate->force = Slider_step(&vstate->force_slider);
+
+    vstate->actual_force = vstate->force * gen->ins_params->global_force;
+
+    if (LFO_active(&vstate->tremolo))
+        vstate->actual_force *= LFO_step(&vstate->tremolo);
+
     if (gen->ins_params->env_force_enabled)
     {
         Envelope* env = gen->ins_params->env_force;
 
         int loop_start_index = Envelope_get_mark(env, 0);
         int loop_end_index = Envelope_get_mark(env, 1);
-        double* loop_start = loop_start_index == -1 ? NULL :
-                             Envelope_get_node(env, loop_start_index);
-        double* loop_end = loop_end_index == -1 ? NULL :
-                           Envelope_get_node(env, loop_end_index);
+        double* loop_start =
+            loop_start_index == -1 ? NULL :
+            Envelope_get_node(env, loop_start_index);
+        double* loop_end =
+            loop_end_index == -1 ? NULL :
+            Envelope_get_node(env, loop_end_index);
+
         if (gen->ins_params->env_force_scale_amount != 0 &&
-                state->actual_pitch != state->prev_actual_pitch)
+                vstate->actual_pitch != vstate->prev_actual_pitch)
         {
-            state->fe_scale = pow(state->actual_pitch /
-                                      gen->ins_params->env_force_center,
-                                  gen->ins_params->env_force_scale_amount);
+            vstate->fe_scale = pow(
+                    vstate->actual_pitch / gen->ins_params->env_force_center,
+                    gen->ins_params->env_force_scale_amount);
         }
 
-        double* next_node = Envelope_get_node(env, state->fe_next_node);
+        double* next_node = Envelope_get_node(env, vstate->fe_next_node);
         double scale = NAN;
+
         if (next_node == NULL)
         {
             //assert(loop_start == NULL);
@@ -184,42 +198,42 @@ void Generator_common_handle_force(Generator* gen,
                                         Envelope_node_count(env) - 1);
             scale = last_node[1];
         }
-        else if (state->fe_pos >= next_node[0] || isnan(state->fe_update))
+        else if (vstate->fe_pos >= next_node[0] || isnan(vstate->fe_update))
         {
-            ++state->fe_next_node;
-            if (loop_end_index >= 0 && loop_end_index < state->fe_next_node)
+            ++vstate->fe_next_node;
+            if (loop_end_index >= 0 && loop_end_index < vstate->fe_next_node)
             {
                 assert(loop_start_index >= 0);
-                state->fe_next_node = loop_start_index;
+                vstate->fe_next_node = loop_start_index;
             }
-            scale = Envelope_get_value(env, state->fe_pos);
+            scale = Envelope_get_value(env, vstate->fe_pos);
             if (isfinite(scale))
             {
-                double next_scale = Envelope_get_value(env, state->fe_pos +
-                                                            1.0 / freq);
-                state->fe_value = scale;
-                state->fe_update = next_scale - scale;
+                double next_scale = Envelope_get_value(
+                        env,
+                        vstate->fe_pos + 1.0 / freq);
+                vstate->fe_value = scale;
+                vstate->fe_update = next_scale - scale;
             }
             else
             {
-                scale = Envelope_get_node(env,
-                                          Envelope_node_count(env) - 1)[1];
+                scale = Envelope_get_node(env, Envelope_node_count(env) - 1)[1];
             }
         }
         else
         {
-            assert(isfinite(state->fe_update));
-            state->fe_value += state->fe_update * state->fe_scale;
-            scale = state->fe_value;
+            assert(isfinite(vstate->fe_update));
+            vstate->fe_value += vstate->fe_update * vstate->fe_scale;
+            scale = vstate->fe_value;
             if (scale < 0)
-            {
                 scale = 0;
-            }
         }
-//        double scale = Envelope_get_value(env, state->fe_pos);
+
+//        double scale = Envelope_get_value(env, vstate->fe_pos);
         assert(isfinite(scale));
-        state->actual_force *= scale;
-        double new_pos = state->fe_pos + state->fe_scale / freq;
+        vstate->actual_force *= scale;
+        double new_pos = vstate->fe_pos + vstate->fe_scale / freq;
+
         if (loop_start != NULL && loop_end != NULL)
         {
             if (new_pos > loop_end[0])
@@ -237,48 +251,50 @@ void Generator_common_handle_force(Generator* gen,
                     new_pos = loop_start[0] + offset;
                     assert(new_pos >= loop_start[0]);
                     assert(new_pos <= loop_end[0]);
-                    state->fe_next_node = loop_start_index;
+                    vstate->fe_next_node = loop_start_index;
                 }
             }
         }
         else
         {
-            double* last = Envelope_get_node(env,
-                                             Envelope_node_count(env) - 1);
+            double* last = Envelope_get_node(env, Envelope_node_count(env) - 1);
             if (new_pos > last[0])
             {
                 new_pos = last[0];
-                if (state->fe_pos > last[0] && last[1] == 0)
+                if (vstate->fe_pos > last[0] && last[1] == 0)
                 {
-                    state->active = false;
+                    vstate->active = false;
+
                     for (int i = 0; i < frame_count; ++i)
-                    {
                         frames[i] = 0;
-                    }
+
                     return;
                 }
             }
         }
-        state->fe_pos = new_pos;
+        vstate->fe_pos = new_pos;
     }
-    if (!state->note_on)
+
+    if (!vstate->note_on)
     {
         if (gen->ins_params->env_force_rel_enabled)
         {
             if (gen->ins_params->env_force_rel_scale_amount != 0 &&
-                    (state->actual_pitch != state->prev_actual_pitch ||
-                     isnan(state->rel_fe_scale)))
+                    (vstate->actual_pitch != vstate->prev_actual_pitch ||
+                     isnan(vstate->rel_fe_scale)))
             {
-                state->rel_fe_scale = pow(state->actual_pitch /
-                                          gen->ins_params->env_force_rel_center,
-                                      gen->ins_params->env_force_rel_scale_amount);
+                vstate->rel_fe_scale = pow(
+                        vstate->actual_pitch /
+                            gen->ins_params->env_force_rel_center,
+                        gen->ins_params->env_force_rel_scale_amount);
             }
-            else if (isnan(state->rel_fe_scale))
+            else if (isnan(vstate->rel_fe_scale))
             {
-                state->rel_fe_scale = 1;
+                vstate->rel_fe_scale = 1;
             }
+
             Envelope* env = gen->ins_params->env_force_rel;
-            double* next_node = Envelope_get_node(env, state->rel_fe_next_node);
+            double* next_node = Envelope_get_node(env, vstate->rel_fe_next_node);
             if (next_node == NULL)
             {
                 // This may occur if the user removes nodes during playback
@@ -286,314 +302,321 @@ void Generator_common_handle_force(Generator* gen,
                                               Envelope_node_count(env) - 1);
                 assert(next_node != NULL);
             }
+
             double scale = NAN;
-            if (state->rel_fe_pos >= next_node[0])
+
+            if (vstate->rel_fe_pos >= next_node[0])
             {
-                ++state->rel_fe_next_node;
-                scale = Envelope_get_value(env, state->rel_fe_pos);
+                ++vstate->rel_fe_next_node;
+                scale = Envelope_get_value(env, vstate->rel_fe_pos);
                 if (!isfinite(scale))
                 {
-                    state->active = false;
+                    vstate->active = false;
+
                     for (int i = 0; i < frame_count; ++i)
-                    {
                         frames[i] = 0;
-                    }
+
                     return;
                 }
-                double next_scale = Envelope_get_value(env, state->rel_fe_pos +
-                                                            1.0 / freq);
-                state->rel_fe_value = scale;
-                state->rel_fe_update = next_scale - scale;
+                double next_scale = Envelope_get_value(
+                        env,
+                        vstate->rel_fe_pos + 1.0 / freq);
+                vstate->rel_fe_value = scale;
+                vstate->rel_fe_update = next_scale - scale;
             }
             else
             {
-                assert(isfinite(state->rel_fe_update));
-                state->rel_fe_value += state->rel_fe_update *
-                                       state->rel_fe_scale * (1.0 - *state->sustain);
-                scale = state->rel_fe_value;
+                assert(isfinite(vstate->rel_fe_update));
+                vstate->rel_fe_value +=
+                    vstate->rel_fe_update *
+                    vstate->rel_fe_scale * (1.0 - ins_state->sustain);
+
+                scale = vstate->rel_fe_value;
                 if (scale < 0)
-                {
                     scale = 0;
-                }
             }
+
 #if 0
             double scale = Envelope_get_value(gen->ins_params->env_force_rel,
-                                              state->rel_fe_pos);
+                                              vstate->rel_fe_pos);
             if (!isfinite(scale))
             {
-                state->active = false;
+                vstate->active = false;
+
                 for (int i = 0; i < frame_count; ++i)
-                {
                     frames[i] = 0;
-                }
+
                 return;
             }
 #endif
-            state->rel_fe_pos += state->rel_fe_scale * (1.0 - *state->sustain) / freq;
-            state->actual_force *= scale;
+
+            vstate->rel_fe_pos +=
+                vstate->rel_fe_scale * (1.0 - ins_state->sustain) / freq;
+            vstate->actual_force *= scale;
         }
-        else if (*state->sustain < 0.5)
+        else if (ins_state->sustain < 0.5)
         {
-            if (state->ramp_release < 1)
+            if (vstate->ramp_release < 1)
             {
                 for (int i = 0; i < frame_count; ++i)
-                {
-                    frames[i] *= 1 - state->ramp_release;
-                }
+                    frames[i] *= 1 - vstate->ramp_release;
             }
             else
             {
-                state->active = false;
+                vstate->active = false;
+
                 for (int i = 0; i < frame_count; ++i)
-                {
                     frames[i] = 0;
-                }
+
                 return;
             }
-            state->ramp_release += RAMP_RELEASE_TIME / freq;
+
+            vstate->ramp_release += RAMP_RELEASE_TIME / freq;
         }
     }
+
     for (int i = 0; i < frame_count; ++i)
-    {
-        frames[i] *= state->actual_force;
-    }
+        frames[i] *= vstate->actual_force;
+
     return;
 }
 
 
-void Generator_common_handle_filter(Generator* gen,
-                                    Voice_state* state,
-                                    double frames[],
-                                    int frame_count,
-                                    uint32_t freq)
+void Generator_common_handle_filter(
+        Generator* gen,
+        Voice_state* vstate,
+        double frames[],
+        int frame_count,
+        uint32_t freq)
 {
     assert(gen != NULL);
-    assert(state != NULL);
+    assert(vstate != NULL);
     assert(frames != NULL);
     assert(frame_count > 0);
     assert(freq > 0);
-    if (Slider_in_progress(&state->lowpass_slider))
-    {
-        state->lowpass = Slider_step(&state->lowpass_slider);
-    }
-    state->actual_lowpass = state->lowpass;
-    if (LFO_active(&state->autowah))
-    {
-        state->actual_lowpass *= LFO_step(&state->autowah);
-    }
+
+    if (Slider_in_progress(&vstate->lowpass_slider))
+        vstate->lowpass = Slider_step(&vstate->lowpass_slider);
+
+    vstate->actual_lowpass = vstate->lowpass;
+
+    if (LFO_active(&vstate->autowah))
+        vstate->actual_lowpass *= LFO_step(&vstate->autowah);
+
     if (gen->ins_params->env_force_filter_enabled &&
-            state->lowpass_xfade_pos >= 1)
+            vstate->lowpass_xfade_pos >= 1)
     {
-        double force = state->actual_force;
+        double force = vstate->actual_force;
         if (force > 1)
-        {
             force = 1;
-        }
-        double factor = Envelope_get_value(gen->ins_params->env_force_filter,
-                                           force);
+
+        double factor = Envelope_get_value(
+                gen->ins_params->env_force_filter,
+                force);
         assert(isfinite(factor));
-        state->actual_lowpass = MIN(state->actual_lowpass, 16384) * factor;
+        vstate->actual_lowpass = MIN(vstate->actual_lowpass, 16384) * factor;
     }
 
-    if (!state->lowpass_update &&
-            state->lowpass_xfade_pos >= 1 &&
-            (state->actual_lowpass < state->effective_lowpass * 0.98566319864018759 ||
-             state->actual_lowpass > state->effective_lowpass * 1.0145453349375237 ||
-             state->lowpass_resonance != state->effective_resonance))
+    if (!vstate->lowpass_update &&
+            vstate->lowpass_xfade_pos >= 1 &&
+            (vstate->actual_lowpass < vstate->effective_lowpass * 0.98566319864018759 ||
+             vstate->actual_lowpass > vstate->effective_lowpass * 1.0145453349375237 ||
+             vstate->lowpass_resonance != vstate->effective_resonance))
     {
-        state->lowpass_update = true;
-        state->lowpass_xfade_state_used = state->lowpass_state_used;
-        if (state->pos > 0)
-        {
-            state->lowpass_xfade_pos = 0;
-        }
+        vstate->lowpass_update = true;
+        vstate->lowpass_xfade_state_used = vstate->lowpass_state_used;
+
+        if (vstate->pos > 0)
+            vstate->lowpass_xfade_pos = 0;
         else
+            vstate->lowpass_xfade_pos = 1;
+
+        vstate->lowpass_xfade_update = 200.0 / freq; // FIXME: / freq
+
+        if (vstate->actual_lowpass < freq / 2)
         {
-            state->lowpass_xfade_pos = 1;
-        }
-        state->lowpass_xfade_update = 200.0 / freq; // FIXME: / freq
-        if (state->actual_lowpass < freq / 2)
-        {
-            int new_state = 1 - abs(state->lowpass_state_used);
-            double lowpass = MAX(state->actual_lowpass, 1);
+            int new_state = 1 - abs(vstate->lowpass_state_used);
+            double lowpass = MAX(vstate->actual_lowpass, 1);
             two_pole_filter_create(lowpass / freq,
-                    state->lowpass_resonance,
+                    vstate->lowpass_resonance,
                     0,
-                    state->lowpass_state[new_state].coeffs,
-                    &state->lowpass_state[new_state].mul);
+                    vstate->lowpass_state[new_state].coeffs,
+                    &vstate->lowpass_state[new_state].mul);
             for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
             {
                 for (int k = 0; k < FILTER_ORDER; ++k)
                 {
-                    state->lowpass_state[new_state].history1[i][k] = 0;
-                    state->lowpass_state[new_state].history2[i][k] = 0;
+                    vstate->lowpass_state[new_state].history1[i][k] = 0;
+                    vstate->lowpass_state[new_state].history2[i][k] = 0;
                 }
             }
-            state->lowpass_state_used = new_state;
-//            fprintf(stderr, "created filter with cutoff %f\n", state->actual_filter);
+            vstate->lowpass_state_used = new_state;
+//            fprintf(stderr, "created filter with cutoff %f\n", vstate->actual_filter);
         }
         else
         {
-            if (state->lowpass_state_used == -1)
-            {
-                state->lowpass_xfade_pos = 1;
-            }
-            state->lowpass_state_used = -1;
+            if (vstate->lowpass_state_used == -1)
+                vstate->lowpass_xfade_pos = 1;
+
+            vstate->lowpass_state_used = -1;
         }
-        state->effective_lowpass = state->actual_lowpass;
-        state->effective_resonance = state->lowpass_resonance;
-        state->lowpass_update = false;
+
+        vstate->effective_lowpass = vstate->actual_lowpass;
+        vstate->effective_resonance = vstate->lowpass_resonance;
+        vstate->lowpass_update = false;
     }
 
-    if (state->lowpass_state_used > -1 || state->lowpass_xfade_state_used > -1)
+    if (vstate->lowpass_state_used > -1 || vstate->lowpass_xfade_state_used > -1)
     {
-        assert(state->lowpass_state_used != state->lowpass_xfade_state_used);
+        assert(vstate->lowpass_state_used != vstate->lowpass_xfade_state_used);
         double result[KQT_BUFFERS_MAX] = { 0 };
-        if (state->lowpass_state_used > -1)
+
+        if (vstate->lowpass_state_used > -1)
         {
             Filter_state* fst =
-                    &state->lowpass_state[state->lowpass_state_used];
+                    &vstate->lowpass_state[vstate->lowpass_state_used];
+
             for (int i = 0; i < frame_count; ++i)
             {
-                result[i] = nq_zero_filter(FILTER_ORDER,
-                                           fst->history1[i],
-                                           frames[i]);
-                result[i] = iir_filter_strict_cascade(FILTER_ORDER,
-                                                      fst->coeffs,
-                                                      fst->history2[i],
-                                                      result[i]);
+                result[i] = nq_zero_filter(
+                        FILTER_ORDER,
+                        fst->history1[i],
+                        frames[i]);
+                result[i] = iir_filter_strict_cascade(
+                        FILTER_ORDER,
+                        fst->coeffs,
+                        fst->history2[i],
+                        result[i]);
                 result[i] *= fst->mul;
             }
         }
         else
         {
             for (int i = 0; i < frame_count; ++i)
-            {
                 result[i] = frames[i];
-            }
         }
-        double vol = state->lowpass_xfade_pos;
+
+        double vol = vstate->lowpass_xfade_pos;
         if (vol > 1)
-        {
             vol = 1;
-        }
+
         for (int i = 0; i < frame_count; ++i)
-        {
             result[i] *= vol;
-        }
-        if (state->lowpass_xfade_pos < 1)
+
+        if (vstate->lowpass_xfade_pos < 1)
         {
             double fade_result[KQT_BUFFERS_MAX] = { 0 };
-            if (state->lowpass_xfade_state_used > -1)
+
+            if (vstate->lowpass_xfade_state_used > -1)
             {
                 Filter_state* fst =
-                        &state->lowpass_state[state->lowpass_xfade_state_used];
+                        &vstate->lowpass_state[vstate->lowpass_xfade_state_used];
                 for (int i = 0; i < frame_count; ++i)
                 {
-                    fade_result[i] = nq_zero_filter(FILTER_ORDER,
-                                                    fst->history1[i],
-                                                    frames[i]);
-                    fade_result[i] = iir_filter_strict_cascade(FILTER_ORDER,
-                                                               fst->coeffs,
-                                                               fst->history2[i],
-                                                               fade_result[i]);
+                    fade_result[i] = nq_zero_filter(
+                            FILTER_ORDER,
+                            fst->history1[i],
+                            frames[i]);
+                    fade_result[i] = iir_filter_strict_cascade(
+                            FILTER_ORDER,
+                            fst->coeffs,
+                            fst->history2[i],
+                            fade_result[i]);
                     fade_result[i] *= fst->mul;
                 }
             }
             else
             {
                 for (int i = 0; i < frame_count; ++i)
-                {
                     fade_result[i] = frames[i];
-                }
             }
-            double vol = 1 - state->lowpass_xfade_pos;
+
+            double vol = 1 - vstate->lowpass_xfade_pos;
             if (vol > 0)
             {
                 for (int i = 0; i < frame_count; ++i)
-                {
                     result[i] += fade_result[i] * vol;
-                }
             }
-            state->lowpass_xfade_pos += state->lowpass_xfade_update;
+
+            vstate->lowpass_xfade_pos += vstate->lowpass_xfade_update;
         }
+
         for (int i = 0; i < frame_count; ++i)
-        {
             frames[i] = result[i];
-        }
     }
+
     return;
 }
 
 
-void Generator_common_ramp_attack(Generator* gen,
-                                  Voice_state* state,
-                                  double frames[],
-                                  int frame_count,
-                                  uint32_t freq)
+void Generator_common_ramp_attack(
+        Generator* gen,
+        Voice_state* vstate,
+        double frames[],
+        int frame_count,
+        uint32_t freq)
 {
     assert(gen != NULL);
-    assert(state != NULL);
+    assert(vstate != NULL);
     assert(frames != NULL);
     assert(frame_count > 0);
     assert(freq > 0);
     (void)gen;
-    if (state->ramp_attack < 1)
+
+    if (vstate->ramp_attack < 1)
     {
         for (int i = 0; i < frame_count; ++i)
-        {
-            frames[i] *= state->ramp_attack;
-        }
-        state->ramp_attack += RAMP_ATTACK_TIME / freq;
+            frames[i] *= vstate->ramp_attack;
+
+        vstate->ramp_attack += RAMP_ATTACK_TIME / freq;
     }
+
     return;
 }
 
 
-void Generator_common_handle_panning(Generator* gen,
-                                     Voice_state* state,
-                                     double frames[],
-                                     int frame_count)
+void Generator_common_handle_panning(
+        Generator* gen,
+        Voice_state* vstate,
+        double frames[],
+        int frame_count)
 {
     assert(gen != NULL);
-    assert(state != NULL);
+    assert(vstate != NULL);
     assert(frames != NULL);
     assert(frame_count > 0);
+
     if ((frame_count) >= 2)
     {
-        if (Slider_in_progress(&state->panning_slider))
+        if (Slider_in_progress(&vstate->panning_slider))
+            vstate->panning = Slider_step(&vstate->panning_slider);
+
+        vstate->actual_panning = vstate->panning;
+
+        if (gen->ins_params->env_pitch_pan_enabled)
         {
-            state->panning = Slider_step(&state->panning_slider);
-        }
-        (state)->actual_panning = (state)->panning;
-        if ((gen)->ins_params->env_pitch_pan_enabled)
-        {
-            Envelope* env = (gen)->ins_params->env_pitch_pan;
-            double cents = log2((state)->pitch / 440) * 1200;
+            Envelope* env = gen->ins_params->env_pitch_pan;
+            double cents = log2(vstate->pitch / 440) * 1200;
             if (cents < -6000)
-            {
                 cents = -6000;
-            }
             else if (cents > 6000)
-            {
                 cents = 6000;
-            }
+
             double pan = Envelope_get_value(env, cents);
             assert(isfinite(pan));
-            double separation = 1 - fabs((state)->actual_panning);
-            (state)->actual_panning += pan * separation;
-            if ((state)->actual_panning < -1)
-            {
-                (state)->actual_panning = -1;
-            }
-            else if ((state)->actual_panning > 1)
-            {
-                (state)->actual_panning = 1;
-            }
+            double separation = 1 - fabs(vstate->actual_panning);
+            vstate->actual_panning += pan * separation;
+
+            if (vstate->actual_panning < -1)
+                vstate->actual_panning = -1;
+            else if (vstate->actual_panning > 1)
+                vstate->actual_panning = 1;
         }
-        (frames)[0] *= 1 - (state)->actual_panning;
-        (frames)[1] *= 1 + (state)->actual_panning;
+
+        frames[0] *= 1 - vstate->actual_panning;
+        frames[1] *= 1 + vstate->actual_panning;
     }
+
     return;
 }
 
