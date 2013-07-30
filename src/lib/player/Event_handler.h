@@ -100,7 +100,7 @@ bool Event_handler_set_general_process(
 bool Event_handler_set_ch_process(
         Event_handler* eh,
         Event_type type,
-        bool (*ch_process)(Channel*, Value*));
+        bool (*ch_process)(Channel*, Device_states*, Value*));
 
 
 /**

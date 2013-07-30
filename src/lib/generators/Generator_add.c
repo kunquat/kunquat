@@ -67,7 +67,10 @@ typedef struct Generator_add
 } Generator_add;
 
 
-static void Generator_add_init_state(Generator* gen, Voice_state* state);
+static void Generator_add_init_vstate(
+        Generator* gen,
+        const Gen_state* gen_state,
+        Voice_state* vstate);
 
 static double sine(double phase, double modifier);
 
@@ -76,7 +79,7 @@ static bool Generator_add_update_key(Device* device, const char* key);
 
 static uint32_t Generator_add_mix(
         Generator* gen,
-        Device_state* gen_state,
+        Gen_state* gen_state,
         Ins_state* ins_state,
         Voice_state* vstate,
         uint32_t nframes,
@@ -101,7 +104,7 @@ Generator* new_Generator_add(uint32_t buffer_size, uint32_t mix_rate)
                 &add->parent,
                 del_Generator_add,
                 Generator_add_mix,
-                Generator_add_init_state,
+                Generator_add_init_vstate,
                 buffer_size,
                 mix_rate))
     {
@@ -193,14 +196,19 @@ char* Generator_add_property(Generator* gen, const char* property_type)
 }
 
 
-static void Generator_add_init_state(Generator* gen, Voice_state* state)
+static void Generator_add_init_vstate(
+        Generator* gen,
+        const Gen_state* gen_state,
+        Voice_state* vstate)
 {
     assert(gen != NULL);
     assert(string_eq(gen->type, "add"));
-    assert(state != NULL);
+    assert(gen_state != NULL);
+    (void)gen_state;
+    assert(vstate != NULL);
 
     Generator_add* add = (Generator_add*)gen;
-    Voice_state_add* add_state = (Voice_state_add*)state;
+    Voice_state_add* add_state = (Voice_state_add*)vstate;
 
     for (int h = 0; h < HARMONICS_MAX; ++h)
     {
@@ -235,7 +243,7 @@ static void Generator_add_init_state(Generator* gen, Voice_state* state)
 
 static uint32_t Generator_add_mix(
         Generator* gen,
-        Device_state* gen_state,
+        Gen_state* gen_state,
         Ins_state* ins_state,
         Voice_state* vstate,
         uint32_t nframes,

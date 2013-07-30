@@ -93,6 +93,7 @@ uint64_t Voice_id(Voice* voice)
 void Voice_init(
         Voice* voice,
         Generator* gen,
+        const Gen_state* gen_state,
         Channel_gen_state* cgstate,
         uint64_t seed,
         uint32_t freq,
@@ -100,6 +101,7 @@ void Voice_init(
 {
     assert(voice != NULL);
     assert(gen != NULL);
+    assert(gen_state != NULL);
     assert(cgstate != NULL);
     assert(freq > 0);
     assert(tempo > 0);
@@ -108,15 +110,17 @@ void Voice_init(
     voice->gen = gen;
     Random_set_seed(voice->rand_p, seed);
     Random_set_seed(voice->rand_s, seed);
-    Voice_state_init(voice->state,
-                     cgstate,
-                     voice->rand_p,
-                     voice->rand_s,
-                     freq,
-                     tempo);
 
-    if (gen->init_state != NULL)
-        gen->init_state(gen, voice->state);
+    Voice_state_init(
+            voice->state,
+            cgstate,
+            voice->rand_p,
+            voice->rand_s,
+            freq,
+            tempo);
+
+    if (gen->init_vstate != NULL)
+        gen->init_vstate(gen, gen_state, voice->state);
 
     return;
 }

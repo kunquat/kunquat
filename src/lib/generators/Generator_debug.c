@@ -28,7 +28,7 @@ static bool Generator_debug_update_key(Device* device, const char* key);
 
 static uint32_t Generator_debug_mix(
         Generator* gen,
-        Device_state* gen_state,
+        Gen_state* gen_state,
         Ins_state* ins_state,
         Voice_state* vstate,
         uint32_t nframes,
@@ -69,7 +69,7 @@ Generator* new_Generator_debug(uint32_t buffer_size, uint32_t mix_rate)
 
 static uint32_t Generator_debug_mix(
         Generator* gen,
-        Device_state* gen_state,
+        Gen_state* gen_state,
         Ins_state* ins_state,
         Voice_state* vstate,
         uint32_t nframes,

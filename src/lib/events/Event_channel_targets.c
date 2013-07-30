@@ -23,9 +23,14 @@
 #include <xassert.h>
 
 
-bool Event_channel_set_instrument_process(Channel* ch, Value* value)
+bool Event_channel_set_instrument_process(
+        Channel* ch,
+        Device_states* dstates,
+        Value* value)
 {
     assert(ch != NULL);
+    assert(dstates != NULL);
+    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_INT);
 
@@ -35,9 +40,14 @@ bool Event_channel_set_instrument_process(Channel* ch, Value* value)
 }
 
 
-bool Event_channel_set_generator_process(Channel* ch, Value* value)
+bool Event_channel_set_generator_process(
+        Channel* ch,
+        Device_states* dstates,
+        Value* value)
 {
     assert(ch != NULL);
+    assert(dstates != NULL);
+    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_INT);
 
@@ -47,9 +57,14 @@ bool Event_channel_set_generator_process(Channel* ch, Value* value)
 }
 
 
-bool Event_channel_set_global_effects_process(Channel* ch, Value* value)
+bool Event_channel_set_global_effects_process(
+        Channel* ch,
+        Device_states* dstates,
+        Value* value)
 {
     assert(ch != NULL);
+    assert(dstates != NULL);
+    (void)dstates;
     (void)value;
 
     ch->inst_effects = false;
@@ -58,9 +73,14 @@ bool Event_channel_set_global_effects_process(Channel* ch, Value* value)
 }
 
 
-bool Event_channel_set_instrument_effects_process(Channel* ch, Value* value)
+bool Event_channel_set_instrument_effects_process(
+        Channel* ch,
+        Device_states* dstates,
+        Value* value)
 {
     assert(ch != NULL);
+    assert(dstates != NULL);
+    (void)dstates;
     (void)value;
 
     ch->inst_effects = true;
@@ -69,9 +89,14 @@ bool Event_channel_set_instrument_effects_process(Channel* ch, Value* value)
 }
 
 
-bool Event_channel_set_effect_process(Channel* ch, Value* value)
+bool Event_channel_set_effect_process(
+        Channel* ch,
+        Device_states* dstates,
+        Value* value)
 {
     assert(ch != NULL);
+    assert(dstates != NULL);
+    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_INT);
 
@@ -81,9 +106,14 @@ bool Event_channel_set_effect_process(Channel* ch, Value* value)
 }
 
 
-bool Event_channel_set_dsp_process(Channel* ch, Value* value)
+bool Event_channel_set_dsp_process(
+        Channel* ch,
+        Device_states* dstates,
+        Value* value)
 {
     assert(ch != NULL);
+    assert(dstates != NULL);
+    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_INT);
 

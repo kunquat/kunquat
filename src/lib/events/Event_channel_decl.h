@@ -19,13 +19,17 @@
 #include <stdbool.h>
 
 #include <player/Channel.h>
+#include <player/Device_states.h>
 #include <Value.h>
 
 
 // Process function declarations
 
-#define EVENT_TYPE_DEF(type) \
-    bool Event_channel_##type##_process(Channel* ch, Value* value);
+#define EVENT_TYPE_DEF(type)             \
+    bool Event_channel_##type##_process( \
+            Channel* ch,                 \
+            Device_states* dstates,      \
+            Value* value);
 #include <events/Event_channel_types.h>
 
 

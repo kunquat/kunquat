@@ -29,11 +29,26 @@
 #include <xassert.h>
 
 
-static void Generator_pulse_init_state(Generator* gen, Voice_state* vstate);
+typedef struct Pulse_state
+{
+    Gen_state parent;
+    double pulse_width;
+} Pulse_state;
+
+
+static Device_state* Generator_pulse_create_state(
+        const Device* device,
+        int32_t audio_rate,
+        int32_t audio_buffer_size);
+
+static void Generator_pulse_init_vstate(
+        Generator* gen,
+        const Gen_state* gen_state,
+        Voice_state* vstate);
 
 static uint32_t Generator_pulse_mix(
         Generator* gen,
-        Device_state* gen_state,
+        Gen_state* gen_state,
         Ins_state* ins_state,
         Voice_state* vstate,
         uint32_t nframes,
@@ -58,7 +73,7 @@ Generator* new_Generator_pulse(uint32_t buffer_size, uint32_t mix_rate)
                 &pulse->parent,
                 del_Generator_pulse,
                 Generator_pulse_mix,
-                Generator_pulse_init_state,
+                Generator_pulse_init_vstate,
                 buffer_size,
                 mix_rate))
     {
@@ -66,7 +81,9 @@ Generator* new_Generator_pulse(uint32_t buffer_size, uint32_t mix_rate)
         return NULL;
     }
 
-    pulse->pulse_width = 0.5;
+    Device_set_state_creator(
+            &pulse->parent.parent,
+            Generator_pulse_create_state);
 
     return &pulse->parent;
 }
@@ -92,16 +109,41 @@ char* Generator_pulse_property(Generator* gen, const char* property_type)
 }
 
 
-static void Generator_pulse_init_state(Generator* gen, Voice_state* vstate)
+static Device_state* Generator_pulse_create_state(
+        const Device* device,
+        int32_t audio_rate,
+        int32_t audio_buffer_size)
+{
+    assert(device != NULL);
+    assert(audio_rate > 0);
+    assert(audio_buffer_size >= 0);
+
+    Pulse_state* pulse_state = memory_alloc_item(Pulse_state);
+    if (pulse_state == NULL)
+        return NULL;
+
+    Gen_state_init(&pulse_state->parent, device, audio_rate, audio_buffer_size);
+    pulse_state->pulse_width = 0.5;
+
+    return &pulse_state->parent.parent;
+}
+
+
+static void Generator_pulse_init_vstate(
+        Generator* gen,
+        const Gen_state* gen_state,
+        Voice_state* vstate)
 {
     assert(gen != NULL);
     assert(string_eq(gen->type, "pulse"));
+    (void)gen;
+    assert(gen_state != NULL);
     assert(vstate != NULL);
 
-    Voice_state_pulse* pulse_state = (Voice_state_pulse*)vstate;
-    Generator_pulse* pulse = (Generator_pulse*)gen;
-    pulse_state->phase = 0;
-    pulse_state->pulse_width = pulse->pulse_width;
+    Voice_state_pulse* pulse_vstate = (Voice_state_pulse*)vstate;
+    const Pulse_state* pulse_state = (Pulse_state*)gen_state;
+    pulse_vstate->phase = 0;
+    pulse_vstate->pulse_width = pulse_state->pulse_width;
 
     return;
 }
@@ -109,15 +151,13 @@ static void Generator_pulse_init_state(Generator* gen, Voice_state* vstate)
 
 double pulse(double phase, double pulse_width)
 {
-    if (phase < pulse_width)
-        return 1.0;
-    return -1.0;
+    return (phase < pulse_width) ? 1.0 : -1.0;
 }
 
 
 uint32_t Generator_pulse_mix(
         Generator* gen,
-        Device_state* gen_state,
+        Gen_state* gen_state,
         Ins_state* ins_state,
         Voice_state* vstate,
         uint32_t nframes,
@@ -139,7 +179,7 @@ uint32_t Generator_pulse_mix(
     Generator_common_check_relative_lengths(gen, vstate, freq, tempo);
 //    double max_amp = 0;
 //  fprintf(stderr, "bufs are %p and %p\n", ins->bufs[0], ins->bufs[1]);
-    Voice_state_pulse* pulse_state = (Voice_state_pulse*)vstate;
+    Voice_state_pulse* pulse_vstate = (Voice_state_pulse*)vstate;
 
     if (vstate->note_on)
     {
@@ -147,9 +187,9 @@ uint32_t Generator_pulse_mix(
                 vstate->cgstate,
                 "p_pw.jsonf");
         if (pulse_width_arg != NULL)
-            pulse_state->pulse_width = *pulse_width_arg;
+            pulse_vstate->pulse_width = *pulse_width_arg;
         else
-            pulse_state->pulse_width = 0.5;
+            pulse_vstate->pulse_width = 0.5;
     }
 
     uint32_t mixed = offset;
@@ -158,15 +198,15 @@ uint32_t Generator_pulse_mix(
         Generator_common_handle_pitch(gen, vstate);
 
         double vals[KQT_BUFFERS_MAX] = { 0 };
-        vals[0] = pulse(pulse_state->phase, pulse_state->pulse_width) / 6;
+        vals[0] = pulse(pulse_vstate->phase, pulse_vstate->pulse_width) / 6;
 
         Generator_common_handle_force(gen, ins_state, vstate, vals, 1, freq);
         Generator_common_handle_filter(gen, vstate, vals, 1, freq);
         Generator_common_ramp_attack(gen, vstate, vals, 1, freq);
 
-        pulse_state->phase += vstate->actual_pitch / freq;
-        if (pulse_state->phase >= 1)
-            pulse_state->phase -= floor(pulse_state->phase);
+        pulse_vstate->phase += vstate->actual_pitch / freq;
+        if (pulse_vstate->phase >= 1)
+            pulse_vstate->phase -= floor(pulse_vstate->phase);
 
         vstate->pos = 1; // XXX: hackish
 //        Generator_common_handle_note_off(gen, vstate, vals, 1, freq);

@@ -24,9 +24,14 @@
 #include <xassert.h>
 
 
-bool Event_channel_set_gen_bool_process(Channel* ch, Value* value)
+bool Event_channel_set_gen_bool_process(
+        Channel* ch,
+        Device_states* dstates,
+        Value* value)
 {
     assert(ch != NULL);
+    assert(dstates != NULL);
+    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_BOOL);
 
@@ -43,9 +48,14 @@ bool Event_channel_set_gen_bool_process(Channel* ch, Value* value)
 }
 
 
-bool Event_channel_set_gen_bool_name_process(Channel* ch, Value* value)
+bool Event_channel_set_gen_bool_name_process(
+        Channel* ch,
+        Device_states* dstates,
+        Value* value)
 {
     assert(ch != NULL);
+    assert(dstates != NULL);
+    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_STRING);
 
@@ -57,9 +67,14 @@ bool Event_channel_set_gen_bool_name_process(Channel* ch, Value* value)
 }
 
 
-bool Event_channel_set_gen_float_process(Channel* ch, Value* value)
+bool Event_channel_set_gen_float_process(
+        Channel* ch,
+        Device_states* dstates,
+        Value* value)
 {
     assert(ch != NULL);
+    assert(dstates != NULL);
+    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
@@ -77,9 +92,14 @@ bool Event_channel_set_gen_float_process(Channel* ch, Value* value)
 }
 
 
-bool Event_channel_set_gen_float_name_process(Channel* ch, Value* value)
+bool Event_channel_set_gen_float_name_process(
+        Channel* ch,
+        Device_states* dstates,
+        Value* value)
 {
     assert(ch != NULL);
+    assert(dstates != NULL);
+    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_STRING);
 
@@ -91,9 +111,14 @@ bool Event_channel_set_gen_float_name_process(Channel* ch, Value* value)
 }
 
 
-bool Event_channel_set_gen_int_process(Channel* ch, Value* value)
+bool Event_channel_set_gen_int_process(
+        Channel* ch,
+        Device_states* dstates,
+        Value* value)
 {
     assert(ch != NULL);
+    assert(dstates != NULL);
+    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_INT);
 
@@ -111,9 +136,14 @@ bool Event_channel_set_gen_int_process(Channel* ch, Value* value)
 }
 
 
-bool Event_channel_set_gen_int_name_process(Channel* ch, Value* value)
+bool Event_channel_set_gen_int_name_process(
+        Channel* ch,
+        Device_states* dstates,
+        Value* value)
 {
     assert(ch != NULL);
+    assert(dstates != NULL);
+    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_STRING);
 
@@ -125,9 +155,14 @@ bool Event_channel_set_gen_int_name_process(Channel* ch, Value* value)
 }
 
 
-bool Event_channel_set_gen_tstamp_process(Channel* ch, Value* value)
+bool Event_channel_set_gen_tstamp_process(
+        Channel* ch,
+        Device_states* dstates,
+        Value* value)
 {
     assert(ch != NULL);
+    assert(dstates != NULL);
+    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_TSTAMP);
 
@@ -146,9 +181,14 @@ bool Event_channel_set_gen_tstamp_process(Channel* ch, Value* value)
 }
 
 
-bool Event_channel_set_gen_tstamp_name_process(Channel* ch, Value* value)
+bool Event_channel_set_gen_tstamp_name_process(
+        Channel* ch,
+        Device_states* dstates,
+        Value* value)
 {
     assert(ch != NULL);
+    assert(dstates != NULL);
+    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_STRING);
 

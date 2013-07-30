@@ -29,24 +29,27 @@
 #include <xassert.h>
 
 
-bool Event_channel_note_on_process(Channel* ch, Value* value)
+bool Event_channel_note_on_process(
+        Channel* ch,
+        Device_states* dstates,
+        Value* value)
 {
     assert(ch != NULL);
     assert(ch->freq != NULL);
     assert(*ch->freq > 0);
     assert(ch->tempo != NULL);
     assert(*ch->tempo > 0);
+    assert(dstates != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
     // Move the old Voices to the background
-    Event_channel_note_off_process(ch, NULL);
+    Event_channel_note_off_process(ch, dstates, NULL);
 
     ch->fg_count = 0;
     assert(ch->instrument >= 0);
     assert(ch->instrument < KQT_INSTRUMENTS_MAX);
-    Instrument* ins = Ins_table_get(ch->insts,
-                                    ch->instrument);
+    Instrument* ins = Ins_table_get(ch->insts, ch->instrument);
     if (ins == NULL)
         return true;
 
@@ -60,7 +63,11 @@ bool Event_channel_note_on_process(Channel* ch, Value* value)
         if (gen == NULL || !Device_is_existent((const Device*)gen))
             continue;
 
-        reserve_voice(ch, ins, i);
+        const Gen_state* gen_state = (Gen_state*)Device_states_get_state(
+                dstates,
+                Device_get_id((Device*)gen));
+
+        reserve_voice(ch, ins, gen_state, i);
 
         Voice* voice = ch->fg[i];
         Voice_state* vs = voice->state;
@@ -103,16 +110,20 @@ bool Event_channel_note_on_process(Channel* ch, Value* value)
 }
 
 
-bool Event_channel_hit_process(Channel* ch, Value* value)
+bool Event_channel_hit_process(
+        Channel* ch,
+        Device_states* dstates,
+        Value* value)
 {
     assert(ch != NULL);
     assert(ch->freq != NULL);
     assert(ch->tempo != NULL);
+    assert(dstates != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_INT);
 
     // Move the old Voices to the background
-    Event_channel_note_off_process(ch, NULL);
+    Event_channel_note_off_process(ch, dstates, NULL);
 
     ch->fg_count = 0;
     assert(ch->instrument >= 0);
@@ -131,7 +142,12 @@ bool Event_channel_hit_process(Channel* ch, Value* value)
         if (gen == NULL || !Device_is_existent((const Device*)gen))
             continue;
 
-        reserve_voice(ch, ins, i);
+        const Gen_state* gen_state = (Gen_state*)Device_states_get_state(
+                dstates,
+                Device_get_id((Device*)gen));
+
+        reserve_voice(ch, ins, gen_state, i);
+
         Voice* voice = ch->fg[i];
         Voice_state* vs = voice->state;
         vs->hit_index = value->value.int_type;
@@ -142,9 +158,14 @@ bool Event_channel_hit_process(Channel* ch, Value* value)
 }
 
 
-bool Event_channel_note_off_process(Channel* ch, Value* value)
+bool Event_channel_note_off_process(
+        Channel* ch,
+        Device_states* dstates,
+        Value* value)
 {
     assert(ch != NULL);
+    assert(dstates != NULL);
+    (void)dstates;
     (void)value;
 
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)

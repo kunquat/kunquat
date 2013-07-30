@@ -24,9 +24,14 @@
 #include <xassert.h>
 
 
-bool Event_channel_arpeggio_on_process(Channel* ch, Value* value)
+bool Event_channel_arpeggio_on_process(
+        Channel* ch,
+        Device_states* dstates,
+        Value* value)
 {
     assert(ch != NULL);
+    assert(dstates != NULL);
+    (void)dstates;
     (void)value;
 
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
@@ -123,9 +128,14 @@ bool Event_channel_arpeggio_on_process(Channel* ch, Value* value)
 }
 
 
-bool Event_channel_arpeggio_off_process(Channel* ch, Value* value)
+bool Event_channel_arpeggio_off_process(
+        Channel* ch,
+        Device_states* dstates,
+        Value* value)
 {
     assert(ch != NULL);
+    assert(dstates != NULL);
+    (void)dstates;
     (void)value;
 
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
@@ -138,9 +148,14 @@ bool Event_channel_arpeggio_off_process(Channel* ch, Value* value)
 }
 
 
-bool Event_channel_set_arpeggio_index_process(Channel* ch, Value* value)
+bool Event_channel_set_arpeggio_index_process(
+        Channel* ch,
+        Device_states* dstates,
+        Value* value)
 {
     assert(ch != NULL);
+    assert(dstates != NULL);
+    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_INT);
 
@@ -150,9 +165,14 @@ bool Event_channel_set_arpeggio_index_process(Channel* ch, Value* value)
 }
 
 
-bool Event_channel_set_arpeggio_note_process(Channel* ch, Value* value)
+bool Event_channel_set_arpeggio_note_process(
+        Channel* ch,
+        Device_states* dstates,
+        Value* value)
 {
     assert(ch != NULL);
+    assert(dstates != NULL);
+    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
@@ -186,9 +206,14 @@ bool Event_channel_set_arpeggio_note_process(Channel* ch, Value* value)
 }
 
 
-bool Event_channel_set_arpeggio_speed_process(Channel* ch, Value* value)
+bool Event_channel_set_arpeggio_speed_process(
+        Channel* ch,
+        Device_states* dstates,
+        Value* value)
 {
     assert(ch != NULL);
+    assert(dstates != NULL);
+    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
@@ -209,9 +234,14 @@ bool Event_channel_set_arpeggio_speed_process(Channel* ch, Value* value)
 }
 
 
-bool Event_channel_reset_arpeggio_process(Channel* ch, Value* value)
+bool Event_channel_reset_arpeggio_process(
+        Channel* ch,
+        Device_states* dstates,
+        Value* value)
 {
     assert(ch != NULL);
+    assert(dstates != NULL);
+    (void)dstates;
     (void)value;
 
     ch->arpeggio_ref = NAN;

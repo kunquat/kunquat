@@ -22,7 +22,6 @@
 typedef struct Generator_pulse
 {
     Generator parent;
-    double pulse_width;
 } Generator_pulse;
 
 

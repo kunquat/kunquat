@@ -22,7 +22,11 @@
 #include <xassert.h>
 
 
-void reserve_voice(Channel* ch, Instrument* ins, int gen_num)
+void reserve_voice(
+        Channel* ch,
+        Instrument* ins,
+        const Gen_state* gen_state,
+        int gen_num)
 {
     assert(ch != NULL);
     assert(ch->freq != NULL);
@@ -30,6 +34,7 @@ void reserve_voice(Channel* ch, Instrument* ins, int gen_num)
     assert(ch->tempo != NULL);
     assert(*ch->tempo > 0);
     assert(ins != NULL);
+    assert(gen_state != NULL);
     assert(gen_num >= 0);
     assert(gen_num < KQT_GENERATORS_MAX);
 
@@ -41,6 +46,7 @@ void reserve_voice(Channel* ch, Instrument* ins, int gen_num)
 
     Voice_init(ch->fg[gen_num],
                Instrument_get_gen(ins, gen_num),
+               gen_state,
                ch->cgstate,
                Random_get_uint64(ch->rand),
                *ch->freq,

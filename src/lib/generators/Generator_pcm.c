@@ -33,11 +33,14 @@
 #include <xassert.h>
 
 
-static void Generator_pcm_init_state(Generator* gen, Voice_state* vstate);
+static void Generator_pcm_init_state(
+        Generator* gen,
+        const Gen_state* gen_state,
+        Voice_state* vstate);
 
 static uint32_t Generator_pcm_mix(
         Generator* gen,
-        Device_state* gen_state,
+        Gen_state* gen_state,
         Ins_state* ins_state,
         Voice_state* vstate,
         uint32_t nframes,
@@ -94,11 +97,16 @@ char* Generator_pcm_property(Generator* gen, const char* property_type)
 }
 
 
-static void Generator_pcm_init_state(Generator* gen, Voice_state* vstate)
+static void Generator_pcm_init_state(
+        Generator* gen,
+        const Gen_state* gen_state,
+        Voice_state* vstate)
 {
     assert(gen != NULL);
     assert(string_eq(gen->type, "pcm"));
     (void)gen;
+    assert(gen_state != NULL);
+    (void)gen_state;
     assert(vstate != NULL);
 
     Voice_state_pcm* pcm_state = (Voice_state_pcm*)vstate;
@@ -116,7 +124,7 @@ static void Generator_pcm_init_state(Generator* gen, Voice_state* vstate)
 
 uint32_t Generator_pcm_mix(
         Generator* gen,
-        Device_state* gen_state,
+        Gen_state* gen_state,
         Ins_state* ins_state,
         Voice_state* vstate,
         uint32_t nframes,

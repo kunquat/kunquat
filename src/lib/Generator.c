@@ -21,8 +21,28 @@
 #include <Generator.h>
 #include <File_base.h>
 #include <Filter.h>
+#include <memory.h>
 #include <pitch_t.h>
 #include <xassert.h>
+
+
+static Device_state* Generator_create_state_plain(
+        const Device* device,
+        int32_t audio_rate,
+        int32_t audio_buffer_size)
+{
+    assert(device != NULL);
+    assert(audio_rate > 0);
+    assert(audio_buffer_size >= 0);
+
+    Gen_state* gen_state = memory_alloc_item(Gen_state);
+    if (gen_state == NULL)
+        return NULL;
+
+    Gen_state_init(gen_state, device, audio_rate, audio_buffer_size);
+
+    return &gen_state->parent;
+}
 
 
 Generator* new_Generator(
@@ -63,6 +83,10 @@ Generator* new_Generator(
     gen->ins_params = ins_params;
     gen->conf = NULL;
 
+    Device_set_state_creator(
+            &gen->parent,
+            Generator_create_state_plain);
+
     return gen;
 }
 
@@ -72,14 +96,14 @@ bool Generator_init(
         void (*destroy)(Generator*),
         uint32_t (*mix)(
             Generator*,
-            Device_state* gen_state,
+            Gen_state*,
             Ins_state*,
             Voice_state*,
             uint32_t,
             uint32_t,
             uint32_t,
             double),
-        void (*init_state)(Generator*, Voice_state*),
+        void (*init_vstate)(Generator*, const Gen_state*, Voice_state*),
         uint32_t buffer_size,
         uint32_t mix_rate)
 {
@@ -92,7 +116,7 @@ bool Generator_init(
 
     gen->destroy = destroy;
     gen->mix = mix;
-    gen->init_state = init_state;
+    gen->init_vstate = init_vstate;
 
     if (!Device_init(&gen->parent, buffer_size, mix_rate))
         return false;
@@ -160,7 +184,7 @@ void Generator_mix(
 
     if (offset < nframes)
     {
-        Device_state* gen_state = Device_states_get_state(
+        Gen_state* gen_state = (Gen_state*)Device_states_get_state(
                 dstates,
                 Device_get_id(&gen->parent));
         Ins_state* ins_state = (Ins_state*)Device_states_get_state(

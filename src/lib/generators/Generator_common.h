@@ -28,11 +28,11 @@
 /**
  * Gets the output buffers.
  */
-#define Generator_common_get_buffers(ds, vstate, mixed, bufs) \
+#define Generator_common_get_buffers(gs, vstate, mixed, bufs) \
     if (true)                                                 \
     {                                                         \
         Audio_buffer* buffer = Device_state_get_audio_buffer( \
-                (ds), DEVICE_PORT_TYPE_SEND, 0);              \
+                &(gs)->parent, DEVICE_PORT_TYPE_SEND, 0);     \
         if (buffer == NULL)                                   \
         {                                                     \
             (vstate)->active = false;                         \

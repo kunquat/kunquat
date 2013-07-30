@@ -26,9 +26,14 @@
 #include <xassert.h>
 
 
-bool Event_channel_slide_pitch_process(Channel* ch, Value* value)
+bool Event_channel_slide_pitch_process(
+        Channel* ch,
+        Device_states* dstates,
+        Value* value)
 {
     assert(ch != NULL);
+    assert(dstates != NULL);
+    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
@@ -70,9 +75,14 @@ bool Event_channel_slide_pitch_process(Channel* ch, Value* value)
 }
 
 
-bool Event_channel_slide_pitch_length_process(Channel* ch, Value* value)
+bool Event_channel_slide_pitch_length_process(
+        Channel* ch,
+        Device_states* dstates,
+        Value* value)
 {
     assert(ch != NULL);
+    assert(dstates != NULL);
+    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_TSTAMP);
 
@@ -89,9 +99,14 @@ bool Event_channel_slide_pitch_length_process(Channel* ch, Value* value)
 }
 
 
-bool Event_channel_vibrato_speed_process(Channel* ch, Value* value)
+bool Event_channel_vibrato_speed_process(
+        Channel* ch,
+        Device_states* dstates,
+        Value* value)
 {
     assert(ch != NULL);
+    assert(dstates != NULL);
+    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
@@ -116,9 +131,14 @@ bool Event_channel_vibrato_speed_process(Channel* ch, Value* value)
 }
 
 
-bool Event_channel_vibrato_depth_process(Channel* ch, Value* value)
+bool Event_channel_vibrato_depth_process(
+        Channel* ch,
+        Device_states* dstates,
+        Value* value)
 {
     assert(ch != NULL);
+    assert(dstates != NULL);
+    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
@@ -144,9 +164,14 @@ bool Event_channel_vibrato_depth_process(Channel* ch, Value* value)
 }
 
 
-bool Event_channel_vibrato_delay_process(Channel* ch, Value* value)
+bool Event_channel_vibrato_delay_process(
+        Channel* ch,
+        Device_states* dstates,
+        Value* value)
 {
     assert(ch != NULL);
+    assert(dstates != NULL);
+    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_TSTAMP);
 

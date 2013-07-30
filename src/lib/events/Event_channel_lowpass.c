@@ -23,9 +23,14 @@
 #include <xassert.h>
 
 
-bool Event_channel_set_lowpass_process(Channel* ch, Value* value)
+bool Event_channel_set_lowpass_process(
+        Channel* ch,
+        Device_states* dstates,
+        Value* value)
 {
     assert(ch != NULL);
+    assert(dstates != NULL);
+    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
@@ -47,9 +52,14 @@ bool Event_channel_set_lowpass_process(Channel* ch, Value* value)
 }
 
 
-bool Event_channel_slide_lowpass_process(Channel* ch, Value* value)
+bool Event_channel_slide_lowpass_process(
+        Channel* ch,
+        Device_states* dstates,
+        Value* value)
 {
     assert(ch != NULL);
+    assert(dstates != NULL);
+    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
@@ -73,9 +83,14 @@ bool Event_channel_slide_lowpass_process(Channel* ch, Value* value)
 }
 
 
-bool Event_channel_slide_lowpass_length_process(Channel* ch, Value* value)
+bool Event_channel_slide_lowpass_length_process(
+        Channel* ch,
+        Device_states* dstates,
+        Value* value)
 {
     assert(ch != NULL);
+    assert(dstates != NULL);
+    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_TSTAMP);
 
@@ -94,9 +109,14 @@ bool Event_channel_slide_lowpass_length_process(Channel* ch, Value* value)
 }
 
 
-bool Event_channel_autowah_speed_process(Channel* ch, Value* value)
+bool Event_channel_autowah_speed_process(
+        Channel* ch,
+        Device_states* dstates,
+        Value* value)
 {
     assert(ch != NULL);
+    assert(dstates != NULL);
+    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
@@ -108,10 +128,10 @@ bool Event_channel_autowah_speed_process(Channel* ch, Value* value)
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;
         LFO_set_speed(&vs->autowah, value->value.float_type);
+
         if (ch->autowah_depth > 0)
-        {
             LFO_set_depth(&vs->autowah, ch->autowah_depth);
-        }
+
         LFO_turn_on(&vs->autowah);
     }
 
@@ -119,9 +139,14 @@ bool Event_channel_autowah_speed_process(Channel* ch, Value* value)
 }
 
 
-bool Event_channel_autowah_depth_process(Channel* ch, Value* value)
+bool Event_channel_autowah_depth_process(
+        Channel* ch,
+        Device_states* dstates,
+        Value* value)
 {
     assert(ch != NULL);
+    assert(dstates != NULL);
+    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
@@ -132,10 +157,10 @@ bool Event_channel_autowah_depth_process(Channel* ch, Value* value)
     {
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;
+
         if (ch->autowah_speed > 0)
-        {
             LFO_set_speed(&vs->autowah, ch->autowah_speed);
-        }
+
         LFO_set_depth(&vs->autowah, actual_depth);
         LFO_turn_on(&vs->autowah);
     }
@@ -144,9 +169,14 @@ bool Event_channel_autowah_depth_process(Channel* ch, Value* value)
 }
 
 
-bool Event_channel_autowah_delay_process(Channel* ch, Value* value)
+bool Event_channel_autowah_delay_process(
+        Channel* ch,
+        Device_states* dstates,
+        Value* value)
 {
     assert(ch != NULL);
+    assert(dstates != NULL);
+    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_TSTAMP);
 
@@ -166,9 +196,14 @@ bool Event_channel_autowah_delay_process(Channel* ch, Value* value)
 }
 
 
-bool Event_channel_set_resonance_process(Channel* ch, Value* value)
+bool Event_channel_set_resonance_process(
+        Channel* ch,
+        Device_states* dstates,
+        Value* value)
 {
     assert(ch != NULL);
+    assert(dstates != NULL);
+    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 

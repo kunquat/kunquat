@@ -102,17 +102,19 @@ uint64_t Voice_id(Voice* voice);
 /**
  * Initialises the Voice for mixing.
  *
- * \param voice     The Voice -- must not be \c NULL.
- * \param gen       The Generator used -- must not be \c NULL.
- * \param cgstate   The Channel-specific Generator state -- must not be
- *                  \c NULL.
- * \param seed      The random seed.
- * \param freq      The mixing frequency -- must be > \c 0.
- * \param tempo     The current tempo -- must be > \c 0.
+ * \param voice       The Voice -- must not be \c NULL.
+ * \param gen         The Generator used -- must not be \c NULL.
+ * \param gen_state   The Generator state -- must not be \c NULL.
+ * \param cgstate     The Channel-specific Generator state -- must not be
+ *                    \c NULL.
+ * \param seed        The random seed.
+ * \param freq        The mixing frequency -- must be > \c 0.
+ * \param tempo       The current tempo -- must be > \c 0.
  */
 void Voice_init(
         Voice* voice,
         Generator* gen,
+        const Gen_state* gen_state,
         Channel_gen_state* cgstate,
         uint64_t seed,
         uint32_t freq,

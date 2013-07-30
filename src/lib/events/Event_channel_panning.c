@@ -23,9 +23,14 @@
 #include <xassert.h>
 
 
-bool Event_channel_set_panning_process(Channel* ch, Value* value)
+bool Event_channel_set_panning_process(
+        Channel* ch,
+        Device_states* dstates,
+        Value* value)
 {
     assert(ch != NULL);
+    assert(dstates != NULL);
+    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
@@ -46,9 +51,14 @@ bool Event_channel_set_panning_process(Channel* ch, Value* value)
 }
 
 
-bool Event_channel_slide_panning_process(Channel* ch, Value* value)
+bool Event_channel_slide_panning_process(
+        Channel* ch,
+        Device_states* dstates,
+        Value* value)
 {
     assert(ch != NULL);
+    assert(dstates != NULL);
+    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
@@ -73,9 +83,14 @@ bool Event_channel_slide_panning_process(Channel* ch, Value* value)
 }
 
 
-bool Event_channel_slide_panning_length_process(Channel* ch, Value* value)
+bool Event_channel_slide_panning_length_process(
+        Channel* ch,
+        Device_states* dstates,
+        Value* value)
 {
     assert(ch != NULL);
+    assert(dstates != NULL);
+    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_TSTAMP);
 

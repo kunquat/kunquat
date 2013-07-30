@@ -26,6 +26,7 @@
 #include <Instrument_params.h>
 #include <kunquat/limits.h>
 #include <pitch_t.h>
+#include <player/Gen_state.h>
 #include <player/Ins_state.h>
 #include <player/Voice_state.h>
 
@@ -44,11 +45,11 @@ typedef struct Generator
     Gen_conf* conf;
     const Instrument_params* ins_params;
 
-    void (*init_state)(struct Generator*, Voice_state*);
+    void (*init_vstate)(struct Generator*, const Gen_state*, Voice_state*);
     void (*destroy)(struct Generator*);
     uint32_t (*mix)(
             struct Generator*,
-            Device_state* gen_state,
+            Gen_state*,
             Ins_state*,
             Voice_state*,
             uint32_t,
@@ -100,14 +101,14 @@ bool Generator_init(
         void (*destroy)(Generator*),
         uint32_t (*mix)(
             Generator*,
-            Device_state* gen_state,
+            Gen_state*,
             Ins_state*,
             Voice_state*,
             uint32_t,
             uint32_t,
             uint32_t,
             double),
-        void (*init_state)(Generator*, Voice_state*),
+        void (*init_vstate)(Generator*, const Gen_state*, Voice_state*),
         uint32_t buffer_size,
         uint32_t mix_rate);
 

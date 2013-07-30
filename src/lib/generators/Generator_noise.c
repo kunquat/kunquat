@@ -26,7 +26,6 @@
 #include <kunquat/limits.h>
 #include <math_common.h>
 #include <memory.h>
-#include <player/Gen_state.h>
 #include <string_common.h>
 #include <Voice_state_noise.h>
 #include <xassert.h>
@@ -44,11 +43,14 @@ static Device_state* Generator_noise_create_state(
         int32_t audio_rate,
         int32_t audio_buffer_size);
 
-static void Generator_noise_init_vstate(Generator* gen, Voice_state* state);
+static void Generator_noise_init_vstate(
+        Generator* gen,
+        const Gen_state* gen_state,
+        Voice_state* vstate);
 
 static uint32_t Generator_noise_mix(
         Generator* gen,
-        Device_state* gen_state,
+        Gen_state* gen_state,
         Ins_state* ins_state,
         Voice_state* vstate,
         uint32_t nframes,
@@ -128,12 +130,17 @@ static Device_state* Generator_noise_create_state(
 }
 
 
-static void Generator_noise_init_vstate(Generator* gen, Voice_state* vstate)
+static void Generator_noise_init_vstate(
+        Generator* gen,
+        const Gen_state* gen_state,
+        Voice_state* vstate)
 {
     assert(gen != NULL);
     assert(string_eq(gen->type, "noise"));
-    assert(vstate != NULL);
     (void)gen;
+    assert(gen_state != NULL);
+    (void)gen_state;
+    assert(vstate != NULL);
 
     Voice_state_noise* noise_vstate = (Voice_state_noise*)vstate;
     memset(noise_vstate->buf[0], 0, NOISE_MAX * sizeof(double));
@@ -145,7 +152,7 @@ static void Generator_noise_init_vstate(Generator* gen, Voice_state* vstate)
 
 static uint32_t Generator_noise_mix(
         Generator* gen,
-        Device_state* gen_state,
+        Gen_state* gen_state,
         Ins_state* ins_state,
         Voice_state* vstate,
         uint32_t nframes,
