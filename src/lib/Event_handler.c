@@ -67,7 +67,7 @@ struct Event_handler
             Generator*,
             Channel*,
             Value*);
-    bool (*effect_process[Event_effect_STOP])(Effect*, Value*);
+    bool (*effect_process[Event_effect_STOP])(Effect*, Effect_state*, Value*);
     bool (*dsp_process[Event_dsp_STOP])(DSP_conf*, Channel*, Value*);
 };
 
@@ -239,7 +239,7 @@ bool Event_handler_set_generator_process(
 bool Event_handler_set_effect_process(
         Event_handler* eh,
         Event_type type,
-        bool (*effect_process)(Effect*, Value*))
+        bool (*effect_process)(Effect*, Effect_state*, Value*))
 {
     assert(eh != NULL);
     assert(Event_is_effect(type));
@@ -349,8 +349,11 @@ static bool Event_handler_handle(
         Effect* eff = Effect_table_get(effects, eh->channels[index]->effect);
         if (eff == NULL)
             return false;
+        Effect_state* eff_state = (Effect_state*)Device_states_get_state(
+                eh->device_states,
+                Device_get_id((Device*)eff));
 
-        return eh->effect_process[type](eff, value);
+        return eh->effect_process[type](eff, eff_state, value);
     }
     else if (Event_is_dsp(type))
     {

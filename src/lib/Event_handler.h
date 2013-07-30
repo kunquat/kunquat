@@ -25,6 +25,7 @@
 #include <Generator.h>
 #include <Ins_table.h>
 #include <player/Channel.h>
+#include <player/Effect_state.h>
 #include <player/Ins_state.h>
 #include <player/Master_params.h>
 #include <Value.h>
@@ -167,7 +168,7 @@ bool Event_handler_set_generator_process(
 bool Event_handler_set_effect_process(
         Event_handler* eh,
         Event_type type,
-        bool (*effect_process)(Effect*, Value*));
+        bool (*effect_process)(Effect*, Effect_state*, Value*));
 
 
 /**

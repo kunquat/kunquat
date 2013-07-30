@@ -22,20 +22,39 @@
 #include <xassert.h>
 
 
-bool Event_effect_bypass_on_process(Effect* eff, Value* value)
+bool Event_effect_bypass_on_process(
+        Effect* eff,
+        Effect_state* eff_state,
+        Value* value)
 {
     assert(eff != NULL);
+    assert(eff_state != NULL);
     (void)value;
-    Effect_set_bypass(eff, true);
+
+    eff_state->bypass = true;
+
+    for (int i = 0; i < KQT_DSPS_MAX; ++i)
+    {
+        DSP* dsp = Effect_get_dsp(eff, i);
+        if (dsp != NULL)
+            DSP_clear_history(dsp);
+    }
+
     return true;
 }
 
 
-bool Event_effect_bypass_off_process(Effect* eff, Value* value)
+bool Event_effect_bypass_off_process(
+        Effect* eff,
+        Effect_state* eff_state,
+        Value* value)
 {
     assert(eff != NULL);
+    assert(eff_state != NULL);
     (void)value;
-    Effect_set_bypass(eff, false);
+
+    eff_state->bypass = false;
+
     return true;
 }
 

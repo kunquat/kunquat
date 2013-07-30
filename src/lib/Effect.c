@@ -23,20 +23,25 @@
 #include <Effect_interface.h>
 #include <memory.h>
 #include <player/Device_states.h>
+#include <player/Effect_state.h>
 #include <xassert.h>
 
 
 struct Effect
 {
     Device parent;
+
     Effect_interface* out_iface;
     Effect_interface* in_iface;
     Connections* connections;
     DSP_table* dsps;
-    bool init_bypass;
-    bool bypass;
 };
 
+
+static Device_state* Effect_create_state(
+        const Device* device,
+        int32_t audio_rate,
+        int32_t audio_buffer_size);
 
 static void Effect_reset(Device* device);
 
@@ -75,6 +80,7 @@ Effect* new_Effect(uint32_t buf_len, uint32_t mix_rate)
         return NULL;
     }
 
+    Device_set_state_creator(&eff->parent, Effect_create_state);
     Device_set_reset(&eff->parent, Effect_reset);
     Device_set_mix_rate_changer(&eff->parent, Effect_set_mix_rate);
     Device_set_buffer_size_changer(&eff->parent, Effect_set_buffer_size);
@@ -107,7 +113,6 @@ Effect* new_Effect(uint32_t buf_len, uint32_t mix_rate)
                          DEVICE_PORT_TYPE_RECEIVE, 0);
 
     //fprintf(stderr, "New effect %p\n", (void*)eff);
-    eff->init_bypass = eff->bypass = false;
 
     return eff;
 }
@@ -186,6 +191,26 @@ Device* Effect_get_output_interface(Effect* eff)
 }
 
 
+static Device_state* Effect_create_state(
+        const Device* device,
+        int32_t audio_rate,
+        int32_t audio_buffer_size)
+{
+    assert(device != NULL);
+    assert(audio_rate > 0);
+    assert(audio_buffer_size >= 0);
+
+    Effect_state* es = memory_alloc_item(Effect_state);
+    if (es == NULL)
+        return NULL;
+
+    Device_state_init(&es->parent, device, audio_rate, audio_buffer_size);
+    es->bypass = false;
+
+    return &es->parent;
+}
+
+
 static void Effect_reset(Device* device)
 {
     assert(device != NULL);
@@ -197,7 +222,6 @@ static void Effect_reset(Device* device)
         if (dsp != NULL)
             Device_reset((Device*)dsp);
     }
-    eff->bypass = eff->init_bypass;
 
     return;
 }
@@ -297,8 +321,13 @@ static void Effect_process(
     assert(freq > 0);
     assert(isfinite(tempo));
 
+    Effect_state* eff_state = (Effect_state*)Device_states_get_state(
+            states,
+            Device_get_id(device));
+
     Effect* eff = (Effect*)device;
-    if (eff->bypass)
+
+    if (eff_state->bypass)
     {
         Device_state* ds = Device_states_get_state(
                 states, Device_get_id((Device*)device));
@@ -331,25 +360,6 @@ static void Effect_process(
 #ifndef NDEBUG
         in_effect = false;
 #endif
-    }
-
-    return;
-}
-
-
-void Effect_set_bypass(Effect* eff, bool bypass)
-{
-    assert(eff != NULL);
-
-    eff->bypass = bypass;
-    if (eff->bypass)
-    {
-        for (int i = 0; i < KQT_DSPS_MAX; ++i)
-        {
-            DSP* dsp = DSP_table_get_dsp(eff->dsps, i);
-            if (dsp != NULL)
-                DSP_clear_history(dsp);
-        }
     }
 
     return;

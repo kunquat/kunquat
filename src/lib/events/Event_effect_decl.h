@@ -19,13 +19,17 @@
 #include <stdbool.h>
 
 #include <Effect.h>
+#include <player/Effect_state.h>
 #include <Value.h>
 
 
 // Process function declarations
 
-#define EVENT_TYPE_DEF(type) \
-    bool Event_effect_##type##_process(Effect* eff, Value* value);
+#define EVENT_TYPE_DEF(type)            \
+    bool Event_effect_##type##_process( \
+            Effect* eff,                \
+            Effect_state* eff_state,    \
+            Value* value);
 #include <events/Event_effect_types.h>
 
 
