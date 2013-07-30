@@ -45,7 +45,10 @@ typedef struct Generator
     Gen_conf* conf;
     const Instrument_params* ins_params;
 
-    void (*init_vstate)(struct Generator*, const Gen_state*, Voice_state*);
+    void (*init_vstate)(
+            const struct Generator*,
+            const Gen_state*,
+            Voice_state*);
     void (*destroy)(struct Generator*);
     uint32_t (*mix)(
             struct Generator*,
@@ -108,7 +111,7 @@ bool Generator_init(
             uint32_t,
             uint32_t,
             double),
-        void (*init_vstate)(Generator*, const Gen_state*, Voice_state*),
+        void (*init_vstate)(const Generator*, const Gen_state*, Voice_state*),
         uint32_t buffer_size,
         uint32_t mix_rate);
 

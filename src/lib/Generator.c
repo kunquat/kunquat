@@ -103,7 +103,7 @@ bool Generator_init(
             uint32_t,
             uint32_t,
             double),
-        void (*init_vstate)(Generator*, const Gen_state*, Voice_state*),
+        void (*init_vstate)(const Generator*, const Gen_state*, Voice_state*),
         uint32_t buffer_size,
         uint32_t mix_rate)
 {

@@ -44,7 +44,7 @@ static Device_state* Generator_noise_create_state(
         int32_t audio_buffer_size);
 
 static void Generator_noise_init_vstate(
-        Generator* gen,
+        const Generator* gen,
         const Gen_state* gen_state,
         Voice_state* vstate);
 
@@ -131,7 +131,7 @@ static Device_state* Generator_noise_create_state(
 
 
 static void Generator_noise_init_vstate(
-        Generator* gen,
+        const Generator* gen,
         const Gen_state* gen_state,
         Voice_state* vstate)
 {

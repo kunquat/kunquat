@@ -42,7 +42,7 @@ static Device_state* Generator_pulse_create_state(
         int32_t audio_buffer_size);
 
 static void Generator_pulse_init_vstate(
-        Generator* gen,
+        const Generator* gen,
         const Gen_state* gen_state,
         Voice_state* vstate);
 
@@ -130,7 +130,7 @@ static Device_state* Generator_pulse_create_state(
 
 
 static void Generator_pulse_init_vstate(
-        Generator* gen,
+        const Generator* gen,
         const Gen_state* gen_state,
         Voice_state* vstate)
 {

@@ -33,8 +33,8 @@
 #include <xassert.h>
 
 
-static void Generator_pcm_init_state(
-        Generator* gen,
+static void Generator_pcm_init_vstate(
+        const Generator* gen,
         const Gen_state* gen_state,
         Voice_state* vstate);
 
@@ -65,7 +65,7 @@ Generator* new_Generator_pcm(uint32_t buffer_size, uint32_t mix_rate)
                 &pcm->parent,
                 del_Generator_pcm,
                 Generator_pcm_mix,
-                Generator_pcm_init_state,
+                Generator_pcm_init_vstate,
                 buffer_size,
                 mix_rate))
     {
@@ -97,8 +97,8 @@ char* Generator_pcm_property(Generator* gen, const char* property_type)
 }
 
 
-static void Generator_pcm_init_state(
-        Generator* gen,
+static void Generator_pcm_init_vstate(
+        const Generator* gen,
         const Gen_state* gen_state,
         Voice_state* vstate)
 {

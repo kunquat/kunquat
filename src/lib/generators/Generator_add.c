@@ -68,7 +68,7 @@ typedef struct Generator_add
 
 
 static void Generator_add_init_vstate(
-        Generator* gen,
+        const Generator* gen,
         const Gen_state* gen_state,
         Voice_state* vstate);
 
@@ -197,7 +197,7 @@ char* Generator_add_property(Generator* gen, const char* property_type)
 
 
 static void Generator_add_init_vstate(
-        Generator* gen,
+        const Generator* gen,
         const Gen_state* gen_state,
         Voice_state* vstate)
 {
