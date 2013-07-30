@@ -26,12 +26,25 @@
 #include <kunquat/limits.h>
 #include <math_common.h>
 #include <memory.h>
+#include <player/Gen_state.h>
 #include <string_common.h>
 #include <Voice_state_noise.h>
 #include <xassert.h>
 
 
-void Generator_noise_init_state(Generator* gen, Voice_state* state);
+typedef struct Noise_state
+{
+    Gen_state parent;
+    int order;
+} Noise_state;
+
+
+static Device_state* Generator_noise_create_state(
+        const Device* device,
+        int32_t audio_rate,
+        int32_t audio_buffer_size);
+
+static void Generator_noise_init_vstate(Generator* gen, Voice_state* state);
 
 static uint32_t Generator_noise_mix(
         Generator* gen,
@@ -60,7 +73,7 @@ Generator* new_Generator_noise(uint32_t buffer_size, uint32_t mix_rate)
                 &noise->parent,
                 del_Generator_noise,
                 Generator_noise_mix,
-                Generator_noise_init_state,
+                Generator_noise_init_vstate,
                 buffer_size,
                 mix_rate))
     {
@@ -68,7 +81,9 @@ Generator* new_Generator_noise(uint32_t buffer_size, uint32_t mix_rate)
         return NULL;
     }
 
-    noise->order = 0;
+    Device_set_state_creator(
+            &noise->parent.parent,
+            Generator_noise_create_state);
 
     return &noise->parent;
 }
@@ -93,16 +108,36 @@ char* Generator_noise_property(Generator* gen, const char* property_type)
 }
 
 
-void Generator_noise_init_state(Generator* gen, Voice_state* state)
+static Device_state* Generator_noise_create_state(
+        const Device* device,
+        int32_t audio_rate,
+        int32_t audio_buffer_size)
+{
+    assert(device != NULL);
+    assert(audio_rate > 0);
+    assert(audio_buffer_size >= 0);
+
+    Noise_state* noise_state = memory_alloc_item(Noise_state);
+    if (noise_state == NULL)
+        return NULL;
+
+    Gen_state_init(&noise_state->parent, device, audio_rate, audio_buffer_size);
+    noise_state->order = 0;
+
+    return &noise_state->parent.parent;
+}
+
+
+static void Generator_noise_init_vstate(Generator* gen, Voice_state* vstate)
 {
     assert(gen != NULL);
     assert(string_eq(gen->type, "noise"));
-    assert(state != NULL);
+    assert(vstate != NULL);
     (void)gen;
 
-    Voice_state_noise* noise_state = (Voice_state_noise*)state;
-    memset(noise_state->buf[0], 0, NOISE_MAX * sizeof(double));
-    memset(noise_state->buf[1], 0, NOISE_MAX * sizeof(double));
+    Voice_state_noise* noise_vstate = (Voice_state_noise*)vstate;
+    memset(noise_vstate->buf[0], 0, NOISE_MAX * sizeof(double));
+    memset(noise_vstate->buf[1], 0, NOISE_MAX * sizeof(double));
 
     return;
 }
@@ -133,8 +168,8 @@ static uint32_t Generator_noise_mix(
 //    double max_amp = 0;
 //  fprintf(stderr, "bufs are %p and %p\n", ins->bufs[0], ins->bufs[1]);
 
-    Generator_noise* noise = (Generator_noise*)gen;
-    Voice_state_noise* noise_state = (Voice_state_noise*)vstate;
+    Noise_state* noise_state = (Noise_state*)gen_state;
+    Voice_state_noise* noise_vstate = (Voice_state_noise*)vstate;
 
     if (vstate->note_on)
     {
@@ -142,9 +177,9 @@ static uint32_t Generator_noise_mix(
                 vstate->cgstate,
                 "p_order.jsoni");
         if (order_arg != NULL)
-            noise->order = *order_arg;
+            noise_state->order = *order_arg;
         else
-            noise->order = 0;
+            noise_state->order = 0;
     }
 
     uint32_t mixed = offset;
@@ -153,26 +188,26 @@ static uint32_t Generator_noise_mix(
         Generator_common_handle_pitch(gen, vstate);
         double vals[KQT_BUFFERS_MAX] = { 0 };
 
-        if(noise->order < 0)
+        if(noise_state->order < 0)
         {
             vals[0] = dc_pole_filter(
-                    -noise->order,
-                    noise_state->buf[0],
+                    -noise_state->order,
+                    noise_vstate->buf[0],
                     Random_get_float_signal(vstate->rand_s));
             vals[1] = dc_pole_filter(
-                    -noise->order,
-                    noise_state->buf[1],
+                    -noise_state->order,
+                    noise_vstate->buf[1],
                     Random_get_float_signal(vstate->rand_s));
         }
         else
         {
             vals[0] = dc_zero_filter(
-                    noise->order,
-                    noise_state->buf[0],
+                    noise_state->order,
+                    noise_vstate->buf[0],
                     Random_get_float_signal(vstate->rand_s));
             vals[1] = dc_zero_filter(
-                    noise->order,
-                    noise_state->buf[1],
+                    noise_state->order,
+                    noise_vstate->buf[1],
                     Random_get_float_signal(vstate->rand_s));
         }
 

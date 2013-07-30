@@ -23,7 +23,6 @@
 typedef struct Generator_noise
 {
     Generator parent;
-    int order;
 } Generator_noise;
 
 
