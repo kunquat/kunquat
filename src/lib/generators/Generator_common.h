@@ -73,7 +73,7 @@
  * \param tempo    The tempo -- must be > \c 0 and finite.
  */
 void Generator_common_check_relative_lengths(
-        Generator* gen,
+        const Generator* gen,
         Voice_state* vstate,
         uint32_t freq,
         double tempo);
@@ -85,7 +85,7 @@ void Generator_common_check_relative_lengths(
  * \param gen     The Generator -- must not be \c NULL.
  * \param vstate   The Voice state -- must not be \c NULL.
  */
-void Generator_common_handle_pitch(Generator* gen, Voice_state* vstate);
+void Generator_common_handle_pitch(const Generator* gen, Voice_state* vstate);
 
 
 /**
@@ -98,7 +98,7 @@ void Generator_common_handle_pitch(Generator* gen, Voice_state* vstate);
  * \param freq          The mixing frequency -- must be > \c 0.
  */
 void Generator_common_handle_force(
-        Generator* gen,
+        const Generator* gen,
         Ins_state* ins_state,
         Voice_state* vstate,
         double frames[],
@@ -118,7 +118,7 @@ void Generator_common_handle_force(
  * \param freq          The mixing frequency -- must be > \c 0.
  */
 void Generator_common_handle_filter(
-        Generator* gen,
+        const Generator* gen,
         Voice_state* vstate,
         double frames[],
         int frame_count,
@@ -138,7 +138,7 @@ void Generator_common_handle_filter(
  * \param freq          The mixing frequency -- must be > \c 0.
  */
 void Generator_common_ramp_attack(
-        Generator* gen,
+        const Generator* gen,
         Voice_state* vstate,
         double frames[],
         int frame_count,
@@ -154,7 +154,7 @@ void Generator_common_ramp_attack(
  * \param frame_count   The number of frames to be modified -- must be > \c 0.
  */
 void Generator_common_handle_panning(
-        Generator* gen,
+        const Generator* gen,
         Voice_state* vstate,
         double frames[],
         int frame_count);

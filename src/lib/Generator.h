@@ -51,7 +51,7 @@ typedef struct Generator
             Voice_state*);
     void (*destroy)(struct Generator*);
     uint32_t (*mix)(
-            struct Generator*,
+            const struct Generator*,
             Gen_state*,
             Ins_state*,
             Voice_state*,
@@ -103,7 +103,7 @@ bool Generator_init(
         Generator* gen,
         void (*destroy)(Generator*),
         uint32_t (*mix)(
-            Generator*,
+            const Generator*,
             Gen_state*,
             Ins_state*,
             Voice_state*,
@@ -152,7 +152,7 @@ Device_params* Generator_get_params(Generator* gen);
  *
  * \return   The type.
  */
-char* Generator_get_type(Generator* gen);
+const char* Generator_get_type(const Generator* gen);
 
 
 /**
@@ -169,7 +169,7 @@ char* Generator_get_type(Generator* gen);
  * \param tempo     The current tempo -- must be > \c 0.
  */
 void Generator_mix(
-        Generator* gen,
+        const Generator* gen,
         Device_states* dstates,
         Voice_state* vstate,
         uint32_t nframes,

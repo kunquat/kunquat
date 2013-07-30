@@ -43,30 +43,30 @@ const Gen_type gen_types[] =
 };
 
 
-Generator_cons* Gen_type_find_cons(char* type)
+Generator_cons* Gen_type_find_cons(const char* type)
 {
     assert(type != NULL);
+
     for (int i = 0; gen_types[i].type != NULL; ++i)
     {
         if (string_eq(type, gen_types[i].type))
-        {
             return gen_types[i].cons;
-        }
     }
+
     return NULL;
 }
 
 
-Generator_property* Gen_type_find_property(char* type)
+Generator_property* Gen_type_find_property(const char* type)
 {
     assert(type != NULL);
+
     for (int i = 0; gen_types[i].type != NULL; ++i)
     {
         if (string_eq(type, gen_types[i].type))
-        {
             return gen_types[i].property;
-        }
     }
+
     assert(false);
     return NULL;
 }

@@ -92,7 +92,7 @@ uint64_t Voice_id(Voice* voice)
 
 void Voice_init(
         Voice* voice,
-        Generator* gen,
+        const Generator* gen,
         const Gen_state* gen_state,
         Channel_gen_state* cgstate,
         uint64_t seed,

@@ -60,7 +60,7 @@ typedef struct Gen_type Gen_type;
  *
  * \return   The constructor if \a type is supported, otherwise \c NULL.
  */
-Generator_cons* Gen_type_find_cons(char* type);
+Generator_cons* Gen_type_find_cons(const char* type);
 
 
 /**
@@ -70,7 +70,7 @@ Generator_cons* Gen_type_find_cons(char* type);
  *
  * \return   The property function if one exists, otherwise \c NULL.
  */
-Generator_property* Gen_type_find_property(char* type);
+Generator_property* Gen_type_find_property(const char* type);
 
 
 #endif // K_GEN_TYPE_H

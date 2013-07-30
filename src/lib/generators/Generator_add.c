@@ -78,7 +78,7 @@ static bool Generator_add_sync(Device* device);
 static bool Generator_add_update_key(Device* device, const char* key);
 
 static uint32_t Generator_add_mix(
-        Generator* gen,
+        const Generator* gen,
         Gen_state* gen_state,
         Ins_state* ins_state,
         Voice_state* vstate,
@@ -242,7 +242,7 @@ static void Generator_add_init_vstate(
 
 
 static uint32_t Generator_add_mix(
-        Generator* gen,
+        const Generator* gen,
         Gen_state* gen_state,
         Ins_state* ins_state,
         Voice_state* vstate,

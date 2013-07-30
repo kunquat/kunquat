@@ -179,7 +179,7 @@ void* Sample_get_buffer(Sample* sample, int ch)
 
 uint32_t Sample_mix(
         Sample* sample,
-        Generator* gen,
+        const Generator* gen,
         Ins_state* ins_state,
         Voice_state* vstate,
         uint32_t nframes,

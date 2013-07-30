@@ -28,7 +28,7 @@
 
 
 void Generator_common_check_relative_lengths(
-        Generator* gen,
+        const Generator* gen,
         Voice_state* vstate,
         uint32_t freq,
         double tempo)
@@ -76,7 +76,7 @@ void Generator_common_check_relative_lengths(
 }
 
 
-void Generator_common_handle_pitch(Generator* gen, Voice_state* vstate)
+void Generator_common_handle_pitch(const Generator* gen, Voice_state* vstate)
 {
     assert(gen != NULL);
     assert(vstate != NULL);
@@ -145,7 +145,7 @@ void Generator_common_handle_pitch(Generator* gen, Voice_state* vstate)
 
 
 void Generator_common_handle_force(
-        Generator* gen,
+        const Generator* gen,
         Ins_state* ins_state,
         Voice_state* vstate,
         double frames[],
@@ -383,7 +383,7 @@ void Generator_common_handle_force(
 
 
 void Generator_common_handle_filter(
-        Generator* gen,
+        const Generator* gen,
         Voice_state* vstate,
         double frames[],
         int frame_count,
@@ -550,7 +550,7 @@ void Generator_common_handle_filter(
 
 
 void Generator_common_ramp_attack(
-        Generator* gen,
+        const Generator* gen,
         Voice_state* vstate,
         double frames[],
         int frame_count,
@@ -576,7 +576,7 @@ void Generator_common_ramp_attack(
 
 
 void Generator_common_handle_panning(
-        Generator* gen,
+        const Generator* gen,
         Voice_state* vstate,
         double frames[],
         int frame_count)

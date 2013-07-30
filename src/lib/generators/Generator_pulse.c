@@ -47,7 +47,7 @@ static void Generator_pulse_init_vstate(
         Voice_state* vstate);
 
 static uint32_t Generator_pulse_mix(
-        Generator* gen,
+        const Generator* gen,
         Gen_state* gen_state,
         Ins_state* ins_state,
         Voice_state* vstate,
@@ -156,7 +156,7 @@ double pulse(double phase, double pulse_width)
 
 
 uint32_t Generator_pulse_mix(
-        Generator* gen,
+        const Generator* gen,
         Gen_state* gen_state,
         Ins_state* ins_state,
         Voice_state* vstate,

@@ -39,7 +39,7 @@ static void Generator_pcm_init_vstate(
         Voice_state* vstate);
 
 static uint32_t Generator_pcm_mix(
-        Generator* gen,
+        const Generator* gen,
         Gen_state* gen_state,
         Ins_state* ins_state,
         Voice_state* vstate,
@@ -123,7 +123,7 @@ static void Generator_pcm_init_vstate(
 
 
 uint32_t Generator_pcm_mix(
-        Generator* gen,
+        const Generator* gen,
         Gen_state* gen_state,
         Ins_state* ins_state,
         Voice_state* vstate,

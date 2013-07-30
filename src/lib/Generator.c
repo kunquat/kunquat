@@ -95,7 +95,7 @@ bool Generator_init(
         Generator* gen,
         void (*destroy)(Generator*),
         uint32_t (*mix)(
-            Generator*,
+            const Generator*,
             Gen_state*,
             Ins_state*,
             Voice_state*,
@@ -159,7 +159,7 @@ Device_params* Generator_get_params(Generator* gen)
 }
 
 
-char* Generator_get_type(Generator* gen)
+const char* Generator_get_type(const Generator* gen)
 {
     assert(gen != NULL);
     return gen->type;
@@ -167,7 +167,7 @@ char* Generator_get_type(Generator* gen)
 
 
 void Generator_mix(
-        Generator* gen,
+        const Generator* gen,
         Device_states* dstates,
         Voice_state* vstate,
         uint32_t nframes,

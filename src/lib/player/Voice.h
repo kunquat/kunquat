@@ -41,13 +41,13 @@ typedef enum
  */
 typedef struct Voice
 {
-    uint64_t id;           ///< An identification number for this initialisation.
-    Voice_prio prio;       ///< Current priority of the Voice.
-    Generator* gen;        ///< The Generator.
-    size_t state_size;     ///< The amount bytes allocated for the Voice state.
-    Voice_state* state;    ///< The current playback state.
-    Random* rand_p;        ///< Parameter random source.
-    Random* rand_s;        ///< Signal random source.
+    uint64_t id;            ///< An identification number for this initialisation.
+    Voice_prio prio;        ///< Current priority of the Voice.
+    const Generator* gen;   ///< The Generator.
+    size_t state_size;      ///< The amount bytes allocated for the Voice state.
+    Voice_state* state;     ///< The current playback state.
+    Random* rand_p;         ///< Parameter random source.
+    Random* rand_s;         ///< Signal random source.
 } Voice;
 
 
@@ -113,7 +113,7 @@ uint64_t Voice_id(Voice* voice);
  */
 void Voice_init(
         Voice* voice,
-        Generator* gen,
+        const Generator* gen,
         const Gen_state* gen_state,
         Channel_gen_state* cgstate,
         uint64_t seed,
