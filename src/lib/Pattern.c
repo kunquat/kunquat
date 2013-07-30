@@ -22,7 +22,6 @@
 #include <Bit_array.h>
 #include <Connections_search.h>
 #include <Event.h>
-#include <Event_handler.h>
 #include <memory.h>
 #include <Pattern.h>
 #include <Pattern_location.h>

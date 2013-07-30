@@ -23,7 +23,6 @@
 #include <Connections.h>
 #include <Pat_inst_ref.h>
 #include <Tstamp.h>
-#include <Event_handler.h>
 #include <kunquat/limits.h>
 
 

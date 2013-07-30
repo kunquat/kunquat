@@ -20,11 +20,11 @@
 #include <stdint.h>
 
 #include <Environment.h>
-#include <Event_handler.h>
 #include <player/Cgiter.h>
 #include <player/Channel.h>
 #include <player/Device_states.h>
 #include <player/Event_buffer.h>
+#include <player/Event_handler.h>
 #include <player/Master_params.h>
 #include <player/Player.h>
 #include <player/Voice_pool.h>

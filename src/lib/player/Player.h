@@ -20,9 +20,9 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#include <Event_handler.h>
 #include <kunquat/limits.h>
 #include <Module.h>
+#include <player/Event_handler.h>
 
 
 typedef struct Player Player;

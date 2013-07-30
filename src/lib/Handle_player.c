@@ -24,7 +24,6 @@
 #include <kunquat/limits.h>
 #include <math_common.h>
 #include <Module.h>
-#include <Event_handler.h>
 #include <string_common.h>
 #include <xassert.h>
 
@@ -250,43 +249,6 @@ int kqt_Handle_fire(kqt_Handle* handle, int channel, char* event)
         return 0;
     }
 
-    // Set tempo if we haven't mixed anything yet
-#if 0
-    Playdata* global_state = handle->module->play_state;
-    if (isnan(global_state->tempo))
-    {
-        global_state->tempo = 120;
-        const uint16_t track_index = global_state->track;
-        const Track_list* tl = handle->module->track_list;
-        if (tl != NULL && track_index < Track_list_get_len(tl))
-        {
-            int16_t song_index = Track_list_get_song_index(
-                    tl, global_state->track);
-            const bool existent = Subsong_table_get_existent(
-                    global_state->subsongs, song_index);
-            Subsong* ss = Subsong_table_get(
-                    global_state->subsongs, song_index);
-            if (existent && ss != NULL)
-                global_state->tempo = Subsong_get_tempo(ss);
-        }
-    }
-
-    Read_state* rs = READ_STATE_AUTO;
-    const bool success = Event_handler_trigger_const(
-            handle->module->event_handler,
-            channel,
-            event,
-            false,
-            rs);
-    if (!success)
-    {
-        assert(rs->error);
-        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
-                "Invalid event description `%s`: %s",
-                event, rs->message);
-        return 0;
-    }
-#endif
     return 1;
 }
 
@@ -316,7 +278,6 @@ int kqt_Handle_receive(kqt_Handle* handle, char* dest, int size)
     dest[len - 1] = '\0';
 
     return strlen(events) > 2;
-    //return Event_handler_receive(handle->module->event_handler, dest, size);
 }
 
 
@@ -345,7 +306,6 @@ int kqt_Handle_treceive(kqt_Handle* handle, char* dest, int size)
     dest[len - 1] = '\0';
 
     return len > 3;
-    //return Event_handler_treceive(handle->module->event_handler, dest, size);
 }
 
 

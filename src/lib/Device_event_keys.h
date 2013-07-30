@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -17,7 +17,6 @@
 
 
 #include <Device_params.h>
-#include <Event_handler.h>
 #include <File_base.h>
 #include <player/Player.h>
 

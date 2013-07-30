@@ -20,7 +20,6 @@
 
 #include <DSP_conf.h>
 #include <Effect.h>
-#include <Event_handler.h>
 #include <Event_names.h>
 #include <Event_type.h>
 #include <expr.h>
@@ -30,6 +29,7 @@
 #include <Ins_table.h>
 #include <kunquat/limits.h>
 #include <player/Channel.h>
+#include <player/Event_handler.h>
 #include <string_common.h>
 #include <Value.h>
 
