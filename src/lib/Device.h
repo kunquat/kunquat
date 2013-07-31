@@ -37,8 +37,8 @@ struct Device
     Device_state* (*create_state)(const struct Device*, int32_t, int32_t);
     bool (*set_mix_rate)(struct Device*, uint32_t);
     bool (*set_buffer_size)(struct Device*, uint32_t);
-    void (*reset)(struct Device*);
-    bool (*sync)(struct Device*);
+    void (*reset)(struct Device*, Device_states*);
+    bool (*sync)(struct Device*, Device_states*);
     bool (*update_key)(struct Device*, const char*);
     void (*process)(
             struct Device*,
@@ -144,7 +144,7 @@ void Device_set_buffer_size_changer(
  * \param device   The Device -- must not be \c NULL.
  * \param reset    The reset function -- must not be \c NULL.
  */
-void Device_set_reset(Device* device, void (*reset)(Device*));
+void Device_set_reset(Device* device, void (*reset)(Device*, Device_states*));
 
 
 /**
@@ -153,7 +153,7 @@ void Device_set_reset(Device* device, void (*reset)(Device*));
  * \param device   The Device -- must not be \c NULL.
  * \param sync     The synchronisation function -- must not be \c NULL.
  */
-void Device_set_sync(Device* device, bool (*sync)(Device*));
+void Device_set_sync(Device* device, bool (*sync)(Device*, Device_states*));
 
 
 /**
@@ -271,19 +271,21 @@ uint32_t Device_get_buffer_size(const Device* device);
 /**
  * Resets the internal playback state of the Device.
  *
- * \param device   The Device -- must not be \c NULL.
+ * \param device    The Device -- must not be \c NULL.
+ * \param dstates   The Device states -- must not be \c NULL.
  */
-void Device_reset(Device* device);
+void Device_reset(Device* device, Device_states* dstates);
 
 
 /**
  * Synchronises the Device.
  *
- * \param device   The Device -- must not be \c NULL.
+ * \param device    The Device -- must not be \c NULL.
+ * \param dstates   The Device states -- must not be \c NULL.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Device_sync(Device* device);
+bool Device_sync(Device* device, Device_states* dstates);
 
 
 /**

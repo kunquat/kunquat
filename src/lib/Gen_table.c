@@ -35,11 +35,11 @@ struct Gen_table
 Gen_table* new_Gen_table(int size)
 {
     assert(size > 0);
+
     Gen_table* table = memory_alloc_item(Gen_table);
     if (table == NULL)
-    {
         return NULL;
-    }
+
     table->confs = NULL;
     table->gens = NULL;
     table->existents = NULL;
@@ -54,7 +54,9 @@ Gen_table* new_Gen_table(int size)
         del_Gen_table(table);
         return NULL;
     }
+
     table->size = size;
+
     return table;
 }
 
@@ -81,40 +83,35 @@ bool Gen_table_set_conf(Gen_table* table, int index, Gen_conf* conf)
     assert(index >= 0);
     assert(index < table->size);
     assert(conf != NULL);
+
     if (!Etable_set(table->confs, index, conf))
-    {
         return false;
-    }
+
     Generator* gen = Etable_get(table->gens, index);
     if (gen != NULL)
-    {
         Generator_set_conf(gen, conf);
-        return Device_sync((Device*)gen);
-    }
+
     return true;
 }
 
 
-Gen_conf* Gen_table_get_conf(Gen_table* table, int index)
+Gen_conf* Gen_table_add_conf(Gen_table* table, int index)
 {
     assert(table != NULL);
     assert(index >= 0);
     assert(index < table->size);
+
     Gen_conf* conf = Etable_get(table->confs, index);
     if (conf == NULL)
     {
         conf = new_Gen_conf();
-        if (conf == NULL)
-        {
-            return NULL;
-        }
-        if (!Gen_table_set_conf(table, index, conf))
+        if (conf == NULL || !Gen_table_set_conf(table, index, conf))
         {
             del_Gen_conf(conf);
             return NULL;
         }
     }
-    assert(conf != NULL);
+
     return conf;
 }
 
@@ -125,18 +122,18 @@ bool Gen_table_set_gen(Gen_table* table, int index, Generator* gen)
     assert(index >= 0);
     assert(index < table->size);
     assert(gen != NULL);
-    Gen_conf* conf = Gen_table_get_conf(table, index);
+
+    Gen_conf* conf = Gen_table_add_conf(table, index);
     if (conf == NULL)
-    {
         return false;
-    }
+
     if (!Etable_set(table->gens, index, gen))
-    {
         return false;
-    }
+
     Generator_set_conf(gen, conf);
     Device_set_existent((Device*)gen, Bit_array_get(table->existents, index));
-    return Device_sync((Device*)gen);
+
+    return true;
 }
 
 
@@ -145,6 +142,7 @@ Generator* Gen_table_get_gen(Gen_table* table, int index)
     assert(table != NULL);
     assert(index >= 0);
     assert(index < table->size);
+
     return Etable_get(table->gens, index);
 }
 
@@ -154,7 +152,9 @@ void Gen_table_remove_gen(Gen_table* table, int index)
     assert(table != NULL);
     assert(index >= 0);
     assert(index < table->size);
+
     Etable_remove(table->gens, index);
+
     return;
 }
 
@@ -162,8 +162,10 @@ void Gen_table_remove_gen(Gen_table* table, int index)
 void Gen_table_clear(Gen_table* table)
 {
     assert(table != NULL);
+
     Etable_clear(table->confs);
     Etable_clear(table->gens);
+
     return;
 }
 
@@ -171,13 +173,13 @@ void Gen_table_clear(Gen_table* table)
 void del_Gen_table(Gen_table* table)
 {
     if (table == NULL)
-    {
         return;
-    }
+
     del_Etable(table->confs);
     del_Etable(table->gens);
     del_Bit_array(table->existents);
     memory_free(table);
+
     return;
 }
 

@@ -63,7 +63,7 @@ typedef struct DSP_freeverb
 } DSP_freeverb;
 
 
-static void DSP_freeverb_reset(Device* device);
+static void DSP_freeverb_reset(Device* device, Device_states* dstates);
 static void DSP_freeverb_clear_history(DSP* dsp);
 static bool DSP_freeverb_set_mix_rate(Device* device, uint32_t mix_rate);
 
@@ -153,12 +153,15 @@ DSP* new_DSP_freeverb(uint32_t buffer_size, uint32_t mix_rate)
 }
 
 
-static void DSP_freeverb_reset(Device* device)
+static void DSP_freeverb_reset(Device* device, Device_states* dstates)
 {
     assert(device != NULL);
-    DSP_reset(device);
+    assert(dstates != NULL);
+
+    DSP_reset(device, dstates);
     DSP_freeverb* freeverb = (DSP_freeverb*)device;
     DSP_freeverb_clear_history(&freeverb->parent);
+
     return;
 }
 

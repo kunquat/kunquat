@@ -12,32 +12,32 @@
  */
 
 
-#include <player/Gen_state.h>
+#include <player/DSP_state.h>
 #include <xassert.h>
 
 
-void Gen_state_init(
-        Gen_state* gen_state,
+void DSP_state_init(
+        DSP_state* dsp_state,
         const Device* device,
         int32_t audio_rate,
         int32_t audio_buffer_size)
 {
-    assert(gen_state != NULL);
+    assert(dsp_state != NULL);
     assert(device != NULL);
     assert(audio_rate > 0);
     assert(audio_buffer_size >= 0);
 
-    Device_state_init(&gen_state->parent, device, audio_rate, audio_buffer_size);
+    Device_state_init(&dsp_state->parent, device, audio_rate, audio_buffer_size);
 
     return;
 }
 
 
-void Gen_state_reset(Gen_state* gen_state)
+void DSP_state_reset(DSP_state* dsp_state)
 {
-    assert(gen_state != NULL);
+    assert(dsp_state != NULL);
 
-    Device_state_reset(&gen_state->parent);
+    Device_state_reset(&dsp_state->parent);
 
     return;
 }

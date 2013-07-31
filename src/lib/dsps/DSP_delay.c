@@ -50,9 +50,9 @@ typedef struct DSP_delay
 } DSP_delay;
 
 
-static void DSP_delay_reset(Device* device);
+static void DSP_delay_reset(Device* device, Device_states* dstates);
 static void DSP_delay_clear_history(DSP* dsp);
-static bool DSP_delay_sync(Device* device);
+static bool DSP_delay_sync(Device* device, Device_states* dstates);
 static bool DSP_delay_update_key(Device* device, const char* key);
 static bool DSP_delay_set_mix_rate(Device* device, uint32_t mix_rate);
 
@@ -110,12 +110,15 @@ DSP* new_DSP_delay(uint32_t buffer_size, uint32_t mix_rate)
 }
 
 
-static void DSP_delay_reset(Device* device)
+static void DSP_delay_reset(Device* device, Device_states* dstates)
 {
     assert(device != NULL);
-    DSP_reset(device);
+    assert(dstates != NULL);
+
+    DSP_reset(device, dstates);
     DSP_delay* delay = (DSP_delay*)device;
     DSP_delay_clear_history(&delay->parent);
+
     return;
 }
 
@@ -130,13 +133,14 @@ static void DSP_delay_clear_history(DSP* dsp)
 }
 
 
-static bool DSP_delay_sync(Device* device)
+static bool DSP_delay_sync(Device* device, Device_states* dstates)
 {
     assert(device != NULL);
+    assert(dstates != NULL);
+
     if (!DSP_delay_update_key(device, "p_max_delay.jsonf"))
-    {
         return false;
-    }
+
     return true;
 }
 

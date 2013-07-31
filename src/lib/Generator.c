@@ -123,13 +123,16 @@ bool Generator_init(
 
     Device_set_reset(&gen->parent, Generator_reset);
     Device_register_port(&gen->parent, DEVICE_PORT_TYPE_SEND, 0);
+
     return true;
 }
 
 
-void Generator_reset(Device* device)
+void Generator_reset(Device* device, Device_states* dstates)
 {
     assert(device != NULL);
+    assert(dstates != NULL);
+    (void)dstates;
 
     Generator* gen = (Generator*)device;
     Device_params_reset(gen->conf->params);

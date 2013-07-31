@@ -21,6 +21,7 @@
 #include <Device.h>
 #include <DSP_conf.h>
 #include <File_base.h>
+#include <player/DSP_state.h>
 
 
 #define DSP_TYPE_LENGTH_MAX 128
@@ -34,6 +35,7 @@ typedef struct DSP
     Device parent;
     char type[DSP_TYPE_LENGTH_MAX];
     DSP_conf* conf;
+
     void (*clear_history)(struct DSP*);
     void (*destroy)(struct DSP*);
 } DSP;
@@ -52,10 +54,11 @@ typedef struct DSP
  * \return   The new DSP if successful, otherwise \c NULL. \a state will not
  *           be modified if memory allocation failed.
  */
-DSP* new_DSP(char* str,
-             uint32_t buffer_size,
-             uint32_t mix_rate,
-             Read_state* state);
+DSP* new_DSP(
+        char* str,
+        uint32_t buffer_size,
+        uint32_t mix_rate,
+        Read_state* state);
 
 
 /**
@@ -75,7 +78,7 @@ bool DSP_init(
         void (*destroy)(DSP*),
         void (*process)(
             Device*,
-            Device_states* states,
+            Device_states*,
             uint32_t,
             uint32_t,
             uint32_t,
@@ -100,7 +103,7 @@ void DSP_set_clear_history(DSP* dsp, void (*func)(DSP*));
  *
  * \param dsp   The DSP Device -- must not be \c NULL.
  */
-void DSP_reset(Device* device);
+void DSP_reset(Device* device, Device_states* dstates);
 
 
 /**

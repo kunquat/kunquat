@@ -35,7 +35,7 @@
  *
  * \param device   The Module Device -- must not be \c NULL.
  */
-static void Module_reset(Device* device);
+static void Module_reset(Device* device, Device_states* dstates);
 
 
 /**
@@ -84,7 +84,7 @@ static bool Module_set_buffer_size(Device* device, uint32_t size);
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-static bool Module_sync(Device* device);
+static bool Module_sync(Device* device, Device_states* dstates);
 
 
 Module* new_Module(uint32_t buf_size)
@@ -519,24 +519,27 @@ void Module_remove_scale(Module* module, int index)
 }
 
 
-static void Module_reset(Device* device)
+static void Module_reset(Device* device, Device_states* dstates)
 {
     assert(device != NULL);
+    assert(dstates != NULL);
 
     Module* module = (Module*)device;
 
+    // Reset instruments
     for (int i = 0; i < KQT_INSTRUMENTS_MAX; ++i)
     {
         Instrument* ins = Ins_table_get(module->insts, i);
         if (ins != NULL)
-            Device_reset((Device*)ins);
+            Device_reset((Device*)ins, dstates);
     }
 
+    // Reset effects
     for (int i = 0; i < KQT_EFFECTS_MAX; ++i)
     {
         Effect* eff = Effect_table_get(module->effects, i);
         if (eff != NULL)
-            Device_reset((Device*)eff);
+            Device_reset((Device*)eff, dstates);
     }
 
     Random_reset(module->random);
@@ -604,23 +607,26 @@ static bool Module_set_buffer_size(Device* device, uint32_t size)
 }
 
 
-static bool Module_sync(Device* device)
+static bool Module_sync(Device* device, Device_states* dstates)
 {
     assert(device != NULL);
+    assert(dstates != NULL);
 
     Module* module = (Module*)device;
 
+    // Sync instruments
     for (int i = 0; i < KQT_INSTRUMENTS_MAX; ++i)
     {
         Instrument* ins = Ins_table_get(module->insts, i);
-        if (ins != NULL && !Device_sync((Device*)ins))
+        if (ins != NULL && !Device_sync((Device*)ins, dstates))
             return false;
     }
 
+    // Sync effects
     for (int i = 0; i < KQT_EFFECTS_MAX; ++i)
     {
         Effect* eff = Effect_table_get(module->effects, i);
-        if (eff != NULL && !Device_sync((Device*)eff))
+        if (eff != NULL && !Device_sync((Device*)eff, dstates))
             return false;
     }
 

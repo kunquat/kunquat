@@ -36,7 +36,7 @@ typedef struct DSP_gc
 } DSP_gc;
 
 
-static bool DSP_gc_sync(Device* device);
+static bool DSP_gc_sync(Device* device, Device_states* dstates);
 static bool DSP_gc_update_key(Device* device, const char* key);
 
 static void DSP_gc_process(
@@ -76,13 +76,14 @@ DSP* new_DSP_gc(uint32_t buffer_size, uint32_t mix_rate)
 }
 
 
-static bool DSP_gc_sync(Device* device)
+static bool DSP_gc_sync(Device* device, Device_states* dstates)
 {
     assert(device != NULL);
+    assert(dstates != NULL);
+
     if (!DSP_gc_update_key(device, "p_map.jsone"))
-    {
         return false;
-    }
+
     return true;
 }
 

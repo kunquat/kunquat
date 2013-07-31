@@ -16,6 +16,8 @@
 #define K_INS_STATE_H
 
 
+#include <stdlib.h>
+
 #include <player/Device_state.h>
 
 
@@ -25,6 +27,14 @@ typedef struct Ins_state
 
     double sustain; // 0 = no sustain, 1.0 = full sustain
 } Ins_state;
+
+
+/**
+ * Resets the Instrument state.
+ *
+ * \param ins_state   The Instrument state -- must not be \c NULL.
+ */
+void Ins_state_reset(Ins_state* ins_state);
 
 
 #endif // K_INS_STATE_H

@@ -74,7 +74,7 @@ static void Generator_add_init_vstate(
 
 static double sine(double phase, double modifier);
 
-static bool Generator_add_sync(Device* device);
+static bool Generator_add_sync(Device* device, Device_states* dstates);
 static bool Generator_add_update_key(Device* device, const char* key);
 
 static uint32_t Generator_add_mix(
@@ -422,9 +422,10 @@ static double sine(double phase, double modifier)
 }
 
 
-static bool Generator_add_sync(Device* device)
+static bool Generator_add_sync(Device* device, Device_states* dstates)
 {
     assert(device != NULL);
+    assert(dstates != NULL);
 
     Generator_add_update_key(device, "p_bfunc.jsoni");
     Generator_add_update_key(device, "p_base.jsonln");

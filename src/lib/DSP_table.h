@@ -64,14 +64,11 @@ void DSP_table_set_existent(DSP_table* table, int index, bool existent);
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool DSP_table_set_conf(DSP_table* table, int index, DSP_conf* conf);
+//bool DSP_table_set_conf(DSP_table* table, int index, DSP_conf* conf);
 
 
 /**
- * Gets a DSP configuration from the DSP table.
- *
- * NOTE: On success, this function always returns a valid DSP configuration.
- * Failure to do so indicates memory allocation error.
+ * Adds a DSP configuration to the DSP table.
  *
  * \param table   The DSP table -- must not be \c NULL.
  * \param index   The target index -- must be >= \c 0 and less than
@@ -79,7 +76,19 @@ bool DSP_table_set_conf(DSP_table* table, int index, DSP_conf* conf);
  *
  * \return   The DSP configuration, or \c NULL if memory allocation failed.
  */
-DSP_conf* DSP_table_get_conf(DSP_table* table, int index);
+DSP_conf* DSP_table_add_conf(DSP_table* table, int index);
+
+
+/**
+ * Gets a DSP configuration from the DSP table.
+ *
+ * \param table   The DSP table -- must not be \c NULL.
+ * \param index   The target index -- must be >= \c 0 and less than
+ *                the table size.
+ *
+ * \return   The DSP configuration if one exists, otherwise \c NULL.
+ */
+DSP_conf* DSP_table_get_conf(const DSP_table* table, int index); // TODO: make retval const
 
 
 /**

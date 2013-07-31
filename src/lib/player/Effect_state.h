@@ -17,6 +17,7 @@
 
 
 #include <stdbool.h>
+#include <stdlib.h>
 
 #include <player/Device_state.h>
 
@@ -27,6 +28,14 @@ typedef struct Effect_state
 
     bool bypass;
 } Effect_state;
+
+
+/**
+ * Resets the Effect state.
+ *
+ * \param eff_state   The Effect state -- must not be \c NULL.
+ */
+void Effect_state_reset(Effect_state* eff_state);
 
 
 #endif // K_EFFECT_STATE_H

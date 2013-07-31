@@ -43,13 +43,13 @@ static Device_state* Effect_create_state(
         int32_t audio_rate,
         int32_t audio_buffer_size);
 
-static void Effect_reset(Device* device);
+static void Effect_reset(Device* device, Device_states* dstates);
 
 static bool Effect_set_mix_rate(Device* device, uint32_t mix_rate);
 
 static bool Effect_set_buffer_size(Device* device, uint32_t size);
 
-static bool Effect_sync(Device* device);
+static bool Effect_sync(Device* device, Device_states* dstates);
 
 static void Effect_process(
         Device* device,
@@ -205,23 +205,31 @@ static Device_state* Effect_create_state(
         return NULL;
 
     Device_state_init(&es->parent, device, audio_rate, audio_buffer_size);
-    es->bypass = false;
+    Effect_state_reset(es);
 
     return &es->parent;
 }
 
 
-static void Effect_reset(Device* device)
+static void Effect_reset(Device* device, Device_states* dstates)
 {
     assert(device != NULL);
+    assert(dstates != NULL);
 
+    // Reset DSPs
     Effect* eff = (Effect*)device;
     for (int i = 0; i < KQT_DSPS_MAX; ++i)
     {
         DSP* dsp = DSP_table_get_dsp(eff->dsps, i);
         if (dsp != NULL)
-            Device_reset((Device*)dsp);
+            Device_reset((Device*)dsp, dstates);
     }
+
+    // Reset Effect state
+    Effect_state* eff_state = (Effect_state*)Device_states_get_state(
+            dstates,
+            Device_get_id(device));
+    Effect_state_reset(eff_state);
 
     return;
 }
@@ -266,15 +274,16 @@ static bool Effect_set_buffer_size(Device* device, uint32_t size)
 }
 
 
-static bool Effect_sync(Device* device)
+static bool Effect_sync(Device* device, Device_states* dstates)
 {
     assert(device != NULL);
+    assert(dstates != NULL);
 
     Effect* eff = (Effect*)device;
     for (int i = 0; i < KQT_DSPS_MAX; ++i)
     {
         DSP* dsp = DSP_table_get_dsp(eff->dsps, i);
-        if (dsp != NULL && !Device_sync((Device*)dsp))
+        if (dsp != NULL && !Device_sync((Device*)dsp, dstates))
             return false;
     }
 

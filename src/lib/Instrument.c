@@ -53,13 +53,13 @@ static Device_state* Instrument_create_state(
         int32_t audio_rate,
         int32_t audio_buffer_size);
 
-static void Instrument_reset(Device* device);
+static void Instrument_reset(Device* device, Device_states* dstates);
 
 static bool Instrument_set_mix_rate(Device* device, uint32_t mix_rate);
 
 static bool Instrument_set_buffer_size(Device* device, uint32_t size);
 
-static bool Instrument_sync(Device* device);
+static bool Instrument_sync(Device* device, Device_states* dstates);
 
 
 Instrument* new_Instrument(uint32_t buf_len, uint32_t mix_rate)
@@ -323,31 +323,40 @@ static Device_state* Instrument_create_state(
         return NULL;
 
     Device_state_init(&is->parent, device, audio_rate, audio_buffer_size);
-    is->sustain = 0.0;
+    Ins_state_reset(is);
 
     return &is->parent;
 }
 
 
-static void Instrument_reset(Device* device)
+static void Instrument_reset(Device* device, Device_states* dstates)
 {
     assert(device != NULL);
+    assert(dstates != NULL);
 
     Instrument* ins = (Instrument*)device;
 
+    // Reset generators
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         Generator* gen = Gen_table_get_gen(ins->gens, i);
         if (gen != NULL)
-            Device_reset((Device*)gen);
+            Device_reset((Device*)gen, dstates);
     }
 
+    // Reset effects
     for (int i = 0; i < KQT_INST_EFFECTS_MAX; ++i)
     {
         Effect* eff = Effect_table_get(ins->effects, i);
         if (eff != NULL)
-            Device_reset((Device*)eff);
+            Device_reset((Device*)eff, dstates);
     }
+
+    // Reset instrument state
+    Ins_state* ins_state = (Ins_state*)Device_states_get_state(
+            dstates,
+            Device_get_id(device));
+    Ins_state_reset(ins_state);
 
     return;
 }
@@ -404,23 +413,26 @@ static bool Instrument_set_buffer_size(Device* device, uint32_t size)
 }
 
 
-static bool Instrument_sync(Device* device)
+static bool Instrument_sync(Device* device, Device_states* dstates)
 {
     assert(device != NULL);
+    assert(dstates != NULL);
 
     Instrument* ins = (Instrument*)device;
 
+    // Sync generators
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         Generator* gen = Gen_table_get_gen(ins->gens, i);
-        if (gen != NULL && !Device_sync((Device*)gen))
+        if (gen != NULL && !Device_sync((Device*)gen, dstates))
             return false;
     }
 
+    // Sync effects
     for (int i = 0; i < KQT_INST_EFFECTS_MAX; ++i)
     {
         Effect* eff = Effect_table_get(ins->effects, i);
-        if (eff != NULL && !Device_sync((Device*)eff))
+        if (eff != NULL && !Device_sync((Device*)eff, dstates))
             return false;
     }
 

@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_GEN_STATE_H
-#define K_GEN_STATE_H
+#ifndef K_DSP_STATE_H
+#define K_DSP_STATE_H
 
 
 #include <stdlib.h>
@@ -21,35 +21,35 @@
 #include <player/Device_state.h>
 
 
-typedef struct Gen_state
+typedef struct DSP_state
 {
     Device_state parent;
-} Gen_state;
+} DSP_state;
 
 
 /**
- * Initialises the Generator state.
+ * Initialises the DSP state.
  *
- * \param gen_state           The Generator state -- must not be \c NULL.
+ * \param dsp_state           The DSP state -- must not be \c NULL.
  * \param device              The Device -- must not be \c NULL.
  * \param audio_rate          The audio rate -- must be > \c 0.
  * \param audio_buffer_size   The audio buffer size -- must be >= \c 0.
  */
-void Gen_state_init(
-        Gen_state* gen_state,
+void DSP_state_init(
+        DSP_state* dsp_state,
         const Device* device,
         int32_t audio_rate,
         int32_t audio_buffer_size);
 
 
 /**
- * Resets the Generator state.
+ * Resets the DSP state.
  *
- * \param gen_state   The Generator state -- must not be \c NULL.
+ * \param dsp_state   The DSP state -- must not be \c NULL.
  */
-void Gen_state_reset(Gen_state* gen_state);
+void DSP_state_reset(DSP_state* dsp_state);
 
 
-#endif // K_GEN_STATE_H
+#endif // K_DSP_STATE_H
 
 

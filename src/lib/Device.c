@@ -121,7 +121,7 @@ void Device_set_buffer_size_changer(
 }
 
 
-void Device_set_reset(Device* device, void (*reset)(Device*))
+void Device_set_reset(Device* device, void (*reset)(Device*, Device_states*))
 {
     assert(device != NULL);
     assert(reset != NULL);
@@ -130,7 +130,7 @@ void Device_set_reset(Device* device, void (*reset)(Device*))
 }
 
 
-void Device_set_sync(Device* device, bool (*sync)(Device*))
+void Device_set_sync(Device* device, bool (*sync)(Device*, Device_states*))
 {
     assert(device != NULL);
     assert(sync != NULL);
@@ -173,7 +173,9 @@ void Device_register_port(Device* device, Device_port_type type, int port)
     assert(type < DEVICE_PORT_TYPES);
     assert(port >= 0);
     assert(port < KQT_DEVICE_PORTS_MAX);
+
     device->reg[type][port] = true;
+
     return;
 }
 
@@ -184,7 +186,9 @@ void Device_unregister_port(Device* device, Device_port_type type, int port)
     assert(type < DEVICE_PORT_TYPES);
     assert(port >= 0);
     assert(port < KQT_DEVICE_PORTS_MAX);
+
     device->reg[type][port] = false;
+
     return;
 }
 
@@ -198,6 +202,7 @@ bool Device_port_is_registered(
     assert(type < DEVICE_PORT_TYPES);
     assert(port >= 0);
     assert(port < KQT_DEVICE_PORTS_MAX);
+
     return device->reg[type][port];
 }
 
@@ -206,11 +211,12 @@ bool Device_set_mix_rate(Device* device, uint32_t rate)
 {
     assert(device != NULL);
     assert(rate > 0);
+
     if (device->set_mix_rate != NULL && !device->set_mix_rate(device, rate))
-    {
         return false;
-    }
+
     device->mix_rate = rate;
+
     return true;
 }
 
@@ -234,6 +240,7 @@ bool Device_set_buffer_size(Device* device, uint32_t size)
         device->buffer_size = MIN(device->buffer_size, size);
         return false;
     }
+
     device->buffer_size = size;
 
     return true;
@@ -247,23 +254,23 @@ uint32_t Device_get_buffer_size(const Device* device)
 }
 
 
-void Device_reset(Device* device)
+void Device_reset(Device* device, Device_states* dstates)
 {
     assert(device != NULL);
 
     if (device->reset != NULL)
-        device->reset(device);
+        device->reset(device, dstates);
 
     return;
 }
 
 
-bool Device_sync(Device* device)
+bool Device_sync(Device* device, Device_states* dstates)
 {
     assert(device != NULL);
 
     if (device->sync != NULL)
-        return device->sync(device);
+        return device->sync(device, dstates);
 
     return true;
 }

@@ -64,14 +64,11 @@ void Gen_table_set_existent(Gen_table* table, int index, bool existent);
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Gen_table_set_conf(Gen_table* table, int index, Gen_conf* conf);
+//bool Gen_table_set_conf(Gen_table* table, int index, Gen_conf* conf);
 
 
 /**
- * Gets a Generator configuration from the Generator table.
- *
- * NOTE: On success, this function always returns a valid Generator
- * configuration. Failure to do so indicates memory allocation error.
+ * Adds a Generator configuration to the Generator table.
  *
  * \param table   The Generator table -- must not be \c NULL.
  * \param index   The target index -- must be >= \c 0 and less than the
@@ -80,7 +77,7 @@ bool Gen_table_set_conf(Gen_table* table, int index, Gen_conf* conf);
  * \return   The Generator configuration, or \c NULL if memory allocation
  *           failed.
  */
-Gen_conf* Gen_table_get_conf(Gen_table* table, int index);
+Gen_conf* Gen_table_add_conf(Gen_table* table, int index);
 
 
 /**

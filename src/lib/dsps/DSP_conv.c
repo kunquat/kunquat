@@ -44,8 +44,8 @@ typedef struct DSP_conv
 
 static void DSP_conv_set_ir(DSP_conv* conv);
 
-static void DSP_conv_reset(Device* device);
-static bool DSP_conv_sync(Device* device);
+static void DSP_conv_reset(Device* device, Device_states* dstates);
+static bool DSP_conv_sync(Device* device, Device_states* dstates);
 static void DSP_conv_clear_history(DSP* dsp);
 static bool DSP_conv_update_key(Device* device, const char* key);
 static bool DSP_conv_set_mix_rate(Device* device, uint32_t mix_rate);
@@ -104,24 +104,28 @@ DSP* new_DSP_conv(uint32_t buffer_size, uint32_t mix_rate)
 }
 
 
-static void DSP_conv_reset(Device* device)
+static void DSP_conv_reset(Device* device, Device_states* dstates)
 {
     assert(device != NULL);
-    DSP_reset(device);
+    assert(dstates != NULL);
+
+    DSP_reset(device, dstates);
     DSP_conv* conv = (DSP_conv*)device;
     DSP_conv_clear_history(&conv->parent);
+
     return;
 }
 
 
-static bool DSP_conv_sync(Device* device)
+static bool DSP_conv_sync(Device* device, Device_states* dstates)
 {
     assert(device != NULL);
+    assert(dstates != NULL);
+
     if (!DSP_conv_update_key(device, "p_max_ir_len.jsonf") ||
             !DSP_conv_update_key(device, "p_ir.wv"))
-    {
         return false;
-    }
+
     return true;
 }
 

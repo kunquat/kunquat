@@ -121,9 +121,10 @@ bool Generator_init(
  *
  * If you override this function, call this inside the overriding function.
  *
- * \param gen   The Generator Device -- must not be \c NULL.
+ * \param gen       The Generator Device -- must not be \c NULL.
+ * \param dstates   The Device states -- must not be \c NULL.
  */
-void Generator_reset(Device* device);
+void Generator_reset(Device* device, Device_states* dstates);
 
 
 /**

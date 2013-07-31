@@ -118,9 +118,10 @@ void DSP_set_clear_history(DSP* dsp, void (*func)(DSP*))
 }
 
 
-void DSP_reset(Device* device)
+void DSP_reset(Device* device, Device_states* dstates)
 {
     assert(device != NULL);
+    assert(dstates != NULL);
 
     DSP* dsp = (DSP*)device;
     Device_params_reset(dsp->conf->params);

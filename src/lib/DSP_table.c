@@ -35,11 +35,11 @@ struct DSP_table
 DSP_table* new_DSP_table(int size)
 {
     assert(size > 0);
+
     DSP_table* table = memory_alloc_item(DSP_table);
     if (table == NULL)
-    {
         return NULL;
-    }
+
     table->confs = NULL;
     table->dsps = NULL;
     table->existents = NULL;
@@ -54,7 +54,9 @@ DSP_table* new_DSP_table(int size)
         del_DSP_table(table);
         return NULL;
     }
+
     table->size = size;
+
     return table;
 }
 
@@ -81,41 +83,49 @@ bool DSP_table_set_conf(DSP_table* table, int index, DSP_conf* conf)
     assert(index >= 0);
     assert(index < table->size);
     assert(conf != NULL);
+
     if (!Etable_set(table->confs, index, conf))
-    {
         return false;
-    }
+
     DSP* dsp = Etable_get(table->dsps, index);
     if (dsp != NULL)
-    {
         DSP_set_conf(dsp, conf);
-        return Device_sync((Device*)dsp);
-    }
+
     return true;
 }
 
 
-DSP_conf* DSP_table_get_conf(DSP_table* table, int index)
+DSP_conf* DSP_table_add_conf(DSP_table* table, int index)
 {
     assert(table != NULL);
     assert(index >= 0);
     assert(index < table->size);
+
     DSP_conf* conf = Etable_get(table->confs, index);
+    if (conf != NULL)
+        return conf;
+
+    conf = new_DSP_conf();
     if (conf == NULL)
+        return NULL;
+
+    if (!DSP_table_set_conf(table, index, conf))
     {
-        conf = new_DSP_conf();
-        if (conf == NULL)
-        {
-            return NULL;
-        }
-        if (!DSP_table_set_conf(table, index, conf))
-        {
-            del_DSP_conf(conf);
-            return NULL;
-        }
+        del_DSP_conf(conf);
+        return NULL;
     }
-    assert(conf != NULL);
+
     return conf;
+}
+
+
+DSP_conf* DSP_table_get_conf(const DSP_table* table, int index) // TODO: make retval const
+{
+    assert(table != NULL);
+    assert(index >= 0);
+    assert(index < table->size);
+
+    return Etable_get(table->confs, index);
 }
 
 
@@ -125,27 +135,25 @@ bool DSP_table_set_dsp(DSP_table* table, int index, DSP* dsp)
     assert(index >= 0);
     assert(index < table->size);
     assert(dsp != NULL);
+
     DSP_conf* conf = Etable_get(table->confs, index);
     if (conf == NULL)
     {
         conf = new_DSP_conf();
-        if (conf == NULL)
-        {
-            return false;
-        }
-        if (!Etable_set(table->confs, index, conf))
+        if (conf == NULL || !Etable_set(table->confs, index, conf))
         {
             del_DSP_conf(conf);
             return false;
         }
     }
+
     if (!Etable_set(table->dsps, index, dsp))
-    {
         return false;
-    }
+
     DSP_set_conf(dsp, conf);
     Device_set_existent((Device*)dsp, Bit_array_get(table->existents, index));
-    return Device_sync((Device*)dsp);
+
+    return true;
 }
 
 
@@ -154,6 +162,7 @@ DSP* DSP_table_get_dsp(DSP_table* table, int index)
     assert(table != NULL);
     assert(index >= 0);
     assert(index < table->size);
+
     return Etable_get(table->dsps, index);
 }
 
@@ -163,7 +172,9 @@ void DSP_table_remove_dsp(DSP_table* table, int index)
     assert(table != NULL);
     assert(index >= 0);
     assert(index < table->size);
+
     Etable_remove(table->dsps, index);
+
     return;
 }
 
@@ -171,8 +182,10 @@ void DSP_table_remove_dsp(DSP_table* table, int index)
 void DSP_table_clear(DSP_table* table)
 {
     assert(table != NULL);
+
     Etable_clear(table->confs);
     Etable_clear(table->dsps);
+
     return;
 }
 
@@ -180,13 +193,13 @@ void DSP_table_clear(DSP_table* table)
 void del_DSP_table(DSP_table* table)
 {
     if (table == NULL)
-    {
         return;
-    }
+
     del_Etable(table->confs);
     del_Etable(table->dsps);
     del_Bit_array(table->existents);
     memory_free(table);
+
     return;
 }
 
