@@ -34,19 +34,24 @@
 #define DB_MAX 18
 
 
+typedef struct Chorus_voice_params
+{
+    double delay;
+    double range;
+    double speed;
+    double scale;
+} Chorus_voice_params;
+
+
 typedef struct Chorus_voice
 {
-    double init_delay;
     double delay;
     double offset;
     LFO delay_variance;
-    double init_range;
     double range;
     bool range_changed;
-    double init_speed;
     double speed;
     double speed_changed;
-    double init_scale;
     double scale;
     int32_t buf_pos;
 } Chorus_voice;
@@ -58,6 +63,7 @@ typedef struct DSP_chorus
     Audio_buffer* buf;
     int32_t buf_pos;
     Chorus_voice voices[CHORUS_VOICES_MAX];
+    Chorus_voice_params voice_params[CHORUS_VOICES_MAX];
 } DSP_chorus;
 
 
@@ -106,20 +112,28 @@ DSP* new_DSP_chorus(uint32_t buffer_size, uint32_t mix_rate)
 
     for (int i = 0; i < CHORUS_VOICES_MAX; ++i)
     {
+        Chorus_voice_params* params = &chorus->voice_params[i];
+
+        params->delay = -1;
+        params->range = 0;
+        params->speed = 0;
+        params->scale = 1;
+    }
+
+    for (int i = 0; i < CHORUS_VOICES_MAX; ++i)
+    {
+        const Chorus_voice_params* params = &chorus->voice_params[i];
         Chorus_voice* voice = &chorus->voices[i];
-        voice->init_delay = -1;
-        voice->delay = -1;
+
+        voice->delay = params->delay;
         voice->offset = 0;
         LFO_init(&voice->delay_variance, LFO_MODE_LINEAR);
         LFO_set_tempo(&voice->delay_variance, 60);
-        voice->init_range = 0;
-        voice->range = 0;
+        voice->range = params->range;
         voice->range_changed = false;
-        voice->init_speed = 0;
-        voice->speed = 0;
+        voice->speed = params->speed;
         voice->speed_changed = false;
-        voice->init_scale = 1;
-        voice->scale = 1;
+        voice->scale = params->scale;
         voice->buf_pos = 0;
     }
 
@@ -149,18 +163,20 @@ static void DSP_chorus_reset(Device* device, Device_states* dstates)
 
     for (int i = 0; i < CHORUS_VOICES_MAX; ++i)
     {
+        const Chorus_voice_params* params = &chorus->voice_params[i];
         Chorus_voice* voice = &chorus->voices[i];
-        voice->delay = voice->init_delay;
+        voice->delay = params->delay;
         if (voice->delay < 0 || voice->delay >= CHORUS_BUF_TIME / 2)
             continue;
 
         voice->offset = 0;
-        voice->delay = voice->init_delay;
-        voice->range_changed = voice->range != voice->init_range;
-        voice->range = voice->init_range;
-        voice->speed_changed = voice->speed != voice->init_speed;
-        voice->speed = voice->init_speed;
-        voice->scale = voice->init_scale;
+        voice->delay = params->delay;
+        voice->range_changed = voice->range != params->range;
+        voice->range = params->range;
+        voice->speed_changed = voice->speed != params->speed;
+        voice->speed = params->speed;
+        voice->scale = params->scale;
+
         double buf_pos = voice->delay * Device_get_mix_rate(device);
         assert(buf_pos >= 0);
         assert(buf_pos < buf_size - 1);
@@ -218,71 +234,81 @@ static bool DSP_chorus_update_key(Device* device, const char* key)
 {
     assert(device != NULL);
     assert(key != NULL);
+
     DSP_chorus* chorus = (DSP_chorus*)device;
     Device_params* params = chorus->parent.conf->params;
+
     int vi = -1;
     if ((vi = string_extract_index(key, "voice_", 2, "/p_delay.jsonf")) >= 0
             && vi < CHORUS_VOICES_MAX)
     {
         double* delay = Device_params_get_float(params, key);
+
+        Chorus_voice_params* params = &chorus->voice_params[vi];
+        Chorus_voice* voice = &chorus->voices[vi];
+
         if (delay != NULL && *delay >= 0 && *delay < CHORUS_BUF_TIME / 2)
         {
-            chorus->voices[vi].delay = chorus->voices[vi].init_delay = *delay;
-            double buf_pos = chorus->voices[vi].delay *
-                                 Device_get_mix_rate(device);
+            voice->delay = params->delay = *delay;
+            double buf_pos = voice->delay * Device_get_mix_rate(device);
             assert(buf_pos >= 0);
             uint32_t buf_size = Audio_buffer_get_size(chorus->buf);
             assert(buf_pos < buf_size - 1);
-            chorus->voices[vi].buf_pos = fmod((buf_size - buf_pos), buf_size);
-            assert(chorus->voices[vi].buf_pos >= 0);
+            voice->buf_pos = fmod((buf_size - buf_pos), buf_size);
+            assert(voice->buf_pos >= 0);
         }
         else
         {
-            chorus->voices[vi].delay = chorus->voices[vi].init_delay = -1;
+            voice->delay = params->delay = -1;
         }
     }
-    else if ((vi = string_extract_index(key, "voice_", 2,
-                                        "/p_range.jsonf")) >= 0
+    else if ((vi = string_extract_index(
+                    key, "voice_", 2, "/p_range.jsonf")) >= 0
             && vi < CHORUS_VOICES_MAX)
     {
         double* range = Device_params_get_float(params, key);
+
+        Chorus_voice_params* params = &chorus->voice_params[vi];
+        Chorus_voice* voice = &chorus->voices[vi];
+
         if (range != NULL && *range >= 0 && *range < CHORUS_BUF_TIME / 2)
-        {
-            chorus->voices[vi].range = chorus->voices[vi].init_range = *range;
-            chorus->voices[vi].range_changed = true;
-        }
+            voice->range = params->range = *range;
         else
-        {
-            chorus->voices[vi].range = chorus->voices[vi].init_range = 0;
-            chorus->voices[vi].range_changed = true;
-        }
+            voice->range = params->range = 0;
+
+        voice->range_changed = true;
     }
-    else if ((vi = string_extract_index(key, "voice_", 2,
-                                        "/p_speed.jsonf")) >= 0
+    else if ((vi = string_extract_index(
+                    key, "voice_", 2, "/p_speed.jsonf")) >= 0
             && vi < CHORUS_VOICES_MAX)
     {
         double* speed = Device_params_get_float(params, key);
+
+        Chorus_voice_params* params = &chorus->voice_params[vi];
+        Chorus_voice* voice = &chorus->voices[vi];
+
         if (speed != NULL && *speed >= 0)
-        {
-            chorus->voices[vi].speed = chorus->voices[vi].init_speed = *speed;
-            chorus->voices[vi].speed_changed = true;
-        }
+            voice->speed = params->speed = *speed;
+        else
+            voice->speed = params->speed = 0;
+
+        voice->speed_changed = true;
     }
-    else if ((vi = string_extract_index(key, "voice_", 2,
-                                        "/p_volume.jsonf")) >= 0
+    else if ((vi = string_extract_index(
+                    key, "voice_", 2, "/p_volume.jsonf")) >= 0
             && vi < CHORUS_VOICES_MAX)
     {
         double* volume_dB = Device_params_get_float(params, key);
+
+        Chorus_voice_params* params = &chorus->voice_params[vi];
+        Chorus_voice* voice = &chorus->voices[vi];
+
         if (volume_dB != NULL && *volume_dB <= DB_MAX)
-        {
-            chorus->voices[vi].scale =
-                    chorus->voices[vi].init_scale = exp2(*volume_dB / 6);
-        }
+            voice->scale = params->scale = exp2(*volume_dB / 6);
         else
-        {
-            chorus->voices[vi].scale = chorus->voices[vi].init_scale = 1;
-        }
+            voice->scale = params->scale = 1;
     }
+
     return true;
 }
 
