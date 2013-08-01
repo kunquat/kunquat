@@ -35,8 +35,8 @@ struct Device
     uint32_t buffer_size;
 
     Device_state* (*create_state)(const struct Device*, int32_t, int32_t);
-    bool (*set_mix_rate)(struct Device*, uint32_t);
-    bool (*set_buffer_size)(struct Device*, uint32_t);
+    bool (*set_mix_rate)(struct Device*, Device_states*, uint32_t);
+    bool (*set_buffer_size)(struct Device*, Device_states*, uint32_t);
     void (*reset)(struct Device*, Device_states*);
     bool (*sync)(struct Device*, Device_states*);
     bool (*update_key)(struct Device*, const char*);
@@ -124,7 +124,7 @@ void Device_set_state_creator(
  */
 void Device_set_mix_rate_changer(
         Device* device,
-        bool (*changer)(Device*, uint32_t));
+        bool (*changer)(Device*, Device_states*, uint32_t));
 
 
 /**
@@ -135,7 +135,7 @@ void Device_set_mix_rate_changer(
  */
 void Device_set_buffer_size_changer(
         Device* device,
-        bool (*changer)(Device*, uint32_t));
+        bool (*changer)(Device*, Device_states*, uint32_t));
 
 
 /**
@@ -228,12 +228,16 @@ bool Device_port_is_registered(
 /**
  * Sets the mixing rate of the Device.
  *
- * \param device   The Device -- must not be \c NULL.
- * \param rate     The mixing rate -- must be > \c 0.
+ * \param device    The Device -- must not be \c NULL.
+ * \param dstates   The Device states -- must not be \c NULL.
+ * \param rate      The mixing rate -- must be > \c 0.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Device_set_mix_rate(Device* device, uint32_t rate);
+bool Device_set_mix_rate(
+        Device* device,
+        Device_states* dstates,
+        uint32_t rate);
 
 
 /**
@@ -249,13 +253,17 @@ uint32_t Device_get_mix_rate(const Device* device);
 /**
  * Resizes the buffers in the Device.
  *
- * \param device   The Device -- must not be \c NULL.
- * \param size     The new buffer size -- must be > \c 0 and <=
- *                 \c KQT_BUFFER_SIZE_MAX.
+ * \param device    The Device -- must not be \c NULL.
+ * \param dstates   The Device states -- must not be \c NULL.
+ * \param size      The new buffer size -- must be > \c 0 and <=
+ *                  \c KQT_BUFFER_SIZE_MAX.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Device_set_buffer_size(Device* device, uint32_t size);
+bool Device_set_buffer_size(
+        Device* device,
+        Device_states* dstates,
+        uint32_t size);
 
 
 /**

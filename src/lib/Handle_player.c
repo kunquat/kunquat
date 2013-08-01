@@ -68,7 +68,10 @@ int kqt_Handle_set_mixing_rate(kqt_Handle* handle, long rate)
         return 0;
     }
 
-    if (!Device_set_mix_rate((Device*)handle->module, rate) ||
+    if (!Device_set_mix_rate(
+                (Device*)handle->module,
+                Player_get_device_states(handle->player),
+                rate) ||
             !Player_set_audio_rate(handle->player, rate))
     {
         kqt_Handle_set_error(handle, ERROR_MEMORY,
@@ -109,7 +112,10 @@ int kqt_Handle_set_buffer_size(kqt_Handle* handle, long size)
         return 0;
     }
 
-    if (!Device_set_buffer_size((Device*)handle->module, size) ||
+    if (!Device_set_buffer_size(
+                (Device*)handle->module,
+                Player_get_device_states(handle->player),
+                size) ||
             !Player_set_audio_buffer_size(handle->player, size))
     {
         kqt_Handle_set_error(handle, ERROR_MEMORY,

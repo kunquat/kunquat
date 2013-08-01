@@ -45,9 +45,15 @@ static Device_state* Effect_create_state(
 
 static void Effect_reset(Device* device, Device_states* dstates);
 
-static bool Effect_set_mix_rate(Device* device, uint32_t mix_rate);
+static bool Effect_set_mix_rate(
+        Device* device,
+        Device_states* dstates,
+        uint32_t mix_rate);
 
-static bool Effect_set_buffer_size(Device* device, uint32_t size);
+static bool Effect_set_buffer_size(
+        Device* device,
+        Device_states* dstates,
+        uint32_t size);
 
 static bool Effect_sync(Device* device, Device_states* dstates);
 
@@ -235,16 +241,21 @@ static void Effect_reset(Device* device, Device_states* dstates)
 }
 
 
-static bool Effect_set_mix_rate(Device* device, uint32_t mix_rate)
+static bool Effect_set_mix_rate(
+        Device* device,
+        Device_states* dstates,
+        uint32_t mix_rate)
 {
     assert(device != NULL);
+    assert(dstates != NULL);
     assert(mix_rate > 0);
 
     Effect* eff = (Effect*)device;
     for (int i = 0; i < KQT_DSPS_MAX; ++i)
     {
         DSP* dsp = DSP_table_get_dsp(eff->dsps, i);
-        if (dsp != NULL && !Device_set_mix_rate((Device*)dsp, mix_rate))
+        if (dsp != NULL &&
+                !Device_set_mix_rate((Device*)dsp, dstates, mix_rate))
             return false;
     }
 
@@ -252,21 +263,26 @@ static bool Effect_set_mix_rate(Device* device, uint32_t mix_rate)
 }
 
 
-static bool Effect_set_buffer_size(Device* device, uint32_t size)
+static bool Effect_set_buffer_size(
+        Device* device,
+        Device_states* dstates,
+        uint32_t size)
 {
     assert(device != NULL);
+    assert(dstates != NULL);
     assert(size > 0);
     assert(size <= KQT_AUDIO_BUFFER_SIZE_MAX);
 
     Effect* eff = (Effect*)device;
-    if (!Device_set_buffer_size((Device*)eff->out_iface, size) ||
-            !Device_set_buffer_size((Device*)eff->in_iface, size))
+    if (!Device_set_buffer_size((Device*)eff->out_iface, dstates, size) ||
+            !Device_set_buffer_size((Device*)eff->in_iface, dstates, size))
         return false;
 
     for (int i = 0; i < KQT_DSPS_MAX; ++i)
     {
         DSP* dsp = DSP_table_get_dsp(eff->dsps, i);
-        if (dsp != NULL && !Device_set_buffer_size((Device*)dsp, size))
+        if (dsp != NULL &&
+                !Device_set_buffer_size((Device*)dsp, dstates, size))
             return false;
     }
 

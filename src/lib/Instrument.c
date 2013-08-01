@@ -55,9 +55,15 @@ static Device_state* Instrument_create_state(
 
 static void Instrument_reset(Device* device, Device_states* dstates);
 
-static bool Instrument_set_mix_rate(Device* device, uint32_t mix_rate);
+static bool Instrument_set_mix_rate(
+        Device* device,
+        Device_states* dstates,
+        uint32_t mix_rate);
 
-static bool Instrument_set_buffer_size(Device* device, uint32_t size);
+static bool Instrument_set_buffer_size(
+        Device* device,
+        Device_states* dstates,
+        uint32_t size);
 
 static bool Instrument_sync(Device* device, Device_states* dstates);
 
@@ -362,9 +368,13 @@ static void Instrument_reset(Device* device, Device_states* dstates)
 }
 
 
-static bool Instrument_set_mix_rate(Device* device, uint32_t mix_rate)
+static bool Instrument_set_mix_rate(
+        Device* device,
+        Device_states* dstates,
+        uint32_t mix_rate)
 {
     assert(device != NULL);
+    assert(dstates != NULL);
     assert(mix_rate > 0);
 
     Instrument* ins = (Instrument*)device;
@@ -372,14 +382,16 @@ static bool Instrument_set_mix_rate(Device* device, uint32_t mix_rate)
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         Generator* gen = Gen_table_get_gen(ins->gens, i);
-        if (gen != NULL && !Device_set_mix_rate((Device*)gen, mix_rate))
+        if (gen != NULL &&
+                !Device_set_mix_rate((Device*)gen, dstates, mix_rate))
             return false;
     }
 
     for (int i = 0; i < KQT_INST_EFFECTS_MAX; ++i)
     {
         Effect* eff = Effect_table_get(ins->effects, i);
-        if (eff != NULL && !Device_set_mix_rate((Device*)eff, mix_rate))
+        if (eff != NULL &&
+                !Device_set_mix_rate((Device*)eff, dstates, mix_rate))
             return false;
     }
 
@@ -387,9 +399,13 @@ static bool Instrument_set_mix_rate(Device* device, uint32_t mix_rate)
 }
 
 
-static bool Instrument_set_buffer_size(Device* device, uint32_t size)
+static bool Instrument_set_buffer_size(
+        Device* device,
+        Device_states* dstates,
+        uint32_t size)
 {
     assert(device != NULL);
+    assert(dstates != NULL);
     assert(size > 0);
     assert(size <= KQT_AUDIO_BUFFER_SIZE_MAX);
 
@@ -398,14 +414,16 @@ static bool Instrument_set_buffer_size(Device* device, uint32_t size)
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         Generator* gen = Gen_table_get_gen(ins->gens, i);
-        if (gen != NULL && !Device_set_buffer_size((Device*)gen, size))
+        if (gen != NULL &&
+                !Device_set_buffer_size((Device*)gen, dstates, size))
             return false;
     }
 
     for (int i = 0; i < KQT_INST_EFFECTS_MAX; ++i)
     {
         Effect* eff = Effect_table_get(ins->effects, i);
-        if (eff != NULL && !Device_set_buffer_size((Device*)eff, size))
+        if (eff != NULL &&
+                !Device_set_buffer_size((Device*)eff, dstates, size))
             return false;
     }
 

@@ -65,7 +65,10 @@ typedef struct DSP_freeverb
 
 static void DSP_freeverb_reset(Device* device, Device_states* dstates);
 static void DSP_freeverb_clear_history(DSP* dsp);
-static bool DSP_freeverb_set_mix_rate(Device* device, uint32_t mix_rate);
+static bool DSP_freeverb_set_mix_rate(
+        Device* device,
+        Device_states* dstates,
+        uint32_t mix_rate);
 
 static void DSP_freeverb_update(DSP_freeverb* freeverb);
 
@@ -95,23 +98,25 @@ DSP* new_DSP_freeverb(uint32_t buffer_size, uint32_t mix_rate)
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
     assert(mix_rate > 0);
+
     DSP_freeverb* freeverb = memory_alloc_item(DSP_freeverb);
     if (freeverb == NULL)
-    {
         return NULL;
-    }
+
     if (!DSP_init(&freeverb->parent, del_DSP_freeverb,
                   DSP_freeverb_process, buffer_size, mix_rate))
     {
         memory_free(freeverb);
         return NULL;
     }
+
     DSP_set_clear_history(&freeverb->parent, DSP_freeverb_clear_history);
     Device_set_mix_rate_changer(&freeverb->parent.parent,
                                 DSP_freeverb_set_mix_rate);
     Device_set_reset(&freeverb->parent.parent, DSP_freeverb_reset);
     Device_register_port(&freeverb->parent.parent, DEVICE_PORT_TYPE_RECEIVE, 0);
     Device_register_port(&freeverb->parent.parent, DEVICE_PORT_TYPE_SEND, 0);
+
     for (int i = 0; i < FREEVERB_COMBS; ++i)
     {
         freeverb->comb_left[i] = NULL;
@@ -122,6 +127,7 @@ DSP* new_DSP_freeverb(uint32_t buffer_size, uint32_t mix_rate)
         freeverb->allpass_left[i] = NULL;
         freeverb->allpass_right[i] = NULL;
     }
+
     freeverb->gain = 0;
     freeverb->reflect = 0;
     freeverb->reflect1 = 0;
@@ -132,23 +138,21 @@ DSP* new_DSP_freeverb(uint32_t buffer_size, uint32_t mix_rate)
     freeverb->wet2 = 0;
 //    freeverb->dry = 0;
     freeverb->width = 0;
+
+#if 0
     if (!DSP_freeverb_set_mix_rate(&freeverb->parent.parent, mix_rate))
     {
         del_DSP(&freeverb->parent);
         return NULL;
     }
-    for (int i = 0; i < FREEVERB_ALLPASSES; ++i)
-    {
-        assert(freeverb->allpass_left[i] != NULL);
-        assert(freeverb->allpass_right[i] != NULL);
-        Freeverb_allpass_set_feedback(freeverb->allpass_left[i], 0.5);
-        Freeverb_allpass_set_feedback(freeverb->allpass_right[i], 0.5);
-    }
+#endif
+
     DSP_freeverb_set_wet(freeverb, initial_wet);
     DSP_freeverb_set_reflectivity(freeverb, initial_reflect);
 //    DSP_freeverb_set_dry(freeverb, initial_dry);
     DSP_freeverb_set_damp(freeverb, initial_damp);
     DSP_freeverb_set_width(freeverb, initial_width);
+
     return &freeverb->parent;
 }
 
@@ -189,14 +193,20 @@ static void DSP_freeverb_clear_history(DSP* dsp)
 }
 
 
-static bool DSP_freeverb_set_mix_rate(Device* device, uint32_t mix_rate)
+static bool DSP_freeverb_set_mix_rate(
+        Device* device,
+        Device_states* dstates,
+        uint32_t mix_rate)
 {
     assert(device != NULL);
+    assert(dstates != NULL);
     assert(mix_rate > 0);
+
     DSP_freeverb* freeverb = (DSP_freeverb*)device;
+
     // The following constants are in seconds.
-    const double stereo_spread = 0.000521542;
-    const double comb_tuning[FREEVERB_COMBS] =
+    static const double stereo_spread = 0.000521542;
+    static const double comb_tuning[FREEVERB_COMBS] =
     {
         0.025306123,
         0.026938776,
@@ -207,7 +217,7 @@ static bool DSP_freeverb_set_mix_rate(Device* device, uint32_t mix_rate)
         0.035306123,
         0.036666667,
     };
-    const double allpass_tuning[FREEVERB_ALLPASSES] =
+    static const double allpass_tuning[FREEVERB_ALLPASSES] =
     {
         0.012607710,
         0.010000001,
@@ -218,68 +228,73 @@ static bool DSP_freeverb_set_mix_rate(Device* device, uint32_t mix_rate)
     for (int i = 0; i < FREEVERB_COMBS; ++i)
     {
         uint32_t left_size = MAX(1, comb_tuning[i] * mix_rate);
+
         if (freeverb->comb_left[i] == NULL)
         {
             freeverb->comb_left[i] = new_Freeverb_comb(left_size);
             if (freeverb->comb_left[i] == NULL)
-            {
                 return false;
-            }
         }
-        else if (!Freeverb_comb_resize_buffer(freeverb->comb_left[i],
-                                              left_size))
-        {
+        else if (!Freeverb_comb_resize_buffer(
+                    freeverb->comb_left[i],
+                    left_size))
             return false;
-        }
-        uint32_t right_size = MAX(1, (comb_tuning[i] + stereo_spread) *
-                                     mix_rate);
+
+        uint32_t right_size = MAX(
+                1, (comb_tuning[i] + stereo_spread) * mix_rate);
+
         if (freeverb->comb_right[i] == NULL)
         {
             freeverb->comb_right[i] = new_Freeverb_comb(right_size);
             if (freeverb->comb_right[i] == NULL)
-            {
                 return false;
-            }
         }
-        else if (!Freeverb_comb_resize_buffer(freeverb->comb_right[i],
-                                              right_size))
-        {
+        else if (!Freeverb_comb_resize_buffer(
+                    freeverb->comb_right[i],
+                    right_size))
             return false;
-        }
     }
 
     for (int i = 0; i < FREEVERB_ALLPASSES; ++i)
     {
         uint32_t left_size = MAX(1, allpass_tuning[i] * mix_rate);
+
         if (freeverb->allpass_left[i] == NULL)
         {
             freeverb->allpass_left[i] = new_Freeverb_allpass(left_size);
             if (freeverb->allpass_left[i] == NULL)
-            {
                 return false;
-            }
         }
-        else if (!Freeverb_allpass_resize_buffer(freeverb->allpass_left[i],
-                                                 left_size))
-        {
+        else if (!Freeverb_allpass_resize_buffer(
+                    freeverb->allpass_left[i],
+                    left_size))
             return false;
-        }
-        uint32_t right_size = MAX(1, (allpass_tuning[i] + stereo_spread) *
-                                     mix_rate);
+
+        uint32_t right_size = MAX(
+                1, (allpass_tuning[i] + stereo_spread) * mix_rate);
+
         if (freeverb->allpass_right[i] == NULL)
         {
             freeverb->allpass_right[i] = new_Freeverb_allpass(right_size);
             if (freeverb->allpass_right[i] == NULL)
-            {
                 return false;
-            }
         }
-        else if (!Freeverb_allpass_resize_buffer(freeverb->allpass_right[i],
-                                                 right_size))
-        {
+        else if (!Freeverb_allpass_resize_buffer(
+                    freeverb->allpass_right[i],
+                    right_size))
             return false;
-        }
     }
+
+    for (int i = 0; i < FREEVERB_ALLPASSES; ++i)
+    {
+        assert(freeverb->allpass_left[i] != NULL);
+        assert(freeverb->allpass_right[i] != NULL);
+        Freeverb_allpass_set_feedback(freeverb->allpass_left[i], 0.5);
+        Freeverb_allpass_set_feedback(freeverb->allpass_right[i], 0.5);
+    }
+
+    DSP_freeverb_update(freeverb);
+
     return true;
 }
 
@@ -287,24 +302,33 @@ static bool DSP_freeverb_set_mix_rate(Device* device, uint32_t mix_rate)
 static void DSP_freeverb_update(DSP_freeverb* freeverb)
 {
     assert(freeverb != NULL);
+
     freeverb->wet1 = freeverb->wet * (freeverb->width / 2 + 0.5);
     freeverb->wet2 = freeverb->wet * ((1 - freeverb->width) / 2);
     freeverb->reflect1 = freeverb->reflect;
     freeverb->damp1 = freeverb->damp;
     const double fixed_gain = 0.015;
     freeverb->gain = fixed_gain;
+
     for (int i = 0; i < FREEVERB_COMBS; ++i)
     {
+        if (freeverb->comb_left[i] == NULL)
+            continue; // We have just been created
+
         assert(freeverb->comb_left[i] != NULL);
         assert(freeverb->comb_right[i] != NULL);
-        Freeverb_comb_set_feedback(freeverb->comb_left[i],
-                                   freeverb->reflect1);
-        Freeverb_comb_set_feedback(freeverb->comb_right[i],
-                                   freeverb->reflect1);
-        Freeverb_comb_set_damp(freeverb->comb_left[i],
-                               freeverb->damp1);
-        Freeverb_comb_set_damp(freeverb->comb_right[i],
-                               freeverb->damp1);
+        Freeverb_comb_set_feedback(
+                freeverb->comb_left[i],
+                freeverb->reflect1);
+        Freeverb_comb_set_feedback(
+                freeverb->comb_right[i],
+                freeverb->reflect1);
+        Freeverb_comb_set_damp(
+                freeverb->comb_left[i],
+                freeverb->damp1);
+        Freeverb_comb_set_damp(
+                freeverb->comb_right[i],
+                freeverb->damp1);
     }
     return;
 }

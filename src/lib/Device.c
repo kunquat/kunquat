@@ -103,7 +103,7 @@ void Device_set_state_creator(
 
 void Device_set_mix_rate_changer(
         Device* device,
-        bool (*changer)(Device*, uint32_t))
+        bool (*changer)(Device*, Device_states*, uint32_t))
 {
     assert(device != NULL);
     device->set_mix_rate = changer;
@@ -113,7 +113,7 @@ void Device_set_mix_rate_changer(
 
 void Device_set_buffer_size_changer(
         Device* device,
-        bool (*changer)(Device*, uint32_t))
+        bool (*changer)(Device*, Device_states*, uint32_t))
 {
     assert(device != NULL);
     device->set_buffer_size = changer;
@@ -207,12 +207,17 @@ bool Device_port_is_registered(
 }
 
 
-bool Device_set_mix_rate(Device* device, uint32_t rate)
+bool Device_set_mix_rate(
+        Device* device,
+        Device_states* dstates,
+        uint32_t rate)
 {
     assert(device != NULL);
+    assert(dstates != NULL);
     assert(rate > 0);
 
-    if (device->set_mix_rate != NULL && !device->set_mix_rate(device, rate))
+    if (device->set_mix_rate != NULL &&
+            !device->set_mix_rate(device, dstates, rate))
         return false;
 
     device->mix_rate = rate;
@@ -228,14 +233,18 @@ uint32_t Device_get_mix_rate(const Device* device)
 }
 
 
-bool Device_set_buffer_size(Device* device, uint32_t size)
+bool Device_set_buffer_size(
+        Device* device,
+        Device_states* dstates,
+        uint32_t size)
 {
     assert(device != NULL);
+    assert(dstates != NULL);
     assert(size > 0);
     assert(size <= KQT_AUDIO_BUFFER_SIZE_MAX);
 
     if (device->set_buffer_size != NULL &&
-            !device->set_buffer_size(device, size))
+            !device->set_buffer_size(device, dstates, size))
     {
         device->buffer_size = MIN(device->buffer_size, size);
         return false;

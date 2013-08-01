@@ -1291,6 +1291,21 @@ static bool parse_dsp_level(kqt_Handle* handle,
                 return false;
             }
 
+            Device_states* dstates = Player_get_device_states(handle->player);
+
+            // Set DSP resources
+            if (!Device_set_mix_rate((Device*)dsp,
+                        dstates,
+                        Player_get_audio_rate(handle->player)) ||
+                    !Device_set_buffer_size((Device*)dsp,
+                        dstates,
+                        Player_get_audio_buffer_size(handle->player)))
+            {
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory for DSP state");
+                return false;
+            }
+
             // Sync the DSP
             if (!Device_sync(
                         (Device*)dsp,

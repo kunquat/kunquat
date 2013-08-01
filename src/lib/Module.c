@@ -53,11 +53,15 @@ static void Module_set_random_seed(Module* module, uint64_t seed);
  * This function sets the mixing rate for all the Instruments and Effects.
  *
  * \param device     The Module Device -- must not be \c NULL.
+ * \param dstates    The Device states -- must not be \c NULL.
  * \param mix_rate   The mixing frequency -- must be > \c 0.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-static bool Module_set_mix_rate(Device* device, uint32_t mix_rate);
+static bool Module_set_mix_rate(
+        Device* device,
+        Device_states* dstates,
+        uint32_t mix_rate);
 
 
 /**
@@ -65,13 +69,17 @@ static bool Module_set_mix_rate(Device* device, uint32_t mix_rate);
  *
  * This function sets the buffer size for all the Instruments and Effects.
  *
- * \param device   The Module Device -- must not be \c NULL.
- * \param size     The new buffer size -- must be > \c 0 and
- *                 <= \c KQT_AUDIO_BUFFER_SIZE_MAX.
+ * \param device    The Module Device -- must not be \c NULL.
+ * \param dstates   The Device states -- must not be \c NULL.
+ * \param size      The new buffer size -- must be > \c 0 and
+ *                  <= \c KQT_AUDIO_BUFFER_SIZE_MAX.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-static bool Module_set_buffer_size(Device* device, uint32_t size);
+static bool Module_set_buffer_size(
+        Device* device,
+        Device_states* dstates,
+        uint32_t size);
 
 
 /**
@@ -559,23 +567,30 @@ static void Module_set_random_seed(Module* module, uint64_t seed)
 }
 
 
-static bool Module_set_mix_rate(Device* device, uint32_t mix_rate)
+static bool Module_set_mix_rate(
+        Device* device,
+        Device_states* dstates,
+        uint32_t mix_rate)
 {
     assert(device != NULL);
+    assert(dstates != NULL);
+    assert(mix_rate > 0);
 
     Module* module = (Module*)device;
 
     for (int i = 0; i < KQT_INSTRUMENTS_MAX; ++i)
     {
         Instrument* ins = Ins_table_get(module->insts, i);
-        if (ins != NULL && !Device_set_mix_rate((Device*)ins, mix_rate))
+        if (ins != NULL &&
+                !Device_set_mix_rate((Device*)ins, dstates, mix_rate))
             return false;
     }
 
     for (int i = 0; i < KQT_EFFECTS_MAX; ++i)
     {
         Effect* eff = Effect_table_get(module->effects, i);
-        if (eff != NULL && !Device_set_mix_rate((Device*)eff, mix_rate))
+        if (eff != NULL &&
+                !Device_set_mix_rate((Device*)eff, dstates, mix_rate))
             return false;
     }
 
@@ -583,23 +598,29 @@ static bool Module_set_mix_rate(Device* device, uint32_t mix_rate)
 }
 
 
-static bool Module_set_buffer_size(Device* device, uint32_t size)
+static bool Module_set_buffer_size(
+        Device* device,
+        Device_states* dstates,
+        uint32_t size)
 {
     assert(device != NULL);
+    assert(dstates != NULL);
 
     Module* module = (Module*)device;
 
     for (int i = 0; i < KQT_INSTRUMENTS_MAX; ++i)
     {
         Instrument* ins = Ins_table_get(module->insts, i);
-        if (ins != NULL && !Device_set_buffer_size((Device*)ins, size))
+        if (ins != NULL &&
+                !Device_set_buffer_size((Device*)ins, dstates, size))
             return false;
     }
 
     for (int i = 0; i < KQT_EFFECTS_MAX; ++i)
     {
         Effect* eff = Effect_table_get(module->effects, i);
-        if (eff != NULL && !Device_set_buffer_size((Device*)eff, size))
+        if (eff != NULL &&
+                !Device_set_buffer_size((Device*)eff, dstates, size))
             return false;
     }
 
