@@ -36,7 +36,7 @@ typedef struct DSP
     char type[DSP_TYPE_LENGTH_MAX];
     DSP_conf* conf;
 
-    void (*clear_history)(struct DSP*);
+    void (*clear_history)(struct DSP*, DSP_state*);
     void (*destroy)(struct DSP*);
 } DSP;
 
@@ -93,7 +93,7 @@ bool DSP_init(
  * \param dsp    The DSP -- must not be \c NULL.
  * \param func   The function -- must not be \c NULL.
  */
-void DSP_set_clear_history(DSP* dsp, void (*func)(DSP*));
+void DSP_set_clear_history(DSP* dsp, void (*func)(DSP*, DSP_state*));
 
 
 /**
@@ -109,9 +109,10 @@ void DSP_reset(Device* device, Device_states* dstates);
 /**
  * Clears the internal buffers (if any) of the DSP.
  *
- * \param dsp   The DSP -- must not be \c NULL.
+ * \param dsp         The DSP -- must not be \c NULL.
+ * \param dsp_state   The DSP state -- must not be \c NULL.
  */
-void DSP_clear_history(DSP* dsp);
+void DSP_clear_history(DSP* dsp, DSP_state* dsp_state);
 
 
 /**

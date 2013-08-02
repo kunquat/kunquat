@@ -40,6 +40,7 @@ struct Device
     void (*reset)(struct Device*, Device_states*);
     bool (*sync)(struct Device*, Device_states*);
     bool (*update_key)(struct Device*, const char*);
+    bool (*update_state_key)(struct Device*, Device_states*, const char*);
     void (*process)(
             struct Device*,
             Device_states*,
@@ -165,7 +166,19 @@ void Device_set_sync(Device* device, bool (*sync)(Device*, Device_states*));
  */
 void Device_set_update_key(
         Device* device,
-        bool (*update_key)(struct Device*, const char*));
+        bool (*update_key)(Device*, const char*));
+
+
+/**
+ * Sets the update state notification function of the Device.
+ *
+ * \param device             The Device -- must not be \c NULL.
+ * \param update_state_key   The update state notification function
+ *                           -- must not be \c NULL.
+ */
+void Device_set_update_state_key(
+        Device* device,
+        bool (*update_state_key)(Device*, Device_states*, const char*));
 
 
 /**
@@ -305,6 +318,21 @@ bool Device_sync(Device* device, Device_states* dstates);
  * \return   \c true if successful, or \c false if a fatal error occurred.
  */
 bool Device_update_key(Device* device, const char* key);
+
+
+/**
+ * Notifies the Device state of a key change and updates the internal state.
+ *
+ * \param device    The Device -- must not be \c NULL.
+ * \param dstates   The Device states -- must not be \c NULL.
+ * \param key       The key that changed -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Device_update_state_key(
+        Device* device,
+        Device_states* dstates,
+        const char* key);
 
 
 /**

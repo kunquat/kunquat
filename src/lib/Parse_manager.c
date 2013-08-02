@@ -976,6 +976,17 @@ static bool parse_generator_level(kqt_Handle* handle,
 
             return false;
         }
+
+        // Update Device state
+        if (!Device_update_state_key(
+                    (Device*)gen,
+                    Player_get_device_states(handle->player),
+                    subkey))
+        {
+            kqt_Handle_set_error(handle, ERROR_MEMORY,
+                    "Couldn't allocate memory");
+            return false;
+        }
     }
 
     return true;
@@ -1337,6 +1348,17 @@ static bool parse_dsp_level(kqt_Handle* handle,
                         "Couldn't allocate memory");
             else
                 set_parse_error(handle, state);
+            return false;
+        }
+
+        // Update Device state
+        if (!Device_update_state_key(
+                    (Device*)dsp,
+                    Player_get_device_states(handle->player),
+                    subkey))
+        {
+            kqt_Handle_set_error(handle, ERROR_MEMORY,
+                    "Couldn't allocate memory");
             return false;
         }
     }

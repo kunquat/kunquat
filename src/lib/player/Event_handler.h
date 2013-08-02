@@ -168,7 +168,7 @@ bool Event_handler_set_generator_process(
 bool Event_handler_set_effect_process(
         Event_handler* eh,
         Event_type type,
-        bool (*effect_process)(Effect*, Effect_state*, Value*));
+        bool (*effect_process)(Effect*, Effect_state*, Device_states*, Value*));
 
 
 /**

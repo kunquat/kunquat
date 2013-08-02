@@ -42,6 +42,8 @@ void Device_state_init(
             ds->buffers[type][port] = NULL;
     }
 
+    ds->destroy = NULL;
+
     return;
 }
 
@@ -190,6 +192,9 @@ void del_Device_state(Device_state* ds)
 {
     if (ds == NULL)
         return;
+
+    if (ds->destroy != NULL)
+        ds->destroy(ds);
 
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {

@@ -19,6 +19,7 @@
 #include <stdbool.h>
 
 #include <Effect.h>
+#include <player/Device_states.h>
 #include <player/Effect_state.h>
 #include <Value.h>
 
@@ -29,6 +30,7 @@
     bool Event_effect_##type##_process( \
             Effect* eff,                \
             Effect_state* eff_state,    \
+            Device_states* dstates,     \
             Value* value);
 #include <events/Event_effect_types.h>
 

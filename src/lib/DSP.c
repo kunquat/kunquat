@@ -107,7 +107,7 @@ bool DSP_init(
 }
 
 
-void DSP_set_clear_history(DSP* dsp, void (*func)(DSP*))
+void DSP_set_clear_history(DSP* dsp, void (*func)(DSP*, DSP_state*))
 {
     assert(dsp != NULL);
     assert(func != NULL);
@@ -130,12 +130,12 @@ void DSP_reset(Device* device, Device_states* dstates)
 }
 
 
-void DSP_clear_history(DSP* dsp)
+void DSP_clear_history(DSP* dsp, DSP_state* dsp_state)
 {
     assert(dsp != NULL);
 
     if (dsp->clear_history != NULL)
-        dsp->clear_history(dsp);
+        dsp->clear_history(dsp, dsp_state);
 
     return;
 }

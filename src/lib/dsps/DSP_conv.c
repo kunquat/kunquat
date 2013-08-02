@@ -46,7 +46,7 @@ static void DSP_conv_set_ir(DSP_conv* conv);
 
 static void DSP_conv_reset(Device* device, Device_states* dstates);
 static bool DSP_conv_sync(Device* device, Device_states* dstates);
-static void DSP_conv_clear_history(DSP* dsp);
+static void DSP_conv_clear_history(DSP* dsp, DSP_state* dsp_state);
 static bool DSP_conv_update_key(Device* device, const char* key);
 static bool DSP_conv_set_mix_rate(Device* device, uint32_t mix_rate);
 
@@ -68,11 +68,11 @@ DSP* new_DSP_conv(uint32_t buffer_size, uint32_t mix_rate)
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
     assert(mix_rate > 0);
+
     DSP_conv* conv = memory_alloc_item(DSP_conv);
     if (conv == NULL)
-    {
         return NULL;
-    }
+
     if (!DSP_init(
                 &conv->parent,
                 del_DSP_conv,
@@ -83,23 +83,30 @@ DSP* new_DSP_conv(uint32_t buffer_size, uint32_t mix_rate)
         memory_free(conv);
         return NULL;
     }
+
     DSP_set_clear_history(&conv->parent, DSP_conv_clear_history);
     Device_set_reset(&conv->parent.parent, DSP_conv_reset);
     Device_set_sync(&conv->parent.parent, DSP_conv_sync);
     Device_set_update_key(&conv->parent.parent, DSP_conv_update_key);
+
     conv->ir = NULL;
     conv->history = NULL;
     conv->max_ir_len = DEFAULT_IR_LEN;
     conv->actual_ir_len = 0;
     conv->history_pos = 0;
     conv->ir_rate = 48000;
+
     Device_register_port(&conv->parent.parent, DEVICE_PORT_TYPE_RECEIVE, 0);
     Device_register_port(&conv->parent.parent, DEVICE_PORT_TYPE_SEND, 0);
+
+#if 0
     if (!DSP_conv_set_mix_rate(&conv->parent.parent, mix_rate))
     {
         del_DSP(&conv->parent);
         return NULL;
     }
+#endif
+
     return &conv->parent;
 }
 
@@ -111,7 +118,10 @@ static void DSP_conv_reset(Device* device, Device_states* dstates)
 
     DSP_reset(device, dstates);
     DSP_conv* conv = (DSP_conv*)device;
-    DSP_conv_clear_history(&conv->parent);
+    DSP_state* dsp_state = (DSP_state*)Device_states_get_state(
+            dstates,
+            Device_get_id(device));
+    DSP_conv_clear_history(&conv->parent, dsp_state);
 
     return;
 }
@@ -130,13 +140,17 @@ static bool DSP_conv_sync(Device* device, Device_states* dstates)
 }
 
 
-static void DSP_conv_clear_history(DSP* dsp)
+static void DSP_conv_clear_history(DSP* dsp, DSP_state* dsp_state)
 {
     assert(dsp != NULL);
     assert(string_eq(dsp->type, "convolution"));
+    assert(dsp_state != NULL);
+
     DSP_conv* conv = (DSP_conv*)dsp;
-    Audio_buffer_clear(conv->history, 0,
-                       Audio_buffer_get_size(conv->history));
+    Audio_buffer_clear(
+            conv->history,
+            0, Audio_buffer_get_size(conv->history));
+
     return;
 }
 

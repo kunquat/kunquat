@@ -18,6 +18,7 @@
 #include <Effect.h>
 #include <Event_common.h>
 #include <Event_effect_decl.h>
+#include <player/DSP_state.h>
 #include <Value.h>
 #include <xassert.h>
 
@@ -25,10 +26,12 @@
 bool Event_effect_bypass_on_process(
         Effect* eff,
         Effect_state* eff_state,
+        Device_states* dstates,
         Value* value)
 {
     assert(eff != NULL);
     assert(eff_state != NULL);
+    assert(dstates != NULL);
     (void)value;
 
     eff_state->bypass = true;
@@ -37,7 +40,12 @@ bool Event_effect_bypass_on_process(
     {
         DSP* dsp = Effect_get_dsp(eff, i);
         if (dsp != NULL)
-            DSP_clear_history(dsp);
+        {
+            DSP_state* dsp_state = (DSP_state*)Device_states_get_state(
+                    dstates,
+                    Device_get_id((Device*)dsp));
+            DSP_clear_history(dsp, dsp_state);
+        }
     }
 
     return true;
@@ -47,10 +55,13 @@ bool Event_effect_bypass_on_process(
 bool Event_effect_bypass_off_process(
         Effect* eff,
         Effect_state* eff_state,
+        Device_states* dstates,
         Value* value)
 {
     assert(eff != NULL);
     assert(eff_state != NULL);
+    assert(dstates != NULL);
+    (void)dstates;
     (void)value;
 
     eff_state->bypass = false;
