@@ -978,7 +978,7 @@ static bool parse_generator_level(kqt_Handle* handle,
         }
 
         // Update Device state
-        if (!Device_update_state_key(
+        if (gen != NULL && !Device_update_state_key(
                     (Device*)gen,
                     Player_get_device_states(handle->player),
                     subkey))
@@ -1352,7 +1352,7 @@ static bool parse_dsp_level(kqt_Handle* handle,
         }
 
         // Update Device state
-        if (!Device_update_state_key(
+        if (dsp != NULL && !Device_update_state_key(
                     (Device*)dsp,
                     Player_get_device_states(handle->player),
                     subkey))
