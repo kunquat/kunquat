@@ -31,32 +31,109 @@
 #define TAPS_MAX 32
 
 
+typedef struct Tap_state
+{
+    int32_t buf_pos;
+    int32_t frames_left;
+} Tap_state;
+
+
+typedef struct Delay_state
+{
+    DSP_state parent;
+
+    Audio_buffer* buf;
+    int32_t buf_pos;
+    Tap_state tap_states[TAPS_MAX];
+} Delay_state;
+
+
 typedef struct Tap
 {
     double delay;
     double scale;
-    int32_t buf_pos;
-    int32_t frames_left;
 } Tap;
 
 
 typedef struct DSP_delay
 {
     DSP parent;
-    Audio_buffer* buf;
-    int32_t buf_pos;
+
     double max_delay;
     Tap taps[TAPS_MAX];
 } DSP_delay;
 
 
+static void Delay_state_reset(Delay_state* dlstate, const Tap taps[])
+{
+    assert(dlstate != NULL);
+
+    DSP_state_reset(&dlstate->parent);
+
+    Audio_buffer_clear(
+            dlstate->buf,
+            0, Audio_buffer_get_size(dlstate->buf));
+    dlstate->buf_pos = 0;
+
+    const int32_t audio_rate = dlstate->parent.parent.audio_rate;
+    const int32_t buf_size = Audio_buffer_get_size(dlstate->buf);
+
+    for (int i = 0; i < TAPS_MAX; ++i)
+    {
+        const Tap* tap = &taps[i];
+        Tap_state* tstate = &dlstate->tap_states[i];
+
+        tstate->buf_pos = 0;
+        tstate->frames_left = 0;
+
+        if (isfinite(tap->delay) && tap->delay >= 0)
+        {
+            const int32_t delay_frames = tap->delay * audio_rate;
+            assert(delay_frames >= 0);
+            assert(delay_frames <= buf_size);
+            tstate->buf_pos = (buf_size - delay_frames) % buf_size;
+            assert(tstate->buf_pos >= 0);
+        }
+    }
+
+    return;
+}
+
+
+static void del_Delay_state(Device_state* dev_state)
+{
+    assert(dev_state != NULL);
+
+    Delay_state* dlstate = (Delay_state*)dev_state;
+    if (dlstate->buf != NULL)
+    {
+        del_Audio_buffer(dlstate->buf);
+        dlstate->buf = NULL;
+    }
+
+    return;
+}
+
+
+static Device_state* DSP_delay_create_state(
+        const Device* device,
+        int32_t audio_rate,
+        int32_t audio_buffer_size);
+
 static void DSP_delay_reset(Device* device, Device_states* dstates);
 static void DSP_delay_clear_history(DSP* dsp, DSP_state* dsp_state);
 static bool DSP_delay_sync(Device* device, Device_states* dstates);
 static bool DSP_delay_update_key(Device* device, const char* key);
-static bool DSP_delay_set_mix_rate(Device* device, uint32_t mix_rate);
+static bool DSP_delay_update_state_key(
+        Device* device,
+        Device_states* dstates,
+        const char* key);
+static bool DSP_delay_set_mix_rate(
+        Device* device,
+        Device_states* dstates,
+        uint32_t mix_rate);
 
-static void DSP_delay_check_params(DSP_delay* delay);
+static void DSP_delay_check_params(DSP_delay* delay, Delay_state* dlstate);
 
 static void DSP_delay_process(
         Device* device,
@@ -86,33 +163,69 @@ DSP* new_DSP_delay(uint32_t buffer_size, uint32_t mix_rate)
         return NULL;
     }
 
+    Device_set_state_creator(&delay->parent.parent, DSP_delay_create_state);
+
     DSP_set_clear_history(&delay->parent, DSP_delay_clear_history);
     Device_set_reset(&delay->parent.parent, DSP_delay_reset);
     Device_set_sync(&delay->parent.parent, DSP_delay_sync);
     Device_set_update_key(&delay->parent.parent, DSP_delay_update_key);
+    Device_set_update_state_key(
+            &delay->parent.parent,
+            DSP_delay_update_state_key);
+    Device_set_mix_rate_changer(
+            &delay->parent.parent,
+            DSP_delay_set_mix_rate);
 
-    delay->buf = NULL;
-    delay->buf_pos = 0;
     delay->max_delay = 2;
 
     for (int i = 0; i < TAPS_MAX; ++i)
     {
         delay->taps[i].delay = INFINITY;
         delay->taps[i].scale = 1;
-        delay->taps[i].buf_pos = 0;
-        delay->taps[i].frames_left = 0;
     }
 
     Device_register_port(&delay->parent.parent, DEVICE_PORT_TYPE_RECEIVE, 0);
     Device_register_port(&delay->parent.parent, DEVICE_PORT_TYPE_SEND, 0);
 
+#if 0
     if (!DSP_delay_set_mix_rate(&delay->parent.parent, mix_rate))
     {
         del_DSP(&delay->parent);
         return NULL;
     }
+#endif
 
     return &delay->parent;
+}
+
+
+static Device_state* DSP_delay_create_state(
+        const Device* device,
+        int32_t audio_rate,
+        int32_t audio_buffer_size)
+{
+    assert(device != NULL);
+    assert(audio_rate > 0);
+    assert(audio_buffer_size >= 0);
+
+    Delay_state* dlstate = memory_alloc_item(Delay_state);
+    if (dlstate == NULL)
+        return NULL;
+
+    const DSP_delay* delay = (DSP_delay*)device;
+
+    DSP_state_init(&dlstate->parent, device, audio_rate, audio_buffer_size);
+    dlstate->parent.parent.destroy = del_Delay_state;
+    dlstate->buf = NULL;
+
+    dlstate->buf = new_Audio_buffer(delay->max_delay * audio_rate + 1);
+    if (dlstate->buf == NULL)
+    {
+        del_Delay_state(&dlstate->parent.parent);
+        return NULL;
+    }
+
+    return &dlstate->parent.parent;
 }
 
 
@@ -138,8 +251,8 @@ static void DSP_delay_clear_history(DSP* dsp, DSP_state* dsp_state)
     assert(string_eq(dsp->type, "delay"));
     assert(dsp_state != NULL);
 
-    DSP_delay* delay = (DSP_delay*)dsp;
-    Audio_buffer_clear(delay->buf, 0, Audio_buffer_get_size(delay->buf));
+    Delay_state* dlstate = (Delay_state*)dsp_state;
+    Audio_buffer_clear(dlstate->buf, 0, Audio_buffer_get_size(dlstate->buf));
 
     return;
 }
@@ -161,133 +274,151 @@ static bool DSP_delay_update_key(Device* device, const char* key)
 {
     assert(device != NULL);
     assert(key != NULL);
+
     DSP_delay* delay = (DSP_delay*)device;
     Device_params* params = delay->parent.conf->params;
+
     if (string_eq(key, "p_max_delay.jsonf"))
     {
         double* delay_param = Device_params_get_float(params, key);
         if (delay_param != NULL)
-        {
             delay->max_delay = *delay_param;
-        }
         else
-        {
             delay->max_delay = 2;
-        }
-        if (!DSP_delay_set_mix_rate(device, Device_get_mix_rate(device)))
-        {
-            return false;
-        }
     }
+
     return true;
 }
 
 
-static bool DSP_delay_set_mix_rate(Device* device, uint32_t mix_rate)
+static bool DSP_delay_update_state_key(
+        Device* device,
+        Device_states* dstates,
+        const char* key)
 {
     assert(device != NULL);
+    assert(dstates != NULL);
+    assert(key != NULL);
+    (void)key;
+
+    Device_state* dev_state = Device_states_get_state(
+            dstates,
+            Device_get_id(device));
+
+    return DSP_delay_set_mix_rate(
+            device,
+            dstates,
+            dev_state->audio_rate);
+}
+
+
+static bool DSP_delay_set_mix_rate(
+        Device* device,
+        Device_states* dstates,
+        uint32_t mix_rate)
+{
+    assert(device != NULL);
+    assert(dstates != NULL);
     assert(mix_rate > 0);
+
     DSP_delay* delay = (DSP_delay*)device;
-    long buf_len = MAX(Device_get_buffer_size(device),
-                       delay->max_delay * mix_rate);
+    Delay_state* dlstate = (Delay_state*)Device_states_get_state(
+            dstates,
+            Device_get_id(device));
+
+    assert(dlstate->buf != NULL);
+    long buf_len = MAX(
+            Audio_buffer_get_size(dlstate->buf),
+            delay->max_delay * mix_rate);
     assert(buf_len > 0);
     buf_len += 1; // so that the maximum delay will work
-    if (delay->buf == NULL)
-    {
-        delay->buf = new_Audio_buffer(buf_len);
-        if (delay->buf == NULL)
-        {
-            return false;
-        }
-    }
-    else if (!Audio_buffer_resize(delay->buf, buf_len))
-    {
+
+    if (!Audio_buffer_resize(dlstate->buf, buf_len))
         return false;
-    }
-    Audio_buffer_clear(delay->buf, 0, Audio_buffer_get_size(delay->buf));
-    delay->buf_pos = 0;
-    for (int i = 0; i < TAPS_MAX; ++i)
-    {
-        Tap* tap = &delay->taps[i];
-        if (tap->delay > delay->max_delay)
-        {
-            continue;
-        }
-        int32_t delay_frames = tap->delay * mix_rate;
-        assert(delay_frames >= 0);
-        assert(delay_frames <= buf_len);
-        tap->buf_pos = (buf_len - delay_frames) % buf_len;
-        assert(tap->buf_pos >= 0);
-    }
+
+    Delay_state_reset(dlstate, delay->taps);
+
     return true;
 }
 
 
 static void DSP_delay_process(
         Device* device,
-        Device_states* states,
+        Device_states* dstates,
         uint32_t start,
         uint32_t until,
         uint32_t freq,
         double tempo)
 {
     assert(device != NULL);
-    assert(states != NULL);
+    assert(dstates != NULL);
     assert(freq > 0);
     assert(tempo > 0);
 
-    Device_state* ds = Device_states_get_state(states, Device_get_id(device));
-    assert(ds != NULL);
+    Delay_state* dlstate = (Delay_state*)Device_states_get_state(
+            dstates,
+            Device_get_id(device));
 
-    (void)freq;
-    (void)tempo;
     DSP_delay* delay = (DSP_delay*)device;
     assert(string_eq(delay->parent.type, "delay"));
-    DSP_delay_check_params(delay);
+    DSP_delay_check_params(delay, dlstate);
     kqt_frame* in_data[] = { NULL, NULL };
     kqt_frame* out_data[] = { NULL, NULL };
-    DSP_get_raw_input(ds, 0, in_data);
-    DSP_get_raw_output(ds, 0, out_data);
-    kqt_frame* delay_data[] = { Audio_buffer_get_buffer(delay->buf, 0),
-                                Audio_buffer_get_buffer(delay->buf, 1) };
-    int32_t buf_size = Audio_buffer_get_size(delay->buf);
+    DSP_get_raw_input(&dlstate->parent.parent, 0, in_data);
+    DSP_get_raw_output(&dlstate->parent.parent, 0, out_data);
+    kqt_frame* delay_data[] =
+    {
+        Audio_buffer_get_buffer(dlstate->buf, 0),
+        Audio_buffer_get_buffer(dlstate->buf, 1)
+    };
+
+    int32_t buf_size = Audio_buffer_get_size(dlstate->buf);
     assert(start <= until);
     int32_t nframes = until - start;
+
     for (int tap_index = 0; tap_index < TAPS_MAX; ++tap_index)
     {
-        Tap* tap = &delay->taps[tap_index];
+        const Tap* tap = &delay->taps[tap_index];
         if (tap->delay > delay->max_delay)
-        {
             continue;
-        }
-        int32_t delay_frames = delay->buf_pos - tap->buf_pos;
+
+        Tap_state* tstate = &dlstate->tap_states[tap_index];
+
+        int32_t delay_frames = dlstate->buf_pos - tstate->buf_pos;
         if (delay_frames < 0)
         {
             delay_frames += buf_size;
             assert(delay_frames > 0);
         }
-        tap->frames_left = nframes;
+
+        tstate->frames_left = nframes;
         int32_t mix_until = MIN(delay_frames, nframes);
+
         for (int32_t i = 0; i < mix_until; ++i)
         {
-            out_data[0][start + i] += delay_data[0][tap->buf_pos] *
-                                      tap->scale;
-            out_data[1][start + i] += delay_data[1][tap->buf_pos] *
-                                      tap->scale;
-            ++tap->buf_pos;
-            if (tap->buf_pos >= buf_size)
+            out_data[0][start + i] +=
+                delay_data[0][tstate->buf_pos] * tap->scale;
+            out_data[1][start + i] +=
+                delay_data[1][tstate->buf_pos] * tap->scale;
+
+            ++tstate->buf_pos;
+            if (tstate->buf_pos >= buf_size)
             {
-                assert(tap->buf_pos == buf_size);
-                tap->buf_pos = 0;
+                assert(tstate->buf_pos == buf_size);
+                tstate->buf_pos = 0;
             }
         }
-        tap->frames_left -= mix_until;
+
+        tstate->frames_left -= mix_until;
     }
-    int32_t new_buf_pos = delay->buf_pos;
+
+    int32_t new_buf_pos = dlstate->buf_pos;
+
     for (uint32_t i = start; i < until; ++i)
     {
         delay_data[0][new_buf_pos] = in_data[0][i];
         delay_data[1][new_buf_pos] = in_data[1][i];
+
         ++new_buf_pos;
         if (new_buf_pos >= buf_size)
         {
@@ -295,53 +426,64 @@ static void DSP_delay_process(
             new_buf_pos = 0;
         }
     }
+
     for (int tap_index = 0; tap_index < TAPS_MAX; ++tap_index)
     {
         Tap* tap = &delay->taps[tap_index];
         if (tap->delay > delay->max_delay)
-        {
             continue;
-        }
-        for (int32_t i = nframes - tap->frames_left; i < nframes; ++i)
+
+        Tap_state* tstate = &dlstate->tap_states[tap_index];
+
+        for (int32_t i = nframes - tstate->frames_left; i < nframes; ++i)
         {
-            out_data[0][start + i] += delay_data[0][tap->buf_pos] *
-                                      tap->scale;
-            out_data[1][start + i] += delay_data[1][tap->buf_pos] *
-                                      tap->scale;
-            ++tap->buf_pos;
-            if (tap->buf_pos >= buf_size)
+            out_data[0][start + i] +=
+                delay_data[0][tstate->buf_pos] * tap->scale;
+            out_data[1][start + i] +=
+                delay_data[1][tstate->buf_pos] * tap->scale;
+
+            ++tstate->buf_pos;
+            if (tstate->buf_pos >= buf_size)
             {
-                assert(tap->buf_pos == buf_size);
-                tap->buf_pos = 0;
+                assert(tstate->buf_pos == buf_size);
+                tstate->buf_pos = 0;
             }
         }
     }
-    delay->buf_pos += nframes;
-    if (delay->buf_pos >= buf_size)
+
+    dlstate->buf_pos += nframes;
+    if (dlstate->buf_pos >= buf_size)
     {
-        delay->buf_pos -= buf_size;
-        assert(delay->buf_pos >= 0);
-        assert(delay->buf_pos < buf_size);
+        dlstate->buf_pos -= buf_size;
+        assert(dlstate->buf_pos >= 0);
+        assert(dlstate->buf_pos < buf_size);
     }
+
     return;
 }
 
 
-static void DSP_delay_check_params(DSP_delay* delay)
+static void DSP_delay_check_params(DSP_delay* delay, Delay_state* dlstate)
 {
     assert(delay != NULL);
     assert(delay->parent.conf != NULL);
+    assert(dlstate != NULL);
+
     Device_params* params = delay->parent.conf->params;
     assert(params != NULL);
+
     char delay_key[] = "tap_XX/p_delay.jsonf";
     int delay_key_bytes = strlen(delay_key) + 1;
     char vol_key[] = "tap_XX/p_volume.jsonf";
     int vol_key_bytes = strlen(vol_key) + 1;
-    uint32_t mix_rate = Device_get_mix_rate(&delay->parent.parent);
-    uint32_t buf_size = Audio_buffer_get_size(delay->buf);
+    uint32_t mix_rate = dlstate->parent.parent.audio_rate;
+    uint32_t buf_size = Audio_buffer_get_size(dlstate->buf);
+
     for (int i = 0; i < TAPS_MAX; ++i)
     {
         Tap* tap = &delay->taps[i];
+        Tap_state* tstate = &dlstate->tap_states[i];
+
         snprintf(delay_key, delay_key_bytes, "tap_%02x/p_delay.jsonf", i);
         double* delay_param = Device_params_get_float(params, delay_key);
         if (delay_param != NULL && *delay_param >= 0)
@@ -354,9 +496,9 @@ static void DSP_delay_check_params(DSP_delay* delay)
                     int32_t delay_frames = tap->delay * mix_rate;
                     assert(delay_frames >= 0);
                     assert((uint32_t)delay_frames <= buf_size);
-                    tap->buf_pos = (buf_size + delay->buf_pos -
-                                    delay_frames) % buf_size;
-                    assert(tap->buf_pos >= 0);
+                    tstate->buf_pos =
+                        (buf_size + dlstate->buf_pos - delay_frames) % buf_size;
+                    assert(tstate->buf_pos >= 0);
                 }
             }
         }
@@ -364,17 +506,15 @@ static void DSP_delay_check_params(DSP_delay* delay)
         {
             tap->delay = INFINITY;
         }
+
         snprintf(vol_key, vol_key_bytes, "tap_%02x/p_volume.jsonf", i);
         double* vol = Device_params_get_float(params, vol_key);
         if (vol != NULL && isfinite(*vol) && *vol < DB_MAX)
-        {
             tap->scale = exp2(*vol / 6);
-        }
         else
-        {
             tap->scale = 1;
-        }
     }
+
     return;
 }
 
@@ -382,13 +522,12 @@ static void DSP_delay_check_params(DSP_delay* delay)
 static void del_DSP_delay(DSP* dsp)
 {
     if (dsp == NULL)
-    {
         return;
-    }
+
     assert(string_eq(dsp->type, "delay"));
     DSP_delay* delay = (DSP_delay*)dsp;
-    del_Audio_buffer(delay->buf);
     memory_free(delay);
+
     return;
 }
 
