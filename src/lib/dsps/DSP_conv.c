@@ -188,7 +188,7 @@ static Device_state* DSP_conv_create_state(
     const long buf_size = conv->max_ir_len * audio_rate;
     cstate->history = new_Audio_buffer(buf_size);
     if (cstate->history == NULL)
-        return false;
+        return NULL;
 
     Conv_state_reset(cstate);
 
