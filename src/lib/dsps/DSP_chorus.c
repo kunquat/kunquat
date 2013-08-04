@@ -246,6 +246,12 @@ static Device_state* DSP_chorus_create_state(
         return NULL;
     }
 
+    for (int i = 0; i < CHORUS_VOICES_MAX; ++i)
+    {
+        Chorus_voice* voice = &cstate->voices[i];
+        LFO_init(&voice->delay_variance, LFO_MODE_LINEAR);
+    }
+
     DSP_chorus* chorus = (DSP_chorus*)device;
     Chorus_state_reset(cstate, chorus->voice_params);
 
