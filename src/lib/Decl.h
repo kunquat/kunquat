@@ -17,6 +17,7 @@
 
 
 typedef struct Device Device;
+typedef struct Device_impl Device_impl;
 typedef struct Module Module;
 
 

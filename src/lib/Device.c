@@ -12,11 +12,13 @@
  */
 
 
-#include <stdlib.h>
 #include <inttypes.h>
 #include <math.h>
+#include <stdlib.h>
 
+#include <Decl.h>
 #include <Device.h>
+#include <Device_impl.h>
 #include <math_common.h>
 #include <xassert.h>
 
@@ -35,6 +37,8 @@ bool Device_init(Device* device, uint32_t buffer_size, uint32_t mix_rate)
     device->existent = false;
     device->mix_rate = mix_rate;
     device->buffer_size = buffer_size;
+
+    device->di = NULL;
 
     device->create_state = new_Device_state_plain;
     device->set_mix_rate = NULL;
@@ -302,8 +306,12 @@ bool Device_update_key(Device* device, const char* key)
     assert(device != NULL);
     assert(key != NULL);
 
+    // TODO: obsolete, remove
     if (device->update_key != NULL)
         return device->update_key(device, key);
+
+    if (device->di != NULL)
+        return Device_impl_update_key(device->di, key);
 
     return true;
 }
@@ -394,6 +402,8 @@ void Device_deinit(Device* device)
 {
     if (device == NULL)
         return;
+
+    del_Device_impl(device->di);
 
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {

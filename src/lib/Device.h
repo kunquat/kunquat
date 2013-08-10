@@ -22,9 +22,10 @@
 
 #include <Audio_buffer.h>
 #include <Decl.h>
-#include <player/Device_states.h>
 #include <frame.h>
 #include <kunquat/limits.h>
+#include <player/Device_states.h>
+#include <Tstamp.h>
 
 
 struct Device
@@ -33,6 +34,8 @@ struct Device
     bool existent;
     uint32_t mix_rate;
     uint32_t buffer_size;
+
+    Device_impl* di;
 
     Device_state* (*create_state)(const struct Device*, int32_t, int32_t);
     bool (*set_mix_rate)(struct Device*, Device_states*, uint32_t);
