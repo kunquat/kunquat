@@ -36,19 +36,25 @@ struct Device_impl
 {
     Device* device;
     AAtree* update_cbs;
+
+    void (*destroy)(Device_impl* dimpl);
 };
 
 
 /**
  * Initialises the Device implementation.
  *
- * \param di   The Device implementation -- must not be \c NULL.
+ * \param dimpl     The Device implementation -- must not be \c NULL.
+ * \param destroy   The destructor -- must not be \c NULL.
  * \param audio_rate          The audio rate. TODO: remove
  * \param audio_buffer_size   The audio buffer size. TODO: remove
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Device_impl_init(Device_impl* di, int32_t audio_rate, int32_t audio_buffer_size);
+bool Device_impl_init(
+        Device_impl* dimpl,
+        void (*destroy)(Device_impl* dimpl),
+        int32_t audio_rate, int32_t audio_buffer_size);
 
 
 /**
@@ -71,7 +77,7 @@ bool Device_impl_init(Device_impl* di, int32_t audio_rate, int32_t audio_buffer_
  *    echo_eff/tap_XX/p_volume.jsonf <- Invalid: eff is interpreted as hex
  *    echo_XXX/tap_XX/p_volume.jsonf <- The above would get confused with this
  *
- * \param di             The Device implementation -- must not be \c NULL.
+ * \param dimpl          The Device implementation -- must not be \c NULL.
  * \param keyp           The key pattern -- must not be \c NULL.
  * \param default_val    The default value passed to callbacks.
  * \param update_dev     The Device implementation update callback function
@@ -82,7 +88,7 @@ bool Device_impl_init(Device_impl* di, int32_t audio_rate, int32_t audio_buffer_
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Device_impl_register_update_bool(
-        Device_impl* di,
+        Device_impl* dimpl,
         const char* keyp,
         bool default_val,
         bool (*update)(Device_impl*, int32_t[DEVICE_KEY_INDICES_MAX], bool),
@@ -99,7 +105,7 @@ bool Device_impl_register_update_bool(
  * See \a Device_impl_register_update_bool for detailed description of the
  * \a keyp argument.
  *
- * \param di             The Device implementation -- must not be \c NULL.
+ * \param dimpl          The Device implementation -- must not be \c NULL.
  * \param keyp           The key pattern -- must not be \c NULL.
  * \param default_val    The default value passed to callbacks.
  * \param update_dev     The Device implementation update callback function
@@ -110,7 +116,7 @@ bool Device_impl_register_update_bool(
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Device_impl_register_update_float(
-        Device_impl* di,
+        Device_impl* dimpl,
         const char* keyp,
         double default_val,
         bool (*update)(Device_impl*, int32_t[DEVICE_KEY_INDICES_MAX], double),
@@ -127,7 +133,7 @@ bool Device_impl_register_update_float(
  * See \a Device_impl_register_update_bool for detailed description of the
  * \a keyp argument.
  *
- * \param di             The Device implementation -- must not be \c NULL.
+ * \param dimpl          The Device implementation -- must not be \c NULL.
  * \param keyp           The key pattern -- must not be \c NULL.
  * \param default_val    The default value passed to callbacks.
  * \param update_dev     The Device implementation update callback function
@@ -138,7 +144,7 @@ bool Device_impl_register_update_float(
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Device_impl_register_update_int(
-        Device_impl* di,
+        Device_impl* dimpl,
         const char* keyp,
         int64_t default_val,
         bool (*update)(Device_impl*, int32_t[DEVICE_KEY_INDICES_MAX], int64_t),
@@ -155,7 +161,7 @@ bool Device_impl_register_update_int(
  * See \a Device_impl_register_update_bool for detailed description of the
  * \a keyp argument.
  *
- * \param di             The Device implementation -- must not be \c NULL.
+ * \param dimpl          The Device implementation -- must not be \c NULL.
  * \param keyp           The key pattern -- must not be \c NULL.
  * \param default_val    The default value passed to callbacks
  *                       -- must not be \c NULL
@@ -167,7 +173,7 @@ bool Device_impl_register_update_int(
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Device_impl_register_update_tstamp(
-        Device_impl* di,
+        Device_impl* dimpl,
         const char* keyp,
         const Tstamp* default_val,
         bool (*update)(
@@ -186,23 +192,23 @@ bool Device_impl_register_update_tstamp(
  *
  * TODO: api
  */
-bool Device_impl_update_key(Device_impl* di, const char* key);
+bool Device_impl_update_key(Device_impl* dimpl, const char* key);
 
 
 /**
  * Deinitialises the Device implementation.
  *
- * \param di   The Device implementation -- must not be \c NULL.
+ * \param dimpl   The Device implementation -- must not be \c NULL.
  */
-void Device_impl_deinit(Device_impl* di);
+void Device_impl_deinit(Device_impl* dimpl);
 
 
 /**
  * Destroys the Device implementation.
  *
- * \param di   The Device implementation, or \c NULL.
+ * \param dimpl   The Device implementation, or \c NULL.
  */
-void del_Device_impl(Device_impl* di);
+void del_Device_impl(Device_impl* dimpl);
 
 
 #endif // K_DEVICE_IMPL_H

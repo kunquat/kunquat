@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -18,6 +18,7 @@
 
 #include <stdint.h>
 
+#include <Device_impl.h>
 #include <Generator.h>
 
 
@@ -31,7 +32,7 @@
  * \return   The new Generator if successful, or \c NULL if memory allocation
  *           failed.
  */
-typedef Generator* Generator_cons(uint32_t buffer_size, uint32_t mix_rate);
+typedef Device_impl* Generator_cons(Generator* gen, uint32_t buffer_size, uint32_t mix_rate);
 
 
 /**

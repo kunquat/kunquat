@@ -20,6 +20,7 @@
 #include <math.h>
 
 #include <AAtree.h>
+#include <Device_impl.h>
 #include <Generator.h>
 #include <Sample.h>
 
@@ -29,12 +30,6 @@
 #define PCM_SOURCES_MAX (16)
 #define PCM_EXPRESSIONS_MAX (16)
 #define PCM_RANDOMS_MAX (8)
-
-
-typedef struct Generator_pcm
-{
-    Generator parent;
-} Generator_pcm;
 
 
 /**
@@ -47,7 +42,7 @@ typedef struct Generator_pcm
  * \return   The new PCM Generator if successful, or \c NULL if memory
  *           allocation failed.
  */
-Generator* new_Generator_pcm(uint32_t buffer_size, uint32_t mix_rate);
+Device_impl* new_Generator_pcm(Generator* gen, uint32_t buffer_size, uint32_t mix_rate);
 
 
 /**

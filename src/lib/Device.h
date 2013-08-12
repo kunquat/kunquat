@@ -22,6 +22,7 @@
 
 #include <Audio_buffer.h>
 #include <Decl.h>
+#include <Device_params.h>
 #include <frame.h>
 #include <kunquat/limits.h>
 #include <player/Device_states.h>
@@ -35,7 +36,8 @@ struct Device
     uint32_t mix_rate;
     uint32_t buffer_size;
 
-    Device_impl* di;
+    Device_params* dparams;
+    Device_impl* dimpl;
 
     Device_state* (*create_state)(const struct Device*, int32_t, int32_t);
     bool (*set_mix_rate)(struct Device*, Device_states*, uint32_t);
@@ -96,6 +98,19 @@ void Device_set_existent(Device* device, bool existent);
  * \return   \c true if the Device is existent, otherwise \c false.
  */
 bool Device_is_existent(const Device* device);
+
+
+/**
+ * Sets a Device implementation of the Device.
+ *
+ * A previously set Device implementation will be destroyed.
+ *
+ * \param device   The Device -- must not be \c NULL.
+ * \param dimpl    The Device implementation, or \c NULL.
+ *
+ * \return   \c true if successful, or \c false if device sync failed.
+ */
+bool Device_set_impl(Device* device, Device_impl* dimpl);
 
 
 /**

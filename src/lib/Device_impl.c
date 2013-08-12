@@ -87,21 +87,27 @@ typedef struct Update_cb
 } Update_cb;
 
 
-bool Device_impl_init(Device_impl* di, int32_t audio_rate, int32_t audio_buffer_size)
+bool Device_impl_init(
+        Device_impl* dimpl,
+        void (*destroy)(Device_impl* dimpl),
+        int32_t audio_rate, int32_t audio_buffer_size)
 {
-    assert(di != NULL);
+    assert(dimpl != NULL);
+    assert(destroy != NULL);
     assert(audio_rate > 0);
     assert(audio_buffer_size >= 0);
 
-    di->device = NULL;
-    di->update_cbs = NULL;
+    dimpl->device = NULL;
+    dimpl->update_cbs = NULL;
 
-    di->update_cbs = new_AAtree(
+    dimpl->destroy = destroy;
+
+    dimpl->update_cbs = new_AAtree(
             (int (*)(const void*, const void*))strcmp,
             memory_free);
-    if (di->update_cbs == NULL)
+    if (dimpl->update_cbs == NULL)
     {
-        Device_impl_deinit(di);
+        Device_impl_deinit(dimpl);
         return false;
     }
 
@@ -111,7 +117,7 @@ bool Device_impl_init(Device_impl* di, int32_t audio_rate, int32_t audio_buffer_
 
 #define REGISTER_UPDATE(type_name, type)                            \
     bool Device_impl_register_update_##type_name(                   \
-            Device_impl* di,                                        \
+            Device_impl* dimpl,                                     \
             const char* keyp,                                       \
             type default_val,                                       \
             bool (*update)(                                         \
@@ -124,7 +130,7 @@ bool Device_impl_init(Device_impl* di, int32_t audio_rate, int32_t audio_buffer_
                 int32_t[DEVICE_KEY_INDICES_MAX],                    \
                 type))                                              \
     {                                                               \
-        assert(di != NULL);                                         \
+        assert(dimpl != NULL);                                      \
         assert(keyp != NULL);                                       \
         assert(strlen(keyp) < KQT_KEY_LENGTH_MAX);                  \
         assert(update != NULL);                                     \
@@ -138,7 +144,7 @@ bool Device_impl_init(Device_impl* di, int32_t audio_rate, int32_t audio_buffer_
         update_cb->cb.type_name##_type.update = update;             \
         update_cb->cb.type_name##_type.update_state = update_state; \
                                                                     \
-        if (!AAtree_ins(di->update_cbs, update_cb))                 \
+        if (!AAtree_ins(dimpl->update_cbs, update_cb))              \
         {                                                           \
             memory_free(update_cb);                                 \
             return false;                                           \
@@ -154,7 +160,7 @@ REGISTER_UPDATE(int, int64_t)
 #undef REGISTER_UPDATE
 
 bool Device_impl_register_update_tstamp(
-        Device_impl* di,
+        Device_impl* dimpl,
         const char* keyp,
         const Tstamp* default_val,
         bool (*update)(
@@ -167,7 +173,7 @@ bool Device_impl_register_update_tstamp(
             int32_t[DEVICE_KEY_INDICES_MAX],
             const Tstamp*))
 {
-    assert(di != NULL);
+    assert(dimpl != NULL);
     assert(keyp != NULL);
     assert(default_val != NULL);
     assert(strlen(keyp) < KQT_KEY_LENGTH_MAX);
@@ -182,7 +188,7 @@ bool Device_impl_register_update_tstamp(
     update_cb->cb.Tstamp_type.update = update;
     update_cb->cb.Tstamp_type.update_state = update_state;
 
-    if (!AAtree_ins(di->update_cbs, update_cb))
+    if (!AAtree_ins(dimpl->update_cbs, update_cb))
     {
         memory_free(update_cb);
         return false;
@@ -278,15 +284,15 @@ static void process_key(
     // Copy the last part of the key
     strncpy(keyp_write_pos, section, section_length);
     keyp_write_pos[section_length] = '\0';
-    assert(key + strlen(key) == keyp_write_pos + strlen(keyp_write_pos));
+    assert((int)strlen(key) == (keyp_write_pos + strlen(keyp_write_pos) - keyp));
 
     return;
 }
 
 
-bool Device_impl_update_key(Device_impl* di, const char* key)
+bool Device_impl_update_key(Device_impl* dimpl, const char* key)
 {
-    assert(di != NULL);
+    assert(dimpl != NULL);
     assert(key != NULL);
 
     assert(strlen(key) < KQT_KEY_LENGTH_MAX);
@@ -295,7 +301,7 @@ bool Device_impl_update_key(Device_impl* di, const char* key)
 
     process_key(key, keyp, indices);
 
-    const Update_cb* update_cb = AAtree_get_exact(di->update_cbs, keyp);
+    const Update_cb* update_cb = AAtree_get_exact(dimpl->update_cbs, keyp);
     if (update_cb != NULL)
     {
         if (string_has_suffix(update_cb->key_pattern, ".jsonb"))
@@ -316,23 +322,24 @@ bool Device_impl_update_key(Device_impl* di, const char* key)
 }
 
 
-void Device_impl_deinit(Device_impl* di)
+void Device_impl_deinit(Device_impl* dimpl)
 {
-    assert(di != NULL);
+    assert(dimpl != NULL);
 
-    del_AAtree(di->update_cbs);
-    di->update_cbs = NULL;
+    del_AAtree(dimpl->update_cbs);
+    dimpl->update_cbs = NULL;
 
     return;
 }
 
 
-void del_Device_impl(Device_impl* di)
+void del_Device_impl(Device_impl* dimpl)
 {
-    if (di == NULL)
+    if (dimpl == NULL)
         return;
 
-    // TODO: callback!
+    assert(dimpl->destroy != NULL);
+    dimpl->destroy(dimpl);
 
     return;
 }

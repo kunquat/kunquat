@@ -70,6 +70,18 @@ Device_state* Device_states_get_state(
 }
 
 
+void Device_states_remove_state(Device_states* states, uint32_t id)
+{
+    assert(states != NULL);
+    assert(id > 0);
+
+    const Device_state* key = DEVICE_STATE_KEY(id);
+    del_Device_state(AAtree_remove(states->states, key));
+
+    return;
+}
+
+
 bool Device_states_set_audio_rate(Device_states* states, int32_t rate)
 {
     assert(states != NULL);

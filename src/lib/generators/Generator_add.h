@@ -18,6 +18,7 @@
 
 #include <stdint.h>
 
+#include <Device_impl.h>
 #include <Generator.h>
 
 
@@ -31,7 +32,7 @@
  * \return   The new additive synthesis Generator if successful, or \c NULL if
  *           memory allocation failed.
  */
-Generator* new_Generator_add(uint32_t buffer_size, uint32_t mix_rate);
+Device_impl* new_Generator_add(Generator* gen, uint32_t buffer_size, uint32_t mix_rate);
 
 
 /**

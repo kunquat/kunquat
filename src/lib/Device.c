@@ -38,7 +38,8 @@ bool Device_init(Device* device, uint32_t buffer_size, uint32_t mix_rate)
     device->mix_rate = mix_rate;
     device->buffer_size = buffer_size;
 
-    device->di = NULL;
+    device->dparams = NULL;
+    device->dimpl = NULL;
 
     device->create_state = new_Device_state_plain;
     device->set_mix_rate = NULL;
@@ -54,6 +55,13 @@ bool Device_init(Device* device, uint32_t buffer_size, uint32_t mix_rate)
         for (Device_port_type type = DEVICE_PORT_TYPE_RECEIVE;
                 type < DEVICE_PORT_TYPES; ++type)
             device->reg[type][port] = false;
+    }
+
+    device->dparams = new_Device_params();
+    if (device->dparams == NULL)
+    {
+        Device_deinit(device);
+        return false;
     }
 
     return true;
@@ -79,6 +87,19 @@ bool Device_is_existent(const Device* device)
 {
     assert(device != NULL);
     return device->existent;
+}
+
+
+bool Device_set_impl(Device* device, Device_impl* dimpl)
+{
+    assert(device != NULL);
+
+    // TODO: sync dimpl
+
+    del_Device_impl(device->dimpl);
+    device->dimpl = dimpl;
+
+    return true;
 }
 
 
@@ -310,8 +331,8 @@ bool Device_update_key(Device* device, const char* key)
     if (device->update_key != NULL)
         return device->update_key(device, key);
 
-    if (device->di != NULL)
-        return Device_impl_update_key(device->di, key);
+    if (device->dimpl != NULL)
+        return Device_impl_update_key(device->dimpl, key);
 
     return true;
 }
@@ -403,7 +424,11 @@ void Device_deinit(Device* device)
     if (device == NULL)
         return;
 
-    del_Device_impl(device->di);
+    del_Device_impl(device->dimpl);
+    device->dimpl = NULL;
+
+    del_Device_params(device->dparams);
+    device->dparams = NULL;
 
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {

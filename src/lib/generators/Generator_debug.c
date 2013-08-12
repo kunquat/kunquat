@@ -24,6 +24,13 @@
 #include <xassert.h>
 
 
+typedef struct Generator_debug
+{
+    Device_impl parent;
+    bool single_pulse;
+} Generator_debug;
+
+
 static bool Generator_debug_update_key(Device* device, const char* key);
 
 static uint32_t Generator_debug_mix(
@@ -36,10 +43,10 @@ static uint32_t Generator_debug_mix(
         uint32_t freq,
         double tempo);
 
-static void del_Generator_debug(Generator* gen);
+static void del_Generator_debug(Device_impl* gen_impl);
 
 
-Generator* new_Generator_debug(uint32_t buffer_size, uint32_t mix_rate)
+Device_impl* new_Generator_debug(Generator* gen, uint32_t buffer_size, uint32_t mix_rate)
 {
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
@@ -49,6 +56,16 @@ Generator* new_Generator_debug(uint32_t buffer_size, uint32_t mix_rate)
     if (debug == NULL)
         return NULL;
 
+    if (!Device_impl_init(&debug->parent, del_Generator_debug, mix_rate, buffer_size))
+    {
+        memory_free(debug);
+        return NULL;
+    }
+
+    debug->parent.device = (Device*)gen;
+
+    gen->mix = Generator_debug_mix;
+#if 0
     if (!Generator_init(&debug->parent,
                         del_Generator_debug,
                         Generator_debug_mix,
@@ -59,8 +76,9 @@ Generator* new_Generator_debug(uint32_t buffer_size, uint32_t mix_rate)
         memory_free(debug);
         return NULL;
     }
+#endif
 
-    Device_set_update_key(&debug->parent.parent, Generator_debug_update_key);
+    Device_set_update_key(debug->parent.device, Generator_debug_update_key);
     debug->single_pulse = false;
 
     return &debug->parent;
@@ -78,7 +96,7 @@ static uint32_t Generator_debug_mix(
         double tempo)
 {
     assert(gen != NULL);
-    assert(string_eq(gen->type, "debug"));
+    //assert(string_eq(gen->type, "debug"));
     assert(gen_state != NULL);
     assert(ins_state != NULL);
     assert(vstate != NULL);
@@ -92,7 +110,7 @@ static uint32_t Generator_debug_mix(
     if (!vstate->active)
         return offset;
 
-    Generator_debug* debug = (Generator_debug*)gen;
+    Generator_debug* debug = (Generator_debug*)gen->parent.dimpl;
     if (debug->single_pulse)
     {
         if (offset < nframes)
@@ -165,8 +183,8 @@ static bool Generator_debug_update_key(Device* device, const char* key)
     assert(device != NULL);
     assert(key != NULL);
 
-    Generator_debug* debug = (Generator_debug*)device;
-    Device_params* params = debug->parent.conf->params;
+    Generator_debug* debug = (Generator_debug*)device->dimpl;
+    Device_params* params = ((Generator*)device)->conf->params;
     if (string_eq(key, "p_single_pulse.jsonb"))
     {
         bool* value = Device_params_get_bool(params, key);
@@ -178,13 +196,12 @@ static bool Generator_debug_update_key(Device* device, const char* key)
 }
 
 
-static void del_Generator_debug(Generator* gen)
+static void del_Generator_debug(Device_impl* gen_impl)
 {
-    if (gen == NULL)
+    if (gen_impl == NULL)
         return;
 
-    assert(string_eq(gen->type, "debug"));
-    Generator_debug* debug = (Generator_debug*)gen;
+    Generator_debug* debug = (Generator_debug*)gen_impl;
     memory_free(debug);
 
     return;

@@ -41,7 +41,7 @@
 typedef struct Generator
 {
     Device parent;
-    char type[GEN_TYPE_LENGTH_MAX];
+    //char type[GEN_TYPE_LENGTH_MAX];
     Gen_conf* conf;
     const Instrument_params* ins_params;
 
@@ -49,7 +49,6 @@ typedef struct Generator
             const struct Generator*,
             const Gen_state*,
             Voice_state*);
-    void (*destroy)(struct Generator*);
     uint32_t (*mix)(
             const struct Generator*,
             Gen_state*,
@@ -77,11 +76,11 @@ typedef struct Generator
  *           failed.
  */
 Generator* new_Generator(
-        char* str,
+        //char* str,
         const Instrument_params* ins_params,
         uint32_t buffer_size,
-        uint32_t mix_rate,
-        Read_state* state);
+        uint32_t mix_rate);
+        //Read_state* state);
 
 
 /**
@@ -101,7 +100,7 @@ Generator* new_Generator(
  */
 bool Generator_init(
         Generator* gen,
-        void (*destroy)(Generator*),
+        //void (*destroy)(Generator*),
         uint32_t (*mix)(
             const Generator*,
             Gen_state*,
@@ -153,7 +152,7 @@ Device_params* Generator_get_params(Generator* gen);
  *
  * \return   The type.
  */
-const char* Generator_get_type(const Generator* gen);
+//const char* Generator_get_type(const Generator* gen);
 
 
 /**

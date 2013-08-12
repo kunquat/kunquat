@@ -36,6 +36,12 @@ typedef struct Pulse_state
 } Pulse_state;
 
 
+typedef struct Generator_pulse
+{
+    Device_impl parent;
+} Generator_pulse;
+
+
 static Device_state* Generator_pulse_create_state(
         const Device* device,
         int32_t audio_rate,
@@ -56,10 +62,10 @@ static uint32_t Generator_pulse_mix(
         uint32_t freq,
         double tempo);
 
-static void del_Generator_pulse(Generator* gen);
+static void del_Generator_pulse(Device_impl* gen);
 
 
-Generator* new_Generator_pulse(uint32_t buffer_size, uint32_t mix_rate)
+Device_impl* new_Generator_pulse(Generator* gen, uint32_t buffer_size, uint32_t mix_rate)
 {
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
@@ -69,6 +75,17 @@ Generator* new_Generator_pulse(uint32_t buffer_size, uint32_t mix_rate)
     if (pulse == NULL)
         return NULL;
 
+    if (!Device_impl_init(&pulse->parent, del_Generator_pulse, mix_rate, buffer_size))
+    {
+        memory_free(pulse);
+        return NULL;
+    }
+
+    pulse->parent.device = (Device*)gen;
+
+    gen->init_vstate = Generator_pulse_init_vstate;
+    gen->mix = Generator_pulse_mix;
+#if 0
     if (!Generator_init(
                 &pulse->parent,
                 del_Generator_pulse,
@@ -80,9 +97,10 @@ Generator* new_Generator_pulse(uint32_t buffer_size, uint32_t mix_rate)
         memory_free(pulse);
         return NULL;
     }
+#endif
 
     Device_set_state_creator(
-            &pulse->parent.parent,
+            pulse->parent.device,
             Generator_pulse_create_state);
 
     return &pulse->parent;
@@ -92,7 +110,7 @@ Generator* new_Generator_pulse(uint32_t buffer_size, uint32_t mix_rate)
 char* Generator_pulse_property(Generator* gen, const char* property_type)
 {
     assert(gen != NULL);
-    assert(string_eq(gen->type, "pulse"));
+    //assert(string_eq(gen->type, "pulse"));
     assert(property_type != NULL);
     (void)gen;
 
@@ -135,7 +153,7 @@ static void Generator_pulse_init_vstate(
         Voice_state* vstate)
 {
     assert(gen != NULL);
-    assert(string_eq(gen->type, "pulse"));
+    //assert(string_eq(gen->type, "pulse"));
     (void)gen;
     assert(gen_state != NULL);
     assert(vstate != NULL);
@@ -166,7 +184,7 @@ uint32_t Generator_pulse_mix(
         double tempo)
 {
     assert(gen != NULL);
-    assert(string_eq(gen->type, "pulse"));
+    //assert(string_eq(gen->type, "pulse"));
     assert(gen_state != NULL);
     assert(ins_state != NULL);
     assert(vstate != NULL);
@@ -225,13 +243,13 @@ uint32_t Generator_pulse_mix(
 }
 
 
-void del_Generator_pulse(Generator* gen)
+void del_Generator_pulse(Device_impl* gen_impl)
 {
-    if (gen == NULL)
+    if (gen_impl == NULL)
         return;
 
-    assert(string_eq(gen->type, "pulse"));
-    Generator_pulse* pulse = (Generator_pulse*)gen;
+    //assert(string_eq(gen->type, "pulse"));
+    Generator_pulse* pulse = (Generator_pulse*)gen_impl;
     memory_free(pulse);
 
     return;

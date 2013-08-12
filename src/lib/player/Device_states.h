@@ -57,6 +57,15 @@ Device_state* Device_states_get_state(
 
 
 /**
+ * Removes a Device state in the Device state collection.
+ *
+ * \param states   The Device states -- must not be \c NULL.
+ * \param id       The Device ID -- must be > \c 0.
+ */
+void Device_states_remove_state(Device_states* states, uint32_t id);
+
+
+/**
  * Sets the audio rate.
  *
  * \param states   The Device states -- must not be \c NULL.

@@ -16,13 +16,8 @@
 #define K_GENERATOR_PULSE_H
 
 
+#include <Device_impl.h>
 #include <Generator.h>
-
-
-typedef struct Generator_pulse
-{
-    Generator parent;
-} Generator_pulse;
 
 
 /**
@@ -35,7 +30,7 @@ typedef struct Generator_pulse
  * \return   The new Pulse Generator if successful, or \c NULL if memory
  *           allocation failed.
  */
-Generator* new_Generator_pulse(uint32_t buffer_size, uint32_t mix_rate);
+Device_impl* new_Generator_pulse(Generator* gen, uint32_t buffer_size, uint32_t mix_rate);
 
 
 /**

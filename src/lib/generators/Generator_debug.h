@@ -18,14 +18,8 @@
 
 #include <stdint.h>
 
+#include <Device_impl.h>
 #include <Generator.h>
-
-
-typedef struct Generator_debug
-{
-    Generator parent;
-    bool single_pulse;
-} Generator_debug;
 
 
 /**
@@ -42,7 +36,7 @@ typedef struct Generator_debug
  * \return   The new Debug Generator if successful, or \c NULL if memory
  *           allocation failed.
  */
-Generator* new_Generator_debug(uint32_t buffer_size, uint32_t mix_rate);
+Device_impl* new_Generator_debug(Generator* gen, uint32_t buffer_size, uint32_t mix_rate);
 
 
 #endif // K_GENERATOR_DEBUG_H

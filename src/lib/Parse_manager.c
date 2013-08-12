@@ -786,6 +786,44 @@ static Gen_conf* add_gen_conf(
 }
 
 
+static Generator* add_generator(
+        kqt_Handle* handle,
+        Instrument* ins,
+        Gen_table* gen_table,
+        int gen_index)
+{
+    assert(handle != NULL);
+    assert(ins != NULL);
+    assert(gen_table != NULL);
+    assert(gen_index >= 0);
+    assert(gen_index < KQT_GENERATORS_MAX);
+
+    static const char* memory_error_str =
+        "Couldn't allocate memory for a new generator";
+
+    Module* module = Handle_get_module(handle);
+
+    // Return existing generator
+    Generator* gen = Gen_table_get_gen(gen_table, gen_index);
+    if (gen != NULL)
+        return gen;
+
+    // Create new generator
+    gen = new_Generator(
+            Instrument_get_params(ins),
+            Device_get_buffer_size((Device*)module),
+            Device_get_mix_rate((Device*)module));
+    if (gen == NULL || !Gen_table_set_gen(gen_table, gen_index, gen))
+    {
+        kqt_Handle_set_error(handle, ERROR_MEMORY, memory_error_str);
+        del_Generator(gen);
+        return NULL;
+    }
+
+    return gen;
+}
+
+
 static bool parse_generator_level(kqt_Handle* handle,
                                   const char* key,
                                   const char* subkey,
@@ -823,6 +861,9 @@ static bool parse_generator_level(kqt_Handle* handle,
     if (ins == NULL)
         return false;
 
+    Gen_table* table = Instrument_get_gens(ins);
+    assert(table != NULL);
+
     if (string_eq(subkey, "p_manifest.json"))
     {
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
@@ -833,16 +874,12 @@ static bool parse_generator_level(kqt_Handle* handle,
             return false;
         }
 
-        Gen_table* table = Instrument_get_gens(ins);
-        assert(table != NULL);
         Gen_table_set_existent(table, gen_index, existent);
     }
     else if (string_eq(subkey, "p_gen_type.json"))
     {
         if (data == NULL)
         {
-            Gen_table* table = Instrument_get_gens(ins);
-            assert(table != NULL);
             Generator* gen = Gen_table_get_gen(table, gen_index);
             if (gen != NULL)
             {
@@ -853,13 +890,31 @@ static bool parse_generator_level(kqt_Handle* handle,
         }
         else
         {
-            // Create the Generator
-            Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-            Generator* gen = new_Generator(data, Instrument_get_params(ins),
-                                Device_get_buffer_size((Device*)module),
-                                Device_get_mix_rate((Device*)module),
-                                state);
+            Generator* gen = add_generator(handle, ins, table, gen_index);
             if (gen == NULL)
+                return false;
+
+            // Create the Generator implementation
+            Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+            char type[GEN_TYPE_LENGTH_MAX] = { '\0' };
+            read_string(data, type, GEN_TYPE_LENGTH_MAX, state);
+            if (state->error)
+            {
+                set_parse_error(handle, state);
+                return false;
+            }
+            Generator_cons* cons = Gen_type_find_cons(type);
+            if (cons == NULL)
+            {
+                kqt_Handle_set_error(handle, ERROR_FORMAT,
+                        "Unsupported Generator type: %s", type);
+                return false;
+            }
+            Device_impl* gen_impl = cons(
+                    gen,
+                    Device_get_buffer_size((Device*)module),
+                    Device_get_mix_rate((Device*)module));
+            if (gen_impl == NULL)
             {
                 if (!state->error)
                     kqt_Handle_set_error(handle, ERROR_MEMORY,
@@ -870,9 +925,14 @@ static bool parse_generator_level(kqt_Handle* handle,
                 return false;
             }
 
+            Device_set_impl((Device*)gen, gen_impl);
+
+            // Remove old Generator Device state
+            Device_states* dstates = Player_get_device_states(handle->player);
+            Device_states_remove_state(dstates, Device_get_id((Device*)gen));
+
             // Allocate Voice state space
-            char* (*property)(Generator*, const char*) =
-                    Gen_type_find_property(Generator_get_type(gen));
+            Generator_property* property = Gen_type_find_property(type);
             if (property != NULL)
             {
                 char* size_str = property(gen, "voice_state_size");
@@ -892,7 +952,7 @@ static bool parse_generator_level(kqt_Handle* handle,
                     {
                         kqt_Handle_set_error(handle, ERROR_MEMORY,
                                 "Couldn't allocate memory");
-                        del_Generator(gen);
+                        del_Device_impl(gen_impl);
                         return false;
                     }
                 }
@@ -900,23 +960,11 @@ static bool parse_generator_level(kqt_Handle* handle,
 
             // Allocate Device state(s) for this Generator
             Device_state* ds = Device_create_state((Device*)gen);
-            if (ds == NULL || !Device_states_add_state(
-                        Player_get_device_states(handle->player), ds))
+            if (ds == NULL || !Device_states_add_state(dstates, ds))
             {
                 kqt_Handle_set_error(handle, ERROR_MEMORY,
                         "Couldn't allocate memory");
                 del_Device_state(ds);
-                del_Generator(gen);
-                return false;
-            }
-
-            // Insert Generator
-            Gen_table* table = Instrument_get_gens(ins);
-            assert(table != NULL);
-            if (!Gen_table_set_gen(table, gen_index, gen))
-            {
-                kqt_Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory");
                 del_Generator(gen);
                 return false;
             }
@@ -930,14 +978,16 @@ static bool parse_generator_level(kqt_Handle* handle,
                         "Couldn't allocate memory while syncing generator");
                 return false;
             }
-
-            // TODO: Remove old Generator Device state
         }
     }
     else if (string_eq(subkey, "p_events.json"))
     {
         Gen_table* table = Instrument_get_gens(ins);
         assert(table != NULL);
+
+        Generator* gen = add_generator(handle, ins, table, gen_index);
+        if (gen == NULL)
+            return false;
 
         Gen_conf* conf = add_gen_conf(handle, table, gen_index);
         if (conf == NULL)
@@ -960,11 +1010,14 @@ static bool parse_generator_level(kqt_Handle* handle,
         Gen_table* table = Instrument_get_gens(ins);
         assert(table != NULL);
 
+        Generator* gen = add_generator(handle, ins, table, gen_index);
+        if (gen == NULL)
+            return false;
+
         Gen_conf* conf = add_gen_conf(handle, table, gen_index);
         if (conf == NULL)
             return false;
 
-        Generator* gen = Gen_table_get_gen(table, gen_index);
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
         if (!Gen_conf_parse(conf, subkey, data, length, (Device*)gen, state))
         {

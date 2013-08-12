@@ -38,6 +38,12 @@ typedef struct Noise_state
 } Noise_state;
 
 
+typedef struct Generator_noise
+{
+    Device_impl parent;
+} Generator_noise;
+
+
 static Device_state* Generator_noise_create_state(
         const Device* device,
         int32_t audio_rate,
@@ -58,10 +64,10 @@ static uint32_t Generator_noise_mix(
         uint32_t freq,
         double tempo);
 
-static void del_Generator_noise(Generator* gen);
+static void del_Generator_noise(Device_impl* gen_impl);
 
 
-Generator* new_Generator_noise(uint32_t buffer_size, uint32_t mix_rate)
+Device_impl* new_Generator_noise(Generator* gen, uint32_t buffer_size, uint32_t mix_rate)
 {
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
@@ -71,6 +77,17 @@ Generator* new_Generator_noise(uint32_t buffer_size, uint32_t mix_rate)
     if (noise == NULL)
         return NULL;
 
+    if (!Device_impl_init(&noise->parent, del_Generator_noise, mix_rate, buffer_size))
+    {
+        memory_free(noise);
+        return NULL;
+    }
+
+    noise->parent.device = (Device*)gen;
+
+    gen->init_vstate = Generator_noise_init_vstate;
+    gen->mix = Generator_noise_mix;
+#if 0
     if (!Generator_init(
                 &noise->parent,
                 del_Generator_noise,
@@ -82,9 +99,10 @@ Generator* new_Generator_noise(uint32_t buffer_size, uint32_t mix_rate)
         memory_free(noise);
         return NULL;
     }
+#endif
 
     Device_set_state_creator(
-            &noise->parent.parent,
+            noise->parent.device,
             Generator_noise_create_state);
 
     return &noise->parent;
@@ -94,7 +112,7 @@ Generator* new_Generator_noise(uint32_t buffer_size, uint32_t mix_rate)
 char* Generator_noise_property(Generator* gen, const char* property_type)
 {
     assert(gen != NULL);
-    assert(string_eq(gen->type, "noise"));
+    //assert(string_eq(gen->type, "noise"));
     assert(property_type != NULL);
     (void)gen;
 
@@ -136,7 +154,7 @@ static void Generator_noise_init_vstate(
         Voice_state* vstate)
 {
     assert(gen != NULL);
-    assert(string_eq(gen->type, "noise"));
+    //assert(string_eq(gen->type, "noise"));
     (void)gen;
     assert(gen_state != NULL);
     (void)gen_state;
@@ -161,7 +179,7 @@ static uint32_t Generator_noise_mix(
         double tempo)
 {
     assert(gen != NULL);
-    assert(string_eq(gen->type, "noise"));
+    //assert(string_eq(gen->type, "noise"));
     assert(gen_state != NULL);
     assert(ins_state != NULL);
     assert(vstate != NULL);
@@ -238,13 +256,13 @@ static uint32_t Generator_noise_mix(
 }
 
 
-static void del_Generator_noise(Generator* gen)
+static void del_Generator_noise(Device_impl* gen_impl)
 {
-    if (gen == NULL)
+    if (gen_impl == NULL)
         return;
 
-    assert(string_eq(gen->type, "noise"));
-    Generator_noise* noise = (Generator_noise*)gen;
+    //assert(string_eq(gen->type, "noise"));
+    Generator_noise* noise = (Generator_noise*)gen_impl;
     memory_free(noise);
 
     return;

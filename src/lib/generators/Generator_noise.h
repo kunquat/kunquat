@@ -17,13 +17,8 @@
 #define K_GENERATOR_NOISE_H
 
 
+#include <Device_impl.h>
 #include <Generator.h>
-
-
-typedef struct Generator_noise
-{
-    Generator parent;
-} Generator_noise;
 
 
 /**
@@ -36,7 +31,7 @@ typedef struct Generator_noise
  * \return   The new Noise Generator if successful, or \c NULL if memory
  *           allocation failed.
  */
-Generator* new_Generator_noise(uint32_t buffer_size, uint32_t mix_rate);
+Device_impl* new_Generator_noise(Generator* gen, uint32_t buffer_size, uint32_t mix_rate);
 
 
 /**

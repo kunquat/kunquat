@@ -52,7 +52,8 @@ typedef enum
 
 typedef struct Generator_add
 {
-    Generator parent;
+    Device_impl parent;
+
     Sample* base;
     Sample* mod;
     Mod_mode mod_mode;
@@ -87,10 +88,10 @@ static uint32_t Generator_add_mix(
         uint32_t freq,
         double tempo);
 
-static void del_Generator_add(Generator* gen);
+static void del_Generator_add(Device_impl* gen_impl);
 
 
-Generator* new_Generator_add(uint32_t buffer_size, uint32_t mix_rate)
+Device_impl* new_Generator_add(Generator* gen, uint32_t buffer_size, uint32_t mix_rate)
 {
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
@@ -100,6 +101,17 @@ Generator* new_Generator_add(uint32_t buffer_size, uint32_t mix_rate)
     if (add == NULL)
         return NULL;
 
+    if (!Device_impl_init(&add->parent, del_Generator_add, mix_rate, buffer_size))
+    {
+        memory_free(add);
+        return NULL;
+    }
+
+    add->parent.device = (Device*)gen;
+
+    gen->init_vstate = Generator_add_init_vstate;
+    gen->mix = Generator_add_mix;
+#if 0
     if (!Generator_init(
                 &add->parent,
                 del_Generator_add,
@@ -111,9 +123,10 @@ Generator* new_Generator_add(uint32_t buffer_size, uint32_t mix_rate)
         memory_free(add);
         return NULL;
     }
+#endif
 
-    Device_set_sync(&add->parent.parent, Generator_add_sync);
-    Device_set_update_key(&add->parent.parent, Generator_add_update_key);
+    Device_set_sync(add->parent.device, Generator_add_sync);
+    Device_set_update_key(add->parent.device, Generator_add_update_key);
 
     add->base = NULL;
     add->mod = NULL;
@@ -131,7 +144,7 @@ Generator* new_Generator_add(uint32_t buffer_size, uint32_t mix_rate)
     {
         memory_free(buf);
         memory_free(mod_buf);
-        del_Generator(&add->parent);
+        del_Device_impl(&add->parent);
         return NULL;
     }
 
@@ -140,7 +153,7 @@ Generator* new_Generator_add(uint32_t buffer_size, uint32_t mix_rate)
     {
         memory_free(buf);
         memory_free(mod_buf);
-        del_Generator(&add->parent);
+        del_Device_impl(&add->parent);
         return NULL;
     }
 
@@ -148,7 +161,7 @@ Generator* new_Generator_add(uint32_t buffer_size, uint32_t mix_rate)
     if (add->mod == NULL)
     {
         memory_free(mod_buf);
-        del_Generator(&add->parent);
+        del_Device_impl(&add->parent);
         return NULL;
     }
 
@@ -179,7 +192,7 @@ Generator* new_Generator_add(uint32_t buffer_size, uint32_t mix_rate)
 char* Generator_add_property(Generator* gen, const char* property_type)
 {
     assert(gen != NULL);
-    assert(string_eq(gen->type, "add"));
+    //assert(string_eq(gen->type, "add"));
     assert(property_type != NULL);
     (void)gen;
 
@@ -202,12 +215,12 @@ static void Generator_add_init_vstate(
         Voice_state* vstate)
 {
     assert(gen != NULL);
-    assert(string_eq(gen->type, "add"));
+    //assert(string_eq(gen->type, "add"));
     assert(gen_state != NULL);
     (void)gen_state;
     assert(vstate != NULL);
 
-    Generator_add* add = (Generator_add*)gen;
+    Generator_add* add = (Generator_add*)gen->parent.dimpl;
     Voice_state_add* add_state = (Voice_state_add*)vstate;
 
     for (int h = 0; h < HARMONICS_MAX; ++h)
@@ -252,14 +265,14 @@ static uint32_t Generator_add_mix(
         double tempo)
 {
     assert(gen != NULL);
-    assert(string_eq(gen->type, "add"));
+    //assert(string_eq(gen->type, "add"));
     assert(gen_state != NULL);
     assert(ins_state != NULL);
     assert(vstate != NULL);
     assert(freq > 0);
     assert(tempo > 0);
 
-    Generator_add* add = (Generator_add*)gen;
+    Generator_add* add = (Generator_add*)gen->parent.dimpl;
     kqt_frame* bufs[] = { NULL, NULL };
     Generator_common_get_buffers(gen_state, vstate, offset, bufs);
     Generator_common_check_active(gen, vstate, offset);
@@ -472,8 +485,8 @@ static bool Generator_add_update_key(Device* device, const char* key)
     assert(device != NULL);
     assert(key != NULL);
 
-    Generator_add* add = (Generator_add*)device;
-    Device_params* params = add->parent.conf->params;
+    Generator_add* add = (Generator_add*)device->dimpl;
+    Device_params* params = ((Generator*)device)->conf->params;
     int ti = -1;
 
     if (string_eq(key, "p_base.jsonln"))
@@ -686,13 +699,13 @@ static bool Generator_add_update_key(Device* device, const char* key)
 }
 
 
-static void del_Generator_add(Generator* gen)
+static void del_Generator_add(Device_impl* gen_impl)
 {
-    if (gen == NULL)
+    if (gen_impl == NULL)
         return;
 
-    assert(string_eq(gen->type, "add"));
-    Generator_add* add = (Generator_add*)gen;
+    //assert(string_eq(gen->type, "add"));
+    Generator_add* add = (Generator_add*)gen_impl;
     del_Sample(add->base);
     del_Sample(add->mod);
     memory_free(add);

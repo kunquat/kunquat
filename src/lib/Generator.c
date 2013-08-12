@@ -46,19 +46,26 @@ static Device_state* Generator_create_state_plain(
 
 
 Generator* new_Generator(
-        char* str,
         const Instrument_params* ins_params,
         uint32_t buffer_size,
-        uint32_t mix_rate,
-        Read_state* state)
+        uint32_t mix_rate)
 {
-    assert(str != NULL);
     assert(ins_params != NULL);
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
     assert(mix_rate > 0);
-    assert(state != NULL);
 
+    Generator* gen = memory_alloc_item(Generator);
+    if (gen == NULL)
+        return NULL;
+
+    if (!Device_init(&gen->parent, buffer_size, mix_rate))
+    {
+        memory_free(gen);
+        return NULL;
+    }
+
+#if 0
     if (state->error)
         return NULL;
 
@@ -77,9 +84,10 @@ Generator* new_Generator(
     Generator* gen = cons(buffer_size, mix_rate);
     if (gen == NULL)
         return NULL;
+#endif
 
     //fprintf(stderr, "New Generator %p\n", (void*)gen);
-    strcpy(gen->type, type);
+    //strcpy(gen->type, type);
     gen->ins_params = ins_params;
     gen->conf = NULL;
 
@@ -93,7 +101,6 @@ Generator* new_Generator(
 
 bool Generator_init(
         Generator* gen,
-        void (*destroy)(Generator*),
         uint32_t (*mix)(
             const Generator*,
             Gen_state*,
@@ -108,18 +115,13 @@ bool Generator_init(
         uint32_t mix_rate)
 {
     assert(gen != NULL);
-    assert(destroy != NULL);
     assert(mix != NULL);
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
     assert(mix_rate > 0);
 
-    gen->destroy = destroy;
     gen->mix = mix;
     gen->init_vstate = init_vstate;
-
-    if (!Device_init(&gen->parent, buffer_size, mix_rate))
-        return false;
 
     Device_set_reset(&gen->parent, Generator_reset);
     Device_register_port(&gen->parent, DEVICE_PORT_TYPE_SEND, 0);
@@ -162,11 +164,13 @@ Device_params* Generator_get_params(Generator* gen)
 }
 
 
+#if 0
 const char* Generator_get_type(const Generator* gen)
 {
     assert(gen != NULL);
     return gen->type;
 }
+#endif
 
 
 void Generator_mix(
@@ -206,9 +210,7 @@ void del_Generator(Generator* gen)
     if (gen == NULL)
         return;
 
-    assert(gen->destroy != NULL);
     Device_deinit(&gen->parent);
-    gen->destroy(gen);
 
     return;
 }
