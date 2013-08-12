@@ -532,164 +532,178 @@ void Device_params_reset(Device_params* params)
     {                                                                        \
         Device_field* field = AAtree_get_exact((params)->event_data, (key)); \
         if (field != NULL && !Device_field_get_empty(field))                 \
-        {                                                                    \
             return Device_field_get_ ## ftype(field);                        \
-        }                                                                    \
+                                                                             \
         field = AAtree_get_exact(params->config, (key));                     \
         if (field != NULL)                                                   \
-        {                                                                    \
             return Device_field_get_ ## ftype(field);                        \
-        }                                                                    \
+                                                                             \
         field = AAtree_get_exact(params->implement, (key));                  \
         if (field != NULL)                                                   \
-        {                                                                    \
             return Device_field_get_ ## ftype(field);                        \
-        }                                                                    \
     }                                                                        \
     else (void)0
 
-bool* Device_params_get_bool(Device_params* params, const char* key)
+bool* Device_params_get_bool(const Device_params* params, const char* key)
 {
     assert(params != NULL);
     assert(key != NULL);
+
     if (!string_has_suffix(key, ".jsonb"))
-    {
         return NULL;
-    }
+
     get_of_type(params, key, bool);
+
     return NULL;
 }
 
 
-int64_t* Device_params_get_int(Device_params* params, const char* key)
+int64_t* Device_params_get_int(const Device_params* params, const char* key)
 {
     assert(params != NULL);
     assert(key != NULL);
+
     if (!string_has_suffix(key, ".jsoni"))
-    {
         return NULL;
-    }
+
     get_of_type(params, key, int);
+
     return NULL;
 }
 
 
-double* Device_params_get_float(Device_params* params, const char* key)
+double* Device_params_get_float(const Device_params* params, const char* key)
 {
     assert(params != NULL);
     assert(key != NULL);
+
     if (!string_has_suffix(key, ".jsonf"))
-    {
         return NULL;
-    }
+
     get_of_type(params, key, float);
+
     return NULL;
 }
 
 
-Real* Device_params_get_real(Device_params* params, const char* key)
+Real* Device_params_get_real(const Device_params* params, const char* key)
 {
     assert(params != NULL);
     assert(key != NULL);
+
     if (!string_has_suffix(key, ".jsonr"))
-    {
         return NULL;
-    }
+
     get_of_type(params, key, real);
+
     return NULL;
 }
 
 
-Tstamp* Device_params_get_tstamp(Device_params* params, const char* key)
+Tstamp* Device_params_get_tstamp(const Device_params* params, const char* key)
 {
     assert(params != NULL);
     assert(key != NULL);
+
     if (!string_has_suffix(key, ".jsont"))
-    {
         return NULL;
-    }
+
     get_of_type(params, key, tstamp);
+
     return NULL;
 }
 
 
-Envelope* Device_params_get_envelope(Device_params* params, const char* key)
+Envelope* Device_params_get_envelope(
+        const Device_params* params,
+        const char* key)
 {
     assert(params != NULL);
     assert(key != NULL);
+
     if (!string_has_suffix(key, ".jsone"))
-    {
         return NULL;
-    }
+
     get_of_type(params, key, envelope);
+
     return NULL;
 }
 
 
-Sample* Device_params_get_sample(Device_params* params, const char* key)
+Sample* Device_params_get_sample(const Device_params* params, const char* key)
 {
     assert(params != NULL);
     assert(key != NULL);
+
     if (!string_has_suffix(key, ".wv"))
-    {
         return NULL;
-    }
+
     get_of_type(params, key, sample);
+
     return NULL;
 }
 
 
-Sample_params* Device_params_get_sample_params(Device_params* params,
-                                               const char* key)
+Sample_params* Device_params_get_sample_params(
+        const Device_params* params,
+        const char* key)
 {
     assert(params != NULL);
     assert(key != NULL);
+
     if (!string_has_suffix(key, ".jsonsh"))
-    {
         return NULL;
-    }
+
     get_of_type(params, key, sample_params);
+
     return NULL;
 }
 
 
-Sample_map* Device_params_get_sample_map(Device_params* params,
-                                         const char* key)
+Sample_map* Device_params_get_sample_map(
+        const Device_params* params,
+        const char* key)
 {
     assert(params != NULL);
     assert(key != NULL);
+
     if (!string_has_suffix(key, ".jsonsm"))
-    {
         return NULL;
-    }
+
     get_of_type(params, key, sample_map);
+
     return NULL;
 }
 
 
-Hit_map* Device_params_get_hit_map(Device_params* params,
-                                   const char* key)
+Hit_map* Device_params_get_hit_map(
+        const Device_params* params,
+        const char* key)
 {
     assert(params != NULL);
     assert(key != NULL);
+
     if (!string_has_suffix(key, ".jsonhm"))
-    {
         return NULL;
-    }
+
     get_of_type(params, key, hit_map);
+
     return NULL;
 }
 
 
-Num_list* Device_params_get_num_list(Device_params* params, const char* key)
+Num_list* Device_params_get_num_list(
+        const Device_params* params,
+        const char* key)
 {
     assert(params != NULL);
     assert(key != NULL);
+
     if (!string_has_suffix(key, ".jsonln"))
-    {
         return NULL;
-    }
+
     get_of_type(params, key, num_list);
+
     return NULL;
 }
 
@@ -699,9 +713,8 @@ Num_list* Device_params_get_num_list(Device_params* params, const char* key)
 void del_Device_params(Device_params* params)
 {
     if (params == NULL)
-    {
         return;
-    }
+
     del_AAtree(params->implement);
     del_AAtree(params->config);
     del_AAtree(params->event_data);
@@ -712,6 +725,7 @@ void del_Device_params(Device_params* params)
     del_AAtree(params->event_names);
 #endif
     memory_free(params);
+
     return;
 }
 
