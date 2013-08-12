@@ -39,7 +39,7 @@ typedef struct AAnode AAnode;
  */
 typedef struct AAiter
 {
-    AAtree* tree;
+    const AAtree* tree;
     AAnode* node;
 } AAiter;
 
@@ -63,7 +63,7 @@ AAiter* new_AAiter(AAtree* tree);
  * \param iter   The AAiter -- must not be \c NULL.
  * \param tree   The AAtree -- must not be \c NULL.
  */
-void AAiter_change_tree(AAiter* iter, AAtree* tree);
+void AAiter_change_tree(AAiter* iter, const AAtree* tree);
 
 
 /**
@@ -143,7 +143,7 @@ AAtree* new_AAtree(int (*cmp)(const void*, const void*), void (*destroy)(void*))
  *
  * \return   \c true if and only if \a key is found inside \c tree.
  */
-bool AAtree_contains(AAtree* tree, const void* key);
+bool AAtree_contains(const AAtree* tree, const void* key);
 
 
 /**
@@ -168,7 +168,7 @@ bool AAtree_ins(AAtree* tree, void* data);
  *
  * \return   The element if one exists, otherwise \c NULL.
  */
-void* AAtree_get_at_least(AAtree* tree, const void* key);
+void* AAtree_get_at_least(const AAtree* tree, const void* key);
 
 
 /**
@@ -179,7 +179,7 @@ void* AAtree_get_at_least(AAtree* tree, const void* key);
  *
  * \return   The element if one exists, otherwise \c NULL.
  */
-void* AAtree_get_exact(AAtree* tree, const void* key);
+void* AAtree_get_exact(const AAtree* tree, const void* key);
 
 
 /**
@@ -190,7 +190,7 @@ void* AAtree_get_exact(AAtree* tree, const void* key);
  *
  * \return   The element if one exists, otherwise \c NULL.
  */
-void* AAtree_get_at_most(AAtree* tree, const void* key);
+void* AAtree_get_at_most(const AAtree* tree, const void* key);
 
 
 /**

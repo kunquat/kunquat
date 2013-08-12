@@ -51,7 +51,7 @@ static void aafree(AAnode* node, void (*destroy)(void*));
 
 #ifndef NDEBUG
 #define aavalidate(node, msg) (assert(aavalidate_(node, msg)))
-static bool aavalidate_(AAnode* node, char* msg);
+static bool aavalidate_(const AAnode* node, char* msg);
 #else
 #define aavalidate(node, msg) (void)0
 #endif
@@ -61,21 +61,22 @@ AAiter* new_AAiter(AAtree* tree)
 {
     AAiter* iter = memory_alloc_item(AAiter);
     if (iter == NULL)
-    {
         return NULL;
-    }
+
     iter->tree = tree;
     iter->node = NULL;
     return iter;
 }
 
 
-void AAiter_change_tree(AAiter* iter, AAtree* tree)
+void AAiter_change_tree(AAiter* iter, const AAtree* tree)
 {
     assert(iter != NULL);
     assert(tree != NULL);
+
     iter->tree = tree;
     iter->node = NULL;
+
     return;
 }
 
@@ -93,11 +94,11 @@ static AAnode* new_AAnode(AAnode* nil, void* data)
 {
     assert(!(nil == NULL) || (data == NULL));
     assert(!(data == NULL) || (nil == NULL));
+
     AAnode* node = memory_alloc_item(AAnode);
     if (node == NULL)
-    {
         return NULL;
-    }
+
     if (nil == NULL)
     {
         assert(data == NULL);
@@ -112,6 +113,7 @@ static AAnode* new_AAnode(AAnode* nil, void* data)
         node->level = 1;
         node->parent = node->left = node->right = nil;
     }
+
     return node;
 }
 
@@ -120,30 +122,33 @@ AAtree* new_AAtree(int (*cmp)(const void*, const void*), void (*destroy)(void*))
 {
     assert(cmp != NULL);
     assert(destroy != NULL);
+
     AAtree* tree = memory_alloc_item(AAtree);
     if (tree == NULL)
-    {
         return NULL;
-    }
+
     tree->nil = new_AAnode(NULL, NULL);
     if (tree->nil == NULL)
     {
         memory_free(tree);
         return NULL;
     }
+
     tree->root = tree->nil;
     tree->cmp = cmp;
     tree->destroy = destroy;
     aavalidate(tree->root, "init");
+
     return tree;
 }
 
 
-bool AAtree_contains(AAtree* tree, const void* key)
+bool AAtree_contains(const AAtree* tree, const void* key)
 {
     assert(tree != NULL);
     assert(key != NULL);
-    return AAtree_get_exact(tree, key) != NULL;
+
+    return (AAtree_get_exact(tree, key) != NULL);
 }
 
 
@@ -151,7 +156,9 @@ bool AAtree_ins(AAtree* tree, void* data)
 {
     assert(tree != NULL);
     assert(data != NULL);
+
     aavalidate(tree->root, "before insert");
+
     if (tree->root->level == 0)
     {
         tree->root = new_AAnode(tree->nil, data);
@@ -160,9 +167,11 @@ bool AAtree_ins(AAtree* tree, void* data)
             tree->root = tree->nil;
             return false;
         }
+
         aavalidate(tree->root, "insert root");
         return true;
     }
+
     AAnode* cur = tree->root;
     AAnode* prev = NULL;
     assert(cur->data != NULL);
@@ -172,15 +181,13 @@ bool AAtree_ins(AAtree* tree, void* data)
         assert(cur->data != NULL);
         diff = tree->cmp(data, cur->data);
         prev = cur;
+
         if (diff < 0)
-        {
             cur = cur->left;
-        }
         else if (diff > 0)
-        {
             cur = cur->right;
-        }
     }
+
     assert(prev != NULL);
     if (diff == 0)
     {
@@ -191,11 +198,11 @@ bool AAtree_ins(AAtree* tree, void* data)
         aavalidate(tree->root, "insert");
         return true;
     }
+
     AAnode* new_node = new_AAnode(tree->nil, data);
     if (new_node == NULL)
-    {
         return false;
-    }
+
     if (diff < 0)
     {
         assert(prev->left->level == 0);
@@ -209,24 +216,23 @@ bool AAtree_ins(AAtree* tree, void* data)
         prev->right = new_node;
         new_node->parent = prev;
     }
+
     cur = new_node->parent;
     while (cur->level > 0)
     {
         AAnode* parent = cur->parent;
         AAnode** child = NULL;
+
         if (parent->left == cur)
-        {
             child = &parent->left;
-        }
         else if (parent->right == cur)
-        {
             child = &parent->right;
-        }
         else
         {
             assert(parent->level == 0);
             child = &tree->root;
         }
+
         assert(child != NULL);
         cur = aaskew(cur);
         cur = aasplit(cur);
@@ -234,6 +240,7 @@ bool AAtree_ins(AAtree* tree, void* data)
         *child = cur;
         cur = cur->parent;
     }
+
     aavalidate(tree->root, "insert rebalance");
     return true;
 }
@@ -244,12 +251,14 @@ void* AAiter_get_at_least(AAiter* iter, const void* key)
     assert(iter != NULL);
     assert(key != NULL);
     assert(iter->tree != NULL);
-    AAtree* tree = iter->tree;
+
+    const AAtree* tree = iter->tree;
     aavalidate(tree->root, "get");
     AAnode** last = &iter->node;
     *last = NULL;
     AAnode* ret = tree->nil;
     AAnode* cur = tree->root;
+
     while (cur->level > 0)
     {
         assert(cur->data != NULL);
@@ -270,31 +279,34 @@ void* AAiter_get_at_least(AAiter* iter, const void* key)
             return cur->data;
         }
     }
+
     return ret->data;
 }
 
 
-void* AAtree_get_at_least(AAtree* tree, const void* key)
+void* AAtree_get_at_least(const AAtree* tree, const void* key)
 {
     assert(tree != NULL);
     assert(key != NULL);
+
     AAiter* iter = AAITER_AUTO;
     iter->tree = tree;
+
     return AAiter_get_at_least(iter, key);
 }
 
 
-void* AAtree_get_exact(AAtree* tree, const void* key)
+void* AAtree_get_exact(const AAtree* tree, const void* key)
 {
     assert(tree != NULL);
     assert(key != NULL);
+
     AAiter* iter = AAITER_AUTO;
     iter->tree = tree;
     void* ret = AAiter_get_at_least(iter, key);
     if (ret != NULL && tree->cmp(ret, key) == 0)
-    {
         return ret;
-    }
+
     return NULL;
 }
 
@@ -304,12 +316,14 @@ void* AAiter_get_at_most(AAiter* iter, const void* key)
     assert(iter != NULL);
     assert(key != NULL);
     assert(iter->tree != NULL);
-    AAtree* tree = iter->tree;
+
+    const AAtree* tree = iter->tree;
     aavalidate(tree->root, "get");
     AAnode** last = &iter->node;
     *last = NULL;
     AAnode* ret = tree->nil;
     AAnode* cur = tree->root;
+
     while (cur->level > 0)
     {
         assert(cur->data != NULL);
@@ -330,16 +344,19 @@ void* AAiter_get_at_most(AAiter* iter, const void* key)
             return cur->data;
         }
     }
+
     return ret->data;
 }
 
 
-void* AAtree_get_at_most(AAtree* tree, const void* key)
+void* AAtree_get_at_most(const AAtree* tree, const void* key)
 {
     assert(tree != NULL);
     assert(key != NULL);
+
     AAiter* iter = AAITER_AUTO;
     iter->tree = tree;
+
     return AAiter_get_at_most(iter, key);
 }
 
@@ -348,20 +365,18 @@ void* AAiter_get_next(AAiter* iter)
 {
     assert(iter != NULL);
     assert(iter->tree != NULL);
+
     if (iter->node == NULL)
-    {
         return NULL;
-    }
-    AAtree* tree = iter->tree;
+
+    const AAtree* tree = iter->tree;
     if (iter->node == tree->nil)
-    {
         return NULL;
-    }
+
     iter->node = aasucc(iter->node);
     if (iter->node == tree->nil)
-    {
         return NULL;
-    }
+
     return iter->node->data;
 }
 
@@ -370,20 +385,18 @@ void* AAiter_get_prev(AAiter* iter)
 {
     assert(iter != NULL);
     assert(iter->tree != NULL);
+
     if (iter->node == NULL)
-    {
         return NULL;
-    }
-    AAtree* tree = iter->tree;
+
+    const AAtree* tree = iter->tree;
     if (iter->node == tree->nil)
-    {
         return NULL;
-    }
+
     iter->node = aapred(iter->node);
     if (iter->node == tree->nil)
-    {
         return NULL;
-    }
+
     return iter->node->data;
 }
 
@@ -393,10 +406,10 @@ void* AAtree_remove(AAtree* tree, const void* key)
     assert(tree != NULL);
     assert(key != NULL);
     assert(tree->root->parent == tree->nil);
+
     if (tree->root->level == 0)
-    {
         return NULL;
-    }
+
     AAnode* cur = tree->root;
     int diff = 1;
     while (cur->level > 0 && diff != 0)
@@ -411,11 +424,11 @@ void* AAtree_remove(AAtree* tree, const void* key)
             cur = cur->right;
         }
     }
+
     assert(cur != NULL);
     if (cur->level == 0)
-    {
         return NULL;
-    }
+
     void* data = cur->data;
     cur->data = NULL;
     if (cur->left->level != 0 && cur->right->level != 0)
@@ -429,6 +442,7 @@ void* AAtree_remove(AAtree* tree, const void* key)
         pred->data = NULL;
         cur = pred;
     }
+
     assert(cur->left->level == 0 || cur->right->level == 0);
     AAnode** child = NULL;
     AAnode* parent = cur->parent;
@@ -446,6 +460,7 @@ void* AAtree_remove(AAtree* tree, const void* key)
         child = &tree->root;
         parent = tree->nil;
     }
+
     assert(child != NULL);
     if (cur->left->level > 0)
     {
@@ -458,6 +473,7 @@ void* AAtree_remove(AAtree* tree, const void* key)
         *child = cur->right;
         cur->right->parent = parent;
     }
+
     AAnode* node = cur->parent;
     cur->left = cur->right = tree->nil;
     aafree(cur, tree->destroy);
@@ -466,35 +482,34 @@ void* AAtree_remove(AAtree* tree, const void* key)
     {
         parent = cur->parent;
         child = NULL;
+
         if (parent->left == cur)
-        {
             child = &parent->left;
-        }
         else if (parent->right == cur)
-        {
             child = &parent->right;
-        }
         else
         {
             assert(parent->level == 0);
             child = &tree->root;
         }
+
         if (cur->left->level < cur->level - 1
                 || cur->right->level < cur->level - 1)
         {
             --cur->level;
             if (cur->right->level > cur->level)
-            {
                 cur->right->level = cur->level;
-            }
+
             assert(child != NULL);
             cur = aaskew(cur);
             cur = aasplit(cur);
             *child = cur;
         }
+
         aavalidate(cur, "balance");
         cur = cur->parent;
     }
+
     aavalidate(tree->root, "remove");
     return data;
 }
@@ -504,11 +519,13 @@ void AAtree_clear(AAtree* tree)
 {
     assert(tree != NULL);
     aavalidate(tree->root, "clear");
+
     if (tree->root != tree->nil)
     {
         aafree(tree->root, tree->destroy);
         tree->root = tree->nil;
     }
+
     return;
 }
 
@@ -516,13 +533,13 @@ void AAtree_clear(AAtree* tree)
 void del_AAtree(AAtree* tree)
 {
     if (tree == NULL)
-    {
         return;
-    }
+
     aavalidate(tree->root, "del");
     AAtree_clear(tree);
     memory_free(tree->nil);
     memory_free(tree);
+
     return;
 }
 
@@ -531,15 +548,17 @@ static AAnode* aapred(AAnode* node)
 {
     assert(node != NULL);
     assert(node->level > 0);
+
     if (node->left->level > 0)
     {
         node = node->left;
+
         while (node->right->level > 0)
-        {
             node = node->right;
-        }
+
         return node;
     }
+
     AAnode* prev = node;
     node = node->parent;
     while (prev == node->left)
@@ -547,6 +566,7 @@ static AAnode* aapred(AAnode* node)
         prev = node;
         node = node->parent;
     }
+
     return node;
 }
 
@@ -554,19 +574,19 @@ static AAnode* aapred(AAnode* node)
 static AAnode* aasucc(AAnode* node)
 {
     assert(node != NULL);
+
     if (node->level == 0)
-    {
         return node;
-    }
+
     if (node->right->level > 0)
     {
         node = node->right;
         while (node->left->level > 0)
-        {
             node = node->left;
-        }
+
         return node;
     }
+
     AAnode* prev = node;
     node = node->parent;
     while (prev == node->right)
@@ -574,6 +594,7 @@ static AAnode* aasucc(AAnode* node)
         prev = node;
         node = node->parent;
     }
+
     return node;
 }
 
@@ -581,10 +602,10 @@ static AAnode* aasucc(AAnode* node)
 static AAnode* aaskew(AAnode* root)
 {
     assert(root != NULL);
+
     if (root->level == 0)
-    {
         return root;
-    }
+
     if (root->left->level == root->level)
     {
         AAnode* new_root = root->left;
@@ -595,7 +616,9 @@ static AAnode* aaskew(AAnode* root)
         root->parent = new_root;
         root = new_root;
     }
+
     root->right = aaskew(root->right);
+
     return root;
 }
 
@@ -603,10 +626,10 @@ static AAnode* aaskew(AAnode* root)
 static AAnode* aasplit(AAnode* root)
 {
     assert(root != NULL);
+
     if (root->level == 0)
-    {
         return root;
-    }
+
     if (root->level == root->right->right->level)
     {
         AAnode* new_root = root->right;
@@ -619,6 +642,7 @@ static AAnode* aasplit(AAnode* root)
         ++root->level;
         root->right = aasplit(root->right);
     }
+
     return root;
 }
 
@@ -627,91 +651,71 @@ static void aafree(AAnode* node, void (*destroy)(void*))
 {
     assert(node != NULL);
     assert(destroy != NULL);
+
     if (node->level == 0)
-    {
         return;
-    }
+
     aafree(node->left, destroy);
     aafree(node->right, destroy);
     destroy(node->data);
     memory_free(node);
+
     return;
 }
 
 
 #ifndef NDEBUG
-static bool aavalidate_(AAnode* node, char* msg)
+static bool aavalidate_(const AAnode* node, char* msg)
 {
     if (node == NULL
             || node->parent == NULL
             || node->left == NULL
             || node->right == NULL)
-    {
         return false;
-    }
+
 /*  fprintf(stderr, "level %d: parent: %6lx, left: %6lx, this: %6lx, right: %6lx\n",
             node->level,
             (long)node->parent % (long)nil,
             (long)node->left % (long)nil,
             (long)node % (long)nil,
             (long)node->right % (long)nil); */
+
     if (node->level == 0)
     {
         if (node->data != NULL)
-        {
             return false;
-        }
         if (node->left != node)
-        {
             return false;
-        }
         if (node->right != node)
-        {
             return false;
-        }
         return true;
     }
+
     if (node->left == node)
-    {
         return false;
-    }
     if (node->right == node)
-    {
         return false;
-    }
     if (node->parent == node)
-    {
         return false;
-    }
+
     if (node->left->level > 0 && node->left->parent != node)
-    {
         return false;
-    }
     if (node->right->level > 0 && node->right->parent != node)
-    {
         return false;
-    }
     if (node->level != node->left->level + 1)
-    {
         return false;
-    }
     if (node->level == node->right->right->level)
-    {
         return false;
-    }
     if (node->level != node->right->level
             && node->level != node->right->level + 1)
-    {
         return false;
-    }
+
     if (node->data == NULL)
-    {
         return false;
-    }
+
     if (aavalidate_(node->left, msg) && aavalidate_(node->right, msg))
-    {
         return true;
-    }
+
     return false;
 }
 #endif
