@@ -18,6 +18,7 @@
 #include <string.h>
 #include <math.h>
 
+#include <Device_impl.h>
 #include <DSP.h>
 #include <DSP_common.h>
 #include <DSP_freeverb.h>
@@ -96,7 +97,8 @@ static void del_Freeverb_state(Device_state* dev_state)
 
 typedef struct DSP_freeverb
 {
-    DSP parent;
+    Device_impl parent;
+
     double gain;
     double reflect;
     double reflect1;
@@ -179,7 +181,7 @@ static void DSP_freeverb_process(
         double tempo);
 
 
-static void del_DSP_freeverb(DSP* dsp);
+static void del_DSP_freeverb(Device_impl* dsp_impl);
 
 
 static void DSP_freeverb_set_reflectivity(
@@ -190,7 +192,7 @@ static void DSP_freeverb_set_gain(DSP_freeverb* freeverb, double gain);
 static void DSP_freeverb_set_wet(DSP_freeverb* freeverb, double wet);
 
 
-DSP* new_DSP_freeverb(uint32_t buffer_size, uint32_t mix_rate)
+Device_impl* new_DSP_freeverb(DSP* dsp, uint32_t buffer_size, uint32_t mix_rate)
 {
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
@@ -200,28 +202,39 @@ DSP* new_DSP_freeverb(uint32_t buffer_size, uint32_t mix_rate)
     if (freeverb == NULL)
         return NULL;
 
+    if (!Device_impl_init(&freeverb->parent, del_DSP_freeverb, mix_rate, buffer_size))
+    {
+        memory_free(freeverb);
+        return NULL;
+    }
+
+    freeverb->parent.device = (Device*)dsp;
+
+    Device_set_process((Device*)dsp, DSP_freeverb_process);
+#if 0
     if (!DSP_init(&freeverb->parent, del_DSP_freeverb,
                   DSP_freeverb_process, buffer_size, mix_rate))
     {
         memory_free(freeverb);
         return NULL;
     }
+#endif
 
     Device_set_state_creator(
-            &freeverb->parent.parent,
+            freeverb->parent.device,
             DSP_freeverb_create_state);
 
-    DSP_set_clear_history(&freeverb->parent, DSP_freeverb_clear_history);
-    Device_set_mix_rate_changer(&freeverb->parent.parent,
+    DSP_set_clear_history((DSP*)freeverb->parent.device, DSP_freeverb_clear_history);
+    Device_set_mix_rate_changer(freeverb->parent.device,
                                 DSP_freeverb_set_mix_rate);
-    Device_set_reset(&freeverb->parent.parent, DSP_freeverb_reset);
-    Device_set_update_key(&freeverb->parent.parent, DSP_freeverb_update_key);
+    Device_set_reset(freeverb->parent.device, DSP_freeverb_reset);
+    Device_set_update_key(freeverb->parent.device, DSP_freeverb_update_key);
     Device_set_update_state_key(
-            &freeverb->parent.parent,
+            freeverb->parent.device,
             DSP_freeverb_update_state_key);
 
-    Device_register_port(&freeverb->parent.parent, DEVICE_PORT_TYPE_RECEIVE, 0);
-    Device_register_port(&freeverb->parent.parent, DEVICE_PORT_TYPE_SEND, 0);
+    Device_register_port(freeverb->parent.device, DEVICE_PORT_TYPE_RECEIVE, 0);
+    Device_register_port(freeverb->parent.device, DEVICE_PORT_TYPE_SEND, 0);
 
     freeverb->gain = 0;
     freeverb->reflect = 0;
@@ -261,7 +274,7 @@ static Device_state* DSP_freeverb_create_state(
     assert(audio_rate > 0);
     assert(audio_buffer_size >= 0);
 
-    DSP_freeverb* freeverb = (DSP_freeverb*)device;
+    DSP_freeverb* freeverb = (DSP_freeverb*)device->dimpl;
 
     Freeverb_state* fstate = memory_alloc_item(Freeverb_state);
     if (fstate == NULL)
@@ -343,11 +356,11 @@ static void DSP_freeverb_reset(Device* device, Device_states* dstates)
     assert(dstates != NULL);
 
     DSP_reset(device, dstates);
-    DSP_freeverb* freeverb = (DSP_freeverb*)device;
+    DSP_freeverb* freeverb = (DSP_freeverb*)device->dimpl;
     DSP_state* dsp_state = (DSP_state*)Device_states_get_state(
             dstates,
             Device_get_id(device));
-    DSP_freeverb_clear_history(&freeverb->parent, dsp_state);
+    DSP_freeverb_clear_history((DSP*)freeverb->parent.device, dsp_state);
 
     return;
 }
@@ -356,11 +369,11 @@ static void DSP_freeverb_reset(Device* device, Device_states* dstates)
 static void DSP_freeverb_clear_history(DSP* dsp, DSP_state* dsp_state)
 {
     assert(dsp != NULL);
-    assert(string_eq(dsp->type, "freeverb"));
+    //assert(string_eq(dsp->type, "freeverb"));
     assert(dsp_state != NULL);
 
     Freeverb_state* fstate = (Freeverb_state*)dsp_state;
-    const DSP_freeverb* freeverb = (const DSP_freeverb*)dsp;
+    const DSP_freeverb* freeverb = (const DSP_freeverb*)dsp->parent.dimpl;
     Freeverb_state_reset(fstate, freeverb);
 
     return;
@@ -376,7 +389,7 @@ static bool DSP_freeverb_set_mix_rate(
     assert(dstates != NULL);
     assert(mix_rate > 0);
 
-    const DSP_freeverb* freeverb = (const DSP_freeverb*)device;
+    const DSP_freeverb* freeverb = (const DSP_freeverb*)device->dimpl;
     Freeverb_state* fstate = (Freeverb_state*)Device_states_get_state(
             dstates, Device_get_id(device));
 
@@ -423,12 +436,12 @@ static bool DSP_freeverb_update_key(Device* device, const char* key)
     assert(device != NULL);
     assert(key != NULL);
 
-    DSP_freeverb* freeverb = (DSP_freeverb*)device;
+    DSP_freeverb* freeverb = (DSP_freeverb*)device->dimpl;
 
     if (string_eq(key, "p_refl.jsonf"))
     {
         double* reflect = Device_params_get_float(
-                freeverb->parent.conf->params, key);
+                ((DSP*)freeverb->parent.device)->conf->params, key);
 
         if (reflect == NULL)
         {
@@ -447,7 +460,7 @@ static bool DSP_freeverb_update_key(Device* device, const char* key)
     else if (string_eq(key, "p_damp.jsonf"))
     {
         double* damp = Device_params_get_float(
-                freeverb->parent.conf->params, key);
+                ((DSP*)freeverb->parent.device)->conf->params, key);
 
         if (damp == NULL)
         {
@@ -477,7 +490,7 @@ static bool DSP_freeverb_update_state_key(
     assert(dstates != NULL);
     assert(key != NULL);
 
-    const DSP_freeverb* freeverb = (const DSP_freeverb*)device;
+    const DSP_freeverb* freeverb = (const DSP_freeverb*)device->dimpl;
     Freeverb_state* fstate = (Freeverb_state*)Device_states_get_state(
             dstates, Device_get_id(device));
 
@@ -578,8 +591,8 @@ static void DSP_freeverb_process(
     Freeverb_state* fstate = (Freeverb_state*)Device_states_get_state(
             states, Device_get_id(device));
 
-    DSP_freeverb* freeverb = (DSP_freeverb*)device;
-    assert(string_eq(freeverb->parent.type, "freeverb"));
+    DSP_freeverb* freeverb = (DSP_freeverb*)device->dimpl;
+    //assert(string_eq(freeverb->parent.type, "freeverb"));
     kqt_frame* in_data[] = { NULL, NULL };
     kqt_frame* out_data[] = { NULL, NULL };
     DSP_get_raw_input(&fstate->parent.parent, 0, in_data);
@@ -615,13 +628,13 @@ static void DSP_freeverb_process(
 }
 
 
-static void del_DSP_freeverb(DSP* dsp)
+static void del_DSP_freeverb(Device_impl* dsp_impl)
 {
-    if (dsp == NULL)
+    if (dsp_impl == NULL)
         return;
 
-    assert(string_eq(dsp->type, "freeverb"));
-    DSP_freeverb* freeverb = (DSP_freeverb*)dsp;
+    //assert(string_eq(dsp->type, "freeverb"));
+    DSP_freeverb* freeverb = (DSP_freeverb*)dsp_impl;
 
     memory_free(freeverb);
 

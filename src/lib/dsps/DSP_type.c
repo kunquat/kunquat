@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -48,13 +48,13 @@ const DSP_type dsp_types[] =
 DSP_cons* DSP_type_find_cons(char* type)
 {
     assert(type != NULL);
+
     for (int i = 0; dsp_types[i].type != NULL; ++i)
     {
         if (string_eq(type, dsp_types[i].type))
-        {
             return dsp_types[i].cons;
-        }
     }
+
     return NULL;
 }
 
@@ -62,13 +62,13 @@ DSP_cons* DSP_type_find_cons(char* type)
 DSP_property* DSP_type_find_property(char* type)
 {
     assert(type != NULL);
+
     for (int i = 0; dsp_types[i].type != NULL; ++i)
     {
         if (string_eq(type, dsp_types[i].type))
-        {
             return dsp_types[i].property;
-        }
     }
+
     assert(false);
     return NULL;
 }

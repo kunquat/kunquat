@@ -211,6 +211,7 @@ void del_Generator(Generator* gen)
         return;
 
     Device_deinit(&gen->parent);
+    memory_free(gen);
 
     return;
 }

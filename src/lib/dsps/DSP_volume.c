@@ -18,6 +18,7 @@
 #include <string.h>
 #include <math.h>
 
+#include <Device_impl.h>
 #include <DSP.h>
 #include <DSP_common.h>
 #include <DSP_volume.h>
@@ -28,7 +29,7 @@
 
 typedef struct DSP_volume
 {
-    DSP parent;
+    Device_impl parent;
 } DSP_volume;
 
 
@@ -41,27 +42,40 @@ static void DSP_volume_process(
         double tempo);
 
 
-static void del_DSP_volume(DSP* dsp);
+static void del_DSP_volume(Device_impl* dsp_impl);
 
 
-DSP* new_DSP_volume(uint32_t buffer_size, uint32_t mix_rate)
+Device_impl* new_DSP_volume(DSP* dsp, uint32_t buffer_size, uint32_t mix_rate)
 {
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
     assert(mix_rate > 0);
+
     DSP_volume* volume = memory_alloc_item(DSP_volume);
     if (volume == NULL)
+        return NULL;
+
+    if (!Device_impl_init(&volume->parent, del_DSP_volume, mix_rate, buffer_size))
     {
+        memory_free(volume);
         return NULL;
     }
+
+    volume->parent.device = (Device*)dsp;
+
+    Device_set_process((Device*)dsp, DSP_volume_process);
+#if 0
     if (!DSP_init(&volume->parent, del_DSP_volume,
                   DSP_volume_process, buffer_size, mix_rate))
     {
         memory_free(volume);
         return NULL;
     }
-    Device_register_port(&volume->parent.parent, DEVICE_PORT_TYPE_RECEIVE, 0);
-    Device_register_port(&volume->parent.parent, DEVICE_PORT_TYPE_SEND, 0);
+#endif
+
+    Device_register_port(volume->parent.device, DEVICE_PORT_TYPE_RECEIVE, 0);
+    Device_register_port(volume->parent.device, DEVICE_PORT_TYPE_SEND, 0);
+
     return &volume->parent;
 }
 
@@ -85,39 +99,40 @@ static void DSP_volume_process(
 
     (void)freq;
     (void)tempo;
-    DSP_volume* volume = (DSP_volume*)device;
-    assert(string_eq(volume->parent.type, "volume"));
-    assert(volume->parent.conf != NULL);
-    assert(volume->parent.conf->params != NULL);
+    DSP_volume* volume = (DSP_volume*)device->dimpl;
+    //assert(string_eq(volume->parent.type, "volume"));
+    assert(((DSP*)volume->parent.device)->conf != NULL);
+    assert(((DSP*)volume->parent.device)->conf->params != NULL);
     kqt_frame* in_data[] = { NULL, NULL };
     kqt_frame* out_data[] = { NULL, NULL };
     DSP_get_raw_input(ds, 0, in_data);
     DSP_get_raw_output(ds, 0, out_data);
+
     double factor = 1;
-    double* dB_arg = Device_params_get_float(volume->parent.conf->params,
+    double* dB_arg = Device_params_get_float(((DSP*)volume->parent.device)->conf->params,
                                              "p_volume.jsonf");
     if (dB_arg != NULL && isfinite(*dB_arg))
-    {
         factor = exp2(*dB_arg / 6);
-    }
+
     for (uint32_t frame = start; frame < until; ++frame)
     {
         out_data[0][frame] += in_data[0][frame] * factor;
         out_data[1][frame] += in_data[1][frame] * factor;
     }
+
     return;
 }
 
 
-static void del_DSP_volume(DSP* dsp)
+static void del_DSP_volume(Device_impl* dsp_impl)
 {
-    if (dsp == NULL)
-    {
+    if (dsp_impl == NULL)
         return;
-    }
-    assert(string_eq(dsp->type, "volume"));
-    DSP_volume* volume = (DSP_volume*)dsp;
+
+    //assert(string_eq(dsp->type, "volume"));
+    DSP_volume* volume = (DSP_volume*)dsp_impl;
     memory_free(volume);
+
     return;
 }
 

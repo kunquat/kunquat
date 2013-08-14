@@ -18,6 +18,7 @@
 #include <string.h>
 
 #include <Audio_buffer.h>
+#include <Device_impl.h>
 #include <DSP.h>
 #include <DSP_common.h>
 #include <DSP_delay.h>
@@ -57,7 +58,7 @@ typedef struct Tap
 
 typedef struct DSP_delay
 {
-    DSP parent;
+    Device_impl parent;
 
     double max_delay;
     Tap taps[TAPS_MAX];
@@ -143,10 +144,10 @@ static void DSP_delay_process(
         uint32_t freq,
         double tempo);
 
-static void del_DSP_delay(DSP* dsp);
+static void del_DSP_delay(Device_impl* dsp_impl);
 
 
-DSP* new_DSP_delay(uint32_t buffer_size, uint32_t mix_rate)
+Device_impl* new_DSP_delay(DSP* dsp, uint32_t buffer_size, uint32_t mix_rate)
 {
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
@@ -156,24 +157,35 @@ DSP* new_DSP_delay(uint32_t buffer_size, uint32_t mix_rate)
     if (delay == NULL)
         return NULL;
 
+    if (!Device_impl_init(&delay->parent, del_DSP_delay, mix_rate, buffer_size))
+    {
+        memory_free(delay);
+        return NULL;
+    }
+
+    delay->parent.device = (Device*)dsp;
+
+    Device_set_process((Device*)dsp, DSP_delay_process);
+#if 0
     if (!DSP_init(&delay->parent, del_DSP_delay,
                   DSP_delay_process, buffer_size, mix_rate))
     {
         memory_free(delay);
         return NULL;
     }
+#endif
 
-    Device_set_state_creator(&delay->parent.parent, DSP_delay_create_state);
+    Device_set_state_creator(delay->parent.device, DSP_delay_create_state);
 
-    DSP_set_clear_history(&delay->parent, DSP_delay_clear_history);
-    Device_set_reset(&delay->parent.parent, DSP_delay_reset);
-    Device_set_sync(&delay->parent.parent, DSP_delay_sync);
-    Device_set_update_key(&delay->parent.parent, DSP_delay_update_key);
+    DSP_set_clear_history((DSP*)delay->parent.device, DSP_delay_clear_history);
+    Device_set_reset(delay->parent.device, DSP_delay_reset);
+    Device_set_sync(delay->parent.device, DSP_delay_sync);
+    Device_set_update_key(delay->parent.device, DSP_delay_update_key);
     Device_set_update_state_key(
-            &delay->parent.parent,
+            delay->parent.device,
             DSP_delay_update_state_key);
     Device_set_mix_rate_changer(
-            &delay->parent.parent,
+            delay->parent.device,
             DSP_delay_set_mix_rate);
 
     delay->max_delay = 2;
@@ -184,8 +196,8 @@ DSP* new_DSP_delay(uint32_t buffer_size, uint32_t mix_rate)
         delay->taps[i].scale = 1;
     }
 
-    Device_register_port(&delay->parent.parent, DEVICE_PORT_TYPE_RECEIVE, 0);
-    Device_register_port(&delay->parent.parent, DEVICE_PORT_TYPE_SEND, 0);
+    Device_register_port(delay->parent.device, DEVICE_PORT_TYPE_RECEIVE, 0);
+    Device_register_port(delay->parent.device, DEVICE_PORT_TYPE_SEND, 0);
 
 #if 0
     if (!DSP_delay_set_mix_rate(&delay->parent.parent, mix_rate))
@@ -212,7 +224,7 @@ static Device_state* DSP_delay_create_state(
     if (dlstate == NULL)
         return NULL;
 
-    const DSP_delay* delay = (DSP_delay*)device;
+    const DSP_delay* delay = (DSP_delay*)device->dimpl;
 
     DSP_state_init(&dlstate->parent, device, audio_rate, audio_buffer_size);
     dlstate->parent.parent.destroy = del_Delay_state;
@@ -235,11 +247,11 @@ static void DSP_delay_reset(Device* device, Device_states* dstates)
     assert(dstates != NULL);
 
     DSP_reset(device, dstates);
-    DSP_delay* delay = (DSP_delay*)device;
+    DSP_delay* delay = (DSP_delay*)device->dimpl;
     DSP_state* dsp_state = (DSP_state*)Device_states_get_state(
             dstates,
             Device_get_id(device));
-    DSP_delay_clear_history(&delay->parent, dsp_state);
+    DSP_delay_clear_history((DSP*)delay->parent.device, dsp_state);
 
     return;
 }
@@ -248,7 +260,7 @@ static void DSP_delay_reset(Device* device, Device_states* dstates)
 static void DSP_delay_clear_history(DSP* dsp, DSP_state* dsp_state)
 {
     assert(dsp != NULL);
-    assert(string_eq(dsp->type, "delay"));
+    //assert(string_eq(dsp->type, "delay"));
     assert(dsp_state != NULL);
 
     Delay_state* dlstate = (Delay_state*)dsp_state;
@@ -275,8 +287,8 @@ static bool DSP_delay_update_key(Device* device, const char* key)
     assert(device != NULL);
     assert(key != NULL);
 
-    DSP_delay* delay = (DSP_delay*)device;
-    Device_params* params = delay->parent.conf->params;
+    DSP_delay* delay = (DSP_delay*)device->dimpl;
+    Device_params* params = ((DSP*)delay->parent.device)->conf->params;
 
     if (string_eq(key, "p_max_delay.jsonf"))
     {
@@ -321,7 +333,7 @@ static bool DSP_delay_set_mix_rate(
     assert(dstates != NULL);
     assert(mix_rate > 0);
 
-    DSP_delay* delay = (DSP_delay*)device;
+    DSP_delay* delay = (DSP_delay*)device->dimpl;
     Delay_state* dlstate = (Delay_state*)Device_states_get_state(
             dstates,
             Device_get_id(device));
@@ -359,8 +371,8 @@ static void DSP_delay_process(
             dstates,
             Device_get_id(device));
 
-    DSP_delay* delay = (DSP_delay*)device;
-    assert(string_eq(delay->parent.type, "delay"));
+    DSP_delay* delay = (DSP_delay*)device->dimpl;
+    //assert(string_eq(delay->parent.type, "delay"));
     DSP_delay_check_params(delay, dlstate);
     kqt_frame* in_data[] = { NULL, NULL };
     kqt_frame* out_data[] = { NULL, NULL };
@@ -466,10 +478,10 @@ static void DSP_delay_process(
 static void DSP_delay_check_params(DSP_delay* delay, Delay_state* dlstate)
 {
     assert(delay != NULL);
-    assert(delay->parent.conf != NULL);
+    assert(((DSP*)delay->parent.device)->conf != NULL);
     assert(dlstate != NULL);
 
-    Device_params* params = delay->parent.conf->params;
+    Device_params* params = ((DSP*)delay->parent.device)->conf->params;
     assert(params != NULL);
 
     char delay_key[] = "tap_XX/p_delay.jsonf";
@@ -519,13 +531,13 @@ static void DSP_delay_check_params(DSP_delay* delay, Delay_state* dlstate)
 }
 
 
-static void del_DSP_delay(DSP* dsp)
+static void del_DSP_delay(Device_impl* dsp_impl)
 {
-    if (dsp == NULL)
+    if (dsp_impl == NULL)
         return;
 
-    assert(string_eq(dsp->type, "delay"));
-    DSP_delay* delay = (DSP_delay*)dsp;
+    //assert(string_eq(dsp->type, "delay"));
+    DSP_delay* delay = (DSP_delay*)dsp_impl;
     memory_free(delay);
 
     return;

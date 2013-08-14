@@ -19,6 +19,7 @@
 #include <string.h>
 
 #include <Audio_buffer.h>
+#include <Device_impl.h>
 #include <DSP.h>
 #include <DSP_common.h>
 #include <DSP_chorus.h>
@@ -124,7 +125,8 @@ static void del_Chorus_state(Device_state* dev_state)
 
 typedef struct DSP_chorus
 {
-    DSP parent;
+    Device_impl parent;
+
     Chorus_voice_params voice_params[CHORUS_VOICES_MAX];
 } DSP_chorus;
 
@@ -161,10 +163,10 @@ static void DSP_chorus_process(
         uint32_t freq,
         double tempo);
 
-static void del_DSP_chorus(DSP* dsp);
+static void del_DSP_chorus(Device_impl* dsp_impl);
 
 
-DSP* new_DSP_chorus(uint32_t buffer_size, uint32_t mix_rate)
+Device_impl* new_DSP_chorus(DSP* dsp, uint32_t buffer_size, uint32_t mix_rate)
 {
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
@@ -174,25 +176,36 @@ DSP* new_DSP_chorus(uint32_t buffer_size, uint32_t mix_rate)
     if (chorus == NULL)
         return NULL;
 
+    if (!Device_impl_init(&chorus->parent, del_DSP_chorus, mix_rate, buffer_size))
+    {
+        memory_free(chorus);
+        return NULL;
+    }
+
+    chorus->parent.device = (Device*)dsp;
+
+    Device_set_process((Device*)dsp, DSP_chorus_process);
+#if 0
     if (!DSP_init(&chorus->parent, del_DSP_chorus,
                   DSP_chorus_process, buffer_size, mix_rate))
     {
         memory_free(chorus);
         return NULL;
     }
+#endif
 
-    Device_set_state_creator(&chorus->parent.parent, DSP_chorus_create_state);
+    Device_set_state_creator(chorus->parent.device, DSP_chorus_create_state);
 
-    DSP_set_clear_history(&chorus->parent, DSP_chorus_clear_history);
+    DSP_set_clear_history((DSP*)chorus->parent.device, DSP_chorus_clear_history);
 
     Device_set_mix_rate_changer(
-            &chorus->parent.parent,
+            chorus->parent.device,
             DSP_chorus_set_mix_rate);
-    Device_set_reset(&chorus->parent.parent, DSP_chorus_reset);
-    Device_set_sync(&chorus->parent.parent, DSP_chorus_sync);
-    Device_set_update_key(&chorus->parent.parent, DSP_chorus_update_key);
+    Device_set_reset(chorus->parent.device, DSP_chorus_reset);
+    Device_set_sync(chorus->parent.device, DSP_chorus_sync);
+    Device_set_update_key(chorus->parent.device, DSP_chorus_update_key);
     Device_set_update_state_key(
-            &chorus->parent.parent,
+            chorus->parent.device,
             DSP_chorus_update_state_key);
 
     for (int i = 0; i < CHORUS_VOICES_MAX; ++i)
@@ -205,8 +218,8 @@ DSP* new_DSP_chorus(uint32_t buffer_size, uint32_t mix_rate)
         params->scale = 1;
     }
 
-    Device_register_port(&chorus->parent.parent, DEVICE_PORT_TYPE_RECEIVE, 0);
-    Device_register_port(&chorus->parent.parent, DEVICE_PORT_TYPE_SEND, 0);
+    Device_register_port(chorus->parent.device, DEVICE_PORT_TYPE_RECEIVE, 0);
+    Device_register_port(chorus->parent.device, DEVICE_PORT_TYPE_SEND, 0);
 
 #if 0
     if (!DSP_chorus_set_mix_rate(&chorus->parent.parent, mix_rate))
@@ -252,7 +265,7 @@ static Device_state* DSP_chorus_create_state(
         LFO_init(&voice->delay_variance, LFO_MODE_LINEAR);
     }
 
-    DSP_chorus* chorus = (DSP_chorus*)device;
+    DSP_chorus* chorus = (DSP_chorus*)device->dimpl;
     Chorus_state_reset(cstate, chorus->voice_params);
 
     return &cstate->parent.parent;
@@ -265,12 +278,12 @@ static void DSP_chorus_reset(Device* device, Device_states* dstates)
     assert(dstates != NULL);
 
     DSP_reset(device, dstates);
-    DSP_chorus* chorus = (DSP_chorus*)device;
+    DSP_chorus* chorus = (DSP_chorus*)device->dimpl;
     Chorus_state* cstate = (Chorus_state*)Device_states_get_state(
             dstates,
             Device_get_id(device));
 
-    DSP_chorus_clear_history(&chorus->parent, &cstate->parent); // XXX: do we need this?
+    DSP_chorus_clear_history((DSP*)chorus->parent.device, &cstate->parent); // XXX: do we need this?
 
     Chorus_state_reset(cstate, chorus->voice_params);
 
@@ -281,7 +294,7 @@ static void DSP_chorus_reset(Device* device, Device_states* dstates)
 static void DSP_chorus_clear_history(DSP* dsp, DSP_state* dsp_state)
 {
     assert(dsp != NULL);
-    assert(string_eq(dsp->type, "chorus"));
+    //assert(string_eq(dsp->type, "chorus"));
     assert(dsp_state != NULL);
 
     Chorus_state* cstate = (Chorus_state*)dsp_state;
@@ -326,8 +339,8 @@ static bool DSP_chorus_update_key(Device* device, const char* key)
     assert(device != NULL);
     assert(key != NULL);
 
-    DSP_chorus* chorus = (DSP_chorus*)device;
-    Device_params* params = chorus->parent.conf->params;
+    DSP_chorus* chorus = (DSP_chorus*)device->dimpl;
+    Device_params* params = ((DSP*)chorus->parent.device)->conf->params;
 
     int vi = -1;
     if ((vi = string_extract_index(key, "voice_", 2, "/p_delay.jsonf")) >= 0
@@ -474,8 +487,8 @@ static void DSP_chorus_process(
             Device_get_id(device));
     assert(cstate != NULL);
 
-    DSP_chorus* chorus = (DSP_chorus*)device;
-    assert(string_eq(chorus->parent.type, "chorus"));
+    DSP_chorus* chorus = (DSP_chorus*)device->dimpl;
+    //assert(string_eq(chorus->parent.type, "chorus"));
 
     kqt_frame* in_data[] = { NULL, NULL };
     kqt_frame* out_data[] = { NULL, NULL };
@@ -598,13 +611,13 @@ static void DSP_chorus_check_params(
 }
 
 
-static void del_DSP_chorus(DSP* dsp)
+static void del_DSP_chorus(Device_impl* dsp_impl)
 {
-    if (dsp == NULL)
+    if (dsp_impl == NULL)
         return;
 
-    assert(string_eq(dsp->type, "chorus"));
-    DSP_chorus* chorus = (DSP_chorus*)dsp;
+    //assert(string_eq(dsp->type, "chorus"));
+    DSP_chorus* chorus = (DSP_chorus*)dsp_impl;
     memory_free(chorus);
 
     return;

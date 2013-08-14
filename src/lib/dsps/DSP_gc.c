@@ -19,6 +19,7 @@
 #include <math.h>
 
 #include <Audio_buffer.h>
+#include <Device_impl.h>
 #include <DSP.h>
 #include <DSP_common.h>
 #include <DSP_gc.h>
@@ -31,7 +32,8 @@
 
 typedef struct DSP_gc
 {
-    DSP parent;
+    Device_impl parent;
+
     Envelope* map;
 } DSP_gc;
 
@@ -47,31 +49,46 @@ static void DSP_gc_process(
         uint32_t freq,
         double tempo);
 
-static void del_DSP_gc(DSP* dsp);
+static void del_DSP_gc(Device_impl* dsp_impl);
 
 
-DSP* new_DSP_gc(uint32_t buffer_size, uint32_t mix_rate)
+Device_impl* new_DSP_gc(DSP* dsp, uint32_t buffer_size, uint32_t mix_rate)
 {
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
     assert(mix_rate > 0);
+
     DSP_gc* gc = memory_alloc_item(DSP_gc);
     if (gc == NULL)
+        return NULL;
+
+    if (!Device_impl_init(&gc->parent, del_DSP_gc, mix_rate, buffer_size))
     {
+        memory_free(gc);
         return NULL;
     }
+
+    gc->parent.device = (Device*)dsp;
+
+    Device_set_process((Device*)dsp, DSP_gc_process);
+#if 0
     if (!DSP_init(&gc->parent, del_DSP_gc, DSP_gc_process,
                   buffer_size, mix_rate))
     {
         memory_free(gc);
         return NULL;
     }
-    Device_set_sync(&gc->parent.parent, DSP_gc_sync);
-    Device_set_update_key(&gc->parent.parent, DSP_gc_update_key);
+#endif
+
+    Device_set_sync(gc->parent.device, DSP_gc_sync);
+    Device_set_update_key(gc->parent.device, DSP_gc_update_key);
+
     gc->map = NULL;
-    Device_register_port(&gc->parent.parent, DEVICE_PORT_TYPE_RECEIVE, 0);
-    Device_register_port(&gc->parent.parent, DEVICE_PORT_TYPE_SEND, 0);
+
+    Device_register_port(gc->parent.device, DEVICE_PORT_TYPE_RECEIVE, 0);
+    Device_register_port(gc->parent.device, DEVICE_PORT_TYPE_SEND, 0);
     //fprintf(stderr, "Created gaincomp %p\n", (void*)gc);
+
     return &gc->parent;
 }
 
@@ -92,8 +109,9 @@ static bool DSP_gc_update_key(Device* device, const char* key)
 {
     assert(device != NULL);
     assert(key != NULL);
-    DSP_gc* gc = (DSP_gc*)device;
-    Device_params* params = gc->parent.conf->params;
+    DSP_gc* gc = (DSP_gc*)device->dimpl;
+    Device_params* params = ((DSP*)gc->parent.device)->conf->params;
+
     if (string_eq(key, "p_map.jsone"))
     {
         Envelope* env = Device_params_get_envelope(params, key);
@@ -102,14 +120,12 @@ static bool DSP_gc_update_key(Device* device, const char* key)
         {
             double* node = Envelope_get_node(env, 0);
             if (node[0] != 0)
-            {
                 valid = false;
-            }
+
             node = Envelope_get_node(env, Envelope_node_count(env) - 1);
             if (node[0] != 1)
-            {
                 valid = false;
-            }
+
             for (int i = 0; i < Envelope_node_count(env); ++i)
             {
                 node = Envelope_get_node(env, i);
@@ -124,8 +140,10 @@ static bool DSP_gc_update_key(Device* device, const char* key)
         {
             valid = false;
         }
+
         gc->map = valid ? env : NULL;
     }
+
     return true;
 }
 
@@ -148,12 +166,13 @@ static void DSP_gc_process(
 
     (void)freq;
     (void)tempo;
-    DSP_gc* gc = (DSP_gc*)device;
-    assert(string_eq(gc->parent.type, "gaincomp"));
+    DSP_gc* gc = (DSP_gc*)device->dimpl;
+    //assert(string_eq(gc->parent.type, "gaincomp"));
     kqt_frame* in_data[] = { NULL, NULL };
     kqt_frame* out_data[] = { NULL, NULL };
     DSP_get_raw_input(ds, 0, in_data);
     DSP_get_raw_output(ds, 0, out_data);
+
     if (gc->map != NULL)
     {
         for (uint32_t i = start; i < until; ++i)
@@ -163,13 +182,10 @@ static void DSP_gc_process(
             val_l = Envelope_get_value(gc->map, MIN(val_l, 1));
             val_r = Envelope_get_value(gc->map, MIN(val_r, 1));
             if (in_data[0][i] < 0)
-            {
                 val_l = -val_l;
-            }
             if (in_data[1][i] < 0)
-            {
                 val_r = -val_r;
-            }
+
             out_data[0][i] += val_l;
             out_data[1][i] += val_r;
             assert(!isnan(out_data[0][i]) || isnan(in_data[0][i]));
@@ -184,19 +200,20 @@ static void DSP_gc_process(
             out_data[1][i] += in_data[1][i];
         }
     }
+
     return;
 }
 
 
-static void del_DSP_gc(DSP* dsp)
+static void del_DSP_gc(Device_impl* dsp_impl)
 {
-    if (dsp == NULL)
-    {
+    if (dsp_impl == NULL)
         return;
-    }
-    assert(string_eq(dsp->type, "gaincomp"));
-    DSP_gc* gc = (DSP_gc*)dsp;
+
+    //assert(string_eq(dsp->type, "gaincomp"));
+    DSP_gc* gc = (DSP_gc*)dsp_impl;
     memory_free(gc);
+
     return;
 }
 

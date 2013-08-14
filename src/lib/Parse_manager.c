@@ -23,6 +23,7 @@
 #include <Connections_search.h>
 #include <Device_event_keys.h>
 #include <Device_params.h>
+#include <DSP_type.h>
 #include <Environment.h>
 #include <File_base.h>
 #include <Gen_type.h>
@@ -840,16 +841,15 @@ static bool parse_generator_level(kqt_Handle* handle,
     assert(length >= 0);
     assert(ins_index >= 0);
     assert(ins_index < KQT_INSTRUMENTS_MAX);
+
     if (gen_index < 0 || gen_index >= KQT_GENERATORS_MAX)
-    {
         return true;
-    }
+
 #if 0
     if (!string_has_prefix(subkey, MAGIC_ID "gXX/") &&
             !string_has_prefix(subkey, MAGIC_ID "g" KQT_FORMAT_VERSION "/"))
-    {
         return true;
-    }
+
     subkey = strchr(subkey, '/');
     ++subkey;
 #endif
@@ -896,7 +896,7 @@ static bool parse_generator_level(kqt_Handle* handle,
 
             // Create the Generator implementation
             Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-            char type[GEN_TYPE_LENGTH_MAX] = { '\0' };
+            char type[GEN_TYPE_LENGTH_MAX] = "";
             read_string(data, type, GEN_TYPE_LENGTH_MAX, state);
             if (state->error)
             {
@@ -916,12 +916,8 @@ static bool parse_generator_level(kqt_Handle* handle,
                     Device_get_mix_rate((Device*)module));
             if (gen_impl == NULL)
             {
-                if (!state->error)
-                    kqt_Handle_set_error(handle, ERROR_MEMORY,
-                            "Couldn't allocate memory");
-                else
-                    set_parse_error(handle, state);
-
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory for generator implementation");
                 return false;
             }
 
@@ -982,9 +978,6 @@ static bool parse_generator_level(kqt_Handle* handle,
     }
     else if (string_eq(subkey, "p_events.json"))
     {
-        Gen_table* table = Instrument_get_gens(ins);
-        assert(table != NULL);
-
         Generator* gen = add_generator(handle, ins, table, gen_index);
         if (gen == NULL)
             return false;
@@ -1007,9 +1000,6 @@ static bool parse_generator_level(kqt_Handle* handle,
     }
     else
     {
-        Gen_table* table = Instrument_get_gens(ins);
-        assert(table != NULL);
-
         Generator* gen = add_generator(handle, ins, table, gen_index);
         if (gen == NULL)
             return false;
@@ -1266,6 +1256,43 @@ static DSP_conf* add_dsp_conf(
 }
 
 
+static DSP* add_dsp(
+        kqt_Handle* handle,
+        Effect* eff,
+        DSP_table* dsp_table,
+        int dsp_index)
+{
+    assert(handle != NULL);
+    assert(eff != NULL);
+    assert(dsp_table != NULL);
+    assert(dsp_index >= 0);
+    //assert(dsp_index < KQT_DSPS_MAX);
+
+    static const char* memory_error_str =
+        "Couldn't allocate memory for a new DSP";
+
+    Module* module = Handle_get_module(handle);
+
+    // Return existing DSP
+    DSP* dsp = DSP_table_get_dsp(dsp_table, dsp_index);
+    if (dsp != NULL)
+        return dsp;
+
+    // Create new DSP
+    dsp = new_DSP(
+            Device_get_buffer_size((Device*)module),
+            Device_get_mix_rate((Device*)module));
+    if (dsp == NULL || !DSP_table_set_dsp(dsp_table, dsp_index, dsp))
+    {
+        kqt_Handle_set_error(handle, ERROR_MEMORY, memory_error_str);
+        del_DSP(dsp);
+        return NULL;
+    }
+
+    return dsp;
+}
+
+
 static bool parse_dsp_level(kqt_Handle* handle,
                             Effect* eff,
                             const char* key,
@@ -1280,16 +1307,15 @@ static bool parse_dsp_level(kqt_Handle* handle,
     assert(subkey != NULL);
     assert((data == NULL) == (length == 0));
     assert(length >= 0);
+
     if (dsp_index < 0 || dsp_index >= KQT_DSPS_MAX)
-    {
         return true;
-    }
+
 #if 0
     if (!string_has_prefix(subkey, MAGIC_ID "dXX/") &&
             !string_has_prefix(subkey, MAGIC_ID "d" KQT_FORMAT_VERSION "/"))
-    {
         return true;
-    }
+
     subkey = strchr(subkey, '/') + 1;
 #endif
 
@@ -1297,6 +1323,7 @@ static bool parse_dsp_level(kqt_Handle* handle,
 
     DSP_table* dsp_table = Effect_get_dsps(eff);
     assert(dsp_table != NULL);
+
     if (string_eq(subkey, "p_manifest.json"))
     {
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
@@ -1318,21 +1345,42 @@ static bool parse_dsp_level(kqt_Handle* handle,
         }
         else
         {
-            // Create the DSP
-            Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-            DSP* dsp = new_DSP(data,
-                               Device_get_buffer_size((Device*)module),
-                               Device_get_mix_rate((Device*)module),
-                               state);
+            DSP* dsp = add_dsp(handle, eff, dsp_table, dsp_index);
             if (dsp == NULL)
+                return false;
+
+            // Create the DSP implementation
+            Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+            char type[DSP_TYPE_LENGTH_MAX] = "";
+            read_string(data, type, DSP_TYPE_LENGTH_MAX, state);
+            if (state->error)
             {
-                if (!state->error)
-                    kqt_Handle_set_error(handle, ERROR_MEMORY,
-                            "Couldn't allocate memory");
-                else
-                    set_parse_error(handle, state);
+                set_parse_error(handle, state);
                 return false;
             }
+            DSP_cons* cons = DSP_type_find_cons(type);
+            if (cons == NULL)
+            {
+                kqt_Handle_set_error(handle, ERROR_FORMAT,
+                        "Unsupported DSP type: %s", type);
+                return false;
+            }
+            Device_impl* dsp_impl = cons(
+                    dsp,
+                    Device_get_buffer_size((Device*)module),
+                    Device_get_mix_rate((Device*)module));
+            if (dsp_impl == NULL)
+            {
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory for DSP implementation");
+                return false;
+            }
+
+            Device_set_impl((Device*)dsp, dsp_impl);
+
+            // Remove old DSP Device state
+            Device_states* dstates = Player_get_device_states(handle->player);
+            Device_states_remove_state(dstates, Device_get_id((Device*)dsp));
 
             // Allocate Device state(s) for this DSP
             Device_state* ds = Device_create_state((Device*)dsp);
@@ -1345,17 +1393,6 @@ static bool parse_dsp_level(kqt_Handle* handle,
                 del_DSP(dsp);
                 return false;
             }
-
-            // Insert DSP
-            if (!DSP_table_set_dsp(dsp_table, dsp_index, dsp))
-            {
-                kqt_Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory");
-                del_DSP(dsp);
-                return false;
-            }
-
-            Device_states* dstates = Player_get_device_states(handle->player);
 
             // Set DSP resources
             if (!Device_set_mix_rate((Device*)dsp,
@@ -1379,20 +1416,20 @@ static bool parse_dsp_level(kqt_Handle* handle,
                         "Couldn't allocate memory while syncing DSP");
                 return false;
             }
-
-            // TODO: Remove old DSP Device state
         }
     }
     else if ((string_has_prefix(subkey, "i/") ||
               string_has_prefix(subkey, "c/")) &&
              key_is_device_param(subkey))
     {
-//        fprintf(stderr, "%s\n", subkey);
+        DSP* dsp = add_dsp(handle, eff, dsp_table, dsp_index);
+        if (dsp == NULL)
+            return false;
+
         DSP_conf* conf = add_dsp_conf(handle, dsp_table, dsp_index);
         if (conf == NULL)
             return false;
 
-        DSP* dsp = DSP_table_get_dsp(dsp_table, dsp_index);
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
         if (!DSP_conf_parse(conf, subkey, data, length, (Device*)dsp, state))
         {
@@ -1417,7 +1454,10 @@ static bool parse_dsp_level(kqt_Handle* handle,
     }
     else if (string_eq(subkey, "p_events.json"))
     {
-//        fprintf(stderr, "%s\n", subkey);
+        DSP* dsp = add_dsp(handle, eff, dsp_table, dsp_index);
+        if (dsp == NULL)
+            return false;
+
         DSP_conf* conf = add_dsp_conf(handle, dsp_table, dsp_index);
         if (conf == NULL)
             return false;
@@ -1434,6 +1474,7 @@ static bool parse_dsp_level(kqt_Handle* handle,
             return false;
         }
     }
+
     return true;
 }
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -31,7 +31,7 @@
  * \return   The new DSP if successful, or \c NULL if memory allocation
  *           failed.
  */
-typedef DSP* DSP_cons(uint32_t buffer_size, uint32_t mix_rate);
+typedef Device_impl* DSP_cons(DSP* dsp, uint32_t buffer_size, uint32_t mix_rate);
 
 
 /**

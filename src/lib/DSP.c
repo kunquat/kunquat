@@ -21,22 +21,30 @@
 #include <DSP_conf.h>
 #include <DSP_type.h>
 #include <File_base.h>
+#include <memory.h>
 #include <player/Device_states.h>
 #include <string_common.h>
 #include <xassert.h>
 
 
-DSP* new_DSP(
-        char* str,
-        uint32_t buffer_size,
-        uint32_t mix_rate,
-        Read_state* state)
+DSP* new_DSP(uint32_t buffer_size, uint32_t mix_rate)
 {
-    assert(str != NULL);
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
-    assert(state != NULL);
 
+    DSP* dsp = memory_alloc_item(DSP);
+    if (dsp == NULL)
+        return NULL;
+
+    if (!Device_init(&dsp->parent, buffer_size, mix_rate))
+    {
+        memory_free(dsp);
+        return NULL;
+    }
+
+    dsp->conf = NULL;
+
+#if 0
     if (state->error)
         return NULL;
 
@@ -46,17 +54,6 @@ DSP* new_DSP(
         return NULL;
 
     DSP_cons* cons = DSP_type_find_cons(type);
-#if 0
-    DSP* (*cons)(uint32_t, uint32_t) = NULL;
-    for (int i = 0; dsp_types[i].type != NULL; ++i)
-    {
-        if (string_eq(type, dsp_types[i].type))
-        {
-            cons = dsp_types[i].cons;
-            break;
-        }
-    }
-#endif
     if (cons == NULL)
     {
         Read_state_set_error(state, "Unsupported DSP type: \"%s\"\n", type);
@@ -66,9 +63,10 @@ DSP* new_DSP(
     DSP* dsp = cons(buffer_size, mix_rate);
     if (dsp == NULL)
         return NULL;
+#endif
 
     //fprintf(stderr, "New DSP %p\n", (void*)dsp);
-    strcpy(dsp->type, type);
+    //strcpy(dsp->type, type);
 
     return dsp;
 }
@@ -76,7 +74,6 @@ DSP* new_DSP(
 
 bool DSP_init(
         DSP* dsp,
-        void (*destroy)(DSP*),
         void (*process)(
             Device*,
             Device_states*,
@@ -88,13 +85,11 @@ bool DSP_init(
         uint32_t mix_rate)
 {
     assert(dsp != NULL);
-    assert(destroy != NULL);
     assert(process != NULL);
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
 
     dsp->clear_history = NULL;
-    dsp->destroy = destroy;
     dsp->conf = NULL;
 
     if (!Device_init(&dsp->parent, buffer_size, mix_rate))
@@ -158,9 +153,8 @@ void del_DSP(DSP* dsp)
     if (dsp == NULL)
         return;
 
-    assert(dsp->destroy != NULL);
     Device_deinit(&dsp->parent);
-    dsp->destroy(dsp);
+    memory_free(dsp);
 
     return;
 }

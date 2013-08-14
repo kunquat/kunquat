@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -36,7 +36,7 @@
  * \return   The new Freeverb DSP if successful, or \c NULL if memory
  *           allocation failed.
  */
-DSP* new_DSP_freeverb(uint32_t buffer_size, uint32_t mix_rate);
+Device_impl* new_DSP_freeverb(DSP* dsp, uint32_t buffer_size, uint32_t mix_rate);
 
 
 #endif // K_DSP_FREEVERB_H

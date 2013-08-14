@@ -33,11 +33,10 @@
 typedef struct DSP
 {
     Device parent;
-    char type[DSP_TYPE_LENGTH_MAX];
+    //char type[DSP_TYPE_LENGTH_MAX];
     DSP_conf* conf;
 
     void (*clear_history)(struct DSP*, DSP_state*);
-    void (*destroy)(struct DSP*);
 } DSP;
 
 
@@ -54,11 +53,7 @@ typedef struct DSP
  * \return   The new DSP if successful, otherwise \c NULL. \a state will not
  *           be modified if memory allocation failed.
  */
-DSP* new_DSP(
-        char* str,
-        uint32_t buffer_size,
-        uint32_t mix_rate,
-        Read_state* state);
+DSP* new_DSP(uint32_t buffer_size, uint32_t mix_rate);
 
 
 /**
@@ -75,7 +70,6 @@ DSP* new_DSP(
  */
 bool DSP_init(
         DSP* dsp,
-        void (*destroy)(DSP*),
         void (*process)(
             Device*,
             Device_states*,

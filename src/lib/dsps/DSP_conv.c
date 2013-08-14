@@ -18,6 +18,7 @@
 #include <string.h>
 
 #include <Audio_buffer.h>
+#include <Device_impl.h>
 #include <DSP.h>
 #include <DSP_common.h>
 #include <DSP_conv.h>
@@ -32,7 +33,8 @@
 
 typedef struct DSP_conv
 {
-    DSP parent;
+    Device_impl parent;
+
     Audio_buffer* ir;
     double max_ir_len;
     int32_t actual_ir_len;
@@ -106,12 +108,10 @@ static void DSP_conv_process(
         uint32_t freq,
         double tempo);
 
-static void DSP_conv_check_params(DSP_conv* conv);
-
-static void del_DSP_conv(DSP* dsp);
+static void del_DSP_conv(Device_impl* dsp_impl);
 
 
-DSP* new_DSP_conv(uint32_t buffer_size, uint32_t mix_rate)
+Device_impl* new_DSP_conv(DSP* dsp, uint32_t buffer_size, uint32_t mix_rate)
 {
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
@@ -121,6 +121,16 @@ DSP* new_DSP_conv(uint32_t buffer_size, uint32_t mix_rate)
     if (conv == NULL)
         return NULL;
 
+    if (!Device_impl_init(&conv->parent, del_DSP_conv, mix_rate, buffer_size))
+    {
+        memory_free(conv);
+        return NULL;
+    }
+
+    conv->parent.device = (Device*)dsp;
+
+    Device_set_process((Device*)dsp, DSP_conv_process);
+#if 0
     if (!DSP_init(
                 &conv->parent,
                 del_DSP_conv,
@@ -131,18 +141,19 @@ DSP* new_DSP_conv(uint32_t buffer_size, uint32_t mix_rate)
         memory_free(conv);
         return NULL;
     }
+#endif
 
-    Device_set_state_creator(&conv->parent.parent, DSP_conv_create_state);
+    Device_set_state_creator(conv->parent.device, DSP_conv_create_state);
 
-    DSP_set_clear_history(&conv->parent, DSP_conv_clear_history);
-    Device_set_reset(&conv->parent.parent, DSP_conv_reset);
-    Device_set_sync(&conv->parent.parent, DSP_conv_sync);
-    Device_set_update_key(&conv->parent.parent, DSP_conv_update_key);
+    DSP_set_clear_history((DSP*)conv->parent.device, DSP_conv_clear_history);
+    Device_set_reset(conv->parent.device, DSP_conv_reset);
+    Device_set_sync(conv->parent.device, DSP_conv_sync);
+    Device_set_update_key(conv->parent.device, DSP_conv_update_key);
     Device_set_update_state_key(
-            &conv->parent.parent,
+            conv->parent.device,
             DSP_conv_update_state_key);
     Device_set_mix_rate_changer(
-            &conv->parent.parent,
+            conv->parent.device,
             DSP_conv_set_mix_rate);
 
     conv->ir = NULL;
@@ -151,8 +162,8 @@ DSP* new_DSP_conv(uint32_t buffer_size, uint32_t mix_rate)
     conv->history_pos = 0;
     conv->ir_rate = 48000;
 
-    Device_register_port(&conv->parent.parent, DEVICE_PORT_TYPE_RECEIVE, 0);
-    Device_register_port(&conv->parent.parent, DEVICE_PORT_TYPE_SEND, 0);
+    Device_register_port(conv->parent.device, DEVICE_PORT_TYPE_RECEIVE, 0);
+    Device_register_port(conv->parent.device, DEVICE_PORT_TYPE_SEND, 0);
 
 #if 0
     if (!DSP_conv_set_mix_rate(&conv->parent.parent, mix_rate))
@@ -183,7 +194,7 @@ static Device_state* DSP_conv_create_state(
     cstate->parent.parent.destroy = del_Conv_state;
     cstate->history = NULL;
 
-    DSP_conv* conv = (DSP_conv*)device;
+    DSP_conv* conv = (DSP_conv*)device->dimpl;
 
     const long buf_size = conv->max_ir_len * audio_rate;
     cstate->history = new_Audio_buffer(buf_size);
@@ -202,11 +213,11 @@ static void DSP_conv_reset(Device* device, Device_states* dstates)
     assert(dstates != NULL);
 
     DSP_reset(device, dstates);
-    DSP_conv* conv = (DSP_conv*)device;
+    DSP_conv* conv = (DSP_conv*)device->dimpl;
     DSP_state* dsp_state = (DSP_state*)Device_states_get_state(
             dstates,
             Device_get_id(device));
-    DSP_conv_clear_history(&conv->parent, dsp_state);
+    DSP_conv_clear_history((DSP*)conv->parent.device, dsp_state);
 
     return;
 }
@@ -228,7 +239,7 @@ static bool DSP_conv_sync(Device* device, Device_states* dstates)
 static void DSP_conv_clear_history(DSP* dsp, DSP_state* dsp_state)
 {
     assert(dsp != NULL);
-    assert(string_eq(dsp->type, "convolution"));
+    //assert(string_eq(dsp->type, "convolution"));
     assert(dsp_state != NULL);
 
     Conv_state* cstate = (Conv_state*)dsp_state;
@@ -245,8 +256,8 @@ static bool DSP_conv_update_key(Device* device, const char* key)
     assert(device != NULL);
     assert(key != NULL);
 
-    DSP_conv* conv = (DSP_conv*)device;
-    Device_params* params = conv->parent.conf->params;
+    DSP_conv* conv = (DSP_conv*)device->dimpl;
+    Device_params* params = ((DSP*)conv->parent.device)->conf->params;
 
     if (string_eq(key, "p_max_ir_len.jsonf"))
     {
@@ -291,7 +302,7 @@ static bool DSP_conv_set_mix_rate(
     assert(dstates != NULL);
     assert(mix_rate > 0);
 
-    DSP_conv* conv = (DSP_conv*)device;
+    DSP_conv* conv = (DSP_conv*)device->dimpl;
     Conv_state* cstate = (Conv_state*)Device_states_get_state(
             dstates,
             Device_get_id(device));
@@ -345,13 +356,13 @@ static void DSP_conv_set_ir(DSP_conv* conv)
 {
     assert(conv != NULL);
 
-    if (conv->parent.conf == NULL)
+    if (((DSP*)conv->parent.device)->conf == NULL)
     {
         conv->actual_ir_len = 0;
         return;
     }
 
-    Device_params* params = conv->parent.conf->params;
+    Device_params* params = ((DSP*)conv->parent.device)->conf->params;
     assert(params != NULL);
 
     Sample* sample = Device_params_get_sample(params, "p_ir.wv");
@@ -435,9 +446,8 @@ static void DSP_conv_process(
             dstates,
             Device_get_id(device));
 
-    DSP_conv* conv = (DSP_conv*)device;
-    assert(string_eq(conv->parent.type, "convolution"));
-    DSP_conv_check_params(conv);
+    DSP_conv* conv = (DSP_conv*)device->dimpl;
+    //assert(string_eq(conv->parent.type, "convolution"));
     kqt_frame* in_data[] = { NULL, NULL };
     kqt_frame* out_data[] = { NULL, NULL };
     DSP_get_raw_input(&cstate->parent.parent, 0, in_data);
@@ -484,22 +494,13 @@ static void DSP_conv_process(
 }
 
 
-static void DSP_conv_check_params(DSP_conv* conv)
+static void del_DSP_conv(Device_impl* dsp_impl)
 {
-    assert(conv != NULL);
-    assert(conv->parent.conf != NULL);
-    (void)conv;
-    return;
-}
-
-
-static void del_DSP_conv(DSP* dsp)
-{
-    if (dsp == NULL)
+    if (dsp_impl == NULL)
         return;
 
-    assert(string_eq(dsp->type, "convolution"));
-    DSP_conv* conv = (DSP_conv*)dsp;
+    //assert(string_eq(dsp->type, "convolution"));
+    DSP_conv* conv = (DSP_conv*)dsp_impl;
     del_Audio_buffer(conv->ir);
     memory_free(conv);
 
