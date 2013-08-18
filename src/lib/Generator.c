@@ -91,6 +91,9 @@ Generator* new_Generator(
     gen->ins_params = ins_params;
     gen->conf = NULL;
 
+    gen->init_vstate = NULL;
+    gen->mix = NULL;
+
     Device_set_state_creator(
             &gen->parent,
             Generator_create_state_plain);

@@ -338,6 +338,8 @@ void del_Device_impl(Device_impl* dimpl)
     if (dimpl == NULL)
         return;
 
+    Device_impl_deinit(dimpl);
+
     assert(dimpl->destroy != NULL);
     dimpl->destroy(dimpl);
 
