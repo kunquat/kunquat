@@ -52,10 +52,12 @@ bool DSP_conf_parse(DSP_conf* conf,
     assert((data == NULL) == (length == 0));
     assert(length >= 0);
     assert(state != NULL);
+    (void)device;
     if (state->error)
     {
         return false;
     }
+#if 0
     if ((string_has_prefix(key, "i/") || string_has_prefix(key, "c/")) &&
             key_is_device_param(key))
     {
@@ -75,6 +77,7 @@ bool DSP_conf_parse(DSP_conf* conf,
         }
         return true;
     }
+#endif
     return true;
 }
 

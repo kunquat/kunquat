@@ -45,7 +45,6 @@ struct Device
     void (*reset)(struct Device*, Device_states*);
     bool (*sync)(struct Device*, Device_states*);
     bool (*update_key)(struct Device*, const char*);
-    bool (*update_state_key)(struct Device*, Device_states*, const char*);
     void (*process)(
             struct Device*,
             Device_states*,
@@ -188,18 +187,6 @@ void Device_set_update_key(
 
 
 /**
- * Sets the update state notification function of the Device.
- *
- * \param device             The Device -- must not be \c NULL.
- * \param update_state_key   The update state notification function
- *                           -- must not be \c NULL.
- */
-void Device_set_update_state_key(
-        Device* device,
-        bool (*update_state_key)(Device*, Device_states*, const char*));
-
-
-/**
  * Sets the process function of the Device.
  *
  * \param device    The Device -- must not be \c NULL.
@@ -328,14 +315,35 @@ bool Device_sync(Device* device, Device_states* dstates);
 
 
 /**
- * Notifies the Device of a key change and updates the internal state.
+ * Sets a key in the Device.
  *
  * \param device   The Device -- must not be \c NULL.
  * \param key      The key that changed -- must not be \c NULL.
+ * \param data     The data -- must not be \c NULL unless \a length == \c 0.
+ * \param length   The length of \a data -- must be >= \c 0.
+ * \param rs       The Read state -- must not be \c NULL.
  *
  * \return   \c true if successful, or \c false if a fatal error occurred.
  */
-bool Device_update_key(Device* device, const char* key);
+bool Device_set_key(
+        Device* device,
+        const char* key,
+        void* data,
+        long length,
+        Read_state* rs);
+
+
+/**
+ * Notifies a Device state of a Device key change.
+ *
+ * \param device    The Device -- must not be \c NULL.
+ * \param key       The key -- must be valid.
+ * \param dstates   The Device state collection -- must not be \c NULL.
+ */
+void Device_notify_key_change(
+        const Device* device,
+        const char* key,
+        Device_states* dstates);
 
 
 /**

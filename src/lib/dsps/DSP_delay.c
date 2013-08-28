@@ -121,14 +121,11 @@ static Device_state* DSP_delay_create_state(
         int32_t audio_rate,
         int32_t audio_buffer_size);
 
-static void DSP_delay_reset(Device* device, Device_states* dstates);
+static void DSP_delay_reset(const Device_impl* dimpl, Device_state* dstate);
+
 static void DSP_delay_clear_history(DSP* dsp, DSP_state* dsp_state);
 static bool DSP_delay_sync(Device* device, Device_states* dstates);
 static bool DSP_delay_update_key(Device* device, const char* key);
-static bool DSP_delay_update_state_key(
-        Device* device,
-        Device_states* dstates,
-        const char* key);
 static bool DSP_delay_set_mix_rate(
         Device* device,
         Device_states* dstates,
@@ -177,13 +174,11 @@ Device_impl* new_DSP_delay(DSP* dsp, uint32_t buffer_size, uint32_t mix_rate)
 
     Device_set_state_creator(delay->parent.device, DSP_delay_create_state);
 
+    Device_impl_register_reset_device_state(&delay->parent, DSP_delay_reset);
+
     DSP_set_clear_history((DSP*)delay->parent.device, DSP_delay_clear_history);
-    Device_set_reset(delay->parent.device, DSP_delay_reset);
     Device_set_sync(delay->parent.device, DSP_delay_sync);
     Device_set_update_key(delay->parent.device, DSP_delay_update_key);
-    Device_set_update_state_key(
-            delay->parent.device,
-            DSP_delay_update_state_key);
     Device_set_mix_rate_changer(
             delay->parent.device,
             DSP_delay_set_mix_rate);
@@ -241,16 +236,14 @@ static Device_state* DSP_delay_create_state(
 }
 
 
-static void DSP_delay_reset(Device* device, Device_states* dstates)
+static void DSP_delay_reset(const Device_impl* dimpl, Device_state* dstate)
 {
-    assert(device != NULL);
-    assert(dstates != NULL);
+    assert(dimpl != NULL);
+    assert(dstate != NULL);
 
-    DSP_reset(device, dstates);
-    DSP_delay* delay = (DSP_delay*)device->dimpl;
-    DSP_state* dsp_state = (DSP_state*)Device_states_get_state(
-            dstates,
-            Device_get_id(device));
+    DSP_delay* delay = (DSP_delay*)dimpl;
+    DSP_state* dsp_state = (DSP_state*)dstate;
+
     DSP_delay_clear_history((DSP*)delay->parent.device, dsp_state);
 
     return;
@@ -300,27 +293,6 @@ static bool DSP_delay_update_key(Device* device, const char* key)
     }
 
     return true;
-}
-
-
-static bool DSP_delay_update_state_key(
-        Device* device,
-        Device_states* dstates,
-        const char* key)
-{
-    assert(device != NULL);
-    assert(dstates != NULL);
-    assert(key != NULL);
-    (void)key;
-
-    Device_state* dev_state = Device_states_get_state(
-            dstates,
-            Device_get_id(device));
-
-    return DSP_delay_set_mix_rate(
-            device,
-            dstates,
-            dev_state->audio_rate);
 }
 
 

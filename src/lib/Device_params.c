@@ -88,10 +88,8 @@ static void del_Slow_sync_info(Slow_sync_info* info)
 
 struct Device_params
 {
-    AAtree* implement;       ///< The implementation part of the generator.
-    AAtree* config;          ///< The configuration part of the generator.
-    AAtree* event_data;      ///< The playback state of the parameters.
-    AAiter* event_data_iter; ///< Iterator used by Device_params_reset.
+    AAtree* implement;       ///< The implementation part of the device.
+    AAtree* config;          ///< The configuration part of the device.
     AAtree* slow_sync;       ///< Keys that require explicit synchronisation.
     AAiter* slow_sync_iter;  ///< Iterator for slow_sync.
     bool slow_sync_needed;   ///< Whether any slow-sync keys have changed.
@@ -137,46 +135,45 @@ Device_params* new_Device_params(void)
 {
     Device_params* params = memory_alloc_item(Device_params);
     if (params == NULL)
-    {
         return NULL;
-    }
+
     params->implement = NULL;
     params->config = NULL;
-    params->event_data = NULL;
-    params->event_data_iter = NULL;
     params->slow_sync = NULL;
     params->slow_sync_iter = NULL;
     params->slow_sync_needed = false;
     params->slow_sync_keys_requested = false;
 
-    params->implement = new_AAtree((int (*)(const void*, const void*))strcmp,
-                                   (void (*)(void*))del_Device_field);
-    params->config = new_AAtree((int (*)(const void*, const void*))strcmp,
-                                (void (*)(void*))del_Device_field);
-    params->event_data = new_AAtree((int (*)(const void*, const void*))strcmp,
-                                    (void (*)(void*))del_Device_field);
-    params->event_data_iter = new_AAiter(params->event_data);
-    params->slow_sync = new_AAtree((int (*)(const void*, const void*))strcmp,
-                                   (void (*)(void*))del_Slow_sync_info);
+    params->implement = new_AAtree(
+            (int (*)(const void*, const void*))strcmp,
+            (void (*)(void*))del_Device_field);
+    params->config = new_AAtree(
+            (int (*)(const void*, const void*))strcmp,
+            (void (*)(void*))del_Device_field);
+    params->slow_sync = new_AAtree(
+            (int (*)(const void*, const void*))strcmp,
+            (void (*)(void*))del_Slow_sync_info);
     params->slow_sync_iter = new_AAiter(params->slow_sync);
 //    params->event_names = new_AAtree((int (*)(const void*, const void*))strcmp,
 //                                     memory_free);
     if (params->implement == NULL || params->config == NULL ||
-            params->event_data == NULL || params->event_data_iter == NULL ||
             params->slow_sync == NULL || params->slow_sync_iter == NULL)
 //             || params->event_names == NULL)
     {
         del_Device_params(params);
         return NULL;
     }
+
     return params;
 }
 
 
+#if 0
 bool Device_params_set_key(Device_params* params, const char* key)
 {
     assert(params != NULL);
     assert(key != NULL);
+
     if (AAtree_get_exact(params->event_data, key) != NULL)
     {
         return true;
@@ -193,6 +190,7 @@ bool Device_params_set_key(Device_params* params, const char* key)
     }
     return true;
 }
+#endif
 
 
 bool Device_params_set_slow_sync(Device_params* params, const char* key)
@@ -267,6 +265,7 @@ void Device_params_synchronised(Device_params* params)
 }
 
 
+#if 0
 #define clean_if_fail()                                 \
     if (true)                                           \
     {                                                   \
@@ -427,13 +426,15 @@ bool Device_params_parse_events(Device_params* params,
 }
 
 #undef clean_if_fail
+#endif
 
 
-bool Device_params_parse_value(Device_params* params,
-                               const char* key,
-                               void* data,
-                               long length,
-                               Read_state* state)
+bool Device_params_parse_value(
+        Device_params* params,
+        const char* key,
+        void* data,
+        long length,
+        Read_state* state)
 {
     assert(params != NULL);
     assert(key != NULL);
@@ -442,10 +443,10 @@ bool Device_params_parse_value(Device_params* params,
     assert(state != NULL);
     assert(string_has_prefix(key, "i/") || string_has_prefix(key, "c/"));
     assert(key_is_device_param(key));
+
     if (state->error)
-    {
         return false;
-    }
+
     AAtree* tree = NULL;
     if (string_has_prefix(key, "i/"))
     {
@@ -461,6 +462,7 @@ bool Device_params_parse_value(Device_params* params,
     {
         assert(false);
     }
+
     assert(tree != NULL);
     Device_field* field = AAtree_get_exact(tree, key);
     bool success = true;
@@ -472,15 +474,15 @@ bool Device_params_parse_value(Device_params* params,
     {
         field = new_Device_field_from_data(key, data, length, state);
         if (field == NULL)
-        {
             return false;
-        }
+
         if (!AAtree_ins(tree, field))
         {
             del_Device_field(field);
             return false;
         }
     }
+
     if (success && AAtree_contains(params->slow_sync, key))
     {
         Slow_sync_info* info = AAtree_get_exact(params->slow_sync, key);
@@ -488,10 +490,12 @@ bool Device_params_parse_value(Device_params* params,
         info->sync_needed = true;
         params->slow_sync_needed = true;
     }
+
     return success;
 }
 
 
+#if 0
 bool Device_params_modify_value(Device_params* params,
                                 const char* key,
                                 void* data)
@@ -525,16 +529,13 @@ void Device_params_reset(Device_params* params)
     }
     return;
 }
+#endif
 
 
 #define get_of_type(params, key, ftype)                                      \
     if (true)                                                                \
     {                                                                        \
-        Device_field* field = AAtree_get_exact((params)->event_data, (key)); \
-        if (field != NULL && !Device_field_get_empty(field))                 \
-            return Device_field_get_ ## ftype(field);                        \
-                                                                             \
-        field = AAtree_get_exact(params->config, (key));                     \
+        Device_field* field = AAtree_get_exact(params->config, (key));       \
         if (field != NULL)                                                   \
             return Device_field_get_ ## ftype(field);                        \
                                                                              \
@@ -717,8 +718,6 @@ void del_Device_params(Device_params* params)
 
     del_AAtree(params->implement);
     del_AAtree(params->config);
-    del_AAtree(params->event_data);
-    del_AAiter(params->event_data_iter);
     del_AAtree(params->slow_sync);
     del_AAiter(params->slow_sync_iter);
 #if 0

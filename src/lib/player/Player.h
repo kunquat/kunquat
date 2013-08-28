@@ -20,6 +20,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include <File_base.h>
 #include <kunquat/limits.h>
 #include <Module.h>
 #include <player/Event_handler.h>
@@ -78,14 +79,19 @@ bool Player_reserve_voice_state_space(Player* player, size_t size);
 
 
 /**
- * Adds a key into Channel-specific generator parameter dictionaries.
+ * Allocates memory for a list of Channel-specific generator variables.
  *
  * \param player   The Player -- must not be \c NULL.
- * \param key      The key -- must not be \c NULL.
+ * \param str      The list of keys as a JSON string, or \c NULL. TODO: make const
+ * \param rs       The Read state -- must not be \c NULL.
  *
- * \return   \c true if successful, or \c false if memory allocation failed.
+ * \return   \c true if successful, otherwise \c false. \a rs will _not_ be
+ *           modified if memory allocation failed.
  */
-bool Player_add_channel_gen_state_key(Player* player, const char* key);
+bool Player_alloc_channel_gen_state_keys(
+        Player* player,
+        char* str,
+        Read_state* rs);
 
 
 /**

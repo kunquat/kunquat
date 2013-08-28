@@ -20,7 +20,24 @@
 #include <Device.h>
 #include <Device_impl.h>
 #include <math_common.h>
+#include <string_common.h>
 #include <xassert.h>
+
+
+void Device_reset_default(Device* device, Device_states* dstates)
+{
+    assert(device != NULL);
+    assert(dstates != NULL);
+
+    if (device->dimpl != NULL)
+    {
+        Device_state* dstate = Device_states_get_state(
+                dstates, Device_get_id(device));
+        Device_impl_reset_device_state(device->dimpl, dstate);
+    }
+
+    return;
+}
 
 
 bool Device_init(Device* device, uint32_t buffer_size, uint32_t mix_rate)
@@ -44,10 +61,9 @@ bool Device_init(Device* device, uint32_t buffer_size, uint32_t mix_rate)
     device->create_state = new_Device_state_plain;
     device->set_mix_rate = NULL;
     device->set_buffer_size = NULL;
-    device->reset = NULL;
+    device->reset = Device_reset_default;
     device->sync = NULL;
     device->update_key = NULL;
-    device->update_state_key = NULL;
     device->process = NULL;
 
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
@@ -151,7 +167,9 @@ void Device_set_reset(Device* device, void (*reset)(Device*, Device_states*))
 {
     assert(device != NULL);
     assert(reset != NULL);
+
     device->reset = reset;
+
     return;
 }
 
@@ -160,7 +178,9 @@ void Device_set_sync(Device* device, bool (*sync)(Device*, Device_states*))
 {
     assert(device != NULL);
     assert(sync != NULL);
+
     device->sync = sync;
+
     return;
 }
 
@@ -172,17 +192,6 @@ void Device_set_update_key(
     assert(device != NULL);
     assert(update_key != NULL);
     device->update_key = update_key;
-    return;
-}
-
-
-void Device_set_update_state_key(
-        Device* device,
-        bool (*update_state_key)(Device*, Device_states*, const char*))
-{
-    assert(device != NULL);
-    assert(update_state_key != NULL);
-    device->update_state_key = update_state_key;
     return;
 }
 
@@ -322,35 +331,51 @@ bool Device_sync(Device* device, Device_states* dstates)
 }
 
 
-bool Device_update_key(Device* device, const char* key)
+bool Device_set_key(
+        Device* device,
+        const char* key,
+        void* data,
+        long length,
+        Read_state* rs)
 {
     assert(device != NULL);
     assert(key != NULL);
+    assert(string_has_prefix(key, "i/") || string_has_prefix(key, "c/"));
+    assert(data != NULL || length == 0);
+    assert(length >= 0);
+    assert(rs != NULL);
 
-    // TODO: obsolete, remove
-    if (device->update_key != NULL)
-        return device->update_key(device, key);
+    if (rs->error)
+        return false;
+
+    if (!Device_params_parse_value(device->dparams, key, data, length, rs))
+        return false;
 
     if (device->dimpl != NULL)
-        return Device_impl_update_key(device->dimpl, key);
+        return Device_impl_set_key(device->dimpl, key + 2);
 
     return true;
 }
 
 
-bool Device_update_state_key(
-        Device* device,
-        Device_states* dstates,
-        const char* key)
+void Device_notify_key_change(
+        const Device* device,
+        const char* key,
+        Device_states* dstates)
 {
     assert(device != NULL);
-    assert(dstates != NULL);
     assert(key != NULL);
+    assert(string_has_prefix(key, "i/") || string_has_prefix(key, "c/"));
+    assert(dstates != NULL);
 
-    if (device->update_state_key != NULL)
-        return device->update_state_key(device, dstates, key);
+    if (device->dimpl != NULL)
+    {
+        Device_state* dstate = Device_states_get_state(
+                dstates, Device_get_id(device));
+        Device_impl_notify_key_change(device->dimpl, key + 2, dstate);
+    }
 
-    return true;
+    return;
 }
 
 

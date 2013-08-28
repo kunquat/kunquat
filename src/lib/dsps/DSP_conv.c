@@ -87,14 +87,11 @@ static Device_state* DSP_conv_create_state(
 
 static void DSP_conv_set_ir(DSP_conv* conv);
 
-static void DSP_conv_reset(Device* device, Device_states* dstates);
+static void DSP_conv_reset(const Device_impl* dimpl, Device_state* dstate);
+
 static bool DSP_conv_sync(Device* device, Device_states* dstates);
 static void DSP_conv_clear_history(DSP* dsp, DSP_state* dsp_state);
 static bool DSP_conv_update_key(Device* device, const char* key);
-static bool DSP_conv_update_state_key(
-        Device* device,
-        Device_states* dstates,
-        const char* key);
 static bool DSP_conv_set_mix_rate(
         Device* device,
         Device_states* dstates,
@@ -145,13 +142,11 @@ Device_impl* new_DSP_conv(DSP* dsp, uint32_t buffer_size, uint32_t mix_rate)
 
     Device_set_state_creator(conv->parent.device, DSP_conv_create_state);
 
+    Device_impl_register_reset_device_state(&conv->parent, DSP_conv_reset);
+
     DSP_set_clear_history((DSP*)conv->parent.device, DSP_conv_clear_history);
-    Device_set_reset(conv->parent.device, DSP_conv_reset);
     Device_set_sync(conv->parent.device, DSP_conv_sync);
     Device_set_update_key(conv->parent.device, DSP_conv_update_key);
-    Device_set_update_state_key(
-            conv->parent.device,
-            DSP_conv_update_state_key);
     Device_set_mix_rate_changer(
             conv->parent.device,
             DSP_conv_set_mix_rate);
@@ -207,16 +202,13 @@ static Device_state* DSP_conv_create_state(
 }
 
 
-static void DSP_conv_reset(Device* device, Device_states* dstates)
+static void DSP_conv_reset(const Device_impl* dimpl, Device_state* dstate)
 {
-    assert(device != NULL);
-    assert(dstates != NULL);
+    assert(dimpl != NULL);
+    assert(dstate != NULL);
 
-    DSP_reset(device, dstates);
-    DSP_conv* conv = (DSP_conv*)device->dimpl;
-    DSP_state* dsp_state = (DSP_state*)Device_states_get_state(
-            dstates,
-            Device_get_id(device));
+    DSP_conv* conv = (DSP_conv*)dimpl;
+    DSP_state* dsp_state = (DSP_state*)dstate;
     DSP_conv_clear_history((DSP*)conv->parent.device, dsp_state);
 
     return;
@@ -272,24 +264,6 @@ static bool DSP_conv_update_key(Device* device, const char* key)
     }
 
     return true;
-}
-
-
-static bool DSP_conv_update_state_key(
-        Device* device,
-        Device_states* dstates,
-        const char* key)
-{
-    assert(device != NULL);
-    assert(dstates != NULL);
-    assert(key != NULL);
-    (void)key;
-
-    Device_state* dev_state = Device_states_get_state(
-            dstates,
-            Device_get_id(device));
-
-    return DSP_conv_set_mix_rate(device, dstates, dev_state->audio_rate);
 }
 
 

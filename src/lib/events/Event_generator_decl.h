@@ -19,7 +19,9 @@
 #include <stdbool.h>
 
 #include <Generator.h>
+#include <Device_impl.h>
 #include <player/Channel.h>
+#include <player/Device_state.h>
 #include <Value.h>
 
 
@@ -27,7 +29,8 @@
 
 #define EVENT_TYPE_DEF(type)               \
     bool Event_generator_##type##_process( \
-            Generator* gen,                \
+            const Device_impl* dimpl,      \
+            Device_state* dstate,          \
             Channel* ch,                   \
             Value* value);
 #include <events/Event_generator_types.h>

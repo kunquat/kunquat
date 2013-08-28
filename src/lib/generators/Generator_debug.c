@@ -31,7 +31,10 @@ typedef struct Generator_debug
 } Generator_debug;
 
 
-static bool Generator_debug_update_key(Device* device, const char* key);
+static bool Generator_debug_set_single_pulse(
+        Device_impl* dimpl,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        bool value);
 
 static uint32_t Generator_debug_mix(
         const Generator* gen,
@@ -78,7 +81,16 @@ Device_impl* new_Generator_debug(Generator* gen, uint32_t buffer_size, uint32_t 
     }
 #endif
 
-    Device_set_update_key(debug->parent.device, Generator_debug_update_key);
+    if (!Device_impl_register_set_bool(
+                &debug->parent,
+                "p_single_pulse.jsonb",
+                false,
+                Generator_debug_set_single_pulse))
+    {
+        del_Generator_debug(&debug->parent);
+        return NULL;
+    }
+
     debug->single_pulse = false;
 
     return &debug->parent;
@@ -178,19 +190,17 @@ static uint32_t Generator_debug_mix(
 }
 
 
-static bool Generator_debug_update_key(Device* device, const char* key)
+static bool Generator_debug_set_single_pulse(
+        Device_impl* dimpl,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        bool value)
 {
-    assert(device != NULL);
-    assert(key != NULL);
+    assert(dimpl != NULL);
+    assert(indices != NULL);
+    (void)indices;
 
-    Generator_debug* debug = (Generator_debug*)device->dimpl;
-    Device_params* params = ((Generator*)device)->conf->params;
-    if (string_eq(key, "p_single_pulse.jsonb"))
-    {
-        bool* value = Device_params_get_bool(params, key);
-        if (value != NULL)
-            debug->single_pulse = *value;
-    }
+    Generator_debug* debug = (Generator_debug*)dimpl;
+    debug->single_pulse = value;
 
     return true;
 }

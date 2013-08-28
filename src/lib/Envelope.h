@@ -87,7 +87,7 @@ char* Envelope_read(Envelope* env, char* str, Read_state* state);
  *
  * \return   The number of nodes.
  */
-int Envelope_node_count(Envelope* env);
+int Envelope_node_count(const Envelope* env);
 
 
 /**
@@ -106,7 +106,7 @@ void Envelope_set_interp(Envelope* env, Envelope_int interp);
  *
  * \return   The current interpolation method.
  */
-Envelope_int Envelope_get_interp(Envelope* env);
+Envelope_int Envelope_get_interp(const Envelope* env);
 
 
 /**
@@ -129,7 +129,7 @@ void Envelope_set_mark(Envelope* env, int index, int value);
  *
  * \return   The value of the mark, or a negative value if unset.
  */
-int Envelope_get_mark(Envelope* env, int index);
+int Envelope_get_mark(const Envelope* env, int index);
 
 
 /**
@@ -169,7 +169,7 @@ bool Envelope_del_node(Envelope* env, int index);
  * \return   The array containing the x and y coordinates of the node, or
  *           \c NULL if the node doesn't exist.
  */
-double* Envelope_get_node(Envelope* env, int index);
+double* Envelope_get_node(const Envelope* env, int index);
 
 
 /**
@@ -195,7 +195,7 @@ double* Envelope_move_node(Envelope* env, int index, double x, double y);
  * \return   The value of y at the position \a x, or \c NAN if the Envelope
  *           is undefined at \a x.
  */
-double Envelope_get_value(Envelope* env, double x);
+double Envelope_get_value(const Envelope* env, double x);
 
 
 /**

@@ -35,9 +35,11 @@
 struct Device_impl
 {
     Device* device;
-    AAtree* update_cbs;
+    AAtree* set_cbs;
+    AAtree* update_state_cbs;
 
-    void (*destroy)(Device_impl* dimpl);
+    void (*reset)(const Device_impl*, Device_state*);
+    void (*destroy)(Device_impl*);
 };
 
 
@@ -58,7 +60,18 @@ bool Device_impl_init(
 
 
 /**
- * Registers boolean value update functions.
+ * Registers a Device state reset function.
+ *
+ * \param dimpl   The Device implementation -- must not be \c NULL.
+ * \param reset   The reset function -- must not be \c NULL.
+ */
+void Device_impl_register_reset_device_state(
+        Device_impl* dimpl,
+        void (*reset)(const Device_impl*, Device_state*));
+
+
+/**
+ * Registers a boolean value set function.
  *
  * The key pattern may contain \c 0 to \c DEVICE_KEY_INDICES_MAX sequences of
  * XX* which are matched against hexadecimal numbers of actual keys. Example:
@@ -77,21 +90,109 @@ bool Device_impl_init(
  *    echo_eff/tap_XX/p_volume.jsonf <- Invalid: eff is interpreted as hex
  *    echo_XXX/tap_XX/p_volume.jsonf <- The above would get confused with this
  *
- * \param dimpl          The Device implementation -- must not be \c NULL.
- * \param keyp           The key pattern -- must not be \c NULL.
- * \param default_val    The default value passed to callbacks.
- * \param update_dev     The Device implementation update callback function
- *                       -- must not be \c NULL.
- * \param update_state   The Device state update callback function, or
- *                       \c NULL if not required for the key pattern.
+ * \param dimpl         The Device implementation -- must not be \c NULL.
+ * \param keyp          The key pattern -- must not be \c NULL.
+ * \param default_val   The default value passed to callbacks.
+ * \param set_func      The set function -- must not be \c NULL.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Device_impl_register_update_bool(
+bool Device_impl_register_set_bool(
         Device_impl* dimpl,
         const char* keyp,
         bool default_val,
-        bool (*update)(Device_impl*, int32_t[DEVICE_KEY_INDICES_MAX], bool),
+        bool (*set_func)(
+            Device_impl*,
+            int32_t[DEVICE_KEY_INDICES_MAX],
+            bool));
+
+
+/**
+ * Registers a float value set function.
+ *
+ * See \a Device_impl_register_set_bool for a detailed description of the
+ * \a keyp argument.
+ *
+ * \param dimpl         The Device implementation -- must not be \c NULL.
+ * \param keyp          The key pattern -- must not be \c NULL.
+ * \param default_val   The default value passed to callbacks.
+ * \param set_func      The set function -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Device_impl_register_set_float(
+        Device_impl* dimpl,
+        const char* keyp,
+        double default_val,
+        bool (*set_func)(
+            Device_impl*,
+            int32_t[DEVICE_KEY_INDICES_MAX],
+            double));
+
+
+/**
+ * Registers an integer value set function.
+ *
+ * See \a Device_impl_register_set_bool for a detailed description of the
+ * \a keyp argument.
+ *
+ * \param dimpl         The Device implementation -- must not be \c NULL.
+ * \param keyp          The key pattern -- must not be \c NULL.
+ * \param default_val   The default value passed to callbacks.
+ * \param set_func      The set function -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Device_impl_register_set_int(
+        Device_impl* dimpl,
+        const char* keyp,
+        int64_t default_val,
+        bool (*set_func)(
+            Device_impl*,
+            int32_t[DEVICE_KEY_INDICES_MAX],
+            int64_t));
+
+
+/**
+ * Registers a timestamp value set function.
+ *
+ * See \a Device_impl_register_set_bool for a detailed description of the
+ * \a keyp argument.
+ *
+ * \param dimpl         The Device implementation -- must not be \c NULL.
+ * \param keyp          The key pattern -- must not be \c NULL.
+ * \param default_val   The default value passed to callbacks
+ *                      -- must not be \c NULL.
+ * \param set_func      The set function -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Device_impl_register_set_tstamp(
+        Device_impl* dimpl,
+        const char* keyp,
+        const Tstamp* default_val,
+        bool (*set_func)(
+            Device_impl*,
+            int32_t[DEVICE_KEY_INDICES_MAX],
+            const Tstamp*));
+
+
+/**
+ * Registers a boolean value state update function.
+ *
+ * See \a Device_impl_register_set_bool for a detailed description of the
+ * \a keyp argument.
+ *
+ * \param dimpl          The Device implementation -- must not be \c NULL.
+ * \param keyp           The key pattern -- must not be \c NULL.
+ * \param update_state   The Device state update callback function
+ *                       -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Device_impl_register_update_state_bool(
+        Device_impl* dimpl,
+        const char* keyp,
         bool (*update_state)(
             const Device_impl*,
             Device_state*,
@@ -100,26 +201,21 @@ bool Device_impl_register_update_bool(
 
 
 /**
- * Registers float value update functions.
+ * Registers a float value state update function.
  *
- * See \a Device_impl_register_update_bool for detailed description of the
+ * See \a Device_impl_register_set_bool for a detailed description of the
  * \a keyp argument.
  *
  * \param dimpl          The Device implementation -- must not be \c NULL.
  * \param keyp           The key pattern -- must not be \c NULL.
- * \param default_val    The default value passed to callbacks.
- * \param update_dev     The Device implementation update callback function
+ * \param update_state   The Device state update callback function
  *                       -- must not be \c NULL.
- * \param update_state   The Device state update callback function, or
- *                       \c NULL if not required for the key pattern.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Device_impl_register_update_float(
+bool Device_impl_register_update_state_float(
         Device_impl* dimpl,
         const char* keyp,
-        double default_val,
-        bool (*update)(Device_impl*, int32_t[DEVICE_KEY_INDICES_MAX], double),
         bool (*update_state)(
             const Device_impl*,
             Device_state*,
@@ -128,26 +224,21 @@ bool Device_impl_register_update_float(
 
 
 /**
- * Registers integer value update functions.
+ * Registers a integer value state update function.
  *
- * See \a Device_impl_register_update_bool for detailed description of the
+ * See \a Device_impl_register_set_bool for a detailed description of the
  * \a keyp argument.
  *
  * \param dimpl          The Device implementation -- must not be \c NULL.
  * \param keyp           The key pattern -- must not be \c NULL.
- * \param default_val    The default value passed to callbacks.
- * \param update_dev     The Device implementation update callback function
+ * \param update_state   The Device state update callback function
  *                       -- must not be \c NULL.
- * \param update_state   The Device state update callback function, or
- *                       \c NULL if not required for the key pattern.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Device_impl_register_update_int(
+bool Device_impl_register_update_state_int(
         Device_impl* dimpl,
         const char* keyp,
-        int64_t default_val,
-        bool (*update)(Device_impl*, int32_t[DEVICE_KEY_INDICES_MAX], int64_t),
         bool (*update_state)(
             const Device_impl*,
             Device_state*,
@@ -156,30 +247,21 @@ bool Device_impl_register_update_int(
 
 
 /**
- * Registers timestamp value update functions.
+ * Registers a timestamp value state update function.
  *
- * See \a Device_impl_register_update_bool for detailed description of the
+ * See \a Device_impl_register_set_bool for a detailed description of the
  * \a keyp argument.
  *
  * \param dimpl          The Device implementation -- must not be \c NULL.
  * \param keyp           The key pattern -- must not be \c NULL.
- * \param default_val    The default value passed to callbacks
- *                       -- must not be \c NULL
- * \param update_dev     The Device implementation update callback function
+ * \param update_state   The Device state update callback function
  *                       -- must not be \c NULL.
- * \param update_state   The Device state update callback function, or
- *                       \c NULL if not required for the key pattern.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Device_impl_register_update_tstamp(
+bool Device_impl_register_update_state_tstamp(
         Device_impl* dimpl,
         const char* keyp,
-        const Tstamp* default_val,
-        bool (*update)(
-            Device_impl*,
-            int32_t[DEVICE_KEY_INDICES_MAX],
-            const Tstamp*),
         bool (*update_state)(
             const Device_impl*,
             Device_state*,
@@ -188,11 +270,108 @@ bool Device_impl_register_update_tstamp(
 
 
 /**
- * Updates a key in the Device implementation.
+ * Resets a Device state.
  *
- * TODO: api
+ * \param dimpl    The Device implementation -- must not be \c NULL.
+ * \param dstate   The Device state -- must not be \c NULL.
  */
-bool Device_impl_update_key(Device_impl* dimpl, const char* key);
+void Device_impl_reset_device_state(
+        const Device_impl* dimpl,
+        Device_state* dstate);
+
+
+/**
+ * Sets a key in the Device implementation.
+ *
+ * The actual data is retrieved from device parameters.
+ *
+ * \param dimpl   The Device implementation -- must not be \c NULL.
+ * \param key     The key -- must be valid.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Device_impl_set_key(Device_impl* dimpl, const char* key);
+
+
+/**
+ * Notifies a Device state of a Device implementation key change.
+ *
+ * \param dimpl    The Device implementation -- must not be \c NULL.
+ * \param key      The key -- must be valid.
+ * \param dstate   The Device state -- must not be \c NULL.
+ */
+void Device_impl_notify_key_change(
+        const Device_impl* dimpl,
+        const char* key,
+        Device_state* dstate);
+
+
+/**
+ * Updates a boolean value in a Device state.
+ *
+ * \param dimpl    The Device implementation -- must not be \c NULL.
+ * \param dstate   The Device state -- must not be \c NULL.
+ * \param key      The key to be updated -- must not be \c NULL.
+ * \param value    The value.
+ *
+ * \return   \c true if \a value was applied, otherwise \c false.
+ */
+bool Device_impl_update_state_bool(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        const char* key,
+        bool value);
+
+
+/**
+ * Updates a float value in a Device state.
+ *
+ * \param dimpl    The Device implementation -- must not be \c NULL.
+ * \param dstate   The Device state -- must not be \c NULL.
+ * \param key      The key to be updated -- must not be \c NULL.
+ * \param value    The value.
+ *
+ * \return   \c true if \a value was applied, otherwise \c false.
+ */
+bool Device_impl_update_state_float(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        const char* key,
+        double value);
+
+
+/**
+ * Updates a integral value in a Device state.
+ *
+ * \param dimpl    The Device implementation -- must not be \c NULL.
+ * \param dstate   The Device state -- must not be \c NULL.
+ * \param key      The key to be updated -- must not be \c NULL.
+ * \param value    The value.
+ *
+ * \return   \c true if \a value was applied, otherwise \c false.
+ */
+bool Device_impl_update_state_int(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        const char* key,
+        int64_t value);
+
+
+/**
+ * Updates a timestamp value in a Device state.
+ *
+ * \param dimpl    The Device implementation -- must not be \c NULL.
+ * \param dstate   The Device state -- must not be \c NULL.
+ * \param key      The key to be updated -- must not be \c NULL.
+ * \param value    The value -- must not be \c NULL.
+ *
+ * \return   \c true if \a value was applied, otherwise \c false.
+ */
+bool Device_impl_update_state_tstamp(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        const char* key,
+        const Tstamp* value);
 
 
 /**

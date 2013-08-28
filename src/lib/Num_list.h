@@ -46,7 +46,7 @@ Num_list* new_Num_list_from_string(char* str, Read_state* state);
  *
  * \return   The length of the list.
  */
-int32_t Num_list_length(Num_list* nl);
+int32_t Num_list_length(const Num_list* nl);
 
 
 /**
@@ -58,7 +58,7 @@ int32_t Num_list_length(Num_list* nl);
  *
  * \return   The number.
  */
-double Num_list_get_num(Num_list* nl, int32_t index);
+double Num_list_get_num(const Num_list* nl, int32_t index);
 
 
 /**

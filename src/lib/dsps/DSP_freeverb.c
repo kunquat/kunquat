@@ -160,17 +160,14 @@ static Device_state* DSP_freeverb_create_state(
         int32_t audio_rate,
         int32_t audio_buffer_size);
 
-static void DSP_freeverb_reset(Device* device, Device_states* dstates);
+static void DSP_freeverb_reset(const Device_impl* dimpl, Device_state* dstate);
+
 static void DSP_freeverb_clear_history(DSP* dsp, DSP_state* dsp_state);
 static bool DSP_freeverb_set_mix_rate(
         Device* device,
         Device_states* dstates,
         uint32_t mix_rate);
 static bool DSP_freeverb_update_key(Device* device, const char* key);
-static bool DSP_freeverb_update_state_key(
-        Device* device,
-        Device_states* dstates,
-        const char* key);
 
 static void DSP_freeverb_process(
         Device* device,
@@ -225,13 +222,13 @@ Device_impl* new_DSP_freeverb(DSP* dsp, uint32_t buffer_size, uint32_t mix_rate)
             DSP_freeverb_create_state);
 
     DSP_set_clear_history((DSP*)freeverb->parent.device, DSP_freeverb_clear_history);
+
+    Device_impl_register_reset_device_state(
+            &freeverb->parent, DSP_freeverb_reset);
+
     Device_set_mix_rate_changer(freeverb->parent.device,
                                 DSP_freeverb_set_mix_rate);
-    Device_set_reset(freeverb->parent.device, DSP_freeverb_reset);
     Device_set_update_key(freeverb->parent.device, DSP_freeverb_update_key);
-    Device_set_update_state_key(
-            freeverb->parent.device,
-            DSP_freeverb_update_state_key);
 
     Device_register_port(freeverb->parent.device, DEVICE_PORT_TYPE_RECEIVE, 0);
     Device_register_port(freeverb->parent.device, DEVICE_PORT_TYPE_SEND, 0);
@@ -350,16 +347,14 @@ static Device_state* DSP_freeverb_create_state(
 }
 
 
-static void DSP_freeverb_reset(Device* device, Device_states* dstates)
+static void DSP_freeverb_reset(const Device_impl* dimpl, Device_state* dstate)
 {
-    assert(device != NULL);
-    assert(dstates != NULL);
+    assert(dimpl != NULL);
+    assert(dstate != NULL);
 
-    DSP_reset(device, dstates);
-    DSP_freeverb* freeverb = (DSP_freeverb*)device->dimpl;
-    DSP_state* dsp_state = (DSP_state*)Device_states_get_state(
-            dstates,
-            Device_get_id(device));
+    DSP_freeverb* freeverb = (DSP_freeverb*)dimpl;
+    DSP_state* dsp_state = (DSP_state*)dstate;
+
     DSP_freeverb_clear_history((DSP*)freeverb->parent.device, dsp_state);
 
     return;
@@ -476,25 +471,6 @@ static bool DSP_freeverb_update_key(Device* device, const char* key)
             DSP_freeverb_set_damp(freeverb, *damp);
         }
     }
-
-    return true;
-}
-
-
-static bool DSP_freeverb_update_state_key(
-        Device* device,
-        Device_states* dstates,
-        const char* key)
-{
-    assert(device != NULL);
-    assert(dstates != NULL);
-    assert(key != NULL);
-
-    const DSP_freeverb* freeverb = (const DSP_freeverb*)device->dimpl;
-    Freeverb_state* fstate = (Freeverb_state*)Device_states_get_state(
-            dstates, Device_get_id(device));
-
-    Freeverb_state_reset(fstate, freeverb);
 
     return true;
 }

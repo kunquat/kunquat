@@ -122,6 +122,11 @@ char* Generator_pulse_property(Generator* gen, const char* property_type)
 
         return size_str;
     }
+    else if (string_eq(property_type, "gen_state_vars"))
+    {
+        static char* vars_str = "[[\"F\", \"w\"]]"; // pulse width
+        return vars_str;
+    }
 
     return NULL;
 }
@@ -201,9 +206,8 @@ uint32_t Generator_pulse_mix(
 
     if (vstate->note_on)
     {
-        double* pulse_width_arg = Channel_gen_state_get_float(
-                vstate->cgstate,
-                "p_pw.jsonf");
+        const double* pulse_width_arg = Channel_gen_state_get_float(
+                vstate->cgstate, "w");
         if (pulse_width_arg != NULL)
             pulse_vstate->pulse_width = *pulse_width_arg;
         else

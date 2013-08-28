@@ -41,12 +41,14 @@ typedef enum
  * \return   \c true if successful, otherwise \c false. \a state will _not_ be
  *           modified if memory allocation failed.
  */
+#if 0
 bool Device_params_parse_events(
         Device_params* params,
         Device_event_type type,
         Player* player,
         char* str,
         Read_state* state);
+#endif
 
 
 #endif // K_DEVICE_EVENT_KEYS

@@ -18,17 +18,19 @@
 
 #include <stdbool.h>
 
-#include <DSP_conf.h>
+#include <Device_impl.h>
 #include <player/Channel.h>
+#include <player/Device_state.h>
 #include <Value.h>
 
 
 // Process function declarations
 
-#define EVENT_TYPE_DEF(type)         \
-    bool Event_dsp_##type##_process( \
-            DSP_conf* dsp_conf,      \
-            Channel* ch,             \
+#define EVENT_TYPE_DEF(type)          \
+    bool Event_dsp_##type##_process(  \
+            const Device_impl* dimpl, \
+            Device_state* dstate,     \
+            Channel* ch,              \
             Value* value);
 #include <events/Event_dsp_types.h>
 

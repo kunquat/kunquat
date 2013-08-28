@@ -72,10 +72,12 @@ bool Gen_conf_parse(Gen_conf* conf,
     assert((data == NULL) == (length == 0));
     assert(length >= 0);
     assert(state != NULL);
+    (void)device;
     if (state->error)
     {
         return false;
     }
+#if 0
     if ((string_has_prefix(key, "i/") || string_has_prefix(key, "c/")) &&
             key_is_device_param(key))
     {
@@ -95,7 +97,8 @@ bool Gen_conf_parse(Gen_conf* conf,
         }
         return true;
     }
-    else if (string_eq(key, "p_generator.json"))
+#endif
+    if (string_eq(key, "p_generator.json"))
     {
         return Gen_conf_parse_general(conf, data, state);
     }

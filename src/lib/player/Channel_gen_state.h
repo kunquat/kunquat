@@ -19,8 +19,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <Real.h>
+#include <File_base.h>
 #include <Tstamp.h>
+#include <Value.h>
 
 
 /**
@@ -39,13 +40,19 @@ Channel_gen_state* new_Channel_gen_state(void);
 
 
 /**
- * Allocates memory for a key.
+ * Allocates memory for a list of keys.
  *
- * \param state   The Channel gen state -- must not be \c NULL.
- * \param key     The key -- must not be \c NULL and must end with one of
- *                Generator parameter suffixes.
+ * \param cgstate   The Channel gen state -- must not be \c NULL.
+ * \param str       The list of keys as a JSON string, or \c NULL.
+ * \param rs        The Read state -- must not be \c NULL.
+ *
+ * \return   \c true if successful, otherwise \c false. \a rs will _not_ be
+ *           modified if memory allocation failed.
  */
-bool Channel_gen_state_set_key(Channel_gen_state* state, const char* key);
+bool Channel_gen_state_alloc_keys(
+        Channel_gen_state* cgstate,
+        char* str,
+        Read_state* rs);
 
 
 /**
@@ -54,27 +61,27 @@ bool Channel_gen_state_set_key(Channel_gen_state* state, const char* key);
  * \param state   The Channel gen state -- must not be \c NULL.
  * \param key     The key -- must not be \c NULL and must end with one of
  *                Generator parameter suffixes.
- * \param data    The new value -- must not be \c NULL.
+ * \param value   The new value -- must not be \c NULL.
  *
  * \return   \c true if the value was modified, otherwise \c false.
  */
 bool Channel_gen_state_modify_value(
-        Channel_gen_state* state,
+        Channel_gen_state* cgstate,
         const char* key,
-        void* data);
+        const Value* value);
 
 
 /**
  * Retrieves a reference to a boolean value.
  *
  * \param state   The Channel gen state -- must not be \c NULL.
- * \param key     The key -- must not be \c NULL and must have the suffix
- *                ".jsonb".
+ * \param key     The key -- must not be \c NULL.
  *
- * \return   The boolean value, or \c NULL if \a key doesn't exist.
+ * \return   The boolean value, or \c NULL if \a key does not match a
+ *           boolean entry.
  */
-bool* Channel_gen_state_get_bool(
-        Channel_gen_state* state,
+const bool* Channel_gen_state_get_bool(
+        const Channel_gen_state* cgstate,
         const char* key);
 
 
@@ -82,13 +89,13 @@ bool* Channel_gen_state_get_bool(
  * Retrieves a reference to an integer value.
  *
  * \param state   The Channel gen state -- must not be \c NULL.
- * \param key     The key -- must not be \c NULL and must have the suffix
- *                ".jsoni".
+ * \param key     The key -- must not be \c NULL.
  *
- * \return   The integer value, or \c NULL if \a key doesn't exist.
+ * \return   The integer value, or \c NULL if \a key does not match an
+ *           integer entry.
  */
-int64_t* Channel_gen_state_get_int(
-        Channel_gen_state* state,
+const int64_t* Channel_gen_state_get_int(
+        const Channel_gen_state* cgstate,
         const char* key);
 
 
@@ -96,41 +103,27 @@ int64_t* Channel_gen_state_get_int(
  * Retrieves a reference to a floating-point value.
  *
  * \param state   The Channel gen state -- must not be \c NULL.
- * \param key     The key -- must not be \c NULL and must have the suffix
- *                ".jsonf".
+ * \param key     The key -- must not be \c NULL.
  *
- * \return   The floating-point value, or \c NULL if \a key doesn't exist.
+ * \return   The float value, or \c NULL if \a key does not match a
+ *           float entry.
  */
-double* Channel_gen_state_get_float(
-        Channel_gen_state* state,
+const double* Channel_gen_state_get_float(
+        const Channel_gen_state* cgstate,
         const char* key);
 
 
 /**
- * Retrieves a reference to a Real value.
+ * Retrieves a reference to a timestamp value.
  *
  * \param state   The Channel gen state -- must not be \c NULL.
- * \param key     The key -- must not be \c NULL and must have the suffix
- *                ".jsonr".
+ * \param key     The key -- must not be \c NULL.
  *
- * \return   The Real value, or \c NULL if \a key doesn't exist.
+ * \return   The Tstamp value, or \c NULL if \a key does not match a
+ *           timestamp entry.
  */
-Real* Channel_gen_state_get_real(
-        Channel_gen_state* state,
-        const char* key);
-
-
-/**
- * Retrieves a reference to a Tstamp value.
- *
- * \param state   The Channel gen state -- must not be \c NULL.
- * \param key     The key -- must not be \c NULL and must have the suffix
- *                ".jsont".
- *
- * \return   The Tstamp value, or \c NULL if \a key doesn't exist.
- */
-Tstamp* Channel_gen_state_get_tstamp(
-        Channel_gen_state* state,
+const Tstamp* Channel_gen_state_get_tstamp(
+        const Channel_gen_state* cgstate,
         const char* key);
 
 
@@ -139,7 +132,7 @@ Tstamp* Channel_gen_state_get_tstamp(
  *
  * \param state   The Channel gen state -- must not be \c NULL.
  */
-void Channel_gen_state_clear(Channel_gen_state* state);
+void Channel_gen_state_clear(Channel_gen_state* cgstate);
 
 
 /**
@@ -147,7 +140,7 @@ void Channel_gen_state_clear(Channel_gen_state* state);
  *
  * \param state   The Channel gen state, or \c NULL.
  */
-void del_Channel_gen_state(Channel_gen_state* state);
+void del_Channel_gen_state(Channel_gen_state* cgstate);
 
 
 #endif // K_CHANNEL_GEN_STATE_H

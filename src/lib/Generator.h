@@ -123,7 +123,7 @@ bool Generator_init(
  * \param gen       The Generator Device -- must not be \c NULL.
  * \param dstates   The Device states -- must not be \c NULL.
  */
-void Generator_reset(Device* device, Device_states* dstates);
+//void Generator_reset(Device* device, Device_states* dstates);
 
 
 /**

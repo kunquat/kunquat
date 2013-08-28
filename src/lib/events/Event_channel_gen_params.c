@@ -39,12 +39,8 @@ bool Event_channel_set_gen_bool_process(
             ch->parent.active_names,
             ACTIVE_CAT_CH_GEN,
             ACTIVE_TYPE_BOOL);
-    if (!string_has_suffix(key, ".jsonb"))
-        return true;
 
-    return Channel_gen_state_modify_value(
-            ch->cgstate, key,
-            &value->value.bool_type);
+    return Channel_gen_state_modify_value(ch->cgstate, key, value);
 }
 
 
@@ -82,13 +78,8 @@ bool Event_channel_set_gen_float_process(
             ch->parent.active_names,
             ACTIVE_CAT_CH_GEN,
             ACTIVE_TYPE_FLOAT);
-    if (!string_has_suffix(key, ".jsonf"))
-        return true;
 
-    return Channel_gen_state_modify_value(
-            ch->cgstate,
-            key,
-            &value->value.float_type);
+    return Channel_gen_state_modify_value(ch->cgstate, key, value);
 }
 
 
@@ -126,13 +117,8 @@ bool Event_channel_set_gen_int_process(
             ch->parent.active_names,
             ACTIVE_CAT_CH_GEN,
             ACTIVE_TYPE_INT);
-    if (!string_has_suffix(key, ".jsoni"))
-        return true;
 
-    return Channel_gen_state_modify_value(
-            ch->cgstate,
-            key,
-            &value->value.int_type);
+    return Channel_gen_state_modify_value(ch->cgstate, key, value);
 }
 
 
@@ -171,13 +157,7 @@ bool Event_channel_set_gen_tstamp_process(
             ACTIVE_CAT_CH_GEN,
             ACTIVE_TYPE_TSTAMP);
 
-    if (!string_has_suffix(key, ".jsont"))
-        return true;
-
-    return Channel_gen_state_modify_value(
-            ch->cgstate,
-            key,
-            &value->value.Tstamp_type);
+    return Channel_gen_state_modify_value(ch->cgstate, key, value);
 }
 
 

@@ -136,14 +136,34 @@ static Device_state* DSP_chorus_create_state(
         int32_t audio_rate,
         int32_t audio_buffer_size);
 
-static void DSP_chorus_reset(Device* device, Device_states* dstates);
+static void DSP_chorus_reset(const Device_impl* dimpl, Device_state* dstate);
+
+#if 0
+static bool DSP_chorus_update_state_voice_delay(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        double value);
+static bool DSP_chorus_update_state_voice_range(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        double value);
+static bool DSP_chorus_update_state_voice_speed(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        double value);
+static bool DSP_chorus_update_state_voice_volume(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        double value);
+#endif
+
 static void DSP_chorus_clear_history(DSP* dsp, DSP_state* dsp_state);
 static bool DSP_chorus_sync(Device* device, Device_states* dstates);
 static bool DSP_chorus_update_key(Device* device, const char* key);
-static bool DSP_chorus_update_state_key(
-        Device* device,
-        Device_states* dstates,
-        const char* key);
 static bool DSP_chorus_set_mix_rate(
         Device* device,
         Device_states* dstates,
@@ -198,15 +218,36 @@ Device_impl* new_DSP_chorus(DSP* dsp, uint32_t buffer_size, uint32_t mix_rate)
 
     DSP_set_clear_history((DSP*)chorus->parent.device, DSP_chorus_clear_history);
 
+    Device_impl_register_reset_device_state(&chorus->parent, DSP_chorus_reset);
+
+    // State update functions, TODO: enable once implemented properly
+#if 0
+    Device_impl_register_update_state_float(
+            &chorus->parent,
+            "v_XX/d",
+            DSP_chorus_update_state_voice_delay);
+
+    Device_impl_register_update_state_float(
+            &chorus->parent,
+            "v_XX/r",
+            DSP_chorus_update_state_voice_range);
+
+    Device_impl_register_update_state_float(
+            &chorus->parent,
+            "v_XX/s",
+            DSP_chorus_update_state_voice_speed);
+
+    Device_impl_register_update_state_float(
+            &chorus->parent,
+            "v_XX/v",
+            DSP_chorus_update_state_voice_volume);
+#endif
+
     Device_set_mix_rate_changer(
             chorus->parent.device,
             DSP_chorus_set_mix_rate);
-    Device_set_reset(chorus->parent.device, DSP_chorus_reset);
     Device_set_sync(chorus->parent.device, DSP_chorus_sync);
     Device_set_update_key(chorus->parent.device, DSP_chorus_update_key);
-    Device_set_update_state_key(
-            chorus->parent.device,
-            DSP_chorus_update_state_key);
 
     for (int i = 0; i < CHORUS_VOICES_MAX; ++i)
     {
@@ -272,16 +313,13 @@ static Device_state* DSP_chorus_create_state(
 }
 
 
-static void DSP_chorus_reset(Device* device, Device_states* dstates)
+static void DSP_chorus_reset(const Device_impl* dimpl, Device_state* dstate)
 {
-    assert(device != NULL);
-    assert(dstates != NULL);
+    assert(dimpl != NULL);
+    assert(dstate != NULL);
 
-    DSP_reset(device, dstates);
-    DSP_chorus* chorus = (DSP_chorus*)device->dimpl;
-    Chorus_state* cstate = (Chorus_state*)Device_states_get_state(
-            dstates,
-            Device_get_id(device));
+    DSP_chorus* chorus = (DSP_chorus*)dimpl;
+    Chorus_state* cstate = (Chorus_state*)dstate;
 
     DSP_chorus_clear_history((DSP*)chorus->parent.device, &cstate->parent); // XXX: do we need this?
 
@@ -332,6 +370,95 @@ static bool DSP_chorus_sync(Device* device, Device_states* dstates)
 
     return true;
 }
+
+
+#if 0
+static bool DSP_chorus_update_state_voice_delay(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        double value)
+{
+    assert(dimpl != NULL);
+    assert(dstate != NULL);
+    assert(indices != NULL);
+
+    if (indices[0] < 0 || indices[0] >= CHORUS_VOICES_MAX)
+        return false;
+
+    Chorus_state* cstate = (Chorus_state*)dstate;
+
+    cstate->voices[indices[0]].delay =
+        (value >= 0 && value < CHORUS_BUF_TIME / 2) ? value : -1;
+
+    return true;
+}
+
+
+static bool DSP_chorus_update_state_voice_range(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        double value)
+{
+    assert(dimpl != NULL);
+    assert(dstate != NULL);
+    assert(indices != NULL);
+
+    if (indices[0] < 0 || indices[0] >= CHORUS_VOICES_MAX)
+        return false;
+
+    Chorus_state* cstate = (Chorus_state*)dstate;
+
+    cstate->voices[indices[0]].range =
+        (value >= 0 && value < CHORUS_BUF_TIME / 2) ? value : 0;
+
+    return true;
+}
+
+
+static bool DSP_chorus_update_state_voice_speed(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        double value)
+{
+    assert(dimpl != NULL);
+    assert(dstate != NULL);
+    assert(indices != NULL);
+
+    if (indices[0] < 0 || indices[0] >= CHORUS_VOICES_MAX)
+        return false;
+
+    Chorus_state* cstate = (Chorus_state*)dstate;
+
+    cstate->voices[indices[0]].speed = (value >= 0) ? value : 0;
+
+    return true;
+}
+
+
+static bool DSP_chorus_update_state_voice_volume(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        double value)
+{
+    assert(dimpl != NULL);
+    assert(dstate != NULL);
+    assert(indices != NULL);
+
+    if (indices[0] < 0 || indices[0] >= CHORUS_VOICES_MAX)
+        return false;
+
+    Chorus_state* cstate = (Chorus_state*)dstate;
+
+    cstate->voices[indices[0]].scale =
+        (value <= DB_MAX) ? exp2(value / 6) : 1;
+
+    return true;
+}
+#endif
 
 
 static bool DSP_chorus_update_key(Device* device, const char* key)
@@ -406,23 +533,6 @@ static bool DSP_chorus_update_key(Device* device, const char* key)
         else
             params->scale = 1;
     }
-
-    return true;
-}
-
-
-static bool DSP_chorus_update_state_key(
-        Device* device,
-        Device_states* dstates,
-        const char* key)
-{
-    assert(device != NULL);
-    assert(dstates != NULL);
-    assert(key != NULL);
-    (void)key;
-
-    // Slow and lazy way out
-    DSP_chorus_reset(device, dstates);
 
     return true;
 }

@@ -64,15 +64,14 @@ struct Event_handler
             Ins_state*,
             Value*);
     bool (*generator_process[Event_generator_STOP])(
-            Generator*,
-            Channel*,
-            Value*);
+            const Device_impl*, Device_state*, Channel*, Value*);
     bool (*effect_process[Event_effect_STOP])(
             Effect*,
             Effect_state*,
             Device_states*,
             Value*);
-    bool (*dsp_process[Event_dsp_STOP])(DSP_conf*, Channel*, Value*);
+    bool (*dsp_process[Event_dsp_STOP])(
+            const Device_impl*, Device_state*, Channel*, Value*);
 };
 
 
@@ -228,7 +227,8 @@ bool Event_handler_set_ins_process(
 bool Event_handler_set_generator_process(
         Event_handler* eh,
         Event_type type,
-        bool (*gen_process)(Generator*, Channel*, Value*))
+        bool (*gen_process)(
+            const Device_impl*, Device_state*, Channel*, Value*))
 {
     assert(eh != NULL);
     assert(Event_is_generator(type));
@@ -258,7 +258,8 @@ bool Event_handler_set_effect_process(
 bool Event_handler_set_dsp_process(
         Event_handler* eh,
         Event_type type,
-        bool (*dsp_process)(DSP_conf*, Channel*, Value*))
+        bool (*dsp_process)(
+            const Device_impl*, Device_state*, Channel*, Value*))
 {
     assert(eh != NULL);
     assert(Event_is_dsp(type));
@@ -326,13 +327,21 @@ static bool Event_handler_handle(
         if (ins == NULL)
             return false;
 
-        Generator* gen = Instrument_get_gen(
-                ins,
-                eh->channels[index]->generator);
-        if (gen == NULL)
+        Device* device = (Device*)Instrument_get_gen(
+                ins, eh->channels[index]->generator);
+        if (device == NULL)
             return false;
 
-        return eh->generator_process[type](gen, eh->channels[index], value);
+        const Device_impl* dimpl = device->dimpl;
+        if (dimpl == NULL)
+            return false;
+
+        Device_state* dstate = Device_states_get_state(
+                eh->device_states,
+                Device_get_id(device));
+
+        return eh->generator_process[type](
+                dimpl, dstate, eh->channels[index], value);
     }
     else if (Event_is_effect(type))
     {
@@ -390,11 +399,20 @@ static bool Event_handler_handle(
             return false;
 
         DSP_table* dsps = Effect_get_dsps(eff);
-        DSP_conf* conf = DSP_table_get_conf(dsps, eh->channels[index]->dsp);
-        if (conf == NULL)
+        Device* device = (Device*)DSP_table_get_dsp(
+                dsps, eh->channels[index]->dsp);
+        if (device == NULL)
             return false;
 
-        return eh->dsp_process[type](conf, eh->channels[index], value);
+        const Device_impl* dimpl = device->dimpl;
+        if (dimpl == NULL)
+            return false;
+
+        Device_state* dstate = Device_states_get_state(
+                eh->device_states,
+                Device_get_id(device));
+
+        return eh->dsp_process[type](dimpl, dstate, eh->channels[index], value);
     }
     else if (Event_is_control(type))
     {
@@ -600,6 +618,7 @@ bool Event_handler_process_type(
 }
 
 
+#if 0
 bool Event_handler_add_channel_gen_state_key(
         Event_handler* eh,
         const char* key)
@@ -615,6 +634,7 @@ bool Event_handler_add_channel_gen_state_key(
 
     return true;
 }
+#endif
 
 
 void del_Event_handler(Event_handler* eh)

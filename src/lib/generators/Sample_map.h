@@ -77,10 +77,11 @@ bool Sample_map_add_entry(Sample_map* map,
  *
  * \return   The closest Sample entry, or \c NULL if the map is empty.
  */
-const Sample_entry* Sample_map_get_entry(Sample_map* map,
-                                         double cents,
-                                         double force,
-                                         Random* random);
+const Sample_entry* Sample_map_get_entry(
+        const Sample_map* map,
+        double cents,
+        double force,
+        Random* random);
 
 
 /**

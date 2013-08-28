@@ -52,10 +52,11 @@ Hit_map* new_Hit_map_from_string(char* str, Read_state* state);
  * \return   The closest Sample entry, or \c NULL if the map does not contain
  *           entries for the given hit index.
  */
-const Sample_entry* Hit_map_get_entry(Hit_map* map,
-                                      int hit_index,
-                                      double force,
-                                      Random* random);
+const Sample_entry* Hit_map_get_entry(
+        const Hit_map* map,
+        int hit_index,
+        double force,
+        Random* random);
 
 
 /**

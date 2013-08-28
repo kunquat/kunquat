@@ -51,6 +51,7 @@ struct Device_field
 Device_field* new_Device_field(const char* key, void* data)
 {
     assert(key != NULL);
+
     Device_field_type type = DEVICE_FIELD_NONE;
     size_t data_size = 0;
     if (string_has_suffix(key, ".jsonb"))
@@ -109,17 +110,16 @@ Device_field* new_Device_field(const char* key, void* data)
         data_size = sizeof(Num_list*);
     }
     else
-    {
         assert(false);
-    }
+
     Device_field* field = memory_alloc_item(Device_field);
     if (field == NULL)
-    {
         return NULL;
-    }
+
     strncpy(field->key, key, 99);
     field->key[99] = '\0';
     field->type = type;
+
     if (data != NULL)
     {
         field->empty = false;
@@ -130,51 +130,54 @@ Device_field* new_Device_field(const char* key, void* data)
         field->empty = true;
         memset(&field->data, 0, sizeof(Dev_fields));
     }
+
     return field;
 }
 
 
-Device_field* new_Device_field_from_data(const char* key,
-                                         void* data,
-                                         long length,
-                                         Read_state* state)
+Device_field* new_Device_field_from_data(
+        const char* key,
+        void* data,
+        long length,
+        Read_state* state)
 {
     assert(key != NULL);
     assert((data == NULL) == (length == 0));
     assert(length >= 0);
     assert(state != NULL);
+
     if (state->error)
-    {
         return NULL;
-    }
+
     Device_field* field = new_Device_field(key, NULL);
     if (field == NULL)
-    {
         return NULL;
-    }
+
     if (!Device_field_change(field, data, length, state))
     {
         del_Device_field(field);
         return NULL;
     }
+
     return field;
 }
 
 
-bool Device_field_change(Device_field* field,
-                         void* data,
-                         long length,
-                         Read_state* state)
+bool Device_field_change(
+        Device_field* field,
+        void* data,
+        long length,
+        Read_state* state)
 {
     assert(field != NULL);
     assert(field->type != DEVICE_FIELD_NONE);
     assert((data == NULL) == (length == 0));
     assert(length >= 0);
     assert(state != NULL);
+
     if (state->error)
-    {
         return false;
-    }
+
     switch (field->type)
     {
         case DEVICE_FIELD_BOOL:
@@ -184,7 +187,9 @@ bool Device_field_change(Device_field* field,
                 char* str = data;
                 read_bool(str, &field->data.bool_type, state);
             }
-        } break;
+        }
+        break;
+
         case DEVICE_FIELD_INT:
         {
             if (data != NULL)
@@ -192,7 +197,9 @@ bool Device_field_change(Device_field* field,
                 char* str = data;
                 read_int(str, &field->data.int_type, state);
             }
-        } break;
+        }
+        break;
+
         case DEVICE_FIELD_FLOAT:
         {
             if (data != NULL)
@@ -200,14 +207,18 @@ bool Device_field_change(Device_field* field,
                 char* str = data;
                 read_double(str, &field->data.float_type, state);
             }
-        } break;
+        }
+        break;
+
         case DEVICE_FIELD_REAL:
         {
             if (data != NULL)
             {
                 assert(false); // TODO: implement
             }
-        } break;
+        }
+        break;
+
         case DEVICE_FIELD_TSTAMP:
         {
             if (data != NULL)
@@ -215,7 +226,9 @@ bool Device_field_change(Device_field* field,
                 char* str = data;
                 read_tstamp(str, &field->data.Tstamp_type, state);
             }
-        } break;
+        }
+        break;
+
         case DEVICE_FIELD_ENVELOPE:
         {
             Envelope* env = NULL;
@@ -224,9 +237,8 @@ bool Device_field_change(Device_field* field,
                 env = new_Envelope(32, -INFINITY, INFINITY, 0,
                                        -INFINITY, INFINITY, 0);
                 if (env == NULL)
-                {
                     return false;
-                }
+
                 char* str = data;
                 Envelope_read(env, str, state);
                 if (state->error)
@@ -235,13 +247,15 @@ bool Device_field_change(Device_field* field,
                     return false;
                 }
             }
+
             assert(!state->error);
             if (field->data.Envelope_type != NULL)
-            {
                 del_Envelope(field->data.Envelope_type);
-            }
+
             field->data.Envelope_type = env;
-        } break;
+        }
+        break;
+
         case DEVICE_FIELD_WAVPACK:
         {
             Sample* sample = NULL;
@@ -249,79 +263,86 @@ bool Device_field_change(Device_field* field,
             {
                 sample = new_Sample();
                 if (sample == NULL)
-                {
                     return false;
-                }
+
                 if (!Sample_parse_wavpack(sample, data, length, state))
                 {
                     del_Sample(sample);
                     return false;
                 }
             }
+
             assert(!state->error);
             if (field->data.Sample_type != NULL)
-            {
                 del_Sample(field->data.Sample_type);
-            }
+
             field->data.Sample_type = sample;
-        } break;
+        }
+        break;
+
         case DEVICE_FIELD_SAMPLE_PARAMS:
         {
             if (!Sample_params_parse(&field->data.Sample_params_type,
                                      data, state))
-            {
                 return false;
-            }
-        } break;
+        }
+        break;
+
         case DEVICE_FIELD_SAMPLE_MAP:
         {
             Sample_map* map = new_Sample_map_from_string(data, state);
             if (map == NULL)
-            {
                 return false;
-            }
+
             del_Sample_map(field->data.Sample_map_type);
             field->data.Sample_map_type = map;
-        } break;
+        }
+        break;
+
         case DEVICE_FIELD_HIT_MAP:
         {
             Hit_map* map = new_Hit_map_from_string(data, state);
             if (map == NULL)
-            {
                 return false;
-            }
+
             del_Hit_map(field->data.Hit_map_type);
             field->data.Hit_map_type = map;
-        } break;
+        }
+        break;
+
         case DEVICE_FIELD_NUM_LIST:
         {
             Num_list* nl = new_Num_list_from_string(data, state);
             if (nl == NULL)
-            {
                 return false;
-            }
+
             del_Num_list(field->data.Num_list_type);
             field->data.Num_list_type = nl;
-        } break;
+        }
+        break;
+
         default:
             assert(false);
     }
+
     if (state->error)
-    {
         return false;
-    }
-    field->empty = data == NULL;
+
+    field->empty = (data == NULL);
+
     return true;
 }
 
 
-int Device_field_cmp(const Device_field* field1,
-                     const Device_field* field2)
+int Device_field_cmp(
+        const Device_field* field1,
+        const Device_field* field2)
 {
     assert(field1 != NULL);
     assert(field1->key != NULL);
     assert(field2 != NULL);
     assert(field2->key != NULL);
+
     return strcmp(field1->key, field2->key);
 }
 
@@ -329,10 +350,10 @@ int Device_field_cmp(const Device_field* field1,
 void Device_field_set_empty(Device_field* field, bool empty)
 {
     assert(field != NULL);
+
     if (field->type != DEVICE_FIELD_WAVPACK)
-    {
         field->empty = empty;
-    }
+
     return;
 }
 
@@ -352,28 +373,31 @@ bool Device_field_modify(Device_field* field, void* data)
     assert(field->type != DEVICE_FIELD_SAMPLE_MAP);
     assert(field->type != DEVICE_FIELD_HIT_MAP);
     assert(data != NULL);
+
     switch (field->type)
     {
         case DEVICE_FIELD_BOOL:
-        {
             memcpy(&field->data.bool_type, data, sizeof(bool));
-        } break;
+            break;
+
         case DEVICE_FIELD_INT:
-        {
             memcpy(&field->data.int_type, data, sizeof(int64_t));
-        } break;
+            break;
+
         case DEVICE_FIELD_FLOAT:
-        {
             memcpy(&field->data.float_type, data, sizeof(double));
-        } break;
+            break;
+
         case DEVICE_FIELD_TSTAMP:
-        {
             memcpy(&field->data.Tstamp_type, data, sizeof(Tstamp));
-        } break;
+            break;
+
         default:
             assert(false);
     }
+
     Device_field_set_empty(field, false);
+
     return true;
 }
 
@@ -382,6 +406,7 @@ bool* Device_field_get_bool(Device_field* field)
 {
     assert(field != NULL);
     assert(field->type == DEVICE_FIELD_BOOL);
+
     return &field->data.bool_type;
 }
 
@@ -390,6 +415,7 @@ int64_t* Device_field_get_int(Device_field* field)
 {
     assert(field != NULL);
     assert(field->type == DEVICE_FIELD_INT);
+
     return &field->data.int_type;
 }
 
@@ -398,6 +424,7 @@ double* Device_field_get_float(Device_field* field)
 {
     assert(field != NULL);
     assert(field->type == DEVICE_FIELD_FLOAT);
+
     return &field->data.float_type;
 }
 
@@ -406,6 +433,7 @@ Real* Device_field_get_real(Device_field* field)
 {
     assert(field != NULL);
     assert(field->type == DEVICE_FIELD_REAL);
+
     return &field->data.Real_type;
 }
 
@@ -414,6 +442,7 @@ Tstamp* Device_field_get_tstamp(Device_field* field)
 {
     assert(field != NULL);
     assert(field->type == DEVICE_FIELD_TSTAMP);
+
     return &field->data.Tstamp_type;
 }
 
@@ -422,6 +451,7 @@ Envelope* Device_field_get_envelope(Device_field* field)
 {
     assert(field != NULL);
     assert(field->type == DEVICE_FIELD_ENVELOPE);
+
     return field->data.Envelope_type;
 }
 
@@ -430,6 +460,7 @@ Sample* Device_field_get_sample(Device_field* field)
 {
     assert(field != NULL);
     assert(field->type == DEVICE_FIELD_WAVPACK);
+
     return field->data.Sample_type;
 }
 
@@ -438,6 +469,7 @@ Sample_params* Device_field_get_sample_params(Device_field* field)
 {
     assert(field != NULL);
     assert(field->type == DEVICE_FIELD_SAMPLE_PARAMS);
+
     return &field->data.Sample_params_type;
 }
 
@@ -446,6 +478,7 @@ Sample_map* Device_field_get_sample_map(Device_field* field)
 {
     assert(field != NULL);
     assert(field->type == DEVICE_FIELD_SAMPLE_MAP);
+
     return field->data.Sample_map_type;
 }
 
@@ -454,6 +487,7 @@ Hit_map* Device_field_get_hit_map(Device_field* field)
 {
     assert(field != NULL);
     assert(field->type == DEVICE_FIELD_HIT_MAP);
+
     return field->data.Hit_map_type;
 }
 
@@ -462,6 +496,7 @@ Num_list* Device_field_get_num_list(Device_field* field)
 {
     assert(field != NULL);
     assert(field->type == DEVICE_FIELD_NUM_LIST);
+
     return field->data.Num_list_type;
 }
 
@@ -469,30 +504,21 @@ Num_list* Device_field_get_num_list(Device_field* field)
 void del_Device_field(Device_field* field)
 {
     if (field == NULL)
-    {
         return;
-    }
+
     if (field->type == DEVICE_FIELD_ENVELOPE)
-    {
         del_Envelope(field->data.Envelope_type);
-    }
     else if (field->type == DEVICE_FIELD_WAVPACK)
-    {
         del_Sample(field->data.Sample_type);
-    }
     else if (field->type == DEVICE_FIELD_SAMPLE_MAP)
-    {
         del_Sample_map(field->data.Sample_map_type);
-    }
     else if (field->type == DEVICE_FIELD_HIT_MAP)
-    {
         del_Hit_map(field->data.Hit_map_type);
-    }
     else if (field->type == DEVICE_FIELD_NUM_LIST)
-    {
         del_Num_list(field->data.Num_list_type);
-    }
+
     memory_free(field);
+
     return;
 }
 

@@ -95,7 +95,7 @@ bool DSP_init(
     if (!Device_init(&dsp->parent, buffer_size, mix_rate))
         return false;
 
-    Device_set_reset(&dsp->parent, DSP_reset);
+    //Device_set_reset(&dsp->parent, DSP_reset);
     Device_set_process(&dsp->parent, process);
 
     return true;
@@ -113,6 +113,7 @@ void DSP_set_clear_history(DSP* dsp, void (*func)(DSP*, DSP_state*))
 }
 
 
+#if 0
 void DSP_reset(Device* device, Device_states* dstates)
 {
     assert(device != NULL);
@@ -123,6 +124,7 @@ void DSP_reset(Device* device, Device_states* dstates)
 
     return;
 }
+#endif
 
 
 void DSP_clear_history(DSP* dsp, DSP_state* dsp_state)

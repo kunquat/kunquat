@@ -86,7 +86,7 @@ Device_params* new_Device_params(void);
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Device_params_set_key(Device_params* params, const char* key);
+//bool Device_params_set_key(Device_params* params, const char* key);
 
 
 /**
@@ -179,11 +179,12 @@ void Device_params_synchronised(Device_params* params);
  * \return   \c true if successful, otherwise \c false. \a state will _not_ be
  *           modified if memory allocation failed.
  */
-bool Device_params_parse_value(Device_params* params,
-                               const char* key,
-                               void* data,
-                               long length,
-                               Read_state* state);
+bool Device_params_parse_value(
+        Device_params* params,
+        const char* key,
+        void* data,
+        long length,
+        Read_state* state);
 
 
 /**
@@ -201,9 +202,9 @@ bool Device_params_parse_value(Device_params* params,
  *
  * \return   \c true if the value was modified, otherwise \c false.
  */
-bool Device_params_modify_value(Device_params* params,
-                                const char* key,
-                                void* data);
+//bool Device_params_modify_value(Device_params* params,
+//                                const char* key,
+//                                void* data);
 
 
 /**
@@ -213,7 +214,7 @@ bool Device_params_modify_value(Device_params* params,
  *
  * \param params   The Device parameters -- must not be \c NULL.
  */
-void Device_params_reset(Device_params* params);
+//void Device_params_reset(Device_params* params);
 
 
 /**

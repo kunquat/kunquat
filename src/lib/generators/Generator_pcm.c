@@ -110,6 +110,14 @@ char* Generator_pcm_property(Generator* gen, const char* property_type)
 
         return size_str;
     }
+    else if (string_eq(property_type, "gen_state_vars"))
+    {
+        static char* vars_str = "["
+            "[\"I\", \"e\"], " // expression
+            "[\"I\", \"s\"]"   // source
+            "]";
+        return vars_str;
+    }
 
     return NULL;
 }
@@ -173,9 +181,8 @@ uint32_t Generator_pcm_mix(
         int expression = 0;
         int source = 0;
 
-        int64_t* expression_arg = Channel_gen_state_get_int(
-                vstate->cgstate,
-                "p_exp.jsoni");
+        const int64_t* expression_arg = Channel_gen_state_get_int(
+                vstate->cgstate, "e");
         if (expression_arg != NULL)
         {
             if (*expression_arg < 0 || *expression_arg >= PCM_EXPRESSIONS_MAX)
@@ -186,9 +193,8 @@ uint32_t Generator_pcm_mix(
             expression = *expression_arg;
         }
 
-        int64_t* source_arg = Channel_gen_state_get_int(
-                vstate->cgstate,
-                "p_src.jsoni");
+        const int64_t* source_arg = Channel_gen_state_get_int(
+                vstate->cgstate, "s");
         if (source_arg != NULL)
         {
             if (*source_arg < 0 || *source_arg >= PCM_SOURCES_MAX)

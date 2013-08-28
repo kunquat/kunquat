@@ -87,10 +87,11 @@ Device_field* new_Device_field(const char* key, void* data);
  * \return   The new Device field if successful, otherwise \c NULL.
  *           \a state will _not_ be modified if memory allocation failed.
  */
-Device_field* new_Device_field_from_data(const char* key,
-                                         void* data,
-                                         long length,
-                                         Read_state* state);
+Device_field* new_Device_field_from_data(
+        const char* key,
+        void* data,
+        long length,
+        Read_state* state);
 
 
 /**
@@ -107,10 +108,11 @@ Device_field* new_Device_field_from_data(const char* key,
  * \return   \c true if successful, otherwise \c false. \a state will _not_
  *           be modified if memory allocation failed.
  */
-bool Device_field_change(Device_field* field,
-                         void* data,
-                         long length,
-                         Read_state* state);
+bool Device_field_change(
+        Device_field* field,
+        void* data,
+        long length,
+        Read_state* state);
 
 
 /**
@@ -123,8 +125,9 @@ bool Device_field_change(Device_field* field,
  *           is found, respectively, to be less than, equal to or greater than
  *           \a field2.
  */
-int Device_field_cmp(const Device_field* field1,
-                     const Device_field* field2);
+int Device_field_cmp(
+        const Device_field* field1,
+        const Device_field* field2);
 
 
 /**

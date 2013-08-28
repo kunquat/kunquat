@@ -200,14 +200,18 @@ bool Player_reserve_voice_state_space(Player* player, size_t size)
 }
 
 
-bool Player_add_channel_gen_state_key(Player* player, const char* key)
+bool Player_alloc_channel_gen_state_keys(
+        Player* player,
+        char* str,
+        Read_state* rs)
 {
     assert(player != NULL);
-    assert(key != NULL);
+    assert(rs != NULL);
 
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
     {
-        if (!Channel_gen_state_set_key(player->channels[i]->cgstate, key))
+        if (!Channel_gen_state_alloc_keys(
+                    player->channels[i]->cgstate, str, rs))
             return false;
     }
 

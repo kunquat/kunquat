@@ -927,10 +927,11 @@ static bool parse_generator_level(kqt_Handle* handle,
             Device_states* dstates = Player_get_device_states(handle->player);
             Device_states_remove_state(dstates, Device_get_id((Device*)gen));
 
-            // Allocate Voice state space
+            // Get generator properties
             Generator_property* property = Gen_type_find_property(type);
             if (property != NULL)
             {
+                // Allocate Voice state space
                 char* size_str = property(gen, "voice_state_size");
                 if (size_str != NULL)
                 {
@@ -949,6 +950,25 @@ static bool parse_generator_level(kqt_Handle* handle,
                         kqt_Handle_set_error(handle, ERROR_MEMORY,
                                 "Couldn't allocate memory");
                         del_Device_impl(gen_impl);
+                        return false;
+                    }
+                }
+
+                // Allocate channel-specific generator state space
+                char* gen_state_vars = property(gen, "gen_state_vars");
+                if (gen_state_vars != NULL)
+                {
+                    Read_state* rs = READ_STATE_AUTO;
+
+                    if (!Player_alloc_channel_gen_state_keys(
+                                handle->player, gen_state_vars, rs))
+                    {
+                        if (!rs->error)
+                            kqt_Handle_set_error(handle, ERROR_MEMORY,
+                                    "Couldn't allocate memory");
+                        else
+                            set_parse_error(handle, rs);
+
                         return false;
                     }
                 }
@@ -976,6 +996,7 @@ static bool parse_generator_level(kqt_Handle* handle,
             }
         }
     }
+#if 0
     else if (string_eq(subkey, "p_events.json"))
     {
         Generator* gen = add_generator(handle, ins, table, gen_index);
@@ -998,7 +1019,10 @@ static bool parse_generator_level(kqt_Handle* handle,
             return false;
         }
     }
-    else
+#endif
+    else if ((string_has_prefix(subkey, "i/") ||
+              string_has_prefix(subkey, "c/")) &&
+             key_is_device_param(subkey))
     {
         Generator* gen = add_generator(handle, ins, table, gen_index);
         if (gen == NULL)
@@ -1008,7 +1032,7 @@ static bool parse_generator_level(kqt_Handle* handle,
         if (conf == NULL)
             return false;
 
-        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+#if 0
         if (!Gen_conf_parse(conf, subkey, data, length, (Device*)gen, state))
         {
             if (!state->error)
@@ -1019,17 +1043,24 @@ static bool parse_generator_level(kqt_Handle* handle,
 
             return false;
         }
+#endif
 
-        // Update Device state
-        if (gen != NULL && !Device_update_state_key(
-                    (Device*)gen,
-                    Player_get_device_states(handle->player),
-                    subkey))
+        // Update Device
+        Read_state* rs = Read_state_init(READ_STATE_AUTO, key);
+        if (!Device_set_key((Device*)gen, subkey, data, length, rs))
         {
-            kqt_Handle_set_error(handle, ERROR_MEMORY,
-                    "Couldn't allocate memory");
-            return false;
+            if (rs->error)
+                set_parse_error(handle, rs);
+            else
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
         }
+
+        // Notify Device state
+        Device_notify_key_change(
+                (Device*)gen,
+                subkey,
+                Player_get_device_states(handle->player));
     }
 
     return true;
@@ -1430,7 +1461,7 @@ static bool parse_dsp_level(kqt_Handle* handle,
         if (conf == NULL)
             return false;
 
-        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+#if 0
         if (!DSP_conf_parse(conf, subkey, data, length, (Device*)dsp, state))
         {
             if (!state->error)
@@ -1440,18 +1471,27 @@ static bool parse_dsp_level(kqt_Handle* handle,
                 set_parse_error(handle, state);
             return false;
         }
+#endif
 
-        // Update Device state
-        if (dsp != NULL && !Device_update_state_key(
-                    (Device*)dsp,
-                    Player_get_device_states(handle->player),
-                    subkey))
+        // Update Device
+        Read_state* rs = Read_state_init(READ_STATE_AUTO, key);
+        if (!Device_set_key((Device*)dsp, subkey, data, length, rs))
         {
-            kqt_Handle_set_error(handle, ERROR_MEMORY,
-                    "Couldn't allocate memory");
+            if (rs->error)
+                set_parse_error(handle, rs);
+            else
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
             return false;
         }
+
+        // Notify Device state
+        Device_notify_key_change(
+                (Device*)dsp,
+                subkey,
+                Player_get_device_states(handle->player));
     }
+#if 0
     else if (string_eq(subkey, "p_events.json"))
     {
         DSP* dsp = add_dsp(handle, eff, dsp_table, dsp_index);
@@ -1474,6 +1514,7 @@ static bool parse_dsp_level(kqt_Handle* handle,
             return false;
         }
     }
+#endif
 
     return true;
 }

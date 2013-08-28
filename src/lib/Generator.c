@@ -126,13 +126,14 @@ bool Generator_init(
     gen->mix = mix;
     gen->init_vstate = init_vstate;
 
-    Device_set_reset(&gen->parent, Generator_reset);
+    //Device_set_reset(&gen->parent, Generator_reset);
     Device_register_port(&gen->parent, DEVICE_PORT_TYPE_SEND, 0);
 
     return true;
 }
 
 
+#if 0
 void Generator_reset(Device* device, Device_states* dstates)
 {
     assert(device != NULL);
@@ -144,6 +145,7 @@ void Generator_reset(Device* device, Device_states* dstates)
 
     return;
 }
+#endif
 
 
 void Generator_set_conf(Generator* gen, Gen_conf* conf)

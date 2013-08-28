@@ -97,7 +97,7 @@ void DSP_set_clear_history(DSP* dsp, void (*func)(DSP*, DSP_state*));
  *
  * \param dsp   The DSP Device -- must not be \c NULL.
  */
-void DSP_reset(Device* device, Device_states* dstates);
+//void DSP_reset(Device* device, Device_states* dstates);
 
 
 /**

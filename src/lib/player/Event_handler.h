@@ -151,7 +151,8 @@ bool Event_handler_set_ins_process(
 bool Event_handler_set_generator_process(
         Event_handler* eh,
         Event_type type,
-        bool (*gen_process)(Generator*, Channel*, Value*));
+        bool (*gen_process)(
+            const Device_impl*, Device_state*, Channel*, Value*));
 
 
 /**
@@ -185,7 +186,8 @@ bool Event_handler_set_effect_process(
 bool Event_handler_set_dsp_process(
         Event_handler* eh,
         Event_type type,
-        bool (*dsp_process)(DSP_conf*, Channel*, Value*));
+        bool (*dsp_process)(
+            const Device_impl*, Device_state*, Channel*, Value*));
 
 
 /**
@@ -215,9 +217,9 @@ bool Event_handler_trigger(
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Event_handler_add_channel_gen_state_key(
-        Event_handler* eh,
-        const char* key);
+//bool Event_handler_add_channel_gen_state_key(
+//        Event_handler* eh,
+//        const char* key);
 
 
 /**
