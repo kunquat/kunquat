@@ -89,6 +89,7 @@ void Generator_common_handle_pitch(const Generator* gen, Voice_state* vstate)
     vstate->prev_actual_pitch = vstate->actual_pitch;
     vstate->actual_pitch = vstate->pitch;
 
+#if 0
     if (gen->conf->pitch_lock_enabled)
     {
         vstate->pitch = vstate->actual_pitch = gen->conf->pitch_lock_freq;
@@ -98,6 +99,7 @@ void Generator_common_handle_pitch(const Generator* gen, Voice_state* vstate)
 //        vstate->actual_pitch = gen->conf->pitch_lock_freq;
     }
     else
+#endif
     {
         if (vstate->arpeggio)
         {

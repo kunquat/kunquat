@@ -19,7 +19,6 @@
 #include <stdbool.h>
 
 #include <DSP.h>
-#include <DSP_conf.h>
 
 
 /**
@@ -48,47 +47,6 @@ DSP_table* new_DSP_table(int size);
  * \param existent   The new existent status.
  */
 void DSP_table_set_existent(DSP_table* table, int index, bool existent);
-
-
-/**
- * Inserts a new DSP configuration into the DSP table.
- *
- * If the target index already contains a DSP configuration, it will be
- * deleted. Also, the corresponding DSP, if one exists, will be updated.
- *
- * \param table   The DSP table -- must not be \c NULL.
- * \param index   The target index -- must be >= \c 0 and less than
- *                the table size.
- * \param conf    The DSP configuration -- must not be \c NULL or a DSP
- *                configuration already stored in the table.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-//bool DSP_table_set_conf(DSP_table* table, int index, DSP_conf* conf);
-
-
-/**
- * Adds a DSP configuration to the DSP table.
- *
- * \param table   The DSP table -- must not be \c NULL.
- * \param index   The target index -- must be >= \c 0 and less than
- *                the table size.
- *
- * \return   The DSP configuration, or \c NULL if memory allocation failed.
- */
-DSP_conf* DSP_table_add_conf(DSP_table* table, int index);
-
-
-/**
- * Gets a DSP configuration from the DSP table.
- *
- * \param table   The DSP table -- must not be \c NULL.
- * \param index   The target index -- must be >= \c 0 and less than
- *                the table size.
- *
- * \return   The DSP configuration if one exists, otherwise \c NULL.
- */
-DSP_conf* DSP_table_get_conf(const DSP_table* table, int index); // TODO: make retval const
 
 
 /**

@@ -41,9 +41,10 @@ struct Device
 
     Device_state* (*create_state)(const struct Device*, int32_t, int32_t);
     bool (*set_mix_rate)(struct Device*, Device_states*, uint32_t);
+    void (*update_tempo)(const struct Device*, Device_states*, double);
     bool (*set_buffer_size)(struct Device*, Device_states*, uint32_t);
     void (*reset)(struct Device*, Device_states*);
-    bool (*sync)(struct Device*, Device_states*);
+    //bool (*sync)(struct Device*, Device_states*);
     bool (*update_key)(struct Device*, const char*);
     void (*process)(
             struct Device*,
@@ -146,6 +147,17 @@ void Device_set_mix_rate_changer(
 
 
 /**
+ * Registers the tempo update function of the Device.
+ *
+ * \param device   The Device -- must not be \c NULL.
+ * \param update   The tempo update function -- must not be \c NULL.
+ */
+void Device_register_update_tempo(
+        Device* device,
+        void (*update)(const Device*, Device_states*, double));
+
+
+/**
  * Sets the function for changing the buffer size of the Device.
  *
  * \param device    The Device -- must not be \c NULL.
@@ -171,7 +183,7 @@ void Device_set_reset(Device* device, void (*reset)(Device*, Device_states*));
  * \param device   The Device -- must not be \c NULL.
  * \param sync     The synchronisation function -- must not be \c NULL.
  */
-void Device_set_sync(Device* device, bool (*sync)(Device*, Device_states*));
+//void Device_set_sync(Device* device, bool (*sync)(Device*, Device_states*));
 
 
 /**
@@ -181,9 +193,9 @@ void Device_set_sync(Device* device, bool (*sync)(Device*, Device_states*));
  * \param update_key   The update notification function
  *                     -- must not be \c NULL.
  */
-void Device_set_update_key(
-        Device* device,
-        bool (*update_key)(Device*, const char*));
+//void Device_set_update_key(
+//        Device* device,
+//        bool (*update_key)(Device*, const char*));
 
 
 /**
@@ -259,6 +271,19 @@ bool Device_set_mix_rate(
 
 
 /**
+ * Updates the tempo of the Device states.
+ *
+ * \param device    The Device -- must not be \c NULL.
+ * \param dstates   The Device states -- must not be \c NULL.
+ * \param tempo     The new tempo -- must be finite and > \c 0.
+ */
+void Device_update_tempo(
+        const Device* device,
+        Device_states* dstates,
+        double tempo);
+
+
+/**
  * Gets the mixing rate of the Device.
  *
  * \param device   The Device -- must not be \c NULL.
@@ -306,12 +331,20 @@ void Device_reset(Device* device, Device_states* dstates);
 /**
  * Synchronises the Device.
  *
- * \param device    The Device -- must not be \c NULL.
- * \param dstates   The Device states -- must not be \c NULL.
+ * \param device   The Device -- must not be \c NULL.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Device_sync(Device* device, Device_states* dstates);
+bool Device_sync(Device* device);
+
+
+/**
+ * Synchronises the Device states.
+ *
+ * \param device    The Device -- must not be \c NULL.
+ * \param dstates   The Device states -- must not be \c NULL.
+ */
+bool Device_sync_states(Device* device, Device_states* dstates);
 
 
 /**
@@ -339,8 +372,10 @@ bool Device_set_key(
  * \param device    The Device -- must not be \c NULL.
  * \param key       The key -- must be valid.
  * \param dstates   The Device state collection -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if a fatal error occurred.
  */
-void Device_notify_key_change(
+bool Device_notify_key_change(
         const Device* device,
         const char* key,
         Device_states* dstates);

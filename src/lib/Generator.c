@@ -89,7 +89,6 @@ Generator* new_Generator(
     //fprintf(stderr, "New Generator %p\n", (void*)gen);
     //strcpy(gen->type, type);
     gen->ins_params = ins_params;
-    gen->conf = NULL;
 
     gen->init_vstate = NULL;
     gen->mix = NULL;
@@ -146,27 +145,6 @@ void Generator_reset(Device* device, Device_states* dstates)
     return;
 }
 #endif
-
-
-void Generator_set_conf(Generator* gen, Gen_conf* conf)
-{
-    assert(gen != NULL);
-    assert(conf != NULL);
-
-    gen->conf = conf;
-
-    return;
-}
-
-
-Device_params* Generator_get_params(Generator* gen)
-{
-    assert(gen != NULL);
-    assert(gen->conf != NULL);
-    assert(gen->conf->params != NULL);
-
-    return gen->conf->params;
-}
 
 
 #if 0

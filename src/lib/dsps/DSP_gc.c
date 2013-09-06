@@ -34,12 +34,17 @@ typedef struct DSP_gc
 {
     Device_impl parent;
 
-    Envelope* map;
+    const Envelope* map;
 } DSP_gc;
 
 
-static bool DSP_gc_sync(Device* device, Device_states* dstates);
-static bool DSP_gc_update_key(Device* device, const char* key);
+static bool DSP_gc_set_map(
+        Device_impl* dimpl,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        const Envelope* value);
+
+//static bool DSP_gc_sync(Device* device, Device_states* dstates);
+//static bool DSP_gc_update_key(Device* device, const char* key);
 
 static void DSP_gc_process(
         Device* device,
@@ -80,10 +85,17 @@ Device_impl* new_DSP_gc(DSP* dsp, uint32_t buffer_size, uint32_t mix_rate)
     }
 #endif
 
-    Device_set_sync(gc->parent.device, DSP_gc_sync);
-    Device_set_update_key(gc->parent.device, DSP_gc_update_key);
+    //Device_set_sync(gc->parent.device, DSP_gc_sync);
+    //Device_set_update_key(gc->parent.device, DSP_gc_update_key);
 
     gc->map = NULL;
+
+    if (!Device_impl_register_set_envelope(
+                &gc->parent, "p_map.jsone", NULL, DSP_gc_set_map))
+    {
+        del_DSP_gc(&gc->parent);
+        return NULL;
+    }
 
     Device_register_port(gc->parent.device, DEVICE_PORT_TYPE_RECEIVE, 0);
     Device_register_port(gc->parent.device, DEVICE_PORT_TYPE_SEND, 0);
@@ -93,6 +105,50 @@ Device_impl* new_DSP_gc(DSP* dsp, uint32_t buffer_size, uint32_t mix_rate)
 }
 
 
+static bool DSP_gc_set_map(
+        Device_impl* dimpl,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        const Envelope* value)
+{
+    assert(dimpl != NULL);
+    assert(indices != NULL);
+    (void)indices;
+
+    DSP_gc* gc = (DSP_gc*)dimpl;
+
+    bool valid = true;
+    if (value != NULL && Envelope_node_count(value) > 1)
+    {
+        double* node = Envelope_get_node(value, 0);
+        if (node[0] != 0)
+            valid = false;
+
+        node = Envelope_get_node(value, Envelope_node_count(value) - 1);
+        if (node[0] != 1)
+            valid = false;
+
+        for (int i = 0; i < Envelope_node_count(value); ++i)
+        {
+            node = Envelope_get_node(value, i);
+            if (node[1] < 0)
+            {
+                valid = false;
+                break;
+            }
+        }
+    }
+    else
+    {
+        valid = false;
+    }
+
+    gc->map = valid ? value : NULL;
+
+    return true;
+}
+
+
+#if 0
 static bool DSP_gc_sync(Device* device, Device_states* dstates)
 {
     assert(device != NULL);
@@ -146,6 +202,7 @@ static bool DSP_gc_update_key(Device* device, const char* key)
 
     return true;
 }
+#endif
 
 
 static void DSP_gc_process(

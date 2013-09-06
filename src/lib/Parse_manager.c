@@ -753,40 +753,6 @@ static bool parse_instrument_level(kqt_Handle* handle,
 }
 
 
-static Gen_conf* add_gen_conf(
-        kqt_Handle* handle,
-        Gen_table* gen_table,
-        int gen_index)
-{
-    assert(handle != NULL);
-    assert(gen_table != NULL);
-    assert(gen_index >= 0);
-    assert(gen_index < KQT_GENERATORS_MAX);
-
-    // Add Generator configuration
-    Gen_conf* conf = Gen_table_add_conf(gen_table, gen_index);
-    if (conf == NULL)
-    {
-        kqt_Handle_set_error(handle, ERROR_MEMORY,
-                "Couldn't allocate memory for generator configuration");
-        return NULL;
-    }
-
-    // Sync the Generator
-    Generator* gen = Gen_table_get_gen(gen_table, gen_index);
-    if (gen != NULL && !Device_sync(
-                (Device*)gen,
-                Player_get_device_states(handle->player)))
-    {
-        kqt_Handle_set_error(handle, ERROR_MEMORY,
-                "Couldn't allocate memory while syncing generator");
-        return NULL;
-    }
-
-    return conf;
-}
-
-
 static Generator* add_generator(
         kqt_Handle* handle,
         Instrument* ins,
@@ -986,7 +952,15 @@ static bool parse_generator_level(kqt_Handle* handle,
             }
 
             // Sync the Generator
-            if (!Device_sync(
+            if (!Device_sync((Device*)gen))
+            {
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory while syncing generator");
+                return false;
+            }
+
+            // Sync the Device state(s)
+            if (!Device_sync_states(
                         (Device*)gen,
                         Player_get_device_states(handle->player)))
             {
@@ -1027,23 +1001,6 @@ static bool parse_generator_level(kqt_Handle* handle,
         Generator* gen = add_generator(handle, ins, table, gen_index);
         if (gen == NULL)
             return false;
-
-        Gen_conf* conf = add_gen_conf(handle, table, gen_index);
-        if (conf == NULL)
-            return false;
-
-#if 0
-        if (!Gen_conf_parse(conf, subkey, data, length, (Device*)gen, state))
-        {
-            if (!state->error)
-                kqt_Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory");
-            else
-                set_parse_error(handle, state);
-
-            return false;
-        }
-#endif
 
         // Update Device
         Read_state* rs = Read_state_init(READ_STATE_AUTO, key);
@@ -1253,40 +1210,6 @@ static bool parse_effect_level(kqt_Handle* handle,
 }
 
 
-static DSP_conf* add_dsp_conf(
-        kqt_Handle* handle,
-        DSP_table* dsp_table,
-        int dsp_index)
-{
-    assert(handle != NULL);
-    assert(dsp_table != NULL);
-    assert(dsp_index >= 0);
-    assert(dsp_index < KQT_DSPS_MAX);
-
-    // Add DSP configuration
-    DSP_conf* conf = DSP_table_add_conf(dsp_table, dsp_index);
-    if (conf == NULL)
-    {
-        kqt_Handle_set_error(handle, ERROR_MEMORY,
-                "Couldn't allocate memory for DSP configuration");
-        return NULL;
-    }
-
-    // Sync the DSP
-    DSP* dsp = DSP_table_get_dsp(dsp_table, dsp_index);
-    if (dsp != NULL && !Device_sync(
-                (Device*)dsp,
-                Player_get_device_states(handle->player)))
-    {
-        kqt_Handle_set_error(handle, ERROR_MEMORY,
-                "Couldn't allocate memory while syncing DSP");
-        return NULL;
-    }
-
-    return conf;
-}
-
-
 static DSP* add_dsp(
         kqt_Handle* handle,
         Effect* eff,
@@ -1439,7 +1362,15 @@ static bool parse_dsp_level(kqt_Handle* handle,
             }
 
             // Sync the DSP
-            if (!Device_sync(
+            if (!Device_sync((Device*)dsp))
+            {
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory while syncing DSP");
+                return false;
+            }
+
+            // Sync the Device state(s)
+            if (!Device_sync_states(
                         (Device*)dsp,
                         Player_get_device_states(handle->player)))
             {
@@ -1456,22 +1387,6 @@ static bool parse_dsp_level(kqt_Handle* handle,
         DSP* dsp = add_dsp(handle, eff, dsp_table, dsp_index);
         if (dsp == NULL)
             return false;
-
-        DSP_conf* conf = add_dsp_conf(handle, dsp_table, dsp_index);
-        if (conf == NULL)
-            return false;
-
-#if 0
-        if (!DSP_conf_parse(conf, subkey, data, length, (Device*)dsp, state))
-        {
-            if (!state->error)
-                kqt_Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory");
-            else
-                set_parse_error(handle, state);
-            return false;
-        }
-#endif
 
         // Update Device
         Read_state* rs = Read_state_init(READ_STATE_AUTO, key);

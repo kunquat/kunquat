@@ -18,6 +18,7 @@
 #include <string.h>
 #include <math.h>
 
+#include <player/Player.h>
 #include <player/Slider.h>
 #include <xassert.h>
 
@@ -34,8 +35,8 @@ Slider* Slider_init(Slider* slider, Slide_mode mode)
     assert(mode == SLIDE_MODE_LINEAR || mode == SLIDE_MODE_EXP);
 
     slider->mode = mode;
-    slider->mix_rate = 0;
-    slider->tempo = 0;
+    slider->mix_rate = DEFAULT_AUDIO_RATE;
+    slider->tempo = DEFAULT_TEMPO;
 
     slider->dir = 0;
     Tstamp_init(&slider->length);

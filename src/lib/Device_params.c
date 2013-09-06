@@ -53,6 +53,7 @@ Event_name_to_param* new_Event_name_to_param(const char key[],
 #endif
 
 
+#if 0
 typedef struct Slow_sync_info
 {
     char key[100];
@@ -84,18 +85,100 @@ static void del_Slow_sync_info(Slow_sync_info* info)
 {
     memory_free(info);
 }
+#endif
 
 
 struct Device_params
 {
     AAtree* implement;       ///< The implementation part of the device.
     AAtree* config;          ///< The configuration part of the device.
+#if 0
     AAtree* slow_sync;       ///< Keys that require explicit synchronisation.
     AAiter* slow_sync_iter;  ///< Iterator for slow_sync.
     bool slow_sync_needed;   ///< Whether any slow-sync keys have changed.
     bool slow_sync_keys_requested;
+#endif
 //    AAtree* event_names;    ///< A mapping from event names to parameters.
 };
+
+
+Device_params_iter* Device_params_iter_init(
+        Device_params_iter* iter,
+        const Device_params* dparams)
+{
+    assert(iter != NULL);
+    assert(dparams != NULL);
+
+    // Init tree iterators
+    AAiter_change_tree(&iter->impl_iter, dparams->implement);
+    AAiter_change_tree(&iter->config_iter, dparams->config);
+
+    // Retrieve first keys of each tree
+    const Device_field* impl_field = AAiter_get_at_least(&iter->impl_iter, "");
+    iter->next_impl_key = (impl_field != NULL) ?
+        Device_field_get_key(impl_field) : NULL;
+
+    const Device_field* config_field = AAiter_get_at_least(
+            &iter->config_iter, "");
+    iter->next_config_key = (config_field != NULL) ?
+        Device_field_get_key(config_field) : NULL;
+
+    return iter;
+}
+
+
+const char* Device_params_iter_get_next_key(Device_params_iter* iter)
+{
+    assert(iter != NULL);
+
+    // Get the next key to be returned
+    const char* ret_key = iter->next_impl_key;
+    if (ret_key == NULL ||
+            (iter->next_config_key != NULL &&
+             strcmp(iter->next_config_key, ret_key) < 0))
+        ret_key = iter->next_config_key;
+
+    assert(!(ret_key == NULL) ||
+            (iter->next_impl_key == NULL && iter->next_config_key == NULL));
+    if (ret_key == NULL)
+        return NULL; // end reached
+
+    assert(iter->next_impl_key != NULL || iter->next_config_key != NULL);
+
+    // Iterate the tree that is behind the other tree
+    if (iter->next_config_key == NULL ||
+            (iter->next_impl_key != NULL &&
+             strcmp(iter->next_impl_key, iter->next_config_key) < 0))
+    {
+        const Device_field* impl_field = AAiter_get_next(&iter->impl_iter);
+        iter->next_impl_key = (impl_field != NULL) ?
+            Device_field_get_key(impl_field) : NULL;
+        return ret_key;
+    }
+    else if (iter->next_impl_key == NULL ||
+            (iter->next_config_key != NULL &&
+             strcmp(iter->next_config_key, iter->next_impl_key) < 0))
+    {
+        const Device_field* config_field = AAiter_get_next(&iter->config_iter);
+        iter->next_config_key = (config_field != NULL) ?
+            Device_field_get_key(config_field) : NULL;
+        return ret_key;
+    }
+
+    // Both tree iterators point to the same key, move both forwards
+    assert(iter->next_impl_key != NULL && iter->next_config_key != NULL);
+    assert(string_eq(iter->next_impl_key, iter->next_config_key));
+
+    const Device_field* impl_field = AAiter_get_next(&iter->impl_iter);
+    iter->next_impl_key = (impl_field != NULL) ?
+        Device_field_get_key(impl_field) : NULL;
+
+    const Device_field* config_field = AAiter_get_next(&iter->config_iter);
+    iter->next_config_key = (config_field != NULL) ?
+        Device_field_get_key(config_field) : NULL;
+
+    return ret_key;
+}
 
 
 bool key_is_device_param(const char* key)
@@ -139,10 +222,12 @@ Device_params* new_Device_params(void)
 
     params->implement = NULL;
     params->config = NULL;
+#if 0
     params->slow_sync = NULL;
     params->slow_sync_iter = NULL;
     params->slow_sync_needed = false;
     params->slow_sync_keys_requested = false;
+#endif
 
     params->implement = new_AAtree(
             (int (*)(const void*, const void*))strcmp,
@@ -150,14 +235,16 @@ Device_params* new_Device_params(void)
     params->config = new_AAtree(
             (int (*)(const void*, const void*))strcmp,
             (void (*)(void*))del_Device_field);
+#if 0
     params->slow_sync = new_AAtree(
             (int (*)(const void*, const void*))strcmp,
             (void (*)(void*))del_Slow_sync_info);
     params->slow_sync_iter = new_AAiter(params->slow_sync);
+#endif
 //    params->event_names = new_AAtree((int (*)(const void*, const void*))strcmp,
 //                                     memory_free);
-    if (params->implement == NULL || params->config == NULL ||
-            params->slow_sync == NULL || params->slow_sync_iter == NULL)
+    if (params->implement == NULL || params->config == NULL)
+//            params->slow_sync == NULL || params->slow_sync_iter == NULL)
 //             || params->event_names == NULL)
     {
         del_Device_params(params);
@@ -193,6 +280,7 @@ bool Device_params_set_key(Device_params* params, const char* key)
 #endif
 
 
+#if 0
 bool Device_params_set_slow_sync(Device_params* params, const char* key)
 {
     assert(params != NULL);
@@ -263,6 +351,7 @@ void Device_params_synchronised(Device_params* params)
     params->slow_sync_keys_requested = false;
     return;
 }
+#endif
 
 
 #if 0
@@ -483,6 +572,7 @@ bool Device_params_parse_value(
         }
     }
 
+#if 0
     if (success && AAtree_contains(params->slow_sync, key))
     {
         Slow_sync_info* info = AAtree_get_exact(params->slow_sync, key);
@@ -490,6 +580,7 @@ bool Device_params_parse_value(
         info->sync_needed = true;
         params->slow_sync_needed = true;
     }
+#endif
 
     return success;
 }
@@ -718,8 +809,8 @@ void del_Device_params(Device_params* params)
 
     del_AAtree(params->implement);
     del_AAtree(params->config);
-    del_AAtree(params->slow_sync);
-    del_AAiter(params->slow_sync_iter);
+    //del_AAtree(params->slow_sync);
+    //del_AAiter(params->slow_sync_iter);
 #if 0
     del_AAtree(params->event_names);
 #endif

@@ -15,7 +15,6 @@
 #include <stdlib.h>
 
 #include <Bit_array.h>
-#include <Gen_conf.h>
 #include <Gen_table.h>
 #include <Generator.h>
 #include <Etable.h>
@@ -26,7 +25,6 @@
 struct Gen_table
 {
     int size;
-    Etable* confs;
     Etable* gens;
     Bit_array* existents;
 };
@@ -40,16 +38,12 @@ Gen_table* new_Gen_table(int size)
     if (table == NULL)
         return NULL;
 
-    table->confs = NULL;
     table->gens = NULL;
     table->existents = NULL;
 
-    table->confs = new_Etable(size, (void (*)(void*))del_Gen_conf);
     table->gens = new_Etable(size, (void (*)(void*))del_Generator);
     table->existents = new_Bit_array(size);
-    if (table->confs == NULL ||
-        table->gens == NULL ||
-        table->existents == NULL)
+    if (table->gens == NULL || table->existents == NULL)
     {
         del_Gen_table(table);
         return NULL;
@@ -77,45 +71,6 @@ void Gen_table_set_existent(Gen_table* table, int index, bool existent)
 }
 
 
-bool Gen_table_set_conf(Gen_table* table, int index, Gen_conf* conf)
-{
-    assert(table != NULL);
-    assert(index >= 0);
-    assert(index < table->size);
-    assert(conf != NULL);
-
-    if (!Etable_set(table->confs, index, conf))
-        return false;
-
-    Generator* gen = Etable_get(table->gens, index);
-    if (gen != NULL)
-        Generator_set_conf(gen, conf);
-
-    return true;
-}
-
-
-Gen_conf* Gen_table_add_conf(Gen_table* table, int index)
-{
-    assert(table != NULL);
-    assert(index >= 0);
-    assert(index < table->size);
-
-    Gen_conf* conf = Etable_get(table->confs, index);
-    if (conf == NULL)
-    {
-        conf = new_Gen_conf();
-        if (conf == NULL || !Gen_table_set_conf(table, index, conf))
-        {
-            del_Gen_conf(conf);
-            return NULL;
-        }
-    }
-
-    return conf;
-}
-
-
 bool Gen_table_set_gen(Gen_table* table, int index, Generator* gen)
 {
     assert(table != NULL);
@@ -123,14 +78,9 @@ bool Gen_table_set_gen(Gen_table* table, int index, Generator* gen)
     assert(index < table->size);
     assert(gen != NULL);
 
-    Gen_conf* conf = Gen_table_add_conf(table, index);
-    if (conf == NULL)
-        return false;
-
     if (!Etable_set(table->gens, index, gen))
         return false;
 
-    Generator_set_conf(gen, conf);
     Device_set_existent((Device*)gen, Bit_array_get(table->existents, index));
 
     return true;
@@ -163,7 +113,6 @@ void Gen_table_clear(Gen_table* table)
 {
     assert(table != NULL);
 
-    Etable_clear(table->confs);
     Etable_clear(table->gens);
 
     return;
@@ -175,7 +124,6 @@ void del_Gen_table(Gen_table* table)
     if (table == NULL)
         return;
 
-    del_Etable(table->confs);
     del_Etable(table->gens);
     del_Bit_array(table->existents);
     memory_free(table);

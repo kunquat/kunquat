@@ -18,7 +18,6 @@
 
 #include <Device.h>
 #include <DSP.h>
-#include <DSP_conf.h>
 #include <DSP_type.h>
 #include <File_base.h>
 #include <memory.h>
@@ -41,8 +40,6 @@ DSP* new_DSP(uint32_t buffer_size, uint32_t mix_rate)
         memory_free(dsp);
         return NULL;
     }
-
-    dsp->conf = NULL;
 
 #if 0
     if (state->error)
@@ -90,7 +87,6 @@ bool DSP_init(
     assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
 
     dsp->clear_history = NULL;
-    dsp->conf = NULL;
 
     if (!Device_init(&dsp->parent, buffer_size, mix_rate))
         return false;
@@ -133,18 +129,6 @@ void DSP_clear_history(DSP* dsp, DSP_state* dsp_state)
 
     if (dsp->clear_history != NULL)
         dsp->clear_history(dsp, dsp_state);
-
-    return;
-}
-
-
-void DSP_set_conf(DSP* dsp, DSP_conf* conf)
-{
-    assert(dsp != NULL);
-    assert(conf != NULL);
-    assert(dsp->conf == NULL || dsp->conf == conf);
-
-    dsp->conf = conf;
 
     return;
 }

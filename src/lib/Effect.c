@@ -50,12 +50,17 @@ static bool Effect_set_mix_rate(
         Device_states* dstates,
         uint32_t mix_rate);
 
+static void Effect_update_tempo(
+        const Device* device,
+        Device_states* dstates,
+        double tempo);
+
 static bool Effect_set_buffer_size(
         Device* device,
         Device_states* dstates,
         uint32_t size);
 
-static bool Effect_sync(Device* device, Device_states* dstates);
+//static bool Effect_sync(Device* device, Device_states* dstates);
 
 static void Effect_process(
         Device* device,
@@ -89,8 +94,9 @@ Effect* new_Effect(uint32_t buf_len, uint32_t mix_rate)
     Device_set_state_creator(&eff->parent, Effect_create_state);
     Device_set_reset(&eff->parent, Effect_reset);
     Device_set_mix_rate_changer(&eff->parent, Effect_set_mix_rate);
+    Device_register_update_tempo(&eff->parent, Effect_update_tempo);
     Device_set_buffer_size_changer(&eff->parent, Effect_set_buffer_size);
-    Device_set_sync(&eff->parent, Effect_sync);
+    //Device_set_sync(&eff->parent, Effect_sync);
     Device_set_process(&eff->parent, Effect_process);
 
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
@@ -263,6 +269,28 @@ static bool Effect_set_mix_rate(
 }
 
 
+static void Effect_update_tempo(
+        const Device* device,
+        Device_states* dstates,
+        double tempo)
+{
+    assert(device != NULL);
+    assert(dstates != NULL);
+    assert(isfinite(tempo));
+    assert(tempo > 0);
+
+    const Effect* eff = (const Effect*)device;
+    for (int i = 0; i < KQT_DSPS_MAX; ++i)
+    {
+        DSP* dsp = DSP_table_get_dsp(eff->dsps, i);
+        if (dsp != NULL)
+            Device_update_tempo((const Device*)dsp, dstates, tempo);
+    }
+
+    return;
+}
+
+
 static bool Effect_set_buffer_size(
         Device* device,
         Device_states* dstates,
@@ -290,6 +318,7 @@ static bool Effect_set_buffer_size(
 }
 
 
+#if 0
 static bool Effect_sync(Device* device, Device_states* dstates)
 {
     assert(device != NULL);
@@ -305,6 +334,7 @@ static bool Effect_sync(Device* device, Device_states* dstates)
 
     return true;
 }
+#endif
 
 
 static void mix_interface_connection(

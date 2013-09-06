@@ -19,7 +19,6 @@
 #include <stdint.h>
 
 #include <Device.h>
-#include <DSP_conf.h>
 #include <File_base.h>
 #include <player/DSP_state.h>
 
@@ -34,7 +33,6 @@ typedef struct DSP
 {
     Device parent;
     //char type[DSP_TYPE_LENGTH_MAX];
-    DSP_conf* conf;
 
     void (*clear_history)(struct DSP*, DSP_state*);
 } DSP;
@@ -107,15 +105,6 @@ void DSP_set_clear_history(DSP* dsp, void (*func)(DSP*, DSP_state*));
  * \param dsp_state   The DSP state -- must not be \c NULL.
  */
 void DSP_clear_history(DSP* dsp, DSP_state* dsp_state);
-
-
-/**
- * Sets the configuration of the DSP.
- *
- * \param dsp    The DSP -- must not be \c NULL.
- * \param conf   The DSP configuration -- must not be \c NULL.
- */
-void DSP_set_conf(DSP* dsp, DSP_conf* conf);
 
 
 /**

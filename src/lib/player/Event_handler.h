@@ -18,7 +18,6 @@
 
 #include <stdbool.h>
 
-#include <DSP_conf.h>
 #include <Event_names.h>
 #include <Event_type.h>
 #include <General_state.h>

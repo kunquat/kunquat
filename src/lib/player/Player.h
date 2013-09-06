@@ -26,6 +26,10 @@
 #include <player/Event_handler.h>
 
 
+#define DEFAULT_AUDIO_RATE 48000
+#define DEFAULT_TEMPO 120.0
+
+
 typedef struct Player Player;
 
 

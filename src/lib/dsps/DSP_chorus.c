@@ -40,7 +40,7 @@ typedef struct Chorus_voice_params
     double delay;
     double range;
     double speed;
-    double scale;
+    double volume;
 } Chorus_voice_params;
 
 
@@ -50,10 +50,8 @@ typedef struct Chorus_voice
     double offset;
     LFO delay_variance;
     double range;
-    bool range_changed;
     double speed;
-    bool speed_changed;
-    double scale;
+    double volume;
     int32_t buf_pos;
 } Chorus_voice;
 
@@ -91,11 +89,16 @@ static void Chorus_state_reset(
 
         voice->offset = 0;
         voice->delay = params->delay;
-        voice->range_changed |= (voice->range != params->range);
+
         voice->range = params->range;
-        voice->speed_changed |= (voice->speed != params->speed);
+        if (voice->range >= voice->delay)
+            voice->range = 0.999 * voice->delay;
+        LFO_set_depth(&voice->delay_variance, voice->range);
+
         voice->speed = params->speed;
-        voice->scale = params->scale;
+        LFO_set_speed(&voice->delay_variance, voice->speed);
+
+        voice->volume = params->volume;
 
         double buf_pos = voice->delay * cstate->parent.parent.audio_rate;
         assert(buf_pos >= 0);
@@ -136,44 +139,37 @@ static Device_state* DSP_chorus_create_state(
         int32_t audio_rate,
         int32_t audio_buffer_size);
 
+static void DSP_chorus_update_tempo(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        double tempo);
+
 static void DSP_chorus_reset(const Device_impl* dimpl, Device_state* dstate);
 
-#if 0
-static bool DSP_chorus_update_state_voice_delay(
-        const Device_impl* dimpl,
-        Device_state* dstate,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+
+#define CHORUS_PARAM(name, dev_key, update_key, def_value) \
+    static bool DSP_chorus_set_voice_##name(               \
+        Device_impl* dimpl,                                \
+        int32_t indices[DEVICE_KEY_INDICES_MAX],           \
         double value);
-static bool DSP_chorus_update_state_voice_range(
-        const Device_impl* dimpl,
-        Device_state* dstate,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+#include <dsps/DSP_chorus_params.h>
+
+
+#define CHORUS_PARAM(name, dev_key, update_key, def_value) \
+    static bool DSP_chorus_update_state_voice_##name(      \
+        const Device_impl* dimpl,                          \
+        Device_state* dstate,                              \
+        int32_t indices[DEVICE_KEY_INDICES_MAX],           \
         double value);
-static bool DSP_chorus_update_state_voice_speed(
-        const Device_impl* dimpl,
-        Device_state* dstate,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
-        double value);
-static bool DSP_chorus_update_state_voice_volume(
-        const Device_impl* dimpl,
-        Device_state* dstate,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
-        double value);
-#endif
+#include <dsps/DSP_chorus_params.h>
+
 
 static void DSP_chorus_clear_history(DSP* dsp, DSP_state* dsp_state);
-static bool DSP_chorus_sync(Device* device, Device_states* dstates);
-static bool DSP_chorus_update_key(Device* device, const char* key);
+//static bool DSP_chorus_sync(Device* device, Device_states* dstates);
 static bool DSP_chorus_set_mix_rate(
         Device* device,
         Device_states* dstates,
         uint32_t mix_rate);
-
-static void DSP_chorus_check_params(
-        DSP_chorus* chorus,
-        Chorus_state* cstate,
-        int32_t audio_rate,
-        double tempo);
 
 static void DSP_chorus_process(
         Device* device,
@@ -218,36 +214,37 @@ Device_impl* new_DSP_chorus(DSP* dsp, uint32_t buffer_size, uint32_t mix_rate)
 
     DSP_set_clear_history((DSP*)chorus->parent.device, DSP_chorus_clear_history);
 
+    Device_impl_register_update_tempo(&chorus->parent, DSP_chorus_update_tempo);
     Device_impl_register_reset_device_state(&chorus->parent, DSP_chorus_reset);
 
-    // State update functions, TODO: enable once implemented properly
-#if 0
-    Device_impl_register_update_state_float(
-            &chorus->parent,
-            "v_XX/d",
-            DSP_chorus_update_state_voice_delay);
+    // Register key set/update handlers
+    bool reg_success = true;
 
-    Device_impl_register_update_state_float(
-            &chorus->parent,
-            "v_XX/r",
-            DSP_chorus_update_state_voice_range);
+#define CHORUS_PARAM(name, dev_key, update_key, def_value) \
+    reg_success &= Device_impl_register_set_float(         \
+            &chorus->parent,                               \
+            dev_key,                                       \
+            def_value,                                     \
+            DSP_chorus_set_voice_##name);
+#include <dsps/DSP_chorus_params.h>
 
-    Device_impl_register_update_state_float(
-            &chorus->parent,
-            "v_XX/s",
-            DSP_chorus_update_state_voice_speed);
+#define CHORUS_PARAM(name, dev_key, update_key, def_value)  \
+    reg_success &= Device_impl_register_update_state_float( \
+            &chorus->parent,                                \
+            update_key,                                     \
+            DSP_chorus_update_state_voice_##name);
+#include <dsps/DSP_chorus_params.h>
 
-    Device_impl_register_update_state_float(
-            &chorus->parent,
-            "v_XX/v",
-            DSP_chorus_update_state_voice_volume);
-#endif
+    if (!reg_success)
+    {
+        del_DSP_chorus(&chorus->parent);
+        return NULL;
+    }
 
     Device_set_mix_rate_changer(
             chorus->parent.device,
             DSP_chorus_set_mix_rate);
-    Device_set_sync(chorus->parent.device, DSP_chorus_sync);
-    Device_set_update_key(chorus->parent.device, DSP_chorus_update_key);
+    //Device_set_sync(chorus->parent.device, DSP_chorus_sync);
 
     for (int i = 0; i < CHORUS_VOICES_MAX; ++i)
     {
@@ -256,7 +253,7 @@ Device_impl* new_DSP_chorus(DSP* dsp, uint32_t buffer_size, uint32_t mix_rate)
         params->delay = -1;
         params->range = 0;
         params->speed = 0;
-        params->scale = 1;
+        params->volume = 1;
     }
 
     Device_register_port(chorus->parent.device, DEVICE_PORT_TYPE_RECEIVE, 0);
@@ -313,6 +310,29 @@ static Device_state* DSP_chorus_create_state(
 }
 
 
+static void DSP_chorus_update_tempo(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        double tempo)
+{
+    assert(dimpl != NULL);
+    assert(dstate != NULL);
+    assert(isfinite(tempo));
+    assert(tempo > 0);
+    (void)dimpl;
+
+    Chorus_state* cstate = (Chorus_state*)dstate;
+
+    for (int i = 0; i < CHORUS_VOICES_MAX; ++i)
+    {
+        Chorus_voice* voice = &cstate->voices[i];
+        LFO_set_tempo(&voice->delay_variance, tempo);
+    }
+
+    return;
+}
+
+
 static void DSP_chorus_reset(const Device_impl* dimpl, Device_state* dstate)
 {
     assert(dimpl != NULL);
@@ -342,37 +362,60 @@ static void DSP_chorus_clear_history(DSP* dsp, DSP_state* dsp_state)
 }
 
 
-static bool DSP_chorus_sync(Device* device, Device_states* dstates)
+static void set_target_voice_delay(double* target, double value)
 {
-    assert(device != NULL);
-    assert(dstates != NULL);
-
-    char delay_key[] = "voice_XX/p_delay.jsonf";
-    int delay_key_bytes = strlen(delay_key) + 1;
-    char range_key[] = "voice_XX/p_range.jsonf";
-    int range_key_bytes = strlen(range_key) + 1;
-    char speed_key[] = "voice_XX/p_speed.jsonf";
-    int speed_key_bytes = strlen(speed_key) + 1;
-    char vol_key[] = "voice_XX/p_volume.jsonf";
-    int vol_key_bytes = strlen(vol_key) + 1;
-
-    for (int vi = 0; vi < CHORUS_VOICES_MAX; ++vi)
-    {
-        snprintf(delay_key, delay_key_bytes, "voice_%02x/p_delay.jsonf", vi);
-        DSP_chorus_update_key(device, delay_key);
-        snprintf(range_key, range_key_bytes, "voice_%02x/p_range.jsonf", vi);
-        DSP_chorus_update_key(device, range_key);
-        snprintf(speed_key, speed_key_bytes, "voice_%02x/p_speed.jsonf", vi);
-        DSP_chorus_update_key(device, speed_key);
-        snprintf(vol_key, vol_key_bytes, "voice_%02x/p_volume.jsonf", vi);
-        DSP_chorus_update_key(device, vol_key);
-    }
-
-    return true;
+    assert(target != NULL);
+    *target = (value >= 0 && value < CHORUS_BUF_TIME / 2) ? value : -1.0;
+    return;
 }
 
 
-#if 0
+static void set_target_voice_range(double* target, double value)
+{
+    assert(target != NULL);
+    *target = (value >= 0 && value < CHORUS_BUF_TIME / 2) ? value : 0.0;
+    return;
+}
+
+
+static void set_target_voice_speed(double* target, double value)
+{
+    assert(target != NULL);
+    *target = (value >= 0) ? value : 0.0;
+    return;
+}
+
+
+static void set_target_voice_volume(double* target, double value)
+{
+    assert(target != NULL);
+    *target = (value <= DB_MAX) ? exp2(value) : 1.0;
+    return;
+}
+
+
+#define CHORUS_PARAM(name, dev_key, update_key, def_value)               \
+    static bool DSP_chorus_set_voice_##name(                             \
+            Device_impl* dimpl,                                          \
+            int32_t indices[DEVICE_KEY_INDICES_MAX],                     \
+            double value)                                                \
+    {                                                                    \
+        assert(dimpl != NULL);                                           \
+        assert(indices != NULL);                                         \
+                                                                         \
+        if (indices[0] < 0 || indices[0] >= CHORUS_VOICES_MAX)           \
+            return true;                                                 \
+                                                                         \
+        DSP_chorus* chorus = (DSP_chorus*)dimpl;                         \
+        Chorus_voice_params* params = &chorus->voice_params[indices[0]]; \
+                                                                         \
+        set_target_voice_##name(&params->name, value);                   \
+                                                                         \
+        return true;                                                     \
+    }
+#include <dsps/DSP_chorus_params.h>
+
+
 static bool DSP_chorus_update_state_voice_delay(
         const Device_impl* dimpl,
         Device_state* dstate,
@@ -384,12 +427,11 @@ static bool DSP_chorus_update_state_voice_delay(
     assert(indices != NULL);
 
     if (indices[0] < 0 || indices[0] >= CHORUS_VOICES_MAX)
-        return false;
+        return true;
 
     Chorus_state* cstate = (Chorus_state*)dstate;
 
-    cstate->voices[indices[0]].delay =
-        (value >= 0 && value < CHORUS_BUF_TIME / 2) ? value : -1;
+    set_target_voice_delay(&cstate->voices[indices[0]].delay, value);
 
     return true;
 }
@@ -406,12 +448,17 @@ static bool DSP_chorus_update_state_voice_range(
     assert(indices != NULL);
 
     if (indices[0] < 0 || indices[0] >= CHORUS_VOICES_MAX)
-        return false;
+        return true;
 
     Chorus_state* cstate = (Chorus_state*)dstate;
+    Chorus_voice* voice = &cstate->voices[indices[0]];
 
-    cstate->voices[indices[0]].range =
-        (value >= 0 && value < CHORUS_BUF_TIME / 2) ? value : 0;
+    set_target_voice_range(&voice->range, value);
+
+    if (voice->range >= voice->delay)
+        voice->range = 0.999 * voice->delay;
+
+    LFO_set_depth(&voice->delay_variance, voice->range);
 
     return true;
 }
@@ -428,11 +475,14 @@ static bool DSP_chorus_update_state_voice_speed(
     assert(indices != NULL);
 
     if (indices[0] < 0 || indices[0] >= CHORUS_VOICES_MAX)
-        return false;
+        return true;
 
     Chorus_state* cstate = (Chorus_state*)dstate;
+    Chorus_voice* voice = &cstate->voices[indices[0]];
 
-    cstate->voices[indices[0]].speed = (value >= 0) ? value : 0;
+    set_target_voice_speed(&voice->speed, value);
+
+    LFO_set_speed(&voice->delay_variance, voice->speed);
 
     return true;
 }
@@ -449,18 +499,17 @@ static bool DSP_chorus_update_state_voice_volume(
     assert(indices != NULL);
 
     if (indices[0] < 0 || indices[0] >= CHORUS_VOICES_MAX)
-        return false;
+        return true;
 
     Chorus_state* cstate = (Chorus_state*)dstate;
 
-    cstate->voices[indices[0]].scale =
-        (value <= DB_MAX) ? exp2(value / 6) : 1;
+    set_target_voice_volume(&cstate->voices[indices[0]].volume, value);
 
     return true;
 }
-#endif
 
 
+#if 0
 static bool DSP_chorus_update_key(Device* device, const char* key)
 {
     assert(device != NULL);
@@ -529,13 +578,14 @@ static bool DSP_chorus_update_key(Device* device, const char* key)
         Chorus_voice_params* params = &chorus->voice_params[vi];
 
         if (volume_dB != NULL && *volume_dB <= DB_MAX)
-            params->scale = exp2(*volume_dB / 6);
+            params->volume = exp2(*volume_dB / 6);
         else
-            params->scale = 1;
+            params->volume = 1;
     }
 
     return true;
 }
+#endif
 
 
 static bool DSP_chorus_set_mix_rate(
@@ -579,6 +629,25 @@ static bool DSP_chorus_set_mix_rate(
 }
 
 
+// FIXME: get rid of this mess
+static void check_params(Chorus_state* cstate, double tempo)
+{
+    assert(cstate != NULL);
+    assert(tempo > 0);
+
+    for (int i = 0; i < CHORUS_VOICES_MAX; ++i)
+    {
+        Chorus_voice* voice = &cstate->voices[i];
+        if (voice->delay < 0 || voice->delay >= CHORUS_BUF_TIME / 2)
+            continue;
+
+        LFO_set_tempo(&voice->delay_variance, tempo);
+    }
+
+    return;
+}
+
+
 static void DSP_chorus_process(
         Device* device,
         Device_states* states,
@@ -597,7 +666,6 @@ static void DSP_chorus_process(
             Device_get_id(device));
     assert(cstate != NULL);
 
-    DSP_chorus* chorus = (DSP_chorus*)device->dimpl;
     //assert(string_eq(chorus->parent.type, "chorus"));
 
     kqt_frame* in_data[] = { NULL, NULL };
@@ -614,7 +682,7 @@ static void DSP_chorus_process(
     const int32_t buf_size = Audio_buffer_get_size(cstate->buf);
     assert(start <= until);
 
-    DSP_chorus_check_params(chorus, cstate, freq, tempo);
+    check_params(cstate, tempo);
 
     for (uint32_t i = start; i < until; ++i)
     {
@@ -653,10 +721,10 @@ static void DSP_chorus_process(
             if (next_pos >= buf_size)
                 next_pos = 0;
 
-            val_l += (1 - remainder) * voice->scale * buf[0][buf_pos];
-            val_l += remainder * voice->scale * buf[0][next_pos];
-            val_r += (1 - remainder) * voice->scale * buf[1][buf_pos];
-            val_r += remainder * voice->scale * buf[1][next_pos];
+            val_l += (1 - remainder) * voice->volume * buf[0][buf_pos];
+            val_l += remainder * voice->volume * buf[0][next_pos];
+            val_r += (1 - remainder) * voice->volume * buf[1][buf_pos];
+            val_r += remainder * voice->volume * buf[1][next_pos];
 
             ++voice->buf_pos;
             if (voice->buf_pos >= buf_size)
@@ -674,46 +742,6 @@ static void DSP_chorus_process(
         {
             assert(cstate->buf_pos == buf_size);
             cstate->buf_pos = 0;
-        }
-    }
-
-    return;
-}
-
-
-static void DSP_chorus_check_params(
-        DSP_chorus* chorus,
-        Chorus_state* cstate,
-        int32_t audio_rate,
-        double tempo)
-{
-    assert(chorus != NULL);
-    assert(cstate != NULL);
-    assert(audio_rate > 0);
-    assert(tempo > 0);
-
-    for (int i = 0; i < CHORUS_VOICES_MAX; ++i)
-    {
-        Chorus_voice* voice = &cstate->voices[i];
-        if (voice->delay < 0 || voice->delay >= CHORUS_BUF_TIME / 2)
-            continue;
-
-        LFO_set_mix_rate(&voice->delay_variance, audio_rate);
-        LFO_set_tempo(&voice->delay_variance, tempo);
-
-        if (voice->range_changed)
-        {
-            voice->range_changed = false;
-            if (voice->range >= voice->delay)
-                voice->range = 0.999 * voice->delay;
-
-            LFO_set_depth(&voice->delay_variance, voice->range);
-        }
-
-        if (voice->speed_changed)
-        {
-            voice->speed_changed = false;
-            LFO_set_speed(&voice->delay_variance, voice->speed);
         }
     }
 

@@ -40,6 +40,27 @@ void Device_reset_default(Device* device, Device_states* dstates)
 }
 
 
+static void Device_update_tempo_default(
+        const Device* device,
+        Device_states* dstates,
+        double tempo)
+{
+    assert(device != NULL);
+    assert(dstates != NULL);
+    assert(isfinite(tempo));
+    assert(tempo > 0);
+
+    if (device->dimpl != NULL)
+    {
+        Device_state* dstate = Device_states_get_state(
+                dstates, Device_get_id(device));
+        Device_impl_update_tempo(device->dimpl, dstate, tempo);
+    }
+
+    return;
+}
+
+
 bool Device_init(Device* device, uint32_t buffer_size, uint32_t mix_rate)
 {
     assert(device != NULL);
@@ -60,10 +81,11 @@ bool Device_init(Device* device, uint32_t buffer_size, uint32_t mix_rate)
 
     device->create_state = new_Device_state_plain;
     device->set_mix_rate = NULL;
+    device->update_tempo = Device_update_tempo_default;
     device->set_buffer_size = NULL;
     device->reset = Device_reset_default;
-    device->sync = NULL;
-    device->update_key = NULL;
+    //device->sync = NULL;
+    //device->update_key = NULL;
     device->process = NULL;
 
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
@@ -110,8 +132,6 @@ bool Device_set_impl(Device* device, Device_impl* dimpl)
 {
     assert(device != NULL);
 
-    // TODO: sync dimpl
-
     del_Device_impl(device->dimpl);
     device->dimpl = dimpl;
 
@@ -153,6 +173,19 @@ void Device_set_mix_rate_changer(
 }
 
 
+void Device_register_update_tempo(
+        Device* device,
+        void (*update)(const Device*, Device_states*, double))
+{
+    assert(device != NULL);
+    assert(update != NULL);
+
+    device->update_tempo = update;
+
+    return;
+}
+
+
 void Device_set_buffer_size_changer(
         Device* device,
         bool (*changer)(Device*, Device_states*, uint32_t))
@@ -174,6 +207,7 @@ void Device_set_reset(Device* device, void (*reset)(Device*, Device_states*))
 }
 
 
+#if 0
 void Device_set_sync(Device* device, bool (*sync)(Device*, Device_states*))
 {
     assert(device != NULL);
@@ -183,8 +217,10 @@ void Device_set_sync(Device* device, bool (*sync)(Device*, Device_states*))
 
     return;
 }
+#endif
 
 
+#if 0
 void Device_set_update_key(
         Device* device,
         bool (*update_key)(struct Device*, const char*))
@@ -194,6 +230,7 @@ void Device_set_update_key(
     device->update_key = update_key;
     return;
 }
+#endif
 
 
 void Device_set_process(
@@ -279,6 +316,23 @@ uint32_t Device_get_mix_rate(const Device* device)
 }
 
 
+void Device_update_tempo(
+        const Device* device,
+        Device_states* dstates,
+        double tempo)
+{
+    assert(device != NULL);
+    assert(dstates != NULL);
+    assert(isfinite(tempo));
+    assert(tempo > 0);
+
+    assert(device->update_tempo != NULL);
+    device->update_tempo(device, dstates, tempo);
+
+    return;
+}
+
+
 bool Device_set_buffer_size(
         Device* device,
         Device_states* dstates,
@@ -320,12 +374,52 @@ void Device_reset(Device* device, Device_states* dstates)
 }
 
 
-bool Device_sync(Device* device, Device_states* dstates)
+bool Device_sync(Device* device)
 {
     assert(device != NULL);
 
-    if (device->sync != NULL)
-        return device->sync(device, dstates);
+    // Set existing keys on dimpl
+    if (device->dimpl != NULL)
+    {
+        Device_params_iter* iter = Device_params_iter_init(
+                DEVICE_PARAMS_ITER_AUTO, device->dparams);
+
+        const char* key = Device_params_iter_get_next_key(iter);
+        while (key != NULL)
+        {
+            if (!Device_impl_set_key(device->dimpl, key))
+                return false;
+
+            key = Device_params_iter_get_next_key(iter);
+        }
+    }
+
+    return true;
+}
+
+
+bool Device_sync_states(Device* device, Device_states* dstates)
+{
+    assert(device != NULL);
+    assert(dstates != NULL);
+
+    if (device->dimpl != NULL)
+    {
+        Device_state* dstate = Device_states_get_state(
+                dstates, Device_get_id(device));
+
+        Device_params_iter* iter = Device_params_iter_init(
+                DEVICE_PARAMS_ITER_AUTO, device->dparams);
+
+        const char* key = Device_params_iter_get_next_key(iter);
+        while (key != NULL)
+        {
+            if (!Device_impl_notify_key_change(device->dimpl, key, dstate))
+                return false;
+
+            key = Device_params_iter_get_next_key(iter);
+        }
+    }
 
     return true;
 }
@@ -358,7 +452,7 @@ bool Device_set_key(
 }
 
 
-void Device_notify_key_change(
+bool Device_notify_key_change(
         const Device* device,
         const char* key,
         Device_states* dstates)
@@ -372,10 +466,10 @@ void Device_notify_key_change(
     {
         Device_state* dstate = Device_states_get_state(
                 dstates, Device_get_id(device));
-        Device_impl_notify_key_change(device->dimpl, key + 2, dstate);
+        return Device_impl_notify_key_change(device->dimpl, key + 2, dstate);
     }
 
-    return;
+    return true;
 }
 
 

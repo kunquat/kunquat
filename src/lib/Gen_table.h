@@ -19,7 +19,6 @@
 #include <stdbool.h>
 
 #include <Generator.h>
-#include <Gen_conf.h>
 
 
 /**
@@ -48,36 +47,6 @@ Gen_table* new_Gen_table(int size);
  * \param existent   The new existent status.
  */
 void Gen_table_set_existent(Gen_table* table, int index, bool existent);
-
-
-/**
- * Inserts a new Generator configuration into the Generator table.
- *
- * If the target index already contains a Generator configuration, it will be
- * deleted. Also, the corresponding Generator, if one exists, will be updated.
- *
- * \param table   The Generator table -- must not be \c NULL.
- * \param index   The target index -- must be >= \c 0 and less than the
- *                table size.
- * \param conf    The Generator configuration -- must not be \c NULL or a
- *                Generator configuration already stored in the table.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-//bool Gen_table_set_conf(Gen_table* table, int index, Gen_conf* conf);
-
-
-/**
- * Adds a Generator configuration to the Generator table.
- *
- * \param table   The Generator table -- must not be \c NULL.
- * \param index   The target index -- must be >= \c 0 and less than the
- *                table size.
- *
- * \return   The Generator configuration, or \c NULL if memory allocation
- *           failed.
- */
-Gen_conf* Gen_table_add_conf(Gen_table* table, int index);
 
 
 /**

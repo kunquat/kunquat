@@ -58,10 +58,10 @@ typedef struct Generator_add
     Sample* mod;
     Mod_mode mod_mode;
     double mod_volume;
-    Envelope* mod_env;
+    const Envelope* mod_env;
     double mod_env_scale_amount;
     double mod_env_center;
-    Envelope* force_mod_env;
+    const Envelope* force_mod_env;
     double detune;
     Add_tone tones[HARMONICS_MAX];
     Add_tone mod_tones[HARMONICS_MAX];
@@ -75,8 +75,62 @@ static void Generator_add_init_vstate(
 
 static double sine(double phase, double modifier);
 
-static bool Generator_add_sync(Device* device, Device_states* dstates);
-static bool Generator_add_update_key(Device* device, const char* key);
+
+static bool Generator_add_set_base(
+        Device_impl* dimpl,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        const Num_list* value);
+static bool Generator_add_set_mod_base(
+        Device_impl* dimpl,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        const Num_list* value);
+static bool Generator_add_set_mod(
+        Device_impl* dimpl,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        int64_t value);
+static bool Generator_add_set_mod_volume(
+        Device_impl* dimpl,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        double value);
+static bool Generator_add_set_mod_env(
+        Device_impl* dimpl,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        const Envelope* value);
+static bool Generator_add_set_mod_env_scale_amount(
+        Device_impl* dimpl,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        double value);
+static bool Generator_add_set_mod_env_scale_center(
+        Device_impl* dimpl,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        double value);
+static bool Generator_add_set_force_mod_env(
+        Device_impl* dimpl,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        const Envelope* value);
+static bool Generator_add_set_tone_pitch(
+        Device_impl* dimpl,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        double value);
+static bool Generator_add_set_tone_volume(
+        Device_impl* dimpl,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        double value);
+static bool Generator_add_set_tone_panning(
+        Device_impl* dimpl,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        double value);
+static bool Generator_add_set_mod_tone_pitch(
+        Device_impl* dimpl,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        double value);
+static bool Generator_add_set_mod_tone_volume(
+        Device_impl* dimpl,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        double value);
+
+//static bool Generator_add_sync(Device* device, Device_states* dstates);
+//static bool Generator_add_update_key(Device* device, const char* key);
 
 static uint32_t Generator_add_mix(
         const Generator* gen,
@@ -125,8 +179,73 @@ Device_impl* new_Generator_add(Generator* gen, uint32_t buffer_size, uint32_t mi
     }
 #endif
 
-    Device_set_sync(add->parent.device, Generator_add_sync);
-    Device_set_update_key(add->parent.device, Generator_add_update_key);
+    //Device_set_sync(add->parent.device, Generator_add_sync);
+    //Device_set_update_key(add->parent.device, Generator_add_update_key);
+
+    bool reg_success = true;
+
+    reg_success &= Device_impl_register_set_num_list(
+            &add->parent, "p_base.jsonln", NULL, Generator_add_set_base);
+    reg_success &= Device_impl_register_set_num_list(
+            &add->parent,
+            "p_mod_base.jsonln",
+            NULL,
+            Generator_add_set_mod_base);
+    reg_success &= Device_impl_register_set_int(
+            &add->parent, "p_mod.jsoni", MOD_DISABLED, Generator_add_set_mod);
+    reg_success &= Device_impl_register_set_float(
+            &add->parent,
+            "p_mod_volume.jsonf",
+            0.0,
+            Generator_add_set_mod_volume);
+    reg_success &= Device_impl_register_set_envelope(
+            &add->parent, "p_mod_env.jsone", NULL, Generator_add_set_mod_env);
+    reg_success &= Device_impl_register_set_float(
+            &add->parent,
+            "p_mod_env_scale_amount.jsonf",
+            0.0,
+            Generator_add_set_mod_env_scale_amount);
+    reg_success &= Device_impl_register_set_float(
+            &add->parent,
+            "p_mod_env_scale_center.jsonf",
+            0.0,
+            Generator_add_set_mod_env_scale_center);
+    reg_success &= Device_impl_register_set_envelope(
+            &add->parent,
+            "p_force_mod_env.jsone",
+            NULL,
+            Generator_add_set_force_mod_env);
+    reg_success &= Device_impl_register_set_float(
+            &add->parent,
+            "tone_XX/p_pitch.jsonf",
+            NAN,
+            Generator_add_set_tone_pitch);
+    reg_success &= Device_impl_register_set_float(
+            &add->parent,
+            "tone_XX/p_volume.jsonf",
+            NAN,
+            Generator_add_set_tone_volume);
+    reg_success &= Device_impl_register_set_float(
+            &add->parent,
+            "tone_XX/p_pan.jsonf",
+            0.0,
+            Generator_add_set_tone_panning);
+    reg_success &= Device_impl_register_set_float(
+            &add->parent,
+            "mod_XX/p_pitch.jsonf",
+            NAN,
+            Generator_add_set_mod_tone_pitch);
+    reg_success &= Device_impl_register_set_float(
+            &add->parent,
+            "mod_XX/p_volume.jsonf",
+            NAN,
+            Generator_add_set_mod_tone_volume);
+
+    if (!reg_success)
+    {
+        del_Generator_add(&add->parent);
+        return NULL;
+    }
 
     add->base = NULL;
     add->mod = NULL;
@@ -222,6 +341,9 @@ static void Generator_add_init_vstate(
 
     Generator_add* add = (Generator_add*)gen->parent.dimpl;
     Voice_state_add* add_state = (Voice_state_add*)vstate;
+
+    add_state->tone_limit = 0;
+    add_state->mod_tone_limit = 0;
 
     for (int h = 0; h < HARMONICS_MAX; ++h)
     {
@@ -435,6 +557,7 @@ static double sine(double phase, double modifier)
 }
 
 
+#if 0
 static bool Generator_add_sync(Device* device, Device_states* dstates)
 {
     assert(device != NULL);
@@ -478,8 +601,347 @@ static bool Generator_add_sync(Device* device, Device_states* dstates)
 
     return true;
 }
+#endif
 
 
+static void fill_buf(float* buf, const Num_list* nl)
+{
+    assert(buf != NULL);
+
+    if (nl != NULL)
+    {
+        int32_t available = MIN(Num_list_length(nl), BASE_FUNC_SIZE);
+
+        for (int i = 0; i < available; ++i)
+            buf[i] = MAX(-1.0, MIN(1.0, Num_list_get_num(nl, i)));
+        for (int i = available; i < BASE_FUNC_SIZE; ++i)
+            buf[i] = 0;
+    }
+    else
+    {
+        for (int i = 0; i < BASE_FUNC_SIZE; ++i)
+            buf[i] = sine((double)i / BASE_FUNC_SIZE, 0);
+    }
+
+    return;
+}
+
+
+static bool Generator_add_set_base(
+        Device_impl* dimpl,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        const Num_list* value)
+{
+    assert(dimpl != NULL);
+    assert(indices != NULL);
+    (void)indices;
+
+    Generator_add* add = (Generator_add*)dimpl;
+
+    fill_buf(Sample_get_buffer(add->base, 0), value);
+
+    return true;
+}
+
+
+static bool Generator_add_set_mod_base(
+        Device_impl* dimpl,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        const Num_list* value)
+{
+    assert(dimpl != NULL);
+    assert(indices != NULL);
+    (void)indices;
+
+    Generator_add* add = (Generator_add*)dimpl;
+
+    fill_buf(Sample_get_buffer(add->mod, 0), value);
+
+    return true;
+}
+
+
+static bool Generator_add_set_mod(
+        Device_impl* dimpl,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        int64_t value)
+{
+    assert(dimpl != NULL);
+    assert(indices != NULL);
+    (void)indices;
+
+    Generator_add* add = (Generator_add*)dimpl;
+
+    if (value >= MOD_DISABLED && value < MOD_LIMIT)
+        add->mod_mode = value;
+    else
+        add->mod_mode = MOD_DISABLED;
+
+    return true;
+}
+
+
+static bool Generator_add_set_mod_volume(
+        Device_impl* dimpl,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        double value)
+{
+    assert(dimpl != NULL);
+    assert(indices != NULL);
+    (void)indices;
+
+    Generator_add* add = (Generator_add*)dimpl;
+
+    if (isfinite(value))
+        add->mod_volume = exp2(value / 6.0);
+    else
+        add->mod_volume = 1.0;
+
+    return true;
+}
+
+
+static bool Generator_add_set_mod_env(
+        Device_impl* dimpl,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        const Envelope* value)
+{
+    assert(dimpl != NULL);
+    assert(indices != NULL);
+    (void)indices;
+
+    Generator_add* add = (Generator_add*)dimpl;
+
+    bool valid = true;
+
+    if (value != NULL && Envelope_node_count(value) > 1)
+    {
+        double* node = Envelope_get_node(value, 0);
+        if (node[0] != 0)
+            valid = false;
+
+        node = Envelope_get_node(
+                value,
+                Envelope_node_count(value) - 1);
+
+        if (node[1] != 0)
+            valid = false;
+
+        for (int i = 0; i < Envelope_node_count(value); ++i)
+        {
+            node = Envelope_get_node(value, i);
+            if (node[1] < 0)
+            {
+                valid = false;
+                break;
+            }
+        }
+    }
+    else
+    {
+        valid = false;
+    }
+
+    add->mod_env = valid ? value : NULL;
+
+    return true;
+}
+
+
+static bool Generator_add_set_mod_env_scale_amount(
+        Device_impl* dimpl,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        double value)
+{
+    assert(dimpl != NULL);
+    assert(indices != NULL);
+    (void)indices;
+
+    Generator_add* add = (Generator_add*)dimpl;
+
+    add->mod_env_scale_amount = isfinite(value) ? value : 0.0;
+
+    return true;
+}
+
+
+static bool Generator_add_set_mod_env_scale_center(
+        Device_impl* dimpl,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        double value)
+{
+    assert(dimpl != NULL);
+    assert(indices != NULL);
+    (void)indices;
+
+    Generator_add* add = (Generator_add*)dimpl;
+
+    add->mod_env_center = isfinite(value) ? exp2(value / 1200) * 440 : 440;
+
+    return true;
+}
+
+
+static bool Generator_add_set_force_mod_env(
+        Device_impl* dimpl,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        const Envelope* value)
+{
+    assert(dimpl != NULL);
+    assert(indices != NULL);
+    (void)indices;
+
+    Generator_add* add = (Generator_add*)dimpl;
+
+    bool valid = true;
+
+    if (value != NULL && Envelope_node_count(value) > 1)
+    {
+        double* node = Envelope_get_node(value, 0);
+        if (node[0] != 0)
+            valid = false;
+
+        node = Envelope_get_node(value, Envelope_node_count(value) - 1);
+        if (node[0] != 1)
+            valid = false;
+
+        for (int i = 0; i < Envelope_node_count(value); ++i)
+        {
+            node = Envelope_get_node(value, i);
+            if (node[1] < 0)
+            {
+                valid = false;
+                break;
+            }
+        }
+    }
+    else
+    {
+        valid = false;
+    }
+
+    add->force_mod_env = valid ? value : NULL;
+
+    return true;
+}
+
+
+static bool Generator_add_set_tone_pitch(
+        Device_impl* dimpl,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        double value)
+{
+    assert(dimpl != NULL);
+    assert(indices != NULL);
+
+    int32_t ti = indices[0];
+    if (ti < 0 || ti >= HARMONICS_MAX)
+        return true;
+
+    Generator_add* add = (Generator_add*)dimpl;
+
+    if (value > 0 && isfinite(value))
+        add->tones[ti].pitch_factor = value;
+    else
+        add->tones[ti].pitch_factor = (ti == 0) ? 1.0 : 0.0;
+
+    return true;
+}
+
+
+static bool Generator_add_set_tone_volume(
+        Device_impl* dimpl,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        double value)
+{
+    assert(dimpl != NULL);
+    assert(indices != NULL);
+
+    int32_t ti = indices[0];
+    if (ti < 0 || ti >= HARMONICS_MAX)
+        return true;
+
+    Generator_add* add = (Generator_add*)dimpl;
+
+    if (isfinite(value))
+        add->tones[ti].volume_factor = exp2(value / 6.0);
+    else
+        add->tones[ti].volume_factor = (ti == 0) ? 1.0 : 0.0;
+
+    return true;
+}
+
+
+static bool Generator_add_set_tone_panning(
+        Device_impl* dimpl,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        double value)
+{
+    assert(dimpl != NULL);
+    assert(indices != NULL);
+
+    int32_t ti = indices[0];
+    if (ti < 0 || ti >= HARMONICS_MAX)
+        return true;
+
+    Generator_add* add = (Generator_add*)dimpl;
+
+    if (value >= -1.0 && value <= 1.0)
+        add->tones[ti].panning = value;
+    else
+        add->tones[ti].panning = 0.0;
+
+    return true;
+}
+
+
+static bool Generator_add_set_mod_tone_pitch(
+        Device_impl* dimpl,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        double value)
+{
+    assert(dimpl != NULL);
+    assert(indices != NULL);
+
+    int32_t ti = indices[0];
+    if (ti < 0 || ti >= HARMONICS_MAX)
+        return true;
+
+    Generator_add* add = (Generator_add*)dimpl;
+
+    if (value > 0 && isfinite(value))
+        add->mod_tones[ti].pitch_factor = value;
+    else
+        add->mod_tones[ti].pitch_factor = (ti == 0) ? 1.0 : 0.0;
+
+    return true;
+}
+
+
+static bool Generator_add_set_mod_tone_volume(
+        Device_impl* dimpl,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        double value)
+{
+    assert(dimpl != NULL);
+    assert(indices != NULL);
+
+    int32_t ti = indices[0];
+    if (ti < 0 || ti >= HARMONICS_MAX)
+        return true;
+
+    Generator_add* add = (Generator_add*)dimpl;
+
+    if (isfinite(value))
+        add->mod_tones[ti].volume_factor = exp2(value / 6.0);
+    else
+        add->mod_tones[ti].volume_factor = (ti == 0) ? 1.0 : 0.0;
+
+    return true;
+}
+
+
+#if 0
 static bool Generator_add_update_key(Device* device, const char* key)
 {
     assert(device != NULL);
@@ -491,212 +953,57 @@ static bool Generator_add_update_key(Device* device, const char* key)
 
     if (string_eq(key, "p_base.jsonln"))
     {
-        Num_list* nl = Device_params_get_num_list(params, key);
-        float* buf = Sample_get_buffer(add->base, 0);
-        assert(buf != NULL);
-
-        if (nl != NULL)
-        {
-            int32_t available = MIN(Num_list_length(nl), BASE_FUNC_SIZE);
-
-            for (int i = 0; i < available; ++i)
-                buf[i] = MAX(-1.0, MIN(1.0, Num_list_get_num(nl, i)));
-            for (int i = available; i < BASE_FUNC_SIZE; ++i)
-                buf[i] = 0;
-        }
-        else
-        {
-            for (int i = 0; i < BASE_FUNC_SIZE; ++i)
-                buf[i] = sine((double)i / BASE_FUNC_SIZE, 0);
-        }
     }
     else if (string_eq(key, "p_mod_base.jsonln"))
     {
-        Num_list* nl = Device_params_get_num_list(params, key);
-        float* buf = Sample_get_buffer(add->mod, 0);
-        assert(buf != NULL);
-
-        if (nl != NULL)
-        {
-            int32_t available = MIN(Num_list_length(nl), BASE_FUNC_SIZE);
-
-            for (int i = 0; i < available; ++i)
-                buf[i] = MAX(-1.0, MIN(1.0, Num_list_get_num(nl, i)));
-            for (int i = available; i < BASE_FUNC_SIZE; ++i)
-                buf[i] = 0;
-        }
-        else
-        {
-            for (int i = 0; i < BASE_FUNC_SIZE; ++i)
-                buf[i] = sine((double)i / BASE_FUNC_SIZE, 0);
-        }
     }
     else if (string_eq(key, "p_mod.jsoni"))
     {
-        int64_t* mode = Device_params_get_int(params, key);
-
-        if (mode != NULL && *mode >= MOD_DISABLED && *mode < MOD_LIMIT)
-            add->mod_mode = *mode;
-        else
-            add->mod_mode = MOD_DISABLED;
     }
     else if (string_eq(key, "p_mod_volume.jsonf"))
     {
-        double* volume_dB = Device_params_get_float(params, key);
-
-        if (volume_dB != NULL && isfinite(*volume_dB))
-            add->mod_volume = exp2(*volume_dB / 6);
-        else
-            add->mod_volume = 1;
     }
     else if (string_eq(key, "p_mod_env.jsone"))
     {
-        add->mod_env = Device_params_get_envelope(params, key);
-        bool valid = true;
-
-        if (add->mod_env != NULL && Envelope_node_count(add->mod_env) > 1)
-        {
-            double* node = Envelope_get_node(add->mod_env, 0);
-            if (node[0] != 0)
-                valid = false;
-
-            node = Envelope_get_node(
-                    add->mod_env,
-                    Envelope_node_count(add->mod_env) - 1);
-
-            if (node[1] != 0)
-                valid = false;
-
-            for (int i = 0; i < Envelope_node_count(add->mod_env); ++i)
-            {
-                node = Envelope_get_node(add->mod_env, i);
-                if (node[1] < 0)
-                {
-                    valid = false;
-                    break;
-                }
-            }
-        }
-        else
-        {
-            valid = false;
-        }
-
-        add->mod_env = valid ? add->mod_env : NULL;
     }
     else if (string_eq(key, "p_mod_env_scale_amount.jsonf"))
     {
-        double* scale_amount = Device_params_get_float(params, key);
-
-        if (scale_amount != NULL && isfinite(*scale_amount))
-            add->mod_env_scale_amount = *scale_amount;
-        else
-            add->mod_env_scale_amount = 0;
     }
     else if (string_eq(key, "p_mod_env_scale_center.jsonf"))
     {
-        double* scale_center = Device_params_get_float(params, key);
-
-        if (scale_center != NULL && isfinite(*scale_center))
-            add->mod_env_center = exp2(*scale_center / 1200) * 440;
-        else
-            add->mod_env_center = 440;
     }
     else if (string_eq(key, "p_force_mod_env.jsone"))
     {
-        add->force_mod_env = Device_params_get_envelope(params, key);
-        bool valid = true;
-
-        if (add->force_mod_env != NULL &&
-                Envelope_node_count(add->force_mod_env) > 1)
-        {
-            double* node = Envelope_get_node(add->force_mod_env, 0);
-            if (node[0] != 0)
-                valid = false;
-
-            node = Envelope_get_node(
-                    add->force_mod_env,
-                    Envelope_node_count(add->force_mod_env) - 1);
-
-            if (node[0] != 1)
-                valid = false;
-
-            for (int i = 0; i < Envelope_node_count(add->force_mod_env); ++i)
-            {
-                node = Envelope_get_node(add->force_mod_env, i);
-                if (node[1] < 0)
-                {
-                    valid = false;
-                    break;
-                }
-            }
-        }
-        else
-        {
-            valid = false;
-        }
-
-        if (!valid)
-            add->force_mod_env = NULL;
     }
     else if ((ti = string_extract_index(
                     key, "tone_", 2, "/p_pitch.jsonf")) >= 0 &&
              ti < HARMONICS_MAX)
     {
-        double* pitch = Device_params_get_float(params, key);
-
-        if (pitch != NULL && *pitch > 0 && isfinite(*pitch))
-            add->tones[ti].pitch_factor = *pitch;
-        else
-            add->tones[ti].pitch_factor = ti == 0 ? 1 : 0;
     }
     else if ((ti = string_extract_index(
                     key, "tone_", 2, "/p_volume.jsonf")) >= 0 &&
              ti < HARMONICS_MAX)
     {
-        double* volume_dB = Device_params_get_float(params, key);
-
-        if (volume_dB != NULL && isfinite(*volume_dB))
-            add->tones[ti].volume_factor = exp2(*volume_dB / 6);
-        else
-            add->tones[ti].volume_factor = ti == 0 ? 1 : 0;
     }
     else if ((ti = string_extract_index(
                     key, "tone_", 2, "/p_pan.jsonf")) >= 0 &&
             ti < HARMONICS_MAX)
     {
-        double* pan = Device_params_get_float(params, key);
-
-        if (pan != NULL && *pan >= -1 && *pan <= 1)
-            add->tones[ti].panning = *pan;
-        else
-            add->tones[ti].panning = 0;
     }
     else if ((ti = string_extract_index(
                     key, "mod_", 2, "/p_pitch.jsonf")) >= 0 &&
              ti < HARMONICS_MAX)
     {
-        double* pitch = Device_params_get_float(params, key);
-
-        if (pitch != NULL && *pitch > 0 && isfinite(*pitch))
-            add->mod_tones[ti].pitch_factor = *pitch;
-        else
-            add->mod_tones[ti].pitch_factor = ti == 0 ? 1 : 0;
     }
     else if ((ti = string_extract_index(
                     key, "mod_", 2, "/p_volume.jsonf")) >= 0 &&
              ti < HARMONICS_MAX)
     {
-        double* volume_dB = Device_params_get_float(params, key);
-
-        if (volume_dB != NULL && isfinite(*volume_dB))
-            add->mod_tones[ti].volume_factor = exp2(*volume_dB / 6);
-        else
-            add->mod_tones[ti].volume_factor = ti == 0 ? 1 : 0;
     }
 
     return true;
 }
+#endif
 
 
 static void del_Generator_add(Device_impl* gen_impl)

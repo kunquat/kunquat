@@ -28,6 +28,42 @@
 typedef struct Device_params Device_params;
 
 
+typedef struct Device_params_iter
+{
+    AAiter impl_iter;
+    AAiter config_iter;
+    const char* next_impl_key;
+    const char* next_config_key;
+} Device_params_iter;
+
+
+#define DEVICE_PARAMS_ITER_AUTO \
+    (&(Device_params_iter){ { .tree = NULL }, { .tree = NULL }, NULL, NULL })
+
+
+/**
+ * Initialises a Device params iterator.
+ *
+ * \param iter      The Device params iterator -- must not be \c NULL.
+ * \param dparams   The Device parameters -- must not be \c NULL.
+ *
+ * \return   The parameter \a iter.
+ */
+Device_params_iter* Device_params_iter_init(
+        Device_params_iter* iter,
+        const Device_params* dparams);
+
+
+/**
+ * Gets the next Device parameter key from the iterator.
+ *
+ * \param iter   The Device params iterator -- must not be \c NULL.
+ *
+ * \return   The next key, or \c NULL if reached the end of the parameters.
+ */
+const char* Device_params_iter_get_next_key(Device_params_iter* iter);
+
+
 /**
  * Tells whether a given key is a Device parameter key.
  *
@@ -106,7 +142,7 @@ Device_params* new_Device_params(void);
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Device_params_set_slow_sync(Device_params* params, const char* key);
+//bool Device_params_set_slow_sync(Device_params* params, const char* key);
 
 
 /**
@@ -116,7 +152,7 @@ bool Device_params_set_slow_sync(Device_params* params, const char* key);
  * \param key      The key -- must be a valid subkey starting after the
  *                 c/ directory.
  */
-void Device_params_clear_slow_sync(Device_params* params, const char* key);
+//void Device_params_clear_slow_sync(Device_params* params, const char* key);
 
 
 /**
@@ -127,7 +163,7 @@ void Device_params_clear_slow_sync(Device_params* params, const char* key);
  * \return   \c true if explicit synchronisation is needed,
  *           otherwise \c false.
  */
-bool Device_params_need_sync(Device_params* params);
+//bool Device_params_need_sync(Device_params* params);
 
 
 /**
@@ -137,7 +173,7 @@ bool Device_params_need_sync(Device_params* params);
  *
  * \return   One of the slow-sync keys, or \c NULL if no such keys are left.
  */
-const char* Device_params_get_slow_sync_key(Device_params* params);
+//const char* Device_params_get_slow_sync_key(Device_params* params);
 
 
 /**
@@ -147,7 +183,7 @@ const char* Device_params_get_slow_sync_key(Device_params* params);
  *
  * \param params   The Device parameters -- must not be \c NULL.
  */
-void Device_params_synchronised(Device_params* params);
+//void Device_params_synchronised(Device_params* params);
 
 
 /**

@@ -162,12 +162,22 @@ static Device_state* DSP_freeverb_create_state(
 
 static void DSP_freeverb_reset(const Device_impl* dimpl, Device_state* dstate);
 
+static bool DSP_freeverb_set_refl(
+        Device_impl* dimpl,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        double value);
+
+static bool DSP_freeverb_set_damp(
+        Device_impl* dimpl,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        double value);
+
 static void DSP_freeverb_clear_history(DSP* dsp, DSP_state* dsp_state);
 static bool DSP_freeverb_set_mix_rate(
         Device* device,
         Device_states* dstates,
         uint32_t mix_rate);
-static bool DSP_freeverb_update_key(Device* device, const char* key);
+//static bool DSP_freeverb_update_key(Device* device, const char* key);
 
 static void DSP_freeverb_process(
         Device* device,
@@ -181,12 +191,12 @@ static void DSP_freeverb_process(
 static void del_DSP_freeverb(Device_impl* dsp_impl);
 
 
-static void DSP_freeverb_set_reflectivity(
+static void DSP_freeverb_update_reflectivity(
         DSP_freeverb* freeverb,
         double reflect);
-static void DSP_freeverb_set_damp(DSP_freeverb* freeverb, double damp);
-static void DSP_freeverb_set_gain(DSP_freeverb* freeverb, double gain);
-static void DSP_freeverb_set_wet(DSP_freeverb* freeverb, double wet);
+static void DSP_freeverb_update_damp(DSP_freeverb* freeverb, double damp);
+static void DSP_freeverb_update_gain(DSP_freeverb* freeverb, double gain);
+static void DSP_freeverb_update_wet(DSP_freeverb* freeverb, double wet);
 
 
 Device_impl* new_DSP_freeverb(DSP* dsp, uint32_t buffer_size, uint32_t mix_rate)
@@ -226,9 +236,23 @@ Device_impl* new_DSP_freeverb(DSP* dsp, uint32_t buffer_size, uint32_t mix_rate)
     Device_impl_register_reset_device_state(
             &freeverb->parent, DSP_freeverb_reset);
 
+    // Register key set/update handlers
+    bool reg_success = true;
+
+    reg_success &= Device_impl_register_set_float(
+            &freeverb->parent,
+            "p_refl.jsonf",
+            initial_reflect,
+            DSP_freeverb_set_refl);
+    reg_success &= Device_impl_register_set_float(
+            &freeverb->parent,
+            "p_damp.jsonf",
+            initial_damp,
+            DSP_freeverb_set_damp);
+
     Device_set_mix_rate_changer(freeverb->parent.device,
                                 DSP_freeverb_set_mix_rate);
-    Device_set_update_key(freeverb->parent.device, DSP_freeverb_update_key);
+    //Device_set_update_key(freeverb->parent.device, DSP_freeverb_update_key);
 
     Device_register_port(freeverb->parent.device, DEVICE_PORT_TYPE_RECEIVE, 0);
     Device_register_port(freeverb->parent.device, DEVICE_PORT_TYPE_SEND, 0);
@@ -252,11 +276,11 @@ Device_impl* new_DSP_freeverb(DSP* dsp, uint32_t buffer_size, uint32_t mix_rate)
     }
 #endif
 
-    DSP_freeverb_set_reflectivity(freeverb, initial_reflect);
-    DSP_freeverb_set_damp(freeverb, initial_damp);
+    DSP_freeverb_update_reflectivity(freeverb, initial_reflect);
+    DSP_freeverb_update_damp(freeverb, initial_damp);
     const double fixed_gain = 0.015;
-    DSP_freeverb_set_gain(freeverb, fixed_gain);
-    DSP_freeverb_set_wet(freeverb, initial_wet);
+    DSP_freeverb_update_gain(freeverb, fixed_gain);
+    DSP_freeverb_update_wet(freeverb, initial_wet);
 
     return &freeverb->parent;
 }
@@ -375,6 +399,50 @@ static void DSP_freeverb_clear_history(DSP* dsp, DSP_state* dsp_state)
 }
 
 
+static bool DSP_freeverb_set_refl(
+        Device_impl* dimpl,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        double value)
+{
+    assert(dimpl != NULL);
+    assert(indices != NULL);
+    (void)indices;
+
+    DSP_freeverb* freeverb = (DSP_freeverb*)dimpl;
+
+    if (value > 200)
+        value = 200;
+    else if (value < 0)
+        value = 0;
+
+    DSP_freeverb_update_reflectivity(freeverb, value);
+
+    return true;
+}
+
+
+static bool DSP_freeverb_set_damp(
+        Device_impl* dimpl,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        double value)
+{
+    assert(dimpl != NULL);
+    assert(indices != NULL);
+    (void)indices;
+
+    DSP_freeverb* freeverb = (DSP_freeverb*)dimpl;
+
+    if (value > 100)
+        value = 100;
+    else if (value < 0)
+        value = 0;
+
+    DSP_freeverb_update_damp(freeverb, value);
+
+    return true;
+}
+
+
 static bool DSP_freeverb_set_mix_rate(
         Device* device,
         Device_states* dstates,
@@ -426,6 +494,7 @@ static bool DSP_freeverb_set_mix_rate(
 }
 
 
+#if 0
 static bool DSP_freeverb_update_key(Device* device, const char* key)
 {
     assert(device != NULL);
@@ -474,9 +543,10 @@ static bool DSP_freeverb_update_key(Device* device, const char* key)
 
     return true;
 }
+#endif
 
 
-static void DSP_freeverb_set_reflectivity(
+static void DSP_freeverb_update_reflectivity(
         DSP_freeverb* freeverb,
         double reflect)
 {
@@ -490,7 +560,7 @@ static void DSP_freeverb_set_reflectivity(
 }
 
 
-static void DSP_freeverb_set_damp(DSP_freeverb* freeverb, double damp)
+static void DSP_freeverb_update_damp(DSP_freeverb* freeverb, double damp)
 {
     assert(freeverb != NULL);
 
@@ -502,7 +572,7 @@ static void DSP_freeverb_set_damp(DSP_freeverb* freeverb, double damp)
 }
 
 
-static void DSP_freeverb_set_gain(DSP_freeverb* freeverb, double gain)
+static void DSP_freeverb_update_gain(DSP_freeverb* freeverb, double gain)
 {
     assert(freeverb != NULL);
 
@@ -512,7 +582,7 @@ static void DSP_freeverb_set_gain(DSP_freeverb* freeverb, double gain)
 }
 
 
-static void DSP_freeverb_set_wet(DSP_freeverb* freeverb, double wet)
+static void DSP_freeverb_update_wet(DSP_freeverb* freeverb, double wet)
 {
     assert(freeverb != NULL);
 

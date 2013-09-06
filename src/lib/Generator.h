@@ -22,7 +22,6 @@
 #include <Device.h>
 #include <Device_params.h>
 #include <File_base.h>
-#include <Gen_conf.h>
 #include <Instrument_params.h>
 #include <kunquat/limits.h>
 #include <pitch_t.h>
@@ -42,7 +41,6 @@ typedef struct Generator
 {
     Device parent;
     //char type[GEN_TYPE_LENGTH_MAX];
-    Gen_conf* conf;
     const Instrument_params* ins_params;
 
     void (*init_vstate)(
@@ -124,25 +122,6 @@ bool Generator_init(
  * \param dstates   The Device states -- must not be \c NULL.
  */
 //void Generator_reset(Device* device, Device_states* dstates);
-
-
-/**
- * Sets the configuration of the Generator.
- *
- * \param gen    The Generator -- must not be \c NULL.
- * \param conf   The Generator configuration -- must not be \c NULL.
- */
-void Generator_set_conf(Generator* gen, Gen_conf* conf);
-
-
-/**
- * Retrieves the Generator parameter tree.
- *
- * \param gen   The Generator -- must not be \c NULL.
- *
- * \return   The Generator parameter tree.
- */
-Device_params* Generator_get_params(Generator* gen);
 
 
 /**

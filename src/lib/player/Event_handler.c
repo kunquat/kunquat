@@ -18,7 +18,6 @@
 #include <inttypes.h>
 #include <math.h>
 
-#include <DSP_conf.h>
 #include <Effect.h>
 #include <Event_names.h>
 #include <Event_type.h>

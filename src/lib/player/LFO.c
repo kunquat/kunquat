@@ -21,6 +21,7 @@
 
 #include <math_common.h>
 #include <player/LFO.h>
+#include <player/Player.h>
 #include <xassert.h>
 
 
@@ -35,8 +36,8 @@ LFO* LFO_init(LFO* lfo, LFO_mode mode)
     assert(mode == LFO_MODE_LINEAR || mode == LFO_MODE_EXP);
 
     lfo->mode = mode;
-    lfo->mix_rate = 0;
-    lfo->tempo = 0;
+    lfo->mix_rate = DEFAULT_AUDIO_RATE;
+    lfo->tempo = DEFAULT_TEMPO;
 
     lfo->on = false;
 

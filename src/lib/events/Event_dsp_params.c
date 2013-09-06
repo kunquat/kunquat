@@ -16,7 +16,6 @@
 #include <stdbool.h>
 
 #include <Active_names.h>
-#include <DSP_conf.h>
 #include <Event_common.h>
 #include <Event_dsp_decl.h>
 #include <File_base.h>

@@ -95,6 +95,16 @@ Device_field* new_Device_field_from_data(
 
 
 /**
+ * Returns the key of the Device field.
+ *
+ * \param field   The Device field -- must not be \c NULL.
+ *
+ * \return   The key of the Device field.
+ */
+const char* Device_field_get_key(const Device_field* field);
+
+
+/**
  * Changes the data of a Device field.
  *
  * This is used for modifying _composition_ data (not playback data).

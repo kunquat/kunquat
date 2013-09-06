@@ -69,6 +69,7 @@ typedef struct Set_cb
 
         struct
         {
+            const Envelope* default_val;
             bool (*set)(
                     Device_impl*,
                     int32_t[DEVICE_KEY_INDICES_MAX],
@@ -77,6 +78,7 @@ typedef struct Set_cb
 
         struct
         {
+            Sample* default_val;
             bool (*set)(
                     Device_impl*,
                     int32_t[DEVICE_KEY_INDICES_MAX],
@@ -85,6 +87,7 @@ typedef struct Set_cb
 
         struct
         {
+            const Sample_params* default_val;
             bool (*set)(
                     Device_impl*,
                     int32_t[DEVICE_KEY_INDICES_MAX],
@@ -93,6 +96,7 @@ typedef struct Set_cb
 
         struct
         {
+            const Sample_map* default_val;
             bool (*set)(
                     Device_impl*,
                     int32_t[DEVICE_KEY_INDICES_MAX],
@@ -101,6 +105,7 @@ typedef struct Set_cb
 
         struct
         {
+            const Hit_map* default_val;
             bool (*set)(
                     Device_impl*,
                     int32_t[DEVICE_KEY_INDICES_MAX],
@@ -109,6 +114,7 @@ typedef struct Set_cb
 
         struct
         {
+            const Num_list* default_val;
             bool (*set)(
                     Device_impl*,
                     int32_t[DEVICE_KEY_INDICES_MAX],
@@ -168,6 +174,7 @@ bool Device_impl_init(
     dimpl->set_cbs = NULL;
     dimpl->update_state_cbs = NULL;
 
+    dimpl->update_tempo = NULL;
     dimpl->reset = NULL;
     dimpl->destroy = destroy;
 
@@ -184,6 +191,16 @@ bool Device_impl_init(
     }
 
     return true;
+}
+
+
+void Device_impl_register_update_tempo(
+        Device_impl* dimpl,
+        void (*update)(const Device_impl*, Device_state*, double))
+{
+    assert(dimpl != NULL);
+    dimpl->update_tempo = update;
+    return;
 }
 
 
@@ -260,6 +277,70 @@ bool Device_impl_register_set_tstamp(
     strcpy(set_cb->key_pattern, keyp);
     Tstamp_copy(&set_cb->cb.Tstamp_type.default_val, default_val);
     set_cb->cb.Tstamp_type.set = set_func;
+
+    if (!AAtree_ins(dimpl->set_cbs, set_cb))
+    {
+        memory_free(set_cb);
+        return false;
+    }
+
+    return true;
+}
+
+
+bool Device_impl_register_set_envelope(
+        Device_impl* dimpl,
+        const char* keyp,
+        const Envelope* default_val,
+        bool (*set_func)(
+            Device_impl*,
+            int32_t[DEVICE_KEY_INDICES_MAX],
+            const Envelope*))
+{
+    assert(dimpl != NULL);
+    assert(keyp != NULL);
+    assert(strlen(keyp) < KQT_KEY_LENGTH_MAX);
+    assert(set_func != NULL);
+
+    Set_cb* set_cb = memory_alloc_item(Set_cb);
+    if (set_cb == NULL)
+        return false;
+
+    strcpy(set_cb->key_pattern, keyp);
+    set_cb->cb.Envelope_type.default_val = default_val;
+    set_cb->cb.Envelope_type.set = set_func;
+
+    if (!AAtree_ins(dimpl->set_cbs, set_cb))
+    {
+        memory_free(set_cb);
+        return false;
+    }
+
+    return true;
+}
+
+
+bool Device_impl_register_set_num_list(
+        Device_impl* dimpl,
+        const char* keyp,
+        const Num_list* default_val,
+        bool (*set_func)(
+            Device_impl*,
+            int32_t[DEVICE_KEY_INDICES_MAX],
+            const Num_list*))
+{
+    assert(dimpl != NULL);
+    assert(keyp != NULL);
+    assert(strlen(keyp) < KQT_KEY_LENGTH_MAX);
+    assert(set_func != NULL);
+
+    Set_cb* set_cb = memory_alloc_item(Set_cb);
+    if (set_cb == NULL)
+        return false;
+
+    strcpy(set_cb->key_pattern, keyp);
+    set_cb->cb.Num_list_type.default_val = default_val;
+    set_cb->cb.Num_list_type.set = set_func;
 
     if (!AAtree_ins(dimpl->set_cbs, set_cb))
     {
@@ -351,6 +432,23 @@ void Device_impl_reset_device_state(
 
     if (dimpl->reset != NULL)
         dimpl->reset(dimpl, dstate);
+
+    return;
+}
+
+
+void Device_impl_update_tempo(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        double tempo)
+{
+    assert(dimpl != NULL);
+    assert(dstate != NULL);
+    assert(isfinite(tempo));
+    assert(tempo > 0);
+
+    if (dimpl->update_tempo != NULL)
+        dimpl->update_tempo(dimpl, dstate, tempo);
 
     return;
 }
@@ -521,7 +619,7 @@ bool Device_impl_set_key(Device_impl* dimpl, const char* key)
 }
 
 
-void Device_impl_notify_key_change(
+bool Device_impl_notify_key_change(
         const Device_impl* dimpl,
         const char* key,
         Device_state* dstate)
@@ -560,7 +658,7 @@ void Device_impl_notify_key_change(
                     dimpl->device->dparams, key);                          \
             const ctype val = (dval != NULL) ? *dval :                     \
                 set_cb->cb.type_name##_type.default_val;                   \
-            update_state_cb->cb.update_##type_name(                        \
+            return update_state_cb->cb.update_##type_name(                 \
                     dimpl, dstate, indices, val);                          \
         }                                                                  \
         else (void)0
@@ -593,7 +691,7 @@ void Device_impl_notify_key_change(
                         dimpl->device->dparams, key);
                 const Tstamp* val = (dval != NULL) ? dval :
                     &set_cb->cb.Tstamp_type.default_val;
-                update_state_cb->cb.update_tstamp(
+                return update_state_cb->cb.update_tstamp(
                         dimpl, dstate, indices, val);
             }
             break;
@@ -605,7 +703,7 @@ void Device_impl_notify_key_change(
 #undef NOTIFY_STATE
     }
 
-    return;
+    return true;
 }
 
 
@@ -676,7 +774,7 @@ bool Device_impl_update_state_tstamp(
                 indices,
                 value);
 
-    return false;
+    return true;
 }
 
 

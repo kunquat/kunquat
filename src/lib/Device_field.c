@@ -163,6 +163,13 @@ Device_field* new_Device_field_from_data(
 }
 
 
+const char* Device_field_get_key(const Device_field* field)
+{
+    assert(field != NULL);
+    return field->key;
+}
+
+
 bool Device_field_change(
         Device_field* field,
         void* data,

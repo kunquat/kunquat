@@ -64,6 +64,12 @@ static bool Module_set_mix_rate(
         uint32_t mix_rate);
 
 
+static void Module_update_tempo(
+        const Device* device,
+        Device_states* dstates,
+        double tempo);
+
+
 /**
  * Sets the buffer size of the Module.
  *
@@ -92,7 +98,7 @@ static bool Module_set_buffer_size(
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-static bool Module_sync(Device* device, Device_states* dstates);
+//static bool Module_sync(Device* device, Device_states* dstates);
 
 
 Module* new_Module(uint32_t buf_size)
@@ -113,8 +119,9 @@ Module* new_Module(uint32_t buf_size)
     Device_set_existent(&module->parent, true);
     Device_set_reset(&module->parent, Module_reset);
     Device_set_mix_rate_changer(&module->parent, Module_set_mix_rate);
+    Device_register_update_tempo(&module->parent, Module_update_tempo);
     Device_set_buffer_size_changer(&module->parent, Module_set_buffer_size);
-    Device_set_sync(&module->parent, Module_sync);
+    //Device_set_sync(&module->parent, Module_sync);
     Device_register_port(&module->parent, DEVICE_PORT_TYPE_RECEIVE, 0);
 
     // Clear fields
@@ -598,6 +605,36 @@ static bool Module_set_mix_rate(
 }
 
 
+static void Module_update_tempo(
+        const Device* device,
+        Device_states* dstates,
+        double tempo)
+{
+    assert(device != NULL);
+    assert(dstates != NULL);
+    assert(isfinite(tempo));
+    assert(tempo > 0);
+
+    const Module* module = (const Module*)device;
+
+    for (int i = 0; i < KQT_INSTRUMENTS_MAX; ++i)
+    {
+        Instrument* ins = Ins_table_get(module->insts, i);
+        if (ins != NULL)
+            Device_update_tempo((const Device*)ins, dstates, tempo);
+    }
+
+    for (int i = 0; i < KQT_EFFECTS_MAX; ++i)
+    {
+        Effect* eff = Effect_table_get(module->effects, i);
+        if (eff != NULL)
+            Device_update_tempo((const Device*)eff, dstates, tempo);
+    }
+
+    return;
+}
+
+
 static bool Module_set_buffer_size(
         Device* device,
         Device_states* dstates,
@@ -628,6 +665,7 @@ static bool Module_set_buffer_size(
 }
 
 
+#if 0
 static bool Module_sync(Device* device, Device_states* dstates)
 {
     assert(device != NULL);
@@ -653,6 +691,7 @@ static bool Module_sync(Device* device, Device_states* dstates)
 
     return true;
 }
+#endif
 
 
 void del_Module(Module* module)

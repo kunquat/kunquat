@@ -60,12 +60,17 @@ static bool Instrument_set_mix_rate(
         Device_states* dstates,
         uint32_t mix_rate);
 
+static void Instrument_update_tempo(
+        const Device* device,
+        Device_states* dstates,
+        double tempo);
+
 static bool Instrument_set_buffer_size(
         Device* device,
         Device_states* dstates,
         uint32_t size);
 
-static bool Instrument_sync(Device* device, Device_states* dstates);
+//static bool Instrument_sync(Device* device, Device_states* dstates);
 
 
 Instrument* new_Instrument(uint32_t buf_len, uint32_t mix_rate)
@@ -99,8 +104,9 @@ Instrument* new_Instrument(uint32_t buf_len, uint32_t mix_rate)
     Device_set_state_creator(&ins->parent, Instrument_create_state);
     Device_set_reset(&ins->parent, Instrument_reset);
     Device_set_mix_rate_changer(&ins->parent, Instrument_set_mix_rate);
+    Device_register_update_tempo(&ins->parent, Instrument_update_tempo);
     Device_set_buffer_size_changer(&ins->parent, Instrument_set_buffer_size);
-    Device_set_sync(&ins->parent, Instrument_sync);
+    //Device_set_sync(&ins->parent, Instrument_sync);
     Device_register_port(&ins->parent, DEVICE_PORT_TYPE_RECEIVE, 0);
     Device_register_port(&ins->parent, DEVICE_PORT_TYPE_SEND, 0);
 
@@ -399,6 +405,36 @@ static bool Instrument_set_mix_rate(
 }
 
 
+static void Instrument_update_tempo(
+        const Device* device,
+        Device_states* dstates,
+        double tempo)
+{
+    assert(device != NULL);
+    assert(dstates != NULL);
+    assert(isfinite(tempo));
+    assert(tempo > 0);
+
+    const Instrument* ins = (const Instrument*)device;
+
+    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    {
+        Generator* gen = Gen_table_get_gen(ins->gens, i);
+        if (gen != NULL)
+            Device_update_tempo((const Device*)gen, dstates, tempo);
+    }
+
+    for (int i = 0; i < KQT_INST_EFFECTS_MAX; ++i)
+    {
+        Effect* eff = Effect_table_get(ins->effects, i);
+        if (eff != NULL)
+            Device_update_tempo((const Device*)eff, dstates, tempo);
+    }
+
+    return;
+}
+
+
 static bool Instrument_set_buffer_size(
         Device* device,
         Device_states* dstates,
@@ -431,6 +467,7 @@ static bool Instrument_set_buffer_size(
 }
 
 
+#if 0
 static bool Instrument_sync(Device* device, Device_states* dstates)
 {
     assert(device != NULL);
@@ -456,6 +493,7 @@ static bool Instrument_sync(Device* device, Device_states* dstates)
 
     return true;
 }
+#endif
 
 
 void del_Instrument(Instrument* ins)

@@ -46,6 +46,7 @@ kqt_Handle* kqt_new_Handle(void)
     handle_m->handle.set_data = Handle_m_set_data;
     handle_m->handle.destroy = del_Handle_m;
 
+#if 0
     if (!Device_sync(
                 (Device*)handle_m->handle.module,
                 Player_get_device_states(handle_m->handle.player)))
@@ -54,6 +55,7 @@ kqt_Handle* kqt_new_Handle(void)
         kqt_del_Handle(&handle_m->handle);
         return NULL;
     }
+#endif
 
     return &handle_m->handle;
 }

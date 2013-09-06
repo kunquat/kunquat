@@ -155,11 +155,10 @@ static void DSP_volume_reset(const Device_impl* dimpl, Device_state* dstate)
     assert(dimpl != NULL);
     assert(dstate != NULL);
 
-    DSP_volume* volume = (DSP_volume*)dimpl;
     Volume_state* vol_state = (Volume_state*)dstate;
 
     const double* vol_dB = Device_params_get_float(
-            ((DSP*)volume->parent.device)->conf->params, "p_volume.jsonf");
+            dimpl->device->dparams, "p_volume.jsonf");
     if (vol_dB != NULL && isfinite(*vol_dB))
         vol_state->scale = exp2(*vol_dB / 6);
     else
@@ -229,10 +228,7 @@ static void DSP_volume_process(
 
     (void)freq;
     (void)tempo;
-    DSP_volume* volume = (DSP_volume*)device->dimpl;
     //assert(string_eq(volume->parent.type, "volume"));
-    assert(((DSP*)volume->parent.device)->conf != NULL);
-    assert(((DSP*)volume->parent.device)->conf->params != NULL);
     kqt_frame* in_data[] = { NULL, NULL };
     kqt_frame* out_data[] = { NULL, NULL };
     DSP_get_raw_input(&vol_state->parent.parent, 0, in_data);

@@ -85,13 +85,38 @@ static Device_state* DSP_conv_create_state(
         int32_t audio_rate,
         int32_t audio_buffer_size);
 
-static void DSP_conv_set_ir(DSP_conv* conv);
+static void DSP_conv_update_ir(DSP_conv* conv);
 
 static void DSP_conv_reset(const Device_impl* dimpl, Device_state* dstate);
 
-static bool DSP_conv_sync(Device* device, Device_states* dstates);
+#if 0
+static bool DSP_conv_set_max_ir_len(
+        Device_impl* dimpl,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        double value);
+
+static bool DSP_conv_set_ir(
+        Device_impl* dimpl,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Sample* value);
+#endif
+
+#if 0
+static bool DSP_conv_set_volume(
+        Device_impl* dimpl,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        double value);
+
+static bool DSP_conv_update_state_volume(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        double value);
+#endif
+
+//static bool DSP_conv_sync(Device* device, Device_states* dstates);
 static void DSP_conv_clear_history(DSP* dsp, DSP_state* dsp_state);
-static bool DSP_conv_update_key(Device* device, const char* key);
+//static bool DSP_conv_update_key(Device* device, const char* key);
 static bool DSP_conv_set_mix_rate(
         Device* device,
         Device_states* dstates,
@@ -113,6 +138,8 @@ Device_impl* new_DSP_conv(DSP* dsp, uint32_t buffer_size, uint32_t mix_rate)
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
     assert(mix_rate > 0);
+
+    assert(false); // FIXME: This DSP is broken, fix.
 
     DSP_conv* conv = memory_alloc_item(DSP_conv);
     if (conv == NULL)
@@ -144,9 +171,27 @@ Device_impl* new_DSP_conv(DSP* dsp, uint32_t buffer_size, uint32_t mix_rate)
 
     Device_impl_register_reset_device_state(&conv->parent, DSP_conv_reset);
 
+    // Register key set/update handlers
+#if 0
+    bool reg_success = true;
+
+    reg_success &= Device_impl_register_set_float(
+            &conv->parent,
+            "p_max_ir_len.jsonf",
+            DEFAULT_IR_LEN,
+            DSP_conv_set_max_ir_len);
+    reg_success &= Device_impl_register_set_sample(
+            &conv->parent, "p_ir.wv", NULL, DSP_conv_set_ir);
+
+    if (!reg_success)
+    {
+        del_DSP_conv(&conv->parent);
+        return NULL;
+    }
+#endif
+
     DSP_set_clear_history((DSP*)conv->parent.device, DSP_conv_clear_history);
-    Device_set_sync(conv->parent.device, DSP_conv_sync);
-    Device_set_update_key(conv->parent.device, DSP_conv_update_key);
+    //Device_set_sync(conv->parent.device, DSP_conv_sync);
     Device_set_mix_rate_changer(
             conv->parent.device,
             DSP_conv_set_mix_rate);
@@ -215,6 +260,33 @@ static void DSP_conv_reset(const Device_impl* dimpl, Device_state* dstate)
 }
 
 
+#if 0
+static bool DSP_conv_set_max_ir_len(
+        Device_impl* dimpl,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        double value)
+{
+    assert(dimpl != NULL);
+    assert(indices != NULL);
+    (void)indices;
+
+    DSP_conv* conv = (DSP_conv*)dimpl;
+}
+
+
+static bool DSP_conv_set_ir(
+        Device_impl* dimpl,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Sample* value)
+{
+    assert(dimpl != NULL);
+    assert(indices != NULL);
+    (void)indices;
+}
+#endif
+
+
+#if 0
 static bool DSP_conv_sync(Device* device, Device_states* dstates)
 {
     assert(device != NULL);
@@ -226,6 +298,7 @@ static bool DSP_conv_sync(Device* device, Device_states* dstates)
 
     return true;
 }
+#endif
 
 
 static void DSP_conv_clear_history(DSP* dsp, DSP_state* dsp_state)
@@ -243,13 +316,14 @@ static void DSP_conv_clear_history(DSP* dsp, DSP_state* dsp_state)
 }
 
 
+#if 0
 static bool DSP_conv_update_key(Device* device, const char* key)
 {
     assert(device != NULL);
     assert(key != NULL);
 
     DSP_conv* conv = (DSP_conv*)device->dimpl;
-    Device_params* params = ((DSP*)conv->parent.device)->conf->params;
+    Device_params* params = conv->parent.device->dparams;
 
     if (string_eq(key, "p_max_ir_len.jsonf"))
     {
@@ -265,6 +339,7 @@ static bool DSP_conv_update_key(Device* device, const char* key)
 
     return true;
 }
+#endif
 
 
 static bool DSP_conv_set_mix_rate(
@@ -301,7 +376,7 @@ static bool DSP_conv_set_mix_rate(
     Audio_buffer_clear(conv->ir, 0, buf_size);
     Audio_buffer_clear(cstate->history, 0, buf_size);
     conv->history_pos = 0;
-    DSP_conv_set_ir(conv);
+    DSP_conv_update_ir(conv);
     assert(conv->actual_ir_len <= buf_size);
 
     return true;
@@ -326,18 +401,16 @@ static bool DSP_conv_set_mix_rate(
         next_r /= divisor;                                        \
     } else (void)0
 
-static void DSP_conv_set_ir(DSP_conv* conv)
+static void DSP_conv_update_ir(DSP_conv* conv)
 {
     assert(conv != NULL);
 
-    if (((DSP*)conv->parent.device)->conf == NULL)
+    Device_params* params = conv->parent.device->dparams;
+    if (params == NULL)
     {
         conv->actual_ir_len = 0;
         return;
     }
-
-    Device_params* params = ((DSP*)conv->parent.device)->conf->params;
-    assert(params != NULL);
 
     Sample* sample = Device_params_get_sample(params, "p_ir.wv");
     if (sample == NULL)

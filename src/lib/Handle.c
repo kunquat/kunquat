@@ -84,7 +84,7 @@ bool kqt_Handle_init(kqt_Handle* handle, long buffer_size)
     // Create players
     handle->player = new_Player(
             handle->module,
-            48000,
+            DEFAULT_AUDIO_RATE,
             2048,
             16384,
             256);
