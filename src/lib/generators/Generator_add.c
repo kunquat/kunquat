@@ -299,10 +299,17 @@ Device_impl* new_Generator_add(Generator* gen, uint32_t buffer_size, uint32_t mi
         add->tones[h].pitch_factor = 0;
         add->tones[h].volume_factor = 0;
         add->tones[h].panning = 0;
+
         add->mod_tones[h].pitch_factor = 0;
         add->mod_tones[h].volume_factor = 0;
         add->mod_tones[h].panning = 0;
     }
+
+    add->tones[0].pitch_factor = 1.0;
+    add->tones[0].volume_factor = 1.0;
+
+    add->mod_tones[0].pitch_factor = 1.0;
+    add->mod_tones[0].volume_factor = 1.0;
 
     return &add->parent;
 }
