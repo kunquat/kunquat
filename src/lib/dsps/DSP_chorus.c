@@ -362,35 +362,27 @@ static void DSP_chorus_clear_history(DSP* dsp, DSP_state* dsp_state)
 }
 
 
-static void set_target_voice_delay(double* target, double value)
+static double get_voice_delay(double value)
 {
-    assert(target != NULL);
-    *target = (value >= 0 && value < CHORUS_BUF_TIME / 2) ? value : -1.0;
-    return;
+    return (value >= 0 && value < CHORUS_BUF_TIME / 2) ? value : -1.0;
 }
 
 
-static void set_target_voice_range(double* target, double value)
+static double get_voice_range(double value)
 {
-    assert(target != NULL);
-    *target = (value >= 0 && value < CHORUS_BUF_TIME / 2) ? value : 0.0;
-    return;
+    return (value >= 0 && value < CHORUS_BUF_TIME / 2) ? value : 0.0;
 }
 
 
-static void set_target_voice_speed(double* target, double value)
+static double get_voice_speed(double value)
 {
-    assert(target != NULL);
-    *target = (value >= 0) ? value : 0.0;
-    return;
+    return (value >= 0) ? value : 0.0;
 }
 
 
-static void set_target_voice_volume(double* target, double value)
+static double get_voice_volume(double value)
 {
-    assert(target != NULL);
-    *target = (value <= DB_MAX) ? exp2(value / 6.0) : 1.0;
-    return;
+    return (value <= DB_MAX) ? exp2(value / 6.0) : 1.0;
 }
 
 
@@ -409,7 +401,7 @@ static void set_target_voice_volume(double* target, double value)
         DSP_chorus* chorus = (DSP_chorus*)dimpl;                         \
         Chorus_voice_params* params = &chorus->voice_params[indices[0]]; \
                                                                          \
-        set_target_voice_##name(&params->name, value);                   \
+        params->name = get_voice_##name(value);                          \
                                                                          \
         return true;                                                     \
     }
@@ -431,7 +423,7 @@ static bool DSP_chorus_update_state_voice_delay(
 
     Chorus_state* cstate = (Chorus_state*)dstate;
 
-    set_target_voice_delay(&cstate->voices[indices[0]].delay, value);
+    cstate->voices[indices[0]].delay = get_voice_delay(value);
 
     return true;
 }
@@ -453,7 +445,7 @@ static bool DSP_chorus_update_state_voice_range(
     Chorus_state* cstate = (Chorus_state*)dstate;
     Chorus_voice* voice = &cstate->voices[indices[0]];
 
-    set_target_voice_range(&voice->range, value);
+    voice->range = get_voice_range(value);
 
     if (voice->range >= voice->delay)
         voice->range = 0.999 * voice->delay;
@@ -480,7 +472,7 @@ static bool DSP_chorus_update_state_voice_speed(
     Chorus_state* cstate = (Chorus_state*)dstate;
     Chorus_voice* voice = &cstate->voices[indices[0]];
 
-    set_target_voice_speed(&voice->speed, value);
+    voice->speed = get_voice_speed(value);
 
     LFO_set_speed(&voice->delay_variance, voice->speed);
 
@@ -503,7 +495,7 @@ static bool DSP_chorus_update_state_voice_volume(
 
     Chorus_state* cstate = (Chorus_state*)dstate;
 
-    set_target_voice_volume(&cstate->voices[indices[0]].volume, value);
+    cstate->voices[indices[0]].volume = get_voice_volume(value);
 
     return true;
 }
