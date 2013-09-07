@@ -389,7 +389,7 @@ static void set_target_voice_speed(double* target, double value)
 static void set_target_voice_volume(double* target, double value)
 {
     assert(target != NULL);
-    *target = (value <= DB_MAX) ? exp2(value) : 1.0;
+    *target = (value <= DB_MAX) ? exp2(value / 6.0) : 1.0;
     return;
 }
 
