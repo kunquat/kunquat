@@ -28,6 +28,8 @@
 #include <xassert.h>
 
 
+#define MAX_BUF_TIME 5
+
 #define DEFAULT_IR_LEN 0.25
 
 
@@ -35,11 +37,12 @@ typedef struct DSP_conv
 {
     Device_impl parent;
 
-    Audio_buffer* ir;
     double max_ir_len;
-    int32_t actual_ir_len;
-    int32_t history_pos;
     int32_t ir_rate;
+    double scale;
+
+    Audio_buffer* ir;
+    int32_t actual_ir_len;
 } DSP_conv;
 
 
@@ -48,18 +51,25 @@ typedef struct Conv_state
     DSP_state parent;
 
     Audio_buffer* history;
+    int32_t history_pos;
+
+    double scale;
 } Conv_state;
 
 
-static void Conv_state_reset(Conv_state* cstate)
+static void Conv_state_reset(Conv_state* cstate, const DSP_conv* conv)
 {
     assert(cstate != NULL);
+    assert(conv != NULL);
 
     DSP_state_reset(&cstate->parent);
 
     Audio_buffer_clear(
             cstate->history,
             0, Audio_buffer_get_size(cstate->history));
+    cstate->history_pos = 0;
+
+    cstate->scale = conv->scale;
 
     return;
 }
@@ -85,11 +95,10 @@ static Device_state* DSP_conv_create_state(
         int32_t audio_rate,
         int32_t audio_buffer_size);
 
-static void DSP_conv_update_ir(DSP_conv* conv, Conv_state* cstate);
+static void DSP_conv_update_ir(DSP_conv* conv);
 
 static void DSP_conv_reset(const Device_impl* dimpl, Device_state* dstate);
 
-#if 0
 static bool DSP_conv_set_max_ir_len(
         Device_impl* dimpl,
         int32_t indices[DEVICE_KEY_INDICES_MAX],
@@ -99,11 +108,15 @@ static bool DSP_conv_set_ir(
         Device_impl* dimpl,
         int32_t indices[DEVICE_KEY_INDICES_MAX],
         Sample* value);
-#endif
 
-#if 0
 static bool DSP_conv_set_volume(
         Device_impl* dimpl,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        double value);
+
+static bool DSP_conv_update_state_max_ir_len(
+        const Device_impl* dimpl,
+        Device_state* dstate,
         int32_t indices[DEVICE_KEY_INDICES_MAX],
         double value);
 
@@ -112,11 +125,8 @@ static bool DSP_conv_update_state_volume(
         Device_state* dstate,
         int32_t indices[DEVICE_KEY_INDICES_MAX],
         double value);
-#endif
 
-//static bool DSP_conv_sync(Device* device, Device_states* dstates);
-static void DSP_conv_clear_history(DSP* dsp, DSP_state* dsp_state);
-//static bool DSP_conv_update_key(Device* device, const char* key);
+static void DSP_conv_clear_history(DSP* dsp, DSP_state* dsp_state); // FIXME: interface
 static bool DSP_conv_set_audio_rate(
         const Device_impl* dimpl,
         Device_state* dstate,
@@ -150,25 +160,12 @@ Device_impl* new_DSP_conv(DSP* dsp)
     conv->parent.device = (Device*)dsp;
 
     Device_set_process((Device*)dsp, DSP_conv_process);
-#if 0
-    if (!DSP_init(
-                &conv->parent,
-                del_DSP_conv,
-                DSP_conv_process,
-                buffer_size,
-                mix_rate))
-    {
-        memory_free(conv);
-        return NULL;
-    }
-#endif
 
     Device_set_state_creator(conv->parent.device, DSP_conv_create_state);
 
     Device_impl_register_reset_device_state(&conv->parent, DSP_conv_reset);
 
     // Register key set/update handlers
-#if 0
     bool reg_success = true;
 
     reg_success &= Device_impl_register_set_float(
@@ -178,35 +175,36 @@ Device_impl* new_DSP_conv(DSP* dsp)
             DSP_conv_set_max_ir_len);
     reg_success &= Device_impl_register_set_sample(
             &conv->parent, "p_ir.wv", NULL, DSP_conv_set_ir);
+    reg_success &= Device_impl_register_set_float(
+            &conv->parent, "p_volume.jsonf", 0.0, DSP_conv_set_volume);
+
+    reg_success &= Device_impl_register_update_state_float(
+            &conv->parent,
+            "p_max_ir_len.jsonf",
+            DSP_conv_update_state_max_ir_len);
+    reg_success &= Device_impl_register_update_state_float(
+            &conv->parent, "p_volume.jsonf", DSP_conv_update_state_volume);
 
     if (!reg_success)
     {
         del_DSP_conv(&conv->parent);
         return NULL;
     }
-#endif
 
     DSP_set_clear_history((DSP*)conv->parent.device, DSP_conv_clear_history);
     //Device_set_sync(conv->parent.device, DSP_conv_sync);
     Device_impl_register_set_audio_rate(
             &conv->parent, DSP_conv_set_audio_rate);
 
-    conv->ir = NULL;
     conv->max_ir_len = DEFAULT_IR_LEN;
-    conv->actual_ir_len = 0;
-    conv->history_pos = 0;
     conv->ir_rate = 48000;
+    conv->scale = 1.0;
+
+    conv->ir = NULL;
+    conv->actual_ir_len = 0;
 
     Device_register_port(conv->parent.device, DEVICE_PORT_TYPE_RECEIVE, 0);
     Device_register_port(conv->parent.device, DEVICE_PORT_TYPE_SEND, 0);
-
-#if 0
-    if (!DSP_conv_set_mix_rate(&conv->parent.parent, mix_rate))
-    {
-        del_DSP(&conv->parent);
-        return NULL;
-    }
-#endif
 
     return &conv->parent;
 }
@@ -227,16 +225,23 @@ static Device_state* DSP_conv_create_state(
 
     DSP_state_init(&cstate->parent, device, audio_rate, audio_buffer_size);
     cstate->parent.parent.destroy = del_Conv_state;
-    cstate->history = NULL;
 
-    DSP_conv* conv = (DSP_conv*)device->dimpl;
+    // Sanitise fields
+    cstate->history = NULL;
+    cstate->history_pos = 0;
+    cstate->scale = 1.0;
+
+    const DSP_conv* conv = (const DSP_conv*)device->dimpl;
 
     const long buf_size = conv->max_ir_len * audio_rate;
     cstate->history = new_Audio_buffer(buf_size);
     if (cstate->history == NULL)
+    {
+        del_Audio_buffer(cstate->history);
         return NULL;
+    }
 
-    Conv_state_reset(cstate);
+    Conv_state_reset(cstate, conv);
 
     return &cstate->parent.parent;
 }
@@ -255,7 +260,6 @@ static void DSP_conv_reset(const Device_impl* dimpl, Device_state* dstate)
 }
 
 
-#if 0
 static bool DSP_conv_set_max_ir_len(
         Device_impl* dimpl,
         int32_t indices[DEVICE_KEY_INDICES_MAX],
@@ -266,6 +270,12 @@ static bool DSP_conv_set_max_ir_len(
     (void)indices;
 
     DSP_conv* conv = (DSP_conv*)dimpl;
+    conv->max_ir_len = (value > 0 && value <= MAX_BUF_TIME)
+        ? value : DEFAULT_IR_LEN;
+
+    DSP_conv_update_ir(conv);
+
+    return true;
 }
 
 
@@ -277,23 +287,93 @@ static bool DSP_conv_set_ir(
     assert(dimpl != NULL);
     assert(indices != NULL);
     (void)indices;
+    (void)value;
+
+    DSP_conv* conv = (DSP_conv*)dimpl;
+
+    long buf_size = conv->max_ir_len * 48000; // FIXME: 48000
+    if (buf_size <= 0)
+        buf_size = 1;
+
+    if (conv->ir == NULL)
+    {
+        conv->ir = new_Audio_buffer(buf_size);
+        if (conv->ir == NULL)
+            return false;
+    }
+    else if (!Audio_buffer_resize(conv->ir, buf_size))
+        return false;
+
+    DSP_conv_update_ir((DSP_conv*)dimpl);
+
+    return true;
 }
-#endif
 
 
-#if 0
-static bool DSP_conv_sync(Device* device, Device_states* dstates)
+// FIXME: copypasta, define this in a common utility module
+static double dB_to_scale(double vol_dB)
 {
-    assert(device != NULL);
-    assert(dstates != NULL);
+    return isfinite(vol_dB) ? exp2(vol_dB / 6) : 1.0;
+}
 
-    if (!DSP_conv_update_key(device, "p_max_ir_len.jsonf") ||
-            !DSP_conv_update_key(device, "p_ir.wv"))
+
+static bool DSP_conv_set_volume(
+        Device_impl* dimpl,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        double value)
+{
+    assert(dimpl != NULL);
+    assert(indices != NULL);
+    (void)indices;
+
+    DSP_conv* conv = (DSP_conv*)dimpl;
+    conv->scale = dB_to_scale(value);
+
+    return true;
+}
+
+
+static bool DSP_conv_update_state_max_ir_len(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        double value)
+{
+    assert(dimpl != NULL);
+    assert(dstate != NULL);
+    assert(indices != NULL);
+    (void)indices;
+
+    Conv_state* cstate = (Conv_state*)dstate;
+
+    int32_t buf_size = MAX(
+            Audio_buffer_get_size(cstate->history),
+            value * Device_state_get_audio_rate(dstate));
+    assert(buf_size > 0);
+
+    if (!Audio_buffer_resize(cstate->history, buf_size))
         return false;
 
     return true;
 }
-#endif
+
+
+static bool DSP_conv_update_state_volume(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        double value)
+{
+    assert(dimpl != NULL);
+    assert(dstate != NULL);
+    assert(indices != NULL);
+    (void)indices;
+
+    Conv_state* cstate = (Conv_state*)dstate;
+    cstate->scale = dB_to_scale(value);
+
+    return true;
+}
 
 
 static void DSP_conv_clear_history(DSP* dsp, DSP_state* dsp_state)
@@ -311,32 +391,6 @@ static void DSP_conv_clear_history(DSP* dsp, DSP_state* dsp_state)
 }
 
 
-#if 0
-static bool DSP_conv_update_key(Device* device, const char* key)
-{
-    assert(device != NULL);
-    assert(key != NULL);
-
-    DSP_conv* conv = (DSP_conv*)device->dimpl;
-    Device_params* params = conv->parent.device->dparams;
-
-    if (string_eq(key, "p_max_ir_len.jsonf"))
-    {
-        double* max_param = Device_params_get_float(params, key);
-        if (max_param != NULL)
-            conv->max_ir_len = *max_param;
-        else
-            conv->max_ir_len = DEFAULT_IR_LEN;
-    }
-    else if (string_eq(key, "p_ir.wv") || string_eq(key, "p_volume.jsonf"))
-    {
-    }
-
-    return true;
-}
-#endif
-
-
 static bool DSP_conv_set_audio_rate(
         const Device_impl* dimpl,
         Device_state* dstate,
@@ -346,21 +400,12 @@ static bool DSP_conv_set_audio_rate(
     assert(dstate != NULL);
     assert(audio_rate > 0);
 
-    DSP_conv* conv = (DSP_conv*)dimpl;
+    const DSP_conv* conv = (const DSP_conv*)dimpl;
     Conv_state* cstate = (Conv_state*)dstate;
 
     long buf_size = conv->max_ir_len * audio_rate;
     if (buf_size <= 0)
         buf_size = 1;
-
-    if (conv->ir == NULL)
-    {
-        conv->ir = new_Audio_buffer(buf_size);
-        if (conv->ir == NULL)
-            return false;
-    }
-    else if (!Audio_buffer_resize(conv->ir, buf_size))
-        return false;
 
     assert(cstate->history != NULL);
     if (!Audio_buffer_resize(cstate->history, buf_size))
@@ -368,37 +413,27 @@ static bool DSP_conv_set_audio_rate(
 
     Audio_buffer_clear(conv->ir, 0, buf_size);
     Audio_buffer_clear(cstate->history, 0, buf_size);
-    conv->history_pos = 0;
-    DSP_conv_update_ir(conv, cstate);
-    assert(conv->actual_ir_len <= buf_size);
+    cstate->history_pos = 0;
 
     return true;
 }
 
 
-#define get_values(type, divisor)                                 \
-    if (true)                                                     \
-    {                                                             \
-        val_r = val_l = ((type*)sample->data[0])[sample_pos];     \
-        if (sample->channels > 1)                                 \
-            val_r = ((type*)sample->data[1])[sample_pos];         \
-        if (next_pos < (int32_t)sample->len)                      \
-        {                                                         \
-            next_r = next_l = ((type*)sample->data[0])[next_pos]; \
-            if (sample->channels > 1)                             \
-                next_r = ((type*)sample->data[1])[next_pos];      \
-        }                                                         \
-        val_l /= divisor;                                         \
-        val_r /= divisor;                                         \
-        next_l /= divisor;                                        \
-        next_r /= divisor;                                        \
+#define get_values(type, divisor)                    \
+    if (true)                                        \
+    {                                                \
+        val_r = val_l = ((type*)sample->data[0])[i]; \
+        if (sample->channels > 1)                    \
+            val_r = ((type*)sample->data[1])[i];     \
+        val_l /= divisor;                            \
+        val_r /= divisor;                            \
     } else (void)0
 
-static void DSP_conv_update_ir(DSP_conv* conv, Conv_state* cstate)
+static void DSP_conv_update_ir(DSP_conv* conv)
 {
     assert(conv != NULL);
 
-    Device_params* params = conv->parent.device->dparams;
+    const Device_params* params = conv->parent.device->dparams;
     if (params == NULL)
     {
         conv->actual_ir_len = 0;
@@ -412,14 +447,6 @@ static void DSP_conv_update_ir(DSP_conv* conv, Conv_state* cstate)
         return;
     }
 
-    double scale = 1;
-
-    double* dB_param = Device_params_get_float(params, "p_volume.jsonf");
-    if (dB_param != NULL)
-        scale = exp2(*dB_param / 6);
-
-    conv->ir_rate = 48000; // FIXME
-    int32_t audio_rate = Device_state_get_audio_rate(&cstate->parent.parent);
     int32_t ir_size = Audio_buffer_get_size(conv->ir);
     kqt_frame* ir_data[] =
     {
@@ -427,23 +454,12 @@ static void DSP_conv_update_ir(DSP_conv* conv, Conv_state* cstate)
         Audio_buffer_get_buffer(conv->ir, 1),
     };
 
-    int32_t i = 0;
-    for (; i < ir_size; ++i)
+    conv->actual_ir_len = MIN(ir_size, (int32_t)sample->len);
+
+    for (int32_t i = 0; i < conv->actual_ir_len; ++i)
     {
-        double ideal_pos = (double)i * (conv->ir_rate / (double)audio_rate);
-        int32_t sample_pos = (int32_t)ideal_pos;
-        int32_t next_pos = sample_pos + 1;
-        double remainder = ideal_pos - sample_pos;
-        assert(remainder >= 0);
-        assert(remainder < 1);
-
-        if (sample_pos >= (int32_t)sample->len)
-            break;
-
         double val_l = 0;
         double val_r = 0;
-        double next_l = 0;
-        double next_r = 0;
 
         if (sample->is_float)
             get_values(float, 1);
@@ -456,12 +472,9 @@ static void DSP_conv_update_ir(DSP_conv* conv, Conv_state* cstate)
         else
             assert(false);
 
-        // TODO: improve the scaling quality
-        ir_data[0][i] = (val_l + (next_l - val_l) * remainder) * scale;
-        ir_data[1][i] = (val_r + (next_r - val_r) * remainder) * scale;
+        ir_data[0][i] = val_l;
+        ir_data[1][i] = val_r;
     }
-
-    conv->actual_ir_len = i;
 
     return;
 }
@@ -504,18 +517,45 @@ static void DSP_conv_process(
         Audio_buffer_get_buffer(cstate->history, 1),
     };
 
-    for (uint32_t out_pos = start; out_pos < until; ++out_pos)
+    const int32_t ir_size = Audio_buffer_get_size(conv->ir);
+    const int32_t history_size = Audio_buffer_get_size(cstate->history);
+
+    const double ir_scale_fac = (double)ir_size / (double)history_size;
+
+    for (int32_t out_pos = start; out_pos < (int32_t)until; ++out_pos)
     {
         kqt_frame out_l = 0;
         kqt_frame out_r = 0;
-        int32_t history_pos = conv->history_pos;
+        int32_t history_pos = cstate->history_pos;
         history_data[0][history_pos] = in_data[0][out_pos];
         history_data[1][history_pos] = in_data[1][out_pos];
 
-        for (int32_t i = 0; i < conv->actual_ir_len; ++i)
+        for (int32_t i = 0; i < history_size; ++i)
         {
-            out_l += history_data[0][history_pos] * ir_data[0][i];
-            out_r += history_data[1][history_pos] * ir_data[1][i];
+            // Get ir position
+            double ir_pos = ir_scale_fac * i;
+            int32_t ir_sample_pos = (int32_t)ir_pos;
+            double ir_sample_rem = ir_pos - floor(ir_pos);
+
+            if (ir_sample_pos >= ir_size)
+                break;
+
+            // Get ir value
+            float cur_val_l = ir_data[0][ir_sample_pos];
+            float cur_val_r = ir_data[1][ir_sample_pos];
+            float next_val_l = 0.0;
+            float next_val_r = 0.0;
+            if (ir_sample_pos + 1 < ir_size)
+            {
+                next_val_l = ir_data[0][ir_sample_pos + 1];
+                next_val_r = ir_data[1][ir_sample_pos + 1];
+            }
+
+            float ir_val_l = lerp(cur_val_l, next_val_l, ir_sample_rem);
+            float ir_val_r = lerp(cur_val_r, next_val_r, ir_sample_rem);
+
+            out_l += history_data[0][history_pos] * ir_val_l * cstate->scale;
+            out_r += history_data[1][history_pos] * ir_val_r * cstate->scale;
 
             --history_pos;
             if (history_pos < 0)
@@ -525,9 +565,9 @@ static void DSP_conv_process(
         out_data[0][out_pos] += out_l;
         out_data[1][out_pos] += out_r;
 
-        ++conv->history_pos;
-        if (conv->history_pos >= conv->actual_ir_len)
-            conv->history_pos = 0;
+        ++cstate->history_pos;
+        if (cstate->history_pos >= conv->actual_ir_len)
+            cstate->history_pos = 0;
     }
 
     return;
