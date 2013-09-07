@@ -81,19 +81,6 @@ Device_impl* new_Generator_pulse(Generator* gen)
 
     gen->init_vstate = Generator_pulse_init_vstate;
     gen->mix = Generator_pulse_mix;
-#if 0
-    if (!Generator_init(
-                &pulse->parent,
-                del_Generator_pulse,
-                Generator_pulse_mix,
-                Generator_pulse_init_vstate,
-                buffer_size,
-                mix_rate))
-    {
-        memory_free(pulse);
-        return NULL;
-    }
-#endif
 
     Device_set_state_creator(
             pulse->parent.device,

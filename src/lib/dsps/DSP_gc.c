@@ -43,9 +43,6 @@ static bool DSP_gc_set_map(
         int32_t indices[DEVICE_KEY_INDICES_MAX],
         const Envelope* value);
 
-//static bool DSP_gc_sync(Device* device, Device_states* dstates);
-//static bool DSP_gc_update_key(Device* device, const char* key);
-
 static void DSP_gc_process(
         Device* device,
         Device_states* states,
@@ -72,17 +69,6 @@ Device_impl* new_DSP_gc(DSP* dsp)
     gc->parent.device = (Device*)dsp;
 
     Device_set_process((Device*)dsp, DSP_gc_process);
-#if 0
-    if (!DSP_init(&gc->parent, del_DSP_gc, DSP_gc_process,
-                  buffer_size, mix_rate))
-    {
-        memory_free(gc);
-        return NULL;
-    }
-#endif
-
-    //Device_set_sync(gc->parent.device, DSP_gc_sync);
-    //Device_set_update_key(gc->parent.device, DSP_gc_update_key);
 
     gc->map = NULL;
 
@@ -95,7 +81,6 @@ Device_impl* new_DSP_gc(DSP* dsp)
 
     Device_register_port(gc->parent.device, DEVICE_PORT_TYPE_RECEIVE, 0);
     Device_register_port(gc->parent.device, DEVICE_PORT_TYPE_SEND, 0);
-    //fprintf(stderr, "Created gaincomp %p\n", (void*)gc);
 
     return &gc->parent;
 }
@@ -142,63 +127,6 @@ static bool DSP_gc_set_map(
 
     return true;
 }
-
-
-#if 0
-static bool DSP_gc_sync(Device* device, Device_states* dstates)
-{
-    assert(device != NULL);
-    assert(dstates != NULL);
-
-    if (!DSP_gc_update_key(device, "p_map.jsone"))
-        return false;
-
-    return true;
-}
-
-
-static bool DSP_gc_update_key(Device* device, const char* key)
-{
-    assert(device != NULL);
-    assert(key != NULL);
-    DSP_gc* gc = (DSP_gc*)device->dimpl;
-    Device_params* params = ((DSP*)gc->parent.device)->conf->params;
-
-    if (string_eq(key, "p_map.jsone"))
-    {
-        Envelope* env = Device_params_get_envelope(params, key);
-        bool valid = true;
-        if (env != NULL && Envelope_node_count(env) > 1)
-        {
-            double* node = Envelope_get_node(env, 0);
-            if (node[0] != 0)
-                valid = false;
-
-            node = Envelope_get_node(env, Envelope_node_count(env) - 1);
-            if (node[0] != 1)
-                valid = false;
-
-            for (int i = 0; i < Envelope_node_count(env); ++i)
-            {
-                node = Envelope_get_node(env, i);
-                if (node[1] < 0)
-                {
-                    valid = false;
-                    break;
-                }
-            }
-        }
-        else
-        {
-            valid = false;
-        }
-
-        gc->map = valid ? env : NULL;
-    }
-
-    return true;
-}
-#endif
 
 
 static void DSP_gc_process(

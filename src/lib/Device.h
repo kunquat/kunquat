@@ -42,8 +42,6 @@ struct Device
     bool (*set_buffer_size)(const struct Device*, Device_states*, int32_t);
     void (*update_tempo)(const struct Device*, Device_states*, double);
     void (*reset)(struct Device*, Device_states*);
-    //bool (*sync)(struct Device*, Device_states*);
-    bool (*update_key)(struct Device*, const char*);
     void (*process)(
             struct Device*,
             Device_states*,
@@ -175,27 +173,6 @@ void Device_register_update_tempo(
  * \param reset    The reset function -- must not be \c NULL.
  */
 void Device_set_reset(Device* device, void (*reset)(Device*, Device_states*));
-
-
-/**
- * Sets the synchronisation function of the Device.
- *
- * \param device   The Device -- must not be \c NULL.
- * \param sync     The synchronisation function -- must not be \c NULL.
- */
-//void Device_set_sync(Device* device, bool (*sync)(Device*, Device_states*));
-
-
-/**
- * Sets the update notification function of the Device.
- *
- * \param device       The Device -- must not be \c NULL.
- * \param update_key   The update notification function
- *                     -- must not be \c NULL.
- */
-//void Device_set_update_key(
-//        Device* device,
-//        bool (*update_key)(Device*, const char*));
 
 
 /**

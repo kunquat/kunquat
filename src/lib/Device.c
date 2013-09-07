@@ -119,8 +119,6 @@ bool Device_init(Device* device)
     device->set_buffer_size = Device_set_buffer_size_default;
     device->update_tempo = Device_update_tempo_default;
     device->reset = Device_reset_default;
-    //device->sync = NULL;
-    //device->update_key = NULL;
     device->process = NULL;
 
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
@@ -251,32 +249,6 @@ void Device_set_reset(Device* device, void (*reset)(Device*, Device_states*))
 
     return;
 }
-
-
-#if 0
-void Device_set_sync(Device* device, bool (*sync)(Device*, Device_states*))
-{
-    assert(device != NULL);
-    assert(sync != NULL);
-
-    device->sync = sync;
-
-    return;
-}
-#endif
-
-
-#if 0
-void Device_set_update_key(
-        Device* device,
-        bool (*update_key)(struct Device*, const char*))
-{
-    assert(device != NULL);
-    assert(update_key != NULL);
-    device->update_key = update_key;
-    return;
-}
-#endif
 
 
 void Device_set_process(

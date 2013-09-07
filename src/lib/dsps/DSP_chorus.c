@@ -164,8 +164,8 @@ static void DSP_chorus_reset(const Device_impl* dimpl, Device_state* dstate);
 #include <dsps/DSP_chorus_params.h>
 
 
-static void DSP_chorus_clear_history(DSP* dsp, DSP_state* dsp_state);
-//static bool DSP_chorus_sync(Device* device, Device_states* dstates);
+static void DSP_chorus_clear_history(DSP* dsp, DSP_state* dsp_state); // FIXME: interface
+
 static bool DSP_chorus_set_audio_rate(
         const Device_impl* dimpl,
         Device_state* dstate,
@@ -197,14 +197,6 @@ Device_impl* new_DSP_chorus(DSP* dsp)
     chorus->parent.device = (Device*)dsp;
 
     Device_set_process((Device*)dsp, DSP_chorus_process);
-#if 0
-    if (!DSP_init(&chorus->parent, del_DSP_chorus,
-                  DSP_chorus_process, buffer_size, mix_rate))
-    {
-        memory_free(chorus);
-        return NULL;
-    }
-#endif
 
     Device_set_state_creator(chorus->parent.device, DSP_chorus_create_state);
 
@@ -239,7 +231,6 @@ Device_impl* new_DSP_chorus(DSP* dsp)
 
     Device_impl_register_set_audio_rate(
             &chorus->parent, DSP_chorus_set_audio_rate);
-    //Device_set_sync(chorus->parent.device, DSP_chorus_sync);
 
     for (int i = 0; i < CHORUS_VOICES_MAX; ++i)
     {
@@ -253,14 +244,6 @@ Device_impl* new_DSP_chorus(DSP* dsp)
 
     Device_register_port(chorus->parent.device, DEVICE_PORT_TYPE_RECEIVE, 0);
     Device_register_port(chorus->parent.device, DEVICE_PORT_TYPE_SEND, 0);
-
-#if 0
-    if (!DSP_chorus_set_mix_rate(&chorus->parent.parent, mix_rate))
-    {
-        del_DSP(&chorus->parent);
-        return NULL;
-    }
-#endif
 
     return &chorus->parent;
 }
@@ -494,85 +477,6 @@ static bool DSP_chorus_update_state_voice_volume(
 
     return true;
 }
-
-
-#if 0
-static bool DSP_chorus_update_key(Device* device, const char* key)
-{
-    assert(device != NULL);
-    assert(key != NULL);
-
-    DSP_chorus* chorus = (DSP_chorus*)device->dimpl;
-    Device_params* params = ((DSP*)chorus->parent.device)->conf->params;
-
-    int vi = -1;
-    if ((vi = string_extract_index(key, "voice_", 2, "/p_delay.jsonf")) >= 0
-            && vi < CHORUS_VOICES_MAX)
-    {
-        double* delay = Device_params_get_float(params, key);
-
-        Chorus_voice_params* params = &chorus->voice_params[vi];
-
-        if (delay != NULL && *delay >= 0 && *delay < CHORUS_BUF_TIME / 2)
-        {
-            params->delay = *delay;
-#if 0
-            double buf_pos = voice->delay * Device_get_mix_rate(device);
-            assert(buf_pos >= 0);
-            uint32_t buf_size = Audio_buffer_get_size(chorus->buf);
-            assert(buf_pos < buf_size - 1);
-            voice->buf_pos = fmod((buf_size - buf_pos), buf_size);
-            assert(voice->buf_pos >= 0);
-#endif
-        }
-        else
-        {
-            params->delay = -1;
-        }
-    }
-    else if ((vi = string_extract_index(
-                    key, "voice_", 2, "/p_range.jsonf")) >= 0
-            && vi < CHORUS_VOICES_MAX)
-    {
-        double* range = Device_params_get_float(params, key);
-
-        Chorus_voice_params* params = &chorus->voice_params[vi];
-
-        if (range != NULL && *range >= 0 && *range < CHORUS_BUF_TIME / 2)
-            params->range = *range;
-        else
-            params->range = 0;
-    }
-    else if ((vi = string_extract_index(
-                    key, "voice_", 2, "/p_speed.jsonf")) >= 0
-            && vi < CHORUS_VOICES_MAX)
-    {
-        double* speed = Device_params_get_float(params, key);
-
-        Chorus_voice_params* params = &chorus->voice_params[vi];
-
-        if (speed != NULL && *speed >= 0)
-            params->speed = *speed;
-        else
-            params->speed = 0;
-    }
-    else if ((vi = string_extract_index(
-                    key, "voice_", 2, "/p_volume.jsonf")) >= 0
-            && vi < CHORUS_VOICES_MAX)
-    {
-        double* volume_dB = Device_params_get_float(params, key);
-
-        Chorus_voice_params* params = &chorus->voice_params[vi];
-
-        if (volume_dB != NULL && *volume_dB <= DB_MAX)
-            params->volume = exp2(*volume_dB / 6);
-        else
-            params->volume = 1;
-    }
-
-    return true;
-}
-#endif
 
 
 static bool DSP_chorus_set_audio_rate(

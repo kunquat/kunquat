@@ -172,12 +172,12 @@ static bool DSP_freeverb_set_damp(
         int32_t indices[DEVICE_KEY_INDICES_MAX],
         double value);
 
-static void DSP_freeverb_clear_history(DSP* dsp, DSP_state* dsp_state);
+static void DSP_freeverb_clear_history(DSP* dsp, DSP_state* dsp_state); // FIXME: interface
+
 static bool DSP_freeverb_set_audio_rate(
         const Device_impl* dimpl,
         Device_state* dstate,
         int32_t audio_rate);
-//static bool DSP_freeverb_update_key(Device* device, const char* key);
 
 static void DSP_freeverb_process(
         Device* device,
@@ -214,14 +214,6 @@ Device_impl* new_DSP_freeverb(DSP* dsp)
     freeverb->parent.device = (Device*)dsp;
 
     Device_set_process((Device*)dsp, DSP_freeverb_process);
-#if 0
-    if (!DSP_init(&freeverb->parent, del_DSP_freeverb,
-                  DSP_freeverb_process, buffer_size, mix_rate))
-    {
-        memory_free(freeverb);
-        return NULL;
-    }
-#endif
 
     Device_set_state_creator(
             freeverb->parent.device,
@@ -248,7 +240,6 @@ Device_impl* new_DSP_freeverb(DSP* dsp)
 
     Device_impl_register_set_audio_rate(
             &freeverb->parent, DSP_freeverb_set_audio_rate);
-    //Device_set_update_key(freeverb->parent.device, DSP_freeverb_update_key);
 
     Device_register_port(freeverb->parent.device, DEVICE_PORT_TYPE_RECEIVE, 0);
     Device_register_port(freeverb->parent.device, DEVICE_PORT_TYPE_SEND, 0);
@@ -263,14 +254,6 @@ Device_impl* new_DSP_freeverb(DSP* dsp)
     freeverb->wet2 = 0;
 //    freeverb->dry = 0;
     freeverb->width = 0;
-
-#if 0
-    if (!DSP_freeverb_set_mix_rate(&freeverb->parent.parent, mix_rate))
-    {
-        del_DSP(&freeverb->parent);
-        return NULL;
-    }
-#endif
 
     DSP_freeverb_update_reflectivity(freeverb, initial_reflect);
     DSP_freeverb_update_damp(freeverb, initial_damp);
@@ -489,58 +472,6 @@ static bool DSP_freeverb_set_audio_rate(
 }
 
 
-#if 0
-static bool DSP_freeverb_update_key(Device* device, const char* key)
-{
-    assert(device != NULL);
-    assert(key != NULL);
-
-    DSP_freeverb* freeverb = (DSP_freeverb*)device->dimpl;
-
-    if (string_eq(key, "p_refl.jsonf"))
-    {
-        double* reflect = Device_params_get_float(
-                ((DSP*)freeverb->parent.device)->conf->params, key);
-
-        if (reflect == NULL)
-        {
-            DSP_freeverb_set_reflectivity(freeverb, initial_reflect);
-        }
-        else if (reflect != NULL)
-        {
-            if (*reflect > 200)
-                *reflect = 200;
-            else if (*reflect < 0)
-                *reflect = 0;
-
-            DSP_freeverb_set_reflectivity(freeverb, *reflect);
-        }
-    }
-    else if (string_eq(key, "p_damp.jsonf"))
-    {
-        double* damp = Device_params_get_float(
-                ((DSP*)freeverb->parent.device)->conf->params, key);
-
-        if (damp == NULL)
-        {
-            DSP_freeverb_set_damp(freeverb, initial_damp);
-        }
-        else if (damp != NULL && freeverb->damp_setting != *damp)
-        {
-            if (*damp > 100)
-                *damp = 100;
-            else if (*damp < 0)
-                *damp = 0;
-
-            DSP_freeverb_set_damp(freeverb, *damp);
-        }
-    }
-
-    return true;
-}
-#endif
-
-
 static void DSP_freeverb_update_reflectivity(
         DSP_freeverb* freeverb,
         double reflect)
@@ -590,30 +521,6 @@ static void DSP_freeverb_update_wet(DSP_freeverb* freeverb, double wet)
 
     return;
 }
-
-
-#if 0
-static void DSP_freeverb_check_params(
-        DSP_freeverb* freeverb,
-        Freeverb_state* fstate)
-{
-    assert(freeverb != NULL);
-    assert(freeverb->parent.conf != NULL);
-    assert(freeverb->parent.conf->params != NULL);
-    assert(fstate != NULL);
-
-#if 0
-    double* width = Device_params_get_float(
-            freeverb->parent.conf->params, "p_width.jsonf");
-    if (width == NULL && freeverb->width != initial_width)
-        DSP_freeverb_set_width(freeverb, fstate, initial_width);
-    else if (width != NULL && freeverb->width != *width)
-        DSP_freeverb_set_width(freeverb, fstate, *width);
-#endif
-
-    return;
-}
-#endif
 
 
 static void DSP_freeverb_process(

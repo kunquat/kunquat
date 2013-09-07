@@ -87,14 +87,6 @@ Device_impl* new_DSP_volume(DSP* dsp)
     volume->parent.device = (Device*)dsp;
 
     Device_set_process((Device*)dsp, DSP_volume_process);
-#if 0
-    if (!DSP_init(&volume->parent, del_DSP_volume,
-                  DSP_volume_process, buffer_size, mix_rate))
-    {
-        memory_free(volume);
-        return NULL;
-    }
-#endif
 
     Device_set_state_creator(volume->parent.device, DSP_volume_create_state);
 

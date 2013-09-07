@@ -73,19 +73,6 @@ Device_impl* new_Generator_pcm(Generator* gen)
 
     gen->init_vstate = Generator_pcm_init_vstate;
     gen->mix = Generator_pcm_mix;
-#if 0
-    if (!Generator_init(
-                &pcm->parent,
-                del_Generator_pcm,
-                Generator_pcm_mix,
-                Generator_pcm_init_vstate,
-                buffer_size,
-                mix_rate))
-    {
-        memory_free(pcm);
-        return NULL;
-    }
-#endif
 
     return &pcm->parent;
 }

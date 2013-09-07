@@ -129,9 +129,6 @@ static bool Generator_add_set_mod_tone_volume(
         int32_t indices[DEVICE_KEY_INDICES_MAX],
         double value);
 
-//static bool Generator_add_sync(Device* device, Device_states* dstates);
-//static bool Generator_add_update_key(Device* device, const char* key);
-
 static uint32_t Generator_add_mix(
         const Generator* gen,
         Gen_state* gen_state,
@@ -161,22 +158,6 @@ Device_impl* new_Generator_add(Generator* gen)
 
     gen->init_vstate = Generator_add_init_vstate;
     gen->mix = Generator_add_mix;
-#if 0
-    if (!Generator_init(
-                &add->parent,
-                del_Generator_add,
-                Generator_add_mix,
-                Generator_add_init_vstate,
-                buffer_size,
-                mix_rate))
-    {
-        memory_free(add);
-        return NULL;
-    }
-#endif
-
-    //Device_set_sync(add->parent.device, Generator_add_sync);
-    //Device_set_update_key(add->parent.device, Generator_add_update_key);
 
     bool reg_success = true;
 
@@ -560,53 +541,6 @@ static double sine(double phase, double modifier)
 }
 
 
-#if 0
-static bool Generator_add_sync(Device* device, Device_states* dstates)
-{
-    assert(device != NULL);
-    assert(dstates != NULL);
-
-    Generator_add_update_key(device, "p_bfunc.jsoni");
-    Generator_add_update_key(device, "p_base.jsonln");
-    Generator_add_update_key(device, "p_mod.jsoni");
-    Generator_add_update_key(device, "p_mod_volume.jsonf");
-    Generator_add_update_key(device, "p_mod_env.jsone");
-    Generator_add_update_key(device, "p_mod_env_scale_amount.jsonf");
-    Generator_add_update_key(device, "p_mod_env_scale_center.jsonf");
-    Generator_add_update_key(device, "p_force_mod_env.jsone");
-
-    char pitch_key[] = "tone_XX/p_pitch.jsonf";
-    int pitch_key_bytes = strlen(pitch_key) + 1;
-    char volume_key[] = "tone_XX/p_volume.jsonf";
-    int volume_key_bytes = strlen(volume_key) + 1;
-    char pan_key[] = "tone_XX/p_pan.jsonf";
-    int pan_key_bytes = strlen(pan_key) + 1;
-    char mod_pitch_key[] = "mod_XX/p_pitch.jsonf";
-    int mod_pitch_key_bytes = strlen(mod_pitch_key) + 1;
-    char mod_volume_key[] = "mod_XX/p_volume.jsonf";
-    int mod_volume_key_bytes = strlen(mod_volume_key) + 1;
-
-    for (int i = 0; i < HARMONICS_MAX; ++i)
-    {
-        snprintf(pitch_key, pitch_key_bytes, "tone_%02x/p_pitch.jsonf", i);
-        Generator_add_update_key(device, pitch_key);
-        snprintf(volume_key, volume_key_bytes, "tone_%02x/p_volume.jsonf", i);
-        Generator_add_update_key(device, volume_key);
-        snprintf(pan_key, pan_key_bytes, "tone_%02x/p_pan.jsonf", i);
-        Generator_add_update_key(device, pan_key);
-        snprintf(mod_pitch_key, mod_pitch_key_bytes,
-                 "mod_%02x/p_pitch.jsonf", i);
-        Generator_add_update_key(device, mod_pitch_key);
-        snprintf(mod_volume_key, mod_volume_key_bytes,
-                 "mod_%02x/p_volume.jsonf", i);
-        Generator_add_update_key(device, mod_volume_key);
-    }
-
-    return true;
-}
-#endif
-
-
 static void fill_buf(float* buf, const Num_list* nl)
 {
     assert(buf != NULL);
@@ -942,71 +876,6 @@ static bool Generator_add_set_mod_tone_volume(
 
     return true;
 }
-
-
-#if 0
-static bool Generator_add_update_key(Device* device, const char* key)
-{
-    assert(device != NULL);
-    assert(key != NULL);
-
-    Generator_add* add = (Generator_add*)device->dimpl;
-    Device_params* params = ((Generator*)device)->conf->params;
-    int ti = -1;
-
-    if (string_eq(key, "p_base.jsonln"))
-    {
-    }
-    else if (string_eq(key, "p_mod_base.jsonln"))
-    {
-    }
-    else if (string_eq(key, "p_mod.jsoni"))
-    {
-    }
-    else if (string_eq(key, "p_mod_volume.jsonf"))
-    {
-    }
-    else if (string_eq(key, "p_mod_env.jsone"))
-    {
-    }
-    else if (string_eq(key, "p_mod_env_scale_amount.jsonf"))
-    {
-    }
-    else if (string_eq(key, "p_mod_env_scale_center.jsonf"))
-    {
-    }
-    else if (string_eq(key, "p_force_mod_env.jsone"))
-    {
-    }
-    else if ((ti = string_extract_index(
-                    key, "tone_", 2, "/p_pitch.jsonf")) >= 0 &&
-             ti < HARMONICS_MAX)
-    {
-    }
-    else if ((ti = string_extract_index(
-                    key, "tone_", 2, "/p_volume.jsonf")) >= 0 &&
-             ti < HARMONICS_MAX)
-    {
-    }
-    else if ((ti = string_extract_index(
-                    key, "tone_", 2, "/p_pan.jsonf")) >= 0 &&
-            ti < HARMONICS_MAX)
-    {
-    }
-    else if ((ti = string_extract_index(
-                    key, "mod_", 2, "/p_pitch.jsonf")) >= 0 &&
-             ti < HARMONICS_MAX)
-    {
-    }
-    else if ((ti = string_extract_index(
-                    key, "mod_", 2, "/p_volume.jsonf")) >= 0 &&
-             ti < HARMONICS_MAX)
-    {
-    }
-
-    return true;
-}
-#endif
 
 
 static void del_Generator_add(Device_impl* gen_impl)

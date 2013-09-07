@@ -64,18 +64,6 @@ Device_impl* new_Generator_debug(Generator* gen)
     debug->parent.device = (Device*)gen;
 
     gen->mix = Generator_debug_mix;
-#if 0
-    if (!Generator_init(&debug->parent,
-                        del_Generator_debug,
-                        Generator_debug_mix,
-                        NULL,
-                        buffer_size,
-                        mix_rate))
-    {
-        memory_free(debug);
-        return NULL;
-    }
-#endif
 
     if (!Device_impl_register_set_bool(
                 &debug->parent,

@@ -83,19 +83,6 @@ Device_impl* new_Generator_noise(Generator* gen)
 
     gen->init_vstate = Generator_noise_init_vstate;
     gen->mix = Generator_noise_mix;
-#if 0
-    if (!Generator_init(
-                &noise->parent,
-                del_Generator_noise,
-                Generator_noise_mix,
-                Generator_noise_init_vstate,
-                buffer_size,
-                mix_rate))
-    {
-        memory_free(noise);
-        return NULL;
-    }
-#endif
 
     Device_set_state_creator(
             noise->parent.device,
