@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -19,6 +19,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <math.h>
+
+#include <xassert.h>
 
 
 #undef PI
@@ -77,6 +79,17 @@ int64_t ceil_p2(int64_t x);
  * \return   The value base^exp.
  */
 int64_t ipowi(int64_t base, int64_t exp);
+
+
+/**
+ * Interpolates linearly between two values.
+ *
+ * \param v1   The first value.
+ * \param v2   The second value.
+ * \param t    The lerp parameter -- must be >= \c 0 and <= \c 1.
+ */
+#define lerp(v1, v2, t) \
+    (assert((t) >= 0), assert((t) <= 1), (v1) + ((v2) - (v1)) * (t))
 
 
 #endif // K_MATH_COMMON_H
