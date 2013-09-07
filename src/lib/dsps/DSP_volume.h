@@ -25,13 +25,10 @@
 /**
  * Creates a new volume DSP.
  *
- * \param buffer_size   The size of the buffers -- must be > \c 0 and
- *                      <= \c KQT_BUFFER_SIZE_MAX.
- *
  * \return   The new volume DSP if successful, or \c NULL if memory allocation
  *           failed.
  */
-Device_impl* new_DSP_volume(DSP* dsp, uint32_t buffer_size);
+Device_impl* new_DSP_volume(DSP* dsp);
 
 
 #endif // K_DSP_VOLUME_H

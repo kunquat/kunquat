@@ -67,13 +67,10 @@ struct Module
  *
  * The caller shall eventually call del_Module() to destroy the Module returned.
  *
- * \param buf_size   Size of the mixing buffer -- must be > \c 0 and
- *                   <= KQT_BUFFER_SIZE_MAX.
- *
  * \return   The new Module if successful, or \c NULL if memory allocation
  *           failed.
  */
-Module* new_Module(uint32_t buf_size);
+Module* new_Module();
 
 
 /**

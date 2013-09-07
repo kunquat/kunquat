@@ -23,13 +23,10 @@
 /**
  * Creates a new Pulse Generator.
  *
- * \param buffer_size   The mixing buffer size -- must be > \c 0 and
- *                      <= \c KQT_BUFFER_SIZE_MAX.
- *
  * \return   The new Pulse Generator if successful, or \c NULL if memory
  *           allocation failed.
  */
-Device_impl* new_Generator_pulse(Generator* gen, uint32_t buffer_size);
+Device_impl* new_Generator_pulse(Generator* gen);
 
 
 /**

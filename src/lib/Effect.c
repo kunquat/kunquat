@@ -50,15 +50,15 @@ static bool Effect_set_audio_rate(
         Device_states* dstates,
         int32_t audio_rate);
 
+static bool Effect_set_buffer_size(
+        const Device* device,
+        Device_states* dstates,
+        int32_t size);
+
 static void Effect_update_tempo(
         const Device* device,
         Device_states* dstates,
         double tempo);
-
-static bool Effect_set_buffer_size(
-        Device* device,
-        Device_states* dstates,
-        uint32_t size);
 
 //static bool Effect_sync(Device* device, Device_states* dstates);
 
@@ -71,10 +71,8 @@ static void Effect_process(
         double tempo);
 
 
-Effect* new_Effect(uint32_t buf_len)
+Effect* new_Effect()
 {
-    assert(buf_len > 0);
-
     Effect* eff = memory_alloc_item(Effect);
     if (eff == NULL)
         return NULL;
@@ -84,7 +82,7 @@ Effect* new_Effect(uint32_t buf_len)
     eff->connections = NULL;
     eff->dsps = NULL;
 
-    if (!Device_init(&eff->parent, buf_len))
+    if (!Device_init(&eff->parent))
     {
         del_Effect(eff);
         return NULL;
@@ -94,7 +92,7 @@ Effect* new_Effect(uint32_t buf_len)
     Device_set_reset(&eff->parent, Effect_reset);
     Device_register_set_audio_rate(&eff->parent, Effect_set_audio_rate);
     Device_register_update_tempo(&eff->parent, Effect_update_tempo);
-    Device_set_buffer_size_changer(&eff->parent, Effect_set_buffer_size);
+    Device_register_set_buffer_size(&eff->parent, Effect_set_buffer_size);
     //Device_set_sync(&eff->parent, Effect_sync);
     Device_set_process(&eff->parent, Effect_process);
 
@@ -104,8 +102,8 @@ Effect* new_Effect(uint32_t buf_len)
         Device_register_port(&eff->parent, DEVICE_PORT_TYPE_SEND, port);
     }
 
-    eff->out_iface = new_Effect_interface(buf_len);
-    eff->in_iface = new_Effect_interface(buf_len);
+    eff->out_iface = new_Effect_interface();
+    eff->in_iface = new_Effect_interface();
     eff->dsps = new_DSP_table(KQT_DSPS_MAX);
     if (eff->out_iface == NULL || eff->in_iface == NULL || eff->dsps == NULL)
     {
@@ -291,13 +289,13 @@ static void Effect_update_tempo(
 
 
 static bool Effect_set_buffer_size(
-        Device* device,
+        const Device* device,
         Device_states* dstates,
-        uint32_t size)
+        int32_t size)
 {
     assert(device != NULL);
     assert(dstates != NULL);
-    assert(size > 0);
+    assert(size >= 0);
     assert(size <= KQT_AUDIO_BUFFER_SIZE_MAX);
 
     Effect* eff = (Effect*)device;
@@ -370,8 +368,6 @@ static void Effect_process(
 {
     assert(device != NULL);
     assert(states != NULL);
-    assert(start < device->buffer_size);
-    assert(until <= device->buffer_size);
     assert(freq > 0);
     assert(isfinite(tempo));
 

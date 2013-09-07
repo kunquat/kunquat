@@ -133,18 +133,15 @@ static void DSP_conv_process(
 static void del_DSP_conv(Device_impl* dsp_impl);
 
 
-Device_impl* new_DSP_conv(DSP* dsp, uint32_t buffer_size)
+Device_impl* new_DSP_conv(DSP* dsp)
 {
-    assert(buffer_size > 0);
-    assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
-
     assert(false); // FIXME: This DSP is broken, fix.
 
     DSP_conv* conv = memory_alloc_item(DSP_conv);
     if (conv == NULL)
         return NULL;
 
-    if (!Device_impl_init(&conv->parent, del_DSP_conv, buffer_size))
+    if (!Device_impl_init(&conv->parent, del_DSP_conv))
     {
         memory_free(conv);
         return NULL;

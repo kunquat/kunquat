@@ -204,16 +204,13 @@ static void DSP_delay_process(
 static void del_DSP_delay(Device_impl* dsp_impl);
 
 
-Device_impl* new_DSP_delay(DSP* dsp, uint32_t buffer_size)
+Device_impl* new_DSP_delay(DSP* dsp)
 {
-    assert(buffer_size > 0);
-    assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
-
     DSP_delay* delay = memory_alloc_item(DSP_delay);
     if (delay == NULL)
         return NULL;
 
-    if (!Device_impl_init(&delay->parent, del_DSP_delay, buffer_size))
+    if (!Device_impl_init(&delay->parent, del_DSP_delay))
     {
         memory_free(delay);
         return NULL;

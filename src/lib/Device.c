@@ -60,6 +60,26 @@ static bool Device_set_audio_rate_default(
 }
 
 
+static bool Device_set_buffer_size_default(
+        const Device* device,
+        Device_states* dstates,
+        int32_t buffer_size)
+{
+    assert(device != NULL);
+    assert(dstates != NULL);
+    assert(buffer_size >= 0);
+
+    if (device->dimpl != NULL)
+    {
+        Device_state* dstate = Device_states_get_state(
+                dstates, Device_get_id(device));
+        return Device_impl_set_buffer_size(device->dimpl, dstate, buffer_size);
+    }
+
+    return true;
+}
+
+
 static void Device_update_tempo_default(
         const Device* device,
         Device_states* dstates,
@@ -81,26 +101,23 @@ static void Device_update_tempo_default(
 }
 
 
-bool Device_init(Device* device, uint32_t buffer_size)
+bool Device_init(Device* device)
 {
     assert(device != NULL);
-    assert(buffer_size > 0);
-    assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
 
     static uint32_t id = 1;
     device->id = id;
     ++id;
 
     device->existent = false;
-    device->buffer_size = buffer_size;
 
     device->dparams = NULL;
     device->dimpl = NULL;
 
     device->create_state = new_Device_state_plain;
     device->set_audio_rate = Device_set_audio_rate_default;
+    device->set_buffer_size = Device_set_buffer_size_default;
     device->update_tempo = Device_update_tempo_default;
-    device->set_buffer_size = NULL;
     device->reset = Device_reset_default;
     //device->sync = NULL;
     //device->update_key = NULL;
@@ -199,6 +216,19 @@ void Device_register_set_audio_rate(
 }
 
 
+void Device_register_set_buffer_size(
+        Device* device,
+        bool (*set)(const Device*, Device_states*, int32_t))
+{
+    assert(device != NULL);
+    assert(set != NULL);
+
+    device->set_buffer_size = set;
+
+    return;
+}
+
+
 void Device_register_update_tempo(
         Device* device,
         void (*update)(const Device*, Device_states*, double))
@@ -208,16 +238,6 @@ void Device_register_update_tempo(
 
     device->update_tempo = update;
 
-    return;
-}
-
-
-void Device_set_buffer_size_changer(
-        Device* device,
-        bool (*changer)(Device*, Device_states*, uint32_t))
-{
-    assert(device != NULL);
-    device->set_buffer_size = changer;
     return;
 }
 
@@ -330,6 +350,21 @@ bool Device_set_audio_rate(
 }
 
 
+bool Device_set_buffer_size(
+        const Device* device,
+        Device_states* dstates,
+        int32_t size)
+{
+    assert(device != NULL);
+    assert(dstates != NULL);
+    assert(size > 0);
+    assert(size <= KQT_AUDIO_BUFFER_SIZE_MAX);
+
+    assert(device->set_buffer_size != NULL);
+    return device->set_buffer_size(device, dstates, size);
+}
+
+
 void Device_update_tempo(
         const Device* device,
         Device_states* dstates,
@@ -344,36 +379,6 @@ void Device_update_tempo(
     device->update_tempo(device, dstates, tempo);
 
     return;
-}
-
-
-bool Device_set_buffer_size(
-        Device* device,
-        Device_states* dstates,
-        uint32_t size)
-{
-    assert(device != NULL);
-    assert(dstates != NULL);
-    assert(size > 0);
-    assert(size <= KQT_AUDIO_BUFFER_SIZE_MAX);
-
-    if (device->set_buffer_size != NULL &&
-            !device->set_buffer_size(device, dstates, size))
-    {
-        device->buffer_size = MIN(device->buffer_size, size);
-        return false;
-    }
-
-    device->buffer_size = size;
-
-    return true;
-}
-
-
-uint32_t Device_get_buffer_size(const Device* device)
-{
-    assert(device != NULL);
-    return device->buffer_size;
 }
 
 
@@ -497,8 +502,6 @@ void Device_process(
 {
     assert(device != NULL);
     assert(states != NULL);
-    assert(start < device->buffer_size);
-    assert(until <= device->buffer_size);
     assert(freq > 0);
     assert(isfinite(tempo));
     assert(tempo > 0);
@@ -514,9 +517,6 @@ void Device_print(Device* device, FILE* out)
 {
     assert(device != NULL);
     assert(out != NULL);
-
-    fprintf(out, "Device buffer size: %" PRIu32 " frames\n",
-                 device->buffer_size);
 
     bool printed = false;
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)

@@ -29,13 +29,10 @@
  * the rest are 0.5) that lasts no more than 10 phase cycles. Note off lasts
  * no more than two phase cycles with all sample values negated.
  *
- * \param buffer_size   The mixing buffer size -- must be > \c 0 and
- *                      <= \c KQT_BUFFER_SIZE_MAX.
- *
  * \return   The new Debug Generator if successful, or \c NULL if memory
  *           allocation failed.
  */
-Device_impl* new_Generator_debug(Generator* gen, uint32_t buffer_size);
+Device_impl* new_Generator_debug(Generator* gen);
 
 
 #endif // K_GENERATOR_DEBUG_H

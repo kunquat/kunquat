@@ -24,13 +24,10 @@
 /**
  * This is the type of a DSP implementation constructor.
  *
- * \param buffer_size   The mixing buffer size -- must be > \c 0 and
- *                      <= \c KQT_BUFFER_SIZE_MAX.
- *
  * \return   The new DSP if successful, or \c NULL if memory allocation
  *           failed.
  */
-typedef Device_impl* DSP_cons(DSP* dsp, uint32_t buffer_size);
+typedef Device_impl* DSP_cons(DSP* dsp);
 
 
 /**

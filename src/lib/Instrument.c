@@ -60,23 +60,21 @@ static bool Instrument_set_audio_rate(
         Device_states* dstates,
         int32_t mix_rate);
 
+static bool Instrument_set_buffer_size(
+        const Device* device,
+        Device_states* dstates,
+        int32_t size);
+
 static void Instrument_update_tempo(
         const Device* device,
         Device_states* dstates,
         double tempo);
 
-static bool Instrument_set_buffer_size(
-        Device* device,
-        Device_states* dstates,
-        uint32_t size);
-
 //static bool Instrument_sync(Device* device, Device_states* dstates);
 
 
-Instrument* new_Instrument(uint32_t buf_len)
+Instrument* new_Instrument()
 {
-    assert(buf_len > 0);
-
     Instrument* ins = memory_alloc_item(Instrument);
     if (ins == NULL)
         return NULL;
@@ -86,7 +84,7 @@ Instrument* new_Instrument(uint32_t buf_len)
     ins->gens = NULL;
     ins->effects = NULL;
 
-    if (!Device_init(&ins->parent, buf_len))
+    if (!Device_init(&ins->parent))
     {
         memory_free(ins);
         return NULL;
@@ -104,7 +102,7 @@ Instrument* new_Instrument(uint32_t buf_len)
     Device_set_reset(&ins->parent, Instrument_reset);
     Device_register_set_audio_rate(&ins->parent, Instrument_set_audio_rate);
     Device_register_update_tempo(&ins->parent, Instrument_update_tempo);
-    Device_set_buffer_size_changer(&ins->parent, Instrument_set_buffer_size);
+    Device_register_set_buffer_size(&ins->parent, Instrument_set_buffer_size);
     //Device_set_sync(&ins->parent, Instrument_sync);
     Device_register_port(&ins->parent, DEVICE_PORT_TYPE_RECEIVE, 0);
     Device_register_port(&ins->parent, DEVICE_PORT_TYPE_SEND, 0);
@@ -435,16 +433,16 @@ static void Instrument_update_tempo(
 
 
 static bool Instrument_set_buffer_size(
-        Device* device,
+        const Device* device,
         Device_states* dstates,
-        uint32_t size)
+        int32_t size)
 {
     assert(device != NULL);
     assert(dstates != NULL);
     assert(size > 0);
     assert(size <= KQT_AUDIO_BUFFER_SIZE_MAX);
 
-    Instrument* ins = (Instrument*)device;
+    const Instrument* ins = (const Instrument*)device;
 
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {

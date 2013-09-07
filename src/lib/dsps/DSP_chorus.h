@@ -25,13 +25,10 @@
 /**
  * Creates a new chorus DSP.
  *
- * \param buffer_size   The size of the buffers -- must be > \c 0 and
- *                      <= \c KQT_BUFFER_SIZE_MAX.
- *
  * \return   The new chorus DSP if successful, or \c NULL if memory allocation
  *           failed.
  */
-Device_impl* new_DSP_chorus(DSP* dsp, uint32_t buffer_size);
+Device_impl* new_DSP_chorus(DSP* dsp);
 
 
 #endif // K_DSP_CHORUS_H

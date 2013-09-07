@@ -162,18 +162,17 @@ typedef struct Update_state_cb
 
 bool Device_impl_init(
         Device_impl* dimpl,
-        void (*destroy)(Device_impl* dimpl),
-        int32_t audio_buffer_size)
+        void (*destroy)(Device_impl* dimpl))
 {
     assert(dimpl != NULL);
     assert(destroy != NULL);
-    assert(audio_buffer_size >= 0);
 
     dimpl->device = NULL;
     dimpl->set_cbs = NULL;
     dimpl->update_state_cbs = NULL;
 
     dimpl->set_audio_rate = NULL;
+    dimpl->set_buffer_size = NULL;
     dimpl->update_tempo = NULL;
     dimpl->reset = NULL;
     dimpl->destroy = destroy;
@@ -200,6 +199,16 @@ void Device_impl_register_set_audio_rate(
 {
     assert(dimpl != NULL);
     dimpl->set_audio_rate = set;
+    return;
+}
+
+
+void Device_impl_register_set_buffer_size(
+        Device_impl* dimpl,
+        bool (*set)(const Device_impl*, Device_state*, int32_t))
+{
+    assert(dimpl != NULL);
+    dimpl->set_buffer_size = set;
     return;
 }
 
@@ -458,6 +467,22 @@ bool Device_impl_set_audio_rate(
 
     if (dimpl->set_audio_rate != NULL)
         return dimpl->set_audio_rate(dimpl, dstate, audio_rate);
+
+    return true;
+}
+
+
+bool Device_impl_set_buffer_size(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        int32_t buffer_size)
+{
+    assert(dimpl != NULL);
+    assert(dstate != NULL);
+    assert(buffer_size >= 0);
+
+    if (dimpl->set_buffer_size != NULL)
+        return dimpl->set_buffer_size(dimpl, dstate, buffer_size);
 
     return true;
 }

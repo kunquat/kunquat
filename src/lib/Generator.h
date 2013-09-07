@@ -63,15 +63,11 @@ typedef struct Generator
  * Creates a new Generator of the specified type.
  *
  * \param ins_params    The Instrument parameters -- must not be \c NULL.
- * \param buffer_size   The mixing buffer size -- must be > \c 0 and
- *                      <= \c KQT_BUFFER_SIZE_MAX.
  *
  * \return   The new Generator if successful, or \c NULL if memory allocation
  *           failed.
  */
-Generator* new_Generator(
-        const Instrument_params* ins_params,
-        uint32_t buffer_size);
+Generator* new_Generator(const Instrument_params* ins_params);
 
 
 /**
@@ -83,9 +79,6 @@ Generator* new_Generator(
  * \param mix           The mixing function of the Generator --
  *                      must not be \c NULL.
  * \param init_state    The Voice state initialiser, or \c NULL if not needed.
- * \param buffer_size   The buffer size -- must be > \c 0 and
- *                      <= \c KQT_BUFFER_SIZE_MAX.
- * \param mix_rate      The mixing rate -- must be > \c 0.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
@@ -101,8 +94,7 @@ bool Generator_init(
             uint32_t,
             uint32_t,
             double),
-        void (*init_vstate)(const Generator*, const Gen_state*, Voice_state*),
-        uint32_t buffer_size);
+        void (*init_vstate)(const Generator*, const Gen_state*, Voice_state*));
 
 
 /**

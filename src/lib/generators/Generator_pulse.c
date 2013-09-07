@@ -65,16 +65,13 @@ static uint32_t Generator_pulse_mix(
 static void del_Generator_pulse(Device_impl* gen);
 
 
-Device_impl* new_Generator_pulse(Generator* gen, uint32_t buffer_size)
+Device_impl* new_Generator_pulse(Generator* gen)
 {
-    assert(buffer_size > 0);
-    assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
-
     Generator_pulse* pulse = memory_alloc_item(Generator_pulse);
     if (pulse == NULL)
         return NULL;
 
-    if (!Device_impl_init(&pulse->parent, del_Generator_pulse, buffer_size))
+    if (!Device_impl_init(&pulse->parent, del_Generator_pulse))
     {
         memory_free(pulse);
         return NULL;

@@ -182,16 +182,13 @@ static void DSP_chorus_process(
 static void del_DSP_chorus(Device_impl* dsp_impl);
 
 
-Device_impl* new_DSP_chorus(DSP* dsp, uint32_t buffer_size)
+Device_impl* new_DSP_chorus(DSP* dsp)
 {
-    assert(buffer_size > 0);
-    assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
-
     DSP_chorus* chorus = memory_alloc_item(DSP_chorus);
     if (chorus == NULL)
         return NULL;
 
-    if (!Device_impl_init(&chorus->parent, del_DSP_chorus, buffer_size))
+    if (!Device_impl_init(&chorus->parent, del_DSP_chorus))
     {
         memory_free(chorus);
         return NULL;

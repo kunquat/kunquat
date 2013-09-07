@@ -199,16 +199,13 @@ static void DSP_freeverb_update_gain(DSP_freeverb* freeverb, double gain);
 static void DSP_freeverb_update_wet(DSP_freeverb* freeverb, double wet);
 
 
-Device_impl* new_DSP_freeverb(DSP* dsp, uint32_t buffer_size)
+Device_impl* new_DSP_freeverb(DSP* dsp)
 {
-    assert(buffer_size > 0);
-    assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
-
     DSP_freeverb* freeverb = memory_alloc_item(DSP_freeverb);
     if (freeverb == NULL)
         return NULL;
 
-    if (!Device_impl_init(&freeverb->parent, del_DSP_freeverb, buffer_size))
+    if (!Device_impl_init(&freeverb->parent, del_DSP_freeverb))
     {
         memory_free(freeverb);
         return NULL;

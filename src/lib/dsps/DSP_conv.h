@@ -34,7 +34,7 @@
  * \return   The new convolution DSP if successful, or \c NULL if memory
  *           allocation failed.
  */
-Device_impl* new_DSP_conv(DSP* dsp, uint32_t buffer_size);
+Device_impl* new_DSP_conv(DSP* dsp);
 
 
 #endif // K_DSP_CONV_H

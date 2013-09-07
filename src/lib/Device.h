@@ -33,15 +33,14 @@ struct Device
 {
     uint32_t id;
     bool existent;
-    uint32_t buffer_size;
 
     Device_params* dparams;
     Device_impl* dimpl;
 
     Device_state* (*create_state)(const struct Device*, int32_t, int32_t);
     bool (*set_audio_rate)(const struct Device*, Device_states*, int32_t);
+    bool (*set_buffer_size)(const struct Device*, Device_states*, int32_t);
     void (*update_tempo)(const struct Device*, Device_states*, double);
-    bool (*set_buffer_size)(struct Device*, Device_states*, uint32_t);
     void (*reset)(struct Device*, Device_states*);
     //bool (*sync)(struct Device*, Device_states*);
     bool (*update_key)(struct Device*, const char*);
@@ -61,12 +60,10 @@ struct Device
  * Initialises the Device.
  *
  * \param device        The Device -- must not be \c NULL.
- * \param buffer_size   The current buffer size -- must be > \c 0 and
- *                      <= \c KQT_BUFFER_SIZE_MAX.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Device_init(Device* device, uint32_t buffer_size);
+bool Device_init(Device* device);
 
 
 /**
@@ -150,6 +147,17 @@ void Device_register_set_audio_rate(
 
 
 /**
+ * Registers the audio buffer size set function of the Device.
+ *
+ * \param device   The Device -- must not be \c NULL.
+ * \param set      The audio buffer size set function -- must not be \c NULL.
+ */
+void Device_register_set_buffer_size(
+        Device* device,
+        bool (*set)(const Device*, Device_states*, int32_t));
+
+
+/**
  * Registers the tempo update function of the Device.
  *
  * \param device   The Device -- must not be \c NULL.
@@ -158,17 +166,6 @@ void Device_register_set_audio_rate(
 void Device_register_update_tempo(
         Device* device,
         void (*update)(const Device*, Device_states*, double));
-
-
-/**
- * Sets the function for changing the buffer size of the Device.
- *
- * \param device    The Device -- must not be \c NULL.
- * \param changer   The change function, or \c NULL.
- */
-void Device_set_buffer_size_changer(
-        Device* device,
-        bool (*changer)(Device*, Device_states*, uint32_t));
 
 
 /**
@@ -287,7 +284,7 @@ void Device_update_tempo(
 
 
 /**
- * Resizes the buffers in the Device.
+ * Resizes the buffers of Device states.
  *
  * \param device    The Device -- must not be \c NULL.
  * \param dstates   The Device states -- must not be \c NULL.
@@ -297,19 +294,9 @@ void Device_update_tempo(
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Device_set_buffer_size(
-        Device* device,
+        const Device* device,
         Device_states* dstates,
-        uint32_t size);
-
-
-/**
- * Gets the buffer size of the Device.
- *
- * \param device   The Device -- must not be \c NULL.
- *
- * \return   The buffer size.
- */
-uint32_t Device_get_buffer_size(const Device* device);
+        int32_t size);
 
 
 /**

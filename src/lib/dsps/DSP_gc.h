@@ -25,13 +25,10 @@
 /**
  * Creates a new gain compression DSP.
  *
- * \param buffer_size   The size of the buffers -- must be > \c 0 and
- *                      <= \c KQT_BUFFER_SIZE_MAX.
- *
  * \return   The new gain compression DSP if successful, or \c NULL if memory
  *           allocation failed.
  */
-Device_impl* new_DSP_gc(DSP* dsp, uint32_t buffer_size);
+Device_impl* new_DSP_gc(DSP* dsp);
 
 
 #endif // K_DSP_GC_H

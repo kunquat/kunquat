@@ -53,28 +53,16 @@ static bool Module_set_audio_rate(
         int32_t audio_rate);
 
 
+static bool Module_set_buffer_size(
+        const Device* device,
+        Device_states* dstates,
+        int32_t size);
+
+
 static void Module_update_tempo(
         const Device* device,
         Device_states* dstates,
         double tempo);
-
-
-/**
- * Sets the buffer size of the Module.
- *
- * This function sets the buffer size for all the Instruments and Effects.
- *
- * \param device    The Module Device -- must not be \c NULL.
- * \param dstates   The Device states -- must not be \c NULL.
- * \param size      The new buffer size -- must be > \c 0 and
- *                  <= \c KQT_AUDIO_BUFFER_SIZE_MAX.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-static bool Module_set_buffer_size(
-        Device* device,
-        Device_states* dstates,
-        uint32_t size);
 
 
 /**
@@ -90,16 +78,13 @@ static bool Module_set_buffer_size(
 //static bool Module_sync(Device* device, Device_states* dstates);
 
 
-Module* new_Module(uint32_t buf_size)
+Module* new_Module()
 {
-    assert(buf_size > 0);
-    assert(buf_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
-
     Module* module = memory_alloc_item(Module);
     if (module == NULL)
         return NULL;
 
-    if (!Device_init(&module->parent, buf_size))
+    if (!Device_init(&module->parent))
     {
         memory_free(module);
         return NULL;
@@ -109,7 +94,7 @@ Module* new_Module(uint32_t buf_size)
     Device_set_reset(&module->parent, Module_reset);
     Device_register_set_audio_rate(&module->parent, Module_set_audio_rate);
     Device_register_update_tempo(&module->parent, Module_update_tempo);
-    Device_set_buffer_size_changer(&module->parent, Module_set_buffer_size);
+    Device_register_set_buffer_size(&module->parent, Module_set_buffer_size);
     //Device_set_sync(&module->parent, Module_sync);
     Device_register_port(&module->parent, DEVICE_PORT_TYPE_RECEIVE, 0);
 
@@ -625,14 +610,14 @@ static void Module_update_tempo(
 
 
 static bool Module_set_buffer_size(
-        Device* device,
+        const Device* device,
         Device_states* dstates,
-        uint32_t size)
+        int32_t size)
 {
     assert(device != NULL);
     assert(dstates != NULL);
 
-    Module* module = (Module*)device;
+    const Module* module = (const Module*)device;
 
     for (int i = 0; i < KQT_INSTRUMENTS_MAX; ++i)
     {

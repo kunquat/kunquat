@@ -25,13 +25,10 @@
 /**
  * This is the type of a Generator implementation constructor.
  *
- * \param buffer_size   The mixing buffer size -- must be > \c 0 and
- *                      <= \c KQT_BUFFER_SIZE_MAX.
- *
  * \return   The new Generator if successful, or \c NULL if memory allocation
  *           failed.
  */
-typedef Device_impl* Generator_cons(Generator* gen, uint32_t buffer_size);
+typedef Device_impl* Generator_cons(Generator* gen);
 
 
 /**

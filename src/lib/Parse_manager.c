@@ -509,7 +509,7 @@ static Instrument* add_instrument(kqt_Handle* handle, int index)
         return ins;
 
     // Create new instrument
-    ins = new_Instrument(Device_get_buffer_size((Device*)module));
+    ins = new_Instrument();
     if (ins == NULL || !Ins_table_set(Module_get_insts(module), index, ins))
     {
         kqt_Handle_set_error(handle, ERROR_MEMORY, memory_error_str);
@@ -769,17 +769,13 @@ static Generator* add_generator(
     static const char* memory_error_str =
         "Couldn't allocate memory for a new generator";
 
-    Module* module = Handle_get_module(handle);
-
     // Return existing generator
     Generator* gen = Gen_table_get_gen(gen_table, gen_index);
     if (gen != NULL)
         return gen;
 
     // Create new generator
-    gen = new_Generator(
-            Instrument_get_params(ins),
-            Device_get_buffer_size((Device*)module));
+    gen = new_Generator(Instrument_get_params(ins));
     if (gen == NULL || !Gen_table_set_gen(gen_table, gen_index, gen))
     {
         kqt_Handle_set_error(handle, ERROR_MEMORY, memory_error_str);
@@ -876,9 +872,7 @@ static bool parse_generator_level(kqt_Handle* handle,
                         "Unsupported Generator type: %s", type);
                 return false;
             }
-            Device_impl* gen_impl = cons(
-                    gen,
-                    Device_get_buffer_size((Device*)module));
+            Device_impl* gen_impl = cons(gen);
             if (gen_impl == NULL)
             {
                 kqt_Handle_set_error(handle, ERROR_MEMORY,
@@ -1035,15 +1029,13 @@ static Effect* add_effect(kqt_Handle* handle, int index, Effect_table* table)
     static const char* memory_error_str =
         "Couldn't allocate memory for a new effect";
 
-    Module* module = Handle_get_module(handle);
-
     // Return existing effect
     Effect* eff = Effect_table_get(table, index);
     if (eff != NULL)
         return eff;
 
     // Create new effect
-    eff = new_Effect(Device_get_buffer_size((Device*)module));
+    eff = new_Effect();
     if (eff == NULL || !Effect_table_set(table, index, eff))
     {
         del_Effect(eff);
@@ -1228,15 +1220,13 @@ static DSP* add_dsp(
     static const char* memory_error_str =
         "Couldn't allocate memory for a new DSP";
 
-    Module* module = Handle_get_module(handle);
-
     // Return existing DSP
     DSP* dsp = DSP_table_get_dsp(dsp_table, dsp_index);
     if (dsp != NULL)
         return dsp;
 
     // Create new DSP
-    dsp = new_DSP(Device_get_buffer_size((Device*)module));
+    dsp = new_DSP();
     if (dsp == NULL || !DSP_table_set_dsp(dsp_table, dsp_index, dsp))
     {
         kqt_Handle_set_error(handle, ERROR_MEMORY, memory_error_str);
@@ -1273,8 +1263,6 @@ static bool parse_dsp_level(kqt_Handle* handle,
 
     subkey = strchr(subkey, '/') + 1;
 #endif
-
-    Module* module = Handle_get_module(handle);
 
     DSP_table* dsp_table = Effect_get_dsps(eff);
     assert(dsp_table != NULL);
@@ -1320,9 +1308,7 @@ static bool parse_dsp_level(kqt_Handle* handle,
                         "Unsupported DSP type: %s", type);
                 return false;
             }
-            Device_impl* dsp_impl = cons(
-                    dsp,
-                    Device_get_buffer_size((Device*)module));
+            Device_impl* dsp_impl = cons(dsp);
             if (dsp_impl == NULL)
             {
                 kqt_Handle_set_error(handle, ERROR_MEMORY,

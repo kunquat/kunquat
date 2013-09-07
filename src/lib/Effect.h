@@ -31,12 +31,10 @@ typedef struct Effect Effect;
 /**
  * Creates a new Effect.
  *
- * \param buf_len    The length of a mixing buffer -- must be > \c 0.
- *
  * \return   The new Effect if successful, or \c NULL if memory allocation
  *           failed.
  */
-Effect* new_Effect(uint32_t buf_len);
+Effect* new_Effect();
 
 
 /**

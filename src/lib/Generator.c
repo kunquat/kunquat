@@ -45,19 +45,15 @@ static Device_state* Generator_create_state_plain(
 }
 
 
-Generator* new_Generator(
-        const Instrument_params* ins_params,
-        uint32_t buffer_size)
+Generator* new_Generator(const Instrument_params* ins_params)
 {
     assert(ins_params != NULL);
-    assert(buffer_size > 0);
-    assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
 
     Generator* gen = memory_alloc_item(Generator);
     if (gen == NULL)
         return NULL;
 
-    if (!Device_init(&gen->parent, buffer_size))
+    if (!Device_init(&gen->parent))
     {
         memory_free(gen);
         return NULL;
@@ -110,13 +106,10 @@ bool Generator_init(
             uint32_t,
             uint32_t,
             double),
-        void (*init_vstate)(const Generator*, const Gen_state*, Voice_state*),
-        uint32_t buffer_size)
+        void (*init_vstate)(const Generator*, const Gen_state*, Voice_state*))
 {
     assert(gen != NULL);
     assert(mix != NULL);
-    assert(buffer_size > 0);
-    assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
 
     gen->mix = mix;
     gen->init_vstate = init_vstate;

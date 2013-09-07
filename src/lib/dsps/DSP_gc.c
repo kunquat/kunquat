@@ -57,16 +57,13 @@ static void DSP_gc_process(
 static void del_DSP_gc(Device_impl* dsp_impl);
 
 
-Device_impl* new_DSP_gc(DSP* dsp, uint32_t buffer_size)
+Device_impl* new_DSP_gc(DSP* dsp)
 {
-    assert(buffer_size > 0);
-    assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
-
     DSP_gc* gc = memory_alloc_item(DSP_gc);
     if (gc == NULL)
         return NULL;
 
-    if (!Device_impl_init(&gc->parent, del_DSP_gc, buffer_size))
+    if (!Device_impl_init(&gc->parent, del_DSP_gc))
     {
         memory_free(gc);
         return NULL;
