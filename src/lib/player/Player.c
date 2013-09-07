@@ -116,7 +116,10 @@ Player* new_Player(
         return NULL;
     }
 
-    Device_state* master_state = Device_create_state((Device*)player->module);
+    Device_state* master_state = Device_create_state(
+            (Device*)player->module,
+            player->audio_rate,
+            player->audio_buffer_size);
     if (master_state == NULL || !Device_states_add_state(
                 player->device_states, master_state))
     {

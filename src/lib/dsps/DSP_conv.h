@@ -30,12 +30,11 @@
  *
  * \param buffer_size   The size of the buffers -- must be > \c 0 and
  *                      <= \c KQT_BUFFER_SIZE_MAX.
- * \param mix_rate      The mixing rate -- must be > \c 0.
  *
  * \return   The new convolution DSP if successful, or \c NULL if memory
  *           allocation failed.
  */
-Device_impl* new_DSP_conv(DSP* dsp, uint32_t buffer_size, uint32_t mix_rate);
+Device_impl* new_DSP_conv(DSP* dsp, uint32_t buffer_size);
 
 
 #endif // K_DSP_CONV_H

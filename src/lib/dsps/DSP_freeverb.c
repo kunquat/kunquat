@@ -173,10 +173,10 @@ static bool DSP_freeverb_set_damp(
         double value);
 
 static void DSP_freeverb_clear_history(DSP* dsp, DSP_state* dsp_state);
-static bool DSP_freeverb_set_mix_rate(
-        Device* device,
-        Device_states* dstates,
-        uint32_t mix_rate);
+static bool DSP_freeverb_set_audio_rate(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        int32_t audio_rate);
 //static bool DSP_freeverb_update_key(Device* device, const char* key);
 
 static void DSP_freeverb_process(
@@ -199,17 +199,16 @@ static void DSP_freeverb_update_gain(DSP_freeverb* freeverb, double gain);
 static void DSP_freeverb_update_wet(DSP_freeverb* freeverb, double wet);
 
 
-Device_impl* new_DSP_freeverb(DSP* dsp, uint32_t buffer_size, uint32_t mix_rate)
+Device_impl* new_DSP_freeverb(DSP* dsp, uint32_t buffer_size)
 {
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
-    assert(mix_rate > 0);
 
     DSP_freeverb* freeverb = memory_alloc_item(DSP_freeverb);
     if (freeverb == NULL)
         return NULL;
 
-    if (!Device_impl_init(&freeverb->parent, del_DSP_freeverb, mix_rate, buffer_size))
+    if (!Device_impl_init(&freeverb->parent, del_DSP_freeverb, buffer_size))
     {
         memory_free(freeverb);
         return NULL;
@@ -250,8 +249,8 @@ Device_impl* new_DSP_freeverb(DSP* dsp, uint32_t buffer_size, uint32_t mix_rate)
             initial_damp,
             DSP_freeverb_set_damp);
 
-    Device_set_mix_rate_changer(freeverb->parent.device,
-                                DSP_freeverb_set_mix_rate);
+    Device_impl_register_set_audio_rate(
+            &freeverb->parent, DSP_freeverb_set_audio_rate);
     //Device_set_update_key(freeverb->parent.device, DSP_freeverb_update_key);
 
     Device_register_port(freeverb->parent.device, DEVICE_PORT_TYPE_RECEIVE, 0);
@@ -443,28 +442,27 @@ static bool DSP_freeverb_set_damp(
 }
 
 
-static bool DSP_freeverb_set_mix_rate(
-        Device* device,
-        Device_states* dstates,
-        uint32_t mix_rate)
+static bool DSP_freeverb_set_audio_rate(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        int32_t audio_rate)
 {
-    assert(device != NULL);
-    assert(dstates != NULL);
-    assert(mix_rate > 0);
+    assert(dimpl != NULL);
+    assert(dstate != NULL);
+    assert(audio_rate > 0);
 
-    const DSP_freeverb* freeverb = (const DSP_freeverb*)device->dimpl;
-    Freeverb_state* fstate = (Freeverb_state*)Device_states_get_state(
-            dstates, Device_get_id(device));
+    const DSP_freeverb* freeverb = (const DSP_freeverb*)dimpl;
+    Freeverb_state* fstate = (Freeverb_state*)dstate;
 
     for (int i = 0; i < FREEVERB_COMBS; ++i)
     {
-        const uint32_t left_size = MAX(1, comb_tuning[i] * mix_rate);
+        const uint32_t left_size = MAX(1, comb_tuning[i] * audio_rate);
 
         if (!Freeverb_comb_resize_buffer(fstate->comb_left[i], left_size))
             return false;
 
         const uint32_t right_size = MAX(
-                1, (comb_tuning[i] + stereo_spread) * mix_rate);
+                1, (comb_tuning[i] + stereo_spread) * audio_rate);
 
         if (!Freeverb_comb_resize_buffer(fstate->comb_right[i], right_size))
             return false;
@@ -472,7 +470,7 @@ static bool DSP_freeverb_set_mix_rate(
 
     for (int i = 0; i < FREEVERB_ALLPASSES; ++i)
     {
-        const uint32_t left_size = MAX(1, allpass_tuning[i] * mix_rate);
+        const uint32_t left_size = MAX(1, allpass_tuning[i] * audio_rate);
 
         if (!Freeverb_allpass_resize_buffer(
                     fstate->allpass_left[i],
@@ -480,7 +478,7 @@ static bool DSP_freeverb_set_mix_rate(
             return false;
 
         const uint32_t right_size = MAX(
-                1, (allpass_tuning[i] + stereo_spread) * mix_rate);
+                1, (allpass_tuning[i] + stereo_spread) * audio_rate);
 
         if (!Freeverb_allpass_resize_buffer(
                     fstate->allpass_right[i],

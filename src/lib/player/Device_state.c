@@ -94,6 +94,13 @@ bool Device_state_set_audio_rate(Device_state* ds, int32_t rate)
 }
 
 
+int32_t Device_state_get_audio_rate(const Device_state* ds)
+{
+    assert(ds != NULL);
+    return ds->audio_rate;
+}
+
+
 bool Device_state_set_audio_buffer_size(Device_state* ds, int32_t size)
 {
     assert(ds != NULL);

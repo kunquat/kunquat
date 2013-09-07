@@ -43,12 +43,11 @@ typedef struct Instrument Instrument;
  * Creates a new Instrument.
  *
  * \param buf_len    The length of a mixing buffer -- must be > \c 0.
- * \param mix_rate   The mixing rate -- must be > \c 0.
  *
  * \return   The new Instrument if successful, or \c NULL if memory allocation
  *           failed.
  */
-Instrument* new_Instrument(uint32_t buf_len, uint32_t mix_rate);
+Instrument* new_Instrument(uint32_t buf_len);
 
 
 /**

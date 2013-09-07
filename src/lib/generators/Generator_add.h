@@ -27,12 +27,11 @@
  *
  * \param buffer_size   The mixing buffer size -- must be > \c 0 and
  *                      <= \c KQT_BUFFER_SIZE_MAX.
- * \param mix_rate      The mixing rate -- must be > \c 0.
  *
  * \return   The new additive synthesis Generator if successful, or \c NULL if
  *           memory allocation failed.
  */
-Device_impl* new_Generator_add(Generator* gen, uint32_t buffer_size, uint32_t mix_rate);
+Device_impl* new_Generator_add(Generator* gen, uint32_t buffer_size);
 
 
 /**

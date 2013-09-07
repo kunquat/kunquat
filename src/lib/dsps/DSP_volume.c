@@ -72,17 +72,16 @@ static void DSP_volume_process(
 static void del_DSP_volume(Device_impl* dsp_impl);
 
 
-Device_impl* new_DSP_volume(DSP* dsp, uint32_t buffer_size, uint32_t mix_rate)
+Device_impl* new_DSP_volume(DSP* dsp, uint32_t buffer_size)
 {
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
-    assert(mix_rate > 0);
 
     DSP_volume* volume = memory_alloc_item(DSP_volume);
     if (volume == NULL)
         return NULL;
 
-    if (!Device_impl_init(&volume->parent, del_DSP_volume, mix_rate, buffer_size))
+    if (!Device_impl_init(&volume->parent, del_DSP_volume, buffer_size))
     {
         memory_free(volume);
         return NULL;

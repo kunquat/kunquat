@@ -43,6 +43,7 @@ struct Device_impl
     AAtree* set_cbs;
     AAtree* update_state_cbs;
 
+    bool (*set_audio_rate)(const Device_impl*, Device_state*, int32_t);
     void (*update_tempo)(const Device_impl*, Device_state*, double);
     void (*reset)(const Device_impl*, Device_state*);
     void (*destroy)(Device_impl*);
@@ -54,7 +55,6 @@ struct Device_impl
  *
  * \param dimpl     The Device implementation -- must not be \c NULL.
  * \param destroy   The destructor -- must not be \c NULL.
- * \param audio_rate          The audio rate. TODO: remove
  * \param audio_buffer_size   The audio buffer size. TODO: remove
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
@@ -62,7 +62,18 @@ struct Device_impl
 bool Device_impl_init(
         Device_impl* dimpl,
         void (*destroy)(Device_impl* dimpl),
-        int32_t audio_rate, int32_t audio_buffer_size);
+        int32_t audio_buffer_size);
+
+
+/**
+ * Registers an audio rate set function.
+ *
+ * \param dimpl   The Device implementation -- must not be \c NULL.
+ * \param set     The audio rate set function, or \c NULL.
+ */
+void Device_impl_register_set_audio_rate(
+        Device_impl* dimpl,
+        bool (*set)(const Device_impl*, Device_state*, int32_t));
 
 
 /**
@@ -439,6 +450,21 @@ bool Device_impl_register_update_state_tstamp(
 void Device_impl_reset_device_state(
         const Device_impl* dimpl,
         Device_state* dstate);
+
+
+/**
+ * Sets the audio rate of a Device state.
+ *
+ * \param dimpl        The Device implementation -- must not be \c NULL.
+ * \param dstate       The Device state -- must not be \c NULL.
+ * \param audio_rate   The audio rate -- must be > \c 0.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Device_impl_set_audio_rate(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        int32_t audio_rate);
 
 
 /**

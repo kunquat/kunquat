@@ -57,17 +57,16 @@ static uint32_t Generator_pcm_mix(
 static void del_Generator_pcm(Device_impl* gen);
 
 
-Device_impl* new_Generator_pcm(Generator* gen, uint32_t buffer_size, uint32_t mix_rate)
+Device_impl* new_Generator_pcm(Generator* gen, uint32_t buffer_size)
 {
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
-    assert(mix_rate > 0);
 
     Generator_pcm* pcm = memory_alloc_item(Generator_pcm);
     if (pcm == NULL)
         return NULL;
 
-    if (!Device_impl_init(&pcm->parent, del_Generator_pcm, mix_rate, buffer_size))
+    if (!Device_impl_init(&pcm->parent, del_Generator_pcm, buffer_size))
     {
         memory_free(pcm);
         return NULL;

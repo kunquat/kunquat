@@ -29,12 +29,11 @@ typedef struct Effect_interface
  * Creates a new Effect interface.
  *
  * \param buf_len    The length of a mixing buffer -- must be > \c 0.
- * \param mix_rate   The mixing rate -- must be > \c 0.
  *
  * \return   The new Effect interface if successful, or \c NULL if memory
  *           allocation failed.
  */
-Effect_interface* new_Effect_interface(uint32_t buf_len, uint32_t mix_rate);
+Effect_interface* new_Effect_interface(uint32_t buf_len);
 
 
 /**

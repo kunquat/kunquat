@@ -49,17 +49,16 @@ static uint32_t Generator_debug_mix(
 static void del_Generator_debug(Device_impl* gen_impl);
 
 
-Device_impl* new_Generator_debug(Generator* gen, uint32_t buffer_size, uint32_t mix_rate)
+Device_impl* new_Generator_debug(Generator* gen, uint32_t buffer_size)
 {
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
-    assert(mix_rate > 0);
 
     Generator_debug* debug = memory_alloc_item(Generator_debug);
     if (debug == NULL)
         return NULL;
 
-    if (!Device_impl_init(&debug->parent, del_Generator_debug, mix_rate, buffer_size))
+    if (!Device_impl_init(&debug->parent, del_Generator_debug, buffer_size))
     {
         memory_free(debug);
         return NULL;

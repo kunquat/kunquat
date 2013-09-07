@@ -163,17 +163,17 @@ typedef struct Update_state_cb
 bool Device_impl_init(
         Device_impl* dimpl,
         void (*destroy)(Device_impl* dimpl),
-        int32_t audio_rate, int32_t audio_buffer_size)
+        int32_t audio_buffer_size)
 {
     assert(dimpl != NULL);
     assert(destroy != NULL);
-    assert(audio_rate > 0);
     assert(audio_buffer_size >= 0);
 
     dimpl->device = NULL;
     dimpl->set_cbs = NULL;
     dimpl->update_state_cbs = NULL;
 
+    dimpl->set_audio_rate = NULL;
     dimpl->update_tempo = NULL;
     dimpl->reset = NULL;
     dimpl->destroy = destroy;
@@ -191,6 +191,16 @@ bool Device_impl_init(
     }
 
     return true;
+}
+
+
+void Device_impl_register_set_audio_rate(
+        Device_impl* dimpl,
+        bool (*set)(const Device_impl*, Device_state*, int32_t))
+{
+    assert(dimpl != NULL);
+    dimpl->set_audio_rate = set;
+    return;
 }
 
 
@@ -434,6 +444,22 @@ void Device_impl_reset_device_state(
         dimpl->reset(dimpl, dstate);
 
     return;
+}
+
+
+bool Device_impl_set_audio_rate(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        int32_t audio_rate)
+{
+    assert(dimpl != NULL);
+    assert(dstate != NULL);
+    assert(audio_rate > 0);
+
+    if (dimpl->set_audio_rate != NULL)
+        return dimpl->set_audio_rate(dimpl, dstate, audio_rate);
+
+    return true;
 }
 
 

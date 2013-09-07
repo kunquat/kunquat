@@ -63,19 +63,19 @@ int kqt_Handle_set_mixing_rate(kqt_Handle* handle, long rate)
 
     if (rate <= 0)
     {
-        kqt_Handle_set_error(handle, ERROR_ARGUMENT, "Mixing rate must be"
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT, "Audio rate must be"
                 " positive");
         return 0;
     }
 
-    if (!Device_set_mix_rate(
+    if (!Device_set_audio_rate(
                 (Device*)handle->module,
                 Player_get_device_states(handle->player),
                 rate) ||
             !Player_set_audio_rate(handle->player, rate))
     {
         kqt_Handle_set_error(handle, ERROR_MEMORY,
-                "Couldn't allocate memory after change of mixing rate.");
+                "Couldn't allocate memory after change of audio rate.");
         return 0;
     }
 

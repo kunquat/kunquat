@@ -20,16 +20,15 @@
 #include <xassert.h>
 
 
-Effect_interface* new_Effect_interface(uint32_t buf_len, uint32_t mix_rate)
+Effect_interface* new_Effect_interface(uint32_t buf_len)
 {
     assert(buf_len > 0);
-    assert(mix_rate > 0);
 
     Effect_interface* ei = memory_alloc_item(Effect_interface);
     if (ei == NULL)
         return NULL;
 
-    if (!Device_init(&ei->parent, buf_len, mix_rate))
+    if (!Device_init(&ei->parent, buf_len))
     {
         del_Effect_interface(ei);
         return NULL;

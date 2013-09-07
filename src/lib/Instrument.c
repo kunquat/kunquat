@@ -55,10 +55,10 @@ static Device_state* Instrument_create_state(
 
 static void Instrument_reset(Device* device, Device_states* dstates);
 
-static bool Instrument_set_mix_rate(
-        Device* device,
+static bool Instrument_set_audio_rate(
+        const Device* device,
         Device_states* dstates,
-        uint32_t mix_rate);
+        int32_t mix_rate);
 
 static void Instrument_update_tempo(
         const Device* device,
@@ -73,10 +73,9 @@ static bool Instrument_set_buffer_size(
 //static bool Instrument_sync(Device* device, Device_states* dstates);
 
 
-Instrument* new_Instrument(uint32_t buf_len, uint32_t mix_rate)
+Instrument* new_Instrument(uint32_t buf_len)
 {
     assert(buf_len > 0);
-    assert(mix_rate > 0);
 
     Instrument* ins = memory_alloc_item(Instrument);
     if (ins == NULL)
@@ -87,7 +86,7 @@ Instrument* new_Instrument(uint32_t buf_len, uint32_t mix_rate)
     ins->gens = NULL;
     ins->effects = NULL;
 
-    if (!Device_init(&ins->parent, buf_len, mix_rate))
+    if (!Device_init(&ins->parent, buf_len))
     {
         memory_free(ins);
         return NULL;
@@ -103,7 +102,7 @@ Instrument* new_Instrument(uint32_t buf_len, uint32_t mix_rate)
 
     Device_set_state_creator(&ins->parent, Instrument_create_state);
     Device_set_reset(&ins->parent, Instrument_reset);
-    Device_set_mix_rate_changer(&ins->parent, Instrument_set_mix_rate);
+    Device_register_set_audio_rate(&ins->parent, Instrument_set_audio_rate);
     Device_register_update_tempo(&ins->parent, Instrument_update_tempo);
     Device_set_buffer_size_changer(&ins->parent, Instrument_set_buffer_size);
     //Device_set_sync(&ins->parent, Instrument_sync);
@@ -374,14 +373,14 @@ static void Instrument_reset(Device* device, Device_states* dstates)
 }
 
 
-static bool Instrument_set_mix_rate(
-        Device* device,
+static bool Instrument_set_audio_rate(
+        const Device* device,
         Device_states* dstates,
-        uint32_t mix_rate)
+        int32_t audio_rate)
 {
     assert(device != NULL);
     assert(dstates != NULL);
-    assert(mix_rate > 0);
+    assert(audio_rate > 0);
 
     Instrument* ins = (Instrument*)device;
 
@@ -389,7 +388,7 @@ static bool Instrument_set_mix_rate(
     {
         Generator* gen = Gen_table_get_gen(ins->gens, i);
         if (gen != NULL &&
-                !Device_set_mix_rate((Device*)gen, dstates, mix_rate))
+                !Device_set_audio_rate((Device*)gen, dstates, audio_rate))
             return false;
     }
 
@@ -397,7 +396,7 @@ static bool Instrument_set_mix_rate(
     {
         Effect* eff = Effect_table_get(ins->effects, i);
         if (eff != NULL &&
-                !Device_set_mix_rate((Device*)eff, dstates, mix_rate))
+                !Device_set_audio_rate((Device*)eff, dstates, audio_rate))
             return false;
     }
 

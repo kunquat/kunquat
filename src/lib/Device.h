@@ -33,14 +33,13 @@ struct Device
 {
     uint32_t id;
     bool existent;
-    uint32_t mix_rate;
     uint32_t buffer_size;
 
     Device_params* dparams;
     Device_impl* dimpl;
 
     Device_state* (*create_state)(const struct Device*, int32_t, int32_t);
-    bool (*set_mix_rate)(struct Device*, Device_states*, uint32_t);
+    bool (*set_audio_rate)(const struct Device*, Device_states*, int32_t);
     void (*update_tempo)(const struct Device*, Device_states*, double);
     bool (*set_buffer_size)(struct Device*, Device_states*, uint32_t);
     void (*reset)(struct Device*, Device_states*);
@@ -64,11 +63,10 @@ struct Device
  * \param device        The Device -- must not be \c NULL.
  * \param buffer_size   The current buffer size -- must be > \c 0 and
  *                      <= \c KQT_BUFFER_SIZE_MAX.
- * \param mix_rate      The current mixing rate -- must be > \c 0.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Device_init(Device* device, uint32_t buffer_size, uint32_t mix_rate);
+bool Device_init(Device* device, uint32_t buffer_size);
 
 
 /**
@@ -116,12 +114,17 @@ bool Device_set_impl(Device* device, Device_impl* dimpl);
 /**
  * Creates a new Device state for the Device.
  *
- * \param device   The Device -- must not be \c NULL.
+ * \param device        The Device -- must not be \c NULL.
+ * \param audio_rate    The audio rate -- must be > \c 0.
+ * \param buffer_size   The audio buffer size -- must be >= \c 0.
  *
  * \return   The new Device state if successful, or \c NULL if memory
  *           allocation failed.
  */
-Device_state* Device_create_state(const Device* device);
+Device_state* Device_create_state(
+        const Device* device,
+        int32_t audio_rate,
+        int32_t buffer_size);
 
 
 /**
@@ -136,14 +139,14 @@ void Device_set_state_creator(
 
 
 /**
- * Sets the function for changing the mixing rate of the Device.
+ * Registers the audio rate set function of the Device.
  *
- * \param device    The Device -- must not be \c NULL.
- * \param changer   The change function, or \c NULL.
+ * \param device   The Device -- must not be \c NULL.
+ * \param set      The audio rate set function -- must not be \c NULL.
  */
-void Device_set_mix_rate_changer(
+void Device_register_set_audio_rate(
         Device* device,
-        bool (*changer)(Device*, Device_states*, uint32_t));
+        bool (*set)(const Device*, Device_states*, int32_t));
 
 
 /**
@@ -256,7 +259,7 @@ bool Device_port_is_registered(
 
 
 /**
- * Sets the mixing rate of the Device.
+ * Sets the audio rate of Device states.
  *
  * \param device    The Device -- must not be \c NULL.
  * \param dstates   The Device states -- must not be \c NULL.
@@ -264,10 +267,10 @@ bool Device_port_is_registered(
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Device_set_mix_rate(
-        Device* device,
+bool Device_set_audio_rate(
+        const Device* device,
         Device_states* dstates,
-        uint32_t rate);
+        int32_t rate);
 
 
 /**
@@ -281,16 +284,6 @@ void Device_update_tempo(
         const Device* device,
         Device_states* dstates,
         double tempo);
-
-
-/**
- * Gets the mixing rate of the Device.
- *
- * \param device   The Device -- must not be \c NULL.
- *
- * \return   The mixing rate.
- */
-uint32_t Device_get_mix_rate(const Device* device);
 
 
 /**

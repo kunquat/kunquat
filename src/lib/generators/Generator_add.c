@@ -145,17 +145,16 @@ static uint32_t Generator_add_mix(
 static void del_Generator_add(Device_impl* gen_impl);
 
 
-Device_impl* new_Generator_add(Generator* gen, uint32_t buffer_size, uint32_t mix_rate)
+Device_impl* new_Generator_add(Generator* gen, uint32_t buffer_size)
 {
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
-    assert(mix_rate > 0);
 
     Generator_add* add = memory_alloc_item(Generator_add);
     if (add == NULL)
         return NULL;
 
-    if (!Device_impl_init(&add->parent, del_Generator_add, mix_rate, buffer_size))
+    if (!Device_impl_init(&add->parent, del_Generator_add, buffer_size))
     {
         memory_free(add);
         return NULL;

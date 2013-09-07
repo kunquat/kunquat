@@ -114,6 +114,16 @@ bool Device_state_set_audio_rate(Device_state* ds, int32_t rate);
 
 
 /**
+ * Gets the audio rate.
+ *
+ * \param ds   The Device state -- must not be \c NULL.
+ *
+ * \return   The audio rate.
+ */
+int32_t Device_state_get_audio_rate(const Device_state* ds);
+
+
+/**
  * Sets the audio buffer size.
  *
  * \param ds     The Device state -- must not be \c NULL.

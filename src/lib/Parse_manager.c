@@ -509,9 +509,7 @@ static Instrument* add_instrument(kqt_Handle* handle, int index)
         return ins;
 
     // Create new instrument
-    ins = new_Instrument(
-            Device_get_buffer_size((Device*)module),
-            Device_get_mix_rate((Device*)module));
+    ins = new_Instrument(Device_get_buffer_size((Device*)module));
     if (ins == NULL || !Ins_table_set(Module_get_insts(module), index, ins))
     {
         kqt_Handle_set_error(handle, ERROR_MEMORY, memory_error_str);
@@ -520,7 +518,10 @@ static Instrument* add_instrument(kqt_Handle* handle, int index)
     }
 
     // Allocate Device state(s) for the new Instrument
-    Device_state* ds = Device_create_state((Device*)ins);
+    Device_state* ds = Device_create_state(
+            (Device*)ins,
+            Player_get_audio_rate(handle->player),
+            Player_get_audio_buffer_size(handle->player));
     if (ds == NULL || !Device_states_add_state(
                 Player_get_device_states(handle->player), ds))
     {
@@ -778,8 +779,7 @@ static Generator* add_generator(
     // Create new generator
     gen = new_Generator(
             Instrument_get_params(ins),
-            Device_get_buffer_size((Device*)module),
-            Device_get_mix_rate((Device*)module));
+            Device_get_buffer_size((Device*)module));
     if (gen == NULL || !Gen_table_set_gen(gen_table, gen_index, gen))
     {
         kqt_Handle_set_error(handle, ERROR_MEMORY, memory_error_str);
@@ -878,8 +878,7 @@ static bool parse_generator_level(kqt_Handle* handle,
             }
             Device_impl* gen_impl = cons(
                     gen,
-                    Device_get_buffer_size((Device*)module),
-                    Device_get_mix_rate((Device*)module));
+                    Device_get_buffer_size((Device*)module));
             if (gen_impl == NULL)
             {
                 kqt_Handle_set_error(handle, ERROR_MEMORY,
@@ -941,7 +940,10 @@ static bool parse_generator_level(kqt_Handle* handle,
             }
 
             // Allocate Device state(s) for this Generator
-            Device_state* ds = Device_create_state((Device*)gen);
+            Device_state* ds = Device_create_state(
+                    (Device*)gen,
+                    Player_get_audio_rate(handle->player),
+                    Player_get_audio_buffer_size(handle->player));
             if (ds == NULL || !Device_states_add_state(dstates, ds))
             {
                 kqt_Handle_set_error(handle, ERROR_MEMORY,
@@ -1041,9 +1043,7 @@ static Effect* add_effect(kqt_Handle* handle, int index, Effect_table* table)
         return eff;
 
     // Create new effect
-    eff = new_Effect(
-            Device_get_buffer_size((Device*)module),
-            Device_get_mix_rate((Device*)module));
+    eff = new_Effect(Device_get_buffer_size((Device*)module));
     if (eff == NULL || !Effect_table_set(table, index, eff))
     {
         del_Effect(eff);
@@ -1062,7 +1062,10 @@ static Effect* add_effect(kqt_Handle* handle, int index, Effect_table* table)
     for (int i = 0; i < 3; ++i)
     {
         assert(eff_devices[i] != NULL);
-        Device_state* ds = Device_create_state(eff_devices[i]);
+        Device_state* ds = Device_create_state(
+                eff_devices[i],
+                Player_get_audio_rate(handle->player),
+                Player_get_audio_buffer_size(handle->player));
         if (ds == NULL || !Device_states_add_state(
                     Player_get_device_states(handle->player), ds))
         {
@@ -1233,9 +1236,7 @@ static DSP* add_dsp(
         return dsp;
 
     // Create new DSP
-    dsp = new_DSP(
-            Device_get_buffer_size((Device*)module),
-            Device_get_mix_rate((Device*)module));
+    dsp = new_DSP(Device_get_buffer_size((Device*)module));
     if (dsp == NULL || !DSP_table_set_dsp(dsp_table, dsp_index, dsp))
     {
         kqt_Handle_set_error(handle, ERROR_MEMORY, memory_error_str);
@@ -1321,8 +1322,7 @@ static bool parse_dsp_level(kqt_Handle* handle,
             }
             Device_impl* dsp_impl = cons(
                     dsp,
-                    Device_get_buffer_size((Device*)module),
-                    Device_get_mix_rate((Device*)module));
+                    Device_get_buffer_size((Device*)module));
             if (dsp_impl == NULL)
             {
                 kqt_Handle_set_error(handle, ERROR_MEMORY,
@@ -1337,7 +1337,10 @@ static bool parse_dsp_level(kqt_Handle* handle,
             Device_states_remove_state(dstates, Device_get_id((Device*)dsp));
 
             // Allocate Device state(s) for this DSP
-            Device_state* ds = Device_create_state((Device*)dsp);
+            Device_state* ds = Device_create_state(
+                    (Device*)dsp,
+                    Player_get_audio_rate(handle->player),
+                    Player_get_audio_buffer_size(handle->player));
             if (ds == NULL || !Device_states_add_state(
                         Player_get_device_states(handle->player), ds))
             {
@@ -1349,7 +1352,7 @@ static bool parse_dsp_level(kqt_Handle* handle,
             }
 
             // Set DSP resources
-            if (!Device_set_mix_rate((Device*)dsp,
+            if (!Device_set_audio_rate((Device*)dsp,
                         dstates,
                         Player_get_audio_rate(handle->player)) ||
                     !Device_set_buffer_size((Device*)dsp,

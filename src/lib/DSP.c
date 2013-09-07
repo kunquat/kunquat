@@ -26,7 +26,7 @@
 #include <xassert.h>
 
 
-DSP* new_DSP(uint32_t buffer_size, uint32_t mix_rate)
+DSP* new_DSP(uint32_t buffer_size)
 {
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
@@ -35,7 +35,7 @@ DSP* new_DSP(uint32_t buffer_size, uint32_t mix_rate)
     if (dsp == NULL)
         return NULL;
 
-    if (!Device_init(&dsp->parent, buffer_size, mix_rate))
+    if (!Device_init(&dsp->parent, buffer_size))
     {
         memory_free(dsp);
         return NULL;
@@ -78,8 +78,7 @@ bool DSP_init(
             uint32_t,
             uint32_t,
             double),
-        uint32_t buffer_size,
-        uint32_t mix_rate)
+        uint32_t buffer_size)
 {
     assert(dsp != NULL);
     assert(process != NULL);
@@ -88,7 +87,7 @@ bool DSP_init(
 
     dsp->clear_history = NULL;
 
-    if (!Device_init(&dsp->parent, buffer_size, mix_rate))
+    if (!Device_init(&dsp->parent, buffer_size))
         return false;
 
     //Device_set_reset(&dsp->parent, DSP_reset);

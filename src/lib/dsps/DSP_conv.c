@@ -85,7 +85,7 @@ static Device_state* DSP_conv_create_state(
         int32_t audio_rate,
         int32_t audio_buffer_size);
 
-static void DSP_conv_update_ir(DSP_conv* conv);
+static void DSP_conv_update_ir(DSP_conv* conv, Conv_state* cstate);
 
 static void DSP_conv_reset(const Device_impl* dimpl, Device_state* dstate);
 
@@ -117,10 +117,10 @@ static bool DSP_conv_update_state_volume(
 //static bool DSP_conv_sync(Device* device, Device_states* dstates);
 static void DSP_conv_clear_history(DSP* dsp, DSP_state* dsp_state);
 //static bool DSP_conv_update_key(Device* device, const char* key);
-static bool DSP_conv_set_mix_rate(
-        Device* device,
-        Device_states* dstates,
-        uint32_t mix_rate);
+static bool DSP_conv_set_audio_rate(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        int32_t audio_rate);
 
 static void DSP_conv_process(
         Device* device,
@@ -133,11 +133,10 @@ static void DSP_conv_process(
 static void del_DSP_conv(Device_impl* dsp_impl);
 
 
-Device_impl* new_DSP_conv(DSP* dsp, uint32_t buffer_size, uint32_t mix_rate)
+Device_impl* new_DSP_conv(DSP* dsp, uint32_t buffer_size)
 {
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
-    assert(mix_rate > 0);
 
     assert(false); // FIXME: This DSP is broken, fix.
 
@@ -145,7 +144,7 @@ Device_impl* new_DSP_conv(DSP* dsp, uint32_t buffer_size, uint32_t mix_rate)
     if (conv == NULL)
         return NULL;
 
-    if (!Device_impl_init(&conv->parent, del_DSP_conv, mix_rate, buffer_size))
+    if (!Device_impl_init(&conv->parent, del_DSP_conv, buffer_size))
     {
         memory_free(conv);
         return NULL;
@@ -192,9 +191,8 @@ Device_impl* new_DSP_conv(DSP* dsp, uint32_t buffer_size, uint32_t mix_rate)
 
     DSP_set_clear_history((DSP*)conv->parent.device, DSP_conv_clear_history);
     //Device_set_sync(conv->parent.device, DSP_conv_sync);
-    Device_set_mix_rate_changer(
-            conv->parent.device,
-            DSP_conv_set_mix_rate);
+    Device_impl_register_set_audio_rate(
+            &conv->parent, DSP_conv_set_audio_rate);
 
     conv->ir = NULL;
     conv->max_ir_len = DEFAULT_IR_LEN;
@@ -342,21 +340,19 @@ static bool DSP_conv_update_key(Device* device, const char* key)
 #endif
 
 
-static bool DSP_conv_set_mix_rate(
-        Device* device,
-        Device_states* dstates,
-        uint32_t mix_rate)
+static bool DSP_conv_set_audio_rate(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        int32_t audio_rate)
 {
-    assert(device != NULL);
-    assert(dstates != NULL);
-    assert(mix_rate > 0);
+    assert(dimpl != NULL);
+    assert(dstate != NULL);
+    assert(audio_rate > 0);
 
-    DSP_conv* conv = (DSP_conv*)device->dimpl;
-    Conv_state* cstate = (Conv_state*)Device_states_get_state(
-            dstates,
-            Device_get_id(device));
+    DSP_conv* conv = (DSP_conv*)dimpl;
+    Conv_state* cstate = (Conv_state*)dstate;
 
-    long buf_size = conv->max_ir_len * mix_rate;
+    long buf_size = conv->max_ir_len * audio_rate;
     if (buf_size <= 0)
         buf_size = 1;
 
@@ -376,7 +372,7 @@ static bool DSP_conv_set_mix_rate(
     Audio_buffer_clear(conv->ir, 0, buf_size);
     Audio_buffer_clear(cstate->history, 0, buf_size);
     conv->history_pos = 0;
-    DSP_conv_update_ir(conv);
+    DSP_conv_update_ir(conv, cstate);
     assert(conv->actual_ir_len <= buf_size);
 
     return true;
@@ -401,7 +397,7 @@ static bool DSP_conv_set_mix_rate(
         next_r /= divisor;                                        \
     } else (void)0
 
-static void DSP_conv_update_ir(DSP_conv* conv)
+static void DSP_conv_update_ir(DSP_conv* conv, Conv_state* cstate)
 {
     assert(conv != NULL);
 
@@ -426,7 +422,7 @@ static void DSP_conv_update_ir(DSP_conv* conv)
         scale = exp2(*dB_param / 6);
 
     conv->ir_rate = 48000; // FIXME
-    double mix_rate = Device_get_mix_rate((Device*)conv);
+    int32_t audio_rate = Device_state_get_audio_rate(&cstate->parent.parent);
     int32_t ir_size = Audio_buffer_get_size(conv->ir);
     kqt_frame* ir_data[] =
     {
@@ -437,7 +433,7 @@ static void DSP_conv_update_ir(DSP_conv* conv)
     int32_t i = 0;
     for (; i < ir_size; ++i)
     {
-        double ideal_pos = (double)i * (conv->ir_rate / mix_rate);
+        double ideal_pos = (double)i * (conv->ir_rate / (double)audio_rate);
         int32_t sample_pos = (int32_t)ideal_pos;
         int32_t next_pos = sample_pos + 1;
         double remainder = ideal_pos - sample_pos;

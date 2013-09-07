@@ -67,17 +67,16 @@ static uint32_t Generator_noise_mix(
 static void del_Generator_noise(Device_impl* gen_impl);
 
 
-Device_impl* new_Generator_noise(Generator* gen, uint32_t buffer_size, uint32_t mix_rate)
+Device_impl* new_Generator_noise(Generator* gen, uint32_t buffer_size)
 {
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
-    assert(mix_rate > 0);
 
     Generator_noise* noise = memory_alloc_item(Generator_noise);
     if (noise == NULL)
         return NULL;
 
-    if (!Device_impl_init(&noise->parent, del_Generator_noise, mix_rate, buffer_size))
+    if (!Device_impl_init(&noise->parent, del_Generator_noise, buffer_size))
     {
         memory_free(noise);
         return NULL;

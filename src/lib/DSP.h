@@ -41,17 +41,13 @@ typedef struct DSP
 /**
  * Creates a new DSP.
  *
- * \param str           A textual representation of the DSP type -- must not
- *                      be \c NULL.
  * \param buffer_size   The buffer size -- must be > \c 0 and
  *                      <= \c KQT_BUFFER_SIZE_MAX.
- * \param mix_rate      The mixing rate -- must be > \c 0.
- * \param state         The Read state -- must not be \c NULL.
  *
  * \return   The new DSP if successful, otherwise \c NULL. \a state will not
  *           be modified if memory allocation failed.
  */
-DSP* new_DSP(uint32_t buffer_size, uint32_t mix_rate);
+DSP* new_DSP(uint32_t buffer_size);
 
 
 /**
@@ -62,7 +58,6 @@ DSP* new_DSP(uint32_t buffer_size, uint32_t mix_rate);
  * \param process       The Device process function -- must not be \c NULL.
  * \param buffer_size   The buffer size -- must be > \c 0 and
  *                      <= \c KQT_BUFFER_SIZE_MAX.
- * \param mix_rate      The mixing rate -- must be > \c 0.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
@@ -75,8 +70,7 @@ bool DSP_init(
             uint32_t,
             uint32_t,
             double),
-        uint32_t buffer_size,
-        uint32_t mix_rate);
+        uint32_t buffer_size);
 
 
 /**

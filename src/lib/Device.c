@@ -40,6 +40,26 @@ void Device_reset_default(Device* device, Device_states* dstates)
 }
 
 
+static bool Device_set_audio_rate_default(
+        const Device* device,
+        Device_states* dstates,
+        int32_t audio_rate)
+{
+    assert(device != NULL);
+    assert(dstates != NULL);
+    assert(audio_rate > 0);
+
+    if (device->dimpl != NULL)
+    {
+        Device_state* dstate = Device_states_get_state(
+                dstates, Device_get_id(device));
+        return Device_impl_set_audio_rate(device->dimpl, dstate, audio_rate);
+    }
+
+    return true;
+}
+
+
 static void Device_update_tempo_default(
         const Device* device,
         Device_states* dstates,
@@ -61,26 +81,24 @@ static void Device_update_tempo_default(
 }
 
 
-bool Device_init(Device* device, uint32_t buffer_size, uint32_t mix_rate)
+bool Device_init(Device* device, uint32_t buffer_size)
 {
     assert(device != NULL);
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
-    assert(mix_rate > 0);
 
     static uint32_t id = 1;
     device->id = id;
     ++id;
 
     device->existent = false;
-    device->mix_rate = mix_rate;
     device->buffer_size = buffer_size;
 
     device->dparams = NULL;
     device->dimpl = NULL;
 
     device->create_state = new_Device_state_plain;
-    device->set_mix_rate = NULL;
+    device->set_audio_rate = Device_set_audio_rate_default;
     device->update_tempo = Device_update_tempo_default;
     device->set_buffer_size = NULL;
     device->reset = Device_reset_default;
@@ -139,12 +157,17 @@ bool Device_set_impl(Device* device, Device_impl* dimpl)
 }
 
 
-Device_state* Device_create_state(const Device* device)
+Device_state* Device_create_state(
+        const Device* device,
+        int32_t audio_rate,
+        int32_t buffer_size)
 {
     assert(device != NULL);
     assert(device->create_state != NULL);
+    assert(audio_rate > 0);
+    assert(buffer_size >= 0);
 
-    return device->create_state(device, device->mix_rate, device->buffer_size);
+    return device->create_state(device, audio_rate, buffer_size);
 }
 
 
@@ -163,12 +186,15 @@ void Device_set_state_creator(
 }
 
 
-void Device_set_mix_rate_changer(
+void Device_register_set_audio_rate(
         Device* device,
-        bool (*changer)(Device*, Device_states*, uint32_t))
+        bool (*set)(const Device*, Device_states*, int32_t))
 {
     assert(device != NULL);
-    device->set_mix_rate = changer;
+    assert(set != NULL);
+
+    device->set_audio_rate = set;
+
     return;
 }
 
@@ -290,29 +316,17 @@ bool Device_port_is_registered(
 }
 
 
-bool Device_set_mix_rate(
-        Device* device,
+bool Device_set_audio_rate(
+        const Device* device,
         Device_states* dstates,
-        uint32_t rate)
+        int32_t rate)
 {
     assert(device != NULL);
     assert(dstates != NULL);
     assert(rate > 0);
 
-    if (device->set_mix_rate != NULL &&
-            !device->set_mix_rate(device, dstates, rate))
-        return false;
-
-    device->mix_rate = rate;
-
-    return true;
-}
-
-
-uint32_t Device_get_mix_rate(const Device* device)
-{
-    assert(device != NULL);
-    return device->mix_rate;
+    assert(device->set_audio_rate != NULL);
+    return device->set_audio_rate(device, dstates, rate);
 }
 
 

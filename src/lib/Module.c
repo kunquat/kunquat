@@ -47,21 +47,10 @@ static void Module_reset(Device* device, Device_states* dstates);
 static void Module_set_random_seed(Module* module, uint64_t seed);
 
 
-/**
- * Sets the mixing rate of the Module.
- *
- * This function sets the mixing rate for all the Instruments and Effects.
- *
- * \param device     The Module Device -- must not be \c NULL.
- * \param dstates    The Device states -- must not be \c NULL.
- * \param mix_rate   The mixing frequency -- must be > \c 0.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-static bool Module_set_mix_rate(
-        Device* device,
+static bool Module_set_audio_rate(
+        const Device* device,
         Device_states* dstates,
-        uint32_t mix_rate);
+        int32_t audio_rate);
 
 
 static void Module_update_tempo(
@@ -110,7 +99,7 @@ Module* new_Module(uint32_t buf_size)
     if (module == NULL)
         return NULL;
 
-    if (!Device_init(&module->parent, buf_size, 48000))
+    if (!Device_init(&module->parent, buf_size))
     {
         memory_free(module);
         return NULL;
@@ -118,7 +107,7 @@ Module* new_Module(uint32_t buf_size)
 
     Device_set_existent(&module->parent, true);
     Device_set_reset(&module->parent, Module_reset);
-    Device_set_mix_rate_changer(&module->parent, Module_set_mix_rate);
+    Device_register_set_audio_rate(&module->parent, Module_set_audio_rate);
     Device_register_update_tempo(&module->parent, Module_update_tempo);
     Device_set_buffer_size_changer(&module->parent, Module_set_buffer_size);
     //Device_set_sync(&module->parent, Module_sync);
@@ -574,22 +563,22 @@ static void Module_set_random_seed(Module* module, uint64_t seed)
 }
 
 
-static bool Module_set_mix_rate(
-        Device* device,
+static bool Module_set_audio_rate(
+        const Device* device,
         Device_states* dstates,
-        uint32_t mix_rate)
+        int32_t audio_rate)
 {
     assert(device != NULL);
     assert(dstates != NULL);
-    assert(mix_rate > 0);
+    assert(audio_rate > 0);
 
-    Module* module = (Module*)device;
+    const Module* module = (const Module*)device;
 
     for (int i = 0; i < KQT_INSTRUMENTS_MAX; ++i)
     {
         Instrument* ins = Ins_table_get(module->insts, i);
         if (ins != NULL &&
-                !Device_set_mix_rate((Device*)ins, dstates, mix_rate))
+                !Device_set_audio_rate((Device*)ins, dstates, audio_rate))
             return false;
     }
 
@@ -597,7 +586,7 @@ static bool Module_set_mix_rate(
     {
         Effect* eff = Effect_table_get(module->effects, i);
         if (eff != NULL &&
-                !Device_set_mix_rate((Device*)eff, dstates, mix_rate))
+                !Device_set_audio_rate((Device*)eff, dstates, audio_rate))
             return false;
     }
 

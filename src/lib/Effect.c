@@ -45,10 +45,10 @@ static Device_state* Effect_create_state(
 
 static void Effect_reset(Device* device, Device_states* dstates);
 
-static bool Effect_set_mix_rate(
-        Device* device,
+static bool Effect_set_audio_rate(
+        const Device* device,
         Device_states* dstates,
-        uint32_t mix_rate);
+        int32_t audio_rate);
 
 static void Effect_update_tempo(
         const Device* device,
@@ -71,10 +71,9 @@ static void Effect_process(
         double tempo);
 
 
-Effect* new_Effect(uint32_t buf_len, uint32_t mix_rate)
+Effect* new_Effect(uint32_t buf_len)
 {
     assert(buf_len > 0);
-    assert(mix_rate > 0);
 
     Effect* eff = memory_alloc_item(Effect);
     if (eff == NULL)
@@ -85,7 +84,7 @@ Effect* new_Effect(uint32_t buf_len, uint32_t mix_rate)
     eff->connections = NULL;
     eff->dsps = NULL;
 
-    if (!Device_init(&eff->parent, buf_len, mix_rate))
+    if (!Device_init(&eff->parent, buf_len))
     {
         del_Effect(eff);
         return NULL;
@@ -93,7 +92,7 @@ Effect* new_Effect(uint32_t buf_len, uint32_t mix_rate)
 
     Device_set_state_creator(&eff->parent, Effect_create_state);
     Device_set_reset(&eff->parent, Effect_reset);
-    Device_set_mix_rate_changer(&eff->parent, Effect_set_mix_rate);
+    Device_register_set_audio_rate(&eff->parent, Effect_set_audio_rate);
     Device_register_update_tempo(&eff->parent, Effect_update_tempo);
     Device_set_buffer_size_changer(&eff->parent, Effect_set_buffer_size);
     //Device_set_sync(&eff->parent, Effect_sync);
@@ -105,8 +104,8 @@ Effect* new_Effect(uint32_t buf_len, uint32_t mix_rate)
         Device_register_port(&eff->parent, DEVICE_PORT_TYPE_SEND, port);
     }
 
-    eff->out_iface = new_Effect_interface(buf_len, mix_rate);
-    eff->in_iface = new_Effect_interface(buf_len, mix_rate);
+    eff->out_iface = new_Effect_interface(buf_len);
+    eff->in_iface = new_Effect_interface(buf_len);
     eff->dsps = new_DSP_table(KQT_DSPS_MAX);
     if (eff->out_iface == NULL || eff->in_iface == NULL || eff->dsps == NULL)
     {
@@ -247,21 +246,21 @@ static void Effect_reset(Device* device, Device_states* dstates)
 }
 
 
-static bool Effect_set_mix_rate(
-        Device* device,
+static bool Effect_set_audio_rate(
+        const Device* device,
         Device_states* dstates,
-        uint32_t mix_rate)
+        int32_t audio_rate)
 {
     assert(device != NULL);
     assert(dstates != NULL);
-    assert(mix_rate > 0);
+    assert(audio_rate > 0);
 
     Effect* eff = (Effect*)device;
     for (int i = 0; i < KQT_DSPS_MAX; ++i)
     {
         DSP* dsp = DSP_table_get_dsp(eff->dsps, i);
         if (dsp != NULL &&
-                !Device_set_mix_rate((Device*)dsp, dstates, mix_rate))
+                !Device_set_audio_rate((Device*)dsp, dstates, audio_rate))
             return false;
     }
 

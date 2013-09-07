@@ -186,10 +186,10 @@ static bool DSP_delay_update_state_tap_volume(
 static void DSP_delay_clear_history(DSP* dsp, DSP_state* dsp_state);
 //static bool DSP_delay_sync(Device* device, Device_states* dstates);
 //static bool DSP_delay_update_key(Device* device, const char* key);
-static bool DSP_delay_set_mix_rate(
-        Device* device,
-        Device_states* dstates,
-        uint32_t mix_rate);
+static bool DSP_delay_set_audio_rate(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        int32_t audio_rate);
 
 //static void DSP_delay_check_params(DSP_delay* delay, Delay_state* dlstate);
 
@@ -204,17 +204,16 @@ static void DSP_delay_process(
 static void del_DSP_delay(Device_impl* dsp_impl);
 
 
-Device_impl* new_DSP_delay(DSP* dsp, uint32_t buffer_size, uint32_t mix_rate)
+Device_impl* new_DSP_delay(DSP* dsp, uint32_t buffer_size)
 {
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
-    assert(mix_rate > 0);
 
     DSP_delay* delay = memory_alloc_item(DSP_delay);
     if (delay == NULL)
         return NULL;
 
-    if (!Device_impl_init(&delay->parent, del_DSP_delay, mix_rate, buffer_size))
+    if (!Device_impl_init(&delay->parent, del_DSP_delay, buffer_size))
     {
         memory_free(delay);
         return NULL;
@@ -274,9 +273,9 @@ Device_impl* new_DSP_delay(DSP* dsp, uint32_t buffer_size, uint32_t mix_rate)
     DSP_set_clear_history((DSP*)delay->parent.device, DSP_delay_clear_history);
     //Device_set_sync(delay->parent.device, DSP_delay_sync);
     //Device_set_update_key(delay->parent.device, DSP_delay_update_key);
-    Device_set_mix_rate_changer(
-            delay->parent.device,
-            DSP_delay_set_mix_rate);
+    Device_impl_register_set_audio_rate(
+            &delay->parent,
+            DSP_delay_set_audio_rate);
 
     delay->max_delay = 2;
 
@@ -536,24 +535,22 @@ static bool DSP_delay_update_key(Device* device, const char* key)
 #endif
 
 
-static bool DSP_delay_set_mix_rate(
-        Device* device,
-        Device_states* dstates,
-        uint32_t mix_rate)
+static bool DSP_delay_set_audio_rate(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        int32_t audio_rate)
 {
-    assert(device != NULL);
-    assert(dstates != NULL);
-    assert(mix_rate > 0);
+    assert(dimpl != NULL);
+    assert(dstate != NULL);
+    assert(audio_rate > 0);
 
-    DSP_delay* delay = (DSP_delay*)device->dimpl;
-    Delay_state* dlstate = (Delay_state*)Device_states_get_state(
-            dstates,
-            Device_get_id(device));
+    const DSP_delay* delay = (DSP_delay*)dimpl;
+    Delay_state* dlstate = (Delay_state*)dstate;
 
     assert(dlstate->buf != NULL);
     long buf_len = MAX(
             Audio_buffer_get_size(dlstate->buf),
-            delay->max_delay * mix_rate);
+            delay->max_delay * audio_rate);
     assert(buf_len > 0);
     buf_len += 1; // so that the maximum delay will work
 

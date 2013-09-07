@@ -166,10 +166,10 @@ static void DSP_chorus_reset(const Device_impl* dimpl, Device_state* dstate);
 
 static void DSP_chorus_clear_history(DSP* dsp, DSP_state* dsp_state);
 //static bool DSP_chorus_sync(Device* device, Device_states* dstates);
-static bool DSP_chorus_set_mix_rate(
-        Device* device,
-        Device_states* dstates,
-        uint32_t mix_rate);
+static bool DSP_chorus_set_audio_rate(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        int32_t audio_rate);
 
 static void DSP_chorus_process(
         Device* device,
@@ -182,17 +182,16 @@ static void DSP_chorus_process(
 static void del_DSP_chorus(Device_impl* dsp_impl);
 
 
-Device_impl* new_DSP_chorus(DSP* dsp, uint32_t buffer_size, uint32_t mix_rate)
+Device_impl* new_DSP_chorus(DSP* dsp, uint32_t buffer_size)
 {
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_AUDIO_BUFFER_SIZE_MAX);
-    assert(mix_rate > 0);
 
     DSP_chorus* chorus = memory_alloc_item(DSP_chorus);
     if (chorus == NULL)
         return NULL;
 
-    if (!Device_impl_init(&chorus->parent, del_DSP_chorus, mix_rate, buffer_size))
+    if (!Device_impl_init(&chorus->parent, del_DSP_chorus, buffer_size))
     {
         memory_free(chorus);
         return NULL;
@@ -241,9 +240,8 @@ Device_impl* new_DSP_chorus(DSP* dsp, uint32_t buffer_size, uint32_t mix_rate)
         return NULL;
     }
 
-    Device_set_mix_rate_changer(
-            chorus->parent.device,
-            DSP_chorus_set_mix_rate);
+    Device_impl_register_set_audio_rate(
+            &chorus->parent, DSP_chorus_set_audio_rate);
     //Device_set_sync(chorus->parent.device, DSP_chorus_sync);
 
     for (int i = 0; i < CHORUS_VOICES_MAX; ++i)
@@ -580,20 +578,18 @@ static bool DSP_chorus_update_key(Device* device, const char* key)
 #endif
 
 
-static bool DSP_chorus_set_mix_rate(
-        Device* device,
-        Device_states* dstates,
-        uint32_t mix_rate)
+static bool DSP_chorus_set_audio_rate(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        int32_t audio_rate)
 {
-    assert(device != NULL);
-    assert(dstates != NULL);
-    assert(mix_rate > 0);
+    assert(dimpl != NULL);
+    assert(dstate != NULL);
+    assert(audio_rate > 0);
 
-    long buf_len = CHORUS_BUF_TIME * mix_rate + 1;
+    long buf_len = CHORUS_BUF_TIME * audio_rate + 1;
 
-    Chorus_state* cstate = (Chorus_state*)Device_states_get_state(
-            dstates,
-            Device_get_id(device));
+    Chorus_state* cstate = (Chorus_state*)dstate;
 
     assert(cstate->buf != NULL);
     if (!Audio_buffer_resize(cstate->buf, buf_len))
@@ -606,11 +602,11 @@ static bool DSP_chorus_set_mix_rate(
     {
         Chorus_voice* voice = &cstate->voices[i];
 
-        LFO_set_mix_rate(&voice->delay_variance, mix_rate);
+        LFO_set_mix_rate(&voice->delay_variance, audio_rate);
         if (voice->delay < 0 || voice->delay >= CHORUS_BUF_TIME / 2)
             continue;
 
-        double buf_pos = voice->delay * mix_rate;
+        double buf_pos = voice->delay * audio_rate;
         assert(buf_pos >= 0);
         assert(buf_pos < buf_len - 1);
         voice->buf_pos = fmod((buf_len - buf_pos), buf_len);
