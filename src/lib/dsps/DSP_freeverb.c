@@ -172,7 +172,8 @@ static bool DSP_freeverb_set_damp(
         int32_t indices[DEVICE_KEY_INDICES_MAX],
         double value);
 
-static void DSP_freeverb_clear_history(DSP* dsp, DSP_state* dsp_state); // FIXME: interface
+static void DSP_freeverb_clear_history(
+        const Device_impl* dimpl, DSP_state* dsp_state);
 
 static bool DSP_freeverb_set_audio_rate(
         const Device_impl* dimpl,
@@ -355,23 +356,22 @@ static void DSP_freeverb_reset(const Device_impl* dimpl, Device_state* dstate)
     assert(dimpl != NULL);
     assert(dstate != NULL);
 
-    DSP_freeverb* freeverb = (DSP_freeverb*)dimpl;
     DSP_state* dsp_state = (DSP_state*)dstate;
-
-    DSP_freeverb_clear_history((DSP*)freeverb->parent.device, dsp_state);
+    DSP_freeverb_clear_history(dimpl, dsp_state);
 
     return;
 }
 
 
-static void DSP_freeverb_clear_history(DSP* dsp, DSP_state* dsp_state)
+static void DSP_freeverb_clear_history(
+        const Device_impl* dimpl, DSP_state* dsp_state)
 {
-    assert(dsp != NULL);
+    assert(dimpl != NULL);
     //assert(string_eq(dsp->type, "freeverb"));
     assert(dsp_state != NULL);
 
     Freeverb_state* fstate = (Freeverb_state*)dsp_state;
-    const DSP_freeverb* freeverb = (const DSP_freeverb*)dsp->parent.dimpl;
+    const DSP_freeverb* freeverb = (const DSP_freeverb*)dimpl;
     Freeverb_state_reset(fstate, freeverb);
 
     return;

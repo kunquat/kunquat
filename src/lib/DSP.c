@@ -38,6 +38,8 @@ DSP* new_DSP()
         return NULL;
     }
 
+    dsp->clear_history = NULL;
+
 #if 0
     if (state->error)
         return NULL;
@@ -91,7 +93,8 @@ bool DSP_init(
 }
 
 
-void DSP_set_clear_history(DSP* dsp, void (*func)(DSP*, DSP_state*))
+void DSP_set_clear_history(
+        DSP* dsp, void (*func)(const Device_impl*, DSP_state*))
 {
     assert(dsp != NULL);
     assert(func != NULL);
@@ -116,12 +119,12 @@ void DSP_reset(Device* device, Device_states* dstates)
 #endif
 
 
-void DSP_clear_history(DSP* dsp, DSP_state* dsp_state)
+void DSP_clear_history(const DSP* dsp, DSP_state* dsp_state)
 {
     assert(dsp != NULL);
 
-    if (dsp->clear_history != NULL)
-        dsp->clear_history(dsp, dsp_state);
+    if (dsp->clear_history != NULL && dsp->parent.dimpl != NULL)
+        dsp->clear_history(dsp->parent.dimpl, dsp_state);
 
     return;
 }

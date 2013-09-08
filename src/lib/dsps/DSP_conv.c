@@ -126,7 +126,9 @@ static bool DSP_conv_update_state_volume(
         int32_t indices[DEVICE_KEY_INDICES_MAX],
         double value);
 
-static void DSP_conv_clear_history(DSP* dsp, DSP_state* dsp_state); // FIXME: interface
+static void DSP_conv_clear_history(
+        const Device_impl* dimpl, DSP_state* dsp_state);
+
 static bool DSP_conv_set_audio_rate(
         const Device_impl* dimpl,
         Device_state* dstate,
@@ -192,6 +194,7 @@ Device_impl* new_DSP_conv(DSP* dsp)
     }
 
     DSP_set_clear_history((DSP*)conv->parent.device, DSP_conv_clear_history);
+
     //Device_set_sync(conv->parent.device, DSP_conv_sync);
     Device_impl_register_set_audio_rate(
             &conv->parent, DSP_conv_set_audio_rate);
@@ -252,9 +255,8 @@ static void DSP_conv_reset(const Device_impl* dimpl, Device_state* dstate)
     assert(dimpl != NULL);
     assert(dstate != NULL);
 
-    DSP_conv* conv = (DSP_conv*)dimpl;
     DSP_state* dsp_state = (DSP_state*)dstate;
-    DSP_conv_clear_history((DSP*)conv->parent.device, dsp_state);
+    DSP_conv_clear_history(dimpl, dsp_state);
 
     return;
 }
@@ -376,11 +378,13 @@ static bool DSP_conv_update_state_volume(
 }
 
 
-static void DSP_conv_clear_history(DSP* dsp, DSP_state* dsp_state)
+static void DSP_conv_clear_history(
+        const Device_impl* dimpl, DSP_state* dsp_state)
 {
-    assert(dsp != NULL);
+    assert(dimpl != NULL);
     //assert(string_eq(dsp->type, "convolution"));
     assert(dsp_state != NULL);
+    (void)dimpl;
 
     Conv_state* cstate = (Conv_state*)dsp_state;
     Audio_buffer_clear(

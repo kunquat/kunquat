@@ -183,7 +183,8 @@ static bool DSP_delay_update_state_tap_volume(
         int32_t indices[DEVICE_KEY_INDICES_MAX],
         double value);
 
-static void DSP_delay_clear_history(DSP* dsp, DSP_state* dsp_state); // FIXME: interface
+static void DSP_delay_clear_history(
+        const Device_impl* dimpl, DSP_state* dsp_state);
 
 static bool DSP_delay_set_audio_rate(
         const Device_impl* dimpl,
@@ -454,20 +455,20 @@ static void DSP_delay_reset(const Device_impl* dimpl, Device_state* dstate)
     assert(dimpl != NULL);
     assert(dstate != NULL);
 
-    DSP_delay* delay = (DSP_delay*)dimpl;
     DSP_state* dsp_state = (DSP_state*)dstate;
-
-    DSP_delay_clear_history((DSP*)delay->parent.device, dsp_state);
+    DSP_delay_clear_history(dimpl, dsp_state);
 
     return;
 }
 
 
-static void DSP_delay_clear_history(DSP* dsp, DSP_state* dsp_state)
+static void DSP_delay_clear_history(
+        const Device_impl* dimpl, DSP_state* dsp_state)
 {
-    assert(dsp != NULL);
+    assert(dimpl != NULL);
     //assert(string_eq(dsp->type, "delay"));
     assert(dsp_state != NULL);
+    (void)dimpl;
 
     Delay_state* dlstate = (Delay_state*)dsp_state;
     Audio_buffer_clear(dlstate->buf, 0, Audio_buffer_get_size(dlstate->buf));

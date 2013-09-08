@@ -164,7 +164,8 @@ static void DSP_chorus_reset(const Device_impl* dimpl, Device_state* dstate);
 #include <dsps/DSP_chorus_params.h>
 
 
-static void DSP_chorus_clear_history(DSP* dsp, DSP_state* dsp_state); // FIXME: interface
+static void DSP_chorus_clear_history(
+        const Device_impl* dimpl, DSP_state* dsp_state);
 
 static bool DSP_chorus_set_audio_rate(
         const Device_impl* dimpl,
@@ -319,7 +320,7 @@ static void DSP_chorus_reset(const Device_impl* dimpl, Device_state* dstate)
     DSP_chorus* chorus = (DSP_chorus*)dimpl;
     Chorus_state* cstate = (Chorus_state*)dstate;
 
-    DSP_chorus_clear_history((DSP*)chorus->parent.device, &cstate->parent); // XXX: do we need this?
+    DSP_chorus_clear_history(dimpl, &cstate->parent); // XXX: do we need this?
 
     Chorus_state_reset(cstate, chorus->voice_params);
 
@@ -327,11 +328,13 @@ static void DSP_chorus_reset(const Device_impl* dimpl, Device_state* dstate)
 }
 
 
-static void DSP_chorus_clear_history(DSP* dsp, DSP_state* dsp_state)
+static void DSP_chorus_clear_history(
+        const Device_impl* dimpl, DSP_state* dsp_state)
 {
-    assert(dsp != NULL);
+    assert(dimpl != NULL);
     //assert(string_eq(dsp->type, "chorus"));
     assert(dsp_state != NULL);
+    (void)dimpl;
 
     Chorus_state* cstate = (Chorus_state*)dsp_state;
     Audio_buffer_clear(cstate->buf, 0, cstate->parent.parent.audio_buffer_size);
