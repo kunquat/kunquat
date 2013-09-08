@@ -262,7 +262,8 @@ bool Device_params_parse_value(
  *
  * \return   The boolean value, or \c NULL if \a key doesn't exist.
  */
-bool* Device_params_get_bool(const Device_params* params, const char* key);
+const bool* Device_params_get_bool(
+        const Device_params* params, const char* key);
 
 
 /**
@@ -274,7 +275,8 @@ bool* Device_params_get_bool(const Device_params* params, const char* key);
  *
  * \return   The integer value, or \c NULL if \a key doesn't exist.
  */
-int64_t* Device_params_get_int(const Device_params* params, const char* key);
+const int64_t* Device_params_get_int(
+        const Device_params* params, const char* key);
 
 
 /**
@@ -286,7 +288,8 @@ int64_t* Device_params_get_int(const Device_params* params, const char* key);
  *
  * \return   The floating point value, or \c NULL if \a key doesn't exist.
  */
-double* Device_params_get_float(const Device_params* params, const char* key);
+const double* Device_params_get_float(
+        const Device_params* params, const char* key);
 
 
 /**
@@ -298,7 +301,8 @@ double* Device_params_get_float(const Device_params* params, const char* key);
  *
  * \return   The Real value, or \c NULL if \a key doesn't exist.
  */
-Real* Device_params_get_real(const Device_params* params, const char* key);
+const Real* Device_params_get_real(
+        const Device_params* params, const char* key);
 
 
 /**
@@ -310,7 +314,8 @@ Real* Device_params_get_real(const Device_params* params, const char* key);
  *
  * \return   The Tstamp value, or \c NULL if \a key doesn't exist.
  */
-Tstamp* Device_params_get_tstamp(const Device_params* params, const char* key);
+const Tstamp* Device_params_get_tstamp(
+        const Device_params* params, const char* key);
 
 
 /**
@@ -322,9 +327,8 @@ Tstamp* Device_params_get_tstamp(const Device_params* params, const char* key);
  *
  * \return   The Envelope value, or \c NULL if \a key doesn't exist.
  */
-Envelope* Device_params_get_envelope(
-        const Device_params* params,
-        const char* key);
+const Envelope* Device_params_get_envelope(
+        const Device_params* params, const char* key);
 
 
 /**
@@ -336,7 +340,8 @@ Envelope* Device_params_get_envelope(
  *
  * \return   The Sample, or \c NULL if \a key doesn't exist.
  */
-Sample* Device_params_get_sample(const Device_params* params, const char* key);
+const Sample* Device_params_get_sample(
+        const Device_params* params, const char* key);
 
 
 /**
@@ -348,9 +353,8 @@ Sample* Device_params_get_sample(const Device_params* params, const char* key);
  *
  * \return   The Sample map, or \c NULL if \a key doesn't exist.
  */
-Sample_params* Device_params_get_sample_params(
-        const Device_params* params,
-        const char* key);
+const Sample_params* Device_params_get_sample_params(
+        const Device_params* params, const char* key);
 
 
 /**
@@ -362,9 +366,8 @@ Sample_params* Device_params_get_sample_params(
  *
  * \return   The Sample map, or \c NULL if \a key doesn't exist.
  */
-Sample_map* Device_params_get_sample_map(
-        const Device_params* params,
-        const char* key);
+const Sample_map* Device_params_get_sample_map(
+        const Device_params* params, const char* key);
 
 
 /**
@@ -376,9 +379,8 @@ Sample_map* Device_params_get_sample_map(
  *
  * \return   The Hit map, or \c NULL if \a key doesn't exist.
  */
-Hit_map* Device_params_get_hit_map(
-        const Device_params* params,
-        const char* key);
+const Hit_map* Device_params_get_hit_map(
+        const Device_params* params, const char* key);
 
 
 /**
@@ -390,9 +392,8 @@ Hit_map* Device_params_get_hit_map(
  *
  * \return   The Number list, or \c NULL if \a key doesn't exist.
  */
-Num_list* Device_params_get_num_list(
-        const Device_params* params,
-        const char* key);
+const Num_list* Device_params_get_num_list(
+        const Device_params* params, const char* key);
 
 
 /**

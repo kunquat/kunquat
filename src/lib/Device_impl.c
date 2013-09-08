@@ -78,11 +78,11 @@ typedef struct Set_cb
 
         struct
         {
-            Sample* default_val;
+            const Sample* default_val;
             bool (*set)(
                     Device_impl*,
                     int32_t[DEVICE_KEY_INDICES_MAX],
-                    Sample*); // TODO: make const
+                    const Sample*);
         } Sample_type;
 
         struct
@@ -616,7 +616,7 @@ bool Device_impl_set_key(Device_impl* dimpl, const char* key)
 #define SET_FIELD(type_name, type)                                       \
         if (true)                                                        \
         {                                                                \
-            type* dval = Device_params_get_##type_name(                  \
+            const type* dval = Device_params_get_##type_name(            \
                     dimpl->device->dparams, key);                        \
             const type val = (dval != NULL) ?                            \
                 *dval : set_cb->cb.type_name##_type.default_val;         \
@@ -627,7 +627,7 @@ bool Device_impl_set_key(Device_impl* dimpl, const char* key)
 #define SET_FIELDP(type_name, type)                                 \
         if (true)                                                   \
         {                                                           \
-            type* val = Device_params_get_##type_name(              \
+            const type* val = Device_params_get_##type_name(        \
                     dimpl->device->dparams, key);                   \
             return set_cb->cb.type##_type.set(dimpl, indices, val); \
         }                                                           \
@@ -641,7 +641,7 @@ bool Device_impl_set_key(Device_impl* dimpl, const char* key)
             SET_FIELD(int, int64_t);
         else if (string_has_suffix(set_cb->key_pattern, ".jsont"))
         {
-            Tstamp* dval = Device_params_get_tstamp(
+            const Tstamp* dval = Device_params_get_tstamp(
                     dimpl->device->dparams, key);
             const Tstamp* val = (dval != NULL)
                 ? dval : &set_cb->cb.Tstamp_type.default_val;

@@ -256,11 +256,11 @@ bool Device_impl_register_set_envelope(
 bool Device_impl_register_set_sample(
         Device_impl* dimpl,
         const char* keyp,
-        Sample* default_val,
+        const Sample* default_val,
         bool (*set_func)(
             Device_impl*,
             int32_t[DEVICE_KEY_INDICES_MAX],
-            Sample*));
+            const Sample*));
 
 
 /**

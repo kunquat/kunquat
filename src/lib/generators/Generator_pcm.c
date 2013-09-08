@@ -202,7 +202,7 @@ uint32_t Generator_pcm_mix(
                     "exp_%01x/src_%01x/p_hit_map.jsonhm",
                     expression,
                     source);
-            Hit_map* map = Device_params_get_hit_map(
+            const Hit_map* map = Device_params_get_hit_map(
                     gen->parent.dparams,
                     map_key);
             if (map == NULL)
@@ -227,7 +227,7 @@ uint32_t Generator_pcm_mix(
                     "exp_%01x/src_%01x/p_sample_map.jsonsm",
                     expression,
                     source);
-            Sample_map* map = Device_params_get_sample_map(
+            const Sample_map* map = Device_params_get_sample_map(
                     gen->parent.dparams,
                     map_key);
             if (map == NULL)
@@ -265,7 +265,7 @@ uint32_t Generator_pcm_mix(
             strlen(header_key) + 1,
             "smp_%03x/p_sample.jsonsh",
             pcm_state->sample);
-    Sample_params* header = Device_params_get_sample_params(
+    const Sample_params* header = Device_params_get_sample_params(
             gen->parent.dparams,
             header_key);
     if (header == NULL)
@@ -288,7 +288,8 @@ uint32_t Generator_pcm_mix(
              "smp_%03x/p_sample.%s", pcm_state->sample,
              extensions[header->format]);
 
-    Sample* sample = Device_params_get_sample(gen->parent.dparams, sample_key);
+    const Sample* sample = Device_params_get_sample(
+            gen->parent.dparams, sample_key);
     if (sample == NULL)
     {
         vstate->active = false;

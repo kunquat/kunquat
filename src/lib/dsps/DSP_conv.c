@@ -107,7 +107,7 @@ static bool DSP_conv_set_max_ir_len(
 static bool DSP_conv_set_ir(
         Device_impl* dimpl,
         int32_t indices[DEVICE_KEY_INDICES_MAX],
-        Sample* value);
+        const Sample* value);
 
 static bool DSP_conv_set_volume(
         Device_impl* dimpl,
@@ -284,7 +284,7 @@ static bool DSP_conv_set_max_ir_len(
 static bool DSP_conv_set_ir(
         Device_impl* dimpl,
         int32_t indices[DEVICE_KEY_INDICES_MAX],
-        Sample* value)
+        const Sample* value)
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
@@ -444,7 +444,7 @@ static void DSP_conv_update_ir(DSP_conv* conv)
         return;
     }
 
-    Sample* sample = Device_params_get_sample(params, "p_ir.wv");
+    const Sample* sample = Device_params_get_sample(params, "p_ir.wv");
     if (sample == NULL)
     {
         conv->actual_ir_len = 0;
