@@ -28,6 +28,7 @@
  * Mixes a Sample.
  *
  * \param sample        The Sample -- must not be \c NULL.
+ * \param params        The Sample parameters -- must not be \c NULL.
  * \param gen           The Generator containing the Sample -- must not be
  *                      \c NULL.
  * \param ins_state     The Instrument state -- must not be \c NULL.
@@ -45,7 +46,8 @@
  * \param vol_scale     Volume scaling for this sample -- must be >= \c 0.
  */
 uint32_t Sample_mix(
-        Sample* sample,
+        const Sample* sample,
+        const Sample_params* params,
         const Generator* gen,
         Ins_state* ins_state,
         Voice_state* vstate,

@@ -25,6 +25,7 @@
 #include <math_common.h>
 #include <memory.h>
 #include <Sample.h>
+#include <Sample_mix.h>
 #include <Sample_params.h>
 #include <xassert.h>
 
@@ -35,7 +36,7 @@ Sample* new_Sample(void)
     if (sample == NULL)
         return NULL;
 
-    Sample_params_init(&sample->params);
+//    Sample_params_init(&sample->params);
 //    sample->path = NULL;
 //    sample->changed = false;
 //    sample->is_lossy = false;
@@ -75,6 +76,7 @@ Sample* new_Sample_from_buffers(float* buffers[], int count, uint64_t length)
 }
 
 
+#if 0
 void Sample_set_params(Sample* sample, Sample_params* params)
 {
     assert(sample != NULL);
@@ -84,8 +86,10 @@ void Sample_set_params(Sample* sample, Sample_params* params)
 
     return;
 }
+#endif
 
 
+#if 0
 void Sample_set_loop(Sample* sample, Sample_loop loop)
 {
     assert(sample != NULL);
@@ -165,6 +169,7 @@ uint64_t Sample_get_loop_end(Sample* sample)
     assert(sample != NULL);
     return sample->params.loop_end;
 }
+#endif
 
 
 void* Sample_get_buffer(Sample* sample, int ch)
@@ -178,7 +183,8 @@ void* Sample_get_buffer(Sample* sample, int ch)
 
 
 uint32_t Sample_mix(
-        Sample* sample,
+        const Sample* sample,
+        const Sample_params* params,
         const Generator* gen,
         Ins_state* ins_state,
         Voice_state* vstate,
@@ -193,6 +199,7 @@ uint32_t Sample_mix(
         double vol_scale)
 {
     assert(sample != NULL);
+    assert(params != NULL);
     assert(gen != NULL);
     assert(ins_state != NULL);
     assert(vstate != NULL);
@@ -221,11 +228,11 @@ uint32_t Sample_mix(
 
         bool next_exists = false;
         uint64_t next_pos = 0;
-        if (vstate->dir > 0 || sample->params.loop != SAMPLE_LOOP_BI)
+        if (vstate->dir > 0 || params->loop != SAMPLE_LOOP_BI)
         {
             uint64_t limit = sample->len;
-            if (sample->params.loop)
-                limit = sample->params.loop_end;
+            if (params->loop)
+                limit = params->loop_end;
 
             if (vstate->rel_pos + 1 < limit)
             {
@@ -234,42 +241,42 @@ uint32_t Sample_mix(
             }
             else
             {
-                if (sample->params.loop == SAMPLE_LOOP_UNI)
+                if (params->loop == SAMPLE_LOOP_UNI)
                 {
                     next_exists = true;
-                    next_pos = sample->params.loop_start;
+                    next_pos = params->loop_start;
                 }
-                else if (sample->params.loop == SAMPLE_LOOP_BI)
+                else if (params->loop == SAMPLE_LOOP_BI)
                 {
                     next_exists = true;
 
-                    if (vstate->rel_pos > sample->params.loop_start)
+                    if (vstate->rel_pos > params->loop_start)
                         next_pos = vstate->rel_pos - 1;
                     else
-                        next_pos = sample->params.loop_start;
+                        next_pos = params->loop_start;
                 }
             }
         }
-        else if (sample->params.loop_start + 1 == sample->params.loop_end)
+        else if (params->loop_start + 1 == params->loop_end)
         {
             next_exists = true;
-            next_pos = sample->params.loop_start;
+            next_pos = params->loop_start;
         }
         else
         {
-            assert(sample->params.loop == SAMPLE_LOOP_BI);
+            assert(params->loop == SAMPLE_LOOP_BI);
 
             next_exists = true;
-            if (vstate->rel_pos > sample->params.loop_start)
+            if (vstate->rel_pos > params->loop_start)
                 next_pos = vstate->rel_pos - 1;
             else
-                next_pos = sample->params.loop_start + 1;
+                next_pos = params->loop_start + 1;
 
-            if (next_pos >= sample->params.loop_end)
-                next_pos = sample->params.loop_end - 1;
+            if (next_pos >= params->loop_end)
+                next_pos = params->loop_end - 1;
         }
 
-        assert(!sample->params.loop || next_pos < sample->params.loop_end);
+        assert(!params->loop || next_pos < params->loop_end);
         assert(next_pos < sample->len);
 
         double mix_factor = vstate->rel_pos_rem;
@@ -357,7 +364,7 @@ uint32_t Sample_mix(
             vstate->pos += floor(vstate->pos_rem);
             vstate->pos_rem -= floor(vstate->pos_rem);
         }
-        if (sample->params.loop == SAMPLE_LOOP_OFF)
+        if (params->loop == SAMPLE_LOOP_OFF)
         {
             vstate->rel_pos = vstate->pos;
             vstate->rel_pos_rem = vstate->pos_rem;
@@ -369,34 +376,34 @@ uint32_t Sample_mix(
         }
         else
         {
-            uint64_t loop_len = sample->params.loop_end - sample->params.loop_start;
-            uint64_t limit = sample->params.loop == SAMPLE_LOOP_UNI ?
+            uint64_t loop_len = params->loop_end - params->loop_start;
+            uint64_t limit = params->loop == SAMPLE_LOOP_UNI ?
                 loop_len :
                 2 * loop_len - 2;
 
             uint64_t virt_pos = vstate->pos;
-            if (virt_pos < sample->params.loop_end)
+            if (virt_pos < params->loop_end)
             {
                 vstate->dir = 1;
                 vstate->rel_pos = vstate->pos;
                 vstate->rel_pos_rem = vstate->pos_rem;
             }
-            else if (sample->params.loop_start + 1 == sample->params.loop_end)
+            else if (params->loop_start + 1 == params->loop_end)
             {
                 vstate->dir = 1;
-                vstate->rel_pos = sample->params.loop_start;
+                vstate->rel_pos = params->loop_start;
                 vstate->rel_pos_rem = 0;
             }
             else
             {
-                virt_pos = ((virt_pos - sample->params.loop_start) % limit) +
-                        sample->params.loop_start;
+                virt_pos = ((virt_pos - params->loop_start) % limit) +
+                        params->loop_start;
 
-                if (sample->params.loop == SAMPLE_LOOP_UNI ||
-                        virt_pos < sample->params.loop_end - 1)
+                if (params->loop == SAMPLE_LOOP_UNI ||
+                        virt_pos < params->loop_end - 1)
                 {
-                    assert(sample->params.loop != SAMPLE_LOOP_UNI ||
-                            virt_pos < sample->params.loop_end);
+                    assert(params->loop != SAMPLE_LOOP_UNI ||
+                            virt_pos < params->loop_end);
 
                     vstate->dir = 1;
                     vstate->rel_pos = virt_pos;
@@ -404,14 +411,14 @@ uint32_t Sample_mix(
                 }
                 else
                 {
-                    assert(sample->params.loop == SAMPLE_LOOP_BI);
-                    assert(virt_pos >= sample->params.loop_end - 1);
+                    assert(params->loop == SAMPLE_LOOP_BI);
+                    assert(virt_pos >= params->loop_end - 1);
 
                     vstate->dir = -1;
-                    uint64_t back = virt_pos - (sample->params.loop_end - 1);
-                    vstate->rel_pos = sample->params.loop_end - 1 - back;
+                    uint64_t back = virt_pos - (params->loop_end - 1);
+                    vstate->rel_pos = params->loop_end - 1 - back;
                     vstate->rel_pos_rem = vstate->pos_rem;
-                    if (vstate->rel_pos > sample->params.loop_start &&
+                    if (vstate->rel_pos > params->loop_start &&
                             vstate->rel_pos_rem > 0)
                     {
                         --vstate->rel_pos;
@@ -428,6 +435,7 @@ uint32_t Sample_mix(
 }
 
 
+#if 0
 void Sample_set_freq(Sample* sample, double freq)
 {
     assert(sample != NULL);
@@ -441,9 +449,10 @@ double Sample_get_freq(Sample* sample)
     assert(sample != NULL);
     return sample->params.mid_freq;
 }
+#endif
 
 
-uint64_t Sample_get_len(Sample* sample)
+uint64_t Sample_get_len(const Sample* sample)
 {
     assert(sample != NULL);
     return sample->len;

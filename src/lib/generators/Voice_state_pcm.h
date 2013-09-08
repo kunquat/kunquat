@@ -24,7 +24,8 @@ typedef struct Voice_state_pcm
 {
     Voice_state parent;
     int sample;
-    Sample_params params;
+    //Sample_params params;
+    double cents;
     double freq;
     double volume;
     uint8_t source;

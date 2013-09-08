@@ -29,7 +29,7 @@
  */
 typedef struct Sample
 {
-    Sample_params params;
+//    Sample_params params;
 //    char* path;           ///< The path of the file (if applicable -- otherwise NULL).
 //    bool changed;         ///< Whether the sample (sound) data has changed after loading.
 //    bool is_lossy;        ///< Whether this sample uses lossy compression.
@@ -76,7 +76,7 @@ Sample* new_Sample_from_buffers(float* buffers[], int count, uint64_t length);
  * \param sample   The destination Sample -- must not be \c NULL.
  * \param params   The Sample parameters -- must not be \c NULL.
  */
-void Sample_set_params(Sample* sample, Sample_params* params);
+//void Sample_set_params(Sample* sample, Sample_params* params);
 
 
 /**
@@ -86,7 +86,7 @@ void Sample_set_params(Sample* sample, Sample_params* params);
  *
  * \return   The Sample format.
  */
-Sample_format Sample_get_format(Sample* sample);
+//Sample_format Sample_get_format(Sample* sample);
 
 
 /**
@@ -95,7 +95,7 @@ Sample_format Sample_get_format(Sample* sample);
  * \param sample   The Sample -- must not be \c NULL.
  * \param freq     The middle frequency -- must be > \c 0.
  */
-void Sample_set_freq(Sample* sample, double freq);
+//void Sample_set_freq(Sample* sample, double freq);
 
 
 /**
@@ -105,7 +105,7 @@ void Sample_set_freq(Sample* sample, double freq);
  *
  * \return   The middle frequency.
  */
-double Sample_get_freq(Sample* sample);
+//double Sample_get_freq(Sample* sample);
 
 
 /**
@@ -115,7 +115,7 @@ double Sample_get_freq(Sample* sample);
  *
  * \return   The length in frames/buffer.
  */
-uint64_t Sample_get_len(Sample* sample);
+uint64_t Sample_get_len(const Sample* sample);
 
 
 /**
@@ -128,7 +128,7 @@ uint64_t Sample_get_len(Sample* sample);
  * \param loop     The loop mode -- must be \c SAMPLE_LOOP_OFF,
  *                 \c SAMPLE_LOOP_UNI or \c SAMPLE_LOOP_BI.
  */
-void Sample_set_loop(Sample* sample, Sample_loop loop);
+//void Sample_set_loop(Sample* sample, Sample_loop loop);
 
 
 /**
@@ -138,7 +138,7 @@ void Sample_set_loop(Sample* sample, Sample_loop loop);
  *
  * \return   The loop mode.
  */
-Sample_loop Sample_get_loop(Sample* sample);
+//Sample_loop Sample_get_loop(Sample* sample);
 
 
 /**
@@ -150,7 +150,7 @@ Sample_loop Sample_get_loop(Sample* sample);
  * \param sample   The Sample -- must not be \c NULL.
  * \param start    The loop start -- must not be \c NULL.
  */
-void Sample_set_loop_start(Sample* sample, uint64_t start);
+//void Sample_set_loop_start(Sample* sample, uint64_t start);
 
 
 /**
@@ -160,7 +160,7 @@ void Sample_set_loop_start(Sample* sample, uint64_t start);
  *
  * \return   The loop start.
  */
-uint64_t Sample_get_loop_start(Sample* sample);
+//uint64_t Sample_get_loop_start(Sample* sample);
 
 
 /**
@@ -172,7 +172,7 @@ uint64_t Sample_get_loop_start(Sample* sample);
  * \param sample   The Sample -- must not be \c NULL.
  * \param end      The loop end -- must not be \c NULL.
  */
-void Sample_set_loop_end(Sample* sample, uint64_t end);
+//void Sample_set_loop_end(Sample* sample, uint64_t end);
 
 
 /**
@@ -182,7 +182,7 @@ void Sample_set_loop_end(Sample* sample, uint64_t end);
  *
  * \return   The loop start.
  */
-uint64_t Sample_get_loop_end(Sample* sample);
+//uint64_t Sample_get_loop_end(Sample* sample);
 
 
 /**

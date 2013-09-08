@@ -120,12 +120,12 @@ static void Generator_pcm_init_vstate(
 
     Voice_state_pcm* pcm_state = (Voice_state_pcm*)vstate;
     pcm_state->sample = -1;
+    pcm_state->cents = 0;
     pcm_state->freq = 0;
     pcm_state->volume = 0;
     pcm_state->source = 0;
     pcm_state->expr = 0;
     pcm_state->middle_tone = 0;
-    Sample_params_init(&pcm_state->params);
 
     return;
 }
@@ -161,6 +161,8 @@ uint32_t Generator_pcm_mix(
 
     if (pcm_state->sample < 0)
     {
+        // Select our sample
+
         int expression = 0;
         int source = 0;
 
@@ -251,31 +253,31 @@ uint32_t Generator_pcm_mix(
 
         pcm_state->sample = entry->sample;
         pcm_state->volume = entry->vol_scale;
-        char header_key[] = "smp_XXX/p_sample.jsonsh";
-        snprintf(
-                header_key,
-                strlen(header_key) + 1,
-                "smp_%03x/p_sample.jsonsh",
-                pcm_state->sample);
-        Sample_params* header = Device_params_get_sample_params(
-                gen->parent.dparams,
-                header_key);
-        if (header == NULL)
-        {
-            vstate->active = false;
-            return offset;
-        }
-
-        assert(header->mid_freq > 0);
-        if (vstate->hit_index >= 0)
-            pcm_state->middle_tone = 440;
-
-        pcm_state->freq = header->mid_freq * exp2(entry->cents / 1200);
-        Sample_params_copy(&pcm_state->params, header);
+        pcm_state->cents = entry->cents;
     }
 
     assert(pcm_state->sample < PCM_SAMPLES_MAX);
-    assert(pcm_state->params.format > SAMPLE_FORMAT_NONE);
+
+    // Find sample params
+    char header_key[] = "smp_XXX/p_sample.jsonsh";
+    snprintf(
+            header_key,
+            strlen(header_key) + 1,
+            "smp_%03x/p_sample.jsonsh",
+            pcm_state->sample);
+    Sample_params* header = Device_params_get_sample_params(
+            gen->parent.dparams,
+            header_key);
+    if (header == NULL)
+    {
+        vstate->active = false;
+        return offset;
+    }
+
+    assert(header->mid_freq > 0);
+    assert(header->format > SAMPLE_FORMAT_NONE);
+
+    // Find sample data
     static const char* extensions[] =
     {
         [SAMPLE_FORMAT_WAVPACK] = "wv",
@@ -284,7 +286,7 @@ uint32_t Generator_pcm_mix(
     char sample_key[] = "smp_XXX/p_sample.NONE";
     snprintf(sample_key, strlen(sample_key) + 1,
              "smp_%03x/p_sample.%s", pcm_state->sample,
-             extensions[pcm_state->params.format]);
+             extensions[header->format]);
 
     Sample* sample = Device_params_get_sample(gen->parent.dparams, sample_key);
     if (sample == NULL)
@@ -293,12 +295,19 @@ uint32_t Generator_pcm_mix(
         return offset;
     }
 
+    if (vstate->hit_index >= 0)
+        pcm_state->middle_tone = 440;
+
+    pcm_state->freq = header->mid_freq * exp2(pcm_state->cents / 1200);
+
+    /*
     Sample_set_loop_start(sample, pcm_state->params.loop_start);
     Sample_set_loop_end(sample, pcm_state->params.loop_end);
     Sample_set_loop(sample, pcm_state->params.loop);
+    // */
 
     return Sample_mix(
-            sample, gen, ins_state, vstate, nframes, offset, freq, tempo, bufs,
+            sample, header, gen, ins_state, vstate, nframes, offset, freq, tempo, bufs,
             pcm_state->middle_tone, pcm_state->freq,
             pcm_state->volume);
 }

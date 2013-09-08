@@ -261,9 +261,11 @@ Device_impl* new_Generator_add(Generator* gen)
         return NULL;
     }
 
+#if 0
     Sample_set_loop_start(add->base, 0);
     Sample_set_loop_end(add->base, BASE_FUNC_SIZE);
     Sample_set_loop(add->base, SAMPLE_LOOP_UNI);
+#endif
 
     for (int i = 0; i < BASE_FUNC_SIZE; ++i)
     {

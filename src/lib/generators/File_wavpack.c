@@ -291,7 +291,7 @@ bool Sample_parse_wavpack(Sample* sample,
                 " file length");
         return false;
     }
-    sample->params.format = SAMPLE_FORMAT_WAVPACK;
+//    sample->params.format = SAMPLE_FORMAT_WAVPACK;
     sample->len = len;
     sample->channels = channels;
 //    sample->params.mid_freq = freq;
