@@ -16,7 +16,7 @@ from PyQt4.QtGui import *
 
 import sys
 
-from mainwindow import MainWindow
+from widgets.mainwindow import MainWindow
 
 def main():
     app = QApplication(sys.argv)
