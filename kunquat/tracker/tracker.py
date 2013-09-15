@@ -11,6 +11,16 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-def main():
+from PyQt4.QtCore import *
+from PyQt4.QtGui import *
 
-    print 'hello'
+import sys
+
+from mainwindow import MainWindow
+
+def main():
+    app = QApplication(sys.argv)
+    main_window = MainWindow()
+    main_window.show()
+    app.exec_()
+
