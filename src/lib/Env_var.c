@@ -56,7 +56,7 @@ static const size_t sizes[] =
 };
 
 
-Env_var* new_Env_var(Env_var_type type, const char* name)
+static Env_var* new_Env_var(Env_var_type type, const char* name)
 {
     assert(name != NULL);
     Env_var* var = memory_alloc_item(Env_var);
@@ -220,42 +220,6 @@ void* Env_var_get_value(Env_var* var)
 {
     assert(var != NULL);
     return &var->data;
-}
-
-
-void Env_var_get_value_json(Env_var* var,
-                            char* dest,
-                            int size)
-{
-    assert(var != NULL);
-    assert(dest != NULL);
-    assert(size > 0);
-    switch (var->type)
-    {
-        case ENV_VAR_BOOL:
-        {
-            serialise_bool(dest, size, var->data.bool_type);
-        } break;
-        case ENV_VAR_INT:
-        {
-            serialise_int(dest, size, var->data.int_type);
-        } break;
-        case ENV_VAR_FLOAT:
-        {
-            serialise_float(dest, size, var->data.float_type);
-        } break;
-        case ENV_VAR_REAL:
-        {
-            serialise_Real(dest, size, &var->data.Real_type);
-        } break;
-        case ENV_VAR_TSTAMP:
-        {
-            serialise_Tstamp(dest, size, &var->data.Tstamp_type);
-        } break;
-        default:
-            assert(false);
-    }
-    return;
 }
 
 

@@ -54,18 +54,6 @@ typedef struct Env_var Env_var;
 
 
 /**
- * Creates a new Environment variable.
- *
- * \param type   The variable type -- must be valid.
- * \param name   The variable name -- must not be \c NULL.
- *
- * \return   The new Environment variable if successful, or \c NULL if memory
- *           allocation failed.
- */
-Env_var* new_Env_var(Env_var_type type, const char* name);
-
-
-/**
  * Creates a new Environment variable from a textual description.
  *
  * \param str     A reference to the textual description
@@ -137,19 +125,6 @@ void Env_var_reset(Env_var* var);
  * \return   A reference to the value of the variable. This is never \c NULL.
  */
 void* Env_var_get_value(Env_var* var);
-
-
-/**
- * Gets a JSON representation of a value of the Environment variable.
- *
- * \param var    The Environment variable -- must not be \c NULL.
- * \param dest   The destination buffer -- must not be \c NULL.
- * \param size   The size of the destination buffer -- must be
- *               positive.
- */
-void Env_var_get_value_json(Env_var* var,
-                            char* dest,
-                            int size);
 
 
 /**
