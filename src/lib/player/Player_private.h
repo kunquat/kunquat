@@ -23,6 +23,7 @@
 #include <player/Cgiter.h>
 #include <player/Channel.h>
 #include <player/Device_states.h>
+#include <player/Env_state.h>
 #include <player/Event_buffer.h>
 #include <player/Event_handler.h>
 #include <player/Master_params.h>
@@ -40,7 +41,7 @@ struct Player
     int32_t audio_frames_available;
 
     Device_states* device_states;
-    Environment*   env;
+    Env_state*     estate;
     Event_buffer*  event_buffer;
     Voice_pool*    voices;
     Master_params  master_params;

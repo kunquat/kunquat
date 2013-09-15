@@ -63,14 +63,14 @@ char* get_event_type_info(
 static char* process_expr(
         char* arg_expr,
         Value_type field_type,
-        Environment* env,
+        Env_state* estate,
         Random* random,
         const Value* meta,
         Read_state* rs,
         Value* ret_value)
 {
     assert(arg_expr != NULL);
-    assert(env != NULL);
+    assert(estate != NULL);
     assert(random != NULL);
     assert(rs != NULL);
     assert(ret_value != NULL);
@@ -87,7 +87,7 @@ static char* process_expr(
     {
         arg_expr = evaluate_expr(
                 arg_expr,
-                env,
+                estate,
                 rs,
                 meta,
                 ret_value,
@@ -154,7 +154,7 @@ void Player_process_trigger(
         str_pos = process_expr(
                 str_pos,
                 Event_names_get_param_type(event_names, event_name),
-                player->env,
+                player->estate,
                 player->channels[ch_num]->rand,
                 NULL,
                 rs,

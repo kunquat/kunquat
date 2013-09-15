@@ -408,6 +408,12 @@ static bool parse_module_level(kqt_Handle* handle,
             }
             return false;
         }
+        if (!Player_refresh_env_state(handle->player))
+        {
+            kqt_Handle_set_error(handle, ERROR_MEMORY,
+                    "Couldn't allocate memory for environment state");
+            return false;
+        }
     }
     else if (string_eq(key, "p_bind.json"))
     {

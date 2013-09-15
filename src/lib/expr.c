@@ -46,7 +46,7 @@ typedef struct Operator
 
 static char* evaluate_expr_(
         char* str,
-        Environment* env,
+        Env_state* estate,
         Read_state* state,
         Value* val_stack,
         int vsi,
@@ -74,7 +74,7 @@ static char* get_op_token(char* str, char* result, Read_state* state);
 
 
 static bool Value_from_token(Value* val, char* token,
-                             Environment* env, const Value* meta);
+                             Env_state* estate, const Value* meta);
 
 //static void Value_print(Value* val);
 
@@ -165,14 +165,14 @@ static Func_desc funcs[] =
 
 char* evaluate_expr(
         char* str,
-        Environment* env,
+        Env_state* estate,
         Read_state* state,
         const Value* meta,
         Value* res,
         Random* rand)
 {
     assert(str != NULL);
-    assert(env != NULL);
+    assert(estate != NULL);
     assert(state != NULL);
     assert(res != NULL);
     assert(rand != NULL);
@@ -189,7 +189,7 @@ char* evaluate_expr(
     }
     return evaluate_expr_(
             str,
-            env,
+            estate,
             state,
             val_stack,
             0,
@@ -215,8 +215,7 @@ char* evaluate_expr(
 
 static char* evaluate_expr_(
         char* str,
-        Environment*
-        env,
+        Env_state* estate,
         Read_state* state,
         Value* val_stack,
         int vsi,
@@ -229,7 +228,7 @@ static char* evaluate_expr_(
         Random* rand)
 {
     assert(str != NULL);
-    assert(env != NULL);
+    assert(estate != NULL);
     assert(state != NULL);
     assert(val_stack != NULL);
     assert(vsi >= 0);
@@ -272,7 +271,7 @@ static char* evaluate_expr_(
                 return str;
             }
             check_stack(vsi);
-            str = evaluate_expr_(str, env, state, val_stack, vsi,
+            str = evaluate_expr_(str, estate, state, val_stack, vsi,
                                  op_stack, osi, meta, operand, depth + 1,
                                  false, rand);
             if (state->error)
@@ -313,7 +312,7 @@ static char* evaluate_expr_(
                 {
                     str = evaluate_expr_(
                             str,
-                            env,
+                            estate,
                             state,
                             val_stack,
                             vsi,
@@ -358,7 +357,7 @@ static char* evaluate_expr_(
             ++vsi;
             expect_operand = false;
         }
-        else if (Value_from_token(operand, token, env, meta))
+        else if (Value_from_token(operand, token, estate, meta))
         {
             if (!expect_operand)
             {
@@ -564,12 +563,12 @@ static bool handle_unary(
 static bool Value_from_token(
         Value* val,
         char* token,
-        Environment* env,
+        Env_state* estate,
         const Value* meta)
 {
     assert(val != NULL);
     assert(token != NULL);
-    assert(env != NULL);
+    assert(estate != NULL);
     assert(meta != NULL);
     if (isdigit(token[0]) || token[0] == '.')
     {
@@ -632,37 +631,17 @@ static bool Value_from_token(
     }
     else if (strchr(ENV_VAR_INIT_CHARS, token[0]) != NULL)
     {
-        Env_var* ev = Environment_get(env, token);
+        const Env_var* ev = Env_state_get_var(estate, token);
         if (ev == NULL)
         {
             return false;
         }
-        switch (Env_var_get_type(ev))
-        {
-            case ENV_VAR_BOOL:
-            {
-                bool* ev_val = Env_var_get_value(ev);
-                assert(ev_val != NULL);
-                val->type = VALUE_TYPE_BOOL;
-                val->value.bool_type = *ev_val;
-            } break;
-            case ENV_VAR_INT:
-            {
-                int64_t* ev_val = Env_var_get_value(ev);
-                assert(ev_val != NULL);
-                val->type = VALUE_TYPE_INT;
-                val->value.int_type = *ev_val;
-            } break;
-            case ENV_VAR_FLOAT:
-            {
-                double* ev_val = Env_var_get_value(ev);
-                assert(ev_val != NULL);
-                val->type = VALUE_TYPE_FLOAT;
-                val->value.float_type = *ev_val;
-            } break;
-            default:
-                assert(false);
-        }
+        assert(Env_var_get_type(ev) == VALUE_TYPE_BOOL ||
+                Env_var_get_type(ev) == VALUE_TYPE_INT ||
+                Env_var_get_type(ev) == VALUE_TYPE_FLOAT);
+
+        Value_copy(val, Env_var_get_value(ev));
+
         return true;
     }
     return false;

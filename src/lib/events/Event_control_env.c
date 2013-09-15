@@ -38,16 +38,16 @@ bool Event_control_env_set_bool_process(General_state* gstate, Value* value)
     if (!gstate->global)
         return false;
 
-    Env_var* var = Environment_get(
-            gstate->env,
+    Env_var* var = Env_state_get_var(
+            gstate->estate,
             Active_names_get(
                 gstate->active_names,
                 ACTIVE_CAT_ENV,
                 ACTIVE_TYPE_BOOL));
-    if (var == NULL || Env_var_get_type(var) != ENV_VAR_BOOL)
+    if (var == NULL || Env_var_get_type(var) != VALUE_TYPE_BOOL)
         return true;
 
-    Env_var_modify_value(var, &value->value.bool_type);
+    Env_var_set_value(var, value);
     return true;
 }
 
@@ -76,16 +76,16 @@ bool Event_control_env_set_float_process(General_state* gstate, Value* value)
     if (!gstate->global)
         return false;
 
-    Env_var* var = Environment_get(
-            gstate->env,
+    Env_var* var = Env_state_get_var(
+            gstate->estate,
             Active_names_get(
                 gstate->active_names,
                 ACTIVE_CAT_ENV,
                 ACTIVE_TYPE_FLOAT));
-    if (var == NULL || Env_var_get_type(var) != ENV_VAR_FLOAT)
+    if (var == NULL || Env_var_get_type(var) != VALUE_TYPE_FLOAT)
         return true;
 
-    Env_var_modify_value(var, &value->value.float_type);
+    Env_var_set_value(var, value);
     return true;
 }
 
@@ -114,16 +114,16 @@ bool Event_control_env_set_int_process(General_state* gstate, Value* value)
     if (!gstate->global)
         return false;
 
-    Env_var* var = Environment_get(
-            gstate->env,
+    Env_var* var = Env_state_get_var(
+            gstate->estate,
             Active_names_get(
                 gstate->active_names,
                 ACTIVE_CAT_ENV,
                 ACTIVE_TYPE_INT));
-    if (var == NULL || Env_var_get_type(var) != ENV_VAR_INT)
+    if (var == NULL || Env_var_get_type(var) != VALUE_TYPE_INT)
         return true;
 
-    Env_var_modify_value(var, &value->value.int_type);
+    Env_var_set_value(var, value);
     return true;
 }
 
@@ -154,16 +154,16 @@ bool Event_control_env_set_tstamp_process(
     if (!gstate->global)
         return false;
 
-    Env_var* var = Environment_get(
-            gstate->env,
+    Env_var* var = Env_state_get_var(
+            gstate->estate,
             Active_names_get(
                 gstate->active_names,
                 ACTIVE_CAT_ENV,
                 ACTIVE_TYPE_FLOAT));
-    if (var == NULL || Env_var_get_type(var) != ENV_VAR_TSTAMP)
+    if (var == NULL || Env_var_get_type(var) != VALUE_TYPE_TSTAMP)
         return true;
 
-    Env_var_modify_value(var, &value->value.Tstamp_type);
+    Env_var_set_value(var, value);
     return true;
 }
 

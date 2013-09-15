@@ -27,7 +27,7 @@
 Channel* new_Channel(
         int num,
         Ins_table* insts,
-        Environment* env,
+        Env_state* estate,
         Voice_pool* voices,
         double* tempo,
         int32_t* audio_rate)
@@ -35,7 +35,7 @@ Channel* new_Channel(
     assert(num >= 0);
     assert(num < KQT_CHANNELS_MAX);
     assert(insts != NULL);
-    assert(env != NULL);
+    assert(estate != NULL);
     assert(voices != NULL);
     assert(tempo != NULL);
     assert(audio_rate != NULL);
@@ -44,7 +44,7 @@ Channel* new_Channel(
     if (ch == NULL)
         return NULL;
 
-    if (!Channel_init(ch, num, env))
+    if (!Channel_init(ch, num, estate))
     {
         memory_free(ch);
         return NULL;
@@ -59,19 +59,19 @@ Channel* new_Channel(
 }
 
 
-bool Channel_init(Channel* ch, int num, Environment* env)
+bool Channel_init(Channel* ch, int num, Env_state* estate)
 {
     assert(ch != NULL);
     assert(num >= 0);
     assert(num < KQT_COLUMNS_MAX);
-    assert(env != NULL);
+    assert(estate != NULL);
 
     General_state_preinit(&ch->parent);
 
     ch->cgstate = new_Channel_gen_state();
     ch->rand = new_Random();
     if (ch->cgstate == NULL || ch->rand == NULL ||
-            !General_state_init(&ch->parent, false, env))
+            !General_state_init(&ch->parent, false, estate))
     {
         del_Channel_gen_state(ch->cgstate);
         del_Random(ch->rand);

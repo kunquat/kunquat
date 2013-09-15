@@ -23,7 +23,7 @@ General_state* General_state_preinit(General_state* state)
 {
     assert(state != NULL);
 
-    state->env = NULL;
+    state->estate = NULL;
     state->active_names = NULL;
 
     return state;
@@ -33,13 +33,13 @@ General_state* General_state_preinit(General_state* state)
 General_state* General_state_init(
         General_state* state,
         bool global,
-        Environment* env)
+        Env_state* estate)
 {
     assert(state != NULL);
     assert(state->active_names == NULL);
-    assert(env != NULL);
+    assert(estate != NULL);
     state->global = global;
-    state->env = env;
+    state->estate = estate;
     state->active_names = new_Active_names();
     if (state->active_names == NULL)
     {
@@ -88,8 +88,8 @@ void General_state_reset(General_state* state)
     {
         // All states contain the same environment
         // and all states should be reset together,
-        // so let's reset the environment only once.
-        Environment_reset(state->env);
+        // so let's reset the environment state only once.
+        Env_state_reset(state->estate);
     }
     Active_names_reset(state->active_names);
     return;

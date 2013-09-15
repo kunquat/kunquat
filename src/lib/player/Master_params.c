@@ -68,10 +68,14 @@ Master_params* Master_params_preinit(Master_params* params)
 }
 
 
-Master_params* Master_params_init(Master_params* params, const Module* module)
+Master_params* Master_params_init(
+        Master_params* params,
+        const Module* module,
+        Env_state* estate)
 {
     assert(params != NULL);
     assert(module != NULL);
+    assert(estate != NULL);
 
     // Sanitise fields
     params->playback_id = 1;
@@ -81,7 +85,7 @@ Master_params* Master_params_init(Master_params* params, const Module* module)
     params->module = module;
 
     // Init fields
-    if (General_state_init(&params->parent, true, params->module->env) == NULL)
+    if (General_state_init(&params->parent, true, estate) == NULL)
     {
         General_state_deinit(&params->parent);
         return NULL;

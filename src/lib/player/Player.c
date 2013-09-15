@@ -80,7 +80,7 @@ Player* new_Player(
     player->audio_frames_available = 0;
 
     player->device_states = NULL;
-    player->env = NULL;
+    player->estate = NULL;
     player->event_buffer = NULL;
     player->voices = NULL;
     Master_params_preinit(&player->master_params);
@@ -101,11 +101,11 @@ Player* new_Player(
 
     // Init fields
     player->device_states = new_Device_states();
-    player->env = player->module->env; //new_Environment(); // TODO
+    player->estate = new_Env_state(player->module->env);
     player->event_buffer = new_Event_buffer(event_buffer_size);
     player->voices = new_Voice_pool(voice_count);
     if (player->device_states == NULL ||
-            player->env == NULL ||
+            player->estate == NULL ||
             player->event_buffer == NULL ||
             player->voices == NULL ||
             !Voice_pool_reserve_state_space(
@@ -133,7 +133,7 @@ Player* new_Player(
         player->channels[i] = new_Channel(
                 i,
                 Module_get_insts(player->module),
-                player->env,
+                player->estate,
                 player->voices,
                 &player->master_params.tempo,
                 &player->audio_rate);
@@ -144,7 +144,10 @@ Player* new_Player(
         }
     }
 
-    if (Master_params_init(&player->master_params, player->module) == NULL)
+    if (Master_params_init(
+                &player->master_params,
+                player->module,
+                player->estate) == NULL)
     {
         del_Player(player);
         return NULL;
@@ -222,6 +225,13 @@ bool Player_alloc_channel_gen_state_keys(
 }
 
 
+bool Player_refresh_env_state(Player* player)
+{
+    assert(player != NULL);
+    return Env_state_refresh_space(player->estate);
+}
+
+
 void Player_reset(Player* player)
 {
     assert(player != NULL);
@@ -246,6 +256,8 @@ void Player_reset(Player* player)
     player->nanoseconds_history = 0;
 
     player->events_returned = false;
+
+    Env_state_reset(player->estate);
 
     return;
 }
@@ -753,7 +765,7 @@ void del_Player(Player* player)
         del_Channel(player->channels[i]);
     Master_params_deinit(&player->master_params);
     del_Event_buffer(player->event_buffer);
-    //del_Environment(player->env); // TODO
+    del_Env_state(player->estate);
     del_Device_states(player->device_states);
 
     for (int i = 0; i < KQT_BUFFERS_MAX; ++i)

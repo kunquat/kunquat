@@ -19,11 +19,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <Environment.h>
 #include <Event_cache.h>
 #include <General_state.h>
 #include <kunquat/limits.h>
 #include <player/Channel_gen_state.h>
+#include <player/Env_state.h>
 #include <player/LFO.h>
 #include <player/Voice_pool.h>
 #include <Random.h>
@@ -96,7 +96,7 @@ typedef struct Channel
  * \param num      The Channel number -- must be >= \c 0 and
  *                 < \c KQT_CHANNELS_MAX.
  * \param insts    The instrument table -- must not be \c NULL.
- * \param env      The Environment -- must not be \c NULL.
+ * \param estate   The Environment state -- must not be \c NULL.
  * \param voices   The Voice pool -- must not be \c NULL.
  * \param tempo    A reference to the current tempo -- must not be \c NULL.
  * \param rate     A reference to the current audio rate -- must not be \c NULL.
@@ -107,7 +107,7 @@ typedef struct Channel
 Channel* new_Channel(
         int num,
         Ins_table* insts,
-        Environment* env,
+        Env_state* estate,
         Voice_pool* voices,
         double* tempo,
         int32_t* audio_rate);
@@ -116,14 +116,14 @@ Channel* new_Channel(
 /**
  * Initialises the Channel with default values.
  *
- * \param ch    The Channel -- must not be \c NULL.
- * \param num   The Channel number -- must be >= \c 0 and
- *              < \c KQT_COLUMNS_MAX.
- * \param env   The Environment -- must not be \c NULL.
+ * \param ch       The Channel -- must not be \c NULL.
+ * \param num      The Channel number -- must be >= \c 0 and
+ *                 < \c KQT_COLUMNS_MAX.
+ * \param estate   The Environment -- must not be \c NULL.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Channel_init(Channel* ch, int num, Environment* env);
+bool Channel_init(Channel* ch, int num, Env_state* estate);
 
 
 /**

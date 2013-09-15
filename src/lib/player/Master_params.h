@@ -21,8 +21,8 @@
 #include <stdlib.h>
 
 #include <Decl.h>
-#include <Environment.h>
 #include <General_state.h>
+#include <player/Env_state.h>
 #include <player/Position.h>
 #include <player/Slider.h>
 
@@ -99,11 +99,15 @@ Master_params* Master_params_preinit(Master_params* params);
  *
  * \param params   The Master params -- must not be \c NULL.
  * \param module   The Module -- must not be \c NULL.
+ * \param estate   The Environment state -- must not be \c NULL.
  *
  * \return   The parameter \a params if successful, or \c NULL if memory
  *           allocation failed.
  */
-Master_params* Master_params_init(Master_params* params, const Module* module);
+Master_params* Master_params_init(
+        Master_params* params,
+        const Module* module,
+        Env_state* estate);
 
 
 /**

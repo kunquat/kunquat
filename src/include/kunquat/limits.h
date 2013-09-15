@@ -188,6 +188,14 @@ extern "C" {
 #define KQT_ARPEGGIO_NOTES_MAX 64
 
 
+/**
+ * Environment variable name limits.
+ */
+#define ENV_VAR_NAME_MAX 32
+#define ENV_VAR_INIT_CHARS "abcdefghijklmnopqrstuvwxyz_"
+#define ENV_VAR_CHARS ENV_VAR_INIT_CHARS "0123456789"
+
+
 #ifdef __cplusplus
 }
 #endif

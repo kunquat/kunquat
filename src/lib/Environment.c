@@ -30,6 +30,31 @@ struct Environment
 };
 
 
+Environment_iter* Environment_iter_init(
+        Environment_iter* iter,
+        const Environment* env)
+{
+    assert(iter != NULL);
+    assert(env != NULL);
+
+    AAiter_change_tree(&iter->iter, env->vars);
+    iter->next = AAiter_get_at_least(&iter->iter, "");
+
+    return iter;
+}
+
+
+const char* Environment_iter_get_next_name(Environment_iter* iter)
+{
+    assert(iter != NULL);
+
+    const char* next = iter->next;
+    iter->next = AAiter_get_next(&iter->iter);
+
+    return next;
+}
+
+
 Environment* new_Environment(void)
 {
     Environment* env = memory_alloc_item(Environment);
@@ -117,21 +142,7 @@ bool Environment_parse(Environment* env, char* str, Read_state* state)
 }
 
 
-void Environment_reset(Environment* env)
-{
-    assert(env != NULL);
-    AAiter_change_tree(env->iter, env->vars);
-    Env_var* var = AAiter_get_at_least(env->iter, "");
-    while (var != NULL)
-    {
-        Env_var_reset(var);
-        var = AAiter_get_next(env->iter);
-    }
-    return;
-}
-
-
-Env_var* Environment_get(Environment* env, char* name)
+const Env_var* Environment_get(const Environment* env, const char* name)
 {
     assert(env != NULL);
     assert(name != NULL);

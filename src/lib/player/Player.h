@@ -99,6 +99,16 @@ bool Player_alloc_channel_gen_state_keys(
 
 
 /**
+ * Refreshes environment state.
+ *
+ * \param player   The Player -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Player_refresh_env_state(Player* player);
+
+
+/**
  * Sets audio rate.
  *
  * \param player   The Player -- must not be \c NULL.

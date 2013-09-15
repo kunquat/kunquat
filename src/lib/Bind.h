@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2013
  *
  * This file is part of Kunquat.
  *
@@ -16,11 +16,11 @@
 #define K_BIND_H
 
 
-#include <Environment.h>
 #include <Event_cache.h>
 #include <Event_names.h>
 #include <File_base.h>
 #include <kunquat/limits.h>
+#include <player/Env_state.h>
 #include <Random.h>
 #include <Value.h>
 
@@ -71,7 +71,7 @@ Event_cache* Bind_create_cache(Bind* map);
  *
  * \param map          The Bind -- must not be \c NULL.
  * \param cache        The Event cache -- must not be \c NULL.
- * \param env          The Environment -- must not be \c NULL.
+ * \param estate       The Environment state -- must not be \c NULL.
  * \param event_name   The name of the fired event -- must not be \c NULL.
  * \param value        The event parameter -- must not be \c NULL.
  *
@@ -80,7 +80,7 @@ Event_cache* Bind_create_cache(Bind* map);
  */
 Target_event* Bind_get_first(Bind* map,
                              Event_cache* cache,
-                             Environment* env,
+                             Env_state* estate,
                              char* event_name,
                              Value* value,
                              Random* rand);
