@@ -16,7 +16,7 @@ from PyQt4.QtGui import *
 
 import sys
 
-from widgets.mainwindow import MainWindow
+from views.mainwindow import MainWindow
 
 from kunquat.tracker.model.driver_manager import DriverManager
 from kunquat.tracker.model.stat_manager import StatManager
