@@ -25,10 +25,15 @@ from kunquat.tracker.model.playback_manager import PlaybackManager
 from kunquat.tracker.model.module import Module
 from kunquat.tracker.model.uimodel import UiModel
 
+from kunquat.tracker.audio.drivers.silentaudio import Silentaudio
+from kunquat.tracker.audio.drivers.pulseaudio import Pulseaudio
+from kunquat.tracker.audio.drivers.pushaudio import Pushaudio
+from kunquat.tracker.audio.drivers.nullaudio import Nullaudio
+
 def create_ui_model():
-    #drivers = [Nullaudio, Pulseaudio, Pushaudio, Silentaudio]
+    drivers = [Nullaudio, Pulseaudio, Pushaudio, Silentaudio]
     driver_manager = DriverManager()
-    #driver_manager.set_drivers(drivers)
+    driver_manager.set_drivers(drivers)
     stat_manager = StatManager()
     ui_manager = UiManager()
     playback_manager = PlaybackManager()
