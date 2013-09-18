@@ -204,7 +204,7 @@ bool Event_handler_set_dsp_process(
 bool Event_handler_trigger(
         Event_handler* eh,
         int ch_num,
-        char* name,
+        const char* name,
         Value* arg);
 
 

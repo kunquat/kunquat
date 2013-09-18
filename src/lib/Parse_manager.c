@@ -417,10 +417,10 @@ static bool parse_module_level(kqt_Handle* handle,
     }
     else if (string_eq(key, "p_bind.json"))
     {
-#if 0
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
         Bind* map = new_Bind(data,
-                        Event_handler_get_names(module->event_handler),
+                        Event_handler_get_names(
+                            Player_get_event_handler(handle->player)),
                         state);
         if (map == NULL)
         {
@@ -435,13 +435,14 @@ static bool parse_module_level(kqt_Handle* handle,
             }
             return false;
         }
-        if (!Module_set_bind(module, map))
+        Module_set_bind(module, map);
+
+        if (!Player_refresh_bind_state(handle->player))
         {
             kqt_Handle_set_error(handle, ERROR_MEMORY,
-                    "Couldn't allocate memory");
+                    "Couldn't allocate memory for bind state");
             return false;
         }
-#endif
     }
     return true;
 }

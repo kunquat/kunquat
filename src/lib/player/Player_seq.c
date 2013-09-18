@@ -105,10 +105,73 @@ static char* process_expr(
 }
 
 
-void Player_process_trigger(
+static void Player_process_expr_event(
         Player* player,
         int ch_num,
         char* trigger_desc,
+        const Value* meta,
+        bool skip);
+
+
+void Player_process_event(
+        Player* player,
+        int ch_num,
+        const char* event_name,
+        Value* arg,
+        bool skip)
+{
+    assert(player != NULL);
+    assert(ch_num >= 0);
+    assert(ch_num < KQT_CHANNELS_MAX);
+    assert(event_name != NULL);
+    assert(arg != NULL);
+
+    if (!Event_handler_trigger(
+            player->event_handler,
+            ch_num,
+            event_name,
+            arg))
+    {
+        fprintf(stderr, "`%s` not triggered\n", event_name);
+        return;
+    }
+
+    if (!skip)
+        Event_buffer_add(player->event_buffer, ch_num, event_name, arg);
+
+    // Handle bind
+    if (player->module->bind != NULL)
+    {
+        Target_event* bound = Bind_get_first(
+                player->module->bind,
+                player->channels[ch_num]->event_cache,
+                player->estate,
+                event_name,
+                arg,
+                player->channels[ch_num]->rand);
+        while (bound != NULL)
+        {
+            Player_process_expr_event(
+                    player,
+                    (ch_num + bound->ch_offset + KQT_CHANNELS_MAX) %
+                        KQT_CHANNELS_MAX,
+                    bound->desc,
+                    arg,
+                    skip);
+
+            bound = bound->next;
+        }
+    }
+
+    return;
+}
+
+
+static void Player_process_expr_event(
+        Player* player,
+        int ch_num,
+        char* trigger_desc,
+        const Value* meta,
         bool skip)
 {
     assert(player != NULL);
@@ -156,7 +219,7 @@ void Player_process_trigger(
                 Event_names_get_param_type(event_names, event_name),
                 player->estate,
                 player->channels[ch_num]->rand,
-                NULL,
+                meta,
                 rs,
                 arg);
 
@@ -166,18 +229,7 @@ void Player_process_trigger(
         return;
     }
 
-    if (!Event_handler_trigger(
-            player->event_handler,
-            ch_num,
-            event_name,
-            arg))
-    {
-        fprintf(stderr, "`%s` not triggered\n", trigger_desc);
-        return;
-    }
-
-    if (!skip)
-        Event_buffer_add(player->event_buffer, ch_num, event_name, arg);
+    Player_process_event(player, ch_num, event_name, arg, skip);
 
     return;
 }
@@ -250,10 +302,11 @@ void Player_process_cgiters(Player* player, Tstamp* limit, bool skip)
                             Event_is_control(event_type) ||
                             Event_is_general(event_type) ||
                             Event_is_master(event_type))
-                        Player_process_trigger(
+                        Player_process_expr_event(
                                 player,
                                 i,
                                 Event_get_desc(el->event),
+                                NULL, // no meta value
                                 skip);
                 }
 

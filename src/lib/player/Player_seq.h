@@ -31,10 +31,11 @@ char* get_event_type_info(
         Event_type* ret_type);
 
 
-void Player_process_trigger(
+void Player_process_event(
         Player* player,
         int ch_num,
-        char* trigger_desc,
+        const char* event_name,
+        Value* arg,
         bool skip);
 
 

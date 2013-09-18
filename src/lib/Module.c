@@ -417,30 +417,15 @@ Effect_table* Module_get_effects(const Module* module)
 }
 
 
-bool Module_set_bind(Module* module, Bind* bind)
+void Module_set_bind(Module* module, Bind* bind)
 {
     assert(module != NULL);
     assert(bind != NULL);
 
-#if 0
-    Event_cache* caches[KQT_COLUMNS_MAX] = { NULL };
-    for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
-    {
-        caches[i] = Bind_create_cache(bind);
-        if (caches[i] == NULL)
-        {
-            for (int k = i - 1; k >= 0; --k)
-                del_Event_cache(caches[k]);
-            return false;
-        }
-    }
     del_Bind(module->bind);
-    module->bind = module->play_state->bind = module->skip_state->bind = bind;
-    for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
-        Channel_set_event_cache(module->channels[i], caches[i]);
-#endif
+    module->bind = bind;
 
-    return true;
+    return;
 }
 
 

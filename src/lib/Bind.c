@@ -56,7 +56,7 @@ static void del_Constraint(Constraint* constraint);
 
 static Target_event* new_Target_event(char** str,
                                       Read_state* state,
-                                      Event_names* names);
+                                      const Event_names* names);
 
 
 static void del_Target_event(Target_event* event);
@@ -112,13 +112,13 @@ static bool read_constraints(char** str,
 static bool read_events(char** str,
                         Read_state* state,
                         Cblist_item* item,
-                        Event_names* names);
+                        const Event_names* names);
 
 
 static bool Bind_is_cyclic(Bind* map);
 
 
-Bind* new_Bind(char* str, Event_names* names, Read_state* state)
+Bind* new_Bind(char* str, const Event_names* names, Read_state* state)
 {
     assert(names != NULL);
     assert(state != NULL);
@@ -225,7 +225,7 @@ Bind* new_Bind(char* str, Event_names* names, Read_state* state)
 }
 
 
-Event_cache* Bind_create_cache(Bind* map)
+Event_cache* Bind_create_cache(const Bind* map)
 {
     assert(map != NULL);
     Event_cache* cache = new_Event_cache();
@@ -258,10 +258,10 @@ Event_cache* Bind_create_cache(Bind* map)
 }
 
 
-Target_event* Bind_get_first(Bind* map,
+Target_event* Bind_get_first(const Bind* map,
                              Event_cache* cache,
                              Env_state* estate,
-                             char* event_name,
+                             const char* event_name,
                              Value* value,
                              Random* rand)
 {
@@ -421,7 +421,7 @@ static bool read_constraints(char** str,
 static bool read_events(char** str,
                         Read_state* state,
                         Cblist_item* item,
-                        Event_names* names)
+                        const Event_names* names)
 {
     assert(str != NULL);
     assert(*str != NULL);
@@ -634,7 +634,7 @@ static void del_Constraint(Constraint* constraint)
 
 static Target_event* new_Target_event(char** str,
                                       Read_state* state,
-                                      Event_names* names)
+                                      const Event_names* names)
 {
     assert(str != NULL);
     assert(*str != NULL);

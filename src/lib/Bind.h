@@ -52,7 +52,7 @@ typedef struct Target_event
  * \return   The new Bind if successful, otherwise \c NULL. \a state will not
  *           be modified if memory allocation failed.
  */
-Bind* new_Bind(char* str, Event_names* names, Read_state* state);
+Bind* new_Bind(char* str, const Event_names* names, Read_state* state);
 
 
 /**
@@ -63,7 +63,7 @@ Bind* new_Bind(char* str, Event_names* names, Read_state* state);
  * \return   The new Event cache if successful, or \c NULL if memory
  *           allocation failed.
  */
-Event_cache* Bind_create_cache(Bind* map);
+Event_cache* Bind_create_cache(const Bind* map);
 
 
 /**
@@ -74,14 +74,15 @@ Event_cache* Bind_create_cache(Bind* map);
  * \param estate       The Environment state -- must not be \c NULL.
  * \param event_name   The name of the fired event -- must not be \c NULL.
  * \param value        The event parameter -- must not be \c NULL.
+ * \param rand         The random source -- must not be \c NULL.
  *
  * \return   The first Target event if any calls are triggered,
  *           otherwise \c NULL.
  */
-Target_event* Bind_get_first(Bind* map,
+Target_event* Bind_get_first(const Bind* map,
                              Event_cache* cache,
                              Env_state* estate,
-                             char* event_name,
+                             const char* event_name,
                              Value* value,
                              Random* rand);
 

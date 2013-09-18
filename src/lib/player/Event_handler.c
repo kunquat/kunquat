@@ -18,15 +18,16 @@
 #include <inttypes.h>
 #include <math.h>
 
+#include <Bind.h>
 #include <Effect.h>
 #include <Event_names.h>
 #include <Event_type.h>
-#include <expr.h>
 #include <File_base.h>
 #include <General_state.h>
 #include <Generator.h>
 #include <Ins_table.h>
 #include <kunquat/limits.h>
+#include <Module.h>
 #include <player/Channel.h>
 #include <player/Event_handler.h>
 #include <string_common.h>
@@ -502,7 +503,7 @@ static bool Event_handler_act(
         Event_handler* eh,
         bool silent,
         int index,
-        char* event_name,
+        const char* event_name,
         Event_type event_type,
         Value* value)
 {
@@ -524,25 +525,6 @@ static bool Event_handler_act(
     if (Event_is_query(event_type))
         Event_handler_handle_query(eh, index, event_type, value, silent);
 
-#if 0
-    Target_event* bound = Bind_get_first(
-            eh->global_state->bind,
-            eh->channels[index]->event_cache,
-            eh->global_state->parent.env,
-            event_name,
-            value,
-            eh->channels[index]->rand);
-    while (bound != NULL)
-    {
-        Event_handler_trigger(
-                eh,
-                (index + bound->ch_offset + KQT_COLUMNS_MAX) % KQT_COLUMNS_MAX,
-                bound->desc,
-                silent,
-                value);
-        bound = bound->next;
-    }
-#endif
     return true;
 }
 
@@ -550,7 +532,7 @@ static bool Event_handler_act(
 bool Event_handler_trigger(
         Event_handler* eh,
         int ch_num,
-        char* name,
+        const char* name,
         Value* arg)
 {
     assert(eh != NULL);

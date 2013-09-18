@@ -232,6 +232,30 @@ bool Player_refresh_env_state(Player* player)
 }
 
 
+bool Player_refresh_bind_state(Player* player)
+{
+    assert(player != NULL);
+
+    Event_cache* caches[KQT_CHANNELS_MAX] = { NULL };
+    for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
+    {
+        caches[i] = Bind_create_cache(player->module->bind);
+        if (caches[i] == NULL)
+        {
+            for (int k = i - 1; k >= 0; --k)
+                del_Event_cache(caches[k]);
+
+            return false;
+        }
+    }
+
+    for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
+        Channel_set_event_cache(player->channels[i], caches[i]);
+
+    return true;
+}
+
+
 void Player_reset(Player* player)
 {
     assert(player != NULL);
@@ -737,17 +761,13 @@ bool Player_fire(Player* player, int ch, char* event_desc, Read_state* rs)
         return false;
 
     // Fire
-    if (!Event_handler_trigger(
-            player->event_handler,
-            ch,
-            event_name,
-            value))
-    {
-        return false;
-    }
+    Player_process_event(
+        player,
+        ch,
+        event_name,
+        value,
+        false);
 
-    // Add event to buffer
-    Event_buffer_add(player->event_buffer, ch, event_name, value);
     player->events_returned = false;
 
     return true;

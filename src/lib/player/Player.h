@@ -109,6 +109,16 @@ bool Player_refresh_env_state(Player* player);
 
 
 /**
+ * Refreshes bind state.
+ *
+ * \param player   The Player -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Player_refresh_bind_state(Player* player);
+
+
+/**
  * Sets audio rate.
  *
  * \param player   The Player -- must not be \c NULL.

@@ -219,10 +219,8 @@ Effect_table* Module_get_effects(const Module* module);
  *
  * \param module   The Module -- must not be \c NULL.
  * \param bind     The Bind -- must not be \c NULL.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Module_set_bind(Module* module, Bind* bind);
+void Module_set_bind(Module* module, Bind* bind);
 
 
 /**
