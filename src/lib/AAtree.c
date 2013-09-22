@@ -88,8 +88,6 @@ void del_AAiter(AAiter* iter)
 }
 
 
-static AAnode* new_AAnode(AAnode* nil, void* data);
-
 static AAnode* new_AAnode(AAnode* nil, void* data)
 {
     assert(!(nil == NULL) || (data == NULL));
@@ -156,20 +154,34 @@ bool AAtree_ins(AAtree* tree, void* data)
 {
     assert(tree != NULL);
     assert(data != NULL);
+    assert(!AAtree_contains(tree, data));
+
+    AAnode* node = new_AAnode(tree->nil, data);
+    if (node == NULL)
+        return false;
+
+    AAtree_attach(tree, node);
+
+    return true;
+}
+
+
+void AAtree_attach(AAtree* tree, AAnode* node)
+{
+    assert(tree != NULL);
+    assert(node != NULL);
+    assert(node->data != NULL);
+
+    // Make the node ours
+    node->parent = node->left = node->right = tree->nil;
 
     aavalidate(tree->root, "before insert");
 
     if (tree->root->level == 0)
     {
-        tree->root = new_AAnode(tree->nil, data);
-        if (tree->root == NULL)
-        {
-            tree->root = tree->nil;
-            return false;
-        }
-
+        tree->root = node;
         aavalidate(tree->root, "insert root");
-        return true;
+        return;
     }
 
     AAnode* cur = tree->root;
@@ -179,7 +191,7 @@ bool AAtree_ins(AAtree* tree, void* data)
     while (cur->level > 0 && diff != 0)
     {
         assert(cur->data != NULL);
-        diff = tree->cmp(data, cur->data);
+        diff = tree->cmp(node->data, cur->data);
         prev = cur;
 
         if (diff < 0)
@@ -189,6 +201,9 @@ bool AAtree_ins(AAtree* tree, void* data)
     }
 
     assert(prev != NULL);
+
+    assert(diff != 0);
+#if 0
     if (diff == 0)
     {
         assert(cur != NULL);
@@ -198,26 +213,24 @@ bool AAtree_ins(AAtree* tree, void* data)
         aavalidate(tree->root, "insert");
         return true;
     }
+#endif
 
-    AAnode* new_node = new_AAnode(tree->nil, data);
-    if (new_node == NULL)
-        return false;
-
+    // Attach the new node
     if (diff < 0)
     {
         assert(prev->left->level == 0);
-        prev->left = new_node;
-        new_node->parent = prev;
+        prev->left = node;
+        node->parent = prev;
     }
     else
     {
         assert(diff > 0);
         assert(prev->right->level == 0);
-        prev->right = new_node;
-        new_node->parent = prev;
+        prev->right = node;
+        node->parent = prev;
     }
 
-    cur = new_node->parent;
+    cur = node->parent;
     while (cur->level > 0)
     {
         AAnode* parent = cur->parent;
@@ -242,7 +255,7 @@ bool AAtree_ins(AAtree* tree, void* data)
     }
 
     aavalidate(tree->root, "insert rebalance");
-    return true;
+    return;
 }
 
 
@@ -401,7 +414,7 @@ void* AAiter_get_prev(AAiter* iter)
 }
 
 
-void* AAtree_remove(AAtree* tree, const void* key)
+AAnode* AAtree_detach(AAtree* tree, const void* key)
 {
     assert(tree != NULL);
     assert(key != NULL);
@@ -416,21 +429,19 @@ void* AAtree_remove(AAtree* tree, const void* key)
     {
         diff = tree->cmp(key, cur->data);
         if (diff < 0)
-        {
             cur = cur->left;
-        }
         else if (diff > 0)
-        {
             cur = cur->right;
-        }
     }
 
     assert(cur != NULL);
     if (cur->level == 0)
         return NULL;
 
+    // Get data so that we can assign it to another node if needed
     void* data = cur->data;
     cur->data = NULL;
+
     if (cur->left->level != 0 && cur->right->level != 0)
     {
         assert(cur->left->level > 0);
@@ -475,8 +486,13 @@ void* AAtree_remove(AAtree* tree, const void* key)
     }
 
     AAnode* node = cur->parent;
-    cur->left = cur->right = tree->nil;
-    aafree(cur, tree->destroy);
+
+    // Set up the node to be returned
+    AAnode* ret = cur;
+    ret->left = ret->right = NULL;
+    ret->data = data;
+
+    // Balance
     cur = node;
     while (cur->level > 0)
     {
@@ -511,6 +527,23 @@ void* AAtree_remove(AAtree* tree, const void* key)
     }
 
     aavalidate(tree->root, "remove");
+    return ret;
+}
+
+
+void* AAtree_remove(AAtree* tree, const void* key)
+{
+    assert(tree != NULL);
+    assert(key != NULL);
+    assert(tree->root->parent == tree->nil);
+
+    AAnode* node = AAtree_detach(tree, key);
+    if (node == NULL)
+        return NULL;
+
+    void* data = node->data;
+    memory_free(node);
+
     return data;
 }
 
