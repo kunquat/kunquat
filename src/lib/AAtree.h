@@ -123,6 +123,16 @@ void del_AAiter(AAiter* iter);
 
 
 /**
+ * Gets data from an AAnode.
+ *
+ * \param node   The AAnode -- must not be \c NULL.
+ *
+ * \return   The data.
+ */
+void* AAnode_get_data(AAnode* node);
+
+
+/**
  * Creates a new AAtree.
  *
  * \param cmp       The comparison function for stored elements -- must not be

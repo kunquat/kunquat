@@ -116,6 +116,13 @@ static AAnode* new_AAnode(AAnode* nil, void* data)
 }
 
 
+void* AAnode_get_data(AAnode* node)
+{
+    assert(node != NULL);
+    return node->data;
+}
+
+
 AAtree* new_AAtree(int (*cmp)(const void*, const void*), void (*destroy)(void*))
 {
     assert(cmp != NULL);
