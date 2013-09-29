@@ -22,7 +22,7 @@ struct Jump_cache
 {
     AAtree* contexts;
 
-    // Debug checking data
+    // Debug checking fields
     size_t num_contexts;
     size_t use_count;
 };
