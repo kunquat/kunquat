@@ -67,6 +67,7 @@ Jump_cache* new_Jump_cache(size_t num_contexts)
 
         if (!AAtree_ins(jcache->contexts, jc))
         {
+            del_Jump_context(jc);
             del_Jump_cache(jcache);
             return NULL;
         }

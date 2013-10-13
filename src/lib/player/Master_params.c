@@ -68,6 +68,9 @@ Master_params* Master_params_preinit(Master_params* params)
     General_state_preinit(&params->parent);
     params->module = NULL;
 
+    params->active_jumps = NULL;
+    params->jump_cache = NULL;
+
     return params;
 }
 
@@ -84,10 +87,7 @@ Master_params* Master_params_init(
     // Sanitise fields
     params->playback_id = 1;
 
-    params->active_jumps = NULL;
-
     params->module = module;
-    params->jump_cache = NULL;
 
     // Init fields
     if (General_state_init(&params->parent, true, estate) == NULL)

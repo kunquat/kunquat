@@ -76,10 +76,10 @@ typedef struct Master_params
     Pat_inst_ref  jump_target_piref;
     Tstamp        jump_target_row;
     Active_jumps* active_jumps;
+    Jump_cache*   jump_cache;
 
     // Resources
     const Module* module;
-    Jump_cache*   jump_cache;
 
     // Statistics
     int16_t active_voices;
