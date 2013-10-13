@@ -25,7 +25,7 @@
 
 bool Sample_parse_wavpack(
         Sample* sample,
-        void* data,
+        const void* data,
         long length,
         Read_state* state);
 

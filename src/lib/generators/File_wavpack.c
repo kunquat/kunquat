@@ -29,7 +29,7 @@
 
 bool Sample_parse_wavpack(
         Sample* sample,
-        void* data,
+        const void* data,
         long length,
         Read_state* state)
 {
@@ -58,7 +58,7 @@ bool Sample_parse_wavpack(
 
 typedef struct String_context
 {
-    char* data;
+    const char* data;
     uint32_t length;
     uint32_t pos;
     int push_back;
@@ -241,7 +241,7 @@ static WavpackStreamReader reader_str =
 
 bool Sample_parse_wavpack(
         Sample* sample,
-        void* data,
+        const void* data,
         long length,
         Read_state* state)
 {
