@@ -262,6 +262,7 @@ bool parse_data(kqt_Handle* handle,
             // Update pattern location information
             // This is needed for correct jump counter updates
             // when a Pattern with jumps is used multiple times.
+#if 0
             for (int subsong = 0; subsong < KQT_SONGS_MAX; ++subsong)
             {
                 const Order_list* ol = module->order_lists[subsong];
@@ -304,6 +305,7 @@ bool parse_data(kqt_Handle* handle,
                 }
 #endif
             }
+#endif
         }
     }
     else if ((index = string_extract_index(key, "scale_", 1, "/")) >= 0)
@@ -1523,14 +1525,10 @@ static bool parse_pattern_level(kqt_Handle* handle,
             }
         }
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        AAiter* locations_iter = NULL;
-        AAtree* locations = Pattern_get_locations(pat, &locations_iter);
         const Event_names* event_names =
                 Event_handler_get_names(Player_get_event_handler(handle->player));
         Column* col = new_Column_from_string(Pattern_get_length(pat),
                                              data,
-                                             locations,
-                                             locations_iter,
                                              event_names,
                                              state);
         if (col == NULL)
@@ -1758,6 +1756,7 @@ static bool parse_subsong_level(kqt_Handle* handle,
 
         // Update pattern location information
         // This is required for correct update of jump counters.
+#if 0
         const size_t ol_len = Order_list_get_len(ol);
         for (size_t i = 0; i < ol_len; ++i)
         {
@@ -1777,6 +1776,7 @@ static bool parse_subsong_level(kqt_Handle* handle,
                 return false;
             }
         }
+#endif
 
         if (module->order_lists[index] != NULL)
             del_Order_list(module->order_lists[index]);

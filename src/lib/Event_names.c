@@ -88,6 +88,7 @@ static Name_info event_specs[] =
     { "m.jc",  Event_master_set_jump_counter, VALUE_TYPE_INT, v_counter, false },
     { "m.jr",  Event_master_set_jump_row,     VALUE_TYPE_TSTAMP, v_nonneg_ts, false },
     { "m.jp",  Event_master_set_jump_pat_inst, VALUE_TYPE_PAT_INST_REF, v_piref, false },
+    { "mj",    Event_master_jump,             VALUE_TYPE_NONE, NULL, false },
 
     { "m.s",   Event_master_set_scale,        VALUE_TYPE_INT, v_scale, false },
     { "m.so",  Event_master_set_scale_offset, VALUE_TYPE_FLOAT, v_finite_float, false },
@@ -277,10 +278,6 @@ Event_type Event_names_get(const Event_names* names, const char* name)
     Name_info* info = AAtree_get_exact(names->names, name);
     if (info == NULL)
     {
-        if (string_eq(name, "mj"))
-        {
-            return Trigger_jump;
-        }
         return Event_NONE;
     }
 

@@ -119,7 +119,7 @@ Column* Pattern_get_column(const Pattern* pat, int index);
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Pattern_set_location(Pattern* pat, int subsong, Pat_inst_ref* piref);
+//bool Pattern_set_location(Pattern* pat, int subsong, Pat_inst_ref* piref);
 
 
 /**
@@ -131,7 +131,7 @@ bool Pattern_set_location(Pattern* pat, int subsong, Pat_inst_ref* piref);
  *
  * \return   The tree of potential locations.
  */
-AAtree* Pattern_get_locations(Pattern* pat, AAiter** iter);
+//AAtree* Pattern_get_locations(Pattern* pat, AAiter** iter);
 
 
 /**

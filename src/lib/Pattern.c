@@ -24,15 +24,14 @@
 #include <Event.h>
 #include <memory.h>
 #include <Pattern.h>
-#include <Pattern_location.h>
 #include <xassert.h>
 
 
 struct Pattern
 {
     Column* cols[KQT_COLUMNS_MAX];
-    AAtree* locations;
-    AAiter* locations_iter;
+    //AAtree* locations;
+    //AAiter* locations_iter;
     Tstamp length;
     Bit_array* existents;
 };
@@ -48,8 +47,6 @@ Pattern* new_Pattern(void)
 
     for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
         pat->cols[i] = NULL;
-    pat->locations = NULL;
-    pat->locations_iter = NULL;
     pat->existents = NULL;
 
     for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
@@ -61,14 +58,8 @@ Pattern* new_Pattern(void)
             return NULL;
         }
     }
-    pat->locations = new_AAtree(
-            (int (*)(const void*, const void*))Pattern_location_cmp,
-            memory_free);
-    pat->locations_iter = new_AAiter(pat->locations);
     pat->existents = new_Bit_array(KQT_PAT_INSTANCES_MAX);
-    if (pat->locations == NULL ||
-            pat->locations_iter == NULL ||
-            pat->existents == NULL)
+    if (pat->existents == NULL)
     {
         del_Pattern(pat);
         return NULL;
@@ -156,6 +147,7 @@ Column* Pattern_get_column(const Pattern* pat, int index)
 }
 
 
+#if 0
 bool Pattern_set_location(Pattern* pat, int song, Pat_inst_ref* piref)
 {
     assert(pat != NULL);
@@ -194,6 +186,7 @@ AAtree* Pattern_get_locations(Pattern* pat, AAiter** iter)
     *iter = pat->locations_iter;
     return pat->locations;
 }
+#endif
 
 
 void Pattern_set_length(Pattern* pat, Tstamp* length)
@@ -223,8 +216,6 @@ void del_Pattern(Pattern* pat)
     {
         del_Column(pat->cols[i]);
     }
-    del_AAtree(pat->locations);
-    del_AAiter(pat->locations_iter);
     del_Bit_array(pat->existents);
     memory_free(pat);
     return;

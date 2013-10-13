@@ -12,9 +12,9 @@
  */
 
 
+#include <limits.h>
 #include <stdio.h>
 
-#include <events/Event_master_jump.h>
 #include <expr.h>
 #include <player/Player_seq.h>
 #include <string_common.h>
@@ -242,6 +242,35 @@ void Player_process_cgiters(Player* player, Tstamp* limit, bool skip)
     assert(limit != NULL);
     assert(Tstamp_cmp(limit, TSTAMP_AUTO) >= 0);
 
+    // Update current position
+    // FIXME: we should really have a well-defined single source of current position
+    player->master_params.cur_pos = player->cgiters[0].pos;
+
+    // Stop if we don't have anything to play
+    if (player->master_params.cur_pos.piref.pat < 0)
+    {
+        player->master_params.playback_state = PLAYBACK_STOPPED;
+        Tstamp_set(limit, 0, 0);
+        return;
+    }
+
+    // Find our next jump position
+    Tstamp* next_jump_row = Tstamp_set(TSTAMP_AUTO, INT64_MAX, 0);
+    int next_jump_ch = KQT_CHANNELS_MAX;
+    int next_jump_trigger = INT_MAX;
+    Jump_context* next_jc = Active_jumps_get_next_context(
+            player->master_params.active_jumps,
+            &player->master_params.cur_pos.piref,
+            &player->master_params.cur_pos.pat_pos,
+            player->master_params.cur_ch,
+            player->master_params.cur_trigger);
+    if (next_jc != NULL)
+    {
+        Tstamp_copy(next_jump_row, &next_jc->row);
+        next_jump_ch = next_jc->ch_num;
+        next_jump_trigger = next_jc->order;
+    }
+
     // Process trigger rows at current position
     for (int i = player->master_params.cur_ch; i < KQT_CHANNELS_MAX; ++i)
     {
@@ -271,33 +300,48 @@ void Player_process_cgiters(Player* player, Tstamp* limit, bool skip)
             {
                 const Event_type event_type = Event_get_type(el->event);
 
-                if (event_type == Trigger_jump)
+                const bool at_active_jump =
+                    Tstamp_cmp(next_jump_row, &cgiter->pos.pat_pos) == 0 &&
+                    next_jump_ch == i &&
+                    next_jump_trigger == player->master_params.cur_trigger;
+
+                if (at_active_jump)
                 {
-                    // Set current pattern instance, FIXME: hackish
-                    player->master_params.cur_pos.piref =
-                        cgiter->pos.piref;
-
-                    Trigger_master_jump_process(
-                            el->event,
-                            &player->master_params);
-
-                    // Break if jump triggered
-                    if (player->master_params.do_jump)
+                    // Process our next Jump context
+                    assert(next_jc != NULL);
+                    if (next_jc->counter > 0)
                     {
-                        player->master_params.do_jump = false;
-                        Tstamp_set(limit, 0, 0);
+                        player->master_params.do_jump = true;
+                    }
+                    else
+                    {
+                        // Release our consumed Jump context
+                        AAnode* handle = Active_jumps_remove_context(
+                                player->master_params.active_jumps, next_jc);
+                        Jump_cache_release_context(
+                                player->master_params.jump_cache, handle);
 
-                        // Move cgiters to the new position
-                        for (int k = 0; k < KQT_CHANNELS_MAX; ++k)
-                            Cgiter_reset(
-                                    &player->cgiters[k],
-                                    &player->master_params.cur_pos);
-
-                        return;
+                        // Update next Jump context
+                        Tstamp_set(next_jump_row, INT64_MAX, 0);
+                        next_jump_ch = KQT_CHANNELS_MAX;
+                        next_jump_trigger = INT_MAX;
+                        next_jc = Active_jumps_get_next_context(
+                                player->master_params.active_jumps,
+                                &player->master_params.cur_pos.piref,
+                                &player->master_params.cur_pos.pat_pos,
+                                i,
+                                player->master_params.cur_trigger);
+                        if (next_jc != NULL)
+                        {
+                            Tstamp_copy(next_jump_row, &next_jc->row);
+                            next_jump_ch = next_jc->ch_num;
+                            next_jump_trigger = next_jc->order;
+                        }
                     }
                 }
                 else
                 {
+                    // Process trigger normally
                     if (!skip ||
                             Event_is_control(event_type) ||
                             Event_is_general(event_type) ||
@@ -308,6 +352,61 @@ void Player_process_cgiters(Player* player, Tstamp* limit, bool skip)
                                 Event_get_desc(el->event),
                                 NULL, // no meta value
                                 skip);
+                }
+
+                // Perform jump
+                if (player->master_params.do_jump)
+                {
+                    player->master_params.do_jump = false;
+
+                    if (!at_active_jump)
+                    {
+                        // We just got a new Jump context
+                        next_jc = Active_jumps_get_next_context(
+                            player->master_params.active_jumps,
+                            &player->master_params.cur_pos.piref,
+                            &player->master_params.cur_pos.pat_pos,
+                            i,
+                            player->master_params.cur_trigger);
+                        assert(next_jc != NULL);
+                    }
+
+                    --next_jc->counter;
+
+                    // Get target pattern instance
+                    Pat_inst_ref target_piref = next_jc->target_piref;
+                    if (target_piref.pat < 0)
+                        target_piref = player->master_params.cur_pos.piref;
+
+                    // Find new track and system
+                    Position target_pos;
+                    Position_init(&target_pos);
+                    if (!Module_find_pattern_location(
+                                player->module,
+                                &target_piref,
+                                &target_pos.track,
+                                &target_pos.system))
+                    {
+                        // Stop if the jump target does not exist
+                        player->master_params.playback_state = PLAYBACK_STOPPED;
+                    }
+                    else
+                    {
+                        // Move cgiters to the new position
+                        Tstamp_copy(&target_pos.pat_pos, &next_jc->target_row);
+                        target_pos.piref = next_jc->target_piref;
+                        for (int k = 0; k < KQT_CHANNELS_MAX; ++k)
+                            Cgiter_reset(
+                                    &player->cgiters[k],
+                                    &target_pos);
+                    }
+
+                    // Make sure all triggers are processed after the jump
+                    player->master_params.cur_ch = 0;
+                    player->master_params.cur_trigger = 0;
+
+                    Tstamp_set(limit, 0, 0);
+                    return;
                 }
 
                 ++player->master_params.cur_trigger;
@@ -347,6 +446,8 @@ void Player_process_cgiters(Player* player, Tstamp* limit, bool skip)
         Tstamp_set(limit, 0, 0);
         return;
     }
+
+    // TODO: Find our next Jump context
 
     bool any_cgiter_active = false;
 

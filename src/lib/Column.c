@@ -20,7 +20,6 @@
 #include <inttypes.h>
 
 #include <Column.h>
-#include <Event_master_jump.h>
 #include <Event_names.h>
 #include <memory.h>
 #include <Tstamp.h>
@@ -281,15 +280,11 @@ Column* new_Column(const Tstamp* len)
 
 Column* new_Column_from_string(const Tstamp* len,
                                char* str,
-                               AAtree* locations,
-                               AAiter* locations_iter,
                                const Event_names* event_names,
                                Read_state* state)
 {
     assert(event_names != NULL);
     assert(state != NULL);
-    assert(locations != NULL);
-    assert(locations_iter != NULL);
     if (state->error)
     {
         return false;
@@ -300,11 +295,6 @@ Column* new_Column_from_string(const Tstamp* len,
         return NULL;
     }
     if (!Column_parse(col, str, event_names, state))
-    {
-        del_Column(col);
-        return NULL;
-    }
-    if (!Column_update_locations(col, locations, locations_iter))
     {
         del_Column(col);
         return NULL;
@@ -372,34 +362,6 @@ static bool Column_parse(Column* col,
 }
 
 #undef break_if
-
-
-bool Column_update_locations(Column* col,
-                             AAtree* locations,
-                             AAiter* locations_iter)
-{
-    assert(col != NULL);
-    assert(locations != NULL);
-    assert(locations_iter != NULL);
-    Column_iter_change_col(col->edit_iter, col);
-    Event* event = Column_iter_get(
-            col->edit_iter,
-            Tstamp_init(TSTAMP_AUTO));
-    while (event != NULL)
-    {
-        Event_type type = Event_get_type(event);
-        if (type == Trigger_jump &&
-                !Trigger_master_jump_set_locations(
-                    (Event_master_jump*)event,
-                    locations,
-                    locations_iter))
-        {
-            return false;
-        }
-        event = Column_iter_get_next(col->edit_iter);
-    }
-    return true;
-}
 
 
 bool Column_ins(Column* col, Event* event)
