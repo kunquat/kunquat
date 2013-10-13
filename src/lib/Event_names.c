@@ -208,28 +208,31 @@ Event_names* new_Event_names(void)
 {
     Event_names* names = memory_alloc_item(Event_names);
     if (names == NULL)
-    {
         return NULL;
-    }
+
     names->error = false;
-    names->names = new_AAtree((int (*)(const void*, const void*))event_name_cmp,
-                              (void (*)(void*))del_Name_info);
+    names->names = new_AAtree(
+            (int (*)(const void*, const void*))event_name_cmp,
+            (void (*)(void*))del_Name_info);
     if (names->names == NULL)
     {
         del_Event_names(names);
         return NULL;
     }
+
     for (int i = 0; event_specs[i].name[0] != '\0'; ++i)
     {
         assert(strlen(event_specs[i].name) > 0);
         assert(strlen(event_specs[i].name) < EVENT_NAME_MAX);
         assert(!AAtree_contains(names->names, event_specs[i].name));
+
         if (!AAtree_ins(names->names, &event_specs[i]))
         {
             del_Event_names(names);
             return NULL;
         }
     }
+
     return names;
 }
 
@@ -238,27 +241,22 @@ static int event_name_cmp(const char* e1, const char* e2)
 {
     assert(e1 != NULL);
     assert(e2 != NULL);
+
     int i = 0;
     for (i = 0; e1[i] != '\0' && e1[i] != '"' &&
                 e2[i] != '\0' && e1[i] != '"'; ++i)
     {
         if (e1[i] < e2[i])
-        {
             return -1;
-        }
         else if (e1[i] > e2[i])
-        {
             return 1;
-        }
     }
+
     if (e2[i] != '\0' && e2[i] != '"')
-    {
         return -1;
-    }
     if (e1[i] != '\0' && e1[i] != '"')
-    {
         return 1;
-    }
+
     return 0;
 }
 
@@ -277,9 +275,7 @@ Event_type Event_names_get(const Event_names* names, const char* name)
 
     Name_info* info = AAtree_get_exact(names->names, name);
     if (info == NULL)
-    {
         return Event_NONE;
-    }
 
     return info->type;
 }
@@ -303,12 +299,13 @@ bool Event_names_set_pass(Event_names* names, const char* name, bool pass)
 {
     assert(names != NULL);
     assert(name != NULL);
+
     Name_info* info = AAtree_get_exact(names->names, name);
     if (info == NULL)
-    {
         return false;
-    }
+
     info->pass = pass;
+
     return true;
 }
 
@@ -317,11 +314,11 @@ bool Event_names_get_pass(Event_names* names, const char* name)
 {
     assert(names != NULL);
     assert(name != NULL);
+
     Name_info* info = AAtree_get_exact(names->names, name);
     if (info == NULL)
-    {
         return false;
-    }
+
     return info->pass;
 }
 
@@ -329,11 +326,11 @@ bool Event_names_get_pass(Event_names* names, const char* name)
 void del_Event_names(Event_names* names)
 {
     if (names == NULL)
-    {
         return;
-    }
+
     del_AAtree(names->names);
     memory_free(names);
+
     return;
 }
 
