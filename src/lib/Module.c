@@ -65,19 +65,6 @@ static void Module_update_tempo(
         double tempo);
 
 
-/**
- * Synchronises the Module.
- *
- * This function synchronises all the Devices the Module contains. It should be
- * called after loading a Kunquat composition.
- *
- * \param device   The Module Device -- must not be \c NULL.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-//static bool Module_sync(Device* device, Device_states* dstates);
-
-
 Module* new_Module()
 {
     Module* module = memory_alloc_item(Module);
@@ -95,7 +82,6 @@ Module* new_Module()
     Device_register_set_audio_rate(&module->parent, Module_set_audio_rate);
     Device_register_update_tempo(&module->parent, Module_update_tempo);
     Device_register_set_buffer_size(&module->parent, Module_set_buffer_size);
-    //Device_set_sync(&module->parent, Module_sync);
     Device_register_port(&module->parent, DEVICE_PORT_TYPE_RECEIVE, 0);
 
     // Clear fields
@@ -622,35 +608,6 @@ static bool Module_set_buffer_size(
 
     return true;
 }
-
-
-#if 0
-static bool Module_sync(Device* device, Device_states* dstates)
-{
-    assert(device != NULL);
-    assert(dstates != NULL);
-
-    Module* module = (Module*)device;
-
-    // Sync instruments
-    for (int i = 0; i < KQT_INSTRUMENTS_MAX; ++i)
-    {
-        Instrument* ins = Ins_table_get(module->insts, i);
-        if (ins != NULL && !Device_sync((Device*)ins, dstates))
-            return false;
-    }
-
-    // Sync effects
-    for (int i = 0; i < KQT_EFFECTS_MAX; ++i)
-    {
-        Effect* eff = Effect_table_get(module->effects, i);
-        if (eff != NULL && !Device_sync((Device*)eff, dstates))
-            return false;
-    }
-
-    return true;
-}
-#endif
 
 
 void del_Module(Module* module)
