@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -84,32 +84,6 @@ Event_type Event_names_get(const Event_names* names, const char* name);
 Value_type Event_names_get_param_type(
         const Event_names* names,
         const char* name);
-
-
-/**
- * Sets filter passing status for an event.
- *
- * \param names   The Event name collection -- must not be \c NULL.
- * \param name    The Event name -- must not be \c NULL.
- * \param pass    \c true if and only if the events of \a name should pass
- *                the event filter.
- *
- * \return   \c true if successful, or \c false if \a name does not correspond
- *           to an Event type.
- */
-bool Event_names_set_pass(Event_names* names, const char* name, bool pass);
-
-
-/**
- * Gets filter passing status for an event.
- *
- * \param names   The Event name collection -- must not be \c NULL.
- * \param name    The Event name -- must not be \c NULL.
- *
- * \return   \c true if \a name is valid and it passes the filter,
- *           otherwise \c false.
- */
-bool Event_names_get_pass(Event_names* names, const char* name);
 
 
 /**
