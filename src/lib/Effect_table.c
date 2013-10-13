@@ -31,11 +31,11 @@ struct Effect_table
 Effect_table* new_Effect_table(int size)
 {
     assert(size > 0);
+
     Effect_table* table = memory_alloc_item(Effect_table);
     if (table == NULL)
-    {
         return NULL;
-    }
+
     table->effects = NULL;
     table->effects = new_Etable(size, (void (*)(void*))del_Effect);
     if (table->effects == NULL)
@@ -43,7 +43,9 @@ Effect_table* new_Effect_table(int size)
         del_Effect_table(table);
         return NULL;
     }
+
     table->size = size;
+
     return table;
 }
 
@@ -54,6 +56,7 @@ bool Effect_table_set(Effect_table* table, int index, Effect* eff)
     assert(index >= 0);
     assert(index < table->size);
     assert(eff != NULL);
+
     return Etable_set(table->effects, index, eff);
 }
 
@@ -63,6 +66,7 @@ Effect* Effect_table_get(Effect_table* table, int index)
     assert(table != NULL);
     assert(index >= 0);
     assert(index < table->size);
+
     return Etable_get(table->effects, index);
 }
 
@@ -72,7 +76,9 @@ void Effect_table_remove(Effect_table* table, int index)
     assert(table != NULL);
     assert(index >= 0);
     assert(index < table->size);
+
     Etable_remove(table->effects, index);
+
     return;
 }
 
@@ -88,11 +94,11 @@ void Effect_table_clear(Effect_table* table)
 void del_Effect_table(Effect_table* table)
 {
     if (table == NULL)
-    {
         return;
-    }
+
     del_Etable(table->effects);
     memory_free(table);
+
     return;
 }
 

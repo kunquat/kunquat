@@ -36,21 +36,13 @@ int Pat_inst_ref_cmp(const Pat_inst_ref* p1, const Pat_inst_ref* p2)
     assert(Pat_inst_ref_is_valid(p2));
 
     if (p1->pat < p2->pat)
-    {
         return -1;
-    }
     else if (p1->pat > p2->pat)
-    {
         return 1;
-    }
     else if (p1->inst < p2->inst)
-    {
         return -1;
-    }
     else if (p1->inst > p2->inst)
-    {
         return 1;
-    }
     return 0;
 }
 

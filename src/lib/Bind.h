@@ -79,12 +79,13 @@ Event_cache* Bind_create_cache(const Bind* map);
  * \return   The first Target event if any calls are triggered,
  *           otherwise \c NULL.
  */
-Target_event* Bind_get_first(const Bind* map,
-                             Event_cache* cache,
-                             Env_state* estate,
-                             const char* event_name,
-                             Value* value,
-                             Random* rand);
+Target_event* Bind_get_first(
+        const Bind* map,
+        Event_cache* cache,
+        Env_state* estate,
+        const char* event_name,
+        Value* value,
+        Random* rand);
 
 
 /**

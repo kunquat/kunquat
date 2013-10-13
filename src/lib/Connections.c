@@ -71,10 +71,11 @@ static bool Connections_is_cyclic(Connections* graph);
  *
  * \return   The port number if the path is valid, otherwise \c -1.
  */
-static int validate_connection_path(char* str,
-                                    Connection_level level,
-                                    Device_port_type type,
-                                    Read_state* state);
+static int validate_connection_path(
+        char* str,
+        Connection_level level,
+        Device_port_type type,
+        Read_state* state);
 
 
 #define clean_if(expr, graph, node)    \
@@ -83,21 +84,20 @@ static int validate_connection_path(char* str,
         if ((expr))                    \
         {                              \
             if (node != NULL)          \
-            {                          \
                 del_Device_node(node); \
-            }                          \
             del_Connections(graph);    \
             return NULL;               \
         }                              \
     } else (void)0
 
-Connections* new_Connections_from_string(char* str,
-                                         Connection_level level,
-                                         Ins_table* insts,
-                                         Effect_table* effects,
-                                         DSP_table* dsps,
-                                         Device* master,
-                                         Read_state* state)
+Connections* new_Connections_from_string(
+        char* str,
+        Connection_level level,
+        Ins_table* insts,
+        Effect_table* effects,
+        DSP_table* dsps,
+        Device* master,
+        Read_state* state)
 {
     assert((level & ~(CONNECTION_LEVEL_INSTRUMENT |
                      CONNECTION_LEVEL_EFFECT)) == 0);
@@ -107,15 +107,14 @@ Connections* new_Connections_from_string(char* str,
     assert((dsps == NULL) || (level & CONNECTION_LEVEL_EFFECT));
     assert(master != NULL);
     assert(state != NULL);
+
     if (state->error)
-    {
         return NULL;
-    }
+
     Connections* graph = memory_alloc_item(Connections);
     if (graph == NULL)
-    {
         return NULL;
-    }
+
     graph->nodes = NULL;
     graph->iter = NULL;
     graph->nodes = new_AAtree((int (*)(const void*, const void*))Device_node_cmp,
@@ -164,22 +163,22 @@ Connections* new_Connections_from_string(char* str,
         str = read_string(str, dest_name, KQT_DEVICE_NODE_NAME_MAX, state);
         str = read_const_char(str, ']', state);
 
-        int src_port = validate_connection_path(src_name,
-                                                level,
-                                                DEVICE_PORT_TYPE_SEND,
-                                                state);
-        int dest_port = validate_connection_path(dest_name,
-                                                 level,
-                                                 DEVICE_PORT_TYPE_RECEIVE,
-                                                 state);
+        int src_port = validate_connection_path(
+                src_name,
+                level,
+                DEVICE_PORT_TYPE_SEND,
+                state);
+        int dest_port = validate_connection_path(
+                dest_name,
+                level,
+                DEVICE_PORT_TYPE_RECEIVE,
+                state);
         clean_if(state->error, graph, NULL);
 
         if ((level & CONNECTION_LEVEL_EFFECT))
         {
             if (string_eq(src_name, ""))
-            {
                 strcpy(src_name, "Iin");
-            }
         }
 
         if (AAtree_get_exact(graph->nodes, src_name) == NULL)
@@ -187,12 +186,14 @@ Connections* new_Connections_from_string(char* str,
             Device* actual_master = master;
             if ((level & CONNECTION_LEVEL_EFFECT) &&
                     string_eq(src_name, "Iin"))
-            {
                 actual_master = Effect_get_input_interface((Effect*)master);
-            }
-            Device_node* new_src = new_Device_node(src_name,
-                                                   insts, effects, dsps,
-                                                   actual_master);
+
+            Device_node* new_src = new_Device_node(
+                    src_name,
+                    insts,
+                    effects,
+                    dsps,
+                    actual_master);
             clean_if(new_src == NULL, graph, NULL);
             clean_if(!AAtree_ins(graph->nodes, new_src), graph, new_src);
         }
@@ -208,9 +209,12 @@ Connections* new_Connections_from_string(char* str,
                 actual_master = Effect_get_output_interface((Effect*)master);
             }
 #endif
-            Device_node* new_dest = new_Device_node(dest_name,
-                                                    insts, effects, dsps,
-                                                    master);
+            Device_node* new_dest = new_Device_node(
+                    dest_name,
+                    insts,
+                    effects,
+                    dsps,
+                    master);
             clean_if(new_dest == NULL, graph, NULL);
             clean_if(!AAtree_ins(graph->nodes, new_dest), graph, new_dest);
         }
@@ -218,8 +222,10 @@ Connections* new_Connections_from_string(char* str,
 
         assert(src_node != NULL);
         assert(dest_node != NULL);
-        clean_if(!Device_node_connect(dest_node, dest_port,
-                                     src_node, src_port), graph, NULL);
+        clean_if(
+                !Device_node_connect(dest_node, dest_port, src_node, src_port),
+                graph,
+                NULL);
 
         check_next(str, state, expect_entry);
     }
@@ -232,7 +238,9 @@ Connections* new_Connections_from_string(char* str,
         del_Connections(graph);
         return NULL;
     }
+
     Connections_reset(graph);
+
     return graph;
 }
 
@@ -323,6 +331,7 @@ void Connections_mix(
 
     Device_node_reset(master);
     Device_node_mix(master, states, start, until, freq, tempo);
+
     return;
 }
 
@@ -346,6 +355,7 @@ static void Connections_reset(Connections* graph)
 static bool Connections_is_cyclic(Connections* graph)
 {
     assert(graph != NULL);
+
     Connections_reset(graph);
     const char* name = "";
     Device_node* node = AAiter_get_at_least(graph->iter, name);
@@ -353,9 +363,8 @@ static bool Connections_is_cyclic(Connections* graph)
     {
         assert(Device_node_get_state(node) != DEVICE_NODE_STATE_REACHED);
         if (Device_node_cycle_in_path(node))
-        {
             return true;
-        }
+
         node = AAiter_get_next(graph->iter);
     }
     return false;
@@ -366,11 +375,13 @@ void Connections_print(Connections* graph, FILE* out)
 {
     assert(graph != NULL);
     assert(out != NULL);
+
 //    Connections_reset(graph);
     Device_node* master = AAtree_get_exact(graph->nodes, "");
     assert(master != NULL);
     Device_node_print(master, out);
     fprintf(out, "\n");
+
     return;
 }
 
@@ -378,12 +389,12 @@ void Connections_print(Connections* graph, FILE* out)
 void del_Connections(Connections* graph)
 {
     if (graph == NULL)
-    {
         return;
-    }
+
     del_AAiter(graph->iter);
     del_AAtree(graph->nodes);
     memory_free(graph);
+
     return;
 }
 
@@ -391,28 +402,30 @@ void del_Connections(Connections* graph)
 static int read_index(char* str)
 {
     assert(str != NULL);
+
     static const char* hex_digits = "0123456789abcdef";
     if (strspn(str, hex_digits) != 2)
-    {
         return INT_MAX;
-    }
+
     int res = (strchr(hex_digits, str[0]) - hex_digits) * 0x10;
+
     return res + (strchr(hex_digits, str[1]) - hex_digits);
 }
 
 
-static int validate_connection_path(char* str,
-                                    Connection_level level,
-                                    Device_port_type type,
-                                    Read_state* state)
+static int validate_connection_path(
+        char* str,
+        Connection_level level,
+        Device_port_type type,
+        Read_state* state)
 {
     assert(str != NULL);
     assert(type < DEVICE_PORT_TYPES);
     assert(state != NULL);
+
     if (state->error)
-    {
         return -1;
-    }
+
     bool instrument = false;
     bool generator = false;
     //bool effect = false;
@@ -420,6 +433,7 @@ static int validate_connection_path(char* str,
     bool root = true;
     char* path = str;
     char* trim_point = str;
+
     if (string_has_prefix(str, "ins_"))
     {
         if (level != CONNECTION_LEVEL_GLOBAL)
@@ -429,6 +443,7 @@ static int validate_connection_path(char* str,
                     " \"%s\"", path);
             return -1;
         }
+
         instrument = true;
         root = false;
         str += strlen("ins_");
@@ -439,6 +454,7 @@ static int validate_connection_path(char* str,
                     " \"%s\"", path);
             return -1;
         }
+
         str += 2;
         if (!string_has_prefix(str, "/"))
         {
@@ -447,6 +463,7 @@ static int validate_connection_path(char* str,
                     " in the connection: \"%s\"", path);
             return -1;
         }
+
         ++str;
         trim_point = str - 1;
     }
@@ -459,14 +476,14 @@ static int validate_connection_path(char* str,
                     " \"%s\"", path);
             return -1;
         }
+
         //effect = true;
         root = false;
         str += strlen("eff_");
         int max = KQT_EFFECTS_MAX;
         if ((level & CONNECTION_LEVEL_INSTRUMENT))
-        {
             max = KQT_INST_EFFECTS_MAX;
-        }
+
         if (read_index(str) >= max)
         {
             Read_state_set_error(state,
@@ -474,6 +491,7 @@ static int validate_connection_path(char* str,
                     " \"%s\"", path);
             return -1;
         }
+
         str += 2;
         if (!string_has_prefix(str, "/"))
         {
@@ -482,6 +500,7 @@ static int validate_connection_path(char* str,
                     " the connection: \"%s\"", path);
             return -1;
         }
+
         ++str;
         trim_point = str - 1;
     }
@@ -501,6 +520,7 @@ static int validate_connection_path(char* str,
                     " \"%s\"", path);
             return -1;
         }
+
         root = false;
         generator = true;
         str += strlen("gen_");
@@ -511,6 +531,7 @@ static int validate_connection_path(char* str,
                     " \"%s\"", path);
             return -1;
         }
+
         str += 2;
         if (!string_has_prefix(str, "/"))
         {
@@ -519,6 +540,7 @@ static int validate_connection_path(char* str,
                     " in the connection: \"%s\"", path);
             return -1;
         }
+
         ++str;
         if (!string_has_prefix(str, "C/"))
         {
@@ -527,6 +549,7 @@ static int validate_connection_path(char* str,
                     " in the connection: \"%s\"", path);
             return -1;
         }
+
         str += strlen("C/");
         trim_point = str - 1;
     }
@@ -538,6 +561,7 @@ static int validate_connection_path(char* str,
                     "DSP directory outside an effect: \"%s\"", path);
             return -1;
         }
+
         root = false;
         //dsp = true;
         str += strlen("dsp_");
@@ -547,6 +571,7 @@ static int validate_connection_path(char* str,
                     "Invalid DSP number in the connection: \"%s\"", path);
             return -1;
         }
+
         str += 2;
         if (!string_has_prefix(str, "/"))
         {
@@ -555,6 +580,7 @@ static int validate_connection_path(char* str,
                     " in the connection: \"%s\"", path);
             return -1;
         }
+
         ++str;
         if (!string_has_prefix(str, "C/"))
         {
@@ -563,6 +589,7 @@ static int validate_connection_path(char* str,
                     " in the connection: \"%s\"", path);
             return -1;
         }
+
         str += strlen("C/");
         trim_point = str - 1;
     }
@@ -576,6 +603,7 @@ static int validate_connection_path(char* str,
                     " or generators: \"%s\"", path);
             return -1;
         }
+
         if (string_has_prefix(str, "in_") && root &&
                 !(level & CONNECTION_LEVEL_EFFECT))
         {
@@ -583,6 +611,7 @@ static int validate_connection_path(char* str,
                     "Input ports are not allowed for master: \"%s\"", path);
             return -1;
         }
+
         if (type == DEVICE_PORT_TYPE_RECEIVE)
         {
             bool can_receive = (!root && string_has_prefix(str, "in_")) ||
@@ -607,6 +636,7 @@ static int validate_connection_path(char* str,
                 return -1;
             }
         }
+
         str += strcspn(str, "_") + 1;
         int port = read_index(str);
         if (port >= KQT_DEVICE_PORTS_MAX)
@@ -614,6 +644,7 @@ static int validate_connection_path(char* str,
             Read_state_set_error(state, "Invalid port number: \"%s\"", path);
             return -1;
         }
+
         str += 2;
         if (str[0] != '/' && str[0] != '\0' && str[1] != '\0')
         {
@@ -621,10 +652,13 @@ static int validate_connection_path(char* str,
                     " after the port specification: \"%s\"", path);
             return -1;
         }
+
         *trim_point = '\0';
         return port;
     }
+
     Read_state_set_error(state, "Invalid connection: \"%s\"", path);
+
     return -1;
 }
 

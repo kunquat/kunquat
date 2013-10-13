@@ -142,10 +142,11 @@ Column* new_Column(const Tstamp* len);
  * \return   The new Column if successful, otherwise \c NULL. \a state
  *           will _not_ be updated if memory allocation failed.
  */
-Column* new_Column_from_string(const Tstamp* len,
-                               char* str,
-                               const Event_names* event_names,
-                               Read_state* state);
+Column* new_Column_from_string(
+        const Tstamp* len,
+        char* str,
+        const Event_names* event_names,
+        Read_state* state);
 
 
 /**

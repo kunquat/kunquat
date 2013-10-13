@@ -47,16 +47,20 @@ typedef struct Constraint
 static Constraint* new_Constraint(char** str, Read_state* state);
 
 
-static bool Constraint_match(Constraint* constraint, Event_cache* cache,
-                             Env_state* estate, Random* rand);
+static bool Constraint_match(
+        Constraint* constraint,
+        Event_cache* cache,
+        Env_state* estate,
+        Random* rand);
 
 
 static void del_Constraint(Constraint* constraint);
 
 
-static Target_event* new_Target_event(char** str,
-                                      Read_state* state,
-                                      const Event_names* names);
+static Target_event* new_Target_event(
+        char** str,
+        Read_state* state,
+        const Event_names* names);
 
 
 static void del_Target_event(Target_event* event);
@@ -103,16 +107,18 @@ static void Cblist_append(Cblist* list, Cblist_item* item);
 static void del_Cblist(Cblist* list);
 
 
-static bool read_constraints(char** str,
-                             Read_state* state,
-                             Bind* map,
-                             Cblist_item* item);
+static bool read_constraints(
+        char** str,
+        Read_state* state,
+        Bind* map,
+        Cblist_item* item);
 
 
-static bool read_events(char** str,
-                        Read_state* state,
-                        Cblist_item* item,
-                        const Event_names* names);
+static bool read_events(
+        char** str,
+        Read_state* state,
+        Cblist_item* item,
+        const Event_names* names);
 
 
 static bool Bind_is_cyclic(Bind* map);
@@ -122,15 +128,14 @@ Bind* new_Bind(char* str, const Event_names* names, Read_state* state)
 {
     assert(names != NULL);
     assert(state != NULL);
+
     if (state->error)
-    {
         return NULL;
-    }
+
     Bind* map = memory_alloc_item(Bind);
     if (map == NULL)
-    {
         return NULL;
-    }
+
     map->iter = new_AAiter(NULL);
     map->cblists = new_AAtree((int (*)(const void*, const void*))strcmp,
                               (void (*)(void*))del_Cblist);
@@ -139,22 +144,23 @@ Bind* new_Bind(char* str, const Event_names* names, Read_state* state)
         del_Bind(map);
         return NULL;
     }
+
     if (str == NULL)
-    {
         return map;
-    }
+
     str = read_const_char(str, '[', state);
     if (state->error)
     {
         del_Bind(map);
         return NULL;
     }
+
     str = read_const_char(str, ']', state);
     if (!state->error)
-    {
         return map;
-    }
+
     Read_state_clear_error(state);
+
     bool expect_entry = true;
     while (expect_entry)
     {
@@ -166,6 +172,7 @@ Bind* new_Bind(char* str, const Event_names* names, Read_state* state)
             del_Bind(map);
             return NULL;
         }
+
         Cblist* cblist = AAtree_get_exact(map->cblists, event_name);
         if (cblist == NULL)
         {
@@ -182,12 +189,14 @@ Bind* new_Bind(char* str, const Event_names* names, Read_state* state)
                 return NULL;
             }
         }
+
         Cblist_item* item = new_Cblist_item();
         if (item == NULL)
         {
             del_Bind(map);
             return NULL;
         }
+
         Cblist_append(cblist, item);
         str = read_const_char(str, ',', state);
         if (!read_constraints(&str, state, map, item))
@@ -195,32 +204,38 @@ Bind* new_Bind(char* str, const Event_names* names, Read_state* state)
             del_Bind(map);
             return NULL;
         }
+
         str = read_const_char(str, ',', state);
         if (!read_events(&str, state, item, names))
         {
             del_Bind(map);
             return NULL;
         }
+
         str = read_const_char(str, ']', state);
         if (state->error)
         {
             del_Bind(map);
             return NULL;
         }
+
         check_next(str, state, expect_entry);
     }
+
     str = read_const_char(str, ']', state);
     if (state->error)
     {
         del_Bind(map);
         return NULL;
     }
+
     if (Bind_is_cyclic(map))
     {
         Read_state_set_error(state, "Bind contains a cycle");
         del_Bind(map);
         return NULL;
     }
+
     return map;
 }
 
@@ -228,11 +243,11 @@ Bind* new_Bind(char* str, const Event_names* names, Read_state* state)
 Event_cache* Bind_create_cache(const Bind* map)
 {
     assert(map != NULL);
+
     Event_cache* cache = new_Event_cache();
     if (cache == NULL)
-    {
         return NULL;
-    }
+
     AAiter_change_tree(map->iter, map->cblists);
     Cblist* cblist = AAiter_get_at_least(map->iter, "");
     while (cblist != NULL)
@@ -254,27 +269,30 @@ Event_cache* Bind_create_cache(const Bind* map)
         }
         cblist = AAiter_get_next(map->iter);
     }
+
     return cache;
 }
 
 
-Target_event* Bind_get_first(const Bind* map,
-                             Event_cache* cache,
-                             Env_state* estate,
-                             const char* event_name,
-                             Value* value,
-                             Random* rand)
+Target_event* Bind_get_first(
+        const Bind* map,
+        Event_cache* cache,
+        Env_state* estate,
+        const char* event_name,
+        Value* value,
+        Random* rand)
 {
     assert(map != NULL);
     assert(cache != NULL);
     assert(event_name != NULL);
     assert(value != NULL);
+
     Event_cache_update(cache, event_name, value);
+
     Cblist* list = AAtree_get_exact(map->cblists, event_name);
     if (list == NULL)
-    {
         return NULL;
-    }
+
     Cblist_item* item = list->first;
     while (item != NULL)
     {
@@ -283,9 +301,8 @@ Target_event* Bind_get_first(const Bind* map,
         while (constraint != NULL)
         {
             if (!Constraint_match(constraint, cache, estate, rand))
-            {
                 break;
-            }
+
             constraint = constraint->next;
         }
         //fprintf(stderr, "%d\n", __LINE__);
@@ -297,6 +314,7 @@ Target_event* Bind_get_first(const Bind* map,
         //fprintf(stderr, "%d\n", __LINE__);
         item = item->next;
     }
+
     return NULL;
 }
 
@@ -304,12 +322,12 @@ Target_event* Bind_get_first(const Bind* map,
 void del_Bind(Bind* map)
 {
     if (map == NULL)
-    {
         return;
-    }
+
     del_AAiter(map->iter);
     del_AAtree(map->cblists);
     memory_free(map);
+
     return;
 }
 
@@ -320,6 +338,7 @@ static bool Bind_dfs(Bind* map, char* name);
 static bool Bind_is_cyclic(Bind* map)
 {
     assert(map != NULL);
+
     AAiter_change_tree(map->iter, map->cblists);
     Cblist* cblist = AAiter_get_at_least(map->iter, "");
     while (cblist != NULL)
@@ -330,13 +349,14 @@ static bool Bind_is_cyclic(Bind* map)
             cblist = AAiter_get_next(map->iter);
             continue;
         }
+
         assert(cblist->source_state == SOURCE_STATE_NEW);
         if (Bind_dfs(map, cblist->event_name))
-        {
             return true;
-        }
+
         cblist = AAiter_get_next(map->iter);
     }
+
     return false;
 }
 
@@ -345,17 +365,17 @@ static bool Bind_dfs(Bind* map, char* name)
 {
     assert(map != NULL);
     assert(name != NULL);
+
     Cblist* cblist = AAtree_get_exact(map->cblists, name);
     if (cblist == NULL || cblist->source_state == SOURCE_STATE_VISITED)
-    {
         return false;
-    }
+
     if (cblist->source_state == SOURCE_STATE_REACHED)
-    {
         return true;
-    }
+
     assert(cblist->source_state == SOURCE_STATE_NEW);
     cblist->source_state = SOURCE_STATE_REACHED;
+
     Cblist_item* item = cblist->first;
     while (item != NULL)
     {
@@ -367,23 +387,27 @@ static bool Bind_dfs(Bind* map, char* name)
             char* str = read_const_char(event->desc, '[', state);
             read_string(str, next_name, EVENT_NAME_MAX, state);
             assert(!state->error);
+
             if (Bind_dfs(map, next_name))
-            {
                 return true;
-            }
+
             event = event->next;
         }
+
         item = item->next;
     }
+
     cblist->source_state = SOURCE_STATE_VISITED;
+
     return false;
 }
 
 
-static bool read_constraints(char** str,
-                             Read_state* state,
-                             Bind* map,
-                             Cblist_item* item)
+static bool read_constraints(
+        char** str,
+        Read_state* state,
+        Bind* map,
+        Cblist_item* item)
 {
     assert(str != NULL);
     assert(*str != NULL);
@@ -391,60 +415,63 @@ static bool read_constraints(char** str,
     assert(map != NULL);
     (void)map;
     assert(item != NULL);
+
     *str = read_const_char(*str, '[', state);
     if (state->error)
-    {
         return false;
-    }
+
     *str = read_const_char(*str, ']', state);
     if (state->error)
     {
         Read_state_clear_error(state);
+
         bool expect_entry = true;
         while (expect_entry)
         {
             Constraint* constraint = new_Constraint(str, state);
             if (constraint == NULL)
-            {
                 return false;
-            }
+
             constraint->next = item->constraints;
             item->constraints = constraint;
             check_next(*str, state, expect_entry);
         }
+
         *str = read_const_char(*str, ']', state);
     }
+
     return !state->error;
 }
 
 
-static bool read_events(char** str,
-                        Read_state* state,
-                        Cblist_item* item,
-                        const Event_names* names)
+static bool read_events(
+        char** str,
+        Read_state* state,
+        Cblist_item* item,
+        const Event_names* names)
 {
     assert(str != NULL);
     assert(*str != NULL);
     assert(state != NULL);
     assert(item != NULL);
     assert(names != NULL);
+
     *str = read_const_char(*str, '[', state);
     if (state->error)
-    {
         return false;
-    }
+
     *str = read_const_char(*str, ']', state);
     if (state->error)
     {
         Read_state_clear_error(state);
+
         bool expect_entry = true;
         while (expect_entry)
         {
             Target_event* event = new_Target_event(str, state, names);
             if (event == NULL)
-            {
                 return false;
-            }
+
             if (item->last_event == NULL)
             {
                 assert(item->first_event == NULL);
@@ -456,10 +483,13 @@ static bool read_events(char** str,
                 item->last_event->next = event;
                 item->last_event = event;
             }
+
             check_next(*str, state, expect_entry);
         }
+
         *str = read_const_char(*str, ']', state);
     }
+
     return !state->error;
 }
 
@@ -467,15 +497,16 @@ static bool read_events(char** str,
 static Cblist* new_Cblist(char* event_name)
 {
     assert(event_name != NULL);
+
     Cblist* list = memory_alloc_item(Cblist);
     if (list == NULL)
-    {
         return NULL;
-    }
+
     list->source_state = SOURCE_STATE_NEW;
     list->first = list->last = NULL;
     strncpy(list->event_name, event_name, EVENT_NAME_MAX);
     list->event_name[EVENT_NAME_MAX] = '\0';
+
     return list;
 }
 
@@ -484,14 +515,17 @@ static void Cblist_append(Cblist* list, Cblist_item* item)
 {
     assert(list != NULL);
     assert(item != NULL);
+
     if (list->last == NULL)
     {
         assert(list->first == NULL);
         list->first = list->last = item;
         return;
     }
+
     list->last->next = item;
     list->last = item;
+
     return;
 }
 
@@ -499,9 +533,8 @@ static void Cblist_append(Cblist* list, Cblist_item* item)
 static void del_Cblist(Cblist* list)
 {
     if (list == NULL)
-    {
         return;
-    }
+
     Cblist_item* cur = list->first;
     while (cur != NULL)
     {
@@ -509,7 +542,9 @@ static void del_Cblist(Cblist* list)
         del_Cblist_item(cur);
         cur = next;
     }
+
     memory_free(list);
+
     return;
 }
 
@@ -518,13 +553,13 @@ static Cblist_item* new_Cblist_item(void)
 {
     Cblist_item* item = memory_alloc_item(Cblist_item);
     if (item == NULL)
-    {
         return NULL;
-    }
+
     item->constraints = NULL;
     item->first_event = NULL;
     item->last_event = NULL;
     item->next = NULL;
+
     return item;
 }
 
@@ -532,9 +567,8 @@ static Cblist_item* new_Cblist_item(void)
 static void del_Cblist_item(Cblist_item* item)
 {
     if (item == NULL)
-    {
         return;
-    }
+
     Constraint* curc = item->constraints;
     while (curc != NULL)
     {
@@ -542,6 +576,7 @@ static void del_Cblist_item(Cblist_item* item)
         del_Constraint(curc);
         curc = nextc;
     }
+
     Target_event* curt = item->first_event;
     while (curt != NULL)
     {
@@ -549,7 +584,9 @@ static void del_Cblist_item(Cblist_item* item)
         del_Target_event(curt);
         curt = nextt;
     }
+
     memory_free(item);
+
     return;
 }
 
@@ -559,15 +596,14 @@ static Constraint* new_Constraint(char** str, Read_state* state)
     assert(str != NULL);
     assert(*str != NULL);
     assert(state != NULL);
+
     if (state->error)
-    {
         return NULL;
-    }
+
     Constraint* c = memory_alloc_item(Constraint);
     if (c == NULL)
-    {
         return NULL;
-    }
+
     c->expr = NULL;
     c->next = NULL;
     *str = read_const_char(*str, '[', state);
@@ -580,6 +616,7 @@ static Constraint* new_Constraint(char** str, Read_state* state)
         del_Constraint(c);
         return NULL;
     }
+
     assert(expr < *str);
     int len = *str - expr;
     *str = read_const_char(*str, ']', state);
@@ -588,27 +625,35 @@ static Constraint* new_Constraint(char** str, Read_state* state)
         del_Constraint(c);
         return NULL;
     }
+
     c->expr = memory_calloc_items(char, len + 1);
     if (c->expr == NULL)
     {
         del_Constraint(c);
         return NULL;
     }
+
     strncpy(c->expr, expr, len);
     c->expr[len] = '\0';
+
     return c;
 }
 
 
-static bool Constraint_match(Constraint* constraint, Event_cache* cache,
-                             Env_state* estate, Random* rand)
+static bool Constraint_match(
+        Constraint* constraint,
+        Event_cache* cache,
+        Env_state* estate,
+        Random* rand)
 {
     assert(constraint != NULL);
     assert(cache != NULL);
     assert(estate != NULL);
     assert(rand != NULL);
+
     Value* value = Event_cache_get_value(cache, constraint->event_name);
     assert(value != NULL);
+
     Value* result = VALUE_AUTO;
     Read_state* state = READ_STATE_AUTO;
     //fprintf(stderr, "%s, %s", constraint->event_name, constraint->expr);
@@ -616,42 +661,44 @@ static bool Constraint_match(Constraint* constraint, Event_cache* cache,
     //fprintf(stderr, ", %s", state->message);
     //fprintf(stderr, " -> %d %s\n", (int)result->type,
     //                               result->value.bool_type ? "true" : "false");
-    return result->type == VALUE_TYPE_BOOL && result->value.bool_type;
+
+    return (result->type == VALUE_TYPE_BOOL) && result->value.bool_type;
 }
 
 
 static void del_Constraint(Constraint* constraint)
 {
     if (constraint == NULL)
-    {
         return;
-    }
+
     memory_free(constraint->expr);
     memory_free(constraint);
+
     return;
 }
 
 
-static Target_event* new_Target_event(char** str,
-                                      Read_state* state,
-                                      const Event_names* names)
+static Target_event* new_Target_event(
+        char** str,
+        Read_state* state,
+        const Event_names* names)
 {
     assert(str != NULL);
     assert(*str != NULL);
     assert(state != NULL);
     assert(names != NULL);
+
     if (state->error)
-    {
         return NULL;
-    }
+
     Target_event* event = memory_alloc_item(Target_event);
     if (event == NULL)
-    {
         return NULL;
-    }
+
     event->ch_offset = 0;
     event->desc = NULL;
     event->next = NULL;
+
     *str = read_const_char(*str, '[', state);
     int64_t ch_offset = 0;
     *str = read_int(*str, &ch_offset, state);
@@ -666,27 +713,27 @@ static Target_event* new_Target_event(char** str,
         del_Target_event(event);
         return NULL;
     }
+
     if (ch_offset <= -KQT_COLUMNS_MAX || ch_offset >= KQT_COLUMNS_MAX)
     {
         Read_state_set_error(state, "Channel offset out of bounds");
         del_Target_event(event);
         return NULL;
     }
+
     if (Event_names_get(names, event_name) == Event_NONE)
     {
         Read_state_set_error(state, "Unsupported event type: %s", event_name);
         del_Target_event(event);
         return NULL;
     }
+
     Value_type type = Event_names_get_param_type(names, event_name);
     if (type == VALUE_TYPE_NONE)
-    {
         desc = read_null(desc, state);
-    }
     else
-    {
         desc = read_string(desc, NULL, 0, state);
-    }
+
     desc = read_const_char(desc, ']', state);
     desc = read_const_char(desc, ']', state);
     if (state->error)
@@ -694,6 +741,7 @@ static Target_event* new_Target_event(char** str,
         del_Target_event(event);
         return NULL;
     }
+
     int len = desc - *str;
     assert(len > 0);
     event->desc = memory_alloc_items(char, len + 1);
@@ -702,10 +750,12 @@ static Target_event* new_Target_event(char** str,
         del_Target_event(event);
         return NULL;
     }
+
     event->ch_offset = ch_offset;
     memcpy(event->desc, *str, len);
     event->desc[len] = '\0';
     *str = desc;
+
     return event;
 }
 
@@ -713,11 +763,11 @@ static Target_event* new_Target_event(char** str,
 static void del_Target_event(Target_event* event)
 {
     if (event == NULL)
-    {
         return;
-    }
+
     memory_free(event->desc);
     memory_free(event);
+
     return;
 }
 

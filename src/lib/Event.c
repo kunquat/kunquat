@@ -32,7 +32,9 @@ void Event_set_pos(Event* event, Tstamp* pos)
 {
     assert(event != NULL);
     assert(pos != NULL);
+
     Tstamp_copy(&event->pos, pos);
+
     return;
 }
 
@@ -54,11 +56,11 @@ char* Event_get_desc(Event* event)
 void del_Event(Event* event)
 {
     if (event == NULL)
-    {
         return;
-    }
+
     assert(event->destroy != NULL);
     event->destroy(event);
+
     return;
 }
 

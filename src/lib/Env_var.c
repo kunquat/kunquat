@@ -63,10 +63,10 @@ Env_var* new_Env_var_from_string(char** str, Read_state* state)
     assert(str != NULL);
     assert(*str != NULL);
     assert(state != NULL);
+
     if (state->error)
-    {
         return NULL;
-    }
+
     char type_name[16] = "";
     char name[ENV_VAR_NAME_MAX] = "";
     *str = read_const_char(*str, '[', state);
@@ -75,17 +75,17 @@ Env_var* new_Env_var_from_string(char** str, Read_state* state)
     *str = read_string(*str, name, ENV_VAR_NAME_MAX, state);
     *str = read_const_char(*str, ',', state);
     if (state->error)
-    {
         return NULL;
-    }
 
     if (!is_valid_name(name))
     {
-        Read_state_set_error(state, "Illegal variable name %s"
-                             " (Variable names may only contain"
-                             " lower-case letters and underscores"
-                             " (and digits as other than first characters))",
-                             name);
+        Read_state_set_error(
+                state,
+                "Illegal variable name %s"
+                " (Variable names may only contain"
+                " lower-case letters and underscores"
+                " (and digits as other than first characters))",
+                name);
         return NULL;
     }
 
@@ -120,15 +120,17 @@ Env_var* new_Env_var_from_string(char** str, Read_state* state)
     }
     else
     {
-        Read_state_set_error(state, "Invalid type of environment variable"
-                                    " %s: %s", name, type_name);
+        Read_state_set_error(
+                state,
+                "Invalid type of environment variable %s: %s",
+                name,
+                type_name);
         return NULL;
     }
+
     *str = read_const_char(*str, ']', state);
     if (state->error)
-    {
         return NULL;
-    }
 
     Env_var* var = new_Env_var(name);
     if (var == NULL)
@@ -176,10 +178,10 @@ const Value* Env_var_get_value(const Env_var* var)
 void del_Env_var(Env_var* var)
 {
     if (var == NULL)
-    {
         return;
-    }
+
     memory_free(var);
+
     return;
 }
 

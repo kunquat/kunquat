@@ -39,9 +39,7 @@ Pattern* new_Pattern(void)
 {
     Pattern* pat = memory_alloc_item(Pattern);
     if (pat == NULL)
-    {
         return NULL;
-    }
 
     for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
         pat->cols[i] = NULL;
@@ -56,13 +54,16 @@ Pattern* new_Pattern(void)
             return NULL;
         }
     }
+
     pat->existents = new_Bit_array(KQT_PAT_INSTANCES_MAX);
     if (pat->existents == NULL)
     {
         del_Pattern(pat);
         return NULL;
     }
+
     Tstamp_set(&pat->length, 16, 0);
+
     return pat;
 }
 
@@ -71,10 +72,10 @@ bool Pattern_parse_header(Pattern* pat, char* str, Read_state* state)
 {
     assert(pat != NULL);
     assert(state != NULL);
+
     if (state->error)
-    {
         return false;
-    }
+
     Tstamp* len = PATTERN_DEFAULT_LENGTH;
     if (str != NULL)
     {
@@ -84,16 +85,17 @@ bool Pattern_parse_header(Pattern* pat, char* str, Read_state* state)
         str = read_tstamp(str, len, state);
         str = read_const_char(str, '}', state);
         if (state->error)
-        {
             return false;
-        }
     }
+
     if (Tstamp_get_beats(len) < 0)
     {
         Read_state_set_error(state, "Pattern length is negative");
         return false;
     }
+
     Pattern_set_length(pat, len);
+
     return true;
 }
 
@@ -165,15 +167,14 @@ const Tstamp* Pattern_get_length(const Pattern* pat)
 void del_Pattern(Pattern* pat)
 {
     if (pat == NULL)
-    {
         return;
-    }
+
     for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
-    {
         del_Column(pat->cols[i]);
-    }
+
     del_Bit_array(pat->existents);
     memory_free(pat);
+
     return;
 }
 
