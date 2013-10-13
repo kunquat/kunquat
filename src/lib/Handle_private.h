@@ -98,13 +98,14 @@ bool kqt_Handle_init(kqt_Handle* handle, long buffer_size);
     (kqt_Handle_set_error_((handle), (type), ERROR_VALIDATION, \
                            __FILE__, __LINE__, __func__, __VA_ARGS__))
 
-void kqt_Handle_set_error_(kqt_Handle* handle,
-                           Error_type type,
-                           Error_delay_type delay_type,
-                           const char* file,
-                           int line,
-                           const char* func,
-                           const char* message, ...);
+void kqt_Handle_set_error_(
+        kqt_Handle* handle,
+        Error_type type,
+        Error_delay_type delay_type,
+        const char* file,
+        int line,
+        const char* func,
+        const char* message, ...);
 
 
 /**
@@ -164,18 +165,14 @@ int kqt_Handle_get_buffer_count(kqt_Handle* handle);
     if (true)                            \
     {                                    \
         if (!handle->data_is_valid)      \
-        {                                \
             return (ret);                \
-        }                                \
     } else (void)0
 
 #define check_data_is_valid_void(handle) \
     if (true)                            \
     {                                    \
         if (!handle->data_is_valid)      \
-        {                                \
             return;                      \
-        }                                \
     } else (void)0
 
 
@@ -212,9 +209,7 @@ bool key_is_valid(kqt_Handle* handle, const char* key);
     {                                       \
         assert((handle) != NULL);           \
         if (!key_is_valid((handle), (key))) \
-        {                                   \
             return (ret);                   \
-        }                                   \
     }                                       \
     else (void)0
 

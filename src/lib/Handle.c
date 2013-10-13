@@ -110,9 +110,8 @@ bool kqt_Handle_init(kqt_Handle* handle, long buffer_size)
 char* kqt_Handle_get_error(kqt_Handle* handle)
 {
     if (!handle_is_valid(handle))
-    {
         return null_error;
-    }
+
     return handle->error;
 }
 
@@ -120,12 +119,14 @@ char* kqt_Handle_get_error(kqt_Handle* handle)
 void kqt_Handle_clear_error(kqt_Handle* handle)
 {
     check_data_is_valid_void(handle);
+
     if (!handle_is_valid(handle))
     {
         null_error[0] = '\0';
         return;
     }
     handle->error[0] = '\0';
+
     return;
 }
 
@@ -296,19 +297,22 @@ int kqt_Handle_validate(kqt_Handle* handle)
     }
 
     handle->data_is_validated = true;
+
     return 1;
 }
 
 #undef set_invalid_if
 
 
-void kqt_Handle_set_error_(kqt_Handle* handle,
-                           Error_type type,
-                           Error_delay_type delay_type,
-                           const char* file,
-                           int line,
-                           const char* func,
-                           const char* message, ...)
+void kqt_Handle_set_error_(
+        kqt_Handle* handle,
+        Error_type type,
+        Error_delay_type delay_type,
+        const char* file,
+        int line,
+        const char* func,
+        const char* message,
+        ...)
 {
     assert(type > ERROR_NONE);
     assert(type < ERROR_LAST);
@@ -317,6 +321,7 @@ void kqt_Handle_set_error_(kqt_Handle* handle,
     assert(line >= 0);
     assert(func != NULL);
     assert(message != NULL);
+
     char err_str[KQT_HANDLE_ERROR_LENGTH] = { '\0' };
     static const char* error_codes[ERROR_LAST] =
     {
@@ -325,6 +330,7 @@ void kqt_Handle_set_error_(kqt_Handle* handle,
         [ERROR_MEMORY] = "MemoryError",
         [ERROR_RESOURCE] = "ResourceError",
     };
+
     strcpy(err_str, "{ \"type\": \"");
     strcat(err_str, error_codes[type]);
     strcat(err_str, "\", ");
@@ -346,8 +352,10 @@ void kqt_Handle_set_error_(kqt_Handle* handle,
     vsnprintf(message_str, KQT_HANDLE_ERROR_LENGTH, message, args);
     va_end(args);
     int json_pos = strlen(err_str);
-    for (int i = 0; json_pos < KQT_HANDLE_ERROR_LENGTH - 4 &&
-                    message_str[i] != '\0'; ++i, ++json_pos)
+
+    for (int i = 0;
+            json_pos < KQT_HANDLE_ERROR_LENGTH - 4 && message_str[i] != '\0';
+            ++i, ++json_pos)
     {
         char ch = message_str[i];
         static const char named_controls[] = "\"\\\b\f\n\r\t";
@@ -357,9 +365,8 @@ void kqt_Handle_set_error_(kqt_Handle* handle,
         if (named_control != NULL)
         {
             if (json_pos >= KQT_HANDLE_ERROR_LENGTH - 5)
-            {
                 break;
-            }
+
             int pos = named_control - named_controls;
             assert(pos >= 0);
             assert(pos < (int)strlen(named_controls));
@@ -383,6 +390,7 @@ void kqt_Handle_set_error_(kqt_Handle* handle,
             err_str[json_pos] = ch;
         }
     }
+
     strcat(err_str, "\" }");
     err_str[KQT_HANDLE_ERROR_LENGTH - 1] = '\0';
 
@@ -400,14 +408,16 @@ void kqt_Handle_set_error_(kqt_Handle* handle,
         else
             assert(false);
     }
+
     return;
 }
 
 
-int kqt_Handle_set_data(kqt_Handle* handle,
-                        const char* key,
-                        void* data,
-                        long length)
+int kqt_Handle_set_data(
+        kqt_Handle* handle,
+        const char* key,
+        void* data,
+        long length)
 {
     check_handle(handle, 0);
     check_data_is_valid(handle, 0);
@@ -426,11 +436,13 @@ int kqt_Handle_set_data(kqt_Handle* handle,
 bool key_is_valid(kqt_Handle* handle, const char* key)
 {
     assert(handle_is_valid(handle));
+
     if (key == NULL)
     {
         kqt_Handle_set_error(handle, ERROR_ARGUMENT, "No key given");
         return false;
     }
+
     if (strlen(key) > KQT_KEY_LENGTH_MAX)
     {
         char key_repr[KQT_KEY_LENGTH_MAX + 3] = { '\0' };
@@ -440,9 +452,11 @@ bool key_is_valid(kqt_Handle* handle, const char* key)
                 " (over %d characters)", key_repr, KQT_KEY_LENGTH_MAX);
         return false;
     }
+
     bool valid_element = false;
     bool element_has_period = false;
     const char* key_iter = key;
+
     while (*key_iter != '\0')
     {
         if (!(*key_iter >= '0' && *key_iter <= '9') &&
@@ -452,6 +466,7 @@ bool key_is_valid(kqt_Handle* handle, const char* key)
                     " illegal character \'%c\'", key, *key_iter);
             return false;
         }
+
         if (*key_iter != '.' && *key_iter != '/')
         {
             valid_element = true;
@@ -477,14 +492,17 @@ bool key_is_valid(kqt_Handle* handle, const char* key)
             valid_element = false;
             element_has_period = false;
         }
+
         ++key_iter;
     }
+
     if (!element_has_period)
     {
         kqt_Handle_set_error(handle, ERROR_ARGUMENT, "The final element of"
                 " key %s does not have a period", key);
         return false;
     }
+
     return true;
 }
 

@@ -34,11 +34,11 @@ struct Pat_table
 Pat_table* new_Pat_table(int size)
 {
     assert(size > 0);
+
     Pat_table* table = memory_alloc_item(Pat_table);
     if (table == NULL)
-    {
         return NULL;
-    }
+
     table->pats = NULL;
     table->existents = NULL;
 
@@ -49,7 +49,9 @@ Pat_table* new_Pat_table(int size)
         del_Pat_table(table);
         return NULL;
     }
+
     table->size = size;
+
     return table;
 }
 
@@ -60,6 +62,7 @@ bool Pat_table_set(Pat_table* table, int index, Pattern* pat)
     assert(index >= 0);
     assert(index < table->size);
     assert(pat != NULL);
+
     return Etable_set(table->pats, index, pat);
 }
 
@@ -101,7 +104,9 @@ void Pat_table_remove(Pat_table* table, int index)
     assert(table != NULL);
     assert(index >= 0);
     assert(index < table->size);
+
     Etable_remove(table->pats, index);
+
     return;
 }
 
@@ -117,12 +122,12 @@ void Pat_table_clear(Pat_table* table)
 void del_Pat_table(Pat_table* table)
 {
     if (table == NULL)
-    {
         return;
-    }
+
     del_Etable(table->pats);
     del_Bit_array(table->existents);
     memory_free(table);
+
     return;
 }
 

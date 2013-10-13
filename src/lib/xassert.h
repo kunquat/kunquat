@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -57,10 +57,11 @@ void xassert_print_backtrace(void);
  * \param func_name     The name of the function -- must not be \c NULL.
  * \param assertion     The assertion that failed -- must not be \c NULL.
  */
-void xassert_print_msg(const char* file_name,
-                       int line_number,
-                       const char* func_name,
-                       const char* assertion);
+void xassert_print_msg(
+        const char* file_name,
+        int line_number,
+        const char* func_name,
+        const char* assertion);
 
 #else // SILENT_ASSERT
 

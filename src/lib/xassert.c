@@ -52,15 +52,16 @@ void xassert_print_backtrace(void)
     else
     {
         fprintf(stderr, "Backtrace:\n");
+
         for (size_t i = 1; i < size; ++i)
-        {
             fprintf(stderr, "  %s\n", symbols[i]);
-        }
+
         if (size >= BACKTRACE_LEVELS_MAX + 1)
         {
-            fprintf(stderr, "(Reached maximum number of levels"
-                            " in the backtrace)\n");
+            fprintf(stderr,
+                    "(Reached maximum number of levels in the backtrace)\n");
         }
+
         free(symbols);
     }
     return;
@@ -71,10 +72,11 @@ void xassert_print_backtrace(void)
 
 #ifndef SILENT_ASSERT
 
-void xassert_print_msg(const char* file_name,
-                       int line_number,
-                       const char* func_name,
-                       const char* assertion)
+void xassert_print_msg(
+        const char* file_name,
+        int line_number,
+        const char* func_name,
+        const char* assertion)
 {
     if (!is_printing_enabled)
         return;
@@ -84,8 +86,11 @@ void xassert_print_msg(const char* file_name,
         fprintf(stderr, "(xassert_print_msg called with illegal arguments)\n");
         return;
     }
-    fprintf(stderr, "libkunquat: %s:%d: %s: Assertion `%s' failed.\n",
-                    file_name, line_number, func_name, assertion);
+
+    fprintf(stderr,
+            "libkunquat: %s:%d: %s: Assertion `%s' failed.\n",
+            file_name, line_number, func_name, assertion);
+
     return;
 }
 
