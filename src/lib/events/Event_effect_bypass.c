@@ -24,7 +24,7 @@
 
 
 bool Event_effect_bypass_on_process(
-        Effect* eff,
+        const Effect* eff,
         Effect_state* eff_state,
         Device_states* dstates,
         Value* value)
@@ -38,7 +38,7 @@ bool Event_effect_bypass_on_process(
 
     for (int i = 0; i < KQT_DSPS_MAX; ++i)
     {
-        DSP* dsp = Effect_get_dsp(eff, i);
+        const DSP* dsp = Effect_get_dsp(eff, i);
         if (dsp != NULL)
         {
             DSP_state* dsp_state = (DSP_state*)Device_states_get_state(
@@ -53,7 +53,7 @@ bool Event_effect_bypass_on_process(
 
 
 bool Event_effect_bypass_off_process(
-        Effect* eff,
+        const Effect* eff,
         Effect_state* eff_state,
         Device_states* dstates,
         Value* value)

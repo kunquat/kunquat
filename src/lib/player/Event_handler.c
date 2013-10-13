@@ -66,7 +66,7 @@ struct Event_handler
     bool (*generator_process[Event_generator_STOP])(
             const Device_impl*, Device_state*, Channel*, Value*);
     bool (*effect_process[Event_effect_STOP])(
-            Effect*,
+            const Effect*,
             Effect_state*,
             Device_states*,
             Value*);
@@ -243,7 +243,8 @@ bool Event_handler_set_generator_process(
 bool Event_handler_set_effect_process(
         Event_handler* eh,
         Event_type type,
-        bool (*effect_process)(Effect*, Effect_state*, Device_states*, Value*))
+        bool (*effect_process)(
+            const Effect*, Effect_state*, Device_states*, Value*))
 {
     assert(eh != NULL);
     assert(Event_is_effect(type));

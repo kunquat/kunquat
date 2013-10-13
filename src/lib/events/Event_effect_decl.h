@@ -28,7 +28,7 @@
 
 #define EVENT_TYPE_DEF(type)            \
     bool Event_effect_##type##_process( \
-            Effect* eff,                \
+            const Effect* eff,          \
             Effect_state* eff_state,    \
             Device_states* dstates,     \
             Value* value);

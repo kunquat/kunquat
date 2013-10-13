@@ -58,7 +58,7 @@ Effect* new_Effect();
  *
  * \return   The DSP if one exists, otherwise \c NULL.
  */
-DSP* Effect_get_dsp(Effect* eff, int index);
+const DSP* Effect_get_dsp(const Effect* eff, int index);
 
 
 /**
