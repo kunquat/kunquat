@@ -30,8 +30,6 @@
 struct Pattern
 {
     Column* cols[KQT_COLUMNS_MAX];
-    //AAtree* locations;
-    //AAiter* locations_iter;
     Tstamp length;
     Bit_array* existents;
 };
@@ -145,48 +143,6 @@ Column* Pattern_get_column(const Pattern* pat, int index)
 
     return pat->cols[index];
 }
-
-
-#if 0
-bool Pattern_set_location(Pattern* pat, int song, Pat_inst_ref* piref)
-{
-    assert(pat != NULL);
-    assert(song >= 0);
-    assert(song < KQT_SONGS_MAX);
-    assert(piref != NULL);
-    Pattern_location* key = PATTERN_LOCATION_AUTO;
-    key->song = song;
-    key->piref = *piref;
-    if (AAtree_get_exact(pat->locations, key) != NULL)
-    {
-        return true;
-    }
-    key = new_Pattern_location(song, piref);
-    if (key == NULL || !AAtree_ins(pat->locations, key))
-    {
-        memory_free(key);
-        return false;
-    }
-    for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
-    {
-        if (!Column_update_locations(pat->cols[i],
-                                     pat->locations, pat->locations_iter))
-        {
-            return false;
-        }
-    }
-    return true;
-}
-
-
-AAtree* Pattern_get_locations(Pattern* pat, AAiter** iter)
-{
-    assert(pat != NULL);
-    assert(iter != NULL);
-    *iter = pat->locations_iter;
-    return pat->locations;
-}
-#endif
 
 
 void Pattern_set_length(Pattern* pat, Tstamp* length)
