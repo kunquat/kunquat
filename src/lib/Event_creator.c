@@ -86,8 +86,7 @@ Event* new_Event_from_string(
         return NULL;
 
     Value_type field_type = VALUE_TYPE_NONE;
-    if (!string_eq(type_str, "mj"))
-        field_type = Event_names_get_param_type(names, type_str);
+    field_type = Event_names_get_param_type(names, type_str);
 
     if (field_type == VALUE_TYPE_NONE)
         *str = read_null(*str, state);
