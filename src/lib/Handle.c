@@ -33,7 +33,7 @@
 static kqt_Handle* handles[KQT_HANDLES_MAX] = { NULL };
 
 // For errors without an associated Kunquat Handle.
-static char null_error[KQT_HANDLE_ERROR_LENGTH] = { '\0' };
+static Error null_error = { "" };
 
 
 static bool add_handle(kqt_Handle* handle);
@@ -54,8 +54,8 @@ bool kqt_Handle_init(kqt_Handle* handle, long buffer_size)
     handle->module = NULL;
     handle->destroy = NULL;
     handle->set_data = NULL;
-    memset(handle->error, '\0', KQT_HANDLE_ERROR_LENGTH);
-    memset(handle->validation_error, '\0', KQT_HANDLE_ERROR_LENGTH);
+    handle->error = *ERROR_AUTO;
+    handle->validation_error = *ERROR_AUTO;
     memset(handle->position, '\0', POSITION_LENGTH);
     handle->player = NULL;
     handle->length_counter = NULL;
@@ -107,12 +107,12 @@ bool kqt_Handle_init(kqt_Handle* handle, long buffer_size)
 }
 
 
-char* kqt_Handle_get_error(kqt_Handle* handle)
+const char* kqt_Handle_get_error(kqt_Handle* handle)
 {
     if (!handle_is_valid(handle))
-        return null_error;
+        return Error_get_desc(&null_error);
 
-    return handle->error;
+    return Error_get_desc(&handle->error);
 }
 
 
@@ -122,10 +122,10 @@ void kqt_Handle_clear_error(kqt_Handle* handle)
 
     if (!handle_is_valid(handle))
     {
-        null_error[0] = '\0';
+        Error_clear(&null_error);
         return;
     }
-    handle->error[0] = '\0';
+    Error_clear(&handle->error);
 
     return;
 }
@@ -148,10 +148,10 @@ int kqt_Handle_validate(kqt_Handle* handle)
     check_data_is_valid(handle, 0);
 
     // Check error from set_data
-    if (!string_eq(handle->validation_error, ""))
+    if (Error_is_set(&handle->validation_error))
     {
-        strcpy(handle->error, handle->validation_error);
-        strcpy(null_error, handle->validation_error);
+        Error_copy(&handle->error, &handle->validation_error);
+        Error_copy(&null_error, &handle->validation_error);
         handle->data_is_valid = false;
         return 0;
     }
@@ -314,97 +314,31 @@ void kqt_Handle_set_error_(
         const char* message,
         ...)
 {
-    assert(type > ERROR_NONE);
-    assert(type < ERROR_LAST);
+    assert(type < ERROR_COUNT_);
     assert(delay_type == ERROR_IMMEDIATE || delay_type == ERROR_VALIDATION);
     assert(file != NULL);
     assert(line >= 0);
     assert(func != NULL);
     assert(message != NULL);
 
-    char err_str[KQT_HANDLE_ERROR_LENGTH] = { '\0' };
-    static const char* error_codes[ERROR_LAST] =
-    {
-        [ERROR_ARGUMENT] = "ArgumentError",
-        [ERROR_FORMAT] = "FormatError",
-        [ERROR_MEMORY] = "MemoryError",
-        [ERROR_RESOURCE] = "ResourceError",
-    };
+    Error* error = ERROR_AUTO;
 
-    strcpy(err_str, "{ \"type\": \"");
-    strcat(err_str, error_codes[type]);
-    strcat(err_str, "\", ");
-
-    strcat(err_str, "\"file\": \"");
-    strcat(err_str, file);
-    strcat(err_str, "\", ");
-
-    sprintf(&err_str[strlen(err_str)], "\"line\": %d, ", line);
-
-    strcat(err_str, "\"function\": \"");
-    strcat(err_str, func);
-    strcat(err_str, "\", ");
-
-    strcat(err_str, "\"message\": \"");
-    char message_str[KQT_HANDLE_ERROR_LENGTH] = { '\0' };
     va_list args;
     va_start(args, message);
-    vsnprintf(message_str, KQT_HANDLE_ERROR_LENGTH, message, args);
+    Error_set_desc_va_list(error, type, file, line, func, message, args);
     va_end(args);
-    int json_pos = strlen(err_str);
-
-    for (int i = 0;
-            json_pos < KQT_HANDLE_ERROR_LENGTH - 4 && message_str[i] != '\0';
-            ++i, ++json_pos)
-    {
-        char ch = message_str[i];
-        static const char named_controls[] = "\"\\\b\f\n\r\t";
-        static const char* named_replace[] =
-                { "\\\"", "\\\\", "\\b", "\\f", "\\n", "\\r", "\\t" };
-        const char* named_control = strchr(named_controls, ch);
-        if (named_control != NULL)
-        {
-            if (json_pos >= KQT_HANDLE_ERROR_LENGTH - 5)
-                break;
-
-            int pos = named_control - named_controls;
-            assert(pos >= 0);
-            assert(pos < (int)strlen(named_controls));
-            strcpy(&err_str[json_pos], named_replace[pos]);
-            json_pos += strlen(named_replace[pos]) - 1;
-        }
-        else if (ch < 0x20 || ch == 0x7f)
-        {
-            if (json_pos >= KQT_HANDLE_ERROR_LENGTH - 4 - 5)
-            {
-                break;
-            }
-            // FIXME: We should really check for all control characters
-            char code[] = "\\u0000";
-            snprintf(code, strlen(code) + 1, "\\u%04x", ch);
-            strcpy(&err_str[json_pos], code);
-            json_pos += strlen(code) - 1;
-        }
-        else
-        {
-            err_str[json_pos] = ch;
-        }
-    }
-
-    strcat(err_str, "\" }");
-    err_str[KQT_HANDLE_ERROR_LENGTH - 1] = '\0';
 
     if (delay_type == ERROR_IMMEDIATE)
-        strcpy(null_error, err_str);
+        Error_copy(&null_error, error);
 
     if (handle != NULL)
     {
         assert(handle_is_valid(handle));
 
         if (delay_type == ERROR_IMMEDIATE)
-            strcpy(handle->error, err_str);
+            Error_copy(&handle->error, error);
         else if (delay_type == ERROR_VALIDATION)
-            strcpy(handle->validation_error, err_str);
+            Error_copy(&handle->validation_error, error);
         else
             assert(false);
     }
@@ -425,7 +359,7 @@ int kqt_Handle_set_data(
 
     // Short-circuit if we have already got invalid data
     // TODO: Remove this if we decide to collect more error info
-    if (!string_eq(handle->validation_error, ""))
+    if (Error_is_set(&handle->validation_error))
         return 1;
 
     assert(handle->set_data != NULL);

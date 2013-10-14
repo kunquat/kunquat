@@ -18,29 +18,16 @@
 
 #include <stdbool.h>
 
+#include <Error.h>
 #include <kunquat/Handle.h>
 #include <kunquat/Player.h>
-
 #include <Module.h>
 #include <player/Player.h>
 
 
-#define KQT_HANDLE_ERROR_LENGTH (512)
-
 #define POSITION_LENGTH (64)
 
 #define DEFAULT_BUFFER_SIZE (2048)
-
-
-typedef enum
-{
-    ERROR_NONE = 0,
-    ERROR_ARGUMENT, // libkunquat function called with an invalid argument
-    ERROR_FORMAT,   // input file structure error
-    ERROR_MEMORY,   // out of memory
-    ERROR_RESOURCE, // resource (external lib or fs) failure
-    ERROR_LAST      // sentinel value
-} Error_type;
 
 
 typedef enum
@@ -57,8 +44,8 @@ struct kqt_Handle
     Module* module;
     int (*set_data)(kqt_Handle* handle, const char* key, void* data, long length);
     void (*destroy)(struct kqt_Handle* handle);
-    char error[KQT_HANDLE_ERROR_LENGTH];
-    char validation_error[KQT_HANDLE_ERROR_LENGTH];
+    Error error;
+    Error validation_error;
     char position[POSITION_LENGTH];
 
     Player* player;

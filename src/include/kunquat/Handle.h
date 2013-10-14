@@ -126,7 +126,7 @@ int kqt_Handle_set_data(kqt_Handle* handle,
  * \return   The last error message. This is an empty string if no error has
  *           occurred.
  */
-char* kqt_Handle_get_error(kqt_Handle* handle);
+const char* kqt_Handle_get_error(kqt_Handle* handle);
 
 
 /**

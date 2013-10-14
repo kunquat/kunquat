@@ -72,7 +72,7 @@ long mixing_rates[] =
 
 void check_unexpected_error()
 {
-    char* error_string = kqt_Handle_get_error(handle);
+    const char* error_string = kqt_Handle_get_error(handle);
     fail_unless(
             strcmp(error_string, "") == 0,
             "Unexpected error"
