@@ -256,6 +256,9 @@ typedef bool Dict_item_reader(Streader* sr, const char* key, void* userdata);
 /**
  * Reads a dictionary.
  *
+ * This function supports dictionary keys up to \c STREADER_DICT_KEY_LENGTH_MAX
+ * characters in length.
+ *
  * \param sr         The Streader -- must not be \c NULL.
  * \param ir         A callback function for reading a dictionary value,
  *                   or \c NULL if expecting an empty dictionary.
