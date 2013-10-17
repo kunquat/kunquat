@@ -865,7 +865,7 @@ bool Streader_readf(Streader* sr, const char* format, ...)
     va_list args;
     va_start(args, format);
 
-    while (*format != '\0' && !Streader_is_error_set(sr))
+    while (!Streader_is_error_set(sr) && *format != '\0')
     {
         if (*format == '%')
         {
