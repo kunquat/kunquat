@@ -89,7 +89,7 @@ START_TEST(Matching_visible_characters_succeed)
 END_TEST
 
 
-START_TEST(Matching_wrong_characters_fail)
+START_TEST(Matching_wrong_characters_fails)
 {
     Streader* sr = init_with_cstr("1");
 
@@ -143,6 +143,43 @@ START_TEST(Characters_past_specified_length_are_ignored)
 END_TEST
 
 
+START_TEST(Matching_strings_succeeds)
+{
+    Streader* sr = init_with_cstr("\"\"");
+    fail_if(!Streader_match_string(sr, ""), "Could not match empty string");
+
+    sr = init_with_cstr("\" \"");
+    fail_if(!Streader_match_string(sr, " "),
+            "Could not match a string with whitespace");
+
+    sr = init_with_cstr("\"abc\"");
+    fail_if(!Streader_match_string(sr, "abc"),
+            "Could not match the string \"abc\"");
+
+    sr = init_with_cstr("\"\" \"\"");
+    fail_if(!Streader_match_string(sr, ""),
+            "Could not match the first of two empty strings");
+    fail_if(!Streader_match_string(sr, ""),
+            "Could not match the second of two empty strings");
+    fail_if(Streader_match_string(sr, ""),
+            "Matched an empty string when end of data should have been reached");
+}
+END_TEST
+
+
+START_TEST(Matching_wrong_strings_fails)
+{
+    Streader* sr = init_with_cstr("\"\"");
+    fail_if(Streader_match_string(sr, " "),
+            "Empty string and string with whitespace were matched");
+
+    sr = init_with_cstr("\" \"");
+    fail_if(Streader_match_string(sr, ""),
+            "Empty string and string with whitespace were matched");
+}
+END_TEST
+
+
 Suite* Streader_suite(void)
 {
     Suite* s = suite_create("Streader");
@@ -162,9 +199,10 @@ Suite* Streader_suite(void)
     tcase_add_test(tc_init, Initial_streader_has_no_error_set);
 
     tcase_add_test(tc_match, Matching_visible_characters_succeed);
-    tcase_add_test(tc_match, Matching_wrong_characters_fail);
-
+    tcase_add_test(tc_match, Matching_wrong_characters_fails);
     tcase_add_test(tc_match, Characters_past_specified_length_are_ignored);
+    tcase_add_test(tc_match, Matching_strings_succeeds);
+    tcase_add_test(tc_match, Matching_wrong_strings_fails);
 
     return s;
 }
