@@ -207,6 +207,15 @@ START_TEST(Reading_null_consumes_data)
 END_TEST
 
 
+START_TEST(Null_token_with_trailing_garbage_is_rejected)
+{
+    Streader* sr = init_with_cstr("nullz");
+    fail_if(Streader_read_null(sr),
+            "Reading null token did not check for trailing garbage");
+}
+END_TEST
+
+
 START_TEST(Reading_bool_stores_correct_value)
 {
     Streader* sr = init_with_cstr("false x");
@@ -267,6 +276,7 @@ Suite* Streader_suite(void)
     tcase_add_test(tc_match, Matching_wrong_strings_fails);
 
     tcase_add_test(tc_read_null, Reading_null_consumes_data);
+    tcase_add_test(tc_read_null, Null_token_with_trailing_garbage_is_rejected);
 
     tcase_add_test(tc_read_bool, Reading_bool_stores_correct_value);
 
