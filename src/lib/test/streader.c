@@ -220,8 +220,7 @@ START_TEST(Reading_bool_stores_correct_value)
 {
     Streader* sr = init_with_cstr("false x");
     bool result = true;
-    fail_if(!Streader_read_bool(sr, &result),
-            "Could not read a false value");
+    fail_if(!Streader_read_bool(sr, &result), "Could not read a false value");
     fail_if(result != false,
             "Reading false stored %d", (int)result);
     fail_if(!Streader_match_char(sr, 'x'),
@@ -229,12 +228,25 @@ START_TEST(Reading_bool_stores_correct_value)
 
     sr = init_with_cstr("true x");
     result = false;
-    fail_if(!Streader_read_bool(sr, &result),
-            "Could not read a true value");
+    fail_if(!Streader_read_bool(sr, &result), "Could not read a true value");
     fail_if(result != true,
             "Reading true stored %d", (int)result);
     fail_if(!Streader_match_char(sr, 'x'),
             "Streader did not consume the true value");
+}
+END_TEST
+
+
+START_TEST(Bool_with_trailing_garbage_is_rejected)
+{
+    Streader* sr = init_with_cstr("falsez");
+    bool result = false;
+    fail_if(Streader_read_bool(sr, &result),
+            "Streader accepted falsez as a Boolean false value");
+
+    sr = init_with_cstr("truez");
+    fail_if(Streader_read_bool(sr, &result),
+            "Streader accepted truez as a Boolean true value");
 }
 END_TEST
 
@@ -279,6 +291,7 @@ Suite* Streader_suite(void)
     tcase_add_test(tc_read_null, Null_token_with_trailing_garbage_is_rejected);
 
     tcase_add_test(tc_read_bool, Reading_bool_stores_correct_value);
+    tcase_add_test(tc_read_bool, Bool_with_trailing_garbage_is_rejected);
 
     return s;
 }
