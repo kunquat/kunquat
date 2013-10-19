@@ -16,6 +16,7 @@
 #include <inttypes.h>
 #include <math.h>
 #include <stdarg.h>
+#include <stdio.h>
 #include <string.h>
 
 #include <kunquat/limits.h>
@@ -143,7 +144,7 @@ bool Streader_match_char(Streader* sr, char ch)
 }
 
 
-static bool Streader_try_match_char(Streader* sr, char ch)
+bool Streader_try_match_char(Streader* sr, char ch)
 {
     assert(sr != NULL);
     assert(!Streader_is_error_set(sr));
@@ -170,7 +171,7 @@ static bool Streader_match_char_seq(Streader* sr, const char* seq)
 
     // Check that we have enough data
     const size_t expected_len = strlen(seq);
-    if (sr->len - sr->pos < expected_len + 1)
+    if (sr->len - sr->pos < expected_len)
     {
         Streader_set_error(
                 sr,
@@ -264,7 +265,7 @@ bool Streader_match_string(Streader* sr, const char* str)
         return false;
 
     // Match closing double quote
-    if (CUR_CH != '\"')
+    if (Streader_end_reached(sr) || CUR_CH != '\"')
     {
         Streader_set_error(sr, "Unexpected string (expected `%s`)", str);
         return false;

@@ -197,6 +197,18 @@ START_TEST(Matching_wrong_strings_fails)
 END_TEST
 
 
+START_TEST(Reading_null_consumes_data)
+{
+    Streader* sr = init_with_cstr("null");
+    fail_if(!Streader_read_null(sr), "Could not read null value");
+    fail_if(Streader_try_match_char(sr, 'n') ||
+            Streader_try_match_char(sr, 'u') ||
+            Streader_try_match_char(sr, 'l'),
+            "Streader did not consume null value");
+}
+END_TEST
+
+
 Suite* Streader_suite(void)
 {
     Suite* s = suite_create("Streader");
@@ -211,6 +223,17 @@ Suite* Streader_suite(void)
     BUILD_TCASE(init);
     BUILD_TCASE(match);
 
+    BUILD_TCASE(read_null);
+    //BUILD_TCASE(read_bool);
+    //BUILD_TCASE(read_int);
+    //BUILD_TCASE(read_float);
+    //BUILD_TCASE(read_string);
+    //BUILD_TCASE(read_tstamp);
+    //BUILD_TCASE(read_piref);
+    //BUILD_TCASE(read_list);
+    //BUILD_TCASE(read_dict);
+    //BUILD_TCASE(read_format);
+
 #undef BUILD_TCASE
 
     tcase_add_test(tc_init, Initial_streader_has_no_error_set);
@@ -221,6 +244,8 @@ Suite* Streader_suite(void)
     tcase_add_test(tc_match, Matching_strings_requires_quotes_in_data);
     tcase_add_test(tc_match, Matching_strings_succeeds);
     tcase_add_test(tc_match, Matching_wrong_strings_fails);
+
+    tcase_add_test(tc_read_null, Reading_null_consumes_data);
 
     return s;
 }

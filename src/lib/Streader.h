@@ -119,6 +119,20 @@ bool Streader_match_char(Streader* sr, char ch);
 
 
 /**
+ * Tries to match a specified character.
+ *
+ * If matching fails, the reading position before the call is restored and the
+ * error status is cleared.
+ *
+ * \param sr   The Streader -- must not be \c NULL and must not have error set.
+ * \param ch   The character to be matched.
+ *
+ * \return   \c true if \a ch was successfully matched, otherwise \c false.
+ */
+bool Streader_try_match_char(Streader* sr, char ch);
+
+
+/**
  * Matches a specified string.
  *
  * \param sr    The Streader -- must not be \c NULL.
