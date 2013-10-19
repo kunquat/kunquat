@@ -143,6 +143,23 @@ START_TEST(Characters_past_specified_length_are_ignored)
 END_TEST
 
 
+START_TEST(Matching_strings_requires_quotes_in_data)
+{
+    Streader* sr = init_with_cstr("abc");
+    fail_if(Streader_match_string(sr, "abc"),
+            "Matched a string without double quotes in data");
+
+    sr = init_with_cstr("abc\"");
+    fail_if(Streader_match_string(sr, "abc"),
+            "Matched a string without opening double quote in data");
+
+    sr = init_with_cstr("\"abc");
+    fail_if(Streader_match_string(sr, "abc"),
+            "Matched a string without closing double quote in data");
+}
+END_TEST
+
+
 START_TEST(Matching_strings_succeeds)
 {
     Streader* sr = init_with_cstr("\"\"");
@@ -201,6 +218,7 @@ Suite* Streader_suite(void)
     tcase_add_test(tc_match, Matching_visible_characters_succeed);
     tcase_add_test(tc_match, Matching_wrong_characters_fails);
     tcase_add_test(tc_match, Characters_past_specified_length_are_ignored);
+    tcase_add_test(tc_match, Matching_strings_requires_quotes_in_data);
     tcase_add_test(tc_match, Matching_strings_succeeds);
     tcase_add_test(tc_match, Matching_wrong_strings_fails);
 
