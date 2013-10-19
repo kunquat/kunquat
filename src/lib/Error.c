@@ -94,6 +94,8 @@ void Error_set_desc_va_list(
         [ERROR_RESOURCE] = "ResourceError",
     };
 
+    memset(error->desc, 0, ERROR_LENGTH_MAX);
+
     strcpy(error->desc, "{ \"type\": \"");
     strcat(error->desc, error_codes[type]);
     strcat(error->desc, "\", ");
@@ -109,7 +111,7 @@ void Error_set_desc_va_list(
     strcat(error->desc, "\", ");
 
     strcat(error->desc, "\"message\": \"");
-    char message_str[ERROR_LENGTH_MAX] = { '\0' };
+    char message_str[ERROR_LENGTH_MAX] = "";
     vsnprintf(message_str, ERROR_LENGTH_MAX, message, args);
     int json_pos = strlen(error->desc);
 
