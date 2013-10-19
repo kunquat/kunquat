@@ -199,12 +199,33 @@ END_TEST
 
 START_TEST(Reading_null_consumes_data)
 {
-    Streader* sr = init_with_cstr("null");
-    fail_if(!Streader_read_null(sr), "Could not read null value");
-    fail_if(Streader_try_match_char(sr, 'n') ||
-            Streader_try_match_char(sr, 'u') ||
-            Streader_try_match_char(sr, 'l'),
-            "Streader did not consume null value");
+    Streader* sr = init_with_cstr("null x");
+    fail_if(!Streader_read_null(sr), "Could not read a null value");
+    fail_if(!Streader_match_char(sr, 'x'),
+            "Streader did not consume the null value");
+}
+END_TEST
+
+
+START_TEST(Reading_bool_stores_correct_value)
+{
+    Streader* sr = init_with_cstr("false x");
+    bool result = true;
+    fail_if(!Streader_read_bool(sr, &result),
+            "Could not read a false value");
+    fail_if(result != false,
+            "Reading false stored %d", (int)result);
+    fail_if(!Streader_match_char(sr, 'x'),
+            "Streader did not consume the false value");
+
+    sr = init_with_cstr("true x");
+    result = false;
+    fail_if(!Streader_read_bool(sr, &result),
+            "Could not read a true value");
+    fail_if(result != true,
+            "Reading true stored %d", (int)result);
+    fail_if(!Streader_match_char(sr, 'x'),
+            "Streader did not consume the true value");
 }
 END_TEST
 
@@ -224,7 +245,7 @@ Suite* Streader_suite(void)
     BUILD_TCASE(match);
 
     BUILD_TCASE(read_null);
-    //BUILD_TCASE(read_bool);
+    BUILD_TCASE(read_bool);
     //BUILD_TCASE(read_int);
     //BUILD_TCASE(read_float);
     //BUILD_TCASE(read_string);
@@ -246,6 +267,8 @@ Suite* Streader_suite(void)
     tcase_add_test(tc_match, Matching_wrong_strings_fails);
 
     tcase_add_test(tc_read_null, Reading_null_consumes_data);
+
+    tcase_add_test(tc_read_bool, Reading_bool_stores_correct_value);
 
     return s;
 }
