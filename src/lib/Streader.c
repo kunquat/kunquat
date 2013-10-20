@@ -466,9 +466,10 @@ bool Streader_read_float(Streader* sr, double* dest)
     }
 
     // Significand
-    if (Streader_try_match_char_seq(sr, "0"))
+    if (CUR_CH == '0')
     {
         num_chars[write_pos++] = '0';
+        ++sr->pos;
     }
     else if (strchr(NONZERO_DIGITS, CUR_CH) != NULL)
     {
@@ -510,12 +511,13 @@ bool Streader_read_float(Streader* sr, double* dest)
 
     // Exponent part
     if (!Streader_end_reached(sr) &&
-            (Streader_try_match_char_seq(sr, "e") ||
-             Streader_try_match_char_seq(sr, "E"))
+            ((CUR_CH == 'e') || (CUR_CH == 'E'))
        )
     {
         CHECK_SPACE("Number representation is too long");
         num_chars[write_pos++] = 'e';
+
+        ++sr->pos;
 
         if (Streader_end_reached(sr))
         {
@@ -523,13 +525,15 @@ bool Streader_read_float(Streader* sr, double* dest)
             return false;
         }
 
-        if (Streader_try_match_char_seq(sr, "+"))
+        if (CUR_CH == '+')
         {
+            ++sr->pos;
         }
-        else if (Streader_try_match_char_seq(sr, "-"))
+        else if (CUR_CH == '-')
         {
             CHECK_SPACE(len_err_msg);
             num_chars[write_pos++] = '-';
+            ++sr->pos;
         }
 
         while (!Streader_end_reached(sr) && isdigit(CUR_CH))
