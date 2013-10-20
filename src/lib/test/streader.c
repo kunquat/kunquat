@@ -911,6 +911,128 @@ START_TEST(Read_empty_dict)
 END_TEST
 
 
+bool fill_array_index(Streader* sr, const char* key, void* userdata)
+{
+    fail_if(sr == NULL, "Callback did not get a Streader");
+    fail_if(Streader_is_error_set(sr),
+            "Callback was called with Streader error set: %s",
+            Streader_get_error_desc(sr));
+    fail_if(key == NULL,
+            "Callback did not get a key");
+    fail_if(strlen(key) != 1 || strchr("0123", key[0]) == NULL,
+            "Callback got an unexpected key `%s`",
+            key);
+    fail_if(userdata == NULL, "Callback did not get userdata");
+
+    int arr_index = key[0] - '0';
+    assert(arr_index >= 0);
+    assert(arr_index < 4);
+    int* array = userdata;
+
+    int64_t num = 0;
+    fail_if(!Streader_read_int(sr, &num),
+            "Could not read integer from dictionary: %s",
+            Streader_get_error_desc(sr));
+    fail_if(num != arr_index + 10,
+            "Unexpected value %" PRId64 " (expected %d)",
+            num, arr_index + 10);
+
+    array[arr_index] = num;
+
+    return true;
+}
+
+START_TEST(Read_dict_of_numbers)
+{
+    static const char* dicts[] =
+    {
+        "{}",
+        "{ \"0\": 10 }",
+        "{ \"1\": 11, \"0\": 10 }",
+        "{ \"0\": 10, \"2\": 12, \"1\": 11 }",
+        "{ \"2\": 12, \"1\": 11, \"3\": 13, \"0\": 10 }",
+    };
+
+    for (size_t i = 0; i < arr_size(dicts); ++i)
+    {
+        Streader* sr = init_with_cstr(dicts[i]);
+        int nums[4] = { 99 };
+
+        fail_if(!Streader_read_dict(sr, fill_array_index, nums),
+                "Could not read dictionary from `%s`: %s",
+                dicts[i], Streader_get_error_desc(sr));
+
+        for (int k = 0; (size_t)k < i; ++k)
+        {
+            fail_if(nums[k] != k + 10,
+                    "Unexpected value at index %d: %d (expected %d)",
+                    k, nums[k], k + 10);
+        }
+    }
+}
+END_TEST
+
+
+START_TEST(Callback_must_be_specified_for_nonempty_dicts)
+{
+    Streader* sr = init_with_cstr("{ \"key\": 0 }");
+    int dummy = 0;
+    fail_if(Streader_read_dict(sr, NULL, &dummy),
+            "Reading of non-empty dict succeeded without callback");
+}
+END_TEST
+
+
+bool fail_at_key_2(Streader* sr, const char* key, void* userdata)
+{
+    (void)sr;
+    (void)userdata;
+
+    fail_if(strcmp(key, "2") > 0,
+            "Dictionary processing continued after failure");
+
+    if (strcmp(key, "2") == 0)
+        return false;
+
+    fail_if(!Streader_read_float(sr, NULL),
+            "Could not read a float from dictionary: %s",
+            Streader_get_error_desc(sr));
+
+    return true;
+}
+
+START_TEST(Callback_failure_interrupts_dict_reading)
+{
+    static const char* dicts[] =
+    {
+        "{}",
+        "{ \"0\": 1 }",
+        "{ \"1\": 1, \"0\": 0.5 }",
+        "{ \"0\": 1.5, \"1\": 2, \"2\": 3 }",
+        "{ \"1\": 10, \"2\": 20, \"3\": 30, \"4\": 40 }",
+    };
+
+    for (size_t i = 0; i < arr_size(dicts); ++i)
+    {
+        Streader* sr = init_with_cstr(dicts[i]);
+        if (i <= 2)
+        {
+            fail_if(!Streader_read_dict(sr, fail_at_key_2, NULL),
+                    "Could not read dictionary from `%s`: %s",
+                    dicts[i], Streader_get_error_desc(sr));
+        }
+        else
+        {
+            fail_if(Streader_read_dict(sr, fail_at_key_2, NULL),
+                    "Dictionary reading continued successfully after an error"
+                        " (dictionary size %zd)",
+                    i);
+        }
+    }
+}
+END_TEST
+
+
 Suite* Streader_suite(void)
 {
     Suite* s = suite_create("Streader");
@@ -977,6 +1099,9 @@ Suite* Streader_suite(void)
     tcase_add_test(tc_read_list, Callback_failure_interrupts_list_reading);
 
     tcase_add_test(tc_read_dict, Read_empty_dict);
+    tcase_add_test(tc_read_dict, Read_dict_of_numbers);
+    tcase_add_test(tc_read_dict, Callback_must_be_specified_for_nonempty_dicts);
+    tcase_add_test(tc_read_dict, Callback_failure_interrupts_dict_reading);
 
     return s;
 }
