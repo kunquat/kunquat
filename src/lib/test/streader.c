@@ -689,6 +689,30 @@ END_TEST
 #undef make_str
 
 
+START_TEST(Read_empty_list)
+{
+    const char* lists[] =
+    {
+        "[] x",
+        "[ ]x",
+        "[ ] x",
+    };
+
+    for (size_t i = 0; i < arr_size(lists); ++i)
+    {
+        Streader* sr = init_with_cstr(lists[i]);
+        fail_if(!Streader_read_list(sr, NULL, NULL),
+                "Could not read empty list from `%s`: %s",
+                lists[i],
+                Streader_get_error_desc(sr));
+        fail_if(!Streader_match_char(sr, 'x'),
+                "Streader did not consume empty list from `%s` correctly",
+                lists[i]);
+    }
+}
+END_TEST
+
+
 Suite* Streader_suite(void)
 {
     Suite* s = suite_create("Streader");
@@ -710,7 +734,7 @@ Suite* Streader_suite(void)
     BUILD_TCASE(read_string);
     BUILD_TCASE(read_tstamp);
     BUILD_TCASE(read_piref);
-    //BUILD_TCASE(read_list);
+    BUILD_TCASE(read_list);
     //BUILD_TCASE(read_dict);
     //BUILD_TCASE(read_format);
 
@@ -747,6 +771,8 @@ Suite* Streader_suite(void)
 
     tcase_add_test(tc_read_piref, Read_valid_piref);
     tcase_add_test(tc_read_piref, Reading_invalid_piref_fails);
+
+    tcase_add_test(tc_read_list, Read_empty_list);
 
     return s;
 }
