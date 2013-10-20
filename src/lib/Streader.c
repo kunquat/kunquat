@@ -456,7 +456,7 @@ bool Streader_read_float(Streader* sr, double* dest)
     static const char* len_err_msg = "Number representation is too long";
 
     // Negation
-    if (Streader_try_match_char_seq(sr, "-"))
+    if (Streader_try_match_char(sr, '-'))
         num_chars[write_pos++] = '-';
 
     if (Streader_end_reached(sr))
