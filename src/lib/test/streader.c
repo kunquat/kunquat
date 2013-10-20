@@ -585,6 +585,30 @@ START_TEST(Read_valid_tstamp)
 END_TEST
 
 
+START_TEST(Reading_invalid_tstamp_fails)
+{
+    const char* data[] =
+    {
+        "0, 0]",
+        "[0 0]",
+        "[0, 0",
+        "[0, -1]",
+        "[0, 882161280]",
+    };
+
+    for (size_t i = 0; i < arr_size(data); ++i)
+    {
+        Streader* sr = init_with_cstr(data[i]);
+        Tstamp* result = TSTAMP_AUTO;
+
+        fail_if(Streader_read_tstamp(sr, result),
+                "Streader accepted `%s` as a valid timestamp",
+                data[i]);
+    }
+}
+END_TEST
+
+
 Suite* Streader_suite(void)
 {
     Suite* s = suite_create("Streader");
@@ -639,6 +663,7 @@ Suite* Streader_suite(void)
     tcase_add_test(tc_read_string, Reading_invalid_string_fails);
 
     tcase_add_test(tc_read_tstamp, Read_valid_tstamp);
+    tcase_add_test(tc_read_tstamp, Reading_invalid_tstamp_fails);
 
     return s;
 }
