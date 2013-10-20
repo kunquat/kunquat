@@ -26,6 +26,8 @@
 
 #define init_with_cstr(s) Streader_init(STREADER_AUTO, (s), strlen((s)))
 
+#define arr_size(arr) (sizeof(arr) / sizeof(*(arr)))
+
 
 START_TEST(Initial_streader_has_no_error_set)
 {
@@ -49,7 +51,7 @@ START_TEST(Matching_visible_characters_succeed)
         " 1",
         " 1 ",
     };
-    for (size_t i = 0; i < sizeof(ones) / sizeof(*ones); ++i)
+    for (size_t i = 0; i < arr_size(ones); ++i)
     {
         Streader* sr = init_with_cstr(ones[i]);
 
@@ -73,7 +75,7 @@ START_TEST(Matching_visible_characters_succeed)
         "1 + 2",
         " 1 + 2 ",
     };
-    for (size_t i = 0; i < sizeof(exprs) / sizeof(*exprs); ++i)
+    for (size_t i = 0; i < arr_size(exprs); ++i)
     {
         Streader* sr = init_with_cstr(exprs[i]);
 
@@ -128,7 +130,7 @@ START_TEST(Characters_past_specified_length_are_ignored)
         { "12 3456", 4 },
     };
 
-    for (size_t i = 0; i < sizeof(nums) / sizeof(*nums); ++i)
+    for (size_t i = 0; i < arr_size(nums); ++i)
     {
         Streader* sr = Streader_init(STREADER_AUTO, nums[i].str, nums[i].len);
 
@@ -281,7 +283,7 @@ START_TEST(Read_nonzero_int)
 
     static const int64_t nums[] = { 1, 19, INT64_MAX, -1, -19, INT64_MIN };
 
-    for (size_t i = 0; i < sizeof(nums) / sizeof(*nums); ++i)
+    for (size_t i = 0; i < arr_size(nums); ++i)
     {
         sprintf(data, "%" PRId64 " x", nums[i]);
         Streader* sr = init_with_cstr(data);
@@ -353,7 +355,7 @@ START_TEST(Read_zero_float)
         "0.0e-0 x",
     };
 
-    for (size_t i = 0; i < sizeof(zeros) / sizeof(*zeros); ++i)
+    for (size_t i = 0; i < arr_size(zeros); ++i)
     {
         Streader* sr = init_with_cstr(zeros[i]);
         double num = NAN;
@@ -382,7 +384,7 @@ START_TEST(Read_zero_float)
         "-0.0e-0 x",
     };
 
-    for (size_t i = 0; i < sizeof(neg_zeros) / sizeof(*neg_zeros); ++i)
+    for (size_t i = 0; i < arr_size(neg_zeros); ++i)
     {
         Streader* sr = init_with_cstr(neg_zeros[i]);
         double num = NAN;
@@ -395,6 +397,40 @@ START_TEST(Read_zero_float)
         fail_if(!Streader_match_char(sr, 'x'),
                 "Streader did not consume -0 from \"%s\" correctly",
                 neg_zeros[i]);
+    }
+}
+END_TEST
+
+
+START_TEST(Read_nonzero_float)
+{
+    const double nums[] = { 0.5, 1.0, 1.5, -0.5, -1.0, -1.5, };
+    const char* formats[] =
+    {
+        "%.1f x",
+        "%f x",
+        "%e x",
+    };
+
+    for (size_t i = 0; i < arr_size(nums); ++i)
+    {
+        for (size_t k = 0; k < arr_size(formats); ++k)
+        {
+            char data[128] = "";
+            sprintf(data, formats[k], nums[i]);
+
+            Streader* sr = init_with_cstr(data);
+            double num = NAN;
+            fail_if(!Streader_read_float(sr, &num),
+                    "Could not read float from \"%s\": %s",
+                    data, Streader_get_error_desc(sr));
+            fail_if(num != nums[i],
+                    "Streader stored %f instead of %.2f from \"%s\"",
+                    num, nums[i]);
+            fail_if(!Streader_match_char(sr, 'x'),
+                    "Streader did not consume float from \"%s\" correctly",
+                    data);
+        }
     }
 }
 END_TEST
@@ -447,6 +483,7 @@ Suite* Streader_suite(void)
     tcase_add_test(tc_read_int, Reading_too_large_int_in_magnitude_fails);
 
     tcase_add_test(tc_read_float, Read_zero_float);
+    tcase_add_test(tc_read_float, Read_nonzero_float);
 
     return s;
 }
