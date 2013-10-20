@@ -470,6 +470,51 @@ START_TEST(Whitespace_terminates_decimal_number)
 END_TEST
 
 
+START_TEST(Read_valid_string)
+{
+    static const struct
+    {
+        const char* data;
+        const char* expected;
+    }
+    strings[] =
+    {
+        { "\"\"", "" },
+        { "\" \"", " " },
+        { "\"  \"", "  " },
+        { "\"\\\"\"", "\"" },
+        { "\"\\\\\"", "\\" },
+        { "\"\\/\"", "/" },
+        { "\"/\"", "/" },
+        { "\"\\b\"", "\b" },
+        { "\"\\f\"", "\f" },
+        { "\"\\n\"", "\n" },
+        { "\"\\r\"", "\r" },
+        { "\"\\t\"", "\t" },
+        { "\"abc def\"", "abc def" },
+    };
+
+    for (size_t i = 0; i < arr_size(strings); ++i)
+    {
+        char data[128] = "";
+        sprintf(data, "%s x", strings[i].data);
+
+        Streader* sr = init_with_cstr(data);
+        char result[128] = "zzz";
+
+        fail_if(!Streader_read_string(sr, 128, result),
+                "Could not read string `%s`: %s",
+                data, Streader_get_error_desc(sr));
+        fail_if(strcmp(result, strings[i].expected) != 0,
+                "Streader stored `%s` instead of `%s`",
+                result, strings[i].expected);
+        fail_if(!Streader_match_char(sr, 'x'),
+                "Streader did not consume string `%s` correctly");
+    }
+}
+END_TEST
+
+
 Suite* Streader_suite(void)
 {
     Suite* s = suite_create("Streader");
@@ -488,7 +533,7 @@ Suite* Streader_suite(void)
     BUILD_TCASE(read_bool);
     BUILD_TCASE(read_int);
     BUILD_TCASE(read_float);
-    //BUILD_TCASE(read_string);
+    BUILD_TCASE(read_string);
     //BUILD_TCASE(read_tstamp);
     //BUILD_TCASE(read_piref);
     //BUILD_TCASE(read_list);
@@ -519,6 +564,8 @@ Suite* Streader_suite(void)
     tcase_add_test(tc_read_float, Read_zero_float);
     tcase_add_test(tc_read_float, Read_nonzero_float);
     tcase_add_test(tc_read_float, Whitespace_terminates_decimal_number);
+
+    tcase_add_test(tc_read_string, Read_valid_string);
 
     return s;
 }
