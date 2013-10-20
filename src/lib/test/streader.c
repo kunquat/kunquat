@@ -12,6 +12,7 @@
  */
 
 
+#include <inttypes.h>
 #include <string.h>
 
 #include <test_common.h>
@@ -251,6 +252,25 @@ START_TEST(Bool_with_trailing_garbage_is_rejected)
 END_TEST
 
 
+START_TEST(Read_zero)
+{
+    Streader* sr = init_with_cstr("0 x");
+    int64_t num = -1;
+    fail_if(!Streader_read_int(sr, &num), "Could not read 0");
+    fail_if(num != 0, "Streader stored %" PRId64 " instead of 0", num);
+    fail_if(!Streader_match_char(sr, 'x'),
+            "Streader did not consume 0 correctly");
+
+    sr = init_with_cstr("-0 x");
+    num = 1;
+    fail_if(!Streader_read_int(sr, &num), "Could not read -0");
+    fail_if(num != 0, "Streader stored %" PRId64 " instead of 0", num);
+    fail_if(!Streader_match_char(sr, 'x'),
+            "Streader did not consume 0 correctly");
+}
+END_TEST
+
+
 Suite* Streader_suite(void)
 {
     Suite* s = suite_create("Streader");
@@ -267,7 +287,7 @@ Suite* Streader_suite(void)
 
     BUILD_TCASE(read_null);
     BUILD_TCASE(read_bool);
-    //BUILD_TCASE(read_int);
+    BUILD_TCASE(read_int);
     //BUILD_TCASE(read_float);
     //BUILD_TCASE(read_string);
     //BUILD_TCASE(read_tstamp);
@@ -292,6 +312,8 @@ Suite* Streader_suite(void)
 
     tcase_add_test(tc_read_bool, Reading_bool_stores_correct_value);
     tcase_add_test(tc_read_bool, Bool_with_trailing_garbage_is_rejected);
+
+    tcase_add_test(tc_read_int, Read_zero);
 
     return s;
 }
