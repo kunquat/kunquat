@@ -12,6 +12,8 @@
  */
 
 
+#include <assert.h>
+#include <ctype.h>
 #include <inttypes.h>
 #include <stdio.h>
 #include <string.h>
@@ -297,6 +299,47 @@ START_TEST(Read_nonzero_int)
 END_TEST
 
 
+START_TEST(Reading_too_large_int_in_magnitude_fails)
+{
+    char data[4][128] = { "" };
+    sprintf(data[0], "%" PRId64, INT64_MAX);
+    sprintf(data[1], "%" PRId64, INT64_MIN);
+    sprintf(data[2], "%" PRId64, INT64_MAX);
+    sprintf(data[3], "%" PRId64, INT64_MIN);
+
+    // Make sure the overflowing code below makes sense
+    for (int i = 0; i < 4; ++i)
+    {
+        size_t len = strlen(data[i]);
+        assert(len > 2);
+
+        assert(isdigit(data[i][len - 1]));
+        assert(data[i][len - 1] != '9');
+        assert(isdigit(data[i][len - 2]));
+        assert(data[i][len - 2] != '9');
+    }
+
+    // Overflow data[0] and data[1] by 1
+    data[0][strlen(data[0]) - 1] += 1;
+    data[1][strlen(data[1]) - 1] += 1;
+
+    // Overflow data[2] and data[3] by 10
+    data[2][strlen(data[2]) - 2] += 1;
+    data[3][strlen(data[3]) - 2] += 1;
+
+    // Test reading
+    for (int i = 0; i < 4; ++i)
+    {
+        Streader* sr = init_with_cstr(data[i]);
+        int64_t num = 0;
+        fail_if(Streader_read_int(sr, &num),
+                "Reading overflowing integer %s succeeded",
+                data[i]);
+    }
+}
+END_TEST
+
+
 Suite* Streader_suite(void)
 {
     Suite* s = suite_create("Streader");
@@ -341,6 +384,7 @@ Suite* Streader_suite(void)
 
     tcase_add_test(tc_read_int, Read_zero_int);
     tcase_add_test(tc_read_int, Read_nonzero_int);
+    tcase_add_test(tc_read_int, Reading_too_large_int_in_magnitude_fails);
 
     return s;
 }
