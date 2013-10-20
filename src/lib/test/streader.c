@@ -343,36 +343,59 @@ END_TEST
 
 START_TEST(Read_zero_float)
 {
-    Streader* sr = init_with_cstr("0 x");
-    double num = NAN;
-    fail_if(!Streader_read_float(sr, &num), "Could not read 0");
-    fail_if(num != 0, "Streader stored %f instead of 0", num);
-    fail_if(!Streader_match_char(sr, 'x'),
-            "Streader did not consume 0 correctly");
+    const char* zeros[] =
+    {
+        "0 x",
+        "0.0 x",
+        "0e0 x",
+        "0.0e0 x",
+        "0.0e+0 x",
+        "0.0e-0 x",
+    };
 
-    sr = init_with_cstr("0.0 x");
-    num = NAN;
-    fail_if(!Streader_read_float(sr, &num), "Could not read 0.0");
-    fail_if(num != 0, "Streader stored %f instead of 0.0", num);
-    fail_if(!Streader_match_char(sr, 'x'),
-            "Streader did not consume 0.0 correctly");
+    for (size_t i = 0; i < sizeof(zeros) / sizeof(*zeros); ++i)
+    {
+        Streader* sr = init_with_cstr(zeros[i]);
+        double num = NAN;
+        fail_if(!Streader_read_float(sr, &num),
+                "Could not read 0 from \"%s\": %s",
+                zeros[i], Streader_get_error_desc(sr));
+        fail_if(num != 0,
+                "Streader stored %f instead of 0 from \"%s\"",
+                num, zeros[i]);
+        fail_if(!Streader_match_char(sr, 'x'),
+                "Streader did not consume 0 from \"%s\" correctly: %s",
+                zeros[i], Streader_get_error_desc(sr));
+    }
 
     // TODO: The code below does not test the sign of negative zero
     //       as C99 doesn't guarantee it.
     //       Revisit when migrating to emulated floats.
-    sr = init_with_cstr("-0 x");
-    num = NAN;
-    fail_if(!Streader_read_float(sr, &num), "Could not read -0");
-    fail_if(num != 0, "Streader stored %f instead of -0", num);
-    fail_if(!Streader_match_char(sr, 'x'),
-            "Streader did not consume -0 correctly");
 
-    sr = init_with_cstr("-0.0 x");
-    num = NAN;
-    fail_if(!Streader_read_float(sr, &num), "Could not read -0.0");
-    fail_if(num != 0, "Streader stored %f instead of -0.0", num);
-    fail_if(!Streader_match_char(sr, 'x'),
-            "Streader did not consume -0.0 correctly");
+    const char* neg_zeros[] =
+    {
+        "-0 x",
+        "-0.0 x",
+        "-0e0 x",
+        "-0.0e0 x",
+        "-0.0e+0 x",
+        "-0.0e-0 x",
+    };
+
+    for (size_t i = 0; i < sizeof(neg_zeros) / sizeof(*neg_zeros); ++i)
+    {
+        Streader* sr = init_with_cstr(neg_zeros[i]);
+        double num = NAN;
+        fail_if(!Streader_read_float(sr, &num),
+                "Could not read -0 from \"%s\": %s",
+                neg_zeros[i], Streader_get_error_desc(sr));
+        fail_if(num != 0,
+                "Streader stored %f instead of -0 from \"%s\"",
+                num, neg_zeros[i]);
+        fail_if(!Streader_match_char(sr, 'x'),
+                "Streader did not consume -0 from \"%s\" correctly",
+                neg_zeros[i]);
+    }
 }
 END_TEST
 
