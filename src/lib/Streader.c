@@ -486,10 +486,12 @@ bool Streader_read_float(Streader* sr, double* dest)
     }
 
     // Decimal part
-    if (!Streader_end_reached(sr) && Streader_try_match_char_seq(sr, "."))
+    if (!Streader_end_reached(sr) && CUR_CH == '.')
     {
         CHECK_SPACE(len_err_msg);
         num_chars[write_pos++] = '.';
+
+        ++sr->pos;
 
         while (!Streader_end_reached(sr) && isdigit(CUR_CH))
         {
