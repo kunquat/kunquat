@@ -15,6 +15,7 @@
 #include <assert.h>
 #include <ctype.h>
 #include <inttypes.h>
+#include <math.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -340,6 +341,42 @@ START_TEST(Reading_too_large_int_in_magnitude_fails)
 END_TEST
 
 
+START_TEST(Read_zero_float)
+{
+    Streader* sr = init_with_cstr("0 x");
+    double num = NAN;
+    fail_if(!Streader_read_float(sr, &num), "Could not read 0");
+    fail_if(num != 0, "Streader stored %f instead of 0", num);
+    fail_if(!Streader_match_char(sr, 'x'),
+            "Streader did not consume 0 correctly");
+
+    sr = init_with_cstr("0.0 x");
+    num = NAN;
+    fail_if(!Streader_read_float(sr, &num), "Could not read 0.0");
+    fail_if(num != 0, "Streader stored %f instead of 0.0", num);
+    fail_if(!Streader_match_char(sr, 'x'),
+            "Streader did not consume 0.0 correctly");
+
+    // TODO: The code below does not test the sign of negative zero
+    //       as C99 doesn't guarantee it.
+    //       Revisit when migrating to emulated floats.
+    sr = init_with_cstr("-0 x");
+    num = NAN;
+    fail_if(!Streader_read_float(sr, &num), "Could not read -0");
+    fail_if(num != 0, "Streader stored %f instead of -0", num);
+    fail_if(!Streader_match_char(sr, 'x'),
+            "Streader did not consume -0 correctly");
+
+    sr = init_with_cstr("-0.0 x");
+    num = NAN;
+    fail_if(!Streader_read_float(sr, &num), "Could not read -0.0");
+    fail_if(num != 0, "Streader stored %f instead of -0.0", num);
+    fail_if(!Streader_match_char(sr, 'x'),
+            "Streader did not consume -0.0 correctly");
+}
+END_TEST
+
+
 Suite* Streader_suite(void)
 {
     Suite* s = suite_create("Streader");
@@ -357,7 +394,7 @@ Suite* Streader_suite(void)
     BUILD_TCASE(read_null);
     BUILD_TCASE(read_bool);
     BUILD_TCASE(read_int);
-    //BUILD_TCASE(read_float);
+    BUILD_TCASE(read_float);
     //BUILD_TCASE(read_string);
     //BUILD_TCASE(read_tstamp);
     //BUILD_TCASE(read_piref);
@@ -385,6 +422,8 @@ Suite* Streader_suite(void)
     tcase_add_test(tc_read_int, Read_zero_int);
     tcase_add_test(tc_read_int, Read_nonzero_int);
     tcase_add_test(tc_read_int, Reading_too_large_int_in_magnitude_fails);
+
+    tcase_add_test(tc_read_float, Read_zero_float);
 
     return s;
 }
