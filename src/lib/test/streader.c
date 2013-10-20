@@ -22,6 +22,7 @@
 #include <test_common.h>
 
 #include <Streader.h>
+#include <Tstamp.h>
 
 
 #define init_with_cstr(s) Streader_init(STREADER_AUTO, (s), strlen((s)))
@@ -538,6 +539,52 @@ START_TEST(Reading_invalid_string_fails)
 END_TEST
 
 
+START_TEST(Read_valid_tstamp)
+{
+    static const struct
+    {
+        const char* data;
+        const Tstamp expected;
+    }
+    tstamps[] =
+    {
+        { "[0, 0]", { 0, 0 } },
+        { "[2,5]",  { 2, 5 } },
+        { " [2,5]", { 2, 5 } },
+        { "[ 2,5]", { 2, 5 } },
+        { "[2 ,5]", { 2, 5 } },
+        { "[2, 5]", { 2, 5 } },
+        { "[2,5 ]", { 2, 5 } },
+        { "[-1, 3]", { -1, 3 } },
+        { "[0, 882161279]", { 0, KQT_TSTAMP_BEAT - 1 } },
+    };
+
+    for (size_t i = 0; i < arr_size(tstamps); ++i)
+    {
+        char data[128] = "";
+        sprintf(data, "%s x", tstamps[i].data);
+
+        Streader* sr = init_with_cstr(data);
+        Tstamp* result = Tstamp_set(TSTAMP_AUTO, 99, 99);
+
+        fail_if(!Streader_read_tstamp(sr, result),
+                "Could not read timestamp " PRIts " from `%s`: %s",
+                PRIVALts(tstamps[i].expected),
+                data,
+                Streader_get_error_desc(sr));
+        fail_if(Tstamp_cmp(result, &tstamps[i].expected) != 0,
+                "Streader stored " PRIts " instead of " PRIts
+                    " when reading `%s`",
+                PRIVALts(*result),
+                PRIVALts(tstamps[i].expected),
+                data);
+        fail_if(!Streader_match_char(sr, 'x'),
+                "Streader did not consume timestamp from `%s` correctly", data);
+    }
+}
+END_TEST
+
+
 Suite* Streader_suite(void)
 {
     Suite* s = suite_create("Streader");
@@ -557,7 +604,7 @@ Suite* Streader_suite(void)
     BUILD_TCASE(read_int);
     BUILD_TCASE(read_float);
     BUILD_TCASE(read_string);
-    //BUILD_TCASE(read_tstamp);
+    BUILD_TCASE(read_tstamp);
     //BUILD_TCASE(read_piref);
     //BUILD_TCASE(read_list);
     //BUILD_TCASE(read_dict);
@@ -590,6 +637,8 @@ Suite* Streader_suite(void)
 
     tcase_add_test(tc_read_string, Read_valid_string);
     tcase_add_test(tc_read_string, Reading_invalid_string_fails);
+
+    tcase_add_test(tc_read_tstamp, Read_valid_tstamp);
 
     return s;
 }
