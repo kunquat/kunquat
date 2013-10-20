@@ -691,7 +691,7 @@ END_TEST
 
 START_TEST(Read_empty_list)
 {
-    const char* lists[] =
+    static const char* lists[] =
     {
         "[] x",
         "[ ]x",
@@ -708,6 +708,180 @@ START_TEST(Read_empty_list)
         fail_if(!Streader_match_char(sr, 'x'),
                 "Streader did not consume empty list from `%s` correctly",
                 lists[i]);
+    }
+}
+END_TEST
+
+
+#define item_count 4
+
+bool inc_doubled_int(Streader* sr, int32_t index, void* userdata)
+{
+    fail_if(sr == NULL, "Callback did not get a Streader");
+    fail_if(Streader_is_error_set(sr),
+            "Callback was called with Streader error set: %s",
+            Streader_get_error_desc(sr));
+    fail_if(index < 0,
+            "Callback got a negative item index (%" PRId32 ")",
+            index);
+    fail_if(index >= item_count,
+            "Callback got too large an index (%" PRId32 ")",
+            index);
+    fail_if(userdata == NULL, "Callback did not get userdata");
+
+    int64_t num = 0;
+    fail_if(!Streader_read_int(sr, &num),
+            "Could not read integer from list index %" PRId32 ": %s",
+            index, Streader_get_error_desc(sr));
+    fail_if(num != index * 2,
+            "Unexpected list item %" PRId64 " (expected %" PRId32 ")",
+            num, index * 2);
+
+    int* nums = userdata;
+    nums[index] = num + 1;
+
+    return true;
+}
+
+START_TEST(Read_list_of_numbers)
+{
+    static const char* lists[] =
+    {
+        "[] x",
+        "[0] x",
+        "[0, 2] x",
+        "[0, 2, 4] x",
+        "[0, 2, 4, 6] x",
+    };
+
+    for (size_t i = 0; i < arr_size(lists); ++i)
+    {
+        int nums[item_count + 1] = { 99 };
+
+        Streader* sr = init_with_cstr(lists[i]);
+        fail_if(!Streader_read_list(sr, inc_doubled_int, nums),
+                "Could not read list from `%s`: %s",
+                lists[i], Streader_get_error_desc(sr));
+
+        for (int k = 0; (size_t)k < i; ++k)
+        {
+            fail_if(nums[k] != k * 2 + 1,
+                    "Reading of list stored %d instead of %d",
+                    nums[k], k * 2 + 1);
+        }
+
+        fail_if(!Streader_match_char(sr, 'x'),
+                "Streader did not consume list from `%s` correctly",
+                lists[i]);
+    }
+}
+END_TEST
+
+
+bool check_adjusted_tstamp(Streader* sr, int32_t index, void* userdata)
+{
+    fail_if(sr == NULL, "Callback did not get a Streader");
+    fail_if(Streader_is_error_set(sr),
+            "Callback was called with Streader error set: %s",
+            Streader_get_error_desc(sr));
+    fail_if(index < 0,
+            "Callback got a negative item index (%" PRId32 ")",
+            index);
+    fail_if(index >= item_count,
+            "Callback got too large an index (%" PRId32 ")",
+            index);
+    fail_if(userdata != NULL, "Callback got unexpected userdata");
+
+    Tstamp* ts = TSTAMP_AUTO;
+    fail_if(!Streader_read_tstamp(sr, ts),
+            "Could not read timestamp from list index %" PRId32 ": %s",
+            index, Streader_get_error_desc(sr));
+    fail_if((Tstamp_get_beats(ts) != index + 10) ||
+                (Tstamp_get_rem(ts) != index + 100),
+            "Unexpected list item " PRIts " (expected (%d, %d))",
+            PRIVALts(*ts), (int)index + 10, (int)index + 100);
+
+    return true;
+}
+
+START_TEST(Read_list_of_tstamps)
+{
+    static const char* lists[] =
+    {
+        "[]",
+        "[[10, 100]]",
+        "[[10, 100], [11, 101]]",
+        "[[10, 100], [11, 101], [12, 102]]",
+        "[[10, 100], [11, 101], [12, 102], [13, 103]]",
+    };
+
+    for (size_t i = 0; i < arr_size(lists); ++i)
+    {
+        Streader* sr = init_with_cstr(lists[i]);
+        fail_if(!Streader_read_list(sr, check_adjusted_tstamp, NULL),
+                "Could not read list from `%s`: %s",
+                lists[i], Streader_get_error_desc(sr));
+    }
+}
+END_TEST
+
+#undef max_index
+
+
+START_TEST(Callback_must_be_specified_for_nonempty_lists)
+{
+    Streader* sr = init_with_cstr("[[]]");
+    int dummy = 0;
+    fail_if(Streader_read_list(sr, NULL, &dummy),
+            "Reading of non-empty list succeeded without callback");
+}
+END_TEST
+
+
+bool fail_at_index_2(Streader* sr, int32_t index, void* userdata)
+{
+    (void)sr;
+    (void)userdata;
+
+    fail_if(index > 2, "List processing continued after failure");
+
+    if (index == 2)
+        return false;
+
+    fail_if(!Streader_read_int(sr, NULL),
+            "Could not read an integer from list: %s",
+            Streader_get_error_desc(sr));
+
+    return true;
+}
+
+START_TEST(Callback_failure_interrupts_list_reading)
+{
+    static const char* lists[] =
+    {
+        "[]",
+        "[0]",
+        "[0, 0]",
+        "[0, 0, 0]",
+        "[0, 0, 0, 0]",
+    };
+
+    for (size_t i = 0; i < arr_size(lists); ++i)
+    {
+        Streader* sr = init_with_cstr(lists[i]);
+        if (i <= 2)
+        {
+            fail_if(!Streader_read_list(sr, fail_at_index_2, NULL),
+                    "Could not read list from `%s`: %s",
+                    lists[i], Streader_get_error_desc(sr));
+        }
+        else
+        {
+            fail_if(Streader_read_list(sr, fail_at_index_2, NULL),
+                    "List reading continued successfully after an error"
+                        " (list length %zd)",
+                    i);
+        }
     }
 }
 END_TEST
@@ -773,6 +947,10 @@ Suite* Streader_suite(void)
     tcase_add_test(tc_read_piref, Reading_invalid_piref_fails);
 
     tcase_add_test(tc_read_list, Read_empty_list);
+    tcase_add_test(tc_read_list, Read_list_of_numbers);
+    tcase_add_test(tc_read_list, Read_list_of_tstamps);
+    tcase_add_test(tc_read_list, Callback_must_be_specified_for_nonempty_lists);
+    tcase_add_test(tc_read_list, Callback_failure_interrupts_list_reading);
 
     return s;
 }
