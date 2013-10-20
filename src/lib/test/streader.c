@@ -515,6 +515,29 @@ START_TEST(Read_valid_string)
 END_TEST
 
 
+START_TEST(Reading_invalid_string_fails)
+{
+    const char* data[] =
+    {
+        "abc\"",
+        "\"abc",
+        "abc",
+        "\"\\z\"",
+        "\"\n\"",
+    };
+
+    for (size_t i = 0; i < arr_size(data); ++i)
+    {
+        Streader* sr = init_with_cstr(data[i]);
+        char str[128] = "";
+        fail_if(Streader_read_string(sr, 128, str),
+                "Streader accepted `%s` as a valid string",
+                data[i]);
+    }
+}
+END_TEST
+
+
 Suite* Streader_suite(void)
 {
     Suite* s = suite_create("Streader");
@@ -566,6 +589,7 @@ Suite* Streader_suite(void)
     tcase_add_test(tc_read_float, Whitespace_terminates_decimal_number);
 
     tcase_add_test(tc_read_string, Read_valid_string);
+    tcase_add_test(tc_read_string, Reading_invalid_string_fails);
 
     return s;
 }
