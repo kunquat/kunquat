@@ -13,6 +13,7 @@
 
 
 #include <inttypes.h>
+#include <stdio.h>
 #include <string.h>
 
 #include <test_common.h>
@@ -252,7 +253,7 @@ START_TEST(Bool_with_trailing_garbage_is_rejected)
 END_TEST
 
 
-START_TEST(Read_zero)
+START_TEST(Read_zero_int)
 {
     Streader* sr = init_with_cstr("0 x");
     int64_t num = -1;
@@ -266,7 +267,32 @@ START_TEST(Read_zero)
     fail_if(!Streader_read_int(sr, &num), "Could not read -0");
     fail_if(num != 0, "Streader stored %" PRId64 " instead of 0", num);
     fail_if(!Streader_match_char(sr, 'x'),
-            "Streader did not consume 0 correctly");
+            "Streader did not consume -0 correctly");
+}
+END_TEST
+
+
+START_TEST(Read_positive_int)
+{
+    char data[128] = "";
+
+    static const int64_t nums[] = { 1, 19, INT64_MAX };
+
+    for (size_t i = 0; i < sizeof(nums) / sizeof(*nums); ++i)
+    {
+        sprintf(data, "%" PRId64 " x", nums[i]);
+        Streader* sr = init_with_cstr(data);
+        int64_t num = -1;
+        fail_if(!Streader_read_int(sr, &num),
+                "Could not read %" PRId64,
+                nums[i]);
+        fail_if(num != nums[i],
+                "Streader stored %" PRId64 " instead of %" PRId64,
+                num, nums[i]);
+        fail_if(!Streader_match_char(sr, 'x'),
+                "Streader did not consume %" PRId64 " correctly",
+                nums[i]);
+    }
 }
 END_TEST
 
@@ -313,7 +339,8 @@ Suite* Streader_suite(void)
     tcase_add_test(tc_read_bool, Reading_bool_stores_correct_value);
     tcase_add_test(tc_read_bool, Bool_with_trailing_garbage_is_rejected);
 
-    tcase_add_test(tc_read_int, Read_zero);
+    tcase_add_test(tc_read_int, Read_zero_int);
+    tcase_add_test(tc_read_int, Read_positive_int);
 
     return s;
 }
