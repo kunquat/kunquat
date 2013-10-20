@@ -436,6 +436,40 @@ START_TEST(Read_nonzero_float)
 END_TEST
 
 
+START_TEST(Whitespace_terminates_decimal_number)
+{
+    Streader* sr = init_with_cstr("- 1");
+    double num = NAN;
+    fail_if(Streader_read_float(sr, &num),
+            "Streader accepted \"- 1\" as a float");
+
+    sr = init_with_cstr("-1 .5");
+    num = NAN;
+    fail_if(!Streader_read_float(sr, &num),
+            "Could not read float from \"-1 .5\": %s",
+            Streader_get_error_desc(sr));
+    fail_if(num != -1, "Streader read %f instead of -1 from \"-1 .5\"", num);
+
+    sr = init_with_cstr("-1. 5");
+    num = NAN;
+    fail_if(Streader_read_float(sr, &num),
+            "Streader accepted \"-1.\" as a float");
+
+    sr = init_with_cstr("-1 e5");
+    num = NAN;
+    fail_if(!Streader_read_float(sr, &num),
+            "Could not read float from \"-1 e5\": %s",
+            Streader_get_error_desc(sr));
+    fail_if(num != -1, "Streader read %f instead of -1 from \"-1 e5\"", num);
+
+    sr = init_with_cstr("-1e 5");
+    num = NAN;
+    fail_if(Streader_read_float(sr, &num),
+            "Streader accepted \"-1e\" as a float");
+}
+END_TEST
+
+
 Suite* Streader_suite(void)
 {
     Suite* s = suite_create("Streader");
@@ -484,6 +518,7 @@ Suite* Streader_suite(void)
 
     tcase_add_test(tc_read_float, Read_zero_float);
     tcase_add_test(tc_read_float, Read_nonzero_float);
+    tcase_add_test(tc_read_float, Whitespace_terminates_decimal_number);
 
     return s;
 }
