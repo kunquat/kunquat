@@ -21,6 +21,7 @@
 
 #include <test_common.h>
 
+#include <Pat_inst_ref.h>
 #include <Streader.h>
 #include <Tstamp.h>
 
@@ -609,6 +610,85 @@ START_TEST(Reading_invalid_tstamp_fails)
 END_TEST
 
 
+START_TEST(Read_valid_piref)
+{
+    static const struct
+    {
+        const char* data;
+        const Pat_inst_ref expected;
+    }
+    pirefs[] =
+    {
+        { "[0, 0]", { 0, 0 } },
+        { "[2,5]",  { 2, 5 } },
+        { " [2,5]", { 2, 5 } },
+        { "[ 2,5]", { 2, 5 } },
+        { "[2 ,5]", { 2, 5 } },
+        { "[2, 5]", { 2, 5 } },
+        { "[2,5 ]", { 2, 5 } },
+        { "[0, 1023]", { 0, KQT_PAT_INSTANCES_MAX - 1 } },
+        { "[1023, 0]", { KQT_PATTERNS_MAX - 1, 0 } },
+        { "[1023, 1023]", { KQT_PATTERNS_MAX - 1, KQT_PAT_INSTANCES_MAX - 1 } },
+    };
+
+    for (size_t i = 0; i < arr_size(pirefs); ++i)
+    {
+        char data[128] = "";
+        sprintf(data, "%s x", pirefs[i].data);
+
+        Streader* sr = init_with_cstr(data);
+        Pat_inst_ref* result = PAT_INST_REF_AUTO;
+
+        fail_if(!Streader_read_piref(sr, result),
+                "Could not read pattern instance refernce " PRIpi
+                    " from `%s`: %s",
+                PRIVALpi(pirefs[i].expected),
+                data,
+                Streader_get_error_desc(sr));
+        fail_if(Pat_inst_ref_cmp(result, &pirefs[i].expected) != 0,
+                "Streader stored " PRIpi " instead of " PRIpi
+                    " when reading `%s`",
+                PRIVALpi(*result),
+                PRIVALpi(pirefs[i].expected),
+                data);
+        fail_if(!Streader_match_char(sr, 'x'),
+                "Streader did not consume pattern instance from `%s` correctly",
+                data);
+    }
+}
+END_TEST
+
+
+#define make_str(x) #x
+
+START_TEST(Reading_invalid_piref_fails)
+{
+    const char* data[] =
+    {
+        "0, 0]",
+        "[0 0]",
+        "[0, 0",
+        "[0, -1]",
+        "[-1, 0]",
+        "[0, " make_str(KQT_PAT_INSTANCES_MAX) "]",
+        "[" make_str(KQT_PATTERNS_MAX) ", 0]",
+    };
+
+    for (size_t i = 0; i < arr_size(data); ++i)
+    {
+        Streader* sr = init_with_cstr(data[i]);
+        Pat_inst_ref* result = PAT_INST_REF_AUTO;
+
+        fail_if(Streader_read_piref(sr, result),
+                "Streader accepted `%s` as a valid pattern instance reference",
+                data[i]);
+    }
+}
+END_TEST
+
+#undef make_str
+
+
 Suite* Streader_suite(void)
 {
     Suite* s = suite_create("Streader");
@@ -629,7 +709,7 @@ Suite* Streader_suite(void)
     BUILD_TCASE(read_float);
     BUILD_TCASE(read_string);
     BUILD_TCASE(read_tstamp);
-    //BUILD_TCASE(read_piref);
+    BUILD_TCASE(read_piref);
     //BUILD_TCASE(read_list);
     //BUILD_TCASE(read_dict);
     //BUILD_TCASE(read_format);
@@ -664,6 +744,9 @@ Suite* Streader_suite(void)
 
     tcase_add_test(tc_read_tstamp, Read_valid_tstamp);
     tcase_add_test(tc_read_tstamp, Reading_invalid_tstamp_fails);
+
+    tcase_add_test(tc_read_piref, Read_valid_piref);
+    tcase_add_test(tc_read_piref, Reading_invalid_piref_fails);
 
     return s;
 }
