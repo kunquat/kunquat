@@ -887,6 +887,30 @@ START_TEST(Callback_failure_interrupts_list_reading)
 END_TEST
 
 
+START_TEST(Read_empty_dict)
+{
+    static const char* dicts[] =
+    {
+        "{} x",
+        "{ }x",
+        "{ } x",
+    };
+
+    for (size_t i = 0; i < arr_size(dicts); ++i)
+    {
+        Streader* sr = init_with_cstr(dicts[i]);
+        fail_if(!Streader_read_dict(sr, NULL, NULL),
+                "Could not read empty dictionary from `%s`: %s",
+                dicts[i],
+                Streader_get_error_desc(sr));
+        fail_if(!Streader_match_char(sr, 'x'),
+                "Streader did not consume empty dictionary from `%s` correctly",
+                dicts[i]);
+    }
+}
+END_TEST
+
+
 Suite* Streader_suite(void)
 {
     Suite* s = suite_create("Streader");
@@ -909,7 +933,7 @@ Suite* Streader_suite(void)
     BUILD_TCASE(read_tstamp);
     BUILD_TCASE(read_piref);
     BUILD_TCASE(read_list);
-    //BUILD_TCASE(read_dict);
+    BUILD_TCASE(read_dict);
     //BUILD_TCASE(read_format);
 
 #undef BUILD_TCASE
@@ -951,6 +975,8 @@ Suite* Streader_suite(void)
     tcase_add_test(tc_read_list, Read_list_of_tstamps);
     tcase_add_test(tc_read_list, Callback_must_be_specified_for_nonempty_lists);
     tcase_add_test(tc_read_list, Callback_failure_interrupts_list_reading);
+
+    tcase_add_test(tc_read_dict, Read_empty_dict);
 
     return s;
 }
