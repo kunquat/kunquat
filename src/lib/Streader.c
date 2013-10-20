@@ -339,7 +339,7 @@ bool Streader_read_int(Streader* sr, int64_t* dest)
     Streader_skip_whitespace(sr);
 
     int64_t result = 0;
-    const bool negative = Streader_try_match_char_seq(sr, "-");
+    const bool negative = Streader_try_match_char(sr, '-');
 
     if (Streader_end_reached(sr))
     {
