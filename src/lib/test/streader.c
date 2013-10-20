@@ -272,17 +272,17 @@ START_TEST(Read_zero_int)
 END_TEST
 
 
-START_TEST(Read_positive_int)
+START_TEST(Read_nonzero_int)
 {
     char data[128] = "";
 
-    static const int64_t nums[] = { 1, 19, INT64_MAX };
+    static const int64_t nums[] = { 1, 19, INT64_MAX, -1, -19, INT64_MIN };
 
     for (size_t i = 0; i < sizeof(nums) / sizeof(*nums); ++i)
     {
         sprintf(data, "%" PRId64 " x", nums[i]);
         Streader* sr = init_with_cstr(data);
-        int64_t num = -1;
+        int64_t num = 0;
         fail_if(!Streader_read_int(sr, &num),
                 "Could not read %" PRId64,
                 nums[i]);
@@ -340,7 +340,7 @@ Suite* Streader_suite(void)
     tcase_add_test(tc_read_bool, Bool_with_trailing_garbage_is_rejected);
 
     tcase_add_test(tc_read_int, Read_zero_int);
-    tcase_add_test(tc_read_int, Read_positive_int);
+    tcase_add_test(tc_read_int, Read_nonzero_int);
 
     return s;
 }
