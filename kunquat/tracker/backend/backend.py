@@ -158,7 +158,7 @@ class Backend():
         #data_mono = list(islice(self._sine, nframes))
         #audio_data = (data_mono, data_mono)
         audio_data = self._kunquat.mix(nframes)
-        event_data = self._kunquat.treceive()
+        event_data = self._kunquat.receive()
         self._process_events(event_data)
         (l,r) = audio_data
         if len(l) < 1:

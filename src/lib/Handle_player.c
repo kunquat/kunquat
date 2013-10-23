@@ -291,34 +291,6 @@ int kqt_Handle_receive(kqt_Handle* handle, char* dest, int size)
 }
 
 
-int kqt_Handle_treceive(kqt_Handle* handle, char* dest, int size)
-{
-    check_handle(handle, 0);
-    check_data_is_valid(handle, 0);
-    check_data_is_validated(handle, 0);
-
-    if (dest == NULL)
-    {
-        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
-                "dest must not be NULL");
-        return 0;
-    }
-    if (size <= 0)
-    {
-        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
-                "size must be positive");
-        return 0;
-    }
-
-    const char* events = Player_get_events(handle->player);
-    const int len = MIN((int)strlen(events) + 1, size);
-    strncpy(dest, events, len);
-    dest[len - 1] = '\0';
-
-    return len > 3;
-}
-
-
 void kqt_Handle_stop(kqt_Handle* handle)
 {
     assert(handle_is_valid(handle));
