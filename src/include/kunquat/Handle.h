@@ -52,7 +52,7 @@ extern "C" {
  * a single Kunquat Handle in parallel. However, accessing different Kunquat
  * Handles from different threads in parallel should be safe.
  */
-typedef struct kqt_Handle kqt_Handle;
+typedef int kqt_Handle;
 
 
 /**
@@ -61,10 +61,10 @@ typedef struct kqt_Handle kqt_Handle;
  * The current implementation limits the maximum number of simultaneous
  * Kunquat Handles to \c KQT_HANDLES_MAX.
  *
- * \return   The new Kunquat Handle if successful, otherwise \c NULL
- *           (check kqt_Handle_get_error(\c NULL) for error message).
+ * \return   The new Kunquat Handle if successful, otherwise \c 0
+ *           (check kqt_Handle_get_error(\c 0) for error message).
  */
-kqt_Handle* kqt_new_Handle(void);
+kqt_Handle kqt_new_Handle(void);
 
 
 /**
@@ -90,7 +90,7 @@ kqt_Handle* kqt_new_Handle(void);
  * \return   \c 1 if successful. Otherwise, \c 0 is returned and the Kunquat
  *           Handle error is set accordingly.
  */
-int kqt_Handle_set_data(kqt_Handle* handle,
+int kqt_Handle_set_data(kqt_Handle handle,
                         const char* key,
                         void* data,
                         long length);
@@ -114,28 +114,30 @@ int kqt_Handle_set_data(kqt_Handle* handle,
  * kqt_Handle_get_error(\a handle) returns a JSON object describing the last
  * error occurred when processing \a handle.
  *
- * kqt_Handle_get_error(\c NULL) returns a JSON object describing the last
+ * kqt_Handle_get_error(\c 0) returns a JSON object describing the last
  * error occurred in Kunquat Handle processing in general. In a
  * single-threaded application, you can always call
- * kqt_Handle_get_error(\c NULL) to get the last error message, whether or
+ * kqt_Handle_get_error(\c 0) to get the last error message, whether or
  * not related to any particular Handle.
  *
- * \param handle   The Handle, or \c NULL if retrieving error information
+ * \param handle   The Handle, or \c 0 if retrieving error information
  *                 that is not necessarily associated with a Kunquat Handle.
  *
  * \return   The last error message. This is an empty string if no error has
  *           occurred.
  */
-const char* kqt_Handle_get_error(kqt_Handle* handle);
+const char* kqt_Handle_get_error(kqt_Handle handle);
 
 
 /**
  * Clears error information from the Kunquat Handle.
  *
- * \param handle   The Handle, or \c NULL if the generic error message should
- *                 be cleared.
+ * Validation errors are not cleared from Handles as they are considered fatal
+ * errors.
+ *
+ * \param handle   The Handle, or \c 0 for clearing the generic error message.
  */
-void kqt_Handle_clear_error(kqt_Handle* handle);
+void kqt_Handle_clear_error(kqt_Handle handle);
 
 
 /**
@@ -144,21 +146,21 @@ void kqt_Handle_clear_error(kqt_Handle* handle);
  * This function needs to be called after one or more successful calls of
  * kqt_Handle_set_data before the Handle can be fully utilised again.
  *
- * \param handle   The Handle -- should not be \c NULL.
+ * \param handle   The Handle -- should be valid.
  *
  * \return   \c 1 if successful, \c 0 if failed. If the validation fails,
  *           the Handle can no longer be used and should be deallocated by
  *           calling kqt_del_Handle(\a handle).
  */
-int kqt_Handle_validate(kqt_Handle* handle);
+int kqt_Handle_validate(kqt_Handle handle);
 
 
 /**
  * Frees all the resources allocated for an existing Kunquat Handle.
  *
- * \param handle   The Handle -- should not be \c NULL.
+ * \param handle   The Handle -- should be valid.
  */
-void kqt_del_Handle(kqt_Handle* handle);
+void kqt_del_Handle(kqt_Handle handle);
 
 
 /* \} */

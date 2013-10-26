@@ -60,13 +60,13 @@ extern "C" {
 /**
  * Mixes audio according to the state of the Kunquat Handle.
  *
- * \param handle    The Handle -- should not be \c NULL.
+ * \param handle    The Handle -- should be valid.
  * \param nframes   The number of frames to be mixed -- should be > \c 0.
  *
  * \return   The number of frames actually mixed. This is always
  *           <= \a nframes and <= kqt_Handle_get_buffer_size(handle).
  */
-long kqt_Handle_mix(kqt_Handle* handle, long nframes);
+long kqt_Handle_mix(kqt_Handle handle, long nframes);
 
 
 /**
@@ -74,9 +74,9 @@ long kqt_Handle_mix(kqt_Handle* handle, long nframes);
  *
  * When called after a successful call of kqt_Handle_mix, this function
  * returns a portion of mixed audio of one output channel. The parameter
- * \a index determines the output channel.
+ * \a index specifies the output channel.
  *
- * \param handle   The Handle -- should not be \c NULL.
+ * \param handle   The Handle -- should be valid.
  * \param index    The output channel number. \c 0 is the left
  *                 mixing buffer and \c 1 is the right one.
  *
@@ -86,34 +86,34 @@ long kqt_Handle_mix(kqt_Handle* handle, long nframes);
  *           [-1.0, 1.0]. However, values beyond this range are possible
  *           and they indicate clipping.
  *           Note: Do not cache the returned value! The location of the buffer
- *           may change in memory, especially if the buffer size is changed.
+ *           may change in memory.
  */
-const float* kqt_Handle_get_buffer(kqt_Handle* handle, int index);
+const float* kqt_Handle_get_buffer(kqt_Handle handle, int index);
 
 
 /**
  * Sets the mixing rate of the Kunquat Handle.
  *
- * \param handle   The Handle -- should not be \c NULL.
+ * \param handle   The Handle -- should be valid.
  * \param rate     The mixing rate in frames per second -- should be > \c 0.
- *                 Typical values include 44100 ("CD quality") and 48000 (the
- *                 default).
+ *                 Typical values include 48000 (the default) and 44100 ("CD
+ *                 quality").
  *
  * \return   \c 1 if successful, or \c 0 if memory allocation failed. Memory
  *           allocation failure is possible if the composition uses features
  *           that allocate buffers based on the mixing rate.
  */
-int kqt_Handle_set_mixing_rate(kqt_Handle* handle, long rate);
+int kqt_Handle_set_mixing_rate(kqt_Handle handle, long rate);
 
 
 /**
  * Gets the current mixing rate used by the Kunquat Handle.
  *
- * \param handle   The Handle -- should not be \c NULL.
+ * \param handle   The Handle -- should be valid.
  *
  * \return   The current mixing rate, or \c 0 if \a handle is invalid.
  */
-long kqt_Handle_get_mixing_rate(kqt_Handle* handle);
+long kqt_Handle_get_mixing_rate(kqt_Handle handle);
 
 
 /**
@@ -127,7 +127,7 @@ long kqt_Handle_get_mixing_rate(kqt_Handle* handle);
  * for one output channel (e.g. in 16-bit stereo, this takes \a n * \c 4 bytes
  * in total), it should call kqt_new_Handle with a buffer size of \a n.
  *
- * \param handle   The Handle -- should not be \c NULL.
+ * \param handle   The Handle -- should be valid.
  * \param size     The new buffer size -- should be > \c 0 and
  *                 <= \c KQT_BUFFER_SIZE_MAX. The upper limit is a safety
  *                 measure -- typically, implementations use a buffer size of
@@ -138,17 +138,17 @@ long kqt_Handle_get_mixing_rate(kqt_Handle* handle);
  *           only with min{old_size, new_size} frames at a time. However, it
  *           may be a good idea to just give up in this case.
  */
-int kqt_Handle_set_buffer_size(kqt_Handle* handle, long size);
+int kqt_Handle_set_buffer_size(kqt_Handle handle, long size);
 
 
 /**
  * Gets the buffer size of the Kunquat Handle.
  *
- * \param handle   The Handle -- should not be \c NULL.
+ * \param handle   The Handle -- should be valid.
  *
  * \return   The size of a buffer in frames, or \c 0 if \a handle is invalid.
  */
-long kqt_Handle_get_buffer_size(kqt_Handle* handle);
+long kqt_Handle_get_buffer_size(kqt_Handle handle);
 
 
 /**
@@ -157,14 +157,14 @@ long kqt_Handle_get_buffer_size(kqt_Handle* handle);
  * This function will not calculate the length of a track further
  * than 30 days.
  *
- * \param handle   The Handle -- should not be \c NULL.
+ * \param handle   The Handle -- should be valid.
  * \param track    The track number -- should be >= \c -1 and
  *                 < \c KQT_TRACKS_MAX (\c -1 indicates all tracks).
  *
  * \return   The length in nanoseconds, or KQT_MAX_CALC_DURATION if the
  *           length is 30 days or longer, or \c -1 if failed.
  */
-long long kqt_Handle_get_duration(kqt_Handle* handle, int track);
+long long kqt_Handle_get_duration(kqt_Handle handle, int track);
 
 
 /**
@@ -173,7 +173,7 @@ long long kqt_Handle_get_duration(kqt_Handle* handle, int track);
  * Any notes that were being mixed will be cut off immediately.
  * Notes that start playing before the given position will not be played.
  *
- * \param handle        The Handle -- should not be \c NULL.
+ * \param handle        The Handle -- should be valid.
  * \param track         The track number -- should be >= \c -1 and
  *                      < \c KQT_TRACKS_MAX (\c -1 indicates all tracks).
  * \param nanoseconds   The number of nanoseconds from the beginning --
@@ -182,7 +182,7 @@ long long kqt_Handle_get_duration(kqt_Handle* handle, int track);
  * \return   \c 1 if successful, otherwise \c 0.
  */
 int kqt_Handle_set_position(
-        kqt_Handle* handle,
+        kqt_Handle handle,
         int track,
         long long nanoseconds);
 
@@ -190,17 +190,17 @@ int kqt_Handle_set_position(
 /**
  * Gets the current position in nanoseconds.
  *
- * \param handle   The Handle -- should not be \c NULL.
+ * \param handle   The Handle -- should be valid.
  *
  * \return   The amount of nanoseconds mixed since the start of mixing.
  */
-long long kqt_Handle_get_position(kqt_Handle* handle);
+long long kqt_Handle_get_position(kqt_Handle handle);
 
 
 /**
  * Fires an event.
  *
- * \param handle    The Handle -- should not be \c NULL.
+ * \param handle    The Handle -- should be valid.
  * \param channel   The channel where the event takes place -- should be
  *                  >= \c 0 and < \c KQT_COLUMNS_MAX.
  * \param event     The event description in JSON format -- should not be
@@ -212,7 +212,7 @@ long long kqt_Handle_get_position(kqt_Handle* handle);
  *
  * \return   \c 1 if the event was successfully fired, otherwise \c 0.
  */
-int kqt_Handle_fire(kqt_Handle* handle, int channel, char* event);
+int kqt_Handle_fire(kqt_Handle handle, int channel, char* event);
 
 
 /**
@@ -221,7 +221,7 @@ int kqt_Handle_fire(kqt_Handle* handle, int channel, char* event);
  * This function only returns events of types that are explicitly
  * requested through the ">receive" event.
  *
- * \param handle   The Handle -- should not be \c NULL.
+ * \param handle   The Handle -- should be valid.
  * \param dest     The memory location where the result shall be stored
  *                 -- should not be \c NULL. Upon successful completion,
  *                 this memory location contains the received event
@@ -234,7 +234,7 @@ int kqt_Handle_fire(kqt_Handle* handle, int channel, char* event);
  * \return   \c 1 if an event was successfully retrieved, \c 0 if the
  *           event buffer is empty or an error occurred.
  */
-int kqt_Handle_receive(kqt_Handle* handle, char* dest, int size);
+int kqt_Handle_receive(kqt_Handle handle, char* dest, int size);
 
 
 /* \} */

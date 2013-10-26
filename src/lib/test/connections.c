@@ -139,7 +139,7 @@ END_TEST
 
 START_TEST(Connect_instrument_effect_with_unconnected_dsp_and_mix)
 {
-    assert(handle != NULL);
+    assert(handle != 0);
 
     pause();
 

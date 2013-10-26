@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -28,8 +28,7 @@
  * Otherwise it will parse the data and, if the data is valid, it will update
  * the player state.
  *
- * \param handle   The Kunquat Handle -- must be valid and must support
- *                 writing.
+ * \param handle   The Kunquat Handle -- must not be \c NULL.
  * \param key      The key of the data -- must not be \c NULL.
  * \param data     The data -- must not be \c NULL if it has a non-zero
  *                 length.
@@ -38,7 +37,7 @@
  * \return   \c true if the key is valid or not player-specific, otherwise
  *           \c false.
  */
-bool parse_data(kqt_Handle* handle,
+bool parse_data(Handle* handle,
                 const char* key,
                 void* data,
                 long length);

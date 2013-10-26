@@ -35,14 +35,14 @@
 
 
 static bool parse_module_level(
-        kqt_Handle* handle,
+        Handle* handle,
         const char* key,
         void* data,
         long length);
 
 
 static bool parse_album_level(
-        kqt_Handle* handle,
+        Handle* handle,
         const char* key,
         const char* subkey,
         void* data,
@@ -50,7 +50,7 @@ static bool parse_album_level(
 
 
 static bool parse_instrument_level(
-        kqt_Handle* handle,
+        Handle* handle,
         const char* key,
         const char* subkey,
         void* data,
@@ -59,7 +59,7 @@ static bool parse_instrument_level(
 
 
 static bool parse_effect_level(
-        kqt_Handle* handle,
+        Handle* handle,
         Instrument* ins,
         const char* key,
         const char* subkey,
@@ -69,7 +69,7 @@ static bool parse_effect_level(
 
 
 static bool parse_generator_level(
-        kqt_Handle* handle,
+        Handle* handle,
         const char* key,
         const char* subkey,
         void* data,
@@ -79,7 +79,7 @@ static bool parse_generator_level(
 
 
 static bool parse_dsp_level(
-        kqt_Handle* handle,
+        Handle* handle,
         Effect* eff,
         const char* key,
         const char* subkey,
@@ -89,7 +89,7 @@ static bool parse_dsp_level(
 
 
 static bool parse_pattern_level(
-        kqt_Handle* handle,
+        Handle* handle,
         const char* key,
         const char* subkey,
         void* data,
@@ -98,7 +98,7 @@ static bool parse_pattern_level(
 
 
 static bool parse_pat_inst_level(
-        kqt_Handle* handle,
+        Handle* handle,
         Pattern* pat,
         const char* key,
         const char* subkey,
@@ -108,7 +108,7 @@ static bool parse_pat_inst_level(
 
 
 static bool parse_scale_level(
-        kqt_Handle* handle,
+        Handle* handle,
         const char* key,
         const char* subkey,
         void* data,
@@ -117,7 +117,7 @@ static bool parse_scale_level(
 
 
 static bool parse_subsong_level(
-        kqt_Handle* handle,
+        Handle* handle,
         const char* key,
         const char* subkey,
         void* data,
@@ -129,7 +129,7 @@ static bool key_is_for_text(const char* key);
 
 
 #define set_parse_error(handle, state) \
-    (kqt_Handle_set_validation_error((handle), ERROR_FORMAT, "Parse error in" \
+    (Handle_set_validation_error((handle), ERROR_FORMAT, "Parse error in" \
             " %s:%d: %s", (state)->path, (state)->row, (state)->message))
 
 
@@ -141,7 +141,7 @@ static bool key_is_for_text(const char* key)
 }
 
 
-static bool prepare_connections(kqt_Handle* handle)
+static bool prepare_connections(Handle* handle)
 {
     assert(handle != NULL);
 
@@ -152,7 +152,7 @@ static bool prepare_connections(kqt_Handle* handle)
 
     if (!Connections_prepare(graph, states))
     {
-        kqt_Handle_set_error(handle, ERROR_MEMORY,
+        Handle_set_error(handle, ERROR_MEMORY,
                 "Couldn't allocate memory for connections");
         return false;
     }
@@ -161,7 +161,7 @@ static bool prepare_connections(kqt_Handle* handle)
 }
 
 
-bool parse_data(kqt_Handle* handle,
+bool parse_data(Handle* handle,
                 const char* key,
                 void* data,
                 long length)
@@ -199,7 +199,7 @@ bool parse_data(kqt_Handle* handle,
         json = memory_calloc_items(char, length + 1);
         if (json == NULL)
         {
-            kqt_Handle_set_error(handle, ERROR_MEMORY,
+            Handle_set_error(handle, ERROR_MEMORY,
                     "Couldn't allocate memory");
             return false;
         }
@@ -277,7 +277,7 @@ bool parse_data(kqt_Handle* handle,
                     {
                         if (!Pattern_set_location(new_pat, subsong, ref))
                         {
-                            kqt_Handle_set_error(handle, ERROR_MEMORY,
+                            Handle_set_error(handle, ERROR_MEMORY,
                                     "Couldn't allocate memory");
                             return false;
                         }
@@ -297,7 +297,7 @@ bool parse_data(kqt_Handle* handle,
                     {
                         if (!Pattern_set_location(new_pat, subsong, section))
                         {
-                            kqt_Handle_set_error(handle, ERROR_MEMORY,
+                            Handle_set_error(handle, ERROR_MEMORY,
                                     "Couldn't allocate memory");
                             return false;
                         }
@@ -327,13 +327,13 @@ bool parse_data(kqt_Handle* handle,
 }
 
 
-static bool parse_module_level(kqt_Handle* handle,
+static bool parse_module_level(Handle* handle,
                              const char* key,
                              void* data,
                              long length)
 {
 //    fprintf(stderr, "song level: %s\n", key);
-    assert(handle_is_valid(handle));
+    assert(handle != NULL);
     assert(key != NULL);
     assert(data != NULL || length == 0);
     assert(length >= 0);
@@ -368,7 +368,7 @@ static bool parse_module_level(kqt_Handle* handle,
             }
             else
             {
-                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                Handle_set_error(handle, ERROR_MEMORY,
                         "Couldn't allocate memory");
             }
             return false;
@@ -401,7 +401,7 @@ static bool parse_module_level(kqt_Handle* handle,
         {
             if (!state->error)
             {
-                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                Handle_set_error(handle, ERROR_MEMORY,
                         "Couldn't allocate memory");
             }
             else
@@ -412,7 +412,7 @@ static bool parse_module_level(kqt_Handle* handle,
         }
         if (!Player_refresh_env_state(handle->player))
         {
-            kqt_Handle_set_error(handle, ERROR_MEMORY,
+            Handle_set_error(handle, ERROR_MEMORY,
                     "Couldn't allocate memory for environment state");
             return false;
         }
@@ -428,7 +428,7 @@ static bool parse_module_level(kqt_Handle* handle,
         {
             if (!state->error)
             {
-                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                Handle_set_error(handle, ERROR_MEMORY,
                         "Couldn't allocate memory");
             }
             else
@@ -441,7 +441,7 @@ static bool parse_module_level(kqt_Handle* handle,
 
         if (!Player_refresh_bind_state(handle->player))
         {
-            kqt_Handle_set_error(handle, ERROR_MEMORY,
+            Handle_set_error(handle, ERROR_MEMORY,
                     "Couldn't allocate memory for bind state");
             return false;
         }
@@ -451,13 +451,13 @@ static bool parse_module_level(kqt_Handle* handle,
 
 
 static bool parse_album_level(
-        kqt_Handle* handle,
+        Handle* handle,
         const char* key,
         const char* subkey,
         void* data,
         long length)
 {
-    assert(handle_is_valid(handle));
+    assert(handle != NULL);
     assert(key != NULL);
     assert(subkey != NULL);
     assert((data == NULL) == (length == 0));
@@ -485,7 +485,7 @@ static bool parse_album_level(
         {
             if (!state->error)
             {
-                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                Handle_set_error(handle, ERROR_MEMORY,
                         "Couldn't allocate memory");
             }
             else
@@ -501,7 +501,7 @@ static bool parse_album_level(
 }
 
 
-static Instrument* add_instrument(kqt_Handle* handle, int index)
+static Instrument* add_instrument(Handle* handle, int index)
 {
     assert(handle != NULL);
     assert(index >= 0);
@@ -521,7 +521,7 @@ static Instrument* add_instrument(kqt_Handle* handle, int index)
     ins = new_Instrument();
     if (ins == NULL || !Ins_table_set(Module_get_insts(module), index, ins))
     {
-        kqt_Handle_set_error(handle, ERROR_MEMORY, memory_error_str);
+        Handle_set_error(handle, ERROR_MEMORY, memory_error_str);
         del_Instrument(ins);
         return NULL;
     }
@@ -534,7 +534,7 @@ static Instrument* add_instrument(kqt_Handle* handle, int index)
     if (ds == NULL || !Device_states_add_state(
                 Player_get_device_states(handle->player), ds))
     {
-        kqt_Handle_set_error(handle, ERROR_MEMORY, memory_error_str);
+        Handle_set_error(handle, ERROR_MEMORY, memory_error_str);
         Ins_table_remove(Module_get_insts(module), index);
         return NULL;
     }
@@ -543,7 +543,7 @@ static Instrument* add_instrument(kqt_Handle* handle, int index)
 }
 
 
-static bool parse_instrument_level(kqt_Handle* handle,
+static bool parse_instrument_level(Handle* handle,
                                    const char* key,
                                    const char* subkey,
                                    void* data,
@@ -551,7 +551,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
                                    int index)
 {
 //    fprintf(stderr, "instrument level: %s\n", key);
-    assert(handle_is_valid(handle));
+    assert(handle != NULL);
     assert(key != NULL);
     assert(subkey != NULL);
     assert((data == NULL) == (length == 0));
@@ -691,7 +691,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
                 if (state->error)
                     set_parse_error(handle, state);
                 else
-                    kqt_Handle_set_error(handle, ERROR_MEMORY,
+                    Handle_set_error(handle, ERROR_MEMORY,
                             "Couldn't allocate memory");
                 return false;
             }
@@ -751,7 +751,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
             if (!parse[i].read(Instrument_get_params(ins), data, state))
             {
                 if (!state->error)
-                    kqt_Handle_set_error(handle, ERROR_MEMORY,
+                    Handle_set_error(handle, ERROR_MEMORY,
                             "Couldn't allocate memory");
                 else
                     set_parse_error(handle, state);
@@ -764,7 +764,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
 
 
 static Generator* add_generator(
-        kqt_Handle* handle,
+        Handle* handle,
         Instrument* ins,
         Gen_table* gen_table,
         int gen_index)
@@ -787,7 +787,7 @@ static Generator* add_generator(
     gen = new_Generator(Instrument_get_params(ins));
     if (gen == NULL || !Gen_table_set_gen(gen_table, gen_index, gen))
     {
-        kqt_Handle_set_error(handle, ERROR_MEMORY, memory_error_str);
+        Handle_set_error(handle, ERROR_MEMORY, memory_error_str);
         del_Generator(gen);
         return NULL;
     }
@@ -796,7 +796,7 @@ static Generator* add_generator(
 }
 
 
-static bool parse_generator_level(kqt_Handle* handle,
+static bool parse_generator_level(Handle* handle,
                                   const char* key,
                                   const char* subkey,
                                   void* data,
@@ -805,7 +805,7 @@ static bool parse_generator_level(kqt_Handle* handle,
                                   int gen_index)
 {
 //    fprintf(stderr, "generator level: %s\n", key);
-    assert(handle_is_valid(handle));
+    assert(handle != NULL);
     assert(key != NULL);
     assert(subkey != NULL);
     assert((data == NULL) == (length == 0));
@@ -877,14 +877,14 @@ static bool parse_generator_level(kqt_Handle* handle,
             Generator_cons* cons = Gen_type_find_cons(type);
             if (cons == NULL)
             {
-                kqt_Handle_set_error(handle, ERROR_FORMAT,
+                Handle_set_error(handle, ERROR_FORMAT,
                         "Unsupported Generator type: %s", type);
                 return false;
             }
             Device_impl* gen_impl = cons(gen);
             if (gen_impl == NULL)
             {
-                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                Handle_set_error(handle, ERROR_MEMORY,
                         "Couldn't allocate memory for generator implementation");
                 return false;
             }
@@ -915,7 +915,7 @@ static bool parse_generator_level(kqt_Handle* handle,
                             !Player_reserve_voice_state_space(
                                 handle->length_counter, size))
                     {
-                        kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        Handle_set_error(handle, ERROR_MEMORY,
                                 "Couldn't allocate memory");
                         del_Device_impl(gen_impl);
                         return false;
@@ -932,7 +932,7 @@ static bool parse_generator_level(kqt_Handle* handle,
                                 handle->player, gen_state_vars, rs))
                     {
                         if (!rs->error)
-                            kqt_Handle_set_error(handle, ERROR_MEMORY,
+                            Handle_set_error(handle, ERROR_MEMORY,
                                     "Couldn't allocate memory");
                         else
                             set_parse_error(handle, rs);
@@ -949,7 +949,7 @@ static bool parse_generator_level(kqt_Handle* handle,
                     Player_get_audio_buffer_size(handle->player));
             if (ds == NULL || !Device_states_add_state(dstates, ds))
             {
-                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                Handle_set_error(handle, ERROR_MEMORY,
                         "Couldn't allocate memory");
                 del_Device_state(ds);
                 del_Generator(gen);
@@ -959,7 +959,7 @@ static bool parse_generator_level(kqt_Handle* handle,
             // Sync the Generator
             if (!Device_sync((Device*)gen))
             {
-                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                Handle_set_error(handle, ERROR_MEMORY,
                         "Couldn't allocate memory while syncing generator");
                 return false;
             }
@@ -969,7 +969,7 @@ static bool parse_generator_level(kqt_Handle* handle,
                         (Device*)gen,
                         Player_get_device_states(handle->player)))
             {
-                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                Handle_set_error(handle, ERROR_MEMORY,
                         "Couldn't allocate memory while syncing generator");
                 return false;
             }
@@ -1014,7 +1014,7 @@ static bool parse_generator_level(kqt_Handle* handle,
             if (rs->error)
                 set_parse_error(handle, rs);
             else
-                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                Handle_set_error(handle, ERROR_MEMORY,
                         "Couldn't allocate memory");
         }
 
@@ -1029,7 +1029,7 @@ static bool parse_generator_level(kqt_Handle* handle,
 }
 
 
-static Effect* add_effect(kqt_Handle* handle, int index, Effect_table* table)
+static Effect* add_effect(Handle* handle, int index, Effect_table* table)
 {
     assert(handle != NULL);
     assert(index >= 0);
@@ -1048,7 +1048,7 @@ static Effect* add_effect(kqt_Handle* handle, int index, Effect_table* table)
     if (eff == NULL || !Effect_table_set(table, index, eff))
     {
         del_Effect(eff);
-        kqt_Handle_set_error(handle, ERROR_MEMORY, memory_error_str);
+        Handle_set_error(handle, ERROR_MEMORY, memory_error_str);
         return NULL;
     }
 
@@ -1071,7 +1071,7 @@ static Effect* add_effect(kqt_Handle* handle, int index, Effect_table* table)
                     Player_get_device_states(handle->player), ds))
         {
             del_Device_state(ds);
-            kqt_Handle_set_error(handle, ERROR_MEMORY, memory_error_str);
+            Handle_set_error(handle, ERROR_MEMORY, memory_error_str);
             Effect_table_remove(table, index);
             return NULL;
         }
@@ -1081,7 +1081,7 @@ static Effect* add_effect(kqt_Handle* handle, int index, Effect_table* table)
 }
 
 
-static bool parse_effect_level(kqt_Handle* handle,
+static bool parse_effect_level(Handle* handle,
                                Instrument* ins,
                                const char* key,
                                const char* subkey,
@@ -1089,7 +1089,7 @@ static bool parse_effect_level(kqt_Handle* handle,
                                long length,
                                int eff_index)
 {
-    assert(handle_is_valid(handle));
+    assert(handle != NULL);
     assert(key != NULL);
     assert(subkey != NULL);
     assert((data == NULL) == (length == 0));
@@ -1193,7 +1193,7 @@ static bool parse_effect_level(kqt_Handle* handle,
                 if (state->error)
                     set_parse_error(handle, state);
                 else
-                    kqt_Handle_set_error(handle, ERROR_MEMORY,
+                    Handle_set_error(handle, ERROR_MEMORY,
                             "Couldn't allocate memory");
                 return false;
             }
@@ -1215,7 +1215,7 @@ static bool parse_effect_level(kqt_Handle* handle,
 
 
 static DSP* add_dsp(
-        kqt_Handle* handle,
+        Handle* handle,
         Effect* eff,
         DSP_table* dsp_table,
         int dsp_index)
@@ -1238,7 +1238,7 @@ static DSP* add_dsp(
     dsp = new_DSP();
     if (dsp == NULL || !DSP_table_set_dsp(dsp_table, dsp_index, dsp))
     {
-        kqt_Handle_set_error(handle, ERROR_MEMORY, memory_error_str);
+        Handle_set_error(handle, ERROR_MEMORY, memory_error_str);
         del_DSP(dsp);
         return NULL;
     }
@@ -1247,7 +1247,7 @@ static DSP* add_dsp(
 }
 
 
-static bool parse_dsp_level(kqt_Handle* handle,
+static bool parse_dsp_level(Handle* handle,
                             Effect* eff,
                             const char* key,
                             const char* subkey,
@@ -1255,7 +1255,7 @@ static bool parse_dsp_level(kqt_Handle* handle,
                             long length,
                             int dsp_index)
 {
-    assert(handle_is_valid(handle));
+    assert(handle != NULL);
     assert(eff != NULL);
     assert(key != NULL);
     assert(subkey != NULL);
@@ -1313,14 +1313,14 @@ static bool parse_dsp_level(kqt_Handle* handle,
             DSP_cons* cons = DSP_type_find_cons(type);
             if (cons == NULL)
             {
-                kqt_Handle_set_error(handle, ERROR_FORMAT,
+                Handle_set_error(handle, ERROR_FORMAT,
                         "Unsupported DSP type: %s", type);
                 return false;
             }
             Device_impl* dsp_impl = cons(dsp);
             if (dsp_impl == NULL)
             {
-                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                Handle_set_error(handle, ERROR_MEMORY,
                         "Couldn't allocate memory for DSP implementation");
                 return false;
             }
@@ -1339,7 +1339,7 @@ static bool parse_dsp_level(kqt_Handle* handle,
             if (ds == NULL || !Device_states_add_state(
                         Player_get_device_states(handle->player), ds))
             {
-                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                Handle_set_error(handle, ERROR_MEMORY,
                         "Couldn't allocate memory");
                 del_Device_state(ds);
                 del_DSP(dsp);
@@ -1354,7 +1354,7 @@ static bool parse_dsp_level(kqt_Handle* handle,
                         dstates,
                         Player_get_audio_buffer_size(handle->player)))
             {
-                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                Handle_set_error(handle, ERROR_MEMORY,
                         "Couldn't allocate memory for DSP state");
                 return false;
             }
@@ -1362,7 +1362,7 @@ static bool parse_dsp_level(kqt_Handle* handle,
             // Sync the DSP
             if (!Device_sync((Device*)dsp))
             {
-                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                Handle_set_error(handle, ERROR_MEMORY,
                         "Couldn't allocate memory while syncing DSP");
                 return false;
             }
@@ -1372,7 +1372,7 @@ static bool parse_dsp_level(kqt_Handle* handle,
                         (Device*)dsp,
                         Player_get_device_states(handle->player)))
             {
-                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                Handle_set_error(handle, ERROR_MEMORY,
                         "Couldn't allocate memory while syncing DSP");
                 return false;
             }
@@ -1393,7 +1393,7 @@ static bool parse_dsp_level(kqt_Handle* handle,
             if (rs->error)
                 set_parse_error(handle, rs);
             else
-                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                Handle_set_error(handle, ERROR_MEMORY,
                         "Couldn't allocate memory");
             return false;
         }
@@ -1433,7 +1433,7 @@ static bool parse_dsp_level(kqt_Handle* handle,
 }
 
 
-static bool parse_pattern_level(kqt_Handle* handle,
+static bool parse_pattern_level(Handle* handle,
                                 const char* key,
                                 const char* subkey,
                                 void* data,
@@ -1441,7 +1441,7 @@ static bool parse_pattern_level(kqt_Handle* handle,
                                 int index)
 {
 //    fprintf(stderr, "pattern level: %s\n", key);
-    assert(handle_is_valid(handle));
+    assert(handle != NULL);
     assert(key != NULL);
     assert(subkey != NULL);
     assert((data == NULL) == (length == 0));
@@ -1474,7 +1474,7 @@ static bool parse_pattern_level(kqt_Handle* handle,
             pat = new_Pattern();
             if (pat == NULL)
             {
-                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                Handle_set_error(handle, ERROR_MEMORY,
                         "Couldn't allocate memory");
                 return false;
             }
@@ -1491,7 +1491,7 @@ static bool parse_pattern_level(kqt_Handle* handle,
         }
         if (new_pattern && !Pat_table_set(Module_get_pats(module), index, pat))
         {
-            kqt_Handle_set_error(handle, ERROR_MEMORY,
+            Handle_set_error(handle, ERROR_MEMORY,
                     "Couldn't allocate memory");
             del_Pattern(pat);
             return false;
@@ -1519,7 +1519,7 @@ static bool parse_pattern_level(kqt_Handle* handle,
             pat = new_Pattern();
             if (pat == NULL)
             {
-                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                Handle_set_error(handle, ERROR_MEMORY,
                         "Couldn't allocate memory");
                 return false;
             }
@@ -1535,7 +1535,7 @@ static bool parse_pattern_level(kqt_Handle* handle,
         {
             if (!state->error)
             {
-                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                Handle_set_error(handle, ERROR_MEMORY,
                         "Couldn't allocate memory");
             }
             else
@@ -1550,7 +1550,7 @@ static bool parse_pattern_level(kqt_Handle* handle,
         }
         if (!Pattern_set_column(pat, sub_index, col))
         {
-            kqt_Handle_set_error(handle, ERROR_MEMORY,
+            Handle_set_error(handle, ERROR_MEMORY,
                     "Couldn't allocate memory");
             if (new_pattern)
             {
@@ -1562,7 +1562,7 @@ static bool parse_pattern_level(kqt_Handle* handle,
         {
             if (!Pat_table_set(Module_get_pats(module), index, pat))
             {
-                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                Handle_set_error(handle, ERROR_MEMORY,
                         "Couldn't allocate memory");
                 del_Pattern(pat);
                 return false;
@@ -1578,7 +1578,7 @@ static bool parse_pattern_level(kqt_Handle* handle,
             pat = new_Pattern();
             if (pat == NULL)
             {
-                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                Handle_set_error(handle, ERROR_MEMORY,
                         "Couldn't allocate memory");
                 return false;
             }
@@ -1603,7 +1603,7 @@ static bool parse_pattern_level(kqt_Handle* handle,
 
         if (new_pattern && !Pat_table_set(Module_get_pats(module), index, pat))
         {
-            kqt_Handle_set_error(handle, ERROR_MEMORY,
+            Handle_set_error(handle, ERROR_MEMORY,
                     "Couldn't allocate memory");
             del_Pattern(pat);
             return false;
@@ -1615,7 +1615,7 @@ static bool parse_pattern_level(kqt_Handle* handle,
 
 
 static bool parse_pat_inst_level(
-        kqt_Handle* handle,
+        Handle* handle,
         Pattern* pat,
         const char* key,
         const char* subkey,
@@ -1623,7 +1623,7 @@ static bool parse_pat_inst_level(
         long length,
         int index)
 {
-    assert(handle_is_valid(handle));
+    assert(handle != NULL);
     assert(key != NULL);
     assert(subkey != NULL);
     assert((data == NULL) == (length == 0));
@@ -1647,7 +1647,7 @@ static bool parse_pat_inst_level(
 }
 
 
-static bool parse_scale_level(kqt_Handle* handle,
+static bool parse_scale_level(Handle* handle,
                               const char* key,
                               const char* subkey,
                               void* data,
@@ -1655,7 +1655,7 @@ static bool parse_scale_level(kqt_Handle* handle,
                               int index)
 {
 //    fprintf(stderr, "scale level: %s\n", key);
-    assert(handle_is_valid(handle));
+    assert(handle != NULL);
     assert(key != NULL);
     assert(subkey != NULL);
     assert((data == NULL) == (length == 0));
@@ -1684,7 +1684,7 @@ static bool parse_scale_level(kqt_Handle* handle,
 }
 
 
-static bool parse_subsong_level(kqt_Handle* handle,
+static bool parse_subsong_level(Handle* handle,
                                 const char* key,
                                 const char* subkey,
                                 void* data,
@@ -1692,7 +1692,7 @@ static bool parse_subsong_level(kqt_Handle* handle,
                                 int index)
 {
 //    fprintf(stderr, "subsong level: %s\n", key);
-    assert(handle_is_valid(handle));
+    assert(handle != NULL);
     assert(key != NULL);
     assert(subkey != NULL);
     assert((data == NULL) == (length == 0));
@@ -1723,7 +1723,7 @@ static bool parse_subsong_level(kqt_Handle* handle,
         if (song == NULL)
         {
             if (!state->error)
-                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                Handle_set_error(handle, ERROR_MEMORY,
                         "Couldn't allocate memory");
             else
                 set_parse_error(handle, state);
@@ -1733,7 +1733,7 @@ static bool parse_subsong_level(kqt_Handle* handle,
         Song_table* st = Module_get_songs(module);
         if (!Song_table_set(st, index, song))
         {
-            kqt_Handle_set_error(handle, ERROR_MEMORY,
+            Handle_set_error(handle, ERROR_MEMORY,
                     "Couldn't allocate memory");
             del_Song(song);
             return false;
@@ -1746,7 +1746,7 @@ static bool parse_subsong_level(kqt_Handle* handle,
         if (ol == NULL)
         {
             if (!state->error)
-                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                Handle_set_error(handle, ERROR_MEMORY,
                         "Couldn't allocate memory");
             else
                 set_parse_error(handle, state);
@@ -1770,7 +1770,7 @@ static bool parse_subsong_level(kqt_Handle* handle,
 
             if (!Pattern_set_location(pat, index, ref))
             {
-                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                Handle_set_error(handle, ERROR_MEMORY,
                         "Couldn't allocate memory");
                 del_Order_list(ol);
                 return false;

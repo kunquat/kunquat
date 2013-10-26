@@ -1,4 +1,4 @@
-.TH kunquat\-player\-interface 3 "2013\-01\-13" "" "Kunquat"
+.TH kunquat\-player\-interface 3 "2013\-10\-26" "" "Kunquat"
 
 .SH NAME
 Kunquat player API
@@ -8,25 +8,25 @@ Kunquat player API
 .br
 .B #include <kunquat/limits.h>
 
-.BI "long kqt_Handle_mix(kqt_Handle* " handle ", long " nframes );
+.BI "long kqt_Handle_mix(kqt_Handle " handle ", long " nframes );
 
-.BI "float* kqt_Handle_get_buffer(kqt_Handle* " handle ", int " index );
+.BI "float* kqt_Handle_get_buffer(kqt_Handle " handle ", int " index );
 
-.BI "int kqt_Handle_set_mixing_rate(kqt_handle* " handle ", long " rate );
+.BI "int kqt_Handle_set_mixing_rate(kqt_handle " handle ", long " rate );
 .br
-.BI "long kqt_Handle_get_mixing_rate(kqt_Handle* " handle );
+.BI "long kqt_Handle_get_mixing_rate(kqt_Handle " handle );
 
-.BI "int kqt_Handle_set_buffer_size(kqt_Handle* " handle ", long " size );
+.BI "int kqt_Handle_set_buffer_size(kqt_Handle " handle ", long " size );
 .br
-.BI "long kqt_Handle_get_buffer_size(kqt_Handle* " handle );
+.BI "long kqt_Handle_get_buffer_size(kqt_Handle " handle );
 
-.BI "long long kqt_Handle_get_duration(kqt_Handle* " handle ", int " track );
+.BI "long long kqt_Handle_get_duration(kqt_Handle " handle ", int " track );
 
-.BI "int kqt_Handle_set_position(kqt_Handle* " handle ", int " track ", long long " nanoseconds );
+.BI "int kqt_Handle_set_position(kqt_Handle " handle ", int " track ", long long " nanoseconds );
 .br
-.BI "long long kqt_Handle_get_position(kqt_Handle* " handle );
+.BI "long long kqt_Handle_get_position(kqt_Handle " handle );
 
-.BI "int kqt_Handle_fire(kqt_Handle* " handle ", int " channel ", char* " event );
+.BI "int kqt_Handle_fire(kqt_Handle " handle ", int " channel ", char* " event );
 
 .SH "PLAYING AUDIO"
 
@@ -34,7 +34,7 @@ The Kunquat library does not support any sound devices or libraries directly.
 However, it can mix PCM audio that can be sent to a suitable sound library for
 playback.
 
-.IP "\fBlong kqt_Handle_mix(kqt_Handle*\fR \fIhandle\fR\fB, long\fR \fInframes\fR\fB);\fR"
+.IP "\fBlong kqt_Handle_mix(kqt_Handle\fR \fIhandle\fR\fB, long\fR \fInframes\fR\fB);\fR"
 Mixes music associated with \fIhandle\fR, starting from the current position.
 It will mix at most \fInframes\fR frames, but it will mix less if the mixing
 buffer size is less than \fInframes\fR or the end of the composition is
@@ -46,7 +46,7 @@ is 0 if the end of the composition/track is reached or an error occurred --
 the caller needs to check \fBkqt_Handle_get_error(\fR\fIhandle\fR\fB)\fR to
 determine whether an error occurred or not.
 
-.IP "\fBfloat* kqt_Handle_get_buffer(kqt_Handle*\fR \fIhandle\fR\fB, int\fR \fIindex\fR\fB);\fR"
+.IP "\fBfloat* kqt_Handle_get_buffer(kqt_Handle\fR \fIhandle\fR\fB, int\fR \fIindex\fR\fB);\fR"
 Retrieves audio data mixed by the most recent call of
 \fBkqt_Handle_mix\fR. The returned data contains the mixing buffer contents of
 either the left or the right output channel if \fIindex\fR is, respectively, 0
@@ -61,54 +61,54 @@ Many audio interfaces expect to receive the sound data in an interleaved form
 where both output channels are stored in a single output buffer in the order
 [left1, right1, left2, right2, ..., left\fIn\fR, right\fIn\fR]. Also, some
 audio interfaces do not support 32-bit floating point format. The Kunquat
-library does not support interleaving or converting the audio data, but these
+library does not support interleaving or audio data conversions, but these
 functions are usually easy to implement.
 
 .SH "MIXING RATE"
 
-.IP "\fBint kqt_Handle_set_mixing_rate(kqt_Handle*\fR \fIhandle\fR\fB, long\fR \fIrate\fR\fB);\fR"
+.IP "\fBint kqt_Handle_set_mixing_rate(kqt_Handle\fR \fIhandle\fR\fB, long\fR \fIrate\fR\fB);\fR"
 Sets the mixing rate of \fIhandle\fR to \fIrate\fR frames per second.
 \fIrate\fR should be positive. Typical values for \fIrate\fR include 44100
 ("CD quality") and 48000 (the default). Note that this function may fail due
 to a memory error if the composition uses features that allocate buffers based
 on the mixing rate.
 
-.IP "\fBlong kqt_Handle_get_mixing_rate(kqt_Handle*\fR \fIhandle\fR\fB);\fR"
+.IP "\fBlong kqt_Handle_get_mixing_rate(kqt_Handle\fR \fIhandle\fR\fB);\fR"
 Returns the mixing rate used by \fIhandle\fR, or 0 if \fIhandle\fR is invalid.
 
 .SH "BUFFER SETTINGS"
 
-.IP "\fBint kqt_Handle_set_buffer_size(kqt_Handle*\fR \fIhandle\fR\fB, long\fR \fIsize\fR\fB);\fR"
+.IP "\fBint kqt_Handle_set_buffer_size(kqt_Handle\fR \fIhandle\fR\fB, long\fR \fIsize\fR\fB);\fR"
 Sets the mixing buffer size of \fIhandle\fR to \fIsize\fR frames. \fIsize\fR
 should be positive and not greater than 1048576. The upper limit is a safety
 measure; typically, implementations use a buffer size of no more than a
 couple of thousand frames.
 
-.IP "\fBlong kqt_Handle_get_buffer_size(kqt_Handle*\fR \fIhandle\fR\fB);\fR"
+.IP "\fBlong kqt_Handle_get_buffer_size(kqt_Handle\fR \fIhandle\fR\fB);\fR"
 Returns the buffer size of \fIhandle\fR, or 0 if \fIhandle\fR is invalid.
 
 .SH "DURATION AND SEEKING"
 
-.IP "\fBlong long kqt_Handle_get_duration(kqt_Handle*\fR \fIhandle\fR\fB, int\fR \fItrack\fR\fB);\fR"
+.IP "\fBlong long kqt_Handle_get_duration(kqt_Handle\fR \fIhandle\fR\fB, int\fR \fItrack\fR\fB);\fR"
 Estimates the duration of \fItrack\fR in \fIhandle\fR. If \fItrack\fR is
 -1, the function estimates the total length of all tracks. The return value
 is the length in nanoseconds, or KQT_MAX_CALC_DURATION if the length is 30
 days or longer, or -1 in case of an error.
 
-.IP "\fBint kqt_Handle_set_position(kqt_Handle*\fR \fIhandle\fR\fB, int\fR \fItrack\fR\fB, long long\fR \fInanoseconds\fR\fB);\fR"
+.IP "\fBint kqt_Handle_set_position(kqt_Handle\fR \fIhandle\fR\fB, int\fR \fItrack\fR\fB, long long\fR \fInanoseconds\fR\fB);\fR"
 Seeks to a position inside \fItrack\fR in \fIhandle\fR. \fInanoseconds\fR
 indicates the offset from the beginning of the track. Note that this
 function skips all non-global events before the position \fInanoseconds\fR
 and therefore mixing may produce somewhat unexpected results. The function
 returns 1 on success, 0 on failure.
 
-.IP "\fBlong long kqt_Handle_get_position(kqt_Handle*\fR \fIhandle\fR\fB);\fR"
+.IP "\fBlong long kqt_Handle_get_position(kqt_Handle\fR \fIhandle\fR\fB);\fR"
 Returns the current offset of playback in nanoseconds. The function returns 0
 if \fIhandle\fR is invalid.
 
 .SH "FIRING EVENTS"
 
-.IP "\fBint kqt_Handle_fire(kqt_Handle*\fR \fIhandle\fR\fB, int\fR \fIchannel\fR\fB, char*\fR \fIevent\fR\fB);\fR"
+.IP "\fBint kqt_Handle_fire(kqt_Handle\fR \fIhandle\fR\fB, int\fR \fIchannel\fR\fB, char*\fR \fIevent\fR\fB);\fR"
 Fires an event in the composition. The event takes place in \fIchannel\fR (0
 to 63 inclusive). \fIevent\fR is the event description in JSON format. The
 description is a pair (list with two elements) with the event name as the

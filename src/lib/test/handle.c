@@ -33,7 +33,7 @@ END_TEST
 
 START_TEST(Initial_error_message_is_empty_string)
 {
-    assert(handle != NULL);
+    assert(handle != 0);
     check_unexpected_error();
 }
 END_TEST
@@ -41,7 +41,7 @@ END_TEST
 
 START_TEST(Empty_composition_has_zero_duration)
 {
-    assert(handle != NULL);
+    assert(handle != 0);
     long long dur = kqt_Handle_get_duration(handle, songs[_i]);
     check_unexpected_error();
     fail_unless(
@@ -54,7 +54,7 @@ END_TEST
 
 START_TEST(Default_mixing_rate_is_correct)
 {
-    assert(handle != NULL);
+    assert(handle != 0);
     long rate = kqt_Handle_get_mixing_rate(handle);
     check_unexpected_error();
     fail_unless(

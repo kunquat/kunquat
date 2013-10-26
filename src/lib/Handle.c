@@ -26,25 +26,140 @@
 #include <kunquat/limits.h>
 #include <memory.h>
 #include <Module.h>
+#include <Parse_manager.h>
 #include <string_common.h>
 #include <xassert.h>
 
 
-static kqt_Handle* handles[KQT_HANDLES_MAX] = { NULL };
+static Handle* handles[KQT_HANDLES_MAX] = { NULL };
 
 // For errors without an associated Kunquat Handle.
 static Error null_error = { "" };
 
 
-static bool add_handle(kqt_Handle* handle);
-
-static bool remove_handle(kqt_Handle* handle);
+static bool remove_handle(kqt_Handle handle);
 
 
-void kqt_Handle_deinit(kqt_Handle* handle);
+void Handle_deinit(Handle* handle);
 
 
-bool kqt_Handle_init(kqt_Handle* handle, long buffer_size)
+static kqt_Handle add_handle(Handle* handle)
+{
+    assert(handle != NULL);
+
+#ifndef NDEBUG
+    for (int i = 0; i < KQT_HANDLES_MAX; ++i)
+        assert(handles[i] != handle);
+#endif
+
+    for (int i = 0; i < KQT_HANDLES_MAX; ++i)
+    {
+        if (handles[i] == NULL)
+        {
+            handles[i] = handle;
+            return i + 1;
+        }
+    }
+
+    Handle_set_error(NULL, ERROR_MEMORY,
+            "Maximum number of Kunquat Handles reached");
+    return 0;
+}
+
+
+Handle* get_handle(kqt_Handle id)
+{
+    assert(kqt_Handle_is_valid(id));
+
+    Handle* handle = handles[id - 1];
+    assert(handle != NULL);
+
+    return handle;
+}
+
+
+static bool remove_handle(kqt_Handle id)
+{
+    assert(kqt_Handle_is_valid(id));
+
+    const bool was_null = (handles[id - 1] == NULL);
+    handles[id - 1] = NULL;
+
+    return !was_null;
+}
+
+
+kqt_Handle kqt_new_Handle(void)
+{
+    Handle* handle = memory_alloc_item(Handle);
+    if (handle == NULL)
+    {
+        Handle_set_error(0, ERROR_MEMORY, "Couldn't allocate memory");
+        return 0;
+    }
+
+    if (!Handle_init(handle, DEFAULT_BUFFER_SIZE))
+    {
+        memory_free(handle);
+        return 0;
+    }
+
+    kqt_Handle id = add_handle(handle);
+    if (id == 0)
+    {
+        Handle_deinit(handle);
+        memory_free(handle);
+        return 0;
+    }
+
+    return id;
+}
+
+
+int kqt_Handle_set_data(
+        kqt_Handle handle,
+        const char* key,
+        void* data,
+        long length)
+{
+    check_handle(handle, 0);
+
+    Handle* h = get_handle(handle);
+    check_data_is_valid(h, 0);
+    check_key(h, key, 0);
+
+    // Short-circuit if we have already got invalid data
+    // TODO: Remove this if we decide to collect more error info
+    if (Error_is_set(&h->validation_error))
+        return 1;
+
+    if (length < 0)
+    {
+        Handle_set_error(
+                h, ERROR_ARGUMENT, "Data length must be non-negative");
+        return 0;
+    }
+
+    if (data == NULL && length > 0)
+    {
+        Handle_set_error(
+                h,
+                ERROR_ARGUMENT,
+                "Data must not be null if given length (%ld) is positive",
+                length);
+        return 0;
+    }
+
+    if (!parse_data(h, key, data, length))
+        return 0;
+
+    h->data_is_validated = false;
+
+    return 1;
+}
+
+
+bool Handle_init(Handle* handle, long buffer_size)
 {
     assert(handle != NULL);
     assert(buffer_size > 0);
@@ -52,18 +167,11 @@ bool kqt_Handle_init(kqt_Handle* handle, long buffer_size)
     handle->data_is_valid = true;
     handle->data_is_validated = true;
     handle->module = NULL;
-    handle->destroy = NULL;
-    handle->set_data = NULL;
     handle->error = *ERROR_AUTO;
     handle->validation_error = *ERROR_AUTO;
     memset(handle->position, '\0', POSITION_LENGTH);
     handle->player = NULL;
     handle->length_counter = NULL;
-
-    if (!add_handle(handle))
-    {
-        return false;
-    }
 
 //    int buffer_count = SONG_DEFAULT_BUF_COUNT;
 //    int voice_count = 256;
@@ -71,13 +179,8 @@ bool kqt_Handle_init(kqt_Handle* handle, long buffer_size)
     handle->module = new_Module(buffer_size);
     if (handle->module == NULL)
     {
-        kqt_Handle_set_error(NULL, ERROR_MEMORY, "Couldn't allocate memory");
-
-        bool removed = remove_handle(handle);
-        assert(removed);
-        (void)removed;
-
-        kqt_Handle_deinit(handle);
+        Handle_set_error(NULL, ERROR_MEMORY, "Couldn't allocate memory");
+        Handle_deinit(handle);
         return false;
     }
 
@@ -91,75 +194,74 @@ bool kqt_Handle_init(kqt_Handle* handle, long buffer_size)
     handle->length_counter = new_Player(handle->module, 1000000000L, 0, 0, 0);
     if (handle->player == NULL || handle->length_counter == NULL)
     {
-        kqt_Handle_set_error(NULL, ERROR_MEMORY, "Couldn't allocate memory");
-
-        bool removed = remove_handle(handle);
-        assert(removed);
-        (void)removed;
-
-        kqt_Handle_deinit(handle);
+        Handle_set_error(NULL, ERROR_MEMORY, "Couldn't allocate memory");
+        Handle_deinit(handle);
         return false;
     }
 
-    kqt_Handle_stop(handle);
+    Handle_stop(handle);
     //kqt_Handle_set_position(handle, 0, 0);
     return true;
 }
 
 
-const char* kqt_Handle_get_error(kqt_Handle* handle)
+const char* kqt_Handle_get_error(kqt_Handle handle)
 {
-    if (!handle_is_valid(handle))
+    if (!kqt_Handle_is_valid(handle))
         return Error_get_desc(&null_error);
 
-    return Error_get_desc(&handle->error);
+    Handle* h = get_handle(handle);
+    return Error_get_desc(&h->error);
 }
 
 
-void kqt_Handle_clear_error(kqt_Handle* handle)
+void kqt_Handle_clear_error(kqt_Handle handle)
 {
-    check_data_is_valid_void(handle);
-
-    if (!handle_is_valid(handle))
+    if (!kqt_Handle_is_valid(handle))
     {
         Error_clear(&null_error);
         return;
     }
-    Error_clear(&handle->error);
+
+    Handle* h = get_handle(handle);
+    check_data_is_valid_void(h);
+    Error_clear(&h->error);
 
     return;
 }
 
 
-#define set_invalid_if(cond, ...)                                      \
-    if (true)                                                          \
-    {                                                                  \
-        if (cond)                                                      \
-        {                                                              \
-            kqt_Handle_set_error((handle), ERROR_FORMAT, __VA_ARGS__); \
-            (handle)->data_is_valid = false;                           \
-            return 0;                                                  \
-        }                                                              \
+#define set_invalid_if(cond, ...)                           \
+    if (true)                                               \
+    {                                                       \
+        if (cond)                                           \
+        {                                                   \
+            Handle_set_error(h, ERROR_FORMAT, __VA_ARGS__); \
+            h->data_is_valid = false;                       \
+            return 0;                                       \
+        }                                                   \
     } else (void)0
 
-int kqt_Handle_validate(kqt_Handle* handle)
+int kqt_Handle_validate(kqt_Handle handle)
 {
     check_handle(handle, 0);
-    check_data_is_valid(handle, 0);
+    Handle* h = get_handle(handle);
+
+    check_data_is_valid(h, 0);
 
     // Check error from set_data
-    if (Error_is_set(&handle->validation_error))
+    if (Error_is_set(&h->validation_error))
     {
-        Error_copy(&handle->error, &handle->validation_error);
-        Error_copy(&null_error, &handle->validation_error);
-        handle->data_is_valid = false;
+        Error_copy(&h->error, &h->validation_error);
+        Error_copy(&null_error, &h->validation_error);
+        h->data_is_valid = false;
         return 0;
     }
 
     // Check album
-    if (handle->module->album_is_existent)
+    if (h->module->album_is_existent)
     {
-        const Track_list* tl = handle->module->track_list;
+        const Track_list* tl = h->module->track_list;
         set_invalid_if(
                 tl == NULL,
                 "Album does not contain a track list");
@@ -171,13 +273,13 @@ int kqt_Handle_validate(kqt_Handle* handle)
     // Check songs
     for (int i = 0; i < KQT_SONGS_MAX; ++i)
     {
-        if (!Song_table_get_existent(handle->module->songs, i))
+        if (!Song_table_get_existent(h->module->songs, i))
             continue;
 
         // Check for orphans
-        const Track_list* tl = handle->module->track_list;
+        const Track_list* tl = h->module->track_list;
         set_invalid_if(
-                !handle->module->album_is_existent || tl == NULL,
+                !h->module->album_is_existent || tl == NULL,
                 "Module contains song %d but no album", i);
 
         bool found = false;
@@ -192,7 +294,7 @@ int kqt_Handle_validate(kqt_Handle* handle)
         set_invalid_if(!found, "Song %d is not included in the album", i);
 
         // Check for empty songs
-        const Order_list* ol = handle->module->order_lists[i];
+        const Order_list* ol = h->module->order_lists[i];
         set_invalid_if(
                 ol == NULL || Order_list_get_len(ol) == 0,
                 "Song %d does not contain systems", i);
@@ -201,10 +303,10 @@ int kqt_Handle_validate(kqt_Handle* handle)
         for (size_t system = 0; system < Order_list_get_len(ol); ++system)
         {
             const Pat_inst_ref* piref = Order_list_get_pat_inst_ref(ol, system);
-            Pattern* pat = Pat_table_get(handle->module->pats, piref->pat);
+            Pattern* pat = Pat_table_get(h->module->pats, piref->pat);
 
             set_invalid_if(
-                    !Pat_table_get_existent(handle->module->pats, piref->pat) ||
+                    !Pat_table_get_existent(h->module->pats, piref->pat) ||
                     pat == NULL ||
                     !Pattern_get_inst_existent(pat, piref->inst),
                     "Missing pattern instance [%" PRId16 ", %" PRId16 "]",
@@ -213,15 +315,15 @@ int kqt_Handle_validate(kqt_Handle* handle)
     }
 
     // Check for nonexistent songs in the track list
-    if (handle->module->album_is_existent)
+    if (h->module->album_is_existent)
     {
-        const Track_list* tl = handle->module->track_list;
+        const Track_list* tl = h->module->track_list;
         assert(tl != NULL);
 
         for (size_t i = 0; i < Track_list_get_len(tl); ++i)
         {
             set_invalid_if(
-                    !Song_table_get_existent(handle->module->songs,
+                    !Song_table_get_existent(h->module->songs,
                         Track_list_get_song_index(tl, i)),
                     "Album includes nonexistent song %d", i);
         }
@@ -230,10 +332,10 @@ int kqt_Handle_validate(kqt_Handle* handle)
     // Check existing patterns
     for (int i = 0; i < KQT_PATTERNS_MAX; ++i)
     {
-        if (!Pat_table_get_existent(handle->module->pats, i))
+        if (!Pat_table_get_existent(h->module->pats, i))
             continue;
 
-        Pattern* pat = Pat_table_get(handle->module->pats, i);
+        Pattern* pat = Pat_table_get(h->module->pats, i);
         set_invalid_if(
                 pat == NULL,
                 "Pattern %d exists but contains no data", i);
@@ -248,13 +350,13 @@ int kqt_Handle_validate(kqt_Handle* handle)
 
                 // Check that the instance is used in the album
                 set_invalid_if(
-                        !handle->module->album_is_existent,
+                        !h->module->album_is_existent,
                         "Pattern instance [%d, %d] exists but no album"
                         " is present", i, k);
 
                 bool instance_found = false;
 
-                const Track_list* tl = handle->module->track_list;
+                const Track_list* tl = h->module->track_list;
                 assert(tl != NULL);
 
                 for (size_t track = 0; track < Track_list_get_len(tl); ++track)
@@ -262,11 +364,11 @@ int kqt_Handle_validate(kqt_Handle* handle)
                     const int song_index = Track_list_get_song_index(tl, track);
 
                     if (!Song_table_get_existent(
-                                handle->module->songs,
+                                h->module->songs,
                                 song_index))
                         continue;
 
-                    const Order_list* ol = handle->module->order_lists[song_index];
+                    const Order_list* ol = h->module->order_lists[song_index];
                     assert(ol != NULL);
 
                     for (size_t system = 0; system < Order_list_get_len(ol); ++system)
@@ -296,7 +398,7 @@ int kqt_Handle_validate(kqt_Handle* handle)
                 "Pattern %d exists but has no instances", i);
     }
 
-    handle->data_is_validated = true;
+    h->data_is_validated = true;
 
     return 1;
 }
@@ -304,8 +406,8 @@ int kqt_Handle_validate(kqt_Handle* handle)
 #undef set_invalid_if
 
 
-void kqt_Handle_set_error_(
-        kqt_Handle* handle,
+void Handle_set_error_(
+        Handle* handle,
         Error_type type,
         Error_delay_type delay_type,
         const char* file,
@@ -333,8 +435,6 @@ void kqt_Handle_set_error_(
 
     if (handle != NULL)
     {
-        assert(handle_is_valid(handle));
-
         if (delay_type == ERROR_IMMEDIATE)
             Error_copy(&handle->error, error);
         else if (delay_type == ERROR_VALIDATION)
@@ -347,33 +447,13 @@ void kqt_Handle_set_error_(
 }
 
 
-int kqt_Handle_set_data(
-        kqt_Handle* handle,
-        const char* key,
-        void* data,
-        long length)
+bool key_is_valid(Handle* handle, const char* key)
 {
-    check_handle(handle, 0);
-    check_data_is_valid(handle, 0);
-    check_key(handle, key, 0);
-
-    // Short-circuit if we have already got invalid data
-    // TODO: Remove this if we decide to collect more error info
-    if (Error_is_set(&handle->validation_error))
-        return 1;
-
-    assert(handle->set_data != NULL);
-    return handle->set_data(handle, key, data, length);
-}
-
-
-bool key_is_valid(kqt_Handle* handle, const char* key)
-{
-    assert(handle_is_valid(handle));
+    assert(handle != NULL);
 
     if (key == NULL)
     {
-        kqt_Handle_set_error(handle, ERROR_ARGUMENT, "No key given");
+        Handle_set_error(handle, ERROR_ARGUMENT, "No key given");
         return false;
     }
 
@@ -382,7 +462,7 @@ bool key_is_valid(kqt_Handle* handle, const char* key)
         char key_repr[KQT_KEY_LENGTH_MAX + 3] = { '\0' };
         strncpy(key_repr, key, KQT_KEY_LENGTH_MAX - 1);
         strcat(key_repr, "...");
-        kqt_Handle_set_error(handle, ERROR_ARGUMENT, "Key %s is too long"
+        Handle_set_error(handle, ERROR_ARGUMENT, "Key %s is too long"
                 " (over %d characters)", key_repr, KQT_KEY_LENGTH_MAX);
         return false;
     }
@@ -396,7 +476,7 @@ bool key_is_valid(kqt_Handle* handle, const char* key)
         if (!(*key_iter >= '0' && *key_iter <= '9') &&
                 strchr("abcdefghijklmnopqrstuvwxyz_./X", *key_iter) == NULL)
         {
-            kqt_Handle_set_error(handle, ERROR_ARGUMENT, "Key %s contains an"
+            Handle_set_error(handle, ERROR_ARGUMENT, "Key %s contains an"
                     " illegal character \'%c\'", key, *key_iter);
             return false;
         }
@@ -413,13 +493,13 @@ bool key_is_valid(kqt_Handle* handle, const char* key)
         {
             if (!valid_element)
             {
-                kqt_Handle_set_error(handle, ERROR_ARGUMENT, "Key %s contains"
+                Handle_set_error(handle, ERROR_ARGUMENT, "Key %s contains"
                         " an invalid component", key);
                 return false;
             }
             else if (element_has_period)
             {
-                kqt_Handle_set_error(handle, ERROR_ARGUMENT, "Key %s contains"
+                Handle_set_error(handle, ERROR_ARGUMENT, "Key %s contains"
                         " an intermediate component with a period", key);
                 return false;
             }
@@ -432,7 +512,7 @@ bool key_is_valid(kqt_Handle* handle, const char* key)
 
     if (!element_has_period)
     {
-        kqt_Handle_set_error(handle, ERROR_ARGUMENT, "The final element of"
+        Handle_set_error(handle, ERROR_ARGUMENT, "The final element of"
                 " key %s does not have a period", key);
         return false;
     }
@@ -441,17 +521,16 @@ bool key_is_valid(kqt_Handle* handle, const char* key)
 }
 
 
-Module* Handle_get_module(kqt_Handle* handle)
+Module* Handle_get_module(Handle* handle)
 {
     assert(handle != NULL);
     return handle->module;
 }
 
 
-void kqt_Handle_deinit(kqt_Handle* handle)
+void Handle_deinit(Handle* handle)
 {
     assert(handle != NULL);
-    assert(!handle_is_valid(handle));
 
     del_Player(handle->length_counter);
     handle->length_counter = NULL;
@@ -465,89 +544,31 @@ void kqt_Handle_deinit(kqt_Handle* handle)
 }
 
 
-void kqt_del_Handle(kqt_Handle* handle)
+void kqt_del_Handle(kqt_Handle handle)
 {
     check_handle_void(handle);
+    Handle* h = get_handle(handle);
+
     if (!remove_handle(handle))
     {
-        kqt_Handle_set_error(NULL, ERROR_ARGUMENT,
-                "Invalid Kunquat Handle: %p", (void*)handle);
+        Handle_set_error(NULL, ERROR_ARGUMENT,
+                "Invalid Kunquat Handle: %d", handle);
         return;
     }
 
-    kqt_Handle_deinit(handle);
-
-    assert(handle->destroy != NULL);
-    handle->destroy(handle);
+    Handle_deinit(h);
+    memory_free(h);
 
     return;
 }
 
 
-static bool add_handle(kqt_Handle* handle)
+bool kqt_Handle_is_valid(kqt_Handle handle)
 {
-    assert(handle != NULL);
-#ifndef NDEBUG
-    for (int i = 0; i < KQT_HANDLES_MAX; ++i)
-    {
-        assert(handles[i] != handle);
-    }
-#endif
-    for (int i = 0; i < KQT_HANDLES_MAX; ++i)
-    {
-        if (handles[i] == NULL)
-        {
-            handles[i] = handle;
-            return true;
-        }
-    }
-    kqt_Handle_set_error(NULL, ERROR_MEMORY,
-            "Maximum number of Kunquat Handles reached");
-    return false;
-}
-
-
-bool handle_is_valid(kqt_Handle* handle)
-{
-    if (handle == NULL)
-    {
-        return false;
-    }
-    for (int i = 0; i < KQT_HANDLES_MAX; ++i)
-    {
-        if (handles[i] == handle)
-        {
-#ifndef NDEBUG
-            for (int k = i + 1; k < KQT_HANDLES_MAX; ++k)
-            {
-                assert(handles[k] != handle);
-            }
-#endif
-            return true;
-        }
-    }
-    return false;
-}
-
-
-static bool remove_handle(kqt_Handle* handle)
-{
-    assert(handle != NULL);
-    for (int i = 0; i < KQT_HANDLES_MAX; ++i)
-    {
-        if (handles[i] == handle)
-        {
-            handles[i] = NULL;
-#ifndef NDEBUG
-            for (int k = i + 1; k < KQT_HANDLES_MAX; ++k)
-            {
-                assert(handles[k] != handle);
-            }
-#endif
-            return true;
-        }
-    }
-    return false;
+    handle -= 1;
+    return (handle >= 0) &&
+        (handle < KQT_HANDLES_MAX) &&
+        (handles[handle] != NULL);
 }
 
 

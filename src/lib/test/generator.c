@@ -24,7 +24,7 @@
 
 void setup_single_pulse_without_generator_manifest(void)
 {
-    assert(handle != NULL);
+    assert(handle != 0);
 
     set_data("p_connections.json",
             "[ [\"ins_00/out_00\", \"out_00\"] ]");

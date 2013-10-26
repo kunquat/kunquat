@@ -23,11 +23,11 @@
 
 START_TEST(Out_of_memory_at_handle_creation_fails_cleanly)
 {
-    assert(handle == NULL);
+    assert(handle == 0);
 
     // Get the number of memory allocations required by a successfull call
     handle = kqt_new_Handle();
-    if (handle == NULL)
+    if (handle == 0)
     {
         fail("Normal handle creation failed");
         abort();
@@ -41,7 +41,7 @@ START_TEST(Out_of_memory_at_handle_creation_fails_cleanly)
             alloc_count);
 
     kqt_del_Handle(handle);
-    handle = NULL;
+    handle = 0;
 
     // Test errors at every memory allocation point
     for (long i = 0; i < alloc_count; ++i)
@@ -51,10 +51,10 @@ START_TEST(Out_of_memory_at_handle_creation_fails_cleanly)
         kqt_fake_out_of_memory(i);
 
         handle = kqt_new_Handle();
-        fail_if(handle != NULL,
+        fail_if(handle != 0,
                 "kqt_new_Handle returned a handle with fake out of memory");
 
-        const char* error_msg = kqt_Handle_get_error(NULL);
+        const char* error_msg = kqt_Handle_get_error(0);
         fail_if(strlen(error_msg) == 0,
                 "Memory allocation failure did not give an error message");
         fail_if(strstr(error_msg, "\"MemoryError\"") == NULL,
@@ -65,11 +65,11 @@ START_TEST(Out_of_memory_at_handle_creation_fails_cleanly)
     kqt_fake_out_of_memory(alloc_count);
 
     handle = kqt_new_Handle();
-    fail_if(handle == NULL,
+    fail_if(handle == 0,
             "kqt_new_Handle did not succeed with %ld allocations",
             alloc_count);
     kqt_del_Handle(handle);
-    handle = NULL;
+    handle = 0;
 }
 END_TEST
 

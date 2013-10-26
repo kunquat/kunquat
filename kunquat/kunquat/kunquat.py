@@ -368,70 +368,69 @@ def fake_out_of_memory():
 
 _kunquat = ctypes.CDLL('libkunquat.so')
 
+kqt_Handle = ctypes.c_int
+
 _kunquat.kqt_new_Handle.argtypes = []
-_kunquat.kqt_new_Handle.restype = ctypes.c_void_p
-_kunquat.kqt_del_Handle.argtypes = [ctypes.c_void_p]
+_kunquat.kqt_new_Handle.restype = kqt_Handle
+_kunquat.kqt_del_Handle.argtypes = [kqt_Handle]
 _kunquat.kqt_del_Handle.restype = None
 
-_kunquat.kqt_Handle_get_error.argtypes = [ctypes.c_void_p]
+_kunquat.kqt_Handle_get_error.argtypes = [kqt_Handle]
 _kunquat.kqt_Handle_get_error.restype = ctypes.c_char_p
-_kunquat.kqt_Handle_clear_error.argtypes = [ctypes.c_void_p]
+_kunquat.kqt_Handle_clear_error.argtypes = [kqt_Handle]
 _kunquat.kqt_Handle_clear_error.restype = None
 
-_kunquat.kqt_Handle_validate.argtypes = [ctypes.c_void_p]
+_kunquat.kqt_Handle_validate.argtypes = [kqt_Handle]
 _kunquat.kqt_Handle_validate.restype = ctypes.c_int
 _kunquat.kqt_Handle_validate.errcheck = _error_check
 
-_kunquat.kqt_Handle_set_data.argtypes = [ctypes.c_void_p,
+_kunquat.kqt_Handle_set_data.argtypes = [kqt_Handle,
                                          ctypes.c_char_p,
                                          ctypes.POINTER(ctypes.c_ubyte),
                                          ctypes.c_long]
 _kunquat.kqt_Handle_set_data.restype = ctypes.c_int
 _kunquat.kqt_Handle_set_data.errcheck = _error_check
 
-_kunquat.kqt_Handle_mix.argtypes = [ctypes.c_void_p,
-                                    ctypes.c_long]
+_kunquat.kqt_Handle_mix.argtypes = [kqt_Handle, ctypes.c_long]
 _kunquat.kqt_Handle_mix.restype = ctypes.c_long
 _kunquat.kqt_Handle_mix.errcheck = _error_check
-_kunquat.kqt_Handle_get_buffer.argtypes = [ctypes.c_void_p, ctypes.c_int]
+_kunquat.kqt_Handle_get_buffer.argtypes = [kqt_Handle, ctypes.c_int]
 _kunquat.kqt_Handle_get_buffer.restype = ctypes.POINTER(ctypes.c_float)
 _kunquat.kqt_Handle_get_buffer.errcheck = _error_check
 
-_kunquat.kqt_Handle_set_mixing_rate.argtypes = [ctypes.c_void_p,
-                                                ctypes.c_long]
+_kunquat.kqt_Handle_set_mixing_rate.argtypes = [kqt_Handle, ctypes.c_long]
 _kunquat.kqt_Handle_set_mixing_rate.restype = ctypes.c_int
 _kunquat.kqt_Handle_set_mixing_rate.errcheck = _error_check
-_kunquat.kqt_Handle_get_mixing_rate.argtypes = [ctypes.c_void_p]
+_kunquat.kqt_Handle_get_mixing_rate.argtypes = [kqt_Handle]
 _kunquat.kqt_Handle_get_mixing_rate.restype = ctypes.c_long
 _kunquat.kqt_Handle_get_mixing_rate.errcheck = _error_check
 
-_kunquat.kqt_Handle_set_buffer_size.argtypes = [ctypes.c_void_p,
-                                                ctypes.c_long]
+_kunquat.kqt_Handle_set_buffer_size.argtypes = [kqt_Handle, ctypes.c_long]
 _kunquat.kqt_Handle_set_buffer_size.restype = ctypes.c_int
 _kunquat.kqt_Handle_set_buffer_size.errcheck = _error_check
-_kunquat.kqt_Handle_get_buffer_size.argtypes = [ctypes.c_void_p]
+_kunquat.kqt_Handle_get_buffer_size.argtypes = [kqt_Handle]
 _kunquat.kqt_Handle_get_buffer_size.restype = ctypes.c_long
 _kunquat.kqt_Handle_get_buffer_size.errcheck = _error_check
 
-_kunquat.kqt_Handle_get_duration.argtypes = [ctypes.c_void_p, ctypes.c_int]
+_kunquat.kqt_Handle_get_duration.argtypes = [kqt_Handle, ctypes.c_int]
 _kunquat.kqt_Handle_get_duration.restype = ctypes.c_longlong
 _kunquat.kqt_Handle_get_duration.errcheck = _error_check
-_kunquat.kqt_Handle_set_position.argtypes = [ctypes.c_void_p,
+_kunquat.kqt_Handle_set_position.argtypes = [kqt_Handle,
                                              ctypes.c_int,
                                              ctypes.c_longlong]
 _kunquat.kqt_Handle_set_position.restype = ctypes.c_int
 _kunquat.kqt_Handle_set_position.errcheck = _error_check
-_kunquat.kqt_Handle_get_position.argtypes = [ctypes.c_void_p]
+_kunquat.kqt_Handle_get_position.argtypes = [kqt_Handle]
 _kunquat.kqt_Handle_get_position.restype = ctypes.c_longlong
 _kunquat.kqt_Handle_get_position.errcheck = _error_check
 
-_kunquat.kqt_Handle_fire.argtypes = [ctypes.c_void_p,
+_kunquat.kqt_Handle_fire.argtypes = [kqt_Handle,
                                      ctypes.c_int,
                                      ctypes.c_char_p]
 _kunquat.kqt_Handle_fire.restype = ctypes.c_int
 _kunquat.kqt_Handle_fire.errcheck = _error_check
 
-_kunquat.kqt_Handle_receive.argtypes = [ctypes.c_void_p,
+_kunquat.kqt_Handle_receive.argtypes = [kqt_Handle,
                                         ctypes.c_char_p,
                                         ctypes.c_int]
 _kunquat.kqt_Handle_receive.restype = ctypes.c_int

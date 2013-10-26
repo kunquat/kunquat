@@ -28,7 +28,7 @@
 #include <kunquat/Player.h>
 
 
-static kqt_Handle* handle = NULL;
+static kqt_Handle handle = 0;
 
 
 typedef enum
@@ -83,26 +83,26 @@ void check_unexpected_error()
 
 void setup_empty(void)
 {
-    assert(handle == NULL);
+    assert(handle == 0);
     handle = kqt_new_Handle();
-    fail_if(handle == NULL,
-            "Couldn't create handle:\n%s\n", kqt_Handle_get_error(NULL));
+    fail_if(handle == 0,
+            "Couldn't create handle:\n%s\n", kqt_Handle_get_error(0));
     return;
 }
 
 
 void handle_teardown(void)
 {
-    assert(handle != NULL);
+    assert(handle != 0);
     kqt_del_Handle(handle);
-    handle = NULL;
+    handle = 0;
     return;
 }
 
 
 void set_data(char* key, char* data)
 {
-    assert(handle != NULL);
+    assert(handle != 0);
     assert(key != NULL);
     assert(data != NULL);
 
@@ -113,7 +113,7 @@ void set_data(char* key, char* data)
 
 void validate(void)
 {
-    assert(handle != NULL);
+    assert(handle != 0);
 
     kqt_Handle_validate(handle);
     check_unexpected_error();
@@ -195,7 +195,7 @@ void check_buffers_equal(
 
 void set_mixing_rate(long rate)
 {
-    assert(handle != NULL);
+    assert(handle != 0);
     assert(rate > 0);
     kqt_Handle_set_mixing_rate(handle, rate);
     check_unexpected_error();
@@ -210,7 +210,7 @@ void set_mixing_rate(long rate)
 
 void set_mix_volume(double vol)
 {
-    assert(handle != NULL);
+    assert(handle != 0);
 
     char comp_def[] = "{ \"mix_vol\": -384.00000000 }";
     snprintf(comp_def, strlen(comp_def) + 1, "{ \"mix_vol\": %.4f }", vol);
@@ -223,7 +223,7 @@ void set_mix_volume(double vol)
 
 void pause(void)
 {
-    assert(handle != NULL);
+    assert(handle != 0);
 
     kqt_Handle_fire(handle, 0, "[\"Ipause\", null]");
     check_unexpected_error();
@@ -254,7 +254,7 @@ int repeat_seq(float* dest, int times, int seq_len, const float* seq)
 
 long mix_and_fill(float* buf, long nframes)
 {
-    assert(handle != NULL);
+    assert(handle != 0);
     assert(buf != NULL);
     assert(nframes >= 0);
 
@@ -270,7 +270,7 @@ long mix_and_fill(float* buf, long nframes)
 
 void setup_debug_instrument(void)
 {
-    assert(handle != NULL);
+    assert(handle != 0);
 
     set_data("p_connections.json",
             "[ [\"ins_00/out_00\", \"out_00\"] ]");
@@ -292,7 +292,7 @@ void setup_debug_instrument(void)
 
 void setup_debug_single_pulse(void)
 {
-    assert(handle != NULL);
+    assert(handle != 0);
 
     set_data("ins_00/gen_00/c/p_single_pulse.jsonb", "true");
 
