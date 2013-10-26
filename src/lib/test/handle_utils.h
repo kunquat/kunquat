@@ -193,17 +193,17 @@ void check_buffers_equal(
 }
 
 
-void set_mixing_rate(long rate)
+void set_audio_rate(long rate)
 {
     assert(handle != 0);
     assert(rate > 0);
-    kqt_Handle_set_mixing_rate(handle, rate);
+    kqt_Handle_set_audio_rate(handle, rate);
     check_unexpected_error();
-    long actual_rate = kqt_Handle_get_mixing_rate(handle);
+    long actual_rate = kqt_Handle_get_audio_rate(handle);
     check_unexpected_error();
     fail_unless(
             actual_rate == rate,
-            "Wrong mixing rate"
+            "Wrong audio rate"
             KT_VALUES("%ld", rate, actual_rate));
 }
 
@@ -225,7 +225,7 @@ void pause(void)
 {
     assert(handle != 0);
 
-    kqt_Handle_fire(handle, 0, "[\"Ipause\", null]");
+    kqt_Handle_fire_event(handle, 0, "[\"Ipause\", null]");
     check_unexpected_error();
 
     return;
@@ -258,13 +258,14 @@ long mix_and_fill(float* buf, long nframes)
     assert(buf != NULL);
     assert(nframes >= 0);
 
-    long mixed = kqt_Handle_mix(handle, nframes);
+    kqt_Handle_play(handle, nframes);
     check_unexpected_error();
-    const float* ret_buf = kqt_Handle_get_buffer(handle, 0);
+    const long frames_available = kqt_Handle_get_frames_available(handle);
+    const float* ret_buf = kqt_Handle_get_audio(handle, 0);
     check_unexpected_error();
-    memcpy(buf, ret_buf, mixed * sizeof(float));
+    memcpy(buf, ret_buf, frames_available * sizeof(float));
 
-    return mixed;
+    return frames_available;
 }
 
 

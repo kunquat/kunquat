@@ -39,17 +39,19 @@ def InstallManCreatePath(env, path, source):
                         'kqt_del_Handle.3'],
 
                   'kunquat-player-interface.3': [
-                        'kqt_Handle_mix.3',
-                        'kqt_Handle_get_buffer.3',
-                        'kqt_Handle_set_mixing_rate.3',
-                        'kqt_Handle_get_mixing_rate.3',
-                        'kqt_Handle_set_buffer_size.3',
-                        'kqt_Handle_get_buffer_size.3',
+                        'kqt_Handle_play.3',
+                        'kqt_Handle_has_stopped.3',
+                        'kqt_Handle_get_frames_available.3',
+                        'kqt_Handle_get_audio.3',
+                        'kqt_Handle_set_audio_rate.3',
+                        'kqt_Handle_get_audio_rate.3',
+                        'kqt_Handle_set_audio_buffer_size.3',
+                        'kqt_Handle_get_audio_buffer_size.3',
                         'kqt_Handle_get_duration.3',
                         'kqt_Handle_set_position.3',
                         'kqt_Handle_get_position.3',
-                        'kqt_Handle_fire.3',
-                        'kqt_Handle_receive.3'],
+                        'kqt_Handle_fire_event.3',
+                        'kqt_Handle_get_events.3'],
                 }
         for fname in (f for f in source if f in links):
             for link in links[fname]:

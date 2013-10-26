@@ -80,11 +80,13 @@ START_TEST(Handle_refuses_to_render_unvalidated_module)
 {
     set_silent_composition();
 
-    long mixed = kqt_Handle_mix(handle, 16);
+    kqt_Handle_play(handle, 16);
 
-    fail_if(mixed > 0,
-            "kqt_Handle_mix rendered %ld frames of unvalidated music",
-            mixed);
+    long frames_available = kqt_Handle_get_frames_available(handle);
+
+    fail_if(frames_available > 0,
+            "kqt_Handle_play rendered %ld frames of unvalidated music",
+            frames_available);
 
     const char* error_msg = kqt_Handle_get_error(handle);
     fail_if(strlen(error_msg) == 0,

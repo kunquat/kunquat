@@ -58,7 +58,7 @@ class Backend():
         self._frontend = None
         self._kunquat = Kunquat()
         self._kunquat.nanoseconds = 0
-        self._kunquat.fire(0, ('Ipause', None))
+        self._kunquat.fire_event(0, ('Ipause', None))
         self._render_times = deque([], 20)
         self._output_times = deque([], 20)
         self._push_time = None
@@ -157,8 +157,9 @@ class Backend():
         start = time.time()
         #data_mono = list(islice(self._sine, nframes))
         #audio_data = (data_mono, data_mono)
-        audio_data = self._kunquat.mix(nframes)
-        event_data = self._kunquat.receive()
+        self._kunquat.play(nframes)
+        audio_data = self._kunquat.get_audio()
+        event_data = self._kunquat.get_events()
         self._process_events(event_data)
         (l,r) = audio_data
         if len(l) < 1:

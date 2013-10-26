@@ -28,7 +28,7 @@
 #include <xassert.h>
 
 
-long kqt_Handle_mix(kqt_Handle handle, long nframes)
+int kqt_Handle_play(kqt_Handle handle, long nframes)
 {
     check_handle(handle, 0);
 
@@ -43,21 +43,37 @@ long kqt_Handle_mix(kqt_Handle handle, long nframes)
         return 0;
     }
 
-    if (Player_has_stopped(h->player)) // TODO: remove
-        return 0;
-
     Player_play(h->player, nframes);
 
-    return Player_get_frames_available(h->player); // TODO: remove
-#if 0
-    handle->module->play_state->freq =
-            Device_get_mix_rate((Device*)handle->module);
-    return Module_mix(handle->module, nframes, handle->module->event_handler);
-#endif
+    return 1;
 }
 
 
-int kqt_Handle_set_mixing_rate(kqt_Handle handle, long rate)
+int kqt_Handle_has_stopped(kqt_Handle handle)
+{
+    check_handle(handle, 0);
+
+    Handle* h = get_handle(handle);
+    check_data_is_valid(h, 0);
+    check_data_is_validated(h, 0);
+
+    return Player_has_stopped(h->player);
+}
+
+
+long kqt_Handle_get_frames_available(kqt_Handle handle)
+{
+    check_handle(handle, 0);
+
+    Handle* h = get_handle(handle);
+    check_data_is_valid(h, 0);
+    check_data_is_validated(h, 0);
+
+    return Player_get_frames_available(h->player);
+}
+
+
+int kqt_Handle_set_audio_rate(kqt_Handle handle, long rate)
 {
     check_handle(handle, 0);
 
@@ -86,7 +102,7 @@ int kqt_Handle_set_mixing_rate(kqt_Handle handle, long rate)
 }
 
 
-long kqt_Handle_get_mixing_rate(kqt_Handle handle)
+long kqt_Handle_get_audio_rate(kqt_Handle handle)
 {
     check_handle(handle, 0);
 
@@ -98,7 +114,7 @@ long kqt_Handle_get_mixing_rate(kqt_Handle handle)
 }
 
 
-int kqt_Handle_set_buffer_size(kqt_Handle handle, long size)
+int kqt_Handle_set_audio_buffer_size(kqt_Handle handle, long size)
 {
     check_handle(handle, 0);
 
@@ -133,7 +149,7 @@ int kqt_Handle_set_buffer_size(kqt_Handle handle, long size)
 }
 
 
-long kqt_Handle_get_buffer_size(kqt_Handle handle)
+long kqt_Handle_get_audio_buffer_size(kqt_Handle handle)
 {
     check_handle(handle, 0);
 
@@ -145,6 +161,7 @@ long kqt_Handle_get_buffer_size(kqt_Handle handle)
 }
 
 
+#if 0
 int kqt_Handle_get_buffer_count(kqt_Handle handle)
 {
     check_handle(handle, 0);
@@ -155,9 +172,10 @@ int kqt_Handle_get_buffer_count(kqt_Handle handle)
 
     return KQT_BUFFERS_MAX;
 }
+#endif
 
 
-const float* kqt_Handle_get_buffer(kqt_Handle handle, int index)
+const float* kqt_Handle_get_audio(kqt_Handle handle, int index)
 {
     check_handle(handle, NULL);
 
@@ -247,7 +265,7 @@ long long kqt_Handle_get_position(kqt_Handle handle)
 }
 
 
-int kqt_Handle_fire(kqt_Handle handle, int channel, char* event)
+int kqt_Handle_fire_event(kqt_Handle handle, int channel, char* event)
 {
     check_handle(handle, 0);
 
@@ -282,7 +300,7 @@ int kqt_Handle_fire(kqt_Handle handle, int channel, char* event)
 }
 
 
-int kqt_Handle_receive(kqt_Handle handle, char* dest, int size)
+const char* kqt_Handle_get_events(kqt_Handle handle)
 {
     check_handle(handle, 0);
 
@@ -290,23 +308,7 @@ int kqt_Handle_receive(kqt_Handle handle, char* dest, int size)
     check_data_is_valid(h, 0);
     check_data_is_validated(h, 0);
 
-    if (dest == NULL)
-    {
-        Handle_set_error(h, ERROR_ARGUMENT, "dest must not be NULL");
-        return 0;
-    }
-    if (size <= 0)
-    {
-        Handle_set_error(h, ERROR_ARGUMENT, "size must be positive");
-        return 0;
-    }
-
-    const char* events = Player_get_events(h->player);
-    const int len = MIN((int)strlen(events) + 1, size);
-    strncpy(dest, events, len);
-    dest[len - 1] = '\0';
-
-    return strlen(events) > 2;
+    return Player_get_events(h->player);
 }
 
 

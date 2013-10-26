@@ -8,17 +8,21 @@ Kunquat player API
 .br
 .B #include <kunquat/limits.h>
 
-.BI "long kqt_Handle_mix(kqt_Handle " handle ", long " nframes );
-
-.BI "float* kqt_Handle_get_buffer(kqt_Handle " handle ", int " index );
-
-.BI "int kqt_Handle_set_mixing_rate(kqt_handle " handle ", long " rate );
+.BI "int kqt_Handle_play(kqt_Handle " handle ", long " nframes );
 .br
-.BI "long kqt_Handle_get_mixing_rate(kqt_Handle " handle );
+.BI "int kqt_Handle_has_stopped(kqt_Handle " handle );
 
-.BI "int kqt_Handle_set_buffer_size(kqt_Handle " handle ", long " size );
+.BI "long kqt_Handle_get_frames_available(kqt_Handle " handle );
 .br
-.BI "long kqt_Handle_get_buffer_size(kqt_Handle " handle );
+.BI "const float* kqt_Handle_get_audio(kqt_Handle " handle ", int " index );
+
+.BI "int kqt_Handle_set_audio_rate(kqt_handle " handle ", long " rate );
+.br
+.BI "long kqt_Handle_get_audio_rate(kqt_Handle " handle );
+
+.BI "int kqt_Handle_set_audio_buffer_size(kqt_Handle " handle ", long " size );
+.br
+.BI "long kqt_Handle_get_audio_buffer_size(kqt_Handle " handle );
 
 .BI "long long kqt_Handle_get_duration(kqt_Handle " handle ", int " track );
 
@@ -26,34 +30,50 @@ Kunquat player API
 .br
 .BI "long long kqt_Handle_get_position(kqt_Handle " handle );
 
-.BI "int kqt_Handle_fire(kqt_Handle " handle ", int " channel ", char* " event );
+.BI "int kqt_Handle_fire_event(kqt_Handle " handle ", int " channel ", char* " event );
+.br
+.BI "const char* kqt_Handle_get_events(kqt_Handle " handle );
 
 .SH "PLAYING AUDIO"
 
 The Kunquat library does not support any sound devices or libraries directly.
-However, it can mix PCM audio that can be sent to a suitable sound library for
-playback.
+However, it can render PCM audio that can be sent to a suitable sound library
+for playback.
 
-.IP "\fBlong kqt_Handle_mix(kqt_Handle\fR \fIhandle\fR\fB, long\fR \fInframes\fR\fB);\fR"
-Mixes music associated with \fIhandle\fR, starting from the current position.
-It will mix at most \fInframes\fR frames, but it will mix less if the mixing
-buffer size is less than \fInframes\fR or the end of the composition is
-reached. By default, the function mixes the audio 48000 frames per second.
-This can be adjusted with the function \fBkqt_Handle_set_mixing_rate\fR.
+.IP "\fBlong kqt_Handle_play(kqt_Handle\fR \fIhandle\fR\fB, long\fR \fInframes\fR\fB);\fR"
+Plays music associated with \fIhandle\fR, starting from the current position.
+It will render at most \fInframes\fR frames of audio, but it will render less
+if the audio buffer size is less than \fInframes\fR, the end of the composition
+is reached, or the event buffer is full. By default, the function renders the
+audio 48000 frames per second. This can be adjusted with the function
+\fBkqt_Handle_set_audio_rate\fR.
 
-The function will return the number of frames actually mixed. The return value
-is 0 if the end of the composition/track is reached or an error occurred --
-the caller needs to check \fBkqt_Handle_get_error(\fR\fIhandle\fR\fB)\fR to
-determine whether an error occurred or not.
+If \fBkqt_Handle_play(\fR\fIhandle\fR\fB, long\fR \fInframes\fR\fB)\fR is
+called after the end of the composition is reached, more audio is produced as
+if the composition were paused indefinitely.
 
-.IP "\fBfloat* kqt_Handle_get_buffer(kqt_Handle\fR \fIhandle\fR\fB, int\fR \fIindex\fR\fB);\fR"
-Retrieves audio data mixed by the most recent call of
-\fBkqt_Handle_mix\fR. The returned data contains the mixing buffer contents of
+The function returns 1 if successful, or 0 if an error occurred.
+
+.IP "\fBint kqt_Handle_has_stopped(kqt_Handle\fR \fIhandle\fR\fB);\fR"
+Finds out if playback has stopped in \fIhandle\fR.
+
+The function returns 1 if playback has stopped, 0 if not, or -1 if an error
+occurred.
+
+.IP "\fBlong kqt_Handle_get_frames_available(kqt_Handle\fR \fIhandle\fR\fB);\fR"
+Returns the number of frames rendered after the last call of
+\fBkqt_Handle_play\fR, or -1 if an error occurred. A return value of 0 does
+not imply end of playback or error; a subsequent call of \fBkqt_Handle_play\fR
+may produce more audio data.
+
+.IP "\fBconst float* kqt_Handle_get_audio(kqt_Handle\fR \fIhandle\fR\fB, int\fR \fIindex\fR\fB);\fR"
+Retrieves audio data rendered by the most recent call of
+\fBkqt_Handle_play\fR. The returned data contains the audio buffer contents of
 either the left or the right output channel if \fIindex\fR is, respectively, 0
 or 1. The returned buffer contains sample values normalised to the range
 [-1.0, 1.0]. However, values beyond this range are possible and they indicate
 clipping. The data in the returned buffers becomes invalid when
-\fBkqt_Handle_mix\fR is called again. The function returns NULL if called with
+\fBkqt_Handle_play\fR is called again. The function returns NULL if called with
 invalid arguments.
 
 .PP
@@ -64,28 +84,28 @@ audio interfaces do not support 32-bit floating point format. The Kunquat
 library does not support interleaving or audio data conversions, but these
 functions are usually easy to implement.
 
-.SH "MIXING RATE"
+.SH "AUDIO RATE"
 
-.IP "\fBint kqt_Handle_set_mixing_rate(kqt_Handle\fR \fIhandle\fR\fB, long\fR \fIrate\fR\fB);\fR"
-Sets the mixing rate of \fIhandle\fR to \fIrate\fR frames per second.
-\fIrate\fR should be positive. Typical values for \fIrate\fR include 44100
-("CD quality") and 48000 (the default). Note that this function may fail due
+.IP "\fBint kqt_Handle_set_audio_rate(kqt_Handle\fR \fIhandle\fR\fB, long\fR \fIrate\fR\fB);\fR"
+Sets the audio rate of \fIhandle\fR to \fIrate\fR frames per second.
+\fIrate\fR should be positive. Typical values for \fIrate\fR include 48000
+(the default) and 44100 ("CD quality"). Note that this function may fail due
 to a memory error if the composition uses features that allocate buffers based
-on the mixing rate.
+on the audio rate.
 
-.IP "\fBlong kqt_Handle_get_mixing_rate(kqt_Handle\fR \fIhandle\fR\fB);\fR"
-Returns the mixing rate used by \fIhandle\fR, or 0 if \fIhandle\fR is invalid.
+.IP "\fBlong kqt_Handle_get_audio_rate(kqt_Handle\fR \fIhandle\fR\fB);\fR"
+Returns the audio rate used by \fIhandle\fR, or 0 if \fIhandle\fR is invalid.
 
-.SH "BUFFER SETTINGS"
+.SH "AUDIO BUFFER SETTINGS"
 
-.IP "\fBint kqt_Handle_set_buffer_size(kqt_Handle\fR \fIhandle\fR\fB, long\fR \fIsize\fR\fB);\fR"
-Sets the mixing buffer size of \fIhandle\fR to \fIsize\fR frames. \fIsize\fR
+.IP "\fBint kqt_Handle_set_audio_buffer_size(kqt_Handle\fR \fIhandle\fR\fB, long\fR \fIsize\fR\fB);\fR"
+Sets the audio buffer size of \fIhandle\fR to \fIsize\fR frames. \fIsize\fR
 should be positive and not greater than 1048576. The upper limit is a safety
 measure; typically, implementations use a buffer size of no more than a
 couple of thousand frames.
 
-.IP "\fBlong kqt_Handle_get_buffer_size(kqt_Handle\fR \fIhandle\fR\fB);\fR"
-Returns the buffer size of \fIhandle\fR, or 0 if \fIhandle\fR is invalid.
+.IP "\fBlong kqt_Handle_get_audio_buffer_size(kqt_Handle\fR \fIhandle\fR\fB);\fR"
+Returns the audio buffer size of \fIhandle\fR, or 0 if \fIhandle\fR is invalid.
 
 .SH "DURATION AND SEEKING"
 
@@ -99,21 +119,29 @@ days or longer, or -1 in case of an error.
 Seeks to a position inside \fItrack\fR in \fIhandle\fR. \fInanoseconds\fR
 indicates the offset from the beginning of the track. Note that this
 function skips all non-global events before the position \fInanoseconds\fR
-and therefore mixing may produce somewhat unexpected results. The function
-returns 1 on success, 0 on failure.
+and therefore audio rendering may produce somewhat unexpected results. The
+function returns 1 on success, 0 on failure.
 
 .IP "\fBlong long kqt_Handle_get_position(kqt_Handle\fR \fIhandle\fR\fB);\fR"
 Returns the current offset of playback in nanoseconds. The function returns 0
 if \fIhandle\fR is invalid.
 
-.SH "FIRING EVENTS"
+.SH "EVENTS"
 
-.IP "\fBint kqt_Handle_fire(kqt_Handle\fR \fIhandle\fR\fB, int\fR \fIchannel\fR\fB, char*\fR \fIevent\fR\fB);\fR"
+.IP "\fBint kqt_Handle_fire_event(kqt_Handle\fR \fIhandle\fR\fB, int\fR \fIchannel\fR\fB, char*\fR \fIevent\fR\fB);\fR"
 Fires an event in the composition. The event takes place in \fIchannel\fR (0
 to 63 inclusive). \fIevent\fR is the event description in JSON format. The
 description is a pair (list with two elements) with the event name as the
 first element and its argument expression as the second element. The function
 returns 1 if the event was successfully fired, otherwise 0.
+
+.IP "\fBconst char* kqt_Handle_get_events(kqt_Handle\fR \fIhandle\fR\fB);\fR"
+Returns a JSON list of events fired during the last call of
+\fBkqt_Handle_play\fR. The list is not necessarily exhaustive; subsequent
+calls may return more events. An empty list indicates that all events have
+been returned.
+
+The function returns NULL if \fIhandle\fR is invalid.
 
 .SH ERRORS
 

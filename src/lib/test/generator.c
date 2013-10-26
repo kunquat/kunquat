@@ -53,7 +53,7 @@ START_TEST(Generator_without_manifest_is_silent)
 
     float actual_buf[buf_len] = { 0.0f };
 
-    kqt_Handle_fire(handle, 0, "[\"n+\", 0]");
+    kqt_Handle_fire_event(handle, 0, "[\"n+\", 0]");
     check_unexpected_error();
     mix_and_fill(actual_buf, buf_len);
 
@@ -76,7 +76,7 @@ START_TEST(Adding_manifest_enables_generator)
 
     float actual_buf[buf_len] = { 0.0f };
 
-    kqt_Handle_fire(handle, 0, "[\"n+\", 0]");
+    kqt_Handle_fire_event(handle, 0, "[\"n+\", 0]");
     check_unexpected_error();
     mix_and_fill(actual_buf, buf_len);
 
@@ -100,7 +100,7 @@ START_TEST(Removing_manifest_disables_generator)
 
     float actual_buf[buf_len] = { 0.0f };
 
-    kqt_Handle_fire(handle, 0, "[\"n+\", 0]");
+    kqt_Handle_fire_event(handle, 0, "[\"n+\", 0]");
     check_unexpected_error();
     mix_and_fill(actual_buf, buf_len);
 
