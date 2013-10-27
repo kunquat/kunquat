@@ -655,9 +655,10 @@ static bool Constraint_match(
     assert(value != NULL);
 
     Value* result = VALUE_AUTO;
-    Read_state* state = READ_STATE_AUTO;
+    Streader* sr = Streader_init(
+            STREADER_AUTO, constraint->expr, strlen(constraint->expr));
     //fprintf(stderr, "%s, %s", constraint->event_name, constraint->expr);
-    evaluate_expr(constraint->expr, estate, state, value, result, rand);
+    evaluate_expr(sr, estate, value, result, rand);
     //fprintf(stderr, ", %s", state->message);
     //fprintf(stderr, " -> %d %s\n", (int)result->type,
     //                               result->value.bool_type ? "true" : "false");

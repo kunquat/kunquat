@@ -21,12 +21,12 @@
 #include <stdlib.h>
 
 #include <player/Player_private.h>
+#include <Streader.h>
 
 
-char* get_event_type_info(
-        char* desc,
+bool get_event_type_info(
+        Streader* desc_reader,
         const Event_names* names,
-        Read_state* rs,
         char* ret_name,
         Event_type* ret_type);
 

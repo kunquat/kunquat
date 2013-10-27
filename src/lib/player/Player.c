@@ -679,15 +679,14 @@ bool Player_has_stopped(const Player* player)
 }
 
 
-bool Player_fire(Player* player, int ch, char* event_desc, Read_state* rs)
+bool Player_fire(Player* player, int ch, Streader* event_reader)
 {
     assert(player != NULL);
     assert(ch >= 0);
     assert(ch < KQT_CHANNELS_MAX);
-    assert(event_desc != NULL);
-    assert(rs != NULL);
+    assert(event_reader != NULL);
 
-    if (rs->error)
+    if (Streader_is_error_set(event_reader))
         return false;
 
     Event_buffer_clear(player->event_buffer);
@@ -698,13 +697,11 @@ bool Player_fire(Player* player, int ch, char* event_desc, Read_state* rs)
     Event_type type = Event_NONE;
 
     // Get event name
-    event_desc = get_event_type_info(
-            event_desc,
-            event_names,
-            rs,
-            event_name,
-            &type);
-    if (rs->error)
+    if (!get_event_type_info(
+                event_reader,
+                event_names,
+                event_name,
+                &type))
         return false;
 
     // Get event argument
@@ -714,50 +711,41 @@ bool Player_fire(Player* player, int ch, char* event_desc, Read_state* rs)
     switch (value->type)
     {
         case VALUE_TYPE_NONE:
-            event_desc = read_null(event_desc, rs);
+            Streader_read_null(event_reader);
             break;
 
         case VALUE_TYPE_BOOL:
-            event_desc = read_bool(event_desc, &value->value.bool_type, rs);
+            Streader_read_bool(event_reader, &value->value.bool_type);
             break;
 
         case VALUE_TYPE_INT:
-            event_desc = read_int(event_desc, &value->value.int_type, rs);
+            Streader_read_int(event_reader, &value->value.int_type);
             break;
 
         case VALUE_TYPE_FLOAT:
-            event_desc = read_double(event_desc, &value->value.float_type, rs);
+            Streader_read_float(event_reader, &value->value.float_type);
             break;
 
         case VALUE_TYPE_TSTAMP:
-            event_desc = read_tstamp(event_desc, &value->value.Tstamp_type, rs);
+            Streader_read_tstamp(event_reader, &value->value.Tstamp_type);
             break;
 
         case VALUE_TYPE_STRING:
         {
-            event_desc = read_string(
-                    event_desc,
-                    value->value.string_type,
-                    ENV_VAR_NAME_MAX,
-                    rs);
+            Streader_read_string(
+                    event_reader, ENV_VAR_NAME_MAX, value->value.string_type);
         }
         break;
 
         case VALUE_TYPE_PAT_INST_REF:
-        {
-            event_desc = read_pat_inst_ref(
-                    event_desc,
-                    &value->value.Pat_inst_ref_type,
-                    rs);
-        }
-        break;
+            Streader_read_piref(event_reader, &value->value.Pat_inst_ref_type);
+            break;
 
         default:
             assert(false);
     }
 
-    event_desc = read_const_char(event_desc, ']', rs);
-    if (rs->error)
+    if (!Streader_match_char(event_reader, ']'))
         return false;
 
     // Fire

@@ -14,6 +14,7 @@
 
 #include <limits.h>
 #include <stdio.h>
+#include <string.h>
 
 #include <expr.h>
 #include <player/Player_seq.h>
@@ -21,87 +22,82 @@
 #include <xassert.h>
 
 
-char* get_event_type_info(
-        char* desc,
+bool get_event_type_info(
+        Streader* desc_reader,
         const Event_names* names,
-        Read_state* rs,
         char* ret_name,
         Event_type* ret_type)
 {
-    assert(desc != NULL);
+    assert(desc_reader != NULL);
     assert(names != NULL);
-    assert(rs != NULL);
     assert(ret_name != NULL);
     assert(ret_type != NULL);
 
-    if (rs->error)
-        return desc;
+    if (Streader_is_error_set(desc_reader))
+        return false;
 
     // Read event name
-    desc = read_const_char(desc, '[', rs);
-    desc = read_string(desc, ret_name, EVENT_NAME_MAX, rs);
-    desc = read_const_char(desc, ',', rs);
-    if (rs->error)
-        return desc;
+    if (!Streader_readf(desc_reader, "[%s,", EVENT_NAME_MAX, ret_name))
+        return false;
 
     // Check event type
     *ret_type = Event_names_get(names, ret_name);
     if (*ret_type == Event_NONE)
     {
-        Read_state_set_error(
-                rs,
+        Streader_set_error(
+                desc_reader,
                 "Unsupported event type: %s",
                 ret_name);
-        return desc;
+        return false;
     }
 
     assert(Event_is_valid(*ret_type));
-    return desc;
+    return true;
 }
 
 
-static char* process_expr(
-        char* arg_expr,
+static bool process_expr(
+        Streader* expr_reader,
         Value_type field_type,
         Env_state* estate,
         Random* random,
         const Value* meta,
-        Read_state* rs,
         Value* ret_value)
 {
-    assert(arg_expr != NULL);
+    assert(expr_reader != NULL);
     assert(estate != NULL);
     assert(random != NULL);
-    assert(rs != NULL);
     assert(ret_value != NULL);
 
-    if (rs->error)
-        return arg_expr;
+    if (Streader_is_error_set(expr_reader))
+        return false;
 
     if (field_type == VALUE_TYPE_NONE)
     {
         ret_value->type = VALUE_TYPE_NONE;
-        arg_expr = read_null(arg_expr, rs);
+        Streader_read_null(expr_reader);
     }
     else
     {
-        arg_expr = evaluate_expr(
-                arg_expr,
+        evaluate_expr(
+                expr_reader,
                 estate,
-                rs,
                 meta,
                 ret_value,
                 random);
-        arg_expr = read_const_char(arg_expr, '"', rs);
+        Streader_match_char(expr_reader, '"');
 
-        if (rs->error)
-            return arg_expr;
+        if (Streader_is_error_set(expr_reader))
+            return false;
 
         if (!Value_convert(ret_value, ret_value, field_type))
-            Read_state_set_error(rs, "Type mismatch");
+        {
+            Streader_set_error(expr_reader, "Type mismatch");
+            return false;
+        }
     }
 
-    return arg_expr;
+    return true;
 }
 
 
@@ -179,16 +175,17 @@ static void Player_process_expr_event(
     assert(ch_num < KQT_CHANNELS_MAX);
     assert(trigger_desc != NULL);
 
-    Read_state* rs = READ_STATE_AUTO;
+    Streader* sr = Streader_init(
+            STREADER_AUTO, trigger_desc, strlen(trigger_desc));
+
     const Event_names* event_names = Event_handler_get_names(player->event_handler);
 
     char event_name[EVENT_NAME_MAX + 1] = "";
     Event_type type = Event_NONE;
 
-    char* str_pos = get_event_type_info(
-            trigger_desc,
+    get_event_type_info(
+            sr,
             event_names,
-            rs,
             event_name,
             &type);
 
@@ -200,11 +197,10 @@ static void Player_process_expr_event(
                 VALUE_TYPE_STRING)
         {
             arg->type = VALUE_TYPE_STRING;
-            str_pos = read_string(
-                    str_pos,
-                    arg->value.string_type,
+            Streader_read_string(
+                    sr,
                     ENV_VAR_NAME_MAX,
-                    rs);
+                    arg->value.string_type);
         }
         else
         {
@@ -214,18 +210,22 @@ static void Player_process_expr_event(
         }
     }
     else
-        str_pos = process_expr(
-                str_pos,
+    {
+        process_expr(
+                sr,
                 Event_names_get_param_type(event_names, event_name),
                 player->estate,
                 player->channels[ch_num]->rand,
                 meta,
-                rs,
                 arg);
+    }
 
-    if (rs->error)
+    if (Streader_is_error_set(sr))
     {
-        fprintf(stderr, "Couldn't parse `%s`: %s\n", trigger_desc, rs->message);
+        fprintf(stderr,
+                "Couldn't parse `%s`: %s\n",
+                trigger_desc,
+                Streader_get_error_desc(sr));
         return;
     }
 

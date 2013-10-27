@@ -265,7 +265,7 @@ long long kqt_Handle_get_position(kqt_Handle handle)
 }
 
 
-int kqt_Handle_fire_event(kqt_Handle handle, int channel, char* event)
+int kqt_Handle_fire_event(kqt_Handle handle, int channel, const char* event)
 {
     check_handle(handle, 0);
 
@@ -286,13 +286,13 @@ int kqt_Handle_fire_event(kqt_Handle handle, int channel, char* event)
         return 0;
     }
 
-    Read_state* rs = READ_STATE_AUTO;
-    if (!Player_fire(h->player, channel, event, rs))
+    Streader* sr = Streader_init(STREADER_AUTO, event, strlen(event));
+    if (!Player_fire(h->player, channel, sr))
     {
-        assert(rs->error);
+        assert(Streader_is_error_set(sr));
         Handle_set_error(h, ERROR_ARGUMENT,
                 "Invalid event description `%s`: %s",
-                event, rs->message);
+                event, Streader_get_error_desc(sr));
         return 0;
     }
 

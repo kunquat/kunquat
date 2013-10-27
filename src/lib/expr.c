@@ -22,7 +22,6 @@
 #include <stdio.h>
 
 #include <expr.h>
-#include <File_base.h>
 #include <math_common.h>
 #include <Pat_inst_ref.h>
 #include <Random.h>
@@ -33,7 +32,7 @@
 #define STACK_SIZE 32
 
 
-typedef bool (*Op_func)(Value* op1, Value* op2, Value* res, Read_state* state);
+typedef bool (*Op_func)(Value* op1, Value* op2, Value* res, Streader* sr);
 
 
 typedef struct Operator
@@ -44,10 +43,9 @@ typedef struct Operator
 } Operator;
 
 
-static char* evaluate_expr_(
-        char* str,
+static bool evaluate_expr_(
+        Streader* sr,
         Env_state* estate,
-        Read_state* state,
         Value* val_stack,
         int vsi,
         Operator* op_stack,
@@ -63,14 +61,14 @@ static bool handle_unary(
         Value* val,
         bool found_not,
         bool found_minus,
-        Read_state* state);
+        Streader* sr);
 
 
-static char* get_token(char* str, char* result, Read_state* state);
-static char* get_str_token(char* str, char* result, Read_state* state);
-static char* get_num_token(char* str, char* result, Read_state* state);
-static char* get_var_token(char* str, char* result, Read_state* state);
-static char* get_op_token(char* str, char* result, Read_state* state);
+static bool get_token(Streader* sr, char* result);
+static bool get_str_token(Streader* sr, char* result);
+static bool get_num_token(Streader* sr, char* result);
+static bool get_var_token(Streader* sr, char* result);
+static bool get_op_token(Streader* sr, char* result);
 
 
 static bool Value_from_token(
@@ -90,20 +88,20 @@ static bool Operator_from_token(Operator* op, char* token);
 //static void Operator_print(Operator* op);
 
 
-static bool op_neq(Value* op1, Value* op2, Value* res, Read_state* state);
-static bool op_leq(Value* op1, Value* op2, Value* res, Read_state* state);
-static bool op_geq(Value* op1, Value* op2, Value* res, Read_state* state);
-static bool op_or(Value* op1, Value* op2, Value* res, Read_state* state);
-static bool op_and(Value* op1, Value* op2, Value* res, Read_state* state);
-static bool op_eq(Value* op1, Value* op2, Value* res, Read_state* state);
-static bool op_lt(Value* op1, Value* op2, Value* res, Read_state* state);
-static bool op_gt(Value* op1, Value* op2, Value* res, Read_state* state);
-static bool op_add(Value* op1, Value* op2, Value* res, Read_state* state);
-static bool op_sub(Value* op1, Value* op2, Value* res, Read_state* state);
-static bool op_mul(Value* op1, Value* op2, Value* res, Read_state* state);
-static bool op_div(Value* op1, Value* op2, Value* res, Read_state* state);
-static bool op_mod(Value* op1, Value* op2, Value* res, Read_state* state);
-static bool op_pow(Value* op1, Value* op2, Value* res, Read_state* state);
+static bool op_neq(Value* op1, Value* op2, Value* res, Streader* sr);
+static bool op_leq(Value* op1, Value* op2, Value* res, Streader* sr);
+static bool op_geq(Value* op1, Value* op2, Value* res, Streader* sr);
+static bool op_or(Value* op1, Value* op2, Value* res, Streader* sr);
+static bool op_and(Value* op1, Value* op2, Value* res, Streader* sr);
+static bool op_eq(Value* op1, Value* op2, Value* res, Streader* sr);
+static bool op_lt(Value* op1, Value* op2, Value* res, Streader* sr);
+static bool op_gt(Value* op1, Value* op2, Value* res, Streader* sr);
+static bool op_add(Value* op1, Value* op2, Value* res, Streader* sr);
+static bool op_sub(Value* op1, Value* op2, Value* res, Streader* sr);
+static bool op_mul(Value* op1, Value* op2, Value* res, Streader* sr);
+static bool op_div(Value* op1, Value* op2, Value* res, Streader* sr);
+static bool op_mod(Value* op1, Value* op2, Value* res, Streader* sr);
+static bool op_pow(Value* op1, Value* op2, Value* res, Streader* sr);
 
 
 static Operator operators[] =
@@ -131,13 +129,13 @@ typedef bool (*Func)(
         Value* args,
         Value* res,
         Random* rand,
-        Read_state* state);
+        Streader* sr);
 
 
 #define FUNC_ARGS_MAX 4
 
 
-static bool token_is_func(char* token, Func* res);
+static bool token_is_func(const char* token, Func* res);
 
 
 typedef struct Func_desc
@@ -151,7 +149,7 @@ typedef struct Func_desc
         Value* args,                          \
         Value* res,                           \
         Random* rand,                         \
-        Read_state* state)
+        Streader* sr)
 
 FUNC_PROTO(ts);
 FUNC_PROTO(rand);
@@ -169,23 +167,20 @@ static Func_desc funcs[] =
 };
 
 
-char* evaluate_expr(
-        char* str,
+bool evaluate_expr(
+        Streader* sr,
         Env_state* estate,
-        Read_state* state,
         const Value* meta,
         Value* res,
         Random* rand)
 {
-    assert(str != NULL);
+    assert(sr != NULL);
     assert(estate != NULL);
-    assert(state != NULL);
     assert(res != NULL);
     assert(rand != NULL);
 
-    str = read_const_char(str, '"', state);
-    if (state->error)
-        return str;
+    if (!Streader_match_char(sr, '"'))
+        return false;
 
     Value val_stack[STACK_SIZE] = { { .type = VALUE_TYPE_NONE } };
     Operator op_stack[STACK_SIZE] = { { .name = NULL } };
@@ -194,9 +189,8 @@ char* evaluate_expr(
         meta = VALUE_AUTO;
 
     return evaluate_expr_(
-            str,
+            sr,
             estate,
-            state,
             val_stack,
             0,
             op_stack,
@@ -209,20 +203,19 @@ char* evaluate_expr(
 }
 
 
-#define check_stack(si) if (true)                           \
-    {                                                       \
-        if ((si) >= STACK_SIZE)                             \
-        {                                                   \
-            assert((si) == STACK_SIZE);                     \
-            Read_state_set_error(state, "Stack overflow");  \
-            return false;                                   \
-        }                                                   \
+#define check_stack(si) if (true)                     \
+    {                                                 \
+        if ((si) >= STACK_SIZE)                       \
+        {                                             \
+            assert((si) == STACK_SIZE);               \
+            Streader_set_error(sr, "Stack overflow"); \
+            return false;                             \
+        }                                             \
     } else (void)0
 
-static char* evaluate_expr_(
-        char* str,
+static bool evaluate_expr_(
+        Streader* sr,
         Env_state* estate,
-        Read_state* state,
         Value* val_stack,
         int vsi,
         Operator* op_stack,
@@ -233,9 +226,8 @@ static char* evaluate_expr_(
         bool func_arg,
         Random* rand)
 {
-    assert(str != NULL);
+    assert(sr != NULL);
     assert(estate != NULL);
-    assert(state != NULL);
     assert(val_stack != NULL);
     assert(vsi >= 0);
     assert(vsi <= STACK_SIZE);
@@ -247,13 +239,13 @@ static char* evaluate_expr_(
     assert(depth >= 0);
     assert(rand != NULL);
 
-    if (state->error)
-        return str;
+    if (Streader_is_error_set(sr))
+        return false;
 
     if (depth >= STACK_SIZE)
     {
-        Read_state_set_error(state, "Maximum recursion depth exceeded");
-        return str;
+        Streader_set_error(sr, "Maximum recursion depth exceeded");
+        return false;
     }
 
     int orig_vsi = vsi;
@@ -262,9 +254,9 @@ static char* evaluate_expr_(
     bool expect_operand = true;
     bool found_not = false;
     bool found_minus = false;
-    char* prev_pos = str;
-    str = get_token(str, token, state);
-    while (!state->error &&
+
+    size_t prev_pos = sr->pos;
+    while (get_token(sr, token) &&
             !string_eq(token, "") &&
             !string_eq(token, ")") &&
             (!func_arg || !string_eq(token, ",")))
@@ -277,21 +269,20 @@ static char* evaluate_expr_(
         {
             if (!expect_operand)
             {
-                Read_state_set_error(state, "Unexpected operand");
-                return str;
+                Streader_set_error(sr, "Unexpected operand");
+                return false;
             }
 
             check_stack(vsi);
-            str = evaluate_expr_(
-                    str, estate, state, val_stack, vsi,
-                    op_stack, osi, meta, operand, depth + 1,
-                    false, rand);
-            if (state->error)
-                return str;
+            if (!evaluate_expr_(
+                        sr, estate, val_stack, vsi,
+                        op_stack, osi, meta, operand, depth + 1,
+                        false, rand))
+                return false;
 
             assert(operand->type != VALUE_TYPE_NONE);
-            if (!handle_unary(operand, found_not, found_minus, state))
-                return str;
+            if (!handle_unary(operand, found_not, found_minus, sr))
+                return false;
 
             found_not = found_minus = false;
             memcpy(&val_stack[vsi], operand, sizeof(Value));
@@ -302,53 +293,46 @@ static char* evaluate_expr_(
         {
             if (!expect_operand)
             {
-                Read_state_set_error(state, "Unexpected function");
-                return str;
+                Streader_set_error(sr, "Unexpected function");
+                return false;
             }
 
             check_stack(vsi);
             assert(func != NULL);
             Value func_args[FUNC_ARGS_MAX] = { { .type = VALUE_TYPE_NONE } };
-            str = read_const_char(str, '(', state);
-            if (state->error)
-                return str;
+            if (!Streader_match_char(sr, '('))
+                return false;
 
             int i = 0;
-            str = read_const_char(str, ')', state);
-            if (state->error)
+            if (!Streader_try_match_char(sr, ')'))
             {
-                Read_state_clear_error(state);
                 for (i = 0; i < FUNC_ARGS_MAX; ++i)
                 {
-                    str = evaluate_expr_(
-                            str, estate, state, val_stack, vsi,
-                            op_stack, osi, meta, &func_args[i], depth + 1,
-                            true, rand);
-                    if (state->error)
-                        return str;
+                    if (!evaluate_expr_(
+                                sr, estate, val_stack, vsi,
+                                op_stack, osi, meta, &func_args[i], depth + 1,
+                                true, rand))
+                        return false;
 
                     assert(func_args[i].type != VALUE_TYPE_NONE);
-                    str = read_const_char(str, ')', state);
-                    if (!state->error)
+                    if (Streader_try_match_char(sr, ')'))
                     {
                         ++i;
                         break;
                     }
 
-                    Read_state_clear_error(state);
-                    str = read_const_char(str, ',', state);
-                    if (state->error)
-                        return str;
+                    if (!Streader_match_char(sr, ','))
+                        return false;
                 }
             }
 
             if (i < FUNC_ARGS_MAX)
                 func_args[i].type = VALUE_TYPE_NONE;
 
-            if (!func(func_args, operand, rand, state))
+            if (!func(func_args, operand, rand, sr))
             {
-                assert(state->error);
-                return str;
+                assert(Streader_is_error_set(sr));
+                return false;
             }
 
             assert(operand->type != VALUE_TYPE_NONE);
@@ -361,13 +345,13 @@ static char* evaluate_expr_(
         {
             if (!expect_operand)
             {
-                Read_state_set_error(state, "Unexpected operand");
-                return str;
+                Streader_set_error(sr, "Unexpected operand");
+                return false;
             }
 
             assert(operand->type != VALUE_TYPE_NONE);
-            if (!handle_unary(operand, found_not, found_minus, state))
-                return str;
+            if (!handle_unary(operand, found_not, found_minus, sr))
+                return false;
 
             found_not = found_minus = false;
             check_stack(vsi);
@@ -391,19 +375,18 @@ static char* evaluate_expr_(
                 }
                 else
                 {
-                    Read_state_set_error(state, "Unexpected binary operator");
-                    return str;
+                    Streader_set_error(sr, "Unexpected binary operator");
+                    return false;
                 }
 
-                prev_pos = str;
-                str = get_token(str, token, state);
+                prev_pos = sr->pos;
                 continue;
             }
 
             if (string_eq(op->name, "!"))
             {
-                Read_state_set_error(state, "Unexpected boolean not");
-                return str;
+                Streader_set_error(sr, "Unexpected boolean not");
+                return false;
             }
 
             while (osi > orig_osi && op->preced <= op_stack[osi - 1].preced)
@@ -414,8 +397,8 @@ static char* evaluate_expr_(
 
                 if (vsi < 2)
                 {
-                    Read_state_set_error(state, "Not enough operands");
-                    return str;
+                    Streader_set_error(sr, "Not enough operands");
+                    return false;
                 }
 
                 Value* result = VALUE_AUTO;
@@ -423,10 +406,10 @@ static char* evaluate_expr_(
                             &val_stack[vsi - 2],
                             &val_stack[vsi - 1],
                             result,
-                            state))
+                            sr))
                 {
-                    assert(state->error);
-                    return str;
+                    assert(Streader_is_error_set(sr));
+                    return false;
                 }
 
                 //Operator_print(top);
@@ -446,33 +429,32 @@ static char* evaluate_expr_(
         }
         else
         {
-            Read_state_set_error(state, "Unrecognised token");
-            return str;
+            Streader_set_error(sr, "Unrecognised token");
+            return false;
         }
 
-        prev_pos = str;
-        str = get_token(str, token, state);
+        prev_pos = sr->pos;
     }
 
-    if (state->error)
-        return str;
+    if (Streader_is_error_set(sr))
+        return false;
 
     assert(string_eq(token, "") || string_eq(token, ")") ||
             (func_arg && string_eq(token, ",")));
     if (vsi <= orig_vsi)
     {
         assert(vsi == orig_vsi);
-        Read_state_set_error(state, "Empty expression");
-        return str;
+        Streader_set_error(sr, "Empty expression");
+        return false;
     }
 
     if ((depth == 0) != string_eq(token, ""))
     {
-        Read_state_set_error(
-                state,
+        Streader_set_error(
+                sr,
                 "Unmatched %s parenthesis",
                 (depth == 0) ? "right" : "left");
-        return str;
+        return false;
     }
 
     while (osi > orig_osi)
@@ -483,16 +465,16 @@ static char* evaluate_expr_(
 
         if (vsi < 2)
         {
-            Read_state_set_error(state, "Not enough operands");
-            return str;
+            Streader_set_error(sr, "Not enough operands");
+            return false;
         }
 
         Value* result = VALUE_AUTO;
         if (!top->func(&val_stack[vsi - 2], &val_stack[vsi - 1],
-                       result, state))
+                       result, sr))
         {
-            assert(state->error);
-            return str;
+            assert(Streader_is_error_set(sr));
+            return false;
         }
 
         //Operator_print(top);
@@ -509,15 +491,15 @@ static char* evaluate_expr_(
     assert(res->type != VALUE_TYPE_NONE);
 
     if (func_arg)
-        str = prev_pos;
+        sr->pos = prev_pos;
 
-    return str;
+    return true;
 }
 
 #undef check_stack
 
 
-static bool token_is_func(char* token, Func* res)
+static bool token_is_func(const char* token, Func* res)
 {
     assert(token != NULL);
     assert(res != NULL);
@@ -539,13 +521,13 @@ static bool handle_unary(
         Value* val,
         bool found_not,
         bool found_minus,
-        Read_state* state)
+        Streader* sr)
 {
     assert(val != NULL);
     assert(!(found_not && found_minus));
-    assert(state != NULL);
+    assert(sr != NULL);
 
-    if (state->error)
+    if (Streader_is_error_set(sr))
         return false;
 
     if (!found_not && !found_minus)
@@ -555,7 +537,7 @@ static bool handle_unary(
     {
         if (val->type != VALUE_TYPE_BOOL)
         {
-            Read_state_set_error(state, "Non-boolean operand for boolean not");
+            Streader_set_error(sr, "Non-boolean operand for boolean not");
             return false;
         }
 
@@ -574,7 +556,7 @@ static bool handle_unary(
     }
     else
     {
-        Read_state_set_error(state, "Non-number operand for unary minus");
+        Streader_set_error(sr, "Non-number operand for unary minus");
         return false;
     }
 
@@ -733,87 +715,87 @@ static void Operator_print(Operator* op)
 #endif
 
 
-static char* get_token(char* str, char* result, Read_state* state)
+static bool get_token(Streader* sr, char* result)
 {
-    assert(str != NULL);
+    assert(sr != NULL);
     assert(result != NULL);
-    assert(state != NULL);
 
-    if (state->error)
-        return str;
+    if (Streader_is_error_set(sr))
+        return false;
 
-    str = skip_whitespace(str, state);
+    Streader_skip_whitespace(sr);
+    const char* str = &sr->str[sr->pos]; // FIXME: need to handle this properly
     if (isdigit(*str) || *str == '.')
     {
-        return get_num_token(str, result, state);
+        return get_num_token(sr, result);
     }
     else if (str[0] == '\'' || string_has_prefix(str, "\\\""))
     {
-        return get_str_token(str, result, state);
+        return get_str_token(sr, result);
     }
-    else if (strchr("$,", str[0]) != NULL)
+    else if (Streader_try_match_char(sr, '$'))
     {
-        result[0] = str[0];
-        result[1] = '\0';
-        return str + 1;
+        strcpy(result, "$");
+        return true;
+    }
+    else if (Streader_try_match_char(sr, ','))
+    {
+        strcpy(result, ",");
+        return true;
     }
     else if (strchr(ENV_VAR_INIT_CHARS, *str) != NULL)
     {
-        return get_var_token(str, result, state);
+        return get_var_token(sr, result);
     }
-    else if (strchr("()", *str) != NULL)
+    else if (Streader_try_match_char(sr, '('))
     {
-        result[0] = *str;
-        result[1] = '\0';
-        ++str;
-        return str;
+        strcpy(result, "(");
+        return true;
+    }
+    else if (Streader_try_match_char(sr, ')'))
+    {
+        strcpy(result, ")");
+        return true;
     }
 
-    return get_op_token(str, result, state);
+    return get_op_token(sr, result);
 }
 
 
-static char* get_num_token(char* str, char* result, Read_state* state)
+static bool get_num_token(Streader* sr, char* result)
 {
-    assert(str != NULL);
+    assert(sr != NULL);
     assert(result != NULL);
-    assert(state != NULL);
 
-    int len = 0;
-    while (isdigit(*str) && len < ENV_VAR_NAME_MAX - 1)
-        result[len++] = *str++;
+    const size_t start_pos = sr->pos;
 
-    if (*str == '.' && len < ENV_VAR_NAME_MAX - 1)
+    if (!Streader_read_float(sr, NULL))
+        return false;
+
+    const size_t end_pos = sr->pos;
+    assert(end_pos >= start_pos);
+
+    const size_t len = end_pos - start_pos;
+    if (len >= ENV_VAR_NAME_MAX - 1)
     {
-        result[len++] = *str++;
-        while (isdigit(*str) && len < ENV_VAR_NAME_MAX - 1)
-            result[len++] = *str++;
+        Streader_set_error(sr, "Exceeded maximum token length");
+        return false;
     }
 
-    if (len >= ENV_VAR_NAME_MAX - 1 && (isdigit(*str) || *str == '.'))
-    {
-        Read_state_set_error(state, "Exceeded maximum token length");
-        return str;
-    }
-
-    assert(len < ENV_VAR_NAME_MAX);
+    strncpy(result, &sr->str[start_pos], len);
     result[len] = '\0';
 
-    if (result[0] == '0' && !(result[1] == '\0' || result[1] == '.'))
-    {
-        Read_state_set_error(state, "Leading zeros found");
-        return str;
-    }
-
-    return str;
+    return true;
 }
 
 
-static char* get_str_token(char* str, char* result, Read_state* state)
+static bool get_str_token(Streader* sr, char* result)
 {
-    assert(str != NULL);
+    assert(sr != NULL);
     assert(result != NULL);
-    assert(state != NULL);
+
+    // FIXME: ugly haxoring with Streader internals
+    const char* str = &sr->str[sr->pos];
 
     char* end_str = "'";
     if (string_has_prefix(str, "\\\""))
@@ -825,8 +807,8 @@ static char* get_str_token(char* str, char* result, Read_state* state)
     {
         if (i >= ENV_VAR_NAME_MAX + 1) // + 1 includes compensation for \"
         {
-            Read_state_set_error(state, "Exceeded maximum token length");
-            return str;
+            Streader_set_error(sr, "Exceeded maximum token length");
+            return false;
         }
 
         result[i] = *str++;
@@ -836,62 +818,72 @@ static char* get_str_token(char* str, char* result, Read_state* state)
     strcpy(&result[i], end_str);
     str += strlen(end_str);
 
-    return str;
+    sr->pos += (str - &sr->str[sr->pos]);
+
+    return true;
 }
 
 
-static char* get_var_token(char* str, char* result, Read_state* state)
+static bool get_var_token(Streader* sr, char* result)
 {
-    assert(str != NULL);
+    assert(sr != NULL);
     assert(result != NULL);
-    assert(state != NULL);
+
+    // FIXME: ugly haxoring with Streader internals
+    const char* str = &sr->str[sr->pos];
 
     int len = strspn(str, ENV_VAR_CHARS);
     if (len >= ENV_VAR_NAME_MAX)
     {
-        Read_state_set_error(state, "Exceeded maximum token length");
-        return str;
+        Streader_set_error(sr, "Exceeded maximum token length");
+        return false;
     }
 
     strncpy(result, str, len);
     result[len] = '\0';
 
-    return str + len;
+    sr->pos += len;
+
+    return true;
 }
 
 
-static char* get_op_token(char* str, char* result, Read_state* state)
+static bool get_op_token(Streader* sr, char* result)
 {
-    assert(str != NULL);
+    assert(sr != NULL);
     assert(result != NULL);
-    assert(state != NULL);
 
     static const char op_chars[] = "!=<>+-*/%^|&";
+
+    // FIXME: ugly haxoring with Streader internals
+    const char* str = &sr->str[sr->pos];
 
     int len = strspn(str, op_chars);
     if (len >= ENV_VAR_NAME_MAX)
     {
-        Read_state_set_error(state, "Exceeded maximum token length");
-        return str;
+        Streader_set_error(sr, "Exceeded maximum token length");
+        return false;
     }
 
     strncpy(result, str, len);
     result[len] = '\0';
 
-    return str + len;
+    sr->pos += len;
+
+    return true;
 }
 
 
-static bool op_eq(Value* op1, Value* op2, Value* res, Read_state* state)
+static bool op_eq(Value* op1, Value* op2, Value* res, Streader* sr)
 {
     assert(op1 != NULL);
     assert(op2 != NULL);
     assert(res != NULL);
-    assert(state != NULL);
+    assert(sr != NULL);
     assert(op1->type > VALUE_TYPE_NONE);
     assert(op2->type > VALUE_TYPE_NONE);
 
-    if (state->error)
+    if (Streader_is_error_set(sr))
         return false;
 
     if (op1->type == op2->type)
@@ -944,12 +936,12 @@ static bool op_eq(Value* op1, Value* op2, Value* res, Read_state* state)
     res->type = VALUE_TYPE_BOOL;
     if (op1->type == VALUE_TYPE_BOOL)
     {
-        Read_state_set_error(state, "Comparison between boolean and number");
+        Streader_set_error(sr, "Comparison between boolean and number");
         return false;
     }
     else if (op2->type == VALUE_TYPE_STRING)
     {
-        Read_state_set_error(state, "Comparison between string and non-string");
+        Streader_set_error(sr, "Comparison between string and non-string");
         return false;
     }
 
@@ -962,14 +954,14 @@ static bool op_eq(Value* op1, Value* op2, Value* res, Read_state* state)
 }
 
 
-static bool op_neq(Value* op1, Value* op2, Value* res, Read_state* state)
+static bool op_neq(Value* op1, Value* op2, Value* res, Streader* sr)
 {
     assert(op1 != NULL);
     assert(op2 != NULL);
     assert(res != NULL);
-    assert(state != NULL);
+    assert(sr != NULL);
 
-    if (op_eq(op1, op2, res, state))
+    if (op_eq(op1, op2, res, sr))
     {
         assert(res->type == VALUE_TYPE_BOOL);
         res->value.bool_type = !res->value.bool_type;
@@ -980,47 +972,47 @@ static bool op_neq(Value* op1, Value* op2, Value* res, Read_state* state)
 }
 
 
-static bool op_leq(Value* op1, Value* op2, Value* res, Read_state* state)
+static bool op_leq(Value* op1, Value* op2, Value* res, Streader* sr)
 {
     assert(op1 != NULL);
     assert(op2 != NULL);
     assert(res != NULL);
-    assert(state != NULL);
+    assert(sr != NULL);
 
-    if (!op_lt(op1, op2, res, state))
+    if (!op_lt(op1, op2, res, sr))
         return false;
 
     if (res->value.bool_type)
         return true;
 
-    return op_eq(op1, op2, res, state);
+    return op_eq(op1, op2, res, sr);
 }
 
 
-static bool op_geq(Value* op1, Value* op2, Value* res, Read_state* state)
+static bool op_geq(Value* op1, Value* op2, Value* res, Streader* sr)
 {
     assert(op1 != NULL);
     assert(op2 != NULL);
     assert(res != NULL);
-    assert(state != NULL);
+    assert(sr != NULL);
 
-    return op_leq(op2, op1, res, state);
+    return op_leq(op2, op1, res, sr);
 }
 
 
-static bool op_or(Value* op1, Value* op2, Value* res, Read_state* state)
+static bool op_or(Value* op1, Value* op2, Value* res, Streader* sr)
 {
     assert(op1 != NULL);
     assert(op2 != NULL);
     assert(res != NULL);
-    assert(state != NULL);
+    assert(sr != NULL);
 
-    if (state->error)
+    if (Streader_is_error_set(sr))
         return false;
 
     if (op1->type != VALUE_TYPE_BOOL || op2->type != VALUE_TYPE_BOOL)
     {
-        Read_state_set_error(state, "Boolean OR with non-booleans");
+        Streader_set_error(sr, "Boolean OR with non-booleans");
         return false;
     }
 
@@ -1031,19 +1023,19 @@ static bool op_or(Value* op1, Value* op2, Value* res, Read_state* state)
 }
 
 
-static bool op_and(Value* op1, Value* op2, Value* res, Read_state* state)
+static bool op_and(Value* op1, Value* op2, Value* res, Streader* sr)
 {
     assert(op1 != NULL);
     assert(op2 != NULL);
     assert(res != NULL);
-    assert(state != NULL);
+    assert(sr != NULL);
 
-    if (state->error)
+    if (Streader_is_error_set(sr))
         return false;
 
     if (op1->type != VALUE_TYPE_BOOL || op2->type != VALUE_TYPE_BOOL)
     {
-        Read_state_set_error(state, "Boolean AND with non-booleans");
+        Streader_set_error(sr, "Boolean AND with non-booleans");
         return false;
     }
 
@@ -1054,20 +1046,20 @@ static bool op_and(Value* op1, Value* op2, Value* res, Read_state* state)
 }
 
 
-static bool op_lt(Value* op1, Value* op2, Value* res, Read_state* state)
+static bool op_lt(Value* op1, Value* op2, Value* res, Streader* sr)
 {
     assert(op1 != NULL);
     assert(op2 != NULL);
     assert(res != NULL);
-    assert(state != NULL);
+    assert(sr != NULL);
 
-    if (state->error)
+    if (Streader_is_error_set(sr))
         return false;
 
     if (op1->type <= VALUE_TYPE_BOOL || op2->type <= VALUE_TYPE_BOOL ||
             op1->type >= VALUE_TYPE_STRING || op2->type >= VALUE_TYPE_STRING)
     {
-        Read_state_set_error(state, "Ordinal comparison between non-numbers");
+        Streader_set_error(sr, "Ordinal comparison between non-numbers");
         return false;
     }
 
@@ -1113,31 +1105,31 @@ static bool op_lt(Value* op1, Value* op2, Value* res, Read_state* state)
 }
 
 
-static bool op_gt(Value* op1, Value* op2, Value* res, Read_state* state)
+static bool op_gt(Value* op1, Value* op2, Value* res, Streader* sr)
 {
     assert(op1 != NULL);
     assert(op2 != NULL);
     assert(res != NULL);
-    assert(state != NULL);
+    assert(sr != NULL);
 
-    return op_lt(op2, op1, res, state);
+    return op_lt(op2, op1, res, sr);
 }
 
 
-static bool op_add(Value* op1, Value* op2, Value* res, Read_state* state)
+static bool op_add(Value* op1, Value* op2, Value* res, Streader* sr)
 {
     assert(op1 != NULL);
     assert(op2 != NULL);
     assert(res != NULL);
-    assert(state != NULL);
+    assert(sr != NULL);
 
-    if (state->error)
+    if (Streader_is_error_set(sr))
         return false;
 
     if (op1->type <= VALUE_TYPE_BOOL || op2->type <= VALUE_TYPE_BOOL ||
             op1->type >= VALUE_TYPE_STRING || op2->type >= VALUE_TYPE_STRING)
     {
-        Read_state_set_error(state, "Addition with non-numbers");
+        Streader_set_error(sr, "Addition with non-numbers");
         return false;
     }
 
@@ -1182,20 +1174,20 @@ static bool op_add(Value* op1, Value* op2, Value* res, Read_state* state)
 }
 
 
-static bool op_sub(Value* op1, Value* op2, Value* res, Read_state* state)
+static bool op_sub(Value* op1, Value* op2, Value* res, Streader* sr)
 {
     assert(op1 != NULL);
     assert(op2 != NULL);
     assert(res != NULL);
-    assert(state != NULL);
+    assert(sr != NULL);
 
-    if (state->error)
+    if (Streader_is_error_set(sr))
         return false;
 
     if (op1->type <= VALUE_TYPE_BOOL || op2->type <= VALUE_TYPE_BOOL ||
             op1->type >= VALUE_TYPE_STRING || op2->type >= VALUE_TYPE_STRING)
     {
-        Read_state_set_error(state, "Subtraction with non-numbers");
+        Streader_set_error(sr, "Subtraction with non-numbers");
         return false;
     }
 
@@ -1206,24 +1198,24 @@ static bool op_sub(Value* op1, Value* op2, Value* res, Read_state* state)
     else
         assert(false);
 
-    return op_add(op1, op2, res, state);
+    return op_add(op1, op2, res, sr);
 }
 
 
-static bool op_mul(Value* op1, Value* op2, Value* res, Read_state* state)
+static bool op_mul(Value* op1, Value* op2, Value* res, Streader* sr)
 {
     assert(op1 != NULL);
     assert(op2 != NULL);
     assert(res != NULL);
-    assert(state != NULL);
+    assert(sr != NULL);
 
-    if (state->error)
+    if (Streader_is_error_set(sr))
         return false;
 
     if (op1->type <= VALUE_TYPE_BOOL || op2->type <= VALUE_TYPE_BOOL ||
             op1->type >= VALUE_TYPE_STRING || op2->type >= VALUE_TYPE_STRING)
     {
-        Read_state_set_error(state, "Multiplication with non-numbers");
+        Streader_set_error(sr, "Multiplication with non-numbers");
         return false;
     }
 
@@ -1268,27 +1260,27 @@ static bool op_mul(Value* op1, Value* op2, Value* res, Read_state* state)
 }
 
 
-static bool op_div(Value* op1, Value* op2, Value* res, Read_state* state)
+static bool op_div(Value* op1, Value* op2, Value* res, Streader* sr)
 {
     assert(op1 != NULL);
     assert(op2 != NULL);
     assert(res != NULL);
-    assert(state != NULL);
+    assert(sr != NULL);
 
-    if (state->error)
+    if (Streader_is_error_set(sr))
         return false;
 
     if (op1->type <= VALUE_TYPE_BOOL || op2->type <= VALUE_TYPE_BOOL ||
             op1->type >= VALUE_TYPE_STRING || op2->type >= VALUE_TYPE_STRING)
     {
-        Read_state_set_error(state, "Division with non-numbers");
+        Streader_set_error(sr, "Division with non-numbers");
         return false;
     }
 
     if ((op2->type == VALUE_TYPE_INT && op2->value.int_type == 0) ||
             (op2->type == VALUE_TYPE_FLOAT && op2->value.float_type == 0))
     {
-        Read_state_set_error(state, "Division by zero");
+        Streader_set_error(sr, "Division by zero");
         return false;
     }
 
@@ -1308,31 +1300,31 @@ static bool op_div(Value* op1, Value* op2, Value* res, Read_state* state)
 
     op2->value.float_type = 1.0 / op2->value.float_type;
 
-    return op_mul(op1, op2, res, state);
+    return op_mul(op1, op2, res, sr);
 }
 
 
-static bool op_mod(Value* op1, Value* op2, Value* res, Read_state* state)
+static bool op_mod(Value* op1, Value* op2, Value* res, Streader* sr)
 {
     assert(op1 != NULL);
     assert(op2 != NULL);
     assert(res != NULL);
-    assert(state != NULL);
+    assert(sr != NULL);
 
-    if (state->error)
+    if (Streader_is_error_set(sr))
         return false;
 
     if (op1->type <= VALUE_TYPE_BOOL || op2->type <= VALUE_TYPE_BOOL ||
             op1->type >= VALUE_TYPE_STRING || op2->type >= VALUE_TYPE_STRING)
     {
-        Read_state_set_error(state, "Modulo with non-numbers");
+        Streader_set_error(sr, "Modulo with non-numbers");
         return false;
     }
 
     if ((op2->type == VALUE_TYPE_INT && op2->value.int_type == 0) ||
             (op2->type == VALUE_TYPE_FLOAT && op2->value.float_type == 0))
     {
-        Read_state_set_error(state, "Modulo by zero");
+        Streader_set_error(sr, "Modulo by zero");
         return false;
     }
 
@@ -1378,20 +1370,20 @@ static bool op_mod(Value* op1, Value* op2, Value* res, Read_state* state)
 }
 
 
-static bool op_pow(Value* op1, Value* op2, Value* res, Read_state* state)
+static bool op_pow(Value* op1, Value* op2, Value* res, Streader* sr)
 {
     assert(op1 != NULL);
     assert(op2 != NULL);
     assert(res != NULL);
-    assert(state != NULL);
+    assert(sr != NULL);
 
-    if (state->error)
+    if (Streader_is_error_set(sr))
         return false;
 
     if (op1->type <= VALUE_TYPE_BOOL || op2->type <= VALUE_TYPE_BOOL ||
             op1->type >= VALUE_TYPE_STRING || op2->type >= VALUE_TYPE_STRING)
     {
-        Read_state_set_error(state, "Power with non-numbers");
+        Streader_set_error(sr, "Power with non-numbers");
         return false;
     }
 
@@ -1436,14 +1428,14 @@ static bool func_ts(
         Value* args,
         Value* res,
         Random* rand,
-        Read_state* state)
+        Streader* sr)
 {
     assert(args != NULL);
     assert(res != NULL);
     (void)rand;
-    assert(state != NULL);
+    assert(sr != NULL);
 
-    if (state->error)
+    if (Streader_is_error_set(sr))
         return false;
 
     res->type = VALUE_TYPE_TSTAMP;
@@ -1472,7 +1464,7 @@ static bool func_ts(
     else
     {
         res->type = VALUE_TYPE_NONE;
-        Read_state_set_error(state, "Invalid beat type");
+        Streader_set_error(sr, "Invalid beat type");
         return false;
     }
 
@@ -1486,7 +1478,7 @@ static bool func_ts(
                 args[1].value.int_type >= KQT_TSTAMP_BEAT)
         {
             res->type = VALUE_TYPE_NONE;
-            Read_state_set_error(state, "Invalid beat value");
+            Streader_set_error(sr, "Invalid beat value");
             return false;
         }
         Tstamp_add(
@@ -1499,7 +1491,7 @@ static bool func_ts(
                 args[1].value.float_type >= KQT_TSTAMP_BEAT)
         {
             res->type = VALUE_TYPE_NONE;
-            Read_state_set_error(state, "Invalid beat value");
+            Streader_set_error(sr, "Invalid beat value");
             return false;
         }
         Tstamp_add(
@@ -1509,7 +1501,7 @@ static bool func_ts(
     else
     {
         res->type = VALUE_TYPE_NONE;
-        Read_state_set_error(state, "Invalid remainder type");
+        Streader_set_error(sr, "Invalid remainder type");
         return false;
     }
 
@@ -1521,14 +1513,14 @@ static bool func_rand(
         Value* args,
         Value* res,
         Random* rand,
-        Read_state* state)
+        Streader* sr)
 {
     assert(args != NULL);
     assert(res != NULL);
     assert(rand != NULL);
-    assert(state != NULL);
+    assert(sr != NULL);
 
-    if (state->error)
+    if (Streader_is_error_set(sr))
         return false;
 
     res->type = VALUE_TYPE_FLOAT;
@@ -1549,7 +1541,7 @@ static bool func_rand(
     else
     {
         res->type = VALUE_TYPE_NONE;
-        Read_state_set_error(state, "Invalid argument");
+        Streader_set_error(sr, "Invalid argument");
         return false;
     }
 
@@ -1561,14 +1553,14 @@ static bool func_pat(
         Value* args,
         Value* res,
         Random* rand,
-        Read_state* state)
+        Streader* sr)
 {
     assert(args != NULL);
     assert(res != NULL);
     (void)rand;
-    assert(state != NULL);
+    assert(sr != NULL);
 
-    if (state->error)
+    if (Streader_is_error_set(sr))
         return false;
 
     res->type = VALUE_TYPE_PAT_INST_REF;
@@ -1590,7 +1582,7 @@ static bool func_pat(
                 args[0].value.int_type >= KQT_PATTERNS_MAX)
         {
             res->type = VALUE_TYPE_NONE;
-            Read_state_set_error(state, "Invalid pattern number");
+            Streader_set_error(sr, "Invalid pattern number");
             return false;
         }
         res->value.Pat_inst_ref_type.pat = args[0].value.int_type;
@@ -1598,7 +1590,7 @@ static bool func_pat(
     else
     {
         res->type = VALUE_TYPE_NONE;
-        Read_state_set_error(state, "Invalid pattern value type");
+        Streader_set_error(sr, "Invalid pattern value type");
         return false;
     }
 
@@ -1613,7 +1605,7 @@ static bool func_pat(
                 args[1].value.int_type >= KQT_PAT_INSTANCES_MAX)
         {
             res->type = VALUE_TYPE_NONE;
-            Read_state_set_error(state, "Invalid pattern instance value");
+            Streader_set_error(sr, "Invalid pattern instance value");
             return false;
         }
         res->value.Pat_inst_ref_type.inst = args[1].value.int_type;
@@ -1621,7 +1613,7 @@ static bool func_pat(
     else
     {
         res->type = VALUE_TYPE_NONE;
-        Read_state_set_error(state, "Invalid pattern instance value type");
+        Streader_set_error(sr, "Invalid pattern instance value type");
         return false;
     }
 

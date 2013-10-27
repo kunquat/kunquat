@@ -30,7 +30,7 @@ Kunquat player API
 .br
 .BI "long long kqt_Handle_get_position(kqt_Handle " handle );
 
-.BI "int kqt_Handle_fire_event(kqt_Handle " handle ", int " channel ", char* " event );
+.BI "int kqt_Handle_fire_event(kqt_Handle " handle ", int " channel ", const char* " event );
 .br
 .BI "const char* kqt_Handle_get_events(kqt_Handle " handle );
 
@@ -128,7 +128,7 @@ if \fIhandle\fR is invalid.
 
 .SH "EVENTS"
 
-.IP "\fBint kqt_Handle_fire_event(kqt_Handle\fR \fIhandle\fR\fB, int\fR \fIchannel\fR\fB, char*\fR \fIevent\fR\fB);\fR"
+.IP "\fBint kqt_Handle_fire_event(kqt_Handle\fR \fIhandle\fR\fB, int\fR \fIchannel\fR\fB, const char*\fR \fIevent\fR\fB);\fR"
 Fires an event in the composition. The event takes place in \fIchannel\fR (0
 to 63 inclusive). \fIevent\fR is the event description in JSON format. The
 description is a pair (list with two elements) with the event name as the

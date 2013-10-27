@@ -244,7 +244,7 @@ long long kqt_Handle_get_position(kqt_Handle handle);
  *
  * \return   \c 1 if the event was successfully fired, otherwise \c 0.
  */
-int kqt_Handle_fire_event(kqt_Handle handle, int channel, char* event);
+int kqt_Handle_fire_event(kqt_Handle handle, int channel, const char* event);
 
 
 /**
