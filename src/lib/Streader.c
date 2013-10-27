@@ -881,6 +881,19 @@ bool Streader_readf(Streader* sr, const char* format, ...)
 
             switch (*format)
             {
+                case 'n':
+                {
+                    Streader_read_null(sr);
+                }
+                break;
+
+                case 'b':
+                {
+                    bool* dest = va_arg(args, bool*);
+                    Streader_read_bool(sr, dest);
+                }
+                break;
+
                 case 'i':
                 {
                     int64_t* dest = va_arg(args, int64_t*);

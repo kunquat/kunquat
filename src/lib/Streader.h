@@ -291,6 +291,8 @@ bool Streader_read_dict(Streader* sr, Dict_item_reader ir, void* userdata);
  * that specify JSON data to be read. Conversion characters are prefixed by a
  * '%' character. Supported conversions are:
  *
+ *  - n -- Read a null value.
+ *  - b -- Read a boolean value and store it into a bool.
  *  - i -- Read an integer value and store it into an int64_t.
  *  - f -- Read a decimal number and store it into a double.
  *  - s -- Read a string of given maximum length (including null byte) given
