@@ -18,7 +18,6 @@
 #include <string.h>
 
 #include <File_wavpack.h>
-#include <Handle_private.h>
 #include <math_common.h>
 #include <memory.h>
 #include <Sample.h>
