@@ -1033,6 +1033,97 @@ START_TEST(Callback_failure_interrupts_dict_reading)
 END_TEST
 
 
+static bool readf_list(Streader* sr, int32_t index, void* userdata)
+{
+    (void)index;
+
+    if (userdata == NULL)
+        return false;
+
+    int* dest = userdata;
+    int64_t result = 0;
+
+    if (!Streader_read_int(sr, &result))
+        return false;
+
+    *dest = result;
+
+    return true;
+}
+
+static bool readf_dict(Streader* sr, const char* key, void* userdata)
+{
+    if (userdata == NULL)
+        return false;
+
+    if (strcmp(key, "ten") != 0)
+        return false;
+
+    int* dest = userdata;
+    int64_t result = 0;
+
+    if (!Streader_read_int(sr, &result))
+        return false;
+
+    *dest = result;
+
+    return true;
+}
+
+START_TEST(Read_formatted_input)
+{
+    static const char* data =
+        "[null, true] - \"abcde\": [4,6][7,8] -- [9] 2 { \"ten\": 10 } 3.5";
+
+    Streader* sr = init_with_cstr(data);
+    bool b = false;
+    char s[10] = "";
+    Tstamp* ts = TSTAMP_AUTO;
+    Pat_inst_ref* piref = PAT_INST_REF_AUTO;
+    int list_userdata = 0;
+    int64_t i = 0;
+    int dict_userdata = 0;
+    double f = 0.0;
+
+    Streader_readf(
+            sr,
+            "[%n,%b] -%s :%t%p--%l%i %d %f",
+            &b, 4, s, ts, piref,
+            readf_list, &list_userdata,
+            &i,
+            readf_dict, &dict_userdata,
+            &f);
+
+    fail_if(Streader_is_error_set(sr),
+            "Could not read formatted input: %s",
+            Streader_get_error_desc(sr));
+    fail_if(b != true,
+            "Formatted reader did not store a boolean value correctly");
+    fail_if(strcmp(s, "abc") != 0,
+            "Formatted reader stored `%s` instead of `%s`",
+            s, "abc");
+    fail_if(Tstamp_cmp(ts, Tstamp_set(TSTAMP_AUTO, 4, 6)) != 0,
+            "Formatted reader stored " PRIts " instead of " PRIts,
+            PRIVALts(*ts), PRIVALts(*Tstamp_set(TSTAMP_AUTO, 4, 6)));
+    fail_if(Pat_inst_ref_cmp(piref, &(Pat_inst_ref){ 7, 8 }) != 0,
+            "Formatted reader stored " PRIpi " instead of (7, 8)",
+            PRIVALpi(*piref));
+    fail_if(list_userdata != 9,
+            "Formatted reader stored list value %d instead of 9",
+            list_userdata);
+    fail_if(i != 2,
+            "Formatted reader stored integer %" PRId64 " instead of 2",
+            i);
+    fail_if(dict_userdata != 10,
+            "Formatted reader stored dict value %d instead of 10",
+            dict_userdata);
+    fail_if(f != 3.5,
+            "Formatted reader stored floating-point value %f instead of 3.5",
+            f);
+}
+END_TEST
+
+
 Suite* Streader_suite(void)
 {
     Suite* s = suite_create("Streader");
@@ -1056,7 +1147,7 @@ Suite* Streader_suite(void)
     BUILD_TCASE(read_piref);
     BUILD_TCASE(read_list);
     BUILD_TCASE(read_dict);
-    //BUILD_TCASE(read_format);
+    BUILD_TCASE(read_format);
 
 #undef BUILD_TCASE
 
@@ -1102,6 +1193,8 @@ Suite* Streader_suite(void)
     tcase_add_test(tc_read_dict, Read_dict_of_numbers);
     tcase_add_test(tc_read_dict, Callback_must_be_specified_for_nonempty_dicts);
     tcase_add_test(tc_read_dict, Callback_failure_interrupts_dict_reading);
+
+    tcase_add_test(tc_read_format, Read_formatted_input);
 
     return s;
 }
