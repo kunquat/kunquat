@@ -193,7 +193,7 @@ class BaseHandle(object):
         """
         _kunquat.kqt_Handle_fire_event(self._handle, channel, json.dumps(event))
 
-    def get_events(self):
+    def receive_events(self):
         """Receive outgoing events.
 
         Return value:
@@ -201,8 +201,12 @@ class BaseHandle(object):
         the last call of receive.
 
         """
-        el = str(_kunquat.kqt_Handle_get_events(self._handle))
-        return json.loads(el) if el else []
+        all_events = []
+        el = json.loads(str(_kunquat.kqt_Handle_get_events(self._handle)))
+        while el:
+            all_events += el
+            el = json.loads(str(_kunquat.kqt_Handle_get_events(self._handle)))
+        return all_events
 
 
 class Kunquat(BaseHandle):

@@ -721,7 +721,7 @@ START_TEST(Events_appear_in_event_buffer)
     setup_debug_instrument();
     setup_debug_single_pulse();
 
-    const char* actual_events = kqt_Handle_get_events(handle);
+    const char* actual_events = kqt_Handle_receive_events(handle);
     check_unexpected_error();
     const char expected_events_none[] = "[]";
 
@@ -732,7 +732,7 @@ START_TEST(Events_appear_in_event_buffer)
     kqt_Handle_fire_event(handle, 0, "[\"Ipause\", null]");
     check_unexpected_error();
 
-    actual_events = kqt_Handle_get_events(handle);
+    actual_events = kqt_Handle_receive_events(handle);
     check_unexpected_error();
     const char expected_events_1[] =
         "[[0, [\"Ipause\", null]]]";
@@ -744,7 +744,7 @@ START_TEST(Events_appear_in_event_buffer)
     kqt_Handle_fire_event(handle, 2, "[\".arpi\", 0]");
     check_unexpected_error();
 
-    actual_events = kqt_Handle_get_events(handle);
+    actual_events = kqt_Handle_receive_events(handle);
     check_unexpected_error();
     const char expected_events_2[] =
         "[[2, [\".arpi\", 0]]]";

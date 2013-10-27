@@ -134,9 +134,9 @@ class Backend():
 
     def set_active_note(self, channel_number, instrument_number, pitch):
         instrument_event = (EVENT_SELECT_INSTRUMENT, instrument_number)
-        self._kunquat.fire(channel_number, instrument_event)
+        self._kunquat.fire_event(channel_number, instrument_event)
         note_on_event = (EVENT_NOTE_ON, pitch)
-        self._kunquat.fire(channel_number, note_on_event)
+        self._kunquat.fire_event(channel_number, note_on_event)
 
     def _process_event(self, channel_number, event_type, event_value):
         if event_type == EVENT_SELECT_INSTRUMENT:
@@ -159,7 +159,7 @@ class Backend():
         #audio_data = (data_mono, data_mono)
         self._kunquat.play(nframes)
         audio_data = self._kunquat.get_audio()
-        event_data = self._kunquat.get_events()
+        event_data = self._kunquat.receive_events()
         self._process_events(event_data)
         (l,r) = audio_data
         if len(l) < 1:

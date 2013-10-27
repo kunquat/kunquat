@@ -248,7 +248,10 @@ int kqt_Handle_fire_event(kqt_Handle handle, int channel, const char* event);
 
 
 /**
- * Gets a JSON list of events.
+ * Returns a JSON list of events.
+ *
+ * The returned list of events is not necessarily exhaustive; subsequent
+ * calls may return more events.
  *
  * \param handle   The Handle -- should be valid.
  *
@@ -256,7 +259,7 @@ int kqt_Handle_fire_event(kqt_Handle handle, int channel, const char* event);
  *           occurred. An empty list indicates that all events have been
  *           returned.
  */
-const char* kqt_Handle_get_events(kqt_Handle handle);
+const char* kqt_Handle_receive_events(kqt_Handle handle);
 
 
 /* \} */

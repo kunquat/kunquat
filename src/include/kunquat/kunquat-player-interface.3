@@ -1,4 +1,4 @@
-.TH kunquat\-player\-interface 3 "2013\-10\-26" "" "Kunquat"
+.TH kunquat\-player\-interface 3 "2013\-10\-27" "" "Kunquat"
 
 .SH NAME
 Kunquat player API
@@ -32,7 +32,7 @@ Kunquat player API
 
 .BI "int kqt_Handle_fire_event(kqt_Handle " handle ", int " channel ", const char* " event );
 .br
-.BI "const char* kqt_Handle_get_events(kqt_Handle " handle );
+.BI "const char* kqt_Handle_receive_events(kqt_Handle " handle );
 
 .SH "PLAYING AUDIO"
 
@@ -135,7 +135,7 @@ description is a pair (list with two elements) with the event name as the
 first element and its argument expression as the second element. The function
 returns 1 if the event was successfully fired, otherwise 0.
 
-.IP "\fBconst char* kqt_Handle_get_events(kqt_Handle\fR \fIhandle\fR\fB);\fR"
+.IP "\fBconst char* kqt_Handle_receive_events(kqt_Handle\fR \fIhandle\fR\fB);\fR"
 Returns a JSON list of events fired during the last call of
 \fBkqt_Handle_play\fR. The list is not necessarily exhaustive; subsequent
 calls may return more events. An empty list indicates that all events have

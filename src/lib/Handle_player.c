@@ -300,7 +300,7 @@ int kqt_Handle_fire_event(kqt_Handle handle, int channel, const char* event)
 }
 
 
-const char* kqt_Handle_get_events(kqt_Handle handle)
+const char* kqt_Handle_receive_events(kqt_Handle handle)
 {
     check_handle(handle, 0);
 
