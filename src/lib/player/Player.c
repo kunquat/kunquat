@@ -131,6 +131,7 @@ Player* new_Player(
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
     {
         player->channels[i] = new_Channel(
+                player->module,
                 i,
                 Module_get_insts(player->module),
                 player->estate,

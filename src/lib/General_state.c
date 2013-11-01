@@ -25,6 +25,7 @@ General_state* General_state_preinit(General_state* state)
 
     state->estate = NULL;
     state->active_names = NULL;
+    state->module = NULL;
 
     return state;
 }
@@ -33,17 +34,21 @@ General_state* General_state_preinit(General_state* state)
 General_state* General_state_init(
         General_state* state,
         bool global,
-        Env_state* estate)
+        Env_state* estate,
+        const Module* module)
 {
     assert(state != NULL);
     assert(state->active_names == NULL);
     assert(estate != NULL);
+    assert(module != NULL);
 
     state->global = global;
     state->estate = estate;
     state->active_names = new_Active_names();
     if (state->active_names == NULL)
         return NULL;
+
+    state->module = module;
 
     General_state_reset(state);
 

@@ -78,9 +78,6 @@ typedef struct Master_params
     Active_jumps* active_jumps;
     Jump_cache*   jump_cache;
 
-    // Resources
-    const Module* module;
-
     // Statistics
     int16_t active_voices;
 } Master_params;

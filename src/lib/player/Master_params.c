@@ -66,7 +66,6 @@ Master_params* Master_params_preinit(Master_params* params)
     assert(params != NULL);
 
     General_state_preinit(&params->parent);
-    params->module = NULL;
 
     params->active_jumps = NULL;
     params->jump_cache = NULL;
@@ -87,10 +86,8 @@ Master_params* Master_params_init(
     // Sanitise fields
     params->playback_id = 1;
 
-    params->module = module;
-
     // Init fields
-    if (General_state_init(&params->parent, true, estate) == NULL)
+    if (General_state_init(&params->parent, true, estate, module) == NULL)
     {
         Master_params_deinit(params);
         return NULL;
@@ -114,13 +111,13 @@ void Master_params_set_starting_tempo(Master_params* params)
 {
     assert(params != NULL);
 
-    const Track_list* tl = Module_get_track_list(params->module);
+    const Track_list* tl = Module_get_track_list(params->parent.module);
     if (tl != NULL && params->cur_pos.track < (int16_t)Track_list_get_len(tl))
     {
         const int16_t cur_song = Track_list_get_song_index(
                 tl,
                 params->cur_pos.track);
-        Song_table* song_table = Module_get_songs(params->module);
+        Song_table* song_table = Module_get_songs(params->parent.module);
         Song* song = Song_table_get(song_table, cur_song);
 
         if (song != NULL)

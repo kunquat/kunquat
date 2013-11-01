@@ -24,7 +24,44 @@
 #include <xassert.h>
 
 
+static bool Channel_init(
+        Channel* ch,
+        int num,
+        Env_state* estate,
+        const Module* module)
+{
+    assert(ch != NULL);
+    assert(num >= 0);
+    assert(num < KQT_COLUMNS_MAX);
+    assert(estate != NULL);
+    assert(module != NULL);
+
+    General_state_preinit(&ch->parent);
+
+    ch->cgstate = new_Channel_gen_state();
+    ch->rand = new_Random();
+    if (ch->cgstate == NULL || ch->rand == NULL ||
+            !General_state_init(&ch->parent, false, estate, module))
+    {
+        del_Channel_gen_state(ch->cgstate);
+        del_Random(ch->rand);
+        return false;
+    }
+
+    char context[] = "chXX";
+    snprintf(context, strlen(context) + 1, "ch%02x", num);
+    Random_set_context(ch->rand, context);
+    ch->event_cache = NULL;
+    ch->num = num;
+
+    Channel_reset(ch);
+
+    return true;
+}
+
+
 Channel* new_Channel(
+        const Module* module,
         int num,
         Ins_table* insts,
         Env_state* estate,
@@ -44,7 +81,7 @@ Channel* new_Channel(
     if (ch == NULL)
         return NULL;
 
-    if (!Channel_init(ch, num, estate))
+    if (!Channel_init(ch, num, estate, module))
     {
         memory_free(ch);
         return NULL;
@@ -56,37 +93,6 @@ Channel* new_Channel(
     ch->freq = audio_rate;
 
     return ch;
-}
-
-
-bool Channel_init(Channel* ch, int num, Env_state* estate)
-{
-    assert(ch != NULL);
-    assert(num >= 0);
-    assert(num < KQT_COLUMNS_MAX);
-    assert(estate != NULL);
-
-    General_state_preinit(&ch->parent);
-
-    ch->cgstate = new_Channel_gen_state();
-    ch->rand = new_Random();
-    if (ch->cgstate == NULL || ch->rand == NULL ||
-            !General_state_init(&ch->parent, false, estate))
-    {
-        del_Channel_gen_state(ch->cgstate);
-        del_Random(ch->rand);
-        return false;
-    }
-
-    char context[] = "chXX";
-    snprintf(context, strlen(context) + 1, "ch%02x", num);
-    Random_set_context(ch->rand, context);
-    ch->event_cache = NULL;
-    ch->num = num;
-
-    Channel_reset(ch);
-
-    return true;
 }
 
 
