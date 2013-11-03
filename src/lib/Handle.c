@@ -34,7 +34,7 @@
 static Handle* handles[KQT_HANDLES_MAX] = { NULL };
 
 // For errors without an associated Kunquat Handle.
-static Error null_error = { "" };
+static Error null_error = { "", ERROR_COUNT_ };
 
 
 static bool remove_handle(kqt_Handle handle);
@@ -442,6 +442,32 @@ void Handle_set_error_(
         else
             assert(false);
     }
+
+    return;
+}
+
+
+void Handle_set_error_from_Error(Handle* handle, const Error* error)
+{
+    assert(error != NULL);
+    assert(Error_is_set(error));
+
+    Error_copy(&null_error, error);
+
+    if (handle != NULL)
+        Error_copy(&handle->error, error);
+
+    return;
+}
+
+
+void Handle_set_validation_error_from_Error(Handle* handle, const Error* error)
+{
+    assert(handle != NULL);
+    assert(error != NULL);
+    assert(Error_get_type(error) == ERROR_FORMAT);
+
+    Error_copy(&handle->validation_error, error);
 
     return;
 }

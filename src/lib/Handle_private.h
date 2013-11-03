@@ -94,6 +94,26 @@ void Handle_set_error_(
 
 
 /**
+ * Copies an error to a Kunquat Handle.
+ *
+ * \param handle   The Kunquat Handle, or \c NULL if not applicable.
+ * \param error    The Error -- must not be \c NULL and
+ *                 must have an error set.
+ */
+void Handle_set_error_from_Error(Handle* handle, const Error* error);
+
+
+/**
+ * Copies a validation error to a Kunquat Handle.
+ *
+ * \param handle   The Kunquat Handle -- must not be \c NULL.
+ * \param error    The Error -- must not be \c NULL and
+ *                 must have an error set.
+ */
+void Handle_set_validation_error_from_Error(Handle* handle, const Error* error);
+
+
+/**
  * Resets the playback pointer of the Kunquat Handle.
  *
  * \param handle   The Kunquat Handle -- must not be \c NULL.
