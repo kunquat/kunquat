@@ -19,10 +19,29 @@
 #include <xassert.h>
 
 
+static const char* error_codes[ERROR_COUNT_] =
+{
+    [ERROR_ARGUMENT] = "ArgumentError",
+    [ERROR_FORMAT] = "FormatError",
+    [ERROR_MEMORY] = "MemoryError",
+    [ERROR_RESOURCE] = "ResourceError",
+};
+
+
 bool Error_is_set(const Error* error)
 {
     assert(error != NULL);
     return error->desc[0] != '\0';
+}
+
+
+Error_type Error_get_type(const Error* error)
+{
+    assert(error != NULL);
+    assert(Error_is_set(error));
+    assert(error->type < ERROR_COUNT_);
+
+    return error->type;
 }
 
 
@@ -86,14 +105,6 @@ void Error_set_desc_va_list(
     assert(func != NULL);
     assert(message != NULL);
 
-    static const char* error_codes[ERROR_COUNT_] =
-    {
-        [ERROR_ARGUMENT] = "ArgumentError",
-        [ERROR_FORMAT] = "FormatError",
-        [ERROR_MEMORY] = "MemoryError",
-        [ERROR_RESOURCE] = "ResourceError",
-    };
-
     memset(error->desc, 0, ERROR_LENGTH_MAX);
 
     strcpy(error->desc, "{ \"type\": \"");
@@ -154,6 +165,8 @@ void Error_set_desc_va_list(
 
     strcat(error->desc, "\" }");
     error->desc[ERROR_LENGTH_MAX - 1] = '\0';
+
+    error->type = type;
 
     return;
 }

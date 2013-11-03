@@ -131,7 +131,7 @@ void Channel_reset(Channel* ch)
     }
     ch->fg_count = 0;
 
-    ch->instrument = 0;
+    ch->ins_input = 0;
     ch->generator = 0;
     ch->effect = 0;
     ch->inst_effects = false;

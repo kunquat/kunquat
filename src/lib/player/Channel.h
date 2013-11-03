@@ -48,7 +48,7 @@ typedef struct Channel
     uint64_t fg_id[KQT_GENERATORS_MAX]; ///< Voice reservation IDs.
     int fg_count;
 
-    int instrument;                ///< Currently active Instrument.
+    int32_t ins_input;             ///< Currently active Instrument input.
     int generator;                 ///< Currently active Generator.
     int effect;                    ///< Currently active Effect.
     bool inst_effects;             ///< Instrument effect control enabled.

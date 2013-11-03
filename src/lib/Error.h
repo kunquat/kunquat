@@ -40,10 +40,11 @@ typedef enum
 typedef struct Error
 {
     char desc[ERROR_LENGTH_MAX];
+    Error_type type;
 } Error;
 
 
-#define ERROR_AUTO (&(Error){ .desc = "" })
+#define ERROR_AUTO (&(Error){ .desc = "", .type = ERROR_COUNT_ })
 
 
 /**
@@ -54,6 +55,16 @@ typedef struct Error
  * \return   \c true if an error is set, otherwise \c false.
  */
 bool Error_is_set(const Error* error);
+
+
+/**
+ * Gets the type of the error set.
+ *
+ * \param error   The Error -- must not be \c NULL and must have an error set.
+ *
+ * \return   The error type.
+ */
+Error_type Error_get_type(const Error* error);
 
 
 /**
