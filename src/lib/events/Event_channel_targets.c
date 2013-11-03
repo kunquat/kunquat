@@ -23,7 +23,7 @@
 #include <xassert.h>
 
 
-bool Event_channel_set_instrument_process(
+bool Event_channel_set_ins_input_process(
         Channel* ch,
         Device_states* dstates,
         Value* value)
@@ -34,7 +34,7 @@ bool Event_channel_set_instrument_process(
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_INT);
 
-    ch->instrument = value->value.int_type;
+    ch->ins_input = value->value.int_type;
 
     return true;
 }

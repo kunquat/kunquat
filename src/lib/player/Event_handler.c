@@ -299,9 +299,10 @@ static bool Event_handler_handle(
     }
     else if (Event_is_ins(type))
     {
-        Instrument* ins = Ins_table_get(
-                eh->insts,
-                eh->channels[index]->instrument);
+        // Find our instrument
+        Instrument* ins = Module_get_ins_from_input(
+                eh->master_params->parent.module,
+                eh->channels[index]->ins_input);
         if (ins == NULL)
             return false;
 
@@ -322,9 +323,10 @@ static bool Event_handler_handle(
     }
     else if (Event_is_generator(type))
     {
-        Instrument* ins = Ins_table_get(
-                eh->insts,
-                eh->channels[index]->instrument);
+        // Find our instrument
+        Instrument* ins = Module_get_ins_from_input(
+                eh->master_params->parent.module,
+                eh->channels[index]->ins_input);
         if (ins == NULL)
             return false;
 
@@ -352,9 +354,10 @@ static bool Event_handler_handle(
             if (eh->channels[index]->effect >= KQT_INST_EFFECTS_MAX)
                 return false;
 
-            Instrument* ins = Ins_table_get(
-                    eh->insts,
-                    eh->channels[index]->instrument);
+            // Find our instrument
+            Instrument* ins = Module_get_ins_from_input(
+                    eh->master_params->parent.module,
+                    eh->channels[index]->ins_input);
             if (ins == NULL)
                 return false;
 
@@ -384,9 +387,10 @@ static bool Event_handler_handle(
             if (eh->channels[index]->effect >= KQT_INST_EFFECTS_MAX)
                 return false;
 
-            Instrument* ins = Ins_table_get(
-                    eh->insts,
-                    eh->channels[index]->instrument);
+            // Find our instrument
+            Instrument* ins = Module_get_ins_from_input(
+                    eh->master_params->parent.module,
+                    eh->channels[index]->ins_input);
             if (ins == NULL)
                 return false;
 

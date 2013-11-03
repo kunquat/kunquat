@@ -102,7 +102,7 @@ static Name_info event_specs[] =
     { "m/v",   Event_master_slide_volume,     VALUE_TYPE_FLOAT,  v_volume },
     { "m/=v",  Event_master_slide_volume_length, VALUE_TYPE_TSTAMP, v_nonneg_ts },
 
-    { ".i",   Event_channel_set_instrument,  VALUE_TYPE_INT,     v_ins },
+    { ".i",   Event_channel_set_ins_input,   VALUE_TYPE_INT,     v_ins },
     { ".g",   Event_channel_set_generator,   VALUE_TYPE_INT,     v_gen },
     { ".e",   Event_channel_set_effect,      VALUE_TYPE_INT,     v_effect },
     { ".ge",  Event_channel_set_global_effects, VALUE_TYPE_NONE, NULL },

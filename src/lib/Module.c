@@ -87,6 +87,7 @@ Module* new_Module()
     // Clear fields
     module->songs = NULL;
     module->pats = NULL;
+    module->ins_map = NULL;
     module->insts = NULL;
     module->effects = NULL;
     module->connections = NULL;
@@ -389,6 +390,46 @@ Pat_table* Module_get_pats(Module* module)
 }
 
 
+Instrument* Module_get_ins_from_input(const Module* module, int32_t input)
+{
+    assert(module != NULL);
+    assert(input >= 0);
+
+    if (module->ins_map == NULL)
+        return NULL;
+
+    int32_t ins_index = Input_map_get_device_index(module->ins_map, input);
+    if (ins_index < 0)
+        return NULL;
+
+    assert(ins_index < KQT_INSTRUMENTS_MAX);
+    return Ins_table_get(module->insts, ins_index);
+}
+
+
+bool Module_set_ins_map(Module* module, Streader* sr)
+{
+    assert(module != NULL);
+    assert(sr != NULL);
+
+    Input_map* im = new_Input_map(sr, INT32_MAX, KQT_INSTRUMENTS_MAX);
+    if (im == NULL)
+        return false;
+
+    del_Input_map(module->ins_map);
+    module->ins_map = im;
+
+    return true;
+}
+
+
+Input_map* Module_get_ins_map(const Module* module)
+{
+    assert(module != NULL);
+    return module->ins_map;
+}
+
+
 Ins_table* Module_get_insts(const Module* module)
 {
     assert(module != NULL);
@@ -620,6 +661,7 @@ void del_Module(Module* module)
     del_Pat_table(module->pats);
     del_Connections(module->connections);
     del_Ins_table(module->insts);
+    del_Input_map(module->ins_map);
     del_Effect_table(module->effects);
     del_Track_list(module->track_list);
 

@@ -17,7 +17,7 @@
 #endif
 
 
-EVENT_TYPE_DEF(set_instrument)
+EVENT_TYPE_DEF(set_ins_input)
 EVENT_TYPE_DEF(set_generator)
 EVENT_TYPE_DEF(set_effect)
 EVENT_TYPE_DEF(set_global_effects)

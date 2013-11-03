@@ -132,6 +132,15 @@ static bool key_is_for_text(const char* key);
     (Handle_set_validation_error((handle), ERROR_FORMAT, "Parse error in" \
             " %s:%d: %s", (state)->path, (state)->row, (state)->message))
 
+#define set_error(handle, sr)                                               \
+    if (true)                                                               \
+    {                                                                       \
+        if (Error_get_type(&(sr)->error) == ERROR_FORMAT)                   \
+            Handle_set_validation_error_from_Error((handle), &(sr)->error); \
+        else                                                                \
+            Handle_set_error_from_Error((handle), &(sr)->error);            \
+    } else (void)0
+
 
 static bool key_is_for_text(const char* key)
 {
@@ -384,6 +393,15 @@ static bool parse_module_level(Handle* handle,
             return false;
         //fprintf(stderr, "line: %d\n", __LINE__);
         //Connections_print(graph, stderr);
+    }
+    else if (string_eq(key, "p_ins_input.json"))
+    {
+        Streader* sr = Streader_init(STREADER_AUTO, data, length);
+        if (!Module_set_ins_map(module, sr))
+        {
+            set_error(handle, sr);
+            return false;
+        }
     }
     else if (string_eq(key, "p_random_seed.json"))
     {
