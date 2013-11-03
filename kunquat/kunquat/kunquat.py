@@ -202,10 +202,10 @@ class BaseHandle(object):
 
         """
         all_events = []
-        el = json.loads(str(_kunquat.kqt_Handle_get_events(self._handle)))
+        el = json.loads(str(_kunquat.kqt_Handle_receive_events(self._handle)))
         while el:
             all_events += el
-            el = json.loads(str(_kunquat.kqt_Handle_get_events(self._handle)))
+            el = json.loads(str(_kunquat.kqt_Handle_receive_events(self._handle)))
         return all_events
 
 
@@ -446,9 +446,9 @@ _kunquat.kqt_Handle_fire_event.argtypes = [kqt_Handle,
 _kunquat.kqt_Handle_fire_event.restype = ctypes.c_int
 _kunquat.kqt_Handle_fire_event.errcheck = _error_check
 
-_kunquat.kqt_Handle_get_events.argtypes = [kqt_Handle]
-_kunquat.kqt_Handle_get_events.restype = ctypes.c_char_p
-_kunquat.kqt_Handle_get_events.errcheck = _error_check
+_kunquat.kqt_Handle_receive_events.argtypes = [kqt_Handle]
+_kunquat.kqt_Handle_receive_events.restype = ctypes.c_char_p
+_kunquat.kqt_Handle_receive_events.errcheck = _error_check
 
 _kunquat.kqt_fake_out_of_memory.argtypes = [ctypes.c_long]
 _kunquat.kqt_fake_out_of_memory.restype = None
