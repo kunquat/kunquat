@@ -25,10 +25,10 @@ class InstrumentSelect(QComboBox):
         QObject.connect(self, SIGNAL("currentIndexChanged(int)"), self._select_instrument)
 
     def set_ui_model(self, ui_model):
+        updater = ui_model.get_updater()
+        updater.register_updater(self.perform_updates)
         self._ui_manager = ui_model.get_ui_manager()
-        self._ui_manager.register_updater(self.update_instruments)
         self._module = ui_model.get_module()
-        self._module.register_updater(self.update_instruments)
 
     def _select_instrument(self, i):
         if i < 0:
@@ -52,7 +52,6 @@ class InstrumentSelect(QComboBox):
         self._instrument_catalog = dict(enumerate(instruments))
         invalid_selection = True
         for i, instrument in self._instrument_catalog.items():
-            instrument.register_updater(self.update_texts)
             instrument_number = instrument.get_instrument_number()
             self.addItem('')
             if selected:
@@ -65,4 +64,8 @@ class InstrumentSelect(QComboBox):
         self.blockSignals(old_block)
         if invalid_selection and len(instruments) > 0:
             self._ui_manager.set_selected_instrument(instruments[0])
+
+    def perform_updates(self, signals):
+        self.update_instruments()
+        self.update_texts()
 

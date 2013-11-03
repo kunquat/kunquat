@@ -124,8 +124,9 @@ class PeakMeter(QWidget):
                 fg_grad)
 
     def set_ui_model(self, ui_model):
+        updater = ui_model.get_updater()
+        updater.register_updater(self.perform_updates)
         self._stat_manager = ui_model.get_stat_manager()
-        self._stat_manager.register_updater(self.update_levels)
 
     def update_levels(self):
         levels = self._stat_manager.get_audio_levels()
@@ -218,4 +219,6 @@ class PeakMeter(QWidget):
                 self._config['clip_width'] * 4,
                 self._config['thickness'] * 2 + self._config['padding'])
 
+    def perform_updates(self, signals):
+        self.update_levels()
 

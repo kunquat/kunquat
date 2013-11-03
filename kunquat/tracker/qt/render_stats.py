@@ -33,10 +33,9 @@ class RenderStats(QWidget):
         self.setLayout(v)
 
     def set_ui_model(self, ui_model):
+        updater = ui_model.get_updater()
+        updater.register_updater(self.perform_updates)
         self._stat_manager = ui_model.get_stat_manager()
-        self._stat_manager.register_updater(self.update_output_speed)
-        self._stat_manager.register_updater(self.update_render_speed)
-        self._stat_manager.register_updater(self.update_render_load)
 
     def update_output_speed(self):
         output_speed = self._stat_manager.get_output_speed()
@@ -53,3 +52,7 @@ class RenderStats(QWidget):
         text = 'render load: {} %'.format(int(render_load * 100))
         self._render_load.setText(text)
 
+    def perform_updates(self, signals):
+        self.update_output_speed()
+        self.update_render_speed()
+        self.update_render_load()

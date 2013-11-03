@@ -62,11 +62,15 @@ class Ui():
                 self._qp)
         self._event_pump.start()
 
+    def _perform_updates(self):
+        updater = self._ui_model.get_updater()
+        updater.perform_updates()
+
     def _start_updater(self):
         QObject.connect(
                 self._update_timer,
                 SIGNAL('timeout()'),
-                self._ui_model.perform_updates)
+                self._perform_updates)
         self._update_timer.start(10)
 
     def halt(self):

@@ -12,10 +12,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from updater import Updater
 
-
-class UiModel(Updater):
+class UiModel():
     """
     >>> ui_model = UiModel()
     >>> project = ui_model.get_project()
@@ -75,12 +73,12 @@ class UiModel(Updater):
     """
 
     def __init__(self):
-        super(UiModel, self).__init__()
         self._driver_manager = None
         self._stat_manager = None
         self._ui_manager = None
         self._playback_manager = None
         self._module = None
+        self._updater = None
 
     def set_backend(self, backend):
         self._backend = backend
@@ -89,23 +87,30 @@ class UiModel(Updater):
     def set_ui(self, ui):
         self._ui = ui
 
+    def set_updater(self, updater):
+        self._updater = updater
+        self._driver_manager.set_updater(self._updater)
+        self._stat_manager.set_updater(self._updater)
+        self._ui_manager.set_updater(self._updater)
+        self._module.set_updater(self._updater)
+
+    def get_updater(self):
+        return self._updater
+
     def set_driver_manager(self, driver_manager):
         self._driver_manager = driver_manager
-        self.register_child(self._driver_manager)
 
     def get_driver_manager(self):
         return self._driver_manager
 
     def set_stat_manager(self, stat_manager):
         self._stat_manager = stat_manager
-        self.register_child(self._stat_manager)
 
     def get_stat_manager(self):
         return self._stat_manager
 
     def set_ui_manager(self, ui_manager):
         self._ui_manager = ui_manager
-        self.register_child(self._ui_manager)
 
     def get_ui_manager(self):
         return self._ui_manager
@@ -118,7 +123,6 @@ class UiModel(Updater):
 
     def set_module(self, module):
         self._module = module
-        self.register_child(self._module)
 
     def get_module(self):
         return self._module
@@ -131,3 +135,4 @@ class UiModel(Updater):
 
     def play(self):
         self._backend.play()
+

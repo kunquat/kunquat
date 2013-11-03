@@ -23,6 +23,7 @@ from kunquat.tracker.frontend.playback_manager import PlaybackManager
 from kunquat.tracker.frontend.instrument import Instrument
 from kunquat.tracker.frontend.module import Module
 from kunquat.tracker.frontend.uimodel import UiModel
+from kunquat.tracker.frontend.updater import Updater
 from kunquat.tracker.audio.audio_output import AudioOutput
 from kunquat.tracker.backend.backend import Backend
 from kunquat.tracker.frontend.frontend import Frontend
@@ -50,6 +51,8 @@ def create_frontend_thread():
     ui_model.set_ui_manager(ui_manager)
     ui_model.set_playback_manager(playback_manager)
     ui_model.set_module(module)
+    updater = Updater()
+    ui_model.set_updater(updater)
     frontend = Frontend()
     frontend.set_ui_model(ui_model)
     frontend.set_instrument_class(Instrument)
