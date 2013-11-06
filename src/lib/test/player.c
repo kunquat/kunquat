@@ -18,9 +18,10 @@
 #include <handle_utils.h>
 #include <test_common.h>
 
+#include <Handle_private.h>
 #include <kunquat/Handle.h>
 #include <player/Player.h>
-#include <Handle_private.h>
+#include <Streader.h>
 
 
 #define buf_len 128
@@ -756,6 +757,97 @@ START_TEST(Events_appear_in_event_buffer)
 END_TEST
 
 
+bool read_received_events(Streader* sr, int32_t index, void* userdata)
+{
+    assert(sr != NULL);
+    (void)index;
+    assert(userdata != NULL);
+
+    int32_t* expected = userdata;
+    double actual = NAN;
+
+    if (!(Streader_readf(sr, "[0, [") &&
+                Streader_match_string(sr, "n+") &&
+                Streader_readf(sr, ", %f]]", &actual))
+       )
+        return false;
+
+    if ((int)round(actual) != *expected)
+    {
+        Streader_set_error(
+                sr,
+                "Received argument %" PRId64 " instead of %" PRId32,
+                actual, *expected);
+        return false;
+    }
+
+    *expected = actual + 1;
+
+    return true;
+}
+
+START_TEST(Many_events_can_be_retrieved_with_multiple_receives)
+{
+    const int event_count = 2048;
+
+    // Set up pattern essentials
+    set_data("album/p_manifest.json", "{}");
+    set_data("album/p_tracks.json", "[0]");
+    set_data("song_00/p_manifest.json", "{}");
+    set_data("song_00/p_order_list.json", "[ [0, 0] ]");
+    set_data("pat_000/p_manifest.json", "{}");
+    set_data("pat_000/p_pattern.json", "{ \"length\": [4, 0] }");
+    set_data("pat_000/instance_000/p_manifest.json", "{}");
+
+    // Add lots of simultaneous triggers
+    char* triggers = malloc(sizeof(char) * 65536);
+    fail_if(triggers == NULL, "Could not allocate memory for triggers");
+
+    char* cur_pos = triggers;
+    cur_pos += sprintf(triggers, "[ [[0, 0], [\"n+\", \"0\"]]");
+    for (int i = 1; i < event_count; ++i)
+    {
+        assert(cur_pos - triggers < 65000);
+        cur_pos += snprintf(cur_pos, 65536 - (cur_pos - triggers),
+                ", [[0, 0], [\"n+\", \"%d\"]]", i);
+    }
+
+    cur_pos += snprintf(cur_pos, 65536 - (cur_pos - triggers), " ]");
+
+    set_data("pat_000/col_00/p_triggers.json", triggers);
+    free(triggers);
+    triggers = NULL;
+
+    validate();
+
+    // Play
+    kqt_Handle_play(handle, 10);
+    const long frames_available = kqt_Handle_get_frames_available(handle);
+    fail_if(frames_available > 0,
+            "Kunquat handle rendered %ld frames of audio"
+            " although event buffer was filled",
+            frames_available);
+
+    // Receive and make sure all events are found
+    const char* events = kqt_Handle_receive_events(handle);
+    int32_t expected = 0;
+    while (strcmp("[]", events) != 0)
+    {
+        Streader* sr = Streader_init(STREADER_AUTO, events, strlen(events));
+        fail_if(!Streader_read_list(sr, read_received_events, &expected),
+                "Event list reading failed: %s",
+                Streader_get_error_desc(sr));
+
+        events = kqt_Handle_receive_events(handle);
+    }
+
+    fail_if(expected != event_count,
+            "Read %" PRId32 " instead of %d events",
+            expected, event_count);
+}
+END_TEST
+
+
 Suite* Player_suite(void)
 {
     Suite* s = suite_create("Player");
@@ -815,6 +907,8 @@ Suite* Player_suite(void)
             tc_events, Jump_backwards_creates_a_loop,
             0, 4);
     tcase_add_test(tc_events, Events_appear_in_event_buffer);
+    tcase_add_test(
+            tc_events, Many_events_can_be_retrieved_with_multiple_receives);
 
     return s;
 }
