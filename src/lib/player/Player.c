@@ -433,6 +433,20 @@ static void Player_process_voices(
 }
 
 
+static void Player_update_receive(Player* player)
+{
+    // Do nothing if row processing was not interrupted
+    if (player->master_params.cur_ch == 0 &&
+            player->master_params.cur_trigger == 0)
+        return;
+
+    // Process the remainder of the current row
+    Player_move_forwards(player, 0, false);
+
+    return;
+}
+
+
 void Player_play(Player* player, int32_t nframes)
 {
     assert(player != NULL);
@@ -461,7 +475,7 @@ void Player_play(Player* player, int32_t nframes)
     // Composition-level progress
     const bool was_playing = !Player_has_stopped(player);
     int32_t rendered = 0;
-    while (rendered < nframes)
+    while (rendered < nframes && !Event_buffer_is_full(player->event_buffer))
     {
         // Move forwards in composition
         int32_t to_be_rendered = nframes - rendered;
@@ -664,7 +678,8 @@ const char* Player_get_events(Player* player)
         // Event buffer contains old data, clear
         Event_buffer_clear(player->event_buffer);
 
-        // TODO: get more events if needed
+        // Get more events if row processing was interrupted
+        Player_update_receive(player);
     }
 
     player->events_returned = true;
