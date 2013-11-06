@@ -12,21 +12,22 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from updater import Updater
 
-
-class Instrument(Updater):
+class Instrument():
 
     def __init__(self):
-        super(Instrument, self).__init__()
         self._backend = None
         self._instrument_number = None
         self._existence = None
         self._name = None
+        self._updater = None
         self._active_notes = {}
 
     def set_backend(self, backend):
         self._backend = backend
+
+    def set_updater(self, updater):
+        self._updater = updater
 
     def get_active_notes(self):
         return self._active_notes.items()
@@ -44,7 +45,7 @@ class Instrument(Updater):
             self._active_notes[channel_number] = pitch
         elif channel_number in self._active_notes:
             del self._active_notes[channel_number]
-        self._signal_update()
+        self._updater.signal_update()
 
     def set_instrument_number(self, instrument_number):
         self._instrument_number = instrument_number
@@ -57,12 +58,12 @@ class Instrument(Updater):
 
     def update_existence(self, existence):
         self._existence = existence
-        self._signal_update()
+        self._updater.signal_update()
 
     def get_name(self):
         return self._name
 
     def update_name(self, name):
         self._name = name
-        self._signal_update()
+        self._updater.signal_update()
 

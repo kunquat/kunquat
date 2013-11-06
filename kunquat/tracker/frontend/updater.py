@@ -17,9 +17,8 @@ class Updater(object):
     def __init__(self):
         self._update_signal = False
         self._updaters = set()
-        self._children = set()
 
-    def _signal_update(self):
+    def signal_update(self):
         self._update_signal = True
 
     def register_updater(self, updater):
@@ -28,18 +27,10 @@ class Updater(object):
     def unregister_updater(self, updater):
         self._updaters.remove(updater)
 
-    def register_child(self, child):
-        self._children.add(child)
-
-    def unregister_child(self, child):
-        self._children.remove(child)
-
     def perform_updates(self):
-        for child in self._children:
-            child.perform_updates()
         if not self._update_signal:
             return
         for updater in self._updaters:
-            updater()
+            updater(set())
         self._update_signal = False
 

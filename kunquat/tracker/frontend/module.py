@@ -12,28 +12,26 @@
 #
 
 
-from updater import Updater
-
-class Module(Updater):
+class Module():
 
     def __init__(self):
-        super(Module, self).__init__()
         self._backend = None
         self._instruments = {}
+        self._updater = None
 
     def set_backend(self, backend):
         self._backend = backend
+
+    def set_updater(self, updater):
+        self._updater = updater
 
     def get_instrument(self, instrument_number):
         return self._instruments[instrument_number]
 
     def update_instrument(self, instrument_number, instrument):
-        if instrument_number in self._instruments:
-            old_instrument = self._instruments[instrument_number]
-            self.unregister_child(old_instrument)
-        self.register_child(instrument)
+        instrument.set_updater(self._updater)
         self._instruments[instrument_number] = instrument
-        self._signal_update()
+        self._updater.signal_update()
 
     def get_instruments(self, validate=True):
         all_instruments = self._instruments.values()

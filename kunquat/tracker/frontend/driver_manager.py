@@ -11,21 +11,22 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from updater import Updater
-
-class DriverManager(Updater):
+class DriverManager():
 
     def __init__(self):
-        super(DriverManager, self).__init__()
         self._drivers = None
         self._audio_output = None
         self._selected_driver = None
+        self._updater = None
 
     def set_drivers(self, drivers):
         self._drivers = drivers
 
     def set_audio_output(self, audio_output):
         self._audio_output = audio_output
+
+    def set_updater(self, updater):
+        self._updater = updater
 
     def get_drivers(self):
         return self._drivers
@@ -44,5 +45,5 @@ class DriverManager(Updater):
 
     def update_selected_driver(self, driver_class):
         self._selected_driver = driver_class
-        self._signal_update()
+        self._updater.signal_update()
 

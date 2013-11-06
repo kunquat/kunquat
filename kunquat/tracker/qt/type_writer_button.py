@@ -110,23 +110,21 @@ class TypeWriterButton(QPushButton):
                         self._play_sound)
 
     def set_ui_model(self, ui_model):
+        updater = ui_model.get_updater()
+        updater.register_updater(self.perform_updates)
         self._ui_manager = ui_model.get_ui_manager()
-        self._ui_manager.register_updater(self.update_selected_instrument)
 
     def _play_sound(self):
         if self._selected_instrument:
             self._selected_instrument.set_active_note(0, self._pitch)
 
     def update_selected_instrument(self):
-        old_instrument = self._selected_instrument
-        if old_instrument:
-            old_instrument.unregister_updater(self.update_leds)
-        new_instrument = self._ui_manager.get_selected_instrument()
-        new_instrument.register_updater(self.update_leds)
-        self._selected_instrument = new_instrument
+        self._selected_instrument = self._ui_manager.get_selected_instrument()
         self.setEnabled(True)
 
     def update_leds(self):
+        if self._selected_instrument == None:
+            return
         (left_on, center_on, right_on) = 3 * [0]
         notes = self._selected_instrument.get_active_notes()
         for (_, note) in notes:
@@ -140,4 +138,8 @@ class TypeWriterButton(QPushButton):
                 else:
                     assert False
         self._led.set_leds(left_on, center_on, right_on)
+
+    def perform_updates(self, signals):
+        self.update_selected_instrument()
+        self.update_leds()
 
