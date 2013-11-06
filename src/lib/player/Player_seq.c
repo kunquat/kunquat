@@ -117,6 +117,7 @@ void Player_process_event(
         bool skip)
 {
     assert(player != NULL);
+    assert(!Event_buffer_is_full(player->event_buffer));
     assert(ch_num >= 0);
     assert(ch_num < KQT_CHANNELS_MAX);
     assert(event_name != NULL);
@@ -171,6 +172,7 @@ static void Player_process_expr_event(
         bool skip)
 {
     assert(player != NULL);
+    assert(!Event_buffer_is_full(player->event_buffer));
     assert(ch_num >= 0);
     assert(ch_num < KQT_CHANNELS_MAX);
     assert(trigger_desc != NULL);
@@ -230,6 +232,9 @@ static void Player_process_expr_event(
     }
 
     Player_process_event(player, ch_num, event_name, arg, skip);
+
+    if (Event_buffer_is_full(player->event_buffer))
+        return;
 
     return;
 }
@@ -346,12 +351,24 @@ void Player_process_cgiters(Player* player, Tstamp* limit, bool skip)
                             Event_is_control(event_type) ||
                             Event_is_general(event_type) ||
                             Event_is_master(event_type))
+                    {
+                        // Break if event buffer is full
+                        if (Event_buffer_is_full(player->event_buffer))
+                        {
+                            Tstamp_set(limit, 0, 0);
+
+                            // Make sure we get this row again next time
+                            Cgiter_clear_returned_status(cgiter);
+                            return;
+                        }
+
                         Player_process_expr_event(
                                 player,
                                 i,
                                 Event_get_desc(el->event),
                                 NULL, // no meta value
                                 skip);
+                    }
                 }
 
                 // Perform jump
