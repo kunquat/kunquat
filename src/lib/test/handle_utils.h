@@ -155,8 +155,8 @@ void fail_buffers(
                 " %5.1f", expected[i]);
         int alen = snprintf(actual_vals_ptr, chars_left,
                 " %5.1f", actual[i]);
-        assert(ilen == elen);
-        assert(ilen == alen);
+        //assert(ilen == elen);
+        //assert(ilen == alen);
         chars_used += ilen;
 
         indices_ptr += ilen;
