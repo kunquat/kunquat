@@ -757,39 +757,8 @@ START_TEST(Events_appear_in_event_buffer)
 END_TEST
 
 
-bool read_received_events(Streader* sr, int32_t index, void* userdata)
+void setup_many_triggers(int event_count)
 {
-    assert(sr != NULL);
-    (void)index;
-    assert(userdata != NULL);
-
-    int32_t* expected = userdata;
-    double actual = NAN;
-
-    if (!(Streader_readf(sr, "[0, [") &&
-                Streader_match_string(sr, "n+") &&
-                Streader_readf(sr, ", %f]]", &actual))
-       )
-        return false;
-
-    if ((int)round(actual) != *expected)
-    {
-        Streader_set_error(
-                sr,
-                "Received argument %" PRId64 " instead of %" PRId32,
-                actual, *expected);
-        return false;
-    }
-
-    *expected = actual + 1;
-
-    return true;
-}
-
-START_TEST(Many_events_can_be_retrieved_with_multiple_receives)
-{
-    const int event_count = 2048;
-
     // Set up pattern essentials
     set_data("album/p_manifest.json", "{}");
     set_data("album/p_tracks.json", "[0]");
@@ -819,6 +788,46 @@ START_TEST(Many_events_can_be_retrieved_with_multiple_receives)
     triggers = NULL;
 
     validate();
+}
+
+
+bool read_received_events(Streader* sr, int32_t index, void* userdata)
+{
+    assert(sr != NULL);
+    (void)index;
+    assert(userdata != NULL);
+
+    int32_t* expected = userdata;
+    double actual = NAN;
+
+    if (!(Streader_readf(sr, "[0, [") &&
+                Streader_match_string(sr, "n+") &&
+                Streader_readf(sr, ", %f]]", &actual))
+       )
+        return false;
+
+    if ((int)round(actual) != *expected)
+    {
+        Streader_set_error(
+                sr,
+                "Received argument %" PRId64 " instead of %" PRId32,
+                actual, *expected);
+        return false;
+    }
+
+    *expected = actual + 1;
+
+    return true;
+}
+
+START_TEST(Events_from_many_triggers_can_be_retrieved_with_multiple_receives)
+{
+    set_mix_volume(0);
+    setup_debug_instrument();
+    setup_debug_single_pulse();
+
+    const int event_count = 2048;
+    setup_many_triggers(event_count);
 
     // Play
     kqt_Handle_play(handle, 10);
@@ -831,6 +840,7 @@ START_TEST(Many_events_can_be_retrieved_with_multiple_receives)
     // Receive and make sure all events are found
     const char* events = kqt_Handle_receive_events(handle);
     int32_t expected = 0;
+    int loop_count = 0;
     while (strcmp("[]", events) != 0)
     {
         Streader* sr = Streader_init(STREADER_AUTO, events, strlen(events));
@@ -839,11 +849,46 @@ START_TEST(Many_events_can_be_retrieved_with_multiple_receives)
                 Streader_get_error_desc(sr));
 
         events = kqt_Handle_receive_events(handle);
+        ++loop_count;
     }
+
+    fail_if(loop_count <= 1,
+            "Test did not fill the event buffer, increase event count!");
 
     fail_if(expected != event_count,
             "Read %" PRId32 " instead of %d events",
             expected, event_count);
+
+    // Continue playing
+    kqt_Handle_play(handle, 10);
+    fail_if(kqt_Handle_get_frames_available(handle) != 10,
+            "Kunquat handle rendered %ld instead of 10 frames",
+            kqt_Handle_get_frames_available(handle));
+
+    // FIXME: We can only check for 256 notes as we run out of voices :-P
+    const float expected_buf[10] = { min((float)event_count, 256) };
+    const float* actual_buf = kqt_Handle_get_audio(handle, 0);
+    check_buffers_equal(expected_buf, actual_buf, 10, 0.0f);
+}
+END_TEST
+
+
+START_TEST(Events_from_many_triggers_are_skipped_by_fire)
+{
+    const int event_count = 2048;
+
+    setup_many_triggers(event_count);
+
+    kqt_Handle_play(handle, 10);
+
+    kqt_Handle_fire_event(handle, 0, "[\".i\", 0]");
+    check_unexpected_error();
+
+    const char* events = kqt_Handle_receive_events(handle);
+    const char* expected = "[[0, [\".i\", 0]]]";
+    fail_if(strcmp(events, expected) != 0,
+            "Received event list %s instead of %s",
+            events, expected);
 }
 END_TEST
 
@@ -908,7 +953,11 @@ Suite* Player_suite(void)
             0, 4);
     tcase_add_test(tc_events, Events_appear_in_event_buffer);
     tcase_add_test(
-            tc_events, Many_events_can_be_retrieved_with_multiple_receives);
+            tc_events,
+            Events_from_many_triggers_can_be_retrieved_with_multiple_receives);
+    tcase_add_test(
+            tc_events,
+            Events_from_many_triggers_are_skipped_by_fire);
 
     return s;
 }
