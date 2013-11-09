@@ -788,6 +788,8 @@ void setup_many_triggers(int event_count)
     triggers = NULL;
 
     validate();
+
+    return;
 }
 
 
@@ -819,6 +821,7 @@ bool read_received_events(Streader* sr, int32_t index, void* userdata)
 
     return true;
 }
+
 
 START_TEST(Events_from_many_triggers_can_be_retrieved_with_multiple_receives)
 {
@@ -893,6 +896,134 @@ START_TEST(Events_from_many_triggers_are_skipped_by_fire)
 END_TEST
 
 
+void setup_complex_bind_and_trigger(int event_count)
+{
+    char* bind = malloc(sizeof(char) * 65536);
+    fail_if(bind == NULL, "Could not allocate memory for bind specification");
+
+    char* cur_pos = bind;
+    cur_pos += sprintf(bind, "[[\"#\", [], [[0, [\"n+\", \"0\"]]");
+    for (int i = 1; i < event_count; ++i)
+    {
+        assert(cur_pos - bind < 65000);
+        cur_pos += snprintf(cur_pos, 65536 - (cur_pos - bind),
+                ", [0, [\"n+\", \"%d\"]]", i);
+    }
+
+    cur_pos += snprintf(cur_pos, 65536 - (cur_pos - bind), " ]]]");
+
+    set_data("p_bind.json", bind);
+    free(bind);
+    bind = NULL;
+
+    // Set up pattern essentials
+    set_data("album/p_manifest.json", "{}");
+    set_data("album/p_tracks.json", "[0]");
+    set_data("song_00/p_manifest.json", "{}");
+    set_data("song_00/p_order_list.json", "[ [0, 0] ]");
+    set_data("pat_000/p_manifest.json", "{}");
+    set_data("pat_000/p_pattern.json", "{ \"length\": [4, 0] }");
+    set_data("pat_000/instance_000/p_manifest.json", "{}");
+    set_data("pat_000/col_00/p_triggers.json",
+            "[ [[0, 0], [\"#\", \"\\\"\\\"\"]] ]");
+
+    validate();
+
+    return;
+}
+
+
+bool read_received_events_bind(Streader* sr, int32_t index, void* userdata)
+{
+    assert(sr != NULL);
+    assert(userdata != NULL);
+
+    int32_t* expected = userdata;
+    double actual = NAN;
+
+    if (index == 0 && *expected == 0)
+    {
+        return Streader_readf(sr, "[0, [") &&
+            Streader_match_string(sr, "#") &&
+            Streader_match_char(sr, ',') &&
+            Streader_read_string(sr, 0, NULL) &&
+            Streader_readf(sr, "]]");
+    }
+
+    if (!(Streader_readf(sr, "[0, [") &&
+                Streader_match_string(sr, "n+") &&
+                Streader_readf(sr, ", %f]]", &actual))
+       )
+        return false;
+
+    if ((int)round(actual) != *expected)
+    {
+        Streader_set_error(
+                sr,
+                "Received argument %" PRId64 " instead of %" PRId32,
+                actual, *expected);
+        return false;
+    }
+
+    *expected = actual + 1;
+
+    return true;
+}
+
+
+START_TEST(Events_from_complex_bind_can_be_retrieved_with_multiple_receives)
+{
+    set_mix_volume(0);
+    setup_debug_instrument();
+    setup_debug_single_pulse();
+
+    const int event_count = 2048;
+    setup_complex_bind_and_trigger(event_count);
+
+    // Play
+    kqt_Handle_play(handle, 10);
+    const long frames_available = kqt_Handle_get_frames_available(handle);
+    fail_if(frames_available > 0,
+            "Kunquat handle rendered %ld frames of audio"
+            " although event buffer was filled",
+            frames_available);
+
+    // Receive and make sure all events are found
+    const char* events = kqt_Handle_receive_events(handle);
+    int32_t expected = 0;
+    int loop_count = 0;
+    while (strcmp("[]", events) != 0)
+    {
+        Streader* sr = Streader_init(STREADER_AUTO, events, strlen(events));
+        fail_if(!Streader_read_list(sr, read_received_events_bind, &expected),
+                "Event list reading failed: %s",
+                Streader_get_error_desc(sr));
+
+        events = kqt_Handle_receive_events(handle);
+        ++loop_count;
+    }
+
+    fail_if(loop_count <= 1,
+            "Test did not fill the event buffer, increase event count!");
+
+    fail_if(expected != event_count,
+            "Read %" PRId32 " instead of %d events",
+            expected, event_count);
+
+    // Continue playing
+    kqt_Handle_play(handle, 10);
+    fail_if(kqt_Handle_get_frames_available(handle) != 10,
+            "Kunquat handle rendered %ld instead of 10 frames",
+            kqt_Handle_get_frames_available(handle));
+
+    // FIXME: We can only check for 256 notes as we run out of voices :-P
+    const float expected_buf[10] = { min((float)event_count, 256) };
+    const float* actual_buf = kqt_Handle_get_audio(handle, 0);
+    check_buffers_equal(expected_buf, actual_buf, 10, 0.0f);
+}
+END_TEST
+
+
 Suite* Player_suite(void)
 {
     Suite* s = suite_create("Player");
@@ -958,6 +1089,9 @@ Suite* Player_suite(void)
     tcase_add_test(
             tc_events,
             Events_from_many_triggers_are_skipped_by_fire);
+    tcase_add_test(
+            tc_events,
+            Events_from_complex_bind_can_be_retrieved_with_multiple_receives);
 
     return s;
 }
