@@ -44,7 +44,17 @@ Event_buffer* new_Event_buffer(size_t size);
 
 
 /**
- * Tells wheter the Event buffer is full.
+ * Tells whether the Event buffer is empty.
+ *
+ * \param ebuf   The Event buffer -- must not be \c NULL.
+ *
+ * \return   \c true if the Event buffer is empty, otherwise \c false.
+ */
+bool Event_buffer_is_empty(const Event_buffer* ebuf);
+
+
+/**
+ * Tells whether the Event buffer is full.
  *
  * The Event buffer is considered full if it cannot store another event
  * of \c EVENT_LEN_MAX bytes.
@@ -54,6 +64,40 @@ Event_buffer* new_Event_buffer(size_t size);
  * \return   \c true if the Event buffer is full, otherwise \c false.
  */
 bool Event_buffer_is_full(const Event_buffer* ebuf);
+
+
+/**
+ * Resets counter of added events to 0.
+ *
+ * This function should be called each time an event has been fully processed.
+ *
+ * \param ebuf   The Event buffer -- must not be \c NULL and must not be in
+ *               skipping mode.
+ */
+void Event_buffer_reset_add_counter(Event_buffer* ebuf);
+
+
+/**
+ * Starts event skipping.
+ *
+ * Events that were fired on a suspended render call must be skipped when
+ * processing the remaining events of a bind procedure.
+ *
+ * \param ebuf   The Event buffer -- must not be \c NULL and must not be in
+ *               skipping mode.
+ */
+void Event_buffer_start_skipping(Event_buffer* ebuf);
+
+
+/**
+ * Returns the event skipping status.
+ *
+ * \param ebuf   The Event buffer -- must not be \c NULL.
+ *
+ * \return   \c true if the next added event will be skipped,
+ *           otherwise \c false.
+ */
+bool Event_buffer_is_skipping(const Event_buffer* ebuf);
 
 
 /**

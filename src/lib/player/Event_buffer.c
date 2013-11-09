@@ -18,6 +18,7 @@
 #include <math_common.h>
 #include <memory.h>
 #include <player/Event_buffer.h>
+#include <string_common.h>
 #include <xassert.h>
 
 
@@ -26,6 +27,10 @@ struct Event_buffer
     size_t size;
     size_t write_pos;
     char* buf;
+
+    int32_t events_added;
+    bool is_skipping;
+    int32_t events_skipped;
 };
 
 
@@ -43,6 +48,10 @@ Event_buffer* new_Event_buffer(size_t size)
     ebuf->write_pos = 0;
     ebuf->buf = NULL;
 
+    ebuf->events_added = 0;
+    ebuf->is_skipping = false;
+    ebuf->events_skipped = 0;
+
     // Init fields
     ebuf->buf = memory_calloc_items(char, ebuf->size + 1);
     if (ebuf->buf == NULL)
@@ -56,11 +65,48 @@ Event_buffer* new_Event_buffer(size_t size)
 }
 
 
+bool Event_buffer_is_empty(const Event_buffer* ebuf)
+{
+    assert(ebuf != NULL);
+    return string_eq(ebuf->buf, EMPTY_BUFFER);
+}
+
+
 bool Event_buffer_is_full(const Event_buffer* ebuf)
 {
     assert(ebuf != NULL);
     return (ebuf->size < EVENT_LEN_MAX) ||
         (ebuf->write_pos >= ebuf->size - EVENT_LEN_MAX);
+}
+
+
+void Event_buffer_reset_add_counter(Event_buffer* ebuf)
+{
+    assert(ebuf != NULL);
+    assert(!ebuf->is_skipping);
+
+    ebuf->events_added = 0;
+
+    return;
+}
+
+
+void Event_buffer_start_skipping(Event_buffer* ebuf)
+{
+    assert(ebuf != NULL);
+    assert(!ebuf->is_skipping);
+
+    ebuf->is_skipping = true;
+    ebuf->events_skipped = 0;
+
+    return;
+}
+
+
+bool Event_buffer_is_skipping(const Event_buffer* ebuf)
+{
+    assert(ebuf != NULL);
+    return ebuf->is_skipping;
 }
 
 
@@ -83,6 +129,22 @@ void Event_buffer_add(
     assert(ch < KQT_CHANNELS_MAX);
     assert(name != NULL);
     assert(arg != NULL);
+
+    // Skipping mode
+    if (ebuf->is_skipping)
+    {
+        // This event has already been processed
+        assert(ebuf->events_skipped < ebuf->events_added);
+
+        ++ebuf->events_skipped;
+        if (ebuf->events_skipped >= ebuf->events_added)
+        {
+            assert(ebuf->events_skipped == ebuf->events_added);
+            ebuf->is_skipping = false;
+        }
+
+        return;
+    }
 
     int advance = 0;
 
@@ -135,6 +197,8 @@ void Event_buffer_add(
 
     // Close the list
     strcpy(ebuf->buf + ebuf->write_pos, "]");
+
+    ++ebuf->events_added;
 
     return;
 }

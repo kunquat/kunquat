@@ -148,6 +148,14 @@ void Player_process_event(
                 player->channels[ch_num]->rand);
         while (bound != NULL)
         {
+            if (Event_buffer_is_full(player->event_buffer))
+            {
+                // Set event buffer to skip the amount of events
+                // added from the top-level bind
+                Event_buffer_start_skipping(player->event_buffer);
+                return;
+            }
+
             Player_process_expr_event(
                     player,
                     (ch_num + bound->ch_offset + KQT_CHANNELS_MAX) %
@@ -368,6 +376,17 @@ void Player_process_cgiters(Player* player, Tstamp* limit, bool skip)
                                 Event_get_desc(el->event),
                                 NULL, // no meta value
                                 skip);
+
+                        // Break if started event skipping
+                        if (Event_buffer_is_skipping(player->event_buffer))
+                        {
+                            assert(Event_buffer_is_full(player->event_buffer));
+                            Tstamp_set(limit, 0, 0);
+
+                            // Make sure we get this row again next time
+                            Cgiter_clear_returned_status(cgiter);
+                            return;
+                        }
                     }
                 }
 
