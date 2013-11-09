@@ -28,53 +28,72 @@
 #include <xassert.h>
 
 
-long kqt_Handle_mix(kqt_Handle* handle, long nframes)
+int kqt_Handle_play(kqt_Handle handle, long nframes)
 {
     check_handle(handle, 0);
-    check_data_is_valid(handle, 0);
-    check_data_is_validated(handle, 0);
+
+    Handle* h = get_handle(handle);
+    check_data_is_valid(h, 0);
+    check_data_is_validated(h, 0);
 
     if (nframes <= 0)
     {
-        kqt_Handle_set_error(handle, ERROR_ARGUMENT, "Number of frames must"
+        Handle_set_error(h, ERROR_ARGUMENT, "Number of frames must"
                 " be positive.");
         return 0;
     }
 
-    if (Player_has_stopped(handle->player)) // TODO: remove
-        return 0;
+    Player_play(h->player, nframes);
 
-    Player_play(handle->player, nframes);
-
-    return Player_get_frames_available(handle->player); // TODO: remove
-#if 0
-    handle->module->play_state->freq =
-            Device_get_mix_rate((Device*)handle->module);
-    return Module_mix(handle->module, nframes, handle->module->event_handler);
-#endif
+    return 1;
 }
 
 
-int kqt_Handle_set_mixing_rate(kqt_Handle* handle, long rate)
+int kqt_Handle_has_stopped(kqt_Handle handle)
 {
     check_handle(handle, 0);
-    check_data_is_valid(handle, 0);
-    check_data_is_validated(handle, 0);
+
+    Handle* h = get_handle(handle);
+    check_data_is_valid(h, 0);
+    check_data_is_validated(h, 0);
+
+    return Player_has_stopped(h->player);
+}
+
+
+long kqt_Handle_get_frames_available(kqt_Handle handle)
+{
+    check_handle(handle, 0);
+
+    Handle* h = get_handle(handle);
+    check_data_is_valid(h, 0);
+    check_data_is_validated(h, 0);
+
+    return Player_get_frames_available(h->player);
+}
+
+
+int kqt_Handle_set_audio_rate(kqt_Handle handle, long rate)
+{
+    check_handle(handle, 0);
+
+    Handle* h = get_handle(handle);
+    check_data_is_valid(h, 0);
+    check_data_is_validated(h, 0);
 
     if (rate <= 0)
     {
-        kqt_Handle_set_error(handle, ERROR_ARGUMENT, "Audio rate must be"
-                " positive");
+        Handle_set_error(h, ERROR_ARGUMENT, "Audio rate must be positive");
         return 0;
     }
 
     if (!Device_set_audio_rate(
-                (Device*)handle->module,
-                Player_get_device_states(handle->player),
+                (Device*)h->module,
+                Player_get_device_states(h->player),
                 rate) ||
-            !Player_set_audio_rate(handle->player, rate))
+            !Player_set_audio_rate(h->player, rate))
     {
-        kqt_Handle_set_error(handle, ERROR_MEMORY,
+        Handle_set_error(h, ERROR_MEMORY,
                 "Couldn't allocate memory after change of audio rate.");
         return 0;
     }
@@ -83,42 +102,45 @@ int kqt_Handle_set_mixing_rate(kqt_Handle* handle, long rate)
 }
 
 
-long kqt_Handle_get_mixing_rate(kqt_Handle* handle)
+long kqt_Handle_get_audio_rate(kqt_Handle handle)
 {
     check_handle(handle, 0);
-    check_data_is_valid(handle, 0);
-    check_data_is_validated(handle, 0);
 
-    return Player_get_audio_rate(handle->player);
+    Handle* h = get_handle(handle);
+    check_data_is_valid(h, 0);
+    check_data_is_validated(h, 0);
+
+    return Player_get_audio_rate(h->player);
 }
 
 
-int kqt_Handle_set_buffer_size(kqt_Handle* handle, long size)
+int kqt_Handle_set_audio_buffer_size(kqt_Handle handle, long size)
 {
     check_handle(handle, 0);
-    check_data_is_valid(handle, 0);
-    check_data_is_validated(handle, 0);
+
+    Handle* h = get_handle(handle);
+    check_data_is_valid(h, 0);
+    check_data_is_validated(h, 0);
 
     if (size <= 0)
     {
-        kqt_Handle_set_error(handle, ERROR_ARGUMENT, "Buffer size must be"
-                " positive");
+        Handle_set_error(h, ERROR_ARGUMENT, "Buffer size must be positive");
         return 0;
     }
     if (size > KQT_AUDIO_BUFFER_SIZE_MAX)
     {
-        kqt_Handle_set_error(handle, ERROR_ARGUMENT, "Buffer size must not be"
+        Handle_set_error(h, ERROR_ARGUMENT, "Buffer size must not be"
                 " greater than %ld frames", KQT_AUDIO_BUFFER_SIZE_MAX);
         return 0;
     }
 
     if (!Device_set_buffer_size(
-                (Device*)handle->module,
-                Player_get_device_states(handle->player),
+                (Device*)h->module,
+                Player_get_device_states(h->player),
                 size) ||
-            !Player_set_audio_buffer_size(handle->player, size))
+            !Player_set_audio_buffer_size(h->player, size))
     {
-        kqt_Handle_set_error(handle, ERROR_MEMORY,
+        Handle_set_error(h, ERROR_MEMORY,
                 "Couldn't allocate memory for new buffers");
         return 0;
     }
@@ -127,135 +149,150 @@ int kqt_Handle_set_buffer_size(kqt_Handle* handle, long size)
 }
 
 
-long kqt_Handle_get_buffer_size(kqt_Handle* handle)
+long kqt_Handle_get_audio_buffer_size(kqt_Handle handle)
 {
     check_handle(handle, 0);
-    check_data_is_valid(handle, 0);
-    check_data_is_validated(handle, 0);
 
-    return Player_get_audio_buffer_size(handle->player);
+    Handle* h = get_handle(handle);
+    check_data_is_valid(h, 0);
+    check_data_is_validated(h, 0);
+
+    return Player_get_audio_buffer_size(h->player);
 }
 
 
-int kqt_Handle_get_buffer_count(kqt_Handle* handle)
+#if 0
+int kqt_Handle_get_buffer_count(kqt_Handle handle)
 {
     check_handle(handle, 0);
-    check_data_is_valid(handle, 0);
-    check_data_is_validated(handle, 0);
+
+    Handle* h = get_handle(handle);
+    check_data_is_valid(h, 0);
+    check_data_is_validated(h, 0);
 
     return KQT_BUFFERS_MAX;
 }
+#endif
 
 
-const float* kqt_Handle_get_buffer(kqt_Handle* handle, int index)
+const float* kqt_Handle_get_audio(kqt_Handle handle, int index)
 {
     check_handle(handle, NULL);
-    check_data_is_valid(handle, NULL);
-    check_data_is_validated(handle, NULL);
+
+    Handle* h = get_handle(handle);
+    check_data_is_valid(h, NULL);
+    check_data_is_validated(h, NULL);
 
     if (index < 0 || index >= KQT_BUFFERS_MAX)
     {
-        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
+        Handle_set_error(h, ERROR_ARGUMENT,
                 "Buffer #%d does not exist", index);
         return NULL;
     }
 
-    return Player_get_audio(handle->player, index);
+    return Player_get_audio(h->player, index);
 }
 
 
-long long kqt_Handle_get_duration(kqt_Handle* handle, int track)
+long long kqt_Handle_get_duration(kqt_Handle handle, int track)
 {
     check_handle(handle, -1);
-    check_data_is_valid(handle, -1);
-    check_data_is_validated(handle, -1);
+
+    Handle* h = get_handle(handle);
+    check_data_is_valid(h, -1);
+    check_data_is_validated(h, -1);
 
     if (track < -1 || track >= KQT_TRACKS_MAX)
     {
-        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
+        Handle_set_error(h, ERROR_ARGUMENT,
                 "Invalid track number: %d", track);
         return -1;
     }
 
-    Player_reset(handle->length_counter);
-    Player_skip(handle->length_counter, KQT_MAX_CALC_DURATION);
+    Player_reset(h->length_counter);
+    Player_skip(h->length_counter, KQT_MAX_CALC_DURATION);
 
-    return Player_get_nanoseconds(handle->length_counter);
+    return Player_get_nanoseconds(h->length_counter);
 }
 
 
 int kqt_Handle_set_position(
-        kqt_Handle* handle,
+        kqt_Handle handle,
         int track,
         long long nanoseconds)
 {
     check_handle(handle, 0);
-    check_data_is_valid(handle, 0);
-    check_data_is_validated(handle, 0);
+
+    Handle* h = get_handle(handle);
+    check_data_is_valid(h, 0);
+    check_data_is_validated(h, 0);
 
     if (track < -1 || track >= KQT_TRACKS_MAX)
     {
-        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
-                "Invalid track number: %d", track);
+        Handle_set_error(h, ERROR_ARGUMENT, "Invalid track number: %d", track);
         return 0;
     }
     if (nanoseconds < 0)
     {
-        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
-                "nanoseconds must be non-negative");
+        Handle_set_error(
+                h, ERROR_ARGUMENT, "nanoseconds must be non-negative");
         return 0;
     }
 
     int64_t skip_frames = ((double)nanoseconds / 1000000000L) *
-        Player_get_audio_rate(handle->player);
+        Player_get_audio_rate(h->player);
 
     Device_reset(
-            (Device*)handle->module,
-            Player_get_device_states(handle->player));
+            (Device*)h->module,
+            Player_get_device_states(h->player));
 
-    Player_reset(handle->player);
-    Player_skip(handle->player, skip_frames);
+    Player_reset(h->player);
+    Player_skip(h->player, skip_frames);
 
     return 1;
 }
 
 
-long long kqt_Handle_get_position(kqt_Handle* handle)
+long long kqt_Handle_get_position(kqt_Handle handle)
 {
     check_handle(handle, 0);
-    check_data_is_valid(handle, 0);
-    check_data_is_validated(handle, 0);
 
-    return Player_get_nanoseconds(handle->player);
+    Handle* h = get_handle(handle);
+    check_data_is_valid(h, 0);
+    check_data_is_validated(h, 0);
+
+    return Player_get_nanoseconds(h->player);
 }
 
 
-int kqt_Handle_fire(kqt_Handle* handle, int channel, char* event)
+int kqt_Handle_fire_event(kqt_Handle handle, int channel, const char* event)
 {
     check_handle(handle, 0);
-    check_data_is_valid(handle, 0);
-    check_data_is_validated(handle, 0);
+
+    Handle* h = get_handle(handle);
+    check_data_is_valid(h, 0);
+    check_data_is_validated(h, 0);
 
     if (channel < 0 || channel >= KQT_COLUMNS_MAX)
     {
-        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
+        Handle_set_error(h, ERROR_ARGUMENT,
                 "Invalid channel number: %d", channel);
         return 0;
     }
     if (event == NULL)
     {
-        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
+        Handle_set_error(h, ERROR_ARGUMENT,
                 "No event description given.");
         return 0;
     }
 
-    Read_state* rs = READ_STATE_AUTO;
-    if (!Player_fire(handle->player, channel, event, rs))
+    Streader* sr = Streader_init(STREADER_AUTO, event, strlen(event));
+    if (!Player_fire(h->player, channel, sr))
     {
-        assert(rs->error);
-        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
+        assert(Streader_is_error_set(sr));
+        Handle_set_error(h, ERROR_ARGUMENT,
                 "Invalid event description `%s`: %s",
-                event, rs->message);
+                event, Streader_get_error_desc(sr));
         return 0;
     }
 
@@ -263,65 +300,21 @@ int kqt_Handle_fire(kqt_Handle* handle, int channel, char* event)
 }
 
 
-int kqt_Handle_receive(kqt_Handle* handle, char* dest, int size)
+const char* kqt_Handle_receive_events(kqt_Handle handle)
 {
     check_handle(handle, 0);
-    check_data_is_valid(handle, 0);
-    check_data_is_validated(handle, 0);
 
-    if (dest == NULL)
-    {
-        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
-                "dest must not be NULL");
-        return 0;
-    }
-    if (size <= 0)
-    {
-        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
-                "size must be positive");
-        return 0;
-    }
+    Handle* h = get_handle(handle);
+    check_data_is_valid(h, 0);
+    check_data_is_validated(h, 0);
 
-    const char* events = Player_get_events(handle->player);
-    const int len = MIN((int)strlen(events) + 1, size);
-    strncpy(dest, events, len);
-    dest[len - 1] = '\0';
-
-    return strlen(events) > 2;
+    return Player_get_events(h->player);
 }
 
 
-int kqt_Handle_treceive(kqt_Handle* handle, char* dest, int size)
+void Handle_stop(Handle* handle)
 {
-    check_handle(handle, 0);
-    check_data_is_valid(handle, 0);
-    check_data_is_validated(handle, 0);
-
-    if (dest == NULL)
-    {
-        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
-                "dest must not be NULL");
-        return 0;
-    }
-    if (size <= 0)
-    {
-        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
-                "size must be positive");
-        return 0;
-    }
-
-    const char* events = Player_get_events(handle->player);
-    const int len = MIN((int)strlen(events) + 1, size);
-    strncpy(dest, events, len);
-    dest[len - 1] = '\0';
-
-    return len > 3;
-}
-
-
-void kqt_Handle_stop(kqt_Handle* handle)
-{
-    assert(handle_is_valid(handle));
+    assert(handle != NULL);
 
     Player_reset(handle->player);
 

@@ -145,7 +145,7 @@ bool Effect_parse_header(Effect* eff, char* str, Read_state* state)
 #endif
 
 
-DSP* Effect_get_dsp(Effect* eff, int index)
+const DSP* Effect_get_dsp(const Effect* eff, int index)
 {
     assert(eff != NULL);
     assert(index >= 0);

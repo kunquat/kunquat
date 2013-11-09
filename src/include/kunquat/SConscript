@@ -30,24 +30,28 @@ ln_cmd = 'ln -s ${SOURCE.file} ${TARGET.file}' # TARGET is the link
 def InstallManCreatePath(env, path, source):
     target = env.InstallCreatePath(path, source)
     if 'install' in COMMAND_LINE_TARGETS:
-        links = { 'kunquat-handle.3' : [
+        links = { 'kunquat-handle.3': [
                         'kqt_new_Handle.3',
                         'kqt_Handle_set_data.3',
                         'kqt_Handle_get_error.3',
                         'kqt_Handle_clear_error.3',
+                        'kqt_Handle_validate.3',
                         'kqt_del_Handle.3'],
 
-                  'kunquat-player-interface.3' : [
-                        'kqt_Handle_mix.3',
-                        'kqt_Handle_get_buffer.3',
-                        'kqt_Handle_set_mixing_rate.3',
-                        'kqt_Handle_get_mixing_rate.3',
-                        'kqt_Handle_set_buffer_size.3',
-                        'kqt_Handle_get_buffer_size.3',
+                  'kunquat-player-interface.3': [
+                        'kqt_Handle_play.3',
+                        'kqt_Handle_has_stopped.3',
+                        'kqt_Handle_get_frames_available.3',
+                        'kqt_Handle_get_audio.3',
+                        'kqt_Handle_set_audio_rate.3',
+                        'kqt_Handle_get_audio_rate.3',
+                        'kqt_Handle_set_audio_buffer_size.3',
+                        'kqt_Handle_get_audio_buffer_size.3',
                         'kqt_Handle_get_duration.3',
                         'kqt_Handle_set_position.3',
                         'kqt_Handle_get_position.3',
-                        'kqt_Handle_fire.3'],
+                        'kqt_Handle_fire_event.3',
+                        'kqt_Handle_receive_events.3'],
                 }
         for fname in (f for f in source if f in links):
             for link in links[fname]:

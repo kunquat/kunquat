@@ -123,6 +123,16 @@ void del_AAiter(AAiter* iter);
 
 
 /**
+ * Gets data from an AAnode.
+ *
+ * \param node   The AAnode -- must not be \c NULL.
+ *
+ * \return   The data.
+ */
+void* AAnode_get_data(AAnode* node);
+
+
+/**
  * Creates a new AAtree.
  *
  * \param cmp       The comparison function for stored elements -- must not be
@@ -150,11 +160,22 @@ bool AAtree_contains(const AAtree* tree, const void* key);
  * Inserts a new element into the AAtree.
  *
  * \param tree   The AAtree -- must not be \c NULL.
- * \param elem   The new element -- must not be \c NULL.
+ * \param elem   The new element -- must not be \c NULL and must not match an
+ *               existing key.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool AAtree_ins(AAtree* tree, void* data);
+
+
+/**
+ * Attaches an AAnode to the AAtree.
+ *
+ * \param tree   The AAtree -- must not be \c NULL.
+ * \param node   The AAnode -- must not be \c NULL and must not match an
+ *               existing key.
+ */
+void AAtree_attach(AAtree* tree, AAnode* node);
 
 
 /**
@@ -191,6 +212,17 @@ void* AAtree_get_exact(const AAtree* tree, const void* key);
  * \return   The element if one exists, otherwise \c NULL.
  */
 void* AAtree_get_at_most(const AAtree* tree, const void* key);
+
+
+/**
+ * Detaches an AAnode from the AAtree without destroying the node.
+ *
+ * \param tree   The AAtree -- must not be \c NULL.
+ * \param key    The key -- must not be \c NULL.
+ *
+ * \return   The AAnode if one was found, otherwise \c NULL.
+ */
+AAnode* AAtree_detach(AAtree* tree, const void* key);
 
 
 /**

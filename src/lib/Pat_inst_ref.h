@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2013
  *
  * This file is part of Kunquat.
  *
@@ -33,6 +33,13 @@ typedef struct Pat_inst_ref
  * A new automatically allocated Pattern instance reference.
  */
 #define PAT_INST_REF_AUTO (&(Pat_inst_ref){ .pat = 0, .inst = 0 })
+
+
+/**
+ * Helpers for printing Pattern instance references.
+ */
+#define PRIpi "(%" PRId16 ", %" PRId16 ")"
+#define PRIVALpi(piref) (piref).pat, (piref).inst
 
 
 /**

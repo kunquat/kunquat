@@ -80,7 +80,7 @@ Player* new_Player(
     player->audio_frames_available = 0;
 
     player->device_states = NULL;
-    player->env = NULL;
+    player->estate = NULL;
     player->event_buffer = NULL;
     player->voices = NULL;
     Master_params_preinit(&player->master_params);
@@ -101,11 +101,11 @@ Player* new_Player(
 
     // Init fields
     player->device_states = new_Device_states();
-    player->env = player->module->env; //new_Environment(); // TODO
+    player->estate = new_Env_state(player->module->env);
     player->event_buffer = new_Event_buffer(event_buffer_size);
     player->voices = new_Voice_pool(voice_count);
     if (player->device_states == NULL ||
-            player->env == NULL ||
+            player->estate == NULL ||
             player->event_buffer == NULL ||
             player->voices == NULL ||
             !Voice_pool_reserve_state_space(
@@ -131,9 +131,10 @@ Player* new_Player(
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
     {
         player->channels[i] = new_Channel(
+                player->module,
                 i,
                 Module_get_insts(player->module),
-                player->env,
+                player->estate,
                 player->voices,
                 &player->master_params.tempo,
                 &player->audio_rate);
@@ -144,7 +145,10 @@ Player* new_Player(
         }
     }
 
-    if (Master_params_init(&player->master_params, player->module) == NULL)
+    if (Master_params_init(
+                &player->master_params,
+                player->module,
+                player->estate) == NULL)
     {
         del_Player(player);
         return NULL;
@@ -222,6 +226,37 @@ bool Player_alloc_channel_gen_state_keys(
 }
 
 
+bool Player_refresh_env_state(Player* player)
+{
+    assert(player != NULL);
+    return Env_state_refresh_space(player->estate);
+}
+
+
+bool Player_refresh_bind_state(Player* player)
+{
+    assert(player != NULL);
+
+    Event_cache* caches[KQT_CHANNELS_MAX] = { NULL };
+    for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
+    {
+        caches[i] = Bind_create_cache(player->module->bind);
+        if (caches[i] == NULL)
+        {
+            for (int k = i - 1; k >= 0; --k)
+                del_Event_cache(caches[k]);
+
+            return false;
+        }
+    }
+
+    for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
+        Channel_set_event_cache(player->channels[i], caches[i]);
+
+    return true;
+}
+
+
 void Player_reset(Player* player)
 {
     assert(player != NULL);
@@ -246,6 +281,8 @@ void Player_reset(Player* player)
     player->nanoseconds_history = 0;
 
     player->events_returned = false;
+
+    Env_state_reset(player->estate);
 
     return;
 }
@@ -643,15 +680,14 @@ bool Player_has_stopped(const Player* player)
 }
 
 
-bool Player_fire(Player* player, int ch, char* event_desc, Read_state* rs)
+bool Player_fire(Player* player, int ch, Streader* event_reader)
 {
     assert(player != NULL);
     assert(ch >= 0);
     assert(ch < KQT_CHANNELS_MAX);
-    assert(event_desc != NULL);
-    assert(rs != NULL);
+    assert(event_reader != NULL);
 
-    if (rs->error)
+    if (Streader_is_error_set(event_reader))
         return false;
 
     Event_buffer_clear(player->event_buffer);
@@ -662,13 +698,11 @@ bool Player_fire(Player* player, int ch, char* event_desc, Read_state* rs)
     Event_type type = Event_NONE;
 
     // Get event name
-    event_desc = get_event_type_info(
-            event_desc,
-            event_names,
-            rs,
-            event_name,
-            &type);
-    if (rs->error)
+    if (!get_event_type_info(
+                event_reader,
+                event_names,
+                event_name,
+                &type))
         return false;
 
     // Get event argument
@@ -678,64 +712,51 @@ bool Player_fire(Player* player, int ch, char* event_desc, Read_state* rs)
     switch (value->type)
     {
         case VALUE_TYPE_NONE:
-            event_desc = read_null(event_desc, rs);
+            Streader_read_null(event_reader);
             break;
 
         case VALUE_TYPE_BOOL:
-            event_desc = read_bool(event_desc, &value->value.bool_type, rs);
+            Streader_read_bool(event_reader, &value->value.bool_type);
             break;
 
         case VALUE_TYPE_INT:
-            event_desc = read_int(event_desc, &value->value.int_type, rs);
+            Streader_read_int(event_reader, &value->value.int_type);
             break;
 
         case VALUE_TYPE_FLOAT:
-            event_desc = read_double(event_desc, &value->value.float_type, rs);
+            Streader_read_float(event_reader, &value->value.float_type);
             break;
 
         case VALUE_TYPE_TSTAMP:
-            event_desc = read_tstamp(event_desc, &value->value.Tstamp_type, rs);
+            Streader_read_tstamp(event_reader, &value->value.Tstamp_type);
             break;
 
         case VALUE_TYPE_STRING:
         {
-            event_desc = read_string(
-                    event_desc,
-                    value->value.string_type,
-                    ENV_VAR_NAME_MAX,
-                    rs);
+            Streader_read_string(
+                    event_reader, ENV_VAR_NAME_MAX, value->value.string_type);
         }
         break;
 
         case VALUE_TYPE_PAT_INST_REF:
-        {
-            event_desc = read_pat_inst_ref(
-                    event_desc,
-                    &value->value.Pat_inst_ref_type,
-                    rs);
-        }
-        break;
+            Streader_read_piref(event_reader, &value->value.Pat_inst_ref_type);
+            break;
 
         default:
             assert(false);
     }
 
-    event_desc = read_const_char(event_desc, ']', rs);
-    if (rs->error)
+    if (!Streader_match_char(event_reader, ']'))
         return false;
 
     // Fire
-    if (!Event_handler_trigger(
-            player->event_handler,
-            ch,
-            event_name,
-            value))
-    {
-        return false;
-    }
+    Player_process_event(
+        player,
+        ch,
+        event_name,
+        value,
+        false);
 
-    // Add event to buffer
-    Event_buffer_add(player->event_buffer, ch, event_name, value);
     player->events_returned = false;
 
     return true;
@@ -753,7 +774,7 @@ void del_Player(Player* player)
         del_Channel(player->channels[i]);
     Master_params_deinit(&player->master_params);
     del_Event_buffer(player->event_buffer);
-    //del_Environment(player->env); // TODO
+    del_Env_state(player->estate);
     del_Device_states(player->device_states);
 
     for (int i = 0; i < KQT_BUFFERS_MAX; ++i)

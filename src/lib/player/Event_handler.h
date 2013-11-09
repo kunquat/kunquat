@@ -168,7 +168,8 @@ bool Event_handler_set_generator_process(
 bool Event_handler_set_effect_process(
         Event_handler* eh,
         Event_type type,
-        bool (*effect_process)(Effect*, Effect_state*, Device_states*, Value*));
+        bool (*effect_process)(
+            const Effect*, Effect_state*, Device_states*, Value*));
 
 
 /**
@@ -204,7 +205,7 @@ bool Event_handler_set_dsp_process(
 bool Event_handler_trigger(
         Event_handler* eh,
         int ch_num,
-        char* name,
+        const char* name,
         Value* arg);
 
 

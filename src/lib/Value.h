@@ -19,7 +19,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <Env_var.h>
+#include <kunquat/limits.h>
 #include <Pat_inst_ref.h>
 #include <Real.h>
 #include <Tstamp.h>

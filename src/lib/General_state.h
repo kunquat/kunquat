@@ -19,7 +19,8 @@
 #include <stdbool.h>
 
 #include <Active_names.h>
-#include <Environment.h>
+#include <Decl.h>
+#include <player/Env_state.h>
 
 
 #define COND_LEVELS_MAX 32
@@ -44,8 +45,10 @@ typedef struct General_state
     bool cond_for_exec;
     bool evaluated_cond;
 #endif
-    Environment* env;
+    Env_state* estate;
     Active_names* active_names;
+
+    const Module* module;
 } General_state;
 
 
@@ -66,7 +69,8 @@ General_state* General_state_preinit(General_state* state);
  *
  * \param state    The General state -- must not be \c NULL.
  * \param global   \c true if and only if \a state is global.
- * \param env      The Environment -- must not be \c NULL.
+ * \param estate   The Environment state -- must not be \c NULL.
+ * \param module   The Module -- must not be \c NULL.
  *
  * \return   The parameter \a state if successful, or \c NULL if
  *           memory allocation failed. The function
@@ -76,7 +80,8 @@ General_state* General_state_preinit(General_state* state);
 General_state* General_state_init(
         General_state* state,
         bool global,
-        Environment* env);
+        Env_state* estate,
+        const Module* module);
 
 
 /**

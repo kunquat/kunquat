@@ -70,6 +70,7 @@ void Vector_get(const Vector* v, size_t index, void* dest)
     assert(dest != NULL);
 
     memcpy(dest, v->elems + (v->elem_size * index), v->elem_size);
+
     return;
 }
 
@@ -130,6 +131,7 @@ void del_Vector(Vector* v)
 
     memory_free(v->elems);
     memory_free(v);
+
     return;
 }
 

@@ -38,8 +38,6 @@ typedef enum
 #define EVENT_TYPE_DEF(type) Event_master_##type,
 #include <events/Event_master_types.h>
 
-    Trigger_jump, // TODO: handle cleanly
-
     Event_master_STOP,
 
     Event_channel_START,

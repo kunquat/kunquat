@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2013
  *
  * This file is part of Kunquat.
  *
@@ -16,11 +16,11 @@
 #define K_BIND_H
 
 
-#include <Environment.h>
 #include <Event_cache.h>
 #include <Event_names.h>
 #include <File_base.h>
 #include <kunquat/limits.h>
+#include <player/Env_state.h>
 #include <Random.h>
 #include <Value.h>
 
@@ -52,7 +52,7 @@ typedef struct Target_event
  * \return   The new Bind if successful, otherwise \c NULL. \a state will not
  *           be modified if memory allocation failed.
  */
-Bind* new_Bind(char* str, Event_names* names, Read_state* state);
+Bind* new_Bind(char* str, const Event_names* names, Read_state* state);
 
 
 /**
@@ -63,7 +63,7 @@ Bind* new_Bind(char* str, Event_names* names, Read_state* state);
  * \return   The new Event cache if successful, or \c NULL if memory
  *           allocation failed.
  */
-Event_cache* Bind_create_cache(Bind* map);
+Event_cache* Bind_create_cache(const Bind* map);
 
 
 /**
@@ -71,19 +71,21 @@ Event_cache* Bind_create_cache(Bind* map);
  *
  * \param map          The Bind -- must not be \c NULL.
  * \param cache        The Event cache -- must not be \c NULL.
- * \param env          The Environment -- must not be \c NULL.
+ * \param estate       The Environment state -- must not be \c NULL.
  * \param event_name   The name of the fired event -- must not be \c NULL.
  * \param value        The event parameter -- must not be \c NULL.
+ * \param rand         The random source -- must not be \c NULL.
  *
  * \return   The first Target event if any calls are triggered,
  *           otherwise \c NULL.
  */
-Target_event* Bind_get_first(Bind* map,
-                             Event_cache* cache,
-                             Environment* env,
-                             char* event_name,
-                             Value* value,
-                             Random* rand);
+Target_event* Bind_get_first(
+        const Bind* map,
+        Event_cache* cache,
+        Env_state* estate,
+        const char* event_name,
+        Value* value,
+        Random* rand);
 
 
 /**

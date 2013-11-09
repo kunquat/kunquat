@@ -28,7 +28,7 @@
 #include <kunquat/Player.h>
 
 
-static kqt_Handle* handle = NULL;
+static kqt_Handle handle = 0;
 
 
 typedef enum
@@ -72,7 +72,7 @@ long mixing_rates[] =
 
 void check_unexpected_error()
 {
-    char* error_string = kqt_Handle_get_error(handle);
+    const char* error_string = kqt_Handle_get_error(handle);
     fail_unless(
             strcmp(error_string, "") == 0,
             "Unexpected error"
@@ -83,26 +83,26 @@ void check_unexpected_error()
 
 void setup_empty(void)
 {
-    assert(handle == NULL);
+    assert(handle == 0);
     handle = kqt_new_Handle();
-    fail_if(handle == NULL,
-            "Couldn't create handle:\n%s\n", kqt_Handle_get_error(NULL));
+    fail_if(handle == 0,
+            "Couldn't create handle:\n%s\n", kqt_Handle_get_error(0));
     return;
 }
 
 
 void handle_teardown(void)
 {
-    assert(handle != NULL);
+    assert(handle != 0);
     kqt_del_Handle(handle);
-    handle = NULL;
+    handle = 0;
     return;
 }
 
 
 void set_data(char* key, char* data)
 {
-    assert(handle != NULL);
+    assert(handle != 0);
     assert(key != NULL);
     assert(data != NULL);
 
@@ -113,7 +113,7 @@ void set_data(char* key, char* data)
 
 void validate(void)
 {
-    assert(handle != NULL);
+    assert(handle != 0);
 
     kqt_Handle_validate(handle);
     check_unexpected_error();
@@ -193,24 +193,24 @@ void check_buffers_equal(
 }
 
 
-void set_mixing_rate(long rate)
+void set_audio_rate(long rate)
 {
-    assert(handle != NULL);
+    assert(handle != 0);
     assert(rate > 0);
-    kqt_Handle_set_mixing_rate(handle, rate);
+    kqt_Handle_set_audio_rate(handle, rate);
     check_unexpected_error();
-    long actual_rate = kqt_Handle_get_mixing_rate(handle);
+    long actual_rate = kqt_Handle_get_audio_rate(handle);
     check_unexpected_error();
     fail_unless(
             actual_rate == rate,
-            "Wrong mixing rate"
+            "Wrong audio rate"
             KT_VALUES("%ld", rate, actual_rate));
 }
 
 
 void set_mix_volume(double vol)
 {
-    assert(handle != NULL);
+    assert(handle != 0);
 
     char comp_def[] = "{ \"mix_vol\": -384.00000000 }";
     snprintf(comp_def, strlen(comp_def) + 1, "{ \"mix_vol\": %.4f }", vol);
@@ -223,9 +223,9 @@ void set_mix_volume(double vol)
 
 void pause(void)
 {
-    assert(handle != NULL);
+    assert(handle != 0);
 
-    kqt_Handle_fire(handle, 0, "[\"Ipause\", null]");
+    kqt_Handle_fire_event(handle, 0, "[\"Ipause\", null]");
     check_unexpected_error();
 
     return;
@@ -254,26 +254,29 @@ int repeat_seq(float* dest, int times, int seq_len, const float* seq)
 
 long mix_and_fill(float* buf, long nframes)
 {
-    assert(handle != NULL);
+    assert(handle != 0);
     assert(buf != NULL);
     assert(nframes >= 0);
 
-    long mixed = kqt_Handle_mix(handle, nframes);
+    kqt_Handle_play(handle, nframes);
     check_unexpected_error();
-    const float* ret_buf = kqt_Handle_get_buffer(handle, 0);
+    const long frames_available = kqt_Handle_get_frames_available(handle);
+    const float* ret_buf = kqt_Handle_get_audio(handle, 0);
     check_unexpected_error();
-    memcpy(buf, ret_buf, mixed * sizeof(float));
+    memcpy(buf, ret_buf, frames_available * sizeof(float));
 
-    return mixed;
+    return frames_available;
 }
 
 
 void setup_debug_instrument(void)
 {
-    assert(handle != NULL);
+    assert(handle != 0);
 
     set_data("p_connections.json",
             "[ [\"ins_00/out_00\", \"out_00\"] ]");
+
+    set_data("p_ins_input.json", "[ [0, 0] ]");
 
     set_data("ins_00/p_manifest.json", "{}");
     set_data("ins_00/p_connections.json",
@@ -292,7 +295,7 @@ void setup_debug_instrument(void)
 
 void setup_debug_single_pulse(void)
 {
-    assert(handle != NULL);
+    assert(handle != 0);
 
     set_data("ins_00/gen_00/c/p_single_pulse.jsonb", "true");
 

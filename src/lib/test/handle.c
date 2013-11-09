@@ -33,7 +33,7 @@ END_TEST
 
 START_TEST(Initial_error_message_is_empty_string)
 {
-    assert(handle != NULL);
+    assert(handle != 0);
     check_unexpected_error();
 }
 END_TEST
@@ -41,7 +41,7 @@ END_TEST
 
 START_TEST(Empty_composition_has_zero_duration)
 {
-    assert(handle != NULL);
+    assert(handle != 0);
     long long dur = kqt_Handle_get_duration(handle, songs[_i]);
     check_unexpected_error();
     fail_unless(
@@ -52,10 +52,10 @@ START_TEST(Empty_composition_has_zero_duration)
 END_TEST
 
 
-START_TEST(Default_mixing_rate_is_correct)
+START_TEST(Default_audio_rate_is_correct)
 {
-    assert(handle != NULL);
-    long rate = kqt_Handle_get_mixing_rate(handle);
+    assert(handle != 0);
+    long rate = kqt_Handle_get_audio_rate(handle);
     check_unexpected_error();
     fail_unless(
             rate == mixing_rates[MIXING_RATE_DEFAULT],
@@ -65,9 +65,9 @@ START_TEST(Default_mixing_rate_is_correct)
 END_TEST
 
 
-START_TEST(Set_mixing_rate)
+START_TEST(Set_audio_rate)
 {
-    set_mixing_rate(mixing_rates[_i]);
+    set_audio_rate(mixing_rates[_i]);
 }
 END_TEST
 
@@ -91,9 +91,9 @@ Suite* Handle_suite(void)
     tcase_add_loop_test(
             tc_empty, Empty_composition_has_zero_duration,
             0, SONG_SELECTION_COUNT);
-    tcase_add_test(tc_empty, Default_mixing_rate_is_correct);
+    tcase_add_test(tc_empty, Default_audio_rate_is_correct);
     tcase_add_loop_test(
-            tc_empty, Set_mixing_rate,
+            tc_empty, Set_audio_rate,
             0, MIXING_RATE_COUNT);
 
     TCase* tc_render = tcase_create("render");
@@ -104,7 +104,7 @@ Suite* Handle_suite(void)
 
     tcase_add_test(tc_render, Do_nothing);
     tcase_add_loop_test(
-            tc_render, Set_mixing_rate,
+            tc_render, Set_audio_rate,
             0, MIXING_RATE_COUNT);
 
     return s;

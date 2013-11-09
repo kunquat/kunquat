@@ -83,7 +83,7 @@ bool Event_cache_add_event(Event_cache* cache, char* event_name)
 }
 
 
-void Event_cache_update(Event_cache* cache, char* event_name,
+void Event_cache_update(Event_cache* cache, const char* event_name,
                         Value* value)
 {
     assert(cache != NULL);

@@ -74,7 +74,7 @@ bool DSP_table_set_dsp(DSP_table* table, int index, DSP* dsp);
  *
  * \return   The DSP if found, otherwise \c NULL.
  */
-DSP* DSP_table_get_dsp(DSP_table* table, int index);
+DSP* DSP_table_get_dsp(const DSP_table* table, int index);
 
 
 /**

@@ -136,36 +136,17 @@ Column* new_Column(const Tstamp* len);
  * \param len              The length of the column. If this is \c NULL, the
  *                         length is set to INT64_MAX beats.
  * \param str              The textual description -- must not be \c NULL.
- * \param locations        Pattern location info -- must not be \c NULL.
- * \param locations_iter   The iterator for \a locations -- must not be
- *                         \c NULL.
  * \param event_names      The Event names -- must not be \c NULL.
  * \param state            The Read state -- must not be \c NULL.
  *
  * \return   The new Column if successful, otherwise \c NULL. \a state
  *           will _not_ be updated if memory allocation failed.
  */
-Column* new_Column_from_string(const Tstamp* len,
-                               char* str,
-                               AAtree* locations,
-                               AAiter* locations_iter,
-                               const Event_names* event_names,
-                               Read_state* state);
-
-
-/**
- * Updates location info in the Column.
- *
- * \param col              The Column -- must not be \c NULL.
- * \param locations        Pattern location info -- must not be \c NULL.
- * \param locations_iter   The iterator for \a locations -- must not be
- *                         \c NULL.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-bool Column_update_locations(Column* col,
-                             AAtree* locations,
-                             AAiter* locations_iter);
+Column* new_Column_from_string(
+        const Tstamp* len,
+        char* str,
+        const Event_names* event_names,
+        Read_state* state);
 
 
 /**

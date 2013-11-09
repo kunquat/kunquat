@@ -65,19 +65,6 @@ static void Module_update_tempo(
         double tempo);
 
 
-/**
- * Synchronises the Module.
- *
- * This function synchronises all the Devices the Module contains. It should be
- * called after loading a Kunquat composition.
- *
- * \param device   The Module Device -- must not be \c NULL.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-//static bool Module_sync(Device* device, Device_states* dstates);
-
-
 Module* new_Module()
 {
     Module* module = memory_alloc_item(Module);
@@ -95,12 +82,12 @@ Module* new_Module()
     Device_register_set_audio_rate(&module->parent, Module_set_audio_rate);
     Device_register_update_tempo(&module->parent, Module_update_tempo);
     Device_register_set_buffer_size(&module->parent, Module_set_buffer_size);
-    //Device_set_sync(&module->parent, Module_sync);
     Device_register_port(&module->parent, DEVICE_PORT_TYPE_RECEIVE, 0);
 
     // Clear fields
     module->songs = NULL;
     module->pats = NULL;
+    module->ins_map = NULL;
     module->insts = NULL;
     module->effects = NULL;
     module->connections = NULL;
@@ -403,6 +390,46 @@ Pat_table* Module_get_pats(Module* module)
 }
 
 
+Instrument* Module_get_ins_from_input(const Module* module, int32_t input)
+{
+    assert(module != NULL);
+    assert(input >= 0);
+
+    if (module->ins_map == NULL)
+        return NULL;
+
+    int32_t ins_index = Input_map_get_device_index(module->ins_map, input);
+    if (ins_index < 0)
+        return NULL;
+
+    assert(ins_index < KQT_INSTRUMENTS_MAX);
+    return Ins_table_get(module->insts, ins_index);
+}
+
+
+bool Module_set_ins_map(Module* module, Streader* sr)
+{
+    assert(module != NULL);
+    assert(sr != NULL);
+
+    Input_map* im = new_Input_map(sr, INT32_MAX, KQT_INSTRUMENTS_MAX);
+    if (im == NULL)
+        return false;
+
+    del_Input_map(module->ins_map);
+    module->ins_map = im;
+
+    return true;
+}
+
+
+Input_map* Module_get_ins_map(const Module* module)
+{
+    assert(module != NULL);
+    return module->ins_map;
+}
+
+
 Ins_table* Module_get_insts(const Module* module)
 {
     assert(module != NULL);
@@ -417,30 +444,15 @@ Effect_table* Module_get_effects(const Module* module)
 }
 
 
-bool Module_set_bind(Module* module, Bind* bind)
+void Module_set_bind(Module* module, Bind* bind)
 {
     assert(module != NULL);
     assert(bind != NULL);
 
-#if 0
-    Event_cache* caches[KQT_COLUMNS_MAX] = { NULL };
-    for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
-    {
-        caches[i] = Bind_create_cache(bind);
-        if (caches[i] == NULL)
-        {
-            for (int k = i - 1; k >= 0; --k)
-                del_Event_cache(caches[k]);
-            return false;
-        }
-    }
     del_Bind(module->bind);
-    module->bind = module->play_state->bind = module->skip_state->bind = bind;
-    for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
-        Channel_set_event_cache(module->channels[i], caches[i]);
-#endif
+    module->bind = bind;
 
-    return true;
+    return;
 }
 
 
@@ -639,35 +651,6 @@ static bool Module_set_buffer_size(
 }
 
 
-#if 0
-static bool Module_sync(Device* device, Device_states* dstates)
-{
-    assert(device != NULL);
-    assert(dstates != NULL);
-
-    Module* module = (Module*)device;
-
-    // Sync instruments
-    for (int i = 0; i < KQT_INSTRUMENTS_MAX; ++i)
-    {
-        Instrument* ins = Ins_table_get(module->insts, i);
-        if (ins != NULL && !Device_sync((Device*)ins, dstates))
-            return false;
-    }
-
-    // Sync effects
-    for (int i = 0; i < KQT_EFFECTS_MAX; ++i)
-    {
-        Effect* eff = Effect_table_get(module->effects, i);
-        if (eff != NULL && !Device_sync((Device*)eff, dstates))
-            return false;
-    }
-
-    return true;
-}
-#endif
-
-
 void del_Module(Module* module)
 {
     if (module == NULL)
@@ -678,6 +661,7 @@ void del_Module(Module* module)
     del_Pat_table(module->pats);
     del_Connections(module->connections);
     del_Ins_table(module->insts);
+    del_Input_map(module->ins_map);
     del_Effect_table(module->effects);
     del_Track_list(module->track_list);
 

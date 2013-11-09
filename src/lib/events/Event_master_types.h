@@ -36,7 +36,7 @@ EVENT_TYPE_DEF(shift_scale_intervals)
 EVENT_TYPE_DEF(set_jump_pat_inst)
 EVENT_TYPE_DEF(set_jump_row)
 EVENT_TYPE_DEF(set_jump_counter)
-// TODO: jump event
+EVENT_TYPE_DEF(jump)
 
 
 #undef EVENT_TYPE_DEF

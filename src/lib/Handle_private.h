@@ -18,29 +18,16 @@
 
 #include <stdbool.h>
 
+#include <Error.h>
 #include <kunquat/Handle.h>
 #include <kunquat/Player.h>
-
 #include <Module.h>
 #include <player/Player.h>
 
 
-#define KQT_HANDLE_ERROR_LENGTH (512)
-
 #define POSITION_LENGTH (64)
 
 #define DEFAULT_BUFFER_SIZE (2048)
-
-
-typedef enum
-{
-    ERROR_NONE = 0,
-    ERROR_ARGUMENT, // libkunquat function called with an invalid argument
-    ERROR_FORMAT,   // input file structure error
-    ERROR_MEMORY,   // out of memory
-    ERROR_RESOURCE, // resource (external lib or fs) failure
-    ERROR_LAST      // sentinel value
-} Error_type;
 
 
 typedef enum
@@ -50,20 +37,18 @@ typedef enum
 } Error_delay_type;
 
 
-struct kqt_Handle
+typedef struct Handle
 {
     bool data_is_valid;
     bool data_is_validated;
     Module* module;
-    int (*set_data)(kqt_Handle* handle, const char* key, void* data, long length);
-    void (*destroy)(struct kqt_Handle* handle);
-    char error[KQT_HANDLE_ERROR_LENGTH];
-    char validation_error[KQT_HANDLE_ERROR_LENGTH];
+    Error error;
+    Error validation_error;
     char position[POSITION_LENGTH];
 
     Player* player;
     Player* length_counter;
-};
+} Handle;
 
 
 /**
@@ -75,7 +60,7 @@ struct kqt_Handle
  * \return   \c true if successful. Otherwise, \c false is returned and Handle
  *           error is set to indicate the error.
  */
-bool kqt_Handle_init(kqt_Handle* handle, long buffer_size);
+bool Handle_init(Handle* handle, long buffer_size);
 
 
 /**
@@ -90,21 +75,42 @@ bool kqt_Handle_init(kqt_Handle* handle, long buffer_size);
  *                  the extra arguments correspond to the arguments of the
  *                  printf family of functions.
  */
-#define kqt_Handle_set_error(handle, type, ...) \
-    (kqt_Handle_set_error_((handle), (type), ERROR_IMMEDIATE, \
+#define Handle_set_error(handle, type, ...) \
+    (Handle_set_error_((handle), (type), ERROR_IMMEDIATE, \
                            __FILE__, __LINE__, __func__, __VA_ARGS__))
 
-#define kqt_Handle_set_validation_error(handle, type, ...) \
-    (kqt_Handle_set_error_((handle), (type), ERROR_VALIDATION, \
+#define Handle_set_validation_error(handle, type, ...) \
+    (Handle_set_error_((handle), (type), ERROR_VALIDATION, \
                            __FILE__, __LINE__, __func__, __VA_ARGS__))
 
-void kqt_Handle_set_error_(kqt_Handle* handle,
-                           Error_type type,
-                           Error_delay_type delay_type,
-                           const char* file,
-                           int line,
-                           const char* func,
-                           const char* message, ...);
+void Handle_set_error_(
+        Handle* handle,
+        Error_type type,
+        Error_delay_type delay_type,
+        const char* file,
+        int line,
+        const char* func,
+        const char* message, ...);
+
+
+/**
+ * Copies an error to a Kunquat Handle.
+ *
+ * \param handle   The Kunquat Handle, or \c NULL if not applicable.
+ * \param error    The Error -- must not be \c NULL and
+ *                 must have an error set.
+ */
+void Handle_set_error_from_Error(Handle* handle, const Error* error);
+
+
+/**
+ * Copies a validation error to a Kunquat Handle.
+ *
+ * \param handle   The Kunquat Handle -- must not be \c NULL.
+ * \param error    The Error -- must not be \c NULL and
+ *                 must have an error set.
+ */
+void Handle_set_validation_error_from_Error(Handle* handle, const Error* error);
 
 
 /**
@@ -112,18 +118,18 @@ void kqt_Handle_set_error_(kqt_Handle* handle,
  *
  * \param handle   The Kunquat Handle -- must not be \c NULL.
  */
-void kqt_Handle_stop(kqt_Handle* handle);
+void Handle_stop(Handle* handle);
 
 
 /**
  * Checks the validity of a Kunquat Handle.
  *
- * \param handle   The pointer of the supposed Kunquat Handle.
+ * \param handle   The ID of the supposed Kunquat Handle.
  *
  * \return   \c true if \a handle is a valid Kunquat Handle, otherwise
  *           \c false.
  */
-bool handle_is_valid(kqt_Handle* handle);
+bool kqt_Handle_is_valid(kqt_Handle handle);
 
 
 /**
@@ -134,48 +140,47 @@ bool handle_is_valid(kqt_Handle* handle);
  * \return   The number of buffers, or \c 0 if \a handle == \c NULL.
  *           \c 1 indicates monophonic audio and \c 2 indicates stereo audio.
  */
-int kqt_Handle_get_buffer_count(kqt_Handle* handle);
+int Handle_get_buffer_count(Handle* handle);
 
 
-#define check_handle(handle, ret)                                   \
-    if (true)                                                       \
-    {                                                               \
-        if (!handle_is_valid((handle)))                             \
-        {                                                           \
-            kqt_Handle_set_error(NULL, ERROR_ARGUMENT,              \
-                    "Invalid Kunquat Handle: %p", (void*)(handle)); \
-            return (ret);                                           \
-        }                                                           \
+#define check_handle(id, ret)                            \
+    if (true)                                            \
+    {                                                    \
+        if (!kqt_Handle_is_valid((id)))                  \
+        {                                                \
+            Handle_set_error(NULL, ERROR_ARGUMENT,       \
+                    "Invalid Kunquat Handle: %d", (id)); \
+            return (ret);                                \
+        }                                                \
     } else (void)0
 
-#define check_handle_void(handle)                                   \
-    if (true)                                                       \
-    {                                                               \
-        if (!handle_is_valid((handle)))                             \
-        {                                                           \
-            kqt_Handle_set_error(NULL, ERROR_ARGUMENT,              \
-                    "Invalid Kunquat Handle: %p", (void*)(handle)); \
-            return;                                                 \
-        }                                                           \
+#define check_handle_void(id)                            \
+    if (true)                                            \
+    {                                                    \
+        if (!kqt_Handle_is_valid((id)))                  \
+        {                                                \
+            Handle_set_error(NULL, ERROR_ARGUMENT,       \
+                    "Invalid Kunquat Handle: %d", (id)); \
+            return;                                      \
+        }                                                \
     } else (void)0
+
+
+Handle* get_handle(kqt_Handle id);
 
 
 #define check_data_is_valid(handle, ret) \
     if (true)                            \
     {                                    \
         if (!handle->data_is_valid)      \
-        {                                \
             return (ret);                \
-        }                                \
     } else (void)0
 
 #define check_data_is_valid_void(handle) \
     if (true)                            \
     {                                    \
         if (!handle->data_is_valid)      \
-        {                                \
             return;                      \
-        }                                \
     } else (void)0
 
 
@@ -184,7 +189,7 @@ int kqt_Handle_get_buffer_count(kqt_Handle* handle);
     {                                                                 \
         if (!handle->data_is_validated)                               \
         {                                                             \
-            kqt_Handle_set_error((handle), ERROR_ARGUMENT,            \
+            Handle_set_error((handle), ERROR_ARGUMENT,                \
                     "Data is not validated (call kqt_Handle_validate" \
                     " before calling this function)");                \
             return (ret);                                             \
@@ -196,7 +201,7 @@ int kqt_Handle_get_buffer_count(kqt_Handle* handle);
     {                                                                 \
         if (!handle->data_is_validated)                               \
         {                                                             \
-            kqt_Handle_set_error((handle), ERROR_ARGUMENT,            \
+            Handle_set_error((handle), ERROR_ARGUMENT,                \
                     "Data is not validated (call kqt_Handle_validate" \
                     " before calling this function)");                \
             return;                                                   \
@@ -204,7 +209,7 @@ int kqt_Handle_get_buffer_count(kqt_Handle* handle);
     } else (void)0
 
 
-bool key_is_valid(kqt_Handle* handle, const char* key);
+bool key_is_valid(Handle* handle, const char* key);
 
 
 #define check_key(handle, key, ret)         \
@@ -212,9 +217,7 @@ bool key_is_valid(kqt_Handle* handle, const char* key);
     {                                       \
         assert((handle) != NULL);           \
         if (!key_is_valid((handle), (key))) \
-        {                                   \
             return (ret);                   \
-        }                                   \
     }                                       \
     else (void)0
 
@@ -226,7 +229,7 @@ bool key_is_valid(kqt_Handle* handle, const char* key);
  *
  * \return   The Module.
  */
-Module* Handle_get_module(kqt_Handle* handle);
+Module* Handle_get_module(Handle* handle);
 
 
 #endif // KQT_HANDLE_PRIVATE_H

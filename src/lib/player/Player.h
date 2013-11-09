@@ -24,6 +24,7 @@
 #include <kunquat/limits.h>
 #include <Module.h>
 #include <player/Event_handler.h>
+#include <Streader.h>
 
 
 #define DEFAULT_AUDIO_RATE 48000
@@ -96,6 +97,26 @@ bool Player_alloc_channel_gen_state_keys(
         Player* player,
         char* str,
         Read_state* rs);
+
+
+/**
+ * Refreshes environment state.
+ *
+ * \param player   The Player -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Player_refresh_env_state(Player* player);
+
+
+/**
+ * Refreshes bind state.
+ *
+ * \param player   The Player -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Player_refresh_bind_state(Player* player);
 
 
 /**
@@ -226,15 +247,14 @@ bool Player_has_stopped(const Player* player);
 /**
  * Fires an event.
  *
- * \param player       The Player -- must not be \c NULL.
- * \param ch           The channel number -- must be >= \c 0 and
- *                     < \c KQT_CHANNELS_MAX.
- * \param event_desc   The event description -- must not be \c NULL.
- * \param rs           The Read state -- must not be \c NULL.
+ * \param player         The Player -- must not be \c NULL.
+ * \param ch             The channel number -- must be >= \c 0 and
+ *                       < \c KQT_CHANNELS_MAX.
+ * \param event_reader   The event reader -- must not be \c NULL.
  *
- * \return   \c true if successful, or \c false if \a event_desc was invalid.
+ * \return   \c true if successful, or \c false if the event was invalid.
  */
-bool Player_fire(Player* player, int ch, char* event_desc, Read_state* rs);
+bool Player_fire(Player* player, int ch, Streader* event_reader);
 
 
 /**

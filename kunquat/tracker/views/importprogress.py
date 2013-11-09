@@ -27,8 +27,9 @@ class ImportProgress(QProgressBar):
         self.setMinimum(0)
 
     def set_ui_model(self, ui_model):
+        updater = ui_model.get_updater()
+        updater.register_updater(self.perform_updates)
         self._stat_manager = ui_model.get_stat_manager()
-        self._stat_manager.register_updater(self.update_import_progress)
 
     def update_import_progress(self):
         position = self._stat_manager.get_import_progress_position()
@@ -36,3 +37,5 @@ class ImportProgress(QProgressBar):
         self.setMaximum(steps)
         self.setValue(position)
 
+    def perform_updates(self, signals):
+        self.update_import_progress()

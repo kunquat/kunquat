@@ -26,6 +26,7 @@
 #include <Effect_table.h>
 #include <File_base.h>
 #include <frame.h>
+#include <Input_map.h>
 #include <Ins_table.h>
 #include <kunquat/limits.h>
 #include <Order_list.h>
@@ -46,6 +47,7 @@ struct Module
     Track_list* track_list;             ///< Track list.
     Order_list* order_lists[KQT_SONGS_MAX]; ///< Order lists.
     Pat_table* pats;                    ///< The Patterns.
+    Input_map* ins_map;                 ///< Instrument input map.
     Ins_table* insts;                   ///< The Instruments.
     Effect_table* effects;              ///< The global Effects.
     Connections* connections;           ///< Device connections.
@@ -195,6 +197,37 @@ Pat_table* Module_get_pats(Module* module);
 
 
 /**
+ * Gets the Instrument corresponding to an input index.
+ *
+ * \param module   The Module -- must not be \c NULL.
+ *
+ * \return   The Instrument.
+ */
+Instrument* Module_get_ins_from_input(const Module* module, int32_t input);
+
+
+/**
+ * Sets the Instrument input map of the Module.
+ *
+ * \param module   The Module -- must not be \c NULL.
+ * \param sr       The Streader of the input data -- must not be \c NULL.
+ *
+ * \return   \c true if successful, otherwise \c false.
+ */
+bool Module_set_ins_map(Module* module, Streader* sr);
+
+
+/**
+ * Gets the Instrument input map of the Module.
+ *
+ * \param module   The Module -- must not be \c NULL.
+ *
+ * \return   The Instrument input map.
+ */
+Input_map* Module_get_ins_map(const Module* module);
+
+
+/**
  * Gets the Instruments of the Module.
  *
  * \param module   The Module -- must not be \c NULL.
@@ -219,10 +252,8 @@ Effect_table* Module_get_effects(const Module* module);
  *
  * \param module   The Module -- must not be \c NULL.
  * \param bind     The Bind -- must not be \c NULL.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Module_set_bind(Module* module, Bind* bind);
+void Module_set_bind(Module* module, Bind* bind);
 
 
 /**

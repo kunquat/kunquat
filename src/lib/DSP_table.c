@@ -88,7 +88,7 @@ bool DSP_table_set_dsp(DSP_table* table, int index, DSP* dsp)
 }
 
 
-DSP* DSP_table_get_dsp(DSP_table* table, int index)
+DSP* DSP_table_get_dsp(const DSP_table* table, int index)
 {
     assert(table != NULL);
     assert(index >= 0);

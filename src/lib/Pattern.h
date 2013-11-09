@@ -107,34 +107,6 @@ Column* Pattern_get_column(const Pattern* pat, int index);
 
 
 /**
- * Sets a location where the Pattern is stored.
- *
- * This function must be called whenever the Pattern is placed in a new
- * location. Calling it with old locations does (successfully) nothing.
- *
- * \param pat     The Pattern -- must not be \c NULL.
- * \param song    The song number -- must be >= \c 0 and
- *                < \c KQT_SONGS_MAX.
- * \param piref   The Pattern instance reference -- must be valid.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-bool Pattern_set_location(Pattern* pat, int subsong, Pat_inst_ref* piref);
-
-
-/**
- * Gets the locations where the Pattern is potentially stored.
- *
- * \param pat    The Pattern -- must not be \c NULL.
- * \param iter   The location where the iterator will be stored --
- *               must not be \c NULL.
- *
- * \return   The tree of potential locations.
- */
-AAtree* Pattern_get_locations(Pattern* pat, AAiter** iter);
-
-
-/**
  * Sets the length of the Pattern.
  *
  * No Events will be deleted if the new length is shorter than the old length.

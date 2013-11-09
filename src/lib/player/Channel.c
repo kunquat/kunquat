@@ -24,54 +24,24 @@
 #include <xassert.h>
 
 
-Channel* new_Channel(
+static bool Channel_init(
+        Channel* ch,
         int num,
-        Ins_table* insts,
-        Environment* env,
-        Voice_pool* voices,
-        double* tempo,
-        int32_t* audio_rate)
-{
-    assert(num >= 0);
-    assert(num < KQT_CHANNELS_MAX);
-    assert(insts != NULL);
-    assert(env != NULL);
-    assert(voices != NULL);
-    assert(tempo != NULL);
-    assert(audio_rate != NULL);
-
-    Channel* ch = memory_alloc_item(Channel);
-    if (ch == NULL)
-        return NULL;
-
-    if (!Channel_init(ch, num, env))
-    {
-        memory_free(ch);
-        return NULL;
-    }
-
-    ch->insts = insts;
-    ch->pool = voices;
-    ch->tempo = tempo;
-    ch->freq = audio_rate;
-
-    return ch;
-}
-
-
-bool Channel_init(Channel* ch, int num, Environment* env)
+        Env_state* estate,
+        const Module* module)
 {
     assert(ch != NULL);
     assert(num >= 0);
     assert(num < KQT_COLUMNS_MAX);
-    assert(env != NULL);
+    assert(estate != NULL);
+    assert(module != NULL);
 
     General_state_preinit(&ch->parent);
 
     ch->cgstate = new_Channel_gen_state();
     ch->rand = new_Random();
     if (ch->cgstate == NULL || ch->rand == NULL ||
-            !General_state_init(&ch->parent, false, env))
+            !General_state_init(&ch->parent, false, estate, module))
     {
         del_Channel_gen_state(ch->cgstate);
         del_Random(ch->rand);
@@ -87,6 +57,42 @@ bool Channel_init(Channel* ch, int num, Environment* env)
     Channel_reset(ch);
 
     return true;
+}
+
+
+Channel* new_Channel(
+        const Module* module,
+        int num,
+        Ins_table* insts,
+        Env_state* estate,
+        Voice_pool* voices,
+        double* tempo,
+        int32_t* audio_rate)
+{
+    assert(num >= 0);
+    assert(num < KQT_CHANNELS_MAX);
+    assert(insts != NULL);
+    assert(estate != NULL);
+    assert(voices != NULL);
+    assert(tempo != NULL);
+    assert(audio_rate != NULL);
+
+    Channel* ch = memory_alloc_item(Channel);
+    if (ch == NULL)
+        return NULL;
+
+    if (!Channel_init(ch, num, estate, module))
+    {
+        memory_free(ch);
+        return NULL;
+    }
+
+    ch->insts = insts;
+    ch->pool = voices;
+    ch->tempo = tempo;
+    ch->freq = audio_rate;
+
+    return ch;
 }
 
 
@@ -125,7 +131,7 @@ void Channel_reset(Channel* ch)
     }
     ch->fg_count = 0;
 
-    ch->instrument = 0;
+    ch->ins_input = 0;
     ch->generator = 0;
     ch->effect = 0;
     ch->inst_effects = false;

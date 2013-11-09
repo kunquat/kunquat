@@ -123,6 +123,7 @@ int16_t Track_list_get_song_index(const Track_list* tl, size_t index)
 
     int16_t song_index = -1;
     Vector_get(tl->songs, index, &song_index);
+
     assert(song_index >= 0);
     return song_index;
 }
@@ -139,6 +140,7 @@ int16_t Track_list_get_track_by_song(const Track_list* tl, int16_t song_index)
         if (*cur_index == song_index)
             return (int16_t)i;
     }
+
     return -1;
 }
 
@@ -150,6 +152,7 @@ void del_Track_list(Track_list* tl)
 
     del_Vector(tl->songs);
     memory_free(tl);
+
     return;
 }
 

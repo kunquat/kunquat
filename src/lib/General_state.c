@@ -23,8 +23,9 @@ General_state* General_state_preinit(General_state* state)
 {
     assert(state != NULL);
 
-    state->env = NULL;
+    state->estate = NULL;
     state->active_names = NULL;
+    state->module = NULL;
 
     return state;
 }
@@ -33,19 +34,24 @@ General_state* General_state_preinit(General_state* state)
 General_state* General_state_init(
         General_state* state,
         bool global,
-        Environment* env)
+        Env_state* estate,
+        const Module* module)
 {
     assert(state != NULL);
     assert(state->active_names == NULL);
-    assert(env != NULL);
+    assert(estate != NULL);
+    assert(module != NULL);
+
     state->global = global;
-    state->env = env;
+    state->estate = estate;
     state->active_names = new_Active_names();
     if (state->active_names == NULL)
-    {
         return NULL;
-    }
+
+    state->module = module;
+
     General_state_reset(state);
+
     return state;
 }
 
@@ -71,27 +77,33 @@ bool General_state_events_enabled(General_state* state)
 void General_state_reset(General_state* state)
 {
     assert(state != NULL);
+
     state->pause = false;
     state->cond_level_index = -1;
     state->last_cond_match = -1;
+
     for (int i = 0; i < COND_LEVELS_MAX; ++i)
     {
         state->cond_levels[i].cond_for_exec = false;
         state->cond_levels[i].evaluated_cond = true;
     }
+
 #if 0
     state->cond_exec_enabled = false;
     state->cond_for_exec = false;
     state->evaluated_cond = false;
 #endif
+
     if (state->global)
     {
         // All states contain the same environment
         // and all states should be reset together,
-        // so let's reset the environment only once.
-        Environment_reset(state->env);
+        // so let's reset the environment state only once.
+        Env_state_reset(state->estate);
     }
+
     Active_names_reset(state->active_names);
+
     return;
 }
 
@@ -99,8 +111,10 @@ void General_state_reset(General_state* state)
 void General_state_deinit(General_state* state)
 {
     assert(state != NULL);
+
     del_Active_names(state->active_names);
     state->active_names = NULL;
+
     return;
 }
 

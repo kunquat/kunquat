@@ -18,6 +18,7 @@
 
 #include <stdlib.h>
 
+#include <AAtree.h>
 #include <Env_var.h>
 #include <File_base.h>
 
@@ -26,6 +27,39 @@
  * A collection of externally modifiable state information.
  */
 typedef struct Environment Environment;
+
+
+typedef struct Environment_iter
+{
+    AAiter iter;
+    const char* next;
+} Environment_iter;
+
+
+#define ENVIRONMENT_ITER_AUTO (&(Environment_iter){ { .tree = NULL }, NULL })
+
+
+/**
+ * Initialises an Environment iterator.
+ *
+ * \param iter   The Environment iterator -- must not be \c NULL.
+ * \param env    The Environment -- must not be \c NULL.
+ *
+ * \return   The parameter \a iter.
+ */
+Environment_iter* Environment_iter_init(
+        Environment_iter* iter,
+        const Environment* env);
+
+
+/**
+ * Gets the next Environment variable name from the iterator.
+ *
+ * \param iter   The Environment iterator -- must not be \c NULL.
+ *
+ * \return   The next name, or \c NULL if reached the end of the environment.
+ */
+const char* Environment_iter_get_next_name(Environment_iter* iter);
 
 
 /**
@@ -51,14 +85,6 @@ bool Environment_parse(Environment* env, char* str, Read_state* state);
 
 
 /**
- * Resets the Environment.
- *
- * \param env   The Environment -- must not be \c NULL.
- */
-void Environment_reset(Environment* env);
-
-
-/**
  * Gets a variable from the Environment.
  *
  * \param env    The Environment -- must not be \c NULL.
@@ -66,7 +92,7 @@ void Environment_reset(Environment* env);
  *
  * \return   The variable if found, otherwise \c NULL.
  */
-Env_var* Environment_get(Environment* env, char* name);
+const Env_var* Environment_get(const Environment* env, const char* name);
 
 
 /**

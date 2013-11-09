@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2013
  *
  * This file is part of Kunquat.
  *
@@ -25,8 +25,8 @@
 static void add_length(unsigned char* p, uint64_t len);
 
 static void prepare_X(uint32_t* X, unsigned char* p);
-static void md5_rounds(uint32_t* X, uint32_t* aa, uint32_t* bb,
-                       uint32_t* cc, uint32_t* dd);
+static void md5_rounds(
+        uint32_t* X, uint32_t* aa, uint32_t* bb, uint32_t* cc, uint32_t* dd);
 static uint32_t F(uint32_t x, uint32_t y, uint32_t z);
 static uint32_t G(uint32_t x, uint32_t y, uint32_t z);
 static uint32_t H(uint32_t x, uint32_t y, uint32_t z);
@@ -69,7 +69,9 @@ void md5_str(char* str, uint64_t* lower, uint64_t* upper)
     assert(str != NULL);
     assert(lower != NULL);
     assert(upper != NULL);
+
     md5(str, strlen(str), lower, upper, true);
+
     return;
 }
 
@@ -81,21 +83,31 @@ void md5(char* seq, int len, uint64_t* lower, uint64_t* upper,
     assert(len >= 0);
     assert(lower != NULL);
     assert(upper != NULL);
+
     uint64_t a = 0x67452301ULL;
     uint64_t b = 0xefcdab89ULL;
     uint64_t c = 0x98badcfeULL;
     uint64_t d = 0x10325476ULL;
     uint64_t lower_init = a | (b << 32);
     uint64_t upper_init = c | (d << 32);
-    md5_with_state(seq, len, lower, upper, lower_init, upper_init,
-                   complete, 0);
+
+    md5_with_state(
+            seq, len,
+            lower, upper,
+            lower_init, upper_init,
+            complete,
+            0);
+
     return;
 }
 
 
-void md5_with_state(char* seq, int len, uint64_t* lower, uint64_t* upper,
-                    uint64_t lower_init, uint64_t upper_init,
-                    bool last, int prev_len)
+void md5_with_state(
+        char* seq, int len,
+        uint64_t* lower, uint64_t* upper,
+        uint64_t lower_init, uint64_t upper_init,
+        bool last,
+        int prev_len)
 {
     assert(seq != NULL);
     assert(len >= 0);
@@ -103,6 +115,7 @@ void md5_with_state(char* seq, int len, uint64_t* lower, uint64_t* upper,
     assert(upper != NULL);
     assert(last || len % 64 == 0);
     assert(prev_len >= 0);
+
     int cur_len = len;
     len += prev_len;
     uint32_t a = lower_init;
@@ -111,26 +124,26 @@ void md5_with_state(char* seq, int len, uint64_t* lower, uint64_t* upper,
     uint32_t d = upper_init >> 32;
     unsigned char padded[CHUNK_BYTES] = { 0 };
     uint32_t X[16] = { 0 };
+
     for (; cur_len >= 0; cur_len -= CHUNK_BYTES, seq += CHUNK_BYTES)
     {
         unsigned char* p = (unsigned char*)seq;
         if (cur_len < CHUNK_BYTES)
         {
             if (!last && cur_len == 0)
-            {
                 break;
-            }
+
             memcpy((char*)padded, seq, cur_len);
             p = padded;
             p[cur_len] = 0x80;
             if (cur_len < LENGTH_POS)
-            {
                 add_length(p + LENGTH_POS, len);
-            }
         }
+
         prepare_X(X, p);
         md5_rounds(X, &a, &b, &c, &d);
     }
+
     if (last && cur_len >= LENGTH_POS - CHUNK_BYTES)
     {
         memset((char*)padded, 0, CHUNK_BYTES);
@@ -138,8 +151,10 @@ void md5_with_state(char* seq, int len, uint64_t* lower, uint64_t* upper,
         prepare_X(X, padded);
         md5_rounds(X, &a, &b, &c, &d);
     }
+
     *lower = a | ((uint64_t)b << 32);
     *upper = c | ((uint64_t)d << 32);
+
     return;
 }
 
@@ -148,6 +163,7 @@ static void prepare_X(uint32_t* X, unsigned char* p)
 {
     assert(X != NULL);
     assert(p != NULL);
+
     for (int i = 0; i < 16; ++i)
     {
         X[i] = *p++;
@@ -155,18 +171,20 @@ static void prepare_X(uint32_t* X, unsigned char* p)
         X[i] |= (uint32_t)*p++ << 16;
         X[i] |= (uint32_t)*p++ << 24;
     }
+
     return;
 }
 
 
-static void md5_rounds(uint32_t* X, uint32_t* aa, uint32_t* bb,
-                       uint32_t* cc, uint32_t* dd)
+static void md5_rounds(
+        uint32_t* X, uint32_t* aa, uint32_t* bb, uint32_t* cc, uint32_t* dd)
 {
     assert(X != NULL);
     assert(aa != NULL);
     assert(bb != NULL);
     assert(cc != NULL);
     assert(dd != NULL);
+
     uint32_t a = *aa;
     uint32_t b = *bb;
     uint32_t c = *cc;
@@ -214,6 +232,7 @@ static void md5_rounds(uint32_t* X, uint32_t* aa, uint32_t* bb,
     *bb += b;
     *cc += c;
     *dd += d;
+
     return;
 }
 
@@ -221,12 +240,14 @@ static void md5_rounds(uint32_t* X, uint32_t* aa, uint32_t* bb,
 static void add_length(unsigned char* p, uint64_t len)
 {
     assert(p != NULL);
+
     len *= 8;
     for (int i = 0; i < 8; ++i)
     {
         p[i] = len & 0xFF;
         len >>= 8;
     }
+
     return;
 }
 
@@ -259,6 +280,7 @@ static uint32_t left_rotate(uint32_t value, int steps)
 {
     assert(steps > 0);
     assert(steps < 32);
+
     return (value << steps) | (value >> (32 - steps));
 }
 

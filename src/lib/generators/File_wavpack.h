@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -23,10 +23,11 @@
 #include <File_base.h>
 
 
-bool Sample_parse_wavpack(Sample* sample,
-                          void* data,
-                          long length,
-                          Read_state* state);
+bool Sample_parse_wavpack(
+        Sample* sample,
+        const void* data,
+        long length,
+        Read_state* state);
 
 
 #endif // K_FILE_WAVPACK_H

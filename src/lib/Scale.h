@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -212,9 +212,7 @@ double Scale_get_octave_ratio_cents(Scale* scale);
  * \return   The index that was actually set, or \c -1 if memory allocation
  *           failed. The index is never larger than \a index.
  */
-int Scale_ins_note(Scale* scale,
-                   int index,
-                   Real* ratio);
+int Scale_ins_note(Scale* scale, int index, Real* ratio);
 
 
 /**
@@ -230,9 +228,7 @@ int Scale_ins_note(Scale* scale,
  * \return   The index that was actually set, or \c -1 if memory allocation
  *           failed. The index is never larger than \a index.
  */
-int Scale_ins_note_cents(Scale* scale,
-                         int index,
-                         double cents);
+int Scale_ins_note_cents(Scale* scale, int index, double cents);
 
 
 /**
@@ -296,9 +292,7 @@ double Scale_get_cur_note_cents(Scale* scale, int index);
  *
  * \return   The pitch if the note exists, otherwise a negative value.
  */
-pitch_t Scale_get_pitch(Scale* scale,
-                        int index,
-                        int octave);
+pitch_t Scale_get_pitch(Scale* scale, int index, int octave);
 
 
 /**

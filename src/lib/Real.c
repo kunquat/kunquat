@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -73,9 +73,11 @@ Real* Real_init_as_frac(Real* real, int64_t numerator, int64_t denominator)
 {
     assert(real != NULL);
     assert(denominator > 0);
+
     real->is_frac = 1;
     real->fod.frac.numerator = numerator;
     real->fod.frac.denominator = denominator;
+
     return Real_normalise(real);
 }
 
@@ -83,8 +85,10 @@ Real* Real_init_as_frac(Real* real, int64_t numerator, int64_t denominator)
 Real* Real_init_as_double(Real* real, double val)
 {
     assert(real != NULL);
+
     real->is_frac = 0;
     real->fod.doub = val;
+
     return real;
 }
 
@@ -99,10 +103,10 @@ bool Real_is_frac(Real* real)
 int64_t Real_get_numerator(Real* real)
 {
     Real_validate(real);
+
     if (!real->is_frac)
-    {
         return (int64_t)real->fod.doub;
-    }
+
     return real->fod.frac.numerator;
 }
 
@@ -110,10 +114,10 @@ int64_t Real_get_numerator(Real* real)
 int64_t Real_get_denominator(Real* real)
 {
     Real_validate(real);
+
     if (!real->is_frac)
-    {
         return 1;
-    }
+
     return real->fod.frac.denominator;
 }
 
@@ -121,11 +125,11 @@ int64_t Real_get_denominator(Real* real)
 double Real_get_double(Real* real)
 {
     Real_validate(real);
+
     if (real->is_frac)
-    {
         return (double)real->fod.frac.numerator
                 / (double)real->fod.frac.denominator;
-    }
+
     return real->fod.doub;
 }
 
@@ -134,17 +138,22 @@ Real* Real_copy(Real* dest, Real* src)
 {
     assert(dest != NULL);
     Real_validate(src);
+
     if (src->is_frac)
     {
         dest->is_frac = 1;
         dest->fod.frac.numerator = src->fod.frac.numerator;
         dest->fod.frac.denominator = src->fod.frac.denominator;
+
         Real_validate(dest);
+
         return dest;
     }
+
     dest->is_frac = 0;
     dest->fod.doub = src->fod.doub;
     Real_validate(dest);
+
     return dest;
 }
 
@@ -154,6 +163,7 @@ Real* Real_mul(Real* ret, Real* real1, Real* real2)
     assert(ret != NULL);
     Real_validate(real1);
     Real_validate(real2);
+
     if (real1->is_frac && real2->is_frac)
     {
         int64_t num = 0;
@@ -169,7 +179,10 @@ Real* Real_mul(Real* ret, Real* real1, Real* real2)
             return Real_normalise(ret);
         }
     }
-    return Real_init_as_double(ret, Real_get_double(real1) * Real_get_double(real2));
+
+    return Real_init_as_double(
+            ret,
+            Real_get_double(real1) * Real_get_double(real2));
 }
 
 
@@ -178,6 +191,7 @@ Real* Real_div(Real* ret, Real* dividend, Real* divisor)
     assert(ret != NULL);
     Real_validate(dividend);
     Real_validate(divisor);
+
     if (dividend->is_frac && divisor->is_frac)
     {
         assert(divisor->fod.frac.numerator != 0);
@@ -193,14 +207,19 @@ Real* Real_div(Real* ret, Real* dividend, Real* divisor)
                 num = -num;
                 den = -den;
             }
+
             ret->is_frac = 1;
             ret->fod.frac.numerator = num;
             ret->fod.frac.denominator = den;
+
             return Real_normalise(ret);
         }
     }
+
     assert(Real_get_double(divisor) != 0);
-    return Real_init_as_double(ret, Real_get_double(dividend) / Real_get_double(divisor));
+    return Real_init_as_double(
+            ret,
+            Real_get_double(dividend) / Real_get_double(divisor));
 }
 
 
@@ -215,16 +234,17 @@ int Real_cmp(Real* real1, Real* real2)
 {
     Real_validate(real1);
     Real_validate(real2);
+
     if (real1->is_frac && real2->is_frac)
     {
         int64_t num1 = real1->fod.frac.numerator;
         int64_t den1 = real1->fod.frac.denominator;
         int64_t num2 = real2->fod.frac.numerator;
         int64_t den2 = real2->fod.frac.denominator;
+
         if (num1 == num2 && den1 == den2)
-        {
             return 0;
-        }
+
         int64_t term1 = 0;
         int64_t term2 = 0;
         if (safe_mul(num1, den2, &term1)
@@ -237,16 +257,13 @@ int Real_cmp(Real* real1, Real* real2)
             return 0;
         }
     }
+
     double val1 = Real_get_double(real1);
     double val2 = Real_get_double(real2);
     if (val1 < val2)
-    {
         return -1;
-    }
     else if (val1 > val2)
-    {
         return 1;
-    }
     return 0;
 }
 
@@ -254,10 +271,10 @@ int Real_cmp(Real* real1, Real* real2)
 Real* Real_normalise(Real* real)
 {
     Real_validate(real);
+
     if (!real->is_frac)
-    {
         return real;
-    }
+
     if (real->fod.frac.numerator == INT64_MIN)
     {
         // get rid of INT64_MIN for imaxabs()
@@ -267,6 +284,7 @@ Real* Real_normalise(Real* real)
             // if INT_LEAST64_MIN is used.
             return real;
         }
+
         if ((real->fod.frac.denominator & 1) == 0)
         {
             real->fod.frac.numerator = INT64_MIN / 2;
@@ -280,6 +298,7 @@ Real* Real_normalise(Real* real)
             return real;
         }
     }
+
     int k = 0;
     int64_t num = imaxabs(real->fod.frac.numerator);
     int64_t den = real->fod.frac.denominator;
@@ -288,12 +307,14 @@ Real* Real_normalise(Real* real)
         real->fod.frac.denominator = 1;
         return real;
     }
+
     while ((num & 1) == 0 && (den & 1) == 0)
     {
         num >>= 1;
         den >>= 1;
         ++k;
     }
+
     do
     {
         if ((den & 1) == 0)
@@ -305,11 +326,13 @@ Real* Real_normalise(Real* real)
         else
             num = (num - den) >> 1;
     } while (den > 0);
+
     assert(num > 0);
     num <<= k;
     real->fod.frac.numerator /= num;
     real->fod.frac.denominator /= num;
     Real_validate(real);
+
     return real;
 }
 
@@ -318,23 +341,19 @@ Real* Real_normalise(Real* real)
 bool Real_validate_(Real* real)
 {
     if (real == NULL)
-    {
         return false;
-    }
+
     if (real->is_frac)
     {
         if (real->fod.frac.denominator <= 0)
-        {
             return false;
-        }
     }
     else
     {
         if (isnan(real->fod.doub))
-        {
             return false;
-        }
     }
+
     return true;
 }
 #endif
@@ -344,47 +363,46 @@ bool Real_validate_(Real* real)
 static bool safe_mul(int64_t a, int64_t b, int64_t* res)
 {
     assert(res != NULL);
+
     bool negative = false;
-    if ((a == INT64_MIN || b == INT64_MIN)
-            && a != 0 && b != 0
-            && INT64_MIN < -INT64_MAX)
-    {
+    if ((a == INT64_MIN || b == INT64_MIN) &&
+            a != 0 &&
+            b != 0 &&
+            INT64_MIN < -INT64_MAX)
         return false;
-    }
+
     if (a < 0)
     {
         a = -a;
         negative = !negative;
     }
+
     if (b < 0)
     {
         b = -b;
         negative = !negative;
     }
+
     uint64_t ahi = (uint64_t)a >> 32;
     uint64_t bhi = (uint64_t)b >> 32;
     if (ahi != 0 && bhi != 0)
-    {
         return false;
-    }
+
     uint64_t alo = a & 0xffffffffULL;
     uint64_t blo = b & 0xffffffffULL;
     uint64_t hi = (ahi * blo) + (alo * bhi);
     if (hi > 0x7fffffffULL)
-    {
         return false;
-    }
+
     hi <<= 32;
     uint64_t lo = alo * blo;
     if (UINT64_MAX - lo < hi || INT64_MAX < hi + lo)
-    {
         return false;
-    }
+
     *res = hi + lo;
     if (negative)
-    {
         *res = -*res;
-    }
+
     return true;
 }
 

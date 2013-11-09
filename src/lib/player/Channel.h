@@ -19,11 +19,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <Environment.h>
 #include <Event_cache.h>
 #include <General_state.h>
 #include <kunquat/limits.h>
 #include <player/Channel_gen_state.h>
+#include <player/Env_state.h>
 #include <player/LFO.h>
 #include <player/Voice_pool.h>
 #include <Random.h>
@@ -48,7 +48,7 @@ typedef struct Channel
     uint64_t fg_id[KQT_GENERATORS_MAX]; ///< Voice reservation IDs.
     int fg_count;
 
-    int instrument;                ///< Currently active Instrument.
+    int32_t ins_input;             ///< Currently active Instrument input.
     int generator;                 ///< Currently active Generator.
     int effect;                    ///< Currently active Effect.
     bool inst_effects;             ///< Instrument effect control enabled.
@@ -93,10 +93,11 @@ typedef struct Channel
 /**
  * Creates a new Channel.
  *
+ * \param module   The Module -- must not be \c NULL.
  * \param num      The Channel number -- must be >= \c 0 and
  *                 < \c KQT_CHANNELS_MAX.
  * \param insts    The instrument table -- must not be \c NULL.
- * \param env      The Environment -- must not be \c NULL.
+ * \param estate   The Environment state -- must not be \c NULL.
  * \param voices   The Voice pool -- must not be \c NULL.
  * \param tempo    A reference to the current tempo -- must not be \c NULL.
  * \param rate     A reference to the current audio rate -- must not be \c NULL.
@@ -105,25 +106,13 @@ typedef struct Channel
  *           allocation failed.
  */
 Channel* new_Channel(
+        const Module* module,
         int num,
         Ins_table* insts,
-        Environment* env,
+        Env_state* estate,
         Voice_pool* voices,
         double* tempo,
         int32_t* audio_rate);
-
-
-/**
- * Initialises the Channel with default values.
- *
- * \param ch    The Channel -- must not be \c NULL.
- * \param num   The Channel number -- must be >= \c 0 and
- *              < \c KQT_COLUMNS_MAX.
- * \param env   The Environment -- must not be \c NULL.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-bool Channel_init(Channel* ch, int num, Environment* env);
 
 
 /**

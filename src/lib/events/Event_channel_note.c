@@ -19,7 +19,9 @@
 
 #include <Event_channel_decl.h>
 #include <Event_common.h>
+#include <Input_map.h>
 #include <kunquat/limits.h>
+#include <Module.h>
 #include <note_setup.h>
 #include <player/Voice.h>
 #include <Random.h>
@@ -47,9 +49,11 @@ bool Event_channel_note_on_process(
     Event_channel_note_off_process(ch, dstates, NULL);
 
     ch->fg_count = 0;
-    assert(ch->instrument >= 0);
-    assert(ch->instrument < KQT_INSTRUMENTS_MAX);
-    Instrument* ins = Ins_table_get(ch->insts, ch->instrument);
+
+    // Find our instrument
+    Instrument* ins = Module_get_ins_from_input(
+            ch->parent.module,
+            ch->ins_input);
     if (ins == NULL)
         return true;
 
@@ -126,11 +130,11 @@ bool Event_channel_hit_process(
     Event_channel_note_off_process(ch, dstates, NULL);
 
     ch->fg_count = 0;
-    assert(ch->instrument >= 0);
-    assert(ch->instrument < KQT_INSTRUMENTS_MAX);
-    Instrument* ins = Ins_table_get(
-            ch->insts,
-            ch->instrument);
+
+    // Find our instrument
+    Instrument* ins = Module_get_ins_from_input(
+            ch->parent.module,
+            ch->ins_input);
     if (ins == NULL)
         return true;
 

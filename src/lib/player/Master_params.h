@@ -21,8 +21,10 @@
 #include <stdlib.h>
 
 #include <Decl.h>
-#include <Environment.h>
 #include <General_state.h>
+#include <player/Active_jumps.h>
+#include <player/Env_state.h>
+#include <player/Jump_cache.h>
 #include <player/Position.h>
 #include <player/Slider.h>
 
@@ -69,13 +71,12 @@ typedef struct Master_params
     double volume;
     Slider volume_slider;
 
-    bool         do_jump;
-    int16_t      jump_counter;
-    Pat_inst_ref jump_target_piref;
-    Tstamp       jump_target_row;
-
-    // Resources
-    const Module* module;
+    bool          do_jump;
+    int16_t       jump_counter;
+    Pat_inst_ref  jump_target_piref;
+    Tstamp        jump_target_row;
+    Active_jumps* active_jumps;
+    Jump_cache*   jump_cache;
 
     // Statistics
     int16_t active_voices;
@@ -99,11 +100,15 @@ Master_params* Master_params_preinit(Master_params* params);
  *
  * \param params   The Master params -- must not be \c NULL.
  * \param module   The Module -- must not be \c NULL.
+ * \param estate   The Environment state -- must not be \c NULL.
  *
  * \return   The parameter \a params if successful, or \c NULL if memory
  *           allocation failed.
  */
-Master_params* Master_params_init(Master_params* params, const Module* module);
+Master_params* Master_params_init(
+        Master_params* params,
+        const Module* module,
+        Env_state* estate);
 
 
 /**

@@ -31,18 +31,20 @@ struct Ins_table
 Ins_table* new_Ins_table(int size)
 {
     assert(size > 0);
+
     Ins_table* table = memory_alloc_item(Ins_table);
     if (table == NULL)
-    {
         return NULL;
-    }
+
     table->insts = new_Etable(size, (void (*)(void*))del_Instrument);
     if (table->insts == NULL)
     {
         memory_free(table);
         return NULL;
     }
+
     table->size = size;
+
     return table;
 }
 
@@ -53,6 +55,7 @@ bool Ins_table_set(Ins_table* table, int index, Instrument* ins)
     assert(index >= 0);
     assert(index < table->size);
     assert(ins != NULL);
+
     return Etable_set(table->insts, index, ins);
 }
 
@@ -62,6 +65,7 @@ Instrument* Ins_table_get(Ins_table* table, int index)
     assert(table != NULL);
     assert(index >= 0);
     assert(index < table->size);
+
     return Etable_get(table->insts, index);
 }
 
@@ -71,7 +75,9 @@ void Ins_table_remove(Ins_table* table, int index)
     assert(table != NULL);
     assert(index >= 0);
     assert(index < table->size);
+
     Etable_remove(table->insts, index);
+
     return;
 }
 
@@ -87,11 +93,11 @@ void Ins_table_clear(Ins_table* table)
 void del_Ins_table(Ins_table* table)
 {
     if (table == NULL)
-    {
         return;
-    }
+
     del_Etable(table->insts);
     memory_free(table);
+
     return;
 }
 

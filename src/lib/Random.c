@@ -34,11 +34,11 @@ Random* new_Random(void)
 {
     Random* random = memory_alloc_item(Random);
     if (random == NULL)
-    {
         return NULL;
-    }
+
     random->context[0] = '\0';
     Random_set_seed(random, 1);
+
     return random;
 }
 
@@ -48,7 +48,9 @@ void Random_set_context(Random* random, char* context)
     assert(random != NULL);
     assert(context != NULL);
     assert(strlen(context) <= CONTEXT_LEN_MAX);
+
     strcpy(random->context, context);
+
     return;
 }
 
@@ -56,10 +58,13 @@ void Random_set_context(Random* random, char* context)
 void Random_set_seed(Random* random, uint64_t seed)
 {
     assert(random != NULL);
+
     uint64_t cseed = 0;
     uint64_t dummy = 0;
     hmac_md5(seed, random->context, &cseed, &dummy);
+
     random->seed = random->state = cseed;
+
     return;
 }
 
@@ -75,9 +80,11 @@ void Random_reset(Random* random)
 uint64_t Random_get_uint64(Random* random)
 {
     assert(random != NULL);
+
     // multiplier and increment from Knuth
     random->state = 6364136223846793005ULL * random->state +
                     1442695040888963407ULL;
+
     return random->state;
 }
 
@@ -100,6 +107,7 @@ int32_t Random_get_index(Random* random, int32_t size)
 {
     assert(random != NULL);
     assert(size > 0);
+
     return (int32_t)(Random_get_uint64(random) >> 33) % size;
 }
 
@@ -114,8 +122,10 @@ double Random_get_float_scale(Random* random)
 double Random_get_float_signal(Random* random)
 {
     assert(random != NULL);
+
     uint64_t bits = (Random_get_uint64(random) >> 1); // max: 0x7fffffffffffffff
     bits &= ~(uint64_t)1;                             //      0x7ffffffffffffffe
+
     return ((int64_t)bits - 0x3fffffffffffffffLL) /
                     (double)0x3fffffffffffffffLL;
 }

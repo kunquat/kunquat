@@ -24,13 +24,15 @@
 
 void setup_single_pulse_without_instrument_manifest(void)
 {
-    assert(handle != NULL);
+    assert(handle != 0);
 
     set_data("p_connections.json",
             "[ [\"ins_00/out_00\", \"out_00\"] ]");
 
     set_data("ins_00/p_connections.json",
             "[ [\"gen_00/C/out_00\", \"out_00\"] ]");
+
+    set_data("p_ins_input.json", "[ [0, 0] ]");
 
     set_data("ins_00/gen_00/p_manifest.json", "{}");
     set_data("ins_00/gen_00/p_gen_type.json", "\"debug\"");
@@ -53,7 +55,7 @@ START_TEST(Instrument_without_manifest_is_silent)
 
     float actual_buf[buf_len] = { 0.0f };
 
-    kqt_Handle_fire(handle, 0, "[\"n+\", 0]");
+    kqt_Handle_fire_event(handle, 0, "[\"n+\", 0]");
     check_unexpected_error();
     mix_and_fill(actual_buf, buf_len);
 
@@ -76,7 +78,7 @@ START_TEST(Adding_manifest_enables_instrument)
 
     float actual_buf[buf_len] = { 0.0f };
 
-    kqt_Handle_fire(handle, 0, "[\"n+\", 0]");
+    kqt_Handle_fire_event(handle, 0, "[\"n+\", 0]");
     check_unexpected_error();
     mix_and_fill(actual_buf, buf_len);
 
@@ -100,11 +102,70 @@ START_TEST(Removing_manifest_disables_instrument)
 
     float actual_buf[buf_len] = { 0.0f };
 
-    kqt_Handle_fire(handle, 0, "[\"n+\", 0]");
+    kqt_Handle_fire_event(handle, 0, "[\"n+\", 0]");
     check_unexpected_error();
     mix_and_fill(actual_buf, buf_len);
 
     float expected_buf[buf_len] = { 0.0f };
+
+    check_buffers_equal(expected_buf, actual_buf, buf_len, 0.0f);
+}
+END_TEST
+
+
+START_TEST(Input_map_maintains_indices)
+{
+    set_audio_rate(220);
+    set_mix_volume(0);
+    pause();
+
+    // Set up two debug instruments
+    set_data("p_connections.json",
+            "[ [\"ins_00/out_00\", \"out_00\"],"
+            "  [\"ins_01/out_00\", \"out_00\"] ]");
+
+    set_data("p_ins_input.json", "[[0, 0], [1, 1]]");
+
+    set_data("ins_00/p_manifest.json", "{}");
+    set_data("ins_00/p_connections.json",
+            "[ [\"gen_00/C/out_00\", \"out_00\"] ]");
+
+    set_data("ins_00/gen_00/p_manifest.json", "{}");
+    set_data("ins_00/gen_00/p_gen_type.json", "\"debug\"");
+
+    set_data("ins_00/gen_00/c/p_single_pulse.jsonb", "true");
+
+    set_data("ins_01/p_manifest.json", "{}");
+    set_data("ins_01/p_connections.json",
+            "[ [\"gen_00/C/out_00\", \"out_00\"] ]");
+
+    set_data("ins_01/gen_00/p_manifest.json", "{}");
+    set_data("ins_01/gen_00/p_gen_type.json", "\"debug\"");
+
+    validate();
+    check_unexpected_error();
+
+    // Test rendering
+    float actual_buf[buf_len] = { 0.0f };
+
+    kqt_Handle_fire_event(handle, 0, "[\".i\", 0]");
+    kqt_Handle_fire_event(handle, 0, Note_On_55_Hz);
+    check_unexpected_error();
+
+    const int note_offset = 10;
+
+    mix_and_fill(actual_buf, note_offset);
+
+    kqt_Handle_fire_event(handle, 1, "[\".i\", 1]");
+    kqt_Handle_fire_event(handle, 1, Note_On_55_Hz);
+    check_unexpected_error();
+
+    mix_and_fill(actual_buf + note_offset, buf_len - note_offset);
+
+    float expected_buf[buf_len] = { 0.0f };
+    expected_buf[0] = 1.0f;
+    const float seq[] = { 1.0f, 0.5f, 0.5f, 0.5f };
+    repeat_seq_local(expected_buf + note_offset, 10, seq);
 
     check_buffers_equal(expected_buf, actual_buf, buf_len, 0.0f);
 }
@@ -125,6 +186,7 @@ Suite* Instrument_suite(void)
     tcase_add_test(tc_general, Instrument_without_manifest_is_silent);
     tcase_add_test(tc_general, Adding_manifest_enables_instrument);
     tcase_add_test(tc_general, Removing_manifest_disables_instrument);
+    tcase_add_test(tc_general, Input_map_maintains_indices);
 
     return s;
 }

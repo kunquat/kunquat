@@ -28,23 +28,23 @@
 
 START_TEST(Complete_debug_note_renders_correctly)
 {
-    set_mixing_rate(220);
+    set_audio_rate(220);
     set_mix_volume(0);
     setup_debug_instrument();
     pause();
 
-    kqt_Handle_fire(handle, 0, Note_On_55_Hz);
+    kqt_Handle_fire_event(handle, 0, Note_On_55_Hz);
     check_unexpected_error();
 
     float expected_buf[buf_len] = { 0.0f };
     const float seq[] = { 1.0f, 0.5f, 0.5f, 0.5f };
     repeat_seq_local(expected_buf, 10, seq);
 
-    kqt_Handle_mix(handle, buf_len);
+    kqt_Handle_play(handle, buf_len);
     check_unexpected_error();
 
-    const float* buf_l = kqt_Handle_get_buffer(handle, 0);
-    const float* buf_r = kqt_Handle_get_buffer(handle, 1);
+    const float* buf_l = kqt_Handle_get_audio(handle, 0);
+    const float* buf_r = kqt_Handle_get_audio(handle, 1);
     check_unexpected_error();
 
     check_buffers_equal(expected_buf, buf_l, buf_len, 0.0f);
@@ -55,7 +55,7 @@ END_TEST
 
 START_TEST(Note_off_stops_the_note_correctly)
 {
-    set_mixing_rate(220);
+    set_audio_rate(220);
     set_mix_volume(0);
     setup_debug_instrument();
     pause();
@@ -63,12 +63,12 @@ START_TEST(Note_off_stops_the_note_correctly)
     float actual_buf[buf_len] = { 0.0f };
     const int note_off_frame = 20;
 
-    kqt_Handle_fire(handle, 0, Note_On_55_Hz);
+    kqt_Handle_fire_event(handle, 0, Note_On_55_Hz);
     check_unexpected_error();
     mix_and_fill(actual_buf, note_off_frame);
 
     // Note Off
-    kqt_Handle_fire(handle, 0, "[\"n-\", null]");
+    kqt_Handle_fire_event(handle, 0, "[\"n-\", null]");
     check_unexpected_error();
     mix_and_fill(actual_buf + note_off_frame, buf_len - note_off_frame);
 
@@ -85,7 +85,7 @@ END_TEST
 
 START_TEST(Note_end_is_reached_correctly_during_note_off)
 {
-    set_mixing_rate(440);
+    set_audio_rate(440);
     set_mix_volume(0);
     setup_debug_instrument();
     pause();
@@ -93,12 +93,12 @@ START_TEST(Note_end_is_reached_correctly_during_note_off)
     float actual_buf[buf_len] = { 0.0f };
     const int note_off_frame = 70;
 
-    kqt_Handle_fire(handle, 0, Note_On_55_Hz);
+    kqt_Handle_fire_event(handle, 0, Note_On_55_Hz);
     check_unexpected_error();
     mix_and_fill(actual_buf, note_off_frame);
 
     // Note Off
-    kqt_Handle_fire(handle, 0, "[\"n-\", null]");
+    kqt_Handle_fire_event(handle, 0, "[\"n-\", null]");
     check_unexpected_error();
     mix_and_fill(actual_buf + note_off_frame, buf_len - note_off_frame);
 
@@ -119,7 +119,7 @@ END_TEST
 
 START_TEST(Implicit_note_off_is_triggered_correctly)
 {
-    set_mixing_rate(220);
+    set_audio_rate(220);
     set_mix_volume(0);
     setup_debug_instrument();
     pause();
@@ -127,11 +127,11 @@ START_TEST(Implicit_note_off_is_triggered_correctly)
     float actual_buf[buf_len] = { 0.0f };
     const int note_2_frame = 2;
 
-    kqt_Handle_fire(handle, 0, Note_On_55_Hz);
+    kqt_Handle_fire_event(handle, 0, Note_On_55_Hz);
     check_unexpected_error();
     mix_and_fill(actual_buf, note_2_frame);
 
-    kqt_Handle_fire(handle, 0, Note_On_55_Hz);
+    kqt_Handle_fire_event(handle, 0, Note_On_55_Hz);
     check_unexpected_error();
     mix_and_fill(actual_buf + note_2_frame, buf_len - note_2_frame);
 
@@ -150,7 +150,7 @@ END_TEST
 
 START_TEST(Independent_notes_mix_correctly)
 {
-    set_mixing_rate(220);
+    set_audio_rate(220);
     set_mix_volume(0);
     setup_debug_instrument();
     pause();
@@ -158,11 +158,11 @@ START_TEST(Independent_notes_mix_correctly)
     float actual_buf[buf_len] = { 0.0f };
     const int note_2_frame = 2;
 
-    kqt_Handle_fire(handle, 0, Note_On_55_Hz);
+    kqt_Handle_fire_event(handle, 0, Note_On_55_Hz);
     check_unexpected_error();
     mix_and_fill(actual_buf, note_2_frame);
 
-    kqt_Handle_fire(handle, 1, Note_On_55_Hz);
+    kqt_Handle_fire_event(handle, 1, Note_On_55_Hz);
     check_unexpected_error();
     mix_and_fill(actual_buf + note_2_frame, buf_len - note_2_frame);
 
@@ -186,7 +186,7 @@ START_TEST(Debug_single_shot_renders_one_pulse)
 
     float actual_buf[buf_len] = { 0.0f };
 
-    kqt_Handle_fire(handle, 0, "[\"n+\", 0]");
+    kqt_Handle_fire_event(handle, 0, "[\"n+\", 0]");
     check_unexpected_error();
     mix_and_fill(actual_buf, buf_len);
 
@@ -199,7 +199,7 @@ END_TEST
 
 START_TEST(Empty_pattern_contains_silence)
 {
-    set_mixing_rate(mixing_rates[_i]);
+    set_audio_rate(mixing_rates[_i]);
     setup_debug_instrument();
 
     set_data("album/p_manifest.json", "{}");
@@ -215,10 +215,12 @@ START_TEST(Empty_pattern_contains_silence)
     const long expected_length = 8 * mixing_rates[_i];
     int32_t actual_length = 0;
 
-    long nframes = kqt_Handle_mix(handle, 4096);
+    kqt_Handle_play(handle, 4096);
     check_unexpected_error();
-    while (nframes > 0)
+    while (!kqt_Handle_has_stopped(handle))
     {
+        const long nframes = kqt_Handle_get_frames_available(handle);
+        check_unexpected_error();
         actual_length += nframes;
 
         // Don't want to spend too much time on this...
@@ -226,8 +228,8 @@ START_TEST(Empty_pattern_contains_silence)
         {
             const float* bufs[] =
             {
-                kqt_Handle_get_buffer(handle, 0),
-                kqt_Handle_get_buffer(handle, 1),
+                kqt_Handle_get_audio(handle, 0),
+                kqt_Handle_get_audio(handle, 1),
             };
             check_unexpected_error();
 
@@ -237,9 +239,13 @@ START_TEST(Empty_pattern_contains_silence)
             check_buffers_equal(expected_buf, bufs[1], nframes, 0.0f);
         }
 
-        nframes = kqt_Handle_mix(handle, 4096);
+        kqt_Handle_play(handle, 4096);
         check_unexpected_error();
     }
+
+    const long nframes = kqt_Handle_get_frames_available(handle);
+    check_unexpected_error();
+    actual_length += nframes;
 
     fail_unless(actual_length == expected_length,
             "Wrong number of frames rendered"
@@ -250,7 +256,7 @@ END_TEST
 
 START_TEST(Note_on_at_pattern_end_is_handled)
 {
-    set_mixing_rate(mixing_rates[MIXING_RATE_LOW]);
+    set_audio_rate(mixing_rates[MIXING_RATE_LOW]);
     set_mix_volume(0);
     setup_debug_instrument();
     setup_debug_single_pulse();
@@ -289,7 +295,7 @@ END_TEST
 
 START_TEST(Note_on_after_pattern_end_is_ignored)
 {
-    set_mixing_rate(mixing_rates[MIXING_RATE_LOW]);
+    set_audio_rate(mixing_rates[MIXING_RATE_LOW]);
     set_mix_volume(0);
     setup_debug_instrument();
     setup_debug_single_pulse();
@@ -327,7 +333,7 @@ END_TEST
 
 START_TEST(Note_on_at_pattern_start_is_handled)
 {
-    set_mixing_rate(mixing_rates[MIXING_RATE_LOW]);
+    set_audio_rate(mixing_rates[MIXING_RATE_LOW]);
     set_mix_volume(0);
     setup_debug_instrument();
     setup_debug_single_pulse();
@@ -365,8 +371,11 @@ END_TEST
 
 START_TEST(Empty_composition_renders_zero_frames)
 {
-    const long nframes = kqt_Handle_mix(handle, 256);
+    kqt_Handle_play(handle, 256);
     check_unexpected_error();
+
+    const long nframes = kqt_Handle_get_frames_available(handle);
+
     fail_unless(
             nframes == 0,
             "Wrong number of frames rendered"
@@ -377,7 +386,7 @@ END_TEST
 
 START_TEST(Initial_tempo_is_set_correctly)
 {
-    set_mixing_rate(mixing_rates[MIXING_RATE_LOW]);
+    set_audio_rate(mixing_rates[MIXING_RATE_LOW]);
     set_mix_volume(0);
     setup_debug_instrument();
     setup_debug_single_pulse();
@@ -412,7 +421,7 @@ END_TEST
 
 START_TEST(Infinite_mode_loops_composition)
 {
-    set_mixing_rate(mixing_rates[MIXING_RATE_LOW]);
+    set_audio_rate(mixing_rates[MIXING_RATE_LOW]);
     set_mix_volume(0);
     setup_debug_instrument();
     setup_debug_single_pulse();
@@ -428,7 +437,7 @@ START_TEST(Infinite_mode_loops_composition)
 
     validate();
 
-    kqt_Handle_fire(handle, 0, "[\"I.infinite\", true]");
+    kqt_Handle_fire_event(handle, 0, "[\"I.infinite\", true]");
     check_unexpected_error();
 
     float actual_buf[buf_len] = { 0.0f };
@@ -448,7 +457,7 @@ END_TEST
 
 START_TEST(Skipping_moves_position_forwards)
 {
-    set_mixing_rate(mixing_rates[MIXING_RATE_LOW]);
+    set_audio_rate(mixing_rates[MIXING_RATE_LOW]);
     set_mix_volume(0);
     setup_debug_instrument();
     setup_debug_single_pulse();
@@ -487,7 +496,7 @@ END_TEST
 
 START_TEST(Pattern_delay_extends_gap_between_trigger_rows)
 {
-    set_mixing_rate(mixing_rates[MIXING_RATE_LOW]);
+    set_audio_rate(mixing_rates[MIXING_RATE_LOW]);
     set_mix_volume(0);
     setup_debug_instrument();
     setup_debug_single_pulse();
@@ -522,7 +531,7 @@ END_TEST
 
 START_TEST(Pattern_delay_inserts_gap_between_adjacent_triggers)
 {
-    set_mixing_rate(mixing_rates[MIXING_RATE_LOW]);
+    set_audio_rate(mixing_rates[MIXING_RATE_LOW]);
     set_mix_volume(0);
     setup_debug_instrument();
     setup_debug_single_pulse();
@@ -557,7 +566,7 @@ END_TEST
 
 START_TEST(Tempo_change_affects_playback_cursor)
 {
-    set_mixing_rate(mixing_rates[MIXING_RATE_LOW]);
+    set_audio_rate(mixing_rates[MIXING_RATE_LOW]);
     set_mix_volume(0);
     setup_debug_instrument();
     setup_debug_single_pulse();
@@ -598,7 +607,7 @@ END_TEST
 
 START_TEST(Tempo_slide_affects_playback_cursor)
 {
-    set_mixing_rate(mixing_rates[MIXING_RATE_LOW]);
+    set_audio_rate(mixing_rates[MIXING_RATE_LOW]);
     set_mix_volume(0);
     setup_debug_instrument();
     setup_debug_single_pulse();
@@ -670,7 +679,7 @@ END_TEST
 
 START_TEST(Jump_backwards_creates_a_loop)
 {
-    set_mixing_rate(mixing_rates[MIXING_RATE_LOW]);
+    set_audio_rate(mixing_rates[MIXING_RATE_LOW]);
     set_mix_volume(0);
     setup_debug_instrument();
     setup_debug_single_pulse();
@@ -712,8 +721,7 @@ START_TEST(Events_appear_in_event_buffer)
     setup_debug_instrument();
     setup_debug_single_pulse();
 
-    char actual_events[16384] = "";
-    kqt_Handle_receive(handle, actual_events, 16384);
+    const char* actual_events = kqt_Handle_receive_events(handle);
     check_unexpected_error();
     const char expected_events_none[] = "[]";
 
@@ -721,10 +729,10 @@ START_TEST(Events_appear_in_event_buffer)
             "Wrong events received"
             KT_VALUES("%s", expected_events_none, actual_events));
 
-    kqt_Handle_fire(handle, 0, "[\"Ipause\", null]");
+    kqt_Handle_fire_event(handle, 0, "[\"Ipause\", null]");
     check_unexpected_error();
 
-    kqt_Handle_receive(handle, actual_events, 16384);
+    actual_events = kqt_Handle_receive_events(handle);
     check_unexpected_error();
     const char expected_events_1[] =
         "[[0, [\"Ipause\", null]]]";
@@ -733,10 +741,10 @@ START_TEST(Events_appear_in_event_buffer)
             "Wrong events received"
             KT_VALUES("%s", expected_events_1, actual_events));
 
-    kqt_Handle_fire(handle, 2, "[\".arpi\", 0]");
+    kqt_Handle_fire_event(handle, 2, "[\".arpi\", 0]");
     check_unexpected_error();
 
-    kqt_Handle_receive(handle, actual_events, 16384);
+    actual_events = kqt_Handle_receive_events(handle);
     check_unexpected_error();
     const char expected_events_2[] =
         "[[2, [\".arpi\", 0]]]";

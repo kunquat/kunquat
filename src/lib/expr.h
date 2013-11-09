@@ -16,8 +16,9 @@
 #define K_EXPR_H
 
 
-#include <Environment.h>
 #include <File_base.h>
+#include <player/Env_state.h>
+#include <Streader.h>
 #include <Value.h>
 #include <Random.h>
 
@@ -25,20 +26,19 @@
 /**
  * Evaluates an expression.
  *
- * \param str     The expression -- must not be \c NULL.
- * \param env     The Environment -- must not be \c NULL.
- * \param state   The Read state -- must not be \c NULL.
- * \param meta    The meta variable, or \c NULL if not used.
- * \param res     A memory location for the result Value --
- *                must not be \c NULL.
- * \param rand    A Random source -- must not be \c NULL.
+ * \param sr       The expression reader -- must not be \c NULL.
+ * \param estate   The Environment state -- must not be \c NULL.
+ * \param state    The Read state -- must not be \c NULL.
+ * \param meta     The meta variable, or \c NULL if not used.
+ * \param res      A memory location for the result Value --
+ *                 must not be \c NULL.
+ * \param rand     A Random source -- must not be \c NULL.
  *
- * \return   The position of \a str after parsing.
+ * \return   \c true if successful, or \c false if evaluation failed.
  */
-char* evaluate_expr(
-        char* str,
-        Environment* env,
-        Read_state* state,
+bool evaluate_expr(
+        Streader* sr,
+        Env_state* estate,
         const Value* meta,
         Value* res,
         Random* rand);

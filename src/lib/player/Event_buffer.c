@@ -86,13 +86,33 @@ void Event_buffer_add(
 
     int advance = 0;
 
-    // Everything before the value
+    // Everything before the name
     advance += sprintf(
             ebuf->buf + ebuf->write_pos + advance,
-            "%s[%d, [\"%s\", ",
+            "%s[%d, [",
             ebuf->write_pos == 1 ? "" : ", ",
-            ch,
-            name);
+            ch);
+
+    // Name
+    const size_t len = strlen(name);
+    assert(len > 0);
+    if (name[len - 1] == '"')
+    {
+        // Print with properly escaped trailing double quote
+        advance += sprintf(
+                ebuf->buf + ebuf->write_pos + advance,
+                "\"%.*s\\\"\", ",
+                (int)(len - 1),
+                name);
+    }
+    else
+    {
+        // Print name as-is
+        advance += sprintf(
+                ebuf->buf + ebuf->write_pos + advance,
+                "\"%s\", ",
+                name);
+    }
 
     static const char closing_str[] = "]]";
 

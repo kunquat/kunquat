@@ -21,20 +21,21 @@
 #include <stdlib.h>
 
 #include <player/Player_private.h>
+#include <Streader.h>
 
 
-char* get_event_type_info(
-        char* desc,
+bool get_event_type_info(
+        Streader* desc_reader,
         const Event_names* names,
-        Read_state* rs,
         char* ret_name,
         Event_type* ret_type);
 
 
-void Player_process_trigger(
+void Player_process_event(
         Player* player,
         int ch_num,
-        char* trigger_desc,
+        const char* event_name,
+        Value* arg,
         bool skip);
 
 

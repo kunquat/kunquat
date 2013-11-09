@@ -47,6 +47,7 @@ void* memory_alloc(size_t size)
     void* block = malloc(size);
     if (block != NULL)
         ++total_alloc_count;
+
     return block;
 }
 
@@ -61,6 +62,7 @@ void* memory_calloc(size_t item_count, size_t item_size)
     void* block = calloc(item_count, item_size);
     if (block != NULL)
         ++total_alloc_count;
+
     return block;
 }
 
@@ -77,6 +79,7 @@ void* memory_realloc(void* ptr, size_t size)
     void* block = realloc(ptr, size);
     if (block != NULL)
         ++total_alloc_count;
+
     return block;
 }
 

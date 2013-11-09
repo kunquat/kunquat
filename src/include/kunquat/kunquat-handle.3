@@ -1,4 +1,4 @@
-.TH kunquat\-handle 3 "2013\-04\-11" "" "Kunquat"
+.TH kunquat\-handle 3 "2013\-10\-26" "" "Kunquat"
 
 .SH NAME
 
@@ -8,17 +8,17 @@ Kunquat Handle interface
 
 .B #include <kunquat/Handle.h>
 
-.BI "kqt_Handle* kqt_new_Handle(void);
+.BI "kqt_Handle kqt_new_Handle(void);
 
-.BI "int kqt_Handle_set_data(kqt_Handle* " handle ", char* " key ", void* " data ", long " length );
+.BI "int kqt_Handle_set_data(kqt_Handle " handle ", const char* " key ", void* " data ", long " length );
 
-.BI "int kqt_Handle_validate(kqt_Handle* " handle );
+.BI "int kqt_Handle_validate(kqt_Handle " handle );
 
-.BI "char* kqt_Handle_get_error(kqt_Handle* " handle );
+.BI "const char* kqt_Handle_get_error(kqt_Handle " handle );
 .br
-.BI "void kqt_Handle_clear_error(kqt_Handle* " handle );
+.BI "void kqt_Handle_clear_error(kqt_Handle " handle );
 
-.BI "void kqt_del_Handle(kqt_Handle* " handle );
+.BI "void kqt_del_Handle(kqt_Handle " handle );
 
 .SH "KUNQUAT HANDLE"
 
@@ -36,9 +36,9 @@ Kunquat Handles from different threads in parallel should be safe.
 
 .SH "CREATING KUNQUAT HANDLES"
 
-.IP "\fBkqt_Handle* kqt_new_Handle(void);\fR"
+.IP "\fBkqt_Handle kqt_new_Handle(void);\fR"
 Creates a new Kunquat Handle that contains an empty composition.
-The function returns the new Kunquat Handle on success, or NULL if
+The function returns the new Kunquat Handle on success, or 0 if
 an error occurred.
 
 .SH "DATA MODIFICATION"
@@ -57,13 +57,13 @@ ins_01/p_instrument.json
 .fi
 .in
 
-.IP "\fBint kqt_Handle_set_data(kqt_Handle*\fR \fIhandle\fR\fB, char*\fR \fIkey\fR\fB, void*\fR \fIdata\fR\fB, long\fR \fIlength\fR\fB);\fR"
+.IP "\fBint kqt_Handle_set_data(kqt_Handle\fR \fIhandle\fR\fB, const char*\fR \fIkey\fR\fB, void*\fR \fIdata\fR\fB, long\fR \fIlength\fR\fB);\fR"
 Sets data in \fIhandle\fR associated with \fIkey\fR. The \fIlength\fR argument
 specifies the number of bytes in \fIdata\fR and must not exceed the real
 length of \fIdata\fR. If \fIlength\fR is 0, the data associated with \fIkey\fR
 is removed. This function returns 1 on success, 0 on failure.
 
-.IP "\fBint kqt_Handle_validate(kqt_Handle*\fR \fIhandle\fR\fB);\fR"
+.IP "\fBint kqt_Handle_validate(kqt_Handle\fR \fIhandle\fR\fB);\fR"
 Validates data in \fIhandle\fR. This function needs to be called after one or
 more successful calls of \fBkqt_Handle_set_data\fR before \fIhandle\fR can be
 fully utilised again. This function returns 1 on success, 0 on failure. If the
@@ -94,24 +94,26 @@ Error messages are JSON object strings that contain at least two keys: "type"
 and "message". The value of "type" is one of the categories above and the
 value of "message" is a human-readable description of the error.
 
-.IP "\fBchar* kqt_Handle_get_error(kqt_Handle*\fR \fIhandle\fR\fB);\fR"
+.IP "\fBconst char* kqt_Handle_get_error(kqt_Handle\fR \fIhandle\fR\fB);\fR"
 Returns an error message describing the last error occurred when accessing
-\fIhandle\fR. \fIhandle\fR may also be NULL, in which case the function
+\fIhandle\fR. \fIhandle\fR may also be 0, in which case the function
 returns an error message about the last error occurred in using the Kunquat
-library in general. In particular, passing NULL as the argument is the only
+library in general. In particular, passing 0 as the argument is the only
 way to retrieve Handle creation error messages. The function will return the
 last error message, or an empty string if no error has occurred.
 
-.IP "\fBvoid kqt_Handle_clear_error(kqt_Handle*\fR \fIhandle\fR\fB);\fR"
+.IP "\fBvoid kqt_Handle_clear_error(kqt_Handle\fR \fIhandle\fR\fB);\fR"
 Clears error information in \fIhandle\fR. This is useful to do before calling
 a function for which the only way to detect an error is via
 \fBkqt_Handle_get_error\fR.
-\fIhandle\fR may also be NULL, in which case the generic error message is
+\fIhandle\fR may also be 0, in which case the generic error message is
 cleared.
+Validation errors are not cleared from Handles as they are considered fatal
+errors.
 
 .SH "FREEING RESOURCES"
 
-.IP "\fBvoid kqt_del_Handle(kqt_Handle*\fR \fIhandle\fR\fB);\fR"
+.IP "\fBvoid kqt_del_Handle(kqt_Handle\fR \fIhandle\fR\fB);\fR"
 Destroys \fIhandle\fR and all resources allocated for it. Note that the data
 returned by calls of \fBkqt_Handle_get_data\fR with this handle is also freed
 here in case it wasn't freed before through \fBkqt_Handle_free_data\fR. The

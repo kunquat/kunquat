@@ -94,36 +94,36 @@ class BaseHandle(object):
         self._nanoseconds = value
 
     @property
-    def mixing_rate(self):
-        """Mixing rate in frames per second."""
-        return self._mixing_rate
+    def audio_rate(self):
+        """Audio rate in frames per second."""
+        return self._audio_rate
 
-    @mixing_rate.setter
-    def mixing_rate(self, value):
-        """Set the mixing rate.
+    @audio_rate.setter
+    def audio_rate(self, value):
+        """Set the audio rate.
 
-        Typical values include 44100 ("CD quality") and 48000 (the
-        default).
+        Typical values include 48000 (the default) and 44100 ("CD
+        quality").
 
         """
-        _kunquat.kqt_Handle_set_mixing_rate(self._handle, value)
-        self._mixing_rate = value
+        _kunquat.kqt_Handle_set_audio_rate(self._handle, value)
+        self._audio_rate = value
 
     @property
-    def buffer_size(self):
-        """Mixing buffer size in frames."""
-        return self._buffer_size
+    def audio_buffer_size(self):
+        """Audio buffer size in frames."""
+        return self._audio_buffer_size
 
-    @buffer_size.setter
-    def buffer_size(self, value):
-        """Set the mixing buffer size.
+    @audio_buffer_size.setter
+    def audio_buffer_size(self, value):
+        """Set the audio buffer size.
 
-        This value sets the maximum (and default) length for buffers
-        returned by the mix method.
+        This value sets the maximum (and default) length for audio
+        buffers.
 
         """
-        _kunquat.kqt_Handle_set_buffer_size(self._handle, value)
-        self._buffer_size = value
+        _kunquat.kqt_Handle_set_audio_buffer_size(self._handle, value)
+        self._audio_buffer_size = value
 
     def get_duration(self, track=None):
         """Count the duration of the composition in nanoseconds.
@@ -144,15 +144,28 @@ class BaseHandle(object):
             track = -1
         return _kunquat.kqt_Handle_get_duration(self._handle, track)
 
-    def mix(self, frame_count=None):
-        """Mix audio according to the state of the handle.
+    def play(self, frame_count=None):
+        """Play audio according to the state of the handle.
 
         Optional arguments:
         frame_count -- The number of frames to be mixed.  The default
-                       value is self.buffer_size.
+                       value is self.audio_buffer_size.
 
         Exceptions:
         KunquatArgumentError -- frame_count is not positive.
+
+        """
+        if not frame_count:
+            frame_count = self._buffer_size
+        _kunquat.kqt_Handle_play(self._handle, frame_count)
+        self._nanoseconds = _kunquat.kqt_Handle_get_position(self._handle)
+
+    def has_stopped(self):
+        """Return True if playback has stopped."""
+        return _kunquat.kqt_Handle_has_stopped(self._handle)
+
+    def get_audio(self):
+        """Get audio data.
 
         Returns:
         A pair containing audio data for, respectively, the left and
@@ -160,15 +173,12 @@ class BaseHandle(object):
         frames indicate that the end has been reached.
 
         """
-        if not frame_count:
-            frame_count = self._buffer_size
-        mixed = _kunquat.kqt_Handle_mix(self._handle, frame_count)
-        cbuf_left = _kunquat.kqt_Handle_get_buffer(self._handle, 0)
-        cbuf_right = _kunquat.kqt_Handle_get_buffer(self._handle, 1)
-        self._nanoseconds = _kunquat.kqt_Handle_get_position(self._handle)
-        return cbuf_left[:mixed], cbuf_right[:mixed]
+        frames_available = _kunquat.kqt_Handle_get_frames_available(self._handle)
+        cbuf_left = _kunquat.kqt_Handle_get_audio(self._handle, 0)
+        cbuf_right = _kunquat.kqt_Handle_get_audio(self._handle, 1)
+        return cbuf_left[:frames_available], cbuf_right[:frames_available]
 
-    def fire(self, channel, event):
+    def fire_event(self, channel, event):
         """Fire an event.
 
         Arguments:
@@ -181,9 +191,9 @@ class BaseHandle(object):
                  A4, i.e. C5 in 12-tone Equal Temperament).
 
         """
-        _kunquat.kqt_Handle_fire(self._handle, channel, json.dumps(event))
+        _kunquat.kqt_Handle_fire_event(self._handle, channel, json.dumps(event))
 
-    def receive(self):
+    def receive_events(self):
         """Receive outgoing events.
 
         Return value:
@@ -191,38 +201,12 @@ class BaseHandle(object):
         the last call of receive.
 
         """
-        el = []
-        sb = ctypes.create_string_buffer('\000' * 256)
-        received = _kunquat.kqt_Handle_receive(self._handle, sb, len(sb))
-        while received:
-            try:
-                el.extend(json.loads(sb.value))
-            except ValueError:
-                pass
-            received = _kunquat.kqt_Handle_receive(self._handle, sb, len(sb))
-        return el
-
-    def treceive(self):
-        """Receive outgoing events specific to tracker integration.
-
-        Currently, this function returns environment variable setter
-        events.
-
-        Return value:
-        A list containing all requested outgoing events fired after
-        the last call of receive.
-
-        """
-        el = []
-        sb = ctypes.create_string_buffer('\000' * 256)
-        received = _kunquat.kqt_Handle_treceive(self._handle, sb, len(sb))
-        while received:
-            try:
-                el.extend(json.loads(sb.value))
-            except ValueError:
-                pass
-            received = _kunquat.kqt_Handle_treceive(self._handle, sb, len(sb))
-        return el
+        all_events = []
+        el = json.loads(str(_kunquat.kqt_Handle_receive_events(self._handle)))
+        while el:
+            all_events += el
+            el = json.loads(str(_kunquat.kqt_Handle_receive_events(self._handle)))
+        return all_events
 
 
 class Kunquat(BaseHandle):
@@ -232,7 +216,8 @@ class Kunquat(BaseHandle):
     Public methods:
     set_data     -- Set composition data.
     get_duration -- Calculate the length of a track.
-    mix          -- Mix audio data.
+    play         -- Play audio.
+    get_audio    -- Get audio data.
     fire         -- Fire an event.
 
     Public instance variables:
@@ -251,22 +236,23 @@ class Kunquat(BaseHandle):
     >>> k.set_data('pat_000/p_pattern.json', { 'length': [16, 0] })
     >>> k.set_data('pat_000/instance_000/p_manifest.json', {})
     >>> k.validate()
-    >>> audio_data = k.mix(2)
+    >>> k.play(2)
+    >>> audio_data = k.get_audio()
     >>> audio_data
     ([0.0, 0.0], [0.0, 0.0])
 
     """
 
-    def __init__(self, mixing_rate=48000):
+    def __init__(self, audio_rate=48000):
         """Create a new Kunquat instance.
 
         Optional arguments:
-        mixing_rate -- Mixing rate in frames per second.  Typical
-                       values include 44100 ("CD quality") and 48000
-                       (the default).
+        audio_rate -- Audio rate in frames per second.  Typical
+                      values include 48000 (the default) and 44100
+                      ("CD quality").
 
         Exceptions:
-        KunquatArgumentError -- mixing_rate is not positive.
+        KunquatArgumentError -- audio_rate is not positive.
 
         """
         if '_handle' not in self.__dict__:
@@ -276,10 +262,11 @@ class Kunquat(BaseHandle):
                                  _kunquat.kqt_Handle_get_error(None)))
         self._track = None
         self._nanoseconds = 0
-        self._buffer_size = _kunquat.kqt_Handle_get_buffer_size(self._handle)
-        if mixing_rate <= 0:
+        self._audio_buffer_size = _kunquat.kqt_Handle_get_audio_buffer_size(
+                self._handle)
+        if audio_rate <= 0:
             raise KunquatArgumentError('Mixing rate must be positive')
-        self.mixing_rate = mixing_rate
+        self.audio_rate = audio_rate
 
     def set_data(self, key, value):
         """Set data in the Kunquat instance.
@@ -390,80 +377,78 @@ def fake_out_of_memory():
 
 _kunquat = ctypes.CDLL('libkunquat.so')
 
+kqt_Handle = ctypes.c_int
+
 _kunquat.kqt_new_Handle.argtypes = []
-_kunquat.kqt_new_Handle.restype = ctypes.c_void_p
-_kunquat.kqt_del_Handle.argtypes = [ctypes.c_void_p]
+_kunquat.kqt_new_Handle.restype = kqt_Handle
+_kunquat.kqt_del_Handle.argtypes = [kqt_Handle]
 _kunquat.kqt_del_Handle.restype = None
 
-_kunquat.kqt_Handle_get_error.argtypes = [ctypes.c_void_p]
+_kunquat.kqt_Handle_get_error.argtypes = [kqt_Handle]
 _kunquat.kqt_Handle_get_error.restype = ctypes.c_char_p
-_kunquat.kqt_Handle_clear_error.argtypes = [ctypes.c_void_p]
+_kunquat.kqt_Handle_clear_error.argtypes = [kqt_Handle]
 _kunquat.kqt_Handle_clear_error.restype = None
 
-_kunquat.kqt_Handle_validate.argtypes = [ctypes.c_void_p]
+_kunquat.kqt_Handle_validate.argtypes = [kqt_Handle]
 _kunquat.kqt_Handle_validate.restype = ctypes.c_int
 _kunquat.kqt_Handle_validate.errcheck = _error_check
 
-_kunquat.kqt_Handle_set_data.argtypes = [ctypes.c_void_p,
+_kunquat.kqt_Handle_set_data.argtypes = [kqt_Handle,
                                          ctypes.c_char_p,
                                          ctypes.POINTER(ctypes.c_ubyte),
                                          ctypes.c_long]
 _kunquat.kqt_Handle_set_data.restype = ctypes.c_int
 _kunquat.kqt_Handle_set_data.errcheck = _error_check
 
-_kunquat.kqt_Handle_mix.argtypes = [ctypes.c_void_p,
-                                    ctypes.c_long]
-_kunquat.kqt_Handle_mix.restype = ctypes.c_long
-_kunquat.kqt_Handle_mix.errcheck = _error_check
-_kunquat.kqt_Handle_get_buffer.argtypes = [ctypes.c_void_p, ctypes.c_int]
-_kunquat.kqt_Handle_get_buffer.restype = ctypes.POINTER(ctypes.c_float)
-_kunquat.kqt_Handle_get_buffer.errcheck = _error_check
+_kunquat.kqt_Handle_play.argtypes = [kqt_Handle, ctypes.c_long]
+_kunquat.kqt_Handle_play.restype = ctypes.c_int
+_kunquat.kqt_Handle_play.errcheck = _error_check
+_kunquat.kqt_Handle_has_stopped.argtypes = [kqt_Handle]
+_kunquat.kqt_Handle_has_stopped.restype = ctypes.c_int
+_kunquat.kqt_Handle_has_stopped.errcheck = _error_check
 
-_kunquat.kqt_Handle_set_mixing_rate.argtypes = [ctypes.c_void_p,
-                                                ctypes.c_long]
-_kunquat.kqt_Handle_set_mixing_rate.restype = ctypes.c_int
-_kunquat.kqt_Handle_set_mixing_rate.errcheck = _error_check
-_kunquat.kqt_Handle_get_mixing_rate.argtypes = [ctypes.c_void_p]
-_kunquat.kqt_Handle_get_mixing_rate.restype = ctypes.c_long
-_kunquat.kqt_Handle_get_mixing_rate.errcheck = _error_check
+_kunquat.kqt_Handle_get_frames_available.argtypes = [kqt_Handle]
+_kunquat.kqt_Handle_get_frames_available.restype = ctypes.c_long
+_kunquat.kqt_Handle_get_frames_available.errcheck = _error_check
+_kunquat.kqt_Handle_get_audio.argtypes = [kqt_Handle, ctypes.c_int]
+_kunquat.kqt_Handle_get_audio.restype = ctypes.POINTER(ctypes.c_float)
+_kunquat.kqt_Handle_get_audio.errcheck = _error_check
 
-_kunquat.kqt_Handle_set_buffer_size.argtypes = [ctypes.c_void_p,
-                                                ctypes.c_long]
-_kunquat.kqt_Handle_set_buffer_size.restype = ctypes.c_int
-_kunquat.kqt_Handle_set_buffer_size.errcheck = _error_check
-_kunquat.kqt_Handle_get_buffer_size.argtypes = [ctypes.c_void_p]
-_kunquat.kqt_Handle_get_buffer_size.restype = ctypes.c_long
-_kunquat.kqt_Handle_get_buffer_size.errcheck = _error_check
+_kunquat.kqt_Handle_set_audio_rate.argtypes = [kqt_Handle, ctypes.c_long]
+_kunquat.kqt_Handle_set_audio_rate.restype = ctypes.c_int
+_kunquat.kqt_Handle_set_audio_rate.errcheck = _error_check
+_kunquat.kqt_Handle_get_audio_rate.argtypes = [kqt_Handle]
+_kunquat.kqt_Handle_get_audio_rate.restype = ctypes.c_long
+_kunquat.kqt_Handle_get_audio_rate.errcheck = _error_check
 
-_kunquat.kqt_Handle_get_duration.argtypes = [ctypes.c_void_p, ctypes.c_int]
+_kunquat.kqt_Handle_set_audio_buffer_size.argtypes = [kqt_Handle, ctypes.c_long]
+_kunquat.kqt_Handle_set_audio_buffer_size.restype = ctypes.c_int
+_kunquat.kqt_Handle_set_audio_buffer_size.errcheck = _error_check
+_kunquat.kqt_Handle_get_audio_buffer_size.argtypes = [kqt_Handle]
+_kunquat.kqt_Handle_get_audio_buffer_size.restype = ctypes.c_long
+_kunquat.kqt_Handle_get_audio_buffer_size.errcheck = _error_check
+
+_kunquat.kqt_Handle_get_duration.argtypes = [kqt_Handle, ctypes.c_int]
 _kunquat.kqt_Handle_get_duration.restype = ctypes.c_longlong
 _kunquat.kqt_Handle_get_duration.errcheck = _error_check
-_kunquat.kqt_Handle_set_position.argtypes = [ctypes.c_void_p,
+_kunquat.kqt_Handle_set_position.argtypes = [kqt_Handle,
                                              ctypes.c_int,
                                              ctypes.c_longlong]
 _kunquat.kqt_Handle_set_position.restype = ctypes.c_int
 _kunquat.kqt_Handle_set_position.errcheck = _error_check
-_kunquat.kqt_Handle_get_position.argtypes = [ctypes.c_void_p]
+_kunquat.kqt_Handle_get_position.argtypes = [kqt_Handle]
 _kunquat.kqt_Handle_get_position.restype = ctypes.c_longlong
 _kunquat.kqt_Handle_get_position.errcheck = _error_check
 
-_kunquat.kqt_Handle_fire.argtypes = [ctypes.c_void_p,
+_kunquat.kqt_Handle_fire_event.argtypes = [kqt_Handle,
                                      ctypes.c_int,
                                      ctypes.c_char_p]
-_kunquat.kqt_Handle_fire.restype = ctypes.c_int
-_kunquat.kqt_Handle_fire.errcheck = _error_check
+_kunquat.kqt_Handle_fire_event.restype = ctypes.c_int
+_kunquat.kqt_Handle_fire_event.errcheck = _error_check
 
-_kunquat.kqt_Handle_receive.argtypes = [ctypes.c_void_p,
-                                        ctypes.c_char_p,
-                                        ctypes.c_int]
-_kunquat.kqt_Handle_receive.restype = ctypes.c_int
-_kunquat.kqt_Handle_receive.errcheck = _error_check
-
-_kunquat.kqt_Handle_treceive.argtypes = [ctypes.c_void_p,
-                                         ctypes.c_char_p,
-                                         ctypes.c_int]
-_kunquat.kqt_Handle_treceive.restype = ctypes.c_int
-_kunquat.kqt_Handle_treceive.errcheck = _error_check
+_kunquat.kqt_Handle_receive_events.argtypes = [kqt_Handle]
+_kunquat.kqt_Handle_receive_events.restype = ctypes.c_char_p
+_kunquat.kqt_Handle_receive_events.errcheck = _error_check
 
 _kunquat.kqt_fake_out_of_memory.argtypes = [ctypes.c_long]
 _kunquat.kqt_fake_out_of_memory.restype = None

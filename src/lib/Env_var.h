@@ -20,23 +20,7 @@
 #include <stdint.h>
 
 #include <File_base.h>
-#include <Real.h>
-#include <Tstamp.h>
-
-
-/**
- * The possible types of an environment variable.
- */
-typedef enum
-{
-    ENV_VAR_NONE,
-    ENV_VAR_BOOL,       ///< bool
-    ENV_VAR_INT,        ///< int64_t
-    ENV_VAR_FLOAT,      ///< double
-    ENV_VAR_REAL,       ///< Real
-    ENV_VAR_TSTAMP,     ///< Tstamp
-    ENV_VAR_LAST        ///< sentinel
-} Env_var_type;
+#include <Value.h>
 
 
 /**
@@ -48,21 +32,15 @@ typedef enum
 typedef struct Env_var Env_var;
 
 
-#define ENV_VAR_NAME_MAX 32
-#define ENV_VAR_INIT_CHARS "abcdefghijklmnopqrstuvwxyz_"
-#define ENV_VAR_CHARS ENV_VAR_INIT_CHARS "0123456789"
-
-
 /**
  * Creates a new Environment variable.
  *
- * \param type   The variable type -- must be valid.
- * \param name   The variable name -- must not be \c NULL.
+ * \param name   The name of the variable -- must be a valid variable name.
  *
  * \return   The new Environment variable if successful, or \c NULL if memory
  *           allocation failed.
  */
-Env_var* new_Env_var(Env_var_type type, const char* name);
+Env_var* new_Env_var(const char* name);
 
 
 /**
@@ -85,7 +63,7 @@ Env_var* new_Env_var_from_string(char** str, Read_state* state);
  *
  * \return   The type of the variable.
  */
-Env_var_type Env_var_get_type(Env_var* var);
+Value_type Env_var_get_type(const Env_var* var);
 
 
 /**
@@ -98,7 +76,7 @@ Env_var_type Env_var_get_type(Env_var* var);
  *
  * \return   The name of the variable.
  */
-char* Env_var_get_name(Env_var* var);
+const char* Env_var_get_name(const Env_var* var);
 
 
 /**
@@ -108,25 +86,7 @@ char* Env_var_get_name(Env_var* var);
  * \param value   The value to be set -- must not be \c NULL and must match
  *                the type of the variable.
  */
-void Env_var_set_value(Env_var* var, void* value);
-
-
-/**
- * Modifies the value of the Environment variable.
- *
- * \param var     The Environment variable -- must not be \c NULL.
- * \param value   The value to be set -- must not be \c NULL and must match
- *                the type of the variable.
- */
-void Env_var_modify_value(Env_var* var, void* value);
-
-
-/**
- * Resets the value of the Environment variable.
- *
- * \param var     The Environment variable -- must not be \c NULL.
- */
-void Env_var_reset(Env_var* var);
+void Env_var_set_value(Env_var* var, const Value* value);
 
 
 /**
@@ -136,20 +96,7 @@ void Env_var_reset(Env_var* var);
  *
  * \return   A reference to the value of the variable. This is never \c NULL.
  */
-void* Env_var_get_value(Env_var* var);
-
-
-/**
- * Gets a JSON representation of a value of the Environment variable.
- *
- * \param var    The Environment variable -- must not be \c NULL.
- * \param dest   The destination buffer -- must not be \c NULL.
- * \param size   The size of the destination buffer -- must be
- *               positive.
- */
-void Env_var_get_value_json(Env_var* var,
-                            char* dest,
-                            int size);
+const Value* Env_var_get_value(const Env_var* var);
 
 
 /**

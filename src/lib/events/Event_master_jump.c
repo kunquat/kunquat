@@ -18,202 +18,45 @@
 #include <limits.h>
 
 #include <Event_common.h>
-#include <Event_master_jump.h>
-#include <File_base.h>
+#include <Event_master_decl.h>
 #include <kunquat/limits.h>
-#include <memory.h>
-#include <Module.h>
-#include <Pattern_location.h>
 #include <xassert.h>
 
 
-typedef struct Jump_context
+bool Event_master_jump_process(Master_params* master_params, Value* value)
 {
-    Pattern_location location;
-    uint32_t play_id;
-    int64_t counter;
-    Pat_inst_ref piref;
-    Tstamp row;
-} Jump_context;
-
-
-static Jump_context* new_Jump_context(Pattern_location* loc);
-
-static Jump_context* new_Jump_context(Pattern_location* loc)
-{
-    assert(loc != NULL);
-    Jump_context* jc = memory_alloc_item(Jump_context);
-    if (jc == NULL)
-    {
-        return NULL;
-    }
-    jc->location = *loc;
-    jc->play_id = 0;
-    jc->counter = 0;
-    jc->piref.pat = -1;
-    jc->piref.inst = -1;
-    Tstamp_set(&jc->row, 0, 0);
-    return jc;
-}
-
-
-void del_Event_master_jump(Event* event);
-
-
-Event* new_Event_master_jump(Tstamp* pos)
-{
-    assert(pos != NULL);
-    Event_master_jump* event = memory_alloc_item(Event_master_jump);
-    if (event == NULL)
-    {
-        return NULL;
-    }
-    Event_init((Event*)event, pos, Trigger_jump);
-    event->counters = NULL;
-    event->counters_iter = NULL;
-    event->parent.destroy = del_Event_master_jump;
-    event->counters = new_AAtree(
-            (int (*)(const void*, const void*))Pattern_location_cmp,
-            memory_free);
-    event->counters_iter = new_AAiter(event->counters);
-    if (event->counters == NULL || event->counters_iter == NULL)
-    {
-        del_Event_master_jump(&event->parent);
-        return NULL;
-    }
-    //event->play_id = 0;
-    //event->counter = 0;
-    //Tstamp_set(&event->row, 0, 0);
-    return (Event*)event;
-}
-
-
-void Trigger_master_jump_process(Event* event, Master_params* master_params)
-{
-    assert(event != NULL);
-    assert(event->type == Trigger_jump);
     assert(master_params != NULL);
+    (void)value;
 
-    Event_master_jump* jump = (Event_master_jump*)event;
+    if (master_params->jump_counter <= 0)
+        return true;
 
-    // Find jump context
-    Pattern_location* key = PATTERN_LOCATION_AUTO;
-    if (master_params->playback_state == PLAYBACK_PATTERN)
+    // Get a new Jump context
+    AAnode* handle = Jump_cache_acquire_context(master_params->jump_cache);
+    if (handle == NULL)
     {
-        // Use a generic context in pattern mode
-        key->song = -1;
-        key->piref.pat = -1;
-        key->piref.inst = -1;
+        fprintf(stderr, "Error: Out of jump contexts!\n");
+        return false;
     }
-    else
-    {
-        key->piref = master_params->cur_pos.piref;
-    }
+    Jump_context* jc = AAnode_get_data(handle);
 
-    Jump_context* jc = AAtree_get_exact(jump->counters, key);
-    assert(jc != NULL);
+    // Init context
+    jc->piref = master_params->cur_pos.piref;
+    Tstamp_copy(&jc->row, &master_params->cur_pos.pat_pos);
+    jc->ch_num = master_params->cur_ch;
+    jc->order = master_params->cur_trigger;
 
-    if (jc->play_id != master_params->playback_id)
-    {
-        // Set new jump target
-        jc->play_id = master_params->playback_id;
-        jc->counter = master_params->jump_counter;
-        jc->piref = master_params->jump_target_piref;
-        Tstamp_copy(&jc->row, &master_params->jump_target_row);
-    }
+    jc->counter = master_params->jump_counter;
 
-    if (jc->counter > 0)
-    {
-        // Resolve pattern instance
-        Pat_inst_ref target_piref;
-        target_piref = jc->piref;
-        if (target_piref.pat < 0 || target_piref.inst < 0)
-            target_piref = master_params->cur_pos.piref;
+    jc->target_piref = master_params->jump_target_piref;
+    Tstamp_copy(&jc->target_row, &master_params->jump_target_row);
 
-        if (Module_find_pattern_location(
-                    master_params->module,
-                    &target_piref,
-                    &master_params->cur_pos.track,
-                    &master_params->cur_pos.system))
-        {
-            // Perform jump
-            master_params->do_jump = true;
-            --jc->counter;
-            Tstamp_copy(&master_params->cur_pos.pat_pos, &jc->row);
-            master_params->cur_ch = 0;
-            master_params->cur_trigger = 0;
-        }
-        else
-        {
-            // Pattern instance was removed
-            jc->play_id = 0;
-            jc->counter = 0;
-        }
-    }
-    else
-    {
-        // Reset jump so that it may be initialised again
-        jc->play_id = 0;
-    }
+    // Store new context handle
+    Active_jumps_add_context(master_params->active_jumps, handle);
 
-    return;
-}
+    master_params->do_jump = true;
 
-
-bool Trigger_master_jump_set_locations(
-        Event_master_jump* event,
-        AAtree* locations,
-        AAiter* locations_iter)
-{
-    assert(event != NULL);
-    assert(locations != NULL);
-    (void)locations;
-    assert(locations_iter != NULL);
-    Pattern_location* noloc = PATTERN_LOCATION_AUTO;
-    noloc->song = -1;
-    noloc->piref.pat = -1;
-    noloc->piref.inst = -1;
-    Jump_context* context = AAtree_get_exact(event->counters, noloc);
-    if (context == NULL)
-    {
-        context = new_Jump_context(noloc);
-        if (context == NULL || !AAtree_ins(event->counters, context))
-        {
-            memory_free(context);
-            return false;
-        }
-    }
-    Pattern_location* loc = AAiter_get_at_least(locations_iter, PATTERN_LOCATION_AUTO);
-    while (loc != NULL)
-    {
-        Jump_context* context = AAtree_get_exact(event->counters, loc);
-        if (context == NULL)
-        {
-            context = new_Jump_context(loc);
-            if (context == NULL || !AAtree_ins(event->counters, context))
-            {
-                memory_free(context);
-                return false;
-            }
-        }
-        loc = AAiter_get_next(locations_iter);
-    }
     return true;
-}
-
-
-void del_Event_master_jump(Event* event)
-{
-    if (event == NULL)
-    {
-        return;
-    }
-    assert(event->type == Trigger_jump);
-    Event_master_jump* jump = (Event_master_jump*)event;
-    del_AAtree(jump->counters);
-    del_AAiter(jump->counters_iter);
-    del_Event_default(event);
-    return;
 }
 
 

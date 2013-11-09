@@ -24,9 +24,11 @@
 
 START_TEST(Trivial_effect_is_identity)
 {
-    set_mixing_rate(220);
+    set_audio_rate(220);
     set_mix_volume(0);
     pause();
+
+    set_data("p_ins_input.json", "[ [0, 0] ]");
 
     set_data("ins_00/p_manifest.json", "{}");
     set_data("ins_00/p_connections.json",
@@ -44,7 +46,7 @@ START_TEST(Trivial_effect_is_identity)
     validate();
 
     float actual_buf[buf_len] = { 0.0f };
-    kqt_Handle_fire(handle, 0, Note_On_55_Hz);
+    kqt_Handle_fire_event(handle, 0, Note_On_55_Hz);
     check_unexpected_error();
     mix_and_fill(actual_buf, buf_len);
 
@@ -59,9 +61,11 @@ END_TEST
 
 START_TEST(Effect_with_default_volume_dsp_is_identity)
 {
-    set_mixing_rate(220);
+    set_audio_rate(220);
     set_mix_volume(0);
     pause();
+
+    set_data("p_ins_input.json", "[ [0, 0] ]");
 
     set_data("ins_00/p_manifest.json", "{}");
     set_data("ins_00/p_connections.json",
@@ -83,7 +87,7 @@ START_TEST(Effect_with_default_volume_dsp_is_identity)
     validate();
 
     float actual_buf[buf_len] = { 0.0f };
-    kqt_Handle_fire(handle, 0, Note_On_55_Hz);
+    kqt_Handle_fire_event(handle, 0, Note_On_55_Hz);
     check_unexpected_error();
     mix_and_fill(actual_buf, buf_len);
 
@@ -98,9 +102,11 @@ END_TEST
 
 START_TEST(Effect_with_double_volume_dsp_and_bypass_triples_volume)
 {
-    set_mixing_rate(220);
+    set_audio_rate(220);
     set_mix_volume(0);
     pause();
+
+    set_data("p_ins_input.json", "[ [0, 0] ]");
 
     set_data("ins_00/p_manifest.json", "{}");
     set_data("ins_00/p_connections.json",
@@ -124,7 +130,7 @@ START_TEST(Effect_with_double_volume_dsp_and_bypass_triples_volume)
     validate();
 
     float actual_buf[buf_len] = { 0.0f };
-    kqt_Handle_fire(handle, 0, Note_On_55_Hz);
+    kqt_Handle_fire_event(handle, 0, Note_On_55_Hz);
     check_unexpected_error();
     mix_and_fill(actual_buf, buf_len);
 
@@ -139,9 +145,11 @@ END_TEST
 
 START_TEST(Connect_instrument_effect_with_unconnected_dsp_and_mix)
 {
-    assert(handle != NULL);
+    assert(handle != 0);
 
     pause();
+
+    set_data("p_ins_input.json", "[ [0, 0] ]");
 
     set_data("ins_00/p_manifest.json", "{}");
     set_data("ins_00/eff_00/p_manifest.json", "{}");
@@ -154,7 +162,7 @@ START_TEST(Connect_instrument_effect_with_unconnected_dsp_and_mix)
 
     validate();
 
-    kqt_Handle_mix(handle, 128);
+    kqt_Handle_play(handle, 128);
 
     return;
 }

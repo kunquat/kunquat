@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -65,9 +65,10 @@ Real* Real_init(Real* real);
  *
  * \return   The parameter \a real.
  */
-Real* Real_init_as_frac(Real* real,
-                        int64_t numerator,
-                        int64_t denominator);
+Real* Real_init_as_frac(
+        Real* real,
+        int64_t numerator,
+        int64_t denominator);
 
 
 /**

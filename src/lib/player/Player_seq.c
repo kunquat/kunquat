@@ -12,103 +12,162 @@
  */
 
 
+#include <limits.h>
 #include <stdio.h>
+#include <string.h>
 
-#include <events/Event_master_jump.h>
 #include <expr.h>
 #include <player/Player_seq.h>
 #include <string_common.h>
 #include <xassert.h>
 
 
-char* get_event_type_info(
-        char* desc,
+bool get_event_type_info(
+        Streader* desc_reader,
         const Event_names* names,
-        Read_state* rs,
         char* ret_name,
         Event_type* ret_type)
 {
-    assert(desc != NULL);
+    assert(desc_reader != NULL);
     assert(names != NULL);
-    assert(rs != NULL);
     assert(ret_name != NULL);
     assert(ret_type != NULL);
 
-    if (rs->error)
-        return desc;
+    if (Streader_is_error_set(desc_reader))
+        return false;
 
     // Read event name
-    desc = read_const_char(desc, '[', rs);
-    desc = read_string(desc, ret_name, EVENT_NAME_MAX, rs);
-    desc = read_const_char(desc, ',', rs);
-    if (rs->error)
-        return desc;
+    if (!Streader_readf(desc_reader, "[%s,", EVENT_NAME_MAX, ret_name))
+        return false;
 
     // Check event type
     *ret_type = Event_names_get(names, ret_name);
     if (*ret_type == Event_NONE)
     {
-        Read_state_set_error(
-                rs,
+        Streader_set_error(
+                desc_reader,
                 "Unsupported event type: %s",
                 ret_name);
-        return desc;
+        return false;
     }
 
     assert(Event_is_valid(*ret_type));
-    return desc;
+    return true;
 }
 
 
-static char* process_expr(
-        char* arg_expr,
+static bool process_expr(
+        Streader* expr_reader,
         Value_type field_type,
-        Environment* env,
+        Env_state* estate,
         Random* random,
         const Value* meta,
-        Read_state* rs,
         Value* ret_value)
 {
-    assert(arg_expr != NULL);
-    assert(env != NULL);
+    assert(expr_reader != NULL);
+    assert(estate != NULL);
     assert(random != NULL);
-    assert(rs != NULL);
     assert(ret_value != NULL);
 
-    if (rs->error)
-        return arg_expr;
+    if (Streader_is_error_set(expr_reader))
+        return false;
 
     if (field_type == VALUE_TYPE_NONE)
     {
         ret_value->type = VALUE_TYPE_NONE;
-        arg_expr = read_null(arg_expr, rs);
+        Streader_read_null(expr_reader);
     }
     else
     {
-        arg_expr = evaluate_expr(
-                arg_expr,
-                env,
-                rs,
+        evaluate_expr(
+                expr_reader,
+                estate,
                 meta,
                 ret_value,
                 random);
-        arg_expr = read_const_char(arg_expr, '"', rs);
+        Streader_match_char(expr_reader, '"');
 
-        if (rs->error)
-            return arg_expr;
+        if (Streader_is_error_set(expr_reader))
+            return false;
 
         if (!Value_convert(ret_value, ret_value, field_type))
-            Read_state_set_error(rs, "Type mismatch");
+        {
+            Streader_set_error(expr_reader, "Type mismatch");
+            return false;
+        }
     }
 
-    return arg_expr;
+    return true;
 }
 
 
-void Player_process_trigger(
+static void Player_process_expr_event(
         Player* player,
         int ch_num,
         char* trigger_desc,
+        const Value* meta,
+        bool skip);
+
+
+void Player_process_event(
+        Player* player,
+        int ch_num,
+        const char* event_name,
+        Value* arg,
+        bool skip)
+{
+    assert(player != NULL);
+    assert(ch_num >= 0);
+    assert(ch_num < KQT_CHANNELS_MAX);
+    assert(event_name != NULL);
+    assert(arg != NULL);
+
+    if (!Event_handler_trigger(
+            player->event_handler,
+            ch_num,
+            event_name,
+            arg))
+    {
+        fprintf(stderr, "`%s` not triggered\n", event_name);
+        return;
+    }
+
+    if (!skip)
+        Event_buffer_add(player->event_buffer, ch_num, event_name, arg);
+
+    // Handle bind
+    if (player->module->bind != NULL)
+    {
+        Target_event* bound = Bind_get_first(
+                player->module->bind,
+                player->channels[ch_num]->event_cache,
+                player->estate,
+                event_name,
+                arg,
+                player->channels[ch_num]->rand);
+        while (bound != NULL)
+        {
+            Player_process_expr_event(
+                    player,
+                    (ch_num + bound->ch_offset + KQT_CHANNELS_MAX) %
+                        KQT_CHANNELS_MAX,
+                    bound->desc,
+                    arg,
+                    skip);
+
+            bound = bound->next;
+        }
+    }
+
+    return;
+}
+
+
+static void Player_process_expr_event(
+        Player* player,
+        int ch_num,
+        char* trigger_desc,
+        const Value* meta,
         bool skip)
 {
     assert(player != NULL);
@@ -116,16 +175,17 @@ void Player_process_trigger(
     assert(ch_num < KQT_CHANNELS_MAX);
     assert(trigger_desc != NULL);
 
-    Read_state* rs = READ_STATE_AUTO;
+    Streader* sr = Streader_init(
+            STREADER_AUTO, trigger_desc, strlen(trigger_desc));
+
     const Event_names* event_names = Event_handler_get_names(player->event_handler);
 
     char event_name[EVENT_NAME_MAX + 1] = "";
     Event_type type = Event_NONE;
 
-    char* str_pos = get_event_type_info(
-            trigger_desc,
+    get_event_type_info(
+            sr,
             event_names,
-            rs,
             event_name,
             &type);
 
@@ -137,11 +197,10 @@ void Player_process_trigger(
                 VALUE_TYPE_STRING)
         {
             arg->type = VALUE_TYPE_STRING;
-            str_pos = read_string(
-                    str_pos,
-                    arg->value.string_type,
+            Streader_read_string(
+                    sr,
                     ENV_VAR_NAME_MAX,
-                    rs);
+                    arg->value.string_type);
         }
         else
         {
@@ -151,33 +210,26 @@ void Player_process_trigger(
         }
     }
     else
-        str_pos = process_expr(
-                str_pos,
+    {
+        process_expr(
+                sr,
                 Event_names_get_param_type(event_names, event_name),
-                player->env,
+                player->estate,
                 player->channels[ch_num]->rand,
-                NULL,
-                rs,
+                meta,
                 arg);
+    }
 
-    if (rs->error)
+    if (Streader_is_error_set(sr))
     {
-        fprintf(stderr, "Couldn't parse `%s`: %s\n", trigger_desc, rs->message);
+        fprintf(stderr,
+                "Couldn't parse `%s`: %s\n",
+                trigger_desc,
+                Streader_get_error_desc(sr));
         return;
     }
 
-    if (!Event_handler_trigger(
-            player->event_handler,
-            ch_num,
-            event_name,
-            arg))
-    {
-        fprintf(stderr, "`%s` not triggered\n", trigger_desc);
-        return;
-    }
-
-    if (!skip)
-        Event_buffer_add(player->event_buffer, ch_num, event_name, arg);
+    Player_process_event(player, ch_num, event_name, arg, skip);
 
     return;
 }
@@ -189,6 +241,35 @@ void Player_process_cgiters(Player* player, Tstamp* limit, bool skip)
     assert(!Player_has_stopped(player));
     assert(limit != NULL);
     assert(Tstamp_cmp(limit, TSTAMP_AUTO) >= 0);
+
+    // Update current position
+    // FIXME: we should really have a well-defined single source of current position
+    player->master_params.cur_pos = player->cgiters[0].pos;
+
+    // Stop if we don't have anything to play
+    if (player->master_params.cur_pos.piref.pat < 0)
+    {
+        player->master_params.playback_state = PLAYBACK_STOPPED;
+        Tstamp_set(limit, 0, 0);
+        return;
+    }
+
+    // Find our next jump position
+    Tstamp* next_jump_row = Tstamp_set(TSTAMP_AUTO, INT64_MAX, 0);
+    int next_jump_ch = KQT_CHANNELS_MAX;
+    int next_jump_trigger = INT_MAX;
+    Jump_context* next_jc = Active_jumps_get_next_context(
+            player->master_params.active_jumps,
+            &player->master_params.cur_pos.piref,
+            &player->master_params.cur_pos.pat_pos,
+            player->master_params.cur_ch,
+            player->master_params.cur_trigger);
+    if (next_jc != NULL)
+    {
+        Tstamp_copy(next_jump_row, &next_jc->row);
+        next_jump_ch = next_jc->ch_num;
+        next_jump_trigger = next_jc->order;
+    }
 
     // Process trigger rows at current position
     for (int i = player->master_params.cur_ch; i < KQT_CHANNELS_MAX; ++i)
@@ -219,42 +300,113 @@ void Player_process_cgiters(Player* player, Tstamp* limit, bool skip)
             {
                 const Event_type event_type = Event_get_type(el->event);
 
-                if (event_type == Trigger_jump)
+                const bool at_active_jump =
+                    Tstamp_cmp(next_jump_row, &cgiter->pos.pat_pos) == 0 &&
+                    next_jump_ch == i &&
+                    next_jump_trigger == player->master_params.cur_trigger;
+
+                if (at_active_jump)
                 {
-                    // Set current pattern instance, FIXME: hackish
-                    player->master_params.cur_pos.piref =
-                        cgiter->pos.piref;
-
-                    Trigger_master_jump_process(
-                            el->event,
-                            &player->master_params);
-
-                    // Break if jump triggered
-                    if (player->master_params.do_jump)
+                    // Process our next Jump context
+                    assert(next_jc != NULL);
+                    if (next_jc->counter > 0)
                     {
-                        player->master_params.do_jump = false;
-                        Tstamp_set(limit, 0, 0);
+                        player->master_params.do_jump = true;
+                    }
+                    else
+                    {
+                        // Release our consumed Jump context
+                        AAnode* handle = Active_jumps_remove_context(
+                                player->master_params.active_jumps, next_jc);
+                        Jump_cache_release_context(
+                                player->master_params.jump_cache, handle);
 
-                        // Move cgiters to the new position
-                        for (int k = 0; k < KQT_CHANNELS_MAX; ++k)
-                            Cgiter_reset(
-                                    &player->cgiters[k],
-                                    &player->master_params.cur_pos);
-
-                        return;
+                        // Update next Jump context
+                        Tstamp_set(next_jump_row, INT64_MAX, 0);
+                        next_jump_ch = KQT_CHANNELS_MAX;
+                        next_jump_trigger = INT_MAX;
+                        next_jc = Active_jumps_get_next_context(
+                                player->master_params.active_jumps,
+                                &player->master_params.cur_pos.piref,
+                                &player->master_params.cur_pos.pat_pos,
+                                i,
+                                player->master_params.cur_trigger);
+                        if (next_jc != NULL)
+                        {
+                            Tstamp_copy(next_jump_row, &next_jc->row);
+                            next_jump_ch = next_jc->ch_num;
+                            next_jump_trigger = next_jc->order;
+                        }
                     }
                 }
                 else
                 {
+                    // Process trigger normally
                     if (!skip ||
                             Event_is_control(event_type) ||
                             Event_is_general(event_type) ||
                             Event_is_master(event_type))
-                        Player_process_trigger(
+                        Player_process_expr_event(
                                 player,
                                 i,
                                 Event_get_desc(el->event),
+                                NULL, // no meta value
                                 skip);
+                }
+
+                // Perform jump
+                if (player->master_params.do_jump)
+                {
+                    player->master_params.do_jump = false;
+
+                    if (!at_active_jump)
+                    {
+                        // We just got a new Jump context
+                        next_jc = Active_jumps_get_next_context(
+                            player->master_params.active_jumps,
+                            &player->master_params.cur_pos.piref,
+                            &player->master_params.cur_pos.pat_pos,
+                            i,
+                            player->master_params.cur_trigger);
+                        assert(next_jc != NULL);
+                    }
+
+                    --next_jc->counter;
+
+                    // Get target pattern instance
+                    Pat_inst_ref target_piref = next_jc->target_piref;
+                    if (target_piref.pat < 0)
+                        target_piref = player->master_params.cur_pos.piref;
+
+                    // Find new track and system
+                    Position target_pos;
+                    Position_init(&target_pos);
+                    if (!Module_find_pattern_location(
+                                player->module,
+                                &target_piref,
+                                &target_pos.track,
+                                &target_pos.system))
+                    {
+                        // Stop if the jump target does not exist
+                        player->master_params.playback_state = PLAYBACK_STOPPED;
+                    }
+                    else
+                    {
+                        // Move cgiters to the new position
+                        Tstamp_copy(&target_pos.pat_pos, &next_jc->target_row);
+                        target_pos.piref = next_jc->target_piref;
+                        for (int k = 0; k < KQT_CHANNELS_MAX; ++k)
+                            Cgiter_reset(
+                                    &player->cgiters[k],
+                                    &target_pos);
+                    }
+
+                    // Make sure all triggers are processed after the jump
+                    player->master_params.cur_ch = 0;
+                    player->master_params.cur_trigger = 0;
+
+                    Tstamp_set(limit, 0, 0);
+                    return;
                 }
 
                 ++player->master_params.cur_trigger;
@@ -294,6 +446,8 @@ void Player_process_cgiters(Player* player, Tstamp* limit, bool skip)
         Tstamp_set(limit, 0, 0);
         return;
     }
+
+    // TODO: Find our next Jump context
 
     bool any_cgiter_active = false;
 
