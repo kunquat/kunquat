@@ -495,15 +495,24 @@ static bool Player_update_receive(Player* player)
 }
 
 
+static void Player_flush_receive(Player* player)
+{
+    assert(player != NULL);
+
+    while (Player_update_receive(player))
+        ;
+
+    return;
+}
+
+
 void Player_play(Player* player, int32_t nframes)
 {
     assert(player != NULL);
     assert(player->audio_buffer_size > 0);
     assert(nframes >= 0);
 
-    // Flush event receive
-    while (Player_update_receive(player))
-        ;
+    Player_flush_receive(player);
 
     Event_buffer_clear(player->event_buffer);
 
@@ -754,9 +763,7 @@ bool Player_fire(Player* player, int ch, Streader* event_reader)
     if (Streader_is_error_set(event_reader))
         return false;
 
-    // Flush event receive
-    while (Player_update_receive(player))
-        ;
+    Player_flush_receive(player);
 
     Event_buffer_clear(player->event_buffer);
 
