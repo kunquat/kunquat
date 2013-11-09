@@ -30,7 +30,7 @@ from kunquat.tracker.model.module import Module
 from kunquat.tracker.model.uimodel import UiModel
 from kunquat.tracker.model.updater import Updater
 
-from kunquat.tracker.backend.store import Store
+from kunquat.tracker.backend.backend import Backend
 
 from kunquat.tracker.audio.drivers.silentaudio import Silentaudio
 from kunquat.tracker.audio.drivers.pulseaudio import Pulseaudio
@@ -42,7 +42,7 @@ class Tracker():
     def __init__(self):
         self.previous = 0
         self.updater = Updater()
-        self._store = Store()
+        self._backend = Backend()
 
     def create_ui_model(self):
         drivers = [Nullaudio, Pulseaudio, Pushaudio, Silentaudio]
@@ -59,7 +59,7 @@ class Tracker():
         ui_model.set_playback_manager(playback_manager)
         ui_model.set_module(module)
         ui_model.set_updater(self.updater)
-        ui_model.set_store(self._store)
+        ui_model.set_backend(self._backend)
         return ui_model
 
     def update(self):
@@ -72,63 +72,9 @@ class Tracker():
         self.previous = self.current
         self.updater.perform_updates()
 
-    def _remove_prefix(self, path, prefix):
-        preparts = prefix.split('/')
-        keyparts = path.split('/')
-        for pp in preparts:
-            kp = keyparts.pop(0)
-            if pp != kp:
-                 return None
-        return '/'.join(keyparts)
-
-    def load_module(self, module_path):
-        values = dict()
-        if module_path[-4:] in ['.kqt', '.bz2']:
-            prefix = 'kqtc00'
-            tfile = tarfile.open(module_path, format=tarfile.USTAR_FORMAT)
-            members = tfile.getmembers()
-            member_count = len(members)
-            #assert self._frontend
-            #self._frontend.update_import_progress(0, member_count)
-            for i, entry in zip(range(member_count), members):
-                QApplication.processEvents()
-                tarpath = entry.name
-                key = self._remove_prefix(tarpath, prefix)
-                assert (key != None) #TODO broken file exception
-                if entry.isfile():
-                    value = tfile.extractfile(entry).read()
-
-                    m = re.match('^ins_([0-9]{2})/p_manifest.json$', key)
-                    if m:
-                        instrument_number = int(m.group(1))
-                        #self._frontend.update_instrument_existence(instrument_number, True)
-
-                    m = re.match('^ins_([0-9]{2})/m_name.json$', key)
-                    if m:
-                        instrument_number = int(m.group(1))
-                        name = json.loads(value)
-                        #self._frontend.update_instrument_name(instrument_number, name)
-
-                    if key.endswith('.json'):
-                        decoded = json.loads(value)
-                    elif key.endswith('.jsone'):
-                        decoded = json.loads(value)
-                    elif key.endswith('.jsonf'):
-                        decoded = json.loads(value)
-                    elif key.endswith('.jsoni'):
-                        decoded = json.loads(value)
-                    elif key.endswith('.jsonln'):
-                        decoded = json.loads(value)
-                    elif key.endswith('.jsonsh'):
-                        decoded = json.loads(value)
-                    elif key.endswith('.jsonsm'):
-                        decoded = json.loads(value)
-                    else:
-                        decoded = value
-                    values[key] = decoded
-                #self._frontend.update_import_progress(i + 1, member_count)
-            tfile.close()
-            self._store.put(values)
+    def run_heavy(self, runner):
+        for _ in runner:
+            QApplication.processEvents()
 
     def main(self):
         app = QApplication(sys.argv)
@@ -143,7 +89,8 @@ class Tracker():
 
         if len(sys.argv) > 1:
             module_path = sys.argv[1]
-            self.load_module(module_path)
+            loader = self._backend.load_module(module_path)
+            self.run_heavy(loader)
 
         main_window.set_ui_model(ui_model)
         main_window.show()
