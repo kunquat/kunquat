@@ -448,15 +448,24 @@ static bool Player_update_receive(Player* player)
         new_events_found = true;
 
         // Process suspended bind
-        if (!string_eq(player->susp_event_name, ""))
+        if (string_eq(player->susp_event_name, ""))
+        {
+            Player_move_forwards(player, 0, false);
+        }
+        else
+        {
+            Event_buffer_add(
+                    player->event_buffer,
+                    player->susp_event_ch,
+                    player->susp_event_name,
+                    &player->susp_event_value);
             Player_process_event(
                     player,
                     player->susp_event_ch,
                     player->susp_event_name,
                     &player->susp_event_value,
                     false);
-        else
-            Player_move_forwards(player, 0, false);
+        }
 
         if (Event_buffer_is_skipping(player->event_buffer))
             return new_events_found;
