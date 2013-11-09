@@ -25,6 +25,7 @@ from kunquat.tracker.model.ui_manager import UiManager
 from kunquat.tracker.model.playback_manager import PlaybackManager
 from kunquat.tracker.model.module import Module
 from kunquat.tracker.model.uimodel import UiModel
+from kunquat.tracker.model.updater import Updater
 
 from kunquat.tracker.audio.drivers.silentaudio import Silentaudio
 from kunquat.tracker.audio.drivers.pulseaudio import Pulseaudio
@@ -50,6 +51,8 @@ class Tracker():
         ui_model.set_ui_manager(ui_manager)
         ui_model.set_playback_manager(playback_manager)
         ui_model.set_module(module)
+        updater = Updater()
+        ui_model.set_updater(updater)
         return ui_model
 
     def update(self):

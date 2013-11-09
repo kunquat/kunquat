@@ -15,12 +15,12 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from play_button import PlayButton
-from type_writer import TypeWriter
-from instrument_select import InstrumentSelect
-from render_stats import RenderStats
-from import_progress import ImportProgress
-from peak_meter import PeakMeter
+from playbutton import PlayButton
+from typewriter import TypeWriter
+from instrumentselect import InstrumentSelect
+from renderstats import RenderStats
+from importprogress import ImportProgress
+from peakmeter import PeakMeter
 from sheet.sheet import Sheet
 
 class MainWindow(QWidget):
