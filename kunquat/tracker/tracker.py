@@ -72,8 +72,8 @@ class Tracker():
         self.previous = self.current
         self.updater.perform_updates()
 
-    def run_heavy(self, runner):
-        for _ in runner:
+    def execute_task(self, task):
+        for _ in task:
             QApplication.processEvents()
 
     def main(self):
@@ -89,8 +89,8 @@ class Tracker():
 
         if len(sys.argv) > 1:
             module_path = sys.argv[1]
-            loader = self._backend.load_module(module_path)
-            self.run_heavy(loader)
+            load_task = self._backend.get_task_load_module(module_path)
+            self.execute_task(load_task)
 
         main_window.set_ui_model(ui_model)
         main_window.show()

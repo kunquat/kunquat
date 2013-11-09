@@ -79,7 +79,7 @@ class Backend():
                  return None
         return '/'.join(keyparts)
 
-    def load_module(self, module_path):
+    def get_task_load_module(self, module_path):
         values = dict()
         if module_path[-4:] in ['.kqt', '.bz2']:
             prefix = 'kqtc00'
