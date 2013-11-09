@@ -88,6 +88,19 @@ static bool Streader_end_reached(Streader* sr)
 #define CUR_CH (assert(!Streader_end_reached(sr)), sr->str[sr->pos])
 
 
+static void print_wrong_char(char dest[5], char ch)
+{
+    assert(dest != NULL);
+
+    if (isprint(ch))
+        snprintf(dest, 5, "'%c'", ch);
+    else
+        snprintf(dest, 5, "%#04hhx", (unsigned)ch);
+
+    return;
+}
+
+
 bool Streader_skip_whitespace(Streader* sr)
 {
     assert(sr != NULL);
@@ -634,9 +647,60 @@ bool Streader_read_string(Streader* sr, size_t max_bytes, char* dest)
                 special_ch = '\t';
             else if (CUR_CH == 'u')
             {
-                Streader_set_error(
-                        sr, "Escaped hex digit sequences are not supported");
-                return false;
+                static const char* upper_hex_digits = "ABCDEF";
+                static const char* lower_hex_digits = "abcdef";
+
+                uint32_t code = 0;
+
+                ++sr->pos;
+                for (int i = 0; i < 4; ++i)
+                {
+                    if (Streader_end_reached(sr))
+                    {
+                        Streader_set_error(sr, "Unexpected end of data");
+                        return false;
+                    }
+
+                    int32_t value = -1;
+                    if (isdigit(CUR_CH))
+                        value = CUR_CH - '0';
+                    else if (strchr(upper_hex_digits, CUR_CH) != NULL)
+                        value = strchr(upper_hex_digits, CUR_CH) -
+                            upper_hex_digits + 0xa;
+                    else if (strchr(lower_hex_digits, CUR_CH) != NULL)
+                        value = strchr(lower_hex_digits, CUR_CH) -
+                            lower_hex_digits + 0xa;
+                    else
+                    {
+                        char dest[5] = "";
+                        print_wrong_char(dest, CUR_CH);
+                        Streader_set_error(
+                                sr,
+                                "Expected a hexadecimal digit instead of %s",
+                                dest);
+                        return false;
+                    }
+
+                    assert(value >= 0);
+                    assert(value < 0x10);
+
+                    code *= 0x10;
+                    code += value;
+
+                    ++sr->pos;
+                }
+
+                if (code < 0x20 || code > 0x7e)
+                {
+                    Streader_set_error(
+                            sr,
+                            "Unicode character U+%04X outside permitted"
+                                " range [U+0020,U+007E]",
+                            code);
+                    return false;
+                }
+
+                special_ch = code;
             }
             else
             {
@@ -646,6 +710,14 @@ bool Streader_read_string(Streader* sr, size_t max_bytes, char* dest)
                 else
                     Streader_set_error(
                             sr, "Invalid escape sequence %#2x", CUR_CH);
+                return false;
+            }
+
+            if (special_ch < 0x20 || special_ch > 0x7e)
+            {
+                char dest[5] = "";
+                print_wrong_char(dest, special_ch);
+                Streader_set_error(sr, "Invalid special character %s", dest);
                 return false;
             }
 
