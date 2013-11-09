@@ -288,11 +288,11 @@ class Kunquat(BaseHandle):
         KunquatArgumentError -- The key is not valid.
 
         """
-        if key[key.index('.'):].startswith('.json'):
-            value = json.dumps(value) if value != None else ''
-        elif value == None:
-            value = ''
-        data = buffer(value)
+        if isinstance(value, str):
+            json_value = value
+        else:
+            json_value = json.dumps(value) if value != None else ''
+        data = buffer(json_value)
         cdata = (ctypes.c_ubyte * len(data))()
         cdata[:] = [ord(b) for b in data][:]
         _kunquat.kqt_Handle_set_data(self._handle,
