@@ -58,6 +58,11 @@ struct Player
     int64_t nanoseconds_history;
 
     bool events_returned;
+
+    // Suspended event processing state
+    int   susp_event_ch;
+    char  susp_event_name[EVENT_NAME_MAX + 1];
+    Value susp_event_value;
 };
 
 

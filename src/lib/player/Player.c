@@ -99,6 +99,10 @@ Player* new_Player(
 
     player->events_returned = false;
 
+    player->susp_event_ch = -1;
+    memset(player->susp_event_name, '\0', EVENT_NAME_MAX + 1);
+    player->susp_event_value = *VALUE_AUTO;
+
     // Init fields
     player->device_states = new_Device_states();
     player->estate = new_Env_state(player->module->env);
@@ -433,17 +437,52 @@ static void Player_process_voices(
 }
 
 
-static void Player_update_receive(Player* player)
+static bool Player_update_receive(Player* player)
 {
-    // Do nothing if row processing was not interrupted
-    if (player->master_params.cur_ch == 0 &&
-            player->master_params.cur_trigger == 0)
-        return;
+    bool new_events_found = false;
 
-    // Process the remainder of the current row
-    Player_move_forwards(player, 0, false);
+    Event_buffer_clear(player->event_buffer);
 
-    return;
+    if (Event_buffer_is_skipping(player->event_buffer))
+    {
+        new_events_found = true;
+
+        // Process suspended bind
+        if (!string_eq(player->susp_event_name, ""))
+            Player_process_event(
+                    player,
+                    player->susp_event_ch,
+                    player->susp_event_name,
+                    &player->susp_event_value,
+                    false);
+        else
+            Player_move_forwards(player, 0, false);
+
+        if (Event_buffer_is_skipping(player->event_buffer))
+            return new_events_found;
+        else
+            player->susp_event_name[0] = '\0';
+    }
+
+    if (player->master_params.cur_ch > 0 ||
+            player->master_params.cur_trigger > 0)
+    {
+        new_events_found = true;
+
+        const int old_ch = player->master_params.cur_ch;
+        const int old_trigger = player->master_params.cur_trigger;
+
+        // Process the remainder of the current row
+        Player_move_forwards(player, 0, false);
+
+        // Check if we reached end of row
+        if (old_ch == player->master_params.cur_ch &&
+                old_trigger == player->master_params.cur_trigger &&
+                !Event_buffer_is_skipping(player->event_buffer))
+            new_events_found = false;
+    }
+
+    return new_events_found;
 }
 
 
@@ -452,6 +491,10 @@ void Player_play(Player* player, int32_t nframes)
     assert(player != NULL);
     assert(player->audio_buffer_size > 0);
     assert(nframes >= 0);
+
+    // Flush event receive
+    while (Player_update_receive(player))
+        ;
 
     Event_buffer_clear(player->event_buffer);
 
@@ -675,9 +718,6 @@ const char* Player_get_events(Player* player)
 
     if (player->events_returned)
     {
-        // Event buffer contains old data, clear
-        Event_buffer_clear(player->event_buffer);
-
         // Get more events if row processing was interrupted
         Player_update_receive(player);
     }
@@ -704,6 +744,10 @@ bool Player_fire(Player* player, int ch, Streader* event_reader)
 
     if (Streader_is_error_set(event_reader))
         return false;
+
+    // Flush event receive
+    while (Player_update_receive(player))
+        ;
 
     Event_buffer_clear(player->event_buffer);
 
@@ -771,6 +815,14 @@ bool Player_fire(Player* player, int ch, Streader* event_reader)
         event_name,
         value,
         false);
+
+    // Store event parameters if processing was suspended
+    if (Event_buffer_is_skipping(player->event_buffer))
+    {
+        player->susp_event_ch = ch;
+        strcpy(player->susp_event_name, event_name);
+        Value_copy(&player->susp_event_value, value);
+    }
 
     player->events_returned = false;
 
