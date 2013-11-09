@@ -41,16 +41,6 @@ def gen_sine(rate):
         yield math.sin(phase) * 0.3
 
 
-def remove_prefix(path, prefix):
-    preparts = prefix.split('/')
-    keyparts = path.split('/')
-    for pp in preparts:
-        kp = keyparts.pop(0)
-        if pp != kp:
-             return None
-    return '/'.join(keyparts)
-
-
 class Backend():
 
     def __init__(self):
@@ -77,54 +67,6 @@ class Backend():
 
     def set_data(self, key, value):
         self._kunquat.set_data(key, value)
-
-    def load_module(self):
-        if len(sys.argv) > 1 and sys.argv[1][-4:] in ['.kqt', '.bz2']:
-            path = sys.argv[1]
-            prefix = 'kqtc00'
-            tfile = tarfile.open(path, format=tarfile.USTAR_FORMAT)
-            members = tfile.getmembers()
-            member_count = len(members)
-            assert self._frontend
-            self._frontend.update_import_progress(0, member_count)
-            for i, entry in zip(range(member_count), members):
-                tarpath = entry.name
-                key = remove_prefix(tarpath, prefix)
-                assert (key != None) #TODO broken file exception
-                if entry.isfile():
-                    value = tfile.extractfile(entry).read()
-
-                    m = re.match('^ins_([0-9]{2})/p_manifest.json$', key)
-                    if m:
-                        instrument_number = int(m.group(1))
-                        self._frontend.update_instrument_existence(instrument_number, True)
-
-                    m = re.match('^ins_([0-9]{2})/m_name.json$', key)
-                    if m:
-                        instrument_number = int(m.group(1))
-                        name = json.loads(value)
-                        self._frontend.update_instrument_name(instrument_number, name)
-
-                    if key.endswith('.json'):
-                        decoded = json.loads(value)
-                    elif key.endswith('.jsone'):
-                        decoded = json.loads(value)
-                    elif key.endswith('.jsonf'):
-                        decoded = json.loads(value)
-                    elif key.endswith('.jsoni'):
-                        decoded = json.loads(value)
-                    elif key.endswith('.jsonln'):
-                        decoded = json.loads(value)
-                    elif key.endswith('.jsonsh'):
-                        decoded = json.loads(value)
-                    elif key.endswith('.jsonsm'):
-                        decoded = json.loads(value)
-                    else:
-                        decoded = value
-                    self._kunquat.set_data(key, decoded)
-                self._frontend.update_import_progress(i + 1, member_count)
-            tfile.close()
-            self._kunquat.validate()
 
     def play(self):
         self._kunquat.nanoseconds = 0

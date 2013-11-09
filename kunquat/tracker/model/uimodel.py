@@ -79,6 +79,7 @@ class UiModel():
         self._playback_manager = None
         self._module = None
         self._updater = None
+        self._store = None
 
     def set_backend(self, backend):
         self._backend = backend
@@ -93,6 +94,9 @@ class UiModel():
         self._stat_manager.set_updater(self._updater)
         self._ui_manager.set_updater(self._updater)
         self._module.set_updater(self._updater)
+
+    def set_store(self, store):
+        self._store = store
 
     def get_updater(self):
         return self._updater
