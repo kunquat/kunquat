@@ -46,76 +46,75 @@ Event* new_Event(Event_type type, Tstamp* pos)
 }
 
 
-Event* new_Event_from_string(
-        char** str,
-        Read_state* state,
-        const Event_names* names)
+Event* new_Event_from_string(Streader* sr, const Event_names* names)
 {
-    assert(str != NULL);
-    assert(*str != NULL);
-    assert(state != NULL);
+    assert(sr != NULL);
     assert(names != NULL);
 
-    if (state->error)
+    if (Streader_is_error_set(sr))
         return NULL;
 
-    *str = read_const_char(*str, '[', state);
-    Tstamp* pos = Tstamp_init(TSTAMP_AUTO);
-    *str = read_tstamp(*str, pos, state);
-    *str = read_const_char(*str, ',', state);
-    *str = read_const_char(*str, '[', state);
-    char* event_desc = *str - 1;
+    // Trigger position
+    Tstamp* pos = TSTAMP_AUTO;
+    if (!Streader_readf(sr, "[%t,[", pos))
+        return NULL;
+
+    // Store event description location for copying
+    const char* event_desc = &sr->str[sr->pos - 1];
+
+    // Event type
     char type_str[EVENT_NAME_MAX + 2] = "";
-    *str = read_string(*str, type_str, EVENT_NAME_MAX + 2, state);
-    *str = read_const_char(*str, ',', state);
-    if (state->error)
+    if (!(Streader_read_string(sr, EVENT_NAME_MAX + 2, type_str) &&
+                Streader_match_char(sr, ',')))
         return NULL;
 
     Event_type type = Event_names_get(names, type_str);
     if (!Event_is_trigger(type))
     {
-        Read_state_set_error(
-                state,
-                "Invalid or unsupported event type: \"%s\"",
-                type_str);
+        Streader_set_error(
+                sr, "Invalid or unsupported event type: \"%s\"", type_str);
         return NULL;
     }
 
-    Event* event = new_Event(type, pos);
-    if (event == NULL)
-        return NULL;
-
+    // Event argument
     Value_type field_type = VALUE_TYPE_NONE;
     field_type = Event_names_get_param_type(names, type_str);
 
     if (field_type == VALUE_TYPE_NONE)
-        *str = read_null(*str, state);
+        Streader_read_null(sr);
     else
-        *str = read_string(*str, NULL, 0, state);
-    if (state->error)
+        Streader_read_string(sr, 0, NULL);
+    if (Streader_is_error_set(sr))
+        return NULL;
+
+    // End of event description
+    Streader_match_char(sr, ']');
+    if (Streader_is_error_set(sr))
+        return NULL;
+
+    // Create the trigger
+    Event* event = new_Event(type, pos);
+    if (event == NULL)
     {
-        del_Event(event);
+        Streader_set_memory_error(
+                sr, "Could not allocate memory for a trigger");
         return NULL;
     }
 
-    assert(*str != NULL);
-    *str = read_const_char(*str, ']', state);
-    if (state->error)
-    {
-        del_Event(event);
-        return NULL;
-    }
-
-    event->desc = memory_calloc_items(char, *str - event_desc + 1);
+    // Copy the event description
+    event->desc = memory_calloc_items(
+            char, (&sr->str[sr->pos] - event_desc) + 1);
     if (event->desc == NULL)
     {
         del_Event(event);
         return NULL;
     }
 
-    strncpy(event->desc, event_desc, *str - event_desc);
-    *str = read_const_char(*str, ']', state);
-    if (state->error)
+    strncpy(event->desc, event_desc, &sr->str[sr->pos] - event_desc);
+
+    // End of trigger
+    Streader_match_char(sr, ']');
+    if (Streader_is_error_set(sr))
     {
         del_Event(event);
         return NULL;

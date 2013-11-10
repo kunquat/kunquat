@@ -1542,28 +1542,20 @@ static bool parse_pattern_level(Handle* handle,
                 return false;
             }
         }
-        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+        Streader* sr = Streader_init(STREADER_AUTO, data, length);
         const Event_names* event_names =
                 Event_handler_get_names(Player_get_event_handler(handle->player));
-        Column* col = new_Column_from_string(Pattern_get_length(pat),
-                                             data,
-                                             event_names,
-                                             state);
+        Column* col = new_Column_from_string(
+                sr, Pattern_get_length(pat), event_names);
         if (col == NULL)
         {
-            if (!state->error)
-            {
-                Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory");
-            }
-            else
-            {
-                set_parse_error(handle, state);
-            }
+            set_error(handle, sr);
+
             if (new_pattern)
             {
                 del_Pattern(pat);
             }
+
             return false;
         }
         if (!Pattern_set_column(pat, sub_index, col))

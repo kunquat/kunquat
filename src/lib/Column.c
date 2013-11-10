@@ -240,9 +240,8 @@ void del_Column_iter(Column_iter* iter)
 
 static bool Column_parse(
         Column* col,
-        char* str,
-        const Event_names* event_names,
-        Read_state* state);
+        Streader* sr,
+        const Event_names* event_names);
 
 
 Column* new_Column(const Tstamp* len)
@@ -278,22 +277,21 @@ Column* new_Column(const Tstamp* len)
 
 
 Column* new_Column_from_string(
+        Streader* sr,
         const Tstamp* len,
-        char* str,
-        const Event_names* event_names,
-        Read_state* state)
+        const Event_names* event_names)
 {
+    assert(sr != NULL);
     assert(event_names != NULL);
-    assert(state != NULL);
 
-    if (state->error)
-        return false;
+    if (Streader_is_error_set(sr))
+        return NULL;
 
     Column* col = new_Column(len);
     if (col == NULL)
         return NULL;
 
-    if (!Column_parse(col, str, event_names, state))
+    if (!Column_parse(col, sr, event_names))
     {
         del_Column(col);
         return NULL;
@@ -303,63 +301,51 @@ Column* new_Column_from_string(
 }
 
 
-#define break_if(error)   \
-    if (true)             \
-    {                     \
-        if ((error))      \
-            return false; \
-    } else (void)0
+typedef struct Read_trigger_data
+{
+    Column* col;
+    const Event_names* event_names;
+} Read_trigger_data;
+
+static bool read_trigger(Streader* sr, int32_t index, void* userdata)
+{
+    assert(sr != NULL);
+    (void)index;
+    assert(userdata != NULL);
+
+    Read_trigger_data* rtdata = userdata;
+
+    Event* event = new_Event_from_string(sr, rtdata->event_names);
+    if (event == NULL || !Column_ins(rtdata->col, event))
+    {
+        del_Event(event);
+        return false;
+    }
+
+    return true;
+}
 
 static bool Column_parse(
         Column* col,
-        char* str,
-        const Event_names* event_names,
-        Read_state* state)
+        Streader* sr,
+        const Event_names* event_names)
 {
     assert(col != NULL);
-    assert(state != NULL);
+    assert(sr != NULL);
+    assert(event_names != NULL);
 
-    if (state->error)
+    if (Streader_is_error_set(sr))
         return false;
 
-    if (str == NULL)
+    if (!Streader_has_data(sr))
     {
         // An empty Column has no properties, so we're done.
         return true;
     }
 
-    str = read_const_char(str, '[', state); // start of Column
-    break_if(state->error);
-    str = read_const_char(str, ']', state); // check of empty Column
-    if (!state->error)
-        return true;
-
-    Read_state_clear_error(state);
-
-    bool expect_event = true;
-    while (expect_event)
-    {
-        Event* event = new_Event_from_string(&str, state, event_names);
-        if (event == NULL)
-            return false;
-
-        if (!Column_ins(col, event))
-        {
-            del_Event(event);
-            return false;
-        }
-
-        check_next(str, state, expect_event);
-    }
-
-    str = read_const_char(str, ']', state);
-    if (state->error)
-        return false;
-
-    return true;
+    Read_trigger_data rtdata = { col, event_names };
+    return Streader_read_list(sr, read_trigger, &rtdata);
 }
-
-#undef break_if
 
 
 bool Column_ins(Column* col, Event* event)
