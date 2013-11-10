@@ -88,6 +88,16 @@ void Streader_set_error(Streader* sr, const char* format, ...);
 
 
 /**
+ * Sets a memory error in the Streader.
+ *
+ * \param sr       The Streader -- must not be \c NULL.
+ * \param format   The error message format -- must not be \c NULL. This and
+ *                 subsequent arguments follow the printf family conventions.
+ */
+void Streader_set_memory_error(Streader* sr, const char* format, ...);
+
+
+/**
  * Clears the error in the Streader.
  *
  * \param sr   The Streader -- must not be \c NULL.
@@ -105,6 +115,16 @@ void Streader_clear_error(Streader* sr);
  * \return   \c true if \a sr did not have error set, otherwise \c false.
  */
 bool Streader_skip_whitespace(Streader* sr);
+
+
+/**
+ * Finds out if the Streader contains JSON data.
+ *
+ * \param sr   The Streader -- must not be \c NULL and must not have error set.
+ *
+ * \return   \c true if \a sr contains JSON data, otherwise \c false.
+ */
+bool Streader_has_data(Streader* sr);
 
 
 /**

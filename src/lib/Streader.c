@@ -68,6 +68,21 @@ void Streader_set_error(Streader* sr, const char* format, ...)
 }
 
 
+void Streader_set_memory_error(Streader* sr, const char* format, ...)
+{
+    assert(sr != NULL);
+    assert(format != NULL);
+
+    va_list args;
+    va_start(args, format);
+    Error_set_desc_va_list(
+            &sr->error, ERROR_MEMORY, "", sr->line, "", format, args);
+    va_end(args);
+
+    return;
+}
+
+
 void Streader_clear_error(Streader* sr)
 {
     assert(sr != NULL);
@@ -76,7 +91,7 @@ void Streader_clear_error(Streader* sr)
 }
 
 
-static bool Streader_end_reached(Streader* sr)
+static bool Streader_end_reached(const Streader* sr)
 {
     assert(sr != NULL);
     assert(sr->pos <= sr->len);
@@ -119,6 +134,16 @@ bool Streader_skip_whitespace(Streader* sr)
     assert(sr->pos <= sr->len);
 
     return true;
+}
+
+
+bool Streader_has_data(Streader* sr)
+{
+    assert(sr != NULL);
+    assert(!Streader_is_error_set(sr));
+
+    Streader_skip_whitespace(sr);
+    return !Streader_end_reached(sr);
 }
 
 
