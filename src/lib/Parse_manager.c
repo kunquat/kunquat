@@ -361,25 +361,16 @@ static bool parse_module_level(Handle* handle,
     }
     else if (string_eq(key, "p_connections.json"))
     {
-        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        Connections* graph = new_Connections_from_string(data,
+        Streader* sr = Streader_init(STREADER_AUTO, data, length);
+        Connections* graph = new_Connections_from_string(sr,
                                             CONNECTION_LEVEL_GLOBAL,
                                             Module_get_insts(module),
                                             Module_get_effects(module),
                                             NULL,
-                                            (Device*)module,
-                                            state);
+                                            (Device*)module);
         if (graph == NULL)
         {
-            if (state->error)
-            {
-                set_parse_error(handle, state);
-            }
-            else
-            {
-                Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory");
-            }
+            set_error(handle, sr);
             return false;
         }
         if (module->connections != NULL)
@@ -696,21 +687,16 @@ static bool parse_instrument_level(Handle* handle,
             if (ins == NULL)
                 return false;
 
-            Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-            Connections* graph = new_Connections_from_string(data,
+            Streader* sr = Streader_init(STREADER_AUTO, data, length);
+            Connections* graph = new_Connections_from_string(sr,
                                                  CONNECTION_LEVEL_INSTRUMENT,
                                                  Module_get_insts(module),
                                                  Instrument_get_effects(ins),
                                                  NULL,
-                                                 (Device*)ins,
-                                                 state);
+                                                 (Device*)ins);
             if (graph == NULL)
             {
-                if (state->error)
-                    set_parse_error(handle, state);
-                else
-                    Handle_set_error(handle, ERROR_MEMORY,
-                            "Couldn't allocate memory");
+                set_error(handle, sr);
                 return false;
             }
             Instrument_set_connections(ins, graph);
@@ -1194,25 +1180,20 @@ static bool parse_effect_level(Handle* handle,
             if (eff == NULL)
                 return false;
 
-            Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+            Streader* sr = Streader_init(STREADER_AUTO, data, length);
             Connection_level level = CONNECTION_LEVEL_EFFECT;
             if (ins != NULL)
             {
                 level |= CONNECTION_LEVEL_INSTRUMENT;
             }
-            Connections* graph = new_Connections_from_string(data, level,
+            Connections* graph = new_Connections_from_string(sr, level,
                                                  Module_get_insts(module),
                                                  table,
                                                  Effect_get_dsps(eff),
-                                                 (Device*)eff,
-                                                 state);
+                                                 (Device*)eff);
             if (graph == NULL)
             {
-                if (state->error)
-                    set_parse_error(handle, state);
-                else
-                    Handle_set_error(handle, ERROR_MEMORY,
-                            "Couldn't allocate memory");
+                set_error(handle, sr);
                 return false;
             }
             Effect_set_connections(eff, graph);

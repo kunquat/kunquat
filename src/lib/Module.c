@@ -132,18 +132,16 @@ Module* new_Module()
         return NULL;
     }
 
-    Read_state* conn_state = READ_STATE_AUTO;
+    Streader* conn_sr = Streader_init(STREADER_AUTO, NULL, 0);
     module->connections = new_Connections_from_string(
-            NULL,
+            conn_sr,
             false,
             module->insts,
             module->effects,
             NULL,
-            &module->parent,
-            conn_state);
+            &module->parent);
     if (module->connections == NULL)
     {
-        assert(!conn_state->error);
         del_Module(module);
         return NULL;
     }

@@ -21,6 +21,7 @@
 #include <Device_node.h>
 #include <DSP_table.h>
 #include <Ins_table.h>
+#include <Streader.h>
 
 
 /**
@@ -44,25 +45,23 @@ typedef enum
 /**
  * Creates new Connections from a string.
  *
- * \param str         The textual description.
+ * \param sr          The Streader of the JSON input -- must not be \c NULL.
  * \param ins_level   Whether this is an instrument-level graph or not.
  * \param insts       The Instrument table -- must not be \c NULL.
  * \param effects     The Effect table -- must not be \c NULL.
  * \param dsps        The DSP table -- must not be \c NULL.
  * \param master      The global or Instrument master node
  *                    -- must not be \c NULL.
- * \param state       The Read state -- must not be \c NULL.
  *
  * \return   The new Connections if successful, otherwise \c NULL. \a state
  *           will not be modified if memory allocation failed.
  */
-Connections* new_Connections_from_string(char* str,
+Connections* new_Connections_from_string(Streader* sr,
                                          Connection_level level,
                                          Ins_table* insts,
                                          Effect_table* effects,
                                          DSP_table* dsps,
-                                         Device* master,
-                                         Read_state* state);
+                                         Device* master);
 
 
 /**
