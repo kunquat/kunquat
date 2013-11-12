@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -18,7 +18,7 @@
 
 #include <stdint.h>
 
-#include <File_base.h>
+#include <Streader.h>
 
 
 typedef enum
@@ -69,14 +69,11 @@ Sample_params* Sample_params_init(Sample_params* params);
  * Parses the Sample parameters from a string.
  *
  * \param params   The Sample parameters -- must not be \c NULL.
- * \param str      The textual description.
- * \param state    The Read state -- must not be \c NULL.
+ * \param sr       The Streader of the JSON data -- must not be \c NULL.
  *
  * \return   \c true if successful, otherwise \c false.
  */
-bool Sample_params_parse(Sample_params* params,
-                         char* str,
-                         Read_state* state);
+bool Sample_params_parse(Sample_params* params, Streader* sr);
 
 
 /**

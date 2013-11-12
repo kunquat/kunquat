@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2013
  *
  * This file is part of Kunquat.
  *
@@ -16,9 +16,10 @@
 #define K_SAMPLE_ENTRY_H
 
 
+#include <stdbool.h>
 #include <stdint.h>
 
-#include <File_base.h>
+#include <Streader.h>
 
 
 typedef struct Sample_entry
@@ -36,12 +37,11 @@ typedef struct Sample_entry
  * Parses a Sample entry from a string.
  *
  * \param entry   The Sample entry -- must not be \c NULL.
- * \param str     The string -- must not be \c NULL.
- * \param state   The Read state -- must not be \c NULL.
+ * \param sr      The Streader of the JSON data -- must not be \c NULL.
  *
- * \return   The position of \a str after parsing.
+ * \return   \c true if successful, otherwise \c false.
  */
-char* Sample_entry_parse(Sample_entry* entry, char* str, Read_state* state);
+bool Sample_entry_parse(Sample_entry* entry, Streader* sr);
 
 
 #endif // K_SAMPLE_ENTRY_H

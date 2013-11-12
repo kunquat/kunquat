@@ -519,21 +519,15 @@ bool Device_params_parse_events(Device_params* params,
 
 
 bool Device_params_parse_value(
-        Device_params* params,
-        const char* key,
-        void* data,
-        long length,
-        Read_state* state)
+        Device_params* params, const char* key, Streader* sr)
 {
     assert(params != NULL);
     assert(key != NULL);
-    assert((data == NULL) == (length == 0));
-    assert(length >= 0);
-    assert(state != NULL);
     assert(string_has_prefix(key, "i/") || string_has_prefix(key, "c/"));
     assert(key_is_device_param(key));
+    assert(sr != NULL);
 
-    if (state->error)
+    if (Streader_is_error_set(sr))
         return false;
 
     AAtree* tree = NULL;
@@ -557,17 +551,19 @@ bool Device_params_parse_value(
     bool success = true;
     if (field != NULL)
     {
-        success = Device_field_change(field, data, length, state);
+        success = Device_field_change(field, sr);
     }
     else
     {
-        field = new_Device_field_from_data(key, data, length, state);
+        field = new_Device_field_from_data(key, sr);
         if (field == NULL)
             return false;
 
         if (!AAtree_ins(tree, field))
         {
             del_Device_field(field);
+            Streader_set_memory_error(
+                    sr, "Could not allocate memory for device key %s", key);
             return false;
         }
     }

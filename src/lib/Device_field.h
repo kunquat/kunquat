@@ -20,13 +20,13 @@
 #include <stdint.h>
 
 #include <Envelope.h>
-#include <File_base.h>
 #include <Hit_map.h>
 #include <Num_list.h>
 #include <Real.h>
 #include <Sample.h>
 #include <Sample_params.h>
 #include <Sample_map.h>
+#include <Streader.h>
 #include <Tstamp.h>
 
 
@@ -78,20 +78,12 @@ Device_field* new_Device_field(const char* key, void* data);
 /**
  * Creates a new Device field from data.
  *
- * \param key      The key of the field -- must be a valid Device field key.
- * \param data     The data -- must not be \c NULL if it has a non-zero
- *                 length.
- * \param length   The length of the data -- must be >= \c 0.
- * \param state    The Read state -- must not be \c NULL.
+ * \param key   The key of the field -- must be a valid Device field key.
+ * \param sr    The Streader of the data -- must not be \c NULL.
  *
  * \return   The new Device field if successful, otherwise \c NULL.
- *           \a state will _not_ be modified if memory allocation failed.
  */
-Device_field* new_Device_field_from_data(
-        const char* key,
-        void* data,
-        long length,
-        Read_state* state);
+Device_field* new_Device_field_from_data(const char* key, Streader* sr);
 
 
 /**
@@ -109,20 +101,12 @@ const char* Device_field_get_key(const Device_field* field);
  *
  * This is used for modifying _composition_ data (not playback data).
  *
- * \param field    The Device field -- must not be \c NULL.
- * \param data     The data -- must not be \c NULL if it has a non-zero
- *                 length.
- * \param length   The length of the data -- must be >= \c 0.
- * \param state    The Read state -- must not be \c NULL.
+ * \param field   The Device field -- must not be \c NULL.
+ * \param sr      The Streader of the data -- must not be \c NULL.
  *
- * \return   \c true if successful, otherwise \c false. \a state will _not_
- *           be modified if memory allocation failed.
+ * \return   \c true if successful, otherwise \c false.
  */
-bool Device_field_change(
-        Device_field* field,
-        void* data,
-        long length,
-        Read_state* state);
+bool Device_field_change(Device_field* field, Streader* sr);
 
 
 /**
@@ -135,9 +119,7 @@ bool Device_field_change(
  *           is found, respectively, to be less than, equal to or greater than
  *           \a field2.
  */
-int Device_field_cmp(
-        const Device_field* field1,
-        const Device_field* field2);
+int Device_field_cmp(const Device_field* field1, const Device_field* field2);
 
 
 /**

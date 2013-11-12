@@ -44,7 +44,7 @@ struct Envelope
 };
 
 
-static char* Envelope_read_nodes(Envelope* env, char* str, Read_state* state);
+static bool Envelope_read_nodes(Envelope* env, Streader* sr);
 
 
 Envelope* new_Envelope(int nodes_max,
@@ -93,107 +93,150 @@ Envelope* new_Envelope(int nodes_max,
 }
 
 
-char* Envelope_read(Envelope* env, char* str, Read_state* state)
+static bool read_env_mark(Streader* sr, int32_t index, void* userdata)
 {
-    assert(env != NULL);
-    assert(str != NULL);
-    assert(state != NULL);
+    assert(sr != NULL);
+    assert(userdata != NULL);
 
-    if (state->error)
-        return str;
-
-    str = read_const_char(str, '{', state);
-    if (state->error)
-        return str;
-
-    bool smooth = false;
-    str = read_const_char(str, '}', state);
-    if (state->error)
+    if (index >= ENVELOPE_MARKS_MAX)
     {
-        Read_state_clear_error(state);
-
-        bool expect_key = true;
-        while (expect_key)
-        {
-            char key[128] = { '\0' };
-            str = read_string(str, key, 128, state);
-            str = read_const_char(str, ':', state);
-            if (state->error)
-                return str;
-
-            if (string_eq(key, "nodes"))
-            {
-                str = Envelope_read_nodes(env, str, state);
-            }
-            else if (string_eq(key, "marks"))
-            {
-                str = read_const_char(str, '[', state);
-                if (state->error)
-                    return str;
-
-                str = read_const_char(str, ']', state);
-                if (state->error)
-                {
-                    Read_state_clear_error(state);
-                    bool expect_mark = true;
-
-                    for (int i = 0; i < ENVELOPE_MARKS_MAX &&
-                                    expect_mark; ++i)
-                    {
-                        int64_t value = -1;
-                        str = read_int(str, &value, state);
-                        if (state->error)
-                            return str;
-
-                        Envelope_set_mark(env, i, value);
-                        check_next(str, state, expect_mark);
-                    }
-
-                    str = read_const_char(str, ']', state);
-                }
-            }
-            else if (string_eq(key, "smooth"))
-            {
-                str = read_bool(str, &smooth, state);
-            }
-            else
-            {
-                Read_state_set_error(state,
-                        "Unrecognised key in the envelope: %s", key);
-                return str;
-            }
-
-            if (state->error)
-                return str;
-
-            check_next(str, state, expect_key);
-        }
-
-        str = read_const_char(str, '}', state);
+        Streader_set_error(sr, "Too many envelope marks");
+        return false;
     }
 
-    Envelope_set_interp(env, smooth ? ENVELOPE_INT_CURVE : ENVELOPE_INT_LINEAR);
+    Envelope* env = userdata;
 
-    return str;
+    int64_t value = -1;
+    if (!Streader_read_int(sr, &value))
+        return false;
+
+    Envelope_set_mark(env, index, value);
+
+    return true;
+}
+
+static bool read_env_item(Streader* sr, const char* key, void* userdata)
+{
+    assert(sr != NULL);
+    assert(key != NULL);
+    assert(userdata != NULL);
+
+    Envelope* env = userdata;
+
+    if (string_eq(key, "nodes"))
+    {
+        return Envelope_read_nodes(env, sr);
+    }
+    else if (string_eq(key, "marks"))
+    {
+        if (!Streader_read_list(sr, read_env_mark, env))
+            return false;
+    }
+    else if (string_eq(key, "smooth"))
+    {
+        bool smooth = false;
+        if (!Streader_read_bool(sr, &smooth))
+            return false;
+
+        Envelope_set_interp(
+                env, smooth ? ENVELOPE_INT_CURVE : ENVELOPE_INT_LINEAR);
+    }
+    else
+    {
+        Streader_set_error(
+                sr, "Unrecognised key in the envelope: %s", key);
+        return false;
+    }
+
+    return true;
+}
+
+bool Envelope_read(Envelope* env, Streader* sr)
+{
+    assert(env != NULL);
+    assert(sr != NULL);
+
+    if (Streader_is_error_set(sr))
+        return false;
+
+    Envelope_set_interp(env, ENVELOPE_INT_LINEAR);
+
+    return Streader_read_dict(sr, read_env_item, env);
 }
 
 
-static char* Envelope_read_nodes(Envelope* env, char* str, Read_state* state)
+typedef struct ndata
+{
+    bool empty;
+    Envelope* env;
+} ndata;
+
+static bool read_env_node(Streader* sr, int32_t index, void* userdata)
+{
+    assert(sr != NULL);
+    assert(userdata != NULL);
+
+    ndata* n = userdata;
+    n->empty = false;
+    Envelope* env = n->env;
+
+    if (index >= env->nodes_max)
+    {
+        Streader_set_error(
+                sr, "Too many envelope nodes (max %d)", env->nodes_max);
+        return false;
+    }
+
+    double node[2] = { 0 };
+    if (!Streader_readf(sr, "[%f,%f]", &node[0], &node[1]))
+        return false;
+
+    size_t read_pos = sr->pos;
+    bool is_last = Streader_try_match_char(sr, ']');
+    sr->pos = read_pos;
+
+    if (is_last && index < 1)
+    {
+        Streader_set_error(
+                sr, "Not enough envelope nodes (at least 2 required)");
+        return false;
+    }
+
+    if (index == 0)
+    {
+        Envelope_move_node(env, 0, node[0], node[1]);
+    }
+    else if (is_last)
+    {
+        Envelope_move_node(env, index, node[0], node[1]);
+    }
+    else
+    {
+        int ret = Envelope_set_node(env, node[0], node[1]);
+        if (ret == -1)
+        {
+            Streader_set_error(
+                    sr,
+                    "Node (%f,%f) outside valid range for this envelope"
+                        " ((%f,%f)..(%f,%f))",
+                    node[0], node[1],
+                    env->min_x, env->min_y,
+                    env->max_x, env->max_y);
+            return false;
+        }
+    }
+
+    return true;
+}
+
+static bool Envelope_read_nodes(Envelope* env, Streader* sr)
 {
     assert(env != NULL);
-    assert(str != NULL);
-    assert(state != NULL);
+    assert(sr != NULL);
 
-    if (state->error)
-        return str;
+    if (Streader_is_error_set(sr))
+        return false;
 
-    str = read_const_char(str, '[', state);
-    if (state->error)
-        return str;
-
-    int node_count = 0;
-    double node[2] = { 0 };
-    bool expect_node = true;
     double min_x = !isfinite(env->min_x) ? -DBL_MAX : env->min_x;
     double min_y = !isfinite(env->min_y) ? -DBL_MAX : env->min_y;
     double max_x = !isfinite(env->max_x) ? DBL_MAX : env->max_x;
@@ -201,51 +244,18 @@ static char* Envelope_read_nodes(Envelope* env, char* str, Read_state* state)
     Envelope_set_node(env, min_x, min_y);
     Envelope_set_node(env, max_x, max_y);
 
-    while (expect_node && node_count < env->nodes_max)
+    ndata n = { true, env };
+
+    if (!Streader_read_list(sr, read_env_node, &n))
+        return false;
+
+    if (n.empty)
     {
-        str = read_const_char(str, '[', state);
-        str = read_double(str, &node[0], state);
-        str = read_const_char(str, ',', state);
-        str = read_double(str, &node[1], state);
-        str = read_const_char(str, ']', state);
-        if (state->error)
-            return str;
-
-        str = read_const_char(str, ',', state);
-        if (state->error)
-        {
-            if (node_count == 0)
-                return str;
-
-            expect_node = false;
-            Read_state_clear_error(state);
-            Envelope_move_node(env, node_count, node[0], node[1]);
-        }
-        else if (node_count == 0)
-        {
-            Envelope_move_node(env, 0, node[0], node[1]);
-        }
-        else
-        {
-            int ret = Envelope_set_node(env, node[0], node[1]);
-            if (ret == -1)
-            {
-                Read_state_set_error(state,
-                         "Node (%f,%f) outside valid range for this envelope"
-                         " ((%f,%f)..(%f,%f))",
-                         node[0], node[1],
-                         env->min_x, env->min_y,
-                         env->max_x, env->max_y);
-                return str;
-            }
-        }
-
-        ++node_count;
+        Streader_set_error(sr, "Node list is empty");
+        return false;
     }
 
-    str = read_const_char(str, ']', state);
-
-    return str;
+    return true;
 }
 
 

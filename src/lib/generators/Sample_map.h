@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -19,9 +19,9 @@
 #include <stdint.h>
 
 #include <AAtree.h>
-#include <File_base.h>
 #include <Random.h>
 #include <Sample_entry.h>
+#include <Streader.h>
 
 
 #define SAMPLE_MAP_RANDOMS_MAX (8)
@@ -33,14 +33,11 @@ typedef struct Sample_map Sample_map;
 /**
  * Creates a new Sample map from a string.
  *
- * \param str     The textual description, or \c NULL.
- * \param state   The Read state -- must not be \c NULL unless \a str is
- *                also \c NULL.
+ * \param sr   The Streader of the JSON data -- must not be \c NULL.
  *
- * \return   The new Sample map if successful, otherwise \c NULL. \a state
- *           will not be modified if memory allocation failed.
+ * \return   The new Sample map if successful, otherwise \c NULL.
  */
-Sample_map* new_Sample_map_from_string(char* str, Read_state* state);
+Sample_map* new_Sample_map_from_string(Streader* sr);
 
 
 /**

@@ -20,14 +20,10 @@
 #include <stdio.h>
 
 #include <Sample.h>
-#include <File_base.h>
+#include <Streader.h>
 
 
-bool Sample_parse_wavpack(
-        Sample* sample,
-        const void* data,
-        long length,
-        Read_state* state);
+bool Sample_parse_wavpack(Sample* sample, Streader* sr);
 
 
 #endif // K_FILE_WAVPACK_H

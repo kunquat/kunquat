@@ -19,9 +19,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <File_base.h>
 #include <Device_field.h>
 #include <Real.h>
+#include <Streader.h>
 #include <Tstamp.h>
 
 
@@ -207,20 +207,12 @@ Device_params* new_Device_params(void);
  * \param params   The Device parameters -- must not be \c NULL.
  * \param key      The key -- must be a valid subkey with the i/ or c/ as
  *                 the first component.
- * \param data     The data -- must not be \c NULL if it has a non-zero
- *                 length.
- * \param length   The length of the data -- must be >= \c 0.
- * \param state    The Read state -- must not be \c NULL.
+ * \param sr       The Streader of the data -- must not be \c NULL.
  *
- * \return   \c true if successful, otherwise \c false. \a state will _not_ be
- *           modified if memory allocation failed.
+ * \return   \c true if successful, otherwise \c false.
  */
 bool Device_params_parse_value(
-        Device_params* params,
-        const char* key,
-        void* data,
-        long length,
-        Read_state* state);
+        Device_params* params, const char* key, Streader* sr);
 
 
 /**

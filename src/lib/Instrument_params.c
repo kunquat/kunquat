@@ -138,84 +138,83 @@ Instrument_params* Instrument_params_init(
 #undef new_env_or_fail
 
 
+typedef struct ntdata
+{
+    bool enabled;
+    bool nodes_found;
+    const char* type;
+    Envelope* env;
+} ntdata;
+
+static bool read_nontime_env(Streader* sr, const char* key, void* userdata)
+{
+    assert(sr != NULL);
+    assert(key != NULL);
+    assert(userdata != NULL);
+
+    ntdata* d = userdata;
+
+    if (string_eq(key, "enabled"))
+    {
+        if (!Streader_read_bool(sr, &d->enabled))
+            return false;
+    }
+    else if (string_eq(key, "envelope"))
+    {
+        if (!Envelope_read(d->env, sr))
+            return false;
+        d->nodes_found = true;
+    }
+    else
+    {
+        Streader_set_error(
+                 sr, "Unrecognised key in %s envelope: %s", d->type, key);
+        return false;
+    }
+
+    return true;
+}
+
 bool Instrument_params_parse_env_force_filter(
-        Instrument_params* ip,
-        char* str,
-        Read_state* state)
+        Instrument_params* ip, Streader* sr)
 {
     assert(ip != NULL);
-    assert(state != NULL);
+    assert(sr != NULL);
 
-    if (state->error)
+    if (Streader_is_error_set(sr))
         return false;
-
-    bool enabled = false;
 
     Envelope* env = new_Envelope(8, 0, 1, 0, 0, 1, 0);
     if (env == NULL)
-        return false;
-
-    bool nodes_found = false;
-
-    if (str != NULL)
     {
-        str = read_const_char(str, '{', state);
-        if (state->error)
+        Streader_set_memory_error(
+                sr, "Could not allocate memory for force-filter envelope");
+        return false;
+    }
+
+    ntdata d =
+    {
+        .enabled = false,
+        .nodes_found = false,
+        .type = "force-filter",
+        .env = env,
+    };
+
+    if (Streader_has_data(sr))
+    {
+        if (!Streader_read_dict(sr, read_nontime_env, &d))
         {
             del_Envelope(env);
             return false;
         }
-
-        str = read_const_char(str, '}', state);
-        if (state->error)
-        {
-            Read_state_clear_error(state);
-            bool expect_key = true;
-            while (expect_key)
-            {
-                char key[128] = { '\0' };
-                str = read_string(str, key, 128, state);
-                str = read_const_char(str, ':', state);
-                if (state->error)
-                {
-                    del_Envelope(env);
-                    return false;
-                }
-
-                if (string_eq(key, "enabled"))
-                {
-                    str = read_bool(str, &enabled, state);
-                }
-                else if (string_eq(key, "envelope"))
-                {
-                    str = Envelope_read(env, str, state);
-                    nodes_found = true;
-                }
-                else
-                {
-                    Read_state_set_error(state,
-                             "Unrecognised key in force-filter envelope: %s", key);
-                    del_Envelope(env);
-                    return false;
-                }
-
-                if (state->error)
-                {
-                    del_Envelope(env);
-                    return false;
-                }
-
-                check_next(str, state, expect_key);
-            }
-        }
     }
 
-    ip->env_force_filter_enabled = enabled;
+    ip->env_force_filter_enabled = d.enabled;
     Envelope* old_env = ip->env_force_filter;
     ip->env_force_filter = env;
     del_Envelope(old_env);
 
-    if (!nodes_found)
+    if (!d.nodes_found)
     {
         assert(Envelope_node_count(env) == 0);
         int index = Envelope_set_node(env, 0, 1);
@@ -230,83 +229,45 @@ bool Instrument_params_parse_env_force_filter(
 
 
 bool Instrument_params_parse_env_pitch_pan(
-        Instrument_params* ip,
-        char* str,
-        Read_state* state)
+        Instrument_params* ip, Streader* sr)
 {
     assert(ip != NULL);
-    assert(state != NULL);
+    assert(sr != NULL);
 
-    if (state->error)
+    if (Streader_is_error_set(sr))
         return false;
-
-    bool enabled = false;
 
     Envelope* env = new_Envelope(32, -6000, 6000, 0, -1, 1, 0);
     if (env == NULL)
-        return false;
-
-    bool nodes_found = false;
-
-    if (str != NULL)
     {
-        str = read_const_char(str, '{', state);
-        if (state->error)
+        Streader_set_memory_error(
+                sr, "Could not allocate memory for pitch-pan envelope");
+        return false;
+    }
+
+    ntdata d =
+    {
+        .enabled = false,
+        .nodes_found = false,
+        .type = "pitch-pan",
+        .env = env,
+    };
+
+    if (Streader_has_data(sr))
+    {
+        if (!Streader_read_dict(sr, read_nontime_env, &d))
         {
             del_Envelope(env);
             return false;
         }
-
-        str = read_const_char(str, '}', state);
-        if (state->error)
-        {
-            Read_state_clear_error(state);
-            bool expect_key = true;
-            while (expect_key)
-            {
-                char key[128] = { '\0' };
-                str = read_string(str, key, 128, state);
-                str = read_const_char(str, ':', state);
-                if (state->error)
-                {
-                    del_Envelope(env);
-                    return false;
-                }
-
-                if (string_eq(key, "enabled"))
-                {
-                    str = read_bool(str, &enabled, state);
-                }
-                else if (string_eq(key, "envelope"))
-                {
-                    str = Envelope_read(env, str, state);
-                    nodes_found = true;
-                }
-                else
-                {
-                    Read_state_set_error(state,
-                             "Unrecognised key in pitch-pan envelope: %s", key);
-                    del_Envelope(env);
-                    return false;
-                }
-
-                if (state->error)
-                {
-                    del_Envelope(env);
-                    return false;
-                }
-
-                check_next(str, state, expect_key);
-            }
-        }
     }
 
-    ip->env_pitch_pan_enabled = enabled;
+    ip->env_pitch_pan_enabled = d.enabled;
     Envelope* old_env = ip->env_pitch_pan;
     ip->env_pitch_pan = env;
     del_Envelope(old_env);
 
-    if (!nodes_found)
+    if (!d.nodes_found)
     {
         assert(Envelope_node_count(env) == 0);
         int index = Envelope_set_node(env, -6000, 0);
@@ -320,110 +281,86 @@ bool Instrument_params_parse_env_pitch_pan(
 }
 
 
-Envelope* parse_env_time(
-        char* str,
-        Read_state* state,
-        bool* enabled,
-        double* scale_amount,
-        double* scale_center,
-        bool* carry,
-        bool release)
+typedef struct tdata
 {
-    assert(state != NULL);
-    assert(enabled != NULL);
-    assert(scale_amount != NULL);
-    assert(scale_center != NULL);
+    Envelope* env;
+    bool enabled;
+    double scale_amount;
+    double scale_center;
+    bool carry;
+    bool loop;
+    const bool release;
+} tdata;
 
-    if (state->error)
-        return NULL;
+static bool read_time_env(Streader* sr, const char* key, void* userdata)
+{
+    assert(sr != NULL);
+    assert(key != NULL);
+    assert(userdata != NULL);
 
-    Envelope* env = new_Envelope(32, 0, INFINITY, 0, 0, 1, 0);
-    if (env == NULL)
-        return NULL;
+    tdata* td = userdata;
 
-    bool loop = false;
-
-    if (str != NULL)
+    if (string_eq(key, "enabled"))
+        Streader_read_bool(sr, &td->enabled);
+    else if (string_eq(key, "scale_amount"))
+        Streader_read_float(sr, &td->scale_amount);
+    else if (string_eq(key, "scale_center"))
+        Streader_read_float(sr, &td->scale_center);
+    else if (string_eq(key, "envelope"))
+        Envelope_read(td->env, sr);
+    else if (!td->release && string_eq(key, "carry"))
+        Streader_read_bool(sr, &td->carry);
+    else if (!td->release && string_eq(key, "loop"))
+        Streader_read_bool(sr, &td->loop);
+    else
     {
-        str = read_const_char(str, '{', state);
-        if (state->error)
+        Streader_set_error(
+                 sr, "Unrecognised key in the envelope: %s", key);
+        return false;
+    }
+
+    return !Streader_is_error_set(sr);
+}
+
+static Envelope* parse_env_time(Streader* sr, tdata* td)
+{
+    assert(sr != NULL);
+    assert(td != NULL);
+    assert(td->env == NULL);
+
+    if (Streader_is_error_set(sr))
+        return NULL;
+
+    td->env = new_Envelope(32, 0, INFINITY, 0, 0, 1, 0);
+    if (td->env == NULL)
+    {
+        Streader_set_memory_error(
+                sr, "Could not allocate memory for envelope");
+        return NULL;
+    }
+
+    if (Streader_has_data(sr))
+    {
+        if (!Streader_read_dict(sr, read_time_env, td))
         {
-            del_Envelope(env);
+            del_Envelope(td->env);
+            td->env = NULL;
             return NULL;
         }
-
-        str = read_const_char(str, '}', state);
-        if (state->error)
-        {
-            Read_state_clear_error(state);
-            bool expect_key = true;
-            while (expect_key)
-            {
-                char key[128] = { '\0' };
-                str = read_string(str, key, 128, state);
-                str = read_const_char(str, ':', state);
-                if (state->error)
-                {
-                    del_Envelope(env);
-                    return NULL;
-                }
-
-                if (string_eq(key, "enabled"))
-                    str = read_bool(str, enabled, state);
-                else if (string_eq(key, "scale_amount"))
-                    str = read_double(str, scale_amount, state);
-                else if (string_eq(key, "scale_center"))
-                    str = read_double(str, scale_center, state);
-                else if (string_eq(key, "envelope"))
-                    str = Envelope_read(env, str, state);
-                else if (carry != NULL && string_eq(key, "carry"))
-                    str = read_bool(str, carry, state);
-                else if (!release && string_eq(key, "loop"))
-                    str = read_bool(str, &loop, state);
-#if 0
-                else if (!release && string_eq(key, "loop_start"))
-                    str = read_int(str, &loop_start, state);
-                else if (!release && string_eq(key, "loop_end"))
-                    str = read_int(str, &loop_end, state);
-#endif
-                else
-                {
-                    Read_state_set_error(state,
-                             "Unrecognised key in the envelope: %s", key);
-                    del_Envelope(env);
-                    return NULL;
-                }
-
-                if (state->error)
-                {
-                    del_Envelope(env);
-                    return NULL;
-                }
-
-                check_next(str, state, expect_key);
-            }
-
-            str = read_const_char(str, '}', state);
-            if (state->error)
-            {
-                del_Envelope(env);
-                return NULL;
-            }
-        }
     }
 
-    if (Envelope_node_count(env) == 0)
+    if (Envelope_node_count(td->env) == 0)
     {
-        *enabled = false;
-        return env;
+        td->enabled = false;
+        return td->env;
     }
 
-    int loop_start = Envelope_get_mark(env, 0);
-    int loop_end = Envelope_get_mark(env, 1);
-    if (release || !loop)
+    int loop_start = Envelope_get_mark(td->env, 0);
+    int loop_end = Envelope_get_mark(td->env, 1);
+    if (td->release || !td->loop)
     {
-        Envelope_set_mark(env, 0, -1);
-        Envelope_set_mark(env, 1, -1);
+        Envelope_set_mark(td->env, 0, -1);
+        Envelope_set_mark(td->env, 1, -1);
     }
     else if (loop_start >= 0 || loop_end >= 0)
     {
@@ -433,39 +370,43 @@ Envelope* parse_env_time(
         if (loop_end < loop_start)
             loop_end = loop_start;
 
-        Envelope_set_mark(env, 0, loop_start);
-        Envelope_set_mark(env, 1, loop_end);
+        Envelope_set_mark(td->env, 0, loop_start);
+        Envelope_set_mark(td->env, 1, loop_end);
     }
 
-    return env;
+    return td->env;
 }
 
 
 bool Instrument_params_parse_env_force(
-        Instrument_params* ip,
-        char* str,
-        Read_state* state)
+        Instrument_params* ip, Streader* sr)
 {
     assert(ip != NULL);
-    assert(state != NULL);
+    assert(sr != NULL);
 
-    if (state->error)
+    if (Streader_is_error_set(sr))
         return false;
 
-    bool enabled = false;
-    double scale_amount = 0;
-    double scale_center = 0;
-    bool carry = false;
-    Envelope* env = parse_env_time(str, state, &enabled, &scale_amount,
-                                   &scale_center, &carry, false);
+    tdata td =
+    {
+        .env = NULL,
+        .enabled = false,
+        .scale_amount = 0,
+        .scale_center = 0,
+        .carry = false,
+        .loop = false,
+        .release = false,
+    };
+
+    Envelope* env = parse_env_time(sr, &td);
     if (env == NULL)
         return false;
 
-    assert(!state->error);
-    ip->env_force_enabled = enabled;
-    ip->env_force_scale_amount = scale_amount;
-    ip->env_force_center = exp2(scale_center / 1200) * 440;
-    ip->env_force_carry = carry;
+    assert(!Streader_is_error_set(sr));
+    ip->env_force_enabled = td.enabled;
+    ip->env_force_scale_amount = td.scale_amount;
+    ip->env_force_center = exp2(td.scale_center / 1200) * 440;
+    ip->env_force_carry = td.carry;
     Envelope* old_env = ip->env_force;
     ip->env_force = env;
     del_Envelope(old_env);
@@ -475,29 +416,33 @@ bool Instrument_params_parse_env_force(
 
 
 bool Instrument_params_parse_env_force_rel(
-        Instrument_params* ip,
-        char* str,
-        Read_state* state)
+        Instrument_params* ip, Streader* sr)
 {
     assert(ip != NULL);
-    assert(state != NULL);
+    assert(sr != NULL);
 
-    if (state->error)
+    if (Streader_is_error_set(sr))
         return false;
 
-    bool enabled = false;
-    double scale_amount = 0;
-    double scale_center = 0;
+    tdata td =
+    {
+        .env = NULL,
+        .enabled = false,
+        .scale_amount = 0,
+        .scale_center = 0,
+        .carry = false,
+        .loop = false,
+        .release = true,
+    };
 
-    Envelope* env = parse_env_time(str, state, &enabled, &scale_amount,
-                                   &scale_center, NULL, true);
+    Envelope* env = parse_env_time(sr, &td);
     if (env == NULL)
         return false;
 
-    assert(!state->error);
-    ip->env_force_rel_enabled = enabled;
-    ip->env_force_rel_scale_amount = scale_amount;
-    ip->env_force_rel_center = exp2(scale_center / 1200) * 440;
+    assert(!Streader_is_error_set(sr));
+    ip->env_force_rel_enabled = td.enabled;
+    ip->env_force_rel_scale_amount = td.scale_amount;
+    ip->env_force_rel_center = exp2(td.scale_center / 1200) * 440;
     Envelope* old_env = ip->env_force_rel;
     ip->env_force_rel = env;
     del_Envelope(old_env);

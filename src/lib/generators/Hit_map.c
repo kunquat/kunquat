@@ -41,135 +41,130 @@ static int Random_list_cmp(
         const Random_list* list2);
 
 
-Hit_map* new_Hit_map_from_string(char* str, Read_state* state)
+static bool read_random_list_entry(Streader* sr, int32_t index, void* userdata)
 {
-    assert(state != NULL);
+    assert(sr != NULL);
+    assert(userdata != NULL);
 
-    if (state->error)
+    Random_list* list = userdata;
+
+    if (index >= HIT_MAP_RANDOMS_MAX)
+    {
+        Streader_set_error(sr, "Too many hit map random list entries");
+        return false;
+    }
+
+    if (!Sample_entry_parse(&list->entries[list->entry_count], sr))
+        return false;
+
+    ++list->entry_count;
+
+    return true;
+}
+
+static bool read_mapping(Streader* sr, int32_t index, void* userdata)
+{
+    assert(sr != NULL);
+    (void)index;
+    assert(userdata != NULL);
+
+    Hit_map* map = userdata;
+
+    Random_list* list = memory_alloc_item(Random_list);
+    if (list == NULL)
+    {
+        del_Hit_map(map);
+        Streader_set_memory_error(
+                sr, "Could not allocate memory for hit map random list");
+        return false;
+    }
+
+    int64_t hit_index = -1;
+    double force = NAN;
+
+    if (!Streader_readf(sr, "[[%i,%f],", &hit_index, &force))
+    {
+        memory_free(list);
+        return false;
+    }
+
+    if (hit_index < 0 || hit_index >= KQT_HITS_MAX)
+    {
+        Streader_set_error(
+                sr,
+                "Mapping hit index is outside range [0, %d)",
+                KQT_HITS_MAX);
+        memory_free(list);
+        return false;
+    }
+
+    if (!isfinite(force))
+    {
+        Streader_set_error(
+                sr,
+                "Mapping force is not finite",
+                KQT_HITS_MAX);
+        memory_free(list);
+        return false;
+    }
+
+    if (map->hits[hit_index] == NULL)
+    {
+        map->hits[hit_index] = new_AAtree(
+                (int (*)(const void*, const void*))Random_list_cmp,
+                memory_free);
+        if (map->hits[hit_index] == NULL)
+        {
+            Streader_set_memory_error(
+                    sr, "Could not allocate memory for hit map");
+            memory_free(list);
+            return false;
+        }
+    }
+
+    list->force = force;
+    list->entry_count = 0;
+    if (!AAtree_ins(map->hits[hit_index], list))
+    {
+        Streader_set_memory_error(
+                sr, "Could not allocate memory for hit map random list");
+        memory_free(list);
+        return false;
+    }
+
+    if (!Streader_read_list(sr, read_random_list_entry, list))
+        return false;
+
+    if (list->entry_count == 0)
+    {
+        Streader_set_error(sr, "Empty hit mapping random list");
+        return false;
+    }
+
+    return Streader_match_char(sr, ']');
+}
+
+Hit_map* new_Hit_map_from_string(Streader* sr)
+{
+    assert(sr != NULL);
+
+    if (Streader_is_error_set(sr))
         return NULL;
 
     Hit_map* map = memory_alloc_item(Hit_map);
     if (map == NULL)
+    {
+        Streader_set_memory_error(sr, "Could not allocate memory for hit map");
         return NULL;
+    }
 
     for (int i = 0; i < KQT_HITS_MAX; ++i)
         map->hits[i] = NULL;
 
-    if (str == NULL)
+    if (!Streader_has_data(sr))
         return map;
 
-    str = read_const_char(str, '[', state);
-    if (state->error)
-    {
-        del_Hit_map(map);
-        return NULL;
-    }
-
-    str = read_const_char(str, ']', state);
-    if (!state->error)
-        return map;
-
-    Read_state_clear_error(state);
-
-    bool expect_list = true;
-    while (expect_list)
-    {
-        Random_list* list = memory_alloc_item(Random_list);
-        if (list == NULL)
-        {
-            del_Hit_map(map);
-            return NULL;
-        }
-        str = read_const_char(str, '[', state);
-
-        str = read_const_char(str, '[', state);
-        int64_t hit_index = -1;
-        str = read_int(str, &hit_index, state);
-        str = read_const_char(str, ',', state);
-        double force = NAN;
-        str = read_double(str, &force, state);
-        str = read_const_char(str, ']', state);
-        str = read_const_char(str, ',', state);
-        str = read_const_char(str, '[', state);
-        if (state->error)
-        {
-            memory_free(list);
-            del_Hit_map(map);
-            return NULL;
-        }
-
-        if (hit_index < 0 || hit_index >= KQT_HITS_MAX)
-        {
-            Read_state_set_error(
-                    state,
-                    "Mapping hit index is outside [0, %d)",
-                    KQT_HITS_MAX);
-            memory_free(list);
-            del_Hit_map(map);
-            return NULL;
-        }
-
-        if (!isfinite(force))
-        {
-            Read_state_set_error(
-                    state,
-                    "Mapping force is not finite",
-                    KQT_HITS_MAX);
-            memory_free(list);
-            del_Hit_map(map);
-            return NULL;
-        }
-
-        if (map->hits[hit_index] == NULL)
-        {
-            map->hits[hit_index] = new_AAtree(
-                    (int (*)(const void*, const void*))Random_list_cmp,
-                    memory_free);
-            if (map->hits[hit_index] == NULL)
-            {
-                memory_free(list);
-                del_Hit_map(map);
-                return NULL;
-            }
-        }
-
-        list->force = force;
-        list->entry_count = 0;
-        if (!AAtree_ins(map->hits[hit_index], list))
-        {
-            memory_free(list);
-            del_Hit_map(map);
-            return NULL;
-        }
-
-        bool expect_entry = true;
-        while (expect_entry && list->entry_count < HIT_MAP_RANDOMS_MAX)
-        {
-            str = Sample_entry_parse(
-                    &list->entries[list->entry_count], str, state);
-            if (state->error)
-            {
-                del_Hit_map(map);
-                return NULL;
-            }
-            ++list->entry_count;
-            check_next(str, state, expect_entry);
-        }
-
-        str = read_const_char(str, ']', state);
-
-        str = read_const_char(str, ']', state);
-        if (state->error)
-        {
-            del_Hit_map(map);
-            return NULL;
-        }
-
-        check_next(str, state, expect_list);
-    }
-
-    str = read_const_char(str, ']', state);
-    if (state->error)
+    if (!Streader_read_list(sr, read_mapping, map))
     {
         del_Hit_map(map);
         return NULL;

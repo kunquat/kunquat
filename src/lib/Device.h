@@ -26,6 +26,7 @@
 #include <frame.h>
 #include <kunquat/limits.h>
 #include <player/Device_states.h>
+#include <Streader.h>
 #include <Tstamp.h>
 
 
@@ -309,18 +310,11 @@ bool Device_sync_states(Device* device, Device_states* dstates);
  *
  * \param device   The Device -- must not be \c NULL.
  * \param key      The key that changed -- must not be \c NULL.
- * \param data     The data -- must not be \c NULL unless \a length == \c 0.
- * \param length   The length of \a data -- must be >= \c 0.
- * \param rs       The Read state -- must not be \c NULL.
+ * \param sr       The Streader of the data -- must not be \c NULL.
  *
  * \return   \c true if successful, or \c false if a fatal error occurred.
  */
-bool Device_set_key(
-        Device* device,
-        const char* key,
-        void* data,
-        long length,
-        Read_state* rs);
+bool Device_set_key(Device* device, const char* key, Streader* sr);
 
 
 /**

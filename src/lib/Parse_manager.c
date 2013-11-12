@@ -732,7 +732,7 @@ static bool parse_instrument_level(Handle* handle,
     struct
     {
         char* name;
-        bool (*read)(Instrument_params*, char* str, Read_state*);
+        bool (*read)(Instrument_params*, Streader*);
     } parse[] =
     {
         { "p_envelope_force.json", Instrument_params_parse_env_force },
@@ -751,14 +751,10 @@ static bool parse_instrument_level(Handle* handle,
             if (ins == NULL)
                 return false;
 
-            Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-            if (!parse[i].read(Instrument_get_params(ins), data, state))
+            Streader* sr = Streader_init(STREADER_AUTO, data, length);
+            if (!parse[i].read(Instrument_get_params(ins), sr))
             {
-                if (!state->error)
-                    Handle_set_error(handle, ERROR_MEMORY,
-                            "Couldn't allocate memory");
-                else
-                    set_parse_error(handle, state);
+                set_error(handle, sr);
                 return false;
             }
         }
@@ -1012,14 +1008,11 @@ static bool parse_generator_level(Handle* handle,
             return false;
 
         // Update Device
-        Read_state* rs = Read_state_init(READ_STATE_AUTO, key);
-        if (!Device_set_key((Device*)gen, subkey, data, length, rs))
+        Streader* sr = Streader_init(STREADER_AUTO, data, length);
+        if (!Device_set_key((Device*)gen, subkey, sr))
         {
-            if (rs->error)
-                set_parse_error(handle, rs);
-            else
-                Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory");
+            set_error(handle, sr);
+            return false;
         }
 
         // Notify Device state
@@ -1386,14 +1379,10 @@ static bool parse_dsp_level(Handle* handle,
             return false;
 
         // Update Device
-        Read_state* rs = Read_state_init(READ_STATE_AUTO, key);
-        if (!Device_set_key((Device*)dsp, subkey, data, length, rs))
+        Streader* sr = Streader_init(STREADER_AUTO, data, length);
+        if (!Device_set_key((Device*)dsp, subkey, sr))
         {
-            if (rs->error)
-                set_parse_error(handle, rs);
-            else
-                Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory");
+            set_error(handle, sr);
             return false;
         }
 

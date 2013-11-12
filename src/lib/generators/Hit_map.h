@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2013
  *
  * This file is part of Kunquat.
  *
@@ -18,9 +18,9 @@
 
 #include <stdlib.h>
 
-#include <File_base.h>
 #include <Random.h>
 #include <Sample_entry.h>
+#include <Streader.h>
 
 
 #define HIT_MAP_RANDOMS_MAX 8
@@ -32,13 +32,11 @@ typedef struct Hit_map Hit_map;
 /**
  * Creates a new Hit map from a string.
  *
- * \param str     The textual description, or \c NULL.
- * \param state   The Read state -- must not be \c NULL.
+ * \param sr   The Streader of the JSON data -- must not be \c NULL.
  *
- * \return   The new Hit map if successful, otherwise \c NULL. \a state
- *           will not be modified if memory allocation failed.
+ * \return   The new Hit map if successful, otherwise \c NULL.
  */
-Hit_map* new_Hit_map_from_string(char* str, Read_state* state);
+Hit_map* new_Hit_map_from_string(Streader* sr);
 
 
 /**

@@ -71,16 +71,104 @@ static void del_Random_list(Random_list* list)
 }
 
 
-Sample_map* new_Sample_map_from_string(char* str, Read_state* state)
+static bool read_random_list_entry(Streader* sr, int32_t index, void* userdata)
 {
-    assert(state != NULL);
+    assert(sr != NULL);
+    assert(userdata != NULL);
 
-    if (state->error)
+    if (index >= SAMPLE_MAP_RANDOMS_MAX)
+    {
+        Streader_set_error(sr, "Too many sample map random list entries");
+        return false;
+    }
+
+    Random_list* list = userdata;
+
+    if (!Sample_entry_parse(&list->entries[list->entry_count], sr))
+        return false;
+
+    list->entries[list->entry_count].ref_freq = list->freq;
+    ++list->entry_count;
+    return true;
+}
+
+static bool read_mapping(Streader* sr, int32_t index, void* userdata)
+{
+    assert(sr != NULL);
+    (void)index;
+    assert(userdata != NULL);
+
+    Sample_map* map = userdata;
+
+    Random_list* list = memory_alloc_item(Random_list);
+    if (list == NULL)
+    {
+        Streader_set_memory_error(
+                sr, "Could not allocate for sample map entry");
+        return false;
+    }
+
+    double cents = NAN;
+    double force = NAN;
+
+    if (!Streader_readf(sr, "[[%f,%f],", &cents, &force))
+    {
+        memory_free(list);
+        return false;
+    }
+
+    if (!isfinite(cents))
+    {
+        Streader_set_error(sr, "Mapping cents is not finite");
+        memory_free(list);
+        return false;
+    }
+
+    if (!isfinite(force))
+    {
+        Streader_set_error(sr, "Mapping force is not finite");
+        memory_free(list);
+        return false;
+    }
+
+    list->freq = exp2(cents / 1200) * 440;
+    list->cents = cents;
+    list->force = force;
+    list->entry_count = 0;
+    if (!AAtree_ins(map->map, list))
+    {
+        Streader_set_memory_error(
+                sr, "Couldn't allocate memory for sample map entry");
+        memory_free(list);
+        return false;
+    }
+
+    if (!Streader_read_list(sr, read_random_list_entry, list))
+        return false;
+
+    if (list->entry_count == 0)
+    {
+        Streader_set_error(sr, "Empty sample mapping random list");
+        return false;
+    }
+
+    return Streader_match_char(sr, ']');
+}
+
+Sample_map* new_Sample_map_from_string(Streader* sr)
+{
+    assert(sr != NULL);
+
+    if (Streader_is_error_set(sr))
         return NULL;
 
     Sample_map* map = memory_alloc_item(Sample_map);
     if (map == NULL)
+    {
+        Streader_set_memory_error(
+                sr, "Could not allocate memory for sample map");
         return NULL;
+    }
 
     map->map = NULL;
     map->iter = NULL;
@@ -90,6 +178,8 @@ Sample_map* new_Sample_map_from_string(char* str, Read_state* state)
     if (map->map == NULL)
     {
         del_Sample_map(map);
+        Streader_set_memory_error(
+                sr, "Could not allocate memory for sample map");
         return NULL;
     }
 
@@ -97,111 +187,15 @@ Sample_map* new_Sample_map_from_string(char* str, Read_state* state)
     if (map->iter == NULL)
     {
         del_Sample_map(map);
+        Streader_set_memory_error(
+                sr, "Could not allocate memory for sample map");
         return NULL;
     }
 
-    if (str == NULL)
+    if (!Streader_has_data(sr))
         return map;
 
-    assert(state != NULL);
-    str = read_const_char(str, '[', state);
-    if (state->error)
-    {
-        del_Sample_map(map);
-        return NULL;
-    }
-
-    str = read_const_char(str, ']', state);
-    if (!state->error)
-        return map;
-
-    Read_state_clear_error(state);
-
-    bool expect_list = true;
-    while (expect_list)
-    {
-        Random_list* list = memory_alloc_item(Random_list);
-        if (list == NULL)
-        {
-            del_Sample_map(map);
-            return NULL;
-        }
-
-        str = read_const_char(str, '[', state);
-
-        str = read_const_char(str, '[', state);
-        double cents = NAN;
-        str = read_double(str, &cents, state);
-        str = read_const_char(str, ',', state);
-        double force = NAN;
-        str = read_double(str, &force, state);
-        str = read_const_char(str, ']', state);
-        str = read_const_char(str, ',', state);
-        str = read_const_char(str, '[', state);
-        if (state->error)
-        {
-            memory_free(list);
-            del_Sample_map(map);
-            return NULL;
-        }
-
-        if (!isfinite(cents))
-        {
-            Read_state_set_error(state, "Mapping cents is not finite");
-            memory_free(list);
-            del_Sample_map(map);
-            return NULL;
-        }
-
-        if (!isfinite(force))
-        {
-            Read_state_set_error(state, "Mapping force is not finite");
-            memory_free(list);
-            del_Sample_map(map);
-            return NULL;
-        }
-
-        list->freq = exp2(cents / 1200) * 440;
-        list->cents = cents;
-        list->force = force;
-        list->entry_count = 0;
-        if (!AAtree_ins(map->map, list))
-        {
-            Read_state_set_error(state, "Couldn't allocate memory for sample mapping");
-            memory_free(list);
-            del_Sample_map(map);
-            return NULL;
-        }
-
-        bool expect_entry = true;
-        while (expect_entry && list->entry_count < SAMPLE_MAP_RANDOMS_MAX)
-        {
-            str = Sample_entry_parse(&list->entries[list->entry_count],
-                                     str, state);
-            if (state->error)
-            {
-                del_Sample_map(map);
-                return NULL;
-            }
-            list->entries[list->entry_count].ref_freq = list->freq;
-            ++list->entry_count;
-            check_next(str, state, expect_entry);
-        }
-
-        str = read_const_char(str, ']', state);
-
-        str = read_const_char(str, ']', state);
-        if (state->error)
-        {
-            del_Sample_map(map);
-            return NULL;
-        }
-
-        check_next(str, state, expect_list);
-    }
-
-    str = read_const_char(str, ']', state);
-    if (state->error)
+    if (!Streader_read_list(sr, read_mapping, map))
     {
         del_Sample_map(map);
         return NULL;
