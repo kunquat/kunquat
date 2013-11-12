@@ -106,6 +106,16 @@ void Streader_clear_error(Streader* sr);
 
 
 /**
+ * Returns the suffix of the data starting from current reading position.
+ *
+ * \param sr   The Streader -- must not be \c NULL.
+ *
+ * \return   The address of the suffix, or \c NULL if there is no data left.
+ */
+const char* Streader_get_remaining_data(const Streader* sr);
+
+
+/**
  * Skips whitespace.
  *
  * This function is not needed for reading JSON data.

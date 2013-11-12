@@ -103,6 +103,17 @@ static bool Streader_end_reached(const Streader* sr)
 #define CUR_CH (assert(!Streader_end_reached(sr)), sr->str[sr->pos])
 
 
+const char* Streader_get_remaining_data(const Streader* sr)
+{
+    assert(sr != NULL);
+
+    if (Streader_end_reached(sr))
+        return NULL;
+
+    return &sr->str[sr->pos];
+}
+
+
 static void print_wrong_char(char dest[5], char ch)
 {
     assert(dest != NULL);
