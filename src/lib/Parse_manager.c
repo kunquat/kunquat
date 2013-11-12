@@ -428,22 +428,14 @@ static bool parse_module_level(Handle* handle,
     }
     else if (string_eq(key, "p_bind.json"))
     {
-        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        Bind* map = new_Bind(data,
-                        Event_handler_get_names(
-                            Player_get_event_handler(handle->player)),
-                        state);
+        Streader* sr = Streader_init(STREADER_AUTO, data, length);
+        Bind* map = new_Bind(
+                sr,
+                Event_handler_get_names(
+                    Player_get_event_handler(handle->player)));
         if (map == NULL)
         {
-            if (!state->error)
-            {
-                Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory");
-            }
-            else
-            {
-                set_parse_error(handle, state);
-            }
+            set_error(handle, sr);
             return false;
         }
         Module_set_bind(module, map);

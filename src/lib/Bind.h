@@ -18,10 +18,10 @@
 
 #include <Event_cache.h>
 #include <Event_names.h>
-#include <File_base.h>
 #include <kunquat/limits.h>
 #include <player/Env_state.h>
 #include <Random.h>
+#include <Streader.h>
 #include <Value.h>
 
 
@@ -45,14 +45,12 @@ typedef struct Target_event
 /**
  * Creates a new Bind from a JSON string.
  *
- * \param str     The JSON string, or \c NULL.
+ * \param sr      The Streader of the JSON data -- must not be \c NULL.
  * \param names   The Event names -- must not be \c NULL.
- * \param state   The Read state -- must not be \c NULL.
  *
- * \return   The new Bind if successful, otherwise \c NULL. \a state will not
- *           be modified if memory allocation failed.
+ * \return   The new Bind if successful, otherwise \c NULL.
  */
-Bind* new_Bind(char* str, const Event_names* names, Read_state* state);
+Bind* new_Bind(Streader* sr, const Event_names* names);
 
 
 /**
