@@ -350,11 +350,11 @@ static bool Bind_dfs(Bind* map, char* name)
         Target_event* event = item->first_event;
         while (event != NULL)
         {
-            Read_state* state = READ_STATE_AUTO;
+            Streader* sr = Streader_init(
+                    STREADER_AUTO, event->desc, strlen(event->desc));
             char next_name[EVENT_NAME_MAX + 1] = "";
-            char* str = read_const_char(event->desc, '[', state);
-            read_string(str, next_name, EVENT_NAME_MAX, state);
-            assert(!state->error);
+            Streader_readf(sr, "[%s", EVENT_NAME_MAX, next_name);
+            assert(!Streader_is_error_set(sr));
 
             if (Bind_dfs(map, next_name))
                 return true;
