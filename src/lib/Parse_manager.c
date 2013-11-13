@@ -461,11 +461,11 @@ static bool parse_album_level(
 
     if (string_eq(subkey, "p_manifest.json"))
     {
-        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        const bool existent = read_default_manifest(data, state);
-        if (state->error)
+        Streader* sr = Streader_init(STREADER_AUTO, data, length);
+        const bool existent = read_default_manifest(sr);
+        if (Streader_is_error_set(sr))
         {
-            set_parse_error(handle, state);
+            set_error(handle, sr);
             return false;
         }
         module->album_is_existent = existent;
@@ -629,11 +629,11 @@ static bool parse_instrument_level(Handle* handle,
         if (ins == NULL)
             return false;
 
-        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        const bool existent = read_default_manifest(data, state);
-        if (state->error)
+        Streader* sr = Streader_init(STREADER_AUTO, data, length);
+        const bool existent = read_default_manifest(sr);
+        if (Streader_is_error_set(sr))
         {
-            set_parse_error(handle, state);
+            set_error(handle, sr);
             return false;
         }
 
@@ -821,11 +821,11 @@ static bool parse_generator_level(Handle* handle,
 
     if (string_eq(subkey, "p_manifest.json"))
     {
-        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        const bool existent = read_default_manifest(data, state);
-        if (state->error)
+        Streader* sr = Streader_init(STREADER_AUTO, data, length);
+        const bool existent = read_default_manifest(sr);
+        if (Streader_is_error_set(sr))
         {
-            set_parse_error(handle, state);
+            set_error(handle, sr);
             return false;
         }
 
@@ -1130,11 +1130,11 @@ static bool parse_effect_level(Handle* handle,
         if (eff == NULL)
             return false;
 
-        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        const bool existent = read_default_manifest(data, state);
-        if (state->error)
+        Streader* sr = Streader_init(STREADER_AUTO, data, length);
+        const bool existent = read_default_manifest(sr);
+        if (Streader_is_error_set(sr))
         {
-            set_parse_error(handle, state);
+            set_error(handle, sr);
             return false;
         }
         Device_set_existent((Device*)eff, existent);
@@ -1254,11 +1254,11 @@ static bool parse_dsp_level(Handle* handle,
 
     if (string_eq(subkey, "p_manifest.json"))
     {
-        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        const bool existent = read_default_manifest(data, state);
-        if (state->error)
+        Streader* sr = Streader_init(STREADER_AUTO, data, length);
+        const bool existent = read_default_manifest(sr);
+        if (Streader_is_error_set(sr))
         {
-            set_parse_error(handle, state);
+            set_error(handle, sr);
             return false;
         }
 
@@ -1427,11 +1427,11 @@ static bool parse_pattern_level(Handle* handle,
 
     if (string_eq(subkey, "p_manifest.json"))
     {
-        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        const bool existent = read_default_manifest(data, state);
-        if (state->error)
+        Streader* sr = Streader_init(STREADER_AUTO, data, length);
+        const bool existent = read_default_manifest(sr);
+        if (Streader_is_error_set(sr))
         {
-            set_parse_error(handle, state);
+            set_error(handle, sr);
             return false;
         }
         Pat_table* pats = Module_get_pats(module);
@@ -1596,11 +1596,11 @@ static bool parse_pat_inst_level(
 
     if (string_eq(subkey, "p_manifest.json"))
     {
-        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        const bool existent = read_default_manifest(data, state);
-        if (state->error)
+        Streader* sr = Streader_init(STREADER_AUTO, data, length);
+        const bool existent = read_default_manifest(sr);
+        if (Streader_is_error_set(sr))
         {
-            set_parse_error(handle, state);
+            set_error(handle, sr);
             return false;
         }
 
@@ -1671,11 +1671,11 @@ static bool parse_subsong_level(Handle* handle,
 
     if (string_eq(subkey, "p_manifest.json"))
     {
-        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        const bool existent = read_default_manifest(data, state);
-        if (state->error)
+        Streader* sr = Streader_init(STREADER_AUTO, data, length);
+        const bool existent = read_default_manifest(sr);
+        if (Streader_is_error_set(sr))
         {
-            set_parse_error(handle, state);
+            set_error(handle, sr);
             return false;
         }
         Song_table_set_existent(module->songs, index, existent);
