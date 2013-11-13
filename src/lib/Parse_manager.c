@@ -405,18 +405,10 @@ static bool parse_module_level(Handle* handle,
     }
     else if (string_eq(key, "p_environment.json"))
     {
-        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        if (!Environment_parse(module->env, data, state))
+        Streader* sr = Streader_init(STREADER_AUTO, data, length);
+        if (!Environment_parse(module->env, sr))
         {
-            if (!state->error)
-            {
-                Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory");
-            }
-            else
-            {
-                set_parse_error(handle, state);
-            }
+            set_error(handle, sr);
             return false;
         }
         if (!Player_refresh_env_state(handle->player))

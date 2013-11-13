@@ -58,33 +58,27 @@ Env_var* new_Env_var(const char* name)
 }
 
 
-Env_var* new_Env_var_from_string(char** str, Read_state* state)
+Env_var* new_Env_var_from_string(Streader* sr)
 {
-    assert(str != NULL);
-    assert(*str != NULL);
-    assert(state != NULL);
+    assert(sr != NULL);
 
-    if (state->error)
+    if (Streader_is_error_set(sr))
         return NULL;
 
     char type_name[16] = "";
     char name[ENV_VAR_NAME_MAX] = "";
-    *str = read_const_char(*str, '[', state);
-    *str = read_string(*str, type_name, 16, state);
-    *str = read_const_char(*str, ',', state);
-    *str = read_string(*str, name, ENV_VAR_NAME_MAX, state);
-    *str = read_const_char(*str, ',', state);
-    if (state->error)
+
+    if (!Streader_readf(sr, "[%s,%s,", 16, type_name, ENV_VAR_NAME_MAX, name))
         return NULL;
 
     if (!is_valid_name(name))
     {
-        Read_state_set_error(
-                state,
+        Streader_set_error(
+                sr,
                 "Illegal variable name %s"
-                " (Variable names may only contain"
-                " lower-case letters and underscores"
-                " (and digits as other than first characters))",
+                    " (Variable names may only contain"
+                    " lower-case letters and underscores"
+                    " (and digits as other than first characters))",
                 name);
         return NULL;
     }
@@ -94,17 +88,17 @@ Env_var* new_Env_var_from_string(char** str, Read_state* state)
     if (string_eq(type_name, "bool"))
     {
         value->type = VALUE_TYPE_BOOL;
-        *str = read_bool(*str, &value->value.bool_type, state);
+        Streader_read_bool(sr, &value->value.bool_type);
     }
     else if (string_eq(type_name, "int"))
     {
         value->type = VALUE_TYPE_INT;
-        *str = read_int(*str, &value->value.int_type, state);
+        Streader_read_int(sr, &value->value.int_type);
     }
     else if (string_eq(type_name, "float"))
     {
         value->type = VALUE_TYPE_FLOAT;
-        *str = read_double(*str, &value->value.float_type, state);
+        Streader_read_float(sr, &value->value.float_type);
     }
 #if 0
     else if (string_eq(type_name, "real"))
@@ -116,25 +110,28 @@ Env_var* new_Env_var_from_string(char** str, Read_state* state)
     else if (string_eq(type_name, "timestamp"))
     {
         value->type = VALUE_TYPE_TSTAMP;
-        *str = read_tstamp(*str, &value->value.Tstamp_type, state);
+        Streader_read_tstamp(sr, &value->value.Tstamp_type);
     }
     else
     {
-        Read_state_set_error(
-                state,
+        Streader_set_error(
+                sr,
                 "Invalid type of environment variable %s: %s",
                 name,
                 type_name);
         return NULL;
     }
 
-    *str = read_const_char(*str, ']', state);
-    if (state->error)
+    if (!Streader_match_char(sr, ']'))
         return NULL;
 
     Env_var* var = new_Env_var(name);
     if (var == NULL)
+    {
+        Streader_set_memory_error(
+                sr, "Could not allocate memory for environment variable");
         return NULL;
+    }
 
     Env_var_set_value(var, value);
 

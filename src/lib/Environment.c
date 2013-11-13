@@ -76,67 +76,66 @@ Environment* new_Environment(void)
 }
 
 
-bool Environment_parse(Environment* env, char* str, Read_state* state)
+static bool read_env_var(Streader* sr, int32_t index, void* userdata)
+{
+    assert(sr != NULL);
+    (void)index;
+    assert(userdata != NULL);
+
+    AAtree* new_vars = userdata;
+
+    Env_var* var = new_Env_var_from_string(sr);
+    if (var == NULL)
+        return false;
+
+    if (AAtree_contains(new_vars, Env_var_get_name(var)))
+    {
+        Streader_set_error(
+                sr, "Variable name %s is not unique", Env_var_get_name(var));
+        del_Env_var(var);
+        return false;
+    }
+
+    if (!AAtree_ins(new_vars, var))
+    {
+        Streader_set_memory_error(
+                sr, "Could not allocate memory for environment");
+        del_Env_var(var);
+        return false;
+    }
+
+    return true;
+}
+
+bool Environment_parse(Environment* env, Streader* sr)
 {
     assert(env != NULL);
-    assert(state != NULL);
+    assert(sr != NULL);
 
-    if (state->error)
+    if (Streader_is_error_set(sr))
         return false;
 
-    if (str == NULL)
+    if (!Streader_has_data(sr))
     {
         AAtree_clear(env->vars);
         AAiter_change_tree(env->iter, env->vars);
         return true;
     }
 
-    str = read_const_char(str, '[', state);
-    if (state->error)
-        return false;
-
-    str = read_const_char(str, ']', state);
-    if (!state->error)
-    {
-        AAtree_clear(env->vars);
-        AAiter_change_tree(env->iter, env->vars);
-        return true;
-    }
-
-    Read_state_clear_error(state);
     AAtree* new_vars = new_AAtree(
             (int (*)(const void*, const void*))strcmp,
             (void (*)(void*))del_Env_var);
     if (new_vars == NULL)
-        return false;
-
-    bool expect_var = true;
-    while (expect_var)
     {
-        Env_var* var = new_Env_var_from_string(&str, state);
-        if (var == NULL)
-        {
-            del_AAtree(new_vars);
-            return false;
-        }
+        Streader_set_memory_error(
+                sr, "Could not allocate memory for environment");
+        return false;
+    }
 
-        if (AAtree_contains(new_vars, Env_var_get_name(var)))
-        {
-            Read_state_set_error(state, "Variable name %s is not unique",
-                                        Env_var_get_name(var));
-            del_Env_var(var);
-            del_AAtree(new_vars);
-            return false;
-        }
-
-        if (!AAtree_ins(new_vars, var))
-        {
-            del_Env_var(var);
-            del_AAtree(new_vars);
-            return false;
-        }
-
-        check_next(str, state, expect_var);
+    if (!Streader_read_list(sr, read_env_var, new_vars))
+    {
+        del_AAtree(new_vars);
+        return false;
     }
 
     AAiter_change_tree(env->iter, new_vars);
