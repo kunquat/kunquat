@@ -646,10 +646,10 @@ static bool parse_instrument_level(Handle* handle,
         if (ins == NULL)
             return false;
 
-        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        if (!Instrument_parse_header(ins, data, state))
+        Streader* sr = Streader_init(STREADER_AUTO, data, length);
+        if (!Instrument_parse_header(ins, sr))
         {
-            set_parse_error(handle, state);
+            set_error(handle, sr);
             return false;
         }
     }
@@ -706,10 +706,10 @@ static bool parse_instrument_level(Handle* handle,
         if (ins == NULL)
             return false;
 
-        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        if (!Instrument_parse_value(ins, subkey, data, state))
+        Streader* sr = Streader_init(STREADER_AUTO, data, length);
+        if (!Instrument_parse_value(ins, subkey, sr))
         {
-            set_parse_error(handle, state);
+            set_error(handle, sr);
             return false;
         }
     }
