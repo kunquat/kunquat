@@ -51,16 +51,68 @@ struct Order_list
 };
 
 
-Order_list* new_Order_list(char* str, Read_state* state)
+static bool read_piref(Streader* sr, int32_t index, void* userdata)
 {
-    assert(state != NULL);
-    if (state->error)
+    assert(sr != NULL);
+    assert(userdata != NULL);
+
+    Order_list* ol = userdata;
+
+    // Read the Pattern instance reference
+    Pat_inst_ref* p = PAT_INST_REF_AUTO;
+    if (!Streader_read_piref(sr, p))
+        return false;
+
+    // Check if the Pattern instance is already used
+    Index_mapping* key = INDEX_MAPPING_AUTO;
+    key->p = *p;
+    key->ol_index = index;
+    if (AAtree_contains(ol->index_map, key))
+    {
+        Streader_set_error(
+                sr,
+                "Duplicate occurrence of pattern instance"
+                    " [%" PRId16 ", %" PRId16 "]",
+                p->pat, p->inst);
+        return false;
+    }
+
+    // Add the reference to our containers
+    if (!Vector_append(ol->pat_insts, p))
+    {
+        Streader_set_memory_error(
+                sr, "Could not allocate memory for order list");
+        return false;
+    }
+
+    Index_mapping* im = new_Index_mapping(key);
+    if (im == NULL || !AAtree_ins(ol->index_map, im))
+    {
+        memory_free(im);
+        Streader_set_memory_error(
+                sr, "Could not allocate memory for order list");
+        return false;
+    }
+
+    return true;
+}
+
+Order_list* new_Order_list(Streader* sr)
+{
+    assert(sr != NULL);
+
+    if (Streader_is_error_set(sr))
         return NULL;
 
     // Create the base structure
     Order_list* ol = memory_alloc_item(Order_list);
     if (ol == NULL)
+    {
+        Streader_set_memory_error(
+                sr, "Could not allocate memory for order list");
         return NULL;
+    }
+
     ol->pat_insts = NULL;
     ol->index_map = NULL;
 
@@ -68,6 +120,8 @@ Order_list* new_Order_list(char* str, Read_state* state)
     ol->pat_insts = new_Vector(sizeof(Pat_inst_ref));
     if (ol->pat_insts == NULL)
     {
+        Streader_set_memory_error(
+                sr, "Could not allocate memory for order list");
         del_Order_list(ol);
         return NULL;
     }
@@ -78,77 +132,21 @@ Order_list* new_Order_list(char* str, Read_state* state)
             memory_free);
     if (ol->index_map == NULL)
     {
+        Streader_set_memory_error(
+                sr, "Could not allocate memory for order list");
         del_Order_list(ol);
         return NULL;
     }
 
     // List is empty by default
-    if (str == NULL)
+    if (!Streader_has_data(sr))
         return ol;
 
     // Read the list of Pattern instance references
-    str = read_const_char(str, '[', state);
-    if (state->error)
+    if (!Streader_read_list(sr, read_piref, ol))
     {
         del_Order_list(ol);
         return NULL;
-    }
-    str = read_const_char(str, ']', state);
-    if (state->error)
-    {
-        // List not empty, process elements
-        Read_state_clear_error(state);
-
-        bool expect_pair = true;
-        int32_t index = 0;
-        while (expect_pair)
-        {
-            // Read the Pattern instance reference
-            Pat_inst_ref* p = PAT_INST_REF_AUTO;
-            str = read_pat_inst_ref(str, p, state);
-            if (state->error)
-            {
-                del_Order_list(ol);
-                return NULL;
-            }
-
-            // Check if the Pattern instance is already used
-            Index_mapping* key = INDEX_MAPPING_AUTO;
-            key->p = *p;
-            key->ol_index = index;
-            if (AAtree_contains(ol->index_map, key))
-            {
-                Read_state_set_error(state,
-                        "Duplicate occurrence of pattern instance"
-                        " [%" PRId16 ", %" PRId16 "]", p->pat, p->inst);
-                del_Order_list(ol);
-                return NULL;
-            }
-
-            // Add the reference to our containers
-            if (!Vector_append(ol->pat_insts, p))
-            {
-                del_Order_list(ol);
-                return NULL;
-            }
-
-            Index_mapping* im = new_Index_mapping(key);
-            if (im == NULL || !AAtree_ins(ol->index_map, im))
-            {
-                memory_free(im);
-                del_Order_list(ol);
-                return NULL;
-            }
-
-            ++index;
-            check_next(str, state, expect_pair);
-        }
-        str = read_const_char(str, ']', state);
-        if (state->error)
-        {
-            del_Order_list(ol);
-            return NULL;
-        }
     }
 
     return ol;

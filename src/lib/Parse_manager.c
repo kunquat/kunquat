@@ -1705,16 +1705,11 @@ static bool parse_subsong_level(Handle* handle,
     }
     else if (string_eq(subkey, "p_order_list.json"))
     {
-        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        Order_list* ol = new_Order_list(data, state);
+        Streader* sr = Streader_init(STREADER_AUTO, data, length);
+        Order_list* ol = new_Order_list(sr);
         if (ol == NULL)
         {
-            if (!state->error)
-                Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory");
-            else
-                set_parse_error(handle, state);
-
+            set_error(handle, sr);
             return false;
         }
 
