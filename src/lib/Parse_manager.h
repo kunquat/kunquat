@@ -39,7 +39,7 @@
  */
 bool parse_data(Handle* handle,
                 const char* key,
-                void* data,
+                const void* data,
                 long length);
 
 

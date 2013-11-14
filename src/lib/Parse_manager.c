@@ -147,7 +147,7 @@ static bool prepare_connections(Handle* handle)
 
 bool parse_data(Handle* handle,
                 const char* key,
-                void* data,
+                const void* data,
                 long length)
 {
 //    fprintf(stderr, "parsing %s\n", key);

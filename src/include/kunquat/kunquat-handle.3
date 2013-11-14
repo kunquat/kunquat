@@ -1,4 +1,4 @@
-.TH kunquat\-handle 3 "2013\-10\-26" "" "Kunquat"
+.TH kunquat\-handle 3 "2013\-11\-14" "" "Kunquat"
 
 .SH NAME
 
@@ -10,7 +10,7 @@ Kunquat Handle interface
 
 .BI "kqt_Handle kqt_new_Handle(void);
 
-.BI "int kqt_Handle_set_data(kqt_Handle " handle ", const char* " key ", void* " data ", long " length );
+.BI "int kqt_Handle_set_data(kqt_Handle " handle ", const char* " key ", const void* " data ", long " length );
 
 .BI "int kqt_Handle_validate(kqt_Handle " handle );
 
@@ -57,7 +57,7 @@ ins_01/p_instrument.json
 .fi
 .in
 
-.IP "\fBint kqt_Handle_set_data(kqt_Handle\fR \fIhandle\fR\fB, const char*\fR \fIkey\fR\fB, void*\fR \fIdata\fR\fB, long\fR \fIlength\fR\fB);\fR"
+.IP "\fBint kqt_Handle_set_data(kqt_Handle\fR \fIhandle\fR\fB, const char*\fR \fIkey\fR\fB, const void*\fR \fIdata\fR\fB, long\fR \fIlength\fR\fB);\fR"
 Sets data in \fIhandle\fR associated with \fIkey\fR. The \fIlength\fR argument
 specifies the number of bytes in \fIdata\fR and must not exceed the real
 length of \fIdata\fR. If \fIlength\fR is 0, the data associated with \fIkey\fR
