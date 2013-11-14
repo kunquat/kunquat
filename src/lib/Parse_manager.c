@@ -472,19 +472,11 @@ static bool parse_album_level(
     }
     else if (string_eq(subkey, "p_tracks.json"))
     {
-        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        Track_list* tl = new_Track_list(data, state);
+        Streader* sr = Streader_init(STREADER_AUTO, data, length);
+        Track_list* tl = new_Track_list(sr);
         if (tl == NULL)
         {
-            if (!state->error)
-            {
-                Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory");
-            }
-            else
-            {
-                set_parse_error(handle, state);
-            }
+            set_error(handle, sr);
             return false;
         }
         del_Track_list(module->track_list);

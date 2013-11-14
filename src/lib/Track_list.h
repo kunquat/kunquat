@@ -18,7 +18,7 @@
 
 #include <stdlib.h>
 
-#include <File_base.h>
+#include <Streader.h>
 
 
 /**
@@ -30,13 +30,11 @@ typedef struct Track_list Track_list;
 /**
  * Creates a new Track list.
  *
- * \param str     Track list description in JSON format, or \c NULL.
- * \param state   The Read state -- must not be \c NULL.
+ * \param sr   The Streader of the JSON data -- must not be \c NULL.
  *
- * \return   The new Track list if successful, otherwise \c NULL. \a state
- *           will not contain error if memory allocation failed.
+ * \return   The new Track list if successful, otherwise \c NULL.
  */
-Track_list* new_Track_list(char* str, Read_state* state);
+Track_list* new_Track_list(Streader* sr);
 
 
 /**

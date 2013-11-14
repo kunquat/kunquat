@@ -27,82 +27,92 @@ struct Track_list
 };
 
 
-Track_list* new_Track_list(char* str, Read_state* state)
+typedef struct read_data
 {
-    assert(state != NULL);
-    if (state->error)
+    Track_list* tl;
+    bool used[KQT_SONGS_MAX];
+} read_data;
+
+static bool read_song(Streader* sr, int32_t index, void* userdata)
+{
+    assert(sr != NULL);
+    assert(userdata != NULL);
+
+    if (index >= KQT_TRACKS_MAX)
+    {
+        Streader_set_error(sr, "Too many entries in track list");
+        return false;
+    }
+
+    read_data* rd = userdata;
+
+    // Read the song index
+    int64_t num = 0;
+    if (!Streader_read_int(sr, &num))
+        return false;
+
+    // Check index range
+    if (num < 0 || num >= KQT_SONGS_MAX)
+    {
+        Streader_set_error(
+                sr, "Song index outside range [0, %d)", KQT_SONGS_MAX);
+        return false;
+    }
+
+    // Check if the index is already used
+    if (rd->used[num])
+    {
+        Streader_set_error(
+                sr, "Duplicate occurrence of song index %" PRId64, num);
+        return false;
+    }
+    rd->used[num] = true;
+
+    // Add song index
+    int16_t song_index = num;
+    Vector_append(rd->tl->songs, &song_index);
+
+    return true;
+}
+
+Track_list* new_Track_list(Streader* sr)
+{
+    assert(sr != NULL);
+
+    if (Streader_is_error_set(sr))
         return NULL;
 
     // Create the base structure
     Track_list* tl = memory_alloc_item(Track_list);
     if (tl == NULL)
+    {
+        Streader_set_memory_error(
+                sr, "Could not allocate memory for track list");
         return NULL;
+    }
+
     tl->songs = NULL;
 
     // Create song index vector
     tl->songs = new_Vector(sizeof(int16_t));
     if (tl->songs == NULL)
     {
+        Streader_set_memory_error(
+                sr, "Could not allocate memory for track list");
         del_Track_list(tl);
         return NULL;
     }
 
     // List is empty by default
-    if (str == NULL)
+    if (!Streader_has_data(sr))
         return tl;
 
-    // Read the list of song indices
-    str = read_const_char(str, '[', state);
-    if (state->error)
+    read_data* rd = &(read_data){ .tl = tl, .used = { false } };
+
+    if (!Streader_read_list(sr, read_song, rd))
     {
         del_Track_list(tl);
         return NULL;
-    }
-    str = read_const_char(str, ']', state);
-    if (state->error)
-    {
-        // List not empty, process elements
-        Read_state_clear_error(state);
-
-        bool used[KQT_SONGS_MAX] = { false };
-
-        bool expect_index = true;
-        while (expect_index)
-        {
-            // Read the song index
-            int64_t num = 0;
-            str = read_int(str, &num, state);
-            if (state->error)
-            {
-                del_Track_list(tl);
-                return NULL;
-            }
-
-            // Check index range
-            if (num < 0 || num >= KQT_SONGS_MAX)
-            {
-                Read_state_set_error(state,
-                        "Song index outside range [0, %d)", KQT_SONGS_MAX);
-                del_Track_list(tl);
-                return NULL;
-            }
-
-            // Check if the index is already used
-            if (used[num])
-            {
-                Read_state_set_error(state,
-                        "Duplicate occurrence of song index %" PRId64, num);
-                del_Track_list(tl);
-                return NULL;
-            }
-            used[num] = true;
-
-            // Add song index
-            int16_t song_index = num;
-            Vector_append(tl->songs, &song_index);
-
-            check_next(str, state, expect_index);
-        }
     }
 
     return tl;
