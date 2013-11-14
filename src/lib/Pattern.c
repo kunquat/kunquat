@@ -24,6 +24,7 @@
 #include <Event.h>
 #include <memory.h>
 #include <Pattern.h>
+#include <string_common.h>
 #include <xassert.h>
 
 
@@ -68,33 +69,56 @@ Pattern* new_Pattern(void)
 }
 
 
-bool Pattern_parse_header(Pattern* pat, char* str, Read_state* state)
+typedef struct pat_params
+{
+    Tstamp len;
+} pat_params;
+
+static bool read_pat_param(Streader* sr, const char* key, void* userdata)
+{
+    assert(sr != NULL);
+    assert(key != NULL);
+    assert(userdata != NULL);
+
+    pat_params* pp = userdata;
+
+    if (string_eq(key, "length"))
+    {
+        if (!Streader_read_tstamp(sr, &pp->len))
+            return false;
+
+        if (Tstamp_get_beats(&pp->len) < 0)
+        {
+            Streader_set_error(sr, "Pattern length is negative");
+            return false;
+        }
+    }
+    else
+    {
+        Streader_set_error(sr, "Unrecognised key in pattern header: %s", key);
+        return false;
+    }
+
+    return true;
+}
+
+bool Pattern_parse_header(Pattern* pat, Streader* sr)
 {
     assert(pat != NULL);
-    assert(state != NULL);
+    assert(sr != NULL);
 
-    if (state->error)
+    if (Streader_is_error_set(sr))
         return false;
 
-    Tstamp* len = PATTERN_DEFAULT_LENGTH;
-    if (str != NULL)
+    pat_params* pp = &(pat_params)
     {
-        str = read_const_char(str, '{', state);
-        str = read_const_string(str, "length", state);
-        str = read_const_char(str, ':', state);
-        str = read_tstamp(str, len, state);
-        str = read_const_char(str, '}', state);
-        if (state->error)
-            return false;
-    }
+        .len = *PATTERN_DEFAULT_LENGTH,
+    };
 
-    if (Tstamp_get_beats(len) < 0)
-    {
-        Read_state_set_error(state, "Pattern length is negative");
+    if (!Streader_read_dict(sr, read_pat_param, pp))
         return false;
-    }
 
-    Pattern_set_length(pat, len);
+    Pattern_set_length(pat, &pp->len);
 
     return true;
 }

@@ -1451,10 +1451,11 @@ static bool parse_pattern_level(Handle* handle,
                 return false;
             }
         }
-        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        if (!Pattern_parse_header(pat, data, state))
+
+        Streader* sr = Streader_init(STREADER_AUTO, data, length);
+        if (!Pattern_parse_header(pat, sr))
         {
-            set_parse_error(handle, state);
+            set_error(handle, sr);
             if (new_pattern)
             {
                 del_Pattern(pat);
