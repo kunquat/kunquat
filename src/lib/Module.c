@@ -171,92 +171,85 @@ Module* new_Module()
 }
 
 
-bool Module_parse_composition(Module* module, char* str, Read_state* state)
+typedef struct mod_params
 {
-    assert(module != NULL);
-    assert(state != NULL);
+    double mix_vol;
+} mod_params;
 
-    if (state->error)
-        return false;
+static bool read_mod_param(Streader* sr, const char* key, void* userdata)
+{
+    assert(sr != NULL);
+    assert(key != NULL);
+    assert(userdata != NULL);
 
-    double mix_vol = MODULE_DEFAULT_MIX_VOL;
+    mod_params* mp = userdata;
 
-    if (str != NULL)
+    if (string_eq(key, "mix_vol"))
     {
-        str = read_const_char(str, '{', state);
-        if (state->error)
+        if (!Streader_read_float(sr, &mp->mix_vol))
             return false;
 
-        str = read_const_char(str, '}', state);
-        if (state->error)
+        if (!isfinite(mp->mix_vol) && mp->mix_vol != -INFINITY)
         {
-            Read_state_clear_error(state);
-            bool expect_key = true;
-            while (expect_key)
-            {
-                char key[128] = { '\0' };
-                str = read_string(str, key, 128, state);
-                str = read_const_char(str, ':', state);
-                if (state->error)
-                    return false;
-
-                if (string_eq(key, "mix_vol"))
-                {
-                    str = read_double(str, &mix_vol, state);
-                    if (state->error)
-                        return false;
-
-                    if (!isfinite(mix_vol) && mix_vol != -INFINITY)
-                    {
-                        Read_state_set_error(state,
-                                 "Invalid mixing volume: %f", module->mix_vol_dB);
-                        return false;
-                    }
-                }
-                else
-                {
-                    Read_state_set_error(state,
-                             "Unrecognised key in composition info: %s", key);
-                    return false;
-                }
-
-                if (state->error)
-                    return false;
-
-                check_next(str, state, expect_key);
-            }
-
-            str = read_const_char(str, '}', state);
-            if (state->error)
-                return false;
+            Streader_set_error(sr,
+                     "Invalid mixing volume: %f", mp->mix_vol);
+            return false;
         }
     }
+    else
+    {
+        Streader_set_error(sr,
+                 "Unrecognised key in composition info: %s", key);
+        return false;
+    }
 
-    module->mix_vol_dB = mix_vol;
+    return true;
+}
+
+bool Module_parse_composition(Module* module, Streader* sr)
+{
+    assert(module != NULL);
+    assert(sr != NULL);
+
+    if (Streader_is_error_set(sr))
+        return false;
+
+    mod_params* mp = &(mod_params)
+    {
+        .mix_vol = MODULE_DEFAULT_MIX_VOL,
+    };
+
+    if (Streader_has_data(sr))
+    {
+        if (!Streader_read_dict(sr, read_mod_param, mp))
+            return false;
+    }
+
+    module->mix_vol_dB = mp->mix_vol;
     module->mix_vol = exp2(module->mix_vol_dB / 6);
 
     return true;
 }
 
 
-bool Module_parse_random_seed(Module* module, char* str, Read_state* state)
+bool Module_parse_random_seed(Module* module, Streader* sr)
 {
     assert(module != NULL);
-    assert(state != NULL);
+    assert(sr != NULL);
 
-    if (state->error)
+    if (!Streader_is_error_set(sr))
         return false;
 
     int64_t seed = 0;
-    if (str != NULL)
+
+    if (Streader_has_data(sr))
     {
-        str = read_int(str, &seed, state);
-        if (state->error)
+        if (!Streader_read_int(sr, &seed))
             return false;
 
         if (seed < 0)
         {
-            Read_state_set_error(state, "Random seed must be positive");
+            Streader_set_error(sr, "Random seed must be positive");
             return false;
         }
     }

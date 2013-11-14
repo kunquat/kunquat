@@ -352,10 +352,10 @@ static bool parse_module_level(Handle* handle,
 
     if (string_eq(key, "p_composition.json"))
     {
-        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        if (!Module_parse_composition(module, data, state))
+        Streader* sr = Streader_init(STREADER_AUTO, data, length);
+        if (!Module_parse_composition(module, sr))
         {
-            set_parse_error(handle, state);
+            set_error(handle, sr);
             return false;
         }
     }
@@ -396,10 +396,10 @@ static bool parse_module_level(Handle* handle,
     }
     else if (string_eq(key, "p_random_seed.json"))
     {
-        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        if (!Module_parse_random_seed(module, data, state))
+        Streader* sr = Streader_init(STREADER_AUTO, data, length);
+        if (!Module_parse_random_seed(module, sr))
         {
-            set_parse_error(handle, state);
+            set_error(handle, sr);
             return false;
         }
     }
