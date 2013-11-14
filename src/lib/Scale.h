@@ -20,7 +20,7 @@
 #include <pitch_t.h>
 #include <kunquat/limits.h>
 #include <AAtree.h>
-#include <File_base.h>
+#include <Streader.h>
 
 
 /**
@@ -70,12 +70,11 @@ Scale* new_Scale(pitch_t ref_pitch, Real* octave_ratio);
 /**
  * Creates a Scale from a textual description.
  *
- * \param str     The textual description.
- * \param state   The Read state -- must not be \c NULL.
+ * \param sr   The Streader of the JSON data -- must not be \c NULL.
  *
  * \return   The new Scale if successful, otherwise \c NULL.
  */
-Scale* new_Scale_from_string(char* str, Read_state* state);
+Scale* new_Scale_from_string(Streader* sr);
 
 
 /**

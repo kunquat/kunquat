@@ -176,204 +176,225 @@ Scale* new_Scale(pitch_t ref_pitch, Real* octave_ratio)
 }
 
 
-#define read_and_validate_tuning(str, ratio, cents, state)                        \
+static bool Streader_read_tuning(Streader* sr, Real* result, double* cents)
+{
+    assert(sr != NULL);
+
+    if (Streader_is_error_set(sr))
+        return false;
+
+    char type[3] = "";
+    if (!Streader_readf(sr, "[%s,", 3, type))
+        return false;
+
+    int64_t num = 0;
+    int64_t den = 0;
+    double fl = 0.0;
+
+    if (string_eq(type, "/"))
+    {
+        if (!Streader_readf(sr, "[%i,%i]", &num, &den))
+            return false;
+
+        if (den <= 0)
+        {
+            Streader_set_error(sr, "Denominator must be positive");
+            return false;
+        }
+    }
+    else if (string_eq(type, "f") || string_eq(type, "c"))
+    {
+        if (!Streader_read_float(sr, &fl))
+            return false;
+
+        if (!isfinite(fl))
+        {
+            Streader_set_error(sr, "Floating point value must be finite");
+            return false;
+        }
+    }
+    else
+    {
+        Streader_set_error(sr, "Invalid type description: %s", type);
+        return false;
+    }
+
+    if (!Streader_match_char(sr, ']'))
+        return false;
+
+    if (type[0] == '/')
+    {
+        if (result != NULL)
+            Real_init_as_frac(result, num, den);
+
+        if (cents != NULL)
+            *cents = NAN;
+    }
+    else if (type[0] == 'f')
+    {
+        if (result != NULL)
+            Real_init_as_double(result, fl);
+
+        if (cents != NULL)
+            *cents = NAN;
+    }
+    else
+    {
+        assert(type[0] == 'c');
+        if (cents != NULL)
+            *cents = fl;
+    }
+
+    return true;
+}
+
+#define read_and_validate_tuning(sr, ratio, cents)                                \
     if (true)                                                                     \
     {                                                                             \
-        (str) = read_tuning((str), (ratio), &(cents), (state));                   \
-        if ((state)->error)                                                       \
-        {                                                                         \
-            del_Scale(scale);                                                     \
-            return NULL;                                                          \
-        }                                                                         \
+        if (!Streader_read_tuning((sr), (ratio), &(cents)))                       \
+            return false;                                                         \
         if (isnan((cents)))                                                       \
         {                                                                         \
             if ((Real_is_frac((ratio)) && Real_get_numerator((ratio)) <= 0)       \
                     || (!Real_is_frac((ratio)) && Real_get_double((ratio)) <= 0)) \
             {                                                                     \
-                del_Scale(scale);                                                 \
-                Read_state_set_error((state), "Ratio is not positive");           \
-                return NULL;                                                      \
+                Streader_set_error((sr), "Ratio is not positive");                \
+                return false;                                                     \
             }                                                                     \
         }                                                                         \
     } else (void)0
 
-Scale* new_Scale_from_string(char* str, Read_state* state)
+static bool read_note(Streader* sr, int32_t index, void* userdata)
 {
-    assert(state != NULL);
+    assert(sr != NULL);
+    assert(userdata != NULL);
 
-    if (state->error)
+    if (index >= KQT_SCALE_NOTES)
+    {
+        Streader_set_error(sr, "Too many notes in the tuning table");
+        return false;
+    }
+
+    Scale* scale = userdata;
+
+    Real* ratio = Real_init(REAL_AUTO);
+    double cents = NAN;
+    read_and_validate_tuning(sr, ratio, cents);
+
+    if (!isnan(cents))
+        Scale_set_note_cents(scale, index, cents);
+    else
+        Scale_set_note(scale, index, ratio);
+
+    return true;
+}
+
+static bool read_scale_item(Streader* sr, const char* key, void* userdata)
+{
+    assert(sr != NULL);
+    assert(key != NULL);
+    assert(userdata != NULL);
+
+    Scale* scale = userdata;
+
+    if (string_eq(key, "ref_note"))
+    {
+        int64_t num = 0;
+        if (!Streader_read_int(sr, &num))
+            return false;
+
+        if (num < 0 || num >= KQT_SCALE_NOTES)
+        {
+            Streader_set_error(
+                     sr, "Invalid reference note number: %" PRId64, num);
+            return false;
+        }
+
+        scale->ref_note = num;
+    }
+    else if (string_eq(key, "ref_pitch"))
+    {
+        double num = 0;
+        if (!Streader_read_float(sr, &num))
+            return false;
+
+        if (num <= 0 || !isfinite(num))
+        {
+            Streader_set_error(
+                     sr, "Invalid reference pitch: %f", num);
+            return false;
+        }
+
+        scale->ref_pitch = num;
+    }
+    else if (string_eq(key, "pitch_offset"))
+    {
+        double cents = NAN;
+        if (!Streader_read_float(sr, &cents))
+            return false;
+
+        if (!isfinite(cents))
+        {
+            Streader_set_error(sr, "Pitch offset is not finite");
+            return false;
+        }
+
+        scale->init_pitch_offset_cents = cents;
+        scale->pitch_offset_cents = cents;
+        scale->pitch_offset = exp2(cents / 1200);
+    }
+    else if (string_eq(key, "octave_ratio"))
+    {
+        Real* ratio = Real_init(REAL_AUTO);
+        double cents = NAN;
+        read_and_validate_tuning(sr, ratio, cents);
+
+        if (!isnan(cents))
+            Scale_set_octave_ratio_cents(scale, cents);
+        else
+            Scale_set_octave_ratio(scale, ratio);
+    }
+    else if (string_eq(key, "notes"))
+    {
+        for (int i = 0; i < KQT_SCALE_NOTES; ++i)
+        {
+            if (!NOTE_EXISTS(scale, i))
+                break;
+
+            NOTE_CLEAR(scale, i);
+        }
+
+        if (!Streader_read_list(sr, read_note, scale))
+            return false;
+    }
+    else
+    {
+        Streader_set_error(sr, "Unrecognised key in scale: %s", key);
+        return false;
+    }
+
+    return true;
+}
+
+Scale* new_Scale_from_string(Streader* sr)
+{
+    assert(sr != NULL);
+
+    if (Streader_is_error_set(sr))
         return NULL;
 
     Scale* scale = new_Scale(
             SCALE_DEFAULT_REF_PITCH, SCALE_DEFAULT_OCTAVE_RATIO);
     if (scale == NULL)
     {
-        Read_state_set_error(state, "Couldn't allocate memory");
+        Streader_set_memory_error(
+                sr, "Couldn't allocate memory for tuning table");
         return NULL;
     }
 
-    if (str != NULL)
+    if (Streader_has_data(sr))
     {
-        str = read_const_char(str, '{', state);
-        if (state->error)
-        {
-            del_Scale(scale);
-            return NULL;
-        }
-
-        str = read_const_char(str, '}', state);
-        if (!state->error)
-            return scale;
-
-        Read_state_clear_error(state);
-
-        bool expect_key = true;
-        while (expect_key)
-        {
-            char key[256] = { '\0' };
-            str = read_string(str, key, 256, state);
-            str = read_const_char(str, ':', state);
-            if (state->error)
-            {
-                del_Scale(scale);
-                return NULL;
-            }
-
-            if (string_eq(key, "ref_note"))
-            {
-                int64_t num = 0;
-                str = read_int(str, &num, state);
-                if (state->error)
-                {
-                    del_Scale(scale);
-                    return NULL;
-                }
-
-                if (num < 0 || num >= KQT_SCALE_NOTES)
-                {
-                    del_Scale(scale);
-                    Read_state_set_error(state,
-                             "Invalid reference note number: %" PRId64, num);
-                    return NULL;
-                }
-
-                scale->ref_note = num;
-            }
-            else if (string_eq(key, "ref_pitch"))
-            {
-                double num = 0;
-                str = read_double(str, &num, state);
-                if (state->error)
-                {
-                    del_Scale(scale);
-                    return NULL;
-                }
-
-                if (num <= 0 || !isfinite(num))
-                {
-                    del_Scale(scale);
-                    Read_state_set_error(state,
-                             "Invalid reference pitch: %f", num);
-                    return NULL;
-                }
-
-                scale->ref_pitch = num;
-            }
-            else if (string_eq(key, "pitch_offset"))
-            {
-                double cents = NAN;
-                str = read_double(str, &cents, state);
-                if (state->error)
-                {
-                    del_Scale(scale);
-                    return NULL;
-                }
-
-                if (!isfinite(cents))
-                {
-                    del_Scale(scale);
-                    Read_state_set_error(state,
-                            "Pitch offset is not finite");
-                    return NULL;
-                }
-
-                scale->init_pitch_offset_cents = cents;
-                scale->pitch_offset_cents = cents;
-                scale->pitch_offset = exp2(cents / 1200);
-            }
-            else if (string_eq(key, "octave_ratio"))
-            {
-                Real* ratio = Real_init(REAL_AUTO);
-                double cents = NAN;
-                read_and_validate_tuning(str, ratio, cents, state);
-
-                if (!isnan(cents))
-                    Scale_set_octave_ratio_cents(scale, cents);
-                else
-                    Scale_set_octave_ratio(scale, ratio);
-            }
-            else if (string_eq(key, "notes"))
-            {
-                int count = 0;
-                str = read_const_char(str, '[', state);
-                if (state->error)
-                {
-                    del_Scale(scale);
-                    return NULL;
-                }
-
-                str = read_const_char(str, ']', state);
-                if (state->error)
-                {
-                    Read_state_clear_error(state);
-                    bool expect_val = true;
-                    while (expect_val)
-                    {
-                        Real* ratio = Real_init(REAL_AUTO);
-                        double cents = NAN;
-                        read_and_validate_tuning(str, ratio, cents, state);
-
-                        if (!isnan(cents))
-                            Scale_set_note_cents(scale, count, cents);
-                        else
-                            Scale_set_note(scale, count, ratio);
-
-                        ++count;
-                        if (count >= KQT_SCALE_NOTES)
-                            break;
-
-                        check_next(str, state, expect_val);
-                    }
-
-                    str = read_const_char(str, ']', state);
-                    if (state->error)
-                    {
-                        del_Scale(scale);
-                        return NULL;
-                    }
-
-                    for (int i = count; i < KQT_SCALE_NOTES; ++i)
-                    {
-                        if (!NOTE_EXISTS(scale, i))
-                            break;
-
-                        NOTE_CLEAR(scale, i);
-                    }
-                }
-            }
-            else
-            {
-                del_Scale(scale);
-                Read_state_set_error(state,
-                         "Unrecognised key in scale: %s", key);
-                return NULL;
-            }
-
-            check_next(str, state, expect_key);
-        }
-
-        str = read_const_char(str, '}', state);
-        if (state->error)
+        if (!Streader_read_dict(sr, read_scale_item, scale))
         {
             del_Scale(scale);
             return NULL;
@@ -381,17 +402,18 @@ Scale* new_Scale_from_string(char* str, Read_state* state)
 
         if (scale->ref_note >= scale->note_count)
         {
-            del_Scale(scale);
-            Read_state_set_error(state,
+            Streader_set_error(sr,
                      "Reference note doesn't exist: %d", scale->ref_note);
+            del_Scale(scale);
             return NULL;
         }
     }
 
     if (!Scale_build_pitch_map(scale))
     {
+        Streader_set_memory_error(
+                sr, "Couldn't allocate memory for tuning table");
         del_Scale(scale);
-        Read_state_set_error(state, "Couldn't allocate memory");
         return NULL;
     }
 

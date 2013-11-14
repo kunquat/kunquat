@@ -1635,11 +1635,11 @@ static bool parse_scale_level(Handle* handle,
 
     if (string_eq(subkey, "p_scale.json"))
     {
-        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        Scale* scale = new_Scale_from_string(data, state);
+        Streader* sr = Streader_init(STREADER_AUTO, data, length);
+        Scale* scale = new_Scale_from_string(sr);
         if (scale == NULL)
         {
-            set_parse_error(handle, state);
+            set_error(handle, sr);
             return false;
         }
         Module_set_scale(module, index, scale);
