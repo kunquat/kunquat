@@ -1268,12 +1268,11 @@ static bool parse_dsp_level(Handle* handle,
                 return false;
 
             // Create the DSP implementation
-            Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+            Streader* sr = Streader_init(STREADER_AUTO, data, length);
             char type[DSP_TYPE_LENGTH_MAX] = "";
-            read_string(data, type, DSP_TYPE_LENGTH_MAX, state);
-            if (state->error)
+            if (!Streader_read_string(sr, DSP_TYPE_LENGTH_MAX, type))
             {
-                set_parse_error(handle, state);
+                set_error(handle, sr);
                 return false;
             }
             DSP_cons* cons = DSP_type_find_cons(type);
