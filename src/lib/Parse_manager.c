@@ -29,6 +29,7 @@
 #include <Handle_private.h>
 #include <manifest.h>
 #include <memory.h>
+#include <Streader.h>
 #include <string_common.h>
 #include <xassert.h>
 
@@ -36,24 +37,21 @@
 static bool parse_module_level(
         Handle* handle,
         const char* key,
-        void* data,
-        long length);
+        Streader* sr);
 
 
 static bool parse_album_level(
         Handle* handle,
         const char* key,
         const char* subkey,
-        void* data,
-        long length);
+        Streader* sr);
 
 
 static bool parse_instrument_level(
         Handle* handle,
         const char* key,
         const char* subkey,
-        void* data,
-        long length,
+        Streader* sr,
         int index);
 
 
@@ -62,8 +60,7 @@ static bool parse_effect_level(
         Instrument* ins,
         const char* key,
         const char* subkey,
-        void* data,
-        long length,
+        Streader* sr,
         int eff_index);
 
 
@@ -71,8 +68,7 @@ static bool parse_generator_level(
         Handle* handle,
         const char* key,
         const char* subkey,
-        void* data,
-        long length,
+        Streader* sr,
         int ins_index,
         int gen_index);
 
@@ -82,8 +78,7 @@ static bool parse_dsp_level(
         Effect* eff,
         const char* key,
         const char* subkey,
-        void* data,
-        long length,
+        Streader* sr,
         int dsp_index);
 
 
@@ -91,8 +86,7 @@ static bool parse_pattern_level(
         Handle* handle,
         const char* key,
         const char* subkey,
-        void* data,
-        long length,
+        Streader* sr,
         int index);
 
 
@@ -101,8 +95,7 @@ static bool parse_pat_inst_level(
         Pattern* pat,
         const char* key,
         const char* subkey,
-        void* data,
-        long length,
+        Streader* sr,
         int index);
 
 
@@ -110,8 +103,7 @@ static bool parse_scale_level(
         Handle* handle,
         const char* key,
         const char* subkey,
-        void* data,
-        long length,
+        Streader* sr,
         int index);
 
 
@@ -119,17 +111,9 @@ static bool parse_subsong_level(
         Handle* handle,
         const char* key,
         const char* subkey,
-        void* data,
-        long length,
+        Streader* sr,
         int index);
 
-
-static bool key_is_for_text(const char* key);
-
-
-#define set_parse_error(handle, state) \
-    (Handle_set_validation_error((handle), ERROR_FORMAT, "Parse error in" \
-            " %s:%d: %s", (state)->path, (state)->row, (state)->message))
 
 #define set_error(handle, sr)                                               \
     if (true)                                                               \
@@ -139,14 +123,6 @@ static bool key_is_for_text(const char* key);
         else                                                                \
             Handle_set_error_from_Error((handle), &(sr)->error);            \
     } else (void)0
-
-
-static bool key_is_for_text(const char* key)
-{
-    assert(key != NULL);
-    return string_has_suffix(key, ".json") ||
-           key_is_text_device_param(key);
-}
 
 
 static bool prepare_connections(Handle* handle)
@@ -201,24 +177,11 @@ bool parse_data(Handle* handle,
         return true;
     }
 
-    char* json = NULL;
-    if (data != NULL && key_is_for_text(key))
-    {
-        json = memory_calloc_items(char, length + 1);
-        if (json == NULL)
-        {
-            Handle_set_error(handle, ERROR_MEMORY,
-                    "Couldn't allocate memory");
-            return false;
-        }
-        strncpy(json, data, length);
-        data = json;
-    }
+    Streader* sr = Streader_init(STREADER_AUTO, data, length);
 
     if (last_index == 0)
     {
-        bool success = parse_module_level(handle, key, data, length);
-        memory_free(json);
+        bool success = parse_module_level(handle, key, sr);
         return success;
     }
 
@@ -233,7 +196,7 @@ bool parse_data(Handle* handle,
         Instrument* ins = Ins_table_get(Module_get_insts(module), index);
         bool changed = ins != NULL;
         success = parse_instrument_level(handle, key, second_element,
-                                         data, length, index);
+                                         sr, index);
         changed ^= Ins_table_get(Module_get_insts(module), index) != NULL;
         Connections* graph = module->connections;
         if (changed && graph != NULL)
@@ -249,7 +212,7 @@ bool parse_data(Handle* handle,
         Effect* eff = Effect_table_get(Module_get_effects(module), index);
         bool changed = eff != NULL;
         success = parse_effect_level(handle, NULL, key, second_element,
-                                     data, length, index);
+                                     sr, index);
         changed ^= Effect_table_get(Module_get_effects(module),
                                                      index) != NULL;
         Connections* graph = module->connections;
@@ -263,7 +226,7 @@ bool parse_data(Handle* handle,
     {
         Pattern* pat = Pat_table_get(Module_get_pats(module), index);
         success = parse_pattern_level(handle, key, second_element,
-                                      data, length, index);
+                                      sr, index);
         Pattern* new_pat = Pat_table_get(Module_get_pats(module), index);
         if (success && pat != new_pat && new_pat != NULL)
         {
@@ -319,39 +282,35 @@ bool parse_data(Handle* handle,
     else if ((index = string_extract_index(key, "scale_", 1, "/")) >= 0)
     {
         success = parse_scale_level(handle, key, second_element,
-                                    data, length, index);
+                                    sr, index);
     }
     else if ((index = string_extract_index(key, "song_", 2, "/")) >= 0)
     {
         success = parse_subsong_level(handle, key, second_element,
-                                      data, length, index);
+                                      sr, index);
     }
     else if (string_has_prefix(key, "album/"))
     {
-        success = parse_album_level(handle, key, second_element, data, length);
+        success = parse_album_level(handle, key, second_element, sr);
     }
-    memory_free(json);
+
     return success;
 }
 
 
 static bool parse_module_level(Handle* handle,
                              const char* key,
-                             void* data,
-                             long length)
+                             Streader* sr)
 {
 //    fprintf(stderr, "song level: %s\n", key);
     assert(handle != NULL);
     assert(key != NULL);
-    assert(data != NULL || length == 0);
-    assert(length >= 0);
-    (void)length;
+    assert(sr != NULL);
 
     Module* module = Handle_get_module(handle);
 
     if (string_eq(key, "p_composition.json"))
     {
-        Streader* sr = Streader_init(STREADER_AUTO, data, length);
         if (!Module_parse_composition(module, sr))
         {
             set_error(handle, sr);
@@ -360,7 +319,6 @@ static bool parse_module_level(Handle* handle,
     }
     else if (string_eq(key, "p_connections.json"))
     {
-        Streader* sr = Streader_init(STREADER_AUTO, data, length);
         Connections* graph = new_Connections_from_string(sr,
                                             CONNECTION_LEVEL_GLOBAL,
                                             Module_get_insts(module),
@@ -386,7 +344,6 @@ static bool parse_module_level(Handle* handle,
     }
     else if (string_eq(key, "p_ins_input.json"))
     {
-        Streader* sr = Streader_init(STREADER_AUTO, data, length);
         if (!Module_set_ins_map(module, sr))
         {
             set_error(handle, sr);
@@ -395,7 +352,6 @@ static bool parse_module_level(Handle* handle,
     }
     else if (string_eq(key, "p_random_seed.json"))
     {
-        Streader* sr = Streader_init(STREADER_AUTO, data, length);
         if (!Module_parse_random_seed(module, sr))
         {
             set_error(handle, sr);
@@ -404,7 +360,6 @@ static bool parse_module_level(Handle* handle,
     }
     else if (string_eq(key, "p_environment.json"))
     {
-        Streader* sr = Streader_init(STREADER_AUTO, data, length);
         if (!Environment_parse(module->env, sr))
         {
             set_error(handle, sr);
@@ -419,7 +374,6 @@ static bool parse_module_level(Handle* handle,
     }
     else if (string_eq(key, "p_bind.json"))
     {
-        Streader* sr = Streader_init(STREADER_AUTO, data, length);
         Bind* map = new_Bind(
                 sr,
                 Event_handler_get_names(
@@ -446,21 +400,17 @@ static bool parse_album_level(
         Handle* handle,
         const char* key,
         const char* subkey,
-        void* data,
-        long length)
+        Streader* sr)
 {
     assert(handle != NULL);
     assert(key != NULL);
     assert(subkey != NULL);
-    assert((data == NULL) == (length == 0));
-    assert(length >= 0);
-    (void)length;
+    assert(sr != NULL);
 
     Module* module = Handle_get_module(handle);
 
     if (string_eq(subkey, "p_manifest.json"))
     {
-        Streader* sr = Streader_init(STREADER_AUTO, data, length);
         const bool existent = read_default_manifest(sr);
         if (Streader_is_error_set(sr))
         {
@@ -471,7 +421,6 @@ static bool parse_album_level(
     }
     else if (string_eq(subkey, "p_tracks.json"))
     {
-        Streader* sr = Streader_init(STREADER_AUTO, data, length);
         Track_list* tl = new_Track_list(sr);
         if (tl == NULL)
         {
@@ -530,16 +479,15 @@ static Instrument* add_instrument(Handle* handle, int index)
 static bool parse_instrument_level(Handle* handle,
                                    const char* key,
                                    const char* subkey,
-                                   void* data,
-                                   long length,
+                                   Streader* sr,
                                    int index)
 {
 //    fprintf(stderr, "instrument level: %s\n", key);
     assert(handle != NULL);
     assert(key != NULL);
     assert(subkey != NULL);
-    assert((data == NULL) == (length == 0));
-    assert(length >= 0);
+    assert(sr != NULL);
+
     if (index < 0 || index >= KQT_INSTRUMENTS_MAX)
     {
         return true;
@@ -570,7 +518,7 @@ static bool parse_instrument_level(Handle* handle,
                                      : NULL;
         bool changed = ins != NULL && gen != NULL;
         bool success = parse_generator_level(handle, key, subkey,
-                                             data, length, 
+                                             sr,
                                              index, gen_index);
         ins = Ins_table_get(Module_get_insts(module), index);
         gen = ins != NULL ? Instrument_get_gen(ins, gen_index) : NULL;
@@ -600,7 +548,7 @@ static bool parse_instrument_level(Handle* handle,
             return false;
 
         bool success = parse_effect_level(handle, ins, key, subkey,
-                                          data, length, eff_index);
+                                          sr, eff_index);
         changed ^= ins != NULL &&
                    Instrument_get_effect(ins, eff_index) != NULL;
         Connections* graph = module->connections;
@@ -620,7 +568,6 @@ static bool parse_instrument_level(Handle* handle,
         if (ins == NULL)
             return false;
 
-        Streader* sr = Streader_init(STREADER_AUTO, data, length);
         const bool existent = read_default_manifest(sr);
         if (Streader_is_error_set(sr))
         {
@@ -637,7 +584,6 @@ static bool parse_instrument_level(Handle* handle,
         if (ins == NULL)
             return false;
 
-        Streader* sr = Streader_init(STREADER_AUTO, data, length);
         if (!Instrument_parse_header(ins, sr))
         {
             set_error(handle, sr);
@@ -648,7 +594,7 @@ static bool parse_instrument_level(Handle* handle,
     {
         bool reconnect = false;
         Instrument* ins = Ins_table_get(Module_get_insts(module), index);
-        if (data == NULL)
+        if (!Streader_has_data(sr))
         {
             if (ins != NULL)
             {
@@ -662,7 +608,6 @@ static bool parse_instrument_level(Handle* handle,
             if (ins == NULL)
                 return false;
 
-            Streader* sr = Streader_init(STREADER_AUTO, data, length);
             Connections* graph = new_Connections_from_string(sr,
                                                  CONNECTION_LEVEL_INSTRUMENT,
                                                  Module_get_insts(module),
@@ -697,7 +642,6 @@ static bool parse_instrument_level(Handle* handle,
         if (ins == NULL)
             return false;
 
-        Streader* sr = Streader_init(STREADER_AUTO, data, length);
         if (!Instrument_parse_value(ins, subkey, sr))
         {
             set_error(handle, sr);
@@ -726,7 +670,6 @@ static bool parse_instrument_level(Handle* handle,
             if (ins == NULL)
                 return false;
 
-            Streader* sr = Streader_init(STREADER_AUTO, data, length);
             if (!parse[i].read(Instrument_get_params(ins), sr))
             {
                 set_error(handle, sr);
@@ -774,8 +717,7 @@ static Generator* add_generator(
 static bool parse_generator_level(Handle* handle,
                                   const char* key,
                                   const char* subkey,
-                                  void* data,
-                                  long length,
+                                  Streader* sr,
                                   int ins_index,
                                   int gen_index)
 {
@@ -783,8 +725,7 @@ static bool parse_generator_level(Handle* handle,
     assert(handle != NULL);
     assert(key != NULL);
     assert(subkey != NULL);
-    assert((data == NULL) == (length == 0));
-    assert(length >= 0);
+    assert(sr != NULL);
     assert(ins_index >= 0);
     assert(ins_index < KQT_INSTRUMENTS_MAX);
 
@@ -812,7 +753,6 @@ static bool parse_generator_level(Handle* handle,
 
     if (string_eq(subkey, "p_manifest.json"))
     {
-        Streader* sr = Streader_init(STREADER_AUTO, data, length);
         const bool existent = read_default_manifest(sr);
         if (Streader_is_error_set(sr))
         {
@@ -824,7 +764,7 @@ static bool parse_generator_level(Handle* handle,
     }
     else if (string_eq(subkey, "p_gen_type.json"))
     {
-        if (data == NULL)
+        if (!Streader_has_data(sr))
         {
             Generator* gen = Gen_table_get_gen(table, gen_index);
             if (gen != NULL)
@@ -841,7 +781,6 @@ static bool parse_generator_level(Handle* handle,
                 return false;
 
             // Create the Generator implementation
-            Streader* sr = Streader_init(STREADER_AUTO, data, length);
             char type[GEN_TYPE_LENGTH_MAX] = "";
             if (!Streader_read_string(sr, GEN_TYPE_LENGTH_MAX, type))
             {
@@ -981,7 +920,6 @@ static bool parse_generator_level(Handle* handle,
             return false;
 
         // Update Device
-        Streader* sr = Streader_init(STREADER_AUTO, data, length);
         if (!Device_set_key((Device*)gen, subkey, sr))
         {
             set_error(handle, sr);
@@ -1055,15 +993,13 @@ static bool parse_effect_level(Handle* handle,
                                Instrument* ins,
                                const char* key,
                                const char* subkey,
-                               void* data,
-                               long length,
+                               Streader* sr,
                                int eff_index)
 {
     assert(handle != NULL);
     assert(key != NULL);
     assert(subkey != NULL);
-    assert((data == NULL) == (length == 0));
-    assert(length >= 0);
+    assert(sr != NULL);
     int max_index = KQT_EFFECTS_MAX;
     if (ins != NULL)
     {
@@ -1103,7 +1039,7 @@ static bool parse_effect_level(Handle* handle,
             return false;
 
         bool success = parse_dsp_level(handle, eff, key, subkey,
-                                       data, length, dsp_index);
+                                       sr, dsp_index);
         changed ^= eff != NULL && Effect_get_dsp(eff, dsp_index) != NULL;
         Connections* graph = module->connections;
         if (changed && graph != NULL)
@@ -1119,7 +1055,6 @@ static bool parse_effect_level(Handle* handle,
         if (eff == NULL)
             return false;
 
-        Streader* sr = Streader_init(STREADER_AUTO, data, length);
         const bool existent = read_default_manifest(sr);
         if (Streader_is_error_set(sr))
         {
@@ -1132,7 +1067,7 @@ static bool parse_effect_level(Handle* handle,
     {
         bool reconnect = false;
         Effect* eff = Effect_table_get(table, eff_index);
-        if (data == NULL)
+        if (!Streader_has_data(sr))
         {
             if (eff != NULL)
             {
@@ -1146,7 +1081,6 @@ static bool parse_effect_level(Handle* handle,
             if (eff == NULL)
                 return false;
 
-            Streader* sr = Streader_init(STREADER_AUTO, data, length);
             Connection_level level = CONNECTION_LEVEL_EFFECT;
             if (ins != NULL)
             {
@@ -1216,16 +1150,14 @@ static bool parse_dsp_level(Handle* handle,
                             Effect* eff,
                             const char* key,
                             const char* subkey,
-                            void* data,
-                            long length,
+                            Streader* sr,
                             int dsp_index)
 {
     assert(handle != NULL);
     assert(eff != NULL);
     assert(key != NULL);
     assert(subkey != NULL);
-    assert((data == NULL) == (length == 0));
-    assert(length >= 0);
+    assert(sr != NULL);
 
     if (dsp_index < 0 || dsp_index >= KQT_DSPS_MAX)
         return true;
@@ -1243,7 +1175,6 @@ static bool parse_dsp_level(Handle* handle,
 
     if (string_eq(subkey, "p_manifest.json"))
     {
-        Streader* sr = Streader_init(STREADER_AUTO, data, length);
         const bool existent = read_default_manifest(sr);
         if (Streader_is_error_set(sr))
         {
@@ -1256,7 +1187,7 @@ static bool parse_dsp_level(Handle* handle,
     else if (string_eq(subkey, "p_dsp_type.json"))
     {
 //        fprintf(stderr, "%s\n", subkey);
-        if (data == NULL)
+        if (!Streader_has_data(sr))
         {
             DSP_table_remove_dsp(dsp_table, dsp_index);
         }
@@ -1267,7 +1198,6 @@ static bool parse_dsp_level(Handle* handle,
                 return false;
 
             // Create the DSP implementation
-            Streader* sr = Streader_init(STREADER_AUTO, data, length);
             char type[DSP_TYPE_LENGTH_MAX] = "";
             if (!Streader_read_string(sr, DSP_TYPE_LENGTH_MAX, type))
             {
@@ -1351,7 +1281,6 @@ static bool parse_dsp_level(Handle* handle,
             return false;
 
         // Update Device
-        Streader* sr = Streader_init(STREADER_AUTO, data, length);
         if (!Device_set_key((Device*)dsp, subkey, sr))
         {
             set_error(handle, sr);
@@ -1396,16 +1325,15 @@ static bool parse_dsp_level(Handle* handle,
 static bool parse_pattern_level(Handle* handle,
                                 const char* key,
                                 const char* subkey,
-                                void* data,
-                                long length,
+                                Streader* sr,
                                 int index)
 {
 //    fprintf(stderr, "pattern level: %s\n", key);
     assert(handle != NULL);
     assert(key != NULL);
     assert(subkey != NULL);
-    assert((data == NULL) == (length == 0));
-    assert(length >= 0);
+    assert(sr != NULL);
+
     if (index < 0 || index >= KQT_PATTERNS_MAX)
     {
         return true;
@@ -1415,7 +1343,6 @@ static bool parse_pattern_level(Handle* handle,
 
     if (string_eq(subkey, "p_manifest.json"))
     {
-        Streader* sr = Streader_init(STREADER_AUTO, data, length);
         const bool existent = read_default_manifest(sr);
         if (Streader_is_error_set(sr))
         {
@@ -1440,7 +1367,6 @@ static bool parse_pattern_level(Handle* handle,
             }
         }
 
-        Streader* sr = Streader_init(STREADER_AUTO, data, length);
         if (!Pattern_parse_header(pat, sr))
         {
             set_error(handle, sr);
@@ -1485,7 +1411,6 @@ static bool parse_pattern_level(Handle* handle,
                 return false;
             }
         }
-        Streader* sr = Streader_init(STREADER_AUTO, data, length);
         const Event_names* event_names =
                 Event_handler_get_names(Player_get_event_handler(handle->player));
         Column* col = new_Column_from_string(
@@ -1543,8 +1468,7 @@ static bool parse_pattern_level(Handle* handle,
                     pat,
                     key,
                     second_element,
-                    data,
-                    length,
+                    sr,
                     sub_index))
         {
             if (new_pattern)
@@ -1572,20 +1496,16 @@ static bool parse_pat_inst_level(
         Pattern* pat,
         const char* key,
         const char* subkey,
-        void* data,
-        long length,
+        Streader* sr,
         int index)
 {
     assert(handle != NULL);
     assert(key != NULL);
     assert(subkey != NULL);
-    assert((data == NULL) == (length == 0));
-    assert(length >= 0);
-    (void)length;
+    assert(sr != NULL);
 
     if (string_eq(subkey, "p_manifest.json"))
     {
-        Streader* sr = Streader_init(STREADER_AUTO, data, length);
         const bool existent = read_default_manifest(sr);
         if (Streader_is_error_set(sr))
         {
@@ -1603,17 +1523,15 @@ static bool parse_pat_inst_level(
 static bool parse_scale_level(Handle* handle,
                               const char* key,
                               const char* subkey,
-                              void* data,
-                              long length,
+                              Streader* sr,
                               int index)
 {
 //    fprintf(stderr, "scale level: %s\n", key);
     assert(handle != NULL);
     assert(key != NULL);
     assert(subkey != NULL);
-    assert((data == NULL) == (length == 0));
-    assert(length >= 0);
-    (void)length;
+    assert(sr != NULL);
+
     if (index < 0 || index >= KQT_SCALES_MAX)
     {
         return true;
@@ -1623,7 +1541,6 @@ static bool parse_scale_level(Handle* handle,
 
     if (string_eq(subkey, "p_scale.json"))
     {
-        Streader* sr = Streader_init(STREADER_AUTO, data, length);
         Scale* scale = new_Scale_from_string(sr);
         if (scale == NULL)
         {
@@ -1640,17 +1557,15 @@ static bool parse_scale_level(Handle* handle,
 static bool parse_subsong_level(Handle* handle,
                                 const char* key,
                                 const char* subkey,
-                                void* data,
-                                long length,
+                                Streader* sr,
                                 int index)
 {
 //    fprintf(stderr, "subsong level: %s\n", key);
     assert(handle != NULL);
     assert(key != NULL);
     assert(subkey != NULL);
-    assert((data == NULL) == (length == 0));
-    assert(length >= 0);
-    (void)length;
+    assert(sr != NULL);
+
     if (index < 0 || index >= KQT_SONGS_MAX)
     {
         return true;
@@ -1660,7 +1575,6 @@ static bool parse_subsong_level(Handle* handle,
 
     if (string_eq(subkey, "p_manifest.json"))
     {
-        Streader* sr = Streader_init(STREADER_AUTO, data, length);
         const bool existent = read_default_manifest(sr);
         if (Streader_is_error_set(sr))
         {
@@ -1671,7 +1585,6 @@ static bool parse_subsong_level(Handle* handle,
     }
     else if (string_eq(subkey, "p_song.json"))
     {
-        Streader* sr = Streader_init(STREADER_AUTO, data, length);
         Song* song = new_Song_from_string(sr);
         if (song == NULL)
         {
@@ -1689,7 +1602,6 @@ static bool parse_subsong_level(Handle* handle,
     }
     else if (string_eq(subkey, "p_order_list.json"))
     {
-        Streader* sr = Streader_init(STREADER_AUTO, data, length);
         Order_list* ol = new_Order_list(sr);
         if (ol == NULL)
         {
