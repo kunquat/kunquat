@@ -75,110 +75,92 @@ Channel_gen_state* new_Channel_gen_state(void)
 }
 
 
-bool Channel_gen_state_alloc_keys(
-        Channel_gen_state* cgstate,
-        char* str,
-        Read_state* rs)
+static bool read_entry(Streader* sr, int32_t index, void* userdata)
 {
-    assert(cgstate != NULL);
-    assert(rs != NULL);
+    assert(sr != NULL);
+    (void)index;
+    assert(userdata != NULL);
 
-    if (rs->error)
+    Channel_gen_state* cgstate = userdata;
+
+    // Read data
+    char type[4] = "";
+    char name[KQT_KEY_LENGTH_MAX + 1] = "";
+
+    if (!Streader_readf(sr, "[%s,%s]", 4, type, KQT_KEY_LENGTH_MAX + 1, name))
         return false;
 
-    if (str == NULL)
-        return true;
+    // Build entry
+    Entry* entry = ENTRY_AUTO;
 
-    str = read_const_char(str, '[', rs);
-    if (rs->error)
-        return false;
-
-    str = read_const_char(str, ']', rs);
-    if (!rs->error)
-        return true;
-
-    Read_state_clear_error(rs);
-
-    bool expect_entry = true;
-    while (expect_entry)
+    if (string_eq(type, "B"))
     {
-        str = read_const_char(str, '[', rs);
-
-        // Variable type
-        char type[4] = "";
-        str = read_string(str, type, 4, rs);
-
-        str = read_const_char(str, ',', rs);
-
-        // Variable name
-        char name[KQT_KEY_LENGTH_MAX + 1] = "";
-        str = read_string(str, name, KQT_KEY_LENGTH_MAX + 1, rs);
-
-        str = read_const_char(str, ']', rs);
-
-        if (rs->error)
-            return false;
-
-        // Build entry
-        Entry* entry = ENTRY_AUTO;
-
-        if (string_eq(type, "B"))
-        {
-            entry->value.type = VALUE_TYPE_BOOL;
-            entry->value.value.bool_type = false;
-        }
-        else if (string_eq(type, "F"))
-        {
-            entry->value.type = VALUE_TYPE_FLOAT;
-            entry->value.value.float_type = 0.0;
-        }
-        else if (string_eq(type, "I"))
-        {
-            entry->value.type = VALUE_TYPE_INT;
-            entry->value.value.int_type = 0;
-        }
-        else if (string_eq(type, "T"))
-        {
-            entry->value.type = VALUE_TYPE_TSTAMP;
-            Tstamp_init(&entry->value.value.Tstamp_type);
-        }
-        else
-        {
-            Read_state_set_error(
-                    rs, "Invalid generator state variable type: %s", type);
-            return false;
-        }
-
-        if (strlen(name) >= KQT_KEY_LENGTH_MAX)
-        {
-            Read_state_set_error(
-                    rs, "Generator state variable name is too long: %s", name);
-            return false;
-        }
-
-        if (!AAtree_contains(cgstate->tree, entry))
-        {
-            // Allocate new entry
-            Entry* new_entry = memory_alloc_item(Entry);
-            if (new_entry == NULL)
-                return false;
-
-            *new_entry = *entry;
-            if (!AAtree_ins(cgstate->tree, new_entry))
-            {
-                memory_free(new_entry);
-                return false;
-            }
-        }
-
-        check_next(str, rs, expect_entry);
+        entry->value.type = VALUE_TYPE_BOOL;
+        entry->value.value.bool_type = false;
+    }
+    else if (string_eq(type, "F"))
+    {
+        entry->value.type = VALUE_TYPE_FLOAT;
+        entry->value.value.float_type = 0.0;
+    }
+    else if (string_eq(type, "I"))
+    {
+        entry->value.type = VALUE_TYPE_INT;
+        entry->value.value.int_type = 0;
+    }
+    else if (string_eq(type, "T"))
+    {
+        entry->value.type = VALUE_TYPE_TSTAMP;
+        Tstamp_init(&entry->value.value.Tstamp_type);
+    }
+    else
+    {
+        Streader_set_error(
+                sr, "Invalid generator state variable type: %s", type);
+        return false;
     }
 
-    str = read_const_char(str, ']', rs);
-    if (rs->error)
+    if (strlen(name) >= KQT_KEY_LENGTH_MAX)
+    {
+        Streader_set_error(
+                sr, "Generator state variable name is too long: %s", name);
         return false;
+    }
+
+    if (!AAtree_contains(cgstate->tree, entry))
+    {
+        // Allocate new entry
+        Entry* new_entry = memory_alloc_item(Entry);
+        if (new_entry == NULL)
+            return false;
+
+        *new_entry = *entry;
+        if (!AAtree_ins(cgstate->tree, new_entry))
+        {
+            memory_free(new_entry);
+            Streader_set_memory_error(
+                    sr,
+                    "Could not allocate memory for channel-specific"
+                        " generator state");
+            return false;
+        }
+    }
 
     return true;
+}
+
+bool Channel_gen_state_alloc_keys(Channel_gen_state* cgstate, Streader* sr)
+{
+    assert(cgstate != NULL);
+    assert(sr != NULL);
+
+    if (Streader_is_error_set(sr))
+        return false;
+
+    if (!Streader_has_data(sr))
+        return true;
+
+    return Streader_read_list(sr, read_entry, cgstate);
 }
 
 

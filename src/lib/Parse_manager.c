@@ -842,12 +842,11 @@ static bool parse_generator_level(Handle* handle,
                 return false;
 
             // Create the Generator implementation
-            Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+            Streader* sr = Streader_init(STREADER_AUTO, data, length);
             char type[GEN_TYPE_LENGTH_MAX] = "";
-            read_string(data, type, GEN_TYPE_LENGTH_MAX, state);
-            if (state->error)
+            if (!Streader_read_string(sr, GEN_TYPE_LENGTH_MAX, type))
             {
-                set_parse_error(handle, state);
+                set_error(handle, sr);
                 return false;
             }
             Generator_cons* cons = Gen_type_find_cons(type);
@@ -879,10 +878,11 @@ static bool parse_generator_level(Handle* handle,
                 char* size_str = property(gen, "voice_state_size");
                 if (size_str != NULL)
                 {
-                    Read_state* state = READ_STATE_AUTO;
+                    Streader* size_sr = Streader_init(
+                            STREADER_AUTO, size_str, strlen(size_str));
                     int64_t size = 0;
-                    read_int(size_str, &size, state);
-                    assert(!state->error);
+                    Streader_read_int(size_sr, &size);
+                    assert(!Streader_is_error_set(sr));
                     assert(size >= 0);
 //                    fprintf(stderr, "Reserving space for %" PRId64 " bytes\n",
 //                                    size);
@@ -902,17 +902,15 @@ static bool parse_generator_level(Handle* handle,
                 char* gen_state_vars = property(gen, "gen_state_vars");
                 if (gen_state_vars != NULL)
                 {
-                    Read_state* rs = READ_STATE_AUTO;
+                    Streader* gsv_sr = Streader_init(
+                            STREADER_AUTO,
+                            gen_state_vars,
+                            strlen(gen_state_vars));
 
                     if (!Player_alloc_channel_gen_state_keys(
-                                handle->player, gen_state_vars, rs))
+                                handle->player, gsv_sr))
                     {
-                        if (!rs->error)
-                            Handle_set_error(handle, ERROR_MEMORY,
-                                    "Couldn't allocate memory");
-                        else
-                            set_parse_error(handle, rs);
-
+                        set_error(handle, gsv_sr);
                         return false;
                     }
                 }
