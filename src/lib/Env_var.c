@@ -18,7 +18,6 @@
 #include <string.h>
 
 #include <Env_var.h>
-#include <File_base.h>
 #include <kunquat/limits.h>
 #include <memory.h>
 #include <string_common.h>

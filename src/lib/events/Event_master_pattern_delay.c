@@ -19,7 +19,6 @@
 
 #include <Event_common.h>
 #include <Event_master_decl.h>
-#include <File_base.h>
 #include <kunquat/limits.h>
 #include <Value.h>
 #include <xassert.h>

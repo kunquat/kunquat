@@ -19,7 +19,6 @@
 #include <Device.h>
 #include <DSP.h>
 #include <DSP_type.h>
-#include <File_base.h>
 #include <memory.h>
 #include <player/Device_states.h>
 #include <string_common.h>

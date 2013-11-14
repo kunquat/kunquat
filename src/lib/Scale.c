@@ -20,7 +20,6 @@
 #include <stdint.h>
 #include <inttypes.h>
 
-#include <File_base.h>
 #include <math_common.h>
 #include <memory.h>
 #include <Scale.h>

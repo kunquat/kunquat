@@ -17,7 +17,6 @@
 
 #include <Event_channel_decl.h>
 #include <Event_common.h>
-#include <File_base.h>
 #include <kunquat/limits.h>
 #include <Value.h>
 #include <xassert.h>
