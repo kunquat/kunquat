@@ -63,7 +63,7 @@ static Name_info event_specs[] =
 
     { "I.gr", Event_control_set_goto_row,     VALUE_TYPE_TSTAMP, v_nonneg_ts },
     { "I.gs", Event_control_set_goto_section, VALUE_TYPE_INT,    v_system },
-    { "I.gss", Event_control_set_goto_song,   VALUE_TYPE_INT,    v_subsong },
+    { "I.gss", Event_control_set_goto_song,   VALUE_TYPE_INT,    v_song },
     { "Ig",   Event_control_goto,             VALUE_TYPE_NONE,   NULL },
 
     { "I.infinite", Event_control_infinite,   VALUE_TYPE_BOOL,   v_any_bool },

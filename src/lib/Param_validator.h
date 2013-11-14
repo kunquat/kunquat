@@ -69,9 +69,9 @@ bool v_resonance(char* param);
 
 bool v_scale(char* param);
 
-bool v_system(char* param);
+bool v_song(char* param);
 
-bool v_subsong(char* param);
+bool v_system(char* param);
 
 bool v_sustain(char* param);
 

@@ -324,18 +324,7 @@ bool v_scale(char* param)
 }
 
 
-bool v_system(char* param)
-{
-    assert(param != NULL);
-
-    int64_t system = -1;
-    Streader* sr = init_c_streader(param);
-
-    return Streader_read_int(sr, &system) && (system >= -1);
-}
-
-
-bool v_subsong(char* param)
+bool v_song(char* param)
 {
     assert(param != NULL);
 
@@ -345,6 +334,17 @@ bool v_subsong(char* param)
     return Streader_read_int(sr, &song) &&
         song >= -1 &&
         song < KQT_SONGS_MAX;
+}
+
+
+bool v_system(char* param)
+{
+    assert(param != NULL);
+
+    int64_t system = -1;
+    Streader* sr = init_c_streader(param);
+
+    return Streader_read_int(sr, &system) && (system >= -1);
 }
 
 
