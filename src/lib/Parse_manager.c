@@ -1683,16 +1683,11 @@ static bool parse_subsong_level(Handle* handle,
     }
     else if (string_eq(subkey, "p_song.json"))
     {
-        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        Song* song = new_Song_from_string(data, state);
+        Streader* sr = Streader_init(STREADER_AUTO, data, length);
+        Song* song = new_Song_from_string(sr);
         if (song == NULL)
         {
-            if (!state->error)
-                Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory");
-            else
-                set_parse_error(handle, state);
-
+            set_error(handle, sr);
             return false;
         }
         Song_table* st = Module_get_songs(module);
