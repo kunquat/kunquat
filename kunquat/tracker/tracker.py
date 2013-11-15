@@ -20,17 +20,15 @@ import time
 import json
 import tarfile
 
-from views.mainwindow import MainWindow
-
-from kunquat.tracker.model.driver_manager import DriverManager
-from kunquat.tracker.model.stat_manager import StatManager
-from kunquat.tracker.model.ui_manager import UiManager
-from kunquat.tracker.model.playback_manager import PlaybackManager
-from kunquat.tracker.model.module import Module
-from kunquat.tracker.model.uimodel import UiModel
-from kunquat.tracker.model.updater import Updater
-
-from kunquat.tracker.backend.backend import Backend
+from kunquat.tracker.ui.views.mainwindow import MainWindow
+from kunquat.tracker.ui.model.driver_manager import DriverManager
+from kunquat.tracker.ui.model.stat_manager import StatManager
+from kunquat.tracker.ui.model.ui_manager import UiManager
+from kunquat.tracker.ui.model.playback_manager import PlaybackManager
+from kunquat.tracker.ui.model.module import Module
+from kunquat.tracker.ui.model.uimodel import UiModel
+from kunquat.tracker.ui.model.updater import Updater
+from kunquat.tracker.ui.backend.backend import Backend
 
 from kunquat.tracker.audio.drivers.silentaudio import Silentaudio
 from kunquat.tracker.audio.drivers.pulseaudio import Pulseaudio
