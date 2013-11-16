@@ -17,13 +17,10 @@ import sys
 import json
 import time
 import tarfile
-from store import Store
-
 
 EVENT_SELECT_INSTRUMENT = '.i'
 EVENT_NOTE_ON = 'n+'
 EVENT_NOTE_OFF = 'n-'
-
 
 
 class Controller():
@@ -32,7 +29,10 @@ class Controller():
         self._frontend = None
         self._push_amount = None
         self._audio_levels = (0, 0)
-        self._store = Store()
+        self._store = None
+
+    def set_store(self, store):
+        self._store = store
 
     def set_frontend(self, frontend):
         self._frontend = frontend

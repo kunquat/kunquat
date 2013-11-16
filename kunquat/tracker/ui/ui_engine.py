@@ -28,6 +28,7 @@ from kunquat.tracker.ui.model.updater import Updater
 
 from kunquat.tracker.ui.views.mainwindow import MainWindow
 from kunquat.tracker.ui.controller.controller import Controller
+from kunquat.tracker.ui.controller.store import Store
 
 
 class UiEngine():
@@ -97,9 +98,12 @@ class UiEngine():
 
 def create_ui_engine():
     updater = Updater()
+    store = Store()
     ui_model = create_ui_model()
     ui_model.set_updater(updater)
+    ui_model.set_store(store)
     controller = Controller()
+    controller.set_store(store)
     ui_engine = UiEngine()
     ui_engine.set_ui_model(ui_model)
     ui_engine.set_controller(controller)
