@@ -104,6 +104,7 @@ def create_ui_engine():
     ui_model.set_store(store)
     controller = Controller()
     controller.set_store(store)
+    controller.set_updater(updater)
     ui_engine = UiEngine()
     ui_engine.set_ui_model(ui_model)
     ui_engine.set_controller(controller)

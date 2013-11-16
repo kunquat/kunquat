@@ -12,20 +12,28 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from instrument import Instrument
+
 
 class UiManager():
 
     def __init__(self):
-        self._selected_instrument = None
+        self._selected_instrument_id = None
         self._updater = None
 
     def set_updater(self, updater):
         self._updater = updater
 
-    def get_selected_instrument(self):
-        return self._selected_instrument
+    def get_selected_instrument_id(self):
+        instrument_id = self._selected_instrument_id
+        return instrument_id
 
-    def set_selected_instrument(self, instrument):
-        self._selected_instrument = instrument
+    def set_selected_instrument_id(self, instrument_id):
+        self._selected_instrument_id = instrument_id
         self._updater.signal_update()
+
+    def get_selected_instrument(self):
+        instrument_id = self.get_selected_instrument_id()
+        instrument = Instrument(instrument_id)
+        return instrument
 

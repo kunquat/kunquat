@@ -15,13 +15,17 @@
 
 class Instrument():
 
-    def __init__(self):
+    def __init__(self, instrument_id):
+        self._instrument_id = instrument_id
+        self._store = None
         self._backend = None
         self._instrument_number = None
         self._existence = None
-        self._name = None
         self._updater = None
         self._active_notes = {}
+
+    def set_store(self, store):
+        self._store = store
 
     def set_backend(self, backend):
         self._backend = backend
@@ -40,30 +44,18 @@ class Instrument():
     def set_active_note(self, channel_number, pitch):
         self._backend.set_active_note(channel_number, self._instrument_number, pitch)
 
-    def update_active_note(self, channel_number, pitch):
-        if pitch != None:
-            self._active_notes[channel_number] = pitch
-        elif channel_number in self._active_notes:
-            del self._active_notes[channel_number]
-        self._updater.signal_update()
-
-    def set_instrument_number(self, instrument_number):
-        self._instrument_number = instrument_number
-      
-    def get_instrument_number(self):
-        return self._instrument_number
+    def get_id(self):
+        return self._instrument_id
 
     def get_existence(self):
-        return self._existence
-
-    def update_existence(self, existence):
-        self._existence = existence
-        self._updater.signal_update()
+        key = '%s/p_manigest.json' % self._instrument_id
+        manifest = self._store[key]
+        if type(manifest) == type({}):
+            return True
+        return False
 
     def get_name(self):
-        return self._name
-
-    def update_name(self, name):
-        self._name = name
-        self._updater.signal_update()
+        key = '%s/m_name.json' % self._instrument_id
+        name = self._store[key]
+        return name
 

@@ -11,6 +11,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from instrument import Instrument
+
 
 class Module():
 
@@ -18,6 +20,10 @@ class Module():
         self._backend = None
         self._instruments = {}
         self._updater = None
+        self._store = None
+
+    def set_store(self, store):
+        self._store = store
 
     def set_backend(self, backend):
         self._backend = backend
@@ -25,18 +31,30 @@ class Module():
     def set_updater(self, updater):
         self._updater = updater
 
-    def get_instrument(self, instrument_number):
-        return self._instruments[instrument_number]
+    def get_instrument(self, instrument_id):
+        instrument = Instrument(instrument_id)
+        instrument.set_store(self._store)
+        return instrument
 
     def update_instrument(self, instrument_number, instrument):
         instrument.set_updater(self._updater)
         self._instruments[instrument_number] = instrument
         self._updater.signal_update()
 
+    def get_instrument_ids(self):
+        instrument_ids = set()
+        for key in self._store.keys():
+            if key.startswith('ins_'):
+                instrument_id = key.split('/')[0]
+                instrument_ids.add(instrument_id)
+        return instrument_ids
+
     def get_instruments(self, validate=True):
-        all_instruments = self._instruments.values()
-        if validate:
-            valid = [i for i in all_instruments if i.get_existence()]
-            return valid
+        instrument_ids = self.get_instrument_ids()
+        all_instruments = [self.get_instrument(i) for i in instrument_ids]
+        #all_instruments = self._instruments.values()
+        #if validate:
+        #    valid = [i for i in all_instruments if i.get_existence()]
+        #    return [] #valid
         return all_instruments
 

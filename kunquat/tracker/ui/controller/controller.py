@@ -30,9 +30,13 @@ class Controller():
         self._push_amount = None
         self._audio_levels = (0, 0)
         self._store = None
+        self._updater = None
 
     def set_store(self, store):
         self._store = store
+
+    def set_updater(self, updater):
+        self._updater = updater
 
     def set_frontend(self, frontend):
         self._frontend = frontend
@@ -97,6 +101,7 @@ class Controller():
                 #self._frontend.update_import_progress(i + 1, member_count)
             tfile.close()
             self._store.put(values)
+            self._updater.signal_update()
 
     def play(self):
         self._kunquat.nanoseconds = 0
