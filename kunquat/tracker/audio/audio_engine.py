@@ -102,7 +102,8 @@ class AudioEngine():
         self._rendering_engine.fire_event(channel, event)
 
     def set_data(self, transaction):
-        for (key, value) in transaction.items():
+        #TODO: Remove sorting once it works without
+        for (key, value) in sorted(transaction.items()):
             self._rendering_engine.set_data(key, value)
             print 'loading: %s' % key
         self._rendering_engine.validate()
