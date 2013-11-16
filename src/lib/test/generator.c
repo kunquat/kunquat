@@ -22,7 +22,7 @@
 #define buf_len 128
 
 
-void setup_single_pulse_without_generator_manifest(void)
+static void setup_single_pulse_without_generator_manifest(void)
 {
     assert(handle != 0);
 
@@ -39,8 +39,6 @@ void setup_single_pulse_without_generator_manifest(void)
     set_data("ins_00/gen_00/c/p_single_pulse.jsonb", "true");
 
     validate();
-
-    check_unexpected_error();
 
     return;
 }
@@ -113,6 +111,24 @@ START_TEST(Removing_manifest_disables_generator)
 END_TEST
 
 
+START_TEST(Connect_generator_without_type)
+{
+    set_data("p_connections.json",
+            "[ [\"ins_00/out_00\", \"out_00\"] ]");
+
+    set_data("p_ins_input.json", "[ [0, 0] ]");
+
+    set_data("ins_00/p_manifest.json", "{}");
+    set_data("ins_00/p_connections.json",
+            "[ [\"gen_00/C/out_00\", \"out_00\"] ]");
+
+    set_data("ins_00/gen_00/c/p_single_pulse.jsonb", "true");
+
+    validate();
+}
+END_TEST
+
+
 Suite* Generator_suite(void)
 {
     Suite* s = suite_create("Generator");
@@ -127,6 +143,7 @@ Suite* Generator_suite(void)
     tcase_add_test(tc_general, Generator_without_manifest_is_silent);
     tcase_add_test(tc_general, Adding_manifest_enables_generator);
     tcase_add_test(tc_general, Removing_manifest_disables_generator);
+    tcase_add_test(tc_general, Connect_generator_without_type);
 
     return s;
 }
