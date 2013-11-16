@@ -120,6 +120,7 @@ class UiModel():
 
     def set_ui_manager(self, ui_manager):
         self._ui_manager = ui_manager
+        self._ui_manager.set_model(self)
 
     def get_ui_manager(self):
         return self._ui_manager

@@ -12,17 +12,19 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from instrument import Instrument
-
 
 class UiManager():
 
     def __init__(self):
         self._selected_instrument_id = None
         self._updater = None
+        self._model = None
 
     def set_updater(self, updater):
         self._updater = updater
+
+    def set_model(self, model):
+        self._model = model
 
     def get_selected_instrument_id(self):
         instrument_id = self._selected_instrument_id
@@ -34,6 +36,7 @@ class UiManager():
 
     def get_selected_instrument(self):
         instrument_id = self.get_selected_instrument_id()
-        instrument = Instrument(instrument_id)
+        module = self._model.get_module()
+        instrument = module.get_instrument(instrument_id)
         return instrument
 
