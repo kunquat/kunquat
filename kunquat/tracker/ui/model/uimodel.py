@@ -83,8 +83,6 @@ class UiModel():
         self._ui_manager = None
         self._playback_manager = None
         self._module = None
-        self._updater = None
-        self._store = None
 
     def set_backend(self, backend):
         self._backend = backend
@@ -93,22 +91,15 @@ class UiModel():
     def set_ui(self, ui):
         self._ui = ui
 
-    def set_updater(self, updater):
-        self._updater = updater
-        self._stat_manager.set_updater(self._updater)
-        self._ui_manager.set_updater(self._updater)
-        self._module.set_updater(self._updater)
-
-    def set_store(self, store):
-        self._store = store
-        self._module.set_store(store)
-
     def set_controller(self, controller):
         self._controller = controller
         self._module.set_controller(controller)
+        self._stat_manager.set_controller(self._controller)
+        self._ui_manager.set_controller(self._controller)
 
     def get_updater(self):
-        return self._updater
+        updater = self._controller.get_updater()
+        return updater
 
     def set_driver_manager(self, driver_manager):
         self._driver_manager = driver_manager

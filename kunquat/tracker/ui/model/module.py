@@ -23,17 +23,13 @@ class Module():
         self._backend = None
         self._instruments = {}
 
-    def set_store(self, store):
-        self._store = store
-
     def set_controller(self, controller):
+        self._updater = controller.get_updater()
+        self._store = controller.get_store()
         self._controller = controller
 
     def set_backend(self, backend):
         self._backend = backend
-
-    def set_updater(self, updater):
-        self._updater = updater
 
     def get_instrument(self, instrument_id):
         instrument = Instrument(instrument_id)

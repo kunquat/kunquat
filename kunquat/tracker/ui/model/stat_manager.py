@@ -23,46 +23,27 @@ class StatManager():
         self._import_progress_steps = 1
         self._audio_levels = (0, 0)
         self._updater = None
+        self._session = None
 
-    def set_updater(self, updater):
-        self._updater = updater
+    def set_controller(self, controller):
+        self._updater = controller.get_updater()
+        self._session = controller.get_session()
 
     def get_output_speed(self):
-        return self._output_speed
-
-    def update_output_speed(self, fps):
-        self._output_speed = fps
-        self._updater.signal_update()
+        return self._session['output_speed']
 
     def get_render_speed(self):
-        return self._render_speed
-
-    def update_render_speed(self, fps):
-        self._render_speed = fps
-        self._updater.signal_update()
+        return self._session['render_speed']
 
     def get_render_load(self):
-        return self._render_load
-
-    def update_render_load(self, ratio):
-        self._render_load = ratio
-        self._updater.signal_update()
+        return self._session['render_load']
 
     def get_import_progress_position(self):
-        return self._import_progress_position
+        return self._session['progress_position']
 
     def get_import_progress_steps(self):
-        return self._import_progress_steps
-
-    def update_import_progress(self, position, steps):
-        self._import_progress_position = position
-        self._import_progress_steps = steps
-        self._updater.signal_update()
+        return self._session['progress_steps']
 
     def get_audio_levels(self):
-        return self._audio_levels
-
-    def update_audio_levels(self, levels):
-        self._audio_levels = levels
-        self._updater.signal_update()
+        return self._session['audio_levels']
 

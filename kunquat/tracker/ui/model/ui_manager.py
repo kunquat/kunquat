@@ -20,7 +20,8 @@ class UiManager():
         self._updater = None
         self._model = None
 
-    def set_updater(self, updater):
+    def set_controller(self, controller):
+        updater = controller.get_updater()
         self._updater = updater
 
     def set_model(self, model):

@@ -43,12 +43,16 @@ class AudioEngine():
         self._audio_output = None
         self._rendering_engine = None
         self._push_time = None
+        self._ui_engine = None
         self._nframes = 2048
         self._silence = ([0] * self._nframes, [0] * self._nframes)
         self._render_times = deque([], 20)
         self._output_times = deque([], 20)
 
         self._sine = gen_sine(48000)
+
+    def set_ui_engine(self, ui_engine):
+        self._ui_engine = ui_engine
 
     def set_rendering_engine(self, rendering_engine):
         self._rendering_engine = rendering_engine
@@ -130,11 +134,11 @@ class AudioEngine():
         output_avg = int(self._average_time(self._output_times))
         render_avg = int(self._average_time(self._render_times))
         ratio = float(output_avg) / float(render_avg)
-        if False: #TODO: status reports
-            self._frontend.update_output_speed(output_avg)
-            self._frontend.update_render_speed(render_avg)
-            self._frontend.update_render_load(ratio)
-            self._frontend.update_audio_levels(self._audio_levels)
+        if self._ui_engine:
+            self._ui_engine.update_output_speed(output_avg)
+            self._ui_engine.update_render_speed(render_avg)
+            self._ui_engine.update_render_load(ratio)
+            self._ui_engine.update_audio_levels(self._audio_levels)
 
     def produce_sound(self):
         self._push_time = time.time()

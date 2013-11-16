@@ -18,6 +18,10 @@ import json
 import time
 import tarfile
 
+from kunquat.tracker.ui.controller.store import Store
+from kunquat.tracker.ui.controller.session import Session
+from kunquat.tracker.ui.controller.updater import Updater
+
 #TODO: figure a place for the events
 EVENT_SELECT_INSTRUMENT = '.i'
 EVENT_NOTE_ON = 'n+'
@@ -31,14 +35,27 @@ class Controller():
         self._push_amount = None
         self._audio_levels = (0, 0)
         self._store = None
+        self._session = None
         self._updater = None
         self._audio_engine = None
 
     def set_store(self, store):
         self._store = store
 
+    def get_store(self):
+        return self._store
+
+    def set_session(self, session):
+        self._session = session
+
+    def get_session(self):
+        return self._session
+
     def set_updater(self, updater):
         self._updater = updater
+
+    def get_updater(self):
+        return self._updater
 
     def set_frontend(self, frontend):
         self._frontend = frontend
@@ -117,4 +134,31 @@ class Controller():
         self._audio_engine.fire_event(channel_number, instrument_event)
         note_on_event = (EVENT_NOTE_ON, pitch)
         self._audio_engine.fire_event(channel_number, note_on_event)
+
+    def update_output_speed(self, fps):
+        self._session['output_speed'] = fps
+        self._updater.signal_update()
+
+    def update_render_speed(self, fps):
+        self._session['render_speed'] = fps
+        self._updater.signal_update()
+
+    def update_render_load(self, load):
+        self._session['render_load'] = load
+        self._updater.signal_update()
+
+    def update_audio_levels(self, levels):
+        self._session['audio_levels'] = levels
+        self._updater.signal_update()
+
+
+def create_controller():
+    store = Store()
+    session = Session()
+    updater = Updater()
+    controller = Controller()
+    controller.set_store(store)
+    controller.set_session(session)
+    controller.set_updater(updater)
+    return controller
 

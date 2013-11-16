@@ -17,7 +17,7 @@ import threading
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from kunquat.tracker.ui.ui_engine import create_ui_engine
+from kunquat.tracker.ui.ui_launcher import create_ui_launcher
 
 from command import Command
 from commandqueue import CommandQueue
@@ -33,19 +33,21 @@ class UiThread(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self, name="Ui")
         self._q = CommandQueue()
-        self._handler = None
+        self._ui_launcher = None
+        self._controller = None
         self._pump = None
 
     # Mystery interface
 
-    def set_ui_engine(self, handler):
-        self._handler = handler
-        self._handler.set_queue_processor(self._process_queue, self._q.block)
+    def set_ui_launcher(self, ui_launcher):
+        self._controller = ui_launcher.get_controller()
+        self._ui_launcher = ui_launcher
+        self._ui_launcher.set_queue_processor(self._process_queue, self._q.block)
 
     # Frontend interface
 
     def set_audio_engine(self, audio_engine):
-        self._handler.set_audio_engine(audio_engine)
+        self._ui_launcher.set_audio_engine(audio_engine)
 
     def update_drivers(self, drivers):
         self._q.push('update_drivers', drivers)
@@ -82,16 +84,13 @@ class UiThread(threading.Thread):
 
     # Threading interface
 
-    def set_handler(self, frontend):
-        self._frontend = frontend
-
     def halt(self):
         self._q.push(HALT)
 
     # _create_event_pump needs to be called after
     # the main Qt stuff has first been inialized
     # otherwise it will take over the main thread
-    def _create_event_pump(self):
+    def _start_event_pump(self):
         self._pump = QEventPump()
         self._pump.set_blocker(self._q.block)
         self._pump.set_signaler(self._signal)
@@ -99,27 +98,26 @@ class UiThread(threading.Thread):
                 self._pump,
                 SIGNAL('process_queue()'),
                 self._process_queue)
+        self._pump.start()
 
     def _process_queue(self):
         command = self._q.get()
         if command.name == HALT:
-            self._handler.halt_ui()
+            self._ui_launcher.halt_ui()
         else:
-            getattr(self._frontend, command.name)(*command.args)
+            getattr(self._controller, command.name)(*command.args)
 
     def _signal(self):
-        print 'qp'
         QObject.emit(self._pump, SIGNAL('process_queue()'))
         pass
 
     def run(self):
-        self._handler.run_ui()
-        self._create_event_pump()
-        self._pump.start()
+        self._ui_launcher.set_event_pump_starter(self._start_event_pump)
+        self._ui_launcher.run_ui()
 
 def create_ui_thread():
-    ui_engine = create_ui_engine()
+    ui_launcher = create_ui_launcher()
     ui_thread = UiThread()
-    ui_thread.set_ui_engine(ui_engine)
+    ui_thread.set_ui_launcher(ui_launcher)
     return ui_thread
 

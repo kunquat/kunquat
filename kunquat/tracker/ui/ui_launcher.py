@@ -24,33 +24,34 @@ import tarfile
 from signal import SIGHUP, SIGKILL
 
 from kunquat.tracker.ui.model.uimodel import create_ui_model
-from kunquat.tracker.ui.model.updater import Updater
 
 from kunquat.tracker.ui.views.mainwindow import MainWindow
-from kunquat.tracker.ui.controller.controller import Controller
-from kunquat.tracker.ui.controller.store import Store
+from kunquat.tracker.ui.controller.controller import create_controller
 
 
-class UiEngine():
+class UiLauncher():
 
     def __init__(self, show=True):
         self._show = show
         self.previous = 0
         self._updater = None
-        self._controller = Controller()
+        self._controller = None
         self._audio_engine = None
         self._queue_processor = None
         self._block = None
         self._ui_model = None
+        self._event_pump_starter = None
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
 
     def set_controller(self, controller):
         self._controller = controller
-
-    def set_updater(self, updater):
+        updater = controller.get_updater()
         self._updater = updater
+
+    def get_controller(self):
+        return self._controller
 
     def set_queue_processor(self, queue_processor, block):
         self._queue_processor = queue_processor
@@ -59,6 +60,9 @@ class UiEngine():
     def set_audio_engine(self, audio_engine):
         self._audio_engine = audio_engine
         self._controller.set_audio_engine(audio_engine)
+
+    def set_event_pump_starter(self, event_pump_starter):
+        self._event_pump_starter = event_pump_starter
 
     def update(self):
         self.current = time.time()
@@ -90,6 +94,9 @@ class UiEngine():
             self.execute_task(load_task)
 
         main_window.set_ui_model(self._ui_model)
+
+        self._event_pump_starter()
+
         if self._show:
             main_window.show()
         app.exec_()
@@ -97,20 +104,13 @@ class UiEngine():
     def halt_ui(self):
         pass
 
-def create_ui_engine():
-    updater = Updater()
-    store = Store()
-    controller = Controller()
+def create_ui_launcher():
+    controller = create_controller()
     ui_model = create_ui_model()
-    ui_model.set_updater(updater)
-    ui_model.set_store(store)
     ui_model.set_controller(controller)
-    controller.set_store(store)
-    controller.set_updater(updater)
-    ui_engine = UiEngine()
-    ui_engine.set_ui_model(ui_model)
-    ui_engine.set_controller(controller)
-    ui_engine.set_updater(updater)
-    #ui_engine.set_instrument_class(Instrument)
-    return ui_engine
+    ui_launcher = UiLauncher()
+    ui_launcher.set_ui_model(ui_model)
+    ui_launcher.set_controller(controller)
+    #ui_launcher.set_instrument_class(Instrument)
+    return ui_launcher
 

@@ -35,6 +35,13 @@ class AudioThread(threading.Thread):
         self._pump.set_blocker(self._q.block)
         self._pump.set_signaler(self._signal)
 
+    def set_handler(self, engine):
+        self._engine = engine
+
+    def set_ui_engine(self, ui_engine):
+        self._ui_engine = ui_engine
+        self._engine.set_ui_engine(ui_engine)
+
     def _close_device(self):
         if self._engine:
             self._engine.close_device()
@@ -52,12 +59,6 @@ class AudioThread(threading.Thread):
             return None
         next_command = self._unprocessed_commands.pop(0)
         return next_command
-
-    def set_ui_engine(self, ui_engine):
-        self._ui_engine = ui_engine
-
-    def set_handler(self, engine):
-        self._engine = engine
 
     # Libkunquat interface
 
