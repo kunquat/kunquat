@@ -17,13 +17,17 @@ from instrument import Instrument
 class Module():
 
     def __init__(self):
-        self._backend = None
-        self._instruments = {}
         self._updater = None
         self._store = None
+        self._controller = None
+        self._backend = None
+        self._instruments = {}
 
     def set_store(self, store):
         self._store = store
+
+    def set_controller(self, controller):
+        self._controller = controller
 
     def set_backend(self, backend):
         self._backend = backend
@@ -34,6 +38,7 @@ class Module():
     def get_instrument(self, instrument_id):
         instrument = Instrument(instrument_id)
         instrument.set_store(self._store)
+        instrument.set_controller(self._controller)
         return instrument
 
     def update_instrument(self, instrument_number, instrument):

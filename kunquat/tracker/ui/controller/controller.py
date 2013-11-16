@@ -31,6 +31,7 @@ class Controller():
         self._audio_levels = (0, 0)
         self._store = None
         self._updater = None
+        self._audio_engine = None
 
     def set_store(self, store):
         self._store = store
@@ -40,6 +41,9 @@ class Controller():
 
     def set_frontend(self, frontend):
         self._frontend = frontend
+
+    def set_audio_engine(self, audio_engine):
+        self._audio_engine = audio_engine
 
     def set_data(self, key, value):
         self._kunquat.set_data(key, value)
@@ -109,9 +113,12 @@ class Controller():
     def commit_data(self):
         self._kunquat.validate()
 
-    def set_active_note(self, channel_number, instrument_number, pitch):
+    def set_active_note(self, channel_number, instrument_id, pitch):
+        parts = instrument_id.split('_')
+        second = parts[1]
+        instrument_number = int(second)
         instrument_event = (EVENT_SELECT_INSTRUMENT, instrument_number)
-        self._kunquat.fire_event(channel_number, instrument_event)
+        self._audio_engine.fire_event(channel_number, instrument_event)
         note_on_event = (EVENT_NOTE_ON, pitch)
-        self._kunquat.fire_event(channel_number, note_on_event)
+        self._audio_engine.fire_event(channel_number, note_on_event)
 

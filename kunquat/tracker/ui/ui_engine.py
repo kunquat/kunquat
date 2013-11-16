@@ -49,15 +49,16 @@ class UiEngine():
     def set_controller(self, controller):
         self._controller = controller
 
+    def set_updater(self, updater):
+        self._updater = updater
+
     def set_queue_processor(self, queue_processor, block):
         self._queue_processor = queue_processor
         self._block = block
 
     def set_audio_engine(self, audio_engine):
         self._audio_engine = audio_engine
-
-    def set_updater(self, updater):
-        self._updater = updater
+        self._controller.set_audio_engine(audio_engine)
 
     def update(self):
         self.current = time.time()
@@ -99,10 +100,11 @@ class UiEngine():
 def create_ui_engine():
     updater = Updater()
     store = Store()
+    controller = Controller()
     ui_model = create_ui_model()
     ui_model.set_updater(updater)
     ui_model.set_store(store)
-    controller = Controller()
+    ui_model.set_controller(controller)
     controller.set_store(store)
     controller.set_updater(updater)
     ui_engine = UiEngine()

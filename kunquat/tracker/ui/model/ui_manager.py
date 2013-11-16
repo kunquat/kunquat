@@ -27,8 +27,13 @@ class UiManager():
         self._model = model
 
     def get_selected_instrument_id(self):
-        instrument_id = self._selected_instrument_id
-        return instrument_id
+        module = self._model.get_module()
+        instrument_ids = module.get_instrument_ids()
+        selected_id = self._selected_instrument_id
+        if not selected_id in instrument_ids:
+            some_id = list(instrument_ids)[0]
+            return some_id
+        return selected_id
 
     def set_selected_instrument_id(self, instrument_id):
         self._selected_instrument_id = instrument_id
@@ -36,6 +41,8 @@ class UiManager():
 
     def get_selected_instrument(self):
         instrument_id = self.get_selected_instrument_id()
+        if instrument_id == None:
+            return None
         module = self._model.get_module()
         instrument = module.get_instrument(instrument_id)
         return instrument

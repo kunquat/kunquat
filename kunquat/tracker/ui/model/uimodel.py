@@ -103,6 +103,10 @@ class UiModel():
         self._store = store
         self._module.set_store(store)
 
+    def set_controller(self, controller):
+        self._controller = controller
+        self._module.set_controller(controller)
+
     def get_updater(self):
         return self._updater
 

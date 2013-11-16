@@ -98,6 +98,9 @@ class AudioEngine():
         self._push_amount = nframes
         self._audio_output.put_audio(audio_data)
 
+    def fire_event(self, channel, event):
+        self._rendering_engine.fire_event(channel, event)
+
     def _average_time(self, times):
         total = sum(end - start for _, start, end in times)
         frames = sum(nframes for nframes, _, _ in times)

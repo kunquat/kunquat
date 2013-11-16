@@ -16,8 +16,10 @@
 class Instrument():
 
     def __init__(self, instrument_id):
+        assert(instrument_id)
         self._instrument_id = instrument_id
         self._store = None
+        self._controller = None
         self._backend = None
         self._instrument_number = None
         self._existence = None
@@ -26,6 +28,9 @@ class Instrument():
 
     def set_store(self, store):
         self._store = store
+
+    def set_controller(self, controller):
+        self._controller = controller
 
     def set_backend(self, backend):
         self._backend = backend
@@ -42,7 +47,8 @@ class Instrument():
         return self._active_notes[channel_number]
 
     def set_active_note(self, channel_number, pitch):
-        self._backend.set_active_note(channel_number, self._instrument_number, pitch)
+        instrument_id = self.get_id()
+        self._controller.set_active_note(channel_number, instrument_id, pitch)
 
     def get_id(self):
         return self._instrument_id
