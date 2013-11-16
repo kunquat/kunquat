@@ -18,6 +18,11 @@ import json
 import time
 import tarfile
 
+#TODO: figure a place for the events
+EVENT_SELECT_INSTRUMENT = '.i'
+EVENT_NOTE_ON = 'n+'
+EVENT_NOTE_OFF = 'n-'
+
 
 class Controller():
 
