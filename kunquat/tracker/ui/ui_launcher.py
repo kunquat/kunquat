@@ -69,8 +69,7 @@ class UiLauncher():
         s = self.current - self.previous
         ms = s * 1000
         lag = ms - 10
-        if lag > 1:
-            print lag
+        self._controller.update_ui_lag(lag)
         self.previous = self.current
         self._updater.perform_updates()
 

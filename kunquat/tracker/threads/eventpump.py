@@ -31,7 +31,6 @@ class EventPump(threading.Thread):
 
     def run(self):
         while True:
-            print 'ep'
             self._blocker()
             if self._signaler:
                 self._signaler()

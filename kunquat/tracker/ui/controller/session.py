@@ -21,6 +21,7 @@ class Session(UserDict.DictMixin):
         self._content['output_speed'] = 0
         self._content['render_speed'] = 0
         self._content['render_load'] = 0
+        self._content['ui_lag'] = 0
         self._content['progress_position'] = 1
         self._content['progress_steps'] = 1
         self._content['audio_levels'] = (0, 0)

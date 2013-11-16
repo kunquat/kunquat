@@ -151,6 +151,10 @@ class Controller():
         self._session['audio_levels'] = levels
         self._updater.signal_update()
 
+    def update_ui_lag(self, lag):
+        self._session['ui_lag'] = lag
+        self._updater.signal_update()
+
 
 def create_controller():
     store = Store()

@@ -33,7 +33,6 @@ class Tracker():
         ui_thread.start()
         try:
             while ui_thread.is_alive():
-                print('main')
                 time.sleep(1)
         except:
             pass
