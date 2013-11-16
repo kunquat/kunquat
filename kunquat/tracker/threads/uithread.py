@@ -14,10 +14,14 @@
 
 import threading
 
+from PyQt4.QtCore import *
+from PyQt4.QtGui import *
+
 from kunquat.tracker.ui.ui_engine import create_ui_engine
 
 from command import Command
 from commandqueue import CommandQueue
+from qeventpump import QEventPump
 
 
 HALT = None
@@ -28,6 +32,9 @@ class UiThread(threading.Thread):
         threading.Thread.__init__(self, name="Ui")
         self._q = CommandQueue()
         self._handler = None
+        self._pump = QEventPump()
+        self._pump.set_blocker(self._q.block)
+        self._pump.set_signaler(self._signal)
 
     # Mystery interface
 
@@ -88,8 +95,19 @@ class UiThread(threading.Thread):
         else:
             getattr(self._frontend, command.name)(*command.args)
 
+    def _signal(self):
+        print 'qp'
+        process_queue = pyqtSignal(name='process_queue')
+        QObject.emit(self._pump, SIGNAL('process_queue()'))
+        pass
+
     def run(self):
+        QObject.connect(
+                self._pump,
+                SIGNAL('process_queue()'),
+                self._process_queue)
         self._handler.run_ui()
+        self._pump.start()
 
 def create_ui_thread():
     ui_engine = create_ui_engine()

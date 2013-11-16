@@ -19,6 +19,7 @@ from kunquat.tracker.audio.audio_engine import create_audio_engine
 
 from command import Command
 from commandqueue import CommandQueue
+from eventpump import EventPump
 
 HALT = None
 
@@ -29,11 +30,28 @@ class AudioThread(threading.Thread):
         self._ui_engine = None
         self._engine = None
         self._q = CommandQueue()
+        self._unprocessed_commands = []
+        self._pump = EventPump()
+        self._pump.set_blocker(self._q.block)
+        self._pump.set_signaler(self._signal)
 
     def _close_device(self):
         if self._engine:
             self._engine.close_device()
             time.sleep(0.1)
+
+    def _signal(self):
+        next_command = self._q.get()
+        self._unprocessed_commands.append(next_command)
+
+    def _count_commands(self):
+        return len(self._unprocessed_commands)
+
+    def _next_command(self):
+        if len(self._unprocessed_commands) < 1:
+            return None
+        next_command = self._unprocessed_commands.pop(0)
+        return next_command
 
     def set_ui_engine(self, ui_engine):
         self._ui_engine = ui_engine
@@ -52,12 +70,20 @@ class AudioThread(threading.Thread):
         self._q.push(HALT)
 
     def run(self):
-        self._q.block()
-        command = self._q.get()
-        while command.name != HALT:
-            getattr(self._audio, command.name)(*command.args)
-            self._q.block()
-            command = self._q.get()
+        self._pump.start()
+        running = True
+        while running:
+            #command == None or command.name != HALT:
+            count = self._count_commands()
+            for _ in range(count):
+                command = self._next_command()
+                if command.name == HALT:
+                    running = False
+                if running:
+                    getattr(self._engine, command.name)(*command.args)
+            if running:
+                self._engine.produce_sound()
+        self._pump.set_signaler(None)
         self._close_device()
     
 def create_audio_thread():

@@ -11,11 +11,16 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+import time
+
 
 class AudioEngine():
 
     def __init__(self):
         pass
+
+    def produce_sound(self):
+        time.sleep(0.1)
 
     def close_device(self):
         pass
