@@ -64,6 +64,7 @@ class InstrumentSelect(QComboBox):
             self._ui_manager.set_selected_instrument_id(top_instrument_id)
 
     def perform_updates(self, signals):
-        self.update_instruments()
+        if 'signal_instruments' in signals:
+            self.update_instruments()
         self.update_texts()
 

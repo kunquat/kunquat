@@ -73,7 +73,6 @@ class Session():
 
     def set_selected_instrument(self, channel, instrument):
         instrument_id = 'ins_{0:02x}'.format(instrument)
-        print instrument_id
         self._channel_selected_instrument[channel] = instrument_id
 
     def get_active_note_by_channel(self, channel):

@@ -120,7 +120,7 @@ class Controller():
                 #self._frontend.update_import_progress(i + 1, member_count)
             tfile.close()
             self._store.put(values)
-            self._updater.signal_update()
+            self._updater.signal_update(set(['signal_instruments']))
             self._audio_engine.set_data(values)
 
     def play(self):

@@ -15,11 +15,12 @@
 class Updater(object):
 
     def __init__(self):
-        self._update_signal = False
+        self._update_signals = set()
         self._updaters = set()
 
-    def signal_update(self):
-        self._update_signal = True
+    def signal_update(self, signals = set()):
+        self._update_signals.add('signal_change')
+        self._update_signals |= signals
 
     def register_updater(self, updater):
         self._updaters.add(updater)
@@ -28,9 +29,9 @@ class Updater(object):
         self._updaters.remove(updater)
 
     def perform_updates(self):
-        if not self._update_signal:
+        if not self._update_signals:
             return
         for updater in self._updaters:
-            updater(set())
-        self._update_signal = False
+            updater(self._update_signals)
+        self._update_signals = set()
 
