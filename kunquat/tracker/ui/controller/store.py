@@ -11,8 +11,10 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+import UserDict
 
-class Store():
+
+class Store(UserDict.DictMixin):
 
     def __init__(self):
         self._content = dict()
@@ -20,6 +22,16 @@ class Store():
     def put(self, transaction):
         self._content.update(transaction)
 
-    def get(self, key):
+    def __getitem__(self, key):
         return self._content[key]
+
+    def __setitem__(self, key, value):
+        transaction = {key: value}
+        self.put(transaction)
+
+    def __delitem__(self, key):
+        del self._content[key]
+
+    def keys(self):
+        return self._content.keys()
 
