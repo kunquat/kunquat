@@ -101,6 +101,12 @@ class AudioEngine():
     def fire_event(self, channel, event):
         self._rendering_engine.fire_event(channel, event)
 
+    def set_data(self, transaction):
+        for (key, value) in transaction.items():
+            self._rendering_engine.set_data(key, value)
+            print 'loading: %s' % key
+        self._rendering_engine.validate()
+
     def _average_time(self, times):
         total = sum(end - start for _, start, end in times)
         frames = sum(nframes for nframes, _, _ in times)

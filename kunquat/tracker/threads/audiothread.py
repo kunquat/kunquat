@@ -64,8 +64,8 @@ class AudioThread(threading.Thread):
     def fire_event(self, channel, event):
         self._q.push('fire_event', channel, event)
 
-    def set_data(self, key, value):
-        self._q.push('set_data', key, value)
+    def set_data(self, transaction):
+        self._q.push('set_data', transaction)
 
     # Thread interface
 

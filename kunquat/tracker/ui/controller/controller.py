@@ -45,9 +45,6 @@ class Controller():
     def set_audio_engine(self, audio_engine):
         self._audio_engine = audio_engine
 
-    def set_data(self, key, value):
-        self._kunquat.set_data(key, value)
-
     def _remove_prefix(self, path, prefix):
         preparts = prefix.split('/')
         keyparts = path.split('/')
@@ -106,12 +103,10 @@ class Controller():
             tfile.close()
             self._store.put(values)
             self._updater.signal_update()
+            self._audio_engine.set_data(values)
 
     def play(self):
         self._kunquat.nanoseconds = 0
-
-    def commit_data(self):
-        self._kunquat.validate()
 
     def set_active_note(self, channel_number, instrument_id, pitch):
         parts = instrument_id.split('_')
