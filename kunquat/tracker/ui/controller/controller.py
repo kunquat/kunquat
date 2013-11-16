@@ -136,23 +136,31 @@ class Controller():
         self._audio_engine.fire_event(channel_number, note_on_event)
 
     def update_output_speed(self, fps):
-        self._session['output_speed'] = fps
+        self._session.set_output_speed(fps)
         self._updater.signal_update()
 
     def update_render_speed(self, fps):
-        self._session['render_speed'] = fps
+        self._session.set_render_speed(fps)
         self._updater.signal_update()
 
     def update_render_load(self, load):
-        self._session['render_load'] = load
+        self._session.set_render_load(load)
         self._updater.signal_update()
 
     def update_audio_levels(self, levels):
-        self._session['audio_levels'] = levels
+        self._session.set_audio_levels(levels)
         self._updater.signal_update()
 
     def update_ui_lag(self, lag):
-        self._session['ui_lag'] = lag
+        self._session.set_ui_lag(lag)
+        self._updater.signal_update()
+
+    def update_selected_instrument(self, channel, instrument):
+        self._session.set_selected_instrument(channel, instrument)
+        self._updater.signal_update()
+
+    def update_active_note(self, channel, pitch):
+        self._session.set_active_note(channel, pitch)
         self._updater.signal_update()
 
 

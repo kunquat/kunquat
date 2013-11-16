@@ -127,7 +127,7 @@ class TypeWriterButton(QPushButton):
             return
         (left_on, center_on, right_on) = 3 * [0]
         notes = self._selected_instrument.get_active_notes()
-        for (_, note) in notes:
+        for (_, note) in notes.items():
             if closest(note) == self._pitch:
                 if note < self._pitch:
                     left_on = 1

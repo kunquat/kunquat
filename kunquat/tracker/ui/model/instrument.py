@@ -24,12 +24,13 @@ class Instrument():
         self._instrument_number = None
         self._existence = None
         self._updater = None
-        self._active_notes = {}
+        self._session = None
 
     def set_store(self, store):
         self._store = store
 
     def set_controller(self, controller):
+        self._session = controller.get_session()
         self._controller = controller
 
     def set_backend(self, backend):
@@ -39,12 +40,14 @@ class Instrument():
         self._updater = updater
 
     def get_active_notes(self):
-        return self._active_notes.items()
+        notes = self._session.get_active_notes_by_instrument(self._instrument_id)
+        return notes
 
     def get_active_note(self, channel_number):
-        if channel_number not in self._active_note:
+        notes = self.get_active_notes()
+        if channel_number not in notes:
             return None
-        return self._active_notes[channel_number]
+        return notes[channel_number]
 
     def set_active_note(self, channel_number, pitch):
         instrument_id = self.get_id()

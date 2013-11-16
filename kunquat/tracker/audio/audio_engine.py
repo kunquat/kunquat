@@ -73,13 +73,13 @@ class AudioEngine():
     def _process_event(self, channel_number, event_type, event_value):
         if event_type == EVENT_SELECT_INSTRUMENT:
             instrument_number = event_value
-            #self._frontend.update_selected_instrument(channel_number, instrument_number)
+            self._ui_engine.update_selected_instrument(channel_number, instrument_number)
         elif event_type == EVENT_NOTE_OFF:
             pass
-            #self._frontend.update_active_note(channel_number, None)
+            self._ui_engine.update_active_note(channel_number, None)
         elif event_type == EVENT_NOTE_ON:
             pitch = event_value
-            #self._frontend.update_active_note(channel_number, pitch)
+            self._ui_engine.update_active_note(channel_number, pitch)
 
     def _process_events(self, event_data):
         for channel_number, event in event_data:

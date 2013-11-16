@@ -30,23 +30,23 @@ class StatManager():
         self._session = controller.get_session()
 
     def get_output_speed(self):
-        return self._session['output_speed']
+        return self._session.get_output_speed()
 
     def get_render_speed(self):
-        return self._session['render_speed']
+        return self._session.get_render_speed()
 
     def get_render_load(self):
-        return self._session['render_load']
+        return self._session.get_render_load()
 
     def get_ui_lag(self):
-        return self._session['ui_lag']
+        return self._session.get_ui_lag()
 
     def get_import_progress_position(self):
-        return self._session['progress_position']
+        return self._session.get_progress_position()
 
     def get_import_progress_steps(self):
-        return self._session['progress_steps']
+        return self._session.get_progress_steps()
 
     def get_audio_levels(self):
-        return self._session['audio_levels']
+        return self._session.get_audio_levels()
 
