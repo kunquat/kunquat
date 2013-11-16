@@ -26,7 +26,7 @@ EVENT_NOTE_OFF = 'n-'
 
 
 
-class Backend():
+class Controller():
 
     def __init__(self):
         self._frontend = None

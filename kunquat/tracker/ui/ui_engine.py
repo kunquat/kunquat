@@ -27,7 +27,7 @@ from kunquat.tracker.ui.model.uimodel import create_ui_model
 from kunquat.tracker.ui.model.updater import Updater
 
 from kunquat.tracker.ui.views.mainwindow import MainWindow
-from kunquat.tracker.ui.backend.backend import Backend
+from kunquat.tracker.ui.controller.controller import Controller
 
 
 class UiEngine():
@@ -36,7 +36,7 @@ class UiEngine():
         self._show = show
         self.previous = 0
         self._updater = None
-        self._backend = Backend()
+        self._controller = Controller()
         self._audio_engine = None
         self._queue_processor = None
         self._block = None
@@ -44,6 +44,9 @@ class UiEngine():
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
+
+    def set_controller(self, controller):
+        self._controller = controller
 
     def set_queue_processor(self, queue_processor, block):
         self._queue_processor = queue_processor
@@ -81,7 +84,7 @@ class UiEngine():
 
         if len(sys.argv) > 1:
             module_path = sys.argv[1]
-            load_task = self._backend.get_task_load_module(module_path)
+            load_task = self._controller.get_task_load_module(module_path)
             self.execute_task(load_task)
 
         main_window.set_ui_model(self._ui_model)
@@ -96,8 +99,10 @@ def create_ui_engine():
     updater = Updater()
     ui_model = create_ui_model()
     ui_model.set_updater(updater)
+    controller = Controller()
     ui_engine = UiEngine()
     ui_engine.set_ui_model(ui_model)
+    ui_engine.set_controller(controller)
     ui_engine.set_updater(updater)
     #ui_engine.set_instrument_class(Instrument)
     return ui_engine
