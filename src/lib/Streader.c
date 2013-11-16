@@ -134,8 +134,7 @@ bool Streader_skip_whitespace(Streader* sr)
     if (Streader_is_error_set(sr))
         return false;
 
-    // FIXME: remove support for '\0' as whitespace asap
-    while (!Streader_end_reached(sr) && (isspace(CUR_CH) || (CUR_CH == '\0')))
+    while (!Streader_end_reached(sr) && isspace(CUR_CH))
     {
         if (CUR_CH == '\n')
             ++sr->line;
