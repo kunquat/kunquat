@@ -28,13 +28,13 @@ HALT = None
 
 class UiThread(threading.Thread):
 
+    process_queue = pyqtSignal(name='process_queue')
+
     def __init__(self):
         threading.Thread.__init__(self, name="Ui")
         self._q = CommandQueue()
         self._handler = None
-        self._pump = QEventPump()
-        self._pump.set_blocker(self._q.block)
-        self._pump.set_signaler(self._signal)
+        self._pump = None
 
     # Mystery interface
 
@@ -88,6 +88,18 @@ class UiThread(threading.Thread):
     def halt(self):
         self._q.push(HALT)
 
+    # _create_event_pump needs to be called after
+    # the main Qt stuff has first been inialized
+    # otherwise it will take over the main thread
+    def _create_event_pump(self):
+        self._pump = QEventPump()
+        self._pump.set_blocker(self._q.block)
+        self._pump.set_signaler(self._signal)
+        QObject.connect(
+                self._pump,
+                SIGNAL('process_queue()'),
+                self._process_queue)
+
     def _process_queue(self):
         command = self._q.get()
         if command.name == HALT:
@@ -97,16 +109,12 @@ class UiThread(threading.Thread):
 
     def _signal(self):
         print 'qp'
-        process_queue = pyqtSignal(name='process_queue')
         QObject.emit(self._pump, SIGNAL('process_queue()'))
         pass
 
     def run(self):
-        QObject.connect(
-                self._pump,
-                SIGNAL('process_queue()'),
-                self._process_queue)
         self._handler.run_ui()
+        self._create_event_pump()
         self._pump.start()
 
 def create_ui_thread():
