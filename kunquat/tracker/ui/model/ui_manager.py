@@ -31,6 +31,8 @@ class UiManager():
         module = self._model.get_module()
         instrument_ids = module.get_instrument_ids()
         selected_id = self._selected_instrument_id
+        if len(instrument_ids) < 1:
+            return None
         if not selected_id in instrument_ids:
             some_id = list(instrument_ids)[0]
             return some_id

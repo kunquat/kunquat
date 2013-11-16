@@ -75,7 +75,7 @@ class Controller():
             tfile = tarfile.open(module_path, format=tarfile.USTAR_FORMAT)
             members = tfile.getmembers()
             member_count = len(members)
-            #self._frontend.update_import_progress(0, member_count)
+            self.update_import_progress(0, member_count)
             for i, entry in zip(range(member_count), members):
                 yield
                 tarpath = entry.name
@@ -100,7 +100,7 @@ class Controller():
                     else:
                         decoded = value
                     values[key] = decoded
-                #self._frontend.update_import_progress(i + 1, member_count)
+                self.update_import_progress(i + 1, member_count)
             tfile.close()
             self._store.put(values)
             self._updater.signal_update(set(['signal_instruments']))
@@ -144,6 +144,11 @@ class Controller():
 
     def update_active_note(self, channel, pitch):
         self._session.set_active_note(channel, pitch)
+        self._updater.signal_update()
+
+    def update_import_progress(self, position, steps):
+        self._session.set_progress_position(position)
+        self._session.set_progress_steps(steps)
         self._updater.signal_update()
 
 

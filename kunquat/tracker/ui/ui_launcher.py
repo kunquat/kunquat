@@ -86,19 +86,19 @@ class UiLauncher():
                         SIGNAL('timeout()'),
                         self.update)
         update_timer.start(10)
-
-        if len(sys.argv) > 1:
-            module_path = sys.argv[1]
-            load_task = self._controller.get_task_load_module(module_path)
-            self.execute_task(load_task)
-
         main_window.set_ui_model(self._ui_model)
 
         self._event_pump_starter()
 
         if self._show:
             main_window.show()
+
+        if len(sys.argv) > 1:
+            module_path = sys.argv[1]
+            load_task = self._controller.get_task_load_module(module_path)
+            self.execute_task(load_task)
         app.exec_()
+
 
     def halt_ui(self):
         pass
