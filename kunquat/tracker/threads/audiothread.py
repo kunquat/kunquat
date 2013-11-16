@@ -58,7 +58,7 @@ class AudioThread(threading.Thread):
             getattr(self._audio, command.name)(*command.args)
             self._q.block()
             command = self._q.get()
-        self._close_devices()
+        self._close_device()
     
 def create_audio_thread():
     audio_engine = create_audio_engine()

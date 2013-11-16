@@ -17,6 +17,9 @@ class AudioEngine():
     def __init__(self):
         pass
 
+    def close_device(self):
+        pass
+
 def create_audio_engine():
     audio_engine = AudioEngine()
     return audio_engine
