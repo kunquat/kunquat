@@ -148,8 +148,7 @@ class UiModel():
         self._backend.load_module()
 
     def play(self):
-        self._backend.play()
-
+        self._controller.play()
 
 def create_ui_model():
     stat_manager = StatManager()

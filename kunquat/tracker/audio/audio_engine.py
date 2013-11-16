@@ -20,6 +20,10 @@ from kunquat.kunquat.kunquat import Kunquat
 
 from drivers.pushaudio import Pushaudio
 
+EVENT_SELECT_INSTRUMENT = '.i'
+EVENT_NOTE_ON = 'n+'
+EVENT_NOTE_OFF = 'n-'
+
 def gen_sine(rate):
     # we yield some silence here to comply with tests
     # this code is probably removed later anyway
@@ -31,6 +35,7 @@ def gen_sine(rate):
         phase += 440 * 2 * math.pi / rate
         phase %= 2 * math.pi
         yield math.sin(phase) * 0.3
+
 
 class AudioEngine():
 
@@ -64,12 +69,13 @@ class AudioEngine():
     def _process_event(self, channel_number, event_type, event_value):
         if event_type == EVENT_SELECT_INSTRUMENT:
             instrument_number = event_value
-            self._frontend.update_selected_instrument(channel_number, instrument_number)
+            #self._frontend.update_selected_instrument(channel_number, instrument_number)
         elif event_type == EVENT_NOTE_OFF:
-            self._frontend.update_active_note(channel_number, None)
+            pass
+            #self._frontend.update_active_note(channel_number, None)
         elif event_type == EVENT_NOTE_ON:
             pitch = event_value
-            self._frontend.update_active_note(channel_number, pitch)
+            #self._frontend.update_active_note(channel_number, pitch)
 
     def _process_events(self, event_data):
         for channel_number, event in event_data:
@@ -105,8 +111,10 @@ class AudioEngine():
         #TODO: Remove sorting once it works without
         for (key, value) in sorted(transaction.items()):
             self._rendering_engine.set_data(key, value)
-            print 'loading: %s' % key
         self._rendering_engine.validate()
+
+    def nanoseconds(self, nanos):
+        self._rendering_engine.nanoseconds = nanos
 
     def _average_time(self, times):
         total = sum(end - start for _, start, end in times)

@@ -67,6 +67,9 @@ class AudioThread(threading.Thread):
     def set_data(self, transaction):
         self._q.push('set_data', transaction)
 
+    def nanoseconds(self, nanos):
+        self._q.push('nanoseconds', nanos)
+
     # Thread interface
 
     def halt(self):

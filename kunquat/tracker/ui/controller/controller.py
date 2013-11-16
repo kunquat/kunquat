@@ -18,10 +18,6 @@ import json
 import time
 import tarfile
 
-EVENT_SELECT_INSTRUMENT = '.i'
-EVENT_NOTE_ON = 'n+'
-EVENT_NOTE_OFF = 'n-'
-
 
 class Controller():
 
@@ -106,7 +102,7 @@ class Controller():
             self._audio_engine.set_data(values)
 
     def play(self):
-        self._kunquat.nanoseconds = 0
+        self._audio_engine.nanoseconds(0)
 
     def set_active_note(self, channel_number, instrument_id, pitch):
         parts = instrument_id.split('_')
