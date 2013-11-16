@@ -20,7 +20,6 @@ class Instrument():
         self._instrument_id = instrument_id
         self._store = None
         self._controller = None
-        self._backend = None
         self._instrument_number = None
         self._existence = None
         self._updater = None
@@ -32,9 +31,6 @@ class Instrument():
     def set_controller(self, controller):
         self._session = controller.get_session()
         self._controller = controller
-
-    def set_backend(self, backend):
-        self._backend = backend
 
     def set_updater(self, updater):
         self._updater = updater

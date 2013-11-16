@@ -20,12 +20,6 @@ class Channel():
     def get_active_instrument_number(self):
         return self._active_instrument_number
 
-    def update_active_instrument_number(self, instrument_number):
-        self._active_instrument_number = instrument_number
-
     def get_selected_instrument_number(self):
         return self._selected_instrument_number
-
-    def update_selected_instrument_number(self, instrument_number):
-        self._selected_instrument_number = instrument_number
 

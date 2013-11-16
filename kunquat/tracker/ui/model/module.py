@@ -20,7 +20,6 @@ class Module():
         self._updater = None
         self._store = None
         self._controller = None
-        self._backend = None
         self._instruments = {}
 
     def set_controller(self, controller):
@@ -28,19 +27,11 @@ class Module():
         self._store = controller.get_store()
         self._controller = controller
 
-    def set_backend(self, backend):
-        self._backend = backend
-
     def get_instrument(self, instrument_id):
         instrument = Instrument(instrument_id)
         instrument.set_store(self._store)
         instrument.set_controller(self._controller)
         return instrument
-
-    def update_instrument(self, instrument_number, instrument):
-        instrument.set_updater(self._updater)
-        self._instruments[instrument_number] = instrument
-        self._updater.signal_update()
 
     def get_instrument_ids(self):
         instrument_ids = set()

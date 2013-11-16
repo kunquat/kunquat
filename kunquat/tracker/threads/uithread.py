@@ -44,7 +44,7 @@ class UiThread(threading.Thread):
         self._ui_launcher = ui_launcher
         self._ui_launcher.set_queue_processor(self._process_queue, self._q.block)
 
-    # Frontend interface
+    # Ui Engine interface
 
     def set_audio_engine(self, audio_engine):
         self._ui_launcher.set_audio_engine(audio_engine)

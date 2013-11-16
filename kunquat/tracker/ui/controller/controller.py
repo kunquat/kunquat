@@ -31,7 +31,6 @@ EVENT_NOTE_OFF = 'n-'
 class Controller():
 
     def __init__(self):
-        self._frontend = None
         self._push_amount = None
         self._audio_levels = (0, 0)
         self._store = None
@@ -57,9 +56,6 @@ class Controller():
     def get_updater(self):
         return self._updater
 
-    def set_frontend(self, frontend):
-        self._frontend = frontend
-
     def set_audio_engine(self, audio_engine):
         self._audio_engine = audio_engine
 
@@ -79,7 +75,6 @@ class Controller():
             tfile = tarfile.open(module_path, format=tarfile.USTAR_FORMAT)
             members = tfile.getmembers()
             member_count = len(members)
-            #assert self._frontend
             #self._frontend.update_import_progress(0, member_count)
             for i, entry in zip(range(member_count), members):
                 yield
@@ -88,18 +83,6 @@ class Controller():
                 assert (key != None) #TODO broken file exception
                 if entry.isfile():
                     value = tfile.extractfile(entry).read()
-
-                    m = re.match('^ins_([0-9]{2})/p_manifest.json$', key)
-                    if m:
-                        instrument_number = int(m.group(1))
-                        #self._frontend.update_instrument_existence(instrument_number, True)
-
-                    m = re.match('^ins_([0-9]{2})/m_name.json$', key)
-                    if m:
-                        instrument_number = int(m.group(1))
-                        name = json.loads(value)
-                        #self._frontend.update_instrument_name(instrument_number, name)
-
                     if key.endswith('.json'):
                         decoded = json.loads(value)
                     elif key.endswith('.jsone'):

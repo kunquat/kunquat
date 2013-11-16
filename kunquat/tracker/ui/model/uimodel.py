@@ -82,10 +82,6 @@ class UiModel():
         self._playback_manager = None
         self._module = None
 
-    def set_backend(self, backend):
-        self._backend = backend
-        self._module.set_backend(self._backend)
-
     def set_ui(self, ui):
         self._ui = ui
 
@@ -124,9 +120,6 @@ class UiModel():
     def get_module(self):
         return self._module
 
-    def load_module(self):
-        self._backend.load_module()
-
     def play(self):
         self._controller.play()
 
@@ -140,6 +133,5 @@ def create_ui_model():
     ui_model.set_ui_manager(ui_manager)
     ui_model.set_playback_manager(playback_manager)
     ui_model.set_module(module)
-    #ui_model.set_backend(self._backend)
     return ui_model
 
