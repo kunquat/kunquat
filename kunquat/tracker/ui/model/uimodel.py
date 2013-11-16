@@ -12,6 +12,11 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from driver_manager import DriverManager
+from stat_manager import StatManager
+from ui_manager import UiManager
+from playback_manager import PlaybackManager
+from module import Module
 
 class UiModel():
     """
@@ -90,7 +95,6 @@ class UiModel():
 
     def set_updater(self, updater):
         self._updater = updater
-        self._driver_manager.set_updater(self._updater)
         self._stat_manager.set_updater(self._updater)
         self._ui_manager.set_updater(self._updater)
         self._module.set_updater(self._updater)
@@ -139,4 +143,18 @@ class UiModel():
 
     def play(self):
         self._backend.play()
+
+
+def create_ui_model():
+    stat_manager = StatManager()
+    ui_manager = UiManager()
+    playback_manager = PlaybackManager()
+    module = Module()
+    ui_model = UiModel()
+    ui_model.set_stat_manager(stat_manager)
+    ui_model.set_ui_manager(ui_manager)
+    ui_model.set_playback_manager(playback_manager)
+    ui_model.set_module(module)
+    #ui_model.set_backend(self._backend)
+    return ui_model
 
