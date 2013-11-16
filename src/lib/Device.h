@@ -33,6 +33,7 @@ struct Device
 {
     uint32_t id;
     bool existent;
+    bool req_impl;
 
     Device_params* dparams;
     Device_impl* dimpl;
@@ -57,11 +58,13 @@ struct Device
 /**
  * Initialises the Device.
  *
- * \param device        The Device -- must not be \c NULL.
+ * \param device     The Device -- must not be \c NULL.
+ * \param req_impl   \c true if the Device requires a Device implementation,
+ *                   otherwise \c false.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Device_init(Device* device);
+bool Device_init(Device* device, bool req_impl);
 
 
 /**
@@ -72,6 +75,19 @@ bool Device_init(Device* device);
  * \return   The ID of the Device.
  */
 uint32_t Device_get_id(const Device* device);
+
+
+/**
+ * Finds out if the Device has a complete type.
+ *
+ * All instruments and effects have a complete type; a generator or a DSP has
+ * a complete type if it has a Device implementation.
+ *
+ * \param device   The Device -- must not be \c NULL.
+ *
+ * \return   \c true if the Device has a complete type, otherwise \c false.
+ */
+bool Device_has_complete_type(const Device* device);
 
 
 /**

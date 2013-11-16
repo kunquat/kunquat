@@ -53,7 +53,7 @@ Generator* new_Generator(const Instrument_params* ins_params)
     if (gen == NULL)
         return NULL;
 
-    if (!Device_init(&gen->parent))
+    if (!Device_init(&gen->parent, true))
     {
         memory_free(gen);
         return NULL;

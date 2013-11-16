@@ -241,7 +241,7 @@ bool Device_node_init_buffers_simple(Device_node* node, Device_states* states)
         {
             assert(edge->node != NULL);
             Device* send_device = Device_node_get_device(edge->node);
-            if (send_device == NULL)
+            if (send_device == NULL || !Device_has_complete_type(send_device))
             {
                 edge = edge->next;
                 continue;
@@ -251,8 +251,7 @@ bool Device_node_init_buffers_simple(Device_node* node, Device_states* states)
             Device_state* receive_state = Device_states_get_state(
                     states,
                     Device_get_id(node_device));
-            if (receive_state != NULL &&
-                    !Device_state_add_audio_buffer(
+            if (!Device_state_add_audio_buffer(
                         receive_state,
                         DEVICE_PORT_TYPE_RECEIVE,
                         port))

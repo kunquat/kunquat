@@ -71,7 +71,7 @@ Module* new_Module()
     if (module == NULL)
         return NULL;
 
-    if (!Device_init(&module->parent))
+    if (!Device_init(&module->parent, false))
     {
         memory_free(module);
         return NULL;

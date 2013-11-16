@@ -26,7 +26,7 @@ Effect_interface* new_Effect_interface()
     if (ei == NULL)
         return NULL;
 
-    if (!Device_init(&ei->parent))
+    if (!Device_init(&ei->parent, false))
     {
         del_Effect_interface(ei);
         return NULL;

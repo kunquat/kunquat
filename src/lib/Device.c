@@ -101,7 +101,7 @@ static void Device_update_tempo_default(
 }
 
 
-bool Device_init(Device* device)
+bool Device_init(Device* device, bool req_impl)
 {
     assert(device != NULL);
 
@@ -110,6 +110,7 @@ bool Device_init(Device* device)
     ++id;
 
     device->existent = false;
+    device->req_impl = req_impl;
 
     device->dparams = NULL;
     device->dimpl = NULL;
@@ -143,6 +144,13 @@ uint32_t Device_get_id(const Device* device)
 {
     assert(device != NULL);
     return device->id;
+}
+
+
+bool Device_has_complete_type(const Device* device)
+{
+    assert(device != NULL);
+    return !device->req_impl || (device->dimpl != NULL);
 }
 
 

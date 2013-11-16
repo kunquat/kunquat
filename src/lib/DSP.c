@@ -32,7 +32,7 @@ DSP* new_DSP()
     if (dsp == NULL)
         return NULL;
 
-    if (!Device_init(&dsp->parent))
+    if (!Device_init(&dsp->parent, true))
     {
         memory_free(dsp);
         return NULL;
@@ -83,7 +83,7 @@ bool DSP_init(
 
     dsp->clear_history = NULL;
 
-    if (!Device_init(&dsp->parent))
+    if (!Device_init(&dsp->parent, true))
         return false;
 
     //Device_set_reset(&dsp->parent, DSP_reset);

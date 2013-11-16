@@ -82,7 +82,7 @@ Effect* new_Effect()
     eff->connections = NULL;
     eff->dsps = NULL;
 
-    if (!Device_init(&eff->parent))
+    if (!Device_init(&eff->parent, false))
     {
         del_Effect(eff);
         return NULL;

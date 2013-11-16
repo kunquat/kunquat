@@ -84,7 +84,7 @@ Instrument* new_Instrument()
     ins->gens = NULL;
     ins->effects = NULL;
 
-    if (!Device_init(&ins->parent))
+    if (!Device_init(&ins->parent, false))
     {
         memory_free(ins);
         return NULL;
