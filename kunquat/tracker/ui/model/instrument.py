@@ -65,6 +65,9 @@ class Instrument():
 
     def get_name(self):
         key = '%s/m_name.json' % self._instrument_id
-        name = self._store[key]
+        try:
+            name = self._store[key]
+        except KeyError:
+            return None
         return name
 
