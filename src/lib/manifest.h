@@ -17,21 +17,20 @@
 
 
 #include <stdbool.h>
+#include <stdlib.h>
 
-#include <File_base.h>
+#include <Streader.h>
 
 
 /**
  * Reads a default manifest key.
  *
- * \param str     The string containing a JSON dictionary, or empty string
- *                or \c NULL.
- * \param state   The Read state -- must not be \c NULL.
+ * \param sr   The Streader of the JSON data -- must not be \c NULL.
  *
  * \return   \c true if a valid dictionary was found, otherwise \c false.
  *           \a state must be explicitly checked for parse errors.
  */
-bool read_default_manifest(char* str, Read_state* state);
+bool read_default_manifest(Streader* sr);
 
 
 #endif // K_MANIFEST_H

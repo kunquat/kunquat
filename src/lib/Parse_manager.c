@@ -25,11 +25,11 @@
 #include <Device_params.h>
 #include <DSP_type.h>
 #include <Environment.h>
-#include <File_base.h>
 #include <Gen_type.h>
 #include <Handle_private.h>
 #include <manifest.h>
 #include <memory.h>
+#include <Streader.h>
 #include <string_common.h>
 #include <xassert.h>
 
@@ -37,24 +37,21 @@
 static bool parse_module_level(
         Handle* handle,
         const char* key,
-        void* data,
-        long length);
+        Streader* sr);
 
 
 static bool parse_album_level(
         Handle* handle,
         const char* key,
         const char* subkey,
-        void* data,
-        long length);
+        Streader* sr);
 
 
 static bool parse_instrument_level(
         Handle* handle,
         const char* key,
         const char* subkey,
-        void* data,
-        long length,
+        Streader* sr,
         int index);
 
 
@@ -63,8 +60,7 @@ static bool parse_effect_level(
         Instrument* ins,
         const char* key,
         const char* subkey,
-        void* data,
-        long length,
+        Streader* sr,
         int eff_index);
 
 
@@ -72,8 +68,7 @@ static bool parse_generator_level(
         Handle* handle,
         const char* key,
         const char* subkey,
-        void* data,
-        long length,
+        Streader* sr,
         int ins_index,
         int gen_index);
 
@@ -83,8 +78,7 @@ static bool parse_dsp_level(
         Effect* eff,
         const char* key,
         const char* subkey,
-        void* data,
-        long length,
+        Streader* sr,
         int dsp_index);
 
 
@@ -92,8 +86,7 @@ static bool parse_pattern_level(
         Handle* handle,
         const char* key,
         const char* subkey,
-        void* data,
-        long length,
+        Streader* sr,
         int index);
 
 
@@ -102,8 +95,7 @@ static bool parse_pat_inst_level(
         Pattern* pat,
         const char* key,
         const char* subkey,
-        void* data,
-        long length,
+        Streader* sr,
         int index);
 
 
@@ -111,8 +103,7 @@ static bool parse_scale_level(
         Handle* handle,
         const char* key,
         const char* subkey,
-        void* data,
-        long length,
+        Streader* sr,
         int index);
 
 
@@ -120,17 +111,9 @@ static bool parse_subsong_level(
         Handle* handle,
         const char* key,
         const char* subkey,
-        void* data,
-        long length,
+        Streader* sr,
         int index);
 
-
-static bool key_is_for_text(const char* key);
-
-
-#define set_parse_error(handle, state) \
-    (Handle_set_validation_error((handle), ERROR_FORMAT, "Parse error in" \
-            " %s:%d: %s", (state)->path, (state)->row, (state)->message))
 
 #define set_error(handle, sr)                                               \
     if (true)                                                               \
@@ -140,14 +123,6 @@ static bool key_is_for_text(const char* key);
         else                                                                \
             Handle_set_error_from_Error((handle), &(sr)->error);            \
     } else (void)0
-
-
-static bool key_is_for_text(const char* key)
-{
-    assert(key != NULL);
-    return string_has_suffix(key, ".json") ||
-           key_is_text_device_param(key);
-}
 
 
 static bool prepare_connections(Handle* handle)
@@ -172,7 +147,7 @@ static bool prepare_connections(Handle* handle)
 
 bool parse_data(Handle* handle,
                 const char* key,
-                void* data,
+                const void* data,
                 long length)
 {
 //    fprintf(stderr, "parsing %s\n", key);
@@ -202,24 +177,11 @@ bool parse_data(Handle* handle,
         return true;
     }
 
-    char* json = NULL;
-    if (data != NULL && key_is_for_text(key))
-    {
-        json = memory_calloc_items(char, length + 1);
-        if (json == NULL)
-        {
-            Handle_set_error(handle, ERROR_MEMORY,
-                    "Couldn't allocate memory");
-            return false;
-        }
-        strncpy(json, data, length);
-        data = json;
-    }
+    Streader* sr = Streader_init(STREADER_AUTO, data, length);
 
     if (last_index == 0)
     {
-        bool success = parse_module_level(handle, key, data, length);
-        memory_free(json);
+        bool success = parse_module_level(handle, key, sr);
         return success;
     }
 
@@ -234,7 +196,7 @@ bool parse_data(Handle* handle,
         Instrument* ins = Ins_table_get(Module_get_insts(module), index);
         bool changed = ins != NULL;
         success = parse_instrument_level(handle, key, second_element,
-                                         data, length, index);
+                                         sr, index);
         changed ^= Ins_table_get(Module_get_insts(module), index) != NULL;
         Connections* graph = module->connections;
         if (changed && graph != NULL)
@@ -250,7 +212,7 @@ bool parse_data(Handle* handle,
         Effect* eff = Effect_table_get(Module_get_effects(module), index);
         bool changed = eff != NULL;
         success = parse_effect_level(handle, NULL, key, second_element,
-                                     data, length, index);
+                                     sr, index);
         changed ^= Effect_table_get(Module_get_effects(module),
                                                      index) != NULL;
         Connections* graph = module->connections;
@@ -264,7 +226,7 @@ bool parse_data(Handle* handle,
     {
         Pattern* pat = Pat_table_get(Module_get_pats(module), index);
         success = parse_pattern_level(handle, key, second_element,
-                                      data, length, index);
+                                      sr, index);
         Pattern* new_pat = Pat_table_get(Module_get_pats(module), index);
         if (success && pat != new_pat && new_pat != NULL)
         {
@@ -320,66 +282,52 @@ bool parse_data(Handle* handle,
     else if ((index = string_extract_index(key, "scale_", 1, "/")) >= 0)
     {
         success = parse_scale_level(handle, key, second_element,
-                                    data, length, index);
+                                    sr, index);
     }
     else if ((index = string_extract_index(key, "song_", 2, "/")) >= 0)
     {
         success = parse_subsong_level(handle, key, second_element,
-                                      data, length, index);
+                                      sr, index);
     }
     else if (string_has_prefix(key, "album/"))
     {
-        success = parse_album_level(handle, key, second_element, data, length);
+        success = parse_album_level(handle, key, second_element, sr);
     }
-    memory_free(json);
+
     return success;
 }
 
 
 static bool parse_module_level(Handle* handle,
                              const char* key,
-                             void* data,
-                             long length)
+                             Streader* sr)
 {
 //    fprintf(stderr, "song level: %s\n", key);
     assert(handle != NULL);
     assert(key != NULL);
-    assert(data != NULL || length == 0);
-    assert(length >= 0);
-    (void)length;
+    assert(sr != NULL);
 
     Module* module = Handle_get_module(handle);
 
     if (string_eq(key, "p_composition.json"))
     {
-        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        if (!Module_parse_composition(module, data, state))
+        if (!Module_parse_composition(module, sr))
         {
-            set_parse_error(handle, state);
+            set_error(handle, sr);
             return false;
         }
     }
     else if (string_eq(key, "p_connections.json"))
     {
-        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        Connections* graph = new_Connections_from_string(data,
+        Connections* graph = new_Connections_from_string(sr,
                                             CONNECTION_LEVEL_GLOBAL,
                                             Module_get_insts(module),
                                             Module_get_effects(module),
                                             NULL,
-                                            (Device*)module,
-                                            state);
+                                            (Device*)module);
         if (graph == NULL)
         {
-            if (state->error)
-            {
-                set_parse_error(handle, state);
-            }
-            else
-            {
-                Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory");
-            }
+            set_error(handle, sr);
             return false;
         }
         if (module->connections != NULL)
@@ -396,7 +344,6 @@ static bool parse_module_level(Handle* handle,
     }
     else if (string_eq(key, "p_ins_input.json"))
     {
-        Streader* sr = Streader_init(STREADER_AUTO, data, length);
         if (!Module_set_ins_map(module, sr))
         {
             set_error(handle, sr);
@@ -405,27 +352,17 @@ static bool parse_module_level(Handle* handle,
     }
     else if (string_eq(key, "p_random_seed.json"))
     {
-        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        if (!Module_parse_random_seed(module, data, state))
+        if (!Module_parse_random_seed(module, sr))
         {
-            set_parse_error(handle, state);
+            set_error(handle, sr);
             return false;
         }
     }
     else if (string_eq(key, "p_environment.json"))
     {
-        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        if (!Environment_parse(module->env, data, state))
+        if (!Environment_parse(module->env, sr))
         {
-            if (!state->error)
-            {
-                Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory");
-            }
-            else
-            {
-                set_parse_error(handle, state);
-            }
+            set_error(handle, sr);
             return false;
         }
         if (!Player_refresh_env_state(handle->player))
@@ -437,22 +374,13 @@ static bool parse_module_level(Handle* handle,
     }
     else if (string_eq(key, "p_bind.json"))
     {
-        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        Bind* map = new_Bind(data,
-                        Event_handler_get_names(
-                            Player_get_event_handler(handle->player)),
-                        state);
+        Bind* map = new_Bind(
+                sr,
+                Event_handler_get_names(
+                    Player_get_event_handler(handle->player)));
         if (map == NULL)
         {
-            if (!state->error)
-            {
-                Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory");
-            }
-            else
-            {
-                set_parse_error(handle, state);
-            }
+            set_error(handle, sr);
             return false;
         }
         Module_set_bind(module, map);
@@ -472,44 +400,31 @@ static bool parse_album_level(
         Handle* handle,
         const char* key,
         const char* subkey,
-        void* data,
-        long length)
+        Streader* sr)
 {
     assert(handle != NULL);
     assert(key != NULL);
     assert(subkey != NULL);
-    assert((data == NULL) == (length == 0));
-    assert(length >= 0);
-    (void)length;
+    assert(sr != NULL);
 
     Module* module = Handle_get_module(handle);
 
     if (string_eq(subkey, "p_manifest.json"))
     {
-        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        const bool existent = read_default_manifest(data, state);
-        if (state->error)
+        const bool existent = read_default_manifest(sr);
+        if (Streader_is_error_set(sr))
         {
-            set_parse_error(handle, state);
+            set_error(handle, sr);
             return false;
         }
         module->album_is_existent = existent;
     }
     else if (string_eq(subkey, "p_tracks.json"))
     {
-        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        Track_list* tl = new_Track_list(data, state);
+        Track_list* tl = new_Track_list(sr);
         if (tl == NULL)
         {
-            if (!state->error)
-            {
-                Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory");
-            }
-            else
-            {
-                set_parse_error(handle, state);
-            }
+            set_error(handle, sr);
             return false;
         }
         del_Track_list(module->track_list);
@@ -564,16 +479,15 @@ static Instrument* add_instrument(Handle* handle, int index)
 static bool parse_instrument_level(Handle* handle,
                                    const char* key,
                                    const char* subkey,
-                                   void* data,
-                                   long length,
+                                   Streader* sr,
                                    int index)
 {
 //    fprintf(stderr, "instrument level: %s\n", key);
     assert(handle != NULL);
     assert(key != NULL);
     assert(subkey != NULL);
-    assert((data == NULL) == (length == 0));
-    assert(length >= 0);
+    assert(sr != NULL);
+
     if (index < 0 || index >= KQT_INSTRUMENTS_MAX)
     {
         return true;
@@ -604,7 +518,7 @@ static bool parse_instrument_level(Handle* handle,
                                      : NULL;
         bool changed = ins != NULL && gen != NULL;
         bool success = parse_generator_level(handle, key, subkey,
-                                             data, length, 
+                                             sr,
                                              index, gen_index);
         ins = Ins_table_get(Module_get_insts(module), index);
         gen = ins != NULL ? Instrument_get_gen(ins, gen_index) : NULL;
@@ -634,7 +548,7 @@ static bool parse_instrument_level(Handle* handle,
             return false;
 
         bool success = parse_effect_level(handle, ins, key, subkey,
-                                          data, length, eff_index);
+                                          sr, eff_index);
         changed ^= ins != NULL &&
                    Instrument_get_effect(ins, eff_index) != NULL;
         Connections* graph = module->connections;
@@ -654,11 +568,10 @@ static bool parse_instrument_level(Handle* handle,
         if (ins == NULL)
             return false;
 
-        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        const bool existent = read_default_manifest(data, state);
-        if (state->error)
+        const bool existent = read_default_manifest(sr);
+        if (Streader_is_error_set(sr))
         {
-            set_parse_error(handle, state);
+            set_error(handle, sr);
             return false;
         }
 
@@ -671,10 +584,9 @@ static bool parse_instrument_level(Handle* handle,
         if (ins == NULL)
             return false;
 
-        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        if (!Instrument_parse_header(ins, data, state))
+        if (!Instrument_parse_header(ins, sr))
         {
-            set_parse_error(handle, state);
+            set_error(handle, sr);
             return false;
         }
     }
@@ -682,7 +594,7 @@ static bool parse_instrument_level(Handle* handle,
     {
         bool reconnect = false;
         Instrument* ins = Ins_table_get(Module_get_insts(module), index);
-        if (data == NULL)
+        if (!Streader_has_data(sr))
         {
             if (ins != NULL)
             {
@@ -696,21 +608,15 @@ static bool parse_instrument_level(Handle* handle,
             if (ins == NULL)
                 return false;
 
-            Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-            Connections* graph = new_Connections_from_string(data,
+            Connections* graph = new_Connections_from_string(sr,
                                                  CONNECTION_LEVEL_INSTRUMENT,
                                                  Module_get_insts(module),
                                                  Instrument_get_effects(ins),
                                                  NULL,
-                                                 (Device*)ins,
-                                                 state);
+                                                 (Device*)ins);
             if (graph == NULL)
             {
-                if (state->error)
-                    set_parse_error(handle, state);
-                else
-                    Handle_set_error(handle, ERROR_MEMORY,
-                            "Couldn't allocate memory");
+                set_error(handle, sr);
                 return false;
             }
             Instrument_set_connections(ins, graph);
@@ -736,17 +642,16 @@ static bool parse_instrument_level(Handle* handle,
         if (ins == NULL)
             return false;
 
-        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        if (!Instrument_parse_value(ins, subkey, data, state))
+        if (!Instrument_parse_value(ins, subkey, sr))
         {
-            set_parse_error(handle, state);
+            set_error(handle, sr);
             return false;
         }
     }
     struct
     {
         char* name;
-        bool (*read)(Instrument_params*, char* str, Read_state*);
+        bool (*read)(Instrument_params*, Streader*);
     } parse[] =
     {
         { "p_envelope_force.json", Instrument_params_parse_env_force },
@@ -765,14 +670,9 @@ static bool parse_instrument_level(Handle* handle,
             if (ins == NULL)
                 return false;
 
-            Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-            if (!parse[i].read(Instrument_get_params(ins), data, state))
+            if (!parse[i].read(Instrument_get_params(ins), sr))
             {
-                if (!state->error)
-                    Handle_set_error(handle, ERROR_MEMORY,
-                            "Couldn't allocate memory");
-                else
-                    set_parse_error(handle, state);
+                set_error(handle, sr);
                 return false;
             }
         }
@@ -817,8 +717,7 @@ static Generator* add_generator(
 static bool parse_generator_level(Handle* handle,
                                   const char* key,
                                   const char* subkey,
-                                  void* data,
-                                  long length,
+                                  Streader* sr,
                                   int ins_index,
                                   int gen_index)
 {
@@ -826,8 +725,7 @@ static bool parse_generator_level(Handle* handle,
     assert(handle != NULL);
     assert(key != NULL);
     assert(subkey != NULL);
-    assert((data == NULL) == (length == 0));
-    assert(length >= 0);
+    assert(sr != NULL);
     assert(ins_index >= 0);
     assert(ins_index < KQT_INSTRUMENTS_MAX);
 
@@ -855,11 +753,10 @@ static bool parse_generator_level(Handle* handle,
 
     if (string_eq(subkey, "p_manifest.json"))
     {
-        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        const bool existent = read_default_manifest(data, state);
-        if (state->error)
+        const bool existent = read_default_manifest(sr);
+        if (Streader_is_error_set(sr))
         {
-            set_parse_error(handle, state);
+            set_error(handle, sr);
             return false;
         }
 
@@ -867,7 +764,7 @@ static bool parse_generator_level(Handle* handle,
     }
     else if (string_eq(subkey, "p_gen_type.json"))
     {
-        if (data == NULL)
+        if (!Streader_has_data(sr))
         {
             Generator* gen = Gen_table_get_gen(table, gen_index);
             if (gen != NULL)
@@ -884,12 +781,10 @@ static bool parse_generator_level(Handle* handle,
                 return false;
 
             // Create the Generator implementation
-            Read_state* state = Read_state_init(READ_STATE_AUTO, key);
             char type[GEN_TYPE_LENGTH_MAX] = "";
-            read_string(data, type, GEN_TYPE_LENGTH_MAX, state);
-            if (state->error)
+            if (!Streader_read_string(sr, GEN_TYPE_LENGTH_MAX, type))
             {
-                set_parse_error(handle, state);
+                set_error(handle, sr);
                 return false;
             }
             Generator_cons* cons = Gen_type_find_cons(type);
@@ -921,10 +816,11 @@ static bool parse_generator_level(Handle* handle,
                 char* size_str = property(gen, "voice_state_size");
                 if (size_str != NULL)
                 {
-                    Read_state* state = READ_STATE_AUTO;
+                    Streader* size_sr = Streader_init(
+                            STREADER_AUTO, size_str, strlen(size_str));
                     int64_t size = 0;
-                    read_int(size_str, &size, state);
-                    assert(!state->error);
+                    Streader_read_int(size_sr, &size);
+                    assert(!Streader_is_error_set(sr));
                     assert(size >= 0);
 //                    fprintf(stderr, "Reserving space for %" PRId64 " bytes\n",
 //                                    size);
@@ -944,17 +840,15 @@ static bool parse_generator_level(Handle* handle,
                 char* gen_state_vars = property(gen, "gen_state_vars");
                 if (gen_state_vars != NULL)
                 {
-                    Read_state* rs = READ_STATE_AUTO;
+                    Streader* gsv_sr = Streader_init(
+                            STREADER_AUTO,
+                            gen_state_vars,
+                            strlen(gen_state_vars));
 
                     if (!Player_alloc_channel_gen_state_keys(
-                                handle->player, gen_state_vars, rs))
+                                handle->player, gsv_sr))
                     {
-                        if (!rs->error)
-                            Handle_set_error(handle, ERROR_MEMORY,
-                                    "Couldn't allocate memory");
-                        else
-                            set_parse_error(handle, rs);
-
+                        set_error(handle, gsv_sr);
                         return false;
                     }
                 }
@@ -1026,14 +920,10 @@ static bool parse_generator_level(Handle* handle,
             return false;
 
         // Update Device
-        Read_state* rs = Read_state_init(READ_STATE_AUTO, key);
-        if (!Device_set_key((Device*)gen, subkey, data, length, rs))
+        if (!Device_set_key((Device*)gen, subkey, sr))
         {
-            if (rs->error)
-                set_parse_error(handle, rs);
-            else
-                Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory");
+            set_error(handle, sr);
+            return false;
         }
 
         // Notify Device state
@@ -1103,15 +993,13 @@ static bool parse_effect_level(Handle* handle,
                                Instrument* ins,
                                const char* key,
                                const char* subkey,
-                               void* data,
-                               long length,
+                               Streader* sr,
                                int eff_index)
 {
     assert(handle != NULL);
     assert(key != NULL);
     assert(subkey != NULL);
-    assert((data == NULL) == (length == 0));
-    assert(length >= 0);
+    assert(sr != NULL);
     int max_index = KQT_EFFECTS_MAX;
     if (ins != NULL)
     {
@@ -1151,7 +1039,7 @@ static bool parse_effect_level(Handle* handle,
             return false;
 
         bool success = parse_dsp_level(handle, eff, key, subkey,
-                                       data, length, dsp_index);
+                                       sr, dsp_index);
         changed ^= eff != NULL && Effect_get_dsp(eff, dsp_index) != NULL;
         Connections* graph = module->connections;
         if (changed && graph != NULL)
@@ -1167,11 +1055,10 @@ static bool parse_effect_level(Handle* handle,
         if (eff == NULL)
             return false;
 
-        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        const bool existent = read_default_manifest(data, state);
-        if (state->error)
+        const bool existent = read_default_manifest(sr);
+        if (Streader_is_error_set(sr))
         {
-            set_parse_error(handle, state);
+            set_error(handle, sr);
             return false;
         }
         Device_set_existent((Device*)eff, existent);
@@ -1180,7 +1067,7 @@ static bool parse_effect_level(Handle* handle,
     {
         bool reconnect = false;
         Effect* eff = Effect_table_get(table, eff_index);
-        if (data == NULL)
+        if (!Streader_has_data(sr))
         {
             if (eff != NULL)
             {
@@ -1194,25 +1081,19 @@ static bool parse_effect_level(Handle* handle,
             if (eff == NULL)
                 return false;
 
-            Read_state* state = Read_state_init(READ_STATE_AUTO, key);
             Connection_level level = CONNECTION_LEVEL_EFFECT;
             if (ins != NULL)
             {
                 level |= CONNECTION_LEVEL_INSTRUMENT;
             }
-            Connections* graph = new_Connections_from_string(data, level,
+            Connections* graph = new_Connections_from_string(sr, level,
                                                  Module_get_insts(module),
                                                  table,
                                                  Effect_get_dsps(eff),
-                                                 (Device*)eff,
-                                                 state);
+                                                 (Device*)eff);
             if (graph == NULL)
             {
-                if (state->error)
-                    set_parse_error(handle, state);
-                else
-                    Handle_set_error(handle, ERROR_MEMORY,
-                            "Couldn't allocate memory");
+                set_error(handle, sr);
                 return false;
             }
             Effect_set_connections(eff, graph);
@@ -1269,16 +1150,14 @@ static bool parse_dsp_level(Handle* handle,
                             Effect* eff,
                             const char* key,
                             const char* subkey,
-                            void* data,
-                            long length,
+                            Streader* sr,
                             int dsp_index)
 {
     assert(handle != NULL);
     assert(eff != NULL);
     assert(key != NULL);
     assert(subkey != NULL);
-    assert((data == NULL) == (length == 0));
-    assert(length >= 0);
+    assert(sr != NULL);
 
     if (dsp_index < 0 || dsp_index >= KQT_DSPS_MAX)
         return true;
@@ -1296,11 +1175,10 @@ static bool parse_dsp_level(Handle* handle,
 
     if (string_eq(subkey, "p_manifest.json"))
     {
-        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        const bool existent = read_default_manifest(data, state);
-        if (state->error)
+        const bool existent = read_default_manifest(sr);
+        if (Streader_is_error_set(sr))
         {
-            set_parse_error(handle, state);
+            set_error(handle, sr);
             return false;
         }
 
@@ -1309,7 +1187,7 @@ static bool parse_dsp_level(Handle* handle,
     else if (string_eq(subkey, "p_dsp_type.json"))
     {
 //        fprintf(stderr, "%s\n", subkey);
-        if (data == NULL)
+        if (!Streader_has_data(sr))
         {
             DSP_table_remove_dsp(dsp_table, dsp_index);
         }
@@ -1320,12 +1198,10 @@ static bool parse_dsp_level(Handle* handle,
                 return false;
 
             // Create the DSP implementation
-            Read_state* state = Read_state_init(READ_STATE_AUTO, key);
             char type[DSP_TYPE_LENGTH_MAX] = "";
-            read_string(data, type, DSP_TYPE_LENGTH_MAX, state);
-            if (state->error)
+            if (!Streader_read_string(sr, DSP_TYPE_LENGTH_MAX, type))
             {
-                set_parse_error(handle, state);
+                set_error(handle, sr);
                 return false;
             }
             DSP_cons* cons = DSP_type_find_cons(type);
@@ -1405,14 +1281,9 @@ static bool parse_dsp_level(Handle* handle,
             return false;
 
         // Update Device
-        Read_state* rs = Read_state_init(READ_STATE_AUTO, key);
-        if (!Device_set_key((Device*)dsp, subkey, data, length, rs))
+        if (!Device_set_key((Device*)dsp, subkey, sr))
         {
-            if (rs->error)
-                set_parse_error(handle, rs);
-            else
-                Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory");
+            set_error(handle, sr);
             return false;
         }
 
@@ -1454,16 +1325,15 @@ static bool parse_dsp_level(Handle* handle,
 static bool parse_pattern_level(Handle* handle,
                                 const char* key,
                                 const char* subkey,
-                                void* data,
-                                long length,
+                                Streader* sr,
                                 int index)
 {
 //    fprintf(stderr, "pattern level: %s\n", key);
     assert(handle != NULL);
     assert(key != NULL);
     assert(subkey != NULL);
-    assert((data == NULL) == (length == 0));
-    assert(length >= 0);
+    assert(sr != NULL);
+
     if (index < 0 || index >= KQT_PATTERNS_MAX)
     {
         return true;
@@ -1473,11 +1343,10 @@ static bool parse_pattern_level(Handle* handle,
 
     if (string_eq(subkey, "p_manifest.json"))
     {
-        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        const bool existent = read_default_manifest(data, state);
-        if (state->error)
+        const bool existent = read_default_manifest(sr);
+        if (Streader_is_error_set(sr))
         {
-            set_parse_error(handle, state);
+            set_error(handle, sr);
             return false;
         }
         Pat_table* pats = Module_get_pats(module);
@@ -1497,10 +1366,10 @@ static bool parse_pattern_level(Handle* handle,
                 return false;
             }
         }
-        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        if (!Pattern_parse_header(pat, data, state))
+
+        if (!Pattern_parse_header(pat, sr))
         {
-            set_parse_error(handle, state);
+            set_error(handle, sr);
             if (new_pattern)
             {
                 del_Pattern(pat);
@@ -1542,28 +1411,19 @@ static bool parse_pattern_level(Handle* handle,
                 return false;
             }
         }
-        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
         const Event_names* event_names =
                 Event_handler_get_names(Player_get_event_handler(handle->player));
-        Column* col = new_Column_from_string(Pattern_get_length(pat),
-                                             data,
-                                             event_names,
-                                             state);
+        Column* col = new_Column_from_string(
+                sr, Pattern_get_length(pat), event_names);
         if (col == NULL)
         {
-            if (!state->error)
-            {
-                Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory");
-            }
-            else
-            {
-                set_parse_error(handle, state);
-            }
+            set_error(handle, sr);
+
             if (new_pattern)
             {
                 del_Pattern(pat);
             }
+
             return false;
         }
         if (!Pattern_set_column(pat, sub_index, col))
@@ -1608,8 +1468,7 @@ static bool parse_pattern_level(Handle* handle,
                     pat,
                     key,
                     second_element,
-                    data,
-                    length,
+                    sr,
                     sub_index))
         {
             if (new_pattern)
@@ -1637,24 +1496,20 @@ static bool parse_pat_inst_level(
         Pattern* pat,
         const char* key,
         const char* subkey,
-        void* data,
-        long length,
+        Streader* sr,
         int index)
 {
     assert(handle != NULL);
     assert(key != NULL);
     assert(subkey != NULL);
-    assert((data == NULL) == (length == 0));
-    assert(length >= 0);
-    (void)length;
+    assert(sr != NULL);
 
     if (string_eq(subkey, "p_manifest.json"))
     {
-        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        const bool existent = read_default_manifest(data, state);
-        if (state->error)
+        const bool existent = read_default_manifest(sr);
+        if (Streader_is_error_set(sr))
         {
-            set_parse_error(handle, state);
+            set_error(handle, sr);
             return false;
         }
 
@@ -1668,17 +1523,15 @@ static bool parse_pat_inst_level(
 static bool parse_scale_level(Handle* handle,
                               const char* key,
                               const char* subkey,
-                              void* data,
-                              long length,
+                              Streader* sr,
                               int index)
 {
 //    fprintf(stderr, "scale level: %s\n", key);
     assert(handle != NULL);
     assert(key != NULL);
     assert(subkey != NULL);
-    assert((data == NULL) == (length == 0));
-    assert(length >= 0);
-    (void)length;
+    assert(sr != NULL);
+
     if (index < 0 || index >= KQT_SCALES_MAX)
     {
         return true;
@@ -1688,11 +1541,10 @@ static bool parse_scale_level(Handle* handle,
 
     if (string_eq(subkey, "p_scale.json"))
     {
-        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        Scale* scale = new_Scale_from_string(data, state);
+        Scale* scale = new_Scale_from_string(sr);
         if (scale == NULL)
         {
-            set_parse_error(handle, state);
+            set_error(handle, sr);
             return false;
         }
         Module_set_scale(module, index, scale);
@@ -1705,17 +1557,15 @@ static bool parse_scale_level(Handle* handle,
 static bool parse_subsong_level(Handle* handle,
                                 const char* key,
                                 const char* subkey,
-                                void* data,
-                                long length,
+                                Streader* sr,
                                 int index)
 {
 //    fprintf(stderr, "subsong level: %s\n", key);
     assert(handle != NULL);
     assert(key != NULL);
     assert(subkey != NULL);
-    assert((data == NULL) == (length == 0));
-    assert(length >= 0);
-    (void)length;
+    assert(sr != NULL);
+
     if (index < 0 || index >= KQT_SONGS_MAX)
     {
         return true;
@@ -1725,27 +1575,20 @@ static bool parse_subsong_level(Handle* handle,
 
     if (string_eq(subkey, "p_manifest.json"))
     {
-        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        const bool existent = read_default_manifest(data, state);
-        if (state->error)
+        const bool existent = read_default_manifest(sr);
+        if (Streader_is_error_set(sr))
         {
-            set_parse_error(handle, state);
+            set_error(handle, sr);
             return false;
         }
         Song_table_set_existent(module->songs, index, existent);
     }
     else if (string_eq(subkey, "p_song.json"))
     {
-        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        Song* song = new_Song_from_string(data, state);
+        Song* song = new_Song_from_string(sr);
         if (song == NULL)
         {
-            if (!state->error)
-                Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory");
-            else
-                set_parse_error(handle, state);
-
+            set_error(handle, sr);
             return false;
         }
         Song_table* st = Module_get_songs(module);
@@ -1759,16 +1602,10 @@ static bool parse_subsong_level(Handle* handle,
     }
     else if (string_eq(subkey, "p_order_list.json"))
     {
-        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        Order_list* ol = new_Order_list(data, state);
+        Order_list* ol = new_Order_list(sr);
         if (ol == NULL)
         {
-            if (!state->error)
-                Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory");
-            else
-                set_parse_error(handle, state);
-
+            set_error(handle, sr);
             return false;
         }
 

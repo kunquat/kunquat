@@ -19,7 +19,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <File_base.h>
+#include <Streader.h>
 #include <Tstamp.h>
 #include <Value.h>
 
@@ -43,16 +43,11 @@ Channel_gen_state* new_Channel_gen_state(void);
  * Allocates memory for a list of keys.
  *
  * \param cgstate   The Channel gen state -- must not be \c NULL.
- * \param str       The list of keys as a JSON string, or \c NULL.
- * \param rs        The Read state -- must not be \c NULL.
+ * \param sr        The Streader of the JSON data -- must not be \c NULL.
  *
- * \return   \c true if successful, otherwise \c false. \a rs will _not_ be
- *           modified if memory allocation failed.
+ * \return   \c true if successful, otherwise \c false.
  */
-bool Channel_gen_state_alloc_keys(
-        Channel_gen_state* cgstate,
-        char* str,
-        Read_state* rs);
+bool Channel_gen_state_alloc_keys(Channel_gen_state* cgstate, Streader* sr);
 
 
 /**

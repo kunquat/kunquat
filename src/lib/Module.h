@@ -24,7 +24,6 @@
 #include <Device.h>
 #include <Environment.h>
 #include <Effect_table.h>
-#include <File_base.h>
 #include <frame.h>
 #include <Input_map.h>
 #include <Ins_table.h>
@@ -34,6 +33,7 @@
 #include <Random.h>
 #include <Scale.h>
 #include <Song_table.h>
+#include <Streader.h>
 #include <Track_list.h>
 
 
@@ -79,24 +79,22 @@ Module* new_Module();
  * Parses the composition header of a Module.
  *
  * \param module   The Module -- must not be \c NULL.
- * \param str      The textual description -- must not be \c NULL.
- * \param state    The Read state -- must not be \c NULL.
+ * \param sr       The Streader of the JSON data -- must not be \c NULL.
  *
  * \return   \c true if successful, otherwise \c false.
  */
-bool Module_parse_composition(Module* module, char* str, Read_state* state);
+bool Module_parse_composition(Module* module, Streader* sr);
 
 
 /**
  * Parses the random seed of the composition.
  *
  * \param module   The Module -- must not be \c NULL.
- * \param str      The textual description -- must not be \c NULL.
- * \param state    The Read state -- must not be \c NULL.
+ * \param sr       The Streader of the JSON data -- must not be \c NULL.
  *
  * \return   \c true if successful, otherwise \c false.
  */
-bool Module_parse_random_seed(Module* module, char* str, Read_state* state);
+bool Module_parse_random_seed(Module* module, Streader* sr);
 
 
 /**

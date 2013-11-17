@@ -17,7 +17,6 @@
 #include <Active_names.h>
 #include <Event.h>
 #include <Event_type.h>
-#include <File_base.h>
 #include <General_state.h>
 #include <kunquat/limits.h>
 #include <set_active_name.h>

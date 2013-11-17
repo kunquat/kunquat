@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2013
  *
  * This file is part of Kunquat.
  *
@@ -18,7 +18,7 @@
 
 #include <stdint.h>
 
-#include <File_base.h>
+#include <Streader.h>
 
 
 /**
@@ -30,13 +30,11 @@ typedef struct Num_list Num_list;
 /**
  * Creates a new Number list from a textual description.
  *
- * \param str     The list in JSON format, or \c NULL.
- * \param state   The Read state -- must not be \c NULL.
+ * \param sr   The Streader of the JSON data -- must not be \c NULL.
  *
- * \return   The new Number list if successful, otherwise \c NULL. \a state
- *           will not be modified if memory allocation failed.
+ * \return   The new Number list if successful, otherwise \c NULL.
  */
-Num_list* new_Num_list_from_string(char* str, Read_state* state);
+Num_list* new_Num_list_from_string(Streader* sr);
 
 
 /**

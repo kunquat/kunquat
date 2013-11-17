@@ -19,10 +19,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <Tstamp.h>
+#include <AAtree.h>
 #include <Event.h>
 #include <Event_names.h>
-#include <AAtree.h>
+#include <Streader.h>
+#include <Tstamp.h>
 
 
 typedef struct Event_list
@@ -133,20 +134,17 @@ Column* new_Column(const Tstamp* len);
 /**
  * Creates a new Column from a textual description.
  *
- * \param len              The length of the column. If this is \c NULL, the
- *                         length is set to INT64_MAX beats.
- * \param str              The textual description -- must not be \c NULL.
- * \param event_names      The Event names -- must not be \c NULL.
- * \param state            The Read state -- must not be \c NULL.
+ * \param sr            The Streader of the JSON input -- must not be \c NULL.
+ * \param len           The length of the column. If this is \c NULL, the
+ *                      length is set to INT64_MAX beats.
+ * \param event_names   The Event names -- must not be \c NULL.
  *
- * \return   The new Column if successful, otherwise \c NULL. \a state
- *           will _not_ be updated if memory allocation failed.
+ * \return   The new Column if successful, otherwise \c NULL.
  */
 Column* new_Column_from_string(
+        Streader* sr,
         const Tstamp* len,
-        char* str,
-        const Event_names* event_names,
-        Read_state* state);
+        const Event_names* event_names);
 
 
 /**

@@ -17,7 +17,6 @@
 #include <stdint.h>
 #include <math.h>
 
-#include <File_base.h>
 #include <memory.h>
 #include <Num_list.h>
 #include <xassert.h>
@@ -34,16 +33,43 @@ struct Num_list
 static bool Num_list_append(Num_list* nl, double num);
 
 
-Num_list* new_Num_list_from_string(char* str, Read_state* state)
+static bool read_num(Streader* sr, int32_t index, void* userdata)
 {
-    assert(state != NULL);
+    assert(sr != NULL);
+    (void)index;
+    assert(userdata != NULL);
 
-    if (state->error)
+    Num_list* nl = userdata;
+
+    double num = NAN;
+    if (!Streader_read_float(sr, &num))
+        return false;
+
+    if (!Num_list_append(nl, num))
+    {
+        del_Num_list(nl);
+        Streader_set_memory_error(
+                sr, "Could not allocate memory for number list");
+        return false;
+    }
+
+    return true;
+}
+
+Num_list* new_Num_list_from_string(Streader* sr)
+{
+    assert(sr != NULL);
+
+    if (Streader_is_error_set(sr))
         return NULL;
 
     Num_list* nl = memory_alloc_item(Num_list);
     if (nl == NULL)
+    {
+        Streader_set_memory_error(
+                sr, "Could not allocate memory for number list");
         return NULL;
+    }
 
     nl->len = 0;
     nl->res = 8;
@@ -53,47 +79,15 @@ Num_list* new_Num_list_from_string(char* str, Read_state* state)
     if (nl->nums == NULL)
     {
         del_Num_list(nl);
+        Streader_set_memory_error(
+                sr, "Could not allocate memory for number list");
         return NULL;
     }
 
-    if (str == NULL)
+    if (!Streader_has_data(sr))
         return nl;
 
-    str = read_const_char(str, '[', state);
-    if (state->error)
-    {
-        del_Num_list(nl);
-        return NULL;
-    }
-
-    str = read_const_char(str, ']', state);
-    if (!state->error)
-        return nl;
-
-    Read_state_clear_error(state);
-
-    bool expect_num = true;
-    while (expect_num)
-    {
-        double num = NAN;
-        str = read_double(str, &num, state);
-        if (state->error)
-        {
-            del_Num_list(nl);
-            return NULL;
-        }
-
-        if (!Num_list_append(nl, num))
-        {
-            del_Num_list(nl);
-            return NULL;
-        }
-
-        check_next(str, state, expect_num);
-    }
-
-    str = read_const_char(str, ']', state);
-    if (state->error)
+    if (!Streader_read_list(sr, read_num, nl))
     {
         del_Num_list(nl);
         return NULL;

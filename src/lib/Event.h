@@ -20,12 +20,11 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include <Tstamp.h>
-#include <kunquat/limits.h>
-#include <File_base.h>
-
 #include <Event_names.h>
 #include <Event_type.h>
+#include <kunquat/limits.h>
+#include <Streader.h>
+#include <Tstamp.h>
 
 
 /**
@@ -56,18 +55,13 @@ Event* new_Event(Event_type type, Tstamp* pos);
 /**
  * Creates an Event from a JSON string.
  *
- * \param str     A reference to the string -- must not be \c NULL or a
- *                pointer to \c NULL.
- * \param state   The Read state -- must not be \c NULL.
+ * \param sr      The Streader of the data -- must not be \c NULL.
  * \param names   The Event names -- must not be \c NULL.
  *
  * \return   The new Event if successful, otherwise \c NULL. \a state will
  *           not be modified if memory allocation failed.
  */
-Event* new_Event_from_string(
-        char** str,
-        Read_state* state,
-        const Event_names* names);
+Event* new_Event_from_string(Streader* sr, const Event_names* names);
 
 
 /**

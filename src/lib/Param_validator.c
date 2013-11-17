@@ -19,76 +19,54 @@
 #include <ctype.h>
 #include <math.h>
 
-#include <File_base.h>
 #include <kunquat/limits.h>
 #include <Param_validator.h>
 #include <Pat_inst_ref.h>
+#include <Streader.h>
 #include <xassert.h>
 
 
-#define begin() Read_state* state = READ_STATE_AUTO; \
-                param = read_const_char(param, '[', state)
-
-#define end() param = read_const_char(param, ']', state)
+#define init_c_streader(param) \
+    Streader_init(STREADER_AUTO, (param), strlen((param)))
 
 
 bool v_any_bool(char* param)
 {
     assert(param != NULL);
-
-    begin();
-    param = read_bool(param, NULL, state);
-    end();
-
-    return !state->error;
+    Streader* sr = init_c_streader(param);
+    return Streader_read_bool(sr, NULL);
 }
 
 
 bool v_any_int(char* param)
 {
     assert(param != NULL);
-
-    begin();
-    param = read_int(param, NULL, state);
-    end();
-
-    return !state->error;
+    Streader* sr = init_c_streader(param);
+    return Streader_read_int(sr, NULL);
 }
 
 
 bool v_any_float(char* param)
 {
     assert(param != NULL);
-
-    begin();
-    param = read_double(param, NULL, state);
-    end();
-
-    return !state->error;
+    Streader* sr = init_c_streader(param);
+    return Streader_read_float(sr, NULL);
 }
 
 
 bool v_any_str(char* param)
 {
     assert(param != NULL);
-
-    begin();
-    param = read_string(param, NULL, 0, state);
-    end();
-
-    return !state->error;
+    Streader* sr = init_c_streader(param);
+    return Streader_read_string(sr, 0, NULL);
 }
 
 
 bool v_any_ts(char* param)
 {
     assert(param != NULL);
-
-    begin();
-    param = read_tstamp(param, NULL, state);
-    end();
-
-    return !state->error;
+    Streader* sr = init_c_streader(param);
+    return Streader_read_tstamp(sr, NULL);
 }
 
 
@@ -96,12 +74,12 @@ bool v_arp_index(char* param)
 {
     assert(param != NULL);
 
-    begin();
     int64_t index = -1;
-    param = read_int(param, &index, state);
-    end();
+    Streader* sr = init_c_streader(param);
 
-    return !state->error && index >= 0 && index < KQT_ARPEGGIO_NOTES_MAX;
+    return Streader_read_int(sr, &index) &&
+        index >= 0 &&
+        index < KQT_ARPEGGIO_NOTES_MAX;
 }
 
 
@@ -109,24 +87,18 @@ bool v_arp_speed(char* param)
 {
     assert(param != NULL);
 
-    begin();
     double speed = NAN;
-    param = read_double(param, &speed, state);
-    end();
+    Streader* sr = init_c_streader(param);
 
-    return !state->error && speed > 0;
+    return Streader_read_float(sr, &speed) && speed > 0;
 }
 
 
 bool v_cond(char* param)
 {
     assert(param != NULL);
-
-    begin();
-    param = read_string(param, NULL, 0, state);
-    end();
-
-    return !state->error;
+    Streader* sr = init_c_streader(param);
+    return Streader_read_string(sr, 0, NULL);
 }
 
 
@@ -134,12 +106,12 @@ bool v_counter(char* param)
 {
     assert(param != NULL);
 
-    begin();
     int64_t counter = -1;
-    param = read_int(param, &counter, state);
-    end();
+    Streader* sr = init_c_streader(param);
 
-    return !state->error && counter >= 0 && counter < 65535;
+    return Streader_read_int(sr, &counter) &&
+        counter >= 0 &&
+        counter < 65535;
 }
 
 
@@ -147,12 +119,10 @@ bool v_dsp(char* param)
 {
     assert(param != NULL);
 
-    begin();
     int64_t dsp = -1;
-    param = read_int(param, &dsp, state);
-    end();
+    Streader* sr = init_c_streader(param);
 
-    return !state->error && dsp >= 0 && dsp < KQT_DSPS_MAX;
+    return Streader_read_int(sr, &dsp) && (dsp >= 0) && (dsp < KQT_DSPS_MAX);
 }
 
 
@@ -160,12 +130,12 @@ bool v_effect(char* param)
 {
     assert(param != NULL);
 
-    begin();
     int64_t effect = -1;
-    param = read_int(param, &effect, state);
-    end();
+    Streader* sr = init_c_streader(param);
 
-    return !state->error && effect >= 0 && effect < KQT_EFFECTS_MAX;
+    return Streader_read_int(sr, &effect) &&
+        effect >= 0 &&
+        effect < KQT_EFFECTS_MAX;
 }
 
 
@@ -173,12 +143,10 @@ bool v_finite_float(char* param)
 {
     assert(param != NULL);
 
-    begin();
     double value = NAN;
-    param = read_double(param, &value, state);
-    end();
+    Streader* sr = init_c_streader(param);
 
-    return !state->error && isfinite(value);
+    return Streader_read_float(sr, &value) && isfinite(value);
 }
 
 
@@ -186,12 +154,10 @@ bool v_force(char* param)
 {
     assert(param != NULL);
 
-    begin();
     double force = NAN;
-    param = read_double(param, &force, state);
-    end();
+    Streader* sr = init_c_streader(param);
 
-    return !state->error && force <= 18;
+    return Streader_read_float(sr, &force) && (force <= 18);
 }
 
 
@@ -199,12 +165,12 @@ bool v_gen(char* param)
 {
     assert(param != NULL);
 
-    begin();
     int64_t gen = -1;
-    param = read_int(param, &gen, state);
-    end();
+    Streader* sr = init_c_streader(param);
 
-    return !state->error && gen >= 0 && gen < KQT_GENERATORS_MAX;
+    return Streader_read_int(sr, &gen) &&
+        gen >= 0 &&
+        gen < KQT_GENERATORS_MAX;
 }
 
 
@@ -212,12 +178,10 @@ bool v_hit(char* param)
 {
     assert(param != NULL);
 
-    begin();
     int64_t hit = -1;
-    param = read_int(param, &hit, state);
-    end();
+    Streader* sr = init_c_streader(param);
 
-    return !state->error && hit >= 0 && hit < KQT_HITS_MAX;
+    return Streader_read_int(sr, &hit) && (hit >= 0) && (hit < KQT_HITS_MAX);
 }
 
 
@@ -225,12 +189,12 @@ bool v_ins(char* param)
 {
     assert(param != NULL);
 
-    begin();
     int64_t ins = -1;
-    param = read_int(param, &ins, state);
-    end();
+    Streader* sr = init_c_streader(param);
 
-    return !state->error && ins >= 0 && ins < KQT_INSTRUMENTS_MAX;
+    return Streader_read_int(sr, &ins) &&
+        ins >= 0 &&
+        ins < KQT_INSTRUMENTS_MAX;
 }
 
 
@@ -238,12 +202,10 @@ bool v_key(char* param)
 {
     assert(param != NULL);
 
-    begin();
     char key[KQT_KEY_LENGTH_MAX + 1] = "";
-    param = read_string(param, key, KQT_KEY_LENGTH_MAX + 1, state);
-    end();
+    Streader* sr = init_c_streader(param);
 
-    if (state->error)
+    if (!Streader_read_string(sr, KQT_KEY_LENGTH_MAX + 1, key))
         return false;
 
     int len = strlen(key);
@@ -271,12 +233,10 @@ bool v_nonneg_float(char* param)
 {
     assert(param != NULL);
 
-    begin();
     double value = NAN;
-    param = read_double(param, &value, state);
-    end();
+    Streader* sr = init_c_streader(param);
 
-    return !state->error && value >= 0;
+    return Streader_read_float(sr, &value) && (value >= 0);
 }
 
 
@@ -284,12 +244,11 @@ bool v_nonneg_ts(char* param)
 {
     assert(param != NULL);
 
-    begin();
     Tstamp* ts = TSTAMP_AUTO;
-    param = read_tstamp(param, ts, state);
-    end();
+    Streader* sr = init_c_streader(param);
 
-    return !state->error && Tstamp_cmp(ts, Tstamp_set(TSTAMP_AUTO, 0, 0)) >= 0;
+    return Streader_read_tstamp(sr, ts) &&
+        Tstamp_cmp(ts, Tstamp_set(TSTAMP_AUTO, 0, 0)) >= 0;
 }
 
 
@@ -297,12 +256,10 @@ bool v_note_entry(char* param)
 {
     assert(param != NULL);
 
-    begin();
     int64_t ne = -1;
-    param = read_int(param, &ne, state);
-    end();
+    Streader* sr = init_c_streader(param);
 
-    return !state->error && ne >= 0 && ne < KQT_SCALE_NOTES;
+    return Streader_read_int(sr, &ne) && (ne >= 0) && (ne < KQT_SCALE_NOTES);
 }
 
 
@@ -310,12 +267,10 @@ bool v_panning(char* param)
 {
     assert(param != NULL);
 
-    begin();
     double pan = NAN;
-    param = read_double(param, &pan, state);
-    end();
+    Streader* sr = init_c_streader(param);
 
-    return !state->error && pan >= -1 && pan <= 1;
+    return Streader_read_float(sr, &pan) && (pan >= -1) && (pan <= 1);
 }
 
 
@@ -323,26 +278,18 @@ bool v_pattern(char* param)
 {
     assert(param != NULL);
 
-    begin();
     int64_t pat = -1;
-    param = read_int(param, &pat, state);
-    end();
+    Streader* sr = init_c_streader(param);
 
-    return !state->error && pat >= 0 && pat < KQT_PATTERNS_MAX;
+    return Streader_read_int(sr, &pat) && (pat >= 0) && (pat < KQT_PATTERNS_MAX);
 }
 
 
 bool v_piref(char* param)
 {
     assert(param != NULL);
-
-    begin();
-    Pat_inst_ref* piref = PAT_INST_REF_AUTO;
-    piref->pat = -1;
-    param = read_pat_inst_ref(param, piref, state);
-    end();
-
-    return !state->error;
+    Streader* sr = init_c_streader(param);
+    return Streader_read_piref(sr, NULL);
 }
 
 
@@ -357,12 +304,10 @@ bool v_resonance(char* param)
 {
     assert(param != NULL);
 
-    begin();
     double res = NAN;
-    param = read_double(param, &res, state);
-    end();
+    Streader* sr = init_c_streader(param);
 
-    return !state->error && res >= 0 && res <= 99;
+    return Streader_read_float(sr, &res) && (res >= 0) && (res <= 99);
 }
 
 
@@ -370,12 +315,25 @@ bool v_scale(char* param)
 {
     assert(param != NULL);
 
-    begin();
     int64_t scale = -1;
-    param = read_int(param, &scale, state);
-    end();
+    Streader* sr = init_c_streader(param);
 
-    return !state->error && scale >= 0 && scale < KQT_SCALES_MAX;
+    return Streader_read_int(sr, &scale) &&
+        scale >= 0 &&
+        scale < KQT_SCALES_MAX;
+}
+
+
+bool v_song(char* param)
+{
+    assert(param != NULL);
+
+    int64_t song = -2;
+    Streader* sr = init_c_streader(param);
+
+    return Streader_read_int(sr, &song) &&
+        song >= -1 &&
+        song < KQT_SONGS_MAX;
 }
 
 
@@ -383,25 +341,10 @@ bool v_system(char* param)
 {
     assert(param != NULL);
 
-    begin();
-    int64_t system = -2;
-    param = read_int(param, &system, state);
-    end();
+    int64_t system = -1;
+    Streader* sr = init_c_streader(param);
 
-    return !state->error && system >= -1;
-}
-
-
-bool v_subsong(char* param)
-{
-    assert(param != NULL);
-
-    begin();
-    int64_t subsong = -2;
-    param = read_int(param, &subsong, state);
-    end();
-
-    return !state->error && subsong >= -1 && subsong < KQT_SONGS_MAX;
+    return Streader_read_int(sr, &system) && (system >= -1);
 }
 
 
@@ -409,12 +352,12 @@ bool v_sustain(char* param)
 {
     assert(param != NULL);
 
-    begin();
     double sustain = NAN;
-    param = read_double(param, &sustain, state);
-    end();
+    Streader* sr = init_c_streader(param);
 
-    return !state->error && sustain >= 0 && sustain <= 1;
+    return Streader_read_float(sr, &sustain) &&
+        sustain >= 0 &&
+        sustain <= 1;
 }
 
 
@@ -422,12 +365,10 @@ bool v_tempo(char* param)
 {
     assert(param != NULL);
 
-    begin();
     double tempo = NAN;
-    param = read_double(param, &tempo, state);
-    end();
+    Streader* sr = init_c_streader(param);
 
-    return !state->error && tempo >= 1 && tempo <= 999;
+    return Streader_read_float(sr, &tempo) && (tempo >= 1) && (tempo <= 999);
 }
 
 
@@ -435,12 +376,12 @@ bool v_track(char* param)
 {
     assert(param != NULL);
 
-    begin();
     int64_t track = -2;
-    param = read_int(param, &track, state);
-    end();
+    Streader* sr = init_c_streader(param);
 
-    return !state->error && track >= -1 && track < KQT_TRACKS_MAX;
+    return Streader_read_int(sr, &track) &&
+        track >= -1 &&
+        track < KQT_TRACKS_MAX;
 }
 
 
@@ -448,12 +389,10 @@ bool v_tremolo_depth(char* param)
 {
     assert(param != NULL);
 
-    begin();
     double depth = NAN;
-    param = read_double(param, &depth, state);
-    end();
+    Streader* sr = init_c_streader(param);
 
-    return !state->error && depth >= 0 && depth <= 24;
+    return Streader_read_float(sr, &depth) && (depth >= 0) && (depth <= 24);
 }
 
 
@@ -461,16 +400,13 @@ bool v_volume(char* param)
 {
     assert(param != NULL);
 
-    begin();
     double vol = NAN;
-    param = read_double(param, &vol, state);
-    end();
+    Streader* sr = init_c_streader(param);
 
-    return !state->error && vol <= 0;
+    return Streader_read_float(sr, &vol) && (vol <= 0);
 }
 
 
-#undef begin
-#undef end
+#undef init_c_streader
 
 

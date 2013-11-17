@@ -259,7 +259,7 @@ class Kunquat(BaseHandle):
             self._handle = _kunquat.kqt_new_Handle()
             if not self._handle:
                 raise _get_error(json.loads(
-                                 _kunquat.kqt_Handle_get_error(None)))
+                                 _kunquat.kqt_Handle_get_error(0)))
         self._track = None
         self._nanoseconds = 0
         self._audio_buffer_size = _kunquat.kqt_Handle_get_audio_buffer_size(
@@ -288,11 +288,11 @@ class Kunquat(BaseHandle):
         KunquatArgumentError -- The key is not valid.
 
         """
-        if key[key.index('.'):].startswith('.json'):
-            value = json.dumps(value) if value != None else ''
-        elif value == None:
-            value = ''
-        data = buffer(value)
+        if isinstance(value, str):
+            json_value = value
+        else:
+            json_value = json.dumps(value) if value != None else ''
+        data = buffer(json_value)
         cdata = (ctypes.c_ubyte * len(data))()
         cdata[:] = [ord(b) for b in data][:]
         _kunquat.kqt_Handle_set_data(self._handle,

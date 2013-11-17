@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2013
  *
  * This file is part of Kunquat.
  *
@@ -20,7 +20,7 @@
 
 #include <AAtree.h>
 #include <Env_var.h>
-#include <File_base.h>
+#include <Streader.h>
 
 
 /**
@@ -74,14 +74,12 @@ Environment* new_Environment(void);
 /**
  * Parses the Environment from a string.
  *
- * \param env     The Environment -- must not be \c NULL.
- * \param str     The textual description, or \c NULL.
- * \param state   The Read state -- must not be \c NULL.
+ * \param env   The Environment -- must not be \c NULL.
+ * \param sr    The Streader of the JSON data -- must not be \c NULL.
  *
- * \return   \c true if successful, otherwise \c false. \a state will not
- *           be modified if memory allocation failed.
+ * \return   \c true if successful, otherwise \c false.
  */
-bool Environment_parse(Environment* env, char* str, Read_state* state);
+bool Environment_parse(Environment* env, Streader* sr);
 
 
 /**

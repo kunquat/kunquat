@@ -135,25 +135,23 @@ Device_field* new_Device_field(const char* key, void* data)
 }
 
 
-Device_field* new_Device_field_from_data(
-        const char* key,
-        void* data,
-        long length,
-        Read_state* state)
+Device_field* new_Device_field_from_data(const char* key, Streader* sr)
 {
     assert(key != NULL);
-    assert((data == NULL) == (length == 0));
-    assert(length >= 0);
-    assert(state != NULL);
+    assert(sr != NULL);
 
-    if (state->error)
+    if (Streader_is_error_set(sr))
         return NULL;
 
     Device_field* field = new_Device_field(key, NULL);
     if (field == NULL)
+    {
+        Streader_set_memory_error(
+                sr, "Could not allocate memory for device field %s", key);
         return NULL;
+    }
 
-    if (!Device_field_change(field, data, length, state))
+    if (!Device_field_change(field, sr))
     {
         del_Device_field(field);
         return NULL;
@@ -170,50 +168,37 @@ const char* Device_field_get_key(const Device_field* field)
 }
 
 
-bool Device_field_change(
-        Device_field* field,
-        void* data,
-        long length,
-        Read_state* state)
+bool Device_field_change(Device_field* field, Streader* sr)
 {
     assert(field != NULL);
     assert(field->type != DEVICE_FIELD_NONE);
-    assert((data == NULL) == (length == 0));
-    assert(length >= 0);
-    assert(state != NULL);
+    assert(sr != NULL);
 
-    if (state->error)
+    if (Streader_is_error_set(sr))
         return false;
+
+    const void* data = sr->str;
 
     switch (field->type)
     {
         case DEVICE_FIELD_BOOL:
         {
             if (data != NULL)
-            {
-                char* str = data;
-                read_bool(str, &field->data.bool_type, state);
-            }
+                Streader_read_bool(sr, &field->data.bool_type);
         }
         break;
 
         case DEVICE_FIELD_INT:
         {
             if (data != NULL)
-            {
-                char* str = data;
-                read_int(str, &field->data.int_type, state);
-            }
+                Streader_read_int(sr, &field->data.int_type);
         }
         break;
 
         case DEVICE_FIELD_FLOAT:
         {
             if (data != NULL)
-            {
-                char* str = data;
-                read_double(str, &field->data.float_type, state);
-            }
+                Streader_read_float(sr, &field->data.float_type);
         }
         break;
 
@@ -229,10 +214,7 @@ bool Device_field_change(
         case DEVICE_FIELD_TSTAMP:
         {
             if (data != NULL)
-            {
-                char* str = data;
-                read_tstamp(str, &field->data.Tstamp_type, state);
-            }
+                Streader_read_tstamp(sr, &field->data.Tstamp_type);
         }
         break;
 
@@ -246,16 +228,14 @@ bool Device_field_change(
                 if (env == NULL)
                     return false;
 
-                char* str = data;
-                Envelope_read(env, str, state);
-                if (state->error)
+                if (!Envelope_read(env, sr))
                 {
                     del_Envelope(env);
                     return false;
                 }
             }
 
-            assert(!state->error);
+            assert(!Streader_is_error_set(sr));
             if (field->data.Envelope_type != NULL)
                 del_Envelope(field->data.Envelope_type);
 
@@ -272,14 +252,14 @@ bool Device_field_change(
                 if (sample == NULL)
                     return false;
 
-                if (!Sample_parse_wavpack(sample, data, length, state))
+                if (!Sample_parse_wavpack(sample, sr))
                 {
                     del_Sample(sample);
                     return false;
                 }
             }
 
-            assert(!state->error);
+            assert(!Streader_is_error_set(sr));
             if (field->data.Sample_type != NULL)
                 del_Sample(field->data.Sample_type);
 
@@ -289,15 +269,14 @@ bool Device_field_change(
 
         case DEVICE_FIELD_SAMPLE_PARAMS:
         {
-            if (!Sample_params_parse(&field->data.Sample_params_type,
-                                     data, state))
+            if (!Sample_params_parse(&field->data.Sample_params_type, sr))
                 return false;
         }
         break;
 
         case DEVICE_FIELD_SAMPLE_MAP:
         {
-            Sample_map* map = new_Sample_map_from_string(data, state);
+            Sample_map* map = new_Sample_map_from_string(sr);
             if (map == NULL)
                 return false;
 
@@ -308,7 +287,7 @@ bool Device_field_change(
 
         case DEVICE_FIELD_HIT_MAP:
         {
-            Hit_map* map = new_Hit_map_from_string(data, state);
+            Hit_map* map = new_Hit_map_from_string(sr);
             if (map == NULL)
                 return false;
 
@@ -319,7 +298,7 @@ bool Device_field_change(
 
         case DEVICE_FIELD_NUM_LIST:
         {
-            Num_list* nl = new_Num_list_from_string(data, state);
+            Num_list* nl = new_Num_list_from_string(sr);
             if (nl == NULL)
                 return false;
 
@@ -332,7 +311,7 @@ bool Device_field_change(
             assert(false);
     }
 
-    if (state->error)
+    if (Streader_is_error_set(sr))
         return false;
 
     field->empty = (data == NULL);
@@ -341,9 +320,7 @@ bool Device_field_change(
 }
 
 
-int Device_field_cmp(
-        const Device_field* field1,
-        const Device_field* field2)
+int Device_field_cmp(const Device_field* field1, const Device_field* field2)
 {
     assert(field1 != NULL);
     assert(field1->key != NULL);

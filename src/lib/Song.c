@@ -18,7 +18,6 @@
 #include <inttypes.h>
 #include <math.h>
 
-#include <File_base.h>
 #include <kunquat/limits.h>
 #include <memory.h>
 #include <string_common.h>
@@ -26,7 +25,7 @@
 #include <xassert.h>
 
 
-static bool Song_parse(Song* song, char* str, Read_state* state);
+static bool Song_parse(Song* song, Streader* sr);
 
 
 Song* new_Song(void)
@@ -54,15 +53,15 @@ Song* new_Song(void)
 }
 
 
-Song* new_Song_from_string(char* str, Read_state* state)
+Song* new_Song_from_string(Streader* sr)
 {
-    assert(state != NULL);
+    assert(sr != NULL);
 
     Song* song = new_Song();
     if (song == NULL)
         return NULL;
 
-    if (!Song_parse(song, str, state))
+    if (!Song_parse(song, sr))
     {
         del_Song(song);
         return NULL;
@@ -72,127 +71,68 @@ Song* new_Song_from_string(char* str, Read_state* state)
 }
 
 
-static bool Song_parse(Song* song, char* str, Read_state* state)
+static bool read_song_item(Streader* sr, const char* key, void* userdata)
 {
-    assert(song != NULL);
-    assert(state != NULL);
+    assert(sr != NULL);
+    assert(key != NULL);
+    assert(userdata != NULL);
 
-    if (str == NULL)
-        return true;
+    Song* song = userdata;
 
-    str = read_const_char(str, '{', state);
-    if (state->error)
-        return false;
-
-    str = read_const_char(str, '}', state);
-    if (!state->error)
-        return true;
-
-    Read_state_clear_error(state);
-    char key[128] = { '\0' };
-    bool expect_pair = true;
-
-    while (expect_pair)
+    if (string_eq(key, "tempo"))
     {
-        str = read_string(str, key, 128, state);
-        str = read_const_char(str, ':', state);
-        if (state->error)
+        if (!Streader_read_float(sr, &song->tempo))
             return false;
 
-        if (string_eq(key, "tempo"))
+        if (song->tempo < 1 || song->tempo > 999)
         {
-            str = read_double(str, &song->tempo, state);
-            if (state->error)
-                return false;
-
-            if (song->tempo < 1 || song->tempo > 999)
-            {
-                Read_state_set_error(
-                        state,
-                        "Tempo (%f) is outside valid range",
-                        song->tempo);
-                return false;
-            }
-        }
-        else if (string_eq(key, "global_vol"))
-        {
-            str = read_double(str, &song->global_vol, state);
-        }
-        else if (string_eq(key, "scale"))
-        {
-            int64_t num = 0;
-            str = read_int(str, &num, state);
-            if (state->error)
-                return false;
-
-            if (num < 0 || num >= KQT_SCALES_MAX)
-            {
-                Read_state_set_error(
-                        state,
-                        "Scale number (%" PRId64 ") is outside valid range",
-                        num);
-                return false;
-            }
-            song->scale = num;
-        }
-#if 0
-        else if (string_eq(key, "patterns"))
-        {
-            str = read_const_char(str, '[', state);
-            if (state->error)
-                return false;
-
-            str = read_const_char(str, ']', state);
-            if (state->error)
-            {
-                Read_state_clear_error(state);
-                bool expect_num = true;
-                int index = 0;
-                while (expect_num && index < KQT_SECTIONS_MAX)
-                {
-                    int64_t num = 0;
-                    str = read_int(str, &num, state);
-                    if (state->error)
-                        return false;
-
-                    if ((num < 0 || num >= KQT_PATTERNS_MAX) && num != KQT_SECTION_NONE)
-                    {
-                        Read_state_set_error(state,
-                                 "Pattern number (%" PRId64 ") is outside valid range", num);
-                        return false;
-                    }
-                    if (!Song_set(song, index, num))
-                    {
-                        Read_state_set_error(state,
-                                 "Couldn't allocate memory for a Song");
-                        return false;
-                    }
-                    ++index;
-                    check_next(str, state, expect_num);
-                }
-                str = read_const_char(str, ']', state);
-                if (state->error)
-                    return false;
-            }
-        }
-#endif
-        else
-        {
-            Read_state_set_error(state, "Unrecognised key in Song: %s\n", key);
+            Streader_set_error(
+                    sr, "Tempo (%f) is outside valid range", song->tempo);
             return false;
         }
-        if (state->error)
+    }
+    else if (string_eq(key, "global_vol"))
+    {
+        if (!Streader_read_float(sr, &song->global_vol))
+            return false;
+    }
+    else if (string_eq(key, "scale"))
+    {
+        int64_t num = 0;
+        if (!Streader_read_int(sr, &num))
+            return false;
+
+        if (num < 0 || num >= KQT_SCALES_MAX)
         {
+            Streader_set_error(
+                    sr,
+                    "Scale number (%" PRId64 ") is outside valid range",
+                    num);
             return false;
         }
-        check_next(str, state, expect_pair);
+        song->scale = num;
+    }
+    else
+    {
+        Streader_set_error(sr, "Unrecognised key in Song: %s\n", key);
+        return false;
     }
 
-    str = read_const_char(str, '}', state);
-    if (state->error)
+    return true;
+}
+
+static bool Song_parse(Song* song, Streader* sr)
+{
+    assert(song != NULL);
+    assert(sr != NULL);
+
+    if (Streader_is_error_set(sr))
         return false;
 
-    return true;
+    if (!Streader_has_data(sr))
+        return true;
+
+    return Streader_read_dict(sr, read_song_item, song);
 }
 
 

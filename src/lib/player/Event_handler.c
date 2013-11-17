@@ -22,7 +22,6 @@
 #include <Effect.h>
 #include <Event_names.h>
 #include <Event_type.h>
-#include <File_base.h>
 #include <General_state.h>
 #include <Generator.h>
 #include <Ins_table.h>
@@ -30,6 +29,7 @@
 #include <Module.h>
 #include <player/Channel.h>
 #include <player/Event_handler.h>
+#include <Streader.h>
 #include <string_common.h>
 #include <Value.h>
 
@@ -450,7 +450,7 @@ static void Event_handler_handle_query(
     (void)silent;
 
     //char auto_event[128] = "";
-    Read_state* rs = READ_STATE_AUTO;
+    //Read_state* rs = READ_STATE_AUTO;
     switch (event_type)
     {
 #if 0
@@ -499,7 +499,7 @@ static void Event_handler_handle_query(
             assert(false);
     }
 
-    assert(!rs->error);
+    //assert(!rs->error);
     return;
 }
 
@@ -559,6 +559,7 @@ bool Event_handler_trigger(
 }
 
 
+#if 0
 bool Event_handler_process_type(
         Event_handler* eh,
         int index,
@@ -602,6 +603,7 @@ bool Event_handler_process_type(
 
     return true;
 }
+#endif
 
 
 #if 0

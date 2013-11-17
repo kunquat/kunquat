@@ -22,6 +22,7 @@
 #include <Column.h>
 #include <Connections.h>
 #include <Pat_inst_ref.h>
+#include <Streader.h>
 #include <Tstamp.h>
 #include <kunquat/limits.h>
 
@@ -51,13 +52,12 @@ Pattern* new_Pattern(void);
 /**
  * Parses the header of a Pattern.
  *
- * \param pat     The Pattern -- must not be \c NULL.
- * \param str     The textual description -- must not be \c NULL.
- * \param state   The Read state -- must not be \c NULL.
+ * \param pat   The Pattern -- must not be \c NULL.
+ * \param sr    The Streader of the JSON data -- must not be \c NULL.
  *
  * \return   \c true if successful, otherwise \c false.
  */
-bool Pattern_parse_header(Pattern* pat, char* str, Read_state* state);
+bool Pattern_parse_header(Pattern* pat, Streader* sr);
 
 
 /**

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2013
  *
  * This file is part of Kunquat.
  *
@@ -19,7 +19,7 @@
 #include <stdbool.h>
 #include <math.h>
 
-#include <File_base.h>
+#include <Streader.h>
 
 
 #define ENVELOPE_MARKS_MAX (4)
@@ -70,14 +70,12 @@ Envelope* new_Envelope(int nodes_max,
 /**
  * Parses an Envelope from a string.
  *
- * \param env     The Envelope -- must not be \c NULL.
- * \param str     The textual description -- must not be \c NULL.
- * \param state   The Read state -- must not be \c NULL.
+ * \param env   The Envelope -- must not be \c NULL.
+ * \param sr    The Streader of the JSON data -- must not be \c NULL.
  *
- * \return   The position in the string after the parsing. The caller must
- *           check for errors through \a state.
+ * \return   \c true if successful, otherwise \c false.
  */
-char* Envelope_read(Envelope* env, char* str, Read_state* state);
+bool Envelope_read(Envelope* env, Streader* sr);
 
 
 /**

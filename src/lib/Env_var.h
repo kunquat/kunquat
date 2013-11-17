@@ -19,7 +19,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <File_base.h>
+#include <Streader.h>
 #include <Value.h>
 
 
@@ -46,14 +46,11 @@ Env_var* new_Env_var(const char* name);
 /**
  * Creates a new Environment variable from a textual description.
  *
- * \param str     A reference to the textual description
- *                -- must not be \c NULL or point to a \c NULL.
- * \param state   The Read state -- must not be \c NULL.
+ * \param sr   The Streader of the JSON data -- must not be \c NULL.
  *
  * \return   The new Environment variable if successful, otherwise \c NULL.
- *           \a state will not be modified if memory allocation failed.
  */
-Env_var* new_Env_var_from_string(char** str, Read_state* state);
+Env_var* new_Env_var_from_string(Streader* sr);
 
 
 /**

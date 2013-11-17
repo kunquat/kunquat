@@ -106,7 +106,7 @@ void set_data(char* key, char* data)
     assert(key != NULL);
     assert(data != NULL);
 
-    kqt_Handle_set_data(handle, key, data, strlen(data) + 1);
+    kqt_Handle_set_data(handle, key, data, strlen(data));
     check_unexpected_error();
 }
 

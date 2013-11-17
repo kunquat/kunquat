@@ -22,7 +22,7 @@
 #include <frame.h>
 #include <Envelope.h>
 #include <Scale.h>
-#include <File_base.h>
+#include <Streader.h>
 
 
 typedef struct Pitch_lock
@@ -105,35 +105,25 @@ Instrument_params* Instrument_params_init(
 /**
  * Parses an Instrument parameter file.
  *
- * \param ip      The Instrument parameters -- must not be \c NULL.
- * \param str     The textual description.
- * \param state   The Read state -- must not be \c NULL.
+ * \param ip   The Instrument parameters -- must not be \c NULL.
+ * \param sr   The Streader of the JSON data -- must not be \c NULL.
  *
- * \return   \c true if successful, otherwise \c false. If memory allocation
- *           fails, state error will _not_ be set.
+ * \return   \c true if successful, otherwise \c false.
  */
 bool Instrument_params_parse_env_force_rel(
-        Instrument_params* ip,
-        char* str,
-        Read_state* state);
+        Instrument_params* ip, Streader* sr);
 
 
 bool Instrument_params_parse_env_force(
-        Instrument_params* ip,
-        char* str,
-        Read_state* state);
+        Instrument_params* ip, Streader* sr);
 
 
 bool Instrument_params_parse_env_force_filter(
-        Instrument_params* ip,
-        char* str,
-        Read_state* state);
+        Instrument_params* ip, Streader* sr);
 
 
 bool Instrument_params_parse_env_pitch_pan(
-        Instrument_params* ip,
-        char* str,
-        Read_state* state);
+        Instrument_params* ip, Streader* sr);
 
 
 /**

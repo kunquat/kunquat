@@ -26,25 +26,17 @@
 
 #ifndef WITH_WAVPACK
 
-bool Sample_parse_wavpack(
-        Sample* sample,
-        const void* data,
-        long length,
-        Read_state* state)
+bool Sample_parse_wavpack(Sample* sample, Streader* sr)
 {
     assert(sample != NULL);
-    assert((data == NULL) == (length == 0));
-    assert(length >= 0);
-    assert(state != NULL);
+    assert(sr != NULL);
     (void)sample;
-    (void)data;
-    (void)length;
+    (void)sr;
 
-    if (state->error)
+    if (Streader_is_error_set(sr))
         return false;
 
-    Read_state_set_error(
-            state, "This build of libkunquat does not support WavPack");
+    Streader_set_error(sr, "This build of libkunquat does not support WavPack");
 
     return false;
 }
@@ -238,19 +230,16 @@ static WavpackStreamReader reader_str =
         }                                                                   \
     } else (void)0
 
-bool Sample_parse_wavpack(
-        Sample* sample,
-        const void* data,
-        long length,
-        Read_state* state)
+bool Sample_parse_wavpack(Sample* sample, Streader* sr)
 {
     assert(sample != NULL);
-    assert((data == NULL) == (length == 0));
-    assert(length >= 0);
-    assert(state != NULL);
+    assert(sr != NULL);
 
-    if (state->error)
+    if (Streader_is_error_set(sr))
         return false;
+
+    const void* data = sr->str;
+    const size_t length = sr->len;
 
     String_context* sc =
         &(String_context) {
@@ -270,7 +259,7 @@ bool Sample_parse_wavpack(
             0);
     if (context == NULL)
     {
-        Read_state_set_error(state, err_str);
+        Streader_set_error(sr, err_str);
         return false;
     }
 
@@ -285,8 +274,7 @@ bool Sample_parse_wavpack(
     if (len == (uint32_t)-1)
     {
         WavpackCloseFile(context);
-        Read_state_set_error(state, "Couldn't determine WavPack"
-                " file length");
+        Streader_set_error(sr, "Couldn't determine WavPack file length");
         return false;
     }
 
@@ -319,6 +307,7 @@ bool Sample_parse_wavpack(
     if (nbuf_l == NULL)
     {
         WavpackCloseFile(context);
+        Streader_set_memory_error(sr, "Could not allocate memory for sample");
         return false;
     }
 
@@ -329,6 +318,8 @@ bool Sample_parse_wavpack(
         {
             memory_free(nbuf_l);
             WavpackCloseFile(context);
+            Streader_set_memory_error(
+                    sr, "Could not allocate memory for sample");
             return false;
         }
         sample->data[1] = nbuf_r;
@@ -410,7 +401,7 @@ bool Sample_parse_wavpack(
     WavpackCloseFile(context);
     if (written < sample->len)
     {
-        Read_state_set_error(state, "Couldn't read all sample data");
+        Streader_set_error(sr, "Couldn't read all sample data");
         memory_free(sample->data[0]);
         memory_free(sample->data[1]);
         sample->data[0] = sample->data[1] = NULL;

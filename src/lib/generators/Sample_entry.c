@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2013
  *
  * This file is part of Kunquat.
  *
@@ -16,52 +16,43 @@
 #include <stdint.h>
 #include <math.h>
 
-#include <File_base.h>
 #include <Sample_entry.h>
 #include <xassert.h>
 
 
-char* Sample_entry_parse(Sample_entry* entry, char* str, Read_state* state)
+bool Sample_entry_parse(Sample_entry* entry, Streader* sr)
 {
     assert(entry != NULL);
-    assert(str != NULL);
-    assert(state != NULL);
-    str = read_const_char(str, '[', state);
+    assert(sr != NULL);
+
     double sample_cents = NAN;
-    str = read_double(str, &sample_cents, state);
-    str = read_const_char(str, ',', state);
     double volume = NAN;
-    str = read_double(str, &volume, state);
-    str = read_const_char(str, ',', state);
     int64_t sample = -1;
-    str = read_int(str, &sample, state);
-    str = read_const_char(str, ']', state);
-    if (state->error)
-    {
-        return str;
-    }
+
+    if (!Streader_readf(sr, "[%f,%f,%i]", &sample_cents, &volume, &sample))
+        return false;
+
     if (!isfinite(sample_cents))
     {
-        Read_state_set_error(state,
-                "Sample cent offset is not finite");
-        return str;
+        Streader_set_error(sr, "Sample cent offset is not finite");
+        return false;
     }
     if (!isfinite(volume))
     {
-        Read_state_set_error(state,
-                "Volume adjustment is not finite");
-        return str;
+        Streader_set_error(sr, "Volume adjustment is not finite");
+        return false;
     }
     if (sample < 0)
     {
-        Read_state_set_error(state,
-                "Sample number must be non-negative");
-        return str;
+        Streader_set_error(sr, "Sample number must be non-negative");
+        return false;
     }
+
     entry->cents = sample_cents;
     entry->vol_scale = exp2(volume / 6);
     entry->sample = sample;
-    return str;
+
+    return true;
 }
 
 

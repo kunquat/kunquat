@@ -18,7 +18,6 @@
 #include <Active_names.h>
 #include <Event_common.h>
 #include <Event_generator_decl.h>
-#include <File_base.h>
 #include <Generator.h>
 #include <set_active_name.h>
 #include <string_common.h>

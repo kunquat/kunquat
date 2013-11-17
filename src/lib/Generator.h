@@ -21,7 +21,6 @@
 
 #include <Device.h>
 #include <Device_params.h>
-#include <File_base.h>
 #include <Instrument_params.h>
 #include <kunquat/limits.h>
 #include <pitch_t.h>

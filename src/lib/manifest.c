@@ -15,24 +15,30 @@
 #include <stdio.h>
 
 #include <manifest.h>
-#include <string_common.h>
 #include <xassert.h>
 
 
-bool read_default_manifest(char* str, Read_state* state)
+static bool read_manifest_entry(Streader* sr, const char* key, void* userdata)
 {
-    assert(state != NULL);
+    assert(sr != NULL);
+    (void)sr;
+    (void)key;
+    (void)userdata;
 
-    if (state->error)
+    return true;
+}
+
+bool read_default_manifest(Streader* sr)
+{
+    assert(sr != NULL);
+
+    if (Streader_is_error_set(sr))
         return false;
 
-    if (string_eq(str, ""))
+    if (!Streader_has_data(sr))
         return false;
 
-    str = read_const_char(str, '{', state);
-    str = read_const_char(str, '}', state);
-
-    return !state->error;
+    return Streader_read_dict(sr, read_manifest_entry, NULL);
 }
 
 

@@ -18,7 +18,7 @@
 
 #include <stdint.h>
 
-#include <File_base.h>
+#include <Streader.h>
 
 
 #define KQT_SECTION_NONE (-1)
@@ -55,13 +55,11 @@ Song* new_Song(void);
 /**
  * Creates a new Song from a textual description.
  *
- * \param str     The textual description.
- * \param state   The Read state -- must not be \c NULL.
+ * \param sr   The Streader of the JSON data -- must not be \c NULL.
  *
- * \return   The new Song if succesongful, otherwise \c NULL. \a state
- *           will _not_ be updated if memory allocation failed.
+ * \return   The new Song if succesongful, otherwise \c NULL.
  */
-Song* new_Song_from_string(char* str, Read_state* state);
+Song* new_Song_from_string(Streader* sr);
 
 
 /**

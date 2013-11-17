@@ -72,33 +72,140 @@ static bool Connections_is_cyclic(Connections* graph);
  * \return   The port number if the path is valid, otherwise \c -1.
  */
 static int validate_connection_path(
+        Streader* sr,
         char* str,
         Connection_level level,
-        Device_port_type type,
-        Read_state* state);
+        Device_port_type type);
 
 
-#define clean_if(expr, graph, node)    \
-    if (true)                          \
-    {                                  \
-        if ((expr))                    \
-        {                              \
-            if (node != NULL)          \
-                del_Device_node(node); \
-            del_Connections(graph);    \
-            return NULL;               \
-        }                              \
+#define mem_error_if(expr, graph, node, sr)                           \
+    if (true)                                                         \
+    {                                                                 \
+        if ((expr))                                                   \
+        {                                                             \
+            Streader_set_memory_error(                                \
+                    sr, "Could not allocate memory for connections"); \
+            del_Device_node(node);                                    \
+            del_Connections(graph);                                   \
+            return NULL;                                              \
+        }                                                             \
     } else (void)0
 
+typedef struct read_conn_data
+{
+    Connections* graph;
+    Connection_level level;
+    Ins_table* insts;
+    Effect_table* effects;
+    DSP_table* dsps;
+    Device* master;
+} read_conn_data;
+
+static bool read_connection(Streader* sr, int32_t index, void* userdata)
+{
+    assert(sr != NULL);
+    (void)index;
+    assert(userdata != NULL);
+
+    read_conn_data* rcdata = userdata;
+
+    char src_name[KQT_DEVICE_NODE_NAME_MAX] = "";
+    char dest_name[KQT_DEVICE_NODE_NAME_MAX] = "";
+    if (!Streader_readf(
+                sr,
+                "[%s,%s]",
+                KQT_DEVICE_NODE_NAME_MAX, src_name,
+                KQT_DEVICE_NODE_NAME_MAX, dest_name))
+        return false;
+
+    int src_port = validate_connection_path(
+            sr,
+            src_name,
+            rcdata->level,
+            DEVICE_PORT_TYPE_SEND);
+    int dest_port = validate_connection_path(
+            sr,
+            dest_name,
+            rcdata->level,
+            DEVICE_PORT_TYPE_RECEIVE);
+    if (Streader_is_error_set(sr))
+        return false;
+
+    if ((rcdata->level & CONNECTION_LEVEL_EFFECT))
+    {
+        if (string_eq(src_name, ""))
+            strcpy(src_name, "Iin");
+    }
+
+    if (AAtree_get_exact(rcdata->graph->nodes, src_name) == NULL)
+    {
+        Device* actual_master = rcdata->master;
+        if ((rcdata->level & CONNECTION_LEVEL_EFFECT) &&
+                string_eq(src_name, "Iin"))
+            actual_master = Effect_get_input_interface((Effect*)rcdata->master);
+
+        Device_node* new_src = new_Device_node(
+                src_name,
+                rcdata->insts,
+                rcdata->effects,
+                rcdata->dsps,
+                actual_master);
+
+        mem_error_if(new_src == NULL, rcdata->graph, NULL, sr);
+        mem_error_if(
+                !AAtree_ins(rcdata->graph->nodes, new_src),
+                rcdata->graph,
+                new_src,
+                sr);
+    }
+    Device_node* src_node = AAtree_get_exact(rcdata->graph->nodes, src_name);
+
+    if (AAtree_get_exact(rcdata->graph->nodes, dest_name) == NULL)
+    {
+#if 0
+        Device* actual_master = rcdata->master;
+        if ((rcdata->level & CONNECTION_LEVEL_EFFECT) &&
+                string_eq(dest_name, ""))
+        {
+            actual_master = Effect_get_output_interface((Effect*)rcdata->master);
+        }
+#endif
+        Device_node* new_dest = new_Device_node(
+                dest_name,
+                rcdata->insts,
+                rcdata->effects,
+                rcdata->dsps,
+                rcdata->master);
+
+        mem_error_if(new_dest == NULL, rcdata->graph, NULL, sr);
+        mem_error_if(
+                !AAtree_ins(rcdata->graph->nodes, new_dest),
+                rcdata->graph,
+                new_dest,
+                sr);
+    }
+    Device_node* dest_node = AAtree_get_exact(rcdata->graph->nodes, dest_name);
+
+    assert(src_node != NULL);
+    assert(dest_node != NULL);
+    mem_error_if(
+            !Device_node_connect(dest_node, dest_port, src_node, src_port),
+            rcdata->graph,
+            NULL,
+            sr);
+
+    return true;
+}
+
 Connections* new_Connections_from_string(
-        char* str,
+        Streader* sr,
         Connection_level level,
         Ins_table* insts,
         Effect_table* effects,
         DSP_table* dsps,
-        Device* master,
-        Read_state* state)
+        Device* master)
 {
+    assert(sr != NULL);
     assert((level & ~(CONNECTION_LEVEL_INSTRUMENT |
                      CONNECTION_LEVEL_EFFECT)) == 0);
     assert(insts != NULL);
@@ -106,22 +213,25 @@ Connections* new_Connections_from_string(
     assert(!(level & CONNECTION_LEVEL_EFFECT) || (dsps != NULL));
     assert((dsps == NULL) || (level & CONNECTION_LEVEL_EFFECT));
     assert(master != NULL);
-    assert(state != NULL);
 
-    if (state->error)
+    if (Streader_is_error_set(sr))
         return NULL;
 
     Connections* graph = memory_alloc_item(Connections);
     if (graph == NULL)
+    {
+        Streader_set_memory_error(
+                sr, "Could not allocate memory for connections");
         return NULL;
+    }
 
     graph->nodes = NULL;
     graph->iter = NULL;
     graph->nodes = new_AAtree((int (*)(const void*, const void*))Device_node_cmp,
                                  (void (*)(void*))del_Device_node);
-    clean_if(graph->nodes == NULL, graph, NULL);
+    mem_error_if(graph->nodes == NULL, graph, NULL, sr);
     graph->iter = new_AAiter(graph->nodes);
-    clean_if(graph->iter == NULL, graph, NULL);
+    mem_error_if(graph->iter == NULL, graph, NULL, sr);
 
     Device_node* master_node = NULL;
     if ((level & CONNECTION_LEVEL_EFFECT))
@@ -133,108 +243,25 @@ Connections* new_Connections_from_string(
     {
         master_node = new_Device_node("", insts, effects, dsps, master);
     }
-    clean_if(master_node == NULL, graph, NULL);
-    clean_if(!AAtree_ins(graph->nodes, master_node), graph, master_node);
+    mem_error_if(master_node == NULL, graph, NULL, sr);
+    mem_error_if(!AAtree_ins(graph->nodes, master_node), graph, master_node, sr);
 
-    if (str == NULL)
+    if (!Streader_has_data(sr))
     {
         Connections_reset(graph);
         return graph;
     }
 
-    str = read_const_char(str, '[', state);
-    clean_if(state->error, graph, NULL);
-    str = read_const_char(str, ']', state);
-    if (!state->error)
+    read_conn_data rcdata = { graph, level, insts, effects, dsps, master };
+    if (!Streader_read_list(sr, read_connection, &rcdata))
     {
-        Connections_reset(graph);
-        return graph;
+        del_Connections(graph);
+        return NULL;
     }
-    Read_state_clear_error(state);
-
-    bool expect_entry = true;
-    while (expect_entry)
-    {
-        str = read_const_char(str, '[', state);
-        char src_name[KQT_DEVICE_NODE_NAME_MAX] = { '\0' };
-        str = read_string(str, src_name, KQT_DEVICE_NODE_NAME_MAX, state);
-        str = read_const_char(str, ',', state);
-        char dest_name[KQT_DEVICE_NODE_NAME_MAX] = { '\0' };
-        str = read_string(str, dest_name, KQT_DEVICE_NODE_NAME_MAX, state);
-        str = read_const_char(str, ']', state);
-
-        int src_port = validate_connection_path(
-                src_name,
-                level,
-                DEVICE_PORT_TYPE_SEND,
-                state);
-        int dest_port = validate_connection_path(
-                dest_name,
-                level,
-                DEVICE_PORT_TYPE_RECEIVE,
-                state);
-        clean_if(state->error, graph, NULL);
-
-        if ((level & CONNECTION_LEVEL_EFFECT))
-        {
-            if (string_eq(src_name, ""))
-                strcpy(src_name, "Iin");
-        }
-
-        if (AAtree_get_exact(graph->nodes, src_name) == NULL)
-        {
-            Device* actual_master = master;
-            if ((level & CONNECTION_LEVEL_EFFECT) &&
-                    string_eq(src_name, "Iin"))
-                actual_master = Effect_get_input_interface((Effect*)master);
-
-            Device_node* new_src = new_Device_node(
-                    src_name,
-                    insts,
-                    effects,
-                    dsps,
-                    actual_master);
-            clean_if(new_src == NULL, graph, NULL);
-            clean_if(!AAtree_ins(graph->nodes, new_src), graph, new_src);
-        }
-        Device_node* src_node = AAtree_get_exact(graph->nodes, src_name);
-
-        if (AAtree_get_exact(graph->nodes, dest_name) == NULL)
-        {
-#if 0
-            Device* actual_master = master;
-            if ((level & CONNECTION_LEVEL_EFFECT) &&
-                    string_eq(dest_name, ""))
-            {
-                actual_master = Effect_get_output_interface((Effect*)master);
-            }
-#endif
-            Device_node* new_dest = new_Device_node(
-                    dest_name,
-                    insts,
-                    effects,
-                    dsps,
-                    master);
-            clean_if(new_dest == NULL, graph, NULL);
-            clean_if(!AAtree_ins(graph->nodes, new_dest), graph, new_dest);
-        }
-        Device_node* dest_node = AAtree_get_exact(graph->nodes, dest_name);
-
-        assert(src_node != NULL);
-        assert(dest_node != NULL);
-        clean_if(
-                !Device_node_connect(dest_node, dest_port, src_node, src_port),
-                graph,
-                NULL);
-
-        check_next(str, state, expect_entry);
-    }
-    str = read_const_char(str, ']', state);
-    clean_if(state->error, graph, NULL);
 
     if (Connections_is_cyclic(graph))
     {
-        Read_state_set_error(state, "The connection graph contains a cycle");
+        Streader_set_error(sr, "The connection graph contains a cycle");
         del_Connections(graph);
         return NULL;
     }
@@ -244,7 +271,7 @@ Connections* new_Connections_from_string(
     return graph;
 }
 
-#undef clean_if
+#undef mem_error_if
 
 
 Device_node* Connections_get_master(Connections* graph)
@@ -414,16 +441,16 @@ static int read_index(char* str)
 
 
 static int validate_connection_path(
+        Streader* sr,
         char* str,
         Connection_level level,
-        Device_port_type type,
-        Read_state* state)
+        Device_port_type type)
 {
+    assert(sr != NULL);
     assert(str != NULL);
     assert(type < DEVICE_PORT_TYPES);
-    assert(state != NULL);
 
-    if (state->error)
+    if (Streader_is_error_set(sr))
         return -1;
 
     bool instrument = false;
@@ -438,9 +465,10 @@ static int validate_connection_path(
     {
         if (level != CONNECTION_LEVEL_GLOBAL)
         {
-            Read_state_set_error(state,
-                    "Instrument directory in a deep-level connection:"
-                    " \"%s\"", path);
+            Streader_set_error(
+                    sr,
+                    "Instrument directory in a deep-level connection: \"%s\"",
+                    path);
             return -1;
         }
 
@@ -449,18 +477,21 @@ static int validate_connection_path(
         str += strlen("ins_");
         if (read_index(str) >= KQT_INSTRUMENTS_MAX)
         {
-            Read_state_set_error(state,
-                    "Invalid instrument number in the connection:"
-                    " \"%s\"", path);
+            Streader_set_error(
+                    sr,
+                    "Invalid instrument number in the connection: \"%s\"",
+                    path);
             return -1;
         }
 
         str += 2;
         if (!string_has_prefix(str, "/"))
         {
-            Read_state_set_error(state,
+            Streader_set_error(
+                    sr,
                     "Missing trailing '/' after the instrument number"
-                    " in the connection: \"%s\"", path);
+                        " in the connection: \"%s\"",
+                    path);
             return -1;
         }
 
@@ -471,9 +502,10 @@ static int validate_connection_path(
     {
         if ((level & CONNECTION_LEVEL_EFFECT))
         {
-            Read_state_set_error(state,
-                    "Effect directory in an effect-level connection:"
-                    " \"%s\"", path);
+            Streader_set_error(
+                    sr,
+                    "Effect directory in an effect-level connection: \"%s\"",
+                    path);
             return -1;
         }
 
@@ -486,18 +518,21 @@ static int validate_connection_path(
 
         if (read_index(str) >= max)
         {
-            Read_state_set_error(state,
-                    "Invalid effect number in the connection:"
-                    " \"%s\"", path);
+            Streader_set_error(
+                    sr,
+                    "Invalid effect number in the connection: \"%s\"",
+                    path);
             return -1;
         }
 
         str += 2;
         if (!string_has_prefix(str, "/"))
         {
-            Read_state_set_error(state,
+            Streader_set_error(
+                    sr,
                     "Missing trailing '/' after the effect number in"
-                    " the connection: \"%s\"", path);
+                        " the connection: \"%s\"",
+                    path);
             return -1;
         }
 
@@ -508,16 +543,18 @@ static int validate_connection_path(
     {
         if (!(level & CONNECTION_LEVEL_INSTRUMENT))
         {
-            Read_state_set_error(state,
-                    "Generator directory in a root-level connection:"
-                    " \"%s\"", path);
+            Streader_set_error(
+                    sr,
+                    "Generator directory in a root-level connection: \"%s\"",
+                    path);
             return -1;
         }
         if ((level & CONNECTION_LEVEL_EFFECT))
         {
-            Read_state_set_error(state,
-                    "Generator directory in an effect-level connection:"
-                    " \"%s\"", path);
+            Streader_set_error(
+                    sr,
+                    "Generator directory in an effect-level connection: \"%s\"",
+                    path);
             return -1;
         }
 
@@ -526,27 +563,32 @@ static int validate_connection_path(
         str += strlen("gen_");
         if (read_index(str) >= KQT_GENERATORS_MAX)
         {
-            Read_state_set_error(state,
-                    "Invalid generator number in the connection:"
-                    " \"%s\"", path);
+            Streader_set_error(
+                    sr,
+                    "Invalid generator number in the connection: \"%s\"",
+                    path);
             return -1;
         }
 
         str += 2;
         if (!string_has_prefix(str, "/"))
         {
-            Read_state_set_error(state,
+            Streader_set_error(
+                    sr,
                     "Missing trailing '/' after the generator number"
-                    " in the connection: \"%s\"", path);
+                        " in the connection: \"%s\"",
+                    path);
             return -1;
         }
 
         ++str;
         if (!string_has_prefix(str, "C/"))
         {
-            Read_state_set_error(state,
+            Streader_set_error(
+                    sr,
                     "Invalid generator parameter directory"
-                    " in the connection: \"%s\"", path);
+                        " in the connection: \"%s\"",
+                    path);
             return -1;
         }
 
@@ -557,8 +599,8 @@ static int validate_connection_path(
     {
         if (!(level & CONNECTION_LEVEL_EFFECT))
         {
-            Read_state_set_error(state,
-                    "DSP directory outside an effect: \"%s\"", path);
+            Streader_set_error(
+                    sr, "DSP directory outside an effect: \"%s\"", path);
             return -1;
         }
 
@@ -567,26 +609,30 @@ static int validate_connection_path(
         str += strlen("dsp_");
         if (read_index(str) >= KQT_DSPS_MAX)
         {
-            Read_state_set_error(state,
-                    "Invalid DSP number in the connection: \"%s\"", path);
+            Streader_set_error(
+                    sr, "Invalid DSP number in the connection: \"%s\"", path);
             return -1;
         }
 
         str += 2;
         if (!string_has_prefix(str, "/"))
         {
-            Read_state_set_error(state,
+            Streader_set_error(
+                    sr,
                     "Missing trailing '/' after the DSP number"
-                    " in the connection: \"%s\"", path);
+                        " in the connection: \"%s\"",
+                    path);
             return -1;
         }
 
         ++str;
         if (!string_has_prefix(str, "C/"))
         {
-            Read_state_set_error(state,
+            Streader_set_error(
+                    sr,
                     "Invalid DSP parameter directory"
-                    " in the connection: \"%s\"", path);
+                        " in the connection: \"%s\"",
+                    path);
             return -1;
         }
 
@@ -598,17 +644,19 @@ static int validate_connection_path(
         // TODO: check effect connections
         if (string_has_prefix(str, "in_") && (instrument || generator))
         {
-            Read_state_set_error(state,
+            Streader_set_error(
+                    sr,
                     "Input ports are not allowed for instruments"
-                    " or generators: \"%s\"", path);
+                        " or generators: \"%s\"",
+                    path);
             return -1;
         }
 
         if (string_has_prefix(str, "in_") && root &&
                 !(level & CONNECTION_LEVEL_EFFECT))
         {
-            Read_state_set_error(state,
-                    "Input ports are not allowed for master: \"%s\"", path);
+            Streader_set_error(
+                    sr, "Input ports are not allowed for master: \"%s\"", path);
             return -1;
         }
 
@@ -618,9 +666,10 @@ static int validate_connection_path(
                                (root && string_has_prefix(str, "out_"));
             if (!can_receive)
             {
-                Read_state_set_error(state,
-                        "Destination port is not for receiving data:"
-                        " \"%s\"", path);
+                Streader_set_error(
+                        sr,
+                        "Destination port is not for receiving data: \"%s\"",
+                        path);
                 return -1;
             }
         }
@@ -631,8 +680,10 @@ static int validate_connection_path(
                             (string_has_prefix(str, "in_") && root);
             if (!can_send)
             {
-                Read_state_set_error(state,
-                        "Source port is not for sending data: \"%s\"", path);
+                Streader_set_error(
+                        sr,
+                        "Source port is not for sending data: \"%s\"",
+                        path);
                 return -1;
             }
         }
@@ -641,15 +692,18 @@ static int validate_connection_path(
         int port = read_index(str);
         if (port >= KQT_DEVICE_PORTS_MAX)
         {
-            Read_state_set_error(state, "Invalid port number: \"%s\"", path);
+            Streader_set_error(sr, "Invalid port number: \"%s\"", path);
             return -1;
         }
 
         str += 2;
         if (str[0] != '/' && str[0] != '\0' && str[1] != '\0')
         {
-            Read_state_set_error(state, "Connection path contains garbage"
-                    " after the port specification: \"%s\"", path);
+            Streader_set_error(
+                    sr,
+                    "Connection path contains garbage"
+                        " after the port specification: \"%s\"",
+                    path);
             return -1;
         }
 
@@ -657,7 +711,7 @@ static int validate_connection_path(
         return port;
     }
 
-    Read_state_set_error(state, "Invalid connection: \"%s\"", path);
+    Streader_set_error(sr, "Invalid connection: \"%s\"", path);
 
     return -1;
 }

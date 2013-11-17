@@ -424,28 +424,25 @@ bool Device_sync_states(Device* device, Device_states* dstates)
 }
 
 
-bool Device_set_key(
-        Device* device,
-        const char* key,
-        void* data,
-        long length,
-        Read_state* rs)
+bool Device_set_key(Device* device, const char* key, Streader* sr)
 {
     assert(device != NULL);
     assert(key != NULL);
     assert(string_has_prefix(key, "i/") || string_has_prefix(key, "c/"));
-    assert(data != NULL || length == 0);
-    assert(length >= 0);
-    assert(rs != NULL);
+    assert(sr != NULL);
 
-    if (rs->error)
+    if (Streader_is_error_set(sr))
         return false;
 
-    if (!Device_params_parse_value(device->dparams, key, data, length, rs))
+    if (!Device_params_parse_value(device->dparams, key, sr))
         return false;
 
-    if (device->dimpl != NULL)
-        return Device_impl_set_key(device->dimpl, key + 2);
+    if (device->dimpl != NULL && !Device_impl_set_key(device->dimpl, key + 2))
+    {
+        Streader_set_memory_error(
+                sr, "Could not allocate memory for device key %s", key);
+        return false;
+    }
 
     return true;
 }

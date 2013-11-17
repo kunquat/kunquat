@@ -21,7 +21,6 @@
 #include <Device.h>
 #include <Effect.h>
 #include <Effect_table.h>
-#include <File_base.h>
 #include <Gen_table.h>
 #include <Generator.h>
 #include <Instrument.h>
@@ -124,89 +123,82 @@ Instrument* new_Instrument()
 }
 
 
-bool Instrument_parse_header(Instrument* ins, char* str, Read_state* state)
+typedef struct ins_params
 {
-    assert(ins != NULL);
-    assert(state != NULL);
+    double global_force;
+    double default_force;
+    double force_variation;
+    int64_t scale_index;
+} ins_params;
 
-    if (state->error)
-        return false;
+static bool read_ins_field(Streader* sr, const char* key, void* userdata)
+{
+    assert(sr != NULL);
+    assert(key != NULL);
+    assert(userdata != NULL);
 
-    double global_force = 1;
-    double default_force = INS_DEFAULT_FORCE;
-    double force_variation = INS_DEFAULT_FORCE_VAR;
+    ins_params* p = userdata;
+
+    if (string_eq(key, "force"))
+        Streader_read_float(sr, &p->default_force);
+    else if (string_eq(key, "force_variation"))
+        Streader_read_float(sr, &p->force_variation);
+    else if (string_eq(key, "global_force"))
+        Streader_read_float(sr, &p->global_force);
 #if 0
-    bool pitch_lock_enabled = false;
-    double pitch_lock_cents = 0;
+    else if (string_eq(key, "pitch_lock"))
+        str = read_bool(str, &pitch_lock_enabled, state);
+    else if (string_eq(key, "pitch_lock_cents"))
+        str = read_double(str, &pitch_lock_cents, state);
 #endif
-    int64_t scale_index = INS_DEFAULT_SCALE_INDEX;
-
-    if (str != NULL)
+    else if (string_eq(key, "scale"))
     {
-        str = read_const_char(str, '{', state);
-        if (state->error)
+        if (!Streader_read_int(sr, &p->scale_index))
             return false;
 
-        str = read_const_char(str, '}', state);
-        if (state->error)
+        if (p->scale_index < -1 || p->scale_index >= KQT_SCALES_MAX)
         {
-            Read_state_clear_error(state);
-            bool expect_key = true;
-            while (expect_key)
-            {
-                char key[128] = { '\0' };
-                str = read_string(str, key, 128, state);
-                str = read_const_char(str, ':', state);
-                if (state->error)
-                    return false;
-
-                if (string_eq(key, "force"))
-                    str = read_double(str, &default_force, state);
-                else if (string_eq(key, "force_variation"))
-                    str = read_double(str, &force_variation, state);
-                else if (string_eq(key, "global_force"))
-                    str = read_double(str, &global_force, state);
-#if 0
-                else if (string_eq(key, "pitch_lock"))
-                    str = read_bool(str, &pitch_lock_enabled, state);
-                else if (string_eq(key, "pitch_lock_cents"))
-                    str = read_double(str, &pitch_lock_cents, state);
-#endif
-                else if (string_eq(key, "scale"))
-                {
-                    str = read_int(str, &scale_index, state);
-                    if (state->error)
-                        return false;
-
-                    if (scale_index < -1 || scale_index >= KQT_SCALES_MAX)
-                    {
-                        Read_state_set_error(state,
-                                 "Invalid scale index: %" PRId64, scale_index);
-                        return false;
-                    }
-                }
-                else
-                {
-                    Read_state_set_error(state,
-                             "Unsupported field in instrument information: %s", key);
-                    return false;
-                }
-
-                if (state->error)
-                    return false;
-
-                check_next(str, state, expect_key);
-            }
-
-            str = read_const_char(str, '}', state);
-            if (state->error)
-                return false;
+            Streader_set_error(
+                     sr, "Invalid scale index: %" PRId64, p->scale_index);
+            return false;
         }
     }
+    else
+    {
+        Streader_set_error(
+                sr, "Unsupported field in instrument information: %s", key);
+        return false;
+    }
 
-    ins->params.force = default_force;
-    ins->params.force_variation = force_variation;
-    ins->params.global_force = exp2(global_force / 6);
+    return !Streader_is_error_set(sr);
+}
+
+bool Instrument_parse_header(Instrument* ins, Streader* sr)
+{
+    assert(ins != NULL);
+    assert(sr != NULL);
+
+    if (Streader_is_error_set(sr))
+        return false;
+
+    ins_params* p = &(ins_params)
+    {
+        .global_force = 1,
+        .default_force = INS_DEFAULT_FORCE,
+        .force_variation = INS_DEFAULT_FORCE_VAR,
+#if 0
+        bool pitch_lock_enabled = false;
+        double pitch_lock_cents = 0;
+#endif
+        .scale_index = INS_DEFAULT_SCALE_INDEX,
+    };
+
+    if (Streader_has_data(sr) && !Streader_read_dict(sr, read_ins_field, p))
+        return false;
+
+    ins->params.force = p->default_force;
+    ins->params.force_variation = p->force_variation;
+    ins->params.global_force = exp2(p->global_force / 6);
 #if 0
     ins->params.pitch_lock_enabled = pitch_lock_enabled;
     ins->params.pitch_lock_cents = pitch_lock_cents;
@@ -217,17 +209,13 @@ bool Instrument_parse_header(Instrument* ins, char* str, Read_state* state)
 }
 
 
-bool Instrument_parse_value(
-        Instrument* ins,
-        const char* subkey,
-        char* str,
-        Read_state* state)
+bool Instrument_parse_value(Instrument* ins, const char* subkey, Streader* sr)
 {
     assert(ins != NULL);
     assert(subkey != NULL);
-    assert(state != NULL);
+    assert(sr != NULL);
 
-    if (state->error)
+    if (Streader_is_error_set(sr))
         return false;
 
     int gen_index = -1;
@@ -235,16 +223,14 @@ bool Instrument_parse_value(
                              "p_pitch_lock_enabled_", 2, ".json")) >= 0 &&
             gen_index < KQT_GENERATORS_MAX)
     {
-        read_bool(str, &ins->params.pitch_locks[gen_index].enabled, state);
-        if (state->error)
+        if (!Streader_read_bool(sr, &ins->params.pitch_locks[gen_index].enabled))
             return false;
     }
     else if ((gen_index = string_extract_index(subkey,
                                   "p_pitch_lock_cents_", 2, ".json")) >= 0 &&
             gen_index < KQT_GENERATORS_MAX)
     {
-        read_double(str, &ins->params.pitch_locks[gen_index].cents, state);
-        if (state->error)
+        if (!Streader_read_float(sr, &ins->params.pitch_locks[gen_index].cents))
             return false;
 
         ins->params.pitch_locks[gen_index].freq =

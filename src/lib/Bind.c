@@ -22,7 +22,6 @@
 #include <Event_names.h>
 #include <Event_type.h>
 #include <expr.h>
-#include <File_base.h>
 #include <memory.h>
 #include <Random.h>
 #include <Value.h>
@@ -44,7 +43,7 @@ typedef struct Constraint
 } Constraint;
 
 
-static Constraint* new_Constraint(char** str, Read_state* state);
+static Constraint* new_Constraint(Streader* sr);
 
 
 static bool Constraint_match(
@@ -57,10 +56,7 @@ static bool Constraint_match(
 static void del_Constraint(Constraint* constraint);
 
 
-static Target_event* new_Target_event(
-        char** str,
-        Read_state* state,
-        const Event_names* names);
+static Target_event* new_Target_event(Streader* sr, const Event_names* names);
 
 
 static void del_Target_event(Target_event* event);
@@ -107,34 +103,78 @@ static void Cblist_append(Cblist* list, Cblist_item* item);
 static void del_Cblist(Cblist* list);
 
 
-static bool read_constraints(
-        char** str,
-        Read_state* state,
-        Bind* map,
-        Cblist_item* item);
+static bool read_constraints(Streader* sr, Bind* map, Cblist_item* item);
 
 
 static bool read_events(
-        char** str,
-        Read_state* state,
-        Cblist_item* item,
-        const Event_names* names);
+        Streader* sr, Cblist_item* item, const Event_names* names);
 
 
 static bool Bind_is_cyclic(Bind* map);
 
 
-Bind* new_Bind(char* str, const Event_names* names, Read_state* state)
+typedef struct bedata
 {
-    assert(names != NULL);
-    assert(state != NULL);
+    Bind* map;
+    const Event_names* names;
+} bedata;
 
-    if (state->error)
+static bool read_bind_entry(Streader* sr, int32_t index, void* userdata)
+{
+    assert(sr != NULL);
+    (void)index;
+    assert(userdata != NULL);
+
+    bedata* bd = userdata;
+
+    char event_name[EVENT_NAME_MAX + 1] = "";
+    if (!Streader_readf(sr, "[%s,", EVENT_NAME_MAX + 1, event_name))
+        return false;
+
+    Cblist* cblist = AAtree_get_exact(bd->map->cblists, event_name);
+    if (cblist == NULL)
+    {
+        cblist = new_Cblist(event_name);
+        if (cblist == NULL || !AAtree_ins(bd->map->cblists, cblist))
+        {
+            del_Cblist(cblist);
+            Streader_set_memory_error(
+                    sr, "Could not allocate memory for bind");
+            return false;
+        }
+    }
+
+    Cblist_item* item = new_Cblist_item();
+    if (item == NULL)
+    {
+        Streader_set_memory_error(sr, "Could not allocate memory for bind");
+        return false;
+    }
+    Cblist_append(cblist, item);
+
+    if (!(read_constraints(sr, bd->map, item) &&
+                Streader_match_char(sr, ',') &&
+                read_events(sr, item, bd->names))
+       )
+        return false;
+
+    return Streader_match_char(sr, ']');
+}
+
+Bind* new_Bind(Streader* sr, const Event_names* names)
+{
+    assert(sr != NULL);
+    assert(names != NULL);
+
+    if (Streader_is_error_set(sr))
         return NULL;
 
     Bind* map = memory_alloc_item(Bind);
     if (map == NULL)
+    {
+        Streader_set_memory_error(sr, "Could not allocate memory for bind");
         return NULL;
+    }
 
     map->iter = new_AAiter(NULL);
     map->cblists = new_AAtree((int (*)(const void*, const void*))strcmp,
@@ -142,88 +182,16 @@ Bind* new_Bind(char* str, const Event_names* names, Read_state* state)
     if (map->iter == NULL || map->cblists == NULL)
     {
         del_Bind(map);
+        Streader_set_memory_error(sr, "Could not allocate memory for bind");
         return NULL;
     }
 
-    if (str == NULL)
+    if (!Streader_has_data(sr))
         return map;
 
-    str = read_const_char(str, '[', state);
-    if (state->error)
-    {
-        del_Bind(map);
-        return NULL;
-    }
+    bedata* bd = &(bedata){ .map = map, .names = names, };
 
-    str = read_const_char(str, ']', state);
-    if (!state->error)
-        return map;
-
-    Read_state_clear_error(state);
-
-    bool expect_entry = true;
-    while (expect_entry)
-    {
-        str = read_const_char(str, '[', state);
-        char event_name[EVENT_NAME_MAX + 1];
-        str = read_string(str, event_name, EVENT_NAME_MAX + 1, state);
-        if (state->error)
-        {
-            del_Bind(map);
-            return NULL;
-        }
-
-        Cblist* cblist = AAtree_get_exact(map->cblists, event_name);
-        if (cblist == NULL)
-        {
-            cblist = new_Cblist(event_name);
-            if (cblist == NULL)
-            {
-                del_Bind(map);
-                return NULL;
-            }
-            if (!AAtree_ins(map->cblists, cblist))
-            {
-                del_Cblist(cblist);
-                del_Bind(map);
-                return NULL;
-            }
-        }
-
-        Cblist_item* item = new_Cblist_item();
-        if (item == NULL)
-        {
-            del_Bind(map);
-            return NULL;
-        }
-
-        Cblist_append(cblist, item);
-        str = read_const_char(str, ',', state);
-        if (!read_constraints(&str, state, map, item))
-        {
-            del_Bind(map);
-            return NULL;
-        }
-
-        str = read_const_char(str, ',', state);
-        if (!read_events(&str, state, item, names))
-        {
-            del_Bind(map);
-            return NULL;
-        }
-
-        str = read_const_char(str, ']', state);
-        if (state->error)
-        {
-            del_Bind(map);
-            return NULL;
-        }
-
-        check_next(str, state, expect_entry);
-    }
-
-    str = read_const_char(str, ']', state);
-    if (state->error)
+    if (!Streader_read_list(sr, read_bind_entry, bd))
     {
         del_Bind(map);
         return NULL;
@@ -231,7 +199,7 @@ Bind* new_Bind(char* str, const Event_names* names, Read_state* state)
 
     if (Bind_is_cyclic(map))
     {
-        Read_state_set_error(state, "Bind contains a cycle");
+        Streader_set_error(sr, "Bind contains a cycle");
         del_Bind(map);
         return NULL;
     }
@@ -382,11 +350,11 @@ static bool Bind_dfs(Bind* map, char* name)
         Target_event* event = item->first_event;
         while (event != NULL)
         {
-            Read_state* state = READ_STATE_AUTO;
+            Streader* sr = Streader_init(
+                    STREADER_AUTO, event->desc, strlen(event->desc));
             char next_name[EVENT_NAME_MAX + 1] = "";
-            char* str = read_const_char(event->desc, '[', state);
-            read_string(str, next_name, EVENT_NAME_MAX, state);
-            assert(!state->error);
+            Streader_readf(sr, "[%s", EVENT_NAME_MAX, next_name);
+            assert(!Streader_is_error_set(sr));
 
             if (Bind_dfs(map, next_name))
                 return true;
@@ -403,94 +371,78 @@ static bool Bind_dfs(Bind* map, char* name)
 }
 
 
-static bool read_constraints(
-        char** str,
-        Read_state* state,
-        Bind* map,
-        Cblist_item* item)
+static bool read_constraint(Streader* sr, int32_t index, void* userdata)
 {
-    assert(str != NULL);
-    assert(*str != NULL);
-    assert(state != NULL);
+    assert(sr != NULL);
+    (void)index;
+    assert(userdata != NULL);
+
+    Cblist_item* item = userdata;
+
+    Constraint* constraint = new_Constraint(sr);
+    if (constraint == NULL)
+        return false;
+
+    constraint->next = item->constraints;
+    item->constraints = constraint;
+
+    return true;
+}
+
+static bool read_constraints(Streader* sr, Bind* map, Cblist_item* item)
+{
+    assert(sr != NULL);
     assert(map != NULL);
     (void)map;
     assert(item != NULL);
 
-    *str = read_const_char(*str, '[', state);
-    if (state->error)
-        return false;
-
-    *str = read_const_char(*str, ']', state);
-    if (state->error)
-    {
-        Read_state_clear_error(state);
-
-        bool expect_entry = true;
-        while (expect_entry)
-        {
-            Constraint* constraint = new_Constraint(str, state);
-            if (constraint == NULL)
-                return false;
-
-            constraint->next = item->constraints;
-            item->constraints = constraint;
-            check_next(*str, state, expect_entry);
-        }
-
-        *str = read_const_char(*str, ']', state);
-    }
-
-    return !state->error;
+    return Streader_read_list(sr, read_constraint, item);
 }
 
 
-static bool read_events(
-        char** str,
-        Read_state* state,
-        Cblist_item* item,
-        const Event_names* names)
+typedef struct edata
 {
-    assert(str != NULL);
-    assert(*str != NULL);
-    assert(state != NULL);
+    Cblist_item* item;
+    const Event_names* names;
+} edata;
+
+static bool read_event(Streader* sr, int32_t index, void* userdata)
+{
+    assert(sr != NULL);
+    (void)index;
+    assert(userdata != NULL);
+
+    edata* ed = userdata;
+
+    Target_event* event = new_Target_event(sr, ed->names);
+    if (event == NULL)
+        return false;
+
+    if (ed->item->last_event == NULL)
+    {
+        assert(ed->item->first_event == NULL);
+        ed->item->first_event = ed->item->last_event = event;
+    }
+    else
+    {
+        assert(ed->item->first_event != NULL);
+        ed->item->last_event->next = event;
+        ed->item->last_event = event;
+    }
+
+    return true;
+}
+
+static bool read_events(
+        Streader* sr, Cblist_item* item, const Event_names* names)
+{
+    assert(sr != NULL);
     assert(item != NULL);
     assert(names != NULL);
 
-    *str = read_const_char(*str, '[', state);
-    if (state->error)
-        return false;
+    edata* ed = &(edata){ .item = item, .names = names, };
 
-    *str = read_const_char(*str, ']', state);
-    if (state->error)
-    {
-        Read_state_clear_error(state);
-
-        bool expect_entry = true;
-        while (expect_entry)
-        {
-            Target_event* event = new_Target_event(str, state, names);
-            if (event == NULL)
-                return false;
-
-            if (item->last_event == NULL)
-            {
-                assert(item->first_event == NULL);
-                item->first_event = item->last_event = event;
-            }
-            else
-            {
-                assert(item->first_event != NULL);
-                item->last_event->next = event;
-                item->last_event = event;
-            }
-
-            check_next(*str, state, expect_entry);
-        }
-
-        *str = read_const_char(*str, ']', state);
-    }
-
-    return !state->error;
+    return Streader_read_list(sr, read_event, ed);
 }
 
 
@@ -591,45 +543,54 @@ static void del_Cblist_item(Cblist_item* item)
 }
 
 
-static Constraint* new_Constraint(char** str, Read_state* state)
+static Constraint* new_Constraint(Streader* sr)
 {
-    assert(str != NULL);
-    assert(*str != NULL);
-    assert(state != NULL);
+    assert(sr != NULL);
 
-    if (state->error)
+    if (Streader_is_error_set(sr))
         return NULL;
 
     Constraint* c = memory_alloc_item(Constraint);
     if (c == NULL)
+    {
+        Streader_set_memory_error(sr, "Could not allocate memory for bind");
         return NULL;
+    }
 
     c->expr = NULL;
     c->next = NULL;
-    *str = read_const_char(*str, '[', state);
-    *str = read_string(*str, c->event_name, EVENT_NAME_MAX + 1, state);
-    *str = read_const_char(*str, ',', state);
-    char* expr = skip_whitespace(*str, state);
-    *str = read_string(expr, NULL, 0, state);
-    if (state->error)
+
+    if (!Streader_readf(sr, "[%s,", EVENT_NAME_MAX + 1, c->event_name))
     {
         del_Constraint(c);
         return NULL;
     }
 
-    assert(expr < *str);
-    int len = *str - expr;
-    *str = read_const_char(*str, ']', state);
-    if (state->error)
+    Streader_skip_whitespace(sr);
+    const char* const expr = Streader_get_remaining_data(sr);
+    if (!Streader_read_string(sr, 0, NULL))
     {
         del_Constraint(c);
         return NULL;
     }
+
+    const char* const expr_end = Streader_get_remaining_data(sr);
+
+    if (!Streader_match_char(sr, ']'))
+    {
+        del_Constraint(c);
+        return NULL;
+    }
+
+    assert(expr_end != NULL);
+    assert(expr_end > expr);
+    int len = expr_end - expr;
 
     c->expr = memory_calloc_items(char, len + 1);
     if (c->expr == NULL)
     {
         del_Constraint(c);
+        Streader_set_memory_error(sr, "Could not allocate memory for bind");
         return NULL;
     }
 
@@ -679,37 +640,27 @@ static void del_Constraint(Constraint* constraint)
 }
 
 
-static Target_event* new_Target_event(
-        char** str,
-        Read_state* state,
-        const Event_names* names)
+static Target_event* new_Target_event(Streader* sr, const Event_names* names)
 {
-    assert(str != NULL);
-    assert(*str != NULL);
-    assert(state != NULL);
+    assert(sr != NULL);
     assert(names != NULL);
 
-    if (state->error)
+    if (Streader_is_error_set(sr))
         return NULL;
 
     Target_event* event = memory_alloc_item(Target_event);
     if (event == NULL)
+    {
+        Streader_set_memory_error(sr, "Could not allocate memory for bind");
         return NULL;
+    }
 
     event->ch_offset = 0;
     event->desc = NULL;
     event->next = NULL;
 
-    *str = read_const_char(*str, '[', state);
     int64_t ch_offset = 0;
-    *str = read_int(*str, &ch_offset, state);
-    *str = read_const_char(*str, ',', state);
-    *str = skip_whitespace(*str, state);
-    char* desc = read_const_char(*str, '[', state);
-    char event_name[EVENT_NAME_MAX + 1] = "";
-    desc = read_string(desc, event_name, EVENT_NAME_MAX + 1, state);
-    desc = read_const_char(desc, ',', state);
-    if (state->error)
+    if (!Streader_readf(sr, "[%i,", &ch_offset))
     {
         del_Target_event(event);
         return NULL;
@@ -717,45 +668,61 @@ static Target_event* new_Target_event(
 
     if (ch_offset <= -KQT_COLUMNS_MAX || ch_offset >= KQT_COLUMNS_MAX)
     {
-        Read_state_set_error(state, "Channel offset out of bounds");
+        Streader_set_error(sr, "Channel offset out of bounds");
+        del_Target_event(event);
+        return NULL;
+    }
+
+    Streader_skip_whitespace(sr);
+    const char* const desc = Streader_get_remaining_data(sr);
+
+    char event_name[EVENT_NAME_MAX + 1] = "";
+    if (!Streader_readf(sr, "[%s,", EVENT_NAME_MAX + 1, event_name))
+    {
         del_Target_event(event);
         return NULL;
     }
 
     if (Event_names_get(names, event_name) == Event_NONE)
     {
-        Read_state_set_error(state, "Unsupported event type: %s", event_name);
+        Streader_set_error(sr, "Unsupported event type: %s", event_name);
         del_Target_event(event);
         return NULL;
     }
 
     Value_type type = Event_names_get_param_type(names, event_name);
     if (type == VALUE_TYPE_NONE)
-        desc = read_null(desc, state);
+        Streader_read_null(sr);
     else
-        desc = read_string(desc, NULL, 0, state);
+        Streader_read_string(sr, 0, NULL);
 
-    desc = read_const_char(desc, ']', state);
-    desc = read_const_char(desc, ']', state);
-    if (state->error)
+    if (!Streader_readf(sr, "]]"))
     {
         del_Target_event(event);
         return NULL;
     }
 
-    int len = desc - *str;
+    const char* const desc_end = Streader_get_remaining_data(sr);
+    if (desc_end == NULL)
+    {
+        Streader_set_error(sr, "Unexpected end of data");
+        del_Target_event(event);
+        return NULL;
+    }
+
+    int len = desc_end - desc;
     assert(len > 0);
     event->desc = memory_alloc_items(char, len + 1);
     if (event->desc == NULL)
     {
+        Streader_set_memory_error(sr, "Could not allocate memory for bind");
         del_Target_event(event);
         return NULL;
     }
 
     event->ch_offset = ch_offset;
-    memcpy(event->desc, *str, len);
+    memcpy(event->desc, desc, len);
     event->desc[len] = '\0';
-    *str = desc;
 
     return event;
 }

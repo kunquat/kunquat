@@ -119,7 +119,7 @@ kqt_Handle kqt_new_Handle(void)
 int kqt_Handle_set_data(
         kqt_Handle handle,
         const char* key,
-        void* data,
+        const void* data,
         long length)
 {
     check_handle(handle, 0);

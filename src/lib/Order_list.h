@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2013
  *
  * This file is part of Kunquat.
  *
@@ -18,7 +18,7 @@
 
 #include <stdlib.h>
 
-#include <File_base.h>
+#include <Streader.h>
 
 
 /**
@@ -30,13 +30,12 @@ typedef struct Order_list Order_list;
 /**
  * Creates a new Order list.
  *
- * \param str     Order list description in JSON format, or \c NULL.
- * \param state   The Read state -- must not be \c NULL.
+ * \param sr   The Streader of the JSON data -- must not be \c NULL.
  *
  * \return   The new Order list if successful, otherwise \c NULL. \a state
  *           will not contain error if memory allocation failed.
  */
-Order_list* new_Order_list(char* str, Read_state* state);
+Order_list* new_Order_list(Streader* sr);
 
 
 /**
