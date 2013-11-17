@@ -23,6 +23,7 @@ class Session():
         self._progress_steps = 1
         self._audio_levels = (0, 0)
         self._channel_selected_instrument = dict()
+        self._channel_active_instrument = dict()
         self._channel_active_note = dict()
         self._instrument_active_notes = dict()
 
@@ -75,6 +76,9 @@ class Session():
         instrument_id = 'ins_{0:02x}'.format(instrument)
         self._channel_selected_instrument[channel] = instrument_id
 
+    def get_active_instrument_by_channel(self, channel):
+        return self._channel_active_instrument[channel]
+
     def get_active_note_by_channel(self, channel):
         return self._channel_active_note[channel]
 
@@ -86,13 +90,20 @@ class Session():
         return notes
 
     def set_active_note(self, channel, pitch):
-        self._channel_active_note[channel] = pitch
-        instrument = self.get_selected_instrument_by_channel(channel)
-        if not instrument in self._instrument_active_notes:
-            self._instrument_active_notes[instrument] = dict()
-        notes = self._instrument_active_notes[instrument]
         if pitch == None:
-            del notes[channel]
+            if channel in self._channel_active_note:
+                del self._channel_active_note[channel]
+            instrument = self.get_active_instrument_by_channel(channel)
+            if instrument in self._instrument_active_notes:
+               notes = self._instrument_active_notes[instrument]
+               if channel in notes:
+                   del notes[channel]
         else:
+            self._channel_active_note[channel] = pitch
+            instrument = self.get_selected_instrument_by_channel(channel)
+            if not instrument in self._instrument_active_notes:
+                self._instrument_active_notes[instrument] = dict()
+            notes = self._instrument_active_notes[instrument]
             notes[channel] = pitch
+            self._channel_active_instrument[channel] = instrument
 
