@@ -116,6 +116,7 @@ class UiModel():
 
     def set_module(self, module):
         self._module = module
+        self._module.set_model(self)
 
     def get_module(self):
         return self._module

@@ -22,10 +22,10 @@ class Session():
         self._progress_position = 1
         self._progress_steps = 1
         self._audio_levels = (0, 0)
-        self._channel_selected_instrument = dict()
-        self._channel_active_instrument = dict()
+        self._channel_selected_slot_id = dict()
+        self._channel_active_slot_id = dict()
         self._channel_active_note = dict()
-        self._instrument_active_notes = dict()
+        self._slot_active_notes = dict()
 
     def get_output_speed(self):
         return self._output_speed
@@ -69,22 +69,22 @@ class Session():
     def set_audio_levels(self, audio_levels):
         self._audio_levels = audio_levels
 
-    def get_selected_instrument_by_channel(self, channel):
-        return self._channel_selected_instrument[channel]
+    def get_selected_slot_id_by_channel(self, channel):
+        return self._channel_selected_slot_id[channel]
 
-    def set_selected_instrument(self, channel, instrument):
-        instrument_id = 'ins_{0:02x}'.format(instrument)
-        self._channel_selected_instrument[channel] = instrument_id
+    def set_selected_slot_id(self, channel, slot):
+        slot_id = 'slot_{0:02x}'.format(slot)
+        self._channel_selected_slot_id[channel] = slot_id
 
-    def get_active_instrument_by_channel(self, channel):
-        return self._channel_active_instrument[channel]
+    def get_active_slot_id_by_channel(self, channel):
+        return self._channel_active_slot_id[channel]
 
     def get_active_note_by_channel(self, channel):
         return self._channel_active_note[channel]
 
-    def get_active_notes_by_instrument(self, instrument):
+    def get_active_notes_by_slot_id(self, slot_id):
         try:
-            notes = self._instrument_active_notes[instrument]
+            notes = self._slot_active_notes[slot_id]
         except KeyError:
             notes = dict()
         return notes
@@ -93,17 +93,17 @@ class Session():
         if pitch == None:
             if channel in self._channel_active_note:
                 del self._channel_active_note[channel]
-            instrument = self.get_active_instrument_by_channel(channel)
-            if instrument in self._instrument_active_notes:
-               notes = self._instrument_active_notes[instrument]
+            slot_id = self.get_active_slot_id_by_channel(channel)
+            if slot_id in self._slot_active_notes:
+               notes = self._slot_active_notes[slot_id]
                if channel in notes:
                    del notes[channel]
         else:
             self._channel_active_note[channel] = pitch
-            instrument = self.get_selected_instrument_by_channel(channel)
-            if not instrument in self._instrument_active_notes:
-                self._instrument_active_notes[instrument] = dict()
-            notes = self._instrument_active_notes[instrument]
+            slot_id = self.get_selected_slot_id_by_channel(channel)
+            if not slot_id in self._slot_active_notes:
+                self._slot_active_notes[slot_id] = dict()
+            notes = self._slot_active_notes[slot_id]
             notes[channel] = pitch
-            self._channel_active_instrument[channel] = instrument
+            self._channel_active_slot_id[channel] = slot_id
 

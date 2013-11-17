@@ -12,6 +12,7 @@
 #
 
 from instrument import Instrument
+from slot import Slot
 
 
 class Module():
@@ -20,6 +21,7 @@ class Module():
         self._updater = None
         self._store = None
         self._controller = None
+        self._model = None
         self._instruments = {}
 
     def set_controller(self, controller):
@@ -27,9 +29,28 @@ class Module():
         self._store = controller.get_store()
         self._controller = controller
 
+    def set_model(self, model):
+        self._model = model
+
+    def get_slot_ids(self):
+        try:
+            input_map = self._store['p_ins_input.json']
+        except KeyError:
+            input_map = []
+        slot_ids = set()
+        for (slot_number, _) in input_map:
+            slot_id = 'slot_{0:02x}'.format(slot_number)
+            slot_ids.add(slot_id)
+        return slot_ids
+
+    def get_slot(self, slot_id):
+        slot = Slot(slot_id)
+        slot.set_controller(self._controller)
+        slot.set_model(self._model)
+        return slot
+
     def get_instrument(self, instrument_id):
         instrument = Instrument(instrument_id)
-        instrument.set_store(self._store)
         instrument.set_controller(self._controller)
         return instrument
 
