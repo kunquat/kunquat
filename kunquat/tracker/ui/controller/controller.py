@@ -118,6 +118,10 @@ class Controller():
         note_on_event = (EVENT_NOTE_ON, pitch)
         self._audio_engine.fire_event(channel_number, note_on_event)
 
+    def set_rest(self, channel_number):
+        note_off_event = (EVENT_NOTE_OFF, None)
+        self._audio_engine.fire_event(channel_number, note_off_event)
+
     def update_output_speed(self, fps):
         self._session.set_output_speed(fps)
         self._updater.signal_update()

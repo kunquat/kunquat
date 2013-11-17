@@ -106,8 +106,8 @@ class TypeWriterButton(QPushButton):
         self._notename.setStyleSheet("QLabel { color: #000; }")
 
         self.setEnabled(False)
-        QObject.connect(self, SIGNAL('clicked()'),
-                        self._play_sound)
+        QObject.connect(self, SIGNAL('pressed()'), self._play_sound)
+        QObject.connect(self, SIGNAL('released()'), self._stop_sound)
 
     def set_ui_model(self, ui_model):
         updater = ui_model.get_updater()
@@ -117,6 +117,10 @@ class TypeWriterButton(QPushButton):
     def _play_sound(self):
         if self._selected_instrument:
             self._selected_instrument.set_active_note(0, self._pitch)
+
+    def _stop_sound(self):
+        if self._selected_instrument:
+            self._selected_instrument.set_rest(0)
 
     def update_selected_instrument(self):
         self._selected_instrument = self._ui_manager.get_selected_instrument()

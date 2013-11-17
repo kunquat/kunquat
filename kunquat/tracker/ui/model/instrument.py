@@ -49,6 +49,10 @@ class Instrument():
         instrument_id = self.get_id()
         self._controller.set_active_note(channel_number, instrument_id, pitch)
 
+    def set_rest(self, channel_number):
+        instrument_id = self.get_id()
+        self._controller.set_rest(channel_number)
+
     def get_id(self):
         return self._instrument_id
 
