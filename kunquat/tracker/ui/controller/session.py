@@ -87,11 +87,12 @@ class Session():
 
     def set_active_note(self, channel, pitch):
         self._channel_active_note[channel] = pitch
-        change = dict()
-        change[channel] = pitch
         instrument = self.get_selected_instrument_by_channel(channel)
         if not instrument in self._instrument_active_notes:
             self._instrument_active_notes[instrument] = dict()
         notes = self._instrument_active_notes[instrument]
-        notes.update(change)
+        if pitch == None:
+            del notes[channel]
+        else:
+            notes[channel] = pitch
 
