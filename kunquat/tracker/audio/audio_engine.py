@@ -110,6 +110,8 @@ class AudioEngine():
 
     def fire_event(self, channel, event):
         self._rendering_engine.fire_event(channel, event)
+        event_data = self._rendering_engine.receive_events()
+        self._process_events(event_data)
 
     def set_data(self, transaction):
         #TODO: Remove sorting once it works without
