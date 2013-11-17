@@ -30,42 +30,41 @@ class InstrumentSelect(QComboBox):
         self._ui_manager = ui_model.get_ui_manager()
         self._module = ui_model.get_module()
 
-    def _select_instrument(self, i):
-        if i < 0:
-            return
-        instrument = self._instrument_catalog[i]
-        self._ui_manager.set_selected_instrument(instrument)
+    def _select_instrument(self, instrument_number):
+        instrument = self._instrument_catalog[instrument_number]
+        instrument_id = instrument.get_id()
+        self._ui_manager.set_selected_instrument_id(instrument_id)
 
     def update_texts(self):
         for i, instrument in self._instrument_catalog.items():
-            instrument_number = instrument.get_instrument_number()
             instrument_name = instrument.get_name() or '-'
             play = '' if len(instrument.get_active_notes()) < 1 else u'*'
-            text = 'instrument %s: %s %s' % (instrument_number, instrument_name, play)
+            text = '%s %s' % (instrument_name, play)
             self.setItemText(i, text)
 
     def update_instruments(self):
         instruments = self._module.get_instruments()
-        selected = self._ui_manager.get_selected_instrument()
+        selected_instrument_id = self._ui_manager.get_selected_instrument_id()
         old_block = self.blockSignals(True)
         self.clear()
         self._instrument_catalog = dict(enumerate(instruments))
         invalid_selection = True
         for i, instrument in self._instrument_catalog.items():
-            instrument_number = instrument.get_instrument_number()
             self.addItem('')
-            if selected:
-                current = selected.get_instrument_number()
-                instrument_number = instrument.get_instrument_number()
-                if instrument_number == current:
+            if selected_instrument_id:
+                instrument_id = instrument.get_id()
+                if instrument_id == selected_instrument_id:
                     self.setCurrentIndex(i)
                     invalid_selection = False
         self.update_texts()
         self.blockSignals(old_block)
         if invalid_selection and len(instruments) > 0:
-            self._ui_manager.set_selected_instrument(instruments[0])
+            top_instrument = instruments[0]
+            top_instrument_id = top_instrument.get_id()
+            self._ui_manager.set_selected_instrument_id(top_instrument_id)
 
     def perform_updates(self, signals):
-        self.update_instruments()
+        if 'signal_instruments' in signals:
+            self.update_instruments()
         self.update_texts()
 

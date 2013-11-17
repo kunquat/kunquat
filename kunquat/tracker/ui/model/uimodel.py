@@ -12,6 +12,10 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from stat_manager import StatManager
+from ui_manager import UiManager
+from playback_manager import PlaybackManager
+from module import Module
 
 class UiModel():
     """
@@ -73,39 +77,23 @@ class UiModel():
     """
 
     def __init__(self):
-        self._driver_manager = None
         self._stat_manager = None
         self._ui_manager = None
         self._playback_manager = None
         self._module = None
-        self._updater = None
-        self._store = None
-
-    def set_backend(self, backend):
-        self._backend = backend
-        self._module.set_backend(self._backend)
 
     def set_ui(self, ui):
         self._ui = ui
 
-    def set_updater(self, updater):
-        self._updater = updater
-        self._driver_manager.set_updater(self._updater)
-        self._stat_manager.set_updater(self._updater)
-        self._ui_manager.set_updater(self._updater)
-        self._module.set_updater(self._updater)
-
-    def set_store(self, store):
-        self._store = store
+    def set_controller(self, controller):
+        self._controller = controller
+        self._module.set_controller(controller)
+        self._stat_manager.set_controller(self._controller)
+        self._ui_manager.set_controller(self._controller)
 
     def get_updater(self):
-        return self._updater
-
-    def set_driver_manager(self, driver_manager):
-        self._driver_manager = driver_manager
-
-    def get_driver_manager(self):
-        return self._driver_manager
+        updater = self._controller.get_updater()
+        return updater
 
     def set_stat_manager(self, stat_manager):
         self._stat_manager = stat_manager
@@ -115,6 +103,7 @@ class UiModel():
 
     def set_ui_manager(self, ui_manager):
         self._ui_manager = ui_manager
+        self._ui_manager.set_model(self)
 
     def get_ui_manager(self):
         return self._ui_manager
@@ -131,12 +120,18 @@ class UiModel():
     def get_module(self):
         return self._module
 
-    def set_audio_output(self, audio_output):
-        self._driver_manager.set_audio_output(audio_output)
-
-    def load_module(self):
-        self._backend.load_module()
-
     def play(self):
-        self._backend.play()
+        self._controller.play()
+
+def create_ui_model():
+    stat_manager = StatManager()
+    ui_manager = UiManager()
+    playback_manager = PlaybackManager()
+    module = Module()
+    ui_model = UiModel()
+    ui_model.set_stat_manager(stat_manager)
+    ui_model.set_ui_manager(ui_manager)
+    ui_model.set_playback_manager(playback_manager)
+    ui_model.set_module(module)
+    return ui_model
 
