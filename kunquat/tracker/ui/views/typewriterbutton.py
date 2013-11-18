@@ -87,7 +87,7 @@ class TypeWriterButton(QPushButton):
         self._pitch = pitch
         self._ui_manager = None
 
-        self._selected_instrument = None
+        self._selected_slot = None
         self.setMinimumWidth(60)
         self.setMinimumHeight(60)
         layout = QVBoxLayout(self)
@@ -115,22 +115,22 @@ class TypeWriterButton(QPushButton):
         self._ui_manager = ui_model.get_ui_manager()
 
     def _play_sound(self):
-        if self._selected_instrument:
-            self._selected_instrument.set_active_note(0, self._pitch)
+        if self._selected_slot:
+            self._selected_slot.set_active_note(0, self._pitch)
 
     def _stop_sound(self):
-        if self._selected_instrument:
-            self._selected_instrument.set_rest(0)
+        if self._selected_slot:
+            self._selected_slot.set_rest(0)
 
-    def update_selected_instrument(self):
-        self._selected_instrument = self._ui_manager.get_selected_instrument()
+    def update_selected_slot(self):
+        self._selected_slot = self._ui_manager.get_selected_slot()
         self.setEnabled(True)
 
     def update_leds(self):
-        if self._selected_instrument == None:
+        if self._selected_slot == None:
             return
         (left_on, center_on, right_on) = 3 * [0]
-        notes = self._selected_instrument.get_active_notes()
+        notes = self._selected_slot.get_active_notes()
         for (_, note) in notes.items():
             if closest(note) == self._pitch:
                 if note < self._pitch:
@@ -144,6 +144,6 @@ class TypeWriterButton(QPushButton):
         self._led.set_leds(left_on, center_on, right_on)
 
     def perform_updates(self, signals):
-        self.update_selected_instrument()
+        self.update_selected_slot()
         self.update_leds()
 

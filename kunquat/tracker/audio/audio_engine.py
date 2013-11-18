@@ -20,7 +20,7 @@ from kunquat.kunquat.kunquat import Kunquat
 
 from drivers.pushaudio import Pushaudio
 
-EVENT_SELECT_INSTRUMENT = '.i'
+EVENT_SELECT_SLOT = '.i'
 EVENT_NOTE_ON = 'n+'
 EVENT_NOTE_OFF = 'n-'
 
@@ -71,9 +71,9 @@ class AudioEngine():
         return tuple(levels)
 
     def _process_event(self, channel_number, event_type, event_value):
-        if event_type == EVENT_SELECT_INSTRUMENT:
-            instrument_number = event_value
-            self._ui_engine.update_selected_instrument(channel_number, instrument_number)
+        if event_type == EVENT_SELECT_SLOT:
+            slot_number = event_value
+            self._ui_engine.update_selected_slot(channel_number, slot_number)
         elif event_type == EVENT_NOTE_OFF:
             pass
             self._ui_engine.update_active_note(channel_number, None)

@@ -22,36 +22,10 @@ class Instrument():
         self._controller = None
         self._instrument_number = None
         self._existence = None
-        self._updater = None
-        self._session = None
-
-    def set_store(self, store):
-        self._store = store
 
     def set_controller(self, controller):
-        self._session = controller.get_session()
+        self._store = controller.get_store()
         self._controller = controller
-
-    def set_updater(self, updater):
-        self._updater = updater
-
-    def get_active_notes(self):
-        notes = self._session.get_active_notes_by_instrument(self._instrument_id)
-        return notes
-
-    def get_active_note(self, channel_number):
-        notes = self.get_active_notes()
-        if channel_number not in notes:
-            return None
-        return notes[channel_number]
-
-    def set_active_note(self, channel_number, pitch):
-        instrument_id = self.get_id()
-        self._controller.set_active_note(channel_number, instrument_id, pitch)
-
-    def set_rest(self, channel_number):
-        instrument_id = self.get_id()
-        self._controller.set_rest(channel_number)
 
     def get_id(self):
         return self._instrument_id

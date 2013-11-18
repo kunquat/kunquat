@@ -70,14 +70,8 @@ class UiThread(threading.Thread):
     def update_audio_levels(self, levels):
         self._q.push('update_audio_levels', levels)
 
-    def update_selected_instrument(self, channel_number, instrument_number):
-        self._q.push('update_selected_instrument', channel_number, instrument_number)
-
-    def update_instrument_existence(self, instrument_number, existence):
-        self._q.push('update_instrument_existence', instrument_number, existence)
-
-    def update_instrument_name(self, instrument_number, name):
-        self._q.push('update_instrument_name', instrument_number, name)
+    def update_selected_slot(self, channel_number, slot_number):
+        self._q.push('update_selected_slot', channel_number, slot_number)
 
     def update_active_note(self, channel_number, pitch):
         self._q.push('update_active_note', channel_number, pitch)
