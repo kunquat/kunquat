@@ -67,5 +67,9 @@ class TypewriterManager():
         keymap_data = self._session.get_keymap_data()
         keymap = keymap_data['keymap']
         current_map = self._create_current_map(keymap)
-        pitch = current_map[row][column]
+        pitch_row = current_map[row]
+        try:
+            pitch = pitch_row[column]
+        except IndexError:
+            pitch = None
         return pitch
