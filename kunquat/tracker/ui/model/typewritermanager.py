@@ -12,6 +12,7 @@
 #
 
 import itertools
+from bisect import bisect_left
 
 
 class TypewriterManager():
@@ -73,3 +74,22 @@ class TypewriterManager():
         except IndexError:
             pitch = None
         return pitch
+
+    def get_closest_keymap_pitch(self, pitch):
+        keymap_data = self._session.get_keymap_data()
+        octaves = keymap_data['keymap']
+        pitches = sorted(list(itertools.chain(*octaves)))
+        key_count = len(pitches)
+        i = bisect_left(pitches, pitch)
+        if i == key_count:
+            return pitches[-1]
+        elif i == 0:
+            return pitches[0]
+        else:
+             a = pitches[i]
+             b = pitches[i - 1]
+             if abs(a - pitch) < abs(b - pitch):
+                 return a
+             else:
+                 return b
+

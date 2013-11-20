@@ -13,25 +13,7 @@
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
-from bisect import bisect_left
 
-keymap = [100, 200, 300, 400, 500, 600, 700, 800]
-
-
-def closest(x):
-    key_count = len(keymap)
-    i = bisect_left(keymap, x)
-    if i == key_count:
-        return keymap[-1]
-    elif i == 0:
-        return keymap[0]
-    else:
-         a = keymap[i]
-         b = keymap[i - 1]
-         if abs(a - x) < abs(b - x):
-             return a
-         else:
-             return b
 
 class TWLed(QFrame):
 
@@ -87,6 +69,7 @@ class TypeWriterButton(QPushButton):
         QPushButton.__init__(self)
         self._pitch = pitch
         self._ui_manager = None
+        self._typewriter_manager = None
 
         self._selected_slot = None
         self.setMinimumWidth(60)
@@ -117,6 +100,7 @@ class TypeWriterButton(QPushButton):
         updater = ui_model.get_updater()
         updater.register_updater(self.perform_updates)
         self._ui_manager = ui_model.get_ui_manager()
+        self._typewriter_manager = ui_model.get_typewriter_manager()
 
     def _play_sound(self):
         if self._selected_slot:
@@ -137,7 +121,7 @@ class TypeWriterButton(QPushButton):
         (left_on, center_on, right_on) = 3 * [0]
         notes = self._selected_slot.get_active_notes()
         for (_, note) in notes.items():
-            if closest(note) == self._pitch:
+            if self._typewriter_manager.get_closest_keymap_pitch(note) == self._pitch:
                 if note < self._pitch:
                     left_on = 1
                 elif note == self._pitch:
