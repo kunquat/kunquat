@@ -27,7 +27,7 @@ class MainWindow(QWidget):
 
     def __init__(self):
         QWidget.__init__(self)
-
+        self.resize(800, 600)
         self._play_button = PlayButton()
         self._type_writer = TypeWriter()
         self._instrument_select = InstrumentSelect()
