@@ -17,6 +17,7 @@ from bisect import bisect_left
 
 keymap = [100, 200, 300, 400, 500, 600, 700, 800]
 
+
 def closest(x):
     key_count = len(keymap)
     i = bisect_left(keymap, x)
@@ -101,9 +102,12 @@ class TypeWriterButton(QPushButton):
         layout.setAlignment(Qt.AlignCenter)
         self.setFocusPolicy(Qt.NoFocus)
 
-        self._notename.setText('%sc' % self._pitch)
-        self.setStyleSheet("QLabel { background-color: #ffe; }")
-        self._notename.setStyleSheet("QLabel { color: #000; }")
+        if self._pitch != None:
+            self._notename.setText('%sc' % self._pitch)
+            self.setStyleSheet("QLabel { background-color: #ffe; }")
+            self._notename.setStyleSheet("QLabel { color: #000; }")
+        else:
+            self.setStyleSheet("QLabel { background-color: #ccc; }")
 
         self.setEnabled(False)
         QObject.connect(self, SIGNAL('pressed()'), self._play_sound)
@@ -124,7 +128,8 @@ class TypeWriterButton(QPushButton):
 
     def update_selected_slot(self):
         self._selected_slot = self._ui_manager.get_selected_slot()
-        self.setEnabled(True)
+        if self._pitch != None:
+            self.setEnabled(True)
 
     def update_leds(self):
         if self._selected_slot == None:
