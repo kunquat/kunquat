@@ -15,6 +15,7 @@
 from stat_manager import StatManager
 from ui_manager import UiManager
 from playback_manager import PlaybackManager
+from typewritermanager import TypewriterManager
 from module import Module
 
 class UiModel():
@@ -80,6 +81,7 @@ class UiModel():
         self._stat_manager = None
         self._ui_manager = None
         self._playback_manager = None
+        self._typewriter_manager = None
         self._module = None
 
     def set_ui(self, ui):
@@ -90,6 +92,7 @@ class UiModel():
         self._module.set_controller(controller)
         self._stat_manager.set_controller(self._controller)
         self._ui_manager.set_controller(self._controller)
+        self._typewriter_manager.set_controller(self._controller)
 
     def get_updater(self):
         updater = self._controller.get_updater()
@@ -114,6 +117,12 @@ class UiModel():
     def get_playback_manager(self):
         return self._playback_manager
 
+    def set_typewriter_manager(self, typewriter_manager):
+        self._typewriter_manager = typewriter_manager
+
+    def get_typewriter_manager(self):
+        return self._typewriter_manager
+
     def set_module(self, module):
         self._module = module
         self._module.set_model(self)
@@ -128,11 +137,13 @@ def create_ui_model():
     stat_manager = StatManager()
     ui_manager = UiManager()
     playback_manager = PlaybackManager()
+    typewriter_manager = TypewriterManager()
     module = Module()
     ui_model = UiModel()
     ui_model.set_stat_manager(stat_manager)
     ui_model.set_ui_manager(ui_manager)
     ui_model.set_playback_manager(playback_manager)
+    ui_model.set_typewriter_manager(typewriter_manager)
     ui_model.set_module(module)
     return ui_model
 
