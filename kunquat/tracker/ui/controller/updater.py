@@ -17,6 +17,7 @@ class Updater(object):
     def __init__(self):
         self._update_signals = set()
         self._updaters = set()
+        self._iterator = set()
 
     def signal_update(self, signals = set()):
         self._update_signals.add('signal_change')
@@ -27,11 +28,14 @@ class Updater(object):
 
     def unregister_updater(self, updater):
         self._updaters.remove(updater)
+        self._iterator -= set([updater])
 
     def perform_updates(self):
         if not self._update_signals:
             return
-        for updater in self._updaters:
+        self._iterator = set(self._updaters)
+        while len(self._iterator) > 0:
+            updater = self._iterator.pop()
             updater(self._update_signals)
         self._update_signals = set()
 
