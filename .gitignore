@@ -12,6 +12,7 @@ py-installed
 src/lib/test/connections
 src/lib/test/filter
 src/lib/test/generator
+src/lib/test/dsp
 src/lib/test/handle
 src/lib/test/instrument
 src/lib/test/memory
