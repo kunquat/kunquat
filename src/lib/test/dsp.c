@@ -67,9 +67,9 @@ START_TEST(Trivial_chorus_is_identity)
 END_TEST
 
 
-Suite* Generator_suite(void)
+Suite* DSP_suite(void)
 {
-    Suite* s = suite_create("Generator");
+    Suite* s = suite_create("DSP");
 
     const int timeout = 4;
 
@@ -86,7 +86,7 @@ Suite* Generator_suite(void)
 
 int main(void)
 {
-    Suite* suite = Generator_suite();
+    Suite* suite = DSP_suite();
     SRunner* sr = srunner_create(suite);
 #ifdef K_MEM_DEBUG
     srunner_set_fork_status(sr, CK_NOFORK);
