@@ -36,7 +36,7 @@ typedef struct Set_cb
             bool default_val;
             bool (*set)(
                     Device_impl*,
-                    int32_t[DEVICE_KEY_INDICES_MAX],
+                    Device_key_indices,
                     bool);
         } bool_type;
 
@@ -45,7 +45,7 @@ typedef struct Set_cb
             double default_val;
             bool (*set)(
                     Device_impl*,
-                    int32_t[DEVICE_KEY_INDICES_MAX],
+                    Device_key_indices,
                     double);
         } float_type;
 
@@ -54,7 +54,7 @@ typedef struct Set_cb
             int64_t default_val;
             bool (*set)(
                     Device_impl*,
-                    int32_t[DEVICE_KEY_INDICES_MAX],
+                    Device_key_indices,
                     int64_t);
         } int_type;
 
@@ -63,7 +63,7 @@ typedef struct Set_cb
             Tstamp default_val;
             bool (*set)(
                     Device_impl*,
-                    int32_t[DEVICE_KEY_INDICES_MAX],
+                    Device_key_indices,
                     const Tstamp*);
         } Tstamp_type;
 
@@ -72,7 +72,7 @@ typedef struct Set_cb
             const Envelope* default_val;
             bool (*set)(
                     Device_impl*,
-                    int32_t[DEVICE_KEY_INDICES_MAX],
+                    Device_key_indices,
                     const Envelope*);
         } Envelope_type;
 
@@ -81,7 +81,7 @@ typedef struct Set_cb
             const Sample* default_val;
             bool (*set)(
                     Device_impl*,
-                    int32_t[DEVICE_KEY_INDICES_MAX],
+                    Device_key_indices,
                     const Sample*);
         } Sample_type;
 
@@ -90,7 +90,7 @@ typedef struct Set_cb
             const Sample_params* default_val;
             bool (*set)(
                     Device_impl*,
-                    int32_t[DEVICE_KEY_INDICES_MAX],
+                    Device_key_indices,
                     const Sample_params*);
         } Sample_params_type;
 
@@ -99,7 +99,7 @@ typedef struct Set_cb
             const Sample_map* default_val;
             bool (*set)(
                     Device_impl*,
-                    int32_t[DEVICE_KEY_INDICES_MAX],
+                    Device_key_indices,
                     const Sample_map*);
         } Sample_map_type;
 
@@ -108,7 +108,7 @@ typedef struct Set_cb
             const Hit_map* default_val;
             bool (*set)(
                     Device_impl*,
-                    int32_t[DEVICE_KEY_INDICES_MAX],
+                    Device_key_indices,
                     const Hit_map*);
         } Hit_map_type;
 
@@ -117,7 +117,7 @@ typedef struct Set_cb
             const Num_list* default_val;
             bool (*set)(
                     Device_impl*,
-                    int32_t[DEVICE_KEY_INDICES_MAX],
+                    Device_key_indices,
                     const Num_list*);
         } Num_list_type;
     } cb;
@@ -135,25 +135,25 @@ typedef struct Update_state_cb
         bool (*update_bool)(
                 const Device_impl*,
                 Device_state*,
-                int32_t[DEVICE_KEY_INDICES_MAX],
+                Device_key_indices,
                 bool);
 
         bool (*update_float)(
                 const Device_impl*,
                 Device_state*,
-                int32_t[DEVICE_KEY_INDICES_MAX],
+                Device_key_indices,
                 double);
 
         bool (*update_int)(
                 const Device_impl*,
                 Device_state*,
-                int32_t[DEVICE_KEY_INDICES_MAX],
+                Device_key_indices,
                 int64_t);
 
         bool (*update_tstamp)(
                 const Device_impl*,
                 Device_state*,
-                int32_t[DEVICE_KEY_INDICES_MAX],
+                Device_key_indices,
                 const Tstamp*);
     } cb;
 
@@ -243,7 +243,7 @@ void Device_impl_register_reset_device_state(
             type default_val,                                  \
             bool (*set_func)(                                  \
                 Device_impl*,                                  \
-                int32_t[DEVICE_KEY_INDICES_MAX],               \
+                Device_key_indices,                            \
                 type))                                         \
     {                                                          \
         assert(dimpl != NULL);                                 \
@@ -280,7 +280,7 @@ bool Device_impl_register_set_tstamp(
         const Tstamp* default_val,
         bool (*set_func)(
             Device_impl*,
-            int32_t[DEVICE_KEY_INDICES_MAX],
+            Device_key_indices,
             const Tstamp*))
 {
     assert(dimpl != NULL);
@@ -313,7 +313,7 @@ bool Device_impl_register_set_envelope(
         const Envelope* default_val,
         bool (*set_func)(
             Device_impl*,
-            int32_t[DEVICE_KEY_INDICES_MAX],
+            Device_key_indices,
             const Envelope*))
 {
     assert(dimpl != NULL);
@@ -345,7 +345,7 @@ bool Device_impl_register_set_num_list(
         const Num_list* default_val,
         bool (*set_func)(
             Device_impl*,
-            int32_t[DEVICE_KEY_INDICES_MAX],
+            Device_key_indices,
             const Num_list*))
 {
     assert(dimpl != NULL);
@@ -378,7 +378,7 @@ bool Device_impl_register_set_num_list(
             bool (*update_state)(                                  \
                 const Device_impl*,                                \
                 Device_state*,                                     \
-                int32_t[DEVICE_KEY_INDICES_MAX],                   \
+                Device_key_indices,                                \
                 ctype))                                            \
     {                                                              \
         assert(dimpl != NULL);                                     \
@@ -416,7 +416,7 @@ bool Device_impl_register_update_state_tstamp(
         bool (*update_state)(
             const Device_impl*,
             Device_state*,
-            int32_t[DEVICE_KEY_INDICES_MAX],
+            Device_key_indices,
             const Tstamp*))
 {
     assert(dimpl != NULL);
@@ -543,7 +543,7 @@ static int32_t extract_num(
 static void process_key(
         const char* key,
         char* keyp,
-        int32_t indices[DEVICE_KEY_INDICES_MAX])
+        Device_key_indices indices)
 {
     assert(key != NULL);
     assert(strlen(key) < KQT_KEY_LENGTH_MAX);
@@ -605,7 +605,7 @@ bool Device_impl_set_key(Device_impl* dimpl, const char* key)
 
     assert(strlen(key) < KQT_KEY_LENGTH_MAX);
     char keyp[KQT_KEY_LENGTH_MAX] = "";
-    int32_t indices[DEVICE_KEY_INDICES_MAX] = { 0 };
+    Device_key_indices indices = { 0 };
     memset(indices, '\xff', DEVICE_KEY_INDICES_MAX);
 
     process_key(key, keyp, indices);
@@ -681,7 +681,7 @@ bool Device_impl_notify_key_change(
 
     assert(strlen(key) < KQT_KEY_LENGTH_MAX);
     char keyp[KQT_KEY_LENGTH_MAX] = "";
-    int32_t indices[DEVICE_KEY_INDICES_MAX] = { 0 };
+    Device_key_indices indices = { 0 };
     memset(indices, '\xff', DEVICE_KEY_INDICES_MAX * sizeof(int32_t));
 
     process_key(key, keyp, indices);
@@ -771,7 +771,7 @@ bool Device_impl_notify_key_change(
                                                                            \
         assert(strlen(key) < KQT_KEY_LENGTH_MAX);                          \
         char keyp[KQT_KEY_LENGTH_MAX] = "";                                \
-        int32_t indices[DEVICE_KEY_INDICES_MAX] = { 0 };                   \
+        Device_key_indices indices = { 0 };                                \
         memset(indices, '\xff', DEVICE_KEY_INDICES_MAX * sizeof(int32_t)); \
                                                                            \
         process_key(key, keyp, indices);                                   \
@@ -810,7 +810,7 @@ bool Device_impl_update_state_tstamp(
 
     assert(strlen(key) < KQT_KEY_LENGTH_MAX);
     char keyp[KQT_KEY_LENGTH_MAX] = "";
-    int32_t indices[DEVICE_KEY_INDICES_MAX] = { 0 };
+    Device_key_indices indices = { 0 };
     memset(indices, '\xff', DEVICE_KEY_INDICES_MAX * sizeof(int32_t));
 
     process_key(key, keyp, indices);

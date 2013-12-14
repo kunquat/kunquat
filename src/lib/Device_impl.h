@@ -34,6 +34,9 @@
 #define DEVICE_KEY_INDICES_MAX 8
 
 
+typedef int32_t Device_key_indices[DEVICE_KEY_INDICES_MAX];
+
+
 /**
  * The base class of Generator and DSP implementations.
  */
@@ -141,7 +144,7 @@ bool Device_impl_register_set_bool(
         bool default_val,
         bool (*set_func)(
             Device_impl*,
-            int32_t[DEVICE_KEY_INDICES_MAX],
+            Device_key_indices,
             bool));
 
 
@@ -164,7 +167,7 @@ bool Device_impl_register_set_float(
         double default_val,
         bool (*set_func)(
             Device_impl*,
-            int32_t[DEVICE_KEY_INDICES_MAX],
+            Device_key_indices,
             double));
 
 
@@ -187,7 +190,7 @@ bool Device_impl_register_set_int(
         int64_t default_val,
         bool (*set_func)(
             Device_impl*,
-            int32_t[DEVICE_KEY_INDICES_MAX],
+            Device_key_indices,
             int64_t));
 
 
@@ -211,7 +214,7 @@ bool Device_impl_register_set_tstamp(
         const Tstamp* default_val,
         bool (*set_func)(
             Device_impl*,
-            int32_t[DEVICE_KEY_INDICES_MAX],
+            Device_key_indices,
             const Tstamp*));
 
 
@@ -235,7 +238,7 @@ bool Device_impl_register_set_envelope(
         const Envelope* default_val,
         bool (*set_func)(
             Device_impl*,
-            int32_t[DEVICE_KEY_INDICES_MAX],
+            Device_key_indices,
             const Envelope*));
 
 
@@ -259,7 +262,7 @@ bool Device_impl_register_set_sample(
         const Sample* default_val,
         bool (*set_func)(
             Device_impl*,
-            int32_t[DEVICE_KEY_INDICES_MAX],
+            Device_key_indices,
             const Sample*));
 
 
@@ -283,7 +286,7 @@ bool Device_impl_register_set_sample_params(
         const Sample_params* default_val,
         bool (*set_func)(
             Device_impl*,
-            int32_t[DEVICE_KEY_INDICES_MAX],
+            Device_key_indices,
             const Sample_params*));
 
 
@@ -307,7 +310,7 @@ bool Device_impl_register_set_sample_map(
         const Sample_map* default_val,
         bool (*set_func)(
             Device_impl*,
-            int32_t[DEVICE_KEY_INDICES_MAX],
+            Device_key_indices,
             const Sample_map*));
 
 
@@ -331,7 +334,7 @@ bool Device_impl_register_set_hit_map(
         const Hit_map* default_val,
         bool (*set_func)(
             Device_impl*,
-            int32_t[DEVICE_KEY_INDICES_MAX],
+            Device_key_indices,
             const Hit_map*));
 
 
@@ -355,7 +358,7 @@ bool Device_impl_register_set_num_list(
         const Num_list* default_val,
         bool (*set_func)(
             Device_impl*,
-            int32_t[DEVICE_KEY_INDICES_MAX],
+            Device_key_indices,
             const Num_list*));
 
 
@@ -378,7 +381,7 @@ bool Device_impl_register_update_state_bool(
         bool (*update_state)(
             const Device_impl*,
             Device_state*,
-            int32_t[DEVICE_KEY_INDICES_MAX],
+            Device_key_indices,
             bool));
 
 
@@ -401,7 +404,7 @@ bool Device_impl_register_update_state_float(
         bool (*update_state)(
             const Device_impl*,
             Device_state*,
-            int32_t[DEVICE_KEY_INDICES_MAX],
+            Device_key_indices,
             double));
 
 
@@ -424,7 +427,7 @@ bool Device_impl_register_update_state_int(
         bool (*update_state)(
             const Device_impl*,
             Device_state*,
-            int32_t[DEVICE_KEY_INDICES_MAX],
+            Device_key_indices,
             int64_t));
 
 
@@ -447,7 +450,7 @@ bool Device_impl_register_update_state_tstamp(
         bool (*update_state)(
             const Device_impl*,
             Device_state*,
-            int32_t[DEVICE_KEY_INDICES_MAX],
+            Device_key_indices,
             const Tstamp*));
 
 
