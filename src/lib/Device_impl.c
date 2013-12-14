@@ -31,95 +31,28 @@ typedef struct Set_cb
 
     union
     {
-        struct
-        {
-            bool default_val;
-            bool (*set)(
-                    Device_impl*,
-                    Device_key_indices,
-                    bool);
-        } bool_type;
+#define cb_info(type_name, def_val_type, param_type) \
+        struct                                       \
+        {                                            \
+            def_val_type default_val;                \
+            bool (*set)(                             \
+                    Device_impl*,                    \
+                    Device_key_indices,              \
+                    param_type);                     \
+        } type_name ## _type
 
-        struct
-        {
-            double default_val;
-            bool (*set)(
-                    Device_impl*,
-                    Device_key_indices,
-                    double);
-        } float_type;
+        cb_info(bool, bool, bool);
+        cb_info(float, double, double);
+        cb_info(int, int64_t, int64_t);
+        cb_info(Tstamp, Tstamp, const Tstamp*);
+        cb_info(Envelope, const Envelope*, const Envelope*);
+        cb_info(Sample, const Sample*, const Sample*);
+        cb_info(Sample_params, const Sample_params*, const Sample_params*);
+        cb_info(Sample_map, const Sample_map*, const Sample_map*);
+        cb_info(Hit_map, const Hit_map*, const Hit_map*);
+        cb_info(Num_list, const Num_list*, const Num_list*);
 
-        struct
-        {
-            int64_t default_val;
-            bool (*set)(
-                    Device_impl*,
-                    Device_key_indices,
-                    int64_t);
-        } int_type;
-
-        struct
-        {
-            Tstamp default_val;
-            bool (*set)(
-                    Device_impl*,
-                    Device_key_indices,
-                    const Tstamp*);
-        } Tstamp_type;
-
-        struct
-        {
-            const Envelope* default_val;
-            bool (*set)(
-                    Device_impl*,
-                    Device_key_indices,
-                    const Envelope*);
-        } Envelope_type;
-
-        struct
-        {
-            const Sample* default_val;
-            bool (*set)(
-                    Device_impl*,
-                    Device_key_indices,
-                    const Sample*);
-        } Sample_type;
-
-        struct
-        {
-            const Sample_params* default_val;
-            bool (*set)(
-                    Device_impl*,
-                    Device_key_indices,
-                    const Sample_params*);
-        } Sample_params_type;
-
-        struct
-        {
-            const Sample_map* default_val;
-            bool (*set)(
-                    Device_impl*,
-                    Device_key_indices,
-                    const Sample_map*);
-        } Sample_map_type;
-
-        struct
-        {
-            const Hit_map* default_val;
-            bool (*set)(
-                    Device_impl*,
-                    Device_key_indices,
-                    const Hit_map*);
-        } Hit_map_type;
-
-        struct
-        {
-            const Num_list* default_val;
-            bool (*set)(
-                    Device_impl*,
-                    Device_key_indices,
-                    const Num_list*);
-        } Num_list_type;
+#undef cb_info
     } cb;
 
 } Set_cb;
@@ -132,29 +65,19 @@ typedef struct Update_state_cb
 
     union
     {
-        bool (*update_bool)(
-                const Device_impl*,
-                Device_state*,
-                Device_key_indices,
-                bool);
+#define cb_info(type_name, param_type) \
+        bool (*update_ ## type_name)(  \
+                const Device_impl*,    \
+                Device_state*,         \
+                Device_key_indices,    \
+                param_type)
 
-        bool (*update_float)(
-                const Device_impl*,
-                Device_state*,
-                Device_key_indices,
-                double);
+        cb_info(bool, bool);
+        cb_info(float, double);
+        cb_info(int, int64_t);
+        cb_info(tstamp, const Tstamp*);
 
-        bool (*update_int)(
-                const Device_impl*,
-                Device_state*,
-                Device_key_indices,
-                int64_t);
-
-        bool (*update_tstamp)(
-                const Device_impl*,
-                Device_state*,
-                Device_key_indices,
-                const Tstamp*);
+#undef cb_info
     } cb;
 
 } Update_state_cb;
