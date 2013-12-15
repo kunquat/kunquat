@@ -129,6 +129,29 @@ START_TEST(Connect_generator_without_type)
 END_TEST
 
 
+START_TEST(Setting_type_syncs_keys)
+{
+    set_mix_volume(0);
+    set_audio_rate(220);
+    pause();
+
+    setup_debug_single_pulse();
+    setup_debug_instrument();
+
+    float actual_buf[buf_len] = { 0.0f };
+
+    kqt_Handle_fire_event(handle, 0, Note_On_55_Hz);
+    check_unexpected_error();
+    mix_and_fill(actual_buf, buf_len);
+
+    float expected_buf[buf_len] = { 0.0f };
+    expected_buf[0] = 1.0f;
+
+    check_buffers_equal(expected_buf, actual_buf, buf_len, 0.0f);
+}
+END_TEST
+
+
 Suite* Generator_suite(void)
 {
     Suite* s = suite_create("Generator");
@@ -144,6 +167,7 @@ Suite* Generator_suite(void)
     tcase_add_test(tc_general, Adding_manifest_enables_generator);
     tcase_add_test(tc_general, Removing_manifest_disables_generator);
     tcase_add_test(tc_general, Connect_generator_without_type);
+    tcase_add_test(tc_general, Setting_type_syncs_keys);
 
     return s;
 }
