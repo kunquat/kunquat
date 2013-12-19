@@ -152,35 +152,47 @@ static void DSP_delay_reset(const Device_impl* dimpl, Device_state* dstate);
 
 static bool DSP_delay_set_max_delay(
         Device_impl* dimpl,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         double value);
 
 static bool DSP_delay_set_tap_delay(
         Device_impl* dimpl,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         double value);
 
 static bool DSP_delay_set_tap_volume(
         Device_impl* dimpl,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         double value);
 
-static bool DSP_delay_update_state_max_delay(
+static bool DSP_delay_set_state_max_delay(
         const Device_impl* dimpl,
         Device_state* dstate,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         double value);
 
-static bool DSP_delay_update_state_tap_delay(
+static bool DSP_delay_set_state_tap_delay(
         const Device_impl* dimpl,
         Device_state* dstate,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         double value);
 
-static bool DSP_delay_update_state_tap_volume(
+static bool DSP_delay_set_state_tap_volume(
         const Device_impl* dimpl,
         Device_state* dstate,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
+        double value);
+
+static void DSP_delay_update_state_tap_delay(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        Device_key_indices indices,
+        double value);
+
+static void DSP_delay_update_state_tap_volume(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        Device_key_indices indices,
         double value);
 
 static void DSP_delay_clear_history(
@@ -226,29 +238,31 @@ Device_impl* new_DSP_delay(DSP* dsp)
     bool reg_success = true;
 
     reg_success &= Device_impl_register_set_float(
-            &delay->parent, "p_max_delay.jsonf", 2.0, DSP_delay_set_max_delay);
+            &delay->parent,
+            "p_max_delay.jsonf",
+            2.0,
+            DSP_delay_set_max_delay,
+            DSP_delay_set_state_max_delay);
     reg_success &= Device_impl_register_set_float(
             &delay->parent,
             "tap_XX/p_delay.jsonf",
             -1.0,
-            DSP_delay_set_tap_delay);
+            DSP_delay_set_tap_delay,
+            DSP_delay_set_state_tap_delay);
     reg_success &= Device_impl_register_set_float(
             &delay->parent,
             "tap_XX/p_volume.jsonf",
             0.0,
-            DSP_delay_set_tap_volume);
+            DSP_delay_set_tap_volume,
+            DSP_delay_set_state_tap_volume);
 
     reg_success &= Device_impl_register_update_state_float(
             &delay->parent,
-            "p_max_delay.jsonf",
-            DSP_delay_update_state_max_delay);
-    reg_success &= Device_impl_register_update_state_float(
-            &delay->parent,
-            "tap_XX/p_delay.jsonf",
+            "t_XX/d",
             DSP_delay_update_state_tap_delay);
     reg_success &= Device_impl_register_update_state_float(
             &delay->parent,
-            "tap_XX/p_volume.jsonf",
+            "t_XX/v",
             DSP_delay_update_state_tap_volume);
 
     if (!reg_success)
@@ -331,7 +345,7 @@ static double get_tap_volume(double value)
 
 static bool DSP_delay_set_max_delay(
         Device_impl* dimpl,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         double value)
 {
     assert(dimpl != NULL);
@@ -347,7 +361,7 @@ static bool DSP_delay_set_max_delay(
 
 static bool DSP_delay_set_tap_delay(
         Device_impl* dimpl,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         double value)
 {
     assert(dimpl != NULL);
@@ -365,7 +379,7 @@ static bool DSP_delay_set_tap_delay(
 
 static bool DSP_delay_set_tap_volume(
         Device_impl* dimpl,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         double value)
 {
     assert(dimpl != NULL);
@@ -381,10 +395,10 @@ static bool DSP_delay_set_tap_volume(
 }
 
 
-static bool DSP_delay_update_state_max_delay(
+static bool DSP_delay_set_state_max_delay(
         const Device_impl* dimpl,
         Device_state* dstate,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         double value)
 {
     assert(dimpl != NULL);
@@ -403,10 +417,42 @@ static bool DSP_delay_update_state_max_delay(
 }
 
 
-static bool DSP_delay_update_state_tap_delay(
+static bool DSP_delay_set_state_tap_delay(
         const Device_impl* dimpl,
         Device_state* dstate,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
+        double value)
+{
+    assert(dimpl != NULL);
+    assert(dstate != NULL);
+    assert(indices != NULL);
+
+    DSP_delay_update_state_tap_delay(dimpl, dstate, indices, value);
+
+    return true;
+}
+
+
+static bool DSP_delay_set_state_tap_volume(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        Device_key_indices indices,
+        double value)
+{
+    assert(dimpl != NULL);
+    assert(dstate != NULL);
+    assert(indices != NULL);
+
+    DSP_delay_update_state_tap_volume(dimpl, dstate, indices, value);
+
+    return true;
+}
+
+
+static void DSP_delay_update_state_tap_delay(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        Device_key_indices indices,
         double value)
 {
     assert(dimpl != NULL);
@@ -414,7 +460,7 @@ static bool DSP_delay_update_state_tap_delay(
     assert(indices != NULL);
 
     if (indices[0] < 0 || indices[0] >= TAPS_MAX)
-        return true;
+        return;
 
     DSP_delay* delay = (DSP_delay*)dimpl;
     Delay_state* dlstate = (Delay_state*)dstate;
@@ -425,14 +471,14 @@ static bool DSP_delay_update_state_tap_delay(
             Audio_buffer_get_size(dlstate->buf),
             dstate->audio_rate);
 
-    return true;
+    return;
 }
 
 
-static bool DSP_delay_update_state_tap_volume(
+static void DSP_delay_update_state_tap_volume(
         const Device_impl* dimpl,
         Device_state* dstate,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         double value)
 {
     assert(dimpl != NULL);
@@ -441,12 +487,12 @@ static bool DSP_delay_update_state_tap_volume(
     (void)dimpl;
 
     if (indices[0] < 0 || indices[0] >= TAPS_MAX)
-        return true;
+        return;
 
     Delay_state* dlstate = (Delay_state*)dstate;
     dlstate->tap_states[indices[0]].scale = get_tap_volume(value);
 
-    return true;
+    return;
 }
 
 

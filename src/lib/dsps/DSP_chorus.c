@@ -66,6 +66,46 @@ typedef struct Chorus_state
 } Chorus_state;
 
 
+static void Chorus_voice_reset(
+        Chorus_voice* voice,
+        const Chorus_voice_params* params,
+        int32_t audio_rate,
+        uint32_t buffer_size)
+{
+    voice->delay = 0;
+    voice->offset = 0;
+    voice->range = 0;
+    voice->speed = 0;
+    voice->volume = 0;
+    voice->buf_pos = 0;
+
+    voice->delay = params->delay;
+    if (voice->delay < 0 || voice->delay >= CHORUS_BUF_TIME / 2)
+        return;
+
+    voice->offset = 0;
+    voice->delay = params->delay;
+
+    voice->range = params->range;
+    if (voice->range >= voice->delay)
+        voice->range = 0.999 * voice->delay;
+    LFO_set_depth(&voice->delay_variance, voice->range);
+
+    voice->speed = params->speed;
+    LFO_set_speed(&voice->delay_variance, voice->speed);
+
+    voice->volume = params->volume;
+
+    double buf_pos = voice->delay * audio_rate;
+    assert(buf_pos >= 0);
+    assert(buf_pos < buffer_size - 1);
+    voice->buf_pos = fmod((buffer_size - buf_pos), buffer_size);
+    assert(voice->buf_pos >= 0);
+
+    return;
+}
+
+
 static void Chorus_state_reset(
         Chorus_state* cstate,
         const Chorus_voice_params voice_params[CHORUS_VOICES_MAX])
@@ -83,28 +123,8 @@ static void Chorus_state_reset(
     {
         const Chorus_voice_params* params = &voice_params[i];
         Chorus_voice* voice = &cstate->voices[i];
-        voice->delay = params->delay;
-        if (voice->delay < 0 || voice->delay >= CHORUS_BUF_TIME / 2)
-            continue;
-
-        voice->offset = 0;
-        voice->delay = params->delay;
-
-        voice->range = params->range;
-        if (voice->range >= voice->delay)
-            voice->range = 0.999 * voice->delay;
-        LFO_set_depth(&voice->delay_variance, voice->range);
-
-        voice->speed = params->speed;
-        LFO_set_speed(&voice->delay_variance, voice->speed);
-
-        voice->volume = params->volume;
-
-        double buf_pos = voice->delay * cstate->parent.parent.audio_rate;
-        assert(buf_pos >= 0);
-        assert(buf_pos < buf_size - 1);
-        voice->buf_pos = fmod((buf_size - buf_pos), buf_size);
-        assert(voice->buf_pos >= 0);
+        Chorus_voice_reset(
+                voice, params, cstate->parent.parent.audio_rate, buf_size);
     }
 
     return;
@@ -150,16 +170,25 @@ static void DSP_chorus_reset(const Device_impl* dimpl, Device_state* dstate);
 #define CHORUS_PARAM(name, dev_key, update_key, def_value) \
     static bool DSP_chorus_set_voice_##name(               \
         Device_impl* dimpl,                                \
-        int32_t indices[DEVICE_KEY_INDICES_MAX],           \
+        Device_key_indices indices,                        \
         double value);
 #include <dsps/DSP_chorus_params.h>
 
 
 #define CHORUS_PARAM(name, dev_key, update_key, def_value) \
-    static bool DSP_chorus_update_state_voice_##name(      \
+    static bool DSP_chorus_set_state_voice_##name(         \
         const Device_impl* dimpl,                          \
         Device_state* dstate,                              \
-        int32_t indices[DEVICE_KEY_INDICES_MAX],           \
+        Device_key_indices indices,                        \
+        double value);
+#include <dsps/DSP_chorus_params.h>
+
+
+#define CHORUS_PARAM(name, dev_key, update_key, def_value) \
+    static void DSP_chorus_update_state_voice_##name(      \
+        const Device_impl* dimpl,                          \
+        Device_state* dstate,                              \
+        Device_key_indices indices,                        \
         double value);
 #include <dsps/DSP_chorus_params.h>
 
@@ -214,7 +243,8 @@ Device_impl* new_DSP_chorus(DSP* dsp)
             &chorus->parent,                               \
             dev_key,                                       \
             def_value,                                     \
-            DSP_chorus_set_voice_##name);
+            DSP_chorus_set_voice_##name,                   \
+            DSP_chorus_set_state_voice_##name);
 #include <dsps/DSP_chorus_params.h>
 
 #define CHORUS_PARAM(name, dev_key, update_key, def_value)  \
@@ -370,7 +400,7 @@ static double get_voice_volume(double value)
 #define CHORUS_PARAM(name, dev_key, update_key, def_value)               \
     static bool DSP_chorus_set_voice_##name(                             \
             Device_impl* dimpl,                                          \
-            int32_t indices[DEVICE_KEY_INDICES_MAX],                     \
+            Device_key_indices indices,                                  \
             double value)                                                \
     {                                                                    \
         assert(dimpl != NULL);                                           \
@@ -389,10 +419,28 @@ static double get_voice_volume(double value)
 #include <dsps/DSP_chorus_params.h>
 
 
-static bool DSP_chorus_update_state_voice_delay(
+#define CHORUS_PARAM(name, dev_key, update_key, def_value)                   \
+    static bool DSP_chorus_set_state_voice_##name(                           \
+            const Device_impl* dimpl,                                        \
+            Device_state* dstate,                                            \
+            Device_key_indices indices,                                      \
+            double value)                                                    \
+    {                                                                        \
+        assert(dimpl != NULL);                                               \
+        assert(dstate != NULL);                                              \
+        assert(indices != NULL);                                             \
+                                                                             \
+        DSP_chorus_update_state_voice_##name(dimpl, dstate, indices, value); \
+                                                                             \
+        return true;                                                         \
+    }
+#include <dsps/DSP_chorus_params.h>
+
+
+static void DSP_chorus_update_state_voice_delay(
         const Device_impl* dimpl,
         Device_state* dstate,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         double value)
 {
     assert(dimpl != NULL);
@@ -400,31 +448,43 @@ static bool DSP_chorus_update_state_voice_delay(
     assert(indices != NULL);
 
     if (indices[0] < 0 || indices[0] >= CHORUS_VOICES_MAX)
-        return true;
+        return;
 
-    Chorus_state* cstate = (Chorus_state*)dstate;
-
-    cstate->voices[indices[0]].delay = get_voice_delay(value);
-
-    return true;
-}
-
-
-static bool DSP_chorus_update_state_voice_range(
-        const Device_impl* dimpl,
-        Device_state* dstate,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
-        double value)
-{
-    assert(dimpl != NULL);
-    assert(dstate != NULL);
-    assert(indices != NULL);
-
-    if (indices[0] < 0 || indices[0] >= CHORUS_VOICES_MAX)
-        return true;
+    const DSP_chorus* chorus = (const DSP_chorus*)dimpl;
+    const Chorus_voice_params* params = &chorus->voice_params[indices[0]];
 
     Chorus_state* cstate = (Chorus_state*)dstate;
     Chorus_voice* voice = &cstate->voices[indices[0]];
+    uint32_t buf_size = Audio_buffer_get_size(cstate->buf);
+
+    voice->delay = get_voice_delay(value);
+
+    Chorus_voice_reset(
+            voice, params, cstate->parent.parent.audio_rate, buf_size);
+
+    return;
+}
+
+
+static void DSP_chorus_update_state_voice_range(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        Device_key_indices indices,
+        double value)
+{
+    assert(dimpl != NULL);
+    assert(dstate != NULL);
+    assert(indices != NULL);
+
+    if (indices[0] < 0 || indices[0] >= CHORUS_VOICES_MAX)
+        return;
+
+    const DSP_chorus* chorus = (const DSP_chorus*)dimpl;
+    const Chorus_voice_params* params = &chorus->voice_params[indices[0]];
+
+    Chorus_state* cstate = (Chorus_state*)dstate;
+    Chorus_voice* voice = &cstate->voices[indices[0]];
+    uint32_t buf_size = Audio_buffer_get_size(cstate->buf);
 
     voice->range = get_voice_range(value);
 
@@ -433,14 +493,17 @@ static bool DSP_chorus_update_state_voice_range(
 
     LFO_set_depth(&voice->delay_variance, voice->range);
 
-    return true;
+    Chorus_voice_reset(
+            voice, params, cstate->parent.parent.audio_rate, buf_size);
+
+    return;
 }
 
 
-static bool DSP_chorus_update_state_voice_speed(
+static void DSP_chorus_update_state_voice_speed(
         const Device_impl* dimpl,
         Device_state* dstate,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         double value)
 {
     assert(dimpl != NULL);
@@ -448,23 +511,30 @@ static bool DSP_chorus_update_state_voice_speed(
     assert(indices != NULL);
 
     if (indices[0] < 0 || indices[0] >= CHORUS_VOICES_MAX)
-        return true;
+        return;
+
+    const DSP_chorus* chorus = (const DSP_chorus*)dimpl;
+    const Chorus_voice_params* params = &chorus->voice_params[indices[0]];
 
     Chorus_state* cstate = (Chorus_state*)dstate;
     Chorus_voice* voice = &cstate->voices[indices[0]];
+    uint32_t buf_size = Audio_buffer_get_size(cstate->buf);
 
     voice->speed = get_voice_speed(value);
 
     LFO_set_speed(&voice->delay_variance, voice->speed);
 
-    return true;
+    Chorus_voice_reset(
+            voice, params, cstate->parent.parent.audio_rate, buf_size);
+
+    return;
 }
 
 
-static bool DSP_chorus_update_state_voice_volume(
+static void DSP_chorus_update_state_voice_volume(
         const Device_impl* dimpl,
         Device_state* dstate,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         double value)
 {
     assert(dimpl != NULL);
@@ -472,13 +542,21 @@ static bool DSP_chorus_update_state_voice_volume(
     assert(indices != NULL);
 
     if (indices[0] < 0 || indices[0] >= CHORUS_VOICES_MAX)
-        return true;
+        return;
+
+    const DSP_chorus* chorus = (const DSP_chorus*)dimpl;
+    const Chorus_voice_params* params = &chorus->voice_params[indices[0]];
 
     Chorus_state* cstate = (Chorus_state*)dstate;
+    Chorus_voice* voice = &cstate->voices[indices[0]];
+    uint32_t buf_size = Audio_buffer_get_size(cstate->buf);
 
-    cstate->voices[indices[0]].volume = get_voice_volume(value);
+    voice->volume = get_voice_volume(value);
 
-    return true;
+    Chorus_voice_reset(
+            voice, params, cstate->parent.parent.audio_rate, buf_size);
+
+    return;
 }
 
 

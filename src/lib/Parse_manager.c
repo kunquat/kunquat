@@ -516,17 +516,18 @@ static bool parse_instrument_level(Handle* handle,
         Instrument* ins = Ins_table_get(Module_get_insts(module), index);
         Generator* gen = ins != NULL ? Instrument_get_gen(ins, gen_index)
                                      : NULL;
-        bool changed = ins != NULL && gen != NULL;
+        bool changed = ins != NULL && gen != NULL &&
+            Device_has_complete_type((Device*)gen);
         bool success = parse_generator_level(handle, key, subkey,
                                              sr,
                                              index, gen_index);
         ins = Ins_table_get(Module_get_insts(module), index);
         gen = ins != NULL ? Instrument_get_gen(ins, gen_index) : NULL;
-        changed ^= ins != NULL && gen != NULL;
+        changed ^= ins != NULL && gen != NULL &&
+            Device_has_complete_type((Device*)gen);
         Connections* graph = module->connections;
         if (changed && graph != NULL)
         {
-//            fprintf(stderr, "instrument %d, generator %d\n", index, gen_index);
             if (!prepare_connections(handle))
                 return false;
             //fprintf(stderr, "line: %d\n", __LINE__);
@@ -926,11 +927,11 @@ static bool parse_generator_level(Handle* handle,
             return false;
         }
 
-        // Notify Device state
-        Device_notify_key_change(
+        // Update Device state
+        Device_set_state_key(
                 (Device*)gen,
-                subkey,
-                Player_get_device_states(handle->player));
+                Player_get_device_states(handle->player),
+                subkey);
     }
 
     return true;
@@ -1032,7 +1033,8 @@ static bool parse_effect_level(Handle* handle,
         assert(subkey != NULL);
         ++subkey;
         Effect* eff = Effect_table_get(table, eff_index);
-        bool changed = eff != NULL && Effect_get_dsp(eff, dsp_index) != NULL;
+        bool changed = eff != NULL && Effect_get_dsp(eff, dsp_index) != NULL &&
+            Device_has_complete_type((Device*)Effect_get_dsp(eff, dsp_index));
 
         eff = add_effect(handle, eff_index, table);
         if (eff == NULL)
@@ -1040,7 +1042,8 @@ static bool parse_effect_level(Handle* handle,
 
         bool success = parse_dsp_level(handle, eff, key, subkey,
                                        sr, dsp_index);
-        changed ^= eff != NULL && Effect_get_dsp(eff, dsp_index) != NULL;
+        changed ^= eff != NULL && Effect_get_dsp(eff, dsp_index) != NULL &&
+            Device_has_complete_type((Device*)Effect_get_dsp(eff, dsp_index));
         Connections* graph = module->connections;
         if (changed && graph != NULL)
         {
@@ -1288,10 +1291,10 @@ static bool parse_dsp_level(Handle* handle,
         }
 
         // Notify Device state
-        Device_notify_key_change(
+        Device_set_state_key(
                 (Device*)dsp,
-                subkey,
-                Player_get_device_states(handle->player));
+                Player_get_device_states(handle->player),
+                subkey);
     }
 #if 0
     else if (string_eq(subkey, "p_events.json"))

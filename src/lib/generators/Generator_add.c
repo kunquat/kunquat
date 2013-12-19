@@ -78,55 +78,55 @@ static double sine(double phase, double modifier);
 
 static bool Generator_add_set_base(
         Device_impl* dimpl,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         const Num_list* value);
 static bool Generator_add_set_mod_base(
         Device_impl* dimpl,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         const Num_list* value);
 static bool Generator_add_set_mod(
         Device_impl* dimpl,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         int64_t value);
 static bool Generator_add_set_mod_volume(
         Device_impl* dimpl,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         double value);
 static bool Generator_add_set_mod_env(
         Device_impl* dimpl,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         const Envelope* value);
 static bool Generator_add_set_mod_env_scale_amount(
         Device_impl* dimpl,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         double value);
 static bool Generator_add_set_mod_env_scale_center(
         Device_impl* dimpl,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         double value);
 static bool Generator_add_set_force_mod_env(
         Device_impl* dimpl,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         const Envelope* value);
 static bool Generator_add_set_tone_pitch(
         Device_impl* dimpl,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         double value);
 static bool Generator_add_set_tone_volume(
         Device_impl* dimpl,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         double value);
 static bool Generator_add_set_tone_panning(
         Device_impl* dimpl,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         double value);
 static bool Generator_add_set_mod_tone_pitch(
         Device_impl* dimpl,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         double value);
 static bool Generator_add_set_mod_tone_volume(
         Device_impl* dimpl,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         double value);
 
 static uint32_t Generator_add_mix(
@@ -162,61 +162,79 @@ Device_impl* new_Generator_add(Generator* gen)
     bool reg_success = true;
 
     reg_success &= Device_impl_register_set_num_list(
-            &add->parent, "p_base.jsonln", NULL, Generator_add_set_base);
+            &add->parent, "p_base.jsonln", NULL, Generator_add_set_base, NULL);
     reg_success &= Device_impl_register_set_num_list(
             &add->parent,
             "p_mod_base.jsonln",
             NULL,
-            Generator_add_set_mod_base);
+            Generator_add_set_mod_base,
+            NULL);
     reg_success &= Device_impl_register_set_int(
-            &add->parent, "p_mod.jsoni", MOD_DISABLED, Generator_add_set_mod);
+            &add->parent,
+            "p_mod.jsoni",
+            MOD_DISABLED,
+            Generator_add_set_mod,
+            NULL);
     reg_success &= Device_impl_register_set_float(
             &add->parent,
             "p_mod_volume.jsonf",
             0.0,
-            Generator_add_set_mod_volume);
+            Generator_add_set_mod_volume,
+            NULL);
     reg_success &= Device_impl_register_set_envelope(
-            &add->parent, "p_mod_env.jsone", NULL, Generator_add_set_mod_env);
+            &add->parent,
+            "p_mod_env.jsone",
+            NULL,
+            Generator_add_set_mod_env,
+            NULL);
     reg_success &= Device_impl_register_set_float(
             &add->parent,
             "p_mod_env_scale_amount.jsonf",
             0.0,
-            Generator_add_set_mod_env_scale_amount);
+            Generator_add_set_mod_env_scale_amount,
+            NULL);
     reg_success &= Device_impl_register_set_float(
             &add->parent,
             "p_mod_env_scale_center.jsonf",
             0.0,
-            Generator_add_set_mod_env_scale_center);
+            Generator_add_set_mod_env_scale_center,
+            NULL);
     reg_success &= Device_impl_register_set_envelope(
             &add->parent,
             "p_force_mod_env.jsone",
             NULL,
-            Generator_add_set_force_mod_env);
+            Generator_add_set_force_mod_env,
+            NULL);
     reg_success &= Device_impl_register_set_float(
             &add->parent,
             "tone_XX/p_pitch.jsonf",
             NAN,
-            Generator_add_set_tone_pitch);
+            Generator_add_set_tone_pitch,
+            NULL);
     reg_success &= Device_impl_register_set_float(
             &add->parent,
             "tone_XX/p_volume.jsonf",
             NAN,
-            Generator_add_set_tone_volume);
+            Generator_add_set_tone_volume,
+            NULL);
     reg_success &= Device_impl_register_set_float(
             &add->parent,
             "tone_XX/p_pan.jsonf",
             0.0,
-            Generator_add_set_tone_panning);
+            Generator_add_set_tone_panning,
+            NULL);
     reg_success &= Device_impl_register_set_float(
             &add->parent,
             "mod_XX/p_pitch.jsonf",
             NAN,
-            Generator_add_set_mod_tone_pitch);
+            Generator_add_set_mod_tone_pitch,
+            NULL);
     reg_success &= Device_impl_register_set_float(
             &add->parent,
             "mod_XX/p_volume.jsonf",
             NAN,
-            Generator_add_set_mod_tone_volume);
+            Generator_add_set_mod_tone_volume,
+            NULL);
 
     if (!reg_success)
     {
@@ -568,7 +586,7 @@ static void fill_buf(float* buf, const Num_list* nl)
 
 static bool Generator_add_set_base(
         Device_impl* dimpl,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         const Num_list* value)
 {
     assert(dimpl != NULL);
@@ -585,7 +603,7 @@ static bool Generator_add_set_base(
 
 static bool Generator_add_set_mod_base(
         Device_impl* dimpl,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         const Num_list* value)
 {
     assert(dimpl != NULL);
@@ -602,7 +620,7 @@ static bool Generator_add_set_mod_base(
 
 static bool Generator_add_set_mod(
         Device_impl* dimpl,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         int64_t value)
 {
     assert(dimpl != NULL);
@@ -622,7 +640,7 @@ static bool Generator_add_set_mod(
 
 static bool Generator_add_set_mod_volume(
         Device_impl* dimpl,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         double value)
 {
     assert(dimpl != NULL);
@@ -642,7 +660,7 @@ static bool Generator_add_set_mod_volume(
 
 static bool Generator_add_set_mod_env(
         Device_impl* dimpl,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         const Envelope* value)
 {
     assert(dimpl != NULL);
@@ -689,7 +707,7 @@ static bool Generator_add_set_mod_env(
 
 static bool Generator_add_set_mod_env_scale_amount(
         Device_impl* dimpl,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         double value)
 {
     assert(dimpl != NULL);
@@ -706,7 +724,7 @@ static bool Generator_add_set_mod_env_scale_amount(
 
 static bool Generator_add_set_mod_env_scale_center(
         Device_impl* dimpl,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         double value)
 {
     assert(dimpl != NULL);
@@ -723,7 +741,7 @@ static bool Generator_add_set_mod_env_scale_center(
 
 static bool Generator_add_set_force_mod_env(
         Device_impl* dimpl,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         const Envelope* value)
 {
     assert(dimpl != NULL);
@@ -767,7 +785,7 @@ static bool Generator_add_set_force_mod_env(
 
 static bool Generator_add_set_tone_pitch(
         Device_impl* dimpl,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         double value)
 {
     assert(dimpl != NULL);
@@ -790,7 +808,7 @@ static bool Generator_add_set_tone_pitch(
 
 static bool Generator_add_set_tone_volume(
         Device_impl* dimpl,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         double value)
 {
     assert(dimpl != NULL);
@@ -813,7 +831,7 @@ static bool Generator_add_set_tone_volume(
 
 static bool Generator_add_set_tone_panning(
         Device_impl* dimpl,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         double value)
 {
     assert(dimpl != NULL);
@@ -836,7 +854,7 @@ static bool Generator_add_set_tone_panning(
 
 static bool Generator_add_set_mod_tone_pitch(
         Device_impl* dimpl,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         double value)
 {
     assert(dimpl != NULL);
@@ -859,7 +877,7 @@ static bool Generator_add_set_mod_tone_pitch(
 
 static bool Generator_add_set_mod_tone_volume(
         Device_impl* dimpl,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         double value)
 {
     assert(dimpl != NULL);
