@@ -40,7 +40,7 @@ typedef struct DSP_gc
 
 static bool DSP_gc_set_map(
         Device_impl* dimpl,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         const Envelope* value);
 
 static void DSP_gc_process(
@@ -73,7 +73,7 @@ Device_impl* new_DSP_gc(DSP* dsp)
     gc->map = NULL;
 
     if (!Device_impl_register_set_envelope(
-                &gc->parent, "p_map.jsone", NULL, DSP_gc_set_map))
+                &gc->parent, "p_map.jsone", NULL, DSP_gc_set_map, NULL))
     {
         del_DSP_gc(&gc->parent);
         return NULL;
@@ -88,7 +88,7 @@ Device_impl* new_DSP_gc(DSP* dsp)
 
 static bool DSP_gc_set_map(
         Device_impl* dimpl,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         const Envelope* value)
 {
     assert(dimpl != NULL);

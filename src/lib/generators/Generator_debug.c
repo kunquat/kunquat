@@ -33,7 +33,7 @@ typedef struct Generator_debug
 
 static bool Generator_debug_set_single_pulse(
         Device_impl* dimpl,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         bool value);
 
 static uint32_t Generator_debug_mix(
@@ -69,7 +69,8 @@ Device_impl* new_Generator_debug(Generator* gen)
                 &debug->parent,
                 "p_single_pulse.jsonb",
                 false,
-                Generator_debug_set_single_pulse))
+                Generator_debug_set_single_pulse,
+                NULL))
     {
         del_Generator_debug(&debug->parent);
         return NULL;
@@ -176,7 +177,7 @@ static uint32_t Generator_debug_mix(
 
 static bool Generator_debug_set_single_pulse(
         Device_impl* dimpl,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         bool value)
 {
     assert(dimpl != NULL);

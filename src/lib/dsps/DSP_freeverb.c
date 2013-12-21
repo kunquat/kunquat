@@ -164,12 +164,12 @@ static void DSP_freeverb_reset(const Device_impl* dimpl, Device_state* dstate);
 
 static bool DSP_freeverb_set_refl(
         Device_impl* dimpl,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         double value);
 
 static bool DSP_freeverb_set_damp(
         Device_impl* dimpl,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         double value);
 
 static void DSP_freeverb_clear_history(
@@ -232,12 +232,14 @@ Device_impl* new_DSP_freeverb(DSP* dsp)
             &freeverb->parent,
             "p_refl.jsonf",
             initial_reflect,
-            DSP_freeverb_set_refl);
+            DSP_freeverb_set_refl,
+            NULL);
     reg_success &= Device_impl_register_set_float(
             &freeverb->parent,
             "p_damp.jsonf",
             initial_damp,
-            DSP_freeverb_set_damp);
+            DSP_freeverb_set_damp,
+            NULL);
 
     Device_impl_register_set_audio_rate(
             &freeverb->parent, DSP_freeverb_set_audio_rate);
@@ -380,7 +382,7 @@ static void DSP_freeverb_clear_history(
 
 static bool DSP_freeverb_set_refl(
         Device_impl* dimpl,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         double value)
 {
     assert(dimpl != NULL);
@@ -402,7 +404,7 @@ static bool DSP_freeverb_set_refl(
 
 static bool DSP_freeverb_set_damp(
         Device_impl* dimpl,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         double value)
 {
     assert(dimpl != NULL);

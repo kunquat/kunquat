@@ -413,7 +413,7 @@ bool Device_sync_states(Device* device, Device_states* dstates)
         const char* key = Device_params_iter_get_next_key(iter);
         while (key != NULL)
         {
-            if (!Device_impl_notify_key_change(device->dimpl, key, dstate))
+            if (!Device_impl_set_state_key(device->dimpl, dstate, key))
                 return false;
 
             key = Device_params_iter_get_next_key(iter);
@@ -448,21 +448,21 @@ bool Device_set_key(Device* device, const char* key, Streader* sr)
 }
 
 
-bool Device_notify_key_change(
+bool Device_set_state_key(
         const Device* device,
-        const char* key,
-        Device_states* dstates)
+        Device_states* dstates,
+        const char* key)
 {
     assert(device != NULL);
+    assert(dstates != NULL);
     assert(key != NULL);
     assert(string_has_prefix(key, "i/") || string_has_prefix(key, "c/"));
-    assert(dstates != NULL);
 
     if (device->dimpl != NULL)
     {
         Device_state* dstate = Device_states_get_state(
                 dstates, Device_get_id(device));
-        return Device_impl_notify_key_change(device->dimpl, key + 2, dstate);
+        return Device_impl_set_state_key(device->dimpl, dstate, key + 2);
     }
 
     return true;

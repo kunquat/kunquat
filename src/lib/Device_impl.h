@@ -34,6 +34,9 @@
 #define DEVICE_KEY_INDICES_MAX 8
 
 
+typedef int32_t Device_key_indices[DEVICE_KEY_INDICES_MAX];
+
+
 /**
  * The base class of Generator and DSP implementations.
  */
@@ -128,10 +131,11 @@ void Device_impl_register_reset_device_state(
  *    echo_eff/tap_XX/p_volume.jsonf <- Invalid: eff is interpreted as hex
  *    echo_XXX/tap_XX/p_volume.jsonf <- The above would get confused with this
  *
- * \param dimpl         The Device implementation -- must not be \c NULL.
- * \param keyp          The key pattern -- must not be \c NULL.
- * \param default_val   The default value passed to callbacks.
- * \param set_func      The set function -- must not be \c NULL.
+ * \param dimpl            The Device implementation -- must not be \c NULL.
+ * \param keyp             The key pattern -- must not be \c NULL.
+ * \param default_val      The default value passed to callbacks.
+ * \param set_func         The set function -- must not be \c NULL.
+ * \param set_state_func   The set state function, or \c NULL if not used.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
@@ -141,7 +145,12 @@ bool Device_impl_register_set_bool(
         bool default_val,
         bool (*set_func)(
             Device_impl*,
-            int32_t[DEVICE_KEY_INDICES_MAX],
+            Device_key_indices,
+            bool),
+        bool (*set_state_func)(
+            const Device_impl*,
+            Device_state*,
+            Device_key_indices,
             bool));
 
 
@@ -164,7 +173,12 @@ bool Device_impl_register_set_float(
         double default_val,
         bool (*set_func)(
             Device_impl*,
-            int32_t[DEVICE_KEY_INDICES_MAX],
+            Device_key_indices,
+            double),
+        bool (*set_state_func)(
+            const Device_impl*,
+            Device_state*,
+            Device_key_indices,
             double));
 
 
@@ -187,7 +201,12 @@ bool Device_impl_register_set_int(
         int64_t default_val,
         bool (*set_func)(
             Device_impl*,
-            int32_t[DEVICE_KEY_INDICES_MAX],
+            Device_key_indices,
+            int64_t),
+        bool (*set_state_func)(
+            const Device_impl*,
+            Device_state*,
+            Device_key_indices,
             int64_t));
 
 
@@ -211,7 +230,12 @@ bool Device_impl_register_set_tstamp(
         const Tstamp* default_val,
         bool (*set_func)(
             Device_impl*,
-            int32_t[DEVICE_KEY_INDICES_MAX],
+            Device_key_indices,
+            const Tstamp*),
+        bool (*set_state_func)(
+            const Device_impl*,
+            Device_state*,
+            Device_key_indices,
             const Tstamp*));
 
 
@@ -235,7 +259,12 @@ bool Device_impl_register_set_envelope(
         const Envelope* default_val,
         bool (*set_func)(
             Device_impl*,
-            int32_t[DEVICE_KEY_INDICES_MAX],
+            Device_key_indices,
+            const Envelope*),
+        bool (*set_state_func)(
+            const Device_impl*,
+            Device_state*,
+            Device_key_indices,
             const Envelope*));
 
 
@@ -259,7 +288,12 @@ bool Device_impl_register_set_sample(
         const Sample* default_val,
         bool (*set_func)(
             Device_impl*,
-            int32_t[DEVICE_KEY_INDICES_MAX],
+            Device_key_indices,
+            const Sample*),
+        bool (*set_state_func)(
+            const Device_impl*,
+            Device_state*,
+            Device_key_indices,
             const Sample*));
 
 
@@ -283,7 +317,12 @@ bool Device_impl_register_set_sample_params(
         const Sample_params* default_val,
         bool (*set_func)(
             Device_impl*,
-            int32_t[DEVICE_KEY_INDICES_MAX],
+            Device_key_indices,
+            const Sample_params*),
+        bool (*set_state_func)(
+            const Device_impl*,
+            Device_state*,
+            Device_key_indices,
             const Sample_params*));
 
 
@@ -307,7 +346,12 @@ bool Device_impl_register_set_sample_map(
         const Sample_map* default_val,
         bool (*set_func)(
             Device_impl*,
-            int32_t[DEVICE_KEY_INDICES_MAX],
+            Device_key_indices,
+            const Sample_map*),
+        bool (*set_state_func)(
+            const Device_impl*,
+            Device_state*,
+            Device_key_indices,
             const Sample_map*));
 
 
@@ -331,7 +375,12 @@ bool Device_impl_register_set_hit_map(
         const Hit_map* default_val,
         bool (*set_func)(
             Device_impl*,
-            int32_t[DEVICE_KEY_INDICES_MAX],
+            Device_key_indices,
+            const Hit_map*),
+        bool (*set_state_func)(
+            const Device_impl*,
+            Device_state*,
+            Device_key_indices,
             const Hit_map*));
 
 
@@ -355,7 +404,12 @@ bool Device_impl_register_set_num_list(
         const Num_list* default_val,
         bool (*set_func)(
             Device_impl*,
-            int32_t[DEVICE_KEY_INDICES_MAX],
+            Device_key_indices,
+            const Num_list*),
+        bool (*set_state_func)(
+            const Device_impl*,
+            Device_state*,
+            Device_key_indices,
             const Num_list*));
 
 
@@ -375,10 +429,10 @@ bool Device_impl_register_set_num_list(
 bool Device_impl_register_update_state_bool(
         Device_impl* dimpl,
         const char* keyp,
-        bool (*update_state)(
+        void (*update_state)(
             const Device_impl*,
             Device_state*,
-            int32_t[DEVICE_KEY_INDICES_MAX],
+            Device_key_indices,
             bool));
 
 
@@ -398,10 +452,10 @@ bool Device_impl_register_update_state_bool(
 bool Device_impl_register_update_state_float(
         Device_impl* dimpl,
         const char* keyp,
-        bool (*update_state)(
+        void (*update_state)(
             const Device_impl*,
             Device_state*,
-            int32_t[DEVICE_KEY_INDICES_MAX],
+            Device_key_indices,
             double));
 
 
@@ -421,10 +475,10 @@ bool Device_impl_register_update_state_float(
 bool Device_impl_register_update_state_int(
         Device_impl* dimpl,
         const char* keyp,
-        bool (*update_state)(
+        void (*update_state)(
             const Device_impl*,
             Device_state*,
-            int32_t[DEVICE_KEY_INDICES_MAX],
+            Device_key_indices,
             int64_t));
 
 
@@ -444,10 +498,10 @@ bool Device_impl_register_update_state_int(
 bool Device_impl_register_update_state_tstamp(
         Device_impl* dimpl,
         const char* keyp,
-        bool (*update_state)(
+        void (*update_state)(
             const Device_impl*,
             Device_state*,
-            int32_t[DEVICE_KEY_INDICES_MAX],
+            Device_key_indices,
             const Tstamp*));
 
 
@@ -527,10 +581,10 @@ bool Device_impl_set_key(Device_impl* dimpl, const char* key);
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Device_impl_notify_key_change(
+bool Device_impl_set_state_key(
         const Device_impl* dimpl,
-        const char* key,
-        Device_state* dstate);
+        Device_state* dstate,
+        const char* key);
 
 
 /**
@@ -540,10 +594,8 @@ bool Device_impl_notify_key_change(
  * \param dstate   The Device state -- must not be \c NULL.
  * \param key      The key to be updated -- must not be \c NULL.
  * \param value    The value.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Device_impl_update_state_bool(
+void Device_impl_update_state_bool(
         const Device_impl* dimpl,
         Device_state* dstate,
         const char* key,
@@ -557,10 +609,8 @@ bool Device_impl_update_state_bool(
  * \param dstate   The Device state -- must not be \c NULL.
  * \param key      The key to be updated -- must not be \c NULL.
  * \param value    The value.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Device_impl_update_state_float(
+void Device_impl_update_state_float(
         const Device_impl* dimpl,
         Device_state* dstate,
         const char* key,
@@ -574,10 +624,8 @@ bool Device_impl_update_state_float(
  * \param dstate   The Device state -- must not be \c NULL.
  * \param key      The key to be updated -- must not be \c NULL.
  * \param value    The value.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Device_impl_update_state_int(
+void Device_impl_update_state_int(
         const Device_impl* dimpl,
         Device_state* dstate,
         const char* key,
@@ -591,10 +639,8 @@ bool Device_impl_update_state_int(
  * \param dstate   The Device state -- must not be \c NULL.
  * \param key      The key to be updated -- must not be \c NULL.
  * \param value    The value -- must not be \c NULL.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Device_impl_update_state_tstamp(
+void Device_impl_update_state_tstamp(
         const Device_impl* dimpl,
         Device_state* dstate,
         const char* key,

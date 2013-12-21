@@ -337,15 +337,15 @@ bool Device_set_key(Device* device, const char* key, Streader* sr);
  * Notifies a Device state of a Device key change.
  *
  * \param device    The Device -- must not be \c NULL.
- * \param key       The key -- must be valid.
  * \param dstates   The Device state collection -- must not be \c NULL.
+ * \param key       The key -- must be valid.
  *
  * \return   \c true if successful, or \c false if a fatal error occurred.
  */
-bool Device_notify_key_change(
+bool Device_set_state_key(
         const Device* device,
-        const char* key,
-        Device_states* dstates);
+        Device_states* dstates,
+        const char* key);
 
 
 /**

@@ -50,13 +50,19 @@ static void DSP_volume_reset(const Device_impl* dimpl, Device_state* dstate);
 
 static bool DSP_volume_set_volume(
         Device_impl* dimpl,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         double value);
 
-static bool DSP_volume_update_state_volume(
+static bool DSP_volume_set_state_volume(
         const Device_impl* dimpl,
         Device_state* dstate,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
+        double value);
+
+static void DSP_volume_update_state_volume(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        Device_key_indices indices,
         double value);
 
 
@@ -96,10 +102,12 @@ Device_impl* new_DSP_volume(DSP* dsp)
     bool reg_success = true;
 
     reg_success &= Device_impl_register_set_float(
-            &volume->parent, "p_volume.jsonf", 0.0, DSP_volume_set_volume);
+            &volume->parent,
+            "p_volume.jsonf",
+            0.0,
+            DSP_volume_set_volume,
+            DSP_volume_set_state_volume);
 
-    reg_success &= Device_impl_register_update_state_float(
-            &volume->parent, "p_volume.jsonf", DSP_volume_update_state_volume);
     reg_success &= Device_impl_register_update_state_float(
             &volume->parent, "v", DSP_volume_update_state_volume);
 
@@ -164,7 +172,7 @@ static double dB_to_scale(double vol_dB)
 
 static bool DSP_volume_set_volume(
         Device_impl* dimpl,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         double value)
 {
     assert(dimpl != NULL);
@@ -178,10 +186,26 @@ static bool DSP_volume_set_volume(
 }
 
 
-static bool DSP_volume_update_state_volume(
+static bool DSP_volume_set_state_volume(
         const Device_impl* dimpl,
         Device_state* dstate,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
+        double value)
+{
+    assert(dimpl != NULL);
+    assert(dstate != NULL);
+    assert(indices != NULL);
+
+    DSP_volume_update_state_volume(dimpl, dstate, indices, value);
+
+    return true;
+}
+
+
+static void DSP_volume_update_state_volume(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        Device_key_indices indices,
         double value)
 {
     assert(dimpl != NULL);
@@ -192,7 +216,7 @@ static bool DSP_volume_update_state_volume(
     Volume_state* vol_state = (Volume_state*)dstate;
     vol_state->scale = dB_to_scale(value);
 
-    return true;
+    return;
 }
 
 

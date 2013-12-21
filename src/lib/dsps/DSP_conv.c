@@ -101,29 +101,35 @@ static void DSP_conv_reset(const Device_impl* dimpl, Device_state* dstate);
 
 static bool DSP_conv_set_max_ir_len(
         Device_impl* dimpl,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         double value);
 
 static bool DSP_conv_set_ir(
         Device_impl* dimpl,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         const Sample* value);
 
 static bool DSP_conv_set_volume(
         Device_impl* dimpl,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         double value);
 
-static bool DSP_conv_update_state_max_ir_len(
+static bool DSP_conv_set_state_volume(
         const Device_impl* dimpl,
         Device_state* dstate,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         double value);
 
-static bool DSP_conv_update_state_volume(
+static bool DSP_conv_set_state_max_ir_len(
         const Device_impl* dimpl,
         Device_state* dstate,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
+        double value);
+
+static void DSP_conv_update_state_volume(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        Device_key_indices indices,
         double value);
 
 static void DSP_conv_clear_history(
@@ -174,16 +180,17 @@ Device_impl* new_DSP_conv(DSP* dsp)
             &conv->parent,
             "p_max_ir_len.jsonf",
             DEFAULT_IR_LEN,
-            DSP_conv_set_max_ir_len);
+            DSP_conv_set_max_ir_len,
+            DSP_conv_set_state_max_ir_len);
     reg_success &= Device_impl_register_set_sample(
-            &conv->parent, "p_ir.wv", NULL, DSP_conv_set_ir);
+            &conv->parent, "p_ir.wv", NULL, DSP_conv_set_ir, NULL);
     reg_success &= Device_impl_register_set_float(
-            &conv->parent, "p_volume.jsonf", 0.0, DSP_conv_set_volume);
-
-    reg_success &= Device_impl_register_update_state_float(
             &conv->parent,
-            "p_max_ir_len.jsonf",
-            DSP_conv_update_state_max_ir_len);
+            "p_volume.jsonf",
+            0.0,
+            DSP_conv_set_volume,
+            DSP_conv_set_state_volume);
+
     reg_success &= Device_impl_register_update_state_float(
             &conv->parent, "p_volume.jsonf", DSP_conv_update_state_volume);
 
@@ -264,7 +271,7 @@ static void DSP_conv_reset(const Device_impl* dimpl, Device_state* dstate)
 
 static bool DSP_conv_set_max_ir_len(
         Device_impl* dimpl,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         double value)
 {
     assert(dimpl != NULL);
@@ -283,7 +290,7 @@ static bool DSP_conv_set_max_ir_len(
 
 static bool DSP_conv_set_ir(
         Device_impl* dimpl,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         const Sample* value)
 {
     assert(dimpl != NULL);
@@ -321,7 +328,7 @@ static double dB_to_scale(double vol_dB)
 
 static bool DSP_conv_set_volume(
         Device_impl* dimpl,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         double value)
 {
     assert(dimpl != NULL);
@@ -335,10 +342,26 @@ static bool DSP_conv_set_volume(
 }
 
 
-static bool DSP_conv_update_state_max_ir_len(
+static bool DSP_conv_set_state_volume(
         const Device_impl* dimpl,
         Device_state* dstate,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
+        double value)
+{
+    assert(dimpl != NULL);
+    assert(dstate != NULL);
+    assert(indices != NULL);
+
+    DSP_conv_update_state_volume(dimpl, dstate, indices, value);
+
+    return true;
+}
+
+
+static bool DSP_conv_set_state_max_ir_len(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        Device_key_indices indices,
         double value)
 {
     assert(dimpl != NULL);
@@ -360,10 +383,10 @@ static bool DSP_conv_update_state_max_ir_len(
 }
 
 
-static bool DSP_conv_update_state_volume(
+static void DSP_conv_update_state_volume(
         const Device_impl* dimpl,
         Device_state* dstate,
-        int32_t indices[DEVICE_KEY_INDICES_MAX],
+        Device_key_indices indices,
         double value)
 {
     assert(dimpl != NULL);
@@ -374,7 +397,7 @@ static bool DSP_conv_update_state_volume(
     Conv_state* cstate = (Conv_state*)dstate;
     cstate->scale = dB_to_scale(value);
 
-    return true;
+    return;
 }
 
 
