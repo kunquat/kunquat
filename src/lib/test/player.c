@@ -385,6 +385,32 @@ START_TEST(Empty_composition_renders_zero_frames)
 END_TEST
 
 
+START_TEST(Paused_empty_composition_contains_silence)
+{
+    pause();
+
+    kqt_Handle_play(handle, buf_len);
+    check_unexpected_error();
+
+    const long frames_available = kqt_Handle_get_frames_available(handle);
+    fail_if(frames_available != buf_len,
+            "kqt_Handle_play rendered %ld instead of %d frames",
+            frames_available, buf_len);
+
+    const float* ret_bufs[] =
+    {
+        kqt_Handle_get_audio(handle, 0),
+        kqt_Handle_get_audio(handle, 1),
+    };
+
+    float expected_buf[buf_len] = { 0.0f };
+
+    check_buffers_equal(expected_buf, ret_bufs[0], buf_len, 0.0f);
+    check_buffers_equal(expected_buf, ret_bufs[1], buf_len, 0.0f);
+}
+END_TEST
+
+
 START_TEST(Initial_tempo_is_set_correctly)
 {
     set_audio_rate(mixing_rates[MIXING_RATE_LOW]);
@@ -1121,6 +1147,7 @@ Suite* Player_suite(void)
 
     // Songs
     tcase_add_test(tc_songs, Empty_composition_renders_zero_frames);
+    tcase_add_test(tc_songs, Paused_empty_composition_contains_silence);
     tcase_add_loop_test(tc_songs, Initial_tempo_is_set_correctly, 0, 4);
     tcase_add_test(tc_songs, Infinite_mode_loops_composition);
     tcase_add_loop_test(tc_songs, Skipping_moves_position_forwards, 0, 4);
