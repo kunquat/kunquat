@@ -37,7 +37,7 @@ if '--disable-tracker' not in sys.argv:
         return '.'.join((get_mod_name(head), tail)) if head else tail
     mod_names = (get_mod_name(d) for d in mod_dirs)
 
-    inc_pkgs[len(inc_pkgs):len(inc_pkgs)] = list(mod_names)
+    inc_pkgs.extend(list(mod_names))
     inc_scripts.append('tracker/kunquat-tracker')
 else:
     sys.argv.remove('--disable-tracker')
