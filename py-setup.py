@@ -2,6 +2,8 @@
 
 
 from distutils.core import setup
+import os
+import os.path
 import sys
 
 
@@ -27,15 +29,15 @@ else:
 
 if '--disable-tracker' not in sys.argv:
     req_list.append('PyQt4')
-    inc_pkgs[len(inc_pkgs):len(inc_pkgs)] = [
-            'kunquat.tracker',
-            'kunquat.tracker.backend',
-            'kunquat.tracker.audio',
-            'kunquat.tracker.audio.drivers',
-            'kunquat.tracker.frontend',
-            'kunquat.tracker.qt',
-            'kunquat.tracker.threads'
-            ]
+
+    mod_dirs = (dirpath for (dirpath, _, _) in
+            os.walk(os.path.join('kunquat', 'tracker')))
+    def get_mod_name(d):
+        head, tail = os.path.split(d)
+        return '.'.join((get_mod_name(head), tail)) if head else tail
+    mod_names = (get_mod_name(d) for d in mod_dirs)
+
+    inc_pkgs.extend(list(mod_names))
     inc_scripts.append('tracker/kunquat-tracker')
 else:
     sys.argv.remove('--disable-tracker')
