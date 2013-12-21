@@ -625,6 +625,8 @@ void Player_play(Player* player, int32_t nframes)
         rendered += to_be_rendered;
     }
 
+    bool audio_buffers_filled = false;
+
     if (connections != NULL)
     {
         Device_state* master_state = Device_states_get_state(
@@ -655,6 +657,18 @@ void Player_play(Player* player, int32_t nframes)
                         bufs[ch][i] * player->module->mix_vol;
                 }
             }
+
+            audio_buffers_filled = true;
+        }
+    }
+
+    // Fill with zeros if we haven't produced any sound
+    if (!audio_buffers_filled)
+    {
+        for (int ch = 0; ch < 2; ++ch)
+        {
+            for (int32_t i = 0; i < rendered; ++i)
+                player->audio_buffers[ch][i] = 0.0f;
         }
     }
 
