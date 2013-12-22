@@ -80,6 +80,14 @@ class TypewriterManager():
             pitch = None
         return pitch
 
+    def get_pitches_by_octave(self, octave_id):
+        keymap_data = self._session.get_keymap_data()
+        octaves = keymap_data['keymap']
+        octave = octaves[octave_id]
+        pitches = set(octave)
+        return pitches
+
+
     def get_pitches(self):
         keymap_data = self._session.get_keymap_data()
         octaves = keymap_data['keymap']
