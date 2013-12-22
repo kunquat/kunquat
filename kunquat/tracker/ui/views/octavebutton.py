@@ -22,6 +22,7 @@ class OctaveButton(QPushButton):
         self._octave_id = octave_id
         self._typewriter_manager = None
 
+        self.setCheckable(True)
         self.setMinimumWidth(60)
         self.setMinimumHeight(60)
         layout = QVBoxLayout(self)
@@ -45,6 +46,15 @@ class OctaveButton(QPushButton):
         octave_name = self._typewriter_manager.get_octave_name(self._octave_id)
         self._octavename.setText('%s' % octave_name)
 
-    def perform_updates(self, signals):
-        pass
+    def _update_pressed(self):
+        octave = self._typewriter_manager.get_octave()
+        old_block = self.blockSignals(True)
+        if octave == self._octave_id:
+            self.setChecked(True)
+        else:
+            self.setChecked(False)
+        self.blockSignals(old_block)
 
+    def perform_updates(self, signals):
+        if 'signal_octave' in signals:
+            self._update_pressed()
