@@ -20,13 +20,18 @@ class TypewriterManager():
     def __init__(self):
         self._controller = None
         self._session = None
+        self._updater = None
         self._octave = None
+        self._base_octave = None
 
     def set_controller(self, controller):
         self._controller = controller
         self._session = controller.get_session()
+        self._updater = controller.get_updater()
+
         keymap_data = self._session.get_keymap_data()
-        self._octave = keymap_data['base_octave']
+        self._base_octave = keymap_data['base_octave']
+        self.set_octave(self._base_octave)
 
     def _octaves_to_rows(self, octaves):
         notes = list(itertools.chain(*octaves))
@@ -75,10 +80,25 @@ class TypewriterManager():
             pitch = None
         return pitch
 
-    def get_closest_keymap_pitch(self, pitch):
+    def get_pitches_by_octave(self, octave_id):
         keymap_data = self._session.get_keymap_data()
         octaves = keymap_data['keymap']
-        pitches = sorted(list(itertools.chain(*octaves)))
+        octave = octaves[octave_id]
+        pitches = set(octave)
+        return pitches
+
+
+    def get_pitches(self):
+        keymap_data = self._session.get_keymap_data()
+        octaves = keymap_data['keymap']
+        pitches = set()
+        for pitch in itertools.chain(*octaves):
+            if pitch != None:
+                pitches.add(pitch)
+        return pitches
+
+    def get_closest_keymap_pitch(self, pitch):
+        pitches = sorted(self.get_pitches())
         key_count = len(pitches)
         i = bisect_left(pitches, pitch)
         if i == key_count:
@@ -92,4 +112,21 @@ class TypewriterManager():
                  return a
              else:
                  return b
+
+    def get_octave_count(self):
+        keymap_data = self._session.get_keymap_data()
+        keymap = keymap_data['keymap']
+        octave_count = len(keymap)
+        return octave_count
+
+    def get_octave_name(self, octave_id):
+        octave_name = octave_id - self._base_octave
+        return octave_name
+
+    def get_octave(self):
+        return self._octave
+
+    def set_octave(self, octave_id):
+        self._octave = octave_id
+        self._updater.signal_update(set(['signal_octave']))
 

@@ -67,6 +67,7 @@ class TypeWriterButton(QPushButton):
 
     def __init__(self, pitch):
         QPushButton.__init__(self)
+        self._updater = None
         self._pitch = pitch
         self._ui_manager = None
         self._typewriter_manager = None
@@ -97,8 +98,8 @@ class TypeWriterButton(QPushButton):
         QObject.connect(self, SIGNAL('released()'), self._stop_sound)
 
     def set_ui_model(self, ui_model):
-        updater = ui_model.get_updater()
-        updater.register_updater(self.perform_updates)
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self.perform_updates)
         self._ui_manager = ui_model.get_ui_manager()
         self._typewriter_manager = ui_model.get_typewriter_manager()
 
@@ -135,4 +136,7 @@ class TypeWriterButton(QPushButton):
     def perform_updates(self, signals):
         self.update_selected_slot()
         self.update_leds()
+
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self.perform_updates)
 
