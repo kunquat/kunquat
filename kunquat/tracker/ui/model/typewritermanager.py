@@ -115,6 +115,9 @@ class TypewriterManager():
         octave_name = octave_id - self._base_octave
         return octave_name
 
+    def get_octave(self):
+        return self._octave
+
     def set_octave(self, octave_id):
         self._octave = octave_id
         self._updater.signal_update(set(['signal_octave']))
