@@ -14,6 +14,35 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
+class OLed(QFrame):
+
+    def __init__(self):
+        super(QFrame, self).__init__()
+        self.setMinimumWidth(35)
+        self.setMinimumHeight(15)
+        self.setMaximumWidth(35)
+        self.setMaximumHeight(15)
+        self.setFrameStyle(QFrame.Panel | QFrame.Sunken)
+        self.setLineWidth(2)
+
+        self._led = QLabel()
+        self._led.setMargin(0)
+
+        h = QHBoxLayout()
+        h.addWidget(self._led)
+        h.setContentsMargins(0,0,0,0)
+        h.setSpacing(0)
+        self.setLayout(h)
+
+        self.set_led(0)
+
+    def set_led(self, is_on):
+        led_colors = {
+            0: '#400',
+            1: '#c00'
+        }
+        style = 'QLabel { background-color: %s; }' % led_colors[is_on]
+        self._led.setStyleSheet(style)
 
 class OctaveButton(QPushButton):
 
@@ -26,6 +55,9 @@ class OctaveButton(QPushButton):
         self.setMinimumWidth(60)
         self.setMinimumHeight(60)
         layout = QVBoxLayout(self)
+        led = OLed()
+        self._led = led
+        layout.addWidget(led)
         octavename = QLabel()
         self._octavename = octavename
         octavename.setAlignment(Qt.AlignCenter)
