@@ -50,6 +50,7 @@ class OctaveButton(QPushButton):
         QPushButton.__init__(self)
         self._octave_id = octave_id
         self._typewriter_manager = None
+        self._ui_manager = None
 
         self.setCheckable(True)
         self.setMinimumWidth(60)
@@ -74,6 +75,7 @@ class OctaveButton(QPushButton):
     def set_ui_model(self, ui_model):
         updater = ui_model.get_updater()
         updater.register_updater(self.perform_updates)
+        self._ui_manager = ui_model.get_ui_manager()
         self._typewriter_manager = ui_model.get_typewriter_manager()
         octave_name = self._typewriter_manager.get_octave_name(self._octave_id)
         self._octavename.setText('%s' % octave_name)
@@ -87,6 +89,20 @@ class OctaveButton(QPushButton):
             self.setChecked(False)
         self.blockSignals(old_block)
 
+    def update_leds(self):
+        selected_slot = self._ui_manager.get_selected_slot()
+        if selected_slot == None:
+            return
+        notes = selected_slot.get_active_notes()
+        is_on = 0
+        for (_, note) in notes.items():
+            closest = self._typewriter_manager.get_closest_keymap_pitch(note)
+            pitches = self._typewriter_manager.get_pitches_by_octave(self._octave_id)
+            if closest in pitches:
+                is_on = 1
+        self._led.set_led(is_on)
+
     def perform_updates(self, signals):
         if 'signal_octave' in signals:
             self._update_pressed()
+        self.update_leds()
