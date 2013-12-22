@@ -80,10 +80,17 @@ class TypewriterManager():
             pitch = None
         return pitch
 
-    def get_closest_keymap_pitch(self, pitch):
+    def get_pitches(self):
         keymap_data = self._session.get_keymap_data()
         octaves = keymap_data['keymap']
-        pitches = sorted(list(itertools.chain(*octaves)))
+        pitches = set()
+        for pitch in itertools.chain(*octaves):
+            if pitch != None:
+                pitches.add(pitch)
+        return pitches
+
+    def get_closest_keymap_pitch(self, pitch):
+        pitches = sorted(self.get_pitches())
         key_count = len(pitches)
         i = bisect_left(pitches, pitch)
         if i == key_count:
