@@ -22,16 +22,24 @@ class TypeWriter(QAbstractScrollArea):
         QAbstractScrollArea.__init__(self)
         self.setFocusPolicy(Qt.TabFocus)
         self._ui_model = None
+        self._updater = None
         self._typewriter_manager = None
+        self._current_buttons = set()
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self.perform_updates)
         self._typewriter_manager = ui_model.get_typewriter_manager()
-        self._update()
 
-    def _update(self):
+    def _update_buttons(self):
+        self._unregister_button_updaters()
         view = self._get_view()
         self.setViewport(view)
+
+    def perform_updates(self, signals):
+        if 'signal_octave' in signals:
+            self._update_buttons()
 
     def _get_view(self):
         view = QWidget()
@@ -58,6 +66,7 @@ class TypeWriter(QAbstractScrollArea):
         for colc in range(buttons):
             coordinate = (rowc, colc)
             button = self.get_button(coordinate)
+            self._current_buttons.add(button)
             rowl.addWidget(button)
         rowl.addStretch(1)
         return row
@@ -79,3 +88,8 @@ class TypeWriter(QAbstractScrollArea):
         button = TypeWriterButton(pitch)
         button.set_ui_model(self._ui_model)
         return button
+
+    def _unregister_button_updaters(self):
+        for button in list(self._current_buttons):
+            button.unregister_updaters()
+            self._current_buttons.remove(button)
