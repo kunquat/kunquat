@@ -95,6 +95,8 @@ void Event_buffer_start_skipping(Event_buffer* ebuf)
 {
     assert(ebuf != NULL);
     assert(!ebuf->is_skipping);
+    assert(Event_buffer_is_full(ebuf));
+    assert(ebuf->events_added > 0);
 
     ebuf->is_skipping = true;
     ebuf->events_skipped = 0;

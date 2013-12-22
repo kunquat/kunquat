@@ -387,6 +387,9 @@ void Player_process_cgiters(Player* player, Tstamp* limit, bool skip)
                             Cgiter_clear_returned_status(cgiter);
                             return;
                         }
+
+                        // Event fully processed
+                        Event_buffer_reset_add_counter(player->event_buffer);
                     }
                 }
 
