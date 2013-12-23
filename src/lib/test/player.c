@@ -1210,6 +1210,51 @@ START_TEST(Query_voice_count_with_note)
 END_TEST
 
 
+static bool test_reported_force(Streader* sr, double expected)
+{
+    assert(sr != NULL);
+
+    double actual = NAN;
+
+    if (!(Streader_readf(sr, "[[0, [") &&
+                Streader_match_string(sr, "qf") &&
+                Streader_readf(sr, ", 0]], [0, [") &&
+                Streader_match_string(sr, "Af") &&
+                Streader_readf(sr, ", %f]]]", &actual)))
+        return false;
+
+    if (fabs(actual - expected) > 0.1)
+    {
+        Streader_set_error(
+                sr, "Expected force %.4f, got %.4f", expected, actual);
+        return false;
+    }
+
+    return true;
+}
+
+
+START_TEST(Query_note_force)
+{
+    setup_debug_instrument();
+    pause();
+
+    kqt_Handle_fire_event(handle, 0, Note_On_55_Hz);
+
+    kqt_Handle_fire_event(handle, 0, "[\"qf\", 0]");
+    const char* events0 = kqt_Handle_receive_events(handle);
+    Streader* sr0 = Streader_init(STREADER_AUTO, events0, strlen(events0));
+    fail_if(!test_reported_force(sr0, 0.0), Streader_get_error_desc(sr0));
+
+    kqt_Handle_fire_event(handle, 0, "[\".f\", -6]");
+    kqt_Handle_fire_event(handle, 0, "[\"qf\", 0]");
+    const char* events6 = kqt_Handle_receive_events(handle);
+    Streader* sr6 = Streader_init(STREADER_AUTO, events6, strlen(events6));
+    fail_if(!test_reported_force(sr6, -6.0), Streader_get_error_desc(sr6));
+}
+END_TEST
+
+
 Suite* Player_suite(void)
 {
     Suite* s = suite_create("Player");
@@ -1286,6 +1331,7 @@ Suite* Player_suite(void)
     tcase_add_test(tc_events, Query_final_location);
     tcase_add_test(tc_events, Query_voice_count_with_silence);
     tcase_add_test(tc_events, Query_voice_count_with_note);
+    tcase_add_test(tc_events, Query_note_force);
 
     return s;
 }
