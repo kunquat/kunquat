@@ -123,11 +123,18 @@ void Player_process_event(
     assert(event_name != NULL);
     assert(arg != NULL);
 
-    if (!Event_handler_trigger(
-            player->event_handler,
-            ch_num,
-            event_name,
-            arg))
+    const Event_names* event_names = Event_handler_get_names(
+            player->event_handler);
+    const Event_type type = Event_names_get(event_names, event_name);
+    assert(type != Event_NONE);
+
+    if (!Event_is_query(type) &&
+            !Event_is_auto(type) &&
+            !Event_handler_trigger(
+                player->event_handler,
+                ch_num,
+                event_name,
+                arg))
     {
         fprintf(stderr, "`%s` not triggered\n", event_name);
         return;
@@ -166,6 +173,52 @@ void Player_process_event(
 
             bound = bound->next;
         }
+    }
+
+    // Handle query events
+    if (!skip && Event_is_query(type))
+    {
+#define try_process(name, value)                                         \
+        if (true)                                                        \
+        {                                                                \
+            if (Event_buffer_is_full(player->event_buffer))              \
+            {                                                            \
+                Event_buffer_start_skipping(player->event_buffer);       \
+                return;                                                  \
+            }                                                            \
+            else                                                         \
+                Player_process_event(player, ch_num, name, value, skip); \
+        }                                                                \
+        else (void)0
+
+        switch (type)
+        {
+            case Event_query_location:
+            {
+                const Position* cur_pos = &player->master_params.cur_pos;
+
+                Value* track = VALUE_AUTO;
+                track->type = VALUE_TYPE_INT;
+                track->value.int_type = cur_pos->track;
+                try_process("Atrack", track);
+
+                Value* system = VALUE_AUTO;
+                system->type = VALUE_TYPE_INT;
+                system->value.int_type = cur_pos->system;
+                try_process("Asystem", system);
+
+                Value* row = VALUE_AUTO;
+                row->type = VALUE_TYPE_TSTAMP;
+                row->value.Tstamp_type = cur_pos->pat_pos;
+                try_process("Arow", row);
+            }
+            break;
+
+            default:
+                assert(false);
+        }
+
+#undef try_process
     }
 
     return;
