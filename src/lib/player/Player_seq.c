@@ -214,6 +214,17 @@ void Player_process_event(
             }
             break;
 
+            case Event_query_voice_count:
+            {
+                Value* voices = VALUE_AUTO;
+                voices->type = VALUE_TYPE_INT;
+                voices->value.int_type = player->master_params.active_voices;
+                try_process("Avoices", voices);
+
+                player->master_params.active_voices = 0;
+            }
+            break;
+
             default:
                 assert(false);
         }
