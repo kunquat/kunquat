@@ -1109,6 +1109,46 @@ START_TEST(Fire_with_complex_bind_can_be_processed_with_multiple_receives)
 END_TEST
 
 
+static void setup_query_patterns(void)
+{
+    // Set up pattern essentials
+    set_data("album/p_manifest.json", "{}");
+    set_data("album/p_tracks.json", "[0]");
+    set_data("song_00/p_manifest.json", "{}");
+    set_data("song_00/p_order_list.json", "[ [0, 0], [1, 0] ]");
+
+    set_data("pat_000/p_manifest.json", "{}");
+    set_data("pat_000/p_pattern.json", "{ \"length\": [4, 0] }");
+    set_data("pat_000/instance_000/p_manifest.json", "{}");
+
+    set_data("pat_001/p_manifest.json", "{}");
+    set_data("pat_001/p_pattern.json", "{ \"length\": [4, 0] }");
+    set_data("pat_001/instance_000/p_manifest.json", "{}");
+
+    validate();
+
+    return;
+}
+
+
+START_TEST(Query_initial_location)
+{
+    set_audio_rate(220);
+    setup_query_patterns();
+
+    kqt_Handle_fire_event(handle, 0, "[\"qlocation\", null]");
+
+    const char* events = kqt_Handle_receive_events(handle);
+    const char* expected =
+        "[[0, [\"qlocation\", null]], "
+        "[0, [\"Atrack\", 0]], [0, [\"Asystem\", 0]], [0, [\"Arow\", [0, 0]]]]";
+
+    fail_if(strcmp(events, expected) != 0,
+            "Received event list %s instead of %s", events, expected);
+}
+END_TEST
+
+
 Suite* Player_suite(void)
 {
     Suite* s = suite_create("Player");
@@ -1181,6 +1221,9 @@ Suite* Player_suite(void)
     tcase_add_test(
             tc_events,
             Fire_with_complex_bind_can_be_processed_with_multiple_receives);
+    tcase_add_test(
+            tc_events,
+            Query_initial_location);
 
     return s;
 }
