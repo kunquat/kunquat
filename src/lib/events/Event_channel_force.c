@@ -40,6 +40,10 @@ bool Event_channel_set_force_process(
     {
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;
+
+        // Update actual force in case it's queried before another render call
+        vs->actual_force *= (force / vs->force);
+
         vs->force = force;
         Slider_break(&vs->force_slider);
 //        vs->force_slide = 0;
