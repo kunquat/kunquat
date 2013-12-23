@@ -435,105 +435,6 @@ static bool Event_handler_handle(
 }
 
 
-static void Event_handler_handle_query(
-        Event_handler* eh,
-        int index,
-        Event_type event_type,
-        Value* event_arg,
-        bool silent)
-{
-    assert(eh != NULL);
-    assert(index >= 0);
-    assert(index < KQT_COLUMNS_MAX);
-    assert(Event_is_query(event_type));
-    assert(event_arg != NULL);
-    (void)silent;
-
-    //char auto_event[128] = "";
-    //Read_state* rs = READ_STATE_AUTO;
-    switch (event_type)
-    {
-#if 0
-        case Event_query_location:
-        {
-            if (eh->global_state->mode >= PLAY_SUBSONG)
-            {
-                snprintf(auto_event, 128, "[\"Atrack\", %" PRIu16 "]",
-                         eh->global_state->track);
-                Event_handler_trigger_const(eh, index, auto_event, silent, rs);
-                snprintf(auto_event, 128, "[\"Asystem\", %" PRIu16 "]",
-                         eh->global_state->system);
-                Event_handler_trigger_const(eh, index, auto_event, silent, rs);
-            }
-            snprintf(auto_event, 128, "[\"Apattern\", %" PRId16 "]",
-                     eh->global_state->piref.pat);
-            Event_handler_trigger_const(eh, index, auto_event, silent, rs);
-            snprintf(auto_event, 128,
-                     "[\"Arow\", [%" PRId64 ", %" PRId32 "]]",
-                     Tstamp_get_beats(&eh->global_state->pos),
-                     Tstamp_get_rem(&eh->global_state->pos));
-            Event_handler_trigger_const(eh, index, auto_event, silent, rs);
-        } break;
-        case Event_query_voice_count:
-        {
-            snprintf(auto_event, 128, "[\"Avoices\", %d]",
-                     eh->global_state->active_voices);
-            eh->global_state->active_voices = 0;
-            Event_handler_trigger_const(eh, index, auto_event, silent, rs);
-        } break;
-        case Event_query_actual_force:
-        {
-            assert(event_arg->type == VALUE_TYPE_INT);
-            assert(event_arg->value.int_type >= 0);
-            assert(event_arg->value.int_type < KQT_GENERATORS_MAX);
-            double force = Channel_state_get_fg_force(eh->ch_states[index],
-                                                event_arg->value.int_type);
-            if (!isnan(force))
-            {
-                snprintf(auto_event, 128, "[\"Af\", %f]", force);
-                Event_handler_trigger_const(eh, index, auto_event, silent, rs);
-            }
-        } break;
-#endif
-        default:
-            assert(false);
-    }
-
-    //assert(!rs->error);
-    return;
-}
-
-
-static bool Event_handler_act(
-        Event_handler* eh,
-        bool silent,
-        int index,
-        const char* event_name,
-        Event_type event_type,
-        Value* value)
-{
-    assert(eh != NULL);
-    assert(index >= 0);
-    assert(index < KQT_COLUMNS_MAX);
-    assert(event_name != NULL);
-    assert(value != NULL);
-
-    assert(eh->channels[index]->freq != NULL);
-    assert(*eh->channels[index]->freq > 0);
-    assert(eh->channels[index]->tempo != NULL);
-    assert(*eh->channels[index]->tempo > 0);
-
-    if (!Event_is_query(event_type) && !Event_is_auto(event_type) &&
-            !Event_handler_handle(eh, index, event_type, value))
-        return false;
-
-    if (Event_is_query(event_type))
-        Event_handler_handle_query(eh, index, event_type, value, silent);
-
-    return true;
-}
-
-
 bool Event_handler_trigger(
         Event_handler* eh,
         int ch_num,
@@ -548,14 +449,15 @@ bool Event_handler_trigger(
 
     Event_type type = Event_names_get(eh->event_names, name);
     assert(type != Event_NONE);
+    assert(!Event_is_query(type));
+    assert(!Event_is_auto(type));
 
-    return Event_handler_act(
-            eh,
-            false, // silent
-            ch_num,
-            name,
-            type,
-            arg);
+    assert(eh->channels[ch_num]->freq != NULL);
+    assert(*eh->channels[ch_num]->freq > 0);
+    assert(eh->channels[ch_num]->tempo != NULL);
+    assert(*eh->channels[ch_num]->tempo > 0);
+
+    return Event_handler_handle(eh, ch_num, type, arg);
 }
 
 
