@@ -1165,6 +1165,51 @@ START_TEST(Query_final_location)
 END_TEST
 
 
+START_TEST(Query_voice_count_with_silence)
+{
+    set_audio_rate(220);
+    pause();
+
+    kqt_Handle_play(handle, 128);
+    kqt_Handle_fire_event(handle, 0, "[\"qvoices\", null]");
+
+    const char* events = kqt_Handle_receive_events(handle);
+    const char* expected = "[[0, [\"qvoices\", null]], [0, [\"Avoices\", 0]]]";
+
+    fail_if(strcmp(events, expected) != 0,
+            "Received event list %s instead of %s", events, expected);
+}
+END_TEST
+
+
+START_TEST(Query_voice_count_with_note)
+{
+    set_audio_rate(220);
+    setup_debug_instrument();
+    pause();
+
+    kqt_Handle_fire_event(handle, 0, Note_On_55_Hz);
+    kqt_Handle_play(handle, 1);
+    kqt_Handle_fire_event(handle, 0, "[\"qvoices\", null]");
+
+    const char* events1 = kqt_Handle_receive_events(handle);
+    const char* expected1 = "[[0, [\"qvoices\", null]], [0, [\"Avoices\", 1]]]";
+
+    fail_if(strcmp(events1, expected1) != 0,
+            "Received event list %s instead of %s", events1, expected1);
+
+    kqt_Handle_play(handle, 2048);
+    kqt_Handle_fire_event(handle, 0, "[\"qvoices\", null]");
+
+    const char* events0 = kqt_Handle_receive_events(handle);
+    const char* expected0 = "[[0, [\"qvoices\", null]], [0, [\"Avoices\", 0]]]";
+
+    fail_if(strcmp(events0, expected0) != 0,
+            "Received event list %s instead of %s", events0, expected0);
+}
+END_TEST
+
+
 Suite* Player_suite(void)
 {
     Suite* s = suite_create("Player");
@@ -1239,6 +1284,8 @@ Suite* Player_suite(void)
             Fire_with_complex_bind_can_be_processed_with_multiple_receives);
     tcase_add_test(tc_events, Query_initial_location);
     tcase_add_test(tc_events, Query_final_location);
+    tcase_add_test(tc_events, Query_voice_count_with_silence);
+    tcase_add_test(tc_events, Query_voice_count_with_note);
 
     return s;
 }
