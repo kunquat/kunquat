@@ -239,7 +239,7 @@ bool Module_parse_random_seed(Module* module, Streader* sr)
     assert(module != NULL);
     assert(sr != NULL);
 
-    if (!Streader_is_error_set(sr))
+    if (Streader_is_error_set(sr))
         return false;
 
     int64_t seed = 0;
@@ -251,7 +251,7 @@ bool Module_parse_random_seed(Module* module, Streader* sr)
 
         if (seed < 0)
         {
-            Streader_set_error(sr, "Random seed must be positive");
+            Streader_set_error(sr, "Random seed must be non-negative");
             return false;
         }
     }
