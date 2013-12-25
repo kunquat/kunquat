@@ -277,6 +277,7 @@ void setup_debug_instrument(void)
             "[ [\"ins_00/out_00\", \"out_00\"] ]");
 
     set_data("p_control_map.json", "[ [0, 0] ]");
+    set_data("control_00/p_manifest.json", "{}");
 
     set_data("ins_00/p_manifest.json", "{}");
     set_data("ins_00/p_connections.json",

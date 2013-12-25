@@ -29,6 +29,7 @@ START_TEST(Trivial_effect_is_identity)
     pause();
 
     set_data("p_control_map.json", "[ [0, 0] ]");
+    set_data("control_00/p_manifest.json", "{}");
 
     set_data("ins_00/p_manifest.json", "{}");
     set_data("ins_00/p_connections.json",
@@ -66,6 +67,7 @@ START_TEST(Effect_with_default_volume_dsp_is_identity)
     pause();
 
     set_data("p_control_map.json", "[ [0, 0] ]");
+    set_data("control_00/p_manifest.json", "{}");
 
     set_data("ins_00/p_manifest.json", "{}");
     set_data("ins_00/p_connections.json",
@@ -107,6 +109,7 @@ START_TEST(Effect_with_double_volume_dsp_and_bypass_triples_volume)
     pause();
 
     set_data("p_control_map.json", "[ [0, 0] ]");
+    set_data("control_00/p_manifest.json", "{}");
 
     set_data("ins_00/p_manifest.json", "{}");
     set_data("ins_00/p_connections.json",
@@ -150,6 +153,7 @@ START_TEST(Connect_instrument_effect_with_unconnected_dsp_and_mix)
     pause();
 
     set_data("p_control_map.json", "[ [0, 0] ]");
+    set_data("control_00/p_manifest.json", "{}");
 
     set_data("ins_00/p_manifest.json", "{}");
     set_data("ins_00/eff_00/p_manifest.json", "{}");

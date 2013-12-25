@@ -33,6 +33,7 @@ void setup_single_pulse_without_instrument_manifest(void)
             "[ [\"gen_00/C/out_00\", \"out_00\"] ]");
 
     set_data("p_control_map.json", "[ [0, 0] ]");
+    set_data("control_00/p_manifest.json", "{}");
 
     set_data("ins_00/gen_00/p_manifest.json", "{}");
     set_data("ins_00/gen_00/p_gen_type.json", "\"debug\"");
@@ -125,6 +126,8 @@ START_TEST(Input_map_maintains_indices)
             "  [\"ins_01/out_00\", \"out_00\"] ]");
 
     set_data("p_control_map.json", "[[0, 0], [1, 1]]");
+    set_data("control_00/p_manifest.json", "{}");
+    set_data("control_01/p_manifest.json", "{}");
 
     set_data("ins_00/p_manifest.json", "{}");
     set_data("ins_00/p_connections.json",
