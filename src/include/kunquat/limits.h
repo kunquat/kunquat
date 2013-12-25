@@ -132,6 +132,12 @@ extern "C" {
 
 
 /**
+ * Maximum number of Instrument control slots in a Kunquat Handle.
+ */
+#define KQT_CONTROL_SLOTS_MAX KQT_INSTRUMENTS_MAX
+
+
+/**
  * Maximum number of Generators in a Kunquat Instruemnt.
  */
 #define KQT_GENERATORS_MAX 256

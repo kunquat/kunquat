@@ -19,6 +19,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include <Bit_array.h>
 #include <Streader.h>
 
 
@@ -42,6 +43,17 @@ Input_map* new_Input_map(
 
 
 /**
+ * Checks if the Input map uses only existent slots.
+ *
+ * \param im          The Input map -- must not be \c NULL.
+ * \param existents   The table of existent statuses -- must not be \c NULL.
+ *
+ * \return   \c true if \a im is valid, otherwise \c false.
+ */
+bool Input_map_is_valid(const Input_map* im, const Bit_array* existents);
+
+
+/**
  * Returns a device table index from the Input map.
  *
  * \param im         The Input map -- must not be \c NULL.
@@ -50,7 +62,7 @@ Input_map* new_Input_map(
  *
  * \return   The device table ID, or \c -1 if not found.
  */
-int32_t Input_map_get_device_index(Input_map* im, int32_t input_id);
+int32_t Input_map_get_device_index(const Input_map* im, int32_t input_id);
 
 
 /**

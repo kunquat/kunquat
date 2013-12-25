@@ -207,6 +207,22 @@ bool parse_data(Handle* handle,
             //Connections_print(graph, stderr);
         }
     }
+    else if ((index = string_extract_index(key, "control_", 2, "/")) >= 0)
+    {
+        if (index < 0 || index >= KQT_CONTROL_SLOTS_MAX)
+            return true;
+
+        if (string_eq(second_element, "p_manifest.json"))
+        {
+            const bool existent = read_default_manifest(sr);
+            if (Streader_is_error_set(sr))
+            {
+                set_error(handle, sr);
+                return false;
+            }
+            Module_set_slot(handle->module, index, existent);
+        }
+    }
     else if ((index = string_extract_index(key, "eff_", 2, "/")) >= 0)
     {
         Effect* eff = Effect_table_get(Module_get_effects(module), index);

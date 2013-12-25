@@ -145,7 +145,29 @@ Input_map* new_Input_map(
 }
 
 
-int32_t Input_map_get_device_index(Input_map* im, int32_t input_id)
+bool Input_map_is_valid(const Input_map* im, const Bit_array* existents)
+{
+    assert(im != NULL);
+    assert(existents != NULL);
+
+    const Entry* key = ENTRY_KEY(0);
+    AAiter* iter = AAITER_AUTO;
+    AAiter_change_tree(iter, im->map);
+
+    const Entry* pair = AAiter_get_at_least(iter, key);
+    while (pair != NULL)
+    {
+        if (!Bit_array_get(existents, pair->input))
+            return false;
+
+        pair = AAiter_get_next(iter);
+    }
+
+    return true;
+}
+
+
+int32_t Input_map_get_device_index(const Input_map* im, int32_t input_id)
 {
     assert(im != NULL);
     assert(input_id >= 0);
