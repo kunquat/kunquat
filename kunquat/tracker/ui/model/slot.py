@@ -39,7 +39,7 @@ class Slot():
         second = parts[1]
         slot_number = int(second)
         try:
-            input_map = self._store['p_ins_input.json']
+            input_map = self._store['p_control_map.json']
         except KeyError:
             input_map = []
         slots = dict(input_map)

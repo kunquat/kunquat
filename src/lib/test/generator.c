@@ -29,7 +29,7 @@ static void setup_single_pulse_without_generator_manifest(void)
     set_data("p_connections.json",
             "[ [\"ins_00/out_00\", \"out_00\"] ]");
 
-    set_data("p_ins_input.json", "[ [0, 0] ]");
+    set_data("p_control_map.json", "[ [0, 0] ]");
 
     set_data("ins_00/p_manifest.json", "{}");
     set_data("ins_00/p_connections.json",
@@ -116,7 +116,7 @@ START_TEST(Connect_generator_without_type)
     set_data("p_connections.json",
             "[ [\"ins_00/out_00\", \"out_00\"] ]");
 
-    set_data("p_ins_input.json", "[ [0, 0] ]");
+    set_data("p_control_map.json", "[ [0, 0] ]");
 
     set_data("ins_00/p_manifest.json", "{}");
     set_data("ins_00/p_connections.json",

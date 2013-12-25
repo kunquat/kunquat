@@ -342,7 +342,7 @@ static bool parse_module_level(Handle* handle,
         //fprintf(stderr, "line: %d\n", __LINE__);
         //Connections_print(graph, stderr);
     }
-    else if (string_eq(key, "p_ins_input.json"))
+    else if (string_eq(key, "p_control_map.json"))
     {
         if (!Module_set_ins_map(module, sr))
         {

@@ -49,7 +49,7 @@ START_TEST(Trivial_chorus_is_identity)
     set_data("p_connections.json",
             "[ [\"ins_02/out_00\", \"eff_02/in_00\"], "
             "  [\"eff_02/out_00\", \"out_00\"] ]");
-    set_data("p_ins_input.json", "[ [0, 2] ]");
+    set_data("p_control_map.json", "[ [0, 2] ]");
 
     validate();
 
