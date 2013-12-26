@@ -73,7 +73,7 @@ Device_impl* new_DSP_gc(DSP* dsp)
     gc->map = NULL;
 
     if (!Device_impl_register_set_envelope(
-                &gc->parent, "p_map.jsone", NULL, DSP_gc_set_map, NULL))
+                &gc->parent, "p_e_map.json", NULL, DSP_gc_set_map, NULL))
     {
         del_DSP_gc(&gc->parent);
         return NULL;

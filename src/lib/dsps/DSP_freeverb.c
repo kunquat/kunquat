@@ -230,13 +230,13 @@ Device_impl* new_DSP_freeverb(DSP* dsp)
 
     reg_success &= Device_impl_register_set_float(
             &freeverb->parent,
-            "p_refl.jsonf",
+            "p_f_refl.json",
             initial_reflect,
             DSP_freeverb_set_refl,
             NULL);
     reg_success &= Device_impl_register_set_float(
             &freeverb->parent,
-            "p_damp.jsonf",
+            "p_f_damp.json",
             initial_damp,
             DSP_freeverb_set_damp,
             NULL);

@@ -162,76 +162,76 @@ Device_impl* new_Generator_add(Generator* gen)
     bool reg_success = true;
 
     reg_success &= Device_impl_register_set_num_list(
-            &add->parent, "p_base.jsonln", NULL, Generator_add_set_base, NULL);
+            &add->parent, "p_ln_base.json", NULL, Generator_add_set_base, NULL);
     reg_success &= Device_impl_register_set_num_list(
             &add->parent,
-            "p_mod_base.jsonln",
+            "p_ln_mod_base.json",
             NULL,
             Generator_add_set_mod_base,
             NULL);
     reg_success &= Device_impl_register_set_int(
             &add->parent,
-            "p_mod.jsoni",
+            "p_i_mod.json",
             MOD_DISABLED,
             Generator_add_set_mod,
             NULL);
     reg_success &= Device_impl_register_set_float(
             &add->parent,
-            "p_mod_volume.jsonf",
+            "p_f_mod_volume.json",
             0.0,
             Generator_add_set_mod_volume,
             NULL);
     reg_success &= Device_impl_register_set_envelope(
             &add->parent,
-            "p_mod_env.jsone",
+            "p_e_mod_env.json",
             NULL,
             Generator_add_set_mod_env,
             NULL);
     reg_success &= Device_impl_register_set_float(
             &add->parent,
-            "p_mod_env_scale_amount.jsonf",
+            "p_f_mod_env_scale_amount.json",
             0.0,
             Generator_add_set_mod_env_scale_amount,
             NULL);
     reg_success &= Device_impl_register_set_float(
             &add->parent,
-            "p_mod_env_scale_center.jsonf",
+            "p_f_mod_env_scale_center.json",
             0.0,
             Generator_add_set_mod_env_scale_center,
             NULL);
     reg_success &= Device_impl_register_set_envelope(
             &add->parent,
-            "p_force_mod_env.jsone",
+            "p_e_force_mod_env.json",
             NULL,
             Generator_add_set_force_mod_env,
             NULL);
     reg_success &= Device_impl_register_set_float(
             &add->parent,
-            "tone_XX/p_pitch.jsonf",
+            "tone_XX/p_f_pitch.json",
             NAN,
             Generator_add_set_tone_pitch,
             NULL);
     reg_success &= Device_impl_register_set_float(
             &add->parent,
-            "tone_XX/p_volume.jsonf",
+            "tone_XX/p_f_volume.json",
             NAN,
             Generator_add_set_tone_volume,
             NULL);
     reg_success &= Device_impl_register_set_float(
             &add->parent,
-            "tone_XX/p_pan.jsonf",
+            "tone_XX/p_f_pan.json",
             0.0,
             Generator_add_set_tone_panning,
             NULL);
     reg_success &= Device_impl_register_set_float(
             &add->parent,
-            "mod_XX/p_pitch.jsonf",
+            "mod_XX/p_f_pitch.json",
             NAN,
             Generator_add_set_mod_tone_pitch,
             NULL);
     reg_success &= Device_impl_register_set_float(
             &add->parent,
-            "mod_XX/p_volume.jsonf",
+            "mod_XX/p_f_volume.json",
             NAN,
             Generator_add_set_mod_tone_volume,
             NULL);

@@ -195,11 +195,11 @@ uint32_t Generator_pcm_mix(
         {
             assert(vstate->hit_index < KQT_HITS_MAX);
 
-            char map_key[] = "exp_X/src_X/p_hit_map.jsonhm";
+            char map_key[] = "exp_X/src_X/p_hm_hit_map.json";
             snprintf(
                     map_key,
                     strlen(map_key) + 1,
-                    "exp_%01x/src_%01x/p_hit_map.jsonhm",
+                    "exp_%01x/src_%01x/p_hm_hit_map.json",
                     expression,
                     source);
             const Hit_map* map = Device_params_get_hit_map(
@@ -220,11 +220,11 @@ uint32_t Generator_pcm_mix(
         }
         else
         {
-            char map_key[] = "exp_X/src_X/p_sample_map.jsonsm";
+            char map_key[] = "exp_X/src_X/p_nm_sample_map.json";
             snprintf(
                     map_key,
                     strlen(map_key) + 1,
-                    "exp_%01x/src_%01x/p_sample_map.jsonsm",
+                    "exp_%01x/src_%01x/p_nm_sample_map.json",
                     expression,
                     source);
             const Sample_map* map = Device_params_get_sample_map(
@@ -259,11 +259,11 @@ uint32_t Generator_pcm_mix(
     assert(pcm_state->sample < PCM_SAMPLES_MAX);
 
     // Find sample params
-    char header_key[] = "smp_XXX/p_sample.jsonsh";
+    char header_key[] = "smp_XXX/p_sh_sample.json";
     snprintf(
             header_key,
             strlen(header_key) + 1,
-            "smp_%03x/p_sample.jsonsh",
+            "smp_%03x/p_sh_sample.json",
             pcm_state->sample);
     const Sample_params* header = Device_params_get_sample_params(
             gen->parent.dparams,

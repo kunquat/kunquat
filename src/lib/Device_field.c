@@ -58,24 +58,27 @@ Device_field_type get_keyp_device_field_type(const char* keyp)
     if (last_sep != NULL)
         last_elem = last_sep + 1;
 
-    if (string_has_suffix(last_elem, ".jsonb"))
-        return DEVICE_FIELD_BOOL;
-    else if (string_has_suffix(last_elem, ".jsoni"))
-        return DEVICE_FIELD_INT;
-    else if (string_has_suffix(last_elem, ".jsonf"))
-        return DEVICE_FIELD_FLOAT;
-    else if (string_has_suffix(last_elem, ".jsont"))
-        return DEVICE_FIELD_TSTAMP;
-    else if (string_has_suffix(last_elem, ".jsone"))
-        return DEVICE_FIELD_ENVELOPE;
-    else if (string_has_suffix(last_elem, ".jsonsh"))
-        return DEVICE_FIELD_SAMPLE_PARAMS;
-    else if (string_has_suffix(last_elem, ".jsonsm"))
-        return DEVICE_FIELD_SAMPLE_MAP;
-    else if (string_has_suffix(last_elem, ".jsonhm"))
-        return DEVICE_FIELD_HIT_MAP;
-    else if (string_has_suffix(last_elem, ".jsonln"))
-        return DEVICE_FIELD_NUM_LIST;
+    if (string_has_suffix(last_elem, ".json"))
+    {
+        if (string_has_prefix(last_elem, "p_b_"))
+            return DEVICE_FIELD_BOOL;
+        else if (string_has_prefix(last_elem, "p_i_"))
+            return DEVICE_FIELD_INT;
+        else if (string_has_prefix(last_elem, "p_f_"))
+            return DEVICE_FIELD_FLOAT;
+        else if (string_has_prefix(last_elem, "p_t_"))
+            return DEVICE_FIELD_TSTAMP;
+        else if (string_has_prefix(last_elem, "p_e_"))
+            return DEVICE_FIELD_ENVELOPE;
+        else if (string_has_prefix(last_elem, "p_sh_"))
+            return DEVICE_FIELD_SAMPLE_PARAMS;
+        else if (string_has_prefix(last_elem, "p_nm_"))
+            return DEVICE_FIELD_SAMPLE_MAP;
+        else if (string_has_prefix(last_elem, "p_hm_"))
+            return DEVICE_FIELD_HIT_MAP;
+        else if (string_has_prefix(last_elem, "p_ln_"))
+            return DEVICE_FIELD_NUM_LIST;
+    }
     else if (string_has_suffix(last_elem, ".wv"))
         return DEVICE_FIELD_WAVPACK;
 

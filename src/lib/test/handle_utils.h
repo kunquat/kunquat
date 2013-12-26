@@ -298,7 +298,7 @@ void setup_debug_single_pulse(void)
 {
     assert(handle != 0);
 
-    set_data("ins_00/gen_00/c/p_single_pulse.jsonb", "true");
+    set_data("ins_00/gen_00/c/p_b_single_pulse.json", "true");
 
     validate();
 

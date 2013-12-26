@@ -37,7 +37,7 @@ void setup_single_pulse_without_instrument_manifest(void)
 
     set_data("ins_00/gen_00/p_manifest.json", "{}");
     set_data("ins_00/gen_00/p_gen_type.json", "\"debug\"");
-    set_data("ins_00/gen_00/c/p_single_pulse.jsonb", "true");
+    set_data("ins_00/gen_00/c/p_b_single_pulse.json", "true");
 
     validate();
 
@@ -136,7 +136,7 @@ START_TEST(Input_map_maintains_indices)
     set_data("ins_00/gen_00/p_manifest.json", "{}");
     set_data("ins_00/gen_00/p_gen_type.json", "\"debug\"");
 
-    set_data("ins_00/gen_00/c/p_single_pulse.jsonb", "true");
+    set_data("ins_00/gen_00/c/p_b_single_pulse.json", "true");
 
     set_data("ins_01/p_manifest.json", "{}");
     set_data("ins_01/p_connections.json",

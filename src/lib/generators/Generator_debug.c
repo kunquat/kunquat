@@ -67,7 +67,7 @@ Device_impl* new_Generator_debug(Generator* gen)
 
     if (!Device_impl_register_set_bool(
                 &debug->parent,
-                "p_single_pulse.jsonb",
+                "p_b_single_pulse.json",
                 false,
                 Generator_debug_set_single_pulse,
                 NULL))

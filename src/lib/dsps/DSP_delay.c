@@ -239,19 +239,19 @@ Device_impl* new_DSP_delay(DSP* dsp)
 
     reg_success &= Device_impl_register_set_float(
             &delay->parent,
-            "p_max_delay.jsonf",
+            "p_f_max_delay.json",
             2.0,
             DSP_delay_set_max_delay,
             DSP_delay_set_state_max_delay);
     reg_success &= Device_impl_register_set_float(
             &delay->parent,
-            "tap_XX/p_delay.jsonf",
+            "tap_XX/p_f_delay.json",
             -1.0,
             DSP_delay_set_tap_delay,
             DSP_delay_set_state_tap_delay);
     reg_success &= Device_impl_register_set_float(
             &delay->parent,
-            "tap_XX/p_volume.jsonf",
+            "tap_XX/p_f_volume.json",
             0.0,
             DSP_delay_set_tap_volume,
             DSP_delay_set_state_tap_volume);

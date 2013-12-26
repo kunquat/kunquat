@@ -28,10 +28,10 @@ START_TEST(Trivial_chorus_is_identity)
     set_mix_volume(0);
     pause();
 
-    set_data("eff_02/dsp_01/c/voice_00/p_delay.jsonf", "0");
-    set_data("eff_02/dsp_01/c/voice_00/p_range.jsonf", "0");
-    set_data("eff_02/dsp_01/c/voice_00/p_speed.jsonf", "0");
-    set_data("eff_02/dsp_01/c/voice_00/p_volume.jsonf", "0");
+    set_data("eff_02/dsp_01/c/voice_00/p_f_delay.json", "0");
+    set_data("eff_02/dsp_01/c/voice_00/p_f_range.json", "0");
+    set_data("eff_02/dsp_01/c/voice_00/p_f_speed.json", "0");
+    set_data("eff_02/dsp_01/c/voice_00/p_f_volume.json", "0");
     set_data("eff_02/dsp_01/p_dsp_type.json", "\"chorus\"");
     set_data("eff_02/dsp_01/p_manifest.json", "{}");
 
