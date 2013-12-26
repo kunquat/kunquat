@@ -48,69 +48,65 @@ struct Device_field
 };
 
 
+Device_field_type get_keyp_device_field_type(const char* keyp)
+{
+    assert(keyp != NULL);
+
+    // Find the last element
+    const char* last_elem = keyp;
+    const char* const last_sep = strrchr(keyp, '/');
+    if (last_sep != NULL)
+        last_elem = last_sep + 1;
+
+    if (string_has_suffix(last_elem, ".jsonb"))
+        return DEVICE_FIELD_BOOL;
+    else if (string_has_suffix(last_elem, ".jsoni"))
+        return DEVICE_FIELD_INT;
+    else if (string_has_suffix(last_elem, ".jsonf"))
+        return DEVICE_FIELD_FLOAT;
+    else if (string_has_suffix(last_elem, ".jsont"))
+        return DEVICE_FIELD_TSTAMP;
+    else if (string_has_suffix(last_elem, ".jsone"))
+        return DEVICE_FIELD_ENVELOPE;
+    else if (string_has_suffix(last_elem, ".jsonsh"))
+        return DEVICE_FIELD_SAMPLE_PARAMS;
+    else if (string_has_suffix(last_elem, ".jsonsm"))
+        return DEVICE_FIELD_SAMPLE_MAP;
+    else if (string_has_suffix(last_elem, ".jsonhm"))
+        return DEVICE_FIELD_HIT_MAP;
+    else if (string_has_suffix(last_elem, ".jsonln"))
+        return DEVICE_FIELD_NUM_LIST;
+    else if (string_has_suffix(last_elem, ".wv"))
+        return DEVICE_FIELD_WAVPACK;
+
+    return DEVICE_FIELD_NONE;
+}
+
+
 Device_field* new_Device_field(const char* key, void* data)
 {
     assert(key != NULL);
 
-    Device_field_type type = DEVICE_FIELD_NONE;
-    size_t data_size = 0;
-    if (string_has_suffix(key, ".jsonb"))
+    static const size_t sizes[DEVICE_FIELD_COUNT_] =
     {
-        type = DEVICE_FIELD_BOOL;
-        data_size = sizeof(bool);
-    }
-    else if (string_has_suffix(key, ".jsoni"))
-    {
-        type = DEVICE_FIELD_INT;
-        data_size = sizeof(int64_t);
-    }
-    else if (string_has_suffix(key, ".jsonf"))
-    {
-        type = DEVICE_FIELD_FLOAT;
-        data_size = sizeof(double);
-    }
-    else if (string_has_suffix(key, ".jsonr"))
-    {
-        type = DEVICE_FIELD_REAL;
-        data_size = sizeof(Real);
-    }
-    else if (string_has_suffix(key, ".jsont"))
-    {
-        type = DEVICE_FIELD_TSTAMP;
-        data_size = sizeof(Tstamp);
-    }
-    else if (string_has_suffix(key, ".jsone"))
-    {
-        type = DEVICE_FIELD_ENVELOPE;
-        data_size = sizeof(Envelope*);
-    }
-    else if (string_has_suffix(key, ".wv"))
-    {
-        type = DEVICE_FIELD_WAVPACK;
-        data_size = sizeof(Sample*);
-    }
-    else if (string_has_suffix(key, ".jsonsh"))
-    {
-        type = DEVICE_FIELD_SAMPLE_PARAMS;
-        data_size = sizeof(Sample_params);
-    }
-    else if (string_has_suffix(key, ".jsonsm"))
-    {
-        type = DEVICE_FIELD_SAMPLE_MAP;
-        data_size = sizeof(Sample_map*);
-    }
-    else if (string_has_suffix(key, ".jsonhm"))
-    {
-        type = DEVICE_FIELD_HIT_MAP;
-        data_size = sizeof(Hit_map*);
-    }
-    else if (string_has_suffix(key, ".jsonln"))
-    {
-        type = DEVICE_FIELD_NUM_LIST;
-        data_size = sizeof(Num_list*);
-    }
-    else
-        assert(false);
+        [DEVICE_FIELD_NONE]             = 0,
+        [DEVICE_FIELD_BOOL]             = sizeof(bool),
+        [DEVICE_FIELD_INT]              = sizeof(int64_t),
+        [DEVICE_FIELD_FLOAT]            = sizeof(double),
+        [DEVICE_FIELD_TSTAMP]           = sizeof(Tstamp),
+        [DEVICE_FIELD_ENVELOPE]         = sizeof(Envelope*),
+        [DEVICE_FIELD_SAMPLE_PARAMS]    = sizeof(Sample_params),
+        [DEVICE_FIELD_SAMPLE_MAP]       = sizeof(Sample_map*),
+        [DEVICE_FIELD_HIT_MAP]          = sizeof(Hit_map*),
+        [DEVICE_FIELD_NUM_LIST]         = sizeof(Num_list*),
+        [DEVICE_FIELD_WAVPACK]          = sizeof(Sample*),
+    };
+
+    const Device_field_type type = get_keyp_device_field_type(key);
+    assert(type != DEVICE_FIELD_NONE);
+
+    const size_t data_size = sizes[type];
+    assert(data_size > 0);
 
     Device_field* field = memory_alloc_item(Device_field);
     if (field == NULL)

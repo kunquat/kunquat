@@ -585,34 +585,61 @@ bool Device_impl_set_key(Device_impl* dimpl, const char* key)
         }                                                           \
         else (void)0
 
-        if (string_has_suffix(set_cb->key_pattern, ".jsonb"))
-            SET_FIELD(bool, bool);
-        else if (string_has_suffix(set_cb->key_pattern, ".jsonf"))
-            SET_FIELD(float, double);
-        else if (string_has_suffix(set_cb->key_pattern, ".jsoni"))
-            SET_FIELD(int, int64_t);
-        else if (string_has_suffix(set_cb->key_pattern, ".jsont"))
+        const Device_field_type dftype = get_keyp_device_field_type(
+                set_cb->key_pattern);
+        assert(dftype != DEVICE_FIELD_NONE);
+
+        switch (dftype)
         {
-            const Tstamp* dval = Device_params_get_tstamp(
-                    dimpl->device->dparams, key);
-            const Tstamp* val = (dval != NULL)
-                ? dval : &set_cb->cb.Tstamp_type.default_val;
-            return set_cb->cb.Tstamp_type.set(dimpl, indices, val);
+            case DEVICE_FIELD_BOOL:
+                SET_FIELD(bool, bool);
+                break;
+
+            case DEVICE_FIELD_FLOAT:
+                SET_FIELD(float, double);
+                break;
+
+            case DEVICE_FIELD_INT:
+                SET_FIELD(int, int64_t);
+                break;
+
+            case DEVICE_FIELD_TSTAMP:
+            {
+                const Tstamp* dval = Device_params_get_tstamp(
+                        dimpl->device->dparams, key);
+                const Tstamp* val = (dval != NULL)
+                    ? dval : &set_cb->cb.Tstamp_type.default_val;
+                return set_cb->cb.Tstamp_type.set(dimpl, indices, val);
+            }
+            break;
+
+            case DEVICE_FIELD_ENVELOPE:
+                SET_FIELDP(envelope, Envelope);
+                break;
+
+            case DEVICE_FIELD_WAVPACK:
+                SET_FIELDP(sample, Sample);
+                break;
+
+            case DEVICE_FIELD_SAMPLE_PARAMS:
+                SET_FIELDP(sample_params, Sample_params);
+                break;
+
+            case DEVICE_FIELD_SAMPLE_MAP:
+                SET_FIELDP(sample_map, Sample_map);
+                break;
+
+            case DEVICE_FIELD_HIT_MAP:
+                SET_FIELDP(hit_map, Hit_map);
+                break;
+
+            case DEVICE_FIELD_NUM_LIST:
+                SET_FIELDP(num_list, Num_list);
+                break;
+
+            default:
+                assert(false);
         }
-        else if (string_has_suffix(set_cb->key_pattern, ".jsone"))
-            SET_FIELDP(envelope, Envelope);
-        else if (string_has_suffix(set_cb->key_pattern, ".wv"))
-            SET_FIELDP(sample, Sample);
-        else if (string_has_suffix(set_cb->key_pattern, ".jsonsh"))
-            SET_FIELDP(sample_params, Sample_params);
-        else if (string_has_suffix(set_cb->key_pattern, ".jsonsm"))
-            SET_FIELDP(sample_map, Sample_map);
-        else if (string_has_suffix(set_cb->key_pattern, ".jsonhm"))
-            SET_FIELDP(hit_map, Hit_map);
-        else if (string_has_suffix(set_cb->key_pattern, ".jsonln"))
-            SET_FIELDP(num_list, Num_list);
-        else
-            assert(false); // Unsupported data type
 
 #undef SET_FIELDP
 #undef SET_FIELD
@@ -665,35 +692,62 @@ bool Device_impl_set_state_key(
         }                                                    \
         else (void)0
 
-        if (string_has_suffix(set_cb->key_pattern, ".jsonb"))
-            SET_FIELD(bool, bool);
-        else if (string_has_suffix(set_cb->key_pattern, ".jsonf"))
-            SET_FIELD(float, double);
-        else if (string_has_suffix(set_cb->key_pattern, ".jsoni"))
-            SET_FIELD(int, int64_t);
-        else if (string_has_suffix(set_cb->key_pattern, ".jsont"))
+        const Device_field_type dftype = get_keyp_device_field_type(
+                set_cb->key_pattern);
+        assert(dftype != DEVICE_FIELD_NONE);
+
+        switch (dftype)
         {
-            const Tstamp* dval = Device_params_get_tstamp(
-                    dimpl->device->dparams, key);
-            const Tstamp* val = (dval != NULL)
-                ? dval : &set_cb->cb.Tstamp_type.default_val;
-            return set_cb->cb.Tstamp_type.set_state(
-                    dimpl, dstate, indices, val);
+            case DEVICE_FIELD_BOOL:
+                SET_FIELD(bool, bool);
+                break;
+
+            case DEVICE_FIELD_FLOAT:
+                SET_FIELD(float, double);
+                break;
+
+            case DEVICE_FIELD_INT:
+                SET_FIELD(int, int64_t);
+                break;
+
+            case DEVICE_FIELD_TSTAMP:
+            {
+                const Tstamp* dval = Device_params_get_tstamp(
+                        dimpl->device->dparams, key);
+                const Tstamp* val = (dval != NULL)
+                    ? dval : &set_cb->cb.Tstamp_type.default_val;
+                return set_cb->cb.Tstamp_type.set_state(
+                        dimpl, dstate, indices, val);
+            }
+            break;
+
+            case DEVICE_FIELD_ENVELOPE:
+                SET_FIELDP(envelope, Envelope);
+                break;
+
+            case DEVICE_FIELD_WAVPACK:
+                SET_FIELDP(sample, Sample);
+                break;
+
+            case DEVICE_FIELD_SAMPLE_PARAMS:
+                SET_FIELDP(sample_params, Sample_params);
+                break;
+
+            case DEVICE_FIELD_SAMPLE_MAP:
+                SET_FIELDP(sample_map, Sample_map);
+                break;
+
+            case DEVICE_FIELD_HIT_MAP:
+                SET_FIELDP(hit_map, Hit_map);
+                break;
+
+            case DEVICE_FIELD_NUM_LIST:
+                SET_FIELDP(num_list, Num_list);
+                break;
+
+            default:
+                assert(false);
         }
-        else if (string_has_suffix(set_cb->key_pattern, ".jsone"))
-            SET_FIELDP(envelope, Envelope);
-        else if (string_has_suffix(set_cb->key_pattern, ".wv"))
-            SET_FIELDP(sample, Sample);
-        else if (string_has_suffix(set_cb->key_pattern, ".jsonsh"))
-            SET_FIELDP(sample_params, Sample_params);
-        else if (string_has_suffix(set_cb->key_pattern, ".jsonsm"))
-            SET_FIELDP(sample_map, Sample_map);
-        else if (string_has_suffix(set_cb->key_pattern, ".jsonhm"))
-            SET_FIELDP(hit_map, Hit_map);
-        else if (string_has_suffix(set_cb->key_pattern, ".jsonln"))
-            SET_FIELDP(num_list, Num_list);
-        else
-            assert(false); // Unsupported data type
 
 #undef SET_FIELDP
 #undef SET_FIELD

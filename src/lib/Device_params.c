@@ -184,33 +184,41 @@ const char* Device_params_iter_get_next_key(Device_params_iter* iter)
 bool key_is_device_param(const char* key)
 {
     assert(key != NULL);
-    return key_is_real_time_device_param(key) ||
-           key_is_text_device_param(key) ||
-           string_has_suffix(key, ".wv") ||
-           string_has_suffix(key, ".ogg");
+
+    if (key_is_text_device_param(key))
+        return true;
+
+    const Device_field_type type = get_keyp_device_field_type(key);
+    return type == DEVICE_FIELD_WAVPACK ||
+        type == DEVICE_FIELD_VORBIS;
 }
 
 
 bool key_is_real_time_device_param(const char* key)
 {
     assert(key != NULL);
-    return string_has_suffix(key, ".jsonb") ||
-           string_has_suffix(key, ".jsoni") ||
-           string_has_suffix(key, ".jsonf") ||
-           string_has_suffix(key, ".jsonr") ||
-           string_has_suffix(key, ".jsont");
+
+    const Device_field_type type = get_keyp_device_field_type(key);
+    return type == DEVICE_FIELD_BOOL ||
+        type == DEVICE_FIELD_INT ||
+        type == DEVICE_FIELD_FLOAT ||
+        type == DEVICE_FIELD_TSTAMP;
 }
 
 
 bool key_is_text_device_param(const char* key)
 {
     assert(key != NULL);
-    return key_is_real_time_device_param(key) ||
-           string_has_suffix(key, ".jsone") ||
-           string_has_suffix(key, ".jsonsm") ||
-           string_has_suffix(key, ".jsonhm") ||
-           string_has_suffix(key, ".jsonsh") ||
-           string_has_suffix(key, ".jsonln");
+
+    if (key_is_real_time_device_param(key))
+        return true;
+
+    const Device_field_type type = get_keyp_device_field_type(key);
+    return type == DEVICE_FIELD_ENVELOPE ||
+        type == DEVICE_FIELD_SAMPLE_MAP ||
+        type == DEVICE_FIELD_HIT_MAP ||
+        type == DEVICE_FIELD_SAMPLE_PARAMS ||
+        type == DEVICE_FIELD_NUM_LIST;
 }
 
 
@@ -638,7 +646,7 @@ const bool* Device_params_get_bool(
     assert(params != NULL);
     assert(key != NULL);
 
-    if (!string_has_suffix(key, ".jsonb"))
+    if (get_keyp_device_field_type(key) != DEVICE_FIELD_BOOL)
         return NULL;
 
     get_of_type(params, key, bool);
@@ -653,7 +661,7 @@ const int64_t* Device_params_get_int(
     assert(params != NULL);
     assert(key != NULL);
 
-    if (!string_has_suffix(key, ".jsoni"))
+    if (get_keyp_device_field_type(key) != DEVICE_FIELD_INT)
         return NULL;
 
     get_of_type(params, key, int);
@@ -668,7 +676,7 @@ const double* Device_params_get_float(
     assert(params != NULL);
     assert(key != NULL);
 
-    if (!string_has_suffix(key, ".jsonf"))
+    if (get_keyp_device_field_type(key) != DEVICE_FIELD_FLOAT)
         return NULL;
 
     get_of_type(params, key, float);
@@ -683,7 +691,7 @@ const Real* Device_params_get_real(
     assert(params != NULL);
     assert(key != NULL);
 
-    if (!string_has_suffix(key, ".jsonr"))
+    if (get_keyp_device_field_type(key) != DEVICE_FIELD_REAL)
         return NULL;
 
     get_of_type(params, key, real);
@@ -698,7 +706,7 @@ const Tstamp* Device_params_get_tstamp(
     assert(params != NULL);
     assert(key != NULL);
 
-    if (!string_has_suffix(key, ".jsont"))
+    if (get_keyp_device_field_type(key) != DEVICE_FIELD_TSTAMP)
         return NULL;
 
     get_of_type(params, key, tstamp);
@@ -713,7 +721,7 @@ const Envelope* Device_params_get_envelope(
     assert(params != NULL);
     assert(key != NULL);
 
-    if (!string_has_suffix(key, ".jsone"))
+    if (get_keyp_device_field_type(key) != DEVICE_FIELD_ENVELOPE)
         return NULL;
 
     get_of_type(params, key, envelope);
@@ -728,7 +736,7 @@ const Sample* Device_params_get_sample(
     assert(params != NULL);
     assert(key != NULL);
 
-    if (!string_has_suffix(key, ".wv"))
+    if (get_keyp_device_field_type(key) != DEVICE_FIELD_WAVPACK)
         return NULL;
 
     get_of_type(params, key, sample);
@@ -743,7 +751,7 @@ const Sample_params* Device_params_get_sample_params(
     assert(params != NULL);
     assert(key != NULL);
 
-    if (!string_has_suffix(key, ".jsonsh"))
+    if (get_keyp_device_field_type(key) != DEVICE_FIELD_SAMPLE_PARAMS)
         return NULL;
 
     get_of_type(params, key, sample_params);
@@ -758,7 +766,7 @@ const Sample_map* Device_params_get_sample_map(
     assert(params != NULL);
     assert(key != NULL);
 
-    if (!string_has_suffix(key, ".jsonsm"))
+    if (get_keyp_device_field_type(key) != DEVICE_FIELD_SAMPLE_MAP)
         return NULL;
 
     get_of_type(params, key, sample_map);
@@ -773,7 +781,7 @@ const Hit_map* Device_params_get_hit_map(
     assert(params != NULL);
     assert(key != NULL);
 
-    if (!string_has_suffix(key, ".jsonhm"))
+    if (get_keyp_device_field_type(key) != DEVICE_FIELD_HIT_MAP)
         return NULL;
 
     get_of_type(params, key, hit_map);
@@ -788,7 +796,7 @@ const Num_list* Device_params_get_num_list(
     assert(params != NULL);
     assert(key != NULL);
 
-    if (!string_has_suffix(key, ".jsonln"))
+    if (get_keyp_device_field_type(key) != DEVICE_FIELD_NUM_LIST)
         return NULL;
 
     get_of_type(params, key, num_list);

@@ -45,7 +45,20 @@ typedef enum
     DEVICE_FIELD_SAMPLE_MAP,
     DEVICE_FIELD_HIT_MAP,
     DEVICE_FIELD_NUM_LIST,
+
+    DEVICE_FIELD_COUNT_
 } Device_field_type;
+
+
+/**
+ * Gets the Device field type of a key pattern.
+ *
+ * \param keyp   The key pattern -- must not be \c NULL.
+ *
+ * \return   The Device field type, or \c DEVICE_FIELD_NONE if the key pattern
+ *           does not contain proper type information.
+ */
+Device_field_type get_keyp_device_field_type(const char* keyp);
 
 
 typedef struct Device_field Device_field;
