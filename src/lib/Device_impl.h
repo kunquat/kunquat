@@ -117,7 +117,7 @@ void Device_impl_register_reset_device_state(
  * The key pattern may contain \c 0 to \c DEVICE_KEY_INDICES_MAX sequences of
  * XX* which are matched against hexadecimal numbers of actual keys. Example:
  *
- *    voice_XX/param_XXX/p_volume.jsonf
+ *    voice_XX/param_XXX/p_f_volume.json
  *
  * Any indices with the correct amount of hexadecimal digits (here, 2 and 3)
  * are extracted from the actual updated key and passed as an array of
@@ -128,8 +128,8 @@ void Device_impl_register_reset_device_state(
  * WARNING: A literal part of your key must not contain a valid hexadecimal
  * number followed by a forward slash '/', Example:
  *
- *    echo_eff/tap_XX/p_volume.jsonf <- Invalid: eff is interpreted as hex
- *    echo_XXX/tap_XX/p_volume.jsonf <- The above would get confused with this
+ *    echo_eff/tap_XX/p_f_volume.json <- Invalid: eff is interpreted as hex
+ *    echo_XXX/tap_XX/p_f_volume.json <- The above would get confused with this
  *
  * \param dimpl            The Device implementation -- must not be \c NULL.
  * \param keyp             The key pattern -- must not be \c NULL.
