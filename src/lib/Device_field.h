@@ -67,18 +67,7 @@ typedef struct Device_field Device_field;
 /**
  * Creates a new Device field.
  *
- * \param key    The key -- must be a valid key. A valid Device field key
- *               has one of the following suffixes:
- *                  .jsonb (boolean)
- *                  .jsoni (int)
- *                  .jsonf (float)
- *                  .jsont (Tstamp)
- *                  .jsone (Envelope)
- *                  .jsonsh (Sample params)
- *                  .jsonsm (Sample map)
- *                  .jsonhm (Hit map)
- *                  .jsonln (Number list)
- *                  .wv (WavPack).
+ * \param key    The key -- must be a valid Device field key.
  * \param data   Pointer to the data that must have a type matching the key,
  *               or \c NULL.
  *

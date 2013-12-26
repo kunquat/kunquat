@@ -249,8 +249,8 @@ bool Device_params_parse_value(
  * Retrieves a reference to a boolean value from Device parameters.
  *
  * \param params   The Device parameters -- must not be \c NULL.
- * \param key      The key -- must be a valid subkey starting after the
- *                 c/ or i/ directory and must have the suffix ".jsonb".
+ * \param key      The key -- must be a valid boolean subkey starting after
+ *                 the c/ or i/ directory.
  *
  * \return   The boolean value, or \c NULL if \a key doesn't exist.
  */
@@ -262,8 +262,8 @@ const bool* Device_params_get_bool(
  * Retrieves a reference to an integer value from Device parameters.
  *
  * \param params   The Device parameters -- must not be \c NULL.
- * \param key      The key -- must be a valid subkey starting after the
- *                 c/ or i/ directory and must have the suffix ".jsoni".
+ * \param key      The key -- must be a valid integer subkey starting after
+ *                 the c/ or i/ directory.
  *
  * \return   The integer value, or \c NULL if \a key doesn't exist.
  */
@@ -275,8 +275,8 @@ const int64_t* Device_params_get_int(
  * Retrieves a reference to a floating point value from Device parameters.
  *
  * \param params   The Device parameters -- must not be \c NULL.
- * \param key      The key -- must be a valid subkey starting after the
- *                 c/ or i/ directory and must have the suffix ".jsonf".
+ * \param key      The key -- must be a valid floating point subkey starting
+ *                 after the c/ or i/ directory.
  *
  * \return   The floating point value, or \c NULL if \a key doesn't exist.
  */
@@ -288,8 +288,8 @@ const double* Device_params_get_float(
  * Retrieves a Real value from Device parameters.
  *
  * \param params   The Device parameters -- must not be \c NULL.
- * \param key      The key -- must be a valid subkey starting after the
- *                 c/ or i/ directory and must have the suffix ".jsonr".
+ * \param key      The key -- must be a valid Real subkey starting after the
+ *                 c/ or i/ directory.
  *
  * \return   The Real value, or \c NULL if \a key doesn't exist.
  */
@@ -301,8 +301,8 @@ const Real* Device_params_get_real(
  * Retrieves a Tstamp value from Device parameters.
  *
  * \param params   The Device parameters -- must not be \c NULL.
- * \param key      The key -- must be a valid subkey starting after the
- *                 c/ or i/ directory and must have the suffix ".jsont".
+ * \param key      The key -- must be a valid Tstamp subkey starting after the
+ *                 c/ or i/ directory.
  *
  * \return   The Tstamp value, or \c NULL if \a key doesn't exist.
  */
@@ -314,8 +314,8 @@ const Tstamp* Device_params_get_tstamp(
  * Retrieves an Envelope value from Device parameters.
  *
  * \param params   The Device parameters -- must not be \c NULL.
- * \param key      The key -- must be a valid subkey starting after the
- *                 c/ or i/ directory and must have the suffix ".jsone".
+ * \param key      The key -- must be a valid Envelope subkey starting after
+ *                 the c/ or i/ directory.
  *
  * \return   The Envelope value, or \c NULL if \a key doesn't exist.
  */
@@ -327,8 +327,8 @@ const Envelope* Device_params_get_envelope(
  * Retrieves a Sample from Device parameters.
  *
  * \param params   The Device parameters -- must not be \c NULL.
- * \param key      The key -- must be a valid subkey starting after the
- *                 c/ or i/ directory and must have the suffix ".wv".
+ * \param key      The key -- must be a valid sample subkey starting after
+ *                 the c/ or i/ directory.
  *
  * \return   The Sample, or \c NULL if \a key doesn't exist.
  */
@@ -340,9 +340,8 @@ const Sample* Device_params_get_sample(
  * Retrieves Sample parameters from Device parameters.
  *
  * \param params   The Device parameters -- must not be \c NULL.
- * \param key      The key -- must be a valid subkey starting after the
- *                 c/ or i/ directory and must have the suffix ".jsonsh".
- *
+ * \param key      The key -- must be a valid Sample parameters subkey
+ *                 starting after the c/ or i/ directory.
  * \return   The Sample map, or \c NULL if \a key doesn't exist.
  */
 const Sample_params* Device_params_get_sample_params(
@@ -353,8 +352,8 @@ const Sample_params* Device_params_get_sample_params(
  * Retrieves a Sample map from Device parameters.
  *
  * \param params   The Device parameters -- must not be \c NULL.
- * \param key      The key -- must be a valid subkey starting after the
- *                 c/ or i/ directory and must have the suffix ".jsonsm".
+ * \param key      The key -- must be a valid Sample map subkey starting after
+ *                 the c/ or i/ directory.
  *
  * \return   The Sample map, or \c NULL if \a key doesn't exist.
  */
@@ -366,8 +365,8 @@ const Sample_map* Device_params_get_sample_map(
  * Retrieves a Hit map from Device parameters.
  *
  * \param params   The Device parameters -- must not be \c NULL.
- * \param key      The key -- must be a valid subkey starting after the
- *                 c/ or i/ directory and must have the suffix ".jsonhm".
+ * \param key      The key -- must be a valid Hit map subkey starting after
+ *                 the c/ or i/ directory.
  *
  * \return   The Hit map, or \c NULL if \a key doesn't exist.
  */
@@ -379,8 +378,8 @@ const Hit_map* Device_params_get_hit_map(
  * Retrieves a Number list from Device parameters.
  *
  * \param params   The Device parameters -- must not be \c NULL.
- * \param key      The key -- must be a valid subkey starting after the
- *                 c/ or i/ directory and must have the suffix ".jsonln".
+ * \param key      The key -- must be a valid Number list subkey starting
+ *                 after the c/ or i/ directory.
  *
  * \return   The Number list, or \c NULL if \a key doesn't exist.
  */
