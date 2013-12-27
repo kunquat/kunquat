@@ -1,7 +1,7 @@
 # coding=utf-8
 
-
-# Author: Tomi Jylhä-Ollila, Finland 2010-2011
+#
+# Author: Tomi Jylhä-Ollila, Finland 2010-2013
 #
 # This file is part of Kunquat.
 #
@@ -9,7 +9,7 @@
 #
 # To the extent possible under law, Kunquat Affirmers have waived all
 # copyright and related or neighboring rights to Kunquat.
-
+#
 
 import os.path
 
@@ -22,6 +22,10 @@ env_demo = env.Clone()
 
 tar_cmd = 'tar cj --format=ustar -f ${TARGET.file} ${SOURCE.file}'
 
+ins_target = '../share/kunquat/instruments/'
+ins_cmd = (tar_cmd + '; mkdir -p ' + ins_target +
+    '; cp ${TARGET.file} ' + ins_target)
+
 files = [
     'example.kqt.bz2',
     'example_ins.kqti.bz2',
@@ -32,7 +36,7 @@ files = [
 env_demo.Command(files[0], 'kqtc00', tar_cmd,
                  chdir=1, source_scanner=DirScanner)
 
-env_demo.Command(files[1], 'kqti00', tar_cmd,
+env_demo.Command(files[1], 'kqti00', ins_cmd,
                  chdir=1, source_scanner=DirScanner)
 
 env_demo.Command(files[2], 'kqte00', tar_cmd,
