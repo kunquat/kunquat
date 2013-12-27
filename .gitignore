@@ -9,6 +9,7 @@ examples/*bz2
 .sconsign.dblite
 config.log
 py-installed
+share/kunquat/instruments
 src/lib/test/connections
 src/lib/test/filter
 src/lib/test/generator
