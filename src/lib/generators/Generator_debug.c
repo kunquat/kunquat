@@ -122,29 +122,30 @@ static uint32_t Generator_debug_mix(
 
     for (uint32_t i = offset; i < nframes; ++i)
     {
-        double val_l = 0;
-        double val_r = 0;
+        double vals[KQT_BUFFERS_MAX] = { 0 };
 
         if (vstate->rel_pos == 0)
         {
-            val_l = 1.0;
-            val_r = 1.0;
+            vals[0] = vals[1] = 1.0;
             vstate->rel_pos = 1;
         }
         else
         {
-            val_l = 0.5;
-            val_r = 0.5;
+            vals[0] = vals[1] = 0.5;
         }
 
         if (!vstate->note_on)
         {
-            val_l = -val_l;
-            val_r = -val_r;
+            vals[0] = -vals[0];
+            vals[1] = -vals[1];
         }
 
-        bufs[0][i] += val_l;
-        bufs[1][i] += val_r;
+        vstate->actual_force = vstate->force * gen->ins_params->global_force;
+        vals[0] *= vstate->actual_force;
+        vals[1] *= vstate->actual_force;
+
+        bufs[0][i] += vals[0];
+        bufs[1][i] += vals[1];
 
         vstate->rel_pos_rem += vstate->pitch / freq;
 

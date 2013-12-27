@@ -1109,6 +1109,152 @@ START_TEST(Fire_with_complex_bind_can_be_processed_with_multiple_receives)
 END_TEST
 
 
+static void setup_query_patterns(void)
+{
+    // Set up two empty pattern instances
+    set_data("album/p_manifest.json", "{}");
+    set_data("album/p_tracks.json", "[0]");
+    set_data("song_00/p_manifest.json", "{}");
+    set_data("song_00/p_order_list.json", "[ [0, 0], [0, 1] ]");
+
+    set_data("pat_000/p_manifest.json", "{}");
+    set_data("pat_000/p_pattern.json", "{ \"length\": [4, 0] }");
+    set_data("pat_000/instance_000/p_manifest.json", "{}");
+    set_data("pat_000/instance_001/p_manifest.json", "{}");
+
+    validate();
+
+    return;
+}
+
+
+START_TEST(Query_initial_location)
+{
+    set_audio_rate(220);
+    setup_query_patterns();
+
+    kqt_Handle_fire_event(handle, 0, "[\"qlocation\", null]");
+
+    const char* events = kqt_Handle_receive_events(handle);
+    const char* expected =
+        "[[0, [\"qlocation\", null]], "
+        "[0, [\"Atrack\", 0]], [0, [\"Asystem\", 0]], [0, [\"Arow\", [0, 0]]]]";
+
+    fail_if(strcmp(events, expected) != 0,
+            "Received event list %s instead of %s", events, expected);
+}
+END_TEST
+
+
+START_TEST(Query_final_location)
+{
+    set_audio_rate(220);
+    setup_query_patterns();
+
+    kqt_Handle_play(handle, 2048);
+    kqt_Handle_fire_event(handle, 0, "[\"qlocation\", null]");
+
+    const char* events = kqt_Handle_receive_events(handle);
+    const char* expected =
+        "[[0, [\"qlocation\", null]], "
+        "[0, [\"Atrack\", 0]], [0, [\"Asystem\", 1]], [0, [\"Arow\", [4, 0]]]]";
+
+    fail_if(strcmp(events, expected) != 0,
+            "Received event list %s instead of %s", events, expected);
+}
+END_TEST
+
+
+START_TEST(Query_voice_count_with_silence)
+{
+    set_audio_rate(220);
+    pause();
+
+    kqt_Handle_play(handle, 128);
+    kqt_Handle_fire_event(handle, 0, "[\"qvoices\", null]");
+
+    const char* events = kqt_Handle_receive_events(handle);
+    const char* expected = "[[0, [\"qvoices\", null]], [0, [\"Avoices\", 0]]]";
+
+    fail_if(strcmp(events, expected) != 0,
+            "Received event list %s instead of %s", events, expected);
+}
+END_TEST
+
+
+START_TEST(Query_voice_count_with_note)
+{
+    set_audio_rate(220);
+    setup_debug_instrument();
+    pause();
+
+    kqt_Handle_fire_event(handle, 0, Note_On_55_Hz);
+    kqt_Handle_play(handle, 1);
+    kqt_Handle_fire_event(handle, 0, "[\"qvoices\", null]");
+
+    const char* events1 = kqt_Handle_receive_events(handle);
+    const char* expected1 = "[[0, [\"qvoices\", null]], [0, [\"Avoices\", 1]]]";
+
+    fail_if(strcmp(events1, expected1) != 0,
+            "Received event list %s instead of %s", events1, expected1);
+
+    kqt_Handle_play(handle, 2048);
+    kqt_Handle_fire_event(handle, 0, "[\"qvoices\", null]");
+
+    const char* events0 = kqt_Handle_receive_events(handle);
+    const char* expected0 = "[[0, [\"qvoices\", null]], [0, [\"Avoices\", 0]]]";
+
+    fail_if(strcmp(events0, expected0) != 0,
+            "Received event list %s instead of %s", events0, expected0);
+}
+END_TEST
+
+
+static bool test_reported_force(Streader* sr, double expected)
+{
+    assert(sr != NULL);
+
+    double actual = NAN;
+
+    if (!(Streader_readf(sr, "[[0, [") &&
+                Streader_match_string(sr, "qf") &&
+                Streader_readf(sr, ", 0]], [0, [") &&
+                Streader_match_string(sr, "Af") &&
+                Streader_readf(sr, ", %f]]]", &actual)))
+        return false;
+
+    if (fabs(actual - expected) > 0.1)
+    {
+        Streader_set_error(
+                sr, "Expected force %.4f, got %.4f", expected, actual);
+        return false;
+    }
+
+    return true;
+}
+
+
+START_TEST(Query_note_force)
+{
+    setup_debug_instrument();
+    pause();
+
+    kqt_Handle_fire_event(handle, 0, Note_On_55_Hz);
+
+    kqt_Handle_fire_event(handle, 0, "[\"qf\", 0]");
+    const char* events0 = kqt_Handle_receive_events(handle);
+    Streader* sr0 = Streader_init(STREADER_AUTO, events0, strlen(events0));
+    fail_if(!test_reported_force(sr0, 0.0), Streader_get_error_desc(sr0));
+
+    kqt_Handle_fire_event(handle, 0, "[\".f\", -6]");
+    kqt_Handle_fire_event(handle, 0, "[\"qf\", 0]");
+    const char* events6 = kqt_Handle_receive_events(handle);
+    Streader* sr6 = Streader_init(STREADER_AUTO, events6, strlen(events6));
+    fail_if(!test_reported_force(sr6, -6.0), Streader_get_error_desc(sr6));
+}
+END_TEST
+
+
 Suite* Player_suite(void)
 {
     Suite* s = suite_create("Player");
@@ -1181,6 +1327,11 @@ Suite* Player_suite(void)
     tcase_add_test(
             tc_events,
             Fire_with_complex_bind_can_be_processed_with_multiple_receives);
+    tcase_add_test(tc_events, Query_initial_location);
+    tcase_add_test(tc_events, Query_final_location);
+    tcase_add_test(tc_events, Query_voice_count_with_silence);
+    tcase_add_test(tc_events, Query_voice_count_with_note);
+    tcase_add_test(tc_events, Query_note_force);
 
     return s;
 }

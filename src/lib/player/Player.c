@@ -451,11 +451,6 @@ static bool Player_update_receive(Player* player)
         }
         else
         {
-            Event_buffer_add(
-                    player->event_buffer,
-                    player->susp_event_ch,
-                    player->susp_event_name,
-                    &player->susp_event_value);
             Player_process_event(
                     player,
                     player->susp_event_ch,
@@ -465,9 +460,14 @@ static bool Player_update_receive(Player* player)
         }
 
         if (Event_buffer_is_skipping(player->event_buffer))
+        {
             return new_events_found;
+        }
         else
+        {
             player->susp_event_name[0] = '\0';
+            Event_buffer_reset_add_counter(player->event_buffer);
+        }
     }
 
     if (player->master_params.cur_ch > 0 ||
@@ -849,6 +849,10 @@ bool Player_fire(Player* player, int ch, Streader* event_reader)
         player->susp_event_ch = ch;
         strcpy(player->susp_event_name, event_name);
         Value_copy(&player->susp_event_value, value);
+    }
+    else
+    {
+        Event_buffer_reset_add_counter(player->event_buffer);
     }
 
     player->events_returned = false;
