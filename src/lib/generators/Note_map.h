@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_SAMPLE_MAP_H
-#define K_SAMPLE_MAP_H
+#ifndef K_NOTE_MAP_H
+#define K_NOTE_MAP_H
 
 
 #include <stdint.h>
@@ -24,71 +24,69 @@
 #include <Streader.h>
 
 
-#define SAMPLE_MAP_RANDOMS_MAX (8)
+#define NOTE_MAP_RANDOMS_MAX (8)
 
 
-typedef struct Sample_map Sample_map;
+typedef struct Note_map Note_map;
 
 
 /**
- * Creates a new Sample map from a string.
+ * Creates a new Note map from a string.
  *
  * \param sr   The Streader of the JSON data -- must not be \c NULL.
  *
- * \return   The new Sample map if successful, otherwise \c NULL.
+ * \return   The new Note map if successful, otherwise \c NULL.
  */
-Sample_map* new_Sample_map_from_string(Streader* sr);
+Note_map* new_Note_map_from_string(Streader* sr);
 
 
 /**
- * Adds a Sample entry into a Sample map.
+ * Adds a Sample entry into the Note map.
  *
- * This function is for Generators that create their own Sample maps.
+ * This function is for Generators that create their own Note maps.
  *
- * \param map     The Sample map -- must not be \c NULL.
+ * \param map     The Note map -- must not be \c NULL.
  * \param cents   The pitch in cents -- must be finite.
  * \param force   The force in decibels -- must be finite.
  * \param entry   The Sample entry -- must not be \c NULL. The function
  *                ignores the ref_freq value in the supplied entry and
- *                calculates it from \a cents. The Sample map does _not_
+ *                calculates it from \a cents. The Note map does _not_
  *                assume ownership of \a entry so it can be automatically
  *                allocated.
  *
  * \return   \c true if successful, or \c false if memory allocation failed
  *           or this mapping position (\a cents, \a force) already contains
- *           \c SAMPLE_MAP_RANDOMS_MAX entries.
+ *           \c NOTE_MAP_RANDOMS_MAX entries.
  */
-bool Sample_map_add_entry(Sample_map* map,
-                          double cents,
-                          double force,
-                          Sample_entry* entry);
+bool Note_map_add_entry(
+        Note_map* map, double cents, double force, Sample_entry* entry);
 
 
 /**
- * Gets a Sample entry from the Sample map.
+ * Gets a Sample entry from the Note map.
  *
- * \param map      The Sample map -- must not be \c NULL.
+ * \param map      The Note map -- must not be \c NULL.
  * \param cents    The pitch in cents -- must be finite.
  * \param force    The force in dB -- must be finite or -INFINITY.
  * \param random   The Random source -- must not be \c NULL.
  *
  * \return   The closest Sample entry, or \c NULL if the map is empty.
  */
-const Sample_entry* Sample_map_get_entry(
-        const Sample_map* map,
+const Sample_entry* Note_map_get_entry(
+        const Note_map* map,
         double cents,
         double force,
         Random* random);
 
 
 /**
- * Destroys an existing Sample map.
+ * Destroys an existing Note map.
  *
- * \param map   The Sample map, or \c NULL.
+ * \param map   The Note map, or \c NULL.
  */
-void del_Sample_map(Sample_map* map);
+void del_Note_map(Note_map* map);
 
 
-#endif // K_SAMPLE_MAP_H
+#endif // K_NOTE_MAP_H
 
 

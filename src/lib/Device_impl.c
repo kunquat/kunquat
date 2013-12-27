@@ -53,7 +53,7 @@ typedef struct Set_cb
         cb_info(Envelope, const Envelope*, const Envelope*);
         cb_info(Sample, const Sample*, const Sample*);
         cb_info(Sample_params, const Sample_params*, const Sample_params*);
-        cb_info(Sample_map, const Sample_map*, const Sample_map*);
+        cb_info(Note_map, const Note_map*, const Note_map*);
         cb_info(Hit_map, const Hit_map*, const Hit_map*);
         cb_info(Num_list, const Num_list*, const Num_list*);
 
@@ -625,8 +625,8 @@ bool Device_impl_set_key(Device_impl* dimpl, const char* key)
                 SET_FIELDP(sample_params, Sample_params);
                 break;
 
-            case DEVICE_FIELD_SAMPLE_MAP:
-                SET_FIELDP(sample_map, Sample_map);
+            case DEVICE_FIELD_NOTE_MAP:
+                SET_FIELDP(note_map, Note_map);
                 break;
 
             case DEVICE_FIELD_HIT_MAP:
@@ -733,8 +733,8 @@ bool Device_impl_set_state_key(
                 SET_FIELDP(sample_params, Sample_params);
                 break;
 
-            case DEVICE_FIELD_SAMPLE_MAP:
-                SET_FIELDP(sample_map, Sample_map);
+            case DEVICE_FIELD_NOTE_MAP:
+                SET_FIELDP(note_map, Note_map);
                 break;
 
             case DEVICE_FIELD_HIT_MAP:

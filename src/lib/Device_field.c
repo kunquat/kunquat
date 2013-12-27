@@ -33,7 +33,7 @@ typedef union
     Envelope* Envelope_type;
     Sample* Sample_type;
     Sample_params Sample_params_type;
-    Sample_map* Sample_map_type;
+    Note_map* Note_map_type;
     Hit_map* Hit_map_type;
     Num_list* Num_list_type;
 } Dev_fields;
@@ -73,7 +73,7 @@ Device_field_type get_keyp_device_field_type(const char* keyp)
         else if (string_has_prefix(last_elem, "p_sh_"))
             return DEVICE_FIELD_SAMPLE_PARAMS;
         else if (string_has_prefix(last_elem, "p_nm_"))
-            return DEVICE_FIELD_SAMPLE_MAP;
+            return DEVICE_FIELD_NOTE_MAP;
         else if (string_has_prefix(last_elem, "p_hm_"))
             return DEVICE_FIELD_HIT_MAP;
         else if (string_has_prefix(last_elem, "p_ln_"))
@@ -99,7 +99,7 @@ Device_field* new_Device_field(const char* key, void* data)
         [DEVICE_FIELD_TSTAMP]           = sizeof(Tstamp),
         [DEVICE_FIELD_ENVELOPE]         = sizeof(Envelope*),
         [DEVICE_FIELD_SAMPLE_PARAMS]    = sizeof(Sample_params),
-        [DEVICE_FIELD_SAMPLE_MAP]       = sizeof(Sample_map*),
+        [DEVICE_FIELD_NOTE_MAP]         = sizeof(Note_map*),
         [DEVICE_FIELD_HIT_MAP]          = sizeof(Hit_map*),
         [DEVICE_FIELD_NUM_LIST]         = sizeof(Num_list*),
         [DEVICE_FIELD_WAVPACK]          = sizeof(Sample*),
@@ -273,14 +273,14 @@ bool Device_field_change(Device_field* field, Streader* sr)
         }
         break;
 
-        case DEVICE_FIELD_SAMPLE_MAP:
+        case DEVICE_FIELD_NOTE_MAP:
         {
-            Sample_map* map = new_Sample_map_from_string(sr);
+            Note_map* map = new_Note_map_from_string(sr);
             if (map == NULL)
                 return false;
 
-            del_Sample_map(field->data.Sample_map_type);
-            field->data.Sample_map_type = map;
+            del_Note_map(field->data.Note_map_type);
+            field->data.Note_map_type = map;
         }
         break;
 
@@ -353,7 +353,7 @@ bool Device_field_modify(Device_field* field, void* data)
     assert(field != NULL);
     assert(field->type != DEVICE_FIELD_ENVELOPE);
     assert(field->type != DEVICE_FIELD_WAVPACK);
-    assert(field->type != DEVICE_FIELD_SAMPLE_MAP);
+    assert(field->type != DEVICE_FIELD_NOTE_MAP);
     assert(field->type != DEVICE_FIELD_HIT_MAP);
     assert(data != NULL);
 
@@ -457,12 +457,12 @@ Sample_params* Device_field_get_sample_params(Device_field* field)
 }
 
 
-Sample_map* Device_field_get_sample_map(Device_field* field)
+Note_map* Device_field_get_note_map(Device_field* field)
 {
     assert(field != NULL);
-    assert(field->type == DEVICE_FIELD_SAMPLE_MAP);
+    assert(field->type == DEVICE_FIELD_NOTE_MAP);
 
-    return field->data.Sample_map_type;
+    return field->data.Note_map_type;
 }
 
 
@@ -493,8 +493,8 @@ void del_Device_field(Device_field* field)
         del_Envelope(field->data.Envelope_type);
     else if (field->type == DEVICE_FIELD_WAVPACK)
         del_Sample(field->data.Sample_type);
-    else if (field->type == DEVICE_FIELD_SAMPLE_MAP)
-        del_Sample_map(field->data.Sample_map_type);
+    else if (field->type == DEVICE_FIELD_NOTE_MAP)
+        del_Note_map(field->data.Note_map_type);
     else if (field->type == DEVICE_FIELD_HIT_MAP)
         del_Hit_map(field->data.Hit_map_type);
     else if (field->type == DEVICE_FIELD_NUM_LIST)

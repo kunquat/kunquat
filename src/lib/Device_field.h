@@ -25,7 +25,7 @@
 #include <Real.h>
 #include <Sample.h>
 #include <Sample_params.h>
-#include <Sample_map.h>
+#include <Note_map.h>
 #include <Streader.h>
 #include <Tstamp.h>
 
@@ -42,7 +42,7 @@ typedef enum
     DEVICE_FIELD_WAVPACK,
     DEVICE_FIELD_VORBIS,
     DEVICE_FIELD_SAMPLE_PARAMS,
-    DEVICE_FIELD_SAMPLE_MAP,
+    DEVICE_FIELD_NOTE_MAP,
     DEVICE_FIELD_HIT_MAP,
     DEVICE_FIELD_NUM_LIST,
 
@@ -246,14 +246,14 @@ Sample_params* Device_field_get_sample_params(Device_field* field);
 
 
 /**
- * Gets a Sample map from the Device field.
+ * Gets a Note map from the Device field.
  *
  * \param field   The Device field -- must not be \c NULL and must contain
- *                a Sample map.
+ *                a Note map.
  *
- * \return   The Sample map.
+ * \return   The Note map.
  */
-Sample_map* Device_field_get_sample_map(Device_field* field);
+Note_map* Device_field_get_note_map(Device_field* field);
 
 
 /**

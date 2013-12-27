@@ -220,14 +220,14 @@ uint32_t Generator_pcm_mix(
         }
         else
         {
-            char map_key[] = "exp_X/src_X/p_nm_sample_map.json";
+            char map_key[] = "exp_X/src_X/p_nm_note_map.json";
             snprintf(
                     map_key,
                     strlen(map_key) + 1,
-                    "exp_%01x/src_%01x/p_nm_sample_map.json",
+                    "exp_%01x/src_%01x/p_nm_note_map.json",
                     expression,
                     source);
-            const Sample_map* map = Device_params_get_sample_map(
+            const Note_map* map = Device_params_get_note_map(
                     gen->parent.dparams,
                     map_key);
             if (map == NULL)
@@ -237,7 +237,7 @@ uint32_t Generator_pcm_mix(
             }
 
             //fprintf(stderr, "pitch @ %p: %f\n", (void*)&state->pitch, state->pitch);
-            entry = Sample_map_get_entry(
+            entry = Note_map_get_entry(
                     map,
                     log2(vstate->pitch / 440) * 1200,
                     vstate->force,

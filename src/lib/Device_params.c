@@ -215,7 +215,7 @@ bool key_is_text_device_param(const char* key)
 
     const Device_field_type type = get_keyp_device_field_type(key);
     return type == DEVICE_FIELD_ENVELOPE ||
-        type == DEVICE_FIELD_SAMPLE_MAP ||
+        type == DEVICE_FIELD_NOTE_MAP ||
         type == DEVICE_FIELD_HIT_MAP ||
         type == DEVICE_FIELD_SAMPLE_PARAMS ||
         type == DEVICE_FIELD_NUM_LIST;
@@ -760,16 +760,16 @@ const Sample_params* Device_params_get_sample_params(
 }
 
 
-const Sample_map* Device_params_get_sample_map(
+const Note_map* Device_params_get_note_map(
         const Device_params* params, const char* key)
 {
     assert(params != NULL);
     assert(key != NULL);
 
-    if (get_keyp_device_field_type(key) != DEVICE_FIELD_SAMPLE_MAP)
+    if (get_keyp_device_field_type(key) != DEVICE_FIELD_NOTE_MAP)
         return NULL;
 
-    get_of_type(params, key, sample_map);
+    get_of_type(params, key, note_map);
 
     return NULL;
 }

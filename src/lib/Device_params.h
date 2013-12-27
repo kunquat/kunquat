@@ -342,22 +342,22 @@ const Sample* Device_params_get_sample(
  * \param params   The Device parameters -- must not be \c NULL.
  * \param key      The key -- must be a valid Sample parameters subkey
  *                 starting after the c/ or i/ directory.
- * \return   The Sample map, or \c NULL if \a key doesn't exist.
+ * \return   The Sample parameters, or \c NULL if \a key doesn't exist.
  */
 const Sample_params* Device_params_get_sample_params(
         const Device_params* params, const char* key);
 
 
 /**
- * Retrieves a Sample map from Device parameters.
+ * Retrieves a Note map from Device parameters.
  *
  * \param params   The Device parameters -- must not be \c NULL.
- * \param key      The key -- must be a valid Sample map subkey starting after
+ * \param key      The key -- must be a valid Note map subkey starting after
  *                 the c/ or i/ directory.
  *
- * \return   The Sample map, or \c NULL if \a key doesn't exist.
+ * \return   The Note map, or \c NULL if \a key doesn't exist.
  */
-const Sample_map* Device_params_get_sample_map(
+const Note_map* Device_params_get_note_map(
         const Device_params* params, const char* key);
 
 

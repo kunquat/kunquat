@@ -26,7 +26,7 @@
 #include <player/Device_state.h>
 #include <generators/Hit_map.h>
 #include <generators/Sample.h>
-#include <generators/Sample_map.h>
+#include <generators/Note_map.h>
 #include <Num_list.h>
 #include <Tstamp.h>
 
@@ -327,7 +327,7 @@ bool Device_impl_register_set_sample_params(
 
 
 /**
- * Registers a sample map value set function.
+ * Registers a note map value set function.
  *
  * See \a Device_impl_register_set_bool for a detailed description of the
  * \a keyp argument.
@@ -340,19 +340,19 @@ bool Device_impl_register_set_sample_params(
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Device_impl_register_set_sample_map(
+bool Device_impl_register_set_note_map(
         Device_impl* dimpl,
         const char* keyp,
-        const Sample_map* default_val,
+        const Note_map* default_val,
         bool (*set_func)(
             Device_impl*,
             Device_key_indices,
-            const Sample_map*),
+            const Note_map*),
         bool (*set_state_func)(
             const Device_impl*,
             Device_state*,
             Device_key_indices,
-            const Sample_map*));
+            const Note_map*));
 
 
 /**
