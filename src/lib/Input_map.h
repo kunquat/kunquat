@@ -43,7 +43,7 @@ Input_map* new_Input_map(
 
 
 /**
- * Checks if the Input map uses only existent slots.
+ * Checks if the Input map uses only existent controls.
  *
  * \param im          The Input map -- must not be \c NULL.
  * \param existents   The table of existent statuses -- must not be \c NULL.

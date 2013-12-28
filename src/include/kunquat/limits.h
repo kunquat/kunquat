@@ -132,9 +132,9 @@ extern "C" {
 
 
 /**
- * Maximum number of Instrument control slots in a Kunquat Handle.
+ * Maximum number of Instrument controls in a Kunquat Handle.
  */
-#define KQT_CONTROL_SLOTS_MAX KQT_INSTRUMENTS_MAX
+#define KQT_CONTROLS_MAX KQT_INSTRUMENTS_MAX
 
 
 /**

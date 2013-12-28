@@ -398,12 +398,12 @@ int kqt_Handle_validate(kqt_Handle handle)
                 "Pattern %d exists but has no instances", i);
     }
 
-    // Check control slots
+    // Check controls
     if (h->module->ins_map != NULL)
     {
         set_invalid_if(
-                !Input_map_is_valid(h->module->ins_map, h->module->ins_slots),
-                "Control map uses nonexistent slots");
+                !Input_map_is_valid(h->module->ins_map, h->module->ins_controls),
+                "Control map uses nonexistent controls");
     }
 
     h->data_is_validated = true;

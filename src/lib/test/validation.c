@@ -367,14 +367,14 @@ START_TEST(Validation_rejects_shared_pattern_instances_between_songs)
 END_TEST
 
 
-START_TEST(Validation_rejects_nonexistent_slots_used_in_control_map)
+START_TEST(Validation_rejects_nonexistent_controls_used_in_control_map)
 {
     set_data("p_control_map.json", "[ [0, 0] ]");
 
     kqt_Handle_validate(handle);
 
     check_validation_error("control",
-            "Handle accepts a control map with a nonexistent slot");
+            "Handle accepts a control map with a nonexistent control");
 }
 END_TEST
 
@@ -416,7 +416,7 @@ Suite* Validation_suite(void)
     tcase_add_test(tc_reject,
             Validation_rejects_shared_pattern_instances_between_songs);
     tcase_add_test(tc_reject,
-            Validation_rejects_nonexistent_slots_used_in_control_map);
+            Validation_rejects_nonexistent_controls_used_in_control_map);
 
     return s;
 }
