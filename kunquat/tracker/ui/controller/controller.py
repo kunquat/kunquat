@@ -112,7 +112,7 @@ class Controller():
     def set_active_note(self, channel_number, control_id, pitch):
         parts = control_id.split('_')
         second = parts[1]
-        control_number = int(second)
+        control_number = int(second, 16)
         control_event = (EVENT_SELECT_CONTROL, control_number)
         self._audio_engine.fire_event(channel_number, control_event)
         note_on_event = (EVENT_NOTE_ON, pitch)

@@ -39,7 +39,7 @@ class InstrumentSelect(QComboBox):
         for i, control_id in self._control_catalog.items():
             parts = control_id.split('_')
             second = parts[1]
-            control_number = int(second)
+            control_number = int(second, 16)
             control = self._module.get_control(control_id)
             instrument = control.get_instrument()
             instrument_name = instrument.get_name() or '-'

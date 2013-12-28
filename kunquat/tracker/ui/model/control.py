@@ -37,7 +37,7 @@ class Control():
         control_id = self.get_id()
         parts = control_id.split('_')
         second = parts[1]
-        control_number = int(second)
+        control_number = int(second, 16)
         try:
             input_map = self._store['p_control_map.json']
         except KeyError:
