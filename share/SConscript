@@ -20,6 +20,6 @@ env_share = env.Clone()
 
 share_path = os.path.join(env_share['prefix'], 'share')
 
-installed = env_share.InstallCreatePath(share_path, 'icons')
+installed = env_share.InstallCreatePath(share_path, 'kunquat')
 
 
