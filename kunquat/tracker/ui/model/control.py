@@ -13,11 +13,11 @@
 #
 
 
-class Slot():
+class Control():
 
-    def __init__(self, slot_id):
-        assert(slot_id)
-        self._slot_id = slot_id
+    def __init__(self, control_id):
+        assert(control_id)
+        self._control_id = control_id
         self._controller = None
         self._instrument_number = None
         self._existence = None
@@ -34,23 +34,23 @@ class Slot():
         self._model = model
 
     def get_instrument(self):
-        slot_id = self.get_id()
-        parts = slot_id.split('_')
+        control_id = self.get_id()
+        parts = control_id.split('_')
         second = parts[1]
-        slot_number = int(second)
+        control_number = int(second)
         try:
             input_map = self._store['p_control_map.json']
         except KeyError:
             input_map = []
-        slots = dict(input_map)
-        instrument_number = slots[slot_number]
+        controls = dict(input_map)
+        instrument_number = controls[control_number]
         instrument_id = 'ins_{0:02x}'.format(instrument_number)
         module = self._model.get_module()
         instrument = module.get_instrument(instrument_id)
         return instrument
 
     def get_active_notes(self):
-        notes = self._session.get_active_notes_by_slot_id(self._slot_id)
+        notes = self._session.get_active_notes_by_control_id(self._control_id)
         return notes
 
     def get_active_note(self, channel_number):
@@ -60,12 +60,12 @@ class Slot():
         return notes[channel_number]
 
     def set_active_note(self, channel_number, pitch):
-        slot_id = self.get_id()
-        self._controller.set_active_note(channel_number, slot_id, pitch)
+        control_id = self.get_id()
+        self._controller.set_active_note(channel_number, control_id, pitch)
 
     def set_rest(self, channel_number):
         self._controller.set_rest(channel_number)
 
     def get_id(self):
-        return self._slot_id
+        return self._control_id
 

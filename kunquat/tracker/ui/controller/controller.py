@@ -23,7 +23,7 @@ from kunquat.tracker.ui.controller.session import Session
 from kunquat.tracker.ui.controller.updater import Updater
 
 #TODO: figure a place for the events
-EVENT_SELECT_SLOT = '.i'
+EVENT_SELECT_CONTROL = '.i'
 EVENT_NOTE_ON = 'n+'
 EVENT_NOTE_OFF = 'n-'
 
@@ -103,18 +103,18 @@ class Controller():
                 self.update_import_progress(i + 1, member_count)
             tfile.close()
             self._store.put(values)
-            self._updater.signal_update(set(['signal_slots']))
+            self._updater.signal_update(set(['signal_controls']))
             self._audio_engine.set_data(values)
 
     def play(self):
         self._audio_engine.nanoseconds(0)
 
-    def set_active_note(self, channel_number, slot_id, pitch):
-        parts = slot_id.split('_')
+    def set_active_note(self, channel_number, control_id, pitch):
+        parts = control_id.split('_')
         second = parts[1]
-        slot_number = int(second)
-        slot_event = (EVENT_SELECT_SLOT, slot_number)
-        self._audio_engine.fire_event(channel_number, slot_event)
+        control_number = int(second)
+        control_event = (EVENT_SELECT_CONTROL, control_number)
+        self._audio_engine.fire_event(channel_number, control_event)
         note_on_event = (EVENT_NOTE_ON, pitch)
         self._audio_engine.fire_event(channel_number, note_on_event)
 
@@ -142,8 +142,8 @@ class Controller():
         self._session.set_ui_lag(lag)
         self._updater.signal_update()
 
-    def update_selected_slot(self, channel, slot_id):
-        self._session.set_selected_slot_id(channel, slot_id)
+    def update_selected_control(self, channel, control_id):
+        self._session.set_selected_control_id(channel, control_id)
         self._updater.signal_update()
 
     def update_active_note(self, channel, pitch):

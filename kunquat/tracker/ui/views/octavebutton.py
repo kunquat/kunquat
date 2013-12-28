@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Toni Ruottu, Finland 2013
+# Authors: Toni Ruottu, Finland 2013
+#          Tomi Jylhä-Ollila, Finland 2013
 #
 # This file is part of Kunquat.
 #
@@ -90,10 +91,10 @@ class OctaveButton(QPushButton):
         self.blockSignals(old_block)
 
     def update_leds(self):
-        selected_slot = self._ui_manager.get_selected_slot()
-        if selected_slot == None:
+        selected_control = self._ui_manager.get_selected_control()
+        if selected_control == None:
             return
-        notes = selected_slot.get_active_notes()
+        notes = selected_control.get_active_notes()
         is_on = 0
         for (_, note) in notes.items():
             closest = self._typewriter_manager.get_closest_keymap_pitch(note)

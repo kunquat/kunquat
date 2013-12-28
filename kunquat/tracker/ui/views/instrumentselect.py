@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Toni Ruottu, Finland 2013
+# Authors: Toni Ruottu, Finland 2013
+#          Tomi Jylhä-Ollila, Finland 2013
 #
 # This file is part of Kunquat.
 #
@@ -21,7 +22,7 @@ class InstrumentSelect(QComboBox):
         QComboBox.__init__(self)
         self._ui_manager = None
         self._module = None
-        self._slot_catalog = dict()
+        self._control_catalog = dict()
         QObject.connect(self, SIGNAL("currentIndexChanged(int)"), self._select_instrument)
 
     def set_ui_model(self, ui_model):
@@ -31,36 +32,36 @@ class InstrumentSelect(QComboBox):
         self._module = ui_model.get_module()
 
     def _select_instrument(self, catalog_index):
-        slot_id = self._slot_catalog[catalog_index]
-        self._ui_manager.set_selected_slot_id(slot_id)
+        control_id = self._control_catalog[catalog_index]
+        self._ui_manager.set_selected_control_id(control_id)
 
-    def update_slot_texts(self):
-        for i, slot_id in self._slot_catalog.items():
-            parts = slot_id.split('_')
+    def update_control_texts(self):
+        for i, control_id in self._control_catalog.items():
+            parts = control_id.split('_')
             second = parts[1]
-            slot_number = int(second)
-            slot = self._module.get_slot(slot_id)
-            instrument = slot.get_instrument()
+            control_number = int(second)
+            control = self._module.get_control(control_id)
+            instrument = control.get_instrument()
             instrument_name = instrument.get_name() or '-'
-            play = '' if len(slot.get_active_notes()) < 1 else u'*'
-            text = 'instrument %s: %s %s' % (slot_number, instrument_name, play)
+            play = '' if len(control.get_active_notes()) < 1 else u'*'
+            text = 'instrument %s: %s %s' % (control_number, instrument_name, play)
             self.setItemText(i, text)
 
-    def update_slots(self):
-        slot_ids = self._module.get_slot_ids()
-        self._slot_catalog = dict(enumerate(sorted(slot_ids)))
-        selected_slot_id = self._ui_manager.get_selected_slot_id()
+    def update_controls(self):
+        control_ids = self._module.get_control_ids()
+        self._control_catalog = dict(enumerate(sorted(control_ids)))
+        selected_control_id = self._ui_manager.get_selected_control_id()
         old_block = self.blockSignals(True)
         self.clear()
-        for i, slot_id in self._slot_catalog.items():
+        for i, control_id in self._control_catalog.items():
             self.addItem('')
-            if selected_slot_id and slot_id == selected_slot_id:
+            if selected_control_id and control_id == selected_control_id:
                 self.setCurrentIndex(i)
-        self.update_slot_texts()
+        self.update_control_texts()
         self.blockSignals(old_block)
 
     def perform_updates(self, signals):
-        if 'signal_slots' in signals:
-            self.update_slots()
-        self.update_slot_texts()
+        if 'signal_controls' in signals:
+            self.update_controls()
+        self.update_control_texts()
 

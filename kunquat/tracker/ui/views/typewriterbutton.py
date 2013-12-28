@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Toni Ruottu, Finland 2013
+# Authors: Toni Ruottu, Finland 2013
+#          Tomi Jylhä-Ollila, Finland 2013
 #
 # This file is part of Kunquat.
 #
@@ -72,7 +73,7 @@ class TypeWriterButton(QPushButton):
         self._ui_manager = None
         self._typewriter_manager = None
 
-        self._selected_slot = None
+        self._selected_control = None
         self.setMinimumWidth(60)
         self.setMinimumHeight(60)
         layout = QVBoxLayout(self)
@@ -104,23 +105,23 @@ class TypeWriterButton(QPushButton):
         self._typewriter_manager = ui_model.get_typewriter_manager()
 
     def _play_sound(self):
-        if self._selected_slot:
-            self._selected_slot.set_active_note(0, self._pitch)
+        if self._selected_control:
+            self._selected_control.set_active_note(0, self._pitch)
 
     def _stop_sound(self):
-        if self._selected_slot:
-            self._selected_slot.set_rest(0)
+        if self._selected_control:
+            self._selected_control.set_rest(0)
 
-    def update_selected_slot(self):
-        self._selected_slot = self._ui_manager.get_selected_slot()
+    def update_selected_control(self):
+        self._selected_control = self._ui_manager.get_selected_control()
         if self._pitch != None:
             self.setEnabled(True)
 
     def update_leds(self):
-        if self._selected_slot == None:
+        if self._selected_control == None:
             return
         (left_on, center_on, right_on) = 3 * [0]
-        notes = self._selected_slot.get_active_notes()
+        notes = self._selected_control.get_active_notes()
         for (_, note) in notes.items():
             if self._typewriter_manager.get_closest_keymap_pitch(note) == self._pitch:
                 if note < self._pitch:
@@ -134,7 +135,7 @@ class TypeWriterButton(QPushButton):
         self._led.set_leds(left_on, center_on, right_on)
 
     def perform_updates(self, signals):
-        self.update_selected_slot()
+        self.update_selected_control()
         self.update_leds()
 
     def unregister_updaters(self):
