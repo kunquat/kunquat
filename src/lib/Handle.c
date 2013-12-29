@@ -52,12 +52,16 @@ static kqt_Handle add_handle(Handle* handle)
         assert(handles[i] != handle);
 #endif
 
+    static int next_try = 0;
+
     for (int i = 0; i < KQT_HANDLES_MAX; ++i)
     {
-        if (handles[i] == NULL)
+        const int try = (i + next_try) % KQT_HANDLES_MAX;
+        if (handles[try] == NULL)
         {
-            handles[i] = handle;
-            return i + 1;
+            handles[try] = handle;
+            next_try = try + 1;
+            return try + 1; // shift kqt_Handle range to [1, KQT_HANDLES_MAX]
         }
     }
 

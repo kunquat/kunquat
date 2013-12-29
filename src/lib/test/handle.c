@@ -25,6 +25,49 @@
 #include <kunquat/Player.h>
 
 
+START_TEST(Handle_creation_prefers_unused_ids)
+{
+    kqt_Handle handles[KQT_HANDLES_MAX] = { 0 };
+
+    kqt_Handle stored_handle = 0;
+
+    for (int i = 0; i < KQT_HANDLES_MAX; ++i)
+    {
+        kqt_Handle handle = kqt_new_Handle();
+        check_unexpected_error();
+
+        handles[i] = handle;
+
+        if (i == 5)
+            stored_handle = handle;
+        else
+            kqt_del_Handle(handle);
+
+        check_unexpected_error();
+
+        for (int k = 0; k < i; ++k)
+        {
+            fail_if(handles[k] == handle,
+                    "libkunquat reused handle %d",
+                    handle);
+        }
+    }
+
+    assert(stored_handle != 0);
+    kqt_del_Handle(stored_handle);
+
+    check_unexpected_error();
+
+    kqt_Handle reuse_handle = kqt_new_Handle();
+    check_unexpected_error();
+    fail_if(reuse_handle <= 0 || reuse_handle > KQT_HANDLES_MAX,
+            "Unexpected handle ID %d after using all possible IDs",
+            (int)reuse_handle);
+    kqt_del_Handle(reuse_handle);
+}
+END_TEST
+
+
 START_TEST(Do_nothing)
 {
 }
@@ -79,7 +122,13 @@ Suite* Handle_suite(void)
 {
     Suite* s = suite_create("Handle");
 
-    int timeout = 4;
+    const int timeout = 4;
+
+    TCase* tc_handles = tcase_create("handles");
+    suite_add_tcase(s, tc_handles);
+    tcase_set_timeout(tc_handles, timeout);
+
+    tcase_add_test(tc_handles, Handle_creation_prefers_unused_ids);
 
     TCase* tc_empty = tcase_create("empty");
     suite_add_tcase(s, tc_empty);
