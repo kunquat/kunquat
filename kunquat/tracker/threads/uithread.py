@@ -75,6 +75,9 @@ class UiThread(MonitoringThread):
     def update_active_note(self, channel_number, pitch):
         self._q.push('update_active_note', channel_number, pitch)
 
+    def update_event_log_with(self, channel_number, event_type, event_value, context):
+        self._q.push('update_event_log_with', channel_number, event_type, event_value, context)
+
     # Threading interface
 
     def halt(self):

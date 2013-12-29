@@ -16,6 +16,7 @@ from stat_manager import StatManager
 from ui_manager import UiManager
 from playback_manager import PlaybackManager
 from typewritermanager import TypewriterManager
+from eventhistory import EventHistory
 from module import Module
 from visibilitymanager import VisibilityManager
 
@@ -83,6 +84,7 @@ class UiModel():
         self._ui_manager = None
         self._playback_manager = None
         self._typewriter_manager = None
+        self._event_history = None
         self._module = None
         self._visibility_manager = None
 
@@ -96,6 +98,7 @@ class UiModel():
         self._ui_manager.set_controller(self._controller)
         self._typewriter_manager.set_controller(self._controller)
         self._visibility_manager.set_controller(self._controller)
+        self._event_history.set_controller(self._controller)
 
     def get_updater(self):
         updater = self._controller.get_updater()
@@ -126,6 +129,12 @@ class UiModel():
     def get_typewriter_manager(self):
         return self._typewriter_manager
 
+    def set_event_history(self, event_history):
+        self._event_history = event_history
+
+    def get_event_history(self):
+        return self._event_history
+
     def set_module(self, module):
         self._module = module
         self._module.set_model(self)
@@ -147,6 +156,7 @@ def create_ui_model():
     ui_manager = UiManager()
     playback_manager = PlaybackManager()
     typewriter_manager = TypewriterManager()
+    event_history = EventHistory()
     module = Module()
     visibility_manager = VisibilityManager()
     ui_model = UiModel()
@@ -154,6 +164,7 @@ def create_ui_model():
     ui_model.set_ui_manager(ui_manager)
     ui_model.set_playback_manager(playback_manager)
     ui_model.set_typewriter_manager(typewriter_manager)
+    ui_model.set_event_history(event_history)
     ui_model.set_module(module)
     ui_model.set_visibility_manager(visibility_manager)
     return ui_model

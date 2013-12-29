@@ -22,6 +22,7 @@ from typewriter import TypeWriter
 from instrumentselect import InstrumentSelect
 from importprogress import ImportProgress
 from peakmeter import PeakMeter
+from eventlist import EventList
 from sheet.sheet import Sheet
 
 class MainWindow(QWidget):
@@ -38,6 +39,7 @@ class MainWindow(QWidget):
         self._instrument_select = InstrumentSelect()
         self._import_progress = ImportProgress()
         self._peak_meter = PeakMeter()
+        self._eventlist = EventList()
         #self._sheet = Sheet()
 
         v = QVBoxLayout()
@@ -48,6 +50,7 @@ class MainWindow(QWidget):
         v.addWidget(self._instrument_select)
         v.addWidget(self._import_progress)
         v.addWidget(self._peak_meter)
+        v.addWidget(self._eventlist)
         #v.addWidget(self._sheet)
         self.setLayout(v)
 
@@ -62,6 +65,7 @@ class MainWindow(QWidget):
         self._instrument_select.set_ui_model(ui_model)
         self._import_progress.set_ui_model(ui_model)
         self._peak_meter.set_ui_model(ui_model)
+        self._eventlist.set_ui_model(ui_model)
         #self._sheet.set_ui_model(ui_model)
 
     def unregister_updaters(self):

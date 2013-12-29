@@ -12,6 +12,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from collections import deque
+
 
 class Session():
 
@@ -28,6 +30,7 @@ class Session():
         self._channel_active_note = dict()
         self._control_active_notes = dict()
         self._visible = set()
+        self._event_log = deque([], 10)
 
     def get_output_speed(self):
         return self._output_speed
@@ -122,6 +125,12 @@ class Session():
 
     def get_visible(self):
         return self._visible
+
+    def log_event(self, channel, event_type, event_value, context):
+        self._event_log.appendleft((channel, event_type, event_value, context))
+
+    def get_event_log(self):
+        return list(self._event_log)
 
     def get_keymap_data(self):
         keymap_data = {

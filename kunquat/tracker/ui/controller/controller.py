@@ -138,6 +138,10 @@ class Controller():
         self._session.set_active_note(channel, pitch)
         self._updater.signal_update()
 
+    def update_event_log_with(self, channel_number, event_type, event_value, context):
+        self._session.log_event(channel_number, event_type, event_value, context)
+        self._updater.signal_update()
+
     def update_import_progress(self, position, steps):
         self._session.set_progress_position(position)
         self._session.set_progress_steps(steps)
