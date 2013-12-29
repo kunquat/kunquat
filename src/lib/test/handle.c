@@ -57,6 +57,13 @@ START_TEST(Handle_creation_prefers_unused_ids)
     kqt_del_Handle(stored_handle);
 
     check_unexpected_error();
+
+    kqt_Handle reuse_handle = kqt_new_Handle();
+    check_unexpected_error();
+    fail_if(reuse_handle <= 0 || reuse_handle > KQT_HANDLES_MAX,
+            "Unexpected handle ID %d after using all possible IDs",
+            (int)reuse_handle);
+    kqt_del_Handle(reuse_handle);
 }
 END_TEST
 
