@@ -17,11 +17,11 @@
 
 #include <memory.h>
 #include <pitch_t.h>
-#include <Sample_map.h>
+#include <Note_map.h>
 #include <xassert.h>
 
 
-struct Sample_map
+struct Note_map
 {
     AAtree* map;
     AAiter* iter;
@@ -34,7 +34,7 @@ typedef struct Random_list
     double cents;
     double force;
     int entry_count;
-    Sample_entry entries[SAMPLE_MAP_RANDOMS_MAX];
+    Sample_entry entries[NOTE_MAP_RANDOMS_MAX];
 } Random_list;
 
 
@@ -76,9 +76,9 @@ static bool read_random_list_entry(Streader* sr, int32_t index, void* userdata)
     assert(sr != NULL);
     assert(userdata != NULL);
 
-    if (index >= SAMPLE_MAP_RANDOMS_MAX)
+    if (index >= NOTE_MAP_RANDOMS_MAX)
     {
-        Streader_set_error(sr, "Too many sample map random list entries");
+        Streader_set_error(sr, "Too many note map random list entries");
         return false;
     }
 
@@ -98,13 +98,13 @@ static bool read_mapping(Streader* sr, int32_t index, void* userdata)
     (void)index;
     assert(userdata != NULL);
 
-    Sample_map* map = userdata;
+    Note_map* map = userdata;
 
     Random_list* list = memory_alloc_item(Random_list);
     if (list == NULL)
     {
         Streader_set_memory_error(
-                sr, "Could not allocate for sample map entry");
+                sr, "Could not allocate memory for note map entry");
         return false;
     }
 
@@ -138,7 +138,7 @@ static bool read_mapping(Streader* sr, int32_t index, void* userdata)
     if (!AAtree_ins(map->map, list))
     {
         Streader_set_memory_error(
-                sr, "Couldn't allocate memory for sample map entry");
+                sr, "Couldn't allocate memory for note map entry");
         memory_free(list);
         return false;
     }
@@ -148,25 +148,25 @@ static bool read_mapping(Streader* sr, int32_t index, void* userdata)
 
     if (list->entry_count == 0)
     {
-        Streader_set_error(sr, "Empty sample mapping random list");
+        Streader_set_error(sr, "Empty note mapping random list");
         return false;
     }
 
     return Streader_match_char(sr, ']');
 }
 
-Sample_map* new_Sample_map_from_string(Streader* sr)
+Note_map* new_Note_map_from_string(Streader* sr)
 {
     assert(sr != NULL);
 
     if (Streader_is_error_set(sr))
         return NULL;
 
-    Sample_map* map = memory_alloc_item(Sample_map);
+    Note_map* map = memory_alloc_item(Note_map);
     if (map == NULL)
     {
         Streader_set_memory_error(
-                sr, "Could not allocate memory for sample map");
+                sr, "Could not allocate memory for note map");
         return NULL;
     }
 
@@ -177,18 +177,18 @@ Sample_map* new_Sample_map_from_string(Streader* sr)
             (void (*)(void*))del_Random_list);
     if (map->map == NULL)
     {
-        del_Sample_map(map);
+        del_Note_map(map);
         Streader_set_memory_error(
-                sr, "Could not allocate memory for sample map");
+                sr, "Could not allocate memory for note map");
         return NULL;
     }
 
     map->iter = new_AAiter(map->map);
     if (map->iter == NULL)
     {
-        del_Sample_map(map);
+        del_Note_map(map);
         Streader_set_memory_error(
-                sr, "Could not allocate memory for sample map");
+                sr, "Could not allocate memory for note map");
         return NULL;
     }
 
@@ -197,7 +197,7 @@ Sample_map* new_Sample_map_from_string(Streader* sr)
 
     if (!Streader_read_list(sr, read_mapping, map))
     {
-        del_Sample_map(map);
+        del_Note_map(map);
         return NULL;
     }
 
@@ -205,8 +205,8 @@ Sample_map* new_Sample_map_from_string(Streader* sr)
 }
 
 
-bool Sample_map_add_entry(
-        Sample_map* map,
+bool Note_map_add_entry(
+        Note_map* map,
         double cents,
         double force,
         Sample_entry* entry)
@@ -232,9 +232,9 @@ bool Sample_map_add_entry(
         list->entry_count = 0;
     }
 
-    if (list->entry_count >= SAMPLE_MAP_RANDOMS_MAX)
+    if (list->entry_count >= NOTE_MAP_RANDOMS_MAX)
     {
-        assert(list->entry_count == SAMPLE_MAP_RANDOMS_MAX);
+        assert(list->entry_count == NOTE_MAP_RANDOMS_MAX);
         return false;
     }
 
@@ -258,8 +258,8 @@ static double distance(Random_list* list, Random_list* key)
 }
 
 
-const Sample_entry* Sample_map_get_entry(
-        const Sample_map* map,
+const Sample_entry* Note_map_get_entry(
+        const Note_map* map,
         double cents,
         double force,
         Random* random)
@@ -326,7 +326,7 @@ const Sample_entry* Sample_map_get_entry(
     }
 
     assert(choice->entry_count > 0);
-    assert(choice->entry_count < SAMPLE_MAP_RANDOMS_MAX);
+    assert(choice->entry_count < NOTE_MAP_RANDOMS_MAX);
 //    state->middle_tone = choice->freq;
     int index = Random_get_index(random, choice->entry_count);
     assert(index >= 0);
@@ -336,7 +336,7 @@ const Sample_entry* Sample_map_get_entry(
 }
 
 
-void del_Sample_map(Sample_map* map)
+void del_Note_map(Note_map* map)
 {
     if (map == NULL)
         return;

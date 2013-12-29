@@ -103,7 +103,7 @@ Device_impl* new_DSP_volume(DSP* dsp)
 
     reg_success &= Device_impl_register_set_float(
             &volume->parent,
-            "p_volume.jsonf",
+            "p_f_volume.json",
             0.0,
             DSP_volume_set_volume,
             DSP_volume_set_state_volume);
@@ -154,7 +154,7 @@ static void DSP_volume_reset(const Device_impl* dimpl, Device_state* dstate)
     Volume_state* vol_state = (Volume_state*)dstate;
 
     const double* vol_dB = Device_params_get_float(
-            dimpl->device->dparams, "p_volume.jsonf");
+            dimpl->device->dparams, "p_f_volume.json");
     if (vol_dB != NULL && isfinite(*vol_dB))
         vol_state->scale = exp2(*vol_dB / 6);
     else

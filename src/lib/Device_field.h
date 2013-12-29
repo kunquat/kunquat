@@ -25,7 +25,7 @@
 #include <Real.h>
 #include <Sample.h>
 #include <Sample_params.h>
-#include <Sample_map.h>
+#include <Note_map.h>
 #include <Streader.h>
 #include <Tstamp.h>
 
@@ -42,10 +42,23 @@ typedef enum
     DEVICE_FIELD_WAVPACK,
     DEVICE_FIELD_VORBIS,
     DEVICE_FIELD_SAMPLE_PARAMS,
-    DEVICE_FIELD_SAMPLE_MAP,
+    DEVICE_FIELD_NOTE_MAP,
     DEVICE_FIELD_HIT_MAP,
     DEVICE_FIELD_NUM_LIST,
+
+    DEVICE_FIELD_COUNT_
 } Device_field_type;
+
+
+/**
+ * Gets the Device field type of a key pattern.
+ *
+ * \param keyp   The key pattern -- must not be \c NULL.
+ *
+ * \return   The Device field type, or \c DEVICE_FIELD_NONE if the key pattern
+ *           does not contain proper type information.
+ */
+Device_field_type get_keyp_device_field_type(const char* keyp);
 
 
 typedef struct Device_field Device_field;
@@ -54,18 +67,7 @@ typedef struct Device_field Device_field;
 /**
  * Creates a new Device field.
  *
- * \param key    The key -- must be a valid key. A valid Device field key
- *               has one of the following suffixes:
- *                  .jsonb (boolean)
- *                  .jsoni (int)
- *                  .jsonf (float)
- *                  .jsont (Tstamp)
- *                  .jsone (Envelope)
- *                  .jsonsh (Sample params)
- *                  .jsonsm (Sample map)
- *                  .jsonhm (Hit map)
- *                  .jsonln (Number list)
- *                  .wv (WavPack).
+ * \param key    The key -- must be a valid Device field key.
  * \param data   Pointer to the data that must have a type matching the key,
  *               or \c NULL.
  *
@@ -244,14 +246,14 @@ Sample_params* Device_field_get_sample_params(Device_field* field);
 
 
 /**
- * Gets a Sample map from the Device field.
+ * Gets a Note map from the Device field.
  *
  * \param field   The Device field -- must not be \c NULL and must contain
- *                a Sample map.
+ *                a Note map.
  *
- * \return   The Sample map.
+ * \return   The Note map.
  */
-Sample_map* Device_field_get_sample_map(Device_field* field);
+Note_map* Device_field_get_note_map(Device_field* field);
 
 
 /**

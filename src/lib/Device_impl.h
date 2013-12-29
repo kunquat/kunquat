@@ -26,7 +26,7 @@
 #include <player/Device_state.h>
 #include <generators/Hit_map.h>
 #include <generators/Sample.h>
-#include <generators/Sample_map.h>
+#include <generators/Note_map.h>
 #include <Num_list.h>
 #include <Tstamp.h>
 
@@ -117,7 +117,7 @@ void Device_impl_register_reset_device_state(
  * The key pattern may contain \c 0 to \c DEVICE_KEY_INDICES_MAX sequences of
  * XX* which are matched against hexadecimal numbers of actual keys. Example:
  *
- *    voice_XX/param_XXX/p_volume.jsonf
+ *    voice_XX/param_XXX/p_f_volume.json
  *
  * Any indices with the correct amount of hexadecimal digits (here, 2 and 3)
  * are extracted from the actual updated key and passed as an array of
@@ -128,8 +128,8 @@ void Device_impl_register_reset_device_state(
  * WARNING: A literal part of your key must not contain a valid hexadecimal
  * number followed by a forward slash '/', Example:
  *
- *    echo_eff/tap_XX/p_volume.jsonf <- Invalid: eff is interpreted as hex
- *    echo_XXX/tap_XX/p_volume.jsonf <- The above would get confused with this
+ *    echo_eff/tap_XX/p_f_volume.json <- Invalid: eff is interpreted as hex
+ *    echo_XXX/tap_XX/p_f_volume.json <- The above would get confused with this
  *
  * \param dimpl            The Device implementation -- must not be \c NULL.
  * \param keyp             The key pattern -- must not be \c NULL.
@@ -327,7 +327,7 @@ bool Device_impl_register_set_sample_params(
 
 
 /**
- * Registers a sample map value set function.
+ * Registers a note map value set function.
  *
  * See \a Device_impl_register_set_bool for a detailed description of the
  * \a keyp argument.
@@ -340,19 +340,19 @@ bool Device_impl_register_set_sample_params(
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Device_impl_register_set_sample_map(
+bool Device_impl_register_set_note_map(
         Device_impl* dimpl,
         const char* keyp,
-        const Sample_map* default_val,
+        const Note_map* default_val,
         bool (*set_func)(
             Device_impl*,
             Device_key_indices,
-            const Sample_map*),
+            const Note_map*),
         bool (*set_state_func)(
             const Device_impl*,
             Device_state*,
             Device_key_indices,
-            const Sample_map*));
+            const Note_map*));
 
 
 /**

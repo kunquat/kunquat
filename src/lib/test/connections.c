@@ -120,7 +120,7 @@ START_TEST(Effect_with_double_volume_dsp_and_bypass_triples_volume)
     set_data("eff_00/p_manifest.json", "{}");
     set_data("eff_00/dsp_00/p_manifest.json", "{}");
     set_data("eff_00/dsp_00/p_dsp_type.json", "\"volume\"");
-    set_data("eff_00/dsp_00/c/p_volume.jsonf", "6");
+    set_data("eff_00/dsp_00/c/p_f_volume.json", "6");
     set_data("eff_00/p_connections.json",
             "[ [\"in_00\", \"out_00\"],"
             "  [\"in_00\", \"dsp_00/C/in_00\"],"

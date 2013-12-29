@@ -178,7 +178,7 @@ Device_impl* new_DSP_conv(DSP* dsp)
 
     reg_success &= Device_impl_register_set_float(
             &conv->parent,
-            "p_max_ir_len.jsonf",
+            "p_f_max_ir_len.json",
             DEFAULT_IR_LEN,
             DSP_conv_set_max_ir_len,
             DSP_conv_set_state_max_ir_len);
@@ -186,13 +186,13 @@ Device_impl* new_DSP_conv(DSP* dsp)
             &conv->parent, "p_ir.wv", NULL, DSP_conv_set_ir, NULL);
     reg_success &= Device_impl_register_set_float(
             &conv->parent,
-            "p_volume.jsonf",
+            "p_f_volume.json",
             0.0,
             DSP_conv_set_volume,
             DSP_conv_set_state_volume);
 
     reg_success &= Device_impl_register_update_state_float(
-            &conv->parent, "p_volume.jsonf", DSP_conv_update_state_volume);
+            &conv->parent, "p_f_volume.json", DSP_conv_update_state_volume);
 
     if (!reg_success)
     {

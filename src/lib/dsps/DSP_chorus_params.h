@@ -17,10 +17,10 @@
 #endif
 
 
-CHORUS_PARAM(delay, "voice_XX/p_delay.jsonf", "v_XX/d", -1.0)
-CHORUS_PARAM(range, "voice_XX/p_range.jsonf", "v_XX/r", 0.0)
-CHORUS_PARAM(speed, "voice_XX/p_speed.jsonf", "v_XX/s", 0.0)
-CHORUS_PARAM(volume, "voice_XX/p_volume.jsonf", "v_XX/v", 0.0)
+CHORUS_PARAM(delay, "voice_XX/p_f_delay.json", "v_XX/d", -1.0)
+CHORUS_PARAM(range, "voice_XX/p_f_range.json", "v_XX/r", 0.0)
+CHORUS_PARAM(speed, "voice_XX/p_f_speed.json", "v_XX/s", 0.0)
+CHORUS_PARAM(volume, "voice_XX/p_f_volume.json", "v_XX/v", 0.0)
 
 
 #undef CHORUS_PARAM

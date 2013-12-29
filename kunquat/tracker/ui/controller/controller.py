@@ -85,18 +85,6 @@ class Controller():
                     value = tfile.extractfile(entry).read()
                     if key.endswith('.json'):
                         decoded = json.loads(value)
-                    elif key.endswith('.jsone'):
-                        decoded = json.loads(value)
-                    elif key.endswith('.jsonf'):
-                        decoded = json.loads(value)
-                    elif key.endswith('.jsoni'):
-                        decoded = json.loads(value)
-                    elif key.endswith('.jsonln'):
-                        decoded = json.loads(value)
-                    elif key.endswith('.jsonsh'):
-                        decoded = json.loads(value)
-                    elif key.endswith('.jsonsm'):
-                        decoded = json.loads(value)
                     else:
                         decoded = value
                     values[key] = decoded

@@ -33,7 +33,7 @@ typedef union
     Envelope* Envelope_type;
     Sample* Sample_type;
     Sample_params Sample_params_type;
-    Sample_map* Sample_map_type;
+    Note_map* Note_map_type;
     Hit_map* Hit_map_type;
     Num_list* Num_list_type;
 } Dev_fields;
@@ -48,69 +48,68 @@ struct Device_field
 };
 
 
+Device_field_type get_keyp_device_field_type(const char* keyp)
+{
+    assert(keyp != NULL);
+
+    // Find the last element
+    const char* last_elem = keyp;
+    const char* const last_sep = strrchr(keyp, '/');
+    if (last_sep != NULL)
+        last_elem = last_sep + 1;
+
+    if (string_has_suffix(last_elem, ".json"))
+    {
+        if (string_has_prefix(last_elem, "p_b_"))
+            return DEVICE_FIELD_BOOL;
+        else if (string_has_prefix(last_elem, "p_i_"))
+            return DEVICE_FIELD_INT;
+        else if (string_has_prefix(last_elem, "p_f_"))
+            return DEVICE_FIELD_FLOAT;
+        else if (string_has_prefix(last_elem, "p_t_"))
+            return DEVICE_FIELD_TSTAMP;
+        else if (string_has_prefix(last_elem, "p_e_"))
+            return DEVICE_FIELD_ENVELOPE;
+        else if (string_has_prefix(last_elem, "p_sh_"))
+            return DEVICE_FIELD_SAMPLE_PARAMS;
+        else if (string_has_prefix(last_elem, "p_nm_"))
+            return DEVICE_FIELD_NOTE_MAP;
+        else if (string_has_prefix(last_elem, "p_hm_"))
+            return DEVICE_FIELD_HIT_MAP;
+        else if (string_has_prefix(last_elem, "p_ln_"))
+            return DEVICE_FIELD_NUM_LIST;
+    }
+    else if (string_has_suffix(last_elem, ".wv"))
+        return DEVICE_FIELD_WAVPACK;
+
+    return DEVICE_FIELD_NONE;
+}
+
+
 Device_field* new_Device_field(const char* key, void* data)
 {
     assert(key != NULL);
 
-    Device_field_type type = DEVICE_FIELD_NONE;
-    size_t data_size = 0;
-    if (string_has_suffix(key, ".jsonb"))
+    static const size_t sizes[DEVICE_FIELD_COUNT_] =
     {
-        type = DEVICE_FIELD_BOOL;
-        data_size = sizeof(bool);
-    }
-    else if (string_has_suffix(key, ".jsoni"))
-    {
-        type = DEVICE_FIELD_INT;
-        data_size = sizeof(int64_t);
-    }
-    else if (string_has_suffix(key, ".jsonf"))
-    {
-        type = DEVICE_FIELD_FLOAT;
-        data_size = sizeof(double);
-    }
-    else if (string_has_suffix(key, ".jsonr"))
-    {
-        type = DEVICE_FIELD_REAL;
-        data_size = sizeof(Real);
-    }
-    else if (string_has_suffix(key, ".jsont"))
-    {
-        type = DEVICE_FIELD_TSTAMP;
-        data_size = sizeof(Tstamp);
-    }
-    else if (string_has_suffix(key, ".jsone"))
-    {
-        type = DEVICE_FIELD_ENVELOPE;
-        data_size = sizeof(Envelope*);
-    }
-    else if (string_has_suffix(key, ".wv"))
-    {
-        type = DEVICE_FIELD_WAVPACK;
-        data_size = sizeof(Sample*);
-    }
-    else if (string_has_suffix(key, ".jsonsh"))
-    {
-        type = DEVICE_FIELD_SAMPLE_PARAMS;
-        data_size = sizeof(Sample_params);
-    }
-    else if (string_has_suffix(key, ".jsonsm"))
-    {
-        type = DEVICE_FIELD_SAMPLE_MAP;
-        data_size = sizeof(Sample_map*);
-    }
-    else if (string_has_suffix(key, ".jsonhm"))
-    {
-        type = DEVICE_FIELD_HIT_MAP;
-        data_size = sizeof(Hit_map*);
-    }
-    else if (string_has_suffix(key, ".jsonln"))
-    {
-        type = DEVICE_FIELD_NUM_LIST;
-        data_size = sizeof(Num_list*);
-    }
-    else
-        assert(false);
+        [DEVICE_FIELD_NONE]             = 0,
+        [DEVICE_FIELD_BOOL]             = sizeof(bool),
+        [DEVICE_FIELD_INT]              = sizeof(int64_t),
+        [DEVICE_FIELD_FLOAT]            = sizeof(double),
+        [DEVICE_FIELD_TSTAMP]           = sizeof(Tstamp),
+        [DEVICE_FIELD_ENVELOPE]         = sizeof(Envelope*),
+        [DEVICE_FIELD_SAMPLE_PARAMS]    = sizeof(Sample_params),
+        [DEVICE_FIELD_NOTE_MAP]         = sizeof(Note_map*),
+        [DEVICE_FIELD_HIT_MAP]          = sizeof(Hit_map*),
+        [DEVICE_FIELD_NUM_LIST]         = sizeof(Num_list*),
+        [DEVICE_FIELD_WAVPACK]          = sizeof(Sample*),
+    };
+
+    const Device_field_type type = get_keyp_device_field_type(key);
+    assert(type != DEVICE_FIELD_NONE);
+
+    const size_t data_size = sizes[type];
+    assert(data_size > 0);
 
     Device_field* field = memory_alloc_item(Device_field);
     if (field == NULL)
@@ -274,14 +273,14 @@ bool Device_field_change(Device_field* field, Streader* sr)
         }
         break;
 
-        case DEVICE_FIELD_SAMPLE_MAP:
+        case DEVICE_FIELD_NOTE_MAP:
         {
-            Sample_map* map = new_Sample_map_from_string(sr);
+            Note_map* map = new_Note_map_from_string(sr);
             if (map == NULL)
                 return false;
 
-            del_Sample_map(field->data.Sample_map_type);
-            field->data.Sample_map_type = map;
+            del_Note_map(field->data.Note_map_type);
+            field->data.Note_map_type = map;
         }
         break;
 
@@ -354,7 +353,7 @@ bool Device_field_modify(Device_field* field, void* data)
     assert(field != NULL);
     assert(field->type != DEVICE_FIELD_ENVELOPE);
     assert(field->type != DEVICE_FIELD_WAVPACK);
-    assert(field->type != DEVICE_FIELD_SAMPLE_MAP);
+    assert(field->type != DEVICE_FIELD_NOTE_MAP);
     assert(field->type != DEVICE_FIELD_HIT_MAP);
     assert(data != NULL);
 
@@ -458,12 +457,12 @@ Sample_params* Device_field_get_sample_params(Device_field* field)
 }
 
 
-Sample_map* Device_field_get_sample_map(Device_field* field)
+Note_map* Device_field_get_note_map(Device_field* field)
 {
     assert(field != NULL);
-    assert(field->type == DEVICE_FIELD_SAMPLE_MAP);
+    assert(field->type == DEVICE_FIELD_NOTE_MAP);
 
-    return field->data.Sample_map_type;
+    return field->data.Note_map_type;
 }
 
 
@@ -494,8 +493,8 @@ void del_Device_field(Device_field* field)
         del_Envelope(field->data.Envelope_type);
     else if (field->type == DEVICE_FIELD_WAVPACK)
         del_Sample(field->data.Sample_type);
-    else if (field->type == DEVICE_FIELD_SAMPLE_MAP)
-        del_Sample_map(field->data.Sample_map_type);
+    else if (field->type == DEVICE_FIELD_NOTE_MAP)
+        del_Note_map(field->data.Note_map_type);
     else if (field->type == DEVICE_FIELD_HIT_MAP)
         del_Hit_map(field->data.Hit_map_type);
     else if (field->type == DEVICE_FIELD_NUM_LIST)

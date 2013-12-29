@@ -31,7 +31,7 @@ class Instrument():
         return self._instrument_id
 
     def get_existence(self):
-        key = '%s/p_manigest.json' % self._instrument_id
+        key = '%s/p_manifest.json' % self._instrument_id
         manifest = self._store[key]
         if type(manifest) == type({}):
             return True
