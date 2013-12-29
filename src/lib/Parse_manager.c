@@ -207,6 +207,22 @@ bool parse_data(Handle* handle,
             //Connections_print(graph, stderr);
         }
     }
+    else if ((index = string_extract_index(key, "control_", 2, "/")) >= 0)
+    {
+        if (index < 0 || index >= KQT_CONTROLS_MAX)
+            return true;
+
+        if (string_eq(second_element, "p_manifest.json"))
+        {
+            const bool existent = read_default_manifest(sr);
+            if (Streader_is_error_set(sr))
+            {
+                set_error(handle, sr);
+                return false;
+            }
+            Module_set_control(handle->module, index, existent);
+        }
+    }
     else if ((index = string_extract_index(key, "eff_", 2, "/")) >= 0)
     {
         Effect* eff = Effect_table_get(Module_get_effects(module), index);
@@ -342,7 +358,7 @@ static bool parse_module_level(Handle* handle,
         //fprintf(stderr, "line: %d\n", __LINE__);
         //Connections_print(graph, stderr);
     }
-    else if (string_eq(key, "p_ins_input.json"))
+    else if (string_eq(key, "p_control_map.json"))
     {
         if (!Module_set_ins_map(module, sr))
         {

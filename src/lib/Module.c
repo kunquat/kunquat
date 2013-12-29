@@ -87,6 +87,7 @@ Module* new_Module()
     module->songs = NULL;
     module->pats = NULL;
     module->ins_map = NULL;
+    module->ins_controls = NULL;
     module->insts = NULL;
     module->effects = NULL;
     module->connections = NULL;
@@ -104,12 +105,14 @@ Module* new_Module()
     module->random = new_Random();
     module->songs = new_Song_table();
     module->pats = new_Pat_table(KQT_PATTERNS_MAX);
+    module->ins_controls = new_Bit_array(KQT_CONTROLS_MAX);
     module->insts = new_Ins_table(KQT_INSTRUMENTS_MAX);
     module->effects = new_Effect_table(KQT_EFFECTS_MAX);
-    if (module->random == NULL       ||
-            module->songs == NULL    ||
-            module->pats == NULL     ||
-            module->insts == NULL    ||
+    if (module->random == NULL           ||
+            module->songs == NULL        ||
+            module->pats == NULL         ||
+            module->ins_controls == NULL ||
+            module->insts == NULL        ||
             module->effects == NULL)
     {
         del_Module(module);
@@ -236,7 +239,7 @@ bool Module_parse_random_seed(Module* module, Streader* sr)
     assert(module != NULL);
     assert(sr != NULL);
 
-    if (!Streader_is_error_set(sr))
+    if (Streader_is_error_set(sr))
         return false;
 
     int64_t seed = 0;
@@ -248,7 +251,7 @@ bool Module_parse_random_seed(Module* module, Streader* sr)
 
         if (seed < 0)
         {
-            Streader_set_error(sr, "Random seed must be positive");
+            Streader_set_error(sr, "Random seed must be non-negative");
             return false;
         }
     }
@@ -392,8 +395,31 @@ Instrument* Module_get_ins_from_input(const Module* module, int32_t input)
     if (ins_index < 0)
         return NULL;
 
+    assert(Bit_array_get(module->ins_controls, input));
     assert(ins_index < KQT_INSTRUMENTS_MAX);
     return Ins_table_get(module->insts, ins_index);
+}
+
+
+void Module_set_control(Module* module, int control, bool existent)
+{
+    assert(module != NULL);
+    assert(control >= 0);
+    assert(control < KQT_CONTROLS_MAX);
+
+    Bit_array_set(module->ins_controls, control, existent);
+
+    return;
+}
+
+
+bool Module_get_control(const Module* module, int control)
+{
+    assert(module != NULL);
+    assert(control >= 0);
+    assert(control < KQT_CONTROLS_MAX);
+
+    return Bit_array_get(module->ins_controls, control);
 }
 
 
@@ -651,6 +677,7 @@ void del_Module(Module* module)
     del_Pat_table(module->pats);
     del_Connections(module->connections);
     del_Ins_table(module->insts);
+    del_Bit_array(module->ins_controls);
     del_Input_map(module->ins_map);
     del_Effect_table(module->effects);
     del_Track_list(module->track_list);

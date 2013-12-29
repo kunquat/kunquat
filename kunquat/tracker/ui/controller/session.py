@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Toni Ruottu, Finland 2013
+# Authors: Toni Ruottu, Finland 2013
+#          Tomi Jylhä-Ollila, Finland 2013
 #
 # This file is part of Kunquat.
 #
@@ -22,10 +23,10 @@ class Session():
         self._progress_position = 1
         self._progress_steps = 1
         self._audio_levels = (0, 0)
-        self._channel_selected_slot_id = dict()
-        self._channel_active_slot_id = dict()
+        self._channel_selected_control_id = dict()
+        self._channel_active_control_id = dict()
         self._channel_active_note = dict()
-        self._slot_active_notes = dict()
+        self._control_active_notes = dict()
 
     def get_output_speed(self):
         return self._output_speed
@@ -69,22 +70,22 @@ class Session():
     def set_audio_levels(self, audio_levels):
         self._audio_levels = audio_levels
 
-    def get_selected_slot_id_by_channel(self, channel):
-        return self._channel_selected_slot_id[channel]
+    def get_selected_control_id_by_channel(self, channel):
+        return self._channel_selected_control_id[channel]
 
-    def set_selected_slot_id(self, channel, slot):
-        slot_id = 'slot_{0:02x}'.format(slot)
-        self._channel_selected_slot_id[channel] = slot_id
+    def set_selected_control_id(self, channel, control):
+        control_id = 'control_{0:02x}'.format(control)
+        self._channel_selected_control_id[channel] = control_id
 
-    def get_active_slot_id_by_channel(self, channel):
-        return self._channel_active_slot_id[channel]
+    def get_active_control_id_by_channel(self, channel):
+        return self._channel_active_control_id[channel]
 
     def get_active_note_by_channel(self, channel):
         return self._channel_active_note[channel]
 
-    def get_active_notes_by_slot_id(self, slot_id):
+    def get_active_notes_by_control_id(self, control_id):
         try:
-            notes = self._slot_active_notes[slot_id]
+            notes = self._control_active_notes[control_id]
         except KeyError:
             notes = dict()
         return notes
@@ -93,19 +94,19 @@ class Session():
         if pitch == None:
             if channel in self._channel_active_note:
                 del self._channel_active_note[channel]
-            slot_id = self.get_active_slot_id_by_channel(channel)
-            if slot_id in self._slot_active_notes:
-               notes = self._slot_active_notes[slot_id]
+            control_id = self.get_active_control_id_by_channel(channel)
+            if control_id in self._control_active_notes:
+               notes = self._control_active_notes[control_id]
                if channel in notes:
                    del notes[channel]
         else:
             self._channel_active_note[channel] = pitch
-            slot_id = self.get_selected_slot_id_by_channel(channel)
-            if not slot_id in self._slot_active_notes:
-                self._slot_active_notes[slot_id] = dict()
-            notes = self._slot_active_notes[slot_id]
+            control_id = self.get_selected_control_id_by_channel(channel)
+            if not control_id in self._control_active_notes:
+                self._control_active_notes[control_id] = dict()
+            notes = self._control_active_notes[control_id]
             notes[channel] = pitch
-            self._channel_active_slot_id[channel] = slot_id
+            self._channel_active_control_id[channel] = control_id
 
     def get_keymap_data(self):
         keymap_data = {

@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Toni Ruottu, Finland 2013
+# Authors: Toni Ruottu, Finland 2013
+#          Tomi Jylhä-Ollila, Finland 2013
 #
 # This file is part of Kunquat.
 #
@@ -12,7 +13,7 @@
 #
 
 from instrument import Instrument
-from slot import Slot
+from control import Control
 
 
 class Module():
@@ -32,22 +33,22 @@ class Module():
     def set_model(self, model):
         self._model = model
 
-    def get_slot_ids(self):
+    def get_control_ids(self):
         try:
-            input_map = self._store['p_ins_input.json']
+            input_map = self._store['p_control_map.json']
         except KeyError:
             input_map = []
-        slot_ids = set()
-        for (slot_number, _) in input_map:
-            slot_id = 'slot_{0:02x}'.format(slot_number)
-            slot_ids.add(slot_id)
-        return slot_ids
+        control_ids = set()
+        for (control_number, _) in input_map:
+            control_id = 'control_{0:02x}'.format(control_number)
+            control_ids.add(control_id)
+        return control_ids
 
-    def get_slot(self, slot_id):
-        slot = Slot(slot_id)
-        slot.set_controller(self._controller)
-        slot.set_model(self._model)
-        return slot
+    def get_control(self, control_id):
+        control = Control(control_id)
+        control.set_controller(self._controller)
+        control.set_model(self._model)
+        return control
 
     def get_instrument(self, instrument_id):
         instrument = Instrument(instrument_id)

@@ -48,6 +48,7 @@ struct Module
     Order_list* order_lists[KQT_SONGS_MAX]; ///< Order lists.
     Pat_table* pats;                    ///< The Patterns.
     Input_map* ins_map;                 ///< Instrument input map.
+    Bit_array* ins_controls;            ///< Existent instrument controls.
     Ins_table* insts;                   ///< The Instruments.
     Effect_table* effects;              ///< The global Effects.
     Connections* connections;           ///< Device connections.
@@ -202,6 +203,29 @@ Pat_table* Module_get_pats(Module* module);
  * \return   The Instrument.
  */
 Instrument* Module_get_ins_from_input(const Module* module, int32_t input);
+
+
+/**
+ * Sets the existence status of a control.
+ *
+ * \param module     The Module -- must not be \c NULL.
+ * \param control    The control index -- must be >= \c 0 and
+ *                   < \c KQT_CONTROLS_MAX.
+ * \param existent   \c true if the control exists, otherwise \c false.
+ */
+void Module_set_control(Module* module, int control, bool existent);
+
+
+/**
+ * Gets the existence status of a control.
+ *
+ * \param module    The Module -- must not be \c NULL.
+ * \param control   The control index -- must be >= \c 0 and
+ *                  < \c KQT_CONTROLS_MAX.
+ *
+ * \return   \c true if the control exists, otherwise \c false.
+ */
+bool Module_get_control(const Module* module, int control);
 
 
 /**

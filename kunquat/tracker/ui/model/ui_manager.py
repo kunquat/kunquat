@@ -16,7 +16,7 @@
 class UiManager():
 
     def __init__(self):
-        self._selected_slot_id = None
+        self._selected_control_id = None
         self._updater = None
         self._model = None
 
@@ -27,26 +27,26 @@ class UiManager():
     def set_model(self, model):
         self._model = model
 
-    def get_selected_slot_id(self):
+    def get_selected_control_id(self):
         module = self._model.get_module()
-        slot_ids = module.get_slot_ids()
-        selected_id = self._selected_slot_id
-        if len(slot_ids) < 1:
+        control_ids = module.get_control_ids()
+        selected_id = self._selected_control_id
+        if len(control_ids) < 1:
             return None
-        if not selected_id in slot_ids:
-            some_id = sorted(slot_ids)[0]
+        if not selected_id in control_ids:
+            some_id = sorted(control_ids)[0]
             return some_id
         return selected_id
 
-    def set_selected_slot_id(self, slot_id):
-        self._selected_slot_id = slot_id
+    def set_selected_control_id(self, control_id):
+        self._selected_control_id = control_id
         self._updater.signal_update()
 
-    def get_selected_slot(self):
-        slot_id = self.get_selected_slot_id()
-        if slot_id == None:
+    def get_selected_control(self):
+        control_id = self.get_selected_control_id()
+        if control_id == None:
             return None
         module = self._model.get_module()
-        slot = module.get_slot(slot_id)
-        return slot
+        control = module.get_control(control_id)
+        return control
 
