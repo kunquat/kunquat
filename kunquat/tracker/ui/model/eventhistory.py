@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013
+# Author: Tomi Jylhä-Ollila, Finland 2013-2014
 #
 # This file is part of Kunquat.
 #
@@ -15,12 +15,24 @@ class EventHistory():
 
     def __init__(self):
         self._controller = None
+        self._context_filter = set(['mix', 'fire'])
 
     def set_controller(self, controller):
         self._controller = controller
         self._session = controller.get_session()
 
     def get_log(self):
-        return self._session.get_event_log()
+        return [e for e in self._session.get_event_log()
+                if e[4] in self._context_filter]
+
+    def allow_context(self, context, allow):
+        if allow:
+            self._context_filter.add(context)
+        else:
+            if context in self._context_filter:
+                self._context_filter.remove(context)
+
+    def is_context_allowed(self, context):
+        return context in self._context_filter
 
 
