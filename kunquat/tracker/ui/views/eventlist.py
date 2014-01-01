@@ -38,7 +38,7 @@ class EventListModel(QAbstractTableModel):
         oldlen = len(self._log)
         newlen = len(log)
         if oldlen < newlen:
-            self.beginInsertRows(QModelIndex(), 0, newlen - oldlen - 1)
+            self.beginInsertRows(QModelIndex(), oldlen, newlen - 1)
             self._log = log
             self.endInsertRows()
         elif oldlen > newlen:
