@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013
+# Author: Tomi Jylhä-Ollila, Finland 2013-2014
 #
 # This file is part of Kunquat.
 #
@@ -15,6 +15,61 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 
+class EventListModel(QAbstractTableModel):
+
+    HEADERS = ["#", "Channel", "Type", "Value", "Context"]
+
+    def __init__(self):
+        QAbstractTableModel.__init__(self)
+        self._log = []
+
+    def update_log(self, log):
+        oldlen = len(self._log)
+        newlen = len(log)
+        if oldlen < newlen:
+            self.beginInsertRows(QModelIndex(), 0, newlen - oldlen - 1)
+            self._log = log
+            self.endInsertRows()
+        elif oldlen > newlen:
+            self.beginRemoveRows(QModelIndex(), 0, oldlen - newlen - 1)
+            self._log = log
+            self.endRemoveRows()
+        else:
+            self._log = log
+
+        QObject.emit(
+                self,
+                SIGNAL('dataChanged(QModelIndex, QModelIndex)'),
+                self.index(0, 0),
+                self.index(len(self._log) - 1, len(self.HEADERS) - 1))
+
+    def rowCount(self, parent):
+        if parent.isValid():
+            return 0
+        return len(self._log)
+
+    def columnCount(self, parent):
+        if parent.isValid():
+            return 0
+        return len(self.HEADERS)
+
+    def data(self, index, role):
+        if role == Qt.DisplayRole:
+            row, column = index.row(), index.column()
+            if 0 <= column < len(self.HEADERS) and 0 <= row < len(self._log):
+                return QVariant(self._log[len(self._log) - row - 1][column])
+
+        return QVariant()
+
+    def headerData(self, section, orientation, role):
+        if role == Qt.DisplayRole:
+            if orientation == Qt.Horizontal:
+                if 0 <= section < len(self.HEADERS):
+                    return QVariant(self.HEADERS[section])
+
+        return QVariant()
+
+
 class EventList(QWidget):
 
     def __init__(self):
@@ -22,8 +77,12 @@ class EventList(QWidget):
         self._ui_model = None
         self._updater = None
 
+        self._logmodel = EventListModel()
+
         v = QVBoxLayout()
-        v.addWidget(QLabel('eventlog'))
+        self._tableview = QTableView()
+        self._tableview.setModel(self._logmodel)
+        v.addWidget(self._tableview)
         self.setLayout(v)
 
     def set_ui_model(self, ui_model):
@@ -34,7 +93,7 @@ class EventList(QWidget):
     def _perform_updates(self, signals):
         event_history = self._ui_model.get_event_history()
         event_log = event_history.get_log()
-        print(event_log)
+        self._logmodel.update_log(event_log)
 
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)

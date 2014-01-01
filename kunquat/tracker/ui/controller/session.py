@@ -13,6 +13,7 @@
 #
 
 from collections import deque
+from itertools import count
 
 
 class Session():
@@ -31,6 +32,7 @@ class Session():
         self._control_active_notes = dict()
         self._visible = set()
         self._event_log = deque([], 10)
+        self._event_index = count()
 
     def get_output_speed(self):
         return self._output_speed
@@ -127,7 +129,9 @@ class Session():
         return self._visible
 
     def log_event(self, channel, event_type, event_value, context):
-        self._event_log.appendleft((channel, event_type, event_value, context))
+        self._event_log.appendleft(
+                (self._event_index.next(),
+                    channel, event_type, event_value, context))
 
     def get_event_log(self):
         return list(self._event_log)
