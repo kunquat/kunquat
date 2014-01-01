@@ -54,6 +54,9 @@ class EventListModel(QAbstractTableModel):
                 self.index(0, 0),
                 self.index(len(self._log) - 1, len(self.HEADERS) - 1))
 
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
+
     # Qt interface
 
     def rowCount(self, parent):
