@@ -86,6 +86,32 @@ class EventListModel(QAbstractTableModel):
         return QVariant()
 
 
+class EventTable(QTableView):
+
+    def __init__(self):
+        QTableView.__init__(self)
+        self._focusbottom = True
+
+        vscrollbar = self.verticalScrollBar()
+        QObject.connect(
+                vscrollbar,
+                SIGNAL('rangeChanged(int, int)'),
+                self._on_rangeChanged)
+        QObject.connect(
+                vscrollbar,
+                SIGNAL('valueChanged(int)'),
+                self._on_valueChanged)
+
+    def _on_rangeChanged(self, rmin, rmax):
+        if self._focusbottom:
+            vscrollbar = self.verticalScrollBar()
+            vscrollbar.setValue(vscrollbar.maximum())
+
+    def _on_valueChanged(self, value):
+        vscrollbar = self.verticalScrollBar()
+        self._focusbottom = (vscrollbar.value() == vscrollbar.maximum())
+
+
 class EventList(QWidget):
 
     def __init__(self):
@@ -95,7 +121,7 @@ class EventList(QWidget):
         self._logmodel = EventListModel()
 
         v = QVBoxLayout()
-        self._tableview = QTableView()
+        self._tableview = EventTable()
         self._tableview.setModel(self._logmodel)
         v.addWidget(self._tableview)
         self.setLayout(v)
