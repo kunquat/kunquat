@@ -31,7 +31,7 @@ class Session():
         self._channel_active_note = dict()
         self._control_active_notes = dict()
         self._visible = set()
-        self._event_log = deque([], 10)
+        self._event_log = deque([], 1024)
         self._event_index = count()
 
     def get_output_speed(self):
