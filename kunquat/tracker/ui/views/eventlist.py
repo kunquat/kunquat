@@ -73,7 +73,8 @@ class EventListModel(QAbstractTableModel):
         if role == Qt.DisplayRole:
             row, column = index.row(), index.column()
             if 0 <= column < len(self.HEADERS) and 0 <= row < len(self._log):
-                return QVariant(self._log[len(self._log) - row - 1][column])
+                value = str(self._log[len(self._log) - row - 1][column])
+                return QVariant(value)
 
         return QVariant()
 
