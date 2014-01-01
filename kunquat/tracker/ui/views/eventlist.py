@@ -21,9 +21,20 @@ class EventListModel(QAbstractTableModel):
 
     def __init__(self):
         QAbstractTableModel.__init__(self)
+        self._ui_model = None
+        self._updater = None
+
         self._log = []
 
-    def update_log(self, log):
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+
+    def _perform_updates(self, signals):
+        event_history = self._ui_model.get_event_history()
+        log = event_history.get_log()
+
         oldlen = len(self._log)
         newlen = len(log)
         if oldlen < newlen:
@@ -42,6 +53,8 @@ class EventListModel(QAbstractTableModel):
                 SIGNAL('dataChanged(QModelIndex, QModelIndex)'),
                 self.index(0, 0),
                 self.index(len(self._log) - 1, len(self.HEADERS) - 1))
+
+    # Qt interface
 
     def rowCount(self, parent):
         if parent.isValid():
@@ -75,7 +88,6 @@ class EventList(QWidget):
     def __init__(self):
         QWidget.__init__(self)
         self._ui_model = None
-        self._updater = None
 
         self._logmodel = EventListModel()
 
@@ -87,15 +99,6 @@ class EventList(QWidget):
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        event_history = self._ui_model.get_event_history()
-        event_log = event_history.get_log()
-        self._logmodel.update_log(event_log)
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
+        self._logmodel.set_ui_model(ui_model)
 
 
