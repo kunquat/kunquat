@@ -24,8 +24,10 @@ import tarfile
 from signal import SIGHUP, SIGKILL
 
 from kunquat.tracker.ui.model.uimodel import create_ui_model
+
 from kunquat.tracker.ui.errordialog import ErrorDialog
 from kunquat.tracker.ui.views.mainwindow import MainWindow
+from kunquat.tracker.ui.views.rootview import RootView
 from kunquat.tracker.ui.controller.controller import create_controller
 
 
@@ -81,18 +83,22 @@ class UiLauncher():
         app = QApplication(sys.argv)
         error_dialog = ErrorDialog()
         main_window = MainWindow()
+        root_view = RootView()
 
         update_timer = QTimer()
         QObject.connect(update_timer,
                         SIGNAL('timeout()'),
                         self.update)
         update_timer.start(10)
-        main_window.set_ui_model(self._ui_model)
+        root_view.set_ui_model(self._ui_model)
 
         self._event_pump_starter()
 
-        if self._show:
-            main_window.show()
+        #if not self._show:
+        #    visibility_manager = self._ui_model.get_visibility_manager()
+        #    visibility_manager.run_hidden()
+
+        root_view.show_main_window()
 
         if len(sys.argv) > 1:
             module_path = sys.argv[1]
