@@ -13,13 +13,17 @@
 #
 
 from mainwindow import MainWindow
+from aboutwindow import AboutWindow
 
 
 class RootView():
 
     def __init__(self):
         self._ui_model = None
+        self._updater = None
+        self._visible = set()
         self._main_window = MainWindow()
+        self._about_window = None
 
     def show_main_window(self):
         # TODO: Check settings for UI visibility
@@ -28,5 +32,33 @@ class RootView():
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._main_window.set_ui_model(ui_model)
+        self._updater = self._ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+
+    def _perform_updates(self, signals):
+        visibility_manager = self._ui_model.get_visibility_manager()
+        visibility_update = visibility_manager.get_visible()
+
+        opened = visibility_update - self._visible
+        closed = self._visible - visibility_update
+
+        for ui in opened:
+            if ui == 'about': # TODO: check ui type
+                self._about_window = AboutWindow()
+                self._about_window.set_ui_model(self._ui_model)
+                # TODO: Check settings for UI visibility
+                self._about_window.show()
+
+        for ui in closed:
+            if ui == 'about':
+                self._about_window.unregister_updaters()
+                self._about_window.deleteLater()
+                self._about_window = None
+
+        self._visible = set(visibility_update)
+
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
+        # TODO: forward call to main window
 
 

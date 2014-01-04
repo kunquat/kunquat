@@ -84,6 +84,7 @@ class UiModel():
         self._playback_manager = None
         self._typewriter_manager = None
         self._module = None
+        self._visibility_manager = None
 
     def set_ui(self, ui):
         self._ui = ui
@@ -94,6 +95,7 @@ class UiModel():
         self._stat_manager.set_controller(self._controller)
         self._ui_manager.set_controller(self._controller)
         self._typewriter_manager.set_controller(self._controller)
+        self._visibility_manager.set_controller(self._controller)
 
     def get_updater(self):
         updater = self._controller.get_updater()

@@ -16,6 +16,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 from playbutton import PlayButton
+from aboutbutton import AboutButton
 from octaveselector import OctaveSelector
 from typewriter import TypeWriter
 from instrumentselect import InstrumentSelect
@@ -30,6 +31,7 @@ class MainWindow(QWidget):
         QWidget.__init__(self)
         self.resize(800, 600)
         self._play_button = PlayButton()
+        self._about_button = AboutButton()
         self._octave_selector = OctaveSelector()
         self._type_writer = TypeWriter()
         self._instrument_select = InstrumentSelect()
@@ -40,6 +42,7 @@ class MainWindow(QWidget):
 
         v = QVBoxLayout()
         v.addWidget(self._play_button)
+        v.addWidget(self._about_button)
         v.addWidget(self._octave_selector)
         v.addWidget(self._type_writer)
         v.addWidget(self._instrument_select)
@@ -51,6 +54,7 @@ class MainWindow(QWidget):
 
     def set_ui_model(self, ui_model):
         self._play_button.set_ui_model(ui_model)
+        self._about_button.set_ui_model(ui_model)
         self._octave_selector.set_ui_model(ui_model)
         self._type_writer.set_ui_model(ui_model)
         self._instrument_select.set_ui_model(ui_model)

@@ -15,26 +15,30 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from renderstats import RenderStats
+from about import About
 
 
-class About(QWidget):
+class AboutWindow(QWidget):
 
     def __init__(self):
         QWidget.__init__(self)
         self._ui_model = None
-
-        self._render_stats = RenderStats()
+        self._about = About()
 
         v = QVBoxLayout()
-        v.addWidget(self._render_stats)
+        v.addWidget(self._about)
         self.setLayout(v)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
-        self._render_stats.set_ui_model(ui_model)
+        self._about.set_ui_model(ui_model)
 
     def unregister_updaters(self):
-        self._render_stats.unregister_updaters()
+        self._about.unregister_updaters()
+
+    def closeEvent(self, ev):
+        ev.ignore()
+        visibility_manager = self._ui_model.get_visibility_manager()
+        visibility_manager.hide_about()
 
 

@@ -15,26 +15,22 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from renderstats import RenderStats
 
-
-class About(QWidget):
+class AboutButton(QToolButton):
 
     def __init__(self):
-        QWidget.__init__(self)
+        QToolButton.__init__(self)
         self._ui_model = None
 
-        self._render_stats = RenderStats()
-
-        v = QVBoxLayout()
-        v.addWidget(self._render_stats)
-        self.setLayout(v)
+        self.setText('About')
+        self.setAutoRaise(True)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
-        self._render_stats.set_ui_model(ui_model)
+        QObject.connect(self, SIGNAL('clicked()'), self._clicked)
 
-    def unregister_updaters(self):
-        self._render_stats.unregister_updaters()
+    def _clicked(self):
+        visibility_manager = self._ui_model.get_visibility_manager()
+        visibility_manager.show_about()
 
 
