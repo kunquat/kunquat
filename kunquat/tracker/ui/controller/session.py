@@ -27,6 +27,7 @@ class Session():
         self._channel_active_control_id = dict()
         self._channel_active_note = dict()
         self._control_active_notes = dict()
+        self._visible = set()
 
     def get_output_speed(self):
         return self._output_speed
@@ -107,6 +108,17 @@ class Session():
             notes = self._control_active_notes[control_id]
             notes[channel] = pitch
             self._channel_active_control_id[channel] = control_id
+
+    def show_ui(self, ui_id):
+        assert ui_id
+        self._visible.add(ui_id)
+
+    def hide_ui(self, ui_id):
+        assert ui_id
+        self._visible -= set([ui_id])
+
+    def get_visible(self):
+        return self._visible
 
     def get_keymap_data(self):
         keymap_data = {

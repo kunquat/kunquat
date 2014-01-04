@@ -17,6 +17,7 @@ from ui_manager import UiManager
 from playback_manager import PlaybackManager
 from typewritermanager import TypewriterManager
 from module import Module
+from visibilitymanager import VisibilityManager
 
 class UiModel():
     """
@@ -130,6 +131,12 @@ class UiModel():
     def get_module(self):
         return self._module
 
+    def set_visibility_manager(self, visibility_manager):
+        self._visibility_manager = visibility_manager
+
+    def get_visibility_manager(self):
+        return self._visibility_manager
+
     def play(self):
         self._controller.play()
 
@@ -139,11 +146,13 @@ def create_ui_model():
     playback_manager = PlaybackManager()
     typewriter_manager = TypewriterManager()
     module = Module()
+    visibility_manager = VisibilityManager()
     ui_model = UiModel()
     ui_model.set_stat_manager(stat_manager)
     ui_model.set_ui_manager(ui_manager)
     ui_model.set_playback_manager(playback_manager)
     ui_model.set_typewriter_manager(typewriter_manager)
     ui_model.set_module(module)
+    ui_model.set_visibility_manager(visibility_manager)
     return ui_model
 
