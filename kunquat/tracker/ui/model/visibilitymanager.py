@@ -12,7 +12,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-ABOUT = 'about'
+from kunquat.tracker.ui.identifiers import *
+
 
 class VisibilityManager():
 
@@ -27,11 +28,11 @@ class VisibilityManager():
         self._updater = controller.get_updater()
 
     def show_about(self):
-        self._session.show_ui(ABOUT)
+        self._session.show_ui(UI_ABOUT)
         self._updater.signal_update()
 
     def hide_about(self):
-        self._session.hide_ui(ABOUT)
+        self._session.hide_ui(UI_ABOUT)
         self._updater.signal_update()
 
     def get_visible(self):

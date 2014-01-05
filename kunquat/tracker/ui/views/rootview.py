@@ -12,6 +12,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from kunquat.tracker.ui.identifiers import *
 from mainwindow import MainWindow
 from aboutwindow import AboutWindow
 
@@ -43,14 +44,14 @@ class RootView():
         closed = self._visible - visibility_update
 
         for ui in opened:
-            if ui == 'about': # TODO: check ui type
+            if ui == UI_ABOUT: # TODO: check ui type
                 self._about_window = AboutWindow()
                 self._about_window.set_ui_model(self._ui_model)
                 # TODO: Check settings for UI visibility
                 self._about_window.show()
 
         for ui in closed:
-            if ui == 'about':
+            if ui == UI_ABOUT:
                 self._about_window.unregister_updaters()
                 self._about_window.deleteLater()
                 self._about_window = None
