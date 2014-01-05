@@ -18,6 +18,18 @@ from PyQt4.QtGui import *
 from renderstats import RenderStats
 
 
+class AboutMessage(QLabel):
+
+    def __init__(self):
+        QLabel.__init__(self)
+        self.setTextFormat(Qt.RichText)
+
+        contents = """
+            <h1>Kunquat Tracker</h1>
+            """
+        self.setText(contents)
+
+
 class About(QWidget):
 
     def __init__(self):
@@ -27,6 +39,7 @@ class About(QWidget):
         self._render_stats = RenderStats()
 
         v = QVBoxLayout()
+        v.addWidget(AboutMessage())
         v.addWidget(self._render_stats)
         self.setLayout(v)
 
