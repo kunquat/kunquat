@@ -11,6 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+UI_MAIN = 'main'
 UI_ABOUT = 'about'
 
 

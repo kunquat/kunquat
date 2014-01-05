@@ -27,6 +27,14 @@ class VisibilityManager():
         self._session = controller.get_session()
         self._updater = controller.get_updater()
 
+    def show_main(self):
+        self._session.show_ui(UI_MAIN)
+        self._updater.signal_update()
+
+    def hide_main(self):
+        self._session.hide_ui(UI_MAIN)
+        self._updater.signal_update()
+
     def show_about(self):
         self._session.show_ui(UI_ABOUT)
         self._updater.signal_update()

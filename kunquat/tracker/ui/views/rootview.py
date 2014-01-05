@@ -12,6 +12,9 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from PyQt4.QtCore import *
+from PyQt4.QtGui import *
+
 from kunquat.tracker.ui.identifiers import *
 from mainwindow import MainWindow
 from aboutwindow import AboutWindow
@@ -28,7 +31,8 @@ class RootView():
 
     def show_main_window(self):
         # TODO: Check settings for UI visibility
-        self._main_window.show()
+        visibility_manager = self._ui_model.get_visibility_manager()
+        visibility_manager.show_main()
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -44,14 +48,19 @@ class RootView():
         closed = self._visible - visibility_update
 
         for ui in opened:
-            if ui == UI_ABOUT: # TODO: check ui type
+            # TODO: Check settings for UI visibility
+            if ui == UI_MAIN:
+                self._main_window.show()
+            elif ui == UI_ABOUT:
                 self._about_window = AboutWindow()
                 self._about_window.set_ui_model(self._ui_model)
-                # TODO: Check settings for UI visibility
                 self._about_window.show()
 
         for ui in closed:
-            if ui == UI_ABOUT:
+            if ui == UI_MAIN:
+                self._main_window.hide()
+                QApplication.quit()
+            elif ui == UI_ABOUT:
                 self._about_window.unregister_updaters()
                 self._about_window.deleteLater()
                 self._about_window = None

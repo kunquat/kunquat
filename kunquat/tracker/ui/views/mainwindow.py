@@ -28,6 +28,7 @@ class MainWindow(QWidget):
 
     def __init__(self):
         QWidget.__init__(self)
+        self._ui_model = None
         self.resize(800, 600)
         self._play_button = PlayButton()
         self._about_button = AboutButton()
@@ -49,7 +50,10 @@ class MainWindow(QWidget):
         #v.addWidget(self._sheet)
         self.setLayout(v)
 
+        self.hide()
+
     def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
         self._play_button.set_ui_model(ui_model)
         self._about_button.set_ui_model(ui_model)
         self._octave_selector.set_ui_model(ui_model)
@@ -58,4 +62,10 @@ class MainWindow(QWidget):
         self._import_progress.set_ui_model(ui_model)
         self._peak_meter.set_ui_model(ui_model)
         #self._sheet.set_ui_model(ui_model)
+
+    def closeEvent(self, event):
+        event.ignore()
+        visibility_manager = self._ui_model.get_visibility_manager()
+        visibility_manager.hide_main()
+
 
