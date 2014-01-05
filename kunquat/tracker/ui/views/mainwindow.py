@@ -20,7 +20,6 @@ from aboutbutton import AboutButton
 from octaveselector import OctaveSelector
 from typewriter import TypeWriter
 from instrumentselect import InstrumentSelect
-from about import About
 from importprogress import ImportProgress
 from peakmeter import PeakMeter
 from sheet.sheet import Sheet
@@ -36,7 +35,6 @@ class MainWindow(QWidget):
         self._type_writer = TypeWriter()
         self._instrument_select = InstrumentSelect()
         self._import_progress = ImportProgress()
-        self._about = About()
         self._peak_meter = PeakMeter()
         #self._sheet = Sheet()
 
@@ -47,7 +45,6 @@ class MainWindow(QWidget):
         v.addWidget(self._type_writer)
         v.addWidget(self._instrument_select)
         v.addWidget(self._import_progress)
-        v.addWidget(self._about)
         v.addWidget(self._peak_meter)
         #v.addWidget(self._sheet)
         self.setLayout(v)
@@ -59,7 +56,6 @@ class MainWindow(QWidget):
         self._type_writer.set_ui_model(ui_model)
         self._instrument_select.set_ui_model(ui_model)
         self._import_progress.set_ui_model(ui_model)
-        self._about.set_ui_model(ui_model)
         self._peak_meter.set_ui_model(ui_model)
         #self._sheet.set_ui_model(ui_model)
 
