@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2014
 #          Toni Ruottu, Finland 2013
 #
 # This file is part of Kunquat.
@@ -12,8 +12,6 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-import threading
-
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
@@ -22,16 +20,17 @@ from kunquat.tracker.ui.ui_launcher import create_ui_launcher
 from command import Command
 from commandqueue import CommandQueue
 from qeventpump import QEventPump
+from monitoringthread import MonitoringThread
 
 
 HALT = None
 
-class UiThread(threading.Thread):
+class UiThread(MonitoringThread):
 
     process_queue = pyqtSignal(name='process_queue')
 
     def __init__(self):
-        threading.Thread.__init__(self, name="Ui")
+        MonitoringThread.__init__(self, name="Ui")
         self._q = CommandQueue()
         self._ui_launcher = None
         self._controller = None
@@ -105,7 +104,7 @@ class UiThread(threading.Thread):
         QObject.emit(self._pump, SIGNAL('process_queue()'))
         pass
 
-    def run(self):
+    def run_monitored(self):
         self._ui_launcher.set_event_pump_starter(self._start_event_pump)
         self._ui_launcher.run_ui()
 

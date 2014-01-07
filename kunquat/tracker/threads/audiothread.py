@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2014
 #          Toni Ruottu, Finland 2013
 #
 # This file is part of Kunquat.
@@ -13,20 +13,20 @@
 #
 
 import time
-import threading
 
 from kunquat.tracker.audio.audio_engine import create_audio_engine
 
 from command import Command
 from commandqueue import CommandQueue
 from eventpump import EventPump
+from monitoringthread import MonitoringThread
 
 HALT = None
 
-class AudioThread(threading.Thread):
+class AudioThread(MonitoringThread):
 
     def __init__(self):
-        threading.Thread.__init__(self, name="Audio")
+        MonitoringThread.__init__(self, name="Audio")
         self._ui_engine = None
         self._engine = None
         self._q = CommandQueue()
@@ -76,7 +76,7 @@ class AudioThread(threading.Thread):
     def halt(self):
         self._q.push(HALT)
 
-    def run(self):
+    def run_monitored(self):
         self._pump.start()
         running = True
         while running:
@@ -92,7 +92,7 @@ class AudioThread(threading.Thread):
                 self._engine.produce_sound()
         self._pump.set_signaler(None)
         self._close_device()
-    
+
 def create_audio_thread():
     audio_engine = create_audio_engine()
     audio_thread = AudioThread()
