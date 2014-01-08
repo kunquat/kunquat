@@ -62,7 +62,7 @@ class ErrorDialog(QDialog):
         v.addWidget(self._message)
         v.addWidget(self._details)
         h = QHBoxLayout()
-        h.addWidget(self._copybutton)
+        #h.addWidget(self._copybutton)
         h.addWidget(self._closebutton)
         v.addItem(h)
         self.setLayout(v)
