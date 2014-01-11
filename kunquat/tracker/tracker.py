@@ -33,11 +33,10 @@ class Tracker():
         ui_thread.set_audio_engine(audio_thread)
         audio_thread.start()
         ui_thread.start()
-        try:
-            while ui_thread.is_alive():
-                time.sleep(1)
-        except:
-            pass
+
+        while ui_thread.is_alive():
+            time.sleep(1)
+
         ui_thread.halt()
         audio_thread.halt()
         ui_thread.join()
