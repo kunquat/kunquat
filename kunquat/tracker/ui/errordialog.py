@@ -53,6 +53,7 @@ class ErrorDialog(QDialog):
         QDialog.__init__(self)
         sys.excepthook = self._excepthook
 
+        self.setWindowTitle('I am error.')
         self._message = QLabel(MESSAGE)
         self._details = ErrorDetails()
         self._copybutton = QPushButton('Copy to clipboard')
