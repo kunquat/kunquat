@@ -58,14 +58,12 @@ class ErrorDialog(QDialog):
         self.setWindowTitle('I am error.')
         self._message = QLabel(MESSAGE_RICH)
         self._details = ErrorDetails()
-        self._copybutton = QPushButton('Copy to clipboard')
         self._closebutton = QPushButton('Exit Kunquat')
 
         v = QVBoxLayout()
         v.addWidget(self._message)
         v.addWidget(self._details)
         h = QHBoxLayout()
-        #h.addWidget(self._copybutton)
         h.addWidget(self._closebutton)
         v.addItem(h)
         self.setLayout(v)
@@ -75,7 +73,6 @@ class ErrorDialog(QDialog):
                 SIGNAL('exceptionReceived(QString)'),
                 self._show_dialog)
         QObject.connect(self._closebutton, SIGNAL('clicked()'), self.close)
-        QObject.connect(self._copybutton, SIGNAL('clicked()'), self._copy_details)
 
         sys.excepthook = self._excepthook
 
@@ -94,11 +91,5 @@ class ErrorDialog(QDialog):
         self._details.set_details(details)
         self.exec_()
         os.abort()
-
-    def _copy_details(self):
-        details = self._details.get_details()
-        clipboard = QApplication.clipboard()
-        clipboard.setText(details)
-        self._copybutton.setText('Copied!')
 
 
