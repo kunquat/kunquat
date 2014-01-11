@@ -12,18 +12,21 @@
 #
 
 from __future__ import print_function
+import os
 import sys
 import traceback
-import threading
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
+from kunquat.tracker.errorbase import *
 
-MESSAGE = \
-'''Kunquat Tracker encountered an error. Please submit an issue to Kunquat
-issue tracker at https://github.com/kunquat/kunquat/issues with the following
-information attached.'''
+
+MESSAGE_RICH = \
+'''<p>Kunquat Tracker encountered an error.</p>
+<p>Please submit an issue to Kunquat issue tracker at
+<a href="https://github.com/kunquat/kunquat/issues">https://github.com/kunquat/kunquat/issues</a>
+with the following information attached.</p>'''
 
 
 class ErrorDetails(QTextEdit):
@@ -51,10 +54,9 @@ class ErrorDialog(QDialog):
 
     def __init__(self):
         QDialog.__init__(self)
-        sys.excepthook = self._excepthook
 
         self.setWindowTitle('I am error.')
-        self._message = QLabel(MESSAGE)
+        self._message = QLabel(MESSAGE_RICH)
         self._details = ErrorDetails()
         self._copybutton = QPushButton('Copy to clipboard')
         self._closebutton = QPushButton('Exit Kunquat')
@@ -75,11 +77,12 @@ class ErrorDialog(QDialog):
         QObject.connect(self._closebutton, SIGNAL('clicked()'), self.close)
         QObject.connect(self._copybutton, SIGNAL('clicked()'), self._copy_details)
 
-    def _excepthook(self, eclass, einst, trace):
-        details_list = traceback.format_exception(eclass, einst, trace)
-        details = ''.join(details_list)
+        sys.excepthook = self._excepthook
 
-        print('\n{}\n\n{}'.format(MESSAGE, details), file=sys.stderr)
+    def _excepthook(self, eclass, einst, trace):
+        print_error_msg(eclass, einst, trace)
+        log_error(eclass, einst, trace)
+        details = get_error_details(eclass, einst, trace)
 
         QObject.emit(
                 self,
@@ -90,7 +93,7 @@ class ErrorDialog(QDialog):
         details = str(details)
         self._details.set_details(details)
         self.exec_()
-        QApplication.exit(1)
+        os.abort()
 
     def _copy_details(self):
         details = self._details.get_details()
