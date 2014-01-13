@@ -24,6 +24,7 @@ from instrumentselect import InstrumentSelect
 from importprogress import ImportProgress
 from peakmeter import PeakMeter
 from sheet.sheet import Sheet
+from profilecontrol import ProfileControl
 
 class MainWindow(QWidget):
 
@@ -41,6 +42,7 @@ class MainWindow(QWidget):
         self._import_progress = ImportProgress()
         self._peak_meter = PeakMeter()
         #self._sheet = Sheet()
+        self._profile_control = ProfileControl()
 
         buttons = QHBoxLayout()
         buttons.addWidget(self._event_list_button)
@@ -70,6 +72,13 @@ class MainWindow(QWidget):
         self._import_progress.set_ui_model(ui_model)
         self._peak_meter.set_ui_model(ui_model)
         #self._sheet.set_ui_model(ui_model)
+        self._profile_control.set_ui_model(ui_model)
+
+    def keyPressEvent(self, event):
+        modifiers = event.modifiers()
+        key = event.key()
+        if modifiers == Qt.ControlModifier and key == Qt.Key_P:
+            self._profile_control.show()
 
     def unregister_updaters(self):
         self._peak_meter.unregister_updaters()
