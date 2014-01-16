@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013
+# Author: Tomi Jylhä-Ollila, Finland 2013-2014
 #
 # This file is part of Kunquat.
 #
@@ -30,6 +30,8 @@ class Sheet(QAbstractScrollArea):
 
     def __init__(self, config={}):
         QAbstractScrollArea.__init__(self)
+        self._ui_model = None
+        self._updater = None
 
         # Widgets
         self.setViewport(View())
@@ -60,6 +62,7 @@ class Sheet(QAbstractScrollArea):
         self._px_per_beat = self._config['px_per_beat']
 
         # XXX: testing
+        '''
         patterns = [
                 {
                     'length': tstamp.Tstamp(0.5),
@@ -78,6 +81,19 @@ class Sheet(QAbstractScrollArea):
                 self._config['tr_height'])
         self._ruler.set_pattern_lengths(pat_lengths)
         self.viewport().set_patterns(patterns)
+        '''
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+
+        self._update_all_patterns()
+
+    def _update_all_patterns(self):
+        self._total_height_px = self._config['tr_height']
+        self._ruler.set_pattern_lengths([])
+        self.viewport().set_patterns([])
 
     def _set_config(self, config):
         self._config = DEFAULT_CONFIG.copy()
@@ -111,9 +127,8 @@ class Sheet(QAbstractScrollArea):
 
         self.viewport().set_config(self._config)
 
-    def set_ui_model(self, ui_model):
-        self._stat_manager = ui_model.get_stat_manager()
-        #self._stat_manager.register_update(self.update_xxx)
+    def _perform_updates(self, signal):
+        pass
 
     def _get_total_height(self, pat_lengths):
         height = sum(pat_height(pl, self._px_per_beat) for pl in pat_lengths)

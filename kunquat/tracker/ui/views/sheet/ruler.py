@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013
+# Author: Tomi Jylhä-Ollila, Finland 2013-2014
 #
 # This file is part of Kunquat.
 #
@@ -85,6 +85,8 @@ class Ruler(QWidget):
         first_index = get_first_visible_pat_index(
                 self._px_offset,
                 self._start_heights)
+
+        rel_end_height = 0 # empty song
 
         for pi in xrange(first_index, len(self._heights)):
             if self._start_heights[pi] > self._px_offset + self.height():
