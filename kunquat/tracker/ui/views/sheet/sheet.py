@@ -91,9 +91,16 @@ class Sheet(QAbstractScrollArea):
         self._update_all_patterns()
 
     def _update_all_patterns(self):
-        self._total_height_px = self._config['tr_height']
-        self._ruler.set_pattern_lengths([])
-        self.viewport().set_patterns([])
+        module = self._ui_model.get_module()
+        patterns = module.get_patterns('song_00')
+        pat_lengths = [tstamp.Tstamp(p.get_length()) for p in patterns]
+
+        self._total_height_px = (self._get_total_height(pat_lengths) +
+                self._config['tr_height'])
+        self._ruler.set_pattern_lengths(pat_lengths)
+        self.viewport().set_patterns(patterns)
+        self._ruler.update()
+        self.viewport().update()
 
     def _set_config(self, config):
         self._config = DEFAULT_CONFIG.copy()
@@ -127,8 +134,9 @@ class Sheet(QAbstractScrollArea):
 
         self.viewport().set_config(self._config)
 
-    def _perform_updates(self, signal):
-        pass
+    def _perform_updates(self, signals):
+        if 'signal_module' in signals:
+            self._update_all_patterns()
 
     def _get_total_height(self, pat_lengths):
         height = sum(pat_height(pl, self._px_per_beat) for pl in pat_lengths)

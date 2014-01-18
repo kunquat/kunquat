@@ -54,11 +54,11 @@ class View(QWidget):
             self.update()
 
     def set_patterns(self, patterns):
-        self._lengths = [p['length'] for p in patterns]
+        self._lengths = [p.get_length() for p in patterns]
         self._set_pattern_heights()
         for i, cr in enumerate(self._col_rends):
             cr.set_pattern_lengths(self._lengths)
-            columns = [p['columns'][i] for p in patterns]
+            columns = [p.get_columns()[i] for p in patterns]
             cr.set_columns(columns)
 
     def _set_pattern_heights(self):
@@ -330,7 +330,7 @@ class ColumnCache():
 
     def set_column(self, column):
         self._column = column
-        self._tr_cache.set_triggers(column)
+        self._tr_cache.set_triggers(column.get_triggers())
 
     def set_width(self, width):
         if self._width != width:
