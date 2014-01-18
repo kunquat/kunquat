@@ -41,7 +41,7 @@ class MainWindow(QWidget):
         self._instrument_select = InstrumentSelect()
         self._import_progress = ImportProgress()
         self._peak_meter = PeakMeter()
-        #self._sheet = Sheet()
+        self._sheet = Sheet()
         self._profile_control = ProfileControl()
 
         buttons = QHBoxLayout()
@@ -56,7 +56,7 @@ class MainWindow(QWidget):
         v.addWidget(self._instrument_select)
         v.addWidget(self._import_progress)
         v.addWidget(self._peak_meter)
-        #v.addWidget(self._sheet)
+        v.addWidget(self._sheet)
         self.setLayout(v)
 
         self.hide()
@@ -71,7 +71,7 @@ class MainWindow(QWidget):
         self._instrument_select.set_ui_model(ui_model)
         self._import_progress.set_ui_model(ui_model)
         self._peak_meter.set_ui_model(ui_model)
-        #self._sheet.set_ui_model(ui_model)
+        self._sheet.set_ui_model(ui_model)
         self._profile_control.set_ui_model(ui_model)
 
     def keyPressEvent(self, event):
