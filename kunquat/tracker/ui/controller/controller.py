@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2014
 #          Toni Ruottu, Finland 2013
 #
 # This file is part of Kunquat.
@@ -91,7 +91,7 @@ class Controller():
                 self.update_import_progress(i + 1, member_count)
             tfile.close()
             self._store.put(values)
-            self._updater.signal_update(set(['signal_controls']))
+            self._updater.signal_update(set(['signal_controls', 'signal_module']))
             self._audio_engine.set_data(values)
 
     def play(self):
