@@ -18,10 +18,10 @@ from PyQt4.QtGui import *
 from octavebutton import OctaveButton
 
 
-class OctaveSelector(QAbstractScrollArea):
+class OctaveSelector(QFrame):
 
     def __init__(self):
-        QAbstractScrollArea.__init__(self)
+        QFrame.__init__(self)
         self.setFocusPolicy(Qt.TabFocus)
         self._ui_model = None
         self._typewriter_manager = None
@@ -42,17 +42,16 @@ class OctaveSelector(QAbstractScrollArea):
 
     def _update(self):
         view = self._get_view()
-        self.setViewport(view)
+        self.setLayout(view)
 
     def _get_view(self):
         octave_count = self._typewriter_manager.get_octave_count()
-        view = QWidget()
-        row = QHBoxLayout(view)
+        row = QHBoxLayout()
         for i in range(octave_count):
             button = self._get_button(i)
             row.addWidget(button)
         row.addStretch(1)
-        return view
+        return row
 
     def _get_button(self, octave_id):
         button = OctaveButton(octave_id)
