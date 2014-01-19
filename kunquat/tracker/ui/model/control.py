@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013
-#          Tomi Jylhä-Ollila, Finland 2013
+#          Tomi Jylhä-Ollila, Finland 2013-2014
 #
 # This file is part of Kunquat.
 #
@@ -34,8 +34,7 @@ class Control():
         self._model = model
 
     def get_instrument(self):
-        control_id = self.get_id()
-        parts = control_id.split('_')
+        parts = self._control_id.split('_')
         second = parts[1]
         control_number = int(second, 16)
         try:
@@ -60,12 +59,9 @@ class Control():
         return notes[channel_number]
 
     def set_active_note(self, channel_number, pitch):
-        control_id = self.get_id()
-        self._controller.set_active_note(channel_number, control_id, pitch)
+        self._controller.set_active_note(channel_number, self._control_id, pitch)
 
     def set_rest(self, channel_number):
         self._controller.set_rest(channel_number)
 
-    def get_id(self):
-        return self._control_id
 

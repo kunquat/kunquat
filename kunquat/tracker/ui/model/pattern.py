@@ -34,9 +34,6 @@ class Pattern():
         for column in self._columns:
             column.set_controller(controller)
 
-    def get_id(self):
-        return self._pattern_id
-
     def get_existence(self):
         key = '{}/p_manifest.json'.format(self._pattern_id)
         manifest = self._store[key]
