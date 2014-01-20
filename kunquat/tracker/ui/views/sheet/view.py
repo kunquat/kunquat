@@ -58,7 +58,7 @@ class View(QWidget):
         self._set_pattern_heights()
         for i, cr in enumerate(self._col_rends):
             cr.set_pattern_lengths(self._lengths)
-            columns = [p.get_columns()[i] for p in patterns]
+            columns = [p.get_column(i) for p in patterns]
             cr.set_columns(columns)
 
     def _set_pattern_heights(self):

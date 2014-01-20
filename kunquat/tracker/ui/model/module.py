@@ -75,37 +75,11 @@ class Module():
         #    return [] #valid
         return all_instruments
 
-    def get_pattern_instances(self, song_id):
-        try:
-            song = self.get_song(song_id)
-            pat_instances = song.get_order_list()
-            return pat_instances
-        except KeyError:
-            return []
-
-    def get_pattern_ids(self, pat_instances):
-        return ['pat_{:03x}'.format(pinst[0]) for pinst in pat_instances]
-
-    def get_pattern(self, pattern_id):
-        pattern = Pattern(pattern_id)
-        pattern.set_controller(self._controller)
-        return pattern
-
-    def get_patterns(self, song_id):
-        pat_instances = self.get_pattern_instances(song_id)
-        patterns = []
-        for pattern_id in self.get_pattern_ids(pat_instances):
-            patterns.append(self.get_pattern(pattern_id))
-        return patterns
-
     def get_album(self):
         album = Album()
         album.set_controller(self._controller)
+        if not album.get_existence():
+            return None
         return album
-
-    def get_song(self, song_id):
-        song = Song(song_id)
-        song.set_controller(self._controller)
-        return song
 
 

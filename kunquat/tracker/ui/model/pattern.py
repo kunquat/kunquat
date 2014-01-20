@@ -26,13 +26,10 @@ class Pattern():
         self._controller = None
         self._pattern_number = None
         self._existence = None
-        self._columns = [Column(pattern_id, i) for i in xrange(COLUMNS_MAX)]
 
     def set_controller(self, controller):
         self._store = controller.get_store()
         self._controller = controller
-        for column in self._columns:
-            column.set_controller(controller)
 
     def get_existence(self):
         key = '{}/p_manifest.json'.format(self._pattern_id)
@@ -48,8 +45,11 @@ class Pattern():
         except KeyError:
             return [0, 0]
 
-    def get_columns(self):
-        return self._columns
+    def get_column(self, column_index):
+        assert 0 <= column_index < COLUMNS_MAX
+        column = Column(self._pattern_id, column_index)
+        column.set_controller(self._controller)
+        return column
 
     def get_name(self):
         key = '{}/m_name.json'.format(self._pattern_id)

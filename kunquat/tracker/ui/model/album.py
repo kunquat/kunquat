@@ -11,6 +11,9 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from song import Song
+
+
 class Album():
 
     def __init__(self):
@@ -23,12 +26,30 @@ class Album():
 
     def get_existence(self):
         key = 'album/p_manifest.json'
-        manifest = self._store[key]
+        try:
+            manifest = self._store[key]
+        except KeyError:
+            return False
         return (type(manifest) == type({}))
 
-    def get_track_list(self):
+    def get_track_count(self):
+        assert self.get_existence()
+        return len(self._get_track_list())
+
+    def get_song_by_track(self, track_num):
+        tracks = self._get_track_list()
+        song_num = tracks[track_num]
+        song_id = 'song_{:02x}'.format(song_num)
+        song = Song(song_id)
+        song.set_controller(self._controller)
+        return song
+
+    def _get_track_list(self):
         key = 'album/p_tracks.json'
-        track_list = self._store[key]
+        try:
+            track_list = self._store[key]
+        except KeyError: # TODO: get default from libkunquat
+            track_list = []
         return track_list
 
 

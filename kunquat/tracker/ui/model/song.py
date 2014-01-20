@@ -11,6 +11,9 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from patterninstance import PatternInstance
+
+
 class Song():
 
     def __init__(self, song_id):
@@ -28,9 +31,23 @@ class Song():
         manifest = self._store[key]
         return (type(manifest) == type({}))
 
-    def get_order_list(self):
+    def get_system_count(self):
+        return len(self._get_order_list())
+
+    def get_pattern_instance(self, system_num):
+        order_list = self._get_order_list()
+        pattern_num, instance_num = order_list[system_num]
+        pattern_instance = PatternInstance(pattern_num, instance_num)
+        pattern_instance.set_controller(self._controller)
+        return pattern_instance
+
+    def _get_order_list(self):
+        assert self.get_existence()
         key = '{}/p_order_list.json'.format(self._song_id)
-        order_list = self._store[key]
+        try:
+            order_list = self._store[key]
+        except KeyError:
+            order_list = [] # TODO: get default from libkunquat
         return order_list
 
 

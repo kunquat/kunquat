@@ -92,13 +92,27 @@ class Sheet(QAbstractScrollArea):
 
     def _update_all_patterns(self):
         module = self._ui_model.get_module()
-        patterns = module.get_patterns('song_00')
-        pat_lengths = [tstamp.Tstamp(p.get_length()) for p in patterns]
+
+        album = module.get_album()
+        if not album:
+            all_patterns = []
+        else:
+            track_count = album.get_track_count()
+            songs = [album.get_song_by_track(i) for i in xrange(track_count)]
+            all_patterns = []
+            for song in songs:
+                system_count = song.get_system_count()
+                pattern_instances = [song.get_pattern_instance(i)
+                        for i in xrange(system_count)]
+                patterns = [pinst.get_pattern() for pinst in pattern_instances]
+                all_patterns.extend(patterns)
+
+        pat_lengths = [tstamp.Tstamp(p.get_length()) for p in all_patterns]
 
         self._total_height_px = (self._get_total_height(pat_lengths) +
                 self._config['tr_height'])
         self._ruler.set_pattern_lengths(pat_lengths)
-        self.viewport().set_patterns(patterns)
+        self.viewport().set_patterns(all_patterns)
         self._ruler.update()
         self.viewport().update()
 
