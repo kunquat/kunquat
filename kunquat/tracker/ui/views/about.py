@@ -34,6 +34,7 @@ class About(QWidget):
 
     def __init__(self):
         QWidget.__init__(self)
+        self.setWindowTitle('About Kunquat Tracker')
         self._ui_model = None
 
         self._render_stats = RenderStats()
