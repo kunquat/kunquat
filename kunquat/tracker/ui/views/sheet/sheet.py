@@ -111,7 +111,7 @@ class Sheet(QAbstractScrollArea):
 
         self._total_height_px = (self._get_total_height(pat_lengths) +
                 self._config['tr_height'])
-        self._ruler.set_pattern_lengths(pat_lengths)
+        self._ruler.set_patterns(all_patterns)
         self.viewport().set_patterns(all_patterns)
         self._ruler.update()
         self.viewport().update()

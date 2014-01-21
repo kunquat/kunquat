@@ -61,8 +61,8 @@ class Ruler(QWidget):
             self._set_pattern_heights()
             self.update()
 
-    def set_pattern_lengths(self, lengths):
-        self._lengths = lengths
+    def set_patterns(self, patterns):
+        self._lengths = [p.get_length() for p in patterns]
         self._set_pattern_heights()
 
     def _set_pattern_heights(self):
