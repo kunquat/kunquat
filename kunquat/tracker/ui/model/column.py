@@ -26,6 +26,8 @@ class Column():
         self._pattern_id = pattern_id
         self._col_num = col_num
         self._trigger_rows = None
+        self._store = None
+        self._controller = None
 
     def set_controller(self, controller):
         self._store = controller.get_store()
