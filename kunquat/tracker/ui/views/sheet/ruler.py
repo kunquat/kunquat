@@ -20,7 +20,7 @@ from PyQt4.QtGui import *
 
 from config import *
 from utils import *
-import tstamp
+import kunquat.tracker.ui.model.tstamp as tstamp
 
 
 class Ruler(QWidget):

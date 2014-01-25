@@ -21,7 +21,7 @@ from PyQt4.QtGui import *
 
 from config import *
 from utils import *
-import tstamp
+import kunquat.tracker.ui.model.tstamp as tstamp
 
 
 class View(QWidget):
@@ -330,7 +330,7 @@ class ColumnCache():
 
     def set_column(self, column):
         self._column = column
-        self._tr_cache.set_triggers(column.get_triggers())
+        self._tr_cache.set_triggers(column)
 
     def set_width(self, width):
         if self._width != width:
@@ -448,17 +448,16 @@ class TRCache():
         self._config = config
         self._images = {}
 
-    def set_triggers(self, triggers):
-        self._rows = self._build_trigger_rows(triggers)
+    def set_triggers(self, column):
+        self._rows = self._build_trigger_rows(column)
         self._images = {} # TODO: only remove out-of-date images
 
-    def _build_trigger_rows(self, triggers):
+    def _build_trigger_rows(self, column):
         trs = {}
-        for ts, evspec in triggers:
-            ts = tstamp.Tstamp(ts)
-            if ts not in trs:
-                trs[ts] = []
-            trs[ts].append(evspec)
+        for ts in column.get_trigger_row_positions():
+            trow = [column.get_trigger(ts, i)
+                    for i in xrange(column.get_trigger_count_at_row(ts))]
+            trs[ts] = trow
 
         trlist = list(trs.items())
         trlist.sort()
@@ -470,13 +469,13 @@ class TRCache():
         next_tstamps = (row[0] for row in islice(self._rows, 1, None))
 
         for row, next_ts in izip_longest(self._rows, next_tstamps):
-            ts, evspecs = row
+            ts, triggers = row
             if ts < start_ts:
                 continue
             elif ts >= stop_ts:
                 break
             if ts not in self._images:
-                self._images[ts] = self._create_image(evspecs)
+                self._images[ts] = self._create_image(triggers)
                 images_created += 1
             yield (ts, self._images[ts], next_ts)
 
@@ -484,10 +483,10 @@ class TRCache():
             print('{} trigger row image{} created'.format(
                 images_created, 's' if images_created != 1 else ''))
 
-    def _create_image(self, evspecs):
+    def _create_image(self, triggers):
         pdev = QPixmap(1, 1)
-        rends = [TriggerRenderer(self._config) for e in evspecs]
-        widths = [r.get_trigger_width(e, pdev) for r, e in izip(rends, evspecs)]
+        rends = [TriggerRenderer(self._config, t) for t in triggers]
+        widths = [r.get_trigger_width(pdev) for r in rends]
 
         image = QImage(
                 sum(widths),
@@ -536,13 +535,14 @@ class TRCache():
 
 class TriggerRenderer():
 
-    def __init__(self, config):
+    def __init__(self, config, trigger):
+        assert trigger
         self._config = config
+        self._trigger = trigger
 
-    def get_trigger_width(self, evspec, pdev): # TODO: note names
-        self._evspec = evspec
-
-        evtype, expr = self._evspec
+    def get_trigger_width(self, pdev): # TODO: note names
+        evtype = self._trigger.get_type()
+        expr = self._trigger.get_argument()
 
         # Padding
         total_padding = self._config['trigger_padding'] * 2
@@ -572,7 +572,8 @@ class TriggerRenderer():
 
         painter.setCompositionMode(QPainter.CompositionMode_Plus)
 
-        evtype, expr = self._evspec
+        evtype = self._trigger.get_type()
+        expr = self._trigger.get_argument()
         painter.drawText(QPoint(self._evtype_offset, self._baseline_offset), evtype)
         if expr != None:
             painter.drawText(QPoint(self._expr_offset, self._baseline_offset), expr)

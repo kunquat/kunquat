@@ -11,6 +11,10 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from trigger import Trigger
+import tstamp
+
+
 COLUMNS_MAX = 64 # TODO: define in libkunquat interface
 
 
@@ -21,12 +25,43 @@ class Column():
         assert 0 <= col_num < COLUMNS_MAX
         self._pattern_id = pattern_id
         self._col_num = col_num
+        self._trigger_rows = None
 
     def set_controller(self, controller):
         self._store = controller.get_store()
         self._controller = controller
 
-    def get_triggers(self):
+    def get_trigger_row_positions(self):
+        self._build_trigger_rows()
+        return self._trigger_rows.keys()
+
+    def get_trigger_count_at_row(self, row_ts):
+        self._build_trigger_rows()
+        return len(self._trigger_rows[row_ts])
+
+    def get_trigger(self, row_ts, trigger_index):
+        self._build_trigger_rows()
+        return self._trigger_rows[row_ts][trigger_index]
+
+    def insert_trigger(self, row_ts, trigger_index, trigger):
+        raise NotImplementedError
+
+    def replace_trigger(self, row_ts, trigger_index, trigger):
+        raise NotImplementedError
+
+    def _build_trigger_rows(self):
+        if self._trigger_rows == None:
+            self._trigger_rows = {}
+            trigger_list = self._get_raw_data()
+            for ts_data, evspec in trigger_list:
+                ts = tstamp.Tstamp(ts_data)
+                if ts not in self._trigger_rows:
+                    self._trigger_rows[ts] = []
+                trigger_type, argument = evspec
+                trigger = Trigger(trigger_type, argument)
+                self._trigger_rows[ts].append(trigger)
+
+    def _get_raw_data(self):
         key = '{}/col_{:02x}/p_triggers.json'.format(
                 self._pattern_id, self._col_num)
         try:

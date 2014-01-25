@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013
+# Author: Tomi Jylhä-Ollila, Finland 2013-2014
 #
 # This file is part of Kunquat.
 #
@@ -17,7 +17,7 @@ import math
 from PyQt4.QtCore import *
 
 from config import *
-import tstamp
+import kunquat.tracker.ui.model.tstamp as tstamp
 
 
 # Column utils

@@ -23,7 +23,7 @@ from header import Header
 from ruler import Ruler
 from utils import *
 from view import View
-import tstamp
+import kunquat.tracker.ui.model.tstamp as tstamp
 
 
 class Sheet(QAbstractScrollArea):
