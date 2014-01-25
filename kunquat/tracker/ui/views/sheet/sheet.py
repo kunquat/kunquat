@@ -115,6 +115,7 @@ class Sheet(QAbstractScrollArea):
         self.viewport().set_patterns(all_patterns)
         self._ruler.update()
         self.viewport().update()
+        self._update_scrollbars()
 
     def _set_config(self, config):
         self._config = DEFAULT_CONFIG.copy()
@@ -158,10 +159,7 @@ class Sheet(QAbstractScrollArea):
         # TODO: add trigger row height
         return height
 
-    def paintEvent(self, ev):
-        self.viewport().paintEvent(ev)
-
-    def resizeEvent(self, ev):
+    def _update_scrollbars(self):
         vp_height = self.viewport().height()
         vscrollbar = self.verticalScrollBar()
         vscrollbar.setPageStep(vp_height)
@@ -172,6 +170,12 @@ class Sheet(QAbstractScrollArea):
         hscrollbar = self.horizontalScrollBar()
         hscrollbar.setPageStep(max_visible_cols)
         hscrollbar.setRange(0, COLUMN_COUNT - max_visible_cols)
+
+    def paintEvent(self, ev):
+        self.viewport().paintEvent(ev)
+
+    def resizeEvent(self, ev):
+        self._update_scrollbars()
 
     def scrollContentsBy(self, dx, dy):
         hvalue = self.horizontalScrollBar().value()
