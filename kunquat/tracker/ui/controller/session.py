@@ -33,6 +33,7 @@ class Session():
         self._visible = set()
         self._event_log = deque([], 1024)
         self._event_index = count()
+        self._selected_location = None
 
     def get_output_speed(self):
         return self._output_speed
@@ -176,4 +177,11 @@ class Session():
 
         return keymap_data
         #return slendro_data
+
+    def set_selected_location(self, trigger_position):
+        self._selected_location = trigger_position
+
+    def get_selected_location(self):
+        return self._selected_location
+
 
