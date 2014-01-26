@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013
+# Author: Tomi Jylhä-Ollila, Finland 2013-2014
 #
 # This file is part of Kunquat.
 #
@@ -34,6 +34,9 @@ DEFAULT_CONFIG = {
         'border_colour'   : QColor(0x55, 0x55, 0x55),
         'font'            : QFont(QFont().defaultFamily(), 12),
         'trigger_padding' : 3,
+        'edit_cursor': {
+            'line_colour': QColor(0xff, 0x88, 0x44),
+            },
         }
 
 

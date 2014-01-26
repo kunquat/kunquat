@@ -88,6 +88,8 @@ class Sheet(QAbstractScrollArea):
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
 
+        self.viewport().set_ui_model(ui_model)
+
         self._update_all_patterns()
 
     def _update_all_patterns(self):
@@ -121,7 +123,7 @@ class Sheet(QAbstractScrollArea):
         self._config = DEFAULT_CONFIG.copy()
         self._config.update(config)
 
-        for subcfg in ('ruler', 'header'):
+        for subcfg in ('ruler', 'header', 'edit_cursor'):
             self._config[subcfg] = DEFAULT_CONFIG[subcfg].copy()
             if subcfg in config:
                 self._config[subcfg].update(config[subcfg])

@@ -19,9 +19,10 @@ import time
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
+import kunquat.tracker.ui.model.tstamp as tstamp
+from kunquat.tracker.ui.model.triggerposition import TriggerPosition
 from config import *
 from utils import *
-import kunquat.tracker.ui.model.tstamp as tstamp
 
 
 class View(QWidget):
@@ -29,19 +30,31 @@ class View(QWidget):
     def __init__(self):
         QWidget.__init__(self)
 
+        self._ui_model = None
+        self._updater = None
+
         self.setAutoFillBackground(False)
         self.setAttribute(Qt.WA_OpaquePaintEvent)
         self.setAttribute(Qt.WA_NoSystemBackground)
 
         self._px_per_beat = DEFAULT_CONFIG['px_per_beat']
         self._px_offset = 0
-        self._lengths = []
+        self._patterns = []
 
         self._col_width = DEFAULT_CONFIG['col_width']
         self._first_col = 0
         self._visible_cols = 0
 
         self._col_rends = [ColumnGroupRenderer(i) for i in xrange(COLUMN_COUNT)]
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+
+    def _perform_updates(self, signals):
+        if 'signal_module' in signals:
+            pass # TODO: update properly
 
     def set_config(self, config):
         self._config = config
@@ -54,15 +67,26 @@ class View(QWidget):
             self.update()
 
     def set_patterns(self, patterns):
-        self._lengths = [p.get_length() for p in patterns]
+        self._patterns = patterns
         self._set_pattern_heights()
+        lengths = [p.get_length() for p in patterns]
         for i, cr in enumerate(self._col_rends):
-            cr.set_pattern_lengths(self._lengths)
+            cr.set_pattern_lengths(lengths)
             columns = [p.get_column(i) for p in patterns]
             cr.set_columns(columns)
 
+        selection = self._ui_model.get_selection()
+        if self._patterns:
+            if not selection.get_location():
+                location = TriggerPosition(0, 0, 0, tstamp.Tstamp(0), 0)
+                selection.set_location(location)
+        else:
+            if selection.get_location():
+                selection.set_location(None)
+
     def _set_pattern_heights(self):
-        self._heights = get_pat_heights(self._lengths, self._px_per_beat)
+        lengths = [p.get_length() for p in self._patterns]
+        self._heights = get_pat_heights(lengths, self._px_per_beat)
         self._start_heights = get_pat_start_heights(self._heights)
         for cr in self._col_rends:
             cr.set_pattern_heights(self._heights, self._start_heights)
@@ -81,6 +105,55 @@ class View(QWidget):
                 cr.set_px_per_beat(self._px_per_beat)
             self._set_pattern_heights()
             self.update()
+
+    def _draw_edit_cursor(self):
+        selection = self._ui_model.get_selection()
+        location = selection.get_location()
+        if location:
+            assert self._patterns
+
+            track = location.get_track()
+            system = location.get_system()
+            selected_col = location.get_col_num()
+            row_ts = location.get_row_ts()
+
+            # Get x offset
+            max_visible_cols = get_max_visible_cols(self.width(), self._col_width)
+            first_col = clamp_start_col(self._first_col, max_visible_cols)
+            visible_cols = get_visible_cols(first_col, max_visible_cols)
+            if not first_col <= selected_col < (first_col + visible_cols):
+                return # Cursor is not in one of the visible columns
+            x_offset = (selected_col - first_col) * self._col_width
+
+            # Get y offset
+            module = self._ui_model.get_module()
+            album = module.get_album()
+            song = album.get_song_by_track(track)
+            pat_instance = song.get_pattern_instance(system)
+            pattern = pat_instance.get_pattern()
+
+            first_visible_pat_index = get_first_visible_pat_index(
+                    self._px_offset, self._start_heights)
+            for pi in xrange(first_visible_pat_index, len(self._patterns)):
+                if self._start_heights[pi] > self._px_offset + self.height():
+                    return # Cursor is below the visible area
+                if pattern == self._patterns[pi]:
+                    start_px = self._start_heights[pi] - self._px_offset
+                    location_from_start_px = (
+                            (row_ts.beats * tstamp.BEAT + row_ts.rem) *
+                            self._px_per_beat) // tstamp.BEAT
+                    location_px = location_from_start_px + start_px
+                    if not -self._config['tr_height'] < location_px < self.height():
+                        return # Correct pattern, but outside the visible area
+
+                    # Draw the horizontal line
+                    painter = QPainter(self)
+                    painter.setPen(self._config['edit_cursor']['line_colour'])
+                    painter.drawLine(
+                            QPoint(x_offset, location_px),
+                            QPoint(x_offset + self._col_width - 2, location_px))
+            else:
+                assert False # Invalid cursor location
 
     def resizeEvent(self, ev):
         max_visible_cols = get_max_visible_cols(self.width(), self._col_width)
@@ -135,6 +208,10 @@ class View(QWidget):
             width = self.width() - hor_trail_start
             painter.eraseRect(QRect(hor_trail_start, 0, width, self.height()))
 
+        # Draw edit cursor
+        if self.hasFocus() or True:
+            self._draw_edit_cursor()
+
         if pixmaps_created == 0:
             pass # TODO: update was easy, predraw a likely next pixmap
         else:
@@ -144,6 +221,12 @@ class View(QWidget):
         end = time.time()
         elapsed = end - start
         print('View updated in {:.2f} ms'.format(elapsed * 1000))
+
+    def focusInEvent(self, ev):
+        pass
+
+    def focusOutEvent(self, ev):
+        pass
 
 
 class ColumnGroupRenderer():

@@ -19,6 +19,7 @@ from typewritermanager import TypewriterManager
 from eventhistory import EventHistory
 from module import Module
 from visibilitymanager import VisibilityManager
+from selection import Selection
 
 class UiModel():
     """
@@ -87,6 +88,7 @@ class UiModel():
         self._event_history = None
         self._module = None
         self._visibility_manager = None
+        self._selection = None
 
     def set_ui(self, ui):
         self._ui = ui
@@ -99,6 +101,7 @@ class UiModel():
         self._typewriter_manager.set_controller(self._controller)
         self._visibility_manager.set_controller(self._controller)
         self._event_history.set_controller(self._controller)
+        self._selection.set_controller(self._controller)
 
     def get_updater(self):
         updater = self._controller.get_updater()
@@ -148,6 +151,13 @@ class UiModel():
     def get_visibility_manager(self):
         return self._visibility_manager
 
+    def set_selection(self, selection):
+        self._selection = selection
+        self._selection.set_model(self)
+
+    def get_selection(self):
+        return self._selection
+
     def play(self):
         self._controller.play()
 
@@ -159,6 +169,7 @@ def create_ui_model():
     event_history = EventHistory()
     module = Module()
     visibility_manager = VisibilityManager()
+    selection = Selection()
     ui_model = UiModel()
     ui_model.set_stat_manager(stat_manager)
     ui_model.set_ui_manager(ui_manager)
@@ -167,5 +178,6 @@ def create_ui_model():
     ui_model.set_event_history(event_history)
     ui_model.set_module(module)
     ui_model.set_visibility_manager(visibility_manager)
+    ui_model.set_selection(selection)
     return ui_model
 

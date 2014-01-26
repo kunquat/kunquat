@@ -12,6 +12,7 @@
 #
 
 from column import Column
+import tstamp
 
 
 COLUMNS_MAX = 64 # TODO: define in libkunquat interface
@@ -27,6 +28,10 @@ class Pattern():
         self._pattern_number = None
         self._existence = None
 
+    def __eq__(self, other):
+        assert isinstance(other, Pattern)
+        return self._pattern_id == other._pattern_id
+
     def set_controller(self, controller):
         self._store = controller.get_store()
         self._controller = controller
@@ -41,9 +46,9 @@ class Pattern():
         try:
             header = self._store[key]
             length = header['length']
-            return length
+            return tstamp.Tstamp(length)
         except KeyError:
-            return [0, 0]
+            return tstamp.Tstamp(0)
 
     def get_column(self, column_index):
         assert 0 <= column_index < COLUMNS_MAX
