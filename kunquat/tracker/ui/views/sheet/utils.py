@@ -20,7 +20,29 @@ from config import *
 import kunquat.tracker.ui.model.tstamp as tstamp
 
 
-# Column utils
+# Model utils
+
+def get_all_patterns(ui_model):
+    module = ui_model.get_module()
+
+    album = module.get_album()
+    if not album:
+        all_patterns = []
+    else:
+        track_count = album.get_track_count()
+        songs = (album.get_song_by_track(i) for i in xrange(track_count))
+        all_patterns = []
+        for song in songs:
+            system_count = song.get_system_count()
+            pattern_instances = (song.get_pattern_instance(i)
+                    for i in xrange(system_count))
+            patterns = (pinst.get_pattern() for pinst in pattern_instances)
+            all_patterns.extend(patterns)
+
+    return all_patterns
+
+
+# Column view utils
 
 def get_max_visible_cols(full_width, col_width):
     return min(full_width // col_width + 1, COLUMN_COUNT + 1)
@@ -34,7 +56,7 @@ def get_visible_cols(first_col, max_visible_cols):
     return max_visible_cols
 
 
-# Pattern utils
+# Pattern view utils
 
 def pat_height(length, px_per_beat):
     return int(math.ceil(float(length + tstamp.Tstamp(0, 1)) * px_per_beat))

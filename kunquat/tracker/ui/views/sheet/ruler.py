@@ -25,13 +25,20 @@ import kunquat.tracker.ui.model.tstamp as tstamp
 
 class Ruler(QWidget):
 
+    heightChanged = pyqtSignal(name='heightChanged')
+
     def __init__(self):
         QWidget.__init__(self)
+        self._ui_model = None
+        self._updater = None
 
         self._lengths = []
         self._px_offset = 0
         self._px_per_beat = DEFAULT_CONFIG['px_per_beat']
         self._cache = RulerCache()
+
+        self._heights = []
+        self._start_heights = []
 
         self.setAutoFillBackground(False)
         self.setAttribute(Qt.WA_OpaquePaintEvent)
@@ -53,6 +60,26 @@ class Ruler(QWidget):
 
         self.update()
 
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
+
+    def get_total_height(self):
+        return sum(self._heights)
+
+    def _perform_updates(self, signals):
+        if 'signal_module' in signals:
+            self._update_all_patterns()
+            self.update()
+
+    def _update_all_patterns(self):
+        all_patterns = get_all_patterns(self._ui_model)
+        self.set_patterns(all_patterns)
+
     def set_px_per_beat(self, px_per_beat):
         changed = self._px_per_beat != px_per_beat
         self._px_per_beat = px_per_beat
@@ -68,6 +95,7 @@ class Ruler(QWidget):
     def _set_pattern_heights(self):
         self._heights = get_pat_heights(self._lengths, self._px_per_beat)
         self._start_heights = get_pat_start_heights(self._heights)
+        QObject.emit(self, SIGNAL('heightChanged()'))
 
     def set_px_offset(self, offset):
         changed = offset != self._px_offset

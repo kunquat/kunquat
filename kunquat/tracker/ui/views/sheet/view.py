@@ -27,6 +27,8 @@ from utils import *
 
 class View(QWidget):
 
+    heightChanged = pyqtSignal(name='heightChanged')
+
     def __init__(self):
         QWidget.__init__(self)
 
@@ -47,14 +49,25 @@ class View(QWidget):
 
         self._col_rends = [ColumnGroupRenderer(i) for i in xrange(COLUMN_COUNT)]
 
+        self._heights = []
+        self._start_heights = []
+
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
 
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
+
     def _perform_updates(self, signals):
         if 'signal_module' in signals:
-            pass # TODO: update properly
+            self._update_all_patterns()
+            self.update()
+
+    def _update_all_patterns(self):
+        all_patterns = get_all_patterns(self._ui_model)
+        self.set_patterns(all_patterns)
 
     def set_config(self, config):
         self._config = config
@@ -90,6 +103,11 @@ class View(QWidget):
         self._start_heights = get_pat_start_heights(self._heights)
         for cr in self._col_rends:
             cr.set_pattern_heights(self._heights, self._start_heights)
+
+        QObject.emit(self, SIGNAL('heightChanged()'))
+
+    def get_total_height(self):
+        return sum(self._heights)
 
     def set_px_offset(self, offset):
         if self._px_offset != offset:
@@ -143,8 +161,8 @@ class View(QWidget):
                     return None # Correct pattern, but outside the visible area
 
                 return location_px
-        else:
-            assert False # Invalid cursor location
+
+        return None
 
     def _draw_edit_cursor(self):
         selection = self._ui_model.get_selection()
@@ -258,6 +276,9 @@ class ColumnGroupRenderer():
         self._width = DEFAULT_CONFIG['col_width']
         self._px_offset = 0
         self._px_per_beat = DEFAULT_CONFIG['px_per_beat']
+
+        self._heights = []
+        self._start_heights = []
 
     def set_config(self, config):
         self._config = config

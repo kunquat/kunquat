@@ -30,8 +30,6 @@ class Sheet(QAbstractScrollArea):
 
     def __init__(self, config={}):
         QAbstractScrollArea.__init__(self)
-        self._ui_model = None
-        self._updater = None
 
         # Widgets
         self.setViewport(View())
@@ -61,6 +59,11 @@ class Sheet(QAbstractScrollArea):
         self._col_width = self._config['col_width']
         self._px_per_beat = self._config['px_per_beat']
 
+        QObject.connect(
+                self.viewport(),
+                SIGNAL('heightChanged()'),
+                self._update_scrollbars)
+
         # XXX: testing
         '''
         patterns = [
@@ -84,40 +87,12 @@ class Sheet(QAbstractScrollArea):
         '''
 
     def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-
+        self._ruler.set_ui_model(ui_model)
         self.viewport().set_ui_model(ui_model)
 
-        self._update_all_patterns()
-
-    def _update_all_patterns(self):
-        module = self._ui_model.get_module()
-
-        album = module.get_album()
-        if not album:
-            all_patterns = []
-        else:
-            track_count = album.get_track_count()
-            songs = [album.get_song_by_track(i) for i in xrange(track_count)]
-            all_patterns = []
-            for song in songs:
-                system_count = song.get_system_count()
-                pattern_instances = [song.get_pattern_instance(i)
-                        for i in xrange(system_count)]
-                patterns = [pinst.get_pattern() for pinst in pattern_instances]
-                all_patterns.extend(patterns)
-
-        pat_lengths = [tstamp.Tstamp(p.get_length()) for p in all_patterns]
-
-        self._total_height_px = (self._get_total_height(pat_lengths) +
-                self._config['tr_height'])
-        self._ruler.set_patterns(all_patterns)
-        self.viewport().set_patterns(all_patterns)
-        self._ruler.update()
-        self.viewport().update()
-        self._update_scrollbars()
+    def unregister_updaters(self):
+        self._ruler.unregister_updaters()
+        self.viewport().unregister_updaters()
 
     def _set_config(self, config):
         self._config = DEFAULT_CONFIG.copy()
@@ -151,10 +126,6 @@ class Sheet(QAbstractScrollArea):
 
         self.viewport().set_config(self._config)
 
-    def _perform_updates(self, signals):
-        if 'signal_module' in signals:
-            self._update_all_patterns()
-
     def _get_total_height(self, pat_lengths):
         height = sum(pat_height(pl, self._px_per_beat) for pl in pat_lengths)
         height -= len(pat_lengths) - 1
@@ -162,6 +133,9 @@ class Sheet(QAbstractScrollArea):
         return height
 
     def _update_scrollbars(self):
+        self._total_height_px = (
+                self.viewport().get_total_height() + self._config['tr_height'])
+
         vp_height = self.viewport().height()
         vscrollbar = self.verticalScrollBar()
         vscrollbar.setPageStep(vp_height)
