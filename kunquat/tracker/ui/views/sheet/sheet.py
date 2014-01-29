@@ -21,7 +21,7 @@ from PyQt4.QtGui import *
 from config import *
 from header import Header
 from ruler import Ruler
-from utils import *
+import utils
 from view import View
 import kunquat.tracker.ui.model.tstamp as tstamp
 
@@ -127,7 +127,7 @@ class Sheet(QAbstractScrollArea):
         self.viewport().set_config(self._config)
 
     def _get_total_height(self, pat_lengths):
-        height = sum(pat_height(pl, self._px_per_beat) for pl in pat_lengths)
+        height = sum(utils.pat_height(pl, self._px_per_beat) for pl in pat_lengths)
         height -= len(pat_lengths) - 1
         # TODO: add trigger row height
         return height

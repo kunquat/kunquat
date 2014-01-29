@@ -19,7 +19,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 from config import *
-from utils import *
+import utils
 import kunquat.tracker.ui.model.tstamp as tstamp
 
 
@@ -77,7 +77,7 @@ class Ruler(QWidget):
             self.update()
 
     def _update_all_patterns(self):
-        all_patterns = get_all_patterns(self._ui_model)
+        all_patterns = utils.get_all_patterns(self._ui_model)
         self.set_patterns(all_patterns)
 
     def set_px_per_beat(self, px_per_beat):
@@ -93,8 +93,8 @@ class Ruler(QWidget):
         self._set_pattern_heights()
 
     def _set_pattern_heights(self):
-        self._heights = get_pat_heights(self._lengths, self._px_per_beat)
-        self._start_heights = get_pat_start_heights(self._heights)
+        self._heights = utils.get_pat_heights(self._lengths, self._px_per_beat)
+        self._start_heights = utils.get_pat_start_heights(self._heights)
         QObject.emit(self, SIGNAL('heightChanged()'))
 
     def set_px_offset(self, offset):
@@ -110,7 +110,7 @@ class Ruler(QWidget):
         painter = QPainter(self)
 
         # Render rulers of visible patterns
-        first_index = get_first_visible_pat_index(
+        first_index = utils.get_first_visible_pat_index(
                 self._px_offset,
                 self._start_heights)
 
@@ -192,12 +192,12 @@ class RulerCache():
 
         create_count = 0
 
-        for i in get_pixmap_indices(start_px, stop_px, RulerCache.PIXMAP_HEIGHT):
+        for i in utils.get_pixmap_indices(start_px, stop_px, RulerCache.PIXMAP_HEIGHT):
             if i not in self._pixmaps:
                 self._pixmaps[i] = self._create_pixmap(i)
                 create_count += 1
 
-            rect = get_pixmap_rect(
+            rect = utils.get_pixmap_rect(
                     i,
                     start_px, stop_px,
                     self._width,

@@ -22,7 +22,7 @@ from PyQt4.QtGui import *
 import kunquat.tracker.ui.model.tstamp as tstamp
 from kunquat.tracker.ui.model.triggerposition import TriggerPosition
 from config import *
-from utils import *
+import utils
 
 
 class View(QWidget):
@@ -66,7 +66,7 @@ class View(QWidget):
             self.update()
 
     def _update_all_patterns(self):
-        all_patterns = get_all_patterns(self._ui_model)
+        all_patterns = utils.get_all_patterns(self._ui_model)
         self.set_patterns(all_patterns)
 
     def set_config(self, config):
@@ -99,8 +99,8 @@ class View(QWidget):
 
     def _set_pattern_heights(self):
         lengths = [p.get_length() for p in self._patterns]
-        self._heights = get_pat_heights(lengths, self._px_per_beat)
-        self._start_heights = get_pat_start_heights(self._heights)
+        self._heights = utils.get_pat_heights(lengths, self._px_per_beat)
+        self._start_heights = utils.get_pat_start_heights(self._heights)
         for cr in self._col_rends:
             cr.set_pattern_heights(self._heights, self._start_heights)
 
@@ -125,9 +125,9 @@ class View(QWidget):
             self.update()
 
     def _get_visible_col_offset(self, col_num):
-        max_visible_cols = get_max_visible_cols(self.width(), self._col_width)
-        first_col = clamp_start_col(self._first_col, max_visible_cols)
-        visible_cols = get_visible_cols(first_col, max_visible_cols)
+        max_visible_cols = utils.get_max_visible_cols(self.width(), self._col_width)
+        first_col = utils.clamp_start_col(self._first_col, max_visible_cols)
+        visible_cols = utils.get_visible_cols(first_col, max_visible_cols)
         if not first_col <= col_num < (first_col + visible_cols):
             return None
         return (col_num - first_col) * self._col_width
@@ -146,7 +146,7 @@ class View(QWidget):
         pat_instance = song.get_pattern_instance(system)
         pattern = pat_instance.get_pattern()
 
-        first_visible_pat_index = get_first_visible_pat_index(
+        first_visible_pat_index = utils.get_first_visible_pat_index(
                 self._px_offset, self._start_heights)
         for pi in xrange(first_visible_pat_index, len(self._patterns)):
             if self._start_heights[pi] > self._px_offset + self.height():
@@ -191,9 +191,9 @@ class View(QWidget):
                     QPoint(x_offset + self._col_width - 2, y_offset))
 
     def resizeEvent(self, ev):
-        max_visible_cols = get_max_visible_cols(self.width(), self._col_width)
-        first_col = clamp_start_col(self._first_col, max_visible_cols)
-        visible_cols = get_visible_cols(first_col, max_visible_cols)
+        max_visible_cols = utils.get_max_visible_cols(self.width(), self._col_width)
+        first_col = utils.clamp_start_col(self._first_col, max_visible_cols)
+        visible_cols = utils.get_visible_cols(first_col, max_visible_cols)
 
         update_rect = None
 
@@ -324,7 +324,7 @@ class ColumnGroupRenderer():
 
     def draw(self, painter, height):
         # Render columns of visible patterns
-        first_index = get_first_visible_pat_index(
+        first_index = utils.get_first_visible_pat_index(
                 self._px_offset,
                 self._start_heights)
 
@@ -481,7 +481,7 @@ class ColumnCache():
                 self._pixmaps[i] = self._create_pixmap(i)
                 self._pixmaps_created += 1
 
-            rect = get_pixmap_rect(
+            rect = utils.get_pixmap_rect(
                     i,
                     start_px, stop_px,
                     self._width,
