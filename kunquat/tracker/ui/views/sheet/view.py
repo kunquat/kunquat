@@ -127,9 +127,6 @@ class View(QWidget):
     def _get_visible_col_offset(self, col_num):
         max_visible_cols = utils.get_max_visible_cols(self.width(), self._col_width)
         first_col = utils.clamp_start_col(self._first_col, max_visible_cols)
-        visible_cols = utils.get_visible_cols(first_col, max_visible_cols)
-        if not first_col <= col_num < (first_col + visible_cols):
-            return None
         return (col_num - first_col) * self._col_width
 
     def _get_visible_row_offset(self, location):
@@ -144,22 +141,15 @@ class View(QWidget):
         album = module.get_album()
         song = album.get_song_by_track(track)
         pat_instance = song.get_pattern_instance(system)
-        pattern = pat_instance.get_pattern()
+        cur_pattern = pat_instance.get_pattern()
 
-        first_visible_pat_index = utils.get_first_visible_pat_index(
-                self._px_offset, self._start_heights)
-        for pi in xrange(first_visible_pat_index, len(self._patterns)):
-            if self._start_heights[pi] > self._px_offset + self.height():
-                return None # Cursor is below the visible area
-            if pattern == self._patterns[pi]:
-                start_px = self._start_heights[pi] - self._px_offset
+        for pattern, start_height in izip(self._patterns, self._start_heights):
+            if cur_pattern == pattern:
+                start_px = start_height - self._px_offset
                 location_from_start_px = (
                         (row_ts.beats * tstamp.BEAT + row_ts.rem) *
                         self._px_per_beat) // tstamp.BEAT
                 location_px = location_from_start_px + start_px
-                if not -self._config['tr_height'] < location_px < self.height():
-                    return None # Correct pattern, but outside the visible area
-
                 return location_px
 
         return None
@@ -177,10 +167,10 @@ class View(QWidget):
 
             # Get pixel offsets
             x_offset = self._get_visible_col_offset(selected_col)
-            if x_offset == None:
+            if not 0 <= x_offset < self.width():
                 return
             y_offset = self._get_visible_row_offset(location)
-            if y_offset == None:
+            if not -self._config['tr_height'] < y_offset < self.height():
                 return
 
             # Draw the horizontal line
