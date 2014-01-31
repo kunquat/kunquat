@@ -25,6 +25,52 @@ from config import *
 import utils
 
 
+class VerticalMoveState():
+
+    STEPS = range(17)
+
+    def __init__(self):
+        self._dir = 0
+        self._step_index = 0
+        self._up_pressed = False
+        self._down_pressed = False
+
+    def get_delta(self):
+        return self._dir * self.STEPS[min(self._step_index, len(self.STEPS) - 1)]
+
+    def press_up(self):
+        self._up_pressed = True
+        if self._dir >= 0:
+            self._dir = -1
+            self._step_index = 1
+        else:
+            self._step_index += 1
+
+    def press_down(self):
+        self._down_pressed = True
+        if self._dir <= 0:
+            self._dir = 1
+            self._step_index = 1
+        else:
+            self._step_index += 1
+
+    def release_up(self):
+        self._up_pressed = False
+        if self._down_pressed:
+            if self._dir < 0:
+                self.press_down()
+        else:
+            self._dir = 0
+
+    def release_down(self):
+        self._down_pressed = False
+        if self._up_pressed:
+            if self._dir > 0:
+                self.press_up()
+        else:
+            self._dir = 0
+
+
 class View(QWidget):
 
     heightChanged = pyqtSignal(name='heightChanged')
@@ -38,6 +84,7 @@ class View(QWidget):
         self.setAutoFillBackground(False)
         self.setAttribute(Qt.WA_OpaquePaintEvent)
         self.setAttribute(Qt.WA_NoSystemBackground)
+        self.setFocusPolicy(Qt.StrongFocus)
 
         self._px_per_beat = DEFAULT_CONFIG['px_per_beat']
         self._px_offset = 0
@@ -51,6 +98,8 @@ class View(QWidget):
 
         self._heights = []
         self._start_heights = []
+
+        self._vertical_move_state = VerticalMoveState()
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -179,6 +228,33 @@ class View(QWidget):
             painter.drawLine(
                     QPoint(x_offset, y_offset),
                     QPoint(x_offset + self._col_width - 2, y_offset))
+
+    def _move_edit_cursor(self):
+        px_delta = self._vertical_move_state.get_delta()
+        # TODO:
+        # Check moving to the previous system
+        # Get default trigger position on the current pixel position
+        # Convert pixel delta to tstamp delta
+        # Get target tstamp
+        # Get shortest movement between actual tstamp delta and closest trigger row
+        # Check moving outside pattern boundaries
+        # Update selection
+
+    def keyPressEvent(self, ev):
+        if ev.key() == Qt.Key_Up:
+            self._vertical_move_state.press_up()
+            self._move_edit_cursor()
+        elif ev.key() == Qt.Key_Down:
+            self._vertical_move_state.press_down()
+            self._move_edit_cursor()
+
+    def keyReleaseEvent(self, ev):
+        if ev.isAutoRepeat():
+            return
+        if ev.key() == Qt.Key_Up:
+            self._vertical_move_state.release_up()
+        elif ev.key() == Qt.Key_Down:
+            self._vertical_move_state.release_down()
 
     def resizeEvent(self, ev):
         max_visible_cols = utils.get_max_visible_cols(self.width(), self._col_width)

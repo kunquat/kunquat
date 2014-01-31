@@ -147,6 +147,16 @@ class Sheet(QAbstractScrollArea):
         hscrollbar.setPageStep(max_visible_cols)
         hscrollbar.setRange(0, COLUMN_COUNT - max_visible_cols)
 
+    def keyPressEvent(self, ev):
+        if ev.key() in (Qt.Key_Up, Qt.Key_Down):
+            ev.ignore()
+            self.viewport().keyPressEvent(ev) # FIXME: do this properly
+
+    def keyReleaseEvent(self, ev):
+        if ev.key() in (Qt.Key_Up, Qt.Key_Down):
+            ev.ignore()
+            self.viewport().keyReleaseEvent(ev) # FIXME: do this properly
+
     def paintEvent(self, ev):
         self.viewport().paintEvent(ev)
 
