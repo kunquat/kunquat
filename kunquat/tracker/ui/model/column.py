@@ -37,6 +37,10 @@ class Column():
         self._build_trigger_rows()
         return self._trigger_rows.keys()
 
+    def get_trigger_row_positions_in_range(self, start, stop):
+        self._build_trigger_rows()
+        return [ts for ts in self._trigger_rows.keys() if start <= ts < stop]
+
     def get_trigger_count_at_row(self, row_ts):
         self._build_trigger_rows()
         return len(self._trigger_rows[row_ts])
