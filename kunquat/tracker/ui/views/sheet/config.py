@@ -35,7 +35,8 @@ DEFAULT_CONFIG = {
         'font'            : QFont(QFont().defaultFamily(), 12),
         'trigger_padding' : 3,
         'edit_cursor': {
-            'line_colour': QColor(0xff, 0x88, 0x44),
+            'line_colour'  : QColor(0xff, 0x88, 0x44),
+            'min_snap_dist': 64,
             },
         }
 

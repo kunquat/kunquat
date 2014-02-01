@@ -75,6 +75,7 @@ class VerticalMoveState():
 class View(QWidget):
 
     heightChanged = pyqtSignal(name='heightChanged')
+    followCursor = pyqtSignal(int, int, name='followCursor')
 
     def __init__(self):
         QWidget.__init__(self)
@@ -115,7 +116,7 @@ class View(QWidget):
             self._update_all_patterns()
             self.update()
         if 'signal_selection' in signals:
-            self.update()
+            self._follow_edit_cursor()
 
     def _update_all_patterns(self):
         all_patterns = utils.get_all_patterns(self._ui_model)
@@ -176,12 +177,12 @@ class View(QWidget):
             self._set_pattern_heights()
             self.update()
 
-    def _get_visible_col_offset(self, col_num):
+    def _get_col_offset(self, col_num):
         max_visible_cols = utils.get_max_visible_cols(self.width(), self._col_width)
         first_col = utils.clamp_start_col(self._first_col, max_visible_cols)
         return (col_num - first_col) * self._col_width
 
-    def _get_visible_row_offset(self, location):
+    def _get_row_offset(self, location):
         # Get location components
         track = location.get_track()
         system = location.get_system()
@@ -206,6 +207,51 @@ class View(QWidget):
 
         return None
 
+    def _follow_edit_cursor(self):
+        selection = self._ui_model.get_selection()
+        location = selection.get_location()
+        if not location:
+            self.update()
+            return
+
+        is_scrolling_required = False
+        new_first_col = self._first_col
+        new_y_offset = self._px_offset
+
+        # Check horizontal scrolling
+        col_num = location.get_col_num()
+
+        x_offset = self._get_col_offset(col_num)
+        if x_offset < 0:
+            is_scrolling_required = True
+            new_first_col = col_num
+        elif x_offset + self._col_width > self.width():
+            is_scrolling_required = True
+            new_first_col = col_num - (self.width() // self._col_width)
+
+        # Check vertical scrolling
+        y_offset = self._get_row_offset(location)
+        min_snap_dist = self._config['edit_cursor']['min_snap_dist']
+        min_center_dist = min(min_snap_dist, self.height() // 2)
+        tr_height = self._config['tr_height']
+        min_y_offset = min_center_dist - tr_height // 2
+        max_y_offset = self.height() - min_center_dist - tr_height // 2
+        if y_offset < min_y_offset:
+            is_scrolling_required = True
+            new_y_offset = new_y_offset - (min_y_offset - y_offset)
+        elif y_offset >= max_y_offset:
+            is_scrolling_required = True
+            new_y_offset = new_y_offset + (y_offset - max_y_offset)
+
+        if is_scrolling_required:
+            QObject.emit(
+                    self,
+                    SIGNAL('followCursor(int, int)'),
+                    new_y_offset,
+                    new_first_col)
+        else:
+            self.update()
+
     def _draw_edit_cursor(self):
         selection = self._ui_model.get_selection()
         location = selection.get_location()
@@ -218,10 +264,10 @@ class View(QWidget):
             row_ts = location.get_row_ts()
 
             # Get pixel offsets
-            x_offset = self._get_visible_col_offset(selected_col)
+            x_offset = self._get_col_offset(selected_col)
             if not 0 <= x_offset < self.width():
                 return
-            y_offset = self._get_visible_row_offset(location)
+            y_offset = self._get_row_offset(location)
             if not -self._config['tr_height'] < y_offset < self.height():
                 return
 

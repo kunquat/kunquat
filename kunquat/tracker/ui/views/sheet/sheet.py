@@ -63,6 +63,10 @@ class Sheet(QAbstractScrollArea):
                 self.viewport(),
                 SIGNAL('heightChanged()'),
                 self._update_scrollbars)
+        QObject.connect(
+                self.viewport(),
+                SIGNAL('followCursor(int, int)'),
+                self._follow_cursor)
 
     def set_ui_model(self, ui_model):
         self._ruler.set_ui_model(ui_model)
@@ -118,6 +122,19 @@ class Sheet(QAbstractScrollArea):
         hscrollbar = self.horizontalScrollBar()
         hscrollbar.setPageStep(max_visible_cols)
         hscrollbar.setRange(0, COLUMN_COUNT - max_visible_cols)
+
+    def _follow_cursor(self, new_y_offset, new_first_col):
+        vscrollbar = self.verticalScrollBar()
+        hscrollbar = self.horizontalScrollBar()
+        old_y_offset = vscrollbar.value()
+        old_first_col = hscrollbar.value()
+
+        self.horizontalScrollBar().setValue(new_first_col)
+        self.verticalScrollBar().setValue(new_y_offset)
+
+        # Position not changed, so just update our viewport, TODO: kludgy
+        if old_y_offset == vscrollbar.value() and old_first_col == hscrollbar.value():
+            self.viewport().update()
 
     def keyPressEvent(self, ev):
         if ev.key() in (Qt.Key_Up, Qt.Key_Down):
