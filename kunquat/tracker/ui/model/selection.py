@@ -32,6 +32,7 @@ class Selection():
 
     def set_location(self, trigger_position):
         self._session.set_selected_location(trigger_position)
+        self._updater.signal_update(set(['signal_selection']))
 
     def get_location(self):
         return self._session.get_selected_location()
