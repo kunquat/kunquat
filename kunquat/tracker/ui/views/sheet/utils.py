@@ -58,11 +58,11 @@ def get_visible_cols(first_col, max_visible_cols):
 
 # Pattern view utils
 
-def pat_height(length, px_per_beat):
+def get_pat_height(length, px_per_beat):
     return int(math.ceil(float(length + tstamp.Tstamp(0, 1)) * px_per_beat))
 
 def get_pat_heights(lengths, px_per_beat):
-    return [pat_height(pl, px_per_beat) for pl in lengths]
+    return [get_pat_height(pl, px_per_beat) for pl in lengths]
 
 def get_pat_start_heights(heights):
     start_heights = [0]
@@ -79,6 +79,15 @@ def get_first_visible_pat_index(px_offset, start_heights):
             return index - 1
         index += 1
     return index
+
+
+# Pixel <-> Tstamp conversions
+
+def get_tstamp_from_px(px, px_per_beat):
+    return tstamp.Tstamp(0, px * tstamp.BEAT // px_per_beat)
+
+def get_px_from_tstamp(ts, px_per_beat):
+    return ((ts.beats * tstamp.BEAT + ts.rem) * px_per_beat) // tstamp.BEAT
 
 
 # Pixmap buffer utils
