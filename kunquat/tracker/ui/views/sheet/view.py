@@ -12,7 +12,7 @@
 #
 
 from __future__ import print_function
-from itertools import islice, izip, izip_longest
+from itertools import islice, izip, izip_longest, takewhile
 import math
 import time
 
@@ -27,7 +27,8 @@ import utils
 
 class VerticalMoveState():
 
-    STEPS = range(17)
+    STEPS = [0] + [min(int(1.15**e), 16) for e in
+            takewhile(lambda n: 1.15**(n-1) <= 16, xrange(100))]
 
     def __init__(self):
         self._dir = 0
@@ -112,6 +113,8 @@ class View(QWidget):
     def _perform_updates(self, signals):
         if 'signal_module' in signals:
             self._update_all_patterns()
+            self.update()
+        if 'signal_selection' in signals:
             self.update()
 
     def _update_all_patterns(self):
@@ -231,14 +234,86 @@ class View(QWidget):
 
     def _move_edit_cursor(self):
         px_delta = self._vertical_move_state.get_delta()
-        # TODO:
+        assert px_delta != 0
+
+        module = self._ui_model.get_module()
+        album = module.get_album()
+        if not album or album.get_track_count() == 0:
+            return
+
+        # Get location info
+        selection = self._ui_model.get_selection()
+        location = selection.get_location()
+        track = location.get_track()
+        system = location.get_system()
+        col_num = location.get_col_num()
+        row_ts = location.get_row_ts()
+        trigger_index = location.get_trigger_index()
+
         # Check moving to the previous system
-        # Get default trigger position on the current pixel position
+        if px_delta < 0 and row_ts == 0:
+            if track > 0 or system > 0:
+                new_track = track
+                new_system = system - 1
+                new_song = album.get_song_by_track(new_track)
+                if new_system < 0:
+                    new_track -= 1
+                    new_song = album.get_song_by_track(new_track)
+                    new_system = new_song.get_system_count() - 1
+                new_pattern = new_song.get_pattern_instance(new_system).get_pattern()
+                pat_height = utils.get_pat_height(
+                        new_pattern.get_length(), self._px_per_beat)
+                new_ts = utils.get_tstamp_from_px(
+                        pat_height + px_delta, self._px_per_beat)
+                new_ts = max(tstamp.Tstamp(0), new_ts)
+                assert new_ts <= new_pattern.get_length()
+
+                new_location = TriggerPosition(
+                        new_track, new_system, col_num, new_ts, trigger_index)
+                selection.set_location(new_location)
+
+            return
+
+        # Get default trigger tstamp on the current pixel position
+        cur_px_offset = utils.get_px_from_tstamp(row_ts, self._px_per_beat)
+        def_ts = utils.get_tstamp_from_px(cur_px_offset, self._px_per_beat)
+        assert utils.get_px_from_tstamp(def_ts, self._px_per_beat) == cur_px_offset
+
         # Convert pixel delta to tstamp delta
+        ts_delta = utils.get_tstamp_from_px(px_delta, self._px_per_beat)
+
         # Get target tstamp
-        # Get shortest movement between actual tstamp delta and closest trigger row
+        new_ts = def_ts + ts_delta
+
+        # TODO: Get shortest movement between target tstamp and closest trigger row
+
         # Check moving outside pattern boundaries
-        # Update selection
+        new_ts = max(tstamp.Tstamp(0), new_ts)
+        cur_song = album.get_song_by_track(track)
+        cur_pattern = cur_song.get_pattern_instance(system).get_pattern()
+        if new_ts > cur_pattern.get_length():
+            new_track = track
+            new_system = system + 1
+            if new_system >= cur_song.get_system_count():
+                new_track += 1
+                new_system = 0
+                if new_track >= album.get_track_count():
+                    # End of sheet
+                    new_ts = cur_pattern.get_length()
+                    new_location = TriggerPosition(
+                            track, system, col_num, new_ts, trigger_index)
+                    selection.set_location(new_location)
+                    return
+
+            # Next pattern
+            new_location = TriggerPosition(
+                    new_track, new_system, col_num, tstamp.Tstamp(0), trigger_index)
+            selection.set_location(new_location)
+            return
+
+        # Move inside pattern
+        new_location = TriggerPosition(track, system, col_num, new_ts, trigger_index)
+        selection.set_location(new_location)
 
     def keyPressEvent(self, ev):
         if ev.key() == Qt.Key_Up:
