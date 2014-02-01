@@ -27,8 +27,10 @@ import utils
 
 class VerticalMoveState():
 
-    STEPS = [0] + [min(int(1.15**e), 16) for e in
+    _STEPS = [0] + [min(int(1.15**e), 16) for e in
             takewhile(lambda n: 1.15**(n-1) <= 16, xrange(100))]
+
+    _SNAP_DELAYS = list(reversed(xrange(7)))
 
     def __init__(self):
         self._dir = 0
@@ -36,24 +38,41 @@ class VerticalMoveState():
         self._up_pressed = False
         self._down_pressed = False
 
+        self._is_snap_delay_enabled = False
+        self._snap_delay_index = 0
+        self._snap_delay_counter = 0
+
     def get_delta(self):
-        return self._dir * self.STEPS[min(self._step_index, len(self.STEPS) - 1)]
+        if self._is_snap_delay_enabled and self._snap_delay_counter > 0:
+            self._snap_delay_counter -= 1
+            return 0
+        return self._dir * self._STEPS[min(self._step_index, len(self._STEPS) - 1)]
 
     def press_up(self):
+        if self._up_pressed:
+            self._is_snap_delay_enabled = True
+
         self._up_pressed = True
         if self._dir >= 0:
             self._dir = -1
             self._step_index = 1
+            self._snap_delay_index = 0
         else:
-            self._step_index += 1
+            if self._snap_delay_counter == 0:
+                self._step_index += 1
 
     def press_down(self):
+        if self._down_pressed:
+            self._is_snap_delay_enabled = True
+
         self._down_pressed = True
         if self._dir <= 0:
             self._dir = 1
             self._step_index = 1
+            self._snap_delay_index = 0
         else:
-            self._step_index += 1
+            if self._snap_delay_counter == 0:
+                self._step_index += 1
 
     def release_up(self):
         self._up_pressed = False
@@ -62,6 +81,8 @@ class VerticalMoveState():
                 self.press_down()
         else:
             self._dir = 0
+            self._is_snap_delay_enabled = False
+            self._snap_delay_index = 0
 
     def release_down(self):
         self._down_pressed = False
@@ -70,6 +91,14 @@ class VerticalMoveState():
                 self.press_up()
         else:
             self._dir = 0
+            self._is_snap_delay_enabled = False
+            self._snap_delay_index = 0
+
+    def try_snap_delay(self):
+        if self._is_snap_delay_enabled:
+            self._snap_delay_counter = self._SNAP_DELAYS[self._snap_delay_index]
+            self._snap_delay_index = min(
+                    self._snap_delay_index + 1, len(self._SNAP_DELAYS) - 1)
 
 
 class View(QWidget):
@@ -280,7 +309,8 @@ class View(QWidget):
 
     def _move_edit_cursor(self):
         px_delta = self._vertical_move_state.get_delta()
-        assert px_delta != 0
+        if px_delta == 0:
+            return
 
         module = self._ui_model.get_module()
         album = module.get_album()
@@ -295,6 +325,10 @@ class View(QWidget):
         col_num = location.get_col_num()
         row_ts = location.get_row_ts()
         trigger_index = location.get_trigger_index()
+
+        cur_song = album.get_song_by_track(track)
+        cur_pattern = cur_song.get_pattern_instance(system).get_pattern()
+        cur_column = cur_pattern.get_column(col_num)
 
         # Check moving to the previous system
         if px_delta < 0 and row_ts == 0:
@@ -331,13 +365,28 @@ class View(QWidget):
         # Get target tstamp
         new_ts = def_ts + ts_delta
 
-        # TODO: Get shortest movement between target tstamp and closest trigger row
+        # Get shortest movement between target tstamp and closest trigger row
+        move_range_start = min(new_ts, row_ts)
+        move_range_stop = max(new_ts, row_ts) + tstamp.Tstamp(0, 1)
+        if px_delta < 0:
+            move_range_stop -= tstamp.Tstamp(0, 1)
+        else:
+            move_range_start += tstamp.Tstamp(0, 1)
+
+        trow_tstamps = cur_column.get_trigger_row_positions_in_range(
+                move_range_start, move_range_stop)
+        if trow_tstamps:
+            self._vertical_move_state.try_snap_delay()
+            if px_delta < 0:
+                new_ts = max(trow_tstamps)
+            else:
+                new_ts = min(trow_tstamps)
 
         # Check moving outside pattern boundaries
-        new_ts = max(tstamp.Tstamp(0), new_ts)
-        cur_song = album.get_song_by_track(track)
-        cur_pattern = cur_song.get_pattern_instance(system).get_pattern()
-        if new_ts > cur_pattern.get_length():
+        if new_ts < 0:
+            self._vertical_move_state.try_snap_delay()
+            new_ts = tstamp.Tstamp(0)
+        elif new_ts > cur_pattern.get_length():
             new_track = track
             new_system = system + 1
             if new_system >= cur_song.get_system_count():
@@ -352,6 +401,7 @@ class View(QWidget):
                     return
 
             # Next pattern
+            self._vertical_move_state.try_snap_delay()
             new_location = TriggerPosition(
                     new_track, new_system, col_num, tstamp.Tstamp(0), trigger_index)
             selection.set_location(new_location)
