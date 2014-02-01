@@ -64,28 +64,6 @@ class Sheet(QAbstractScrollArea):
                 SIGNAL('heightChanged()'),
                 self._update_scrollbars)
 
-        # XXX: testing
-        '''
-        patterns = [
-                {
-                    'length': tstamp.Tstamp(0.5),
-                    'columns': [[] for _ in xrange(COLUMN_COUNT)],
-                },
-                {
-                    'length': tstamp.Tstamp(8),
-                    'columns': [[] for _ in xrange(COLUMN_COUNT)],
-                },
-                ]
-        patterns[0]['columns'][0].append([tstamp.Tstamp(0.46), ['cn+', '300']])
-        patterns[1]['columns'][0].append([tstamp.Tstamp(0.03), ['.i', '0']])
-        patterns[1]['columns'][0].append([tstamp.Tstamp(7.96), ['cn-', None]])
-        pat_lengths = [p['length'] for p in patterns]
-        self._total_height_px = (self._get_total_height(pat_lengths) +
-                self._config['tr_height'])
-        self._ruler.set_pattern_lengths(pat_lengths)
-        self.viewport().set_patterns(patterns)
-        '''
-
     def set_ui_model(self, ui_model):
         self._ruler.set_ui_model(ui_model)
         self.viewport().set_ui_model(ui_model)
@@ -125,12 +103,6 @@ class Sheet(QAbstractScrollArea):
         self._config['tr_height'] = fm.tightBoundingRect('Ag').height() + 1
 
         self.viewport().set_config(self._config)
-
-    def _get_total_height(self, pat_lengths):
-        height = sum(utils.pat_height(pl, self._px_per_beat) for pl in pat_lengths)
-        height -= len(pat_lengths) - 1
-        # TODO: add trigger row height
-        return height
 
     def _update_scrollbars(self):
         self._total_height_px = (
