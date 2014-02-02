@@ -32,6 +32,9 @@ class Pattern():
         assert isinstance(other, Pattern)
         return self._pattern_id == other._pattern_id
 
+    def __ne__(self, other):
+        return not (self == other)
+
     def set_controller(self, controller):
         self._store = controller.get_store()
         self._controller = controller
