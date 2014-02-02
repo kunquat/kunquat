@@ -58,6 +58,7 @@ class View(QWidget):
         self._start_heights = []
 
         self._vertical_move_state = VerticalMoveState()
+        self._cur_column = None
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -244,11 +245,14 @@ class View(QWidget):
             song = album.get_song_by_track(track)
             pattern = song.get_pattern_instance(system).get_pattern()
             column = pattern.get_column(selected_col)
+            if not self._cur_column or self._cur_column != column:
+                self._cur_column = column
 
             try:
                 # Draw the trigger row
-                trigger_count = column.get_trigger_count_at_row(row_ts)
-                tr = [column.get_trigger(row_ts, i) for i in xrange(trigger_count)]
+                trigger_count = self._cur_column.get_trigger_count_at_row(row_ts)
+                tr = [self._cur_column.get_trigger(row_ts, i)
+                        for i in xrange(trigger_count)]
             except KeyError:
                 # No triggers, just draw a hollow rectangle
                 metrics = self._config['font_metrics']
@@ -279,6 +283,8 @@ class View(QWidget):
         cur_song = album.get_song_by_track(track)
         cur_pattern = cur_song.get_pattern_instance(system).get_pattern()
         cur_column = cur_pattern.get_column(col_num)
+        if not self._cur_column or (self._cur_column != cur_column):
+            self._cur_column = cur_column
 
         # Check moving to the previous system
         if px_delta < 0 and row_ts == 0:
@@ -323,7 +329,7 @@ class View(QWidget):
         else:
             move_range_start += tstamp.Tstamp(0, 1)
 
-        trow_tstamps = cur_column.get_trigger_row_positions_in_range(
+        trow_tstamps = self._cur_column.get_trigger_row_positions_in_range(
                 move_range_start, move_range_stop)
         if trow_tstamps:
             self._vertical_move_state.try_snap_delay()
