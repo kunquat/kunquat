@@ -53,6 +53,8 @@ class Sheet(QAbstractScrollArea):
         g.addWidget(self.viewport(), 1, 1)
         self.setLayout(g)
 
+        self.viewport().setFocusProxy(None)
+
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
 
@@ -135,16 +137,6 @@ class Sheet(QAbstractScrollArea):
         # Position not changed, so just update our viewport, TODO: kludgy
         if old_y_offset == vscrollbar.value() and old_first_col == hscrollbar.value():
             self.viewport().update()
-
-    def keyPressEvent(self, ev):
-        if ev.key() in (Qt.Key_Up, Qt.Key_Down):
-            ev.ignore()
-            self.viewport().keyPressEvent(ev) # FIXME: do this properly
-
-    def keyReleaseEvent(self, ev):
-        if ev.key() in (Qt.Key_Up, Qt.Key_Down):
-            ev.ignore()
-            self.viewport().keyReleaseEvent(ev) # FIXME: do this properly
 
     def paintEvent(self, ev):
         self.viewport().paintEvent(ev)

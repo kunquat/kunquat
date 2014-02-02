@@ -481,7 +481,7 @@ class View(QWidget):
             painter.eraseRect(QRect(hor_trail_start, 0, width, self.height()))
 
         # Draw edit cursor
-        if self.hasFocus() or True:
+        if self.hasFocus():
             self._draw_edit_cursor()
 
         if pixmaps_created == 0:
@@ -495,10 +495,10 @@ class View(QWidget):
         print('View updated in {:.2f} ms'.format(elapsed * 1000))
 
     def focusInEvent(self, ev):
-        pass
+        self.update()
 
     def focusOutEvent(self, ev):
-        pass
+        self.update()
 
 
 class ColumnGroupRenderer():
