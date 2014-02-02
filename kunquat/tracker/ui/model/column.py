@@ -29,6 +29,14 @@ class Column():
         self._store = None
         self._controller = None
 
+    def __eq__(self, other):
+        assert isinstance(other, Column)
+        return (self._col_num == other._col_num) and \
+                (self._pattern_id == other._pattern_id)
+
+    def __ne__(self, other):
+        return not (self == other)
+
     def set_controller(self, controller):
         self._store = controller.get_store()
         self._controller = controller
