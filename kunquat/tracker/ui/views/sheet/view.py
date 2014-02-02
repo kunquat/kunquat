@@ -300,12 +300,35 @@ class View(QWidget):
             if not -self._config['tr_height'] < y_offset < self.height():
                 return
 
-            # Draw the horizontal line
+            # Set up paint device
             painter = QPainter(self)
+            tfm = QTransform().translate(x_offset, y_offset)
+            painter.setTransform(tfm)
+
+            # Draw the horizontal line
             painter.setPen(self._config['edit_cursor']['line_colour'])
             painter.drawLine(
-                    QPoint(x_offset, y_offset),
-                    QPoint(x_offset + self._col_width - 2, y_offset))
+                    QPoint(0, 0),
+                    QPoint(self._col_width - 2, 0))
+
+            # Get trigger row at cursor
+            module = self._ui_model.get_module()
+            album = module.get_album()
+            song = album.get_song_by_track(track)
+            pattern = song.get_pattern_instance(system).get_pattern()
+            column = pattern.get_column(selected_col)
+
+            try:
+                # Draw the trigger row
+                trigger_count = column.get_trigger_count_at_row(row_ts)
+                tr = [column.get_trigger(row_ts, i) for i in xrange(trigger_count)]
+            except KeyError:
+                # No triggers, just draw a hollow rectangle
+                metrics = self._config['font_metrics']
+                bounding_rect = metrics.tightBoundingRect(u'þ')
+                bounding_rect.translate(0, -bounding_rect.top())
+                painter.setPen(self._config['trigger']['default_colour'])
+                painter.drawRect(bounding_rect)
 
     def _move_edit_cursor(self):
         px_delta = self._vertical_move_state.get_delta()
@@ -903,10 +926,10 @@ class TriggerRenderer():
         expr = self._trigger.get_argument()
 
         # Padding
-        total_padding = self._config['trigger_padding'] * 2
+        total_padding = self._config['trigger']['padding'] * 2
         if expr != None:
             # Space between type and expression
-            total_padding += self._config['trigger_padding']
+            total_padding += self._config['trigger']['padding']
 
         # Text
         metrics = self._config['font_metrics']
@@ -917,9 +940,9 @@ class TriggerRenderer():
             expr_width = metrics.boundingRect(expr).width()
 
         # Drawing parameters
-        self._evtype_offset = self._config['trigger_padding']
+        self._evtype_offset = self._config['trigger']['padding']
         self._expr_offset = (self._evtype_offset + evtype_width +
-                self._config['trigger_padding'])
+                self._config['trigger']['padding'])
         self._width = total_padding + evtype_width + expr_width
 
         return self._width

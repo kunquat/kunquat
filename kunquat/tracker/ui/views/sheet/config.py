@@ -34,6 +34,13 @@ DEFAULT_CONFIG = {
         'border_colour'   : QColor(0x55, 0x55, 0x55),
         'font'            : QFont(QFont().defaultFamily(), 12),
         'trigger_padding' : 3,
+        'trigger': {
+            'default_colour' : QColor(0xdd, 0xee, 0xff),
+            'note_on_colour' : QColor(0xff, 0xdd, 0xbb),
+            'hit_colour'     : QColor(0xdd, 0xee, 0xbb),
+            'note_off_colour': QColor(0xcc, 0xaa, 0x88),
+            'padding'        : 3,
+            },
         'edit_cursor': {
             'line_colour'  : QColor(0xff, 0x88, 0x44),
             'min_snap_dist': 64,
