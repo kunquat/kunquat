@@ -33,7 +33,6 @@ DEFAULT_CONFIG = {
         'bg_colour'       : QColor(0, 0, 0),
         'border_colour'   : QColor(0x55, 0x55, 0x55),
         'font'            : QFont(QFont().defaultFamily(), 12),
-        'trigger_padding' : 3,
         'trigger': {
             'default_colour' : QColor(0xdd, 0xee, 0xff),
             'note_on_colour' : QColor(0xff, 0xdd, 0xbb),
