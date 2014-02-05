@@ -265,7 +265,8 @@ class View(QWidget):
                 # No triggers, just draw a hollow rectangle
                 metrics = self._config['font_metrics']
                 bounding_rect = metrics.tightBoundingRect(u'þ')
-                bounding_rect.translate(0, -bounding_rect.top())
+                bounding_rect.translate(
+                        self._config['trigger']['padding'], -bounding_rect.top())
                 painter.setPen(self._config['trigger']['default_colour'])
                 painter.drawRect(bounding_rect)
 
