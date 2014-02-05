@@ -50,16 +50,45 @@ class TriggerRenderer():
 
         return self._width
 
-    def draw_trigger(self, painter):
-        painter.setPen(Qt.white)
-        painter.drawLine(QPoint(0, 0), QPoint(self._width - 2, 0))
-
-        painter.setCompositionMode(QPainter.CompositionMode_Plus)
-
+    def draw_trigger(self, painter, include_line=True, select=None):
         evtype = self._trigger.get_type()
         expr = self._trigger.get_argument()
+
+        # TODO: select colour based on event type
+        evtype_fg_colour = self._config['trigger']['default_colour']
+
+        # Draw type
+        painter.save()
+        if select == 'type':
+            painter.setBackgroundMode(Qt.OpaqueMode)
+            painter.setBackground(QBrush(evtype_fg_colour))
+            painter.setPen(self._config['bg_colour'])
+        else:
+            painter.setPen(evtype_fg_colour)
+
         painter.drawText(QPoint(self._evtype_offset, self._baseline_offset), evtype)
+
+        painter.restore()
+
         if expr != None:
+            # Draw expression
+            painter.save()
+            if select == 'expr':
+                painter.setBackgroundMode(Qt.OpaqueMode)
+                painter.setBackground(QBrush(evtype_fg_colour))
+                painter.setPen(self._config['bg_colour'])
+            else:
+                painter.setPen(evtype_fg_colour)
+
             painter.drawText(QPoint(self._expr_offset, self._baseline_offset), expr)
+
+            painter.restore()
+
+        # Draw line only if not obscured by cursor
+        if include_line:
+            painter.save()
+            painter.setPen(evtype_fg_colour)
+            painter.drawLine(QPoint(0, 0), QPoint(self._width - 2, 0))
+            painter.restore()
 
 

@@ -60,6 +60,10 @@ class View(QWidget):
         self._vertical_move_state = VerticalMoveState()
         self._cur_column = None
 
+        self._primary_trigger_index = 0
+        self._field_index = 0
+        self._tr_x_offset = 0
+
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
@@ -219,6 +223,7 @@ class View(QWidget):
             system = location.get_system()
             selected_col = location.get_col_num()
             row_ts = location.get_row_ts()
+            trigger_index = location.get_trigger_index()
 
             # Get pixel offsets
             x_offset = self._get_col_offset(selected_col)
@@ -251,8 +256,11 @@ class View(QWidget):
             try:
                 # Draw the trigger row
                 trigger_count = self._cur_column.get_trigger_count_at_row(row_ts)
-                tr = [self._cur_column.get_trigger(row_ts, i)
+                triggers = [self._cur_column.get_trigger(row_ts, i)
                         for i in xrange(trigger_count)]
+                self._draw_trigger_row_with_edit_cursor(
+                        painter, triggers, trigger_index)
+
             except KeyError:
                 # No triggers, just draw a hollow rectangle
                 metrics = self._config['font_metrics']
@@ -260,6 +268,48 @@ class View(QWidget):
                 bounding_rect.translate(0, -bounding_rect.top())
                 painter.setPen(self._config['trigger']['default_colour'])
                 painter.drawRect(bounding_rect)
+
+    def _draw_trigger_row_with_edit_cursor(self, painter, triggers, trigger_index):
+        painter.save()
+
+        painter.setClipRect(QRect(
+            QPoint(0, 0), QPoint(self._col_width - 2, self._config['tr_height'])))
+
+        rends = [TriggerRenderer(self._config, trigger) for trigger in triggers]
+        widths = [r.get_trigger_width(painter) for r in rends]
+        total_width = sum(widths)
+
+        trigger_tfm = painter.transform().translate(-self._tr_x_offset, 0)
+        painter.setTransform(trigger_tfm)
+
+        # Hide underlying column contents
+        painter.fillRect(
+                QRect(QPoint(0, 1),
+                    QPoint(total_width - 1, self._config['tr_height'] - 1)),
+                self._config['bg_colour'])
+
+        for i, trigger in enumerate(triggers):
+            # Prepare
+            renderer = TriggerRenderer(self._config, trigger)
+            width = renderer.get_trigger_width(painter)
+
+            # Identify selected field
+            select = None
+            if i == trigger_index:
+                if self._field_index == 0:
+                    select = 'type'
+                else:
+                    assert trigger.get_argument() != None
+                    select = 'expr'
+
+            # Render
+            renderer.draw_trigger(painter, False, select)
+
+            # Update transform
+            trigger_tfm = trigger_tfm.translate(width, 0)
+            painter.setTransform(trigger_tfm)
+
+        painter.restore()
 
     def _move_edit_cursor(self):
         px_delta = self._vertical_move_state.get_delta()

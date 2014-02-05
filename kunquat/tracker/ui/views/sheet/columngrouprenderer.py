@@ -375,6 +375,7 @@ class TRCache():
         image.fill(0)
 
         painter = QPainter(image)
+        painter.setCompositionMode(QPainter.CompositionMode_Plus)
         for renderer, width in izip(rends, widths):
             renderer.draw_trigger(painter)
             painter.setTransform(QTransform().translate(width, 0), True)
