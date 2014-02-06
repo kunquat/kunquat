@@ -277,7 +277,7 @@ class View(QWidget):
             QPoint(0, 0), QPoint(self._col_width - 2, self._config['tr_height'])))
 
         rends = [TriggerRenderer(self._config, trigger) for trigger in triggers]
-        widths = [r.get_trigger_width(painter) for r in rends]
+        widths = [r.get_total_width() for r in rends]
         total_width = sum(widths)
 
         trigger_tfm = painter.transform().translate(-self._tr_x_offset, 0)
@@ -289,11 +289,7 @@ class View(QWidget):
                     QPoint(total_width - 1, self._config['tr_height'] - 1)),
                 self._config['bg_colour'])
 
-        for i, trigger in enumerate(triggers):
-            # Prepare
-            renderer = TriggerRenderer(self._config, trigger)
-            width = renderer.get_trigger_width(painter)
-
+        for i, trigger, renderer in izip(xrange(len(triggers)), triggers, rends):
             # Identify selected field
             select = None
             if i == trigger_index:
@@ -307,7 +303,7 @@ class View(QWidget):
             renderer.draw_trigger(painter, False, select)
 
             # Update transform
-            trigger_tfm = trigger_tfm.translate(width, 0)
+            trigger_tfm = trigger_tfm.translate(renderer.get_total_width(), 0)
             painter.setTransform(trigger_tfm)
 
         painter.restore()

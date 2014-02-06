@@ -364,9 +364,8 @@ class TRCache():
                 images_created, 's' if images_created != 1 else ''))
 
     def _create_image(self, triggers):
-        pdev = QPixmap(1, 1)
         rends = [TriggerRenderer(self._config, t) for t in triggers]
-        widths = [r.get_trigger_width(pdev) for r in rends]
+        widths = [r.get_total_width() for r in rends]
 
         image = QImage(
                 sum(widths),

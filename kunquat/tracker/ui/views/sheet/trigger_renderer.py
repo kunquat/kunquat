@@ -24,7 +24,9 @@ class TriggerRenderer():
         self._config = config
         self._trigger = trigger
 
-    def get_trigger_width(self, pdev): # TODO: note names
+        self._calculate_widths()
+
+    def _calculate_widths(self): # TODO: note names
         evtype = self._trigger.get_type()
         expr = self._trigger.get_argument()
 
@@ -46,9 +48,10 @@ class TriggerRenderer():
         self._evtype_offset = self._config['trigger']['padding']
         self._expr_offset = (self._evtype_offset + evtype_width +
                 self._config['trigger']['padding'])
-        self._width = total_padding + evtype_width + expr_width
+        self._total_width = total_padding + evtype_width + expr_width
 
-        return self._width
+    def get_total_width(self):
+        return self._total_width
 
     def draw_trigger(self, painter, include_line=True, select=None):
         evtype = self._trigger.get_type()
@@ -88,7 +91,7 @@ class TriggerRenderer():
         if include_line:
             painter.save()
             painter.setPen(evtype_fg_colour)
-            painter.drawLine(QPoint(0, 0), QPoint(self._width - 2, 0))
+            painter.drawLine(QPoint(0, 0), QPoint(self._total_width - 2, 0))
             painter.restore()
 
 
