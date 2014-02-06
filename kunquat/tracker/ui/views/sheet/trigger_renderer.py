@@ -39,19 +39,27 @@ class TriggerRenderer():
         # Text
         metrics = self._config['font_metrics']
         self._baseline_offset = metrics.tightBoundingRect('A').height()
-        evtype_width = metrics.boundingRect(evtype).width()
-        expr_width = 0
+        self._evtype_width = metrics.boundingRect(evtype).width()
+        self._expr_width = 0
         if expr != None:
-            expr_width = metrics.boundingRect(expr).width()
+            self._expr_width = metrics.boundingRect(expr).width()
 
         # Drawing parameters
         self._evtype_offset = self._config['trigger']['padding']
-        self._expr_offset = (self._evtype_offset + evtype_width +
+        self._expr_offset = (self._evtype_offset + self._evtype_width +
                 self._config['trigger']['padding'])
-        self._total_width = total_padding + evtype_width + expr_width
+        self._total_width = total_padding + self._evtype_width + self._expr_width
 
     def get_total_width(self):
         return self._total_width
+
+    def get_type_bounds(self):
+        return (self._evtype_offset, self._evtype_offset + self._evtype_width)
+
+    def get_expr_bounds(self):
+        if self._trigger.get_argument() == None:
+            return None
+        return (self._expr_offset, self._expr_offset + self._expr_width)
 
     def draw_trigger(self, painter, include_line=True, select=None):
         evtype = self._trigger.get_type()

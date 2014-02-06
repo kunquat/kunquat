@@ -25,7 +25,7 @@ from config import *
 import utils
 from columngrouprenderer import ColumnGroupRenderer
 from trigger_renderer import TriggerRenderer
-from verticalmovestate import VerticalMoveState
+from movestate import HorizontalMoveState, VerticalMoveState
 
 
 class View(QWidget):
@@ -57,12 +57,13 @@ class View(QWidget):
         self._heights = []
         self._start_heights = []
 
+        self._horizontal_move_state = HorizontalMoveState()
         self._vertical_move_state = VerticalMoveState()
         self._cur_column = None
 
-        self._primary_trigger_index = 0
+        self._target_trigger_index = 0
         self._field_index = 0
-        self._tr_x_offset = 0
+        self._trow_px_offset = 0
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -175,20 +176,22 @@ class View(QWidget):
             self.update()
             return
 
-        is_scrolling_required = False
+        is_view_scrolling_required = False
         new_first_col = self._first_col
         new_y_offset = self._px_offset
 
-        # Check horizontal scrolling
+        # Check column scrolling
         col_num = location.get_col_num()
 
         x_offset = self._get_col_offset(col_num)
         if x_offset < 0:
-            is_scrolling_required = True
+            is_view_scrolling_required = True
             new_first_col = col_num
         elif x_offset + self._col_width > self.width():
-            is_scrolling_required = True
+            is_view_scrolling_required = True
             new_first_col = col_num - (self.width() // self._col_width)
+
+        # TODO: Check scrolling in a trigger row
 
         # Check vertical scrolling
         y_offset = self._get_row_offset(location)
@@ -198,13 +201,13 @@ class View(QWidget):
         min_y_offset = min_center_dist - tr_height // 2
         max_y_offset = self.height() - min_center_dist - tr_height // 2
         if y_offset < min_y_offset:
-            is_scrolling_required = True
+            is_view_scrolling_required = True
             new_y_offset = new_y_offset - (min_y_offset - y_offset)
         elif y_offset >= max_y_offset:
-            is_scrolling_required = True
+            is_view_scrolling_required = True
             new_y_offset = new_y_offset + (y_offset - max_y_offset)
 
-        if is_scrolling_required:
+        if is_view_scrolling_required:
             QObject.emit(
                     self,
                     SIGNAL('followCursor(int, int)'),
@@ -280,7 +283,7 @@ class View(QWidget):
         widths = [r.get_total_width() for r in rends]
         total_width = sum(widths)
 
-        trigger_tfm = painter.transform().translate(-self._tr_x_offset, 0)
+        trigger_tfm = painter.transform().translate(-self._trow_px_offset, 0)
         painter.setTransform(trigger_tfm)
 
         # Hide underlying column contents
@@ -308,7 +311,88 @@ class View(QWidget):
 
         painter.restore()
 
-    def _move_edit_cursor(self):
+    def _move_edit_cursor_trow(self):
+        delta = self._horizontal_move_state.get_delta()
+        assert delta != 0
+
+        module = self._ui_model.get_module()
+        album = module.get_album()
+        if not album or album.get_track_count() == 0:
+            return
+
+        # Get location info
+        selection = self._ui_model.get_selection()
+        location = selection.get_location()
+        track = location.get_track()
+        system = location.get_system()
+        col_num = location.get_col_num()
+        row_ts = location.get_row_ts()
+        trigger_index = location.get_trigger_index()
+
+        cur_song = album.get_song_by_track(track)
+        cur_pattern = cur_song.get_pattern_instance(system).get_pattern()
+        cur_column = cur_pattern.get_column(col_num)
+        if not self._cur_column or (self._cur_column != cur_column):
+            self._cur_column = cur_column
+
+        if row_ts not in self._cur_column.get_trigger_row_positions():
+            # No triggers, just clear our target indices
+            self._target_trigger_index = 0
+            self._field_index = 0
+            return
+
+        if delta < 0:
+            self._field_index -= 1
+            if self._field_index < 0:
+                if trigger_index == 0:
+                    # Already at the start of the row
+                    self._target_trigger_index = 0
+                    self._field_index = 0
+                    return
+
+                prev_trigger_index = trigger_index - 1
+                prev_trigger = self._cur_column.get_trigger(row_ts, prev_trigger_index)
+                self._field_index = 1 if (prev_trigger.get_argument != None) else 0
+
+                self._target_trigger_index = prev_trigger_index
+
+                new_location = TriggerPosition(
+                        track, system, col_num, row_ts, prev_trigger_index)
+                selection.set_location(new_location)
+                return
+
+            self._target_trigger_index = trigger_index
+
+            self.update()
+            return
+
+        elif delta > 0:
+            if trigger_index >= self._cur_column.get_trigger_count_at_row(row_ts):
+                # Already at the end of the row
+                self._target_trigger_index = trigger_index
+                self._field_index = 0
+                return
+
+            self._field_index += 1
+
+            cur_trigger = self._cur_column.get_trigger(row_ts, trigger_index)
+            if self._field_index > 1 or (cur_trigger.get_argument == None):
+                next_trigger_index = trigger_index + 1
+
+                self._field_index = 0
+                self._target_trigger_index = next_trigger_index
+
+                new_location = TriggerPosition(
+                        track, system, col_num, row_ts, next_trigger_index)
+                selection.set_location(new_location)
+                return
+
+            self._target_trigger_index = trigger_index
+
+            self.update()
+            return
+
+    def _move_edit_cursor_tstamp(self):
         px_delta = self._vertical_move_state.get_delta()
         if px_delta == 0:
             return
@@ -417,18 +501,29 @@ class View(QWidget):
     def keyPressEvent(self, ev):
         if ev.key() == Qt.Key_Up:
             self._vertical_move_state.press_up()
-            self._move_edit_cursor()
+            self._move_edit_cursor_tstamp()
         elif ev.key() == Qt.Key_Down:
             self._vertical_move_state.press_down()
-            self._move_edit_cursor()
+            self._move_edit_cursor_tstamp()
+        elif ev.key() == Qt.Key_Left:
+            self._horizontal_move_state.press_left()
+            self._move_edit_cursor_trow()
+        elif ev.key() == Qt.Key_Right:
+            self._horizontal_move_state.press_right()
+            self._move_edit_cursor_trow()
 
     def keyReleaseEvent(self, ev):
         if ev.isAutoRepeat():
             return
+
         if ev.key() == Qt.Key_Up:
             self._vertical_move_state.release_up()
         elif ev.key() == Qt.Key_Down:
             self._vertical_move_state.release_down()
+        elif ev.key() == Qt.Key_Left:
+            self._horizontal_move_state.release_left()
+        elif ev.key() == Qt.Key_Right:
+            self._horizontal_move_state.release_right()
 
     def resizeEvent(self, ev):
         max_visible_cols = utils.get_max_visible_cols(self.width(), self._col_width)
