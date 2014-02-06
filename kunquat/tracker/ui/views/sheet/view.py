@@ -12,7 +12,7 @@
 #
 
 from __future__ import print_function
-from itertools import izip
+from itertools import islice, izip
 import math
 import time
 
@@ -169,6 +169,66 @@ class View(QWidget):
 
         return None
 
+    def _get_init_trigger_row_width(self, rends, trigger_index, field_index):
+        total_width = sum(islice(
+                (r.get_total_width() for r in rends), 0, trigger_index))
+        if trigger_index < len(rends) and field_index > 0:
+            renderer = rends[trigger_index]
+            _, stop = renderer.get_type_bounds()
+            total_width += stop
+        return total_width
+
+    def _follow_trigger_row(self, location):
+        module = self._ui_model.get_module()
+        album = module.get_album()
+        if album and album.get_track_count() > 0:
+            cur_song = album.get_song_by_track(location.get_track())
+            cur_pattern = cur_song.get_pattern_instance(
+                    location.get_system()).get_pattern()
+            cur_column = cur_pattern.get_column(location.get_col_num())
+            if not self._cur_column or (self._cur_column != cur_column):
+                self._cur_column = cur_column
+
+            row_ts = location.get_row_ts()
+            if row_ts in self._cur_column.get_trigger_row_positions():
+                # Get trigger row width information
+                trigger_index = location.get_trigger_index()
+                trigger_count = self._cur_column.get_trigger_count_at_row(row_ts)
+                triggers = [self._cur_column.get_trigger(row_ts, i)
+                        for i in xrange(trigger_count)]
+                rends = [TriggerRenderer(self._config, t) for t in triggers]
+                row_width = sum(r.get_total_width() for r in rends)
+
+                init_trigger_row_width = self._get_init_trigger_row_width(
+                        rends, trigger_index, self._field_index)
+
+                trigger_padding = self._config['trigger']['padding']
+
+                # Upper bound for row offset
+                hollow_rect = self._get_hollow_cursor_rect()
+                trail_width = hollow_rect.width() + trigger_padding
+                tail_offset = max(0, row_width + trail_width - self._col_width)
+
+                max_offset = min(tail_offset, init_trigger_row_width)
+
+                # Lower bound for row offset
+                if trigger_index < len(triggers):
+                    renderer = TriggerRenderer(self._config, triggers[trigger_index])
+                    if self._field_index == 0:
+                        _, field_width = renderer.get_type_bounds()
+                    else:
+                        _, type_stop = renderer.get_type_bounds()
+                        _, expr_stop = renderer.get_expr_bounds()
+                        field_width = expr_stop - type_stop + trigger_padding
+                else:
+                    field_width = trail_width
+                min_offset = max(0,
+                        init_trigger_row_width - self._col_width + field_width)
+
+                # Final offset
+                self._trow_px_offset = min(max(
+                    min_offset, self._trow_px_offset), max_offset)
+
     def _follow_edit_cursor(self):
         selection = self._ui_model.get_selection()
         location = selection.get_location()
@@ -191,7 +251,8 @@ class View(QWidget):
             is_view_scrolling_required = True
             new_first_col = col_num - (self.width() // self._col_width)
 
-        # TODO: Check scrolling in a trigger row
+        # Check scrolling inside a trigger row
+        self._follow_trigger_row(location)
 
         # Check vertical scrolling
         y_offset = self._get_row_offset(location)
@@ -288,18 +349,18 @@ class View(QWidget):
         painter.setClipRect(QRect(
             QPoint(0, 0), QPoint(self._col_width - 2, self._config['tr_height'])))
 
+        # Hide underlying column contents
+        painter.fillRect(
+                QRect(QPoint(0, 1),
+                    QPoint(self._col_width, self._config['tr_height'] - 1)),
+                self._config['bg_colour'])
+
         rends = [TriggerRenderer(self._config, trigger) for trigger in triggers]
         widths = [r.get_total_width() for r in rends]
         total_width = sum(widths)
 
         trigger_tfm = painter.transform().translate(-self._trow_px_offset, 0)
         painter.setTransform(trigger_tfm)
-
-        # Hide underlying column contents
-        painter.fillRect(
-                QRect(QPoint(0, 1),
-                    QPoint(total_width - 1, self._config['tr_height'] - 1)),
-                self._config['bg_colour'])
 
         for i, trigger, renderer in izip(xrange(len(triggers)), triggers, rends):
             # Identify selected field
@@ -384,9 +445,9 @@ class View(QWidget):
                 selection.set_location(new_location)
                 return
 
-            # Still inside the same trigger
+            # Field changed, signal original location (for scrolling update)
             self._target_trigger_index = trigger_index
-            self.update()
+            selection.set_location(location)
             return
 
         elif delta > 0:
@@ -411,9 +472,9 @@ class View(QWidget):
                 selection.set_location(new_location)
                 return
 
-            # Still inside the same trigger
+            # Field changed, signal original location (for scrolling update)
             self._target_trigger_index = trigger_index
-            self.update()
+            selection.set_location(location)
             return
 
     def _move_edit_cursor_tstamp(self):
