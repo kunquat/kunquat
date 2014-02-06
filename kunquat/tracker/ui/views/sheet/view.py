@@ -249,7 +249,7 @@ class View(QWidget):
             new_first_col = col_num
         elif x_offset + self._col_width > self.width():
             is_view_scrolling_required = True
-            new_first_col = col_num - (self.width() // self._col_width)
+            new_first_col = col_num - (self.width() // self._col_width) + 1
 
         # Check scrolling inside a trigger row
         self._follow_trigger_row(location)
@@ -477,6 +477,28 @@ class View(QWidget):
             selection.set_location(location)
             return
 
+    def _move_edit_cursor_column(self, delta):
+        assert delta != 0
+
+        module = self._ui_model.get_module()
+        album = module.get_album()
+        if not album or album.get_track_count() == 0:
+            return
+
+        # Get location info
+        selection = self._ui_model.get_selection()
+        location = selection.get_location()
+        track = location.get_track()
+        system = location.get_system()
+        col_num = location.get_col_num()
+        row_ts = location.get_row_ts()
+        trigger_index = location.get_trigger_index()
+
+        new_col_num = min(max(0, col_num + delta), COLUMN_COUNT - 1)
+        new_location = TriggerPosition(
+                track, system, new_col_num, row_ts, trigger_index)
+        selection.set_location(new_location)
+
     def _move_edit_cursor_tstamp(self):
         px_delta = self._vertical_move_state.get_delta()
         if px_delta == 0:
@@ -592,6 +614,11 @@ class View(QWidget):
         new_location = TriggerPosition(track, system, col_num, new_ts, trigger_index)
         selection.set_location(new_location)
 
+    def event(self, ev):
+        if ev.type() == QEvent.KeyPress and ev.key() in (Qt.Key_Tab, Qt.Key_Backtab):
+            return self.keyPressEvent(ev) or False
+        return QWidget.event(self, ev)
+
     def keyPressEvent(self, ev):
         if ev.key() == Qt.Key_Up:
             self._vertical_move_state.press_up()
@@ -605,6 +632,12 @@ class View(QWidget):
         elif ev.key() == Qt.Key_Right:
             self._horizontal_move_state.press_right()
             self._move_edit_cursor_trow()
+        elif ev.key() == Qt.Key_Tab:
+            self._move_edit_cursor_column(1)
+            return True
+        elif ev.key() == Qt.Key_Backtab:
+            self._move_edit_cursor_column(-1)
+            return True
 
     def keyReleaseEvent(self, ev):
         if ev.isAutoRepeat():
