@@ -324,6 +324,12 @@ class View(QWidget):
 
         painter.restore()
 
+    def _clamp_trigger_index(self, column, row_ts, trigger_index):
+        try:
+            return min(trigger_index, column.get_trigger_count_at_row(row_ts))
+        except KeyError:
+            return trigger_index
+
     def _move_edit_cursor_trow(self):
         delta = self._horizontal_move_state.get_delta()
         assert delta != 0
@@ -355,6 +361,9 @@ class View(QWidget):
             return
 
         if delta < 0:
+            if trigger_index >= self._cur_column.get_trigger_count_at_row(row_ts):
+                self._field_index = 0
+
             self._field_index -= 1
             if self._field_index < 0:
                 if trigger_index == 0:
@@ -450,6 +459,8 @@ class View(QWidget):
                 new_ts = max(tstamp.Tstamp(0), new_ts)
                 assert new_ts <= new_pattern.get_length()
 
+                trigger_index = self._clamp_trigger_index(
+                        self._cur_column, new_ts, self._target_trigger_index)
                 new_location = TriggerPosition(
                         new_track, new_system, col_num, new_ts, trigger_index)
                 selection.set_location(new_location)
@@ -497,6 +508,8 @@ class View(QWidget):
                 if new_track >= album.get_track_count():
                     # End of sheet
                     new_ts = cur_pattern.get_length()
+                    trigger_index = self._clamp_trigger_index(
+                            self._cur_column, new_ts, self._target_trigger_index)
                     new_location = TriggerPosition(
                             track, system, col_num, new_ts, trigger_index)
                     selection.set_location(new_location)
@@ -504,12 +517,17 @@ class View(QWidget):
 
             # Next pattern
             self._vertical_move_state.try_snap_delay()
+            new_ts = tstamp.Tstamp(0)
+            trigger_index = self._clamp_trigger_index(
+                    self._cur_column, new_ts, self._target_trigger_index)
             new_location = TriggerPosition(
-                    new_track, new_system, col_num, tstamp.Tstamp(0), trigger_index)
+                    new_track, new_system, col_num, new_ts, trigger_index)
             selection.set_location(new_location)
             return
 
         # Move inside pattern
+        trigger_index = self._clamp_trigger_index(
+                self._cur_column, new_ts, self._target_trigger_index)
         new_location = TriggerPosition(track, system, col_num, new_ts, trigger_index)
         selection.set_location(new_location)
 
