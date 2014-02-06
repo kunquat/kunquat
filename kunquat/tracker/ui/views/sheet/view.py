@@ -266,12 +266,21 @@ class View(QWidget):
 
             except KeyError:
                 # No triggers, just draw a hollow rectangle
-                metrics = self._config['font_metrics']
-                bounding_rect = metrics.tightBoundingRect(u'þ')
-                bounding_rect.translate(
-                        self._config['trigger']['padding'], -bounding_rect.top())
-                painter.setPen(self._config['trigger']['default_colour'])
-                painter.drawRect(bounding_rect)
+                self._draw_hollow_cursor(
+                        painter, self._config['trigger']['padding'], 0)
+
+    def _get_hollow_cursor_rect(self):
+        metrics = self._config['font_metrics']
+        rect = metrics.tightBoundingRect('a') # Seems to produce an OK width
+        rect.setTop(0)
+        rect.setBottom(self._config['tr_height'] - 3)
+        return rect
+
+    def _draw_hollow_cursor(self, painter, x_offset, y_offset):
+        rect = self._get_hollow_cursor_rect()
+        rect.translate(x_offset, y_offset)
+        painter.setPen(self._config['trigger']['default_colour'])
+        painter.drawRect(rect)
 
     def _draw_trigger_row_with_edit_cursor(self, painter, triggers, trigger_index):
         painter.save()
@@ -308,6 +317,10 @@ class View(QWidget):
             # Update transform
             trigger_tfm = trigger_tfm.translate(renderer.get_total_width(), 0)
             painter.setTransform(trigger_tfm)
+
+        if trigger_index >= len(triggers):
+            # Draw hollow cursor at the end of the row
+            self._draw_hollow_cursor(painter, 0, 0)
 
         painter.restore()
 
@@ -350,6 +363,7 @@ class View(QWidget):
                     self._field_index = 0
                     return
 
+                # Previous trigger
                 prev_trigger_index = trigger_index - 1
                 prev_trigger = self._cur_column.get_trigger(row_ts, prev_trigger_index)
                 self._field_index = 1 if (prev_trigger.get_argument != None) else 0
@@ -361,8 +375,8 @@ class View(QWidget):
                 selection.set_location(new_location)
                 return
 
+            # Still inside the same trigger
             self._target_trigger_index = trigger_index
-
             self.update()
             return
 
@@ -377,6 +391,7 @@ class View(QWidget):
 
             cur_trigger = self._cur_column.get_trigger(row_ts, trigger_index)
             if self._field_index > 1 or (cur_trigger.get_argument == None):
+                # Next trigger
                 next_trigger_index = trigger_index + 1
 
                 self._field_index = 0
@@ -387,8 +402,8 @@ class View(QWidget):
                 selection.set_location(new_location)
                 return
 
+            # Still inside the same trigger
             self._target_trigger_index = trigger_index
-
             self.update()
             return
 
