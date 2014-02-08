@@ -38,8 +38,16 @@ class TriggerRenderer():
         return self._total_width
 
     def draw_trigger(self, painter, include_line=True, select=None):
-        # TODO: select colour based on event type
-        evtype_fg_colour = self._config['trigger']['default_colour']
+        # Select colour based on event type
+        evtype = self._trigger.get_type()
+        if evtype == 'n+':
+            evtype_fg_colour = self._config['trigger']['note_on_colour']
+        elif evtype == 'h':
+            evtype_fg_colour = self._config['trigger']['hit_colour']
+        elif evtype == 'n-':
+            evtype_fg_colour = self._config['trigger']['note_off_colour']
+        else:
+            evtype_fg_colour = self._config['trigger']['default_colour']
 
         # Draw fields
         for i, field in enumerate(self._fields):
@@ -66,7 +74,15 @@ class TriggerRenderer():
             painter.drawLine(QPoint(0, 0), QPoint(self._total_width - 2, 0))
             painter.restore()
 
-    def _setup_fields(self): # TODO: note names
+    def _make_field_data(self, offset, vis_text):
+        metrics = self._config['font_metrics']
+        return {
+                'offset': offset,
+                'width': metrics.boundingRect(vis_text).width(),
+                'text': vis_text,
+                }
+
+    def _setup_fields(self):
         evtype = self._trigger.get_type()
         expr = self._trigger.get_argument()
 
@@ -77,22 +93,24 @@ class TriggerRenderer():
 
         self._fields = []
 
-        # Get field bounds, TODO: handle special cases for Note On, Hit and Note Off
+        # Get field bounds
+        if evtype == 'n+':
+            note_name = expr # TODO: get proper note name
+            note_field = self._make_field_data(padding, note_name)
+            self._fields.append(note_field)
+        elif evtype == 'n-':
+            vis_text = u'══'
+            note_off_field = self._make_field_data(padding, vis_text)
+            self._fields.append(note_off_field)
+        else:
+            type_field = self._make_field_data(padding, evtype)
+            self._fields.append(type_field)
 
-        type_field = {
-                'offset': padding,
-                'width': metrics.boundingRect(evtype).width(),
-                'text': evtype,
-                }
-        self._fields.append(type_field)
-
-        if expr != None:
-            arg_field = {
-                    'offset': type_field['offset'] + type_field['width'] + padding,
-                    'width': metrics.boundingRect(expr).width(),
-                    'text': expr,
-                    }
-            self._fields.append(arg_field)
+            if expr != None:
+                arg_field = self._make_field_data(
+                        type_field['offset'] + type_field['width'] + padding,
+                        expr)
+                self._fields.append(arg_field)
 
         # Width
         total_padding = padding * (len(self._fields) + 1)
