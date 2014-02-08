@@ -579,7 +579,7 @@ class View(QWidget):
                 new_ts = min(trow_tstamps)
 
         # Check moving outside pattern boundaries
-        if new_ts < 0:
+        if new_ts <= 0:
             self._vertical_move_state.try_snap_delay()
             new_ts = tstamp.Tstamp(0)
         elif new_ts > cur_pattern.get_length():
