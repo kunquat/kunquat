@@ -436,7 +436,7 @@ class View(QWidget):
                 # Previous trigger
                 prev_trigger_index = trigger_index - 1
                 prev_trigger = self._cur_column.get_trigger(row_ts, prev_trigger_index)
-                self._field_index = 1 if (prev_trigger.get_argument != None) else 0
+                self._field_index = 1 if (prev_trigger.get_argument() != None) else 0
 
                 self._target_trigger_index = prev_trigger_index
 
@@ -460,7 +460,7 @@ class View(QWidget):
             self._field_index += 1
 
             cur_trigger = self._cur_column.get_trigger(row_ts, trigger_index)
-            if self._field_index > 1 or (cur_trigger.get_argument == None):
+            if self._field_index > 1 or (cur_trigger.get_argument() == None):
                 # Next trigger
                 next_trigger_index = trigger_index + 1
 
