@@ -24,74 +24,38 @@ class TriggerRenderer():
         self._config = config
         self._trigger = trigger
 
-        self._calculate_widths()
+        self._setup_fields()
 
-    def _calculate_widths(self): # TODO: note names
-        evtype = self._trigger.get_type()
-        expr = self._trigger.get_argument()
+    def get_field_count(self):
+        return len(self._fields)
 
-        # Padding
-        total_padding = self._config['trigger']['padding'] * 2
-        if expr != None:
-            # Space between type and expression
-            total_padding += self._config['trigger']['padding']
-
-        # Text
-        metrics = self._config['font_metrics']
-        self._baseline_offset = metrics.tightBoundingRect('A').height()
-        self._evtype_width = metrics.boundingRect(evtype).width()
-        self._expr_width = 0
-        if expr != None:
-            self._expr_width = metrics.boundingRect(expr).width()
-
-        # Drawing parameters
-        self._evtype_offset = self._config['trigger']['padding']
-        self._expr_offset = (self._evtype_offset + self._evtype_width +
-                self._config['trigger']['padding'])
-        self._total_width = total_padding + self._evtype_width + self._expr_width
+    def get_field_bounds(self, index):
+        offset = self._fields[index]['offset']
+        width = self._fields[index]['width']
+        return (offset, width)
 
     def get_total_width(self):
         return self._total_width
 
-    def get_type_bounds(self):
-        return (self._evtype_offset, self._evtype_offset + self._evtype_width)
-
-    def get_expr_bounds(self):
-        if self._trigger.get_argument() == None:
-            return None
-        return (self._expr_offset, self._expr_offset + self._expr_width)
-
     def draw_trigger(self, painter, include_line=True, select=None):
-        evtype = self._trigger.get_type()
-        expr = self._trigger.get_argument()
-
         # TODO: select colour based on event type
         evtype_fg_colour = self._config['trigger']['default_colour']
 
-        # Draw type
-        painter.save()
-        if select == 'type':
-            painter.setBackgroundMode(Qt.OpaqueMode)
-            painter.setBackground(QBrush(evtype_fg_colour))
-            painter.setPen(self._config['bg_colour'])
-        else:
-            painter.setPen(evtype_fg_colour)
-
-        painter.drawText(QPoint(self._evtype_offset, self._baseline_offset), evtype)
-
-        painter.restore()
-
-        if expr != None:
-            # Draw expression
+        # Draw fields
+        for i, field in enumerate(self._fields):
             painter.save()
-            if select == 'expr':
+
+            # Set colours
+            if select == i:
                 painter.setBackgroundMode(Qt.OpaqueMode)
                 painter.setBackground(QBrush(evtype_fg_colour))
                 painter.setPen(self._config['bg_colour'])
             else:
                 painter.setPen(evtype_fg_colour)
 
-            painter.drawText(QPoint(self._expr_offset, self._baseline_offset), expr)
+            painter.drawText(
+                    QPoint(field['offset'], self._baseline_offset),
+                    field['text'])
 
             painter.restore()
 
@@ -101,5 +65,37 @@ class TriggerRenderer():
             painter.setPen(evtype_fg_colour)
             painter.drawLine(QPoint(0, 0), QPoint(self._total_width - 2, 0))
             painter.restore()
+
+    def _setup_fields(self): # TODO: note names
+        evtype = self._trigger.get_type()
+        expr = self._trigger.get_argument()
+
+        metrics = self._config['font_metrics']
+        padding = self._config['trigger']['padding']
+
+        self._baseline_offset = metrics.tightBoundingRect('A').height()
+
+        self._fields = []
+
+        # Get field bounds, TODO: handle special cases for Note On, Hit and Note Off
+
+        type_field = {
+                'offset': padding,
+                'width': metrics.boundingRect(evtype).width(),
+                'text': evtype,
+                }
+        self._fields.append(type_field)
+
+        if expr != None:
+            arg_field = {
+                    'offset': type_field['offset'] + type_field['width'] + padding,
+                    'width': metrics.boundingRect(expr).width(),
+                    'text': expr,
+                    }
+            self._fields.append(arg_field)
+
+        # Width
+        total_padding = padding * (len(self._fields) + 1)
+        self._total_width = sum(f['width'] for f in self._fields) + total_padding
 
 

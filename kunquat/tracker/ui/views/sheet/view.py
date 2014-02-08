@@ -174,8 +174,8 @@ class View(QWidget):
                 (r.get_total_width() for r in rends), 0, trigger_index))
         if trigger_index < len(rends) and field_index > 0:
             renderer = rends[trigger_index]
-            _, stop = renderer.get_type_bounds()
-            total_width += stop
+            offset, width = renderer.get_field_bounds(field_index - 1)
+            total_width += offset + width
         return total_width
 
     def _follow_trigger_row(self, location):
@@ -214,12 +214,11 @@ class View(QWidget):
                 # Lower bound for row offset
                 if trigger_index < len(triggers):
                     renderer = TriggerRenderer(self._config, triggers[trigger_index])
+                    # TODO: revisit field bounds handling, this is messy
+                    _, width = renderer.get_field_bounds(self._field_index)
+                    field_width = width + trigger_padding * 2
                     if self._field_index == 0:
-                        _, field_width = renderer.get_type_bounds()
-                    else:
-                        _, type_stop = renderer.get_type_bounds()
-                        _, expr_stop = renderer.get_expr_bounds()
-                        field_width = expr_stop - type_stop + trigger_padding
+                        field_width += trigger_padding
                 else:
                     field_width = trail_width
                 min_offset = max(0,
@@ -366,11 +365,7 @@ class View(QWidget):
             # Identify selected field
             select = None
             if i == trigger_index:
-                if self._field_index == 0:
-                    select = 'type'
-                else:
-                    assert trigger.get_argument() != None
-                    select = 'expr'
+                select = self._field_index
 
             # Render
             renderer.draw_trigger(painter, False, select)
