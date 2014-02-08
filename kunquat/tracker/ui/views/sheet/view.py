@@ -474,6 +474,37 @@ class View(QWidget):
             selection.set_location(location)
             return
 
+    def _move_edit_cursor_trigger_index(self, index):
+        module = self._ui_model.get_module()
+        album = module.get_album()
+        if not album or album.get_track_count() == 0:
+            return
+
+        selection = self._ui_model.get_selection()
+        location = selection.get_location()
+
+        cur_song = album.get_song_by_track(location.get_track())
+        cur_pattern = cur_song.get_pattern_instance(location.get_system()).get_pattern()
+        cur_column = cur_pattern.get_column(location.get_col_num())
+        if not self._cur_column or (self._cur_column != cur_column):
+            self._cur_column = cur_column
+
+        self._target_trigger_index = index
+
+        new_trigger_index = self._clamp_trigger_index(
+                self._cur_column, location.get_row_ts(), self._target_trigger_index)
+
+        new_location = TriggerPosition(
+                location.get_track(),
+                location.get_system(),
+                location.get_col_num(),
+                location.get_row_ts(),
+                new_trigger_index)
+
+        self._field_index = 0
+
+        selection.set_location(new_location)
+
     def _move_edit_cursor_column(self, delta):
         assert delta != 0
 
@@ -629,6 +660,10 @@ class View(QWidget):
         elif ev.key() == Qt.Key_Right:
             self._horizontal_move_state.press_right()
             self._move_edit_cursor_trow()
+        elif ev.key() == Qt.Key_Home:
+            self._move_edit_cursor_trigger_index(0)
+        elif ev.key() == Qt.Key_End:
+            self._move_edit_cursor_trigger_index(2**24) # :-P
         elif ev.key() == Qt.Key_Tab:
             self._move_edit_cursor_column(1)
             return True
