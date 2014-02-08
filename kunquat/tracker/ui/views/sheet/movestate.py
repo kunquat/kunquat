@@ -78,6 +78,8 @@ class HorizontalMoveState(AbstractMoveState):
         self.release(1)
 
 
+# Vertical movement parameters
+
 _STEP_BASE = 1.15
 _STEP_MAX = 16
 
