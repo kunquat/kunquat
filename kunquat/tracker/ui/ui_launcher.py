@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2014
 #          Toni Ruottu, Finland 2013
 #
 # This file is part of Kunquat.
@@ -24,7 +24,7 @@ import tarfile
 from signal import SIGHUP, SIGKILL
 
 from kunquat.tracker.ui.model.uimodel import create_ui_model
-
+from kunquat.tracker.ui.errordialog import ErrorDialog
 from kunquat.tracker.ui.views.mainwindow import MainWindow
 from kunquat.tracker.ui.controller.controller import create_controller
 
@@ -79,6 +79,7 @@ class UiLauncher():
 
     def run_ui(self):
         app = QApplication(sys.argv)
+        error_dialog = ErrorDialog()
         main_window = MainWindow()
 
         update_timer = QTimer()

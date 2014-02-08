@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2014
 #          Toni Ruottu, Finland 2013
 #
 # This file is part of Kunquat.
@@ -12,13 +12,13 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-import threading
+from monitoringthread import MonitoringThread
 
 
-class EventPump(threading.Thread):
+class EventPump(MonitoringThread):
 
     def __init__(self):
-        threading.Thread.__init__(self, name="EventPump")
+        MonitoringThread.__init__(self, name="EventPump")
         self.daemon = True
         self._signaler = None
         self._blocker = None
@@ -29,7 +29,7 @@ class EventPump(threading.Thread):
     def set_blocker(self, blocker):
         self._blocker = blocker
 
-    def run(self):
+    def run_monitored(self):
         while True:
             self._blocker()
             if self._signaler:

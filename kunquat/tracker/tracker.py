@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2014
 #          Toni Ruottu, Finland 2013
 #
 # This file is part of Kunquat.
@@ -16,6 +16,7 @@ import os
 import time
 import signal
 
+from kunquat.tracker.errorbase import *
 from kunquat.tracker.threads.audiothread import create_audio_thread
 from kunquat.tracker.threads.uithread import create_ui_thread
 
@@ -23,19 +24,19 @@ class Tracker():
 
     def __init__(self):
         pass
-    
+
     def main(self):
+        setup_basic_error_handler()
         audio_thread = create_audio_thread()
         ui_thread = create_ui_thread()
         audio_thread.set_ui_engine(ui_thread)
         ui_thread.set_audio_engine(audio_thread)
         audio_thread.start()
         ui_thread.start()
-        try:
-            while ui_thread.is_alive():
-                time.sleep(1)
-        except:
-            pass
+
+        while ui_thread.is_alive():
+            time.sleep(1)
+
         ui_thread.halt()
         audio_thread.halt()
         ui_thread.join()
