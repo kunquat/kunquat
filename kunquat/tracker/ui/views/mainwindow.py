@@ -64,6 +64,15 @@ class MainWindow(QWidget):
         self._peak_meter.set_ui_model(ui_model)
         #self._sheet.set_ui_model(ui_model)
 
+    def unregister_updaters(self):
+        self._peak_meter.unregister_updaters()
+        self._import_progress.unregister_updaters()
+        self._instrument_select.unregister_updaters()
+        self._type_writer.unregister_updaters()
+        self._octave_selector.unregister_updaters()
+        self._about_button.unregister_updaters()
+        self._play_button.unregister_updaters()
+
     def closeEvent(self, event):
         event.ignore()
         visibility_manager = self._ui_model.get_visibility_manager()

@@ -69,6 +69,6 @@ class RootView():
 
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
-        # TODO: forward call to main window
+        self._main_window.unregister_updaters()
 
 

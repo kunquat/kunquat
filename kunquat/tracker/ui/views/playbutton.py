@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Toni Ruottu, Finland 2013
+# Authors: Toni Ruottu, Finland 2013
+#          Tomi Jylhä-Ollila, Finland 2014
 #
 # This file is part of Kunquat.
 #
@@ -13,6 +14,7 @@
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
+
 
 class PlayButton(QToolButton):
 
@@ -29,6 +31,10 @@ class PlayButton(QToolButton):
         QObject.connect(self, SIGNAL('clicked()'),
                         self._ui_model.play)
 
+    def unregister_updaters(self):
+        pass
+
     def _update(self):
         pass
+
 

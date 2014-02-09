@@ -29,6 +29,9 @@ class AboutButton(QToolButton):
         self._ui_model = ui_model
         QObject.connect(self, SIGNAL('clicked()'), self._clicked)
 
+    def unregister_updaters(self):
+        pass
+
     def _clicked(self):
         visibility_manager = self._ui_model.get_visibility_manager()
         visibility_manager.show_about()

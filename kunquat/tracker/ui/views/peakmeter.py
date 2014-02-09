@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013
+# Author: Tomi Jylhä-Ollila, Finland 2013-2014
 #
 # This file is part of Kunquat.
 #
@@ -49,6 +49,7 @@ class PeakMeter(QWidget):
 
     def __init__(self, config={}):
         QWidget.__init__(self)
+        self._updater = None
 
         self._config = None
         self._colours = None
@@ -124,11 +125,17 @@ class PeakMeter(QWidget):
                 fg_grad)
 
     def set_ui_model(self, ui_model):
-        updater = ui_model.get_updater()
-        updater.register_updater(self.perform_updates)
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
         self._stat_manager = ui_model.get_stat_manager()
 
-    def update_levels(self):
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _perform_updates(self, signals):
+        self._update_levels()
+
+    def _update_levels(self):
         levels = self._stat_manager.get_audio_levels()
         cur_time = time.time()
 
@@ -219,6 +226,4 @@ class PeakMeter(QWidget):
                 self._config['clip_width'] * 4,
                 self._config['thickness'] * 2 + self._config['padding'])
 
-    def perform_updates(self, signals):
-        self.update_levels()
 
