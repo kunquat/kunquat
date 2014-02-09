@@ -43,7 +43,7 @@ class Updater(object):
     def verify_ready_to_exit(self):
         if self._updaters:
             updaters_str = '\n'.join(str(u) for u in self._updaters)
-            raise AssertionError(
+            raise RuntimeError(
                     'Updaters left on exit:\n{}'.format(updaters_str))
 
 
