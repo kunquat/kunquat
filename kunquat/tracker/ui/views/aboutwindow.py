@@ -25,6 +25,8 @@ class AboutWindow(QWidget):
         self._ui_model = None
         self._about = About()
 
+        self.setWindowTitle('About Kunquat Tracker')
+
         v = QVBoxLayout()
         v.addWidget(self._about)
         self.setLayout(v)
