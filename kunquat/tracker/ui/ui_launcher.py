@@ -104,9 +104,11 @@ class UiLauncher():
             self.execute_task(load_task)
         app.exec_()
 
+        updater_count = self._controller.get_updater().verify_ready_to_exit()
 
     def halt_ui(self):
         pass
+
 
 def create_ui_launcher():
     controller = create_controller()
@@ -117,4 +119,5 @@ def create_ui_launcher():
     ui_launcher.set_controller(controller)
     #ui_launcher.set_instrument_class(Instrument)
     return ui_launcher
+
 
