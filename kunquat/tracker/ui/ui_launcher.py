@@ -26,7 +26,6 @@ from signal import SIGHUP, SIGKILL
 from kunquat.tracker.ui.model.uimodel import create_ui_model
 
 from kunquat.tracker.ui.errordialog import ErrorDialog
-from kunquat.tracker.ui.views.mainwindow import MainWindow
 from kunquat.tracker.ui.views.rootview import RootView
 from kunquat.tracker.ui.controller.controller import create_controller
 
@@ -82,7 +81,6 @@ class UiLauncher():
     def run_ui(self):
         app = QApplication(sys.argv)
         error_dialog = ErrorDialog()
-        main_window = MainWindow()
         root_view = RootView()
 
         update_timer = QTimer()
