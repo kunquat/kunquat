@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013
-#          Tomi Jylhä-Ollila, Finland 2013
+#          Tomi Jylhä-Ollila, Finland 2013-2014
 #
 # This file is part of Kunquat.
 #
@@ -14,6 +14,7 @@
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
+
 
 class OLed(QFrame):
 
@@ -45,6 +46,7 @@ class OLed(QFrame):
         style = 'QLabel { background-color: %s; }' % led_colors[is_on]
         self._led.setStyleSheet(style)
 
+
 class OctaveButton(QPushButton):
 
     def __init__(self, octave_id):
@@ -52,6 +54,7 @@ class OctaveButton(QPushButton):
         self._octave_id = octave_id
         self._typewriter_manager = None
         self._ui_manager = None
+        self._updater = None
 
         self.setCheckable(True)
         self.setMinimumWidth(60)
@@ -74,12 +77,15 @@ class OctaveButton(QPushButton):
         self._typewriter_manager.set_octave(self._octave_id)
 
     def set_ui_model(self, ui_model):
-        updater = ui_model.get_updater()
-        updater.register_updater(self.perform_updates)
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
         self._ui_manager = ui_model.get_ui_manager()
         self._typewriter_manager = ui_model.get_typewriter_manager()
         octave_name = self._typewriter_manager.get_octave_name(self._octave_id)
         self._octavename.setText('%s' % octave_name)
+
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
 
     def _update_pressed(self):
         octave = self._typewriter_manager.get_octave()
@@ -103,7 +109,9 @@ class OctaveButton(QPushButton):
                 is_on = 1
         self._led.set_led(is_on)
 
-    def perform_updates(self, signals):
+    def _perform_updates(self, signals):
         if 'signal_octave' in signals:
             self._update_pressed()
         self.update_leds()
+
+

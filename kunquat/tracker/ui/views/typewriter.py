@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Toni Ruottu, Finland 2013
+# Authors: Toni Ruottu, Finland 2013
+#          Tomi Jylhä-Ollila, Finland 2014
 #
 # This file is part of Kunquat.
 #
@@ -16,6 +17,7 @@ from PyQt4.QtGui import *
 
 from typewriterbutton import TypeWriterButton
 
+
 class TypeWriter(QAbstractScrollArea):
 
     def __init__(self):
@@ -29,15 +31,19 @@ class TypeWriter(QAbstractScrollArea):
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
-        self._updater.register_updater(self.perform_updates)
+        self._updater.register_updater(self._perform_updates)
         self._typewriter_manager = ui_model.get_typewriter_manager()
+
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
+        self._unregister_button_updaters()
 
     def _update_buttons(self):
         self._unregister_button_updaters()
         view = self._get_view()
         self.setViewport(view)
 
-    def perform_updates(self, signals):
+    def _perform_updates(self, signals):
         if 'signal_octave' in signals:
             self._update_buttons()
 
@@ -93,3 +99,5 @@ class TypeWriter(QAbstractScrollArea):
         for button in list(self._current_buttons):
             button.unregister_updaters()
             self._current_buttons.remove(button)
+
+

@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Toni Ruottu, Finland 2013
+# Authors: Toni Ruottu, Finland 2013
+#          Tomi Jylhä-Ollila, Finland 2014
 #
 # This file is part of Kunquat.
 #
@@ -16,6 +17,7 @@ from PyQt4.QtGui import *
 
 from octavebutton import OctaveButton
 
+
 class OctaveSelector(QAbstractScrollArea):
 
     def __init__(self):
@@ -29,6 +31,15 @@ class OctaveSelector(QAbstractScrollArea):
         self._typewriter_manager = ui_model.get_typewriter_manager()
         self._update()
 
+    def unregister_updaters(self):
+        view = self.viewport()
+        layout = view.layout()
+        layout_items = [layout.itemAt(i) for i in xrange(layout.count())]
+        for item in layout_items:
+            button = item.widget()
+            if button:
+                button.unregister_updaters()
+
     def _update(self):
         view = self._get_view()
         self.setViewport(view)
@@ -38,12 +49,12 @@ class OctaveSelector(QAbstractScrollArea):
         view = QWidget()
         row = QHBoxLayout(view)
         for i in range(octave_count):
-            button = self.get_button(i)
+            button = self._get_button(i)
             row.addWidget(button)
         row.addStretch(1)
         return view
 
-    def get_button(self, octave_id):
+    def _get_button(self, octave_id):
         button = OctaveButton(octave_id)
         button.set_ui_model(self._ui_model)
         return button

@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Toni Ruottu, Finland 2013
+# Authors: Toni Ruottu, Finland 2013
+#          Tomi Jylhä-Ollila, Finland 2014
 #
 # This file is part of Kunquat.
 #
@@ -38,4 +39,11 @@ class Updater(object):
             updater = self._iterator.pop()
             updater(self._update_signals)
         self._update_signals = set()
+
+    def verify_ready_to_exit(self):
+        if self._updaters:
+            updaters_str = '\n'.join(str(u) for u in self._updaters)
+            raise RuntimeError(
+                    'Updaters left on exit:\n{}'.format(updaters_str))
+
 

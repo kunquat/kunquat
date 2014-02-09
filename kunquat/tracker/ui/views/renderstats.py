@@ -20,7 +20,8 @@ class RenderStats(QWidget):
 
     def __init__(self):
         QWidget.__init__(self)
-        self._stat_manager = None
+        self._ui_model = None
+        self._stat_manaer = None
 
         self._output_speed = QLabel(self)
         self._render_speed = QLabel(self)
@@ -35,9 +36,14 @@ class RenderStats(QWidget):
         self.setLayout(v)
 
     def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
         updater = ui_model.get_updater()
         updater.register_updater(self.perform_updates)
         self._stat_manager = ui_model.get_stat_manager()
+
+    def unregister_updaters(self):
+        updater = self._ui_model.get_updater()
+        updater.unregister_updater(self.perform_updates)
 
     def update_output_speed(self):
         output_speed = self._stat_manager.get_output_speed()
