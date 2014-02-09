@@ -749,7 +749,9 @@ class View(QWidget):
 
         end = time.time()
         elapsed = end - start
-        print('View updated in {:.2f} ms'.format(elapsed * 1000))
+        memory_usage = sum(cr.get_memory_usage() for cr in self._col_rends)
+        print('View updated in {:.2f} ms, cache size {:.2f} MB'.format(
+            elapsed * 1000, memory_usage / float(2**20)))
 
     def focusInEvent(self, ev):
         self.update()

@@ -81,6 +81,12 @@ class ColumnGroupRenderer():
             self._px_offset = px_offset
             self._sync_caches()
 
+    def get_memory_usage(self):
+        try:
+            return sum(cache.get_memory_usage() for cache in self._caches)
+        except AttributeError:
+            return 0
+
     def draw(self, painter, height):
         # Render columns of visible patterns
         first_index = utils.get_first_visible_pat_index(
@@ -223,6 +229,15 @@ class ColumnCache():
             self._px_per_beat = px_per_beat
             self._pixmaps = {}
 
+    def get_memory_usage(self):
+        tr_memory_usage = self._tr_cache.get_memory_usage()
+        for pixmap in self._pixmaps.values():
+            bpp = pixmap.depth()
+            px_per_map = self._width * ColumnCache.PIXMAP_HEIGHT
+            return tr_memory_usage + len(self._pixmaps) * px_per_map * (bpp // 8)
+        else:
+            return tr_memory_usage
+
     def iter_pixmaps(self, start_px, height_px):
         assert start_px >= 0
         assert height_px >= 0
@@ -362,6 +377,12 @@ class TRCache():
         if images_created > 0:
             print('{} trigger row image{} created'.format(
                 images_created, 's' if images_created != 1 else ''))
+
+    def get_memory_usage(self):
+        total_byte_count = 0
+        for image in self._images.values():
+            total_byte_count += image.byteCount()
+        return total_byte_count
 
     def _create_image(self, triggers):
         rends = [TriggerRenderer(self._config, t) for t in triggers]
