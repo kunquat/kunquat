@@ -92,9 +92,9 @@ class UiLauncher():
 
         self._event_pump_starter()
 
-        #if not self._show:
-        #    visibility_manager = self._ui_model.get_visibility_manager()
-        #    visibility_manager.run_hidden()
+        if not self._show:
+            visibility_manager = self._ui_model.get_visibility_manager()
+            visibility_manager.run_hidden()
 
         root_view.show_main_window()
 

@@ -30,7 +30,6 @@ class RootView():
         self._about_window = None
 
     def show_main_window(self):
-        # TODO: Check settings for UI visibility
         visibility_manager = self._ui_model.get_visibility_manager()
         visibility_manager.show_main()
 
@@ -48,24 +47,31 @@ class RootView():
         closed = self._visible - visibility_update
 
         for ui in opened:
-            # TODO: Check settings for UI visibility
+            # Check settings for UI visibility
+            is_show_allowed = visibility_manager.is_show_allowed()
+
             if ui == UI_MAIN:
-                self._main_window.show()
+                if is_show_allowed:
+                    self._main_window.show()
             elif ui == UI_ABOUT:
                 self._about_window = AboutWindow()
                 self._about_window.set_ui_model(self._ui_model)
-                self._about_window.show()
+                if is_show_allowed:
+                    self._about_window.show()
 
         for ui in closed:
             if ui == UI_MAIN:
                 self._main_window.hide()
-                QApplication.quit()
+                visibility_manager.hide_all()
             elif ui == UI_ABOUT:
                 self._about_window.unregister_updaters()
                 self._about_window.deleteLater()
                 self._about_window = None
 
         self._visible = set(visibility_update)
+
+        if not self._visible:
+            QApplication.quit()
 
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)

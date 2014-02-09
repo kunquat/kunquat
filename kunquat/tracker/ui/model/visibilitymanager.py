@@ -21,13 +21,27 @@ class VisibilityManager():
         self._controller = None
         self._session = None
         self._updater = None
+        self._is_ui_visible = True
+        self._is_closing = False
 
     def set_controller(self, controller):
         self._controller = controller
         self._session = controller.get_session()
         self._updater = controller.get_updater()
 
+    def run_hidden(self):
+        self._is_ui_visible = False
+
+    def is_show_allowed(self):
+        return self._is_ui_visible and not self._is_closing
+
+    def hide_all(self):
+        self._is_closing = True
+        self._session.hide_all()
+
     def show_main(self):
+        if self._is_closing:
+            return
         self._session.show_ui(UI_MAIN)
         self._updater.signal_update()
 
@@ -36,6 +50,8 @@ class VisibilityManager():
         self._updater.signal_update()
 
     def show_about(self):
+        if self._is_closing:
+            return
         self._session.show_ui(UI_ABOUT)
         self._updater.signal_update()
 

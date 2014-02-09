@@ -117,6 +117,9 @@ class Session():
         assert ui_id
         self._visible -= set([ui_id])
 
+    def hide_all(self):
+        self._visible = set()
+
     def get_visible(self):
         return self._visible
 
