@@ -184,6 +184,8 @@ class EventList(QWidget):
         QWidget.__init__(self)
         self._ui_model = None
 
+        self.setWindowTitle('Event Log')
+
         self._logmodel = EventListModel()
 
         v = QVBoxLayout()
@@ -203,5 +205,10 @@ class EventList(QWidget):
     def unregister_updaters(self):
         self._logmodel.unregister_updaters()
         self._filters.unregister_updaters()
+
+    def closeEvent(self, event):
+        event.ignore()
+        visibility_manager = self._ui_model.get_visibility_manager()
+        visibility_manager.hide_event_log()
 
 
