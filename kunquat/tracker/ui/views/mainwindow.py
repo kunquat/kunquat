@@ -69,6 +69,7 @@ class MainWindow(QWidget):
         #self._sheet.set_ui_model(ui_model)
 
     def unregister_updaters(self):
+        self._eventlist.unregister_updaters()
         self._peak_meter.unregister_updaters()
         self._import_progress.unregister_updaters()
         self._instrument_select.unregister_updaters()

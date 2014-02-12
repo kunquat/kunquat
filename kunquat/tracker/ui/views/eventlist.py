@@ -137,6 +137,9 @@ class EventFilterButton(QCheckBox):
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
 
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
+
     def _perform_updates(self, signal):
         event_history = self._ui_model.get_event_history()
         self.blockSignals(True)
@@ -169,6 +172,11 @@ class EventFilterView(QWidget):
         self._fire_toggle.set_ui_model(ui_model)
         self._tfire_toggle.set_ui_model(ui_model)
 
+    def unregister_updaters(self):
+        self._mix_toggle.unregister_updaters()
+        self._fire_toggle.unregister_updaters()
+        self._tfire_toggle.unregister_updaters()
+
 
 class EventList(QWidget):
 
@@ -191,5 +199,9 @@ class EventList(QWidget):
         self._ui_model = ui_model
         self._logmodel.set_ui_model(ui_model)
         self._filters.set_ui_model(ui_model)
+
+    def unregister_updaters(self):
+        self._logmodel.unregister_updaters()
+        self._filters.unregister_updaters()
 
 
