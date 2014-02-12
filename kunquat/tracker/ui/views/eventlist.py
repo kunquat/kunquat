@@ -24,7 +24,7 @@ DISP_CONTEXTS = {
 
 class EventListModel(QAbstractTableModel):
 
-    HEADERS = ["#", "Channel", "Type", "Value", "Context"]
+    HEADERS = ["#", "Chn", "Type", "Value", "Context"]
 
     def __init__(self):
         QAbstractTableModel.__init__(self)
@@ -111,6 +111,16 @@ class EventTable(QTableView):
                 vscrollbar,
                 SIGNAL('valueChanged(int)'),
                 self._on_valueChanged)
+
+    def setModel(self, model):
+        QTableView.setModel(self, model)
+
+        hh = self.horizontalHeader()
+        hh.resizeSection(0, 60)
+        hh.resizeSection(1, 40)
+        hh.resizeSection(2, 80)
+        hh.resizeSection(3, 200)
+        hh.resizeSection(4, 100)
 
     def _on_rangeChanged(self, rmin, rmax):
         if self._focusbottom:
