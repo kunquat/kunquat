@@ -105,7 +105,7 @@ class UiLauncher():
         app.exec_()
 
         root_view.unregister_updaters()
-        updater_count = self._controller.get_updater().verify_ready_to_exit()
+        self._controller.get_updater().verify_ready_to_exit()
 
     def halt_ui(self):
         pass
