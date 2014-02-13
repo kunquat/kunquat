@@ -25,6 +25,10 @@ EVENT_SELECT_CONTROL = '.i'
 EVENT_NOTE_ON = 'n+'
 EVENT_NOTE_OFF = 'n-'
 
+CONTEXT_MIX = 'mix'
+CONTEXT_FIRE = 'fire'
+CONTEXT_TFIRE = 'tfire'
+
 def gen_sine(rate):
     # we yield some silence here to comply with tests
     # this code is probably removed later anyway
@@ -71,7 +75,9 @@ class AudioEngine():
         assert len(levels) == 2
         return tuple(levels)
 
-    def _process_event(self, channel_number, event_type, event_value):
+    def _process_event(self, channel_number, event_type, event_value, context):
+        self._ui_engine.update_event_log_with(
+                channel_number, event_type, event_value, context)
         if event_type == EVENT_SELECT_CONTROL:
             control_number = event_value
             self._ui_engine.update_selected_control(channel_number, control_number)
@@ -82,10 +88,10 @@ class AudioEngine():
             pitch = event_value
             self._ui_engine.update_active_note(channel_number, pitch)
 
-    def _process_events(self, event_data):
+    def _process_events(self, event_data, context):
         for channel_number, event in event_data:
             event_type, event_value = tuple(event)
-            self._process_event(channel_number, event_type, event_value)
+            self._process_event(channel_number, event_type, event_value, context)
 
     def _mix(self, nframes):
         start = time.time()
@@ -94,7 +100,7 @@ class AudioEngine():
         self._rendering_engine.play(nframes)
         audio_data = self._rendering_engine.get_audio()
         event_data = self._rendering_engine.receive_events()
-        self._process_events(event_data)
+        self._process_events(event_data, CONTEXT_MIX)
         (l,r) = audio_data
         if len(l) < 1:
             audio_data = self._silence
@@ -109,10 +115,16 @@ class AudioEngine():
         self._push_amount = nframes
         self._audio_output.put_audio(audio_data)
 
-    def fire_event(self, channel, event):
+    def _fire_event(self, channel, event, context):
         self._rendering_engine.fire_event(channel, event)
         event_data = self._rendering_engine.receive_events()
-        self._process_events(event_data)
+        self._process_events(event_data, context)
+
+    def fire_event(self, channel, event):
+        self._fire_event(channel, event, CONTEXT_FIRE)
+
+    def tfire_event(self, channel, event):
+        self._fire_event(channel, event, CONTEXT_TFIRE)
 
     def set_data(self, transaction):
         #TODO: Remove sorting once it works without

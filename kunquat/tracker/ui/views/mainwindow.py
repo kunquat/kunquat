@@ -17,6 +17,7 @@ from PyQt4.QtGui import *
 
 from playbutton import PlayButton
 from aboutbutton import AboutButton
+from eventlistbutton import EventListButton
 from octaveselector import OctaveSelector
 from typewriter import TypeWriter
 from instrumentselect import InstrumentSelect
@@ -33,6 +34,7 @@ class MainWindow(QWidget):
         self.resize(800, 600)
         self._play_button = PlayButton()
         self._about_button = AboutButton()
+        self._event_list_button = EventListButton()
         self._octave_selector = OctaveSelector()
         self._type_writer = TypeWriter()
         self._instrument_select = InstrumentSelect()
@@ -40,9 +42,13 @@ class MainWindow(QWidget):
         self._peak_meter = PeakMeter()
         #self._sheet = Sheet()
 
+        buttons = QHBoxLayout()
+        buttons.addWidget(self._event_list_button)
+        buttons.addWidget(self._about_button)
+
         v = QVBoxLayout()
         v.addWidget(self._play_button)
-        v.addWidget(self._about_button)
+        v.addLayout(buttons)
         v.addWidget(self._octave_selector)
         v.addWidget(self._type_writer)
         v.addWidget(self._instrument_select)
@@ -57,6 +63,7 @@ class MainWindow(QWidget):
         self._ui_model = ui_model
         self._play_button.set_ui_model(ui_model)
         self._about_button.set_ui_model(ui_model)
+        self._event_list_button.set_ui_model(ui_model)
         self._octave_selector.set_ui_model(ui_model)
         self._type_writer.set_ui_model(ui_model)
         self._instrument_select.set_ui_model(ui_model)
@@ -70,6 +77,7 @@ class MainWindow(QWidget):
         self._instrument_select.unregister_updaters()
         self._type_writer.unregister_updaters()
         self._octave_selector.unregister_updaters()
+        self._event_list_button.unregister_updaters()
         self._about_button.unregister_updaters()
         self._play_button.unregister_updaters()
 

@@ -18,6 +18,7 @@ from PyQt4.QtGui import *
 from kunquat.tracker.ui.identifiers import *
 from mainwindow import MainWindow
 from aboutwindow import AboutWindow
+from eventlist import EventList
 
 
 class RootView():
@@ -28,6 +29,7 @@ class RootView():
         self._visible = set()
         self._main_window = MainWindow()
         self._about_window = None
+        self._event_log = None
 
     def show_main_window(self):
         visibility_manager = self._ui_model.get_visibility_manager()
@@ -58,6 +60,11 @@ class RootView():
                 self._about_window.set_ui_model(self._ui_model)
                 if is_show_allowed:
                     self._about_window.show()
+            elif ui == UI_EVENT_LOG:
+                self._event_log = EventList()
+                self._event_log.set_ui_model(self._ui_model)
+                if is_show_allowed:
+                    self._event_log.show()
 
         for ui in closed:
             if ui == UI_MAIN:
@@ -67,6 +74,10 @@ class RootView():
                 self._about_window.unregister_updaters()
                 self._about_window.deleteLater()
                 self._about_window = None
+            elif ui == UI_EVENT_LOG:
+                self._event_log.unregister_updaters()
+                self._event_log.deleteLater()
+                self._event_log = None
 
         self._visible = set(visibility_update)
 

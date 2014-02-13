@@ -13,5 +13,6 @@
 
 UI_MAIN = 'main'
 UI_ABOUT = 'about'
+UI_EVENT_LOG = 'event_log'
 
 

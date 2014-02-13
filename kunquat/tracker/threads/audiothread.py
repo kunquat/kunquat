@@ -65,6 +65,9 @@ class AudioThread(MonitoringThread):
     def fire_event(self, channel, event):
         self._q.push('fire_event', channel, event)
 
+    def tfire_event(self, channel, event):
+        self._q.push('tfire_event', channel, event)
+
     def set_data(self, transaction):
         self._q.push('set_data', transaction)
 
