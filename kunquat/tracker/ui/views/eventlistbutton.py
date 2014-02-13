@@ -82,7 +82,7 @@ class EventListButton(QToolButton):
         self._light = EventLight()
         light_layout = QWidgetItem(self._light)
         light_layout.setAlignment(Qt.AlignVCenter)
-        self._text = QLabel('Event Log')
+        self._text = QLabel(self._get_text(0))
 
         h = QHBoxLayout()
         h.setContentsMargins(5, 5, 5, 5)
@@ -105,6 +105,10 @@ class EventListButton(QToolButton):
         visibility_manager = self._ui_model.get_visibility_manager()
         visibility_manager.show_event_log()
 
+    def _get_text(self, count):
+        s = '' if count == 1 else 's'
+        return '{} event{}'.format(count, s)
+
     def _perform_updates(self, signals):
         event_history = self._ui_model.get_event_history()
         log = event_history.get_log()
@@ -113,10 +117,12 @@ class EventListButton(QToolButton):
             if log[0] != self._last_event:
                 self._last_event = log[0]
                 self._light.do_flash()
+                self._text.setText(self._get_text(len(log)))
         else:
             if self._last_event:
                 self._last_event = None
                 self._light.do_flash()
+                self._text.setText(self._get_text(0))
 
     def sizeHint(self):
         return self.layout().sizeHint()
