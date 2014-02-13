@@ -27,9 +27,9 @@ class EventHistory():
 
     def allow_context(self, context, allow):
         if allow:
-            self._context_filter |= set([context])
+            self._context_filter.add(context)
         else:
-            self._context_filter -= set([context])
+            self._context_filter.discard(context)
 
     def is_context_allowed(self, context):
         return context in self._context_filter
