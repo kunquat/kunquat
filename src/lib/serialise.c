@@ -34,15 +34,75 @@ int serialise_bool(char* dest, int size, bool value)
 }
 
 
+#define INT_BUF_SIZE 32
+
 int serialise_int(char* dest, int size, int64_t value)
 {
     assert(dest != NULL);
     assert(size > 0);
 
-    int printed = snprintf(dest, size, "%" PRId64, value);
+    char result[INT_BUF_SIZE] = "";
+    int length = 0;
+
+    if (value == 0)
+    {
+        result[0] = '0';
+    }
+    else
+    {
+        const bool is_negative = (value < 0);
+
+        // Make sure we can get an absolute value
+        const bool is_smallest = (value == INT64_MIN);
+        const int64_t safe_value = is_smallest ? value + 1 : value;
+
+        const int64_t abs_value = imaxabs(safe_value);
+
+        // Write digits and sign in reverse order
+        int64_t left = abs_value;
+        while (left != 0)
+        {
+            assert(length < INT_BUF_SIZE);
+
+            int64_t digit = left % 10;
+            result[length] = digit + '0';
+
+            left /= 10;
+            ++length;
+        }
+
+        if (is_negative)
+        {
+            assert(length < INT_BUF_SIZE);
+            result[length] = '-';
+            ++length;
+        }
+
+        // Fix smallest value
+        if (is_smallest)
+        {
+            assert(result[0] != '9'); // magnitude is a power of 2
+            result[0] += 1;
+        }
+
+        // Reverse contents
+        for (int i = 0; i < length / 2; ++i)
+        {
+            int other_index = length - i - 1;
+            char tmp = result[i];
+            result[i] = result[other_index];
+            result[other_index] = tmp;
+        }
+    }
+
+    int printed = snprintf(dest, size, "%s", result);
+
+    //int printed = snprintf(dest, size, "%" PRId64, value);
 
     return MIN(printed, size - 1);
 }
+
+#undef INT_BUF_SIZE
 
 
 #define SIGNIFICANT_MAX 17
