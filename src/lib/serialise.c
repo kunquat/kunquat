@@ -23,6 +23,9 @@
 #include <xassert.h>
 
 
+#define INT_BUF_SIZE 32
+
+
 int serialise_bool(char* dest, int size, bool value)
 {
     assert(dest != NULL);
@@ -33,8 +36,6 @@ int serialise_bool(char* dest, int size, bool value)
     return MIN(printed, size - 1);
 }
 
-
-#define INT_BUF_SIZE 32
 
 int serialise_int(char* dest, int size, int64_t value)
 {
@@ -99,8 +100,6 @@ int serialise_int(char* dest, int size, int64_t value)
 
     return MIN(printed, size - 1);
 }
-
-#undef INT_BUF_SIZE
 
 
 #define SIGNIFICANT_MAX 17
@@ -248,8 +247,13 @@ int serialise_Pat_inst_ref(char* dest, int size, Pat_inst_ref* value)
     assert(size > 0);
     assert(value != NULL);
 
-    int printed = snprintf(dest, size, "[%" PRId16 ", %" PRId16 "]",
-            value->pat, value->inst);
+    char pat_buf[INT_BUF_SIZE] = "";
+    char inst_buf[INT_BUF_SIZE] = "";
+
+    serialise_int(pat_buf, INT_BUF_SIZE, value->pat);
+    serialise_int(inst_buf, INT_BUF_SIZE, value->inst);
+
+    int printed = snprintf(dest, size, "[%s, %s]", pat_buf, inst_buf);
 
     return MIN(printed, size - 1);
 }
@@ -271,8 +275,13 @@ int serialise_Real(char* dest, int size, Real* value)
         return MIN(printed, size - 1);
     }
 
-    int printed = snprintf(dest, size, "[\"/\", [%" PRId64 ", %" PRId64 "]]",
-            Real_get_numerator(value), Real_get_denominator(value));
+    char num_buf[INT_BUF_SIZE] = "";
+    char den_buf[INT_BUF_SIZE] = "";
+
+    serialise_int(num_buf, INT_BUF_SIZE, Real_get_numerator(value));
+    serialise_int(den_buf, INT_BUF_SIZE, Real_get_denominator(value));
+
+    int printed = snprintf(dest, size, "[\"/\", [%s, %s]]", num_buf, den_buf);
 
     return MIN(printed, size - 1);
 }
@@ -284,8 +293,13 @@ int serialise_Tstamp(char* dest, int size, Tstamp* value)
     assert(size > 0);
     assert(value != NULL);
 
-    int printed = snprintf(dest, size, "[%" PRId64 ", %" PRId32 "]",
-            Tstamp_get_beats(value), Tstamp_get_rem(value));
+    char beats_buf[INT_BUF_SIZE] = "";
+    char rem_buf[INT_BUF_SIZE] = "";
+
+    serialise_int(beats_buf, INT_BUF_SIZE, Tstamp_get_beats(value));
+    serialise_int(rem_buf, INT_BUF_SIZE, Tstamp_get_rem(value));
+
+    int printed = snprintf(dest, size, "[%s, %s]", beats_buf, rem_buf);
 
     return MIN(printed, size - 1);
 }
