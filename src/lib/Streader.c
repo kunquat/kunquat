@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2014
  *
  * This file is part of Kunquat.
  *
@@ -476,20 +476,6 @@ bool Streader_read_int(Streader* sr, int64_t* dest)
 }
 
 
-/*
-#define DECIMAL_CHARS_MAX 256
-
-#define CHECK_SPACE(err_msg)                   \
-    if (true)                                  \
-    {                                          \
-        if (write_pos > DECIMAL_CHARS_MAX)     \
-        {                                      \
-            Streader_set_error(sr, (err_msg)); \
-            return false;                      \
-        }                                      \
-    } else (void)0
-// */
-
 #define SIGNIFICANT_MAX 17
 
 bool Streader_read_float(Streader* sr, double* dest)
@@ -511,17 +497,9 @@ bool Streader_read_float(Streader* sr, double* dest)
     int exponent = 0;
     bool exponent_is_negative = false;
 
-    //char num_chars[DECIMAL_CHARS_MAX + 1] = "";
-    //int write_pos = 0;
-
-    //static const char* len_err_msg = "Number representation is too long";
-
     // Negation
     if (Streader_try_match_char(sr, '-'))
-    {
         is_negative = true;
-        //num_chars[write_pos++] = '-';
-    }
 
     if (Streader_end_reached(sr))
     {
@@ -532,7 +510,6 @@ bool Streader_read_float(Streader* sr, double* dest)
     // Significand
     if (CUR_CH == '0')
     {
-        //num_chars[write_pos++] = '0';
         ++sr->pos;
     }
     else if (strchr(NONZERO_DIGITS, CUR_CH) != NULL)
@@ -553,8 +530,6 @@ bool Streader_read_float(Streader* sr, double* dest)
                 ++significand_shift;
             }
 
-            //CHECK_SPACE("Too many digits in the significand");
-            //num_chars[write_pos++] = CUR_CH;
             ++sr->pos;
         }
     }
@@ -567,9 +542,6 @@ bool Streader_read_float(Streader* sr, double* dest)
     // Decimal part
     if (!Streader_end_reached(sr) && CUR_CH == '.')
     {
-        //CHECK_SPACE(len_err_msg);
-        //num_chars[write_pos++] = '.';
-
         ++sr->pos;
 
         while (!Streader_end_reached(sr) && isdigit(CUR_CH))
@@ -586,8 +558,6 @@ bool Streader_read_float(Streader* sr, double* dest)
                     ++significant_digits_read;
             }
 
-            //CHECK_SPACE(len_err_msg);
-            //num_chars[write_pos++] = CUR_CH;
             ++sr->pos;
         }
 
@@ -604,9 +574,6 @@ bool Streader_read_float(Streader* sr, double* dest)
             ((CUR_CH == 'e') || (CUR_CH == 'E'))
        )
     {
-        //CHECK_SPACE("Number representation is too long");
-        //num_chars[write_pos++] = 'e';
-
         ++sr->pos;
 
         if (Streader_end_reached(sr))
@@ -622,8 +589,6 @@ bool Streader_read_float(Streader* sr, double* dest)
         else if (CUR_CH == '-')
         {
             exponent_is_negative = true;
-            //CHECK_SPACE(len_err_msg);
-            //num_chars[write_pos++] = '-';
             ++sr->pos;
         }
 
@@ -633,8 +598,6 @@ bool Streader_read_float(Streader* sr, double* dest)
             exponent *= 10;
             exponent += (int)(CUR_CH - '0');
 
-            //CHECK_SPACE(len_err_msg);
-            //num_chars[write_pos++] = CUR_CH;
             ++sr->pos;
         }
 
@@ -677,21 +640,14 @@ bool Streader_read_float(Streader* sr, double* dest)
 
     if (is_negative)
         result = -result;
-    /*
-    char* end = NULL;
-    double result = strtod(num_chars, &end);
-    if (end == num_chars || !isfinite(result))
-    {
-        Streader_set_error(sr, "Floating-point number is not valid");
-        return false;
-    }
-    // */
 
     if (dest != NULL)
         *dest = result;
 
     return true;
 }
+
+#undef SIGNIFICANT_MAX
 
 
 bool Streader_read_string(Streader* sr, size_t max_bytes, char* dest)

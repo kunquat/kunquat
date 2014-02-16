@@ -97,8 +97,6 @@ int serialise_int(char* dest, int size, int64_t value)
 
     int printed = snprintf(dest, size, "%s", result);
 
-    //int printed = snprintf(dest, size, "%" PRId64, value);
-
     return MIN(printed, size - 1);
 }
 
@@ -239,30 +237,6 @@ int serialise_float(char* dest, int size, double value)
     strncpy(dest, result, copy_amount);
     dest[copy_amount] = '\0';
     return copy_amount;
-
-    /*
-    double abs_value = fabs(value);
-    if (abs_value >= (int64_t)1 << 53 ||
-            abs_value < 0.0001)
-    {
-        int printed = snprintf(dest, size, "%.17e", value);
-        return MIN(printed, size - 1);
-    }
-
-    char format[] = "%.17f";
-
-    int prec = 18 - log10(abs_value);
-    if (prec > 17)
-        prec = 17;
-    else if (prec < 1)
-        prec = 1;
-
-    snprintf(format, strlen(format) + 1, "%%.%df", prec);
-    assert(format[strlen(format) - 1] == 'f');
-    int printed = snprintf(dest, size, format, value);
-
-    return MIN(printed, size - 1);
-    // */
 }
 
 #undef SIGNIFICANT_MAX
