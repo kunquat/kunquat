@@ -137,7 +137,10 @@ class AudioEngine():
     def _average_time(self, times):
         total = sum(end - start for _, start, end in times)
         frames = sum(nframes for nframes, _, _ in times)
-        return frames / total
+        if total == 0:
+            return 0
+        else:
+            return frames / total
 
     def acknowledge_audio(self):
         start = self._push_time
