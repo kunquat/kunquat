@@ -150,7 +150,10 @@ class AudioEngine():
         self._output_fps = math.floor((nframes / (end - start)))
         output_avg = int(self._average_time(self._output_times))
         render_avg = int(self._average_time(self._render_times))
-        ratio = float(output_avg) / float(render_avg)
+        if render_avg == 0:
+            ratio = 0
+        else:
+            ratio = float(output_avg) / float(render_avg)
         if self._ui_engine:
             self._ui_engine.update_output_speed(output_avg)
             self._ui_engine.update_render_speed(render_avg)
