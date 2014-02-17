@@ -33,6 +33,9 @@ from kunquat.tracker.ui.controller.controller import create_controller
 
 class UiLauncher():
 
+    UI_FPS = 60
+    UI_DELTA = 1.0 / float(UI_FPS)
+
     def __init__(self, show=True):
         self._show = show
         self._updater = None
@@ -72,11 +75,10 @@ class UiLauncher():
         end = time.time()
 
         s = end - start
-        ms = s * 1000
-        lag = ms - 10
+        lag = s - self.UI_DELTA
         self._lag_times.append(lag)
         avg = sum(lag for lag in self._lag_times) / float(len(self._lag_times))
-        self._controller.update_ui_lag(avg)
+        self._controller.update_ui_lag(avg * 1000)
 
     def execute_task(self, task):
         for _ in task:
@@ -91,7 +93,7 @@ class UiLauncher():
         QObject.connect(update_timer,
                         SIGNAL('timeout()'),
                         self.update)
-        update_timer.start(10)
+        update_timer.start(1000 * self.UI_DELTA)
         root_view.set_ui_model(self._ui_model)
 
         self._event_pump_starter()
