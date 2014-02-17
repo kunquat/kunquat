@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013
-#          Tomi Jylhä-Ollila, Finland 2013
+#          Tomi Jylhä-Ollila, Finland 2013-2014
 #
 # This file is part of Kunquat.
 #
@@ -106,7 +106,6 @@ class AudioEngine():
             audio_data = self._silence
         end = time.time()
         self._render_times.append((nframes, start, end))
-        self._render_fps = math.floor((nframes / (end - start)))
         self._audio_levels = self._get_audio_levels(audio_data)
         return audio_data
 
