@@ -17,7 +17,6 @@
 #include <stdint.h>
 #include <string.h>
 #include <ctype.h>
-#include <errno.h>
 #include <math.h>
 #include <stdio.h>
 
@@ -577,23 +576,21 @@ static bool Value_from_token(
 
     if (isdigit(token[0]) || token[0] == '.')
     {
-        char* endptr = NULL;
         if (strchr(token, '.') != NULL)
         {
-            errno = 0;
-            double num = strtod(token, &endptr);
-            if (errno || *endptr != '\0')
-            {
+            Streader* sr = Streader_init(STREADER_AUTO, token, strlen(token));
+            double num = NAN;
+            if (!Streader_read_float(sr, &num))
                 return false;
-            }
+
             val->type = VALUE_TYPE_FLOAT;
             val->value.float_type = num;
             return true;
         }
 
-        errno = 0;
-        long long num = strtoll(token, &endptr, 10);
-        if (errno || *endptr != '\0')
+        Streader* sr = Streader_init(STREADER_AUTO, token, strlen(token));
+        int64_t num = 0;
+        if (!Streader_read_int(sr, &num))
             return false;
 
         val->type = VALUE_TYPE_INT;

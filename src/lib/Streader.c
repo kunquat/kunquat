@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2014
  *
  * This file is part of Kunquat.
  *
@@ -14,6 +14,7 @@
 
 #include <ctype.h>
 #include <inttypes.h>
+#include <limits.h>
 #include <math.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -475,17 +476,7 @@ bool Streader_read_int(Streader* sr, int64_t* dest)
 }
 
 
-#define DECIMAL_CHARS_MAX 256
-
-#define CHECK_SPACE(err_msg)                   \
-    if (true)                                  \
-    {                                          \
-        if (write_pos > DECIMAL_CHARS_MAX)     \
-        {                                      \
-            Streader_set_error(sr, (err_msg)); \
-            return false;                      \
-        }                                      \
-    } else (void)0
+#define SIGNIFICANT_MAX 17
 
 bool Streader_read_float(Streader* sr, double* dest)
 {
@@ -496,17 +487,19 @@ bool Streader_read_float(Streader* sr, double* dest)
 
     Streader_skip_whitespace(sr);
 
-    // Just copy legal characters to our buffer and
-    // let strtod handle the rest for now. TODO: revisit
+    // Note: Not completely accurate, but not supposed to be portable anyway...
 
-    char num_chars[DECIMAL_CHARS_MAX + 1] = "";
-    int write_pos = 0;
+    bool is_negative = false;
+    int64_t significand = 0;
+    int significand_shift = 0;
+    int significant_digits_read = 0;
 
-    static const char* len_err_msg = "Number representation is too long";
+    int exponent = 0;
+    bool exponent_is_negative = false;
 
     // Negation
     if (Streader_try_match_char(sr, '-'))
-        num_chars[write_pos++] = '-';
+        is_negative = true;
 
     if (Streader_end_reached(sr))
     {
@@ -517,15 +510,26 @@ bool Streader_read_float(Streader* sr, double* dest)
     // Significand
     if (CUR_CH == '0')
     {
-        num_chars[write_pos++] = '0';
         ++sr->pos;
     }
     else if (strchr(NONZERO_DIGITS, CUR_CH) != NULL)
     {
         while (!Streader_end_reached(sr) && isdigit(CUR_CH))
         {
-            CHECK_SPACE("Too many digits in the significand");
-            num_chars[write_pos++] = CUR_CH;
+            if (significant_digits_read < SIGNIFICANT_MAX)
+            {
+                // Store the digit into our significand
+                assert(significand < INT64_MAX / 10);
+                significand *= 10;
+                significand += (int64_t)(CUR_CH - '0');
+                ++significant_digits_read;
+            }
+            else
+            {
+                // We have run out of accuracy, just update magnitude
+                ++significand_shift;
+            }
+
             ++sr->pos;
         }
     }
@@ -538,20 +542,27 @@ bool Streader_read_float(Streader* sr, double* dest)
     // Decimal part
     if (!Streader_end_reached(sr) && CUR_CH == '.')
     {
-        CHECK_SPACE(len_err_msg);
-        num_chars[write_pos++] = '.';
-
         ++sr->pos;
 
         while (!Streader_end_reached(sr) && isdigit(CUR_CH))
         {
-            CHECK_SPACE(len_err_msg);
-            num_chars[write_pos++] = CUR_CH;
+            if (significant_digits_read < SIGNIFICANT_MAX)
+            {
+                // Append digit to our significand and compensate in shift
+                assert(significand < INT64_MAX / 10);
+                significand *= 10;
+                significand += (int64_t)(CUR_CH - '0');
+                --significand_shift;
+
+                if (significand != 0)
+                    ++significant_digits_read;
+            }
+
             ++sr->pos;
         }
 
         // Require at least one digit
-        if (num_chars[write_pos - 1] == '.')
+        if (sr->str[sr->pos - 1] == '.')
         {
             Streader_set_error(sr, "No digits found after decimal point");
             return false;
@@ -563,9 +574,6 @@ bool Streader_read_float(Streader* sr, double* dest)
             ((CUR_CH == 'e') || (CUR_CH == 'E'))
        )
     {
-        CHECK_SPACE("Number representation is too long");
-        num_chars[write_pos++] = 'e';
-
         ++sr->pos;
 
         if (Streader_end_reached(sr))
@@ -580,20 +588,21 @@ bool Streader_read_float(Streader* sr, double* dest)
         }
         else if (CUR_CH == '-')
         {
-            CHECK_SPACE(len_err_msg);
-            num_chars[write_pos++] = '-';
+            exponent_is_negative = true;
             ++sr->pos;
         }
 
         while (!Streader_end_reached(sr) && isdigit(CUR_CH))
         {
-            CHECK_SPACE(len_err_msg);
-            num_chars[write_pos++] = CUR_CH;
+            assert(exponent < INT_MAX / 10);
+            exponent *= 10;
+            exponent += (int)(CUR_CH - '0');
+
             ++sr->pos;
         }
 
         // Require at least one digit
-        if (!isdigit(num_chars[write_pos - 1]))
+        if (!isdigit(sr->str[sr->pos - 1]))
         {
             Streader_set_error(sr, "No digits found after exponent indicator");
             return false;
@@ -606,20 +615,39 @@ bool Streader_read_float(Streader* sr, double* dest)
         return false;
     }
 
-    // Convert the number
-    char* end = NULL;
-    double result = strtod(num_chars, &end);
-    if (end == num_chars || !isfinite(result))
+    // Optimise trailing zeros away from the significand
+    if (significand != 0)
     {
-        Streader_set_error(sr, "Floating-point number is not valid");
-        return false;
+        while (significand % 10 == 0)
+        {
+            significand /= 10;
+            ++significand_shift;
+        }
     }
+
+    // Convert the number
+    if (exponent_is_negative)
+        exponent = -exponent;
+    int final_shift = significand_shift + exponent;
+
+    double result = significand;
+
+    double abs_magnitude = pow(10, abs(final_shift));
+    if (final_shift >= 0)
+        result *= abs_magnitude;
+    else
+        result /= abs_magnitude;
+
+    if (is_negative)
+        result = -result;
 
     if (dest != NULL)
         *dest = result;
 
     return true;
 }
+
+#undef SIGNIFICANT_MAX
 
 
 bool Streader_read_string(Streader* sr, size_t max_bytes, char* dest)

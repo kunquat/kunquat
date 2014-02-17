@@ -210,6 +210,8 @@ bool Streader_read_int(Streader* sr, int64_t* dest);
 /**
  * Reads a float value.
  *
+ * NOTE: This function does not give portable results.
+ *
  * \param sr     The Streader -- must not be \c NULL.
  * \param dest   The destination address of the float value, or
  *               \c NULL for parsing without storing the value.

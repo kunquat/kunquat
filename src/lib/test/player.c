@@ -843,7 +843,7 @@ bool read_received_events(Streader* sr, int32_t index, void* userdata)
         return false;
     }
 
-    *expected = actual + 1;
+    *expected = (int)round(actual) + 1;
 
     return true;
 }
@@ -1000,7 +1000,7 @@ bool read_received_events_bind(Streader* sr, int32_t index, void* userdata)
         return false;
     }
 
-    *expected = actual + 1;
+    *expected = (int)round(actual) + 1;
 
     return true;
 }

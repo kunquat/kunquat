@@ -406,10 +406,10 @@ END_TEST
 
 START_TEST(Read_nonzero_float)
 {
-    const double nums[] = { 0.5, 1.0, 1.5, -0.5, -1.0, -1.5, };
+    const double nums[] = { 0.5, 1.0, 1.5, -0.5, -1.0, -1.5, 0.0625, 10.0, };
     const char* formats[] =
     {
-        "%.1f x",
+        "%.4f x",
         "%f x",
         "%e x",
     };
@@ -427,7 +427,7 @@ START_TEST(Read_nonzero_float)
                     "Could not read float from \"%s\": %s",
                     data, Streader_get_error_desc(sr));
             fail_if(num != nums[i],
-                    "Streader stored %f instead of %.2f from \"%s\"",
+                    "Streader stored %f instead of %.6f from \"%s\"",
                     num, nums[i]);
             fail_if(!Streader_match_char(sr, 'x'),
                     "Streader did not consume float from \"%s\" correctly",

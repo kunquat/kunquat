@@ -1,7 +1,7 @@
 # coding=utf-8
 
 
-# Author: Tomi Jylhä-Ollila, Finland 2010-2013
+# Author: Tomi Jylhä-Ollila, Finland 2010-2014
 #
 # This file is part of Kunquat.
 #
@@ -146,13 +146,6 @@ if not env.GetOption('clean') and not env.GetOption('help'):
             else:
                 conf.env.Append(SHLINKFLAGS = '-rdynamic')
 
-    if env['enable_profiling']:
-        if not conf.CheckLibWithHeader('m_p', 'math.h', 'C'):
-            conf_errors.append('Profiling math library not found.')
-    else:
-        if not conf.CheckLibWithHeader('m', 'math.h', 'C'):
-            conf_errors.append('Math library was not found.')
-
     if env['with_wavpack']:
         conf.env.Append(CCFLAGS = '-Dushort=uint16_t')
         conf.env.Append(CCFLAGS = '-Duint=uint32_t')
@@ -186,9 +179,21 @@ if not env.GetOption('clean') and not env.GetOption('help'):
                   ' without Python bindings -- disabling kunquat-export.')
             env['enable_export'] = False
 
-    if env['enable_tests'] and not conf.CheckLibWithHeader('check', 'check.h', 'C'):
-        conf_errors.append('Building of unit tests was requested'
-                           ' but Check was not found.')
+    if env['enable_tests']:
+        if not conf.CheckLibWithHeader('check', 'check.h', 'C'):
+            conf_errors.append('Building of unit tests was requested'
+                               ' but Check was not found.')
+        if not conf.CheckLibWithHeader('pthread', 'pthread.h', 'C'):
+            conf_errors.append('Building of unit tests requires libpthread.')
+        if not conf.CheckLibWithHeader('rt', 'time.h', 'C'):
+            conf_errors.append('Building of unit tests requires librt.')
+
+    if env['enable_profiling']:
+        if not conf.CheckLibWithHeader('m_p', 'math.h', 'C'):
+            conf_errors.append('Profiling math library not found.')
+    else:
+        if not conf.CheckLibWithHeader('m', 'math.h', 'C'):
+            conf_errors.append('Math library was not found.')
 
     if conf_errors:
         print('\nCouldn\'t configure Kunquat due to the following error%s:\n' %
