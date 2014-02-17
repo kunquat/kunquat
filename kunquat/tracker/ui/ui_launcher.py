@@ -21,6 +21,7 @@ import sys
 import time
 import json
 import tarfile
+from collections import deque
 from signal import SIGHUP, SIGKILL
 
 from kunquat.tracker.ui.model.uimodel import create_ui_model
@@ -34,7 +35,6 @@ class UiLauncher():
 
     def __init__(self, show=True):
         self._show = show
-        self.previous = 0
         self._updater = None
         self._controller = None
         self._audio_engine = None
@@ -42,6 +42,7 @@ class UiLauncher():
         self._block = None
         self._ui_model = None
         self._event_pump_starter = None
+        self._lag_times = deque([], 20)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -66,13 +67,16 @@ class UiLauncher():
         self._event_pump_starter = event_pump_starter
 
     def update(self):
-        self.current = time.time()
-        s = self.current - self.previous
+        start = time.time()
+        self._updater.perform_updates()
+        end = time.time()
+
+        s = end - start
         ms = s * 1000
         lag = ms - 10
-        self._controller.update_ui_lag(lag)
-        self.previous = self.current
-        self._updater.perform_updates()
+        self._lag_times.append(lag)
+        avg = sum(lag for lag in self._lag_times) / float(len(self._lag_times))
+        self._controller.update_ui_lag(avg)
 
     def execute_task(self, task):
         for _ in task:
