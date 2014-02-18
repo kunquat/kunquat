@@ -32,8 +32,7 @@ class OctaveSelector(QFrame):
         self._update()
 
     def unregister_updaters(self):
-        view = self.viewport()
-        layout = view.layout()
+        layout = self.layout()
         layout_items = [layout.itemAt(i) for i in xrange(layout.count())]
         for item in layout_items:
             button = item.widget()
