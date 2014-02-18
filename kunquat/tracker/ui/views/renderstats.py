@@ -62,7 +62,7 @@ class RenderStats(QWidget):
 
     def update_ui_lag(self):
         ui_lag = self._stat_manager.get_ui_lag()
-        text = 'ui lag: {}'.format(ui_lag)
+        text = 'ui lag: {:.2f} ms'.format(ui_lag)
         self._ui_lag.setText(text)
 
     def perform_updates(self, signals):

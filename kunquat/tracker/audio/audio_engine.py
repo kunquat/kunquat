@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013
-#          Tomi Jylhä-Ollila, Finland 2013
+#          Tomi Jylhä-Ollila, Finland 2013-2014
 #
 # This file is part of Kunquat.
 #
@@ -106,7 +106,6 @@ class AudioEngine():
             audio_data = self._silence
         end = time.time()
         self._render_times.append((nframes, start, end))
-        self._render_fps = math.floor((nframes / (end - start)))
         self._audio_levels = self._get_audio_levels(audio_data)
         return audio_data
 
@@ -138,7 +137,10 @@ class AudioEngine():
     def _average_time(self, times):
         total = sum(end - start for _, start, end in times)
         frames = sum(nframes for nframes, _, _ in times)
-        return frames / total
+        if total == 0:
+            return 0
+        else:
+            return frames / total
 
     def acknowledge_audio(self):
         start = self._push_time
@@ -148,7 +150,10 @@ class AudioEngine():
         self._output_fps = math.floor((nframes / (end - start)))
         output_avg = int(self._average_time(self._output_times))
         render_avg = int(self._average_time(self._render_times))
-        ratio = float(output_avg) / float(render_avg)
+        if render_avg == 0:
+            ratio = 0
+        else:
+            ratio = float(output_avg) / float(render_avg)
         if self._ui_engine:
             self._ui_engine.update_output_speed(output_avg)
             self._ui_engine.update_render_speed(render_avg)
