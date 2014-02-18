@@ -81,6 +81,7 @@ class MainWindow(QWidget):
             self._profile_control.show()
 
     def unregister_updaters(self):
+        self._sheet.unregister_updaters()
         self._peak_meter.unregister_updaters()
         self._import_progress.unregister_updaters()
         self._instrument_select.unregister_updaters()
