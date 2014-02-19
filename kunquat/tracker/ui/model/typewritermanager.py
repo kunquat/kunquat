@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Toni Ruottu, Finland 2013
+# Authors: Toni Ruottu, Finland 2013
+#          Tomi Jylhä-Ollila, Finland 2014
 #
 # This file is part of Kunquat.
 #
@@ -20,6 +21,7 @@ class TypewriterManager():
     def __init__(self):
         self._controller = None
         self._session = None
+        self._share = None
         self._updater = None
         self._octave = None
         self._base_octave = None
@@ -27,9 +29,11 @@ class TypewriterManager():
     def set_controller(self, controller):
         self._controller = controller
         self._session = controller.get_session()
+        self._share = controller.get_share()
         self._updater = controller.get_updater()
 
-        keymap_data = self._session.get_keymap_data()
+        keymap_name = self._session.get_keymap_name()
+        keymap_data = self._share.get_keymap_data(keymap_name)
         self._base_octave = keymap_data['base_octave']
         self.set_octave(self._base_octave)
 
@@ -70,7 +74,8 @@ class TypewriterManager():
 
     def get_button_pitch(self, coord):
         (row, column) = coord
-        keymap_data = self._session.get_keymap_data()
+        keymap_name = self._session.get_keymap_name()
+        keymap_data = self._share.get_keymap_data(keymap_name)
         keymap = keymap_data['keymap']
         current_map = self._create_current_map(keymap)
         pitch_row = current_map[row]
@@ -81,7 +86,8 @@ class TypewriterManager():
         return pitch
 
     def get_pitches_by_octave(self, octave_id):
-        keymap_data = self._session.get_keymap_data()
+        keymap_name = self._session.get_keymap_name()
+        keymap_data = self._share.get_keymap_data(keymap_name)
         octaves = keymap_data['keymap']
         octave = octaves[octave_id]
         pitches = set(octave)
@@ -89,7 +95,8 @@ class TypewriterManager():
 
 
     def get_pitches(self):
-        keymap_data = self._session.get_keymap_data()
+        keymap_name = self._session.get_keymap_name()
+        keymap_data = self._share.get_keymap_data(keymap_name)
         octaves = keymap_data['keymap']
         pitches = set()
         for pitch in itertools.chain(*octaves):
@@ -114,7 +121,8 @@ class TypewriterManager():
                  return b
 
     def get_octave_count(self):
-        keymap_data = self._session.get_keymap_data()
+        keymap_name = self._session.get_keymap_name()
+        keymap_data = self._share.get_keymap_data(keymap_name)
         keymap = keymap_data['keymap']
         octave_count = len(keymap)
         return octave_count
