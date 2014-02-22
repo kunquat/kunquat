@@ -19,10 +19,11 @@ from config import *
 
 class TriggerRenderer():
 
-    def __init__(self, config, trigger):
+    def __init__(self, config, trigger, notation):
         assert trigger
         self._config = config
         self._trigger = trigger
+        self._notation = notation
 
         self._setup_fields()
 
@@ -82,6 +83,17 @@ class TriggerRenderer():
                 'text': vis_text,
                 }
 
+    def _get_note_vis_name(self, expr):
+        try:
+            cents = float(expr)
+            name, offset = self._notation.get_note_name_and_offset(cents)
+        except ValueError, TypeError:
+            return expr
+
+        offset_rnd = int(round(offset))
+        offset_str = '{:+d}'.format(offset_rnd) if offset_rnd != 0 else ''
+        return name + offset_str
+
     def _setup_fields(self):
         evtype = self._trigger.get_type()
         expr = self._trigger.get_argument()
@@ -95,7 +107,7 @@ class TriggerRenderer():
 
         # Get field bounds
         if evtype == 'n+':
-            note_name = expr # TODO: get proper note name
+            note_name = self._get_note_vis_name(expr)
             note_field = self._make_field_data(padding, note_name)
             self._fields.append(note_field)
         elif evtype == 'n-':
@@ -107,6 +119,7 @@ class TriggerRenderer():
             self._fields.append(type_field)
 
             if expr != None:
+                # TODO: get note name for note fields
                 arg_field = self._make_field_data(
                         type_field['offset'] + type_field['width'] + padding,
                         expr)

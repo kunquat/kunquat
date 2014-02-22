@@ -32,6 +32,10 @@ class ColumnGroupRenderer():
     def __init__(self, num):
         self._num = num
 
+        self._ui_model = None
+
+        self._caches = None
+
         self._width = DEFAULT_CONFIG['col_width']
         self._px_offset = 0
         self._px_per_beat = DEFAULT_CONFIG['px_per_beat']
@@ -41,6 +45,14 @@ class ColumnGroupRenderer():
 
     def set_config(self, config):
         self._config = config
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+
+        # FIXME: Column caches are not created until set_pattern_heights
+        if self._caches:
+            for cache in self._caches:
+                cache.set_ui_model(ui_model)
 
     def set_width(self, width):
         if self._width != width:
@@ -64,6 +76,7 @@ class ColumnGroupRenderer():
                 for i in xrange(len(self._heights))]
         for cache in self._caches:
             cache.set_config(self._config)
+            cache.set_ui_model(self._ui_model)
         self._sync_caches()
 
     def _sync_caches(self):
@@ -84,7 +97,7 @@ class ColumnGroupRenderer():
     def get_memory_usage(self):
         try:
             return sum(cache.get_memory_usage() for cache in self._caches)
-        except AttributeError:
+        except TypeError:
             return 0
 
     def draw(self, painter, height):
@@ -214,6 +227,9 @@ class ColumnCache():
         self._pixmaps = {}
         self._tr_cache.set_config(config)
 
+    def set_ui_model(self, ui_model):
+        self._tr_cache.set_ui_model(ui_model)
+
     def set_column(self, column):
         self._column = column
         self._tr_cache.set_triggers(column)
@@ -338,10 +354,16 @@ class TRCache():
 
     def __init__(self):
         self._images = {}
+        self._ui_model = None
+        self._notation_manager = None
 
     def set_config(self, config):
         self._config = config
         self._images = {}
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._notation_manager = ui_model.get_notation_manager()
 
     def set_triggers(self, column):
         self._rows = self._build_trigger_rows(column)
@@ -385,7 +407,8 @@ class TRCache():
         return total_byte_count
 
     def _create_image(self, triggers):
-        rends = [TriggerRenderer(self._config, t) for t in triggers]
+        notation = self._notation_manager.get_notation()
+        rends = [TriggerRenderer(self._config, t, notation) for t in triggers]
         widths = [r.get_total_width() for r in rends]
 
         image = QImage(

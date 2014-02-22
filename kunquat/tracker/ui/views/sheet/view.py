@@ -38,6 +38,7 @@ class View(QWidget):
 
         self._ui_model = None
         self._updater = None
+        self._notation_manager = None
 
         self.setAutoFillBackground(False)
         self.setAttribute(Qt.WA_OpaquePaintEvent)
@@ -69,6 +70,9 @@ class View(QWidget):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
+        self._notation_manager = ui_model.get_notation_manager()
+        for cr in self._col_rends:
+            cr.set_ui_model(ui_model)
 
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
@@ -181,6 +185,7 @@ class View(QWidget):
     def _follow_trigger_row(self, location):
         module = self._ui_model.get_module()
         album = module.get_album()
+
         if album and album.get_track_count() > 0:
             cur_song = album.get_song_by_track(location.get_track())
             cur_pattern = cur_song.get_pattern_instance(
@@ -191,12 +196,14 @@ class View(QWidget):
 
             row_ts = location.get_row_ts()
             if row_ts in self._cur_column.get_trigger_row_positions():
+                notation = self._notation_manager.get_notation()
+
                 # Get trigger row width information
                 trigger_index = location.get_trigger_index()
                 trigger_count = self._cur_column.get_trigger_count_at_row(row_ts)
                 triggers = [self._cur_column.get_trigger(row_ts, i)
                         for i in xrange(trigger_count)]
-                rends = [TriggerRenderer(self._config, t) for t in triggers]
+                rends = [TriggerRenderer(self._config, t, notation) for t in triggers]
                 row_width = sum(r.get_total_width() for r in rends)
 
                 init_trigger_row_width = self._get_init_trigger_row_width(
@@ -213,7 +220,8 @@ class View(QWidget):
 
                 # Lower bound for row offset
                 if trigger_index < len(triggers):
-                    renderer = TriggerRenderer(self._config, triggers[trigger_index])
+                    renderer = TriggerRenderer(
+                            self._config, triggers[trigger_index], notation)
                     # TODO: revisit field bounds handling, this is messy
                     _, width = renderer.get_field_bounds(self._field_index)
                     field_width = width + trigger_padding * 2
@@ -354,7 +362,9 @@ class View(QWidget):
                     QPoint(self._col_width, self._config['tr_height'] - 1)),
                 self._config['bg_colour'])
 
-        rends = [TriggerRenderer(self._config, trigger) for trigger in triggers]
+        notation = self._notation_manager.get_notation()
+        rends = [TriggerRenderer(self._config, trigger, notation)
+                for trigger in triggers]
         widths = [r.get_total_width() for r in rends]
         total_width = sum(widths)
 
@@ -416,6 +426,8 @@ class View(QWidget):
             self._field_index = 0
             return
 
+        notation = self._notation_manager.get_notation()
+
         if delta < 0:
             if trigger_index >= self._cur_column.get_trigger_count_at_row(row_ts):
                 self._field_index = 0
@@ -431,7 +443,7 @@ class View(QWidget):
                 # Previous trigger
                 prev_trigger_index = trigger_index - 1
                 prev_trigger = self._cur_column.get_trigger(row_ts, prev_trigger_index)
-                renderer = TriggerRenderer(self._config, prev_trigger)
+                renderer = TriggerRenderer(self._config, prev_trigger, notation)
                 self._field_index = renderer.get_field_count() - 1
 
                 self._target_trigger_index = prev_trigger_index
@@ -456,7 +468,7 @@ class View(QWidget):
             self._field_index += 1
 
             cur_trigger = self._cur_column.get_trigger(row_ts, trigger_index)
-            renderer = TriggerRenderer(self._config, cur_trigger)
+            renderer = TriggerRenderer(self._config, cur_trigger, notation)
             if self._field_index >= renderer.get_field_count():
                 # Next trigger
                 next_trigger_index = trigger_index + 1

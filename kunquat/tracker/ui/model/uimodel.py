@@ -20,6 +20,7 @@ from eventhistory import EventHistory
 from module import Module
 from visibilitymanager import VisibilityManager
 from selection import Selection
+from notationmanager import NotationManager
 
 class UiModel():
     """
@@ -89,6 +90,7 @@ class UiModel():
         self._module = None
         self._visibility_manager = None
         self._selection = None
+        self._notation_manager = None
 
     def set_ui(self, ui):
         self._ui = ui
@@ -102,6 +104,7 @@ class UiModel():
         self._visibility_manager.set_controller(self._controller)
         self._event_history.set_controller(self._controller)
         self._selection.set_controller(self._controller)
+        self._notation_manager.set_controller(self._controller)
 
     def get_updater(self):
         updater = self._controller.get_updater()
@@ -158,6 +161,12 @@ class UiModel():
     def get_selection(self):
         return self._selection
 
+    def set_notation_manager(self, notation_manager):
+        self._notation_manager = notation_manager
+
+    def get_notation_manager(self):
+        return self._notation_manager
+
     def play(self):
         self._controller.play()
 
@@ -170,6 +179,7 @@ def create_ui_model():
     module = Module()
     visibility_manager = VisibilityManager()
     selection = Selection()
+    notation_manager = NotationManager()
     ui_model = UiModel()
     ui_model.set_stat_manager(stat_manager)
     ui_model.set_ui_manager(ui_manager)
@@ -179,5 +189,6 @@ def create_ui_model():
     ui_model.set_module(module)
     ui_model.set_visibility_manager(visibility_manager)
     ui_model.set_selection(selection)
+    ui_model.set_notation_manager(notation_manager)
     return ui_model
 

@@ -140,6 +140,9 @@ class Session():
     def get_keymap_name(self):
         return '12tet' # TODO: make this configurable
 
+    def get_notation_name(self):
+        return '12tet' # TODO: make this configurable
+
     def set_selected_location(self, trigger_position):
         self._selected_location = trigger_position
 
