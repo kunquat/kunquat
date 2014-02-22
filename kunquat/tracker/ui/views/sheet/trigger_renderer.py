@@ -119,10 +119,14 @@ class TriggerRenderer():
             self._fields.append(type_field)
 
             if expr != None:
-                # TODO: get note name for note fields
+                if self._trigger.get_argument_type() == 'note':
+                    vis_text = self._get_note_vis_name(expr)
+                else:
+                    vis_text = expr
+
                 arg_field = self._make_field_data(
                         type_field['offset'] + type_field['width'] + padding,
-                        expr)
+                        vis_text)
                 self._fields.append(arg_field)
 
         # Width
