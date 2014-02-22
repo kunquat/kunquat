@@ -38,7 +38,7 @@ class ColumnGroupRenderer():
 
         self._width = DEFAULT_CONFIG['col_width']
         self._px_offset = 0
-        self._px_per_beat = DEFAULT_CONFIG['px_per_beat']
+        self._px_per_beat = None
 
         self._heights = []
         self._start_heights = []
@@ -49,7 +49,6 @@ class ColumnGroupRenderer():
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
 
-        # FIXME: Column caches are not created until set_pattern_heights
         if self._caches:
             for cache in self._caches:
                 cache.set_ui_model(ui_model)
@@ -80,9 +79,10 @@ class ColumnGroupRenderer():
         self._sync_caches()
 
     def _sync_caches(self):
-        for cache in self._caches:
-            cache.set_width(self._width)
-            cache.set_px_per_beat(self._px_per_beat)
+        if self._caches:
+            for cache in self._caches:
+                cache.set_width(self._width)
+                cache.set_px_per_beat(self._px_per_beat)
 
     def set_px_per_beat(self, px_per_beat):
         if self._px_per_beat != px_per_beat:
@@ -220,7 +220,7 @@ class ColumnCache():
         self._tr_cache = TRCache()
 
         self._width = DEFAULT_CONFIG['col_width']
-        self._px_per_beat = DEFAULT_CONFIG['px_per_beat']
+        self._px_per_beat = None
 
     def set_config(self, config):
         self._config = config

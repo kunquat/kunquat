@@ -45,7 +45,7 @@ class View(QWidget):
         self.setAttribute(Qt.WA_NoSystemBackground)
         self.setFocusPolicy(Qt.StrongFocus)
 
-        self._px_per_beat = DEFAULT_CONFIG['px_per_beat']
+        self._px_per_beat = None
         self._px_offset = 0
         self._patterns = []
 

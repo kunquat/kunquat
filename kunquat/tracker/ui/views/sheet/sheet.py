@@ -59,7 +59,7 @@ class Sheet(QAbstractScrollArea):
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
 
         self._col_width = self._config['col_width']
-        self._px_per_beat = self._config['px_per_beat']
+        self._px_per_beat = None
 
         QObject.connect(
                 self.viewport(),
@@ -109,6 +109,11 @@ class Sheet(QAbstractScrollArea):
         self._config['tr_height'] = fm.tightBoundingRect('Ag').height() + 1
 
         self.viewport().set_config(self._config)
+
+        # Default zoom level
+        self._px_per_beat = self._config['trs_per_beat'] * self._config['tr_height']
+        self._ruler.set_px_per_beat(self._px_per_beat)
+        self.viewport().set_px_per_beat(self._px_per_beat)
 
     def _update_scrollbars(self):
         self._total_height_px = (

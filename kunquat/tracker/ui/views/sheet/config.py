@@ -28,7 +28,7 @@ DEFAULT_CONFIG = {
         'header': {
             },
         'col_width'       : 128,
-        'px_per_beat'     : 128,
+        'trs_per_beat'    : 4,
         'canvas_bg_colour': QColor(0x11, 0x11, 0x11),
         'bg_colour'       : QColor(0, 0, 0),
         'border_colour'   : QColor(0x55, 0x55, 0x55),

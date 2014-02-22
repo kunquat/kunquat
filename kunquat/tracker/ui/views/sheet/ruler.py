@@ -34,7 +34,7 @@ class Ruler(QWidget):
 
         self._lengths = []
         self._px_offset = 0
-        self._px_per_beat = DEFAULT_CONFIG['px_per_beat']
+        self._px_per_beat = None
         self._cache = RulerCache()
 
         self._heights = []
@@ -165,7 +165,7 @@ class RulerCache():
 
     def __init__(self):
         self._width = 0
-        self._px_per_beat = DEFAULT_CONFIG['px_per_beat']
+        self._px_per_beat = None
         self._pixmaps = {}
 
     def set_config(self, config):
