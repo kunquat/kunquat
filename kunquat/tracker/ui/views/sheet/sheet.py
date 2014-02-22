@@ -59,7 +59,10 @@ class Sheet(QAbstractScrollArea):
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
 
         self._col_width = self._config['col_width']
+
         self._px_per_beat = None
+        self._zoom_levels = []
+        self._cur_zoom_index = 0
 
         QObject.connect(
                 self.viewport(),
@@ -114,6 +117,37 @@ class Sheet(QAbstractScrollArea):
         self._px_per_beat = self._config['trs_per_beat'] * self._config['tr_height']
         self._ruler.set_px_per_beat(self._px_per_beat)
         self.viewport().set_px_per_beat(self._px_per_beat)
+
+        self._zoom_levels = self._get_zoom_levels(1, self._px_per_beat, tstamp.BEAT)
+        self._cur_zoom_index = self._zoom_levels.index(self._px_per_beat)
+
+    def _get_zoom_levels(self, min_val, default_val, max_val):
+        zoom_levels = [default_val]
+
+        # Fill zoom out levels until minimum
+        prev_val = zoom_levels[-1]
+        next_val = prev_val / self._config['zoom_factor']
+        while int(next_val) > min_val:
+            actual_val = int(next_val)
+            assert actual_val < prev_val
+            zoom_levels.append(actual_val)
+            prev_val = actual_val
+            next_val = prev_val / self._config['zoom_factor']
+        zoom_levels.append(min_val)
+        zoom_levels = list(reversed(zoom_levels))
+
+        # Fill zoom in levels until maximum
+        prev_val = zoom_levels[-1]
+        next_val = prev_val * self._config['zoom_factor']
+        while math.ceil(next_val) < tstamp.BEAT:
+            actual_val = int(math.ceil(next_val))
+            assert actual_val > prev_val
+            zoom_levels.append(actual_val)
+            prev_val = actual_val
+            next_val = prev_val * self._config['zoom_factor']
+        zoom_levels.append(tstamp.BEAT)
+
+        return zoom_levels
 
     def _update_scrollbars(self):
         self._total_height_px = (
