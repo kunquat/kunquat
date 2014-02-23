@@ -131,6 +131,7 @@ class UiModel():
 
     def set_typewriter_manager(self, typewriter_manager):
         self._typewriter_manager = typewriter_manager
+        self._typewriter_manager.set_ui_model(self)
 
     def get_typewriter_manager(self):
         return self._typewriter_manager

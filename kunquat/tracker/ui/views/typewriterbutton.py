@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013
-#          Tomi Jylhä-Ollila, Finland 2013
+#          Tomi Jylhä-Ollila, Finland 2013-2014
 #
 # This file is part of Kunquat.
 #
@@ -64,18 +64,19 @@ class TWLed(QFrame):
         self._center.setStyleSheet(center_style)
         self._right.setStyleSheet(right_style)
 
+
 class TypeWriterButton(QPushButton):
 
-    def __init__(self, pitch):
+    def __init__(self, row, index):
         QPushButton.__init__(self)
         self._updater = None
-        self._pitch = pitch
         self._ui_manager = None
         self._typewriter_manager = None
 
+        self._row = row
+        self._index = index
         self._selected_control = None
-        self.setMinimumWidth(60)
-        self.setMinimumHeight(60)
+        self.setFixedSize(QSize(60, 60))
         layout = QVBoxLayout(self)
         led = TWLed()
         self._led = led
@@ -87,30 +88,51 @@ class TypeWriterButton(QPushButton):
         layout.setAlignment(Qt.AlignCenter)
         self.setFocusPolicy(Qt.NoFocus)
 
+        '''
         if self._pitch != None:
             self._notename.setText('%sc' % self._pitch)
             self.setStyleSheet("QLabel { background-color: #ffe; }")
             self._notename.setStyleSheet("QLabel { color: #000; }")
         else:
             self.setStyleSheet("QLabel { background-color: #ccc; }")
+        '''
 
         self.setEnabled(False)
-        QObject.connect(self, SIGNAL('pressed()'), self._play_sound)
-        QObject.connect(self, SIGNAL('released()'), self._stop_sound)
+        QObject.connect(self, SIGNAL('pressed()'), self._press)
+        QObject.connect(self, SIGNAL('released()'), self._release)
 
     def set_ui_model(self, ui_model):
         self._updater = ui_model.get_updater()
-        self._updater.register_updater(self.perform_updates)
+        self._updater.register_updater(self._perform_updates)
         self._ui_manager = ui_model.get_ui_manager()
         self._typewriter_manager = ui_model.get_typewriter_manager()
 
-    def _play_sound(self):
-        if self._selected_control:
-            self._selected_control.set_active_note(0, self._pitch)
+        self._button_model = self._typewriter_manager.get_button_model(
+                self._row, self._index)
+        self._update_properties()
 
-    def _stop_sound(self):
-        if self._selected_control:
-            self._selected_control.set_rest(0)
+    def _perform_updates(self, signals):
+        if 'signal_octave' in signals:
+            self._update_properties()
+        '''
+        self.update_selected_control()
+        self.update_leds()
+        '''
+
+    def _update_properties(self):
+        name = self._button_model.get_name()
+        if name != None:
+            self._notename.setText(name)
+            self.setEnabled(True)
+        else:
+            self._notename.setText('')
+            self.setEnabled(False)
+
+    def _press(self):
+        self._button_model.press()
+
+    def _release(self):
+        self._button_model.release()
 
     def update_selected_control(self):
         self._selected_control = self._ui_manager.get_selected_control()
@@ -134,10 +156,7 @@ class TypeWriterButton(QPushButton):
                     assert False
         self._led.set_leds(left_on, center_on, right_on)
 
-    def perform_updates(self, signals):
-        self.update_selected_control()
-        self.update_leds()
-
     def unregister_updaters(self):
-        self._updater.unregister_updater(self.perform_updates)
+        self._updater.unregister_updater(self._perform_updates)
+
 

@@ -93,11 +93,8 @@ class Share():
             }
         }
 
-    def get_keymap_names(self):
-        return self._keymaps.keys()
-
-    def get_keymap_data(self, name):
-        return self._keymaps[name]
+    def get_keymaps(self):
+        return self._keymaps
 
     def get_notations(self):
         return self._notations

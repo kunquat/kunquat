@@ -20,6 +20,8 @@ from typewriterbutton import TypeWriterButton
 
 class TypeWriter(QFrame):
 
+    _PAD = 35
+
     def __init__(self):
         QFrame.__init__(self)
         self.setFocusPolicy(Qt.TabFocus)
@@ -34,20 +36,31 @@ class TypeWriter(QFrame):
         self._updater.register_updater(self._perform_updates)
         self._typewriter_manager = ui_model.get_typewriter_manager()
 
+        self.setLayout(self._get_layout())
+
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
         self._unregister_button_updaters()
 
+    '''
     def _update_buttons(self):
         self._unregister_button_updaters()
-        view = self._get_view()
-        self.setLayout(view)
+        layout = self._get_layout()
+        self.setLayout(layout)
+    '''
 
     def _perform_updates(self, signals):
+        '''
         if 'signal_octave' in signals:
             self._update_buttons()
+        '''
 
-    def _get_view(self):
+    def _get_layout(self):
+        rows = QVBoxLayout()
+        for row_index in xrange(self._typewriter_manager.get_row_count()):
+            rows.addLayout(self._get_row(row_index))
+        return rows
+        '''
         rows = QVBoxLayout()
         rows.setSpacing(0)
         rows.setMargin(0)
@@ -59,7 +72,24 @@ class TypeWriter(QFrame):
             rows.addWidget(row)
         rows.addStretch(1)
         return rows
+        '''
 
+    def _get_row(self, index):
+        row = QHBoxLayout()
+
+        pad_px = self._PAD * self._typewriter_manager.get_pad_factor_at_row(index)
+        row.addWidget(self._get_pad(pad_px))
+
+        for i in xrange(self._typewriter_manager.get_button_count_at_row(index)):
+            button = TypeWriterButton(index, i)
+            button.set_ui_model(self._ui_model)
+            row.addWidget(button)
+            self._current_buttons.add(button)
+
+        row.addStretch(1)
+        return row
+
+    '''
     def create_rows(self, button_layout):
         for (i, buttons) in enumerate(button_layout):
             yield self.create_row(i, buttons)
@@ -83,18 +113,20 @@ class TypeWriter(QFrame):
             self._randbut = TypeWriterButton(None)
             return self._randbut
         return self.pad(self.PAD)
+    '''
 
-    def pad(self, psize):
-        pad = QLabel()
-        pad.setMinimumWidth(psize)
-        pad.setMaximumWidth(psize)
+    def _get_pad(self, psize):
+        pad = QWidget()
+        pad.setFixedWidth(psize)
         return pad
 
+    '''
     def get_button(self, coordinate):
         pitch = self._typewriter_manager.get_button_pitch(coordinate)
         button = TypeWriterButton(pitch)
         button.set_ui_model(self._ui_model)
         return button
+    '''
 
     def _unregister_button_updaters(self):
         for button in list(self._current_buttons):

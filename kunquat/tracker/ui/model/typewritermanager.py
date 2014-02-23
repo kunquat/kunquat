@@ -15,14 +15,19 @@
 import itertools
 from bisect import bisect_left
 
+from typewriterbuttonmodel import TypewriterButtonModel
+
 
 class TypewriterManager():
+
+    _ROW_LENGTHS = [9, 10, 7, 7]
 
     def __init__(self):
         self._controller = None
         self._session = None
         self._share = None
         self._updater = None
+        self._ui_model = None
         self._octave = None
         self._base_octave = None
 
@@ -33,9 +38,28 @@ class TypewriterManager():
         self._updater = controller.get_updater()
 
         keymap_name = self._session.get_keymap_name()
-        keymap_data = self._share.get_keymap_data(keymap_name)
+        keymap_data = self._share.get_keymaps()[keymap_name]
         self._base_octave = keymap_data['base_octave']
         self.set_octave(self._base_octave)
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+
+    def get_button_model(self, row, index):
+        button_model = TypewriterButtonModel(row, index)
+        button_model.set_controller(self._controller)
+        button_model.set_ui_model(self._ui_model)
+        return button_model
+
+    def get_row_count(self):
+        return len(self._ROW_LENGTHS)
+
+    def get_button_count_at_row(self, row):
+        return self._ROW_LENGTHS[row]
+
+    def get_pad_factor_at_row(self, row):
+        pads = [1, 0, 2, 1]
+        return pads[row]
 
     def _octaves_to_rows(self, octaves):
         notes = list(itertools.chain(*octaves))
@@ -75,7 +99,7 @@ class TypewriterManager():
     def get_button_pitch(self, coord):
         (row, column) = coord
         keymap_name = self._session.get_keymap_name()
-        keymap_data = self._share.get_keymap_data(keymap_name)
+        keymap_data = self._share.get_keymaps()[keymap_name]
         keymap = keymap_data['keymap']
         current_map = self._create_current_map(keymap)
         pitch_row = current_map[row]
@@ -87,16 +111,15 @@ class TypewriterManager():
 
     def get_pitches_by_octave(self, octave_id):
         keymap_name = self._session.get_keymap_name()
-        keymap_data = self._share.get_keymap_data(keymap_name)
+        keymap_data = self._share.get_keymaps()[keymap_name]
         octaves = keymap_data['keymap']
         octave = octaves[octave_id]
         pitches = set(octave)
         return pitches
 
-
     def get_pitches(self):
         keymap_name = self._session.get_keymap_name()
-        keymap_data = self._share.get_keymap_data(keymap_name)
+        keymap_data = self._share.get_keymaps()[keymap_name]
         octaves = keymap_data['keymap']
         pitches = set()
         for pitch in itertools.chain(*octaves):
@@ -113,16 +136,16 @@ class TypewriterManager():
         elif i == 0:
             return pitches[0]
         else:
-             a = pitches[i]
-             b = pitches[i - 1]
-             if abs(a - pitch) < abs(b - pitch):
-                 return a
-             else:
-                 return b
+            a = pitches[i]
+            b = pitches[i - 1]
+            if abs(a - pitch) < abs(b - pitch):
+                return a
+            else:
+                return b
 
     def get_octave_count(self):
         keymap_name = self._session.get_keymap_name()
-        keymap_data = self._share.get_keymap_data(keymap_name)
+        keymap_data = self._share.get_keymaps()[keymap_name]
         keymap = keymap_data['keymap']
         octave_count = len(keymap)
         return octave_count
