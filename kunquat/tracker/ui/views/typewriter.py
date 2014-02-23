@@ -18,10 +18,10 @@ from PyQt4.QtGui import *
 from typewriterbutton import TypeWriterButton
 
 
-class TypeWriter(QAbstractScrollArea):
+class TypeWriter(QFrame):
 
     def __init__(self):
-        QAbstractScrollArea.__init__(self)
+        QFrame.__init__(self)
         self.setFocusPolicy(Qt.TabFocus)
         self._ui_model = None
         self._updater = None
@@ -41,15 +41,16 @@ class TypeWriter(QAbstractScrollArea):
     def _update_buttons(self):
         self._unregister_button_updaters()
         view = self._get_view()
-        self.setViewport(view)
+        self.setLayout(view)
 
     def _perform_updates(self, signals):
         if 'signal_octave' in signals:
             self._update_buttons()
 
     def _get_view(self):
-        view = QWidget()
-        rows = QVBoxLayout(view)
+        rows = QVBoxLayout()
+        rows.setSpacing(0)
+        rows.setMargin(0)
         PAD = 35
         self.PAD = PAD
         self.rpads = [PAD, PAD, 4 * PAD, 3 * PAD]
@@ -57,7 +58,7 @@ class TypeWriter(QAbstractScrollArea):
         for row in self.create_rows(button_layout):
             rows.addWidget(row)
         rows.addStretch(1)
-        return view
+        return rows
 
     def create_rows(self, button_layout):
         for (i, buttons) in enumerate(button_layout):
