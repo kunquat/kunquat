@@ -24,7 +24,6 @@ class TypewriterButtonModel():
 
         self._row = row
         self._index = index
-        self._octave = None
 
     def set_controller(self, controller):
         self._controller = controller
@@ -51,7 +50,28 @@ class TypewriterButtonModel():
         return self._typewriter_manager.get_button_pitch((self._row, self._index))
 
     def get_led_state(self):
-        pass
+        selected_control = self._ui_manager.get_selected_control()
+        if selected_control == None:
+            return None
+
+        pitch = self.get_pitch()
+        if pitch == None:
+            return None
+
+        (left_on, center_on, right_on) = 3 * [False]
+        notes = selected_control.get_active_notes()
+        for note in notes.itervalues():
+            if self._typewriter_manager.get_closest_keymap_pitch(note) == pitch:
+                if note < pitch:
+                    left_on = True
+                elif note == pitch:
+                    center_on = True
+                elif note > pitch:
+                    right_on = True
+                else:
+                    assert False
+
+        return (left_on, center_on, right_on)
 
     def press(self):
         pitch = self.get_pitch()
