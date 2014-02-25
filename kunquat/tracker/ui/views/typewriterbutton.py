@@ -91,15 +91,6 @@ class TypeWriterButton(QPushButton):
         layout.setAlignment(Qt.AlignCenter)
         self.setFocusPolicy(Qt.NoFocus)
 
-        '''
-        if self._pitch != None:
-            self._notename.setText('%sc' % self._pitch)
-            self.setStyleSheet("QLabel { background-color: #ffe; }")
-            self._notename.setStyleSheet("QLabel { color: #000; }")
-        else:
-            self.setStyleSheet("QLabel { background-color: #ccc; }")
-        '''
-
         self.setEnabled(False)
         QObject.connect(self, SIGNAL('pressed()'), self._press)
         QObject.connect(self, SIGNAL('released()'), self._release)
@@ -133,11 +124,6 @@ class TypeWriterButton(QPushButton):
 
     def _release(self):
         self._button_model.release()
-
-    def update_selected_control(self):
-        self._selected_control = self._ui_manager.get_selected_control()
-        if self._pitch != None:
-            self.setEnabled(True)
 
     def _update_leds(self):
         led_state = self._button_model.get_led_state() or (False, False, False)

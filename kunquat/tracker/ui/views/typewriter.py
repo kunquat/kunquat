@@ -42,37 +42,14 @@ class TypeWriter(QFrame):
         self._updater.unregister_updater(self._perform_updates)
         self._unregister_button_updaters()
 
-    '''
-    def _update_buttons(self):
-        self._unregister_button_updaters()
-        layout = self._get_layout()
-        self.setLayout(layout)
-    '''
-
     def _perform_updates(self, signals):
-        '''
-        if 'signal_octave' in signals:
-            self._update_buttons()
-        '''
+        pass
 
     def _get_layout(self):
         rows = QVBoxLayout()
         for row_index in xrange(self._typewriter_manager.get_row_count()):
             rows.addLayout(self._get_row(row_index))
         return rows
-        '''
-        rows = QVBoxLayout()
-        rows.setSpacing(0)
-        rows.setMargin(0)
-        PAD = 35
-        self.PAD = PAD
-        self.rpads = [PAD, PAD, 4 * PAD, 3 * PAD]
-        button_layout = [9, 10, 7, 7]
-        for row in self.create_rows(button_layout):
-            rows.addWidget(row)
-        rows.addStretch(1)
-        return rows
-        '''
 
     def _get_row(self, index):
         row = QHBoxLayout()
@@ -89,44 +66,10 @@ class TypeWriter(QFrame):
         row.addStretch(1)
         return row
 
-    '''
-    def create_rows(self, button_layout):
-        for (i, buttons) in enumerate(button_layout):
-            yield self.create_row(i, buttons)
-
-    def create_row(self, rowc, buttons):
-        row = QWidget()
-        rowl = QHBoxLayout(row)
-        rowl.addWidget(self.special_button(rowc))
-        psize = self.rpads[rowc]
-        rowl.addWidget(self.pad(psize))
-        for colc in range(buttons):
-            coordinate = (rowc, colc)
-            button = self.get_button(coordinate)
-            self._current_buttons.add(button)
-            rowl.addWidget(button)
-        rowl.addStretch(1)
-        return row
-
-    def special_button(self, rowc):
-        if rowc == 0:
-            self._randbut = TypeWriterButton(None)
-            return self._randbut
-        return self.pad(self.PAD)
-    '''
-
     def _get_pad(self, psize):
         pad = QWidget()
         pad.setFixedWidth(psize)
         return pad
-
-    '''
-    def get_button(self, coordinate):
-        pitch = self._typewriter_manager.get_button_pitch(coordinate)
-        button = TypeWriterButton(pitch)
-        button.set_ui_model(self._ui_model)
-        return button
-    '''
 
     def _unregister_button_updaters(self):
         for button in list(self._current_buttons):
