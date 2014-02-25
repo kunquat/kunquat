@@ -30,6 +30,8 @@ class TypewriterManager():
         self._updater = None
         self._ui_model = None
 
+        self._current_map = None
+
     def set_controller(self, controller):
         self._controller = controller
         self._session = controller.get_session()
@@ -94,20 +96,23 @@ class TypewriterManager():
         return lower_octaves
 
     def _create_current_map(self, keymap):
+        if self._current_map != None:
+            return
+
         upper_octaves = self._current_upper_octaves(keymap)
         lower_octaves = self._current_lower_octaves(keymap)
         (row0, row1) = self._octaves_to_rows(upper_octaves)
         (row2, row3) = self._octaves_to_rows(lower_octaves)
         rows = [row0, row1, row2, row3]
-        return rows
+        self._current_map = rows
 
     def get_button_pitch(self, coord):
         (row, column) = coord
         keymap_name = self._session.get_keymap_name()
         keymap_data = self._share.get_keymaps()[keymap_name]
         keymap = keymap_data['keymap']
-        current_map = self._create_current_map(keymap)
-        pitch_row = current_map[row]
+        self._create_current_map(keymap)
+        pitch_row = self._current_map[row]
         try:
             pitch = pitch_row[column]
         except IndexError:
@@ -160,6 +165,7 @@ class TypewriterManager():
 
     def set_octave(self, octave_id):
         self._session.set_octave_id(octave_id)
+        self._current_map = None
         self._updater.signal_update(set(['signal_octave']))
 
 
