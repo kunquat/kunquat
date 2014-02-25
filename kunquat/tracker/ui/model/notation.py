@@ -15,10 +15,14 @@ class Notation():
 
     def __init__(self, data):
         self._name = data['name']
+        self._octaves = data['octave_names']
         self._notes = dict(data['note_names'])
 
     def get_name(self):
         return self._name
+
+    def get_octave_name(self, octave_id):
+        return self._octaves[octave_id]
 
     def get_note_name_and_offset(self, cents):
         nearest = self._get_nearest_note(cents)
