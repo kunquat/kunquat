@@ -30,6 +30,7 @@ class Session():
         self._channel_active_control_id = dict()
         self._channel_active_note = dict()
         self._control_active_notes = dict()
+        self._octave_id = 0
         self._visible = set()
         self._event_log = deque([], 1024)
         self._event_index = count()
@@ -114,6 +115,12 @@ class Session():
             notes = self._control_active_notes[control_id]
             notes[channel] = pitch
             self._channel_active_control_id[channel] = control_id
+
+    def set_octave_id(self, octave_id):
+        self._octave_id = octave_id
+
+    def get_octave_id(self):
+        return self._octave_id
 
     def show_ui(self, ui_id):
         assert ui_id

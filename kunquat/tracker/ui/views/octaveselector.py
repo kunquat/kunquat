@@ -40,10 +40,10 @@ class OctaveSelector(QFrame):
                 button.unregister_updaters()
 
     def _update(self):
-        view = self._get_view()
-        self.setLayout(view)
+        layout = self._get_layout()
+        self.setLayout(layout)
 
-    def _get_view(self):
+    def _get_layout(self):
         octave_count = self._typewriter_manager.get_octave_count()
         row = QHBoxLayout()
         for i in range(octave_count):

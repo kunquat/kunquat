@@ -15,6 +15,7 @@
 import itertools
 from bisect import bisect_left
 
+from octavebuttonmodel import OctaveButtonModel
 from typewriterbuttonmodel import TypewriterButtonModel
 
 
@@ -28,8 +29,6 @@ class TypewriterManager():
         self._share = None
         self._updater = None
         self._ui_model = None
-        self._octave = None
-        self._base_octave = None
 
     def set_controller(self, controller):
         self._controller = controller
@@ -39,8 +38,8 @@ class TypewriterManager():
 
         keymap_name = self._session.get_keymap_name()
         keymap_data = self._share.get_keymaps()[keymap_name]
-        self._base_octave = keymap_data['base_octave']
-        self.set_octave(self._base_octave)
+        base_octave = keymap_data['base_octave']
+        self.set_octave(base_octave)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -50,6 +49,12 @@ class TypewriterManager():
         button_model.set_controller(self._controller)
         button_model.set_ui_model(self._ui_model)
         return button_model
+
+    def get_octave_button_model(self, octave_id):
+        ob_model = OctaveButtonModel(octave_id)
+        ob_model.set_controller(self._controller)
+        ob_model.set_ui_model(self._ui_model)
+        return ob_model
 
     def get_row_count(self):
         return len(self._ROW_LENGTHS)
@@ -74,12 +79,12 @@ class TypewriterManager():
         return rows
 
     def _current_upper_octaves(self, keymap):
-        upper_octaves = keymap[self._octave:]
+        upper_octaves = keymap[self.get_octave():]
         return upper_octaves
 
     def _current_lower_octaves(self, keymap):
         key_limit = 14
-        lower_octave_candidates = keymap[:self._octave]
+        lower_octave_candidates = keymap[:self.get_octave()]
         workspace = list(lower_octave_candidates)
         while sum([len(i) for i in workspace]) > 14:
             workspace.pop(0)
@@ -150,14 +155,11 @@ class TypewriterManager():
         octave_count = len(keymap)
         return octave_count
 
-    def get_octave_name(self, octave_id):
-        octave_name = octave_id - self._base_octave
-        return octave_name
-
     def get_octave(self):
-        return self._octave
+        return self._session.get_octave_id()
 
     def set_octave(self, octave_id):
-        self._octave = octave_id
+        self._session.set_octave_id(octave_id)
         self._updater.signal_update(set(['signal_octave']))
+
 
