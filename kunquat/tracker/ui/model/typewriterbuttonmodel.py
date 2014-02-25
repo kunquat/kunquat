@@ -74,10 +74,12 @@ class TypewriterButtonModel():
             return
 
         selected_control = self._ui_manager.get_selected_control()
-        selected_control.set_active_note(0, pitch)
+        if selected_control:
+            selected_control.set_active_note(0, pitch)
 
     def release(self):
         selected_control = self._ui_manager.get_selected_control()
-        selected_control.set_rest(0)
+        if selected_control:
+            selected_control.set_rest(0)
 
 
