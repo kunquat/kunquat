@@ -86,13 +86,14 @@ class TriggerRenderer():
     def _get_note_vis_name(self, expr):
         try:
             cents = float(expr)
-            name, offset = self._notation.get_note_name_and_offset(cents)
-        except ValueError, TypeError:
+            name = self._notation.get_full_name(cents)
+        except ValueError:
             return expr
 
-        offset_rnd = int(round(offset))
-        offset_str = '{:+d}'.format(offset_rnd) if offset_rnd != 0 else ''
-        return name + offset_str
+        if name:
+            return name
+        else:
+            return expr
 
     def _setup_fields(self):
         evtype = self._trigger.get_type()

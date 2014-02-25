@@ -15,8 +15,6 @@ class TypewriterButtonModel():
 
     def __init__(self, row, index):
         self._controller = None
-        self._session = None
-        self._share = None
         self._ui_model = None
         self._ui_manager = None
         self._typewriter_manager = None
@@ -40,10 +38,7 @@ class TypewriterButtonModel():
             return None
 
         notation = self._notation_manager.get_notation()
-        name, offset = notation.get_note_name_and_offset(pitch)
-        offset_rnd = int(round(offset))
-        if offset_rnd != 0:
-            name += '{:+d}'.format(offset_rnd)
+        name = notation.get_full_name(pitch)
         return name
 
     def get_pitch(self):

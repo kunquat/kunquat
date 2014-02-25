@@ -32,6 +32,15 @@ class Notation():
         c, name = nearest
         return (name, cents - c)
 
+    def get_full_name(self, cents):
+        base, offset = self.get_note_name_and_offset(cents)
+        offset_rnd = int(round(offset))
+        if offset_rnd != 0:
+            name = '{}{:+d}'.format(base, offset_rnd)
+        else:
+            name = base
+        return name
+
     def _get_nearest_note(self, cents):
         nearest = None
         nearest_dist = float('inf')
