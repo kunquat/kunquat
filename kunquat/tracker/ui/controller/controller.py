@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2014
 #          Toni Ruottu, Finland 2013
 #
 # This file is part of Kunquat.
@@ -20,6 +20,7 @@ import tarfile
 
 from kunquat.tracker.ui.controller.store import Store
 from kunquat.tracker.ui.controller.session import Session
+from kunquat.tracker.ui.controller.share import Share
 from kunquat.tracker.ui.controller.updater import Updater
 
 #TODO: figure a place for the events
@@ -35,6 +36,7 @@ class Controller():
         self._audio_levels = (0, 0)
         self._store = None
         self._session = None
+        self._share = None
         self._updater = None
         self._audio_engine = None
 
@@ -49,6 +51,12 @@ class Controller():
 
     def get_session(self):
         return self._session
+
+    def set_share(self, share):
+        self._share = share
+
+    def get_share(self):
+        return self._share
 
     def set_updater(self, updater):
         self._updater = updater
@@ -91,7 +99,7 @@ class Controller():
                 self.update_import_progress(i + 1, member_count)
             tfile.close()
             self._store.put(values)
-            self._updater.signal_update(set(['signal_controls']))
+            self._updater.signal_update(set(['signal_controls', 'signal_module']))
             self._audio_engine.set_data(values)
 
     def play(self):
@@ -151,10 +159,13 @@ class Controller():
 def create_controller():
     store = Store()
     session = Session()
+    share = Share('lol') # TODO: get correct path to the share dir
     updater = Updater()
     controller = Controller()
     controller.set_store(store)
     controller.set_session(session)
+    controller.set_share(share)
     controller.set_updater(updater)
     return controller
+
 

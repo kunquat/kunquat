@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013
+# Author: Tomi Jylhä-Ollila, Finland 2013-2014
 #
 # This file is part of Kunquat.
 #
@@ -21,9 +21,9 @@ from PyQt4.QtGui import *
 from config import *
 from header import Header
 from ruler import Ruler
-from utils import *
+import utils
 from view import View
-import tstamp
+import kunquat.tracker.ui.model.tstamp as tstamp
 
 
 class Sheet(QAbstractScrollArea):
@@ -53,37 +53,39 @@ class Sheet(QAbstractScrollArea):
         g.addWidget(self.viewport(), 1, 1)
         self.setLayout(g)
 
+        self.viewport().setFocusProxy(None)
+
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
 
         self._col_width = self._config['col_width']
-        self._px_per_beat = self._config['px_per_beat']
 
-        # XXX: testing
-        patterns = [
-                {
-                    'length': tstamp.Tstamp(0.5),
-                    'columns': [[] for _ in xrange(COLUMN_COUNT)],
-                },
-                {
-                    'length': tstamp.Tstamp(8),
-                    'columns': [[] for _ in xrange(COLUMN_COUNT)],
-                },
-                ]
-        patterns[0]['columns'][0].append([tstamp.Tstamp(0.46), ['cn+', '300']])
-        patterns[1]['columns'][0].append([tstamp.Tstamp(0.03), ['.i', '0']])
-        patterns[1]['columns'][0].append([tstamp.Tstamp(7.96), ['cn-', None]])
-        pat_lengths = [p['length'] for p in patterns]
-        self._total_height_px = (self._get_total_height(pat_lengths) +
-                self._config['tr_height'])
-        self._ruler.set_pattern_lengths(pat_lengths)
-        self.viewport().set_patterns(patterns)
+        self._px_per_beat = None
+        self._zoom_levels = []
+        self._cur_zoom_index = 0
+
+        QObject.connect(
+                self.viewport(),
+                SIGNAL('heightChanged()'),
+                self._update_scrollbars)
+        QObject.connect(
+                self.viewport(),
+                SIGNAL('followCursor(int, int)'),
+                self._follow_cursor)
+
+    def set_ui_model(self, ui_model):
+        self._ruler.set_ui_model(ui_model)
+        self.viewport().set_ui_model(ui_model)
+
+    def unregister_updaters(self):
+        self._ruler.unregister_updaters()
+        self.viewport().unregister_updaters()
 
     def _set_config(self, config):
         self._config = DEFAULT_CONFIG.copy()
         self._config.update(config)
 
-        for subcfg in ('ruler', 'header'):
+        for subcfg in ('ruler', 'header', 'trigger', 'edit_cursor'):
             self._config[subcfg] = DEFAULT_CONFIG[subcfg].copy()
             if subcfg in config:
                 self._config[subcfg].update(config[subcfg])
@@ -111,20 +113,46 @@ class Sheet(QAbstractScrollArea):
 
         self.viewport().set_config(self._config)
 
-    def set_ui_model(self, ui_model):
-        self._stat_manager = ui_model.get_stat_manager()
-        #self._stat_manager.register_update(self.update_xxx)
+        # Default zoom level
+        self._px_per_beat = self._config['trs_per_beat'] * self._config['tr_height']
+        self._ruler.set_px_per_beat(self._px_per_beat)
+        self.viewport().set_px_per_beat(self._px_per_beat)
 
-    def _get_total_height(self, pat_lengths):
-        height = sum(pat_height(pl, self._px_per_beat) for pl in pat_lengths)
-        height -= len(pat_lengths) - 1
-        # TODO: add trigger row height
-        return height
+        self._zoom_levels = self._get_zoom_levels(1, self._px_per_beat, tstamp.BEAT)
+        self._cur_zoom_index = self._zoom_levels.index(self._px_per_beat)
 
-    def paintEvent(self, ev):
-        self.viewport().paintEvent(ev)
+    def _get_zoom_levels(self, min_val, default_val, max_val):
+        zoom_levels = [default_val]
 
-    def resizeEvent(self, ev):
+        # Fill zoom out levels until minimum
+        prev_val = zoom_levels[-1]
+        next_val = prev_val / self._config['zoom_factor']
+        while int(next_val) > min_val:
+            actual_val = int(next_val)
+            assert actual_val < prev_val
+            zoom_levels.append(actual_val)
+            prev_val = actual_val
+            next_val = prev_val / self._config['zoom_factor']
+        zoom_levels.append(min_val)
+        zoom_levels = list(reversed(zoom_levels))
+
+        # Fill zoom in levels until maximum
+        prev_val = zoom_levels[-1]
+        next_val = prev_val * self._config['zoom_factor']
+        while math.ceil(next_val) < tstamp.BEAT:
+            actual_val = int(math.ceil(next_val))
+            assert actual_val > prev_val
+            zoom_levels.append(actual_val)
+            prev_val = actual_val
+            next_val = prev_val * self._config['zoom_factor']
+        zoom_levels.append(tstamp.BEAT)
+
+        return zoom_levels
+
+    def _update_scrollbars(self):
+        self._total_height_px = (
+                self.viewport().get_total_height() + self._config['tr_height'])
+
         vp_height = self.viewport().height()
         vscrollbar = self.verticalScrollBar()
         vscrollbar.setPageStep(vp_height)
@@ -135,6 +163,25 @@ class Sheet(QAbstractScrollArea):
         hscrollbar = self.horizontalScrollBar()
         hscrollbar.setPageStep(max_visible_cols)
         hscrollbar.setRange(0, COLUMN_COUNT - max_visible_cols)
+
+    def _follow_cursor(self, new_y_offset, new_first_col):
+        vscrollbar = self.verticalScrollBar()
+        hscrollbar = self.horizontalScrollBar()
+        old_y_offset = vscrollbar.value()
+        old_first_col = hscrollbar.value()
+
+        self.horizontalScrollBar().setValue(new_first_col)
+        self.verticalScrollBar().setValue(new_y_offset)
+
+        # Position not changed, so just update our viewport, TODO: kludgy
+        if old_y_offset == vscrollbar.value() and old_first_col == hscrollbar.value():
+            self.viewport().update()
+
+    def paintEvent(self, ev):
+        self.viewport().paintEvent(ev)
+
+    def resizeEvent(self, ev):
+        self._update_scrollbars()
 
     def scrollContentsBy(self, dx, dy):
         hvalue = self.horizontalScrollBar().value()

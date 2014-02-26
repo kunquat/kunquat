@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013
+# Author: Tomi Jylhä-Ollila, Finland 2013-2014
 #
 # This file is part of Kunquat.
 #
@@ -19,19 +19,26 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 from config import *
-from utils import *
-import tstamp
+import utils
+import kunquat.tracker.ui.model.tstamp as tstamp
 
 
 class Ruler(QWidget):
 
+    heightChanged = pyqtSignal(name='heightChanged')
+
     def __init__(self):
         QWidget.__init__(self)
+        self._ui_model = None
+        self._updater = None
 
         self._lengths = []
         self._px_offset = 0
-        self._px_per_beat = DEFAULT_CONFIG['px_per_beat']
+        self._px_per_beat = None
         self._cache = RulerCache()
+
+        self._heights = []
+        self._start_heights = []
 
         self.setAutoFillBackground(False)
         self.setAttribute(Qt.WA_OpaquePaintEvent)
@@ -53,6 +60,26 @@ class Ruler(QWidget):
 
         self.update()
 
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
+
+    def get_total_height(self):
+        return sum(self._heights)
+
+    def _perform_updates(self, signals):
+        if 'signal_module' in signals:
+            self._update_all_patterns()
+            self.update()
+
+    def _update_all_patterns(self):
+        all_patterns = utils.get_all_patterns(self._ui_model)
+        self.set_patterns(all_patterns)
+
     def set_px_per_beat(self, px_per_beat):
         changed = self._px_per_beat != px_per_beat
         self._px_per_beat = px_per_beat
@@ -61,13 +88,14 @@ class Ruler(QWidget):
             self._set_pattern_heights()
             self.update()
 
-    def set_pattern_lengths(self, lengths):
-        self._lengths = lengths
+    def set_patterns(self, patterns):
+        self._lengths = [p.get_length() for p in patterns]
         self._set_pattern_heights()
 
     def _set_pattern_heights(self):
-        self._heights = get_pat_heights(self._lengths, self._px_per_beat)
-        self._start_heights = get_pat_start_heights(self._heights)
+        self._heights = utils.get_pat_heights(self._lengths, self._px_per_beat)
+        self._start_heights = utils.get_pat_start_heights(self._heights)
+        QObject.emit(self, SIGNAL('heightChanged()'))
 
     def set_px_offset(self, offset):
         changed = offset != self._px_offset
@@ -82,9 +110,11 @@ class Ruler(QWidget):
         painter = QPainter(self)
 
         # Render rulers of visible patterns
-        first_index = get_first_visible_pat_index(
+        first_index = utils.get_first_visible_pat_index(
                 self._px_offset,
                 self._start_heights)
+
+        rel_end_height = 0 # empty song
 
         for pi in xrange(first_index, len(self._heights)):
             if self._start_heights[pi] > self._px_offset + self.height():
@@ -135,7 +165,7 @@ class RulerCache():
 
     def __init__(self):
         self._width = 0
-        self._px_per_beat = DEFAULT_CONFIG['px_per_beat']
+        self._px_per_beat = None
         self._pixmaps = {}
 
     def set_config(self, config):
@@ -162,12 +192,12 @@ class RulerCache():
 
         create_count = 0
 
-        for i in get_pixmap_indices(start_px, stop_px, RulerCache.PIXMAP_HEIGHT):
+        for i in utils.get_pixmap_indices(start_px, stop_px, RulerCache.PIXMAP_HEIGHT):
             if i not in self._pixmaps:
                 self._pixmaps[i] = self._create_pixmap(i)
                 create_count += 1
 
-            rect = get_pixmap_rect(
+            rect = utils.get_pixmap_rect(
                     i,
                     start_px, stop_px,
                     self._width,

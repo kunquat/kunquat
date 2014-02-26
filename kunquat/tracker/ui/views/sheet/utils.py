@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013
+# Author: Tomi Jylhä-Ollila, Finland 2013-2014
 #
 # This file is part of Kunquat.
 #
@@ -17,10 +17,32 @@ import math
 from PyQt4.QtCore import *
 
 from config import *
-import tstamp
+import kunquat.tracker.ui.model.tstamp as tstamp
 
 
-# Column utils
+# Model utils
+
+def get_all_patterns(ui_model):
+    module = ui_model.get_module()
+
+    album = module.get_album()
+    if not album:
+        all_patterns = []
+    else:
+        track_count = album.get_track_count()
+        songs = (album.get_song_by_track(i) for i in xrange(track_count))
+        all_patterns = []
+        for song in songs:
+            system_count = song.get_system_count()
+            pattern_instances = (song.get_pattern_instance(i)
+                    for i in xrange(system_count))
+            patterns = (pinst.get_pattern() for pinst in pattern_instances)
+            all_patterns.extend(patterns)
+
+    return all_patterns
+
+
+# Column view utils
 
 def get_max_visible_cols(full_width, col_width):
     return min(full_width // col_width + 1, COLUMN_COUNT + 1)
@@ -34,13 +56,13 @@ def get_visible_cols(first_col, max_visible_cols):
     return max_visible_cols
 
 
-# Pattern utils
+# Pattern view utils
 
-def pat_height(length, px_per_beat):
+def get_pat_height(length, px_per_beat):
     return int(math.ceil(float(length + tstamp.Tstamp(0, 1)) * px_per_beat))
 
 def get_pat_heights(lengths, px_per_beat):
-    return [pat_height(pl, px_per_beat) for pl in lengths]
+    return [get_pat_height(pl, px_per_beat) for pl in lengths]
 
 def get_pat_start_heights(heights):
     start_heights = [0]
@@ -57,6 +79,15 @@ def get_first_visible_pat_index(px_offset, start_heights):
             return index - 1
         index += 1
     return index
+
+
+# Pixel <-> Tstamp conversions
+
+def get_tstamp_from_px(px, px_per_beat):
+    return tstamp.Tstamp(0, px * tstamp.BEAT // px_per_beat)
+
+def get_px_from_tstamp(ts, px_per_beat):
+    return ((ts.beats * tstamp.BEAT + ts.rem) * px_per_beat) // tstamp.BEAT
 
 
 # Pixmap buffer utils

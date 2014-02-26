@@ -16,19 +16,37 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 
+class OLight(QWidget):
+
+    def __init__(self):
+        QWidget.__init__(self)
+        self._state = 0
+        self._colours = [QColor(x, 0, 0) for x in (0x44, 0xcc)]
+        self._disabled_colour = QColor(0x88, 0x88, 0x88)
+
+    def set_state(self, state):
+        if self._state != state:
+            self._state = state
+            self.update()
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        if self.isEnabled():
+            colour = self._colours[self._state]
+        else:
+            colour = self._disabled_colour
+        painter.fillRect(event.rect(), colour)
+
+
 class OLed(QFrame):
 
     def __init__(self):
         super(QFrame, self).__init__()
-        self.setMinimumWidth(35)
-        self.setMinimumHeight(15)
-        self.setMaximumWidth(35)
-        self.setMaximumHeight(15)
+        self.setFixedSize(QSize(35, 15))
         self.setFrameStyle(QFrame.Panel | QFrame.Sunken)
         self.setLineWidth(2)
 
-        self._led = QLabel()
-        self._led.setMargin(0)
+        self._led = OLight()
 
         h = QHBoxLayout()
         h.addWidget(self._led)
@@ -39,12 +57,7 @@ class OLed(QFrame):
         self.set_led(0)
 
     def set_led(self, is_on):
-        led_colors = {
-            0: '#400',
-            1: '#c00'
-        }
-        style = 'QLabel { background-color: %s; }' % led_colors[is_on]
-        self._led.setStyleSheet(style)
+        self._led.set_state(is_on)
 
 
 class OctaveButton(QPushButton):
@@ -57,8 +70,7 @@ class OctaveButton(QPushButton):
         self._updater = None
 
         self.setCheckable(True)
-        self.setMinimumWidth(60)
-        self.setMinimumHeight(60)
+        self.setFixedSize(QSize(60, 60))
         layout = QVBoxLayout(self)
         led = OLed()
         self._led = led
@@ -68,8 +80,6 @@ class OctaveButton(QPushButton):
         octavename.setAlignment(Qt.AlignCenter)
         layout.addWidget(octavename)
         layout.setAlignment(Qt.AlignCenter)
-
-        self.setStyleSheet("QLabel { background-color: #ccc; }")
 
         QObject.connect(self, SIGNAL('clicked()'), self._select_octave)
 
@@ -81,16 +91,17 @@ class OctaveButton(QPushButton):
         self._updater.register_updater(self._perform_updates)
         self._ui_manager = ui_model.get_ui_manager()
         self._typewriter_manager = ui_model.get_typewriter_manager()
-        octave_name = self._typewriter_manager.get_octave_name(self._octave_id)
-        self._octavename.setText('%s' % octave_name)
+        self._button_model = self._typewriter_manager.get_octave_button_model(
+                self._octave_id)
+        octave_name = self._button_model.get_name()
+        self._octavename.setText(octave_name)
 
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
 
     def _update_pressed(self):
-        octave = self._typewriter_manager.get_octave()
         old_block = self.blockSignals(True)
-        if octave == self._octave_id:
+        if self._button_model.is_selected():
             self.setChecked(True)
         else:
             self.setChecked(False)
@@ -102,7 +113,7 @@ class OctaveButton(QPushButton):
             return
         notes = selected_control.get_active_notes()
         is_on = 0
-        for (_, note) in notes.items():
+        for note in notes.itervalues():
             closest = self._typewriter_manager.get_closest_keymap_pitch(note)
             pitches = self._typewriter_manager.get_pitches_by_octave(self._octave_id)
             if closest in pitches:

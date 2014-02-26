@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013
-#          Tomi Jylhä-Ollila, Finland 2013
+#          Tomi Jylhä-Ollila, Finland 2013-2014
 #
 # This file is part of Kunquat.
 #
@@ -27,9 +27,6 @@ class Instrument():
         self._store = controller.get_store()
         self._controller = controller
 
-    def get_id(self):
-        return self._instrument_id
-
     def get_existence(self):
         key = '%s/p_manifest.json' % self._instrument_id
         manifest = self._store[key]
@@ -44,4 +41,5 @@ class Instrument():
         except KeyError:
             return None
         return name
+
 

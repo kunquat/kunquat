@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013
+# Author: Tomi Jylhä-Ollila, Finland 2013-2014
 #
 # This file is part of Kunquat.
 #
@@ -17,7 +17,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 from config import *
-from utils import *
+import utils
 
 
 class Header(QWidget):
@@ -51,7 +51,7 @@ class Header(QWidget):
         return QSize(self._col_width * 3, sh.height())
 
     def _resize_layout(self, max_visible_cols):
-        visible_cols = get_visible_cols(self._first_col, max_visible_cols)
+        visible_cols = utils.get_visible_cols(self._first_col, max_visible_cols)
 
         for i in xrange(len(self._headers), visible_cols):
             header = ColumnHeader()
@@ -63,9 +63,9 @@ class Header(QWidget):
             h.hide()
 
     def _update_contents(self):
-        max_visible_cols = get_max_visible_cols(self.width(), self._col_width)
+        max_visible_cols = utils.get_max_visible_cols(self.width(), self._col_width)
 
-        self._first_col = clamp_start_col(self._first_col, max_visible_cols)
+        self._first_col = utils.clamp_start_col(self._first_col, max_visible_cols)
 
         self._resize_layout(max_visible_cols)
 

@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013
-#          Tomi Jylhä-Ollila, Finland 2013
+#          Tomi Jylhä-Ollila, Finland 2013-2014
 #
 # This file is part of Kunquat.
 #
@@ -14,6 +14,9 @@
 
 from instrument import Instrument
 from control import Control
+from album import Album
+from song import Song
+from pattern import Pattern
 
 
 class Module():
@@ -71,4 +74,12 @@ class Module():
         #    valid = [i for i in all_instruments if i.get_existence()]
         #    return [] #valid
         return all_instruments
+
+    def get_album(self):
+        album = Album()
+        album.set_controller(self._controller)
+        if not album.get_existence():
+            return None
+        return album
+
 
