@@ -58,10 +58,9 @@ class Control():
             return None
         return notes[channel_number]
 
-    def set_active_note(self, channel_number, pitch):
-        self._controller.set_active_note(channel_number, self._control_id, pitch)
-
-    def set_rest(self, channel_number):
-        self._controller.set_rest(channel_number)
+    def start_tracked_note(self, channel_number, pitch):
+        note = self._controller.start_tracked_note(
+                channel_number, self._control_id, pitch)
+        return note
 
 

@@ -31,23 +31,32 @@ class KeyboardMapper():
         self._typewriter_manager = None
 
         self._typewriter_map = _TYPEWRITER_MAP
+        self._active_notes = {}
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._typewriter_manager = ui_model.get_typewriter_manager()
 
     def process_typewriter_button_event(self, event):
+        # Note playback
         scancode = event.nativeScanCode()
         button = self.get_typewriter_button_model(scancode)
         if button and event.modifiers() == Qt.NoModifier:
             if event.isAutoRepeat():
                 return True
             if event.type() == QEvent.KeyPress:
-                button.press()
+                if scancode in self._active_notes:
+                    self._active_notes[scancode].set_rest()
+                note = button.start_tracked_note()
+                if note:
+                    self._active_notes[scancode] = note
             elif event.type() == QEvent.KeyRelease:
-                button.release()
+                if scancode in self._active_notes:
+                    self._active_notes[scancode].set_rest()
+                    del self._active_notes[scancode]
             return True
 
+        # Octave selection
         if self.is_octave_down(event.key()):
             if event.type() == QEvent.KeyPress:
                 cur_octave = self._typewriter_manager.get_octave()

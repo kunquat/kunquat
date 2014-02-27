@@ -68,18 +68,16 @@ class TypewriterButtonModel():
 
         return (left_on, center_on, right_on)
 
-    def press(self):
+    def start_tracked_note(self):
         pitch = self.get_pitch()
         if pitch == None:
-            return
+            return None
 
         selected_control = self._ui_manager.get_selected_control()
         if selected_control:
-            selected_control.set_active_note(0, pitch)
+            note = selected_control.start_tracked_note(0, pitch)
+            return note
 
-    def release(self):
-        selected_control = self._ui_manager.get_selected_control()
-        if selected_control:
-            selected_control.set_rest(0)
+        return None
 
 
