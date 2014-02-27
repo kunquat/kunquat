@@ -83,12 +83,12 @@ class TypeWriter(QFrame):
         if self._keyboard_mapper.process_typewriter_button_event(event):
             pass
         else:
-            QWidget.keyPressEvent(self, event)
+            event.ignore()
 
     def keyReleaseEvent(self, event):
         if self._keyboard_mapper.process_typewriter_button_event(event):
             pass
         else:
-            QWidget.keyReleaseEvent(self, event)
+            event.ignore()
 
 
