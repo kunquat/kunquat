@@ -23,15 +23,15 @@ class Control():
         self._existence = None
         self._session = None
         self._store = None
-        self._model = None
+        self._ui_model = None
 
     def set_controller(self, controller):
         self._store = controller.get_store()
         self._session = controller.get_session()
         self._controller = controller
 
-    def set_model(self, model):
-        self._model = model
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
 
     def get_instrument(self):
         parts = self._control_id.split('_')
@@ -44,7 +44,7 @@ class Control():
         controls = dict(input_map)
         instrument_number = controls[control_number]
         instrument_id = 'ins_{0:02x}'.format(instrument_number)
-        module = self._model.get_module()
+        module = self._ui_model.get_module()
         instrument = module.get_instrument(instrument_id)
         return instrument
 
