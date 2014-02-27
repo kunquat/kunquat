@@ -46,6 +46,19 @@ class KeyboardMapper():
                 button.press()
             elif event.type() == QEvent.KeyRelease:
                 button.release()
+            return True
+
+        if self.is_octave_down(event.key()):
+            if event.type() == QEvent.KeyPress:
+                cur_octave = self._typewriter_manager.get_octave()
+                self._typewriter_manager.set_octave(max(0, cur_octave - 1))
+            return True
+        elif self.is_octave_up(event.key()):
+            if event.type() == QEvent.KeyPress:
+                cur_octave = self._typewriter_manager.get_octave()
+                octave_count = self._typewriter_manager.get_octave_count()
+                self._typewriter_manager.set_octave(min(octave_count - 1, cur_octave + 1))
+            return True
         return False
 
     def get_typewriter_button_model(self, scancode):
@@ -56,5 +69,11 @@ class KeyboardMapper():
 
         button = self._typewriter_manager.get_button_model(row, index)
         return button
+
+    def is_octave_down(self, key):
+        return key == Qt.Key_F1
+
+    def is_octave_up(self, key):
+        return key == Qt.Key_F2
 
 
