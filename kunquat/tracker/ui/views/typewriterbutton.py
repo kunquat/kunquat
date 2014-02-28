@@ -68,7 +68,7 @@ class TWLed(QFrame):
         self._right.set_state(right_on + center_on)
 
 
-class TypeWriterButton(QPushButton):
+class TypewriterButton(QPushButton):
 
     def __init__(self, row, index):
         QPushButton.__init__(self)

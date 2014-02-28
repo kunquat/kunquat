@@ -15,10 +15,10 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from typewriterbutton import TypeWriterButton
+from typewriterbutton import TypewriterButton
 
 
-class TypeWriter(QFrame):
+class Typewriter(QFrame):
 
     _PAD = 35
 
@@ -62,7 +62,7 @@ class TypeWriter(QFrame):
         row.addWidget(self._get_pad(pad_px))
 
         for i in xrange(self._typewriter_manager.get_button_count_at_row(index)):
-            button = TypeWriterButton(index, i)
+            button = TypewriterButton(index, i)
             button.set_ui_model(self._ui_model)
             row.addWidget(button)
             self._current_buttons.add(button)

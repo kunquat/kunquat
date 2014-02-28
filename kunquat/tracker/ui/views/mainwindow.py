@@ -19,7 +19,7 @@ from playbutton import PlayButton
 from aboutbutton import AboutButton
 from eventlistbutton import EventListButton
 from octaveselector import OctaveSelector
-from typewriter import TypeWriter
+from typewriter import Typewriter
 from instrumentselect import InstrumentSelect
 from importprogress import ImportProgress
 from peakmeter import PeakMeter
@@ -38,7 +38,7 @@ class MainWindow(QWidget):
         self._about_button = AboutButton()
         self._event_list_button = EventListButton()
         self._octave_selector = OctaveSelector()
-        self._type_writer = TypeWriter()
+        self._typewriter = Typewriter()
         self._instrument_select = InstrumentSelect()
         self._import_progress = ImportProgress()
         self._peak_meter = PeakMeter()
@@ -47,7 +47,7 @@ class MainWindow(QWidget):
         self._profile_control = ProfileControl()
 
         self._octave_selector.set_keyboard_mapper(self._keyboard_mapper)
-        self._type_writer.set_keyboard_mapper(self._keyboard_mapper)
+        self._typewriter.set_keyboard_mapper(self._keyboard_mapper)
 
         buttons = QHBoxLayout()
         buttons.addWidget(self._event_list_button)
@@ -57,7 +57,7 @@ class MainWindow(QWidget):
         v.addWidget(self._play_button)
         v.addLayout(buttons)
         v.addWidget(self._octave_selector)
-        v.addWidget(self._type_writer)
+        v.addWidget(self._typewriter)
         v.addWidget(self._instrument_select)
         v.addWidget(self._import_progress)
         v.addWidget(self._peak_meter)
@@ -72,7 +72,7 @@ class MainWindow(QWidget):
         self._about_button.set_ui_model(ui_model)
         self._event_list_button.set_ui_model(ui_model)
         self._octave_selector.set_ui_model(ui_model)
-        self._type_writer.set_ui_model(ui_model)
+        self._typewriter.set_ui_model(ui_model)
         self._instrument_select.set_ui_model(ui_model)
         self._import_progress.set_ui_model(ui_model)
         self._peak_meter.set_ui_model(ui_model)
@@ -91,7 +91,7 @@ class MainWindow(QWidget):
         self._peak_meter.unregister_updaters()
         self._import_progress.unregister_updaters()
         self._instrument_select.unregister_updaters()
-        self._type_writer.unregister_updaters()
+        self._typewriter.unregister_updaters()
         self._octave_selector.unregister_updaters()
         self._event_list_button.unregister_updaters()
         self._about_button.unregister_updaters()
