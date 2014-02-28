@@ -24,6 +24,7 @@ from instrumentselect import InstrumentSelect
 from importprogress import ImportProgress
 from peakmeter import PeakMeter
 from sheet.sheet import Sheet
+from keyboardmapper import KeyboardMapper
 from profilecontrol import ProfileControl
 
 class MainWindow(QWidget):
@@ -42,7 +43,11 @@ class MainWindow(QWidget):
         self._import_progress = ImportProgress()
         self._peak_meter = PeakMeter()
         self._sheet = Sheet()
+        self._keyboard_mapper = KeyboardMapper()
         self._profile_control = ProfileControl()
+
+        self._octave_selector.set_keyboard_mapper(self._keyboard_mapper)
+        self._type_writer.set_keyboard_mapper(self._keyboard_mapper)
 
         buttons = QHBoxLayout()
         buttons.addWidget(self._event_list_button)
@@ -72,6 +77,7 @@ class MainWindow(QWidget):
         self._import_progress.set_ui_model(ui_model)
         self._peak_meter.set_ui_model(ui_model)
         self._sheet.set_ui_model(ui_model)
+        self._keyboard_mapper.set_ui_model(ui_model)
         self._profile_control.set_ui_model(ui_model)
 
     def keyPressEvent(self, event):
