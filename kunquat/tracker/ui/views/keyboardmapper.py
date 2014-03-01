@@ -57,12 +57,12 @@ class KeyboardMapper():
             return True
 
         # Octave selection
-        if self.is_octave_down(event.key()):
+        if self.is_octave_down(event):
             if event.type() == QEvent.KeyPress:
                 cur_octave = self._typewriter_manager.get_octave()
                 self._typewriter_manager.set_octave(max(0, cur_octave - 1))
             return True
-        elif self.is_octave_up(event.key()):
+        elif self.is_octave_up(event):
             if event.type() == QEvent.KeyPress:
                 cur_octave = self._typewriter_manager.get_octave()
                 octave_count = self._typewriter_manager.get_octave_count()
@@ -79,10 +79,11 @@ class KeyboardMapper():
         button = self._typewriter_manager.get_button_model(row, index)
         return button
 
-    def is_octave_down(self, key):
-        return key == Qt.Key_F1
+    def is_octave_down(self, event):
+        return event.key() == Qt.Key_O and event.modifiers() == Qt.ControlModifier
 
-    def is_octave_up(self, key):
-        return key == Qt.Key_F2
+    def is_octave_up(self, event):
+        return event.key() == Qt.Key_O and (
+                event.modifiers() == (Qt.ControlModifier | Qt.ShiftModifier))
 
 
