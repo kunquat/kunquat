@@ -13,6 +13,7 @@
 #
 
 from __future__ import print_function
+import glob
 from optparse import Option
 import os
 import os.path
@@ -24,6 +25,8 @@ import options
 
 quiet_builder = fabricate.Builder(quiet=True)
 
+
+# Test external dependencies
 
 def write_external_header_test(out_base, header_name):
     script_path = os.path.join('scripts', 'write_external_header_test.py')
@@ -144,11 +147,55 @@ def test_external_deps():
     return flags
 
 
-def build_libkunquat(compile_flags, link_flags):
+# Compile and link
+
+def compile_libkunquat_dir(cc, compile_flags, out_dir, src_dir):
+    quiet_builder.run('mkdir', '-p', out_dir)
+
+    source_paths = glob.glob(os.path.join(src_dir, '*.c'))
+    sources = sorted([os.path.basename(path) for path in source_paths])
+
+    for source in sources:
+        src_path = os.path.join(src_dir, source)
+        obj_name = source[:source.rindex('.')] + '.o'
+        out_path = os.path.join(out_dir, obj_name)
+        print('Compiling {}'.format(src_path))
+        quiet_builder.run(cc, '-c', src_path, '-o', out_path, compile_flags)
+
+    # Recurse to subdirectories, excluding test directories
+    subdir_names = sorted([name for name in os.listdir(src_dir)
+            if os.path.isdir(os.path.join(src_dir, name)) and name != 'test'])
+    for name in subdir_names:
+        sub_out_dir = os.path.join(out_dir, name)
+        sub_src_dir = os.path.join(src_dir, name)
+        compile_libkunquat_dir(cc, compile_flags, sub_out_dir, sub_src_dir)
+
+
+def link_libkunquat(cc, link_flags, out_dir):
     pass
 
 
-def test_libkunquat(compile_flags, link_flags):
+def build_libkunquat(cc, compile_flags, link_flags):
+    build_dir = 'build_src'
+    quiet_builder.run('mkdir', '-p', build_dir)
+    out_dir = os.path.join(build_dir, 'lib')
+
+    # TODO: clean up code so that subdirectories inside src/lib are not needed
+    include_dirs = [
+            os.path.join('src', 'lib'),
+            os.path.join('src', 'lib', 'events'),
+            os.path.join('src', 'lib', 'generators'),
+            os.path.join('src', 'lib', 'dsps'),
+            os.path.join('src', 'include')
+        ]
+    include_flags = ['-I' + d for d in include_dirs]
+
+    src_dir = os.path.join('src', 'lib')
+    compile_libkunquat_dir(cc, compile_flags + include_flags, out_dir, src_dir)
+    link_libkunquat(cc, link_flags, out_dir)
+
+
+def test_libkunquat(cc, compile_flags, link_flags):
     pass
 
 
@@ -164,6 +211,7 @@ def process_cmd_line():
 def build():
     process_cmd_line()
 
+    cc = 'gcc'
     compile_flags = [
             '-std=c99',
             '-pedantic',
@@ -171,18 +219,32 @@ def build():
             '-Wextra',
             '-Werror',
         ]
+    link_flags = []
+    test_link_flags = []
+
+    if options.enable_debug:
+        compile_flags.append('-g')
+    else:
+        compile_flags.append('-DNDEBUG')
+
+    if options.enable_profiling:
+        compile_flags.append('-pg')
+        link_flags.append('-pg')
+
+    opt_flags = ['-O{:d}'.format(options.optimise)]
+    compile_flags.extend(opt_flags)
 
     # Configure
     conf_flags = test_external_deps()
     compile_flags.extend(conf_flags['compile'])
-    link_flags = conf_flags['link']
-    test_link_flags = conf_flags['test_link']
+    link_flags.extend(conf_flags['link'])
+    test_link_flags.extend(conf_flags['test_link'])
 
     if options.enable_libkunquat:
-        build_libkunquat(compile_flags, link_flags)
+        build_libkunquat(cc, compile_flags, link_flags)
 
     if options.enable_tests:
-        test_libkunquat(compile_flags, test_link_flags)
+        test_libkunquat(cc, compile_flags, test_link_flags)
 
     if options.enable_examples:
         build_examples()
