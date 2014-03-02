@@ -17,6 +17,7 @@ import glob
 from optparse import Option
 import os
 import os.path
+import stat
 import sys
 
 import fabricate
@@ -171,8 +172,22 @@ def compile_libkunquat_dir(cc, compile_flags, out_dir, src_dir):
         compile_libkunquat_dir(cc, compile_flags, sub_out_dir, sub_src_dir)
 
 
-def link_libkunquat(cc, link_flags, out_dir):
-    pass
+def link_libkunquat(cc, link_flags, build_lib_dir):
+    objs = []
+    for (dirpath, _, filenames) in os.walk(build_lib_dir):
+        objs.extend(os.path.join(dirpath, name)
+                for name in filenames if name.endswith('.o'))
+
+    lib_name = 'libkunquat.so'
+    lib_path = os.path.join(build_lib_dir, lib_name)
+
+    version_major = 0
+    soname_flag = '-Wl,-soname,{}.{}'.format(lib_name, version_major)
+    link_flags.extend(['-shared', soname_flag])
+
+    print('Linking libkunquat')
+    quiet_builder.run(cc, '-o', lib_path, objs, link_flags)
+    os.chmod(lib_path, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH)
 
 
 def build_libkunquat(cc, compile_flags, link_flags):
@@ -230,6 +245,8 @@ def build():
     if options.enable_profiling:
         compile_flags.append('-pg')
         link_flags.append('-pg')
+
+    compile_flags.append('-fPIC')
 
     opt_flags = ['-O{:d}'.format(options.optimise)]
     compile_flags.extend(opt_flags)
