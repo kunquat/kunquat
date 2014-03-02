@@ -245,6 +245,9 @@ def test_libkunquat(cc, compile_flags, link_flags):
     libkunquat_dir = os.path.join(build_dir, 'lib')
     test_link_flags = ['-L{}'.format(libkunquat_dir), '-lkunquat'] + link_flags
 
+    if options.enable_tests_mem_debug:
+        test_compile_flags += ['-DK_MEM_DEBUG']
+
     # Define which tests are dependent on others
     deps = defaultdict(lambda: [], {
             'handle': ['streader', 'tstamp'],
