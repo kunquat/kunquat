@@ -4,6 +4,8 @@
 *.so.0
 *.pyc
 build
+conf_tests
+.deps
 examples/*bz2
 .sconf_temp
 .sconsign.dblite
