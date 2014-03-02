@@ -13,6 +13,7 @@
 #
 
 from __future__ import print_function
+from optparse import Option
 import os
 import os.path
 import sys
@@ -135,15 +136,65 @@ def test_external_deps():
         print('\n'.join(conf_errors) + '\n')
         sys.exit(1)
 
+    flags = {
+            'compile': compile_flags,
+            'link': link_flags,
+            'test_link': test_link_flags,
+        }
+    return flags
+
+
+def build_libkunquat(compile_flags, link_flags):
+    pass
+
+
+def test_libkunquat(compile_flags, link_flags):
+    pass
+
+
+def build_examples():
+    pass
+
+
+def process_cmd_line():
+    if fabricate.main.options.prefix != None:
+        options.prefix = fabricate.main.options.prefix
+
 
 def build():
-    test_external_deps()
+    process_cmd_line()
+
+    compile_flags = [
+            '-std=c99',
+            '-pedantic',
+            '-Wall',
+            '-Wextra',
+            '-Werror',
+        ]
+
+    # Configure
+    conf_flags = test_external_deps()
+    compile_flags.extend(conf_flags['compile'])
+    link_flags = conf_flags['link']
+    test_link_flags = conf_flags['test_link']
+
+    if options.enable_libkunquat:
+        build_libkunquat(compile_flags, link_flags)
+
+    if options.enable_tests:
+        test_libkunquat(compile_flags, test_link_flags)
+
+    if options.enable_examples:
+        build_examples()
 
 
 def clean():
     fabricate.autoclean()
 
 
-fabricate.main()
+prefix_option = Option('--prefix', type='string',
+        help='installation directory prefix (default: {})'.format(options.prefix))
+
+fabricate.main(extra_options=[prefix_option])
 
 
