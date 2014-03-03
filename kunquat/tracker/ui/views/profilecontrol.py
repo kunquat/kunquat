@@ -27,6 +27,13 @@ class ProfileControl(QDialog):
             'Sort by number of calls': 'ncalls',
             }
 
+    # Work around compatibility issues with older Pythons
+    SORT_HACKS = {
+            'cumtime': 2,
+            'tottime': 1,
+            'ncalls': 0,
+            }
+
     def __init__(self):
         QDialog.__init__(self)
         self.resize(1360, 720)
@@ -68,7 +75,7 @@ class ProfileControl(QDialog):
     def _set_profile_stats(self, profile):
         self._stats_output = StringIO.StringIO()
         self._stats = pstats.Stats(profile, stream=self._stats_output)
-        self._stats.sort_stats(self._sort_key)
+        self._stats.sort_stats(self.SORT_HACKS[self._sort_key])
         self._stats.print_stats()
         data = self._stats_output.getvalue()
         self._details.setPlainText(data)
@@ -78,7 +85,7 @@ class ProfileControl(QDialog):
         if self._stats:
             self._stats_output.seek(0)
             self._stats_output.truncate()
-            self._stats.sort_stats(self._sort_key)
+            self._stats.sort_stats(self.SORT_HACKS[self._sort_key])
             self._stats.print_stats()
             data = self._stats_output.getvalue()
             self._details.setPlainText(data)
