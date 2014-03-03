@@ -16,50 +16,6 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 
-class OLight(QWidget):
-
-    def __init__(self):
-        QWidget.__init__(self)
-        self._state = 0
-        self._colours = [QColor(x, 0, 0) for x in (0x44, 0xcc)]
-        self._disabled_colour = QColor(0x88, 0x88, 0x88)
-
-    def set_state(self, state):
-        if self._state != state:
-            self._state = state
-            self.update()
-
-    def paintEvent(self, event):
-        painter = QPainter(self)
-        if self.isEnabled():
-            colour = self._colours[self._state]
-        else:
-            colour = self._disabled_colour
-        painter.fillRect(event.rect(), colour)
-
-
-class OLed(QFrame):
-
-    def __init__(self):
-        super(QFrame, self).__init__()
-        self.setFixedSize(QSize(35, 15))
-        self.setFrameStyle(QFrame.Panel | QFrame.Sunken)
-        self.setLineWidth(2)
-
-        self._led = OLight()
-
-        h = QHBoxLayout()
-        h.addWidget(self._led)
-        h.setContentsMargins(0,0,0,0)
-        h.setSpacing(0)
-        self.setLayout(h)
-
-        self.set_led(0)
-
-    def set_led(self, is_on):
-        self._led.set_state(is_on)
-
-
 class OctaveButton(QPushButton):
 
     def __init__(self, octave_id):
@@ -70,15 +26,16 @@ class OctaveButton(QPushButton):
         self._updater = None
 
         self.setCheckable(True)
-        self.setFixedSize(QSize(60, 60))
-        layout = QVBoxLayout(self)
-        led = OLed()
-        self._led = led
-        layout.addWidget(led)
+        self.setFixedSize(QSize(60, 30))
+        layout = QHBoxLayout(self)
         octavename = QLabel()
         self._octavename = octavename
         octavename.setAlignment(Qt.AlignCenter)
         layout.addWidget(octavename)
+        led = QLabel()
+        self._led = led
+        self._led.setFixedWidth(10)
+        layout.addWidget(led)
         layout.setAlignment(Qt.AlignCenter)
 
         QObject.connect(self, SIGNAL('clicked()'), self._select_octave)
@@ -118,7 +75,10 @@ class OctaveButton(QPushButton):
             pitches = self._typewriter_manager.get_pitches_by_octave(self._octave_id)
             if closest in pitches:
                 is_on = 1
-        self._led.set_led(is_on)
+        if is_on:
+            self._led.setText('*')
+        else:
+            self._led.setText('')
 
     def _perform_updates(self, signals):
         if 'signal_octave' in signals:
