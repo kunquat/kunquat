@@ -28,9 +28,7 @@ class Tracker():
         pass
 
     def main(self):
-        if cmdline.get_help():
-            cmdline.print_help()
-            sys.exit(0)
+        cmdline.parse_arguments()
 
         setup_basic_error_handler()
         audio_thread = create_audio_thread()
