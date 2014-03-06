@@ -76,8 +76,6 @@ class TypewriterButton(QPushButton):
         self._ui_manager = None
         self._typewriter_manager = None
 
-        self._active_note = None
-
         self._row = row
         self._index = index
         self._selected_control = None
@@ -122,13 +120,10 @@ class TypewriterButton(QPushButton):
             self.setEnabled(False)
 
     def _press(self):
-        self._release()
-        self._active_note = self._button_model.start_tracked_note()
+        self._button_model.start_tracked_note()
 
     def _release(self):
-        if self._active_note:
-            self._active_note.set_rest()
-            self._active_note = None
+        self._button_model.stop_tracked_note()
 
     def _update_leds(self):
         led_state = self._button_model.get_led_state() or (False, False, False)

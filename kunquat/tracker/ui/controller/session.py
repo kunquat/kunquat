@@ -35,7 +35,7 @@ class Session():
         self._event_log = deque([], 1024)
         self._event_index = count()
         self._selected_location = None
-        self._active_keys = set()
+        self._active_notes = {}
 
     def get_output_speed(self):
         return self._output_speed
@@ -157,17 +157,21 @@ class Session():
     def get_selected_location(self):
         return self._selected_location
 
-    def add_active_key(self, row, index):
+    def activate_key_with_note(self, row, index, note):
         assert not self.is_key_active(row, index)
         key = (row, index)
-        self._active_keys.add(key)
+        self._active_notes[key] = note
 
-    def remove_active_key(self, row, index):
+    def deactivate_key(self, row, index):
         key = (row, index)
-        self._active_keys.remove(key)
+        del self._active_notes[key]
 
     def is_key_active(self, row, index):
         key = (row, index)
-        return key in self._active_keys
+        return key in self._active_notes
+
+    def get_active_note(self, row, index):
+        key = (row, index)
+        return self._active_notes[key]
 
 

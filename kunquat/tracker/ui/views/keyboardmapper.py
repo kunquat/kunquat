@@ -29,9 +29,7 @@ class KeyboardMapper():
     def __init__(self):
         self._ui_model = None
         self._typewriter_manager = None
-
         self._typewriter_map = _TYPEWRITER_MAP
-        self._active_notes = {}
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -45,15 +43,9 @@ class KeyboardMapper():
             if event.isAutoRepeat():
                 return True
             if event.type() == QEvent.KeyPress:
-                if scancode in self._active_notes:
-                    self._active_notes[scancode].set_rest()
-                note = button.start_tracked_note()
-                if note:
-                    self._active_notes[scancode] = note
+                button.start_tracked_note()
             elif event.type() == QEvent.KeyRelease:
-                if scancode in self._active_notes:
-                    self._active_notes[scancode].set_rest()
-                    del self._active_notes[scancode]
+                button.stop_tracked_note()
             return True
 
         # Octave selection

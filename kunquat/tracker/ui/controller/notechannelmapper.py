@@ -18,17 +18,11 @@ class Note():
 
     def __init__(self, channel):
         self._controller = None
-        self._session = None
         self._alive = True
         self._channel = channel
-        self._key = None
 
     def set_controller(self, controller):
         self._controller = controller
-        self._session = controller.get_session()
-
-    def set_key(self, row, index):
-        self._key = (row, index)
 
     def kill(self):
         self._alive = False
@@ -39,8 +33,6 @@ class Note():
     def set_rest(self):
         if self.is_alive():
             self._controller.set_rest(self._channel)
-            row, index = self._key
-            self._session.remove_active_key(row, index)
             self.kill()
 
     def get_channel(self):

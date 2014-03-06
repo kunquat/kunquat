@@ -73,18 +73,22 @@ class TypewriterButtonModel():
     def start_tracked_note(self):
         pitch = self.get_pitch()
         if pitch == None:
-            return None
+            return
 
         if self._session.is_key_active(self._row, self._index):
-            return None
+            return
 
         selected_control = self._ui_manager.get_selected_control()
         if selected_control:
-            self._session.add_active_key(self._row, self._index)
             note = selected_control.start_tracked_note(0, pitch)
-            note.set_key(self._row, self._index)
-            return note
+            self._session.activate_key_with_note(self._row, self._index, note)
 
-        return None
+    def stop_tracked_note(self):
+        if not self._session.is_key_active(self._row, self._index):
+            return
+
+        note = self._session.get_active_note(self._row, self._index)
+        note.set_rest()
+        self._session.deactivate_key(self._row, self._index)
 
 
