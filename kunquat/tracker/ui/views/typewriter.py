@@ -15,6 +15,7 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
+from keyboardmapper import KeyboardMapper
 from typewriterbutton import TypewriterButton
 
 
@@ -29,18 +30,16 @@ class Typewriter(QFrame):
         self._updater = None
         self._typewriter_manager = None
         self._current_buttons = set()
-        self._keyboard_mapper = None
+        self._keyboard_mapper = KeyboardMapper()
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
         self._typewriter_manager = ui_model.get_typewriter_manager()
+        self._keyboard_mapper.set_ui_model(ui_model)
 
         self.setLayout(self._get_layout())
-
-    def set_keyboard_mapper(self, keyboard_mapper):
-        self._keyboard_mapper = keyboard_mapper
 
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
