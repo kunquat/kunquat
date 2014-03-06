@@ -35,6 +35,7 @@ class Session():
         self._event_log = deque([], 1024)
         self._event_index = count()
         self._selected_location = None
+        self._active_keys = set()
 
     def get_output_speed(self):
         return self._output_speed
@@ -155,5 +156,18 @@ class Session():
 
     def get_selected_location(self):
         return self._selected_location
+
+    def add_active_key(self, row, index):
+        assert not self.is_key_active(row, index)
+        key = (row, index)
+        self._active_keys.add(key)
+
+    def remove_active_key(self, row, index):
+        key = (row, index)
+        self._active_keys.remove(key)
+
+    def is_key_active(self, row, index):
+        key = (row, index)
+        return key in self._active_keys
 
 

@@ -15,6 +15,7 @@ class TypewriterButtonModel():
 
     def __init__(self, row, index):
         self._controller = None
+        self._session = None
         self._ui_model = None
         self._ui_manager = None
         self._typewriter_manager = None
@@ -25,6 +26,7 @@ class TypewriterButtonModel():
 
     def set_controller(self, controller):
         self._controller = controller
+        self._session = controller.get_session()
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -73,9 +75,14 @@ class TypewriterButtonModel():
         if pitch == None:
             return None
 
+        if self._session.is_key_active(self._row, self._index):
+            return None
+
         selected_control = self._ui_manager.get_selected_control()
         if selected_control:
+            self._session.add_active_key(self._row, self._index)
             note = selected_control.start_tracked_note(0, pitch)
+            note.set_key(self._row, self._index)
             return note
 
         return None
