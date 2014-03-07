@@ -13,23 +13,13 @@
 #
 
 from __future__ import print_function
-from collections import defaultdict, deque
-import glob
 from optparse import Option
-import os
-import os.path
-import subprocess
-import stat
-import sys
 
 from scripts.configure import test_external_deps
 from scripts.build_libkunquat import build_libkunquat
 from scripts.test_libkunquat import test_libkunquat
 import support.fabricate as fabricate
 import options
-
-
-quiet_builder = fabricate.Builder(quiet=True)
 
 
 def build_examples():
@@ -66,6 +56,8 @@ def build():
 
     opt_flags = ['-O{:d}'.format(options.optimise)]
     compile_flags.extend(opt_flags)
+
+    quiet_builder = fabricate.Builder(quiet=True)
 
     # Configure
     conf_flags = test_external_deps(quiet_builder, options)
