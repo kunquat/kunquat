@@ -17,6 +17,9 @@ from __future__ import print_function
 import sys
 
 
+# Note: This file is run as a script
+
+
 def write_external_header_test(out_base, header_name):
     code = '#include <{}>\nint main(void) {{ return 0; }}\n'.format(header_name)
     out_path = out_base + '.c'
