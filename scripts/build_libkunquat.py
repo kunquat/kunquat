@@ -12,9 +12,11 @@
 #
 
 from __future__ import print_function
+from collections import defaultdict
 import glob
 import os
 import os.path
+import stat
 
 
 def build_libkunquat(builder, options, cc, compile_flags, link_flags):
