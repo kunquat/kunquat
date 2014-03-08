@@ -19,8 +19,15 @@ class Store(MutableMapping):
 
     def __init__(self):
         self._content = dict()
+        self._audio_engine = None
+
+    def set_audio_engine(self, audio_engine):
+        self._audio_engine = audio_engine
 
     def put(self, transaction):
+        self._audio_engine.set_data(transaction)
+
+        # TODO: do this after we have received confirmation from audio engine
         self._content.update(transaction)
         for (key, value) in transaction.iteritems():
             if value == None:

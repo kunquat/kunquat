@@ -72,6 +72,7 @@ class Controller():
 
     def set_audio_engine(self, audio_engine):
         self._audio_engine = audio_engine
+        self._store.set_audio_engine(audio_engine)
 
     def _remove_prefix(self, path, prefix):
         preparts = prefix.split('/')
@@ -106,7 +107,6 @@ class Controller():
             tfile.close()
             self._store.put(values)
             self._updater.signal_update(set(['signal_controls', 'signal_module']))
-            self._audio_engine.set_data(values)
 
     def play(self):
         self._audio_engine.nanoseconds(0)
