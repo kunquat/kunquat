@@ -15,6 +15,7 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
+import kunquat.tracker.cmdline as cmdline
 from playbutton import PlayButton
 from aboutbutton import AboutButton
 from eventlistbutton import EventListButton
@@ -25,6 +26,7 @@ from importprogress import ImportProgress
 from peakmeter import PeakMeter
 from sheet.sheet import Sheet
 from profilecontrol import ProfileControl
+
 
 class MainWindow(QWidget):
 
@@ -59,6 +61,12 @@ class MainWindow(QWidget):
         v.addWidget(self._sheet)
         self.setLayout(v)
 
+        if not cmdline.get_experimental():
+            self._play_button.hide()
+            self._sheet.hide()
+            self._instrument_select.hide()
+            self._import_progress.hide()
+
         self.hide()
 
     def set_ui_model(self, ui_model):
@@ -78,7 +86,8 @@ class MainWindow(QWidget):
         modifiers = event.modifiers()
         key = event.key()
         if modifiers == Qt.ControlModifier and key == Qt.Key_P:
-            self._profile_control.show()
+            if cmdline.get_experimental():
+                self._profile_control.show()
 
     def unregister_updaters(self):
         self._sheet.unregister_updaters()

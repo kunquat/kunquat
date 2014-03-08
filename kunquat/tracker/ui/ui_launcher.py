@@ -24,8 +24,8 @@ import tarfile
 from collections import deque
 from signal import SIGHUP, SIGKILL
 
+import kunquat.tracker.cmdline as cmdline
 from kunquat.tracker.ui.model.uimodel import create_ui_model
-
 from kunquat.tracker.ui.errordialog import ErrorDialog
 from kunquat.tracker.ui.views.rootview import RootView
 from kunquat.tracker.ui.controller.controller import create_controller
@@ -104,8 +104,8 @@ class UiLauncher():
 
         root_view.show_main_window()
 
-        if len(sys.argv) > 1:
-            module_path = sys.argv[1]
+        if cmdline.get_kqt_file():
+            module_path = cmdline.get_kqt_file()
             load_task = self._controller.get_task_load_module(module_path)
             self.execute_task(load_task)
         app.exec_()

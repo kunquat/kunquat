@@ -16,9 +16,11 @@ import os
 import time
 import signal
 
+import cmdline
 from kunquat.tracker.errorbase import *
 from kunquat.tracker.threads.audiothread import create_audio_thread
 from kunquat.tracker.threads.uithread import create_ui_thread
+
 
 class Tracker():
 
@@ -26,6 +28,8 @@ class Tracker():
         pass
 
     def main(self):
+        cmdline.parse_arguments()
+
         setup_basic_error_handler()
         audio_thread = create_audio_thread()
         ui_thread = create_ui_thread()
@@ -53,3 +57,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
