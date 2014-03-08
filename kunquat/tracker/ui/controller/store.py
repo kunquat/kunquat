@@ -22,6 +22,9 @@ class Store(MutableMapping):
 
     def put(self, transaction):
         self._content.update(transaction)
+        for (key, value) in transaction.iteritems():
+            if value == None:
+                del self._content[key]
 
     def __getitem__(self, key):
         return self._content[key]
@@ -31,7 +34,8 @@ class Store(MutableMapping):
         self.put(transaction)
 
     def __delitem__(self, key):
-        del self._content[key]
+        transaction = {key: None}
+        self.put(transaction)
 
     def __iter__(self):
         return self._content.iterkeys()
