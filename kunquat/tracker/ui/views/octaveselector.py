@@ -15,6 +15,7 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
+from keyboardmapper import KeyboardMapper
 from octavebutton import OctaveButton
 
 
@@ -25,10 +26,12 @@ class OctaveSelector(QFrame):
         self.setFocusPolicy(Qt.TabFocus)
         self._ui_model = None
         self._typewriter_manager = None
+        self._keyboard_mapper = KeyboardMapper()
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._typewriter_manager = ui_model.get_typewriter_manager()
+        self._keyboard_mapper.set_ui_model(ui_model)
         self._update()
 
     def unregister_updaters(self):
@@ -56,5 +59,13 @@ class OctaveSelector(QFrame):
         button = OctaveButton(octave_id)
         button.set_ui_model(self._ui_model)
         return button
+
+    def keyPressEvent(self, event):
+        if not self._keyboard_mapper.process_typewriter_button_event(event):
+            event.ignore()
+
+    def keyReleaseEvent(self, event):
+        if not self._keyboard_mapper.process_typewriter_button_event(event):
+            event.ignore()
 
 

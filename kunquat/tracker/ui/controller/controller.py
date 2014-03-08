@@ -18,10 +18,11 @@ import json
 import time
 import tarfile
 
-from kunquat.tracker.ui.controller.store import Store
-from kunquat.tracker.ui.controller.session import Session
-from kunquat.tracker.ui.controller.share import Share
-from kunquat.tracker.ui.controller.updater import Updater
+from store import Store
+from session import Session
+from share import Share
+from updater import Updater
+from notechannelmapper import NoteChannelMapper
 
 #TODO: figure a place for the events
 EVENT_SELECT_CONTROL = '.i'
@@ -38,6 +39,7 @@ class Controller():
         self._session = None
         self._share = None
         self._updater = None
+        self._note_channel_mapper = None
         self._audio_engine = None
 
     def set_store(self, store):
@@ -63,6 +65,10 @@ class Controller():
 
     def get_updater(self):
         return self._updater
+
+    def set_note_channel_mapper(self, note_channel_mapper):
+        self._note_channel_mapper = note_channel_mapper
+        self._note_channel_mapper.set_controller(self)
 
     def set_audio_engine(self, audio_engine):
         self._audio_engine = audio_engine
@@ -104,6 +110,11 @@ class Controller():
 
     def play(self):
         self._audio_engine.nanoseconds(0)
+
+    def start_tracked_note(self, channel_number, control_id, pitch):
+        note = self._note_channel_mapper.get_tracked_note(channel_number, False)
+        self.set_active_note(note.get_channel(), control_id, pitch)
+        return note
 
     def set_active_note(self, channel_number, control_id, pitch):
         parts = control_id.split('_')
@@ -161,11 +172,13 @@ def create_controller():
     session = Session()
     share = Share('lol') # TODO: get correct path to the share dir
     updater = Updater()
+    note_channel_mapper = NoteChannelMapper()
     controller = Controller()
     controller.set_store(store)
     controller.set_session(session)
     controller.set_share(share)
     controller.set_updater(updater)
+    controller.set_note_channel_mapper(note_channel_mapper)
     return controller
 
 

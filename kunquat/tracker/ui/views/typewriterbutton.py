@@ -68,7 +68,7 @@ class TWLed(QFrame):
         self._right.set_state(right_on + center_on)
 
 
-class TypeWriterButton(QPushButton):
+class TypewriterButton(QPushButton):
 
     def __init__(self, row, index):
         QPushButton.__init__(self)
@@ -120,10 +120,10 @@ class TypeWriterButton(QPushButton):
             self.setEnabled(False)
 
     def _press(self):
-        self._button_model.press()
+        self._button_model.start_tracked_note()
 
     def _release(self):
-        self._button_model.release()
+        self._button_model.stop_tracked_note()
 
     def _update_leds(self):
         led_state = self._button_model.get_led_state() or (False, False, False)

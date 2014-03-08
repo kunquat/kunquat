@@ -30,7 +30,9 @@ class TypewriterManager():
         self._updater = None
         self._ui_model = None
 
+        # Cached data
         self._current_map = None
+        self._pitches = None
 
     def set_controller(self, controller):
         self._controller = controller
@@ -127,7 +129,7 @@ class TypewriterManager():
         pitches = set(octave)
         return pitches
 
-    def get_pitches(self):
+    def _get_pitches(self):
         keymap_name = self._session.get_keymap_name()
         keymap_data = self._share.get_keymaps()[keymap_name]
         octaves = keymap_data['keymap']
@@ -138,16 +140,17 @@ class TypewriterManager():
         return pitches
 
     def get_closest_keymap_pitch(self, pitch):
-        pitches = sorted(self.get_pitches())
-        key_count = len(pitches)
-        i = bisect_left(pitches, pitch)
+        if self._pitches == None:
+            self._pitches = sorted(self._get_pitches())
+        key_count = len(self._pitches)
+        i = bisect_left(self._pitches, pitch)
         if i == key_count:
-            return pitches[-1]
+            return self._pitches[-1]
         elif i == 0:
-            return pitches[0]
+            return self._pitches[0]
         else:
-            a = pitches[i]
-            b = pitches[i - 1]
+            a = self._pitches[i]
+            b = self._pitches[i - 1]
             if abs(a - pitch) < abs(b - pitch):
                 return a
             else:

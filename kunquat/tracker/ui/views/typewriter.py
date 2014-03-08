@@ -15,26 +15,29 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from typewriterbutton import TypeWriterButton
+from keyboardmapper import KeyboardMapper
+from typewriterbutton import TypewriterButton
 
 
-class TypeWriter(QFrame):
+class Typewriter(QFrame):
 
     _PAD = 35
 
     def __init__(self):
         QFrame.__init__(self)
-        self.setFocusPolicy(Qt.TabFocus)
+        self.setFocusPolicy(Qt.StrongFocus)
         self._ui_model = None
         self._updater = None
         self._typewriter_manager = None
         self._current_buttons = set()
+        self._keyboard_mapper = KeyboardMapper()
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
         self._typewriter_manager = ui_model.get_typewriter_manager()
+        self._keyboard_mapper.set_ui_model(ui_model)
 
         self.setLayout(self._get_layout())
 
@@ -58,7 +61,7 @@ class TypeWriter(QFrame):
         row.addWidget(self._get_pad(pad_px))
 
         for i in xrange(self._typewriter_manager.get_button_count_at_row(index)):
-            button = TypeWriterButton(index, i)
+            button = TypewriterButton(index, i)
             button.set_ui_model(self._ui_model)
             row.addWidget(button)
             self._current_buttons.add(button)
@@ -75,5 +78,13 @@ class TypeWriter(QFrame):
         for button in list(self._current_buttons):
             button.unregister_updaters()
             self._current_buttons.remove(button)
+
+    def keyPressEvent(self, event):
+        if not self._keyboard_mapper.process_typewriter_button_event(event):
+            event.ignore()
+
+    def keyReleaseEvent(self, event):
+        if not self._keyboard_mapper.process_typewriter_button_event(event):
+            event.ignore()
 
 

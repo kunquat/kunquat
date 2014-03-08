@@ -25,7 +25,7 @@ class Module():
         self._updater = None
         self._store = None
         self._controller = None
-        self._model = None
+        self._ui_model = None
         self._instruments = {}
 
     def set_controller(self, controller):
@@ -33,8 +33,8 @@ class Module():
         self._store = controller.get_store()
         self._controller = controller
 
-    def set_model(self, model):
-        self._model = model
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
 
     def get_control_ids(self):
         try:
@@ -50,7 +50,7 @@ class Module():
     def get_control(self, control_id):
         control = Control(control_id)
         control.set_controller(self._controller)
-        control.set_model(self._model)
+        control.set_ui_model(self._ui_model)
         return control
 
     def get_instrument(self, instrument_id):
