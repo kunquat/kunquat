@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Toni Ruottu, Finland 2013
+# Authors: Toni Ruottu, Finland 2013
+#          Tomi Jylhä-Ollila, Finland 2014
 #
 # This file is part of Kunquat.
 #
@@ -11,10 +12,10 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-import UserDict
+from collections import MutableMapping
 
 
-class Store(UserDict.DictMixin):
+class Store(MutableMapping):
 
     def __init__(self):
         self._content = dict()
@@ -32,6 +33,10 @@ class Store(UserDict.DictMixin):
     def __delitem__(self, key):
         del self._content[key]
 
-    def keys(self):
-        return self._content.keys()
+    def __iter__(self):
+        return self._content.iterkeys()
+
+    def __len__(self):
+        return len(self._content)
+
 
