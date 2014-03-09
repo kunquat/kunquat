@@ -17,7 +17,9 @@ import sys
 import json
 import time
 import tarfile
+import os.path
 
+import kunquat.tracker.cmdline as cmdline
 from store import Store
 from session import Session
 from share import Share
@@ -170,7 +172,8 @@ class Controller():
 def create_controller():
     store = Store()
     session = Session()
-    share = Share('lol') # TODO: get correct path to the share dir
+    share_path = os.path.join(cmdline.get_install_prefix(), 'share', 'kunquat')
+    share = Share(share_path)
     updater = Updater()
     note_channel_mapper = NoteChannelMapper()
     controller = Controller()
