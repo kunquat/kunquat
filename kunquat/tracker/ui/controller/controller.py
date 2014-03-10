@@ -110,6 +110,34 @@ class Controller():
             self._store.put(values)
             self._updater.signal_update(set(['signal_controls', 'signal_module']))
 
+    def get_task_load_instrument(self, kqtifile):
+        for _ in kqtifile.get_read_steps():
+            yield
+        contents = kqtifile.get_contents()
+
+        # TODO: Validate contents
+
+        ins_number = 0
+        ins_prefix = 'ins_{:02x}'.format(ins_number)
+        transaction = {}
+
+        # TODO: Figure out a proper way of connecting the instrument
+        connections = [['/'.join((ins_prefix, 'out_00')), 'out_00']]
+        transaction['p_connections.json'] = connections
+
+        control_map = [[0, ins_number]]
+        transaction['p_control_map.json'] = control_map
+        transaction['control_00/p_manifest.json'] = {}
+
+        # Add instrument data to the transaction
+        for (key, value) in contents.iteritems():
+            dest_key = '/'.join((ins_prefix, key))
+            transaction[dest_key] = value
+
+        # Send data
+        self._store.put(transaction)
+        self._updater.signal_update(set(['signal_controls', 'signal_module']))
+
     def play(self):
         self._audio_engine.nanoseconds(0)
 
