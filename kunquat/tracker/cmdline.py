@@ -12,7 +12,6 @@
 #
 
 import argparse
-from itertools import takewhile
 import os.path
 
 
