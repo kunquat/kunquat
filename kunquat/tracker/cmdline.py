@@ -46,9 +46,10 @@ def _find_install_prefix():
 
     all_parts = _split_all(dir_name)
     kunquat_parts = ['kunquat', 'tracker']
-    python_base_parts = _remove_suffix(all_parts, kunquat_parts)
+    for i, suf in enumerate(reversed(kunquat_parts)):
+        assert all_parts[-1 - i] == suf
+    python_base_parts = all_parts[:-len(kunquat_parts)]
 
-    # Assume the user launched from Kunquat source tree base
     install_prefix_parts = python_base_parts
 
     # See if we have been installed
@@ -74,12 +75,7 @@ def _split_all(path):
     parts.append(tail)
     return parts
 
-def _remove_suffix(parts, suffix):
-    for i, suf in enumerate(reversed(suffix)):
-        assert parts[-1 - i] == suf
-    return parts[:-len(suffix)]
-
 def _rindex(ls, elem):
-    return -1 - sum(1 for _ in takewhile(lambda x: x != elem, reversed(ls)))
+    return -1 - list(reversed(ls)).index(elem)
 
 
