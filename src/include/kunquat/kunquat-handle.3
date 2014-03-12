@@ -1,4 +1,4 @@
-.TH kunquat\-handle 3 "2013\-11\-14" "" "Kunquat"
+.TH kunquat\-handle 3 "2014\-03\-12" "" "Kunquat"
 
 .SH NAME
 
@@ -114,11 +114,9 @@ errors.
 .SH "FREEING RESOURCES"
 
 .IP "\fBvoid kqt_del_Handle(kqt_Handle\fR \fIhandle\fR\fB);\fR"
-Destroys \fIhandle\fR and all resources allocated for it. Note that the data
-returned by calls of \fBkqt_Handle_get_data\fR with this handle is also freed
-here in case it wasn't freed before through \fBkqt_Handle_free_data\fR. The
-function \fBkqt_del_Handle\fR does not return a value, and it only sets the
-generic error message in case \fIhandle\fR is invalid.
+Destroys \fIhandle\fR and all resources allocated for it. The function
+\fBkqt_del_Handle\fR does not return a value, and it only sets the generic
+error message in case \fIhandle\fR is invalid.
 
 .SH "SEE ALSO"
 
