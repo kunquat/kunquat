@@ -34,7 +34,7 @@ class MainWindow(QWidget):
         QWidget.__init__(self)
         self.setWindowTitle('Kunquat Tracker')
         self._ui_model = None
-        self.resize(800, 600)
+        self.resize(800, 400)
         self._play_button = PlayButton()
         self._about_button = AboutButton()
         self._event_list_button = EventListButton()
