@@ -21,6 +21,7 @@ from module import Module
 from visibilitymanager import VisibilityManager
 from selection import Selection
 from notationmanager import NotationManager
+from iconbank import IconBank
 
 class UiModel():
     """
@@ -91,6 +92,7 @@ class UiModel():
         self._visibility_manager = None
         self._selection = None
         self._notation_manager = None
+        self._icon_bank = None
 
     def set_ui(self, ui):
         self._ui = ui
@@ -105,6 +107,7 @@ class UiModel():
         self._event_history.set_controller(self._controller)
         self._selection.set_controller(self._controller)
         self._notation_manager.set_controller(self._controller)
+        self._icon_bank.set_controller(self._controller)
 
     def get_updater(self):
         updater = self._controller.get_updater()
@@ -168,6 +171,12 @@ class UiModel():
     def get_notation_manager(self):
         return self._notation_manager
 
+    def set_icon_bank(self, icon_bank):
+        self._icon_bank = icon_bank
+
+    def get_icon_bank(self):
+        return self._icon_bank
+
     def play(self):
         self._controller.play()
 
@@ -181,6 +190,7 @@ def create_ui_model():
     visibility_manager = VisibilityManager()
     selection = Selection()
     notation_manager = NotationManager()
+    icon_bank = IconBank()
     ui_model = UiModel()
     ui_model.set_stat_manager(stat_manager)
     ui_model.set_ui_manager(ui_manager)
@@ -191,5 +201,6 @@ def create_ui_model():
     ui_model.set_visibility_manager(visibility_manager)
     ui_model.set_selection(selection)
     ui_model.set_notation_manager(notation_manager)
+    ui_model.set_icon_bank(icon_bank)
     return ui_model
 

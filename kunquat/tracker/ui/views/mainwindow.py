@@ -81,6 +81,13 @@ class MainWindow(QWidget):
         self._peak_meter.set_ui_model(ui_model)
         self._sheet.set_ui_model(ui_model)
         self._profile_control.set_ui_model(ui_model)
+        self.update_icon()
+
+    def update_icon(self):
+        icon_bank = self._ui_model.get_icon_bank()
+        icon_path = icon_bank.get_kunquat_logo_path()
+        icon = QIcon(icon_path)
+        self.setWindowIcon(icon)
 
     def keyPressEvent(self, event):
         modifiers = event.modifiers()

@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Authors: Tomi Jylhä-Ollila, Finland 2014
+#          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
 #
@@ -21,6 +22,7 @@ class Share():
     def __init__(self, path):
         self._path = path
         self._instruments_path = os.path.join(self._path, 'instruments')
+        self._icons_path = os.path.join(self._path, 'icons')
 
         # TODO: read data from the share directory
 
@@ -112,5 +114,9 @@ class Share():
         path = os.path.join(self._instruments_path, 'example_ins.kqti.bz2')
         kqtifile = KqtiFile(path)
         return kqtifile
+
+    def get_kunquat_logo_path(self):
+        path = os.path.join(self._icons_path, 'kunquat.svg')
+        return path
 
 
