@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Toni Ruottu, Finland 2013
+# Authors: Toni Ruottu, Finland 2013
+#          Tomi Jylhä-Ollila, Finland 2014
 #
 # This file is part of Kunquat.
 #
@@ -11,16 +12,26 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-import UserDict
+from collections import MutableMapping
 
 
-class Store(UserDict.DictMixin):
+class Store(MutableMapping):
 
     def __init__(self):
         self._content = dict()
+        self._audio_engine = None
+
+    def set_audio_engine(self, audio_engine):
+        self._audio_engine = audio_engine
 
     def put(self, transaction):
+        self._audio_engine.set_data(transaction)
+
+        # TODO: do this after we have received confirmation from audio engine
         self._content.update(transaction)
+        for (key, value) in transaction.iteritems():
+            if value == None:
+                del self._content[key]
 
     def __getitem__(self, key):
         return self._content[key]
@@ -30,8 +41,13 @@ class Store(UserDict.DictMixin):
         self.put(transaction)
 
     def __delitem__(self, key):
-        del self._content[key]
+        transaction = {key: None}
+        self.put(transaction)
 
-    def keys(self):
-        return self._content.keys()
+    def __iter__(self):
+        return self._content.iterkeys()
+
+    def __len__(self):
+        return len(self._content)
+
 

@@ -11,11 +11,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from __future__ import print_function
-
-from collections import defaultdict
 import argparse
-import sys
+import os.path
 
 
 def parse_arguments():
@@ -24,6 +21,8 @@ def parse_arguments():
             help='Show this help and exit')
     ap.add_argument('--experimental', action='store_true',
             help='Enable experimental features')
+    ap.add_argument('--install-prefix', default=_find_install_prefix(),
+            help=argparse.SUPPRESS)
     ap.add_argument('kqtfile', type=str, nargs='?', default='',
             help='Use kqtfile as input')
 
@@ -35,5 +34,47 @@ def get_experimental():
 
 def get_kqt_file():
     return _args.kqtfile
+
+def get_install_prefix():
+    return _args.install_prefix
+
+
+def _find_install_prefix():
+    module_path = os.path.realpath(__file__)
+    dir_name = os.path.dirname(module_path)
+
+    all_parts = _split_all(dir_name)
+    kunquat_parts = ['kunquat', 'tracker']
+    for i, suf in enumerate(reversed(kunquat_parts)):
+        assert all_parts[-1 - i] == suf
+    python_base_parts = all_parts[:-len(kunquat_parts)]
+
+    install_prefix_parts = python_base_parts
+
+    # See if we have been installed
+    if 'lib' in python_base_parts:
+        lib_index = _rindex(python_base_parts, 'lib')
+        lib_parts = python_base_parts[lib_index:]
+        if len(lib_parts) > 1 and lib_parts[1].startswith('python'):
+            # We are probably an installed Python module
+            install_prefix_parts = python_base_parts[:lib_index]
+
+    install_prefix = os.path.join(*install_prefix_parts)
+    return install_prefix
+
+def _split_all(path):
+    if not path:
+        return []
+
+    head, tail = os.path.split(path)
+    if head == path:
+        return [head]
+
+    parts = _split_all(head)
+    parts.append(tail)
+    return parts
+
+def _rindex(ls, elem):
+    return -1 - list(reversed(ls)).index(elem)
 
 

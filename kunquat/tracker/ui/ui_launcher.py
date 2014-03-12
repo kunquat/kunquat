@@ -108,6 +108,10 @@ class UiLauncher():
             module_path = cmdline.get_kqt_file()
             load_task = self._controller.get_task_load_module(module_path)
             self.execute_task(load_task)
+        else:
+            kqtifile = self._controller.get_share().get_default_instrument()
+            load_task = self._controller.get_task_load_instrument(kqtifile)
+            self.execute_task(load_task)
         app.exec_()
 
         root_view.unregister_updaters()

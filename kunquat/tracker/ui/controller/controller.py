@@ -17,7 +17,9 @@ import sys
 import json
 import time
 import tarfile
+import os.path
 
+import kunquat.tracker.cmdline as cmdline
 from store import Store
 from session import Session
 from share import Share
@@ -72,6 +74,7 @@ class Controller():
 
     def set_audio_engine(self, audio_engine):
         self._audio_engine = audio_engine
+        self._store.set_audio_engine(audio_engine)
 
     def _remove_prefix(self, path, prefix):
         preparts = prefix.split('/')
@@ -106,7 +109,34 @@ class Controller():
             tfile.close()
             self._store.put(values)
             self._updater.signal_update(set(['signal_controls', 'signal_module']))
-            self._audio_engine.set_data(values)
+
+    def get_task_load_instrument(self, kqtifile):
+        for _ in kqtifile.get_read_steps():
+            yield
+        contents = kqtifile.get_contents()
+
+        # TODO: Validate contents
+
+        ins_number = 0
+        ins_prefix = 'ins_{:02x}'.format(ins_number)
+        transaction = {}
+
+        # TODO: Figure out a proper way of connecting the instrument
+        connections = [['/'.join((ins_prefix, 'out_00')), 'out_00']]
+        transaction['p_connections.json'] = connections
+
+        control_map = [[0, ins_number]]
+        transaction['p_control_map.json'] = control_map
+        transaction['control_00/p_manifest.json'] = {}
+
+        # Add instrument data to the transaction
+        for (key, value) in contents.iteritems():
+            dest_key = '/'.join((ins_prefix, key))
+            transaction[dest_key] = value
+
+        # Send data
+        self._store.put(transaction)
+        self._updater.signal_update(set(['signal_controls', 'signal_module']))
 
     def play(self):
         self._audio_engine.nanoseconds(0)
@@ -170,7 +200,8 @@ class Controller():
 def create_controller():
     store = Store()
     session = Session()
-    share = Share('lol') # TODO: get correct path to the share dir
+    share_path = os.path.join(cmdline.get_install_prefix(), 'share', 'kunquat')
+    share = Share(share_path)
     updater = Updater()
     note_channel_mapper = NoteChannelMapper()
     controller = Controller()

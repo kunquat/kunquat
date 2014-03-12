@@ -11,11 +11,16 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+import os.path
+
+from kqtifile import KqtiFile
+
 
 class Share():
 
     def __init__(self, path):
         self._path = path
+        self._instruments_path = os.path.join(self._path, 'instruments')
 
         # TODO: read data from the share directory
 
@@ -102,5 +107,10 @@ class Share():
 
     def get_notations(self):
         return self._notations
+
+    def get_default_instrument(self):
+        path = os.path.join(self._instruments_path, 'example_ins.kqti.bz2')
+        kqtifile = KqtiFile(path)
+        return kqtifile
 
 
