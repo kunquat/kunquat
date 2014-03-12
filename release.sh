@@ -1,16 +1,11 @@
 #!/bin/sh
 
 
-VERSION=0.5.4
+VERSION=0.6.1
 RELEASE=kunquat-$VERSION
 
 
-mkdir -p release
-bzr export release/$RELEASE
-cd release/$RELEASE
-rm release.sh
-cd ..
-tar cpzf $RELEASE.tar.gz $RELEASE
+git archive -o $RELEASE.tar.gz --prefix=$RELEASE/ HEAD
 
 exit 0
 
