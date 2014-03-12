@@ -193,6 +193,7 @@ class EventList(QWidget):
     def __init__(self):
         QWidget.__init__(self)
         self._ui_model = None
+        self.resize(600, 400)
 
         self.setWindowTitle('Event Log')
 
