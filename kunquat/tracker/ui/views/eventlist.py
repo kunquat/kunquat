@@ -14,6 +14,8 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
+import kunquat.tracker.cmdline as cmdline
+
 
 DISP_CONTEXTS = {
         'mix': 'Playback',
@@ -207,6 +209,9 @@ class EventList(QWidget):
         self._filters = EventFilterView()
         v.addWidget(self._filters)
         self.setLayout(v)
+
+        if not cmdline.get_experimental():
+            self._filters.hide()
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
