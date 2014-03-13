@@ -61,6 +61,8 @@ class MainWindow(QWidget):
         v.addWidget(self._sheet)
         self.setLayout(v)
 
+        self._typewriter.setFocus()
+
         if not cmdline.get_experimental():
             self._play_button.hide()
             self._sheet.hide()
