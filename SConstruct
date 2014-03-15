@@ -91,6 +91,23 @@ if env['optimise'] > 0 and env['optimise'] <= 3:
 #    env.Append(CCFLAGS = '-funroll-loops')
 
 
+python_cmd = None
+if env['enable_python_bindings']:
+    test_cmds = ['python', 'python2.7', 'python2']
+    for cmd in test_cmds:
+        try:
+            output = subprocess.check_output(
+                    [cmd, '--version'], stderr=subprocess.STDOUT)
+        except OSError, subprocess.CalledProcessError:
+            output = ''
+        if output.startswith('Python 2.7'):
+            python_cmd = cmd
+            break
+    else:
+        print('Python bindings were requested but Python 2.7 could not be found.')
+        Exit(1)
+
+
 audio_found = False
 
 
@@ -226,7 +243,7 @@ if not env.GetOption('help'):
     if env['enable_python_bindings'] and 'install' in COMMAND_LINE_TARGETS:
         if 'install' in COMMAND_LINE_TARGETS:
             if not env.GetOption('clean'):
-                args = ['python',
+                args = [python_cmd,
                         'py-setup.py',
                         'install',
                         '--record=py-installed',
