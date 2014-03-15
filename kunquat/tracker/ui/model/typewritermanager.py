@@ -90,7 +90,7 @@ class TypewriterManager():
         key_limit = 14
         lower_octave_candidates = keymap[:self.get_octave()]
         workspace = list(lower_octave_candidates) # copy
-        while sum([len(i) for i in workspace]) > 14:
+        while sum([len(i) for i in workspace]) > key_limit:
             workspace.pop(0)
         fitting_lower_octaves = workspace
         gray_key = None
