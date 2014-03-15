@@ -1,10 +1,16 @@
 # -*- coding: utf-8 -*-
 
 
+from __future__ import print_function
 from distutils.core import setup
 import os
 import os.path
 import sys
+
+
+if sys.version_info[0] != 2 or sys.version_info[1] != 7:
+    print('Error: Kunquat Python modules require Python 2.7.', file=sys.stderr)
+    sys.exit(1)
 
 
 inc_pkgs = ['kunquat', 'kunquat.kunquat', 'kunquat.extras']

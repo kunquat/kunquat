@@ -15,7 +15,7 @@ enable_libkunquat = True
 # Install development files.
 enable_libkunquat_dev = True
 
-# Install Python bindings.
+# Install Python bindings (requires Python 2.7).
 enable_python_bindings = True
 
 # Build and run libkunquat tests.
