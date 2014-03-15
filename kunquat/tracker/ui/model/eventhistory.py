@@ -21,6 +21,13 @@ class EventHistory():
         self._controller = controller
         self._session = controller.get_session()
 
+    def get_received_event_count(self):
+        log = self._session.get_event_log()
+        if log:
+            return log[0][0] + 1
+        else:
+            return 0
+
     def get_log(self):
         return [e for e in self._session.get_event_log()
                 if e[4] in self._context_filter]
