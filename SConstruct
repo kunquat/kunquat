@@ -93,7 +93,7 @@ if env['optimise'] > 0 and env['optimise'] <= 3:
 
 python_cmd = None
 if env['enable_python_bindings']:
-    test_cmds = ['python', 'python2.7']
+    test_cmds = ['python', 'python2.7', 'python2']
     for cmd in test_cmds:
         try:
             output = subprocess.check_output(
