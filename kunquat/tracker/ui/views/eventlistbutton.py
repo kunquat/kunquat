@@ -77,7 +77,7 @@ class EventListButton(QToolButton):
         QToolButton.__init__(self)
         self._ui_model = None
         self._updater = None
-        self._last_event = None
+        self._last_event_count = 0
 
         self._light = EventLight()
         light_layout = QWidgetItem(self._light)
@@ -111,18 +111,12 @@ class EventListButton(QToolButton):
 
     def _perform_updates(self, signals):
         event_history = self._ui_model.get_event_history()
-        log = event_history.get_log()
+        event_count = event_history.get_received_event_count()
 
-        if log:
-            if log[0] != self._last_event:
-                self._last_event = log[0]
-                self._light.do_flash()
-                self._text.setText(self._get_text(len(log)))
-        else:
-            if self._last_event:
-                self._last_event = None
-                self._light.do_flash()
-                self._text.setText(self._get_text(0))
+        if event_count != self._last_event_count:
+            self._last_event_count = event_count
+            self._light.do_flash()
+            self._text.setText(self._get_text(event_count))
 
     def sizeHint(self):
         return self.layout().sizeHint()
