@@ -18,6 +18,7 @@ from collections import deque
 from itertools import islice
 
 from kunquat.kunquat.kunquat import Kunquat
+import kunquat.tracker.cmdline as cmdline
 
 from drivers.pushaudio import Pushaudio
 
@@ -168,7 +169,7 @@ class AudioEngine():
         pass
 
 def create_audio_engine():
-    latency = 0.06
+    latency = cmdline.get_audio_latency() * 0.001
     rendering_engine = Kunquat()
     audio_rate = rendering_engine.audio_rate
     chunk_size = max(1, int(latency * audio_rate * 0.5))

@@ -23,6 +23,8 @@ def parse_arguments():
             help='Enable experimental features')
     ap.add_argument('--install-prefix', default=_find_install_prefix(),
             help=argparse.SUPPRESS)
+    ap.add_argument('--audio-latency', type=float, default=60, metavar='t',
+            help='Set audio latency to %(metavar)s milliseconds (default: %(default)s)')
     ap.add_argument('kqtfile', type=str, nargs='?', default='',
             help='Use kqtfile as input')
 
@@ -37,6 +39,9 @@ def get_kqt_file():
 
 def get_install_prefix():
     return _args.install_prefix
+
+def get_audio_latency():
+    return max(1, _args.audio_latency)
 
 
 def _find_install_prefix():
