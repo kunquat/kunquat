@@ -18,6 +18,7 @@ from collections import deque
 from itertools import islice
 
 from kunquat.kunquat.kunquat import Kunquat
+import kunquat.tracker.cmdline as cmdline
 
 from drivers.pushaudio import Pushaudio
 
@@ -44,12 +45,12 @@ def gen_sine(rate):
 
 class AudioEngine():
 
-    def __init__(self):
+    def __init__(self, chunk_size):
         self._audio_output = None
         self._rendering_engine = None
         self._push_time = None
         self._ui_engine = None
-        self._nframes = 2048
+        self._nframes = chunk_size
         self._silence = ([0] * self._nframes, [0] * self._nframes)
         self._render_times = deque([], 20)
         self._output_times = deque([], 20)
@@ -168,9 +169,12 @@ class AudioEngine():
         pass
 
 def create_audio_engine():
+    latency = cmdline.get_audio_latency() * 0.001
     rendering_engine = Kunquat()
-    audio_engine = AudioEngine()
-    audio_output = Pushaudio()
+    audio_rate = rendering_engine.audio_rate
+    chunk_size = max(1, int(latency * audio_rate * 0.5))
+    audio_engine = AudioEngine(chunk_size)
+    audio_output = Pushaudio(latency)
     audio_output.set_audio_source(audio_engine)
     audio_output.start()
     audio_engine.set_rendering_engine(rendering_engine)
