@@ -89,12 +89,14 @@ class TypewriterManager():
     def _current_lower_octaves(self, keymap):
         key_limit = 14
         lower_octave_candidates = keymap[:self.get_octave()]
-        workspace = list(lower_octave_candidates)
-        while sum([len(i) for i in workspace]) > 14:
+        workspace = list(lower_octave_candidates) # copy
+        while sum([len(i) for i in workspace]) > key_limit:
             workspace.pop(0)
         fitting_lower_octaves = workspace
-        padding = self._current_upper_octaves(keymap)
-        lower_octaves = fitting_lower_octaves + padding
+        gray_key = None
+        padding_octave = key_limit * [gray_key]
+        padding_octaves = [padding_octave]
+        lower_octaves = fitting_lower_octaves + padding_octaves
         return lower_octaves
 
     def _create_current_map(self, keymap):
