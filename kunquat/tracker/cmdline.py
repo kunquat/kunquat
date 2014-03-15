@@ -41,7 +41,7 @@ def get_install_prefix():
     return _args.install_prefix
 
 def get_audio_latency():
-    return max(1, _args.audio_latency)
+    return min(max(1, _args.audio_latency), 2000)
 
 
 def _find_install_prefix():
