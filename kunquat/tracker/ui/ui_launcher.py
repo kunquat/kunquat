@@ -118,7 +118,8 @@ class UiLauncher():
         self._controller.get_updater().verify_ready_to_exit()
 
     def halt_ui(self):
-        pass
+        visibility_manager = self._ui_model.get_visibility_manager()
+        visibility_manager.hide_main()
 
 
 def create_ui_launcher():
