@@ -14,6 +14,7 @@
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
+from PyQt4.QtSvg import QSvgRenderer
 
 from renderstats import RenderStats
 
@@ -36,9 +37,13 @@ class About(QWidget):
         QWidget.__init__(self)
         self._ui_model = None
 
+        self._logo = QLabel()
+        self._logo.setGeometry(10, 10, 200, 100)
+
         self._render_stats = RenderStats()
 
         v = QVBoxLayout()
+        v.addWidget(self._logo)
         v.addWidget(AboutMessage())
         v.addWidget(self._render_stats)
         self.setLayout(v)
@@ -46,6 +51,18 @@ class About(QWidget):
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._render_stats.set_ui_model(ui_model)
+        self._update_logo()
+
+    def _update_logo(self):
+        icon_bank = self._ui_model.get_icon_bank()
+        logo_path = icon_bank.get_kunquat_logo_path()
+        logo_image = QPixmap(200, 200)
+        background_color = QColor(0, 0, 0, 0)
+        logo_image.fill(background_color)
+        logo_painter = QPainter(logo_image)
+        logo_renderer = QSvgRenderer(logo_path)
+        logo_renderer.render(logo_painter)
+        self._logo.setPixmap(logo_image)
 
     def unregister_updaters(self):
         self._render_stats.unregister_updaters()
