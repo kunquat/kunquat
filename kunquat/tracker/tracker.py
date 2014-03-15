@@ -38,8 +38,11 @@ class Tracker():
         audio_thread.start()
         ui_thread.start()
 
-        while ui_thread.is_alive():
-            time.sleep(1)
+        try:
+            while ui_thread.is_alive():
+                time.sleep(1)
+        except KeyboardInterrupt:
+            pass
 
         ui_thread.halt()
         audio_thread.halt()
