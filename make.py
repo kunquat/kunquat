@@ -23,6 +23,7 @@ from scripts.build_libkunquat import build_libkunquat
 from scripts.test_libkunquat import test_libkunquat
 from scripts.build_examples import build_examples
 from scripts.install_libkunquat import install_libkunquat
+from scripts.install_examples import install_examples
 import options
 
 
@@ -90,6 +91,9 @@ def install():
 
     if options.enable_libkunquat:
         install_libkunquat(install_builder, options.prefix)
+
+    if options.enable_examples:
+        install_examples(install_builder, options.prefix)
 
 
 prefix_option = Option('--prefix', type='string',
