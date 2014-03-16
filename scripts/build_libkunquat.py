@@ -20,8 +20,11 @@ import stat
 
 
 def build_libkunquat(builder, options, cc, compile_flags, link_flags):
-    build_dir = 'build_src'
-    builder.run('mkdir', '-p', build_dir)
+    build_dir_parts = ['build', 'src']
+    build_dir = ''
+    for part in build_dir_parts:
+        build_dir = os.path.join(build_dir, part)
+        builder.run('mkdir', '-p', build_dir)
     out_dir = os.path.join(build_dir, 'lib')
 
     def compile_libkunquat_dir(compile_flags, out_dir, src_dir):

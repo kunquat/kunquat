@@ -19,7 +19,7 @@ import subprocess
 
 
 def test_libkunquat(builder, options, cc, compile_flags, link_flags):
-    build_dir = 'build_src'
+    build_dir = os.path.join('build', 'src')
     test_dir = os.path.join(build_dir, 'test')
     builder.run('mkdir', '-p', test_dir)
 
