@@ -67,9 +67,8 @@ def build():
 
     if options.enable_libkunquat:
         build_libkunquat(quiet_builder, options, cc, compile_flags, link_flags)
-
-    if options.enable_tests:
-        test_libkunquat(quiet_builder, options, cc, compile_flags, test_link_flags + link_flags)
+        if options.enable_tests:
+            test_libkunquat(quiet_builder, options, cc, compile_flags, test_link_flags + link_flags)
 
     if options.enable_examples:
         build_examples(quiet_builder)
