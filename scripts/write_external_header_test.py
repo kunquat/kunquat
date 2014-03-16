@@ -23,9 +23,8 @@ import sys
 def write_external_header_test(out_base, header_name):
     code = '#include <{}>\nint main(void) {{ return 0; }}\n'.format(header_name)
     out_path = out_base + '.c'
-    out_file = open(out_path, 'w')
-    out_file.write(code)
-    out_file.close()
+    with open(out_path, 'w') as out_file:
+        out_file.write(code)
 
 
 def main():
