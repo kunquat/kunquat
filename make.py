@@ -16,15 +16,13 @@ from __future__ import print_function
 from optparse import Option
 import os.path
 
+import support.fabricate as fabricate
+
 from scripts.configure import test_external_deps
 from scripts.build_libkunquat import build_libkunquat
 from scripts.test_libkunquat import test_libkunquat
-import support.fabricate as fabricate
+from scripts.build_examples import build_examples
 import options
-
-
-def build_examples():
-    pass
 
 
 def process_cmd_line():
@@ -74,7 +72,7 @@ def build():
         test_libkunquat(quiet_builder, options, cc, compile_flags, test_link_flags + link_flags)
 
     if options.enable_examples:
-        build_examples()
+        build_examples(quiet_builder)
 
 
 def clean():
