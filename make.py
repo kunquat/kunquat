@@ -22,6 +22,7 @@ from scripts.configure import test_external_deps
 from scripts.build_libkunquat import build_libkunquat
 from scripts.test_libkunquat import test_libkunquat
 from scripts.build_examples import build_examples
+from scripts.install_libkunquat import install_libkunquat
 import options
 
 
@@ -76,6 +77,19 @@ def build():
 
 def clean():
     fabricate.autoclean()
+
+
+def _get_install_builder():
+    return fabricate.Builder(depsname='.install_deps')
+
+
+def install():
+    build()
+
+    install_builder = _get_install_builder()
+
+    if options.enable_libkunquat:
+        install_libkunquat(install_builder, options.prefix)
 
 
 prefix_option = Option('--prefix', type='string',

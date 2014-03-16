@@ -6,6 +6,7 @@
 build
 conf_tests
 .deps
+.install_deps
 examples/*bz2
 .sconf_temp
 .sconsign.dblite
