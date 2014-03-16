@@ -14,6 +14,7 @@
 
 from __future__ import print_function
 from optparse import Option
+import os.path
 
 from scripts.configure import test_external_deps
 from scripts.build_libkunquat import build_libkunquat
@@ -28,7 +29,8 @@ def build_examples():
 
 def process_cmd_line():
     if fabricate.main.options.prefix != None:
-        options.prefix = fabricate.main.options.prefix
+        options.prefix = os.path.abspath(os.path.expanduser(
+            fabricate.main.options.prefix))
 
 
 def build():
