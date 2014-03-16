@@ -36,4 +36,11 @@ def build_examples(builder):
         print('Building {}'.format(dest))
         builder.run('tar', 'cj', '--format=ustar', '-f', dest_path, src_path)
 
+    # Copy the example instrument to share
+    # TODO: remove once we figure out the instrument stuff
+    default_ins_path = os.path.join(build_dir, 'example_ins.kqti.bz2')
+    share_target = os.path.join('share', 'kunquat', 'instruments')
+    makedirs.make_dirs(builder, share_target)
+    builder.run('cp', default_ins_path, share_target)
+
 
