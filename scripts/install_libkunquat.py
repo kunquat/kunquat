@@ -19,8 +19,6 @@ import makedirs
 
 
 def install_libkunquat(builder, install_prefix):
-    build_dir = os.path.join('build', 'src')
-
     def _install_headers():
         install_include_dir = os.path.join(install_prefix, 'include', 'kunquat')
         makedirs.make_dirs(builder, install_include_dir)
