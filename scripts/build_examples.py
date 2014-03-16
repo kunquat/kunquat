@@ -18,9 +18,8 @@ import makedirs
 
 
 def build_examples(builder):
-    build_dir_parts = ['build', 'examples']
-    makedirs.make_dirs(builder, build_dir_parts)
-    build_dir = os.path.join(*build_dir_parts)
+    build_dir = os.path.join('build', 'examples')
+    makedirs.make_dirs(builder, build_dir)
 
     example_dir = os.path.join('examples')
 

@@ -14,11 +14,25 @@
 import os.path
 
 
-def make_dirs(builder, path_components):
+def make_dirs(builder, path):
+    path_components = _split_all(path)
     # Make sure that the builder keeps track of all created directories
-    path = ''
+    prefix = ''
     for component in path_components:
-        path = os.path.join(path, component)
-        builder.run('mkdir', '-p', path)
+        prefix = os.path.join(prefix, component)
+        builder.run('mkdir', '-p', prefix)
+
+
+def _split_all(path):
+    if not path:
+        return []
+
+    head, tail = os.path.split(path)
+    if head == path:
+        return [head]
+
+    parts = _split_all(head)
+    parts.append(tail)
+    return parts
 
 
