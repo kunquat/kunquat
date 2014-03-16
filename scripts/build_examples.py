@@ -14,13 +14,13 @@
 from __future__ import print_function
 import os.path
 
+import makedirs
+
 
 def build_examples(builder):
     build_dir_parts = ['build', 'examples']
-    build_dir = ''
-    for part in build_dir_parts:
-        build_dir = os.path.join(build_dir, part)
-        builder.run('mkdir', '-p', build_dir)
+    makedirs.make_dirs(builder, build_dir_parts)
+    build_dir = os.path.join(*build_dir_parts)
 
     example_dir = os.path.join('examples')
 
