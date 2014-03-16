@@ -38,7 +38,8 @@ def get_kqt_file():
     return _args.kqtfile
 
 def get_install_prefix():
-    return _args.install_prefix
+    path = os.path.abspath(os.path.expanduser(_args.install_prefix))
+    return path
 
 def get_audio_latency():
     return min(max(1, _args.audio_latency), 2000)

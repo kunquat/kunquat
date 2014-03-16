@@ -66,7 +66,7 @@ env.Alias('install', env['prefix'])
 Help(opts.GenerateHelpText(env))
 
 
-env['prefix'] = os.path.abspath(env['prefix'])
+env['prefix'] = os.path.abspath(os.path.expanduser(env['prefix']))
 
 def InstallCreatePath(env, path, source):
     if 'install' in COMMAND_LINE_TARGETS and not os.path.exists(path):
