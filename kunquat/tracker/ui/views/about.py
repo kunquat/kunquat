@@ -16,6 +16,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 from renderstats import RenderStats
+from logo import Logo
 
 
 class AboutMessage(QLabel):
@@ -36,18 +37,22 @@ class About(QWidget):
         QWidget.__init__(self)
         self._ui_model = None
 
+        self._logo = Logo()
         self._render_stats = RenderStats()
 
         v = QVBoxLayout()
+        v.addWidget(self._logo)
         v.addWidget(AboutMessage())
         v.addWidget(self._render_stats)
         self.setLayout(v)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
+        self._logo.set_ui_model(ui_model)
         self._render_stats.set_ui_model(ui_model)
 
     def unregister_updaters(self):
+        self._logo.unregister_updaters()
         self._render_stats.unregister_updaters()
 
 
