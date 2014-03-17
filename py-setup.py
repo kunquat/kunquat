@@ -49,7 +49,7 @@ else:
     sys.argv.remove('--disable-tracker')
 
 setup(name='kunquat',
-      version='0.5.4',
+      version='0.6.1',
       author='Tomi Jylhä-Ollila',
       author_email='tomi.jylha-ollila@iki.fi',
       url='http://kunquat.org/',
