@@ -31,10 +31,14 @@ def build_examples(builder):
         }
 
     for src, dest in packages.iteritems():
-        src_path = os.path.join(example_dir, src)
         dest_path = os.path.join(build_dir, dest)
         print('Building {}'.format(dest))
-        builder.run('tar', 'cj', '--format=ustar', '-f', dest_path, src_path)
+        builder.run(
+                'tar',
+                'cj', '--format=ustar',
+                '-f', dest_path,
+                '--directory', example_dir,
+                src)
 
     # Copy the example instrument to share
     # TODO: remove once we figure out the instrument stuff
