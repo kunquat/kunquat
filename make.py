@@ -14,7 +14,10 @@
 
 from __future__ import print_function
 from optparse import Option
+import os
 import os.path
+import shutil
+import subprocess
 
 import support.fabricate as fabricate
 
@@ -78,6 +81,11 @@ def build():
 
 
 def clean():
+    for name in os.listdir('build'):
+        if name.endswith('-2.7'):
+            path = os.path.join('build', name)
+            shutil.rmtree(path)
+
     fabricate.autoclean()
 
 
@@ -97,6 +105,18 @@ def install():
         install_examples(install_builder, options.prefix)
 
     install_share(install_builder, options.prefix)
+
+    if options.enable_python_bindings:
+        args = ['python', 'py-setup.py', 'install', '--prefix={}'.format(options.prefix)]
+        if not options.enable_export:
+            args.append('--disable-export')
+        if not options.enable_player:
+            args.append('--disable-player')
+        if not options.enable_tracker:
+            args.append('--disable-tracker')
+        ret = subprocess.call(args)
+        if ret:
+            sys.exit(ret)
 
 
 prefix_option = Option('--prefix', type='string',
