@@ -75,7 +75,7 @@ def install_libkunquat(builder, install_prefix):
             if name in links:
                 for link in links[name]:
                     link_path = os.path.join(install_man_dir, link)
-                    builder.run('ln', '-s', name, link_path)
+                    command.link(builder, name, link_path)
 
     def _install_library():
         install_lib_dir = os.path.join(install_prefix, 'lib')

@@ -19,6 +19,10 @@ def copy(builder, src, dest):
     _run_command(builder, 'cp', '--no-dereference', src, dest)
 
 
+def link(builder, file_name, link_name):
+    _run_command(builder, 'ln', '-f', '-s', file_name, link_name)
+
+
 def make_dirs(builder, path):
     path_components = _split_all(path)
     # Make sure that the builder keeps track of all created directories

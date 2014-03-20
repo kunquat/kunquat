@@ -66,7 +66,7 @@ def build_libkunquat(builder, options, cc, compile_flags, link_flags):
 
         # Add symlink so that our tests will run
         symlink_path = lib_path + '.{}'.format(version_major)
-        builder.run('ln', '-s', lib_name, symlink_path)
+        command.link(builder, lib_name, symlink_path)
 
     shared_flags = ['-fPIC']
 
