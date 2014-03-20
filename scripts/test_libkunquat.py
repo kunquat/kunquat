@@ -17,11 +17,13 @@ import glob
 import os.path
 import subprocess
 
+import command
+
 
 def test_libkunquat(builder, options, cc, compile_flags, link_flags):
     build_dir = os.path.join('build', 'src')
     test_dir = os.path.join(build_dir, 'test')
-    builder.run('mkdir', '-p', test_dir)
+    command.make_dirs(builder, test_dir)
 
     src_dir = os.path.join('src', 'lib', 'test')
 

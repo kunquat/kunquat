@@ -27,7 +27,7 @@ def build_libkunquat(builder, options, cc, compile_flags, link_flags):
     out_dir = os.path.join(build_dir, 'lib')
 
     def compile_libkunquat_dir(compile_flags, out_dir, src_dir):
-        builder.run('mkdir', '-p', out_dir)
+        command.make_dirs(builder, out_dir)
 
         source_paths = glob.glob(os.path.join(src_dir, '*.c'))
         sources = sorted([os.path.basename(path) for path in source_paths])

@@ -14,10 +14,12 @@
 from __future__ import print_function
 import os.path
 
+import command
+
 
 def test_external_deps(builder, options):
     out_dir = 'conf_tests'
-    builder.run('mkdir', '-p', out_dir)
+    command.make_dirs(builder, out_dir)
 
     compile_flags = []
     link_flags = []
