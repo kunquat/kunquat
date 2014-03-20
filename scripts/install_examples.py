@@ -35,6 +35,6 @@ def install_examples(builder, install_prefix):
     for name in names:
         in_path = os.path.join(build_dir, name)
         out_path = os.path.join(install_examples_dir, name)
-        builder.run('cp', in_path, out_path)
+        command.copy(builder, in_path, out_path)
 
 

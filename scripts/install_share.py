@@ -30,6 +30,6 @@ def install_share(builder, install_prefix):
             out_dir = os.path.join(install_share_dir, rel_dir)
             command.make_dirs(builder, out_dir)
             out_path = os.path.join(out_dir, name)
-            builder.run('cp', '--no-dereference', in_path, out_path)
+            command.copy(builder, in_path, out_path)
 
 

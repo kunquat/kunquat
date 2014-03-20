@@ -29,7 +29,7 @@ def install_libkunquat(builder, install_prefix):
         for name in header_names:
             in_path = os.path.join(source_dir, name)
             out_path = os.path.join(install_include_dir, name)
-            builder.run('cp', in_path, out_path)
+            command.copy(builder, in_path, out_path)
 
     def _install_man_pages():
         install_man_dir = os.path.join(install_prefix, 'share', 'man', 'man3')
@@ -41,7 +41,7 @@ def install_libkunquat(builder, install_prefix):
         for name in man_names:
             in_path = os.path.join(source_dir, name)
             out_path = os.path.join(install_man_dir, name)
-            builder.run('cp', in_path, out_path)
+            command.copy(builder, in_path, out_path)
 
         links = {
                 'kunquat-handle.3': [
@@ -86,7 +86,7 @@ def install_libkunquat(builder, install_prefix):
         for name in lib_names:
             in_path = os.path.join(build_dir, name)
             out_path = os.path.join(install_lib_dir, name)
-            builder.run('cp', '--no-dereference', in_path, out_path)
+            command.copy(builder, in_path, out_path)
 
     _install_headers()
     _install_man_pages()

@@ -45,6 +45,6 @@ def build_examples(builder):
     default_ins_path = os.path.join(build_dir, 'example_ins.kqti.bz2')
     share_target = os.path.join('share', 'kunquat', 'instruments')
     command.make_dirs(builder, share_target)
-    builder.run('cp', default_ins_path, share_target)
+    command.copy(builder, default_ins_path, share_target)
 
 

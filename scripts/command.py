@@ -15,6 +15,10 @@ import os.path
 import subprocess
 
 
+def copy(builder, src, dest):
+    _run_command(builder, 'cp', '--no-dereference', src, dest)
+
+
 def make_dirs(builder, path):
     path_components = _split_all(path)
     # Make sure that the builder keeps track of all created directories
