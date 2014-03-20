@@ -11,8 +11,33 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from __future__ import print_function
 import os.path
 import subprocess
+import sys
+
+
+class PythonCommand():
+
+    def __init__(self):
+        self._cmd = self._get_python_cmd()
+
+    def run(self, builder, *args):
+        all_args = [self._cmd] + list(args)
+        _run_command(builder, *all_args)
+
+    def _get_python_cmd(self):
+        test_cmds = ['python', 'python2.7', 'python2']
+        for cmd in test_cmds:
+            try:
+                output = subprocess.check_output(
+                        [cmd, '--version'], stderr=subprocess.STDOUT)
+            except OSError, subprocess.CalledProcessError:
+                output = ''
+            if output.startswith('Python 2.7'):
+                return cmd
+        else:
+            raise RuntimeError('Python 2.7 not found')
 
 
 def copy(builder, src, dest):

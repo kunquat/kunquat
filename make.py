@@ -18,9 +18,11 @@ import os
 import os.path
 import shutil
 import subprocess
+import sys
 
 import support.fabricate as fabricate
 
+import scripts.command as command
 from scripts.configure import test_external_deps
 from scripts.build_libkunquat import build_libkunquat
 from scripts.test_libkunquat import test_libkunquat
@@ -65,6 +67,14 @@ def build():
 
     quiet_builder = fabricate.Builder(quiet=True)
 
+    if options.enable_python_bindings:
+        try:
+            python_cmd = command.PythonCommand()
+        except RuntimeError:
+            print('Python bindings were requested but Python 2.7 was not found.',
+                    file=sys.stderr)
+            sys.exit(1)
+
     # Configure
     conf_flags = test_external_deps(quiet_builder, options)
     compile_flags.extend(conf_flags['compile'])
@@ -107,16 +117,18 @@ def install():
     install_share(install_builder, options.prefix)
 
     if options.enable_python_bindings:
-        args = ['python', 'py-setup.py', 'install', '--prefix={}'.format(options.prefix)]
+        python_cmd = command.PythonCommand()
+        args = ['py-setup.py', 'install', '--prefix={}'.format(options.prefix)]
         if not options.enable_export:
             args.append('--disable-export')
         if not options.enable_player:
             args.append('--disable-player')
         if not options.enable_tracker:
             args.append('--disable-tracker')
-        ret = subprocess.call(args)
-        if ret:
-            sys.exit(ret)
+        try:
+            python_cmd.run(None, *args)
+        except subprocess.CalledProcessError:
+            sys.exit(1)
 
 
 prefix_option = Option('--prefix', type='string',
