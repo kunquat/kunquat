@@ -15,13 +15,13 @@ from __future__ import print_function
 import glob
 import os.path
 
-import makedirs
+import command
 
 
 def install_examples(builder, install_prefix):
     install_examples_dir = os.path.join(
             install_prefix, 'share', 'doc', 'kunquat', 'examples')
-    makedirs.make_dirs(builder, install_examples_dir)
+    command.make_dirs(builder, install_examples_dir)
 
     build_dir = os.path.join('build', 'examples')
 

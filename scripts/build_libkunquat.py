@@ -18,12 +18,12 @@ import os
 import os.path
 import stat
 
-import makedirs
+import command
 
 
 def build_libkunquat(builder, options, cc, compile_flags, link_flags):
     build_dir = os.path.join('build', 'src')
-    makedirs.make_dirs(builder, build_dir)
+    command.make_dirs(builder, build_dir)
     out_dir = os.path.join(build_dir, 'lib')
 
     def compile_libkunquat_dir(compile_flags, out_dir, src_dir):

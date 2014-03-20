@@ -16,7 +16,7 @@ import glob
 import os
 import os.path
 
-import makedirs
+import command
 
 
 def install_share(builder, install_prefix):
@@ -28,7 +28,7 @@ def install_share(builder, install_prefix):
         for name in names:
             in_path = os.path.join(share_dir, rel_dir, name)
             out_dir = os.path.join(install_share_dir, rel_dir)
-            makedirs.make_dirs(builder, out_dir)
+            command.make_dirs(builder, out_dir)
             out_path = os.path.join(out_dir, name)
             builder.run('cp', '--no-dereference', in_path, out_path)
 

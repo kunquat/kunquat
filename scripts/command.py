@@ -12,6 +12,7 @@
 #
 
 import os.path
+import subprocess
 
 
 def make_dirs(builder, path):
@@ -20,7 +21,15 @@ def make_dirs(builder, path):
     prefix = ''
     for component in path_components:
         prefix = os.path.join(prefix, component)
-        builder.run('mkdir', '-p', prefix)
+        if not os.path.exists(prefix):
+            _run_command(builder, 'mkdir', '-p', prefix)
+
+
+def _run_command(builder, *args):
+    if builder:
+        builder.run(*args)
+    else:
+        subprocess.check_call(args)
 
 
 def _split_all(path):
