@@ -21,7 +21,6 @@ import command
 def install_libkunquat(builder, install_prefix):
     def _install_headers():
         install_include_dir = os.path.join(install_prefix, 'include', 'kunquat')
-        command.make_dirs(builder, install_include_dir)
 
         source_dir = os.path.join('src', 'include', 'kunquat')
         header_paths = glob.glob(os.path.join(source_dir, '*.h'))
@@ -33,7 +32,6 @@ def install_libkunquat(builder, install_prefix):
 
     def _install_man_pages():
         install_man_dir = os.path.join(install_prefix, 'share', 'man', 'man3')
-        command.make_dirs(builder, install_man_dir)
 
         source_dir = os.path.join('src', 'include', 'kunquat')
         man_paths = glob.glob(os.path.join(source_dir, 'kunquat-*.3'))
@@ -79,7 +77,6 @@ def install_libkunquat(builder, install_prefix):
 
     def _install_library():
         install_lib_dir = os.path.join(install_prefix, 'lib')
-        command.make_dirs(builder, install_lib_dir)
 
         build_dir = os.path.join('build', 'src', 'lib')
         lib_names = ['libkunquat.so', 'libkunquat.so.0']

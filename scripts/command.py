@@ -41,6 +41,8 @@ class PythonCommand():
 
 
 def copy(builder, src, dest):
+    dir_name = os.path.dirname(dest)
+    make_dirs(builder, dir_name)
     _run_command(builder, 'cp', '--no-dereference', src, dest)
 
 
