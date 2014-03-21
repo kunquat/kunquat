@@ -99,14 +99,10 @@ def clean():
     fabricate.autoclean()
 
 
-def _get_install_builder():
-    return fabricate.Builder(depsname='.install_deps')
-
-
 def install():
     build()
 
-    install_builder = _get_install_builder()
+    install_builder = None #fabricate.Builder(depsname='.install_deps')
 
     if options.enable_libkunquat:
         install_libkunquat(install_builder, options.prefix)
