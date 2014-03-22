@@ -33,7 +33,8 @@ def build_examples(builder):
     for src, dest in packages.iteritems():
         dest_path = os.path.join(build_dir, dest)
         echo = 'Building {}'.format(dest)
-        builder.run(
+        command.run_command(
+                builder,
                 'tar',
                 'cj', '--format=ustar',
                 '-f', dest_path,

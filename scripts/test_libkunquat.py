@@ -17,6 +17,8 @@ import glob
 import os.path
 import subprocess
 
+import support.fabricate as fabricate
+
 import command
 
 
@@ -93,6 +95,7 @@ def test_libkunquat(builder, options, cc):
                 run_prefix += mem_debug_path + ' '
 
             call = run_prefix + out_path
+            fabricate.after()
             try:
                 subprocess.check_call(call.split())
             except subprocess.CalledProcessError as e:

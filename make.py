@@ -102,7 +102,7 @@ def clean():
 def install():
     build()
 
-    install_builder = None #fabricate.Builder(depsname='.install_deps')
+    install_builder = None
 
     if options.enable_libkunquat:
         install_libkunquat(install_builder, options.prefix)
@@ -122,7 +122,7 @@ def install():
         if not options.enable_tracker:
             args.append('--disable-tracker')
         try:
-            python_cmd.run(None, *args)
+            python_cmd.run(install_builder, *args)
         except subprocess.CalledProcessError:
             sys.exit(1)
 
@@ -130,6 +130,6 @@ def install():
 prefix_option = Option('--prefix', type='string',
         help='installation directory prefix (default: {})'.format(options.prefix))
 
-fabricate.main(extra_options=[prefix_option])
+fabricate.main(extra_options=[prefix_option], parallel_ok=True, jobs=3)
 
 

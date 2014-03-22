@@ -98,7 +98,7 @@ def test_add_test_deps(builder, options, cc):
 
 def _write_external_header_test(builder, out_base, header_name):
     script_path = os.path.join('scripts', 'write_external_header_test.py')
-    builder.run('python', script_path, out_base, header_name, echo='')
+    command.run_command(builder, 'python', script_path, out_base, header_name, echo='')
 
 
 def _get_fresh_cc(from_cc):
