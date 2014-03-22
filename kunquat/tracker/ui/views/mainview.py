@@ -16,7 +16,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 import kunquat.tracker.cmdline as cmdline
-from playbutton import PlayButton
+from composition import Composition
 from aboutbutton import AboutButton
 from eventlistbutton import EventListButton
 from octaveselector import OctaveSelector
@@ -24,7 +24,6 @@ from typewriter import Typewriter
 from instrumentselect import InstrumentSelect
 from importprogress import ImportProgress
 from peakmeter import PeakMeter
-from sheet.sheet import Sheet
 from profilecontrol import ProfileControl
 
 
@@ -33,7 +32,7 @@ class MainView(QWidget):
     def __init__(self):
         QWidget.__init__(self)
         self._ui_model = None
-        self._play_button = PlayButton()
+        self._composition = Composition()
         self._about_button = AboutButton()
         self._event_list_button = EventListButton()
         self._octave_selector = OctaveSelector()
@@ -41,7 +40,6 @@ class MainView(QWidget):
         self._instrument_select = InstrumentSelect()
         self._import_progress = ImportProgress()
         self._peak_meter = PeakMeter()
-        self._sheet = Sheet()
         self._profile_control = ProfileControl()
 
         buttons = QHBoxLayout()
@@ -49,27 +47,24 @@ class MainView(QWidget):
         buttons.addWidget(self._about_button)
 
         v = QVBoxLayout()
-        v.addWidget(self._play_button)
+        v.addWidget(self._composition)
         v.addLayout(buttons)
         v.addWidget(self._octave_selector)
         v.addWidget(self._typewriter)
         v.addWidget(self._instrument_select)
         v.addWidget(self._import_progress)
         v.addWidget(self._peak_meter)
-        v.addWidget(self._sheet)
         self.setLayout(v)
 
         self._typewriter.setFocus()
 
         if not cmdline.get_experimental():
-            self._play_button.hide()
-            self._sheet.hide()
             self._instrument_select.hide()
             self._import_progress.hide()
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
-        self._play_button.set_ui_model(ui_model)
+        self._composition.set_ui_model(ui_model)
         self._about_button.set_ui_model(ui_model)
         self._event_list_button.set_ui_model(ui_model)
         self._octave_selector.set_ui_model(ui_model)
@@ -77,7 +72,6 @@ class MainView(QWidget):
         self._instrument_select.set_ui_model(ui_model)
         self._import_progress.set_ui_model(ui_model)
         self._peak_meter.set_ui_model(ui_model)
-        self._sheet.set_ui_model(ui_model)
         self._profile_control.set_ui_model(ui_model)
 
     def keyPressEvent(self, event):
@@ -88,7 +82,6 @@ class MainView(QWidget):
                 self._profile_control.show()
 
     def unregister_updaters(self):
-        self._sheet.unregister_updaters()
         self._peak_meter.unregister_updaters()
         self._import_progress.unregister_updaters()
         self._instrument_select.unregister_updaters()
@@ -96,5 +89,5 @@ class MainView(QWidget):
         self._octave_selector.unregister_updaters()
         self._event_list_button.unregister_updaters()
         self._about_button.unregister_updaters()
-        self._play_button.unregister_updaters()
+        self._composition.unregister_updaters()
 
