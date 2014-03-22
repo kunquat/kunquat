@@ -20,11 +20,12 @@ from composition import Composition
 from mainpanel import MainPanel
 
 
-class MainView(QWidget):
+class MainView(QSplitter):
 
     def __init__(self):
         QWidget.__init__(self)
         self._ui_model = None
+        self.setOrientation(Qt.Vertical)
         self._composition = Composition()
         self._main_panel = MainPanel()
 
