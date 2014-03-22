@@ -13,6 +13,7 @@
 #
 
 from __future__ import print_function
+from copy import deepcopy
 from optparse import Option
 import os
 import os.path
@@ -23,7 +24,8 @@ import sys
 import support.fabricate as fabricate
 
 import scripts.command as command
-from scripts.configure import test_external_deps
+from scripts.cc import get_cc
+from scripts.configure import test_external_deps, test_test_deps
 from scripts.build_libkunquat import build_libkunquat
 from scripts.test_libkunquat import test_libkunquat
 from scripts.build_examples import build_examples
@@ -42,6 +44,8 @@ def process_cmd_line():
 def build():
     process_cmd_line()
 
+    cc = get_cc()
+    '''
     cc = 'gcc'
     compile_flags = [
             '-std=c99',
@@ -57,13 +61,19 @@ def build():
         compile_flags.append('-g')
     else:
         compile_flags.append('-DNDEBUG')
+    '''
 
-    if options.enable_profiling:
-        compile_flags.append('-pg')
-        link_flags.append('-pg')
+    cc.set_debug(options.enable_debug)
 
+    #if options.enable_profiling:
+    #    compile_flags.append('-pg')
+    #    link_flags.append('-pg')
+
+    cc.set_optimisation(options.optimise)
+    '''
     opt_flags = ['-O{:d}'.format(options.optimise)]
     compile_flags.extend(opt_flags)
+    '''
 
     quiet_builder = fabricate.Builder(quiet=True)
 
@@ -75,16 +85,15 @@ def build():
                     file=sys.stderr)
             sys.exit(1)
 
-    # Configure
-    conf_flags = test_external_deps(quiet_builder, options)
-    compile_flags.extend(conf_flags['compile'])
-    link_flags.extend(conf_flags['link'])
-    test_link_flags.extend(conf_flags['test_link'])
+    test_external_deps(quiet_builder, options, cc)
+
+    test_cc = deepcopy(cc)
+    test_test_deps(quiet_builder, options, test_cc)
 
     if options.enable_libkunquat:
-        build_libkunquat(quiet_builder, options, cc, compile_flags, link_flags)
+        build_libkunquat(quiet_builder, options, cc)
         if options.enable_tests:
-            test_libkunquat(quiet_builder, options, cc, compile_flags, test_link_flags + link_flags)
+            test_libkunquat(quiet_builder, options, test_cc)
 
     if options.enable_examples:
         build_examples(quiet_builder)

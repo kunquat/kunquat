@@ -24,7 +24,7 @@ class PythonCommand():
 
     def run(self, builder, *args):
         all_args = [self._cmd] + list(args)
-        _run_command(builder, *all_args)
+        return run_command(builder, *all_args)
 
     def _get_python_cmd(self):
         test_cmds = ['python', 'python2.7', 'python2']
@@ -43,11 +43,11 @@ class PythonCommand():
 def copy(builder, src, dest):
     dir_name = os.path.dirname(dest)
     make_dirs(builder, dir_name)
-    _run_command(builder, 'cp', '--no-dereference', src, dest)
+    return run_command(builder, 'cp', '--no-dereference', src, dest)
 
 
 def link(builder, file_name, link_name):
-    _run_command(builder, 'ln', '-f', '-s', file_name, link_name)
+    return run_command(builder, 'ln', '-f', '-s', file_name, link_name)
 
 
 def make_dirs(builder, path):
@@ -57,14 +57,16 @@ def make_dirs(builder, path):
     for component in path_components:
         prefix = os.path.join(prefix, component)
         if not os.path.exists(prefix):
-            _run_command(builder, 'mkdir', '-p', prefix)
+            run_command(builder, 'mkdir', '-p', prefix)
 
 
-def _run_command(builder, *args):
+def run_command(builder, *args):
     if builder:
-        builder.run(*args)
+        (_, _, outputs_list) = builder.run(*args)
+        return bool(outputs_list)
     else:
         subprocess.check_call(args)
+        return True
 
 
 def _split_all(path):

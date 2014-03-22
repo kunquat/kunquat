@@ -20,7 +20,7 @@ import subprocess
 import command
 
 
-def test_libkunquat(builder, options, cc, compile_flags, link_flags):
+def test_libkunquat(builder, options, cc):
     build_dir = os.path.join('build', 'src')
     test_dir = os.path.join(build_dir, 'test')
     command.make_dirs(builder, test_dir)
@@ -37,14 +37,15 @@ def test_libkunquat(builder, options, cc, compile_flags, link_flags):
             os.path.join('src', 'include'),
             src_dir
         ]
-    include_flags = ['-I' + d for d in include_dirs]
+    for d in include_dirs:
+        cc.add_include_dir(d)
 
-    test_compile_flags = compile_flags + include_flags
     libkunquat_dir = os.path.join(build_dir, 'lib')
-    test_link_flags = ['-L{}'.format(libkunquat_dir), '-lkunquat'] + link_flags
+    cc.add_lib_dir(libkunquat_dir)
+    cc.add_lib('kunquat')
 
     if options.enable_tests_mem_debug:
-        test_compile_flags += ['-DK_MEM_DEBUG']
+        cc.add_define('K_MEM_DEBUG')
 
     # Define which tests are dependent on others
     deps = defaultdict(lambda: [], {
@@ -86,10 +87,7 @@ def test_libkunquat(builder, options, cc, compile_flags, link_flags):
         # Build and run
         out_path = os.path.join(test_dir, name)
         print('Testing {}'.format(name))
-        (_, _, outputs_list) = builder.run(
-                cc, '-o', out_path, src_path, test_compile_flags, test_link_flags)
-
-        if outputs_list:
+        if cc.build_exe(builder, src_path, out_path):
             run_prefix = 'env LD_LIBRARY_PATH={} '.format(libkunquat_dir)
             if options.enable_tests_mem_debug:
                 mem_debug_path = os.path.join(src_dir, 'mem_debug_run.py')
