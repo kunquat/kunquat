@@ -23,7 +23,6 @@ import command
 def test_libkunquat(builder, options, cc):
     build_dir = os.path.join('build', 'src')
     test_dir = os.path.join(build_dir, 'test')
-    command.make_dirs(builder, test_dir)
 
     src_dir = os.path.join('src', 'lib', 'test')
 
@@ -86,8 +85,8 @@ def test_libkunquat(builder, options, cc):
 
         # Build and run
         out_path = os.path.join(test_dir, name)
-        print('Testing {}'.format(name))
-        if cc.build_exe(builder, src_path, out_path):
+        echo = 'Testing {}'.format(name)
+        if cc.build_exe(builder, src_path, out_path, echo=echo):
             run_prefix = 'env LD_LIBRARY_PATH={} '.format(libkunquat_dir)
             if options.enable_tests_mem_debug:
                 mem_debug_path = os.path.join(src_dir, 'mem_debug_run.py')

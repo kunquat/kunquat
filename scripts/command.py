@@ -40,29 +40,32 @@ class PythonCommand():
             raise RuntimeError('Python 2.7 not found')
 
 
-def copy(builder, src, dest):
+def copy(builder, src, dest, echo=None):
     dir_name = os.path.dirname(dest)
-    make_dirs(builder, dir_name)
-    return run_command(builder, 'cp', '--no-dereference', src, dest)
+    make_dirs(builder, dir_name, echo='')
+    return run_command(builder, 'cp', '--no-dereference', src, dest, echo=echo)
 
 
-def link(builder, file_name, link_name):
-    return run_command(builder, 'ln', '-f', '-s', file_name, link_name)
+def link(builder, file_name, link_name, echo=None):
+    dir_name = os.path.dirname(link_name)
+    make_dirs(builder, dir_name, echo='')
+    return run_command(builder, 'ln', '-f', '-s', file_name, link_name, echo=echo)
 
 
-def make_dirs(builder, path):
+def make_dirs(builder, path, echo=None):
     path_components = _split_all(path)
     # Make sure that the builder keeps track of all created directories
     prefix = ''
     for component in path_components:
         prefix = os.path.join(prefix, component)
         if not os.path.exists(prefix):
-            run_command(builder, 'mkdir', '-p', prefix)
+            run_command(builder, 'mkdir', '-p', prefix, echo=echo)
 
 
-def run_command(builder, *args):
+def run_command(builder, *args, **kwargs):
+    echo = kwargs.get('echo')
     if builder:
-        (_, _, outputs_list) = builder.run(*args)
+        (_, _, outputs_list) = builder.run(*args, echo=echo)
         return bool(outputs_list)
     else:
         subprocess.check_call(args)

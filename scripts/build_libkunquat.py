@@ -11,7 +11,6 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from __future__ import print_function
 from collections import defaultdict
 import glob
 import os
@@ -23,12 +22,9 @@ import command
 
 def build_libkunquat(builder, options, cc):
     build_dir = os.path.join('build', 'src')
-    command.make_dirs(builder, build_dir)
     out_dir = os.path.join(build_dir, 'lib')
 
     def compile_libkunquat_dir(out_dir, src_dir):
-        command.make_dirs(builder, out_dir)
-
         source_paths = glob.glob(os.path.join(src_dir, '*.c'))
         sources = sorted([os.path.basename(path) for path in source_paths])
 
@@ -36,8 +32,8 @@ def build_libkunquat(builder, options, cc):
             src_path = os.path.join(src_dir, source)
             obj_name = source[:source.rindex('.')] + '.o'
             out_path = os.path.join(out_dir, obj_name)
-            print('Compiling {}'.format(src_path))
-            cc.compile(builder, src_path, out_path)
+            echo = 'Compiling {}'.format(src_path)
+            cc.compile(builder, src_path, out_path, echo=echo)
 
         # Recurse to subdirectories, excluding test directories
         subdir_names = sorted([name for name in os.listdir(src_dir)
@@ -59,13 +55,13 @@ def build_libkunquat(builder, options, cc):
         version_major = 0
         soname_flag = '-Wl,-soname,{}.{}'.format(lib_name, version_major)
 
-        print('Linking libkunquat')
-        cc.link_lib(builder, objs, lib_path, version_major)
+        echo = 'Linking libkunquat'
+        cc.link_lib(builder, objs, lib_path, version_major, echo=echo)
         os.chmod(lib_path, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH)
 
         # Add symlink so that our tests will run
         symlink_path = lib_path + '.{}'.format(version_major)
-        command.link(builder, lib_name, symlink_path)
+        command.link(builder, lib_name, symlink_path, echo='')
 
     cc.set_pic(True)
 

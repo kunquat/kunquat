@@ -97,14 +97,16 @@ class GccCommand():
     def add_lib(self, lib_name):
         self._link_flags.append('-l{}'.format(lib_name))
 
-    def compile(self, builder, source_path, obj_path):
+    def compile(self, builder, source_path, obj_path, echo=None):
+        command.make_dirs(builder, os.path.dirname(obj_path), echo='')
         args = ([self._cmd] +
                 ['-c', source_path] +
                 ['-o', obj_path] +
                 self._compile_flags)
-        return command.run_command(builder, *args)
+        return command.run_command(builder, *args, echo=echo)
 
-    def link_lib(self, builder, obj_paths, so_path, version_major):
+    def link_lib(self, builder, obj_paths, so_path, version_major, echo=None):
+        command.make_dirs(builder, os.path.dirname(so_path), echo='')
         lib_name = os.path.basename(so_path)
         soname_flag = '-Wl,-soname,{}.{}'.format(lib_name, version_major)
         args = ([self._cmd] +
@@ -113,15 +115,16 @@ class GccCommand():
                 self._link_dirs +
                 self._link_flags +
                 ['-shared', soname_flag])
-        return command.run_command(builder, *args)
+        return command.run_command(builder, *args, echo=echo)
 
-    def build_exe(self, builder, source_path, exe_path):
+    def build_exe(self, builder, source_path, exe_path, echo=None):
+        command.make_dirs(builder, os.path.dirname(exe_path), echo='')
         args = ([self._cmd] +
                 ['-o', exe_path] +
                 [source_path] +
                 self._compile_flags +
                 self._link_dirs +
                 self._link_flags)
-        return command.run_command(builder, *args)
+        return command.run_command(builder, *args, echo=echo)
 
 

@@ -98,7 +98,7 @@ def test_add_test_deps(builder, options, cc):
 
 def _write_external_header_test(builder, out_base, header_name):
     script_path = os.path.join('scripts', 'write_external_header_test.py')
-    builder.run('python', script_path, out_base, header_name)
+    builder.run('python', script_path, out_base, header_name, echo='')
 
 
 def _get_fresh_cc(from_cc):
@@ -111,45 +111,45 @@ def _build_external_lib_test(builder, cc, out_base, lib_name):
     out_path = out_base
     temp_cc = _get_fresh_cc(cc)
     temp_cc.add_lib(lib_name)
-    temp_cc.build_exe(builder, in_path, out_path)
+    return temp_cc.build_exe(builder, in_path, out_path, echo='')
 
 
 def _compile_external_header_test(builder, cc, out_base):
     in_path = out_base + '.c'
     out_path = out_base + '.o'
     temp_cc = _get_fresh_cc(cc)
-    temp_cc.compile(builder, in_path, out_path)
+    return temp_cc.compile(builder, in_path, out_path, echo='')
 
 
 def _test_add_lib_with_header(builder, cc, lib_name, header_name):
     out_dir = 'conf_tests'
-    command.make_dirs(builder, out_dir)
+    command.make_dirs(builder, out_dir, echo='')
 
     print('Checking for {}... '.format(lib_name), end='')
     out_base = os.path.join(out_dir, lib_name)
     _write_external_header_test(builder, out_base, header_name)
     try:
-        _build_external_lib_test(builder, cc, out_base, lib_name)
+        was_run = _build_external_lib_test(builder, cc, out_base, lib_name)
     except fabricate.ExecutionError:
         return False
-    print('ok')
+    print('{}ok'.format('' if was_run else '(cached) '))
     cc.add_lib(lib_name)
     return True
 
 
 def _test_header(builder, cc, header_name):
     out_dir = 'conf_tests'
-    command.make_dirs(builder, out_dir)
+    command.make_dirs(builder, out_dir, echo='')
 
     print('Checking for header {}... '.format(header_name), end='')
     name_base = header_name[:header_name.rindex('.')]
     out_base = os.path.join(out_dir, name_base)
     _write_external_header_test(builder, out_base, header_name)
     try:
-        _compile_external_header_test(builder, cc, out_base)
+        was_run = _compile_external_header_test(builder, cc, out_base)
     except fabricate.ExecutionError:
         return False
-    print('ok')
+    print('{}ok'.format('' if was_run else '(cached) '))
     return True
 
 

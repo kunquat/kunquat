@@ -19,7 +19,7 @@ import command
 
 def build_examples(builder):
     build_dir = os.path.join('build', 'examples')
-    command.make_dirs(builder, build_dir)
+    command.make_dirs(builder, build_dir, echo='')
 
     example_dir = os.path.join('examples')
 
@@ -32,19 +32,19 @@ def build_examples(builder):
 
     for src, dest in packages.iteritems():
         dest_path = os.path.join(build_dir, dest)
-        print('Building {}'.format(dest))
+        echo = 'Building {}'.format(dest)
         builder.run(
                 'tar',
                 'cj', '--format=ustar',
                 '-f', dest_path,
                 '--directory', example_dir,
-                src)
+                src,
+                echo=echo)
 
     # Copy the example instrument to share
     # TODO: remove once we figure out the instrument stuff
     default_ins_path = os.path.join(build_dir, 'example_ins.kqti.bz2')
     share_target = os.path.join('share', 'kunquat', 'instruments')
-    command.make_dirs(builder, share_target)
-    command.copy(builder, default_ins_path, share_target)
+    command.copy(builder, default_ins_path, share_target, echo='')
 
 

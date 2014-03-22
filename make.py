@@ -41,6 +41,17 @@ def process_cmd_line():
             fabricate.main.options.prefix))
 
 
+class PrettyBuilder(fabricate.Builder):
+
+    def __init__(self, *args, **kwargs):
+        fabricate.Builder.__init__(self, *args, **kwargs)
+
+    def echo(self, message):
+        '''Suppress printing of an empty string.'''
+        if message:
+            fabricate.Builder.echo(self, message)
+
+
 def build():
     process_cmd_line()
 
@@ -54,7 +65,7 @@ def build():
 
     cc.set_optimisation(options.optimise)
 
-    quiet_builder = fabricate.Builder(quiet=True)
+    quiet_builder = PrettyBuilder()
 
     if options.enable_python_bindings:
         try:
@@ -79,10 +90,11 @@ def build():
 
 
 def clean():
-    for name in os.listdir('build'):
-        if name.endswith('-2.7'):
-            path = os.path.join('build', name)
-            shutil.rmtree(path)
+    if os.path.exists('build'):
+        for name in os.listdir('build'):
+            if name.endswith('-2.7'):
+                path = os.path.join('build', name)
+                shutil.rmtree(path)
 
     fabricate.autoclean()
 
