@@ -49,6 +49,16 @@ class VisibilityManager():
         self._session.hide_ui(UI_MAIN)
         self._updater.signal_update()
 
+    def show_composition(self):
+        if self._is_closing:
+            return
+        self._session.show_ui(UI_COMPOSITION)
+        self._updater.signal_update()
+
+    def hide_composition(self):
+        self._session.hide_ui(UI_COMPOSITION)
+        self._updater.signal_update()
+
     def show_about(self):
         if self._is_closing:
             return
