@@ -17,6 +17,7 @@ from PyQt4.QtGui import *
 
 import kunquat.tracker.cmdline as cmdline
 from aboutbutton import AboutButton
+from compositiontoggle import CompositionToggle
 from eventlistbutton import EventListButton
 from octaveselector import OctaveSelector
 from typewriter import Typewriter
@@ -32,6 +33,7 @@ class MainPanel(QWidget):
         QWidget.__init__(self)
         self._ui_model = None
         self._about_button = AboutButton()
+        self._composition_toggle = CompositionToggle()
         self._event_list_button = EventListButton()
         self._octave_selector = OctaveSelector()
         self._typewriter = Typewriter()
@@ -42,6 +44,7 @@ class MainPanel(QWidget):
 
         buttons = QHBoxLayout()
         buttons.addWidget(self._event_list_button)
+        buttons.addWidget(self._composition_toggle)
         buttons.addWidget(self._about_button)
 
         v = QVBoxLayout()
@@ -62,6 +65,7 @@ class MainPanel(QWidget):
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._about_button.set_ui_model(ui_model)
+        self._composition_toggle.set_ui_model(ui_model)
         self._event_list_button.set_ui_model(ui_model)
         self._octave_selector.set_ui_model(ui_model)
         self._typewriter.set_ui_model(ui_model)
@@ -84,5 +88,6 @@ class MainPanel(QWidget):
         self._typewriter.unregister_updaters()
         self._octave_selector.unregister_updaters()
         self._event_list_button.unregister_updaters()
+        self._composition_toggle.unregister_updaters()
         self._about_button.unregister_updaters()
 
