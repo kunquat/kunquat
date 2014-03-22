@@ -25,7 +25,7 @@ import support.fabricate as fabricate
 
 import scripts.command as command
 from scripts.cc import get_cc
-from scripts.configure import test_external_deps, test_test_deps
+from scripts.configure import test_add_external_deps, test_add_test_deps
 from scripts.build_libkunquat import build_libkunquat
 from scripts.test_libkunquat import test_libkunquat
 from scripts.build_examples import build_examples

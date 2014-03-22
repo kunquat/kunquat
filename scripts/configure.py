@@ -21,21 +21,18 @@ import support.fabricate as fabricate
 import command
 
 
-def test_external_deps(builder, options, cc):
-    orig_cc = deepcopy(cc)
-
+def test_add_external_deps(builder, options, cc):
     conf_errors = []
 
     if options.enable_kunquat_assert and options.enable_debug:
         cc.add_define('ENABLE_KUNQUAT_ASSERT')
-        if _test_header(builder, orig_cc, 'execinfo.h'):
+        if _test_header(builder, cc, 'execinfo.h'):
             cc.add_define('HAS_EXECINFO')
             cc.set_dynamic_export(True)
 
     if options.with_wavpack:
-        if _test_lib_with_header(builder, orig_cc, 'wavpack', 'wavpack/wavpack.h'):
+        if _test_add_lib_with_header(builder, cc, 'wavpack', 'wavpack/wavpack.h'):
             cc.add_define('WITH_WAVPACK')
-            cc.add_lib('wavpack')
         else:
             conf_errors.append(
                     'WavPack support was requested but WavPack was not found.')
@@ -44,7 +41,7 @@ def test_external_deps(builder, options, cc):
                 ' Sample support will be very minimal.', file=sys.stderr)
 
     '''
-    if not _test_lib_with_header(builder, orig_cc, 'archive', 'archive.h'):
+    if not _test_add_lib_with_header(builder, cc, 'archive', 'archive.h'):
         conf_errors.append('libarchive was not found.')
     '''
 
@@ -61,15 +58,11 @@ def test_external_deps(builder, options, cc):
             conf_errors.append('kunquat-export was requested without Python bindings.')
 
     if options.enable_profiling:
-        if _test_lib_with_header(builder, orig_cc, 'm_p', 'math.h'):
-            cc.add_lib('m_p')
-        else:
+        if not _test_add_lib_with_header(builder, cc, 'm_p', 'math.h'):
             conf_errors.append(
                     'Profiling was requested but profiling math library was not found.')
     else:
-        if _test_lib_with_header(builder, orig_cc, 'm', 'math.h'):
-            cc.add_lib('m')
-        else:
+        if not _test_add_lib_with_header(builder, cc, 'm', 'math.h'):
             conf_errors.append('Math library was not found.')
 
     if conf_errors:
@@ -79,25 +72,19 @@ def test_external_deps(builder, options, cc):
         sys.exit(1)
 
 
-def test_test_deps(builder, options, cc):
+def test_add_test_deps(builder, options, cc):
     conf_errors = []
 
     if options.enable_tests:
-        if _test_lib_with_header(builder, cc, 'check', 'check.h'):
-            cc.add_lib_first('check')
-        else:
+        if not _test_add_lib_with_header(builder, cc, 'check', 'check.h'):
             conf_errors.append(
                     'Building of libkunquat tests was requested'
                     ' but Check was not found.')
 
-        if _test_lib_with_header(builder, cc, 'pthread', 'pthread.h'):
-            cc.add_lib('pthread')
-        else:
+        if not _test_add_lib_with_header(builder, cc, 'pthread', 'pthread.h'):
             conf_errors.append('Building of unit tests requires libpthread.')
 
-        if _test_lib_with_header(builder, cc, 'rt', 'time.h'):
-            cc.add_lib('rt')
-        else:
+        if not _test_add_lib_with_header(builder, cc, 'rt', 'time.h'):
             conf_errors.append('Building of unit tests requires librt.')
 
     if conf_errors:
@@ -112,10 +99,15 @@ def _write_external_header_test(builder, out_base, header_name):
     builder.run('python', script_path, out_base, header_name)
 
 
+def _get_fresh_cc(from_cc):
+    cons = from_cc.__class__
+    return cons()
+
+
 def _build_external_lib_test(builder, cc, out_base, lib_name):
     in_path = out_base + '.c'
     out_path = out_base
-    temp_cc = deepcopy(cc)
+    temp_cc = _get_fresh_cc(cc)
     temp_cc.add_lib(lib_name)
     temp_cc.build_exe(builder, in_path, out_path)
 
@@ -123,11 +115,11 @@ def _build_external_lib_test(builder, cc, out_base, lib_name):
 def _compile_external_header_test(builder, cc, out_base):
     in_path = out_base + '.c'
     out_path = out_base + '.o'
-    temp_cc = deepcopy(cc)
+    temp_cc = _get_fresh_cc(cc)
     temp_cc.compile(builder, in_path, out_path)
 
 
-def _test_lib_with_header(builder, cc, lib_name, header_name):
+def _test_add_lib_with_header(builder, cc, lib_name, header_name):
     out_dir = 'conf_tests'
     command.make_dirs(builder, out_dir)
 
@@ -139,6 +131,7 @@ def _test_lib_with_header(builder, cc, lib_name, header_name):
     except fabricate.ExecutionError:
         return False
     print('ok')
+    cc.add_lib(lib_name)
     return True
 
 
