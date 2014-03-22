@@ -65,14 +65,11 @@ def make_dirs(builder, path, echo=None):
 
 
 def run_command(builder, *args, **kwargs):
-    after = kwargs.get('after', True)
-    group = kwargs.get('group', True)
     echo = kwargs.get('echo')
     if builder:
-        (_, _, outputs_list) = builder.run(*args, after=after, group=group, echo=echo)
+        (_, _, outputs_list) = builder.run(*args, echo=echo)
         return bool(outputs_list)
     else:
-        fabricate.after()
         subprocess.check_call(args)
         return True
 

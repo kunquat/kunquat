@@ -130,6 +130,6 @@ def install():
 prefix_option = Option('--prefix', type='string',
         help='installation directory prefix (default: {})'.format(options.prefix))
 
-fabricate.main(extra_options=[prefix_option], parallel_ok=True, jobs=3)
+fabricate.main(extra_options=[prefix_option])
 
 
