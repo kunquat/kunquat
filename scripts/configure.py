@@ -76,7 +76,9 @@ def test_add_test_deps(builder, options, cc):
     conf_errors = []
 
     if options.enable_tests:
-        if not _test_add_lib_with_header(builder, cc, 'check', 'check.h'):
+        if _test_add_lib_with_header(builder, cc, 'check', 'check.h'):
+            cc.add_lib('m')
+        else:
             conf_errors.append(
                     'Building of libkunquat tests was requested'
                     ' but Check was not found.')

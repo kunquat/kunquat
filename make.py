@@ -64,10 +64,10 @@ def build():
                     file=sys.stderr)
             sys.exit(1)
 
-    test_external_deps(quiet_builder, options, cc)
+    test_add_external_deps(quiet_builder, options, cc)
 
     test_cc = deepcopy(cc)
-    test_test_deps(quiet_builder, options, test_cc)
+    test_add_test_deps(quiet_builder, options, test_cc)
 
     if options.enable_libkunquat:
         build_libkunquat(quiet_builder, options, cc)

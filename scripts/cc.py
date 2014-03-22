@@ -97,9 +97,6 @@ class GccCommand():
     def add_lib(self, lib_name):
         self._link_flags.append('-l{}'.format(lib_name))
 
-    def add_lib_first(self, lib_name):
-        self._link_flags.insert(0, '-l{}'.format(lib_name))
-
     def compile(self, builder, source_path, obj_path):
         args = ([self._cmd] +
                 ['-c', source_path] +
