@@ -45,23 +45,6 @@ def build():
     process_cmd_line()
 
     cc = get_cc()
-    '''
-    cc = 'gcc'
-    compile_flags = [
-            '-std=c99',
-            '-pedantic',
-            '-Wall',
-            '-Wextra',
-            '-Werror',
-        ]
-    link_flags = []
-    test_link_flags = []
-
-    if options.enable_debug:
-        compile_flags.append('-g')
-    else:
-        compile_flags.append('-DNDEBUG')
-    '''
 
     cc.set_debug(options.enable_debug)
 
@@ -70,10 +53,6 @@ def build():
     #    link_flags.append('-pg')
 
     cc.set_optimisation(options.optimise)
-    '''
-    opt_flags = ['-O{:d}'.format(options.optimise)]
-    compile_flags.extend(opt_flags)
-    '''
 
     quiet_builder = fabricate.Builder(quiet=True)
 
