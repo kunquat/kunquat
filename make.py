@@ -82,6 +82,17 @@ def build():
                     file=sys.stderr)
             sys.exit(1)
 
+    if options.enable_tests_mem_debug:
+        try:
+            output = subprocess.check_output(
+                    ['valgrind', '--version'], stderr=subprocess.STDOUT)
+        except OSError, subprocess.CalledProcessError:
+            output = ''
+        if not output.startswith('valgrind'):
+            print('Memory debugging of libkunquat tests was requested'
+                    ' but Valgrind was not found.')
+            sys.exit(1)
+
     test_add_external_deps(builder, options, cc)
 
     test_cc = deepcopy(cc)
