@@ -97,6 +97,9 @@ def test_libkunquat(builder, options, cc):
             call = run_prefix + out_path
             try:
                 subprocess.check_call(call.split())
+            except KeyboardInterrupt:
+                os.remove(out_path)
+                raise
             except subprocess.CalledProcessError as e:
                 print('Test {} failed with return code {}'.format(name, e.returncode))
                 os.remove(out_path)
