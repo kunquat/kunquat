@@ -21,6 +21,8 @@ import shutil
 import subprocess
 import sys
 
+sys.dont_write_bytecode = True
+
 import support.fabricate as fabricate
 
 import scripts.command as command
