@@ -5,6 +5,7 @@
 *.pyc
 build
 conf_tests
+support
 .deps
 .install_deps
 examples/*bz2

@@ -23,7 +23,12 @@ import sys
 
 sys.dont_write_bytecode = True
 
-import support.fabricate as fabricate
+try:
+    import support.fabricate as fabricate
+except ImportError:
+    print('Fabricate was not found.'
+            ' Please run ./get_build_support.sh to retrieve it.')
+    sys.exit(1)
 
 import scripts.command as command
 from scripts.cc import get_cc
