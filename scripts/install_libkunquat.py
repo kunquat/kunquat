@@ -32,7 +32,7 @@ def _get_man_funcs(man_file_path):
     return func_names
 
 
-def install_libkunquat(builder, install_prefix):
+def install_libkunquat(builder, install_prefix, enable_dev):
     def _install_headers():
         install_include_dir = os.path.join(install_prefix, 'include', 'kunquat')
 
@@ -72,8 +72,10 @@ def install_libkunquat(builder, install_prefix):
             out_path = os.path.join(install_lib_dir, name)
             command.copy(builder, in_path, out_path)
 
-    _install_headers()
-    _install_man_pages()
+    if enable_dev:
+        _install_headers()
+        _install_man_pages()
+
     _install_library()
 
 

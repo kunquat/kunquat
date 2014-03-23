@@ -112,7 +112,8 @@ def install():
     install_builder = None
 
     if options.enable_libkunquat:
-        install_libkunquat(install_builder, options.prefix)
+        install_libkunquat(
+                install_builder, options.prefix, options.enable_libkunquat_dev)
 
     if options.enable_examples:
         install_examples(install_builder, options.prefix)
