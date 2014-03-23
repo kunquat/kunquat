@@ -13,9 +13,23 @@
 
 from __future__ import print_function
 import glob
+from itertools import dropwhile, islice, takewhile
 import os.path
 
 import command
+
+
+def _get_man_funcs(man_file_path):
+    with open(man_file_path) as f:
+        all_lines = (line for line in f)
+        tail_lines = dropwhile(lambda line: 'SYNOPSIS' not in line, all_lines)
+        synopsis_lines = list(takewhile(
+            lambda line: not line.startswith('.SH'), islice(tail_lines, 1, None)))
+
+    func_lines = (line for line in synopsis_lines if '(' in line)
+    func_line_prefixes = (line[:line.index('(')] for line in func_lines)
+    func_names = (prefix.split()[-1] for prefix in func_line_prefixes)
+    return func_names
 
 
 def install_libkunquat(builder, install_prefix):
@@ -41,39 +55,12 @@ def install_libkunquat(builder, install_prefix):
             out_path = os.path.join(install_man_dir, name)
             command.copy(builder, in_path, out_path)
 
-        links = {
-                'kunquat-handle.3': [
-                    'kqt_new_Handle.3',
-                    'kqt_Handle_set_data.3',
-                    'kqt_Handle_get_error.3',
-                    'kqt_Handle_clear_error.3',
-                    'kqt_Handle_validate.3',
-                    'kqt_del_Handle.3'
-                    ],
-
-                'kunquat-player-interface.3': [
-                    'kqt_Handle_play.3',
-                    'kqt_Handle_has_stopped.3',
-                    'kqt_Handle_get_frames_available.3',
-                    'kqt_Handle_get_audio.3',
-                    'kqt_Handle_set_audio_rate.3',
-                    'kqt_Handle_get_audio_rate.3',
-                    'kqt_Handle_set_audio_buffer_size.3',
-                    'kqt_Handle_get_audio_buffer_size.3',
-                    'kqt_Handle_get_duration.3',
-                    'kqt_Handle_set_position.3',
-                    'kqt_Handle_get_position.3',
-                    'kqt_Handle_fire_event.3',
-                    'kqt_Handle_receive_events.3'
-                    ],
-            }
-
         for name in man_names:
-            man_path = os.path.join(install_man_dir, name)
-            if name in links:
-                for link in links[name]:
-                    link_path = os.path.join(install_man_dir, link)
-                    command.link(builder, name, link_path)
+            man_path = os.path.join(source_dir, name)
+            links = (func_name + '.3' for func_name in _get_man_funcs(man_path))
+            for link in links:
+                link_path = os.path.join(install_man_dir, link)
+                command.link(builder, name, link_path)
 
     def _install_library():
         install_lib_dir = os.path.join(install_prefix, 'lib')
