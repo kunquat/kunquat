@@ -27,7 +27,8 @@ try:
     import support.fabricate as fabricate
 except ImportError:
     print('Fabricate was not found.'
-            ' Please run ./get_build_support.sh to retrieve it.')
+            ' Please run ./get_build_support.sh to retrieve it.',
+            file=sys.stderr)
     sys.exit(1)
 
 import scripts.command as command
@@ -70,6 +71,10 @@ def build():
     #    compile_flags.append('-pg')
     #    link_flags.append('-pg')
 
+    if options.optimise not in xrange(4):
+        print('Unsupported optimisation level: {}'.format(options.optimise),
+                file=sys.stderr)
+        sys.exit(1)
     cc.set_optimisation(options.optimise)
 
     builder = PrettyBuilder()
@@ -90,7 +95,8 @@ def build():
             output = ''
         if not output.startswith('valgrind'):
             print('Memory debugging of libkunquat tests was requested'
-                    ' but Valgrind was not found.')
+                    ' but Valgrind was not found.',
+                    file=sys.stderr)
             sys.exit(1)
 
     test_add_external_deps(builder, options, cc)
