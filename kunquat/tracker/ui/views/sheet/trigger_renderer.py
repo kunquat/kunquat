@@ -38,7 +38,7 @@ class TriggerRenderer():
     def get_total_width(self):
         return self._total_width
 
-    def draw_trigger(self, painter, include_line=True, select=None):
+    def draw_trigger(self, painter, include_line=True, select=False):
         # Select colour based on event type
         evtype = self._trigger.get_type()
         if evtype == 'n+':
@@ -55,7 +55,7 @@ class TriggerRenderer():
             painter.save()
 
             # Set colours
-            if select == i:
+            if select:
                 painter.setBackgroundMode(Qt.OpaqueMode)
                 painter.setBackground(QBrush(evtype_fg_colour))
                 painter.setPen(self._config['bg_colour'])
