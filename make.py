@@ -72,7 +72,7 @@ def build():
 
     cc.set_optimisation(options.optimise)
 
-    quiet_builder = PrettyBuilder()
+    builder = PrettyBuilder()
 
     if options.enable_python_bindings:
         try:
@@ -82,18 +82,18 @@ def build():
                     file=sys.stderr)
             sys.exit(1)
 
-    test_add_external_deps(quiet_builder, options, cc)
+    test_add_external_deps(builder, options, cc)
 
     test_cc = deepcopy(cc)
-    test_add_test_deps(quiet_builder, options, test_cc)
+    test_add_test_deps(builder, options, test_cc)
 
     if options.enable_libkunquat:
-        build_libkunquat(quiet_builder, options, cc)
+        build_libkunquat(builder, options, cc)
         if options.enable_tests:
-            test_libkunquat(quiet_builder, options, test_cc)
+            test_libkunquat(builder, options, test_cc)
 
     if options.enable_examples:
-        build_examples(quiet_builder)
+        build_examples(builder)
 
 
 def clean():
