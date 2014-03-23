@@ -46,8 +46,9 @@ def build_examples(builder):
 
     # Copy the example instrument to share
     # TODO: remove once we figure out the instrument stuff
-    default_ins_path = os.path.join(build_dir, 'example_ins.kqti.bz2')
-    share_target = os.path.join('share', 'kunquat', 'instruments')
+    ins_name = 'example_ins.kqti.bz2'
+    default_ins_path = os.path.join(build_dir, ins_name)
+    share_target = os.path.join('share', 'kunquat', 'instruments', ins_name)
     command.copy(builder, default_ins_path, share_target, echo='')
 
 
