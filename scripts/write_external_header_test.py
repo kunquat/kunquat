@@ -30,7 +30,7 @@ def write_external_header_test(out_base, header_name):
 
 def main():
     if len(sys.argv) != 3:
-        print('Usage: {} <out_base> <header_name>'.format(sys.argv[0]))
+        print('Usage: {} <out_base> <header_name>'.format(sys.argv[0]), file=sys.stderr)
         sys.exit(1)
     write_external_header_test(sys.argv[1], sys.argv[2])
 

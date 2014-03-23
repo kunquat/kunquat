@@ -24,7 +24,7 @@ def get_cc(cmd=None):
     if cmd == 'gcc':
         cc = get_gcc()
     elif cmd != None:
-        print('Unsupported compiler requested: {}'.format(cmd))
+        print('Unsupported compiler requested: {}'.format(cmd), file=sys.stderr)
         sys.exit(1)
     else:
         cc = get_gcc()

@@ -16,6 +16,7 @@ from collections import defaultdict, deque
 import glob
 import os.path
 import subprocess
+import sys
 
 import support.fabricate as fabricate
 
@@ -103,7 +104,8 @@ def test_libkunquat(builder, options, cc):
                 os.remove(out_path)
                 raise
             except subprocess.CalledProcessError as e:
-                print('Test {} failed with return code {}'.format(name, e.returncode))
+                print('Test {} failed with return code {}'.format(name, e.returncode),
+                        file=sys.stderr)
                 os.remove(out_path)
                 sys.exit(1)
 
