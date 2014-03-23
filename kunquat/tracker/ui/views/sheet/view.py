@@ -223,6 +223,8 @@ class View(QWidget):
                     renderer = TriggerRenderer(
                             self._config, triggers[trigger_index], notation)
                     # TODO: revisit field bounds handling, this is messy
+                    self._field_index = min(
+                            self._field_index, renderer.get_field_count() - 1)
                     _, width = renderer.get_field_bounds(self._field_index)
                     field_width = width + trigger_padding * 2
                     if self._field_index == 0:
