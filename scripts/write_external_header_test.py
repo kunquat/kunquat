@@ -17,7 +17,8 @@ from __future__ import print_function
 import sys
 
 
-# Note: This file is run as a script
+# Note: This file is run as a script. It works around that Fabricate doesn't
+#       seem to track files changed by shell commands properly.
 
 
 def write_external_header_test(out_base, header_name):
