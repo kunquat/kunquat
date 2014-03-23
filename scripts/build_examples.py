@@ -30,17 +30,19 @@ def build_examples(builder):
             'kqts00': 'example_scale.kqts.bz2',
         }
 
+    echo_prefix = '\n   Building example files\n\n'
     for src, dest in packages.iteritems():
         dest_path = os.path.join(build_dir, dest)
-        echo = 'Building {}'.format(dest)
-        command.run_command(
+        echo = echo_prefix + 'Building {}'.format(dest)
+        if command.run_command(
                 builder,
                 'tar',
                 'cj', '--format=ustar',
                 '-f', dest_path,
                 '--directory', example_dir,
                 src,
-                echo=echo)
+                echo=echo):
+            echo_prefix = ''
 
     # Copy the example instrument to share
     # TODO: remove once we figure out the instrument stuff

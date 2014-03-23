@@ -61,6 +61,8 @@ def test_libkunquat(builder, options, cc):
         })
     finished_tests = set()
 
+    echo = '\n   Testing libkunquat\n'
+
     source_paths = deque(glob.glob(os.path.join(src_dir, '*.c')))
     max_iters = len(source_paths) * len(source_paths)
     while source_paths:
@@ -87,8 +89,8 @@ def test_libkunquat(builder, options, cc):
 
         # Build and run
         out_path = os.path.join(test_dir, name)
-        echo = 'Testing {}'.format(name)
         if cc.build_exe(builder, src_path, out_path, echo=echo):
+            echo = ''
             run_prefix = 'env LD_LIBRARY_PATH={} '.format(libkunquat_dir)
             if options.enable_tests_mem_debug:
                 mem_debug_path = os.path.join(src_dir, 'mem_debug_run.py')

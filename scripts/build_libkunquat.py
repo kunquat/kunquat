@@ -24,7 +24,7 @@ def build_libkunquat(builder, options, cc):
     build_dir = os.path.join('build', 'src')
     out_dir = os.path.join(build_dir, 'lib')
 
-    def compile_libkunquat_dir(out_dir, src_dir):
+    def compile_libkunquat_dir(out_dir, src_dir, echo_prefix_list):
         source_paths = glob.glob(os.path.join(src_dir, '*.c'))
         sources = sorted([os.path.basename(path) for path in source_paths])
 
@@ -32,8 +32,9 @@ def build_libkunquat(builder, options, cc):
             src_path = os.path.join(src_dir, source)
             obj_name = source[:source.rindex('.')] + '.o'
             out_path = os.path.join(out_dir, obj_name)
-            echo = 'Compiling {}'.format(src_path)
-            cc.compile(builder, src_path, out_path, echo=echo)
+            echo = echo_prefix_list[0] + 'Compiling {}'.format(src_path)
+            if cc.compile(builder, src_path, out_path, echo=echo):
+                echo_prefix_list[0] = ''
 
         # Recurse to subdirectories, excluding test directories
         subdir_names = sorted([name for name in os.listdir(src_dir)
@@ -41,7 +42,12 @@ def build_libkunquat(builder, options, cc):
         for name in subdir_names:
             sub_out_dir = os.path.join(out_dir, name)
             sub_src_dir = os.path.join(src_dir, name)
-            compile_libkunquat_dir(sub_out_dir, sub_src_dir)
+            compile_libkunquat_dir(sub_out_dir, sub_src_dir, echo_prefix_list)
+
+    def compile_libkunquat(out_dir, src_dir):
+        echo_prefix = '\n   Compiling libkunquat\n' \
+            '   Using {} flags: {}\n\n'.format(cc.get_name(), cc.get_compile_flags())
+        compile_libkunquat_dir(out_dir, src_dir, [echo_prefix])
 
     def link_libkunquat(build_lib_dir):
         objs = []
@@ -55,7 +61,7 @@ def build_libkunquat(builder, options, cc):
         version_major = 0
         soname_flag = '-Wl,-soname,{}.{}'.format(lib_name, version_major)
 
-        echo = 'Linking libkunquat'
+        echo = '\n   Linking libkunquat'
         cc.link_lib(builder, objs, lib_path, version_major, echo=echo)
         os.chmod(lib_path, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH)
 
@@ -77,7 +83,7 @@ def build_libkunquat(builder, options, cc):
         cc.add_include_dir(d)
 
     src_dir = os.path.join('src', 'lib')
-    compile_libkunquat_dir(out_dir, src_dir)
+    compile_libkunquat(out_dir, src_dir)
     link_libkunquat(out_dir)
 
 

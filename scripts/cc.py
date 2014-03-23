@@ -62,8 +62,15 @@ class GccCommand():
                 '-Wextra',
                 '-Werror',
             ]
+        self._include_flags = []
         self._link_dirs = []
         self._link_flags = []
+
+    def get_name(self):
+        return 'GCC'
+
+    def get_compile_flags(self):
+        return ' '.join(self._compile_flags)
 
     def set_debug(self, enabled):
         if enabled:
@@ -89,7 +96,7 @@ class GccCommand():
             self._compile_flags.append('-D{}={}'.format(name, value))
 
     def add_include_dir(self, inc_dir):
-        self._compile_flags.append('-I{}'.format(inc_dir))
+        self._include_flags.append('-I{}'.format(inc_dir))
 
     def add_lib_dir(self, lib_dir):
         self._link_dirs.append('-L{}'.format(lib_dir))
@@ -102,7 +109,8 @@ class GccCommand():
         args = ([self._cmd] +
                 ['-c', source_path] +
                 ['-o', obj_path] +
-                self._compile_flags)
+                self._compile_flags +
+                self._include_flags)
         return command.run_command(builder, *args, echo=echo)
 
     def link_lib(self, builder, obj_paths, so_path, version_major, echo=None):
@@ -123,6 +131,7 @@ class GccCommand():
                 ['-o', exe_path] +
                 [source_path] +
                 self._compile_flags +
+                self._include_flags +
                 self._link_dirs +
                 self._link_flags)
         return command.run_command(builder, *args, echo=echo)
