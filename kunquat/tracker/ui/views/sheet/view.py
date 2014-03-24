@@ -218,12 +218,11 @@ class View(QWidget):
                     renderer = TriggerRenderer(
                             self._config, triggers[trigger_index], notation)
                     # TODO: revisit field bounds handling, this is messy
-                    _, width = renderer.get_field_bounds(0)
-                    field_width = width + trigger_padding * 3
+                    trigger_width = renderer.get_total_width()
                 else:
-                    field_width = trail_width
+                    trigger_width = trail_width
                 min_offset = max(0,
-                        init_trigger_row_width - self._col_width + field_width)
+                        init_trigger_row_width - self._col_width + trigger_width)
 
                 # Final offset
                 self._trow_px_offset = min(max(
