@@ -60,10 +60,6 @@ class Sheet(QAbstractScrollArea):
 
         self._col_width = self._config['col_width']
 
-        self._px_per_beat = None
-        self._zoom_levels = []
-        self._cur_zoom_index = 0
-
         QObject.connect(
                 self.viewport(),
                 SIGNAL('heightChanged()'),
@@ -72,6 +68,10 @@ class Sheet(QAbstractScrollArea):
                 self.viewport(),
                 SIGNAL('followCursor(int, int)'),
                 self._follow_cursor)
+        QObject.connect(
+                self.viewport(),
+                SIGNAL('zoom(int)'),
+                self._zoom)
 
     def set_ui_model(self, ui_model):
         self._ruler.set_ui_model(ui_model)
@@ -114,12 +114,13 @@ class Sheet(QAbstractScrollArea):
         self.viewport().set_config(self._config)
 
         # Default zoom level
-        self._px_per_beat = self._config['trs_per_beat'] * self._config['tr_height']
-        self._ruler.set_px_per_beat(self._px_per_beat)
-        self.viewport().set_px_per_beat(self._px_per_beat)
+        px_per_beat = self._config['trs_per_beat'] * self._config['tr_height']
 
-        self._zoom_levels = self._get_zoom_levels(1, self._px_per_beat, tstamp.BEAT)
-        self._cur_zoom_index = self._zoom_levels.index(self._px_per_beat)
+        self._zoom_levels = self._get_zoom_levels(1, px_per_beat, tstamp.BEAT)
+        self._cur_zoom_index = self._zoom_levels.index(px_per_beat)
+        self._default_zoom_index = self._cur_zoom_index
+
+        self._update_px_per_beat(self._zoom_levels[self._cur_zoom_index])
 
     def _get_zoom_levels(self, min_val, default_val, max_val):
         zoom_levels = [default_val]
@@ -149,6 +150,10 @@ class Sheet(QAbstractScrollArea):
 
         return zoom_levels
 
+    def _update_px_per_beat(self, px_per_beat):
+        self._ruler.set_px_per_beat(px_per_beat)
+        self.viewport().set_px_per_beat(px_per_beat)
+
     def _update_scrollbars(self):
         self._total_height_px = (
                 self.viewport().get_total_height() + self._config['tr_height'])
@@ -176,6 +181,16 @@ class Sheet(QAbstractScrollArea):
         # Position not changed, so just update our viewport, TODO: kludgy
         if old_y_offset == vscrollbar.value() and old_first_col == hscrollbar.value():
             self.viewport().update()
+
+    def _zoom(self, update):
+        assert self._zoom_levels
+        if update == 0:
+            self._cur_zoom_index = self._default_zoom_index
+        else:
+            new_index = self._cur_zoom_index + update
+            self._cur_zoom_index = min(max(0, new_index), len(self._zoom_levels) - 1)
+
+        self._update_px_per_beat(self._zoom_levels[self._cur_zoom_index])
 
     def paintEvent(self, ev):
         self.viewport().paintEvent(ev)

@@ -32,6 +32,7 @@ class View(QWidget):
 
     heightChanged = pyqtSignal(name='heightChanged')
     followCursor = pyqtSignal(int, int, name='followCursor')
+    zoom = pyqtSignal(int, name='zoom')
 
     def __init__(self):
         QWidget.__init__(self)
@@ -554,11 +555,10 @@ class View(QWidget):
         def_ts = utils.get_tstamp_from_px(cur_px_offset, self._px_per_beat)
         assert utils.get_px_from_tstamp(def_ts, self._px_per_beat) == cur_px_offset
 
-        # Convert pixel delta to tstamp delta
-        ts_delta = utils.get_tstamp_from_px(px_delta, self._px_per_beat)
-
         # Get target tstamp
-        new_ts = def_ts + ts_delta
+        new_px_offset = cur_px_offset + px_delta
+        new_ts = utils.get_tstamp_from_px(new_px_offset, self._px_per_beat)
+        assert utils.get_px_from_tstamp(new_ts, self._px_per_beat) != cur_px_offset
 
         # Get shortest movement between target tstamp and closest trigger row
         move_range_start = min(new_ts, row_ts)
@@ -641,6 +641,14 @@ class View(QWidget):
         elif ev.key() == Qt.Key_Backtab:
             self._move_edit_cursor_column(-1)
             return True
+
+        if ev.modifiers() == Qt.ControlModifier:
+            if ev.key() == Qt.Key_Minus:
+                QObject.emit(self, SIGNAL('zoom(int)'), -1)
+            elif ev.key() == Qt.Key_Plus:
+                QObject.emit(self, SIGNAL('zoom(int)'), 1)
+            elif ev.key() == Qt.Key_0:
+                QObject.emit(self, SIGNAL('zoom(int)'), 0)
 
     def keyReleaseEvent(self, ev):
         if ev.isAutoRepeat():

@@ -68,7 +68,12 @@ class ColumnGroupRenderer():
     def set_pattern_heights(self, heights, start_heights):
         self._heights = heights
         self._start_heights = start_heights
-        self._create_caches()
+
+        # FIXME: revisit cache creation
+        if self._caches:
+            self._sync_caches()
+        else:
+            self._create_caches()
 
     def _create_caches(self):
         self._caches = [ColumnCache(self._num, i)
