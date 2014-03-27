@@ -84,10 +84,17 @@ def get_first_visible_pat_index(px_offset, start_heights):
 # Pixel <-> Tstamp conversions
 
 def get_tstamp_from_px(px, px_per_beat):
-    return tstamp.Tstamp(0, px * tstamp.BEAT // px_per_beat)
+    beats = px // px_per_beat
+    rem_px = px % px_per_beat
+    rem = rem_px * tstamp.BEAT // px_per_beat
+    if rem * px_per_beat < rem_px * tstamp.BEAT:
+        rem += 1
+    return tstamp.Tstamp(beats, rem)
 
 def get_px_from_tstamp(ts, px_per_beat):
-    return ((ts.beats * tstamp.BEAT + ts.rem) * px_per_beat) // tstamp.BEAT
+    beats_add = ts.beats * px_per_beat
+    rem_add = ts.rem * px_per_beat
+    return beats_add + (rem_add // tstamp.BEAT)
 
 
 # Pixmap buffer utils
