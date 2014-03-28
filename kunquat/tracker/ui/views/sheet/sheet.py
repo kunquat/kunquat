@@ -26,6 +26,47 @@ from view import View
 import kunquat.tracker.ui.model.tstamp as tstamp
 
 
+class LongScrollBar(QScrollBar):
+
+    def __init__(self):
+        QScrollBar.__init__(self)
+        self._range_factor = 1
+        self._actual_min = self.minimum()
+        self._actual_max = self.maximum()
+        self._actual_value = self.value()
+
+    def set_actual_range(self, actual_min, actual_max):
+        self._actual_min = actual_min
+        self._actual_max = max(actual_min, actual_max)
+
+        self._range_factor = 1
+        if self._actual_max > 0:
+            digits_estimate = int(math.log(self._actual_max, 2))
+            if digits_estimate >= 30:
+                self._range_factor = 2**(digits_estimate - 29)
+
+        scaled_min = self._actual_min / self._range_factor
+        scaled_max = self._actual_max / self._range_factor
+        QScrollBar.setRange(self, scaled_min, scaled_max)
+        self.set_actual_value(self._actual_value)
+
+    def set_actual_value(self, actual_value):
+        self._actual_value = min(max(self._actual_min, actual_value), self._actual_max)
+        QScrollBar.setValue(self, self._actual_value / self._range_factor)
+
+    def get_actual_value(self):
+        return self._actual_value
+
+    def sliderChange(self, change):
+        QScrollBar.sliderChange(self, change)
+        if change == QAbstractSlider.SliderValueChange:
+            self._update_actual_value(self.value())
+
+    def _update_actual_value(self, scaled_value):
+        self._actual_value = min(max(
+            self._actual_min, scaled_value * self._range_factor), self._actual_max)
+
+
 class Sheet(QAbstractScrollArea):
 
     def __init__(self, config={}):
@@ -55,6 +96,7 @@ class Sheet(QAbstractScrollArea):
 
         self.viewport().setFocusProxy(None)
 
+        self.setVerticalScrollBar(LongScrollBar())
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
 
@@ -66,7 +108,7 @@ class Sheet(QAbstractScrollArea):
                 self._update_scrollbars)
         QObject.connect(
                 self.viewport(),
-                SIGNAL('followCursor(int, int)'),
+                SIGNAL('followCursor(QString, int)'),
                 self._follow_cursor)
         QObject.connect(
                 self.viewport(),
@@ -161,7 +203,7 @@ class Sheet(QAbstractScrollArea):
         vp_height = self.viewport().height()
         vscrollbar = self.verticalScrollBar()
         vscrollbar.setPageStep(vp_height)
-        vscrollbar.setRange(0, self._total_height_px - vp_height)
+        vscrollbar.set_actual_range(0, self._total_height_px - vp_height)
 
         vp_width = self.viewport().width()
         max_visible_cols = vp_width // self._col_width
@@ -169,18 +211,25 @@ class Sheet(QAbstractScrollArea):
         hscrollbar.setPageStep(max_visible_cols)
         hscrollbar.setRange(0, COLUMN_COUNT - max_visible_cols)
 
-    def _follow_cursor(self, new_y_offset, new_first_col):
+    def _follow_cursor(self, new_y_offset_str, new_first_col):
+        new_y_offset = long(new_y_offset_str)
         vscrollbar = self.verticalScrollBar()
         hscrollbar = self.horizontalScrollBar()
-        old_y_offset = vscrollbar.value()
+        old_y_offset = vscrollbar.get_actual_value()
+        old_scaled_y_offset = vscrollbar.value()
         old_first_col = hscrollbar.value()
 
-        self.horizontalScrollBar().setValue(new_first_col)
-        self.verticalScrollBar().setValue(new_y_offset)
+        vscrollbar.set_actual_value(new_y_offset)
+        hscrollbar.setValue(new_first_col)
 
-        # Position not changed, so just update our viewport, TODO: kludgy
-        if old_y_offset == vscrollbar.value() and old_first_col == hscrollbar.value():
-            self.viewport().update()
+        if (old_scaled_y_offset == vscrollbar.value() and
+                old_first_col == hscrollbar.value()):
+            if old_y_offset != vscrollbar.get_actual_value():
+                # Position changed slightly, but the QScrollBar doesn't know this
+                self.scrollContentsBy(0, 0)
+            else:
+                # Position not changed, so just update our viewport
+                self.viewport().update()
 
     def _zoom(self, update):
         assert self._zoom_levels
@@ -200,7 +249,7 @@ class Sheet(QAbstractScrollArea):
 
     def scrollContentsBy(self, dx, dy):
         hvalue = self.horizontalScrollBar().value()
-        vvalue = self.verticalScrollBar().value()
+        vvalue = self.verticalScrollBar().get_actual_value()
 
         self._header.set_first_column(hvalue)
         self._ruler.set_px_offset(vvalue)

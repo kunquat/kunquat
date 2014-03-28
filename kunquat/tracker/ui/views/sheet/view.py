@@ -31,7 +31,7 @@ from movestate import HorizontalMoveState, VerticalMoveState
 class View(QWidget):
 
     heightChanged = pyqtSignal(name='heightChanged')
-    followCursor = pyqtSignal(int, int, name='followCursor')
+    followCursor = pyqtSignal(str, int, name='followCursor')
     zoom = pyqtSignal(int, name='zoom')
 
     def __init__(self):
@@ -271,8 +271,8 @@ class View(QWidget):
         if is_view_scrolling_required:
             QObject.emit(
                     self,
-                    SIGNAL('followCursor(int, int)'),
-                    new_y_offset,
+                    SIGNAL('followCursor(QString, int)'),
+                    str(new_y_offset),
                     new_first_col)
         else:
             self.update()
