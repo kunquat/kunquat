@@ -112,6 +112,10 @@ class Sheet(QAbstractScrollArea):
                 self._follow_cursor)
         QObject.connect(
                 self.viewport(),
+                SIGNAL('scroll(QString)'),
+                self._scroll_from_view)
+        QObject.connect(
+                self.viewport(),
                 SIGNAL('zoom(int)'),
                 self._zoom)
 
@@ -240,6 +244,12 @@ class Sheet(QAbstractScrollArea):
             self._cur_zoom_index = min(max(0, new_index), len(self._zoom_levels) - 1)
 
         self._update_px_per_beat(self._zoom_levels[self._cur_zoom_index])
+
+    def _scroll_from_view(self, diff_str):
+        diff = long(diff_str)
+        hvalue = self.horizontalScrollBar().value()
+        vvalue = self.verticalScrollBar().get_actual_value()
+        self._follow_cursor(vvalue + diff, hvalue)
 
     def paintEvent(self, ev):
         self.viewport().paintEvent(ev)

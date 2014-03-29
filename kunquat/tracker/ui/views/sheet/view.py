@@ -32,6 +32,7 @@ class View(QWidget):
 
     heightChanged = pyqtSignal(name='heightChanged')
     followCursor = pyqtSignal(str, int, name='followCursor')
+    scroll = pyqtSignal(str, name='scroll')
     zoom = pyqtSignal(int, name='zoom')
 
     def __init__(self):
@@ -137,11 +138,24 @@ class View(QWidget):
 
     def set_px_per_beat(self, px_per_beat):
         if self._px_per_beat != px_per_beat:
+            # Get old edit cursor offset
+            location = TriggerPosition(0, 0, 0, tstamp.Tstamp(0), 0)
+            if self._ui_model:
+                selection = self._ui_model.get_selection()
+                location = selection.get_location() or location
+            orig_px_offset = self._px_offset
+            old_cursor_offset = (self._get_row_offset(location) or 0) - orig_px_offset
+
+            # Update internal state
             self._px_per_beat = px_per_beat
             for cr in self._col_rends:
                 cr.set_px_per_beat(self._px_per_beat)
             self._set_pattern_heights()
-            self.update()
+
+            # Adjust view position so that edit cursor maintains its height
+            new_cursor_offset = (self._get_row_offset(location) or 0) - orig_px_offset
+            offset_diff = new_cursor_offset - old_cursor_offset
+            QObject.emit(self, SIGNAL('scroll(QString)'), str(offset_diff))
 
     def _get_col_offset(self, col_num):
         max_visible_cols = utils.get_max_visible_cols(self.width(), self._col_width)
@@ -156,11 +170,14 @@ class View(QWidget):
         row_ts = location.get_row_ts()
 
         # Get pattern that contains our location
-        module = self._ui_model.get_module()
-        album = module.get_album()
-        song = album.get_song_by_track(track)
-        pat_instance = song.get_pattern_instance(system)
-        cur_pattern = pat_instance.get_pattern()
+        try:
+            module = self._ui_model.get_module()
+            album = module.get_album()
+            song = album.get_song_by_track(track)
+            pat_instance = song.get_pattern_instance(system)
+            cur_pattern = pat_instance.get_pattern()
+        except AttributeError:
+            return None
 
         for pattern, start_height in izip(self._patterns, self._start_heights):
             if cur_pattern == pattern:
