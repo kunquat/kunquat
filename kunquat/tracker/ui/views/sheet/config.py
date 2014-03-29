@@ -27,7 +27,7 @@ DEFAULT_CONFIG = {
             },
         'header': {
             },
-        'col_width'       : 128,
+        'col_width'       : 12, # unit is em
         'trs_per_beat'    : 4,
         'zoom_factor'     : 1.25,
         'canvas_bg_colour': QColor(0x11, 0x11, 0x11),

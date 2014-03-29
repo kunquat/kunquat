@@ -100,8 +100,6 @@ class Sheet(QAbstractScrollArea):
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
 
-        self._col_width = self._config['col_width']
-
         QObject.connect(
                 self.viewport(),
                 SIGNAL('heightChanged()'),
@@ -172,6 +170,16 @@ class Sheet(QAbstractScrollArea):
 
         self._update_px_per_beat(self._zoom_levels[self._cur_zoom_index])
 
+        # Default column width
+        em_px = int(math.ceil(fm.tightBoundingRect('m').width()))
+        em_range = list(range(3, 41))
+
+        self._col_width_levels = [em_px * width for width in em_range]
+        self._cur_col_width_index = em_range.index(self._config['col_width'])
+        self._default_col_width_index = self._cur_col_width_index
+
+        self._update_column_width(self._col_width_levels[self._cur_col_width_index])
+
     def _get_zoom_levels(self, min_val, default_val, max_val):
         zoom_levels = [default_val]
 
@@ -204,6 +212,10 @@ class Sheet(QAbstractScrollArea):
         self._ruler.set_px_per_beat(px_per_beat)
         self.viewport().set_px_per_beat(px_per_beat)
 
+    def _update_column_width(self, width):
+        self._header.set_column_width(width)
+        self.viewport().set_column_width(width)
+
     def _update_scrollbars(self):
         self._total_height_px = (
                 self.viewport().get_total_height() + self._config['tr_height'])
@@ -214,7 +226,7 @@ class Sheet(QAbstractScrollArea):
         vscrollbar.set_actual_range(0, self._total_height_px - vp_height)
 
         vp_width = self.viewport().width()
-        max_visible_cols = vp_width // self._col_width
+        max_visible_cols = vp_width // self._col_width_levels[self._cur_col_width_index]
         hscrollbar = self.horizontalScrollBar()
         hscrollbar.setPageStep(max_visible_cols)
         hscrollbar.setRange(0, COLUMN_COUNT - max_visible_cols)
@@ -251,12 +263,13 @@ class Sheet(QAbstractScrollArea):
 
     def _change_column_width(self, update):
         if update == 0:
-            self._col_width = self._config['col_width']
+            self._cur_col_width_index = self._default_col_width_index
         else:
-            self._col_width += update * 10 # TODO: figure out step and limits
+            new_index = self._cur_col_width_index + update
+            self._cur_col_width_index = min(max(
+                0, new_index), len(self._col_width_levels) - 1)
 
-        self._header.set_column_width(self._col_width)
-        self.viewport().set_column_width(self._col_width)
+        self._update_column_width(self._col_width_levels[self._cur_col_width_index])
 
     def _scroll_from_view(self, diff_str):
         diff = long(diff_str)
