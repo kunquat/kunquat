@@ -32,7 +32,7 @@ class View(QWidget):
 
     heightChanged = pyqtSignal(name='heightChanged')
     followCursor = pyqtSignal(str, int, name='followCursor')
-    scroll = pyqtSignal(str, name='scroll')
+    scroll = pyqtSignal(str, int, name='scroll')
     zoom = pyqtSignal(int, name='zoom')
     changeColumnWidth = pyqtSignal(int, name='changeColumnWidth')
 
@@ -52,7 +52,7 @@ class View(QWidget):
         self._px_offset = 0
         self._patterns = []
 
-        self._col_width = DEFAULT_CONFIG['col_width']
+        self._col_width = None
         self._first_col = 0
         self._visible_cols = 0
 
@@ -153,17 +153,47 @@ class View(QWidget):
                 cr.set_px_per_beat(self._px_per_beat)
             self._set_pattern_heights()
 
-            # Adjust view position so that edit cursor maintains its height
+            # Adjust vertical position so that edit cursor maintains its height
             new_cursor_offset = (self._get_row_offset(location) or 0) - orig_px_offset
             offset_diff = new_cursor_offset - old_cursor_offset
-            QObject.emit(self, SIGNAL('scroll(QString)'), str(offset_diff))
+            QObject.emit(self, SIGNAL('scroll(QString, int)'), str(offset_diff), 0)
 
     def set_column_width(self, col_width):
         if self._col_width != col_width:
             self._col_width = col_width
+            max_visible_cols = utils.get_max_visible_cols(self.width(), self._col_width)
+            first_col = utils.clamp_start_col(self._first_col, max_visible_cols)
+            visible_cols = utils.get_visible_cols(first_col, max_visible_cols)
+
+            self._first_col = first_col
+            self._visible_cols = visible_cols
+
             for cr in self._col_rends:
                 cr.set_width(self._col_width)
             self.update()
+
+            # Adjust horizontal position so that edit cursor is visible
+            location = TriggerPosition(0, 0, 0, tstamp.Tstamp(0), 0)
+            if self._ui_model:
+                selection = self._ui_model.get_selection()
+                location = selection.get_location() or location
+            edit_col_num = location.get_col_num()
+
+            new_first_col = self._first_col
+            x_offset = self._get_col_offset(edit_col_num)
+            if x_offset < 0:
+                new_first_col = edit_col_num
+            elif x_offset + self._col_width > self.width():
+                new_first_col = edit_col_num - (self.width() // self._col_width) + 1
+
+            max_visible_cols = utils.get_max_visible_cols(self.width(), self._col_width)
+            new_first_col = utils.clamp_start_col(new_first_col, max_visible_cols)
+
+            QObject.emit(
+                    self,
+                    SIGNAL('followCursor(QString, int)'),
+                    str(self._px_offset),
+                    new_first_col)
 
     def _get_col_offset(self, col_num):
         max_visible_cols = utils.get_max_visible_cols(self.width(), self._col_width)
