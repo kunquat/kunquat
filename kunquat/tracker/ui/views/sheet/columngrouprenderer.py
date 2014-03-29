@@ -182,11 +182,12 @@ class ColumnGroupRenderer():
         else:
             # Fill trailing blank
             painter.setBackground(self._config['canvas_bg_colour'])
-            painter.eraseRect(
-                    QRect(
-                        0, rel_end_height,
-                        self._width, height - rel_end_height)
-                    )
+            if rel_end_height < height:
+                painter.eraseRect(
+                        QRect(
+                            0, rel_end_height,
+                            self._width, height - rel_end_height)
+                        )
 
             # Draw trigger row that extends beyond the last pattern
             if overlap:
