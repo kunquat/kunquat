@@ -118,6 +118,10 @@ class Sheet(QAbstractScrollArea):
                 self.viewport(),
                 SIGNAL('zoom(int)'),
                 self._zoom)
+        QObject.connect(
+                self.viewport(),
+                SIGNAL('changeColumnWidth(int)'),
+                self._change_column_width)
 
     def set_ui_model(self, ui_model):
         self._ruler.set_ui_model(ui_model)
@@ -244,6 +248,15 @@ class Sheet(QAbstractScrollArea):
             self._cur_zoom_index = min(max(0, new_index), len(self._zoom_levels) - 1)
 
         self._update_px_per_beat(self._zoom_levels[self._cur_zoom_index])
+
+    def _change_column_width(self, update):
+        if update == 0:
+            self._col_width = self._config['col_width']
+        else:
+            self._col_width += update * 10 # TODO: figure out step and limits
+
+        self._header.set_column_width(self._col_width)
+        self.viewport().set_column_width(self._col_width)
 
     def _scroll_from_view(self, diff_str):
         diff = long(diff_str)

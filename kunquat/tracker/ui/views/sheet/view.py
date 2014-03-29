@@ -34,6 +34,7 @@ class View(QWidget):
     followCursor = pyqtSignal(str, int, name='followCursor')
     scroll = pyqtSignal(str, name='scroll')
     zoom = pyqtSignal(int, name='zoom')
+    changeColumnWidth = pyqtSignal(int, name='changeColumnWidth')
 
     def __init__(self):
         QWidget.__init__(self)
@@ -156,6 +157,13 @@ class View(QWidget):
             new_cursor_offset = (self._get_row_offset(location) or 0) - orig_px_offset
             offset_diff = new_cursor_offset - old_cursor_offset
             QObject.emit(self, SIGNAL('scroll(QString)'), str(offset_diff))
+
+    def set_column_width(self, col_width):
+        if self._col_width != col_width:
+            self._col_width = col_width
+            for cr in self._col_rends:
+                cr.set_width(self._col_width)
+            self.update()
 
     def _get_col_offset(self, col_num):
         max_visible_cols = utils.get_max_visible_cols(self.width(), self._col_width)
@@ -666,6 +674,14 @@ class View(QWidget):
                 QObject.emit(self, SIGNAL('zoom(int)'), 1)
             elif ev.key() == Qt.Key_0:
                 QObject.emit(self, SIGNAL('zoom(int)'), 0)
+
+        if ev.modifiers() == (Qt.ControlModifier | Qt.AltModifier):
+            if ev.key() == Qt.Key_Minus:
+                QObject.emit(self, SIGNAL('changeColumnWidth(int)'), -1)
+            elif ev.key() == Qt.Key_Plus:
+                QObject.emit(self, SIGNAL('changeColumnWidth(int)'), 1)
+            elif ev.key() == Qt.Key_0:
+                QObject.emit(self, SIGNAL('changeColumnWidth(int)'), 0)
 
     def keyReleaseEvent(self, ev):
         if ev.isAutoRepeat():

@@ -56,6 +56,7 @@ class ColumnGroupRenderer():
     def set_width(self, width):
         if self._width != width:
             self._width = width
+            self._sync_caches()
 
     def set_columns(self, columns):
         self._columns = columns
