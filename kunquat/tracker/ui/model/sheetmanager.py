@@ -43,4 +43,22 @@ class SheetManager():
     def get_zoom_range(self):
         return self._session.get_sheet_zoom_range()
 
+    def set_column_width(self, width):
+        old_width = self._session.get_sheet_column_width()
+        self._session.set_sheet_column_width(width)
+        if self._session.get_sheet_column_width() != old_width:
+            self._updater.signal_update(set(['signal_sheet_column_width']))
+
+    def set_column_width_range(self, minimum, maximum):
+        old_width = self._session.get_sheet_column_width()
+        self._session.set_sheet_column_width_range(minimum, maximum)
+        if self._session.get_sheet_column_width() != old_width:
+            self._updater.signal_update(set(['signal_sheet_column_width']))
+
+    def get_column_width(self):
+        return self._session.get_sheet_column_width()
+
+    def get_column_width_range(self):
+        return self._session.get_sheet_column_width_range()
+
 
