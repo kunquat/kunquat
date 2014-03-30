@@ -63,7 +63,6 @@ class View(QWidget):
         self._cur_column = None
 
         self._target_trigger_index = 0
-        self._field_index = 0
         self._trow_px_offset = 0
 
     def set_ui_model(self, ui_model):
@@ -173,13 +172,9 @@ class View(QWidget):
 
         return None
 
-    def _get_init_trigger_row_width(self, rends, trigger_index, field_index):
+    def _get_init_trigger_row_width(self, rends, trigger_index):
         total_width = sum(islice(
                 (r.get_total_width() for r in rends), 0, trigger_index))
-        if trigger_index < len(rends) and field_index > 0:
-            renderer = rends[trigger_index]
-            offset, width = renderer.get_field_bounds(field_index - 1)
-            total_width += offset + width
         return total_width
 
     def _follow_trigger_row(self, location):
@@ -207,7 +202,7 @@ class View(QWidget):
                 row_width = sum(r.get_total_width() for r in rends)
 
                 init_trigger_row_width = self._get_init_trigger_row_width(
-                        rends, trigger_index, self._field_index)
+                        rends, trigger_index)
 
                 trigger_padding = self._config['trigger']['padding']
 
@@ -223,14 +218,11 @@ class View(QWidget):
                     renderer = TriggerRenderer(
                             self._config, triggers[trigger_index], notation)
                     # TODO: revisit field bounds handling, this is messy
-                    _, width = renderer.get_field_bounds(self._field_index)
-                    field_width = width + trigger_padding * 2
-                    if self._field_index == 0:
-                        field_width += trigger_padding
+                    trigger_width = renderer.get_total_width()
                 else:
-                    field_width = trail_width
+                    trigger_width = trail_width
                 min_offset = max(0,
-                        init_trigger_row_width - self._col_width + field_width)
+                        init_trigger_row_width - self._col_width + trigger_width)
 
                 # Final offset
                 self._trow_px_offset = min(max(
@@ -373,9 +365,7 @@ class View(QWidget):
 
         for i, trigger, renderer in izip(xrange(len(triggers)), triggers, rends):
             # Identify selected field
-            select = None
-            if i == trigger_index:
-                select = self._field_index
+            select = (i == trigger_index)
 
             # Render
             renderer.draw_trigger(painter, False, select)
@@ -421,69 +411,40 @@ class View(QWidget):
             self._cur_column = cur_column
 
         if row_ts not in self._cur_column.get_trigger_row_positions():
-            # No triggers, just clear our target indices
+            # No triggers, just clear our target index
             self._target_trigger_index = 0
-            self._field_index = 0
             return
 
         notation = self._notation_manager.get_notation()
 
         if delta < 0:
-            if trigger_index >= self._cur_column.get_trigger_count_at_row(row_ts):
-                self._field_index = 0
-
-            self._field_index -= 1
-            if self._field_index < 0:
-                if trigger_index == 0:
-                    # Already at the start of the row
-                    self._target_trigger_index = 0
-                    self._field_index = 0
-                    return
-
-                # Previous trigger
-                prev_trigger_index = trigger_index - 1
-                prev_trigger = self._cur_column.get_trigger(row_ts, prev_trigger_index)
-                renderer = TriggerRenderer(self._config, prev_trigger, notation)
-                self._field_index = renderer.get_field_count() - 1
-
-                self._target_trigger_index = prev_trigger_index
-
-                new_location = TriggerPosition(
-                        track, system, col_num, row_ts, prev_trigger_index)
-                selection.set_location(new_location)
+            if trigger_index == 0:
+                # Already at the start of the row
+                self._target_trigger_index = 0
                 return
 
-            # Field changed, signal original location (for scrolling update)
-            self._target_trigger_index = trigger_index
-            selection.set_location(location)
+            # Previous trigger
+            prev_trigger_index = trigger_index - 1
+            self._target_trigger_index = prev_trigger_index
+
+            new_location = TriggerPosition(
+                    track, system, col_num, row_ts, prev_trigger_index)
+            selection.set_location(new_location)
             return
 
         elif delta > 0:
             if trigger_index >= self._cur_column.get_trigger_count_at_row(row_ts):
                 # Already at the end of the row
                 self._target_trigger_index = trigger_index
-                self._field_index = 0
                 return
 
-            self._field_index += 1
+            # Next trigger
+            next_trigger_index = trigger_index + 1
+            self._target_trigger_index = next_trigger_index
 
-            cur_trigger = self._cur_column.get_trigger(row_ts, trigger_index)
-            renderer = TriggerRenderer(self._config, cur_trigger, notation)
-            if self._field_index >= renderer.get_field_count():
-                # Next trigger
-                next_trigger_index = trigger_index + 1
-
-                self._field_index = 0
-                self._target_trigger_index = next_trigger_index
-
-                new_location = TriggerPosition(
-                        track, system, col_num, row_ts, next_trigger_index)
-                selection.set_location(new_location)
-                return
-
-            # Field changed, signal original location (for scrolling update)
-            self._target_trigger_index = trigger_index
-            selection.set_location(location)
+            new_location = TriggerPosition(
+                    track, system, col_num, row_ts, next_trigger_index)
+            selection.set_location(new_location)
             return
 
     def _move_edit_cursor_trigger_index(self, index):
@@ -512,8 +473,6 @@ class View(QWidget):
                 location.get_col_num(),
                 location.get_row_ts(),
                 new_trigger_index)
-
-        self._field_index = 0
 
         selection.set_location(new_location)
 
