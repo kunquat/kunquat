@@ -32,7 +32,6 @@ class View(QWidget):
 
     heightChanged = pyqtSignal(name='heightChanged')
     followCursor = pyqtSignal(str, int, name='followCursor')
-    scroll = pyqtSignal(str, int, name='scroll')
     changeColumnWidth = pyqtSignal(int, name='changeColumnWidth')
 
     def __init__(self):
@@ -157,7 +156,12 @@ class View(QWidget):
             # Adjust vertical position so that edit cursor maintains its height
             new_cursor_offset = (self._get_row_offset(location) or 0) - orig_px_offset
             offset_diff = new_cursor_offset - old_cursor_offset
-            QObject.emit(self, SIGNAL('scroll(QString, int)'), str(offset_diff), 0)
+            new_px_offset = orig_px_offset + offset_diff
+            QObject.emit(
+                    self,
+                    SIGNAL('followCursor(QString, int)'),
+                    str(new_px_offset),
+                    self._first_col)
 
     def set_column_width(self, col_width):
         if self._col_width != col_width:

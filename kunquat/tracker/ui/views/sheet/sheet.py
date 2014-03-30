@@ -113,10 +113,6 @@ class Sheet(QAbstractScrollArea):
                 self._follow_cursor)
         QObject.connect(
                 self.viewport(),
-                SIGNAL('scroll(QString, int)'),
-                self._scroll_from_view)
-        QObject.connect(
-                self.viewport(),
                 SIGNAL('changeColumnWidth(int)'),
                 self._change_column_width)
 
@@ -276,12 +272,6 @@ class Sheet(QAbstractScrollArea):
                 0, new_index), len(self._col_width_levels) - 1)
 
         self._update_column_width(self._col_width_levels[self._cur_col_width_index])
-
-    def _scroll_from_view(self, vdiff_str, hdiff):
-        vdiff = long(vdiff_str)
-        hvalue = self.horizontalScrollBar().value()
-        vvalue = self.verticalScrollBar().get_actual_value()
-        self._follow_cursor(vvalue + vdiff, hvalue + hdiff)
 
     def paintEvent(self, ev):
         self.viewport().paintEvent(ev)
