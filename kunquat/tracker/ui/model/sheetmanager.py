@@ -34,8 +34,10 @@ class SheetManager():
     def set_zoom_range(self, minimum, maximum):
         old_zoom = self._session.get_sheet_zoom()
         self._session.set_sheet_zoom_range(minimum, maximum)
+        signals = set(['signal_sheet_zoom_range'])
         if self._session.get_sheet_zoom() != old_zoom:
-            self._updater.signal_update(set(['signal_sheet_zoom']))
+            signals.add('signal_sheet_zoom')
+        self._updater.signal_update(signals)
 
     def get_zoom(self):
         return self._session.get_sheet_zoom()
