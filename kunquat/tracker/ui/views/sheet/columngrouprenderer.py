@@ -20,6 +20,7 @@ from PyQt4.QtGui import *
 import kunquat.tracker.ui.model.tstamp as tstamp
 from config import *
 import utils
+from buffercache import BufferCache
 from trigger_renderer import TriggerRenderer
 
 
@@ -221,7 +222,7 @@ class ColumnCache():
         self._col_num = col_num
         self._pat_num = pat_num
 
-        self._pixmaps = {}
+        self._pixmaps = BufferCache()
         self._pixmaps_created = 0
 
         self._tr_cache = TRCache()
@@ -231,7 +232,7 @@ class ColumnCache():
 
     def set_config(self, config):
         self._config = config
-        self._pixmaps = {}
+        self._pixmaps.flush()
         self._tr_cache.set_config(config)
 
     def set_ui_model(self, ui_model):
@@ -244,22 +245,17 @@ class ColumnCache():
     def set_width(self, width):
         if self._width != width:
             self._width = width
-            self._pixmaps = {}
+            self._pixmaps.flush()
 
     def set_px_per_beat(self, px_per_beat):
         assert px_per_beat > 0
         if self._px_per_beat != px_per_beat:
             self._px_per_beat = px_per_beat
-            self._pixmaps = {}
+            self._pixmaps.flush()
 
     def get_memory_usage(self):
         tr_memory_usage = self._tr_cache.get_memory_usage()
-        for pixmap in self._pixmaps.values():
-            bpp = pixmap.depth()
-            px_per_map = self._width * ColumnCache.PIXMAP_HEIGHT
-            return tr_memory_usage + len(self._pixmaps) * px_per_map * (bpp // 8)
-        else:
-            return tr_memory_usage
+        return self._pixmaps.get_memory_usage() + tr_memory_usage
 
     def iter_pixmaps(self, start_px, height_px):
         assert start_px >= 0
@@ -360,13 +356,13 @@ class ColumnCache():
 class TRCache():
 
     def __init__(self):
-        self._images = {}
+        self._images = BufferCache()
         self._ui_model = None
         self._notation_manager = None
 
     def set_config(self, config):
         self._config = config
-        self._images = {}
+        self._images.flush()
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -374,7 +370,7 @@ class TRCache():
 
     def set_triggers(self, column):
         self._rows = self._build_trigger_rows(column)
-        self._images = {} # TODO: only remove out-of-date images
+        self._images.flush() # TODO: only remove out-of-date images
 
     def _build_trigger_rows(self, column):
         trs = {}
@@ -408,10 +404,7 @@ class TRCache():
                 images_created, 's' if images_created != 1 else ''))
 
     def get_memory_usage(self):
-        total_byte_count = 0
-        for image in self._images.values():
-            total_byte_count += image.byteCount()
-        return total_byte_count
+        return self._images.get_memory_usage()
 
     def _create_image(self, triggers):
         notation = self._notation_manager.get_notation()
