@@ -32,7 +32,6 @@ class View(QWidget):
 
     heightChanged = pyqtSignal(name='heightChanged')
     followCursor = pyqtSignal(str, int, name='followCursor')
-    changeColumnWidth = pyqtSignal(int, name='changeColumnWidth')
 
     def __init__(self):
         QWidget.__init__(self)
@@ -707,11 +706,13 @@ class View(QWidget):
 
         if ev.modifiers() == (Qt.ControlModifier | Qt.AltModifier):
             if ev.key() == Qt.Key_Minus:
-                QObject.emit(self, SIGNAL('changeColumnWidth(int)'), -1)
+                self._sheet_manager.set_column_width(
+                        self._sheet_manager.get_column_width() - 1)
             elif ev.key() == Qt.Key_Plus:
-                QObject.emit(self, SIGNAL('changeColumnWidth(int)'), 1)
+                self._sheet_manager.set_column_width(
+                        self._sheet_manager.get_column_width() + 1)
             elif ev.key() == Qt.Key_0:
-                QObject.emit(self, SIGNAL('changeColumnWidth(int)'), 0)
+                self._sheet_manager.set_column_width(0)
 
     def keyReleaseEvent(self, ev):
         if ev.isAutoRepeat():
