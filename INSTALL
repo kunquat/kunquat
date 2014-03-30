@@ -1,8 +1,9 @@
 On a relatively recent Ubuntu system you should be able to install and try out Kunquat by doing the following:
 
-sudo -k apt-get install build-essential scons libwavpack-dev libpulse-dev python-qt4 check libsndfile1-dev
-scons
-scons prefix=~/kunquat install
+sudo -k apt-get install build-essential libwavpack-dev libpulse-dev python-qt4 check libsndfile1-dev
+./get_build_support.sh
+./make.py
+./make.py --prefix=~/kunquat install
 export LD_LIBRARY_PATH=~/kunquat/lib
 export PYTHONPATH=~/kunquat/lib/python2.7/site-packages
 ~/kunquat/bin/kunquat-tracker
