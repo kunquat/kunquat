@@ -247,6 +247,10 @@ class ColumnCache():
             self._width = width
             self._pixmaps.flush()
 
+            # Keep roughly 4 screens of pixmaps cached
+            memory_limit = 4 * (4 * width * 1600)
+            self._pixmaps.set_memory_limit(memory_limit)
+
     def set_px_per_beat(self, px_per_beat):
         assert px_per_beat > 0
         if self._px_per_beat != px_per_beat:
@@ -271,8 +275,11 @@ class ColumnCache():
 
         for i in xrange(start_index, stop_index):
             if i not in self._pixmaps:
-                self._pixmaps[i] = self._create_pixmap(i)
+                pixmap = self._create_pixmap(i)
+                self._pixmaps[i] = pixmap
                 self._pixmaps_created += 1
+            else:
+                pixmap = self._pixmaps[i]
 
             rect = utils.get_pixmap_rect(
                     i,
@@ -280,7 +287,7 @@ class ColumnCache():
                     self._width,
                     ColumnCache.PIXMAP_HEIGHT)
 
-            yield (rect, self._pixmaps[i])
+            yield (rect, pixmap)
 
     def get_pixmaps_created(self):
         return self._pixmaps_created
@@ -394,10 +401,15 @@ class TRCache():
                 continue
             elif ts >= stop_ts:
                 break
+
             if ts not in self._images:
-                self._images[ts] = self._create_image(triggers)
+                image = self._create_image(triggers)
+                self._images[ts] = image
                 images_created += 1
-            yield (ts, self._images[ts], next_ts)
+            else:
+                image = self._images[ts]
+
+            yield (ts, image, next_ts)
 
         if images_created > 0:
             print('{} trigger row image{} created'.format(

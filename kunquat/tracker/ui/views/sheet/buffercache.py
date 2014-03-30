@@ -22,15 +22,17 @@ class BufferCache(MutableMapping):
 
     def __init__(self):
         self.flush()
-        self._memory_bound = float('inf')
+        self._memory_limit = float('inf')
+        self._reduce_ahead = 0
 
     def flush(self):
         self._items = {}
         self._access_counter = count()
         self._item_mem = None
 
-    def set_memory_bound(self, bound):
-        self._memory_bound = bound
+    def set_memory_limit(self, limit, reduce_ahead=0.5):
+        self._memory_limit = limit
+        self._reduce_ahead = min(max(0, reduce_ahead), 1)
 
     def get_memory_usage(self):
         if not self._item_mem:
@@ -38,9 +40,11 @@ class BufferCache(MutableMapping):
         return self._item_mem * len(self._items)
 
     def _limit_memory_usage(self):
-        amount_to_free = self.get_memory_usage() - self._memory_bound
+        amount_to_free = self.get_memory_usage() - self._memory_limit
         if amount_to_free <= 0:
             return
+
+        amount_to_free += self._memory_limit * self._reduce_ahead
 
         items_by_age = sorted(self._items.iteritems(), key=lambda item: item[1][0])
         for key, _ in items_by_age:
