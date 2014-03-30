@@ -99,7 +99,6 @@ class ColumnGroupRenderer():
     def set_px_offset(self, px_offset):
         if self._px_offset != px_offset:
             self._px_offset = px_offset
-            self._sync_caches()
 
     def get_memory_usage(self):
         try:
