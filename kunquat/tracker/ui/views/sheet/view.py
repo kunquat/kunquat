@@ -581,7 +581,9 @@ class View(QWidget):
 
         # Check moving to the previous system
         if px_delta < 0 and row_ts == 0:
-            if track > 0 or system > 0:
+            if track == 0 and system == 0:
+                return
+            else:
                 new_track = track
                 new_system = system - 1
                 new_song = album.get_song_by_track(new_track)
@@ -592,18 +594,11 @@ class View(QWidget):
                 new_pattern = new_song.get_pattern_instance(new_system).get_pattern()
                 pat_height = utils.get_pat_height(
                         new_pattern.get_length(), self._px_per_beat)
-                new_ts = utils.get_tstamp_from_px(
-                        pat_height + px_delta, self._px_per_beat)
-                new_ts = max(tstamp.Tstamp(0), new_ts)
-                assert new_ts <= new_pattern.get_length()
+                new_ts = new_pattern.get_length()
 
-                trigger_index = self._clamp_trigger_index(
-                        self._cur_column, new_ts, self._target_trigger_index)
-                new_location = TriggerPosition(
-                        new_track, new_system, col_num, new_ts, trigger_index)
-                selection.set_location(new_location)
-
-            return
+                track = new_track
+                system = new_system
+                row_ts = new_ts
 
         # Get default trigger tstamp on the current pixel position
         cur_px_offset = utils.get_px_from_tstamp(row_ts, self._px_per_beat)
