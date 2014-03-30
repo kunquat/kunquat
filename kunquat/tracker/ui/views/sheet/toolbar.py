@@ -14,31 +14,32 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from sheetarea import SheetArea
-from toolbar import Toolbar
+from zoombutton import ZoomButton
 
 
-class Sheet(QWidget):
+class Toolbar(QWidget):
 
     def __init__(self):
         QWidget.__init__(self)
         self._ui_model = None
-        self._toolbar = Toolbar()
-        self._sheet_area = SheetArea()
+        self._zoom_buttons = [
+                ZoomButton('in'),
+                ZoomButton('original'),
+                ZoomButton('out')
+            ]
 
-        v = QVBoxLayout()
-        v.setMargin(0)
-        v.addWidget(self._toolbar)
-        v.addWidget(self._sheet_area)
-        self.setLayout(v)
+        h = QHBoxLayout()
+        for button in self._zoom_buttons:
+            h.addWidget(button)
+        self.setLayout(h)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
-        self._toolbar.set_ui_model(ui_model)
-        self._sheet_area.set_ui_model(ui_model)
+        for button in self._zoom_buttons:
+            button.set_ui_model(ui_model)
 
     def unregister_updaters(self):
-        self._sheet_area.unregister_updaters()
-        self._toolbar.unregister_updaters()
+        for button in self._zoom_buttons:
+            button.unregister_updaters()
 
 
