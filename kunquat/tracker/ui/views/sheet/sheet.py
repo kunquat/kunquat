@@ -72,6 +72,9 @@ class Sheet(QAbstractScrollArea):
     def __init__(self, config={}):
         QAbstractScrollArea.__init__(self)
 
+        self._ui_model = None
+        self._updater = None
+
         # Widgets
         self.setViewport(View())
 
@@ -114,20 +117,36 @@ class Sheet(QAbstractScrollArea):
                 self._scroll_from_view)
         QObject.connect(
                 self.viewport(),
-                SIGNAL('zoom(int)'),
-                self._zoom)
-        QObject.connect(
-                self.viewport(),
                 SIGNAL('changeColumnWidth(int)'),
                 self._change_column_width)
 
     def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+        self._sheet_manager = ui_model.get_sheet_manager()
+
+        # Default zoom level
+        px_per_beat = self._config['trs_per_beat'] * self._config['tr_height']
+        self._zoom_levels = self._get_zoom_levels(1, px_per_beat, tstamp.BEAT)
+        self._default_zoom_index = self._zoom_levels.index(px_per_beat)
+        self._update_px_per_beat(self._zoom_levels[self._default_zoom_index])
+        self._sheet_manager.set_zoom_range(
+                -self._default_zoom_index,
+                len(self._zoom_levels) - self._default_zoom_index - 1)
+
+        # Child widgets
         self._ruler.set_ui_model(ui_model)
         self.viewport().set_ui_model(ui_model)
 
     def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
         self._ruler.unregister_updaters()
         self.viewport().unregister_updaters()
+
+    def _perform_updates(self, signals):
+        if 'signal_sheet_zoom' in signals:
+            self._update_zoom()
 
     def _set_config(self, config):
         self._config = DEFAULT_CONFIG.copy()
@@ -160,15 +179,6 @@ class Sheet(QAbstractScrollArea):
         self._config['tr_height'] = fm.tightBoundingRect('Ag').height() + 1
 
         self.viewport().set_config(self._config)
-
-        # Default zoom level
-        px_per_beat = self._config['trs_per_beat'] * self._config['tr_height']
-
-        self._zoom_levels = self._get_zoom_levels(1, px_per_beat, tstamp.BEAT)
-        self._cur_zoom_index = self._zoom_levels.index(px_per_beat)
-        self._default_zoom_index = self._cur_zoom_index
-
-        self._update_px_per_beat(self._zoom_levels[self._cur_zoom_index])
 
         # Default column width
         em_px = int(math.ceil(fm.tightBoundingRect('m').width()))
@@ -252,15 +262,10 @@ class Sheet(QAbstractScrollArea):
                 # Position not changed, so just update our viewport
                 self.viewport().update()
 
-    def _zoom(self, update):
-        assert self._zoom_levels
-        if update == 0:
-            self._cur_zoom_index = self._default_zoom_index
-        else:
-            new_index = self._cur_zoom_index + update
-            self._cur_zoom_index = min(max(0, new_index), len(self._zoom_levels) - 1)
-
-        self._update_px_per_beat(self._zoom_levels[self._cur_zoom_index])
+    def _update_zoom(self):
+        zoom_level = self._sheet_manager.get_zoom()
+        cur_zoom_index = zoom_level + self._default_zoom_index
+        self._update_px_per_beat(self._zoom_levels[cur_zoom_index])
 
     def _change_column_width(self, update):
         if update == 0:

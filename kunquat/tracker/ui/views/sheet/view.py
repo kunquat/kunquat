@@ -33,7 +33,6 @@ class View(QWidget):
     heightChanged = pyqtSignal(name='heightChanged')
     followCursor = pyqtSignal(str, int, name='followCursor')
     scroll = pyqtSignal(str, int, name='scroll')
-    zoom = pyqtSignal(int, name='zoom')
     changeColumnWidth = pyqtSignal(int, name='changeColumnWidth')
 
     def __init__(self):
@@ -41,6 +40,7 @@ class View(QWidget):
 
         self._ui_model = None
         self._updater = None
+        self._sheet_manager = None
         self._notation_manager = None
 
         self.setAutoFillBackground(False)
@@ -72,6 +72,7 @@ class View(QWidget):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
+        self._sheet_manager = ui_model.get_sheet_manager()
         self._notation_manager = ui_model.get_notation_manager()
         for cr in self._col_rends:
             cr.set_ui_model(ui_model)
@@ -694,11 +695,11 @@ class View(QWidget):
 
         if ev.modifiers() == Qt.ControlModifier:
             if ev.key() == Qt.Key_Minus:
-                QObject.emit(self, SIGNAL('zoom(int)'), -1)
+                self._sheet_manager.set_zoom(self._sheet_manager.get_zoom() - 1)
             elif ev.key() == Qt.Key_Plus:
-                QObject.emit(self, SIGNAL('zoom(int)'), 1)
+                self._sheet_manager.set_zoom(self._sheet_manager.get_zoom() + 1)
             elif ev.key() == Qt.Key_0:
-                QObject.emit(self, SIGNAL('zoom(int)'), 0)
+                self._sheet_manager.set_zoom(0)
 
         if ev.modifiers() == (Qt.ControlModifier | Qt.AltModifier):
             if ev.key() == Qt.Key_Minus:
