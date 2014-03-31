@@ -153,8 +153,7 @@ class View(QWidget):
             self._set_pattern_heights()
 
             # Adjust vertical position so that edit cursor maintains its height
-            self._px_offset = 0
-            new_cursor_offset = self._get_row_offset(location) or 0
+            new_cursor_offset = self._get_row_offset(location, absolute=True) or 0
             new_px_offset = new_cursor_offset - orig_relative_offset
             QObject.emit(
                     self,
@@ -204,7 +203,9 @@ class View(QWidget):
         first_col = utils.clamp_start_col(self._first_col, max_visible_cols)
         return (col_num - first_col) * self._col_width
 
-    def _get_row_offset(self, location):
+    def _get_row_offset(self, location, absolute=False):
+        ref_offset = 0 if absolute else self._px_offset
+
         # Get location components
         track = location.get_track()
         system = location.get_system()
@@ -223,7 +224,7 @@ class View(QWidget):
 
         for pattern, start_height in izip(self._patterns, self._start_heights):
             if cur_pattern == pattern:
-                start_px = start_height - self._px_offset
+                start_px = start_height - ref_offset
                 location_from_start_px = (
                         (row_ts.beats * tstamp.BEAT + row_ts.rem) *
                         self._px_per_beat) // tstamp.BEAT
