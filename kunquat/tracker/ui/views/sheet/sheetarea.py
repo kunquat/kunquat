@@ -136,8 +136,8 @@ class SheetArea(QAbstractScrollArea):
                 -self._default_col_width_index,
                 len(self._col_width_levels) - self._default_col_width_index - 1)
 
-        self._update_px_per_beat(self._zoom_levels[self._default_zoom_index])
-        self._update_column_width(self._col_width_levels[self._default_col_width_index])
+        self._set_px_per_beat(self._zoom_levels[self._default_zoom_index])
+        self._set_column_width(self._col_width_levels[self._default_col_width_index])
 
         # Child widgets
         self._ruler.set_ui_model(ui_model)
@@ -152,7 +152,7 @@ class SheetArea(QAbstractScrollArea):
         if 'signal_sheet_zoom' in signals:
             self._update_zoom()
         if 'signal_sheet_column_width' in signals:
-            self._update_column_width_change()
+            self._update_column_width()
 
     def _set_config(self, config):
         self._config = DEFAULT_CONFIG.copy()
@@ -214,11 +214,11 @@ class SheetArea(QAbstractScrollArea):
 
         return zoom_levels
 
-    def _update_px_per_beat(self, px_per_beat):
+    def _set_px_per_beat(self, px_per_beat):
         self._ruler.set_px_per_beat(px_per_beat)
         self.viewport().set_px_per_beat(px_per_beat)
 
-    def _update_column_width(self, width):
+    def _set_column_width(self, width):
         self._header.set_column_width(width)
         self.viewport().set_column_width(width)
 
@@ -265,12 +265,12 @@ class SheetArea(QAbstractScrollArea):
     def _update_zoom(self):
         zoom_level = self._sheet_manager.get_zoom()
         cur_zoom_index = zoom_level + self._default_zoom_index
-        self._update_px_per_beat(self._zoom_levels[cur_zoom_index])
+        self._set_px_per_beat(self._zoom_levels[cur_zoom_index])
 
-    def _update_column_width_change(self):
+    def _update_column_width(self):
         column_width_level = self._sheet_manager.get_column_width()
         cur_col_width_index = column_width_level + self._default_col_width_index
-        self._update_column_width(self._col_width_levels[cur_col_width_index])
+        self._set_column_width(self._col_width_levels[cur_col_width_index])
 
     def paintEvent(self, ev):
         self.viewport().paintEvent(ev)
