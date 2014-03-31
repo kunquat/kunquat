@@ -578,17 +578,14 @@ class View(QWidget):
         row_ts = location.get_row_ts()
         trigger_index = location.get_trigger_index()
 
-        cur_song = album.get_song_by_track(track)
-        cur_pattern = cur_song.get_pattern_instance(system).get_pattern()
-        cur_column = cur_pattern.get_column(col_num)
-        if not self._cur_column or (self._cur_column != cur_column):
-            self._cur_column = cur_column
-
         # Check moving to the previous system
+        move_to_previous_system = False
         if px_delta < 0 and row_ts == 0:
             if track == 0 and system == 0:
                 return
             else:
+                move_to_previous_system = True
+
                 new_track = track
                 new_system = system - 1
                 new_song = album.get_song_by_track(new_track)
@@ -605,6 +602,12 @@ class View(QWidget):
                 system = new_system
                 row_ts = new_ts
 
+        cur_song = album.get_song_by_track(track)
+        cur_pattern = cur_song.get_pattern_instance(system).get_pattern()
+        cur_column = cur_pattern.get_column(col_num)
+        if not self._cur_column or (self._cur_column != cur_column):
+            self._cur_column = cur_column
+
         # Get default trigger tstamp on the current pixel position
         cur_px_offset = utils.get_px_from_tstamp(row_ts, self._px_per_beat)
         def_ts = utils.get_tstamp_from_px(cur_px_offset, self._px_per_beat)
@@ -619,7 +622,8 @@ class View(QWidget):
         move_range_start = min(new_ts, row_ts)
         move_range_stop = max(new_ts, row_ts) + tstamp.Tstamp(0, 1)
         if px_delta < 0:
-            move_range_stop -= tstamp.Tstamp(0, 1)
+            if not move_to_previous_system:
+                move_range_stop -= tstamp.Tstamp(0, 1)
         else:
             move_range_start += tstamp.Tstamp(0, 1)
 
