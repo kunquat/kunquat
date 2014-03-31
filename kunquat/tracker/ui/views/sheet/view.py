@@ -144,7 +144,7 @@ class View(QWidget):
                 selection = self._ui_model.get_selection()
                 location = selection.get_location() or location
             orig_px_offset = self._px_offset
-            old_cursor_offset = (self._get_row_offset(location) or 0) - orig_px_offset
+            orig_relative_offset = self._get_row_offset(location) or 0
 
             # Update internal state
             self._px_per_beat = px_per_beat
@@ -153,9 +153,9 @@ class View(QWidget):
             self._set_pattern_heights()
 
             # Adjust vertical position so that edit cursor maintains its height
-            new_cursor_offset = (self._get_row_offset(location) or 0) - orig_px_offset
-            offset_diff = new_cursor_offset - old_cursor_offset
-            new_px_offset = orig_px_offset + offset_diff
+            self._px_offset = 0
+            new_cursor_offset = self._get_row_offset(location) or 0
+            new_px_offset = new_cursor_offset - orig_relative_offset
             QObject.emit(
                     self,
                     SIGNAL('followCursor(QString, int)'),
