@@ -18,8 +18,6 @@ class SheetManager():
         self._session = None
         self._updater = None
 
-        self
-
     def set_controller(self, controller):
         self._controller = controller
         self._session = controller.get_session()
