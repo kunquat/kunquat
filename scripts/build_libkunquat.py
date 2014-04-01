@@ -74,7 +74,6 @@ def build_libkunquat(builder, options, cc):
     # TODO: clean up code so that subdirectories inside src/lib are not needed
     include_dirs = [
             os.path.join('src', 'lib'),
-            os.path.join('src', 'lib', 'events'),
             os.path.join('src', 'lib', 'generators'),
             os.path.join('src', 'lib', 'dsps'),
             os.path.join('src', 'include')

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -26,43 +26,43 @@ typedef enum
 
     Event_control_START,
 #define EVENT_TYPE_DEF(type) Event_control_##type,
-#include <events/Event_control_types.h>
+#include <player/events/Event_control_types.h>
     Event_control_STOP,
 
     Event_general_START,
 #define EVENT_TYPE_DEF(type) Event_general_##type,
-#include <events/Event_general_types.h>
+#include <player/events/Event_general_types.h>
     Event_general_STOP,
 
     Event_master_START,
 #define EVENT_TYPE_DEF(type) Event_master_##type,
-#include <events/Event_master_types.h>
+#include <player/events/Event_master_types.h>
 
     Event_master_STOP,
 
     Event_channel_START,
 #define EVENT_TYPE_DEF(type) Event_channel_##type,
-#include <events/Event_channel_types.h>
+#include <player/events/Event_channel_types.h>
     Event_channel_STOP,
 
     Event_ins_START,
 #define EVENT_TYPE_DEF(type) Event_ins_##type,
-#include <events/Event_ins_types.h>
+#include <player/events/Event_ins_types.h>
     Event_ins_STOP,
 
     Event_generator_START,
 #define EVENT_TYPE_DEF(type) Event_generator_##type,
-#include <events/Event_generator_types.h>
+#include <player/events/Event_generator_types.h>
     Event_generator_STOP,
 
     Event_effect_START,
 #define EVENT_TYPE_DEF(type) Event_effect_##type,
-#include <events/Event_effect_types.h>
+#include <player/events/Event_effect_types.h>
     Event_effect_STOP,
 
     Event_dsp_START,
 #define EVENT_TYPE_DEF(type) Event_dsp_##type,
-#include <events/Event_dsp_types.h>
+#include <player/events/Event_dsp_types.h>
     Event_dsp_STOP,
 
     Event_query_START,

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -33,14 +33,14 @@
 #include <string_common.h>
 #include <Value.h>
 
-#include <events/Event_control_decl.h>
-#include <events/Event_general_decl.h>
-#include <events/Event_master_decl.h>
-#include <events/Event_channel_decl.h>
-#include <events/Event_ins_decl.h>
-#include <events/Event_generator_decl.h>
-#include <events/Event_effect_decl.h>
-#include <events/Event_dsp_decl.h>
+#include <player/events/Event_control_decl.h>
+#include <player/events/Event_general_decl.h>
+#include <player/events/Event_master_decl.h>
+#include <player/events/Event_channel_decl.h>
+#include <player/events/Event_ins_decl.h>
+#include <player/events/Event_generator_decl.h>
+#include <player/events/Event_effect_decl.h>
+#include <player/events/Event_dsp_decl.h>
 
 #include <memory.h>
 #include <xassert.h>
@@ -108,35 +108,35 @@ Event_handler* new_Event_handler(
 
 #define EVENT_TYPE_DEF(type) Event_handler_set_control_process( \
         eh, Event_control_##type, Event_control_##type##_process);
-#include <events/Event_control_types.h>
+#include <player/events/Event_control_types.h>
 
 #define EVENT_TYPE_DEF(type) Event_handler_set_general_process( \
         eh, Event_general_##type, Event_general_##type##_process);
-#include <events/Event_general_types.h>
+#include <player/events/Event_general_types.h>
 
 #define EVENT_TYPE_DEF(type) Event_handler_set_master_process( \
         eh, Event_master_##type, Event_master_##type##_process);
-#include <events/Event_master_types.h>
+#include <player/events/Event_master_types.h>
 
 #define EVENT_TYPE_DEF(type) Event_handler_set_ch_process( \
         eh, Event_channel_##type, Event_channel_##type##_process);
-#include <events/Event_channel_types.h>
+#include <player/events/Event_channel_types.h>
 
 #define EVENT_TYPE_DEF(type) Event_handler_set_ins_process( \
         eh, Event_ins_##type, Event_ins_##type##_process);
-#include <events/Event_ins_types.h>
+#include <player/events/Event_ins_types.h>
 
 #define EVENT_TYPE_DEF(type) Event_handler_set_generator_process( \
         eh, Event_generator_##type, Event_generator_##type##_process);
-#include <events/Event_generator_types.h>
+#include <player/events/Event_generator_types.h>
 
 #define EVENT_TYPE_DEF(type) Event_handler_set_effect_process( \
         eh, Event_effect_##type, Event_effect_##type##_process);
-#include <events/Event_effect_types.h>
+#include <player/events/Event_effect_types.h>
 
 #define EVENT_TYPE_DEF(type) Event_handler_set_dsp_process( \
         eh, Event_dsp_##type, Event_dsp_##type##_process);
-#include <events/Event_dsp_types.h>
+#include <player/events/Event_dsp_types.h>
 
     return eh;
 }
