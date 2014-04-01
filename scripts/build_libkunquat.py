@@ -36,9 +36,9 @@ def build_libkunquat(builder, options, cc):
             if cc.compile(builder, src_path, out_path, echo=echo):
                 echo_prefix_list[0] = ''
 
-        # Recurse to subdirectories, excluding test directories
+        # Recurse to subdirectories
         subdir_names = sorted([name for name in os.listdir(src_dir)
-                if os.path.isdir(os.path.join(src_dir, name)) and name != 'test'])
+                if os.path.isdir(os.path.join(src_dir, name))])
         for name in subdir_names:
             sub_out_dir = os.path.join(out_dir, name)
             sub_src_dir = os.path.join(src_dir, name)
