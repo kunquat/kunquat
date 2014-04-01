@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -15,9 +15,9 @@
 #include <stdlib.h>
 #include <math.h>
 
+#include <devices/generators/Note_map.h>
 #include <memory.h>
 #include <pitch_t.h>
-#include <Note_map.h>
 #include <xassert.h>
 
 

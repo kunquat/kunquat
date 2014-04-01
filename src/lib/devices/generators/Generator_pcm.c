@@ -18,18 +18,18 @@
 #include <stdio.h>
 
 #include <containers/AAtree.h>
+#include <devices/generators/File_wavpack.h>
+#include <devices/generators/Generator_common.h>
+#include <devices/generators/Generator_pcm.h>
+#include <devices/generators/Hit_map.h>
+#include <devices/generators/Sample.h>
+#include <devices/generators/Sample_mix.h>
+#include <devices/generators/Voice_state_pcm.h>
 #include <Generator.h>
-#include <Generator_common.h>
-#include <Generator_pcm.h>
 #include <Device_params.h>
-#include <File_wavpack.h>
-#include <Hit_map.h>
 #include <memory.h>
 #include <pitch_t.h>
-#include <Sample.h>
-#include <Sample_mix.h>
 #include <string_common.h>
-#include <Voice_state_pcm.h>
 #include <xassert.h>
 
 

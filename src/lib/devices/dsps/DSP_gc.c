@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2014
  *
  * This file is part of Kunquat.
  *
@@ -20,9 +20,9 @@
 
 #include <Audio_buffer.h>
 #include <Device_impl.h>
+#include <devices/dsps/DSP_common.h>
+#include <devices/dsps/DSP_gc.h>
 #include <DSP.h>
-#include <DSP_common.h>
-#include <DSP_gc.h>
 #include <Envelope.h>
 #include <math_common.h>
 #include <memory.h>

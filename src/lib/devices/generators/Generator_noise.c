@@ -1,7 +1,7 @@
 
 
 /*
- * Authors: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Authors: Tomi Jylhä-Ollila, Finland 2010-2014
  *          Ossi Saresoja, Finland 2010
  *
  * This file is part of Kunquat.
@@ -19,15 +19,15 @@
 #include <string.h>
 #include <math.h>
 
+#include <devices/generators/Generator_common.h>
+#include <devices/generators/Generator_noise.h>
+#include <devices/generators/Voice_state_noise.h>
 #include <Generator.h>
-#include <Generator_common.h>
-#include <Generator_noise.h>
 #include <Device_params.h>
 #include <kunquat/limits.h>
 #include <math_common.h>
 #include <memory.h>
 #include <string_common.h>
-#include <Voice_state_noise.h>
 #include <xassert.h>
 
 

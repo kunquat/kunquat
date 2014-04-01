@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -19,13 +19,13 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include <devices/generators/Hit_map.h>
+#include <devices/generators/Note_map.h>
+#include <devices/generators/Sample.h>
+#include <devices/generators/Sample_params.h>
 #include <Envelope.h>
-#include <Hit_map.h>
 #include <Num_list.h>
 #include <Real.h>
-#include <Sample.h>
-#include <Sample_params.h>
-#include <Note_map.h>
 #include <Streader.h>
 #include <Tstamp.h>
 

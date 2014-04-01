@@ -22,11 +22,11 @@
 
 #include <containers/AAtree.h>
 #include <Decl.h>
+#include <devices/generators/Hit_map.h>
+#include <devices/generators/Note_map.h>
+#include <devices/generators/Sample.h>
 #include <Envelope.h>
 #include <player/Device_state.h>
-#include <generators/Hit_map.h>
-#include <generators/Sample.h>
-#include <generators/Note_map.h>
 #include <Num_list.h>
 #include <Tstamp.h>
 

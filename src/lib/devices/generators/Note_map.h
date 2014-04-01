@@ -19,8 +19,8 @@
 #include <stdint.h>
 
 #include <containers/AAtree.h>
+#include <devices/generators/Sample_entry.h>
 #include <Random.h>
-#include <Sample_entry.h>
 #include <Streader.h>
 
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2014
  *
  * This file is part of Kunquat.
  *
@@ -18,8 +18,8 @@
 
 #include <stdlib.h>
 
+#include <devices/generators/Sample_entry.h>
 #include <Random.h>
-#include <Sample_entry.h>
 #include <Streader.h>
 
 

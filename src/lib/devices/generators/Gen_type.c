@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -14,12 +14,12 @@
 
 #include <stdlib.h>
 
-#include <Gen_type.h>
-#include <Generator_debug.h>
-#include <Generator_add.h>
-#include <Generator_noise.h>
-#include <Generator_pcm.h>
-#include <Generator_pulse.h>
+#include <devices/generators/Gen_type.h>
+#include <devices/generators/Generator_debug.h>
+#include <devices/generators/Generator_add.h>
+#include <devices/generators/Generator_noise.h>
+#include <devices/generators/Generator_pcm.h>
+#include <devices/generators/Generator_pulse.h>
 #include <string_common.h>
 #include <xassert.h>
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2014
  *
  * This file is part of Kunquat.
  *
@@ -16,7 +16,7 @@
 #include <stdint.h>
 #include <math.h>
 
-#include <Sample_entry.h>
+#include <devices/generators/Sample_entry.h>
 #include <xassert.h>
 
 

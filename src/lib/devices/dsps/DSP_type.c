@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -14,13 +14,13 @@
 
 #include <stdlib.h>
 
-#include <DSP_type.h>
-#include <DSP_chorus.h>
-#include <DSP_conv.h>
-#include <DSP_delay.h>
-#include <DSP_freeverb.h>
-#include <DSP_gc.h>
-#include <DSP_volume.h>
+#include <devices/dsps/DSP_type.h>
+#include <devices/dsps/DSP_chorus.h>
+#include <devices/dsps/DSP_conv.h>
+#include <devices/dsps/DSP_delay.h>
+#include <devices/dsps/DSP_freeverb.h>
+#include <devices/dsps/DSP_gc.h>
+#include <devices/dsps/DSP_volume.h>
 #include <string_common.h>
 #include <xassert.h>
 

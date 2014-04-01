@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -19,9 +19,9 @@
 #include <math.h>
 
 #include <Device_impl.h>
+#include <devices/dsps/DSP_common.h>
+#include <devices/dsps/DSP_volume.h>
 #include <DSP.h>
-#include <DSP_common.h>
-#include <DSP_volume.h>
 #include <string_common.h>
 #include <memory.h>
 #include <xassert.h>

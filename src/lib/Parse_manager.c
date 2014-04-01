@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -23,9 +23,9 @@
 #include <Connections_search.h>
 #include <Device_event_keys.h>
 #include <Device_params.h>
-#include <DSP_type.h>
+#include <devices/dsps/DSP_type.h>
+#include <devices/generators/Gen_type.h>
 #include <Environment.h>
-#include <Gen_type.h>
 #include <Handle_private.h>
 #include <manifest.h>
 #include <memory.h>

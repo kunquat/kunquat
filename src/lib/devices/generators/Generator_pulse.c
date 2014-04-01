@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -18,14 +18,14 @@
 #include <math.h>
 #include <string.h>
 
-#include <Generator.h>
-#include <Generator_common.h>
 #include <Device_params.h>
-#include <Generator_pulse.h>
+#include <devices/generators/Generator_common.h>
+#include <devices/generators/Generator_pulse.h>
+#include <devices/generators/Voice_state_pulse.h>
+#include <Generator.h>
 #include <kunquat/limits.h>
 #include <memory.h>
 #include <string_common.h>
-#include <Voice_state_pulse.h>
 #include <xassert.h>
 
 

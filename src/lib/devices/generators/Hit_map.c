@@ -17,7 +17,7 @@
 #include <math.h>
 
 #include <containers/AAtree.h>
-#include <Hit_map.h>
+#include <devices/generators/Hit_map.h>
 #include <memory.h>
 #include <xassert.h>
 

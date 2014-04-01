@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -17,14 +17,12 @@
 
 
 #include <player/Voice_state.h>
-#include <Sample_params.h>
 
 
 typedef struct Voice_state_pcm
 {
     Voice_state parent;
     int sample;
-    //Sample_params params;
     double cents;
     double freq;
     double volume;

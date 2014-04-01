@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -17,7 +17,7 @@
 #include <string.h>
 
 #include <Device_field.h>
-#include <generators/File_wavpack.h>
+#include <devices/generators/File_wavpack.h>
 #include <memory.h>
 #include <string_common.h>
 #include <xassert.h>

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2014
  *
  * This file is part of Kunquat.
  *
@@ -20,9 +20,9 @@
 
 #include <Audio_buffer.h>
 #include <Device_impl.h>
+#include <devices/dsps/DSP_common.h>
+#include <devices/dsps/DSP_chorus.h>
 #include <DSP.h>
-#include <DSP_common.h>
-#include <DSP_chorus.h>
 #include <math_common.h>
 #include <memory.h>
 #include <player/LFO.h>
@@ -172,7 +172,7 @@ static void DSP_chorus_reset(const Device_impl* dimpl, Device_state* dstate);
         Device_impl* dimpl,                                \
         Device_key_indices indices,                        \
         double value);
-#include <dsps/DSP_chorus_params.h>
+#include <devices/dsps/DSP_chorus_params.h>
 
 
 #define CHORUS_PARAM(name, dev_key, update_key, def_value) \
@@ -181,7 +181,7 @@ static void DSP_chorus_reset(const Device_impl* dimpl, Device_state* dstate);
         Device_state* dstate,                              \
         Device_key_indices indices,                        \
         double value);
-#include <dsps/DSP_chorus_params.h>
+#include <devices/dsps/DSP_chorus_params.h>
 
 
 #define CHORUS_PARAM(name, dev_key, update_key, def_value) \
@@ -190,7 +190,7 @@ static void DSP_chorus_reset(const Device_impl* dimpl, Device_state* dstate);
         Device_state* dstate,                              \
         Device_key_indices indices,                        \
         double value);
-#include <dsps/DSP_chorus_params.h>
+#include <devices/dsps/DSP_chorus_params.h>
 
 
 static void DSP_chorus_clear_history(
@@ -245,14 +245,14 @@ Device_impl* new_DSP_chorus(DSP* dsp)
             def_value,                                     \
             DSP_chorus_set_voice_##name,                   \
             DSP_chorus_set_state_voice_##name);
-#include <dsps/DSP_chorus_params.h>
+#include <devices/dsps/DSP_chorus_params.h>
 
 #define CHORUS_PARAM(name, dev_key, update_key, def_value)  \
     reg_success &= Device_impl_register_update_state_float( \
             &chorus->parent,                                \
             update_key,                                     \
             DSP_chorus_update_state_voice_##name);
-#include <dsps/DSP_chorus_params.h>
+#include <devices/dsps/DSP_chorus_params.h>
 
     if (!reg_success)
     {
@@ -416,7 +416,7 @@ static double get_voice_volume(double value)
                                                                          \
         return true;                                                     \
     }
-#include <dsps/DSP_chorus_params.h>
+#include <devices/dsps/DSP_chorus_params.h>
 
 
 #define CHORUS_PARAM(name, dev_key, update_key, def_value)                   \
@@ -434,7 +434,7 @@ static double get_voice_volume(double value)
                                                                              \
         return true;                                                         \
     }
-#include <dsps/DSP_chorus_params.h>
+#include <devices/dsps/DSP_chorus_params.h>
 
 
 static void DSP_chorus_update_state_voice_delay(

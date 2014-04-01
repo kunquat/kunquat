@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -15,7 +15,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <Sample_params.h>
+#include <devices/generators/Sample_params.h>
 #include <string_common.h>
 #include <xassert.h>
 
