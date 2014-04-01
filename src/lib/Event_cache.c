@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2014
  *
  * This file is part of Kunquat.
  *
@@ -15,7 +15,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <AAtree.h>
+#include <containers/AAtree.h>
 #include <Event_cache.h>
 #include <Event_names.h>
 #include <Event_type.h>

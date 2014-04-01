@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -17,7 +17,7 @@
 #include <math.h>
 #include <stdio.h>
 
-#include <AAtree.h>
+#include <containers/AAtree.h>
 #include <Device_event_keys.h>
 #include <Device_field.h>
 #include <Device_params.h>

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2014
  *
  * This file is part of Kunquat.
  *
@@ -15,9 +15,9 @@
 #include <inttypes.h>
 #include <stdint.h>
 
+#include <containers/Vector.h>
 #include <memory.h>
 #include <Track_list.h>
-#include <Vector.h>
 #include <xassert.h>
 
 

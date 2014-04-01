@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -18,9 +18,9 @@
 
 #include <stdint.h>
 
-#include <AAtree.h>
 #include <Column.h>
 #include <Connections.h>
+#include <containers/AAtree.h>
 #include <Pat_inst_ref.h>
 #include <Streader.h>
 #include <Tstamp.h>

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2014
  *
  * This file is part of Kunquat.
  *
@@ -12,7 +12,7 @@
  */
 
 
-#include <AAtree.h>
+#include <containers/AAtree.h>
 #include <Input_map.h>
 #include <memory.h>
 #include <xassert.h>

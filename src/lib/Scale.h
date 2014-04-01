@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -16,10 +16,10 @@
 #define K_SCALE_H
 
 
+#include <containers/AAtree.h>
 #include <Real.h>
 #include <pitch_t.h>
 #include <kunquat/limits.h>
-#include <AAtree.h>
 #include <Streader.h>
 
 
