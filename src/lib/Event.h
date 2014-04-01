@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -20,9 +20,9 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include <Event_names.h>
-#include <Event_type.h>
 #include <kunquat/limits.h>
+#include <player/Event_names.h>
+#include <player/Event_type.h>
 #include <Streader.h>
 #include <Tstamp.h>
 

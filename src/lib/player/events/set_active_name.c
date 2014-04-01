@@ -14,12 +14,12 @@
 
 #include <stdbool.h>
 
-#include <Active_names.h>
 #include <Event.h>
-#include <Event_type.h>
-#include <General_state.h>
 #include <kunquat/limits.h>
+#include <player/Active_names.h>
+#include <player/Event_type.h>
 #include <player/events/set_active_name.h>
+#include <player/General_state.h>
 #include <Value.h>
 #include <xassert.h>
 

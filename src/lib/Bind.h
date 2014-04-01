@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2014
  *
  * This file is part of Kunquat.
  *
@@ -16,10 +16,10 @@
 #define K_BIND_H
 
 
-#include <Event_cache.h>
-#include <Event_names.h>
 #include <kunquat/limits.h>
 #include <player/Env_state.h>
+#include <player/Event_cache.h>
+#include <player/Event_names.h>
 #include <Random.h>
 #include <Streader.h>
 #include <Value.h>

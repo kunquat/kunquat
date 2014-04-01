@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -19,11 +19,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <Event_cache.h>
-#include <General_state.h>
 #include <kunquat/limits.h>
 #include <player/Channel_gen_state.h>
 #include <player/Env_state.h>
+#include <player/Event_cache.h>
+#include <player/General_state.h>
 #include <player/LFO.h>
 #include <player/Voice_pool.h>
 #include <Random.h>

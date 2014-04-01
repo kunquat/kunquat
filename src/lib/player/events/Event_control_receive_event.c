@@ -16,11 +16,11 @@
 #include <stdbool.h>
 
 #include <Event.h>
-#include <Event_names.h>
-#include <Event_type.h>
-#include <General_state.h>
+#include <player/Event_names.h>
+#include <player/Event_type.h>
 #include <player/events/Event_common.h>
 #include <player/events/Event_control_decl.h>
+#include <player/General_state.h>
 #include <Value.h>
 #include <xassert.h>
 

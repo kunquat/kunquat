@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2014
  *
  * This file is part of Kunquat.
  *
@@ -15,10 +15,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <Active_names.h>
 #include <Env_var.h>
 #include <kunquat/limits.h>
 #include <memory.h>
+#include <player/Active_names.h>
 #include <xassert.h>
 
 

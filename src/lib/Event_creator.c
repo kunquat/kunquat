@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -17,9 +17,9 @@
 #include <string.h>
 
 #include <Event.h>
-#include <Event_names.h>
-#include <Event_type.h>
 #include <memory.h>
+#include <player/Event_names.h>
+#include <player/Event_type.h>
 #include <string_common.h>
 #include <Value.h>
 #include <xassert.h>

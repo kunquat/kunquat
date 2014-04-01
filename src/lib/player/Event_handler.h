@@ -19,12 +19,12 @@
 #include <stdbool.h>
 
 #include <devices/Generator.h>
-#include <Event_names.h>
-#include <Event_type.h>
-#include <General_state.h>
 #include <Ins_table.h>
 #include <player/Channel.h>
 #include <player/Effect_state.h>
+#include <player/Event_names.h>
+#include <player/Event_type.h>
+#include <player/General_state.h>
 #include <player/Ins_state.h>
 #include <player/Master_params.h>
 #include <Value.h>

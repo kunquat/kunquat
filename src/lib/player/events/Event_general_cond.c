@@ -20,9 +20,9 @@
 #include <math.h>
 
 #include <Env_var.h>
-#include <General_state.h>
 #include <player/events/Event_common.h>
 #include <player/events/Event_general_decl.h>
+#include <player/General_state.h>
 #include <Value.h>
 #include <xassert.h>
 

@@ -15,15 +15,15 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#include <Active_names.h>
 #include <Env_var.h>
 #include <Environment.h>
 #include <Event.h>
-#include <Event_type.h>
-#include <General_state.h>
+#include <player/Active_names.h>
+#include <player/Event_type.h>
 #include <player/events/Event_common.h>
 #include <player/events/Event_control_decl.h>
 #include <player/events/set_active_name.h>
+#include <player/General_state.h>
 #include <Value.h>
 #include <xassert.h>
 

@@ -21,14 +21,14 @@
 #include <Bind.h>
 #include <devices/Effect.h>
 #include <devices/Generator.h>
-#include <Event_names.h>
-#include <Event_type.h>
-#include <General_state.h>
 #include <Ins_table.h>
 #include <kunquat/limits.h>
 #include <Module.h>
 #include <player/Channel.h>
 #include <player/Event_handler.h>
+#include <player/Event_names.h>
+#include <player/Event_type.h>
+#include <player/General_state.h>
 #include <Streader.h>
 #include <string_common.h>
 #include <Value.h>

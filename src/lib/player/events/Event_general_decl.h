@@ -18,7 +18,7 @@
 
 #include <stdbool.h>
 
-#include <General_state.h>
+#include <player/General_state.h>
 #include <Value.h>
 
 

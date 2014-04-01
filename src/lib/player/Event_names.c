@@ -18,10 +18,10 @@
 
 #include <containers/AAtree.h>
 #include <Event.h>
-#include <Event_names.h>
-#include <Event_type.h>
 #include <memory.h>
 #include <Param_validator.h>
+#include <player/Event_names.h>
+#include <player/Event_type.h>
 #include <string_common.h>
 #include <xassert.h>
 

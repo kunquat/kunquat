@@ -15,9 +15,9 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#include <General_state.h>
 #include <player/events/Event_common.h>
 #include <player/events/Event_control_decl.h>
+#include <player/General_state.h>
 #include <Value.h>
 #include <xassert.h>
 

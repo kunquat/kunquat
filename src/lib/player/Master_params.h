@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2014
  *
  * This file is part of Kunquat.
  *
@@ -21,9 +21,9 @@
 #include <stdlib.h>
 
 #include <Decl.h>
-#include <General_state.h>
 #include <player/Active_jumps.h>
 #include <player/Env_state.h>
+#include <player/General_state.h>
 #include <player/Jump_cache.h>
 #include <player/Position.h>
 #include <player/Slider.h>

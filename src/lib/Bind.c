@@ -18,11 +18,11 @@
 
 #include <Bind.h>
 #include <containers/AAtree.h>
-#include <Event_cache.h>
-#include <Event_names.h>
-#include <Event_type.h>
 #include <expr.h>
 #include <memory.h>
+#include <player/Event_cache.h>
+#include <player/Event_names.h>
+#include <player/Event_type.h>
 #include <Random.h>
 #include <Value.h>
 #include <xassert.h>

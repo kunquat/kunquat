@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -18,8 +18,8 @@
 
 #include <stdbool.h>
 
-#include <Active_names.h>
 #include <Decl.h>
+#include <player/Active_names.h>
 #include <player/Env_state.h>
 
 
