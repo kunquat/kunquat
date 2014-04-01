@@ -21,7 +21,7 @@
 
 #include <containers/AAtree.h>
 #include <devices/Device_impl.h>
-#include <Generator.h>
+#include <devices/Generator.h>
 
 
 #define PCM_SAMPLES_MAX (512)

@@ -19,11 +19,11 @@
 #include <stdio.h>
 
 #include <devices/Device.h>
-#include <Effect.h>
+#include <devices/Effect.h>
 #include <Effect_table.h>
-#include <Gen_table.h>
-#include <Generator.h>
-#include <Instrument.h>
+#include <devices/Gen_table.h>
+#include <devices/Generator.h>
+#include <devices/Instrument.h>
 #include <memory.h>
 #include <player/Ins_state.h>
 #include <string_common.h>

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -19,7 +19,7 @@
 
 #include <Connections_search.h>
 #include <Device_node.h>
-#include <Generator.h>
+#include <devices/Generator.h>
 #include <kunquat/limits.h>
 #include <memory.h>
 #include <string_common.h>

@@ -15,7 +15,7 @@
 #include <stdlib.h>
 
 #include <containers/Etable.h>
-#include <Instrument.h>
+#include <devices/Instrument.h>
 #include <Ins_table.h>
 #include <memory.h>
 #include <xassert.h>

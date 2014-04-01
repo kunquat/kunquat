@@ -18,9 +18,9 @@
 
 #include <stdint.h>
 
+#include <devices/Generator.h>
 #include <devices/generators/Sample.h>
 #include <frame.h>
-#include <Generator.h>
 #include <player/Voice_state.h>
 
 

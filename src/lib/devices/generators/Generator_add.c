@@ -18,11 +18,11 @@
 #include <string.h>
 #include <math.h>
 
+#include <devices/Generator.h>
 #include <devices/generators/Generator_add.h>
 #include <devices/generators/Generator_common.h>
 #include <devices/generators/Sample.h>
 #include <devices/generators/Voice_state_add.h>
-#include <Generator.h>
 #include <kunquat/limits.h>
 #include <math_common.h>
 #include <memory.h>

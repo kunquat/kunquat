@@ -17,8 +17,8 @@
 #include <string.h>
 
 #include <devices/Device.h>
+#include <devices/DSP.h>
 #include <devices/dsps/DSP_type.h>
-#include <DSP.h>
 #include <memory.h>
 #include <player/Device_states.h>
 #include <string_common.h>

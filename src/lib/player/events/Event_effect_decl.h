@@ -18,7 +18,7 @@
 
 #include <stdbool.h>
 
-#include <Effect.h>
+#include <devices/Effect.h>
 #include <player/Device_states.h>
 #include <player/Effect_state.h>
 #include <Value.h>

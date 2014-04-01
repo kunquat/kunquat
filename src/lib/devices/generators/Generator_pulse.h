@@ -17,7 +17,7 @@
 
 
 #include <devices/Device_impl.h>
-#include <Generator.h>
+#include <devices/Generator.h>
 
 
 /**

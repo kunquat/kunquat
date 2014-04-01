@@ -18,8 +18,8 @@
 
 #include <Connections.h>
 #include <devices/Device.h>
+#include <devices/DSP_table.h>
 #include <Device_node.h>
-#include <DSP_table.h>
 #include <Ins_table.h>
 #include <Streader.h>
 

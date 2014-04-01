@@ -20,9 +20,9 @@
 
 #include <Audio_buffer.h>
 #include <devices/Device_impl.h>
+#include <devices/DSP.h>
 #include <devices/dsps/DSP_common.h>
 #include <devices/dsps/DSP_gc.h>
-#include <DSP.h>
 #include <Envelope.h>
 #include <math_common.h>
 #include <memory.h>

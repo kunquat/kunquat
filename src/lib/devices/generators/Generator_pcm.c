@@ -19,6 +19,7 @@
 
 #include <containers/AAtree.h>
 #include <devices/Device_params.h>
+#include <devices/Generator.h>
 #include <devices/generators/File_wavpack.h>
 #include <devices/generators/Generator_common.h>
 #include <devices/generators/Generator_pcm.h>
@@ -26,7 +27,6 @@
 #include <devices/generators/Sample.h>
 #include <devices/generators/Sample_mix.h>
 #include <devices/generators/Voice_state_pcm.h>
-#include <Generator.h>
 #include <memory.h>
 #include <pitch_t.h>
 #include <string_common.h>

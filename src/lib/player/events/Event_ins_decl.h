@@ -18,7 +18,7 @@
 
 #include <stdbool.h>
 
-#include <Instrument_params.h>
+#include <devices/Instrument_params.h>
 #include <player/Ins_state.h>
 #include <Value.h>
 

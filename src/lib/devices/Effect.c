@@ -18,9 +18,9 @@
 #include <Connections.h>
 #include <Connections_search.h>
 #include <devices/Device.h>
-#include <DSP_table.h>
-#include <Effect.h>
-#include <Effect_interface.h>
+#include <devices/DSP_table.h>
+#include <devices/Effect.h>
+#include <devices/Effect_interface.h>
 #include <memory.h>
 #include <player/Device_states.h>
 #include <player/Effect_state.h>

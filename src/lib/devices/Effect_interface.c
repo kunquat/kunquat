@@ -15,7 +15,7 @@
 #include <stdlib.h>
 
 #include <devices/Device.h>
-#include <Effect_interface.h>
+#include <devices/Effect_interface.h>
 #include <memory.h>
 #include <xassert.h>
 

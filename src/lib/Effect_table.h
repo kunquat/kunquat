@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2014
  *
  * This file is part of Kunquat.
  *
@@ -18,7 +18,7 @@
 
 #include <stdbool.h>
 
-#include <Effect.h>
+#include <devices/Effect.h>
 
 
 /**

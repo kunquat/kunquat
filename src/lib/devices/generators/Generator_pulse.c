@@ -19,10 +19,10 @@
 #include <string.h>
 
 #include <devices/Device_params.h>
+#include <devices/Generator.h>
 #include <devices/generators/Generator_common.h>
 #include <devices/generators/Generator_pulse.h>
 #include <devices/generators/Voice_state_pulse.h>
-#include <Generator.h>
 #include <kunquat/limits.h>
 #include <memory.h>
 #include <string_common.h>

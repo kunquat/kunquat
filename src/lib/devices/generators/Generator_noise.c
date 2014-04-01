@@ -20,10 +20,10 @@
 #include <math.h>
 
 #include <devices/Device_params.h>
+#include <devices/Generator.h>
 #include <devices/generators/Generator_common.h>
 #include <devices/generators/Generator_noise.h>
 #include <devices/generators/Voice_state_noise.h>
-#include <Generator.h>
 #include <kunquat/limits.h>
 #include <math_common.h>
 #include <memory.h>

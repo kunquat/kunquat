@@ -24,8 +24,8 @@
 #include <Connections.h>
 #include <Connections_search.h>
 #include <Device_node.h>
-#include <DSP_table.h>
-#include <Effect.h>
+#include <devices/DSP_table.h>
+#include <devices/Effect.h>
 #include <Effect_table.h>
 #include <memory.h>
 #include <string_common.h>

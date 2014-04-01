@@ -15,7 +15,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#include <Effect.h>
+#include <devices/Effect.h>
 #include <player/DSP_state.h>
 #include <player/events/Event_common.h>
 #include <player/events/Event_effect_decl.h>

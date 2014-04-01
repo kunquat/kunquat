@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -18,10 +18,10 @@
 
 #include <stdbool.h>
 
+#include <devices/Generator.h>
 #include <Event_names.h>
 #include <Event_type.h>
 #include <General_state.h>
-#include <Generator.h>
 #include <Ins_table.h>
 #include <player/Channel.h>
 #include <player/Effect_state.h>

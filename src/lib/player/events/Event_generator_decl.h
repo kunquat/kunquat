@@ -19,7 +19,7 @@
 #include <stdbool.h>
 
 #include <devices/Device_impl.h>
-#include <Generator.h>
+#include <devices/Generator.h>
 #include <player/Channel.h>
 #include <player/Device_state.h>
 #include <Value.h>

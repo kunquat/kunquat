@@ -19,11 +19,11 @@
 #include <math.h>
 
 #include <Bind.h>
-#include <Effect.h>
+#include <devices/Effect.h>
+#include <devices/Generator.h>
 #include <Event_names.h>
 #include <Event_type.h>
 #include <General_state.h>
-#include <Generator.h>
 #include <Ins_table.h>
 #include <kunquat/limits.h>
 #include <Module.h>

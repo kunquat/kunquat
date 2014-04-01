@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -17,8 +17,8 @@
 #include <stdio.h>
 #include <math.h>
 
+#include <devices/Generator.h>
 #include <frame.h>
-#include <Generator.h>
 #include <kunquat/limits.h>
 #include <math_common.h>
 #include <player/Ins_state.h>

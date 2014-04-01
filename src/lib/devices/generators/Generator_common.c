@@ -15,9 +15,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include <devices/Generator.h>
 #include <devices/generators/Generator_common.h>
 #include <Filter.h>
-#include <Generator.h>
 #include <kunquat/limits.h>
 #include <math_common.h>
 #include <xassert.h>

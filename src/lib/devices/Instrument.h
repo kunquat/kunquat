@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -19,13 +19,13 @@
 #include <stdbool.h>
 
 #include <Connections.h>
-#include <Effect.h>
+#include <devices/Effect.h>
+#include <devices/Gen_table.h>
+#include <devices/Generator.h>
+#include <devices/Instrument_params.h>
 #include <Effect_table.h>
 #include <Envelope.h>
 #include <frame.h>
-#include <Gen_table.h>
-#include <Generator.h>
-#include <Instrument_params.h>
 #include <kunquat/limits.h>
 #include <player/Voice_state.h>
 #include <Scale.h>

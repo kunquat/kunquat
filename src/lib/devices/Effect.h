@@ -21,7 +21,7 @@
 
 #include <Connections.h>
 #include <devices/Device.h>
-#include <DSP_table.h>
+#include <devices/DSP_table.h>
 
 
 typedef struct Effect Effect;

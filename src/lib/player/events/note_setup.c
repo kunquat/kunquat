@@ -14,7 +14,7 @@
 
 #include <stdlib.h>
 
-#include <Instrument.h>
+#include <devices/Instrument.h>
 #include <kunquat/limits.h>
 #include <player/Channel.h>
 #include <player/events/note_setup.h>

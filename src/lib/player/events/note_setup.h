@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2014
  *
  * This file is part of Kunquat.
  *
@@ -16,7 +16,7 @@
 #define K_NOTE_SETUP_H
 
 
-#include <Instrument.h>
+#include <devices/Instrument.h>
 #include <player/Channel.h>
 
 

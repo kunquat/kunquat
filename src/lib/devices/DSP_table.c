@@ -13,39 +13,40 @@
 
 
 #include <stdlib.h>
+#include <stdbool.h>
 
 #include <Bit_array.h>
 #include <containers/Etable.h>
-#include <Gen_table.h>
-#include <Generator.h>
+#include <devices/DSP.h>
+#include <devices/DSP_table.h>
 #include <memory.h>
 #include <xassert.h>
 
 
-struct Gen_table
+struct DSP_table
 {
     int size;
-    Etable* gens;
+    Etable* dsps;
     Bit_array* existents;
 };
 
 
-Gen_table* new_Gen_table(int size)
+DSP_table* new_DSP_table(int size)
 {
     assert(size > 0);
 
-    Gen_table* table = memory_alloc_item(Gen_table);
+    DSP_table* table = memory_alloc_item(DSP_table);
     if (table == NULL)
         return NULL;
 
-    table->gens = NULL;
+    table->dsps = NULL;
     table->existents = NULL;
 
-    table->gens = new_Etable(size, (void (*)(void*))del_Generator);
+    table->dsps = new_Etable(size, (void (*)(void*))del_DSP);
     table->existents = new_Bit_array(size);
-    if (table->gens == NULL || table->existents == NULL)
+    if (table->dsps == NULL || table->existents == NULL)
     {
-        del_Gen_table(table);
+        del_DSP_table(table);
         return NULL;
     }
 
@@ -55,7 +56,7 @@ Gen_table* new_Gen_table(int size)
 }
 
 
-void Gen_table_set_existent(Gen_table* table, int index, bool existent)
+void DSP_table_set_existent(DSP_table* table, int index, bool existent)
 {
     assert(table != NULL);
     assert(index >= 0);
@@ -63,68 +64,68 @@ void Gen_table_set_existent(Gen_table* table, int index, bool existent)
 
     Bit_array_set(table->existents, index, existent);
 
-    Generator* gen = Etable_get(table->gens, index);
-    if (gen != NULL)
-        Device_set_existent((Device*)gen, existent);
+    DSP* dsp = Etable_get(table->dsps, index);
+    if (dsp != NULL)
+        Device_set_existent((Device*)dsp, existent);
 
     return;
 }
 
 
-bool Gen_table_set_gen(Gen_table* table, int index, Generator* gen)
+bool DSP_table_set_dsp(DSP_table* table, int index, DSP* dsp)
 {
     assert(table != NULL);
     assert(index >= 0);
     assert(index < table->size);
-    assert(gen != NULL);
+    assert(dsp != NULL);
 
-    if (!Etable_set(table->gens, index, gen))
+    if (!Etable_set(table->dsps, index, dsp))
         return false;
 
-    Device_set_existent((Device*)gen, Bit_array_get(table->existents, index));
+    Device_set_existent((Device*)dsp, Bit_array_get(table->existents, index));
 
     return true;
 }
 
 
-Generator* Gen_table_get_gen(Gen_table* table, int index)
+DSP* DSP_table_get_dsp(const DSP_table* table, int index)
 {
     assert(table != NULL);
     assert(index >= 0);
     assert(index < table->size);
 
-    return Etable_get(table->gens, index);
+    return Etable_get(table->dsps, index);
 }
 
 
-void Gen_table_remove_gen(Gen_table* table, int index)
+void DSP_table_remove_dsp(DSP_table* table, int index)
 {
     assert(table != NULL);
     assert(index >= 0);
     assert(index < table->size);
 
-    Etable_remove(table->gens, index);
+    Etable_remove(table->dsps, index);
 
     return;
 }
 
 
-void Gen_table_clear(Gen_table* table)
+void DSP_table_clear(DSP_table* table)
 {
     assert(table != NULL);
 
-    Etable_clear(table->gens);
+    Etable_clear(table->dsps);
 
     return;
 }
 
 
-void del_Gen_table(Gen_table* table)
+void del_DSP_table(DSP_table* table)
 {
     if (table == NULL)
         return;
 
-    del_Etable(table->gens);
+    del_Etable(table->dsps);
     del_Bit_array(table->existents);
     memory_free(table);
 

@@ -19,11 +19,11 @@
 #include <math.h>
 
 #include <devices/Device_impl.h>
+#include <devices/DSP.h>
 #include <devices/dsps/DSP_common.h>
 #include <devices/dsps/DSP_freeverb.h>
 #include <devices/dsps/Freeverb_allpass.h>
 #include <devices/dsps/Freeverb_comb.h>
-#include <DSP.h>
 #include <frame.h>
 #include <math_common.h>
 #include <memory.h>

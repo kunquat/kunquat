@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -16,7 +16,7 @@
 #include <stdbool.h>
 #include <string.h>
 
-#include <Instrument_params.h>
+#include <devices/Instrument_params.h>
 #include <string_common.h>
 #include <xassert.h>
 

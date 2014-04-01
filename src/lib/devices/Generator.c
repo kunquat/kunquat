@@ -18,7 +18,7 @@
 #include <inttypes.h>
 
 #include <devices/generators/Gen_type.h>
-#include <Generator.h>
+#include <devices/Generator.h>
 #include <Filter.h>
 #include <memory.h>
 #include <pitch_t.h>
