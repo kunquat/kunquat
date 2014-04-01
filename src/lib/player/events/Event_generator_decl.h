@@ -18,8 +18,8 @@
 
 #include <stdbool.h>
 
+#include <devices/Device_impl.h>
 #include <Generator.h>
-#include <Device_impl.h>
 #include <player/Channel.h>
 #include <player/Device_state.h>
 #include <Value.h>

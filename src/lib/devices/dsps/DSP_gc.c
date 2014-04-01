@@ -19,7 +19,7 @@
 #include <math.h>
 
 #include <Audio_buffer.h>
-#include <Device_impl.h>
+#include <devices/Device_impl.h>
 #include <devices/dsps/DSP_common.h>
 #include <devices/dsps/DSP_gc.h>
 #include <DSP.h>

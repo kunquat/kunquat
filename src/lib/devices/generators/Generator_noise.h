@@ -1,7 +1,7 @@
 
 
 /*
- * Authors: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Authors: Tomi Jylhä-Ollila, Finland 2010-2014
  *          Ossi Saresoja, Finland 2010
  *
  * This file is part of Kunquat.
@@ -17,7 +17,7 @@
 #define K_GENERATOR_NOISE_H
 
 
-#include <Device_impl.h>
+#include <devices/Device_impl.h>
 #include <Generator.h>
 
 

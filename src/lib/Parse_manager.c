@@ -21,8 +21,8 @@
 #include <Bind.h>
 #include <Connections.h>
 #include <Connections_search.h>
-#include <Device_event_keys.h>
-#include <Device_params.h>
+#include <devices/Device_event_keys.h>
+#include <devices/Device_params.h>
 #include <devices/dsps/DSP_type.h>
 #include <devices/generators/Gen_type.h>
 #include <Environment.h>

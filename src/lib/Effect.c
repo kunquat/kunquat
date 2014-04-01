@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2014
  *
  * This file is part of Kunquat.
  *
@@ -17,7 +17,7 @@
 
 #include <Connections.h>
 #include <Connections_search.h>
-#include <Device.h>
+#include <devices/Device.h>
 #include <DSP_table.h>
 #include <Effect.h>
 #include <Effect_interface.h>

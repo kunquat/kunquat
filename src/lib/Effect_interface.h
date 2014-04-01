@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2014
  *
  * This file is part of Kunquat.
  *
@@ -16,7 +16,7 @@
 #define K_EFFECT_INTERFACE_H
 
 
-#include <Device.h>
+#include <devices/Device.h>
 
 
 typedef struct Effect_interface

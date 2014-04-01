@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -22,7 +22,7 @@
 
 #include <Audio_buffer.h>
 #include <Decl.h>
-#include <Device_params.h>
+#include <devices/Device_params.h>
 #include <frame.h>
 #include <kunquat/limits.h>
 #include <player/Device_states.h>

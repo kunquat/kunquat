@@ -18,7 +18,7 @@
 #include <string.h>
 #include <math.h>
 
-#include <Device_impl.h>
+#include <devices/Device_impl.h>
 #include <devices/dsps/DSP_common.h>
 #include <devices/dsps/DSP_volume.h>
 #include <DSP.h>

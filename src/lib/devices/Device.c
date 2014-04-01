@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -17,8 +17,8 @@
 #include <stdlib.h>
 
 #include <Decl.h>
-#include <Device.h>
-#include <Device_impl.h>
+#include <devices/Device.h>
+#include <devices/Device_impl.h>
 #include <math_common.h>
 #include <string_common.h>
 #include <xassert.h>

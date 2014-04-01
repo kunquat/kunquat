@@ -16,7 +16,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <Device_field.h>
+#include <devices/Device_field.h>
 #include <devices/generators/File_wavpack.h>
 #include <memory.h>
 #include <string_common.h>

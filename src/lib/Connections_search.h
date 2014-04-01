@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -17,7 +17,7 @@
 
 
 #include <Connections.h>
-#include <Device.h>
+#include <devices/Device.h>
 #include <Device_node.h>
 #include <DSP_table.h>
 #include <Ins_table.h>

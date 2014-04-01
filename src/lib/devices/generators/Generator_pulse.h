@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -16,7 +16,7 @@
 #define K_GENERATOR_PULSE_H
 
 
-#include <Device_impl.h>
+#include <devices/Device_impl.h>
 #include <Generator.h>
 
 

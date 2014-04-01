@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -21,7 +21,7 @@
 #include <Bind.h>
 #include <Connections.h>
 #include <Decl.h>
-#include <Device.h>
+#include <devices/Device.h>
 #include <Environment.h>
 #include <Effect_table.h>
 #include <frame.h>

@@ -20,7 +20,7 @@
 #include <math.h>
 
 #include <containers/AAtree.h>
-#include <Device_impl.h>
+#include <devices/Device_impl.h>
 #include <Generator.h>
 
 

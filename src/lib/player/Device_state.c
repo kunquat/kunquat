@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2014
  *
  * This file is part of Kunquat.
  *
@@ -12,7 +12,7 @@
  */
 
 
-#include <Device.h>
+#include <devices/Device.h>
 #include <math_common.h>
 #include <memory.h>
 #include <player/Device_state.h>

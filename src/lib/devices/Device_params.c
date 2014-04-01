@@ -18,9 +18,9 @@
 #include <stdio.h>
 
 #include <containers/AAtree.h>
-#include <Device_event_keys.h>
-#include <Device_field.h>
-#include <Device_params.h>
+#include <devices/Device_event_keys.h>
+#include <devices/Device_field.h>
+#include <devices/Device_params.h>
 #include <memory.h>
 #include <string_common.h>
 #include <xassert.h>

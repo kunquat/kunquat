@@ -16,7 +16,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#include <Device.h>
+#include <devices/Device.h>
 #include <devices/dsps/DSP_type.h>
 #include <DSP.h>
 #include <memory.h>

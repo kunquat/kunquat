@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2014
  *
  * This file is part of Kunquat.
  *
@@ -15,10 +15,10 @@
 #include <ctype.h>
 #include <string.h>
 
-#include <Device.h>
-#include <Device_field.h>
-#include <Device_impl.h>
-#include <Device_params.h>
+#include <devices/Device.h>
+#include <devices/Device_field.h>
+#include <devices/Device_impl.h>
+#include <devices/Device_params.h>
 #include <memory.h>
 #include <string_common.h>
 #include <Value.h>

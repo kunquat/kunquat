@@ -16,9 +16,9 @@
 #include <stdint.h>
 #include <math.h>
 
+#include <devices/Device_params.h>
 #include <devices/generators/Generator_common.h>
 #include <devices/generators/Generator_debug.h>
-#include <Device_params.h>
 #include <memory.h>
 #include <string_common.h>
 #include <xassert.h>

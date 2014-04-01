@@ -18,7 +18,7 @@
 #include <math.h>
 #include <string.h>
 
-#include <Device_params.h>
+#include <devices/Device_params.h>
 #include <devices/generators/Generator_common.h>
 #include <devices/generators/Generator_pulse.h>
 #include <devices/generators/Voice_state_pulse.h>

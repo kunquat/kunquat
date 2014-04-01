@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -18,7 +18,7 @@
 #include <inttypes.h>
 #include <stdio.h>
 
-#include <Device.h>
+#include <devices/Device.h>
 #include <Effect.h>
 #include <Effect_table.h>
 #include <Gen_table.h>

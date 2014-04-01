@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2014
  *
  * This file is part of Kunquat.
  *
@@ -14,7 +14,7 @@
 
 #include <stdlib.h>
 
-#include <Device.h>
+#include <devices/Device.h>
 #include <Effect_interface.h>
 #include <memory.h>
 #include <xassert.h>
