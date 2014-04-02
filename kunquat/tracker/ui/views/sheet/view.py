@@ -19,6 +19,7 @@ import time
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
+import kunquat.tracker.cmdline as cmdline
 import kunquat.tracker.ui.model.tstamp as tstamp
 from kunquat.tracker.ui.model.triggerposition import TriggerPosition
 from config import *
@@ -710,14 +711,15 @@ class View(QWidget):
                 self._sheet_manager.set_zoom(0)
 
         if ev.modifiers() == (Qt.ControlModifier | Qt.AltModifier):
-            if ev.key() == Qt.Key_Minus:
-                self._sheet_manager.set_column_width(
-                        self._sheet_manager.get_column_width() - 1)
-            elif ev.key() == Qt.Key_Plus:
-                self._sheet_manager.set_column_width(
-                        self._sheet_manager.get_column_width() + 1)
-            elif ev.key() == Qt.Key_0:
-                self._sheet_manager.set_column_width(0)
+            if cmdline.get_experimental():
+                if ev.key() == Qt.Key_Minus:
+                    self._sheet_manager.set_column_width(
+                            self._sheet_manager.get_column_width() - 1)
+                elif ev.key() == Qt.Key_Plus:
+                    self._sheet_manager.set_column_width(
+                            self._sheet_manager.get_column_width() + 1)
+                elif ev.key() == Qt.Key_0:
+                    self._sheet_manager.set_column_width(0)
 
     def keyReleaseEvent(self, ev):
         if ev.isAutoRepeat():
