@@ -17,6 +17,12 @@ from PyQt4.QtGui import *
 
 class ZoomButton(QToolButton):
 
+    INFO = {
+            'in': ('Zoom In', 'zoom-in', 'Ctrl +'),
+            'out': ('Zoom Out', 'zoom-out', 'Ctrl -'),
+            'original': ('Zoom to Original', 'zoom-original', 'Ctrl+0'),
+        }
+
     def __init__(self, mode):
         QToolButton.__init__(self)
         self._ui_model = None
@@ -26,6 +32,7 @@ class ZoomButton(QToolButton):
         self._mode = mode
         self.setText(self._get_text(mode))
         self.setIcon(self._get_icon(mode))
+        self.setToolTip(self._get_tooltip(mode))
         self.setAutoRaise(True)
 
     def set_ui_model(self, ui_model):
@@ -60,20 +67,16 @@ class ZoomButton(QToolButton):
         self.setEnabled(is_enabled)
 
     def _get_text(self, mode):
-        texts = {
-                'in': 'Zoom In',
-                'out': 'Zoom Out',
-                'original': 'Zoom to Original',
-            }
-        return texts[mode]
+        return ZoomButton.INFO[mode][0]
 
     def _get_icon(self, mode):
-        names = {
-                'in': 'zoom-in',
-                'out': 'zoom-out',
-                'original': 'zoom-original',
-            }
-        return QIcon.fromTheme(names[mode])
+        return QIcon.fromTheme(ZoomButton.INFO[mode][1])
+
+    def _get_shortcut(self, mode):
+        return ZoomButton.INFO[mode][2]
+
+    def _get_tooltip(self, mode):
+        return '{} ({})'.format(self._get_text(mode), self._get_shortcut(mode))
 
     def _clicked(self):
         new_zoom = 0
