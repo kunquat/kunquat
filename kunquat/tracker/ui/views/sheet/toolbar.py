@@ -14,6 +14,7 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
+import kunquat.tracker.cmdline as cmdline
 from zoombutton import ZoomButton
 
 
@@ -27,6 +28,13 @@ class Toolbar(QWidget):
                 ZoomButton('original'),
                 ZoomButton('out')
             ]
+
+        if cmdline.get_experimental():
+            self._zoom_buttons.extend([
+                    ZoomButton('expand_w'),
+                    ZoomButton('original_w'),
+                    ZoomButton('shrink_w'),
+                ])
 
         h = QHBoxLayout()
         for button in self._zoom_buttons:
