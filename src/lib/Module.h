@@ -28,13 +28,13 @@
 #include <Input_map.h>
 #include <Ins_table.h>
 #include <kunquat/limits.h>
-#include <Order_list.h>
-#include <Pat_table.h>
 #include <Random.h>
 #include <Scale.h>
-#include <Song_table.h>
+#include <sheet/Order_list.h>
+#include <sheet/Pat_table.h>
+#include <sheet/Song_table.h>
+#include <sheet/Track_list.h>
 #include <Streader.h>
-#include <Track_list.h>
 
 
 struct Module

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2014
  *
  * This file is part of Kunquat.
  *
@@ -18,9 +18,9 @@
 
 #include <stdbool.h>
 
-#include <Column.h>
 #include <Module.h>
 #include <player/Position.h>
+#include <sheet/Column.h>
 
 
 // TODO: define proper interface in Column

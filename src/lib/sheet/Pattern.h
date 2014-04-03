@@ -18,10 +18,10 @@
 
 #include <stdint.h>
 
-#include <Column.h>
 #include <Connections.h>
 #include <containers/AAtree.h>
 #include <Pat_inst_ref.h>
+#include <sheet/Column.h>
 #include <Streader.h>
 #include <Tstamp.h>
 #include <kunquat/limits.h>

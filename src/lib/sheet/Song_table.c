@@ -17,8 +17,8 @@
 #include <Bit_array.h>
 #include <containers/Etable.h>
 #include <memory.h>
-#include <Song.h>
-#include <Song_table.h>
+#include <sheet/Song.h>
+#include <sheet/Song_table.h>
 #include <xassert.h>
 
 

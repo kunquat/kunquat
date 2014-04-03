@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -16,10 +16,10 @@
 #include <string.h>
 
 #include <Bit_array.h>
-#include <Pat_table.h>
-#include <Pattern.h>
 #include <kunquat/limits.h>
 #include <memory.h>
+#include <sheet/Pat_table.h>
+#include <sheet/Pattern.h>
 #include <xassert.h>
 
 

@@ -16,10 +16,10 @@
 #include <stdbool.h>
 #include <string.h>
 
-#include <Event.h>
 #include <memory.h>
 #include <player/Event_names.h>
 #include <player/Event_type.h>
+#include <sheet/Trigger.h>
 #include <string_common.h>
 #include <Value.h>
 #include <xassert.h>

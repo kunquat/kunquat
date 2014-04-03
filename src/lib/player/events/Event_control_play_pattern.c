@@ -15,7 +15,6 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#include <Event.h>
 #include <kunquat/limits.h>
 #include <player/Event_type.h>
 #include <player/events/Event_common.h>

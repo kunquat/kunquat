@@ -17,7 +17,6 @@
 #include <string.h>
 
 #include <containers/AAtree.h>
-#include <Event.h>
 #include <memory.h>
 #include <Param_validator.h>
 #include <player/Event_names.h>

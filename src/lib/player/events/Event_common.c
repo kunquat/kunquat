@@ -19,6 +19,7 @@
 #include <xassert.h>
 
 
+#if 0
 Event* Event_init(
         Event* event,
         Tstamp* pos,
@@ -46,5 +47,6 @@ void del_Event_default(Event* event)
     memory_free(event);
     return;
 }
+#endif
 
 

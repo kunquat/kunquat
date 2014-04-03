@@ -18,7 +18,6 @@
 
 #include <stdbool.h>
 
-#include <Event.h>
 #include <Tstamp.h>
 
 
@@ -33,9 +32,9 @@
  *
  * \return   The parameter \a event.
  */
-Event* Event_init(Event* event,
-                  Tstamp* pos,
-                  Event_type type);
+//Event* Event_init(Event* event,
+//                  Tstamp* pos,
+//                  Event_type type);
 
 
 /**
@@ -46,7 +45,7 @@ Event* Event_init(Event* event,
  *
  * \param event   The Event, or \c NULL.
  */
-void del_Event_default(Event* event);
+//void del_Event_default(Event* event);
 
 
 #define Event_check_voice(ch_state, gen)                        \

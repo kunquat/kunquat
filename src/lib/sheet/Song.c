@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -20,8 +20,8 @@
 
 #include <kunquat/limits.h>
 #include <memory.h>
+#include <sheet/Song.h>
 #include <string_common.h>
-#include <Song.h>
 #include <xassert.h>
 
 

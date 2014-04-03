@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -16,8 +16,8 @@
 #include <string.h>
 #include <stdio.h>
 
-#include <Event.h>
 #include <kunquat/limits.h>
+#include <sheet/Trigger.h>
 #include <xassert.h>
 
 

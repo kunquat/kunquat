@@ -19,7 +19,7 @@
 #include <stdbool.h>
 
 #include <containers/Etable.h>
-#include <Pattern.h>
+#include <sheet/Pattern.h>
 
 
 typedef struct Pat_table Pat_table;

@@ -17,7 +17,6 @@
 
 #include <Env_var.h>
 #include <Environment.h>
-#include <Event.h>
 #include <player/Active_names.h>
 #include <player/Event_type.h>
 #include <player/events/Event_common.h>

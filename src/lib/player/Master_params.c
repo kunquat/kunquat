@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2014
  *
  * This file is part of Kunquat.
  *
@@ -14,7 +14,7 @@
 
 #include <Module.h>
 #include <player/Master_params.h>
-#include <Track_list.h>
+#include <sheet/Track_list.h>
 #include <xassert.h>
 
 

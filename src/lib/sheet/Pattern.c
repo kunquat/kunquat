@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -21,9 +21,8 @@
 
 #include <Bit_array.h>
 #include <Connections_search.h>
-#include <Event.h>
 #include <memory.h>
-#include <Pattern.h>
+#include <sheet/Pattern.h>
 #include <string_common.h>
 #include <xassert.h>
 
