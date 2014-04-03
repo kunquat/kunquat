@@ -20,6 +20,7 @@ from PyQt4.QtGui import *
 import kunquat.tracker.ui.model.tstamp as tstamp
 from config import *
 import utils
+from buffercache import BufferCache
 from trigger_renderer import TriggerRenderer
 
 
@@ -56,6 +57,7 @@ class ColumnGroupRenderer():
     def set_width(self, width):
         if self._width != width:
             self._width = width
+            self._sync_caches()
 
     def set_columns(self, columns):
         self._columns = columns
@@ -68,7 +70,12 @@ class ColumnGroupRenderer():
     def set_pattern_heights(self, heights, start_heights):
         self._heights = heights
         self._start_heights = start_heights
-        self._create_caches()
+
+        # FIXME: revisit cache creation
+        if self._caches:
+            self._sync_caches()
+        else:
+            self._create_caches()
 
     def _create_caches(self):
         self._caches = [ColumnCache(self._num, i)
@@ -92,7 +99,6 @@ class ColumnGroupRenderer():
     def set_px_offset(self, px_offset):
         if self._px_offset != px_offset:
             self._px_offset = px_offset
-            self._sync_caches()
 
     def get_memory_usage(self):
         try:
@@ -177,11 +183,12 @@ class ColumnGroupRenderer():
         else:
             # Fill trailing blank
             painter.setBackground(self._config['canvas_bg_colour'])
-            painter.eraseRect(
-                    QRect(
-                        0, rel_end_height,
-                        self._width, height - rel_end_height)
-                    )
+            if rel_end_height < height:
+                painter.eraseRect(
+                        QRect(
+                            0, rel_end_height,
+                            self._width, height - rel_end_height)
+                        )
 
             # Draw trigger row that extends beyond the last pattern
             if overlap:
@@ -214,7 +221,7 @@ class ColumnCache():
         self._col_num = col_num
         self._pat_num = pat_num
 
-        self._pixmaps = {}
+        self._pixmaps = BufferCache()
         self._pixmaps_created = 0
 
         self._tr_cache = TRCache()
@@ -224,7 +231,7 @@ class ColumnCache():
 
     def set_config(self, config):
         self._config = config
-        self._pixmaps = {}
+        self._pixmaps.flush()
         self._tr_cache.set_config(config)
 
     def set_ui_model(self, ui_model):
@@ -237,22 +244,21 @@ class ColumnCache():
     def set_width(self, width):
         if self._width != width:
             self._width = width
-            self._pixmaps = {}
+            self._pixmaps.flush()
+
+            # Keep roughly 4 screens of pixmaps cached
+            memory_limit = 4 * (4 * width * 1600)
+            self._pixmaps.set_memory_limit(memory_limit)
 
     def set_px_per_beat(self, px_per_beat):
         assert px_per_beat > 0
         if self._px_per_beat != px_per_beat:
             self._px_per_beat = px_per_beat
-            self._pixmaps = {}
+            self._pixmaps.flush()
 
     def get_memory_usage(self):
         tr_memory_usage = self._tr_cache.get_memory_usage()
-        for pixmap in self._pixmaps.values():
-            bpp = pixmap.depth()
-            px_per_map = self._width * ColumnCache.PIXMAP_HEIGHT
-            return tr_memory_usage + len(self._pixmaps) * px_per_map * (bpp // 8)
-        else:
-            return tr_memory_usage
+        return self._pixmaps.get_memory_usage() + tr_memory_usage
 
     def iter_pixmaps(self, start_px, height_px):
         assert start_px >= 0
@@ -268,8 +274,11 @@ class ColumnCache():
 
         for i in xrange(start_index, stop_index):
             if i not in self._pixmaps:
-                self._pixmaps[i] = self._create_pixmap(i)
+                pixmap = self._create_pixmap(i)
+                self._pixmaps[i] = pixmap
                 self._pixmaps_created += 1
+            else:
+                pixmap = self._pixmaps[i]
 
             rect = utils.get_pixmap_rect(
                     i,
@@ -277,7 +286,7 @@ class ColumnCache():
                     self._width,
                     ColumnCache.PIXMAP_HEIGHT)
 
-            yield (rect, self._pixmaps[i])
+            yield (rect, pixmap)
 
     def get_pixmaps_created(self):
         return self._pixmaps_created
@@ -353,13 +362,13 @@ class ColumnCache():
 class TRCache():
 
     def __init__(self):
-        self._images = {}
+        self._images = BufferCache()
         self._ui_model = None
         self._notation_manager = None
 
     def set_config(self, config):
         self._config = config
-        self._images = {}
+        self._images.flush()
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -367,7 +376,7 @@ class TRCache():
 
     def set_triggers(self, column):
         self._rows = self._build_trigger_rows(column)
-        self._images = {} # TODO: only remove out-of-date images
+        self._images.flush() # TODO: only remove out-of-date images
 
     def _build_trigger_rows(self, column):
         trs = {}
@@ -391,20 +400,22 @@ class TRCache():
                 continue
             elif ts >= stop_ts:
                 break
+
             if ts not in self._images:
-                self._images[ts] = self._create_image(triggers)
+                image = self._create_image(triggers)
+                self._images[ts] = image
                 images_created += 1
-            yield (ts, self._images[ts], next_ts)
+            else:
+                image = self._images[ts]
+
+            yield (ts, image, next_ts)
 
         if images_created > 0:
             print('{} trigger row image{} created'.format(
                 images_created, 's' if images_created != 1 else ''))
 
     def get_memory_usage(self):
-        total_byte_count = 0
-        for image in self._images.values():
-            total_byte_count += image.byteCount()
-        return total_byte_count
+        return self._images.get_memory_usage()
 
     def _create_image(self, triggers):
         notation = self._notation_manager.get_notation()

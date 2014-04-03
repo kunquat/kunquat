@@ -19,6 +19,7 @@ import time
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
+import kunquat.tracker.cmdline as cmdline
 import kunquat.tracker.ui.model.tstamp as tstamp
 from kunquat.tracker.ui.model.triggerposition import TriggerPosition
 from config import *
@@ -31,13 +32,14 @@ from movestate import HorizontalMoveState, VerticalMoveState
 class View(QWidget):
 
     heightChanged = pyqtSignal(name='heightChanged')
-    followCursor = pyqtSignal(int, int, name='followCursor')
+    followCursor = pyqtSignal(str, int, name='followCursor')
 
     def __init__(self):
         QWidget.__init__(self)
 
         self._ui_model = None
         self._updater = None
+        self._sheet_manager = None
         self._notation_manager = None
 
         self.setAutoFillBackground(False)
@@ -49,7 +51,7 @@ class View(QWidget):
         self._px_offset = 0
         self._patterns = []
 
-        self._col_width = DEFAULT_CONFIG['col_width']
+        self._col_width = None
         self._first_col = 0
         self._visible_cols = 0
 
@@ -69,6 +71,7 @@ class View(QWidget):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
+        self._sheet_manager = ui_model.get_sheet_manager()
         self._notation_manager = ui_model.get_notation_manager()
         for cr in self._col_rends:
             cr.set_ui_model(ui_model)
@@ -136,18 +139,74 @@ class View(QWidget):
 
     def set_px_per_beat(self, px_per_beat):
         if self._px_per_beat != px_per_beat:
+            # Get old edit cursor offset
+            location = TriggerPosition(0, 0, 0, tstamp.Tstamp(0), 0)
+            if self._ui_model:
+                selection = self._ui_model.get_selection()
+                location = selection.get_location() or location
+            orig_px_offset = self._px_offset
+            orig_relative_offset = self._get_row_offset(location) or 0
+
+            # Update internal state
             self._px_per_beat = px_per_beat
             for cr in self._col_rends:
                 cr.set_px_per_beat(self._px_per_beat)
             self._set_pattern_heights()
+
+            # Adjust vertical position so that edit cursor maintains its height
+            new_cursor_offset = self._get_row_offset(location, absolute=True) or 0
+            new_px_offset = new_cursor_offset - orig_relative_offset
+            QObject.emit(
+                    self,
+                    SIGNAL('followCursor(QString, int)'),
+                    str(new_px_offset),
+                    self._first_col)
+
+    def set_column_width(self, col_width):
+        if self._col_width != col_width:
+            self._col_width = col_width
+            max_visible_cols = utils.get_max_visible_cols(self.width(), self._col_width)
+            first_col = utils.clamp_start_col(self._first_col, max_visible_cols)
+            visible_cols = utils.get_visible_cols(first_col, max_visible_cols)
+
+            self._first_col = first_col
+            self._visible_cols = visible_cols
+
+            for cr in self._col_rends:
+                cr.set_width(self._col_width)
             self.update()
+
+            # Adjust horizontal position so that edit cursor is visible
+            location = TriggerPosition(0, 0, 0, tstamp.Tstamp(0), 0)
+            if self._ui_model:
+                selection = self._ui_model.get_selection()
+                location = selection.get_location() or location
+            edit_col_num = location.get_col_num()
+
+            new_first_col = self._first_col
+            x_offset = self._get_col_offset(edit_col_num)
+            if x_offset < 0:
+                new_first_col = edit_col_num
+            elif x_offset + self._col_width > self.width():
+                new_first_col = edit_col_num - (self.width() // self._col_width) + 1
+
+            max_visible_cols = utils.get_max_visible_cols(self.width(), self._col_width)
+            new_first_col = utils.clamp_start_col(new_first_col, max_visible_cols)
+
+            QObject.emit(
+                    self,
+                    SIGNAL('followCursor(QString, int)'),
+                    str(self._px_offset),
+                    new_first_col)
 
     def _get_col_offset(self, col_num):
         max_visible_cols = utils.get_max_visible_cols(self.width(), self._col_width)
         first_col = utils.clamp_start_col(self._first_col, max_visible_cols)
         return (col_num - first_col) * self._col_width
 
-    def _get_row_offset(self, location):
+    def _get_row_offset(self, location, absolute=False):
+        ref_offset = 0 if absolute else self._px_offset
+
         # Get location components
         track = location.get_track()
         system = location.get_system()
@@ -155,15 +214,18 @@ class View(QWidget):
         row_ts = location.get_row_ts()
 
         # Get pattern that contains our location
-        module = self._ui_model.get_module()
-        album = module.get_album()
-        song = album.get_song_by_track(track)
-        pat_instance = song.get_pattern_instance(system)
-        cur_pattern = pat_instance.get_pattern()
+        try:
+            module = self._ui_model.get_module()
+            album = module.get_album()
+            song = album.get_song_by_track(track)
+            pat_instance = song.get_pattern_instance(system)
+            cur_pattern = pat_instance.get_pattern()
+        except AttributeError:
+            return None
 
         for pattern, start_height in izip(self._patterns, self._start_heights):
             if cur_pattern == pattern:
-                start_px = start_height - self._px_offset
+                start_px = start_height - ref_offset
                 location_from_start_px = (
                         (row_ts.beats * tstamp.BEAT + row_ts.rem) *
                         self._px_per_beat) // tstamp.BEAT
@@ -270,8 +332,8 @@ class View(QWidget):
         if is_view_scrolling_required:
             QObject.emit(
                     self,
-                    SIGNAL('followCursor(int, int)'),
-                    new_y_offset,
+                    SIGNAL('followCursor(QString, int)'),
+                    str(new_y_offset),
                     new_first_col)
         else:
             self.update()
@@ -517,15 +579,14 @@ class View(QWidget):
         row_ts = location.get_row_ts()
         trigger_index = location.get_trigger_index()
 
-        cur_song = album.get_song_by_track(track)
-        cur_pattern = cur_song.get_pattern_instance(system).get_pattern()
-        cur_column = cur_pattern.get_column(col_num)
-        if not self._cur_column or (self._cur_column != cur_column):
-            self._cur_column = cur_column
-
         # Check moving to the previous system
+        move_to_previous_system = False
         if px_delta < 0 and row_ts == 0:
-            if track > 0 or system > 0:
+            if track == 0 and system == 0:
+                return
+            else:
+                move_to_previous_system = True
+
                 new_track = track
                 new_system = system - 1
                 new_song = album.get_song_by_track(new_track)
@@ -536,35 +597,34 @@ class View(QWidget):
                 new_pattern = new_song.get_pattern_instance(new_system).get_pattern()
                 pat_height = utils.get_pat_height(
                         new_pattern.get_length(), self._px_per_beat)
-                new_ts = utils.get_tstamp_from_px(
-                        pat_height + px_delta, self._px_per_beat)
-                new_ts = max(tstamp.Tstamp(0), new_ts)
-                assert new_ts <= new_pattern.get_length()
+                new_ts = new_pattern.get_length()
 
-                trigger_index = self._clamp_trigger_index(
-                        self._cur_column, new_ts, self._target_trigger_index)
-                new_location = TriggerPosition(
-                        new_track, new_system, col_num, new_ts, trigger_index)
-                selection.set_location(new_location)
+                track = new_track
+                system = new_system
+                row_ts = new_ts
 
-            return
+        cur_song = album.get_song_by_track(track)
+        cur_pattern = cur_song.get_pattern_instance(system).get_pattern()
+        cur_column = cur_pattern.get_column(col_num)
+        if not self._cur_column or (self._cur_column != cur_column):
+            self._cur_column = cur_column
 
         # Get default trigger tstamp on the current pixel position
         cur_px_offset = utils.get_px_from_tstamp(row_ts, self._px_per_beat)
         def_ts = utils.get_tstamp_from_px(cur_px_offset, self._px_per_beat)
         assert utils.get_px_from_tstamp(def_ts, self._px_per_beat) == cur_px_offset
 
-        # Convert pixel delta to tstamp delta
-        ts_delta = utils.get_tstamp_from_px(px_delta, self._px_per_beat)
-
         # Get target tstamp
-        new_ts = def_ts + ts_delta
+        new_px_offset = cur_px_offset + px_delta
+        new_ts = utils.get_tstamp_from_px(new_px_offset, self._px_per_beat)
+        assert utils.get_px_from_tstamp(new_ts, self._px_per_beat) != cur_px_offset
 
         # Get shortest movement between target tstamp and closest trigger row
         move_range_start = min(new_ts, row_ts)
         move_range_stop = max(new_ts, row_ts) + tstamp.Tstamp(0, 1)
         if px_delta < 0:
-            move_range_stop -= tstamp.Tstamp(0, 1)
+            if not move_to_previous_system:
+                move_range_stop -= tstamp.Tstamp(0, 1)
         else:
             move_range_start += tstamp.Tstamp(0, 1)
 
@@ -641,6 +701,25 @@ class View(QWidget):
         elif ev.key() == Qt.Key_Backtab:
             self._move_edit_cursor_column(-1)
             return True
+
+        if ev.modifiers() == Qt.ControlModifier:
+            if ev.key() == Qt.Key_Minus:
+                self._sheet_manager.set_zoom(self._sheet_manager.get_zoom() - 1)
+            elif ev.key() == Qt.Key_Plus:
+                self._sheet_manager.set_zoom(self._sheet_manager.get_zoom() + 1)
+            elif ev.key() == Qt.Key_0:
+                self._sheet_manager.set_zoom(0)
+
+        if ev.modifiers() == (Qt.ControlModifier | Qt.AltModifier):
+            if cmdline.get_experimental():
+                if ev.key() == Qt.Key_Minus:
+                    self._sheet_manager.set_column_width(
+                            self._sheet_manager.get_column_width() - 1)
+                elif ev.key() == Qt.Key_Plus:
+                    self._sheet_manager.set_column_width(
+                            self._sheet_manager.get_column_width() + 1)
+                elif ev.key() == Qt.Key_0:
+                    self._sheet_manager.set_column_width(0)
 
     def keyReleaseEvent(self, ev):
         if ev.isAutoRepeat():

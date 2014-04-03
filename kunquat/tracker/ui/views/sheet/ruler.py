@@ -142,11 +142,12 @@ class Ruler(QWidget):
         else:
             # Fill trailing blank
             painter.setBackground(self._config['canvas_bg_colour'])
-            painter.eraseRect(
-                    QRect(
-                        0, rel_end_height,
-                        self._width, self.height() - rel_end_height)
-                    )
+            if rel_end_height < self.height():
+                painter.eraseRect(
+                        QRect(
+                            0, rel_end_height,
+                            self._width, self.height() - rel_end_height)
+                        )
 
         end = time.time()
         elapsed = end - start

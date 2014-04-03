@@ -20,6 +20,7 @@ from eventhistory import EventHistory
 from module import Module
 from visibilitymanager import VisibilityManager
 from selection import Selection
+from sheetmanager import SheetManager
 from notationmanager import NotationManager
 from iconbank import IconBank
 
@@ -91,6 +92,7 @@ class UiModel():
         self._module = None
         self._visibility_manager = None
         self._selection = None
+        self._sheet_manager = None
         self._notation_manager = None
         self._icon_bank = None
 
@@ -106,6 +108,7 @@ class UiModel():
         self._visibility_manager.set_controller(self._controller)
         self._event_history.set_controller(self._controller)
         self._selection.set_controller(self._controller)
+        self._sheet_manager.set_controller(self._controller)
         self._notation_manager.set_controller(self._controller)
         self._icon_bank.set_controller(self._controller)
 
@@ -165,6 +168,12 @@ class UiModel():
     def get_selection(self):
         return self._selection
 
+    def set_sheet_manager(self, sheet_manager):
+        self._sheet_manager = sheet_manager
+
+    def get_sheet_manager(self):
+        return self._sheet_manager
+
     def set_notation_manager(self, notation_manager):
         self._notation_manager = notation_manager
 
@@ -189,6 +198,7 @@ def create_ui_model():
     module = Module()
     visibility_manager = VisibilityManager()
     selection = Selection()
+    sheet_manager = SheetManager()
     notation_manager = NotationManager()
     icon_bank = IconBank()
     ui_model = UiModel()
@@ -200,6 +210,7 @@ def create_ui_model():
     ui_model.set_module(module)
     ui_model.set_visibility_manager(visibility_manager)
     ui_model.set_selection(selection)
+    ui_model.set_sheet_manager(sheet_manager)
     ui_model.set_notation_manager(notation_manager)
     ui_model.set_icon_bank(icon_bank)
     return ui_model

@@ -36,6 +36,12 @@ class Session():
         self._event_index = count()
         self._selected_location = None
         self._active_notes = {}
+        self._sheet_zoom = 0
+        self._sheet_zoom_min = 0
+        self._sheet_zoom_max = 0
+        self._sheet_column_width = 0
+        self._sheet_column_width_min = 0
+        self._sheet_column_width_max = 0
 
     def get_output_speed(self):
         return self._output_speed
@@ -173,5 +179,34 @@ class Session():
     def get_active_note(self, row, index):
         key = (row, index)
         return self._active_notes[key]
+
+    def set_sheet_zoom(self, zoom):
+        self._sheet_zoom = min(max(self._sheet_zoom_min, zoom), self._sheet_zoom_max)
+
+    def set_sheet_zoom_range(self, minimum, maximum):
+        self._sheet_zoom_min = minimum
+        self._sheet_zoom_max = max(minimum, maximum)
+        self.set_sheet_zoom(self._sheet_zoom)
+
+    def get_sheet_zoom(self):
+        return self._sheet_zoom
+
+    def get_sheet_zoom_range(self):
+        return (self._sheet_zoom_min, self._sheet_zoom_max)
+
+    def set_sheet_column_width(self, width):
+        self._sheet_column_width = min(max(
+            self._sheet_column_width_min, width), self._sheet_column_width_max)
+
+    def set_sheet_column_width_range(self, minimum, maximum):
+        self._sheet_column_width_min = minimum
+        self._sheet_column_width_max = max(minimum, maximum)
+        self.set_sheet_column_width(self._sheet_column_width)
+
+    def get_sheet_column_width(self):
+        return self._sheet_column_width
+
+    def get_sheet_column_width_range(self):
+        return (self._sheet_column_width_min, self._sheet_column_width_max)
 
 
