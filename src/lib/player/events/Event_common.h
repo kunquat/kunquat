@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -19,33 +19,6 @@
 #include <stdbool.h>
 
 #include <Tstamp.h>
-
-
-/**
- * Initialises the Event with necessary high-level information.
- *
- * This function sets the default destructor.
- *
- * \param event         The Event -- must not be \c NULL.
- * \param pos           The position of the Event -- must not be \c NULL.
- * \param type          The Event type -- must be valid.
- *
- * \return   The parameter \a event.
- */
-//Event* Event_init(Event* event,
-//                  Tstamp* pos,
-//                  Event_type type);
-
-
-/**
- * The default destructor for Events.
- *
- * This works for any Event that does not contain dynamically allocated fields
- * in addition to the event fields.
- *
- * \param event   The Event, or \c NULL.
- */
-//void del_Event_default(Event* event);
 
 
 #define Event_check_voice(ch_state, gen)                        \
