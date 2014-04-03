@@ -25,7 +25,7 @@
 #include <devices/dsps/DSP_conv.h>
 #include <math_common.h>
 #include <memory.h>
-#include <string_common.h>
+#include <string/common.h>
 
 
 #define MAX_BUF_TIME 5

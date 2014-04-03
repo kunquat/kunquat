@@ -19,7 +19,7 @@
 #include <math_common.h>
 #include <memory.h>
 #include <player/Event_buffer.h>
-#include <string_common.h>
+#include <string/common.h>
 
 
 struct Event_buffer

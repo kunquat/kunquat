@@ -30,8 +30,8 @@
 #include <Handle_private.h>
 #include <manifest.h>
 #include <memory.h>
-#include <Streader.h>
-#include <string_common.h>
+#include <string/Streader.h>
+#include <string/common.h>
 
 
 static bool parse_module_level(

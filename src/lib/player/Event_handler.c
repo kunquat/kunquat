@@ -30,8 +30,8 @@
 #include <player/Event_names.h>
 #include <player/Event_type.h>
 #include <player/General_state.h>
-#include <Streader.h>
-#include <string_common.h>
+#include <string/Streader.h>
+#include <string/common.h>
 #include <Value.h>
 
 #include <player/events/Event_control_decl.h>

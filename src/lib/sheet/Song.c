@@ -22,7 +22,7 @@
 #include <kunquat/limits.h>
 #include <memory.h>
 #include <sheet/Song.h>
-#include <string_common.h>
+#include <string/common.h>
 
 
 static bool Song_parse(Song* song, Streader* sr);

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2014
  *
  * This file is part of Kunquat.
  *
@@ -17,9 +17,9 @@
 
 
 #include <player/Env_state.h>
-#include <Streader.h>
-#include <Value.h>
 #include <Random.h>
+#include <string/Streader.h>
+#include <Value.h>
 
 
 /**

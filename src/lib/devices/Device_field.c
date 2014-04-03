@@ -20,7 +20,7 @@
 #include <devices/Device_field.h>
 #include <devices/generators/File_wavpack.h>
 #include <memory.h>
-#include <string_common.h>
+#include <string/common.h>
 
 
 typedef union

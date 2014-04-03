@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2014
  *
  * This file is part of Kunquat.
  *
@@ -19,7 +19,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#include <Streader.h>
+#include <string/Streader.h>
 
 
 /**

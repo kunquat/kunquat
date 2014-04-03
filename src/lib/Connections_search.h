@@ -21,7 +21,7 @@
 #include <devices/DSP_table.h>
 #include <Device_node.h>
 #include <Ins_table.h>
-#include <Streader.h>
+#include <string/Streader.h>
 
 
 /**

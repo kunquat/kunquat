@@ -29,7 +29,7 @@
 #include <kunquat/limits.h>
 #include <player/Voice_state.h>
 #include <Scale.h>
-#include <Streader.h>
+#include <string/Streader.h>
 
 
 typedef struct Instrument Instrument;

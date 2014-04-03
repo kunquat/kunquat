@@ -23,7 +23,7 @@
 #include <devices/DSP.h>
 #include <devices/dsps/DSP_common.h>
 #include <devices/dsps/DSP_volume.h>
-#include <string_common.h>
+#include <string/common.h>
 #include <memory.h>
 
 

@@ -21,7 +21,7 @@
 #include <containers/AAtree.h>
 #include <devices/generators/Sample_entry.h>
 #include <Random.h>
-#include <Streader.h>
+#include <string/Streader.h>
 
 
 #define NOTE_MAP_RANDOMS_MAX (8)

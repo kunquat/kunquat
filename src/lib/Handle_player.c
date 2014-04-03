@@ -25,7 +25,7 @@
 #include <kunquat/limits.h>
 #include <math_common.h>
 #include <Module.h>
-#include <string_common.h>
+#include <string/common.h>
 
 
 int kqt_Handle_play(kqt_Handle handle, long nframes)

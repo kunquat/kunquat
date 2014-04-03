@@ -21,7 +21,7 @@
 
 #include <devices/Device_field.h>
 #include <Real.h>
-#include <Streader.h>
+#include <string/Streader.h>
 #include <Tstamp.h>
 
 

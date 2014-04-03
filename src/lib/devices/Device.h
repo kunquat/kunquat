@@ -26,7 +26,7 @@
 #include <frame.h>
 #include <kunquat/limits.h>
 #include <player/Device_states.h>
-#include <Streader.h>
+#include <string/Streader.h>
 #include <Tstamp.h>
 
 

@@ -20,7 +20,7 @@
 #include <stdio.h>
 
 #include <devices/generators/Sample.h>
-#include <Streader.h>
+#include <string/Streader.h>
 
 
 bool Sample_parse_wavpack(Sample* sample, Streader* sr);

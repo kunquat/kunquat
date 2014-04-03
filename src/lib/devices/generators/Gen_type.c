@@ -21,7 +21,7 @@
 #include <devices/generators/Generator_noise.h>
 #include <devices/generators/Generator_pcm.h>
 #include <devices/generators/Generator_pulse.h>
-#include <string_common.h>
+#include <string/common.h>
 
 
 struct Gen_type

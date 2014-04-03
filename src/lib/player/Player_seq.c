@@ -19,7 +19,7 @@
 #include <debug/assert.h>
 #include <expr.h>
 #include <player/Player_seq.h>
-#include <string_common.h>
+#include <string/common.h>
 
 
 bool get_event_type_info(

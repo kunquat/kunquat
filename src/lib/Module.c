@@ -26,7 +26,7 @@
 #include <Random.h>
 #include <Real.h>
 #include <Module.h>
-#include <string_common.h>
+#include <string/common.h>
 
 
 /**

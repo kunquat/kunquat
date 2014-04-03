@@ -27,7 +27,7 @@
 #include <player/Player_private.h>
 #include <player/Player_seq.h>
 #include <player/Position.h>
-#include <string_common.h>
+#include <string/common.h>
 
 
 static void Player_update_sliders_and_lfos_audio_rate(Player* player)

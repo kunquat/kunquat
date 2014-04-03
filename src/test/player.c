@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2014
  *
  * This file is part of Kunquat.
  *
@@ -21,7 +21,7 @@
 #include <Handle_private.h>
 #include <kunquat/Handle.h>
 #include <player/Player.h>
-#include <Streader.h>
+#include <string/Streader.h>
 
 
 #define buf_len 128

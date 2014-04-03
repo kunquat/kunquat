@@ -20,7 +20,7 @@
 
 #include <devices/generators/Sample_entry.h>
 #include <Random.h>
-#include <Streader.h>
+#include <string/Streader.h>
 
 
 #define HIT_MAP_RANDOMS_MAX 8

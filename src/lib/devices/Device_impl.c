@@ -21,7 +21,7 @@
 #include <devices/Device_impl.h>
 #include <devices/Device_params.h>
 #include <memory.h>
-#include <string_common.h>
+#include <string/common.h>
 #include <Value.h>
 
 

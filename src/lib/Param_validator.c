@@ -23,7 +23,7 @@
 #include <kunquat/limits.h>
 #include <Param_validator.h>
 #include <Pat_inst_ref.h>
-#include <Streader.h>
+#include <string/Streader.h>
 
 
 #define init_c_streader(param) \

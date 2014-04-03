@@ -21,7 +21,7 @@
 #include <devices/Device.h>
 #include <devices/Device_impl.h>
 #include <math_common.h>
-#include <string_common.h>
+#include <string/common.h>
 
 
 void Device_reset_default(Device* device, Device_states* dstates)

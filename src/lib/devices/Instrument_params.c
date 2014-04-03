@@ -16,9 +16,9 @@
 #include <stdbool.h>
 #include <string.h>
 
-#include <devices/Instrument_params.h>
-#include <string_common.h>
 #include <debug/assert.h>
+#include <devices/Instrument_params.h>
+#include <string/common.h>
 
 
 #define new_env_or_fail(env, nodes, xmin, xmax, xstep, ymin, ymax, ystep) \

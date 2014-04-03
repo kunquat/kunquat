@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2014
  *
  * This file is part of Kunquat.
  *
@@ -23,7 +23,7 @@
 #include <kunquat/limits.h>
 #include <Module.h>
 #include <player/Event_handler.h>
-#include <Streader.h>
+#include <string/Streader.h>
 
 
 #define DEFAULT_AUDIO_RATE 48000

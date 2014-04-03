@@ -28,7 +28,7 @@
 #include <kunquat/limits.h>
 #include <math_common.h>
 #include <memory.h>
-#include <string_common.h>
+#include <string/common.h>
 
 
 typedef struct Noise_state

@@ -28,7 +28,7 @@
 #include <memory.h>
 #include <Module.h>
 #include <Parse_manager.h>
-#include <string_common.h>
+#include <string/common.h>
 
 
 static Handle* handles[KQT_HANDLES_MAX] = { NULL };

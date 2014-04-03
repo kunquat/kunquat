@@ -29,7 +29,7 @@
 #include <devices/Effect.h>
 #include <Effect_table.h>
 #include <memory.h>
-#include <string_common.h>
+#include <string/common.h>
 
 
 struct Connections

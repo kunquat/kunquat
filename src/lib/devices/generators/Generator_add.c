@@ -28,7 +28,7 @@
 #include <math_common.h>
 #include <memory.h>
 #include <Num_list.h>
-#include <string_common.h>
+#include <string/common.h>
 
 
 #define BASE_FUNC_SIZE 4096

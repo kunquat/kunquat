@@ -22,7 +22,7 @@
 #include <Param_validator.h>
 #include <player/Event_names.h>
 #include <player/Event_type.h>
-#include <string_common.h>
+#include <string/common.h>
 
 
 typedef struct Name_info

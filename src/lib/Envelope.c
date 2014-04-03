@@ -20,7 +20,7 @@
 #include <debug/assert.h>
 #include <Envelope.h>
 #include <memory.h>
-#include <string_common.h>
+#include <string/common.h>
 
 
 struct Envelope

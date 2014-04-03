@@ -27,7 +27,7 @@
 #include <devices/Instrument.h>
 #include <memory.h>
 #include <player/Ins_state.h>
-#include <string_common.h>
+#include <string/common.h>
 
 
 struct Instrument

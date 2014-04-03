@@ -24,7 +24,7 @@
 #include <debug/assert.h>
 #include <memory.h>
 #include <sheet/Pattern.h>
-#include <string_common.h>
+#include <string/common.h>
 
 
 struct Pattern

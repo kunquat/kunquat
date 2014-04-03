@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -22,7 +22,7 @@
 #include <frame.h>
 #include <Envelope.h>
 #include <Scale.h>
-#include <Streader.h>
+#include <string/Streader.h>
 
 
 typedef struct Pitch_lock

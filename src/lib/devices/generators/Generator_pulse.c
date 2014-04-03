@@ -26,7 +26,7 @@
 #include <devices/generators/Voice_state_pulse.h>
 #include <kunquat/limits.h>
 #include <memory.h>
-#include <string_common.h>
+#include <string/common.h>
 
 
 typedef struct Pulse_state

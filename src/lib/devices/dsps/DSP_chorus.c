@@ -27,7 +27,7 @@
 #include <math_common.h>
 #include <memory.h>
 #include <player/LFO.h>
-#include <string_common.h>
+#include <string/common.h>
 
 
 #define CHORUS_BUF_TIME 0.25

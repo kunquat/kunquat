@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2014
  *
  * This file is part of Kunquat.
  *
@@ -18,7 +18,7 @@
 
 #include <stdlib.h>
 
-#include <Streader.h>
+#include <string/Streader.h>
 
 
 /**

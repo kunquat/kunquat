@@ -23,7 +23,7 @@
 #include <kunquat/limits.h>
 #include <player/Event_names.h>
 #include <player/Event_type.h>
-#include <Streader.h>
+#include <string/Streader.h>
 #include <Tstamp.h>
 
 

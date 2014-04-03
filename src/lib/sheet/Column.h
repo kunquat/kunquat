@@ -22,7 +22,7 @@
 #include <containers/AAtree.h>
 #include <player/Event_names.h>
 #include <sheet/Trigger.h>
-#include <Streader.h>
+#include <string/Streader.h>
 #include <Tstamp.h>
 
 

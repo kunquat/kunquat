@@ -22,7 +22,7 @@
 #include <devices/dsps/DSP_freeverb.h>
 #include <devices/dsps/DSP_gc.h>
 #include <devices/dsps/DSP_volume.h>
-#include <string_common.h>
+#include <string/common.h>
 
 
 struct DSP_type

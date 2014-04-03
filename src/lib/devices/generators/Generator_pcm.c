@@ -30,7 +30,7 @@
 #include <devices/generators/Voice_state_pcm.h>
 #include <memory.h>
 #include <pitch_t.h>
-#include <string_common.h>
+#include <string/common.h>
 
 
 typedef struct Generator_pcm

@@ -20,7 +20,7 @@
 #include <kunquat/limits.h>
 #include <memory.h>
 #include <player/Channel_gen_state.h>
-#include <string_common.h>
+#include <string/common.h>
 #include <Value.h>
 
 

@@ -21,7 +21,7 @@
 #include <devices/generators/Generator_common.h>
 #include <devices/generators/Generator_debug.h>
 #include <memory.h>
-#include <string_common.h>
+#include <string/common.h>
 
 
 typedef struct Generator_debug

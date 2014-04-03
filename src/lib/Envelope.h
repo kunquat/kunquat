@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -19,7 +19,7 @@
 #include <stdbool.h>
 #include <math.h>
 
-#include <Streader.h>
+#include <string/Streader.h>
 
 
 #define ENVELOPE_MARKS_MAX (4)

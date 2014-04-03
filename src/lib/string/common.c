@@ -18,7 +18,7 @@
 #include <string.h>
 
 #include <debug/assert.h>
-#include <string_common.h>
+#include <string/common.h>
 
 
 bool string_eq(const char* str1, const char* str2)

@@ -23,7 +23,7 @@
 #include <devices/Generator.h>
 #include <kunquat/limits.h>
 #include <memory.h>
-#include <string_common.h>
+#include <string/common.h>
 
 
 typedef enum

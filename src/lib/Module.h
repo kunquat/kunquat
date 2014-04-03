@@ -34,7 +34,7 @@
 #include <sheet/Pat_table.h>
 #include <sheet/Song_table.h>
 #include <sheet/Track_list.h>
-#include <Streader.h>
+#include <string/Streader.h>
 
 
 struct Module

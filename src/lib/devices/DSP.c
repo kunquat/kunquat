@@ -22,7 +22,7 @@
 #include <devices/dsps/DSP_type.h>
 #include <memory.h>
 #include <player/Device_states.h>
-#include <string_common.h>
+#include <string/common.h>
 
 
 DSP* new_DSP()

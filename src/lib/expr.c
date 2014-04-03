@@ -25,7 +25,7 @@
 #include <math_common.h>
 #include <Pat_inst_ref.h>
 #include <Random.h>
-#include <string_common.h>
+#include <string/common.h>
 
 
 #define STACK_SIZE 32

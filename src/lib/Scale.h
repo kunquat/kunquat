@@ -17,10 +17,10 @@
 
 
 #include <containers/AAtree.h>
-#include <Real.h>
-#include <pitch_t.h>
 #include <kunquat/limits.h>
-#include <Streader.h>
+#include <pitch_t.h>
+#include <Real.h>
+#include <string/Streader.h>
 
 
 /**

@@ -24,7 +24,7 @@
 #include <math_common.h>
 #include <memory.h>
 #include <Scale.h>
-#include <string_common.h>
+#include <string/common.h>
 
 
 typedef struct pitch_index

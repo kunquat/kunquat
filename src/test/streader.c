@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2014
  *
  * This file is part of Kunquat.
  *
@@ -22,7 +22,7 @@
 #include <test_common.h>
 
 #include <Pat_inst_ref.h>
-#include <Streader.h>
+#include <string/Streader.h>
 #include <Tstamp.h>
 
 
