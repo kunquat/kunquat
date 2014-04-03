@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2014
  *
  * This file is part of Kunquat.
  *
@@ -18,6 +18,7 @@
 #include <string.h>
 
 #include <Connections_search.h>
+#include <debug/assert.h>
 #include <Device_node.h>
 #include <math_common.h>
 #include <memory.h>
@@ -27,7 +28,6 @@
 #include <player/Player_seq.h>
 #include <player/Position.h>
 #include <string_common.h>
-#include <xassert.h>
 
 
 static void Player_update_sliders_and_lfos_audio_rate(Player* player)

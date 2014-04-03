@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <float.h>
 
+#include <debug/assert.h>
 #include <Input_map.h>
 #include <kunquat/limits.h>
 #include <Module.h>
@@ -28,7 +29,6 @@
 #include <Scale.h>
 #include <Tstamp.h>
 #include <Value.h>
-#include <xassert.h>
 
 
 bool Event_channel_note_on_process(

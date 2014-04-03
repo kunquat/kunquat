@@ -16,10 +16,10 @@
 
 #include <Bit_array.h>
 #include <containers/Etable.h>
+#include <debug/assert.h>
 #include <devices/Gen_table.h>
 #include <devices/Generator.h>
 #include <memory.h>
-#include <xassert.h>
 
 
 struct Gen_table

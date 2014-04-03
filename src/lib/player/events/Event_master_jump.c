@@ -17,11 +17,11 @@
 #include <stdio.h>
 #include <limits.h>
 
+#include <debug/assert.h>
 #include <kunquat/limits.h>
 #include <player/events/Event_common.h>
 #include <player/events/Event_master_decl.h>
 #include <Value.h>
-#include <xassert.h>
 
 
 bool Event_master_set_jump_counter_process(

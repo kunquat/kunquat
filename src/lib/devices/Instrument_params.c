@@ -18,7 +18,7 @@
 
 #include <devices/Instrument_params.h>
 #include <string_common.h>
-#include <xassert.h>
+#include <debug/assert.h>
 
 
 #define new_env_or_fail(env, nodes, xmin, xmax, xstep, ymin, ymax, ystep) \

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2014
  *
  * This file is part of Kunquat.
  *
@@ -17,9 +17,9 @@
 #include <stdint.h>
 #include <math.h>
 
+#include <debug/assert.h>
 #include <memory.h>
 #include <Num_list.h>
-#include <xassert.h>
 
 
 struct Num_list

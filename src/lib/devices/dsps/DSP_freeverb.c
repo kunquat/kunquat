@@ -18,6 +18,7 @@
 #include <string.h>
 #include <math.h>
 
+#include <debug/assert.h>
 #include <devices/Device_impl.h>
 #include <devices/DSP.h>
 #include <devices/dsps/DSP_common.h>
@@ -28,7 +29,6 @@
 #include <math_common.h>
 #include <memory.h>
 #include <string_common.h>
-#include <xassert.h>
 
 
 #define FREEVERB_COMBS 8

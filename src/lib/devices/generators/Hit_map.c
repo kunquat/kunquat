@@ -17,9 +17,9 @@
 #include <math.h>
 
 #include <containers/AAtree.h>
+#include <debug/assert.h>
 #include <devices/generators/Hit_map.h>
 #include <memory.h>
-#include <xassert.h>
 
 
 struct Hit_map

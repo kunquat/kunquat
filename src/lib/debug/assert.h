@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_XASSERT_H
-#define K_XASSERT_H
+#ifndef K_ASSERT_H
+#define K_ASSERT_H
 
 
 #include <stdlib.h>
@@ -22,7 +22,7 @@
 /**
  * Suppresses error message printing.
  */
-void xassert_suppress_messages(void);
+void assert_suppress_messages(void);
 
 
 #ifdef ENABLE_KUNQUAT_ASSERT
@@ -38,11 +38,11 @@ void xassert_suppress_messages(void);
 /**
  * Prints a backtrace of the execution.
  */
-void xassert_print_backtrace(void);
+void assert_print_backtrace(void);
 
 #else // !HAS_EXECINFO || SILENT_ASSERT
 
-#define xassert_print_backtrace() (void)0
+#define assert_print_backtrace() (void)0
 
 #endif // !HAS_EXECINFO || SILENT_ASSERT
 
@@ -57,7 +57,7 @@ void xassert_print_backtrace(void);
  * \param func_name     The name of the function -- must not be \c NULL.
  * \param assertion     The assertion that failed -- must not be \c NULL.
  */
-void xassert_print_msg(
+void assert_print_msg(
         const char* file_name,
         int line_number,
         const char* func_name,
@@ -65,23 +65,23 @@ void xassert_print_msg(
 
 #else // SILENT_ASSERT
 
-#define xassert_print_msg() (void)0
+#define assert_print_msg() (void)0
 
 #endif // SILENT_ASSERT
 
 
 #ifndef NDEBUG
 
-#define assert(expr)                                                \
-    (                                                               \
-        (expr) ?                                                    \
-            (void)0                                                 \
-        :                                                           \
-        (                                                           \
-            xassert_print_msg(__FILE__, __LINE__, __func__, #expr), \
-            xassert_print_backtrace(),                              \
-            abort()                                                 \
-        )                                                           \
+#define assert(expr)                                               \
+    (                                                              \
+        (expr) ?                                                   \
+            (void)0                                                \
+        :                                                          \
+        (                                                          \
+            assert_print_msg(__FILE__, __LINE__, __func__, #expr), \
+            assert_print_backtrace(),                              \
+            abort()                                                \
+        )                                                          \
     )
 
 #else // NDEBUG
@@ -98,6 +98,6 @@ void xassert_print_msg(
 #endif // ENABLE_KUNQUAT_ASSERT
 
 
-#endif // K_XASSERT_H
+#endif // K_ASSERT_H
 
 

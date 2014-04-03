@@ -20,9 +20,9 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <debug/assert.h>
 #include <kunquat/limits.h>
 #include <Streader.h>
-#include <xassert.h>
 
 
 Streader* Streader_init(Streader* sr, const char* str, size_t len)

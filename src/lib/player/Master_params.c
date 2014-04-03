@@ -12,10 +12,10 @@
  */
 
 
+#include <debug/assert.h>
 #include <Module.h>
 #include <player/Master_params.h>
 #include <sheet/Track_list.h>
-#include <xassert.h>
 
 
 #define KQT_JUMP_CONTEXTS_MAX 64

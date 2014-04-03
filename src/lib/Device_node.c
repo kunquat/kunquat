@@ -18,12 +18,12 @@
 #include <math.h>
 
 #include <Connections_search.h>
+#include <debug/assert.h>
 #include <Device_node.h>
 #include <devices/Generator.h>
 #include <kunquat/limits.h>
 #include <memory.h>
 #include <string_common.h>
-#include <xassert.h>
 
 
 typedef enum

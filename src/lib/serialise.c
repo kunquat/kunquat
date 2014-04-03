@@ -18,9 +18,9 @@
 #include <math.h>
 #include <inttypes.h>
 
+#include <debug/assert.h>
 #include <math_common.h>
 #include <serialise.h>
-#include <xassert.h>
 
 
 #define INT_BUF_SIZE 32

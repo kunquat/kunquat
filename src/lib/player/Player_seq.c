@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2014
  *
  * This file is part of Kunquat.
  *
@@ -16,10 +16,10 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <debug/assert.h>
 #include <expr.h>
 #include <player/Player_seq.h>
 #include <string_common.h>
-#include <xassert.h>
 
 
 bool get_event_type_info(

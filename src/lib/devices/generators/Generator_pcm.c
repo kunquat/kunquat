@@ -18,6 +18,7 @@
 #include <stdio.h>
 
 #include <containers/AAtree.h>
+#include <debug/assert.h>
 #include <devices/Device_params.h>
 #include <devices/Generator.h>
 #include <devices/generators/File_wavpack.h>
@@ -30,7 +31,6 @@
 #include <memory.h>
 #include <pitch_t.h>
 #include <string_common.h>
-#include <xassert.h>
 
 
 typedef struct Generator_pcm

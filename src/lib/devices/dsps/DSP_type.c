@@ -14,6 +14,7 @@
 
 #include <stdlib.h>
 
+#include <debug/assert.h>
 #include <devices/dsps/DSP_type.h>
 #include <devices/dsps/DSP_chorus.h>
 #include <devices/dsps/DSP_conv.h>
@@ -22,7 +23,6 @@
 #include <devices/dsps/DSP_gc.h>
 #include <devices/dsps/DSP_volume.h>
 #include <string_common.h>
-#include <xassert.h>
 
 
 struct DSP_type

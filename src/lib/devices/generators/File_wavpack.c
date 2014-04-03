@@ -17,11 +17,11 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <debug/assert.h>
 #include <devices/generators/File_wavpack.h>
 #include <devices/generators/Sample.h>
 #include <math_common.h>
 #include <memory.h>
-#include <xassert.h>
 
 
 #ifndef WITH_WAVPACK

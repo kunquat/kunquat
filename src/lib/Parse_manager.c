@@ -21,6 +21,7 @@
 #include <Bind.h>
 #include <Connections.h>
 #include <Connections_search.h>
+#include <debug/assert.h>
 #include <devices/Device_event_keys.h>
 #include <devices/Device_params.h>
 #include <devices/dsps/DSP_type.h>
@@ -31,7 +32,6 @@
 #include <memory.h>
 #include <Streader.h>
 #include <string_common.h>
-#include <xassert.h>
 
 
 static bool parse_module_level(

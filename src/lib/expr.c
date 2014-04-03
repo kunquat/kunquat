@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2014
  *
  * This file is part of Kunquat.
  *
@@ -20,12 +20,12 @@
 #include <math.h>
 #include <stdio.h>
 
+#include <debug/assert.h>
 #include <expr.h>
 #include <math_common.h>
 #include <Pat_inst_ref.h>
 #include <Random.h>
 #include <string_common.h>
-#include <xassert.h>
 
 
 #define STACK_SIZE 32

@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+#include <debug/assert.h>
 #include <Env_var.h>
 #include <Environment.h>
 #include <player/Active_names.h>
@@ -24,7 +25,6 @@
 #include <player/events/set_active_name.h>
 #include <player/General_state.h>
 #include <Value.h>
-#include <xassert.h>
 
 
 bool Event_control_env_set_bool_process(General_state* gstate, Value* value)

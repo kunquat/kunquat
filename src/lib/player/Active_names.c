@@ -15,11 +15,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <debug/assert.h>
 #include <Env_var.h>
 #include <kunquat/limits.h>
 #include <memory.h>
 #include <player/Active_names.h>
-#include <xassert.h>
 
 
 struct Active_names

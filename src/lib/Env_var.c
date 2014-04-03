@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2014
  *
  * This file is part of Kunquat.
  *
@@ -17,11 +17,11 @@
 #include <stdint.h>
 #include <string.h>
 
+#include <debug/assert.h>
 #include <Env_var.h>
 #include <kunquat/limits.h>
 #include <memory.h>
 #include <string_common.h>
-#include <xassert.h>
 
 
 struct Env_var

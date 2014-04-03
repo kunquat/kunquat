@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2014
  *
  * This file is part of Kunquat.
  *
@@ -16,8 +16,8 @@
 #include <stdio.h>
 
 #include <Bit_array.h>
+#include <debug/assert.h>
 #include <memory.h>
-#include <xassert.h>
 
 
 struct Bit_array

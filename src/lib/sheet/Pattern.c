@@ -21,10 +21,10 @@
 
 #include <Bit_array.h>
 #include <Connections_search.h>
+#include <debug/assert.h>
 #include <memory.h>
 #include <sheet/Pattern.h>
 #include <string_common.h>
-#include <xassert.h>
 
 
 struct Pattern

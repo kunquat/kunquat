@@ -18,6 +18,7 @@
 #include <string.h>
 #include <math.h>
 
+#include <debug/assert.h>
 #include <devices/Generator.h>
 #include <devices/generators/Generator_add.h>
 #include <devices/generators/Generator_common.h>
@@ -28,7 +29,6 @@
 #include <memory.h>
 #include <Num_list.h>
 #include <string_common.h>
-#include <xassert.h>
 
 
 #define BASE_FUNC_SIZE 4096

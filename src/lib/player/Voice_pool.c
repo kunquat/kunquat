@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -16,9 +16,9 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+#include <debug/assert.h>
 #include <memory.h>
 #include <player/Voice_pool.h>
-#include <xassert.h>
 
 
 Voice_pool* new_Voice_pool(uint16_t size)

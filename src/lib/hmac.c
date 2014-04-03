@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2014
  *
  * This file is part of Kunquat.
  *
@@ -16,8 +16,8 @@
 #include <stdint.h>
 #include <string.h>
 
+#include <debug/assert.h>
 #include <md5.h>
-#include <xassert.h>
 
 
 void hmac_md5(uint64_t key, char* msg, uint64_t* lower, uint64_t* upper)

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2014
  *
  * This file is part of Kunquat.
  *
@@ -14,8 +14,8 @@
 
 #include <stdbool.h>
 
+#include <debug/assert.h>
 #include <Pat_inst_ref.h>
-#include <xassert.h>
 
 
 bool Pat_inst_ref_is_valid(const Pat_inst_ref* p)

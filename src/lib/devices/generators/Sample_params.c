@@ -15,9 +15,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <debug/assert.h>
 #include <devices/generators/Sample_params.h>
 #include <string_common.h>
-#include <xassert.h>
 
 
 Sample_params* Sample_params_init(Sample_params* params)

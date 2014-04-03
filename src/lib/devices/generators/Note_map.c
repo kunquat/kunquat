@@ -15,10 +15,10 @@
 #include <stdlib.h>
 #include <math.h>
 
+#include <debug/assert.h>
 #include <devices/generators/Note_map.h>
 #include <memory.h>
 #include <pitch_t.h>
-#include <xassert.h>
 
 
 struct Note_map

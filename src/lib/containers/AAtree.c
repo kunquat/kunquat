@@ -16,8 +16,8 @@
 #include <stdbool.h>
 
 #include <containers/AAtree.h>
+#include <debug/assert.h>
 #include <memory.h>
-#include <xassert.h>
 
 
 struct AAnode

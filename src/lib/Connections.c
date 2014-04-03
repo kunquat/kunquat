@@ -23,13 +23,13 @@
 #include <containers/AAtree.h>
 #include <Connections.h>
 #include <Connections_search.h>
+#include <debug/assert.h>
 #include <Device_node.h>
 #include <devices/DSP_table.h>
 #include <devices/Effect.h>
 #include <Effect_table.h>
 #include <memory.h>
 #include <string_common.h>
-#include <xassert.h>
 
 
 struct Connections

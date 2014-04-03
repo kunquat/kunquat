@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -19,10 +19,10 @@
 #include <string.h>
 #include <math.h>
 
+#include <debug/assert.h>
 #include <math_common.h>
 #include <player/LFO.h>
 #include <player/Player.h>
-#include <xassert.h>
 
 
 static void LFO_update_time(LFO* lfo,

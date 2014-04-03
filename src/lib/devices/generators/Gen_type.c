@@ -14,6 +14,7 @@
 
 #include <stdlib.h>
 
+#include <debug/assert.h>
 #include <devices/generators/Gen_type.h>
 #include <devices/generators/Generator_debug.h>
 #include <devices/generators/Generator_add.h>
@@ -21,7 +22,6 @@
 #include <devices/generators/Generator_pcm.h>
 #include <devices/generators/Generator_pulse.h>
 #include <string_common.h>
-#include <xassert.h>
 
 
 struct Gen_type

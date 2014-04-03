@@ -12,11 +12,11 @@
  */
 
 
+#include <debug/assert.h>
 #include <devices/Device.h>
 #include <math_common.h>
 #include <memory.h>
 #include <player/Device_state.h>
-#include <xassert.h>
 
 
 void Device_state_init(

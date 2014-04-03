@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -16,10 +16,10 @@
 #include <stdio.h>
 
 #include <Audio_buffer.h>
+#include <debug/assert.h>
 #include <kunquat/limits.h>
 #include <math_common.h>
 #include <memory.h>
-#include <xassert.h>
 
 
 struct Audio_buffer

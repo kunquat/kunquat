@@ -17,12 +17,12 @@
 #include <string.h>
 
 #include <containers/AAtree.h>
+#include <debug/assert.h>
 #include <memory.h>
 #include <Param_validator.h>
 #include <player/Event_names.h>
 #include <player/Event_type.h>
 #include <string_common.h>
-#include <xassert.h>
 
 
 typedef struct Name_info

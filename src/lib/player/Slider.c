@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -18,9 +18,9 @@
 #include <string.h>
 #include <math.h>
 
+#include <debug/assert.h>
 #include <player/Player.h>
 #include <player/Slider.h>
-#include <xassert.h>
 
 
 static void Slider_update_time(

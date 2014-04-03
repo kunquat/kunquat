@@ -15,8 +15,8 @@
 #include <stdlib.h>
 
 #include <containers/Etable.h>
+#include <debug/assert.h>
 #include <memory.h>
-#include <xassert.h>
 
 
 struct Etable

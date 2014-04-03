@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2014
  *
  * This file is part of Kunquat.
  *
@@ -14,7 +14,7 @@
 
 #include <kunquat/testing.h>
 #include <memory.h>
-#include <xassert.h>
+#include <debug/assert.h>
 
 
 void kqt_fake_out_of_memory(long steps)
@@ -32,7 +32,7 @@ long kqt_get_memory_alloc_count(void)
 
 void kqt_suppress_assert_messages(void)
 {
-    xassert_suppress_messages();
+    assert_suppress_messages();
     return;
 }
 

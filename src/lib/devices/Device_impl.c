@@ -15,6 +15,7 @@
 #include <ctype.h>
 #include <string.h>
 
+#include <debug/assert.h>
 #include <devices/Device.h>
 #include <devices/Device_field.h>
 #include <devices/Device_impl.h>
@@ -22,7 +23,6 @@
 #include <memory.h>
 #include <string_common.h>
 #include <Value.h>
-#include <xassert.h>
 
 
 typedef struct Set_cb

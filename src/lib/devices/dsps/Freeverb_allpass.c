@@ -16,10 +16,10 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include <debug/assert.h>
 #include <devices/dsps/Freeverb_allpass.h>
 #include <math_common.h>
 #include <memory.h>
-#include <xassert.h>
 
 
 struct Freeverb_allpass

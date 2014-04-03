@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -16,13 +16,13 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include <xassert.h>
+#include <debug/assert.h>
 
 
 static bool is_printing_enabled = true;
 
 
-void xassert_suppress_messages(void)
+void assert_suppress_messages(void)
 {
     is_printing_enabled = false;
     return;
@@ -37,7 +37,7 @@ void xassert_suppress_messages(void)
 
 #define BACKTRACE_LEVELS_MAX 256
 
-void xassert_print_backtrace(void)
+void assert_print_backtrace(void)
 {
     if (!is_printing_enabled)
         return;
@@ -72,7 +72,7 @@ void xassert_print_backtrace(void)
 
 #ifndef SILENT_ASSERT
 
-void xassert_print_msg(
+void assert_print_msg(
         const char* file_name,
         int line_number,
         const char* func_name,
@@ -83,7 +83,7 @@ void xassert_print_msg(
 
     if (file_name == NULL || func_name == NULL || assertion == NULL)
     {
-        fprintf(stderr, "(xassert_print_msg called with illegal arguments)\n");
+        fprintf(stderr, "(assert_print_msg called with illegal arguments)\n");
         return;
     }
 

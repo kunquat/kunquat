@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+#include <debug/assert.h>
 #include <devices/Generator.h>
 #include <player/Active_names.h>
 #include <player/events/Event_common.h>
@@ -22,7 +23,6 @@
 #include <player/events/set_active_name.h>
 #include <string_common.h>
 #include <Value.h>
-#include <xassert.h>
 
 
 bool Event_generator_set_bool_process(

@@ -17,10 +17,10 @@
 
 #include <containers/AAtree.h>
 #include <containers/Vector.h>
+#include <debug/assert.h>
 #include <memory.h>
 #include <Pat_inst_ref.h>
 #include <sheet/Order_list.h>
-#include <xassert.h>
 
 
 typedef struct Index_mapping

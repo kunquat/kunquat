@@ -15,12 +15,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include <debug/assert.h>
 #include <devices/Generator.h>
 #include <devices/generators/Generator_common.h>
 #include <Filter.h>
 #include <kunquat/limits.h>
 #include <math_common.h>
-#include <xassert.h>
 
 
 #define RAMP_ATTACK_TIME (500.0)

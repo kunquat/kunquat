@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -17,12 +17,12 @@
 #include <stdint.h>
 #include <inttypes.h>
 
+#include <debug/assert.h>
 #include <math_common.h>
 #include <memory.h>
 #include <player/Voice.h>
 #include <player/Voice_state.h>
 #include <Random.h>
-#include <xassert.h>
 
 
 Voice* new_Voice(void)

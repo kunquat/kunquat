@@ -19,6 +19,7 @@
 #include <math.h>
 
 #include <Bind.h>
+#include <debug/assert.h>
 #include <devices/Effect.h>
 #include <devices/Generator.h>
 #include <Ins_table.h>
@@ -43,7 +44,6 @@
 #include <player/events/Event_dsp_decl.h>
 
 #include <memory.h>
-#include <xassert.h>
 
 
 struct Event_handler

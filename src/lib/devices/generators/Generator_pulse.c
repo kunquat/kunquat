@@ -18,6 +18,7 @@
 #include <math.h>
 #include <string.h>
 
+#include <debug/assert.h>
 #include <devices/Device_params.h>
 #include <devices/Generator.h>
 #include <devices/generators/Generator_common.h>
@@ -26,7 +27,6 @@
 #include <kunquat/limits.h>
 #include <memory.h>
 #include <string_common.h>
-#include <xassert.h>
 
 
 typedef struct Pulse_state

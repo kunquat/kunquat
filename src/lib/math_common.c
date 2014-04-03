@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2014
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
+#include <debug/assert.h>
 #include <math_common.h>
-#include <xassert.h>
 
 
 bool is_p2(int64_t x)

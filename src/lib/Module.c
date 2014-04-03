@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -20,13 +20,13 @@
 #include <math.h>
 
 #include <Connections_search.h>
+#include <debug/assert.h>
 #include <math_common.h>
 #include <memory.h>
 #include <Random.h>
 #include <Real.h>
 #include <Module.h>
 #include <string_common.h>
-#include <xassert.h>
 
 
 /**

@@ -15,10 +15,10 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+#include <debug/assert.h>
 #include <player/events/Event_common.h>
 #include <player/events/Event_ins_decl.h>
 #include <Value.h>
-#include <xassert.h>
 
 
 bool Event_ins_set_sustain_process(

@@ -16,11 +16,11 @@
 #include <string.h>
 
 #include <Bit_array.h>
+#include <debug/assert.h>
 #include <kunquat/limits.h>
 #include <memory.h>
 #include <sheet/Pat_table.h>
 #include <sheet/Pattern.h>
-#include <xassert.h>
 
 
 struct Pat_table

@@ -17,13 +17,13 @@
 #include <math.h>
 #include <float.h>
 
+#include <debug/assert.h>
 #include <kunquat/limits.h>
 #include <player/events/Event_channel_decl.h>
 #include <player/events/Event_common.h>
 #include <player/Voice.h>
 #include <Scale.h>
 #include <Value.h>
-#include <xassert.h>
 
 
 bool Event_channel_slide_pitch_process(

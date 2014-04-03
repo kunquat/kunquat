@@ -15,12 +15,12 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+#include <debug/assert.h>
 #include <kunquat/limits.h>
 #include <player/Event_type.h>
 #include <player/events/Event_common.h>
 #include <player/events/Event_control_decl.h>
 #include <Value.h>
-#include <xassert.h>
 
 
 bool Event_control_play_pattern_process(General_state* gstate, Value* value)

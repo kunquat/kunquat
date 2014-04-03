@@ -15,13 +15,13 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+#include <debug/assert.h>
 #include <player/Active_names.h>
 #include <player/events/Event_channel_decl.h>
 #include <player/events/Event_common.h>
 #include <player/events/set_active_name.h>
 #include <string_common.h>
 #include <Value.h>
-#include <xassert.h>
 
 
 bool Event_channel_set_gen_bool_process(

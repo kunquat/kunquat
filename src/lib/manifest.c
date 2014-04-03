@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2014
  *
  * This file is part of Kunquat.
  *
@@ -14,8 +14,8 @@
 
 #include <stdio.h>
 
+#include <debug/assert.h>
 #include <manifest.h>
-#include <xassert.h>
 
 
 static bool read_manifest_entry(Streader* sr, const char* key, void* userdata)

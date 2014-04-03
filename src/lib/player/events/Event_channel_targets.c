@@ -15,11 +15,11 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+#include <debug/assert.h>
 #include <kunquat/limits.h>
 #include <player/events/Event_channel_decl.h>
 #include <player/events/Event_common.h>
 #include <Value.h>
-#include <xassert.h>
 
 
 bool Event_channel_set_ins_input_process(

@@ -16,12 +16,12 @@
 #include <math.h>
 #include <stdlib.h>
 
+#include <debug/assert.h>
 #include <Decl.h>
 #include <devices/Device.h>
 #include <devices/Device_impl.h>
 #include <math_common.h>
 #include <string_common.h>
-#include <xassert.h>
 
 
 void Device_reset_default(Device* device, Device_states* dstates)

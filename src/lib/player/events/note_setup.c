@@ -14,12 +14,12 @@
 
 #include <stdlib.h>
 
+#include <debug/assert.h>
 #include <devices/Instrument.h>
 #include <kunquat/limits.h>
 #include <player/Channel.h>
 #include <player/events/note_setup.h>
 #include <player/Slider.h>
-#include <xassert.h>
 
 
 void reserve_voice(

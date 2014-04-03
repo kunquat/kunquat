@@ -19,6 +19,7 @@
 #include <string.h>
 #include <math.h>
 
+#include <debug/assert.h>
 #include <devices/Device_params.h>
 #include <devices/Generator.h>
 #include <devices/generators/Generator_common.h>
@@ -28,7 +29,6 @@
 #include <math_common.h>
 #include <memory.h>
 #include <string_common.h>
-#include <xassert.h>
 
 
 typedef struct Noise_state

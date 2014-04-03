@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -18,6 +18,7 @@
 #include <math.h>
 
 #include <Audio_buffer.h>
+#include <debug/assert.h>
 #include <Env_var.h>
 #include <Handle_private.h>
 #include <kunquat/Player.h>
@@ -25,7 +26,6 @@
 #include <math_common.h>
 #include <Module.h>
 #include <string_common.h>
-#include <xassert.h>
 
 
 int kqt_Handle_play(kqt_Handle handle, long nframes)

@@ -16,12 +16,12 @@
 #include <string.h>
 
 #include <containers/AAtree.h>
+#include <debug/assert.h>
 #include <memory.h>
 #include <player/Event_cache.h>
 #include <player/Event_names.h>
 #include <player/Event_type.h>
 #include <Value.h>
-#include <xassert.h>
 
 
 struct Event_cache

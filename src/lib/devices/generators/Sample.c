@@ -19,6 +19,7 @@
 #include <string.h>
 #include <math.h>
 
+#include <debug/assert.h>
 #include <devices/generators/File_wavpack.h>
 #include <devices/generators/Generator_common.h>
 #include <devices/generators/Sample.h>
@@ -27,7 +28,6 @@
 #include <kunquat/limits.h>
 #include <math_common.h>
 #include <memory.h>
-#include <xassert.h>
 
 
 Sample* new_Sample(void)

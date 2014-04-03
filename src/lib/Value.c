@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2014
  *
  * This file is part of Kunquat.
  *
@@ -17,10 +17,10 @@
 #include <string.h>
 #include <stdio.h>
 
+#include <debug/assert.h>
 #include <math_common.h>
 #include <serialise.h>
 #include <Value.h>
-#include <xassert.h>
 
 
 Value* Value_copy(Value* restrict dest, const Value* restrict src)

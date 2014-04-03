@@ -18,11 +18,11 @@
 #include <inttypes.h>
 #include <math.h>
 
+#include <debug/assert.h>
 #include <kunquat/limits.h>
 #include <memory.h>
 #include <sheet/Song.h>
 #include <string_common.h>
-#include <xassert.h>
 
 
 static bool Song_parse(Song* song, Streader* sr);

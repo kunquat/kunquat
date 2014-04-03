@@ -17,6 +17,7 @@
 
 #include <Connections.h>
 #include <Connections_search.h>
+#include <debug/assert.h>
 #include <devices/Device.h>
 #include <devices/DSP_table.h>
 #include <devices/Effect.h>
@@ -24,7 +25,6 @@
 #include <memory.h>
 #include <player/Device_states.h>
 #include <player/Effect_state.h>
-#include <xassert.h>
 
 
 struct Effect

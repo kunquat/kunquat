@@ -18,6 +18,7 @@
 #include <inttypes.h>
 #include <stdio.h>
 
+#include <debug/assert.h>
 #include <devices/Device.h>
 #include <devices/Effect.h>
 #include <Effect_table.h>
@@ -27,7 +28,6 @@
 #include <memory.h>
 #include <player/Ins_state.h>
 #include <string_common.h>
-#include <xassert.h>
 
 
 struct Instrument

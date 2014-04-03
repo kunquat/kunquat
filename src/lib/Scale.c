@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -20,11 +20,11 @@
 #include <stdint.h>
 #include <inttypes.h>
 
+#include <debug/assert.h>
 #include <math_common.h>
 #include <memory.h>
 #include <Scale.h>
 #include <string_common.h>
-#include <xassert.h>
 
 
 typedef struct pitch_index

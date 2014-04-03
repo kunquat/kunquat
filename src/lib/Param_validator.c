@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2014
  *
  * This file is part of Kunquat.
  *
@@ -19,11 +19,11 @@
 #include <ctype.h>
 #include <math.h>
 
+#include <debug/assert.h>
 #include <kunquat/limits.h>
 #include <Param_validator.h>
 #include <Pat_inst_ref.h>
 #include <Streader.h>
-#include <xassert.h>
 
 
 #define init_c_streader(param) \

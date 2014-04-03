@@ -2,7 +2,7 @@
 
 /*
  * Authors: Ossi Saresoja, Finland 2009-2012
- *          Tomi Jylhä-Ollila, Finland 2010-2013
+ *          Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -20,9 +20,9 @@
 #include <string.h>
 #include <stdio.h>
 
+#include <debug/assert.h>
 #include <math_common.h>
 #include <Filter.h>
-#include <xassert.h>
 
 
 double sinc(double x)

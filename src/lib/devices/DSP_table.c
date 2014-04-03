@@ -17,10 +17,10 @@
 
 #include <Bit_array.h>
 #include <containers/Etable.h>
+#include <debug/assert.h>
 #include <devices/DSP.h>
 #include <devices/DSP_table.h>
 #include <memory.h>
-#include <xassert.h>
 
 
 struct DSP_table

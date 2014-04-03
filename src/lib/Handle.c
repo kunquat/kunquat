@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -22,13 +22,13 @@
 #include <string.h>
 #include <stdarg.h>
 
+#include <debug/assert.h>
 #include <Handle_private.h>
 #include <kunquat/limits.h>
 #include <memory.h>
 #include <Module.h>
 #include <Parse_manager.h>
 #include <string_common.h>
-#include <xassert.h>
 
 
 static Handle* handles[KQT_HANDLES_MAX] = { NULL };

@@ -16,11 +16,11 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+#include <debug/assert.h>
 #include <player/events/Event_common.h>
 #include <player/events/Event_control_decl.h>
 #include <player/General_state.h>
 #include <Value.h>
-#include <xassert.h>
 
 
 bool Event_control_pause_process(General_state* gstate, Value* value)

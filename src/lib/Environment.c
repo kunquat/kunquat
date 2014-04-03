@@ -16,10 +16,10 @@
 #include <string.h>
 
 #include <containers/AAtree.h>
+#include <debug/assert.h>
 #include <Env_var.h>
 #include <Environment.h>
 #include <memory.h>
-#include <xassert.h>
 
 
 struct Environment

@@ -15,8 +15,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include <debug/assert.h>
 #include <player/General_state.h>
-#include <xassert.h>
 
 
 General_state* General_state_preinit(General_state* state)

@@ -18,6 +18,7 @@
 
 #include <Bind.h>
 #include <containers/AAtree.h>
+#include <debug/assert.h>
 #include <expr.h>
 #include <memory.h>
 #include <player/Event_cache.h>
@@ -25,7 +26,6 @@
 #include <player/Event_type.h>
 #include <Random.h>
 #include <Value.h>
-#include <xassert.h>
 
 
 struct Bind

@@ -16,8 +16,8 @@
 #include <stdint.h>
 #include <math.h>
 
+#include <debug/assert.h>
 #include <devices/generators/Sample_entry.h>
-#include <xassert.h>
 
 
 bool Sample_entry_parse(Sample_entry* entry, Streader* sr)

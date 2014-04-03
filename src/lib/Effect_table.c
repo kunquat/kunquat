@@ -15,10 +15,10 @@
 #include <stdlib.h>
 
 #include <containers/Etable.h>
+#include <debug/assert.h>
 #include <devices/Effect.h>
 #include <Effect_table.h>
 #include <memory.h>
-#include <xassert.h>
 
 
 struct Effect_table

@@ -14,10 +14,10 @@
 
 #include <stdlib.h>
 
+#include <debug/assert.h>
 #include <devices/Device.h>
 #include <devices/Effect_interface.h>
 #include <memory.h>
-#include <xassert.h>
 
 
 Effect_interface* new_Effect_interface()

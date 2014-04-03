@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2014
  *
  * This file is part of Kunquat.
  *
@@ -15,11 +15,11 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <debug/assert.h>
 #include <math_common.h>
 #include <memory.h>
 #include <player/Event_buffer.h>
 #include <string_common.h>
-#include <xassert.h>
 
 
 struct Event_buffer

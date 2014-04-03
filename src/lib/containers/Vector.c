@@ -15,8 +15,8 @@
 #include <string.h>
 
 #include <containers/Vector.h>
+#include <debug/assert.h>
 #include <memory.h>
-#include <xassert.h>
 
 
 struct Vector

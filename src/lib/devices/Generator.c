@@ -17,12 +17,12 @@
 #include <stdio.h>
 #include <inttypes.h>
 
+#include <debug/assert.h>
 #include <devices/generators/Gen_type.h>
 #include <devices/Generator.h>
 #include <Filter.h>
 #include <memory.h>
 #include <pitch_t.h>
-#include <xassert.h>
 
 
 static Device_state* Generator_create_state_plain(

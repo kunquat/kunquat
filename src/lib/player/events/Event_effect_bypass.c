@@ -15,12 +15,12 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+#include <debug/assert.h>
 #include <devices/Effect.h>
 #include <player/DSP_state.h>
 #include <player/events/Event_common.h>
 #include <player/events/Event_effect_decl.h>
 #include <Value.h>
-#include <xassert.h>
 
 
 bool Event_effect_bypass_on_process(

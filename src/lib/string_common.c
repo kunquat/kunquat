@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -17,8 +17,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <debug/assert.h>
 #include <string_common.h>
-#include <xassert.h>
 
 
 bool string_eq(const char* str1, const char* str2)
