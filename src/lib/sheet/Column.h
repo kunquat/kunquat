@@ -26,37 +26,38 @@
 #include <Tstamp.h>
 
 
-typedef struct Event_list
+typedef struct Trigger_list
 {
-    Event* event;
-    struct Event_list* prev;
-    struct Event_list* next;
-} Event_list;
+    Trigger* trigger;
+    struct Trigger_list* prev;
+    struct Trigger_list* next;
+} Trigger_list;
 
 
 /**
- * Column is a container for Events in a Pattern. It contains a
+ * Column is a container for Triggers in a Pattern. It contains a
  * "monophonic" section of music.
  */
 typedef struct Column Column;
 
 
 /**
- * Column_iter is used for retrieving Events from a Column.
+ * Column_iter is used for retrieving Triggers from a Column.
  */
 typedef struct Column_iter
 {
     uint32_t version;
     Column* col;
     AAiter tree_iter;
-    Event_list* elist;
+    Trigger_list* trlist;
 } Column_iter;
 
 
 /**
  * Creates a new Column iterator.
  *
- * \param col   The Column associated with the iterator.
+ * \param col   The Column associated with the iterator, or \c NULL if memory
+ *              allocation failed.
  */
 Column_iter* new_Column_iter(Column* col);
 
@@ -79,36 +80,36 @@ void Column_iter_change_col(Column_iter* iter, Column* col);
 
 
 /**
- * Gets an Event from the Column.
+ * Gets a Trigger from the Column.
  *
- * The first Event with position greater than or equal to the given position
+ * The first Trigger with position greater than or equal to the given position
  * will be returned.
  *
  * \param iter   The Column iterator -- must not be \c NULL.
- * \param pos    The position of the Event -- must not be \c NULL.
+ * \param pos    The position of the Trigger -- must not be \c NULL.
  *
- * \return   The Event if one exists, otherwise \c NULL.
+ * \return   The Trigger if one exists, otherwise \c NULL.
  */
-Event* Column_iter_get(Column_iter* iter, const Tstamp* pos);
+Trigger* Column_iter_get(Column_iter* iter, const Tstamp* pos);
 
 
-Event_list* Column_iter_get_row(Column_iter* iter, const Tstamp* pos);
+Trigger_list* Column_iter_get_row(Column_iter* iter, const Tstamp* pos);
 
 
 /**
- * Gets the Event next to the previous Event retrieved from the Column.
+ * Gets the Trigger next to the previous Trigger retrieved from the Column.
  *
  * If not preceded by a successful call to Column_iter_get(), \c NULL will be
  * returned.
  *
  * \param iter   The Column iterator -- must not be \c NULL.
  *
- * \return   The Event if one exists, otherwise \c NULL.
+ * \return   The Trigger if one exists, otherwise \c NULL.
  */
-Event* Column_iter_get_next(Column_iter* iter);
+Trigger* Column_iter_get_next(Column_iter* iter);
 
 
-Event_list* Column_iter_get_next_row(Column_iter* iter);
+Trigger_list* Column_iter_get_next_row(Column_iter* iter);
 
 
 /**
@@ -148,17 +149,17 @@ Column* new_Column_from_string(
 
 
 /**
- * Inserts a new Event into the Column.
+ * Inserts a new Trigger into the Column.
  *
- * If other Events are already located at the target position, the new Event
- * will be placed after these Events.
+ * If other Triggers are already located at the target position, the new Trigger
+ * will be placed after these Triggers.
  *
- * \param col     The Column -- must not be \c NULL.
- * \param event   The Event -- must not be \c NULL.
+ * \param col       The Column -- must not be \c NULL.
+ * \param trigger   The Trigger -- must not be \c NULL.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Column_ins(Column* col, Event* event);
+bool Column_ins(Column* col, Trigger* trigger);
 
 
 /**

@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_EVENT_H
-#define K_EVENT_H
+#ifndef K_TRIGGER_H
+#define K_TRIGGER_H
 
 
 #include <stdint.h>
@@ -28,60 +28,48 @@
 
 
 /**
- * Event describes a modification of playback state.
+ * Trigger causes firing of an event at a specified location.
  */
-typedef struct Event
+typedef struct Trigger
 {
-    Tstamp pos;                   ///< The Event position.
-    int ch_index;                  ///< Channel number.
-    Event_type type;               ///< The Event type.
-    char* desc;                    ///< Event description in JSON format.
-    void (*destroy)(struct Event* event);                    ///< Destructor.
-} Event;
+    Tstamp pos;         ///< The Trigger position.
+    int ch_index;       ///< Channel number.
+    Event_type type;    ///< The event type.
+    char* desc;         ///< Trigger description in JSON format.
+} Trigger;
 
 
 /**
- * Creates an Event of specified type.
+ * Creates a Trigger of specified type.
  *
- * \param type   The Event type -- must be valid.
- * \param pos    The Event position -- must not be \c NULL.
+ * \param type   The event type -- must be valid.
+ * \param pos    The Trigger position -- must not be \c NULL.
  *
- * \return   The new Event if successful, or \c NULL if memory allocation
- *           failed or the Event type isn't supported.
+ * \return   The new Trigger if successful, or \c NULL if memory allocation
+ *           failed or the event type isn't supported.
  */
-Event* new_Event(Event_type type, Tstamp* pos);
+Trigger* new_Trigger(Event_type type, Tstamp* pos);
 
 
 /**
- * Creates an Event from a JSON string.
+ * Creates a Trigger from a JSON string.
  *
  * \param sr      The Streader of the data -- must not be \c NULL.
  * \param names   The Event names -- must not be \c NULL.
  *
- * \return   The new Event if successful, otherwise \c NULL. \a state will
- *           not be modified if memory allocation failed.
+ * \return   The new Trigger if successful, otherwise \c NULL.
  */
-Event* new_Event_from_string(Streader* sr, const Event_names* names);
+Trigger* new_Trigger_from_string(Streader* sr, const Event_names* names);
 
 
 /**
- * Tells whether the given Event type is supported.
+ * Gets the Trigger position (relative to the containing Pattern).
  *
- * \param type   The Event type -- must be valid.
- *
- * \return   \c true if \a type is supported, otherwise \c false.
- */
-//bool Event_type_is_supported(Event_type type);
-
-
-/**
- * Gets the Event position (relative to the containing Pattern).
- *
- * \param event   The Event -- must not be \c NULL.
+ * \param trigger   The Trigger -- must not be \c NULL.
  *
  * \return   The position.
  */
-Tstamp* Event_get_pos(Event* event);
+Tstamp* Trigger_get_pos(Trigger* trigger);
 
 
 /**
@@ -90,37 +78,37 @@ Tstamp* Event_get_pos(Event* event);
  * \param event   The Event -- must not be \c NULL.
  * \param pos     The new position -- must not be \c NULL.
  */
-void Event_set_pos(Event* event, Tstamp* pos);
+//void Event_set_pos(Event* event, Tstamp* pos);
 
 
 /**
- * Gets the type of an Event.
+ * Gets the event type of the Trigger.
  *
- * \param event   The Event -- must not be \c NULL.
+ * \param trigger   The Trigger -- must not be \c NULL.
  *
- * \return   The Event type.
+ * \return   The event type.
  */
-Event_type Event_get_type(Event* event);
+Event_type Trigger_get_type(Trigger* trigger);
 
 
 /**
- * Gets a JSON description of the event (does not include timestamp).
+ * Gets a JSON description of the Trigger (does not include timestamp).
  *
- * \param event   The Event -- must not be \c NULL.
+ * \param trigger   The Trigger -- must not be \c NULL.
  *
  * \return   The JSON string.
  */
-char* Event_get_desc(Event* event);
+char* Trigger_get_desc(Trigger* trigger);
 
 
 /**
- * Destroys an existing Event.
+ * Destroys an existing Trigger.
  *
- * \param event   The Event, or \c NULL.
+ * \param trigger   The Trigger, or \c NULL.
  */
-void del_Event(Event* event);
+void del_Trigger(Trigger* trigger);
 
 
-#endif // K_EVENT_H
+#endif // K_TRIGGER_H
 
 

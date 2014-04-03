@@ -31,64 +31,64 @@ struct Column
     Tstamp len;
     uint32_t version;
     Column_iter* edit_iter;
-    AAtree* events;
+    AAtree* triggers;
 };
 
 
-static Event_list* new_Event_list(Event_list* nil, Event* event);
+static Trigger_list* new_Trigger_list(Trigger_list* nil, Trigger* trigger);
 
-static Event_list* Event_list_init(Event_list* elist);
+static Trigger_list* Trigger_list_init(Trigger_list* trlist);
 
-static int Event_list_cmp(const Event_list* list1, const Event_list* list2);
+static int Trigger_list_cmp(const Trigger_list* list1, const Trigger_list* list2);
 
-static void del_Event_list(Event_list* elist);
+static void del_Trigger_list(Trigger_list* trlist);
 
 
-static Event_list* new_Event_list(Event_list* nil, Event* event)
+static Trigger_list* new_Trigger_list(Trigger_list* nil, Trigger* trigger)
 {
-    assert(!(nil == NULL) || (event == NULL));
-    assert(!(event == NULL) || (nil == NULL));
+    assert(!(nil == NULL) || (trigger == NULL));
+    assert(!(trigger == NULL) || (nil == NULL));
 
-    Event_list* elist = memory_alloc_item(Event_list);
-    if (elist == NULL)
+    Trigger_list* trlist = memory_alloc_item(Trigger_list);
+    if (trlist == NULL)
         return NULL;
 
     if (nil == NULL)
     {
-        assert(event == NULL);
-        elist->event = NULL;
-        elist->prev = elist->next = elist;
+        assert(trigger == NULL);
+        trlist->trigger = NULL;
+        trlist->prev = trlist->next = trlist;
     }
     else
     {
-        assert(event != NULL);
-        elist->event = event;
-        elist->prev = elist->next = nil;
+        assert(trigger != NULL);
+        trlist->trigger = trigger;
+        trlist->prev = trlist->next = nil;
     }
 
-    return elist;
+    return trlist;
 }
 
 
-static Event_list* Event_list_init(Event_list* elist)
+static Trigger_list* Trigger_list_init(Trigger_list* trlist)
 {
-    assert(elist != NULL);
-    elist->prev = elist->next = elist;
-    return elist;
+    assert(trlist != NULL);
+    trlist->prev = trlist->next = trlist;
+    return trlist;
 }
 
 
-static int Event_list_cmp(const Event_list* list1, const Event_list* list2)
+static int Trigger_list_cmp(const Trigger_list* list1, const Trigger_list* list2)
 {
     assert(list1 != NULL);
     assert(list2 != NULL);
 
-    Event* ev1 = list1->next->event;
-    Event* ev2 = list2->next->event;
+    Trigger* ev1 = list1->next->trigger;
+    Trigger* ev2 = list2->next->trigger;
     assert(ev1 != NULL);
     assert(ev2 != NULL);
 
-    return Tstamp_cmp(Event_get_pos(ev1), Event_get_pos(ev2));
+    return Tstamp_cmp(Trigger_get_pos(ev1), Trigger_get_pos(ev2));
 }
 
 
@@ -104,7 +104,7 @@ Column_iter* new_Column_iter(Column* col)
     {
         iter->version = col->version;
         iter->col = col;
-        iter->tree_iter.tree = col->events;
+        iter->tree_iter.tree = col->triggers;
     }
 
     return iter;
@@ -118,7 +118,7 @@ void Column_iter_init(Column_iter* iter)
     iter->version = 0;
     iter->col = NULL;
     iter->tree_iter = *AAITER_AUTO;
-    iter->elist = NULL;
+    iter->trlist = NULL;
 
     return;
 }
@@ -131,32 +131,32 @@ void Column_iter_change_col(Column_iter* iter, Column* col)
 
     iter->col = col;
     iter->version = col->version;
-    AAiter_change_tree(&iter->tree_iter, col->events);
-    iter->elist = NULL;
+    AAiter_change_tree(&iter->tree_iter, col->triggers);
+    iter->trlist = NULL;
 
     return;
 }
 
 
-Event* Column_iter_get(Column_iter* iter, const Tstamp* pos)
+Trigger* Column_iter_get(Column_iter* iter, const Tstamp* pos)
 {
     assert(iter != NULL);
     assert(pos != NULL);
 
-    iter->elist = Column_iter_get_row(iter, pos);
-    if (iter->elist == NULL)
+    iter->trlist = Column_iter_get_row(iter, pos);
+    if (iter->trlist == NULL)
         return NULL;
 
-    assert(iter->elist->event == NULL);
-    assert(iter->elist->next != iter->elist);
-    iter->elist = iter->elist->next;
-    assert(iter->elist->event != NULL);
+    assert(iter->trlist->trigger == NULL);
+    assert(iter->trlist->next != iter->trlist);
+    iter->trlist = iter->trlist->next;
+    assert(iter->trlist->trigger != NULL);
 
-    return iter->elist->event;
+    return iter->trlist->trigger;
 }
 
 
-Event_list* Column_iter_get_row(Column_iter* iter, const Tstamp* pos)
+Trigger_list* Column_iter_get_row(Column_iter* iter, const Tstamp* pos)
 {
     assert(iter != NULL);
     assert(pos != NULL);
@@ -165,66 +165,66 @@ Event_list* Column_iter_get_row(Column_iter* iter, const Tstamp* pos)
         return NULL;
 
     iter->version = iter->col->version;
-    Event* event = &(Event){ .type = Event_NONE };
-    Tstamp_copy(&event->pos, pos);
-    Event_list* key = Event_list_init(&(Event_list){ .event = event });
-    iter->elist = AAiter_get_at_least(&iter->tree_iter, key);
+    Trigger* trigger = &(Trigger){ .type = Event_NONE };
+    Tstamp_copy(&trigger->pos, pos);
+    Trigger_list* key = Trigger_list_init(&(Trigger_list){ .trigger = trigger });
+    iter->trlist = AAiter_get_at_least(&iter->tree_iter, key);
 
-    return iter->elist;
+    return iter->trlist;
 }
 
 
-Event* Column_iter_get_next(Column_iter* iter)
+Trigger* Column_iter_get_next(Column_iter* iter)
 {
     assert(iter != NULL);
 
-    if (iter->elist == NULL || iter->col == NULL)
+    if (iter->trlist == NULL || iter->col == NULL)
         return NULL;
 
     if (iter->version != iter->col->version)
     {
-        iter->elist = NULL;
+        iter->trlist = NULL;
         iter->version = iter->col->version;
         return NULL;
     }
 
-    assert(iter->elist->event != NULL);
-    assert(iter->elist != iter->elist->next);
+    assert(iter->trlist->trigger != NULL);
+    assert(iter->trlist != iter->trlist->next);
 
-    iter->elist = iter->elist->next;
-    if (iter->elist->event != NULL)
-        return iter->elist->event;
+    iter->trlist = iter->trlist->next;
+    if (iter->trlist->trigger != NULL)
+        return iter->trlist->trigger;
 
-    iter->elist = Column_iter_get_next_row(iter);
-    if (iter->elist == NULL)
+    iter->trlist = Column_iter_get_next_row(iter);
+    if (iter->trlist == NULL)
         return NULL;
 
-    assert(iter->elist->event == NULL);
-    assert(iter->elist->next != iter->elist);
-    iter->elist = iter->elist->next;
-    assert(iter->elist->event != NULL);
+    assert(iter->trlist->trigger == NULL);
+    assert(iter->trlist->next != iter->trlist);
+    iter->trlist = iter->trlist->next;
+    assert(iter->trlist->trigger != NULL);
 
-    return iter->elist->event;
+    return iter->trlist->trigger;
 }
 
 
-Event_list* Column_iter_get_next_row(Column_iter* iter)
+Trigger_list* Column_iter_get_next_row(Column_iter* iter)
 {
     assert(iter != NULL);
 
-    if (iter->elist == NULL || iter->col == NULL)
+    if (iter->trlist == NULL || iter->col == NULL)
         return NULL;
 
     if (iter->version != iter->col->version)
     {
-        iter->elist = NULL;
+        iter->trlist = NULL;
         iter->version = iter->col->version;
         return NULL;
     }
 
-    iter->elist = AAiter_get_next(&iter->tree_iter);
+    iter->trlist = AAiter_get_next(&iter->tree_iter);
 
-    return iter->elist;
+    return iter->trlist;
 }
 
 
@@ -251,9 +251,9 @@ Column* new_Column(const Tstamp* len)
         return NULL;
 
     col->version = 1;
-    col->events = new_AAtree((int (*)(const void*, const void*))Event_list_cmp,
-            (void (*)(void*))del_Event_list);
-    if (col->events == NULL)
+    col->triggers = new_AAtree((int (*)(const void*, const void*))Trigger_list_cmp,
+            (void (*)(void*))del_Trigger_list);
+    if (col->triggers == NULL)
     {
         memory_free(col);
         return NULL;
@@ -262,7 +262,7 @@ Column* new_Column(const Tstamp* len)
     col->edit_iter = new_Column_iter(col);
     if (col->edit_iter == NULL)
     {
-        del_AAtree(col->events);
+        del_AAtree(col->triggers);
         memory_free(col);
         return NULL;
     }
@@ -315,10 +315,10 @@ static bool read_trigger(Streader* sr, int32_t index, void* userdata)
 
     Read_trigger_data* rtdata = userdata;
 
-    Event* event = new_Event_from_string(sr, rtdata->event_names);
-    if (event == NULL || !Column_ins(rtdata->col, event))
+    Trigger* trigger = new_Trigger_from_string(sr, rtdata->event_names);
+    if (trigger == NULL || !Column_ins(rtdata->col, trigger))
     {
-        del_Event(event);
+        del_Trigger(trigger);
         return false;
     }
 
@@ -348,35 +348,35 @@ static bool Column_parse(
 }
 
 
-bool Column_ins(Column* col, Event* event)
+bool Column_ins(Column* col, Trigger* trigger)
 {
     assert(col != NULL);
-    assert(event != NULL);
+    assert(trigger != NULL);
 
     ++col->version;
-    Event_list* key = Event_list_init(&(Event_list){ .event = event });
-    Event_list* ret = AAtree_get_at_least(col->events, key);
-    if (ret == NULL || Tstamp_cmp(Event_get_pos(event),
-            Event_get_pos(ret->next->event)) != 0)
+    Trigger_list* key = Trigger_list_init(&(Trigger_list){ .trigger = trigger });
+    Trigger_list* ret = AAtree_get_at_least(col->triggers, key);
+    if (ret == NULL || Tstamp_cmp(Trigger_get_pos(trigger),
+            Trigger_get_pos(ret->next->trigger)) != 0)
     {
-        Event_list* nil = new_Event_list(NULL, NULL);
+        Trigger_list* nil = new_Trigger_list(NULL, NULL);
         if (nil == NULL)
             return false;
 
-        Event_list* node = new_Event_list(nil, event);
+        Trigger_list* node = new_Trigger_list(nil, trigger);
         if (node == NULL)
         {
-            del_Event_list(nil);
+            del_Trigger_list(nil);
             return false;
         }
 
         nil->prev = nil->next = node;
         node->prev = node->next = nil;
 
-        if (!AAtree_ins(col->events, nil))
+        if (!AAtree_ins(col->triggers, nil))
         {
-            del_Event_list(nil);
-            del_Event_list(node);
+            del_Trigger_list(nil);
+            del_Trigger_list(node);
             return false;
         }
 
@@ -385,9 +385,9 @@ bool Column_ins(Column* col, Event* event)
 
     assert(ret->next != ret);
     assert(ret->prev != ret);
-    assert(ret->event == NULL);
+    assert(ret->trigger == NULL);
 
-    Event_list* node = new_Event_list(ret, event);
+    Trigger_list* node = new_Trigger_list(ret, trigger);
     if (node == NULL)
         return false;
 
@@ -405,7 +405,7 @@ void del_Column(Column* col)
     if (col == NULL)
         return;
 
-    del_AAtree(col->events);
+    del_AAtree(col->triggers);
     del_Column_iter(col->edit_iter);
     memory_free(col);
 
@@ -413,25 +413,25 @@ void del_Column(Column* col)
 }
 
 
-static void del_Event_list(Event_list* elist)
+static void del_Trigger_list(Trigger_list* trlist)
 {
-    if (elist == NULL)
+    if (trlist == NULL)
         return;
 
-    assert(elist->event == NULL);
-    Event_list* cur = elist->next;
-    assert(cur->event != NULL);
+    assert(trlist->trigger == NULL);
+    Trigger_list* cur = trlist->next;
+    assert(cur->trigger != NULL);
 
-    while (cur->event != NULL)
+    while (cur->trigger != NULL)
     {
-        Event_list* next = cur->next;
-        assert(cur->event != NULL);
-        del_Event(cur->event);
+        Trigger_list* next = cur->next;
+        assert(cur->trigger != NULL);
+        del_Trigger(cur->trigger);
         memory_free(cur);
         cur = next;
     }
 
-    assert(cur == elist);
+    assert(cur == trlist);
     memory_free(cur);
 
     return;

@@ -26,7 +26,7 @@
 // TODO: define proper interface in Column
 typedef struct Trigger_row
 {
-    Event_list* head;
+    Trigger_list* head;
 } Trigger_row;
 
 
