@@ -43,7 +43,7 @@ Random* new_Random(void)
 }
 
 
-void Random_set_context(Random* random, char* context)
+void Random_set_context(Random* random, const char* context)
 {
     assert(random != NULL);
     assert(context != NULL);

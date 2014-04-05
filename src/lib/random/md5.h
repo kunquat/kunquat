@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2014
  *
  * This file is part of Kunquat.
  *
@@ -31,10 +31,7 @@
  *                   digest -- must not be \c NULL.
  * \param complete   Whether or not \a seq is the complete stream.
  */
-void md5(
-        char* seq, int len,
-        uint64_t* lower, uint64_t* upper,
-        bool complete);
+void md5(const char* seq, int len, uint64_t* lower, uint64_t* upper, bool complete);
 
 
 /**
@@ -54,7 +51,8 @@ void md5(
  *                     -- must be >= \c 0.
  */
 void md5_with_state(
-        char* seq, int len,
+        const char* seq,
+        int len,
         uint64_t* lower, uint64_t* upper,
         uint64_t lower_init, uint64_t upper_init,
         bool last,
@@ -70,7 +68,7 @@ void md5_with_state(
  * \param upper   The storage location for the most significant half of the
  *                digest -- must not be \c NULL.
  */
-void md5_str(char* str, uint64_t* lower, uint64_t* upper);
+void md5_str(const char* str, uint64_t* lower, uint64_t* upper);
 
 
 #endif // K_MD5_H

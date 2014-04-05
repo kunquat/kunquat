@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -64,7 +64,7 @@ Random* new_Random(void);
  *                  than \c CONTEXT_LEN_MAX bytes (excluding the null
  *                  terminator).
  */
-void Random_set_context(Random* random, char* context);
+void Random_set_context(Random* random, const char* context);
 
 
 /**

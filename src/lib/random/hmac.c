@@ -21,7 +21,7 @@
 #include <random/md5.h>
 
 
-void hmac_md5(uint64_t key, char* msg, uint64_t* lower, uint64_t* upper)
+void hmac_md5(uint64_t key, const char* msg, uint64_t* lower, uint64_t* upper)
 {
     assert(msg != NULL);
     assert(lower != NULL);

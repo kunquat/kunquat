@@ -24,7 +24,7 @@
 
 static void add_length(unsigned char* p, uint64_t len);
 
-static void prepare_X(uint32_t* X, unsigned char* p);
+static void prepare_X(uint32_t* X, const unsigned char* p);
 static void md5_rounds(
         uint32_t* X, uint32_t* aa, uint32_t* bb, uint32_t* cc, uint32_t* dd);
 static uint32_t F(uint32_t x, uint32_t y, uint32_t z);
@@ -64,7 +64,7 @@ static const uint32_t T[] =
 #define LENGTH_POS ((CHUNK_BYTES) - 8)
 
 
-void md5_str(char* str, uint64_t* lower, uint64_t* upper)
+void md5_str(const char* str, uint64_t* lower, uint64_t* upper)
 {
     assert(str != NULL);
     assert(lower != NULL);
@@ -76,34 +76,29 @@ void md5_str(char* str, uint64_t* lower, uint64_t* upper)
 }
 
 
-void md5(char* seq, int len, uint64_t* lower, uint64_t* upper,
-         bool complete)
+void md5(const char* seq, int len, uint64_t* lower, uint64_t* upper, bool complete)
 {
     assert(seq != NULL);
     assert(len >= 0);
     assert(lower != NULL);
     assert(upper != NULL);
 
-    uint64_t a = 0x67452301ULL;
-    uint64_t b = 0xefcdab89ULL;
-    uint64_t c = 0x98badcfeULL;
-    uint64_t d = 0x10325476ULL;
-    uint64_t lower_init = a | (b << 32);
-    uint64_t upper_init = c | (d << 32);
+    const uint64_t a = 0x67452301ULL;
+    const uint64_t b = 0xefcdab89ULL;
+    const uint64_t c = 0x98badcfeULL;
+    const uint64_t d = 0x10325476ULL;
+    const uint64_t lower_init = a | (b << 32);
+    const uint64_t upper_init = c | (d << 32);
 
-    md5_with_state(
-            seq, len,
-            lower, upper,
-            lower_init, upper_init,
-            complete,
-            0);
+    md5_with_state(seq, len, lower, upper, lower_init, upper_init, complete, 0);
 
     return;
 }
 
 
 void md5_with_state(
-        char* seq, int len,
+        const char* seq,
+        int len,
         uint64_t* lower, uint64_t* upper,
         uint64_t lower_init, uint64_t upper_init,
         bool last,
@@ -127,17 +122,18 @@ void md5_with_state(
 
     for (; cur_len >= 0; cur_len -= CHUNK_BYTES, seq += CHUNK_BYTES)
     {
-        unsigned char* p = (unsigned char*)seq;
+        const unsigned char* p = (const unsigned char*)seq;
         if (cur_len < CHUNK_BYTES)
         {
             if (!last && cur_len == 0)
                 break;
 
             memcpy((char*)padded, seq, cur_len);
-            p = padded;
-            p[cur_len] = 0x80;
+            padded[cur_len] = 0x80;
             if (cur_len < LENGTH_POS)
-                add_length(p + LENGTH_POS, len);
+                add_length(padded + LENGTH_POS, len);
+
+            p = padded;
         }
 
         prepare_X(X, p);
@@ -159,7 +155,7 @@ void md5_with_state(
 }
 
 
-static void prepare_X(uint32_t* X, unsigned char* p)
+static void prepare_X(uint32_t* X, const unsigned char* p)
 {
     assert(X != NULL);
     assert(p != NULL);

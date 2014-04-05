@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2014
  *
  * This file is part of Kunquat.
  *
@@ -31,7 +31,7 @@
  * \param upper   The storage location for the most significant half of the
  *                digest -- must not be \c NULL.
  */
-void hmac_md5(uint64_t key, char* msg, uint64_t* lower, uint64_t* upper);
+void hmac_md5(uint64_t key, const char* msg, uint64_t* lower, uint64_t* upper);
 
 
 #endif // K_HMAC_H
