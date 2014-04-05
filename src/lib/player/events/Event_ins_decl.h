@@ -29,7 +29,7 @@
     bool Event_ins_##type##_process(             \
             const Instrument_params* ins_params, \
             Ins_state* ins_state,                \
-            Value* value);
+            const Value* value);
 #include <player/events/Event_ins_types.h>
 
 

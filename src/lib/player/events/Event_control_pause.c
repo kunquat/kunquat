@@ -23,7 +23,7 @@
 #include <Value.h>
 
 
-bool Event_control_pause_process(General_state* gstate, Value* value)
+bool Event_control_pause_process(General_state* gstate, const Value* value)
 {
     assert(gstate != NULL);
     (void)value;
@@ -36,7 +36,7 @@ bool Event_control_pause_process(General_state* gstate, Value* value)
 }
 
 
-bool Event_control_resume_process(General_state* gstate, Value* value)
+bool Event_control_resume_process(General_state* gstate, const Value* value)
 {
     assert(gstate != NULL);
     (void)value;

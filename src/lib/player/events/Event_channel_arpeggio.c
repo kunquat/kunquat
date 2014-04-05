@@ -27,7 +27,7 @@
 bool Event_channel_arpeggio_on_process(
         Channel* ch,
         Device_states* dstates,
-        Value* value)
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
@@ -128,7 +128,7 @@ bool Event_channel_arpeggio_on_process(
 bool Event_channel_arpeggio_off_process(
         Channel* ch,
         Device_states* dstates,
-        Value* value)
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
@@ -148,7 +148,7 @@ bool Event_channel_arpeggio_off_process(
 bool Event_channel_set_arpeggio_index_process(
         Channel* ch,
         Device_states* dstates,
-        Value* value)
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
@@ -165,7 +165,7 @@ bool Event_channel_set_arpeggio_index_process(
 bool Event_channel_set_arpeggio_note_process(
         Channel* ch,
         Device_states* dstates,
-        Value* value)
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
@@ -206,7 +206,7 @@ bool Event_channel_set_arpeggio_note_process(
 bool Event_channel_set_arpeggio_speed_process(
         Channel* ch,
         Device_states* dstates,
-        Value* value)
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
@@ -234,7 +234,7 @@ bool Event_channel_set_arpeggio_speed_process(
 bool Event_channel_reset_arpeggio_process(
         Channel* ch,
         Device_states* dstates,
-        Value* value)
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);

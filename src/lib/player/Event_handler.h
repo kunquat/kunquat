@@ -64,7 +64,7 @@ const Event_names* Event_handler_get_names(const Event_handler* eh);
 bool Event_handler_set_control_process(
         Event_handler* eh,
         Event_type type,
-        bool (*control_process)(General_state*, Value*));
+        bool (*control_process)(General_state*, const Value*));
 
 
 /**
@@ -81,7 +81,7 @@ bool Event_handler_set_control_process(
 bool Event_handler_set_general_process(
         Event_handler* eh,
         Event_type type,
-        bool (*general_process)(General_state*, Value*));
+        bool (*general_process)(General_state*, const Value*));
 
 
 /**
@@ -98,7 +98,7 @@ bool Event_handler_set_general_process(
 bool Event_handler_set_ch_process(
         Event_handler* eh,
         Event_type type,
-        bool (*ch_process)(Channel*, Device_states*, Value*));
+        bool (*ch_process)(Channel*, Device_states*, const Value*));
 
 
 /**
@@ -115,7 +115,7 @@ bool Event_handler_set_ch_process(
 bool Event_handler_set_master_process(
         Event_handler* eh,
         Event_type type,
-        bool (*master_process)(Master_params*, Value*));
+        bool (*master_process)(Master_params*, const Value*));
 
 
 /**
@@ -132,7 +132,7 @@ bool Event_handler_set_master_process(
 bool Event_handler_set_ins_process(
         Event_handler* eh,
         Event_type type,
-        bool (*ins_process)(const Instrument_params*, Ins_state*, Value*));
+        bool (*ins_process)(const Instrument_params*, Ins_state*, const Value*));
 
 
 /**
@@ -150,7 +150,7 @@ bool Event_handler_set_generator_process(
         Event_handler* eh,
         Event_type type,
         bool (*gen_process)(
-            const Device_impl*, Device_state*, Channel*, Value*));
+            const Device_impl*, Device_state*, Channel*, const Value*));
 
 
 /**
@@ -168,7 +168,7 @@ bool Event_handler_set_effect_process(
         Event_handler* eh,
         Event_type type,
         bool (*effect_process)(
-            const Effect*, Effect_state*, Device_states*, Value*));
+            const Effect*, Effect_state*, Device_states*, const Value*));
 
 
 /**
@@ -186,7 +186,7 @@ bool Event_handler_set_dsp_process(
         Event_handler* eh,
         Event_type type,
         bool (*dsp_process)(
-            const Device_impl*, Device_state*, Channel*, Value*));
+            const Device_impl*, Device_state*, Channel*, const Value*));
 
 
 /**
@@ -205,7 +205,7 @@ bool Event_handler_trigger(
         Event_handler* eh,
         int ch_num,
         const char* name,
-        Value* arg);
+        const Value* arg);
 
 
 /**

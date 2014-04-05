@@ -24,7 +24,7 @@
 
 bool Event_master_set_volume_process(
         Master_params* master_params,
-        Value* value)
+        const Value* value)
 {
     assert(master_params != NULL);
     assert(value != NULL);
@@ -39,7 +39,7 @@ bool Event_master_set_volume_process(
 
 bool Event_master_slide_volume_process(
         Master_params* master_params,
-        Value* value)
+        const Value* value)
 {
     assert(master_params != NULL);
     assert(value != NULL);
@@ -61,7 +61,7 @@ bool Event_master_slide_volume_process(
 
 bool Event_master_slide_volume_length_process(
         Master_params* master_params,
-        Value* value)
+        const Value* value)
 {
     assert(master_params != NULL);
     assert(value != NULL);

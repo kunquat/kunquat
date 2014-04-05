@@ -31,7 +31,7 @@
             const Effect* eff,          \
             Effect_state* eff_state,    \
             Device_states* dstates,     \
-            Value* value);
+            const Value* value);
 #include <player/events/Event_effect_types.h>
 
 

@@ -29,7 +29,7 @@
 bool Event_channel_slide_pitch_process(
         Channel* ch,
         Device_states* dstates,
-        Value* value)
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
@@ -78,7 +78,7 @@ bool Event_channel_slide_pitch_process(
 bool Event_channel_slide_pitch_length_process(
         Channel* ch,
         Device_states* dstates,
-        Value* value)
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
@@ -102,7 +102,7 @@ bool Event_channel_slide_pitch_length_process(
 bool Event_channel_vibrato_speed_process(
         Channel* ch,
         Device_states* dstates,
-        Value* value)
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
@@ -134,7 +134,7 @@ bool Event_channel_vibrato_speed_process(
 bool Event_channel_vibrato_depth_process(
         Channel* ch,
         Device_states* dstates,
-        Value* value)
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
@@ -167,7 +167,7 @@ bool Event_channel_vibrato_depth_process(
 bool Event_channel_vibrato_delay_process(
         Channel* ch,
         Device_states* dstates,
-        Value* value)
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);

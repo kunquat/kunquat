@@ -25,7 +25,7 @@
 bool Event_channel_set_ins_input_process(
         Channel* ch,
         Device_states* dstates,
-        Value* value)
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
@@ -42,7 +42,7 @@ bool Event_channel_set_ins_input_process(
 bool Event_channel_set_generator_process(
         Channel* ch,
         Device_states* dstates,
-        Value* value)
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
@@ -59,7 +59,7 @@ bool Event_channel_set_generator_process(
 bool Event_channel_set_global_effects_process(
         Channel* ch,
         Device_states* dstates,
-        Value* value)
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
@@ -75,7 +75,7 @@ bool Event_channel_set_global_effects_process(
 bool Event_channel_set_instrument_effects_process(
         Channel* ch,
         Device_states* dstates,
-        Value* value)
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
@@ -91,7 +91,7 @@ bool Event_channel_set_instrument_effects_process(
 bool Event_channel_set_effect_process(
         Channel* ch,
         Device_states* dstates,
-        Value* value)
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
@@ -108,7 +108,7 @@ bool Event_channel_set_effect_process(
 bool Event_channel_set_dsp_process(
         Channel* ch,
         Device_states* dstates,
-        Value* value)
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);

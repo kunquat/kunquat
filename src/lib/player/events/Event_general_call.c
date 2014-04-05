@@ -21,7 +21,7 @@
 #include <Value.h>
 
 
-bool Event_general_call_bool_process(General_state* gstate, Value* value)
+bool Event_general_call_bool_process(General_state* gstate, const Value* value)
 {
     assert(gstate != NULL);
     (void)gstate;
@@ -30,7 +30,7 @@ bool Event_general_call_bool_process(General_state* gstate, Value* value)
 }
 
 
-bool Event_general_call_float_process(General_state* gstate, Value* value)
+bool Event_general_call_float_process(General_state* gstate, const Value* value)
 {
     assert(gstate != NULL);
     (void)gstate;
@@ -39,7 +39,7 @@ bool Event_general_call_float_process(General_state* gstate, Value* value)
 }
 
 
-bool Event_general_call_int_process(General_state* gstate, Value* value)
+bool Event_general_call_int_process(General_state* gstate, const Value* value)
 {
     assert(gstate != NULL);
     (void)gstate;

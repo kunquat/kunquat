@@ -22,7 +22,7 @@
 #include <Value.h>
 
 
-bool Event_control_goto_process(General_state* gstate, Value* value)
+bool Event_control_goto_process(General_state* gstate, const Value* value)
 {
     assert(gstate != NULL);
     (void)value;
@@ -44,7 +44,7 @@ bool Event_control_goto_process(General_state* gstate, Value* value)
 }
 
 
-bool Event_control_set_goto_row_process(General_state* gstate, Value* value)
+bool Event_control_set_goto_row_process(General_state* gstate, const Value* value)
 {
     assert(gstate != NULL);
     assert(value != NULL);
@@ -65,7 +65,7 @@ bool Event_control_set_goto_row_process(General_state* gstate, Value* value)
 
 bool Event_control_set_goto_section_process(
         General_state* gstate,
-        Value* value)
+        const Value* value)
 {
     assert(gstate != NULL);
     assert(value != NULL);
@@ -86,7 +86,7 @@ bool Event_control_set_goto_section_process(
 
 bool Event_control_set_goto_song_process(
         General_state* gstate,
-        Value* value)
+        const Value* value)
 {
     assert(gstate != NULL);
     assert(value != NULL);

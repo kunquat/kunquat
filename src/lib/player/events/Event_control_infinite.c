@@ -24,7 +24,7 @@
 #include <Value.h>
 
 
-bool Event_control_infinite_process(General_state* gstate, Value* value)
+bool Event_control_infinite_process(General_state* gstate, const Value* value)
 {
     assert(gstate != NULL);
     assert(value != NULL);

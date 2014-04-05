@@ -27,7 +27,7 @@ bool Event_effect_bypass_on_process(
         const Effect* eff,
         Effect_state* eff_state,
         Device_states* dstates,
-        Value* value)
+        const Value* value)
 {
     assert(eff != NULL);
     assert(eff_state != NULL);
@@ -56,7 +56,7 @@ bool Event_effect_bypass_off_process(
         const Effect* eff,
         Effect_state* eff_state,
         Device_states* dstates,
-        Value* value)
+        const Value* value)
 {
     assert(eff != NULL);
     assert(eff_state != NULL);

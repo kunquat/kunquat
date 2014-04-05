@@ -25,7 +25,7 @@
 
 bool Event_master_set_tempo_process(
         Master_params* master_params,
-        Value* value)
+        const Value* value)
 {
     assert(master_params != NULL);
     assert(value != NULL);
@@ -57,7 +57,7 @@ static void set_tempo_slide_update(Master_params* master_params)
 
 bool Event_master_slide_tempo_process(
         Master_params* master_params,
-        Value* value)
+        const Value* value)
 {
     assert(master_params != NULL);
     assert(value != NULL);
@@ -89,7 +89,7 @@ bool Event_master_slide_tempo_process(
 
 bool Event_master_slide_tempo_length_process(
         Master_params* master_params,
-        Value* value)
+        const Value* value)
 {
     assert(master_params != NULL);
     assert(value != NULL);

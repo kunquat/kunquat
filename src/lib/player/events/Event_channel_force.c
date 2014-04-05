@@ -26,7 +26,7 @@
 bool Event_channel_set_force_process(
         Channel* ch,
         Device_states* dstates,
-        Value* value)
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
@@ -56,7 +56,7 @@ bool Event_channel_set_force_process(
 bool Event_channel_slide_force_process(
         Channel* ch,
         Device_states* dstates,
-        Value* value)
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
@@ -83,7 +83,7 @@ bool Event_channel_slide_force_process(
 bool Event_channel_slide_force_length_process(
         Channel* ch,
         Device_states* dstates,
-        Value* value)
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
@@ -107,7 +107,7 @@ bool Event_channel_slide_force_length_process(
 bool Event_channel_tremolo_speed_process(
         Channel* ch,
         Device_states* dstates,
-        Value* value)
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
@@ -137,7 +137,7 @@ bool Event_channel_tremolo_speed_process(
 bool Event_channel_tremolo_depth_process(
         Channel* ch,
         Device_states* dstates,
-        Value* value)
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
@@ -167,7 +167,7 @@ bool Event_channel_tremolo_depth_process(
 bool Event_channel_tremolo_delay_process(
         Channel* ch,
         Device_states* dstates,
-        Value* value)
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);

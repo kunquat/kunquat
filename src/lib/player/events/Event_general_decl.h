@@ -25,7 +25,7 @@
 // Process function declarations
 
 #define EVENT_TYPE_DEF(type) \
-    bool Event_general_##type##_process(General_state* gstate, Value* value);
+    bool Event_general_##type##_process(General_state* gstate, const Value* value);
 #include <player/events/Event_general_types.h>
 
 

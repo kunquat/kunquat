@@ -27,7 +27,7 @@
 #include <Value.h>
 
 
-bool Event_control_env_set_bool_process(General_state* gstate, Value* value)
+bool Event_control_env_set_bool_process(General_state* gstate, const Value* value)
 {
     assert(gstate != NULL);
     assert(value != NULL);
@@ -52,7 +52,7 @@ bool Event_control_env_set_bool_process(General_state* gstate, Value* value)
 
 bool Event_control_env_set_bool_name_process(
         General_state* gstate,
-        Value* value)
+        const Value* value)
 {
     assert(gstate != NULL);
     assert(value != NULL);
@@ -65,7 +65,7 @@ bool Event_control_env_set_bool_name_process(
 }
 
 
-bool Event_control_env_set_float_process(General_state* gstate, Value* value)
+bool Event_control_env_set_float_process(General_state* gstate, const Value* value)
 {
     assert(gstate != NULL);
     assert(value != NULL);
@@ -90,7 +90,7 @@ bool Event_control_env_set_float_process(General_state* gstate, Value* value)
 
 bool Event_control_env_set_float_name_process(
         General_state* gstate,
-        Value* value)
+        const Value* value)
 {
     assert(gstate != NULL);
     assert(value != NULL);
@@ -103,7 +103,7 @@ bool Event_control_env_set_float_name_process(
 }
 
 
-bool Event_control_env_set_int_process(General_state* gstate, Value* value)
+bool Event_control_env_set_int_process(General_state* gstate, const Value* value)
 {
     assert(gstate != NULL);
     assert(value != NULL);
@@ -128,7 +128,7 @@ bool Event_control_env_set_int_process(General_state* gstate, Value* value)
 
 bool Event_control_env_set_int_name_process(
         General_state* gstate,
-        Value* value)
+        const Value* value)
 {
     assert(gstate != NULL);
     assert(value != NULL);
@@ -143,7 +143,7 @@ bool Event_control_env_set_int_name_process(
 
 bool Event_control_env_set_tstamp_process(
         General_state* gstate,
-        Value* value)
+        const Value* value)
 {
     assert(gstate != NULL);
     assert(value != NULL);
@@ -168,7 +168,7 @@ bool Event_control_env_set_tstamp_process(
 
 bool Event_control_env_set_tstamp_name_process(
         General_state* gstate,
-        Value* value)
+        const Value* value)
 {
     assert(gstate != NULL);
     assert(value != NULL);

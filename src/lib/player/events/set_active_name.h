@@ -38,7 +38,7 @@ bool set_active_name(
         General_state* gstate,
         Active_cat cat,
         Active_type type,
-        Value* value);
+        const Value* value);
 
 
 #endif // K_SET_ACTIVE_NAME_H

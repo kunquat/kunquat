@@ -28,7 +28,7 @@ bool Event_dsp_set_bool_process(
         const Device_impl* dimpl,
         Device_state* dstate,
         Channel* ch,
-        Value* value)
+        const Value* value)
 {
     assert(dimpl != NULL);
     assert(dstate != NULL);
@@ -53,7 +53,7 @@ bool Event_dsp_set_bool_name_process(
         const Device_impl* dimpl,
         Device_state* dstate,
         Channel* ch,
-        Value* value)
+        const Value* value)
 {
     assert(dimpl != NULL);
     assert(dstate != NULL);
@@ -73,7 +73,7 @@ bool Event_dsp_set_float_process(
         const Device_impl* dimpl,
         Device_state* dstate,
         Channel* ch,
-        Value* value)
+        const Value* value)
 {
     assert(dimpl != NULL);
     assert(dstate != NULL);
@@ -98,7 +98,7 @@ bool Event_dsp_set_float_name_process(
         const Device_impl* dimpl,
         Device_state* dstate,
         Channel* ch,
-        Value* value)
+        const Value* value)
 {
     assert(dimpl != NULL);
     assert(dstate != NULL);
@@ -118,7 +118,7 @@ bool Event_dsp_set_int_process(
         const Device_impl* dimpl,
         Device_state* dstate,
         Channel* ch,
-        Value* value)
+        const Value* value)
 {
     assert(dimpl != NULL);
     assert(dstate != NULL);
@@ -143,7 +143,7 @@ bool Event_dsp_set_int_name_process(
         const Device_impl* dimpl,
         Device_state* dstate,
         Channel* ch,
-        Value* value)
+        const Value* value)
 {
     assert(dimpl != NULL);
     assert(dstate != NULL);
@@ -163,7 +163,7 @@ bool Event_dsp_set_tstamp_process(
         const Device_impl* dimpl,
         Device_state* dstate,
         Channel* ch,
-        Value* value)
+        const Value* value)
 {
     assert(dimpl != NULL);
     assert(dstate != NULL);
@@ -189,7 +189,7 @@ bool Event_dsp_set_tstamp_name_process(
         const Device_impl* dimpl,
         Device_state* dstate,
         Channel* ch,
-        Value* value)
+        const Value* value)
 {
     assert(dimpl != NULL);
     assert(dstate != NULL);

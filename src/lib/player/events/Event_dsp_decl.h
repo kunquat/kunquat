@@ -31,7 +31,7 @@
             const Device_impl* dimpl, \
             Device_state* dstate,     \
             Channel* ch,              \
-            Value* value);
+            const Value* value);
 #include <player/events/Event_dsp_types.h>
 
 

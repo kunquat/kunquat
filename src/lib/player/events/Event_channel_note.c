@@ -33,7 +33,7 @@
 bool Event_channel_note_on_process(
         Channel* ch,
         Device_states* dstates,
-        Value* value)
+        const Value* value)
 {
     assert(ch != NULL);
     assert(ch->freq != NULL);
@@ -116,7 +116,7 @@ bool Event_channel_note_on_process(
 bool Event_channel_hit_process(
         Channel* ch,
         Device_states* dstates,
-        Value* value)
+        const Value* value)
 {
     assert(ch != NULL);
     assert(ch->freq != NULL);
@@ -164,7 +164,7 @@ bool Event_channel_hit_process(
 bool Event_channel_note_off_process(
         Channel* ch,
         Device_states* dstates,
-        Value* value)
+        const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);

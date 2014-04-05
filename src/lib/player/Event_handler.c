@@ -55,23 +55,23 @@ struct Event_handler
     Effect_table* effects;
     Event_names* event_names;
 
-    bool (*control_process[Event_control_STOP])(General_state*, Value*);
-    bool (*general_process[Event_general_STOP])(General_state*, Value*);
-    bool (*ch_process[Event_channel_STOP])(Channel*, Device_states*, Value*);
-    bool (*master_process[Event_master_STOP])(Master_params*, Value*);
+    bool (*control_process[Event_control_STOP])(General_state*, const Value*);
+    bool (*general_process[Event_general_STOP])(General_state*, const Value*);
+    bool (*ch_process[Event_channel_STOP])(Channel*, Device_states*, const Value*);
+    bool (*master_process[Event_master_STOP])(Master_params*, const Value*);
     bool (*ins_process[Event_ins_STOP])(
             const Instrument_params*,
             Ins_state*,
-            Value*);
+            const Value*);
     bool (*generator_process[Event_generator_STOP])(
-            const Device_impl*, Device_state*, Channel*, Value*);
+            const Device_impl*, Device_state*, Channel*, const Value*);
     bool (*effect_process[Event_effect_STOP])(
             const Effect*,
             Effect_state*,
             Device_states*,
-            Value*);
+            const Value*);
     bool (*dsp_process[Event_dsp_STOP])(
-            const Device_impl*, Device_state*, Channel*, Value*);
+            const Device_impl*, Device_state*, Channel*, const Value*);
 };
 
 
@@ -152,7 +152,7 @@ const Event_names* Event_handler_get_names(const Event_handler* eh)
 bool Event_handler_set_ch_process(
         Event_handler* eh,
         Event_type type,
-        bool (*ch_process)(Channel*, Device_states*, Value*))
+        bool (*ch_process)(Channel*, Device_states*, const Value*))
 {
     assert(eh != NULL);
     assert(Event_is_channel(type));
@@ -167,7 +167,7 @@ bool Event_handler_set_ch_process(
 bool Event_handler_set_general_process(
         Event_handler* eh,
         Event_type type,
-        bool (*general_process)(General_state*, Value*))
+        bool (*general_process)(General_state*, const Value*))
 {
     assert(eh != NULL);
     assert(Event_is_general(type));
@@ -182,7 +182,7 @@ bool Event_handler_set_general_process(
 bool Event_handler_set_control_process(
         Event_handler* eh,
         Event_type type,
-        bool (*control_process)(General_state*, Value*))
+        bool (*control_process)(General_state*, const Value*))
 {
     assert(eh != NULL);
     assert(Event_is_control(type));
@@ -197,7 +197,7 @@ bool Event_handler_set_control_process(
 bool Event_handler_set_master_process(
         Event_handler* eh,
         Event_type type,
-        bool (*global_process)(Master_params*, Value*))
+        bool (*global_process)(Master_params*, const Value*))
 {
     assert(eh != NULL);
     assert(Event_is_master(type));
@@ -212,7 +212,7 @@ bool Event_handler_set_master_process(
 bool Event_handler_set_ins_process(
         Event_handler* eh,
         Event_type type,
-        bool (*ins_process)(const Instrument_params*, Ins_state*, Value*))
+        bool (*ins_process)(const Instrument_params*, Ins_state*, const Value*))
 {
     assert(eh != NULL);
     assert(Event_is_ins(type));
@@ -228,7 +228,7 @@ bool Event_handler_set_generator_process(
         Event_handler* eh,
         Event_type type,
         bool (*gen_process)(
-            const Device_impl*, Device_state*, Channel*, Value*))
+            const Device_impl*, Device_state*, Channel*, const Value*))
 {
     assert(eh != NULL);
     assert(Event_is_generator(type));
@@ -244,7 +244,7 @@ bool Event_handler_set_effect_process(
         Event_handler* eh,
         Event_type type,
         bool (*effect_process)(
-            const Effect*, Effect_state*, Device_states*, Value*))
+            const Effect*, Effect_state*, Device_states*, const Value*))
 {
     assert(eh != NULL);
     assert(Event_is_effect(type));
@@ -260,7 +260,7 @@ bool Event_handler_set_dsp_process(
         Event_handler* eh,
         Event_type type,
         bool (*dsp_process)(
-            const Device_impl*, Device_state*, Channel*, Value*))
+            const Device_impl*, Device_state*, Channel*, const Value*))
 {
     assert(eh != NULL);
     assert(Event_is_dsp(type));
@@ -276,7 +276,7 @@ static bool Event_handler_handle(
         Event_handler* eh,
         int index,
         Event_type type,
-        Value* value)
+        const Value* value)
 {
     assert(eh != NULL);
     assert(index >= 0);
@@ -439,7 +439,7 @@ bool Event_handler_trigger(
         Event_handler* eh,
         int ch_num,
         const char* name,
-        Value* arg)
+        const Value* arg)
 {
     assert(eh != NULL);
     assert(ch_num >= 0);

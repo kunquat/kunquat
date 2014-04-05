@@ -29,7 +29,7 @@
     bool Event_channel_##type##_process( \
             Channel* ch,                 \
             Device_states* dstates,      \
-            Value* value);
+            const Value* value);
 #include <player/events/Event_channel_types.h>
 
 

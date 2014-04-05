@@ -21,7 +21,7 @@
 #include <Value.h>
 
 
-bool Event_general_comment_process(General_state* gstate, Value* value)
+bool Event_general_comment_process(General_state* gstate, const Value* value)
 {
     assert(gstate != NULL);
     (void)gstate;

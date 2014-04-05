@@ -27,7 +27,7 @@
 #include <Value.h>
 
 
-bool Event_general_cond_process(General_state* gstate, Value* value)
+bool Event_general_cond_process(General_state* gstate, const Value* value)
 {
     assert(gstate != NULL);
     assert(value != NULL);
@@ -44,7 +44,7 @@ bool Event_general_cond_process(General_state* gstate, Value* value)
 }
 
 
-bool Event_general_if_process(General_state* gstate, Value* value)
+bool Event_general_if_process(General_state* gstate, const Value* value)
 {
     assert(gstate != NULL);
     (void)value;
@@ -66,7 +66,7 @@ bool Event_general_if_process(General_state* gstate, Value* value)
 }
 
 
-bool Event_general_else_process(General_state* gstate, Value* value)
+bool Event_general_else_process(General_state* gstate, const Value* value)
 {
     assert(gstate != NULL);
     (void)value;
@@ -86,7 +86,7 @@ bool Event_general_else_process(General_state* gstate, Value* value)
 }
 
 
-bool Event_general_end_if_process(General_state* gstate, Value* value)
+bool Event_general_end_if_process(General_state* gstate, const Value* value)
 {
     assert(gstate != NULL);
     (void)value;

@@ -24,7 +24,7 @@
 bool Event_ins_set_sustain_process(
         const Instrument_params* ins_params,
         Ins_state* ins_state,
-        Value* value)
+        const Value* value)
 {
     assert(ins_params != NULL);
     assert(ins_state != NULL);
