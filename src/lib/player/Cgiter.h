@@ -18,7 +18,7 @@
 
 #include <stdbool.h>
 
-#include <Module.h>
+#include <module/Module.h>
 #include <player/Position.h>
 #include <sheet/Column.h>
 

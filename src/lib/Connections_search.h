@@ -20,7 +20,7 @@
 #include <devices/Device.h>
 #include <devices/DSP_table.h>
 #include <Device_node.h>
-#include <Ins_table.h>
+#include <module/Ins_table.h>
 #include <string/Streader.h>
 
 

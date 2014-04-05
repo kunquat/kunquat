@@ -21,9 +21,9 @@
 #include <stdio.h>
 
 #include <devices/Device.h>
-#include <Effect_table.h>
-#include <Ins_table.h>
 #include <math_common.h>
+#include <module/Effect_table.h>
+#include <module/Ins_table.h>
 #include <player/Device_states.h>
 
 

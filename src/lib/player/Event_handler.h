@@ -19,7 +19,6 @@
 #include <stdbool.h>
 
 #include <devices/Generator.h>
-#include <Ins_table.h>
 #include <player/Channel.h>
 #include <player/Effect_state.h>
 #include <player/Event_names.h>

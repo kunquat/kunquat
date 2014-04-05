@@ -27,7 +27,6 @@
 #include <Device_node.h>
 #include <devices/DSP_table.h>
 #include <devices/Effect.h>
-#include <Effect_table.h>
 #include <memory.h>
 #include <string/common.h>
 

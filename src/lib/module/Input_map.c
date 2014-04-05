@@ -14,8 +14,8 @@
 
 #include <containers/AAtree.h>
 #include <debug/assert.h>
-#include <Input_map.h>
 #include <memory.h>
+#include <module/Input_map.h>
 
 
 typedef struct Entry

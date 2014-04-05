@@ -18,9 +18,9 @@
 #include <math.h>
 
 #include <debug/assert.h>
-#include <player/Channel.h>
-#include <Environment.h>
 #include <memory.h>
+#include <module/Environment.h>
+#include <player/Channel.h>
 #include <Tstamp.h>
 
 

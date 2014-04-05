@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2014
  *
  * This file is part of Kunquat.
  *
@@ -16,30 +16,31 @@
 
 #include <containers/Etable.h>
 #include <debug/assert.h>
-#include <devices/Instrument.h>
-#include <Ins_table.h>
+#include <devices/Effect.h>
 #include <memory.h>
+#include <module/Effect_table.h>
 
 
-struct Ins_table
+struct Effect_table
 {
     int size;
-    Etable* insts;
+    Etable* effects;
 };
 
 
-Ins_table* new_Ins_table(int size)
+Effect_table* new_Effect_table(int size)
 {
     assert(size > 0);
 
-    Ins_table* table = memory_alloc_item(Ins_table);
+    Effect_table* table = memory_alloc_item(Effect_table);
     if (table == NULL)
         return NULL;
 
-    table->insts = new_Etable(size, (void (*)(void*))del_Instrument);
-    if (table->insts == NULL)
+    table->effects = NULL;
+    table->effects = new_Etable(size, (void (*)(void*))del_Effect);
+    if (table->effects == NULL)
     {
-        memory_free(table);
+        del_Effect_table(table);
         return NULL;
     }
 
@@ -49,53 +50,53 @@ Ins_table* new_Ins_table(int size)
 }
 
 
-bool Ins_table_set(Ins_table* table, int index, Instrument* ins)
+bool Effect_table_set(Effect_table* table, int index, Effect* eff)
 {
     assert(table != NULL);
     assert(index >= 0);
     assert(index < table->size);
-    assert(ins != NULL);
+    assert(eff != NULL);
 
-    return Etable_set(table->insts, index, ins);
+    return Etable_set(table->effects, index, eff);
 }
 
 
-Instrument* Ins_table_get(Ins_table* table, int index)
+Effect* Effect_table_get(Effect_table* table, int index)
 {
     assert(table != NULL);
     assert(index >= 0);
     assert(index < table->size);
 
-    return Etable_get(table->insts, index);
+    return Etable_get(table->effects, index);
 }
 
 
-void Ins_table_remove(Ins_table* table, int index)
+void Effect_table_remove(Effect_table* table, int index)
 {
     assert(table != NULL);
     assert(index >= 0);
     assert(index < table->size);
 
-    Etable_remove(table->insts, index);
+    Etable_remove(table->effects, index);
 
     return;
 }
 
 
-void Ins_table_clear(Ins_table* table)
+void Effect_table_clear(Effect_table* table)
 {
     assert(table != NULL);
-    Etable_clear(table->insts);
+    Etable_clear(table->effects);
     return;
 }
 
 
-void del_Ins_table(Ins_table* table)
+void del_Effect_table(Effect_table* table)
 {
     if (table == NULL)
         return;
 
-    del_Etable(table->insts);
+    del_Etable(table->effects);
     memory_free(table);
 
     return;

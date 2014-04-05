@@ -13,7 +13,7 @@
 
 
 #include <debug/assert.h>
-#include <Module.h>
+#include <module/Module.h>
 #include <player/Master_params.h>
 #include <sheet/Track_list.h>
 

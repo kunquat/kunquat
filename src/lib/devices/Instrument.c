@@ -21,11 +21,11 @@
 #include <debug/assert.h>
 #include <devices/Device.h>
 #include <devices/Effect.h>
-#include <Effect_table.h>
 #include <devices/Gen_table.h>
 #include <devices/Generator.h>
 #include <devices/Instrument.h>
 #include <memory.h>
+#include <module/Effect_table.h>
 #include <player/Ins_state.h>
 #include <string/common.h>
 

@@ -16,8 +16,8 @@
 #include <stdbool.h>
 
 #include <debug/assert.h>
-#include <Env_var.h>
-#include <Environment.h>
+#include <module/Env_var.h>
+#include <module/Environment.h>
 #include <player/Active_names.h>
 #include <player/Event_type.h>
 #include <player/events/Event_common.h>

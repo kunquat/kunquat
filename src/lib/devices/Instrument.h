@@ -24,11 +24,11 @@
 #include <devices/Generator.h>
 #include <devices/Instrument_params.h>
 #include <devices/param_types/Envelope.h>
-#include <Effect_table.h>
 #include <frame.h>
 #include <kunquat/limits.h>
+#include <module/Effect_table.h>
+#include <module/Scale.h>
 #include <player/Voice_state.h>
-#include <Scale.h>
 #include <string/Streader.h>
 
 

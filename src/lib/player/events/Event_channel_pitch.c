@@ -19,10 +19,10 @@
 
 #include <debug/assert.h>
 #include <kunquat/limits.h>
+#include <module/Scale.h>
 #include <player/events/Event_channel_decl.h>
 #include <player/events/Event_common.h>
 #include <player/Voice.h>
-#include <Scale.h>
 #include <Value.h>
 
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2014
  *
  * This file is part of Kunquat.
  *
@@ -19,8 +19,8 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#include <Env_var.h>
-#include <Environment.h>
+#include <module/Env_var.h>
+#include <module/Environment.h>
 
 
 typedef struct Env_state Env_state;

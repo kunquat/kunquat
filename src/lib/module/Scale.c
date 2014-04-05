@@ -23,7 +23,7 @@
 #include <debug/assert.h>
 #include <math_common.h>
 #include <memory.h>
-#include <Scale.h>
+#include <module/Scale.h>
 #include <string/common.h>
 
 

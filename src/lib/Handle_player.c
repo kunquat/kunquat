@@ -19,12 +19,12 @@
 
 #include <Audio_buffer.h>
 #include <debug/assert.h>
-#include <Env_var.h>
 #include <Handle_private.h>
 #include <kunquat/Player.h>
 #include <kunquat/limits.h>
 #include <math_common.h>
-#include <Module.h>
+#include <module/Env_var.h>
+#include <module/Module.h>
 #include <string/common.h>
 
 

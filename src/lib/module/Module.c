@@ -25,7 +25,7 @@
 #include <memory.h>
 #include <Random.h>
 #include <Real.h>
-#include <Module.h>
+#include <module/Module.h>
 #include <string/common.h>
 
 

@@ -21,7 +21,7 @@
 #include <stdlib.h>
 
 #include <kunquat/limits.h>
-#include <Module.h>
+#include <module/Module.h>
 #include <player/Event_handler.h>
 #include <string/Streader.h>
 

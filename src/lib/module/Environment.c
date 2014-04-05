@@ -17,9 +17,9 @@
 
 #include <containers/AAtree.h>
 #include <debug/assert.h>
-#include <Env_var.h>
-#include <Environment.h>
 #include <memory.h>
+#include <module/Env_var.h>
+#include <module/Environment.h>
 
 
 struct Environment

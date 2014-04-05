@@ -18,13 +18,13 @@
 #include <inttypes.h>
 #include <math.h>
 
-#include <Bind.h>
 #include <debug/assert.h>
 #include <devices/Effect.h>
 #include <devices/Generator.h>
-#include <Ins_table.h>
 #include <kunquat/limits.h>
-#include <Module.h>
+#include <module/Bind.h>
+#include <module/Ins_table.h>
+#include <module/Module.h>
 #include <player/Channel.h>
 #include <player/Event_handler.h>
 #include <player/Event_names.h>

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -21,7 +21,7 @@
 #include <Error.h>
 #include <kunquat/Handle.h>
 #include <kunquat/Player.h>
-#include <Module.h>
+#include <module/Module.h>
 #include <player/Player.h>
 
 

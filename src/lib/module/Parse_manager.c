@@ -18,7 +18,6 @@
 #include <ctype.h>
 #include <inttypes.h>
 
-#include <Bind.h>
 #include <Connections.h>
 #include <Connections_search.h>
 #include <debug/assert.h>
@@ -26,10 +25,12 @@
 #include <devices/Device_params.h>
 #include <devices/dsps/DSP_type.h>
 #include <devices/generators/Gen_type.h>
-#include <Environment.h>
 #include <Handle_private.h>
 #include <manifest.h>
 #include <memory.h>
+#include <module/Bind.h>
+#include <module/Environment.h>
+#include <module/Parse_manager.h>
 #include <string/Streader.h>
 #include <string/common.h>
 

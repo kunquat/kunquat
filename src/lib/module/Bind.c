@@ -16,11 +16,11 @@
 #include <string.h>
 #include <stdio.h>
 
-#include <Bind.h>
 #include <containers/AAtree.h>
 #include <debug/assert.h>
 #include <expr.h>
 #include <memory.h>
+#include <module/Bind.h>
 #include <player/Event_cache.h>
 #include <player/Event_names.h>
 #include <player/Event_type.h>

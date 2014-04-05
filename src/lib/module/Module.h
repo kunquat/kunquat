@@ -18,18 +18,18 @@
 
 #include <stdint.h>
 
-#include <Bind.h>
 #include <Connections.h>
 #include <Decl.h>
 #include <devices/Device.h>
-#include <Environment.h>
-#include <Effect_table.h>
 #include <frame.h>
-#include <Input_map.h>
-#include <Ins_table.h>
 #include <kunquat/limits.h>
+#include <module/Bind.h>
+#include <module/Effect_table.h>
+#include <module/Environment.h>
+#include <module/Input_map.h>
+#include <module/Ins_table.h>
+#include <module/Scale.h>
 #include <Random.h>
-#include <Scale.h>
 #include <sheet/Order_list.h>
 #include <sheet/Pat_table.h>
 #include <sheet/Song_table.h>

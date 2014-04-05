@@ -18,15 +18,15 @@
 #include <float.h>
 
 #include <debug/assert.h>
-#include <Input_map.h>
 #include <kunquat/limits.h>
-#include <Module.h>
+#include <module/Input_map.h>
+#include <module/Module.h>
+#include <module/Scale.h>
 #include <player/events/Event_channel_decl.h>
 #include <player/events/Event_common.h>
 #include <player/events/note_setup.h>
 #include <player/Voice.h>
 #include <Random.h>
-#include <Scale.h>
 #include <Tstamp.h>
 #include <Value.h>
 

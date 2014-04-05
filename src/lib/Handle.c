@@ -26,8 +26,8 @@
 #include <Handle_private.h>
 #include <kunquat/limits.h>
 #include <memory.h>
-#include <Module.h>
-#include <Parse_manager.h>
+#include <module/Module.h>
+#include <module/Parse_manager.h>
 #include <string/common.h>
 
 
