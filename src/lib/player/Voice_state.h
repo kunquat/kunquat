@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -25,7 +25,7 @@
 #include <player/Channel_gen_state.h>
 #include <player/LFO.h>
 #include <player/Slider.h>
-#include <Random.h>
+#include <random/Random.h>
 #include <Tstamp.h>
 
 

@@ -29,7 +29,7 @@
 #include <module/Input_map.h>
 #include <module/Ins_table.h>
 #include <module/Scale.h>
-#include <Random.h>
+#include <random/Random.h>
 #include <sheet/Order_list.h>
 #include <sheet/Pat_table.h>
 #include <sheet/Song_table.h>

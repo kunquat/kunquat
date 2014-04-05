@@ -17,7 +17,8 @@
 #include <string.h>
 
 #include <debug/assert.h>
-#include <md5.h>
+#include <random/hmac.h>
+#include <random/md5.h>
 
 
 void hmac_md5(uint64_t key, char* msg, uint64_t* lower, uint64_t* upper)

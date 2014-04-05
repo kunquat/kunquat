@@ -23,7 +23,7 @@
 #include <debug/assert.h>
 #include <math_common.h>
 #include <memory.h>
-#include <Random.h>
+#include <random/Random.h>
 #include <Real.h>
 #include <module/Module.h>
 #include <string/common.h>

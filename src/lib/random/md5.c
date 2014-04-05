@@ -19,7 +19,7 @@
 
 #include <debug/assert.h>
 #include <math_common.h>
-#include <md5.h>
+#include <random/md5.h>
 
 
 static void add_length(unsigned char* p, uint64_t len);

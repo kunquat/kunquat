@@ -22,7 +22,7 @@
 #include <memory.h>
 #include <player/Voice.h>
 #include <player/Voice_state.h>
-#include <Random.h>
+#include <random/Random.h>
 
 
 Voice* new_Voice(void)

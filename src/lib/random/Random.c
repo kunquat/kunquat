@@ -17,9 +17,9 @@
 #include <string.h>
 
 #include <debug/assert.h>
-#include <hmac.h>
 #include <memory.h>
-#include <Random.h>
+#include <random/hmac.h>
+#include <random/Random.h>
 
 
 struct Random
