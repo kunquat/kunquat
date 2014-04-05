@@ -18,7 +18,7 @@
 #include <float.h>
 
 #include <debug/assert.h>
-#include <Envelope.h>
+#include <devices/param_types/Envelope.h>
 #include <memory.h>
 #include <string/common.h>
 

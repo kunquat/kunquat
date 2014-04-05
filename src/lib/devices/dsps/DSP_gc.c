@@ -24,7 +24,7 @@
 #include <devices/DSP.h>
 #include <devices/dsps/DSP_common.h>
 #include <devices/dsps/DSP_gc.h>
-#include <Envelope.h>
+#include <devices/param_types/Envelope.h>
 #include <math_common.h>
 #include <memory.h>
 #include <string/common.h>

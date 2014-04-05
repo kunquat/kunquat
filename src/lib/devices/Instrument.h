@@ -23,8 +23,8 @@
 #include <devices/Gen_table.h>
 #include <devices/Generator.h>
 #include <devices/Instrument_params.h>
+#include <devices/param_types/Envelope.h>
 #include <Effect_table.h>
-#include <Envelope.h>
 #include <frame.h>
 #include <kunquat/limits.h>
 #include <player/Voice_state.h>

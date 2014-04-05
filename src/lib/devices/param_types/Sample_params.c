@@ -16,7 +16,7 @@
 #include <string.h>
 
 #include <debug/assert.h>
-#include <devices/generators/Sample_params.h>
+#include <devices/param_types/Sample_params.h>
 #include <string/common.h>
 
 

@@ -20,7 +20,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include <devices/generators/Sample_params.h>
+#include <devices/param_types/Sample_params.h>
 #include <frame.h>
 
 

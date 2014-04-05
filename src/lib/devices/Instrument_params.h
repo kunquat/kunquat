@@ -19,8 +19,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include <devices/param_types/Envelope.h>
 #include <frame.h>
-#include <Envelope.h>
 #include <Scale.h>
 #include <string/Streader.h>
 

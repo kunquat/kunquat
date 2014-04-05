@@ -22,12 +22,12 @@
 #include <devices/Generator.h>
 #include <devices/generators/Generator_add.h>
 #include <devices/generators/Generator_common.h>
-#include <devices/generators/Sample.h>
 #include <devices/generators/Voice_state_add.h>
+#include <devices/param_types/Num_list.h>
+#include <devices/param_types/Sample.h>
 #include <kunquat/limits.h>
 #include <math_common.h>
 #include <memory.h>
-#include <Num_list.h>
 #include <string/common.h>
 
 

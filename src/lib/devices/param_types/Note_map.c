@@ -16,7 +16,7 @@
 #include <math.h>
 
 #include <debug/assert.h>
-#include <devices/generators/Note_map.h>
+#include <devices/param_types/Note_map.h>
 #include <memory.h>
 #include <pitch_t.h>
 

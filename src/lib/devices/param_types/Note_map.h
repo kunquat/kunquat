@@ -19,7 +19,7 @@
 #include <stdint.h>
 
 #include <containers/AAtree.h>
-#include <devices/generators/Sample_entry.h>
+#include <devices/param_types/Sample_entry.h>
 #include <Random.h>
 #include <string/Streader.h>
 

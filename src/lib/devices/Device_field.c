@@ -18,7 +18,7 @@
 
 #include <debug/assert.h>
 #include <devices/Device_field.h>
-#include <devices/generators/File_wavpack.h>
+#include <devices/param_types/File_wavpack.h>
 #include <memory.h>
 #include <string/common.h>
 

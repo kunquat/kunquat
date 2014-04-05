@@ -22,12 +22,12 @@
 
 #include <containers/AAtree.h>
 #include <Decl.h>
-#include <devices/generators/Hit_map.h>
-#include <devices/generators/Note_map.h>
-#include <devices/generators/Sample.h>
-#include <Envelope.h>
+#include <devices/param_types/Envelope.h>
+#include <devices/param_types/Hit_map.h>
+#include <devices/param_types/Note_map.h>
+#include <devices/param_types/Num_list.h>
+#include <devices/param_types/Sample.h>
 #include <player/Device_state.h>
-#include <Num_list.h>
 #include <Tstamp.h>
 
 

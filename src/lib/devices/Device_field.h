@@ -19,12 +19,12 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <devices/generators/Hit_map.h>
-#include <devices/generators/Note_map.h>
-#include <devices/generators/Sample.h>
-#include <devices/generators/Sample_params.h>
-#include <Envelope.h>
-#include <Num_list.h>
+#include <devices/param_types/Envelope.h>
+#include <devices/param_types/Hit_map.h>
+#include <devices/param_types/Note_map.h>
+#include <devices/param_types/Num_list.h>
+#include <devices/param_types/Sample.h>
+#include <devices/param_types/Sample_params.h>
 #include <Real.h>
 #include <string/Streader.h>
 #include <Tstamp.h>

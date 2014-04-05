@@ -19,7 +19,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include <devices/generators/Sample.h>
+#include <devices/param_types/Sample.h>
 #include <string/Streader.h>
 
 
