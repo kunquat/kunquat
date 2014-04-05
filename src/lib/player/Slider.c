@@ -59,9 +59,7 @@ Slider* Slider_copy(Slider* restrict dest, const Slider* restrict src)
 }
 
 
-void Slider_start(Slider* slider,
-                  double target,
-                  double start)
+void Slider_start(Slider* slider, double target, double start)
 {
     assert(slider != NULL);
     assert(isfinite(target));
@@ -73,6 +71,7 @@ void Slider_start(Slider* slider,
             slider->mix_rate);
     slider->current_value = start;
     slider->target_value = target;
+
     int zero_slide = 0;
     if (slider->mode == SLIDE_MODE_EXP)
     {
@@ -85,6 +84,7 @@ void Slider_start(Slider* slider,
         assert(slider->mode == SLIDE_MODE_LINEAR);
         slider->update = (target - start) / slider->steps_left;
     }
+
     if (slider->update > zero_slide)
     {
         slider->dir = 1;
@@ -99,6 +99,7 @@ void Slider_start(Slider* slider,
         slider->current_value = slider->target_value;
         slider->steps_left = 0;
     }
+
     return;
 }
 
@@ -106,6 +107,7 @@ void Slider_start(Slider* slider,
 double Slider_step(Slider* slider)
 {
     assert(slider != NULL);
+
     if (slider->dir == 0)
     {
         return slider->target_value;
@@ -119,6 +121,7 @@ double Slider_step(Slider* slider)
         assert(slider->mode == SLIDE_MODE_LINEAR);
         slider->current_value += slider->update;
     }
+
     slider->steps_left -= 1;
     if (slider->steps_left <= 0)
     {
@@ -142,6 +145,7 @@ double Slider_step(Slider* slider)
             slider->dir = 0;
         }
     }
+
     return slider->current_value;
 }
 
@@ -149,14 +153,12 @@ double Slider_step(Slider* slider)
 double Slider_skip(Slider* slider, uint64_t steps)
 {
     assert(slider != NULL);
+
     if (steps == 0 || slider->dir == 0)
-    {
         return slider->current_value;
-    }
     else if (steps == 1)
-    {
         return Slider_step(slider);
-    }
+
     if (slider->mode == SLIDE_MODE_EXP)
     {
         slider->current_value *= pow(slider->update, steps);
@@ -166,20 +168,20 @@ double Slider_skip(Slider* slider, uint64_t steps)
         assert(slider->mode == SLIDE_MODE_LINEAR);
         slider->current_value += slider->update * steps;
     }
+
     slider->steps_left -= steps;
     if (slider->steps_left <= 0)
     {
         slider->current_value = slider->target_value;
         slider->dir = 0;
     }
-    else if ((slider->dir == 1 &&
-              slider->current_value > slider->target_value) ||
-             (slider->dir == -1 &&
-              slider->current_value < slider->target_value))
+    else if ((slider->dir == 1 && slider->current_value > slider->target_value) ||
+            (slider->dir == -1 && slider->current_value < slider->target_value))
     {
         slider->current_value = slider->target_value;
         slider->dir = 0;
     }
+
     return slider->current_value;
 }
 
@@ -187,9 +189,11 @@ double Slider_skip(Slider* slider, uint64_t steps)
 void Slider_break(Slider* slider)
 {
     assert(slider != NULL);
+
     slider->dir = 0;
     slider->steps_left = 0;
     slider->update = 0;
+
     return;
 }
 
@@ -198,24 +202,24 @@ void Slider_change_target(Slider* slider, double target)
 {
     assert(slider != NULL);
     assert(isfinite(target));
+
     slider->target_value = target;
     if (slider->dir != 0)
-    {
         Slider_start(slider, target, slider->current_value);
-    }
+
     return;
 }
 
 
-void Slider_set_length(Slider* slider, Tstamp* length)
+void Slider_set_length(Slider* slider, const Tstamp* length)
 {
     assert(slider != NULL);
     assert(length != NULL);
+
     Tstamp_copy(&slider->length, length);
     if (slider->dir != 0)
-    {
         Slider_start(slider, slider->target_value, slider->current_value);
-    }
+
     return;
 }
 
@@ -224,14 +228,13 @@ void Slider_set_mix_rate(Slider* slider, uint32_t mix_rate)
 {
     assert(slider != NULL);
     assert(mix_rate > 0);
+
     if (slider->mix_rate == mix_rate)
-    {
         return;
-    }
+
     if (slider->dir == 0)
-    {
         slider->mix_rate = mix_rate;
-    }
+
     Slider_update_time(slider, mix_rate, slider->tempo);
     return;
 }
@@ -242,30 +245,29 @@ void Slider_set_tempo(Slider* slider, double tempo)
     assert(slider != NULL);
     assert(isfinite(tempo));
     assert(tempo > 0);
+
     if (slider->tempo == tempo)
-    {
         return;
-    }
+
     if (slider->dir == 0)
-    {
         slider->tempo = tempo;
-    }
+
     Slider_update_time(slider, slider->mix_rate, tempo);
     return;
 }
 
 
-static void Slider_update_time(Slider* slider,
-                               uint32_t mix_rate,
-                               double tempo)
+static void Slider_update_time(Slider* slider, uint32_t mix_rate, double tempo)
 {
     assert(slider != NULL);
+
     if (slider->dir == 0)
     {
         slider->mix_rate = mix_rate;
         slider->tempo = tempo;
         return;
     }
+
     if (slider->mode == SLIDE_MODE_EXP)
     {
         double log_update = log2(slider->update);
@@ -279,16 +281,18 @@ static void Slider_update_time(Slider* slider,
         slider->update *= (double)slider->mix_rate / mix_rate;
         slider->update *= tempo / slider->tempo;
     }
+
     slider->steps_left *= (double)mix_rate / slider->mix_rate;
     slider->steps_left *= slider->tempo / tempo;
 
     slider->mix_rate = mix_rate;
     slider->tempo = tempo;
+
     return;
 }
 
 
-bool Slider_in_progress(Slider* slider)
+bool Slider_in_progress(const Slider* slider)
 {
     assert(slider != NULL);
     return slider->dir != 0;

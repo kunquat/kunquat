@@ -177,8 +177,9 @@ Bind* new_Bind(Streader* sr, const Event_names* names)
     }
 
     map->iter = new_AAiter(NULL);
-    map->cblists = new_AAtree((int (*)(const void*, const void*))strcmp,
-                              (void (*)(void*))del_Cblist);
+    map->cblists = new_AAtree(
+            (int (*)(const void*, const void*))strcmp,
+            (void (*)(void*))del_Cblist);
     if (map->iter == NULL || map->cblists == NULL)
     {
         del_Bind(map);
@@ -612,7 +613,7 @@ static bool Constraint_match(
     assert(estate != NULL);
     assert(rand != NULL);
 
-    Value* value = Event_cache_get_value(cache, constraint->event_name);
+    const Value* value = Event_cache_get_value(cache, constraint->event_name);
     assert(value != NULL);
 
     Value* result = VALUE_AUTO;

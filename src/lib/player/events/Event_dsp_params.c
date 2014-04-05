@@ -36,7 +36,7 @@ bool Event_dsp_set_bool_process(
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_BOOL);
 
-    char* key = Active_names_get(
+    const char* key = Active_names_get(
             ch->parent.active_names,
             ACTIVE_CAT_DSP,
             ACTIVE_TYPE_BOOL);
@@ -81,7 +81,7 @@ bool Event_dsp_set_float_process(
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
-    char* key = Active_names_get(
+    const char* key = Active_names_get(
             ch->parent.active_names,
             ACTIVE_CAT_DSP,
             ACTIVE_TYPE_FLOAT);
@@ -126,7 +126,7 @@ bool Event_dsp_set_int_process(
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_INT);
 
-    char* key = Active_names_get(
+    const char* key = Active_names_get(
             ch->parent.active_names,
             ACTIVE_CAT_DSP,
             ACTIVE_TYPE_INT);
@@ -171,7 +171,7 @@ bool Event_dsp_set_tstamp_process(
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_TSTAMP);
 
-    char* key = Active_names_get(
+    const char* key = Active_names_get(
             ch->parent.active_names,
             ACTIVE_CAT_DSP,
             ACTIVE_TYPE_TSTAMP);

@@ -67,7 +67,7 @@ static void DSP_volume_update_state_volume(
 
 
 static void DSP_volume_process(
-        Device* device,
+        const Device* device,
         Device_states* states,
         uint32_t start,
         uint32_t until,
@@ -221,7 +221,7 @@ static void DSP_volume_update_state_volume(
 
 
 static void DSP_volume_process(
-        Device* device,
+        const Device* device,
         Device_states* states,
         uint32_t start,
         uint32_t until,

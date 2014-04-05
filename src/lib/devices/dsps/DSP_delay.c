@@ -204,7 +204,7 @@ static bool DSP_delay_set_audio_rate(
         int32_t audio_rate);
 
 static void DSP_delay_process(
-        Device* device,
+        const Device* device,
         Device_states* states,
         uint32_t start,
         uint32_t until,
@@ -552,7 +552,7 @@ static bool DSP_delay_set_audio_rate(
 
 
 static void DSP_delay_process(
-        Device* device,
+        const Device* device,
         Device_states* dstates,
         uint32_t start,
         uint32_t until,

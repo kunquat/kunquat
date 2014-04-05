@@ -23,18 +23,20 @@
 #include <Value.h>
 
 
-bool set_active_name(General_state* gstate,
-                     Active_cat cat,
-                     Active_type type,
-                     Value* value)
+bool set_active_name(
+        General_state* gstate,
+        Active_cat cat,
+        Active_type type,
+        Value* value)
 {
     assert(gstate != NULL);
     assert(cat < ACTIVE_CAT_LAST);
     assert(type < ACTIVE_TYPE_LAST);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_STRING);
-    Active_names_set(gstate->active_names, cat, type,
-                     value->value.string_type);
+
+    Active_names_set(gstate->active_names, cat, type, value->value.string_type);
+
     return true;
 }
 

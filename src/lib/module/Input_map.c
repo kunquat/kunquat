@@ -112,8 +112,7 @@ static bool read_entry(Streader* sr, int32_t index, void* userdata)
 }
 
 
-Input_map* new_Input_map(
-        Streader* sr, int32_t num_inputs, int32_t num_outputs)
+Input_map* new_Input_map(Streader* sr, int32_t num_inputs, int32_t num_outputs)
 {
     assert(sr != NULL);
     assert(num_inputs > 0);

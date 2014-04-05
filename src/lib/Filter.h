@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *         Ossi Saresoja, Finland 2010-2013
  *
  * This file is part of Kunquat.
@@ -41,82 +41,95 @@
 /*     } else (void)0 */
 
 
-void one_pole_filter_create(double f,
-                            int bandform,
-                            double coeffs[1],
-                            double *mul);
+void one_pole_filter_create(
+        double f,
+        int bandform,
+        double coeffs[1],
+        double *mul);
 
 
-void two_pole_bandpass_filter_create(double f1,
-                                     double f2,
-                                     double coeffs[2],
-                                     double *mul);
+void two_pole_bandpass_filter_create(
+        double f1,
+        double f2,
+        double coeffs[2],
+        double *mul);
 
 
-void two_pole_filter_create(double f,
-                            double q,
-                            int bandform,
-                            double coeffs[2],
-                            double *mul);
+void two_pole_filter_create(
+        double f,
+        double q,
+        int bandform,
+        double coeffs[2],
+        double *mul);
 
 
-void four_pole_bandpass_filter_create(double f1,
-                                      double f2,
-                                      double q,
-                                      double coeffs[4],
-                                      double *mul);
+void four_pole_bandpass_filter_create(
+        double f1,
+        double f2,
+        double q,
+        double coeffs[4],
+        double *mul);
 
 
-void butterworth_filter_create(int n,
-                               double f,
-                               int bandform,
-                               double coeffs[n],
-                               double *mul);
+void butterworth_filter_create(
+        int n,
+        double f,
+        int bandform,
+        double coeffs[n],
+        double *mul);
 
 
-void butterworth_bandpass_filter_create(int n,
-                                        double f1,
-                                        double f2,
-                                        double coeffs[2*n],
-                                        double *mul);
+void butterworth_bandpass_filter_create(
+        int n,
+        double f1,
+        double f2,
+        double coeffs[2*n],
+        double *mul);
 
 
-double iir_filter_strict_cascade(int n,
-                                 double coeffs[n],
-                                 double buf[n],
-                                 double var);
+double iir_filter_strict_cascade(
+        int n,
+        const double coeffs[n],
+        double buf[n],
+        double var);
 
 
-double iir_filter_strict_transposed_cascade(int n,
-                                            double coeffs[n],
-                                            double buf[n],
-                                            double var);
+double iir_filter_strict_transposed_cascade(
+        int n,
+        const double coeffs[n],
+        double buf[n],
+        double var);
 
 
-double dc_zero_filter(int n,
-                      double buf[n],
-                      double var);
+double dc_zero_filter(
+        int n,
+        double buf[n],
+        double var);
 
 
-double nq_zero_filter(int n,
-                      double buf[n],
-                      double var);
+double nq_zero_filter(
+        int n,
+        double buf[n],
+        double var);
 
 
-double dc_nq_zero_filter(int n,
-                         double buf[2*n],
-                         double var,
-                         int *s);
+double dc_nq_zero_filter(
+        int n,
+        double buf[2*n],
+        double var,
+        int* s);
 
 
-double dc_pole_filter(int n,
-                      double buf[n],
-                      double var);
+double dc_pole_filter(
+        int n,
+        double buf[n],
+        double var);
 
 
-double nq_pole_filter(int n,
-                      double buf[n],
-                      double var);
+double nq_pole_filter(
+        int n,
+        double buf[n],
+        double var);
 
 
 #endif // K_FILTER_H

@@ -25,17 +25,14 @@
     if (true)                                                   \
     {                                                           \
         if ((ch_state)->fg[(gen)] == NULL)                      \
-        {                                                       \
             continue;                                           \
-        }                                                       \
+                                                                \
         (ch_state)->fg[(gen)] =                                 \
                 Voice_pool_get_voice((ch_state)->pool,          \
                                      (ch_state)->fg[(gen)],     \
                                      (ch_state)->fg_id[(gen)]); \
         if ((ch_state)->fg[(gen)] == NULL)                      \
-        {                                                       \
             continue;                                           \
-        }                                                       \
     }                                                           \
     else (void)0
 

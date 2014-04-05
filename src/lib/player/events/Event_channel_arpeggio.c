@@ -41,9 +41,8 @@ bool Event_channel_arpeggio_on_process(
         Voice_state* vs = voice->state;
         //pitch_t orig_pitch = -1;
         if (vs->arpeggio || voice->gen->ins_params->pitch_locks[i].enabled)
-        {
             continue;
-        }
+
 #if 0
         if (voice->gen->ins_params->scale != NULL &&
                 *voice->gen->ins_params->scale != NULL &&
@@ -63,13 +62,11 @@ bool Event_channel_arpeggio_on_process(
         }
 #endif
         if (isnan(ch->arpeggio_ref))
-        {
             ch->arpeggio_ref = vs->orig_cents;
-        }
+
         if (isnan(ch->arpeggio_tones[0]))
-        {
             ch->arpeggio_tones[0] = ch->arpeggio_ref;
-        }
+
         vs->arpeggio_ref = ch->arpeggio_ref;
         memcpy(vs->arpeggio_tones, ch->arpeggio_tones,
                 KQT_ARPEGGIO_NOTES_MAX * sizeof(double));
@@ -114,7 +111,7 @@ bool Event_channel_arpeggio_on_process(
             vs->arpeggio_factors[last_nonzero + 1] = -1;
         }
 #endif
-        double unit_len = Tstamp_toframes(
+        const double unit_len = Tstamp_toframes(
                 Tstamp_set(TSTAMP_AUTO, 1, 0),
                 *ch->tempo,
                 *ch->freq);
@@ -218,7 +215,7 @@ bool Event_channel_set_arpeggio_speed_process(
     assert(value->type == VALUE_TYPE_FLOAT);
 
     ch->arpeggio_speed = value->value.float_type;
-    double unit_len = Tstamp_toframes(
+    const double unit_len = Tstamp_toframes(
             Tstamp_set(TSTAMP_AUTO, 1, 0),
             *ch->tempo,
             *ch->freq);
@@ -247,6 +244,7 @@ bool Event_channel_reset_arpeggio_process(
     ch->arpeggio_ref = NAN;
     ch->arpeggio_edit_pos = 1;
     ch->arpeggio_tones[0] = ch->arpeggio_tones[1] = NAN;
+
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         Event_check_voice(ch, i);

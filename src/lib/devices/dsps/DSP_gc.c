@@ -44,7 +44,7 @@ static bool DSP_gc_set_map(
         const Envelope* value);
 
 static void DSP_gc_process(
-        Device* device,
+        const Device* device,
         Device_states* states,
         uint32_t start,
         uint32_t until,
@@ -130,7 +130,7 @@ static bool DSP_gc_set_map(
 
 
 static void DSP_gc_process(
-        Device* device,
+        const Device* device,
         Device_states* states,
         uint32_t start,
         uint32_t until,

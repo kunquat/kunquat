@@ -102,7 +102,7 @@ kqt_Handle kqt_new_Handle(void)
         return 0;
     }
 
-    if (!Handle_init(handle, DEFAULT_BUFFER_SIZE))
+    if (!Handle_init(handle))
     {
         memory_free(handle);
         return 0;
@@ -163,10 +163,9 @@ int kqt_Handle_set_data(
 }
 
 
-bool Handle_init(Handle* handle, long buffer_size)
+bool Handle_init(Handle* handle)
 {
     assert(handle != NULL);
-    assert(buffer_size > 0);
 
     handle->data_is_valid = true;
     handle->data_is_validated = true;
@@ -180,7 +179,7 @@ bool Handle_init(Handle* handle, long buffer_size)
 //    int buffer_count = SONG_DEFAULT_BUF_COUNT;
 //    int voice_count = 256;
 
-    handle->module = new_Module(buffer_size);
+    handle->module = new_Module();
     if (handle->module == NULL)
     {
         Handle_set_error(NULL, ERROR_MEMORY, "Couldn't allocate memory");

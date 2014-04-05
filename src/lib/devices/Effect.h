@@ -33,7 +33,7 @@ typedef struct Effect Effect;
  * \return   The new Effect if successful, or \c NULL if memory allocation
  *           failed.
  */
-Effect* new_Effect();
+Effect* new_Effect(void);
 
 
 /**
@@ -92,7 +92,7 @@ void Effect_set_connections(Effect* eff, Connections* graph);
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Effect_prepare_connections(Effect* eff, Device_states* states);
+bool Effect_prepare_connections(const Effect* eff, Device_states* states);
 
 
 /**
@@ -102,7 +102,7 @@ bool Effect_prepare_connections(Effect* eff, Device_states* states);
  *
  * \return   The input interface.
  */
-Device* Effect_get_input_interface(Effect* eff);
+const Device* Effect_get_input_interface(const Effect* eff);
 
 
 /**
@@ -112,7 +112,7 @@ Device* Effect_get_input_interface(Effect* eff);
  *
  * \return   The output interface.
  */
-Device* Effect_get_output_interface(Effect* eff);
+const Device* Effect_get_output_interface(const Effect* eff);
 
 
 /**

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -76,9 +76,7 @@ Slider* Slider_copy(Slider* restrict dest, const Slider* restrict src);
  * \param target     The target value -- must be finite.
  * \param start      The starting value -- must be finite.
  */
-void Slider_start(Slider* slider,
-                  double target,
-                  double start);
+void Slider_start(Slider* slider, double target, double start);
 
 
 /**
@@ -116,7 +114,7 @@ void Slider_break(Slider* slider);
  * \param slider   The Slider -- must not be \c NULL.
  * \param length   The new length -- must not be \c NULL or negative.
  */
-void Slider_set_length(Slider* slider, Tstamp* length);
+void Slider_set_length(Slider* slider, const Tstamp* length);
 
 
 /**
@@ -157,7 +155,7 @@ void Slider_change_target(Slider* slider, double target);
  *
  * \return   \c true if a slide is in progress, otherwise \c false.
  */
-bool Slider_in_progress(Slider* slider);
+bool Slider_in_progress(const Slider* slider);
 
 
 #endif // K_SLIDER_H

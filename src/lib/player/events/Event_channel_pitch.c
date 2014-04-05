@@ -142,7 +142,7 @@ bool Event_channel_vibrato_depth_process(
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
-    double actual_depth = value->value.float_type / 240; // unit is 5 cents
+    const double actual_depth = value->value.float_type / 240; // unit is 5 cents
     ch->vibrato_depth = actual_depth;
     LFO_set_depth(&ch->vibrato, actual_depth); // unit is 5 cents
 

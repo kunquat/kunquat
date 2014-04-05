@@ -54,13 +54,12 @@ typedef struct Handle
 /**
  * Initialises a Kunquat Handle.
  *
- * \param handle        The Kunquat Handle -- must not be \c NULL.
- * \param buffer_size   The size of the mixing buffers -- must be positive.
+ * \param handle   The Kunquat Handle -- must not be \c NULL.
  *
  * \return   \c true if successful. Otherwise, \c false is returned and Handle
  *           error is set to indicate the error.
  */
-bool Handle_init(Handle* handle, long buffer_size);
+bool Handle_init(Handle* handle);
 
 
 /**

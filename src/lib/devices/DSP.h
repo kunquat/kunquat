@@ -43,7 +43,7 @@ typedef struct DSP
  * \return   The new DSP if successful, otherwise \c NULL. \a state will not
  *           be modified if memory allocation failed.
  */
-DSP* new_DSP();
+DSP* new_DSP(void);
 
 
 /**
@@ -58,7 +58,7 @@ DSP* new_DSP();
 bool DSP_init(
         DSP* dsp,
         void (*process)(
-            Device*,
+            const Device*,
             Device_states*,
             uint32_t,
             uint32_t,

@@ -25,7 +25,7 @@
 #include <string/common.h>
 
 
-DSP* new_DSP()
+DSP* new_DSP(void)
 {
     DSP* dsp = memory_alloc_item(DSP);
     if (dsp == NULL)
@@ -70,7 +70,7 @@ DSP* new_DSP()
 bool DSP_init(
         DSP* dsp,
         void (*process)(
-            Device*,
+            const Device*,
             Device_states*,
             uint32_t,
             uint32_t,

@@ -181,7 +181,7 @@ static bool DSP_freeverb_set_audio_rate(
         int32_t audio_rate);
 
 static void DSP_freeverb_process(
-        Device* device,
+        const Device* device,
         Device_states* states,
         uint32_t start,
         uint32_t until,
@@ -526,7 +526,7 @@ static void DSP_freeverb_update_wet(DSP_freeverb* freeverb, double wet)
 
 
 static void DSP_freeverb_process(
-        Device* device,
+        const Device* device,
         Device_states* states,
         uint32_t start,
         uint32_t until,

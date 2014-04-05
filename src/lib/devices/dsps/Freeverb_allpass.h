@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -47,8 +47,7 @@ Freeverb_allpass* new_Freeverb_allpass(uint32_t buffer_size);
  * \param allpass    The Freeverb allpass filter -- must not be \c NULL.
  * \param feedback   The feedback value -- must be > \c -1 and < \c 1.
  */
-void Freeverb_allpass_set_feedback(Freeverb_allpass* allpass,
-                                   kqt_frame feedback);
+void Freeverb_allpass_set_feedback(Freeverb_allpass* allpass, kqt_frame feedback);
 
 
 /**
@@ -59,8 +58,7 @@ void Freeverb_allpass_set_feedback(Freeverb_allpass* allpass,
  *
  * \return   The output frame.
  */
-kqt_frame Freeverb_allpass_process(Freeverb_allpass* allpass,
-                                   kqt_frame input);
+kqt_frame Freeverb_allpass_process(Freeverb_allpass* allpass, kqt_frame input);
 
 
 /**
@@ -71,8 +69,7 @@ kqt_frame Freeverb_allpass_process(Freeverb_allpass* allpass,
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Freeverb_allpass_resize_buffer(Freeverb_allpass* allpass,
-                                    uint32_t new_size);
+bool Freeverb_allpass_resize_buffer(Freeverb_allpass* allpass, uint32_t new_size);
 
 
 /**

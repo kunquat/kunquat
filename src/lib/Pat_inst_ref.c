@@ -26,6 +26,7 @@ bool Pat_inst_ref_is_valid(const Pat_inst_ref* p)
         (p->pat < KQT_PATTERNS_MAX) &&
         (p->inst >= 0) &&
         (p->inst < KQT_PAT_INSTANCES_MAX);
+
     return is_normal || (p->pat == -1 && p->inst == -1);
 }
 

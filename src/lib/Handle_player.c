@@ -38,8 +38,8 @@ int kqt_Handle_play(kqt_Handle handle, long nframes)
 
     if (nframes <= 0)
     {
-        Handle_set_error(h, ERROR_ARGUMENT, "Number of frames must"
-                " be positive.");
+        Handle_set_error(
+                h, ERROR_ARGUMENT, "Number of frames must be positive.");
         return 0;
     }
 

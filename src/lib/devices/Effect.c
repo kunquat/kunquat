@@ -43,7 +43,7 @@ static Device_state* Effect_create_state(
         int32_t audio_rate,
         int32_t audio_buffer_size);
 
-static void Effect_reset(Device* device, Device_states* dstates);
+static void Effect_reset(const Device* device, Device_states* dstates);
 
 static bool Effect_set_audio_rate(
         const Device* device,
@@ -63,7 +63,7 @@ static void Effect_update_tempo(
 //static bool Effect_sync(Device* device, Device_states* dstates);
 
 static void Effect_process(
-        Device* device,
+        const Device* device,
         Device_states* states,
         uint32_t start,
         uint32_t until,
@@ -71,7 +71,7 @@ static void Effect_process(
         double tempo);
 
 
-Effect* new_Effect()
+Effect* new_Effect(void)
 {
     Effect* eff = memory_alloc_item(Effect);
     if (eff == NULL)
@@ -174,7 +174,7 @@ void Effect_set_connections(Effect* eff, Connections* graph)
 }
 
 
-bool Effect_prepare_connections(Effect* eff, Device_states* states)
+bool Effect_prepare_connections(const Effect* eff, Device_states* states)
 {
     assert(eff != NULL);
     assert(states != NULL);
@@ -186,14 +186,14 @@ bool Effect_prepare_connections(Effect* eff, Device_states* states)
 }
 
 
-Device* Effect_get_input_interface(Effect* eff)
+const Device* Effect_get_input_interface(const Effect* eff)
 {
     assert(eff != NULL);
     return &eff->in_iface->parent;
 }
 
 
-Device* Effect_get_output_interface(Effect* eff)
+const Device* Effect_get_output_interface(const Effect* eff)
 {
     assert(eff != NULL);
     return &eff->out_iface->parent;
@@ -220,18 +220,18 @@ static Device_state* Effect_create_state(
 }
 
 
-static void Effect_reset(Device* device, Device_states* dstates)
+static void Effect_reset(const Device* device, Device_states* dstates)
 {
     assert(device != NULL);
     assert(dstates != NULL);
 
     // Reset DSPs
-    Effect* eff = (Effect*)device;
+    const Effect* eff = (const Effect*)device;
     for (int i = 0; i < KQT_DSPS_MAX; ++i)
     {
-        DSP* dsp = DSP_table_get_dsp(eff->dsps, i);
+        const DSP* dsp = DSP_table_get_dsp(eff->dsps, i);
         if (dsp != NULL)
-            Device_reset((Device*)dsp, dstates);
+            Device_reset((const Device*)dsp, dstates);
     }
 
     // Reset Effect state
@@ -253,10 +253,10 @@ static bool Effect_set_audio_rate(
     assert(dstates != NULL);
     assert(audio_rate > 0);
 
-    Effect* eff = (Effect*)device;
+    const Effect* eff = (const Effect*)device;
     for (int i = 0; i < KQT_DSPS_MAX; ++i)
     {
-        DSP* dsp = DSP_table_get_dsp(eff->dsps, i);
+        const DSP* dsp = DSP_table_get_dsp(eff->dsps, i);
         if (dsp != NULL &&
                 !Device_set_audio_rate((Device*)dsp, dstates, audio_rate))
             return false;
@@ -279,7 +279,7 @@ static void Effect_update_tempo(
     const Effect* eff = (const Effect*)device;
     for (int i = 0; i < KQT_DSPS_MAX; ++i)
     {
-        DSP* dsp = DSP_table_get_dsp(eff->dsps, i);
+        const DSP* dsp = DSP_table_get_dsp(eff->dsps, i);
         if (dsp != NULL)
             Device_update_tempo((const Device*)dsp, dstates, tempo);
     }
@@ -298,14 +298,14 @@ static bool Effect_set_buffer_size(
     assert(size >= 0);
     assert(size <= KQT_AUDIO_BUFFER_SIZE_MAX);
 
-    Effect* eff = (Effect*)device;
+    const Effect* eff = (const Effect*)device;
     if (!Device_set_buffer_size((Device*)eff->out_iface, dstates, size) ||
             !Device_set_buffer_size((Device*)eff->in_iface, dstates, size))
         return false;
 
     for (int i = 0; i < KQT_DSPS_MAX; ++i)
     {
-        DSP* dsp = DSP_table_get_dsp(eff->dsps, i);
+        const DSP* dsp = DSP_table_get_dsp(eff->dsps, i);
         if (dsp != NULL &&
                 !Device_set_buffer_size((Device*)dsp, dstates, size))
             return false;
@@ -359,7 +359,7 @@ static void mix_interface_connection(
 
 
 static void Effect_process(
-        Device* device,
+        const Device* device,
         Device_states* states,
         uint32_t start,
         uint32_t until,
@@ -375,7 +375,7 @@ static void Effect_process(
             states,
             Device_get_id(device));
 
-    Effect* eff = (Effect*)device;
+    const Effect* eff = (const Effect*)device;
 
     if (eff_state->bypass)
     {

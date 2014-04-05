@@ -73,7 +73,7 @@ struct Module
  * \return   The new Module if successful, or \c NULL if memory allocation
  *           failed.
  */
-Module* new_Module();
+Module* new_Module(void);
 
 
 /**

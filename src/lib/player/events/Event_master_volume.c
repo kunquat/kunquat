@@ -45,7 +45,7 @@ bool Event_master_slide_volume_process(
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
-    double target = exp2(value->value.float_type / 6);
+    const double target = exp2(value->value.float_type / 6);
 
     if (Slider_in_progress(&master_params->volume_slider))
         Slider_change_target(&master_params->volume_slider, target);

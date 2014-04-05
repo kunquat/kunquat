@@ -62,8 +62,9 @@ Environment* new_Environment(void)
 
     env->vars = NULL;
     env->iter = NULL;
-    env->vars = new_AAtree((int (*)(const void*, const void*))strcmp,
-                           (void (*)(void*))del_Env_var);
+    env->vars = new_AAtree(
+            (int (*)(const void*, const void*))strcmp,
+            (void (*)(void*))del_Env_var);
     env->iter = new_AAiter(env->vars);
     if (env->vars == NULL || env->iter == NULL)
     {

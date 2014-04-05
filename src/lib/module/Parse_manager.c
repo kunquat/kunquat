@@ -146,10 +146,11 @@ static bool prepare_connections(Handle* handle)
 }
 
 
-bool parse_data(Handle* handle,
-                const char* key,
-                const void* data,
-                long length)
+bool parse_data(
+        Handle* handle,
+        const char* key,
+        const void* data,
+        long length)
 {
 //    fprintf(stderr, "parsing %s\n", key);
     assert(handle != NULL);
@@ -315,9 +316,10 @@ bool parse_data(Handle* handle,
 }
 
 
-static bool parse_module_level(Handle* handle,
-                             const char* key,
-                             Streader* sr)
+static bool parse_module_level(
+        Handle* handle,
+        const char* key,
+        Streader* sr)
 {
 //    fprintf(stderr, "song level: %s\n", key);
     assert(handle != NULL);
@@ -493,11 +495,12 @@ static Instrument* add_instrument(Handle* handle, int index)
 }
 
 
-static bool parse_instrument_level(Handle* handle,
-                                   const char* key,
-                                   const char* subkey,
-                                   Streader* sr,
-                                   int index)
+static bool parse_instrument_level(
+        Handle* handle,
+        const char* key,
+        const char* subkey,
+        Streader* sr,
+        int index)
 {
 //    fprintf(stderr, "instrument level: %s\n", key);
     assert(handle != NULL);
@@ -506,9 +509,8 @@ static bool parse_instrument_level(Handle* handle,
     assert(sr != NULL);
 
     if (index < 0 || index >= KQT_INSTRUMENTS_MAX)
-    {
         return true;
-    }
+
 #if 0
     if (!string_has_prefix(subkey, MAGIC_ID "iXX/") &&
             !string_has_prefix(subkey, MAGIC_ID "i" KQT_FORMAT_VERSION "/"))
@@ -666,7 +668,8 @@ static bool parse_instrument_level(Handle* handle,
             return false;
         }
     }
-    struct
+
+    static const struct
     {
         char* name;
         bool (*read)(Instrument_params*, Streader*);
@@ -678,6 +681,7 @@ static bool parse_instrument_level(Handle* handle,
         { "p_envelope_pitch_pan.json", Instrument_params_parse_env_pitch_pan },
         { NULL, NULL }
     };
+
     for (int i = 0; parse[i].name != NULL; ++i)
     {
         assert(parse[i].read != NULL);
@@ -732,12 +736,13 @@ static Generator* add_generator(
 }
 
 
-static bool parse_generator_level(Handle* handle,
-                                  const char* key,
-                                  const char* subkey,
-                                  Streader* sr,
-                                  int ins_index,
-                                  int gen_index)
+static bool parse_generator_level(
+        Handle* handle,
+        const char* key,
+        const char* subkey,
+        Streader* sr,
+        int ins_index,
+        int gen_index)
 {
 //    fprintf(stderr, "generator level: %s\n", key);
     assert(handle != NULL);
@@ -1007,26 +1012,26 @@ static Effect* add_effect(Handle* handle, int index, Effect_table* table)
 }
 
 
-static bool parse_effect_level(Handle* handle,
-                               Instrument* ins,
-                               const char* key,
-                               const char* subkey,
-                               Streader* sr,
-                               int eff_index)
+static bool parse_effect_level(
+        Handle* handle,
+        Instrument* ins,
+        const char* key,
+        const char* subkey,
+        Streader* sr,
+        int eff_index)
 {
     assert(handle != NULL);
     assert(key != NULL);
     assert(subkey != NULL);
     assert(sr != NULL);
+
     int max_index = KQT_EFFECTS_MAX;
     if (ins != NULL)
-    {
         max_index = KQT_INST_EFFECTS_MAX;
-    }
+
     if (eff_index < 0 || eff_index >= max_index)
-    {
         return true;
-    }
+
 #if 0
     if (!string_has_prefix(subkey, MAGIC_ID "eXX/") &&
             !string_has_prefix(subkey, MAGIC_ID "e" KQT_FORMAT_VERSION "/"))
@@ -1041,9 +1046,8 @@ static bool parse_effect_level(Handle* handle,
     int dsp_index = -1;
     Effect_table* table = Module_get_effects(module);
     if (ins != NULL)
-    {
         table = Instrument_get_effects(ins);
-    }
+
     if ((dsp_index = string_extract_index(subkey, "dsp_", 2, "/")) >= 0)
     {
         subkey = strchr(subkey, '/');
@@ -1129,6 +1133,7 @@ static bool parse_effect_level(Handle* handle,
             }
         }
     }
+
     return true;
 }
 
@@ -1166,12 +1171,13 @@ static DSP* add_dsp(
 }
 
 
-static bool parse_dsp_level(Handle* handle,
-                            Effect* eff,
-                            const char* key,
-                            const char* subkey,
-                            Streader* sr,
-                            int dsp_index)
+static bool parse_dsp_level(
+        Handle* handle,
+        Effect* eff,
+        const char* key,
+        const char* subkey,
+        Streader* sr,
+        int dsp_index)
 {
     assert(handle != NULL);
     assert(eff != NULL);
@@ -1342,11 +1348,12 @@ static bool parse_dsp_level(Handle* handle,
 }
 
 
-static bool parse_pattern_level(Handle* handle,
-                                const char* key,
-                                const char* subkey,
-                                Streader* sr,
-                                int index)
+static bool parse_pattern_level(
+        Handle* handle,
+        const char* key,
+        const char* subkey,
+        Streader* sr,
+        int index)
 {
 //    fprintf(stderr, "pattern level: %s\n", key);
     assert(handle != NULL);
@@ -1355,9 +1362,7 @@ static bool parse_pattern_level(Handle* handle,
     assert(sr != NULL);
 
     if (index < 0 || index >= KQT_PATTERNS_MAX)
-    {
         return true;
-    }
 
     Module* module = Handle_get_module(handle);
 
@@ -1405,20 +1410,19 @@ static bool parse_pattern_level(Handle* handle,
         }
         return true;
     }
+
     char* second_element = strchr(subkey, '/');
     if (second_element == NULL)
-    {
         return true;
-    }
+
     int sub_index = 0;
     ++second_element;
     if ((sub_index = string_extract_index(subkey, "col_", 2, "/")) >= 0 &&
                 string_eq(second_element, "p_triggers.json"))
     {
         if (sub_index >= KQT_COLUMNS_MAX)
-        {
             return true;
-        }
+
         Pattern* pat = Pat_table_get(Module_get_pats(module), index);
         bool new_pattern = pat == NULL;
         if (new_pattern)
@@ -1440,9 +1444,7 @@ static bool parse_pattern_level(Handle* handle,
             set_error(handle, sr);
 
             if (new_pattern)
-            {
                 del_Pattern(pat);
-            }
 
             return false;
         }
@@ -1450,10 +1452,10 @@ static bool parse_pattern_level(Handle* handle,
         {
             Handle_set_error(handle, ERROR_MEMORY,
                     "Couldn't allocate memory");
+
             if (new_pattern)
-            {
                 del_Pattern(pat);
-            }
+
             return false;
         }
         if (new_pattern)
@@ -1507,6 +1509,7 @@ static bool parse_pattern_level(Handle* handle,
         }
         return true;
     }
+
     return true;
 }
 
@@ -1540,11 +1543,12 @@ static bool parse_pat_inst_level(
 }
 
 
-static bool parse_scale_level(Handle* handle,
-                              const char* key,
-                              const char* subkey,
-                              Streader* sr,
-                              int index)
+static bool parse_scale_level(
+        Handle* handle,
+        const char* key,
+        const char* subkey,
+        Streader* sr,
+        int index)
 {
 //    fprintf(stderr, "scale level: %s\n", key);
     assert(handle != NULL);
@@ -1553,9 +1557,7 @@ static bool parse_scale_level(Handle* handle,
     assert(sr != NULL);
 
     if (index < 0 || index >= KQT_SCALES_MAX)
-    {
         return true;
-    }
 
     Module* module = Handle_get_module(handle);
 
@@ -1567,18 +1569,21 @@ static bool parse_scale_level(Handle* handle,
             set_error(handle, sr);
             return false;
         }
+
         Module_set_scale(module, index, scale);
         return true;
     }
+
     return true;
 }
 
 
-static bool parse_subsong_level(Handle* handle,
-                                const char* key,
-                                const char* subkey,
-                                Streader* sr,
-                                int index)
+static bool parse_subsong_level(
+        Handle* handle,
+        const char* key,
+        const char* subkey,
+        Streader* sr,
+        int index)
 {
 //    fprintf(stderr, "subsong level: %s\n", key);
     assert(handle != NULL);
@@ -1587,9 +1592,7 @@ static bool parse_subsong_level(Handle* handle,
     assert(sr != NULL);
 
     if (index < 0 || index >= KQT_SONGS_MAX)
-    {
         return true;
-    }
 
     Module* module = Handle_get_module(handle);
 
@@ -1601,6 +1604,7 @@ static bool parse_subsong_level(Handle* handle,
             set_error(handle, sr);
             return false;
         }
+
         Song_table_set_existent(module->songs, index, existent);
     }
     else if (string_eq(subkey, "p_song.json"))
@@ -1611,6 +1615,7 @@ static bool parse_subsong_level(Handle* handle,
             set_error(handle, sr);
             return false;
         }
+
         Song_table* st = Module_get_songs(module);
         if (!Song_table_set(st, index, song))
         {
@@ -1658,6 +1663,7 @@ static bool parse_subsong_level(Handle* handle,
 
         module->order_lists[index] = ol;
     }
+
     return true;
 }
 

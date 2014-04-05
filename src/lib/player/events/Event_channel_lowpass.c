@@ -35,7 +35,6 @@ bool Event_channel_set_lowpass_process(
     assert(value->type == VALUE_TYPE_FLOAT);
 
     double cutoff = NAN;
-
     if (value->value.float_type > 86)
         cutoff = INFINITY;
     else
@@ -150,7 +149,7 @@ bool Event_channel_autowah_depth_process(
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
-    double actual_depth = value->value.float_type / 8;
+    const double actual_depth = value->value.float_type / 8;
     ch->autowah_depth = actual_depth;
 
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)

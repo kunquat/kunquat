@@ -69,7 +69,7 @@ Device_node* new_Device_node(
         Ins_table* insts,
         Effect_table* effects,
         DSP_table* dsps,
-        Device* master);
+        const Device* master);
 
 
 /**
@@ -175,7 +175,7 @@ char* Device_node_get_name(Device_node* node);
  *
  * \return   The Device.
  */
-Device* Device_node_get_device(Device_node* node);
+const Device* Device_node_get_device(const Device_node* node);
 
 
 /**
@@ -194,7 +194,7 @@ void Device_node_set_state(Device_node* node, Device_node_state state);
  *
  * \return   The state.
  */
-Device_node_state Device_node_get_state(Device_node* node);
+Device_node_state Device_node_get_state(const Device_node* node);
 
 
 /**
@@ -223,7 +223,7 @@ bool Device_node_connect(
  * \param node     The Device node -- must not be \c NULL.
  * \param device   The Device to be disconnected -- must not be \c NULL.
  */
-void Device_node_disconnect(Device_node* node, Device* device);
+void Device_node_disconnect(Device_node* node, const Device* device);
 
 
 /**
@@ -236,8 +236,8 @@ void Device_node_disconnect(Device_node* node, Device* device);
  */
 void Device_node_replace(
         Device_node* node,
-        Device* old_device,
-        Device* new_device);
+        const Device* old_device,
+        const Device* new_device);
 
 
 /**
@@ -302,7 +302,7 @@ bool Device_node_cycle_in_path(Device_node* node);
  * \param node   The Device node -- must not be \c NULL.
  * \param out    The output file -- must not be \c NULL.
  */
-void Device_node_print(Device_node* node, FILE* out);
+void Device_node_print(const Device_node* node, FILE* out);
 
 
 /**

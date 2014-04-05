@@ -43,9 +43,9 @@ struct Device
     bool (*set_audio_rate)(const struct Device*, Device_states*, int32_t);
     bool (*set_buffer_size)(const struct Device*, Device_states*, int32_t);
     void (*update_tempo)(const struct Device*, Device_states*, double);
-    void (*reset)(struct Device*, Device_states*);
+    void (*reset)(const struct Device*, Device_states*);
     void (*process)(
-            struct Device*,
+            const struct Device*,
             Device_states*,
             uint32_t,
             uint32_t,
@@ -189,7 +189,7 @@ void Device_register_update_tempo(
  * \param device   The Device -- must not be \c NULL.
  * \param reset    The reset function -- must not be \c NULL.
  */
-void Device_set_reset(Device* device, void (*reset)(Device*, Device_states*));
+void Device_set_reset(Device* device, void (*reset)(const Device*, Device_states*));
 
 
 /**
@@ -201,7 +201,7 @@ void Device_set_reset(Device* device, void (*reset)(Device*, Device_states*));
 void Device_set_process(
         Device* device,
         void (*process)(
-            Device*,
+            const Device*,
             Device_states*,
             uint32_t,
             uint32_t,
@@ -299,7 +299,7 @@ bool Device_set_buffer_size(
  * \param device    The Device -- must not be \c NULL.
  * \param dstates   The Device states -- must not be \c NULL.
  */
-void Device_reset(Device* device, Device_states* dstates);
+void Device_reset(const Device* device, Device_states* dstates);
 
 
 /**
@@ -318,7 +318,7 @@ bool Device_sync(Device* device);
  * \param device    The Device -- must not be \c NULL.
  * \param dstates   The Device states -- must not be \c NULL.
  */
-bool Device_sync_states(Device* device, Device_states* dstates);
+bool Device_sync_states(const Device* device, Device_states* dstates);
 
 
 /**
@@ -358,7 +358,7 @@ bool Device_set_state_key(
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Device_update_state_key(
-        Device* device,
+        const Device* device,
         Device_states* dstates,
         const char* key);
 
@@ -377,7 +377,7 @@ bool Device_update_state_key(
  * \param tempo    The tempo -- must be > \c 0 and finite.
  */
 void Device_process(
-        Device* device,
+        const Device* device,
         Device_states* states,
         uint32_t start,
         uint32_t until,
@@ -391,7 +391,7 @@ void Device_process(
  * \param device   The Device -- must not be \c NULL.
  * \param out      The output file -- must not be \c NULL.
  */
-void Device_print(Device* device, FILE* out);
+void Device_print(const Device* device, FILE* out);
 
 
 /**

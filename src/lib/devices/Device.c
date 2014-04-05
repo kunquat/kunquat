@@ -24,7 +24,7 @@
 #include <string/common.h>
 
 
-void Device_reset_default(Device* device, Device_states* dstates)
+void Device_reset_default(const Device* device, Device_states* dstates)
 {
     assert(device != NULL);
     assert(dstates != NULL);
@@ -248,7 +248,7 @@ void Device_register_update_tempo(
 }
 
 
-void Device_set_reset(Device* device, void (*reset)(Device*, Device_states*))
+void Device_set_reset(Device* device, void (*reset)(const Device*, Device_states*))
 {
     assert(device != NULL);
     assert(reset != NULL);
@@ -262,7 +262,7 @@ void Device_set_reset(Device* device, void (*reset)(Device*, Device_states*))
 void Device_set_process(
         Device* device,
         void (*process)(
-            Device*,
+            const Device*,
             Device_states*,
             uint32_t,
             uint32_t,
@@ -271,7 +271,9 @@ void Device_set_process(
 {
     assert(device != NULL);
     assert(process != NULL);
+
     device->process = process;
+
     return;
 }
 
@@ -362,7 +364,7 @@ void Device_update_tempo(
 }
 
 
-void Device_reset(Device* device, Device_states* dstates)
+void Device_reset(const Device* device, Device_states* dstates)
 {
     assert(device != NULL);
 
@@ -397,7 +399,7 @@ bool Device_sync(Device* device)
 }
 
 
-bool Device_sync_states(Device* device, Device_states* dstates)
+bool Device_sync_states(const Device* device, Device_states* dstates)
 {
     assert(device != NULL);
     assert(dstates != NULL);
@@ -470,7 +472,7 @@ bool Device_set_state_key(
 
 
 void Device_process(
-        Device* device,
+        const Device* device,
         Device_states* states,
         uint32_t start,
         uint32_t until,
@@ -490,7 +492,7 @@ void Device_process(
 }
 
 
-void Device_print(Device* device, FILE* out)
+void Device_print(const Device* device, FILE* out)
 {
     assert(device != NULL);
     assert(out != NULL);

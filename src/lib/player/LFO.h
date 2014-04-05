@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -107,7 +107,7 @@ void LFO_set_speed(LFO* lfo, double speed);
  * \param lfo     The LFO -- must not be \c NULL.
  * \param delay   The delay -- must not be \c NULL or negative.
  */
-void LFO_set_speed_delay(LFO* lfo, Tstamp* delay);
+void LFO_set_speed_delay(LFO* lfo, const Tstamp* delay);
 
 
 /**
@@ -128,7 +128,7 @@ void LFO_set_depth(LFO* lfo, double depth);
  * \param lfo     The LFO -- must not be \c NULL.
  * \param delay   The delay -- must not be \c NULL or negative.
  */
-void LFO_set_depth_delay(LFO* lfo, Tstamp* delay);
+void LFO_set_depth_delay(LFO* lfo, const Tstamp* delay);
 
 
 /**
@@ -187,7 +187,7 @@ double LFO_skip(LFO* lfo, uint64_t steps);
  *
  * \param lfo   The LFO -- must not be \c NULL.
  */
-bool LFO_active(LFO* lfo);
+bool LFO_active(const LFO* lfo);
 
 
 #endif // K_LFO_H

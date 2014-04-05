@@ -38,8 +38,7 @@ typedef struct Input_map Input_map;
  *
  * \return   The new Input map if successful, or \c NULL if failed.
  */
-Input_map* new_Input_map(
-        Streader* sr, int32_t num_inputs, int32_t num_outputs);
+Input_map* new_Input_map(Streader* sr, int32_t num_inputs, int32_t num_outputs);
 
 
 /**

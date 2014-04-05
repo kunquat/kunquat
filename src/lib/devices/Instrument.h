@@ -46,7 +46,7 @@ typedef struct Instrument Instrument;
  * \return   The new Instrument if successful, or \c NULL if memory allocation
  *           failed.
  */
-Instrument* new_Instrument();
+Instrument* new_Instrument(void);
 
 
 /**

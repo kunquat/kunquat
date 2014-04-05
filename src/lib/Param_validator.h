@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2014
  *
  * This file is part of Kunquat.
  *
@@ -19,69 +19,69 @@
 #include <stdbool.h>
 
 
-typedef bool (*Param_validator)(char* param);
+typedef bool (*Param_validator)(const char* param);
 
 
-bool v_any_bool(char* param);
-bool v_any_int(char* param);
-bool v_any_float(char* param);
-bool v_any_str(char* param);
-bool v_any_ts(char* param);
+bool v_any_bool(const char* param);
+bool v_any_int(const char* param);
+bool v_any_float(const char* param);
+bool v_any_str(const char* param);
+bool v_any_ts(const char* param);
 
-bool v_arp_index(char* param);
-bool v_arp_speed(char* param);
+bool v_arp_index(const char* param);
+bool v_arp_speed(const char* param);
 
-bool v_cond(char* param);
+bool v_cond(const char* param);
 
-bool v_counter(char* param);
+bool v_counter(const char* param);
 
-bool v_dsp(char* param);
+bool v_dsp(const char* param);
 
-bool v_effect(char* param);
+bool v_effect(const char* param);
 
-bool v_finite_float(char* param);
+bool v_finite_float(const char* param);
 
-bool v_force(char* param);
+bool v_force(const char* param);
 
-bool v_gen(char* param);
+bool v_gen(const char* param);
 
-bool v_hit(char* param);
+bool v_hit(const char* param);
 
-bool v_ins(char* param);
+bool v_ins(const char* param);
 
-bool v_key(char* param);
+bool v_key(const char* param);
 
-bool v_lowpass(char* param);
+bool v_lowpass(const char* param);
 
-bool v_nonneg_float(char* param);
-bool v_nonneg_ts(char* param);
+bool v_nonneg_float(const char* param);
+bool v_nonneg_ts(const char* param);
 
-bool v_note_entry(char* param);
+bool v_note_entry(const char* param);
 
-bool v_panning(char* param);
+bool v_panning(const char* param);
 
-bool v_pattern(char* param);
-bool v_piref(char* param);
+bool v_pattern(const char* param);
+bool v_piref(const char* param);
 
-bool v_pitch(char* param);
+bool v_pitch(const char* param);
 
-bool v_resonance(char* param);
+bool v_resonance(const char* param);
 
-bool v_scale(char* param);
+bool v_scale(const char* param);
 
-bool v_song(char* param);
+bool v_song(const char* param);
 
-bool v_system(char* param);
+bool v_system(const char* param);
 
-bool v_sustain(char* param);
+bool v_sustain(const char* param);
 
-bool v_tempo(char* param);
+bool v_tempo(const char* param);
 
-bool v_track(char* param);
+bool v_track(const char* param);
 
-bool v_tremolo_depth(char* param);
+bool v_tremolo_depth(const char* param);
 
-bool v_volume(char* param);
+bool v_volume(const char* param);
 
 
 #endif // K_PARAM_VALIDATOR_H

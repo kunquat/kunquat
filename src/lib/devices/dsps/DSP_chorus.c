@@ -202,7 +202,7 @@ static bool DSP_chorus_set_audio_rate(
         int32_t audio_rate);
 
 static void DSP_chorus_process(
-        Device* device,
+        const Device* device,
         Device_states* states,
         uint32_t start,
         uint32_t until,
@@ -619,7 +619,7 @@ static void check_params(Chorus_state* cstate, double tempo)
 
 
 static void DSP_chorus_process(
-        Device* device,
+        const Device* device,
         Device_states* states,
         uint32_t start,
         uint32_t until,

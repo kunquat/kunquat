@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2014
  *
  * This file is part of Kunquat.
  *
@@ -65,10 +65,11 @@ Active_names* new_Active_names(void);
  * \return   \c true if successful, or \c false if \a name contains too
  *           many characters to fit the type.
  */
-bool Active_names_set(Active_names* names,
-                      Active_cat cat,
-                      Active_type type,
-                      char* name);
+bool Active_names_set(
+        Active_names* names,
+        Active_cat cat,
+        Active_type type,
+        const char* name);
 
 
 /**
@@ -80,7 +81,8 @@ bool Active_names_set(Active_names* names,
  *
  * \return   The active name. This is never \c NULL.
  */
-char* Active_names_get(Active_names* names, Active_cat cat, Active_type type);
+const char* Active_names_get(
+        const Active_names* names, Active_cat cat, Active_type type);
 
 
 /**

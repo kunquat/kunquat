@@ -141,7 +141,7 @@ static bool DSP_conv_set_audio_rate(
         int32_t audio_rate);
 
 static void DSP_conv_process(
-        Device* device,
+        const Device* device,
         Device_states* states,
         uint32_t start,
         uint32_t until,
@@ -510,7 +510,7 @@ static void DSP_conv_update_ir(DSP_conv* conv)
 
 
 static void DSP_conv_process(
-        Device* device,
+        const Device* device,
         Device_states* dstates,
         uint32_t start,
         uint32_t until,

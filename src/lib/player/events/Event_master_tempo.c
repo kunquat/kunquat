@@ -47,7 +47,7 @@ static void set_tempo_slide_update(Master_params* master_params)
             (double)Tstamp_get_beats(&master_params->tempo_slide_length) *
             KQT_TSTAMP_BEAT +
             Tstamp_get_rem(&master_params->tempo_slide_length);
-    double slices = rems_total / KQT_TEMPO_SLIDE_SLICE_LEN;
+    const double slices = rems_total / KQT_TEMPO_SLIDE_SLICE_LEN;
     master_params->tempo_slide_update =
         (master_params->tempo_slide_target - master_params->tempo) / slices;
 

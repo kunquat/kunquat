@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2014
  *
  * This file is part of Kunquat.
  *
@@ -55,8 +55,7 @@ bool Event_cache_add_event(Event_cache* cache, char* event_name);
  * \param event_name   The name of the Event -- must not be \c NULL.
  * \param value        The Event parameter -- must not be \c NULL.
  */
-void Event_cache_update(Event_cache* cache, const char* event_name,
-                        Value* value);
+void Event_cache_update(Event_cache* cache, const char* event_name, Value* value);
 
 
 /**
@@ -68,7 +67,7 @@ void Event_cache_update(Event_cache* cache, const char* event_name,
  *
  * \return   The value associated with \a event_name. This is never \c NULL.
  */
-Value* Event_cache_get_value(Event_cache* cache, char* event_name);
+const Value* Event_cache_get_value(const Event_cache* cache, const char* event_name);
 
 
 /**

@@ -52,7 +52,7 @@ static Device_state* Instrument_create_state(
         int32_t audio_rate,
         int32_t audio_buffer_size);
 
-static void Instrument_reset(Device* device, Device_states* dstates);
+static void Instrument_reset(const Device* device, Device_states* dstates);
 
 static bool Instrument_set_audio_rate(
         const Device* device,
@@ -72,7 +72,7 @@ static void Instrument_update_tempo(
 //static bool Instrument_sync(Device* device, Device_states* dstates);
 
 
-Instrument* new_Instrument()
+Instrument* new_Instrument(void)
 {
     Instrument* ins = memory_alloc_item(Instrument);
     if (ins == NULL)
@@ -324,7 +324,7 @@ static Device_state* Instrument_create_state(
 }
 
 
-static void Instrument_reset(Device* device, Device_states* dstates)
+static void Instrument_reset(const Device* device, Device_states* dstates)
 {
     assert(device != NULL);
     assert(dstates != NULL);

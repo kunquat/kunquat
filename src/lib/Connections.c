@@ -138,7 +138,7 @@ static bool read_connection(Streader* sr, int32_t index, void* userdata)
 
     if (AAtree_get_exact(rcdata->graph->nodes, src_name) == NULL)
     {
-        Device* actual_master = rcdata->master;
+        const Device* actual_master = rcdata->master;
         if ((rcdata->level & CONNECTION_LEVEL_EFFECT) &&
                 string_eq(src_name, "Iin"))
             actual_master = Effect_get_input_interface((Effect*)rcdata->master);
@@ -226,8 +226,9 @@ Connections* new_Connections_from_string(
 
     graph->nodes = NULL;
     graph->iter = NULL;
-    graph->nodes = new_AAtree((int (*)(const void*, const void*))Device_node_cmp,
-                                 (void (*)(void*))del_Device_node);
+    graph->nodes = new_AAtree(
+            (int (*)(const void*, const void*))Device_node_cmp,
+            (void (*)(void*))del_Device_node);
     mem_error_if(graph->nodes == NULL, graph, NULL, sr);
     graph->iter = new_AAiter(graph->nodes);
     mem_error_if(graph->iter == NULL, graph, NULL, sr);
@@ -235,7 +236,7 @@ Connections* new_Connections_from_string(
     Device_node* master_node = NULL;
     if ((level & CONNECTION_LEVEL_EFFECT))
     {
-        Device* iface = Effect_get_output_interface((Effect*)master);
+        const Device* iface = Effect_get_output_interface((Effect*)master);
         master_node = new_Device_node("", insts, effects, dsps, iface);
     }
     else

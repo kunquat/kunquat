@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -37,10 +37,11 @@
  * \return   \c true if the key is valid or not player-specific, otherwise
  *           \c false.
  */
-bool parse_data(Handle* handle,
-                const char* key,
-                const void* data,
-                long length);
+bool parse_data(
+        Handle* handle,
+        const char* key,
+        const void* data,
+        long length);
 
 
 #endif // K_PARSE_MANAGER_H

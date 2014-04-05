@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -100,10 +100,7 @@ uint16_t Voice_pool_get_size(Voice_pool* pool);
  * \return   The Voice reserved for use, or \c NULL if \a voice is no longer
  *           under the control of the caller or the pool size is \c 0.
  */
-Voice* Voice_pool_get_voice(
-        Voice_pool* pool,
-        Voice* voice,
-        uint64_t id);
+Voice* Voice_pool_get_voice(Voice_pool* pool, Voice* voice, uint64_t id);
 
 
 /**

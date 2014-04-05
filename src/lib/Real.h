@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -89,7 +89,7 @@ Real* Real_init_as_double(Real* real, double val);
  *
  * \return   \c true if and only if the Real is stored as a fraction.
  */
-bool Real_is_frac(Real* real);
+bool Real_is_frac(const Real* real);
 
 
 /**
@@ -101,7 +101,7 @@ bool Real_is_frac(Real* real);
  *
  * \return   The numerator.
  */
-int64_t Real_get_numerator(Real* real);
+int64_t Real_get_numerator(const Real* real);
 
 
 /**
@@ -112,7 +112,7 @@ int64_t Real_get_numerator(Real* real);
  *
  * \return   The denominator.
  */
-int64_t Real_get_denominator(Real* real);
+int64_t Real_get_denominator(const Real* real);
 
 
 /**
@@ -122,7 +122,7 @@ int64_t Real_get_denominator(Real* real);
  *
  * \return   The double value.
  */
-double Real_get_double(Real* real);
+double Real_get_double(const Real* real);
 
 
 /**
@@ -133,7 +133,7 @@ double Real_get_double(Real* real);
  *
  * \return   The parameter \a dest.
  */
-Real* Real_copy(Real* dest, Real* src);
+Real* Real_copy(Real* dest, const Real* src);
 
 
 /**
@@ -149,7 +149,7 @@ Real* Real_copy(Real* dest, Real* src);
  *
  * \return   The parameter \a ret.
  */
-Real* Real_mul(Real* ret, Real* real1, Real* real2);
+Real* Real_mul(Real* ret, const Real* real1, const Real* real2);
 
 
 /**
@@ -168,7 +168,7 @@ Real* Real_mul(Real* ret, Real* real1, Real* real2);
  *
  * \return   The parameter \a ret.
  */
-Real* Real_div(Real* ret, Real* dividend, Real* divisor);
+Real* Real_div(Real* ret, const Real* dividend, const Real* divisor);
 
 
 /**
@@ -179,7 +179,7 @@ Real* Real_div(Real* ret, Real* dividend, Real* divisor);
  *
  * \return   The product as a double value.
  */
-double Real_mul_float(Real* real, double d);
+double Real_mul_float(const Real* real, double d);
 
 
 /**
@@ -195,7 +195,7 @@ double Real_mul_float(Real* real, double d);
  *           respectively, to be less than, equal to, or greater than
  *           \a real2.
  */
-int Real_cmp(Real* real1, Real* real2);
+int Real_cmp(const Real* real1, const Real* real2);
 
 
 #endif // K_REAL_H

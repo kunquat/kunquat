@@ -34,7 +34,7 @@ bool Event_channel_set_force_process(
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
-    double force = exp2(value->value.float_type / 6);
+    const double force = exp2(value->value.float_type / 6);
 
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
@@ -145,7 +145,7 @@ bool Event_channel_tremolo_depth_process(
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
-    double actual_depth = value->value.float_type / 6;
+    const double actual_depth = value->value.float_type / 6;
     ch->tremolo_depth = actual_depth;
 
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)

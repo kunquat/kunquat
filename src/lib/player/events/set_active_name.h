@@ -34,10 +34,11 @@
  *
  * \return   \c true if and only if \a fields is valid.
  */
-bool set_active_name(General_state* gstate,
-                     Active_cat cat,
-                     Active_type type,
-                     Value* value);
+bool set_active_name(
+        General_state* gstate,
+        Active_cat cat,
+        Active_type type,
+        Value* value);
 
 
 #endif // K_SET_ACTIVE_NAME_H

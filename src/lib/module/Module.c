@@ -34,7 +34,7 @@
  *
  * \param device   The Module Device -- must not be \c NULL.
  */
-static void Module_reset(Device* device, Device_states* dstates);
+static void Module_reset(const Device* device, Device_states* dstates);
 
 
 /**
@@ -64,7 +64,7 @@ static void Module_update_tempo(
         double tempo);
 
 
-Module* new_Module()
+Module* new_Module(void)
 {
     Module* module = memory_alloc_item(Module);
     if (module == NULL)
@@ -536,7 +536,7 @@ void Module_remove_scale(Module* module, int index)
 }
 
 
-static void Module_reset(Device* device, Device_states* dstates)
+static void Module_reset(const Device* device, Device_states* dstates)
 {
     assert(device != NULL);
     assert(dstates != NULL);

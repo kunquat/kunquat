@@ -41,7 +41,7 @@ static Real* Real_normalise(Real* real);
      *
      * \return   \c true if and only if the Real object is valid.
      */
-    static bool Real_validate_(Real* real);
+    static bool Real_validate_(const Real* real);
     #define Real_validate(real)   (assert(Real_validate_(real)))
 #else
     #define Real_validate(real)   ((void)0)
@@ -93,14 +93,14 @@ Real* Real_init_as_double(Real* real, double val)
 }
 
 
-bool Real_is_frac(Real* real)
+bool Real_is_frac(const Real* real)
 {
     Real_validate(real);
     return real->is_frac;
 }
 
 
-int64_t Real_get_numerator(Real* real)
+int64_t Real_get_numerator(const Real* real)
 {
     Real_validate(real);
 
@@ -111,7 +111,7 @@ int64_t Real_get_numerator(Real* real)
 }
 
 
-int64_t Real_get_denominator(Real* real)
+int64_t Real_get_denominator(const Real* real)
 {
     Real_validate(real);
 
@@ -122,7 +122,7 @@ int64_t Real_get_denominator(Real* real)
 }
 
 
-double Real_get_double(Real* real)
+double Real_get_double(const Real* real)
 {
     Real_validate(real);
 
@@ -134,7 +134,7 @@ double Real_get_double(Real* real)
 }
 
 
-Real* Real_copy(Real* dest, Real* src)
+Real* Real_copy(Real* dest, const Real* src)
 {
     assert(dest != NULL);
     Real_validate(src);
@@ -158,7 +158,7 @@ Real* Real_copy(Real* dest, Real* src)
 }
 
 
-Real* Real_mul(Real* ret, Real* real1, Real* real2)
+Real* Real_mul(Real* ret, const Real* real1, const Real* real2)
 {
     assert(ret != NULL);
     Real_validate(real1);
@@ -186,7 +186,7 @@ Real* Real_mul(Real* ret, Real* real1, Real* real2)
 }
 
 
-Real* Real_div(Real* ret, Real* dividend, Real* divisor)
+Real* Real_div(Real* ret, const Real* dividend, const Real* divisor)
 {
     assert(ret != NULL);
     Real_validate(dividend);
@@ -223,14 +223,14 @@ Real* Real_div(Real* ret, Real* dividend, Real* divisor)
 }
 
 
-double Real_mul_float(Real* real, double d)
+double Real_mul_float(const Real* real, double d)
 {
     Real_validate(real);
     return Real_get_double(real) * d;
 }
 
 
-int Real_cmp(Real* real1, Real* real2)
+int Real_cmp(const Real* real1, const Real* real2)
 {
     Real_validate(real1);
     Real_validate(real2);
@@ -338,7 +338,7 @@ Real* Real_normalise(Real* real)
 
 
 #ifndef NDEBUG
-bool Real_validate_(Real* real)
+bool Real_validate_(const Real* real)
 {
     if (real == NULL)
         return false;
