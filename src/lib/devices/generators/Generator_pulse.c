@@ -147,7 +147,7 @@ static void Generator_pulse_init_vstate(
     assert(vstate != NULL);
 
     Voice_state_pulse* pulse_vstate = (Voice_state_pulse*)vstate;
-    const Pulse_state* pulse_state = (Pulse_state*)gen_state;
+    const Pulse_state* pulse_state = (const Pulse_state*)gen_state;
     pulse_vstate->phase = 0;
     pulse_vstate->pulse_width = pulse_state->pulse_width;
 

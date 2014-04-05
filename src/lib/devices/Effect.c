@@ -155,7 +155,14 @@ const DSP* Effect_get_dsp(const Effect* eff, int index)
 }
 
 
-DSP_table* Effect_get_dsps(Effect* eff)
+const DSP_table* Effect_get_dsps(const Effect* eff)
+{
+    assert(eff != NULL);
+    return eff->dsps;
+}
+
+
+DSP_table* Effect_get_dsps_mut(Effect* eff)
 {
     assert(eff != NULL);
     return eff->dsps;
@@ -258,7 +265,7 @@ static bool Effect_set_audio_rate(
     {
         const DSP* dsp = DSP_table_get_dsp(eff->dsps, i);
         if (dsp != NULL &&
-                !Device_set_audio_rate((Device*)dsp, dstates, audio_rate))
+                !Device_set_audio_rate((const Device*)dsp, dstates, audio_rate))
             return false;
     }
 
@@ -307,7 +314,7 @@ static bool Effect_set_buffer_size(
     {
         const DSP* dsp = DSP_table_get_dsp(eff->dsps, i);
         if (dsp != NULL &&
-                !Device_set_buffer_size((Device*)dsp, dstates, size))
+                !Device_set_buffer_size((const Device*)dsp, dstates, size))
             return false;
     }
 
@@ -380,7 +387,7 @@ static void Effect_process(
     if (eff_state->bypass)
     {
         Device_state* ds = Device_states_get_state(
-                states, Device_get_id((Device*)device));
+                states, Device_get_id((const Device*)device));
 
         mix_interface_connection(ds, ds, start, until);
     }
@@ -395,7 +402,7 @@ static void Effect_process(
 
         // Fill input interface buffers
         Device_state* ds = Device_states_get_state(
-                states, Device_get_id((Device*)device));
+                states, Device_get_id((const Device*)device));
         Device_state* in_iface_ds = Device_states_get_state(
                 states, Device_get_id(Effect_get_input_interface(eff)));
         mix_interface_connection(in_iface_ds, ds, start, until);

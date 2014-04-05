@@ -330,7 +330,7 @@ static bool Event_handler_handle(
         if (ins == NULL)
             return false;
 
-        Device* device = (Device*)Instrument_get_gen(
+        const Device* device = (const Device*)Instrument_get_gen(
                 ins, eh->channels[index]->generator);
         if (device == NULL)
             return false;
@@ -366,12 +366,12 @@ static bool Event_handler_handle(
         if (effects == NULL)
             return false;
 
-        Effect* eff = Effect_table_get(effects, eh->channels[index]->effect);
+        const Effect* eff = Effect_table_get(effects, eh->channels[index]->effect);
         if (eff == NULL)
             return false;
         Effect_state* eff_state = (Effect_state*)Device_states_get_state(
                 eh->device_states,
-                Device_get_id((Device*)eff));
+                Device_get_id((const Device*)eff));
 
         return eh->effect_process[type](
                 eff,
@@ -399,12 +399,12 @@ static bool Event_handler_handle(
         if (effects == NULL)
             return false;
 
-        Effect* eff = Effect_table_get(effects, eh->channels[index]->effect);
+        const Effect* eff = Effect_table_get(effects, eh->channels[index]->effect);
         if (eff == NULL)
             return false;
 
-        DSP_table* dsps = Effect_get_dsps(eff);
-        Device* device = (Device*)DSP_table_get_dsp(
+        const DSP_table* dsps = Effect_get_dsps(eff);
+        const Device* device = (const Device*)DSP_table_get_dsp(
                 dsps, eh->channels[index]->dsp);
         if (device == NULL)
             return false;

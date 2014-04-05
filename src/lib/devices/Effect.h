@@ -67,7 +67,17 @@ const DSP* Effect_get_dsp(const Effect* eff, int index);
  *
  * \return   The DSP table.
  */
-DSP_table* Effect_get_dsps(Effect* eff);
+const DSP_table* Effect_get_dsps(const Effect* eff);
+
+
+/**
+ * Gets the mutable DSP table of the Effect.
+ *
+ * \param eff   The Effect -- must not be \c NULL.
+ *
+ * \return   The DSP table.
+ */
+DSP_table* Effect_get_dsps_mut(Effect* eff);
 
 
 /**

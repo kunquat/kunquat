@@ -61,7 +61,17 @@ bool Effect_table_set(Effect_table* table, int index, Effect* eff)
 }
 
 
-Effect* Effect_table_get(Effect_table* table, int index)
+const Effect* Effect_table_get(const Effect_table* table, int index)
+{
+    assert(table != NULL);
+    assert(index >= 0);
+    assert(index < table->size);
+
+    return Etable_get(table->effects, index);
+}
+
+
+Effect* Effect_table_get_mut(Effect_table* table, int index)
 {
     assert(table != NULL);
     assert(index >= 0);

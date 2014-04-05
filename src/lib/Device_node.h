@@ -68,7 +68,7 @@ Device_node* new_Device_node(
         const char* name,
         Ins_table* insts,
         Effect_table* effects,
-        DSP_table* dsps,
+        const DSP_table* dsps,
         const Device* master);
 
 

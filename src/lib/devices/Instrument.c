@@ -248,7 +248,7 @@ Instrument_params* Instrument_get_params(Instrument* ins)
 }
 
 
-Generator* Instrument_get_gen(Instrument* ins, int index)
+const Generator* Instrument_get_gen(const Instrument* ins, int index)
 {
     assert(ins != NULL);
     assert(index >= 0);
@@ -265,7 +265,7 @@ Gen_table* Instrument_get_gens(Instrument* ins)
 }
 
 
-Effect* Instrument_get_effect(Instrument* ins, int index)
+const Effect* Instrument_get_effect(const Instrument* ins, int index)
 {
     assert(ins != NULL);
     assert(ins->effects != NULL);
@@ -329,22 +329,22 @@ static void Instrument_reset(const Device* device, Device_states* dstates)
     assert(device != NULL);
     assert(dstates != NULL);
 
-    Instrument* ins = (Instrument*)device;
+    const Instrument* ins = (const Instrument*)device;
 
     // Reset generators
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
-        Generator* gen = Gen_table_get_gen(ins->gens, i);
+        const Generator* gen = Gen_table_get_gen(ins->gens, i);
         if (gen != NULL)
-            Device_reset((Device*)gen, dstates);
+            Device_reset((const Device*)gen, dstates);
     }
 
     // Reset effects
     for (int i = 0; i < KQT_INST_EFFECTS_MAX; ++i)
     {
-        Effect* eff = Effect_table_get(ins->effects, i);
+        const Effect* eff = Effect_table_get(ins->effects, i);
         if (eff != NULL)
-            Device_reset((Device*)eff, dstates);
+            Device_reset((const Device*)eff, dstates);
     }
 
     // Reset instrument state
@@ -366,21 +366,21 @@ static bool Instrument_set_audio_rate(
     assert(dstates != NULL);
     assert(audio_rate > 0);
 
-    Instrument* ins = (Instrument*)device;
+    const Instrument* ins = (const Instrument*)device;
 
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
-        Generator* gen = Gen_table_get_gen(ins->gens, i);
+        const Generator* gen = Gen_table_get_gen(ins->gens, i);
         if (gen != NULL &&
-                !Device_set_audio_rate((Device*)gen, dstates, audio_rate))
+                !Device_set_audio_rate((const Device*)gen, dstates, audio_rate))
             return false;
     }
 
     for (int i = 0; i < KQT_INST_EFFECTS_MAX; ++i)
     {
-        Effect* eff = Effect_table_get(ins->effects, i);
+        const Effect* eff = Effect_table_get(ins->effects, i);
         if (eff != NULL &&
-                !Device_set_audio_rate((Device*)eff, dstates, audio_rate))
+                !Device_set_audio_rate((const Device*)eff, dstates, audio_rate))
             return false;
     }
 
@@ -402,14 +402,14 @@ static void Instrument_update_tempo(
 
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
-        Generator* gen = Gen_table_get_gen(ins->gens, i);
+        const Generator* gen = Gen_table_get_gen(ins->gens, i);
         if (gen != NULL)
             Device_update_tempo((const Device*)gen, dstates, tempo);
     }
 
     for (int i = 0; i < KQT_INST_EFFECTS_MAX; ++i)
     {
-        Effect* eff = Effect_table_get(ins->effects, i);
+        const Effect* eff = Effect_table_get(ins->effects, i);
         if (eff != NULL)
             Device_update_tempo((const Device*)eff, dstates, tempo);
     }
@@ -432,17 +432,17 @@ static bool Instrument_set_buffer_size(
 
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
-        Generator* gen = Gen_table_get_gen(ins->gens, i);
+        const Generator* gen = Gen_table_get_gen(ins->gens, i);
         if (gen != NULL &&
-                !Device_set_buffer_size((Device*)gen, dstates, size))
+                !Device_set_buffer_size((const Device*)gen, dstates, size))
             return false;
     }
 
     for (int i = 0; i < KQT_INST_EFFECTS_MAX; ++i)
     {
-        Effect* eff = Effect_table_get(ins->effects, i);
+        const Effect* eff = Effect_table_get(ins->effects, i);
         if (eff != NULL &&
-                !Device_set_buffer_size((Device*)eff, dstates, size))
+                !Device_set_buffer_size((const Device*)eff, dstates, size))
             return false;
     }
 

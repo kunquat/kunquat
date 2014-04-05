@@ -91,7 +91,7 @@ Instrument_params* Instrument_get_params(Instrument* ins);
  *
  * \return   The Generator if found, otherwise \c NULL.
  */
-Generator* Instrument_get_gen(Instrument* ins, int index);
+const Generator* Instrument_get_gen(const Instrument* ins, int index);
 
 
 /**
@@ -127,7 +127,7 @@ Gen_table* Instrument_get_gens(Instrument* ins);
  *
  * \return   The Effect if one exists, otherwise \c NULL.
  */
-Effect* Instrument_get_effect(Instrument* ins, int index);
+const Effect* Instrument_get_effect(const Instrument* ins, int index);
 
 
 /**

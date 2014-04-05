@@ -43,7 +43,7 @@ bool Event_effect_bypass_on_process(
         {
             DSP_state* dsp_state = (DSP_state*)Device_states_get_state(
                     dstates,
-                    Device_get_id((Device*)dsp));
+                    Device_get_id((const Device*)dsp));
             DSP_clear_history(dsp, dsp_state);
         }
     }

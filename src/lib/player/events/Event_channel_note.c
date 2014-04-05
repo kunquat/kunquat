@@ -68,7 +68,7 @@ bool Event_channel_note_on_process(
 
         const Gen_state* gen_state = (Gen_state*)Device_states_get_state(
                 dstates,
-                Device_get_id((Device*)gen));
+                Device_get_id((const Device*)gen));
 
         reserve_voice(ch, ins, gen_state, i);
 
@@ -147,7 +147,7 @@ bool Event_channel_hit_process(
 
         const Gen_state* gen_state = (Gen_state*)Device_states_get_state(
                 dstates,
-                Device_get_id((Device*)gen));
+                Device_get_id((const Device*)gen));
 
         reserve_voice(ch, ins, gen_state, i);
 

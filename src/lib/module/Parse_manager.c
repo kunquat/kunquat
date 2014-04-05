@@ -227,12 +227,11 @@ bool parse_data(
     }
     else if ((index = string_extract_index(key, "eff_", 2, "/")) >= 0)
     {
-        Effect* eff = Effect_table_get(Module_get_effects(module), index);
+        const Effect* eff = Effect_table_get(Module_get_effects(module), index);
         bool changed = eff != NULL;
         success = parse_effect_level(handle, NULL, key, second_element,
                                      sr, index);
-        changed ^= Effect_table_get(Module_get_effects(module),
-                                                     index) != NULL;
+        changed ^= Effect_table_get(Module_get_effects(module), index) != NULL;
         Connections* graph = module->connections;
         if (changed && graph != NULL)
         {
@@ -533,17 +532,17 @@ static bool parse_instrument_level(
         assert(subkey != NULL);
         ++subkey;
         Instrument* ins = Ins_table_get(Module_get_insts(module), index);
-        Generator* gen = ins != NULL ? Instrument_get_gen(ins, gen_index)
-                                     : NULL;
-        bool changed = ins != NULL && gen != NULL &&
-            Device_has_complete_type((Device*)gen);
+        const Generator* gen = (ins != NULL)
+            ? Instrument_get_gen(ins, gen_index) : NULL;
+        bool changed = (ins != NULL) && (gen != NULL) &&
+            Device_has_complete_type((const Device*)gen);
         bool success = parse_generator_level(handle, key, subkey,
                                              sr,
                                              index, gen_index);
         ins = Ins_table_get(Module_get_insts(module), index);
         gen = ins != NULL ? Instrument_get_gen(ins, gen_index) : NULL;
         changed ^= ins != NULL && gen != NULL &&
-            Device_has_complete_type((Device*)gen);
+            Device_has_complete_type((const Device*)gen);
         Connections* graph = module->connections;
         if (changed && graph != NULL)
         {
@@ -719,7 +718,7 @@ static Generator* add_generator(
         "Couldn't allocate memory for a new generator";
 
     // Return existing generator
-    Generator* gen = Gen_table_get_gen(gen_table, gen_index);
+    Generator* gen = Gen_table_get_gen_mut(gen_table, gen_index);
     if (gen != NULL)
         return gen;
 
@@ -789,7 +788,7 @@ static bool parse_generator_level(
     {
         if (!Streader_has_data(sr))
         {
-            Generator* gen = Gen_table_get_gen(table, gen_index);
+            const Generator* gen = Gen_table_get_gen(table, gen_index);
             if (gen != NULL)
             {
                 //Connections_disconnect(module->connections,
@@ -970,7 +969,7 @@ static Effect* add_effect(Handle* handle, int index, Effect_table* table)
         "Couldn't allocate memory for a new effect";
 
     // Return existing effect
-    Effect* eff = Effect_table_get(table, index);
+    Effect* eff = Effect_table_get_mut(table, index);
     if (eff != NULL)
         return eff;
 
@@ -1053,18 +1052,17 @@ static bool parse_effect_level(
         subkey = strchr(subkey, '/');
         assert(subkey != NULL);
         ++subkey;
-        Effect* eff = Effect_table_get(table, eff_index);
-        bool changed = eff != NULL && Effect_get_dsp(eff, dsp_index) != NULL &&
-            Device_has_complete_type((Device*)Effect_get_dsp(eff, dsp_index));
+        Effect* eff = Effect_table_get_mut(table, eff_index);
+        bool changed = (eff != NULL) && (Effect_get_dsp(eff, dsp_index) != NULL) &&
+            Device_has_complete_type((const Device*)Effect_get_dsp(eff, dsp_index));
 
         eff = add_effect(handle, eff_index, table);
         if (eff == NULL)
             return false;
 
-        bool success = parse_dsp_level(handle, eff, key, subkey,
-                                       sr, dsp_index);
-        changed ^= eff != NULL && Effect_get_dsp(eff, dsp_index) != NULL &&
-            Device_has_complete_type((Device*)Effect_get_dsp(eff, dsp_index));
+        bool success = parse_dsp_level(handle, eff, key, subkey, sr, dsp_index);
+        changed ^= (eff != NULL) && (Effect_get_dsp(eff, dsp_index) != NULL) &&
+            Device_has_complete_type((const Device*)Effect_get_dsp(eff, dsp_index));
         Connections* graph = module->connections;
         if (changed && graph != NULL)
         {
@@ -1090,7 +1088,7 @@ static bool parse_effect_level(
     else if (string_eq(subkey, "p_connections.json"))
     {
         bool reconnect = false;
-        Effect* eff = Effect_table_get(table, eff_index);
+        Effect* eff = Effect_table_get_mut(table, eff_index);
         if (!Streader_has_data(sr))
         {
             if (eff != NULL)
@@ -1110,11 +1108,13 @@ static bool parse_effect_level(
             {
                 level |= CONNECTION_LEVEL_INSTRUMENT;
             }
-            Connections* graph = new_Connections_from_string(sr, level,
-                                                 Module_get_insts(module),
-                                                 table,
-                                                 Effect_get_dsps(eff),
-                                                 (Device*)eff);
+            Connections* graph = new_Connections_from_string(
+                    sr,
+                    level,
+                    Module_get_insts(module),
+                    table,
+                    Effect_get_dsps(eff),
+                    (Device*)eff);
             if (graph == NULL)
             {
                 set_error(handle, sr);
@@ -1140,12 +1140,10 @@ static bool parse_effect_level(
 
 static DSP* add_dsp(
         Handle* handle,
-        Effect* eff,
         DSP_table* dsp_table,
         int dsp_index)
 {
     assert(handle != NULL);
-    assert(eff != NULL);
     assert(dsp_table != NULL);
     assert(dsp_index >= 0);
     //assert(dsp_index < KQT_DSPS_MAX);
@@ -1196,7 +1194,7 @@ static bool parse_dsp_level(
     subkey = strchr(subkey, '/') + 1;
 #endif
 
-    DSP_table* dsp_table = Effect_get_dsps(eff);
+    DSP_table* dsp_table = Effect_get_dsps_mut(eff);
     assert(dsp_table != NULL);
 
     if (string_eq(subkey, "p_manifest.json"))
@@ -1219,7 +1217,7 @@ static bool parse_dsp_level(
         }
         else
         {
-            DSP* dsp = add_dsp(handle, eff, dsp_table, dsp_index);
+            DSP* dsp = add_dsp(handle, dsp_table, dsp_index);
             if (dsp == NULL)
                 return false;
 
@@ -1302,7 +1300,7 @@ static bool parse_dsp_level(
               string_has_prefix(subkey, "c/")) &&
              key_is_device_param(subkey))
     {
-        DSP* dsp = add_dsp(handle, eff, dsp_table, dsp_index);
+        DSP* dsp = add_dsp(handle, dsp_table, dsp_index);
         if (dsp == NULL)
             return false;
 
@@ -1322,7 +1320,7 @@ static bool parse_dsp_level(
 #if 0
     else if (string_eq(subkey, "p_events.json"))
     {
-        DSP* dsp = add_dsp(handle, eff, dsp_table, dsp_index);
+        DSP* dsp = add_dsp(handle, dsp_table, dsp_index);
         if (dsp == NULL)
             return false;
 

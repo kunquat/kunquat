@@ -347,7 +347,7 @@ static void DSP_chorus_reset(const Device_impl* dimpl, Device_state* dstate)
     assert(dimpl != NULL);
     assert(dstate != NULL);
 
-    DSP_chorus* chorus = (DSP_chorus*)dimpl;
+    const DSP_chorus* chorus = (const DSP_chorus*)dimpl;
     Chorus_state* cstate = (Chorus_state*)dstate;
 
     DSP_chorus_clear_history(dimpl, &cstate->parent); // XXX: do we need this?

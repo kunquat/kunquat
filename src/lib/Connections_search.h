@@ -56,12 +56,13 @@ typedef enum
  * \return   The new Connections if successful, otherwise \c NULL. \a state
  *           will not be modified if memory allocation failed.
  */
-Connections* new_Connections_from_string(Streader* sr,
-                                         Connection_level level,
-                                         Ins_table* insts,
-                                         Effect_table* effects,
-                                         DSP_table* dsps,
-                                         Device* master);
+Connections* new_Connections_from_string(
+        Streader* sr,
+        Connection_level level,
+        Ins_table* insts,
+        Effect_table* effects,
+        const DSP_table* dsps,
+        Device* master);
 
 
 /**

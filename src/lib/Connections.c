@@ -96,7 +96,7 @@ typedef struct read_conn_data
     Connection_level level;
     Ins_table* insts;
     Effect_table* effects;
-    DSP_table* dsps;
+    const DSP_table* dsps;
     Device* master;
 } read_conn_data;
 
@@ -201,7 +201,7 @@ Connections* new_Connections_from_string(
         Connection_level level,
         Ins_table* insts,
         Effect_table* effects,
-        DSP_table* dsps,
+        const DSP_table* dsps,
         Device* master)
 {
     assert(sr != NULL);

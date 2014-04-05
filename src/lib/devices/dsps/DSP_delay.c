@@ -462,7 +462,7 @@ static void DSP_delay_update_state_tap_delay(
     if (indices[0] < 0 || indices[0] >= TAPS_MAX)
         return;
 
-    DSP_delay* delay = (DSP_delay*)dimpl;
+    const DSP_delay* delay = (const DSP_delay*)dimpl;
     Delay_state* dlstate = (Delay_state*)dstate;
     Tap_state_set(
             &dlstate->tap_states[indices[0]],
@@ -532,7 +532,7 @@ static bool DSP_delay_set_audio_rate(
     assert(dstate != NULL);
     assert(audio_rate > 0);
 
-    const DSP_delay* delay = (DSP_delay*)dimpl;
+    const DSP_delay* delay = (const DSP_delay*)dimpl;
     Delay_state* dlstate = (Delay_state*)dstate;
 
     assert(dlstate->buf != NULL);

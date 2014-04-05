@@ -121,7 +121,7 @@ Player* new_Player(
     }
 
     Device_state* master_state = Device_create_state(
-            (Device*)player->module,
+            (const Device*)player->module,
             player->audio_rate,
             player->audio_buffer_size);
     if (master_state == NULL || !Device_states_add_state(
@@ -591,7 +591,7 @@ void Player_play(Player* player, int32_t nframes)
             // Get access to mixed output
             Device_state* master_state = Device_states_get_state(
                     player->device_states,
-                    Device_get_id((Device*)player->module));
+                    Device_get_id((const Device*)player->module));
             assert(master_state != NULL);
 
             Audio_buffer* buffer = Device_state_get_audio_buffer(
@@ -631,7 +631,7 @@ void Player_play(Player* player, int32_t nframes)
     {
         Device_state* master_state = Device_states_get_state(
                 player->device_states,
-                Device_get_id((Device*)player->module));
+                Device_get_id((const Device*)player->module));
         assert(master_state != NULL);
 
         Audio_buffer* buffer = Device_state_get_audio_buffer(

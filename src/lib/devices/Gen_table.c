@@ -87,7 +87,17 @@ bool Gen_table_set_gen(Gen_table* table, int index, Generator* gen)
 }
 
 
-Generator* Gen_table_get_gen(Gen_table* table, int index)
+const Generator* Gen_table_get_gen(const Gen_table* table, int index)
+{
+    assert(table != NULL);
+    assert(index >= 0);
+    assert(index < table->size);
+
+    return Etable_get(table->gens, index);
+}
+
+
+Generator* Gen_table_get_gen_mut(Gen_table* table, int index)
 {
     assert(table != NULL);
     assert(index >= 0);

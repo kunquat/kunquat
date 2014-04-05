@@ -541,22 +541,22 @@ static void Module_reset(const Device* device, Device_states* dstates)
     assert(device != NULL);
     assert(dstates != NULL);
 
-    Module* module = (Module*)device;
+    const Module* module = (const Module*)device;
 
     // Reset instruments
     for (int i = 0; i < KQT_INSTRUMENTS_MAX; ++i)
     {
-        Instrument* ins = Ins_table_get(module->insts, i);
+        const Instrument* ins = Ins_table_get(module->insts, i);
         if (ins != NULL)
-            Device_reset((Device*)ins, dstates);
+            Device_reset((const Device*)ins, dstates);
     }
 
     // Reset effects
     for (int i = 0; i < KQT_EFFECTS_MAX; ++i)
     {
-        Effect* eff = Effect_table_get(module->effects, i);
+        const Effect* eff = Effect_table_get(module->effects, i);
         if (eff != NULL)
-            Device_reset((Device*)eff, dstates);
+            Device_reset((const Device*)eff, dstates);
     }
 
     Random_reset(module->random);
@@ -589,17 +589,17 @@ static bool Module_set_audio_rate(
 
     for (int i = 0; i < KQT_INSTRUMENTS_MAX; ++i)
     {
-        Instrument* ins = Ins_table_get(module->insts, i);
+        const Instrument* ins = Ins_table_get(module->insts, i);
         if (ins != NULL &&
-                !Device_set_audio_rate((Device*)ins, dstates, audio_rate))
+                !Device_set_audio_rate((const Device*)ins, dstates, audio_rate))
             return false;
     }
 
     for (int i = 0; i < KQT_EFFECTS_MAX; ++i)
     {
-        Effect* eff = Effect_table_get(module->effects, i);
+        const Effect* eff = Effect_table_get(module->effects, i);
         if (eff != NULL &&
-                !Device_set_audio_rate((Device*)eff, dstates, audio_rate))
+                !Device_set_audio_rate((const Device*)eff, dstates, audio_rate))
             return false;
     }
 
@@ -621,14 +621,14 @@ static void Module_update_tempo(
 
     for (int i = 0; i < KQT_INSTRUMENTS_MAX; ++i)
     {
-        Instrument* ins = Ins_table_get(module->insts, i);
+        const Instrument* ins = Ins_table_get(module->insts, i);
         if (ins != NULL)
             Device_update_tempo((const Device*)ins, dstates, tempo);
     }
 
     for (int i = 0; i < KQT_EFFECTS_MAX; ++i)
     {
-        Effect* eff = Effect_table_get(module->effects, i);
+        const Effect* eff = Effect_table_get(module->effects, i);
         if (eff != NULL)
             Device_update_tempo((const Device*)eff, dstates, tempo);
     }
@@ -657,9 +657,9 @@ static bool Module_set_buffer_size(
 
     for (int i = 0; i < KQT_EFFECTS_MAX; ++i)
     {
-        Effect* eff = Effect_table_get(module->effects, i);
+        const Effect* eff = Effect_table_get(module->effects, i);
         if (eff != NULL &&
-                !Device_set_buffer_size((Device*)eff, dstates, size))
+                !Device_set_buffer_size((const Device*)eff, dstates, size))
             return false;
     }
 

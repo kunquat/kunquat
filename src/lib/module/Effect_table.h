@@ -63,7 +63,19 @@ bool Effect_table_set(Effect_table* table, int index, Effect* eff);
  *
  * \return   The Effect if found, otherwise \c NULL.
  */
-Effect* Effect_table_get(Effect_table* table, int index);
+const Effect* Effect_table_get(const Effect_table* table, int index);
+
+
+/**
+ * Gets a mutable Effect from the Effect table.
+ *
+ * \param table   The Effect table -- must not be \c NULL.
+ * \param index   The target index -- must be >= \c 0 and less than
+ *                the table size.
+ *
+ * \return   The Effect if found, otherwise \c NULL.
+ */
+Effect* Effect_table_get_mut(Effect_table* table, int index);
 
 
 /**

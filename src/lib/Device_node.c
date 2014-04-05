@@ -52,7 +52,7 @@ struct Device_node
     // These fields are required for adaptation to changes
     Ins_table* insts;
     Effect_table* effects;
-    DSP_table* dsps;
+    const DSP_table* dsps;
     const Device* master; ///< The global, Instrument or Effect master
 
     Device_type type;
@@ -72,7 +72,7 @@ Device_node* new_Device_node(
         const char* name,
         Ins_table* insts,
         Effect_table* effects,
-        DSP_table* dsps,
+        const DSP_table* dsps,
         const Device* master)
 {
     assert(name != NULL);
@@ -334,7 +334,7 @@ bool Device_node_init_effect_buffers(Device_node* node, Device_states* states)
     }
     else if (node->type == DEVICE_TYPE_EFFECT)
     {
-        Effect* eff = Effect_table_get(node->effects, node->index);
+        const Effect* eff = Effect_table_get(node->effects, node->index);
         if (eff == NULL)
         {
             Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
@@ -584,15 +584,15 @@ const Device* Device_node_get_device(const Device_node* node)
     if (node->type == DEVICE_TYPE_MASTER)
         return node->master;
     else if (node->type == DEVICE_TYPE_INSTRUMENT)
-        return (Device*)Ins_table_get(node->insts, node->index);
+        return (const Device*)Ins_table_get(node->insts, node->index);
     else if (node->type == DEVICE_TYPE_EFFECT)
-        return (Device*)Effect_table_get(node->effects, node->index);
+        return (const Device*)Effect_table_get(node->effects, node->index);
     else if (node->type == DEVICE_TYPE_GENERATOR)
-        return (Device*)Instrument_get_gen(
-                (Instrument*)node->master,
+        return (const Device*)Instrument_get_gen(
+                (const Instrument*)node->master,
                 node->index);
     else if (node->type == DEVICE_TYPE_DSP)
-        return (Device*)DSP_table_get_dsp(node->dsps, node->index);
+        return (const Device*)DSP_table_get_dsp(node->dsps, node->index);
 
     assert(false);
     return NULL;
@@ -754,7 +754,7 @@ void Device_node_print(const Device_node* node, FILE* out)
     fprintf(out,
             "\nDevice node: %s, Device: %p, (state: %s)\n",
             node->name[0] == '\0' ? "[Master]" : node->name,
-            (void*)Device_node_get_device(node),
+            (const void*)Device_node_get_device(node),
             states[Device_node_get_state(node)]);
 
     if (node->type == DEVICE_TYPE_INSTRUMENT)
@@ -792,7 +792,7 @@ void Device_node_print(const Device_node* node, FILE* out)
             fprintf(out,
                     "    %s (device %p), send port %02x\n",
                     edge->node->name,
-                    (void*)Device_node_get_device(edge->node),
+                    (const void*)Device_node_get_device(edge->node),
                     edge->port);
 
             edge = edge->next;

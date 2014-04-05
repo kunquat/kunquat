@@ -74,7 +74,19 @@ bool Gen_table_set_gen(Gen_table* table, int index, Generator* gen);
  *
  * \return   The Generator if found, otherwise \c NULL.
  */
-Generator* Gen_table_get_gen(Gen_table* table, int index);
+const Generator* Gen_table_get_gen(const Gen_table* table, int index);
+
+
+/**
+ * Gets a mutable Generator from the Generator table.
+ *
+ * \param table   The Generator table -- must not be \c NULL.
+ * \param index   The target index -- must be >= \c 0 and less than the
+ *                table size.
+ *
+ * \return   The Generator if found, otherwise \c NULL.
+ */
+Generator* Gen_table_get_gen_mut(Gen_table* table, int index);
 
 
 /**
