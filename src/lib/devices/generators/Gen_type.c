@@ -26,13 +26,13 @@
 
 struct Gen_type
 {
-    char* type;
+    const char* type;
     Generator_cons* cons;
     Generator_property* property;
 };
 
 
-const Gen_type gen_types[] =
+static const Gen_type gen_types[] =
 {
     { "debug", new_Generator_debug, NULL },
     { "add", new_Generator_add, Generator_add_property },

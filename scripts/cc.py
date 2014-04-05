@@ -61,6 +61,7 @@ class GccCommand():
                 '-Wall',
                 '-Wextra',
                 '-Werror',
+                '-Wwrite-strings',
             ]
         self._include_flags = []
         self._link_dirs = []

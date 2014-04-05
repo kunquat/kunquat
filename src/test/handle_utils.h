@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2014
  *
  * This file is part of Kunquat.
  *
@@ -100,7 +100,7 @@ void handle_teardown(void)
 }
 
 
-void set_data(char* key, char* data)
+void set_data(const char* key, const char* data)
 {
     assert(handle != 0);
     assert(key != NULL);

@@ -36,7 +36,7 @@ typedef bool (*Op_func)(Value* op1, Value* op2, Value* res, Streader* sr);
 
 typedef struct Operator
 {
-    char* name;
+    const char* name;
     int preced;
     Op_func func;
 } Operator;
@@ -139,7 +139,7 @@ static bool token_is_func(const char* token, Func* res);
 
 typedef struct Func_desc
 {
-    char* name;
+    const char* name;
     Func func;
 } Func_desc;
 
@@ -599,7 +599,7 @@ static bool Value_from_token(
     }
     else if (token[0] == '\'' || string_has_prefix(token, "\\\""))
     {
-        char* end_str = "'";
+        const char* end_str = "'";
         ++token;
         if (token[0] == '"')
         {
@@ -794,7 +794,7 @@ static bool get_str_token(Streader* sr, char* result)
     // FIXME: ugly haxoring with Streader internals
     const char* str = &sr->str[sr->pos];
 
-    char* end_str = "'";
+    const char* end_str = "'";
     if (string_has_prefix(str, "\\\""))
         end_str = "\\\"";
 

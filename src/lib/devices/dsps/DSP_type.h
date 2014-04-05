@@ -41,7 +41,7 @@ typedef Device_impl* DSP_cons(DSP* dsp);
  *
  * \return   The property for the DSP if one exists, otherwise \c NULL.
  */
-typedef char* DSP_property(DSP* dsp, const char* property_type);
+typedef const char* DSP_property(DSP* dsp, const char* property_type);
 
 
 typedef struct DSP_type DSP_type;
@@ -54,7 +54,7 @@ typedef struct DSP_type DSP_type;
  *
  * \return   The constructor if \a type is supported, otherwise \c NULL.
  */
-DSP_cons* DSP_type_find_cons(char* type);
+DSP_cons* DSP_type_find_cons(const char* type);
 
 
 /**
@@ -64,7 +64,7 @@ DSP_cons* DSP_type_find_cons(char* type);
  *
  * \return   The property function if one exists, otherwise \c NULL.
  */
-DSP_property* DSP_type_find_property(char* type);
+DSP_property* DSP_type_find_property(const char* type);
 
 
 #endif // K_DSP_TYPE_H

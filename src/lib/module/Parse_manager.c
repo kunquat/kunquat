@@ -671,7 +671,7 @@ static bool parse_instrument_level(
 
     static const struct
     {
-        char* name;
+        const char* name;
         bool (*read)(Instrument_params*, Streader*);
     } parse[] =
     {
@@ -836,7 +836,7 @@ static bool parse_generator_level(
             if (property != NULL)
             {
                 // Allocate Voice state space
-                char* size_str = property(gen, "voice_state_size");
+                const char* size_str = property(gen, "voice_state_size");
                 if (size_str != NULL)
                 {
                     Streader* size_sr = Streader_init(
@@ -860,7 +860,7 @@ static bool parse_generator_level(
                 }
 
                 // Allocate channel-specific generator state space
-                char* gen_state_vars = property(gen, "gen_state_vars");
+                const char* gen_state_vars = property(gen, "gen_state_vars");
                 if (gen_state_vars != NULL)
                 {
                     Streader* gsv_sr = Streader_init(

@@ -33,7 +33,7 @@ struct DSP_type
 };
 
 
-const DSP_type dsp_types[] =
+static const DSP_type dsp_types[] =
 {
     { "chorus", new_DSP_chorus, NULL },
     { "convolution", new_DSP_conv, NULL },
@@ -45,7 +45,7 @@ const DSP_type dsp_types[] =
 };
 
 
-DSP_cons* DSP_type_find_cons(char* type)
+DSP_cons* DSP_type_find_cons(const char* type)
 {
     assert(type != NULL);
 
@@ -59,7 +59,7 @@ DSP_cons* DSP_type_find_cons(char* type)
 }
 
 
-DSP_property* DSP_type_find_property(char* type)
+DSP_property* DSP_type_find_property(const char* type)
 {
     assert(type != NULL);
 

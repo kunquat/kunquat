@@ -39,7 +39,7 @@ Device_impl* new_Generator_noise(Generator* gen);
  * \return   The Noise Generator property description matching
  *           \a property_type, or \c NULL if one does not exist.
  */
-char* Generator_noise_property(Generator* gen, const char* property_type);
+const char* Generator_noise_property(Generator* gen, const char* property_type);
 
 
 #endif // K_GENERATOR_NOISE_H

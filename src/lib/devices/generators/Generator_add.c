@@ -312,7 +312,7 @@ Device_impl* new_Generator_add(Generator* gen)
 }
 
 
-char* Generator_add_property(Generator* gen, const char* property_type)
+const char* Generator_add_property(Generator* gen, const char* property_type)
 {
     assert(gen != NULL);
     //assert(string_eq(gen->type, "add"));

@@ -40,7 +40,7 @@ Device_impl* new_Generator_add(Generator* gen);
  * \return   The additive Generator property description matching
  *           \a property_type, or \c NULL if one does not exist.
  */
-char* Generator_add_property(Generator* gen, const char* property_type);
+const char* Generator_add_property(Generator* gen, const char* property_type);
 
 
 #endif // K_GENERATOR_ADD_H

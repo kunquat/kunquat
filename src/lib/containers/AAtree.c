@@ -51,7 +51,7 @@ static void aafree(AAnode* node, void (*destroy)(void*));
 
 #ifndef NDEBUG
 #define aavalidate(node, msg) (assert(aavalidate_(node, msg)))
-static bool aavalidate_(const AAnode* node, char* msg);
+static bool aavalidate_(const AAnode* node, const char* msg);
 #else
 #define aavalidate(node, msg) (void)0
 #endif
@@ -705,7 +705,7 @@ static void aafree(AAnode* node, void (*destroy)(void*))
 
 
 #ifndef NDEBUG
-static bool aavalidate_(const AAnode* node, char* msg)
+static bool aavalidate_(const AAnode* node, const char* msg)
 {
     if (node == NULL
             || node->parent == NULL

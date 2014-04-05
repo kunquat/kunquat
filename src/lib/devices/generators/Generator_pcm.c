@@ -78,7 +78,7 @@ Device_impl* new_Generator_pcm(Generator* gen)
 }
 
 
-char* Generator_pcm_property(Generator* gen, const char* property_type)
+const char* Generator_pcm_property(Generator* gen, const char* property_type)
 {
     assert(gen != NULL);
     //assert(string_eq(gen->type, "pcm"));
@@ -95,7 +95,7 @@ char* Generator_pcm_property(Generator* gen, const char* property_type)
     }
     else if (string_eq(property_type, "gen_state_vars"))
     {
-        static char* vars_str = "["
+        static const char* vars_str = "["
             "[\"I\", \"e\"], " // expression
             "[\"I\", \"s\"]"   // source
             "]";

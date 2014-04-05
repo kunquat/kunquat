@@ -92,7 +92,7 @@ Device_impl* new_Generator_noise(Generator* gen)
 }
 
 
-char* Generator_noise_property(Generator* gen, const char* property_type)
+const char* Generator_noise_property(Generator* gen, const char* property_type)
 {
     assert(gen != NULL);
     //assert(string_eq(gen->type, "noise"));
@@ -108,7 +108,7 @@ char* Generator_noise_property(Generator* gen, const char* property_type)
     }
     else if (string_eq(property_type, "gen_state_vars"))
     {
-        static char* vars_str = "[[\"I\", \"o\"]]"; // noise order
+        static const char* vars_str = "[[\"I\", \"o\"]]"; // noise order
         return vars_str;
     }
 

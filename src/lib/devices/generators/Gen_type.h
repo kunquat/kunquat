@@ -44,7 +44,7 @@ typedef Device_impl* Generator_cons(Generator* gen);
  *
  * \return   The property for the Generator if one exists, otherwise \c NULL.
  */
-typedef char* Generator_property(Generator* gen, const char* property_type);
+typedef const char* Generator_property(Generator* gen, const char* property_type);
 
 
 typedef struct Gen_type Gen_type;

@@ -49,7 +49,7 @@ Device_impl* new_Generator_pcm(Generator* gen);
  * \return   The PCM Generator property description matching
  *           \a property_type, or \c NULL if one does not exist.
  */
-char* Generator_pcm_property(Generator* gen, const char* property_type);
+const char* Generator_pcm_property(Generator* gen, const char* property_type);
 
 
 #endif // K_GENERATOR_PCM_H

@@ -90,7 +90,7 @@ Device_impl* new_Generator_pulse(Generator* gen)
 }
 
 
-char* Generator_pulse_property(Generator* gen, const char* property_type)
+const char* Generator_pulse_property(Generator* gen, const char* property_type)
 {
     assert(gen != NULL);
     //assert(string_eq(gen->type, "pulse"));
@@ -107,7 +107,7 @@ char* Generator_pulse_property(Generator* gen, const char* property_type)
     }
     else if (string_eq(property_type, "gen_state_vars"))
     {
-        static char* vars_str = "[[\"F\", \"w\"]]"; // pulse width
+        static const char* vars_str = "[[\"F\", \"w\"]]"; // pulse width
         return vars_str;
     }
 
