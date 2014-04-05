@@ -70,7 +70,7 @@ long mixing_rates[] =
 #define Note_On_55_Hz "[\"n+\", -3600]"
 
 
-void check_unexpected_error()
+void check_unexpected_error(void)
 {
     const char* error_string = kqt_Handle_get_error(handle);
     fail_unless(

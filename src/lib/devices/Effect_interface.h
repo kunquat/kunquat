@@ -31,7 +31,7 @@ typedef struct Effect_interface
  * \return   The new Effect interface if successful, or \c NULL if memory
  *           allocation failed.
  */
-Effect_interface* new_Effect_interface();
+Effect_interface* new_Effect_interface(void);
 
 
 /**

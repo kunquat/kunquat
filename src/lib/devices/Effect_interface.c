@@ -20,7 +20,7 @@
 #include <memory.h>
 
 
-Effect_interface* new_Effect_interface()
+Effect_interface* new_Effect_interface(void)
 {
     Effect_interface* ei = memory_alloc_item(Effect_interface);
     if (ei == NULL)

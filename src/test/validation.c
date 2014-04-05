@@ -62,7 +62,7 @@ bool string_contains_word(const char* haystack, const char* needle)
 }
 
 
-static void set_silent_composition()
+static void set_silent_composition(void)
 {
     set_data("album/p_manifest.json", "{}");
     set_data("album/p_tracks.json", "[0]");
