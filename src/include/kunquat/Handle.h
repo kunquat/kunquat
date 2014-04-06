@@ -90,10 +90,11 @@ kqt_Handle kqt_new_Handle(void);
  * \return   \c 1 if successful. Otherwise, \c 0 is returned and the Kunquat
  *           Handle error is set accordingly.
  */
-int kqt_Handle_set_data(kqt_Handle handle,
-                        const char* key,
-                        const void* data,
-                        long length);
+int kqt_Handle_set_data(
+        kqt_Handle handle,
+        const char* key,
+        const void* data,
+        long length);
 
 
 /**
