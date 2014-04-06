@@ -23,6 +23,7 @@
 #include <devices/Device.h>
 #include <frame.h>
 #include <kunquat/limits.h>
+#include <mathnum/Random.h>
 #include <module/Bind.h>
 #include <module/Effect_table.h>
 #include <module/Environment.h>
@@ -33,7 +34,6 @@
 #include <module/sheet/Pat_table.h>
 #include <module/sheet/Song_table.h>
 #include <module/sheet/Track_list.h>
-#include <random/Random.h>
 #include <string/Streader.h>
 
 

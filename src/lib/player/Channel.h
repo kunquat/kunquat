@@ -20,6 +20,7 @@
 #include <stdint.h>
 
 #include <kunquat/limits.h>
+#include <mathnum/Random.h>
 #include <module/Ins_table.h>
 #include <player/Channel_gen_state.h>
 #include <player/Env_state.h>
@@ -27,7 +28,6 @@
 #include <player/General_state.h>
 #include <player/LFO.h>
 #include <player/Voice_pool.h>
-#include <random/Random.h>
 #include <Tstamp.h>
 
 

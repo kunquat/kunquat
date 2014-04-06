@@ -20,7 +20,7 @@
 
 #include <containers/AAtree.h>
 #include <devices/param_types/Sample_entry.h>
-#include <random/Random.h>
+#include <mathnum/Random.h>
 #include <string/Streader.h>
 
 
