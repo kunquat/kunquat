@@ -21,7 +21,6 @@
 
 #include <debug/assert.h>
 #include <devices/generators/Generator_common.h>
-#include <devices/param_types/File_wavpack.h>
 #include <devices/param_types/Sample.h>
 #include <devices/param_types/Sample_mix.h>
 #include <devices/param_types/Sample_params.h>

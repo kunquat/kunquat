@@ -18,8 +18,8 @@
 #include <string.h>
 
 #include <debug/assert.h>
-#include <devices/param_types/File_wavpack.h>
 #include <devices/param_types/Sample.h>
+#include <devices/param_types/Wavpack.h>
 #include <mathnum/common.h>
 #include <memory.h>
 

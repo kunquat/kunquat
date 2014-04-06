@@ -12,12 +12,11 @@
  */
 
 
-#ifndef K_FILE_WAVPACK_H
-#define K_FILE_WAVPACK_H
+#ifndef K_WAVPACK_H
+#define K_WAVPACK_H
 
 
 #include <stdbool.h>
-#include <stdio.h>
 
 #include <devices/param_types/Sample.h>
 #include <string/Streader.h>
@@ -26,6 +25,6 @@
 bool Sample_parse_wavpack(Sample* sample, Streader* sr);
 
 
-#endif // K_FILE_WAVPACK_H
+#endif // K_WAVPACK_H
 
 

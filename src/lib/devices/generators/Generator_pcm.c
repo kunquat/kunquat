@@ -24,10 +24,10 @@
 #include <devices/generators/Generator_common.h>
 #include <devices/generators/Generator_pcm.h>
 #include <devices/generators/Voice_state_pcm.h>
-#include <devices/param_types/File_wavpack.h>
 #include <devices/param_types/Hit_map.h>
 #include <devices/param_types/Sample.h>
 #include <devices/param_types/Sample_mix.h>
+#include <devices/param_types/Wavpack.h>
 #include <memory.h>
 #include <pitch_t.h>
 #include <string/common.h>
