@@ -27,12 +27,15 @@
 #define PI (3.14159265358979323846)
 
 
-#undef MIN
-#define MIN(x,y) ((x) < (y) ? (x) : (y))
+#undef min
+#define min(x,y) ((x) < (y) ? (x) : (y))
 
 
-#undef MAX
-#define MAX(x,y) ((x) > (y) ? (x) : (y))
+#undef max
+#define max(x,y) ((x) > (y) ? (x) : (y))
+
+
+#define clamp(val, min_val, max_val) min(max(min_val, val), max_val)
 
 
 #define undenormalise(x) (fpclassify((x)) != FP_SUBNORMAL ? (x) : 0.0)

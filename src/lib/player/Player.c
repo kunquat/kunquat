@@ -325,7 +325,7 @@ bool Player_set_audio_buffer_size(Player* player, int32_t size)
         return true;
 
     // Reduce supported size (in case we fail memory allocation)
-    player->audio_buffer_size = MIN(player->audio_buffer_size, size);
+    player->audio_buffer_size = min(player->audio_buffer_size, size);
 
     // Handle empty buffers
     if (player->audio_buffer_size == 0)
@@ -429,7 +429,7 @@ static void Player_process_voices(
             player->master_params.tempo);
 
     player->master_params.active_voices =
-        MAX(player->master_params.active_voices, active_voices);
+        max(player->master_params.active_voices, active_voices);
 }
 
 
@@ -512,7 +512,7 @@ void Player_play(Player* player, int32_t nframes)
 
     Event_buffer_clear(player->event_buffer);
 
-    nframes = MIN(nframes, player->audio_buffer_size);
+    nframes = min(nframes, player->audio_buffer_size);
 
     // TODO: separate data and playback state in connections
     Connections* connections = player->module->connections;
@@ -700,7 +700,7 @@ void Player_skip(Player* player, int64_t nframes)
     while (skipped < nframes)
     {
         // Move forwards in composition
-        int32_t to_be_skipped = MIN(nframes - skipped, INT32_MAX);
+        int32_t to_be_skipped = min(nframes - skipped, INT32_MAX);
         to_be_skipped = Player_move_forwards(player, to_be_skipped, true);
 
         if (Player_has_stopped(player))

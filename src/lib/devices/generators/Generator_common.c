@@ -417,7 +417,7 @@ void Generator_common_handle_filter(
                 gen->ins_params->env_force_filter,
                 force);
         assert(isfinite(factor));
-        vstate->actual_lowpass = MIN(vstate->actual_lowpass, 16384) * factor;
+        vstate->actual_lowpass = min(vstate->actual_lowpass, 16384) * factor;
     }
 
     if (!vstate->lowpass_update &&
@@ -439,7 +439,7 @@ void Generator_common_handle_filter(
         if (vstate->actual_lowpass < freq / 2)
         {
             int new_state = 1 - abs(vstate->lowpass_state_used);
-            double lowpass = MAX(vstate->actual_lowpass, 1);
+            double lowpass = max(vstate->actual_lowpass, 1);
             two_pole_filter_create(lowpass / freq,
                     vstate->lowpass_resonance,
                     0,

@@ -105,7 +105,7 @@ bool Audio_buffer_resize(Audio_buffer* buffer, uint32_t size)
                 buffer->bufs[i]);
         if (new_buf == NULL)
         {
-            buffer->size = MIN(buffer->size, size);
+            buffer->size = min(buffer->size, size);
             return false;
         }
         buffer->bufs[i] = new_buf;

@@ -76,7 +76,7 @@ static int32_t read_bytes_str(void* id, void* data, int32_t bcount)
         return 0;
 
     int32_t left = sc->length - sc->pos;
-    int32_t bytes_read = MIN(left, bcount);
+    int32_t bytes_read = min(left, bcount);
     if (sc->push_back != EOF)
     {
         *((char*)data) = sc->push_back;

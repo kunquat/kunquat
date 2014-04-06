@@ -625,7 +625,7 @@ int Scale_ins_note(Scale* scale, int index, Real* ratio)
         }
 
         ++scale->note_count;
-        int i = MIN(scale->note_count, KQT_SCALE_NOTES - 1);
+        int i = min(scale->note_count, KQT_SCALE_NOTES - 1);
         /*for (i = index; (i < KQT_SCALE_NOTES - 1) && NOTE_EXISTS(scale, i); ++i)
             ; */
         for (; i > index; --i)
@@ -636,7 +636,7 @@ int Scale_ins_note(Scale* scale, int index, Real* ratio)
                     &(scale->notes[i - 1].ratio_retuned));
         }
 
-        assert(NOTE_EXISTS(scale, MIN(scale->note_count, KQT_SCALE_NOTES - 1))
+        assert(NOTE_EXISTS(scale, min(scale->note_count, KQT_SCALE_NOTES - 1))
                 == (scale->note_count == KQT_SCALE_NOTES));
         NOTE_CLEAR(scale, index);
         Real_copy(&(scale->notes[index].ratio), ratio);

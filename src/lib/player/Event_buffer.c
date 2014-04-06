@@ -44,7 +44,7 @@ Event_buffer* new_Event_buffer(size_t size)
         return NULL;
 
     // Sanitise fields
-    ebuf->size = MAX(strlen(EMPTY_BUFFER) + 1, size);
+    ebuf->size = max(strlen(EMPTY_BUFFER) + 1, size);
     ebuf->write_pos = 0;
     ebuf->buf = NULL;
 

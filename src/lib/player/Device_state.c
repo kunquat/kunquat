@@ -106,7 +106,7 @@ bool Device_state_set_audio_buffer_size(Device_state* ds, int32_t size)
     assert(ds != NULL);
     assert(size >= 0);
 
-    ds->audio_buffer_size = MIN(ds->audio_buffer_size, size);
+    ds->audio_buffer_size = min(ds->audio_buffer_size, size);
 
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {

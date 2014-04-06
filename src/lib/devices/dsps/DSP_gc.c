@@ -160,8 +160,8 @@ static void DSP_gc_process(
         {
             kqt_frame val_l = fabs(in_data[0][i]);
             kqt_frame val_r = fabs(in_data[1][i]);
-            val_l = Envelope_get_value(gc->map, MIN(val_l, 1));
-            val_r = Envelope_get_value(gc->map, MIN(val_r, 1));
+            val_l = Envelope_get_value(gc->map, min(val_l, 1));
+            val_r = Envelope_get_value(gc->map, min(val_r, 1));
             if (in_data[0][i] < 0)
                 val_l = -val_l;
             if (in_data[1][i] < 0)

@@ -299,7 +299,7 @@ static Device_state* DSP_freeverb_create_state(
 
     for (int i = 0; i < FREEVERB_COMBS; ++i)
     {
-        const uint32_t left_size = MAX(1, comb_tuning[i] * audio_rate);
+        const uint32_t left_size = max(1, comb_tuning[i] * audio_rate);
 
         fstate->comb_left[i] = new_Freeverb_comb(left_size);
         if (fstate->comb_left[i] == NULL)
@@ -308,7 +308,7 @@ static Device_state* DSP_freeverb_create_state(
             return NULL;
         }
 
-        const uint32_t right_size = MAX(
+        const uint32_t right_size = max(
                 1, (comb_tuning[i] + stereo_spread) * audio_rate);
 
         fstate->comb_right[i] = new_Freeverb_comb(right_size);
@@ -321,7 +321,7 @@ static Device_state* DSP_freeverb_create_state(
 
     for (int i = 0; i < FREEVERB_ALLPASSES; ++i)
     {
-        const uint32_t left_size = MAX(1, allpass_tuning[i] * audio_rate);
+        const uint32_t left_size = max(1, allpass_tuning[i] * audio_rate);
 
         if (fstate->allpass_left[i] == NULL)
         {
@@ -333,7 +333,7 @@ static Device_state* DSP_freeverb_create_state(
             }
         }
 
-        const uint32_t right_size = MAX(
+        const uint32_t right_size = max(
                 1, (allpass_tuning[i] + stereo_spread) * audio_rate);
 
         if (fstate->allpass_right[i] == NULL)
@@ -438,12 +438,12 @@ static bool DSP_freeverb_set_audio_rate(
 
     for (int i = 0; i < FREEVERB_COMBS; ++i)
     {
-        const uint32_t left_size = MAX(1, comb_tuning[i] * audio_rate);
+        const uint32_t left_size = max(1, comb_tuning[i] * audio_rate);
 
         if (!Freeverb_comb_resize_buffer(fstate->comb_left[i], left_size))
             return false;
 
-        const uint32_t right_size = MAX(
+        const uint32_t right_size = max(
                 1, (comb_tuning[i] + stereo_spread) * audio_rate);
 
         if (!Freeverb_comb_resize_buffer(fstate->comb_right[i], right_size))
@@ -452,14 +452,14 @@ static bool DSP_freeverb_set_audio_rate(
 
     for (int i = 0; i < FREEVERB_ALLPASSES; ++i)
     {
-        const uint32_t left_size = MAX(1, allpass_tuning[i] * audio_rate);
+        const uint32_t left_size = max(1, allpass_tuning[i] * audio_rate);
 
         if (!Freeverb_allpass_resize_buffer(
                     fstate->allpass_left[i],
                     left_size))
             return false;
 
-        const uint32_t right_size = MAX(
+        const uint32_t right_size = max(
                 1, (allpass_tuning[i] + stereo_spread) * audio_rate);
 
         if (!Freeverb_allpass_resize_buffer(

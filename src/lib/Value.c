@@ -116,7 +116,7 @@ int Value_serialise(Value* value, int len, char* str)
         case VALUE_TYPE_NONE:
         {
             int print_len = snprintf(str, len, "null");
-            return MIN(len - 1, print_len);
+            return min(len - 1, print_len);
         }
         break;
 
@@ -154,7 +154,7 @@ int Value_serialise(Value* value, int len, char* str)
         {
             int print_len = snprintf(
                     str, len, "\"%s\"", value->value.string_type);
-            return MIN(len - 1, print_len);
+            return min(len - 1, print_len);
         }
         break;
 

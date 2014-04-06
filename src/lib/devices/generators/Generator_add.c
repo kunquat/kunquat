@@ -446,7 +446,7 @@ static uint32_t Generator_add_mix(
 
             if (add->force_mod_env != NULL)
             {
-                double force = MIN(1, vstate->actual_force);
+                double force = min(1, vstate->actual_force);
                 double factor = Envelope_get_value(add->force_mod_env, force);
                 assert(isfinite(factor));
                 mod_val *= factor;
@@ -567,10 +567,10 @@ static void fill_buf(float* buf, const Num_list* nl)
 
     if (nl != NULL)
     {
-        int32_t available = MIN(Num_list_length(nl), BASE_FUNC_SIZE);
+        int32_t available = min(Num_list_length(nl), BASE_FUNC_SIZE);
 
         for (int i = 0; i < available; ++i)
-            buf[i] = MAX(-1.0, MIN(1.0, Num_list_get_num(nl, i)));
+            buf[i] = clamp(Num_list_get_num(nl, i), -1.0, 1.0);
         for (int i = available; i < BASE_FUNC_SIZE; ++i)
             buf[i] = 0;
     }

@@ -372,7 +372,7 @@ static bool DSP_conv_set_state_max_ir_len(
 
     Conv_state* cstate = (Conv_state*)dstate;
 
-    int32_t buf_size = MAX(
+    int32_t buf_size = max(
             Audio_buffer_get_size(cstate->history),
             value * Device_state_get_audio_rate(dstate));
     assert(buf_size > 0);
@@ -483,7 +483,7 @@ static void DSP_conv_update_ir(DSP_conv* conv)
         Audio_buffer_get_buffer(conv->ir, 1),
     };
 
-    conv->actual_ir_len = MIN(ir_size, (int32_t)sample->len);
+    conv->actual_ir_len = min(ir_size, (int32_t)sample->len);
 
     for (int32_t i = 0; i < conv->actual_ir_len; ++i)
     {

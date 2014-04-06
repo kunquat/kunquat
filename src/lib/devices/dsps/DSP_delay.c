@@ -353,7 +353,7 @@ static bool DSP_delay_set_max_delay(
     (void)indices;
 
     DSP_delay* delay = (DSP_delay*)dimpl;
-    delay->max_delay = MIN(value, MAX_BUF_TIME);
+    delay->max_delay = min(value, MAX_BUF_TIME);
 
     return true;
 }
@@ -409,7 +409,7 @@ static bool DSP_delay_set_state_max_delay(
 
     Delay_state* dlstate = (Delay_state*)dstate;
 
-    long buf_len = MAX(
+    long buf_len = max(
             Audio_buffer_get_size(dlstate->buf),
             value * dstate->audio_rate + 1); // + 1 for maximum delay support
     assert(buf_len > 0);
@@ -537,7 +537,7 @@ static bool DSP_delay_set_audio_rate(
     Delay_state* dlstate = (Delay_state*)dstate;
 
     assert(dlstate->buf != NULL);
-    long buf_len = MAX(
+    long buf_len = max(
             Audio_buffer_get_size(dlstate->buf),
             delay->max_delay * audio_rate);
     assert(buf_len > 0);
@@ -603,7 +603,7 @@ static void DSP_delay_process(
         }
 
         tstate->frames_left = nframes;
-        int32_t mix_until = MIN(delay_frames, nframes);
+        int32_t mix_until = min(delay_frames, nframes);
 
         for (int32_t i = 0; i < mix_until; ++i)
         {

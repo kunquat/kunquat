@@ -33,7 +33,7 @@ int serialise_bool(char* dest, int size, bool value)
 
     int printed = snprintf(dest, size, "%s", value ? "true" : "false");
 
-    return MIN(printed, size - 1);
+    return min(printed, size - 1);
 }
 
 
@@ -98,7 +98,7 @@ int serialise_int(char* dest, int size, int64_t value)
 
     int printed = snprintf(dest, size, "%s", result);
 
-    return MIN(printed, size - 1);
+    return min(printed, size - 1);
 }
 
 
@@ -208,7 +208,7 @@ int serialise_float(char* dest, int size, double value)
     {
         const int before_point = shift + 1;
         const int available = strlen(digits);
-        strncat(result, digits, MIN(before_point, available));
+        strncat(result, digits, min(before_point, available));
 
         if (before_point >= available)
         {
@@ -232,7 +232,7 @@ int serialise_float(char* dest, int size, double value)
         strcat(result, digits);
     }
 
-    const int copy_amount = MIN(size - 1, (int)strlen(result));
+    const int copy_amount = min(size - 1, (int)strlen(result));
     strncpy(dest, result, copy_amount);
     dest[copy_amount] = '\0';
     return copy_amount;
@@ -255,7 +255,7 @@ int serialise_Pat_inst_ref(char* dest, int size, Pat_inst_ref* value)
 
     int printed = snprintf(dest, size, "[%s, %s]", pat_buf, inst_buf);
 
-    return MIN(printed, size - 1);
+    return min(printed, size - 1);
 }
 
 
@@ -268,11 +268,11 @@ int serialise_Real(char* dest, int size, Real* value)
     if (!Real_is_frac(value))
     {
         int printed = snprintf(dest, size, "[\"f\", ");
-        printed = MIN(printed, size - 1);
+        printed = min(printed, size - 1);
         printed += serialise_float(dest + printed, size - printed,
                                    Real_get_double(value));
         printed += snprintf(dest + printed, size - printed, "]");
-        return MIN(printed, size - 1);
+        return min(printed, size - 1);
     }
 
     char num_buf[INT_BUF_SIZE] = "";
@@ -283,7 +283,7 @@ int serialise_Real(char* dest, int size, Real* value)
 
     int printed = snprintf(dest, size, "[\"/\", [%s, %s]]", num_buf, den_buf);
 
-    return MIN(printed, size - 1);
+    return min(printed, size - 1);
 }
 
 
@@ -301,7 +301,7 @@ int serialise_Tstamp(char* dest, int size, Tstamp* value)
 
     int printed = snprintf(dest, size, "[%s, %s]", beats_buf, rem_buf);
 
-    return MIN(printed, size - 1);
+    return min(printed, size - 1);
 }
 
 
