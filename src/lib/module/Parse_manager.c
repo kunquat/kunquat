@@ -25,10 +25,10 @@
 #include <devices/dsps/DSP_type.h>
 #include <devices/generators/Gen_type.h>
 #include <Handle_private.h>
-#include <manifest.h>
 #include <memory.h>
 #include <module/Bind.h>
 #include <module/Environment.h>
+#include <module/manifest.h>
 #include <module/Parse_manager.h>
 #include <string/Streader.h>
 #include <string/common.h>

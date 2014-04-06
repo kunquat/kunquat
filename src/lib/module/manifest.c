@@ -15,7 +15,7 @@
 #include <stdio.h>
 
 #include <debug/assert.h>
-#include <manifest.h>
+#include <module/manifest.h>
 
 
 static bool read_manifest_entry(Streader* sr, const char* key, void* userdata)
