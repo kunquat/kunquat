@@ -19,8 +19,8 @@
 #include <stdbool.h>
 
 #include <module/Module.h>
+#include <module/sheet/Column.h>
 #include <player/Position.h>
-#include <sheet/Column.h>
 
 
 // TODO: define proper interface in Column

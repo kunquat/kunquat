@@ -19,7 +19,7 @@
 #include <debug/assert.h>
 #include <kunquat/limits.h>
 #include <memory.h>
-#include <sheet/Trigger.h>
+#include <module/sheet/Trigger.h>
 
 
 Trigger* new_Trigger(Event_type type, Tstamp* pos)

@@ -20,8 +20,8 @@
 #include <stdint.h>
 
 #include <containers/AAtree.h>
+#include <module/sheet/Trigger.h>
 #include <player/Event_names.h>
-#include <sheet/Trigger.h>
 #include <string/Streader.h>
 #include <Tstamp.h>
 

@@ -19,8 +19,8 @@
 #include <debug/assert.h>
 #include <kunquat/limits.h>
 #include <memory.h>
-#include <sheet/Pat_table.h>
-#include <sheet/Pattern.h>
+#include <module/sheet/Pat_table.h>
+#include <module/sheet/Pattern.h>
 
 
 struct Pat_table

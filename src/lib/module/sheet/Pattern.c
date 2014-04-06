@@ -23,7 +23,7 @@
 #include <Connections_search.h>
 #include <debug/assert.h>
 #include <memory.h>
-#include <sheet/Pattern.h>
+#include <module/sheet/Pattern.h>
 #include <string/common.h>
 
 

@@ -18,8 +18,8 @@
 #include <containers/Etable.h>
 #include <debug/assert.h>
 #include <memory.h>
-#include <sheet/Song.h>
-#include <sheet/Song_table.h>
+#include <module/sheet/Song.h>
+#include <module/sheet/Song_table.h>
 
 
 struct Song_table

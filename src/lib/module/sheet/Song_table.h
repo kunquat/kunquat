@@ -20,7 +20,7 @@
 #include <stdbool.h>
 
 #include <kunquat/limits.h>
-#include <sheet/Song.h>
+#include <module/sheet/Song.h>
 
 
 /**

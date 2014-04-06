@@ -29,11 +29,11 @@
 #include <module/Input_map.h>
 #include <module/Ins_table.h>
 #include <module/Scale.h>
+#include <module/sheet/Order_list.h>
+#include <module/sheet/Pat_table.h>
+#include <module/sheet/Song_table.h>
+#include <module/sheet/Track_list.h>
 #include <random/Random.h>
-#include <sheet/Order_list.h>
-#include <sheet/Pat_table.h>
-#include <sheet/Song_table.h>
-#include <sheet/Track_list.h>
 #include <string/Streader.h>
 
 

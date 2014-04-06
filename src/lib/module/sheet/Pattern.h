@@ -20,8 +20,8 @@
 
 #include <Connections.h>
 #include <containers/AAtree.h>
+#include <module/sheet/Column.h>
 #include <Pat_inst_ref.h>
-#include <sheet/Column.h>
 #include <string/Streader.h>
 #include <Tstamp.h>
 #include <kunquat/limits.h>

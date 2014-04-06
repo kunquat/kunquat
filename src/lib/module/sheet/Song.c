@@ -21,7 +21,7 @@
 #include <debug/assert.h>
 #include <kunquat/limits.h>
 #include <memory.h>
-#include <sheet/Song.h>
+#include <module/sheet/Song.h>
 #include <string/common.h>
 
 
