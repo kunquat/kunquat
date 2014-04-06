@@ -21,7 +21,7 @@
 
 
 /**
- * Reserves a Voice for a Generator in an Instrument.
+ * Reserve a Voice for a Generator in an Instrument.
  *
  * \param ch          The Channel -- must not be \c NULL.
  * \param ins         The Instrument -- must not be \c NULL.
@@ -37,7 +37,7 @@ void reserve_voice(
 
 
 /**
- * Sets initial values of parameters according to the Instrument.
+ * Set initial values of parameters according to the Instrument.
  *
  * \param voice       The Voice -- must not be \c NULL.
  * \param vs          The Voice state -- must not be \c NULL.

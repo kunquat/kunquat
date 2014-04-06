@@ -21,7 +21,7 @@
 
 
 /**
- * Creates a new Pulse Generator.
+ * Create a new Pulse Generator.
  *
  * \return   The new Pulse Generator if successful, or \c NULL if memory
  *           allocation failed.
@@ -30,7 +30,7 @@ Device_impl* new_Generator_pulse(Generator* gen);
 
 
 /**
- * Returns Pulse Generator property information.
+ * Return Pulse Generator property information.
  *
  * \param gen             The Pulse Generator -- must be valid.
  * \param property_type   The property type -- must not be \c NULL.

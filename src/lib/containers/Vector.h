@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2014
  *
  * This file is part of Kunquat.
  *
@@ -30,7 +30,7 @@ typedef struct Vector Vector;
 
 
 /**
- * Creates a new Vector.
+ * Create a new Vector.
  *
  * \param elem_size   Size of a single element in bytes -- must be > \c 0.
  *
@@ -41,7 +41,7 @@ Vector* new_Vector(size_t elem_size);
 
 
 /**
- * Returns the number of elements stored in the Vector.
+ * Return the number of elements stored in the Vector.
  *
  * \param v   The Vector -- must not be \c NULL.
  *
@@ -51,7 +51,7 @@ size_t Vector_size(const Vector* v);
 
 
 /**
- * Retrieves an element from the Vector.
+ * Retrieve an element from the Vector.
  *
  * \param v       The Vector -- must not be \c NULL.
  * \param index   The index of the element -- must be >= \c 0 and
@@ -62,7 +62,7 @@ void Vector_get(const Vector* v, size_t index, void* dest);
 
 
 /**
- * Retrieves a reference to an element in the Vector.
+ * Retrieve a reference to an element in the Vector.
  *
  * \param v       The Vector -- must not be \c NULL.
  * \param index   The index of the element -- must be >= \c 0 and
@@ -74,7 +74,7 @@ void* Vector_get_ref(const Vector* v, size_t index);
 
 
 /**
- * Appends an element to the end of the Vector.
+ * Append an element to the end of the Vector.
  *
  * \param v      The Vector -- must not be \c NULL.
  * \param elem   The element -- must not be \c NULL.
@@ -85,7 +85,7 @@ bool Vector_append(Vector* v, void* elem);
 
 
 /**
- * Destroys an existing Vector.
+ * Destroy an existing Vector.
  *
  * \param v   The Vector, or \c NULL.
  */

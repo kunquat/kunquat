@@ -28,7 +28,7 @@ typedef struct Ins_table Ins_table;
 
 
 /**
- * Creates a new Instrument table.
+ * Create a new Instrument table.
  *
  * \param size   The table size -- must be > \c 0.
  *
@@ -39,7 +39,7 @@ Ins_table* new_Ins_table(int size);
 
 
 /**
- * Inserts a new Instrument into the Instrument table.
+ * Insert a new Instrument into the Instrument table.
  *
  * If the target index already contains an Instrument, it will be deleted.
  *
@@ -55,7 +55,7 @@ bool Ins_table_set(Ins_table* table, int index, Instrument* ins);
 
 
 /**
- * Gets an Instrument from the Instrument table.
+ * Get an Instrument from the Instrument table.
  *
  * \param table   The Instrument table -- must not be \c NULL.
  * \param index   The target index -- must be >= \c 0 and less than
@@ -67,7 +67,7 @@ Instrument* Ins_table_get(Ins_table* table, int index);
 
 
 /**
- * Removes an Instrument from the Instrument table.
+ * Remove an Instrument from the Instrument table.
  *
  * \param table   The Instrument table -- must not be \c NULL.
  * \param index   The target index -- must be >= \c 0 and less than
@@ -77,7 +77,7 @@ void Ins_table_remove(Ins_table* table, int index);
 
 
 /**
- * Clears the Instrument table.
+ * Clear the Instrument table.
  *
  * \param table   The Instrument table -- must not be \c NULL.
  */
@@ -85,7 +85,7 @@ void Ins_table_clear(Ins_table* table);
 
 
 /**
- * Destroys an existing Instrument table.
+ * Destroy an existing Instrument table.
  *
  * \param table   The Instrument table, or \c NULL.
  */

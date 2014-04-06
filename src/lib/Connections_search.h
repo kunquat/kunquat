@@ -43,7 +43,7 @@ typedef enum
 
 
 /**
- * Creates new Connections from a string.
+ * Create new Connections from a string.
  *
  * \param sr          The Streader of the JSON input -- must not be \c NULL.
  * \param ins_level   Whether this is an instrument-level graph or not.
@@ -66,7 +66,7 @@ Connections* new_Connections_from_string(
 
 
 /**
- * Retrieves the master Device node of the Connections.
+ * Retrieve the master Device node of the Connections.
  *
  * \param graph   The Connections -- must not be \c NULL.
  *
@@ -76,7 +76,7 @@ Device_node* Connections_get_master(Connections* graph);
 
 
 /**
- * Prepares the Connections for mixing.
+ * Prepare the Connections for mixing.
  *
  * \param graph    The Connections -- must not be \c NULL.
  * \param states   The Device states -- must not be \c NULL.

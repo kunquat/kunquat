@@ -28,7 +28,7 @@ typedef struct Effect_table Effect_table;
 
 
 /**
- * Creates a new Effect table.
+ * Create a new Effect table.
  *
  * \param size   The table size -- must be > \c 0.
  *
@@ -39,7 +39,7 @@ Effect_table* new_Effect_table(int size);
 
 
 /**
- * Inserts a new Effect into the Effect table.
+ * Insert a new Effect into the Effect table.
  *
  * If the target index already contains an Effect, it will be deleted.
  *
@@ -55,7 +55,7 @@ bool Effect_table_set(Effect_table* table, int index, Effect* eff);
 
 
 /**
- * Gets an Effect from the Effect table.
+ * Get an Effect from the Effect table.
  *
  * \param table   The Effect table -- must not be \c NULL.
  * \param index   The target index -- must be >= \c 0 and less than
@@ -67,7 +67,7 @@ const Effect* Effect_table_get(const Effect_table* table, int index);
 
 
 /**
- * Gets a mutable Effect from the Effect table.
+ * Get a mutable Effect from the Effect table.
  *
  * \param table   The Effect table -- must not be \c NULL.
  * \param index   The target index -- must be >= \c 0 and less than
@@ -79,7 +79,7 @@ Effect* Effect_table_get_mut(Effect_table* table, int index);
 
 
 /**
- * Removes an Effect from the Effect table.
+ * Remove an Effect from the Effect table.
  *
  * \param table   The Effect table -- must not be \c NULL.
  * \param index   The target index -- must be >= \c 0 and less than
@@ -89,7 +89,7 @@ void Effect_table_remove(Effect_table* table, int index);
 
 
 /**
- * Clears the Effect table.
+ * Clear the Effect table.
  *
  * \param table   The Effect table -- must not be \c NULL.
  */
@@ -97,7 +97,7 @@ void Effect_table_clear(Effect_table* table);
 
 
 /**
- * Destroys an existing Effect table.
+ * Destroy an existing Effect table.
  *
  * \param table   The Effect table, or \c NULL.
  */

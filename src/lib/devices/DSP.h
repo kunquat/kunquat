@@ -38,7 +38,7 @@ typedef struct DSP
 
 
 /**
- * Creates a new DSP.
+ * Create a new DSP.
  *
  * \return   The new DSP if successful, otherwise \c NULL. \a state will not
  *           be modified if memory allocation failed.
@@ -47,7 +47,7 @@ DSP* new_DSP(void);
 
 
 /**
- * Initialises the common part of the DSP.
+ * Initialise the common part of the DSP.
  *
  * \param dsp           The DSP -- must not be \c NULL.
  * \param destroy       The destructor of the DSP -- must not be \c NULL.
@@ -67,7 +67,7 @@ bool DSP_init(
 
 
 /**
- * Sets a function that clears the internal buffers of the DSP implementation.
+ * Set a function that clears the internal buffers of the DSP implementation.
  *
  * \param dsp    The DSP -- must not be \c NULL.
  * \param func   The clear function -- must not be \c NULL.
@@ -77,7 +77,7 @@ void DSP_set_clear_history(
 
 
 /**
- * Resets the playback parameters of the DSP.
+ * Reset the playback parameters of the DSP.
  *
  * If you override this function, call this inside the overriding function.
  *
@@ -87,7 +87,7 @@ void DSP_set_clear_history(
 
 
 /**
- * Clears the internal buffers (if any) of the DSP.
+ * Clear the internal buffers (if any) of the DSP.
  *
  * \param dsp         The DSP -- must not be \c NULL.
  * \param dsp_state   The DSP state -- must not be \c NULL.
@@ -96,7 +96,7 @@ void DSP_clear_history(const DSP* dsp, DSP_state* dsp_state);
 
 
 /**
- * Destroys an existing DSP.
+ * Destroy an existing DSP.
  *
  * \param dsp   The DSP, or \c NULL.
  */

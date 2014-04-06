@@ -23,7 +23,7 @@
 
 
 /**
- * Evaluates an expression.
+ * Evaluate an expression.
  *
  * \param sr       The expression reader -- must not be \c NULL.
  * \param estate   The Environment state -- must not be \c NULL.

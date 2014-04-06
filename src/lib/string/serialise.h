@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2014
  *
  * This file is part of Kunquat.
  *
@@ -21,7 +21,7 @@
 
 
 /**
- * Creates a JSON representation of a boolean value.
+ * Create a JSON representation of a boolean value.
  *
  * \param dest    The destination string buffer -- must not be \c NULL.
  * \param size    The size of the string buffer including the terminating
@@ -35,7 +35,7 @@ int serialise_bool(char* dest, int size, bool value);
 
 
 /**
- * Creates a JSON representation of a integer value.
+ * Create a JSON representation of an integer value.
  *
  * \param dest    The destination string buffer -- must not be \c NULL.
  * \param size    The size of the string buffer including the terminating
@@ -49,7 +49,7 @@ int serialise_int(char* dest, int size, int64_t value);
 
 
 /**
- * Creates a JSON representation of a floating point value.
+ * Create a JSON representation of a floating point value.
  *
  * \param dest    The destination string buffer -- must not be \c NULL.
  * \param size    The size of the string buffer including the terminating
@@ -63,7 +63,7 @@ int serialise_float(char* dest, int size, double value);
 
 
 /**
- * Creates a JSON representation of a Pattern instance reference.
+ * Create a JSON representation of a Pattern instance reference.
  *
  * \param dest    The destination string buffer -- must not be \c NULL.
  * \param size    The size of the string buffer including the terminating
@@ -77,7 +77,7 @@ int serialise_Pat_inst_ref(char* dest, int size, Pat_inst_ref* value);
 
 
 /**
- * Creates a JSON representation of a Real value.
+ * Create a JSON representation of a Real value.
  *
  * \param dest    The destination string buffer -- must not be \c NULL.
  * \param size    The size of the string buffer including the terminating
@@ -91,7 +91,7 @@ int serialise_Real(char* dest, int size, Real* value);
 
 
 /**
- * Creates a JSON representation of a Tstamp value.
+ * Create a JSON representation of a Tstamp value.
  *
  * \param dest    The destination string buffer -- must not be \c NULL.
  * \param size    The size of the string buffer including the terminating

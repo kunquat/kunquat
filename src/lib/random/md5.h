@@ -21,7 +21,7 @@
 
 
 /**
- * Calculates the MD5 sum of a given byte sequence.
+ * Calculate the MD5 sum of a given byte sequence.
  *
  * \param seq        The sequence -- must not be \c NULL.
  * \param len        The length of \a seq -- must be >= \c 0.
@@ -35,7 +35,7 @@ void md5(const char* seq, int len, uint64_t* lower, uint64_t* upper, bool comple
 
 
 /**
- * Calculates the MD5 sum of a given byte sequence with custom initial state.
+ * Calculate the MD5 sum of a given byte sequence with custom initial state.
  *
  * \param seq          The sequence -- must not be \c NULL.
  * \param len          The length of \a seq -- must be >= \c 0.
@@ -60,7 +60,7 @@ void md5_with_state(
 
 
 /**
- * Calculates the MD5 sum of a given string.
+ * Calculate the MD5 sum of a given string.
  *
  * \param str     The string -- must not be \c NULL.
  * \param lower   The storage location for the least significant half of the

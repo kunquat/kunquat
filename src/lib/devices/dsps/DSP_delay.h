@@ -23,7 +23,7 @@
 
 
 /**
- * Creates a new delay DSP.
+ * Create a new delay DSP.
  *
  * This DSP implements a tapped delay line (TDL).
  *

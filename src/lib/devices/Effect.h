@@ -28,7 +28,7 @@ typedef struct Effect Effect;
 
 
 /**
- * Creates a new Effect.
+ * Create a new Effect.
  *
  * \return   The new Effect if successful, or \c NULL if memory allocation
  *           failed.
@@ -37,7 +37,7 @@ Effect* new_Effect(void);
 
 
 /**
- * Parses an Effect header from a textual description.
+ * Parse an Effect header from a textual description.
  *
  * \param eff     The Effect -- must not be \c NULL.
  * \param str     The textual description.
@@ -49,7 +49,7 @@ Effect* new_Effect(void);
 
 
 /**
- * Gets a DSP of the Effect.
+ * Get a DSP of the Effect.
  *
  * \param eff     The Effect -- must not be \c NULL.
  * \param index   The index of the DSP -- must be >= \c 0 and
@@ -61,7 +61,7 @@ const DSP* Effect_get_dsp(const Effect* eff, int index);
 
 
 /**
- * Gets the DSP table of the Effect.
+ * Get the DSP table of the Effect.
  *
  * \param eff   The Effect -- must not be \c NULL.
  *
@@ -71,7 +71,7 @@ const DSP_table* Effect_get_dsps(const Effect* eff);
 
 
 /**
- * Gets the mutable DSP table of the Effect.
+ * Get the mutable DSP table of the Effect.
  *
  * \param eff   The Effect -- must not be \c NULL.
  *
@@ -81,7 +81,7 @@ DSP_table* Effect_get_dsps_mut(Effect* eff);
 
 
 /**
- * Sets the Connections of the Effect.
+ * Set the Connections of the Effect.
  *
  * Previously set Connections will be removed if found.
  *
@@ -92,7 +92,7 @@ void Effect_set_connections(Effect* eff, Connections* graph);
 
 
 /**
- * Prepares the Connections of the Effect.
+ * Prepare the Connections of the Effect.
  *
  * This function assumes that the outer input and output buffers of the Effect
  * have been allocated.
@@ -106,7 +106,7 @@ bool Effect_prepare_connections(const Effect* eff, Device_states* states);
 
 
 /**
- * Gets the input interface of the Effect.
+ * Get the input interface of the Effect.
  *
  * \param eff   The Effect -- must not be \c NULL.
  *
@@ -116,7 +116,7 @@ const Device* Effect_get_input_interface(const Effect* eff);
 
 
 /**
- * Gets the output interface of the Effect.
+ * Get the output interface of the Effect.
  *
  * \param eff   The Effect -- must not be \c NULL.
  *
@@ -126,7 +126,7 @@ const Device* Effect_get_output_interface(const Effect* eff);
 
 
 /**
- * Destroys an existing Effect.
+ * Destroy an existing Effect.
  *
  * \param eff   The Effect, or \c NULL.
  */

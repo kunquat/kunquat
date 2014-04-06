@@ -55,7 +55,7 @@ struct Device_impl
 
 
 /**
- * Initialises the Device implementation.
+ * Initialise the Device implementation.
  *
  * \param dimpl     The Device implementation -- must not be \c NULL.
  * \param destroy   The destructor -- must not be \c NULL.
@@ -68,7 +68,7 @@ bool Device_impl_init(
 
 
 /**
- * Registers an audio rate set function.
+ * Register an audio rate set function.
  *
  * \param dimpl   The Device implementation -- must not be \c NULL.
  * \param set     The audio rate set function, or \c NULL.
@@ -79,7 +79,7 @@ void Device_impl_register_set_audio_rate(
 
 
 /**
- * Registers a buffer size set function.
+ * Register a buffer size set function.
  *
  * \param dimpl   The Device implementation -- must not be \c NULL.
  * \param set     The buffer size set function, or \c NULL.
@@ -90,7 +90,7 @@ void Device_impl_register_set_buffer_size(
 
 
 /**
- * Registers a tempo update function.
+ * Register a tempo update function.
  *
  * \param dimpl    The Device implementation -- must not be \c NULL.
  * \param update   The tempo update function, or \c NULL.
@@ -101,7 +101,7 @@ void Device_impl_register_update_tempo(
 
 
 /**
- * Registers a Device state reset function.
+ * Register a Device state reset function.
  *
  * \param dimpl   The Device implementation -- must not be \c NULL.
  * \param reset   The reset function -- must not be \c NULL.
@@ -112,7 +112,7 @@ void Device_impl_register_reset_device_state(
 
 
 /**
- * Registers a boolean value set function.
+ * Register a boolean value set function.
  *
  * The key pattern may contain \c 0 to \c DEVICE_KEY_INDICES_MAX sequences of
  * XX* which are matched against hexadecimal numbers of actual keys. Example:
@@ -155,7 +155,7 @@ bool Device_impl_register_set_bool(
 
 
 /**
- * Registers a float value set function.
+ * Register a float value set function.
  *
  * See \a Device_impl_register_set_bool for a detailed description of the
  * \a keyp argument.
@@ -183,7 +183,7 @@ bool Device_impl_register_set_float(
 
 
 /**
- * Registers an integer value set function.
+ * Register an integer value set function.
  *
  * See \a Device_impl_register_set_bool for a detailed description of the
  * \a keyp argument.
@@ -211,7 +211,7 @@ bool Device_impl_register_set_int(
 
 
 /**
- * Registers a timestamp value set function.
+ * Register a timestamp value set function.
  *
  * See \a Device_impl_register_set_bool for a detailed description of the
  * \a keyp argument.
@@ -240,7 +240,7 @@ bool Device_impl_register_set_tstamp(
 
 
 /**
- * Registers an envelope value set function.
+ * Register an envelope value set function.
  *
  * See \a Device_impl_register_set_bool for a detailed description of the
  * \a keyp argument.
@@ -269,7 +269,7 @@ bool Device_impl_register_set_envelope(
 
 
 /**
- * Registers a sample value set function.
+ * Register a sample value set function.
  *
  * See \a Device_impl_register_set_bool for a detailed description of the
  * \a keyp argument.
@@ -298,7 +298,7 @@ bool Device_impl_register_set_sample(
 
 
 /**
- * Registers a sample parameters value set function.
+ * Register a sample parameters value set function.
  *
  * See \a Device_impl_register_set_bool for a detailed description of the
  * \a keyp argument.
@@ -327,7 +327,7 @@ bool Device_impl_register_set_sample_params(
 
 
 /**
- * Registers a note map value set function.
+ * Register a note map value set function.
  *
  * See \a Device_impl_register_set_bool for a detailed description of the
  * \a keyp argument.
@@ -356,7 +356,7 @@ bool Device_impl_register_set_note_map(
 
 
 /**
- * Registers a hit map value set function.
+ * Register a hit map value set function.
  *
  * See \a Device_impl_register_set_bool for a detailed description of the
  * \a keyp argument.
@@ -385,7 +385,7 @@ bool Device_impl_register_set_hit_map(
 
 
 /**
- * Registers a number list value set function.
+ * Register a number list value set function.
  *
  * See \a Device_impl_register_set_bool for a detailed description of the
  * \a keyp argument.
@@ -414,7 +414,7 @@ bool Device_impl_register_set_num_list(
 
 
 /**
- * Registers a boolean value state update function.
+ * Register a boolean value state update function.
  *
  * See \a Device_impl_register_set_bool for a detailed description of the
  * \a keyp argument.
@@ -437,7 +437,7 @@ bool Device_impl_register_update_state_bool(
 
 
 /**
- * Registers a float value state update function.
+ * Register a float value state update function.
  *
  * See \a Device_impl_register_set_bool for a detailed description of the
  * \a keyp argument.
@@ -460,7 +460,7 @@ bool Device_impl_register_update_state_float(
 
 
 /**
- * Registers a integer value state update function.
+ * Register an integer value state update function.
  *
  * See \a Device_impl_register_set_bool for a detailed description of the
  * \a keyp argument.
@@ -483,7 +483,7 @@ bool Device_impl_register_update_state_int(
 
 
 /**
- * Registers a timestamp value state update function.
+ * Register a timestamp value state update function.
  *
  * See \a Device_impl_register_set_bool for a detailed description of the
  * \a keyp argument.
@@ -506,7 +506,7 @@ bool Device_impl_register_update_state_tstamp(
 
 
 /**
- * Resets a Device state.
+ * Reset a Device state.
  *
  * \param dimpl    The Device implementation -- must not be \c NULL.
  * \param dstate   The Device state -- must not be \c NULL.
@@ -517,7 +517,7 @@ void Device_impl_reset_device_state(
 
 
 /**
- * Sets the audio rate of a Device state.
+ * Set the audio rate of a Device state.
  *
  * \param dimpl        The Device implementation -- must not be \c NULL.
  * \param dstate       The Device state -- must not be \c NULL.
@@ -532,7 +532,7 @@ bool Device_impl_set_audio_rate(
 
 
 /**
- * Sets the buffer size of a Device state.
+ * Set the buffer size of a Device state.
  *
  * \param dimpl         The Device implementation -- must not be \c NULL.
  * \param dstate        The Device state -- must not be \c NULL.
@@ -547,7 +547,7 @@ bool Device_impl_set_buffer_size(
 
 
 /**
- * Updates the tempo of a Device state.
+ * Update the tempo of a Device state.
  *
  * \param dimpl    The Device implementation -- must not be \c NULL.
  * \param dstate   The Device state -- must not be \c NULL.
@@ -560,7 +560,7 @@ void Device_impl_update_tempo(
 
 
 /**
- * Sets a key in the Device implementation.
+ * Set a key in the Device implementation.
  *
  * The actual data is retrieved from device parameters.
  *
@@ -573,7 +573,7 @@ bool Device_impl_set_key(Device_impl* dimpl, const char* key);
 
 
 /**
- * Notifies a Device state of a Device implementation key change.
+ * Notify a Device state of a Device implementation key change.
  *
  * \param dimpl    The Device implementation -- must not be \c NULL.
  * \param key      The key -- must be valid.
@@ -588,7 +588,7 @@ bool Device_impl_set_state_key(
 
 
 /**
- * Updates a boolean value in a Device state.
+ * Update a boolean value in a Device state.
  *
  * \param dimpl    The Device implementation -- must not be \c NULL.
  * \param dstate   The Device state -- must not be \c NULL.
@@ -603,7 +603,7 @@ void Device_impl_update_state_bool(
 
 
 /**
- * Updates a float value in a Device state.
+ * Update a float value in a Device state.
  *
  * \param dimpl    The Device implementation -- must not be \c NULL.
  * \param dstate   The Device state -- must not be \c NULL.
@@ -618,7 +618,7 @@ void Device_impl_update_state_float(
 
 
 /**
- * Updates a integral value in a Device state.
+ * Update a integral value in a Device state.
  *
  * \param dimpl    The Device implementation -- must not be \c NULL.
  * \param dstate   The Device state -- must not be \c NULL.
@@ -633,7 +633,7 @@ void Device_impl_update_state_int(
 
 
 /**
- * Updates a timestamp value in a Device state.
+ * Update a timestamp value in a Device state.
  *
  * \param dimpl    The Device implementation -- must not be \c NULL.
  * \param dstate   The Device state -- must not be \c NULL.
@@ -648,7 +648,7 @@ void Device_impl_update_state_tstamp(
 
 
 /**
- * Deinitialises the Device implementation.
+ * Deinitialise the Device implementation.
  *
  * \param dimpl   The Device implementation -- must not be \c NULL.
  */
@@ -656,7 +656,7 @@ void Device_impl_deinit(Device_impl* dimpl);
 
 
 /**
- * Destroys the Device implementation.
+ * Destroy the Device implementation.
  *
  * \param dimpl   The Device implementation, or \c NULL.
  */

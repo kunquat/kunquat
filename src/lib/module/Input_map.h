@@ -30,7 +30,7 @@ typedef struct Input_map Input_map;
 
 
 /**
- * Creates a new Input map.
+ * Create a new Input map.
  *
  * \param sr            The Streader of the JSON input -- must not be \c NULL.
  * \param num_inputs    Number of distinct input values -- must be > \c 0.
@@ -42,7 +42,7 @@ Input_map* new_Input_map(Streader* sr, int32_t num_inputs, int32_t num_outputs);
 
 
 /**
- * Checks if the Input map uses only existent controls.
+ * Check if the Input map uses only existent controls.
  *
  * \param im          The Input map -- must not be \c NULL.
  * \param existents   The table of existent statuses -- must not be \c NULL.
@@ -53,7 +53,7 @@ bool Input_map_is_valid(const Input_map* im, const Bit_array* existents);
 
 
 /**
- * Returns a device table index from the Input map.
+ * Return a device table index from the Input map.
  *
  * \param im         The Input map -- must not be \c NULL.
  * \param input_id   The input ID -- must be >= \c 0 and less than
@@ -65,7 +65,7 @@ int32_t Input_map_get_device_index(const Input_map* im, int32_t input_id);
 
 
 /**
- * Destroys an Input map.
+ * Destroy an Input map.
  *
  * \param im   The Input map, or \c NULL.
  */

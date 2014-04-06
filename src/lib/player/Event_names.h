@@ -29,7 +29,7 @@ typedef struct Event_names Event_names;
 
 
 /**
- * Creates a new Event name collection.
+ * Create a new Event name collection.
  *
  * \return   The Event name collection if successful, or \c NULL if memory
  *           allocation failed.
@@ -38,7 +38,7 @@ Event_names* new_Event_names(void);
 
 
 /**
- * Adds an Event name into the Event name collection.
+ * Add an Event name into the Event name collection.
  *
  * \param names   The Event name collection -- must not be \c NULL.
  * \param name    The Event name -- must not be \c NULL, empty string or
@@ -52,7 +52,7 @@ Event_names* new_Event_names(void);
 
 
 /**
- * Finds out whether a fatal error has occurred when adding Event names.
+ * Find out whether a fatal error has occurred when adding Event names.
  *
  * \param names   The Event name collection -- must not be \c NULL.
  *
@@ -62,7 +62,7 @@ bool Event_names_error(Event_names* names);
 
 
 /**
- * Retrieves the Event type of the given name.
+ * Retrieve the Event type of the given name.
  *
  * \param names   The Event name collection -- must not be \c NULL.
  * \param name    The Event name -- must not be \c NULL.
@@ -74,7 +74,7 @@ Event_type Event_names_get(const Event_names* names, const char* name);
 
 
 /**
- * Retrieves the parameter type for the given event name.
+ * Retrieve the parameter type for the given event name.
  *
  * \param names   The Event name collection -- must not be \c NULL.
  * \param name    The Event name -- must be a supported name.
@@ -87,7 +87,7 @@ Value_type Event_names_get_param_type(
 
 
 /**
- * Destroys an existing Event name collection.
+ * Destroy an existing Event name collection.
  *
  * \param names   The Event name collection, or \c NULL.
  */

@@ -23,7 +23,7 @@
 
 
 /**
- * Creates a new volume DSP.
+ * Create a new volume DSP.
  *
  * \return   The new volume DSP if successful, or \c NULL if memory allocation
  *           failed.

@@ -29,7 +29,7 @@ typedef struct Event_cache Event_cache;
 
 
 /**
- * Creates a new Event cache.
+ * Create a new Event cache.
  *
  * \return   The new Event cache if successful, or \c NULL if memory
  *           allocation failed.
@@ -38,7 +38,7 @@ Event_cache* new_Event_cache(void);
 
 
 /**
- * Adds an event to the Event cache.
+ * Add an event to the Event cache.
  *
  * \param cache        The Event cache -- must not be \c NULL.
  * \param event_name   The name of the Event -- must not be \c NULL.
@@ -49,7 +49,7 @@ bool Event_cache_add_event(Event_cache* cache, char* event_name);
 
 
 /**
- * Updates the Event cache.
+ * Update the Event cache.
  *
  * \param cache        The Event cache -- must not be \c NULL.
  * \param event_name   The name of the Event -- must not be \c NULL.
@@ -59,7 +59,7 @@ void Event_cache_update(Event_cache* cache, const char* event_name, Value* value
 
 
 /**
- * Gets a value from the Event cache.
+ * Get a value from the Event cache.
  *
  * \param cache        The Event cache -- must not be \c NULL.
  * \param event_name   The name of the Event -- must not be \c NULL and
@@ -71,7 +71,7 @@ const Value* Event_cache_get_value(const Event_cache* cache, const char* event_n
 
 
 /**
- * Resets the Event cache.
+ * Reset the Event cache.
  *
  * \param cache        The Event cache -- must not be \c NULL.
  */
@@ -79,7 +79,7 @@ void Event_cache_reset(Event_cache* cache);
 
 
 /**
- * Destroys an existing Event cache.
+ * Destroy an existing Event cache.
  *
  * \param cache   The Event cache, or \c NULL.
  */

@@ -33,7 +33,7 @@ typedef struct Event_handler Event_handler;
 
 
 /**
- * Creates a new Event handler.
+ * Create a new Event handler.
  *
  * \return   The new Event handler if successful, or \c NULL if memory
  *           allocation failed.
@@ -47,7 +47,7 @@ Event_handler* new_Event_handler(
 
 
 /**
- * Retrieves the Event names from the Event handler.
+ * Retrieve the Event names from the Event handler.
  *
  * \param eh   The Event handler -- must not be \c NULL.
  *
@@ -57,7 +57,7 @@ const Event_names* Event_handler_get_names(const Event_handler* eh);
 
 
 /**
- * Registers a Control Event processor.
+ * Register a Control Event processor.
  *
  * \param eh   The Event handler -- must not be \c NULL.
  */
@@ -68,7 +68,7 @@ bool Event_handler_set_control_process(
 
 
 /**
- * Registers a general Event processor.
+ * Register a general Event processor.
  *
  * \param eh        The Event handler -- must not be \c NULL.
  * \param name      The name of the Event -- must not be \c NULL, empty string
@@ -85,7 +85,7 @@ bool Event_handler_set_general_process(
 
 
 /**
- * Registers a Channel Event processor.
+ * Register a Channel Event processor.
  *
  * \param eh        The Event handler -- must not be \c NULL.
  * \param name      The name of the Event -- must not be \c NULL, empty string
@@ -102,7 +102,7 @@ bool Event_handler_set_ch_process(
 
 
 /**
- * Registers a master event processor.
+ * Register a master event processor.
  *
  * \param eh        The Event handler -- must not be \c NULL.
  * \param name      The name of the event -- must not be \c NULL, empty string
@@ -119,7 +119,7 @@ bool Event_handler_set_master_process(
 
 
 /**
- * Registers an Instrument Event processor.
+ * Register an Instrument Event processor.
  *
  * \param eh        The Event handler -- must not be \c NULL.
  * \param name      The name of the Event -- must not be \c NULL, empty string
@@ -136,7 +136,7 @@ bool Event_handler_set_ins_process(
 
 
 /**
- * Registers a Generator Event processor.
+ * Register a Generator Event processor.
  *
  * \param eh        The Event handler -- must not be \c NULL.
  * \param name      The name of the Event -- must not be \c NULL, empty string
@@ -154,7 +154,7 @@ bool Event_handler_set_generator_process(
 
 
 /**
- * Registers an Effect Event processor.
+ * Register an Effect Event processor.
  *
  * \param eh        The Event handler -- must not be \c NULL.
  * \param name      The name of the Event -- must not be \c NULL, empty string
@@ -172,7 +172,7 @@ bool Event_handler_set_effect_process(
 
 
 /**
- * Registers a DSP Event processor.
+ * Register a DSP Event processor.
  *
  * \param eh        The Event handler -- must not be \c NULL.
  * \param name      The name of the Event -- must not be \c NULL, empty string
@@ -190,7 +190,7 @@ bool Event_handler_set_dsp_process(
 
 
 /**
- * Triggers an event.
+ * Trigger an event.
  *
  * \param eh       The Event handler -- must not be \c NULL.
  * \param ch_num   The channel number -- must be >= \c 0 and
@@ -209,7 +209,7 @@ bool Event_handler_trigger(
 
 
 /**
- * Adds a key into all Channel-specific generator parameter dictionaries.
+ * Add a key into all Channel-specific generator parameter dictionaries.
  *
  * \param eh    The Event handler -- must not be \c NULL.
  * \param key   The key -- must not be \c NULL.
@@ -222,7 +222,7 @@ bool Event_handler_trigger(
 
 
 /**
- * Destroys an existing Event handler.
+ * Destroy an existing Event handler.
  *
  * \param eh   The Event handler, or \c NULL.
  */

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2014
  *
  * This file is part of Kunquat.
  *
@@ -30,7 +30,7 @@ typedef struct Ins_state
 
 
 /**
- * Resets the Instrument state.
+ * Reset the Instrument state.
  *
  * \param ins_state   The Instrument state -- must not be \c NULL.
  */

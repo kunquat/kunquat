@@ -139,7 +139,7 @@ bool Voice_pool_resize(Voice_pool* pool, uint16_t size)
 }
 
 
-uint16_t Voice_pool_get_size(Voice_pool* pool)
+uint16_t Voice_pool_get_size(const Voice_pool* pool)
 {
     assert(pool != NULL);
     return pool->size;

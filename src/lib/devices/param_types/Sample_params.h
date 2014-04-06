@@ -56,7 +56,7 @@ typedef struct Sample_params
 
 
 /**
- * Initialises Sample parameters.
+ * Initialise Sample parameters.
  *
  * \param params   The Sample parameters -- must not be \c NULL.
  *
@@ -66,7 +66,7 @@ Sample_params* Sample_params_init(Sample_params* params);
 
 
 /**
- * Parses the Sample parameters from a string.
+ * Parse the Sample parameters from a string.
  *
  * \param params   The Sample parameters -- must not be \c NULL.
  * \param sr       The Streader of the JSON data -- must not be \c NULL.
@@ -77,14 +77,14 @@ bool Sample_params_parse(Sample_params* params, Streader* sr);
 
 
 /**
- * Copies Sample parameters.
+ * Copy Sample parameters.
  *
  * \param dest   The copy destination -- must not be \c NULL.
  * \param src    The copy source -- must not be \c NULL.
  *
  * \return   The parameter \a dest.
  */
-Sample_params* Sample_params_copy(Sample_params* dest, Sample_params* src);
+Sample_params* Sample_params_copy(Sample_params* dest, const Sample_params* src);
 
 
 #endif // K_SAMPLE_PARAMS_H

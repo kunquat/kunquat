@@ -28,7 +28,7 @@ typedef struct Jump_cache Jump_cache;
 
 
 /**
- * Creates a new Jump cache.
+ * Create a new Jump cache.
  *
  * \param num_contexts   The number of Jump contexts in the cache
  *                       -- must be > \c 0.
@@ -40,7 +40,7 @@ Jump_cache* new_Jump_cache(size_t num_contexts);
 
 
 /**
- * Gets a Jump context handle from the Jump cache.
+ * Get a Jump context handle from the Jump cache.
  *
  * \param jcache   The Jump cache -- must not be \c NULL.
  *
@@ -50,7 +50,7 @@ AAnode* Jump_cache_acquire_context(Jump_cache* jcache);
 
 
 /**
- * Releases a Jump context handle belonging to the Jump cache.
+ * Release a Jump context handle belonging to the Jump cache.
  *
  * \param jcache   The Jump cache -- must not be \c NULL.
  * \param handle   The Jump context handle -- must not be \c NULL.
@@ -59,7 +59,7 @@ void Jump_cache_release_context(Jump_cache* jcache, AAnode* handle);
 
 
 /**
- * Destroys an existing Jump cache.
+ * Destroy an existing Jump cache.
  *
  * \param jcache   The Jump cache, or \c NULL. If not \c NULL, \a jcache
  *                 must contain all the Jump contexts it manages.

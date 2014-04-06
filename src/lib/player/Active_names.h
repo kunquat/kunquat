@@ -46,7 +46,7 @@ typedef struct Active_names Active_names;
 
 
 /**
- * Creates new Active names.
+ * Create new Active names.
  *
  * \return   The new Active names if successful, or \c NULL if memory
  *           allocation failed.
@@ -55,7 +55,7 @@ Active_names* new_Active_names(void);
 
 
 /**
- * Sets an active name for a type.
+ * Set an active name for a type.
  *
  * \param names   The Active names -- must not be \c NULL.
  * \param cat     The category -- must be valid.
@@ -73,7 +73,7 @@ bool Active_names_set(
 
 
 /**
- * Gets an active name for a type.
+ * Get an active name for a type.
  *
  * \param names   The Active names -- must not be \c NULL.
  * \param cat     The category -- must be valid.
@@ -86,7 +86,7 @@ const char* Active_names_get(
 
 
 /**
- * Resets the Active names.
+ * Reset the Active names.
  *
  * \param names   The Active names -- must not be \c NULL.
  */
@@ -94,7 +94,7 @@ void Active_names_reset(Active_names* names);
 
 
 /**
- * Destroys existing Active names.
+ * Destroy existing Active names.
  *
  * \param names   The Active names, or \c NULL.
  */

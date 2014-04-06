@@ -23,7 +23,7 @@
 
 
 /**
- * Creates a new chorus DSP.
+ * Create a new chorus DSP.
  *
  * \return   The new chorus DSP if successful, or \c NULL if memory allocation
  *           failed.

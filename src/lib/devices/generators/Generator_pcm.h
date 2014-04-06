@@ -32,7 +32,7 @@
 
 
 /**
- * Creates a new PCM Generator.
+ * Create a new PCM Generator.
  *
  * \return   The new PCM Generator if successful, or \c NULL if memory
  *           allocation failed.
@@ -41,7 +41,7 @@ Device_impl* new_Generator_pcm(Generator* gen);
 
 
 /**
- * Returns PCM Generator property information.
+ * Return PCM Generator property information.
  *
  * \param gen             The PCM Generator -- must be valid.
  * \param property_type   The property type -- must not be \c NULL.

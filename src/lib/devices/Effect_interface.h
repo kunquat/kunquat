@@ -26,7 +26,7 @@ typedef struct Effect_interface
 
 
 /**
- * Creates a new Effect interface.
+ * Create a new Effect interface.
  *
  * \return   The new Effect interface if successful, or \c NULL if memory
  *           allocation failed.
@@ -35,7 +35,7 @@ Effect_interface* new_Effect_interface(void);
 
 
 /**
- * Destroys an existing Effect interface.
+ * Destroy an existing Effect interface.
  *
  * \param ei   The Effect interface, or \c NULL.
  */

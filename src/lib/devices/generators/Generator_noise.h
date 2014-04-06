@@ -22,7 +22,7 @@
 
 
 /**
- * Creates a new Noise Generator.
+ * Create a new Noise Generator.
  *
  * \return   The new Noise Generator if successful, or \c NULL if memory
  *           allocation failed.
@@ -31,7 +31,7 @@ Device_impl* new_Generator_noise(Generator* gen);
 
 
 /**
- * Returns Noise Generator property information.
+ * Return Noise Generator property information.
  *
  * \param gen             The Noise Generator -- must be valid.
  * \param property_type   The property type -- must not be \c NULL.

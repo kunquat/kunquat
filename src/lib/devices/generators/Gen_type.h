@@ -51,7 +51,7 @@ typedef struct Gen_type Gen_type;
 
 
 /**
- * Finds a Generator constructor.
+ * Find a Generator constructor.
  *
  * \param type   The Generator type -- must not be \c NULL.
  *
@@ -61,7 +61,7 @@ Generator_cons* Gen_type_find_cons(const char* type);
 
 
 /**
- * Finds a Generator property function.
+ * Find a Generator property function.
  *
  * \param type   The Generator type -- must be a valid type.
  *

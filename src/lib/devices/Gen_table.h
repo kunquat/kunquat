@@ -28,7 +28,7 @@ typedef struct Gen_table Gen_table;
 
 
 /**
- * Creates a new Generator table.
+ * Create a new Generator table.
  *
  * \param size   The table size -- must be > \c 0.
  *
@@ -39,7 +39,7 @@ Gen_table* new_Gen_table(int size);
 
 
 /**
- * Sets existent status of a Generator.
+ * Set existent status of a Generator.
  *
  * \param table      The Generator table -- must not be \c NULL.
  * \param index      The target index -- must be >= \c 0 and less than the
@@ -50,7 +50,7 @@ void Gen_table_set_existent(Gen_table* table, int index, bool existent);
 
 
 /**
- * Inserts a new Generator into the Generator table.
+ * Insert a new Generator into the Generator table.
  *
  * If the target index already contains a Generator, it will be deleted.
  *
@@ -66,7 +66,7 @@ bool Gen_table_set_gen(Gen_table* table, int index, Generator* gen);
 
 
 /**
- * Gets a Generator from the Generator table.
+ * Get a Generator from the Generator table.
  *
  * \param table   The Generator table -- must not be \c NULL.
  * \param index   The target index -- must be >= \c 0 and less than the
@@ -78,7 +78,7 @@ const Generator* Gen_table_get_gen(const Gen_table* table, int index);
 
 
 /**
- * Gets a mutable Generator from the Generator table.
+ * Get a mutable Generator from the Generator table.
  *
  * \param table   The Generator table -- must not be \c NULL.
  * \param index   The target index -- must be >= \c 0 and less than the
@@ -90,7 +90,7 @@ Generator* Gen_table_get_gen_mut(Gen_table* table, int index);
 
 
 /**
- * Removes a Generator from the Generator table.
+ * Remove a Generator from the Generator table.
  *
  * \param table   The Generator table -- must not be \c NULL.
  * \param index   The target index -- must be >= \c 0 and less than the
@@ -100,7 +100,7 @@ void Gen_table_remove_gen(Gen_table* table, int index);
 
 
 /**
- * Clears the Generator table.
+ * Clear the Generator table.
  *
  * \param table   The Generator table -- must not be \c NULL.
  */
@@ -108,7 +108,7 @@ void Gen_table_clear(Gen_table* table);
 
 
 /**
- * Destroys an existing Generator table.
+ * Destroy an existing Generator table.
  *
  * \param table   The Generator table, or \c NULL.
  */

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2014
  *
  * This file is part of Kunquat.
  *
@@ -32,7 +32,7 @@ typedef struct Event_buffer Event_buffer;
 
 
 /**
- * Creates a new Event buffer.
+ * Create a new Event buffer.
  *
  * \param size   The size of the Event buffer in bytes. If
  *               <= \c EVENT_LEN_MAX + 1, the buffer cannot contain any events.
@@ -44,7 +44,7 @@ Event_buffer* new_Event_buffer(size_t size);
 
 
 /**
- * Tells whether the Event buffer is empty.
+ * Tell whether the Event buffer is empty.
  *
  * \param ebuf   The Event buffer -- must not be \c NULL.
  *
@@ -54,7 +54,7 @@ bool Event_buffer_is_empty(const Event_buffer* ebuf);
 
 
 /**
- * Tells whether the Event buffer is full.
+ * Tell whether the Event buffer is full.
  *
  * The Event buffer is considered full if it cannot store another event
  * of \c EVENT_LEN_MAX bytes.
@@ -67,7 +67,7 @@ bool Event_buffer_is_full(const Event_buffer* ebuf);
 
 
 /**
- * Resets counter of added events to 0.
+ * Reset counter of added events to 0.
  *
  * This function should be called each time an event has been fully processed.
  *
@@ -78,7 +78,7 @@ void Event_buffer_reset_add_counter(Event_buffer* ebuf);
 
 
 /**
- * Starts event skipping.
+ * Start event skipping.
  *
  * Events that were fired on a suspended render call must be skipped when
  * processing the remaining events of a bind procedure.
@@ -90,7 +90,7 @@ void Event_buffer_start_skipping(Event_buffer* ebuf);
 
 
 /**
- * Returns the event skipping status.
+ * Return the event skipping status.
  *
  * \param ebuf   The Event buffer -- must not be \c NULL.
  *
@@ -101,7 +101,7 @@ bool Event_buffer_is_skipping(const Event_buffer* ebuf);
 
 
 /**
- * Gets the Event buffer contents.
+ * Get the Event buffer contents.
  *
  * \param ebuf   The Event buffer -- must not be \c NULL.
  *
@@ -111,7 +111,7 @@ const char* Event_buffer_get_events(const Event_buffer* ebuf);
 
 
 /**
- * Adds an event to the Event buffer.
+ * Add an event to the Event buffer.
  *
  * \param ebuf   The Event buffer -- must not be \c NULL and must not be full.
  * \param ch     The channel number -- must be >= \c 0 and
@@ -127,7 +127,7 @@ void Event_buffer_add(
 
 
 /**
- * Clears the Event buffer.
+ * Clear the Event buffer.
  *
  * \param ebuf   The Event buffer -- must not be \c NULL.
  */
@@ -135,7 +135,7 @@ void Event_buffer_clear(Event_buffer* ebuf);
 
 
 /**
- * Destroys the Event buffer.
+ * Destroy the Event buffer.
  *
  * \param ebuf   The Event buffer, or \c NULL.
  */

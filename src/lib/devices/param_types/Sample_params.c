@@ -142,7 +142,7 @@ bool Sample_params_parse(Sample_params* params, Streader* sr)
 }
 
 
-Sample_params* Sample_params_copy(Sample_params* dest, Sample_params* src)
+Sample_params* Sample_params_copy(Sample_params* dest, const Sample_params* src)
 {
     assert(dest != NULL);
     assert(src != NULL);

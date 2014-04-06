@@ -26,7 +26,7 @@ typedef struct Pat_table Pat_table;
 
 
 /**
- * Creates a new Pattern table.
+ * Create a new Pattern table.
  *
  * \return   The new Pattern table if successful, or \c NULL if memory
  *           allocation failed.
@@ -35,7 +35,7 @@ Pat_table* new_Pat_table(int size);
 
 
 /**
- * Sets the pattern for the specified Pattern table position.
+ * Set the pattern for the specified Pattern table position.
  *
  * \param table   The Pattern table -- must not be \c NULL.
  * \param index   The pattern index -- must be >= \c 0 and
@@ -48,7 +48,7 @@ bool Pat_table_set(Pat_table* table, int index, Pattern* pat);
 
 
 /**
- * Sets existent status of a Pattern.
+ * Set existent status of a Pattern.
  *
  * \param table      The Pattern table -- must not be \c NULL.
  * \param index      The target index -- must be >= \c 0 and less than the
@@ -59,7 +59,7 @@ void Pat_table_set_existent(Pat_table* table, int index, bool existent);
 
 
 /**
- * Gets existent status of a Pattern.
+ * Get existent status of a Pattern.
  *
  * \param table   The Pattern table -- must not be \c NULL.
  * \param index   The target index -- must be >= \c 0 and less than the
@@ -71,7 +71,7 @@ bool Pat_table_get_existent(const Pat_table* table, int index);
 
 
 /**
- * Gets the pattern from the specified Pattern table position.
+ * Get the pattern from the specified Pattern table position.
  *
  * \param table     The Pattern table -- must not be \c NULL.
  * \param index     The pattern index -- must be >= \c 0 and
@@ -83,7 +83,7 @@ Pattern* Pat_table_get(Pat_table* table, int index);
 
 
 /**
- * Removes a Pattern from the Pattern table.
+ * Remove a Pattern from the Pattern table.
  *
  * \param table     The Pattern table -- must not be \c NULL.
  * \param index     The pattern index -- must be >= \c 0 and
@@ -93,7 +93,7 @@ void Pat_table_remove(Pat_table* table, int index);
 
 
 /**
- * Clears the Pattern table.
+ * Clear the Pattern table.
  *
  * \param table     The Pattern table -- must not be \c NULL.
  */
@@ -101,7 +101,7 @@ void Pat_table_clear(Pat_table* table);
 
 
 /**
- * Destroys an existing Pattern table.
+ * Destroy an existing Pattern table.
  *
  * \param table   The Pattern table, or \c NULL.
  */

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -27,7 +27,7 @@ typedef struct Etable Etable;
 
 
 /**
- * Creates a new Etable.
+ * Create a new Etable.
  *
  * \param size      The table size -- must be > \c 0.
  * \param destroy   The destructor for the elements -- must not be \c NULL.
@@ -39,7 +39,7 @@ Etable* new_Etable(int size, void (*destroy)(void*));
 
 
 /**
- * Inserts a new element into the Etable.
+ * Insert a new element into the Etable.
  *
  * If the target index already contains an element, it will be deleted.
  *
@@ -55,7 +55,7 @@ bool Etable_set(Etable* table, int index, void* el);
 
 
 /**
- * Gets an element from the Etable.
+ * Get an element from the Etable.
  *
  * \param table   The Etable -- must not be \c NULL.
  * \param index   The target index -- must be >= \c 0 and less than
@@ -67,7 +67,7 @@ void* Etable_get(Etable* table, int index);
 
 
 /**
- * Removes an element from the Etable.
+ * Remove an element from the Etable.
  *
  * \param table   The Etable -- must not be \c NULL.
  * \param index   The target index -- must be >= \c 0 and less than
@@ -77,7 +77,7 @@ void Etable_remove(Etable* table, int index);
 
 
 /**
- * Clears the Etable.
+ * Clear the Etable.
  *
  * \param table   The Etable -- must not be \c NULL.
  */
@@ -85,7 +85,7 @@ void Etable_clear(Etable* table);
 
 
 /**
- * Destroys an existing Etable.
+ * Destroy an existing Etable.
  *
  * \param table   The Etable, or \c NULL.
  */

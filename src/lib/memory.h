@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2014
  *
  * This file is part of Kunquat.
  *
@@ -36,7 +36,7 @@
 
 
 /**
- * Allocates a contiguous block of memory.
+ * Allocate a contiguous block of memory.
  *
  * \param size   The amount of bytes to be allocated.
  *
@@ -47,7 +47,7 @@ void* memory_alloc(size_t size);
 
 
 /**
- * Allocates an initialised block of memory.
+ * Allocate an initialised block of memory.
  *
  * \param item_count   Number of items to be allocated.
  * \param item_size    Size of a single item in bytes.
@@ -59,7 +59,7 @@ void* memory_calloc(size_t item_count, size_t item_size);
 
 
 /**
- * Resizes a memory block.
+ * Resize a memory block.
  *
  * \param ptr    The starting address of the memory block, or \c NULL.
  * \param size   The new size of the memory block.
@@ -71,7 +71,7 @@ void* memory_realloc(void* ptr, size_t size);
 
 
 /**
- * Frees a block of memory.
+ * Free a block of memory.
  *
  * \param ptr   The starting address of the memory block, or \c NULL.
  */
@@ -79,7 +79,7 @@ void memory_free(void* ptr);
 
 
 /**
- * Simulates a memory allocation error on a single allocation request.
+ * Simulate a memory allocation error on a single allocation request.
  *
  * \param steps   Number of successful allocations that should be made before
  *                the simulated error. Negative value disables error simulation.
@@ -88,7 +88,7 @@ void memory_fake_out_of_memory(int32_t steps);
 
 
 /**
- * Gets the total number of successful memory allocations made.
+ * Get the total number of successful memory allocations made.
  *
  * \return   The number of allocations made.
  */

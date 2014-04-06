@@ -27,7 +27,7 @@ typedef struct Env_state Env_state;
 
 
 /**
- * Creates a new Environment state.
+ * Create a new Environment state.
  *
  * \param env   The Environment -- must not be \c NULL.
  *
@@ -38,7 +38,7 @@ Env_state* new_Env_state(const Environment* env);
 
 
 /**
- * Allocates state space for the Environment state.
+ * Allocate state space for the Environment state.
  *
  * \param estate   The Environment state -- must not be \c NULL.
  *
@@ -48,7 +48,7 @@ bool Env_state_refresh_space(Env_state* estate);
 
 
 /**
- * Retrieves a variable from the Environment state.
+ * Retrieve a variable from the Environment state.
  *
  * \param estate   The Environment state -- must not be \c NULL.
  * \param name     The variable name -- must not be \c NULL.
@@ -59,7 +59,7 @@ Env_var* Env_state_get_var(const Env_state* estate, const char* name);
 
 
 /**
- * Resets the Environment state.
+ * Reset the Environment state.
  *
  * \param estate   The Environment state -- must not be \c NULL.
  */
@@ -67,7 +67,7 @@ void Env_state_reset(Env_state* estate);
 
 
 /**
- * Destroys an existing Environment state.
+ * Destroy an existing Environment state.
  *
  * \param estate   The Environment state, or \c NULL.
  */

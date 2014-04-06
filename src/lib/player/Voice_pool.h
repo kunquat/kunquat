@@ -35,7 +35,7 @@ typedef struct Voice_pool
 
 
 /**
- * Creates a new Voice pool.
+ * Create a new Voice pool.
  *
  * \param size   The number of Voices in the Voice pool -- must be >= \c 0.
  *
@@ -46,7 +46,7 @@ Voice_pool* new_Voice_pool(uint16_t size);
 
 
 /**
- * Reserves space for the Voice states.
+ * Reserve space for the Voice states.
  *
  * \param pool         The Voice pool -- must not be \c NULL.
  * \param state_size   The amount of bytes to reserve for the Voice states.
@@ -57,7 +57,7 @@ bool Voice_pool_reserve_state_space(Voice_pool* pool, size_t state_size);
 
 
 /**
- * Changes the amount of Voices in the Voice pool.
+ * Change the amount of Voices in the Voice pool.
  *
  * \param pool   The Voice pool -- must not be \c NULL.
  * \param size   The new size -- must be > \c 0.
@@ -70,17 +70,17 @@ bool Voice_pool_resize(Voice_pool* pool, uint16_t size);
 
 
 /**
- * Gets the amount of Voices in the Voice pool.
+ * Get the amount of Voices in the Voice pool.
  *
  * \param pool   The Voice pool -- must not be \c NULL.
  *
  * \return   The number of Voices.
  */
-uint16_t Voice_pool_get_size(Voice_pool* pool);
+uint16_t Voice_pool_get_size(const Voice_pool* pool);
 
 
 /**
- * Gets a Voice from the Voice pool.
+ * Get a Voice from the Voice pool.
  *
  * In case all the Voices are in use, the Voice considered least important is
  * reinitialised and returned.
@@ -104,7 +104,7 @@ Voice* Voice_pool_get_voice(Voice_pool* pool, Voice* voice, uint64_t id);
 
 
 /**
- * Prepares the Voice pool for a new mixing cycle.
+ * Prepare the Voice pool for a new mixing cycle.
  *
  * \param pool   The Voice pool -- must not be \c NULL.
  */
@@ -112,7 +112,7 @@ void Voice_pool_prepare(Voice_pool* pool);
 
 
 /**
- * Mixes the background Voices in the Voice pool.
+ * Mix the background Voices in the Voice pool.
  *
  * \param pool     The Voice pool -- must not be \c NULL.
  * \param states   The Device states -- must not be \c NULL.
@@ -132,7 +132,7 @@ uint16_t Voice_pool_mix_bg(
 
 
 /**
- * Resets all Voices in the Voice pool.
+ * Reset all Voices in the Voice pool.
  *
  * \param pool   The Voice pool -- must not be \c NULL.
  */
@@ -140,7 +140,7 @@ void Voice_pool_reset(Voice_pool* pool);
 
 
 /**
- * Destroys an existing Voice pool.
+ * Destroy an existing Voice pool.
  *
  * \param pool   The Voice pool, or \c NULL.
  */

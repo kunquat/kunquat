@@ -26,7 +26,7 @@
 
 
 /**
- * Gets the output buffers.
+ * Get the output buffers.
  */
 #define Generator_common_get_buffers(gs, vstate, mixed, bufs) \
     if (true)                                                 \
@@ -44,7 +44,7 @@
 
 
 /**
- * Checks whether there's anything left of the note to be mixed.
+ * Check whether there's anything left of the note to be mixed.
  * This should be called at the beginning of the mixing function of the
  * Generator.
  */
@@ -63,7 +63,7 @@
 
 
 /**
- * Adjusts Voice state according to tempo and/or mixing frequency changes.
+ * Adjust Voice state according to tempo and/or mixing frequency changes.
  *
  * This should be called before the mixing loop of the Generator.
  *
@@ -80,7 +80,7 @@ void Generator_common_check_relative_lengths(
 
 
 /**
- * Pitch handling.
+ * Handle pitch.
  *
  * \param gen     The Generator -- must not be \c NULL.
  * \param vstate   The Voice state -- must not be \c NULL.
@@ -89,7 +89,7 @@ void Generator_common_handle_pitch(const Generator* gen, Voice_state* vstate);
 
 
 /**
- * Force handling.
+ * Handle force.
  *
  * \param gen           The Generator -- must not be \c NULL.
  * \param vstate        The Voice state -- must not be \c NULL.
@@ -107,7 +107,7 @@ void Generator_common_handle_force(
 
 
 /**
- * Filter handling.
+ * Handle filter.
  *
  * This should be called after force handling.
  *
@@ -126,7 +126,7 @@ void Generator_common_handle_filter(
 
 
 /**
- * Automatic volume ramping for note start and end.
+ * Ramp volume for note start and end.
  *
  * This should be called after force handling if needed (not all Generators
  * need this).
@@ -146,7 +146,7 @@ void Generator_common_ramp_attack(
 
 
 /**
- * Panning handling.
+ * Handle panning.
  *
  * \param gen           The Generator -- must not be \c NULL.
  * \param vstate        The Voice state -- must not be \c NULL.

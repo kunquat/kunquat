@@ -47,7 +47,7 @@ typedef struct Real
 
 
 /**
- * Initialises a Real object as a fraction with the value 1/1.
+ * Initialise a Real object as a fraction with the value 1/1.
  *
  * \param real   The Real object -- must not be \c NULL.
  *
@@ -57,7 +57,7 @@ Real* Real_init(Real* real);
 
 
 /**
- * Initialises a Real object as a fraction with specified values.
+ * Initialise a Real object as a fraction with specified values.
  *
  * \param real          The Real object -- must not be \c NULL.
  * \param numerator     The numerator.
@@ -72,7 +72,7 @@ Real* Real_init_as_frac(
 
 
 /**
- * Initialises a Real object as a double.
+ * Initialise a Real object as a double.
  *
  * \param real     The Real object -- must not be \c NULL.
  * \param double   The double value.
@@ -83,7 +83,7 @@ Real* Real_init_as_double(Real* real, double val);
 
 
 /**
- * Tells whether the Real object is stored as a fraction or not.
+ * Tell whether the Real object is stored as a fraction or not.
  *
  * \param real   The Real object -- must be a valid Real.
  *
@@ -93,7 +93,8 @@ bool Real_is_frac(const Real* real);
 
 
 /**
- * Returns the numerator of a Real object.
+ * Return the numerator of a Real object.
+ *
  * If the Real isn't stored as a fraction, the double value cast to
  * int64_t will be returned.
  *
@@ -105,7 +106,7 @@ int64_t Real_get_numerator(const Real* real);
 
 
 /**
- * Returns the denominator of a Real object.
+ * Return the denominator of a Real object.
  * If the Real isn't stored as a fraction, 1 will be returned.
  *
  * \param real   The Real object -- must be a valid Real.
@@ -116,7 +117,7 @@ int64_t Real_get_denominator(const Real* real);
 
 
 /**
- * Returns a double approximation of a Real object.
+ * Return a double approximation of a Real object.
  *
  * \param frac   The Real object -- must be a valid Real.
  *
@@ -126,7 +127,7 @@ double Real_get_double(const Real* real);
 
 
 /**
- * Copies a Real object.
+ * Copy a Real object.
  *
  * \param dest   The destination Real object -- must not be \c NULL.
  * \param src    The source Real object -- must be a valid Real.
@@ -137,7 +138,8 @@ Real* Real_copy(Real* dest, const Real* src);
 
 
 /**
- * Multiplies two Real objects.
+ * Multiply two Real objects.
+ *
  * The result will be a double in the following cases:
  * \li One of the operands is a double.
  * \li The product of the numerators is larger than INT64_MAX in magnitude.
@@ -153,7 +155,8 @@ Real* Real_mul(Real* ret, const Real* real1, const Real* real2);
 
 
 /**
- * Divides a Real object with another Real object.
+ * Divide a Real object with another Real object.
+ *
  * The result will be a double in the following cases:
  * \li One of the operands is a double.
  * \li The product of the numerator of the dividend and the denominator of the
@@ -172,7 +175,7 @@ Real* Real_div(Real* ret, const Real* dividend, const Real* divisor);
 
 
 /**
- * Multiplies a Real object with a floating point value.
+ * Multiply a Real object with a floating point value.
  *
  * \param real   The Real factor -- must be a valid Real.
  * \param d      The floating point value.
@@ -183,7 +186,8 @@ double Real_mul_float(const Real* real, double d);
 
 
 /**
- * Compares two Real objects.
+ * Compare two Real objects.
+ *
  * The comparison is subject to inaccuracies of floating point calculation in
  * the cases listed in the description of Real_div(). However, comparison for
  * equal fractions always returns 0.

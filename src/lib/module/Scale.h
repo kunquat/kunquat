@@ -53,7 +53,7 @@ typedef struct Scale
 
 
 /**
- * Creates a new Scale.
+ * Create a new Scale.
  *
  * The caller must eventually destroy the Scale with del_Scale().
  *
@@ -68,7 +68,7 @@ Scale* new_Scale(pitch_t ref_pitch, Real* octave_ratio);
 
 
 /**
- * Creates a Scale from a textual description.
+ * Create a Scale from a textual description.
  *
  * \param sr   The Streader of the JSON data -- must not be \c NULL.
  *
@@ -78,7 +78,7 @@ Scale* new_Scale_from_string(Streader* sr);
 
 
 /**
- * Gets the number of notes in the Scale.
+ * Get the number of notes in the Scale.
  *
  * \param scale   The Scale -- must not be \c NULL.
  *
@@ -88,7 +88,7 @@ int Scale_get_note_count(Scale* scale);
 
 
 /**
- * Gets the number of note modifiers in the Scale.
+ * Get the number of note modifiers in the Scale.
  *
  * \param scale   The Scale -- must not be \c NULL.
  *
@@ -98,7 +98,7 @@ int Scale_get_note_mod_count(Scale* scale);
 
 
 /**
- * Sets the reference note for the Scale.
+ * Set the reference note for the Scale.
  *
  * \param scale   The Scale -- must not be \c NULL.
  * \param index   The index of the new reference note -- must be
@@ -111,7 +111,7 @@ bool Scale_set_ref_note(Scale* scale, int index);
 
 
 /**
- * Gets the initial reference note of the Scale.
+ * Get the initial reference note of the Scale.
  *
  * \param scale   The Scale -- must not be \c NULL.
  *
@@ -121,7 +121,7 @@ int Scale_get_ref_note(Scale* scale);
 
 
 /**
- * Gets the current reference note of the Scale.
+ * Get the current reference note of the Scale.
  *
  * \param scale   The Scale -- must not be \c NULL.
  *
@@ -131,7 +131,7 @@ int Scale_get_cur_ref_note(Scale* scale);
 
 
 /**
- * Sets the reference pitch for the Scale.
+ * Set the reference pitch for the Scale.
  *
  * \param scale       The Scale -- must not be \c NULL.
  * \param ref_pitch   The reference pitch -- must be > \c 0.
@@ -140,7 +140,7 @@ void Scale_set_ref_pitch(Scale* scale, pitch_t ref_pitch);
 
 
 /**
- * Gets the reference pitch of the Scale.
+ * Get the reference pitch of the Scale.
  *
  * \param scale   The Scale -- must not be \c NULL.
  *
@@ -150,7 +150,7 @@ pitch_t Scale_get_ref_pitch(Scale* scale);
 
 
 /**
- * Sets the pitch offset of the Scale in cents.
+ * Set the pitch offset of the Scale in cents.
  *
  * \param scale    The Scale -- must not be \c NULL.
  * \param offset   The pitch offset in cents -- must be finite.
@@ -159,7 +159,7 @@ void Scale_set_pitch_offset(Scale* scale, double offset);
 
 
 /**
- * Sets the octave size as a ratio between adjacent octaves.
+ * Set the octave size as a ratio between adjacent octaves.
  *
  * \param scale          The Scale -- must not be \c NULL.
  * \param octave_ratio   The new ratio -- must not be \c NULL and must be
@@ -169,7 +169,7 @@ void Scale_set_octave_ratio(Scale* scale, Real* octave_ratio);
 
 
 /**
- * Gets the octave ratio of the Scale.
+ * Get the octave ratio of the Scale.
  *
  * \param scale   The Scale -- must not be \c NULL.
  *
@@ -179,7 +179,7 @@ Real* Scale_get_octave_ratio(Scale* scale);
 
 
 /**
- * Sets the octave size in cents.
+ * Set the octave size in cents.
  *
  * \param scale   The Scale -- must not be \c NULL.
  * \param cents   The new size in cents -- must be a finite value.
@@ -188,7 +188,7 @@ void Scale_set_octave_ratio_cents(Scale* scale, double cents);
 
 
 /**
- * Gets the octave size in cents.
+ * Get the octave size in cents.
  *
  * \param scale   The Scale -- must not be \c NULL.
  *
@@ -199,7 +199,7 @@ double Scale_get_octave_ratio_cents(Scale* scale);
 
 
 /**
- * Inserts a new note at the Scale.
+ * Insert a new note at the Scale.
  * All subsequent notes will be shifted forwards in the Scale.
  *
  * \param scale   The Scale -- must not be \c NULL.
@@ -215,7 +215,7 @@ int Scale_ins_note(Scale* scale, int index, Real* ratio);
 
 
 /**
- * Inserts a new note at the Scale using cents.
+ * Insert a new note at the Scale using cents.
  * All subsequent notes will be shifted forwards in the Scale.
  *
  * \param scale   The Scale -- must not be \c NULL.
@@ -231,7 +231,7 @@ int Scale_ins_note_cents(Scale* scale, int index, double cents);
 
 
 /**
- * Gets the (original) pitch ratio of a note in the Scale.
+ * Get the (original) pitch ratio of a note in the Scale.
  *
  * \param scale   The Scale -- must not be \c NULL.
  * \param index   The index of the note -- must be >= \c 0 and
@@ -243,7 +243,7 @@ Real* Scale_get_note_ratio(Scale* scale, int index);
 
 
 /**
- * Gets the current pitch ratio of a note in the Scale.
+ * Get the current pitch ratio of a note in the Scale.
  *
  * \param scale   The Scale -- must not be \c NULL.
  * \param index   The index of the note -- must be >= \c 0 and
@@ -255,7 +255,7 @@ Real* Scale_get_cur_note_ratio(Scale* scale, int index);
 
 
 /**
- * Gets the initial pitch ratio of a note in the Scale in cents.
+ * Get the initial pitch ratio of a note in the Scale in cents.
  *
  * \param scale   The Scale -- must not be \c NULL.
  * \param index   The index of the note -- must be >= \c 0 and
@@ -268,7 +268,7 @@ double Scale_get_note_cents(Scale* scale, int index);
 
 
 /**
- * Gets the current pitch ratio of a note in the Scale in cents.
+ * Get the current pitch ratio of a note in the Scale in cents.
  *
  * \param scale   The Scale -- must not be \c NULL.
  * \param index   The index of the note -- must be >= \c 0 and
@@ -281,7 +281,7 @@ double Scale_get_cur_note_cents(Scale* scale, int index);
 
 
 /**
- * Gets the pitch of a note in the Scale.
+ * Get the pitch of a note in the Scale.
  *
  * \param scale    The Scale -- must not be \c NULL.
  * \param index    The index of the note -- must be >= \c 0 and
@@ -295,7 +295,7 @@ pitch_t Scale_get_pitch(Scale* scale, int index, int octave);
 
 
 /**
- * Gets the pitch of a note in the Scale based on cents.
+ * Get the pitch of a note in the Scale based on cents.
  *
  * \param scale   The Scale -- must not be \c NULL.
  * \param cents   Number of cents centered to 440 Hz -- must be finite.
@@ -306,7 +306,7 @@ pitch_t Scale_get_pitch_from_cents(Scale* scale, double cents);
 
 
 /**
- * Retunes the Scale.
+ * Retune the Scale.
  *
  * \param scale         The Scale -- must not be \c NULL.
  * \param new_ref       The new reference note -- must be
@@ -319,7 +319,7 @@ void Scale_retune(Scale* scale, int new_ref, int fixed_point);
 
 
 /**
- * Retunes the Scale with the initial parameters of another Scale.
+ * Retune the Scale with the initial parameters of another Scale.
  *
  * \param scale    The Scale to be retuned -- must not be \c NULL.
  * \param source   The source Scale used as the basis of the retuning -- must
@@ -333,7 +333,7 @@ bool Scale_retune_with_source(Scale* scale, Scale* source);
 
 
 /**
- * Estimates the current pitch drift in the Scale.
+ * Estimate the current pitch drift in the Scale.
  * The estimate is most useful if the current tuning uses the same reference
  * note as the original tuning.
  *
@@ -347,7 +347,7 @@ Real* Scale_drift(Scale* scale, Real* drift);
 
 
 /**
- * Clears the Scale.
+ * Clear the Scale.
  *
  * \param scale   The Scale -- must not be \c NULL.
  */
@@ -355,7 +355,7 @@ void Scale_clear(Scale* scale);
 
 
 /**
- * Resets all transient parameters of the Scale.
+ * Reset all transient parameters of the Scale.
  *
  * \param scale   The Scale -- must not be \c NULL.
  */
@@ -363,7 +363,7 @@ void Scale_reset(Scale* scale);
 
 
 /**
- * Destroys the Scale.
+ * Destroy the Scale.
  *
  * \param scale   The Scale, or \c NULL.
  */

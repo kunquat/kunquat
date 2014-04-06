@@ -28,7 +28,7 @@ typedef enum
 
 
 /**
- * Parses the Device Event list.
+ * Parse the Device Event list.
  *
  * \param params   The Device parameters -- must not be \c NULL.
  * \param type     The type of Events -- must be \c DEVICE_EVENT_TYPE_GENERATOR

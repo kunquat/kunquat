@@ -28,7 +28,7 @@ typedef struct Order_list Order_list;
 
 
 /**
- * Creates a new Order list.
+ * Create a new Order list.
  *
  * \param sr   The Streader of the JSON data -- must not be \c NULL.
  *
@@ -39,7 +39,7 @@ Order_list* new_Order_list(Streader* sr);
 
 
 /**
- * Returns the length of the Order list.
+ * Return the length of the Order list.
  *
  * \param ol   The Order list -- must not be \c NULL.
  *
@@ -49,7 +49,7 @@ size_t Order_list_get_len(const Order_list* ol);
 
 
 /**
- * Returns a Pattern instance reference from the Order list.
+ * Return a Pattern instance reference from the Order list.
  *
  * \param ol      The Order list -- must not be \c NULL.
  * \param index   The index -- must be >= \c 0 and
@@ -61,7 +61,7 @@ Pat_inst_ref* Order_list_get_pat_inst_ref(const Order_list* ol, size_t index);
 
 
 /**
- * Destroys an existing Order list.
+ * Destroy an existing Order list.
  *
  * \param ol   The Order list, or \c NULL.
  */

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2014
  *
  * This file is part of Kunquat.
  *
@@ -28,7 +28,7 @@ typedef struct Gen_state
 
 
 /**
- * Initialises the Generator state.
+ * Initialise the Generator state.
  *
  * \param gen_state           The Generator state -- must not be \c NULL.
  * \param device              The Device -- must not be \c NULL.
@@ -43,7 +43,7 @@ void Gen_state_init(
 
 
 /**
- * Resets the Generator state.
+ * Reset the Generator state.
  *
  * \param gen_state   The Generator state -- must not be \c NULL.
  */

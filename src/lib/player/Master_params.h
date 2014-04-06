@@ -84,7 +84,7 @@ typedef struct Master_params
 
 
 /**
- * Pre-initialises the Master params.
+ * Pre-initialise the Master params.
  *
  * This function must be called before Maste_params_init on given parameters.
  *
@@ -96,7 +96,7 @@ Master_params* Master_params_preinit(Master_params* params);
 
 
 /**
- * Initialises the Master params.
+ * Initialise the Master params.
  *
  * \param params   The Master params -- must not be \c NULL.
  * \param module   The Module -- must not be \c NULL.
@@ -112,7 +112,7 @@ Master_params* Master_params_init(
 
 
 /**
- * Sets the starting tempo.
+ * Set the starting tempo.
  *
  * This function is only needed before reading patterns for the first time.
  *
@@ -122,7 +122,7 @@ void Master_params_set_starting_tempo(Master_params* params);
 
 
 /**
- * Resets the Master params.
+ * Reset the Master params.
  *
  * \param params   The Master params -- must not be \c NULL.
  * \param module   The Module -- must not be \c NULL.
@@ -131,7 +131,7 @@ void Master_params_reset(Master_params* params);
 
 
 /**
- * Deinitialises the Master params.
+ * Deinitialise the Master params.
  *
  * \param params   The Master params -- must not be \c NULL.
  */

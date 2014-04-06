@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2014
  *
  * This file is part of Kunquat.
  *
@@ -36,7 +36,7 @@ typedef struct Position
 
 
 /**
- * Initialises Position.
+ * Initialise the Position.
  *
  * \param pos   The Position -- must not be \c NULL.
  */
@@ -44,7 +44,7 @@ void Position_init(Position* pos);
 
 
 /**
- * Checks the validity of the Position.
+ * Check the validity of the Position.
  *
  * \param pos   The Position, or \c NULL.
  *

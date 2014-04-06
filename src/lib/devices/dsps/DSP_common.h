@@ -37,7 +37,7 @@
 
 
 /**
- * Retrieves raw input buffers from the DSP Device.
+ * Retrieve raw input buffers from the DSP Device.
  *
  * This macro stops the calling function if the buffers do not exist.
  *
@@ -52,7 +52,7 @@
 
 
 /**
- * Retrieves raw output buffers from the DSP Device.
+ * Retrieve raw output buffers from the DSP Device.
  *
  * This macro stops the calling function if the buffers do not exist.
  *

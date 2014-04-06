@@ -30,7 +30,7 @@ typedef struct Song_table Song_table;
 
 
 /**
- * Creates a new Song table.
+ * Create a new Song table.
  *
  * \return   The new Song table if successful, or \c NULL if memory
  *           allocation failed.
@@ -39,7 +39,7 @@ Song_table* new_Song_table(void);
 
 
 /**
- * Sets a Song in the Song table.
+ * Set a Song in the Song table.
  *
  * \param table   The Song table -- must not be \c NULL.
  * \param index   The target index -- must be >= \c 0 and
@@ -52,7 +52,7 @@ bool Song_table_set(Song_table* table, uint16_t index, Song* song);
 
 
 /**
- * Gets a Song from the Song table.
+ * Get a Song from the Song table.
  *
  * Note: Songs after an empty index are considered hidden and are not
  * returned.
@@ -67,7 +67,7 @@ Song* Song_table_get(Song_table* table, uint16_t index);
 
 
 /**
- * Sets existent status of a Song.
+ * Set existent status of a Song.
  *
  * \param table      The Song table -- must not be \c NULL.
  * \param index      The song number -- must be >= \c 0 and
@@ -81,7 +81,7 @@ void Song_table_set_existent(
 
 
 /**
- * Gets existent status of a Song.
+ * Get existent status of a Song.
  *
  * \param table   The Song table -- must not be \c NULL.
  * \param index   The song number -- must be >= \c 0 and
@@ -93,7 +93,7 @@ bool Song_table_get_existent(Song_table* table, uint16_t index);
 
 
 /**
- * Tells whether a song is empty.
+ * Tell whether a Song is empty.
  *
  * \param table   The Song table -- must not be \c NULL.
  * \param song    The song number -- must be >= \c 0 and
@@ -105,7 +105,7 @@ bool Song_table_is_song_empty(Song_table* table, uint16_t song_num);
 
 
 /**
- * Destroys an existing Song table.
+ * Destroy an existing Song table.
  *
  * \param table   The Song table, or \c NULL.
  */

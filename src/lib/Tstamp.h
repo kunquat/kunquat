@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -50,7 +50,7 @@ typedef struct Tstamp
 
 
 /**
- * Intialises a Tstamp with time 0.
+ * Intialise a Tstamp with time 0.
  *
  * \param ts   The Tstamp -- must not be \c NULL.
  *
@@ -60,7 +60,7 @@ Tstamp* Tstamp_init(Tstamp* ts);
 
 
 /**
- * Compares two Tstamp objects.
+ * Compare two Tstamp objects.
  *
  * \param ts1   The first Tstamp object -- must be a valid Tstamp.
  * \param ts2   The second Tstamp object -- must be a valid Tstamp.
@@ -73,7 +73,7 @@ int Tstamp_cmp(const Tstamp* ts1, const Tstamp* ts2);
 
 
 /**
- * Sets the parameters of a given Tstamp object.
+ * Set the parameters of a given Tstamp object.
  *
  * \param ts      The Tstamp object -- must not be \c NULL.
  * \param beats   The number of beats.
@@ -86,7 +86,7 @@ Tstamp* Tstamp_set(Tstamp* ts, int64_t beats, int32_t rem);
 
 
 /**
- * Gets the beat count of a Tstamp.
+ * Get the beat count of a Tstamp.
  *
  * \param ts   The Tstamp -- must not be \c NULL.
  *
@@ -96,7 +96,7 @@ int64_t Tstamp_get_beats(const Tstamp* ts);
 
 
 /**
- * Gets the remainder part of a Tstamp.
+ * Get the remainder part of a Tstamp.
  *
  * \param ts   The Tstamp -- must not be \c NULL.
  *
@@ -106,7 +106,7 @@ int32_t Tstamp_get_rem(const Tstamp* ts);
 
 
 /**
- * Computes the sum of two Tstamps.
+ * Compute the sum of two Tstamps.
  *
  * If the beat count overflows during the calculation, the behaviour is
  * dependent on the underlying C implementation.
@@ -128,7 +128,7 @@ Tstamp* Tstamp_add(Tstamp* result, const Tstamp* ts1, const Tstamp* ts2);
 
 
 /**
- * Computes the difference between two Tstamps.
+ * Compute the difference between two Tstamps.
  *
  * If the beat count overflows during the calculation, the behaviour is
  * dependent on the underlying C implementation.
@@ -150,7 +150,7 @@ Tstamp* Tstamp_sub(Tstamp* result, const Tstamp* ts1, const Tstamp* ts2);
 
 
 /**
- * Makes a copy of a Tstamp.
+ * Make a copy of a Tstamp.
  *
  * \param dest   The destination Tstamp -- must not be \c NULL.
  * \param src    The source Tstamp -- must be a valid Tstamp.
@@ -161,7 +161,7 @@ Tstamp* Tstamp_copy(Tstamp* dest, const Tstamp* src);
 
 
 /**
- * Returns the minimum of two Tstamps.
+ * Return the minimum of two Tstamps.
  *
  * \param result   The result Tstamp -- must not be \c NULL. This may
  *                 be the same as \a ts1 and/or \a ts2.
@@ -180,7 +180,7 @@ Tstamp* Tstamp_min(Tstamp* result, const Tstamp* ts1, const Tstamp* ts2);
 
 
 /**
- * Converts the time represented by a Tstamp into frames.
+ * Convert the time represented by a Tstamp into frames.
  *
  * \param ts      The Tstamp -- must be valid. Also, the
  *                time must be >= \c 0.
@@ -196,7 +196,7 @@ double Tstamp_toframes(
 
 
 /**
- * Converts the time represented by frames into a Tstamp object.
+ * Convert the time represented by frames into a Tstamp object.
  *
  * \param ts       The Tstamp -- must not be \c NULL.
  * \param frames   The number of frames.

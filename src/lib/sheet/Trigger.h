@@ -40,7 +40,7 @@ typedef struct Trigger
 
 
 /**
- * Creates a Trigger of specified type.
+ * Create a Trigger of specified type.
  *
  * \param type   The event type -- must be valid.
  * \param pos    The Trigger position -- must not be \c NULL.
@@ -52,7 +52,7 @@ Trigger* new_Trigger(Event_type type, Tstamp* pos);
 
 
 /**
- * Creates a Trigger from a JSON string.
+ * Create a Trigger from a JSON string.
  *
  * \param sr      The Streader of the data -- must not be \c NULL.
  * \param names   The Event names -- must not be \c NULL.
@@ -63,7 +63,7 @@ Trigger* new_Trigger_from_string(Streader* sr, const Event_names* names);
 
 
 /**
- * Gets the Trigger position (relative to the containing Pattern).
+ * Get the Trigger position (relative to the containing Pattern).
  *
  * \param trigger   The Trigger -- must not be \c NULL.
  *
@@ -73,16 +73,7 @@ Tstamp* Trigger_get_pos(Trigger* trigger);
 
 
 /**
- * Moves the Event into a new position.
- *
- * \param event   The Event -- must not be \c NULL.
- * \param pos     The new position -- must not be \c NULL.
- */
-//void Event_set_pos(Event* event, Tstamp* pos);
-
-
-/**
- * Gets the event type of the Trigger.
+ * Get the event type of the Trigger.
  *
  * \param trigger   The Trigger -- must not be \c NULL.
  *
@@ -92,7 +83,7 @@ Event_type Trigger_get_type(Trigger* trigger);
 
 
 /**
- * Gets a JSON description of the Trigger (does not include timestamp).
+ * Get a JSON description of the Trigger (does not include timestamp).
  *
  * \param trigger   The Trigger -- must not be \c NULL.
  *
@@ -102,7 +93,7 @@ char* Trigger_get_desc(Trigger* trigger);
 
 
 /**
- * Destroys an existing Trigger.
+ * Destroy an existing Trigger.
  *
  * \param trigger   The Trigger, or \c NULL.
  */

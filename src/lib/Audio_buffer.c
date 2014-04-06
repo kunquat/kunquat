@@ -68,7 +68,7 @@ Audio_buffer* new_Audio_buffer(uint32_t size)
 }
 
 
-uint32_t Audio_buffer_get_size(Audio_buffer* buffer)
+uint32_t Audio_buffer_get_size(const Audio_buffer* buffer)
 {
     assert(buffer != NULL);
     return buffer->size;

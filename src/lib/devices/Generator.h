@@ -59,7 +59,7 @@ typedef struct Generator
 
 
 /**
- * Creates a new Generator of the specified type.
+ * Create a new Generator of the specified type.
  *
  * \param ins_params    The Instrument parameters -- must not be \c NULL.
  *
@@ -70,7 +70,7 @@ Generator* new_Generator(const Instrument_params* ins_params);
 
 
 /**
- * Initialises the general Generator parameters.
+ * Initialise the general Generator parameters.
  *
  * \param gen           The Generator -- must not be \c NULL.
  * \param destroy       The destructor of the Generator --
@@ -97,7 +97,7 @@ bool Generator_init(
 
 
 /**
- * Resets the playback parameters of the Generator.
+ * Reset the playback parameters of the Generator.
  *
  * If you override this function, call this inside the overriding function.
  *
@@ -108,7 +108,7 @@ bool Generator_init(
 
 
 /**
- * Returns the type of the Generator.
+ * Return the type of the Generator.
  *
  * \param gen   The Generator -- must not be \c NULL.
  *
@@ -118,7 +118,7 @@ bool Generator_init(
 
 
 /**
- * Mixes the Generator.
+ * Mix the Generator.
  *
  * \param gen       The Generator -- must not be \c NULL.
  * \param dstates   The Device states -- must not be \c NULL.
@@ -141,7 +141,7 @@ void Generator_mix(
 
 
 /**
- * Uninitialises an existing Generator.
+ * Destroy an existing Generator.
  *
  * \param gen   The Generator, or \c NULL.
  */

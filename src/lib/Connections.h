@@ -31,7 +31,7 @@ typedef struct Connections Connections;
 
 
 /**
- * Initialises all Audio buffers in the Connections.
+ * Initialise all Audio buffers in the Connections.
  *
  * \param graph    The Connections -- must not be \c NULL.
  * \param states   The Device states -- must not be \c NULL.
@@ -42,7 +42,7 @@ bool Connections_init_buffers(Connections* graph, Device_states* states);
 
 
 /**
- * Clears the Audio buffers in the Connections.
+ * Clear the Audio buffers in the Connections.
  *
  * \param graph    The Connections -- must not be \c NULL.
  * \param states   The Device states -- must not be \c NULL.
@@ -60,7 +60,7 @@ void Connections_clear_buffers(
 
 
 /**
- * Mixes the audio in Connections.
+ * Mix the audio in the Connections.
  *
  * \param graph    The Connections -- must not be \c NULL.
  * \param states   The Device states -- must not be \c NULL.
@@ -82,7 +82,7 @@ void Connections_mix(
 
 
 /**
- * Prints the Connections.
+ * Print the Connections.
  *
  * \param graph   The Connections -- must not be \c NULL.
  * \param out     The output file -- must not be \c NULL.
@@ -91,7 +91,7 @@ void Connections_print(Connections* graph, FILE* out);
 
 
 /**
- * Destroys existing Connections.
+ * Destroy existing Connections.
  *
  * \param graph   The Connections, or \c NULL.
  */

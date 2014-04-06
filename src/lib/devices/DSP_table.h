@@ -28,7 +28,7 @@ typedef struct DSP_table DSP_table;
 
 
 /**
- * Creates a new DSP table.
+ * Create a new DSP table.
  *
  * \param size   The table size -- must be > \c 0.
  *
@@ -39,7 +39,7 @@ DSP_table* new_DSP_table(int size);
 
 
 /**
- * Sets existent status of a DSP.
+ * Set existent status of a DSP.
  *
  * \param table      The DSP table -- must not be \c NULL.
  * \param index      The target index -- must be >= \c 0 and less than the
@@ -50,7 +50,7 @@ void DSP_table_set_existent(DSP_table* table, int index, bool existent);
 
 
 /**
- * Inserts a new DSP into the DSP table.
+ * Insert a new DSP into the DSP table.
  *
  * If the target index already contains a DSP, it will be deleted.
  *
@@ -66,7 +66,7 @@ bool DSP_table_set_dsp(DSP_table* table, int index, DSP* dsp);
 
 
 /**
- * Gets a DSP from the DSP table.
+ * Get a DSP from the DSP table.
  *
  * \param table   The DSP table -- must not be \c NULL.
  * \param index   The target index -- must be >= \c 0 and less than
@@ -78,7 +78,7 @@ DSP* DSP_table_get_dsp(const DSP_table* table, int index);
 
 
 /**
- * Removes a DSP from the DSP table.
+ * Remove a DSP from the DSP table.
  *
  * \param table   The DSP table -- must not be \c NULL.
  * \param index   The target index -- must be >= \c 0 and less than
@@ -88,7 +88,7 @@ void DSP_table_remove_dsp(DSP_table* table, int index);
 
 
 /**
- * Clears the DSP table.
+ * Clear the DSP table.
  *
  * \param table   The DSP table -- must not be \c NULL.
  */
@@ -96,7 +96,7 @@ void DSP_table_clear(DSP_table* table);
 
 
 /**
- * Destroys an existing DSP table.
+ * Destroy an existing DSP table.
  *
  * \param table   The DSP table, or \c NULL.
  */

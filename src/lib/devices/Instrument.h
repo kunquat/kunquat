@@ -41,7 +41,7 @@ typedef struct Instrument Instrument;
 
 
 /**
- * Creates a new Instrument.
+ * Create a new Instrument.
  *
  * \return   The new Instrument if successful, or \c NULL if memory allocation
  *           failed.
@@ -50,7 +50,7 @@ Instrument* new_Instrument(void);
 
 
 /**
- * Parses an Instrument header from a textual description.
+ * Parse an Instrument header from a textual description.
  *
  * \param ins   The Instrument -- must not be \c NULL.
  * \param sr    The Streader of the JSON data -- must not be \c NULL.
@@ -61,7 +61,7 @@ bool Instrument_parse_header(Instrument* ins, Streader* sr);
 
 
 /**
- * Parses an Instrument-level value from a textual description.
+ * Parse an Instrument-level value from a textual description.
  *
  * \param ins      The Instrument -- must not be \c NULL.
  * \param subkey   The subkey -- must not be \c NULL.
@@ -73,7 +73,7 @@ bool Instrument_parse_value(Instrument* ins, const char* subkey, Streader* sr);
 
 
 /**
- * Gets the Instrument parameters of the Instrument.
+ * Get the Instrument parameters of the Instrument.
  *
  * \param ins   The Instrument -- must not be \c NULL.
  *
@@ -83,7 +83,7 @@ Instrument_params* Instrument_get_params(Instrument* ins);
 
 
 /**
- * Gets a Generator of the Instrument.
+ * Get a Generator of the Instrument.
  *
  * \param ins     The Instrument -- must not be \c NULL.
  * \param index   The index of the Generator -- must be >= \c 0 and
@@ -95,7 +95,7 @@ const Generator* Instrument_get_gen(const Instrument* ins, int index);
 
 
 /**
- * Gets the Generator table of the Instrument.
+ * Get the Generator table of the Instrument.
  *
  * \param ins   The Instrument -- must not be \c NULL.
  *
@@ -105,7 +105,7 @@ Gen_table* Instrument_get_gens(Instrument* ins);
 
 
 /**
- * Removes a Generator of the Instrument.
+ * Remove a Generator of the Instrument.
  *
  * The Generators located at greater indices will be shifted backward in the
  * table. If the target Generator doesn't exist, the Instrument won't be
@@ -119,7 +119,7 @@ Gen_table* Instrument_get_gens(Instrument* ins);
 
 
 /**
- * Gets an Effect of the Instrument.
+ * Get an Effect of the Instrument.
  *
  * \param ins     The Instrument -- must not be \c NULL.
  * \param index   The index of the Effect -- must be >= \c 0 and
@@ -131,7 +131,7 @@ const Effect* Instrument_get_effect(const Instrument* ins, int index);
 
 
 /**
- * Gets the Effect table of the Instrument.
+ * Get the Effect table of the Instrument.
  *
  * \param ins   The Instrument -- must not be \c NULL.
  *
@@ -141,7 +141,7 @@ Effect_table* Instrument_get_effects(Instrument* ins);
 
 
 /**
- * Sets the Connections of the Instrument.
+ * Set the Connections of the Instrument.
  *
  * Previously set Connections will be removed if found.
  *
@@ -152,7 +152,7 @@ void Instrument_set_connections(Instrument* ins, Connections* graph);
 
 
 /**
- * Gets the Connections of the Instrument.
+ * Get the Connections of the Instrument.
  *
  * \param ins   The Instrument -- must not be \c NULL.
  *
@@ -162,7 +162,7 @@ Connections* Instrument_get_connections(Instrument* ins);
 
 
 /**
- * Destroys an existing Instrument.
+ * Destroy an existing Instrument.
  *
  * \param ins   The Instrument, or \c NULL.
  */

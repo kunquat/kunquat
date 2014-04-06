@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2014
  *
  * This file is part of Kunquat.
  *
@@ -56,7 +56,7 @@ typedef struct Device_state
 
 
 /**
- * Initialises the Device state.
+ * Initialise the Device state.
  *
  * \param ds                  The Device state -- must not be \c NULL.
  * \param device              The Device -- must not be \c NULL.
@@ -71,7 +71,7 @@ void Device_state_init(
 
 
 /**
- * Creates a plain Device state.
+ * Create a plain Device state.
  *
  * Most Devices should provide their own constructors and use
  * \a Device_state_init instead.
@@ -90,7 +90,7 @@ Device_state* new_Device_state_plain(
 
 
 /**
- * Compares two Device states.
+ * Compare two Device states.
  *
  * \param ds1   The first state -- must not be \c NULL.
  * \param ds2   The second state -- must not be \c NULL.
@@ -103,7 +103,7 @@ int Device_state_cmp(const Device_state* ds1, const Device_state* ds2);
 
 
 /**
- * Sets the audio rate.
+ * Set the audio rate.
  *
  * \param ds     The Device state -- must not be \c NULL.
  * \param rate   The audio rate -- must be > \c 0.
@@ -114,7 +114,7 @@ bool Device_state_set_audio_rate(Device_state* ds, int32_t rate);
 
 
 /**
- * Gets the audio rate.
+ * Get the audio rate.
  *
  * \param ds   The Device state -- must not be \c NULL.
  *
@@ -124,7 +124,7 @@ int32_t Device_state_get_audio_rate(const Device_state* ds);
 
 
 /**
- * Sets the audio buffer size.
+ * Set the audio buffer size.
  *
  * \param ds     The Device state -- must not be \c NULL.
  * \param size   The new buffer size -- must be >= \c 0.
@@ -135,7 +135,7 @@ bool Device_state_set_audio_buffer_size(Device_state* ds, int32_t size);
 
 
 /**
- * Allocates internal space for the Device state.
+ * Allocate internal space for the Device state.
  *
  * \param ds    The Device state -- must not be \c NULL.
  * \param key   The key that caused this allocation call --
@@ -147,7 +147,7 @@ bool Device_state_allocate_space(Device_state* ds, char* key);
 
 
 /**
- * Adds an audio buffer into the Device state.
+ * Add an audio buffer into the Device state.
  *
  * \param ds     The Device state -- must not be \c NULL.
  * \param type   The port type -- must be valid.
@@ -163,7 +163,7 @@ bool Device_state_add_audio_buffer(
 
 
 /**
- * Clears audio buffers in the Device state.
+ * Clear audio buffers in the Device state.
  *
  * \param ds      The Device state -- must not be \c NULL.
  * \param start   The first frame to be cleared.
@@ -177,7 +177,7 @@ void Device_state_clear_audio_buffers(
 
 
 /**
- * Returns an audio buffer of the Device state.
+ * Return an audio buffer of the Device state.
  *
  * \param ds     The Device state -- must not be \c NULL.
  * \param type   The port type -- must be valid.
@@ -193,7 +193,7 @@ Audio_buffer* Device_state_get_audio_buffer(
 
 
 /**
- * Resets the Device state.
+ * Reset the Device state.
  *
  * \param ds   The Device state -- must not be \c NULL.
  */
@@ -201,7 +201,7 @@ void Device_state_reset(Device_state* ds);
 
 
 /**
- * Destroys the Device state.
+ * Destroy the Device state.
  *
  * \param ds   The Device state, or \c NULL.
  */

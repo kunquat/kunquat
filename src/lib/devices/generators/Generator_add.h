@@ -23,7 +23,7 @@
 
 
 /**
- * Creates a new additive synthesis Generator.
+ * Create a new additive synthesis Generator.
  *
  * \return   The new additive synthesis Generator if successful, or \c NULL if
  *           memory allocation failed.
@@ -32,7 +32,7 @@ Device_impl* new_Generator_add(Generator* gen);
 
 
 /**
- * Returns additive Generator property information.
+ * Return additive Generator property information.
  *
  * \param gen             The additive Generator -- must be valid.
  * \param property_type   The property type -- must not be \c NULL.

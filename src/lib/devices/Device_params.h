@@ -42,7 +42,7 @@ typedef struct Device_params_iter
 
 
 /**
- * Initialises a Device params iterator.
+ * Initialise a Device params iterator.
  *
  * \param iter      The Device params iterator -- must not be \c NULL.
  * \param dparams   The Device parameters -- must not be \c NULL.
@@ -55,7 +55,7 @@ Device_params_iter* Device_params_iter_init(
 
 
 /**
- * Gets the next Device parameter key from the iterator.
+ * Get the next Device parameter key from the iterator.
  *
  * \param iter   The Device params iterator -- must not be \c NULL.
  *
@@ -65,7 +65,7 @@ const char* Device_params_iter_get_next_key(Device_params_iter* iter);
 
 
 /**
- * Tells whether a given key is a Device parameter key.
+ * Tell whether a given key is a Device parameter key.
  *
  * The key is assumed to originate from Parse manager, in which case it is a
  * valid key.
@@ -78,7 +78,7 @@ bool key_is_device_param(const char* key);
 
 
 /**
- * Tells whether a given key is a real-time modifiable Device parameter key.
+ * Tell whether a given key is a real-time modifiable Device parameter key.
  *
  * The key is assumed to originate from Parse manager, in which case it is a
  * valid key.
@@ -92,7 +92,7 @@ bool key_is_real_time_device_param(const char* key);
 
 
 /**
- * Tells whether a given key is a text-mode Device parameter key.
+ * Tell whether a given key is a text-mode Device parameter key.
  *
  * The key is assumed to originate from Parse manager, in which case it is a
  * valid key.
@@ -106,7 +106,7 @@ bool key_is_text_device_param(const char* key);
 
 
 /**
- * Creates new Device parameters.
+ * Create new Device parameters.
  *
  * \return   The new Device parameters if successful, otherwise \c NULL.
  */
@@ -114,7 +114,7 @@ Device_params* new_Device_params(void);
 
 
 /**
- * Allocates memory for a key.
+ * Allocate memory for a key.
  *
  * \param params   The Device parameters -- must not be \c NULL.
  * \param key      The key -- must be a valid subkey starting after the
@@ -126,7 +126,7 @@ Device_params* new_Device_params(void);
 
 
 /**
- * Marks a key to require explicit synchronisation on update.
+ * Mark a key to require explicit synchronisation on update.
  *
  * This is used for keys that are too slow to be updated in the Device
  * automatically (e.g. the update may take hundreds of milliseconds or more).
@@ -146,7 +146,7 @@ Device_params* new_Device_params(void);
 
 
 /**
- * Marks a key to no longer require explicit synchronisation on update.
+ * Mark a key to no longer require explicit synchronisation on update.
  *
  * \param params   The Device parameters -- must not be \c NULL.
  * \param key      The key -- must be a valid subkey starting after the
@@ -156,7 +156,7 @@ Device_params* new_Device_params(void);
 
 
 /**
- * Finds out whether any slow-sync parameters have changed.
+ * Find out whether any slow-sync parameters have changed.
  *
  * \param params   The Device parameters -- must not be \c NULL.
  *
@@ -167,7 +167,7 @@ Device_params* new_Device_params(void);
 
 
 /**
- * Retrieves a slow-sync key that has changed.
+ * Retrieve a slow-sync key that has changed.
  *
  * \param params   The Device parameters -- must not be \c NULL.
  *
@@ -177,7 +177,7 @@ Device_params* new_Device_params(void);
 
 
 /**
- * Sets the Device parameters synchronised.
+ * Set the Device parameters synchronised.
  *
  * A slow-syncing Device should call this after synchronisation.
  *
@@ -187,7 +187,7 @@ Device_params* new_Device_params(void);
 
 
 /**
- * Parses the Device Event list.
+ * Parse the Device Event list.
  *
  * \param params   The Device parameters -- must not be \c NULL.
  * \param str      The textual description.
@@ -202,7 +202,7 @@ Device_params* new_Device_params(void);
 
 
 /**
- * Parses a Device parameter value.
+ * Parse a Device parameter value.
  *
  * \param params   The Device parameters -- must not be \c NULL.
  * \param key      The key -- must be a valid subkey with the i/ or c/ as
@@ -216,7 +216,7 @@ bool Device_params_parse_value(
 
 
 /**
- * Modifies an existing Device parameter value.
+ * Modify an existing Device parameter value.
  *
  * This function is used during playback.
  * Note that this function does not support sample files.
@@ -236,7 +236,7 @@ bool Device_params_parse_value(
 
 
 /**
- * Resets Device parameter modifications.
+ * Reset Device parameter modifications.
  *
  * This function resets modifications made using Device_params_modify_value.
  *
@@ -246,7 +246,7 @@ bool Device_params_parse_value(
 
 
 /**
- * Retrieves a reference to a boolean value from Device parameters.
+ * Retrieve a reference to a boolean value from Device parameters.
  *
  * \param params   The Device parameters -- must not be \c NULL.
  * \param key      The key -- must be a valid boolean subkey starting after
@@ -259,7 +259,7 @@ const bool* Device_params_get_bool(
 
 
 /**
- * Retrieves a reference to an integer value from Device parameters.
+ * Retrieve a reference to an integer value from Device parameters.
  *
  * \param params   The Device parameters -- must not be \c NULL.
  * \param key      The key -- must be a valid integer subkey starting after
@@ -272,7 +272,7 @@ const int64_t* Device_params_get_int(
 
 
 /**
- * Retrieves a reference to a floating point value from Device parameters.
+ * Retrieve a reference to a floating point value from Device parameters.
  *
  * \param params   The Device parameters -- must not be \c NULL.
  * \param key      The key -- must be a valid floating point subkey starting
@@ -285,7 +285,7 @@ const double* Device_params_get_float(
 
 
 /**
- * Retrieves a Real value from Device parameters.
+ * Retrieve a Real value from Device parameters.
  *
  * \param params   The Device parameters -- must not be \c NULL.
  * \param key      The key -- must be a valid Real subkey starting after the
@@ -298,7 +298,7 @@ const Real* Device_params_get_real(
 
 
 /**
- * Retrieves a Tstamp value from Device parameters.
+ * Retrieve a Tstamp value from Device parameters.
  *
  * \param params   The Device parameters -- must not be \c NULL.
  * \param key      The key -- must be a valid Tstamp subkey starting after the
@@ -311,7 +311,7 @@ const Tstamp* Device_params_get_tstamp(
 
 
 /**
- * Retrieves an Envelope value from Device parameters.
+ * Retrieve an Envelope value from Device parameters.
  *
  * \param params   The Device parameters -- must not be \c NULL.
  * \param key      The key -- must be a valid Envelope subkey starting after
@@ -324,7 +324,7 @@ const Envelope* Device_params_get_envelope(
 
 
 /**
- * Retrieves a Sample from Device parameters.
+ * Retrieve a Sample from Device parameters.
  *
  * \param params   The Device parameters -- must not be \c NULL.
  * \param key      The key -- must be a valid sample subkey starting after
@@ -337,7 +337,7 @@ const Sample* Device_params_get_sample(
 
 
 /**
- * Retrieves Sample parameters from Device parameters.
+ * Retrieve Sample parameters from Device parameters.
  *
  * \param params   The Device parameters -- must not be \c NULL.
  * \param key      The key -- must be a valid Sample parameters subkey
@@ -349,7 +349,7 @@ const Sample_params* Device_params_get_sample_params(
 
 
 /**
- * Retrieves a Note map from Device parameters.
+ * Retrieve a Note map from Device parameters.
  *
  * \param params   The Device parameters -- must not be \c NULL.
  * \param key      The key -- must be a valid Note map subkey starting after
@@ -362,7 +362,7 @@ const Note_map* Device_params_get_note_map(
 
 
 /**
- * Retrieves a Hit map from Device parameters.
+ * Retrieve a Hit map from Device parameters.
  *
  * \param params   The Device parameters -- must not be \c NULL.
  * \param key      The key -- must be a valid Hit map subkey starting after
@@ -375,7 +375,7 @@ const Hit_map* Device_params_get_hit_map(
 
 
 /**
- * Retrieves a Number list from Device parameters.
+ * Retrieve a Number list from Device parameters.
  *
  * \param params   The Device parameters -- must not be \c NULL.
  * \param key      The key -- must be a valid Number list subkey starting
@@ -388,7 +388,7 @@ const Num_list* Device_params_get_num_list(
 
 
 /**
- * Destroys existing Device parameters.
+ * Destroy existing Device parameters.
  *
  * \param params   The Device parameters, or \c NULL.
  */

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2014
  *
  * This file is part of Kunquat.
  *
@@ -43,7 +43,7 @@ typedef struct Pat_inst_ref
 
 
 /**
- * Compares two Pattern instance references.
+ * Compare two Pattern instance references.
  *
  * \param p1   The first Pattern instance reference -- must be valid.
  * \param p2   The second Pattern instance reference -- must be valid.

@@ -117,7 +117,7 @@ typedef struct Voice_state
 
 
 /**
- * Initialises a Voice state.
+ * Initialise a Voice state.
  *
  * \param state     The Voice state -- must not be \c NULL.
  * \param cgstate   The Channel-specific Generator state -- must not be
@@ -139,7 +139,7 @@ Voice_state* Voice_state_init(
 
 
 /**
- * Clears a Voice state.
+ * Clear a Voice state.
  *
  * \param state   The Voice state -- must not be \c NULL.
  *

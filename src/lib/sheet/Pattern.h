@@ -37,11 +37,10 @@ typedef struct Pattern Pattern;
 
 
 /**
- * Creates a new Pattern object.
+ * Create a new Pattern object.
+ *
  * The caller shall eventually call del_Pattern() to destroy the Pattern
  * returned.
- *
- * \see del_Pattern()
  *
  * \return   The new Pattern object if successful, or \c NULL if memory
  *           allocation failed.
@@ -50,7 +49,7 @@ Pattern* new_Pattern(void);
 
 
 /**
- * Parses the header of a Pattern.
+ * Parse the header of a Pattern.
  *
  * \param pat   The Pattern -- must not be \c NULL.
  * \param sr    The Streader of the JSON data -- must not be \c NULL.
@@ -61,7 +60,7 @@ bool Pattern_parse_header(Pattern* pat, Streader* sr);
 
 
 /**
- * Sets existent status of a Pattern instance.
+ * Set existent status of a Pattern instance.
  *
  * \param pat        The Pattern -- must not be \c NULL.
  * \param index      The instance index -- must be >= \c 0 and
@@ -72,7 +71,7 @@ void Pattern_set_inst_existent(Pattern* pat, int index, bool existent);
 
 
 /**
- * Gets existent status of a Pattern instance.
+ * Get existent status of a Pattern instance.
  *
  * \param pat     The Pattern -- must not be \c NULL.
  * \param index   The instance index -- must be >= \c 0 and
@@ -84,7 +83,7 @@ bool Pattern_get_inst_existent(const Pattern* pat, int index);
 
 
 /**
- * Replaces a Column of the Pattern.
+ * Replace a Column of the Pattern.
  *
  * \param pat     The Pattern -- must not be \c NULL.
  * \param index   The Column index -- must be >= \c 0 and < \c KQT_COLUMNS_MAX.
@@ -96,7 +95,7 @@ bool Pattern_set_column(Pattern* pat, int index, Column* col);
 
 
 /**
- * Returns a column of the Pattern.
+ * Return a column of the Pattern.
  *
  * \param pat     The Pattern -- must not be \c NULL.
  * \param index   The column index -- must be >= \c 0 and < \c KQT_COLUMNS_MAX.
@@ -107,7 +106,7 @@ Column* Pattern_get_column(const Pattern* pat, int index);
 
 
 /**
- * Sets the length of the Pattern.
+ * Set the length of the Pattern.
  *
  * No Events will be deleted if the new length is shorter than the old length.
  *
@@ -119,7 +118,7 @@ void Pattern_set_length(Pattern* pat, Tstamp* length);
 
 
 /**
- * Gets the length of the Pattern.
+ * Get the length of the Pattern.
  *
  * \param pat      The Pattern -- must not be \c NULL.
  *
@@ -129,7 +128,7 @@ const Tstamp* Pattern_get_length(const Pattern* pat);
 
 
 /**
- * Destroys an existing Pattern.
+ * Destroy an existing Pattern.
  *
  * \param pat   The Pattern, or \c NULL.
  */

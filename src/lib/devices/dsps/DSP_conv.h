@@ -23,7 +23,7 @@
 
 
 /**
- * Creates a new convolution DSP.
+ * Create a new convolution DSP.
  *
  * The convolution algorithm used in this DSP is only suitable for very short
  * impulse responses.

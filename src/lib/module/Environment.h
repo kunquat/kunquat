@@ -40,7 +40,7 @@ typedef struct Environment_iter
 
 
 /**
- * Initialises an Environment iterator.
+ * Initialise an Environment iterator.
  *
  * \param iter   The Environment iterator -- must not be \c NULL.
  * \param env    The Environment -- must not be \c NULL.
@@ -53,7 +53,7 @@ Environment_iter* Environment_iter_init(
 
 
 /**
- * Gets the next Environment variable name from the iterator.
+ * Get the next Environment variable name from the iterator.
  *
  * \param iter   The Environment iterator -- must not be \c NULL.
  *
@@ -63,7 +63,7 @@ const char* Environment_iter_get_next_name(Environment_iter* iter);
 
 
 /**
- * Creates a new Environment.
+ * Create a new Environment.
  *
  * \return   The new Environment if successful, or \c NULL if memory
  *           allocation failed.
@@ -72,7 +72,7 @@ Environment* new_Environment(void);
 
 
 /**
- * Parses the Environment from a string.
+ * Parse the Environment from a string.
  *
  * \param env   The Environment -- must not be \c NULL.
  * \param sr    The Streader of the JSON data -- must not be \c NULL.
@@ -83,7 +83,7 @@ bool Environment_parse(Environment* env, Streader* sr);
 
 
 /**
- * Gets a variable from the Environment.
+ * Get a variable from the Environment.
  *
  * \param env    The Environment -- must not be \c NULL.
  * \param name   The variable name -- must not be \c NULL.
@@ -94,7 +94,7 @@ const Env_var* Environment_get(const Environment* env, const char* name);
 
 
 /**
- * Destroys an existing Environment.
+ * Destroy an existing Environment.
  *
  * \param env   The Environment, or \c NULL.
  */

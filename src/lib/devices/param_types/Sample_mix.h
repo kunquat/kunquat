@@ -25,7 +25,7 @@
 
 
 /**
- * Mixes a Sample.
+ * Mix a Sample.
  *
  * \param sample        The Sample -- must not be \c NULL.
  * \param params        The Sample parameters -- must not be \c NULL.

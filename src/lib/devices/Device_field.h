@@ -51,7 +51,7 @@ typedef enum
 
 
 /**
- * Gets the Device field type of a key pattern.
+ * Get the Device field type of a key pattern.
  *
  * \param keyp   The key pattern -- must not be \c NULL.
  *
@@ -65,7 +65,7 @@ typedef struct Device_field Device_field;
 
 
 /**
- * Creates a new Device field.
+ * Create a new Device field.
  *
  * \param key    The key -- must be a valid Device field key.
  * \param data   Pointer to the data that must have a type matching the key,
@@ -78,7 +78,7 @@ Device_field* new_Device_field(const char* key, void* data);
 
 
 /**
- * Creates a new Device field from data.
+ * Create a new Device field from data.
  *
  * \param key   The key of the field -- must be a valid Device field key.
  * \param sr    The Streader of the data -- must not be \c NULL.
@@ -89,7 +89,7 @@ Device_field* new_Device_field_from_data(const char* key, Streader* sr);
 
 
 /**
- * Returns the key of the Device field.
+ * Return the key of the Device field.
  *
  * \param field   The Device field -- must not be \c NULL.
  *
@@ -99,7 +99,7 @@ const char* Device_field_get_key(const Device_field* field);
 
 
 /**
- * Changes the data of a Device field.
+ * Change the data of a Device field.
  *
  * This is used for modifying _composition_ data (not playback data).
  *
@@ -112,7 +112,7 @@ bool Device_field_change(Device_field* field, Streader* sr);
 
 
 /**
- * Compares two Device fields.
+ * Compare two Device fields.
  *
  * \param field1   The first field -- must not be \c NULL.
  * \param field2   The second field -- must not be \c NULL.
@@ -125,7 +125,7 @@ int Device_field_cmp(const Device_field* field1, const Device_field* field2);
 
 
 /**
- * Sets the empty flag of the Device field.
+ * Set the empty flag of the Device field.
  *
  * \param field   The Device field -- must not be \c NULL. Fields that are
  *                not real-time are not supported.
@@ -135,7 +135,7 @@ void Device_field_set_empty(Device_field* field, bool empty);
 
 
 /**
- * Gets the empty flag of the Device field.
+ * Get the empty flag of the Device field.
  *
  * \param field   The Device field -- must not be \c NULL.
  *
@@ -145,7 +145,7 @@ bool Device_field_get_empty(const Device_field* field);
 
 
 /**
- * Modifies Device field data.
+ * Modify Device field data.
  *
  * \param field   The Device field -- must not be \c NULL and must
  *                contain a value that is modifiable in real time.
@@ -158,7 +158,7 @@ bool Device_field_modify(Device_field* field, void* data);
 
 
 /**
- * Gets a reference to a boolean value from the Device field.
+ * Get a reference to a boolean value from the Device field.
  *
  * \param field   The Device field -- must not be \c NULL and must contain
  *                a boolean value.
@@ -169,7 +169,7 @@ const bool* Device_field_get_bool(const Device_field* field);
 
 
 /**
- * Gets a reference to an integer value from the Device field.
+ * Get a reference to an integer value from the Device field.
  *
  * \param field   The Device field -- must not be \c NULL and must contain
  *                an integer value.
@@ -180,7 +180,7 @@ const int64_t* Device_field_get_int(const Device_field* field);
 
 
 /**
- * Gets a reference to a floating point value from the Device field.
+ * Get a reference to a floating point value from the Device field.
  *
  * \param field   The Device field -- must not be \c NULL and must contain
  *                a floating point value.
@@ -191,7 +191,7 @@ const double* Device_field_get_float(const Device_field* field);
 
 
 /**
- * Gets a Real value from the Device field.
+ * Get a Real value from the Device field.
  *
  * \param field   The Device field -- must not be \c NULL and must contain
  *                a Real value.
@@ -202,7 +202,7 @@ const Real* Device_field_get_real(const Device_field* field);
 
 
 /**
- * Gets a Tstamp value from the Device field.
+ * Get a Tstamp value from the Device field.
  *
  * \param field   The Device field -- must not be \c NULL and must contain
  *                a Tstamp value.
@@ -213,7 +213,7 @@ const Tstamp* Device_field_get_tstamp(const Device_field* field);
 
 
 /**
- * Gets an Envelope value from the Device field.
+ * Get an Envelope value from the Device field.
  *
  * \param field   The Device field -- must not be \c NULL and must contain
  *                an Envelope value.
@@ -224,7 +224,7 @@ const Envelope* Device_field_get_envelope(const Device_field* field);
 
 
 /**
- * Gets a Sample from the Device field.
+ * Get a Sample from the Device field.
  *
  * \param field   The Device field -- must not be \c NULL and must contain
  *                a Sample.
@@ -235,7 +235,7 @@ const Sample* Device_field_get_sample(const Device_field* field);
 
 
 /**
- * Gets Sample parameters from the Device field.
+ * Get Sample parameters from the Device field.
  *
  * \param field   The Device field -- must not be \c NULL and must contain
  *                Sample parameters.
@@ -246,7 +246,7 @@ const Sample_params* Device_field_get_sample_params(const Device_field* field);
 
 
 /**
- * Gets a Note map from the Device field.
+ * Get a Note map from the Device field.
  *
  * \param field   The Device field -- must not be \c NULL and must contain
  *                a Note map.
@@ -257,7 +257,7 @@ const Note_map* Device_field_get_note_map(const Device_field* field);
 
 
 /**
- * Gets a Hit map from the Device field.
+ * Get a Hit map from the Device field.
  *
  * \param field   The Device field -- must not be \c NULL and must contain
  *                a Hit map.
@@ -268,7 +268,7 @@ const Hit_map* Device_field_get_hit_map(const Device_field* field);
 
 
 /**
- * Gets a Number list from the Device field.
+ * Get a Number list from the Device field.
  *
  * \param field   The Device field -- must not be \c NULL and must contain
  *                a Number list.
@@ -279,7 +279,7 @@ const Num_list* Device_field_get_num_list(const Device_field* field);
 
 
 /**
- * Destroys an existing Device field.
+ * Destroy an existing Device field.
  *
  * \param field   The Device field, or \c NULL.
  */

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2014
  *
  * This file is part of Kunquat.
  *
@@ -48,7 +48,7 @@ typedef struct Error
 
 
 /**
- * Returns true if an error is set.
+ * Return true if an error is set.
  *
  * \param error   The Error -- must not be \c NULL.
  *
@@ -58,7 +58,7 @@ bool Error_is_set(const Error* error);
 
 
 /**
- * Gets the type of the error set.
+ * Get the type of the error set.
  *
  * \param error   The Error -- must not be \c NULL and must have an error set.
  *
@@ -68,7 +68,7 @@ Error_type Error_get_type(const Error* error);
 
 
 /**
- * Gets an error description.
+ * Get an error description.
  *
  * \param error   The Error -- must not be \c NULL.
  *
@@ -78,7 +78,7 @@ const char* Error_get_desc(const Error* error);
 
 
 /**
- * Makes a copy of an Error.
+ * Make a copy of an Error.
  *
  * \param dest   The destination Error -- must not be \c NULL.
  * \param src    The source Error -- must not be \c NULL or \a dest.
@@ -87,7 +87,7 @@ void Error_copy(Error* restrict dest, const Error* restrict src);
 
 
 /**
- * Sets an error description.
+ * Set an error description.
  */
 #define Error_set(error, type, ...) \
     (Error_set_desc((error), (type), __FILE__, __LINE__, __func__, __VA_ARGS__))
@@ -103,7 +103,7 @@ void Error_set_desc(
 
 
 /**
- * Sets an error description.
+ * Set an error description.
  *
  * \param error     The Error -- must not be \c NULL.
  * \param type      The error type -- must be < ERROR_COUNT_.
@@ -124,7 +124,7 @@ void Error_set_desc_va_list(
 
 
 /**
- * Clears an Error.
+ * Clear an Error.
  *
  * \param error   The Error -- must not be \c NULL.
  */

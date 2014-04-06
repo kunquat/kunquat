@@ -30,7 +30,7 @@ typedef struct Hit_map Hit_map;
 
 
 /**
- * Creates a new Hit map from a string.
+ * Create a new Hit map from a string.
  *
  * \param sr   The Streader of the JSON data -- must not be \c NULL.
  *
@@ -40,7 +40,7 @@ Hit_map* new_Hit_map_from_string(Streader* sr);
 
 
 /**
- * Gets a Sample entry from the Hit map.
+ * Get a Sample entry from the Hit map.
  *
  * \param map         The Hit map -- must not be \c NULL.
  * \param hit_index   The hit index -- must be >= \c 0 and < \c KQT_HITS_MAX.
@@ -58,7 +58,7 @@ const Sample_entry* Hit_map_get_entry(
 
 
 /**
- * Destroys an existing Hit map.
+ * Destroy an existing Hit map.
  *
  * \param map   The Hit map, or \c NULL.
  */

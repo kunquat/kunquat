@@ -25,7 +25,7 @@
 
 
 /**
- * Sets the name of a variable subject to future modification.
+ * Set the name of a variable subject to future modification.
  *
  * \param gstate   The General state -- must not be \c NULL.
  * \param cat      The active category -- must be valid.

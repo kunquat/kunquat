@@ -52,7 +52,7 @@ typedef struct Handle
 
 
 /**
- * Initialises a Kunquat Handle.
+ * Initialise a Kunquat Handle.
  *
  * \param handle   The Kunquat Handle -- must not be \c NULL.
  *
@@ -63,7 +63,7 @@ bool Handle_init(Handle* handle);
 
 
 /**
- * Sets an error message for a Kunquat Handle.
+ * Set an error message for a Kunquat Handle.
  *
  * The caller should always use one of the macro versions.
  *
@@ -93,7 +93,7 @@ void Handle_set_error_(
 
 
 /**
- * Copies an error to a Kunquat Handle.
+ * Copy an error to a Kunquat Handle.
  *
  * \param handle   The Kunquat Handle, or \c NULL if not applicable.
  * \param error    The Error -- must not be \c NULL and
@@ -103,7 +103,7 @@ void Handle_set_error_from_Error(Handle* handle, const Error* error);
 
 
 /**
- * Copies a validation error to a Kunquat Handle.
+ * Copy a validation error to a Kunquat Handle.
  *
  * \param handle   The Kunquat Handle -- must not be \c NULL.
  * \param error    The Error -- must not be \c NULL and
@@ -113,7 +113,7 @@ void Handle_set_validation_error_from_Error(Handle* handle, const Error* error);
 
 
 /**
- * Resets the playback pointer of the Kunquat Handle.
+ * Reset the playback pointer of the Kunquat Handle.
  *
  * \param handle   The Kunquat Handle -- must not be \c NULL.
  */
@@ -121,7 +121,7 @@ void Handle_stop(Handle* handle);
 
 
 /**
- * Checks the validity of a Kunquat Handle.
+ * Check the validity of a Kunquat Handle.
  *
  * \param handle   The ID of the supposed Kunquat Handle.
  *
@@ -132,7 +132,7 @@ bool kqt_Handle_is_valid(kqt_Handle handle);
 
 
 /**
- * Gets the number of mixing buffers in the Kunquat Handle.
+ * Get the number of mixing buffers in the Kunquat Handle.
  *
  * \param handle   The Handle -- must not be \c NULL.
  *
@@ -222,7 +222,7 @@ bool key_is_valid(Handle* handle, const char* key);
 
 
 /**
- * Gets the module associated with the Handle.
+ * Get the module associated with the Handle.
  *
  * \param handle   The Handle -- must not be \c NULL.
  *

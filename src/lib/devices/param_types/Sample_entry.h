@@ -34,7 +34,7 @@ typedef struct Sample_entry
 
 
 /**
- * Parses a Sample entry from a string.
+ * Parse a Sample entry from a string.
  *
  * \param entry   The Sample entry -- must not be \c NULL.
  * \param sr      The Streader of the JSON data -- must not be \c NULL.

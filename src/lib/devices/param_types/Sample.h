@@ -42,7 +42,7 @@ typedef struct Sample
 
 
 /**
- * Creates a new Sample.
+ * Create a new Sample.
  *
  * \return   The new Sample if successful, or \c NULL if memory allocation
  *           failed.
@@ -51,7 +51,7 @@ Sample* new_Sample(void);
 
 
 /**
- * Creates a new Sample from existing buffers.
+ * Create a new Sample from existing buffers.
  *
  * \param buffers   The buffers -- must not be \c NULL. The Sample will
  *                  assume ownership of the buffers (but not the actual
@@ -69,7 +69,7 @@ Sample* new_Sample_from_buffers(float* buffers[], int count, uint64_t length);
 
 
 /**
- * Copies Sample parameters into a Sample.
+ * Copy Sample parameters into a Sample.
  *
  * This function copies all the fields except the format field.
  *
@@ -80,7 +80,7 @@ Sample* new_Sample_from_buffers(float* buffers[], int count, uint64_t length);
 
 
 /**
- * Gets the file format of the Sample.
+ * Get the file format of the Sample.
  *
  * \param sample   The Sample -- must not be \c NULL.
  *
@@ -90,7 +90,7 @@ Sample* new_Sample_from_buffers(float* buffers[], int count, uint64_t length);
 
 
 /**
- * Sets the middle frequency of the Sample.
+ * Set the middle frequency of the Sample.
  *
  * \param sample   The Sample -- must not be \c NULL.
  * \param freq     The middle frequency -- must be > \c 0.
@@ -99,7 +99,7 @@ Sample* new_Sample_from_buffers(float* buffers[], int count, uint64_t length);
 
 
 /**
- * Gets the middle frequency of the Sample.
+ * Get the middle frequency of the Sample.
  *
  * \param sample   The Sample -- must not be \c NULL.
  *
@@ -109,7 +109,7 @@ Sample* new_Sample_from_buffers(float* buffers[], int count, uint64_t length);
 
 
 /**
- * Gets the length of the Sample.
+ * Get the length of the Sample.
  *
  * \param sample   The Sample -- must not be \c NULL.
  *
@@ -119,7 +119,7 @@ uint64_t Sample_get_len(const Sample* sample);
 
 
 /**
- * Sets the loop mode of the Sample.
+ * Set the loop mode of the Sample.
  *
  * If the loop becomes enabled, the end points may be changed.
  * The loop will not be enabled if the length of the sample is 0.
@@ -132,7 +132,7 @@ uint64_t Sample_get_len(const Sample* sample);
 
 
 /**
- * Gets the loop mode of the Sample.
+ * Get the loop mode of the Sample.
  *
  * \param sample   The Sample -- must not be \c NULL.
  *
@@ -142,7 +142,7 @@ uint64_t Sample_get_len(const Sample* sample);
 
 
 /**
- * Sets the start point of the Sample loop.
+ * Set the start point of the Sample loop.
  *
  * If the start point is set past the end of the loop or Sample, the loop is
  * turned off.
@@ -154,7 +154,7 @@ uint64_t Sample_get_len(const Sample* sample);
 
 
 /**
- * Gets the start point of the Sample loop.
+ * Get the start point of the Sample loop.
  *
  * \param sample   The Sample -- must not be \c NULL.
  *
@@ -164,7 +164,7 @@ uint64_t Sample_get_len(const Sample* sample);
 
 
 /**
- * Sets the end point of the Sample loop.
+ * Set the end point of the Sample loop.
  *
  * If the end point is set at or before the start point or past the length of
  * the Sample, the loop is turned off.
@@ -176,7 +176,7 @@ uint64_t Sample_get_len(const Sample* sample);
 
 
 /**
- * Gets the end point of the Sample loop.
+ * Get the end point of the Sample loop.
  *
  * \param sample   The Sample -- must not be \c NULL.
  *
@@ -186,7 +186,7 @@ uint64_t Sample_get_len(const Sample* sample);
 
 
 /**
- * Gets a buffer from the Sample.
+ * Get a buffer from the Sample.
  *
  * \param sample   The Sample -- must not be \c NULL.
  * \param ch       The channel number -- must be >= \c 0 and less than the
@@ -198,7 +198,7 @@ void* Sample_get_buffer(Sample* sample, int ch);
 
 
 /**
- * Destroys a Sample.
+ * Destroy a Sample.
  *
  * \param sample   The Sample, or \c NULL.
  */

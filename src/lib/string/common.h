@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -20,7 +20,7 @@
 
 
 /**
- * Checks for equality between strings.
+ * Check for equality between strings.
  *
  * NULL string is considered equivalent to an empty string.
  *
@@ -33,7 +33,7 @@ bool string_eq(const char* str1, const char* str2);
 
 
 /**
- * Checks for a prefix in the given string.
+ * Check for a prefix in the given string.
  *
  * NULL string is considered equivalent to an empty string.
  *
@@ -46,7 +46,7 @@ bool string_has_prefix(const char* str, const char* prefix);
 
 
 /**
- * Checks for a suffix in the given string.
+ * Check for a suffix in the given string.
  *
  * NULL string is considered equivalent to an empty string.
  *
@@ -59,7 +59,7 @@ bool string_has_suffix(const char* str, const char* suffix);
 
 
 /**
- * Extracts an unsigned hexadecimal index from a path component.
+ * Extract an unsigned hexadecimal index from a path component.
  *
  * \param path     The path -- must not be \c NULL.
  * \param prefix   The prefix of the path, or \c NULL if irrelevant.

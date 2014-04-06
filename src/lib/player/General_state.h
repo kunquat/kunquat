@@ -53,7 +53,7 @@ typedef struct General_state
 
 
 /**
- * Pre-initialises the General state.
+ * Pre-initialise the General state.
  *
  * This function must be called before General_state_init on a given state.
  *
@@ -65,7 +65,7 @@ General_state* General_state_preinit(General_state* state);
 
 
 /**
- * Initialises the General state.
+ * Initialise the General state.
  *
  * \param state    The General state -- must not be \c NULL.
  * \param global   \c true if and only if \a state is global.
@@ -85,7 +85,7 @@ General_state* General_state_init(
 
 
 /**
- * Tells whether events connected to the General state should be processed.
+ * Tell whether events connected to the General state should be processed.
  *
  * \param state   The General state -- must not be \c NULL.
  *
@@ -95,7 +95,7 @@ bool General_state_events_enabled(General_state* state);
 
 
 /**
- * Resets the General state.
+ * Reset the General state.
  *
  * \param state    The General state -- must not be \c NULL.
  */
@@ -103,7 +103,7 @@ void General_state_reset(General_state* state);
 
 
 /**
- * Uninitialises the General state.
+ * Deinitialise the General state.
  *
  * \param state    The General state -- must not be \c NULL.
  */

@@ -49,7 +49,7 @@ typedef struct Envelope Envelope;
 
 
 /**
- * Creates a new Envelope.
+ * Create a new Envelope.
  *
  * \param nodes_max   The maximum number of nodes -- must be > \c 1.
  * \param min_x       The minimum value of x -- must not be \c NAN.
@@ -68,7 +68,7 @@ Envelope* new_Envelope(int nodes_max,
 
 
 /**
- * Parses an Envelope from a string.
+ * Parse an Envelope from a string.
  *
  * \param env   The Envelope -- must not be \c NULL.
  * \param sr    The Streader of the JSON data -- must not be \c NULL.
@@ -79,7 +79,7 @@ bool Envelope_read(Envelope* env, Streader* sr);
 
 
 /**
- * Gets the number of nodes in the Envelope.
+ * Get the number of nodes in the Envelope.
  *
  * \param env   The Envelope -- must not be \c NULL.
  *
@@ -89,7 +89,7 @@ int Envelope_node_count(const Envelope* env);
 
 
 /**
- * Sets the interpolation method used in the Envelope.
+ * Set the interpolation method used in the Envelope.
  *
  * \param env      The Envelope -- must not be \c NULL.
  * \param interp   The interpolation method -- must be a valid identifier.
@@ -98,7 +98,7 @@ void Envelope_set_interp(Envelope* env, Envelope_int interp);
 
 
 /**
- * Gets the interpolation method used in the Envelope.
+ * Get the interpolation method used in the Envelope.
  *
  * \param env   The Envelope -- must not be \c NULL.
  *
@@ -108,7 +108,7 @@ Envelope_int Envelope_get_interp(const Envelope* env);
 
 
 /**
- * Sets a mark on the Envelope.
+ * Set a mark on the Envelope.
  *
  * \param env     The Envelope -- must not be \c NULL.
  * \param index   The mark index -- must be >= \c 0 and
@@ -119,7 +119,7 @@ void Envelope_set_mark(Envelope* env, int index, int value);
 
 
 /**
- * Gets a mark of the Envelope.
+ * Get a mark of the Envelope.
  *
  * \param env     The Envelope -- must not be \c NULL.
  * \param index   The mark index -- must be >= \c 0 and
@@ -131,7 +131,7 @@ int Envelope_get_mark(const Envelope* env, int index);
 
 
 /**
- * Sets a node in the Envelope.
+ * Set a node in the Envelope.
  *
  * \param env   The Envelope -- must not be \c NULL.
  * \param x     The x coordinate of the node -- must be finite.
@@ -146,7 +146,7 @@ int Envelope_set_node(Envelope* env, double x, double y);
 
 
 /**
- * Removes a node from the Envelope.
+ * Remove a node from the Envelope.
  *
  * \param env     The Envelope -- must not be \c NULL.
  * \param index   The index of the node -- must be >= \c 0.
@@ -159,7 +159,7 @@ bool Envelope_del_node(Envelope* env, int index);
 
 
 /**
- * Gets a node from the Envelope.
+ * Get a node from the Envelope.
  *
  * \param env     The Envelope -- must not be \c NULL.
  * \param index   The index of the node -- must be >= \c 0.
@@ -171,7 +171,7 @@ double* Envelope_get_node(const Envelope* env, int index);
 
 
 /**
- * Moves a node inside the Envelope.
+ * Move a node inside the Envelope.
  *
  * \param env     The Envelope -- must not be \c NULL.
  * \param index   The index of the node -- must be >= \c 0.
@@ -185,7 +185,7 @@ double* Envelope_move_node(Envelope* env, int index, double x, double y);
 
 
 /**
- * Gets a value from the Envelope.
+ * Get a value from the Envelope.
  *
  * \param env   The Envelope -- must not be \c NULL.
  * \param x     The x coordinate -- must be finite.
@@ -197,7 +197,7 @@ double Envelope_get_value(const Envelope* env, double x);
 
 
 /**
- * Sets the locking of the first node.
+ * Set the locking of the first node.
  *
  * The Envelope must contain at least one node.
  *
@@ -209,7 +209,7 @@ void Envelope_set_first_lock(Envelope* env, bool lock_x, bool lock_y);
 
 
 /**
- * Sets the locking of the last node.
+ * Set the locking of the last node.
  *
  * The Envelope must contain at least one node.
  *
@@ -221,7 +221,7 @@ void Envelope_set_last_lock(Envelope* env, bool lock_x, bool lock_y);
 
 
 /**
- * Destroys an existing Envelope.
+ * Destroy an existing Envelope.
  *
  * \param env   The Envelope, or \c NULL.
  */

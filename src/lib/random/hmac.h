@@ -20,7 +20,7 @@
 
 
 /**
- * Calculates the HMAC of the given key and message.
+ * Calculate the HMAC of the given key and message.
  *
  * This implementation is restricted to 64-bit keys and string messages.
  *

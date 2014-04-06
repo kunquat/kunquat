@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -28,7 +28,7 @@ typedef struct Voice_state_pulse
 
 
 /**
- * Initialises the Pulse generator parameters.
+ * Initialise the Pulse generator parameters.
  *
  * \param pulse   The Pulse parameters -- must not be \c NULL.
  */

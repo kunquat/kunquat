@@ -31,7 +31,7 @@ typedef struct Freeverb_allpass Freeverb_allpass;
 
 
 /**
- * Creates a new Freeverb allpass filter.
+ * Create a new Freeverb allpass filter.
  *
  * \param buffer_size   The buffer size -- must be > \c 0.
  *
@@ -42,7 +42,7 @@ Freeverb_allpass* new_Freeverb_allpass(uint32_t buffer_size);
 
 
 /**
- * Sets the feedback of the Freeverb allpass filter.
+ * Set the feedback of the Freeverb allpass filter.
  *
  * \param allpass    The Freeverb allpass filter -- must not be \c NULL.
  * \param feedback   The feedback value -- must be > \c -1 and < \c 1.
@@ -51,7 +51,7 @@ void Freeverb_allpass_set_feedback(Freeverb_allpass* allpass, kqt_frame feedback
 
 
 /**
- * Processes one frame of input data.
+ * Process one frame of input data.
  *
  * \param allpass   The Freeverb allpass filter -- must not be \c NULL.
  * \param input     The input frame.
@@ -62,7 +62,7 @@ kqt_frame Freeverb_allpass_process(Freeverb_allpass* allpass, kqt_frame input);
 
 
 /**
- * Resizes the internal buffer of the Freeverb allpass filter.
+ * Resize the internal buffer of the Freeverb allpass filter.
  *
  * \param allpass    The Freeverb allpass filter -- must not be \c NULL.
  * \param new_size   The new buffer size -- must be > \c 0.
@@ -73,7 +73,7 @@ bool Freeverb_allpass_resize_buffer(Freeverb_allpass* allpass, uint32_t new_size
 
 
 /**
- * Clears the internal buffer of the Freeverb allpass filter.
+ * Clear the internal buffer of the Freeverb allpass filter.
  *
  * \param allpass   The Freeverb allpass filter -- must not be \c NULL.
  */
@@ -81,7 +81,7 @@ void Freeverb_allpass_clear(Freeverb_allpass* allpass);
 
 
 /**
- * Destroys an existing Freeverb allpass filter.
+ * Destroy an existing Freeverb allpass filter.
  *
  * \param allpass   The Freeverb allpass filter, or \c NULL.
  */

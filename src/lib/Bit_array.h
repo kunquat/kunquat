@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2014
  *
  * This file is part of Kunquat.
  *
@@ -27,7 +27,7 @@ typedef struct Bit_array Bit_array;
 
 
 /**
- * Creates a new Bit array.
+ * Create a new Bit array.
  *
  * \param size   The size of the array -- must be > \c 0.
  *
@@ -37,7 +37,7 @@ Bit_array* new_Bit_array(size_t size);
 
 
 /**
- * Sets a value in the Bit array.
+ * Set a value in the Bit array.
  *
  * \param ba      The Bit array -- must not be \c NULL.
  * \param index   The index of the value -- must be less than the array size.
@@ -47,7 +47,7 @@ void Bit_array_set(Bit_array* ba, size_t index, bool value);
 
 
 /**
- * Gets a value from the Bit array.
+ * Get a value from the Bit array.
  *
  * \param ba      The Bit array -- must not be \c NULL.
  * \param index   The index of the value -- must be less than the array size.
@@ -58,7 +58,7 @@ bool Bit_array_get(const Bit_array* ba, size_t index);
 
 
 /**
- * Destroys an existing Bit array.
+ * Destroy an existing Bit array.
  *
  * \param ba   The Bit array, or \c NULL.
  */

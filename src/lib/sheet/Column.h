@@ -54,7 +54,7 @@ typedef struct Column_iter
 
 
 /**
- * Creates a new Column iterator.
+ * Create a new Column iterator.
  *
  * \param col   The Column associated with the iterator, or \c NULL if memory
  *              allocation failed.
@@ -63,7 +63,7 @@ Column_iter* new_Column_iter(Column* col);
 
 
 /**
- * Initialises a Column iterator.
+ * Initialise a Column iterator.
  *
  * \param iter   The Column iterator -- must not be \c NULL.
  */
@@ -71,7 +71,7 @@ void Column_iter_init(Column_iter* iter);
 
 
 /**
- * Changes the Column associated with the Column iterator.
+ * Change the Column associated with the Column iterator.
  *
  * \param iter   The Column iterator -- must not be \c NULL.
  * \param col    The Column -- must not be \c NULL.
@@ -80,7 +80,7 @@ void Column_iter_change_col(Column_iter* iter, Column* col);
 
 
 /**
- * Gets a Trigger from the Column.
+ * Get a Trigger from the Column.
  *
  * The first Trigger with position greater than or equal to the given position
  * will be returned.
@@ -97,7 +97,7 @@ Trigger_list* Column_iter_get_row(Column_iter* iter, const Tstamp* pos);
 
 
 /**
- * Gets the Trigger next to the previous Trigger retrieved from the Column.
+ * Get the Trigger next to the previous Trigger retrieved from the Column.
  *
  * If not preceded by a successful call to Column_iter_get(), \c NULL will be
  * returned.
@@ -113,7 +113,7 @@ Trigger_list* Column_iter_get_next_row(Column_iter* iter);
 
 
 /**
- * Destroys an existing Column iterator.
+ * Destroy an existing Column iterator.
  *
  * \param iter   The Column iterator -- must not be \c NULL.
  */
@@ -121,7 +121,7 @@ void del_Column_iter(Column_iter* iter);
 
 
 /**
- * Creates a new Column.
+ * Create a new Column.
  *
  * \param length   The length of the column. If this is \c NULL, the length is
  *                 set to INT64_MAX beats.
@@ -133,7 +133,7 @@ Column* new_Column(const Tstamp* len);
 
 
 /**
- * Creates a new Column from a textual description.
+ * Create a new Column from a textual description.
  *
  * \param sr            The Streader of the JSON input -- must not be \c NULL.
  * \param len           The length of the column. If this is \c NULL, the
@@ -149,7 +149,7 @@ Column* new_Column_from_string(
 
 
 /**
- * Inserts a new Trigger into the Column.
+ * Insert a new Trigger into the Column.
  *
  * If other Triggers are already located at the target position, the new Trigger
  * will be placed after these Triggers.
@@ -163,7 +163,7 @@ bool Column_ins(Column* col, Trigger* trigger);
 
 
 /**
- * Destroys an existing Column.
+ * Destroy an existing Column.
  *
  * \param col   The Column, or \c NULL.
  */

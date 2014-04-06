@@ -52,7 +52,7 @@ typedef struct Device_node Device_node;
 
 
 /**
- * Creates a new Device node.
+ * Create a new Device node.
  *
  * \param name      The name of the node -- must not be \c NULL.
  * \param insts     The Instrument table -- must not be \c NULL.
@@ -73,7 +73,7 @@ Device_node* new_Device_node(
 
 
 /**
- * Compares two existing Device nodes.
+ * Compare two existing Device nodes.
  *
  * \param n1   The first Device node -- must not be \c NULL.
  * \param n2   The second Device node -- must not be \c NULL.
@@ -86,7 +86,7 @@ int Device_node_cmp(const Device_node* n1, const Device_node* n2);
 
 
 /**
- * Resets the Device node and its subgraph.
+ * Reset the Device node and its subgraph.
  *
  * This function assumes that if the underlying Connections graph is not
  * reset, all its nodes have been marked at least reached.
@@ -97,7 +97,7 @@ void Device_node_reset(Device_node* node);
 
 
 /**
- * Initialises all Audio buffers in the Device node and its subgraph.
+ * Initialise all Audio buffers in the Device node and its subgraph.
  *
  * \param node     The Device node -- must not be \c NULL.
  * \param states   The Device states -- must not be \c NULL.
@@ -108,7 +108,7 @@ bool Device_node_init_buffers_simple(Device_node* node, Device_states* states);
 
 
 /**
- * Initialises the graphs of the Effects in the subgraph.
+ * Initialise the graphs of the Effects in the subgraph.
  *
  * \param node     The Device node -- must not be \c NULL.
  * \param states   The Device states -- must not be \c NULL.
@@ -119,7 +119,7 @@ bool Device_node_init_effect_buffers(Device_node* node, Device_states* states);
 
 
 /**
- * Clears the audio buffers in the Device node and its subgraph.
+ * Clear the audio buffers in the Device node and its subgraph.
  *
  * \param node     The Device node -- must not be \c NULL.
  * \param states   The Device states -- must not be \c NULL.
@@ -137,7 +137,7 @@ void Device_node_clear_buffers(
 
 
 /**
- * Mixes audio in the Device node and its subgraph.
+ * Mix audio in the Device node and its subgraph.
  *
  * \param node     The Device node -- must not be \c NULL.
  * \param states   The Device states -- must not be \c NULL.
@@ -159,7 +159,7 @@ void Device_node_mix(
 
 
 /**
- * Gets the name of the corresponding Device.
+ * Get the name of the corresponding Device.
  *
  * \param node   The Device node -- must not be \c NULL.
  *
@@ -169,7 +169,7 @@ char* Device_node_get_name(Device_node* node);
 
 
 /**
- * Gets the Device of the Device node.
+ * Get the Device of the Device node.
  *
  * \param node   The Device node -- must not be \c NULL.
  *
@@ -179,7 +179,7 @@ const Device* Device_node_get_device(const Device_node* node);
 
 
 /**
- * Sets the node state of the Device node.
+ * Set the node state of the Device node.
  *
  * \param node    The Device node -- must not be \c NULL.
  * \param state   The state -- must be valid.
@@ -188,7 +188,7 @@ void Device_node_set_state(Device_node* node, Device_node_state state);
 
 
 /**
- * Gets the node state of the Device node.
+ * Get the node state of the Device node.
  *
  * \param node   The Device node -- must not be \c NULL.
  *
@@ -198,7 +198,7 @@ Device_node_state Device_node_get_state(const Device_node* node);
 
 
 /**
- * Connects two Device nodes.
+ * Connect two Device nodes.
  *
  * \param receiver    The Device node that receives audio -- must not
  *                    be \c NULL.
@@ -218,7 +218,7 @@ bool Device_node_connect(
 
 
 /**
- * Disconnects a Device from the Device node.
+ * Disconnect a Device from the Device node.
  *
  * \param node     The Device node -- must not be \c NULL.
  * \param device   The Device to be disconnected -- must not be \c NULL.
@@ -227,7 +227,7 @@ void Device_node_disconnect(Device_node* node, const Device* device);
 
 
 /**
- * Replaces a Device in the connections of the Device node.
+ * Replace a Device in the connections of the Device node.
  *
  * \param node         The Device node -- must not be \c NULL.
  * \param old_device   The old Device -- must not be \c NULL.
@@ -241,7 +241,7 @@ void Device_node_replace(
 
 
 /**
- * Gets the first in a list of Device nodes that send audio to this Device node.
+ * Get the first in a list of Device nodes that sends audio to this Device node.
  *
  * \param node        The Device node -- must not be \c NULL.
  * \param rec_port    The receive port number -- must be >= \c 0 and
@@ -258,7 +258,7 @@ Device_node* Device_node_get_sender(
 
 
 /**
- * Gets the first in a list of Device nodes that receive audio from this Device node.
+ * Get the first in a list of Device nodes that receives audio from this Device node.
  *
  * \param node        The Device node -- must not be \c NULL.
  * \param send_port   The send port number -- must be >= \c 0 and
@@ -275,7 +275,7 @@ Device_node* Device_node_get_receiver(
 
 
 /**
- * Gets the next neighbour from the last requested list of a Device node.
+ * Get the next neighbour from the last requested list of a Device node.
  *
  * \param node   The Device node -- must not be \c NULL.
  * \param port   A pointer where the port of the returned node
@@ -287,7 +287,7 @@ Device_node* Device_node_get_next(Device_node* node, int* port);
 
 
 /**
- * Searches for a cycle in the path starting from this Device node.
+ * Search for a cycle in the path starting from this Device node.
  *
  * \param node   The Device node -- must not be \c NULL.
  *
@@ -297,7 +297,7 @@ bool Device_node_cycle_in_path(Device_node* node);
 
 
 /**
- * Prints a textual description of the Device node and its neighbours.
+ * Print a textual description of the Device node and its neighbours.
  *
  * \param node   The Device node -- must not be \c NULL.
  * \param out    The output file -- must not be \c NULL.
@@ -306,7 +306,7 @@ void Device_node_print(const Device_node* node, FILE* out);
 
 
 /**
- * Destroys an existing Device node.
+ * Destroy an existing Device node.
  *
  * \param node   The Device node, or \c NULL.
  */

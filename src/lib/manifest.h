@@ -23,7 +23,7 @@
 
 
 /**
- * Reads a default manifest key.
+ * Read a default manifest key.
  *
  * \param sr   The Streader of the JSON data -- must not be \c NULL.
  *

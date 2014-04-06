@@ -48,7 +48,7 @@ typedef struct DSP_type DSP_type;
 
 
 /**
- * Finds a DSP constructor.
+ * Find a DSP constructor.
  *
  * \param type   The DSP type -- must not be \c NULL.
  *
@@ -58,7 +58,7 @@ DSP_cons* DSP_type_find_cons(const char* type);
 
 
 /**
- * Finds a DSP property function.
+ * Find a DSP property function.
  *
  * \param type   The DSP type -- must be a valid type.
  *

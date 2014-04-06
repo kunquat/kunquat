@@ -20,7 +20,7 @@
 
 
 /**
- * Suppresses error message printing.
+ * Suppress error message printing.
  */
 void assert_suppress_messages(void);
 
@@ -36,7 +36,7 @@ void assert_suppress_messages(void);
 #if defined(HAS_EXECINFO) && !defined(SILENT_ASSERT)
 
 /**
- * Prints a backtrace of the execution.
+ * Print a backtrace of the execution.
  */
 void assert_print_backtrace(void);
 
@@ -50,7 +50,7 @@ void assert_print_backtrace(void);
 #ifndef SILENT_ASSERT
 
 /**
- * Prints a message of failed assertion.
+ * Print a message of failed assertion.
  *
  * \param file_name     The source code file name -- must not be \c NULL.
  * \param line_number   The source code file line number.

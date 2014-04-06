@@ -39,7 +39,7 @@
 
 
 /**
- * Tells whether the given number is a power of 2.
+ * Tell whether the given number is a power of 2.
  *
  * \param x   The number -- must be > \c 0.
  *
@@ -49,7 +49,7 @@ bool is_p2(int64_t x);
 
 
 /**
- * Returns the next power of 2 of the given number.
+ * Return the next power of 2 of the given number.
  *
  * \param x   The number -- must be > \c 0.
  *
@@ -59,7 +59,7 @@ int64_t next_p2(int64_t x);
 
 
 /**
- * Returns the smallest power of 2 not less than the given number.
+ * Return the smallest power of 2 not less than the given number.
  *
  * \param x   The number -- must be > \c 0.
  *
@@ -69,7 +69,7 @@ int64_t ceil_p2(int64_t x);
 
 
 /**
- * Returns the integral power with a non-negative exponent.
+ * Return the integral power with a non-negative exponent.
  *
  * This function evaluates 0^0 to 1.
  *
@@ -82,7 +82,7 @@ int64_t ipowi(int64_t base, int64_t exp);
 
 
 /**
- * Interpolates linearly between two values.
+ * Interpolate linearly between two values.
  *
  * \param v1   The first value.
  * \param v2   The second value.

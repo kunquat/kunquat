@@ -66,7 +66,7 @@ struct Module
 
 
 /**
- * Creates a new Module.
+ * Create a new Module.
  *
  * The caller shall eventually call del_Module() to destroy the Module returned.
  *
@@ -77,7 +77,7 @@ Module* new_Module(void);
 
 
 /**
- * Parses the composition header of a Module.
+ * Parse the composition header of a Module.
  *
  * \param module   The Module -- must not be \c NULL.
  * \param sr       The Streader of the JSON data -- must not be \c NULL.
@@ -88,7 +88,7 @@ bool Module_parse_composition(Module* module, Streader* sr);
 
 
 /**
- * Parses the random seed of the composition.
+ * Parse the random seed of the composition.
  *
  * \param module   The Module -- must not be \c NULL.
  * \param sr       The Streader of the JSON data -- must not be \c NULL.
@@ -99,7 +99,7 @@ bool Module_parse_random_seed(Module* module, Streader* sr);
 
 
 /**
- * Gets the track list of the Module.
+ * Get the track list of the Module.
  *
  * \param module   The Module -- must not be \c NULL.
  *
@@ -109,7 +109,7 @@ const Track_list* Module_get_track_list(const Module* module);
 
 
 /**
- * Gets an order list of the Module.
+ * Get an order list of the Module.
  *
  * \param module   The Module -- must not be \c NULL.
  * \param song     The song number -- must be >= \c 0 and < \c KQT_SONGS_MAX.
@@ -120,7 +120,7 @@ const Order_list* Module_get_order_list(const Module* module, int16_t song);
 
 
 /**
- * Gets a pattern of the Module.
+ * Get a pattern of the Module.
  *
  * \param module   The Module -- must not be \c NULL.
  * \param piref    The pattern instance -- must be valid.
@@ -133,7 +133,7 @@ const Pattern* Module_get_pattern(
 
 
 /**
- * Finds the location of a pattern instance inside the Module.
+ * Find the location of a pattern instance inside the Module.
  *
  * \param module   The Module -- must not be \c NULL.
  * \param piref    The pattern instance -- must be valid.
@@ -157,7 +157,7 @@ bool Module_find_pattern_location(
 
 
 /**
- * Sets the mixing volume of the Module.
+ * Set the mixing volume of the Module.
  *
  * \param module    The Module -- must not be \c NULL.
  * \param mix_vol   The volume -- must be finite or -INFINITY.
@@ -166,7 +166,7 @@ void Module_set_mix_vol(Module* module, double mix_vol);
 
 
 /**
- * Gets the mixing volume of the Module.
+ * Get the mixing volume of the Module.
  *
  * \param module   The Module -- must not be \c NULL.
  *
@@ -176,7 +176,7 @@ double Module_get_mix_vol(Module* module);
 
 
 /**
- * Gets the Song table of the Module.
+ * Get the Song table of the Module.
  *
  * \param module   The Module -- must not be \c NULL.
  *
@@ -186,7 +186,7 @@ Song_table* Module_get_songs(const Module* module);
 
 
 /**
- * Gets the Patterns of the Module.
+ * Get the Patterns of the Module.
  *
  * \param module   The Module -- must not be \c NULL.
  *
@@ -196,7 +196,7 @@ Pat_table* Module_get_pats(Module* module);
 
 
 /**
- * Gets the Instrument corresponding to an input index.
+ * Get the Instrument corresponding to an input index.
  *
  * \param module   The Module -- must not be \c NULL.
  *
@@ -206,7 +206,7 @@ Instrument* Module_get_ins_from_input(const Module* module, int32_t input);
 
 
 /**
- * Sets the existence status of a control.
+ * Set the existence status of a control.
  *
  * \param module     The Module -- must not be \c NULL.
  * \param control    The control index -- must be >= \c 0 and
@@ -217,7 +217,7 @@ void Module_set_control(Module* module, int control, bool existent);
 
 
 /**
- * Gets the existence status of a control.
+ * Get the existence status of a control.
  *
  * \param module    The Module -- must not be \c NULL.
  * \param control   The control index -- must be >= \c 0 and
@@ -229,7 +229,7 @@ bool Module_get_control(const Module* module, int control);
 
 
 /**
- * Sets the Instrument input map of the Module.
+ * Set the Instrument input map of the Module.
  *
  * \param module   The Module -- must not be \c NULL.
  * \param sr       The Streader of the input data -- must not be \c NULL.
@@ -240,7 +240,7 @@ bool Module_set_ins_map(Module* module, Streader* sr);
 
 
 /**
- * Gets the Instrument input map of the Module.
+ * Get the Instrument input map of the Module.
  *
  * \param module   The Module -- must not be \c NULL.
  *
@@ -250,7 +250,7 @@ Input_map* Module_get_ins_map(const Module* module);
 
 
 /**
- * Gets the Instruments of the Module.
+ * Get the Instruments of the Module.
  *
  * \param module   The Module -- must not be \c NULL.
  *
@@ -260,7 +260,7 @@ Ins_table* Module_get_insts(const Module* module);
 
 
 /**
- * Gets the Effects of the Module.
+ * Get the Effects of the Module.
  *
  * \param module   The Module -- must not be \c NULL.
  *
@@ -270,7 +270,7 @@ Effect_table* Module_get_effects(const Module* module);
 
 
 /**
- * Sets the Bind of the Module.
+ * Set the Bind of the Module.
  *
  * \param module   The Module -- must not be \c NULL.
  * \param bind     The Bind -- must not be \c NULL.
@@ -279,7 +279,7 @@ void Module_set_bind(Module* module, Bind* bind);
 
 
 /**
- * Sets a Scale in the Module.
+ * Set a Scale in the Module.
  *
  * \param module   The Module -- must not be \c NULL.
  * \param index    The Scale index -- must be >= 0 and < KQT_SCALES_MAX.
@@ -289,7 +289,7 @@ void Module_set_scale(Module* module, int index, Scale* scale);
 
 
 /**
- * Gets a Scale of the Module.
+ * Get a Scale of the Module.
  *
  * \param module   The Module -- must not be \c NULL.
  * \param index    The Scale index -- must be >= 0 and < KQT_SCALES_MAX.
@@ -300,7 +300,7 @@ Scale* Module_get_scale(Module* module, int index);
 
 
 /**
- * Creates a new Scale for the Module.
+ * Create a new Scale for the Module.
  *
  * \param module   The Module -- must not be \c NULL.
  * \param index    The Scale index -- must be >= 0 and < KQT_SCALES_MAX.
@@ -311,7 +311,7 @@ bool Module_create_scale(Module* module, int index);
 
 
 /**
- * Removes a Scale from the Module.
+ * Remove a Scale from the Module.
  *
  * \param module   The Module -- must not be \c NULL.
  * \param index    The Scale index -- must be >= 0 and < KQT_SCALES_MAX.
@@ -321,7 +321,7 @@ void Module_remove_scale(Module* module, int index);
 
 
 /**
- * Destroys an existing Module.
+ * Destroy an existing Module.
  *
  * \param module   The Module, or \c NULL.
  */

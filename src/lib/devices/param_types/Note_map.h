@@ -31,7 +31,7 @@ typedef struct Note_map Note_map;
 
 
 /**
- * Creates a new Note map from a string.
+ * Create a new Note map from a string.
  *
  * \param sr   The Streader of the JSON data -- must not be \c NULL.
  *
@@ -41,7 +41,7 @@ Note_map* new_Note_map_from_string(Streader* sr);
 
 
 /**
- * Adds a Sample entry into the Note map.
+ * Add a Sample entry into the Note map.
  *
  * This function is for Generators that create their own Note maps.
  *
@@ -63,7 +63,7 @@ bool Note_map_add_entry(
 
 
 /**
- * Gets a Sample entry from the Note map.
+ * Get a Sample entry from the Note map.
  *
  * \param map      The Note map -- must not be \c NULL.
  * \param cents    The pitch in cents -- must be finite.
@@ -80,7 +80,7 @@ const Sample_entry* Note_map_get_entry(
 
 
 /**
- * Destroys an existing Note map.
+ * Destroy an existing Note map.
  *
  * \param map   The Note map, or \c NULL.
  */

@@ -34,7 +34,7 @@ typedef struct Player Player;
 
 
 /**
- * Creates a new Player.
+ * Create a new Player.
  *
  * \param module              The Module -- must not be \c NULL.
  * \param audio_rate          The audio rate -- must be > \c 0.
@@ -56,13 +56,13 @@ Player* new_Player(
 
 
 /**
- * Returns the event handler of the Player. TODO: this is a hack
+ * Return the event handler of the Player. TODO: this is a hack
  */
 const Event_handler* Player_get_event_handler(const Player* player);
 
 
 /**
- * Returns the Device state collection of the Player.
+ * Return the Device state collection of the Player.
  *
  * \param player   The Player -- must not be \c NULL.
  *
@@ -72,7 +72,7 @@ Device_states* Player_get_device_states(const Player* player);
 
 
 /**
- * Reserves state space for internal voice pool.
+ * Reserve state space for internal voice pool.
  *
  * \param player   The Player -- must not be \c NULL.
  * \param size     The new size.
@@ -83,7 +83,7 @@ bool Player_reserve_voice_state_space(Player* player, size_t size);
 
 
 /**
- * Allocates memory for a list of Channel-specific generator variables.
+ * Allocate memory for a list of Channel-specific generator variables.
  *
  * \param player   The Player -- must not be \c NULL.
  * \param sr       The Streader of the JSON data -- must not be \c NULL.
@@ -94,7 +94,7 @@ bool Player_alloc_channel_gen_state_keys(Player* player, Streader* sr);
 
 
 /**
- * Refreshes environment state.
+ * Refresh environment state.
  *
  * \param player   The Player -- must not be \c NULL.
  *
@@ -104,7 +104,7 @@ bool Player_refresh_env_state(Player* player);
 
 
 /**
- * Refreshes bind state.
+ * Refresh bind state.
  *
  * \param player   The Player -- must not be \c NULL.
  *
@@ -114,7 +114,7 @@ bool Player_refresh_bind_state(Player* player);
 
 
 /**
- * Sets audio rate.
+ * Set audio rate.
  *
  * \param player   The Player -- must not be \c NULL.
  * \param rate     The audio rate in frames per second -- must be > \c 0.
@@ -125,7 +125,7 @@ bool Player_set_audio_rate(Player* player, int32_t rate);
 
 
 /**
- * Gets audio rate.
+ * Get audio rate.
  *
  * \param player   The Player -- must not be \c NULL.
  *
@@ -135,7 +135,7 @@ int32_t Player_get_audio_rate(const Player* player);
 
 
 /**
- * Sets audio buffer size.
+ * Set audio buffer size.
  *
  * \param player   The Player -- must not be \c NULL.
  * \param size     The new audio buffer size -- must be >= \c 0.
@@ -146,7 +146,7 @@ bool Player_set_audio_buffer_size(Player* player, int32_t size);
 
 
 /**
- * Gets audio buffer size.
+ * Get audio buffer size.
  *
  * \param player   The Player -- must not be \c NULL.
  *
@@ -156,7 +156,7 @@ int32_t Player_get_audio_buffer_size(const Player* player);
 
 
 /**
- * Returns the length of music rendered after the last reset.
+ * Return the length of music rendered or skipped after the last reset.
  *
  * \param player   The Player -- must not be \c NULL.
  *
@@ -166,7 +166,7 @@ int64_t Player_get_nanoseconds(const Player* player);
 
 
 /**
- * Resets the Player state.
+ * Reset the Player state.
  *
  * \param player   The Player -- must not be \c NULL.
  */
@@ -174,7 +174,7 @@ void Player_reset(Player* player);
 
 
 /**
- * Plays music.
+ * Play music.
  *
  * \param player    The Player -- must not be \c NULL and must have audio
  *                  buffers of positive size.
@@ -186,7 +186,7 @@ void Player_play(Player* player, int32_t nframes);
 
 
 /**
- * Skips music.
+ * Skip music.
  *
  * \param player    The Player -- must not be \c NULL.
  * \param nframes   The number of frames to be skipped -- must be >= \c 0.
@@ -195,7 +195,7 @@ void Player_skip(Player* player, int64_t nframes);
 
 
 /**
- * Gets the number of frames available in the internal audio chunk.
+ * Get the number of frames available in the internal audio chunk.
  *
  * \param player   The Player -- must not be \c NULL.
  *
@@ -205,7 +205,7 @@ int32_t Player_get_frames_available(const Player* player);
 
 
 /**
- * Returns an internal audio buffer.
+ * Return an internal audio buffer.
  *
  * \param player    The Player -- must not be \c NULL.
  * \param channel   The channel number -- must be \c 0 or \c 1.
@@ -216,7 +216,7 @@ const float* Player_get_audio(const Player* player, int channel);
 
 
 /**
- * Returns an internal event buffer.
+ * Return an internal event buffer.
  *
  * \param player   The Player -- must not be \c NULL.
  *
@@ -226,7 +226,7 @@ const char* Player_get_events(Player* player);
 
 
 /**
- * Tells whether the Player has reached the end of playback.
+ * Tell whether the Player has reached the end of playback.
  *
  * It is still possible to render more audio, in which case the Player
  * will act as if paused at the end of composition.
@@ -239,7 +239,7 @@ bool Player_has_stopped(const Player* player);
 
 
 /**
- * Fires an event.
+ * Fire an event.
  *
  * \param player         The Player -- must not be \c NULL.
  * \param ch             The channel number -- must be >= \c 0 and
@@ -252,7 +252,7 @@ bool Player_fire(Player* player, int ch, Streader* event_reader);
 
 
 /**
- * Destroys the Player.
+ * Destroy the Player.
  *
  * \param player   The Player, or \c NULL.
  */

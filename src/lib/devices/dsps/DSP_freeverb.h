@@ -23,7 +23,7 @@
 
 
 /**
- * Creates a new Freeverb DSP.
+ * Create a new Freeverb DSP.
  *
  * This is a rewrite of the Freeverb public domain reverb by Jezar at
  * Dreampoint in 2000. Unlike the original, this implementation supports

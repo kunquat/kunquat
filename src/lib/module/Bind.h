@@ -43,7 +43,7 @@ typedef struct Target_event
 
 
 /**
- * Creates a new Bind from a JSON string.
+ * Create a new Bind from a JSON string.
  *
  * \param sr      The Streader of the JSON data -- must not be \c NULL.
  * \param names   The Event names -- must not be \c NULL.
@@ -54,7 +54,7 @@ Bind* new_Bind(Streader* sr, const Event_names* names);
 
 
 /**
- * Creates an Event cache for the Bind.
+ * Create an Event cache for the Bind.
  *
  * \param map   The Bind -- must not be \c NULL.
  *
@@ -65,7 +65,7 @@ Event_cache* Bind_create_cache(const Bind* map);
 
 
 /**
- * Gets the first event that is a result from binding.
+ * Get the first event that is a result from binding.
  *
  * \param map          The Bind -- must not be \c NULL.
  * \param cache        The Event cache -- must not be \c NULL.
@@ -87,7 +87,7 @@ Target_event* Bind_get_first(
 
 
 /**
- * Destroys an existing Bind.
+ * Destroy an existing Bind.
  *
  * \param map   The Bind, or \c NULL.
  */

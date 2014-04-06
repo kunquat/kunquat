@@ -45,7 +45,7 @@ typedef struct Random Random;
 
 
 /**
- * Creates a new Random generator.
+ * Create a new Random generator.
  *
  * \return   The new Random if successful, or \c NULL if memory allocation
  *           failed.
@@ -54,7 +54,7 @@ Random* new_Random(void);
 
 
 /**
- * Sets the context of the Random.
+ * Set the context of the Random.
  *
  * The new context description becomes active at the next call of
  * Random_set_seed.
@@ -68,7 +68,7 @@ void Random_set_context(Random* random, const char* context);
 
 
 /**
- * Sets the random seed in the Random.
+ * Set the random seed in the Random.
  *
  * \param random   The Random generator -- must not be \c NULL.
  * \param seed     The random seed.
@@ -77,7 +77,7 @@ void Random_set_seed(Random* random, uint64_t seed);
 
 
 /**
- * Restarts the random sequence in the Random.
+ * Restart the random sequence in the Random.
  *
  * \param random   The Random generator -- must not be \c NULL.
  */
@@ -85,7 +85,7 @@ void Random_reset(Random* random);
 
 
 /**
- * Gets a 32-bit integer from the Random generator.
+ * Get a 32-bit integer from the Random generator.
  *
  * This function returns the 32 most significant bits of the 64-bit
  * state and thus have higher overall quality.
@@ -98,7 +98,7 @@ uint32_t Random_get_uint32(Random* random);
 
 
 /**
- * Gets a 64-bit integer from the Random generator.
+ * Get a 64-bit integer from the Random generator.
  *
  * This function is generally not recommended unless a large number of
  * random bits is needed.
@@ -111,7 +111,7 @@ uint64_t Random_get_uint64(Random* random);
 
 
 /**
- * Gets a floating point number in the range [0, 1).
+ * Get a floating point number in the range [0, 1).
  *
  * \param random   The Random generator -- must not be \c NULL.
  *
@@ -121,7 +121,7 @@ double Random_get_float_lb(Random* random);
 
 
 /**
- * Gets an array index.
+ * Get an array index.
  *
  * \param random   The Random generator -- must not be \c NULL.
  * \param size     The array size -- must be > \c 0.
@@ -132,7 +132,7 @@ int32_t Random_get_index(Random* random, int32_t size);
 
 
 /**
- * Gets a floating point number in the range [0, 1.0].
+ * Get a floating point number in the range [0, 1.0].
  *
  * This function is not suitable for converting to integers because it may
  * return exactly 1.0 as a result.
@@ -145,7 +145,7 @@ double Random_get_float_scale(Random* random);
 
 
 /**
- * Gets a floating point number in the range [-1.0, 1.0].
+ * Get a floating point number in the range [-1.0, 1.0].
  *
  * \param random   The Random generator -- must not be \c NULL.
  *
@@ -155,7 +155,7 @@ double Random_get_float_signal(Random* random);
 
 
 /**
- * Destroys an existing Random generator.
+ * Destroy an existing Random generator.
  *
  * \param random   The Random generator, or \c NULL.
  */

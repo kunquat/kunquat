@@ -23,7 +23,7 @@
 
 
 /**
- * Creates a new gain compression DSP.
+ * Create a new gain compression DSP.
  *
  * \return   The new gain compression DSP if successful, or \c NULL if memory
  *           allocation failed.

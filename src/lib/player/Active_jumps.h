@@ -33,7 +33,7 @@ typedef struct Active_jumps Active_jumps;
 
 
 /**
- * Creates new Active jumps.
+ * Create new Active jumps.
  *
  * The collection is initially empty -- the Jump cache provides the Jump
  * contexts.
@@ -45,7 +45,7 @@ Active_jumps* new_Active_jumps(void);
 
 
 /**
- * Adds a Jump context handle to the Active jumps.
+ * Add a Jump context handle to the Active jumps.
  *
  * \param jumps    The Active jumps -- must not be \c NULL.
  * \param handle   The Jump context handle -- must not be \c NULL and must
@@ -55,7 +55,7 @@ void Active_jumps_add_context(Active_jumps* jumps, AAnode* handle);
 
 
 /**
- * Finds the next Jump context in the Active jumps.
+ * Find the next Jump context in the Active jumps.
  *
  * \param jumps    The Active jumps -- must not be \c NULL.
  * \param piref    The current pattern instance -- must not be \c NULL.
@@ -77,7 +77,7 @@ Jump_context* Active_jumps_get_next_context(
 
 
 /**
- * Removes a Jump context handle from the Active jumps.
+ * Remove a Jump context handle from the Active jumps.
  *
  * \param jumps   The Active jumps -- must not be \c NULL.
  * \param jc      The Jump context -- must not be \c NULL and must match
@@ -91,7 +91,7 @@ AAnode* Active_jumps_remove_context(
 
 
 /**
- * Moves all Jump context handles from the Active jumps to the Jump cache.
+ * Move all Jump context handles from the Active jumps to the Jump cache.
  *
  * \param jumps    The Active jumps -- must not be \c NULL.
  * \param jcache   The Jump cache -- must not be \c NULL.
@@ -100,7 +100,7 @@ void Active_jumps_reset(Active_jumps* jumps, Jump_cache* jcache);
 
 
 /**
- * Destroys existing Active jumps.
+ * Destroy existing Active jumps.
  *
  * \param jumps   The Active jumps, or \c NULL.
  */

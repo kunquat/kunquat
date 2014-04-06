@@ -57,7 +57,7 @@ struct Device
 
 
 /**
- * Initialises the Device.
+ * Initialise the Device.
  *
  * \param device     The Device -- must not be \c NULL.
  * \param req_impl   \c true if the Device requires a Device implementation,
@@ -69,7 +69,7 @@ bool Device_init(Device* device, bool req_impl);
 
 
 /**
- * Returns the ID of the Device.
+ * Return the ID of the Device.
  *
  * \param device   The Device -- must not be \c NULL.
  *
@@ -79,7 +79,7 @@ uint32_t Device_get_id(const Device* device);
 
 
 /**
- * Finds out if the Device has a complete type.
+ * Find out if the Device has a complete type.
  *
  * All instruments and effects have a complete type; a generator or a DSP has
  * a complete type if it has a Device implementation.
@@ -92,7 +92,7 @@ bool Device_has_complete_type(const Device* device);
 
 
 /**
- * Sets the existent status of the Device.
+ * Set the existent status of the Device.
  *
  * \param device     The Device -- must not be \c NULL.
  * \param existent   The existent flag.
@@ -101,7 +101,7 @@ void Device_set_existent(Device* device, bool existent);
 
 
 /**
- * Gets the existent status of the Device.
+ * Get the existent status of the Device.
  *
  * \param device   The Device -- must not be \c NULL.
  *
@@ -111,7 +111,7 @@ bool Device_is_existent(const Device* device);
 
 
 /**
- * Sets a Device implementation of the Device.
+ * Set a Device implementation of the Device.
  *
  * A previously set Device implementation will be destroyed.
  *
@@ -124,7 +124,7 @@ bool Device_set_impl(Device* device, Device_impl* dimpl);
 
 
 /**
- * Creates a new Device state for the Device.
+ * Create a new Device state for the Device.
  *
  * \param device        The Device -- must not be \c NULL.
  * \param audio_rate    The audio rate -- must be > \c 0.
@@ -140,7 +140,7 @@ Device_state* Device_create_state(
 
 
 /**
- * Sets a state creator for the Device.
+ * Set a state creator for the Device.
  *
  * \param device    The Device -- must not be \c NULL.
  * \param creator   The creator function, or \c NULL for default creator.
@@ -151,7 +151,7 @@ void Device_set_state_creator(
 
 
 /**
- * Registers the audio rate set function of the Device.
+ * Register the audio rate set function of the Device.
  *
  * \param device   The Device -- must not be \c NULL.
  * \param set      The audio rate set function -- must not be \c NULL.
@@ -162,7 +162,7 @@ void Device_register_set_audio_rate(
 
 
 /**
- * Registers the audio buffer size set function of the Device.
+ * Register the audio buffer size set function of the Device.
  *
  * \param device   The Device -- must not be \c NULL.
  * \param set      The audio buffer size set function -- must not be \c NULL.
@@ -173,7 +173,7 @@ void Device_register_set_buffer_size(
 
 
 /**
- * Registers the tempo update function of the Device.
+ * Register the tempo update function of the Device.
  *
  * \param device   The Device -- must not be \c NULL.
  * \param update   The tempo update function -- must not be \c NULL.
@@ -184,7 +184,7 @@ void Device_register_update_tempo(
 
 
 /**
- * Sets the playback reset function of the Device.
+ * Set the playback reset function of the Device.
  *
  * \param device   The Device -- must not be \c NULL.
  * \param reset    The reset function -- must not be \c NULL.
@@ -193,7 +193,7 @@ void Device_set_reset(Device* device, void (*reset)(const Device*, Device_states
 
 
 /**
- * Sets the process function of the Device.
+ * Set the process function of the Device.
  *
  * \param device    The Device -- must not be \c NULL.
  * \param process   The process function -- must not be \c NULL.
@@ -210,7 +210,7 @@ void Device_set_process(
 
 
 /**
- * Registers a new port for the Device.
+ * Register a new port for the Device.
  *
  * \param device   The Device -- must not be \c NULL.
  * \param type     The type of the port -- must be a valid type.
@@ -222,7 +222,7 @@ void Device_register_port(Device* device, Device_port_type type, int port);
 
 
 /**
- * Unregisters a port of the Device.
+ * Unregister a port of the Device.
  *
  * \param device   The Device -- must not be \c NULL.
  * \param type     The type of the port -- must be a valid type.
@@ -234,7 +234,7 @@ void Device_unregister_port(Device* device, Device_port_type type, int port);
 
 
 /**
- * Finds out whether a port is registered in the Device.
+ * Find out whether a port is registered in the Device.
  *
  * \param device   The Device -- must not be \c NULL.
  * \param type     The type of the port -- must be a valid type.
@@ -250,7 +250,7 @@ bool Device_port_is_registered(
 
 
 /**
- * Sets the audio rate of Device states.
+ * Set the audio rate of Device states.
  *
  * \param device    The Device -- must not be \c NULL.
  * \param dstates   The Device states -- must not be \c NULL.
@@ -265,7 +265,7 @@ bool Device_set_audio_rate(
 
 
 /**
- * Updates the tempo of the Device states.
+ * Update the tempo of the Device states.
  *
  * \param device    The Device -- must not be \c NULL.
  * \param dstates   The Device states -- must not be \c NULL.
@@ -278,7 +278,7 @@ void Device_update_tempo(
 
 
 /**
- * Resizes the buffers of Device states.
+ * Resize the buffers of Device states.
  *
  * \param device    The Device -- must not be \c NULL.
  * \param dstates   The Device states -- must not be \c NULL.
@@ -294,7 +294,7 @@ bool Device_set_buffer_size(
 
 
 /**
- * Resets the internal playback state of the Device.
+ * Reset the internal playback state of the Device.
  *
  * \param device    The Device -- must not be \c NULL.
  * \param dstates   The Device states -- must not be \c NULL.
@@ -303,7 +303,7 @@ void Device_reset(const Device* device, Device_states* dstates);
 
 
 /**
- * Synchronises the Device.
+ * Synchronise the Device.
  *
  * \param device   The Device -- must not be \c NULL.
  *
@@ -313,7 +313,7 @@ bool Device_sync(Device* device);
 
 
 /**
- * Synchronises the Device states.
+ * Synchronise the Device states.
  *
  * \param device    The Device -- must not be \c NULL.
  * \param dstates   The Device states -- must not be \c NULL.
@@ -322,7 +322,7 @@ bool Device_sync_states(const Device* device, Device_states* dstates);
 
 
 /**
- * Sets a key in the Device.
+ * Set a key in the Device.
  *
  * \param device   The Device -- must not be \c NULL.
  * \param key      The key that changed -- must not be \c NULL.
@@ -334,7 +334,7 @@ bool Device_set_key(Device* device, const char* key, Streader* sr);
 
 
 /**
- * Notifies a Device state of a Device key change.
+ * Notify a Device state of a Device key change.
  *
  * \param device    The Device -- must not be \c NULL.
  * \param dstates   The Device state collection -- must not be \c NULL.
@@ -349,7 +349,7 @@ bool Device_set_state_key(
 
 
 /**
- * Notifies the Device state of a key change and updates the internal state.
+ * Notify the Device state of a key change and updates the internal state.
  *
  * \param device    The Device -- must not be \c NULL.
  * \param dstates   The Device states -- must not be \c NULL.
@@ -364,7 +364,7 @@ bool Device_update_state_key(
 
 
 /**
- * Processes audio in the Device.
+ * Process audio in the Device.
  *
  * \param device   The Device -- must not be \c NULL.
  * \param states   The Device states -- must not be \c NULL.
@@ -386,7 +386,7 @@ void Device_process(
 
 
 /**
- * Prints a textual description of the Device.
+ * Print a textual description of the Device.
  *
  * \param device   The Device -- must not be \c NULL.
  * \param out      The output file -- must not be \c NULL.
@@ -395,7 +395,7 @@ void Device_print(const Device* device, FILE* out);
 
 
 /**
- * Deinitialises the Device.
+ * Deinitialise the Device.
  *
  * \param device   The Device, or \c NULL.
  */

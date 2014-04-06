@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2014
  *
  * This file is part of Kunquat.
  *
@@ -47,7 +47,7 @@ typedef struct Jump_context
 
 
 /**
- * Creates a new Jump context.
+ * Create a new Jump context.
  *
  * \return   The new Jump context if successful, or \c NULL if memory
  *           allocation failed.
@@ -56,7 +56,7 @@ Jump_context* new_Jump_context(void);
 
 
 /**
- * Compares two Jump contexts.
+ * Compare two Jump contexts.
  *
  * \param jc1   The first Jump context -- must not be \c NULL.
  * \param jc2   The second Jump context -- must not be \c NULL.
@@ -69,7 +69,7 @@ int Jump_context_cmp(const Jump_context* jc1, const Jump_context* jc2);
 
 
 /**
- * Destroys an existing Jump context.
+ * Destroy an existing Jump context.
  *
  * \param jc   The Jump context, or \c NULL.
  */

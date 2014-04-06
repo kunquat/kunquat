@@ -28,7 +28,7 @@ typedef struct Track_list Track_list;
 
 
 /**
- * Creates a new Track list.
+ * Create a new Track list.
  *
  * \param sr   The Streader of the JSON data -- must not be \c NULL.
  *
@@ -38,7 +38,7 @@ Track_list* new_Track_list(Streader* sr);
 
 
 /**
- * Returns the length of the Track list.
+ * Return the length of the Track list.
  *
  * \param tl   The Track list -- must not be \c NULL.
  *
@@ -48,7 +48,7 @@ size_t Track_list_get_len(const Track_list* tl);
 
 
 /**
- * Returns a song index from the Track list.
+ * Return a song index from the Track list.
  *
  * \param tl      The Track list -- must not be \c NULL.
  * \param index   The index -- must be >= \c 0 and
@@ -60,7 +60,7 @@ int16_t Track_list_get_song_index(const Track_list* tl, size_t index);
 
 
 /**
- * Returns a track number by song index.
+ * Return a track number by song index.
  *
  * Current implementation does a linear-time search.
  *
@@ -74,7 +74,7 @@ int16_t Track_list_get_track_by_song(const Track_list* tl, int16_t song_index);
 
 
 /**
- * Destroys an existing Track list.
+ * Destroy an existing Track list.
  *
  * \param tl   The Track list, or \c NULL.
  */

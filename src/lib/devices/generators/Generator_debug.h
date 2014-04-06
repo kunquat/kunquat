@@ -23,7 +23,7 @@
 
 
 /**
- * Creates a new Debug Generator.
+ * Create a new Debug Generator.
  *
  * The Debug Generator generates a narrow pulse wave (with one sample value 1,
  * the rest are 0.5) that lasts no more than 10 phase cycles. Note off lasts

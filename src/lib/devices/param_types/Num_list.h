@@ -28,7 +28,7 @@ typedef struct Num_list Num_list;
 
 
 /**
- * Creates a new Number list from a textual description.
+ * Create a new Number list from a textual description.
  *
  * \param sr   The Streader of the JSON data -- must not be \c NULL.
  *
@@ -38,7 +38,7 @@ Num_list* new_Num_list_from_string(Streader* sr);
 
 
 /**
- * Returns the length of the Number list.
+ * Return the length of the Number list.
  *
  * \param nl   The Number list -- must not be \c NULL.
  *
@@ -48,7 +48,7 @@ int32_t Num_list_length(const Num_list* nl);
 
 
 /**
- * Returns a number from the Number list.
+ * Return a number from the Number list.
  *
  * \param ml      The Number list -- must not be \c NULL.
  * \param index   The index of the number -- must be >= \c 0 and less than the
@@ -60,7 +60,7 @@ double Num_list_get_num(const Num_list* nl, int32_t index);
 
 
 /**
- * Destroys an existing Number list.
+ * Destroy an existing Number list.
  *
  * \param nl   The Number list, or \c NULL.
  */

@@ -89,7 +89,7 @@ typedef struct Instrument_params
 
 
 /**
- * Initialises the Instrument parameters.
+ * Initialise the Instrument parameters.
  *
  * \param ip          The Instrument parameters -- must not be \c NULL.
  * \param device_id   The instrument device ID -- must be > \c 0.
@@ -103,7 +103,7 @@ Instrument_params* Instrument_params_init(
 
 
 /**
- * Parses an Instrument parameter file.
+ * Parse an Instrument parameter file.
  *
  * \param ip   The Instrument parameters -- must not be \c NULL.
  * \param sr   The Streader of the JSON data -- must not be \c NULL.
@@ -127,7 +127,7 @@ bool Instrument_params_parse_env_pitch_pan(
 
 
 /**
- * Deinitialises the Instrument parameters.
+ * Deinitialise the Instrument parameters.
  *
  * \param ip   The Instrument parameters, or \c NULL.
  */

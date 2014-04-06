@@ -1,7 +1,7 @@
 
 
 /*
- * Authors: Tomi Jylhä-Ollila, 2010-2013
+ * Authors: Tomi Jylhä-Ollila, 2010-2014
  *          Ossi Saresoja, Finland 2009
  *
  * This file is part of Kunquat.
@@ -31,7 +31,7 @@ typedef struct Voice_state_noise
 
 
 /**
- * Initialises the Noise Instrument parameters.
+ * Initialise the Noise Instrument parameters.
  *
  * \param noise   The Noise parameters -- must not be \c NULL.
  */

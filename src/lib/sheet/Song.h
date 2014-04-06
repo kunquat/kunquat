@@ -25,7 +25,7 @@
 
 
 /**
- * Ssong specifies some initial playback settings and the order in which
+ * Song specifies some initial playback settings and the order in which
  * Patterns are played.
  */
 typedef struct Song
@@ -44,7 +44,7 @@ typedef struct Song
 
 
 /**
- * Creates a new Song.
+ * Create a new Song.
  *
  * \return   The new Song if succesongful, or \c NULL if memory allocation
  *           failed.
@@ -53,7 +53,7 @@ Song* new_Song(void);
 
 
 /**
- * Creates a new Song from a textual description.
+ * Create a new Song from a textual description.
  *
  * \param sr   The Streader of the JSON data -- must not be \c NULL.
  *
@@ -63,7 +63,7 @@ Song* new_Song_from_string(Streader* sr);
 
 
 /**
- * Gets the length of the Song.
+ * Get the length of the Song.
  *
  * \param song   The Song -- must not be \c NULL.
  *
@@ -73,7 +73,7 @@ int16_t Song_get_length(Song* song);
 
 
 /**
- * Sets the initial tempo of the Song.
+ * Set the initial tempo of the Song.
  *
  * \param song    The Song -- must not be \c NULL.
  * \param tempo   The tempo -- must be finite and positive.
@@ -82,7 +82,7 @@ void Song_set_tempo(Song* song, double tempo);
 
 
 /**
- * Gets the initial tempo of the Song.
+ * Get the initial tempo of the Song.
  *
  * \param song   The Song -- must not be \c NULL.
  *
@@ -92,7 +92,7 @@ double Song_get_tempo(Song* song);
 
 
 /**
- * Sets the initial global volume of the Song.
+ * Set the initial global volume of the Song.
  *
  * \param song   The Song -- must not be \c NULL.
  * \param vol    The global volume -- must be finite or \c -INFINITY.
@@ -101,7 +101,7 @@ void Song_set_global_vol(Song* song, double vol);
 
 
 /**
- * Gets the initial global volume of the Song.
+ * Get the initial global volume of the Song.
  *
  * \param song   The Song -- must not be \c NULL.
  *
@@ -111,7 +111,7 @@ double Song_get_global_vol(Song* song);
 
 
 /**
- * Sets the initial default Scale of the Song.
+ * Set the initial default Scale of the Song.
  *
  * \param song    The Song -- must not be \c NULL.
  * \param index   The Scale index -- must be >= \c 0 and
@@ -121,7 +121,7 @@ void Song_set_scale(Song* song, int index);
 
 
 /**
- * Gets the initial default Scale of the Song.
+ * Get the initial default Scale of the Song.
  *
  * \param song   The Song -- must not be \c NULL.
  *
@@ -131,7 +131,7 @@ int Song_get_scale(Song* song);
 
 
 /**
- * Destroys an existing Song.
+ * Destroy an existing Song.
  *
  * \param song   The Song, or \c NULL.
  */

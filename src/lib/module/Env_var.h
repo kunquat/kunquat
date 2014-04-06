@@ -33,7 +33,7 @@ typedef struct Env_var Env_var;
 
 
 /**
- * Creates a new Environment variable.
+ * Create a new Environment variable.
  *
  * \param name   The name of the variable -- must be a valid variable name.
  *
@@ -44,7 +44,7 @@ Env_var* new_Env_var(const char* name);
 
 
 /**
- * Creates a new Environment variable from a textual description.
+ * Create a new Environment variable from a textual description.
  *
  * \param sr   The Streader of the JSON data -- must not be \c NULL.
  *
@@ -54,7 +54,7 @@ Env_var* new_Env_var_from_string(Streader* sr);
 
 
 /**
- * Returns the type of the Environment variable.
+ * Return the type of the Environment variable.
  *
  * \param var   The Environment variable -- must not be \c NULL.
  *
@@ -64,7 +64,7 @@ Value_type Env_var_get_type(const Env_var* var);
 
 
 /**
- * Returns the name of the Environment variable.
+ * Return the name of the Environment variable.
  *
  * Note: It is also possible to get the name by casting the Environment
  * variable directly to char*.
@@ -77,7 +77,7 @@ const char* Env_var_get_name(const Env_var* var);
 
 
 /**
- * Sets the initial value of the Environment variable.
+ * Set the initial value of the Environment variable.
  *
  * \param var     The Environment variable -- must not be \c NULL.
  * \param value   The value to be set -- must not be \c NULL and must match
@@ -87,7 +87,7 @@ void Env_var_set_value(Env_var* var, const Value* value);
 
 
 /**
- * Returns the value of the Environment variable.
+ * Return the value of the Environment variable.
  *
  * \param var   The Environment variable -- must not be \c NULL.
  *
@@ -97,7 +97,7 @@ const Value* Env_var_get_value(const Env_var* var);
 
 
 /**
- * Destroys an existing Environment variable.
+ * Destroy an existing Environment variable.
  *
  * \param var   The Environment variable, or \c NULL.
  */

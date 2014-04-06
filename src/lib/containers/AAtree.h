@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -47,7 +47,7 @@ typedef struct AAiter
 
 
 /**
- * Creates an iterator for the AAtree.
+ * Create an iterator for the AAtree.
  *
  * \param tree   The AAtree, or \c NULL.
  *
@@ -58,7 +58,7 @@ AAiter* new_AAiter(AAtree* tree);
 
 
 /**
- * Changes the AAtree into which the AAiter is connected.
+ * Change the AAtree associated with the AAiter.
  *
  * \param iter   The AAiter -- must not be \c NULL.
  * \param tree   The AAtree -- must not be \c NULL.
@@ -67,7 +67,7 @@ void AAiter_change_tree(AAiter* iter, const AAtree* tree);
 
 
 /**
- * Gets the first element greater than or equal to the given key.
+ * Get the first element greater than or equal to the given key.
  *
  * \param iter   The AAiter -- must not be \c NULL.
  * \param key    The key -- must not be \c NULL.
@@ -78,7 +78,7 @@ void* AAiter_get_at_least(AAiter* iter, const void* key);
 
 
 /**
- * Gets the last element less than or equal to the given key.
+ * Get the last element less than or equal to the given key.
  *
  * \param iter   The AAiter -- must not be \c NULL.
  * \param key    The key -- must not be \c NULL.
@@ -89,7 +89,7 @@ void* AAiter_get_at_most(AAiter* iter, const void* key);
 
 
 /**
- * Gets the element next to the previous one retrieved through the AAiter.
+ * Get the element next to the previous one retrieved through the AAiter.
  *
  * If not preceded by a successful call to AAiter_get*() with the given
  * iterator, this function returns \c NULL.
@@ -102,7 +102,7 @@ void* AAiter_get_next(AAiter* iter);
 
 
 /**
- * Gets the element before the previous one retrieved through the AAiter.
+ * Get the element before the previous one retrieved through the AAiter.
  *
  * If not preceded by a successful call to AAiter_get*() with the given
  * iterator, this function returns \c NULL.
@@ -115,7 +115,7 @@ void* AAiter_get_prev(AAiter* iter);
 
 
 /**
- * Destroys an existing AAiter.
+ * Destroy an existing AAiter.
  *
  * \param iter   The AAiter, or \c NULL.
  */
@@ -123,7 +123,7 @@ void del_AAiter(AAiter* iter);
 
 
 /**
- * Gets data from an AAnode.
+ * Get data from an AAnode.
  *
  * \param node   The AAnode -- must not be \c NULL.
  *
@@ -133,7 +133,7 @@ void* AAnode_get_data(AAnode* node);
 
 
 /**
- * Creates a new AAtree.
+ * Create a new AAtree.
  *
  * \param cmp       The comparison function for stored elements -- must not be
  *                  \c NULL.
@@ -146,7 +146,7 @@ AAtree* new_AAtree(int (*cmp)(const void*, const void*), void (*destroy)(void*))
 
 
 /**
- * Finds out if a key exists inside the AAtree.
+ * Find out if a key exists inside the AAtree.
  *
  * \param tree   The AAtree -- must not be \c NULL.
  * \param key    The key -- must not be \c NULL.
@@ -157,7 +157,7 @@ bool AAtree_contains(const AAtree* tree, const void* key);
 
 
 /**
- * Inserts a new element into the AAtree.
+ * Insert a new element into the AAtree.
  *
  * \param tree   The AAtree -- must not be \c NULL.
  * \param elem   The new element -- must not be \c NULL and must not match an
@@ -169,7 +169,7 @@ bool AAtree_ins(AAtree* tree, void* data);
 
 
 /**
- * Attaches an AAnode to the AAtree.
+ * Attach an AAnode to the AAtree.
  *
  * \param tree   The AAtree -- must not be \c NULL.
  * \param node   The AAnode -- must not be \c NULL and must not match an
@@ -179,7 +179,7 @@ void AAtree_attach(AAtree* tree, AAnode* node);
 
 
 /**
- * Gets the first element greater than or equal to the given key.
+ * Get the first element greater than or equal to the given key.
  *
  * This function does not preserve context information and therefore
  * does not have a corresponding "next" variant.
@@ -193,7 +193,7 @@ void* AAtree_get_at_least(const AAtree* tree, const void* key);
 
 
 /**
- * Gets the element matching the given key exactly.
+ * Get the element matching the given key exactly.
  *
  * \param tree   The AAtree -- must not be \c NULL.
  * \param key    The key -- must not be \c NULL.
@@ -204,7 +204,7 @@ void* AAtree_get_exact(const AAtree* tree, const void* key);
 
 
 /**
- * Gets the last element less than or equal to the given key.
+ * Get the last element less than or equal to the given key.
  *
  * \param tree   The AAtree -- must not be \c NULL.
  * \param key    The key -- must not be \c NULL.
@@ -215,7 +215,7 @@ void* AAtree_get_at_most(const AAtree* tree, const void* key);
 
 
 /**
- * Detaches an AAnode from the AAtree without destroying the node.
+ * Detach an AAnode from the AAtree without destroying the node.
  *
  * \param tree   The AAtree -- must not be \c NULL.
  * \param key    The key -- must not be \c NULL.
@@ -226,7 +226,7 @@ AAnode* AAtree_detach(AAtree* tree, const void* key);
 
 
 /**
- * Returns an element and removes the corresponding node from the AAtree.
+ * Return an element and removes the corresponding node from the AAtree.
  *
  * \param tree   The AAtree -- must not be \c NULL.
  * \param key    The key -- must not be \c NULL.
@@ -237,7 +237,7 @@ void* AAtree_remove(AAtree* tree, const void* key);
 
 
 /**
- * Removes all the elements from the AAtree.
+ * Remove all the elements from the AAtree.
  *
  * \param tree   The AAtree -- must not be \c NULL.
  */
@@ -245,8 +245,9 @@ void AAtree_clear(AAtree* tree);
 
 
 /**
- * Destroys an existing AAtree. All the elements in the tree will also be
- * destroyed.
+ * Destroy an existing AAtree.
+ *
+ * All the elements in the tree will also be destroyed.
  *
  * \param tree   The AAtree, or \c NULL.
  */

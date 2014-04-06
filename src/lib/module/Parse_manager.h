@@ -22,7 +22,7 @@
 
 
 /**
- * Parses data based on the given key.
+ * Parse data based on the given key.
  *
  * If the key does not affect the player, this function always succeeds.
  * Otherwise it will parse the data and, if the data is valid, it will update

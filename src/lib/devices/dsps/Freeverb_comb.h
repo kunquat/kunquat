@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -29,7 +29,7 @@ typedef struct Freeverb_comb Freeverb_comb;
 
 
 /**
- * Creates a new Freeverb comb filter.
+ * Create a new Freeverb comb filter.
  *
  * \param buffer_size   The buffer size -- must be > \c 0.
  *
@@ -40,7 +40,7 @@ Freeverb_comb* new_Freeverb_comb(uint32_t buffer_size);
 
 
 /**
- * Sets the damp value of the Freeverb comb filter.
+ * Set the damp value of the Freeverb comb filter.
  *
  * \param comb   The Freeverb comb filter -- must not be \c NULL.
  * \param damp   The damp value -- must be >= \c 0 and <= \c 1.
@@ -49,7 +49,7 @@ void Freeverb_comb_set_damp(Freeverb_comb* comb, kqt_frame damp);
 
 
 /**
- * Sets the feedback of the Freeverb comb filter.
+ * Set the feedback of the Freeverb comb filter.
  *
  * \param comb       The Freeverb comb filter -- must not be \c NULL.
  * \param feedback   The feedback value -- must be > \c -1 and < \c 1.
@@ -58,7 +58,7 @@ void Freeverb_comb_set_feedback(Freeverb_comb* comb, kqt_frame feedback);
 
 
 /**
- * Processes one frame of input data.
+ * Process one frame of input data.
  *
  * \param comb    The Freeverb comb filter -- must not be \c NULL.
  * \param input   The input frame.
@@ -69,7 +69,7 @@ kqt_frame Freeverb_comb_process(Freeverb_comb* comb, kqt_frame input);
 
 
 /**
- * Resizes the internal buffer of the Freeverb comb filter.
+ * Resize the internal buffer of the Freeverb comb filter.
  *
  * \param comb       The Freeverb comb filter -- must not be \c NULL.
  * \param new_size   The new buffer size -- must be > \c 0.
@@ -80,7 +80,7 @@ bool Freeverb_comb_resize_buffer(Freeverb_comb* comb, uint32_t new_size);
 
 
 /**
- * Clears the internal buffer of the Freeverb comb filter.
+ * Clear the internal buffer of the Freeverb comb filter.
  *
  * \param comb   The Freeverb comb filter -- must not be \c NULL.
  */
@@ -88,7 +88,7 @@ void Freeverb_comb_clear(Freeverb_comb* comb);
 
 
 /**
- * Destroys an existing Freeverb comb filter.
+ * Destroy an existing Freeverb comb filter.
  *
  * \param comb   The Freeverb comb filter, or \c NULL.
  */

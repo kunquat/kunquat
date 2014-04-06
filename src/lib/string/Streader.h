@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2014
  *
  * This file is part of Kunquat.
  *
@@ -45,7 +45,7 @@ typedef struct Streader
 
 
 /**
- * Initialises a Streader.
+ * Initialise a Streader.
  *
  * \param sr    The Streader -- must not be \c NULL.
  * \param str   The input data -- must not be \c NULL unless the data
@@ -58,7 +58,7 @@ Streader* Streader_init(Streader* sr, const char* str, size_t len);
 
 
 /**
- * Finds out if the Streader error is set.
+ * Find out if the Streader error is set.
  *
  * \param sr   The Streader -- must not be \c NULL.
  *
@@ -68,7 +68,7 @@ bool Streader_is_error_set(const Streader* sr);
 
 
 /**
- * Gets the Streader error description.
+ * Get the Streader error description.
  *
  * \param sr   The Streader -- must not be \c NULL.
  *
@@ -78,7 +78,7 @@ const char* Streader_get_error_desc(const Streader* sr);
 
 
 /**
- * Sets a parse error in the Streader.
+ * Set a parse error in the Streader.
  *
  * \param sr       The Streader -- must not be \c NULL.
  * \param format   The error message format -- must not be \c NULL. This and
@@ -88,7 +88,7 @@ void Streader_set_error(Streader* sr, const char* format, ...);
 
 
 /**
- * Sets a memory error in the Streader.
+ * Set a memory error in the Streader.
  *
  * \param sr       The Streader -- must not be \c NULL.
  * \param format   The error message format -- must not be \c NULL. This and
@@ -98,7 +98,7 @@ void Streader_set_memory_error(Streader* sr, const char* format, ...);
 
 
 /**
- * Clears the error in the Streader.
+ * Clear the error in the Streader.
  *
  * \param sr   The Streader -- must not be \c NULL.
  */
@@ -106,7 +106,7 @@ void Streader_clear_error(Streader* sr);
 
 
 /**
- * Returns the suffix of the data starting from current reading position.
+ * Return the suffix of the data starting from current reading position.
  *
  * \param sr   The Streader -- must not be \c NULL.
  *
@@ -116,7 +116,7 @@ const char* Streader_get_remaining_data(const Streader* sr);
 
 
 /**
- * Skips whitespace.
+ * Skip whitespace.
  *
  * This function is not needed for reading JSON data.
  *
@@ -128,7 +128,7 @@ bool Streader_skip_whitespace(Streader* sr);
 
 
 /**
- * Finds out if the Streader contains JSON data.
+ * Find out if the Streader contains JSON data.
  *
  * \param sr   The Streader -- must not be \c NULL and must not have error set.
  *
@@ -138,7 +138,7 @@ bool Streader_has_data(Streader* sr);
 
 
 /**
- * Matches a specified character.
+ * Match a specified character.
  *
  * \param sr   The Streader -- must not be \c NULL.
  * \param ch   The character to be matched.
@@ -149,7 +149,7 @@ bool Streader_match_char(Streader* sr, char ch);
 
 
 /**
- * Tries to match a specified character.
+ * Try to match a specified character.
  *
  * If matching fails, the reading position before the call is restored and the
  * error status is cleared.
@@ -163,7 +163,7 @@ bool Streader_try_match_char(Streader* sr, char ch);
 
 
 /**
- * Matches a specified string.
+ * Match a specified string.
  *
  * \param sr    The Streader -- must not be \c NULL.
  * \param str   The string to be matched -- must not be \c NULL.
@@ -174,7 +174,7 @@ bool Streader_match_string(Streader* sr, const char* str);
 
 
 /**
- * Reads a null value.
+ * Read a null value.
  *
  * \param sr   The Streader -- must not be \c NULL.
  *
@@ -184,7 +184,7 @@ bool Streader_read_null(Streader* sr);
 
 
 /**
- * Reads a Boolean value.
+ * Read a Boolean value.
  *
  * \param sr     The Streader -- must not be \c NULL.
  * \param dest   The destination address of the Boolean value, or
@@ -196,7 +196,7 @@ bool Streader_read_bool(Streader* sr, bool* dest);
 
 
 /**
- * Reads an integer value.
+ * Read an integer value.
  *
  * \param sr     The Streader -- must not be \c NULL.
  * \param dest   The destination address of the integer value, or
@@ -208,7 +208,7 @@ bool Streader_read_int(Streader* sr, int64_t* dest);
 
 
 /**
- * Reads a float value.
+ * Read a float value.
  *
  * NOTE: This function does not give portable results.
  *
@@ -222,7 +222,7 @@ bool Streader_read_float(Streader* sr, double* dest);
 
 
 /**
- * Reads a string value.
+ * Read a string value.
  *
  * \param sr          The Streader -- must not be \c NULL.
  * \param max_bytes   The maximum number of bytes to be written, including
@@ -236,7 +236,7 @@ bool Streader_read_string(Streader* sr, size_t max_bytes, char* dest);
 
 
 /**
- * Reads a Tstamp value.
+ * Read a Tstamp value.
  *
  * \param sr     The Streader -- must not be \c NULL.
  * \param dest   The destination address of the Tstamp value, or
@@ -248,7 +248,7 @@ bool Streader_read_tstamp(Streader* sr, Tstamp* dest);
 
 
 /**
- * Reads a Pattern instance reference.
+ * Read a Pattern instance reference.
  *
  * \param sr     The Streader -- must not be \c NULL.
  * \param dest   The destination address of the Pattern instance reference, or
@@ -274,7 +274,7 @@ typedef bool List_item_reader(Streader* sr, int32_t index, void* userdata);
 
 
 /**
- * Reads a list of values.
+ * Read a list of values.
  *
  * \param sr         The Streader -- must not be \c NULL.
  * \param ir         A callback function for reading a list item, or \c NULL
@@ -300,7 +300,7 @@ typedef bool Dict_item_reader(Streader* sr, const char* key, void* userdata);
 
 
 /**
- * Reads a dictionary.
+ * Read a dictionary.
  *
  * This function supports dictionary keys up to \c STREADER_DICT_KEY_LENGTH_MAX
  * characters in length.
