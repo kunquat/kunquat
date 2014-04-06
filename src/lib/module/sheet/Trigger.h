@@ -69,7 +69,7 @@ Trigger* new_Trigger_from_string(Streader* sr, const Event_names* names);
  *
  * \return   The position.
  */
-Tstamp* Trigger_get_pos(Trigger* trigger);
+const Tstamp* Trigger_get_pos(const Trigger* trigger);
 
 
 /**
@@ -79,7 +79,7 @@ Tstamp* Trigger_get_pos(Trigger* trigger);
  *
  * \return   The event type.
  */
-Event_type Trigger_get_type(Trigger* trigger);
+Event_type Trigger_get_type(const Trigger* trigger);
 
 
 /**
@@ -89,7 +89,7 @@ Event_type Trigger_get_type(Trigger* trigger);
  *
  * \return   The JSON string.
  */
-char* Trigger_get_desc(Trigger* trigger);
+const char* Trigger_get_desc(const Trigger* trigger);
 
 
 /**

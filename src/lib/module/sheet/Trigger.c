@@ -117,21 +117,21 @@ Trigger* new_Trigger_from_string(Streader* sr, const Event_names* names)
 }
 
 
-Tstamp* Trigger_get_pos(Trigger* trigger)
+const Tstamp* Trigger_get_pos(const Trigger* trigger)
 {
     assert(trigger != NULL);
     return &trigger->pos;
 }
 
 
-Event_type Trigger_get_type(Trigger* trigger)
+Event_type Trigger_get_type(const Trigger* trigger)
 {
     assert(trigger != NULL);
     return trigger->type;
 }
 
 
-char* Trigger_get_desc(Trigger* trigger)
+const char* Trigger_get_desc(const Trigger* trigger)
 {
     assert(trigger != NULL);
     return trigger->desc;

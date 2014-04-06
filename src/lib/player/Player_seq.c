@@ -104,7 +104,7 @@ static bool process_expr(
 static void Player_process_expr_event(
         Player* player,
         int ch_num,
-        char* trigger_desc,
+        const char* trigger_desc,
         const Value* meta,
         bool skip);
 
@@ -253,7 +253,7 @@ void Player_process_event(
 static void Player_process_expr_event(
         Player* player,
         int ch_num,
-        char* trigger_desc,
+        const char* trigger_desc,
         const Value* meta,
         bool skip)
 {
