@@ -22,7 +22,6 @@
 
 #include <containers/AAtree.h>
 #include <Connections.h>
-#include <Connections_search.h>
 #include <debug/assert.h>
 #include <Device_node.h>
 #include <devices/DSP_table.h>

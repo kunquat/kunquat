@@ -19,7 +19,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <Connections.h>
+#include <Decl.h>
 #include <devices/Device.h>
 #include <devices/DSP_table.h>
 

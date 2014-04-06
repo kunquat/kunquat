@@ -19,7 +19,6 @@
 #include <stdio.h>
 #include <math.h>
 
-#include <Connections_search.h>
 #include <debug/assert.h>
 #include <mathnum/common.h>
 #include <mathnum/Real.h>

@@ -17,7 +17,7 @@
 #include <string.h>
 #include <math.h>
 
-#include <Connections_search.h>
+#include <Connections.h>
 #include <debug/assert.h>
 #include <Device_node.h>
 #include <devices/Generator.h>

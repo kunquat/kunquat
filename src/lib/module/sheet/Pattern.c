@@ -19,7 +19,6 @@
 #include <inttypes.h>
 #include <math.h>
 
-#include <Connections_search.h>
 #include <containers/Bit_array.h>
 #include <debug/assert.h>
 #include <memory.h>

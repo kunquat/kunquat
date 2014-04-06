@@ -17,7 +17,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <Connections_search.h>
 #include <debug/assert.h>
 #include <Device_node.h>
 #include <mathnum/common.h>

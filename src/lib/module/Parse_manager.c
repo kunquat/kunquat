@@ -19,7 +19,6 @@
 #include <inttypes.h>
 
 #include <Connections.h>
-#include <Connections_search.h>
 #include <debug/assert.h>
 #include <devices/Device_event_keys.h>
 #include <devices/Device_params.h>

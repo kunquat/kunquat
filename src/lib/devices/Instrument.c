@@ -18,6 +18,7 @@
 #include <inttypes.h>
 #include <stdio.h>
 
+#include <Connections.h>
 #include <debug/assert.h>
 #include <devices/Device.h>
 #include <devices/Effect.h>

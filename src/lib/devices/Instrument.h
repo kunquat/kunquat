@@ -18,7 +18,7 @@
 
 #include <stdbool.h>
 
-#include <Connections.h>
+#include <Decl.h>
 #include <devices/Effect.h>
 #include <devices/Gen_table.h>
 #include <devices/Generator.h>

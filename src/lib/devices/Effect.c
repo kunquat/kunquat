@@ -16,7 +16,6 @@
 #include <stdlib.h>
 
 #include <Connections.h>
-#include <Connections_search.h>
 #include <debug/assert.h>
 #include <devices/Device.h>
 #include <devices/DSP_table.h>
