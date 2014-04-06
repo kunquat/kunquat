@@ -21,8 +21,8 @@
 
 #include <debug/assert.h>
 #include <kunquat/limits.h>
-#include <Param_validator.h>
 #include <Pat_inst_ref.h>
+#include <player/Param_validator.h>
 #include <string/Streader.h>
 
 
