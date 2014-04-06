@@ -1,1 +1,0 @@
-from effects import Effects
