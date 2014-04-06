@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -56,7 +56,7 @@ typedef int kqt_Handle;
 
 
 /**
- * Creates a Kunquat Handle.
+ * Create a Kunquat Handle.
  *
  * The current implementation limits the maximum number of simultaneous
  * Kunquat Handles to \c KQT_HANDLES_MAX.
@@ -68,7 +68,7 @@ kqt_Handle kqt_new_Handle(void);
 
 
 /**
- * Sets data of the Kunquat Handle associated with the given key.
+ * Set data of the Kunquat Handle associated with the given key.
  *
  * After a successful call of this function, the handle is set as not
  * validated. As long as the handle is not validated, only the following
@@ -97,7 +97,7 @@ int kqt_Handle_set_data(kqt_Handle handle,
 
 
 /**
- * Gets an error message from the Kunquat Handle.
+ * Get an error message from the Kunquat Handle.
  *
  * An error message is a JSON object string that contains at least two keys:
  * "type" and "message". The value of "type" is one of the following:
@@ -130,7 +130,7 @@ const char* kqt_Handle_get_error(kqt_Handle handle);
 
 
 /**
- * Clears error information from the Kunquat Handle.
+ * Clear error information of the Kunquat Handle.
  *
  * Validation errors are not cleared from Handles as they are considered fatal
  * errors.
@@ -141,7 +141,7 @@ void kqt_Handle_clear_error(kqt_Handle handle);
 
 
 /**
- * Validates the Kunquat Handle.
+ * Validate the Kunquat Handle.
  *
  * This function needs to be called after one or more successful calls of
  * kqt_Handle_set_data before the Handle can be fully utilised again.
@@ -156,7 +156,7 @@ int kqt_Handle_validate(kqt_Handle handle);
 
 
 /**
- * Frees all the resources allocated for an existing Kunquat Handle.
+ * Free all the resources allocated for an existing Kunquat Handle.
  *
  * \param handle   The Handle -- should be valid.
  */
