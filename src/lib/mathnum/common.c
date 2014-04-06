@@ -13,7 +13,7 @@
 
 
 #include <debug/assert.h>
-#include <math_common.h>
+#include <mathnum/common.h>
 
 
 bool is_p2(int64_t x)

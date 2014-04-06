@@ -20,7 +20,7 @@
 #include <Decl.h>
 #include <devices/Device.h>
 #include <devices/Device_impl.h>
-#include <math_common.h>
+#include <mathnum/common.h>
 #include <string/common.h>
 
 

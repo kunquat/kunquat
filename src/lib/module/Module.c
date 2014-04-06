@@ -21,10 +21,10 @@
 
 #include <Connections_search.h>
 #include <debug/assert.h>
-#include <math_common.h>
+#include <mathnum/common.h>
+#include <mathnum/Real.h>
 #include <memory.h>
 #include <random/Random.h>
-#include <Real.h>
 #include <module/Module.h>
 #include <string/common.h>
 

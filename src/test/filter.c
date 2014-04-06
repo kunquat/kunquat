@@ -1,7 +1,7 @@
 
 
 /*
- * Authors: Tomi Jylhä-Ollila, Finland 2013
+ * Authors: Tomi Jylhä-Ollila, Finland 2013-2014
  *          Ossi Saresoja, Finland 2013
  *
  * This file is part of Kunquat.
@@ -21,7 +21,7 @@
 
 #include <Filter.h>
 #include <kunquat/testing.h>
-#include <math_common.h>
+#include <mathnum/common.h>
 
 
 #define sample_count (1 << 16)

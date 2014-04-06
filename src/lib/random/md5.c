@@ -18,7 +18,7 @@
 #include <string.h>
 
 #include <debug/assert.h>
-#include <math_common.h>
+#include <mathnum/common.h>
 #include <random/md5.h>
 
 

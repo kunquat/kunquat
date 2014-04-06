@@ -26,7 +26,7 @@
 #include <devices/generators/Generator_noise.h>
 #include <devices/generators/Voice_state_noise.h>
 #include <kunquat/limits.h>
-#include <math_common.h>
+#include <mathnum/common.h>
 #include <memory.h>
 #include <string/common.h>
 

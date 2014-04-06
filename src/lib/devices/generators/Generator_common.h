@@ -20,7 +20,6 @@
 #include <devices/Generator.h>
 #include <frame.h>
 #include <kunquat/limits.h>
-#include <math_common.h>
 #include <player/Ins_state.h>
 #include <player/Voice_state.h>
 

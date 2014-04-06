@@ -20,7 +20,7 @@
 #include <devices/generators/Generator_common.h>
 #include <Filter.h>
 #include <kunquat/limits.h>
-#include <math_common.h>
+#include <mathnum/common.h>
 
 
 #define RAMP_ATTACK_TIME (500.0)

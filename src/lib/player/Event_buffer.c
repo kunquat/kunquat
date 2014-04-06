@@ -16,7 +16,7 @@
 #include <string.h>
 
 #include <debug/assert.h>
-#include <math_common.h>
+#include <mathnum/common.h>
 #include <memory.h>
 #include <player/Event_buffer.h>
 #include <string/common.h>

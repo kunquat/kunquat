@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_MATH_COMMON_H
-#define K_MATH_COMMON_H
+#ifndef K_MATHNUM_COMMON_H
+#define K_MATHNUM_COMMON_H
 
 
 #include <stdbool.h>

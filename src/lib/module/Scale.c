@@ -21,7 +21,7 @@
 #include <inttypes.h>
 
 #include <debug/assert.h>
-#include <math_common.h>
+#include <mathnum/common.h>
 #include <memory.h>
 #include <module/Scale.h>
 #include <string/common.h>

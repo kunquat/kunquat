@@ -18,7 +18,7 @@
 #include <inttypes.h>
 
 #include <debug/assert.h>
-#include <math_common.h>
+#include <mathnum/common.h>
 #include <memory.h>
 #include <player/Voice.h>
 #include <player/Voice_state.h>

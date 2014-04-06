@@ -20,7 +20,7 @@
 #include <math.h>
 
 #include <debug/assert.h>
-#include <math_common.h>
+#include <mathnum/common.h>
 #include <player/LFO.h>
 #include <player/Player.h>
 

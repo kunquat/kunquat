@@ -14,7 +14,7 @@
 
 #include <debug/assert.h>
 #include <devices/Device.h>
-#include <math_common.h>
+#include <mathnum/common.h>
 #include <memory.h>
 #include <player/Device_state.h>
 

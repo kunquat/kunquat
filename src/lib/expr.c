@@ -22,7 +22,7 @@
 
 #include <debug/assert.h>
 #include <expr.h>
-#include <math_common.h>
+#include <mathnum/common.h>
 #include <Pat_inst_ref.h>
 #include <random/Random.h>
 #include <string/common.h>

@@ -26,7 +26,7 @@
 #include <devices/param_types/Num_list.h>
 #include <devices/param_types/Sample.h>
 #include <kunquat/limits.h>
-#include <math_common.h>
+#include <mathnum/common.h>
 #include <memory.h>
 #include <string/common.h>
 

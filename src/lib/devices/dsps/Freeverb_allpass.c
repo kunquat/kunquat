@@ -18,7 +18,7 @@
 
 #include <debug/assert.h>
 #include <devices/dsps/Freeverb_allpass.h>
-#include <math_common.h>
+#include <mathnum/common.h>
 #include <memory.h>
 
 

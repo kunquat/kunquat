@@ -20,7 +20,7 @@
 #include <debug/assert.h>
 #include <devices/param_types/File_wavpack.h>
 #include <devices/param_types/Sample.h>
-#include <math_common.h>
+#include <mathnum/common.h>
 #include <memory.h>
 
 

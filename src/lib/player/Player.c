@@ -20,7 +20,7 @@
 #include <Connections_search.h>
 #include <debug/assert.h>
 #include <Device_node.h>
-#include <math_common.h>
+#include <mathnum/common.h>
 #include <memory.h>
 #include <Pat_inst_ref.h>
 #include <player/Player.h>

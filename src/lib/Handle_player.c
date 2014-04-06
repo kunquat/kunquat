@@ -22,7 +22,7 @@
 #include <Handle_private.h>
 #include <kunquat/Player.h>
 #include <kunquat/limits.h>
-#include <math_common.h>
+#include <mathnum/common.h>
 #include <module/Env_var.h>
 #include <module/Module.h>
 #include <string/common.h>

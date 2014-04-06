@@ -16,10 +16,6 @@
 #define K_EVENT_TYPE_H
 
 
-#include <Real.h>
-#include <Tstamp.h>
-
-
 typedef enum
 {
     Event_NONE = 0, ///< An uninitialised event.

@@ -24,7 +24,7 @@
 #include <devices/DSP.h>
 #include <devices/dsps/DSP_common.h>
 #include <devices/dsps/DSP_chorus.h>
-#include <math_common.h>
+#include <mathnum/common.h>
 #include <memory.h>
 #include <player/LFO.h>
 #include <string/common.h>

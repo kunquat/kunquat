@@ -18,8 +18,8 @@
 
 #include <containers/AAtree.h>
 #include <kunquat/limits.h>
+#include <mathnum/Real.h>
 #include <pitch_t.h>
-#include <Real.h>
 #include <string/Streader.h>
 
 

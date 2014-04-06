@@ -26,7 +26,7 @@
 #include <devices/dsps/Freeverb_allpass.h>
 #include <devices/dsps/Freeverb_comb.h>
 #include <frame.h>
-#include <math_common.h>
+#include <mathnum/common.h>
 #include <memory.h>
 #include <string/common.h>
 

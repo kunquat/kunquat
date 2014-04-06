@@ -18,7 +18,7 @@
 #include <stdio.h>
 
 #include <debug/assert.h>
-#include <math_common.h>
+#include <mathnum/common.h>
 #include <string/serialise.h>
 #include <Value.h>
 

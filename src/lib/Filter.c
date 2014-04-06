@@ -21,8 +21,8 @@
 #include <stdio.h>
 
 #include <debug/assert.h>
-#include <math_common.h>
 #include <Filter.h>
+#include <mathnum/common.h>
 
 
 double sinc(double x)
