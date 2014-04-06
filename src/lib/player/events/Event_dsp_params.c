@@ -60,6 +60,8 @@ bool Event_dsp_set_bool_name_process(
     assert(ch != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_STRING);
+    (void)dimpl;
+    (void)dstate;
 
     return set_active_name(
             &ch->parent,
@@ -105,6 +107,8 @@ bool Event_dsp_set_float_name_process(
     assert(ch != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_STRING);
+    (void)dimpl;
+    (void)dstate;
 
     return set_active_name(
             &ch->parent,
@@ -150,6 +154,8 @@ bool Event_dsp_set_int_name_process(
     assert(ch != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_STRING);
+    (void)dimpl;
+    (void)dstate;
 
     return set_active_name(
             &ch->parent,
@@ -196,6 +202,8 @@ bool Event_dsp_set_tstamp_name_process(
     assert(ch != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_STRING);
+    (void)dimpl;
+    (void)dstate;
 
     return set_active_name(
             &ch->parent,

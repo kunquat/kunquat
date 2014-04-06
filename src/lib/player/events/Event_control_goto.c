@@ -25,6 +25,7 @@
 bool Event_control_goto_process(General_state* gstate, const Value* value)
 {
     assert(gstate != NULL);
+    (void)gstate;
     (void)value;
 
     return false;
@@ -48,6 +49,8 @@ bool Event_control_set_goto_row_process(General_state* gstate, const Value* valu
 {
     assert(gstate != NULL);
     assert(value != NULL);
+    (void)gstate;
+    (void)value;
 
     return false;
 
@@ -69,6 +72,8 @@ bool Event_control_set_goto_section_process(
 {
     assert(gstate != NULL);
     assert(value != NULL);
+    (void)gstate;
+    (void)value;
 
     return false;
 
@@ -90,6 +95,8 @@ bool Event_control_set_goto_song_process(
 {
     assert(gstate != NULL);
     assert(value != NULL);
+    (void)gstate;
+    (void)value;
 
     return false;
 

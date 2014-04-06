@@ -537,6 +537,8 @@ static void DSP_freeverb_process(
     assert(states != NULL);
     assert(freq > 0);
     assert(tempo > 0);
+    (void)freq;
+    (void)tempo;
 
     Freeverb_state* fstate = (Freeverb_state*)Device_states_get_state(
             states, Device_get_id(device));

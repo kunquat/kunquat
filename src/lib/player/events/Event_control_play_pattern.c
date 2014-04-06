@@ -28,6 +28,7 @@ bool Event_control_play_pattern_process(General_state* gstate, const Value* valu
     assert(gstate != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_PAT_INST_REF);
+    (void)value;
 
     if (!gstate->global)
         return false;

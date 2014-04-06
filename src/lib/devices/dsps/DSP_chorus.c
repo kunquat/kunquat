@@ -568,6 +568,7 @@ static bool DSP_chorus_set_audio_rate(
     assert(dimpl != NULL);
     assert(dstate != NULL);
     assert(audio_rate > 0);
+    (void)dimpl;
 
     long buf_len = CHORUS_BUF_TIME * audio_rate + 1;
 

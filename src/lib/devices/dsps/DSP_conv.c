@@ -367,6 +367,7 @@ static bool DSP_conv_set_state_max_ir_len(
     assert(dimpl != NULL);
     assert(dstate != NULL);
     assert(indices != NULL);
+    (void)dimpl;
     (void)indices;
 
     Conv_state* cstate = (Conv_state*)dstate;
@@ -392,6 +393,7 @@ static void DSP_conv_update_state_volume(
     assert(dimpl != NULL);
     assert(dstate != NULL);
     assert(indices != NULL);
+    (void)dimpl;
     (void)indices;
 
     Conv_state* cstate = (Conv_state*)dstate;
@@ -521,6 +523,8 @@ static void DSP_conv_process(
     assert(dstates != NULL);
     assert(freq > 0);
     assert(tempo > 0);
+    (void)freq;
+    (void)tempo;
 
     Conv_state* cstate = (Conv_state*)Device_states_get_state(
             dstates,

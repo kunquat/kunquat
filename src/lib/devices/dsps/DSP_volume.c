@@ -211,6 +211,7 @@ static void DSP_volume_update_state_volume(
     assert(dimpl != NULL);
     assert(dstate != NULL);
     assert(indices != NULL);
+    (void)dimpl;
     (void)indices;
 
     Volume_state* vol_state = (Volume_state*)dstate;

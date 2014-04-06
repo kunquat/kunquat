@@ -99,6 +99,7 @@ static uint32_t Generator_debug_mix(
     assert(vstate != NULL);
     assert(freq > 0);
     assert(tempo > 0);
+    (void)ins_state;
     (void)tempo;
 
     kqt_frame* bufs[] = { NULL, NULL };

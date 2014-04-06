@@ -80,6 +80,7 @@ void Generator_common_handle_pitch(const Generator* gen, Voice_state* vstate)
 {
     assert(gen != NULL);
     assert(vstate != NULL);
+    (void)gen;
 
     vstate->prev_pitch = vstate->pitch;
 

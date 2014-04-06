@@ -127,6 +127,8 @@ bool Device_state_allocate_space(Device_state* ds, char* key)
 {
     assert(ds != NULL);
     assert(key != NULL);
+    (void)ds;
+    (void)key;
 
     return true;
 }
@@ -190,6 +192,7 @@ Audio_buffer* Device_state_get_audio_buffer(
 void Device_state_reset(Device_state* ds)
 {
     assert(ds != NULL);
+    (void)ds;
 
     return;
 }

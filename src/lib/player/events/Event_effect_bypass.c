@@ -32,6 +32,7 @@ bool Event_effect_bypass_on_process(
     assert(eff != NULL);
     assert(eff_state != NULL);
     assert(dstates != NULL);
+    (void)eff;
     (void)value;
 
     eff_state->bypass = true;
@@ -61,6 +62,7 @@ bool Event_effect_bypass_off_process(
     assert(eff != NULL);
     assert(eff_state != NULL);
     assert(dstates != NULL);
+    (void)eff;
     (void)dstates;
     (void)value;
 

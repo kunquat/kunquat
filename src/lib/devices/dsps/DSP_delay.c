@@ -404,6 +404,7 @@ static bool DSP_delay_set_state_max_delay(
     assert(dimpl != NULL);
     assert(dstate != NULL);
     assert(indices != NULL);
+    (void)dimpl;
     (void)indices;
 
     Delay_state* dlstate = (Delay_state*)dstate;
@@ -563,6 +564,8 @@ static void DSP_delay_process(
     assert(dstates != NULL);
     assert(freq > 0);
     assert(tempo > 0);
+    (void)freq;
+    (void)tempo;
 
     Delay_state* dlstate = (Delay_state*)Device_states_get_state(
             dstates,

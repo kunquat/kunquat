@@ -285,6 +285,44 @@ bool Device_impl_register_set_envelope(
 }
 
 
+bool Device_impl_register_set_sample(
+        Device_impl* dimpl,
+        const char* keyp,
+        const Sample* default_val,
+        bool (*set_func)(
+            Device_impl*,
+            Device_key_indices,
+            const Sample*),
+        bool (*set_state_func)(
+            const Device_impl*,
+            Device_state*,
+            Device_key_indices,
+            const Sample*))
+{
+    assert(dimpl != NULL);
+    assert(keyp != NULL);
+    assert(strlen(keyp) < KQT_KEY_LENGTH_MAX);
+    assert(set_func != NULL);
+
+    Set_cb* set_cb = memory_alloc_item(Set_cb);
+    if (set_cb == NULL)
+        return false;
+
+    strcpy(set_cb->key_pattern, keyp);
+    set_cb->cb.Sample_type.default_val = default_val;
+    set_cb->cb.Sample_type.set = set_func;
+    set_cb->cb.Sample_type.set_state = set_state_func;
+
+    if (!AAtree_ins(dimpl->set_cbs, set_cb))
+    {
+        memory_free(set_cb);
+        return false;
+    }
+
+    return true;
+}
+
+
 bool Device_impl_register_set_num_list(
         Device_impl* dimpl,
         const char* keyp,

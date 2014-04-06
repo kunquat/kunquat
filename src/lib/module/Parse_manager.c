@@ -423,6 +423,7 @@ static bool parse_album_level(
     assert(key != NULL);
     assert(subkey != NULL);
     assert(sr != NULL);
+    (void)key;
 
     Module* module = Handle_get_module(handle);
 
@@ -749,6 +750,7 @@ static bool parse_generator_level(
     assert(sr != NULL);
     assert(ins_index >= 0);
     assert(ins_index < KQT_INSTRUMENTS_MAX);
+    (void)key;
 
     if (gen_index < 0 || gen_index >= KQT_GENERATORS_MAX)
         return true;
@@ -1181,6 +1183,7 @@ static bool parse_dsp_level(
     assert(key != NULL);
     assert(subkey != NULL);
     assert(sr != NULL);
+    (void)key;
 
     if (dsp_index < 0 || dsp_index >= KQT_DSPS_MAX)
         return true;
@@ -1523,6 +1526,7 @@ static bool parse_pat_inst_level(
     assert(key != NULL);
     assert(subkey != NULL);
     assert(sr != NULL);
+    (void)key;
 
     if (string_eq(subkey, "p_manifest.json"))
     {
@@ -1552,6 +1556,7 @@ static bool parse_scale_level(
     assert(key != NULL);
     assert(subkey != NULL);
     assert(sr != NULL);
+    (void)key;
 
     if (index < 0 || index >= KQT_SCALES_MAX)
         return true;
@@ -1587,6 +1592,7 @@ static bool parse_subsong_level(
     assert(key != NULL);
     assert(subkey != NULL);
     assert(sr != NULL);
+    (void)key;
 
     if (index < 0 || index >= KQT_SONGS_MAX)
         return true;

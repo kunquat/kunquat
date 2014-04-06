@@ -29,6 +29,7 @@ bool Event_control_receive_event_process(General_state* gstate, const Value* val
     assert(gstate != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_STRING);
+    (void)value;
 
     if (!gstate->global)
         return false;

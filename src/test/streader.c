@@ -322,6 +322,7 @@ START_TEST(Reading_too_large_int_in_magnitude_fails)
         assert(data[i][len - 1] != '9');
         assert(isdigit(data[i][len - 2]));
         assert(data[i][len - 2] != '9');
+        (void)len;
     }
 
     // Overflow data[0] and data[1] by 1

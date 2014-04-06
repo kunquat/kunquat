@@ -30,6 +30,7 @@ bool Event_ins_set_sustain_process(
     assert(ins_state != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
+    (void)ins_params;
 
     ins_state->sustain = value->value.float_type;
 
