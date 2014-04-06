@@ -82,6 +82,19 @@ int64_t ipowi(int64_t base, int64_t exp);
 
 
 /**
+ * Return the integral power of a floating-point value with a non-negative exponent.
+ *
+ * This function evaluates 0^0 to 1.
+ *
+ * \param base   The base.
+ * \param exp    The exponent -- must not be negative.
+ *
+ * \return   The value base^exp.
+ */
+double powi(double x, int n);
+
+
+/**
  * Interpolate linearly between two values.
  *
  * \param v1   The first value.
@@ -90,6 +103,12 @@ int64_t ipowi(int64_t base, int64_t exp);
  */
 #define lerp(v1, v2, t) \
     (assert((t) >= 0), assert((t) <= 1), (v1) + ((v2) - (v1)) * (t))
+
+
+/**
+ * Sinc function.
+ */
+double sinc(double x);
 
 
 #endif // K_MATH_COMMON_H

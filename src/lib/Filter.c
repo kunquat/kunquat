@@ -25,30 +25,6 @@
 #include <mathnum/common.h>
 
 
-double sinc(double x)
-{
-    return (x == 0.0) ? 1.0 : (sin(x) / x);
-}
-
-
-double powi(double x, int n)
-{
-    assert(n >= 0);
-
-    double ret = 1.0;
-    while (n > 0)
-    {
-        if ((n & 1) != 0)
-            ret *= x;
-
-        n >>= 1;
-        x *= x;
-    }
-
-    return ret;
-}
-
-
 void simple_lowpass_fir_create(int n, double f, double* coeffs)
 {
     assert(coeffs != NULL);

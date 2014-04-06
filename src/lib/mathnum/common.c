@@ -1,7 +1,8 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2014
+ * Authors: Tomi Jylhä-Ollila, Finland 2011-2014
+ *          Ossi Saresoja, Finland 2009-2010
  *
  * This file is part of Kunquat.
  *
@@ -11,6 +12,8 @@
  * copyright and related or neighboring rights to Kunquat.
  */
 
+
+#include <math.h>
 
 #include <debug/assert.h>
 #include <mathnum/common.h>
@@ -59,6 +62,30 @@ int64_t ipowi(int64_t base, int64_t exp)
         return ipowi(base * base, exp / 2);
 
     return base * ipowi(base * base, exp / 2);
+}
+
+
+double powi(double x, int n)
+{
+    assert(n >= 0);
+
+    double ret = 1.0;
+    while (n > 0)
+    {
+        if ((n & 1) != 0)
+            ret *= x;
+
+        n >>= 1;
+        x *= x;
+    }
+
+    return ret;
+}
+
+
+double sinc(double x)
+{
+    return (x == 0.0) ? 1.0 : (sin(x) / x);
 }
 
 
