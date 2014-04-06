@@ -19,8 +19,8 @@
 #include <inttypes.h>
 #include <math.h>
 
-#include <Bit_array.h>
 #include <Connections_search.h>
+#include <containers/Bit_array.h>
 #include <debug/assert.h>
 #include <memory.h>
 #include <module/sheet/Pattern.h>

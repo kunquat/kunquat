@@ -15,7 +15,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <Bit_array.h>
+#include <containers/Bit_array.h>
 #include <debug/assert.h>
 #include <kunquat/limits.h>
 #include <memory.h>

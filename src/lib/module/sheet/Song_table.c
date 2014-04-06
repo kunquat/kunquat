@@ -14,7 +14,7 @@
 
 #include <stdlib.h>
 
-#include <Bit_array.h>
+#include <containers/Bit_array.h>
 #include <containers/Etable.h>
 #include <debug/assert.h>
 #include <memory.h>
