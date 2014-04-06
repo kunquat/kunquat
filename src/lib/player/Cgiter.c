@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2014
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,8 @@
  */
 
 
+#include <debug/assert.h>
 #include <player/Cgiter.h>
-#include <xassert.h>
 
 
 void Cgiter_init(Cgiter* cgiter, const Module* module, int col_index)
@@ -132,8 +132,8 @@ const Trigger_row* Cgiter_get_trigger_row(Cgiter* cgiter)
     if (cgiter->cur_tr.head == NULL)
         return NULL;
     assert(cgiter->cur_tr.head->next != NULL);
-    assert(cgiter->cur_tr.head->next->event != NULL);
-    if (Tstamp_cmp(&cgiter->cur_tr.head->next->event->pos, &cgiter->pos.pat_pos) > 0)
+    assert(cgiter->cur_tr.head->next->trigger != NULL);
+    if (Tstamp_cmp(&cgiter->cur_tr.head->next->trigger->pos, &cgiter->pos.pat_pos) > 0)
         return NULL;
 
     return &cgiter->cur_tr;
@@ -196,18 +196,18 @@ bool Cgiter_peek(Cgiter* cgiter, Tstamp* dist)
             TSTAMP_AUTO,
             &cgiter->pos.pat_pos,
             epsilon);
-    Event_list* row = Column_iter_get_row(&cgiter->citer, next_pos_min);
+    Trigger_list* row = Column_iter_get_row(&cgiter->citer, next_pos_min);
 
     if (row != NULL)
     {
         assert(row->next != NULL);
-        assert(row->next->event != NULL);
-        if (Tstamp_cmp(&row->next->event->pos, pat_length) <= 0)
+        assert(row->next->trigger != NULL);
+        if (Tstamp_cmp(&row->next->trigger->pos, pat_length) <= 0)
         {
             // Trigger row found inside this pattern
             const Tstamp* dist_to_row = Tstamp_sub(
                     TSTAMP_AUTO,
-                    &row->next->event->pos,
+                    &row->next->trigger->pos,
                     &cgiter->pos.pat_pos);
             Tstamp_mina(dist, dist_to_row);
             return true;

@@ -27,15 +27,10 @@ def test_libkunquat(builder, options, cc):
     build_dir = os.path.join('build', 'src')
     test_dir = os.path.join(build_dir, 'test')
 
-    src_dir = os.path.join('src', 'lib', 'test')
+    src_dir = os.path.join('src', 'test')
 
-    # TODO: clean up code so that subdirectories inside src/lib are not needed
     include_dirs = [
             os.path.join('src', 'lib'),
-            os.path.join('src', 'lib', 'test'),
-            os.path.join('src', 'lib', 'events'),
-            os.path.join('src', 'lib', 'generators'),
-            os.path.join('src', 'lib', 'dsps'),
             os.path.join('src', 'include'),
             src_dir
         ]
@@ -49,7 +44,7 @@ def test_libkunquat(builder, options, cc):
     if options.enable_tests_mem_debug:
         cc.add_define('K_MEM_DEBUG')
 
-    # Define which tests are dependent on others
+    # Define which tests depend on others
     deps = defaultdict(lambda: [], {
             'handle': ['streader', 'tstamp'],
             'player': ['handle', 'streader'],

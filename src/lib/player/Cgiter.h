@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2014
  *
  * This file is part of Kunquat.
  *
@@ -18,15 +18,15 @@
 
 #include <stdbool.h>
 
-#include <Column.h>
-#include <Module.h>
+#include <module/Module.h>
+#include <module/sheet/Column.h>
 #include <player/Position.h>
 
 
 // TODO: define proper interface in Column
 typedef struct Trigger_row
 {
-    Event_list* head;
+    Trigger_list* head;
 } Trigger_row;
 
 
@@ -47,7 +47,7 @@ typedef struct Cgiter
 
 
 /**
- * Initialises Cgiter.
+ * Initialise Cgiter.
  *
  * \param cgiter      The Cgiter -- must not be \c NULL.
  * \param module      The Module -- must not be \c NULL.
@@ -58,7 +58,7 @@ void Cgiter_init(Cgiter* cgiter, const Module* module, int col_index);
 
 
 /**
- * Resets the Cgiter.
+ * Reset the Cgiter.
  *
  * \param cgiter      The Cgiter -- must not be \c NULL.
  * \param start_pos   The starting position -- must be valid.
@@ -67,7 +67,7 @@ void Cgiter_reset(Cgiter* cgiter, const Position* start_pos);
 
 
 /**
- * Returns trigger row at the current Cgiter position.
+ * Return trigger row at the current Cgiter position.
  *
  * \param cgiter   The Cgiter -- must not be \c NULL.
  *
@@ -86,7 +86,7 @@ void Cgiter_clear_returned_status(Cgiter* cgiter);
 
 
 /**
- * Gets distance to the next breakpoint following the current Cgiter position.
+ * Get distance to the next breakpoint following the current Cgiter position.
  *
  * \param cgiter   The Cgiter -- must not be \c NULL.
  * \param dist     Address where the distance will be stored -- must be valid.
@@ -99,7 +99,7 @@ bool Cgiter_peek(Cgiter* cgiter, Tstamp* dist);
 
 
 /**
- * Moves the iterator forwards.
+ * Move the iterator forwards.
  *
  * \param cgiter   The Cgiter -- must not be \c NULL.
  * \param dist     The distance to be moved -- must be valid and should not
@@ -109,7 +109,7 @@ void Cgiter_move(Cgiter* cgiter, const Tstamp* dist);
 
 
 /**
- * Tells whether the Cgiter has reached the end.
+ * Tell whether the Cgiter has reached the end.
  *
  * \param cgiter   The Cgiter -- must not be \c NULL.
  *

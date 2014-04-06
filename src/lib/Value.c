@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2014
  *
  * This file is part of Kunquat.
  *
@@ -17,10 +17,10 @@
 #include <string.h>
 #include <stdio.h>
 
-#include <math_common.h>
-#include <serialise.h>
+#include <debug/assert.h>
+#include <mathnum/common.h>
+#include <string/serialise.h>
 #include <Value.h>
-#include <xassert.h>
 
 
 Value* Value_copy(Value* restrict dest, const Value* restrict src)
@@ -116,7 +116,7 @@ int Value_serialise(Value* value, int len, char* str)
         case VALUE_TYPE_NONE:
         {
             int print_len = snprintf(str, len, "null");
-            return MIN(len - 1, print_len);
+            return min(len - 1, print_len);
         }
         break;
 
@@ -154,7 +154,7 @@ int Value_serialise(Value* value, int len, char* str)
         {
             int print_len = snprintf(
                     str, len, "\"%s\"", value->value.string_type);
-            return MIN(len - 1, print_len);
+            return min(len - 1, print_len);
         }
         break;
 

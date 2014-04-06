@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -21,11 +21,11 @@
 
 #include <frame.h>
 #include <kunquat/limits.h>
+#include <mathnum/Random.h>
 #include <pitch_t.h>
 #include <player/Channel_gen_state.h>
 #include <player/LFO.h>
 #include <player/Slider.h>
-#include <Random.h>
 #include <Tstamp.h>
 
 
@@ -117,7 +117,7 @@ typedef struct Voice_state
 
 
 /**
- * Initialises a Voice state.
+ * Initialise a Voice state.
  *
  * \param state     The Voice state -- must not be \c NULL.
  * \param cgstate   The Channel-specific Generator state -- must not be
@@ -139,7 +139,7 @@ Voice_state* Voice_state_init(
 
 
 /**
- * Clears a Voice state.
+ * Clear a Voice state.
  *
  * \param state   The Voice state -- must not be \c NULL.
  *

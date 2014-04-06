@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2014
  *
  * This file is part of Kunquat.
  *
@@ -31,7 +31,7 @@ typedef struct Effect_state
 
 
 /**
- * Resets the Effect state.
+ * Reset the Effect state.
  *
  * \param eff_state   The Effect state -- must not be \c NULL.
  */

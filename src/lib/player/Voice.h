@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -19,11 +19,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <Generator.h>
+#include <devices/Generator.h>
+#include <mathnum/Random.h>
 #include <player/Channel_gen_state.h>
 #include <player/Device_states.h>
 #include <player/Voice_state.h>
-#include <Random.h>
 
 
 typedef enum
@@ -52,7 +52,7 @@ typedef struct Voice
 
 
 /**
- * Creates a new Voice.
+ * Create a new Voice.
  *
  * \param state_size   The amount of bytes to reserve for Voice states.
  *
@@ -63,7 +63,7 @@ Voice* new_Voice(void);
 
 
 /**
- * Reserves space for the Voice state.
+ * Reserve space for the Voice state.
  *
  * \param voice        The Voice -- must not be \c NULL.
  * \param state_size   The amount of bytes to reserve for the Voice state.
@@ -74,7 +74,7 @@ bool Voice_reserve_state_space(Voice* voice, size_t state_size);
 
 
 /**
- * Compares priorities of two Voices.
+ * Compare priorities of two Voices.
  *
  * \param v1   The first Voice -- must not be \c NULL.
  * \param v2   The second Voice -- must not be \c NULL.
@@ -83,11 +83,11 @@ bool Voice_reserve_state_space(Voice* voice, size_t state_size);
  *           found, respectively, to be lower than, equal to or greater than
  *           \a v2 in priority.
  */
-int Voice_cmp(Voice* v1, Voice* v2);
+int Voice_cmp(const Voice* v1, const Voice* v2);
 
 
 /**
- * Retrieves the Voice identification.
+ * Retrieve the Voice identification.
  *
  * The user should store the ID after retrieving the Voice from the Voice
  * pool.
@@ -96,11 +96,11 @@ int Voice_cmp(Voice* v1, Voice* v2);
  *
  * \return   The ID.
  */
-uint64_t Voice_id(Voice* voice);
+uint64_t Voice_id(const Voice* voice);
 
 
 /**
- * Initialises the Voice for mixing.
+ * Initialise the Voice for mixing.
  *
  * \param voice       The Voice -- must not be \c NULL.
  * \param gen         The Generator used -- must not be \c NULL.
@@ -122,7 +122,7 @@ void Voice_init(
 
 
 /**
- * Resets the Voice.
+ * Reset the Voice.
  *
  * \param voice   The Voice -- must not be \c NULL.
  */
@@ -130,7 +130,7 @@ void Voice_reset(Voice* voice);
 
 
 /**
- * Prepares the Voice for a new mixing cycle.
+ * Prepare the Voice for a new mixing cycle.
  *
  * \param voice   The Voice -- must not be \c NULL.
  */
@@ -138,7 +138,7 @@ void Voice_prepare(Voice* voice);
 
 
 /**
- * Mixes the Voice.
+ * Mix the Voice.
  *
  * \param voice    The Voice -- must not be \c NULL.
  * \param states   The Device states -- must not be \c NULL.
@@ -157,17 +157,17 @@ void Voice_mix(
 
 
 /**
- * Returns the actual current force of the Voice.
+ * Return the actual current force of the Voice.
  *
  * \param voice   The Voice -- must not be \c NULL and must be active.
  *
  * \return   The actual force.
  */
-double Voice_get_actual_force(Voice* voice);
+double Voice_get_actual_force(const Voice* voice);
 
 
 /**
- * Destroys an existing Voice.
+ * Destroy an existing Voice.
  *
  * \param voice   The Voice, or \c NULL.
  */

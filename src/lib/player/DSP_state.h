@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2014
  *
  * This file is part of Kunquat.
  *
@@ -28,7 +28,7 @@ typedef struct DSP_state
 
 
 /**
- * Initialises the DSP state.
+ * Initialise the DSP state.
  *
  * \param dsp_state           The DSP state -- must not be \c NULL.
  * \param device              The Device -- must not be \c NULL.
@@ -43,7 +43,7 @@ void DSP_state_init(
 
 
 /**
- * Resets the DSP state.
+ * Reset the DSP state.
  *
  * \param dsp_state   The DSP state -- must not be \c NULL.
  */

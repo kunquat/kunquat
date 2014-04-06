@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -16,9 +16,9 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+#include <debug/assert.h>
 #include <memory.h>
 #include <player/Voice_pool.h>
-#include <xassert.h>
 
 
 Voice_pool* new_Voice_pool(uint16_t size)
@@ -27,9 +27,7 @@ Voice_pool* new_Voice_pool(uint16_t size)
 
     Voice_pool* pool = memory_alloc_item(Voice_pool);
     if (pool == NULL)
-    {
         return NULL;
-    }
 
     pool->size = size;
     pool->state_size = 0;
@@ -44,6 +42,7 @@ Voice_pool* new_Voice_pool(uint16_t size)
             return NULL;
         }
     }
+
     for (int i = 0; i < size; ++i)
     {
         pool->voices[i] = new_Voice();
@@ -58,6 +57,7 @@ Voice_pool* new_Voice_pool(uint16_t size)
             return NULL;
         }
     }
+
     return pool;
 }
 
@@ -74,8 +74,8 @@ bool Voice_pool_reserve_state_space(Voice_pool* pool, size_t state_size)
         if (!Voice_reserve_state_space(pool->voices[i], state_size))
             return false;
     }
-    pool->state_size = state_size;
 
+    pool->state_size = state_size;
     return true;
 }
 
@@ -139,17 +139,14 @@ bool Voice_pool_resize(Voice_pool* pool, uint16_t size)
 }
 
 
-uint16_t Voice_pool_get_size(Voice_pool* pool)
+uint16_t Voice_pool_get_size(const Voice_pool* pool)
 {
     assert(pool != NULL);
     return pool->size;
 }
 
 
-Voice* Voice_pool_get_voice(
-        Voice_pool* pool,
-        Voice* voice,
-        uint64_t id)
+Voice* Voice_pool_get_voice(Voice_pool* pool, Voice* voice, uint64_t id)
 {
     assert(pool != NULL);
 
@@ -174,10 +171,10 @@ Voice* Voice_pool_get_voice(
 
         return new_voice;
     }
+
     if (voice->id == id)
-    {
         return voice;
-    }
+
     return NULL;
 }
 

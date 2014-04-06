@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2014
  *
  * This file is part of Kunquat.
  *
@@ -15,8 +15,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <debug/assert.h>
 #include <Error.h>
-#include <xassert.h>
 
 
 static const char* error_codes[ERROR_COUNT_] =

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -19,16 +19,16 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <Event_cache.h>
-#include <General_state.h>
 #include <kunquat/limits.h>
+#include <mathnum/Random.h>
+#include <module/Ins_table.h>
 #include <player/Channel_gen_state.h>
 #include <player/Env_state.h>
+#include <player/Event_cache.h>
+#include <player/General_state.h>
 #include <player/LFO.h>
 #include <player/Voice_pool.h>
-#include <Random.h>
 #include <Tstamp.h>
-#include <Ins_table.h>
 
 
 /**
@@ -91,7 +91,7 @@ typedef struct Channel
 
 
 /**
- * Creates a new Channel.
+ * Create a new Channel.
  *
  * \param module   The Module -- must not be \c NULL.
  * \param num      The Channel number -- must be >= \c 0 and
@@ -116,7 +116,7 @@ Channel* new_Channel(
 
 
 /**
- * Sets the Channel random seed.
+ * Set the Channel random seed.
  *
  * \param ch     The Channel -- must not be \c NULL.
  * \param seed   The random seed.
@@ -125,7 +125,7 @@ void Channel_set_random_seed(Channel* ch, uint64_t seed);
 
 
 /**
- * Sets the Event cache of the Channel.
+ * Set the Event cache of the Channel.
  *
  * \param ch      The Channel -- must not be \c NULL.
  * \param cache   The Event cache -- must not be \c NULL.
@@ -134,7 +134,7 @@ void Channel_set_event_cache(Channel* ch, Event_cache* cache);
 
 
 /**
- * Resets the Channel.
+ * Reset the Channel.
  *
  * \param ch   The Channel -- must not be \c NULL.
  */
@@ -142,7 +142,7 @@ void Channel_reset(Channel* ch);
 
 
 /**
- * Returns an actual force of a current foreground Voice.
+ * Return an actual force of a current foreground Voice.
  *
  * \param ch          The Channel -- must not be \c NULL.
  * \param gen_index   The Generator index -- must be >= \c 0 and
@@ -155,7 +155,7 @@ double Channel_get_fg_force(Channel* ch, int gen_index);
 
 
 /**
- * Deinitialises the Channel.
+ * Deinitialise the Channel.
  *
  * \param ch   The Channel, or \c NULL.
  */
@@ -163,7 +163,7 @@ void Channel_deinit(Channel* ch);
 
 
 /**
- * Destroys an existing Channel.
+ * Destroy an existing Channel.
  *
  * \param ch   The Channel, or \c NULL.
  */

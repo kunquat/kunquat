@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -63,7 +63,7 @@ extern "C" {
 
 
 /**
- * Plays music according to the state of the Kunquat Handle.
+ * Play music according to the state of the Kunquat Handle.
  *
  * If this function is called after the end of the composition is reached,
  * more audio is produced as if the composition were paused indefinitely.
@@ -77,7 +77,7 @@ int kqt_Handle_play(kqt_Handle handle, long nframes);
 
 
 /**
- * Finds out if playback has stopped in the Kunquat Handle.
+ * Find out if playback has stopped in the Kunquat Handle.
  *
  * \param handle   The Handle -- should be valid.
  *
@@ -88,7 +88,7 @@ int kqt_Handle_has_stopped(kqt_Handle handle);
 
 
 /**
- * Gets the amount of audio data available in internal audio buffers.
+ * Get the amount of audio data available in internal audio buffers.
  *
  * \param handle   The Handle -- should be valid.
  *
@@ -101,7 +101,7 @@ long kqt_Handle_get_frames_available(kqt_Handle handle);
 
 
 /**
- * Gets an audio buffer from the Kunquat Handle.
+ * Get an audio buffer from the Kunquat Handle.
  *
  * When called after a successful call of kqt_Handle_play, this function
  * returns a portion of rendered audio of one output channel. The parameter
@@ -123,7 +123,7 @@ const float* kqt_Handle_get_audio(kqt_Handle handle, int index);
 
 
 /**
- * Sets the audio rate of the Kunquat Handle.
+ * Set the audio rate of the Kunquat Handle.
  *
  * \param handle   The Handle -- should be valid.
  * \param rate     The audio rate in frames per second -- should be > \c 0.
@@ -138,7 +138,7 @@ int kqt_Handle_set_audio_rate(kqt_Handle handle, long rate);
 
 
 /**
- * Gets the current audio rate used by the Kunquat Handle.
+ * Get the current audio rate used by the Kunquat Handle.
  *
  * \param handle   The Handle -- should be valid.
  *
@@ -148,7 +148,7 @@ long kqt_Handle_get_audio_rate(kqt_Handle handle);
 
 
 /**
- * Sets the audio buffer size of the Kunquat Handle.
+ * Set the audio buffer size of the Kunquat Handle.
  *
  * The buffer size determines the maximum amount of audio data that can
  * be rendered in one call. The buffer size is given as the number of amplitude
@@ -174,7 +174,7 @@ int kqt_Handle_set_audio_buffer_size(kqt_Handle handle, long size);
 
 
 /**
- * Gets the audio buffer size of the Kunquat Handle.
+ * Get the audio buffer size of the Kunquat Handle.
  *
  * \param handle   The Handle -- should be valid.
  *
@@ -184,7 +184,7 @@ long kqt_Handle_get_audio_buffer_size(kqt_Handle handle);
 
 
 /**
- * Estimates the duration of a track in the Kunquat Handle.
+ * Estimate the duration of a track in the Kunquat Handle.
  *
  * This function will not calculate the length of a track further
  * than 30 days.
@@ -200,7 +200,7 @@ long long kqt_Handle_get_duration(kqt_Handle handle, int track);
 
 
 /**
- * Sets the position to be played.
+ * Set the position to be played.
  *
  * Any notes that were being mixed will be cut off immediately.
  * Notes that start playing before the given position will not be played.
@@ -220,7 +220,7 @@ int kqt_Handle_set_position(
 
 
 /**
- * Gets the current position in nanoseconds.
+ * Get the current position in nanoseconds.
  *
  * \param handle   The Handle -- should be valid.
  *
@@ -230,7 +230,7 @@ long long kqt_Handle_get_position(kqt_Handle handle);
 
 
 /**
- * Fires an event.
+ * Fire an event.
  *
  * \param handle    The Handle -- should be valid.
  * \param channel   The channel where the event takes place -- should be
@@ -248,7 +248,7 @@ int kqt_Handle_fire_event(kqt_Handle handle, int channel, const char* event);
 
 
 /**
- * Returns a JSON list of events.
+ * Return a JSON list of events.
  *
  * The returned list of events is not necessarily exhaustive; subsequent
  * calls may return more events.

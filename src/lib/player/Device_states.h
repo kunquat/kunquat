@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2014
  *
  * This file is part of Kunquat.
  *
@@ -22,7 +22,7 @@ typedef struct Device_states Device_states;
 
 
 /**
- * Creates a new Device state collection.
+ * Create a new Device state collection.
  *
  * \return   The new Device state collection if successful, or \c NULL if
  *           memory allocation failed.
@@ -31,7 +31,7 @@ Device_states* new_Device_states(void);
 
 
 /**
- * Adds a Device state to the Device state collection.
+ * Add a Device state to the Device state collection.
  *
  * \param states   The Device states -- must not be \c NULL.
  * \param ds       The Device state -- must not be \c NULL and must not match
@@ -43,7 +43,7 @@ bool Device_states_add_state(Device_states* states, Device_state* state);
 
 
 /**
- * Gets a Device state.
+ * Get a Device state.
  *
  * \param states   The Device states -- must not be \c NULL.
  * \param id       The Device ID -- must be > \c 0 and must match an existing
@@ -57,7 +57,7 @@ Device_state* Device_states_get_state(
 
 
 /**
- * Removes a Device state in the Device state collection.
+ * Remove a Device state in the Device state collection.
  *
  * \param states   The Device states -- must not be \c NULL.
  * \param id       The Device ID -- must be > \c 0.
@@ -66,7 +66,7 @@ void Device_states_remove_state(Device_states* states, uint32_t id);
 
 
 /**
- * Sets the audio rate.
+ * Set the audio rate.
  *
  * \param states   The Device states -- must not be \c NULL.
  * \param rate     The audio rate -- must be > \c 0.
@@ -77,7 +77,7 @@ bool Device_states_set_audio_rate(Device_states* states, int32_t rate);
 
 
 /**
- * Sets the audio buffer size.
+ * Set the audio buffer size.
  *
  * \param states   The Device states -- must not be \c NULL.
  * \param size     The new buffer size -- must be >= \c 0.
@@ -88,7 +88,7 @@ bool Device_states_set_audio_buffer_size(Device_states* states, int32_t size);
 
 
 /**
- * Clears audio buffers in the Device states.
+ * Clear audio buffers in the Device states.
  *
  * \param states   The Device states -- must not be \c NULL.
  * \param start    The first frame to be cleared.
@@ -102,7 +102,7 @@ void Device_states_clear_audio_buffers(
 
 
 /**
- * Resets the Device states.
+ * Reset the Device states.
  *
  * \param states   The Device states -- must not be \c NULL.
  */
@@ -110,7 +110,7 @@ void Device_states_reset(Device_states* states);
 
 
 /**
- * Destroys a Device state collection.
+ * Destroy a Device state collection.
  *
  * \param dsc   The Device states, or \c NULL.
  */

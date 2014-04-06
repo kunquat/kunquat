@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -19,7 +19,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <Streader.h>
+#include <string/Streader.h>
 #include <Tstamp.h>
 #include <Value.h>
 
@@ -31,7 +31,7 @@ typedef struct Channel_gen_state Channel_gen_state;
 
 
 /**
- * Creates a new Channel gen state.
+ * Create a new Channel gen state.
  *
  * \return   The new Channel gen state if successful, or \c NULL if memory
  *           allocation failed.
@@ -40,7 +40,7 @@ Channel_gen_state* new_Channel_gen_state(void);
 
 
 /**
- * Allocates memory for a list of keys.
+ * Allocate memory for a list of keys.
  *
  * \param cgstate   The Channel gen state -- must not be \c NULL.
  * \param sr        The Streader of the JSON data -- must not be \c NULL.
@@ -51,7 +51,7 @@ bool Channel_gen_state_alloc_keys(Channel_gen_state* cgstate, Streader* sr);
 
 
 /**
- * Modifies an existing parameter value.
+ * Modify an existing parameter value.
  *
  * \param state   The Channel gen state -- must not be \c NULL.
  * \param key     The key -- must not be \c NULL and must end with one of
@@ -67,7 +67,7 @@ bool Channel_gen_state_modify_value(
 
 
 /**
- * Retrieves a reference to a boolean value.
+ * Retrieve a reference to a boolean value.
  *
  * \param state   The Channel gen state -- must not be \c NULL.
  * \param key     The key -- must not be \c NULL.
@@ -81,7 +81,7 @@ const bool* Channel_gen_state_get_bool(
 
 
 /**
- * Retrieves a reference to an integer value.
+ * Retrieve a reference to an integer value.
  *
  * \param state   The Channel gen state -- must not be \c NULL.
  * \param key     The key -- must not be \c NULL.
@@ -95,7 +95,7 @@ const int64_t* Channel_gen_state_get_int(
 
 
 /**
- * Retrieves a reference to a floating-point value.
+ * Retrieve a reference to a floating-point value.
  *
  * \param state   The Channel gen state -- must not be \c NULL.
  * \param key     The key -- must not be \c NULL.
@@ -109,7 +109,7 @@ const double* Channel_gen_state_get_float(
 
 
 /**
- * Retrieves a reference to a timestamp value.
+ * Retrieve a reference to a timestamp value.
  *
  * \param state   The Channel gen state -- must not be \c NULL.
  * \param key     The key -- must not be \c NULL.
@@ -123,7 +123,7 @@ const Tstamp* Channel_gen_state_get_tstamp(
 
 
 /**
- * Clears a Channel gen state.
+ * Clear a Channel gen state.
  *
  * \param state   The Channel gen state -- must not be \c NULL.
  */
@@ -131,7 +131,7 @@ void Channel_gen_state_clear(Channel_gen_state* cgstate);
 
 
 /**
- * Destroys an existing Channel gen state.
+ * Destroy an existing Channel gen state.
  *
  * \param state   The Channel gen state, or \c NULL.
  */

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2014
  *
  * This file is part of Kunquat.
  *
@@ -15,11 +15,11 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <math_common.h>
+#include <debug/assert.h>
+#include <mathnum/common.h>
 #include <memory.h>
 #include <player/Event_buffer.h>
-#include <string_common.h>
-#include <xassert.h>
+#include <string/common.h>
 
 
 struct Event_buffer
@@ -44,7 +44,7 @@ Event_buffer* new_Event_buffer(size_t size)
         return NULL;
 
     // Sanitise fields
-    ebuf->size = MAX(strlen(EMPTY_BUFFER) + 1, size);
+    ebuf->size = max(strlen(EMPTY_BUFFER) + 1, size);
     ebuf->write_pos = 0;
     ebuf->buf = NULL;
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -17,8 +17,8 @@
 #include <inttypes.h>
 #include <stdio.h>
 
+#include <debug/assert.h>
 #include <Tstamp.h>
-#include <xassert.h>
 
 
 #ifndef NDEBUG

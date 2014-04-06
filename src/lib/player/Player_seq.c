@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2014
  *
  * This file is part of Kunquat.
  *
@@ -16,10 +16,10 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <debug/assert.h>
 #include <expr.h>
 #include <player/Player_seq.h>
-#include <string_common.h>
-#include <xassert.h>
+#include <string/common.h>
 
 
 bool get_event_type_info(
@@ -104,7 +104,7 @@ static bool process_expr(
 static void Player_process_expr_event(
         Player* player,
         int ch_num,
-        char* trigger_desc,
+        const char* trigger_desc,
         const Value* meta,
         bool skip);
 
@@ -253,7 +253,7 @@ void Player_process_event(
 static void Player_process_expr_event(
         Player* player,
         int ch_num,
-        char* trigger_desc,
+        const char* trigger_desc,
         const Value* meta,
         bool skip)
 {
@@ -375,21 +375,21 @@ void Player_process_cgiters(Player* player, Tstamp* limit, bool skip)
         {
             // Process trigger row
             assert(tr->head->next != NULL);
-            Event_list* el = tr->head->next;
+            Trigger_list* trl = tr->head->next;
 
             // Skip triggers if resuming
             int trigger_index = 0;
             while (trigger_index < player->master_params.cur_trigger &&
-                    el->event != NULL)
+                    trl->trigger != NULL)
             {
                 ++trigger_index;
-                el = el->next;
+                trl = trl->next;
             }
 
             // Process triggers
-            while (el->event != NULL)
+            while (trl->trigger != NULL)
             {
-                const Event_type event_type = Event_get_type(el->event);
+                const Event_type event_type = Trigger_get_type(trl->trigger);
 
                 const bool at_active_jump =
                     Tstamp_cmp(next_jump_row, &cgiter->pos.pat_pos) == 0 &&
@@ -451,7 +451,7 @@ void Player_process_cgiters(Player* player, Tstamp* limit, bool skip)
                         Player_process_expr_event(
                                 player,
                                 i,
-                                Event_get_desc(el->event),
+                                Trigger_get_desc(trl->trigger),
                                 NULL, // no meta value
                                 skip);
 
@@ -539,7 +539,7 @@ void Player_process_cgiters(Player* player, Tstamp* limit, bool skip)
                     return;
                 }
 
-                el = el->next;
+                trl = trl->next;
             }
         }
 

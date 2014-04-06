@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2014
  *
  * This file is part of Kunquat.
  *
@@ -21,7 +21,7 @@
 #include <stdlib.h>
 
 #include <player/Player_private.h>
-#include <Streader.h>
+#include <string/Streader.h>
 
 
 bool get_event_type_info(

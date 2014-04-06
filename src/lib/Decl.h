@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2014
  *
  * This file is part of Kunquat.
  *
@@ -16,6 +16,7 @@
 #define K_DECL_H
 
 
+typedef struct Connections Connections;
 typedef struct Device Device;
 typedef struct Device_impl Device_impl;
 typedef struct Module Module;

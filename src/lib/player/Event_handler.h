@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -18,13 +18,12 @@
 
 #include <stdbool.h>
 
-#include <Event_names.h>
-#include <Event_type.h>
-#include <General_state.h>
-#include <Generator.h>
-#include <Ins_table.h>
+#include <devices/Generator.h>
 #include <player/Channel.h>
 #include <player/Effect_state.h>
+#include <player/Event_names.h>
+#include <player/Event_type.h>
+#include <player/General_state.h>
 #include <player/Ins_state.h>
 #include <player/Master_params.h>
 #include <Value.h>
@@ -34,7 +33,7 @@ typedef struct Event_handler Event_handler;
 
 
 /**
- * Creates a new Event handler.
+ * Create a new Event handler.
  *
  * \return   The new Event handler if successful, or \c NULL if memory
  *           allocation failed.
@@ -48,7 +47,7 @@ Event_handler* new_Event_handler(
 
 
 /**
- * Retrieves the Event names from the Event handler.
+ * Retrieve the Event names from the Event handler.
  *
  * \param eh   The Event handler -- must not be \c NULL.
  *
@@ -58,18 +57,18 @@ const Event_names* Event_handler_get_names(const Event_handler* eh);
 
 
 /**
- * Registers a Control Event processor.
+ * Register a Control Event processor.
  *
  * \param eh   The Event handler -- must not be \c NULL.
  */
 bool Event_handler_set_control_process(
         Event_handler* eh,
         Event_type type,
-        bool (*control_process)(General_state*, Value*));
+        bool (*control_process)(General_state*, const Value*));
 
 
 /**
- * Registers a general Event processor.
+ * Register a general Event processor.
  *
  * \param eh        The Event handler -- must not be \c NULL.
  * \param name      The name of the Event -- must not be \c NULL, empty string
@@ -82,11 +81,11 @@ bool Event_handler_set_control_process(
 bool Event_handler_set_general_process(
         Event_handler* eh,
         Event_type type,
-        bool (*general_process)(General_state*, Value*));
+        bool (*general_process)(General_state*, const Value*));
 
 
 /**
- * Registers a Channel Event processor.
+ * Register a Channel Event processor.
  *
  * \param eh        The Event handler -- must not be \c NULL.
  * \param name      The name of the Event -- must not be \c NULL, empty string
@@ -99,11 +98,11 @@ bool Event_handler_set_general_process(
 bool Event_handler_set_ch_process(
         Event_handler* eh,
         Event_type type,
-        bool (*ch_process)(Channel*, Device_states*, Value*));
+        bool (*ch_process)(Channel*, Device_states*, const Value*));
 
 
 /**
- * Registers a master event processor.
+ * Register a master event processor.
  *
  * \param eh        The Event handler -- must not be \c NULL.
  * \param name      The name of the event -- must not be \c NULL, empty string
@@ -116,11 +115,11 @@ bool Event_handler_set_ch_process(
 bool Event_handler_set_master_process(
         Event_handler* eh,
         Event_type type,
-        bool (*master_process)(Master_params*, Value*));
+        bool (*master_process)(Master_params*, const Value*));
 
 
 /**
- * Registers an Instrument Event processor.
+ * Register an Instrument Event processor.
  *
  * \param eh        The Event handler -- must not be \c NULL.
  * \param name      The name of the Event -- must not be \c NULL, empty string
@@ -133,11 +132,11 @@ bool Event_handler_set_master_process(
 bool Event_handler_set_ins_process(
         Event_handler* eh,
         Event_type type,
-        bool (*ins_process)(const Instrument_params*, Ins_state*, Value*));
+        bool (*ins_process)(const Instrument_params*, Ins_state*, const Value*));
 
 
 /**
- * Registers a Generator Event processor.
+ * Register a Generator Event processor.
  *
  * \param eh        The Event handler -- must not be \c NULL.
  * \param name      The name of the Event -- must not be \c NULL, empty string
@@ -151,11 +150,11 @@ bool Event_handler_set_generator_process(
         Event_handler* eh,
         Event_type type,
         bool (*gen_process)(
-            const Device_impl*, Device_state*, Channel*, Value*));
+            const Device_impl*, Device_state*, Channel*, const Value*));
 
 
 /**
- * Registers an Effect Event processor.
+ * Register an Effect Event processor.
  *
  * \param eh        The Event handler -- must not be \c NULL.
  * \param name      The name of the Event -- must not be \c NULL, empty string
@@ -169,11 +168,11 @@ bool Event_handler_set_effect_process(
         Event_handler* eh,
         Event_type type,
         bool (*effect_process)(
-            const Effect*, Effect_state*, Device_states*, Value*));
+            const Effect*, Effect_state*, Device_states*, const Value*));
 
 
 /**
- * Registers a DSP Event processor.
+ * Register a DSP Event processor.
  *
  * \param eh        The Event handler -- must not be \c NULL.
  * \param name      The name of the Event -- must not be \c NULL, empty string
@@ -187,11 +186,11 @@ bool Event_handler_set_dsp_process(
         Event_handler* eh,
         Event_type type,
         bool (*dsp_process)(
-            const Device_impl*, Device_state*, Channel*, Value*));
+            const Device_impl*, Device_state*, Channel*, const Value*));
 
 
 /**
- * Triggers an event.
+ * Trigger an event.
  *
  * \param eh       The Event handler -- must not be \c NULL.
  * \param ch_num   The channel number -- must be >= \c 0 and
@@ -206,11 +205,11 @@ bool Event_handler_trigger(
         Event_handler* eh,
         int ch_num,
         const char* name,
-        Value* arg);
+        const Value* arg);
 
 
 /**
- * Adds a key into all Channel-specific generator parameter dictionaries.
+ * Add a key into all Channel-specific generator parameter dictionaries.
  *
  * \param eh    The Event handler -- must not be \c NULL.
  * \param key   The key -- must not be \c NULL.
@@ -223,7 +222,7 @@ bool Event_handler_trigger(
 
 
 /**
- * Destroys an existing Event handler.
+ * Destroy an existing Event handler.
  *
  * \param eh   The Event handler, or \c NULL.
  */

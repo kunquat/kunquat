@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2014
  *
  * This file is part of Kunquat.
  *
@@ -12,11 +12,11 @@
  */
 
 
-#include <Device.h>
-#include <math_common.h>
+#include <debug/assert.h>
+#include <devices/Device.h>
+#include <mathnum/common.h>
 #include <memory.h>
 #include <player/Device_state.h>
-#include <xassert.h>
 
 
 void Device_state_init(
@@ -106,7 +106,7 @@ bool Device_state_set_audio_buffer_size(Device_state* ds, int32_t size)
     assert(ds != NULL);
     assert(size >= 0);
 
-    ds->audio_buffer_size = MIN(ds->audio_buffer_size, size);
+    ds->audio_buffer_size = min(ds->audio_buffer_size, size);
 
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
@@ -127,6 +127,8 @@ bool Device_state_allocate_space(Device_state* ds, char* key)
 {
     assert(ds != NULL);
     assert(key != NULL);
+    (void)ds;
+    (void)key;
 
     return true;
 }
@@ -190,6 +192,7 @@ Audio_buffer* Device_state_get_audio_buffer(
 void Device_state_reset(Device_state* ds)
 {
     assert(ds != NULL);
+    (void)ds;
 
     return;
 }

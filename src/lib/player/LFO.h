@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -53,7 +53,7 @@ typedef struct LFO
 
 
 /**
- * Initialises a Low-Frequency Oscillator.
+ * Initialise a Low-Frequency Oscillator.
  *
  * \param lfo    The LFO -- must not be \c NULL.
  * \param mode   The LFO mode -- must be a valid mode.
@@ -64,7 +64,7 @@ LFO* LFO_init(LFO* lfo, LFO_mode mode);
 
 
 /**
- * Copies a Low-Frequency Oscillator.
+ * Copy a Low-Frequency Oscillator.
  *
  * \param dest   The destination LFO -- must not be \c NULL.
  * \param src    The source LFO -- must not be \c NULL or \a dest.
@@ -75,7 +75,7 @@ LFO* LFO_copy(LFO* restrict dest, const LFO* restrict src);
 
 
 /**
- * Sets the mixing rate in the LFO.
+ * Set the mixing rate in the LFO.
  *
  * \param lfo        The LFO -- must not be \c NULL.
  * \param mix_rate   The mixing rate -- must be > \c 0.
@@ -84,7 +84,7 @@ void LFO_set_mix_rate(LFO* lfo, uint32_t mix_rate);
 
 
 /**
- * Sets the tempo in the LFO.
+ * Set the tempo in the LFO.
  *
  * \param lfo     The LFO -- must not be \c NULL.
  * \param tempo   The tempo -- must be finite and > \c 0.
@@ -93,7 +93,7 @@ void LFO_set_tempo(LFO* lfo, double tempo);
 
 
 /**
- * Sets the speed in the LFO.
+ * Set the speed in the LFO.
  *
  * \param lfo     The LFO -- must not be \c NULL.
  * \param speed   The speed -- must be finite and >= \c 0.
@@ -102,16 +102,16 @@ void LFO_set_speed(LFO* lfo, double speed);
 
 
 /**
- * Sets the transition delay in the speed setting of the LFO.
+ * Set the transition delay in the speed setting of the LFO.
  *
  * \param lfo     The LFO -- must not be \c NULL.
  * \param delay   The delay -- must not be \c NULL or negative.
  */
-void LFO_set_speed_delay(LFO* lfo, Tstamp* delay);
+void LFO_set_speed_delay(LFO* lfo, const Tstamp* delay);
 
 
 /**
- * Sets the depth in the LFO.
+ * Set the depth in the LFO.
  *
  * After the depth delay, the LFO will return values in the range
  * [-depth, depth].
@@ -123,16 +123,16 @@ void LFO_set_depth(LFO* lfo, double depth);
 
 
 /**
- * Sets the transition delay in the depth setting of the LFO.
+ * Set the transition delay in the depth setting of the LFO.
  *
  * \param lfo     The LFO -- must not be \c NULL.
  * \param delay   The delay -- must not be \c NULL or negative.
  */
-void LFO_set_depth_delay(LFO* lfo, Tstamp* delay);
+void LFO_set_depth_delay(LFO* lfo, const Tstamp* delay);
 
 
 /**
- * Sets the offset in the LFO.
+ * Set the offset in the LFO.
  *
  * \param lfo      The LFO -- must not be \c NULL.
  * \param offset   The offset -- must be >= \c -1 and <= \c 1.
@@ -141,7 +141,7 @@ void LFO_set_offset(LFO* lfo, double offset);
 
 
 /**
- * Turns on the LFO.
+ * Turn on the LFO.
  *
  * \param lfo   The LFO -- must not be \c NULL.
  */
@@ -149,7 +149,7 @@ void LFO_turn_on(LFO* lfo);
 
 
 /**
- * Turns off the LFO.
+ * Turn off the LFO.
  *
  * Note that the LFO still provides a smooth ending of the oscillation after
  * turning it off.
@@ -160,7 +160,7 @@ void LFO_turn_off(LFO* lfo);
 
 
 /**
- * Performs a step in the LFO.
+ * Perform a step in the LFO.
  *
  * \param lfo   The LFO -- must not be \c NULL.
  *
@@ -170,7 +170,7 @@ double LFO_step(LFO* lfo);
 
 
 /**
- * Skips a number of steps in the LFO.
+ * Skip a number of steps in the LFO.
  *
  * \param lfo     The LFO -- must not be \c NULL.
  * \param steps   The number of steps.
@@ -181,13 +181,13 @@ double LFO_skip(LFO* lfo, uint64_t steps);
 
 
 /**
- * Finds out whether the LFO is still providing non-trivial values.
+ * Find out whether the LFO is still providing non-trivial values.
  *
  * The LFO remains active for some time after turning it off.
  *
  * \param lfo   The LFO -- must not be \c NULL.
  */
-bool LFO_active(LFO* lfo);
+bool LFO_active(const LFO* lfo);
 
 
 #endif // K_LFO_H

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -26,7 +26,7 @@ typedef struct Audio_buffer Audio_buffer;
 
 
 /**
- * Creates a new Audio buffer.
+ * Create a new Audio buffer.
  *
  * \param size   The buffer size -- must be >= \c 0 and
  *               <= \c KQT_AUDIO_BUFFER_SIZE_MAX.
@@ -38,17 +38,17 @@ Audio_buffer* new_Audio_buffer(uint32_t size);
 
 
 /**
- * Gets the size of the Audio buffer.
+ * Get the size of the Audio buffer.
  *
  * \param buffer   The Audio buffer -- must not be \c NULL.
  *
  * \return   The size of the Audio buffer.
  */
-uint32_t Audio_buffer_get_size(Audio_buffer* buffer);
+uint32_t Audio_buffer_get_size(const Audio_buffer* buffer);
 
 
 /**
- * Resizes the Audio buffer.
+ * Resize the Audio buffer.
  *
  * \param buffer   The Audio buffer -- must not be \c NULL.
  * \param size     The new buffer size -- must be >= \c 0 and
@@ -60,7 +60,7 @@ bool Audio_buffer_resize(Audio_buffer* buffer, uint32_t size);
 
 
 /**
- * Clears the Audio buffer.
+ * Clear the Audio buffer.
  *
  * \param buffer   The Audio buffer -- must not be \c NULL.
  * \param start    The first frame to be cleared -- must be less than the
@@ -73,7 +73,7 @@ void Audio_buffer_clear(Audio_buffer* buffer, uint32_t start, uint32_t until);
 
 
 /**
- * Mixes the contents of an Audio buffer into another.
+ * Mix the contents of an Audio buffer into another.
  *
  * If the two buffers are the same Audio buffer, this function does nothing.
  *
@@ -95,7 +95,7 @@ void Audio_buffer_mix(
 
 
 /**
- * Returns an internal buffer of the Audio buffer.
+ * Return an internal buffer of the Audio buffer.
  *
  * \param buffer    The Audio buffer -- must not be \c NULL.
  * \param channel   The buffer channel number -- must be >= \c 0 and
@@ -107,7 +107,7 @@ kqt_frame* Audio_buffer_get_buffer(Audio_buffer* buffer, int index);
 
 
 /**
- * Destroys an existing Audio buffer.
+ * Destroy an existing Audio buffer.
  *
  * \param buffer   The Audio buffer, or \c NULL.
  */

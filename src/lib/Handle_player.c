@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -18,14 +18,14 @@
 #include <math.h>
 
 #include <Audio_buffer.h>
-#include <Env_var.h>
+#include <debug/assert.h>
 #include <Handle_private.h>
 #include <kunquat/Player.h>
 #include <kunquat/limits.h>
-#include <math_common.h>
-#include <Module.h>
-#include <string_common.h>
-#include <xassert.h>
+#include <mathnum/common.h>
+#include <module/Env_var.h>
+#include <module/Module.h>
+#include <string/common.h>
 
 
 int kqt_Handle_play(kqt_Handle handle, long nframes)
@@ -38,8 +38,8 @@ int kqt_Handle_play(kqt_Handle handle, long nframes)
 
     if (nframes <= 0)
     {
-        Handle_set_error(h, ERROR_ARGUMENT, "Number of frames must"
-                " be positive.");
+        Handle_set_error(
+                h, ERROR_ARGUMENT, "Number of frames must be positive.");
         return 0;
     }
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2014
  *
  * This file is part of Kunquat.
  *
@@ -20,8 +20,8 @@
 #include <stdint.h>
 
 #include <kunquat/limits.h>
+#include <mathnum/Real.h>
 #include <Pat_inst_ref.h>
-#include <Real.h>
 #include <Tstamp.h>
 
 
@@ -59,7 +59,7 @@ typedef struct Value
 
 
 /**
- * Makes a copy of a Value.
+ * Make a copy of a Value.
  *
  * \param dest   The destination Value -- must not be \c NULL.
  * \param src    The source Value -- must not be \c NULL or \a dest.
@@ -70,7 +70,7 @@ Value* Value_copy(Value* restrict dest, const Value* restrict src);
 
 
 /**
- * Converts a Value to another type.
+ * Convert a Value to another type.
  *
  * \param dest       The destination Value -- must not be \c NULL.
  * \param src        The source Value -- must not be \c NULL (but may be
@@ -84,7 +84,7 @@ bool Value_convert(Value* dest, const Value* src, Value_type new_type);
 
 
 /**
- * Serialises a Value.
+ * Serialise a Value.
  *
  * \param value   The Value -- must not be \c NULL.
  * \param len     Maximum amount of bytes to be written -- must be positive.

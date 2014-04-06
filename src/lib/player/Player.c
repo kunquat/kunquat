@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2014
  *
  * This file is part of Kunquat.
  *
@@ -17,17 +17,16 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <Connections_search.h>
+#include <debug/assert.h>
 #include <Device_node.h>
-#include <math_common.h>
+#include <mathnum/common.h>
 #include <memory.h>
 #include <Pat_inst_ref.h>
 #include <player/Player.h>
 #include <player/Player_private.h>
 #include <player/Player_seq.h>
 #include <player/Position.h>
-#include <string_common.h>
-#include <xassert.h>
+#include <string/common.h>
 
 
 static void Player_update_sliders_and_lfos_audio_rate(Player* player)
@@ -121,7 +120,7 @@ Player* new_Player(
     }
 
     Device_state* master_state = Device_create_state(
-            (Device*)player->module,
+            (const Device*)player->module,
             player->audio_rate,
             player->audio_buffer_size);
     if (master_state == NULL || !Device_states_add_state(
@@ -326,7 +325,7 @@ bool Player_set_audio_buffer_size(Player* player, int32_t size)
         return true;
 
     // Reduce supported size (in case we fail memory allocation)
-    player->audio_buffer_size = MIN(player->audio_buffer_size, size);
+    player->audio_buffer_size = min(player->audio_buffer_size, size);
 
     // Handle empty buffers
     if (player->audio_buffer_size == 0)
@@ -430,7 +429,7 @@ static void Player_process_voices(
             player->master_params.tempo);
 
     player->master_params.active_voices =
-        MAX(player->master_params.active_voices, active_voices);
+        max(player->master_params.active_voices, active_voices);
 }
 
 
@@ -513,7 +512,7 @@ void Player_play(Player* player, int32_t nframes)
 
     Event_buffer_clear(player->event_buffer);
 
-    nframes = MIN(nframes, player->audio_buffer_size);
+    nframes = min(nframes, player->audio_buffer_size);
 
     // TODO: separate data and playback state in connections
     Connections* connections = player->module->connections;
@@ -591,7 +590,7 @@ void Player_play(Player* player, int32_t nframes)
             // Get access to mixed output
             Device_state* master_state = Device_states_get_state(
                     player->device_states,
-                    Device_get_id((Device*)player->module));
+                    Device_get_id((const Device*)player->module));
             assert(master_state != NULL);
 
             Audio_buffer* buffer = Device_state_get_audio_buffer(
@@ -631,7 +630,7 @@ void Player_play(Player* player, int32_t nframes)
     {
         Device_state* master_state = Device_states_get_state(
                 player->device_states,
-                Device_get_id((Device*)player->module));
+                Device_get_id((const Device*)player->module));
         assert(master_state != NULL);
 
         Audio_buffer* buffer = Device_state_get_audio_buffer(
@@ -701,7 +700,7 @@ void Player_skip(Player* player, int64_t nframes)
     while (skipped < nframes)
     {
         // Move forwards in composition
-        int32_t to_be_skipped = MIN(nframes - skipped, INT32_MAX);
+        int32_t to_be_skipped = min(nframes - skipped, INT32_MAX);
         to_be_skipped = Player_move_forwards(player, to_be_skipped, true);
 
         if (Player_has_stopped(player))

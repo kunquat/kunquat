@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -17,12 +17,11 @@
 #include <stdint.h>
 #include <inttypes.h>
 
-#include <math_common.h>
+#include <debug/assert.h>
+#include <mathnum/common.h>
 #include <memory.h>
 #include <player/Voice.h>
 #include <player/Voice_state.h>
-#include <Random.h>
-#include <xassert.h>
 
 
 Voice* new_Voice(void)
@@ -74,7 +73,7 @@ bool Voice_reserve_state_space(Voice* voice, size_t state_size)
 }
 
 
-int Voice_cmp(Voice* v1, Voice* v2)
+int Voice_cmp(const Voice* v1, const Voice* v2)
 {
     assert(v1 != NULL);
     assert(v2 != NULL);
@@ -83,7 +82,7 @@ int Voice_cmp(Voice* v1, Voice* v2)
 }
 
 
-uint64_t Voice_id(Voice* voice)
+uint64_t Voice_id(const Voice* voice)
 {
     assert(voice != NULL);
     return voice->id;
@@ -177,7 +176,7 @@ void Voice_mix(
 }
 
 
-double Voice_get_actual_force(Voice* voice)
+double Voice_get_actual_force(const Voice* voice)
 {
     assert(voice != NULL);
     assert(voice->state != NULL);

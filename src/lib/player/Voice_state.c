@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -16,11 +16,11 @@
 #include <stdint.h>
 #include <math.h>
 
+#include <debug/assert.h>
 #include <kunquat/limits.h>
 #include <player/Slider.h>
 #include <player/Voice_state.h>
 #include <Tstamp.h>
-#include <xassert.h>
 
 
 Voice_state* Voice_state_init(
@@ -37,6 +37,7 @@ Voice_state* Voice_state_init(
     assert(rand_s != NULL);
     assert(freq > 0);
     assert(tempo > 0);
+
     Voice_state_clear(state);
     state->cgstate = cgstate;
     state->active = true;

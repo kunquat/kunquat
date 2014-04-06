@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2014
  *
  * This file is part of Kunquat.
  *
@@ -14,10 +14,10 @@
 
 #include <string.h>
 
-#include <AAtree.h>
+#include <containers/AAtree.h>
+#include <debug/assert.h>
 #include <memory.h>
 #include <player/Env_state.h>
-#include <xassert.h>
 
 
 struct Env_state

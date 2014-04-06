@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -18,32 +18,32 @@
 #include <inttypes.h>
 #include <math.h>
 
-#include <Bind.h>
-#include <Effect.h>
-#include <Event_names.h>
-#include <Event_type.h>
-#include <General_state.h>
-#include <Generator.h>
-#include <Ins_table.h>
+#include <debug/assert.h>
+#include <devices/Effect.h>
+#include <devices/Generator.h>
 #include <kunquat/limits.h>
-#include <Module.h>
+#include <module/Bind.h>
+#include <module/Ins_table.h>
+#include <module/Module.h>
 #include <player/Channel.h>
 #include <player/Event_handler.h>
-#include <Streader.h>
-#include <string_common.h>
+#include <player/Event_names.h>
+#include <player/Event_type.h>
+#include <player/General_state.h>
+#include <string/Streader.h>
+#include <string/common.h>
 #include <Value.h>
 
-#include <events/Event_control_decl.h>
-#include <events/Event_general_decl.h>
-#include <events/Event_master_decl.h>
-#include <events/Event_channel_decl.h>
-#include <events/Event_ins_decl.h>
-#include <events/Event_generator_decl.h>
-#include <events/Event_effect_decl.h>
-#include <events/Event_dsp_decl.h>
+#include <player/events/Event_control_decl.h>
+#include <player/events/Event_general_decl.h>
+#include <player/events/Event_master_decl.h>
+#include <player/events/Event_channel_decl.h>
+#include <player/events/Event_ins_decl.h>
+#include <player/events/Event_generator_decl.h>
+#include <player/events/Event_effect_decl.h>
+#include <player/events/Event_dsp_decl.h>
 
 #include <memory.h>
-#include <xassert.h>
 
 
 struct Event_handler
@@ -55,23 +55,23 @@ struct Event_handler
     Effect_table* effects;
     Event_names* event_names;
 
-    bool (*control_process[Event_control_STOP])(General_state*, Value*);
-    bool (*general_process[Event_general_STOP])(General_state*, Value*);
-    bool (*ch_process[Event_channel_STOP])(Channel*, Device_states*, Value*);
-    bool (*master_process[Event_master_STOP])(Master_params*, Value*);
+    bool (*control_process[Event_control_STOP])(General_state*, const Value*);
+    bool (*general_process[Event_general_STOP])(General_state*, const Value*);
+    bool (*ch_process[Event_channel_STOP])(Channel*, Device_states*, const Value*);
+    bool (*master_process[Event_master_STOP])(Master_params*, const Value*);
     bool (*ins_process[Event_ins_STOP])(
             const Instrument_params*,
             Ins_state*,
-            Value*);
+            const Value*);
     bool (*generator_process[Event_generator_STOP])(
-            const Device_impl*, Device_state*, Channel*, Value*);
+            const Device_impl*, Device_state*, Channel*, const Value*);
     bool (*effect_process[Event_effect_STOP])(
             const Effect*,
             Effect_state*,
             Device_states*,
-            Value*);
+            const Value*);
     bool (*dsp_process[Event_dsp_STOP])(
-            const Device_impl*, Device_state*, Channel*, Value*);
+            const Device_impl*, Device_state*, Channel*, const Value*);
 };
 
 
@@ -108,35 +108,35 @@ Event_handler* new_Event_handler(
 
 #define EVENT_TYPE_DEF(type) Event_handler_set_control_process( \
         eh, Event_control_##type, Event_control_##type##_process);
-#include <events/Event_control_types.h>
+#include <player/events/Event_control_types.h>
 
 #define EVENT_TYPE_DEF(type) Event_handler_set_general_process( \
         eh, Event_general_##type, Event_general_##type##_process);
-#include <events/Event_general_types.h>
+#include <player/events/Event_general_types.h>
 
 #define EVENT_TYPE_DEF(type) Event_handler_set_master_process( \
         eh, Event_master_##type, Event_master_##type##_process);
-#include <events/Event_master_types.h>
+#include <player/events/Event_master_types.h>
 
 #define EVENT_TYPE_DEF(type) Event_handler_set_ch_process( \
         eh, Event_channel_##type, Event_channel_##type##_process);
-#include <events/Event_channel_types.h>
+#include <player/events/Event_channel_types.h>
 
 #define EVENT_TYPE_DEF(type) Event_handler_set_ins_process( \
         eh, Event_ins_##type, Event_ins_##type##_process);
-#include <events/Event_ins_types.h>
+#include <player/events/Event_ins_types.h>
 
 #define EVENT_TYPE_DEF(type) Event_handler_set_generator_process( \
         eh, Event_generator_##type, Event_generator_##type##_process);
-#include <events/Event_generator_types.h>
+#include <player/events/Event_generator_types.h>
 
 #define EVENT_TYPE_DEF(type) Event_handler_set_effect_process( \
         eh, Event_effect_##type, Event_effect_##type##_process);
-#include <events/Event_effect_types.h>
+#include <player/events/Event_effect_types.h>
 
 #define EVENT_TYPE_DEF(type) Event_handler_set_dsp_process( \
         eh, Event_dsp_##type, Event_dsp_##type##_process);
-#include <events/Event_dsp_types.h>
+#include <player/events/Event_dsp_types.h>
 
     return eh;
 }
@@ -152,7 +152,7 @@ const Event_names* Event_handler_get_names(const Event_handler* eh)
 bool Event_handler_set_ch_process(
         Event_handler* eh,
         Event_type type,
-        bool (*ch_process)(Channel*, Device_states*, Value*))
+        bool (*ch_process)(Channel*, Device_states*, const Value*))
 {
     assert(eh != NULL);
     assert(Event_is_channel(type));
@@ -167,7 +167,7 @@ bool Event_handler_set_ch_process(
 bool Event_handler_set_general_process(
         Event_handler* eh,
         Event_type type,
-        bool (*general_process)(General_state*, Value*))
+        bool (*general_process)(General_state*, const Value*))
 {
     assert(eh != NULL);
     assert(Event_is_general(type));
@@ -182,7 +182,7 @@ bool Event_handler_set_general_process(
 bool Event_handler_set_control_process(
         Event_handler* eh,
         Event_type type,
-        bool (*control_process)(General_state*, Value*))
+        bool (*control_process)(General_state*, const Value*))
 {
     assert(eh != NULL);
     assert(Event_is_control(type));
@@ -197,7 +197,7 @@ bool Event_handler_set_control_process(
 bool Event_handler_set_master_process(
         Event_handler* eh,
         Event_type type,
-        bool (*global_process)(Master_params*, Value*))
+        bool (*global_process)(Master_params*, const Value*))
 {
     assert(eh != NULL);
     assert(Event_is_master(type));
@@ -212,7 +212,7 @@ bool Event_handler_set_master_process(
 bool Event_handler_set_ins_process(
         Event_handler* eh,
         Event_type type,
-        bool (*ins_process)(const Instrument_params*, Ins_state*, Value*))
+        bool (*ins_process)(const Instrument_params*, Ins_state*, const Value*))
 {
     assert(eh != NULL);
     assert(Event_is_ins(type));
@@ -228,7 +228,7 @@ bool Event_handler_set_generator_process(
         Event_handler* eh,
         Event_type type,
         bool (*gen_process)(
-            const Device_impl*, Device_state*, Channel*, Value*))
+            const Device_impl*, Device_state*, Channel*, const Value*))
 {
     assert(eh != NULL);
     assert(Event_is_generator(type));
@@ -244,7 +244,7 @@ bool Event_handler_set_effect_process(
         Event_handler* eh,
         Event_type type,
         bool (*effect_process)(
-            const Effect*, Effect_state*, Device_states*, Value*))
+            const Effect*, Effect_state*, Device_states*, const Value*))
 {
     assert(eh != NULL);
     assert(Event_is_effect(type));
@@ -260,7 +260,7 @@ bool Event_handler_set_dsp_process(
         Event_handler* eh,
         Event_type type,
         bool (*dsp_process)(
-            const Device_impl*, Device_state*, Channel*, Value*))
+            const Device_impl*, Device_state*, Channel*, const Value*))
 {
     assert(eh != NULL);
     assert(Event_is_dsp(type));
@@ -276,7 +276,7 @@ static bool Event_handler_handle(
         Event_handler* eh,
         int index,
         Event_type type,
-        Value* value)
+        const Value* value)
 {
     assert(eh != NULL);
     assert(index >= 0);
@@ -330,7 +330,7 @@ static bool Event_handler_handle(
         if (ins == NULL)
             return false;
 
-        Device* device = (Device*)Instrument_get_gen(
+        const Device* device = (const Device*)Instrument_get_gen(
                 ins, eh->channels[index]->generator);
         if (device == NULL)
             return false;
@@ -366,12 +366,12 @@ static bool Event_handler_handle(
         if (effects == NULL)
             return false;
 
-        Effect* eff = Effect_table_get(effects, eh->channels[index]->effect);
+        const Effect* eff = Effect_table_get(effects, eh->channels[index]->effect);
         if (eff == NULL)
             return false;
         Effect_state* eff_state = (Effect_state*)Device_states_get_state(
                 eh->device_states,
-                Device_get_id((Device*)eff));
+                Device_get_id((const Device*)eff));
 
         return eh->effect_process[type](
                 eff,
@@ -399,12 +399,12 @@ static bool Event_handler_handle(
         if (effects == NULL)
             return false;
 
-        Effect* eff = Effect_table_get(effects, eh->channels[index]->effect);
+        const Effect* eff = Effect_table_get(effects, eh->channels[index]->effect);
         if (eff == NULL)
             return false;
 
-        DSP_table* dsps = Effect_get_dsps(eff);
-        Device* device = (Device*)DSP_table_get_dsp(
+        const DSP_table* dsps = Effect_get_dsps(eff);
+        const Device* device = (const Device*)DSP_table_get_dsp(
                 dsps, eh->channels[index]->dsp);
         if (device == NULL)
             return false;
@@ -439,7 +439,7 @@ bool Event_handler_trigger(
         Event_handler* eh,
         int ch_num,
         const char* name,
-        Value* arg)
+        const Value* arg)
 {
     assert(eh != NULL);
     assert(ch_num >= 0);

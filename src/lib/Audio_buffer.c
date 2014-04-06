@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -16,10 +16,10 @@
 #include <stdio.h>
 
 #include <Audio_buffer.h>
+#include <debug/assert.h>
 #include <kunquat/limits.h>
-#include <math_common.h>
+#include <mathnum/common.h>
 #include <memory.h>
-#include <xassert.h>
 
 
 struct Audio_buffer
@@ -68,7 +68,7 @@ Audio_buffer* new_Audio_buffer(uint32_t size)
 }
 
 
-uint32_t Audio_buffer_get_size(Audio_buffer* buffer)
+uint32_t Audio_buffer_get_size(const Audio_buffer* buffer)
 {
     assert(buffer != NULL);
     return buffer->size;
@@ -105,7 +105,7 @@ bool Audio_buffer_resize(Audio_buffer* buffer, uint32_t size)
                 buffer->bufs[i]);
         if (new_buf == NULL)
         {
-            buffer->size = MIN(buffer->size, size);
+            buffer->size = min(buffer->size, size);
             return false;
         }
         buffer->bufs[i] = new_buf;

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2014
  *
  * This file is part of Kunquat.
  *
@@ -16,14 +16,14 @@
 #define K_EXPR_H
 
 
+#include <mathnum/Random.h>
 #include <player/Env_state.h>
-#include <Streader.h>
+#include <string/Streader.h>
 #include <Value.h>
-#include <Random.h>
 
 
 /**
- * Evaluates an expression.
+ * Evaluate an expression.
  *
  * \param sr       The expression reader -- must not be \c NULL.
  * \param estate   The Environment state -- must not be \c NULL.
