@@ -30,8 +30,21 @@
 #include <module/Environment.h>
 #include <module/manifest.h>
 #include <module/Parse_manager.h>
-#include <string/Streader.h>
 #include <string/common.h>
+#include <string/key_pattern.h>
+#include <string/Streader.h>
+
+
+#define READ(name) static bool read_##name( \
+        Handle* handle,                     \
+        Module* module,                     \
+        const Key_indices indices,          \
+        const char* subkey,                 \
+        Streader* sr)
+
+
+#define MODULE_KEYP(name, keyp, def) READ(name);
+#include <module/Module_key_patterns.h>
 
 
 static bool parse_module_level(
@@ -92,11 +105,11 @@ static bool parse_pattern_level(
 
 static bool parse_pat_inst_level(
         Handle* handle,
-        Pattern* pat,
         const char* key,
         const char* subkey,
         Streader* sr,
-        int index);
+        int pat_index,
+        int pinst_index);
 
 
 static bool parse_scale_level(
@@ -1361,55 +1374,14 @@ static bool parse_pattern_level(
     assert(subkey != NULL);
     assert(sr != NULL);
 
-    if (index < 0 || index >= KQT_PATTERNS_MAX)
-        return true;
-
     Module* module = Handle_get_module(handle);
 
-    if (string_eq(subkey, "p_manifest.json"))
-    {
-        const bool existent = read_default_manifest(sr);
-        if (Streader_is_error_set(sr))
-        {
-            set_error(handle, sr);
-            return false;
-        }
-        Pat_table* pats = Module_get_pats(module);
-        Pat_table_set_existent(pats, index, existent);
-    }
-    else if (string_eq(subkey, "p_pattern.json"))
-    {
-        Pattern* pat = Pat_table_get(Module_get_pats(module), index);
-        bool new_pattern = pat == NULL;
-        if (new_pattern)
-        {
-            pat = new_Pattern();
-            if (pat == NULL)
-            {
-                Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory");
-                return false;
-            }
-        }
+    const Key_indices hack = { index };
 
-        if (!Pattern_parse_header(pat, sr))
-        {
-            set_error(handle, sr);
-            if (new_pattern)
-            {
-                del_Pattern(pat);
-            }
-            return false;
-        }
-        if (new_pattern && !Pat_table_set(Module_get_pats(module), index, pat))
-        {
-            Handle_set_error(handle, ERROR_MEMORY,
-                    "Couldn't allocate memory");
-            del_Pattern(pat);
-            return false;
-        }
-        return true;
-    }
+    if (string_eq(subkey, "p_manifest.json"))
+        return read_pattern_manifest(handle, module, hack, subkey, sr);
+    else if (string_eq(subkey, "p_pattern.json"))
+        return read_pattern(handle, module, hack, subkey, sr);
 
     char* second_element = strchr(subkey, '/');
     if (second_element == NULL)
@@ -1420,95 +1392,12 @@ static bool parse_pattern_level(
     if ((sub_index = string_extract_index(subkey, "col_", 2, "/")) >= 0 &&
                 string_eq(second_element, "p_triggers.json"))
     {
-        if (sub_index >= KQT_COLUMNS_MAX)
-            return true;
-
-        Pattern* pat = Pat_table_get(Module_get_pats(module), index);
-        bool new_pattern = pat == NULL;
-        if (new_pattern)
-        {
-            pat = new_Pattern();
-            if (pat == NULL)
-            {
-                Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory");
-                return false;
-            }
-        }
-        const Event_names* event_names =
-                Event_handler_get_names(Player_get_event_handler(handle->player));
-        Column* col = new_Column_from_string(
-                sr, Pattern_get_length(pat), event_names);
-        if (col == NULL)
-        {
-            set_error(handle, sr);
-
-            if (new_pattern)
-                del_Pattern(pat);
-
-            return false;
-        }
-        if (!Pattern_set_column(pat, sub_index, col))
-        {
-            Handle_set_error(handle, ERROR_MEMORY,
-                    "Couldn't allocate memory");
-
-            if (new_pattern)
-                del_Pattern(pat);
-
-            return false;
-        }
-        if (new_pattern)
-        {
-            if (!Pat_table_set(Module_get_pats(module), index, pat))
-            {
-                Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory");
-                del_Pattern(pat);
-                return false;
-            }
-        }
+        const Key_indices col_hack = { index, sub_index };
+        return read_column(handle, module, col_hack, second_element, sr);
     }
     else if ((sub_index = string_extract_index(subkey, "instance_", 3, "/")) >= 0)
-    {
-        Pattern* pat = Pat_table_get(Module_get_pats(module), index);
-        bool new_pattern = (pat == NULL);
-        if (new_pattern)
-        {
-            pat = new_Pattern();
-            if (pat == NULL)
-            {
-                Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory");
-                return false;
-            }
-        }
-
-        assert(pat != NULL);
-        if (!parse_pat_inst_level(
-                    handle,
-                    pat,
-                    key,
-                    second_element,
-                    sr,
-                    sub_index))
-        {
-            if (new_pattern)
-            {
-                del_Pattern(pat);
-            }
-            return false;
-        }
-
-        if (new_pattern && !Pat_table_set(Module_get_pats(module), index, pat))
-        {
-            Handle_set_error(handle, ERROR_MEMORY,
-                    "Couldn't allocate memory");
-            del_Pattern(pat);
-            return false;
-        }
-        return true;
-    }
+        return parse_pat_inst_level(
+                handle, key, second_element, sr, index, sub_index);
 
     return true;
 }
@@ -1516,11 +1405,11 @@ static bool parse_pattern_level(
 
 static bool parse_pat_inst_level(
         Handle* handle,
-        Pattern* pat,
         const char* key,
         const char* subkey,
         Streader* sr,
-        int index)
+        int pat_index,
+        int pinst_index)
 {
     assert(handle != NULL);
     assert(key != NULL);
@@ -1528,17 +1417,143 @@ static bool parse_pat_inst_level(
     assert(sr != NULL);
     (void)key;
 
-    if (string_eq(subkey, "p_manifest.json"))
-    {
-        const bool existent = read_default_manifest(sr);
-        if (Streader_is_error_set(sr))
-        {
-            set_error(handle, sr);
-            return false;
-        }
+    Module* module = Handle_get_module(handle);
 
-        Pattern_set_inst_existent(pat, index, existent);
+    const Key_indices hack = { pat_index, pinst_index };
+
+    if (string_eq(subkey, "p_manifest.json"))
+        return read_pat_instance_manifest(handle, module, hack, subkey, sr);
+
+    return true;
+}
+
+
+#define get_pattern(pattern, index)                                     \
+    if (true)                                                           \
+    {                                                                   \
+        (pattern) = Pat_table_get(Module_get_pats(module), (index));    \
+        if ((pattern) == NULL)                                          \
+        {                                                               \
+            (pattern) = new_Pattern();                                  \
+            if ((pattern) == NULL || !Pat_table_set(                    \
+                        Module_get_pats(module), (index), (pattern)))   \
+            {                                                           \
+                del_Pattern((pattern));                                 \
+                Handle_set_error(handle, ERROR_MEMORY,                  \
+                        "Could not allocate memory for a new pattern"); \
+                return false;                                           \
+            }                                                           \
+        }                                                               \
+    } else (void)0
+
+
+#define get_pattern_index(index)                        \
+    if (true)                                           \
+    {                                                   \
+        (index) = indices[0];                           \
+        if ((index) < 0 || (index) >= KQT_PATTERNS_MAX) \
+            return true;                                \
+    }                                                   \
+    else (void)0
+
+
+READ(pattern_manifest)
+{
+    (void)subkey;
+
+    int32_t index = -1;
+    get_pattern_index(index);
+
+    const bool existent = read_default_manifest(sr);
+    if (Streader_is_error_set(sr))
+    {
+        set_error(handle, sr);
+        return false;
     }
+    Pat_table* pats = Module_get_pats(module);
+    Pat_table_set_existent(pats, index, existent);
+
+    return true;
+}
+
+
+READ(pattern)
+{
+    (void)subkey;
+
+    int32_t index = -1;
+    get_pattern_index(index);
+
+    Pattern* pattern = NULL;
+    get_pattern(pattern, index);
+
+    if (!Pattern_parse_header(pattern, sr))
+    {
+        set_error(handle, sr);
+        return false;
+    }
+
+    return true;
+}
+
+
+READ(column)
+{
+    (void)subkey;
+
+    int32_t pat_index = -1;
+    get_pattern_index(pat_index);
+
+    const int32_t col_index = indices[1];
+    if (col_index >= KQT_COLUMNS_MAX)
+        return true;
+
+    Pattern* pattern = NULL;
+    get_pattern(pattern, pat_index);
+
+    const Event_names* event_names =
+            Event_handler_get_names(Player_get_event_handler(handle->player));
+    Column* column = new_Column_from_string(
+            sr, Pattern_get_length(pattern), event_names);
+    if (column == NULL)
+    {
+        set_error(handle, sr);
+        return false;
+    }
+    if (!Pattern_set_column(pattern, col_index, column))
+    {
+        Handle_set_error(handle, ERROR_MEMORY,
+                "Could not allocate memory for a new column");
+        return false;
+    }
+
+    return true;
+}
+
+
+READ(pat_instance_manifest)
+{
+    (void)subkey;
+
+    const int32_t pat_index = indices[0];
+    const int32_t pinst_index = indices[1];
+
+    if (pat_index < 0 || pat_index >= KQT_PATTERNS_MAX)
+        return true;
+    if (pinst_index < 0 || pinst_index >= KQT_PAT_INSTANCES_MAX)
+        return true;
+
+    Pattern* pattern = NULL;
+    get_pattern(pattern, pat_index);
+
+    const bool existent = read_default_manifest(sr);
+    if (Streader_is_error_set(sr))
+    {
+        set_error(handle, sr);
+        return false;
+    }
+
+    Pattern_set_inst_existent(pattern, pinst_index, existent);
 
     return true;
 }
@@ -1558,24 +1573,34 @@ static bool parse_scale_level(
     assert(sr != NULL);
     (void)key;
 
+    Module* module = Handle_get_module(handle);
+
+    const Key_indices hack = { index };
+
+    if (string_eq(subkey, "p_scale.json"))
+        return read_scale(handle, module, hack, subkey, sr);
+
+    return true;
+}
+
+
+READ(scale)
+{
+    (void)subkey;
+
+    const int32_t index = indices[0];
+
     if (index < 0 || index >= KQT_SCALES_MAX)
         return true;
 
-    Module* module = Handle_get_module(handle);
-
-    if (string_eq(subkey, "p_scale.json"))
+    Scale* scale = new_Scale_from_string(sr);
+    if (scale == NULL)
     {
-        Scale* scale = new_Scale_from_string(sr);
-        if (scale == NULL)
-        {
-            set_error(handle, sr);
-            return false;
-        }
-
-        Module_set_scale(module, index, scale);
-        return true;
+        set_error(handle, sr);
+        return false;
     }
 
+    Module_set_scale(module, indices[0], scale);
     return true;
 }
 
@@ -1594,78 +1619,96 @@ static bool parse_subsong_level(
     assert(sr != NULL);
     (void)key;
 
-    if (index < 0 || index >= KQT_SONGS_MAX)
-        return true;
-
     Module* module = Handle_get_module(handle);
 
+    const Key_indices hack = { index };
+
     if (string_eq(subkey, "p_manifest.json"))
-    {
-        const bool existent = read_default_manifest(sr);
-        if (Streader_is_error_set(sr))
-        {
-            set_error(handle, sr);
-            return false;
-        }
-
-        Song_table_set_existent(module->songs, index, existent);
-    }
+        return read_song_manifest(handle, module, hack, subkey, sr);
     else if (string_eq(subkey, "p_song.json"))
-    {
-        Song* song = new_Song_from_string(sr);
-        if (song == NULL)
-        {
-            set_error(handle, sr);
-            return false;
-        }
-
-        Song_table* st = Module_get_songs(module);
-        if (!Song_table_set(st, index, song))
-        {
-            Handle_set_error(handle, ERROR_MEMORY,
-                    "Couldn't allocate memory");
-            del_Song(song);
-            return false;
-        }
-    }
+        return read_song(handle, module, hack, subkey, sr);
     else if (string_eq(subkey, "p_order_list.json"))
+        return read_song_order_list(handle, module, hack, subkey, sr);
+
+    return true;
+}
+
+
+#define get_song_index(index)                              \
+    if (true)                                              \
+    {                                                      \
+        (index) = indices[0];                              \
+        if (indices[0] < 0 || indices[0] >= KQT_SONGS_MAX) \
+            return true;                                   \
+    }                                                      \
+    else (void)0
+
+
+READ(song_manifest)
+{
+    (void)subkey;
+
+    int32_t index = 0;
+    get_song_index(index);
+
+    const bool existent = read_default_manifest(sr);
+    if (Streader_is_error_set(sr))
     {
-        Order_list* ol = new_Order_list(sr);
-        if (ol == NULL)
-        {
-            set_error(handle, sr);
-            return false;
-        }
-
-        // Update pattern location information
-        // This is required for correct update of jump counters.
-#if 0
-        const size_t ol_len = Order_list_get_len(ol);
-        for (size_t i = 0; i < ol_len; ++i)
-        {
-            Pat_inst_ref* ref = Order_list_get_pat_inst_ref(ol, i);
-            int16_t pat_index = ref->pat;
-            Pat_table* pats = Module_get_pats(module);
-            assert(pats != NULL);
-            Pattern* pat = Pat_table_get(pats, pat_index);
-            if (pat == NULL)
-                continue;
-
-            if (!Pattern_set_location(pat, index, ref))
-            {
-                Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory");
-                del_Order_list(ol);
-                return false;
-            }
-        }
-#endif
-
-        if (module->order_lists[index] != NULL)
-            del_Order_list(module->order_lists[index]);
-
-        module->order_lists[index] = ol;
+        set_error(handle, sr);
+        return false;
     }
+
+    Song_table_set_existent(module->songs, index, existent);
+
+    return true;
+}
+
+
+READ(song)
+{
+    (void)subkey;
+
+    int32_t index = 0;
+    get_song_index(index);
+
+    Song* song = new_Song_from_string(sr);
+    if (song == NULL)
+    {
+        set_error(handle, sr);
+        return false;
+    }
+
+    Song_table* st = Module_get_songs(module);
+    if (!Song_table_set(st, index, song))
+    {
+        Handle_set_error(handle, ERROR_MEMORY,
+                "Couldn't allocate memory");
+        del_Song(song);
+        return false;
+    }
+
+    return true;
+}
+
+
+READ(song_order_list)
+{
+    (void)subkey;
+
+    int32_t index = 0;
+    get_song_index(index);
+
+    Order_list* ol = new_Order_list(sr);
+    if (ol == NULL)
+    {
+        set_error(handle, sr);
+        return false;
+    }
+
+    if (module->order_lists[index] != NULL)
+        del_Order_list(module->order_lists[index]);
+
+    module->order_lists[index] = ol;
 
     return true;
 }
