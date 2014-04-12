@@ -46,6 +46,10 @@ class DelSelectionButton(QToolButton):
     def _update_enabled(self):
         selection = self._ui_model.get_selection()
         location = selection.get_location()
+        if not location:
+            self.setEnabled(False)
+            return
+
         cur_column = self._sheet_manager.get_column_at_location(location)
 
         has_trigger = bool(cur_column) and cur_column.has_trigger(
