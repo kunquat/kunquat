@@ -35,6 +35,12 @@ class SheetManager():
             song = album.get_song_by_track(location.get_track())
             pattern = song.get_pattern_instance(location.get_system()).get_pattern()
             column = pattern.get_column(location.get_col_num())
+
+            cached = self._session.get_last_column()
+            if cached and (cached == column):
+                return cached
+
+            self._session.set_last_column(column)
             return column
 
         return None
