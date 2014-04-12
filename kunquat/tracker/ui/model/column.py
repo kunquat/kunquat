@@ -57,6 +57,13 @@ class Column():
         self._build_trigger_rows()
         return self._trigger_rows[row_ts][trigger_index]
 
+    def has_trigger(self, row_ts, trigger_index):
+        try:
+            self.get_trigger(row_ts, trigger_index)
+            return True
+        except (KeyError, IndexError):
+            return False
+
     def insert_trigger(self, row_ts, trigger_index, trigger):
         raise NotImplementedError
 
