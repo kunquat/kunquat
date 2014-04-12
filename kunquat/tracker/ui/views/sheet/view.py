@@ -87,6 +87,7 @@ class View(QWidget):
             self._follow_edit_cursor()
 
     def _update_all_patterns(self):
+        self._cur_column = None
         all_patterns = utils.get_all_patterns(self._ui_model)
         self.set_patterns(all_patterns)
 
