@@ -680,23 +680,25 @@ class View(QWidget):
         return QWidget.event(self, ev)
 
     def keyPressEvent(self, ev):
-        if ev.key() == Qt.Key_Up:
-            self._vertical_move_state.press_up()
-            self._move_edit_cursor_tstamp()
-        elif ev.key() == Qt.Key_Down:
-            self._vertical_move_state.press_down()
-            self._move_edit_cursor_tstamp()
-        elif ev.key() == Qt.Key_Left:
-            self._horizontal_move_state.press_left()
-            self._move_edit_cursor_trow()
-        elif ev.key() == Qt.Key_Right:
-            self._horizontal_move_state.press_right()
-            self._move_edit_cursor_trow()
-        elif ev.key() == Qt.Key_Home:
-            self._move_edit_cursor_trigger_index(0)
-        elif ev.key() == Qt.Key_End:
-            self._move_edit_cursor_trigger_index(2**24) # :-P
-        elif ev.key() == Qt.Key_Tab:
+        if ev.modifiers() == Qt.NoModifier:
+            if ev.key() == Qt.Key_Up:
+                self._vertical_move_state.press_up()
+                self._move_edit_cursor_tstamp()
+            elif ev.key() == Qt.Key_Down:
+                self._vertical_move_state.press_down()
+                self._move_edit_cursor_tstamp()
+            elif ev.key() == Qt.Key_Left:
+                self._horizontal_move_state.press_left()
+                self._move_edit_cursor_trow()
+            elif ev.key() == Qt.Key_Right:
+                self._horizontal_move_state.press_right()
+                self._move_edit_cursor_trow()
+            elif ev.key() == Qt.Key_Home:
+                self._move_edit_cursor_trigger_index(0)
+            elif ev.key() == Qt.Key_End:
+                self._move_edit_cursor_trigger_index(2**24) # :-P
+
+        if ev.key() == Qt.Key_Tab:
             self._move_edit_cursor_column(1)
             return True
         elif ev.key() == Qt.Key_Backtab:
