@@ -17,11 +17,27 @@ class SheetManager():
         self._controller = None
         self._session = None
         self._updater = None
+        self._ui_model = None
 
     def set_controller(self, controller):
         self._controller = controller
         self._session = controller.get_session()
         self._updater = controller.get_updater()
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+
+    def get_column_at_location(self, location):
+        module = self._ui_model.get_module()
+        album = module.get_album()
+
+        if album and album.get_track_count() > 0:
+            song = album.get_song_by_track(location.get_track())
+            pattern = song.get_pattern_instance(location.get_system()).get_pattern()
+            column = pattern.get_column(location.get_col_num())
+            return column
+
+        return None
 
     def set_zoom(self, zoom):
         old_zoom = self._session.get_sheet_zoom()
