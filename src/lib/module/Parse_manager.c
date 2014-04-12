@@ -1428,7 +1428,7 @@ static bool parse_pat_inst_level(
 }
 
 
-#define get_pattern(pattern, index)                                     \
+#define acquire_pattern(pattern, index)                                 \
     if (true)                                                           \
     {                                                                   \
         (pattern) = Pat_table_get(Module_get_pats(module), (index));    \
@@ -1447,7 +1447,7 @@ static bool parse_pat_inst_level(
     } else (void)0
 
 
-#define get_pattern_index(index)                        \
+#define acquire_pattern_index(index)                    \
     if (true)                                           \
     {                                                   \
         (index) = indices[0];                           \
@@ -1462,7 +1462,7 @@ READ(pattern_manifest)
     (void)subkey;
 
     int32_t index = -1;
-    get_pattern_index(index);
+    acquire_pattern_index(index);
 
     const bool existent = read_default_manifest(sr);
     if (Streader_is_error_set(sr))
@@ -1482,10 +1482,10 @@ READ(pattern)
     (void)subkey;
 
     int32_t index = -1;
-    get_pattern_index(index);
+    acquire_pattern_index(index);
 
     Pattern* pattern = NULL;
-    get_pattern(pattern, index);
+    acquire_pattern(pattern, index);
 
     if (!Pattern_parse_header(pattern, sr))
     {
@@ -1502,14 +1502,14 @@ READ(column)
     (void)subkey;
 
     int32_t pat_index = -1;
-    get_pattern_index(pat_index);
+    acquire_pattern_index(pat_index);
 
     const int32_t col_index = indices[1];
     if (col_index >= KQT_COLUMNS_MAX)
         return true;
 
     Pattern* pattern = NULL;
-    get_pattern(pattern, pat_index);
+    acquire_pattern(pattern, pat_index);
 
     const Event_names* event_names =
             Event_handler_get_names(Player_get_event_handler(handle->player));
@@ -1544,7 +1544,7 @@ READ(pat_instance_manifest)
         return true;
 
     Pattern* pattern = NULL;
-    get_pattern(pattern, pat_index);
+    acquire_pattern(pattern, pat_index);
 
     const bool existent = read_default_manifest(sr);
     if (Streader_is_error_set(sr))
@@ -1634,7 +1634,7 @@ static bool parse_subsong_level(
 }
 
 
-#define get_song_index(index)                              \
+#define acquire_song_index(index)                          \
     if (true)                                              \
     {                                                      \
         (index) = indices[0];                              \
@@ -1649,7 +1649,7 @@ READ(song_manifest)
     (void)subkey;
 
     int32_t index = 0;
-    get_song_index(index);
+    acquire_song_index(index);
 
     const bool existent = read_default_manifest(sr);
     if (Streader_is_error_set(sr))
@@ -1669,7 +1669,7 @@ READ(song)
     (void)subkey;
 
     int32_t index = 0;
-    get_song_index(index);
+    acquire_song_index(index);
 
     Song* song = new_Song_from_string(sr);
     if (song == NULL)
@@ -1696,7 +1696,7 @@ READ(song_order_list)
     (void)subkey;
 
     int32_t index = 0;
-    get_song_index(index);
+    acquire_song_index(index);
 
     Order_list* ol = new_Order_list(sr);
     if (ol == NULL)
