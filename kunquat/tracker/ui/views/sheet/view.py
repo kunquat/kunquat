@@ -88,6 +88,8 @@ class View(QWidget):
 
     def _update_all_patterns(self):
         self._cur_column = None
+        for cr in self._col_rends:
+            cr.flush_caches()
         all_patterns = utils.get_all_patterns(self._ui_model)
         self.set_patterns(all_patterns)
 
