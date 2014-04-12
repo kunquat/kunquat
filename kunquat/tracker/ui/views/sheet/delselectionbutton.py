@@ -33,12 +33,14 @@ class DelSelectionButton(QToolButton):
         self._sheet_manager = ui_model.get_sheet_manager()
 
         self._update_enabled()
+        QObject.connect(self, SIGNAL('clicked()'), self._clicked)
 
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
 
     def _perform_updates(self, signals):
-        if 'signal_selection' in signals:
+        update_signals = set(['signal_selection', 'signal_module'])
+        if not signals.isdisjoint(update_signals):
             self._update_enabled()
 
     def _update_enabled(self):
@@ -50,5 +52,12 @@ class DelSelectionButton(QToolButton):
                 location.get_row_ts(), location.get_trigger_index())
 
         self.setEnabled(has_trigger)
+
+    def _clicked(self):
+        selection = self._ui_model.get_selection()
+        location = selection.get_location()
+        cur_column = self._sheet_manager.get_column_at_location(location)
+
+        cur_column.remove_trigger(location.get_row_ts(), location.get_trigger_index())
 
 
