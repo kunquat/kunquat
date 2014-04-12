@@ -60,4 +60,6 @@ class DelSelectionButton(QToolButton):
 
         cur_column.remove_trigger(location.get_row_ts(), location.get_trigger_index())
 
+        self._updater.signal_update(set(['signal_module']))
+
 
