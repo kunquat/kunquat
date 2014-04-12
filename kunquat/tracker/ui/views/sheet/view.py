@@ -652,6 +652,17 @@ class View(QWidget):
         new_location = TriggerPosition(track, system, col_num, new_ts, trigger_index)
         selection.set_location(new_location)
 
+    def _try_delete_selection(self):
+        selection = self._ui_model.get_selection()
+        location = selection.get_location()
+        cur_column = self._sheet_manager.get_column_at_location(location)
+        row_ts = location.get_row_ts()
+        index = location.get_trigger_index()
+
+        if cur_column.has_trigger(row_ts, index):
+            cur_column.remove_trigger(row_ts, index)
+            self._updater.signal_update(set(['signal_module']))
+
     def event(self, ev):
         if ev.type() == QEvent.KeyPress and ev.key() in (Qt.Key_Tab, Qt.Key_Backtab):
             return self.keyPressEvent(ev) or False
@@ -675,6 +686,8 @@ class View(QWidget):
                 self._move_edit_cursor_trigger_index(0)
             elif ev.key() == Qt.Key_End:
                 self._move_edit_cursor_trigger_index(2**24) # :-P
+            elif ev.key() == Qt.Key_Delete:
+                self._try_delete_selection()
 
         if ev.key() == Qt.Key_Tab:
             self._move_edit_cursor_column(1)
