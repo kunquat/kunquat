@@ -62,7 +62,6 @@ class View(QWidget):
 
         self._horizontal_move_state = HorizontalMoveState()
         self._vertical_move_state = VerticalMoveState()
-        self._cur_column = None
 
         self._target_trigger_index = 0
         self._trow_px_offset = 0
@@ -87,7 +86,6 @@ class View(QWidget):
             self._follow_edit_cursor()
 
     def _update_all_patterns(self):
-        self._cur_column = None
         for cr in self._col_rends:
             cr.flush_caches()
         all_patterns = utils.get_all_patterns(self._ui_model)
@@ -248,17 +246,15 @@ class View(QWidget):
 
         if album and album.get_track_count() > 0:
             cur_column = self._sheet_manager.get_column_at_location(location)
-            if not self._cur_column or (self._cur_column != cur_column):
-                self._cur_column = cur_column
 
             row_ts = location.get_row_ts()
-            if row_ts in self._cur_column.get_trigger_row_positions():
+            if row_ts in cur_column.get_trigger_row_positions():
                 notation = self._notation_manager.get_notation()
 
                 # Get trigger row width information
                 trigger_index = location.get_trigger_index()
-                trigger_count = self._cur_column.get_trigger_count_at_row(row_ts)
-                triggers = [self._cur_column.get_trigger(row_ts, i)
+                trigger_count = cur_column.get_trigger_count_at_row(row_ts)
+                triggers = [cur_column.get_trigger(row_ts, i)
                         for i in xrange(trigger_count)]
                 rends = [TriggerRenderer(self._config, t, notation) for t in triggers]
                 row_width = sum(r.get_total_width() for r in rends)
@@ -369,13 +365,11 @@ class View(QWidget):
 
             # Get trigger row at cursor
             column = self._sheet_manager.get_column_at_location(location)
-            if not self._cur_column or self._cur_column != column:
-                self._cur_column = column
 
             try:
                 # Draw the trigger row
-                trigger_count = self._cur_column.get_trigger_count_at_row(row_ts)
-                triggers = [self._cur_column.get_trigger(row_ts, i)
+                trigger_count = column.get_trigger_count_at_row(row_ts)
+                triggers = [column.get_trigger(row_ts, i)
                         for i in xrange(trigger_count)]
                 self._draw_trigger_row_with_edit_cursor(
                         painter, triggers, trigger_index)
@@ -461,10 +455,8 @@ class View(QWidget):
         trigger_index = location.get_trigger_index()
 
         cur_column = self._sheet_manager.get_column_at_location(location)
-        if not self._cur_column or (self._cur_column != cur_column):
-            self._cur_column = cur_column
 
-        if row_ts not in self._cur_column.get_trigger_row_positions():
+        if row_ts not in cur_column.get_trigger_row_positions():
             # No triggers, just clear our target index
             self._target_trigger_index = 0
             return
@@ -487,7 +479,7 @@ class View(QWidget):
             return
 
         elif delta > 0:
-            if trigger_index >= self._cur_column.get_trigger_count_at_row(row_ts):
+            if trigger_index >= cur_column.get_trigger_count_at_row(row_ts):
                 # Already at the end of the row
                 self._target_trigger_index = trigger_index
                 return
@@ -511,13 +503,11 @@ class View(QWidget):
         location = selection.get_location()
 
         cur_column = self._sheet_manager.get_column_at_location(location)
-        if not self._cur_column or (self._cur_column != cur_column):
-            self._cur_column = cur_column
 
         self._target_trigger_index = index
 
         new_trigger_index = self._clamp_trigger_index(
-                self._cur_column, location.get_row_ts(), self._target_trigger_index)
+                cur_column, location.get_row_ts(), self._target_trigger_index)
 
         new_location = TriggerPosition(
                 location.get_track(),
@@ -594,8 +584,6 @@ class View(QWidget):
                 row_ts = new_ts
 
         cur_column = self._sheet_manager.get_column_at_location(location)
-        if not self._cur_column or (self._cur_column != cur_column):
-            self._cur_column = cur_column
 
         # Get default trigger tstamp on the current pixel position
         cur_px_offset = utils.get_px_from_tstamp(row_ts, self._px_per_beat)
@@ -616,7 +604,7 @@ class View(QWidget):
         else:
             move_range_start += tstamp.Tstamp(0, 1)
 
-        trow_tstamps = self._cur_column.get_trigger_row_positions_in_range(
+        trow_tstamps = cur_column.get_trigger_row_positions_in_range(
                 move_range_start, move_range_stop)
         if trow_tstamps:
             self._vertical_move_state.try_snap_delay()
@@ -642,7 +630,7 @@ class View(QWidget):
                     # End of sheet
                     new_ts = cur_pattern.get_length()
                     trigger_index = self._clamp_trigger_index(
-                            self._cur_column, new_ts, self._target_trigger_index)
+                            cur_column, new_ts, self._target_trigger_index)
                     new_location = TriggerPosition(
                             track, system, col_num, new_ts, trigger_index)
                     selection.set_location(new_location)
@@ -652,7 +640,7 @@ class View(QWidget):
             self._vertical_move_state.try_snap_delay()
             new_ts = tstamp.Tstamp(0)
             trigger_index = self._clamp_trigger_index(
-                    self._cur_column, new_ts, self._target_trigger_index)
+                    cur_column, new_ts, self._target_trigger_index)
             new_location = TriggerPosition(
                     new_track, new_system, col_num, new_ts, trigger_index)
             selection.set_location(new_location)
@@ -660,7 +648,7 @@ class View(QWidget):
 
         # Move inside pattern
         trigger_index = self._clamp_trigger_index(
-                self._cur_column, new_ts, self._target_trigger_index)
+                cur_column, new_ts, self._target_trigger_index)
         new_location = TriggerPosition(track, system, col_num, new_ts, trigger_index)
         selection.set_location(new_location)
 
