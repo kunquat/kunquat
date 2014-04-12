@@ -247,10 +247,7 @@ class View(QWidget):
         album = module.get_album()
 
         if album and album.get_track_count() > 0:
-            cur_song = album.get_song_by_track(location.get_track())
-            cur_pattern = cur_song.get_pattern_instance(
-                    location.get_system()).get_pattern()
-            cur_column = cur_pattern.get_column(location.get_col_num())
+            cur_column = self._sheet_manager.get_column_at_location(location)
             if not self._cur_column or (self._cur_column != cur_column):
                 self._cur_column = cur_column
 
@@ -347,8 +344,6 @@ class View(QWidget):
         if location:
             assert self._patterns
 
-            track = location.get_track()
-            system = location.get_system()
             selected_col = location.get_col_num()
             row_ts = location.get_row_ts()
             trigger_index = location.get_trigger_index()
@@ -373,11 +368,7 @@ class View(QWidget):
                     QPoint(self._col_width - 2, 0))
 
             # Get trigger row at cursor
-            module = self._ui_model.get_module()
-            album = module.get_album()
-            song = album.get_song_by_track(track)
-            pattern = song.get_pattern_instance(system).get_pattern()
-            column = pattern.get_column(selected_col)
+            column = self._sheet_manager.get_column_at_location(location)
             if not self._cur_column or self._cur_column != column:
                 self._cur_column = column
 
@@ -469,9 +460,7 @@ class View(QWidget):
         row_ts = location.get_row_ts()
         trigger_index = location.get_trigger_index()
 
-        cur_song = album.get_song_by_track(track)
-        cur_pattern = cur_song.get_pattern_instance(system).get_pattern()
-        cur_column = cur_pattern.get_column(col_num)
+        cur_column = self._sheet_manager.get_column_at_location(location)
         if not self._cur_column or (self._cur_column != cur_column):
             self._cur_column = cur_column
 
@@ -521,9 +510,7 @@ class View(QWidget):
         selection = self._ui_model.get_selection()
         location = selection.get_location()
 
-        cur_song = album.get_song_by_track(location.get_track())
-        cur_pattern = cur_song.get_pattern_instance(location.get_system()).get_pattern()
-        cur_column = cur_pattern.get_column(location.get_col_num())
+        cur_column = self._sheet_manager.get_column_at_location(location)
         if not self._cur_column or (self._cur_column != cur_column):
             self._cur_column = cur_column
 
@@ -606,9 +593,7 @@ class View(QWidget):
                 system = new_system
                 row_ts = new_ts
 
-        cur_song = album.get_song_by_track(track)
-        cur_pattern = cur_song.get_pattern_instance(system).get_pattern()
-        cur_column = cur_pattern.get_column(col_num)
+        cur_column = self._sheet_manager.get_column_at_location(location)
         if not self._cur_column or (self._cur_column != cur_column):
             self._cur_column = cur_column
 
@@ -641,6 +626,9 @@ class View(QWidget):
                 new_ts = min(trow_tstamps)
 
         # Check moving outside pattern boundaries
+        cur_song = album.get_song_by_track(track)
+        cur_pattern = cur_song.get_pattern_instance(system).get_pattern()
+
         if new_ts <= 0:
             self._vertical_move_state.try_snap_delay()
             new_ts = tstamp.Tstamp(0)
