@@ -1056,6 +1056,8 @@ static bool parse_effect_level(
 
     Module* module = Handle_get_module(handle);
 
+    const Key_indices hack = { eff_index };
+
     int dsp_index = -1;
     Effect_table* table = Module_get_effects(module);
     if (ins != NULL)
@@ -1086,19 +1088,7 @@ static bool parse_effect_level(
         return success;
     }
     else if (string_eq(subkey, "p_manifest.json"))
-    {
-        Effect* eff = add_effect(handle, eff_index, table);
-        if (eff == NULL)
-            return false;
-
-        const bool existent = read_default_manifest(sr);
-        if (Streader_is_error_set(sr))
-        {
-            set_error(handle, sr);
-            return false;
-        }
-        Device_set_existent((Device*)eff, existent);
-    }
+        return read_effect_manifest(handle, module, hack, subkey, sr);
     else if (string_eq(subkey, "p_connections.json"))
     {
         bool reconnect = false;
@@ -1147,6 +1137,49 @@ static bool parse_effect_level(
             }
         }
     }
+
+    return true;
+}
+
+
+#define acquire_effect(effect, table, index)             \
+    if (true)                                            \
+    {                                                    \
+        (effect) = add_effect(handle, (index), (table)); \
+        if ((effect) == NULL)                            \
+            return false;                                \
+    }                                                    \
+    else (void)0
+
+
+#define acquire_effect_index(index, max_index)     \
+    if (true)                                      \
+    {                                              \
+        (index) = indices[0];                      \
+        if ((index) < 0 || (index) >= (max_index)) \
+            return true;                           \
+    }                                              \
+    else (void)0
+
+
+READ(effect_manifest)
+{
+    (void)subkey;
+
+    int32_t index = -1;
+    acquire_effect_index(index, KQT_EFFECTS_MAX);
+
+    Effect* effect = NULL;
+    acquire_effect(effect, Module_get_effects(module), index);
+
+    const bool existent = read_default_manifest(sr);
+    if (Streader_is_error_set(sr))
+    {
+        set_error(handle, sr);
+        return false;
+    }
+
+    Device_set_existent((Device*)effect, existent);
 
     return true;
 }
@@ -1535,11 +1568,10 @@ READ(pat_instance_manifest)
 {
     (void)subkey;
 
-    const int32_t pat_index = indices[0];
-    const int32_t pinst_index = indices[1];
+    int32_t pat_index = -1;
+    acquire_pattern_index(pat_index);
 
-    if (pat_index < 0 || pat_index >= KQT_PATTERNS_MAX)
-        return true;
+    const int32_t pinst_index = indices[1];
     if (pinst_index < 0 || pinst_index >= KQT_PAT_INSTANCES_MAX)
         return true;
 
