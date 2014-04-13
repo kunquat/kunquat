@@ -26,7 +26,6 @@ class Column():
         self._pattern_id = pattern_id
         self._col_num = col_num
         self._trigger_rows = None
-        self._session = None
         self._store = None
         self._controller = None
 
@@ -40,7 +39,6 @@ class Column():
 
     def set_controller(self, controller):
         self._controller = controller
-        self._session = controller.get_session()
         self._store = controller.get_store()
 
     def get_trigger_row_positions(self):
@@ -77,9 +75,6 @@ class Column():
 
         raw_data = self._make_raw_data(self._trigger_rows)
         self._store[self._get_key()] = raw_data
-
-        # Clear cached column data
-        self._session.set_last_column(None)
 
     def _build_trigger_rows(self):
         if self._trigger_rows == None:
