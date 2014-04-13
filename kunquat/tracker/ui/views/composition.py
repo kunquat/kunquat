@@ -31,6 +31,8 @@ class Composition(QFrame):
         v.addWidget(self._sheet)
         self.setLayout(v)
 
+        self.setMinimumHeight(320)
+
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._sheet.set_ui_model(ui_model)
