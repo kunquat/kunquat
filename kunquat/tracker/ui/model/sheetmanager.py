@@ -11,6 +11,9 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from triggerposition import TriggerPosition
+
+
 class SheetManager():
 
     def __init__(self):
@@ -45,6 +48,28 @@ class SheetManager():
 
         return None
 
+    def insert_trigger(self, trigger):
+        selection = self._ui_model.get_selection()
+        location = selection.get_location()
+        if not location:
+            return
+
+        cur_column = self.get_column_at_location(location)
+        row_ts = location.get_row_ts()
+        index = location.get_trigger_index()
+
+        cur_column.insert_trigger(row_ts, index, trigger)
+
+        new_location = TriggerPosition(
+                location.get_track(),
+                location.get_system(),
+                location.get_col_num(),
+                location.get_row_ts(),
+                location.get_trigger_index() + 1)
+        selection.set_location(new_location)
+
+        self._on_column_update()
+
     def try_remove_trigger(self, location):
         if not location:
             return
@@ -55,10 +80,13 @@ class SheetManager():
 
         if cur_column.has_trigger(row_ts, index):
             cur_column.remove_trigger(row_ts, index)
-            self._updater.signal_update(set(['signal_module']))
+            self._on_column_update()
 
-            # Clear cached column data
-            self._session.set_last_column(None)
+    def _on_column_update(self):
+        self._updater.signal_update(set(['signal_module']))
+
+        # Clear cached column data
+        self._session.set_last_column(None)
 
     def set_zoom(self, zoom):
         old_zoom = self._session.get_sheet_zoom()
