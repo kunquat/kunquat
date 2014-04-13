@@ -17,6 +17,7 @@ from PyQt4.QtGui import *
 
 from eventlistbutton import EventListButton
 from compositiontoggle import CompositionToggle
+from playbutton import PlayButton
 from aboutbutton import AboutButton
 
 
@@ -27,11 +28,13 @@ class Portal(QToolBar):
         self._ui_model = None
         self._event_list_button = EventListButton()
         self._composition_toggle = CompositionToggle()
+        self._play_button = PlayButton()
         self._about_button = AboutButton()
 
         self.addWidget(self._event_list_button)
         self.addSeparator()
         self.addWidget(self._composition_toggle)
+        self.addWidget(self._play_button)
         self.addSeparator()
         self.addWidget(self._about_button)
 
@@ -39,10 +42,12 @@ class Portal(QToolBar):
         self._ui_model = ui_model
         self._event_list_button.set_ui_model(ui_model)
         self._composition_toggle.set_ui_model(ui_model)
+        self._play_button.set_ui_model(ui_model)
         self._about_button.set_ui_model(ui_model)
 
     def unregister_updaters(self):
         self._about_button.unregister_updaters()
         self._composition_toggle.unregister_updaters()
+        self._play_button.unregister_updaters()
         self._event_list_button.unregister_updaters()
 
