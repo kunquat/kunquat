@@ -25,6 +25,7 @@ class RestButton(QToolButton):
         self._sheet_manager = None
 
         self.setText(u'══')
+        self.setToolTip('Add rest (1)')
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model

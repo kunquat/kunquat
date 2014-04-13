@@ -21,6 +21,7 @@ from PyQt4.QtGui import *
 
 import kunquat.tracker.cmdline as cmdline
 import kunquat.tracker.ui.model.tstamp as tstamp
+from kunquat.tracker.ui.model.trigger import Trigger
 from kunquat.tracker.ui.model.triggerposition import TriggerPosition
 from config import *
 import utils
@@ -652,6 +653,10 @@ class View(QWidget):
         new_location = TriggerPosition(track, system, col_num, new_ts, trigger_index)
         selection.set_location(new_location)
 
+    def _insert_rest(self):
+        trigger = Trigger('n-', None)
+        self._sheet_manager.insert_trigger(trigger)
+
     def _try_delete_selection(self):
         selection = self._ui_model.get_selection()
         location = selection.get_location()
@@ -680,6 +685,10 @@ class View(QWidget):
                 self._move_edit_cursor_trigger_index(0)
             elif ev.key() == Qt.Key_End:
                 self._move_edit_cursor_trigger_index(2**24) # :-P
+            elif ev.key() == Qt.Key_1:
+                # TODO: Some rare keyboard layouts have the 1 key in a location
+                #       that interferes with the typewriter
+                self._insert_rest()
             elif ev.key() == Qt.Key_Delete:
                 self._try_delete_selection()
 
