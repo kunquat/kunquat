@@ -30,6 +30,7 @@ class MainWindow(QWidget):
         self._main_view = MainView()
         layout = QVBoxLayout()
         layout.addWidget(self._main_view)
+        layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
 
         self.hide()

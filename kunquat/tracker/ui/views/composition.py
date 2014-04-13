@@ -19,10 +19,10 @@ from kunquat.tracker.ui.identifiers import *
 from sheet.sheet import Sheet
 
 
-class Composition(QWidget):
+class Composition(QFrame):
 
     def __init__(self):
-        QWidget.__init__(self)
+        QFrame.__init__(self)
         self._ui_model = None
         self._visible = None
         self._sheet = Sheet()

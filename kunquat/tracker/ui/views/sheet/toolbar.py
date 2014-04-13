@@ -27,10 +27,10 @@ class Separator(QFrame):
         self.setFrameShadow(QFrame.Sunken)
 
 
-class Toolbar(QWidget):
+class Toolbar(QToolBar):
 
     def __init__(self):
-        QWidget.__init__(self)
+        QToolBar.__init__(self)
         self._ui_model = None
         self._del_selection_button = DelSelectionButton()
         self._zoom_buttons = [
@@ -46,13 +46,10 @@ class Toolbar(QWidget):
                     ZoomButton('shrink_w'),
                 ])
 
-        h = QHBoxLayout()
-        h.addWidget(self._del_selection_button)
-        h.addWidget(Separator())
+        self.addWidget(self._del_selection_button)
+        self.addSeparator()
         for button in self._zoom_buttons:
-            h.addWidget(button)
-        h.addStretch(1)
-        self.setLayout(h)
+            self.addWidget(button)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
