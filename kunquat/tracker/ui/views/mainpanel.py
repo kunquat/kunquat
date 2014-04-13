@@ -16,9 +16,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 import kunquat.tracker.cmdline as cmdline
-from aboutbutton import AboutButton
-from compositiontoggle import CompositionToggle
-from eventlistbutton import EventListButton
+from portal import Portal
 from octaveselector import OctaveSelector
 from typewriter import Typewriter
 from instrumentselect import InstrumentSelect
@@ -32,9 +30,7 @@ class MainPanel(QWidget):
     def __init__(self):
         QWidget.__init__(self)
         self._ui_model = None
-        self._about_button = AboutButton()
-        self._composition_toggle = CompositionToggle()
-        self._event_list_button = EventListButton()
+        self._portal = Portal()
         self._octave_selector = OctaveSelector()
         self._typewriter = Typewriter()
         self._instrument_select = InstrumentSelect()
@@ -42,13 +38,8 @@ class MainPanel(QWidget):
         self._peak_meter = PeakMeter()
         self._profile_control = ProfileControl()
 
-        buttons = QHBoxLayout()
-        buttons.addWidget(self._event_list_button)
-        buttons.addWidget(self._composition_toggle)
-        buttons.addWidget(self._about_button)
-
         v = QVBoxLayout()
-        v.addLayout(buttons)
+        v.addWidget(self._portal)
         v.addWidget(self._octave_selector)
         v.addWidget(self._typewriter)
         v.addWidget(self._instrument_select)
@@ -64,9 +55,7 @@ class MainPanel(QWidget):
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
-        self._about_button.set_ui_model(ui_model)
-        self._composition_toggle.set_ui_model(ui_model)
-        self._event_list_button.set_ui_model(ui_model)
+        self._portal.set_ui_model(ui_model)
         self._octave_selector.set_ui_model(ui_model)
         self._typewriter.set_ui_model(ui_model)
         self._instrument_select.set_ui_model(ui_model)
@@ -87,7 +76,5 @@ class MainPanel(QWidget):
         self._instrument_select.unregister_updaters()
         self._typewriter.unregister_updaters()
         self._octave_selector.unregister_updaters()
-        self._event_list_button.unregister_updaters()
-        self._composition_toggle.unregister_updaters()
-        self._about_button.unregister_updaters()
+        self._portal.unregister_updaters()
 
