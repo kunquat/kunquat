@@ -16,27 +16,25 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 from kunquat.tracker.ui.identifiers import *
-from playbutton import PlayButton
 from sheet.sheet import Sheet
 
 
-class Composition(QWidget):
+class Composition(QFrame):
 
     def __init__(self):
-        QWidget.__init__(self)
+        QFrame.__init__(self)
         self._ui_model = None
         self._visible = None
-        self._play_button = PlayButton()
         self._sheet = Sheet()
 
         v = QVBoxLayout()
-        v.addWidget(self._play_button)
         v.addWidget(self._sheet)
         self.setLayout(v)
 
+        self.setMinimumHeight(320)
+
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
-        self._play_button.set_ui_model(ui_model)
         self._sheet.set_ui_model(ui_model)
         self._updater = self._ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
@@ -64,6 +62,5 @@ class Composition(QWidget):
 
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
-        self._play_button.unregister_updaters()
         self._sheet.unregister_updaters()
 

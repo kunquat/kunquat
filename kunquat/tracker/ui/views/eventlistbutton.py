@@ -90,8 +90,6 @@ class EventListButton(QToolButton):
         h.addWidget(self._text)
         self.setLayout(h)
 
-        self.setAutoRaise(True)
-
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()

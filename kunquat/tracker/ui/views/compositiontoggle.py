@@ -24,7 +24,7 @@ class CompositionToggle(QToolButton):
         self._ui_model = None
         self._up = None
 
-        self.setText('Composition')
+        self.setText('Sandbox')
         self.setCheckable(True)
 
     def set_ui_model(self, ui_model):

@@ -23,7 +23,6 @@ class AboutButton(QToolButton):
         self._ui_model = None
 
         self.setText('About')
-        self.setAutoRaise(True)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model

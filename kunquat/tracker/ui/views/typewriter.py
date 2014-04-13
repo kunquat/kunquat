@@ -50,6 +50,7 @@ class Typewriter(QFrame):
 
     def _get_layout(self):
         rows = QVBoxLayout()
+        rows.setContentsMargins(0, 0, 0, 0)
         for row_index in xrange(self._typewriter_manager.get_row_count()):
             rows.addLayout(self._get_row(row_index))
         return rows

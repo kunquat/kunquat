@@ -36,7 +36,6 @@ class ZoomButton(QToolButton):
         self.setText(self._get_text(mode))
         self.setIcon(self._get_icon(mode))
         self.setToolTip(self._get_tooltip(mode))
-        self.setAutoRaise(True)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
