@@ -15,8 +15,8 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from eventlistbutton import EventListButton
 from playbutton import PlayButton
+from eventlistbutton import EventListButton
 from aboutbutton import AboutButton
 
 
@@ -25,24 +25,24 @@ class Portal(QToolBar):
     def __init__(self):
         QToolBar.__init__(self)
         self._ui_model = None
-        self._event_list_button = EventListButton()
         self._play_button = PlayButton()
+        self._event_list_button = EventListButton()
         self._about_button = AboutButton()
 
-        self.addWidget(self._event_list_button)
-        self.addSeparator()
         self.addWidget(self._play_button)
+        self.addSeparator()
+        self.addWidget(self._event_list_button)
         self.addSeparator()
         self.addWidget(self._about_button)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
-        self._event_list_button.set_ui_model(ui_model)
         self._play_button.set_ui_model(ui_model)
+        self._event_list_button.set_ui_model(ui_model)
         self._about_button.set_ui_model(ui_model)
 
     def unregister_updaters(self):
         self._about_button.unregister_updaters()
-        self._play_button.unregister_updaters()
         self._event_list_button.unregister_updaters()
+        self._play_button.unregister_updaters()
 

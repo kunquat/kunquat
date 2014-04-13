@@ -16,32 +16,45 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 import kunquat.tracker.cmdline as cmdline
-from composition import Composition
-from mainpanel import MainPanel
+from portal import Portal
+from mainsplitter import MainSplitter
+from importprogress import ImportProgress
+from peakmeter import PeakMeter
 
 
-class MainView(QSplitter):
+class MainView(QWidget):
 
     def __init__(self):
         QWidget.__init__(self)
         self._ui_model = None
-        self.setOrientation(Qt.Vertical)
-        self._composition = Composition()
-        self._main_panel = MainPanel()
+        self._portal = Portal()
+        self._main_splitter = MainSplitter()
+        self._import_progress = ImportProgress()
+        self._peak_meter = PeakMeter()
 
         v = QVBoxLayout()
-        v.addWidget(self._composition)
-        v.addWidget(self._main_panel)
+        v.setContentsMargins(0, 0, 0, 0)
+        v.addWidget(self._portal)
+        v.addWidget(self._main_splitter)
+        v.addWidget(self._import_progress)
+        v.addWidget(self._peak_meter)
         self.setLayout(v)
 
-        self._main_panel.setFocus()
+        self._main_splitter.setFocus()
+
+        if not cmdline.get_experimental():
+            self._import_progress.hide()
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
-        self._composition.set_ui_model(ui_model)
-        self._main_panel.set_ui_model(ui_model)
+        self._portal.set_ui_model(ui_model)
+        self._main_splitter.set_ui_model(ui_model)
+        self._import_progress.set_ui_model(ui_model)
+        self._peak_meter.set_ui_model(ui_model)
 
     def unregister_updaters(self):
-        self._main_panel.unregister_updaters()
-        self._composition.unregister_updaters()
+        self._peak_meter.unregister_updaters()
+        self._import_progress.unregister_updaters()
+        self._main_splitter.unregister_updaters()
+        self._portal.unregister_updaters()
 
