@@ -30,7 +30,9 @@ class Portal(QToolBar):
         self._about_button = AboutButton()
 
         self.addWidget(self._event_list_button)
+        self.addSeparator()
         self.addWidget(self._composition_toggle)
+        self.addSeparator()
         self.addWidget(self._about_button)
 
     def set_ui_model(self, ui_model):
