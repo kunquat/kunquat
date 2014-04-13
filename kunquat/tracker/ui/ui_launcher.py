@@ -109,6 +109,7 @@ class UiLauncher():
             load_task = self._controller.get_task_load_module(module_path)
             self.execute_task(load_task)
         else:
+            self._controller.create_sandbox()
             kqtifile = self._controller.get_share().get_default_instrument()
             load_task = self._controller.get_task_load_instrument(kqtifile)
             self.execute_task(load_task)
