@@ -170,6 +170,7 @@ class UiModel():
 
     def set_sheet_manager(self, sheet_manager):
         self._sheet_manager = sheet_manager
+        self._sheet_manager.set_ui_model(self)
 
     def get_sheet_manager(self):
         return self._sheet_manager

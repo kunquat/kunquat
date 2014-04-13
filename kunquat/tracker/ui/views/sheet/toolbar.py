@@ -15,7 +15,16 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 import kunquat.tracker.cmdline as cmdline
+from delselectionbutton import DelSelectionButton
 from zoombutton import ZoomButton
+
+
+class Separator(QFrame):
+
+    def __init__(self):
+        QFrame.__init__(self)
+        self.setFrameShape(QFrame.VLine)
+        self.setFrameShadow(QFrame.Sunken)
 
 
 class Toolbar(QWidget):
@@ -23,6 +32,7 @@ class Toolbar(QWidget):
     def __init__(self):
         QWidget.__init__(self)
         self._ui_model = None
+        self._del_selection_button = DelSelectionButton()
         self._zoom_buttons = [
                 ZoomButton('in'),
                 ZoomButton('original'),
@@ -37,16 +47,21 @@ class Toolbar(QWidget):
                 ])
 
         h = QHBoxLayout()
+        h.addWidget(self._del_selection_button)
+        h.addWidget(Separator())
         for button in self._zoom_buttons:
             h.addWidget(button)
+        h.addStretch(1)
         self.setLayout(h)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
+        self._del_selection_button.set_ui_model(ui_model)
         for button in self._zoom_buttons:
             button.set_ui_model(ui_model)
 
     def unregister_updaters(self):
+        self._del_selection_button.unregister_updaters()
         for button in self._zoom_buttons:
             button.unregister_updaters()
 

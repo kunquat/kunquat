@@ -64,6 +64,11 @@ class ColumnGroupRenderer():
         for i, cache in enumerate(self._caches):
             cache.set_column(self._columns[i])
 
+    def flush_caches(self):
+        if self._caches:
+            for cache in self._caches:
+                cache.flush()
+
     def set_pattern_lengths(self, lengths):
         self._lengths = lengths
 
@@ -241,6 +246,10 @@ class ColumnCache():
         self._column = column
         self._tr_cache.set_triggers(column)
 
+    def flush(self):
+        self._pixmaps.flush()
+        self._tr_cache.flush()
+
     def set_width(self, width):
         if self._width != width:
             self._width = width
@@ -377,6 +386,9 @@ class TRCache():
     def set_triggers(self, column):
         self._rows = self._build_trigger_rows(column)
         self._images.flush() # TODO: only remove out-of-date images
+
+    def flush(self):
+        self._images.flush()
 
     def _build_trigger_rows(self, column):
         trs = {}

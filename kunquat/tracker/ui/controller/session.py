@@ -42,6 +42,7 @@ class Session():
         self._sheet_column_width = 0
         self._sheet_column_width_min = 0
         self._sheet_column_width_max = 0
+        self._last_column = None
 
     def get_output_speed(self):
         return self._output_speed
@@ -208,5 +209,11 @@ class Session():
 
     def get_sheet_column_width_range(self):
         return (self._sheet_column_width_min, self._sheet_column_width_max)
+
+    def set_last_column(self, column):
+        self._last_column = column
+
+    def get_last_column(self):
+        return self._last_column
 
 

@@ -62,7 +62,6 @@ class View(QWidget):
 
         self._horizontal_move_state = HorizontalMoveState()
         self._vertical_move_state = VerticalMoveState()
-        self._cur_column = None
 
         self._target_trigger_index = 0
         self._trow_px_offset = 0
@@ -87,6 +86,8 @@ class View(QWidget):
             self._follow_edit_cursor()
 
     def _update_all_patterns(self):
+        for cr in self._col_rends:
+            cr.flush_caches()
         all_patterns = utils.get_all_patterns(self._ui_model)
         self.set_patterns(all_patterns)
 
@@ -244,21 +245,16 @@ class View(QWidget):
         album = module.get_album()
 
         if album and album.get_track_count() > 0:
-            cur_song = album.get_song_by_track(location.get_track())
-            cur_pattern = cur_song.get_pattern_instance(
-                    location.get_system()).get_pattern()
-            cur_column = cur_pattern.get_column(location.get_col_num())
-            if not self._cur_column or (self._cur_column != cur_column):
-                self._cur_column = cur_column
+            cur_column = self._sheet_manager.get_column_at_location(location)
 
             row_ts = location.get_row_ts()
-            if row_ts in self._cur_column.get_trigger_row_positions():
+            if row_ts in cur_column.get_trigger_row_positions():
                 notation = self._notation_manager.get_notation()
 
                 # Get trigger row width information
                 trigger_index = location.get_trigger_index()
-                trigger_count = self._cur_column.get_trigger_count_at_row(row_ts)
-                triggers = [self._cur_column.get_trigger(row_ts, i)
+                trigger_count = cur_column.get_trigger_count_at_row(row_ts)
+                triggers = [cur_column.get_trigger(row_ts, i)
                         for i in xrange(trigger_count)]
                 rends = [TriggerRenderer(self._config, t, notation) for t in triggers]
                 row_width = sum(r.get_total_width() for r in rends)
@@ -344,8 +340,6 @@ class View(QWidget):
         if location:
             assert self._patterns
 
-            track = location.get_track()
-            system = location.get_system()
             selected_col = location.get_col_num()
             row_ts = location.get_row_ts()
             trigger_index = location.get_trigger_index()
@@ -370,18 +364,12 @@ class View(QWidget):
                     QPoint(self._col_width - 2, 0))
 
             # Get trigger row at cursor
-            module = self._ui_model.get_module()
-            album = module.get_album()
-            song = album.get_song_by_track(track)
-            pattern = song.get_pattern_instance(system).get_pattern()
-            column = pattern.get_column(selected_col)
-            if not self._cur_column or self._cur_column != column:
-                self._cur_column = column
+            column = self._sheet_manager.get_column_at_location(location)
 
             try:
                 # Draw the trigger row
-                trigger_count = self._cur_column.get_trigger_count_at_row(row_ts)
-                triggers = [self._cur_column.get_trigger(row_ts, i)
+                trigger_count = column.get_trigger_count_at_row(row_ts)
+                triggers = [column.get_trigger(row_ts, i)
                         for i in xrange(trigger_count)]
                 self._draw_trigger_row_with_edit_cursor(
                         painter, triggers, trigger_index)
@@ -466,13 +454,9 @@ class View(QWidget):
         row_ts = location.get_row_ts()
         trigger_index = location.get_trigger_index()
 
-        cur_song = album.get_song_by_track(track)
-        cur_pattern = cur_song.get_pattern_instance(system).get_pattern()
-        cur_column = cur_pattern.get_column(col_num)
-        if not self._cur_column or (self._cur_column != cur_column):
-            self._cur_column = cur_column
+        cur_column = self._sheet_manager.get_column_at_location(location)
 
-        if row_ts not in self._cur_column.get_trigger_row_positions():
+        if row_ts not in cur_column.get_trigger_row_positions():
             # No triggers, just clear our target index
             self._target_trigger_index = 0
             return
@@ -495,7 +479,7 @@ class View(QWidget):
             return
 
         elif delta > 0:
-            if trigger_index >= self._cur_column.get_trigger_count_at_row(row_ts):
+            if trigger_index >= cur_column.get_trigger_count_at_row(row_ts):
                 # Already at the end of the row
                 self._target_trigger_index = trigger_index
                 return
@@ -518,16 +502,12 @@ class View(QWidget):
         selection = self._ui_model.get_selection()
         location = selection.get_location()
 
-        cur_song = album.get_song_by_track(location.get_track())
-        cur_pattern = cur_song.get_pattern_instance(location.get_system()).get_pattern()
-        cur_column = cur_pattern.get_column(location.get_col_num())
-        if not self._cur_column or (self._cur_column != cur_column):
-            self._cur_column = cur_column
+        cur_column = self._sheet_manager.get_column_at_location(location)
 
         self._target_trigger_index = index
 
         new_trigger_index = self._clamp_trigger_index(
-                self._cur_column, location.get_row_ts(), self._target_trigger_index)
+                cur_column, location.get_row_ts(), self._target_trigger_index)
 
         new_location = TriggerPosition(
                 location.get_track(),
@@ -603,11 +583,7 @@ class View(QWidget):
                 system = new_system
                 row_ts = new_ts
 
-        cur_song = album.get_song_by_track(track)
-        cur_pattern = cur_song.get_pattern_instance(system).get_pattern()
-        cur_column = cur_pattern.get_column(col_num)
-        if not self._cur_column or (self._cur_column != cur_column):
-            self._cur_column = cur_column
+        cur_column = self._sheet_manager.get_column_at_location(location)
 
         # Get default trigger tstamp on the current pixel position
         cur_px_offset = utils.get_px_from_tstamp(row_ts, self._px_per_beat)
@@ -628,7 +604,7 @@ class View(QWidget):
         else:
             move_range_start += tstamp.Tstamp(0, 1)
 
-        trow_tstamps = self._cur_column.get_trigger_row_positions_in_range(
+        trow_tstamps = cur_column.get_trigger_row_positions_in_range(
                 move_range_start, move_range_stop)
         if trow_tstamps:
             self._vertical_move_state.try_snap_delay()
@@ -638,6 +614,9 @@ class View(QWidget):
                 new_ts = min(trow_tstamps)
 
         # Check moving outside pattern boundaries
+        cur_song = album.get_song_by_track(track)
+        cur_pattern = cur_song.get_pattern_instance(system).get_pattern()
+
         if new_ts <= 0:
             self._vertical_move_state.try_snap_delay()
             new_ts = tstamp.Tstamp(0)
@@ -651,7 +630,7 @@ class View(QWidget):
                     # End of sheet
                     new_ts = cur_pattern.get_length()
                     trigger_index = self._clamp_trigger_index(
-                            self._cur_column, new_ts, self._target_trigger_index)
+                            cur_column, new_ts, self._target_trigger_index)
                     new_location = TriggerPosition(
                             track, system, col_num, new_ts, trigger_index)
                     selection.set_location(new_location)
@@ -661,7 +640,7 @@ class View(QWidget):
             self._vertical_move_state.try_snap_delay()
             new_ts = tstamp.Tstamp(0)
             trigger_index = self._clamp_trigger_index(
-                    self._cur_column, new_ts, self._target_trigger_index)
+                    cur_column, new_ts, self._target_trigger_index)
             new_location = TriggerPosition(
                     new_track, new_system, col_num, new_ts, trigger_index)
             selection.set_location(new_location)
@@ -669,9 +648,14 @@ class View(QWidget):
 
         # Move inside pattern
         trigger_index = self._clamp_trigger_index(
-                self._cur_column, new_ts, self._target_trigger_index)
+                cur_column, new_ts, self._target_trigger_index)
         new_location = TriggerPosition(track, system, col_num, new_ts, trigger_index)
         selection.set_location(new_location)
+
+    def _try_delete_selection(self):
+        selection = self._ui_model.get_selection()
+        location = selection.get_location()
+        self._sheet_manager.try_remove_trigger(location)
 
     def event(self, ev):
         if ev.type() == QEvent.KeyPress and ev.key() in (Qt.Key_Tab, Qt.Key_Backtab):
@@ -679,23 +663,27 @@ class View(QWidget):
         return QWidget.event(self, ev)
 
     def keyPressEvent(self, ev):
-        if ev.key() == Qt.Key_Up:
-            self._vertical_move_state.press_up()
-            self._move_edit_cursor_tstamp()
-        elif ev.key() == Qt.Key_Down:
-            self._vertical_move_state.press_down()
-            self._move_edit_cursor_tstamp()
-        elif ev.key() == Qt.Key_Left:
-            self._horizontal_move_state.press_left()
-            self._move_edit_cursor_trow()
-        elif ev.key() == Qt.Key_Right:
-            self._horizontal_move_state.press_right()
-            self._move_edit_cursor_trow()
-        elif ev.key() == Qt.Key_Home:
-            self._move_edit_cursor_trigger_index(0)
-        elif ev.key() == Qt.Key_End:
-            self._move_edit_cursor_trigger_index(2**24) # :-P
-        elif ev.key() == Qt.Key_Tab:
+        if ev.modifiers() == Qt.NoModifier:
+            if ev.key() == Qt.Key_Up:
+                self._vertical_move_state.press_up()
+                self._move_edit_cursor_tstamp()
+            elif ev.key() == Qt.Key_Down:
+                self._vertical_move_state.press_down()
+                self._move_edit_cursor_tstamp()
+            elif ev.key() == Qt.Key_Left:
+                self._horizontal_move_state.press_left()
+                self._move_edit_cursor_trow()
+            elif ev.key() == Qt.Key_Right:
+                self._horizontal_move_state.press_right()
+                self._move_edit_cursor_trow()
+            elif ev.key() == Qt.Key_Home:
+                self._move_edit_cursor_trigger_index(0)
+            elif ev.key() == Qt.Key_End:
+                self._move_edit_cursor_trigger_index(2**24) # :-P
+            elif ev.key() == Qt.Key_Delete:
+                self._try_delete_selection()
+
+        if ev.key() == Qt.Key_Tab:
             self._move_edit_cursor_column(1)
             return True
         elif ev.key() == Qt.Key_Backtab:

@@ -38,8 +38,8 @@ class Column():
         return not (self == other)
 
     def set_controller(self, controller):
-        self._store = controller.get_store()
         self._controller = controller
+        self._store = controller.get_store()
 
     def get_trigger_row_positions(self):
         self._build_trigger_rows()
@@ -57,11 +57,24 @@ class Column():
         self._build_trigger_rows()
         return self._trigger_rows[row_ts][trigger_index]
 
+    def has_trigger(self, row_ts, trigger_index):
+        try:
+            self.get_trigger(row_ts, trigger_index)
+            return True
+        except (KeyError, IndexError):
+            return False
+
     def insert_trigger(self, row_ts, trigger_index, trigger):
         raise NotImplementedError
 
-    def replace_trigger(self, row_ts, trigger_index, trigger):
-        raise NotImplementedError
+    def remove_trigger(self, row_ts, trigger_index):
+        self._build_trigger_rows()
+        assert self.has_trigger(row_ts, trigger_index)
+
+        del self._trigger_rows[row_ts][trigger_index]
+
+        raw_data = self._make_raw_data(self._trigger_rows)
+        self._store[self._get_key()] = raw_data
 
     def _build_trigger_rows(self):
         if self._trigger_rows == None:
@@ -75,13 +88,26 @@ class Column():
                 trigger = Trigger(trigger_type, argument)
                 self._trigger_rows[ts].append(trigger)
 
-    def _get_raw_data(self):
+    def _get_key(self):
         key = '{}/col_{:02x}/p_triggers.json'.format(
                 self._pattern_id, self._col_num)
+        return key
+
+    def _get_raw_data(self):
+        key = self._get_key()
         try:
             triggers = self._store[key]
             return triggers
         except KeyError:
             return []
+
+    def _make_raw_data(self, trigger_rows):
+        raw_data = []
+        for (ts, triggers) in trigger_rows.iteritems():
+            for trigger in triggers:
+                evspec = [trigger.get_type(), trigger.get_argument()]
+                raw_data.append([tuple(ts), evspec])
+
+        return raw_data
 
 
