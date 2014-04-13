@@ -25,7 +25,6 @@ class MainWindow(QWidget):
         QWidget.__init__(self)
         self.setWindowTitle('Kunquat Tracker')
         self._ui_model = None
-        self.resize(800, 400)
 
         self._main_view = MainView()
         layout = QVBoxLayout()

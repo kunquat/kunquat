@@ -37,7 +37,6 @@ class TypewriterPanel(QFrame):
         v.addWidget(self._octave_selector)
         v.addWidget(self._instrument_select)
         v.addWidget(self._typewriter)
-        v.addStretch()
         self.setLayout(v)
 
         self.setFrameStyle(QFrame.Panel | QFrame.Sunken)

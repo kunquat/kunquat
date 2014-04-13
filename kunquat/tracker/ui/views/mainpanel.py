@@ -34,6 +34,7 @@ class MainPanel(QWidget):
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
+        v.addStretch()
         v.addWidget(self._portal)
         v.addWidget(self._typewriter_panel)
         v.addWidget(self._import_progress)
