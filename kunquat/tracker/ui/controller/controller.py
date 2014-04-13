@@ -85,6 +85,17 @@ class Controller():
                  return None
         return '/'.join(keyparts)
 
+    def create_sandbox(self):
+        transaction = {
+            'album/p_manifest.json' : {},
+            'album/p_tracks.json'   : [0],
+            'song_00/p_manifest.json': {},
+            'song_00/p_order_list.json': [[0, 0]],
+            'pat_000/p_manifest.json': {},
+            'pat_000/instance_000/p_manifest.json': {},
+        }
+        self._store.put(transaction)
+
     def get_task_load_module(self, module_path):
         values = dict()
         if module_path[-4:] in ['.kqt', '.bz2']:
