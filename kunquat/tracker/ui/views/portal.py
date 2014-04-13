@@ -20,20 +20,18 @@ from compositiontoggle import CompositionToggle
 from aboutbutton import AboutButton
 
 
-class Portal(QWidget):
+class Portal(QToolBar):
 
     def __init__(self):
-        QWidget.__init__(self)
+        QToolBar.__init__(self)
         self._ui_model = None
         self._event_list_button = EventListButton()
         self._composition_toggle = CompositionToggle()
         self._about_button = AboutButton()
 
-        h = QHBoxLayout()
-        h.addWidget(self._event_list_button)
-        h.addWidget(self._composition_toggle)
-        h.addWidget(self._about_button)
-        self.setLayout(h)
+        self.addWidget(self._event_list_button)
+        self.addWidget(self._composition_toggle)
+        self.addWidget(self._about_button)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
