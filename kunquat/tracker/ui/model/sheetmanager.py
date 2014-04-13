@@ -45,6 +45,21 @@ class SheetManager():
 
         return None
 
+    def try_remove_trigger(self, location):
+        if not location:
+            return
+
+        cur_column = self.get_column_at_location(location)
+        row_ts = location.get_row_ts()
+        index = location.get_trigger_index()
+
+        if cur_column.has_trigger(row_ts, index):
+            cur_column.remove_trigger(row_ts, index)
+            self._updater.signal_update(set(['signal_module']))
+
+            # Clear cached column data
+            self._session.set_last_column(None)
+
     def set_zoom(self, zoom):
         old_zoom = self._session.get_sheet_zoom()
         self._session.set_sheet_zoom(zoom)
