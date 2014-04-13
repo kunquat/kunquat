@@ -19,14 +19,6 @@ from delselectionbutton import DelSelectionButton
 from zoombutton import ZoomButton
 
 
-class Separator(QFrame):
-
-    def __init__(self):
-        QFrame.__init__(self)
-        self.setFrameShape(QFrame.VLine)
-        self.setFrameShadow(QFrame.Sunken)
-
-
 class Toolbar(QToolBar):
 
     def __init__(self):
