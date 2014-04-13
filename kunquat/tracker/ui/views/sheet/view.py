@@ -658,9 +658,7 @@ class View(QWidget):
         self._sheet_manager.insert_trigger(trigger)
 
     def _try_delete_selection(self):
-        selection = self._ui_model.get_selection()
-        location = selection.get_location()
-        self._sheet_manager.try_remove_trigger(location)
+        self._sheet_manager.try_remove_trigger()
 
     def event(self, ev):
         if ev.type() == QEvent.KeyPress and ev.key() in (Qt.Key_Tab, Qt.Key_Backtab):

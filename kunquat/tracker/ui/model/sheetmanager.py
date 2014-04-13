@@ -70,7 +70,9 @@ class SheetManager():
 
         self._on_column_update()
 
-    def try_remove_trigger(self, location):
+    def try_remove_trigger(self):
+        selection = self._ui_model.get_selection()
+        location = selection.get_location()
         if not location:
             return
 
