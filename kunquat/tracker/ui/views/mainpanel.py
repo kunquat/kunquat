@@ -36,7 +36,6 @@ class MainPanel(QWidget):
         v.setContentsMargins(0, 0, 0, 0)
         v.addWidget(self._portal)
         v.addWidget(self._typewriter_panel)
-        v.addStretch()
         v.addWidget(self._import_progress)
         v.addWidget(self._peak_meter)
         self.setLayout(v)
