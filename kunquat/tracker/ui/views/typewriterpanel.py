@@ -39,8 +39,6 @@ class TypewriterPanel(QFrame):
         v.addWidget(self._typewriter)
         self.setLayout(v)
 
-        self.setFrameStyle(QFrame.Panel | QFrame.Sunken)
-        self.setLineWidth(2)
         self._typewriter.setFocus()
 
         if not cmdline.get_experimental():
