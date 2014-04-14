@@ -12,7 +12,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from collections import deque
+from collections import defaultdict, deque
 from itertools import count
 
 
@@ -26,8 +26,9 @@ class Session():
         self._progress_position = 1
         self._progress_steps = 1
         self._audio_levels = (0, 0)
-        self._channel_selected_control_id = dict()
-        self._channel_active_control_id = dict()
+        # TODO: get default control ids from libkunquat?
+        self._channel_selected_control_id = defaultdict(lambda: 0)
+        self._channel_active_control_id = defaultdict(lambda: 0)
         self._channel_active_note = dict()
         self._control_active_notes = dict()
         self._octave_id = 0
