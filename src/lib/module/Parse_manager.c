@@ -1025,6 +1025,113 @@ static Effect* add_effect(Handle* handle, int index, Effect_table* table)
 }
 
 
+#define acquire_effect(effect, table, index)             \
+    if (true)                                            \
+    {                                                    \
+        (effect) = add_effect(handle, (index), (table)); \
+        if ((effect) == NULL)                            \
+            return false;                                \
+    }                                                    \
+    else (void)0
+
+
+#define acquire_effect_index(index, max_index)     \
+    if (true)                                      \
+    {                                              \
+        (index) = indices[0];                      \
+        if ((index) < 0 || (index) >= (max_index)) \
+            return true;                           \
+    }                                              \
+    else (void)0
+
+
+#define READ_EFFECT(name) static bool read_effect_##name( \
+        Handle* handle,                                   \
+        Module* module,                                   \
+        const Key_indices indices,                        \
+        const char* subkey,                               \
+        Streader* sr,                                     \
+        Effect_table* eff_table,                          \
+        int index_stop)
+
+
+READ_EFFECT(effect_manifest)
+{
+    (void)module;
+    (void)subkey;
+
+    int32_t index = -1;
+    acquire_effect_index(index, index_stop);
+
+    Effect* effect = NULL;
+    acquire_effect(effect, eff_table, index);
+
+    const bool existent = read_default_manifest(sr);
+    if (Streader_is_error_set(sr))
+    {
+        set_error(handle, sr);
+        return false;
+    }
+
+    Device_set_existent((Device*)effect, existent);
+
+    return true;
+}
+
+
+READ_EFFECT(effect_connections)
+{
+    (void)subkey;
+
+    int32_t index = -1;
+    acquire_effect_index(index, index_stop);
+
+    Effect* effect = NULL;
+    acquire_effect(effect, eff_table, index);
+
+    bool reconnect = false;
+    if (!Streader_has_data(sr))
+    {
+        Effect_set_connections(effect, NULL);
+        reconnect = true;
+    }
+    else
+    {
+        Connection_level level = CONNECTION_LEVEL_EFFECT;
+        if (eff_table != Module_get_effects(module))
+            level |= CONNECTION_LEVEL_INSTRUMENT;
+
+        Connections* graph = new_Connections_from_string(
+                sr,
+                level,
+                Module_get_insts(module),
+                eff_table,
+                Effect_get_dsps(effect),
+                (Device*)effect);
+        if (graph == NULL)
+        {
+            set_error(handle, sr);
+            return false;
+        }
+
+        Effect_set_connections(effect, graph);
+        reconnect = true;
+    }
+
+    if (reconnect)
+    {
+        Connections* global_graph = module->connections;
+        if (global_graph != NULL)
+        {
+            if (!prepare_connections(handle))
+                return false;
+        }
+    }
+
+    return true;
+}
+
+
 static bool parse_effect_level(
         Handle* handle,
         Instrument* ins,
@@ -1088,101 +1195,32 @@ static bool parse_effect_level(
         return success;
     }
     else if (string_eq(subkey, "p_manifest.json"))
-        return read_effect_manifest(handle, module, hack, subkey, sr);
+        return read_effect_effect_manifest(handle, module, hack, subkey, sr, table, max_index);
     else if (string_eq(subkey, "p_connections.json"))
-    {
-        bool reconnect = false;
-        Effect* eff = Effect_table_get_mut(table, eff_index);
-        if (!Streader_has_data(sr))
-        {
-            if (eff != NULL)
-            {
-                Effect_set_connections(eff, NULL);
-                reconnect = true;
-            }
-        }
-        else
-        {
-            eff = add_effect(handle, eff_index, table);
-            if (eff == NULL)
-                return false;
-
-            Connection_level level = CONNECTION_LEVEL_EFFECT;
-            if (ins != NULL)
-            {
-                level |= CONNECTION_LEVEL_INSTRUMENT;
-            }
-            Connections* graph = new_Connections_from_string(
-                    sr,
-                    level,
-                    Module_get_insts(module),
-                    table,
-                    Effect_get_dsps(eff),
-                    (Device*)eff);
-            if (graph == NULL)
-            {
-                set_error(handle, sr);
-                return false;
-            }
-            Effect_set_connections(eff, graph);
-            reconnect = true;
-        }
-        if (reconnect)
-        {
-            Connections* global_graph = module->connections;
-            if (global_graph != NULL)
-            {
-                if (!prepare_connections(handle))
-                    return false;
-            }
-        }
-    }
+        return read_effect_effect_connections(handle, module, hack, subkey, sr, table, max_index);
 
     return true;
 }
 
 
-#define acquire_effect(effect, table, index)             \
-    if (true)                                            \
-    {                                                    \
-        (effect) = add_effect(handle, (index), (table)); \
-        if ((effect) == NULL)                            \
-            return false;                                \
-    }                                                    \
-    else (void)0
-
-
-#define acquire_effect_index(index, max_index)     \
-    if (true)                                      \
-    {                                              \
-        (index) = indices[0];                      \
-        if ((index) < 0 || (index) >= (max_index)) \
-            return true;                           \
-    }                                              \
-    else (void)0
-
-
+#if 0
 READ(effect_manifest)
 {
-    (void)subkey;
-
-    int32_t index = -1;
-    acquire_effect_index(index, KQT_EFFECTS_MAX);
-
-    Effect* effect = NULL;
-    acquire_effect(effect, Module_get_effects(module), index);
-
-    const bool existent = read_default_manifest(sr);
-    if (Streader_is_error_set(sr))
-    {
-        set_error(handle, sr);
-        return false;
-    }
-
-    Device_set_existent((Device*)effect, existent);
-
-    return true;
+    return read_effect_effect_manifest(
+            handle, module, indices, subkey, sr,
+            Module_get_effects(module),
+            KQT_EFFECTS_MAX);
 }
+
+
+READ(effect_connections)
+{
+    return read_effect_effect_connections(
+            handle, module, indices, subkey, sr,
+            Module_get_effects(module),
+            KQT_EFFECTS_MAX);
+}
+#endif
 
 
 static DSP* add_dsp(

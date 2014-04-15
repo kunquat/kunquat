@@ -20,7 +20,8 @@
 #endif
 
 
-MODULE_KEYP(effect_manifest, "eff_XX/p_manifest.json", "")
+//MODULE_KEYP(effect_manifest,    "eff_XX/p_manifest.json", "")
+//MODULE_KEYP(effect_connections, "eff_XX/p_connections.json", "[]")
 
 MODULE_KEYP(pattern_manifest, "pat_XXX/p_manifest.json", "")
 MODULE_KEYP(pattern,          "pat_XXX/p_pattern.json", "{ \"length\": [16, 0] }")
