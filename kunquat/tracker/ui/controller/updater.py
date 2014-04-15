@@ -19,8 +19,10 @@ class Updater(object):
         self._update_signals = set()
         self._updaters = set()
         self._iterator = set()
+        self._is_updating = False
 
     def signal_update(self, signals = set()):
+        assert not self._is_updating
         self._update_signals.add('signal_change')
         self._update_signals |= signals
 
@@ -32,6 +34,13 @@ class Updater(object):
         self._iterator -= set([updater])
 
     def perform_updates(self):
+        self._is_updating = True
+        try:
+            self._perform_updates_internal()
+        finally:
+            self._is_updating = False
+
+    def _perform_updates_internal(self):
         if not self._update_signals:
             return
         self._iterator = set(self._updaters)
