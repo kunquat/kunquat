@@ -12,6 +12,7 @@
 #
 
 from triggerposition import TriggerPosition
+import tstamp
 
 
 class Selection():
@@ -35,6 +36,7 @@ class Selection():
         self._updater.signal_update(set(['signal_selection']))
 
     def get_location(self):
-        return self._session.get_selected_location()
+        return (self._session.get_selected_location() or
+                TriggerPosition(0, 0, 0, tstamp.Tstamp(0), 0))
 
 
