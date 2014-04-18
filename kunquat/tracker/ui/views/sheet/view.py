@@ -111,15 +111,6 @@ class View(QWidget):
             columns = [p.get_column(i) for p in patterns]
             cr.set_columns(columns)
 
-        selection = self._ui_model.get_selection()
-        if self._patterns:
-            if not selection.get_location():
-                location = TriggerPosition(0, 0, 0, tstamp.Tstamp(0), 0)
-                selection.set_location(location)
-        else:
-            if selection.get_location():
-                selection.set_location(None)
-
     def _set_pattern_heights(self):
         lengths = [p.get_length() for p in self._patterns]
         self._heights = utils.get_pat_heights(lengths, self._px_per_beat)
@@ -336,49 +327,50 @@ class View(QWidget):
             self.update()
 
     def _draw_edit_cursor(self):
+        if not self._patterns:
+            return
+
         selection = self._ui_model.get_selection()
         location = selection.get_location()
-        if location:
-            assert self._patterns
 
-            selected_col = location.get_col_num()
-            row_ts = location.get_row_ts()
-            trigger_index = location.get_trigger_index()
+        selected_col = location.get_col_num()
+        row_ts = location.get_row_ts()
+        trigger_index = location.get_trigger_index()
 
-            # Get pixel offsets
-            x_offset = self._get_col_offset(selected_col)
-            if not 0 <= x_offset < self.width():
-                return
-            y_offset = self._get_row_offset(location)
-            if not -self._config['tr_height'] < y_offset < self.height():
-                return
+        # Get pixel offsets
+        x_offset = self._get_col_offset(selected_col)
+        if not 0 <= x_offset < self.width():
+            return
+        y_offset = self._get_row_offset(location)
+        if not -self._config['tr_height'] < y_offset < self.height():
+            return
 
-            # Set up paint device
-            painter = QPainter(self)
-            tfm = QTransform().translate(x_offset, y_offset)
-            painter.setTransform(tfm)
+        # Set up paint device
+        painter = QPainter(self)
+        tfm = QTransform().translate(x_offset, y_offset)
+        painter.setTransform(tfm)
 
-            # Draw the horizontal line
-            painter.setPen(self._config['edit_cursor']['line_colour'])
-            painter.drawLine(
-                    QPoint(0, 0),
-                    QPoint(self._col_width - 2, 0))
+        # Draw the horizontal line
+        painter.setPen(self._config['edit_cursor']['line_colour'])
+        painter.drawLine(
+                QPoint(0, 0),
+                QPoint(self._col_width - 2, 0))
 
-            # Get trigger row at cursor
-            column = self._sheet_manager.get_column_at_location(location)
+        # Get trigger row at cursor
+        column = self._sheet_manager.get_column_at_location(location)
 
-            try:
-                # Draw the trigger row
-                trigger_count = column.get_trigger_count_at_row(row_ts)
-                triggers = [column.get_trigger(row_ts, i)
-                        for i in xrange(trigger_count)]
-                self._draw_trigger_row_with_edit_cursor(
-                        painter, triggers, trigger_index)
+        try:
+            # Draw the trigger row
+            trigger_count = column.get_trigger_count_at_row(row_ts)
+            triggers = [column.get_trigger(row_ts, i)
+                    for i in xrange(trigger_count)]
+            self._draw_trigger_row_with_edit_cursor(
+                    painter, triggers, trigger_index)
 
-            except KeyError:
-                # No triggers, just draw a hollow rectangle
-                self._draw_hollow_cursor(
-                        painter, self._config['trigger']['padding'], 0)
+        except KeyError:
+            # No triggers, just draw a hollow rectangle
+            self._draw_hollow_cursor(
+                    painter, self._config['trigger']['padding'], 0)
 
     def _get_hollow_cursor_rect(self):
         metrics = self._config['font_metrics']
