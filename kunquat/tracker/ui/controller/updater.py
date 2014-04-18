@@ -36,11 +36,11 @@ class Updater(object):
     def perform_updates(self):
         self._is_updating = True
         try:
-            self._perform_updates_internal()
+            self._perform_updates()
         finally:
             self._is_updating = False
 
-    def _perform_updates_internal(self):
+    def _perform_updates(self):
         if not self._update_signals:
             return
         self._iterator = set(self._updaters)
