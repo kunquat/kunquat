@@ -92,6 +92,9 @@ static bool parse_dsp_level(
         const char* key,
         const char* subkey,
         Streader* sr,
+        Effect_table* eff_table,
+        int eff_index,
+        int eff_index_stop,
         int dsp_index);
 
 
@@ -1035,13 +1038,14 @@ static Effect* add_effect(Handle* handle, int index, Effect_table* table)
     else (void)0
 
 
-#define acquire_effect_index(index, max_index)     \
-    if (true)                                      \
-    {                                              \
-        (index) = indices[0];                      \
-        if ((index) < 0 || (index) >= (max_index)) \
-            return true;                           \
-    }                                              \
+// FIXME: we should read indices[1] with instrument effects
+#define acquire_effect_index(index, index_stop)     \
+    if (true)                                       \
+    {                                               \
+        (index) = indices[0];                       \
+        if ((index) < 0 || (index) >= (index_stop)) \
+            return true;                            \
+    }                                               \
     else (void)0
 
 
@@ -1132,6 +1136,84 @@ READ_EFFECT(effect_connections)
 }
 
 
+static DSP* add_dsp(
+        Handle* handle,
+        DSP_table* dsp_table,
+        int dsp_index)
+{
+    assert(handle != NULL);
+    assert(dsp_table != NULL);
+    assert(dsp_index >= 0);
+    //assert(dsp_index < KQT_DSPS_MAX);
+
+    static const char* memory_error_str =
+        "Couldn't allocate memory for a new DSP";
+
+    // Return existing DSP
+    DSP* dsp = DSP_table_get_dsp(dsp_table, dsp_index);
+    if (dsp != NULL)
+        return dsp;
+
+    // Create new DSP
+    dsp = new_DSP();
+    if (dsp == NULL || !DSP_table_set_dsp(dsp_table, dsp_index, dsp))
+    {
+        Handle_set_error(handle, ERROR_MEMORY, memory_error_str);
+        del_DSP(dsp);
+        return NULL;
+    }
+
+    return dsp;
+}
+
+
+// FIXME: we should read indices[2] with instrument effects
+#define acquire_dsp_index(index, index_stop)        \
+    if (true)                                       \
+    {                                               \
+        (index) = indices[1];                       \
+        if ((index) < 0 || (index) >= (index_stop)) \
+            return true;                            \
+    }                                               \
+    else (void)0
+
+
+READ_EFFECT(dsp_manifest)
+{
+    (void)module;
+    (void)subkey;
+
+    int32_t eff_index = -1;
+    acquire_effect_index(eff_index, index_stop);
+    int32_t dsp_index = -1;
+    acquire_dsp_index(dsp_index, index_stop);
+
+    const bool existent = read_default_manifest(sr);
+    if (Streader_is_error_set(sr))
+    {
+        set_error(handle, sr);
+        return false;
+    }
+
+    Effect* effect = NULL;
+    if (existent)
+    {
+        acquire_effect(effect, eff_table, eff_index);
+    }
+    else
+    {
+        effect = Effect_table_get_mut(eff_table, eff_index);
+        if (effect == NULL)
+            return true;
+    }
+
+    DSP_table* dsp_table = Effect_get_dsps_mut(effect);
+    DSP_table_set_existent(dsp_table, dsp_index, existent);
+
+    return true;
+}
+
+
 static bool parse_effect_level(
         Handle* handle,
         Instrument* ins,
@@ -1183,7 +1265,7 @@ static bool parse_effect_level(
         if (eff == NULL)
             return false;
 
-        bool success = parse_dsp_level(handle, eff, key, subkey, sr, dsp_index);
+        bool success = parse_dsp_level(handle, eff, key, subkey, sr, table, eff_index, max_index, dsp_index);
         changed ^= (eff != NULL) && (Effect_get_dsp(eff, dsp_index) != NULL) &&
             Device_has_complete_type((const Device*)Effect_get_dsp(eff, dsp_index));
         Connections* graph = module->connections;
@@ -1220,38 +1302,16 @@ READ(effect_connections)
             Module_get_effects(module),
             KQT_EFFECTS_MAX);
 }
-#endif
 
 
-static DSP* add_dsp(
-        Handle* handle,
-        DSP_table* dsp_table,
-        int dsp_index)
+READ(dsp_manifest)
 {
-    assert(handle != NULL);
-    assert(dsp_table != NULL);
-    assert(dsp_index >= 0);
-    //assert(dsp_index < KQT_DSPS_MAX);
-
-    static const char* memory_error_str =
-        "Couldn't allocate memory for a new DSP";
-
-    // Return existing DSP
-    DSP* dsp = DSP_table_get_dsp(dsp_table, dsp_index);
-    if (dsp != NULL)
-        return dsp;
-
-    // Create new DSP
-    dsp = new_DSP();
-    if (dsp == NULL || !DSP_table_set_dsp(dsp_table, dsp_index, dsp))
-    {
-        Handle_set_error(handle, ERROR_MEMORY, memory_error_str);
-        del_DSP(dsp);
-        return NULL;
-    }
-
-    return dsp;
+    return read_effect_dsp_manifest(
+            handle, module, indices, subkey, sr,
+            Module_get_effects(module),
+            KQT_EFFECTS_MAX);
 }
+#endif
 
 
 static bool parse_dsp_level(
@@ -1260,6 +1320,9 @@ static bool parse_dsp_level(
         const char* key,
         const char* subkey,
         Streader* sr,
+        Effect_table* eff_table,
+        int eff_index,
+        int eff_index_stop,
         int dsp_index)
 {
     assert(handle != NULL);
@@ -1280,20 +1343,15 @@ static bool parse_dsp_level(
     subkey = strchr(subkey, '/') + 1;
 #endif
 
+    Module* module = Handle_get_module(handle);
+
+    const Key_indices hack = { eff_index, dsp_index };
+
     DSP_table* dsp_table = Effect_get_dsps_mut(eff);
     assert(dsp_table != NULL);
 
     if (string_eq(subkey, "p_manifest.json"))
-    {
-        const bool existent = read_default_manifest(sr);
-        if (Streader_is_error_set(sr))
-        {
-            set_error(handle, sr);
-            return false;
-        }
-
-        DSP_table_set_existent(dsp_table, dsp_index, existent);
-    }
+        return read_effect_dsp_manifest(handle, module, hack, subkey, sr, eff_table, eff_index_stop);
     else if (string_eq(subkey, "p_dsp_type.json"))
     {
 //        fprintf(stderr, "%s\n", subkey);
