@@ -58,8 +58,6 @@ class DelSelectionButton(QToolButton):
         self.setEnabled(has_trigger)
 
     def _clicked(self):
-        selection = self._ui_model.get_selection()
-        location = selection.get_location()
-        self._sheet_manager.try_remove_trigger(location)
+        self._sheet_manager.try_remove_trigger()
 
 

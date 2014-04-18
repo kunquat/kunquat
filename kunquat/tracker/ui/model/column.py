@@ -65,7 +65,15 @@ class Column():
             return False
 
     def insert_trigger(self, row_ts, trigger_index, trigger):
-        raise NotImplementedError
+        self._build_trigger_rows()
+
+        if row_ts not in self._trigger_rows:
+            self._trigger_rows[row_ts] = []
+
+        self._trigger_rows[row_ts].insert(trigger_index, trigger)
+
+        raw_data = self._make_raw_data(self._trigger_rows)
+        self._store[self._get_key()] = raw_data
 
     def remove_trigger(self, row_ts, trigger_index):
         self._build_trigger_rows()
