@@ -43,6 +43,7 @@ class Session():
         self._sheet_column_width = 0
         self._sheet_column_width_min = 0
         self._sheet_column_width_max = 0
+        self._sheet_has_focus = False
         self._last_column = None
 
     def get_output_speed(self):
@@ -216,5 +217,11 @@ class Session():
 
     def get_last_column(self):
         return self._last_column
+
+    def set_sheet_focus(self, has_focus):
+        self._sheet_has_focus = has_focus
+
+    def get_sheet_focus(self):
+        return self._sheet_has_focus
 
 

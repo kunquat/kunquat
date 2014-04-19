@@ -128,4 +128,10 @@ class SheetManager():
     def get_column_width_range(self):
         return self._session.get_sheet_column_width_range()
 
+    def set_focus(self, has_focus):
+        self._session.set_sheet_focus(has_focus)
+
+    def get_focus(self):
+        self._session.get_sheet_focus()
+
 
