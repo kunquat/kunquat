@@ -190,6 +190,9 @@ class UiModel():
     def play(self):
         self._controller.play()
 
+    def panic(self):
+        self._controller.panic()
+
 def create_ui_model():
     stat_manager = StatManager()
     ui_manager = UiManager()
