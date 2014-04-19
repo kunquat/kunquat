@@ -18,9 +18,9 @@ from PyQt4.QtGui import *
 class ZoomButton(QToolButton):
 
     INFO = {
-            'in': ('Zoom In', 'zoom-in', 'Ctrl + +'),
-            'out': ('Zoom Out', 'zoom-out', 'Ctrl + -'),
-            'original': ('Zoom to Original', 'zoom-original', 'Ctrl + 0'),
+            'in': ('Zoom In', None, 'Ctrl + +'),
+            'out': ('Zoom Out', None, 'Ctrl + -'),
+            'original': ('Zoom to Original', None, 'Ctrl + 0'),
             'expand_w': ('Wider', None, 'Ctrl + Alt + +'),
             'shrink_w': ('Narrower', None, 'Ctrl + Alt + -'),
             'original_w': ('Original Width', None, 'Ctrl + Alt + 0'),
