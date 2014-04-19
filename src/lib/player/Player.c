@@ -284,6 +284,8 @@ void Player_reset(Player* player)
 
     Env_state_reset(player->estate);
 
+    Voice_pool_reset(player->voices);
+
     return;
 }
 
