@@ -28,6 +28,7 @@ import utils
 from columngrouprenderer import ColumnGroupRenderer
 from trigger_renderer import TriggerRenderer
 from movestate import HorizontalMoveState, VerticalMoveState
+from kunquat.tracker.ui.views.keyboardmapper import KeyboardMapper
 
 
 class View(QWidget):
@@ -42,6 +43,7 @@ class View(QWidget):
         self._updater = None
         self._sheet_manager = None
         self._notation_manager = None
+        self._keyboard_mapper = KeyboardMapper()
 
         self.setAutoFillBackground(False)
         self.setAttribute(Qt.WA_OpaquePaintEvent)
@@ -67,12 +69,18 @@ class View(QWidget):
         self._target_trigger_index = 0
         self._trow_px_offset = 0
 
+        QObject.connect(
+                QCoreApplication.instance(),
+                SIGNAL('focusChanged(QWidget*, QWidget*)'),
+                self._update_sheet_focus)
+
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
         self._sheet_manager = ui_model.get_sheet_manager()
         self._notation_manager = ui_model.get_notation_manager()
+        self._keyboard_mapper.set_ui_model(ui_model)
         for cr in self._col_rends:
             cr.set_ui_model(ui_model)
 
@@ -652,12 +660,19 @@ class View(QWidget):
     def _try_delete_selection(self):
         self._sheet_manager.try_remove_trigger()
 
+    def _update_sheet_focus(self, old, now):
+        has_focus = (now == self)
+        self._sheet_manager.set_focus(has_focus)
+
     def event(self, ev):
         if ev.type() == QEvent.KeyPress and ev.key() in (Qt.Key_Tab, Qt.Key_Backtab):
             return self.keyPressEvent(ev) or False
         return QWidget.event(self, ev)
 
     def keyPressEvent(self, ev):
+        if self._keyboard_mapper.process_typewriter_button_event(ev):
+            return
+
         if ev.modifiers() == Qt.NoModifier:
             if ev.key() == Qt.Key_Up:
                 self._vertical_move_state.press_up()
@@ -709,6 +724,9 @@ class View(QWidget):
                     self._sheet_manager.set_column_width(0)
 
     def keyReleaseEvent(self, ev):
+        if self._keyboard_mapper.process_typewriter_button_event(ev):
+            return
+
         if ev.isAutoRepeat():
             return
 
