@@ -24,9 +24,10 @@
 struct Freeverb_comb
 {
     kqt_frame feedback;
-    kqt_frame filter_store;
     kqt_frame damp1;
     kqt_frame damp2;
+
+    kqt_frame filter_store;
     kqt_frame* buffer;
     uint32_t buffer_size;
     uint32_t buffer_pos;
@@ -42,12 +43,14 @@ Freeverb_comb* new_Freeverb_comb(uint32_t buffer_size)
         return NULL;
 
     comb->feedback = 0;
-    comb->filter_store = 0;
     comb->damp1 = 0;
     comb->damp2 = 0;
+
+    comb->filter_store = 0;
     comb->buffer = NULL;
     comb->buffer_size = 0;
     comb->buffer_pos = 0;
+
     comb->buffer = memory_alloc_items(kqt_frame, buffer_size);
     if (comb->buffer == NULL)
     {
@@ -130,6 +133,8 @@ void Freeverb_comb_clear(Freeverb_comb* comb)
 {
     assert(comb != NULL);
     assert(comb->buffer != NULL);
+
+    comb->filter_store = 0;
 
     for (uint32_t i = 0; i < comb->buffer_size; ++i)
         comb->buffer[i] = 0;
