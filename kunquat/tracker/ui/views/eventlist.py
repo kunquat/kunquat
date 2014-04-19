@@ -177,6 +177,7 @@ class EventFilterView(QWidget):
         h.addWidget(self._mix_toggle)
         h.addWidget(self._fire_toggle)
         h.addWidget(self._tfire_toggle)
+        h.addStretch()
         self.setLayout(h)
 
     def set_ui_model(self, ui_model):
@@ -209,9 +210,6 @@ class EventList(QWidget):
         self._filters = EventFilterView()
         v.addWidget(self._filters)
         self.setLayout(v)
-
-        if not cmdline.get_experimental():
-            self._filters.hide()
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
