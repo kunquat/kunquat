@@ -67,6 +67,11 @@ class View(QWidget):
         self._target_trigger_index = 0
         self._trow_px_offset = 0
 
+        QObject.connect(
+                QCoreApplication.instance(),
+                SIGNAL('focusChanged(QWidget*, QWidget*)'),
+                self._update_sheet_focus)
+
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
@@ -651,6 +656,10 @@ class View(QWidget):
 
     def _try_delete_selection(self):
         self._sheet_manager.try_remove_trigger()
+
+    def _update_sheet_focus(self, old, now):
+        has_focus = (now == self)
+        self._sheet_manager.set_focus(has_focus)
 
     def event(self, ev):
         if ev.type() == QEvent.KeyPress and ev.key() in (Qt.Key_Tab, Qt.Key_Backtab):

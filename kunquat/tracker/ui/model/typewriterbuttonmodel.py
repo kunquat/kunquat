@@ -11,6 +11,9 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from trigger import Trigger
+
+
 class TypewriterButtonModel():
 
     def __init__(self, row, index):
@@ -20,6 +23,7 @@ class TypewriterButtonModel():
         self._ui_manager = None
         self._typewriter_manager = None
         self._notation_manager = None
+        self._sheet_manager = None
 
         self._row = row
         self._index = index
@@ -33,6 +37,7 @@ class TypewriterButtonModel():
         self._ui_manager = ui_model.get_ui_manager()
         self._typewriter_manager = ui_model.get_typewriter_manager()
         self._notation_manager = ui_model.get_notation_manager()
+        self._sheet_manager = ui_model.get_sheet_manager()
 
     def get_name(self):
         pitch = self.get_pitch()
@@ -82,6 +87,10 @@ class TypewriterButtonModel():
         if selected_control:
             note = selected_control.start_tracked_note(0, pitch)
             self._session.activate_key_with_note(self._row, self._index, note)
+
+        if self._session.get_sheet_focus():
+            trigger = Trigger('n+', unicode(pitch))
+            self._sheet_manager.insert_trigger(trigger)
 
     def stop_tracked_note(self):
         if not self._session.is_key_active(self._row, self._index):
