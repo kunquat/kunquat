@@ -15,7 +15,7 @@ class EventHistory():
 
     def __init__(self):
         self._controller = None
-        self._context_filter = set(['fire'])
+        self._context_filter = set(['fire', 'mix'])
 
     def set_controller(self, controller):
         self._controller = controller
