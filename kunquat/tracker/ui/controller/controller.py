@@ -152,6 +152,11 @@ class Controller():
     def play(self):
         self._audio_engine.nanoseconds(0)
 
+    def panic(self):
+        self._audio_engine.nanoseconds(0)
+        pause_event = ('Ipause', None)
+        self._audio_engine.fire_event(0, pause_event)
+
     def start_tracked_note(self, channel_number, control_id, pitch):
         note = self._note_channel_mapper.get_tracked_note(channel_number, False)
         self.set_active_note(note.get_channel(), control_id, pitch)
