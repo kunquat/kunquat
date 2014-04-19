@@ -210,9 +210,6 @@ class EventList(QWidget):
         v.addWidget(self._filters)
         self.setLayout(v)
 
-        if not cmdline.get_experimental():
-            self._filters.hide()
-
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._logmodel.set_ui_model(ui_model)
