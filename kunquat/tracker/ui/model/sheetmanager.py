@@ -128,4 +128,11 @@ class SheetManager():
     def get_column_width_range(self):
         return self._session.get_sheet_column_width_range()
 
+    def set_edit_mode(self, enabled):
+        self._session.set_edit_mode(enabled)
+        self._updater.signal_update(set(['signal_edit_mode']))
+
+    def get_edit_mode(self):
+        return self._session.get_edit_mode()
+
 
