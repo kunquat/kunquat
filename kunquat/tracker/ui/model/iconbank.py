@@ -23,3 +23,5 @@ class IconBank():
     def get_kunquat_logo_path(self):
         return self._share.get_kunquat_logo_path()
 
+    def get_icon_path(self, icon_name):
+        return self._share.get_icon_path(icon_name)

@@ -18,9 +18,9 @@ from PyQt4.QtGui import *
 class ZoomButton(QToolButton):
 
     INFO = {
-            'in': ('Zoom In', None, 'Ctrl + +'),
-            'out': ('Zoom Out', None, 'Ctrl + -'),
-            'original': ('Zoom to Original', None, 'Ctrl + 0'),
+            'in': ('Zoom In', 'zoom_in', 'Ctrl + +'),
+            'out': ('Zoom Out', 'zoom_out', 'Ctrl + -'),
+            'original': ('Zoom to Original', 'zoom_reset', 'Ctrl + 0'),
             'expand_w': ('Wider', None, 'Ctrl + Alt + +'),
             'shrink_w': ('Narrower', None, 'Ctrl + Alt + -'),
             'original_w': ('Original Width', None, 'Ctrl + Alt + 0'),
@@ -34,7 +34,6 @@ class ZoomButton(QToolButton):
 
         self._mode = mode
         self.setText(self._get_text(mode))
-        self.setIcon(self._get_icon(mode))
         self.setToolTip(self._get_tooltip(mode))
 
     def set_ui_model(self, ui_model):
@@ -42,6 +41,9 @@ class ZoomButton(QToolButton):
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
         self._sheet_manager = ui_model.get_sheet_manager()
+
+        icon = self._get_icon(self._mode)
+        self.setIcon(icon)
 
         self._update_enabled()
         QObject.connect(self, SIGNAL('clicked()'), self._clicked)
@@ -84,8 +86,14 @@ class ZoomButton(QToolButton):
         return ZoomButton.INFO[mode][0]
 
     def _get_icon(self, mode):
-        action = ZoomButton.INFO[mode][1]
-        return QIcon.fromTheme(action) if action else QIcon()
+        icon_name = ZoomButton.INFO[mode][1]
+        icon_bank = self._ui_model.get_icon_bank()
+        try:
+            icon_path = icon_bank.get_icon_path(icon_name)
+        except ValueError:
+            return QIcon()
+        icon = QIcon(icon_path)
+        return icon
 
     def _get_shortcut(self, mode):
         return ZoomButton.INFO[mode][2]

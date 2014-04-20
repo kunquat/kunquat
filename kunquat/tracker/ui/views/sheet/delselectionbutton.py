@@ -32,6 +32,11 @@ class DelSelectionButton(QToolButton):
         self._updater.register_updater(self._perform_updates)
         self._sheet_manager = ui_model.get_sheet_manager()
 
+        icon_bank = self._ui_model.get_icon_bank()
+        icon_path = icon_bank.get_icon_path('delete')
+        icon = QIcon(icon_path)
+        self.setIcon(icon)
+
         self._update_enabled()
         QObject.connect(self, SIGNAL('clicked()'), self._clicked)
 
