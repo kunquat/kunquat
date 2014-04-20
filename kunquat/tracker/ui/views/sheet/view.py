@@ -87,6 +87,8 @@ class View(QWidget):
             self.update()
         if 'signal_selection' in signals:
             self._follow_edit_cursor()
+        if 'signal_edit_mode' in signals:
+            self.update()
 
     def _update_all_patterns(self):
         for cr in self._col_rends:
