@@ -28,16 +28,16 @@ class Toolbar(QToolBar):
         self._rest_button = RestButton()
         self._del_selection_button = DelSelectionButton()
         self._zoom_buttons = [
-                ZoomButton('in'),
+                ZoomButton('out'),
                 ZoomButton('original'),
-                ZoomButton('out')
+                ZoomButton('in'),
             ]
 
         if cmdline.get_experimental():
             self._zoom_buttons.extend([
-                    ZoomButton('expand_w'),
-                    ZoomButton('original_w'),
                     ZoomButton('shrink_w'),
+                    ZoomButton('original_w'),
+                    ZoomButton('expand_w'),
                 ])
 
         self.addWidget(self._rest_button)
