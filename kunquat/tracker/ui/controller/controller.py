@@ -155,7 +155,7 @@ class Controller():
     def silence(self):
         self._audio_engine.nanoseconds(0)
         pause_event = ('Ipause', None)
-        self._audio_engine.fire_event(0, pause_event)
+        self._audio_engine.tfire_event(0, pause_event)
 
     def start_tracked_note(self, channel_number, control_id, pitch):
         note = self._note_channel_mapper.get_tracked_note(channel_number, False)
