@@ -29,6 +29,10 @@ class RestButton(QToolButton):
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
+        icon_bank = self._ui_model.get_icon_bank()
+        icon_path = icon_bank.get_icon_path('rest')
+        icon = QIcon(icon_path)
+        self.setIcon(icon)
         self._sheet_manager = ui_model.get_sheet_manager()
 
         QObject.connect(self, SIGNAL('clicked()'), self._clicked)

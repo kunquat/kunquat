@@ -119,4 +119,10 @@ class Share():
         path = os.path.join(self._icons_path, 'kunquat.svg')
         return path
 
-
+    def get_icon_path(self, icon_name):
+        valid_names = ['play', 'rest', 'zoom_in', 'zoom_out', 'zoom_reset', 'silence', 'delete']
+        if not icon_name in valid_names:
+            raise ValueError('invalid icon name %s' % icon_name)
+        icon_filename = '%s.png' % icon_name
+        icon_path = os.path.join(self._icons_path, icon_filename)
+        return icon_path

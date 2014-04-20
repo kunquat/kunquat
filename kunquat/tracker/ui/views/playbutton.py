@@ -23,11 +23,14 @@ class PlayButton(QToolButton):
         self._ui_model = None
 
         self.setText('Play')
-        self.setIcon(QIcon.fromTheme('media-playback-start'))
         self.setAutoRaise(True)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
+        icon_bank = self._ui_model.get_icon_bank()
+        icon_path = icon_bank.get_icon_path('play')
+        icon = QIcon(icon_path)
+        self.setIcon(icon)
         QObject.connect(self, SIGNAL('clicked()'),
                         self._ui_model.play)
 
