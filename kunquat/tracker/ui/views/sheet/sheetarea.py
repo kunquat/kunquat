@@ -289,4 +289,7 @@ class SheetArea(QAbstractScrollArea):
         vp.set_first_column(hvalue)
         vp.set_px_offset(vvalue)
 
+    def mousePressEvent(self, event):
+        self.viewport().mousePressEvent(event)
+
 

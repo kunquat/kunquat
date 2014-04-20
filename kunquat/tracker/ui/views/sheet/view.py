@@ -649,6 +649,49 @@ class View(QWidget):
         new_location = TriggerPosition(track, system, col_num, new_ts, trigger_index)
         selection.set_location(new_location)
 
+    def _select_location(self, view_x_offset, view_y_offset):
+        module = self._ui_model.get_module()
+        album = module.get_album()
+        if not album:
+            return
+        track_count = album.get_track_count()
+        songs = (album.get_song_by_track(i) for i in xrange(track_count))
+        if not songs:
+            return
+
+        # Get column number
+        col_num = self._first_col + (view_x_offset // self._col_width)
+        if col_num >= COLUMN_COUNT:
+            return
+
+        # Get pattern index
+        y_offset = self._px_offset + view_y_offset
+        pat_index = utils.get_first_visible_pat_index(y_offset, self._start_heights)
+        pat_index = min(pat_index, len(self._patterns) - 1)
+
+        # Get track and system
+        track = -1
+        system = pat_index
+        for song in songs:
+            track += 1
+            system_count = song.get_system_count()
+            if system >= system_count:
+                system -= system_count
+            else:
+                break
+        if track < 0:
+            return
+
+        # Get row timestamp
+        rel_y_offset = y_offset - self._start_heights[pat_index]
+        assert rel_y_offset >= 0
+        row_ts = utils.get_tstamp_from_px(rel_y_offset, self._px_per_beat)
+        row_ts = min(row_ts, self._patterns[pat_index].get_length())
+
+        location = TriggerPosition(track, system, col_num, row_ts, 0)
+        selection = self._ui_model.get_selection()
+        selection.set_location(location)
+
     def _insert_rest(self):
         trigger = Trigger('n-', None)
         self._sheet_manager.insert_trigger(trigger)
@@ -800,5 +843,9 @@ class View(QWidget):
     def focusOutEvent(self, ev):
         if self._visibility_manager.is_show_allowed(): # don't signal if closing
             self._sheet_manager.set_edit_mode(False)
+
+    def mousePressEvent(self, event):
+        if event.buttons() == Qt.LeftButton:
+            self._select_location(event.x(), event.y())
 
 
