@@ -26,6 +26,10 @@ class SilenceButton(QToolButton):
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
+        icon_bank = self._ui_model.get_icon_bank()
+        icon_path = icon_bank.get_icon_path('silence')
+        icon = QIcon(icon_path)
+        self.setIcon(icon)
         QObject.connect(self, SIGNAL('clicked()'), self._ui_model.silence)
 
     def unregister_updaters(self):
