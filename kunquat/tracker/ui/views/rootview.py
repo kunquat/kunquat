@@ -68,8 +68,8 @@ class RootView():
 
         for ui in closed:
             if ui == UI_MAIN:
-                self._main_window.hide()
                 visibility_manager.hide_all()
+                self._main_window.hide()
             elif ui == UI_ABOUT:
                 self._about_window.unregister_updaters()
                 self._about_window.deleteLater()
