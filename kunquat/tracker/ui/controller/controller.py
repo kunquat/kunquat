@@ -152,6 +152,14 @@ class Controller():
     def play(self):
         self._audio_engine.nanoseconds(0)
 
+    def silence(self):
+        self._audio_engine.silence()
+
+        # Note: easy way out for syncing note kills, but causes event noise
+        for ch in xrange(64): # TODO: channel count constant
+            note_off_event = ('n-', None)
+            self._audio_engine.tfire_event(ch, note_off_event)
+
     def start_tracked_note(self, channel_number, control_id, pitch):
         note = self._note_channel_mapper.get_tracked_note(channel_number, False)
         self.set_active_note(note.get_channel(), control_id, pitch)
