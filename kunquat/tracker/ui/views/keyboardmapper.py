@@ -71,10 +71,10 @@ class KeyboardMapper():
         button = self._typewriter_manager.get_button_model(row, index)
         return button
 
-    def is_octave_down(self, event):
+    def is_octave_up(self, event):
         return event.key() == Qt.Key_O and event.modifiers() == Qt.ControlModifier
 
-    def is_octave_up(self, event):
+    def is_octave_down(self, event):
         return event.key() == Qt.Key_O and (
                 event.modifiers() == (Qt.ControlModifier | Qt.ShiftModifier))
 
