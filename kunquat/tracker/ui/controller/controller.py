@@ -152,7 +152,7 @@ class Controller():
     def play(self):
         self._audio_engine.nanoseconds(0)
 
-    def panic(self):
+    def silence(self):
         self._audio_engine.nanoseconds(0)
         pause_event = ('Ipause', None)
         self._audio_engine.fire_event(0, pause_event)

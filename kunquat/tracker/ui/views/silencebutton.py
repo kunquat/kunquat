@@ -15,18 +15,18 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 
-class PanicButton(QToolButton):
+class SilenceButton(QToolButton):
 
     def __init__(self):
         QToolButton.__init__(self)
         self._ui_model = None
 
-        self.setText('Panic')
+        self.setText('Silence')
         self.setAutoRaise(True)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
-        QObject.connect(self, SIGNAL('clicked()'), self._ui_model.panic)
+        QObject.connect(self, SIGNAL('clicked()'), self._ui_model.silence)
 
     def unregister_updaters(self):
         pass
