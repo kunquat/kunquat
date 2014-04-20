@@ -42,6 +42,7 @@ class View(QWidget):
         self._updater = None
         self._sheet_manager = None
         self._notation_manager = None
+        self._visibility_manager = None
 
         self.setAutoFillBackground(False)
         self.setAttribute(Qt.WA_OpaquePaintEvent)
@@ -73,6 +74,7 @@ class View(QWidget):
         self._updater.register_updater(self._perform_updates)
         self._sheet_manager = ui_model.get_sheet_manager()
         self._notation_manager = ui_model.get_notation_manager()
+        self._visibility_manager = ui_model.get_visibility_manager()
         for cr in self._col_rends:
             cr.set_ui_model(ui_model)
 
@@ -775,7 +777,7 @@ class View(QWidget):
             painter.eraseRect(QRect(hor_trail_start, 0, width, self.height()))
 
         # Draw edit cursor
-        if self.hasFocus():
+        if self._sheet_manager.get_edit_mode():
             self._draw_edit_cursor()
 
         if pixmaps_created == 0:
@@ -791,9 +793,10 @@ class View(QWidget):
             elapsed * 1000, memory_usage / float(2**20)))
 
     def focusInEvent(self, ev):
-        self.update()
+        self._sheet_manager.set_edit_mode(True)
 
     def focusOutEvent(self, ev):
-        self.update()
+        if self._visibility_manager.is_show_allowed(): # don't signal if closing
+            self._sheet_manager.set_edit_mode(False)
 
 

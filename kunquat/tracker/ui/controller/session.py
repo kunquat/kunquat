@@ -44,6 +44,7 @@ class Session():
         self._sheet_column_width_min = 0
         self._sheet_column_width_max = 0
         self._last_column = None
+        self._edit_mode_enabled = False
 
     def get_output_speed(self):
         return self._output_speed
@@ -216,5 +217,11 @@ class Session():
 
     def get_last_column(self):
         return self._last_column
+
+    def set_edit_mode(self, enabled):
+        self._edit_mode_enabled = enabled
+
+    def get_edit_mode(self):
+        return self._edit_mode_enabled
 
 
