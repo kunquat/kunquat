@@ -153,12 +153,10 @@ class Controller():
         self._audio_engine.nanoseconds(0)
 
     def silence(self):
+        self._audio_engine.silence()
         for ch in xrange(64): # TODO: channel count constant
             note_off_event = ('n-', None)
             self._audio_engine.tfire_event(ch, note_off_event)
-        self._audio_engine.nanoseconds(0)
-        pause_event = ('Ipause', None)
-        self._audio_engine.tfire_event(0, pause_event)
 
     def start_tracked_note(self, channel_number, control_id, pitch):
         note = self._note_channel_mapper.get_tracked_note(channel_number, False)

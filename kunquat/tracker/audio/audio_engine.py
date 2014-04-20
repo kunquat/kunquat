@@ -135,6 +135,11 @@ class AudioEngine():
     def nanoseconds(self, nanos):
         self._rendering_engine.nanoseconds = nanos
 
+    def silence(self):
+        self._rendering_engine.nanoseconds = 0
+        pause_event = ('Ipause', None)
+        self.tfire_event(0, pause_event)
+
     def _average_time(self, times):
         total = sum(end - start for _, start, end in times)
         frames = sum(nframes for nframes, _, _ in times)

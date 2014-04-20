@@ -74,6 +74,9 @@ class AudioThread(MonitoringThread):
     def nanoseconds(self, nanos):
         self._q.push('nanoseconds', nanos)
 
+    def silence(self):
+        self._q.push('silence')
+
     # Thread interface
 
     def halt(self):
