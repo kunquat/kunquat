@@ -154,6 +154,8 @@ class Controller():
 
     def silence(self):
         self._audio_engine.silence()
+
+        # Note: easy way out for syncing note kills, but causes event noise
         for ch in xrange(64): # TODO: channel count constant
             note_off_event = ('n-', None)
             self._audio_engine.tfire_event(ch, note_off_event)
