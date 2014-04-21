@@ -732,6 +732,17 @@ class View(QWidget):
                 # We clicked on a trigger description
                 track, system, row_ts = tr_track, tr_system, check_ts
 
+                # If this trow is already selected, consider additional row offset
+                selection = self._ui_model.get_selection()
+                cur_location = selection.get_location()
+                if (cur_location.get_track() == tr_track and
+                        cur_location.get_system() == tr_system and
+                        cur_location.get_col_num() == col_num and
+                        cur_location.get_row_ts() == check_ts):
+                    tr_rel_x_offset = rel_x_offset + self._trow_px_offset
+                else:
+                    tr_rel_x_offset = rel_x_offset
+
                 # Get trigger index
                 trigger_count = column.get_trigger_count_at_row(check_ts)
                 triggers = (column.get_trigger(check_ts, i)
@@ -744,7 +755,7 @@ class View(QWidget):
                 tr_trigger_index = 0
                 for width in widths:
                     tr_init_width += width
-                    if tr_init_width >= rel_x_offset:
+                    if tr_init_width >= tr_rel_x_offset:
                         break
                     tr_trigger_index += 1
                 trigger_index = tr_trigger_index
