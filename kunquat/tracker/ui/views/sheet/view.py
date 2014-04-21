@@ -663,6 +663,7 @@ class View(QWidget):
         col_num = self._first_col + (view_x_offset // self._col_width)
         if col_num >= COLUMN_COUNT:
             return
+        rel_x_offset = view_x_offset % self._col_width
 
         # Get pattern index
         y_offset = self._px_offset + view_y_offset
@@ -730,7 +731,25 @@ class View(QWidget):
             if trow_tstamps:
                 # We clicked on a trigger description
                 track, system, row_ts = tr_track, tr_system, check_ts
-                # TODO: Get trigger index
+
+                # Get trigger index
+                trigger_count = column.get_trigger_count_at_row(check_ts)
+                triggers = (column.get_trigger(check_ts, i)
+                        for i in xrange(trigger_count))
+                notation = self._notation_manager.get_notation()
+                rends = (TriggerRenderer(self._config, trigger, notation)
+                        for trigger in triggers)
+                widths = [r.get_total_width() for r in rends]
+                tr_init_width = 0
+                tr_trigger_index = 0
+                for width in widths:
+                    tr_init_width += width
+                    if tr_init_width >= rel_x_offset:
+                        break
+                    tr_trigger_index += 1
+                trigger_index = tr_trigger_index
+                assert trigger_index <= trigger_count
+
                 break
 
             # Check previous system
