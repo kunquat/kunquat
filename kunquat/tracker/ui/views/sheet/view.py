@@ -649,6 +649,28 @@ class View(QWidget):
         new_location = TriggerPosition(track, system, col_num, new_ts, trigger_index)
         selection.set_location(new_location)
 
+    def _get_trigger_index(self, column, row_ts, x_offset):
+        if not column.has_trigger(row_ts, 0):
+            return -1
+
+        trigger_count = column.get_trigger_count_at_row(row_ts)
+        triggers = (column.get_trigger(row_ts, i)
+                for i in xrange(trigger_count))
+        notation = self._notation_manager.get_notation()
+        rends = (TriggerRenderer(self._config, trigger, notation)
+                for trigger in triggers)
+        widths = [r.get_total_width() for r in rends]
+        init_width = 0
+        trigger_index = 0
+        for width in widths:
+            init_width += width
+            if init_width >= x_offset:
+                break
+            trigger_index += 1
+        assert trigger_index <= trigger_count
+
+        return trigger_index
+
     def _select_location(self, view_x_offset, view_y_offset):
         module = self._ui_model.get_module()
         album = module.get_album()
@@ -689,6 +711,10 @@ class View(QWidget):
         row_ts = utils.get_tstamp_from_px(rel_y_offset, self._px_per_beat)
         row_ts = min(row_ts, self._patterns[pat_index].get_length())
 
+        # Get current selection info
+        selection = self._ui_model.get_selection()
+        cur_location = selection.get_location()
+
         # Get trigger index
         trigger_index = 0
 
@@ -725,16 +751,29 @@ class View(QWidget):
             y_dist = tr_rel_y_offset - check_y_offset
             assert y_dist >= 0
             is_close_enough = (y_dist < self._config['tr_height'] - 1)
-
             if not is_close_enough:
                 break
-            if trow_tstamps:
-                # We clicked on a trigger description
-                track, system, row_ts = tr_track, tr_system, check_ts
 
+            # Override check location if we clicked on a currently overlaid trigger
+            if (cur_location.get_track() == tr_track and
+                    cur_location.get_system() == tr_system and
+                    cur_location.get_col_num() == col_num and
+                    cur_location.get_row_ts() <= check_ts):
+                cur_ts = cur_location.get_row_ts()
+                cur_y_offset = utils.get_px_from_tstamp(cur_ts, self._px_per_beat)
+                cur_y_dist = tr_rel_y_offset - cur_y_offset
+
+                if cur_y_dist >= 0 and cur_y_dist < self._config['tr_height'] - 1:
+                    tr_rel_x_offset = rel_x_offset + self._trow_px_offset
+                    new_trigger_index = self._get_trigger_index(
+                            column, cur_ts, tr_rel_x_offset)
+                    if new_trigger_index >= 0:
+                        trigger_index = new_trigger_index
+                        track, system, row_ts = tr_track, tr_system, cur_ts
+                        break
+
+            if trow_tstamps:
                 # If this trow is already selected, consider additional row offset
-                selection = self._ui_model.get_selection()
-                cur_location = selection.get_location()
                 if (cur_location.get_track() == tr_track and
                         cur_location.get_system() == tr_system and
                         cur_location.get_col_num() == col_num and
@@ -744,24 +783,12 @@ class View(QWidget):
                     tr_rel_x_offset = rel_x_offset
 
                 # Get trigger index
-                trigger_count = column.get_trigger_count_at_row(check_ts)
-                triggers = (column.get_trigger(check_ts, i)
-                        for i in xrange(trigger_count))
-                notation = self._notation_manager.get_notation()
-                rends = (TriggerRenderer(self._config, trigger, notation)
-                        for trigger in triggers)
-                widths = [r.get_total_width() for r in rends]
-                tr_init_width = 0
-                tr_trigger_index = 0
-                for width in widths:
-                    tr_init_width += width
-                    if tr_init_width >= tr_rel_x_offset:
-                        break
-                    tr_trigger_index += 1
-                trigger_index = tr_trigger_index
-                assert trigger_index <= trigger_count
-
-                break
+                new_trigger_index = self._get_trigger_index(
+                        column, check_ts, tr_rel_x_offset)
+                if new_trigger_index >= 0:
+                    trigger_index = new_trigger_index
+                    track, system, row_ts = tr_track, tr_system, check_ts
+                    break
 
             # Check previous system
             tr_pat_index -= 1
@@ -775,7 +802,6 @@ class View(QWidget):
                 tr_system = song.get_system_count() - 1
 
         location = TriggerPosition(track, system, col_num, row_ts, trigger_index)
-        selection = self._ui_model.get_selection()
         selection.set_location(location)
         self._target_trigger_index = trigger_index
 
