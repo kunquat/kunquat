@@ -720,6 +720,7 @@ class View(QWidget):
         # Get current selection info
         selection = self._ui_model.get_selection()
         cur_location = selection.get_location()
+        cur_column = self._sheet_manager.get_column_at_location(cur_location)
 
         # Select a trigger if its description overlaps with the mouse cursor
         trigger_index = 0
@@ -759,7 +760,8 @@ class View(QWidget):
                 break
 
             # Override check location if we clicked on a currently overlaid trigger
-            if (cur_location.get_track() <= tr_track and
+            if (cur_column and
+                    cur_location.get_track() <= tr_track and
                     cur_location.get_col_num() == col_num):
                 # Get current location offset
                 cur_track = cur_location.get_track()
@@ -777,7 +779,7 @@ class View(QWidget):
                 if cur_y_dist >= 0 and cur_y_dist < self._config['tr_height'] - 1:
                     tr_rel_x_offset = rel_x_offset + self._trow_px_offset
                     new_trigger_index = self._get_trigger_index(
-                            column, cur_ts, tr_rel_x_offset)
+                            cur_column, cur_ts, tr_rel_x_offset)
                     if new_trigger_index >= 0:
                         trigger_index = new_trigger_index
                         track, system, row_ts = cur_track, cur_system, cur_ts
