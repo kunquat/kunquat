@@ -580,6 +580,9 @@ class View(QWidget):
                 system = new_system
                 row_ts = new_ts
 
+                location = TriggerPosition(
+                        track, system, col_num, row_ts, trigger_index)
+
         cur_column = self._sheet_manager.get_column_at_location(location)
 
         # Get default trigger tstamp on the current pixel position
