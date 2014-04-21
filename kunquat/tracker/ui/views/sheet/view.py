@@ -715,10 +715,8 @@ class View(QWidget):
         selection = self._ui_model.get_selection()
         cur_location = selection.get_location()
 
-        # Get trigger index
-        trigger_index = 0
-
         # Select a trigger if its description overlaps with the mouse cursor
+        trigger_index = 0
         tr_track, tr_system = track, system
         tr_pat_index = pat_index
         while tr_pat_index >= 0:
@@ -755,13 +753,20 @@ class View(QWidget):
                 break
 
             # Override check location if we clicked on a currently overlaid trigger
-            if (cur_location.get_track() == tr_track and
-                    cur_location.get_system() == tr_system and
-                    cur_location.get_col_num() == col_num and
-                    cur_location.get_row_ts() <= check_ts):
+            if (cur_location.get_track() <= tr_track and
+                    cur_location.get_col_num() == col_num):
+                # Get current location offset
+                cur_track = cur_location.get_track()
+                cur_system = cur_location.get_system()
+                cur_pat_index = utils.get_pattern_index_at_location(
+                        self._ui_model, cur_track, cur_system)
+
                 cur_ts = cur_location.get_row_ts()
-                cur_y_offset = utils.get_px_from_tstamp(cur_ts, self._px_per_beat)
-                cur_y_dist = tr_rel_y_offset - cur_y_offset
+                cur_pat_y_offset = utils.get_px_from_tstamp(cur_ts, self._px_per_beat)
+                cur_y_offset = self._start_heights[cur_pat_index] + cur_pat_y_offset
+
+                tr_y_offset = self._start_heights[pat_index] + tr_rel_y_offset
+                cur_y_dist = tr_y_offset - cur_y_offset
 
                 if cur_y_dist >= 0 and cur_y_dist < self._config['tr_height'] - 1:
                     tr_rel_x_offset = rel_x_offset + self._trow_px_offset
@@ -769,7 +774,7 @@ class View(QWidget):
                             column, cur_ts, tr_rel_x_offset)
                     if new_trigger_index >= 0:
                         trigger_index = new_trigger_index
-                        track, system, row_ts = tr_track, tr_system, cur_ts
+                        track, system, row_ts = cur_track, cur_system, cur_ts
                         break
 
             if trow_tstamps:

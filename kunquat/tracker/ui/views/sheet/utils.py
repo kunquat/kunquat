@@ -22,24 +22,35 @@ import kunquat.tracker.ui.model.tstamp as tstamp
 
 # Model utils
 
-def get_all_patterns(ui_model):
+def get_all_patterns_with_locations(ui_model):
     module = ui_model.get_module()
 
     album = module.get_album()
     if not album:
-        all_patterns = []
-    else:
-        track_count = album.get_track_count()
-        songs = (album.get_song_by_track(i) for i in xrange(track_count))
-        all_patterns = []
-        for song in songs:
-            system_count = song.get_system_count()
-            pattern_instances = (song.get_pattern_instance(i)
-                    for i in xrange(system_count))
-            patterns = (pinst.get_pattern() for pinst in pattern_instances)
-            all_patterns.extend(patterns)
+        return
 
-    return all_patterns
+    track_count = album.get_track_count()
+    songs = (album.get_song_by_track(i) for i in xrange(track_count))
+    for track, song in enumerate(songs):
+        system_count = song.get_system_count()
+        pattern_instances = (song.get_pattern_instance(i)
+                for i in xrange(system_count))
+        patterns = (pinst.get_pattern() for pinst in pattern_instances)
+        for system, pattern in enumerate(patterns):
+            yield (track, system), pattern
+
+    return
+
+def get_all_patterns(ui_model):
+    return [info[1] for info in get_all_patterns_with_locations(ui_model)]
+
+def get_pattern_index_at_location(ui_model, track, system):
+    for index, info in enumerate(get_all_patterns_with_locations(ui_model)):
+        loc, _ = info
+        cur_track, cur_system = loc
+        if track == cur_track and system == cur_system:
+            return index
+    return None
 
 
 # Column view utils
