@@ -691,6 +691,59 @@ class View(QWidget):
         # Get trigger index
         trigger_index = 0
 
+        # Select a trigger if its description overlaps with the mouse cursor
+        tr_track, tr_system = track, system
+        tr_pat_index = pat_index
+        while tr_pat_index >= 0:
+            tr_location = TriggerPosition(
+                    tr_track, tr_system, col_num, tstamp.Tstamp(0), 0)
+            column = self._sheet_manager.get_column_at_location(tr_location)
+            if not column:
+                break
+
+            # Get range for checking
+            start_ts = tstamp.Tstamp(0)
+            if tr_pat_index == pat_index:
+                stop_ts = row_ts
+                tr_rel_y_offset = rel_y_offset
+            else:
+                stop_ts = self._patterns[tr_pat_index].get_length()
+                tr_rel_y_offset = self._heights[tr_pat_index] + rel_y_offset - 1
+            stop_ts += tstamp.Tstamp(0, 1)
+
+            # Get check location
+            trow_tstamps = column.get_trigger_row_positions_in_range(
+                    start_ts, stop_ts)
+            if trow_tstamps:
+                check_ts = max(trow_tstamps)
+            else:
+                check_ts = tstamp.Tstamp(0)
+
+            # Get pixel distance to the click position
+            check_y_offset = utils.get_px_from_tstamp(check_ts, self._px_per_beat)
+            y_dist = tr_rel_y_offset - check_y_offset
+            assert y_dist >= 0
+            is_close_enough = (y_dist < self._config['tr_height'] - 1)
+
+            if not is_close_enough:
+                break
+            if trow_tstamps:
+                # We clicked on a trigger description
+                track, system, row_ts = tr_track, tr_system, check_ts
+                # TODO: Get trigger index
+                break
+
+            # Check previous system
+            tr_pat_index -= 1
+            tr_system -= 1
+            while tr_system < 0:
+                tr_track -= 1
+                if tr_track < 0:
+                    assert tr_pat_index < 0
+                    break
+                song = album.get_song_by_track(tr_track)
+                tr_system = song.get_system_count() - 1
+
         location = TriggerPosition(track, system, col_num, row_ts, trigger_index)
         selection = self._ui_model.get_selection()
         selection.set_location(location)
