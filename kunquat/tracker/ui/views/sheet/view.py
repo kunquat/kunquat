@@ -688,9 +688,13 @@ class View(QWidget):
         row_ts = utils.get_tstamp_from_px(rel_y_offset, self._px_per_beat)
         row_ts = min(row_ts, self._patterns[pat_index].get_length())
 
-        location = TriggerPosition(track, system, col_num, row_ts, 0)
+        # Get trigger index
+        trigger_index = 0
+
+        location = TriggerPosition(track, system, col_num, row_ts, trigger_index)
         selection = self._ui_model.get_selection()
         selection.set_location(location)
+        self._target_trigger_index = trigger_index
 
     def _insert_rest(self):
         trigger = Trigger('n-', None)
