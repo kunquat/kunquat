@@ -667,8 +667,14 @@ class View(QWidget):
             if init_width >= x_offset:
                 break
             trigger_index += 1
-        assert trigger_index <= trigger_count
+        else:
+            hollow_rect = self._get_hollow_cursor_rect()
+            dist_from_last = x_offset - init_width
+            trigger_padding = self._config['trigger']['padding']
+            if dist_from_last > hollow_rect.width() + trigger_padding:
+                return -1
 
+        assert trigger_index <= trigger_count
         return trigger_index
 
     def _select_location(self, view_x_offset, view_y_offset):
