@@ -580,6 +580,9 @@ class View(QWidget):
                 system = new_system
                 row_ts = new_ts
 
+                location = TriggerPosition(
+                        track, system, col_num, row_ts, trigger_index)
+
         cur_column = self._sheet_manager.get_column_at_location(location)
 
         # Get default trigger tstamp on the current pixel position
@@ -648,6 +651,175 @@ class View(QWidget):
                 cur_column, new_ts, self._target_trigger_index)
         new_location = TriggerPosition(track, system, col_num, new_ts, trigger_index)
         selection.set_location(new_location)
+
+    def _get_trigger_index(self, column, row_ts, x_offset):
+        if not column.has_trigger(row_ts, 0):
+            return -1
+
+        trigger_count = column.get_trigger_count_at_row(row_ts)
+        triggers = (column.get_trigger(row_ts, i)
+                for i in xrange(trigger_count))
+        notation = self._notation_manager.get_notation()
+        rends = (TriggerRenderer(self._config, trigger, notation)
+                for trigger in triggers)
+        widths = [r.get_total_width() for r in rends]
+        init_width = 0
+        trigger_index = 0
+        for width in widths:
+            init_width += width
+            if init_width >= x_offset:
+                break
+            trigger_index += 1
+        else:
+            hollow_rect = self._get_hollow_cursor_rect()
+            dist_from_last = x_offset - init_width
+            trigger_padding = self._config['trigger']['padding']
+            if dist_from_last > hollow_rect.width() + trigger_padding:
+                return -1
+
+        assert trigger_index <= trigger_count
+        return trigger_index
+
+    def _select_location(self, view_x_offset, view_y_offset):
+        module = self._ui_model.get_module()
+        album = module.get_album()
+        if not album:
+            return
+        track_count = album.get_track_count()
+        songs = (album.get_song_by_track(i) for i in xrange(track_count))
+        if not songs:
+            return
+
+        # Get column number
+        col_num = self._first_col + (view_x_offset // self._col_width)
+        if col_num >= COLUMN_COUNT:
+            return
+        rel_x_offset = view_x_offset % self._col_width
+
+        # Get pattern index
+        y_offset = self._px_offset + view_y_offset
+        pat_index = utils.get_first_visible_pat_index(y_offset, self._start_heights)
+        pat_index = min(pat_index, len(self._patterns) - 1)
+
+        # Get track and system
+        track = -1
+        system = pat_index
+        for song in songs:
+            track += 1
+            system_count = song.get_system_count()
+            if system >= system_count:
+                system -= system_count
+            else:
+                break
+        if track < 0:
+            return
+
+        # Get row timestamp
+        rel_y_offset = y_offset - self._start_heights[pat_index]
+        assert rel_y_offset >= 0
+        row_ts = utils.get_tstamp_from_px(rel_y_offset, self._px_per_beat)
+        row_ts = min(row_ts, self._patterns[pat_index].get_length())
+
+        # Get current selection info
+        selection = self._ui_model.get_selection()
+        cur_location = selection.get_location()
+        cur_column = self._sheet_manager.get_column_at_location(cur_location)
+
+        # Select a trigger if its description overlaps with the mouse cursor
+        trigger_index = 0
+        tr_track, tr_system = track, system
+        tr_pat_index = pat_index
+        while tr_pat_index >= 0:
+            tr_location = TriggerPosition(
+                    tr_track, tr_system, col_num, tstamp.Tstamp(0), 0)
+            column = self._sheet_manager.get_column_at_location(tr_location)
+            if not column:
+                break
+
+            # Get range for checking
+            start_ts = tstamp.Tstamp(0)
+            if tr_pat_index == pat_index:
+                stop_ts = row_ts
+                tr_rel_y_offset = rel_y_offset
+            else:
+                stop_ts = self._patterns[tr_pat_index].get_length()
+                tr_rel_y_offset = self._heights[tr_pat_index] + rel_y_offset - 1
+            stop_ts += tstamp.Tstamp(0, 1)
+
+            # Get check location
+            trow_tstamps = column.get_trigger_row_positions_in_range(
+                    start_ts, stop_ts)
+            if trow_tstamps:
+                check_ts = max(trow_tstamps)
+            else:
+                check_ts = tstamp.Tstamp(0)
+
+            # Get pixel distance to the click position
+            check_y_offset = utils.get_px_from_tstamp(check_ts, self._px_per_beat)
+            y_dist = tr_rel_y_offset - check_y_offset
+            assert y_dist >= 0
+            is_close_enough = (y_dist < self._config['tr_height'] - 1)
+            if not is_close_enough:
+                break
+
+            # Override check location if we clicked on a currently overlaid trigger
+            if (cur_column and
+                    cur_location.get_track() <= tr_track and
+                    cur_location.get_col_num() == col_num):
+                # Get current location offset
+                cur_track = cur_location.get_track()
+                cur_system = cur_location.get_system()
+                cur_pat_index = utils.get_pattern_index_at_location(
+                        self._ui_model, cur_track, cur_system)
+
+                cur_ts = cur_location.get_row_ts()
+                cur_pat_y_offset = utils.get_px_from_tstamp(cur_ts, self._px_per_beat)
+                cur_y_offset = self._start_heights[cur_pat_index] + cur_pat_y_offset
+
+                tr_y_offset = self._start_heights[pat_index] + tr_rel_y_offset
+                cur_y_dist = tr_y_offset - cur_y_offset
+
+                if cur_y_dist >= 0 and cur_y_dist < self._config['tr_height'] - 1:
+                    tr_rel_x_offset = rel_x_offset + self._trow_px_offset
+                    new_trigger_index = self._get_trigger_index(
+                            cur_column, cur_ts, tr_rel_x_offset)
+                    if new_trigger_index >= 0:
+                        trigger_index = new_trigger_index
+                        track, system, row_ts = cur_track, cur_system, cur_ts
+                        break
+
+            if trow_tstamps:
+                # If this trow is already selected, consider additional row offset
+                if (cur_location.get_track() == tr_track and
+                        cur_location.get_system() == tr_system and
+                        cur_location.get_col_num() == col_num and
+                        cur_location.get_row_ts() == check_ts):
+                    tr_rel_x_offset = rel_x_offset + self._trow_px_offset
+                else:
+                    tr_rel_x_offset = rel_x_offset
+
+                # Get trigger index
+                new_trigger_index = self._get_trigger_index(
+                        column, check_ts, tr_rel_x_offset)
+                if new_trigger_index >= 0:
+                    trigger_index = new_trigger_index
+                    track, system, row_ts = tr_track, tr_system, check_ts
+                    break
+
+            # Check previous system
+            tr_pat_index -= 1
+            tr_system -= 1
+            while tr_system < 0:
+                tr_track -= 1
+                if tr_track < 0:
+                    assert tr_pat_index < 0
+                    break
+                song = album.get_song_by_track(tr_track)
+                tr_system = song.get_system_count() - 1
+
+        location = TriggerPosition(track, system, col_num, row_ts, trigger_index)
+        selection.set_location(location)
+        self._target_trigger_index = trigger_index
 
     def _insert_rest(self):
         trigger = Trigger('n-', None)
@@ -800,5 +972,9 @@ class View(QWidget):
     def focusOutEvent(self, ev):
         if self._visibility_manager.is_show_allowed(): # don't signal if closing
             self._sheet_manager.set_edit_mode(False)
+
+    def mousePressEvent(self, event):
+        if event.buttons() == Qt.LeftButton:
+            self._select_location(event.x(), event.y())
 
 
