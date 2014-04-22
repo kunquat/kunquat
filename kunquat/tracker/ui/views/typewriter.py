@@ -25,7 +25,7 @@ class Typewriter(QFrame):
 
     def __init__(self):
         QFrame.__init__(self)
-        self.setFocusPolicy(Qt.StrongFocus)
+        self.setFocusPolicy(Qt.NoFocus)
         self._ui_model = None
         self._updater = None
         self._typewriter_manager = None
