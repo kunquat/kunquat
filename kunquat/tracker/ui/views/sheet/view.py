@@ -23,6 +23,7 @@ import kunquat.tracker.cmdline as cmdline
 import kunquat.tracker.ui.model.tstamp as tstamp
 from kunquat.tracker.ui.model.trigger import Trigger
 from kunquat.tracker.ui.model.triggerposition import TriggerPosition
+from kunquat.tracker.ui.views.keyboardmapper import KeyboardMapper
 from config import *
 import utils
 from columngrouprenderer import ColumnGroupRenderer
@@ -43,6 +44,7 @@ class View(QWidget):
         self._sheet_manager = None
         self._notation_manager = None
         self._visibility_manager = None
+        self._keyboard_mapper = KeyboardMapper()
 
         self.setAutoFillBackground(False)
         self.setAttribute(Qt.WA_OpaquePaintEvent)
@@ -75,6 +77,8 @@ class View(QWidget):
         self._sheet_manager = ui_model.get_sheet_manager()
         self._notation_manager = ui_model.get_notation_manager()
         self._visibility_manager = ui_model.get_visibility_manager()
+
+        self._keyboard_mapper.set_ui_model(ui_model)
         for cr in self._col_rends:
             cr.set_ui_model(ui_model)
 
@@ -834,6 +838,9 @@ class View(QWidget):
         return QWidget.event(self, ev)
 
     def keyPressEvent(self, ev):
+        if self._keyboard_mapper.process_typewriter_button_event(ev):
+            return
+
         if ev.modifiers() == Qt.NoModifier:
             if ev.key() == Qt.Key_Up:
                 self._vertical_move_state.press_up()
@@ -885,6 +892,9 @@ class View(QWidget):
                     self._sheet_manager.set_column_width(0)
 
     def keyReleaseEvent(self, ev):
+        if self._keyboard_mapper.process_typewriter_button_event(ev):
+            return
+
         if ev.isAutoRepeat():
             return
 
