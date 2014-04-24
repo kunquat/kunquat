@@ -27,6 +27,7 @@ class OctaveButton(QPushButton):
 
         self.setCheckable(True)
         self.setFixedSize(QSize(60, 30))
+        self.setToolTip('Select octave (Ctrl + O: next, Ctrl + Shift + O: previous)')
         layout = QHBoxLayout(self)
         octavename = QLabel()
         self._octavename = octavename
