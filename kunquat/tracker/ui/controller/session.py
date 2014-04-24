@@ -45,6 +45,7 @@ class Session():
         self._sheet_column_width_max = 0
         self._last_column = None
         self._edit_mode_enabled = False
+        self._typewriter_connected = False
 
     def get_output_speed(self):
         return self._output_speed
@@ -223,5 +224,11 @@ class Session():
 
     def get_edit_mode(self):
         return self._edit_mode_enabled
+
+    def set_typewriter_connected(self, connected):
+        self._typewriter_connected = connected
+
+    def get_typewriter_connected(self):
+        return self._typewriter_connected
 
 

@@ -49,6 +49,9 @@ class SheetManager():
         return None
 
     def insert_trigger(self, trigger):
+        if not self.is_editing_enabled():
+            return
+
         selection = self._ui_model.get_selection()
         location = selection.get_location()
         if not location:
@@ -71,6 +74,9 @@ class SheetManager():
         self._on_column_update()
 
     def try_remove_trigger(self):
+        if not self.is_editing_enabled():
+            return
+
         selection = self._ui_model.get_selection()
         location = selection.get_location()
         if not location:
@@ -134,5 +140,15 @@ class SheetManager():
 
     def get_edit_mode(self):
         return self._session.get_edit_mode()
+
+    def set_typewriter_connected(self, connected):
+        self._session.set_typewriter_connected(connected)
+        self._updater.signal_update(set(['signal_edit_mode']))
+
+    def get_typewriter_connected(self):
+        return self._session.get_typewriter_connected()
+
+    def is_editing_enabled(self):
+        return self.get_edit_mode() and self.get_typewriter_connected()
 
 

@@ -88,7 +88,7 @@ class TypewriterButtonModel():
             note = selected_control.start_tracked_note(0, pitch)
             self._session.activate_key_with_note(self._row, self._index, note)
 
-        if self._sheet_manager.get_edit_mode():
+        if self._sheet_manager.is_editing_enabled():
             trigger = Trigger('n+', unicode(pitch))
             self._sheet_manager.insert_trigger(trigger)
 

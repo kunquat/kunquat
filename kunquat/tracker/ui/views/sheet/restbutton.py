@@ -50,7 +50,7 @@ class RestButton(QToolButton):
             self._update_enabled()
 
     def _update_enabled(self):
-        if not self._sheet_manager.get_edit_mode():
+        if not self._sheet_manager.is_editing_enabled():
             self.setEnabled(False)
             return
 
