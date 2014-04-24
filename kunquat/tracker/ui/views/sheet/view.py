@@ -864,6 +864,9 @@ class View(QWidget):
                 self._insert_rest()
             elif ev.key() == Qt.Key_Delete:
                 self._try_delete_selection()
+            elif ev.key() == Qt.Key_Space:
+                connected = self._sheet_manager.get_typewriter_connected()
+                self._sheet_manager.set_typewriter_connected(not connected)
 
         if ev.key() == Qt.Key_Tab:
             self._move_edit_cursor_column(1)
