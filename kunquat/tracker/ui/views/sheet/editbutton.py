@@ -48,10 +48,10 @@ class EditButton(QToolButton):
             self._update_checked()
 
     def _update_checked(self):
-        self.blockSignals(True)
+        old_block = self.blockSignals(True)
         is_checked = self._sheet_manager.get_typewriter_connected()
         self.setChecked(is_checked)
-        self.blockSignals(False)
+        self.blockSignals(old_block)
 
     def _clicked(self):
         self._sheet_manager.set_typewriter_connected(self.isChecked())
