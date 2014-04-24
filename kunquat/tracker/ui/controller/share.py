@@ -120,7 +120,16 @@ class Share():
         return path
 
     def get_icon_path(self, icon_name):
-        valid_names = ['play', 'rest', 'zoom_in', 'zoom_out', 'zoom_reset', 'silence', 'delete']
+        valid_names = [
+                'play',
+                'silence',
+                'edit',
+                'delete',
+                'rest',
+                'zoom_in',
+                'zoom_out',
+                'zoom_reset',
+            ]
         if not icon_name in valid_names:
             raise ValueError('invalid icon name %s' % icon_name)
         icon_filename = '%s.png' % icon_name
