@@ -34,8 +34,6 @@ class MainSplitter(QSplitter):
         v.addWidget(self._typewriter_panel)
         self.setLayout(v)
 
-        self._typewriter_panel.setFocus()
-
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._composition.set_ui_model(ui_model)
