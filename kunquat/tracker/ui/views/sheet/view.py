@@ -82,6 +82,8 @@ class View(QWidget):
         for cr in self._col_rends:
             cr.set_ui_model(ui_model)
 
+        self.setFocus()
+
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
 
