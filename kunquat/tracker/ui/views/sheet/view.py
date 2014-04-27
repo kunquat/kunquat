@@ -91,6 +91,11 @@ class View(QWidget):
         if 'signal_module' in signals:
             self._update_all_patterns()
             self.update()
+        if 'signal_column' in signals:
+            self._update_all_patterns()
+            if 'signal_column_insert' in signals:
+                self._update_target_trigger_index_on_insert()
+            self.update()
         if 'signal_selection' in signals:
             self._follow_edit_cursor()
         if 'signal_edit_mode' in signals:
@@ -850,6 +855,12 @@ class View(QWidget):
         if trigger_index > 0:
             self._move_edit_cursor_trigger_index(trigger_index - 1)
             self._try_delete_selection()
+
+    def _update_target_trigger_index_on_insert(self):
+        selection = self._ui_model.get_selection()
+        location = selection.get_location()
+        self._target_trigger_index = min(
+                self._target_trigger_index, max(0, location.get_trigger_index() - 1))
 
     def event(self, ev):
         if ev.type() == QEvent.KeyPress and ev.key() in (Qt.Key_Tab, Qt.Key_Backtab):

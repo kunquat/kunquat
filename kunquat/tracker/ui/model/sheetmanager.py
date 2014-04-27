@@ -74,6 +74,7 @@ class SheetManager():
                 new_trigger_index)
         selection.set_location(new_location)
 
+        self._updater.signal_update(set(['signal_column_insert']))
         self._on_column_update()
 
     def try_remove_trigger(self):
@@ -94,7 +95,7 @@ class SheetManager():
             self._on_column_update()
 
     def _on_column_update(self):
-        self._updater.signal_update(set(['signal_module']))
+        self._updater.signal_update(set(['signal_column']))
 
         # Clear cached column data
         self._session.set_last_column(None)
