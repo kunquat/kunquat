@@ -834,6 +834,22 @@ class View(QWidget):
     def _try_delete_selection(self):
         self._sheet_manager.try_remove_trigger()
 
+    def _perform_backspace(self):
+        if not self._sheet_manager.is_editing_enabled():
+            return
+
+        module = self._ui_model.get_module()
+        album = module.get_album()
+        if not album or album.get_track_count() == 0:
+            return
+
+        selection = self._ui_model.get_selection()
+        location = selection.get_location()
+        trigger_index = location.get_trigger_index()
+        if trigger_index > 0:
+            self._move_edit_cursor_trigger_index(trigger_index - 1)
+            self._try_delete_selection()
+
     def event(self, ev):
         if ev.type() == QEvent.KeyPress and ev.key() in (Qt.Key_Tab, Qt.Key_Backtab):
             return self.keyPressEvent(ev) or False
@@ -866,6 +882,8 @@ class View(QWidget):
                 self._insert_rest()
             elif ev.key() == Qt.Key_Delete:
                 self._try_delete_selection()
+            elif ev.key() == Qt.Key_Backspace:
+                self._perform_backspace()
             elif ev.key() == Qt.Key_Space:
                 if not ev.isAutoRepeat():
                     connected = self._sheet_manager.get_typewriter_connected()
