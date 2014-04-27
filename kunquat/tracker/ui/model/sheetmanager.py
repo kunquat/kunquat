@@ -63,12 +63,15 @@ class SheetManager():
 
         cur_column.insert_trigger(row_ts, index, trigger)
 
+        new_trigger_count = cur_column.get_trigger_count_at_row(row_ts)
+        new_trigger_index = min(new_trigger_count, location.get_trigger_index() + 1)
+
         new_location = TriggerPosition(
                 location.get_track(),
                 location.get_system(),
                 location.get_col_num(),
                 location.get_row_ts(),
-                location.get_trigger_index() + 1)
+                new_trigger_index)
         selection.set_location(new_location)
 
         self._on_column_update()
