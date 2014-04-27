@@ -544,7 +544,6 @@ class View(QWidget):
         trigger_index = location.get_trigger_index()
 
         new_col_num = min(max(0, col_num + delta), COLUMN_COUNT - 1)
-
         new_location = TriggerPosition(
                 track, system, new_col_num, row_ts, trigger_index)
         selection.set_location(new_location)
