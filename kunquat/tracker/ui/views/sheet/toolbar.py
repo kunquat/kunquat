@@ -44,7 +44,8 @@ class Toolbar(QToolBar):
 
         self.addWidget(self._edit_button)
         self.addWidget(self._rest_button)
-        self.addWidget(self._del_selection_button)
+        if cmdline.get_experimental():
+            self.addWidget(self._del_selection_button)
         self.addSeparator()
         for button in self._zoom_buttons:
             self.addWidget(button)
