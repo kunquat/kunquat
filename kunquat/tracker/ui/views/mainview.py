@@ -40,8 +40,6 @@ class MainView(QWidget):
         v.addWidget(self._peak_meter)
         self.setLayout(v)
 
-        self._main_splitter.setFocus()
-
         if not cmdline.get_experimental():
             self._import_progress.hide()
 
