@@ -44,7 +44,8 @@ class DelSelectionButton(QToolButton):
         self._updater.unregister_updater(self._perform_updates)
 
     def _perform_updates(self, signals):
-        update_signals = set(['signal_selection', 'signal_module', 'signal_edit_mode'])
+        update_signals = set([
+            'signal_selection', 'signal_module', 'signal_column', 'signal_edit_mode'])
         if not signals.isdisjoint(update_signals):
             self._update_enabled()
 
