@@ -691,8 +691,12 @@ class View(QWidget):
         init_width = 0
         trigger_index = 0
         for width in widths:
+            prev_init_width = init_width
             init_width += width
             if init_width >= x_offset:
+                if True: # TODO: if insert mode
+                    if (init_width - x_offset) < (x_offset - prev_init_width):
+                        trigger_index += 1
                 break
             trigger_index += 1
         else:
