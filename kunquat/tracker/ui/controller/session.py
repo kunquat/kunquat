@@ -46,6 +46,7 @@ class Session():
         self._last_column = None
         self._edit_mode_enabled = False
         self._typewriter_connected = False
+        self._replace_mode_enabled = False
 
     def get_output_speed(self):
         return self._output_speed
@@ -230,5 +231,11 @@ class Session():
 
     def get_typewriter_connected(self):
         return self._typewriter_connected
+
+    def set_replace_mode(self, enabled):
+        self._replace_mode_enabled = enabled
+
+    def get_replace_mode(self):
+        return self._replace_mode_enabled
 
 
