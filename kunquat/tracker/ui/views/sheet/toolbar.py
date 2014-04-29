@@ -16,6 +16,7 @@ from PyQt4.QtGui import *
 
 import kunquat.tracker.cmdline as cmdline
 from editbutton import EditButton
+from replacebutton import ReplaceButton
 from restbutton import RestButton
 from delselectionbutton import DelSelectionButton
 from zoombutton import ZoomButton
@@ -27,6 +28,7 @@ class Toolbar(QToolBar):
         QToolBar.__init__(self)
         self._ui_model = None
         self._edit_button = EditButton()
+        self._replace_button = ReplaceButton()
         self._rest_button = RestButton()
         self._del_selection_button = DelSelectionButton()
         self._zoom_buttons = [
@@ -43,6 +45,8 @@ class Toolbar(QToolBar):
                 ])
 
         self.addWidget(self._edit_button)
+        self.addWidget(self._replace_button)
+        self.addSeparator()
         self.addWidget(self._rest_button)
         if cmdline.get_experimental():
             self.addWidget(self._del_selection_button)
@@ -53,6 +57,7 @@ class Toolbar(QToolBar):
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._edit_button.set_ui_model(ui_model)
+        self._replace_button.set_ui_model(ui_model)
         self._rest_button.set_ui_model(ui_model)
         self._del_selection_button.set_ui_model(ui_model)
         for button in self._zoom_buttons:
@@ -60,6 +65,7 @@ class Toolbar(QToolBar):
 
     def unregister_updaters(self):
         self._edit_button.unregister_updaters()
+        self._replace_button.unregister_updaters()
         self._rest_button.unregister_updaters()
         self._del_selection_button.unregister_updaters()
         for button in self._zoom_buttons:
