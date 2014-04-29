@@ -383,8 +383,8 @@ class View(QWidget):
                     painter, triggers, trigger_index)
 
         except KeyError:
-            # No triggers, just draw a hollow rectangle
-            self._draw_hollow_cursor(
+            # No triggers, just draw a cursor
+            self._draw_hollow_insert_cursor(
                     painter, self._config['trigger']['padding'], 0)
 
     def _get_hollow_cursor_rect(self):
@@ -397,6 +397,15 @@ class View(QWidget):
     def _draw_hollow_cursor(self, painter, x_offset, y_offset):
         rect = self._get_hollow_cursor_rect()
         rect.translate(x_offset, y_offset)
+        painter.setPen(self._config['trigger']['default_colour'])
+        painter.drawRect(rect)
+
+    def _draw_insert_cursor(self, painter, x_offset, y_offset):
+        rect = QRect(QPoint(0, 0), QPoint(2, self._config['tr_height'] - 2))
+        painter.fillRect(rect, self._config['trigger']['default_colour'])
+
+    def _draw_hollow_insert_cursor(self, painter, x_offset, y_offset):
+        rect = QRect(QPoint(0, 0), QPoint(1, self._config['tr_height'] - 3))
         painter.setPen(self._config['trigger']['default_colour'])
         painter.drawRect(rect)
 
@@ -423,18 +432,23 @@ class View(QWidget):
 
         for i, trigger, renderer in izip(xrange(len(triggers)), triggers, rends):
             # Identify selected field
-            select = (i == trigger_index)
+            if True: # TODO: if insert mode
+                if i == trigger_index:
+                    self._draw_insert_cursor(painter, 0, 0)
+                select_replace = False
+            else:
+                select_replace = (i == trigger_index)
 
             # Render
-            renderer.draw_trigger(painter, False, select)
+            renderer.draw_trigger(painter, False, select_replace)
 
             # Update transform
             trigger_tfm = trigger_tfm.translate(renderer.get_total_width(), 0)
             painter.setTransform(trigger_tfm)
 
         if trigger_index >= len(triggers):
-            # Draw hollow cursor at the end of the row
-            self._draw_hollow_cursor(painter, 0, 0)
+            # Draw cursor at the end of the row
+            self._draw_hollow_insert_cursor(painter, 0, 0)
 
         painter.restore()
 
@@ -677,8 +691,12 @@ class View(QWidget):
         init_width = 0
         trigger_index = 0
         for width in widths:
+            prev_init_width = init_width
             init_width += width
             if init_width >= x_offset:
+                if True: # TODO: if insert mode
+                    if (init_width - x_offset) < (x_offset - prev_init_width):
+                        trigger_index += 1
                 break
             trigger_index += 1
         else:
