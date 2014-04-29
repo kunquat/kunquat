@@ -93,12 +93,14 @@ class View(QWidget):
             self.update()
         if 'signal_column' in signals:
             self._update_all_patterns()
-            if 'signal_column_insert' in signals:
-                self._update_target_trigger_index_on_insert()
+            if 'signal_column_add' in signals:
+                self._update_target_trigger_index_on_add()
             self.update()
         if 'signal_selection' in signals:
             self._follow_edit_cursor()
         if 'signal_edit_mode' in signals:
+            self.update()
+        if 'signal_replace_mode' in signals:
             self.update()
 
     def _update_all_patterns(self):
@@ -850,9 +852,9 @@ class View(QWidget):
         selection.set_location(location)
         self._target_trigger_index = trigger_index
 
-    def _insert_rest(self):
+    def _add_rest(self):
         trigger = Trigger('n-', None)
-        self._sheet_manager.insert_trigger(trigger)
+        self._sheet_manager.add_trigger(trigger)
 
     def _try_delete_selection(self):
         self._sheet_manager.try_remove_trigger()
@@ -873,7 +875,7 @@ class View(QWidget):
             self._move_edit_cursor_trigger_index(trigger_index - 1)
             self._try_delete_selection()
 
-    def _update_target_trigger_index_on_insert(self):
+    def _update_target_trigger_index_on_add(self):
         selection = self._ui_model.get_selection()
         location = selection.get_location()
         self._target_trigger_index = min(
@@ -908,7 +910,7 @@ class View(QWidget):
             elif ev.key() == Qt.Key_1:
                 # TODO: Some rare keyboard layouts have the 1 key in a location
                 #       that interferes with the typewriter
-                self._insert_rest()
+                self._add_rest()
             elif ev.key() == Qt.Key_Delete:
                 self._try_delete_selection()
             elif ev.key() == Qt.Key_Backspace:
@@ -917,6 +919,10 @@ class View(QWidget):
                 if not ev.isAutoRepeat():
                     connected = self._sheet_manager.get_typewriter_connected()
                     self._sheet_manager.set_typewriter_connected(not connected)
+            elif ev.key() == Qt.Key_Insert:
+                if not ev.isAutoRepeat():
+                    is_replace = self._sheet_manager.get_replace_mode()
+                    self._sheet_manager.set_replace_mode(not is_replace)
 
         if ev.key() == Qt.Key_Tab:
             self._move_edit_cursor_column(1)

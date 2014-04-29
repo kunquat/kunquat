@@ -63,6 +63,6 @@ class RestButton(QToolButton):
 
     def _clicked(self):
         trigger = Trigger('n-', None)
-        self._sheet_manager.insert_trigger(trigger)
+        self._sheet_manager.add_trigger(trigger)
 
 

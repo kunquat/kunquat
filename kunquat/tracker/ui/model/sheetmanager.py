@@ -48,7 +48,7 @@ class SheetManager():
 
         return None
 
-    def insert_trigger(self, trigger):
+    def add_trigger(self, trigger):
         if not self.is_editing_enabled():
             return
 
@@ -61,6 +61,8 @@ class SheetManager():
         row_ts = location.get_row_ts()
         index = location.get_trigger_index()
 
+        if self.get_replace_mode():
+            self.try_remove_trigger()
         cur_column.insert_trigger(row_ts, index, trigger)
 
         new_trigger_count = cur_column.get_trigger_count_at_row(row_ts)
@@ -74,7 +76,7 @@ class SheetManager():
                 new_trigger_index)
         selection.set_location(new_location)
 
-        self._updater.signal_update(set(['signal_column_insert']))
+        self._updater.signal_update(set(['signal_column_add']))
         self._on_column_update()
 
     def try_remove_trigger(self):
@@ -154,5 +156,12 @@ class SheetManager():
 
     def is_editing_enabled(self):
         return self.get_edit_mode() and self.get_typewriter_connected()
+
+    def set_replace_mode(self, enabled):
+        self._session.set_replace_mode(enabled)
+        self._updater.signal_update(set(['signal_replace_mode']))
+
+    def get_replace_mode(self):
+        return self._session.get_replace_mode()
 
 
