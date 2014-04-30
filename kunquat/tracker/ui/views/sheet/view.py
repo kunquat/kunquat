@@ -386,8 +386,12 @@ class View(QWidget):
 
         except KeyError:
             # No triggers, just draw a cursor
-            self._draw_hollow_insert_cursor(
-                    painter, self._config['trigger']['padding'], 0)
+            if self._sheet_manager.get_replace_mode():
+                self._draw_hollow_cursor(
+                        painter, self._config['trigger']['padding'], 0)
+            else:
+                self._draw_hollow_insert_cursor(
+                        painter, self._config['trigger']['padding'], 0)
 
     def _get_hollow_cursor_rect(self):
         metrics = self._config['font_metrics']
@@ -434,12 +438,12 @@ class View(QWidget):
 
         for i, trigger, renderer in izip(xrange(len(triggers)), triggers, rends):
             # Identify selected field
-            if True: # TODO: if insert mode
+            if self._sheet_manager.get_replace_mode():
+                select_replace = (i == trigger_index)
+            else:
                 if i == trigger_index:
                     self._draw_insert_cursor(painter, 0, 0)
                 select_replace = False
-            else:
-                select_replace = (i == trigger_index)
 
             # Render
             renderer.draw_trigger(painter, False, select_replace)
@@ -450,7 +454,10 @@ class View(QWidget):
 
         if trigger_index >= len(triggers):
             # Draw cursor at the end of the row
-            self._draw_hollow_insert_cursor(painter, 0, 0)
+            if self._sheet_manager.get_replace_mode():
+                self._draw_hollow_cursor(painter, 0, 0)
+            else:
+                self._draw_hollow_insert_cursor(painter, 0, 0)
 
         painter.restore()
 
@@ -696,7 +703,7 @@ class View(QWidget):
             prev_init_width = init_width
             init_width += width
             if init_width >= x_offset:
-                if True: # TODO: if insert mode
+                if not self._sheet_manager.get_replace_mode():
                     if (init_width - x_offset) < (x_offset - prev_init_width):
                         trigger_index += 1
                 break
