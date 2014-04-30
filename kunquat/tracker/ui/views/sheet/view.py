@@ -408,10 +408,12 @@ class View(QWidget):
 
     def _draw_insert_cursor(self, painter, x_offset, y_offset):
         rect = QRect(QPoint(0, 0), QPoint(2, self._config['tr_height'] - 2))
+        rect.translate(x_offset, y_offset)
         painter.fillRect(rect, self._config['trigger']['default_colour'])
 
     def _draw_hollow_insert_cursor(self, painter, x_offset, y_offset):
         rect = QRect(QPoint(0, 0), QPoint(1, self._config['tr_height'] - 3))
+        rect.translate(x_offset, y_offset)
         painter.setPen(self._config['trigger']['default_colour'])
         painter.drawRect(rect)
 
