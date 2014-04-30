@@ -274,7 +274,7 @@ class View(QWidget):
                 trigger_padding = self._config['trigger']['padding']
 
                 # Upper bound for row offset
-                hollow_rect = self._get_hollow_cursor_rect()
+                hollow_rect = self._get_hollow_replace_cursor_rect()
                 trail_width = hollow_rect.width() + trigger_padding
                 tail_offset = max(0, row_width + trail_width - self._col_width)
 
@@ -387,21 +387,21 @@ class View(QWidget):
         except KeyError:
             # No triggers, just draw a cursor
             if self._sheet_manager.get_replace_mode():
-                self._draw_hollow_cursor(
+                self._draw_hollow_replace_cursor(
                         painter, self._config['trigger']['padding'], 0)
             else:
                 self._draw_hollow_insert_cursor(
                         painter, self._config['trigger']['padding'], 0)
 
-    def _get_hollow_cursor_rect(self):
+    def _get_hollow_replace_cursor_rect(self):
         metrics = self._config['font_metrics']
         rect = metrics.tightBoundingRect('a') # Seems to produce an OK width
         rect.setTop(0)
         rect.setBottom(self._config['tr_height'] - 3)
         return rect
 
-    def _draw_hollow_cursor(self, painter, x_offset, y_offset):
-        rect = self._get_hollow_cursor_rect()
+    def _draw_hollow_replace_cursor(self, painter, x_offset, y_offset):
+        rect = self._get_hollow_replace_cursor_rect()
         rect.translate(x_offset, y_offset)
         painter.setPen(self._config['trigger']['default_colour'])
         painter.drawRect(rect)
@@ -455,7 +455,7 @@ class View(QWidget):
         if trigger_index >= len(triggers):
             # Draw cursor at the end of the row
             if self._sheet_manager.get_replace_mode():
-                self._draw_hollow_cursor(painter, 0, 0)
+                self._draw_hollow_replace_cursor(painter, 0, 0)
             else:
                 self._draw_hollow_insert_cursor(painter, 0, 0)
 
@@ -709,7 +709,7 @@ class View(QWidget):
                 break
             trigger_index += 1
         else:
-            hollow_rect = self._get_hollow_cursor_rect()
+            hollow_rect = self._get_hollow_replace_cursor_rect()
             dist_from_last = x_offset - init_width
             trigger_padding = self._config['trigger']['padding']
             if dist_from_last > hollow_rect.width() + trigger_padding:
