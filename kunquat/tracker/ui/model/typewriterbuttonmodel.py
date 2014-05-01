@@ -15,9 +15,6 @@ from trigger import Trigger
 from triggerposition import TriggerPosition
 
 
-COLUMN_COUNT = 64 # TODO: define in kunquat interface
-
-
 class TypewriterButtonModel():
 
     def __init__(self, row, index):
@@ -93,25 +90,9 @@ class TypewriterButtonModel():
             self._session.activate_key_with_note(self._row, self._index, note)
 
         if self._sheet_manager.is_editing_enabled():
-            selection = self._ui_model.get_selection()
-            orig_location = selection.get_location()
-
+            self._sheet_manager.set_chord_mode(True)
             trigger = Trigger('n+', unicode(pitch))
             self._sheet_manager.add_trigger(trigger)
-
-            if self._session.get_chord_start() == None:
-                self._session.set_chord_start(orig_location)
-
-            cur_col_num = orig_location.get_col_num()
-            if cur_col_num < COLUMN_COUNT - 1:
-                new_col_num = cur_col_num + 1
-                new_location = TriggerPosition(
-                        orig_location.get_track(),
-                        orig_location.get_system(),
-                        new_col_num,
-                        orig_location.get_row_ts(),
-                        orig_location.get_trigger_index())
-                selection.set_location(new_location)
 
     def stop_tracked_note(self):
         if not self._session.is_key_active(self._row, self._index):
@@ -120,23 +101,6 @@ class TypewriterButtonModel():
         note = self._session.get_active_note(self._row, self._index)
         note.set_rest()
         self._session.deactivate_key(self._row, self._index)
-
-        chord_start = self._session.get_chord_start()
-        if chord_start != None:
-            selection = self._ui_model.get_selection()
-            cur_location = selection.get_location()
-            if cur_location.get_col_num() == chord_start.get_col_num():
-                new_location = cur_location
-            else:
-                new_trigger_index = chord_start.get_trigger_index() + 1
-                new_location = TriggerPosition(
-                        chord_start.get_track(),
-                        chord_start.get_system(),
-                        chord_start.get_col_num(),
-                        chord_start.get_row_ts(),
-                        new_trigger_index)
-
-            selection.set_location(new_location)
-            self._session.set_chord_start(None)
+        self._sheet_manager.set_chord_mode(False)
 
 

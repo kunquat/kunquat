@@ -37,6 +37,7 @@ class Session():
         self._event_index = count()
         self._selected_location = None
         self._target_trigger_index = 0
+        self._chord_mode = False
         self._chord_start = None
         self._active_notes = {}
         self._sheet_zoom = 0
@@ -175,6 +176,12 @@ class Session():
 
     def get_target_trigger_index(self):
         return self._target_trigger_index
+
+    def set_chord_mode(self, enabled):
+        self._chord_mode = enabled
+
+    def get_chord_mode(self):
+        return self._chord_mode
 
     def set_chord_start(self, location):
         self._chord_start = location
