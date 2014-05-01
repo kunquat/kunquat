@@ -55,6 +55,7 @@ class Header(QWidget):
 
         for i in xrange(len(self._headers), visible_cols):
             header = ColumnHeader()
+            header.set_config(self._config)
             header.setParent(self)
             header.show()
             self._headers.append(header)
@@ -71,7 +72,6 @@ class Header(QWidget):
 
         # Update headers
         for i, header in enumerate(self._headers):
-            header.set_config(self._config) # FIXME: bad idea
             header.set_column(self._first_col + i)
             header.move(i * self._col_width, 0)
             header.setFixedWidth(self._col_width)
