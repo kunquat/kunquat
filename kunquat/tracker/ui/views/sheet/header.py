@@ -55,6 +55,7 @@ class Header(QWidget):
 
         for i in xrange(len(self._headers), visible_cols):
             header = ColumnHeader()
+            header.set_config(self._config)
             header.setParent(self)
             header.show()
             self._headers.append(header)
@@ -71,10 +72,15 @@ class Header(QWidget):
 
         # Update headers
         for i, header in enumerate(self._headers):
-            header.set_config(self._config) # FIXME: bad idea
             header.set_column(self._first_col + i)
             header.move(i * self._col_width, 0)
             header.setFixedWidth(self._col_width)
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setBackground(self._config['canvas_bg_colour'])
+        x_offset = (self.width() // self._col_width) * self._col_width - 1
+        painter.eraseRect(x_offset + 1, 0, self.width(), self.height())
 
 
 class ColumnHeader(QWidget):
@@ -82,21 +88,46 @@ class ColumnHeader(QWidget):
     def __init__(self):
         QWidget.__init__(self)
 
-        self._label = QLabel()
-        self._label.setAlignment(Qt.AlignCenter)
-
-        h = QHBoxLayout()
-        h.setMargin(0)
-        h.setSpacing(0)
-        h.addWidget(self._label)
-
-        self.setLayout(h)
-
     def set_config(self, config):
         self._config = config
 
     def set_column(self, num):
         self._num = num
-        self._label.setText('{}'.format(num))
+
+        fm = QFontMetrics(self._config['header']['font'], self)
+        digit_count = len(str(num))
+        rect = fm.tightBoundingRect('8' * digit_count)
+        baseline_offset = rect.height()
+        self._pixmap = QPixmap(rect.size())
+
+        painter = QPainter(self._pixmap)
+        painter.setBackground(self._config['header']['bg_colour'])
+        painter.setPen(self._config['header']['fg_colour'])
+        painter.setFont(self._config['header']['font'])
+        painter.eraseRect(0, 0, self._pixmap.width(), self._pixmap.height())
+        painter.drawText(QPoint(0, baseline_offset), str(num))
+
+        self.update()
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+
+        # Background
+        painter.setBackground(self._config['header']['bg_colour'])
+        painter.eraseRect(0, 0, self.width(), self.height())
+
+        # Number
+        num_width = self._pixmap.width()
+        x_offset = (self.width() - num_width) // 2
+        painter.drawPixmap(x_offset, 0, self._pixmap)
+
+        # Border
+        painter.setPen(self._config['header']['border_colour'])
+        painter.drawLine(self.width() - 1, 0, self.width() - 1, self.height() - 1)
+
+    def minimumSizeHint(self):
+        fm = QFontMetrics(self._config['header']['font'], self)
+        height = fm.tightBoundingRect('Ag').height()
+        return QSize(10, height)
 
 

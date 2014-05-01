@@ -71,6 +71,7 @@ class SheetArea(QAbstractScrollArea):
 
     def __init__(self, config={}):
         QAbstractScrollArea.__init__(self)
+        self.setFocusPolicy(Qt.NoFocus)
 
         self._ui_model = None
         self._updater = None
@@ -79,6 +80,7 @@ class SheetArea(QAbstractScrollArea):
         self.setViewport(View())
 
         self._corner = QWidget()
+        self._corner.setStyleSheet('QWidget { background-color: #000 }')
 
         self._ruler = Ruler()
         self._header = Header()
@@ -163,7 +165,7 @@ class SheetArea(QAbstractScrollArea):
             if subcfg in config:
                 self._config[subcfg].update(config[subcfg])
 
-        self._header.set_config(self._config['header'])
+        self._header.set_config(self._config)
         self._ruler.set_config(self._config['ruler'])
 
         header_height = self._header.minimumSizeHint().height()
