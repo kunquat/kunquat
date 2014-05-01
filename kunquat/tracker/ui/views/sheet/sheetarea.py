@@ -79,6 +79,7 @@ class SheetArea(QAbstractScrollArea):
         self.setViewport(View())
 
         self._corner = QWidget()
+        self._corner.setStyleSheet('QWidget { background-color: #000 }')
 
         self._ruler = Ruler()
         self._header = Header()
