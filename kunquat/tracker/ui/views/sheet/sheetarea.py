@@ -164,7 +164,7 @@ class SheetArea(QAbstractScrollArea):
             if subcfg in config:
                 self._config[subcfg].update(config[subcfg])
 
-        self._header.set_config(self._config['header'])
+        self._header.set_config(self._config)
         self._ruler.set_config(self._config['ruler'])
 
         header_height = self._header.minimumSizeHint().height()

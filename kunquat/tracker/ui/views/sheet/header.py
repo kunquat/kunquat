@@ -76,6 +76,12 @@ class Header(QWidget):
             header.move(i * self._col_width, 0)
             header.setFixedWidth(self._col_width)
 
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setBackground(self._config['canvas_bg_colour'])
+        x_offset = (self.width() // self._col_width) * self._col_width - 1
+        painter.eraseRect(x_offset + 1, 0, self.width(), self.height())
+
 
 class ColumnHeader(QWidget):
 
@@ -88,16 +94,16 @@ class ColumnHeader(QWidget):
     def set_column(self, num):
         self._num = num
 
-        fm = QFontMetrics(self._config['font'], self)
+        fm = QFontMetrics(self._config['header']['font'], self)
         digit_count = len(str(num))
         rect = fm.tightBoundingRect('8' * digit_count)
         baseline_offset = rect.height()
         self._pixmap = QPixmap(rect.size())
 
         painter = QPainter(self._pixmap)
-        painter.setBackground(self._config['bg_colour'])
-        painter.setPen(self._config['fg_colour'])
-        painter.setFont(self._config['font'])
+        painter.setBackground(self._config['header']['bg_colour'])
+        painter.setPen(self._config['header']['fg_colour'])
+        painter.setFont(self._config['header']['font'])
         painter.eraseRect(0, 0, self._pixmap.width(), self._pixmap.height())
         painter.drawText(QPoint(0, baseline_offset), str(num))
 
@@ -107,7 +113,7 @@ class ColumnHeader(QWidget):
         painter = QPainter(self)
 
         # Background
-        painter.setBackground(self._config['bg_colour'])
+        painter.setBackground(self._config['header']['bg_colour'])
         painter.eraseRect(0, 0, self.width(), self.height())
 
         # Number
@@ -116,11 +122,11 @@ class ColumnHeader(QWidget):
         painter.drawPixmap(x_offset, 0, self._pixmap)
 
         # Border
-        painter.setPen(self._config['border_colour'])
+        painter.setPen(self._config['header']['border_colour'])
         painter.drawLine(self.width() - 1, 0, self.width() - 1, self.height() - 1)
 
     def minimumSizeHint(self):
-        fm = QFontMetrics(self._config['font'], self)
+        fm = QFontMetrics(self._config['header']['font'], self)
         height = fm.tightBoundingRect('Ag').height()
         return QSize(10, height)
 
