@@ -36,6 +36,7 @@ class Session():
         self._event_log = deque([], 1024)
         self._event_index = count()
         self._selected_location = None
+        self._target_trigger_index = 0
         self._active_notes = {}
         self._sheet_zoom = 0
         self._sheet_zoom_min = 0
@@ -167,6 +168,12 @@ class Session():
 
     def get_selected_location(self):
         return self._selected_location
+
+    def set_target_trigger_index(self, index):
+        self._target_trigger_index = index
+
+    def get_target_trigger_index(self):
+        return self._target_trigger_index
 
     def activate_key_with_note(self, row, index, note):
         assert not self.is_key_active(row, index)

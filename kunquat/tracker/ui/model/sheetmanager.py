@@ -48,6 +48,12 @@ class SheetManager():
 
         return None
 
+    def set_target_trigger_index(self, index):
+        self._session.set_target_trigger_index(index)
+
+    def get_target_trigger_index(self):
+        return self._session.get_target_trigger_index()
+
     def add_trigger(self, trigger):
         if not self.is_editing_enabled():
             return
