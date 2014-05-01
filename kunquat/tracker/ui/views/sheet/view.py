@@ -1055,6 +1055,7 @@ class View(QWidget):
     def focusOutEvent(self, ev):
         if self._visibility_manager.is_show_allowed(): # don't signal if closing
             self._sheet_manager.set_edit_mode(False)
+            self._sheet_manager.set_chord_mode(False)
 
     def mousePressEvent(self, event):
         if event.buttons() == Qt.LeftButton:
