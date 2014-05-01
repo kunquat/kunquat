@@ -14,10 +14,8 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from kunquat.tracker.ui.model.trigger import Trigger
 
-
-class RestButton(QToolButton):
+class ReplaceButton(QToolButton):
 
     def __init__(self):
         QToolButton.__init__(self)
@@ -25,8 +23,9 @@ class RestButton(QToolButton):
         self._updater = None
         self._sheet_manager = None
 
-        self.setText(u'══')
-        self.setToolTip('Add rest (1)')
+        self.setCheckable(True)
+        self.setText('Replace')
+        self.setToolTip('Replace (Insert)')
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -34,35 +33,22 @@ class RestButton(QToolButton):
         self._updater.register_updater(self._perform_updates)
         self._sheet_manager = ui_model.get_sheet_manager()
 
-        icon_bank = self._ui_model.get_icon_bank()
-        icon_path = icon_bank.get_icon_path('rest')
-        icon = QIcon(icon_path)
-        self.setIcon(icon)
-
         QObject.connect(self, SIGNAL('clicked()'), self._clicked)
 
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
 
     def _perform_updates(self, signals):
-        update_signals = set(['signal_module', 'signal_edit_mode'])
-        if not signals.isdisjoint(update_signals):
-            self._update_enabled()
+        if 'signal_replace_mode' in signals:
+            self._update_checked()
 
-    def _update_enabled(self):
-        if not self._sheet_manager.is_editing_enabled():
-            self.setEnabled(False)
-            return
-
-        selection = self._ui_model.get_selection()
-        location = selection.get_location()
-        cur_column = self._sheet_manager.get_column_at_location(location)
-        is_enabled = bool(cur_column)
-
-        self.setEnabled(is_enabled)
+    def _update_checked(self):
+        old_block = self.blockSignals(True)
+        is_checked = self._sheet_manager.get_replace_mode()
+        self.setChecked(is_checked)
+        self.blockSignals(old_block)
 
     def _clicked(self):
-        trigger = Trigger('n-', None)
-        self._sheet_manager.add_trigger(trigger)
+        self._sheet_manager.set_replace_mode(self.isChecked())
 
 

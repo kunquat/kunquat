@@ -93,12 +93,14 @@ class View(QWidget):
             self.update()
         if 'signal_column' in signals:
             self._update_all_patterns()
-            if 'signal_column_insert' in signals:
-                self._update_target_trigger_index_on_insert()
+            if 'signal_column_add' in signals:
+                self._update_target_trigger_index_on_add()
             self.update()
         if 'signal_selection' in signals:
             self._follow_edit_cursor()
         if 'signal_edit_mode' in signals:
+            self.update()
+        if 'signal_replace_mode' in signals:
             self.update()
 
     def _update_all_patterns(self):
@@ -272,7 +274,7 @@ class View(QWidget):
                 trigger_padding = self._config['trigger']['padding']
 
                 # Upper bound for row offset
-                hollow_rect = self._get_hollow_cursor_rect()
+                hollow_rect = self._get_hollow_replace_cursor_rect()
                 trail_width = hollow_rect.width() + trigger_padding
                 tail_offset = max(0, row_width + trail_width - self._col_width)
 
@@ -384,28 +386,34 @@ class View(QWidget):
 
         except KeyError:
             # No triggers, just draw a cursor
-            self._draw_hollow_insert_cursor(
-                    painter, self._config['trigger']['padding'], 0)
+            if self._sheet_manager.get_replace_mode():
+                self._draw_hollow_replace_cursor(
+                        painter, self._config['trigger']['padding'], 0)
+            else:
+                self._draw_hollow_insert_cursor(
+                        painter, self._config['trigger']['padding'], 0)
 
-    def _get_hollow_cursor_rect(self):
+    def _get_hollow_replace_cursor_rect(self):
         metrics = self._config['font_metrics']
         rect = metrics.tightBoundingRect('a') # Seems to produce an OK width
         rect.setTop(0)
         rect.setBottom(self._config['tr_height'] - 3)
         return rect
 
-    def _draw_hollow_cursor(self, painter, x_offset, y_offset):
-        rect = self._get_hollow_cursor_rect()
+    def _draw_hollow_replace_cursor(self, painter, x_offset, y_offset):
+        rect = self._get_hollow_replace_cursor_rect()
         rect.translate(x_offset, y_offset)
         painter.setPen(self._config['trigger']['default_colour'])
         painter.drawRect(rect)
 
     def _draw_insert_cursor(self, painter, x_offset, y_offset):
         rect = QRect(QPoint(0, 0), QPoint(2, self._config['tr_height'] - 2))
+        rect.translate(x_offset, y_offset)
         painter.fillRect(rect, self._config['trigger']['default_colour'])
 
     def _draw_hollow_insert_cursor(self, painter, x_offset, y_offset):
         rect = QRect(QPoint(0, 0), QPoint(1, self._config['tr_height'] - 3))
+        rect.translate(x_offset, y_offset)
         painter.setPen(self._config['trigger']['default_colour'])
         painter.drawRect(rect)
 
@@ -432,12 +440,12 @@ class View(QWidget):
 
         for i, trigger, renderer in izip(xrange(len(triggers)), triggers, rends):
             # Identify selected field
-            if True: # TODO: if insert mode
+            if self._sheet_manager.get_replace_mode():
+                select_replace = (i == trigger_index)
+            else:
                 if i == trigger_index:
                     self._draw_insert_cursor(painter, 0, 0)
                 select_replace = False
-            else:
-                select_replace = (i == trigger_index)
 
             # Render
             renderer.draw_trigger(painter, False, select_replace)
@@ -448,7 +456,10 @@ class View(QWidget):
 
         if trigger_index >= len(triggers):
             # Draw cursor at the end of the row
-            self._draw_hollow_insert_cursor(painter, 0, 0)
+            if self._sheet_manager.get_replace_mode():
+                self._draw_hollow_replace_cursor(painter, 0, 0)
+            else:
+                self._draw_hollow_insert_cursor(painter, 0, 0)
 
         painter.restore()
 
@@ -694,13 +705,13 @@ class View(QWidget):
             prev_init_width = init_width
             init_width += width
             if init_width >= x_offset:
-                if True: # TODO: if insert mode
+                if not self._sheet_manager.get_replace_mode():
                     if (init_width - x_offset) < (x_offset - prev_init_width):
                         trigger_index += 1
                 break
             trigger_index += 1
         else:
-            hollow_rect = self._get_hollow_cursor_rect()
+            hollow_rect = self._get_hollow_replace_cursor_rect()
             dist_from_last = x_offset - init_width
             trigger_padding = self._config['trigger']['padding']
             if dist_from_last > hollow_rect.width() + trigger_padding:
@@ -850,9 +861,9 @@ class View(QWidget):
         selection.set_location(location)
         self._target_trigger_index = trigger_index
 
-    def _insert_rest(self):
+    def _add_rest(self):
         trigger = Trigger('n-', None)
-        self._sheet_manager.insert_trigger(trigger)
+        self._sheet_manager.add_trigger(trigger)
 
     def _try_delete_selection(self):
         self._sheet_manager.try_remove_trigger()
@@ -873,7 +884,7 @@ class View(QWidget):
             self._move_edit_cursor_trigger_index(trigger_index - 1)
             self._try_delete_selection()
 
-    def _update_target_trigger_index_on_insert(self):
+    def _update_target_trigger_index_on_add(self):
         selection = self._ui_model.get_selection()
         location = selection.get_location()
         self._target_trigger_index = min(
@@ -908,7 +919,7 @@ class View(QWidget):
             elif ev.key() == Qt.Key_1:
                 # TODO: Some rare keyboard layouts have the 1 key in a location
                 #       that interferes with the typewriter
-                self._insert_rest()
+                self._add_rest()
             elif ev.key() == Qt.Key_Delete:
                 self._try_delete_selection()
             elif ev.key() == Qt.Key_Backspace:
@@ -917,6 +928,10 @@ class View(QWidget):
                 if not ev.isAutoRepeat():
                     connected = self._sheet_manager.get_typewriter_connected()
                     self._sheet_manager.set_typewriter_connected(not connected)
+            elif ev.key() == Qt.Key_Insert:
+                if not ev.isAutoRepeat():
+                    is_replace = self._sheet_manager.get_replace_mode()
+                    self._sheet_manager.set_replace_mode(not is_replace)
 
         if ev.key() == Qt.Key_Tab:
             self._move_edit_cursor_column(1)

@@ -90,7 +90,7 @@ class TypewriterButtonModel():
 
         if self._sheet_manager.is_editing_enabled():
             trigger = Trigger('n+', unicode(pitch))
-            self._sheet_manager.insert_trigger(trigger)
+            self._sheet_manager.add_trigger(trigger)
 
     def stop_tracked_note(self):
         if not self._session.is_key_active(self._row, self._index):
