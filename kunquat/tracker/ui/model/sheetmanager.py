@@ -54,6 +54,21 @@ class SheetManager():
     def get_target_trigger_index(self):
         return self._session.get_target_trigger_index()
 
+    def get_clamped_trigger_index(self, location):
+        column = self.get_column_at_location(location)
+        if not column:
+            return 0
+
+        row_ts = location.get_row_ts()
+        if column.has_trigger(row_ts, 0):
+            target_trigger_index = self.get_target_trigger_index()
+            new_trigger_index = min(
+                    target_trigger_index, column.get_trigger_count_at_row(row_ts))
+        else:
+            new_trigger_index = 0
+
+        return new_trigger_index
+
     def add_trigger(self, trigger):
         if not self.is_editing_enabled():
             return
