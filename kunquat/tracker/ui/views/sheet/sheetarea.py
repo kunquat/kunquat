@@ -71,6 +71,7 @@ class SheetArea(QAbstractScrollArea):
 
     def __init__(self, config={}):
         QAbstractScrollArea.__init__(self)
+        self.setFocusPolicy(Qt.NoFocus)
 
         self._ui_model = None
         self._updater = None
