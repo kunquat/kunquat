@@ -26,6 +26,10 @@ DEFAULT_CONFIG = {
             'num_min_dist'    : 48,
             },
         'header': {
+            'bg_colour'    : QColor(0x22, 0x44, 0x22),
+            'fg_colour'    : QColor(0xcc, 0xee, 0xaa),
+            'border_colour': QColor(0x55, 0x77, 0x55),
+            'font'         : QFont(QFont().defaultFamily(), 11, QFont.Bold),
             },
         'col_width'       : 12, # unit is em
         'trs_per_beat'    : 4,
