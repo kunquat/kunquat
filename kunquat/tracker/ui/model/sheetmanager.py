@@ -216,6 +216,8 @@ class SheetManager():
     def set_typewriter_connected(self, connected):
         self._session.set_typewriter_connected(connected)
         self._updater.signal_update(set(['signal_edit_mode']))
+        if not connected and self.get_replace_mode():
+            self.set_replace_mode(False)
 
     def get_typewriter_connected(self):
         return self._session.get_typewriter_connected()
@@ -226,6 +228,8 @@ class SheetManager():
     def set_replace_mode(self, enabled):
         self._session.set_replace_mode(enabled)
         self._updater.signal_update(set(['signal_replace_mode']))
+        if enabled and not self.get_typewriter_connected():
+            self.set_typewriter_connected(True)
 
     def get_replace_mode(self):
         return self._session.get_replace_mode()
