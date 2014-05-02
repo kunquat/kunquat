@@ -37,6 +37,9 @@ class Session():
         self._event_index = count()
         self._selected_location = None
         self._target_trigger_index = 0
+        self._chord_mode = False
+        self._chord_start = None
+        self._chord_notes = set()
         self._active_notes = {}
         self._sheet_zoom = 0
         self._sheet_zoom_min = 0
@@ -174,6 +177,29 @@ class Session():
 
     def get_target_trigger_index(self):
         return self._target_trigger_index
+
+    def set_chord_mode(self, enabled):
+        self._chord_mode = enabled
+        if not enabled:
+            self._chord_notes.clear()
+
+    def get_chord_mode(self):
+        return self._chord_mode
+
+    def set_chord_start(self, location):
+        self._chord_start = location
+
+    def get_chord_start(self):
+        return self._chord_start
+
+    def set_chord_note(self, note, is_down):
+        if is_down:
+            self._chord_notes.add(note)
+        else:
+            self._chord_notes.discard(note)
+
+    def are_chord_notes_down(self):
+        return len(self._chord_notes) != 0
 
     def activate_key_with_note(self, row, index, note):
         assert not self.is_key_active(row, index)

@@ -14,6 +14,9 @@
 from triggerposition import TriggerPosition
 
 
+COLUMN_COUNT = 64 # TODO: define in kunquat interface
+
+
 class SheetManager():
 
     def __init__(self):
@@ -69,6 +72,38 @@ class SheetManager():
 
         return new_trigger_index
 
+    def set_chord_mode(self, enabled):
+        self._session.set_chord_mode(enabled)
+
+        if enabled:
+            if self._session.get_chord_start() == None:
+                selection = self._ui_model.get_selection()
+                location = selection.get_location()
+                self._session.set_chord_start(location)
+        else:
+            chord_start = self._session.get_chord_start()
+            if chord_start != None:
+                selection = self._ui_model.get_selection()
+                cur_location = selection.get_location()
+                if cur_location.get_col_num() == chord_start.get_col_num():
+                    new_location = cur_location
+                else:
+                    clamped_trigger_index = self.get_clamped_trigger_index(chord_start)
+                    new_trigger_index = min(
+                            chord_start.get_trigger_index() + 1, clamped_trigger_index)
+                    new_location = TriggerPosition(
+                            chord_start.get_track(),
+                            chord_start.get_system(),
+                            chord_start.get_col_num(),
+                            chord_start.get_row_ts(),
+                            new_trigger_index)
+
+                selection.set_location(new_location)
+                self._session.set_chord_start(None)
+
+    def get_chord_mode(self):
+        return self._session.get_chord_mode()
+
     def add_trigger(self, trigger):
         if not self.is_editing_enabled():
             return
@@ -86,15 +121,25 @@ class SheetManager():
             self.try_remove_trigger()
         cur_column.insert_trigger(row_ts, index, trigger)
 
-        new_trigger_count = cur_column.get_trigger_count_at_row(row_ts)
-        new_trigger_index = min(new_trigger_count, location.get_trigger_index() + 1)
+        cur_col_num = location.get_col_num()
+        if self.get_chord_mode() and (cur_col_num < COLUMN_COUNT - 1):
+            new_col_num = cur_col_num + 1
+            new_location = TriggerPosition(
+                    location.get_track(),
+                    location.get_system(),
+                    new_col_num,
+                    location.get_row_ts(),
+                    location.get_trigger_index())
+        else:
+            new_trigger_count = cur_column.get_trigger_count_at_row(row_ts)
+            new_trigger_index = min(new_trigger_count, location.get_trigger_index() + 1)
+            new_location = TriggerPosition(
+                    location.get_track(),
+                    location.get_system(),
+                    location.get_col_num(),
+                    location.get_row_ts(),
+                    new_trigger_index)
 
-        new_location = TriggerPosition(
-                location.get_track(),
-                location.get_system(),
-                location.get_col_num(),
-                location.get_row_ts(),
-                new_trigger_index)
         selection.set_location(new_location)
 
         self._updater.signal_update(set(['signal_column_add']))

@@ -12,6 +12,7 @@
 #
 
 from trigger import Trigger
+from triggerposition import TriggerPosition
 
 
 class TypewriterButtonModel():
@@ -89,6 +90,9 @@ class TypewriterButtonModel():
             self._session.activate_key_with_note(self._row, self._index, note)
 
         if self._sheet_manager.is_editing_enabled():
+            self._sheet_manager.set_chord_mode(True)
+            self._session.set_chord_note(pitch, True)
+
             trigger = Trigger('n+', unicode(pitch))
             self._sheet_manager.add_trigger(trigger)
 
@@ -99,5 +103,9 @@ class TypewriterButtonModel():
         note = self._session.get_active_note(self._row, self._index)
         note.set_rest()
         self._session.deactivate_key(self._row, self._index)
+
+        self._session.set_chord_note(self.get_pitch(), False)
+        if not self._session.are_chord_notes_down():
+            self._sheet_manager.set_chord_mode(False)
 
 
