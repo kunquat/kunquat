@@ -439,15 +439,14 @@ class View(QWidget):
 
         for i, trigger, renderer in izip(xrange(len(triggers)), triggers, rends):
             # Identify selected field
-            if self._sheet_manager.get_replace_mode():
-                select_replace = (i == trigger_index)
-            else:
-                if i == trigger_index:
-                    self._draw_insert_cursor(painter, 0, 0)
-                select_replace = False
+            select = (i == trigger_index)
+            replace = self._sheet_manager.get_replace_mode()
+
+            if select and not replace:
+                self._draw_insert_cursor(painter, 0, 0)
 
             # Render
-            renderer.draw_trigger(painter, False, select_replace)
+            renderer.draw_trigger(painter, False, select, replace)
 
             # Update transform
             trigger_tfm = trigger_tfm.translate(renderer.get_total_width(), 0)

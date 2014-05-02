@@ -38,7 +38,7 @@ class TriggerRenderer():
     def get_total_width(self):
         return self._total_width
 
-    def draw_trigger(self, painter, include_line=True, select=False):
+    def draw_trigger(self, painter, include_line=True, select=False, replace=False):
         # Select colour based on event type
         evtype = self._trigger.get_type()
         if evtype == 'n+':
@@ -52,12 +52,13 @@ class TriggerRenderer():
 
         # Set colours
         painter.save()
-        if select:
+        invert = select and replace
+        if invert:
             height = self._config['tr_height']
             painter.fillRect(
                     QRect(0, 0, self._total_width - 1, height - 1),
                     evtype_fg_colour)
-        painter.setPen(self._config['bg_colour'] if select else evtype_fg_colour)
+        painter.setPen(self._config['bg_colour'] if invert else evtype_fg_colour)
 
         # Draw fields
         for i, field in enumerate(self._fields):
@@ -68,9 +69,13 @@ class TriggerRenderer():
         painter.restore()
 
         # Draw line only if not obscured by cursor
-        if include_line:
+        if include_line or select:
             painter.save()
-            painter.setPen(evtype_fg_colour)
+            if select:
+                line_colour = self._config['trigger']['line_focus_colour']
+            else:
+                line_colour = evtype_fg_colour
+            painter.setPen(line_colour)
             painter.drawLine(QPoint(0, 0), QPoint(self._total_width - 2, 0))
             painter.restore()
 
