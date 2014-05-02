@@ -124,6 +124,7 @@ class Share():
                 'play',
                 'silence',
                 'edit',
+                'replace',
                 'delete',
                 'rest',
                 'zoom_in',
