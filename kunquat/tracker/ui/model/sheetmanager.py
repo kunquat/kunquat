@@ -88,7 +88,9 @@ class SheetManager():
                 if cur_location.get_col_num() == chord_start.get_col_num():
                     new_location = cur_location
                 else:
-                    new_trigger_index = chord_start.get_trigger_index() + 1
+                    clamped_trigger_index = self.get_clamped_trigger_index(chord_start)
+                    new_trigger_index = min(
+                            chord_start.get_trigger_index() + 1, clamped_trigger_index)
                     new_location = TriggerPosition(
                             chord_start.get_track(),
                             chord_start.get_system(),
