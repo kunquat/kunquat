@@ -12,7 +12,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from collections import MutableMapping
+from collections import deque, MutableMapping
+from itertools import count
 
 
 class Store(MutableMapping):
@@ -20,20 +21,35 @@ class Store(MutableMapping):
     def __init__(self):
         self._content = dict()
         self._audio_engine = None
+        self._pending_validation = deque()
+        self._transaction_ids = count()
 
     def set_audio_engine(self, audio_engine):
         self._audio_engine = audio_engine
 
     def put(self, transaction):
-        self._audio_engine.set_data(transaction)
+        transaction_id = self._transaction_ids.next()
+        self._audio_engine.set_data(transaction_id, transaction)
+        self._pending_validation.append((transaction_id, transaction))
 
-        # TODO: do this after we have received confirmation from audio engine
+    def confirm_valid_data(self, transaction_id):
+        transaction = self._get_validated_transaction(transaction_id)
         self._content.update(transaction)
         for (key, value) in transaction.iteritems():
             if value == None:
                 del self._content[key]
 
+    def _get_validated_transaction(self, validated_id):
+        transaction_id, transaction = self._pending_validation.popleft()
+        assert transaction_id == validated_id
+        return transaction
+
     def __getitem__(self, key):
+        # If the key has non-validated changes, return the most recent one
+        for _, transaction in reversed(self._pending_validation):
+            if key in transaction:
+                return transaction[key]
+
         return self._content[key]
 
     def __setitem__(self, key, value):

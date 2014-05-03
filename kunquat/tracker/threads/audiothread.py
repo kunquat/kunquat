@@ -68,8 +68,8 @@ class AudioThread(MonitoringThread):
     def tfire_event(self, channel, event):
         self._q.push('tfire_event', channel, event)
 
-    def set_data(self, transaction):
-        self._q.push('set_data', transaction)
+    def set_data(self, transaction_id, transaction):
+        self._q.push('set_data', transaction_id, transaction)
 
     def nanoseconds(self, nanos):
         self._q.push('nanoseconds', nanos)
