@@ -126,11 +126,12 @@ class AudioEngine():
     def tfire_event(self, channel, event):
         self._fire_event(channel, event, CONTEXT_TFIRE)
 
-    def set_data(self, transaction):
+    def set_data(self, transaction_id, transaction):
         #TODO: Remove sorting once it works without
         for (key, value) in sorted(transaction.items()):
             self._rendering_engine.set_data(key, value)
         self._rendering_engine.validate()
+        self._ui_engine.confirm_valid_data(transaction_id)
 
     def nanoseconds(self, nanos):
         self._rendering_engine.nanoseconds = nanos

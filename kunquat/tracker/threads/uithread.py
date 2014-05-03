@@ -78,6 +78,9 @@ class UiThread(MonitoringThread):
     def update_event_log_with(self, channel_number, event_type, event_value, context):
         self._q.push('update_event_log_with', channel_number, event_type, event_value, context)
 
+    def confirm_valid_data(self, transaction_id):
+        self._q.push('confirm_valid_data', transaction_id)
+
     # Threading interface
 
     def halt(self):

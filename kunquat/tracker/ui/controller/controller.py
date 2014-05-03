@@ -215,6 +215,9 @@ class Controller():
         self._session.set_progress_steps(steps)
         self._updater.signal_update()
 
+    def confirm_valid_data(self, transaction_id):
+        self._store.confirm_valid_data(transaction_id)
+
 
 def create_controller():
     store = Store()
