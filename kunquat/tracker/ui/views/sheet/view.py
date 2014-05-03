@@ -924,7 +924,8 @@ class View(QWidget):
             elif ev.key() == Qt.Key_1:
                 # TODO: Some rare keyboard layouts have the 1 key in a location
                 #       that interferes with the typewriter
-                self._add_rest()
+                if not ev.isAutoRepeat():
+                    self._add_rest()
             elif ev.key() == Qt.Key_Delete:
                 self._try_delete_selection()
             elif ev.key() == Qt.Key_Backspace:
