@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2014
  *
  * This file is part of Kunquat.
  *
@@ -177,7 +177,7 @@ Suite* Connections_suite(void)
 {
     Suite* s = suite_create("Connections");
 
-    const int timeout = 4;
+    const int timeout = DEFAULT_TIMEOUT;
 
     TCase* tc_effects = tcase_create("effects");
     suite_add_tcase(s, tc_effects);

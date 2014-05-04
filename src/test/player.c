@@ -1259,7 +1259,7 @@ Suite* Player_suite(void)
 {
     Suite* s = suite_create("Player");
 
-    const int timeout = 4;
+    const int timeout = DEFAULT_TIMEOUT;
 
 #define BUILD_TCASE(name)                                                \
     TCase* tc_##name = tcase_create(#name);                              \
