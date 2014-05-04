@@ -519,14 +519,13 @@ class View(QWidget):
         selection = self._ui_model.get_selection()
         location = selection.get_location()
 
-        cur_column = self._sheet_manager.get_column_at_location(location)
-
-        new_location = TriggerPosition(
+        test_location = TriggerPosition(
                 location.get_track(),
                 location.get_system(),
                 location.get_col_num(),
                 location.get_row_ts(),
                 index)
+        new_location = self._sheet_manager.get_clamped_location(test_location)
 
         selection.set_location(new_location)
 
@@ -550,10 +549,7 @@ class View(QWidget):
         new_col_num = min(max(0, col_num + delta), COLUMN_COUNT - 1)
 
         test_location = TriggerPosition(track, system, new_col_num, row_ts, 0)
-        new_trigger_index = self._sheet_manager.get_clamped_trigger_index(test_location)
-
-        new_location = TriggerPosition(
-                track, system, new_col_num, row_ts, new_trigger_index)
+        new_location = self._sheet_manager.get_clamped_location(test_location)
         selection.set_location(new_location)
 
     def _move_edit_cursor_tstamp(self):

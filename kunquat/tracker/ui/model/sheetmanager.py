@@ -51,7 +51,7 @@ class SheetManager():
 
         return None
 
-    def get_clamped_trigger_index(self, location):
+    def get_clamped_location(self, location):
         column = self.get_column_at_location(location)
         if not column:
             return 0
@@ -64,7 +64,13 @@ class SheetManager():
         else:
             new_trigger_index = 0
 
-        return new_trigger_index
+        new_location = TriggerPosition(
+                location.get_track(),
+                location.get_system(),
+                location.get_col_num(),
+                location.get_row_ts(),
+                new_trigger_index)
+        return new_location
 
     def set_chord_mode(self, enabled):
         self._session.set_chord_mode(enabled)
@@ -88,13 +94,7 @@ class SheetManager():
                             chord_start.get_col_num(),
                             chord_start.get_row_ts(),
                             chord_start.get_trigger_index() + 1)
-                    clamped_trigger_index = self.get_clamped_trigger_index(chord_next)
-                    new_location = TriggerPosition(
-                            chord_start.get_track(),
-                            chord_start.get_system(),
-                            chord_start.get_col_num(),
-                            chord_start.get_row_ts(),
-                            clamped_trigger_index)
+                    new_location = self.get_clamped_location(chord_next)
 
                 selection.set_location(new_location)
                 self._session.set_chord_start(None)
