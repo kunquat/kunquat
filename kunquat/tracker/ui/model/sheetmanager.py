@@ -51,26 +51,26 @@ class SheetManager():
 
         return None
 
-    def set_target_trigger_index(self, index):
-        self._session.set_target_trigger_index(index)
-
-    def get_target_trigger_index(self):
-        return self._session.get_target_trigger_index()
-
-    def get_clamped_trigger_index(self, location):
+    def get_clamped_location(self, location):
         column = self.get_column_at_location(location)
         if not column:
             return 0
 
         row_ts = location.get_row_ts()
         if column.has_trigger(row_ts, 0):
-            target_trigger_index = self.get_target_trigger_index()
             new_trigger_index = min(
-                    target_trigger_index, column.get_trigger_count_at_row(row_ts))
+                    location.get_trigger_index(),
+                    column.get_trigger_count_at_row(row_ts))
         else:
             new_trigger_index = 0
 
-        return new_trigger_index
+        new_location = TriggerPosition(
+                location.get_track(),
+                location.get_system(),
+                location.get_col_num(),
+                location.get_row_ts(),
+                new_trigger_index)
+        return new_location
 
     def set_chord_mode(self, enabled):
         self._session.set_chord_mode(enabled)
@@ -88,15 +88,13 @@ class SheetManager():
                 if cur_location.get_col_num() == chord_start.get_col_num():
                     new_location = cur_location
                 else:
-                    clamped_trigger_index = self.get_clamped_trigger_index(chord_start)
-                    new_trigger_index = min(
-                            chord_start.get_trigger_index() + 1, clamped_trigger_index)
-                    new_location = TriggerPosition(
+                    chord_next = TriggerPosition(
                             chord_start.get_track(),
                             chord_start.get_system(),
                             chord_start.get_col_num(),
                             chord_start.get_row_ts(),
-                            new_trigger_index)
+                            chord_start.get_trigger_index() + 1)
+                    new_location = self.get_clamped_location(chord_next)
 
                 selection.set_location(new_location)
                 self._session.set_chord_start(None)

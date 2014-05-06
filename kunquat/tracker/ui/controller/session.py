@@ -36,7 +36,6 @@ class Session():
         self._event_log = deque([], 1024)
         self._event_index = count()
         self._selected_location = None
-        self._target_trigger_index = 0
         self._chord_mode = False
         self._chord_start = None
         self._chord_notes = set()
@@ -171,12 +170,6 @@ class Session():
 
     def get_selected_location(self):
         return self._selected_location
-
-    def set_target_trigger_index(self, index):
-        self._target_trigger_index = index
-
-    def get_target_trigger_index(self):
-        return self._target_trigger_index
 
     def set_chord_mode(self, enabled):
         self._chord_mode = enabled
