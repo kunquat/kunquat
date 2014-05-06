@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2014
  *
  * This file is part of Kunquat.
  *
@@ -72,7 +72,7 @@ Suite* DSP_suite(void)
 {
     Suite* s = suite_create("DSP");
 
-    const int timeout = 4;
+    const int timeout = DEFAULT_TIMEOUT;
 
     TCase* tc_chorus = tcase_create("chorus");
     suite_add_tcase(s, tc_chorus);

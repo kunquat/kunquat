@@ -113,7 +113,7 @@ Suite* Filter_suite(void)
 {
     Suite* s = suite_create("Filter");
 
-    const int timeout = 4;
+    const int timeout = DEFAULT_TIMEOUT;
 
     TCase* tc_two_pole = tcase_create("two_pole");
     suite_add_tcase(s, tc_two_pole);

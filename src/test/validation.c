@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2014
  *
  * This file is part of Kunquat.
  *
@@ -383,7 +383,7 @@ Suite* Validation_suite(void)
 {
     Suite* s = suite_create("Validation");
 
-    const int timeout = 4;
+    const int timeout = DEFAULT_TIMEOUT;
 
     TCase* tc_refuse = tcase_create("refuse");
     TCase* tc_reject = tcase_create("reject");

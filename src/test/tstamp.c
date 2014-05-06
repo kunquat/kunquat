@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2014
  *
  * This file is part of Kunquat.
  *
@@ -1407,7 +1407,7 @@ Suite* Tstamp_suite(void)
     suite_add_tcase(s, tc_toframes);
     suite_add_tcase(s, tc_fromframes);
 
-    const int timeout = 4;
+    const int timeout = DEFAULT_TIMEOUT;
     tcase_set_timeout(tc_init, timeout);
     tcase_set_timeout(tc_set, timeout);
     tcase_set_timeout(tc_cmp, timeout);

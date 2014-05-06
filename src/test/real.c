@@ -1596,7 +1596,7 @@ Suite* Real_suite(void)
     suite_add_tcase(s, tc_mul_float);
     suite_add_tcase(s, tc_cmp);
 
-    const int timeout = 4;
+    const int timeout = DEFAULT_TIMEOUT;
     tcase_set_timeout(tc_init, timeout);
     tcase_set_timeout(tc_init_as_frac, timeout);
     tcase_set_timeout(tc_init_as_double, timeout);

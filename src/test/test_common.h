@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2014
  *
  * This file is part of Kunquat.
  *
@@ -31,6 +31,9 @@
 #define KT_VALUES(fmt, expected, actual) \
     "\n    Expected: " fmt \
     "\n      Actual: " fmt , expected, actual
+
+
+#define DEFAULT_TIMEOUT 30
 
 
 #endif // KT_TEST_COMMON_H

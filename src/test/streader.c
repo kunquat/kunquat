@@ -1131,7 +1131,7 @@ Suite* Streader_suite(void)
 {
     Suite* s = suite_create("Streader");
 
-    const int timeout = 4;
+    const int timeout = DEFAULT_TIMEOUT;
 
 #define BUILD_TCASE(name)                   \
     TCase* tc_##name = tcase_create(#name); \
