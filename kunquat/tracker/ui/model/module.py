@@ -23,6 +23,7 @@ class Module():
 
     def __init__(self):
         self._updater = None
+        self._session = None
         self._store = None
         self._controller = None
         self._ui_model = None
@@ -30,6 +31,7 @@ class Module():
 
     def set_controller(self, controller):
         self._updater = controller.get_updater()
+        self._session = controller.get_session()
         self._store = controller.get_store()
         self._controller = controller
 
@@ -81,5 +83,13 @@ class Module():
         if not album.get_existence():
             return None
         return album
+
+    def save(self, task_executor):
+        module_path = self._session.get_module_path()
+        if not module_path:
+            # TODO: open save dialog
+            return
+        task = self._controller.get_task_save_module(module_path)
+        task_executor(task)
 
 
