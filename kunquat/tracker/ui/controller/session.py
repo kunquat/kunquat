@@ -54,6 +54,7 @@ class Session():
         self._pending_playback_cursor_track = 0
         self._pending_playback_cursor_system = 0
         self._playback_cursor_position = (0, 0, [0, 0])
+        self._module_path = None
 
     def get_output_speed(self):
         return self._output_speed
@@ -287,3 +288,11 @@ class Session():
 
     def get_playback_cursor_position(self):
         return self._playback_cursor_position
+
+    def set_module_path(self, path):
+        self._module_path = path
+
+    def get_module_path(self):
+        return self._module_path
+
+
