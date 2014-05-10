@@ -108,6 +108,8 @@ class UiLauncher():
             module_path = cmdline.get_kqt_file()
             load_task = self._controller.get_task_load_module(module_path)
             self.execute_task(load_task)
+            session = self._controller.get_session()
+            session.set_module_path(module_path)
         else:
             self._controller.create_sandbox()
             kqtifile = self._controller.get_share().get_default_instrument()
