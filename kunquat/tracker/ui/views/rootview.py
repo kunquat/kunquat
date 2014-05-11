@@ -84,6 +84,8 @@ class RootView():
         if not self._visible:
             QApplication.quit()
 
+        self._ui_model.clock()
+
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
         self._main_window.unregister_updaters()

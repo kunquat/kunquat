@@ -51,6 +51,9 @@ class Session():
         self._typewriter_connected = False
         self._replace_mode_enabled = False
         self._record_mode_enabled = False
+        self._pending_playback_cursor_track = 0
+        self._pending_playback_cursor_system = 0
+        self._playback_cursor_position = (0, 0, [0, 0])
 
     def get_output_speed(self):
         return self._output_speed
@@ -270,3 +273,17 @@ class Session():
 
     def get_record_mode(self):
         return self._record_mode_enabled
+
+    def set_pending_playback_cursor_track(self, track):
+        self._pending_playback_cursor_track = track
+
+    def set_pending_playback_cursor_system(self, system):
+        self._pending_playback_cursor_system = system
+
+    def set_playback_cursor(self, row):
+        track = self._pending_playback_cursor_track
+        system = self._pending_playback_cursor_system
+        self._playback_cursor_position = (track, system, row)
+
+    def get_playback_cursor_position(self):
+        return self._playback_cursor_position
