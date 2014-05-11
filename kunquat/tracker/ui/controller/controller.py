@@ -2,7 +2,7 @@
 
 #
 # Authors: Tomi Jylhä-Ollila, Finland 2013-2014
-#          Toni Ruottu, Finland 2013
+#          Toni Ruottu, Finland 2013-2014
 #
 # This file is part of Kunquat.
 #
@@ -20,6 +20,9 @@ import tarfile
 import os.path
 
 import kunquat.tracker.cmdline as cmdline
+from kunquat.tracker.ui.model.triggerposition import TriggerPosition
+import kunquat.tracker.ui.model.tstamp as tstamp
+
 from store import Store
 from session import Session
 from share import Share
@@ -43,6 +46,10 @@ class Controller():
         self._updater = None
         self._note_channel_mapper = None
         self._audio_engine = None
+        self._ui_model = None
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
 
     def set_store(self, store):
         self._store = store
@@ -205,6 +212,33 @@ class Controller():
     def update_active_note(self, channel, pitch):
         self._session.set_active_note(channel, pitch)
         self._updater.signal_update()
+
+    def send_queries(self):
+        if self._session.get_record_mode():
+            location_feedback_event = ('qlocation', None)
+            self._audio_engine.tfire_event(0, location_feedback_event)
+
+    def update_playback_cursor_track(self, track):
+        self._session.set_playback_cursor_track(track)
+        self._updater.signal_update()
+
+    def update_playback_cursor_system(self, system):
+        self._session.set_playback_cursor_system(system)
+        self._updater.signal_update()
+
+    def update_playback_cursor_row(self, row):
+        self._session.set_playback_cursor_row(row)
+        self.move_edit_cursor_to_playback_cursor()
+        self._updater.signal_update()
+
+    def move_edit_cursor_to_playback_cursor(self):
+        (track, system, row) = self._session.get_playback_cursor_position()
+        selection = self._ui_model.get_selection()
+        current_location = selection.get_location()
+        col_num = current_location.get_col_num()
+        row_ts = tstamp.Tstamp(*row)
+        new_location = TriggerPosition(track, system, col_num, row_ts, 0)
+        selection.set_location(new_location)
 
     def update_event_log_with(self, channel_number, event_type, event_value, context):
         self._session.log_event(channel_number, event_type, event_value, context)

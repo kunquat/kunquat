@@ -194,6 +194,9 @@ class UiModel():
     def silence(self):
         self._controller.silence()
 
+    def clock(self):
+        self._controller.send_queries()
+
 def create_ui_model():
     stat_manager = StatManager()
     ui_manager = UiManager()
