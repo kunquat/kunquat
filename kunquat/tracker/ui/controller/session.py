@@ -50,6 +50,10 @@ class Session():
         self._edit_mode_enabled = False
         self._typewriter_connected = False
         self._replace_mode_enabled = False
+        self._record_mode_enabled = False
+        self._playback_cursor_track = 0
+        self._playback_cursor_system = 0
+        self._playback_cursor_row = [0, 0]
 
     def get_output_speed(self):
         return self._output_speed
@@ -264,4 +268,24 @@ class Session():
     def get_replace_mode(self):
         return self._replace_mode_enabled
 
+    def set_record_mode(self, enabled):
+        self._record_mode_enabled = enabled
 
+    def get_record_mode(self):
+        return self._record_mode_enabled
+
+    def set_playback_cursor_track(self, track):
+        self._playback_cursor_track = track
+
+    def set_playback_cursor_system(self, system):
+        self._playback_cursor_system = system
+
+    def set_playback_cursor_row(self, row):
+        self._playback_cursor_row = row
+
+    def get_playback_cursor_position(self):
+        track = self._playback_cursor_track
+        system = self._playback_cursor_system
+        row = self._playback_cursor_row
+        position = (track, system, row)
+        return position

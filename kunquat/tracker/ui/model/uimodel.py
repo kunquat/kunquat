@@ -104,6 +104,7 @@ class UiModel():
         self._module.set_controller(controller)
         self._stat_manager.set_controller(self._controller)
         self._ui_manager.set_controller(self._controller)
+        self._playback_manager.set_controller(self._controller)
         self._typewriter_manager.set_controller(self._controller)
         self._visibility_manager.set_controller(self._controller)
         self._event_history.set_controller(self._controller)
@@ -192,6 +193,9 @@ class UiModel():
 
     def silence(self):
         self._controller.silence()
+
+    def clock(self):
+        self._controller.send_queries()
 
 def create_ui_model():
     stat_manager = StatManager()

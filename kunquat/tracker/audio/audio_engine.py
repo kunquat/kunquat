@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Toni Ruottu, Finland 2013
+# Authors: Toni Ruottu, Finland 2013-2014
 #          Tomi Jylhä-Ollila, Finland 2013-2014
 #
 # This file is part of Kunquat.
@@ -88,6 +88,15 @@ class AudioEngine():
         elif event_type == EVENT_NOTE_ON:
             pitch = event_value
             self._ui_engine.update_active_note(channel_number, pitch)
+        elif event_type == 'Atrack':
+            track = event_value
+            self._ui_engine.update_playback_cursor_track(track)
+        elif event_type == 'Asystem':
+            system = event_value
+            self._ui_engine.update_playback_cursor_system(system)
+        elif event_type == 'Arow':
+            row = event_value
+            self._ui_engine.update_playback_cursor_row(row)
 
     def _process_events(self, event_data, context):
         for channel_number, event in event_data:

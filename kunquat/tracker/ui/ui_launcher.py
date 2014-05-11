@@ -126,6 +126,7 @@ class UiLauncher():
 def create_ui_launcher():
     controller = create_controller()
     ui_model = create_ui_model()
+    controller.set_ui_model(ui_model)
     ui_model.set_controller(controller)
     ui_launcher = UiLauncher()
     ui_launcher.set_ui_model(ui_model)
