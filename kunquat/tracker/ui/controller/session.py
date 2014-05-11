@@ -50,6 +50,7 @@ class Session():
         self._edit_mode_enabled = False
         self._typewriter_connected = False
         self._replace_mode_enabled = False
+        self._record_mode_enabled = False
 
     def get_output_speed(self):
         return self._output_speed
@@ -264,4 +265,8 @@ class Session():
     def get_replace_mode(self):
         return self._replace_mode_enabled
 
+    def set_record_mode(self, enabled):
+        self._record_mode_enabled = enabled
 
+    def get_record_mode(self):
+        return self._record_mode_enabled
