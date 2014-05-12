@@ -25,6 +25,7 @@ class RootView():
 
     def __init__(self):
         self._ui_model = None
+        self._task_executer = None
         self._updater = None
         self._visible = set()
         self._main_window = MainWindow()
@@ -40,6 +41,9 @@ class RootView():
         self._main_window.set_ui_model(ui_model)
         self._updater = self._ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
+
+    def set_task_executer(self, task_executer):
+        self._task_executer = task_executer
 
     def _perform_updates(self, signals):
         visibility_manager = self._ui_model.get_visibility_manager()
