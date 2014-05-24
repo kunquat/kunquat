@@ -20,19 +20,27 @@ class SilenceButton(QToolButton):
     def __init__(self):
         QToolButton.__init__(self)
         self._ui_model = None
+        self._playback_manager = None
 
         self.setText('Silence')
         self.setAutoRaise(True)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
+        self._playback_manager = ui_model.get_playback_manager()
+
         icon_bank = self._ui_model.get_icon_bank()
         icon_path = icon_bank.get_icon_path('silence')
         icon = QIcon(icon_path)
         self.setIcon(icon)
-        QObject.connect(self, SIGNAL('clicked()'), self._ui_model.silence)
+
+        QObject.connect(self, SIGNAL('clicked()'),
+                        self._clicked)
 
     def unregister_updaters(self):
         pass
 
+    def _clicked(self):
+        self._playback_manager.stop_recording()
+        self._ui_model.silence()
 
