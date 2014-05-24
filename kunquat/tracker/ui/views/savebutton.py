@@ -14,8 +14,6 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from lib.task_executor import execute_task
-
 
 class SaveButton(QToolButton):
 
@@ -34,6 +32,6 @@ class SaveButton(QToolButton):
 
     def _clicked(self):
         module = self._ui_model.get_module()
-        module.save(execute_task)
+        module.start_save()
 
 

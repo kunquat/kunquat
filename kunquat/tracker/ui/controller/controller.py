@@ -160,6 +160,8 @@ class Controller():
         if tmpname:
             os.rename(tmpname, module_path)
 
+        self._updater.signal_update(set(['signal_save_module_finished']))
+
     def get_task_load_instrument(self, kqtifile):
         for _ in kqtifile.get_read_steps():
             yield

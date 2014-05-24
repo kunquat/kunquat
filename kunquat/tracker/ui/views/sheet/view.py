@@ -1015,7 +1015,11 @@ class View(QWidget):
         self._sheet_manager.set_edit_mode(True)
 
     def focusOutEvent(self, ev):
-        if self._visibility_manager.is_show_allowed(): # don't signal if closing
+        allow_signals = (
+                self._visibility_manager.is_show_allowed() and
+                not self._ui_model.get_module().is_saving())
+
+        if allow_signals:
             self._sheet_manager.set_edit_mode(False)
             self._sheet_manager.set_chord_mode(False)
 

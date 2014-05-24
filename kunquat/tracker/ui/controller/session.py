@@ -55,6 +55,7 @@ class Session():
         self._pending_playback_cursor_system = 0
         self._playback_cursor_position = (0, 0, [0, 0])
         self._module_path = None
+        self._is_saving = False
 
     def get_output_speed(self):
         return self._output_speed
@@ -294,5 +295,11 @@ class Session():
 
     def get_module_path(self):
         return self._module_path
+
+    def set_saving(self, enabled):
+        self._is_saving = enabled
+
+    def is_saving(self):
+        return self._is_saving
 
 

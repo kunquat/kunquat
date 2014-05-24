@@ -23,11 +23,13 @@ class Store(MutableMapping):
         self._audio_engine = None
         self._pending_validation = deque()
         self._transaction_ids = count()
+        self._is_saving = False
 
     def set_audio_engine(self, audio_engine):
         self._audio_engine = audio_engine
 
     def put(self, transaction):
+        assert not self._is_saving
         transaction_id = self._transaction_ids.next()
         self._audio_engine.set_data(transaction_id, transaction)
         self._pending_validation.append((transaction_id, transaction))
@@ -38,6 +40,10 @@ class Store(MutableMapping):
         for (key, value) in transaction.iteritems():
             if value == None:
                 del self._content[key]
+
+    def set_saving(self, enabled):
+        assert not self._pending_validation
+        self._is_saving = enabled
 
     def _get_validated_transaction(self, validated_id):
         transaction_id, transaction = self._pending_validation.popleft()

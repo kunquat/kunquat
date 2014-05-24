@@ -25,11 +25,13 @@ class RootView():
 
     def __init__(self):
         self._ui_model = None
+        self._task_executer = None
         self._updater = None
         self._visible = set()
         self._main_window = MainWindow()
         self._about_window = None
         self._event_log = None
+        self._module = None
 
     def show_main_window(self):
         visibility_manager = self._ui_model.get_visibility_manager()
@@ -40,6 +42,10 @@ class RootView():
         self._main_window.set_ui_model(ui_model)
         self._updater = self._ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
+        self._module = self._ui_model.get_module()
+
+    def set_task_executer(self, task_executer):
+        self._task_executer = task_executer
 
     def _perform_updates(self, signals):
         visibility_manager = self._ui_model.get_visibility_manager()
@@ -81,7 +87,12 @@ class RootView():
 
         self._visible = set(visibility_update)
 
-        if not self._visible:
+        if self._visible:
+            if 'signal_save_module' in signals:
+                self._execute_save_module()
+            if 'signal_save_module_finished' in signals:
+                self._on_save_module_finished()
+        else:
             QApplication.quit()
 
         self._ui_model.clock()
@@ -89,5 +100,13 @@ class RootView():
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
         self._main_window.unregister_updaters()
+
+    def _execute_save_module(self):
+        self._main_window.setEnabled(False)
+        task = self._module.execute_save(self._task_executer)
+
+    def _on_save_module_finished(self):
+        self._module.finish_save()
+        self._main_window.setEnabled(True)
 
 

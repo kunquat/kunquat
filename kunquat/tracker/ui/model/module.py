@@ -84,12 +84,29 @@ class Module():
             return None
         return album
 
-    def save(self, task_executor):
+    def is_saving(self):
+        return self._session.is_saving()
+
+    def start_save(self):
         module_path = self._session.get_module_path()
         if not module_path:
             # TODO: open save dialog
             return
+
+        assert not self.is_saving()
+        self._session.set_saving(True)
+        self._updater.signal_update(set(['signal_save_module']))
+
+    def execute_save(self, task_executor):
+        assert self.is_saving()
+        self._store.set_saving(True)
+
+        module_path = self._session.get_module_path()
         task = self._controller.get_task_save_module(module_path)
         task_executor(task)
+
+    def finish_save(self):
+        self._store.set_saving(False)
+        self._session.set_saving(False)
 
 
