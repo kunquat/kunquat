@@ -197,7 +197,7 @@ class Controller():
             row_ts = current_location.get_row_ts()
             trigger_index = current_location.get_trigger_index()
             old_location = TriggerPosition(track, system, col_num, row_ts, trigger_index)
-            tmp_location = TriggerPosition(track, system, channel_number, row_ts, trigger_index)
+            tmp_location = TriggerPosition(track, system, channel_number, row_ts, 0)
             selection.set_location(tmp_location)
             trigger = Trigger('n-', None)
             sheet_manager.add_trigger(trigger)
