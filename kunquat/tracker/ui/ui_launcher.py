@@ -125,18 +125,8 @@ class UiLauncher():
             visibility_manager.run_hidden()
 
         root_view.show_main_window()
+        root_view.setup_module()
 
-        if cmdline.get_kqt_file():
-            module_path = cmdline.get_kqt_file()
-            load_task = self._controller.get_task_load_module(module_path)
-            self.add_task(load_task)
-            session = self._controller.get_session()
-            session.set_module_path(module_path)
-        else:
-            self._controller.create_sandbox()
-            kqtifile = self._controller.get_share().get_default_instrument()
-            load_task = self._controller.get_task_load_instrument(kqtifile)
-            self.add_task(load_task)
         app.exec_()
 
         root_view.unregister_updaters()

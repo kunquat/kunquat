@@ -15,6 +15,7 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
+import kunquat.tracker.cmdline as cmdline
 from kunquat.tracker.ui.identifiers import *
 from mainwindow import MainWindow
 from aboutwindow import AboutWindow
@@ -33,16 +34,25 @@ class RootView():
         self._event_log = None
         self._module = None
 
-    def show_main_window(self):
-        visibility_manager = self._ui_model.get_visibility_manager()
-        visibility_manager.show_main()
-
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._main_window.set_ui_model(ui_model)
         self._updater = self._ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
         self._module = self._ui_model.get_module()
+
+    def show_main_window(self):
+        visibility_manager = self._ui_model.get_visibility_manager()
+        visibility_manager.show_main()
+
+    def setup_module(self):
+        module = self._ui_model.get_module()
+        module_path = cmdline.get_kqt_file()
+        if module_path:
+            module.set_path(module_path)
+            module.execute_load(self._task_executer)
+        else:
+            module.execute_create_sandbox(self._task_executer)
 
     def set_task_executer(self, task_executer):
         self._task_executer = task_executer
