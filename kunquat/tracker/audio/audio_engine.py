@@ -136,7 +136,13 @@ class AudioEngine():
         self._fire_event(channel, event, CONTEXT_TFIRE)
 
     def set_data(self, transaction_id, transaction):
+        if transaction == None:
+            # We received a token instead of actual data
+            self._ui_engine.confirm_valid_data(transaction_id)
+            return
+
         #TODO: Remove sorting once it works without
+        assert type(transaction) == dict
         for (key, value) in sorted(transaction.items()):
             self._rendering_engine.set_data(key, value)
         self._rendering_engine.validate()
