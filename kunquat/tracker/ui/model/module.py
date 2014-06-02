@@ -113,11 +113,14 @@ class Module():
 
         assert not self.is_saving()
         self._session.set_saving(True)
-        self._updater.signal_update(set(['signal_save_module']))
+        self._store.set_saving(True)
+        self._updater.signal_update(set(['signal_start_save_module']))
+
+    def flush(self, callback):
+        self._store.flush(callback)
 
     def execute_save(self, task_executer):
         assert self.is_saving()
-        self._store.set_saving(True)
 
         module_path = self._session.get_module_path()
         task = self._controller.get_task_save_module(module_path)

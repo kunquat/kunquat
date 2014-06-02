@@ -98,8 +98,8 @@ class RootView():
         self._visible = set(visibility_update)
 
         if self._visible:
-            if 'signal_save_module' in signals:
-                self._execute_save_module()
+            if 'signal_start_save_module' in signals:
+                self._start_save_module()
             if 'signal_save_module_finished' in signals:
                 self._on_save_module_finished()
         else:
@@ -111,8 +111,11 @@ class RootView():
         self._updater.unregister_updater(self._perform_updates)
         self._main_window.unregister_updaters()
 
-    def _execute_save_module(self):
+    def _start_save_module(self):
         self._main_window.setEnabled(False)
+        self._module.flush(self._execute_save_module)
+
+    def _execute_save_module(self):
         task = self._module.execute_save(self._task_executer)
 
     def _on_save_module_finished(self):
