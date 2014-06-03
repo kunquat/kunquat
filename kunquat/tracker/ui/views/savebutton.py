@@ -40,6 +40,15 @@ class SaveButton(QToolButton):
 
     def _clicked(self):
         module = self._ui_model.get_module()
+
+        if not module.get_path():
+            module_path = str(QFileDialog.getSaveFileName(
+                    caption='Save Kunquat Composition',
+                    filter='Kunquat compositions (*.kqt *.kqt.gz *.kqt.bz2)'))
+            if not module_path:
+                return
+            module.set_path(module_path)
+
         module.start_save()
 
 

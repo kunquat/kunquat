@@ -106,10 +106,8 @@ class Module():
         return self._session.is_saving()
 
     def start_save(self):
-        module_path = self._session.get_module_path()
-        if not module_path:
-            # TODO: open save dialog
-            return
+        module_path = self.get_path()
+        assert module_path
 
         assert not self.is_saving()
         self._session.set_saving(True)
