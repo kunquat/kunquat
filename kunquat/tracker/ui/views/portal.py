@@ -43,9 +43,8 @@ class Portal(QToolBar):
         self.addWidget(self._event_list_button)
         self.addSeparator()
         self.addWidget(self._about_button)
-        if cmdline.get_experimental():
-            self.addSeparator()
-            self.addWidget(self._save_button)
+        self.addSeparator()
+        self.addWidget(self._save_button)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
