@@ -80,6 +80,7 @@ class FieldEdit(QLineEdit):
             start_input=''):
         self.move(x_offset - 2, y_offset - 2)
         self.setText(start_input)
+        self.setSelection(0, len(start_input))
         assert not self._finished_callback
         self._finished_callback = finished_callback
         self.setValidator(validator)
