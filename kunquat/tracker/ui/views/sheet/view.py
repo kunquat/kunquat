@@ -19,6 +19,7 @@ import time
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
+import kunquat.kunquat.events as events
 import kunquat.tracker.cmdline as cmdline
 import kunquat.tracker.ui.model.tstamp as tstamp
 from kunquat.tracker.ui.model.trigger import Trigger
@@ -29,6 +30,72 @@ import utils
 from columngrouprenderer import ColumnGroupRenderer
 from trigger_renderer import TriggerRenderer
 from movestate import HorizontalMoveState, VerticalMoveState
+
+
+class TriggerTypeValidator(QValidator):
+
+    def __init__(self):
+        QValidator.__init__(self)
+
+    def validate(self, contents, pos):
+        in_str = str(contents)
+        if in_str in events.trigger_events_by_name:
+            return (QValidator.Acceptable, pos)
+        else:
+            return (QValidator.Intermediate, pos)
+
+
+class TriggerArgumentValidator(QValidator):
+
+    def __init__(self):
+        QValidator.__init__(self)
+
+    def validate(self, contents, pos):
+        return (QValidator.Acceptable, pos)
+
+
+class FieldEdit(QLineEdit):
+
+    def __init__(self, parent):
+        QLineEdit.__init__(self, parent)
+        self.hide()
+
+        self._finished_callback = None
+
+        QObject.connect(self, SIGNAL('editingFinished()'), self._finished)
+
+    def _finished(self):
+        assert self._finished_callback
+        text = unicode(self.text())
+        cb = self._finished_callback
+        self._finished_callback = None
+        cb(text)
+
+    def start_editing(
+            self,
+            x_offset,
+            y_offset,
+            validator,
+            finished_callback,
+            start_input=''):
+        self.move(x_offset - 2, y_offset - 2)
+        self.setText(start_input)
+        assert not self._finished_callback
+        self._finished_callback = finished_callback
+        self.setValidator(validator)
+        self.show()
+        self.setFocus()
+
+    def keyPressEvent(self, event):
+        if QLineEdit.keyPressEvent(self, event):
+            return
+        if event.key() == Qt.Key_Escape:
+            self.parent().setFocus()
+        event.accept()
+
+    def focusOutEvent(self, event):
+        self.hide()
+        self._finished_callback = None
 
 
 class View(QWidget):
@@ -44,6 +111,7 @@ class View(QWidget):
         self._sheet_manager = None
         self._notation_manager = None
         self._visibility_manager = None
+        self._playback_manager = None
         self._keyboard_mapper = KeyboardMapper()
 
         self.setAutoFillBackground(False)
@@ -69,6 +137,8 @@ class View(QWidget):
 
         self._trow_px_offset = 0
 
+        self._field_edit = FieldEdit(self)
+
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
@@ -76,6 +146,7 @@ class View(QWidget):
         self._sheet_manager = ui_model.get_sheet_manager()
         self._notation_manager = ui_model.get_notation_manager()
         self._visibility_manager = ui_model.get_visibility_manager()
+        self._playback_manager = ui_model.get_playback_manager()
 
         self._keyboard_mapper.set_ui_model(ui_model)
         for cr in self._col_rends:
@@ -856,6 +927,106 @@ class View(QWidget):
             self._move_edit_cursor_trigger_index(trigger_index - 1)
             self._try_delete_selection()
 
+    def _get_selected_coordinates(self):
+        selection = self._ui_model.get_selection()
+        location = selection.get_location()
+
+        x_offset = self._get_col_offset(location.get_col_num())
+        y_offset = self._get_row_offset(location)
+
+        column = self._sheet_manager.get_column_at_location(location)
+        row_ts = location.get_row_ts()
+        notation = self._notation_manager.get_notation()
+
+        try:
+            trigger_count = column.get_trigger_count_at_row(row_ts)
+            triggers = [column.get_trigger(row_ts, i)
+                    for i in xrange(min(trigger_count, location.get_trigger_index()))]
+            rends = [TriggerRenderer(self._config, trigger, notation)
+                    for trigger in triggers]
+            widths = [r.get_total_width() for r in rends]
+            init_width = sum(widths)
+            x_offset += init_width
+        except KeyError:
+            pass
+
+        return (x_offset, y_offset)
+
+    def _start_trigger_type_entry(self):
+        if (not self._sheet_manager.is_editing_enabled() or
+                self._playback_manager.is_recording()):
+            return
+
+        self._follow_edit_cursor()
+
+        coords = self._get_selected_coordinates()
+        if not coords:
+            return
+
+        x_offset, y_offset = coords
+
+        validator = TriggerTypeValidator()
+        self._field_edit.start_editing(
+                x_offset, y_offset, validator, self._finish_trigger_type_entry)
+        self._field_edit.show()
+        self._field_edit.setFocus()
+
+    def _finish_trigger_type_entry(self, text):
+        selection = self._ui_model.get_selection()
+        orig_location = selection.get_location()
+
+        self.setFocus()
+        arg = events.trigger_events_by_name[text]['def_val']
+        trigger = Trigger(text, arg)
+        self._sheet_manager.add_trigger(trigger)
+
+        if arg != None:
+            selection.set_location(orig_location)
+            self._start_trigger_argument_entry(new=True)
+
+    def _start_trigger_argument_entry(self, new=False):
+        if (not self._sheet_manager.is_editing_enabled() or
+                self._playback_manager.is_recording()):
+            return
+
+        self._follow_edit_cursor()
+
+        coords = self._get_selected_coordinates()
+        if not coords:
+            return
+
+        x_offset, y_offset = coords
+
+        trigger = self._sheet_manager.get_selected_trigger()
+        if trigger.get_argument() == None:
+            return
+
+        # Offset field edit so that trigger type remains visible
+        if trigger.get_type() not in ('n+', 'h'):
+            notation = self._notation_manager.get_notation()
+            renderer = TriggerRenderer(self._config, trigger, notation)
+            _, type_width = renderer.get_field_bounds(0)
+            x_offset += type_width
+
+        validator = TriggerArgumentValidator()
+        start_text = '' if new else trigger.get_argument()
+        self._field_edit.start_editing(
+                x_offset,
+                y_offset,
+                validator,
+                self._finish_trigger_argument_entry,
+                start_text)
+
+    def _finish_trigger_argument_entry(self, text):
+        self.setFocus()
+
+        trigger = self._sheet_manager.get_selected_trigger()
+        new_trigger = Trigger(trigger.get_type(), text)
+
+        if not self._sheet_manager.get_replace_mode():
+            self._sheet_manager.try_remove_trigger()
+        self._sheet_manager.add_trigger(new_trigger)
+
     def event(self, ev):
         if ev.type() == QEvent.KeyPress and ev.key() in (Qt.Key_Tab, Qt.Key_Backtab):
             return self.keyPressEvent(ev) or False
@@ -899,6 +1070,12 @@ class View(QWidget):
                 if not ev.isAutoRepeat():
                     is_replace = self._sheet_manager.get_replace_mode()
                     self._sheet_manager.set_replace_mode(not is_replace)
+            elif ev.key() == Qt.Key_Return:
+                if (self._sheet_manager.get_replace_mode() and
+                        self._sheet_manager.is_at_trigger()):
+                    self._start_trigger_argument_entry()
+                else:
+                    self._start_trigger_type_entry()
 
         if ev.key() == Qt.Key_Tab:
             self._move_edit_cursor_column(1)

@@ -102,6 +102,27 @@ class SheetManager():
     def get_chord_mode(self):
         return self._session.get_chord_mode()
 
+    def is_at_trigger(self):
+        selection = self._ui_model.get_selection()
+        location = selection.get_location()
+        if not location:
+            return False
+
+        cur_column = self.get_column_at_location(location)
+        row_ts = location.get_row_ts()
+        index = location.get_trigger_index()
+
+        return cur_column.has_trigger(row_ts, index)
+
+    def get_selected_trigger(self):
+        selection = self._ui_model.get_selection()
+        location = selection.get_location()
+        cur_column = self.get_column_at_location(location)
+        row_ts = location.get_row_ts()
+        index = location.get_trigger_index()
+
+        return cur_column.get_trigger(row_ts, index)
+
     def add_trigger(self, trigger):
         if not self.is_editing_enabled():
             return

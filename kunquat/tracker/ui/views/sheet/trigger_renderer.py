@@ -14,6 +14,7 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
+import kunquat.kunquat.events as events
 from config import *
 
 
@@ -119,7 +120,7 @@ class TriggerRenderer():
             self._fields.append(type_field)
 
             if expr != None:
-                if self._trigger.get_argument_type() == 'note':
+                if self._trigger.get_argument_type() == events.EVENT_ARG_PITCH:
                     vis_text = self._get_note_vis_name(expr)
                 else:
                     vis_text = expr

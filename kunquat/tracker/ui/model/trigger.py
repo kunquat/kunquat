@@ -11,7 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-import types
+import kunquat.kunquat.events as events
 
 
 class Trigger():
@@ -29,21 +29,8 @@ class Trigger():
 
     def get_argument_type(self):
         try:
-            return _ARG_TYPES[self._type]
+            return events.trigger_events_by_name[self._type]['arg_type']
         except KeyError:
-            return types.NoneType
-
-
-# FIXME: use event IDs instead of raw strings as keys
-# TODO: figure out how to represent note type
-# TODO: this list is incomplete
-
-_Note = 'note'
-
-_ARG_TYPES = {
-        'n+': _Note,
-        '/p': _Note,
-        '.arpn': _Note,
-    }
+            return None
 
 

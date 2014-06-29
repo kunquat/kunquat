@@ -11,6 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+import kunquat.kunquat.events as events
 from trigger import Trigger
 from triggerposition import TriggerPosition
 
@@ -93,8 +94,16 @@ class TypewriterButtonModel():
             self._sheet_manager.set_chord_mode(True)
             self._session.set_chord_note(pitch, True)
 
-            trigger = Trigger('n+', unicode(pitch))
-            self._sheet_manager.add_trigger(trigger)
+            if (self._sheet_manager.get_replace_mode() and
+                    self._sheet_manager.is_at_trigger()):
+                trigger = self._sheet_manager.get_selected_trigger()
+                if trigger.get_argument_type() == events.EVENT_ARG_PITCH:
+                    new_trigger = Trigger(trigger.get_type(), unicode(pitch))
+                    self._sheet_manager.try_remove_trigger()
+                    self._sheet_manager.add_trigger(new_trigger)
+            else:
+                trigger = Trigger('n+', unicode(pitch))
+                self._sheet_manager.add_trigger(trigger)
 
     def stop_tracked_note(self):
         if not self._session.is_key_active(self._row, self._index):
