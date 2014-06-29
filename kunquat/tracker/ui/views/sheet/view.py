@@ -1009,7 +1009,10 @@ class View(QWidget):
             x_offset += type_width
 
         validator = TriggerArgumentValidator()
-        start_text = '' if new else trigger.get_argument()
+        start_text = trigger.get_argument()
+        if new:
+            start_text = events.trigger_events_by_name[trigger.get_type()]['def_val']
+
         self._field_edit.start_editing(
                 x_offset,
                 y_offset,
