@@ -84,6 +84,9 @@ Env_var* Env_state_get_var(const Env_state* estate, const char* name)
     assert(estate != NULL);
     assert(name != NULL);
 
+    if (estate->vars == NULL)
+        return NULL;
+
     return AAtree_get_exact(estate->vars, name);
 }
 

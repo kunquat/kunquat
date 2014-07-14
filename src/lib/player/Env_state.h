@@ -53,7 +53,7 @@ bool Env_state_refresh_space(Env_state* estate);
  * \param estate   The Environment state -- must not be \c NULL.
  * \param name     The variable name -- must not be \c NULL.
  *
- * \return   The variable if found, otherwise \c NULL
+ * \return   The variable if found, otherwise \c NULL.
  */
 Env_var* Env_state_get_var(const Env_state* estate, const char* name);
 
