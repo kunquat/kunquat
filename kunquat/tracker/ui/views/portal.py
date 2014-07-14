@@ -15,11 +15,13 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
+import kunquat.tracker.cmdline as cmdline
 from playbutton import PlayButton
 from recordbutton import RecordButton
 from silencebutton import SilenceButton
 from eventlistbutton import EventListButton
 from aboutbutton import AboutButton
+from savebutton import SaveButton
 
 
 class Portal(QToolBar):
@@ -32,6 +34,7 @@ class Portal(QToolBar):
         self._silence_button = SilenceButton()
         self._event_list_button = EventListButton()
         self._about_button = AboutButton()
+        self._save_button = SaveButton()
 
         self.addWidget(self._play_button)
         self.addWidget(self._record_button)
@@ -40,6 +43,8 @@ class Portal(QToolBar):
         self.addWidget(self._event_list_button)
         self.addSeparator()
         self.addWidget(self._about_button)
+        self.addSeparator()
+        self.addWidget(self._save_button)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -48,8 +53,10 @@ class Portal(QToolBar):
         self._silence_button.set_ui_model(ui_model)
         self._event_list_button.set_ui_model(ui_model)
         self._about_button.set_ui_model(ui_model)
+        self._save_button.set_ui_model(ui_model)
 
     def unregister_updaters(self):
+        self._save_button.unregister_updaters()
         self._about_button.unregister_updaters()
         self._event_list_button.unregister_updaters()
         self._silence_button.unregister_updaters()

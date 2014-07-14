@@ -23,6 +23,7 @@ class Module():
 
     def __init__(self):
         self._updater = None
+        self._session = None
         self._store = None
         self._controller = None
         self._ui_model = None
@@ -30,6 +31,7 @@ class Module():
 
     def set_controller(self, controller):
         self._updater = controller.get_updater()
+        self._session = controller.get_session()
         self._store = controller.get_store()
         self._controller = controller
 
@@ -81,5 +83,45 @@ class Module():
         if not album.get_existence():
             return None
         return album
+
+    def set_path(self, path):
+        self._session.set_module_path(path)
+
+    def get_path(self):
+        return self._session.get_module_path()
+
+    def execute_load(self, task_executer):
+        assert not self.is_saving()
+        task = self._controller.get_task_load_module(self.get_path())
+        task_executer(task)
+
+    def execute_create_sandbox(self, task_executer):
+        assert not self.is_saving()
+        self._controller.create_sandbox()
+        kqtifile = self._controller.get_share().get_default_instrument()
+        task = self._controller.get_task_load_instrument(kqtifile)
+        task_executer(task)
+
+    def is_saving(self):
+        return self._session.is_saving()
+
+    def start_save(self):
+        assert not self.is_saving()
+        self._session.set_saving(True)
+        self._store.set_saving(True)
+        self._updater.signal_update(set(['signal_start_save_module']))
+
+    def flush(self, callback):
+        self._store.flush(callback)
+
+    def execute_save(self, task_executer):
+        assert self.is_saving()
+        module_path = self._session.get_module_path()
+        task = self._controller.get_task_save_module(module_path)
+        task_executer(task)
+
+    def finish_save(self):
+        self._store.set_saving(False)
+        self._session.set_saving(False)
 
 

@@ -17,6 +17,8 @@ import sys
 import json
 import time
 import tarfile
+import tempfile
+import StringIO
 import os.path
 
 import kunquat.tracker.cmdline as cmdline
@@ -127,6 +129,38 @@ class Controller():
             tfile.close()
             self._store.put(values)
             self._updater.signal_update(set(['signal_controls', 'signal_module']))
+
+    def get_task_save_module(self, module_path):
+        assert module_path
+        tmpname = None
+        with tempfile.NamedTemporaryFile(delete=False) as f:
+            compression_suffix = ''
+            if module_path.endswith('.bz2'):
+                compression_suffix = '|bz2'
+            elif module_path.endswith('.gz'):
+                compression_suffix = '|gz'
+            mode = 'w' + compression_suffix
+
+            with tarfile.open(mode=mode, fileobj=f, format=tarfile.USTAR_FORMAT) as tfile:
+                prefix = 'kqtc00'
+                for key, value in self._store.iteritems():
+                    yield
+                    path = '/'.join((prefix, key))
+                    if key.endswith('.json'):
+                        encoded = json.dumps(value)
+                    else:
+                        encoded = value
+                    info = tarfile.TarInfo(name=path)
+                    info.size = len(encoded)
+                    encoded_file = StringIO.StringIO(encoded)
+                    tfile.addfile(info, encoded_file)
+
+                tmpname = f.name
+
+        if tmpname:
+            os.rename(tmpname, module_path)
+
+        self._updater.signal_update(set(['signal_save_module_finished']))
 
     def get_task_load_instrument(self, kqtifile):
         for _ in kqtifile.get_read_steps():

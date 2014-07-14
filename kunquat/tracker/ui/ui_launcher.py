@@ -46,6 +46,8 @@ class UiLauncher():
         self._ui_model = None
         self._event_pump_starter = None
         self._lag_times = deque([], 20)
+        self._tasks = deque([])
+        self._task_timer = None
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -80,14 +82,27 @@ class UiLauncher():
         avg = sum(lag for lag in self._lag_times) / float(len(self._lag_times))
         self._controller.update_ui_lag(avg * 1000)
 
-    def execute_task(self, task):
-        for _ in task:
-            QApplication.processEvents()
+    def add_task(self, task):
+        self._tasks.append(task)
+        self._task_timer.start(0)
+
+    def _execute_tasks(self):
+        if self._tasks:
+            cur_task = self._tasks.popleft()
+            try:
+                cur_task.next()
+                self._tasks.appendleft(cur_task)
+            except StopIteration:
+                pass
+
+        if self._tasks:
+            self._task_timer.start(0)
 
     def run_ui(self):
         app = QApplication(sys.argv)
         error_dialog = ErrorDialog()
         root_view = RootView()
+        root_view.set_task_executer(self.add_task)
 
         update_timer = QTimer()
         QObject.connect(update_timer,
@@ -98,21 +113,20 @@ class UiLauncher():
 
         self._event_pump_starter()
 
+        self._task_timer = QTimer()
+        self._task_timer.setSingleShot(True)
+        QObject.connect(
+                self._task_timer,
+                SIGNAL('timeout()'),
+                self._execute_tasks)
+
         if not self._show:
             visibility_manager = self._ui_model.get_visibility_manager()
             visibility_manager.run_hidden()
 
         root_view.show_main_window()
+        root_view.setup_module()
 
-        if cmdline.get_kqt_file():
-            module_path = cmdline.get_kqt_file()
-            load_task = self._controller.get_task_load_module(module_path)
-            self.execute_task(load_task)
-        else:
-            self._controller.create_sandbox()
-            kqtifile = self._controller.get_share().get_default_instrument()
-            load_task = self._controller.get_task_load_instrument(kqtifile)
-            self.execute_task(load_task)
         app.exec_()
 
         root_view.unregister_updaters()
