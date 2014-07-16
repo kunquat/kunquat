@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2014
  *
  * This file is part of Kunquat.
  *
@@ -12,14 +12,15 @@
  */
 
 
-#ifndef EVENT_TYPE_DEF
-#error "EVENT_TYPE_DEF(type) not defined"
+#ifndef EVENT_INS_DEF
+#error "EVENT_INS_DEF(..) not defined"
 #endif
 
 
-EVENT_TYPE_DEF(set_sustain)
+//            Name          Type suffix             Arg type        Validator
+EVENT_INS_DEF("i.sus",      set_sustain,            FLOAT,          v_sustain)
 
 
-#undef EVENT_TYPE_DEF
+#undef EVENT_INS_DEF
 
 

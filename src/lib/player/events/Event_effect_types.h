@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2014
  *
  * This file is part of Kunquat.
  *
@@ -12,15 +12,16 @@
  */
 
 
-#ifndef EVENT_TYPE_DEF
-#error "EVENT_TYPE_DEF(type) not defined"
+#ifndef EVENT_EFFECT_DEF
+#error "EVENT_EFFECT_DEF(..) not defined"
 #endif
 
 
-EVENT_TYPE_DEF(bypass_on)
-EVENT_TYPE_DEF(bypass_off)
+//               Name       Type suffix             Arg type        Validator
+EVENT_EFFECT_DEF("ebp+",    bypass_on,              NONE,           NULL)
+EVENT_EFFECT_DEF("ebp-",    bypass_off,             NONE,           NULL)
 
 
-#undef EVENT_TYPE_DEF
+#undef EVENT_EFFECT_DEF
 
 

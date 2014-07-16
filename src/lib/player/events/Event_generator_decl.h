@@ -27,11 +27,11 @@
 
 // Process function declarations
 
-#define EVENT_TYPE_DEF(type)               \
-    bool Event_generator_##type##_process( \
-            const Device_impl* dimpl,      \
-            Device_state* dstate,          \
-            Channel* ch,                   \
+#define EVENT_GENERATOR_DEF(name, type_suffix, arg_type, validator) \
+    bool Event_generator_##type_suffix##_process(                   \
+            const Device_impl* dimpl,                               \
+            Device_state* dstate,                                   \
+            Channel* ch,                                            \
             const Value* value);
 #include <player/events/Event_generator_types.h>
 

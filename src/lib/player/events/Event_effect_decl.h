@@ -26,11 +26,11 @@
 
 // Process function declarations
 
-#define EVENT_TYPE_DEF(type)            \
-    bool Event_effect_##type##_process( \
-            const Effect* eff,          \
-            Effect_state* eff_state,    \
-            Device_states* dstates,     \
+#define EVENT_EFFECT_DEF(name, type_suffix, arg_type, validator) \
+    bool Event_effect_##type_suffix##_process(                   \
+            const Effect* eff,                                   \
+            Effect_state* eff_state,                             \
+            Device_states* dstates,                              \
             const Value* value);
 #include <player/events/Event_effect_types.h>
 
