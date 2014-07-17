@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2010-2013
+# Authors: Tomi Jylhä-Ollila, Finland 2010-2014
 #          Toni Ruottu, Finland 2013
 #
 # This file is part of Kunquat.
@@ -318,6 +318,21 @@ class Kunquat(BaseHandle):
         self._handle = None
 
 
+def get_event_info():
+    event_names_raw = _kunquat.kqt_get_event_names()
+    event_info = {}
+
+    i = 0
+    while event_names_raw[i]:
+        event_name = str(event_names_raw[i])
+        arg_type_raw = _kunquat.kqt_get_event_arg_type(event_name)
+        arg_type = str(arg_type_raw) if arg_type_raw else None
+        event_info[event_name] = arg_type
+        i += 1
+
+    return event_info
+
+
 def _get_error(obj):
     if obj['type'] == 'ArgumentError':
         return KunquatArgumentError(obj)
@@ -449,6 +464,11 @@ _kunquat.kqt_Handle_fire_event.errcheck = _error_check
 _kunquat.kqt_Handle_receive_events.argtypes = [kqt_Handle]
 _kunquat.kqt_Handle_receive_events.restype = ctypes.c_char_p
 _kunquat.kqt_Handle_receive_events.errcheck = _error_check
+
+_kunquat.kqt_get_event_names.argtypes = []
+_kunquat.kqt_get_event_names.restype = ctypes.POINTER(ctypes.c_char_p)
+_kunquat.kqt_get_event_arg_type.argtypes = [ctypes.c_char_p]
+_kunquat.kqt_get_event_arg_type.restype = ctypes.c_char_p
 
 _kunquat.kqt_fake_out_of_memory.argtypes = [ctypes.c_long]
 _kunquat.kqt_fake_out_of_memory.restype = None
