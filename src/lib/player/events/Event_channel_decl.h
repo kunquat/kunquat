@@ -25,10 +25,10 @@
 
 // Process function declarations
 
-#define EVENT_TYPE_DEF(type)             \
-    bool Event_channel_##type##_process( \
-            Channel* ch,                 \
-            Device_states* dstates,      \
+#define EVENT_CHANNEL_DEF(name, type_suffix, arg_type, validator) \
+    bool Event_channel_##type_suffix##_process(                   \
+            Channel* ch,                                          \
+            Device_states* dstates,                               \
             const Value* value);
 #include <player/events/Event_channel_types.h>
 

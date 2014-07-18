@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2014
  *
  * This file is part of Kunquat.
  *
@@ -12,67 +12,68 @@
  */
 
 
-#ifndef EVENT_TYPE_DEF
-#error "EVENT_TYPE_DEF(type) not defined"
+#ifndef EVENT_CHANNEL_DEF
+#error "EVENT_CHANNEL_DEF(..) not defined"
 #endif
 
 
-EVENT_TYPE_DEF(set_ins_input)
-EVENT_TYPE_DEF(set_generator)
-EVENT_TYPE_DEF(set_effect)
-EVENT_TYPE_DEF(set_global_effects)
-EVENT_TYPE_DEF(set_instrument_effects)
-EVENT_TYPE_DEF(set_dsp)
+//                Name      Type suffix             Arg type        Validator
+EVENT_CHANNEL_DEF(".i",     set_ins_input,          INT,            v_ins)
+EVENT_CHANNEL_DEF(".g",     set_generator,          INT,            v_gen)
+EVENT_CHANNEL_DEF(".e",     set_effect,             INT,            v_effect)
+EVENT_CHANNEL_DEF(".ge",    set_global_effects,     NONE,           NULL)
+EVENT_CHANNEL_DEF(".ie",    set_instrument_effects, NONE,           NULL)
+EVENT_CHANNEL_DEF(".d",     set_dsp,                INT,            v_dsp)
 
-EVENT_TYPE_DEF(note_on)
-EVENT_TYPE_DEF(hit)
-EVENT_TYPE_DEF(note_off)
+EVENT_CHANNEL_DEF("n+",     note_on,                FLOAT,          v_pitch)
+EVENT_CHANNEL_DEF("h",      hit,                    INT,            v_hit)
+EVENT_CHANNEL_DEF("n-",     note_off,               NONE,           NULL)
 
-EVENT_TYPE_DEF(set_force)
-EVENT_TYPE_DEF(slide_force)
-EVENT_TYPE_DEF(slide_force_length)
-EVENT_TYPE_DEF(tremolo_speed)
-EVENT_TYPE_DEF(tremolo_depth)
-EVENT_TYPE_DEF(tremolo_delay)
+EVENT_CHANNEL_DEF(".f",     set_force,              FLOAT,          v_force)
+EVENT_CHANNEL_DEF("/f",     slide_force,            FLOAT,          v_force)
+EVENT_CHANNEL_DEF("/=f",    slide_force_length,     TSTAMP,         v_nonneg_ts)
+EVENT_CHANNEL_DEF("ts",     tremolo_speed,          FLOAT,          v_nonneg_float)
+EVENT_CHANNEL_DEF("td",     tremolo_depth,          FLOAT,          v_tremolo_depth)
+EVENT_CHANNEL_DEF("tdd",    tremolo_delay,          TSTAMP,         v_nonneg_ts)
 
-EVENT_TYPE_DEF(slide_pitch)
-EVENT_TYPE_DEF(slide_pitch_length)
-EVENT_TYPE_DEF(vibrato_speed)
-EVENT_TYPE_DEF(vibrato_depth)
-EVENT_TYPE_DEF(vibrato_delay)
+EVENT_CHANNEL_DEF("/p",     slide_pitch,            FLOAT,          v_pitch)
+EVENT_CHANNEL_DEF("/=p",    slide_pitch_length,     TSTAMP,         v_nonneg_ts)
+EVENT_CHANNEL_DEF("vs",     vibrato_speed,          FLOAT,          v_nonneg_float)
+EVENT_CHANNEL_DEF("vd",     vibrato_depth,          FLOAT,          v_nonneg_float)
+EVENT_CHANNEL_DEF("vdd",    vibrato_delay,          TSTAMP,         v_nonneg_ts)
 
-EVENT_TYPE_DEF(reset_arpeggio)
-EVENT_TYPE_DEF(set_arpeggio_note)
-EVENT_TYPE_DEF(set_arpeggio_index)
-EVENT_TYPE_DEF(set_arpeggio_speed)
-EVENT_TYPE_DEF(arpeggio_on)
-EVENT_TYPE_DEF(arpeggio_off)
+EVENT_CHANNEL_DEF("<arp",   reset_arpeggio,         NONE,           NULL)
+EVENT_CHANNEL_DEF(".arpn",  set_arpeggio_note,      FLOAT,          v_pitch)
+EVENT_CHANNEL_DEF(".arpi",  set_arpeggio_index,     INT,            v_arp_index)
+EVENT_CHANNEL_DEF(".arps",  set_arpeggio_speed,     FLOAT,          v_arp_speed)
+EVENT_CHANNEL_DEF("arp+",   arpeggio_on,            NONE,           NULL)
+EVENT_CHANNEL_DEF("arp-",   arpeggio_off,           NONE,           NULL)
 
-EVENT_TYPE_DEF(set_lowpass)
-EVENT_TYPE_DEF(slide_lowpass)
-EVENT_TYPE_DEF(slide_lowpass_length)
-EVENT_TYPE_DEF(autowah_speed)
-EVENT_TYPE_DEF(autowah_depth)
-EVENT_TYPE_DEF(autowah_delay)
+EVENT_CHANNEL_DEF(".l",     set_lowpass,            FLOAT,          v_lowpass)
+EVENT_CHANNEL_DEF("/l",     slide_lowpass,          FLOAT,          v_lowpass)
+EVENT_CHANNEL_DEF("/=l",    slide_lowpass_length,   TSTAMP,         v_nonneg_ts)
+EVENT_CHANNEL_DEF("ws",     autowah_speed,          FLOAT,          v_nonneg_float)
+EVENT_CHANNEL_DEF("wd",     autowah_depth,          FLOAT,          v_nonneg_float)
+EVENT_CHANNEL_DEF("wdd",    autowah_delay,          TSTAMP,         v_nonneg_ts)
 
-EVENT_TYPE_DEF(set_resonance)
-//EVENT_TYPE_DEF(slide_resonance)
-//EVENT_TYPE_DEF(slide_resonance_length)
+EVENT_CHANNEL_DEF(".r",     set_resonance,          FLOAT,          v_resonance)
+//EVENT_CHANNEL_DEF("/r",     slide_resonance,        FLOAT,          v_resonance)
+//EVENT_CHANNEL_DEF("/=r",    slide_resonance_length, TSTAMP,         v_nonneg_ts)
 
-EVENT_TYPE_DEF(set_panning)
-EVENT_TYPE_DEF(slide_panning)
-EVENT_TYPE_DEF(slide_panning_length)
+EVENT_CHANNEL_DEF(".P",     set_panning,            FLOAT,          v_panning)
+EVENT_CHANNEL_DEF("/P",     slide_panning,          FLOAT,          v_panning)
+EVENT_CHANNEL_DEF("/=P",    slide_panning_length,   TSTAMP,         v_nonneg_ts)
 
-EVENT_TYPE_DEF(set_gen_bool_name)
-EVENT_TYPE_DEF(set_gen_bool)
-EVENT_TYPE_DEF(set_gen_int_name)
-EVENT_TYPE_DEF(set_gen_int)
-EVENT_TYPE_DEF(set_gen_float_name)
-EVENT_TYPE_DEF(set_gen_float)
-EVENT_TYPE_DEF(set_gen_tstamp_name)
-EVENT_TYPE_DEF(set_gen_tstamp)
+EVENT_CHANNEL_DEF(".gBn",   set_gen_bool_name,      STRING,         v_key)
+EVENT_CHANNEL_DEF(".gB",    set_gen_bool,           BOOL,           v_any_bool)
+EVENT_CHANNEL_DEF(".gIn",   set_gen_int_name,       STRING,         v_key)
+EVENT_CHANNEL_DEF(".gI",    set_gen_int,            INT,            v_any_int)
+EVENT_CHANNEL_DEF(".gFn",   set_gen_float_name,     STRING,         v_key)
+EVENT_CHANNEL_DEF(".gF",    set_gen_float,          FLOAT,          v_any_float)
+EVENT_CHANNEL_DEF(".gTn",   set_gen_tstamp_name,    STRING,         v_key)
+EVENT_CHANNEL_DEF(".gT",    set_gen_tstamp,         TSTAMP,         v_any_ts)
 
 
-#undef EVENT_TYPE_DEF
+#undef EVENT_CHANNEL_DEF
 
 

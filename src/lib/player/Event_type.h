@@ -21,43 +21,49 @@ typedef enum
     Event_NONE = 0, ///< An uninitialised event.
 
     Event_control_START,
-#define EVENT_TYPE_DEF(type) Event_control_##type,
+#define EVENT_CONTROL_DEF(name, type_suffix, arg_type, validator) \
+        Event_control_##type_suffix,
 #include <player/events/Event_control_types.h>
     Event_control_STOP,
 
     Event_general_START,
-#define EVENT_TYPE_DEF(type) Event_general_##type,
+#define EVENT_GENERAL_DEF(name, type_suffix, arg_type, validator) \
+        Event_general_##type_suffix,
 #include <player/events/Event_general_types.h>
     Event_general_STOP,
 
     Event_master_START,
-#define EVENT_TYPE_DEF(type) Event_master_##type,
+#define EVENT_MASTER_DEF(name, type_suffix, arg_type, validator) \
+        Event_master_##type_suffix,
 #include <player/events/Event_master_types.h>
 
     Event_master_STOP,
 
     Event_channel_START,
-#define EVENT_TYPE_DEF(type) Event_channel_##type,
+#define EVENT_CHANNEL_DEF(name, type_suffix, arg_type, validator) \
+        Event_channel_##type_suffix,
 #include <player/events/Event_channel_types.h>
     Event_channel_STOP,
 
     Event_ins_START,
-#define EVENT_TYPE_DEF(type) Event_ins_##type,
+#define EVENT_INS_DEF(name, type_suffix, arg_type, validator) Event_ins_##type_suffix,
 #include <player/events/Event_ins_types.h>
     Event_ins_STOP,
 
     Event_generator_START,
-#define EVENT_TYPE_DEF(type) Event_generator_##type,
+#define EVENT_GENERATOR_DEF(name, type_suffix, arg_type, validator) \
+        Event_generator_##type_suffix,
 #include <player/events/Event_generator_types.h>
     Event_generator_STOP,
 
     Event_effect_START,
-#define EVENT_TYPE_DEF(type) Event_effect_##type,
+#define EVENT_EFFECT_DEF(name, type_suffix, arg_type, validator) \
+        Event_effect_##type_suffix,
 #include <player/events/Event_effect_types.h>
     Event_effect_STOP,
 
     Event_dsp_START,
-#define EVENT_TYPE_DEF(type) Event_dsp_##type,
+#define EVENT_DSP_DEF(name, type_suffix, arg_type, validator) Event_dsp_##type_suffix,
 #include <player/events/Event_dsp_types.h>
     Event_dsp_STOP,
 

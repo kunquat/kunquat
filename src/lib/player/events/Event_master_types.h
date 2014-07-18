@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2014
  *
  * This file is part of Kunquat.
  *
@@ -12,33 +12,33 @@
  */
 
 
-#ifndef EVENT_TYPE_DEF
-#error "EVENT_TYPE_DEF(type) not defined"
+#ifndef EVENT_MASTER_DEF
+#error "EVENT_MASTER_DEF(type) not defined"
 #endif
 
 
-EVENT_TYPE_DEF(set_tempo)
-EVENT_TYPE_DEF(slide_tempo)
-EVENT_TYPE_DEF(slide_tempo_length)
+EVENT_MASTER_DEF("mpd",     pattern_delay,          TSTAMP,         v_nonneg_ts)
 
-EVENT_TYPE_DEF(pattern_delay)
+EVENT_MASTER_DEF("m.jc",    set_jump_counter,       INT,            v_counter)
+EVENT_MASTER_DEF("m.jr",    set_jump_row,           TSTAMP,         v_nonneg_ts)
+EVENT_MASTER_DEF("m.jp",    set_jump_pat_inst,      PAT_INST_REF,   v_piref)
+EVENT_MASTER_DEF("mj",      jump,                   NONE,           NULL)
 
-EVENT_TYPE_DEF(set_volume)
-EVENT_TYPE_DEF(slide_volume)
-EVENT_TYPE_DEF(slide_volume_length)
+EVENT_MASTER_DEF("m.s",     set_scale,              INT,            v_scale)
+EVENT_MASTER_DEF("m.so",    set_scale_offset,       FLOAT,          v_finite_float)
+EVENT_MASTER_DEF("mms",     mimic_scale,            INT,            v_scale)
+EVENT_MASTER_DEF("m.sfp",   set_scale_fixed_point,  INT,            v_note_entry)
+EVENT_MASTER_DEF("mssi",    shift_scale_intervals,  INT,            v_note_entry)
 
-EVENT_TYPE_DEF(set_scale)
-EVENT_TYPE_DEF(set_scale_offset)
-EVENT_TYPE_DEF(mimic_scale)
-EVENT_TYPE_DEF(set_scale_fixed_point)
-EVENT_TYPE_DEF(shift_scale_intervals)
+EVENT_MASTER_DEF("m.t",     set_tempo,              FLOAT,          v_tempo)
+EVENT_MASTER_DEF("m/t",     slide_tempo,            FLOAT,          v_tempo)
+EVENT_MASTER_DEF("m/=t",    slide_tempo_length,     TSTAMP,         v_nonneg_ts)
 
-EVENT_TYPE_DEF(set_jump_pat_inst)
-EVENT_TYPE_DEF(set_jump_row)
-EVENT_TYPE_DEF(set_jump_counter)
-EVENT_TYPE_DEF(jump)
+EVENT_MASTER_DEF("m.v",     set_volume,             FLOAT,          v_volume)
+EVENT_MASTER_DEF("m/v",     slide_volume,           FLOAT,          v_volume)
+EVENT_MASTER_DEF("m/=v",    slide_volume_length,    TSTAMP,         v_nonneg_ts)
 
 
-#undef EVENT_TYPE_DEF
+#undef EVENT_MASTER_DEF
 
 

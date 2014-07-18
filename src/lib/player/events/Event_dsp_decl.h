@@ -26,11 +26,11 @@
 
 // Process function declarations
 
-#define EVENT_TYPE_DEF(type)          \
-    bool Event_dsp_##type##_process(  \
-            const Device_impl* dimpl, \
-            Device_state* dstate,     \
-            Channel* ch,              \
+#define EVENT_DSP_DEF(name, type_suffix, arg_type, validator) \
+    bool Event_dsp_##type_suffix##_process(                   \
+            const Device_impl* dimpl,                         \
+            Device_state* dstate,                             \
+            Channel* ch,                                      \
             const Value* value);
 #include <player/events/Event_dsp_types.h>
 
