@@ -327,7 +327,7 @@ def get_event_info():
         event_name = str(event_names_raw[i])
         arg_type_raw = _kunquat.kqt_get_event_arg_type(event_name)
         arg_type = str(arg_type_raw) if arg_type_raw else None
-        event_info[event_name] = { 'arg_type': arg_type }
+        event_info[event_name] = { 'name': event_name, 'arg_type': arg_type }
         i += 1
 
     return event_info
