@@ -22,6 +22,7 @@ from visibilitymanager import VisibilityManager
 from selection import Selection
 from sheetmanager import SheetManager
 from notationmanager import NotationManager
+from processmanager import ProcessManager
 from iconbank import IconBank
 
 class UiModel():
@@ -94,6 +95,7 @@ class UiModel():
         self._selection = None
         self._sheet_manager = None
         self._notation_manager = None
+        self._process_manager = None
         self._icon_bank = None
 
     def set_ui(self, ui):
@@ -111,6 +113,7 @@ class UiModel():
         self._selection.set_controller(self._controller)
         self._sheet_manager.set_controller(self._controller)
         self._notation_manager.set_controller(self._controller)
+        self._process_manager.set_controller(self._controller)
         self._icon_bank.set_controller(self._controller)
 
     def get_updater(self):
@@ -182,6 +185,12 @@ class UiModel():
     def get_notation_manager(self):
         return self._notation_manager
 
+    def set_process_manager(self, process_manager):
+        self._process_manager = process_manager
+
+    def get_process_manager(self):
+        return self._process_manager
+
     def set_icon_bank(self, icon_bank):
         self._icon_bank = icon_bank
 
@@ -208,6 +217,7 @@ def create_ui_model():
     selection = Selection()
     sheet_manager = SheetManager()
     notation_manager = NotationManager()
+    process_manager = ProcessManager()
     icon_bank = IconBank()
     ui_model = UiModel()
     ui_model.set_stat_manager(stat_manager)
@@ -220,6 +230,7 @@ def create_ui_model():
     ui_model.set_selection(selection)
     ui_model.set_sheet_manager(sheet_manager)
     ui_model.set_notation_manager(notation_manager)
+    ui_model.set_process_manager(process_manager)
     ui_model.set_icon_bank(icon_bank)
     return ui_model
 
