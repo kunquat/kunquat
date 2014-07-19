@@ -985,7 +985,7 @@ class View(QWidget):
             events.EVENT_ARG_INT    : u'0',
             events.EVENT_ARG_FLOAT  : u'0',
             events.EVENT_ARG_TSTAMP : u'0',
-            events.EVENT_ARG_STRING : u'',
+            events.EVENT_ARG_STRING : u"''",
             events.EVENT_ARG_PAT    : u'pat(0, 0)',
             events.EVENT_ARG_PITCH  : u'0',
         }
