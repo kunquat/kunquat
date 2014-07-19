@@ -34,6 +34,7 @@ EVENT_CHANNEL_DEF("/f",     slide_force,            FLOAT,          v_force)
 EVENT_CHANNEL_DEF("/=f",    slide_force_length,     TSTAMP,         v_nonneg_ts)
 EVENT_CHANNEL_DEF("ts",     tremolo_speed,          FLOAT,          v_nonneg_float)
 EVENT_CHANNEL_DEF("td",     tremolo_depth,          FLOAT,          v_tremolo_depth)
+EVENT_CHANNEL_DEF("t/=s",   tremolo_speed_slide,    TSTAMP,         v_nonneg_ts)
 EVENT_CHANNEL_DEF("t/=d",   tremolo_depth_slide,    TSTAMP,         v_nonneg_ts)
 
 EVENT_CHANNEL_DEF("/p",     slide_pitch,            FLOAT,          v_pitch)
