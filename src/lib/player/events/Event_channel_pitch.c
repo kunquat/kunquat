@@ -164,6 +164,31 @@ bool Event_channel_vibrato_depth_process(
 }
 
 
+bool Event_channel_vibrato_speed_slide_process(
+        Channel* ch,
+        Device_states* dstates,
+        const Value* value)
+{
+    assert(ch != NULL);
+    assert(dstates != NULL);
+    (void)dstates;
+    assert(value != NULL);
+    assert(value->type == VALUE_TYPE_TSTAMP);
+
+    Tstamp_copy(&ch->vibrato_speed_slide, &value->value.Tstamp_type);
+    LFO_set_speed_slide(&ch->vibrato, &value->value.Tstamp_type);
+
+    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    {
+        Event_check_voice(ch, i);
+        Voice_state* vs = ch->fg[i]->state;
+        LFO_set_speed_slide(&vs->vibrato, &value->value.Tstamp_type);
+    }
+
+    return true;
+}
+
+
 bool Event_channel_vibrato_depth_slide_process(
         Channel* ch,
         Device_states* dstates,

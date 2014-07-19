@@ -40,6 +40,7 @@ EVENT_CHANNEL_DEF("/p",     slide_pitch,            FLOAT,          v_pitch)
 EVENT_CHANNEL_DEF("/=p",    slide_pitch_length,     TSTAMP,         v_nonneg_ts)
 EVENT_CHANNEL_DEF("vs",     vibrato_speed,          FLOAT,          v_nonneg_float)
 EVENT_CHANNEL_DEF("vd",     vibrato_depth,          FLOAT,          v_nonneg_float)
+EVENT_CHANNEL_DEF("v/=s",   vibrato_speed_slide,    TSTAMP,         v_nonneg_ts)
 EVENT_CHANNEL_DEF("v/=d",   vibrato_depth_slide,    TSTAMP,         v_nonneg_ts)
 
 EVENT_CHANNEL_DEF("<arp",   reset_arpeggio,         NONE,           NULL)
