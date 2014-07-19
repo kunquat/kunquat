@@ -56,6 +56,7 @@ EVENT_CHANNEL_DEF("/l",     slide_lowpass,          FLOAT,          v_lowpass)
 EVENT_CHANNEL_DEF("/=l",    slide_lowpass_length,   TSTAMP,         v_nonneg_ts)
 EVENT_CHANNEL_DEF("ws",     autowah_speed,          FLOAT,          v_nonneg_float)
 EVENT_CHANNEL_DEF("wd",     autowah_depth,          FLOAT,          v_nonneg_float)
+EVENT_CHANNEL_DEF("w/=s",   autowah_speed_slide,    TSTAMP,         v_nonneg_ts)
 EVENT_CHANNEL_DEF("w/=d",   autowah_depth_slide,    TSTAMP,         v_nonneg_ts)
 
 EVENT_CHANNEL_DEF(".r",     set_resonance,          FLOAT,          v_resonance)
