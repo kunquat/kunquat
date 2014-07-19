@@ -972,12 +972,32 @@ class View(QWidget):
         self._field_edit.show()
         self._field_edit.setFocus()
 
+    def _get_example_trigger_argument(self, event_name):
+        info = events.trigger_events_by_name[event_name]
+
+        # Special case: tempo values
+        if info['name'] in ('m.t', 'm/t'):
+            return u'120'
+
+        ex = {
+            None                    : None,
+            events.EVENT_ARG_BOOL   : u'false',
+            events.EVENT_ARG_INT    : u'0',
+            events.EVENT_ARG_FLOAT  : u'0',
+            events.EVENT_ARG_TSTAMP : u'0',
+            events.EVENT_ARG_STRING : u'',
+            events.EVENT_ARG_PAT    : u'pat(0, 0)',
+            events.EVENT_ARG_PITCH  : u'0',
+        }
+
+        return ex[info['arg_type']]
+
     def _finish_trigger_type_entry(self, text):
         selection = self._ui_model.get_selection()
         orig_location = selection.get_location()
 
         self.setFocus()
-        arg = events.trigger_events_by_name[text]['def_val']
+        arg = self._get_example_trigger_argument(text)
         trigger = Trigger(text, arg)
         self._sheet_manager.add_trigger(trigger)
 
@@ -1012,7 +1032,7 @@ class View(QWidget):
         validator = TriggerArgumentValidator()
         start_text = trigger.get_argument()
         if new:
-            start_text = events.trigger_events_by_name[trigger.get_type()]['def_val']
+            start_text = self._get_example_trigger_argument(trigger.get_type())
 
         self._field_edit.start_editing(
                 x_offset,
