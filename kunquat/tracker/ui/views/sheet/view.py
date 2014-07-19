@@ -1001,7 +1001,8 @@ class View(QWidget):
         trigger = Trigger(text, arg)
         self._sheet_manager.add_trigger(trigger)
 
-        if arg != None:
+        arg_type = events.trigger_events_by_name[text]['arg_type']
+        if arg_type not in (None, events.EVENT_ARG_PITCH):
             selection.set_location(orig_location)
             self._start_trigger_argument_entry(new=True)
 
