@@ -164,7 +164,7 @@ bool Event_channel_vibrato_depth_process(
 }
 
 
-bool Event_channel_vibrato_delay_process(
+bool Event_channel_vibrato_depth_slide_process(
         Channel* ch,
         Device_states* dstates,
         const Value* value)
@@ -175,15 +175,15 @@ bool Event_channel_vibrato_delay_process(
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_TSTAMP);
 
-    Tstamp_copy(&ch->vibrato_depth_delay,
+    Tstamp_copy(&ch->vibrato_depth_slide,
                  &value->value.Tstamp_type);
-    LFO_set_depth_delay(&ch->vibrato, &value->value.Tstamp_type);
+    LFO_set_depth_slide(&ch->vibrato, &value->value.Tstamp_type);
 
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;
-        LFO_set_depth_delay(&vs->vibrato, &value->value.Tstamp_type);
+        LFO_set_depth_slide(&vs->vibrato, &value->value.Tstamp_type);
     }
 
     return true;

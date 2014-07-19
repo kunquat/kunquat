@@ -62,23 +62,23 @@ typedef struct Channel
     Tstamp force_slide_length;
     LFO tremolo;
     double tremolo_speed;
-    Tstamp tremolo_speed_delay;
+    Tstamp tremolo_speed_slide;
     double tremolo_depth;
-    Tstamp tremolo_depth_delay;
+    Tstamp tremolo_depth_slide;
 
     Tstamp pitch_slide_length;
     LFO vibrato;
     double vibrato_speed;
-    Tstamp vibrato_speed_delay;
+    Tstamp vibrato_speed_slide;
     double vibrato_depth;
-    Tstamp vibrato_depth_delay;
+    Tstamp vibrato_depth_slide;
 
     Tstamp filter_slide_length;
     LFO autowah;
     double autowah_speed;
-    Tstamp autowah_speed_delay;
+    Tstamp autowah_speed_slide;
     double autowah_depth;
-    Tstamp autowah_depth_delay;
+    Tstamp autowah_depth_slide;
 
     double panning;                ///< The current panning.
     Slider panning_slider;

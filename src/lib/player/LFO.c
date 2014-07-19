@@ -129,13 +129,13 @@ void LFO_set_speed(LFO* lfo, double speed)
 }
 
 
-void LFO_set_speed_delay(LFO* lfo, const Tstamp* delay)
+void LFO_set_speed_slide(LFO* lfo, const Tstamp* length)
 {
     assert(lfo != NULL);
-    assert(delay != NULL);
-    assert(Tstamp_cmp(delay, Tstamp_init(TSTAMP_AUTO)) >= 0);
+    assert(length != NULL);
+    assert(Tstamp_cmp(length, Tstamp_init(TSTAMP_AUTO)) >= 0);
 
-    Slider_set_length(&lfo->speed_slider, delay);
+    Slider_set_length(&lfo->speed_slider, length);
 
     return;
 }
@@ -155,13 +155,13 @@ void LFO_set_depth(LFO* lfo, double depth)
 }
 
 
-void LFO_set_depth_delay(LFO* lfo, const Tstamp* delay)
+void LFO_set_depth_slide(LFO* lfo, const Tstamp* length)
 {
     assert(lfo != NULL);
-    assert(delay != NULL);
-    assert(Tstamp_cmp(delay, Tstamp_init(TSTAMP_AUTO)) >= 0);
+    assert(length != NULL);
+    assert(Tstamp_cmp(length, Tstamp_init(TSTAMP_AUTO)) >= 0);
 
-    Slider_set_length(&lfo->depth_slider, delay);
+    Slider_set_length(&lfo->depth_slider, length);
 
     return;
 }
