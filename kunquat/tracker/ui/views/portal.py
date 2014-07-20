@@ -21,6 +21,8 @@ from recordbutton import RecordButton
 from silencebutton import SilenceButton
 from eventlistbutton import EventListButton
 from aboutbutton import AboutButton
+from newbutton import NewButton
+from openbutton import OpenButton
 from savebutton import SaveButton
 
 
@@ -34,6 +36,8 @@ class Portal(QToolBar):
         self._silence_button = SilenceButton()
         self._event_list_button = EventListButton()
         self._about_button = AboutButton()
+        self._new_button = NewButton()
+        self._open_button = OpenButton()
         self._save_button = SaveButton()
 
         self.addWidget(self._play_button)
@@ -44,6 +48,8 @@ class Portal(QToolBar):
         self.addSeparator()
         self.addWidget(self._about_button)
         self.addSeparator()
+        self.addWidget(self._new_button)
+        self.addWidget(self._open_button)
         self.addWidget(self._save_button)
 
     def set_ui_model(self, ui_model):
@@ -53,10 +59,14 @@ class Portal(QToolBar):
         self._silence_button.set_ui_model(ui_model)
         self._event_list_button.set_ui_model(ui_model)
         self._about_button.set_ui_model(ui_model)
+        self._new_button.set_ui_model(ui_model)
+        self._open_button.set_ui_model(ui_model)
         self._save_button.set_ui_model(ui_model)
 
     def unregister_updaters(self):
         self._save_button.unregister_updaters()
+        self._open_button.unregister_updaters()
+        self._new_button.unregister_updaters()
         self._about_button.unregister_updaters()
         self._event_list_button.unregister_updaters()
         self._silence_button.unregister_updaters()
