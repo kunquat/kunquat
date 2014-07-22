@@ -164,7 +164,32 @@ bool Event_channel_tremolo_depth_process(
 }
 
 
-bool Event_channel_tremolo_delay_process(
+bool Event_channel_tremolo_speed_slide_process(
+        Channel* ch,
+        Device_states* dstates,
+        const Value* value)
+{
+    assert(ch != NULL);
+    assert(dstates != NULL);
+    (void)dstates;
+    assert(value != NULL);
+    assert(value->type == VALUE_TYPE_TSTAMP);
+
+    Tstamp_copy(&ch->tremolo_speed_slide, &value->value.Tstamp_type);
+    LFO_set_speed_slide(&ch->tremolo, &value->value.Tstamp_type);
+
+    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    {
+        Event_check_voice(ch, i);
+        Voice_state* vs = ch->fg[i]->state;
+        LFO_set_speed_slide(&vs->tremolo, &value->value.Tstamp_type);
+    }
+
+    return true;
+}
+
+
+bool Event_channel_tremolo_depth_slide_process(
         Channel* ch,
         Device_states* dstates,
         const Value* value)
@@ -176,15 +201,15 @@ bool Event_channel_tremolo_delay_process(
     assert(value->type == VALUE_TYPE_TSTAMP);
 
     Tstamp_copy(
-            &ch->tremolo_depth_delay,
+            &ch->tremolo_depth_slide,
             &value->value.Tstamp_type);
-    LFO_set_depth_delay(&ch->tremolo, &value->value.Tstamp_type);
+    LFO_set_depth_slide(&ch->tremolo, &value->value.Tstamp_type);
 
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;
-        LFO_set_depth_delay(&vs->tremolo, &value->value.Tstamp_type);
+        LFO_set_depth_slide(&vs->tremolo, &value->value.Tstamp_type);
     }
 
     return true;

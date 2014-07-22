@@ -142,23 +142,23 @@ void Channel_reset(Channel* ch)
     Tstamp_set(&ch->force_slide_length, 0, 0);
     LFO_init(&ch->tremolo, LFO_MODE_EXP);
     ch->tremolo_speed = 0;
-    Tstamp_init(&ch->tremolo_speed_delay);
+    Tstamp_init(&ch->tremolo_speed_slide);
     ch->tremolo_depth = 0;
-    Tstamp_init(&ch->tremolo_depth_delay);
+    Tstamp_init(&ch->tremolo_depth_slide);
 
     Tstamp_set(&ch->pitch_slide_length, 0, 0);
     LFO_init(&ch->vibrato, LFO_MODE_EXP);
     ch->vibrato_speed = 0;
-    Tstamp_init(&ch->vibrato_speed_delay);
+    Tstamp_init(&ch->vibrato_speed_slide);
     ch->vibrato_depth = 0;
-    Tstamp_init(&ch->vibrato_depth_delay);
+    Tstamp_init(&ch->vibrato_depth_slide);
 
     Tstamp_set(&ch->filter_slide_length, 0, 0);
     LFO_init(&ch->autowah, LFO_MODE_EXP);
     ch->autowah_speed = 0;
-    Tstamp_init(&ch->autowah_speed_delay);
+    Tstamp_init(&ch->autowah_speed_slide);
     ch->autowah_depth = 0;
-    Tstamp_init(&ch->autowah_depth_delay);
+    Tstamp_init(&ch->autowah_depth_slide);
 
     ch->panning = 0;
     Slider_init(&ch->panning_slider, SLIDE_MODE_LINEAR);

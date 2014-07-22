@@ -102,12 +102,12 @@ void LFO_set_speed(LFO* lfo, double speed);
 
 
 /**
- * Set the transition delay in the speed setting of the LFO.
+ * Set the transition slide length for the speed setting of the LFO.
  *
- * \param lfo     The LFO -- must not be \c NULL.
- * \param delay   The delay -- must not be \c NULL or negative.
+ * \param lfo      The LFO -- must not be \c NULL.
+ * \param length   The slide length -- must not be \c NULL or negative.
  */
-void LFO_set_speed_delay(LFO* lfo, const Tstamp* delay);
+void LFO_set_speed_slide(LFO* lfo, const Tstamp* length);
 
 
 /**
@@ -123,12 +123,12 @@ void LFO_set_depth(LFO* lfo, double depth);
 
 
 /**
- * Set the transition delay in the depth setting of the LFO.
+ * Set the transition slide length for the depth setting of the LFO.
  *
- * \param lfo     The LFO -- must not be \c NULL.
- * \param delay   The delay -- must not be \c NULL or negative.
+ * \param lfo      The LFO -- must not be \c NULL.
+ * \param length   The slide length -- must not be \c NULL or negative.
  */
-void LFO_set_depth_delay(LFO* lfo, const Tstamp* delay);
+void LFO_set_depth_slide(LFO* lfo, const Tstamp* length);
 
 
 /**
