@@ -370,6 +370,44 @@ START_TEST(Note_on_at_pattern_start_is_handled)
 END_TEST
 
 
+START_TEST(Pattern_playback_repeats_pattern)
+{
+    set_audio_rate(mixing_rates[MIXING_RATE_LOW]);
+    set_mix_volume(0);
+    setup_debug_instrument();
+    setup_debug_single_pulse();
+
+    set_data("album/p_manifest.json", "{}");
+    set_data("album/p_tracks.json", "[0]");
+    set_data("song_00/p_manifest.json", "{}");
+    set_data("song_00/p_order_list.json", "[ [1, 0], [0, 0], [1, 1] ]");
+
+    set_data("pat_000/p_manifest.json", "{}");
+    set_data("pat_000/p_pattern.json", "{ \"length\": [1, 0] }");
+    set_data("pat_000/instance_000/p_manifest.json", "{}");
+    set_data("pat_000/col_00/p_triggers.json", "[ [[0, 0], [\"n+\", \"0\"]] ]");
+
+    set_data("pat_001/p_manifest.json", "{}");
+    set_data("pat_001/p_pattern.json", "{ \"length\": [16, 0] }");
+    set_data("pat_001/instance_000/p_manifest.json", "{}");
+    set_data("pat_001/instance_001/p_manifest.json", "{}");
+
+    validate();
+
+    kqt_Handle_fire_event(handle, 0, "[\"Ipattern\", [0, 0]]");
+
+    float actual_buf[buf_len] = { 0.0f };
+    mix_and_fill(actual_buf, buf_len);
+
+    float expected_buf[buf_len] = { 0.0f };
+    for (int i = 0; i < buf_len; i += mixing_rates[MIXING_RATE_LOW] / 2)
+        expected_buf[i] = 1.0f;
+
+    check_buffers_equal(expected_buf, actual_buf, buf_len, 0.0f);
+}
+END_TEST
+
+
 START_TEST(Empty_composition_renders_zero_frames)
 {
     kqt_Handle_play(handle, 256);
@@ -1290,6 +1328,7 @@ Suite* Player_suite(void)
     tcase_add_loop_test(tc_patterns, Note_on_at_pattern_end_is_handled, 0, 4);
     tcase_add_loop_test(tc_patterns, Note_on_after_pattern_end_is_ignored, 0, 4);
     tcase_add_test(tc_patterns, Note_on_at_pattern_start_is_handled);
+    tcase_add_test(tc_patterns, Pattern_playback_repeats_pattern);
 
     // Songs
     tcase_add_test(tc_songs, Empty_composition_renders_zero_frames);
