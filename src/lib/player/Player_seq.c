@@ -517,6 +517,21 @@ void Player_process_cgiters(Player* player, Tstamp* limit, bool skip)
                     if (target_piref.pat < 0)
                         target_piref = player->master_params.cur_pos.piref;
 
+                    Tstamp* target_row = TSTAMP_AUTO;
+                    Tstamp_copy(target_row, &next_jc->target_row);
+
+                    if (player->master_params.playback_state == PLAYBACK_PATTERN)
+                    {
+                        // Don't jump outside the pattern instance
+                        // in pattern playback mode
+                        if (target_piref.pat != player->master_params.cur_pos.piref.pat ||
+                                target_piref.inst != player->master_params.cur_pos.piref.inst)
+                        {
+                            target_piref = player->master_params.cur_pos.piref;
+                            Tstamp_set(target_row, 0, 0);
+                        }
+                    }
+
                     // Find new track and system
                     Position target_pos;
                     Position_init(&target_pos);
@@ -532,8 +547,8 @@ void Player_process_cgiters(Player* player, Tstamp* limit, bool skip)
                     else
                     {
                         // Move cgiters to the new position
-                        Tstamp_copy(&target_pos.pat_pos, &next_jc->target_row);
-                        target_pos.piref = next_jc->target_piref;
+                        Tstamp_copy(&target_pos.pat_pos, target_row);
+                        target_pos.piref = target_piref;
                         for (int k = 0; k < KQT_CHANNELS_MAX; ++k)
                             Cgiter_reset(
                                     &player->cgiters[k],
