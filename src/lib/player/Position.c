@@ -38,6 +38,13 @@ bool Position_is_valid(const Position* pos)
         (pos->track < KQT_TRACKS_MAX) &&
         (pos->system >= 0) &&
         (pos->system < KQT_SYSTEMS_MAX) &&
+        Position_has_valid_pattern_pos(pos);
+}
+
+
+bool Position_has_valid_pattern_pos(const Position* pos)
+{
+    return (pos != NULL) &&
         (Tstamp_cmp(&pos->pat_pos, TSTAMP_AUTO) >= 0) &&
         (pos->piref.pat >= -1) &&
         (pos->piref.pat < KQT_PATTERNS_MAX) &&
