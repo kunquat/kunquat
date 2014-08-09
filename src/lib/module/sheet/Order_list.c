@@ -170,6 +170,22 @@ Pat_inst_ref* Order_list_get_pat_inst_ref(const Order_list* ol, size_t index)
 }
 
 
+bool Order_list_contains_pat_inst_ref(const Order_list* ol, const Pat_inst_ref* piref)
+{
+    assert(ol != NULL);
+    assert(piref != NULL);
+
+    for (size_t i = 0; i < Vector_size(ol->pat_insts); ++i)
+    {
+        const Pat_inst_ref* cur_piref = Vector_get_ref(ol->pat_insts, i);
+        if (Pat_inst_ref_cmp(cur_piref, piref) == 0)
+            return true;
+    }
+
+    return false;
+}
+
+
 void del_Order_list(Order_list* ol)
 {
     if (ol == NULL)
