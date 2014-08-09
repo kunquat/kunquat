@@ -29,6 +29,7 @@ static void Master_params_clear(Master_params* params)
 
     params->playback_state = PLAYBACK_SONG;
     params->is_infinite = false;
+    params->pattern_playback_flag = false;
 
     Position_init(&params->cur_pos);
     params->cur_ch = 0;
@@ -112,16 +113,41 @@ void Master_params_set_starting_tempo(Master_params* params)
     assert(params != NULL);
 
     const Track_list* tl = Module_get_track_list(params->parent.module);
-    if (tl != NULL && params->cur_pos.track < (int16_t)Track_list_get_len(tl))
+    if (tl != NULL)
     {
-        const int16_t cur_song = Track_list_get_song_index(
-                tl,
-                params->cur_pos.track);
-        Song_table* song_table = Module_get_songs(params->parent.module);
-        Song* song = Song_table_get(song_table, cur_song);
+        if (0 <= params->cur_pos.track &&
+                params->cur_pos.track < (int16_t)Track_list_get_len(tl))
+        {
+            const int16_t cur_song = Track_list_get_song_index(
+                    tl,
+                    params->cur_pos.track);
+            Song_table* song_table = Module_get_songs(params->parent.module);
+            Song* song = Song_table_get(song_table, cur_song);
 
-        if (song != NULL)
-            params->tempo = Song_get_tempo(song);
+            if (song != NULL)
+                params->tempo = Song_get_tempo(song);
+        }
+        else if (params->playback_state == PLAYBACK_PATTERN)
+        {
+            // Find the song that contains selected pattern
+            Song_table* song_table = Module_get_songs(params->parent.module);
+            for (size_t i = 0; i < Track_list_get_len(tl); ++i)
+            {
+                const int16_t song_index = Track_list_get_song_index(tl, i);
+                const Order_list* ol = Module_get_order_list(
+                        params->parent.module, song_index);
+
+                if (Order_list_contains_pat_inst_ref(ol, &params->cur_pos.piref))
+                {
+                    Song* song = Song_table_get(song_table, song_index);
+
+                    if (song != NULL)
+                        params->tempo = Song_get_tempo(song);
+
+                    break;
+                }
+            }
+        }
     }
 
     return;

@@ -25,6 +25,7 @@
 #include <player/Env_state.h>
 #include <player/General_state.h>
 #include <player/Jump_cache.h>
+#include <player/Master_params.h>
 #include <player/Position.h>
 #include <player/Slider.h>
 
@@ -52,6 +53,7 @@ typedef struct Master_params
     // Read/write state for trigger events
     Playback_state playback_state;
     bool is_infinite;
+    bool pattern_playback_flag;
 
     Position cur_pos;
     int cur_ch;

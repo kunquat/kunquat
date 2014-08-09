@@ -43,6 +43,9 @@ typedef struct Cgiter
     Trigger_row cur_tr; // TODO: remove
 
     bool row_returned;
+
+    bool has_finished;
+    bool is_pattern_playback_state;
 } Cgiter;
 
 
@@ -61,7 +64,9 @@ void Cgiter_init(Cgiter* cgiter, const Module* module, int col_index);
  * Reset the Cgiter.
  *
  * \param cgiter      The Cgiter -- must not be \c NULL.
- * \param start_pos   The starting position -- must be valid.
+ * \param start_pos   The starting position -- must be valid in normal playback
+ *                    mode or contain valid pattern position in pattern
+ *                    playback mode.
  */
 void Cgiter_reset(Cgiter* cgiter, const Position* start_pos);
 
