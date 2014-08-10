@@ -301,9 +301,17 @@ void Cgiter_move(Cgiter* cgiter, const Tstamp* dist)
     {
         // dist must be 0 or the pattern length changed
         if (cgiter->is_pattern_playback_state)
+        {
             Tstamp_set(&cgiter->pos.pat_pos, 0, 0);
+
+            // Play zero-length pattern only once to avoid infinite loop
+            if (Tstamp_cmp(pat_length, TSTAMP_AUTO) == 0)
+                cgiter->has_finished = true;
+        }
         else
+        {
             Cgiter_go_to_next_system(cgiter);
+        }
 
         cgiter->row_returned = false;
         return;
