@@ -94,7 +94,7 @@ static bool parse_dsp_level(
         Streader* sr,
         Effect_table* eff_table,
         int eff_index,
-        int eff_index_stop,
+        bool is_instrument,
         int dsp_index);
 
 
@@ -1038,14 +1038,32 @@ static Effect* add_effect(Handle* handle, int index, Effect_table* table)
     else (void)0
 
 
-// FIXME: we should read indices[1] with instrument effects
-#define acquire_effect_index(index, index_stop)     \
-    if (true)                                       \
-    {                                               \
-        (index) = indices[0];                       \
-        if ((index) < 0 || (index) >= (index_stop)) \
-            return true;                            \
-    }                                               \
+static int get_effect_index_stop(bool is_instrument)
+{
+    return (is_instrument ? KQT_INST_EFFECTS_MAX : KQT_EFFECTS_MAX);
+}
+
+
+static int get_effect_index_loc(bool is_instrument)
+{
+    return (is_instrument ? 1 : 0);
+}
+
+
+static int get_dsp_index_loc(bool is_instrument)
+{
+    return get_effect_index_loc(is_instrument) + 1;
+}
+
+
+#define acquire_effect_index(index, is_instrument)                     \
+    if (true)                                                          \
+    {                                                                  \
+        const int index_stop = get_effect_index_stop((is_instrument)); \
+        (index) = indices[get_effect_index_loc((is_instrument))];      \
+        if ((index) < 0 || (index) >= (index_stop))                    \
+            return true;                                               \
+    }                                                                  \
     else (void)0
 
 
@@ -1056,7 +1074,7 @@ static Effect* add_effect(Handle* handle, int index, Effect_table* table)
         const char* subkey,                               \
         Streader* sr,                                     \
         Effect_table* eff_table,                          \
-        int index_stop)
+        bool is_instrument)
 
 
 READ_EFFECT(effect_manifest)
@@ -1065,7 +1083,7 @@ READ_EFFECT(effect_manifest)
     (void)subkey;
 
     int32_t index = -1;
-    acquire_effect_index(index, index_stop);
+    acquire_effect_index(index, is_instrument);
 
     Effect* effect = NULL;
     acquire_effect(effect, eff_table, index);
@@ -1088,7 +1106,7 @@ READ_EFFECT(effect_connections)
     (void)subkey;
 
     int32_t index = -1;
-    acquire_effect_index(index, index_stop);
+    acquire_effect_index(index, is_instrument);
 
     Effect* effect = NULL;
     acquire_effect(effect, eff_table, index);
@@ -1167,14 +1185,13 @@ static DSP* add_dsp(
 }
 
 
-// FIXME: we should read indices[2] with instrument effects
-#define acquire_dsp_index(index, index_stop)        \
-    if (true)                                       \
-    {                                               \
-        (index) = indices[1];                       \
-        if ((index) < 0 || (index) >= (index_stop)) \
-            return true;                            \
-    }                                               \
+#define acquire_dsp_index(index, is_instrument)                \
+    if (true)                                                  \
+    {                                                          \
+        (index) = indices[get_dsp_index_loc((is_instrument))]; \
+        if ((index) < 0 || (index) >= KQT_DSPS_MAX)            \
+            return true;                                       \
+    }                                                          \
     else (void)0
 
 
@@ -1184,9 +1201,9 @@ READ_EFFECT(dsp_manifest)
     (void)subkey;
 
     int32_t eff_index = -1;
-    acquire_effect_index(eff_index, index_stop);
+    acquire_effect_index(eff_index, is_instrument);
     int32_t dsp_index = -1;
-    acquire_dsp_index(dsp_index, index_stop);
+    acquire_dsp_index(dsp_index, is_instrument);
 
     const bool existent = read_default_manifest(sr);
     if (Streader_is_error_set(sr))
@@ -1227,9 +1244,9 @@ static bool parse_effect_level(
     assert(subkey != NULL);
     assert(sr != NULL);
 
-    int max_index = KQT_EFFECTS_MAX;
-    if (ins != NULL)
-        max_index = KQT_INST_EFFECTS_MAX;
+    const bool is_instrument = (ins != NULL);
+
+    const int max_index = get_effect_index_stop(is_instrument);
 
     if (eff_index < 0 || eff_index >= max_index)
         return true;
@@ -1265,7 +1282,7 @@ static bool parse_effect_level(
         if (eff == NULL)
             return false;
 
-        bool success = parse_dsp_level(handle, eff, key, subkey, sr, table, eff_index, max_index, dsp_index);
+        bool success = parse_dsp_level(handle, eff, key, subkey, sr, table, eff_index, is_instrument, dsp_index);
         changed ^= (eff != NULL) && (Effect_get_dsp(eff, dsp_index) != NULL) &&
             Device_has_complete_type((const Device*)Effect_get_dsp(eff, dsp_index));
         Connections* graph = module->connections;
@@ -1277,9 +1294,9 @@ static bool parse_effect_level(
         return success;
     }
     else if (string_eq(subkey, "p_manifest.json"))
-        return read_effect_effect_manifest(handle, module, hack, subkey, sr, table, max_index);
+        return read_effect_effect_manifest(handle, module, hack, subkey, sr, table, is_instrument);
     else if (string_eq(subkey, "p_connections.json"))
-        return read_effect_effect_connections(handle, module, hack, subkey, sr, table, max_index);
+        return read_effect_effect_connections(handle, module, hack, subkey, sr, table, is_instrument);
 
     return true;
 }
@@ -1288,28 +1305,31 @@ static bool parse_effect_level(
 #if 0
 READ(effect_manifest)
 {
+    const bool is_instrument = false;
     return read_effect_effect_manifest(
             handle, module, indices, subkey, sr,
             Module_get_effects(module),
-            KQT_EFFECTS_MAX);
+            is_instrument);
 }
 
 
 READ(effect_connections)
 {
+    const bool is_instrument = false;
     return read_effect_effect_connections(
             handle, module, indices, subkey, sr,
             Module_get_effects(module),
-            KQT_EFFECTS_MAX);
+            is_instrument);
 }
 
 
 READ(dsp_manifest)
 {
+    const bool is_instrument = false;
     return read_effect_dsp_manifest(
             handle, module, indices, subkey, sr,
             Module_get_effects(module),
-            KQT_EFFECTS_MAX);
+            is_instrument);
 }
 #endif
 
@@ -1322,7 +1342,7 @@ static bool parse_dsp_level(
         Streader* sr,
         Effect_table* eff_table,
         int eff_index,
-        int eff_index_stop,
+        bool is_instrument,
         int dsp_index)
 {
     assert(handle != NULL);
@@ -1351,7 +1371,7 @@ static bool parse_dsp_level(
     assert(dsp_table != NULL);
 
     if (string_eq(subkey, "p_manifest.json"))
-        return read_effect_dsp_manifest(handle, module, hack, subkey, sr, eff_table, eff_index_stop);
+        return read_effect_dsp_manifest(handle, module, hack, subkey, sr, eff_table, is_instrument);
     else if (string_eq(subkey, "p_dsp_type.json"))
     {
 //        fprintf(stderr, "%s\n", subkey);
