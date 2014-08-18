@@ -1231,6 +1231,112 @@ READ_EFFECT(dsp_manifest)
 }
 
 
+READ_EFFECT(dsp_type)
+{
+    (void)module;
+    (void)subkey;
+
+    int32_t eff_index = -1;
+    acquire_effect_index(eff_index, is_instrument);
+    int32_t dsp_index = -1;
+    acquire_dsp_index(dsp_index, is_instrument);
+
+    if (!Streader_has_data(sr))
+    {
+        // Remove DSP
+        Effect* effect = Effect_table_get_mut(eff_table, eff_index);
+        if (effect == NULL)
+            return true;
+
+        DSP_table* dsp_table = Effect_get_dsps_mut(effect);
+        DSP_table_remove_dsp(dsp_table, dsp_index);
+        return true;
+    }
+
+    Effect* effect = NULL;
+    acquire_effect(effect, eff_table, eff_index);
+    DSP_table* dsp_table = Effect_get_dsps_mut(effect);
+
+    DSP* dsp = add_dsp(handle, dsp_table, dsp_index);
+    if (dsp == NULL)
+        return false;
+
+    // Create the DSP implementation
+    char type[DSP_TYPE_LENGTH_MAX] = "";
+    if (!Streader_read_string(sr, DSP_TYPE_LENGTH_MAX, type))
+    {
+        set_error(handle, sr);
+        return false;
+    }
+    DSP_cons* cons = DSP_type_find_cons(type);
+    if (cons == NULL)
+    {
+        Handle_set_error(handle, ERROR_FORMAT,
+                "Unsupported DSP type: %s", type);
+        return false;
+    }
+    Device_impl* dsp_impl = cons(dsp);
+    if (dsp_impl == NULL)
+    {
+        Handle_set_error(handle, ERROR_MEMORY,
+                "Couldn't allocate memory for DSP implementation");
+        return false;
+    }
+
+    Device_set_impl((Device*)dsp, dsp_impl);
+
+    // Remove old DSP Device state
+    Device_states* dstates = Player_get_device_states(handle->player);
+    Device_states_remove_state(dstates, Device_get_id((Device*)dsp));
+
+    // Allocate Device state(s) for this DSP
+    Device_state* ds = Device_create_state(
+            (Device*)dsp,
+            Player_get_audio_rate(handle->player),
+            Player_get_audio_buffer_size(handle->player));
+    if (ds == NULL || !Device_states_add_state(
+                Player_get_device_states(handle->player), ds))
+    {
+        Handle_set_error(handle, ERROR_MEMORY,
+                "Couldn't allocate memory for device state");
+        del_Device_state(ds);
+        del_DSP(dsp);
+        return false;
+    }
+
+    // Set DSP resources
+    if (!Device_set_audio_rate((Device*)dsp,
+                dstates,
+                Player_get_audio_rate(handle->player)) ||
+            !Device_set_buffer_size((Device*)dsp,
+                dstates,
+                Player_get_audio_buffer_size(handle->player)))
+    {
+        Handle_set_error(handle, ERROR_MEMORY,
+                "Couldn't allocate memory for DSP state");
+        return false;
+    }
+
+    // Sync the DSP
+    if (!Device_sync((Device*)dsp))
+    {
+        Handle_set_error(handle, ERROR_MEMORY,
+                "Couldn't allocate memory while syncing DSP");
+        return false;
+    }
+
+    // Sync the Device state(s)
+    if (!Device_sync_states((Device*)dsp, Player_get_device_states(handle->player)))
+    {
+        Handle_set_error(handle, ERROR_MEMORY,
+                "Couldn't allocate memory while syncing DSP");
+        return false;
+    }
+
+    return true;
+}
+
+
 static bool parse_effect_level(
         Handle* handle,
         Instrument* ins,
@@ -1331,6 +1437,16 @@ READ(dsp_manifest)
             Module_get_effects(module),
             is_instrument);
 }
+
+
+READ(dsp_type)
+{
+    const bool is_instrument = false;
+    return read_effect_dsp_type(
+            handle, module, indices, subkey, sr,
+            Module_get_effects(module),
+            is_instrument);
+}
 #endif
 
 
@@ -1373,93 +1489,7 @@ static bool parse_dsp_level(
     if (string_eq(subkey, "p_manifest.json"))
         return read_effect_dsp_manifest(handle, module, hack, subkey, sr, eff_table, is_instrument);
     else if (string_eq(subkey, "p_dsp_type.json"))
-    {
-//        fprintf(stderr, "%s\n", subkey);
-        if (!Streader_has_data(sr))
-        {
-            DSP_table_remove_dsp(dsp_table, dsp_index);
-        }
-        else
-        {
-            DSP* dsp = add_dsp(handle, dsp_table, dsp_index);
-            if (dsp == NULL)
-                return false;
-
-            // Create the DSP implementation
-            char type[DSP_TYPE_LENGTH_MAX] = "";
-            if (!Streader_read_string(sr, DSP_TYPE_LENGTH_MAX, type))
-            {
-                set_error(handle, sr);
-                return false;
-            }
-            DSP_cons* cons = DSP_type_find_cons(type);
-            if (cons == NULL)
-            {
-                Handle_set_error(handle, ERROR_FORMAT,
-                        "Unsupported DSP type: %s", type);
-                return false;
-            }
-            Device_impl* dsp_impl = cons(dsp);
-            if (dsp_impl == NULL)
-            {
-                Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory for DSP implementation");
-                return false;
-            }
-
-            Device_set_impl((Device*)dsp, dsp_impl);
-
-            // Remove old DSP Device state
-            Device_states* dstates = Player_get_device_states(handle->player);
-            Device_states_remove_state(dstates, Device_get_id((Device*)dsp));
-
-            // Allocate Device state(s) for this DSP
-            Device_state* ds = Device_create_state(
-                    (Device*)dsp,
-                    Player_get_audio_rate(handle->player),
-                    Player_get_audio_buffer_size(handle->player));
-            if (ds == NULL || !Device_states_add_state(
-                        Player_get_device_states(handle->player), ds))
-            {
-                Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory");
-                del_Device_state(ds);
-                del_DSP(dsp);
-                return false;
-            }
-
-            // Set DSP resources
-            if (!Device_set_audio_rate((Device*)dsp,
-                        dstates,
-                        Player_get_audio_rate(handle->player)) ||
-                    !Device_set_buffer_size((Device*)dsp,
-                        dstates,
-                        Player_get_audio_buffer_size(handle->player)))
-            {
-                Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory for DSP state");
-                return false;
-            }
-
-            // Sync the DSP
-            if (!Device_sync((Device*)dsp))
-            {
-                Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory while syncing DSP");
-                return false;
-            }
-
-            // Sync the Device state(s)
-            if (!Device_sync_states(
-                        (Device*)dsp,
-                        Player_get_device_states(handle->player)))
-            {
-                Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory while syncing DSP");
-                return false;
-            }
-        }
-    }
+        return read_effect_dsp_type(handle, module, hack, subkey, sr, eff_table, is_instrument);
     else if ((string_has_prefix(subkey, "i/") ||
               string_has_prefix(subkey, "c/")) &&
              key_is_device_param(subkey))
