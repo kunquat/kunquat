@@ -20,10 +20,12 @@
 #endif
 
 
-//MODULE_KEYP(effect_manifest,    "eff_XX/p_manifest.json", "")
-//MODULE_KEYP(effect_connections, "eff_XX/p_connections.json", "[]")
-//MODULE_KEYP(dsp_manifest,       "eff_XX/dsp_XX/p_manifest.json", "")
-//MODULE_KEYP(dsp_type,           "eff_XX/dsp_XX/p_dsp_type.json", "")
+//MODULE_KEYP(effect_manifest,      "eff_XX/p_manifest.json",         "")
+//MODULE_KEYP(effect_connections,   "eff_XX/p_connections.json",      "[]")
+//MODULE_KEYP(dsp_manifest,         "eff_XX/dsp_XX/p_manifest.json",  "")
+//MODULE_KEYP(dsp_type,             "eff_XX/dsp_XX/p_dsp_type.json",  "")
+//MODULE_KEYP(dsp_impl_key,         "eff_XX/dsp_XX/i/,                "")
+//MODULE_KEYP(dsp_conf_key,         "eff_XX/dsp_XX/c/,                "")
 
 MODULE_KEYP(pattern_manifest, "pat_XXX/p_manifest.json", "")
 MODULE_KEYP(pattern,          "pat_XXX/p_pattern.json", "{ \"length\": [16, 0] }")

@@ -1337,6 +1337,67 @@ READ_EFFECT(dsp_type)
 }
 
 
+READ_EFFECT(dsp_impl_conf_key)
+{
+    if (!key_is_device_param(subkey))
+        return true;
+
+    (void)module;
+
+    int32_t eff_index = -1;
+    acquire_effect_index(eff_index, is_instrument);
+    int32_t dsp_index = -1;
+    acquire_dsp_index(dsp_index, is_instrument);
+
+    Effect* effect = NULL;
+    acquire_effect(effect, eff_table, eff_index);
+    DSP_table* dsp_table = Effect_get_dsps_mut(effect);
+
+    DSP* dsp = add_dsp(handle, dsp_table, dsp_index);
+    if (dsp == NULL)
+        return false;
+
+    // Update Device
+    if (!Device_set_key((Device*)dsp, subkey, sr))
+    {
+        set_error(handle, sr);
+        return false;
+    }
+
+    // Notify Device state
+    Device_set_state_key(
+            (Device*)dsp,
+            Player_get_device_states(handle->player),
+            subkey);
+
+    return true;
+}
+
+
+READ_EFFECT(dsp_impl_key)
+{
+    assert(strlen(subkey) < KQT_KEY_LENGTH_MAX - 2);
+
+    char hack_subkey[KQT_KEY_LENGTH_MAX] = "i/";
+    strcat(hack_subkey, subkey);
+
+    return read_effect_dsp_impl_conf_key(
+            handle, module, indices, hack_subkey, sr, eff_table, is_instrument);
+}
+
+
+READ_EFFECT(dsp_conf_key)
+{
+    assert(strlen(subkey) < KQT_KEY_LENGTH_MAX - 2);
+
+    char hack_subkey[KQT_KEY_LENGTH_MAX] = "c/";
+    strcat(hack_subkey, subkey);
+
+    return read_effect_dsp_impl_conf_key(
+            handle, module, indices, hack_subkey, sr, eff_table, is_instrument);
+}
+
+
 static bool parse_effect_level(
         Handle* handle,
         Instrument* ins,
@@ -1447,6 +1508,26 @@ READ(dsp_type)
             Module_get_effects(module),
             is_instrument);
 }
+
+
+READ(dsp_impl_key)
+{
+    const bool is_instrument = false;
+    return read_effect_dsp_impl_key(
+            handle, module, indices, subkey, sr,
+            Module_get_effects(module),
+            is_instrument);
+}
+
+
+READ(dsp_conf_key)
+{
+    const bool is_instrument = false;
+    return read_effect_dsp_conf_key(
+            handle, module, indices, subkey, sr,
+            Module_get_effects(module),
+            is_instrument);
+}
 #endif
 
 
@@ -1490,27 +1571,10 @@ static bool parse_dsp_level(
         return read_effect_dsp_manifest(handle, module, hack, subkey, sr, eff_table, is_instrument);
     else if (string_eq(subkey, "p_dsp_type.json"))
         return read_effect_dsp_type(handle, module, hack, subkey, sr, eff_table, is_instrument);
-    else if ((string_has_prefix(subkey, "i/") ||
-              string_has_prefix(subkey, "c/")) &&
-             key_is_device_param(subkey))
-    {
-        DSP* dsp = add_dsp(handle, dsp_table, dsp_index);
-        if (dsp == NULL)
-            return false;
-
-        // Update Device
-        if (!Device_set_key((Device*)dsp, subkey, sr))
-        {
-            set_error(handle, sr);
-            return false;
-        }
-
-        // Notify Device state
-        Device_set_state_key(
-                (Device*)dsp,
-                Player_get_device_states(handle->player),
-                subkey);
-    }
+    else if (string_has_prefix(subkey, "i/"))
+        return read_effect_dsp_impl_key(handle, module, hack, subkey + 2, sr, eff_table, is_instrument);
+    else if (string_has_prefix(subkey, "c/"))
+        return read_effect_dsp_conf_key(handle, module, hack, subkey + 2, sr, eff_table, is_instrument);
 #if 0
     else if (string_eq(subkey, "p_events.json"))
     {
