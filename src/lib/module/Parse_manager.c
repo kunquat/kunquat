@@ -510,6 +510,50 @@ static Instrument* add_instrument(Handle* handle, int index)
 }
 
 
+#define acquire_ins_index(index)                           \
+    if (true)                                              \
+    {                                                      \
+        (index) = indices[0];                              \
+        if ((index) < 0 || (index) >= KQT_INSTRUMENTS_MAX) \
+            return true;                                   \
+    }                                                      \
+    else (void)0
+
+
+#define acquire_ins(ins, index)                \
+    if (true)                                  \
+    {                                          \
+        (ins) = add_instrument(handle, index); \
+        if ((ins) == NULL)                     \
+            return false;                      \
+    }                                          \
+    else (void)0
+
+
+READ(ins_manifest)
+{
+    (void)module;
+    (void)subkey;
+
+    int32_t index = -1;
+    acquire_ins_index(index);
+
+    Instrument* ins = NULL;
+    acquire_ins(ins, index);
+
+    const bool existent = read_default_manifest(sr);
+    if (Streader_is_error_set(sr))
+    {
+        set_error(handle, sr);
+        return false;
+    }
+
+    Device_set_existent((Device*)ins, existent);
+
+    return true;
+}
+
+
 static bool parse_instrument_level(
         Handle* handle,
         const char* key,
@@ -540,6 +584,8 @@ static bool parse_instrument_level(
     int eff_index = -1;
 
     Module* module = Handle_get_module(handle);
+
+    const Key_indices hack = { index };
 
     // Subdevices
     if ((gen_index = string_extract_index(subkey, "gen_", 2, "/")) >= 0)
@@ -597,21 +643,7 @@ static bool parse_instrument_level(
 
     // Instrument data
     if (string_eq(subkey, "p_manifest.json"))
-    {
-        Instrument* ins = Ins_table_get(Module_get_insts(module), index);
-        ins = add_instrument(handle, index);
-        if (ins == NULL)
-            return false;
-
-        const bool existent = read_default_manifest(sr);
-        if (Streader_is_error_set(sr))
-        {
-            set_error(handle, sr);
-            return false;
-        }
-
-        Device_set_existent((Device*)ins, existent);
-    }
+        return read_ins_manifest(handle, module, hack, subkey, sr);
     else if (string_eq(subkey, "p_instrument.json"))
     {
         Instrument* ins = Ins_table_get(Module_get_insts(module), index);
