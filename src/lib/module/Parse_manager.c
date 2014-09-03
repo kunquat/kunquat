@@ -554,6 +554,27 @@ READ(ins_manifest)
 }
 
 
+READ(ins)
+{
+    (void)module;
+    (void)subkey;
+
+    int32_t index = -1;
+    acquire_ins_index(index);
+
+    Instrument* ins = NULL;
+    acquire_ins(ins, index);
+
+    if (!Instrument_parse_header(ins, sr))
+    {
+        set_error(handle, sr);
+        return false;
+    }
+
+    return true;
+}
+
+
 static bool parse_instrument_level(
         Handle* handle,
         const char* key,
@@ -645,18 +666,7 @@ static bool parse_instrument_level(
     if (string_eq(subkey, "p_manifest.json"))
         return read_ins_manifest(handle, module, hack, subkey, sr);
     else if (string_eq(subkey, "p_instrument.json"))
-    {
-        Instrument* ins = Ins_table_get(Module_get_insts(module), index);
-        ins = add_instrument(handle, index);
-        if (ins == NULL)
-            return false;
-
-        if (!Instrument_parse_header(ins, sr))
-        {
-            set_error(handle, sr);
-            return false;
-        }
-    }
+        return read_ins(handle, module, hack, subkey, sr);
     else if (string_eq(subkey, "p_connections.json"))
     {
         bool reconnect = false;
