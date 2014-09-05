@@ -1048,6 +1048,65 @@ READ(gen_type)
 }
 
 
+READ(gen_impl_conf_key)
+{
+    if (!key_is_device_param(subkey))
+        return true;
+
+    (void)module;
+
+    int32_t ins_index = -1;
+    acquire_ins_index(ins_index);
+    int32_t gen_index = -1;
+    acquire_gen_index(gen_index);
+
+    Instrument* ins = NULL;
+    acquire_ins(ins, ins_index);
+    Gen_table* gen_table = Instrument_get_gens(ins);
+
+    Generator* gen = add_generator(handle, ins, gen_table, gen_index);
+    if (gen == NULL)
+        return false;
+
+    // Update Device
+    if (!Device_set_key((Device*)gen, subkey, sr))
+    {
+        set_error(handle, sr);
+        return false;
+    }
+
+    // Update Device state
+    Device_set_state_key(
+            (Device*)gen,
+            Player_get_device_states(handle->player),
+            subkey);
+
+    return true;
+}
+
+
+READ(gen_impl_key)
+{
+    assert(strlen(subkey) < KQT_KEY_LENGTH_MAX - 2);
+
+    char hack_subkey[KQT_KEY_LENGTH_MAX] = "i/";
+    strcat(hack_subkey, subkey);
+
+    return read_gen_impl_conf_key(handle, module, indices, hack_subkey, sr);
+}
+
+
+READ(gen_conf_key)
+{
+    assert(strlen(subkey) < KQT_KEY_LENGTH_MAX - 2);
+
+    char hack_subkey[KQT_KEY_LENGTH_MAX] = "c/";
+    strcat(hack_subkey, subkey);
+
+    return read_gen_impl_conf_key(handle, module, indices, hack_subkey, sr);
+}
+
+
 static bool parse_generator_level(
         Handle* handle,
         const char* key,
@@ -1117,27 +1176,10 @@ static bool parse_generator_level(
         }
     }
 #endif
-    else if ((string_has_prefix(subkey, "i/") ||
-              string_has_prefix(subkey, "c/")) &&
-             key_is_device_param(subkey))
-    {
-        Generator* gen = add_generator(handle, ins, table, gen_index);
-        if (gen == NULL)
-            return false;
-
-        // Update Device
-        if (!Device_set_key((Device*)gen, subkey, sr))
-        {
-            set_error(handle, sr);
-            return false;
-        }
-
-        // Update Device state
-        Device_set_state_key(
-                (Device*)gen,
-                Player_get_device_states(handle->player),
-                subkey);
-    }
+    else if (string_has_prefix(subkey, "i/"))
+        return read_gen_impl_key(handle, module, hack, subkey + 2, sr);
+    else if (string_has_prefix(subkey, "c/"))
+        return read_gen_conf_key(handle, module, hack, subkey + 2, sr);
 
     return true;
 }

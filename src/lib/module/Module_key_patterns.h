@@ -30,6 +30,8 @@ MODULE_KEYP(ins_env_pitch_pan,      "ins_XX/p_envelope_pitch_pan.json",     "")
 
 MODULE_KEYP(gen_manifest,           "ins_XX/gen_XX/p_manifest.json",        "")
 MODULE_KEYP(gen_type,               "ins_XX/gen_XX/p_gen_type.json",        "")
+MODULE_KEYP(gen_impl_key,           "ins_XX/gen_XX/i/",                     "")
+MODULE_KEYP(gen_conf_key,           "ins_XX/gen_XX/c/",                     "")
 
 //MODULE_KEYP(effect_manifest,      "eff_XX/p_manifest.json",         "")
 //MODULE_KEYP(effect_connections,   "eff_XX/p_connections.json",      "[]")
