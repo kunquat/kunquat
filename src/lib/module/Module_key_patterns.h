@@ -21,6 +21,7 @@
 
 
 MODULE_KEYP(album_manifest,         "album/p_manifest.json",                "")
+MODULE_KEYP(album_tracks,           "album/p_tracks.json",                  "[]")
 
 MODULE_KEYP(ins_manifest,           "ins_XX/p_manifest.json",               "")
 MODULE_KEYP(ins,                    "ins_XX/p_instrument.json",             "")

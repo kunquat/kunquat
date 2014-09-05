@@ -447,6 +447,25 @@ READ(album_manifest)
 }
 
 
+READ(album_tracks)
+{
+    (void)indices;
+    (void)subkey;
+
+    Track_list* tl = new_Track_list(sr);
+    if (tl == NULL)
+    {
+        set_error(handle, sr);
+        return false;
+    }
+
+    del_Track_list(module->track_list);
+    module->track_list = tl;
+
+    return true;
+}
+
+
 static bool parse_album_level(
         Handle* handle,
         const char* key,
@@ -464,18 +483,10 @@ static bool parse_album_level(
     const Key_indices hack = { -1 };
 
     if (string_eq(subkey, "p_manifest.json"))
-        read_album_manifest(handle, module, hack, subkey, sr);
+        return read_album_manifest(handle, module, hack, subkey, sr);
     else if (string_eq(subkey, "p_tracks.json"))
-    {
-        Track_list* tl = new_Track_list(sr);
-        if (tl == NULL)
-        {
-            set_error(handle, sr);
-            return false;
-        }
-        del_Track_list(module->track_list);
-        module->track_list = tl;
-    }
+        return read_album_tracks(handle, module, hack, subkey, sr);
+
     return true;
 }
 
