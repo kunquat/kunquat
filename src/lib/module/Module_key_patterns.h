@@ -20,9 +20,13 @@
 #endif
 
 
-MODULE_KEYP(ins_manifest,       "ins_XX/p_manifest.json",       "")
-MODULE_KEYP(ins,                "ins_XX/p_instrument.json",     "")
-MODULE_KEYP(ins_connections,    "ins_XX/p_connections.json",    "[]")
+MODULE_KEYP(ins_manifest,           "ins_XX/p_manifest.json",               "")
+MODULE_KEYP(ins,                    "ins_XX/p_instrument.json",             "")
+MODULE_KEYP(ins_connections,        "ins_XX/p_connections.json",            "[]")
+MODULE_KEYP(ins_env_force,          "ins_XX/p_envelope_force.json",         "")
+MODULE_KEYP(ins_env_force_release,  "ins_XX/p_envelope_force_release.json", "")
+MODULE_KEYP(ins_env_force_filter,   "ins_XX/p_envelope_force_filter.json",  "")
+MODULE_KEYP(ins_env_pitch_pan,      "ins_XX/p_envelope_pitch_pan.json",     "")
 
 //MODULE_KEYP(effect_manifest,      "eff_XX/p_manifest.json",         "")
 //MODULE_KEYP(effect_connections,   "eff_XX/p_connections.json",      "[]")

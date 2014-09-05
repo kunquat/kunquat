@@ -627,6 +627,90 @@ READ(ins_connections)
 }
 
 
+READ(ins_env_force)
+{
+    (void)module;
+    (void)subkey;
+
+    int32_t index = -1;
+    acquire_ins_index(index);
+
+    Instrument* ins = NULL;
+    acquire_ins(ins, index);
+
+    if (!Instrument_params_parse_env_force(Instrument_get_params(ins), sr))
+    {
+        set_error(handle, sr);
+        return false;
+    }
+
+    return true;
+}
+
+
+READ(ins_env_force_release)
+{
+    (void)module;
+    (void)subkey;
+
+    int32_t index = -1;
+    acquire_ins_index(index);
+
+    Instrument* ins = NULL;
+    acquire_ins(ins, index);
+
+    if (!Instrument_params_parse_env_force_rel(Instrument_get_params(ins), sr))
+    {
+        set_error(handle, sr);
+        return false;
+    }
+
+    return true;
+}
+
+
+READ(ins_env_force_filter)
+{
+    (void)module;
+    (void)subkey;
+
+    int32_t index = -1;
+    acquire_ins_index(index);
+
+    Instrument* ins = NULL;
+    acquire_ins(ins, index);
+
+    if (!Instrument_params_parse_env_force_filter(Instrument_get_params(ins), sr))
+    {
+        set_error(handle, sr);
+        return false;
+    }
+
+    return true;
+}
+
+
+READ(ins_env_pitch_pan)
+{
+    (void)module;
+    (void)subkey;
+
+    int32_t index = -1;
+    acquire_ins_index(index);
+
+    Instrument* ins = NULL;
+    acquire_ins(ins, index);
+
+    if (!Instrument_params_parse_env_pitch_pan(Instrument_get_params(ins), sr))
+    {
+        set_error(handle, sr);
+        return false;
+    }
+
+    return true;
+}
+
+
 static bool parse_instrument_level(
         Handle* handle,
         const char* key,
@@ -721,6 +805,14 @@ static bool parse_instrument_level(
         return read_ins(handle, module, hack, subkey, sr);
     else if (string_eq(subkey, "p_connections.json"))
         return read_ins_connections(handle, module, hack, subkey, sr);
+    else if (string_eq(subkey, "p_envelope_force.json"))
+        return read_ins_env_force(handle, module, hack, subkey, sr);
+    else if (string_eq(subkey, "p_envelope_force_release.json"))
+        return read_ins_env_force_release(handle, module, hack, subkey, sr);
+    else if (string_eq(subkey, "p_envelope_force_filter.json"))
+        return read_ins_env_force_filter(handle, module, hack, subkey, sr);
+    else if (string_eq(subkey, "p_envelope_pitch_pan.json"))
+        return read_ins_env_pitch_pan(handle, module, hack, subkey, sr);
 #if 0
     else if (string_has_prefix(subkey, "p_pitch_lock_"))
     {
@@ -737,36 +829,6 @@ static bool parse_instrument_level(
     }
 #endif
 
-    static const struct
-    {
-        const char* name;
-        bool (*read)(Instrument_params*, Streader*);
-    } parse[] =
-    {
-        { "p_envelope_force.json", Instrument_params_parse_env_force },
-        { "p_envelope_force_release.json", Instrument_params_parse_env_force_rel },
-        { "p_envelope_force_filter.json", Instrument_params_parse_env_force_filter },
-        { "p_envelope_pitch_pan.json", Instrument_params_parse_env_pitch_pan },
-        { NULL, NULL }
-    };
-
-    for (int i = 0; parse[i].name != NULL; ++i)
-    {
-        assert(parse[i].read != NULL);
-        if (string_eq(subkey, parse[i].name))
-        {
-            Instrument* ins = Ins_table_get(Module_get_insts(module), index);
-            ins = add_instrument(handle, index);
-            if (ins == NULL)
-                return false;
-
-            if (!parse[i].read(Instrument_get_params(ins), sr))
-            {
-                set_error(handle, sr);
-                return false;
-            }
-        }
-    }
     return true;
 }
 
