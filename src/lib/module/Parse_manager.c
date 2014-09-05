@@ -866,6 +866,46 @@ static Generator* add_generator(
 }
 
 
+#define acquire_gen_index(index)                          \
+    if (true)                                             \
+    {                                                     \
+        (index) = indices[1];                             \
+        if ((index) < 0 || (index) >= KQT_GENERATORS_MAX) \
+            return true;                                  \
+    }                                                     \
+    else (void)0
+
+
+READ(gen_manifest)
+{
+    (void)module;
+    (void)subkey;
+
+    int32_t ins_index = -1;
+    acquire_ins_index(ins_index);
+
+    Instrument* ins = NULL;
+    acquire_ins(ins, ins_index);
+
+    int32_t gen_index = -1;
+    acquire_gen_index(gen_index);
+
+    Gen_table* table = Instrument_get_gens(ins);
+    assert(table != NULL);
+
+    const bool existent = read_default_manifest(sr);
+    if (Streader_is_error_set(sr))
+    {
+        set_error(handle, sr);
+        return false;
+    }
+
+    Gen_table_set_existent(table, gen_index, existent);
+
+    return true;
+}
+
+
 static bool parse_generator_level(
         Handle* handle,
         const char* key,
@@ -897,6 +937,8 @@ static bool parse_generator_level(
 
     Module* module = Handle_get_module(handle);
 
+    const Key_indices hack = { ins_index, gen_index };
+
     Instrument* ins = Ins_table_get(Module_get_insts(module), ins_index);
     ins = add_instrument(handle, ins_index);
     if (ins == NULL)
@@ -906,16 +948,7 @@ static bool parse_generator_level(
     assert(table != NULL);
 
     if (string_eq(subkey, "p_manifest.json"))
-    {
-        const bool existent = read_default_manifest(sr);
-        if (Streader_is_error_set(sr))
-        {
-            set_error(handle, sr);
-            return false;
-        }
-
-        Gen_table_set_existent(table, gen_index, existent);
-    }
+        return read_gen_manifest(handle, module, hack, subkey, sr);
     else if (string_eq(subkey, "p_gen_type.json"))
     {
         if (!Streader_has_data(sr))

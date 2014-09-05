@@ -28,6 +28,8 @@ MODULE_KEYP(ins_env_force_release,  "ins_XX/p_envelope_force_release.json", "")
 MODULE_KEYP(ins_env_force_filter,   "ins_XX/p_envelope_force_filter.json",  "")
 MODULE_KEYP(ins_env_pitch_pan,      "ins_XX/p_envelope_pitch_pan.json",     "")
 
+MODULE_KEYP(gen_manifest,           "ins_XX/gen_XX/p_manifest.json",        "")
+
 //MODULE_KEYP(effect_manifest,      "eff_XX/p_manifest.json",         "")
 //MODULE_KEYP(effect_connections,   "eff_XX/p_connections.json",      "[]")
 //MODULE_KEYP(dsp_manifest,         "eff_XX/dsp_XX/p_manifest.json",  "")
