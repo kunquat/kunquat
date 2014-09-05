@@ -375,6 +375,21 @@ READ(connections)
 }
 
 
+READ(control_map)
+{
+    (void)indices;
+    (void)subkey;
+
+    if (!Module_set_ins_map(module, sr))
+    {
+        set_error(handle, sr);
+        return false;
+    }
+
+    return true;
+}
+
+
 static bool parse_module_level(
         Handle* handle,
         const char* key,
@@ -394,13 +409,7 @@ static bool parse_module_level(
     else if (string_eq(key, "p_connections.json"))
         return read_connections(handle, module, hack, key, sr);
     else if (string_eq(key, "p_control_map.json"))
-    {
-        if (!Module_set_ins_map(module, sr))
-        {
-            set_error(handle, sr);
-            return false;
-        }
-    }
+        return read_control_map(handle, module, hack, key, sr);
     else if (string_eq(key, "p_random_seed.json"))
     {
         if (!Module_parse_random_seed(module, sr))
