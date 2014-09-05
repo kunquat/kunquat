@@ -20,6 +20,8 @@
 #endif
 
 
+MODULE_KEYP(composition,            "p_composition.json",                   "{ mix_vol: -8 }")
+
 MODULE_KEYP(album_manifest,         "album/p_manifest.json",                "")
 MODULE_KEYP(album_tracks,           "album/p_tracks.json",                  "[]")
 

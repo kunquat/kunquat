@@ -330,6 +330,21 @@ bool parse_data(
 }
 
 
+READ(composition)
+{
+    (void)indices;
+    (void)subkey;
+
+    if (!Module_parse_composition(module, sr))
+    {
+        set_error(handle, sr);
+        return false;
+    }
+
+    return true;
+}
+
+
 static bool parse_module_level(
         Handle* handle,
         const char* key,
@@ -342,14 +357,10 @@ static bool parse_module_level(
 
     Module* module = Handle_get_module(handle);
 
+    const Key_indices hack = { -1 };
+
     if (string_eq(key, "p_composition.json"))
-    {
-        if (!Module_parse_composition(module, sr))
-        {
-            set_error(handle, sr);
-            return false;
-        }
-    }
+        return read_composition(handle, module, hack, key, sr);
     else if (string_eq(key, "p_connections.json"))
     {
         Connections* graph = new_Connections_from_string(sr,
