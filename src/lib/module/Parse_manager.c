@@ -405,6 +405,28 @@ READ(random_seed)
 }
 
 
+READ(environment)
+{
+    (void)indices;
+    (void)subkey;
+
+    if (!Environment_parse(module->env, sr))
+    {
+        set_error(handle, sr);
+        return false;
+    }
+
+    if (!Player_refresh_env_state(handle->player))
+    {
+        Handle_set_error(handle, ERROR_MEMORY,
+                "Couldn't allocate memory for environment state");
+        return false;
+    }
+
+    return true;
+}
+
+
 static bool parse_module_level(
         Handle* handle,
         const char* key,
@@ -428,19 +450,7 @@ static bool parse_module_level(
     else if (string_eq(key, "p_random_seed.json"))
         return read_random_seed(handle, module, hack, key, sr);
     else if (string_eq(key, "p_environment.json"))
-    {
-        if (!Environment_parse(module->env, sr))
-        {
-            set_error(handle, sr);
-            return false;
-        }
-        if (!Player_refresh_env_state(handle->player))
-        {
-            Handle_set_error(handle, ERROR_MEMORY,
-                    "Couldn't allocate memory for environment state");
-            return false;
-        }
-    }
+        return read_environment(handle, module, hack, key, sr);
     else if (string_eq(key, "p_bind.json"))
     {
         Bind* map = new_Bind(
