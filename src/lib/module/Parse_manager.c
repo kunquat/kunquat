@@ -390,6 +390,21 @@ READ(control_map)
 }
 
 
+READ(random_seed)
+{
+    (void)indices;
+    (void)subkey;
+
+    if (!Module_parse_random_seed(module, sr))
+    {
+        set_error(handle, sr);
+        return false;
+    }
+
+    return true;
+}
+
+
 static bool parse_module_level(
         Handle* handle,
         const char* key,
@@ -411,13 +426,7 @@ static bool parse_module_level(
     else if (string_eq(key, "p_control_map.json"))
         return read_control_map(handle, module, hack, key, sr);
     else if (string_eq(key, "p_random_seed.json"))
-    {
-        if (!Module_parse_random_seed(module, sr))
-        {
-            set_error(handle, sr);
-            return false;
-        }
-    }
+        return read_random_seed(handle, module, hack, key, sr);
     else if (string_eq(key, "p_environment.json"))
     {
         if (!Environment_parse(module->env, sr))
