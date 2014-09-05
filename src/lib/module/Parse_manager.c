@@ -575,6 +575,58 @@ READ(ins)
 }
 
 
+READ(ins_connections)
+{
+    (void)subkey;
+
+    int32_t index = -1;
+    acquire_ins_index(index);
+
+    Instrument* ins = NULL;
+    acquire_ins(ins, index);
+
+    bool reconnect = false;
+    if (!Streader_has_data(sr))
+    {
+        Instrument_set_connections(ins, NULL);
+        reconnect = true;
+    }
+    else
+    {
+        Connections* graph = new_Connections_from_string(
+                sr,
+                CONNECTION_LEVEL_INSTRUMENT,
+                Module_get_insts(module),
+                Instrument_get_effects(ins),
+                NULL,
+                (Device*)ins);
+        if (graph == NULL)
+        {
+            set_error(handle, sr);
+            return false;
+        }
+
+        Instrument_set_connections(ins, graph);
+        reconnect = true;
+    }
+
+    if (reconnect)
+    {
+//        fprintf(stderr, "Set connections for ins %d\n", index);
+        Connections* global_graph = module->connections;
+        if (global_graph != NULL)
+        {
+            if (!prepare_connections(handle))
+                return false;
+//            fprintf(stderr, "line: %d\n", __LINE__);
+//            Connections_print(global_graph, stderr);
+        }
+    }
+
+    return true;
+}
+
+
 static bool parse_instrument_level(
         Handle* handle,
         const char* key,
@@ -668,50 +720,7 @@ static bool parse_instrument_level(
     else if (string_eq(subkey, "p_instrument.json"))
         return read_ins(handle, module, hack, subkey, sr);
     else if (string_eq(subkey, "p_connections.json"))
-    {
-        bool reconnect = false;
-        Instrument* ins = Ins_table_get(Module_get_insts(module), index);
-        if (!Streader_has_data(sr))
-        {
-            if (ins != NULL)
-            {
-                Instrument_set_connections(ins, NULL);
-                reconnect = true;
-            }
-        }
-        else
-        {
-            ins = add_instrument(handle, index);
-            if (ins == NULL)
-                return false;
-
-            Connections* graph = new_Connections_from_string(sr,
-                                                 CONNECTION_LEVEL_INSTRUMENT,
-                                                 Module_get_insts(module),
-                                                 Instrument_get_effects(ins),
-                                                 NULL,
-                                                 (Device*)ins);
-            if (graph == NULL)
-            {
-                set_error(handle, sr);
-                return false;
-            }
-            Instrument_set_connections(ins, graph);
-            reconnect = true;
-        }
-        if (reconnect)
-        {
-//            fprintf(stderr, "Set connections for ins %d\n", index);
-            Connections* global_graph = module->connections;
-            if (global_graph != NULL)
-            {
-                if (!prepare_connections(handle))
-                    return false;
-//                fprintf(stderr, "line: %d\n", __LINE__);
-//                Connections_print(global_graph, stderr);
-            }
-        }
-    }
+        return read_ins_connections(handle, module, hack, subkey, sr);
     else if (string_has_prefix(subkey, "p_pitch_lock_"))
     {
         Instrument* ins = Ins_table_get(Module_get_insts(module), index);
