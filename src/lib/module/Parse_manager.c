@@ -906,6 +906,148 @@ READ(gen_manifest)
 }
 
 
+READ(gen_type)
+{
+    (void)subkey;
+
+    int32_t ins_index = -1;
+    acquire_ins_index(ins_index);
+
+    int32_t gen_index = -1;
+    acquire_gen_index(gen_index);
+
+    if (!Streader_has_data(sr))
+    {
+        // Remove generator
+        Instrument* ins = Ins_table_get(Module_get_insts(module), ins_index);
+        if (ins == NULL)
+            return true;
+
+        Gen_table* gen_table = Instrument_get_gens(ins);
+        Gen_table_remove_gen(gen_table, gen_index);
+        return true;
+    }
+
+    Instrument* ins = NULL;
+    acquire_ins(ins, ins_index);
+    Gen_table* gen_table = Instrument_get_gens(ins);
+
+    Generator* gen = add_generator(handle, ins, gen_table, gen_index);
+    if (gen == NULL)
+        return false;
+
+    // Create the Generator implementation
+    char type[GEN_TYPE_LENGTH_MAX] = "";
+    if (!Streader_read_string(sr, GEN_TYPE_LENGTH_MAX, type))
+    {
+        set_error(handle, sr);
+        return false;
+    }
+
+    Generator_cons* cons = Gen_type_find_cons(type);
+    if (cons == NULL)
+    {
+        Handle_set_error(handle, ERROR_FORMAT,
+                "Unsupported Generator type: %s", type);
+        return false;
+    }
+
+    Device_impl* gen_impl = cons(gen);
+    if (gen_impl == NULL)
+    {
+        Handle_set_error(handle, ERROR_MEMORY,
+                "Couldn't allocate memory for generator implementation");
+        return false;
+    }
+
+    Device_set_impl((Device*)gen, gen_impl);
+
+    // Remove old Generator Device state
+    Device_states* dstates = Player_get_device_states(handle->player);
+    Device_states_remove_state(dstates, Device_get_id((Device*)gen));
+
+    // Get generator properties
+    Generator_property* property = Gen_type_find_property(type);
+    if (property != NULL)
+    {
+        // Allocate Voice state space
+        const char* size_str = property(gen, "voice_state_size");
+        if (size_str != NULL)
+        {
+            Streader* size_sr = Streader_init(
+                    STREADER_AUTO, size_str, strlen(size_str));
+            int64_t size = 0;
+            Streader_read_int(size_sr, &size);
+            assert(!Streader_is_error_set(sr));
+            assert(size >= 0);
+//            fprintf(stderr, "Reserving space for %" PRId64 " bytes\n",
+//                            size);
+            if (!Player_reserve_voice_state_space(
+                        handle->player, size) ||
+                    !Player_reserve_voice_state_space(
+                        handle->length_counter, size))
+            {
+                Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory for generator voice states");
+                del_Device_impl(gen_impl);
+                return false;
+            }
+        }
+
+        // Allocate channel-specific generator state space
+        const char* gen_state_vars = property(gen, "gen_state_vars");
+        if (gen_state_vars != NULL)
+        {
+            Streader* gsv_sr = Streader_init(
+                    STREADER_AUTO,
+                    gen_state_vars,
+                    strlen(gen_state_vars));
+
+            if (!Player_alloc_channel_gen_state_keys(
+                        handle->player, gsv_sr))
+            {
+                set_error(handle, gsv_sr);
+                return false;
+            }
+        }
+    }
+
+    // Allocate Device state(s) for this Generator
+    Device_state* ds = Device_create_state(
+            (Device*)gen,
+            Player_get_audio_rate(handle->player),
+            Player_get_audio_buffer_size(handle->player));
+    if (ds == NULL || !Device_states_add_state(dstates, ds))
+    {
+        Handle_set_error(handle, ERROR_MEMORY,
+                "Couldn't allocate memory for device state");
+        del_Device_state(ds);
+        del_Generator(gen);
+        return false;
+    }
+
+    // Sync the Generator
+    if (!Device_sync((Device*)gen))
+    {
+        Handle_set_error(handle, ERROR_MEMORY,
+                "Couldn't allocate memory while syncing generator");
+        return false;
+    }
+
+    // Sync the Device state(s)
+    if (!Device_sync_states(
+                (Device*)gen,
+                Player_get_device_states(handle->player)))
+    {
+        Handle_set_error(handle, ERROR_MEMORY,
+                "Couldn't allocate memory while syncing generator");
+        return false;
+    }
+
+    return true;
+}
+
+
 static bool parse_generator_level(
         Handle* handle,
         const char* key,
@@ -950,130 +1092,7 @@ static bool parse_generator_level(
     if (string_eq(subkey, "p_manifest.json"))
         return read_gen_manifest(handle, module, hack, subkey, sr);
     else if (string_eq(subkey, "p_gen_type.json"))
-    {
-        if (!Streader_has_data(sr))
-        {
-            const Generator* gen = Gen_table_get_gen(table, gen_index);
-            if (gen != NULL)
-            {
-                //Connections_disconnect(module->connections,
-                //                       (Device*)gen);
-            }
-            Gen_table_remove_gen(table, gen_index);
-        }
-        else
-        {
-            Generator* gen = add_generator(handle, ins, table, gen_index);
-            if (gen == NULL)
-                return false;
-
-            // Create the Generator implementation
-            char type[GEN_TYPE_LENGTH_MAX] = "";
-            if (!Streader_read_string(sr, GEN_TYPE_LENGTH_MAX, type))
-            {
-                set_error(handle, sr);
-                return false;
-            }
-            Generator_cons* cons = Gen_type_find_cons(type);
-            if (cons == NULL)
-            {
-                Handle_set_error(handle, ERROR_FORMAT,
-                        "Unsupported Generator type: %s", type);
-                return false;
-            }
-            Device_impl* gen_impl = cons(gen);
-            if (gen_impl == NULL)
-            {
-                Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory for generator implementation");
-                return false;
-            }
-
-            Device_set_impl((Device*)gen, gen_impl);
-
-            // Remove old Generator Device state
-            Device_states* dstates = Player_get_device_states(handle->player);
-            Device_states_remove_state(dstates, Device_get_id((Device*)gen));
-
-            // Get generator properties
-            Generator_property* property = Gen_type_find_property(type);
-            if (property != NULL)
-            {
-                // Allocate Voice state space
-                const char* size_str = property(gen, "voice_state_size");
-                if (size_str != NULL)
-                {
-                    Streader* size_sr = Streader_init(
-                            STREADER_AUTO, size_str, strlen(size_str));
-                    int64_t size = 0;
-                    Streader_read_int(size_sr, &size);
-                    assert(!Streader_is_error_set(sr));
-                    assert(size >= 0);
-//                    fprintf(stderr, "Reserving space for %" PRId64 " bytes\n",
-//                                    size);
-                    if (!Player_reserve_voice_state_space(
-                                handle->player, size) ||
-                            !Player_reserve_voice_state_space(
-                                handle->length_counter, size))
-                    {
-                        Handle_set_error(handle, ERROR_MEMORY,
-                                "Couldn't allocate memory");
-                        del_Device_impl(gen_impl);
-                        return false;
-                    }
-                }
-
-                // Allocate channel-specific generator state space
-                const char* gen_state_vars = property(gen, "gen_state_vars");
-                if (gen_state_vars != NULL)
-                {
-                    Streader* gsv_sr = Streader_init(
-                            STREADER_AUTO,
-                            gen_state_vars,
-                            strlen(gen_state_vars));
-
-                    if (!Player_alloc_channel_gen_state_keys(
-                                handle->player, gsv_sr))
-                    {
-                        set_error(handle, gsv_sr);
-                        return false;
-                    }
-                }
-            }
-
-            // Allocate Device state(s) for this Generator
-            Device_state* ds = Device_create_state(
-                    (Device*)gen,
-                    Player_get_audio_rate(handle->player),
-                    Player_get_audio_buffer_size(handle->player));
-            if (ds == NULL || !Device_states_add_state(dstates, ds))
-            {
-                Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory");
-                del_Device_state(ds);
-                del_Generator(gen);
-                return false;
-            }
-
-            // Sync the Generator
-            if (!Device_sync((Device*)gen))
-            {
-                Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory while syncing generator");
-                return false;
-            }
-
-            // Sync the Device state(s)
-            if (!Device_sync_states(
-                        (Device*)gen,
-                        Player_get_device_states(handle->player)))
-            {
-                Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory while syncing generator");
-                return false;
-            }
-        }
-    }
+        return read_gen_type(handle, module, hack, subkey, sr);
 #if 0
     else if (string_eq(subkey, "p_events.json"))
     {
