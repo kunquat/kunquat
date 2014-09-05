@@ -345,6 +345,36 @@ READ(composition)
 }
 
 
+READ(connections)
+{
+    (void)indices;
+    (void)subkey;
+
+    Connections* graph = new_Connections_from_string(
+            sr,
+            CONNECTION_LEVEL_GLOBAL,
+            Module_get_insts(module),
+            Module_get_effects(module),
+            NULL,
+            (Device*)module);
+    if (graph == NULL)
+    {
+        set_error(handle, sr);
+        return false;
+    }
+
+    if (module->connections != NULL)
+        del_Connections(module->connections);
+
+    module->connections = graph;
+
+    if (!prepare_connections(handle))
+        return false;
+
+    return true;
+}
+
+
 static bool parse_module_level(
         Handle* handle,
         const char* key,
@@ -362,30 +392,7 @@ static bool parse_module_level(
     if (string_eq(key, "p_composition.json"))
         return read_composition(handle, module, hack, key, sr);
     else if (string_eq(key, "p_connections.json"))
-    {
-        Connections* graph = new_Connections_from_string(sr,
-                                            CONNECTION_LEVEL_GLOBAL,
-                                            Module_get_insts(module),
-                                            Module_get_effects(module),
-                                            NULL,
-                                            (Device*)module);
-        if (graph == NULL)
-        {
-            set_error(handle, sr);
-            return false;
-        }
-        if (module->connections != NULL)
-        {
-            del_Connections(module->connections);
-        }
-        module->connections = graph;
-        //fprintf(stderr, "line: %d\n", __LINE__);
-        //Connections_print(graph, stderr);
-        if (!prepare_connections(handle))
-            return false;
-        //fprintf(stderr, "line: %d\n", __LINE__);
-        //Connections_print(graph, stderr);
-    }
+        return read_connections(handle, module, hack, key, sr);
     else if (string_eq(key, "p_control_map.json"))
     {
         if (!Module_set_ins_map(module, sr))
