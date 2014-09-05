@@ -20,6 +20,8 @@
 #endif
 
 
+MODULE_KEYP(album_manifest,         "album/p_manifest.json",                "")
+
 MODULE_KEYP(ins_manifest,           "ins_XX/p_manifest.json",               "")
 MODULE_KEYP(ins,                    "ins_XX/p_instrument.json",             "")
 MODULE_KEYP(ins_connections,        "ins_XX/p_connections.json",            "[]")

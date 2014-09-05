@@ -429,6 +429,24 @@ static bool parse_module_level(
 }
 
 
+READ(album_manifest)
+{
+    (void)indices;
+    (void)subkey;
+
+    const bool existent = read_default_manifest(sr);
+    if (Streader_is_error_set(sr))
+    {
+        set_error(handle, sr);
+        return false;
+    }
+
+    module->album_is_existent = existent;
+
+    return true;
+}
+
+
 static bool parse_album_level(
         Handle* handle,
         const char* key,
@@ -443,16 +461,10 @@ static bool parse_album_level(
 
     Module* module = Handle_get_module(handle);
 
+    const Key_indices hack = { -1 };
+
     if (string_eq(subkey, "p_manifest.json"))
-    {
-        const bool existent = read_default_manifest(sr);
-        if (Streader_is_error_set(sr))
-        {
-            set_error(handle, sr);
-            return false;
-        }
-        module->album_is_existent = existent;
-    }
+        read_album_manifest(handle, module, hack, subkey, sr);
     else if (string_eq(subkey, "p_tracks.json"))
     {
         Track_list* tl = new_Track_list(sr);
