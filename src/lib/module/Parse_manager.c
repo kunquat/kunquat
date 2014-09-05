@@ -721,6 +721,7 @@ static bool parse_instrument_level(
         return read_ins(handle, module, hack, subkey, sr);
     else if (string_eq(subkey, "p_connections.json"))
         return read_ins_connections(handle, module, hack, subkey, sr);
+#if 0
     else if (string_has_prefix(subkey, "p_pitch_lock_"))
     {
         Instrument* ins = Ins_table_get(Module_get_insts(module), index);
@@ -734,6 +735,7 @@ static bool parse_instrument_level(
             return false;
         }
     }
+#endif
 
     static const struct
     {
