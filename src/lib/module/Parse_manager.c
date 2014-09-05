@@ -427,6 +427,32 @@ READ(environment)
 }
 
 
+READ(bind)
+{
+    (void)indices;
+    (void)subkey;
+
+    Bind* map = new_Bind(
+            sr, Event_handler_get_names(Player_get_event_handler(handle->player)));
+    if (map == NULL)
+    {
+        set_error(handle, sr);
+        return false;
+    }
+
+    Module_set_bind(module, map);
+
+    if (!Player_refresh_bind_state(handle->player))
+    {
+        Handle_set_error(handle, ERROR_MEMORY,
+                "Couldn't allocate memory for bind state");
+        return false;
+    }
+
+    return true;
+}
+
+
 static bool parse_module_level(
         Handle* handle,
         const char* key,
@@ -452,25 +478,8 @@ static bool parse_module_level(
     else if (string_eq(key, "p_environment.json"))
         return read_environment(handle, module, hack, key, sr);
     else if (string_eq(key, "p_bind.json"))
-    {
-        Bind* map = new_Bind(
-                sr,
-                Event_handler_get_names(
-                    Player_get_event_handler(handle->player)));
-        if (map == NULL)
-        {
-            set_error(handle, sr);
-            return false;
-        }
-        Module_set_bind(module, map);
+        return read_bind(handle, module, hack, key, sr);
 
-        if (!Player_refresh_bind_state(handle->player))
-        {
-            Handle_set_error(handle, ERROR_MEMORY,
-                    "Couldn't allocate memory for bind state");
-            return false;
-        }
-    }
     return true;
 }
 

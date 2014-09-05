@@ -25,6 +25,7 @@ MODULE_KEYP(connections,            "p_connections.json",                   "[]"
 MODULE_KEYP(control_map,            "p_control_map.json",                   "[]")
 MODULE_KEYP(random_seed,            "p_random_seed.json",                   "0")
 MODULE_KEYP(environment,            "p_environment.json",                   "[]")
+MODULE_KEYP(bind,                   "p_bind.json",                          "[]")
 
 MODULE_KEYP(album_manifest,         "album/p_manifest.json",                "")
 MODULE_KEYP(album_tracks,           "album/p_tracks.json",                  "[]")
