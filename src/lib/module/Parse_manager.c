@@ -226,19 +226,8 @@ bool parse_data(
     }
     else if ((index = string_extract_index(key, "control_", 2, "/")) >= 0)
     {
-        if (index < 0 || index >= KQT_CONTROLS_MAX)
-            return true;
-
-        if (string_eq(second_element, "p_manifest.json"))
-        {
-            const bool existent = read_default_manifest(sr);
-            if (Streader_is_error_set(sr))
-            {
-                set_error(handle, sr);
-                return false;
-            }
-            Module_set_control(handle->module, index, existent);
-        }
+        const Key_indices hack = { index };
+        return read_control_manifest(handle, module, hack, key, sr);
     }
     else if ((index = string_extract_index(key, "eff_", 2, "/")) >= 0)
     {
@@ -385,6 +374,28 @@ READ(control_map)
         set_error(handle, sr);
         return false;
     }
+
+    return true;
+}
+
+
+READ(control_manifest)
+{
+    (void)subkey;
+
+    const int32_t index = indices[0];
+
+    if (index < 0 || index >= KQT_CONTROLS_MAX)
+        return true;
+
+    const bool existent = read_default_manifest(sr);
+    if (Streader_is_error_set(sr))
+    {
+        set_error(handle, sr);
+        return false;
+    }
+
+    Module_set_control(module, index, existent);
 
     return true;
 }
