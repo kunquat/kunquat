@@ -35,22 +35,26 @@
 #include <string/Streader.h>
 
 
-#define READ(name) static bool read_##name( \
-        Handle* handle,                     \
-        Module* module,                     \
-        const Key_indices indices,          \
-        const char* subkey,                 \
-        Streader* sr)
+typedef struct Reader_params
+{
+    Handle* handle;
+    const int32_t* indices;
+    const char* subkey;
+    Streader* sr;
+} Reader_params;
 
 
-#define MODULE_KEYP(name, keyp, def) READ(name);
+#define READ(name) static bool read_##name(Reader_params* params)
+
+
+#define MODULE_KEYP(name, keyp, def) static bool read_##name(Reader_params* params);
 #include <module/Module_key_patterns.h>
 
 
 static const struct
 {
     const char* keyp;
-    bool (*func)(Handle*, Module*, const Key_indices, const char*, Streader*);
+    bool (*func)(Reader_params*);
 } keyp_to_func[] =
 {
 #define MODULE_KEYP(name, keyp, def) { keyp, read_##name, },
@@ -59,13 +63,14 @@ static const struct
 };
 
 
-#define set_error(handle, sr)                                               \
-    if (true)                                                               \
-    {                                                                       \
-        if (Error_get_type(&(sr)->error) == ERROR_FORMAT)                   \
-            Handle_set_validation_error_from_Error((handle), &(sr)->error); \
-        else                                                                \
-            Handle_set_error_from_Error((handle), &(sr)->error);            \
+#define set_error(params)                                                        \
+    if (true)                                                                    \
+    {                                                                            \
+        if (Error_get_type(&(params)->sr->error) == ERROR_FORMAT)                \
+            Handle_set_validation_error_from_Error(                              \
+                    (params)->handle, &(params)->sr->error);                     \
+        else                                                                     \
+            Handle_set_error_from_Error((params)->handle, &(params)->sr->error); \
     } else (void)0
 
 
@@ -129,17 +134,14 @@ bool parse_data(
     {
         if (string_has_prefix(key_pattern, keyp_to_func[i].keyp))
         {
-            // Found a match
-            const char* subkey = key + strlen(keyp_to_func[i].keyp);
+            // Fill in params and send them to our callback
+            Reader_params params;
+            params.handle = handle;
+            params.indices = key_indices;
+            params.subkey = key + strlen(keyp_to_func[i].keyp);
+            params.sr = Streader_init(STREADER_AUTO, data, length);
 
-            Streader* sr = Streader_init(STREADER_AUTO, data, length);
-
-            return keyp_to_func[i].func(
-                    handle,
-                    Handle_get_module(handle),
-                    key_indices,
-                    subkey,
-                    sr);
+            return keyp_to_func[i].func(&params);
         }
     }
 
@@ -148,14 +150,13 @@ bool parse_data(
 }
 
 
-READ(composition)
+static bool read_composition(Reader_params* params)
 {
-    (void)indices;
-    (void)subkey;
+    assert(params != NULL);
 
-    if (!Module_parse_composition(module, sr))
+    if (!Module_parse_composition(Handle_get_module(params->handle), params->sr))
     {
-        set_error(handle, sr);
+        set_error(params);
         return false;
     }
 
@@ -163,13 +164,14 @@ READ(composition)
 }
 
 
-READ(connections)
+static bool read_connections(Reader_params* params)
 {
-    (void)indices;
-    (void)subkey;
+    assert(params != NULL);
+
+    Module* module = Handle_get_module(params->handle);
 
     Connections* graph = new_Connections_from_string(
-            sr,
+            params->sr,
             CONNECTION_LEVEL_GLOBAL,
             Module_get_insts(module),
             Module_get_effects(module),
@@ -177,7 +179,7 @@ READ(connections)
             (Device*)module);
     if (graph == NULL)
     {
-        set_error(handle, sr);
+        set_error(params);
         return false;
     }
 
@@ -186,21 +188,20 @@ READ(connections)
 
     module->connections = graph;
 
-    if (!prepare_connections(handle))
+    if (!prepare_connections(params->handle))
         return false;
 
     return true;
 }
 
 
-READ(control_map)
+static bool read_control_map(Reader_params* params)
 {
-    (void)indices;
-    (void)subkey;
+    assert(params != NULL);
 
-    if (!Module_set_ins_map(module, sr))
+    if (!Module_set_ins_map(Handle_get_module(params->handle), params->sr))
     {
-        set_error(handle, sr);
+        set_error(params);
         return false;
     }
 
@@ -208,36 +209,34 @@ READ(control_map)
 }
 
 
-READ(control_manifest)
+static bool read_control_manifest(Reader_params* params)
 {
-    (void)subkey;
+    assert(params != NULL);
 
-    const int32_t index = indices[0];
-
+    const int32_t index = params->indices[0];
     if (index < 0 || index >= KQT_CONTROLS_MAX)
         return true;
 
-    const bool existent = read_default_manifest(sr);
-    if (Streader_is_error_set(sr))
+    const bool existent = read_default_manifest(params->sr);
+    if (Streader_is_error_set(params->sr))
     {
-        set_error(handle, sr);
+        set_error(params);
         return false;
     }
 
-    Module_set_control(module, index, existent);
+    Module_set_control(Handle_get_module(params->handle), index, existent);
 
     return true;
 }
 
 
-READ(random_seed)
+static bool read_random_seed(Reader_params* params)
 {
-    (void)indices;
-    (void)subkey;
+    assert(params != NULL);
 
-    if (!Module_parse_random_seed(module, sr))
+    if (!Module_parse_random_seed(Handle_get_module(params->handle), params->sr))
     {
-        set_error(handle, sr);
+        set_error(params);
         return false;
     }
 
@@ -245,20 +244,19 @@ READ(random_seed)
 }
 
 
-READ(environment)
+static bool read_environment(Reader_params* params)
 {
-    (void)indices;
-    (void)subkey;
+    assert(params != NULL);
 
-    if (!Environment_parse(module->env, sr))
+    if (!Environment_parse(Handle_get_module(params->handle)->env, params->sr))
     {
-        set_error(handle, sr);
+        set_error(params);
         return false;
     }
 
-    if (!Player_refresh_env_state(handle->player))
+    if (!Player_refresh_env_state(params->handle->player))
     {
-        Handle_set_error(handle, ERROR_MEMORY,
+        Handle_set_error(params->handle, ERROR_MEMORY,
                 "Couldn't allocate memory for environment state");
         return false;
     }
@@ -267,24 +265,24 @@ READ(environment)
 }
 
 
-READ(bind)
+static bool read_bind(Reader_params* params)
 {
-    (void)indices;
-    (void)subkey;
+    assert(params != NULL);
 
     Bind* map = new_Bind(
-            sr, Event_handler_get_names(Player_get_event_handler(handle->player)));
+            params->sr,
+            Event_handler_get_names(Player_get_event_handler(params->handle->player)));
     if (map == NULL)
     {
-        set_error(handle, sr);
+        set_error(params);
         return false;
     }
 
-    Module_set_bind(module, map);
+    Module_set_bind(Handle_get_module(params->handle), map);
 
-    if (!Player_refresh_bind_state(handle->player))
+    if (!Player_refresh_bind_state(params->handle->player))
     {
-        Handle_set_error(handle, ERROR_MEMORY,
+        Handle_set_error(params->handle, ERROR_MEMORY,
                 "Couldn't allocate memory for bind state");
         return false;
     }
@@ -293,35 +291,35 @@ READ(bind)
 }
 
 
-READ(album_manifest)
+static bool read_album_manifest(Reader_params* params)
 {
-    (void)indices;
-    (void)subkey;
+    assert(params != NULL);
 
-    const bool existent = read_default_manifest(sr);
-    if (Streader_is_error_set(sr))
+    const bool existent = read_default_manifest(params->sr);
+    if (Streader_is_error_set(params->sr))
     {
-        set_error(handle, sr);
+        set_error(params);
         return false;
     }
 
-    module->album_is_existent = existent;
+    Handle_get_module(params->handle)->album_is_existent = existent;
 
     return true;
 }
 
 
-READ(album_tracks)
+static bool read_album_tracks(Reader_params* params)
 {
-    (void)indices;
-    (void)subkey;
+    assert(params != NULL);
 
-    Track_list* tl = new_Track_list(sr);
+    Track_list* tl = new_Track_list(params->sr);
     if (tl == NULL)
     {
-        set_error(handle, sr);
+        set_error(params);
         return false;
     }
+
+    Module* module = Handle_get_module(params->handle);
 
     del_Track_list(module->track_list);
     module->track_list = tl;
@@ -372,108 +370,108 @@ static Instrument* add_instrument(Handle* handle, int index)
 }
 
 
-#define acquire_ins_index(index)                           \
+#define acquire_ins_index(index, params)                   \
     if (true)                                              \
     {                                                      \
-        (index) = indices[0];                              \
+        (index) = (params)->indices[0];                    \
         if ((index) < 0 || (index) >= KQT_INSTRUMENTS_MAX) \
             return true;                                   \
     }                                                      \
     else (void)0
 
 
-#define acquire_ins(ins, index)                \
-    if (true)                                  \
-    {                                          \
-        (ins) = add_instrument(handle, index); \
-        if ((ins) == NULL)                     \
-            return false;                      \
-    }                                          \
+#define acquire_ins(ins, handle, index)            \
+    if (true)                                      \
+    {                                              \
+        (ins) = add_instrument((handle), (index)); \
+        if ((ins) == NULL)                         \
+            return false;                          \
+    }                                              \
     else (void)0
 
 
-static bool is_ins_conn_possible(const Module* module, int32_t ins_index)
+static bool is_ins_conn_possible(Handle* handle, int32_t ins_index)
 {
-    assert(module != NULL);
+    assert(handle != NULL);
+    const Module* module = Handle_get_module(handle);
     return (Ins_table_get(Module_get_insts(module), ins_index) != NULL);
 }
 
 
-#define check_update_ins_conns(handle, module, index, was_conn_possible)      \
+#define check_update_ins_conns(handle, index, was_conn_possible)              \
     if (true)                                                                 \
     {                                                                         \
         const bool changed =                                                  \
-            ((was_conn_possible) != is_ins_conn_possible((module), (index))); \
+            ((was_conn_possible) != is_ins_conn_possible((handle), (index))); \
         if (changed && !prepare_connections((handle)))                        \
             return false;                                                     \
     }                                                                         \
     else (void)0
 
 
-READ(ins_manifest)
+static bool read_ins_manifest(Reader_params* params)
 {
-    (void)subkey;
+    assert(params != NULL);
 
     int32_t index = -1;
-    acquire_ins_index(index);
+    acquire_ins_index(index, params);
 
-    const bool was_conn_possible = is_ins_conn_possible(module, index);
+    const bool was_conn_possible = is_ins_conn_possible(params->handle, index);
 
     Instrument* ins = NULL;
-    acquire_ins(ins, index);
+    acquire_ins(ins, params->handle, index);
 
-    const bool existent = read_default_manifest(sr);
-    if (Streader_is_error_set(sr))
+    const bool existent = read_default_manifest(params->sr);
+    if (Streader_is_error_set(params->sr))
     {
-        set_error(handle, sr);
+        set_error(params);
         return false;
     }
 
     Device_set_existent((Device*)ins, existent);
 
-    check_update_ins_conns(handle, module, index, was_conn_possible);
+    check_update_ins_conns(params->handle, index, was_conn_possible);
 
     return true;
 }
 
 
-READ(ins)
+static bool read_ins(Reader_params* params)
 {
-    (void)module;
-    (void)subkey;
+    assert(params != NULL);
 
     int32_t index = -1;
-    acquire_ins_index(index);
+    acquire_ins_index(index, params);
 
-    const bool was_conn_possible = is_ins_conn_possible(module, index);
+    const bool was_conn_possible = is_ins_conn_possible(params->handle, index);
 
     Instrument* ins = NULL;
-    acquire_ins(ins, index);
+    acquire_ins(ins, params->handle, index);
 
-    if (!Instrument_parse_header(ins, sr))
+    if (!Instrument_parse_header(ins, params->sr))
     {
-        set_error(handle, sr);
+        set_error(params);
         return false;
     }
 
-    check_update_ins_conns(handle, module, index, was_conn_possible);
+    check_update_ins_conns(params->handle, index, was_conn_possible);
 
     return true;
 }
 
 
-READ(ins_connections)
+static bool read_ins_connections(Reader_params* params)
 {
-    (void)subkey;
+    assert(params != NULL);
 
     int32_t index = -1;
-    acquire_ins_index(index);
+    acquire_ins_index(index, params);
 
     Instrument* ins = NULL;
-    acquire_ins(ins, index);
+    acquire_ins(ins, params->handle, index);
 
     bool reconnect = false;
-    if (!Streader_has_data(sr))
+    if (!Streader_has_data(params->sr))
     {
         Instrument_set_connections(ins, NULL);
         reconnect = true;
@@ -481,15 +479,15 @@ READ(ins_connections)
     else
     {
         Connections* graph = new_Connections_from_string(
-                sr,
+                params->sr,
                 CONNECTION_LEVEL_INSTRUMENT,
-                Module_get_insts(module),
+                Module_get_insts(Handle_get_module(params->handle)),
                 Instrument_get_effects(ins),
                 NULL,
                 (Device*)ins);
         if (graph == NULL)
         {
-            set_error(handle, sr);
+            set_error(params);
             return false;
         }
 
@@ -497,108 +495,104 @@ READ(ins_connections)
         reconnect = true;
     }
 
-    if (reconnect && !prepare_connections(handle))
+    if (reconnect && !prepare_connections(params->handle))
         return false;
 
     return true;
 }
 
 
-READ(ins_env_force)
+static bool read_ins_env_force(Reader_params* params)
 {
-    (void)module;
-    (void)subkey;
+    assert(params != NULL);
 
     int32_t index = -1;
-    acquire_ins_index(index);
+    acquire_ins_index(index, params);
 
-    const bool was_conn_possible = is_ins_conn_possible(module, index);
+    const bool was_conn_possible = is_ins_conn_possible(params->handle, index);
 
     Instrument* ins = NULL;
-    acquire_ins(ins, index);
+    acquire_ins(ins, params->handle, index);
 
-    if (!Instrument_params_parse_env_force(Instrument_get_params(ins), sr))
+    if (!Instrument_params_parse_env_force(Instrument_get_params(ins), params->sr))
     {
-        set_error(handle, sr);
+        set_error(params);
         return false;
     }
 
-    check_update_ins_conns(handle, module, index, was_conn_possible);
+    check_update_ins_conns(params->handle, index, was_conn_possible);
 
     return true;
 }
 
 
-READ(ins_env_force_release)
+static bool read_ins_env_force_release(Reader_params* params)
 {
-    (void)module;
-    (void)subkey;
+    assert(params != NULL);
 
     int32_t index = -1;
-    acquire_ins_index(index);
+    acquire_ins_index(index, params);
 
-    const bool was_conn_possible = is_ins_conn_possible(module, index);
+    const bool was_conn_possible = is_ins_conn_possible(params->handle, index);
 
     Instrument* ins = NULL;
-    acquire_ins(ins, index);
+    acquire_ins(ins, params->handle, index);
 
-    if (!Instrument_params_parse_env_force_rel(Instrument_get_params(ins), sr))
+    if (!Instrument_params_parse_env_force_rel(Instrument_get_params(ins), params->sr))
     {
-        set_error(handle, sr);
+        set_error(params);
         return false;
     }
 
-    check_update_ins_conns(handle, module, index, was_conn_possible);
+    check_update_ins_conns(params->handle, index, was_conn_possible);
 
     return true;
 }
 
 
-READ(ins_env_force_filter)
+static bool read_ins_env_force_filter(Reader_params* params)
 {
-    (void)module;
-    (void)subkey;
+    assert(params != NULL);
 
     int32_t index = -1;
-    acquire_ins_index(index);
+    acquire_ins_index(index, params);
 
-    const bool was_conn_possible = is_ins_conn_possible(module, index);
+    const bool was_conn_possible = is_ins_conn_possible(params->handle, index);
 
     Instrument* ins = NULL;
-    acquire_ins(ins, index);
+    acquire_ins(ins, params->handle, index);
 
-    if (!Instrument_params_parse_env_force_filter(Instrument_get_params(ins), sr))
+    if (!Instrument_params_parse_env_force_filter(Instrument_get_params(ins), params->sr))
     {
-        set_error(handle, sr);
+        set_error(params);
         return false;
     }
 
-    check_update_ins_conns(handle, module, index, was_conn_possible);
+    check_update_ins_conns(params->handle, index, was_conn_possible);
 
     return true;
 }
 
 
-READ(ins_env_pitch_pan)
+static bool read_ins_env_pitch_pan(Reader_params* params)
 {
-    (void)module;
-    (void)subkey;
+    assert(params != NULL);
 
     int32_t index = -1;
-    acquire_ins_index(index);
+    acquire_ins_index(index, params);
 
-    const bool was_conn_possible = is_ins_conn_possible(module, index);
+    const bool was_conn_possible = is_ins_conn_possible(params->handle, index);
 
     Instrument* ins = NULL;
-    acquire_ins(ins, index);
+    acquire_ins(ins, params->handle, index);
 
-    if (!Instrument_params_parse_env_pitch_pan(Instrument_get_params(ins), sr))
+    if (!Instrument_params_parse_env_pitch_pan(Instrument_get_params(ins), params->sr))
     {
-        set_error(handle, sr);
+        set_error(params);
         return false;
     }
 
-    check_update_ins_conns(handle, module, index, was_conn_possible);
+    check_update_ins_conns(params->handle, index, was_conn_possible);
 
     return true;
 }
@@ -637,20 +631,21 @@ static Generator* add_generator(
 }
 
 
-#define acquire_gen_index(index)                          \
+#define acquire_gen_index(index, params)                  \
     if (true)                                             \
     {                                                     \
-        (index) = indices[1];                             \
+        (index) = (params)->indices[1];                   \
         if ((index) < 0 || (index) >= KQT_GENERATORS_MAX) \
             return true;                                  \
     }                                                     \
     else (void)0
 
 
-static bool is_gen_conn_possible(
-        const Module* module, int32_t ins_index, int32_t gen_index)
+static bool is_gen_conn_possible(Handle* handle, int32_t ins_index, int32_t gen_index)
 {
-    assert(module != NULL);
+    assert(handle != NULL);
+
+    const Module* module = Handle_get_module(handle);
 
     const Instrument* ins = Ins_table_get(Module_get_insts(module), ins_index);
     if (ins == NULL)
@@ -661,67 +656,64 @@ static bool is_gen_conn_possible(
 }
 
 
-#define check_update_gen_conns(                                            \
-        handle, module, ins_index, gen_index, was_conn_possible)           \
-    if (true)                                                              \
-    {                                                                      \
-        const bool changed = ((was_conn_possible) !=                       \
-                is_gen_conn_possible((module), (ins_index), (gen_index))); \
-        if (changed && !prepare_connections((handle)))                     \
-            return false;                                                  \
-    }                                                                      \
+#define check_update_gen_conns(handle, ins_index, gen_index, was_conn_possible) \
+    if (true)                                                                   \
+    {                                                                           \
+        const bool changed = ((was_conn_possible) !=                            \
+                is_gen_conn_possible((handle), (ins_index), (gen_index)));      \
+        if (changed && !prepare_connections((handle)))                          \
+            return false;                                                       \
+    }                                                                           \
     else (void)0
 
 
-READ(gen_manifest)
+static bool read_gen_manifest(Reader_params* params)
 {
-    (void)module;
-    (void)subkey;
+    assert(params != NULL);
 
     int32_t ins_index = -1;
-    acquire_ins_index(ins_index);
-
+    acquire_ins_index(ins_index, params);
     int32_t gen_index = -1;
-    acquire_gen_index(gen_index);
+    acquire_gen_index(gen_index, params);
 
-    const bool was_conn_possible = is_gen_conn_possible(module, ins_index, gen_index);
+    const bool was_conn_possible = is_gen_conn_possible(params->handle, ins_index, gen_index);
 
     Instrument* ins = NULL;
-    acquire_ins(ins, ins_index);
+    acquire_ins(ins, params->handle, ins_index);
 
     Gen_table* table = Instrument_get_gens(ins);
     assert(table != NULL);
 
-    const bool existent = read_default_manifest(sr);
-    if (Streader_is_error_set(sr))
+    const bool existent = read_default_manifest(params->sr);
+    if (Streader_is_error_set(params->sr))
     {
-        set_error(handle, sr);
+        set_error(params);
         return false;
     }
 
     Gen_table_set_existent(table, gen_index, existent);
 
-    check_update_gen_conns(handle, module, ins_index, gen_index, was_conn_possible);
+    check_update_gen_conns(params->handle, ins_index, gen_index, was_conn_possible);
 
     return true;
 }
 
 
-READ(gen_type)
+static bool read_gen_type(Reader_params* params)
 {
-    (void)subkey;
+    assert(params != NULL);
 
     int32_t ins_index = -1;
-    acquire_ins_index(ins_index);
-
+    acquire_ins_index(ins_index, params);
     int32_t gen_index = -1;
-    acquire_gen_index(gen_index);
+    acquire_gen_index(gen_index, params);
 
-    const bool was_conn_possible = is_gen_conn_possible(module, ins_index, gen_index);
+    const bool was_conn_possible = is_gen_conn_possible(params->handle, ins_index, gen_index);
 
-    if (!Streader_has_data(sr))
+    if (!Streader_has_data(params->sr))
     {
         // Remove generator
+        Module* module = Handle_get_module(params->handle);
         Instrument* ins = Ins_table_get(Module_get_insts(module), ins_index);
         if (ins == NULL)
             return true;
@@ -729,31 +721,31 @@ READ(gen_type)
         Gen_table* gen_table = Instrument_get_gens(ins);
         Gen_table_remove_gen(gen_table, gen_index);
 
-        check_update_gen_conns(handle, module, ins_index, gen_index, was_conn_possible);
+        check_update_gen_conns(params->handle, ins_index, gen_index, was_conn_possible);
 
         return true;
     }
 
     Instrument* ins = NULL;
-    acquire_ins(ins, ins_index);
+    acquire_ins(ins, params->handle, ins_index);
     Gen_table* gen_table = Instrument_get_gens(ins);
 
-    Generator* gen = add_generator(handle, ins, gen_table, gen_index);
+    Generator* gen = add_generator(params->handle, ins, gen_table, gen_index);
     if (gen == NULL)
         return false;
 
     // Create the Generator implementation
     char type[GEN_TYPE_LENGTH_MAX] = "";
-    if (!Streader_read_string(sr, GEN_TYPE_LENGTH_MAX, type))
+    if (!Streader_read_string(params->sr, GEN_TYPE_LENGTH_MAX, type))
     {
-        set_error(handle, sr);
+        set_error(params);
         return false;
     }
 
     Generator_cons* cons = Gen_type_find_cons(type);
     if (cons == NULL)
     {
-        Handle_set_error(handle, ERROR_FORMAT,
+        Handle_set_error(params->handle, ERROR_FORMAT,
                 "Unsupported Generator type: %s", type);
         return false;
     }
@@ -761,7 +753,7 @@ READ(gen_type)
     Device_impl* gen_impl = cons(gen);
     if (gen_impl == NULL)
     {
-        Handle_set_error(handle, ERROR_MEMORY,
+        Handle_set_error(params->handle, ERROR_MEMORY,
                 "Couldn't allocate memory for generator implementation");
         return false;
     }
@@ -769,7 +761,7 @@ READ(gen_type)
     Device_set_impl((Device*)gen, gen_impl);
 
     // Remove old Generator Device state
-    Device_states* dstates = Player_get_device_states(handle->player);
+    Device_states* dstates = Player_get_device_states(params->handle->player);
     Device_states_remove_state(dstates, Device_get_id((Device*)gen));
 
     // Get generator properties
@@ -784,16 +776,16 @@ READ(gen_type)
                     STREADER_AUTO, size_str, strlen(size_str));
             int64_t size = 0;
             Streader_read_int(size_sr, &size);
-            assert(!Streader_is_error_set(sr));
+            assert(!Streader_is_error_set(params->sr));
             assert(size >= 0);
 //            fprintf(stderr, "Reserving space for %" PRId64 " bytes\n",
 //                            size);
             if (!Player_reserve_voice_state_space(
-                        handle->player, size) ||
+                        params->handle->player, size) ||
                     !Player_reserve_voice_state_space(
-                        handle->length_counter, size))
+                        params->handle->length_counter, size))
             {
-                Handle_set_error(handle, ERROR_MEMORY,
+                Handle_set_error(params->handle, ERROR_MEMORY,
                         "Couldn't allocate memory for generator voice states");
                 del_Device_impl(gen_impl);
                 return false;
@@ -810,9 +802,12 @@ READ(gen_type)
                     strlen(gen_state_vars));
 
             if (!Player_alloc_channel_gen_state_keys(
-                        handle->player, gsv_sr))
+                        params->handle->player, gsv_sr))
             {
-                set_error(handle, gsv_sr);
+                Reader_params gsv_params;
+                gsv_params.handle = params->handle;
+                gsv_params.sr = gsv_sr;
+                set_error(&gsv_params);
                 return false;
             }
         }
@@ -821,11 +816,11 @@ READ(gen_type)
     // Allocate Device state(s) for this Generator
     Device_state* ds = Device_create_state(
             (Device*)gen,
-            Player_get_audio_rate(handle->player),
-            Player_get_audio_buffer_size(handle->player));
+            Player_get_audio_rate(params->handle->player),
+            Player_get_audio_buffer_size(params->handle->player));
     if (ds == NULL || !Device_states_add_state(dstates, ds))
     {
-        Handle_set_error(handle, ERROR_MEMORY,
+        Handle_set_error(params->handle, ERROR_MEMORY,
                 "Couldn't allocate memory for device state");
         del_Device_state(ds);
         del_Generator(gen);
@@ -835,7 +830,7 @@ READ(gen_type)
     // Sync the Generator
     if (!Device_sync((Device*)gen))
     {
-        Handle_set_error(handle, ERROR_MEMORY,
+        Handle_set_error(params->handle, ERROR_MEMORY,
                 "Couldn't allocate memory while syncing generator");
         return false;
     }
@@ -843,79 +838,85 @@ READ(gen_type)
     // Sync the Device state(s)
     if (!Device_sync_states(
                 (Device*)gen,
-                Player_get_device_states(handle->player)))
+                Player_get_device_states(params->handle->player)))
     {
-        Handle_set_error(handle, ERROR_MEMORY,
+        Handle_set_error(params->handle, ERROR_MEMORY,
                 "Couldn't allocate memory while syncing generator");
         return false;
     }
 
-    check_update_gen_conns(handle, module, ins_index, gen_index, was_conn_possible);
+    check_update_gen_conns(params->handle, ins_index, gen_index, was_conn_possible);
 
     return true;
 }
 
 
-READ(gen_impl_conf_key)
+static bool read_gen_impl_conf_key(Reader_params* params)
 {
-    if (!key_is_device_param(subkey))
+    assert(params != NULL);
+
+    if (!key_is_device_param(params->subkey))
         return true;
 
-    (void)module;
-
     int32_t ins_index = -1;
-    acquire_ins_index(ins_index);
+    acquire_ins_index(ins_index, params);
     int32_t gen_index = -1;
-    acquire_gen_index(gen_index);
+    acquire_gen_index(gen_index, params);
 
-    const bool was_conn_possible = is_gen_conn_possible(module, ins_index, gen_index);
+    const bool was_conn_possible = is_gen_conn_possible(params->handle, ins_index, gen_index);
 
     Instrument* ins = NULL;
-    acquire_ins(ins, ins_index);
+    acquire_ins(ins, params->handle, ins_index);
     Gen_table* gen_table = Instrument_get_gens(ins);
 
-    Generator* gen = add_generator(handle, ins, gen_table, gen_index);
+    Generator* gen = add_generator(params->handle, ins, gen_table, gen_index);
     if (gen == NULL)
         return false;
 
     // Update Device
-    if (!Device_set_key((Device*)gen, subkey, sr))
+    if (!Device_set_key((Device*)gen, params->subkey, params->sr))
     {
-        set_error(handle, sr);
+        set_error(params);
         return false;
     }
 
     // Update Device state
     Device_set_state_key(
             (Device*)gen,
-            Player_get_device_states(handle->player),
-            subkey);
+            Player_get_device_states(params->handle->player),
+            params->subkey);
 
-    check_update_gen_conns(handle, module, ins_index, gen_index, was_conn_possible);
+    check_update_gen_conns(params->handle, ins_index, gen_index, was_conn_possible);
 
     return true;
 }
 
 
-READ(gen_impl_key)
+static bool read_gen_impl_key(Reader_params* params)
 {
-    assert(strlen(subkey) < KQT_KEY_LENGTH_MAX - 2);
+    assert(params != NULL);
+    assert(strlen(params->subkey) < KQT_KEY_LENGTH_MAX - 2);
 
     char hack_subkey[KQT_KEY_LENGTH_MAX] = "i/";
-    strcat(hack_subkey, subkey);
+    strcat(hack_subkey, params->subkey);
+    Reader_params hack_params = *params;
+    hack_params.subkey = hack_subkey;
 
-    return read_gen_impl_conf_key(handle, module, indices, hack_subkey, sr);
+    return read_gen_impl_conf_key(&hack_params);
 }
 
 
-READ(gen_conf_key)
+static bool read_gen_conf_key(Reader_params* params)
 {
-    assert(strlen(subkey) < KQT_KEY_LENGTH_MAX - 2);
+    assert(params != NULL);
+    assert(strlen(params->subkey) < KQT_KEY_LENGTH_MAX - 2);
 
     char hack_subkey[KQT_KEY_LENGTH_MAX] = "c/";
-    strcat(hack_subkey, subkey);
+    strcat(hack_subkey, params->subkey);
+    Reader_params hack_params = *params;
+    hack_params.subkey = hack_subkey;
 
-    return read_gen_impl_conf_key(handle, module, indices, hack_subkey, sr);
+    return read_gen_impl_conf_key(&hack_params);
 }
 
 
@@ -971,13 +972,13 @@ static Effect* add_effect(Handle* handle, int index, Effect_table* table)
 }
 
 
-#define acquire_effect(effect, table, index)             \
-    if (true)                                            \
-    {                                                    \
-        (effect) = add_effect(handle, (index), (table)); \
-        if ((effect) == NULL)                            \
-            return false;                                \
-    }                                                    \
+#define acquire_effect(effect, handle, table, index)       \
+    if (true)                                              \
+    {                                                      \
+        (effect) = add_effect((handle), (index), (table)); \
+        if ((effect) == NULL)                              \
+            return false;                                  \
+    }                                                      \
     else (void)0
 
 
@@ -999,14 +1000,14 @@ static int get_dsp_index_loc(bool is_instrument)
 }
 
 
-#define acquire_effect_index(index, is_instrument)                     \
-    if (true)                                                          \
-    {                                                                  \
-        const int index_stop = get_effect_index_stop((is_instrument)); \
-        (index) = indices[get_effect_index_loc((is_instrument))];      \
-        if ((index) < 0 || (index) >= (index_stop))                    \
-            return true;                                               \
-    }                                                                  \
+#define acquire_effect_index(index, params, is_instrument)                  \
+    if (true)                                                               \
+    {                                                                       \
+        const int index_stop = get_effect_index_stop((is_instrument));      \
+        (index) = (params)->indices[get_effect_index_loc((is_instrument))]; \
+        if ((index) < 0 || (index) >= (index_stop))                         \
+            return true;                                                    \
+    }                                                                       \
     else (void)0
 
 
@@ -1029,68 +1030,63 @@ static bool is_eff_conn_possible(const Effect_table* eff_table, int32_t eff_inde
     else (void)0
 
 
-#define READ_EFFECT(name) static bool read_effect_##name( \
-        Handle* handle,                                   \
-        Module* module,                                   \
-        const Key_indices indices,                        \
-        const char* subkey,                               \
-        Streader* sr,                                     \
-        Effect_table* eff_table,                          \
-        bool is_instrument)
-
-
-READ_EFFECT(effect_manifest)
+static bool read_effect_effect_manifest(
+        Reader_params* params, Effect_table* eff_table, bool is_instrument)
 {
-    (void)module;
-    (void)subkey;
+    assert(params != NULL);
+    assert(eff_table != NULL);
 
     int32_t eff_index = -1;
-    acquire_effect_index(eff_index, is_instrument);
+    acquire_effect_index(eff_index, params, is_instrument);
 
     const bool was_conn_possible = is_eff_conn_possible(eff_table, eff_index);
 
     Effect* effect = NULL;
-    acquire_effect(effect, eff_table, eff_index);
+    acquire_effect(effect, params->handle, eff_table, eff_index);
 
-    const bool existent = read_default_manifest(sr);
-    if (Streader_is_error_set(sr))
+    const bool existent = read_default_manifest(params->sr);
+    if (Streader_is_error_set(params->sr))
     {
-        set_error(handle, sr);
+        set_error(params);
         return false;
     }
 
     Device_set_existent((Device*)effect, existent);
 
-    check_update_eff_conns(handle, eff_table, eff_index, was_conn_possible);
+    check_update_eff_conns(params->handle, eff_table, eff_index, was_conn_possible);
 
     return true;
 }
 
 
-READ_EFFECT(effect_connections)
+static bool read_effect_effect_connections(
+        Reader_params* params, Effect_table* eff_table, bool is_instrument)
 {
-    (void)subkey;
+    assert(params != NULL);
+    assert(eff_table != NULL);
 
     int32_t eff_index = -1;
-    acquire_effect_index(eff_index, is_instrument);
+    acquire_effect_index(eff_index, params, is_instrument);
 
     Effect* effect = NULL;
-    acquire_effect(effect, eff_table, eff_index);
+    acquire_effect(effect, params->handle, eff_table, eff_index);
 
     bool reconnect = false;
-    if (!Streader_has_data(sr))
+    if (!Streader_has_data(params->sr))
     {
         Effect_set_connections(effect, NULL);
         reconnect = true;
     }
     else
     {
+        Module* module = Handle_get_module(params->handle);
+
         Connection_level level = CONNECTION_LEVEL_EFFECT;
         if (eff_table != Module_get_effects(module))
             level |= CONNECTION_LEVEL_INSTRUMENT;
 
         Connections* graph = new_Connections_from_string(
-                sr,
+                params->sr,
                 level,
                 Module_get_insts(module),
                 eff_table,
@@ -1098,7 +1094,7 @@ READ_EFFECT(effect_connections)
                 (Device*)effect);
         if (graph == NULL)
         {
-            set_error(handle, sr);
+            set_error(params);
             return false;
         }
 
@@ -1106,7 +1102,7 @@ READ_EFFECT(effect_connections)
         reconnect = true;
     }
 
-    if (reconnect && !prepare_connections(handle))
+    if (reconnect && !prepare_connections(params->handle))
         return false;
 
     return true;
@@ -1144,13 +1140,13 @@ static DSP* add_dsp(
 }
 
 
-#define acquire_dsp_index(index, is_instrument)                \
-    if (true)                                                  \
-    {                                                          \
-        (index) = indices[get_dsp_index_loc((is_instrument))]; \
-        if ((index) < 0 || (index) >= KQT_DSPS_MAX)            \
-            return true;                                       \
-    }                                                          \
+#define acquire_dsp_index(index, params, is_instrument)                  \
+    if (true)                                                            \
+    {                                                                    \
+        (index) = (params)->indices[get_dsp_index_loc((is_instrument))]; \
+        if ((index) < 0 || (index) >= KQT_DSPS_MAX)                      \
+            return true;                                                 \
+    }                                                                    \
     else (void)0
 
 
@@ -1183,29 +1179,30 @@ static bool is_dsp_conn_possible(
     else (void)0
 
 
-READ_EFFECT(dsp_manifest)
+static bool read_effect_dsp_manifest(
+        Reader_params* params, Effect_table* eff_table, bool is_instrument)
 {
-    (void)module;
-    (void)subkey;
+    assert(params != NULL);
+    assert(eff_table != NULL);
 
     int32_t eff_index = -1;
-    acquire_effect_index(eff_index, is_instrument);
+    acquire_effect_index(eff_index, params, is_instrument);
     int32_t dsp_index = -1;
-    acquire_dsp_index(dsp_index, is_instrument);
+    acquire_dsp_index(dsp_index, params, is_instrument);
 
     const bool was_conn_possible = is_dsp_conn_possible(eff_table, eff_index, dsp_index);
 
-    const bool existent = read_default_manifest(sr);
-    if (Streader_is_error_set(sr))
+    const bool existent = read_default_manifest(params->sr);
+    if (Streader_is_error_set(params->sr))
     {
-        set_error(handle, sr);
+        set_error(params);
         return false;
     }
 
     Effect* effect = NULL;
     if (existent)
     {
-        acquire_effect(effect, eff_table, eff_index);
+        acquire_effect(effect, params->handle, eff_table, eff_index);
     }
     else
     {
@@ -1213,7 +1210,7 @@ READ_EFFECT(dsp_manifest)
         if (effect == NULL)
         {
             check_update_dsp_conns(
-                    handle, eff_table, eff_index, dsp_index, was_conn_possible);
+                    params->handle, eff_table, eff_index, dsp_index, was_conn_possible);
             return true;
         }
     }
@@ -1221,25 +1218,26 @@ READ_EFFECT(dsp_manifest)
     DSP_table* dsp_table = Effect_get_dsps_mut(effect);
     DSP_table_set_existent(dsp_table, dsp_index, existent);
 
-    check_update_dsp_conns(handle, eff_table, eff_index, dsp_index, was_conn_possible);
+    check_update_dsp_conns(params->handle, eff_table, eff_index, dsp_index, was_conn_possible);
 
     return true;
 }
 
 
-READ_EFFECT(dsp_type)
+static bool read_effect_dsp_type(
+        Reader_params* params, Effect_table* eff_table, bool is_instrument)
 {
-    (void)module;
-    (void)subkey;
+    assert(params != NULL);
+    assert(eff_table != NULL);
 
     int32_t eff_index = -1;
-    acquire_effect_index(eff_index, is_instrument);
+    acquire_effect_index(eff_index, params, is_instrument);
     int32_t dsp_index = -1;
-    acquire_dsp_index(dsp_index, is_instrument);
+    acquire_dsp_index(dsp_index, params, is_instrument);
 
     const bool was_conn_possible = is_dsp_conn_possible(eff_table, eff_index, dsp_index);
 
-    if (!Streader_has_data(sr))
+    if (!Streader_has_data(params->sr))
     {
         // Remove DSP
         Effect* effect = Effect_table_get_mut(eff_table, eff_index);
@@ -1250,56 +1248,58 @@ READ_EFFECT(dsp_type)
         DSP_table_remove_dsp(dsp_table, dsp_index);
 
         check_update_dsp_conns(
-                handle, eff_table, eff_index, dsp_index, was_conn_possible);
+                params->handle, eff_table, eff_index, dsp_index, was_conn_possible);
 
         return true;
     }
 
     Effect* effect = NULL;
-    acquire_effect(effect, eff_table, eff_index);
+    acquire_effect(effect, params->handle, eff_table, eff_index);
     DSP_table* dsp_table = Effect_get_dsps_mut(effect);
 
-    DSP* dsp = add_dsp(handle, dsp_table, dsp_index);
+    DSP* dsp = add_dsp(params->handle, dsp_table, dsp_index);
     if (dsp == NULL)
         return false;
 
     // Create the DSP implementation
     char type[DSP_TYPE_LENGTH_MAX] = "";
-    if (!Streader_read_string(sr, DSP_TYPE_LENGTH_MAX, type))
+    if (!Streader_read_string(params->sr, DSP_TYPE_LENGTH_MAX, type))
     {
-        set_error(handle, sr);
+        set_error(params);
         return false;
     }
     DSP_cons* cons = DSP_type_find_cons(type);
     if (cons == NULL)
     {
-        Handle_set_error(handle, ERROR_FORMAT,
+        Handle_set_error(params->handle, ERROR_FORMAT,
                 "Unsupported DSP type: %s", type);
         return false;
     }
     Device_impl* dsp_impl = cons(dsp);
     if (dsp_impl == NULL)
     {
-        Handle_set_error(handle, ERROR_MEMORY,
+        Handle_set_error(params->handle, ERROR_MEMORY,
                 "Couldn't allocate memory for DSP implementation");
         return false;
     }
 
     Device_set_impl((Device*)dsp, dsp_impl);
 
+    const Player* player = params->handle->player;
+
     // Remove old DSP Device state
-    Device_states* dstates = Player_get_device_states(handle->player);
+    Device_states* dstates = Player_get_device_states(player);
     Device_states_remove_state(dstates, Device_get_id((Device*)dsp));
 
     // Allocate Device state(s) for this DSP
     Device_state* ds = Device_create_state(
             (Device*)dsp,
-            Player_get_audio_rate(handle->player),
-            Player_get_audio_buffer_size(handle->player));
+            Player_get_audio_rate(player),
+            Player_get_audio_buffer_size(player));
     if (ds == NULL || !Device_states_add_state(
-                Player_get_device_states(handle->player), ds))
+                Player_get_device_states(player), ds))
     {
-        Handle_set_error(handle, ERROR_MEMORY,
+        Handle_set_error(params->handle, ERROR_MEMORY,
                 "Couldn't allocate memory for device state");
         del_Device_state(ds);
         del_DSP(dsp);
@@ -1309,12 +1309,12 @@ READ_EFFECT(dsp_type)
     // Set DSP resources
     if (!Device_set_audio_rate((Device*)dsp,
                 dstates,
-                Player_get_audio_rate(handle->player)) ||
+                Player_get_audio_rate(player)) ||
             !Device_set_buffer_size((Device*)dsp,
                 dstates,
-                Player_get_audio_buffer_size(handle->player)))
+                Player_get_audio_buffer_size(player)))
     {
-        Handle_set_error(handle, ERROR_MEMORY,
+        Handle_set_error(params->handle, ERROR_MEMORY,
                 "Couldn't allocate memory for DSP state");
         return false;
     }
@@ -1322,249 +1322,260 @@ READ_EFFECT(dsp_type)
     // Sync the DSP
     if (!Device_sync((Device*)dsp))
     {
-        Handle_set_error(handle, ERROR_MEMORY,
+        Handle_set_error(params->handle, ERROR_MEMORY,
                 "Couldn't allocate memory while syncing DSP");
         return false;
     }
 
     // Sync the Device state(s)
-    if (!Device_sync_states((Device*)dsp, Player_get_device_states(handle->player)))
+    if (!Device_sync_states((Device*)dsp, Player_get_device_states(player)))
     {
-        Handle_set_error(handle, ERROR_MEMORY,
+        Handle_set_error(params->handle, ERROR_MEMORY,
                 "Couldn't allocate memory while syncing DSP");
         return false;
     }
 
-    check_update_dsp_conns(handle, eff_table, eff_index, dsp_index, was_conn_possible);
+    check_update_dsp_conns(params->handle, eff_table, eff_index, dsp_index, was_conn_possible);
 
     return true;
 }
 
 
-READ_EFFECT(dsp_impl_conf_key)
+static bool read_effect_dsp_impl_conf_key(
+        Reader_params* params, Effect_table* eff_table, bool is_instrument)
 {
-    if (!key_is_device_param(subkey))
+    assert(params != NULL);
+    assert(eff_table != NULL);
+
+    if (!key_is_device_param(params->subkey))
         return true;
 
-    (void)module;
-
     int32_t eff_index = -1;
-    acquire_effect_index(eff_index, is_instrument);
+    acquire_effect_index(eff_index, params, is_instrument);
     int32_t dsp_index = -1;
-    acquire_dsp_index(dsp_index, is_instrument);
+    acquire_dsp_index(dsp_index, params, is_instrument);
 
     const bool was_conn_possible = is_dsp_conn_possible(eff_table, eff_index, dsp_index);
 
     Effect* effect = NULL;
-    acquire_effect(effect, eff_table, eff_index);
+    acquire_effect(effect, params->handle, eff_table, eff_index);
     DSP_table* dsp_table = Effect_get_dsps_mut(effect);
 
-    DSP* dsp = add_dsp(handle, dsp_table, dsp_index);
+    DSP* dsp = add_dsp(params->handle, dsp_table, dsp_index);
     if (dsp == NULL)
         return false;
 
     // Update Device
-    if (!Device_set_key((Device*)dsp, subkey, sr))
+    if (!Device_set_key((Device*)dsp, params->subkey, params->sr))
     {
-        set_error(handle, sr);
+        set_error(params);
         return false;
     }
 
     // Notify Device state
     Device_set_state_key(
             (Device*)dsp,
-            Player_get_device_states(handle->player),
-            subkey);
+            Player_get_device_states(params->handle->player),
+            params->subkey);
 
-    check_update_dsp_conns(handle, eff_table, eff_index, dsp_index, was_conn_possible);
+    check_update_dsp_conns(params->handle, eff_table, eff_index, dsp_index, was_conn_possible);
 
     return true;
 }
 
 
-READ_EFFECT(dsp_impl_key)
+static bool read_effect_dsp_impl_key(
+        Reader_params* params, Effect_table* eff_table, bool is_instrument)
 {
-    assert(strlen(subkey) < KQT_KEY_LENGTH_MAX - 2);
+    assert(params != NULL);
+    assert(eff_table != NULL);
+    assert(strlen(params->subkey) < KQT_KEY_LENGTH_MAX - 2);
 
     char hack_subkey[KQT_KEY_LENGTH_MAX] = "i/";
-    strcat(hack_subkey, subkey);
+    strcat(hack_subkey, params->subkey);
+    Reader_params hack_params = *params;
+    hack_params.subkey = hack_subkey;
 
-    return read_effect_dsp_impl_conf_key(
-            handle, module, indices, hack_subkey, sr, eff_table, is_instrument);
+    return read_effect_dsp_impl_conf_key(&hack_params, eff_table, is_instrument);
 }
 
 
-READ_EFFECT(dsp_conf_key)
+static bool read_effect_dsp_conf_key(
+        Reader_params* params, Effect_table* eff_table, bool is_instrument)
 {
-    assert(strlen(subkey) < KQT_KEY_LENGTH_MAX - 2);
+    assert(params != NULL);
+    assert(eff_table != NULL);
+    assert(strlen(params->subkey) < KQT_KEY_LENGTH_MAX - 2);
 
     char hack_subkey[KQT_KEY_LENGTH_MAX] = "c/";
-    strcat(hack_subkey, subkey);
+    strcat(hack_subkey, params->subkey);
+    Reader_params hack_params = *params;
+    hack_params.subkey = hack_subkey;
 
-    return read_effect_dsp_impl_conf_key(
-            handle, module, indices, hack_subkey, sr, eff_table, is_instrument);
+    return read_effect_dsp_impl_conf_key(&hack_params, eff_table, is_instrument);
 }
 
 
-READ(ins_effect_manifest)
-{
-    int32_t ins_index = -1;
-    acquire_ins_index(ins_index);
+#define acquire_ins_effects(eff_table, params)         \
+    if (true)                                          \
+    {                                                  \
+        int32_t ins_index = -1;                        \
+        acquire_ins_index(ins_index, (params));        \
+        Instrument* ins = NULL;                        \
+        acquire_ins(ins, (params)->handle, ins_index); \
+        (eff_table) = Instrument_get_effects(ins);     \
+    }                                                  \
+    else (void)0
 
-    Instrument* ins = NULL;
-    acquire_ins(ins, ins_index);
+
+static bool read_ins_effect_manifest(Reader_params* params)
+{
+    assert(params != NULL);
+
+    Effect_table* eff_table = NULL;
+    acquire_ins_effects(eff_table, params);
 
     const bool is_instrument = true;
-    return read_effect_effect_manifest(
-            handle, module, indices, subkey, sr,
-            Instrument_get_effects(ins),
-            is_instrument);
+
+    return read_effect_effect_manifest(params, eff_table, is_instrument);
 }
 
 
-READ(ins_effect_connections)
+static bool read_ins_effect_connections(Reader_params* params)
 {
-    int32_t ins_index = -1;
-    acquire_ins_index(ins_index);
+    assert(params != NULL);
 
-    Instrument* ins = NULL;
-    acquire_ins(ins, ins_index);
+    Effect_table* eff_table = NULL;
+    acquire_ins_effects(eff_table, params);
 
     const bool is_instrument = true;
-    return read_effect_effect_connections(
-            handle, module, indices, subkey, sr,
-            Instrument_get_effects(ins),
-            is_instrument);
+
+    return read_effect_effect_connections(params, eff_table, is_instrument);
 }
 
 
-READ(ins_dsp_manifest)
+static bool read_ins_dsp_manifest(Reader_params* params)
 {
-    int32_t ins_index = -1;
-    acquire_ins_index(ins_index);
+    assert(params != NULL);
 
-    Instrument* ins = NULL;
-    acquire_ins(ins, ins_index);
+    Effect_table* eff_table = NULL;
+    acquire_ins_effects(eff_table, params);
 
     const bool is_instrument = true;
-    return read_effect_dsp_manifest(
-            handle, module, indices, subkey, sr,
-            Instrument_get_effects(ins),
-            is_instrument);
+
+    return read_effect_dsp_manifest(params, eff_table, is_instrument);
 }
 
 
-READ(ins_dsp_type)
+static bool read_ins_dsp_type(Reader_params* params)
 {
-    int32_t ins_index = -1;
-    acquire_ins_index(ins_index);
+    assert(params != NULL);
 
-    Instrument* ins = NULL;
-    acquire_ins(ins, ins_index);
+    Effect_table* eff_table = NULL;
+    acquire_ins_effects(eff_table, params);
 
     const bool is_instrument = true;
-    return read_effect_dsp_type(
-            handle, module, indices, subkey, sr,
-            Instrument_get_effects(ins),
-            is_instrument);
+
+    return read_effect_dsp_type(params, eff_table, is_instrument);
 }
 
 
-READ(ins_dsp_impl_key)
+static bool read_ins_dsp_impl_key(Reader_params* params)
 {
-    int32_t ins_index = -1;
-    acquire_ins_index(ins_index);
+    assert(params != NULL);
 
-    Instrument* ins = NULL;
-    acquire_ins(ins, ins_index);
+    Effect_table* eff_table = NULL;
+    acquire_ins_effects(eff_table, params);
 
     const bool is_instrument = true;
-    return read_effect_dsp_impl_key(
-            handle, module, indices, subkey, sr,
-            Instrument_get_effects(ins),
-            is_instrument);
+
+    return read_effect_dsp_impl_key(params, eff_table, is_instrument);
 }
 
 
-READ(ins_dsp_conf_key)
+static bool read_ins_dsp_conf_key(Reader_params* params)
 {
-    int32_t ins_index = -1;
-    acquire_ins_index(ins_index);
+    assert(params != NULL);
 
-    Instrument* ins = NULL;
-    acquire_ins(ins, ins_index);
+    Effect_table* eff_table = NULL;
+    acquire_ins_effects(eff_table, params);
 
     const bool is_instrument = true;
-    return read_effect_dsp_conf_key(
-            handle, module, indices, subkey, sr,
-            Instrument_get_effects(ins),
-            is_instrument);
+
+    return read_effect_dsp_conf_key(params, eff_table, is_instrument);
 }
 
 
-READ(effect_manifest)
+static bool read_effect_manifest(Reader_params* params)
 {
+    assert(params != NULL);
+
+    Effect_table* eff_table = Module_get_effects(Handle_get_module(params->handle));
     const bool is_instrument = false;
-    return read_effect_effect_manifest(
-            handle, module, indices, subkey, sr,
-            Module_get_effects(module),
-            is_instrument);
+
+    return read_effect_effect_manifest(params, eff_table, is_instrument);
 }
 
 
-READ(effect_connections)
+static bool read_effect_connections(Reader_params* params)
 {
+    assert(params != NULL);
+
+    Effect_table* eff_table = Module_get_effects(Handle_get_module(params->handle));
     const bool is_instrument = false;
-    return read_effect_effect_connections(
-            handle, module, indices, subkey, sr,
-            Module_get_effects(module),
-            is_instrument);
+
+    return read_effect_effect_connections(params, eff_table, is_instrument);
 }
 
 
-READ(dsp_manifest)
+static bool read_dsp_manifest(Reader_params* params)
 {
+    assert(params != NULL);
+
+    Effect_table* eff_table = Module_get_effects(Handle_get_module(params->handle));
     const bool is_instrument = false;
-    return read_effect_dsp_manifest(
-            handle, module, indices, subkey, sr,
-            Module_get_effects(module),
-            is_instrument);
+
+    return read_effect_dsp_manifest(params, eff_table, is_instrument);
 }
 
 
-READ(dsp_type)
+static bool read_dsp_type(Reader_params* params)
 {
+    assert(params != NULL);
+
+    Effect_table* eff_table = Module_get_effects(Handle_get_module(params->handle));
     const bool is_instrument = false;
-    return read_effect_dsp_type(
-            handle, module, indices, subkey, sr,
-            Module_get_effects(module),
-            is_instrument);
+
+    return read_effect_dsp_type(params, eff_table, is_instrument);
 }
 
 
-READ(dsp_impl_key)
+static bool read_dsp_impl_key(Reader_params* params)
 {
+    assert(params != NULL);
+
+    Effect_table* eff_table = Module_get_effects(Handle_get_module(params->handle));
     const bool is_instrument = false;
-    return read_effect_dsp_impl_key(
-            handle, module, indices, subkey, sr,
-            Module_get_effects(module),
-            is_instrument);
+
+    return read_effect_dsp_impl_key(params, eff_table, is_instrument);
 }
 
 
-READ(dsp_conf_key)
+static bool read_dsp_conf_key(Reader_params* params)
 {
+    assert(params != NULL);
+
+    Effect_table* eff_table = Module_get_effects(Handle_get_module(params->handle));
     const bool is_instrument = false;
-    return read_effect_dsp_conf_key(
-            handle, module, indices, subkey, sr,
-            Module_get_effects(module),
-            is_instrument);
+
+    return read_effect_dsp_conf_key(params, eff_table, is_instrument);
 }
 
 
-#define acquire_pattern(pattern, index)                                 \
+#define acquire_pattern(pattern, handle, index)                         \
     if (true)                                                           \
     {                                                                   \
+        Module* module = Handle_get_module((handle));                   \
         (pattern) = Pat_table_get(Module_get_pats(module), (index));    \
         if ((pattern) == NULL)                                          \
         {                                                               \
@@ -1573,7 +1584,7 @@ READ(dsp_conf_key)
                         Module_get_pats(module), (index), (pattern)))   \
             {                                                           \
                 del_Pattern((pattern));                                 \
-                Handle_set_error(handle, ERROR_MEMORY,                  \
+                Handle_set_error((handle), ERROR_MEMORY,                \
                         "Could not allocate memory for a new pattern"); \
                 return false;                                           \
             }                                                           \
@@ -1581,49 +1592,50 @@ READ(dsp_conf_key)
     } else (void)0
 
 
-#define acquire_pattern_index(index)                    \
+#define acquire_pattern_index(index, params)            \
     if (true)                                           \
     {                                                   \
-        (index) = indices[0];                           \
+        (index) = (params)->indices[0];                 \
         if ((index) < 0 || (index) >= KQT_PATTERNS_MAX) \
             return true;                                \
     }                                                   \
     else (void)0
 
 
-READ(pattern_manifest)
+static bool read_pattern_manifest(Reader_params* params)
 {
-    (void)subkey;
+    assert(params != NULL);
 
     int32_t index = -1;
-    acquire_pattern_index(index);
+    acquire_pattern_index(index, params);
 
-    const bool existent = read_default_manifest(sr);
-    if (Streader_is_error_set(sr))
+    const bool existent = read_default_manifest(params->sr);
+    if (Streader_is_error_set(params->sr))
     {
-        set_error(handle, sr);
+        set_error(params);
         return false;
     }
-    Pat_table* pats = Module_get_pats(module);
+
+    Pat_table* pats = Module_get_pats(Handle_get_module(params->handle));
     Pat_table_set_existent(pats, index, existent);
 
     return true;
 }
 
 
-READ(pattern)
+static bool read_pattern(Reader_params* params)
 {
-    (void)subkey;
+    assert(params != NULL);
 
     int32_t index = -1;
-    acquire_pattern_index(index);
+    acquire_pattern_index(index, params);
 
     Pattern* pattern = NULL;
-    acquire_pattern(pattern, index);
+    acquire_pattern(pattern, params->handle, index);
 
-    if (!Pattern_parse_header(pattern, sr))
+    if (!Pattern_parse_header(pattern, params->sr))
     {
-        set_error(handle, sr);
+        set_error(params);
         return false;
     }
 
@@ -1631,32 +1643,33 @@ READ(pattern)
 }
 
 
-READ(column)
+static bool read_column(Reader_params* params)
 {
-    (void)subkey;
+    assert(params != NULL);
 
     int32_t pat_index = -1;
-    acquire_pattern_index(pat_index);
+    acquire_pattern_index(pat_index, params);
 
-    const int32_t col_index = indices[1];
-    if (col_index >= KQT_COLUMNS_MAX)
+    const int32_t col_index = params->indices[1];
+    if (col_index < 0 || col_index >= KQT_COLUMNS_MAX)
         return true;
 
     Pattern* pattern = NULL;
-    acquire_pattern(pattern, pat_index);
+    acquire_pattern(pattern, params->handle, pat_index);
 
     const Event_names* event_names =
-            Event_handler_get_names(Player_get_event_handler(handle->player));
+            Event_handler_get_names(Player_get_event_handler(params->handle->player));
     Column* column = new_Column_from_string(
-            sr, Pattern_get_length(pattern), event_names);
+            params->sr, Pattern_get_length(pattern), event_names);
     if (column == NULL)
     {
-        set_error(handle, sr);
+        set_error(params);
         return false;
     }
+
     if (!Pattern_set_column(pattern, col_index, column))
     {
-        Handle_set_error(handle, ERROR_MEMORY,
+        Handle_set_error(params->handle, ERROR_MEMORY,
                 "Could not allocate memory for a new column");
         return false;
     }
@@ -1665,24 +1678,24 @@ READ(column)
 }
 
 
-READ(pat_instance_manifest)
+static bool read_pat_instance_manifest(Reader_params* params)
 {
-    (void)subkey;
+    assert(params != NULL);
 
     int32_t pat_index = -1;
-    acquire_pattern_index(pat_index);
+    acquire_pattern_index(pat_index, params);
 
-    const int32_t pinst_index = indices[1];
+    const int32_t pinst_index = params->indices[1];
     if (pinst_index < 0 || pinst_index >= KQT_PAT_INSTANCES_MAX)
         return true;
 
     Pattern* pattern = NULL;
-    acquire_pattern(pattern, pat_index);
+    acquire_pattern(pattern, params->handle, pat_index);
 
-    const bool existent = read_default_manifest(sr);
-    if (Streader_is_error_set(sr))
+    const bool existent = read_default_manifest(params->sr);
+    if (Streader_is_error_set(params->sr))
     {
-        set_error(handle, sr);
+        set_error(params);
         return false;
     }
 
@@ -1692,75 +1705,77 @@ READ(pat_instance_manifest)
 }
 
 
-READ(scale)
+static bool read_scale(Reader_params* params)
 {
-    (void)subkey;
+    assert(params != NULL);
 
-    const int32_t index = indices[0];
+    const int32_t index = params->indices[0];
 
     if (index < 0 || index >= KQT_SCALES_MAX)
         return true;
 
-    Scale* scale = new_Scale_from_string(sr);
+    Scale* scale = new_Scale_from_string(params->sr);
     if (scale == NULL)
     {
-        set_error(handle, sr);
+        set_error(params);
         return false;
     }
 
-    Module_set_scale(module, indices[0], scale);
+    Module_set_scale(Handle_get_module(params->handle), params->indices[0], scale);
+
     return true;
 }
 
 
-#define acquire_song_index(index)                          \
-    if (true)                                              \
-    {                                                      \
-        (index) = indices[0];                              \
-        if (indices[0] < 0 || indices[0] >= KQT_SONGS_MAX) \
-            return true;                                   \
-    }                                                      \
+#define acquire_song_index(index, params)            \
+    if (true)                                        \
+    {                                                \
+        (index) = (params)->indices[0];              \
+        if ((index) < 0 || (index) >= KQT_SONGS_MAX) \
+            return true;                             \
+    }                                                \
     else (void)0
 
 
-READ(song_manifest)
+static bool read_song_manifest(Reader_params* params)
 {
-    (void)subkey;
+    assert(params != NULL);
 
-    int32_t index = 0;
-    acquire_song_index(index);
+    int32_t index = -1;
+    acquire_song_index(index, params);
 
-    const bool existent = read_default_manifest(sr);
-    if (Streader_is_error_set(sr))
+    const bool existent = read_default_manifest(params->sr);
+    if (Streader_is_error_set(params->sr))
     {
-        set_error(handle, sr);
+        set_error(params);
         return false;
     }
 
+    Module* module = Handle_get_module(params->handle);
     Song_table_set_existent(module->songs, index, existent);
 
     return true;
 }
 
 
-READ(song)
+static bool read_song(Reader_params* params)
 {
-    (void)subkey;
+    assert(params != NULL);
 
-    int32_t index = 0;
-    acquire_song_index(index);
+    int32_t index = -1;
+    acquire_song_index(index, params);
 
-    Song* song = new_Song_from_string(sr);
+    Song* song = new_Song_from_string(params->sr);
     if (song == NULL)
     {
-        set_error(handle, sr);
+        set_error(params);
         return false;
     }
 
-    Song_table* st = Module_get_songs(module);
+    Song_table* st = Module_get_songs(Handle_get_module(params->handle));
     if (!Song_table_set(st, index, song))
     {
-        Handle_set_error(handle, ERROR_MEMORY,
+        Handle_set_error(params->handle, ERROR_MEMORY,
                 "Couldn't allocate memory");
         del_Song(song);
         return false;
@@ -1770,19 +1785,21 @@ READ(song)
 }
 
 
-READ(song_order_list)
+static bool read_song_order_list(Reader_params* params)
 {
-    (void)subkey;
+    assert(params != NULL);
 
-    int32_t index = 0;
-    acquire_song_index(index);
+    int32_t index = -1;
+    acquire_song_index(index, params);
 
-    Order_list* ol = new_Order_list(sr);
+    Order_list* ol = new_Order_list(params->sr);
     if (ol == NULL)
     {
-        set_error(handle, sr);
+        set_error(params);
         return false;
     }
+
+    Module* module = Handle_get_module(params->handle);
 
     if (module->order_lists[index] != NULL)
         del_Order_list(module->order_lists[index]);
