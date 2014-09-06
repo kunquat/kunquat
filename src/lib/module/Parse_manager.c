@@ -47,6 +47,19 @@
 #include <module/Module_key_patterns.h>
 
 
+static const struct
+{
+    const char* keyp;
+    bool (*func)(Handle*, Module*, const Key_indices, const char*, Streader*);
+} keyp_to_func[] =
+{
+#define MODULE_KEYP(name, keyp, def) { keyp, read_##name, },
+#include <module/Module_key_patterns.h>
+    { NULL, NULL }
+};
+
+
+#if 0
 static bool parse_module_level(
         Handle* handle,
         const char* key,
@@ -129,6 +142,7 @@ static bool parse_subsong_level(
         const char* subkey,
         Streader* sr,
         int index);
+#endif
 
 
 #define set_error(handle, sr)                                               \
@@ -181,6 +195,44 @@ bool parse_data(
         data = NULL;
     }
 
+    // Get key pattern info
+    char key_pattern[KQT_KEY_LENGTH_MAX] = "";
+    Key_indices key_indices = { 0 };
+    for (int i = 0; i < KEY_INDICES_MAX; ++i)
+        key_indices[i] = -1;
+
+    if (!extract_key_pattern(key, key_pattern, key_indices))
+    {
+        fprintf(stderr, "invalid key: %s\n", key);
+        assert(false);
+        return false;
+    }
+
+    assert(strlen(key) == strlen(key_pattern));
+
+    // Find a known key pattern that is a prefix of our retrieved key pattern
+    for (int i = 0; keyp_to_func[i].keyp != NULL; ++i)
+    {
+        if (string_has_prefix(key_pattern, keyp_to_func[i].keyp))
+        {
+            // Found a match
+            const char* subkey = key + strlen(keyp_to_func[i].keyp);
+
+            Streader* sr = Streader_init(STREADER_AUTO, data, length);
+
+            return keyp_to_func[i].func(
+                    handle,
+                    Handle_get_module(handle),
+                    key_indices,
+                    subkey,
+                    sr);
+        }
+    }
+
+    // Accept unknown key pattern without modification
+    return true;
+
+#if 0
     int last_index = 0;
     const char* last_element = strrchr(key, '/');
     if (last_element == NULL)
@@ -327,6 +379,7 @@ bool parse_data(
     }
 
     return success;
+#endif
 }
 
 
@@ -475,6 +528,7 @@ READ(bind)
 }
 
 
+#if 0
 static bool parse_module_level(
         Handle* handle,
         const char* key,
@@ -504,6 +558,7 @@ static bool parse_module_level(
 
     return true;
 }
+#endif
 
 
 READ(album_manifest)
@@ -543,6 +598,7 @@ READ(album_tracks)
 }
 
 
+#if 0
 static bool parse_album_level(
         Handle* handle,
         const char* key,
@@ -566,6 +622,7 @@ static bool parse_album_level(
 
     return true;
 }
+#endif
 
 
 static Instrument* add_instrument(Handle* handle, int index)
@@ -842,6 +899,7 @@ READ(ins_env_pitch_pan)
 }
 
 
+#if 0
 static bool parse_instrument_level(
         Handle* handle,
         const char* key,
@@ -970,6 +1028,7 @@ static bool parse_instrument_level(
 
     return true;
 }
+#endif
 
 
 static Generator* add_generator(
@@ -1287,6 +1346,7 @@ READ(gen_conf_key)
 }
 
 
+#if 0
 static bool parse_generator_level(
         Handle* handle,
         const char* key,
@@ -1363,6 +1423,7 @@ static bool parse_generator_level(
 
     return true;
 }
+#endif
 
 
 static Effect* add_effect(Handle* handle, int index, Effect_table* table)
@@ -1852,6 +1913,7 @@ READ_EFFECT(dsp_conf_key)
 }
 
 
+#if 0
 static bool parse_effect_level(
         Handle* handle,
         Instrument* ins,
@@ -1925,9 +1987,105 @@ static bool parse_effect_level(
 
     return true;
 }
+#endif
 
 
-#if 0
+READ(ins_effect_manifest)
+{
+    int32_t ins_index = -1;
+    acquire_ins_index(ins_index);
+
+    Instrument* ins = NULL;
+    acquire_ins(ins, ins_index);
+
+    const bool is_instrument = true;
+    return read_effect_effect_manifest(
+            handle, module, indices, subkey, sr,
+            Instrument_get_effects(ins),
+            is_instrument);
+}
+
+
+READ(ins_effect_connections)
+{
+    int32_t ins_index = -1;
+    acquire_ins_index(ins_index);
+
+    Instrument* ins = NULL;
+    acquire_ins(ins, ins_index);
+
+    const bool is_instrument = true;
+    return read_effect_effect_connections(
+            handle, module, indices, subkey, sr,
+            Instrument_get_effects(ins),
+            is_instrument);
+}
+
+
+READ(ins_dsp_manifest)
+{
+    int32_t ins_index = -1;
+    acquire_ins_index(ins_index);
+
+    Instrument* ins = NULL;
+    acquire_ins(ins, ins_index);
+
+    const bool is_instrument = true;
+    return read_effect_dsp_manifest(
+            handle, module, indices, subkey, sr,
+            Instrument_get_effects(ins),
+            is_instrument);
+}
+
+
+READ(ins_dsp_type)
+{
+    int32_t ins_index = -1;
+    acquire_ins_index(ins_index);
+
+    Instrument* ins = NULL;
+    acquire_ins(ins, ins_index);
+
+    const bool is_instrument = true;
+    return read_effect_dsp_type(
+            handle, module, indices, subkey, sr,
+            Instrument_get_effects(ins),
+            is_instrument);
+}
+
+
+READ(ins_dsp_impl_key)
+{
+    int32_t ins_index = -1;
+    acquire_ins_index(ins_index);
+
+    Instrument* ins = NULL;
+    acquire_ins(ins, ins_index);
+
+    const bool is_instrument = true;
+    return read_effect_dsp_impl_key(
+            handle, module, indices, subkey, sr,
+            Instrument_get_effects(ins),
+            is_instrument);
+}
+
+
+READ(ins_dsp_conf_key)
+{
+    int32_t ins_index = -1;
+    acquire_ins_index(ins_index);
+
+    Instrument* ins = NULL;
+    acquire_ins(ins, ins_index);
+
+    const bool is_instrument = true;
+    return read_effect_dsp_conf_key(
+            handle, module, indices, subkey, sr,
+            Instrument_get_effects(ins),
+            is_instrument);
+}
+
+
 READ(effect_manifest)
 {
     const bool is_instrument = false;
@@ -1986,9 +2144,9 @@ READ(dsp_conf_key)
             Module_get_effects(module),
             is_instrument);
 }
-#endif
 
 
+#if 0
 static bool parse_dsp_level(
         Handle* handle,
         Effect* eff,
@@ -2060,8 +2218,10 @@ static bool parse_dsp_level(
 
     return true;
 }
+#endif
 
 
+#if 0
 static bool parse_pattern_level(
         Handle* handle,
         const char* key,
@@ -2102,8 +2262,10 @@ static bool parse_pattern_level(
 
     return true;
 }
+#endif
 
 
+#if 0
 static bool parse_pat_inst_level(
         Handle* handle,
         const char* key,
@@ -2127,6 +2289,7 @@ static bool parse_pat_inst_level(
 
     return true;
 }
+#endif
 
 
 #define acquire_pattern(pattern, index)                                 \
@@ -2259,6 +2422,7 @@ READ(pat_instance_manifest)
 }
 
 
+#if 0
 static bool parse_scale_level(
         Handle* handle,
         const char* key,
@@ -2282,6 +2446,7 @@ static bool parse_scale_level(
 
     return true;
 }
+#endif
 
 
 READ(scale)
@@ -2305,6 +2470,7 @@ READ(scale)
 }
 
 
+#if 0
 static bool parse_subsong_level(
         Handle* handle,
         const char* key,
@@ -2332,6 +2498,7 @@ static bool parse_subsong_level(
 
     return true;
 }
+#endif
 
 
 #define acquire_song_index(index)                          \
