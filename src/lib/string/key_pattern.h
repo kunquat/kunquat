@@ -40,6 +40,9 @@ typedef int32_t Key_indices[KEY_INDICES_MAX];
  * \param indices       The storage location for the key indices -- must not
  *                      be \c NULL and must contain space for at least
  *                      \c KEY_INDICES_MAX indices.
+ *
+ * \return   \c true if successful, or \c false if a pattern could not be
+ *           extracted from \a key.
  */
 bool extract_key_pattern(const char* key, char* key_pattern, Key_indices indices);
 
