@@ -44,9 +44,6 @@ typedef struct Reader_params
 } Reader_params;
 
 
-#define READ(name) static bool read_##name(Reader_params* params)
-
-
 #define MODULE_KEYP(name, keyp, def) static bool read_##name(Reader_params* params);
 #include <module/Module_key_patterns.h>
 
@@ -587,7 +584,8 @@ static bool read_ins_connections(Reader_params* params)
 }
 
 
-static bool read_ins_env_force(Reader_params* params)
+static bool read_ins_env_generic(
+        Reader_params* params, bool parse_func(Instrument_params*, Streader*))
 {
     assert(params != NULL);
 
@@ -597,73 +595,41 @@ static bool read_ins_env_force(Reader_params* params)
     Instrument* ins = NULL;
     acquire_ins(ins, params->handle, index);
 
-    if (!Instrument_params_parse_env_force(Instrument_get_params(ins), params->sr))
+    if (!parse_func(Instrument_get_params(ins), params->sr))
     {
         set_error(params);
         return false;
     }
 
     return true;
+}
+
+
+static bool read_ins_env_force(Reader_params* params)
+{
+    assert(params != NULL);
+    return read_ins_env_generic(params, Instrument_params_parse_env_force);
 }
 
 
 static bool read_ins_env_force_release(Reader_params* params)
 {
     assert(params != NULL);
-
-    int32_t index = -1;
-    acquire_ins_index(index, params);
-
-    Instrument* ins = NULL;
-    acquire_ins(ins, params->handle, index);
-
-    if (!Instrument_params_parse_env_force_rel(Instrument_get_params(ins), params->sr))
-    {
-        set_error(params);
-        return false;
-    }
-
-    return true;
+    return read_ins_env_generic(params, Instrument_params_parse_env_force_rel);
 }
 
 
 static bool read_ins_env_force_filter(Reader_params* params)
 {
     assert(params != NULL);
-
-    int32_t index = -1;
-    acquire_ins_index(index, params);
-
-    Instrument* ins = NULL;
-    acquire_ins(ins, params->handle, index);
-
-    if (!Instrument_params_parse_env_force_filter(Instrument_get_params(ins), params->sr))
-    {
-        set_error(params);
-        return false;
-    }
-
-    return true;
+    return read_ins_env_generic(params, Instrument_params_parse_env_force_filter);
 }
 
 
 static bool read_ins_env_pitch_pan(Reader_params* params)
 {
     assert(params != NULL);
-
-    int32_t index = -1;
-    acquire_ins_index(index, params);
-
-    Instrument* ins = NULL;
-    acquire_ins(ins, params->handle, index);
-
-    if (!Instrument_params_parse_env_pitch_pan(Instrument_get_params(ins), params->sr))
-    {
-        set_error(params);
-        return false;
-    }
-
-    return true;
+    return read_ins_env_generic(params, Instrument_params_parse_env_pitch_pan);
 }
 
 
