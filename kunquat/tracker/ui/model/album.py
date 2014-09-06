@@ -11,6 +11,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from kunquat.kunquat.kunquat import get_default_value
+
 from song import Song
 
 
@@ -48,8 +50,8 @@ class Album():
         key = 'album/p_tracks.json'
         try:
             track_list = self._store[key]
-        except KeyError: # TODO: get default from libkunquat
-            track_list = []
+        except KeyError:
+            track_list = get_default_value(key)
         return track_list
 
 

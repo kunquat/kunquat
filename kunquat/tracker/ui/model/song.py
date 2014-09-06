@@ -11,6 +11,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from kunquat.kunquat.kunquat import get_default_value
+
 from patterninstance import PatternInstance
 
 
@@ -47,7 +49,7 @@ class Song():
         try:
             order_list = self._store[key]
         except KeyError:
-            order_list = [] # TODO: get default from libkunquat
+            order_list = get_default_value(key)
         return order_list
 
 
