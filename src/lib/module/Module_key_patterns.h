@@ -21,8 +21,18 @@
 #endif
 
 
+#ifdef MAKE_STRING
+#error "MAKE_STRING already defined"
+#endif
+#ifdef MAKE_STRING2
+#error "MAKE_STRING2 already defined"
+#endif
+#define MAKE_STRING2(x) #x
+#define MAKE_STRING(x) MAKE_STRING2(x)
+
+
 MODULE_KEYP(composition, "p_composition.json",
-        "{ \"mix_vol\": " MODULE_DEFAULT_MIX_VOL " }")
+        "{ \"mix_vol\": " MAKE_STRING(MODULE_DEFAULT_MIX_VOL) " }")
 MODULE_KEYP(connections,            "p_connections.json",                   "[]")
 MODULE_KEYP(control_map,            "p_control_map.json",                   "[]")
 MODULE_KEYP(control_manifest,       "control_XX/p_manifest.json",           "")
@@ -76,11 +86,15 @@ MODULE_KEYP(scale, "scale_X/p_scale.json",
 
 MODULE_KEYP(song_manifest,   "song_XX/p_manifest.json",   "")
 MODULE_KEYP(song,            "song_XX/p_song.json",
-        "{ \"tempo\": " SONG_DEFAULT_TEMPO
-        ", \"global_vol\": " SONG_DEFAULT_GLOBAL_VOL
-        ", \"scale\": " SONG_DEFAULT_SCALE
+        "{ \"tempo\": " MAKE_STRING(SONG_DEFAULT_TEMPO)
+        ", \"global_vol\": " MAKE_STRING(SONG_DEFAULT_GLOBAL_VOL)
+        ", \"scale\": " MAKE_STRING(SONG_DEFAULT_SCALE)
         "}")
 MODULE_KEYP(song_order_list, "song_XX/p_order_list.json", "[]")
+
+
+#undef MAKE_STRING
+#undef MAKE_STRING2
 
 
 #undef MODULE_KEYP
