@@ -84,6 +84,7 @@ bool extract_key_pattern(const char* key, char* key_pattern, Key_indices indices
                 return false;
 
             indices[next_index_pos] = num;
+            ++next_index_pos;
 
             // Create a key pattern section of format "blabla_XXX/"
             assert(digit_count > 0);
