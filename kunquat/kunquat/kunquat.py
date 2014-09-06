@@ -386,6 +386,12 @@ class KunquatResourceError(KunquatError):
     """Error indicating that an external service request has failed."""
 
 
+def get_default_value(key):
+    raw = _kunquat.kqt_get_default_value(key)
+    obj = json.loads(raw) if raw else None
+    return obj
+
+
 def fake_out_of_memory():
     _kunquat.kqt_fake_out_of_memory(0)
 
@@ -469,6 +475,9 @@ _kunquat.kqt_get_event_names.argtypes = []
 _kunquat.kqt_get_event_names.restype = ctypes.POINTER(ctypes.c_char_p)
 _kunquat.kqt_get_event_arg_type.argtypes = [ctypes.c_char_p]
 _kunquat.kqt_get_event_arg_type.restype = ctypes.c_char_p
+
+_kunquat.kqt_get_default_value.argtypes = [ctypes.c_char_p]
+_kunquat.kqt_get_default_value.restype = ctypes.c_char_p
 
 _kunquat.kqt_fake_out_of_memory.argtypes = [ctypes.c_long]
 _kunquat.kqt_fake_out_of_memory.restype = None
