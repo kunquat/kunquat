@@ -17,12 +17,12 @@
 
 
 #ifndef MODULE_KEYP
-#error "MODULE_KEYP(name, keyp, default) not defined"
+#error "MODULE_KEYP(name, keyp, def_val) not defined"
 #endif
 
 
 MODULE_KEYP(composition, "p_composition.json",
-        "{ mix_vol: " MODULE_DEFAULT_MIX_VOL " }")
+        "{ \"mix_vol\": " MODULE_DEFAULT_MIX_VOL " }")
 MODULE_KEYP(connections,            "p_connections.json",                   "[]")
 MODULE_KEYP(control_map,            "p_control_map.json",                   "[]")
 MODULE_KEYP(control_manifest,       "control_XX/p_manifest.json",           "")
