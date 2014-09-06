@@ -97,6 +97,104 @@ static bool prepare_connections(Handle* handle)
 }
 
 
+static bool is_ins_conn_possible(Handle* handle, int32_t ins_index)
+{
+    assert(handle != NULL);
+    const Module* module = Handle_get_module(handle);
+    return (Ins_table_get(Module_get_insts(module), ins_index) != NULL);
+}
+
+
+static bool is_gen_conn_possible(Handle* handle, int32_t ins_index, int32_t gen_index)
+{
+    assert(handle != NULL);
+
+    const Module* module = Handle_get_module(handle);
+
+    const Instrument* ins = Ins_table_get(Module_get_insts(module), ins_index);
+    if (ins == NULL)
+        return false;
+
+    const Generator* gen = Instrument_get_gen(ins, gen_index);
+    return (gen != NULL) && Device_has_complete_type((const Device*)gen);
+}
+
+
+static const Effect_table* find_effect_table(Handle* handle, int32_t ins_index)
+{
+    assert(handle != NULL);
+
+    const Module* module = Handle_get_module(handle);
+
+    const Effect_table* eff_table = Module_get_effects(module);
+    if (ins_index >= 0)
+    {
+        Instrument* ins = Ins_table_get(Module_get_insts(module), ins_index);
+        if (ins == NULL)
+            return false;
+
+        eff_table = Instrument_get_effects(ins);
+    }
+
+    return eff_table;
+}
+
+
+static bool is_eff_conn_possible(Handle* handle, int32_t ins_index, int32_t eff_index)
+{
+    assert(handle != NULL);
+
+    const Effect_table* eff_table = find_effect_table(handle, ins_index);
+
+    return (eff_table != NULL) && (Effect_table_get(eff_table, eff_index) != NULL);
+}
+
+
+static bool is_dsp_conn_possible(
+        Handle* handle, int32_t ins_index, int32_t eff_index, int32_t dsp_index)
+{
+    assert(handle != NULL);
+
+    const Effect_table* eff_table = find_effect_table(handle, ins_index);
+    if (eff_table == NULL)
+        return false;
+
+    const Effect* eff = Effect_table_get(eff_table, eff_index);
+    if (eff == NULL)
+        return false;
+
+    const DSP* dsp = Effect_get_dsp(eff, dsp_index);
+    if (dsp == NULL)
+        return false;
+
+    return Device_has_complete_type((const Device*)dsp);
+}
+
+
+static bool is_connection_possible(
+        Handle* handle, const char* keyp, const Key_indices indices)
+{
+    assert(handle != NULL);
+    assert(keyp != NULL);
+    assert(indices != NULL);
+
+    if (string_has_prefix(keyp, "ins_XX/eff_XX/dsp_XX/"))
+        return is_dsp_conn_possible(handle, indices[0], indices[1], indices[2]);
+    else if (string_has_prefix(keyp, "ins_XX/eff_XX/"))
+        return is_eff_conn_possible(handle, indices[0], indices[1]);
+    else if (string_has_prefix(keyp, "ins_XX/gen_XX/"))
+        return is_gen_conn_possible(handle, indices[0], indices[1]);
+    else if (string_has_prefix(keyp, "ins_XX/"))
+        return is_ins_conn_possible(handle, indices[0]);
+    else if (string_has_prefix(keyp, "eff_XX/dsp_XX/"))
+        return is_dsp_conn_possible(handle, -1, indices[0], indices[1]);
+    else if (string_has_prefix(keyp, "eff_XX/"))
+        return is_eff_conn_possible(handle, -1, indices[0]);
+
+    return false;
+}
+
+
 bool parse_data(
         Handle* handle,
         const char* key,
@@ -129,6 +227,9 @@ bool parse_data(
 
     assert(strlen(key) == strlen(key_pattern));
 
+    const bool was_connection_possible = is_connection_possible(
+            handle, key_pattern, key_indices);
+
     // Find a known key pattern that is a prefix of our retrieved key pattern
     for (int i = 0; keyp_to_func[i].keyp != NULL; ++i)
     {
@@ -141,7 +242,18 @@ bool parse_data(
             params.subkey = key + strlen(keyp_to_func[i].keyp);
             params.sr = Streader_init(STREADER_AUTO, data, length);
 
-            return keyp_to_func[i].func(&params);
+            const bool success = keyp_to_func[i].func(&params);
+            if (!success)
+                return false;
+
+            // Update connections if needed
+            const bool connection_update_needed = (was_connection_possible !=
+                is_connection_possible(handle, key_pattern, key_indices));
+
+            if (connection_update_needed && !prepare_connections(handle))
+                return false;
+
+            return true;
         }
     }
 
@@ -390,33 +502,12 @@ static Instrument* add_instrument(Handle* handle, int index)
     else (void)0
 
 
-static bool is_ins_conn_possible(Handle* handle, int32_t ins_index)
-{
-    assert(handle != NULL);
-    const Module* module = Handle_get_module(handle);
-    return (Ins_table_get(Module_get_insts(module), ins_index) != NULL);
-}
-
-
-#define check_update_ins_conns(handle, index, was_conn_possible)              \
-    if (true)                                                                 \
-    {                                                                         \
-        const bool changed =                                                  \
-            ((was_conn_possible) != is_ins_conn_possible((handle), (index))); \
-        if (changed && !prepare_connections((handle)))                        \
-            return false;                                                     \
-    }                                                                         \
-    else (void)0
-
-
 static bool read_ins_manifest(Reader_params* params)
 {
     assert(params != NULL);
 
     int32_t index = -1;
     acquire_ins_index(index, params);
-
-    const bool was_conn_possible = is_ins_conn_possible(params->handle, index);
 
     Instrument* ins = NULL;
     acquire_ins(ins, params->handle, index);
@@ -430,8 +521,6 @@ static bool read_ins_manifest(Reader_params* params)
 
     Device_set_existent((Device*)ins, existent);
 
-    check_update_ins_conns(params->handle, index, was_conn_possible);
-
     return true;
 }
 
@@ -443,8 +532,6 @@ static bool read_ins(Reader_params* params)
     int32_t index = -1;
     acquire_ins_index(index, params);
 
-    const bool was_conn_possible = is_ins_conn_possible(params->handle, index);
-
     Instrument* ins = NULL;
     acquire_ins(ins, params->handle, index);
 
@@ -453,8 +540,6 @@ static bool read_ins(Reader_params* params)
         set_error(params);
         return false;
     }
-
-    check_update_ins_conns(params->handle, index, was_conn_possible);
 
     return true;
 }
@@ -509,8 +594,6 @@ static bool read_ins_env_force(Reader_params* params)
     int32_t index = -1;
     acquire_ins_index(index, params);
 
-    const bool was_conn_possible = is_ins_conn_possible(params->handle, index);
-
     Instrument* ins = NULL;
     acquire_ins(ins, params->handle, index);
 
@@ -519,8 +602,6 @@ static bool read_ins_env_force(Reader_params* params)
         set_error(params);
         return false;
     }
-
-    check_update_ins_conns(params->handle, index, was_conn_possible);
 
     return true;
 }
@@ -533,8 +614,6 @@ static bool read_ins_env_force_release(Reader_params* params)
     int32_t index = -1;
     acquire_ins_index(index, params);
 
-    const bool was_conn_possible = is_ins_conn_possible(params->handle, index);
-
     Instrument* ins = NULL;
     acquire_ins(ins, params->handle, index);
 
@@ -543,8 +622,6 @@ static bool read_ins_env_force_release(Reader_params* params)
         set_error(params);
         return false;
     }
-
-    check_update_ins_conns(params->handle, index, was_conn_possible);
 
     return true;
 }
@@ -557,8 +634,6 @@ static bool read_ins_env_force_filter(Reader_params* params)
     int32_t index = -1;
     acquire_ins_index(index, params);
 
-    const bool was_conn_possible = is_ins_conn_possible(params->handle, index);
-
     Instrument* ins = NULL;
     acquire_ins(ins, params->handle, index);
 
@@ -567,8 +642,6 @@ static bool read_ins_env_force_filter(Reader_params* params)
         set_error(params);
         return false;
     }
-
-    check_update_ins_conns(params->handle, index, was_conn_possible);
 
     return true;
 }
@@ -581,8 +654,6 @@ static bool read_ins_env_pitch_pan(Reader_params* params)
     int32_t index = -1;
     acquire_ins_index(index, params);
 
-    const bool was_conn_possible = is_ins_conn_possible(params->handle, index);
-
     Instrument* ins = NULL;
     acquire_ins(ins, params->handle, index);
 
@@ -591,8 +662,6 @@ static bool read_ins_env_pitch_pan(Reader_params* params)
         set_error(params);
         return false;
     }
-
-    check_update_ins_conns(params->handle, index, was_conn_possible);
 
     return true;
 }
@@ -641,32 +710,6 @@ static Generator* add_generator(
     else (void)0
 
 
-static bool is_gen_conn_possible(Handle* handle, int32_t ins_index, int32_t gen_index)
-{
-    assert(handle != NULL);
-
-    const Module* module = Handle_get_module(handle);
-
-    const Instrument* ins = Ins_table_get(Module_get_insts(module), ins_index);
-    if (ins == NULL)
-        return false;
-
-    const Generator* gen = Instrument_get_gen(ins, gen_index);
-    return (gen != NULL) && Device_has_complete_type((const Device*)gen);
-}
-
-
-#define check_update_gen_conns(handle, ins_index, gen_index, was_conn_possible) \
-    if (true)                                                                   \
-    {                                                                           \
-        const bool changed = ((was_conn_possible) !=                            \
-                is_gen_conn_possible((handle), (ins_index), (gen_index)));      \
-        if (changed && !prepare_connections((handle)))                          \
-            return false;                                                       \
-    }                                                                           \
-    else (void)0
-
-
 static bool read_gen_manifest(Reader_params* params)
 {
     assert(params != NULL);
@@ -675,8 +718,6 @@ static bool read_gen_manifest(Reader_params* params)
     acquire_ins_index(ins_index, params);
     int32_t gen_index = -1;
     acquire_gen_index(gen_index, params);
-
-    const bool was_conn_possible = is_gen_conn_possible(params->handle, ins_index, gen_index);
 
     Instrument* ins = NULL;
     acquire_ins(ins, params->handle, ins_index);
@@ -693,8 +734,6 @@ static bool read_gen_manifest(Reader_params* params)
 
     Gen_table_set_existent(table, gen_index, existent);
 
-    check_update_gen_conns(params->handle, ins_index, gen_index, was_conn_possible);
-
     return true;
 }
 
@@ -708,8 +747,6 @@ static bool read_gen_type(Reader_params* params)
     int32_t gen_index = -1;
     acquire_gen_index(gen_index, params);
 
-    const bool was_conn_possible = is_gen_conn_possible(params->handle, ins_index, gen_index);
-
     if (!Streader_has_data(params->sr))
     {
         // Remove generator
@@ -720,8 +757,6 @@ static bool read_gen_type(Reader_params* params)
 
         Gen_table* gen_table = Instrument_get_gens(ins);
         Gen_table_remove_gen(gen_table, gen_index);
-
-        check_update_gen_conns(params->handle, ins_index, gen_index, was_conn_possible);
 
         return true;
     }
@@ -845,8 +880,6 @@ static bool read_gen_type(Reader_params* params)
         return false;
     }
 
-    check_update_gen_conns(params->handle, ins_index, gen_index, was_conn_possible);
-
     return true;
 }
 
@@ -862,8 +895,6 @@ static bool read_gen_impl_conf_key(Reader_params* params)
     acquire_ins_index(ins_index, params);
     int32_t gen_index = -1;
     acquire_gen_index(gen_index, params);
-
-    const bool was_conn_possible = is_gen_conn_possible(params->handle, ins_index, gen_index);
 
     Instrument* ins = NULL;
     acquire_ins(ins, params->handle, ins_index);
@@ -885,8 +916,6 @@ static bool read_gen_impl_conf_key(Reader_params* params)
             (Device*)gen,
             Player_get_device_states(params->handle->player),
             params->subkey);
-
-    check_update_gen_conns(params->handle, ins_index, gen_index, was_conn_possible);
 
     return true;
 }
@@ -1011,25 +1040,6 @@ static int get_dsp_index_loc(bool is_instrument)
     else (void)0
 
 
-static bool is_eff_conn_possible(const Effect_table* eff_table, int32_t eff_index)
-{
-    assert(eff_table != NULL);
-    return (Effect_table_get(eff_table, eff_index) != NULL);
-}
-
-
-#define check_update_eff_conns(                                  \
-        handle, eff_table, eff_index, was_conn_possible)         \
-    if (true)                                                    \
-    {                                                            \
-        const bool changed = ((was_conn_possible) !=             \
-                is_eff_conn_possible((eff_table), (eff_index))); \
-        if (changed && !prepare_connections((handle)))           \
-            return false;                                        \
-    }                                                            \
-    else (void)0
-
-
 static bool read_effect_effect_manifest(
         Reader_params* params, Effect_table* eff_table, bool is_instrument)
 {
@@ -1038,8 +1048,6 @@ static bool read_effect_effect_manifest(
 
     int32_t eff_index = -1;
     acquire_effect_index(eff_index, params, is_instrument);
-
-    const bool was_conn_possible = is_eff_conn_possible(eff_table, eff_index);
 
     Effect* effect = NULL;
     acquire_effect(effect, params->handle, eff_table, eff_index);
@@ -1052,8 +1060,6 @@ static bool read_effect_effect_manifest(
     }
 
     Device_set_existent((Device*)effect, existent);
-
-    check_update_eff_conns(params->handle, eff_table, eff_index, was_conn_possible);
 
     return true;
 }
@@ -1150,35 +1156,6 @@ static DSP* add_dsp(
     else (void)0
 
 
-static bool is_dsp_conn_possible(
-        const Effect_table* eff_table, int32_t eff_index, int32_t dsp_index)
-{
-    assert(eff_table != NULL);
-
-    const Effect* eff = Effect_table_get(eff_table, eff_index);
-    if (eff == NULL)
-        return false;
-
-    const DSP* dsp = Effect_get_dsp(eff, dsp_index);
-    if (dsp == NULL)
-        return false;
-
-    return Device_has_complete_type((const Device*)dsp);
-}
-
-
-#define check_update_dsp_conns(                                               \
-        handle, eff_table, eff_index, dsp_index, was_conn_possible)           \
-    if (true)                                                                 \
-    {                                                                         \
-        const bool changed = ((was_conn_possible) !=                          \
-                is_dsp_conn_possible((eff_table), (eff_index), (dsp_index))); \
-        if (changed && !prepare_connections((handle)))                        \
-            return false;                                                     \
-    }                                                                         \
-    else (void)0
-
-
 static bool read_effect_dsp_manifest(
         Reader_params* params, Effect_table* eff_table, bool is_instrument)
 {
@@ -1189,8 +1166,6 @@ static bool read_effect_dsp_manifest(
     acquire_effect_index(eff_index, params, is_instrument);
     int32_t dsp_index = -1;
     acquire_dsp_index(dsp_index, params, is_instrument);
-
-    const bool was_conn_possible = is_dsp_conn_possible(eff_table, eff_index, dsp_index);
 
     const bool existent = read_default_manifest(params->sr);
     if (Streader_is_error_set(params->sr))
@@ -1208,17 +1183,11 @@ static bool read_effect_dsp_manifest(
     {
         effect = Effect_table_get_mut(eff_table, eff_index);
         if (effect == NULL)
-        {
-            check_update_dsp_conns(
-                    params->handle, eff_table, eff_index, dsp_index, was_conn_possible);
             return true;
-        }
     }
 
     DSP_table* dsp_table = Effect_get_dsps_mut(effect);
     DSP_table_set_existent(dsp_table, dsp_index, existent);
-
-    check_update_dsp_conns(params->handle, eff_table, eff_index, dsp_index, was_conn_possible);
 
     return true;
 }
@@ -1235,8 +1204,6 @@ static bool read_effect_dsp_type(
     int32_t dsp_index = -1;
     acquire_dsp_index(dsp_index, params, is_instrument);
 
-    const bool was_conn_possible = is_dsp_conn_possible(eff_table, eff_index, dsp_index);
-
     if (!Streader_has_data(params->sr))
     {
         // Remove DSP
@@ -1246,9 +1213,6 @@ static bool read_effect_dsp_type(
 
         DSP_table* dsp_table = Effect_get_dsps_mut(effect);
         DSP_table_remove_dsp(dsp_table, dsp_index);
-
-        check_update_dsp_conns(
-                params->handle, eff_table, eff_index, dsp_index, was_conn_possible);
 
         return true;
     }
@@ -1335,8 +1299,6 @@ static bool read_effect_dsp_type(
         return false;
     }
 
-    check_update_dsp_conns(params->handle, eff_table, eff_index, dsp_index, was_conn_possible);
-
     return true;
 }
 
@@ -1354,8 +1316,6 @@ static bool read_effect_dsp_impl_conf_key(
     acquire_effect_index(eff_index, params, is_instrument);
     int32_t dsp_index = -1;
     acquire_dsp_index(dsp_index, params, is_instrument);
-
-    const bool was_conn_possible = is_dsp_conn_possible(eff_table, eff_index, dsp_index);
 
     Effect* effect = NULL;
     acquire_effect(effect, params->handle, eff_table, eff_index);
@@ -1377,8 +1337,6 @@ static bool read_effect_dsp_impl_conf_key(
             (Device*)dsp,
             Player_get_device_states(params->handle->player),
             params->subkey);
-
-    check_update_dsp_conns(params->handle, eff_table, eff_index, dsp_index, was_conn_possible);
 
     return true;
 }
