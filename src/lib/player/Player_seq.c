@@ -549,6 +549,13 @@ void Player_process_cgiters(Player* player, Tstamp* limit, bool skip)
                         // Move cgiters to the new position
                         Tstamp_copy(&target_pos.pat_pos, target_row);
                         target_pos.piref = target_piref;
+
+                        if (player->master_params.playback_state == PLAYBACK_PATTERN)
+                        {
+                            target_pos.track = -1;
+                            target_pos.system = -1;
+                        }
+
                         for (int k = 0; k < KQT_CHANNELS_MAX; ++k)
                             Cgiter_reset(
                                     &player->cgiters[k],

@@ -82,6 +82,8 @@ void Cgiter_reset(Cgiter* cgiter, const Position* start_pos)
             cgiter->pos.piref = *piref;
         else
             cgiter->pos.track = -1;
+
+        cgiter->is_pattern_playback_state = false;
     }
     else
     {
