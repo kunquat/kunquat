@@ -13,6 +13,7 @@
 
 
 #include <module/sheet/Song.h>
+#include <module/Module.h>
 
 
 #ifndef MODULE_KEYP
@@ -20,7 +21,8 @@
 #endif
 
 
-MODULE_KEYP(composition,            "p_composition.json",                   "{ mix_vol: -8 }")
+MODULE_KEYP(composition, "p_composition.json",
+        "{ mix_vol: " MODULE_DEFAULT_MIX_VOL " }")
 MODULE_KEYP(connections,            "p_connections.json",                   "[]")
 MODULE_KEYP(control_map,            "p_control_map.json",                   "[]")
 MODULE_KEYP(control_manifest,       "control_XX/p_manifest.json",           "")
