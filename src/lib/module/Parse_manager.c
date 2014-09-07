@@ -71,29 +71,6 @@ static const struct
     } else (void)0
 
 
-static bool prepare_connections(Handle* handle)
-{
-    assert(handle != NULL);
-
-    Module* module = Handle_get_module(handle);
-    Connections* graph = module->connections;
-
-    if (graph == NULL)
-        return true;
-
-    Device_states* states = Player_get_device_states(handle->player);
-
-    if (!Connections_prepare(graph, states))
-    {
-        Handle_set_error(handle, ERROR_MEMORY,
-                "Couldn't allocate memory for connections");
-        return false;
-    }
-
-    return true;
-}
-
-
 static bool is_ins_conn_possible(Handle* handle, int32_t ins_index)
 {
     assert(handle != NULL);
@@ -243,12 +220,10 @@ bool parse_data(
             if (!success)
                 return false;
 
-            // Update connections if needed
-            const bool connection_update_needed = (was_connection_possible !=
-                is_connection_possible(handle, key_pattern, key_indices));
-
-            if (connection_update_needed && !prepare_connections(handle))
-                return false;
+            // Mark connections for update if needed
+            if (was_connection_possible != is_connection_possible(
+                        handle, key_pattern, key_indices))
+                handle->update_connections = true;
 
             return true;
         }
@@ -297,8 +272,7 @@ static bool read_connections(Reader_params* params)
 
     module->connections = graph;
 
-    if (!prepare_connections(params->handle))
-        return false;
+    params->handle->update_connections = true;
 
     return true;
 }
@@ -552,11 +526,10 @@ static bool read_ins_connections(Reader_params* params)
     Instrument* ins = NULL;
     acquire_ins(ins, params->handle, index);
 
-    bool reconnect = false;
     if (!Streader_has_data(params->sr))
     {
         Instrument_set_connections(ins, NULL);
-        reconnect = true;
+        params->handle->update_connections = true;
     }
     else
     {
@@ -574,11 +547,8 @@ static bool read_ins_connections(Reader_params* params)
         }
 
         Instrument_set_connections(ins, graph);
-        reconnect = true;
+        params->handle->update_connections = true;
     }
-
-    if (reconnect && !prepare_connections(params->handle))
-        return false;
 
     return true;
 }
@@ -1043,11 +1013,10 @@ static bool read_effect_effect_connections(
     Effect* effect = NULL;
     acquire_effect(effect, params->handle, eff_table, eff_index);
 
-    bool reconnect = false;
     if (!Streader_has_data(params->sr))
     {
         Effect_set_connections(effect, NULL);
-        reconnect = true;
+        params->handle->update_connections = true;
     }
     else
     {
@@ -1071,11 +1040,8 @@ static bool read_effect_effect_connections(
         }
 
         Effect_set_connections(effect, graph);
-        reconnect = true;
+        params->handle->update_connections = true;
     }
-
-    if (reconnect && !prepare_connections(params->handle))
-        return false;
 
     return true;
 }
