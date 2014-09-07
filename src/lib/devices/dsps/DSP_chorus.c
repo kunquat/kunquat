@@ -155,41 +155,18 @@ typedef struct DSP_chorus
 
 
 static Device_state* DSP_chorus_create_state(
-        const Device* device,
-        int32_t audio_rate,
-        int32_t audio_buffer_size);
+        const Device* device, int32_t audio_rate, int32_t audio_buffer_size);
 
 static void DSP_chorus_update_tempo(
-        const Device_impl* dimpl,
-        Device_state* dstate,
-        double tempo);
+        const Device_impl* dimpl, Device_state* dstate, double tempo);
 
 static void DSP_chorus_reset(const Device_impl* dimpl, Device_state* dstate);
 
 
-#define CHORUS_PARAM(name, dev_key, update_key, def_value) \
-    static bool DSP_chorus_set_voice_##name(               \
-        Device_impl* dimpl,                                \
-        Device_key_indices indices,                        \
-        double value);
-#include <devices/dsps/DSP_chorus_params.h>
-
-
-#define CHORUS_PARAM(name, dev_key, update_key, def_value) \
-    static bool DSP_chorus_set_state_voice_##name(         \
-        const Device_impl* dimpl,                          \
-        Device_state* dstate,                              \
-        Device_key_indices indices,                        \
-        double value);
-#include <devices/dsps/DSP_chorus_params.h>
-
-
-#define CHORUS_PARAM(name, dev_key, update_key, def_value) \
-    static void DSP_chorus_update_state_voice_##name(      \
-        const Device_impl* dimpl,                          \
-        Device_state* dstate,                              \
-        Device_key_indices indices,                        \
-        double value);
+#define CHORUS_PARAM(name, dev_key, update_key, def_value)           \
+    static Set_float_func DSP_chorus_set_voice_ ## name;             \
+    static Set_state_float_func DSP_chorus_set_state_voice_ ## name; \
+    static Update_float_func DSP_chorus_update_state_voice_ ## name;
 #include <devices/dsps/DSP_chorus_params.h>
 
 
@@ -243,15 +220,15 @@ Device_impl* new_DSP_chorus(DSP* dsp)
             &chorus->parent,                               \
             dev_key,                                       \
             def_value,                                     \
-            DSP_chorus_set_voice_##name,                   \
-            DSP_chorus_set_state_voice_##name);
+            DSP_chorus_set_voice_ ## name,                 \
+            DSP_chorus_set_state_voice_ ## name);
 #include <devices/dsps/DSP_chorus_params.h>
 
 #define CHORUS_PARAM(name, dev_key, update_key, def_value)  \
     reg_success &= Device_impl_register_update_state_float( \
             &chorus->parent,                                \
             update_key,                                     \
-            DSP_chorus_update_state_voice_##name);
+            DSP_chorus_update_state_voice_ ## name);
 #include <devices/dsps/DSP_chorus_params.h>
 
     if (!reg_success)
@@ -320,9 +297,7 @@ static Device_state* DSP_chorus_create_state(
 
 
 static void DSP_chorus_update_tempo(
-        const Device_impl* dimpl,
-        Device_state* dstate,
-        double tempo)
+        const Device_impl* dimpl, Device_state* dstate, double tempo)
 {
     assert(dimpl != NULL);
     assert(dstate != NULL);
@@ -398,10 +373,8 @@ static double get_voice_volume(double value)
 
 
 #define CHORUS_PARAM(name, dev_key, update_key, def_value)               \
-    static bool DSP_chorus_set_voice_##name(                             \
-            Device_impl* dimpl,                                          \
-            Device_key_indices indices,                                  \
-            double value)                                                \
+    static bool DSP_chorus_set_voice_ ## name(                           \
+            Device_impl* dimpl, Key_indices indices, double value)       \
     {                                                                    \
         assert(dimpl != NULL);                                           \
         assert(indices != NULL);                                         \
@@ -412,27 +385,27 @@ static double get_voice_volume(double value)
         DSP_chorus* chorus = (DSP_chorus*)dimpl;                         \
         Chorus_voice_params* params = &chorus->voice_params[indices[0]]; \
                                                                          \
-        params->name = get_voice_##name(value);                          \
+        params->name = get_voice_ ## name(value);                        \
                                                                          \
         return true;                                                     \
     }
 #include <devices/dsps/DSP_chorus_params.h>
 
 
-#define CHORUS_PARAM(name, dev_key, update_key, def_value)                   \
-    static bool DSP_chorus_set_state_voice_##name(                           \
-            const Device_impl* dimpl,                                        \
-            Device_state* dstate,                                            \
-            Device_key_indices indices,                                      \
-            double value)                                                    \
-    {                                                                        \
-        assert(dimpl != NULL);                                               \
-        assert(dstate != NULL);                                              \
-        assert(indices != NULL);                                             \
-                                                                             \
-        DSP_chorus_update_state_voice_##name(dimpl, dstate, indices, value); \
-                                                                             \
-        return true;                                                         \
+#define CHORUS_PARAM(name, dev_key, update_key, def_value)                     \
+    static bool DSP_chorus_set_state_voice_ ## name(                           \
+            const Device_impl* dimpl,                                          \
+            Device_state* dstate,                                              \
+            Key_indices indices,                                               \
+            double value)                                                      \
+    {                                                                          \
+        assert(dimpl != NULL);                                                 \
+        assert(dstate != NULL);                                                \
+        assert(indices != NULL);                                               \
+                                                                               \
+        DSP_chorus_update_state_voice_ ## name(dimpl, dstate, indices, value); \
+                                                                               \
+        return true;                                                           \
     }
 #include <devices/dsps/DSP_chorus_params.h>
 
@@ -440,7 +413,7 @@ static double get_voice_volume(double value)
 static void DSP_chorus_update_state_voice_delay(
         const Device_impl* dimpl,
         Device_state* dstate,
-        Device_key_indices indices,
+        Key_indices indices,
         double value)
 {
     assert(dimpl != NULL);
@@ -469,7 +442,7 @@ static void DSP_chorus_update_state_voice_delay(
 static void DSP_chorus_update_state_voice_range(
         const Device_impl* dimpl,
         Device_state* dstate,
-        Device_key_indices indices,
+        Key_indices indices,
         double value)
 {
     assert(dimpl != NULL);
@@ -503,7 +476,7 @@ static void DSP_chorus_update_state_voice_range(
 static void DSP_chorus_update_state_voice_speed(
         const Device_impl* dimpl,
         Device_state* dstate,
-        Device_key_indices indices,
+        Key_indices indices,
         double value)
 {
     assert(dimpl != NULL);
@@ -534,7 +507,7 @@ static void DSP_chorus_update_state_voice_speed(
 static void DSP_chorus_update_state_voice_volume(
         const Device_impl* dimpl,
         Device_state* dstate,
-        Device_key_indices indices,
+        Key_indices indices,
         double value)
 {
     assert(dimpl != NULL);

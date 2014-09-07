@@ -99,38 +99,14 @@ static void DSP_conv_update_ir(DSP_conv* conv);
 
 static void DSP_conv_reset(const Device_impl* dimpl, Device_state* dstate);
 
-static bool DSP_conv_set_max_ir_len(
-        Device_impl* dimpl,
-        Device_key_indices indices,
-        double value);
+static Set_float_func DSP_conv_set_max_ir_len;
+static Set_sample_func DSP_conv_set_ir;
+static Set_float_func DSP_conv_set_volume;
 
-static bool DSP_conv_set_ir(
-        Device_impl* dimpl,
-        Device_key_indices indices,
-        const Sample* value);
+static Set_state_float_func DSP_conv_set_state_volume;
+static Set_state_float_func DSP_conv_set_state_max_ir_len;
 
-static bool DSP_conv_set_volume(
-        Device_impl* dimpl,
-        Device_key_indices indices,
-        double value);
-
-static bool DSP_conv_set_state_volume(
-        const Device_impl* dimpl,
-        Device_state* dstate,
-        Device_key_indices indices,
-        double value);
-
-static bool DSP_conv_set_state_max_ir_len(
-        const Device_impl* dimpl,
-        Device_state* dstate,
-        Device_key_indices indices,
-        double value);
-
-static void DSP_conv_update_state_volume(
-        const Device_impl* dimpl,
-        Device_state* dstate,
-        Device_key_indices indices,
-        double value);
+static Update_float_func DSP_conv_update_state_volume;
 
 static void DSP_conv_clear_history(
         const Device_impl* dimpl, DSP_state* dsp_state);
@@ -270,9 +246,7 @@ static void DSP_conv_reset(const Device_impl* dimpl, Device_state* dstate)
 
 
 static bool DSP_conv_set_max_ir_len(
-        Device_impl* dimpl,
-        Device_key_indices indices,
-        double value)
+        Device_impl* dimpl, Key_indices indices, double value)
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
@@ -289,9 +263,7 @@ static bool DSP_conv_set_max_ir_len(
 
 
 static bool DSP_conv_set_ir(
-        Device_impl* dimpl,
-        Device_key_indices indices,
-        const Sample* value)
+        Device_impl* dimpl, Key_indices indices, const Sample* value)
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
@@ -326,10 +298,7 @@ static double dB_to_scale(double vol_dB)
 }
 
 
-static bool DSP_conv_set_volume(
-        Device_impl* dimpl,
-        Device_key_indices indices,
-        double value)
+static bool DSP_conv_set_volume(Device_impl* dimpl, Key_indices indices, double value)
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
@@ -345,7 +314,7 @@ static bool DSP_conv_set_volume(
 static bool DSP_conv_set_state_volume(
         const Device_impl* dimpl,
         Device_state* dstate,
-        Device_key_indices indices,
+        Key_indices indices,
         double value)
 {
     assert(dimpl != NULL);
@@ -361,7 +330,7 @@ static bool DSP_conv_set_state_volume(
 static bool DSP_conv_set_state_max_ir_len(
         const Device_impl* dimpl,
         Device_state* dstate,
-        Device_key_indices indices,
+        Key_indices indices,
         double value)
 {
     assert(dimpl != NULL);
@@ -387,7 +356,7 @@ static bool DSP_conv_set_state_max_ir_len(
 static void DSP_conv_update_state_volume(
         const Device_impl* dimpl,
         Device_state* dstate,
-        Device_key_indices indices,
+        Key_indices indices,
         double value)
 {
     assert(dimpl != NULL);
@@ -421,9 +390,7 @@ static void DSP_conv_clear_history(
 
 
 static bool DSP_conv_set_audio_rate(
-        const Device_impl* dimpl,
-        Device_state* dstate,
-        int32_t audio_rate)
+        const Device_impl* dimpl, Device_state* dstate, int32_t audio_rate)
 {
     assert(dimpl != NULL);
     assert(dstate != NULL);

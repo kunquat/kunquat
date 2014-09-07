@@ -22,6 +22,7 @@
 #include <devices/Device_params.h>
 #include <memory.h>
 #include <string/common.h>
+#include <string/key_pattern.h>
 #include <Value.h>
 
 
@@ -31,31 +32,24 @@ typedef struct Set_cb
 
     union
     {
-#define cb_info(type_name, def_val_type, param_type) \
-        struct                                       \
-        {                                            \
-            def_val_type default_val;                \
-            bool (*set)(                             \
-                    Device_impl*,                    \
-                    Device_key_indices,              \
-                    param_type);                     \
-            bool (*set_state)(                       \
-                    const Device_impl*,              \
-                    Device_state*,                   \
-                    Device_key_indices,              \
-                    param_type);                     \
+#define cb_info(type_name, def_val_type, param_type)     \
+        struct                                           \
+        {                                                \
+            def_val_type default_val;                    \
+            Set_ ## type_name ## _func* set;             \
+            Set_state_ ## type_name ## _func* set_state; \
         } type_name ## _type
 
         cb_info(bool, bool, bool);
         cb_info(float, double, double);
         cb_info(int, int64_t, int64_t);
-        cb_info(Tstamp, Tstamp, const Tstamp*);
-        cb_info(Envelope, const Envelope*, const Envelope*);
-        cb_info(Sample, const Sample*, const Sample*);
-        cb_info(Sample_params, const Sample_params*, const Sample_params*);
-        cb_info(Note_map, const Note_map*, const Note_map*);
-        cb_info(Hit_map, const Hit_map*, const Hit_map*);
-        cb_info(Num_list, const Num_list*, const Num_list*);
+        cb_info(tstamp, Tstamp, const Tstamp*);
+        cb_info(envelope, const Envelope*, const Envelope*);
+        cb_info(sample, const Sample*, const Sample*);
+        cb_info(sample_params, const Sample_params*, const Sample_params*);
+        cb_info(note_map, const Note_map*, const Note_map*);
+        cb_info(hit_map, const Hit_map*, const Hit_map*);
+        cb_info(num_list, const Num_list*, const Num_list*);
 
 #undef cb_info
     } cb;
@@ -70,27 +64,16 @@ typedef struct Update_state_cb
 
     union
     {
-#define cb_info(type_name, param_type) \
-        void (*update_ ## type_name)(  \
-                const Device_impl*,    \
-                Device_state*,         \
-                Device_key_indices,    \
-                param_type)
-
-        cb_info(bool, bool);
-        cb_info(float, double);
-        cb_info(int, int64_t);
-        cb_info(tstamp, const Tstamp*);
-
-#undef cb_info
+        Update_bool_func* update_bool;
+        Update_float_func* update_float;
+        Update_int_func* update_int;
+        Update_tstamp_func* update_tstamp;
     } cb;
 
 } Update_state_cb;
 
 
-bool Device_impl_init(
-        Device_impl* dimpl,
-        void (*destroy)(Device_impl* dimpl))
+bool Device_impl_init(Device_impl* dimpl, void (*destroy)(Device_impl* dimpl))
 {
     assert(dimpl != NULL);
     assert(destroy != NULL);
@@ -164,42 +147,35 @@ void Device_impl_register_reset_device_state(
 }
 
 
-#define REGISTER_SET(type_name, type)                           \
-    bool Device_impl_register_set_##type_name(                  \
-            Device_impl* dimpl,                                 \
-            const char* keyp,                                   \
-            type default_val,                                   \
-            bool (*set_func)(                                   \
-                Device_impl*,                                   \
-                Device_key_indices,                             \
-                type),                                          \
-            bool (*set_state_func)(                             \
-                const Device_impl*,                             \
-                Device_state*,                                  \
-                Device_key_indices,                             \
-                type))                                          \
-    {                                                           \
-        assert(dimpl != NULL);                                  \
-        assert(keyp != NULL);                                   \
-        assert(strlen(keyp) < KQT_KEY_LENGTH_MAX);              \
-        assert(set_func != NULL);                               \
-                                                                \
-        Set_cb* set_cb = memory_alloc_item(Set_cb);             \
-        if (set_cb == NULL)                                     \
-            return false;                                       \
-                                                                \
-        strcpy(set_cb->key_pattern, keyp);                      \
-        set_cb->cb.type_name##_type.default_val = default_val;  \
-        set_cb->cb.type_name##_type.set = set_func;             \
-        set_cb->cb.type_name##_type.set_state = set_state_func; \
-                                                                \
-        if (!AAtree_ins(dimpl->set_cbs, set_cb))                \
-        {                                                       \
-            memory_free(set_cb);                                \
-            return false;                                       \
-        }                                                       \
-                                                                \
-        return true;                                            \
+#define REGISTER_SET(type_name, type)                             \
+    bool Device_impl_register_set_ ## type_name(                  \
+            Device_impl* dimpl,                                   \
+            const char* keyp,                                     \
+            type default_val,                                     \
+            Set_ ## type_name ## _func set_func,                  \
+            Set_state_ ## type_name ## _func set_state_func)      \
+    {                                                             \
+        assert(dimpl != NULL);                                    \
+        assert(keyp != NULL);                                     \
+        assert(strlen(keyp) < KQT_KEY_LENGTH_MAX);                \
+        assert(set_func != NULL);                                 \
+                                                                  \
+        Set_cb* set_cb = memory_alloc_item(Set_cb);               \
+        if (set_cb == NULL)                                       \
+            return false;                                         \
+                                                                  \
+        strcpy(set_cb->key_pattern, keyp);                        \
+        set_cb->cb.type_name ## _type.default_val = default_val;  \
+        set_cb->cb.type_name ## _type.set = set_func;             \
+        set_cb->cb.type_name ## _type.set_state = set_state_func; \
+                                                                  \
+        if (!AAtree_ins(dimpl->set_cbs, set_cb))                  \
+        {                                                         \
+            memory_free(set_cb);                                  \
+            return false;                                         \
+        }                                                         \
+                                                                  \
+        return true;                                              \
     }
 
 REGISTER_SET(bool, bool)
@@ -212,15 +188,8 @@ bool Device_impl_register_set_tstamp(
         Device_impl* dimpl,
         const char* keyp,
         const Tstamp* default_val,
-        bool (*set_func)(
-            Device_impl*,
-            Device_key_indices,
-            const Tstamp*),
-        bool (*set_state_func)(
-            const Device_impl*,
-            Device_state*,
-            Device_key_indices,
-            const Tstamp*))
+        Set_tstamp_func set_func,
+        Set_state_tstamp_func set_state_func)
 {
     assert(dimpl != NULL);
     assert(keyp != NULL);
@@ -233,9 +202,9 @@ bool Device_impl_register_set_tstamp(
         return false;
 
     strcpy(set_cb->key_pattern, keyp);
-    Tstamp_copy(&set_cb->cb.Tstamp_type.default_val, default_val);
-    set_cb->cb.Tstamp_type.set = set_func;
-    set_cb->cb.Tstamp_type.set_state = set_state_func;
+    Tstamp_copy(&set_cb->cb.tstamp_type.default_val, default_val);
+    set_cb->cb.tstamp_type.set = set_func;
+    set_cb->cb.tstamp_type.set_state = set_state_func;
 
     if (!AAtree_ins(dimpl->set_cbs, set_cb))
     {
@@ -251,15 +220,8 @@ bool Device_impl_register_set_envelope(
         Device_impl* dimpl,
         const char* keyp,
         const Envelope* default_val,
-        bool (*set_func)(
-            Device_impl*,
-            Device_key_indices,
-            const Envelope*),
-        bool (*set_state_func)(
-            const Device_impl*,
-            Device_state*,
-            Device_key_indices,
-            const Envelope*))
+        Set_envelope_func set_func,
+        Set_state_envelope_func set_state_func)
 {
     assert(dimpl != NULL);
     assert(keyp != NULL);
@@ -271,9 +233,9 @@ bool Device_impl_register_set_envelope(
         return false;
 
     strcpy(set_cb->key_pattern, keyp);
-    set_cb->cb.Envelope_type.default_val = default_val;
-    set_cb->cb.Envelope_type.set = set_func;
-    set_cb->cb.Envelope_type.set_state = set_state_func;
+    set_cb->cb.envelope_type.default_val = default_val;
+    set_cb->cb.envelope_type.set = set_func;
+    set_cb->cb.envelope_type.set_state = set_state_func;
 
     if (!AAtree_ins(dimpl->set_cbs, set_cb))
     {
@@ -289,15 +251,8 @@ bool Device_impl_register_set_sample(
         Device_impl* dimpl,
         const char* keyp,
         const Sample* default_val,
-        bool (*set_func)(
-            Device_impl*,
-            Device_key_indices,
-            const Sample*),
-        bool (*set_state_func)(
-            const Device_impl*,
-            Device_state*,
-            Device_key_indices,
-            const Sample*))
+        Set_sample_func set_func,
+        Set_state_sample_func set_state_func)
 {
     assert(dimpl != NULL);
     assert(keyp != NULL);
@@ -309,9 +264,9 @@ bool Device_impl_register_set_sample(
         return false;
 
     strcpy(set_cb->key_pattern, keyp);
-    set_cb->cb.Sample_type.default_val = default_val;
-    set_cb->cb.Sample_type.set = set_func;
-    set_cb->cb.Sample_type.set_state = set_state_func;
+    set_cb->cb.sample_type.default_val = default_val;
+    set_cb->cb.sample_type.set = set_func;
+    set_cb->cb.sample_type.set_state = set_state_func;
 
     if (!AAtree_ins(dimpl->set_cbs, set_cb))
     {
@@ -327,15 +282,8 @@ bool Device_impl_register_set_num_list(
         Device_impl* dimpl,
         const char* keyp,
         const Num_list* default_val,
-        bool (*set_func)(
-            Device_impl*,
-            Device_key_indices,
-            const Num_list*),
-        bool (*set_state_func)(
-            const Device_impl*,
-            Device_state*,
-            Device_key_indices,
-            const Num_list*))
+        Set_num_list_func set_func,
+        Set_state_num_list_func set_state_func)
 {
     assert(dimpl != NULL);
     assert(keyp != NULL);
@@ -347,9 +295,9 @@ bool Device_impl_register_set_num_list(
         return false;
 
     strcpy(set_cb->key_pattern, keyp);
-    set_cb->cb.Num_list_type.default_val = default_val;
-    set_cb->cb.Num_list_type.set = set_func;
-    set_cb->cb.Num_list_type.set_state = set_state_func;
+    set_cb->cb.num_list_type.default_val = default_val;
+    set_cb->cb.num_list_type.set = set_func;
+    set_cb->cb.num_list_type.set_state = set_state_func;
 
     if (!AAtree_ins(dimpl->set_cbs, set_cb))
     {
@@ -362,14 +310,10 @@ bool Device_impl_register_set_num_list(
 
 
 #define REGISTER_UPDATE(type_name, TYPE, ctype)                    \
-    bool Device_impl_register_update_state_##type_name(            \
+    bool Device_impl_register_update_state_ ## type_name(          \
             Device_impl* dimpl,                                    \
             const char* keyp,                                      \
-            void (*update_state)(                                  \
-                const Device_impl*,                                \
-                Device_state*,                                     \
-                Device_key_indices,                                \
-                ctype))                                            \
+            Update_ ## type_name ## _func update_state)            \
     {                                                              \
         assert(dimpl != NULL);                                     \
         assert(keyp != NULL);                                      \
@@ -383,7 +327,7 @@ bool Device_impl_register_set_num_list(
                                                                    \
         strcpy(update_state_cb->key_pattern, keyp);                \
         update_state_cb->type = VALUE_TYPE_##TYPE;                 \
-        update_state_cb->cb.update_##type_name = update_state;     \
+        update_state_cb->cb.update_ ## type_name = update_state;   \
                                                                    \
         if (!AAtree_ins(dimpl->update_state_cbs, update_state_cb)) \
         {                                                          \
@@ -401,13 +345,7 @@ REGISTER_UPDATE(int, INT, int64_t)
 #undef REGISTER_UPDATE
 
 bool Device_impl_register_update_state_tstamp(
-        Device_impl* dimpl,
-        const char* keyp,
-        void (*update_state)(
-            const Device_impl*,
-            Device_state*,
-            Device_key_indices,
-            const Tstamp*))
+        Device_impl* dimpl, const char* keyp, Update_tstamp_func update_state)
 {
     assert(dimpl != NULL);
     assert(keyp != NULL);
@@ -447,9 +385,7 @@ void Device_impl_reset_device_state(
 
 
 bool Device_impl_set_audio_rate(
-        const Device_impl* dimpl,
-        Device_state* dstate,
-        int32_t audio_rate)
+        const Device_impl* dimpl, Device_state* dstate, int32_t audio_rate)
 {
     assert(dimpl != NULL);
     assert(dstate != NULL);
@@ -463,9 +399,7 @@ bool Device_impl_set_audio_rate(
 
 
 bool Device_impl_set_buffer_size(
-        const Device_impl* dimpl,
-        Device_state* dstate,
-        int32_t buffer_size)
+        const Device_impl* dimpl, Device_state* dstate, int32_t buffer_size)
 {
     assert(dimpl != NULL);
     assert(dstate != NULL);
@@ -479,9 +413,7 @@ bool Device_impl_set_buffer_size(
 
 
 void Device_impl_update_tempo(
-        const Device_impl* dimpl,
-        Device_state* dstate,
-        double tempo)
+        const Device_impl* dimpl, Device_state* dstate, double tempo)
 {
     assert(dimpl != NULL);
     assert(dstate != NULL);
@@ -495,98 +427,6 @@ void Device_impl_update_tempo(
 }
 
 
-static int32_t extract_num(
-        const char* section,
-        size_t section_length,
-        size_t* digit_count)
-{
-    assert(section != NULL);
-    assert(digit_count != NULL);
-
-    int32_t num = 0;
-    int mul = 1;
-
-    *digit_count = 0;
-
-    for (int pos = (int)section_length - 1; pos >= 0; --pos)
-    {
-        static const char* upper = "ABCDEF";
-        if (!isxdigit(section[pos]) || strchr(upper, section[pos]) != NULL)
-            break;
-
-        static const char* hexdigits = "0123456789abcdef";
-        assert(strchr(hexdigits, section[pos]) != NULL);
-
-        num += (int32_t)(strchr(hexdigits, section[pos]) - hexdigits) * mul;
-
-        mul <<= 4;
-        ++(*digit_count);
-    }
-
-    if (*digit_count == 0)
-        return -1;
-
-    return num;
-}
-
-
-static void process_key(
-        const char* key,
-        char* keyp,
-        Device_key_indices indices)
-{
-    assert(key != NULL);
-    assert(strlen(key) < KQT_KEY_LENGTH_MAX);
-    assert(keyp != NULL);
-    assert(indices != NULL);
-
-    int next_index_pos = 0;
-    char* keyp_write_pos = keyp;
-
-    const char* section = key;
-    size_t section_length = strcspn(section, "/");
-
-    while (section[section_length] != '\0')
-    {
-        // Check if there's a number at the end of the section
-        size_t digit_count = 0;
-        const int32_t num = extract_num(section, section_length, &digit_count);
-
-        if (num >= 0)
-        {
-            // Store the number
-            assert(next_index_pos < DEVICE_KEY_INDICES_MAX);
-            indices[next_index_pos] = num;
-
-            // Create a key pattern section of format "blabla_XXX/"
-            assert(digit_count > 0);
-            assert(digit_count <= section_length);
-            const size_t prefix_length = section_length - digit_count;
-            strncpy(keyp_write_pos, section, prefix_length);
-            memset(keyp_write_pos + prefix_length, 'X', digit_count);
-            keyp_write_pos[section_length] = '/';
-        }
-        else
-        {
-            // Copy the section as-is
-            strncpy(keyp_write_pos, section, section_length);
-            keyp_write_pos[section_length] = '/';
-        }
-
-        keyp_write_pos += section_length + 1;
-        section = section + section_length + 1;
-        section_length = strcspn(section, "/");
-    }
-
-    // Copy the last part of the key
-    strncpy(keyp_write_pos, section, section_length);
-    keyp_write_pos[section_length] = '\0';
-    assert((int)strlen(key) == (keyp_write_pos + strlen(keyp_write_pos) - keyp));
-
-    return;
-}
-
-
 bool Device_impl_set_key(Device_impl* dimpl, const char* key)
 {
     assert(dimpl != NULL);
@@ -595,32 +435,32 @@ bool Device_impl_set_key(Device_impl* dimpl, const char* key)
 
     assert(strlen(key) < KQT_KEY_LENGTH_MAX);
     char keyp[KQT_KEY_LENGTH_MAX] = "";
-    Device_key_indices indices = { 0 };
-    memset(indices, '\xff', DEVICE_KEY_INDICES_MAX);
+    Key_indices indices = { 0 };
+    memset(indices, '\xff', KEY_INDICES_MAX * sizeof(int32_t));
 
-    process_key(key, keyp, indices);
+    extract_key_pattern(key, keyp, indices);
 
     const Set_cb* set_cb = AAtree_get_exact(dimpl->set_cbs, keyp);
     if (set_cb != NULL)
     {
-#define SET_FIELD(type_name, type)                                       \
-        if (true)                                                        \
-        {                                                                \
-            const type* dval = Device_params_get_##type_name(            \
-                    dimpl->device->dparams, key);                        \
-            const type val = (dval != NULL) ?                            \
-                *dval : set_cb->cb.type_name##_type.default_val;         \
-            return set_cb->cb.type_name##_type.set(dimpl, indices, val); \
-        }                                                                \
+#define SET_FIELD(type_name, type)                                         \
+        if (true)                                                          \
+        {                                                                  \
+            const type* dval = Device_params_get_ ## type_name(            \
+                    dimpl->device->dparams, key);                          \
+            const type val = (dval != NULL) ?                              \
+                *dval : set_cb->cb.type_name ## _type.default_val;         \
+            return set_cb->cb.type_name ## _type.set(dimpl, indices, val); \
+        }                                                                  \
         else (void)0
 
-#define SET_FIELDP(type_name, type)                                 \
-        if (true)                                                   \
-        {                                                           \
-            const type* val = Device_params_get_##type_name(        \
-                    dimpl->device->dparams, key);                   \
-            return set_cb->cb.type##_type.set(dimpl, indices, val); \
-        }                                                           \
+#define SET_FIELDP(type_name, type)                                        \
+        if (true)                                                          \
+        {                                                                  \
+            const type* val = Device_params_get_ ## type_name(             \
+                    dimpl->device->dparams, key);                          \
+            return set_cb->cb.type_name ## _type.set(dimpl, indices, val); \
+        }                                                                  \
         else (void)0
 
         const Device_field_type dftype = get_keyp_device_field_type(
@@ -646,8 +486,8 @@ bool Device_impl_set_key(Device_impl* dimpl, const char* key)
                 const Tstamp* dval = Device_params_get_tstamp(
                         dimpl->device->dparams, key);
                 const Tstamp* val = (dval != NULL)
-                    ? dval : &set_cb->cb.Tstamp_type.default_val;
-                return set_cb->cb.Tstamp_type.set(dimpl, indices, val);
+                    ? dval : &set_cb->cb.tstamp_type.default_val;
+                return set_cb->cb.tstamp_type.set(dimpl, indices, val);
             }
             break;
 
@@ -698,36 +538,36 @@ bool Device_impl_set_state_key(
 
     assert(strlen(key) < KQT_KEY_LENGTH_MAX);
     char keyp[KQT_KEY_LENGTH_MAX] = "";
-    Device_key_indices indices = { 0 };
-    memset(indices, '\xff', DEVICE_KEY_INDICES_MAX * sizeof(int32_t));
+    Key_indices indices = { 0 };
+    memset(indices, '\xff', KEY_INDICES_MAX * sizeof(int32_t));
 
-    process_key(key, keyp, indices);
+    extract_key_pattern(key, keyp, indices);
 
     const Set_cb* set_cb = AAtree_get_exact(dimpl->set_cbs, keyp);
     if (set_cb != NULL)
     {
-#define SET_FIELD(type_name, type)                               \
-        if (true)                                                \
-        {                                                        \
-            const type* dval = Device_params_get_##type_name(    \
-                    dimpl->device->dparams, key);                \
-            const type val = (dval != NULL) ?                    \
-                *dval : set_cb->cb.type_name##_type.default_val; \
-            if (set_cb->cb.type_name##_type.set_state != NULL)   \
-                return set_cb->cb.type_name##_type.set_state(    \
-                        dimpl, dstate, indices, val);            \
-        }                                                        \
+#define SET_FIELD(type_name, type)                                 \
+        if (true)                                                  \
+        {                                                          \
+            const type* dval = Device_params_get_ ## type_name(    \
+                    dimpl->device->dparams, key);                  \
+            const type val = (dval != NULL) ?                      \
+                *dval : set_cb->cb.type_name ## _type.default_val; \
+            if (set_cb->cb.type_name ## _type.set_state != NULL)   \
+                return set_cb->cb.type_name ## _type.set_state(    \
+                        dimpl, dstate, indices, val);              \
+        }                                                          \
         else (void)0
 
-#define SET_FIELDP(type_name, type)                          \
-        if (true)                                            \
-        {                                                    \
-            const type* val = Device_params_get_##type_name( \
-                    dimpl->device->dparams, key);            \
-            if (set_cb->cb.type##_type.set_state != NULL)    \
-                return set_cb->cb.type##_type.set_state(     \
-                        dimpl, dstate, indices, val);        \
-        }                                                    \
+#define SET_FIELDP(type_name, type)                              \
+        if (true)                                                \
+        {                                                        \
+            const type* val = Device_params_get_ ## type_name(   \
+                    dimpl->device->dparams, key);                \
+            if (set_cb->cb.type_name ## _type.set_state != NULL) \
+                return set_cb->cb.type_name ## _type.set_state(  \
+                        dimpl, dstate, indices, val);            \
+        }                                                        \
         else (void)0
 
         const Device_field_type dftype = get_keyp_device_field_type(
@@ -753,8 +593,8 @@ bool Device_impl_set_state_key(
                 const Tstamp* dval = Device_params_get_tstamp(
                         dimpl->device->dparams, key);
                 const Tstamp* val = (dval != NULL)
-                    ? dval : &set_cb->cb.Tstamp_type.default_val;
-                return set_cb->cb.Tstamp_type.set_state(
+                    ? dval : &set_cb->cb.tstamp_type.default_val;
+                return set_cb->cb.tstamp_type.set_state(
                         dimpl, dstate, indices, val);
             }
             break;
@@ -795,36 +635,32 @@ bool Device_impl_set_state_key(
 }
 
 
-#define UPDATE_STATE_VALUE(type_name, type_upper, ctype)                   \
-    void Device_impl_update_state_##type_name(                             \
-            const Device_impl* dimpl,                                      \
-            Device_state* dstate,                                          \
-            const char* key,                                               \
-            ctype value)                                                   \
-    {                                                                      \
-        assert(dimpl != NULL);                                             \
-        assert(dstate != NULL);                                            \
-        assert(key != NULL);                                               \
-                                                                           \
-        assert(strlen(key) < KQT_KEY_LENGTH_MAX);                          \
-        char keyp[KQT_KEY_LENGTH_MAX] = "";                                \
-        Device_key_indices indices = { 0 };                                \
-        memset(indices, '\xff', DEVICE_KEY_INDICES_MAX * sizeof(int32_t)); \
-                                                                           \
-        process_key(key, keyp, indices);                                   \
-                                                                           \
-        const Update_state_cb* update_state_cb = AAtree_get_exact(         \
-                dimpl->update_state_cbs,                                   \
-                keyp);                                                     \
-        if (update_state_cb != NULL &&                                     \
-                update_state_cb->type == VALUE_TYPE_##type_upper)          \
-            update_state_cb->cb.update_##type_name(                        \
-                    dimpl,                                                 \
-                    dstate,                                                \
-                    indices,                                               \
-                    value);                                                \
-                                                                           \
-        return;                                                            \
+#define UPDATE_STATE_VALUE(type_name, type_upper, ctype)            \
+    void Device_impl_update_state_ ## type_name(                    \
+            const Device_impl* dimpl,                               \
+            Device_state* dstate,                                   \
+            const char* key,                                        \
+            ctype value)                                            \
+    {                                                               \
+        assert(dimpl != NULL);                                      \
+        assert(dstate != NULL);                                     \
+        assert(key != NULL);                                        \
+                                                                    \
+        assert(strlen(key) < KQT_KEY_LENGTH_MAX);                   \
+        char keyp[KQT_KEY_LENGTH_MAX] = "";                         \
+        Key_indices indices = { 0 };                                \
+        memset(indices, '\xff', KEY_INDICES_MAX * sizeof(int32_t)); \
+                                                                    \
+        extract_key_pattern(key, keyp, indices);                    \
+                                                                    \
+        const Update_state_cb* update_state_cb = AAtree_get_exact(  \
+                dimpl->update_state_cbs, keyp);                     \
+        if (update_state_cb != NULL &&                              \
+                update_state_cb->type == VALUE_TYPE_ ## type_upper) \
+            update_state_cb->cb.update_ ## type_name(               \
+                    dimpl, dstate, indices, value);                 \
+                                                                    \
+        return;                                                     \
     }
 
 UPDATE_STATE_VALUE(bool, BOOL, bool)
@@ -847,20 +683,17 @@ void Device_impl_update_state_tstamp(
 
     assert(strlen(key) < KQT_KEY_LENGTH_MAX);
     char keyp[KQT_KEY_LENGTH_MAX] = "";
-    Device_key_indices indices = { 0 };
-    memset(indices, '\xff', DEVICE_KEY_INDICES_MAX * sizeof(int32_t));
+    Key_indices indices = { 0 };
+    memset(indices, '\xff', KEY_INDICES_MAX * sizeof(int32_t));
 
-    process_key(key, keyp, indices);
+    extract_key_pattern(key, keyp, indices);
 
     const Update_state_cb* update_state_cb = AAtree_get_exact(
             dimpl->update_state_cbs,
             keyp);
     if (update_state_cb != NULL && update_state_cb->type == VALUE_TYPE_TSTAMP)
         update_state_cb->cb.update_tstamp(
-                dimpl,
-                dstate,
-                indices,
-                value);
+                dimpl, dstate, indices, value);
 
     return;
 }

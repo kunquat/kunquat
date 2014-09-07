@@ -38,10 +38,7 @@ typedef struct DSP_gc
 } DSP_gc;
 
 
-static bool DSP_gc_set_map(
-        Device_impl* dimpl,
-        Device_key_indices indices,
-        const Envelope* value);
+static Set_envelope_func DSP_gc_set_map;
 
 static void DSP_gc_process(
         const Device* device,
@@ -87,9 +84,7 @@ Device_impl* new_DSP_gc(DSP* dsp)
 
 
 static bool DSP_gc_set_map(
-        Device_impl* dimpl,
-        Device_key_indices indices,
-        const Envelope* value)
+        Device_impl* dimpl, Key_indices indices, const Envelope* value)
 {
     assert(dimpl != NULL);
     assert(indices != NULL);

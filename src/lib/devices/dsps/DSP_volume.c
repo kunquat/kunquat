@@ -42,28 +42,15 @@ typedef struct DSP_volume
 
 
 static Device_state* DSP_volume_create_state(
-        const Device* device,
-        int32_t audio_rate,
-        int32_t audio_buffer_size);
+        const Device* device, int32_t audio_rate, int32_t audio_buffer_size);
 
 static void DSP_volume_reset(const Device_impl* dimpl, Device_state* dstate);
 
-static bool DSP_volume_set_volume(
-        Device_impl* dimpl,
-        Device_key_indices indices,
-        double value);
+static Set_float_func DSP_volume_set_volume;
 
-static bool DSP_volume_set_state_volume(
-        const Device_impl* dimpl,
-        Device_state* dstate,
-        Device_key_indices indices,
-        double value);
+static Set_state_float_func DSP_volume_set_state_volume;
 
-static void DSP_volume_update_state_volume(
-        const Device_impl* dimpl,
-        Device_state* dstate,
-        Device_key_indices indices,
-        double value);
+static Update_float_func DSP_volume_update_state_volume;
 
 
 static void DSP_volume_process(
@@ -127,9 +114,7 @@ Device_impl* new_DSP_volume(DSP* dsp)
 
 
 static Device_state* DSP_volume_create_state(
-        const Device* device,
-        int32_t audio_rate,
-        int32_t audio_buffer_size)
+        const Device* device, int32_t audio_rate, int32_t audio_buffer_size)
 {
     assert(device != NULL);
     assert(audio_rate > 0);
@@ -171,9 +156,7 @@ static double dB_to_scale(double vol_dB)
 
 
 static bool DSP_volume_set_volume(
-        Device_impl* dimpl,
-        Device_key_indices indices,
-        double value)
+        Device_impl* dimpl, Key_indices indices, double value)
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
@@ -189,7 +172,7 @@ static bool DSP_volume_set_volume(
 static bool DSP_volume_set_state_volume(
         const Device_impl* dimpl,
         Device_state* dstate,
-        Device_key_indices indices,
+        Key_indices indices,
         double value)
 {
     assert(dimpl != NULL);
@@ -205,7 +188,7 @@ static bool DSP_volume_set_state_volume(
 static void DSP_volume_update_state_volume(
         const Device_impl* dimpl,
         Device_state* dstate,
-        Device_key_indices indices,
+        Key_indices indices,
         double value)
 {
     assert(dimpl != NULL);
