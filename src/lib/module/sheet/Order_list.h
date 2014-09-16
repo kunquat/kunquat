@@ -61,6 +61,20 @@ Pat_inst_ref* Order_list_get_pat_inst_ref(const Order_list* ol, size_t index);
 
 
 /**
+ * Check if a Pattern instance reference is in the Order list.
+ *
+ * The implementation performs a linear search over the Order list.
+ *
+ * \param ol      The Order list -- must not be \c NULL.
+ * \param piref   The Pattern instance reference to look for -- must not be
+ *                \c NULL.
+ *
+ * \return   \c true if \a ol contains \a piref, otherwise \c false.
+ */
+bool Order_list_contains_pat_inst_ref(const Order_list* ol, const Pat_inst_ref* piref);
+
+
+/**
  * Destroy an existing Order list.
  *
  * \param ol   The Order list, or \c NULL.

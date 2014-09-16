@@ -122,6 +122,7 @@ class Share():
     def get_icon_path(self, icon_name):
         valid_names = [
                 'play',
+                'play_pattern',
                 'record',
                 'silence',
                 'edit',

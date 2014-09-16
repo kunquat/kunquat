@@ -32,6 +32,9 @@ void Cgiter_init(Cgiter* cgiter, const Module* module, int col_index)
 
     cgiter->row_returned = false;
 
+    cgiter->has_finished = false;
+    cgiter->is_pattern_playback_state = false;
+
     return;
 }
 
@@ -66,19 +69,34 @@ static const Pat_inst_ref* find_pat_inst_ref(
 void Cgiter_reset(Cgiter* cgiter, const Position* start_pos)
 {
     assert(cgiter != NULL);
-    assert(Position_is_valid(start_pos));
 
-    cgiter->pos = *start_pos;
-    const Pat_inst_ref* piref = find_pat_inst_ref(
-            cgiter->module,
-            cgiter->pos.track,
-            cgiter->pos.system);
-    if (piref != NULL)
-        cgiter->pos.piref = *piref;
+    if (Position_is_valid(start_pos))
+    {
+        // Normal playback
+        cgiter->pos = *start_pos;
+        const Pat_inst_ref* piref = find_pat_inst_ref(
+                cgiter->module,
+                cgiter->pos.track,
+                cgiter->pos.system);
+        if (piref != NULL)
+            cgiter->pos.piref = *piref;
+        else
+            cgiter->pos.track = -1;
+
+        cgiter->is_pattern_playback_state = false;
+    }
     else
-        cgiter->pos.track = -1;
+    {
+        // Pattern playback mode
+        assert(Position_has_valid_pattern_pos(start_pos));
+        cgiter->pos = *start_pos;
+
+        cgiter->is_pattern_playback_state = true;
+    }
 
     cgiter->row_returned = false;
+
+    cgiter->has_finished = false;
 
 #if 0
     fprintf(stderr, "iter pos: %d %d %d %d %d %d\n",
@@ -110,10 +128,19 @@ const Trigger_row* Cgiter_get_trigger_row(Cgiter* cgiter)
 
     // Find pattern
     const Pattern* pattern = NULL;
-    const Pat_inst_ref* piref = find_pat_inst_ref(
-        cgiter->module,
-        cgiter->pos.track,
-        cgiter->pos.system);
+    const Pat_inst_ref* piref = NULL;
+    if (cgiter->is_pattern_playback_state)
+    {
+        piref = &cgiter->pos.piref;
+    }
+    else
+    {
+        piref = find_pat_inst_ref(
+            cgiter->module,
+            cgiter->pos.track,
+            cgiter->pos.system);
+    }
+
     if (piref != NULL)
         pattern = Module_get_pattern(cgiter->module, piref);
 
@@ -162,10 +189,19 @@ bool Cgiter_peek(Cgiter* cgiter, Tstamp* dist)
 
     // Find pattern
     const Pattern* pattern = NULL;
-    const Pat_inst_ref* piref = find_pat_inst_ref(
-        cgiter->module,
-        cgiter->pos.track,
-        cgiter->pos.system);
+    const Pat_inst_ref* piref = NULL;
+    if (cgiter->is_pattern_playback_state)
+    {
+        piref = &cgiter->pos.piref;
+    }
+    else
+    {
+        piref = find_pat_inst_ref(
+            cgiter->module,
+            cgiter->pos.track,
+            cgiter->pos.system);
+    }
+
     if (piref != NULL)
         pattern = Module_get_pattern(cgiter->module, piref);
 
@@ -223,12 +259,9 @@ bool Cgiter_peek(Cgiter* cgiter, Tstamp* dist)
 static void Cgiter_go_to_next_system(Cgiter* cgiter)
 {
     assert(cgiter != NULL);
+    assert(!cgiter->is_pattern_playback_state);
 
     Tstamp_set(&cgiter->pos.pat_pos, 0, 0);
-
-    // TODO: make this work
-    //if (player->state == PLAYBACK_PATTERN)
-    //    return;
 
     ++cgiter->pos.system;
     cgiter->pos.piref.pat = -1;
@@ -239,7 +272,7 @@ static void Cgiter_go_to_next_system(Cgiter* cgiter)
     if (piref != NULL)
         cgiter->pos.piref = *piref;
     else
-        cgiter->pos.track = -1;
+        cgiter->has_finished = true;
 
     return;
 }
@@ -260,7 +293,7 @@ void Cgiter_move(Cgiter* cgiter, const Tstamp* dist)
             &cgiter->pos.piref);
     if (pattern == NULL)
     {
-        cgiter->pos.track = -1;
+        cgiter->has_finished = true;
         return;
     }
 
@@ -269,7 +302,19 @@ void Cgiter_move(Cgiter* cgiter, const Tstamp* dist)
     if (Tstamp_cmp(&cgiter->pos.pat_pos, pat_length) >= 0)
     {
         // dist must be 0 or the pattern length changed
-        Cgiter_go_to_next_system(cgiter);
+        if (cgiter->is_pattern_playback_state)
+        {
+            Tstamp_set(&cgiter->pos.pat_pos, 0, 0);
+
+            // Play zero-length pattern only once to avoid infinite loop
+            if (Tstamp_cmp(pat_length, TSTAMP_AUTO) == 0)
+                cgiter->has_finished = true;
+        }
+        else
+        {
+            Cgiter_go_to_next_system(cgiter);
+        }
+
         cgiter->row_returned = false;
         return;
     }
@@ -286,7 +331,7 @@ void Cgiter_move(Cgiter* cgiter, const Tstamp* dist)
 bool Cgiter_has_finished(const Cgiter* cgiter)
 {
     assert(cgiter != NULL);
-    return !Position_is_valid(&cgiter->pos);
+    return cgiter->has_finished;
 }
 
 

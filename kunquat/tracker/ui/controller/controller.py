@@ -193,6 +193,11 @@ class Controller():
     def play(self):
         self._audio_engine.nanoseconds(0)
 
+    def play_pattern(self, pattern_instance):
+        self.play()
+        play_event = ('Ipattern', pattern_instance)
+        self._audio_engine.tfire_event(0, play_event)
+
     def silence(self):
         self._audio_engine.silence()
 

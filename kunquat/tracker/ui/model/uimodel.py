@@ -200,6 +200,30 @@ class UiModel():
     def play(self):
         self._controller.play()
 
+    def play_pattern(self):
+        module = self.get_module()
+        album = module.get_album()
+        if not album:
+            return
+
+        selection = self.get_selection()
+        location = selection.get_location()
+        if not location:
+            return
+
+        track = location.get_track()
+        if track >= album.get_track_count():
+            return
+
+        song = album.get_song_by_track(track)
+
+        system = location.get_system()
+        if system >= song.get_system_count():
+            return
+
+        pi = song.get_pattern_instance(system)
+        self._controller.play_pattern((pi.get_pattern_num(), pi.get_instance_num()))
+
     def silence(self):
         self._controller.silence()
 

@@ -53,6 +53,17 @@ void Position_init(Position* pos);
 bool Position_is_valid(const Position* pos);
 
 
+/**
+ * Check the validity of the pattern position inside the Position.
+ *
+ * \param pos   The Position, or \c NULL.
+ *
+ * \return   \c true if \a pos contains a valid Pattern instance reference and
+ *           row position, otherwise \c false.
+ */
+bool Position_has_valid_pattern_pos(const Position* pos);
+
+
 #endif // K_POSITION_H
 
 

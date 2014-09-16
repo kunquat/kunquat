@@ -17,6 +17,8 @@ from pattern import Pattern
 class PatternInstance():
 
     def __init__(self, pattern_num, instance_num):
+        self._pattern_num = pattern_num
+        self._instance_num = instance_num
         self._pattern_id = 'pat_{:03x}'.format(pattern_num)
         self._instance_id = 'instance_{:03x}'.format(instance_num)
         self._store = None
@@ -30,5 +32,11 @@ class PatternInstance():
         pattern = Pattern(self._pattern_id)
         pattern.set_controller(self._controller)
         return pattern
+
+    def get_pattern_num(self):
+        return self._pattern_num
+
+    def get_instance_num(self):
+        return self._instance_num
 
 

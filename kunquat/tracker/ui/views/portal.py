@@ -17,6 +17,7 @@ from PyQt4.QtGui import *
 
 import kunquat.tracker.cmdline as cmdline
 from playbutton import PlayButton
+from playpatternbutton import PlayPatternButton
 from recordbutton import RecordButton
 from silencebutton import SilenceButton
 from eventlistbutton import EventListButton
@@ -32,6 +33,7 @@ class Portal(QToolBar):
         QToolBar.__init__(self)
         self._ui_model = None
         self._play_button = PlayButton()
+        self._play_pattern_button = PlayPatternButton()
         self._record_button = RecordButton()
         self._silence_button = SilenceButton()
         self._event_list_button = EventListButton()
@@ -41,6 +43,7 @@ class Portal(QToolBar):
         self._save_button = SaveButton()
 
         self.addWidget(self._play_button)
+        self.addWidget(self._play_pattern_button)
         self.addWidget(self._record_button)
         self.addWidget(self._silence_button)
         self.addSeparator()
@@ -55,6 +58,7 @@ class Portal(QToolBar):
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._play_button.set_ui_model(ui_model)
+        self._play_pattern_button.set_ui_model(ui_model)
         self._record_button.set_ui_model(ui_model)
         self._silence_button.set_ui_model(ui_model)
         self._event_list_button.set_ui_model(ui_model)
@@ -71,5 +75,6 @@ class Portal(QToolBar):
         self._event_list_button.unregister_updaters()
         self._silence_button.unregister_updaters()
         self._record_button.unregister_updaters()
+        self._play_pattern_button.unregister_updaters()
         self._play_button.unregister_updaters()
 

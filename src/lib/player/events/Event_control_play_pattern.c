@@ -20,6 +20,7 @@
 #include <player/Event_type.h>
 #include <player/events/Event_common.h>
 #include <player/events/Event_control_decl.h>
+#include <player/Master_params.h>
 #include <Value.h>
 
 
@@ -28,20 +29,24 @@ bool Event_control_play_pattern_process(General_state* gstate, const Value* valu
     assert(gstate != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_PAT_INST_REF);
-    (void)value;
 
     if (!gstate->global)
         return false;
 
-    return false;
+    Master_params* master_params = (Master_params*)gstate;
+    master_params->playback_state = PLAYBACK_PATTERN;
+    master_params->pattern_playback_flag = true;
 
-#if 0
-    Playdata* global_state = (Playdata*)gstate;
-    global_state->piref = value->value.Pat_inst_ref_type;
-    global_state->mode = PLAY_PATTERN;
-    Tstamp_set(&global_state->pos, 0, 0);
+    master_params->cur_pos.track = -1;
+    master_params->cur_pos.system = -1;
+    Tstamp_set(&master_params->cur_pos.pat_pos, 0, 0);
+    master_params->cur_pos.piref = value->value.Pat_inst_ref_type;
+
+    // Reset parameters to make sure we start at the new location immediately
+    master_params->parent.pause = false;
+    Tstamp_set(&master_params->delay_left, 0, 0);
+
     return true;
-#endif
 }
 
 
