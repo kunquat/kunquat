@@ -38,9 +38,9 @@ typedef struct Song
 } Song;
 
 
-#define SONG_DEFAULT_TEMPO (120)
-#define SONG_DEFAULT_GLOBAL_VOL (-4)
-#define SONG_DEFAULT_SCALE (0)
+#define SONG_DEFAULT_TEMPO 120
+#define SONG_DEFAULT_GLOBAL_VOL -4
+#define SONG_DEFAULT_SCALE 0
 
 
 /**

@@ -22,6 +22,7 @@
 #include <string.h>
 #include <stdarg.h>
 
+#include <Connections.h>
 #include <debug/assert.h>
 #include <Handle_private.h>
 #include <kunquat/limits.h>
@@ -169,6 +170,7 @@ bool Handle_init(Handle* handle)
 
     handle->data_is_valid = true;
     handle->data_is_validated = true;
+    handle->update_connections = false;
     handle->module = NULL;
     handle->error = *ERROR_AUTO;
     handle->validation_error = *ERROR_AUTO;
@@ -231,6 +233,29 @@ void kqt_Handle_clear_error(kqt_Handle handle)
     Error_clear(&h->error);
 
     return;
+}
+
+
+static bool Handle_update_connections(Handle* handle)
+{
+    assert(handle != NULL);
+
+    Module* module = Handle_get_module(handle);
+    Connections* graph = module->connections;
+
+    if (graph == NULL)
+        return true;
+
+    Device_states* states = Player_get_device_states(handle->player);
+
+    if (!Connections_prepare(graph, states))
+    {
+        Handle_set_error(handle, ERROR_MEMORY,
+                "Couldn't allocate memory for connections");
+        return false;
+    }
+
+    return true;
 }
 
 
@@ -410,6 +435,15 @@ int kqt_Handle_validate(kqt_Handle handle)
     }
 
     h->data_is_validated = true;
+
+    // Update connections if needed
+    if (h->update_connections)
+    {
+        if (!Handle_update_connections(h))
+            return 0;
+
+        h->update_connections = false;
+    }
 
     return 1;
 }

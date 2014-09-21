@@ -28,13 +28,36 @@
 #include <devices/param_types/Num_list.h>
 #include <devices/param_types/Sample.h>
 #include <player/Device_state.h>
+#include <string/key_pattern.h>
 #include <Tstamp.h>
 
 
-#define DEVICE_KEY_INDICES_MAX 8
+// typedefs for value setter/updater callbacks
 
+#define SET_FUNC_TYPE(name, actual_type)                                          \
+    typedef bool (Set_ ## name ## _func)(Device_impl*, Key_indices, actual_type); \
+    typedef bool (Set_state_ ## name ## _func)(                                   \
+            const Device_impl*, Device_state*, Key_indices, actual_type)
+SET_FUNC_TYPE(bool,             bool);
+SET_FUNC_TYPE(int,              int64_t);
+SET_FUNC_TYPE(float,            double);
+SET_FUNC_TYPE(tstamp,           const Tstamp*);
+SET_FUNC_TYPE(envelope,         const Envelope*);
+SET_FUNC_TYPE(sample,           const Sample*);
+SET_FUNC_TYPE(sample_params,    const Sample_params*);
+SET_FUNC_TYPE(note_map,         const Note_map*);
+SET_FUNC_TYPE(hit_map,          const Hit_map*);
+SET_FUNC_TYPE(num_list,         const Num_list*);
+#undef SET_FUNC_TYPE
 
-typedef int32_t Device_key_indices[DEVICE_KEY_INDICES_MAX];
+#define UPDATE_FUNC_TYPE(name, actual_type)                              \
+    typedef void (Update_ ## name ## _func)(                             \
+            const Device_impl*, Device_state*, Key_indices, actual_type)
+UPDATE_FUNC_TYPE(bool,      bool);
+UPDATE_FUNC_TYPE(int,       int64_t);
+UPDATE_FUNC_TYPE(float,     double);
+UPDATE_FUNC_TYPE(tstamp,    const Tstamp*);
+#undef UPDATE_FUNC_TYPE
 
 
 /**
@@ -62,9 +85,7 @@ struct Device_impl
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Device_impl_init(
-        Device_impl* dimpl,
-        void (*destroy)(Device_impl* dimpl));
+bool Device_impl_init(Device_impl* dimpl, void (*destroy)(Device_impl* dimpl));
 
 
 /**
@@ -143,15 +164,8 @@ bool Device_impl_register_set_bool(
         Device_impl* dimpl,
         const char* keyp,
         bool default_val,
-        bool (*set_func)(
-            Device_impl*,
-            Device_key_indices,
-            bool),
-        bool (*set_state_func)(
-            const Device_impl*,
-            Device_state*,
-            Device_key_indices,
-            bool));
+        Set_bool_func set_func,
+        Set_state_bool_func set_state_func);
 
 
 /**
@@ -160,10 +174,11 @@ bool Device_impl_register_set_bool(
  * See \a Device_impl_register_set_bool for a detailed description of the
  * \a keyp argument.
  *
- * \param dimpl         The Device implementation -- must not be \c NULL.
- * \param keyp          The key pattern -- must not be \c NULL.
- * \param default_val   The default value passed to callbacks.
- * \param set_func      The set function -- must not be \c NULL.
+ * \param dimpl            The Device implementation -- must not be \c NULL.
+ * \param keyp             The key pattern -- must not be \c NULL.
+ * \param default_val      The default value passed to callbacks.
+ * \param set_func         The set function -- must not be \c NULL.
+ * \param set_state_func   The set state function, or \c NULL if not used.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
@@ -171,15 +186,8 @@ bool Device_impl_register_set_float(
         Device_impl* dimpl,
         const char* keyp,
         double default_val,
-        bool (*set_func)(
-            Device_impl*,
-            Device_key_indices,
-            double),
-        bool (*set_state_func)(
-            const Device_impl*,
-            Device_state*,
-            Device_key_indices,
-            double));
+        Set_float_func set_func,
+        Set_state_float_func set_state_func);
 
 
 /**
@@ -188,10 +196,11 @@ bool Device_impl_register_set_float(
  * See \a Device_impl_register_set_bool for a detailed description of the
  * \a keyp argument.
  *
- * \param dimpl         The Device implementation -- must not be \c NULL.
- * \param keyp          The key pattern -- must not be \c NULL.
- * \param default_val   The default value passed to callbacks.
- * \param set_func      The set function -- must not be \c NULL.
+ * \param dimpl            The Device implementation -- must not be \c NULL.
+ * \param keyp             The key pattern -- must not be \c NULL.
+ * \param default_val      The default value passed to callbacks.
+ * \param set_func         The set function -- must not be \c NULL.
+ * \param set_state_func   The set state function, or \c NULL if not used.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
@@ -199,15 +208,8 @@ bool Device_impl_register_set_int(
         Device_impl* dimpl,
         const char* keyp,
         int64_t default_val,
-        bool (*set_func)(
-            Device_impl*,
-            Device_key_indices,
-            int64_t),
-        bool (*set_state_func)(
-            const Device_impl*,
-            Device_state*,
-            Device_key_indices,
-            int64_t));
+        Set_int_func set_func,
+        Set_state_int_func set_state_func);
 
 
 /**
@@ -216,11 +218,12 @@ bool Device_impl_register_set_int(
  * See \a Device_impl_register_set_bool for a detailed description of the
  * \a keyp argument.
  *
- * \param dimpl         The Device implementation -- must not be \c NULL.
- * \param keyp          The key pattern -- must not be \c NULL.
- * \param default_val   The default value passed to callbacks
- *                      -- must not be \c NULL.
- * \param set_func      The set function -- must not be \c NULL.
+ * \param dimpl            The Device implementation -- must not be \c NULL.
+ * \param keyp             The key pattern -- must not be \c NULL.
+ * \param default_val      The default value passed to callbacks
+ *                         -- must not be \c NULL.
+ * \param set_func         The set function -- must not be \c NULL.
+ * \param set_state_func   The set state function, or \c NULL if not used.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
@@ -228,15 +231,8 @@ bool Device_impl_register_set_tstamp(
         Device_impl* dimpl,
         const char* keyp,
         const Tstamp* default_val,
-        bool (*set_func)(
-            Device_impl*,
-            Device_key_indices,
-            const Tstamp*),
-        bool (*set_state_func)(
-            const Device_impl*,
-            Device_state*,
-            Device_key_indices,
-            const Tstamp*));
+        Set_tstamp_func set_func,
+        Set_state_tstamp_func set_state_func);
 
 
 /**
@@ -245,11 +241,12 @@ bool Device_impl_register_set_tstamp(
  * See \a Device_impl_register_set_bool for a detailed description of the
  * \a keyp argument.
  *
- * \param dimpl         The Device implementation -- must not be \c NULL.
- * \param keyp          The key pattern -- must not be \c NULL.
- * \param default_val   The default value passed to callbacks
- *                      -- must not be \c NULL.
- * \param set_func      The set function -- must not be \c NULL.
+ * \param dimpl            The Device implementation -- must not be \c NULL.
+ * \param keyp             The key pattern -- must not be \c NULL.
+ * \param default_val      The default value passed to callbacks
+ *                         -- must not be \c NULL.
+ * \param set_func         The set function -- must not be \c NULL.
+ * \param set_state_func   The set state function, or \c NULL if not used.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
@@ -257,15 +254,8 @@ bool Device_impl_register_set_envelope(
         Device_impl* dimpl,
         const char* keyp,
         const Envelope* default_val,
-        bool (*set_func)(
-            Device_impl*,
-            Device_key_indices,
-            const Envelope*),
-        bool (*set_state_func)(
-            const Device_impl*,
-            Device_state*,
-            Device_key_indices,
-            const Envelope*));
+        Set_envelope_func set_func,
+        Set_state_envelope_func set_state_func);
 
 
 /**
@@ -274,11 +264,12 @@ bool Device_impl_register_set_envelope(
  * See \a Device_impl_register_set_bool for a detailed description of the
  * \a keyp argument.
  *
- * \param dimpl         The Device implementation -- must not be \c NULL.
- * \param keyp          The key pattern -- must not be \c NULL.
- * \param default_val   The default value passed to callbacks
- *                      -- must not be \c NULL.
- * \param set_func      The set function -- must not be \c NULL.
+ * \param dimpl            The Device implementation -- must not be \c NULL.
+ * \param keyp             The key pattern -- must not be \c NULL.
+ * \param default_val      The default value passed to callbacks
+ *                         -- must not be \c NULL.
+ * \param set_func         The set function -- must not be \c NULL.
+ * \param set_state_func   The set state function, or \c NULL if not used.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
@@ -286,15 +277,8 @@ bool Device_impl_register_set_sample(
         Device_impl* dimpl,
         const char* keyp,
         const Sample* default_val,
-        bool (*set_func)(
-            Device_impl*,
-            Device_key_indices,
-            const Sample*),
-        bool (*set_state_func)(
-            const Device_impl*,
-            Device_state*,
-            Device_key_indices,
-            const Sample*));
+        Set_sample_func set_func,
+        Set_state_sample_func set_state_func);
 
 
 /**
@@ -303,11 +287,12 @@ bool Device_impl_register_set_sample(
  * See \a Device_impl_register_set_bool for a detailed description of the
  * \a keyp argument.
  *
- * \param dimpl         The Device implementation -- must not be \c NULL.
- * \param keyp          The key pattern -- must not be \c NULL.
- * \param default_val   The default value passed to callbacks
- *                      -- must not be \c NULL.
- * \param set_func      The set function -- must not be \c NULL.
+ * \param dimpl            The Device implementation -- must not be \c NULL.
+ * \param keyp             The key pattern -- must not be \c NULL.
+ * \param default_val      The default value passed to callbacks
+ *                         -- must not be \c NULL.
+ * \param set_func         The set function -- must not be \c NULL.
+ * \param set_state_func   The set state function, or \c NULL if not used.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
@@ -315,15 +300,8 @@ bool Device_impl_register_set_sample_params(
         Device_impl* dimpl,
         const char* keyp,
         const Sample_params* default_val,
-        bool (*set_func)(
-            Device_impl*,
-            Device_key_indices,
-            const Sample_params*),
-        bool (*set_state_func)(
-            const Device_impl*,
-            Device_state*,
-            Device_key_indices,
-            const Sample_params*));
+        Set_sample_params_func set_func,
+        Set_state_sample_params_func set_state_func);
 
 
 /**
@@ -332,11 +310,12 @@ bool Device_impl_register_set_sample_params(
  * See \a Device_impl_register_set_bool for a detailed description of the
  * \a keyp argument.
  *
- * \param dimpl         The Device implementation -- must not be \c NULL.
- * \param keyp          The key pattern -- must not be \c NULL.
- * \param default_val   The default value passed to callbacks
- *                      -- must not be \c NULL.
- * \param set_func      The set function -- must not be \c NULL.
+ * \param dimpl            The Device implementation -- must not be \c NULL.
+ * \param keyp             The key pattern -- must not be \c NULL.
+ * \param default_val      The default value passed to callbacks
+ *                         -- must not be \c NULL.
+ * \param set_func         The set function -- must not be \c NULL.
+ * \param set_state_func   The set state function, or \c NULL if not used.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
@@ -344,15 +323,8 @@ bool Device_impl_register_set_note_map(
         Device_impl* dimpl,
         const char* keyp,
         const Note_map* default_val,
-        bool (*set_func)(
-            Device_impl*,
-            Device_key_indices,
-            const Note_map*),
-        bool (*set_state_func)(
-            const Device_impl*,
-            Device_state*,
-            Device_key_indices,
-            const Note_map*));
+        Set_note_map_func set_func,
+        Set_state_note_map_func set_state_func);
 
 
 /**
@@ -361,11 +333,12 @@ bool Device_impl_register_set_note_map(
  * See \a Device_impl_register_set_bool for a detailed description of the
  * \a keyp argument.
  *
- * \param dimpl         The Device implementation -- must not be \c NULL.
- * \param keyp          The key pattern -- must not be \c NULL.
- * \param default_val   The default value passed to callbacks
- *                      -- must not be \c NULL.
- * \param set_func      The set function -- must not be \c NULL.
+ * \param dimpl            The Device implementation -- must not be \c NULL.
+ * \param keyp             The key pattern -- must not be \c NULL.
+ * \param default_val      The default value passed to callbacks
+ *                         -- must not be \c NULL.
+ * \param set_func         The set function -- must not be \c NULL.
+ * \param set_state_func   The set state function, or \c NULL if not used.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
@@ -373,15 +346,8 @@ bool Device_impl_register_set_hit_map(
         Device_impl* dimpl,
         const char* keyp,
         const Hit_map* default_val,
-        bool (*set_func)(
-            Device_impl*,
-            Device_key_indices,
-            const Hit_map*),
-        bool (*set_state_func)(
-            const Device_impl*,
-            Device_state*,
-            Device_key_indices,
-            const Hit_map*));
+        Set_hit_map_func set_func,
+        Set_state_hit_map_func set_state_func);
 
 
 /**
@@ -390,11 +356,12 @@ bool Device_impl_register_set_hit_map(
  * See \a Device_impl_register_set_bool for a detailed description of the
  * \a keyp argument.
  *
- * \param dimpl         The Device implementation -- must not be \c NULL.
- * \param keyp          The key pattern -- must not be \c NULL.
- * \param default_val   The default value passed to callbacks
- *                      -- must not be \c NULL.
- * \param set_func      The set function -- must not be \c NULL.
+ * \param dimpl            The Device implementation -- must not be \c NULL.
+ * \param keyp             The key pattern -- must not be \c NULL.
+ * \param default_val      The default value passed to callbacks
+ *                         -- must not be \c NULL.
+ * \param set_func         The set function -- must not be \c NULL.
+ * \param set_state_func   The set state function, or \c NULL if not used.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
@@ -402,15 +369,8 @@ bool Device_impl_register_set_num_list(
         Device_impl* dimpl,
         const char* keyp,
         const Num_list* default_val,
-        bool (*set_func)(
-            Device_impl*,
-            Device_key_indices,
-            const Num_list*),
-        bool (*set_state_func)(
-            const Device_impl*,
-            Device_state*,
-            Device_key_indices,
-            const Num_list*));
+        Set_num_list_func set_func,
+        Set_state_num_list_func set_state_func);
 
 
 /**
@@ -427,13 +387,7 @@ bool Device_impl_register_set_num_list(
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Device_impl_register_update_state_bool(
-        Device_impl* dimpl,
-        const char* keyp,
-        void (*update_state)(
-            const Device_impl*,
-            Device_state*,
-            Device_key_indices,
-            bool));
+        Device_impl* dimpl, const char* keyp, Update_bool_func update_state);
 
 
 /**
@@ -450,13 +404,7 @@ bool Device_impl_register_update_state_bool(
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Device_impl_register_update_state_float(
-        Device_impl* dimpl,
-        const char* keyp,
-        void (*update_state)(
-            const Device_impl*,
-            Device_state*,
-            Device_key_indices,
-            double));
+        Device_impl* dimpl, const char* keyp, Update_float_func update_state);
 
 
 /**
@@ -473,13 +421,7 @@ bool Device_impl_register_update_state_float(
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Device_impl_register_update_state_int(
-        Device_impl* dimpl,
-        const char* keyp,
-        void (*update_state)(
-            const Device_impl*,
-            Device_state*,
-            Device_key_indices,
-            int64_t));
+        Device_impl* dimpl, const char* keyp, Update_int_func update_state);
 
 
 /**
@@ -496,13 +438,7 @@ bool Device_impl_register_update_state_int(
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Device_impl_register_update_state_tstamp(
-        Device_impl* dimpl,
-        const char* keyp,
-        void (*update_state)(
-            const Device_impl*,
-            Device_state*,
-            Device_key_indices,
-            const Tstamp*));
+        Device_impl* dimpl, const char* keyp, Update_tstamp_func update_state);
 
 
 /**
@@ -512,8 +448,7 @@ bool Device_impl_register_update_state_tstamp(
  * \param dstate   The Device state -- must not be \c NULL.
  */
 void Device_impl_reset_device_state(
-        const Device_impl* dimpl,
-        Device_state* dstate);
+        const Device_impl* dimpl, Device_state* dstate);
 
 
 /**
@@ -526,9 +461,7 @@ void Device_impl_reset_device_state(
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Device_impl_set_audio_rate(
-        const Device_impl* dimpl,
-        Device_state* dstate,
-        int32_t audio_rate);
+        const Device_impl* dimpl, Device_state* dstate, int32_t audio_rate);
 
 
 /**
@@ -541,9 +474,7 @@ bool Device_impl_set_audio_rate(
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Device_impl_set_buffer_size(
-        const Device_impl* dimpl,
-        Device_state* dstate,
-        int32_t buffer_size);
+        const Device_impl* dimpl, Device_state* dstate, int32_t buffer_size);
 
 
 /**
@@ -554,9 +485,7 @@ bool Device_impl_set_buffer_size(
  * \param tempo    The new tempo -- must be finite and > \c 0.
  */
 void Device_impl_update_tempo(
-        const Device_impl* dimpl,
-        Device_state* dstate,
-        double tempo);
+        const Device_impl* dimpl, Device_state* dstate, double tempo);
 
 
 /**
@@ -582,9 +511,7 @@ bool Device_impl_set_key(Device_impl* dimpl, const char* key);
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Device_impl_set_state_key(
-        const Device_impl* dimpl,
-        Device_state* dstate,
-        const char* key);
+        const Device_impl* dimpl, Device_state* dstate, const char* key);
 
 
 /**
@@ -596,10 +523,7 @@ bool Device_impl_set_state_key(
  * \param value    The value.
  */
 void Device_impl_update_state_bool(
-        const Device_impl* dimpl,
-        Device_state* dstate,
-        const char* key,
-        bool value);
+        const Device_impl* dimpl, Device_state* dstate, const char* key, bool value);
 
 
 /**
@@ -611,10 +535,7 @@ void Device_impl_update_state_bool(
  * \param value    The value.
  */
 void Device_impl_update_state_float(
-        const Device_impl* dimpl,
-        Device_state* dstate,
-        const char* key,
-        double value);
+        const Device_impl* dimpl, Device_state* dstate, const char* key, double value);
 
 
 /**
@@ -626,10 +547,7 @@ void Device_impl_update_state_float(
  * \param value    The value.
  */
 void Device_impl_update_state_int(
-        const Device_impl* dimpl,
-        Device_state* dstate,
-        const char* key,
-        int64_t value);
+        const Device_impl* dimpl, Device_state* dstate, const char* key, int64_t value);
 
 
 /**

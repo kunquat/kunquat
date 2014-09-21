@@ -11,6 +11,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from kunquat.kunquat.kunquat import get_default_value
+
 from column import Column
 import tstamp
 
@@ -51,7 +53,8 @@ class Pattern():
             length = header['length']
             return tstamp.Tstamp(length)
         except KeyError:
-            return tstamp.Tstamp(16) # TODO: get from libkunquat defaults
+            default_header = get_default_value(key)
+            return tstamp.Tstamp(default_header['length'])
 
     def get_column(self, column_index):
         assert 0 <= column_index < COLUMNS_MAX

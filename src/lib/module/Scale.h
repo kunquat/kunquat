@@ -48,7 +48,7 @@ typedef struct Scale
 } Scale;
 
 
-#define SCALE_DEFAULT_REF_PITCH (523.25113060119725)
+#define SCALE_DEFAULT_REF_PITCH 523.25113060119725
 #define SCALE_DEFAULT_OCTAVE_RATIO (Real_init_as_frac(REAL_AUTO, 2, 1))
 
 

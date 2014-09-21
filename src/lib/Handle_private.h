@@ -41,6 +41,7 @@ typedef struct Handle
 {
     bool data_is_valid;
     bool data_is_validated;
+    bool update_connections;
     Module* module;
     Error error;
     Error validation_error;

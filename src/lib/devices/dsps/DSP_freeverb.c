@@ -156,29 +156,17 @@ static void Freeverb_state_reset(
 
 
 static Device_state* DSP_freeverb_create_state(
-        const Device* device,
-        int32_t audio_rate,
-        int32_t audio_buffer_size);
+        const Device* device, int32_t audio_rate, int32_t audio_buffer_size);
 
 static void DSP_freeverb_reset(const Device_impl* dimpl, Device_state* dstate);
 
-static bool DSP_freeverb_set_refl(
-        Device_impl* dimpl,
-        Device_key_indices indices,
-        double value);
+static void DSP_freeverb_clear_history(const Device_impl* dimpl, DSP_state* dsp_state);
 
-static bool DSP_freeverb_set_damp(
-        Device_impl* dimpl,
-        Device_key_indices indices,
-        double value);
-
-static void DSP_freeverb_clear_history(
-        const Device_impl* dimpl, DSP_state* dsp_state);
+static Set_float_func DSP_freeverb_set_refl;
+static Set_float_func DSP_freeverb_set_damp;
 
 static bool DSP_freeverb_set_audio_rate(
-        const Device_impl* dimpl,
-        Device_state* dstate,
-        int32_t audio_rate);
+        const Device_impl* dimpl, Device_state* dstate, int32_t audio_rate);
 
 static void DSP_freeverb_process(
         const Device* device,
@@ -188,16 +176,12 @@ static void DSP_freeverb_process(
         uint32_t freq,
         double tempo);
 
-
-static void del_DSP_freeverb(Device_impl* dsp_impl);
-
-
-static void DSP_freeverb_update_reflectivity(
-        DSP_freeverb* freeverb,
-        double reflect);
+static void DSP_freeverb_update_reflectivity(DSP_freeverb* freeverb, double reflect);
 static void DSP_freeverb_update_damp(DSP_freeverb* freeverb, double damp);
 static void DSP_freeverb_update_gain(DSP_freeverb* freeverb, double gain);
 static void DSP_freeverb_update_wet(DSP_freeverb* freeverb, double wet);
+
+static void del_DSP_freeverb(Device_impl* dsp_impl);
 
 
 Device_impl* new_DSP_freeverb(DSP* dsp)
@@ -269,9 +253,7 @@ Device_impl* new_DSP_freeverb(DSP* dsp)
 
 
 static Device_state* DSP_freeverb_create_state(
-        const Device* device,
-        int32_t audio_rate,
-        int32_t audio_buffer_size)
+        const Device* device, int32_t audio_rate, int32_t audio_buffer_size)
 {
     assert(device != NULL);
     assert(audio_rate > 0);
@@ -365,8 +347,7 @@ static void DSP_freeverb_reset(const Device_impl* dimpl, Device_state* dstate)
 }
 
 
-static void DSP_freeverb_clear_history(
-        const Device_impl* dimpl, DSP_state* dsp_state)
+static void DSP_freeverb_clear_history(const Device_impl* dimpl, DSP_state* dsp_state)
 {
     assert(dimpl != NULL);
     //assert(string_eq(dsp->type, "freeverb"));
@@ -380,10 +361,7 @@ static void DSP_freeverb_clear_history(
 }
 
 
-static bool DSP_freeverb_set_refl(
-        Device_impl* dimpl,
-        Device_key_indices indices,
-        double value)
+static bool DSP_freeverb_set_refl(Device_impl* dimpl, Key_indices indices, double value)
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
@@ -402,10 +380,7 @@ static bool DSP_freeverb_set_refl(
 }
 
 
-static bool DSP_freeverb_set_damp(
-        Device_impl* dimpl,
-        Device_key_indices indices,
-        double value)
+static bool DSP_freeverb_set_damp(Device_impl* dimpl, Key_indices indices, double value)
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
@@ -425,9 +400,7 @@ static bool DSP_freeverb_set_damp(
 
 
 static bool DSP_freeverb_set_audio_rate(
-        const Device_impl* dimpl,
-        Device_state* dstate,
-        int32_t audio_rate)
+        const Device_impl* dimpl, Device_state* dstate, int32_t audio_rate)
 {
     assert(dimpl != NULL);
     assert(dstate != NULL);
@@ -474,9 +447,7 @@ static bool DSP_freeverb_set_audio_rate(
 }
 
 
-static void DSP_freeverb_update_reflectivity(
-        DSP_freeverb* freeverb,
-        double reflect)
+static void DSP_freeverb_update_reflectivity(DSP_freeverb* freeverb, double reflect)
 {
     assert(freeverb != NULL);
 

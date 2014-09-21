@@ -40,9 +40,7 @@ typedef struct Generator_pcm
 
 
 static void Generator_pcm_init_vstate(
-        const Generator* gen,
-        const Gen_state* gen_state,
-        Voice_state* vstate);
+        const Generator* gen, const Gen_state* gen_state, Voice_state* vstate);
 
 static uint32_t Generator_pcm_mix(
         const Generator* gen,
@@ -107,9 +105,7 @@ const char* Generator_pcm_property(Generator* gen, const char* property_type)
 
 
 static void Generator_pcm_init_vstate(
-        const Generator* gen,
-        const Gen_state* gen_state,
-        Voice_state* vstate)
+        const Generator* gen, const Gen_state* gen_state, Voice_state* vstate)
 {
     assert(gen != NULL);
     //assert(string_eq(gen->type, "pcm"));

@@ -31,10 +31,7 @@ typedef struct Generator_debug
 } Generator_debug;
 
 
-static bool Generator_debug_set_single_pulse(
-        Device_impl* dimpl,
-        Device_key_indices indices,
-        bool value);
+static Set_bool_func Generator_debug_set_single_pulse;
 
 static uint32_t Generator_debug_mix(
         const Generator* gen,
@@ -178,9 +175,7 @@ static uint32_t Generator_debug_mix(
 
 
 static bool Generator_debug_set_single_pulse(
-        Device_impl* dimpl,
-        Device_key_indices indices,
-        bool value)
+        Device_impl* dimpl, Key_indices indices, bool value)
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
