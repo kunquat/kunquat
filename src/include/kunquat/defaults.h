@@ -35,10 +35,10 @@ extern "C" {
  *
  * \param key   The key -- should not be \c NULL. The function does not check
  *              ranges of any numbers contained by the key; however, the
- *              number of digits in those numbers are still significant.
+ *              number of digits in those numbers is still significant.
  *
  * \return   The default value as a JSON string, or an empty string if \a key
- *           was not recognised.
+ *           is not recognised or does not have an associated default value.
  */
 const char* kqt_get_default_value(const char* key);
 
