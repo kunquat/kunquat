@@ -27,6 +27,9 @@ class Instrument():
         self._store = controller.get_store()
         self._controller = controller
 
+    def get_id(self):
+        return self._instrument_id
+
     def get_existence(self):
         key = '%s/p_manifest.json' % self._instrument_id
         manifest = self._store[key]

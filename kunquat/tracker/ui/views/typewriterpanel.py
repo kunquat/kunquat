@@ -19,6 +19,7 @@ import kunquat.tracker.cmdline as cmdline
 from octaveselector import OctaveSelector
 from typewriter import Typewriter
 from instrumentselect import InstrumentSelect
+from instrumenteditbutton import InstrumentEditButton
 from profilecontrol import ProfileControl
 
 
@@ -30,12 +31,17 @@ class TypewriterPanel(QFrame):
         self._octave_selector = OctaveSelector()
         self._typewriter = Typewriter()
         self._instrument_select = InstrumentSelect()
+        self._instrument_edit_button = InstrumentEditButton()
         self._profile_control = ProfileControl()
+
+        ins_layout = QHBoxLayout()
+        ins_layout.addWidget(self._instrument_select)
+        ins_layout.addWidget(self._instrument_edit_button)
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
         v.addWidget(self._octave_selector)
-        v.addWidget(self._instrument_select)
+        v.addLayout(ins_layout)
         v.addWidget(self._typewriter)
         self.setLayout(v)
 
@@ -49,6 +55,7 @@ class TypewriterPanel(QFrame):
         self._octave_selector.set_ui_model(ui_model)
         self._typewriter.set_ui_model(ui_model)
         self._instrument_select.set_ui_model(ui_model)
+        self._instrument_edit_button.set_ui_model(ui_model)
         self._profile_control.set_ui_model(ui_model)
 
     def keyPressEvent(self, event):
@@ -59,6 +66,7 @@ class TypewriterPanel(QFrame):
                 self._profile_control.show()
 
     def unregister_updaters(self):
+        self._instrument_edit_button.unregister_updaters()
         self._instrument_select.unregister_updaters()
         self._typewriter.unregister_updaters()
         self._octave_selector.unregister_updaters()
