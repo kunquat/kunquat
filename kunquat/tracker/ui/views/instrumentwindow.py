@@ -25,12 +25,9 @@ class InstrumentWindow(QWidget):
         v = QVBoxLayout()
         self.setLayout(v)
 
-    def set_ins_id(self, ins_id):
-        self._ins_id = ins_id
-
-    def set_ui_model(self, ui_model):
-        assert self._ins_id != None
+    def set_ui_model_with_ins_id(self, ui_model, ins_id):
         self._ui_model = ui_model
+        self._ins_id = ins_id
 
     def unregister_updaters(self):
         pass

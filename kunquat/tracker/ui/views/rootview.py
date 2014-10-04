@@ -86,8 +86,7 @@ class RootView():
             elif type(ui) == tuple and ui[0] == UI_INSTRUMENT:
                 ins_id = ui[1]
                 ins_window = InstrumentWindow()
-                ins_window.set_ins_id(ins_id)
-                ins_window.set_ui_model(self._ui_model)
+                ins_window.set_ui_model_with_ins_id(self._ui_model, ins_id)
                 self._instrument_windows[ins_id] = ins_window
                 if is_show_allowed:
                     self._instrument_windows[ins_id].show()
