@@ -31,14 +31,14 @@ class Instrument():
         return self._instrument_id
 
     def get_existence(self):
-        key = '%s/p_manifest.json' % self._instrument_id
+        key = '{}/p_manifest.json'.format(self._instrument_id)
         manifest = self._store[key]
         if type(manifest) == type({}):
             return True
         return False
 
     def get_name(self):
-        key = '%s/m_name.json' % self._instrument_id
+        key = '{}/m_name.json'.format(self._instrument_id)
         try:
             name = self._store[key]
         except KeyError:
