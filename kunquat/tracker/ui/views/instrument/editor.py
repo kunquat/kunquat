@@ -14,32 +14,27 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from instrument.editor import Editor
+from name import Name
 
 
-class InstrumentWindow(QWidget):
+class Editor(QWidget):
 
     def __init__(self):
         QWidget.__init__(self)
         self._ui_model = None
         self._ins_id = None
-        self._editor = Editor()
+        self._name = Name()
 
         v = QVBoxLayout()
-        v.addWidget(self._editor)
+        v.addWidget(self._name)
         self.setLayout(v)
 
     def set_ui_model_with_ins_id(self, ui_model, ins_id):
         self._ui_model = ui_model
         self._ins_id = ins_id
-        self._editor.set_ui_model_with_ins_id(ui_model, ins_id)
+        self._name.set_ui_model_with_ins_id(ui_model, ins_id)
 
     def unregister_updaters(self):
-        self._editor.unregister_updaters()
-
-    def closeEvent(self, ev):
-        ev.ignore()
-        visibility_manager = self._ui_model.get_visibility_manager()
-        visibility_manager.hide_instrument(self._ins_id)
+        self._name.unregister_updaters()
 
 

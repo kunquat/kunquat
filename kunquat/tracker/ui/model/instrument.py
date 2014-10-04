@@ -45,4 +45,8 @@ class Instrument():
             return None
         return name
 
+    def set_name(self, name):
+        key = '{}/m_name.json'.format(self._instrument_id)
+        self._store[key] = name
+
 

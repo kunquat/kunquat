@@ -106,6 +106,7 @@ class RootView():
             elif type(ui) == tuple and ui[0] == UI_INSTRUMENT:
                 ins_id = ui[1]
                 ins_window = self._instrument_windows.pop(ins_id)
+                ins_window.unregister_updaters()
                 ins_window.deleteLater()
 
         self._visible = set(visibility_update)
