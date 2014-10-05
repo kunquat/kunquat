@@ -42,11 +42,12 @@ class SaveButton(QToolButton):
         module = self._ui_model.get_module()
 
         if not module.get_path():
-            module_path = str(QFileDialog.getSaveFileName(
+            module_path_qstring = QFileDialog.getSaveFileName(
                     caption='Save Kunquat Composition',
-                    filter='Kunquat compositions (*.kqt *.kqt.gz *.kqt.bz2)'))
-            if not module_path:
+                    filter='Kunquat compositions (*.kqt *.kqt.gz *.kqt.bz2)')
+            if not module_path_qstring:
                 return
+            module_path = str(module_path_qstring.toUtf8())
             module.set_path(module_path)
 
         module.start_save()
