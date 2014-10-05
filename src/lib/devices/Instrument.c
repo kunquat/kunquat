@@ -184,7 +184,7 @@ bool Instrument_parse_header(Instrument* ins, Streader* sr)
 
     ins_params* p = &(ins_params)
     {
-        .global_force = 1,
+        .global_force = INS_DEFAULT_GLOBAL_FORCE,
         .default_force = INS_DEFAULT_FORCE,
         .force_variation = INS_DEFAULT_FORCE_VAR,
 #if 0
