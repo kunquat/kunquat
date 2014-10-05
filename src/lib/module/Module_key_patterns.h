@@ -12,6 +12,7 @@
  */
 
 
+#include <devices/Instrument.h>
 #include <module/sheet/Song.h>
 #include <module/Module.h>
 
@@ -44,7 +45,11 @@ MODULE_KEYP(album_manifest,         "album/p_manifest.json",                "")
 MODULE_KEYP(album_tracks,           "album/p_tracks.json",                  "[]")
 
 MODULE_KEYP(ins_manifest,           "ins_XX/p_manifest.json",               "")
-MODULE_KEYP(ins,                    "ins_XX/p_instrument.json",             "")
+MODULE_KEYP(ins,                    "ins_XX/p_instrument.json",
+        "{ \"global_force\": "      MAKE_STRING(INS_DEFAULT_GLOBAL_FORCE)
+        ", \"force\": "             MAKE_STRING(INS_DEFAULT_FORCE)
+        ", \"force_variation\": "   MAKE_STRING(INS_DEFAULT_FORCE_VAR)
+        "}")
 MODULE_KEYP(ins_connections,        "ins_XX/p_connections.json",            "[]")
 MODULE_KEYP(ins_env_force,          "ins_XX/p_envelope_force.json",         "")
 MODULE_KEYP(ins_env_force_release,  "ins_XX/p_envelope_force_release.json", "")
