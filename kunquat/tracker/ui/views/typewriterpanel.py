@@ -49,6 +49,7 @@ class TypewriterPanel(QFrame):
 
         if not cmdline.get_experimental():
             self._instrument_select.hide()
+            self._instrument_edit_button.hide()
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
