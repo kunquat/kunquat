@@ -12,6 +12,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from kunquat.kunquat.kunquat import get_default_value
+
 
 class Instrument():
 
@@ -30,15 +32,18 @@ class Instrument():
     def get_id(self):
         return self._instrument_id
 
+    def _get_key(self, subkey):
+        return '{}/{}'.format(self._instrument_id, subkey)
+
     def get_existence(self):
-        key = '{}/p_manifest.json'.format(self._instrument_id)
+        key = self._get_key('p_manifest.json')
         manifest = self._store[key]
         if type(manifest) == type({}):
             return True
         return False
 
     def get_name(self):
-        key = '{}/m_name.json'.format(self._instrument_id)
+        key = self._get_key('m_name.json')
         try:
             name = self._store[key]
         except KeyError:
@@ -46,7 +51,21 @@ class Instrument():
         return name
 
     def set_name(self, name):
-        key = '{}/m_name.json'.format(self._instrument_id)
+        key = self._get_key('m_name.json')
         self._store[key] = name
+
+    def get_global_force(self):
+        key = self._get_key('p_instrument.json')
+        try:
+            global_force = self._store[key]['global_force']
+        except KeyError:
+            global_force = get_default_value(key)['global_force']
+        return global_force
+
+    def set_global_force(self, global_force):
+        key = self._get_key('p_instrument.json')
+        d = self._store.get(key, get_default_value(key))
+        d['global_force'] = global_force
+        self._store[key] = d
 
 
