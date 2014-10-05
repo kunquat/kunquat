@@ -20,6 +20,7 @@ from kunquat.tracker.ui.identifiers import *
 from mainwindow import MainWindow
 from aboutwindow import AboutWindow
 from eventlist import EventList
+from instrumentwindow import InstrumentWindow
 
 
 class RootView():
@@ -32,6 +33,7 @@ class RootView():
         self._main_window = MainWindow()
         self._about_window = None
         self._event_log = None
+        self._instrument_windows = {}
         self._module = None
 
     def set_ui_model(self, ui_model):
@@ -81,6 +83,14 @@ class RootView():
                 self._event_log.set_ui_model(self._ui_model)
                 if is_show_allowed:
                     self._event_log.show()
+            elif type(ui) == tuple and ui[0] == UI_INSTRUMENT:
+                ins_id = ui[1]
+                ins_window = InstrumentWindow()
+                ins_window.set_ins_id(ins_id)
+                ins_window.set_ui_model(self._ui_model)
+                self._instrument_windows[ins_id] = ins_window
+                if is_show_allowed:
+                    self._instrument_windows[ins_id].show()
 
         for ui in closed:
             if ui == UI_MAIN:
@@ -94,6 +104,11 @@ class RootView():
                 self._event_log.unregister_updaters()
                 self._event_log.deleteLater()
                 self._event_log = None
+            elif type(ui) == tuple and ui[0] == UI_INSTRUMENT:
+                ins_id = ui[1]
+                ins_window = self._instrument_windows.pop(ins_id)
+                ins_window.unregister_updaters()
+                ins_window.deleteLater()
 
         self._visible = set(visibility_update)
 

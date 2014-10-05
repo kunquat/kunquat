@@ -35,8 +35,9 @@
 typedef struct Instrument Instrument;
 
 
-#define INS_DEFAULT_FORCE (0)
-#define INS_DEFAULT_FORCE_VAR (0)
+#define INS_DEFAULT_GLOBAL_FORCE 0
+#define INS_DEFAULT_FORCE 0
+#define INS_DEFAULT_FORCE_VAR 0
 #define INS_DEFAULT_SCALE_INDEX (-1)
 
 

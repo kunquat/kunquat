@@ -69,6 +69,14 @@ class VisibilityManager():
         self._session.hide_ui(UI_EVENT_LOG)
         self._updater.signal_update()
 
+    def show_instrument(self, index):
+        self._session.show_ui((UI_INSTRUMENT, index))
+        self._updater.signal_update()
+
+    def hide_instrument(self, index):
+        self._session.hide_ui((UI_INSTRUMENT, index))
+        self._updater.signal_update()
+
     def get_visible(self):
         return self._session.get_visible()
 
