@@ -29,10 +29,14 @@ class InstrumentWindow(QWidget):
         v.addWidget(self._editor)
         self.setLayout(v)
 
-    def set_ui_model_with_ins_id(self, ui_model, ins_id):
-        self._ui_model = ui_model
+    def set_ins_id(self, ins_id):
         self._ins_id = ins_id
-        self._editor.set_ui_model_with_ins_id(ui_model, ins_id)
+        self._editor.set_ins_id(ins_id)
+
+    def set_ui_model(self, ui_model):
+        assert self._ins_id != None
+        self._ui_model = ui_model
+        self._editor.set_ui_model(ui_model)
 
     def unregister_updaters(self):
         self._editor.unregister_updaters()

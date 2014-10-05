@@ -23,9 +23,11 @@ class Name(QLineEdit):
         self._ins_id = None
         self._updater = None
 
-    def set_ui_model_with_ins_id(self, ui_model, ins_id):
-        self._ui_model = ui_model
+    def set_ins_id(self, ins_id):
         self._ins_id = ins_id
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
         self._update_name()
