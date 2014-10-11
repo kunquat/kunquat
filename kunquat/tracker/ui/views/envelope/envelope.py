@@ -18,7 +18,7 @@ from PyQt4.QtGui import *
 
 
 DEFAULT_CONFIG = {
-        'padding': 5,
+        'padding': 2,
         'axis_x': {
             'height': 20,
             },
@@ -94,7 +94,8 @@ class Envelope(QWidget):
     def _draw_axis_y(self, painter):
         painter.save()
 
-        painter.setTransform(QTransform().translate(self._axis_y_offset_x, 0))
+        padding = self._config['padding']
+        painter.setTransform(QTransform().translate(self._axis_y_offset_x, padding))
 
         painter.setPen(QColor(0, 0xff, 0))
         painter.drawRect(0, 0, self._config['axis_y']['width'] - 1, self._envelope_height - 1)
@@ -104,7 +105,8 @@ class Envelope(QWidget):
     def _draw_envelope_curve(self, painter):
         painter.save()
 
-        painter.setTransform(QTransform().translate(self._envelope_offset_x, 0))
+        padding = self._config['padding']
+        painter.setTransform(QTransform().translate(self._envelope_offset_x, padding))
 
         painter.setPen(QColor(0xff, 0, 0))
         painter.drawRect(0, 0, self._envelope_width - 1, self._envelope_height - 1)
@@ -139,8 +141,10 @@ class Envelope(QWidget):
 
     def resizeEvent(self, event):
         # Get total area available
-        available_width_px = self.width()
-        available_height_px = self.height()
+        padding = self._config['padding']
+
+        available_width_px = self.width() - padding * 2
+        available_height_px = self.height() - padding * 2
 
         x_range_width = self._get_x_range_width()
         y_range_height = self._get_y_range_height()
@@ -188,9 +192,9 @@ class Envelope(QWidget):
             envelope_height_px += 1
 
         # Set final values
-        self._axis_y_offset_x = axis_y_offset_x_px
-        self._axis_x_offset_y = axis_x_offset_y_px
-        self._envelope_offset_x = envelope_offset_x_px
+        self._axis_y_offset_x = axis_y_offset_x_px + padding
+        self._axis_x_offset_y = axis_x_offset_y_px + padding
+        self._envelope_offset_x = envelope_offset_x_px + padding
         self._envelope_width = envelope_width_px
         self._envelope_height = envelope_height_px
 
