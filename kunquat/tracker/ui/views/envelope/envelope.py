@@ -18,14 +18,15 @@ from PyQt4.QtGui import *
 
 
 DEFAULT_CONFIG = {
-        'padding': 2,
         'axis_x': {
             'height': 20,
             },
         'axis_y': {
             'width': 50,
             },
-        'bg_colour': QColor(0, 0, 0),
+        'padding'    : 2,
+        'bg_colour'  : QColor(0, 0, 0),
+        'axis_colour': QColor(0xcc, 0xcc, 0xcc),
     }
 
 
@@ -86,8 +87,13 @@ class Envelope(QWidget):
         painter.setTransform(QTransform().translate(
             self._envelope_offset_x, self._axis_x_offset_y))
 
-        painter.setPen(QColor(0xff, 0xff, 0xff))
-        painter.drawRect(0, 0, self._envelope_width - 1, self._config['axis_x']['height'] - 1)
+        # Test
+        #painter.setPen(QColor(0xff, 0xff, 0xff))
+        #painter.drawRect(0, 0, self._envelope_width - 1, self._config['axis_x']['height'] - 1)
+
+        # Line along the axis
+        painter.setPen(self._config['axis_colour'])
+        painter.drawLine(0, 0, self._envelope_width - 1, 0)
 
         painter.restore()
 
@@ -97,8 +103,15 @@ class Envelope(QWidget):
         padding = self._config['padding']
         painter.setTransform(QTransform().translate(self._axis_y_offset_x, padding))
 
-        painter.setPen(QColor(0, 0xff, 0))
-        painter.drawRect(0, 0, self._config['axis_y']['width'] - 1, self._envelope_height - 1)
+        axis_width = self._config['axis_y']['width']
+
+        # Test
+        #painter.setPen(QColor(0, 0xff, 0))
+        #painter.drawRect(0, 0, self._config['axis_y']['width'] - 1, self._envelope_height - 1)
+
+        # Line along the axis
+        painter.setPen(self._config['axis_colour'])
+        painter.drawLine(axis_width - 1, 0, axis_width - 1, self._envelope_height - 1)
 
         painter.restore()
 
@@ -108,8 +121,9 @@ class Envelope(QWidget):
         padding = self._config['padding']
         painter.setTransform(QTransform().translate(self._envelope_offset_x, padding))
 
-        painter.setPen(QColor(0xff, 0, 0))
-        painter.drawRect(0, 0, self._envelope_width - 1, self._envelope_height - 1)
+        # Test
+        #painter.setPen(QColor(0xff, 0, 0))
+        #painter.drawRect(0, 0, self._envelope_width - 1, self._envelope_height - 1)
 
         painter.restore()
 
