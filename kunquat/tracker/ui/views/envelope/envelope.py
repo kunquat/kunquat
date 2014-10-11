@@ -180,6 +180,13 @@ class Envelope(QWidget):
         elif y_down_height_px > axis_x_height:
             axis_x_offset_y_px -= (y_down_height_px - axis_x_height)
 
+        # Make sure the envelope area overlaps with axes
+        if envelope_offset_x_px == axis_y_offset_x_px + axis_y_width:
+            envelope_offset_x_px -= 1
+            envelope_width_px += 1
+        if envelope_height_px == axis_x_offset_y_px:
+            envelope_height_px += 1
+
         # Set final values
         self._axis_y_offset_x = axis_y_offset_x_px
         self._axis_x_offset_y = axis_x_offset_y_px
