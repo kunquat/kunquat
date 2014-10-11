@@ -11,6 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+import math
 import time
 
 from PyQt4.QtCore import *
@@ -22,7 +23,10 @@ DEFAULT_CONFIG = {
             'height': 20,
             },
         'axis_y': {
-            'width': 50,
+            'width'         : 50,
+            'line_min_dist' : 6,
+            'line_max_width': 5,
+            'line_min_width': 2,
             },
         'padding'    : 2,
         'bg_colour'  : QColor(0, 0, 0),
@@ -109,9 +113,95 @@ class Envelope(QWidget):
         #painter.setPen(QColor(0, 0xff, 0))
         #painter.drawRect(0, 0, self._config['axis_y']['width'] - 1, self._envelope_height - 1)
 
-        # Line along the axis
+        # Draw line along the axis
         painter.setPen(self._config['axis_colour'])
         painter.drawLine(axis_width - 1, 0, axis_width - 1, self._envelope_height - 1)
+
+        # Draw markers
+        marker_dist_min = self._config['axis_y']['line_min_dist']
+
+        def fill_markers_interval(
+                painter,
+                val_start, val_stop,
+                px_start, px_stop,
+                dist,
+                marker_width):
+            if dist < marker_dist_min:
+                return
+
+            marker_width = max(marker_width, self._config['axis_y']['line_min_width'])
+
+            val_center = (val_start + val_stop) / 2
+            px_center = int((px_start + px_stop) / 2)
+
+            marker_start = axis_width - marker_width
+            painter.drawLine(marker_start, px_center, axis_width - 1, px_center)
+
+            fill_markers_interval(
+                    painter,
+                    val_start, val_center,
+                    px_start, px_center,
+                    dist / 2.0,
+                    marker_width - 1)
+            fill_markers_interval(
+                    painter,
+                    val_center, val_stop,
+                    px_center, px_stop,
+                    dist / 2.0,
+                    marker_width - 1)
+
+        # Get initial marker start
+        marker_width = self._config['axis_y']['line_max_width']
+        marker_start = axis_width - marker_width
+
+        # Draw zero marker if not obscured by the x axis
+        zero_y = self._axis_x_offset_y - padding
+        if self._range_x[0] == 0:
+            painter.drawLine(marker_start, zero_y, axis_width - 1, zero_y)
+
+        # Get interval of whole number values to mark
+        display_val_max = int(math.ceil(self._range_y[1]))
+        display_val_min = int(math.floor(self._range_y[0]))
+        px_per_whole = self._envelope_height // (display_val_max - display_val_min)
+
+        # Render non-zero markers
+        if marker_dist_min <= px_per_whole:
+            # Positive side
+            start_y = zero_y
+            pos_height = start_y
+            for i in range(0, display_val_max):
+                end_y = int(zero_y - ((i + 1) * pos_height / display_val_max))
+
+                painter.drawLine(marker_start, end_y, axis_width - 1, end_y)
+
+                fill_markers_interval(
+                        painter,
+                        i, i + 1,
+                        start_y, end_y,
+                        px_per_whole,
+                        marker_width - 1)
+
+                start_y = end_y
+
+            # Negative side
+            start_y = zero_y
+            neg_height = self._envelope_height - pos_height - 1
+            for i in range(0, -display_val_min):
+                end_y = int(zero_y + ((i + 1) * neg_height / -display_val_min))
+
+                painter.drawLine(marker_start, end_y, axis_width - 1, end_y)
+
+                fill_markers_interval(
+                        painter,
+                        -i, -i - 1,
+                        start_y, end_y,
+                        px_per_whole,
+                        marker_width - 1)
+
+                start_y = end_y
+        else:
+            # TODO: Skipping whole numbers
+            pass
 
         painter.restore()
 
