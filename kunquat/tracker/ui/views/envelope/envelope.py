@@ -21,6 +21,9 @@ from PyQt4.QtGui import *
 DEFAULT_CONFIG = {
         'axis_x': {
             'height': 20,
+            'line_min_dist' : 6,
+            'line_max_width': 5,
+            'line_min_width': 2,
             },
         'axis_y': {
             'width'         : 50,
@@ -122,6 +125,7 @@ class Envelope(QWidget):
     def _draw_axis_x(self, painter):
         painter.save()
 
+        padding = self._config['padding']
         painter.setTransform(QTransform().translate(
             self._envelope_offset_x, self._axis_x_offset_y))
 
@@ -129,9 +133,75 @@ class Envelope(QWidget):
         #painter.setPen(QColor(0xff, 0xff, 0xff))
         #painter.drawRect(0, 0, self._envelope_width - 1, self._config['axis_x']['height'] - 1)
 
-        # Line along the axis
+        # Draw line along the axis
         painter.setPen(self._config['axis_colour'])
         painter.drawLine(0, 0, self._envelope_width - 1, 0)
+
+        # Marker drawing callback
+        def draw_marker(painter, px_center, marker_width):
+            marker_width = max(marker_width, self._config['axis_x']['line_min_width'])
+            marker_start = marker_width
+            painter.drawLine(px_center, marker_start, px_center, 1)
+
+        # Get initial marker width
+        marker_width = self._config['axis_x']['line_max_width']
+
+        # Draw zero marker if not obscured by the y axis
+        zero_x = (self._axis_y_offset_x + self._config['axis_y']['width'] -
+                self._envelope_offset_x - 1)
+        if self._range_y[0] == 0:
+            draw_marker(painter, zero_x, marker_width)
+
+        # Get interval of whole number values to mark
+        display_val_max = int(math.ceil(self._range_x[1]))
+        display_val_min = int(math.floor(self._range_x[0]))
+        px_per_whole = self._envelope_width // (display_val_max - display_val_min)
+
+        # Draw non-zero markers
+        marker_dist_min = self._config['axis_x']['line_min_dist']
+        if marker_dist_min <= px_per_whole:
+            # Positive side
+            start_x = zero_x
+            pos_width = self._envelope_width - start_x - 1
+
+            for i in range(0, display_val_max):
+                end_x = int(zero_x + ((i + 1) * pos_width / display_val_max))
+
+                draw_marker(painter, end_x, marker_width)
+
+                self._fill_markers_interval(
+                        painter,
+                        draw_marker,
+                        i, i + 1,
+                        start_x, end_x,
+                        px_per_whole,
+                        marker_dist_min,
+                        marker_width - 1)
+
+                start_x = end_x
+
+            # Negative side
+            start_x = zero_x
+            neg_width = start_x
+
+            for i in range(0, -display_val_min):
+                end_x = int(zero_x - ((i + 1) * pos_width / -display_val_min))
+
+                draw_marker(painter, end_x, marker_width)
+
+                self._fill_markers_interval(
+                        painter,
+                        draw_marker,
+                        i, i + 1,
+                        start_x, end_x,
+                        px_per_whole,
+                        marker_dist_min,
+                        marker_width - 1)
+
+                start_x = end_x
+        else:
+            # TODO: skipping whole numbers
+            pass
 
         painter.restore()
 
@@ -151,18 +221,14 @@ class Envelope(QWidget):
         painter.setPen(self._config['axis_colour'])
         painter.drawLine(axis_width - 1, 0, axis_width - 1, self._envelope_height - 1)
 
-        # Draw markers
-        marker_dist_min = self._config['axis_y']['line_min_dist']
-
-        # Get initial marker start
-        marker_width = self._config['axis_y']['line_max_width']
-        marker_start = axis_width - marker_width
-
-        # Drawing callback
+        # Marker drawing callback
         def draw_marker(painter, px_center, marker_width):
             marker_width = max(marker_width, self._config['axis_y']['line_min_width'])
-            marker_start = axis_width - marker_width
-            painter.drawLine(marker_start, px_center, axis_width - 1, px_center)
+            marker_start = axis_width - marker_width - 1
+            painter.drawLine(marker_start, px_center, axis_width - 2, px_center)
+
+        # Get initial marker width
+        marker_width = self._config['axis_y']['line_max_width']
 
         # Draw zero marker if not obscured by the x axis
         zero_y = self._axis_x_offset_y - padding
@@ -174,12 +240,13 @@ class Envelope(QWidget):
         display_val_min = int(math.floor(self._range_y[0]))
         px_per_whole = self._envelope_height // (display_val_max - display_val_min)
 
-        # Render non-zero markers
+        # Draw non-zero markers
+        marker_dist_min = self._config['axis_y']['line_min_dist']
         if marker_dist_min <= px_per_whole:
-
             # Positive side
             start_y = zero_y
             pos_height = start_y
+
             for i in range(0, display_val_max):
                 end_y = int(zero_y - ((i + 1) * pos_height / display_val_max))
 
@@ -199,6 +266,7 @@ class Envelope(QWidget):
             # Negative side
             start_y = zero_y
             neg_height = self._envelope_height - pos_height - 1
+
             for i in range(0, -display_val_min):
                 end_y = int(zero_y + ((i + 1) * neg_height / -display_val_min))
 
@@ -269,9 +337,9 @@ class Envelope(QWidget):
         y_range_height = self._get_y_range_height()
 
         # Make the envelope area square if the ranges match in length
-        if x_range_width == y_range_height:
-            available_width_px = min(available_width_px, available_height_px)
-            available_height_px = available_width_px
+        #if x_range_width == y_range_height:
+        #    available_width_px = min(available_width_px, available_height_px)
+        #    available_height_px = available_width_px
 
         axis_y_width = self._config['axis_y']['width']
         axis_x_height = self._config['axis_x']['height']
