@@ -191,7 +191,7 @@ class Envelope(QWidget):
             # Draw
             width = self._config['axis_x']['num_min_dist']
             rect = QRectF(
-                    px_center - width / 2.0, marker_width,
+                    px_center - width / 2.0, marker_width - 1,
                     width, num_space.height())
             painter.drawText(rect, text, text_option)
 
@@ -203,7 +203,7 @@ class Envelope(QWidget):
                 self._envelope_offset_x - 1)
         if self._range_y[0] == 0:
             draw_marker(painter, zero_x, marker_width)
-            draw_number(painter, zero_x, 0)
+            #draw_number(painter, zero_x, 0)
 
         # Get interval of whole number values to mark
         display_val_max = int(math.ceil(self._range_x[1]))
@@ -359,7 +359,7 @@ class Envelope(QWidget):
         zero_y = self._axis_x_offset_y - padding
         if self._range_x[0] == 0:
             draw_marker(painter, zero_y, marker_width)
-            draw_number(painter, zero_y, 0)
+            #draw_number(painter, zero_y, 0)
 
         # Get interval of whole number values to mark
         display_val_max = int(math.ceil(self._range_y[1]))
