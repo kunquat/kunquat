@@ -154,6 +154,119 @@ class Envelope(QWidget):
                 draw_num_func,
                 num_dist_min)
 
+    def _draw_markers_and_numbers(self, painter, **params):
+        # Get params
+        draw_marker         = params['draw_marker']
+        draw_number         = params['draw_number']
+
+        val_range           = params['val_range']
+
+        init_marker_width   = params['init_marker_width']
+        zero_px             = params['zero_px']
+        draw_zero_marker    = params['draw_zero_marker']
+        axis_len            = params['axis_len']
+        marker_dist_min     = params['marker_dist_min']
+        num_dist_min        = params['num_dist_min']
+
+        if draw_zero_marker:
+            draw_marker(painter, zero_px, init_marker_width)
+
+        # Get interval of whole number values to mark
+        display_val_max = int(math.ceil(val_range[1]))
+        display_val_min = int(math.floor(val_range[0]))
+        px_per_whole = axis_len // (display_val_max - display_val_min)
+
+        whole_num_interval = 1
+        if px_per_whole >= 1:
+            whole_num_interval = max(1, int(2**(math.ceil(
+                math.log(num_dist_min / float(px_per_whole), 2)))))
+
+        if marker_dist_min <= px_per_whole:
+            # Positive side
+            start_px = zero_px
+            pos_len = axis_len - start_px - 1
+
+            for i in xrange(0, display_val_max):
+                end_px = int(zero_px + ((i + 1) * pos_len / display_val_max))
+
+                draw_marker(painter, end_px, init_marker_width)
+
+                end_val = i + 1
+                if (end_val < display_val_max) and (end_val % whole_num_interval == 0):
+                    draw_number(painter, end_px, end_val)
+
+                self._fill_markers_interval(
+                        painter,
+                        draw_marker,
+                        i, end_val,
+                        start_px, end_px,
+                        px_per_whole,
+                        marker_dist_min,
+                        init_marker_width - 1,
+                        draw_number,
+                        num_dist_min)
+
+                start_px = end_px
+
+            # Negative side
+            start_px = zero_px
+            neg_len = start_px
+
+            for i in xrange(0, -display_val_min):
+                end_px = int(zero_px - ((i + 1) * neg_len / -display_val_min))
+
+                draw_marker(painter, end_px, init_marker_width)
+
+                end_val = -(i + 1)
+                if (end_val > display_val_min) and (-end_val % whole_num_interval == 0):
+                    draw_number(painter, end_px, end_val)
+
+                self._fill_markers_interval(
+                        painter,
+                        draw_marker,
+                        -i, end_val,
+                        start_px, end_px,
+                        px_per_whole,
+                        marker_dist_min,
+                        init_marker_width - 1,
+                        draw_number,
+                        num_dist_min)
+
+                start_px = end_px
+
+        elif px_per_whole >= 1:
+            # Skipping whole numbers
+            whole_marker_interval = int(2**(math.ceil(
+                math.log(marker_dist_min / float(px_per_whole), 2))))
+
+            # Positive side
+            start_px = zero_px
+            pos_len = axis_len - start_px - 1
+
+            range_stop = display_val_max - whole_marker_interval + 1
+            for i in xrange(0, range_stop, whole_marker_interval):
+                end_val = i + whole_marker_interval
+                end_px = int(zero_px + end_val * pos_len / display_val_max)
+
+                draw_marker(painter, end_px, init_marker_width)
+
+                if end_val < display_val_max and end_val % whole_num_interval == 0:
+                    draw_number(painter, end_px, end_val)
+
+            # Negative side
+            start_px = zero_px
+            neg_len = start_px
+
+            range_stop = -display_val_min - whole_marker_interval + 1
+            for i in xrange(0, range_stop, whole_marker_interval):
+                end_val = -(i + whole_marker_interval)
+                end_px = int(zero_px - end_val * neg_len / display_val_min)
+
+                draw_marker(painter, end_px, init_marker_width)
+
+                if end_val > display_val_min and -end_val % whole_num_interval == 0:
+                    draw_number(painter, end_px, end_val)
+
     def _draw_axis_x(self, painter):
         painter.save()
 
@@ -195,116 +308,20 @@ class Envelope(QWidget):
                     width, num_space.height())
             painter.drawText(rect, text, text_option)
 
-        # Get initial marker width
-        marker_width = self._config['axis_x']['line_max_width']
-
-        # Draw zero marker if not obscured by the y axis
         zero_x = (self._axis_y_offset_x + self._config['axis_y']['width'] -
                 self._envelope_offset_x - 1)
-        if self._range_y[0] == 0:
-            draw_marker(painter, zero_x, marker_width)
-            #draw_number(painter, zero_x, 0)
 
-        # Get interval of whole number values to mark
-        display_val_max = int(math.ceil(self._range_x[1]))
-        display_val_min = int(math.floor(self._range_x[0]))
-        px_per_whole = self._envelope_width // (display_val_max - display_val_min)
-
-        # Draw non-zero markers
-        marker_dist_min = self._config['axis_x']['line_min_dist']
-
-        num_dist_min = self._config['axis_x']['num_min_dist']
-        whole_num_interval = 1
-        if px_per_whole >= 1:
-            whole_num_interval = max(1, int(2**(math.ceil(
-                math.log(num_dist_min / float(px_per_whole), 2)))))
-
-        if marker_dist_min <= px_per_whole:
-            # Positive side
-            start_x = zero_x
-            pos_width = self._envelope_width - start_x - 1
-
-            for i in range(0, display_val_max):
-                end_x = int(zero_x + ((i + 1) * pos_width / display_val_max))
-
-                draw_marker(painter, end_x, marker_width)
-
-                end_num = i + 1
-                if (end_num < self._range_x[1]) and (end_num % whole_num_interval == 0):
-                    draw_number(painter, end_x, end_num)
-
-                self._fill_markers_interval(
-                        painter,
-                        draw_marker,
-                        i, i + 1,
-                        start_x, end_x,
-                        px_per_whole,
-                        marker_dist_min,
-                        marker_width - 1,
-                        draw_number,
-                        num_dist_min)
-
-                start_x = end_x
-
-            # Negative side
-            start_x = zero_x
-            neg_width = start_x
-
-            for i in range(0, -display_val_min):
-                end_x = int(zero_x - ((i + 1) * neg_width / -display_val_min))
-
-                draw_marker(painter, end_x, marker_width)
-
-                end_num = -(i + 1)
-                if (end_num > self._range_x[0]) and (-end_num % whole_num_interval == 0):
-                    draw_number(painter, end_x, end_num)
-
-                self._fill_markers_interval(
-                        painter,
-                        draw_marker,
-                        -i, -i - 1,
-                        start_x, end_x,
-                        px_per_whole,
-                        marker_dist_min,
-                        marker_width - 1,
-                        draw_number,
-                        num_dist_min)
-
-                start_x = end_x
-
-        elif px_per_whole >= 1:
-            # Skipping whole numbers
-            whole_marker_interval = int(2**(math.ceil(
-                math.log(marker_dist_min / float(px_per_whole), 2))))
-
-            # Positive side
-            start_x = zero_x
-            pos_width = self._envelope_width - start_x - 1
-
-            for i in range(0, display_val_max, whole_marker_interval):
-                end_x = int(zero_x +
-                        ((i + whole_marker_interval) * pos_width / display_val_max))
-
-                end_num = i + whole_marker_interval
-                if end_num <= display_val_max:
-                    draw_marker(painter, end_x, marker_width)
-                    if end_num < self._range_x[1] and end_num % whole_num_interval == 0:
-                        draw_number(painter, end_x, end_num)
-
-            # Negative side
-            start_x = zero_x
-            neg_width = start_x
-
-            for i in range(0, -display_val_min, whole_marker_interval):
-                end_x = int(zero_x -
-                        ((i + whole_marker_interval) * neg_width / -display_val_min))
-
-                end_num = -(i + whole_marker_interval)
-                if end_num >= display_val_min:
-                    draw_marker(painter, end_x, marker_width)
-                    if ((end_num > self._range_y[0]) and
-                            (-end_num % whole_num_interval == 0)):
-                        draw_number(painter, end_x, -(i + whole_marker_interval))
+        self._draw_markers_and_numbers(
+                painter,
+                draw_marker=draw_marker,
+                draw_number=draw_number,
+                val_range=self._range_x,
+                init_marker_width=self._config['axis_x']['line_max_width'],
+                zero_px=zero_x,
+                draw_zero_marker=self._range_y[0] == 0,
+                axis_len=self._envelope_width,
+                marker_dist_min=self._config['axis_x']['line_min_dist'],
+                num_dist_min=self._config['axis_x']['num_min_dist'])
 
         painter.restore()
 
@@ -324,11 +341,16 @@ class Envelope(QWidget):
         painter.setPen(self._config['axis_colour'])
         painter.drawLine(axis_width - 1, 0, axis_width - 1, self._envelope_height - 1)
 
+        # Ruler location transform
+        def ruler_to_y(ruler_px):
+            return self._envelope_height - ruler_px - 1
+
         # Marker drawing callback
         def draw_marker(painter, px_center, marker_width):
+            px_y = ruler_to_y(px_center)
             marker_width = max(marker_width, self._config['axis_y']['line_min_width'])
             marker_start = axis_width - marker_width - 1
-            painter.drawLine(marker_start, px_center, axis_width - 2, px_center)
+            painter.drawLine(marker_start, px_y, axis_width - 2, px_y)
 
         # Number drawing callback
         painter.setFont(self._config['font'])
@@ -338,6 +360,7 @@ class Envelope(QWidget):
 
         def draw_number(painter, px_center, num):
             marker_width = self._config['axis_y']['line_max_width']
+            px_y = ruler_to_y(px_center)
 
             # Text
             numi = int(num)
@@ -347,121 +370,24 @@ class Envelope(QWidget):
             height = self._config['axis_y']['num_min_dist']
             rect = QRectF(
                     0,
-                    px_center - num_space.height() / 2,
+                    px_y - num_space.height() / 2,
                     self._config['axis_y']['width'] - marker_width - 2,
                     num_space.height())
             painter.drawText(rect, text, text_option)
 
-        # Get initial marker width
-        marker_width = self._config['axis_y']['line_max_width']
+        zero_y = self._envelope_height - self._axis_x_offset_y + padding - 1
 
-        # Draw zero marker if not obscured by the x axis
-        zero_y = self._axis_x_offset_y - padding
-        if self._range_x[0] == 0:
-            draw_marker(painter, zero_y, marker_width)
-            #draw_number(painter, zero_y, 0)
-
-        # Get interval of whole number values to mark
-        display_val_max = int(math.ceil(self._range_y[1]))
-        display_val_min = int(math.floor(self._range_y[0]))
-        px_per_whole = self._envelope_height // (display_val_max - display_val_min)
-
-        # Draw non-zero markers
-        marker_dist_min = self._config['axis_y']['line_min_dist']
-
-        num_dist_min = self._config['axis_y']['num_min_dist']
-        whole_num_interval = 1
-        if px_per_whole >= 1:
-            whole_num_interval = max(1, int(2**(math.ceil(
-                math.log(num_dist_min / float(px_per_whole), 2)))))
-
-        if marker_dist_min <= px_per_whole:
-            # Positive side
-            start_y = zero_y
-            pos_height = start_y
-
-            for i in range(0, display_val_max):
-                end_y = int(zero_y - ((i + 1) * pos_height / display_val_max))
-
-                draw_marker(painter, end_y, marker_width)
-
-                end_num = i + 1
-                if (end_num < self._range_y[1]) and (end_num % whole_num_interval == 0):
-                    draw_number(painter, end_y, end_num)
-
-                self._fill_markers_interval(
-                        painter,
-                        draw_marker,
-                        i, i + 1,
-                        start_y, end_y,
-                        px_per_whole,
-                        marker_dist_min,
-                        marker_width - 1,
-                        draw_number,
-                        num_dist_min)
-
-                start_y = end_y
-
-            # Negative side
-            start_y = zero_y
-            neg_height = self._envelope_height - pos_height - 1
-
-            for i in range(0, -display_val_min):
-                end_y = int(zero_y + ((i + 1) * neg_height / -display_val_min))
-
-                draw_marker(painter, end_y, marker_width)
-
-                end_num = -(i + 1)
-                if (end_num > self._range_y[0]) and (-end_num % whole_num_interval == 0):
-                    draw_number(painter, end_y, end_num)
-
-                self._fill_markers_interval(
-                        painter,
-                        draw_marker,
-                        -i, -i - 1,
-                        start_y, end_y,
-                        px_per_whole,
-                        marker_dist_min,
-                        marker_width - 1,
-                        draw_number,
-                        num_dist_min)
-
-                start_y = end_y
-
-        elif px_per_whole >= 1:
-            # Skipping whole numbers
-            whole_marker_interval = int(2**(math.ceil(
-                math.log(marker_dist_min / float(px_per_whole), 2))))
-
-            # Positive side
-            start_y = zero_y
-            pos_height = start_y
-
-            for i in range(0, display_val_max, whole_marker_interval):
-                end_y = int(zero_y -
-                        ((i + whole_marker_interval) * pos_height / display_val_max))
-
-                end_num = i + whole_marker_interval
-                if end_num <= display_val_max:
-                    draw_marker(painter, end_y, marker_width)
-                    if ((end_num < self._range_y[1]) and
-                            (end_num % whole_num_interval == 0)):
-                        draw_number(painter, end_y, end_num)
-
-            # Negative side
-            start_y = zero_y
-            neg_height = self._envelope_height - pos_height - 1
-
-            for i in range(0, -display_val_min, whole_marker_interval):
-                end_y = int(zero_y +
-                        ((i + whole_marker_interval) * neg_height / -display_val_min))
-
-                end_num = -(i + whole_marker_interval)
-                if end_num >= display_val_min:
-                    draw_marker(painter, end_y, marker_width)
-                    if ((end_num > self._range_y[0]) and
-                            (-end_num % whole_num_interval == 0)):
-                        draw_number(painter, end_y, end_num)
+        self._draw_markers_and_numbers(
+                painter,
+                draw_marker=draw_marker,
+                draw_number=draw_number,
+                val_range=self._range_y,
+                init_marker_width=self._config['axis_y']['line_max_width'],
+                zero_px=zero_y,
+                draw_zero_marker=self._range_x[0] == 0,
+                axis_len=self._envelope_height,
+                marker_dist_min=self._config['axis_y']['line_min_dist'],
+                num_dist_min=self._config['axis_y']['num_min_dist'])
 
         painter.restore()
 
