@@ -56,6 +56,12 @@ class Envelope(QWidget):
         self.set_x_range(0, 4)
         self.set_y_range(0, 1)
 
+        self._axis_x_cache = None
+        self._axis_y_cache = None
+
+        self._envelope_width = 0
+        self._envelope_height = 0
+
         self._config = None
         self._set_config(config)
 
@@ -65,15 +71,24 @@ class Envelope(QWidget):
 
     def set_x_range(self, min_x, max_x):
         assert signum(min_x) != signum(max_x)
-        self._range_x = (min_x, max_x)
+        new_range = (min_x, max_x)
+        if new_range != self._range_x:
+            self._range_x = new_range
+            self._axis_x_cache = None
 
     def set_y_range(self, min_y, max_y):
         assert signum(min_y) != signum(max_y)
-        self._range_y = (min_y, max_y)
+        new_range = (min_y, max_y)
+        if new_range != self._range_y:
+            self._range_y = new_range
+            self._axis_y_cache = None
 
     def _set_config(self, config):
         self._config = DEFAULT_CONFIG.copy()
         self._config.update(config)
+
+        self._axis_x_cache = None
+        self._axis_y_cache = None
 
     def _get_x_range_width(self):
         return (self._range_x[1] - self._range_x[0])
@@ -127,7 +142,7 @@ class Envelope(QWidget):
 
         padding = self._config['padding']
         painter.setTransform(QTransform().translate(
-            self._envelope_offset_x, self._axis_x_offset_y))
+            self._envelope_offset_x, 0)) #self._axis_x_offset_y))
 
         # Test
         #painter.setPen(QColor(0xff, 0xff, 0xff))
@@ -233,7 +248,7 @@ class Envelope(QWidget):
         painter.save()
 
         padding = self._config['padding']
-        painter.setTransform(QTransform().translate(self._axis_y_offset_x, padding))
+        painter.setTransform(QTransform().translate(0, padding))
 
         axis_width = self._config['axis_y']['width']
 
@@ -365,8 +380,30 @@ class Envelope(QWidget):
         if not self._is_vis_state_valid():
             return
 
-        self._draw_axis_y(painter)
-        self._draw_axis_x(painter)
+        padding = self._config['padding']
+
+        # Axes
+        if not self._axis_y_cache:
+            self._axis_y_cache = QImage(
+                    self._config['axis_y']['width'],
+                    self.height(),
+                    QImage.Format_ARGB32)
+            self._axis_y_cache.fill(0)
+            axis_painter = QPainter(self._axis_y_cache)
+            self._draw_axis_y(axis_painter)
+        painter.drawImage(QPoint(self._axis_y_offset_x, 0), self._axis_y_cache)
+
+        if not self._axis_x_cache:
+            self._axis_x_cache = QImage(
+                    self.width(),
+                    self._config['axis_x']['height'],
+                    QImage.Format_ARGB32)
+            self._axis_x_cache.fill(0)
+            axis_painter = QPainter(self._axis_x_cache)
+            self._draw_axis_x(axis_painter)
+        painter.drawImage(QPoint(0, self._axis_x_offset_y), self._axis_x_cache)
+
+        # Graph
         self._draw_envelope_curve(painter)
         self._draw_envelope_nodes(painter)
 
@@ -425,6 +462,12 @@ class Envelope(QWidget):
             envelope_width_px += 1
         if envelope_height_px == axis_x_offset_y_px:
             envelope_height_px += 1
+
+        # Clear axis caches if out of date
+        if self._envelope_width != envelope_width_px:
+            self._axis_x_cache = None
+        if self._envelope_height != envelope_height_px:
+            self._axis_y_cache = None
 
         # Set final values
         self._axis_y_offset_x = axis_y_offset_x_px + padding
