@@ -11,6 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from itertools import islice, izip
 import math
 import time
 
@@ -41,6 +42,7 @@ DEFAULT_CONFIG = {
         'padding'    : 2,
         'bg_colour'  : QColor(0, 0, 0),
         'axis_colour': QColor(0xcc, 0xcc, 0xcc),
+        'line_colour': QColor(0x66, 0x88, 0xaa),
     }
 
 
@@ -63,8 +65,13 @@ class Envelope(QWidget):
         self.set_x_range(0, 4)
         self.set_y_range(0, 1)
 
+        self._nodes = []
+        self.set_nodes([(0, 1), (1, 0)])
+
         self._axis_x_cache = None
         self._axis_y_cache = None
+
+        self._ls_cache = {}
 
         self._envelope_width = 0
         self._envelope_height = 0
@@ -90,12 +97,17 @@ class Envelope(QWidget):
             self._range_y = new_range
             self._axis_y_cache = None
 
+    def set_nodes(self, new_nodes):
+        assert len(new_nodes) >= 2
+        self._nodes = new_nodes
+
     def _set_config(self, config):
         self._config = DEFAULT_CONFIG.copy()
         self._config.update(config)
 
         self._axis_x_cache = None
         self._axis_y_cache = None
+        self._ls_cache = {}
 
     def _get_x_range_width(self):
         return (self._range_x[1] - self._range_x[0])
@@ -154,6 +166,12 @@ class Envelope(QWidget):
                 draw_num_func,
                 num_dist_min)
 
+    def _get_display_val_max(self, val_range):
+        return int(math.ceil(val_range[1]))
+
+    def _get_display_val_min(self, val_range):
+        return int(math.floor(val_range[0]))
+
     def _draw_markers_and_numbers(self, painter, **params):
         # Get params
         draw_marker         = params['draw_marker']
@@ -172,8 +190,8 @@ class Envelope(QWidget):
             draw_marker(painter, zero_px, init_marker_width)
 
         # Get interval of whole number values to mark
-        display_val_max = int(math.ceil(val_range[1]))
-        display_val_min = int(math.floor(val_range[0]))
+        display_val_max = self._get_display_val_max(val_range)
+        display_val_min = self._get_display_val_min(val_range)
         px_per_whole = axis_len // (display_val_max - display_val_min)
 
         whole_num_interval = 1
@@ -391,6 +409,38 @@ class Envelope(QWidget):
 
         painter.restore()
 
+    def _get_ls_coords(self, nodes):
+        return izip(nodes, islice(nodes, 1, None))
+
+    def _get_coords_vis(self, val_coords):
+        val_x, val_y = val_coords
+
+        zero_x = (self._axis_y_offset_x + self._config['axis_y']['width'] -
+                self._envelope_offset_x - 1)
+        zero_y = self._axis_x_offset_y - self._config['padding']
+
+        # Get vis x
+        if val_x >= 0:
+            val_x_max = self._get_display_val_max(self._range_x)
+            pos_width_vis = self._envelope_width - zero_x
+            vis_x = zero_x + pos_width_vis * val_x / val_x_max
+        else:
+            val_x_min = self._get_display_val_min(self._range_x)
+            neg_width_vis = zero_x
+            vis_x = zero_x - neg_width_vis * val_x / val_x_min
+
+        # Get vis y
+        if val_y >= 0:
+            val_y_max = self._get_display_val_max(self._range_y)
+            pos_height_vis = zero_y
+            vis_y = zero_y - pos_height_vis * val_y / val_y_max
+        else:
+            val_y_min = self._get_display_val_min(self._range_y)
+            neg_height_vis = self._envelope_height - zero_y
+            vis_y = zero_y + neg_height_vis * val_y / val_y_min
+
+        return int(vis_x), int(vis_y)
+
     def _draw_envelope_curve(self, painter):
         painter.save()
 
@@ -400,6 +450,18 @@ class Envelope(QWidget):
         # Test
         #painter.setPen(QColor(0xff, 0, 0))
         #painter.drawRect(0, 0, self._envelope_width - 1, self._envelope_height - 1)
+
+        for coords in self._get_ls_coords(self._nodes):
+            if coords not in self._ls_cache:
+                a, b = coords
+                vis_a = self._get_coords_vis(a)
+                vis_b = self._get_coords_vis(b)
+                ls = LineSegment(vis_a, vis_b)
+                ls.set_colour(self._config['line_colour'])
+                ls.draw_line()
+                self._ls_cache[coords] = ls
+
+            self._ls_cache[coords].copy_line(painter)
 
         painter.restore()
 
@@ -509,6 +571,11 @@ class Envelope(QWidget):
         if self._envelope_height != envelope_height_px:
             self._axis_y_cache = None
 
+        # Clear line segment cache if out of date
+        if (self._envelope_width != envelope_width_px or
+                self._envelope_height != envelope_height_px):
+            self._ls_cache = {}
+
         # Set final values
         self._axis_y_offset_x = axis_y_offset_x_px + padding
         self._axis_x_offset_y = axis_x_offset_y_px + padding
@@ -517,5 +584,59 @@ class Envelope(QWidget):
         self._envelope_height = envelope_height_px
 
         self.update()
+
+
+class LineSegment():
+
+    def __init__(self, from_point, to_point):
+        from_x, from_y = from_point
+        to_x, to_y = to_point
+        assert from_x <= to_x
+
+        self._update_id = None
+
+        width = to_x - from_x + 1
+        height = abs(to_y - from_y) + 1
+
+        self._offset_x = from_x
+        self._offset_y = min(from_y, to_y)
+
+        self._is_ascending = from_y > to_y
+
+        self._image = QImage(width, height, QImage.Format_ARGB32)
+        self._image.fill(0)
+
+        self._colour = None
+
+    def set_colour(self, colour):
+        self._colour = colour
+
+    def draw_line(self):
+        painter = QPainter(self._image)
+
+        # Test
+        #painter.setPen(QColor(0, 0xff, 0xff))
+        #painter.drawRect(0, 0, self._image.width() - 1, self._image.height() - 1)
+
+        painter.setPen(self._colour)
+
+        y1 = 0
+        y2 = self._image.height() - 1
+        if self._is_ascending:
+            y1, y2 = y2, y1
+
+        painter.drawLine(0, y1, self._image.width() - 1, y2)
+
+    def copy_line(self, painter):
+        painter.save()
+        painter.translate(self._offset_x, self._offset_y)
+        painter.drawImage(0, 0, self._image)
+        painter.restore()
+
+    def set_update_id(self, update_id):
+        self._update_id = update_id
+
+    def get_update_id(self):
+        return self._update_id
 
 
