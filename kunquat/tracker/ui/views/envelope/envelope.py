@@ -11,7 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from itertools import islice, izip
+from itertools import count, islice, izip
 import math
 import time
 
@@ -72,6 +72,7 @@ class Envelope(QWidget):
         self._axis_y_cache = None
 
         self._ls_cache = {}
+        self._ls_update_id = count()
 
         self._envelope_width = 0
         self._envelope_height = 0
@@ -451,6 +452,8 @@ class Envelope(QWidget):
         #painter.setPen(QColor(0xff, 0, 0))
         #painter.drawRect(0, 0, self._envelope_width - 1, self._envelope_height - 1)
 
+        cur_update_id = self._ls_update_id.next()
+
         for coords in self._get_ls_coords(self._nodes):
             if coords not in self._ls_cache:
                 a, b = coords
@@ -461,7 +464,18 @@ class Envelope(QWidget):
                 ls.draw_line()
                 self._ls_cache[coords] = ls
 
-            self._ls_cache[coords].copy_line(painter)
+            ls = self._ls_cache[coords]
+            ls.copy_line(painter)
+            ls.set_update_id(cur_update_id)
+
+        # Remove obsolete entries from cache
+        obsolete_keys = []
+        for k, v in self._ls_cache.iteritems():
+            if v.get_update_id() != cur_update_id:
+                obsolete_keys.append(k)
+
+        for k in obsolete_keys:
+            del self._ls_cache[k]
 
         painter.restore()
 
