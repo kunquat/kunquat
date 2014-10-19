@@ -675,11 +675,6 @@ class Envelope(QWidget):
         x_range_width = self._get_x_range_width()
         y_range_height = self._get_y_range_height()
 
-        # Make the envelope area square if the ranges match in length
-        #if x_range_width == y_range_height:
-        #    available_width_px = min(available_width_px, available_height_px)
-        #    available_height_px = available_width_px
-
         axis_y_width = self._config['axis_y']['width']
         axis_x_height = self._config['axis_x']['height']
 
@@ -716,6 +711,23 @@ class Envelope(QWidget):
             envelope_width_px += 1
         if envelope_height_px == axis_x_offset_y_px:
             envelope_height_px += 1
+
+        # Make the envelope area square if the ranges match in length
+        if x_range_width == y_range_height:
+            if envelope_width_px > envelope_height_px:
+                envelope_width_px = envelope_height_px
+                new_left_width_px = int(round(
+                    envelope_width_px * x_left_width / x_range_width))
+                fix_shift = x_left_width_px - new_left_width_px
+                envelope_offset_x_px += fix_shift
+                left_shift = min(envelope_offset_x_px, axis_y_offset_x_px)
+                envelope_offset_x_px -= left_shift
+                axis_y_offset_x_px -= left_shift
+            elif envelope_height_px > envelope_width_px:
+                envelope_height_px = envelope_width_px
+                new_down_height_px = int(round(
+                    envelope_height_px * y_down_height / y_range_height))
+                axis_x_offset_y_px = envelope_height_px - new_down_height_px
 
         # Clear axis caches if out of date
         if self._envelope_width != envelope_width_px:
