@@ -60,13 +60,22 @@ def signum(x):
 
 class Envelope(QWidget):
 
+    nodesChanged = pyqtSignal(name='nodesChanged')
+
     def __init__(self, config={}):
         QWidget.__init__(self)
 
         self._range_x = None
         self._range_y = None
 
+        self._range_adjust_x = (False, False)
+        self._range_adjust_y = (False, False)
+
         self._nodes = []
+        self._nodes_changed = []
+
+        self._first_lock = (False, False)
+        self._last_lock = (False, False)
 
         self._focused_node = None
 
@@ -78,6 +87,10 @@ class Envelope(QWidget):
 
         self._envelope_width = 0
         self._envelope_height = 0
+
+        self._is_moving_node = False
+        self._moving_index = None
+        self._moving_pointer_offset = (0, 0)
 
         self._config = None
         self._set_config(config)
@@ -102,9 +115,28 @@ class Envelope(QWidget):
             self._range_y = new_range
             self._axis_y_cache = None
 
+    def set_x_range_adjust(self, allow_neg, allow_pos):
+        self._range_adjust_x = (allow_neg, allow_pos)
+
+    def set_y_range_adjust(self, allow_neg, allow_pos):
+        self._range_adjust_y = (allow_neg, allow_pos)
+
+    def set_first_lock(self, lock_x, lock_y):
+        self._first_lock = (lock_x, lock_y)
+
+    def set_last_lock(self, lock_x, lock_y):
+        self._last_lock = (lock_x, lock_y)
+
     def set_nodes(self, new_nodes):
         assert len(new_nodes) >= 2
         self._nodes = [(a, b) for (a, b) in new_nodes]
+        self.update()
+
+    def get_clear_nodes_changed(self):
+        assert self._nodes_changed
+        nodes_changed = self._nodes_changed
+        self._nodes_changed = []
+        return nodes_changed
 
     def _set_config(self, config):
         self._config = DEFAULT_CONFIG.copy()
@@ -524,7 +556,7 @@ class Envelope(QWidget):
 
         painter.restore()
 
-    def _get_coords_vis_from_widget(self, widget_point):
+    def _get_node_val_from_env_vis(self, widget_point):
         widget_x, widget_y = widget_point
 
         zero_x = self._get_zero_x_envelope()
@@ -536,15 +568,14 @@ class Envelope(QWidget):
         def get_neg_width_vis():
             return zero_x
 
-        offset_widget_x = widget_x - self._envelope_offset_x
-        if offset_widget_x >= zero_x:
+        if widget_x >= zero_x:
             pos_width_vis = get_pos_width_vis()
             val_x_max = self._get_display_val_max(self._range_x)
             if pos_width_vis <= 0:
                 pos_width_vis = get_neg_width_vis()
                 val_x_max = -self._get_display_val_min(self._range_x)
 
-            val_x = (offset_widget_x - zero_x) * val_x_max / float(pos_width_vis)
+            val_x = (widget_x - zero_x) * val_x_max / float(pos_width_vis)
         else:
             neg_width_vis = get_neg_width_vis()
             val_x_min = self._get_display_val_min(self._range_x)
@@ -552,7 +583,7 @@ class Envelope(QWidget):
                 neg_width_vis = get_pos_width_vis()
                 val_x_min = -self._get_display_val_max(self._range_x)
 
-            val_x = (zero_x - offset_widget_x) * val_x_min / float(neg_width_vis)
+            val_x = (zero_x - widget_x) * val_x_min / float(neg_width_vis)
 
         # Get envelope y
         def get_pos_height_vis():
@@ -560,15 +591,14 @@ class Envelope(QWidget):
         def get_neg_height_vis():
             return self._envelope_height - zero_y - 1
 
-        offset_widget_y = widget_y - self._config['padding']
-        if offset_widget_y <= zero_y:
+        if widget_y <= zero_y:
             pos_height_vis = get_pos_height_vis()
             val_y_max = self._get_display_val_max(self._range_y)
             if pos_height_vis <= 0:
                 pos_height_vis = get_neg_height_vis()
                 val_y_max = -self._get_display_val_min(self._range_y)
 
-            val_y = (zero_y - offset_widget_y) * val_y_max / float(pos_height_vis)
+            val_y = (zero_y - widget_y) * val_y_max / float(pos_height_vis)
         else:
             neg_height_vis = get_neg_height_vis()
             val_y_min = self._get_display_val_min(self._range_y)
@@ -576,9 +606,12 @@ class Envelope(QWidget):
                 neg_height_vis = get_pos_height_vis()
                 val_y_min = -self._get_display_val_max(self._range_y)
 
-            val_y = (offset_widget_y - zero_y) * val_y_min / float(neg_height_vis)
+            val_y = (widget_y - zero_y) * val_y_min / float(neg_height_vis)
 
         return val_x, val_y
+
+    def leaveEvent(self, event):
+        self._set_focused_node(None)
 
     def _set_focused_node(self, node):
         if node != self._focused_node:
@@ -588,33 +621,123 @@ class Envelope(QWidget):
     def _get_dist_to_node(self, pointer_vis, node_vis):
         return max(abs(pointer_vis[0] - node_vis[0]), abs(pointer_vis[1] - node_vis[1]))
 
-    def leaveEvent(self, event):
-        self._set_focused_node(None)
-
-    def mouseMoveEvent(self, event):
-        widget_x = event.x()
-        widget_y = event.y()
-
-        offset_widget_x = widget_x - self._envelope_offset_x
-        offset_widget_y = widget_y - self._config['padding']
-        pointer_vis = offset_widget_x, offset_widget_y
-
-        # Get nearest node
+    def _get_nearest_node_with_dist(self, pos_vis):
         nearest = None
         nearest_dist = float('inf')
         for node in self._nodes:
             node_vis = self._get_coords_vis(node)
-            node_dist = self._get_dist_to_node(pointer_vis, node_vis)
+            node_dist = self._get_dist_to_node(pos_vis, node_vis)
             if node_dist < nearest_dist:
                 nearest = node
                 nearest_dist = node_dist
 
-        # Update node highlight
+        return nearest, nearest_dist
+
+    def _find_focused_node(self, pos_vis):
+        nearest, nearest_dist = self._get_nearest_node_with_dist(pos_vis)
+
         max_dist = self._config['node_focus_dist_max']
         if nearest_dist <= max_dist:
-            self._set_focused_node(nearest)
+            return nearest
+
+        return None
+
+    def _get_env_vis_coords_from_widget(self, widget_x, widget_y):
+        offset_widget_x = widget_x - self._envelope_offset_x
+        offset_widget_y = widget_y - self._config['padding']
+
+        return offset_widget_x, offset_widget_y
+
+    def mouseMoveEvent(self, event):
+        pointer_vis = self._get_env_vis_coords_from_widget(event.x(), event.y())
+
+        if self._is_moving_node:
+            assert self._focused_node != None
+
+            # Get node bounds
+            epsilon = 0.001
+
+            min_x = self._range_x[0]
+            max_x = self._range_x[1]
+
+            min_y = self._range_y[0]
+            max_y = self._range_y[1]
+
+            if self._moving_index == 0:
+                # First node
+                if self._first_lock[0]:
+                    min_x = max_x = self._focused_node[0]
+                else:
+                    next_node = self._nodes[1]
+                    max_x = min(max_x, next_node[0] - epsilon)
+
+                if self._first_lock[1]:
+                    min_y = max_y = self._focused_node[1]
+
+            elif self._moving_index == len(self._nodes) - 1:
+                # Last node
+                if self._last_lock[0]:
+                    min_x = max_x = self._focused_node[0]
+                else:
+                    prev_node = self._nodes[self._moving_index - 1]
+                    min_x = max(min_x, prev_node[0] + epsilon)
+
+                if self._last_lock[1]:
+                    min_y = max_y = self._focused_node[1]
+
+            else:
+                # Middle node
+                prev_node = self._nodes[self._moving_index - 1]
+                min_x = max(min_x, prev_node[0] + epsilon)
+
+                next_node = self._nodes[self._moving_index + 1]
+                max_x = min(max_x, next_node[0] - epsilon)
+
+            # Get new coordinates
+            new_x_vis = pointer_vis[0] + self._moving_pointer_offset[0]
+            new_y_vis = pointer_vis[1] + self._moving_pointer_offset[1]
+
+            new_x, new_y = self._get_node_val_from_env_vis((new_x_vis, new_y_vis))
+            new_x = min(max(min_x, new_x), max_x)
+            new_y = min(max(min_y, new_y), max_y)
+
+            new_coords = (new_x, new_y)
+
+            self._nodes_changed = (
+                    self._nodes[:self._moving_index] +
+                    [new_coords] +
+                    self._nodes[self._moving_index + 1:])
+            QObject.emit(self, SIGNAL('nodesChanged()'))
+
+            self._focused_node = new_coords
         else:
-            self._set_focused_node(None)
+            focused_node = self._find_focused_node(pointer_vis)
+            self._set_focused_node(focused_node)
+
+    def mousePressEvent(self, event):
+        if event.buttons() != Qt.LeftButton:
+            return
+
+        if self._is_moving_node:
+            return
+
+        pointer_vis = self._get_env_vis_coords_from_widget(event.x(), event.y())
+        focused_node = self._find_focused_node(pointer_vis)
+
+        if focused_node:
+            self._is_moving_node = True
+            self._set_focused_node(focused_node)
+            focused_node_vis = self._get_coords_vis(focused_node)
+            self._moving_index = self._nodes.index(focused_node)
+            self._moving_pointer_offset = (
+                    focused_node_vis[0] - pointer_vis[0],
+                    focused_node_vis[1] - pointer_vis[1])
+        else:
+            # TODO: create new node
+            pass
+
+    def mouseReleaseEvent(self, event):
+        self._is_moving_node = False
 
     def paintEvent(self, event):
         start = time.time()
