@@ -617,7 +617,7 @@ class LineSegment():
 
         self._is_ascending = from_y > to_y
 
-        self._image = QImage(width, height, QImage.Format_ARGB32)
+        self._image = QImage(width, height, QImage.Format_ARGB32_Premultiplied)
         self._image.fill(0)
 
         self._colour = None
@@ -627,6 +627,8 @@ class LineSegment():
 
     def draw_line(self):
         painter = QPainter(self._image)
+        painter.translate(0.5, 0.5)
+        painter.setRenderHint(QPainter.Antialiasing)
 
         # Test
         #painter.setPen(QColor(0, 0xff, 0xff))
