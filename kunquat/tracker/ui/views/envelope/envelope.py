@@ -38,13 +38,15 @@ DEFAULT_CONFIG = {
             'line_min_width': 2,
             'num_min_dist'  : 50,
             },
-        'font'       : _font,
-        'padding'    : 2,
-        'bg_colour'  : QColor(0, 0, 0),
-        'axis_colour': QColor(0xcc, 0xcc, 0xcc),
-        'line_colour': QColor(0x66, 0x88, 0xaa),
-        'node_colour': QColor(0xee, 0xcc, 0xaa),
-        'node_size'  : 5,
+        'font'               : _font,
+        'padding'            : 2,
+        'bg_colour'          : QColor(0, 0, 0),
+        'axis_colour'        : QColor(0xcc, 0xcc, 0xcc),
+        'line_colour'        : QColor(0x66, 0x88, 0xaa),
+        'node_colour'        : QColor(0xee, 0xcc, 0xaa),
+        'focused_node_colour': QColor(0xff, 0x77, 0x22),
+        'node_size'          : 5,
+        'node_focus_dist_max': 3,
     }
 
 
@@ -70,6 +72,8 @@ class Envelope(QWidget):
         self._nodes = []
         self.set_nodes([(0, 1), (1, 0)])
 
+        self._focused_node = None
+
         self._axis_x_cache = None
         self._axis_y_cache = None
 
@@ -85,6 +89,8 @@ class Envelope(QWidget):
         self.setAutoFillBackground(False)
         self.setAttribute(Qt.WA_OpaquePaintEvent)
         self.setAttribute(Qt.WA_NoSystemBackground)
+
+        self.setMouseTracking(True)
 
     def set_x_range(self, min_x, max_x):
         assert signum(min_x) != signum(max_x)
@@ -415,32 +421,50 @@ class Envelope(QWidget):
     def _get_ls_coords(self, nodes):
         return izip(nodes, islice(nodes, 1, None))
 
+    def _get_zero_x_envelope(self):
+        return (self._axis_y_offset_x + self._config['axis_y']['width'] -
+                self._envelope_offset_x - 1)
+
+    def _get_zero_y_envelope(self):
+        return self._axis_x_offset_y - self._config['padding']
+
     def _get_coords_vis(self, val_coords):
         val_x, val_y = val_coords
 
-        zero_x = (self._axis_y_offset_x + self._config['axis_y']['width'] -
-                self._envelope_offset_x - 1)
-        zero_y = self._axis_x_offset_y - self._config['padding']
+        zero_x = self._get_zero_x_envelope()
+        zero_y = self._get_zero_y_envelope()
 
         # Get vis x
+        vis_x = zero_x
+
         if val_x >= 0:
             val_x_max = self._get_display_val_max(self._range_x)
             pos_width_vis = self._envelope_width - zero_x
-            vis_x = zero_x + pos_width_vis * val_x / val_x_max
+
+            if val_x_max != 0:
+                vis_x = zero_x + pos_width_vis * val_x / val_x_max
         else:
             val_x_min = self._get_display_val_min(self._range_x)
             neg_width_vis = zero_x
-            vis_x = zero_x - neg_width_vis * val_x / val_x_min
+
+            if val_x_min != 0:
+                vis_x = zero_x - neg_width_vis * val_x / val_x_min
 
         # Get vis y
+        vis_y = zero_y
+
         if val_y >= 0:
             val_y_max = self._get_display_val_max(self._range_y)
             pos_height_vis = zero_y
-            vis_y = zero_y - pos_height_vis * val_y / val_y_max
+
+            if val_y_max != 0:
+                vis_y = zero_y - pos_height_vis * val_y / val_y_max
         else:
             val_y_min = self._get_display_val_min(self._range_y)
             neg_height_vis = self._envelope_height - zero_y
-            vis_y = zero_y + neg_height_vis * val_y / val_y_min
+
+            if val_y_min != 0:
+                vis_y = zero_y + neg_height_vis * val_y / val_y_min
 
         return int(vis_x), int(vis_y)
 
@@ -492,12 +516,109 @@ class Envelope(QWidget):
         for node in self._nodes:
             pos = self._get_coords_vis(node)
             x, y = pos
+
+            colour = self._config['node_colour']
+            if node == self._focused_node:
+                colour = self._config['focused_node_colour']
+
             painter.fillRect(
                     x - node_size / 2, y - node_size / 2,
                     node_size, node_size,
-                    self._config['node_colour'])
+                    colour)
 
         painter.restore()
+
+    def _get_coords_vis_from_widget(self, widget_point):
+        widget_x, widget_y = widget_point
+
+        zero_x = self._get_zero_x_envelope()
+        zero_y = self._get_zero_y_envelope()
+
+        # Get envelope x
+        def get_pos_width_vis():
+            return self._envelope_width - zero_x - 1
+        def get_neg_width_vis():
+            return zero_x
+
+        offset_widget_x = widget_x - self._envelope_offset_x
+        if offset_widget_x >= zero_x:
+            pos_width_vis = get_pos_width_vis()
+            val_x_max = self._get_display_val_max(self._range_x)
+            if pos_width_vis <= 0:
+                pos_width_vis = get_neg_width_vis()
+                val_x_max = -self._get_display_val_min(self._range_x)
+
+            val_x = (offset_widget_x - zero_x) * val_x_max / float(pos_width_vis)
+        else:
+            neg_width_vis = get_neg_width_vis()
+            val_x_min = self._get_display_val_min(self._range_x)
+            if neg_width_vis <= 0:
+                neg_width_vis = get_pos_width_vis()
+                val_x_min = -self._get_display_val_max(self._range_x)
+
+            val_x = (zero_x - offset_widget_x) * val_x_min / float(neg_width_vis)
+
+        # Get envelope y
+        def get_pos_height_vis():
+            return zero_y
+        def get_neg_height_vis():
+            return self._envelope_height - zero_y - 1
+
+        offset_widget_y = widget_y - self._config['padding']
+        if offset_widget_y <= zero_y:
+            pos_height_vis = get_pos_height_vis()
+            val_y_max = self._get_display_val_max(self._range_y)
+            if pos_height_vis <= 0:
+                pos_height_vis = get_neg_height_vis()
+                val_y_max = -self._get_display_val_min(self._range_y)
+
+            val_y = (zero_y - offset_widget_y) * val_y_max / float(pos_height_vis)
+        else:
+            neg_height_vis = get_neg_height_vis()
+            val_y_min = self._get_display_val_min(self._range_y)
+            if neg_height_vis <= 0:
+                neg_height_vis = get_pos_height_vis()
+                val_y_min = -self._get_display_val_max(self._range_y)
+
+            val_y = (offset_widget_y - zero_y) * val_y_min / float(neg_height_vis)
+
+        return val_x, val_y
+
+    def _set_focused_node(self, node):
+        if node != self._focused_node:
+            self._focused_node = node
+            self.update()
+
+    def _get_dist_to_node(self, pointer_vis, node_vis):
+        return max(abs(pointer_vis[0] - node_vis[0]), abs(pointer_vis[1] - node_vis[1]))
+
+    def leaveEvent(self, event):
+        self._set_focused_node(None)
+
+    def mouseMoveEvent(self, event):
+        widget_x = event.x()
+        widget_y = event.y()
+
+        offset_widget_x = widget_x - self._envelope_offset_x
+        offset_widget_y = widget_y - self._config['padding']
+        pointer_vis = offset_widget_x, offset_widget_y
+
+        # Get nearest node
+        nearest = None
+        nearest_dist = float('inf')
+        for node in self._nodes:
+            node_vis = self._get_coords_vis(node)
+            node_dist = self._get_dist_to_node(pointer_vis, node_vis)
+            if node_dist < nearest_dist:
+                nearest = node
+                nearest_dist = node_dist
+
+        # Update node highlight
+        max_dist = self._config['node_focus_dist_max']
+        if nearest_dist <= max_dist:
+            self._set_focused_node(nearest)
+        else:
+            self._set_focused_node(None)
 
     def paintEvent(self, event):
         start = time.time()
