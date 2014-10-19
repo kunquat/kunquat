@@ -43,6 +43,8 @@ DEFAULT_CONFIG = {
         'bg_colour'  : QColor(0, 0, 0),
         'axis_colour': QColor(0xcc, 0xcc, 0xcc),
         'line_colour': QColor(0x66, 0x88, 0xaa),
+        'node_colour': QColor(0xee, 0xcc, 0xaa),
+        'node_size'  : 5,
     }
 
 
@@ -481,6 +483,20 @@ class Envelope(QWidget):
 
     def _draw_envelope_nodes(self, painter):
         painter.save()
+
+        padding = self._config['padding']
+        painter.setTransform(QTransform().translate(self._envelope_offset_x, padding))
+
+        node_size = self._config['node_size']
+
+        for node in self._nodes:
+            pos = self._get_coords_vis(node)
+            x, y = pos
+            painter.fillRect(
+                    x - node_size / 2, y - node_size / 2,
+                    node_size, node_size,
+                    self._config['node_colour'])
+
         painter.restore()
 
     def paintEvent(self, event):
