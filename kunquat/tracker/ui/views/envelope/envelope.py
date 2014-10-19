@@ -439,7 +439,7 @@ class Envelope(QWidget):
 
         if val_x >= 0:
             val_x_max = self._get_display_val_max(self._range_x)
-            pos_width_vis = self._envelope_width - zero_x
+            pos_width_vis = self._envelope_width - zero_x - 1
 
             if val_x_max != 0:
                 vis_x = zero_x + pos_width_vis * val_x / val_x_max
@@ -461,7 +461,7 @@ class Envelope(QWidget):
                 vis_y = zero_y - pos_height_vis * val_y / val_y_max
         else:
             val_y_min = self._get_display_val_min(self._range_y)
-            neg_height_vis = self._envelope_height - zero_y
+            neg_height_vis = self._envelope_height - zero_y - 1
 
             if val_y_min != 0:
                 vis_y = zero_y + neg_height_vis * val_y / val_y_min
