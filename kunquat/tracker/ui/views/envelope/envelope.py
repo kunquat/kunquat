@@ -66,11 +66,7 @@ class Envelope(QWidget):
         self._range_x = None
         self._range_y = None
 
-        self.set_x_range(0, 4)
-        self.set_y_range(0, 1)
-
         self._nodes = []
-        self.set_nodes([(0, 1), (1, 0)])
 
         self._focused_node = None
 
@@ -108,7 +104,7 @@ class Envelope(QWidget):
 
     def set_nodes(self, new_nodes):
         assert len(new_nodes) >= 2
-        self._nodes = new_nodes
+        self._nodes = [(a, b) for (a, b) in new_nodes]
 
     def _set_config(self, config):
         self._config = DEFAULT_CONFIG.copy()
