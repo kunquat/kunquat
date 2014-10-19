@@ -627,8 +627,9 @@ class Envelope(QWidget):
         painter.setBackground(self._config['bg_colour'])
         painter.eraseRect(0, 0, self.width(), self.height())
 
-        painter.setPen(QColor(0xff, 0, 0xff))
-        painter.drawRect(QRect(0, 0, self.width() - 1, self.height() - 1))
+        # Test
+        #painter.setPen(QColor(0xff, 0, 0xff))
+        #painter.drawRect(QRect(0, 0, self.width() - 1, self.height() - 1))
 
         if not self._is_vis_state_valid():
             return
