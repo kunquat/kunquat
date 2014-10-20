@@ -58,6 +58,11 @@ def signum(x):
     return 0
 
 
+STATE_IDLE = 'idle'
+STATE_MOVING = 'moving'
+STATE_WAITING = 'waiting'
+
+
 class Envelope(QWidget):
 
     nodesChanged = pyqtSignal(name='nodesChanged')
@@ -74,6 +79,8 @@ class Envelope(QWidget):
         self._nodes = []
         self._nodes_changed = []
 
+        self._node_count_max = 2
+
         self._first_lock = (False, False)
         self._last_lock = (False, False)
 
@@ -88,7 +95,7 @@ class Envelope(QWidget):
         self._envelope_width = 0
         self._envelope_height = 0
 
-        self._is_moving_node = False
+        self._state = STATE_IDLE
         self._moving_index = None
         self._moving_pointer_offset = (0, 0)
 
@@ -100,6 +107,9 @@ class Envelope(QWidget):
         self.setAttribute(Qt.WA_NoSystemBackground)
 
         self.setMouseTracking(True)
+
+    def set_node_count_max(self, node_count_max):
+        self._node_count_max = node_count_max
 
     def set_x_range(self, min_x, max_x):
         assert signum(min_x) != signum(max_x)
@@ -131,6 +141,9 @@ class Envelope(QWidget):
         assert len(new_nodes) >= 2
         self._nodes = [(a, b) for (a, b) in new_nodes]
         self.update()
+
+        if self._state == STATE_WAITING:
+            self._state = STATE_MOVING
 
     def get_clear_nodes_changed(self):
         assert self._nodes_changed
@@ -651,7 +664,7 @@ class Envelope(QWidget):
     def mouseMoveEvent(self, event):
         pointer_vis = self._get_env_vis_coords_from_widget(event.x(), event.y())
 
-        if self._is_moving_node:
+        if self._state == STATE_MOVING:
             assert self._focused_node != None
 
             # Get node bounds
@@ -710,7 +723,8 @@ class Envelope(QWidget):
             QObject.emit(self, SIGNAL('nodesChanged()'))
 
             self._focused_node = new_coords
-        else:
+
+        elif self._state == STATE_IDLE:
             focused_node = self._find_focused_node(pointer_vis)
             self._set_focused_node(focused_node)
 
@@ -718,26 +732,75 @@ class Envelope(QWidget):
         if event.buttons() != Qt.LeftButton:
             return
 
-        if self._is_moving_node:
+        if self._state != STATE_IDLE:
             return
 
         pointer_vis = self._get_env_vis_coords_from_widget(event.x(), event.y())
         focused_node = self._find_focused_node(pointer_vis)
 
         if focused_node:
-            self._is_moving_node = True
+            self._state = STATE_MOVING
             self._set_focused_node(focused_node)
             focused_node_vis = self._get_coords_vis(focused_node)
             self._moving_index = self._nodes.index(focused_node)
             self._moving_pointer_offset = (
                     focused_node_vis[0] - pointer_vis[0],
                     focused_node_vis[1] - pointer_vis[1])
-        else:
-            # TODO: create new node
-            pass
+
+        elif len(self._nodes) < self._node_count_max:
+            new_val_x, new_val_y = self._get_node_val_from_env_vis(pointer_vis)
+
+            epsilon = 0.001
+
+            # Get x limits
+            min_x = float('-inf')
+            max_x = float('inf')
+
+            if not self._range_adjust_x[0]:
+                min_x = self._range_x[0]
+            if not self._range_adjust_x[1]:
+                max_x = self._range_x[1]
+
+            insert_pos = 0
+            for i, node in enumerate(self._nodes):
+                insert_pos = i
+                cur_x, _ = node
+                if cur_x < new_val_x:
+                    min_x = cur_x + epsilon
+                else:
+                    max_x = cur_x - epsilon
+                    break
+            else:
+                insert_pos = len(self._nodes)
+
+            # Get y limits
+            min_y = float('-inf')
+            max_y = float('inf')
+
+            if not self._range_adjust_y[0]:
+                min_y = self._range_y[0]
+            if not self._range_adjust_y[1]:
+                max_y = self._range_y[1]
+
+            if min_x <= max_x and min_y <= max_y:
+                new_val_x = min(max(min_x, new_val_x), max_x)
+                new_val_y = min(max(min_y, new_val_y), max_y)
+                new_node = (new_val_x, new_val_y)
+
+                self._nodes_changed = (
+                        self._nodes[:insert_pos] +
+                        [new_node] +
+                        self._nodes[insert_pos:])
+                QObject.emit(self, SIGNAL('nodesChanged()'))
+
+                self._state = STATE_WAITING
+                self._set_focused_node(new_node)
+                self._moving_index = insert_pos
+                self._moving_pointer_offset = (0, 0)
 
     def mouseReleaseEvent(self, event):
-        self._is_moving_node = False
+        self._state = STATE_IDLE
+        self._set_focused_node(None)
 
     def paintEvent(self, event):
         start = time.time()
