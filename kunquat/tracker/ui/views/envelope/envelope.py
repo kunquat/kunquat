@@ -38,15 +38,16 @@ DEFAULT_CONFIG = {
             'line_min_width': 2,
             'num_min_dist'  : 50,
             },
-        'font'               : _font,
-        'padding'            : 2,
-        'bg_colour'          : QColor(0, 0, 0),
-        'axis_colour'        : QColor(0xcc, 0xcc, 0xcc),
-        'line_colour'        : QColor(0x66, 0x88, 0xaa),
-        'node_colour'        : QColor(0xee, 0xcc, 0xaa),
-        'focused_node_colour': QColor(0xff, 0x77, 0x22),
-        'node_size'          : 5,
-        'node_focus_dist_max': 3,
+        'font'                : _font,
+        'padding'             : 2,
+        'bg_colour'           : QColor(0, 0, 0),
+        'axis_colour'         : QColor(0xcc, 0xcc, 0xcc),
+        'line_colour'         : QColor(0x66, 0x88, 0xaa),
+        'node_colour'         : QColor(0xee, 0xcc, 0xaa),
+        'focused_node_colour' : QColor(0xff, 0x77, 0x22),
+        'node_size'           : 5,
+        'node_focus_dist_max' : 3,
+        'node_remove_dist_min': 200,
     }
 
 
@@ -666,6 +667,26 @@ class Envelope(QWidget):
 
         if self._state == STATE_MOVING:
             assert self._focused_node != None
+
+            # Check if we have moved far enough to remove the node
+            is_node_locked = False
+            if self._moving_index == 0:
+                is_node_locked = any(self._first_lock)
+            elif self._moving_index == len(self._nodes) - 1:
+                is_node_locked = any(self._last_lock)
+
+            if (len(self._nodes) > 2) and (not is_node_locked):
+                remove_dist = self._config['node_remove_dist_min']
+                node_vis = self._get_coords_vis(self._focused_node)
+                if self._get_dist_to_node(pointer_vis, node_vis) >= remove_dist:
+                    self._nodes_changed = (
+                            self._nodes[:self._moving_index] +
+                            self._nodes[self._moving_index + 1:])
+                    QObject.emit(self, SIGNAL('nodesChanged()'))
+
+                    self._state = STATE_IDLE
+                    self._focused_node = None
+                    return
 
             # Get node bounds
             epsilon = 0.001
