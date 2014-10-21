@@ -160,12 +160,6 @@ class Envelope(QWidget):
         self._axis_y_cache = None
         self._ls_cache = {}
 
-    def _get_x_range_width(self):
-        return (self._range_x[1] - self._range_x[0])
-
-    def _get_y_range_height(self):
-        return (self._range_y[1] - self._range_y[0])
-
     def _is_vis_state_valid(self):
         return ((self._axis_y_offset_x >= 0) and
                 (self._axis_x_offset_y >= 0) and
@@ -868,6 +862,14 @@ class Envelope(QWidget):
         elapsed = end - start
         print('Envelope view updated in {:.2f} ms'.format(elapsed * 1000))
 
+    def _get_display_x_range_width(self):
+        r = self._range_x
+        return self._get_display_val_max(r) - self._get_display_val_min(r)
+
+    def _get_display_y_range_height(self):
+        r = self._range_y
+        return self._get_display_val_max(r) - self._get_display_val_min(r)
+
     def resizeEvent(self, event):
         # Get total area available
         padding = self._config['padding']
@@ -875,8 +877,8 @@ class Envelope(QWidget):
         available_width_px = self.width() - padding * 2
         available_height_px = self.height() - padding * 2
 
-        x_range_width = self._get_x_range_width()
-        y_range_height = self._get_y_range_height()
+        x_range_width = self._get_display_x_range_width()
+        y_range_height = self._get_display_y_range_height()
 
         axis_y_width = self._config['axis_y']['width']
         axis_x_height = self._config['axis_x']['height']
@@ -889,7 +891,7 @@ class Envelope(QWidget):
         envelope_height_px = available_height_px
 
         # Get left border of the envelope
-        x_left_width = abs(self._range_x[0])
+        x_left_width = abs(self._get_display_val_min(self._range_x))
         x_left_width_px = int(round(available_width_px * x_left_width / x_range_width))
         if x_left_width_px < axis_y_width:
             extra_space = axis_y_width - x_left_width_px
@@ -899,7 +901,7 @@ class Envelope(QWidget):
             axis_y_offset_x_px = x_left_width_px - axis_y_width
 
         # Get bottom border of the envelope
-        y_down_height = abs(self._range_y[0])
+        y_down_height = abs(self._get_display_val_min(self._range_y))
         y_down_height_px = int(round(
             available_height_px * y_down_height / y_range_height))
         if y_down_height_px < axis_x_height:
