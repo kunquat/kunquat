@@ -77,6 +77,8 @@ class Envelope(QWidget):
         self._range_adjust_x = (False, False)
         self._range_adjust_y = (False, False)
 
+        self._is_square_area = False
+
         self._nodes = []
         self._nodes_changed = []
 
@@ -99,6 +101,7 @@ class Envelope(QWidget):
         self._state = STATE_IDLE
         self._moving_index = None
         self._moving_pointer_offset = (0, 0)
+        self._moving_node_vis = None
 
         self._config = None
         self._set_config(config)
@@ -126,6 +129,10 @@ class Envelope(QWidget):
             self._range_y = new_range
             self._axis_y_cache = None
 
+    def set_square_area(self, is_square):
+        if is_square != self._is_square_area:
+            self._is_square_area = is_square
+
     def set_x_range_adjust(self, allow_neg, allow_pos):
         self._range_adjust_x = (allow_neg, allow_pos)
 
@@ -141,6 +148,9 @@ class Envelope(QWidget):
     def set_nodes(self, new_nodes):
         assert len(new_nodes) >= 2
         self._nodes = [(a, b) for (a, b) in new_nodes]
+
+        self._check_update_range()
+
         self.update()
 
         if self._state == STATE_WAITING:
@@ -159,6 +169,40 @@ class Envelope(QWidget):
         self._axis_x_cache = None
         self._axis_y_cache = None
         self._ls_cache = {}
+
+    def _check_update_range(self):
+        if not (any(self._range_adjust_x) or any(self._range_adjust_y)):
+            return
+
+        min_x, min_y = [float('inf')] * 2
+        max_x, max_y = [float('-inf')] * 2
+        for node in self._nodes:
+            x, y = node
+            min_x = min(min_x, x)
+            min_y = min(min_y, y)
+            max_x = max(max_x, x)
+            max_y = max(max_y, y)
+
+        range_x_min, range_x_max = self._range_x
+        range_y_min, range_y_max = self._range_y
+
+        if self._range_adjust_x[0] and (min_x < self._range_x[0]):
+            range_x_min = int(math.floor(min_x))
+        if self._range_adjust_x[1] and (max_x > self._range_x[1]):
+            range_x_max = int(math.ceil(max_x))
+
+        if self._range_adjust_y[0] and (min_y < self._range_y[0]):
+            range_y_min = int(math.floor(min_y))
+        if self._range_adjust_y[1] and (max_y > self._range_y[1]):
+            range_y_max = int(math.ceil(max_y))
+
+        new_range_x = range_x_min, range_x_max
+        new_range_y = range_y_min, range_y_max
+
+        if (new_range_x != self._range_x) or (new_range_y != self._range_y):
+            self._range_x = new_range_x
+            self._range_y = new_range_y
+            self._update_display_area()
 
     def _is_vis_state_valid(self):
         return ((self._axis_y_offset_x >= 0) and
@@ -516,6 +560,8 @@ class Envelope(QWidget):
 
         cur_update_id = self._ls_update_id.next()
 
+        new_ls_count = 0
+
         for coords in self._get_ls_coords(self._nodes):
             if coords not in self._ls_cache:
                 a, b = coords
@@ -525,6 +571,7 @@ class Envelope(QWidget):
                 ls.set_colour(self._config['line_colour'])
                 ls.draw_line()
                 self._ls_cache[coords] = ls
+                new_ls_count += 1
 
             ls = self._ls_cache[coords]
             ls.copy_line(painter)
@@ -538,6 +585,10 @@ class Envelope(QWidget):
 
         for k in obsolete_keys:
             del self._ls_cache[k]
+
+        #if new_ls_count > 0:
+        #    print('{} new line segment{}'.format(
+        #        new_ls_count, '' if new_ls_count == 1 else 's'))
 
         painter.restore()
 
@@ -672,7 +723,10 @@ class Envelope(QWidget):
             if (len(self._nodes) > 2) and (not is_node_locked):
                 remove_dist = self._config['node_remove_dist_min']
                 node_vis = self._get_coords_vis(self._focused_node)
-                if self._get_dist_to_node(pointer_vis, node_vis) >= remove_dist:
+                node_offset_vis = (
+                        node_vis[0] - self._moving_pointer_offset[0],
+                        node_vis[1] - self._moving_pointer_offset[1])
+                if self._get_dist_to_node(pointer_vis, node_offset_vis) >= remove_dist:
                     self._nodes_changed = (
                             self._nodes[:self._moving_index] +
                             self._nodes[self._moving_index + 1:])
@@ -685,11 +739,18 @@ class Envelope(QWidget):
             # Get node bounds
             epsilon = 0.001
 
-            min_x = self._range_x[0]
-            max_x = self._range_x[1]
+            min_x, min_y = [float('-inf')] * 2
+            max_x, max_y = [float('inf')] * 2
 
-            min_y = self._range_y[0]
-            max_y = self._range_y[1]
+            if not self._range_adjust_x[0]:
+                min_x = self._range_x[0]
+            if not self._range_adjust_x[1]:
+                max_x = self._range_x[1]
+
+            if not self._range_adjust_y[0]:
+                min_y = self._range_y[0]
+            if not self._range_adjust_y[1]:
+                max_y = self._range_y[1]
 
             if self._moving_index == 0:
                 # First node
@@ -738,6 +799,8 @@ class Envelope(QWidget):
             QObject.emit(self, SIGNAL('nodesChanged()'))
 
             self._focused_node = new_coords
+
+            self._moving_node_vis = self._get_coords_vis(self._focused_node)
 
         elif self._state == STATE_IDLE:
             focused_node = self._find_focused_node(pointer_vis)
@@ -870,7 +933,7 @@ class Envelope(QWidget):
         r = self._range_y
         return self._get_display_val_max(r) - self._get_display_val_min(r)
 
-    def resizeEvent(self, event):
+    def _update_display_area(self):
         # Get total area available
         padding = self._config['padding']
 
@@ -917,8 +980,8 @@ class Envelope(QWidget):
         if envelope_height_px == axis_x_offset_y_px:
             envelope_height_px += 1
 
-        # Make the envelope area square if the ranges match in length
-        if x_range_width == y_range_height:
+        # Make the envelope area square if configured accordingly
+        if self._is_square_area:
             if envelope_width_px > envelope_height_px:
                 envelope_width_px = envelope_height_px
                 new_left_width_px = int(round(
@@ -934,16 +997,10 @@ class Envelope(QWidget):
                     envelope_height_px * y_down_height / y_range_height))
                 axis_x_offset_y_px = envelope_height_px - new_down_height_px
 
-        # Clear axis caches if out of date
-        if self._envelope_width != envelope_width_px:
-            self._axis_x_cache = None
-        if self._envelope_height != envelope_height_px:
-            self._axis_y_cache = None
-
-        # Clear line segment cache if out of date
-        if (self._envelope_width != envelope_width_px or
-                self._envelope_height != envelope_height_px):
-            self._ls_cache = {}
+        # Clear caches
+        self._axis_x_cache = None
+        self._axis_y_cache = None
+        self._ls_cache = {}
 
         # Set final values
         self._axis_y_offset_x = axis_y_offset_x_px + padding
@@ -952,6 +1009,20 @@ class Envelope(QWidget):
         self._envelope_width = envelope_width_px
         self._envelope_height = envelope_height_px
 
+        if self._state == STATE_MOVING:
+            assert self._focused_node
+            assert self._moving_node_vis
+
+            # Get new pointer offset from node
+            new_coords_vis = self._get_coords_vis(self._focused_node)
+            sub_offset_x = self._moving_node_vis[0] - new_coords_vis[0]
+            sub_offset_y = self._moving_node_vis[1] - new_coords_vis[1]
+            mp_offset_x, mp_offset_y = self._moving_pointer_offset
+            self._moving_pointer_offset = (
+                    mp_offset_x - sub_offset_x, mp_offset_y - sub_offset_y)
+
+    def resizeEvent(self, event):
+        self._update_display_area()
         self.update()
 
 
