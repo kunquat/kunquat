@@ -97,6 +97,7 @@ class Envelope(QWidget):
 
         self._envelope_width = 0
         self._envelope_height = 0
+        self._envelope_offset_x = 0
 
         self._state = STATE_IDLE
         self._moving_index = None
@@ -1002,6 +1003,9 @@ class Envelope(QWidget):
         self._axis_y_cache = None
         self._ls_cache = {}
 
+        envelope_offset_x_shift = (
+                (envelope_offset_x_px + padding) - self._envelope_offset_x)
+
         # Set final values
         self._axis_y_offset_x = axis_y_offset_x_px + padding
         self._axis_x_offset_y = axis_x_offset_y_px + padding
@@ -1019,7 +1023,8 @@ class Envelope(QWidget):
             sub_offset_y = self._moving_node_vis[1] - new_coords_vis[1]
             mp_offset_x, mp_offset_y = self._moving_pointer_offset
             self._moving_pointer_offset = (
-                    mp_offset_x - sub_offset_x, mp_offset_y - sub_offset_y)
+                    mp_offset_x - sub_offset_x + envelope_offset_x_shift,
+                    mp_offset_y - sub_offset_y)
 
     def resizeEvent(self, event):
         self._update_display_area()
