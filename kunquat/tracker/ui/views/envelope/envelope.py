@@ -38,16 +38,21 @@ DEFAULT_CONFIG = {
             'line_min_width': 2,
             'num_min_dist'  : 50,
             },
-        'font'                : _font,
-        'padding'             : 2,
-        'bg_colour'           : QColor(0, 0, 0),
-        'axis_colour'         : QColor(0xcc, 0xcc, 0xcc),
-        'line_colour'         : QColor(0x66, 0x88, 0xaa),
-        'node_colour'         : QColor(0xee, 0xcc, 0xaa),
-        'focused_node_colour' : QColor(0xff, 0x77, 0x22),
-        'node_size'           : 5,
-        'node_focus_dist_max' : 3,
-        'node_remove_dist_min': 200,
+        'font'                      : _font,
+        'padding'                   : 2,
+        'bg_colour'                 : QColor(0, 0, 0),
+        'axis_colour'               : QColor(0xcc, 0xcc, 0xcc),
+        'line_colour'               : QColor(0x66, 0x88, 0xaa),
+        'node_colour'               : QColor(0xee, 0xcc, 0xaa),
+        'focused_node_colour'       : QColor(0xff, 0x77, 0x22),
+        'loop_line_colour'          : QColor(0x77, 0x99, 0xbb),
+        'loop_line_dash'            : [4, 4],
+        'loop_handle_colour'        : QColor(0x88, 0xbb, 0xee),
+        'focused_loop_handle_colour': QColor(0xee, 0xbb, 0x88),
+        'loop_handle_size'          : 10,
+        'node_size'                 : 5,
+        'node_focus_dist_max'       : 3,
+        'node_remove_dist_min'      : 200,
     }
 
 
@@ -66,7 +71,7 @@ STATE_WAITING = 'waiting'
 
 class Envelope(QWidget):
 
-    nodesChanged = pyqtSignal(name='nodesChanged')
+    envelopeChanged = pyqtSignal(name='envelopeChanged')
 
     def __init__(self, config={}):
         QWidget.__init__(self)
@@ -81,6 +86,10 @@ class Envelope(QWidget):
 
         self._nodes = []
         self._nodes_changed = []
+
+        self._loop_markers = []
+        self._loop_markers_changed = []
+        self._is_loop_enabled = False
 
         self._node_count_max = 2
 
@@ -157,11 +166,21 @@ class Envelope(QWidget):
         if self._state == STATE_WAITING:
             self._state = STATE_MOVING
 
-    def get_clear_nodes_changed(self):
-        assert self._nodes_changed
+    def set_loop_markers(self, new_loop_markers):
+        assert len(new_loop_markers) >= 2
+        self._loop_markers = new_loop_markers
+        self.update()
+
+    def set_loop_enabled(self, is_enabled):
+        self._is_loop_enabled = is_enabled
+
+    def get_clear_changed(self):
+        assert self._nodes_changed or self._loop_markers_changed
         nodes_changed = self._nodes_changed
+        loop_markers_changed = self._loop_markers_changed
         self._nodes_changed = []
-        return nodes_changed
+        self._loop_markers_changed = []
+        return nodes_changed, loop_markers_changed
 
     def _set_config(self, config):
         self._config = DEFAULT_CONFIG.copy()
@@ -616,6 +635,41 @@ class Envelope(QWidget):
 
         painter.restore()
 
+    def _draw_loop_markers(self, painter):
+        assert len(self._loop_markers) == 2
+
+        painter.save()
+
+        padding = self._config['padding']
+        painter.setTransform(QTransform().translate(self._envelope_offset_x, padding))
+
+        # Get x coordinates
+        start_index, end_index = self._loop_markers
+        start_x, _ = self._get_coords_vis(self._nodes[start_index])
+        end_x, _ = self._get_coords_vis(self._nodes[end_index])
+
+        # Draw marker lines
+        pen = QPen(self._config['loop_line_colour'])
+        pen.setDashPattern(self._config['loop_line_dash'])
+        painter.setPen(pen)
+        painter.drawLine(start_x, 0, start_x, self._envelope_height - 1)
+        painter.drawLine(end_x, 0, end_x, self._envelope_height - 1)
+
+        # Draw marker handles
+        painter.setPen(Qt.NoPen)
+        painter.setBrush(self._config['loop_handle_colour'])
+        handle_size = self._config['loop_handle_size']
+        painter.drawConvexPolygon(
+                QPoint(start_x - handle_size + 1, 0),
+                QPoint(start_x + handle_size, 0),
+                QPoint(start_x, handle_size))
+        painter.drawConvexPolygon(
+                QPoint(end_x - handle_size, self._envelope_height),
+                QPoint(end_x + handle_size + 1, self._envelope_height),
+                QPoint(end_x, self._envelope_height - handle_size))
+
+        painter.restore()
+
     def _get_node_val_from_env_vis(self, widget_point):
         widget_x, widget_y = widget_point
 
@@ -731,7 +785,7 @@ class Envelope(QWidget):
                     self._nodes_changed = (
                             self._nodes[:self._moving_index] +
                             self._nodes[self._moving_index + 1:])
-                    QObject.emit(self, SIGNAL('nodesChanged()'))
+                    QObject.emit(self, SIGNAL('envelopeChanged()'))
 
                     self._state = STATE_IDLE
                     self._focused_node = None
@@ -797,7 +851,7 @@ class Envelope(QWidget):
                     self._nodes[:self._moving_index] +
                     [new_coords] +
                     self._nodes[self._moving_index + 1:])
-            QObject.emit(self, SIGNAL('nodesChanged()'))
+            QObject.emit(self, SIGNAL('envelopeChanged()'))
 
             self._focused_node = new_coords
 
@@ -870,7 +924,7 @@ class Envelope(QWidget):
                         self._nodes[:insert_pos] +
                         [new_node] +
                         self._nodes[insert_pos:])
-                QObject.emit(self, SIGNAL('nodesChanged()'))
+                QObject.emit(self, SIGNAL('envelopeChanged()'))
 
                 self._state = STATE_WAITING
                 self._set_focused_node(new_node)
@@ -920,6 +974,10 @@ class Envelope(QWidget):
 
         # Graph
         self._draw_envelope_curve(painter)
+
+        if self._is_loop_enabled:
+            self._draw_loop_markers(painter)
+
         self._draw_envelope_nodes(painter)
 
         end = time.time()
