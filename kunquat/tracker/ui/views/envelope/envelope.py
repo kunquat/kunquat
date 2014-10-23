@@ -45,14 +45,15 @@ DEFAULT_CONFIG = {
         'line_colour'               : QColor(0x66, 0x88, 0xaa),
         'node_colour'               : QColor(0xee, 0xcc, 0xaa),
         'focused_node_colour'       : QColor(0xff, 0x77, 0x22),
-        'loop_line_colour'          : QColor(0x77, 0x99, 0xbb),
-        'loop_line_dash'            : [4, 4],
-        'loop_handle_colour'        : QColor(0x88, 0xbb, 0xee),
-        'focused_loop_handle_colour': QColor(0xee, 0xbb, 0x88),
-        'loop_handle_size'          : 10,
         'node_size'                 : 5,
         'node_focus_dist_max'       : 3,
         'node_remove_dist_min'      : 200,
+        'loop_line_colour'          : QColor(0x77, 0x99, 0xbb),
+        'loop_line_dash'            : [4, 4],
+        'loop_handle_colour'        : QColor(0x88, 0xbb, 0xee),
+        'focused_loop_handle_colour': QColor(0xff, 0xaa, 0x55),
+        'loop_handle_size'          : 10,
+        'loop_handle_focus_dist_max': 11,
     }
 
 
@@ -67,6 +68,7 @@ def signum(x):
 STATE_IDLE = 'idle'
 STATE_MOVING = 'moving'
 STATE_WAITING = 'waiting'
+STATE_MOVING_MARKER = 'moving_marker'
 
 
 class Envelope(QWidget):
@@ -97,6 +99,7 @@ class Envelope(QWidget):
         self._last_lock = (False, False)
 
         self._focused_node = None
+        self._focused_loop_marker = None
 
         self._axis_x_cache = None
         self._axis_y_cache = None
@@ -112,6 +115,8 @@ class Envelope(QWidget):
         self._moving_index = None
         self._moving_pointer_offset = (0, 0)
         self._moving_node_vis = None
+
+        self._moving_loop_marker = None
 
         self._config = None
         self._set_config(config)
@@ -636,7 +641,7 @@ class Envelope(QWidget):
         painter.restore()
 
     def _draw_loop_markers(self, painter):
-        assert len(self._loop_markers) == 2
+        assert len(self._loop_markers) >= 2
 
         painter.save()
 
@@ -644,7 +649,8 @@ class Envelope(QWidget):
         painter.setTransform(QTransform().translate(self._envelope_offset_x, padding))
 
         # Get x coordinates
-        start_index, end_index = self._loop_markers
+        start_index = self._loop_markers[0]
+        end_index = self._loop_markers[1]
         start_x, _ = self._get_coords_vis(self._nodes[start_index])
         end_x, _ = self._get_coords_vis(self._nodes[end_index])
 
@@ -657,12 +663,19 @@ class Envelope(QWidget):
 
         # Draw marker handles
         painter.setPen(Qt.NoPen)
-        painter.setBrush(self._config['loop_handle_colour'])
+        normal_colour = self._config['loop_handle_colour']
+        focused_colour = self._config['focused_loop_handle_colour']
         handle_size = self._config['loop_handle_size']
+        no_node = (self._focused_node == None)
+        focused = self._focused_loop_marker
+
+        painter.setBrush(focused_colour if (focused == 0 and no_node) else normal_colour)
         painter.drawConvexPolygon(
                 QPoint(start_x - handle_size + 1, 0),
                 QPoint(start_x + handle_size, 0),
                 QPoint(start_x, handle_size))
+
+        painter.setBrush(focused_colour if (focused == 1 and no_node) else normal_colour)
         painter.drawConvexPolygon(
                 QPoint(end_x - handle_size, self._envelope_height),
                 QPoint(end_x + handle_size + 1, self._envelope_height),
@@ -732,6 +745,12 @@ class Envelope(QWidget):
             self._focused_node = node
             self.update()
 
+    def _set_focused_loop_marker(self, marker):
+        if marker != self._focused_loop_marker:
+            self._focused_loop_marker = marker
+            if not self._focused_node:
+                self.update()
+
     def _get_dist_to_node(self, pointer_vis, node_vis):
         return max(abs(pointer_vis[0] - node_vis[0]), abs(pointer_vis[1] - node_vis[1]))
 
@@ -753,6 +772,30 @@ class Envelope(QWidget):
         max_dist = self._config['node_focus_dist_max']
         if nearest_dist <= max_dist:
             return nearest
+
+        return None
+
+    def _find_focused_loop_marker(self, pos_vis):
+        pos_x, pos_y = pos_vis
+
+        start_index = self._loop_markers[0]
+        end_index = self._loop_markers[1]
+
+        start_x, _ = self._get_coords_vis(self._nodes[start_index])
+        end_x, _ = self._get_coords_vis(self._nodes[end_index])
+        start_y = 0
+        end_y = self._envelope_height - 1
+
+        dist_max = self._config['loop_handle_focus_dist_max']
+        dist_size_diff = dist_max - self._config['loop_handle_size']
+
+        dist_to_start = abs(start_x - pos_x) + abs(start_y - pos_y)
+        if (dist_to_start < dist_max) and (pos_y >= start_y - dist_size_diff):
+            return 0
+
+        dist_to_end = abs(end_x - pos_x) + abs(end_y - pos_y)
+        if (dist_to_end < dist_max) and (pos_y <= end_y + dist_size_diff):
+            return 1
 
         return None
 
@@ -857,9 +900,41 @@ class Envelope(QWidget):
 
             self._moving_node_vis = self._get_coords_vis(self._focused_node)
 
+        elif self._state == STATE_MOVING_MARKER:
+            assert self._focused_loop_marker != None
+
+            pointer_vis_x, _ = pointer_vis
+
+            # Find the nearest node by x coordinate
+            nearest_node_index = None
+            nearest_dist = float('inf')
+            for i, node in enumerate(self._nodes):
+                node_vis = self._get_coords_vis(node)
+                node_vis_x, _ = node_vis
+                dist_x = abs(pointer_vis_x - node_vis_x)
+                if dist_x < nearest_dist:
+                    nearest_node_index = i
+                    nearest_dist = dist_x
+
+            # Clamp to boundaries
+            new_loop_markers = list(self._loop_markers)
+            if self._focused_loop_marker == 0:
+                new_loop_markers[0] = min(max(
+                    0, nearest_node_index), new_loop_markers[1])
+            else:
+                new_loop_markers[1] = min(max(
+                    new_loop_markers[0], nearest_node_index), len(self._nodes) - 1)
+
+            if new_loop_markers != self._loop_markers:
+                self._loop_markers_changed = new_loop_markers
+                QObject.emit(self, SIGNAL('envelopeChanged()'))
+
         elif self._state == STATE_IDLE:
             focused_node = self._find_focused_node(pointer_vis)
             self._set_focused_node(focused_node)
+
+            focused_loop_marker = self._find_focused_loop_marker(pointer_vis)
+            self._set_focused_loop_marker(focused_loop_marker)
 
     def mousePressEvent(self, event):
         if event.buttons() != Qt.LeftButton:
@@ -870,6 +945,7 @@ class Envelope(QWidget):
 
         pointer_vis = self._get_env_vis_coords_from_widget(event.x(), event.y())
         focused_node = self._find_focused_node(pointer_vis)
+        focused_loop_marker = self._find_focused_loop_marker(pointer_vis)
 
         if focused_node:
             self._state = STATE_MOVING
@@ -879,6 +955,11 @@ class Envelope(QWidget):
             self._moving_pointer_offset = (
                     focused_node_vis[0] - pointer_vis[0],
                     focused_node_vis[1] - pointer_vis[1])
+
+        elif focused_loop_marker != None:
+            self._state = STATE_MOVING_MARKER
+            self._set_focused_loop_marker(focused_loop_marker)
+            self._moving_loop_marker = focused_loop_marker
 
         elif len(self._nodes) < self._node_count_max:
             new_val_x, new_val_y = self._get_node_val_from_env_vis(pointer_vis)
@@ -934,6 +1015,7 @@ class Envelope(QWidget):
     def mouseReleaseEvent(self, event):
         self._state = STATE_IDLE
         self._set_focused_node(None)
+        self._set_focused_loop_marker(None)
 
     def paintEvent(self, event):
         start = time.time()
