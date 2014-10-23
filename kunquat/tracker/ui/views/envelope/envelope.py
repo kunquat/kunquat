@@ -891,10 +891,10 @@ class Envelope(QWidget):
             new_y_vis = pointer_vis[1] + self._moving_pointer_offset[1]
 
             new_x, new_y = self._get_node_val_from_env_vis((new_x_vis, new_y_vis))
-            new_x = min(max(min_x, new_x), max_x)
-            new_y = min(max(min_y, new_y), max_y)
+            clamped_x = min(max(min_x, new_x), max_x)
+            clamped_y = min(max(min_y, new_y), max_y)
 
-            new_coords = (new_x, new_y)
+            new_coords = (clamped_x, clamped_y)
 
             self._nodes_changed = (
                     self._nodes[:self._moving_index] +
@@ -905,6 +905,18 @@ class Envelope(QWidget):
             self._focused_node = new_coords
 
             self._moving_node_vis = self._get_coords_vis(self._focused_node)
+
+            # Reduce pointer offset if possible
+            pointer_offset_x, pointer_offset_y = self._moving_pointer_offset
+            if clamped_x != new_x:
+                new_offset_x = self._moving_node_vis[0] - pointer_vis[0]
+                if abs(new_offset_x) < abs(pointer_offset_x):
+                    pointer_offset_x = new_offset_x
+            if clamped_y != new_y:
+                new_offset_y = self._moving_node_vis[1] - pointer_vis[1]
+                if abs(new_offset_y) < abs(pointer_offset_y):
+                    pointer_offset_y = new_offset_y
+            self._moving_pointer_offset = pointer_offset_x, pointer_offset_y
 
         elif self._state == STATE_MOVING_MARKER:
             assert self._focused_loop_marker != None
