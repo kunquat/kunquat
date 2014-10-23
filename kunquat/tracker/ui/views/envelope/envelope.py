@@ -828,6 +828,12 @@ class Envelope(QWidget):
                     self._nodes_changed = (
                             self._nodes[:self._moving_index] +
                             self._nodes[self._moving_index + 1:])
+
+                    new_loop_markers = [max(0, m if m < self._moving_index else m - 1)
+                            for m in self._loop_markers]
+                    if new_loop_markers != self._loop_markers:
+                        self._loop_markers_changed = new_loop_markers
+
                     QObject.emit(self, SIGNAL('envelopeChanged()'))
 
                     self._state = STATE_IDLE
@@ -1005,6 +1011,12 @@ class Envelope(QWidget):
                         self._nodes[:insert_pos] +
                         [new_node] +
                         self._nodes[insert_pos:])
+
+                new_loop_markers = [(m if m < insert_pos else m + 1)
+                        for m in self._loop_markers]
+                if new_loop_markers != self._loop_markers:
+                    self._loop_markers_changed = new_loop_markers
+
                 QObject.emit(self, SIGNAL('envelopeChanged()'))
 
                 self._state = STATE_WAITING
