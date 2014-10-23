@@ -177,7 +177,9 @@ class Envelope(QWidget):
         self.update()
 
     def set_loop_enabled(self, is_enabled):
-        self._is_loop_enabled = is_enabled
+        if is_enabled != self._is_loop_enabled:
+            self._is_loop_enabled = is_enabled
+            self.update()
 
     def get_clear_changed(self):
         assert self._nodes_changed or self._loop_markers_changed
