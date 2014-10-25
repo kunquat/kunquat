@@ -1054,8 +1054,11 @@ class Envelope(QWidget):
 
     def mouseReleaseEvent(self, event):
         self._state = STATE_IDLE
-        self._set_focused_node(None)
-        self._set_focused_loop_marker(None)
+
+        pointer_vis = self._get_env_vis_coords_from_widget(event.x(), event.y())
+
+        self._set_focused_node(self._find_focused_node(pointer_vis))
+        self._set_focused_loop_marker(self._find_focused_loop_marker(pointer_vis))
 
     def paintEvent(self, event):
         start = time.time()
