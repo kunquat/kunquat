@@ -122,6 +122,8 @@ class Envelope(QWidget):
         self._config = None
         self._set_config(config)
 
+        self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
+
         self.setAutoFillBackground(False)
         self.setAttribute(Qt.WA_OpaquePaintEvent)
         self.setAttribute(Qt.WA_NoSystemBackground)
@@ -1245,6 +1247,11 @@ class Envelope(QWidget):
     def resizeEvent(self, event):
         self._update_display_area()
         self.update()
+
+    def sizeHint(self):
+        return QSize(
+                self._config['axis_y']['width'] * 3,
+                self._config['axis_x']['height'] * 3)
 
 
 class LineSegment():
