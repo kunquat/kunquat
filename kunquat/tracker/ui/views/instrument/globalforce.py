@@ -25,6 +25,8 @@ class GlobalForce(NumberSlider):
         self._ins_id = None
         self._updater = None
 
+        self.set_number(0)
+
     def set_ins_id(self, ins_id):
         self._ins_id = ins_id
 
@@ -46,7 +48,7 @@ class GlobalForce(NumberSlider):
         old_block = self.blockSignals(True)
         module = self._ui_model.get_module()
         instrument = module.get_instrument(self._ins_id)
-        self.set_force(instrument.get_global_force())
+        self.set_number(instrument.get_global_force())
         self.blockSignals(old_block)
 
     def _value_changed(self, global_force):

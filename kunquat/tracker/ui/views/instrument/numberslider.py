@@ -43,24 +43,22 @@ class NumberSlider(QWidget):
         h.addWidget(self._value)
         self.setLayout(h)
 
-        QObject.connect(self._slider, SIGNAL('valueChanged(int)'), self._force_changed)
+        QObject.connect(self._slider, SIGNAL('valueChanged(int)'), self._number_changed)
 
-        self.set_force(0)
-
-    def set_force(self, force):
+    def set_number(self, num):
         old_block = self._slider.blockSignals(True)
-        int_val = int(round(force * self._scale))
+        int_val = int(round(num * self._scale))
         self._slider.setValue(int_val)
         self._slider.blockSignals(old_block)
 
         val_fmt = self._get_val_fmt()
-        self._value.setText(val_fmt.format(force))
+        self._value.setText(val_fmt.format(num))
 
     def _get_val_fmt(self):
         return '{{:.{}f}}'.format(self._decimal_count)
 
-    def _force_changed(self, int_val):
-        force = int_val / float(self._scale)
-        QObject.emit(self, SIGNAL('numberChanged(float)'), force)
+    def _number_changed(self, int_val):
+        val = int_val / float(self._scale)
+        QObject.emit(self, SIGNAL('numberChanged(float)'), val)
 
 
