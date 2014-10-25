@@ -26,9 +26,11 @@ class ForceEnvelope(QWidget):
         self._updater = None
 
         self._enabled_toggle = QCheckBox('Enabled')
+        self._loop_toggle = QCheckBox('Loop')
 
         h = QHBoxLayout()
         h.addWidget(self._enabled_toggle)
+        h.addWidget(self._loop_toggle)
 
         self._envelope = Envelope()
         self._envelope.set_node_count_max(32)
@@ -50,10 +52,15 @@ class ForceEnvelope(QWidget):
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
         self._update_envelope()
+
         QObject.connect(
                 self._enabled_toggle,
                 SIGNAL('stateChanged(int)'),
                 self._enabled_changed)
+        QObject.connect(
+                self._loop_toggle,
+                SIGNAL('stateChanged(int)'),
+                self._loop_enabled_changed)
         QObject.connect(
                 self._envelope,
                 SIGNAL('envelopeChanged()'),
@@ -80,17 +87,23 @@ class ForceEnvelope(QWidget):
         self._envelope.set_loop_markers(envelope['envelope']['marks'])
         self._envelope.set_loop_enabled(envelope['loop'])
 
-    def _enabled_changed(self, state):
-        new_enabled = (self._enabled_toggle.checkState() == Qt.Checked)
+    def _bool_enabled_changed(self, key, state):
+        new_enabled = (state == Qt.Checked)
 
         module = self._ui_model.get_module()
         instrument = module.get_instrument(self._ins_id)
         envelope = instrument.get_force_envelope()
 
-        envelope['enabled'] = new_enabled
+        envelope[key] = new_enabled
 
         instrument.set_force_envelope(envelope)
         self._updater.signal_update(set(['signal_instrument']))
+
+    def _enabled_changed(self, state):
+        self._bool_enabled_changed('enabled', self._enabled_toggle.checkState())
+
+    def _loop_enabled_changed(self, state):
+        self._bool_enabled_changed('loop', self._loop_toggle.checkState())
 
     def _envelope_changed(self):
         new_nodes, new_loop = self._envelope.get_clear_changed()
