@@ -45,6 +45,8 @@ class NumberSlider(QWidget):
 
         QObject.connect(self._slider, SIGNAL('valueChanged(int)'), self._number_changed)
 
+        self.set_number(min_val)
+
     def set_number(self, num):
         old_block = self._slider.blockSignals(True)
         int_val = int(round(num * self._scale))
