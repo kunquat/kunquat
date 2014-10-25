@@ -83,6 +83,11 @@ class ForceEnvelope(QWidget):
                 Qt.Checked if envelope['enabled'] else Qt.Unchecked)
         self._enabled_toggle.blockSignals(old_block)
 
+        old_block = self._loop_toggle.blockSignals(True)
+        self._loop_toggle.setCheckState(
+                Qt.Checked if envelope['loop'] else Qt.Unchecked)
+        self._loop_toggle.blockSignals(old_block)
+
         self._envelope.set_nodes(envelope['envelope']['nodes'])
         self._envelope.set_loop_markers(envelope['envelope']['marks'])
         self._envelope.set_loop_enabled(envelope['loop'])
