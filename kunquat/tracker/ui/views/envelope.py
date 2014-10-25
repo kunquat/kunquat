@@ -51,6 +51,7 @@ DEFAULT_CONFIG = {
         'node_focus_dist_max'       : 4,
         'node_remove_dist_min'      : 200,
         'loop_line_colour'          : QColor(0x77, 0x99, 0xbb),
+        'focused_loop_line_colour'  : QColor(0xee, 0xaa, 0x66),
         'loop_line_dash'            : [4, 4],
         'loop_handle_colour'        : QColor(0x88, 0xbb, 0xee),
         'focused_loop_handle_colour': QColor(0xff, 0xaa, 0x55),
@@ -661,6 +662,20 @@ class Envelope(QWidget):
         padding = self._config['padding']
         painter.setTransform(QTransform().translate(self._envelope_offset_x, padding))
 
+        no_node_focus = (self._focused_node == None)
+
+        def get_line_colour(index):
+            normal_colour = self._config['loop_line_colour']
+            focused_colour = self._config['focused_loop_line_colour']
+            return (focused_colour if (self._focused_loop_marker == index) and
+                    no_node_focus else normal_colour)
+
+        def get_handle_colour(index):
+            normal_colour = self._config['loop_handle_colour']
+            focused_colour = self._config['focused_loop_handle_colour']
+            return (focused_colour if (self._focused_loop_marker == index) and
+                    no_node_focus else normal_colour)
+
         # Get x coordinates
         start_index = self._loop_markers[0]
         end_index = self._loop_markers[1]
@@ -668,27 +683,37 @@ class Envelope(QWidget):
         end_x, _ = self._get_coords_vis(self._nodes[end_index])
 
         # Draw marker lines
-        pen = QPen(self._config['loop_line_colour'])
+        pen = QPen()
         pen.setDashPattern(self._config['loop_line_dash'])
+
+        # Make sure the focused line is drawn on top
+        x_coords = start_x, end_x
+        first_line_index = 1 if self._focused_loop_marker == 0 else 0
+        second_line_index = 1 - first_line_index
+
+        pen.setColor(get_line_colour(first_line_index))
         painter.setPen(pen)
-        painter.drawLine(start_x, 0, start_x, self._envelope_height - 1)
-        painter.drawLine(end_x, 0, end_x, self._envelope_height - 1)
+        painter.drawLine(
+                x_coords[first_line_index], 0,
+                x_coords[first_line_index], self._envelope_height - 1)
+        pen.setColor(get_line_colour(second_line_index))
+        painter.setPen(pen)
+        painter.drawLine(
+                x_coords[second_line_index], 0,
+                x_coords[second_line_index], self._envelope_height - 1)
 
         # Draw marker handles
         painter.setPen(Qt.NoPen)
-        normal_colour = self._config['loop_handle_colour']
-        focused_colour = self._config['focused_loop_handle_colour']
         handle_size = self._config['loop_handle_size']
-        no_node = (self._focused_node == None)
         focused = self._focused_loop_marker
 
-        painter.setBrush(focused_colour if (focused == 0 and no_node) else normal_colour)
+        painter.setBrush(get_handle_colour(0))
         painter.drawConvexPolygon(
                 QPoint(start_x - handle_size + 1, 0),
                 QPoint(start_x + handle_size, 0),
                 QPoint(start_x, handle_size))
 
-        painter.setBrush(focused_colour if (focused == 1 and no_node) else normal_colour)
+        painter.setBrush(get_handle_colour(1))
         painter.drawConvexPolygon(
                 QPoint(end_x - handle_size, self._envelope_height),
                 QPoint(end_x + handle_size + 1, self._envelope_height),
