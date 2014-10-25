@@ -43,6 +43,8 @@ class NumberSlider(QWidget):
         h.addWidget(self._value)
         self.setLayout(h)
 
+        self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Maximum)
+
         QObject.connect(self._slider, SIGNAL('valueChanged(int)'), self._number_changed)
 
         self.set_number(min_val)
@@ -62,5 +64,8 @@ class NumberSlider(QWidget):
     def _number_changed(self, int_val):
         val = int_val / float(self._scale)
         QObject.emit(self, SIGNAL('numberChanged(float)'), val)
+
+    def sizeHint(self):
+        return self._slider.sizeHint()
 
 

@@ -175,6 +175,8 @@ class ScaleSlider(QWidget):
         h.addWidget(self._slider)
         self.setLayout(h)
 
+        self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Maximum)
+
         QObject.connect(self._slider, SIGNAL('numberChanged(float)'), self._number_changed)
 
     def set_number(self, num):
@@ -182,5 +184,8 @@ class ScaleSlider(QWidget):
 
     def _number_changed(self, num):
         QObject.emit(self, SIGNAL('numberChanged(float)'), num)
+
+    def sizeHint(self):
+        return self._slider.sizeHint()
 
 
