@@ -40,6 +40,7 @@ DEFAULT_CONFIG = {
             },
         'font'                      : _font,
         'padding'                   : 2,
+        'is_square_area'            : False,
         'bg_colour'                 : QColor(0, 0, 0),
         'axis_colour'               : QColor(0xcc, 0xcc, 0xcc),
         'line_colour'               : QColor(0x66, 0x88, 0xaa),
@@ -83,8 +84,6 @@ class Envelope(QWidget):
 
         self._range_adjust_x = (False, False)
         self._range_adjust_y = (False, False)
-
-        self._is_square_area = False
 
         self._nodes = []
         self._nodes_changed = []
@@ -143,10 +142,6 @@ class Envelope(QWidget):
         if new_range != self._range_y:
             self._range_y = new_range
             self._axis_y_cache = None
-
-    def set_square_area(self, is_square):
-        if is_square != self._is_square_area:
-            self._is_square_area = is_square
 
     def set_x_range_adjust(self, allow_neg, allow_pos):
         self._range_adjust_x = (allow_neg, allow_pos)
@@ -1147,8 +1142,8 @@ class Envelope(QWidget):
         if envelope_height_px == axis_x_offset_y_px:
             envelope_height_px += 1
 
-        # Make the envelope area square if configured accordingly
-        if self._is_square_area:
+        # Make the envelope area square if configured as such
+        if self._config['is_square_area']:
             if envelope_width_px > envelope_height_px:
                 envelope_width_px = envelope_height_px
                 new_left_width_px = int(round(
