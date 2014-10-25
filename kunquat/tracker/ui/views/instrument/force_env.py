@@ -29,11 +29,13 @@ class ForceEnvelope(QWidget):
         self._enabled_toggle = QCheckBox('Enabled')
         self._loop_toggle = QCheckBox('Loop')
         self._scale_amount = ScaleSlider('Scale amount:', 2, -4, 4)
+        self._scale_center = ScaleSlider('Scale center:', 0, -3600, 3600)
 
         h = QHBoxLayout()
         h.addWidget(self._enabled_toggle)
         h.addWidget(self._loop_toggle)
         h.addWidget(self._scale_amount)
+        h.addWidget(self._scale_center)
 
         self._envelope = Envelope()
         self._envelope.set_node_count_max(32)
@@ -69,6 +71,10 @@ class ForceEnvelope(QWidget):
                 SIGNAL('numberChanged(float)'),
                 self._scale_amount_changed)
         QObject.connect(
+                self._scale_center,
+                SIGNAL('numberChanged(float)'),
+                self._scale_center_changed)
+        QObject.connect(
                 self._envelope,
                 SIGNAL('envelopeChanged()'),
                 self._envelope_changed)
@@ -97,6 +103,8 @@ class ForceEnvelope(QWidget):
 
         self._scale_amount.set_number(envelope['scale_amount'])
 
+        self._scale_center.set_number(envelope['scale_center'])
+
         self._envelope.set_nodes(envelope['envelope']['nodes'])
         self._envelope.set_loop_markers(envelope['envelope']['marks'])
         self._envelope.set_loop_enabled(envelope['loop'])
@@ -119,15 +127,21 @@ class ForceEnvelope(QWidget):
     def _loop_enabled_changed(self, state):
         self._bool_enabled_changed('loop', self._loop_toggle.checkState())
 
-    def _scale_amount_changed(self, num):
+    def _scale_number_changed(self, key, num):
         module = self._ui_model.get_module()
         instrument = module.get_instrument(self._ins_id)
         envelope = instrument.get_force_envelope()
 
-        envelope['scale_amount'] = num
+        envelope[key] = num
 
         instrument.set_force_envelope(envelope)
         self._updater.signal_update(set(['signal_instrument']))
+
+    def _scale_amount_changed(self, num):
+        self._scale_number_changed('scale_amount', num)
+
+    def _scale_center_changed(self, num):
+        self._scale_number_changed('scale_center', num)
 
     def _envelope_changed(self):
         new_nodes, new_loop = self._envelope.get_clear_changed()
