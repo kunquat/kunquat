@@ -15,6 +15,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 from kunquat.tracker.ui.views.envelope import Envelope
+from numberslider import NumberSlider
 
 
 class ForceEnvelope(QWidget):
@@ -27,10 +28,12 @@ class ForceEnvelope(QWidget):
 
         self._enabled_toggle = QCheckBox('Enabled')
         self._loop_toggle = QCheckBox('Loop')
+        self._scale_amount = NumberSlider(2, -4, 4)
 
         h = QHBoxLayout()
         h.addWidget(self._enabled_toggle)
         h.addWidget(self._loop_toggle)
+        h.addWidget(self._scale_amount)
 
         self._envelope = Envelope()
         self._envelope.set_node_count_max(32)
@@ -62,6 +65,10 @@ class ForceEnvelope(QWidget):
                 SIGNAL('stateChanged(int)'),
                 self._loop_enabled_changed)
         QObject.connect(
+                self._scale_amount,
+                SIGNAL('numberChanged(float)'),
+                self._scale_amount_changed)
+        QObject.connect(
                 self._envelope,
                 SIGNAL('envelopeChanged()'),
                 self._envelope_changed)
@@ -88,6 +95,8 @@ class ForceEnvelope(QWidget):
                 Qt.Checked if envelope['loop'] else Qt.Unchecked)
         self._loop_toggle.blockSignals(old_block)
 
+        self._scale_amount.set_number(envelope['scale_amount'])
+
         self._envelope.set_nodes(envelope['envelope']['nodes'])
         self._envelope.set_loop_markers(envelope['envelope']['marks'])
         self._envelope.set_loop_enabled(envelope['loop'])
@@ -109,6 +118,16 @@ class ForceEnvelope(QWidget):
 
     def _loop_enabled_changed(self, state):
         self._bool_enabled_changed('loop', self._loop_toggle.checkState())
+
+    def _scale_amount_changed(self, num):
+        module = self._ui_model.get_module()
+        instrument = module.get_instrument(self._ins_id)
+        envelope = instrument.get_force_envelope()
+
+        envelope['scale_amount'] = num
+
+        instrument.set_force_envelope(envelope)
+        self._updater.signal_update(set(['signal_instrument']))
 
     def _envelope_changed(self):
         new_nodes, new_loop = self._envelope.get_clear_changed()
