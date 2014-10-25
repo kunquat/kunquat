@@ -55,7 +55,7 @@ DEFAULT_CONFIG = {
         'loop_handle_colour'        : QColor(0x88, 0xbb, 0xee),
         'focused_loop_handle_colour': QColor(0xff, 0xaa, 0x55),
         'loop_handle_size'          : 10,
-        'loop_handle_focus_dist_max': 11,
+        'loop_handle_focus_dist_max': 12,
     }
 
 
@@ -792,7 +792,8 @@ class Envelope(QWidget):
         return None
 
     def _find_focused_loop_marker(self, pos_vis):
-        pos_x, pos_y = pos_vis
+        # Shift focus position so that it matches better what is seen
+        pos_x, pos_y = (pos_vis[0] - 1, pos_vis[1] - 1)
 
         start_index = self._loop_markers[0]
         end_index = self._loop_markers[1]
