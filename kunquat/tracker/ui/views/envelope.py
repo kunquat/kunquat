@@ -48,7 +48,7 @@ DEFAULT_CONFIG = {
         'focused_node_colour'       : QColor(0xff, 0x77, 0x22),
         'focused_node_axis_colour'  : QColor(0xff, 0x77, 0x22, 0x7f),
         'node_size'                 : 5,
-        'node_focus_dist_max'       : 3,
+        'node_focus_dist_max'       : 4,
         'node_remove_dist_min'      : 200,
         'loop_line_colour'          : QColor(0x77, 0x99, 0xbb),
         'loop_line_dash'            : [4, 4],
@@ -768,11 +768,14 @@ class Envelope(QWidget):
         return max(abs(pointer_vis[0] - node_vis[0]), abs(pointer_vis[1] - node_vis[1]))
 
     def _get_nearest_node_with_dist(self, pos_vis):
+        # Shift focus position so that it matches better what is seen
+        pos_vis_shifted = (pos_vis[0] - 1, pos_vis[1] - 1)
+
         nearest = None
         nearest_dist = float('inf')
         for node in self._nodes:
             node_vis = self._get_coords_vis(node)
-            node_dist = self._get_dist_to_node(pos_vis, node_vis)
+            node_dist = self._get_dist_to_node(pos_vis_shifted, node_vis)
             if node_dist < nearest_dist:
                 nearest = node
                 nearest_dist = node_dist
