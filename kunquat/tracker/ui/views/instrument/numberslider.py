@@ -27,9 +27,6 @@ class NumberSlider(QWidget):
         self._decimal_count = decimal_count
         self._scale = 10**decimal_count
 
-        min_val = min_val
-        max_val = max_val
-
         self._slider = QSlider()
         self._slider.setOrientation(Qt.Horizontal)
         self._slider.setMinimum(int(min_val * self._scale))
