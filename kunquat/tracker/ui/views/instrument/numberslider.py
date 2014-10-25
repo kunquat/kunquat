@@ -15,26 +15,29 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 
-class ForceSlider(QWidget):
+class NumberSlider(QWidget):
 
-    SCALE = float(10)
+    numberChanged = pyqtSignal(float, name='numberChanged')
 
-    forceChanged = pyqtSignal(float, name='forceChanged')
-
-    def __init__(self):
+    def __init__(self, decimal_count, min_val, max_val):
         QWidget.__init__(self)
 
-        min_val = -64.0
-        max_val = 18.0
+        assert decimal_count >= 0
+
+        self._decimal_count = decimal_count
+        self._scale = 10**decimal_count
+
+        min_val = min_val
+        max_val = max_val
 
         self._slider = QSlider()
         self._slider.setOrientation(Qt.Horizontal)
-        self._slider.setMinimum(int(min_val * self.SCALE))
-        self._slider.setMaximum(int(max_val * self.SCALE))
+        self._slider.setMinimum(int(min_val * self._scale))
+        self._slider.setMaximum(int(max_val * self._scale))
 
         self._value = QLabel()
         fm = QFontMetrics(QFont())
-        val_fmt = '{:.1f}'
+        val_fmt = self._get_val_fmt()
         width = max(fm.width(val_fmt.format(val)) for val in (min_val, max_val))
         self._value.setFixedWidth(width)
 
@@ -49,14 +52,18 @@ class ForceSlider(QWidget):
 
     def set_force(self, force):
         old_block = self._slider.blockSignals(True)
-        int_val = int(round(force * self.SCALE))
+        int_val = int(round(force * self._scale))
         self._slider.setValue(int_val)
         self._slider.blockSignals(old_block)
 
-        self._value.setText('{:.1f}'.format(force))
+        val_fmt = self._get_val_fmt()
+        self._value.setText(val_fmt.format(force))
+
+    def _get_val_fmt(self):
+        return '{{:.{}f}}'.format(self._decimal_count)
 
     def _force_changed(self, int_val):
-        force = int_val / self.SCALE
-        QObject.emit(self, SIGNAL('forceChanged(float)'), force)
+        force = int_val / float(self._scale)
+        QObject.emit(self, SIGNAL('numberChanged(float)'), force)
 
 
