@@ -1061,6 +1061,10 @@ class Envelope(QWidget):
         self._set_focused_node(self._find_focused_node(pointer_vis))
         self._set_focused_loop_marker(self._find_focused_loop_marker(pointer_vis))
 
+    def leaveEvent(self, event):
+        self._set_focused_node(None)
+        self._set_focused_loop_marker(None)
+
     def paintEvent(self, event):
         start = time.time()
 
