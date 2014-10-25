@@ -46,6 +46,7 @@ DEFAULT_CONFIG = {
         'line_colour'               : QColor(0x66, 0x88, 0xaa),
         'node_colour'               : QColor(0xee, 0xcc, 0xaa),
         'focused_node_colour'       : QColor(0xff, 0x77, 0x22),
+        'focused_node_axis_colour'  : QColor(0xff, 0x77, 0x22, 0x7f),
         'node_size'                 : 5,
         'node_focus_dist_max'       : 3,
         'node_remove_dist_min'      : 200,
@@ -570,6 +571,21 @@ class Envelope(QWidget):
 
         return int(vis_x), int(vis_y)
 
+    def _draw_focus_axes(self, painter):
+        painter.save()
+
+        padding = self._config['padding']
+        painter.setTransform(QTransform().translate(self._envelope_offset_x, padding))
+
+        painter.setPen(self._config['focused_node_axis_colour'])
+
+        node_x, node_y = self._get_coords_vis(self._focused_node)
+
+        painter.drawLine(0, node_y, self._envelope_width - 1, node_y)
+        painter.drawLine(node_x, 0, node_x, self._envelope_height - 1)
+
+        painter.restore()
+
     def _draw_envelope_curve(self, painter):
         painter.save()
 
@@ -1077,6 +1093,9 @@ class Envelope(QWidget):
 
         # Graph
         self._draw_envelope_curve(painter)
+
+        if self._focused_node:
+            self._draw_focus_axes(painter)
 
         if self._is_loop_enabled:
             self._draw_loop_markers(painter)
