@@ -155,6 +155,9 @@ class ForceEnvelope(QWidget):
         if new_loop:
             envelope['envelope']['marks'] = new_loop
 
+        if new_nodes or new_loop:
+            envelope['enabled'] = True
+
         instrument.set_force_envelope(envelope)
         self._updater.signal_update(set(['signal_instrument']))
 
