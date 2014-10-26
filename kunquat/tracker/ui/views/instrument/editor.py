@@ -16,6 +16,7 @@ from PyQt4.QtGui import *
 
 from force_editor import ForceEditor
 from infoeditor import InfoEditor
+from kunquat.tracker.ui.views.keyboardmapper import KeyboardMapper
 
 
 class Editor(QWidget):
@@ -31,6 +32,8 @@ class Editor(QWidget):
         self._tabs.addTab(self._force_editor, 'Force')
         self._tabs.addTab(self._info_editor, 'Info')
 
+        self._keyboard_mapper = KeyboardMapper()
+
         v = QVBoxLayout()
         v.setMargin(0)
         v.addWidget(self._tabs)
@@ -45,9 +48,19 @@ class Editor(QWidget):
         self._ui_model = ui_model
         self._force_editor.set_ui_model(ui_model)
         self._info_editor.set_ui_model(ui_model)
+        self._keyboard_mapper.set_ui_model(ui_model)
 
     def unregister_updaters(self):
+        self._keyboard_mapper.unregister_updaters()
         self._info_editor.unregister_updaters()
         self._force_editor.unregister_updaters()
+
+    def keyPressEvent(self, event):
+        if not self._keyboard_mapper.process_typewriter_button_event(event):
+            event.ignore()
+
+    def keyReleaseEvent(self, event):
+        if not self._keyboard_mapper.process_typewriter_button_event(event):
+            event.ignore()
 
 
