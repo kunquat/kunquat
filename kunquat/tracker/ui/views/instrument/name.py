@@ -44,7 +44,7 @@ class Name(QLineEdit):
         old_block = self.blockSignals(True)
         module = self._ui_model.get_module()
         instrument = module.get_instrument(self._ins_id)
-        self.setText(instrument.get_name())
+        self.setText(instrument.get_name() or '')
         self.blockSignals(old_block)
 
     def _text_edited(self, text):

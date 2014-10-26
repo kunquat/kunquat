@@ -68,4 +68,17 @@ class Instrument():
         d['global_force'] = global_force
         self._store[key] = d
 
+    def get_force_envelope(self):
+        key = self._get_key('p_envelope_force.json')
+        try:
+            envelope = get_default_value(key)
+            envelope.update(self._store[key])
+        except KeyError:
+            pass
+        return envelope
+
+    def set_force_envelope(self, envelope):
+        key = self._get_key('p_envelope_force.json')
+        self._store[key] = envelope
+
 
