@@ -22,7 +22,7 @@ class TypewriterButtonModel():
         self._controller = None
         self._session = None
         self._ui_model = None
-        self._ui_manager = None
+        self._control_manager = None
         self._typewriter_manager = None
         self._notation_manager = None
         self._sheet_manager = None
@@ -36,7 +36,7 @@ class TypewriterButtonModel():
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
-        self._ui_manager = ui_model.get_ui_manager()
+        self._control_manager = ui_model.get_control_manager()
         self._typewriter_manager = ui_model.get_typewriter_manager()
         self._notation_manager = ui_model.get_notation_manager()
         self._sheet_manager = ui_model.get_sheet_manager()
@@ -54,7 +54,7 @@ class TypewriterButtonModel():
         return self._typewriter_manager.get_button_pitch((self._row, self._index))
 
     def get_led_state(self):
-        selected_control = self._ui_manager.get_selected_control()
+        selected_control = self._control_manager.get_selected_control()
         if selected_control == None:
             return None
 
@@ -85,7 +85,7 @@ class TypewriterButtonModel():
         if self._session.is_key_active(self._row, self._index):
             return
 
-        selected_control = self._ui_manager.get_selected_control()
+        selected_control = self._control_manager.get_selected_control()
         if selected_control:
             note = selected_control.start_tracked_note(0, pitch)
             self._session.activate_key_with_note(self._row, self._index, note)

@@ -21,7 +21,7 @@ class TestButton(QPushButton):
         QPushButton.__init__(self)
         self._ui_model = None
         self._ins_id = None
-        self._ui_manager = None
+        self._control_manager = None
         self._typewriter_manager = None
         self._button_model = None
 
@@ -32,7 +32,7 @@ class TestButton(QPushButton):
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
-        self._ui_manager = ui_model.get_ui_manager()
+        self._control_manager = ui_model.get_control_manager()
         self._typewriter_manager = ui_model.get_typewriter_manager()
         QObject.connect(self, SIGNAL('pressed()'), self._pressed)
         QObject.connect(self, SIGNAL('released()'), self._released)
@@ -46,10 +46,10 @@ class TestButton(QPushButton):
         if not control_id:
             return
 
-        self._ui_manager.set_control_id_override(control_id)
+        self._control_manager.set_control_id_override(control_id)
         self._button_model = self._typewriter_manager.get_random_button_model()
         self._button_model.start_tracked_note()
-        self._ui_manager.set_control_id_override(None)
+        self._control_manager.set_control_id_override(None)
 
     def _released(self):
         self._button_model.stop_tracked_note()

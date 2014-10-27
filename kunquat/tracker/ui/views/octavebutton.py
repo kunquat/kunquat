@@ -22,7 +22,7 @@ class OctaveButton(QPushButton):
         QPushButton.__init__(self)
         self._octave_id = octave_id
         self._typewriter_manager = None
-        self._ui_manager = None
+        self._control_manager = None
         self._updater = None
 
         self.setCheckable(True)
@@ -47,7 +47,7 @@ class OctaveButton(QPushButton):
     def set_ui_model(self, ui_model):
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
-        self._ui_manager = ui_model.get_ui_manager()
+        self._control_manager = ui_model.get_control_manager()
         self._typewriter_manager = ui_model.get_typewriter_manager()
         self._button_model = self._typewriter_manager.get_octave_button_model(
                 self._octave_id)
@@ -66,7 +66,7 @@ class OctaveButton(QPushButton):
         self.blockSignals(old_block)
 
     def update_leds(self):
-        selected_control = self._ui_manager.get_selected_control()
+        selected_control = self._control_manager.get_selected_control()
         if selected_control == None:
             return
         notes = selected_control.get_active_notes()

@@ -26,7 +26,7 @@ class Editor(QWidget):
         QWidget.__init__(self)
         self._ui_model = None
         self._ins_id = None
-        self._ui_manager = None
+        self._control_manager = None
 
         self._test_button = TestButton()
         self._tabs = QTabWidget()
@@ -52,7 +52,7 @@ class Editor(QWidget):
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
-        self._ui_manager = ui_model.get_ui_manager()
+        self._control_manager = ui_model.get_control_manager()
         self._test_button.set_ui_model(ui_model)
         self._force_editor.set_ui_model(ui_model)
         self._info_editor.set_ui_model(ui_model)
@@ -70,10 +70,10 @@ class Editor(QWidget):
         if not control_id:
             return
 
-        self._ui_manager.set_control_id_override(control_id)
+        self._control_manager.set_control_id_override(control_id)
         if not self._keyboard_mapper.process_typewriter_button_event(event):
             event.ignore()
-        self._ui_manager.set_control_id_override(None)
+        self._control_manager.set_control_id_override(None)
 
     def keyReleaseEvent(self, event):
         if not self._keyboard_mapper.process_typewriter_button_event(event):

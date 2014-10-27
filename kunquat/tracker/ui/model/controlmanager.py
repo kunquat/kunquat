@@ -13,7 +13,7 @@
 #
 
 
-class UiManager():
+class ControlManager():
 
     def __init__(self):
         self._session = None

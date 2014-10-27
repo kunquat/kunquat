@@ -21,7 +21,7 @@ class InstrumentSelect(QComboBox):
     def __init__(self):
         QComboBox.__init__(self)
         self._updater = None
-        self._ui_manager = None
+        self._control_manager = None
         self._module = None
         self._control_catalog = dict()
         QObject.connect(self, SIGNAL("currentIndexChanged(int)"), self._select_instrument)
@@ -29,7 +29,7 @@ class InstrumentSelect(QComboBox):
     def set_ui_model(self, ui_model):
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
-        self._ui_manager = ui_model.get_ui_manager()
+        self._control_manager = ui_model.get_control_manager()
         self._module = ui_model.get_module()
 
     def unregister_updaters(self):
@@ -42,7 +42,7 @@ class InstrumentSelect(QComboBox):
 
     def _select_instrument(self, catalog_index):
         control_id = self._control_catalog[catalog_index]
-        self._ui_manager.set_selected_control_id(control_id)
+        self._control_manager.set_selected_control_id(control_id)
 
     def _update_control_texts(self):
         for i, control_id in self._control_catalog.items():
@@ -59,7 +59,7 @@ class InstrumentSelect(QComboBox):
     def _update_controls(self):
         control_ids = self._module.get_control_ids()
         self._control_catalog = dict(enumerate(sorted(control_ids)))
-        selected_control_id = self._ui_manager.get_selected_control_id()
+        selected_control_id = self._control_manager.get_selected_control_id()
         old_block = self.blockSignals(True)
         self.clear()
         for i, control_id in self._control_catalog.items():

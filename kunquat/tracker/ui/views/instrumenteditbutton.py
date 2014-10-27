@@ -32,8 +32,8 @@ class InstrumentEditButton(QToolButton):
 
     def _clicked(self):
         module = self._ui_model.get_module()
-        ui_manager = self._ui_model.get_ui_manager()
-        control_id = ui_manager.get_selected_control_id()
+        control_manager = self._ui_model.get_control_manager()
+        control_id = control_manager.get_selected_control_id()
         control = module.get_control(control_id)
         instrument = control.get_instrument()
 
