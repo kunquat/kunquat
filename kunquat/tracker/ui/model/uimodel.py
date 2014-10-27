@@ -128,7 +128,7 @@ class UiModel():
 
     def set_control_manager(self, control_manager):
         self._control_manager = control_manager
-        self._control_manager.set_model(self)
+        self._control_manager.set_ui_model(self)
 
     def get_control_manager(self):
         return self._control_manager
@@ -167,7 +167,7 @@ class UiModel():
 
     def set_selection(self, selection):
         self._selection = selection
-        self._selection.set_model(self)
+        self._selection.set_ui_model(self)
 
     def get_selection(self):
         return self._selection

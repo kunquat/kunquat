@@ -18,17 +18,17 @@ class ControlManager():
     def __init__(self):
         self._session = None
         self._updater = None
-        self._model = None
+        self._ui_model = None
 
     def set_controller(self, controller):
         self._session = controller.get_session()
         self._updater = controller.get_updater()
 
-    def set_model(self, model):
-        self._model = model
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
 
     def get_selected_control_id(self):
-        module = self._model.get_module()
+        module = self._ui_model.get_module()
         control_ids = module.get_control_ids()
 
         selected_id = self._session.get_control_id_override()
@@ -50,7 +50,7 @@ class ControlManager():
         control_id = self.get_selected_control_id()
         if control_id == None:
             return None
-        module = self._model.get_module()
+        module = self._ui_model.get_module()
         control = module.get_control(control_id)
         return control
 
