@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013
-#          Tomi Jylhä-Ollila, Finland 2013
+#          Tomi Jylhä-Ollila, Finland 2013-2014
 #
 # This file is part of Kunquat.
 #
@@ -17,6 +17,7 @@ class UiManager():
 
     def __init__(self):
         self._selected_control_id = None
+        self._control_id_override = None
         self._updater = None
         self._model = None
 
@@ -30,7 +31,7 @@ class UiManager():
     def get_selected_control_id(self):
         module = self._model.get_module()
         control_ids = module.get_control_ids()
-        selected_id = self._selected_control_id
+        selected_id = self._control_id_override or self._selected_control_id
         if len(control_ids) < 1:
             return None
         if not selected_id in control_ids:
@@ -49,4 +50,8 @@ class UiManager():
         module = self._model.get_module()
         control = module.get_control(control_id)
         return control
+
+    def set_control_id_override(self, control_id):
+        self._control_id_override = control_id
+
 
