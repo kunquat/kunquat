@@ -16,14 +16,13 @@
 class UiManager():
 
     def __init__(self):
-        self._selected_control_id = None
-        self._control_id_override = None
+        self._session = None
         self._updater = None
         self._model = None
 
     def set_controller(self, controller):
-        updater = controller.get_updater()
-        self._updater = updater
+        self._session = controller.get_session()
+        self._updater = controller.get_updater()
 
     def set_model(self, model):
         self._model = model
@@ -31,7 +30,11 @@ class UiManager():
     def get_selected_control_id(self):
         module = self._model.get_module()
         control_ids = module.get_control_ids()
-        selected_id = self._control_id_override or self._selected_control_id
+
+        selected_id = self._session.get_control_id_override()
+        if selected_id == None:
+            selected_id = self._session.get_selected_control_id()
+
         if len(control_ids) < 1:
             return None
         if not selected_id in control_ids:
@@ -40,7 +43,7 @@ class UiManager():
         return selected_id
 
     def set_selected_control_id(self, control_id):
-        self._selected_control_id = control_id
+        self._session.set_selected_control_id(control_id)
         self._updater.signal_update()
 
     def get_selected_control(self):
@@ -52,6 +55,6 @@ class UiManager():
         return control
 
     def set_control_id_override(self, control_id):
-        self._control_id_override = control_id
+        self._session.set_control_id_override(control_id)
 
 
