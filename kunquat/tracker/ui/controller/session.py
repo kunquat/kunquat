@@ -125,9 +125,9 @@ class Session():
                 del self._channel_active_note[channel]
             control_id = self.get_active_control_id_by_channel(channel)
             if control_id in self._control_active_notes:
-               notes = self._control_active_notes[control_id]
-               if channel in notes:
-                   del notes[channel]
+                notes = self._control_active_notes[control_id]
+                if channel in notes:
+                    del notes[channel]
         else:
             self._channel_active_note[channel] = pitch
             control_id = self.get_selected_control_id_by_channel(channel)
