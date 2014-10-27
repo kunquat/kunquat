@@ -16,6 +16,7 @@ from PyQt4.QtGui import *
 
 from force_editor import ForceEditor
 from infoeditor import InfoEditor
+from testbutton import TestButton
 from kunquat.tracker.ui.views.keyboardmapper import KeyboardMapper
 
 
@@ -26,6 +27,8 @@ class Editor(QWidget):
         self._ui_model = None
         self._ins_id = None
         self._ui_manager = None
+
+        self._test_button = TestButton()
         self._tabs = QTabWidget()
 
         self._force_editor = ForceEditor()
@@ -37,17 +40,20 @@ class Editor(QWidget):
 
         v = QVBoxLayout()
         v.setMargin(0)
+        v.addWidget(self._test_button)
         v.addWidget(self._tabs)
         self.setLayout(v)
 
     def set_ins_id(self, ins_id):
         self._ins_id = ins_id
+        self._test_button.set_ins_id(ins_id)
         self._force_editor.set_ins_id(ins_id)
         self._info_editor.set_ins_id(ins_id)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._ui_manager = ui_model.get_ui_manager()
+        self._test_button.set_ui_model(ui_model)
         self._force_editor.set_ui_model(ui_model)
         self._info_editor.set_ui_model(ui_model)
         self._keyboard_mapper.set_ui_model(ui_model)
@@ -56,6 +62,7 @@ class Editor(QWidget):
         self._keyboard_mapper.unregister_updaters()
         self._info_editor.unregister_updaters()
         self._force_editor.unregister_updaters()
+        self._test_button.unregister_updaters()
 
     def keyPressEvent(self, event):
         module = self._ui_model.get_module()
