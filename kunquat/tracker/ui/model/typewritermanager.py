@@ -56,16 +56,10 @@ class TypewriterManager():
         return button_model
 
     def get_random_button_model(self):
-        keymap_name = self._session.get_keymap_name()
-        keymap_data = self._share.get_keymaps()[keymap_name]
-        keymap = keymap_data['keymap']
-        self._create_current_map(keymap)
-
         active_coords = []
         for ri, row_length in enumerate(self._ROW_LENGTHS):
             active_coords.extend((ri, ci) for ci in xrange(row_length)
                     if self.get_button_pitch((ri, ci)) != None)
-
         if not active_coords:
             return None
         row, index = random.choice(active_coords)
