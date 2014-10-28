@@ -44,6 +44,7 @@ class TestButton(QPushButton):
         module = self._ui_model.get_module()
         control_id = module.get_control_id_by_instrument_id(self._ins_id)
         if not control_id:
+            self._button_model = None
             return
 
         self._control_manager.set_control_id_override(control_id)
@@ -52,6 +53,7 @@ class TestButton(QPushButton):
         self._control_manager.set_control_id_override(None)
 
     def _released(self):
-        self._button_model.stop_tracked_note()
+        if self._button_model:
+            self._button_model.stop_tracked_note()
 
 
