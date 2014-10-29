@@ -54,47 +54,37 @@ class Instrument():
         key = self._get_key('m_name.json')
         self._store[key] = name
 
-    def get_global_force(self):
+    def _get_value_from_ins_dict(self, entry_key):
         key = self._get_key('p_instrument.json')
         try:
-            global_force = self._store[key]['global_force']
+            value = self._store[key][entry_key]
         except KeyError:
-            global_force = get_default_value(key)['global_force']
-        return global_force
+            value = get_default_value(key)[entry_key]
+        return value
+
+    def _set_value_of_ins_dict(self, entry_key, value):
+        key = self._get_key('p_instrument.json')
+        d = self._store.get(key, get_default_value(key))
+        d[entry_key] = value
+        self._store[key] = d
+
+    def get_global_force(self):
+        return self._get_value_from_ins_dict('global_force')
 
     def set_global_force(self, global_force):
-        key = self._get_key('p_instrument.json')
-        d = self._store.get(key, get_default_value(key))
-        d['global_force'] = global_force
-        self._store[key] = d
+        self._set_value_of_ins_dict('global_force', global_force)
 
     def get_force_variation(self):
-        key = self._get_key('p_instrument.json')
-        try:
-            force_var = self._store[key]['force_variation']
-        except KeyError:
-            force_var = get_default_value(key)['force_variation']
-        return force_var
+        return self._get_value_from_ins_dict('force_variation')
 
     def set_force_variation(self, force_var):
-        key = self._get_key('p_instrument.json')
-        d = self._store.get(key, get_default_value(key))
-        d['force_variation'] = force_var
-        self._store[key] = d
+        self._set_value_of_ins_dict('force_variation', force_var)
 
     def get_default_force(self):
-        key = self._get_key('p_instrument.json')
-        try:
-            default_force = self._store[key]['force']
-        except KeyError:
-            default_force = get_default_value(key)['force']
-        return default_force
+        return self._get_value_from_ins_dict('force')
 
     def set_default_force(self, default_force):
-        key = self._get_key('p_instrument.json')
-        d = self._store.get(key, get_default_value(key))
-        d['force'] = default_force
-        self._store[key] = d
+        self._set_value_of_ins_dict('force', default_force)
 
     def get_force_envelope(self):
         key = self._get_key('p_envelope_force.json')
