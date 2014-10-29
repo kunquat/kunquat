@@ -90,7 +90,10 @@ class Instrument():
         key = self._get_key('p_envelope_force.json')
         try:
             envelope = get_default_value(key)
+            default_markers = envelope['envelope']['marks']
             envelope.update(self._store[key])
+            if 'marks' not in envelope['envelope']:
+                envelope['envelope']['marks'] = default_markers
         except KeyError:
             pass
         return envelope
