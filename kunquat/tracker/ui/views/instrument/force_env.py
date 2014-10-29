@@ -45,6 +45,8 @@ class ForceEnvelope(QWidget):
         self._envelope.set_x_range_adjust(False, True)
 
         v = QVBoxLayout()
+        v.setMargin(0)
+        v.setSpacing(0)
         v.addLayout(h)
         v.addWidget(self._envelope)
         self.setLayout(v)
