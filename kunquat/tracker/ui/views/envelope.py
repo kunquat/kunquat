@@ -819,6 +819,9 @@ class Envelope(QWidget):
         return None
 
     def _find_focused_loop_marker(self, pos_vis):
+        if not self._loop_markers:
+            return None
+
         # Shift focus position so that it matches better what is seen
         pos_x, pos_y = (pos_vis[0] - 1, pos_vis[1] - 1)
 
