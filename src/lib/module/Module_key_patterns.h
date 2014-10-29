@@ -58,7 +58,12 @@ MODULE_KEYP(ins_env_force,          "ins_XX/p_envelope_force.json",
         ", \"loop\": false"
         ", \"envelope\": { \"nodes\": [ [0, 1], [1, 1] ], \"marks\": [0, 1] }"
         "}")
-MODULE_KEYP(ins_env_force_release,  "ins_XX/p_envelope_force_release.json", "")
+MODULE_KEYP(ins_env_force_release,  "ins_XX/p_envelope_force_release.json",
+        "{ \"enabled\": false"
+        ", \"scale_amount\": 0"
+        ", \"scale_center\": 0"
+        ", \"envelope\": { \"nodes\": [ [0, 1], [1, 0] ] }"
+        "}")
 MODULE_KEYP(ins_env_force_filter,   "ins_XX/p_envelope_force_filter.json",  "")
 MODULE_KEYP(ins_env_pitch_pan,      "ins_XX/p_envelope_pitch_pan.json",     "")
 
