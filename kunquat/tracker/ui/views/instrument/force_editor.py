@@ -16,6 +16,7 @@ from PyQt4.QtGui import *
 
 from globalforce import GlobalForce
 from forcevariation import ForceVariation
+from defaultforce import DefaultForce
 from force_env import ForceEnvelope
 
 
@@ -27,6 +28,7 @@ class ForceEditor(QWidget):
         self._ins_id = None
         self._global_force = GlobalForce()
         self._force_var = ForceVariation()
+        self._default_force = DefaultForce()
         self._force_env = ForceEnvelope()
 
         sliders = QGridLayout()
@@ -34,6 +36,8 @@ class ForceEditor(QWidget):
         sliders.addWidget(self._global_force, 0, 1)
         sliders.addWidget(QLabel('Force variation:'), 1, 0)
         sliders.addWidget(self._force_var, 1, 1)
+        sliders.addWidget(QLabel('Default force:'), 2, 0)
+        sliders.addWidget(self._default_force, 2, 1)
 
         v = QVBoxLayout()
         v.addLayout(sliders)
@@ -44,15 +48,18 @@ class ForceEditor(QWidget):
         self._ins_id = ins_id
         self._global_force.set_ins_id(ins_id)
         self._force_var.set_ins_id(ins_id)
+        self._default_force.set_ins_id(ins_id)
         self._force_env.set_ins_id(ins_id)
 
     def set_ui_model(self, ui_model):
         self._global_force.set_ui_model(ui_model)
         self._force_var.set_ui_model(ui_model)
+        self._default_force.set_ui_model(ui_model)
         self._force_env.set_ui_model(ui_model)
 
     def unregister_updaters(self):
         self._force_env.unregister_updaters()
+        self._default_force.unregister_updaters()
         self._force_var.unregister_updaters()
         self._global_force.unregister_updaters()
 
