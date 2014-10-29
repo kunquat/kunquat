@@ -19,8 +19,8 @@ from numberslider import NumberSlider
 
 class InsNumSlider(NumberSlider):
 
-    def __init__(self, decimal_count, min_val, max_val, title=''):
-        NumberSlider.__init__(self, decimal_count, min_val, max_val, title)
+    def __init__(self, decimal_count, min_val, max_val, title='', width_txt=''):
+        NumberSlider.__init__(self, decimal_count, min_val, max_val, title, width_txt)
         self._ins_id = None
         self._ui_model = None
         self._updater = None
