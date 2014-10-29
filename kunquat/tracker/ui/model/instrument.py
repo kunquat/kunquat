@@ -68,6 +68,20 @@ class Instrument():
         d['global_force'] = global_force
         self._store[key] = d
 
+    def get_force_variation(self):
+        key = self._get_key('p_instrument.json')
+        try:
+            force_var = self._store[key]['force_variation']
+        except KeyError:
+            force_var = get_default_value(key)['force_variation']
+        return force_var
+
+    def set_force_variation(self, force_var):
+        key = self._get_key('p_instrument.json')
+        d = self._store.get(key, get_default_value(key))
+        d['force_variation'] = force_var
+        self._store[key] = d
+
     def get_force_envelope(self):
         key = self._get_key('p_envelope_force.json')
         try:
