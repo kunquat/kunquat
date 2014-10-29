@@ -99,4 +99,17 @@ class Instrument():
         key = self._get_key('p_envelope_force.json')
         self._store[key] = envelope
 
+    def get_force_release_envelope(self):
+        key = self._get_key('p_envelope_force_release.json')
+        try:
+            envelope = get_default_value(key)
+            envelope.update(self._store[key])
+        except KeyError:
+            pass
+        return envelope
+
+    def set_force_release_envelope(self, envelope):
+        key = self._get_key('p_envelope_force_release.json')
+        self._store[key] = envelope
+
 
