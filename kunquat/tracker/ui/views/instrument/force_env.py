@@ -28,8 +28,8 @@ class ForceEnvelope(QWidget):
 
         self._enabled_toggle = QCheckBox('Enabled')
         self._loop_toggle = QCheckBox('Loop')
-        self._scale_amount = ScaleSlider('Scale amount:', 2, -4, 4)
-        self._scale_center = ScaleSlider('Scale center:', 0, -3600, 3600)
+        self._scale_amount = NumberSlider(2, -4, 4, title='Scale amount:')
+        self._scale_center = NumberSlider(0, -3600, 3600, title='Scale center:')
 
         h = QHBoxLayout()
         h.addWidget(self._enabled_toggle)
@@ -160,35 +160,5 @@ class ForceEnvelope(QWidget):
 
         instrument.set_force_envelope(envelope)
         self._updater.signal_update(set(['signal_instrument']))
-
-
-class ScaleSlider(QWidget):
-
-    numberChanged = pyqtSignal(float, name='numberChanged')
-
-    def __init__(self, title, decimal_count, min_val, max_val):
-        QWidget.__init__(self)
-        self._label = QLabel(title)
-        self._slider = NumberSlider(decimal_count, min_val, max_val)
-
-        h = QHBoxLayout()
-        h.setMargin(0)
-        h.setSpacing(0)
-        h.addWidget(self._label)
-        h.addWidget(self._slider)
-        self.setLayout(h)
-
-        self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Maximum)
-
-        QObject.connect(self._slider, SIGNAL('numberChanged(float)'), self._number_changed)
-
-    def set_number(self, num):
-        self._slider.set_number(num)
-
-    def _number_changed(self, num):
-        QObject.emit(self, SIGNAL('numberChanged(float)'), num)
-
-    def sizeHint(self):
-        return self._slider.sizeHint()
 
 

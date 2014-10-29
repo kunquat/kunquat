@@ -19,7 +19,7 @@ class NumberSlider(QWidget):
 
     numberChanged = pyqtSignal(float, name='numberChanged')
 
-    def __init__(self, decimal_count, min_val, max_val):
+    def __init__(self, decimal_count, min_val, max_val, title=''):
         QWidget.__init__(self)
 
         assert decimal_count >= 0
@@ -39,6 +39,8 @@ class NumberSlider(QWidget):
         self._value.setFixedWidth(width)
 
         h = QHBoxLayout()
+        if title:
+            h.addWidget(QLabel(title))
         h.addWidget(self._slider)
         h.addWidget(self._value)
         self.setLayout(h)
