@@ -14,42 +14,19 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from numberslider import NumberSlider
+from insnumslider import InsNumSlider
 
 
-class GlobalForce(NumberSlider):
+class GlobalForce(InsNumSlider):
 
     def __init__(self):
-        NumberSlider.__init__(self, 1, -64.0, 18.0)
-        self._ui_model = None
-        self._ins_id = None
-        self._updater = None
-
+        InsNumSlider.__init__(self, 1, -64.0, 18.0)
         self.set_number(0)
 
-    def set_ins_id(self, ins_id):
-        self._ins_id = ins_id
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-        self._update_value()
-        QObject.connect(self, SIGNAL('numberChanged(float)'), self._value_changed)
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        if 'signal_instrument' in signals:
-            self._update_value()
-
     def _update_value(self):
-        old_block = self.blockSignals(True)
         module = self._ui_model.get_module()
         instrument = module.get_instrument(self._ins_id)
         self.set_number(instrument.get_global_force())
-        self.blockSignals(old_block)
 
     def _value_changed(self, global_force):
         module = self._ui_model.get_module()
