@@ -1040,6 +1040,11 @@ class Envelope(QWidget):
             if not self._range_adjust_x[1]:
                 max_x = self._range_x[1]
 
+            if any(self._first_lock):
+                min_x = self._nodes[0][0] + epsilon
+            if any(self._last_lock):
+                max_x = self._nodes[-1][0] - epsilon
+
             insert_pos = 0
             for i, node in enumerate(self._nodes):
                 insert_pos = i
