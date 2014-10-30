@@ -26,6 +26,18 @@ class ForceEnvelope(QWidget):
         self._ins_id = None
         self._updater = None
 
+        header = QLabel('Force envelope')
+        header.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+        header_line = QFrame()
+        header_line.setFrameShape(QFrame.HLine)
+        header_line.setFrameShadow(QFrame.Sunken)
+        header_line.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Maximum)
+        header_layout = QHBoxLayout()
+        header_layout.setContentsMargins(5, 0, 5, 0)
+        header_layout.setSpacing(10)
+        header_layout.addWidget(header)
+        header_layout.addWidget(header_line)
+
         self._enabled_toggle = QCheckBox('Enabled')
         self._loop_toggle = QCheckBox('Loop')
         self._scale_amount = NumberSlider(2, -4, 4, title='Scale amount:')
@@ -47,6 +59,7 @@ class ForceEnvelope(QWidget):
         v = QVBoxLayout()
         v.setMargin(0)
         v.setSpacing(0)
+        v.addLayout(header_layout)
         v.addLayout(h)
         v.addWidget(self._envelope)
         self.setLayout(v)
