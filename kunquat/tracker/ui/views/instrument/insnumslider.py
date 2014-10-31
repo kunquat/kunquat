@@ -39,10 +39,14 @@ class InsNumSlider(NumberSlider):
         self._updater.unregister_updater(self._perform_updates)
 
     def _perform_updates(self, signals):
-        if 'signal_instrument' in signals:
+        update_signals = set(['signal_instrument', self._get_update_signal_type()])
+        if not signals.isdisjoint(update_signals):
             self._update_value()
 
     # Protected interface
+
+    def _get_update_signal_type(self):
+        raise NotImplementedError
 
     def _update_value(self):
         raise NotImplementedError

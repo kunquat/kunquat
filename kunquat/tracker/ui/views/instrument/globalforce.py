@@ -32,6 +32,9 @@ class GlobalForce(InsNumSlider):
         module = self._ui_model.get_module()
         instrument = module.get_instrument(self._ins_id)
         instrument.set_global_force(global_force)
-        self._updater.signal_update(set(['signal_instrument']))
+        self._updater.signal_update(set([self._get_update_signal_type()]))
+
+    def _get_update_signal_type(self):
+        return ''.join(('signal_global_force_', self._ins_id))
 
 

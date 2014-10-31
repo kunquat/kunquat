@@ -34,6 +34,9 @@ class ForceVariation(InsNumSlider):
         module = self._ui_model.get_module()
         instrument = module.get_instrument(self._ins_id)
         instrument.set_force_variation(force_var)
-        self._updater.signal_update(set(['signal_instrument']))
+        self._updater.signal_update(set([self._get_update_signal_type()]))
+
+    def _get_update_signal_type(self):
+        return ''.join(('signal_force_var_', self._ins_id))
 
 

@@ -96,7 +96,8 @@ class TimeEnvelope(QWidget):
         self._updater.unregister_updater(self._perform_updates)
 
     def _perform_updates(self, signals):
-        if 'signal_instrument' in signals:
+        update_signals = set(['signal_instrument', self._get_update_signal_type()])
+        if not signals.isdisjoint(update_signals):
             self._update_envelope()
 
     def _update_envelope(self):
@@ -133,7 +134,7 @@ class TimeEnvelope(QWidget):
         envelope[key] = new_enabled
 
         self._set_instrument_envelope(instrument, envelope)
-        self._updater.signal_update(set(['signal_instrument']))
+        self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _enabled_changed(self, state):
         self._bool_enabled_changed('enabled', self._enabled_toggle.checkState())
@@ -149,7 +150,7 @@ class TimeEnvelope(QWidget):
         envelope[key] = num
 
         self._set_instrument_envelope(instrument, envelope)
-        self._updater.signal_update(set(['signal_instrument']))
+        self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _scale_amount_changed(self, num):
         self._scale_number_changed('scale_amount', num)
@@ -173,7 +174,7 @@ class TimeEnvelope(QWidget):
             envelope['enabled'] = True
 
         self._set_instrument_envelope(instrument, envelope)
-        self._updater.signal_update(set(['signal_instrument']))
+        self._updater.signal_update(set([self._get_update_signal_type()]))
 
     # Protected interface
 
@@ -184,6 +185,9 @@ class TimeEnvelope(QWidget):
         raise NotImplementedError
 
     def _make_envelope_widget(self):
+        raise NotImplementedError
+
+    def _get_update_signal_type(self):
         raise NotImplementedError
 
     def _get_instrument_envelope(self, instrument):

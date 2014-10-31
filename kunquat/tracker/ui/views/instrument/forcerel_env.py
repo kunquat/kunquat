@@ -39,6 +39,9 @@ class ForceReleaseEnvelope(TimeEnvelope):
         envelope.set_x_range_adjust(False, True)
         return envelope
 
+    def _get_update_signal_type(self):
+        return ''.join(('signal_forcerel_env_', self._ins_id))
+
     def _get_instrument_envelope(self, instrument):
         return instrument.get_force_release_envelope()
 

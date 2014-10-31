@@ -32,6 +32,9 @@ class DefaultForce(InsNumSlider):
         module = self._ui_model.get_module()
         instrument = module.get_instrument(self._ins_id)
         instrument.set_default_force(default_force)
-        self._updater.signal_update(set(['signal_instrument']))
+        self._updater.signal_update(set([self._get_update_signal_type()]))
+
+    def _get_update_signal_type(self):
+        return ''.join(('signal_default_force_', self._ins_id))
 
 
