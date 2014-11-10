@@ -729,7 +729,13 @@ static bool read_gen_type(Reader_params* params)
         return false;
     }
 
-    Device_set_impl((Device*)gen, gen_impl);
+    if (!Device_set_impl((Device*)gen, gen_impl))
+    {
+        del_Device_impl(gen_impl);
+        Handle_set_error(params->handle, ERROR_MEMORY,
+                "Couldn't allocate memory while initialising Generator implementation");
+        return false;
+    }
 
     // Remove old Generator Device state
     Device_states* dstates = Player_get_device_states(params->handle->player);
@@ -1179,7 +1185,12 @@ static bool read_effect_dsp_type(
         return false;
     }
 
-    Device_set_impl((Device*)dsp, dsp_impl);
+    if (!Device_set_impl((Device*)dsp, dsp_impl))
+    {
+        Handle_set_error(params->handle, ERROR_MEMORY,
+                "Couldn't allocate memory while initialising DSP implementation");
+        return false;
+    }
 
     const Player* player = params->handle->player;
 

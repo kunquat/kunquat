@@ -95,12 +95,6 @@ Effect* new_Effect(void)
     //Device_set_sync(&eff->parent, Effect_sync);
     Device_set_process(&eff->parent, Effect_process);
 
-    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
-    {
-        Device_register_port(&eff->parent, DEVICE_PORT_TYPE_RECEIVE, port);
-        Device_register_port(&eff->parent, DEVICE_PORT_TYPE_SEND, port);
-    }
-
     eff->out_iface = new_Effect_interface();
     eff->in_iface = new_Effect_interface();
     eff->dsps = new_DSP_table(KQT_DSPS_MAX);
@@ -112,13 +106,13 @@ Effect* new_Effect(void)
 
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
-        Device_register_port(&eff->out_iface->parent,
-                             DEVICE_PORT_TYPE_SEND, port);
-        Device_register_port(&eff->in_iface->parent,
-                             DEVICE_PORT_TYPE_SEND, port);
+        Device_set_port_existence(
+                &eff->out_iface->parent, DEVICE_PORT_TYPE_SEND, port, true);
+        Device_set_port_existence(
+                &eff->in_iface->parent, DEVICE_PORT_TYPE_SEND, port, true);
     }
-    Device_register_port(&eff->out_iface->parent,
-                         DEVICE_PORT_TYPE_RECEIVE, 0);
+    Device_set_port_existence(
+            &eff->out_iface->parent, DEVICE_PORT_TYPE_RECEIVE, 0, true);
 
     //fprintf(stderr, "New effect %p\n", (void*)eff);
 

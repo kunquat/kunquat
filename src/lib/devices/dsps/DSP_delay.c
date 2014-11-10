@@ -143,6 +143,8 @@ static void del_Delay_state(Device_state* dev_state)
 }
 
 
+static bool DSP_delay_init(Device_impl* dimpl);
+
 static Device_state* DSP_delay_create_state(
         const Device* device, int32_t audio_rate, int32_t audio_buffer_size);
 
@@ -182,15 +184,22 @@ Device_impl* new_DSP_delay(DSP* dsp)
     if (delay == NULL)
         return NULL;
 
-    if (!Device_impl_init(&delay->parent, del_DSP_delay))
-    {
-        memory_free(delay);
-        return NULL;
-    }
-
     delay->parent.device = (Device*)dsp;
 
-    Device_set_process((Device*)dsp, DSP_delay_process);
+    Device_impl_register_init(&delay->parent, DSP_delay_init);
+    Device_impl_register_destroy(&delay->parent, del_DSP_delay);
+
+    return &delay->parent;
+}
+
+
+static bool DSP_delay_init(Device_impl* dimpl)
+{
+    assert(dimpl != NULL);
+
+    DSP_delay* delay = (DSP_delay*)dimpl;
+
+    Device_set_process(delay->parent.device, DSP_delay_process);
 
     Device_set_state_creator(delay->parent.device, DSP_delay_create_state);
 
@@ -228,10 +237,7 @@ Device_impl* new_DSP_delay(DSP* dsp)
             DSP_delay_update_state_tap_volume);
 
     if (!reg_success)
-    {
-        del_DSP_delay(&delay->parent);
-        return NULL;
-    }
+        return false;
 
     DSP_set_clear_history((DSP*)delay->parent.device, DSP_delay_clear_history);
     Device_impl_register_set_audio_rate(
@@ -246,10 +252,10 @@ Device_impl* new_DSP_delay(DSP* dsp)
         delay->taps[i].scale = 1;
     }
 
-    Device_register_port(delay->parent.device, DEVICE_PORT_TYPE_RECEIVE, 0);
-    Device_register_port(delay->parent.device, DEVICE_PORT_TYPE_SEND, 0);
+    Device_set_port_requirement(delay->parent.device, DEVICE_PORT_TYPE_RECEIVE, 0, true);
+    Device_set_port_requirement(delay->parent.device, DEVICE_PORT_TYPE_SEND, 0, true);
 
-    return &delay->parent;
+    return true;
 }
 
 

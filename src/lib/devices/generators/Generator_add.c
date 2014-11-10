@@ -68,6 +68,8 @@ typedef struct Generator_add
 } Generator_add;
 
 
+static bool Generator_add_init(Device_impl* dimpl);
+
 static void Generator_add_init_vstate(
         const Generator* gen, const Gen_state* gen_state, Voice_state* vstate);
 
@@ -106,14 +108,22 @@ Device_impl* new_Generator_add(Generator* gen)
     if (add == NULL)
         return NULL;
 
-    if (!Device_impl_init(&add->parent, del_Generator_add))
-    {
-        memory_free(add);
-        return NULL;
-    }
-
     add->parent.device = (Device*)gen;
 
+    Device_impl_register_init(&add->parent, Generator_add_init);
+    Device_impl_register_destroy(&add->parent, del_Generator_add);
+
+    return &add->parent;
+}
+
+
+static bool Generator_add_init(Device_impl* dimpl)
+{
+    assert(dimpl != NULL);
+
+    Generator_add* add = (Generator_add*)dimpl;
+
+    Generator* gen = (Generator*)add->parent.device;
     gen->init_vstate = Generator_add_init_vstate;
     gen->mix = Generator_add_mix;
 
@@ -195,10 +205,7 @@ Device_impl* new_Generator_add(Generator* gen)
             NULL);
 
     if (!reg_success)
-    {
-        del_Generator_add(&add->parent);
-        return NULL;
-    }
+        return false;
 
     add->base = NULL;
     add->mod = NULL;
@@ -266,7 +273,9 @@ Device_impl* new_Generator_add(Generator* gen)
     add->mod_tones[0].pitch_factor = 1.0;
     add->mod_tones[0].volume_factor = 1.0;
 
-    return &add->parent;
+    Device_set_port_requirement(add->parent.device, DEVICE_PORT_TYPE_SEND, 0, true);
+
+    return true;
 }
 
 

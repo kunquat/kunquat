@@ -52,7 +52,8 @@ struct Device
             uint32_t,
             double);
 
-    bool reg[DEVICE_PORT_TYPES][KQT_DEVICE_PORTS_MAX];
+    bool existence[DEVICE_PORT_TYPES][KQT_DEVICE_PORTS_MAX];
+    bool existence_req[DEVICE_PORT_TYPES][KQT_DEVICE_PORTS_MAX];
 };
 
 
@@ -118,7 +119,8 @@ bool Device_is_existent(const Device* device);
  * \param device   The Device -- must not be \c NULL.
  * \param dimpl    The Device implementation, or \c NULL.
  *
- * \return   \c true if successful, or \c false if device sync failed.
+ * \return   \c true if successful, or \c false if initialisation of Device
+ *           implementation failed.
  */
 bool Device_set_impl(Device* device, Device_impl* dimpl);
 
@@ -210,43 +212,58 @@ void Device_set_process(
 
 
 /**
- * Register a new port for the Device.
+ * Set existence of a port in the Device.
  *
  * \param device   The Device -- must not be \c NULL.
  * \param type     The type of the port -- must be a valid type.
  * \param port     The port number -- must be >= \c 0 and
  *                 < \c KQT_DEVICE_PORTS_MAX. If the port is already
  *                 registered, the function does nothing.
+ * \param exists   \c true if the port exists, otherwise \c false.
  */
-void Device_register_port(Device* device, Device_port_type type, int port);
+void Device_set_port_existence(
+        Device* device, Device_port_type type, int port, bool exists);
 
 
 /**
- * Unregister a port of the Device.
- *
- * \param device   The Device -- must not be \c NULL.
- * \param type     The type of the port -- must be a valid type.
- * \param port     The port number -- must be >= \c 0 and
- *                 < \c KQT_DEVICE_PORTS_MAX. If the port is not registered,
- *                 the function does nothing.
- */
-void Device_unregister_port(Device* device, Device_port_type type, int port);
-
-
-/**
- * Find out whether a port is registered in the Device.
+ * Get existence of a port in the Device.
  *
  * \param device   The Device -- must not be \c NULL.
  * \param type     The type of the port -- must be a valid type.
  * \param port     The port number -- must be >= \c 0 and
  *                 < \c KQT_DEVICE_PORTS_MAX.
  *
- * \return   \c true if the port is registered, otherwise \c false.
+ * \return   \c true if the port exists, otherwise \c false.
  */
-bool Device_port_is_registered(
-        const Device* device,
-        Device_port_type type,
-        int port);
+bool Device_get_port_existence(const Device* device, Device_port_type type, int port);
+
+
+/**
+ * Set a port requirement in the Device.
+ *
+ * Kunquat Handle validation will fail if a required port is missing a manifest.
+ *
+ * \param device        The Device -- must not be \c NULL.
+ * \param type          The type of the port -- must be a valid type.
+ * \param port          The port number -- must be >= \c 0 and
+ *                      < \c KQT_DEVICE_PORTS_MAX.
+ * \param is_required   \c true if the port is required, otherwise \c false.
+ */
+void Device_set_port_requirement(
+        Device* device, Device_port_type type, int port, bool is_required);
+
+
+/**
+ * Get a port requirement in the Device.
+ *
+ * \param device   The Device -- must not be \c NULL.
+ * \param type     The type of the port -- must be a valid type.
+ * \param port     The port number -- must be >= \c 0 and
+ *                 < \c KQT_DEVICE_PORTS_MAX.
+ *
+ * \return   \c true if the port is required, otherwise \c false.
+ */
+bool Device_get_port_requirement(const Device* device, Device_port_type type, int port);
 
 
 /**

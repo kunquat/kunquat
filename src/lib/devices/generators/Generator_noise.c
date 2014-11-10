@@ -44,6 +44,8 @@ typedef struct Generator_noise
 } Generator_noise;
 
 
+static bool Generator_noise_init(Device_impl* dimpl);
+
 static Device_state* Generator_noise_create_state(
         const Device* device,
         int32_t audio_rate,
@@ -73,14 +75,22 @@ Device_impl* new_Generator_noise(Generator* gen)
     if (noise == NULL)
         return NULL;
 
-    if (!Device_impl_init(&noise->parent, del_Generator_noise))
-    {
-        memory_free(noise);
-        return NULL;
-    }
-
     noise->parent.device = (Device*)gen;
 
+    Device_impl_register_init(&noise->parent, Generator_noise_init);
+    Device_impl_register_destroy(&noise->parent, del_Generator_noise);
+
+    return &noise->parent;
+}
+
+
+static bool Generator_noise_init(Device_impl* dimpl)
+{
+    assert(dimpl != NULL);
+
+    Generator_noise* noise = (Generator_noise*)dimpl;
+
+    Generator* gen = (Generator*)noise->parent.device;
     gen->init_vstate = Generator_noise_init_vstate;
     gen->mix = Generator_noise_mix;
 
@@ -88,7 +98,9 @@ Device_impl* new_Generator_noise(Generator* gen)
             noise->parent.device,
             Generator_noise_create_state);
 
-    return &noise->parent;
+    Device_set_port_requirement(noise->parent.device, DEVICE_PORT_TYPE_SEND, 0, true);
+
+    return true;
 }
 
 

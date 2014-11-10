@@ -39,6 +39,8 @@ typedef struct Generator_pcm
 } Generator_pcm;
 
 
+static bool Generator_pcm_init(Device_impl* dimpl);
+
 static void Generator_pcm_init_vstate(
         const Generator* gen, const Gen_state* gen_state, Voice_state* vstate);
 
@@ -61,18 +63,28 @@ Device_impl* new_Generator_pcm(Generator* gen)
     if (pcm == NULL)
         return NULL;
 
-    if (!Device_impl_init(&pcm->parent, del_Generator_pcm))
-    {
-        memory_free(pcm);
-        return NULL;
-    }
-
     pcm->parent.device = (Device*)gen;
 
+    Device_impl_register_init(&pcm->parent, Generator_pcm_init);
+    Device_impl_register_destroy(&pcm->parent, del_Generator_pcm);
+
+    return &pcm->parent;
+}
+
+
+static bool Generator_pcm_init(Device_impl* dimpl)
+{
+    assert(dimpl != NULL);
+
+    Generator_pcm* pcm = (Generator_pcm*)dimpl;
+
+    Generator* gen = (Generator*)pcm->parent.device;
     gen->init_vstate = Generator_pcm_init_vstate;
     gen->mix = Generator_pcm_mix;
 
-    return &pcm->parent;
+    Device_set_port_requirement(pcm->parent.device, DEVICE_PORT_TYPE_SEND, 0, true);
+
+    return true;
 }
 
 

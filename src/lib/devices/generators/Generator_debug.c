@@ -31,6 +31,8 @@ typedef struct Generator_debug
 } Generator_debug;
 
 
+static bool Generator_debug_init(Device_impl* dimpl);
+
 static Set_bool_func Generator_debug_set_single_pulse;
 
 static uint32_t Generator_debug_mix(
@@ -52,14 +54,22 @@ Device_impl* new_Generator_debug(Generator* gen)
     if (debug == NULL)
         return NULL;
 
-    if (!Device_impl_init(&debug->parent, del_Generator_debug))
-    {
-        memory_free(debug);
-        return NULL;
-    }
-
     debug->parent.device = (Device*)gen;
 
+    Device_impl_register_init(&debug->parent, Generator_debug_init);
+    Device_impl_register_destroy(&debug->parent, del_Generator_debug);
+
+    return &debug->parent;
+}
+
+
+static bool Generator_debug_init(Device_impl* dimpl)
+{
+    assert(dimpl != NULL);
+
+    Generator_debug* debug = (Generator_debug*)dimpl;
+
+    Generator* gen = (Generator*)debug->parent.device;
     gen->mix = Generator_debug_mix;
 
     if (!Device_impl_register_set_bool(
@@ -68,14 +78,13 @@ Device_impl* new_Generator_debug(Generator* gen)
                 false,
                 Generator_debug_set_single_pulse,
                 NULL))
-    {
-        del_Generator_debug(&debug->parent);
-        return NULL;
-    }
+        return false;
 
     debug->single_pulse = false;
 
-    return &debug->parent;
+    Device_set_port_requirement(debug->parent.device, DEVICE_PORT_TYPE_SEND, 0, true);
+
+    return true;
 }
 
 
