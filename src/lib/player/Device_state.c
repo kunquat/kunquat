@@ -113,7 +113,8 @@ bool Device_state_set_audio_buffer_size(Device_state* ds, int32_t size)
         for (Device_port_type type = DEVICE_PORT_TYPE_RECEIVE;
                 type < DEVICE_PORT_TYPES; ++type)
         {
-            if (!Audio_buffer_resize(ds->buffers[type][port], size))
+            Audio_buffer* buffer = ds->buffers[type][port];
+            if ((buffer != NULL) && !Audio_buffer_resize(buffer, size))
                 return false;
         }
     }
