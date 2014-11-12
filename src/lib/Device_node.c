@@ -252,11 +252,26 @@ bool Device_node_init_buffers_simple(Device_node* node, Device_states* states)
         {
             assert(edge->node != NULL);
             const Device* send_device = Device_node_get_device(edge->node);
-            if (send_device == NULL || !Device_has_complete_type(send_device))
+            if (send_device == NULL ||
+                    !Device_has_complete_type(send_device) ||
+                    !Device_get_port_existence(
+                        node_device, DEVICE_PORT_TYPE_RECEIVE, port) ||
+                    !Device_get_port_existence(
+                        send_device, DEVICE_PORT_TYPE_SEND, edge->port))
             {
                 edge = edge->next;
                 continue;
             }
+            /*
+            if (!Device_get_port_existence(
+                    node_device, DEVICE_PORT_TYPE_RECEIVE, port))
+                fprintf(stderr, "Warning: connecting to non-existent port %d of device %s\n",
+                        port, node->name);
+            if (!Device_get_port_existence(
+                    send_device, DEVICE_PORT_TYPE_SEND, edge->port))
+                fprintf(stderr, "Warning: connecting from non-existent port %d of device %s\n",
+                        edge->port, edge->node->name);
+            // */
 
             // Add receive buffer
             Device_state* receive_state = Device_states_get_state(
