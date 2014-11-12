@@ -33,16 +33,22 @@ START_TEST(Trivial_chorus_is_identity)
     set_data("eff_02/dsp_01/c/voice_00/p_f_speed.json", "0");
     set_data("eff_02/dsp_01/c/voice_00/p_f_volume.json", "0");
     set_data("eff_02/dsp_01/p_dsp_type.json", "\"chorus\"");
+    set_data("eff_02/dsp_01/in_00/p_manifest.json", "{}");
+    set_data("eff_02/dsp_01/out_00/p_manifest.json", "{}");
     set_data("eff_02/dsp_01/p_manifest.json", "{}");
 
     set_data("eff_02/p_connections.json",
             "[ [\"in_00\", \"dsp_01/C/in_00\"], "
             "  [\"dsp_01/C/out_00\", \"out_00\"] ]");
+    set_data("eff_02/in_00/p_manifest.json", "{}");
+    set_data("eff_02/out_00/p_manifest.json", "{}");
     set_data("eff_02/p_manifest.json", "{}");
 
     set_data("ins_02/gen_00/p_gen_type.json", "\"debug\"");
+    set_data("ins_02/gen_00/out_00/p_manifest.json", "{}");
     set_data("ins_02/gen_00/p_manifest.json", "{}");
     set_data("ins_02/p_manifest.json", "{}");
+    set_data("ins_02/out_00/p_manifest.json", "{}");
     set_data("ins_02/p_connections.json",
             "[ [\"gen_00/C/out_00\", \"out_00\"] ]");
 

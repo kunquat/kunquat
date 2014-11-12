@@ -33,10 +33,12 @@ static void setup_single_pulse_without_generator_manifest(void)
     set_data("control_00/p_manifest.json", "{}");
 
     set_data("ins_00/p_manifest.json", "{}");
+    set_data("ins_00/out_00/p_manifest.json", "{}");
     set_data("ins_00/p_connections.json",
             "[ [\"gen_00/C/out_00\", \"out_00\"] ]");
 
     set_data("ins_00/gen_00/p_gen_type.json", "\"debug\"");
+    set_data("ins_00/gen_00/out_00/p_manifest.json", "{}");
     set_data("ins_00/gen_00/c/p_b_single_pulse.json", "true");
 
     validate();
@@ -121,9 +123,11 @@ START_TEST(Connect_generator_without_type)
     set_data("control_00/p_manifest.json", "{}");
 
     set_data("ins_00/p_manifest.json", "{}");
+    set_data("ins_00/out_00/p_manifest.json", "{}");
     set_data("ins_00/p_connections.json",
             "[ [\"gen_00/C/out_00\", \"out_00\"] ]");
 
+    set_data("ins_00/gen_00/out_00/p_manifest.json", "{}");
     set_data("ins_00/gen_00/c/p_b_single_pulse.json", "true");
 
     validate();

@@ -280,11 +280,13 @@ void setup_debug_instrument(void)
     set_data("control_00/p_manifest.json", "{}");
 
     set_data("ins_00/p_manifest.json", "{}");
+    set_data("ins_00/out_00/p_manifest.json", "{}");
     set_data("ins_00/p_connections.json",
             "[ [\"gen_00/C/out_00\", \"out_00\"] ]");
 
     set_data("ins_00/gen_00/p_manifest.json", "{}");
     set_data("ins_00/gen_00/p_gen_type.json", "\"debug\"");
+    set_data("ins_00/gen_00/out_00/p_manifest.json", "{}");
 
     validate();
 

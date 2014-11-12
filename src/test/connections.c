@@ -32,12 +32,16 @@ START_TEST(Trivial_effect_is_identity)
     set_data("control_00/p_manifest.json", "{}");
 
     set_data("ins_00/p_manifest.json", "{}");
+    set_data("ins_00/out_00/p_manifest.json", "{}");
     set_data("ins_00/p_connections.json",
             "[ [\"gen_00/C/out_00\", \"out_00\"] ]");
     set_data("ins_00/gen_00/p_manifest.json", "{}");
     set_data("ins_00/gen_00/p_gen_type.json", "\"debug\"");
+    set_data("ins_00/gen_00/out_00/p_manifest.json", "{}");
 
     set_data("eff_00/p_manifest.json", "{}");
+    set_data("eff_00/in_00/p_manifest.json", "{}");
+    set_data("eff_00/out_00/p_manifest.json", "{}");
     set_data("eff_00/p_connections.json", "[ [\"in_00\", \"out_00\"] ]");
 
     set_data("p_connections.json",
@@ -70,14 +74,20 @@ START_TEST(Effect_with_default_volume_dsp_is_identity)
     set_data("control_00/p_manifest.json", "{}");
 
     set_data("ins_00/p_manifest.json", "{}");
+    set_data("ins_00/out_00/p_manifest.json", "{}");
     set_data("ins_00/p_connections.json",
             "[ [\"gen_00/C/out_00\", \"out_00\"] ]");
     set_data("ins_00/gen_00/p_manifest.json", "{}");
     set_data("ins_00/gen_00/p_gen_type.json", "\"debug\"");
+    set_data("ins_00/gen_00/out_00/p_manifest.json", "{}");
 
     set_data("eff_00/p_manifest.json", "{}");
+    set_data("eff_00/in_00/p_manifest.json", "{}");
+    set_data("eff_00/out_00/p_manifest.json", "{}");
     set_data("eff_00/dsp_00/p_manifest.json", "{}");
     set_data("eff_00/dsp_00/p_dsp_type.json", "\"volume\"");
+    set_data("eff_00/dsp_00/in_00/p_manifest.json", "{}");
+    set_data("eff_00/dsp_00/out_00/p_manifest.json", "{}");
     set_data("eff_00/p_connections.json",
             "[ [\"in_00\", \"dsp_00/C/in_00\"],"
             "  [\"dsp_00/C/out_00\", \"out_00\"] ]");
@@ -112,13 +122,19 @@ START_TEST(Effect_with_double_volume_dsp_and_bypass_triples_volume)
     set_data("control_00/p_manifest.json", "{}");
 
     set_data("ins_00/p_manifest.json", "{}");
+    set_data("ins_00/out_00/p_manifest.json", "{}");
     set_data("ins_00/p_connections.json",
             "[ [\"gen_00/C/out_00\", \"out_00\"] ]");
     set_data("ins_00/gen_00/p_manifest.json", "{}");
+    set_data("ins_00/gen_00/out_00/p_manifest.json", "{}");
     set_data("ins_00/gen_00/p_gen_type.json", "\"debug\"");
 
     set_data("eff_00/p_manifest.json", "{}");
+    set_data("eff_00/in_00/p_manifest.json", "{}");
+    set_data("eff_00/out_00/p_manifest.json", "{}");
     set_data("eff_00/dsp_00/p_manifest.json", "{}");
+    set_data("eff_00/dsp_00/in_00/p_manifest.json", "{}");
+    set_data("eff_00/dsp_00/out_00/p_manifest.json", "{}");
     set_data("eff_00/dsp_00/p_dsp_type.json", "\"volume\"");
     set_data("eff_00/dsp_00/c/p_f_volume.json", "6");
     set_data("eff_00/p_connections.json",
@@ -156,8 +172,13 @@ START_TEST(Connect_instrument_effect_with_unconnected_dsp_and_mix)
     set_data("control_00/p_manifest.json", "{}");
 
     set_data("ins_00/p_manifest.json", "{}");
+    set_data("ins_00/out_00/p_manifest.json", "{}");
     set_data("ins_00/eff_00/p_manifest.json", "{}");
+    set_data("ins_00/eff_00/in_00/p_manifest.json", "{}");
+    set_data("ins_00/eff_00/out_00/p_manifest.json", "{}");
     set_data("ins_00/eff_00/dsp_00/p_manifest.json", "{}");
+    set_data("ins_00/eff_00/dsp_00/in_00/p_manifest.json", "{}");
+    set_data("ins_00/eff_00/dsp_00/out_00/p_manifest.json", "{}");
     set_data("ins_00/eff_00/dsp_00/p_dsp_type.json", "\"volume\"");
     set_data("p_connections.json",
             "[ [\"ins_00/out_00\", \"out_00\"] ]");
