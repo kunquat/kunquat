@@ -1600,245 +1600,46 @@ static bool read_effect_dsp_conf_key(
     }                                                  \
     else (void)0
 
-
-static bool read_ins_effect_manifest(Reader_params* params)
-{
-    assert(params != NULL);
-
-    Effect_table* eff_table = NULL;
-    acquire_ins_effects(eff_table, params);
-
-    const bool is_instrument = true;
-
-    return read_effect_effect_manifest(params, eff_table, is_instrument);
-}
-
-
-static bool read_ins_effect_in_port_manifest(Reader_params* params)
-{
-    assert(params != NULL);
-
-    Effect_table* eff_table = NULL;
-    acquire_ins_effects(eff_table, params);
-
-    const bool is_instrument = true;
-
-    return read_effect_effect_in_port_manifest(params, eff_table, is_instrument);
-}
-
-
-static bool read_ins_effect_out_port_manifest(Reader_params* params)
-{
-    assert(params != NULL);
-
-    Effect_table* eff_table = NULL;
-    acquire_ins_effects(eff_table, params);
-
-    const bool is_instrument = true;
-
-    return read_effect_effect_out_port_manifest(params, eff_table, is_instrument);
-}
-
-
-static bool read_ins_effect_connections(Reader_params* params)
-{
-    assert(params != NULL);
-
-    Effect_table* eff_table = NULL;
-    acquire_ins_effects(eff_table, params);
-
-    const bool is_instrument = true;
-
-    return read_effect_effect_connections(params, eff_table, is_instrument);
-}
-
-
-static bool read_ins_dsp_manifest(Reader_params* params)
-{
-    assert(params != NULL);
-
-    Effect_table* eff_table = NULL;
-    acquire_ins_effects(eff_table, params);
-
-    const bool is_instrument = true;
-
-    return read_effect_dsp_manifest(params, eff_table, is_instrument);
-}
-
-
-static bool read_ins_dsp_in_port_manifest(Reader_params* params)
-{
-    assert(params != NULL);
-
-    Effect_table* eff_table = NULL;
-    acquire_ins_effects(eff_table, params);
-
-    const bool is_instrument = true;
-
-    return read_effect_dsp_in_port_manifest(params, eff_table, is_instrument);
-}
-
-
-static bool read_ins_dsp_out_port_manifest(Reader_params* params)
-{
-    assert(params != NULL);
-
-    Effect_table* eff_table = NULL;
-    acquire_ins_effects(eff_table, params);
-
-    const bool is_instrument = true;
-
-    return read_effect_dsp_out_port_manifest(params, eff_table, is_instrument);
-}
-
-
-static bool read_ins_dsp_type(Reader_params* params)
-{
-    assert(params != NULL);
-
-    Effect_table* eff_table = NULL;
-    acquire_ins_effects(eff_table, params);
-
-    const bool is_instrument = true;
-
-    return read_effect_dsp_type(params, eff_table, is_instrument);
-}
-
-
-static bool read_ins_dsp_impl_key(Reader_params* params)
-{
-    assert(params != NULL);
-
-    Effect_table* eff_table = NULL;
-    acquire_ins_effects(eff_table, params);
-
-    const bool is_instrument = true;
-
-    return read_effect_dsp_impl_key(params, eff_table, is_instrument);
-}
-
-
-static bool read_ins_dsp_conf_key(Reader_params* params)
-{
-    assert(params != NULL);
-
-    Effect_table* eff_table = NULL;
-    acquire_ins_effects(eff_table, params);
-
-    const bool is_instrument = true;
-
-    return read_effect_dsp_conf_key(params, eff_table, is_instrument);
-}
-
-
-static bool read_effect_manifest(Reader_params* params)
-{
-    assert(params != NULL);
-
-    Effect_table* eff_table = Module_get_effects(Handle_get_module(params->handle));
-    const bool is_instrument = false;
-
-    return read_effect_effect_manifest(params, eff_table, is_instrument);
-}
-
-
-static bool read_effect_in_port_manifest(Reader_params* params)
-{
-    assert(params != NULL);
-
-    Effect_table* eff_table = Module_get_effects(Handle_get_module(params->handle));
-    const bool is_instrument = false;
-
-    return read_effect_effect_in_port_manifest(params, eff_table, is_instrument);
-}
-
-
-static bool read_effect_out_port_manifest(Reader_params* params)
-{
-    assert(params != NULL);
-
-    Effect_table* eff_table = Module_get_effects(Handle_get_module(params->handle));
-    const bool is_instrument = false;
-
-    return read_effect_effect_out_port_manifest(params, eff_table, is_instrument);
-}
-
-
-static bool read_effect_connections(Reader_params* params)
-{
-    assert(params != NULL);
-
-    Effect_table* eff_table = Module_get_effects(Handle_get_module(params->handle));
-    const bool is_instrument = false;
-
-    return read_effect_effect_connections(params, eff_table, is_instrument);
-}
-
-
-static bool read_dsp_manifest(Reader_params* params)
-{
-    assert(params != NULL);
-
-    Effect_table* eff_table = Module_get_effects(Handle_get_module(params->handle));
-    const bool is_instrument = false;
-
-    return read_effect_dsp_manifest(params, eff_table, is_instrument);
-}
-
-
-static bool read_dsp_in_port_manifest(Reader_params* params)
-{
-    assert(params != NULL);
-
-    Effect_table* eff_table = Module_get_effects(Handle_get_module(params->handle));
-    const bool is_instrument = false;
-
-    return read_effect_dsp_in_port_manifest(params, eff_table, is_instrument);
-}
-
-
-static bool read_dsp_out_port_manifest(Reader_params* params)
-{
-    assert(params != NULL);
-
-    Effect_table* eff_table = Module_get_effects(Handle_get_module(params->handle));
-    const bool is_instrument = false;
-
-    return read_effect_dsp_out_port_manifest(params, eff_table, is_instrument);
-}
-
-
-static bool read_dsp_type(Reader_params* params)
-{
-    assert(params != NULL);
-
-    Effect_table* eff_table = Module_get_effects(Handle_get_module(params->handle));
-    const bool is_instrument = false;
-
-    return read_effect_dsp_type(params, eff_table, is_instrument);
-}
-
-
-static bool read_dsp_impl_key(Reader_params* params)
-{
-    assert(params != NULL);
-
-    Effect_table* eff_table = Module_get_effects(Handle_get_module(params->handle));
-    const bool is_instrument = false;
-
-    return read_effect_dsp_impl_key(params, eff_table, is_instrument);
-}
-
-
-static bool read_dsp_conf_key(Reader_params* params)
-{
-    assert(params != NULL);
-
-    Effect_table* eff_table = Module_get_effects(Handle_get_module(params->handle));
-    const bool is_instrument = false;
-
-    return read_effect_dsp_conf_key(params, eff_table, is_instrument);
-}
+#define MAKE_INS_EFFECT_READER(base_name)                                   \
+    static bool read_ins_ ## base_name(Reader_params* params)               \
+    {                                                                       \
+        assert(params != NULL);                                             \
+                                                                            \
+        Effect_table* eff_table = NULL;                                     \
+        acquire_ins_effects(eff_table, params);                             \
+                                                                            \
+        static const bool is_instrument = true;                             \
+                                                                            \
+        return read_effect_ ## base_name(params, eff_table, is_instrument); \
+    }
+
+#define MAKE_GLOBAL_EFFECT_READER(base_name)                                \
+    static bool read_ ## base_name(Reader_params* params)                   \
+    {                                                                       \
+        assert(params != NULL);                                             \
+                                                                            \
+        Module* module = Handle_get_module(params->handle);                 \
+        Effect_table* eff_table = Module_get_effects(module);               \
+                                                                            \
+        static const bool is_instrument = false;                            \
+                                                                            \
+        return read_effect_ ## base_name(params, eff_table, is_instrument); \
+    }
+
+#define MAKE_EFFECT_READERS(base_name)   \
+    MAKE_INS_EFFECT_READER(base_name)    \
+    MAKE_GLOBAL_EFFECT_READER(base_name)
+
+MAKE_EFFECT_READERS(effect_manifest)
+MAKE_EFFECT_READERS(effect_in_port_manifest)
+MAKE_EFFECT_READERS(effect_out_port_manifest)
+MAKE_EFFECT_READERS(effect_connections)
+MAKE_EFFECT_READERS(dsp_manifest)
+MAKE_EFFECT_READERS(dsp_in_port_manifest)
+MAKE_EFFECT_READERS(dsp_out_port_manifest)
+MAKE_EFFECT_READERS(dsp_type)
+MAKE_EFFECT_READERS(dsp_impl_key)
+MAKE_EFFECT_READERS(dsp_conf_key)
 
 
 #define acquire_pattern(pattern, handle, index)                         \
