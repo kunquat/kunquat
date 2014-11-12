@@ -217,8 +217,7 @@ void Device_set_process(
  * \param device   The Device -- must not be \c NULL.
  * \param type     The type of the port -- must be a valid type.
  * \param port     The port number -- must be >= \c 0 and
- *                 < \c KQT_DEVICE_PORTS_MAX. If the port is already
- *                 registered, the function does nothing.
+ *                 < \c KQT_DEVICE_PORTS_MAX.
  * \param exists   \c true if the port exists, otherwise \c false.
  */
 void Device_set_port_existence(
@@ -264,6 +263,21 @@ void Device_set_port_requirement(
  * \return   \c true if the port is required, otherwise \c false.
  */
 bool Device_get_port_requirement(const Device* device, Device_port_type type, int port);
+
+
+/**
+ * Identify required ports that are missing.
+ *
+ * \param device   The Device -- must not be \c NULL.
+ * \param type     The type of the port -- must be a valid type.
+ * \param ports    Address where missing port numbers will be stored, or
+ *                 \c NULL. \c -1 indicates end of list unless the table is
+ *                 filled completely.
+ *
+ * \return   \c true if any missing ports were found, otherwise \c false.
+ */
+bool Device_get_missing_ports(
+        const Device* device, Device_port_type type, int ports[KQT_DEVICE_PORTS_MAX]);
 
 
 /**

@@ -346,6 +346,30 @@ bool Device_get_port_requirement(const Device* device, Device_port_type type, in
 }
 
 
+bool Device_get_missing_ports(
+        const Device* device, Device_port_type type, int ports[KQT_DEVICE_PORTS_MAX])
+{
+    int write_pos = 0;
+    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+    {
+        if (Device_get_port_requirement(device, type, port) &&
+                !Device_get_port_existence(device, type, port))
+        {
+            if (ports == NULL)
+                return true;
+
+            ports[write_pos] = port;
+            ++write_pos;
+        }
+    }
+
+    if ((ports != NULL) && (write_pos < KQT_DEVICE_PORTS_MAX))
+        ports[write_pos] = -1;
+
+    return (write_pos > 0);
+}
+
+
 bool Device_set_audio_rate(
         const Device* device,
         Device_states* dstates,
