@@ -71,15 +71,21 @@ static const struct
     } else (void)0
 
 
-static bool is_ins_conn_possible(Handle* handle, int32_t ins_index)
+static bool is_ins_out_conn_possible(Handle* handle, int32_t ins_index, int32_t port)
 {
     assert(handle != NULL);
     const Module* module = Handle_get_module(handle);
-    return (Ins_table_get(Module_get_insts(module), ins_index) != NULL);
+
+    const Instrument* ins = Ins_table_get(Module_get_insts(module), ins_index);
+    if (ins == NULL)
+        return false;
+
+    return Device_get_port_existence((const Device*)ins, DEVICE_PORT_TYPE_SEND, port);
 }
 
 
-static bool is_gen_conn_possible(Handle* handle, int32_t ins_index, int32_t gen_index)
+static bool is_gen_out_conn_possible(
+        Handle* handle, int32_t ins_index, int32_t gen_index, int32_t port)
 {
     assert(handle != NULL);
 
@@ -90,7 +96,10 @@ static bool is_gen_conn_possible(Handle* handle, int32_t ins_index, int32_t gen_
         return false;
 
     const Generator* gen = Instrument_get_gen(ins, gen_index);
-    return (gen != NULL) && Device_has_complete_type((const Device*)gen);
+    if ((gen == NULL) || !Device_has_complete_type((const Device*)gen))
+        return false;
+
+    return Device_get_port_existence((const Device*)gen, DEVICE_PORT_TYPE_SEND, port);
 }
 
 
@@ -105,7 +114,7 @@ static const Effect_table* find_effect_table(Handle* handle, int32_t ins_index)
     {
         Instrument* ins = Ins_table_get(Module_get_insts(module), ins_index);
         if (ins == NULL)
-            return false;
+            return NULL;
 
         eff_table = Instrument_get_effects(ins);
     }
@@ -114,34 +123,92 @@ static const Effect_table* find_effect_table(Handle* handle, int32_t ins_index)
 }
 
 
-static bool is_eff_conn_possible(Handle* handle, int32_t ins_index, int32_t eff_index)
-{
-    assert(handle != NULL);
-
-    const Effect_table* eff_table = find_effect_table(handle, ins_index);
-
-    return (eff_table != NULL) && (Effect_table_get(eff_table, eff_index) != NULL);
-}
-
-
-static bool is_dsp_conn_possible(
-        Handle* handle, int32_t ins_index, int32_t eff_index, int32_t dsp_index)
+static const Effect* find_effect(Handle* handle, int32_t ins_index, int32_t eff_index)
 {
     assert(handle != NULL);
 
     const Effect_table* eff_table = find_effect_table(handle, ins_index);
     if (eff_table == NULL)
-        return false;
+        return NULL;
 
-    const Effect* eff = Effect_table_get(eff_table, eff_index);
+    return Effect_table_get(eff_table, eff_index);
+}
+
+
+static bool is_eff_in_conn_possible(
+        Handle* handle, int32_t ins_index, int32_t eff_index, int32_t port)
+{
+    assert(handle != NULL);
+
+    const Effect* eff = find_effect(handle, ins_index, eff_index);
     if (eff == NULL)
         return false;
 
+    return Device_get_port_existence((const Device*)eff, DEVICE_PORT_TYPE_RECEIVE, port);
+}
+
+
+static bool is_eff_out_conn_possible(
+        Handle* handle, int32_t ins_index, int32_t eff_index, int32_t port)
+{
+    assert(handle != NULL);
+
+    const Effect* eff = find_effect(handle, ins_index, eff_index);
+    if (eff == NULL)
+        return false;
+
+    return Device_get_port_existence((const Device*)eff, DEVICE_PORT_TYPE_SEND, port);
+}
+
+
+static const DSP* find_complete_dsp(
+        Handle* handle, int32_t ins_index, int32_t eff_index, int32_t dsp_index)
+{
+    assert(handle != NULL);
+
+    const Effect* eff = find_effect(handle, ins_index, eff_index);
+    if (eff == NULL)
+        return NULL;
+
     const DSP* dsp = Effect_get_dsp(eff, dsp_index);
+    if ((dsp == NULL) || !Device_has_complete_type((const Device*)dsp))
+        return NULL;
+
+    return dsp;
+}
+
+
+static bool is_dsp_in_conn_possible(
+        Handle* handle,
+        int32_t ins_index,
+        int32_t eff_index,
+        int32_t dsp_index,
+        int32_t port)
+{
+    assert(handle != NULL);
+
+    const DSP* dsp = find_complete_dsp(handle, ins_index, eff_index, dsp_index);
     if (dsp == NULL)
         return false;
 
-    return Device_has_complete_type((const Device*)dsp);
+    return Device_get_port_existence((const Device*)dsp, DEVICE_PORT_TYPE_RECEIVE, port);
+}
+
+
+static bool is_dsp_out_conn_possible(
+        Handle* handle,
+        int32_t ins_index,
+        int32_t eff_index,
+        int32_t dsp_index,
+        int32_t port)
+{
+    assert(handle != NULL);
+
+    const DSP* dsp = find_complete_dsp(handle, ins_index, eff_index, dsp_index);
+    if (dsp == NULL)
+        return false;
+
+    return Device_get_port_existence((const Device*)dsp, DEVICE_PORT_TYPE_SEND, port);
 }
 
 
@@ -152,18 +219,28 @@ static bool is_connection_possible(
     assert(keyp != NULL);
     assert(indices != NULL);
 
-    if (string_has_prefix(keyp, "ins_XX/eff_XX/dsp_XX/"))
-        return is_dsp_conn_possible(handle, indices[0], indices[1], indices[2]);
-    else if (string_has_prefix(keyp, "ins_XX/eff_XX/"))
-        return is_eff_conn_possible(handle, indices[0], indices[1]);
-    else if (string_has_prefix(keyp, "ins_XX/gen_XX/"))
-        return is_gen_conn_possible(handle, indices[0], indices[1]);
-    else if (string_has_prefix(keyp, "ins_XX/"))
-        return is_ins_conn_possible(handle, indices[0]);
-    else if (string_has_prefix(keyp, "eff_XX/dsp_XX/"))
-        return is_dsp_conn_possible(handle, -1, indices[0], indices[1]);
-    else if (string_has_prefix(keyp, "eff_XX/"))
-        return is_eff_conn_possible(handle, -1, indices[0]);
+    if (string_has_prefix(keyp, "ins_XX/eff_XX/dsp_XX/in_XX/"))
+        return is_dsp_in_conn_possible(
+                handle, indices[0], indices[1], indices[2], indices[3]);
+    else if (string_has_prefix(keyp, "ins_XX/eff_XX/dsp_XX/out_XX/"))
+        return is_dsp_out_conn_possible(
+                handle, indices[0], indices[1], indices[2], indices[3]);
+    else if (string_has_prefix(keyp, "ins_XX/eff_XX/in_XX/"))
+        return is_eff_in_conn_possible(handle, indices[0], indices[1], indices[2]);
+    else if (string_has_prefix(keyp, "ins_XX/eff_XX/out_XX/"))
+        return is_eff_out_conn_possible(handle, indices[0], indices[1], indices[2]);
+    else if (string_has_prefix(keyp, "ins_XX/gen_XX/out_XX/"))
+        return is_gen_out_conn_possible(handle, indices[0], indices[1], indices[2]);
+    else if (string_has_prefix(keyp, "ins_XX/out_XX/"))
+        return is_ins_out_conn_possible(handle, indices[0], indices[1]);
+    else if (string_has_prefix(keyp, "eff_XX/dsp_XX/in_XX/"))
+        return is_dsp_in_conn_possible(handle, -1, indices[0], indices[1], indices[2]);
+    else if (string_has_prefix(keyp, "eff_XX/dsp_XX/out_XX/"))
+        return is_dsp_out_conn_possible(handle, -1, indices[0], indices[1], indices[2]);
+    else if (string_has_prefix(keyp, "eff_XX/in_XX/"))
+        return is_eff_in_conn_possible(handle, -1, indices[0], indices[1]);
+    else if (string_has_prefix(keyp, "eff_XX/out_XX/"))
+        return is_eff_out_conn_possible(handle, -1, indices[0], indices[1]);
 
     return false;
 }
@@ -453,6 +530,16 @@ static Instrument* add_instrument(Handle* handle, int index)
 }
 
 
+#define acquire_port_index(index, params, depth)            \
+    if (true)                                               \
+    {                                                       \
+        (index) = (params)->indices[(depth)];               \
+        if ((index) < 0 || (index) >= KQT_DEVICE_PORTS_MAX) \
+            return true;                                    \
+    }                                                       \
+    else (void)0
+
+
 #define acquire_ins_index(index, params)                   \
     if (true)                                              \
     {                                                      \
@@ -511,6 +598,34 @@ static bool read_ins(Reader_params* params)
         set_error(params);
         return false;
     }
+
+    return true;
+}
+
+
+static bool read_ins_out_port_manifest(Reader_params* params)
+{
+    assert(params != NULL);
+
+    int32_t ins_index = -1;
+    acquire_ins_index(ins_index, params);
+    int32_t out_port_index = -1;
+    acquire_port_index(out_port_index, params, 1);
+
+    const bool existent = read_default_manifest(params->sr);
+    if (Streader_is_error_set(params->sr))
+    {
+        set_error(params);
+        return false;
+    }
+
+    Instrument* ins = NULL;
+    acquire_ins(ins, params->handle, ins_index);
+
+    Device_set_port_existence(
+            (Device*)ins, DEVICE_PORT_TYPE_RECEIVE, out_port_index, existent);
+    Device_set_port_existence(
+            (Device*)ins, DEVICE_PORT_TYPE_SEND, out_port_index, existent);
 
     return true;
 }
@@ -669,6 +784,39 @@ static bool read_gen_manifest(Reader_params* params)
     }
 
     Gen_table_set_existent(table, gen_index, existent);
+
+    return true;
+}
+
+
+static bool read_gen_out_port_manifest(Reader_params* params)
+{
+    assert(params != NULL);
+
+    int32_t ins_index = -1;
+    acquire_ins_index(ins_index, params);
+    int32_t gen_index = -1;
+    acquire_gen_index(gen_index, params);
+    int32_t out_port_index = -1;
+    acquire_port_index(out_port_index, params, 2);
+
+    Instrument* ins = NULL;
+    acquire_ins(ins, params->handle, ins_index);
+    Gen_table* gen_table = Instrument_get_gens(ins);
+
+    const bool existent = read_default_manifest(params->sr);
+    if (Streader_is_error_set(params->sr))
+    {
+        set_error(params);
+        return false;
+    }
+
+    Generator* gen = add_generator(params->handle, ins, gen_table, gen_index);
+    if (gen == NULL)
+        return false;
+
+    Device_set_port_existence(
+            (Device*)gen, DEVICE_PORT_TYPE_SEND, out_port_index, existent);
 
     return true;
 }
@@ -1007,6 +1155,60 @@ static bool read_effect_effect_manifest(
 }
 
 
+static bool read_effect_effect_in_port_manifest(
+        Reader_params* params, Effect_table* eff_table, bool is_instrument)
+{
+    assert(params != NULL);
+    assert(eff_table != NULL);
+
+    int32_t eff_index = -1;
+    acquire_effect_index(eff_index, params, is_instrument);
+    int32_t in_port_index = -1;
+    acquire_port_index(in_port_index, params, is_instrument ? 2 : 1);
+
+    const bool existent = read_default_manifest(params->sr);
+    if (Streader_is_error_set(params->sr))
+    {
+        set_error(params);
+        return false;
+    }
+
+    Effect* effect = NULL;
+    acquire_effect(effect, params->handle, eff_table, eff_index);
+
+    Effect_set_port_existence(effect, DEVICE_PORT_TYPE_RECEIVE, in_port_index, existent);
+
+    return true;
+}
+
+
+static bool read_effect_effect_out_port_manifest(
+        Reader_params* params, Effect_table* eff_table, bool is_instrument)
+{
+    assert(params != NULL);
+    assert(eff_table != NULL);
+
+    int32_t eff_index = -1;
+    acquire_effect_index(eff_index, params, is_instrument);
+    int32_t out_port_index = -1;
+    acquire_port_index(out_port_index, params, is_instrument ? 2 : 1);
+
+    const bool existent = read_default_manifest(params->sr);
+    if (Streader_is_error_set(params->sr))
+    {
+        set_error(params);
+        return false;
+    }
+
+    Effect* effect = NULL;
+    acquire_effect(effect, params->handle, eff_table, eff_index);
+
+    Effect_set_port_existence(effect, DEVICE_PORT_TYPE_SEND, out_port_index, existent);
+
+    return true;
+}
+
+
 static bool read_effect_effect_connections(
         Reader_params* params, Effect_table* eff_table, bool is_instrument)
 {
@@ -1126,6 +1328,76 @@ static bool read_effect_dsp_manifest(
 
     DSP_table* dsp_table = Effect_get_dsps_mut(effect);
     DSP_table_set_existent(dsp_table, dsp_index, existent);
+
+    return true;
+}
+
+
+static bool read_effect_dsp_in_port_manifest(
+        Reader_params* params, Effect_table* eff_table, bool is_instrument)
+{
+    assert(params != NULL);
+    assert(eff_table != NULL);
+
+    int32_t eff_index = -1;
+    acquire_effect_index(eff_index, params, is_instrument);
+    int32_t dsp_index = -1;
+    acquire_dsp_index(dsp_index, params, is_instrument);
+    int32_t in_port_index = -1;
+    acquire_port_index(in_port_index, params, is_instrument ? 3 : 2);
+
+    const bool existent = read_default_manifest(params->sr);
+    if (Streader_is_error_set(params->sr))
+    {
+        set_error(params);
+        return false;
+    }
+
+    Effect* effect = NULL;
+    acquire_effect(effect, params->handle, eff_table, eff_index);
+    DSP_table* dsp_table = Effect_get_dsps_mut(effect);
+
+    DSP* dsp = add_dsp(params->handle, dsp_table, dsp_index);
+    if (dsp == NULL)
+        return false;
+
+    Device_set_port_existence(
+            (Device*)dsp, DEVICE_PORT_TYPE_RECEIVE, in_port_index, existent);
+
+    return true;
+}
+
+
+static bool read_effect_dsp_out_port_manifest(
+        Reader_params* params, Effect_table* eff_table, bool is_instrument)
+{
+    assert(params != NULL);
+    assert(eff_table != NULL);
+
+    int32_t eff_index = -1;
+    acquire_effect_index(eff_index, params, is_instrument);
+    int32_t dsp_index = -1;
+    acquire_dsp_index(dsp_index, params, is_instrument);
+    int32_t out_port_index = -1;
+    acquire_port_index(out_port_index, params, is_instrument ? 3 : 2);
+
+    const bool existent = read_default_manifest(params->sr);
+    if (Streader_is_error_set(params->sr))
+    {
+        set_error(params);
+        return false;
+    }
+
+    Effect* effect = NULL;
+    acquire_effect(effect, params->handle, eff_table, eff_index);
+    DSP_table* dsp_table = Effect_get_dsps_mut(effect);
+
+    DSP* dsp = add_dsp(params->handle, dsp_table, dsp_index);
+    if (dsp == NULL)
+        return false;
+
+    Device_set_port_existence(
+            (Device*)dsp, DEVICE_PORT_TYPE_SEND, out_port_index, existent);
 
     return true;
 }
@@ -1342,6 +1614,32 @@ static bool read_ins_effect_manifest(Reader_params* params)
 }
 
 
+static bool read_ins_effect_in_port_manifest(Reader_params* params)
+{
+    assert(params != NULL);
+
+    Effect_table* eff_table = NULL;
+    acquire_ins_effects(eff_table, params);
+
+    const bool is_instrument = true;
+
+    return read_effect_effect_in_port_manifest(params, eff_table, is_instrument);
+}
+
+
+static bool read_ins_effect_out_port_manifest(Reader_params* params)
+{
+    assert(params != NULL);
+
+    Effect_table* eff_table = NULL;
+    acquire_ins_effects(eff_table, params);
+
+    const bool is_instrument = true;
+
+    return read_effect_effect_out_port_manifest(params, eff_table, is_instrument);
+}
+
+
 static bool read_ins_effect_connections(Reader_params* params)
 {
     assert(params != NULL);
@@ -1365,6 +1663,32 @@ static bool read_ins_dsp_manifest(Reader_params* params)
     const bool is_instrument = true;
 
     return read_effect_dsp_manifest(params, eff_table, is_instrument);
+}
+
+
+static bool read_ins_dsp_in_port_manifest(Reader_params* params)
+{
+    assert(params != NULL);
+
+    Effect_table* eff_table = NULL;
+    acquire_ins_effects(eff_table, params);
+
+    const bool is_instrument = true;
+
+    return read_effect_dsp_in_port_manifest(params, eff_table, is_instrument);
+}
+
+
+static bool read_ins_dsp_out_port_manifest(Reader_params* params)
+{
+    assert(params != NULL);
+
+    Effect_table* eff_table = NULL;
+    acquire_ins_effects(eff_table, params);
+
+    const bool is_instrument = true;
+
+    return read_effect_dsp_out_port_manifest(params, eff_table, is_instrument);
 }
 
 
@@ -1418,6 +1742,28 @@ static bool read_effect_manifest(Reader_params* params)
 }
 
 
+static bool read_effect_in_port_manifest(Reader_params* params)
+{
+    assert(params != NULL);
+
+    Effect_table* eff_table = Module_get_effects(Handle_get_module(params->handle));
+    const bool is_instrument = false;
+
+    return read_effect_effect_in_port_manifest(params, eff_table, is_instrument);
+}
+
+
+static bool read_effect_out_port_manifest(Reader_params* params)
+{
+    assert(params != NULL);
+
+    Effect_table* eff_table = Module_get_effects(Handle_get_module(params->handle));
+    const bool is_instrument = false;
+
+    return read_effect_effect_out_port_manifest(params, eff_table, is_instrument);
+}
+
+
 static bool read_effect_connections(Reader_params* params)
 {
     assert(params != NULL);
@@ -1437,6 +1783,28 @@ static bool read_dsp_manifest(Reader_params* params)
     const bool is_instrument = false;
 
     return read_effect_dsp_manifest(params, eff_table, is_instrument);
+}
+
+
+static bool read_dsp_in_port_manifest(Reader_params* params)
+{
+    assert(params != NULL);
+
+    Effect_table* eff_table = Module_get_effects(Handle_get_module(params->handle));
+    const bool is_instrument = false;
+
+    return read_effect_dsp_in_port_manifest(params, eff_table, is_instrument);
+}
+
+
+static bool read_dsp_out_port_manifest(Reader_params* params)
+{
+    assert(params != NULL);
+
+    Effect_table* eff_table = Module_get_effects(Handle_get_module(params->handle));
+    const bool is_instrument = false;
+
+    return read_effect_dsp_out_port_manifest(params, eff_table, is_instrument);
 }
 
 

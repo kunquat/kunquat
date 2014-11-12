@@ -81,6 +81,19 @@ DSP_table* Effect_get_dsps_mut(Effect* eff);
 
 
 /**
+ * Set port existence in the Effect.
+ *
+ * \param eff      The Effect -- must not be \c NULL.
+ * \param type     The type of the port -- must be a valid type.
+ * \param port     The port number -- must be >= \c 0 and
+ *                 < \c KQT_DEVICE_PORTS_MAX.
+ * \param exists   \c true if the port exists, otherwise \c false.
+ */
+void Effect_set_port_existence(
+        Effect* eff, Device_port_type type, int port, bool exists);
+
+
+/**
  * Set the Connections of the Effect.
  *
  * Previously set Connections will be removed if found.

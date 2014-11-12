@@ -162,6 +162,27 @@ DSP_table* Effect_get_dsps_mut(Effect* eff)
 }
 
 
+void Effect_set_port_existence(
+        Effect* eff, Device_port_type type, int port, bool exists)
+{
+    assert(eff != NULL);
+    assert(type < DEVICE_PORT_TYPES);
+    assert(port >= 0);
+    assert(port < KQT_DEVICE_PORTS_MAX);
+
+    Device_set_port_existence((Device*)eff, type, port, exists);
+
+    if (type == DEVICE_PORT_TYPE_RECEIVE)
+        Device_set_port_existence(
+                &eff->in_iface->parent, DEVICE_PORT_TYPE_SEND, port, exists);
+    else if (type == DEVICE_PORT_TYPE_SEND)
+        Device_set_port_existence(
+                &eff->out_iface->parent, DEVICE_PORT_TYPE_RECEIVE, port, exists);
+
+    return;
+}
+
+
 void Effect_set_connections(Effect* eff, Connections* graph)
 {
     assert(eff != NULL);
