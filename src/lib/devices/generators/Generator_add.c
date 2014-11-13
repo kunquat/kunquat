@@ -273,8 +273,6 @@ static bool Generator_add_init(Device_impl* dimpl)
     add->mod_tones[0].pitch_factor = 1.0;
     add->mod_tones[0].volume_factor = 1.0;
 
-    Device_set_port_requirement(add->parent.device, DEVICE_PORT_TYPE_SEND, 0, true);
-
     return true;
 }
 

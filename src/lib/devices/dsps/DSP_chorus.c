@@ -256,10 +256,6 @@ static bool DSP_chorus_init(Device_impl* dimpl)
         params->volume = 1;
     }
 
-    Device_set_port_requirement(
-            chorus->parent.device, DEVICE_PORT_TYPE_RECEIVE, 0, true);
-    Device_set_port_requirement(chorus->parent.device, DEVICE_PORT_TYPE_SEND, 0, true);
-
     return true;
 }
 

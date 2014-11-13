@@ -109,10 +109,6 @@ static bool DSP_volume_init(Device_impl* dimpl)
     if (!reg_success)
         return false;
 
-    Device_set_port_requirement(
-            volume->parent.device, DEVICE_PORT_TYPE_RECEIVE, 0, true);
-    Device_set_port_requirement(volume->parent.device, DEVICE_PORT_TYPE_SEND, 0, true);
-
     volume->scale = 1.0;
 
     return true;

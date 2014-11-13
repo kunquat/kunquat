@@ -195,9 +195,6 @@ static bool DSP_conv_init(Device_impl* dimpl)
     conv->ir = NULL;
     conv->actual_ir_len = 0;
 
-    Device_set_port_requirement(conv->parent.device, DEVICE_PORT_TYPE_RECEIVE, 0, true);
-    Device_set_port_requirement(conv->parent.device, DEVICE_PORT_TYPE_SEND, 0, true);
-
     return true;
 }
 

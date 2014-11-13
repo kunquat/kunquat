@@ -259,42 +259,6 @@ static bool Handle_update_connections(Handle* handle)
 }
 
 
-static bool check_device_ports(
-        Handle* h,
-        const Device* device,
-        const char* path_fmt,
-        ...)
-{
-    assert(h != NULL);
-    assert(device != NULL);
-    assert(path_fmt != NULL);
-
-    char path[64] = "";
-
-    va_list args;
-    va_start(args, path_fmt);
-    vsnprintf(path, 64, path_fmt, args);
-    va_end(args);
-
-    if (Device_get_missing_ports(device, DEVICE_PORT_TYPE_RECEIVE, NULL))
-    {
-        Handle_set_error(
-                h, ERROR_FORMAT, "%s is missing required receive port(s)", path);
-        h->data_is_valid = false;
-        return false;
-    }
-
-    if (Device_get_missing_ports(device, DEVICE_PORT_TYPE_SEND, NULL))
-    {
-        Handle_set_error(h, ERROR_FORMAT, "%s is missing required send port(s)", path);
-        h->data_is_valid = false;
-        return false;
-    }
-
-    return true;
-}
-
-
 #define set_invalid_if(cond, ...)                           \
     if (true)                                               \
     {                                                       \
@@ -468,86 +432,6 @@ int kqt_Handle_validate(kqt_Handle handle)
         set_invalid_if(
                 !Input_map_is_valid(h->module->ins_map, h->module->ins_controls),
                 "Control map uses nonexistent controls");
-    }
-
-    // Check required device ports
-    {
-        // Instruments
-        Ins_table* insts = Module_get_insts(h->module);
-        for (int ins_index = 0; ins_index < KQT_INSTRUMENTS_MAX; ++ins_index)
-        {
-            const Instrument* ins = Ins_table_get(insts, ins_index);
-            if (ins != NULL)
-            {
-                // Generators
-                for (int gen_index = 0; gen_index < KQT_GENERATORS_MAX; ++gen_index)
-                {
-                    const Generator* gen = Instrument_get_gen(ins, gen_index);
-                    if (gen != NULL)
-                    {
-                        if (!check_device_ports(
-                                    h,
-                                    (const Device*)gen,
-                                    "ins_%02x/gen_%02x",
-                                    ins_index,
-                                    gen_index))
-                            return 0;
-                    }
-                }
-
-                // Instrument effects
-                for (int eff_index = 0; eff_index < KQT_INST_EFFECTS_MAX; ++eff_index)
-                {
-                    const Effect* eff = Instrument_get_effect(ins, eff_index);
-                    if (eff != NULL)
-                    {
-                        for (int dsp_index = 0; dsp_index < KQT_DSPS_MAX; ++dsp_index)
-                        {
-                            const DSP* dsp = Effect_get_dsp(eff, dsp_index);
-                            if (dsp != NULL)
-                            {
-                                if (!check_device_ports(
-                                            h,
-                                            (const Device*)dsp,
-                                            "ins_%02x/eff_%02x/dsp_%02x",
-                                            ins_index,
-                                            eff_index,
-                                            dsp_index))
-                                    return 0;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // Global effects
-        Effect_table* eff_table = Module_get_effects(h->module);
-        for (int eff_index = 0; eff_index < KQT_EFFECTS_MAX; ++eff_index)
-        {
-            const Effect* eff = Effect_table_get(eff_table, eff_index);
-            if (eff != NULL)
-            {
-                for (int dsp_index = 0; dsp_index < KQT_DSPS_MAX; ++dsp_index)
-                {
-                    const DSP* dsp = Effect_get_dsp(eff, dsp_index);
-                    if (dsp != NULL)
-                    {
-                        if (!check_device_ports(
-                                    h,
-                                    (const Device*)dsp,
-                                    "eff_%02x/dsp_%02x",
-                                    eff_index,
-                                    dsp_index))
-                            return 0;
-                    }
-                }
-            }
-        }
-
-        // Module
-        if (!check_device_ports(h, (const Device*)h->module, "Master device"))
-            return 0;
     }
 
     // Check that all connections are between existing ports

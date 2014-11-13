@@ -82,8 +82,6 @@ static bool Generator_debug_init(Device_impl* dimpl)
 
     debug->single_pulse = false;
 
-    Device_set_port_requirement(debug->parent.device, DEVICE_PORT_TYPE_SEND, 0, true);
-
     return true;
 }
 

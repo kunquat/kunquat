@@ -45,15 +45,9 @@ struct Device
     void (*update_tempo)(const struct Device*, Device_states*, double);
     void (*reset)(const struct Device*, Device_states*);
     void (*process)(
-            const struct Device*,
-            Device_states*,
-            uint32_t,
-            uint32_t,
-            uint32_t,
-            double);
+            const struct Device*, Device_states*, uint32_t, uint32_t, uint32_t, double);
 
     bool existence[DEVICE_PORT_TYPES][KQT_DEVICE_PORTS_MAX];
-    bool existence_req[DEVICE_PORT_TYPES][KQT_DEVICE_PORTS_MAX];
 };
 
 
@@ -203,12 +197,7 @@ void Device_set_reset(Device* device, void (*reset)(const Device*, Device_states
 void Device_set_process(
         Device* device,
         void (*process)(
-            const Device*,
-            Device_states*,
-            uint32_t,
-            uint32_t,
-            uint32_t,
-            double));
+            const Device*, Device_states*, uint32_t, uint32_t, uint32_t, double));
 
 
 /**
@@ -235,49 +224,6 @@ void Device_set_port_existence(
  * \return   \c true if the port exists, otherwise \c false.
  */
 bool Device_get_port_existence(const Device* device, Device_port_type type, int port);
-
-
-/**
- * Set a port requirement in the Device.
- *
- * Kunquat Handle validation will fail if a required port is missing a manifest.
- *
- * \param device        The Device -- must not be \c NULL.
- * \param type          The type of the port -- must be a valid type.
- * \param port          The port number -- must be >= \c 0 and
- *                      < \c KQT_DEVICE_PORTS_MAX.
- * \param is_required   \c true if the port is required, otherwise \c false.
- */
-void Device_set_port_requirement(
-        Device* device, Device_port_type type, int port, bool is_required);
-
-
-/**
- * Get a port requirement in the Device.
- *
- * \param device   The Device -- must not be \c NULL.
- * \param type     The type of the port -- must be a valid type.
- * \param port     The port number -- must be >= \c 0 and
- *                 < \c KQT_DEVICE_PORTS_MAX.
- *
- * \return   \c true if the port is required, otherwise \c false.
- */
-bool Device_get_port_requirement(const Device* device, Device_port_type type, int port);
-
-
-/**
- * Identify required ports that are missing.
- *
- * \param device   The Device -- must not be \c NULL.
- * \param type     The type of the port -- must be a valid type.
- * \param ports    Address where missing port numbers will be stored, or
- *                 \c NULL. \c -1 indicates end of list unless the table is
- *                 filled completely.
- *
- * \return   \c true if any missing ports were found, otherwise \c false.
- */
-bool Device_get_missing_ports(
-        const Device* device, Device_port_type type, int ports[KQT_DEVICE_PORTS_MAX]);
 
 
 /**

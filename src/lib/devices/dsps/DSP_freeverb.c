@@ -240,10 +240,6 @@ static bool DSP_freeverb_init(Device_impl* dimpl)
     Device_impl_register_set_audio_rate(
             &freeverb->parent, DSP_freeverb_set_audio_rate);
 
-    Device_set_port_requirement(
-            freeverb->parent.device, DEVICE_PORT_TYPE_RECEIVE, 0, true);
-    Device_set_port_requirement(freeverb->parent.device, DEVICE_PORT_TYPE_SEND, 0, true);
-
     freeverb->gain = 0;
     freeverb->reflect = 0;
     freeverb->reflect1 = 0;

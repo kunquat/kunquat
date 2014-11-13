@@ -82,8 +82,6 @@ static bool Generator_pcm_init(Device_impl* dimpl)
     gen->init_vstate = Generator_pcm_init_vstate;
     gen->mix = Generator_pcm_mix;
 
-    Device_set_port_requirement(pcm->parent.device, DEVICE_PORT_TYPE_SEND, 0, true);
-
     return true;
 }
 

@@ -98,8 +98,6 @@ static bool Generator_noise_init(Device_impl* dimpl)
             noise->parent.device,
             Generator_noise_create_state);
 
-    Device_set_port_requirement(noise->parent.device, DEVICE_PORT_TYPE_SEND, 0, true);
-
     return true;
 }
 

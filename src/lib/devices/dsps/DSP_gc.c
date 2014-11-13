@@ -82,9 +82,6 @@ static bool DSP_gc_init(Device_impl* dimpl)
                 &gc->parent, "p_e_map.json", NULL, DSP_gc_set_map, NULL))
         return false;
 
-    Device_set_port_requirement(gc->parent.device, DEVICE_PORT_TYPE_RECEIVE, 0, true);
-    Device_set_port_requirement(gc->parent.device, DEVICE_PORT_TYPE_SEND, 0, true);
-
     return true;
 }
 

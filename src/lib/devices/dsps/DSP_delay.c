@@ -252,9 +252,6 @@ static bool DSP_delay_init(Device_impl* dimpl)
         delay->taps[i].scale = 1;
     }
 
-    Device_set_port_requirement(delay->parent.device, DEVICE_PORT_TYPE_RECEIVE, 0, true);
-    Device_set_port_requirement(delay->parent.device, DEVICE_PORT_TYPE_SEND, 0, true);
-
     return true;
 }
 
