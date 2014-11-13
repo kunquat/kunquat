@@ -52,6 +52,7 @@ START_TEST(Trivial_chorus_is_identity)
     set_data("ins_02/p_connections.json",
             "[ [\"gen_00/C/out_00\", \"out_00\"] ]");
 
+    set_data("out_00/p_manifest.json", "{}");
     set_data("p_connections.json",
             "[ [\"ins_02/out_00\", \"eff_02/in_00\"], "
             "  [\"eff_02/out_00\", \"out_00\"] ]");

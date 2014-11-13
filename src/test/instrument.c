@@ -26,6 +26,7 @@ void setup_single_pulse_without_instrument_manifest(void)
 {
     assert(handle != 0);
 
+    set_data("out_00/p_manifest.json", "{}");
     set_data("p_connections.json",
             "[ [\"ins_00/out_00\", \"out_00\"] ]");
 
@@ -125,6 +126,7 @@ START_TEST(Input_map_maintains_indices)
     pause();
 
     // Set up two debug instruments
+    set_data("out_00/p_manifest.json", "{}");
     set_data("p_connections.json",
             "[ [\"ins_00/out_00\", \"out_00\"],"
             "  [\"ins_01/out_00\", \"out_00\"] ]");
