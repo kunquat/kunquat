@@ -34,6 +34,7 @@
 
 MODULE_KEYP(composition, "p_composition.json",
         "{ \"mix_vol\": " MAKE_STRING(MODULE_DEFAULT_MIX_VOL) " }")
+MODULE_KEYP(out_port_manifest,      "out_XX/p_manifest.json",               "")
 MODULE_KEYP(connections,            "p_connections.json",                   "[]")
 MODULE_KEYP(control_map,            "p_control_map.json",                   "[]")
 MODULE_KEYP(control_manifest,       "control_XX/p_manifest.json",           "")

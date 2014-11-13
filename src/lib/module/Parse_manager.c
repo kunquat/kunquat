@@ -325,6 +325,38 @@ static bool read_composition(Reader_params* params)
 }
 
 
+#define acquire_port_index(index, params, depth)            \
+    if (true)                                               \
+    {                                                       \
+        (index) = (params)->indices[(depth)];               \
+        if ((index) < 0 || (index) >= KQT_DEVICE_PORTS_MAX) \
+            return true;                                    \
+    }                                                       \
+    else (void)0
+
+
+static bool read_out_port_manifest(Reader_params* params)
+{
+    assert(params != NULL);
+
+    int32_t out_port_index = -1;
+    acquire_port_index(out_port_index, params, 0);
+
+    const bool existent = read_default_manifest(params->sr);
+    if (Streader_is_error_set(params->sr))
+    {
+        set_error(params);
+        return false;
+    }
+
+    Module* module = Handle_get_module(params->handle);
+    Device_set_port_existence(
+            (Device*)module, DEVICE_PORT_TYPE_RECEIVE, out_port_index, existent);
+
+    return true;
+}
+
+
 static bool read_connections(Reader_params* params)
 {
     assert(params != NULL);
@@ -528,16 +560,6 @@ static Instrument* add_instrument(Handle* handle, int index)
 
     return ins;
 }
-
-
-#define acquire_port_index(index, params, depth)            \
-    if (true)                                               \
-    {                                                       \
-        (index) = (params)->indices[(depth)];               \
-        if ((index) < 0 || (index) >= KQT_DEVICE_PORTS_MAX) \
-            return true;                                    \
-    }                                                       \
-    else (void)0
 
 
 #define acquire_ins_index(index, params)                   \
