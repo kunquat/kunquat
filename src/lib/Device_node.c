@@ -159,6 +159,85 @@ int Device_node_cmp(const Device_node* n1, const Device_node* n2)
 }
 
 
+bool Device_node_check_connections(
+        const Device_node* node, char err[DEVICE_CONNECTION_ERROR_LENGTH_MAX])
+{
+    assert(node != NULL);
+    assert(err != NULL);
+
+    static const char* master_name = "master";
+
+    const Device* recv_device = Device_node_get_device(node);
+
+    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+    {
+        bool has_connections = false;
+
+        Connection* conn = node->receive[port];
+        while (conn != NULL)
+        {
+            has_connections = true;
+
+            const char* send_dev_name = conn->node->name;
+            if (send_dev_name[0] == '\0')
+                send_dev_name = master_name;
+
+            const Device* send_device = Device_node_get_device(conn->node);
+            if ((send_device == NULL) || !Device_is_existent(send_device))
+            {
+                snprintf(
+                        err, DEVICE_CONNECTION_ERROR_LENGTH_MAX,
+                        "Device %s does not exist",
+                        send_dev_name);
+                return false;
+            }
+
+            if (!Device_get_port_existence(
+                        send_device, DEVICE_PORT_TYPE_SEND, conn->port))
+            {
+                snprintf(
+                        err, DEVICE_CONNECTION_ERROR_LENGTH_MAX,
+                        "Device %s does not have send port %d",
+                        send_dev_name,
+                        conn->port);
+                return false;
+            }
+
+            conn = conn->next;
+        }
+
+        if (has_connections)
+        {
+            const char* recv_dev_name = node->name;
+            if (recv_dev_name[0] == '\0')
+                recv_dev_name = master_name;
+
+            if ((recv_device == NULL) || !Device_is_existent(recv_device))
+            {
+                snprintf(
+                        err, DEVICE_CONNECTION_ERROR_LENGTH_MAX,
+                        "Device %s does not exist",
+                        recv_dev_name);
+                return false;
+            }
+
+            if (!Device_get_port_existence(
+                        recv_device, DEVICE_PORT_TYPE_RECEIVE, port))
+            {
+                snprintf(
+                        err, DEVICE_CONNECTION_ERROR_LENGTH_MAX,
+                        "Device %s does not have receive port %d",
+                        recv_dev_name,
+                        port);
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+
 void Device_node_reset(Device_node* node)
 {
     assert(node != NULL);

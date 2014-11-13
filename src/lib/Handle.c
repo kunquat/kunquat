@@ -550,6 +550,74 @@ int kqt_Handle_validate(kqt_Handle handle)
             return 0;
     }
 
+    // Check that all connections are between existing ports
+    {
+        char err_msg[DEVICE_CONNECTION_ERROR_LENGTH_MAX] = "";
+
+        // Instruments
+        Ins_table* insts = Module_get_insts(h->module);
+        for (int ins_index = 0; ins_index < KQT_INSTRUMENTS_MAX; ++ins_index)
+        {
+            Instrument* ins = Ins_table_get(insts, ins_index);
+            if (ins != NULL)
+            {
+                const Connections* ins_conns = Instrument_get_connections(ins);
+                if (ins_conns != NULL)
+                {
+                    set_invalid_if(
+                            !Connections_check_connections(ins_conns, err_msg),
+                            "Error in connections of device ins_%02x: %s",
+                            ins_index, err_msg);
+                }
+
+                // Instrument effects
+                for (int eff_index = 0; eff_index < KQT_INST_EFFECTS_MAX; ++eff_index)
+                {
+                    const Effect* eff = Instrument_get_effect(ins, eff_index);
+                    if (eff != NULL)
+                    {
+                        const Connections* eff_conns = Effect_get_connections(eff);
+                        if (eff_conns != NULL)
+                        {
+                            set_invalid_if(
+                                    !Connections_check_connections(eff_conns, err_msg),
+                                    "Error in connections of device"
+                                        " ins_%02x/eff_%02x: %s",
+                                    ins_index, eff_index, err_msg);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Top-level effects
+        Effect_table* eff_table = Module_get_effects(h->module);
+        for (int eff_index = 0; eff_index < KQT_EFFECTS_MAX; ++eff_index)
+        {
+            const Effect* eff = Effect_table_get(eff_table, eff_index);
+            if (eff != NULL)
+            {
+                const Connections* eff_conns = Effect_get_connections(eff);
+                if (eff_conns != NULL)
+                {
+                    set_invalid_if(
+                            !Connections_check_connections(eff_conns, err_msg),
+                            "Error in connections of device eff_%02x: %s",
+                            eff_index, err_msg);
+                }
+            }
+        }
+
+        // Top-level connections
+        if (h->module->connections != NULL)
+        {
+            set_invalid_if(
+                    !Connections_check_connections(h->module->connections, err_msg),
+                    "Error in top-level connections: %s",
+                    err_msg);
+        }
+    }
+
     // Data is OK
     h->data_is_validated = true;
 

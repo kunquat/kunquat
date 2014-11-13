@@ -273,6 +273,28 @@ Connections* new_Connections_from_string(
 #undef mem_error_if
 
 
+bool Connections_check_connections(
+        const Connections* graph, char err[DEVICE_CONNECTION_ERROR_LENGTH_MAX])
+{
+    assert(graph != NULL);
+    assert(err != NULL);
+
+    AAiter* iter = AAITER_AUTO;
+    AAiter_change_tree(iter, graph->nodes);
+
+    Device_node* node = AAiter_get_at_least(iter, "");
+    while (node != NULL)
+    {
+        if (!Device_node_check_connections(node, err))
+            return false;
+
+        node = AAiter_get_next(iter);
+    }
+
+    return true;
+}
+
+
 Device_node* Connections_get_master(Connections* graph)
 {
     assert(graph != NULL);

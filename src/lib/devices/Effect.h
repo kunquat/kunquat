@@ -105,6 +105,16 @@ void Effect_set_connections(Effect* eff, Connections* graph);
 
 
 /**
+ * Get the Connections of the Effect.
+ *
+ * \param eff   The Effect -- must not be \c NULL.
+ *
+ * \return   The Connections if existing, otherwise \c NULL.
+ */
+const Connections* Effect_get_connections(const Effect* eff);
+
+
+/**
  * Prepare the Connections of the Effect.
  *
  * This function assumes that the outer input and output buffers of the Effect

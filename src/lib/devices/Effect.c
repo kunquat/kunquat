@@ -195,6 +195,13 @@ void Effect_set_connections(Effect* eff, Connections* graph)
 }
 
 
+const Connections* Effect_get_connections(const Effect* eff)
+{
+    assert(eff != NULL);
+    return eff->connections;
+}
+
+
 bool Effect_prepare_connections(const Effect* eff, Device_states* states)
 {
     assert(eff != NULL);

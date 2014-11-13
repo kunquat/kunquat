@@ -38,7 +38,8 @@ typedef enum
 } Device_node_state;
 
 
-#define KQT_DEVICE_NODE_NAME_MAX (32)
+#define KQT_DEVICE_NODE_NAME_MAX 32
+#define DEVICE_CONNECTION_ERROR_LENGTH_MAX 256
 
 
 /**
@@ -82,6 +83,18 @@ Device_node* new_Device_node(
  *           \a v2.
  */
 int Device_node_cmp(const Device_node* n1, const Device_node* n2);
+
+
+/**
+ * Check that each connection to the Device node is between existing ports.
+ *
+ * \param node   The Device node -- must not be \c NULL.
+ * \param err    Error string destination -- must not be \c NULL.
+ *
+ * \return   \c true if all connected ports exist, otherwise \c false.
+ */
+bool Device_node_check_connections(
+        const Device_node* node, char err[DEVICE_CONNECTION_ERROR_LENGTH_MAX]);
 
 
 /**
