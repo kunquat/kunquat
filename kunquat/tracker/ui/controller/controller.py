@@ -23,6 +23,7 @@ import os.path
 
 import kunquat.tracker.cmdline as cmdline
 from kunquat.tracker.ui.model.triggerposition import TriggerPosition
+from kunquat.tracker.ui.model.trigger import Trigger
 import kunquat.tracker.ui.model.tstamp as tstamp
 
 from store import Store
@@ -223,6 +224,23 @@ class Controller():
     def set_rest(self, channel_number):
         note_off_event = (EVENT_NOTE_OFF, None)
         self._audio_engine.fire_event(channel_number, note_off_event)
+
+        playback_manager = self._ui_model.get_playback_manager()
+        selection = self._ui_model.get_selection()
+        sheet_manager = self._ui_model.get_sheet_manager()
+        if playback_manager.is_recording():
+            current_location = selection.get_location()
+            track = current_location.get_track()
+            system = current_location.get_system()
+            col_num = current_location.get_col_num()
+            row_ts = current_location.get_row_ts()
+            trigger_index = current_location.get_trigger_index()
+            old_location = TriggerPosition(track, system, col_num, row_ts, trigger_index)
+            tmp_location = TriggerPosition(track, system, channel_number, row_ts, 0)
+            selection.set_location(tmp_location)
+            trigger = Trigger('n-', None)
+            sheet_manager.add_trigger(trigger)
+            selection.set_location(old_location)
 
     def update_output_speed(self, fps):
         self._session.set_output_speed(fps)
