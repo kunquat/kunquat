@@ -50,6 +50,15 @@ class Connections(QAbstractScrollArea):
     def paintEvent(self, event):
         self.viewport().paintEvent(event)
 
+    def mouseMoveEvent(self, event):
+        self.viewport().mouseMoveEvent(event)
+
+    def mousePressEvent(self, event):
+        self.viewport().mousePressEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        self.viewport().mouseReleaseEvent(event)
+
 
 class ConnectionsView(QWidget):
 
@@ -63,13 +72,18 @@ class ConnectionsView(QWidget):
 
         self._center_pos = (0, 0)
 
+        self._focused_id = None
+        self._focused_rel_pos = (0, 0)
+
         self._config = None
         self._set_config(config)
 
         self.setAutoFillBackground(False)
         self.setAttribute(Qt.WA_OpaquePaintEvent)
         self.setAttribute(Qt.WA_NoSystemBackground)
+
         self.setFocusPolicy(Qt.ClickFocus)
+        self.setMouseTracking(True)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -150,6 +164,39 @@ class ConnectionsView(QWidget):
         elapsed = end - start
         print('Connections view updated in {:.2f} ms'.format(elapsed * 1000))
 
+    def _get_area_pos(self, widget_x, widget_y):
+        return (widget_x - self.width() // 2 + self._center_pos[0],
+                widget_y - self.height() // 2 + self._center_pos[1])
+
+    def mouseMoveEvent(self, event):
+        if not self._focused_id or self._focused_id not in self._visible_devices:
+            return
+
+        # Move focused device
+        area_x, area_y = self._get_area_pos(event.x(), event.y())
+        new_offset_x = area_x - self._focused_rel_pos[0]
+        new_offset_y = area_y - self._focused_rel_pos[1]
+
+        self._visible_devices[self._focused_id].set_offset((new_offset_x, new_offset_y))
+
+        self.update()
+
+    def mousePressEvent(self, event):
+        area_pos = self._get_area_pos(event.x(), event.y())
+
+        # Find out what was pressed
+        for dev_id in reversed(self._visible_device_ids):
+            device = self._visible_devices[dev_id]
+            dev_rel_pos = device.get_rel_pos(area_pos)
+            if self._visible_devices[dev_id].contains_rel_pos(dev_rel_pos):
+                self._focused_id = dev_id
+                self._focused_rel_pos = dev_rel_pos
+                break
+
+    def mouseReleaseEvent(self, event):
+        self._focused_id = None
+        self._focused_rel_pos = (0, 0)
+
 
 class Device():
 
@@ -189,5 +236,16 @@ class Device():
         painter.drawPixmap(bg_offset_x, bg_offset_y, self._bg)
 
         painter.restore()
+
+    def set_offset(self, offset):
+        self._offset_x, self._offset_y = offset
+
+    def get_rel_pos(self, area_pos):
+        return (area_pos[0] - self._offset_x, area_pos[1] - self._offset_y)
+
+    def contains_rel_pos(self, rel_pos):
+        x_dist_max = self._bg.width() // 2
+        y_dist_max = self._bg.height() // 2
+        return (abs(rel_pos[0]) <= x_dist_max) and (abs(rel_pos[1]) <= y_dist_max)
 
 
