@@ -20,6 +20,7 @@ from kunquat.tracker.ui.identifiers import *
 from mainwindow import MainWindow
 from aboutwindow import AboutWindow
 from eventlist import EventList
+from connectionswindow import ConnectionsWindow
 from instrumentwindow import InstrumentWindow
 
 
@@ -33,6 +34,7 @@ class RootView():
         self._main_window = MainWindow()
         self._about_window = None
         self._event_log = None
+        self._connections = None
         self._instrument_windows = {}
         self._module = None
 
@@ -83,6 +85,11 @@ class RootView():
                 self._event_log.set_ui_model(self._ui_model)
                 if is_show_allowed:
                     self._event_log.show()
+            elif ui == UI_CONNECTIONS:
+                self._connections = ConnectionsWindow()
+                self._connections.set_ui_model(self._ui_model)
+                if is_show_allowed:
+                    self._connections.show()
             elif type(ui) == tuple and ui[0] == UI_INSTRUMENT:
                 ins_id = ui[1]
                 ins_window = InstrumentWindow()
@@ -91,6 +98,8 @@ class RootView():
                 self._instrument_windows[ins_id] = ins_window
                 if is_show_allowed:
                     self._instrument_windows[ins_id].show()
+            else:
+                raise ValueError('Unsupported UI type: {}'.format(ui))
 
         for ui in closed:
             if ui == UI_MAIN:
@@ -104,11 +113,17 @@ class RootView():
                 self._event_log.unregister_updaters()
                 self._event_log.deleteLater()
                 self._event_log = None
+            elif ui == UI_CONNECTIONS:
+                self._connections.unregister_updaters()
+                self._connections.deleteLater()
+                self._connections = None
             elif type(ui) == tuple and ui[0] == UI_INSTRUMENT:
                 ins_id = ui[1]
                 ins_window = self._instrument_windows.pop(ins_id)
                 ins_window.unregister_updaters()
                 ins_window.deleteLater()
+            else:
+                raise ValueError('Unsupported UI type: {}'.format(ui))
 
         self._visible = set(visibility_update)
 
