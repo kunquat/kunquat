@@ -267,6 +267,12 @@ class ConnectionsView(QWidget):
                 self._focused_rel_pos = dev_rel_pos
                 break
 
+        # Raise focused device to the top
+        if self._focused_id:
+            self._visible_device_ids.remove(self._focused_id)
+            self._visible_device_ids.append(self._focused_id)
+            self.update()
+
     def mouseReleaseEvent(self, event):
         self._focused_id = None
         self._focused_rel_pos = (0, 0)
