@@ -14,6 +14,7 @@
 
 from instrument import Instrument
 from effect import Effect
+from connections import Connections
 from control import Control
 from album import Album
 from song import Song
@@ -99,6 +100,11 @@ class Module():
                 effect_id = key.split('/')[0]
                 effect_ids.add(effect_id)
         return effect_ids
+
+    def get_connections(self):
+        connections = Connections()
+        connections.set_controller(self._controller)
+        return connections
 
     def get_album(self):
         album = Album()
