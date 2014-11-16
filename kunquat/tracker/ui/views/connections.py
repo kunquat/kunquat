@@ -29,7 +29,19 @@ DEFAULT_CONFIG = {
         'devices': {
             'title_font': _title_font,
             'port_font' : _port_font,
-        }
+            'instrument': {
+                'bg_colour': QColor(0x33, 0x33, 0x55),
+                'fg_colour': QColor(0xdd, 0xee, 0xff),
+            },
+            'effect': {
+                'bg_colour': QColor(0x55, 0x44, 0x33),
+                'fg_colour': QColor(0xff, 0xee, 0xdd),
+            },
+            'master': {
+                'bg_colour': QColor(0x33, 0x55, 0x33),
+                'fg_colour': QColor(0xdd, 0xff, 0xdd),
+            },
+        },
     }
 
 
@@ -341,6 +353,15 @@ class Device():
         self._offset_x = 0
         self._offset_y = 0
 
+        if dev_id == 'master':
+            self._type_config = self._config['master']
+        elif dev_id.startswith('ins'):
+            self._type_config = self._config['instrument']
+        elif dev_id.startswith('eff'):
+            self._type_config = self._config['effect']
+        else:
+            raise ValueError('Unexpected type of device ID: {}'.format(dev_id))
+
         self._bg = None
 
     def draw_pixmaps(self):
@@ -348,9 +369,9 @@ class Device():
         painter = QPainter(self._bg)
 
         # Test
-        painter.setBackground(QColor(0, 0, 0))
+        painter.setBackground(self._type_config['bg_colour'])
         painter.eraseRect(0, 0, self._bg.width(), self._bg.height())
-        painter.setPen(QColor(0xff, 0xff, 0xff))
+        painter.setPen(self._type_config['fg_colour'])
         painter.drawRect(0, 0, self._bg.width() - 1, self._bg.height() - 1)
 
         # Title
