@@ -27,6 +27,8 @@ class ConnectionsWindow(QWidget):
         self.setWindowTitle('Connections')
 
         v = QVBoxLayout()
+        v.setMargin(0)
+        v.setSpacing(0)
         v.addWidget(self._connections)
         self.setLayout(v)
 
