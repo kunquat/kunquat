@@ -118,6 +118,8 @@ class ConnectionsView(QWidget):
         self._focused_id = None
         self._focused_rel_pos = (0, 0)
 
+        self._default_offsets = {}
+
         self._config = None
         self._set_config(config)
 
@@ -157,7 +159,18 @@ class ConnectionsView(QWidget):
         module = self._ui_model.get_module()
         connections = module.get_connections()
         layout = connections.get_layout()
+
+        # Set new entry
         layout[key] = value
+
+        # Also set entries for default offsets that were not changed
+        for dev_id, offset in self._default_offsets.iteritems():
+            if (dev_id not in layout) or ('offset' not in layout[dev_id]):
+                dev_layout = layout.get(dev_id, {})
+                dev_layout['offset'] = offset
+                layout[dev_id] = dev_layout
+        self._default_offsets = {}
+
         connections.set_layout(layout)
         self._updater.signal_update(set(['signal_connections']))
 
@@ -245,6 +258,11 @@ class ConnectionsView(QWidget):
         layout = connections.get_layout()
 
         # Draw devices
+        default_pos_cfg = {
+                'i': { 'index': 0, 'offset_x': -200, 'offset_y': 120 },
+                'e': { 'index': 0, 'offset_x': 0,    'offset_y': 120 },
+                'm': { 'index': 0, 'offset_x': 200,  'offset_y': 120 },
+            }
         for dev_id in self._visible_device_ids:
             if dev_id not in self._visible_devices:
                 device = Device(dev_id, self._config['devices'])
@@ -252,7 +270,19 @@ class ConnectionsView(QWidget):
                 self._visible_devices[dev_id] = device
 
             dev_layout = layout.get(dev_id, {})
-            offset = dev_layout.get('offset', (0, 0))
+            if 'offset' in dev_layout:
+                offset = dev_layout['offset']
+            else:
+                # Get a default position
+                index_key = dev_id[0]
+                pos_cfg = default_pos_cfg[index_key]
+                y_offset_factor = (pos_cfg['index'] + 1) // 2
+                y_offset_factor *= (-1 if (pos_cfg['index'] % 2 == 1) else 1)
+                pos_cfg['index'] += 1
+                offset = (
+                        self._center_pos[0] + pos_cfg['offset_x'],
+                        self._center_pos[1] + y_offset_factor * pos_cfg['offset_y'])
+                self._default_offsets[dev_id] = offset
 
             device = self._visible_devices[dev_id]
             device.set_offset(offset)
