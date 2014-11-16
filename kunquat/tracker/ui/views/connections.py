@@ -186,7 +186,10 @@ class ConnectionsView(QWidget):
                 if module.get_instrument(ins_id).get_existence()]
         visible_set |= set(existent_ins_ids)
 
-        # TODO: effect IDs
+        eff_ids = module.get_effect_ids()
+        existent_eff_ids = [eff_id for eff_id in eff_ids
+                if module.get_effect(eff_id).get_existence()]
+        visible_set |= set(existent_eff_ids)
 
         new_dev_ids = []
 
