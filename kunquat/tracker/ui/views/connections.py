@@ -53,10 +53,14 @@ class Connections(QAbstractScrollArea):
         self.setViewport(ConnectionsView())
         self.viewport().setFocusProxy(None)
 
+        self.horizontalScrollBar().setSingleStep(8)
+        self.verticalScrollBar().setSingleStep(8)
+
     def set_ui_model(self, ui_model):
         self.viewport().set_ui_model(ui_model)
         QObject.connect(
                 self.viewport(), SIGNAL('positionsChanged()'), self._update_scrollbars)
+        self._update_scrollbars()
 
     def unregister_updaters(self):
         self.viewport().unregister_updaters()
