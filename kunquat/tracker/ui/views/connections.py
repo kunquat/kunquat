@@ -153,6 +153,14 @@ class ConnectionsView(QWidget):
         y_start = self._center_pos[1] - self.height() // 2
         return QRect(x_start, y_start, self.width(), self.height())
 
+    def _change_layout_entry(self, key, value):
+        module = self._ui_model.get_module()
+        connections = module.get_connections()
+        layout = connections.get_layout()
+        layout[key] = value
+        connections.set_layout(layout)
+        self._updater.signal_update(set(['signal_connections']))
+
     def scroll_to(self, area_x, area_y):
         area_rect = self.get_area_rect()
         visible_rect = self.get_visible_rect()
@@ -160,23 +168,27 @@ class ConnectionsView(QWidget):
             return
 
         full_rect = area_rect.united(visible_rect)
-        self._center_pos = (
+        new_center_pos = (
                 full_rect.left() + self.width() // 2 + area_x,
                 full_rect.top() + self.height() // 2 + area_y)
 
-        QObject.emit(self, SIGNAL('positionsChanged()'))
-        self.update()
+        self._change_layout_entry('center_pos', new_center_pos)
 
     def _set_config(self, config):
         self._config = DEFAULT_CONFIG.copy()
         self._config.update(config)
 
     def _perform_updates(self, signals):
-        if 'signal_module' in signals:
+        update_signals = set(['signal_module', 'signal_connections'])
+        if not signals.isdisjoint(update_signals):
             self._update_devices()
 
     def _update_devices(self):
         module = self._ui_model.get_module()
+        connections = module.get_connections()
+        layout = connections.get_layout()
+
+        self._center_pos = layout.get('center_pos', (0, 0))
 
         # Get visible device IDs
         visible_set = set(['master'])
@@ -194,7 +206,7 @@ class ConnectionsView(QWidget):
         new_dev_ids = []
 
         # Add existent device IDs included in the z order
-        z_order = [] # TODO: get from model
+        z_order = layout.get('z_order', [])
         for dev_id in z_order:
             if dev_id in visible_set:
                 visible_set.remove(dev_id)
@@ -211,7 +223,7 @@ class ConnectionsView(QWidget):
         new_devices = {}
         for dev_id in self._visible_device_ids:
             if dev_id in self._visible_devices:
-                new_devices = self._visible_devices[dev_id]
+                new_devices[dev_id] = self._visible_devices[dev_id]
         self._visible_devices = new_devices
 
         QObject.emit(self, SIGNAL('positionsChanged()'))
@@ -228,13 +240,23 @@ class ConnectionsView(QWidget):
                 self.width() // 2 - self._center_pos[0],
                 self.height() // 2 - self._center_pos[1])
 
+        module = self._ui_model.get_module()
+        connections = module.get_connections()
+        layout = connections.get_layout()
+
         # Draw devices
         for dev_id in self._visible_device_ids:
             if dev_id not in self._visible_devices:
                 device = Device(dev_id, self._config['devices'])
                 device.draw_pixmaps()
                 self._visible_devices[dev_id] = device
-            self._visible_devices[dev_id].copy_pixmaps(painter)
+
+            dev_layout = layout.get(dev_id, {})
+            offset = dev_layout.get('offset', (0, 0))
+
+            device = self._visible_devices[dev_id]
+            device.set_offset(offset)
+            device.copy_pixmaps(painter)
 
         end = time.time()
         elapsed = end - start
@@ -253,10 +275,8 @@ class ConnectionsView(QWidget):
         new_offset_x = area_x - self._focused_rel_pos[0]
         new_offset_y = area_y - self._focused_rel_pos[1]
 
-        self._visible_devices[self._focused_id].set_offset((new_offset_x, new_offset_y))
-
-        QObject.emit(self, SIGNAL('positionsChanged()'))
-        self.update()
+        focused_layout = { 'offset': (new_offset_x, new_offset_y) }
+        self._change_layout_entry(self._focused_id, focused_layout)
 
     def mousePressEvent(self, event):
         area_pos = self._get_area_pos(event.x(), event.y())
@@ -272,9 +292,10 @@ class ConnectionsView(QWidget):
 
         # Raise focused device to the top
         if self._focused_id:
-            self._visible_device_ids.remove(self._focused_id)
-            self._visible_device_ids.append(self._focused_id)
-            self.update()
+            new_visible_ids = self._visible_device_ids
+            new_visible_ids.remove(self._focused_id)
+            new_visible_ids.append(self._focused_id)
+            self._change_layout_entry('z_order', new_visible_ids)
 
     def mouseReleaseEvent(self, event):
         self._focused_id = None
