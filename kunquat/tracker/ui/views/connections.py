@@ -43,9 +43,40 @@ class Connections(QAbstractScrollArea):
 
     def set_ui_model(self, ui_model):
         self.viewport().set_ui_model(ui_model)
+        QObject.connect(
+                self.viewport(), SIGNAL('positionsChanged()'), self._update_scrollbars)
 
     def unregister_updaters(self):
         self.viewport().unregister_updaters()
+
+    def _update_scrollbars(self):
+        visible_rect = self.viewport().get_visible_rect()
+        area_rect = self.viewport().get_area_rect() or visible_rect
+        full_rect = area_rect.united(visible_rect)
+
+        hscrollbar = self.horizontalScrollBar()
+        old_block = hscrollbar.blockSignals(True)
+        hscrollbar.setPageStep(visible_rect.width())
+        hscrollbar.setRange(
+                full_rect.left(), full_rect.right() - self.viewport().width())
+        hscrollbar.setValue(max(visible_rect.left(), full_rect.left()))
+        hscrollbar.blockSignals(old_block)
+
+        vscrollbar = self.verticalScrollBar()
+        old_block = vscrollbar.blockSignals(True)
+        vscrollbar.setPageStep(visible_rect.height())
+        vscrollbar.setRange(
+                full_rect.top(), full_rect.bottom() - self.viewport().height())
+        vscrollbar.setValue(max(visible_rect.top(), full_rect.top()))
+        vscrollbar.blockSignals(old_block)
+
+        # Hack scroll bar visibility
+        on = Qt.ScrollBarAlwaysOn
+        off = Qt.ScrollBarAlwaysOff
+        self.setHorizontalScrollBarPolicy(
+                off if hscrollbar.minimum() == hscrollbar.maximum() else on)
+        self.setVerticalScrollBarPolicy(
+                off if vscrollbar.minimum() == vscrollbar.maximum() else on)
 
     def paintEvent(self, event):
         self.viewport().paintEvent(event)
@@ -59,8 +90,20 @@ class Connections(QAbstractScrollArea):
     def mouseReleaseEvent(self, event):
         self.viewport().mouseReleaseEvent(event)
 
+    def resizeEvent(self, event):
+        self._update_scrollbars()
+
+    def scrollContentsBy(self, dx, dy):
+        hscrollbar = self.horizontalScrollBar()
+        biased_x = hscrollbar.value() - hscrollbar.minimum()
+        vscrollbar = self.verticalScrollBar()
+        biased_y = vscrollbar.value() - vscrollbar.minimum()
+        self.viewport().scroll_to(biased_x, biased_y)
+
 
 class ConnectionsView(QWidget):
+
+    positionsChanged = pyqtSignal(name='positionsChanged')
 
     def __init__(self, config={}):
         QWidget.__init__(self)
@@ -94,6 +137,35 @@ class ConnectionsView(QWidget):
 
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
+
+    def get_area_rect(self):
+        area_rect = None
+        for device in self._visible_devices.itervalues():
+            dev_rect = device.get_rect_in_area()
+            if not area_rect:
+                area_rect = dev_rect
+            else:
+                area_rect = area_rect.united(dev_rect)
+        return area_rect
+
+    def get_visible_rect(self):
+        x_start = self._center_pos[0] - self.width() // 2
+        y_start = self._center_pos[1] - self.height() // 2
+        return QRect(x_start, y_start, self.width(), self.height())
+
+    def scroll_to(self, area_x, area_y):
+        area_rect = self.get_area_rect()
+        visible_rect = self.get_visible_rect()
+        if not area_rect or visible_rect.contains(area_rect, True):
+            return
+
+        full_rect = area_rect.united(visible_rect)
+        self._center_pos = (
+                full_rect.left() + self.width() // 2 + area_x,
+                full_rect.top() + self.height() // 2 + area_y)
+
+        QObject.emit(self, SIGNAL('positionsChanged()'))
+        self.update()
 
     def _set_config(self, config):
         self._config = DEFAULT_CONFIG.copy()
@@ -139,6 +211,7 @@ class ConnectionsView(QWidget):
                 new_devices = self._visible_devices[dev_id]
         self._visible_devices = new_devices
 
+        QObject.emit(self, SIGNAL('positionsChanged()'))
         self.update()
 
     def paintEvent(self, event):
@@ -149,8 +222,8 @@ class ConnectionsView(QWidget):
         painter.eraseRect(0, 0, self.width(), self.height())
 
         painter.translate(
-                self.width() // 2 + self._center_pos[0],
-                self.height() // 2 + self._center_pos[1])
+                self.width() // 2 - self._center_pos[0],
+                self.height() // 2 - self._center_pos[1])
 
         # Draw devices
         for dev_id in self._visible_device_ids:
@@ -179,6 +252,7 @@ class ConnectionsView(QWidget):
 
         self._visible_devices[self._focused_id].set_offset((new_offset_x, new_offset_y))
 
+        QObject.emit(self, SIGNAL('positionsChanged()'))
         self.update()
 
     def mousePressEvent(self, event):
@@ -247,5 +321,12 @@ class Device():
         x_dist_max = self._bg.width() // 2
         y_dist_max = self._bg.height() // 2
         return (abs(rel_pos[0]) <= x_dist_max) and (abs(rel_pos[1]) <= y_dist_max)
+
+    def get_rect_in_area(self):
+        return QRect(
+                self._offset_x - self._bg.width() // 2,
+                self._offset_y - self._bg.height() // 2,
+                self._bg.width() + 1,
+                self._bg.height() + 1)
 
 
