@@ -27,19 +27,29 @@ _port_font.setWeight(QFont.Bold)
 DEFAULT_CONFIG = {
         'bg_colour': QColor(0x11, 0x11, 0x11),
         'devices': {
-            'title_font': _title_font,
-            'port_font' : _port_font,
+            'width'         : 100,
+            'title_font'    : _title_font,
+            'port_font'     : _port_font,
+            'padding'       : 4,
+            'button_width'  : 50,
+            'button_padding': 2,
             'instrument': {
-                'bg_colour': QColor(0x33, 0x33, 0x55),
-                'fg_colour': QColor(0xdd, 0xee, 0xff),
+                'bg_colour'       : QColor(0x33, 0x33, 0x55),
+                'fg_colour'       : QColor(0xdd, 0xee, 0xff),
+                'button_bg_colour': QColor(0x11, 0x11, 0x33),
+                'button_focused_bg_colour': QColor(0, 0, 0x77),
             },
             'effect': {
-                'bg_colour': QColor(0x55, 0x44, 0x33),
-                'fg_colour': QColor(0xff, 0xee, 0xdd),
+                'bg_colour'       : QColor(0x55, 0x44, 0x33),
+                'fg_colour'       : QColor(0xff, 0xee, 0xdd),
+                'button_bg_colour': QColor(0x33, 0x22, 0x11),
+                'button_focused_bg_colour': QColor(0x77, 0x22, 0),
             },
             'master': {
-                'bg_colour': QColor(0x33, 0x55, 0x33),
-                'fg_colour': QColor(0xdd, 0xff, 0xdd),
+                'bg_colour'       : QColor(0x33, 0x55, 0x33),
+                'fg_colour'       : QColor(0xdd, 0xff, 0xdd),
+                'button_bg_colour': QColor(0x11, 0x33, 0x11),
+                'button_focused_bg_colour': QColor(0, 0x77, 0),
             },
         },
     }
@@ -103,6 +113,9 @@ class Connections(QAbstractScrollArea):
     def mousePressEvent(self, event):
         self.viewport().mousePressEvent(event)
 
+    def mouseDoubleClickEvent(self, event):
+        self.viewport().mousePressEvent(event)
+
     def mouseReleaseEvent(self, event):
         self.viewport().mouseReleaseEvent(event)
 
@@ -117,6 +130,11 @@ class Connections(QAbstractScrollArea):
         self.viewport().scroll_to(biased_x, biased_y)
 
 
+STATE_IDLE = 'idle'
+STATE_MOVING = 'moving'
+STATE_PRESSING = 'pressing'
+
+
 class ConnectionsView(QWidget):
 
     positionsChanged = pyqtSignal(name='positionsChanged')
@@ -126,6 +144,8 @@ class ConnectionsView(QWidget):
         self._ui_model = None
         self._updater = None
 
+        self._state = STATE_IDLE
+
         self._visible_device_ids = []
         self._visible_devices = {}
 
@@ -133,6 +153,9 @@ class ConnectionsView(QWidget):
 
         self._focused_id = None
         self._focused_rel_pos = (0, 0)
+
+        self._focused_button_info = {}
+        self._pressed_button_info = {}
 
         self._default_offsets = {}
 
@@ -304,6 +327,12 @@ class ConnectionsView(QWidget):
             device.set_offset(offset)
             device.copy_pixmaps(painter)
 
+            # Draw button highlight
+            if self._focused_button_info.get('dev_id') == dev_id:
+                if ((not self._focused_button_info.get('pressed')) or
+                        (self._focused_button_info == self._pressed_button_info)):
+                    device.draw_button_highlight(painter, self._focused_button_info)
+
         end = time.time()
         elapsed = end - start
         print('Connections view updated in {:.2f} ms'.format(elapsed * 1000))
@@ -313,16 +342,51 @@ class ConnectionsView(QWidget):
                 widget_y - self.height() // 2 + self._center_pos[1])
 
     def mouseMoveEvent(self, event):
-        if not self._focused_id or self._focused_id not in self._visible_devices:
-            return
+        area_pos = self._get_area_pos(event.x(), event.y())
 
-        # Move focused device
-        area_x, area_y = self._get_area_pos(event.x(), event.y())
-        new_offset_x = area_x - self._focused_rel_pos[0]
-        new_offset_y = area_y - self._focused_rel_pos[1]
+        new_focused_button_info = {}
 
-        focused_layout = { 'offset': (new_offset_x, new_offset_y) }
-        self._change_layout_entry(self._focused_id, focused_layout)
+        if self._state == STATE_IDLE:
+            for dev_id in reversed(self._visible_device_ids):
+                device = self._visible_devices[dev_id]
+                dev_rel_pos = device.get_rel_pos(area_pos)
+                if device.contains_rel_pos(dev_rel_pos):
+                    if device.has_button_at(dev_rel_pos):
+                        new_focused_button_info = { 'dev_id': dev_id }
+                    break
+
+        if self._state == STATE_MOVING:
+            if (not self._focused_id) or (self._focused_id not in self._visible_devices):
+                self._state = STATE_IDLE
+            else:
+                # Move focused device
+                area_x, area_y = area_pos
+                new_offset_x = area_x - self._focused_rel_pos[0]
+                new_offset_y = area_y - self._focused_rel_pos[1]
+
+                focused_layout = { 'offset': (new_offset_x, new_offset_y) }
+                self._change_layout_entry(self._focused_id, focused_layout)
+
+        elif self._state == STATE_PRESSING:
+            if (not self._focused_id) or (self._focused_id not in self._visible_devices):
+                self._state = STATE_IDLE
+            else:
+                # Keep track of focused button visuals
+                dev_id = self._focused_id
+                device = self._visible_devices[dev_id]
+                dev_rel_pos = device.get_rel_pos(area_pos)
+                if device.contains_rel_pos(dev_rel_pos):
+                    if (device.has_button_at(dev_rel_pos) and
+                            self._pressed_button_info.get('dev_id') == dev_id):
+                        new_focused_button_info = {
+                            'dev_id': dev_id,
+                            'pressed': True,
+                        }
+
+        # Update button focus info
+        if self._focused_button_info != new_focused_button_info:
+            self._focused_button_info = new_focused_button_info
+            self.update()
 
     def mousePressEvent(self, event):
         area_pos = self._get_area_pos(event.x(), event.y())
@@ -343,9 +407,47 @@ class ConnectionsView(QWidget):
             new_visible_ids.append(self._focused_id)
             self._change_layout_entry('z_order', new_visible_ids)
 
+        # Update state
+        if self._focused_id:
+            device = self._visible_devices[self._focused_id]
+            dev_rel_pos = device.get_rel_pos(area_pos)
+            if device.has_button_at(dev_rel_pos):
+                self._state = STATE_PRESSING
+                self._pressed_button_info = {
+                        'dev_id': self._focused_id, 'pressed': True }
+                self._focused_button_info = self._pressed_button_info.copy()
+            else:
+                self._state = STATE_MOVING
+
     def mouseReleaseEvent(self, event):
         self._focused_id = None
         self._focused_rel_pos = (0, 0)
+
+        if self._state == STATE_MOVING:
+            pass
+        elif self._state == STATE_PRESSING:
+            clicked = (self._focused_button_info == self._pressed_button_info)
+            if clicked:
+                self._perform_button_click(self._focused_button_info)
+
+            self._focused_button_info['pressed'] = False
+            self._pressed_button_info = {}
+
+            self.update()
+
+        self._state = STATE_IDLE
+
+    def _perform_button_click(self, button_info):
+        visibility_manager = self._ui_model.get_visibility_manager()
+        dev_id = button_info['dev_id']
+        if dev_id.startswith('ins'):
+            visibility_manager.show_instrument(dev_id)
+
+    def leaveEvent(self, event):
+        self._focused_id = None
+        self._focused_rel_pos = (0, 0)
+        self._focused_button_info = {}
+        self._pressed_button_info = {}
 
 
 class Device():
@@ -366,13 +468,17 @@ class Device():
         else:
             raise ValueError('Unexpected type of device ID: {}'.format(dev_id))
 
+        self._in_ports = []
+        self._out_ports = []
+
         self._bg = None
 
     def draw_pixmaps(self):
-        self._bg = QPixmap(100, 100)
+        self._bg = QPixmap(self._config['width'], self._get_height())
         painter = QPainter(self._bg)
+        pad = self._config['padding']
 
-        # Test
+        # Background
         painter.setBackground(self._type_config['bg_colour'])
         painter.eraseRect(0, 0, self._bg.width(), self._bg.height())
         painter.setPen(self._type_config['fg_colour'])
@@ -380,21 +486,60 @@ class Device():
 
         # Title
         painter.setFont(self._config['title_font'])
-        fm = QFontMetrics(self._config['title_font'])
-        height = fm.boundingRect('Ag').height()
+        height = self._get_title_height()
         text_option = QTextOption(Qt.AlignCenter)
-        painter.drawText(QRectF(0, 0, self._bg.width(), height), self._id, text_option)
+        painter.drawText(QRectF(0, pad, self._bg.width(), height), self._id, text_option)
+
+        # Edit button
+        if self._has_edit_button():
+            self._draw_edit_button(
+                    painter,
+                    self._type_config['button_bg_colour'],
+                    self._type_config['fg_colour'])
 
     def copy_pixmaps(self, painter):
         painter.save()
 
         painter.translate(self._offset_x, self._offset_y)
 
-        bg_offset_x = -self._bg.width() // 2
-        bg_offset_y = -self._bg.height() // 2
+        bg_offset_x, bg_offset_y = self._get_top_left_pos((0, 0))
         painter.drawPixmap(bg_offset_x, bg_offset_y, self._bg)
 
         painter.restore()
+
+    def draw_button_highlight(self, painter, info):
+        assert self._has_edit_button()
+        painter.save()
+        shift_x, shift_y = self._get_top_left_pos((0, 0))
+        painter.translate(self._offset_x + shift_x, self._offset_y + shift_y)
+
+        bg_colour = self._type_config['button_focused_bg_colour']
+        fg_colour = self._type_config['fg_colour']
+        if info.get('pressed'):
+            bg_colour, fg_colour = fg_colour, bg_colour
+
+        self._draw_edit_button(painter, bg_colour, fg_colour)
+
+        painter.restore()
+
+    def _get_top_left_pos(self, center_pos):
+        center_x, center_y = center_pos
+        return (center_x - self._bg.width() // 2, center_y - self._bg.height() // 2)
+
+    def _get_dev_biased_pos(self, center_pos):
+        center_x, center_y = center_pos
+        return (center_x + self._bg.width() // 2, center_y + self._bg.height() // 2)
+
+    def _draw_edit_button(self, painter, bg_colour, fg_colour):
+        rect = self._get_edit_button_rect()
+
+        painter.setPen(fg_colour)
+        painter.setBrush(bg_colour)
+        painter.drawRect(rect)
+
+        painter.setFont(self._config['title_font'])
+        text_option = QTextOption(Qt.AlignCenter)
+        painter.drawText(QRectF(rect), 'Edit', text_option)
 
     def set_offset(self, offset):
         self._offset_x, self._offset_y = offset
@@ -407,11 +552,59 @@ class Device():
         y_dist_max = self._bg.height() // 2
         return (abs(rel_pos[0]) <= x_dist_max) and (abs(rel_pos[1]) <= y_dist_max)
 
+    def has_button_at(self, rel_pos):
+        if not self._has_edit_button():
+            return False
+
+        biased_x, biased_y = self._get_dev_biased_pos(rel_pos)
+        rect = self._get_edit_button_rect()
+        return (rect.left() <= biased_x <= rect.right() and
+                rect.top() <= biased_y <= rect.bottom())
+
     def get_rect_in_area(self):
         return QRect(
                 self._offset_x - self._bg.width() // 2,
                 self._offset_y - self._bg.height() // 2,
                 self._bg.width() + 1,
                 self._bg.height() + 1)
+
+    def _has_edit_button(self):
+        # TODO: enable for effects
+        return (self._id != 'master') and (not self._id.startswith('eff'))
+
+    def _get_height(self):
+        title_height = self._get_title_height()
+        port_height = self._get_port_height()
+        ports_height = max(len(self._in_ports), len(self._out_ports)) * port_height
+        pad = self._config['padding']
+
+        total_height = pad + title_height + pad
+        if ports_height > 0:
+            total_height = ports_height + pad
+
+        if self._id != 'master':
+            edit_button_height = self._get_edit_button_height()
+            total_height += edit_button_height + pad
+
+        return total_height
+
+    def _get_title_height(self):
+        fm = QFontMetrics(self._config['title_font'])
+        return fm.boundingRect('Ag').height()
+
+    def _get_port_height(self):
+        fm = QFontMetrics(self._config['port_font'])
+        return fm.boundingRect('0').height()
+
+    def _get_edit_button_height(self):
+        return self._get_title_height() + self._config['button_padding'] * 2
+
+    def _get_edit_button_rect(self):
+        height = self._get_edit_button_height()
+        left = (self._config['width'] - self._config['button_width']) // 2
+        top = self._get_height() - height - self._config['padding']
+        return QRect(
+                left, top,
+                self._config['button_width'] - 1, height - 1)
 
 
