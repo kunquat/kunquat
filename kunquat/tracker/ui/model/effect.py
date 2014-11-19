@@ -18,11 +18,15 @@ class Effect():
 
     def __init__(self, effect_id):
         assert(effect_id)
+        self._ins_id = None
         self._effect_id = effect_id
         self._store = None
         self._controller = None
         self._effect_number = None
         self._existence = None
+
+    def set_ins_id(self, ins_id):
+        self._ins_id = ins_id
 
     def set_controller(self, controller):
         self._store = controller.get_store()
@@ -32,6 +36,8 @@ class Effect():
         return self._effect_id
 
     def _get_key(self, subkey):
+        if self._ins_id != None:
+            return '{}/{}/{}'.format(self._ins_id, self._effect_id, subkey)
         return '{}/{}'.format(self._effect_id, subkey)
 
     def get_existence(self):
