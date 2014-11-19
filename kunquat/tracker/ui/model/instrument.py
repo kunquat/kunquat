@@ -13,6 +13,9 @@
 #
 
 from kunquat.kunquat.kunquat import get_default_value
+from connections import Connections
+from generator import Generator
+from effect import Effect
 
 
 class Instrument():
@@ -41,6 +44,41 @@ class Instrument():
         if type(manifest) == type({}):
             return True
         return False
+
+    def get_connections(self):
+        connections = Connections()
+        connections.set_ins_id(self._instrument_id)
+        connections.set_controller(self._controller)
+        return connections
+
+    def get_generator(self, gen_id):
+        generator = Generator(self._instrument_id, gen_id)
+        generator.set_controller(self._controller)
+        return generator
+
+    def get_generator_ids(self):
+        gen_ids = set()
+        for key in self._store.keys():
+            start = '{}/gen_'.format(self._instrument_id)
+            if key.startswith(start):
+                gen_id = key.split('/')[1]
+                gen_ids.add(gen_id)
+        return gen_ids
+
+    def get_effect(self, eff_id):
+        effect = Effect(eff_id)
+        effect.set_ins_id(self._instrument_id)
+        effect.set_controller(self._controller)
+        return effect
+
+    def get_effect_ids(self):
+        effect_ids = set()
+        for key in self._store.keys():
+            start = '{}/eff_'.format(self._instrument_id)
+            if key.startswith(start):
+                effect_id = key.split('/')[1]
+                effect_ids.add(effect_id)
+        return effect_ids
 
     def get_name(self):
         key = self._get_key('m_name.json')
