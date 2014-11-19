@@ -39,6 +39,12 @@ DEFAULT_CONFIG = {
                 'button_bg_colour': QColor(0x11, 0x11, 0x33),
                 'button_focused_bg_colour': QColor(0, 0, 0x77),
             },
+            'generator': {
+                'bg_colour'       : QColor(0x22, 0x55, 0x55),
+                'fg_colour'       : QColor(0xcc, 0xff, 0xff),
+                'button_bg_colour': QColor(0x11, 0x33, 0x33),
+                'button_focused_bg_colour': QColor(0, 0x55, 0x55),
+            },
             'effect': {
                 'bg_colour'       : QColor(0x55, 0x44, 0x33),
                 'fg_colour'       : QColor(0xff, 0xee, 0xdd),
@@ -65,6 +71,9 @@ class Connections(QAbstractScrollArea):
 
         self.horizontalScrollBar().setSingleStep(8)
         self.verticalScrollBar().setSingleStep(8)
+
+    def set_ins_id(self, ins_id):
+        self.viewport().set_ins_id(ins_id)
 
     def set_ui_model(self, ui_model):
         self.viewport().set_ui_model(ui_model)
@@ -142,6 +151,7 @@ class ConnectionsView(QWidget):
     def __init__(self, config={}):
         QWidget.__init__(self)
         self._ui_model = None
+        self._ins_id = None
         self._updater = None
 
         self._state = STATE_IDLE
@@ -169,6 +179,10 @@ class ConnectionsView(QWidget):
         self.setFocusPolicy(Qt.ClickFocus)
         self.setMouseTracking(True)
 
+    def set_ins_id(self, ins_id):
+        assert self._ui_model == None, "Cannot set instrument ID after UI model"
+        self._ins_id = ins_id
+
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
@@ -194,9 +208,23 @@ class ConnectionsView(QWidget):
         y_start = self._center_pos[1] - self.height() // 2
         return QRect(x_start, y_start, self.width(), self.height())
 
-    def _change_layout_entry(self, key, value):
+    def _get_connections(self):
         module = self._ui_model.get_module()
-        connections = module.get_connections()
+
+        if self._ins_id != None:
+            instrument = module.get_instrument(self._ins_id)
+            return instrument.get_connections()
+
+        return module.get_connections()
+
+    def _get_signal(self, base):
+        parts = [base]
+        if self._ins_id != None:
+            parts.append(self._ins_id)
+        return '_'.join(parts)
+
+    def _change_layout_entry(self, key, value):
+        connections = self._get_connections()
         layout = connections.get_layout()
 
         # Set new entry
@@ -211,7 +239,7 @@ class ConnectionsView(QWidget):
         self._default_offsets = {}
 
         connections.set_layout(layout)
-        self._updater.signal_update(set(['signal_connections']))
+        self._updater.signal_update(set([self._get_signal('signal_connections')]))
 
     def scroll_to(self, area_x, area_y):
         area_rect = self.get_area_rect()
@@ -231,13 +259,12 @@ class ConnectionsView(QWidget):
         self._config.update(config)
 
     def _perform_updates(self, signals):
-        update_signals = set(['signal_module', 'signal_connections'])
+        update_signals = set(['signal_module', self._get_signal('signal_connections')])
         if not signals.isdisjoint(update_signals):
             self._update_devices()
 
     def _update_devices(self):
-        module = self._ui_model.get_module()
-        connections = module.get_connections()
+        connections = self._get_connections()
         layout = connections.get_layout()
 
         self._center_pos = layout.get('center_pos', (0, 0))
@@ -245,15 +272,29 @@ class ConnectionsView(QWidget):
         # Get visible device IDs
         visible_set = set(['master'])
 
-        ins_ids = module.get_instrument_ids()
-        existent_ins_ids = [ins_id for ins_id in ins_ids
-                if module.get_instrument(ins_id).get_existence()]
-        visible_set |= set(existent_ins_ids)
+        module = self._ui_model.get_module()
+        if self._ins_id != None:
+            instrument = module.get_instrument(self._ins_id)
+            gen_ids = instrument.get_generator_ids()
+            existent_gen_ids = [gen_id for gen_id in gen_ids
+                    if instrument.get_generator(gen_id).get_existence()]
+            visible_set |= set(existent_gen_ids)
 
-        eff_ids = module.get_effect_ids()
-        existent_eff_ids = [eff_id for eff_id in eff_ids
-                if module.get_effect(eff_id).get_existence()]
-        visible_set |= set(existent_eff_ids)
+            eff_ids = instrument.get_effect_ids()
+            existent_eff_ids = [eff_id for eff_id in eff_ids
+                    if instrument.get_effect(eff_id).get_existence()]
+            visible_set |= set(existent_eff_ids)
+
+        else:
+            ins_ids = module.get_instrument_ids()
+            existent_ins_ids = [ins_id for ins_id in ins_ids
+                    if module.get_instrument(ins_id).get_existence()]
+            visible_set |= set(existent_ins_ids)
+
+            eff_ids = module.get_effect_ids()
+            existent_eff_ids = [eff_id for eff_id in eff_ids
+                    if module.get_effect(eff_id).get_existence()]
+            visible_set |= set(existent_eff_ids)
 
         new_dev_ids = []
 
@@ -292,13 +333,13 @@ class ConnectionsView(QWidget):
                 self.width() // 2 - self._center_pos[0],
                 self.height() // 2 - self._center_pos[1])
 
-        module = self._ui_model.get_module()
-        connections = module.get_connections()
+        connections = self._get_connections()
         layout = connections.get_layout()
 
         # Draw devices
         default_pos_cfg = {
                 'i': { 'index': 0, 'offset_x': -200, 'offset_y': 120 },
+                'g': { 'index': 0, 'offset_x': -200, 'offset_y': 120 },
                 'e': { 'index': 0, 'offset_x': 0,    'offset_y': 120 },
                 'm': { 'index': 0, 'offset_x': 200,  'offset_y': 120 },
             }
@@ -465,6 +506,8 @@ class Device():
             self._type_config = self._config['instrument']
         elif dev_id.startswith('eff'):
             self._type_config = self._config['effect']
+        elif dev_id.startswith('gen'):
+            self._type_config = self._config['generator']
         else:
             raise ValueError('Unexpected type of device ID: {}'.format(dev_id))
 
@@ -569,8 +612,8 @@ class Device():
                 self._bg.height() + 1)
 
     def _has_edit_button(self):
-        # TODO: enable for effects
-        return (self._id != 'master') and (not self._id.startswith('eff'))
+        # TODO: enable for generators & effects
+        return (self._id != 'master') and (self._id.startswith('ins'))
 
     def _get_height(self):
         title_height = self._get_title_height()
@@ -582,7 +625,7 @@ class Device():
         if ports_height > 0:
             total_height = ports_height + pad
 
-        if self._id != 'master':
+        if self._has_edit_button():
             edit_button_height = self._get_edit_button_height()
             total_height += edit_button_height + pad
 
