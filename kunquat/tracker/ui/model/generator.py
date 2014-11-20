@@ -36,4 +36,15 @@ class Generator():
         manifest = self._store.get(key, None)
         return (type(manifest) == dict)
 
+    def get_out_ports(self):
+        out_ports = []
+        for i in xrange(0x100):
+            port_id = 'out_{:02x}'.format(i)
+            key = self._get_key('{}/p_manifest.json'.format(port_id))
+            if key in self._store:
+                out_ports.append(port_id)
+
+        out_ports = ['out_00'] # test
+        return out_ports
+
 

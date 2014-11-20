@@ -101,6 +101,17 @@ class Module():
                 effect_ids.add(effect_id)
         return effect_ids
 
+    def get_out_ports(self):
+        out_ports = []
+        for i in xrange(0x100):
+            port_id = 'out_{:02x}'.format(i)
+            key = '{}/p_manifest.json'.format(port_id)
+            if key in self._store:
+                out_ports.append(port_id)
+
+        out_ports = ['out_00'] # test
+        return out_ports
+
     def get_connections(self):
         connections = Connections()
         connections.set_controller(self._controller)
