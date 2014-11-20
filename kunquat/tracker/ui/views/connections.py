@@ -27,12 +27,14 @@ _port_font.setWeight(QFont.Bold)
 DEFAULT_CONFIG = {
         'bg_colour': QColor(0x11, 0x11, 0x11),
         'devices': {
-            'width'         : 100,
-            'title_font'    : _title_font,
-            'port_font'     : _port_font,
-            'padding'       : 4,
-            'button_width'  : 50,
-            'button_padding': 2,
+            'width'           : 100,
+            'title_font'      : _title_font,
+            'port_font'       : _port_font,
+            'port_handle_size': 7,
+            'port_colour'     : QColor(0xee, 0xcc, 0xaa),
+            'padding'         : 4,
+            'button_width'    : 50,
+            'button_padding'  : 2,
             'instrument': {
                 'bg_colour'       : QColor(0x33, 0x33, 0x55),
                 'fg_colour'       : QColor(0xdd, 0xee, 0xff),
@@ -263,6 +265,33 @@ class ConnectionsView(QWidget):
         if not signals.isdisjoint(update_signals):
             self._update_devices()
 
+    def _get_device(self, dev_id):
+        container = self._ui_model.get_module()
+        if self._ins_id != None:
+            container = container.get_instrument(self._ins_id)
+
+        if dev_id.startswith('ins'):
+            return container.get_instrument(dev_id)
+        elif dev_id.startswith('gen'):
+            return container.get_generator(dev_id)
+        elif dev_id.startswith('eff'):
+            return container.get_effect(dev_id)
+        elif dev_id.startswith('dsp'):
+            return container.get_dsp(dev_id)
+
+        return container
+
+    def _get_in_ports(self, dev_id):
+        if dev_id.startswith('ins') or dev_id.startswith('gen'):
+            return []
+
+        device = self._get_device(dev_id)
+        return device.get_in_ports()
+
+    def _get_out_ports(self, dev_id):
+        device = self._get_device(dev_id)
+        return device.get_out_ports()
+
     def _update_devices(self):
         connections = self._get_connections()
         layout = connections.get_layout()
@@ -345,7 +374,14 @@ class ConnectionsView(QWidget):
             }
         for dev_id in self._visible_device_ids:
             if dev_id not in self._visible_devices:
-                device = Device(dev_id, self._config['devices'])
+                if dev_id == 'master':
+                    in_ports = self._get_out_ports(dev_id)
+                    out_ports = []
+                else:
+                    in_ports = self._get_in_ports(dev_id)
+                    out_ports = self._get_out_ports(dev_id)
+
+                device = Device(dev_id, self._config['devices'], in_ports, out_ports)
                 device.draw_pixmaps()
                 self._visible_devices[dev_id] = device
 
@@ -367,6 +403,8 @@ class ConnectionsView(QWidget):
             device = self._visible_devices[dev_id]
             device.set_offset(offset)
             device.copy_pixmaps(painter)
+
+            device.draw_ports(painter)
 
             # Draw button highlight
             if self._focused_button_info.get('dev_id') == dev_id:
@@ -493,7 +531,7 @@ class ConnectionsView(QWidget):
 
 class Device():
 
-    def __init__(self, dev_id, config):
+    def __init__(self, dev_id, config, in_ports, out_ports):
         self._id = dev_id
         self._config = config
 
@@ -511,8 +549,8 @@ class Device():
         else:
             raise ValueError('Unexpected type of device ID: {}'.format(dev_id))
 
-        self._in_ports = []
-        self._out_ports = []
+        self._in_ports = in_ports
+        self._out_ports = out_ports
 
         self._bg = None
 
@@ -529,9 +567,38 @@ class Device():
 
         # Title
         painter.setFont(self._config['title_font'])
-        height = self._get_title_height()
         text_option = QTextOption(Qt.AlignCenter)
-        painter.drawText(QRectF(0, pad, self._bg.width(), height), self._id, text_option)
+        title_height = self._get_title_height()
+        painter.drawText(
+                QRectF(0, pad, self._bg.width(), title_height), self._id, text_option)
+
+        # Ports
+        painter.setFont(self._config['port_font'])
+        text_option = QTextOption(Qt.AlignLeft | Qt.AlignVCenter)
+        port_height = self._get_port_height()
+        port_y = self._get_title_height()
+
+        for port_id in self._in_ports:
+            port_num = int(port_id.split('_')[1], 16)
+            painter.drawText(
+                    QRectF(pad, port_y, self._bg.width() // 2, port_height),
+                    str(port_num),
+                    text_option)
+            port_y += port_height
+
+        text_option = QTextOption(Qt.AlignRight | Qt.AlignVCenter)
+        port_y = self._get_title_height()
+        for port_id in self._out_ports:
+            port_num = int(port_id.split('_')[1], 16)
+            painter.drawText(
+                    QRectF(
+                        self._bg.width() // 2,
+                        port_y,
+                        self._bg.width() // 2 - pad,
+                        port_height),
+                    str(port_num),
+                    text_option)
+            port_y += port_height
 
         # Edit button
         if self._has_edit_button():
@@ -547,6 +614,41 @@ class Device():
 
         bg_offset_x, bg_offset_y = self._get_top_left_pos((0, 0))
         painter.drawPixmap(bg_offset_x, bg_offset_y, self._bg)
+
+        painter.restore()
+
+    def _get_in_port_rects(self):
+        bg_offset_x, bg_offset_y = self._get_top_left_pos(
+                (self._offset_x, self._offset_y))
+
+        port_size = self._config['port_handle_size']
+        port_x = bg_offset_x - port_size + 1
+        port_y = bg_offset_y + self._config['padding'] + self._get_title_height()
+
+        for _ in self._in_ports:
+            yield QRect(port_x, port_y, port_size, port_size)
+            port_y += self._get_port_height()
+
+    def _get_out_port_rects(self):
+        bg_offset_x, bg_offset_y = self._get_top_left_pos(
+                (self._offset_x, self._offset_y))
+
+        port_size = self._config['port_handle_size']
+        port_x = bg_offset_x + self._bg.width() - 1
+        port_y = bg_offset_y + self._config['padding'] + self._get_title_height()
+
+        for _ in self._out_ports:
+            yield QRect(port_x, port_y, port_size, port_size)
+            port_y += self._get_port_height()
+
+    def draw_ports(self, painter):
+        painter.save()
+
+        for rect in self._get_in_port_rects():
+            painter.fillRect(rect, self._config['port_colour'])
+
+        for rect in self._get_out_port_rects():
+            painter.fillRect(rect, self._config['port_colour'])
 
         painter.restore()
 
@@ -619,15 +721,12 @@ class Device():
         title_height = self._get_title_height()
         port_height = self._get_port_height()
         ports_height = max(len(self._in_ports), len(self._out_ports)) * port_height
-        pad = self._config['padding']
 
-        total_height = pad + title_height + pad
-        if ports_height > 0:
-            total_height = ports_height + pad
+        total_height = title_height + ports_height
 
         if self._has_edit_button():
             edit_button_height = self._get_edit_button_height()
-            total_height += edit_button_height + pad
+            total_height += edit_button_height + self._config['padding']
 
         return total_height
 
@@ -637,7 +736,7 @@ class Device():
 
     def _get_port_height(self):
         fm = QFontMetrics(self._config['port_font'])
-        return fm.boundingRect('0').height()
+        return self._config['padding'] + fm.boundingRect('0').height()
 
     def _get_edit_button_height(self):
         return self._get_title_height() + self._config['button_padding'] * 2
