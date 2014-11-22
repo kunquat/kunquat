@@ -617,29 +617,45 @@ class Device():
 
         painter.restore()
 
-    def _get_in_port_rects(self):
+    def _get_in_port_centers(self):
         bg_offset_x, bg_offset_y = self._get_top_left_pos(
                 (self._offset_x, self._offset_y))
 
-        port_size = self._config['port_handle_size']
-        port_x = bg_offset_x - port_size + 1
-        port_y = bg_offset_y + self._config['padding'] + self._get_title_height()
+        port_offset = self._config['port_handle_size'] // 2
+        padding = self._config['padding']
+        port_x = bg_offset_x - port_offset
+        port_y = bg_offset_y + padding + self._get_title_height() + port_offset
 
         for _ in self._in_ports:
-            yield QRect(port_x, port_y, port_size, port_size)
+            yield (port_x, port_y)
             port_y += self._get_port_height()
 
-    def _get_out_port_rects(self):
+    def _get_out_port_centers(self):
         bg_offset_x, bg_offset_y = self._get_top_left_pos(
                 (self._offset_x, self._offset_y))
 
-        port_size = self._config['port_handle_size']
-        port_x = bg_offset_x + self._bg.width() - 1
-        port_y = bg_offset_y + self._config['padding'] + self._get_title_height()
+        port_offset = self._config['port_handle_size'] // 2
+        padding = self._config['padding']
+        port_x = bg_offset_x + self._bg.width() + port_offset - 1
+        port_y = bg_offset_y + padding + self._get_title_height() + port_offset
 
         for _ in self._out_ports:
-            yield QRect(port_x, port_y, port_size, port_size)
+            yield (port_x, port_y)
             port_y += self._get_port_height()
+
+    def _get_in_port_rects(self):
+        handle_size = self._config['port_handle_size']
+        handle_offset = -handle_size // 2 + 1
+        for point in self._get_in_port_centers():
+            x, y = point
+            yield QRect(x + handle_offset, y + handle_offset, handle_size, handle_size)
+
+    def _get_out_port_rects(self):
+        handle_size = self._config['port_handle_size']
+        handle_offset = -handle_size // 2 + 1
+        for point in self._get_out_port_centers():
+            x, y = point
+            yield QRect(x + handle_offset, y + handle_offset, handle_size, handle_size)
 
     def draw_ports(self, painter):
         painter.save()
