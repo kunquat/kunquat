@@ -27,14 +27,16 @@ _port_font.setWeight(QFont.Bold)
 DEFAULT_CONFIG = {
         'bg_colour': QColor(0x11, 0x11, 0x11),
         'devices': {
-            'width'           : 100,
-            'title_font'      : _title_font,
-            'port_font'       : _port_font,
-            'port_handle_size': 7,
-            'port_colour'     : QColor(0xee, 0xcc, 0xaa),
-            'padding'         : 4,
-            'button_width'    : 50,
-            'button_padding'  : 2,
+            'width'              : 100,
+            'title_font'         : _title_font,
+            'port_font'          : _port_font,
+            'port_handle_size'   : 7,
+            'port_focus_dist_max': 5,
+            'port_colour'        : QColor(0xee, 0xcc, 0xaa),
+            'focused_port_colour': QColor(0xff, 0x77, 0x22),
+            'padding'            : 4,
+            'button_width'       : 50,
+            'button_padding'     : 2,
             'instrument': {
                 'bg_colour'       : QColor(0x33, 0x33, 0x55),
                 'fg_colour'       : QColor(0xdd, 0xee, 0xff),
@@ -168,6 +170,8 @@ class ConnectionsView(QWidget):
 
         self._focused_button_info = {}
         self._pressed_button_info = {}
+
+        self._focused_port_info = {}
 
         self._default_offsets = {}
 
@@ -404,7 +408,7 @@ class ConnectionsView(QWidget):
             device.set_offset(offset)
             device.copy_pixmaps(painter)
 
-            device.draw_ports(painter)
+            device.draw_ports(painter, self._focused_port_info)
 
             # Draw button highlight
             if self._focused_button_info.get('dev_id') == dev_id:
@@ -423,13 +427,18 @@ class ConnectionsView(QWidget):
     def mouseMoveEvent(self, event):
         area_pos = self._get_area_pos(event.x(), event.y())
 
+        new_focused_port_info = {}
         new_focused_button_info = {}
 
         if self._state == STATE_IDLE:
             for dev_id in reversed(self._visible_device_ids):
                 device = self._visible_devices[dev_id]
                 dev_rel_pos = device.get_rel_pos(area_pos)
-                if device.contains_rel_pos(dev_rel_pos):
+                focused_port = device.get_port_at(dev_rel_pos)
+                if focused_port:
+                    new_focused_port_info = { 'dev_id': dev_id, 'port': focused_port }
+                    break
+                elif device.contains_rel_pos(dev_rel_pos):
                     if device.has_button_at(dev_rel_pos):
                         new_focused_button_info = { 'dev_id': dev_id }
                     break
@@ -462,7 +471,12 @@ class ConnectionsView(QWidget):
                             'pressed': True,
                         }
 
-        # Update button focus info
+        assert not new_focused_port_info or not new_focused_button_info
+
+        # Update focus info
+        if self._focused_port_info != new_focused_port_info:
+            self._focused_port_info = new_focused_port_info
+            self.update()
         if self._focused_button_info != new_focused_button_info:
             self._focused_button_info = new_focused_button_info
             self.update()
@@ -474,7 +488,11 @@ class ConnectionsView(QWidget):
         for dev_id in reversed(self._visible_device_ids):
             device = self._visible_devices[dev_id]
             dev_rel_pos = device.get_rel_pos(area_pos)
-            if self._visible_devices[dev_id].contains_rel_pos(dev_rel_pos):
+            focused_port = device.get_port_at(dev_rel_pos)
+            if focused_port:
+                # TODO: Start edge addition mode
+                break
+            elif device.contains_rel_pos(dev_rel_pos):
                 self._focused_id = dev_id
                 self._focused_rel_pos = dev_rel_pos
                 break
@@ -527,6 +545,7 @@ class ConnectionsView(QWidget):
         self._focused_rel_pos = (0, 0)
         self._focused_button_info = {}
         self._pressed_button_info = {}
+        self._focused_port_info = {}
 
 
 class Device():
@@ -657,14 +676,24 @@ class Device():
             x, y = point
             yield QRect(x + handle_offset, y + handle_offset, handle_size, handle_size)
 
-    def draw_ports(self, painter):
+    def draw_ports(self, painter, focus_info):
         painter.save()
 
-        for rect in self._get_in_port_rects():
-            painter.fillRect(rect, self._config['port_colour'])
+        normal_colour = self._config['port_colour']
+        focused_colour = self._config['focused_port_colour']
+        focused_port = (focus_info.get('port')
+                if focus_info.get('dev_id') == self._id
+                else None)
 
-        for rect in self._get_out_port_rects():
-            painter.fillRect(rect, self._config['port_colour'])
+        for i, rect in enumerate(self._get_in_port_rects()):
+            port_id = self._in_ports[i]
+            colour = focused_colour if port_id == focused_port else normal_colour
+            painter.fillRect(rect, colour)
+
+        for i, rect in enumerate(self._get_out_port_rects()):
+            port_id = self._out_ports[i]
+            colour = focused_colour if port_id == focused_port else normal_colour
+            painter.fillRect(rect, colour)
 
         painter.restore()
 
@@ -712,6 +741,33 @@ class Device():
         x_dist_max = self._bg.width() // 2
         y_dist_max = self._bg.height() // 2
         return (abs(rel_pos[0]) <= x_dist_max) and (abs(rel_pos[1]) <= y_dist_max)
+
+    def get_port_at(self, rel_pos):
+        port_dist_max = self._config['port_focus_dist_max']
+        dev_x = rel_pos[0] - 1
+        dev_y = rel_pos[1] - 1
+
+        x_dist_max = self._bg.width() // 2 + port_dist_max + 1
+        y_dist_max = self._bg.height() // 2
+        if not ((abs(dev_x) <= x_dist_max) and (abs(dev_y) <= y_dist_max)):
+            return None
+
+        if dev_x < 0:
+            for i, point in enumerate(self._get_in_port_centers()):
+                x, y = point
+                x -= self._offset_x
+                y -= self._offset_y
+                if max(abs(dev_x - x), abs(dev_y - y)) <= port_dist_max:
+                    return self._in_ports[i]
+        else:
+            for i, point in enumerate(self._get_out_port_centers()):
+                x, y = point
+                x -= self._offset_x
+                y -= self._offset_y
+                if max(abs(dev_x - x), abs(dev_y - y)) <= port_dist_max:
+                    return self._out_ports[i]
+
+        return None
 
     def has_button_at(self, rel_pos):
         if not self._has_edit_button():
