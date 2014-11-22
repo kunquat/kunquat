@@ -16,6 +16,8 @@ import time
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
+from linesegment import LineSegment
+
 
 _title_font = QFont(QFont().defaultFamily(), 10)
 _title_font.setWeight(QFont.Bold)
@@ -25,7 +27,8 @@ _port_font.setWeight(QFont.Bold)
 
 
 DEFAULT_CONFIG = {
-        'bg_colour': QColor(0x11, 0x11, 0x11),
+        'bg_colour'  : QColor(0x11, 0x11, 0x11),
+        'edge_colour': QColor(0xcc, 0xcc, 0xcc),
         'devices': {
             'width'              : 100,
             'title_font'         : _title_font,
@@ -174,6 +177,8 @@ class ConnectionsView(QWidget):
         self._focused_port_info = {}
 
         self._default_offsets = {}
+
+        self._ls_cache = {}
 
         self._config = None
         self._set_config(config)
@@ -355,6 +360,13 @@ class ConnectionsView(QWidget):
         QObject.emit(self, SIGNAL('positionsChanged()'))
         self.update()
 
+    def _get_port_center_from_path(self, path):
+        parts = path.split('/')
+        port_id = parts[-1]
+        dev_id = parts[0] if len(parts) > 1 else 'master'
+        port_center = self._visible_devices[dev_id].get_port_center(port_id)
+        return port_center
+
     def paintEvent(self, event):
         start = time.time()
 
@@ -369,15 +381,20 @@ class ConnectionsView(QWidget):
         connections = self._get_connections()
         layout = connections.get_layout()
 
-        # Draw devices
+        # Make devices
         default_pos_cfg = {
                 'i': { 'index': 0, 'offset_x': -200, 'offset_y': 120 },
                 'g': { 'index': 0, 'offset_x': -200, 'offset_y': 120 },
                 'e': { 'index': 0, 'offset_x': 0,    'offset_y': 120 },
                 'm': { 'index': 0, 'offset_x': 200,  'offset_y': 120 },
             }
+
+        new_visible_devices = {}
+
         for dev_id in self._visible_device_ids:
-            if dev_id not in self._visible_devices:
+            if dev_id in self._visible_devices:
+                new_visible_devices[dev_id] = self._visible_devices[dev_id]
+            else:
                 if dev_id == 'master':
                     in_ports = self._get_out_ports(dev_id)
                     out_ports = []
@@ -387,7 +404,7 @@ class ConnectionsView(QWidget):
 
                 device = Device(dev_id, self._config['devices'], in_ports, out_ports)
                 device.draw_pixmaps()
-                self._visible_devices[dev_id] = device
+                new_visible_devices[dev_id] = device
 
             dev_layout = layout.get(dev_id, {})
             if 'offset' in dev_layout:
@@ -404,8 +421,35 @@ class ConnectionsView(QWidget):
                         self._center_pos[1] + y_offset_factor * pos_cfg['offset_y'])
                 self._default_offsets[dev_id] = offset
 
-            device = self._visible_devices[dev_id]
+            device = new_visible_devices[dev_id]
             device.set_offset(offset)
+
+        self._visible_devices = new_visible_devices
+
+        # Draw connections
+        new_ls_cache = {}
+
+        edges = connections.get_connections()
+        for edge in edges:
+            from_path, to_path = edge
+            from_pos = self._get_port_center_from_path(from_path)
+            to_pos = self._get_port_center_from_path(to_path)
+            key = (from_pos, to_pos)
+            if key in self._ls_cache:
+                new_ls_cache[key] = self._ls_cache[key]
+            else:
+                ls = LineSegment(from_pos, to_pos)
+                ls.set_colour(self._config['edge_colour'])
+                ls.draw_line()
+                new_ls_cache[key] = ls
+
+        self._ls_cache = new_ls_cache
+        for ls in self._ls_cache.itervalues():
+            ls.copy_line(painter)
+
+        # Draw devices
+        for dev_id in self._visible_device_ids:
+            device = self._visible_devices[dev_id]
             device.copy_pixmaps(painter)
 
             device.draw_ports(painter, self._focused_port_info)
@@ -661,6 +705,18 @@ class Device():
         for _ in self._out_ports:
             yield (port_x, port_y)
             port_y += self._get_port_height()
+
+    def get_port_center(self, port_id):
+        if port_id.startswith('in') != (self._id == 'master'):
+            for i, point in enumerate(self._get_in_port_centers()):
+                if self._in_ports[i] == port_id:
+                    return point
+        else:
+            for i, point in enumerate(self._get_out_port_centers()):
+                if self._out_ports[i] == port_id:
+                    return point
+
+        assert False, 'Device {} does not have port {}'.format(self._id, port_id)
 
     def _get_in_port_rects(self):
         handle_size = self._config['port_handle_size']
