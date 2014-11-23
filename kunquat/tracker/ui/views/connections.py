@@ -205,9 +205,26 @@ class Connections(QAbstractScrollArea):
         self.viewport().scroll_to(biased_x, biased_y)
 
 
+class EdgeMenu(QMenu):
+
+    def __init__(self, parent):
+        QMenu.__init__(self, parent)
+        self.hide()
+        self.addAction('Remove')
+        self._edge = None
+
+    def show_with_edge(self, edge, position):
+        self._edge = edge
+        self.popup(position)
+
+    def get_edge(self):
+        return self._edge
+
+
 STATE_IDLE = 'idle'
 STATE_MOVING = 'moving'
 STATE_PRESSING = 'pressing'
+STATE_EDGE_MENU = 'edge_menu'
 
 
 class ConnectionsView(QWidget):
@@ -240,6 +257,12 @@ class ConnectionsView(QWidget):
         self._default_offsets = {}
 
         self._ls_cache = {}
+
+        self._edge_menu = EdgeMenu(self)
+        QObject.connect(
+                self._edge_menu, SIGNAL('aboutToHide()'), self._edge_menu_closing)
+        QObject.connect(
+                self._edge_menu, SIGNAL('triggered(QAction*)'), self._remove_edge)
 
         self._config = None
         self._set_config(config)
@@ -546,6 +569,18 @@ class ConnectionsView(QWidget):
         return (widget_x - self.width() // 2 + self._center_pos[0],
                 widget_y - self.height() // 2 + self._center_pos[1])
 
+    def _edge_menu_closing(self):
+        self._state = STATE_IDLE
+        self._focused_edge_info = {}
+
+    def _remove_edge(self, action):
+        edge = self._edge_menu.get_edge()
+        connections = self._get_connections()
+        edges = connections.get_connections()
+        edges.remove(edge)
+        connections.set_connections(edges)
+        self.update()
+
     def mouseMoveEvent(self, event):
         area_pos = self._get_area_pos(event.x(), event.y())
 
@@ -554,20 +589,23 @@ class ConnectionsView(QWidget):
         new_focused_edge_info = {}
 
         if self._state == STATE_IDLE:
+            on_device = False
             for dev_id in reversed(self._visible_device_ids):
                 # Find a focused part of a device
                 device = self._visible_devices[dev_id]
                 dev_rel_pos = device.get_rel_pos(area_pos)
                 focused_port = device.get_port_at(dev_rel_pos)
                 if focused_port:
+                    on_device = True
                     new_focused_port_info = { 'dev_id': dev_id, 'port': focused_port }
                     break
                 elif device.contains_rel_pos(dev_rel_pos):
+                    on_device = True
                     if device.has_button_at(dev_rel_pos):
                         new_focused_button_info = { 'dev_id': dev_id }
                     break
 
-            if not (new_focused_port_info or new_focused_button_info):
+            if not on_device:
                 # Find a focused edge
                 connections = self._get_connections()
                 edges = connections.get_connections()
@@ -624,6 +662,8 @@ class ConnectionsView(QWidget):
             self.update()
 
     def mousePressEvent(self, event):
+        assert self._state != STATE_EDGE_MENU
+
         area_pos = self._get_area_pos(event.x(), event.y())
 
         # Find out what was pressed
@@ -646,6 +686,13 @@ class ConnectionsView(QWidget):
             new_visible_ids.append(self._focused_id)
             self._change_layout_entry('z_order', new_visible_ids)
 
+        if not self._focused_id:
+            if self._focused_edge_info:
+                self._state = STATE_EDGE_MENU
+                self._edge_menu.show_with_edge(
+                        self._focused_edge_info['paths'],
+                        self.mapToGlobal(QPoint(event.x(), event.y())))
+
         # Update state
         if self._focused_id:
             device = self._visible_devices[self._focused_id]
@@ -659,6 +706,9 @@ class ConnectionsView(QWidget):
                 self._state = STATE_MOVING
 
     def mouseReleaseEvent(self, event):
+        if self._state == STATE_EDGE_MENU:
+            return
+
         self._focused_id = None
         self._focused_rel_pos = (0, 0)
 
@@ -683,11 +733,15 @@ class ConnectionsView(QWidget):
             visibility_manager.show_instrument(dev_id)
 
     def leaveEvent(self, event):
+        if self._state == STATE_EDGE_MENU:
+            return
+
         self._focused_id = None
         self._focused_rel_pos = (0, 0)
         self._focused_button_info = {}
         self._pressed_button_info = {}
         self._focused_port_info = {}
+        self._focused_edge_info = {}
 
 
 class Device():
