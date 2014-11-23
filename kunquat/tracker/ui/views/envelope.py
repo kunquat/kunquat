@@ -819,6 +819,9 @@ class Envelope(QWidget):
         return None
 
     def _find_focused_loop_marker(self, pos_vis):
+        if not self._loop_markers:
+            return None
+
         # Shift focus position so that it matches better what is seen
         pos_x, pos_y = (pos_vis[0] - 1, pos_vis[1] - 1)
 
@@ -1036,6 +1039,11 @@ class Envelope(QWidget):
                 min_x = self._range_x[0]
             if not self._range_adjust_x[1]:
                 max_x = self._range_x[1]
+
+            if any(self._first_lock):
+                min_x = self._nodes[0][0] + epsilon
+            if any(self._last_lock):
+                max_x = self._nodes[-1][0] - epsilon
 
             insert_pos = 0
             for i, node in enumerate(self._nodes):

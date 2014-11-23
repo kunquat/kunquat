@@ -15,13 +15,19 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 
-class Name(QLineEdit):
+class Name(QWidget):
 
     def __init__(self):
-        QLineEdit.__init__(self)
+        QWidget.__init__(self)
         self._ui_model = None
         self._ins_id = None
         self._updater = None
+        self._edit = QLineEdit()
+
+        h = QHBoxLayout()
+        h.addWidget(QLabel('Name:'))
+        h.addWidget(self._edit)
+        self.setLayout(h)
 
     def set_ins_id(self, ins_id):
         self._ins_id = ins_id
@@ -31,7 +37,7 @@ class Name(QLineEdit):
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
         self._update_name()
-        QObject.connect(self, SIGNAL('textEdited(QString)'), self._text_edited)
+        QObject.connect(self._edit, SIGNAL('textEdited(QString)'), self._text_edited)
 
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
@@ -41,11 +47,11 @@ class Name(QLineEdit):
             self._update_name()
 
     def _update_name(self):
-        old_block = self.blockSignals(True)
+        old_block = self._edit.blockSignals(True)
         module = self._ui_model.get_module()
         instrument = module.get_instrument(self._ins_id)
-        self.setText(instrument.get_name() or '')
-        self.blockSignals(old_block)
+        self._edit.setText(instrument.get_name() or '')
+        self._edit.blockSignals(old_block)
 
     def _text_edited(self, text):
         text = unicode(text)

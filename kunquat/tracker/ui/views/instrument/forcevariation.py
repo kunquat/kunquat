@@ -17,24 +17,26 @@ from PyQt4.QtGui import *
 from insnumslider import InsNumSlider
 
 
-class GlobalForce(InsNumSlider):
+class ForceVariation(InsNumSlider):
 
     def __init__(self):
-        InsNumSlider.__init__(self, 1, -64.0, 18.0, width_txt='-00.0')
+        InsNumSlider.__init__(self, 1, 0.0, 32.0, width_txt='-00.0')
         self.set_number(0)
 
     def _update_value(self):
+        old_block = self.blockSignals(True)
         module = self._ui_model.get_module()
         instrument = module.get_instrument(self._ins_id)
-        self.set_number(instrument.get_global_force())
+        self.set_number(instrument.get_force_variation())
+        self.blockSignals(old_block)
 
-    def _value_changed(self, global_force):
+    def _value_changed(self, force_var):
         module = self._ui_model.get_module()
         instrument = module.get_instrument(self._ins_id)
-        instrument.set_global_force(global_force)
+        instrument.set_force_variation(force_var)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _get_update_signal_type(self):
-        return ''.join(('signal_global_force_', self._ins_id))
+        return ''.join(('signal_force_var_', self._ins_id))
 
 

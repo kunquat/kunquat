@@ -1,7 +1,7 @@
 
 
 {
-    "force" : -8,
+    "global_force" : -8,
     "force_variation" : 0
 }
 

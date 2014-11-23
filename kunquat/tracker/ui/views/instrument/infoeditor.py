@@ -14,40 +14,30 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from force_editor import ForceEditor
-from infoeditor import InfoEditor
+from name import Name
 
 
-class Editor(QWidget):
+class InfoEditor(QWidget):
 
     def __init__(self):
         QWidget.__init__(self)
         self._ui_model = None
         self._ins_id = None
-        self._tabs = QTabWidget()
-
-        self._force_editor = ForceEditor()
-        self._info_editor = InfoEditor()
-        self._tabs.addTab(self._force_editor, 'Force')
-        self._tabs.addTab(self._info_editor, 'Info')
+        self._name = Name()
 
         v = QVBoxLayout()
-        v.setMargin(0)
-        v.addWidget(self._tabs)
+        v.addWidget(self._name)
         self.setLayout(v)
 
     def set_ins_id(self, ins_id):
         self._ins_id = ins_id
-        self._force_editor.set_ins_id(ins_id)
-        self._info_editor.set_ins_id(ins_id)
+        self._name.set_ins_id(ins_id)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
-        self._force_editor.set_ui_model(ui_model)
-        self._info_editor.set_ui_model(ui_model)
+        self._name.set_ui_model(ui_model)
 
     def unregister_updaters(self):
-        self._info_editor.unregister_updaters()
-        self._force_editor.unregister_updaters()
+        self._name.unregister_updaters()
 
 

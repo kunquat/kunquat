@@ -18,16 +18,16 @@ from kunquat.tracker.ui.views.envelope import Envelope
 from time_env import TimeEnvelope
 
 
-class ForceEnvelope(TimeEnvelope):
+class ForceReleaseEnvelope(TimeEnvelope):
 
     def __init__(self):
         TimeEnvelope.__init__(self)
 
     def _get_title(self):
-        return 'Force envelope'
+        return 'Force release envelope'
 
     def _allow_loop(self):
-        return True
+        return False
 
     def _make_envelope_widget(self):
         envelope = Envelope()
@@ -35,16 +35,17 @@ class ForceEnvelope(TimeEnvelope):
         envelope.set_y_range(0, 1)
         envelope.set_x_range(0, 4)
         envelope.set_first_lock(True, False)
+        envelope.set_last_lock(False, True)
         envelope.set_x_range_adjust(False, True)
         return envelope
 
     def _get_update_signal_type(self):
-        return ''.join(('signal_force_env_', self._ins_id))
+        return ''.join(('signal_forcerel_env_', self._ins_id))
 
     def _get_instrument_envelope(self, instrument):
-        return instrument.get_force_envelope()
+        return instrument.get_force_release_envelope()
 
     def _set_instrument_envelope(self, instrument, envelope):
-        instrument.set_force_envelope(envelope)
+        instrument.set_force_release_envelope(envelope)
 
 
