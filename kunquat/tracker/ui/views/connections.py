@@ -11,6 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from collections import defaultdict
 from itertools import izip
 import math
 import time
@@ -225,6 +226,7 @@ STATE_IDLE = 'idle'
 STATE_MOVING = 'moving'
 STATE_PRESSING = 'pressing'
 STATE_EDGE_MENU = 'edge_menu'
+STATE_ADDING_EDGE = 'adding_edge'
 
 
 class ConnectionsView(QWidget):
@@ -251,6 +253,7 @@ class ConnectionsView(QWidget):
         self._pressed_button_info = {}
 
         self._focused_port_info = {}
+        self._adding_edge_info = {}
 
         self._focused_edge_info = {}
 
@@ -444,10 +447,14 @@ class ConnectionsView(QWidget):
         QObject.emit(self, SIGNAL('positionsChanged()'))
         self.update()
 
-    def _get_port_center_from_path(self, path):
+    def _split_path(self, path):
         parts = path.split('/')
         port_id = parts[-1]
         dev_id = parts[0] if len(parts) > 1 else 'master'
+        return (dev_id, port_id)
+
+    def _get_port_center_from_path(self, path):
+        dev_id, port_id = self._split_path(path)
         port_center = self._visible_devices[dev_id].get_port_center(port_id)
         return port_center
 
@@ -531,18 +538,48 @@ class ConnectionsView(QWidget):
         for ls in self._ls_cache.itervalues():
             ls.copy_line(painter)
 
+        # Highlight focused connection
         if self._focused_edge_info:
             from_path, to_path = self._focused_edge_info['paths']
             from_x, from_y = self._get_port_center_from_path(from_path)
             to_x, to_y = self._get_port_center_from_path(to_path)
             edge_width = self._config['focused_edge_width']
-            offset = edge_width // 2 - 0.5
+            offset = edge_width // 2
             from_x, from_y = from_x + offset, from_y + offset
             to_x, to_y = to_x + offset, to_y + offset
 
             painter.save()
+            painter.translate(-0.5, -0.5)
             pen = QPen(self._config['focused_edge_colour'])
             pen.setWidth(edge_width)
+            painter.setPen(pen)
+            painter.setRenderHint(QPainter.Antialiasing)
+            painter.drawLine(from_x, from_y, to_x, to_y)
+            painter.restore()
+
+        # Draw connection that is being added
+        if self._adding_edge_info:
+            from_info = self._adding_edge_info['from']
+            from_dev_id = from_info['dev_id']
+            from_port = from_info['port']
+            to_info = self._adding_edge_info['to']
+
+            from_pos = self._visible_devices[from_dev_id].get_port_center(from_port)
+            from_x, from_y = from_pos
+            pen = QPen(self._config['focused_edge_colour'])
+
+            if to_info:
+                to_dev_id = to_info['dev_id']
+                to_port = to_info['port']
+                to_pos = self._visible_devices[to_dev_id].get_port_center(to_port)
+                to_x, to_y = to_pos
+                pen.setWidth(self._config['focused_edge_width'])
+            else:
+                to_pos = self._adding_edge_info['mouse_pos']
+                to_x, to_y = to_pos
+
+            painter.save()
+            painter.translate(0.5, 0.5)
             painter.setPen(pen)
             painter.setRenderHint(QPainter.Antialiasing)
             painter.drawLine(from_x, from_y, to_x, to_y)
@@ -581,6 +618,49 @@ class ConnectionsView(QWidget):
         connections.set_connections(edges)
         self.update()
 
+    def _is_send_port(self, dev_id, port_id):
+        is_out = port_id.startswith('out')
+        if dev_id == 'master':
+            return not is_out
+        return is_out
+
+    def _make_path(self, port_info):
+        parts = []
+        if port_info['dev_id'] != 'master':
+            parts.append(port_info['dev_id'])
+        parts.append(port_info['port'])
+        return '/'.join(parts)
+
+    def _edge_exists(self, from_info, to_info):
+        if not self._is_send_port(from_info['dev_id'], from_info['port']):
+            from_info, to_info = to_info, from_info
+        from_path = self._make_path(from_info)
+        to_path = self._make_path(to_info)
+        edges = self._get_connections().get_connections()
+        return [from_path, to_path] in edges
+
+    def _edge_completes_cycle(self, from_info, to_info):
+        if not self._is_send_port(from_info['dev_id'], from_info['port']):
+            from_info, to_info = to_info, from_info
+
+        # Build adjacency lists
+        adj_lists = defaultdict(lambda: [], { from_info['dev_id']: [to_info['dev_id']] })
+        edges = self._get_connections().get_connections()
+        for edge in edges:
+            from_path, to_path = edge
+            from_dev_id, _ = self._split_path(from_path)
+            to_dev_id, _ = self._split_path(to_path)
+            adj_lists[from_dev_id].append(to_dev_id)
+
+        def find_device(cur_dev_id, key_dev_id):
+            if cur_dev_id == key_dev_id:
+                return True
+            for next_id in adj_lists[cur_dev_id]:
+                return find_device(next_id, key_dev_id)
+            return False
+
+        return find_device(to_info['dev_id'], from_info['dev_id'])
+
     def mouseMoveEvent(self, event):
         area_pos = self._get_area_pos(event.x(), event.y())
 
@@ -589,9 +669,9 @@ class ConnectionsView(QWidget):
         new_focused_edge_info = {}
 
         if self._state == STATE_IDLE:
+            # Look for a focused part of a device
             on_device = False
             for dev_id in reversed(self._visible_device_ids):
-                # Find a focused part of a device
                 device = self._visible_devices[dev_id]
                 dev_rel_pos = device.get_rel_pos(area_pos)
                 focused_port = device.get_port_at(dev_rel_pos)
@@ -645,6 +725,29 @@ class ConnectionsView(QWidget):
                             'pressed': True,
                         }
 
+        elif self._state == STATE_ADDING_EDGE:
+            self._adding_edge_info['mouse_pos'] = area_pos
+            self._adding_edge_info['to'] = {}
+
+            from_info = self._adding_edge_info['from']
+            is_from_send = self._is_send_port(from_info['dev_id'], from_info['port'])
+
+            # Look for a suitable target port
+            for dev_id in reversed(self._visible_device_ids):
+                device = self._visible_devices[dev_id]
+                dev_rel_pos = device.get_rel_pos(area_pos)
+                port_id = device.get_port_at(dev_rel_pos)
+                if port_id:
+                    to_info = { 'dev_id': dev_id, 'port': port_id }
+                    is_to_send = self._is_send_port(to_info['dev_id'], to_info['port'])
+                    # Add suggested connection only if valid
+                    if ((is_from_send != is_to_send) and
+                            not self._edge_exists(from_info, to_info) and
+                            not self._edge_completes_cycle(from_info, to_info)):
+                        self._adding_edge_info['to'] = to_info
+
+            self.update()
+
         # Only one focused thing at a time
         assert sum(1 for x in
                 (new_focused_port_info, new_focused_button_info, new_focused_edge_info)
@@ -671,10 +774,7 @@ class ConnectionsView(QWidget):
             device = self._visible_devices[dev_id]
             dev_rel_pos = device.get_rel_pos(area_pos)
             focused_port = device.get_port_at(dev_rel_pos)
-            if focused_port:
-                # TODO: Start edge addition mode
-                break
-            elif device.contains_rel_pos(dev_rel_pos):
+            if focused_port or device.contains_rel_pos(dev_rel_pos):
                 self._focused_id = dev_id
                 self._focused_rel_pos = dev_rel_pos
                 break
@@ -702,6 +802,11 @@ class ConnectionsView(QWidget):
                 self._pressed_button_info = {
                         'dev_id': self._focused_id, 'pressed': True }
                 self._focused_button_info = self._pressed_button_info.copy()
+            elif self._focused_port_info:
+                self._state = STATE_ADDING_EDGE
+                self._adding_edge_info = {
+                    'from': self._focused_port_info, 'mouse_pos': area_pos, 'to': {},
+                }
             else:
                 self._state = STATE_MOVING
 
@@ -722,6 +827,23 @@ class ConnectionsView(QWidget):
             self._focused_button_info['pressed'] = False
             self._pressed_button_info = {}
 
+            self.update()
+        elif self._state == STATE_ADDING_EDGE:
+            from_info = self._adding_edge_info['from']
+            to_info = self._adding_edge_info['to']
+
+            if from_info and to_info:
+                if not self._is_send_port(from_info['dev_id'], from_info['port']):
+                    from_info, to_info = to_info, from_info
+                from_path = self._make_path(from_info)
+                to_path = self._make_path(to_info)
+                edge = [from_path, to_path]
+                connections = self._get_connections()
+                edges = connections.get_connections()
+                edges.append(edge)
+                connections.set_connections(edges)
+
+            self._adding_edge_info = {}
             self.update()
 
         self._state = STATE_IDLE
