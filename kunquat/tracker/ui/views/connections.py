@@ -628,6 +628,8 @@ class ConnectionsView(QWidget):
         parts = []
         if port_info['dev_id'] != 'master':
             parts.append(port_info['dev_id'])
+        if port_info['dev_id'].startswith(('gen', 'dsp')):
+            parts.append('C')
         parts.append(port_info['port'])
         return '/'.join(parts)
 
