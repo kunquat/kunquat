@@ -11,6 +11,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from itertools import izip
+import math
 import time
 
 from PyQt4.QtCore import *
@@ -27,8 +29,11 @@ _port_font.setWeight(QFont.Bold)
 
 
 DEFAULT_CONFIG = {
-        'bg_colour'  : QColor(0x11, 0x11, 0x11),
-        'edge_colour': QColor(0xcc, 0xcc, 0xcc),
+        'bg_colour'          : QColor(0x11, 0x11, 0x11),
+        'edge_colour'        : QColor(0xcc, 0xcc, 0xcc),
+        'focused_edge_colour': QColor(0xff, 0x88, 0x44),
+        'focused_edge_width' : 3,
+        'edge_focus_dist_max': 4,
         'devices': {
             'width'              : 100,
             'title_font'         : _title_font,
@@ -66,6 +71,60 @@ DEFAULT_CONFIG = {
             },
         },
     }
+
+
+# Vector utils needed for distance calculations
+
+class Vec(tuple):
+
+    def __new__(cls, coords):
+        return tuple.__new__(cls, (float(x) for x in coords))
+
+    def __add__(self, other):
+        return Vec(x + y for (x, y) in izip(self, other))
+
+    def __sub__(self, other):
+        return Vec(x - y for (x, y) in izip(self, other))
+
+    def __mul__(self, other):
+        return Vec(x * other for x in self)
+
+    def __rmul__(self, other):
+        return self.__mul__(other)
+
+def dot(a, b):
+    return sum(x * y for (x, y) in izip(a, b))
+
+def norm_sq(a):
+    return sum(x * x for x in a)
+
+def norm(a):
+    return math.sqrt(norm_sq(a))
+
+def dist(a, b):
+    return norm(a - b)
+
+
+def get_dist_to_ls(point, ls_a, ls_b):
+    x = Vec(point)
+    a = Vec(ls_a)
+    b = Vec(ls_b)
+
+    length_sq = norm_sq(a - b)
+    if length_sq < 0.1:
+        return dist(point, a)
+
+    t = dot(x - a, b - a) / length_sq
+
+    # Check cases where point does not intersect with a normal of the line segment
+    if t < 0:
+        return dist(x, a)
+    elif t > 1:
+        return dist(x, b)
+
+    # Return distance to the projection on the line segment
+    proj = a + t * (b - a)
+    return dist(x, proj)
 
 
 class Connections(QAbstractScrollArea):
@@ -175,6 +234,8 @@ class ConnectionsView(QWidget):
         self._pressed_button_info = {}
 
         self._focused_port_info = {}
+
+        self._focused_edge_info = {}
 
         self._default_offsets = {}
 
@@ -447,6 +508,23 @@ class ConnectionsView(QWidget):
         for ls in self._ls_cache.itervalues():
             ls.copy_line(painter)
 
+        if self._focused_edge_info:
+            from_path, to_path = self._focused_edge_info['paths']
+            from_x, from_y = self._get_port_center_from_path(from_path)
+            to_x, to_y = self._get_port_center_from_path(to_path)
+            edge_width = self._config['focused_edge_width']
+            offset = edge_width // 2 - 0.5
+            from_x, from_y = from_x + offset, from_y + offset
+            to_x, to_y = to_x + offset, to_y + offset
+
+            painter.save()
+            pen = QPen(self._config['focused_edge_colour'])
+            pen.setWidth(edge_width)
+            painter.setPen(pen)
+            painter.setRenderHint(QPainter.Antialiasing)
+            painter.drawLine(from_x, from_y, to_x, to_y)
+            painter.restore()
+
         # Draw devices
         for dev_id in self._visible_device_ids:
             device = self._visible_devices[dev_id]
@@ -473,9 +551,11 @@ class ConnectionsView(QWidget):
 
         new_focused_port_info = {}
         new_focused_button_info = {}
+        new_focused_edge_info = {}
 
         if self._state == STATE_IDLE:
             for dev_id in reversed(self._visible_device_ids):
+                # Find a focused part of a device
                 device = self._visible_devices[dev_id]
                 dev_rel_pos = device.get_rel_pos(area_pos)
                 focused_port = device.get_port_at(dev_rel_pos)
@@ -486,6 +566,18 @@ class ConnectionsView(QWidget):
                     if device.has_button_at(dev_rel_pos):
                         new_focused_button_info = { 'dev_id': dev_id }
                     break
+
+            if not (new_focused_port_info or new_focused_button_info):
+                # Find a focused edge
+                connections = self._get_connections()
+                edges = connections.get_connections()
+                for edge in edges:
+                    from_path, to_path = edge
+                    from_pos = self._get_port_center_from_path(from_path)
+                    to_pos = self._get_port_center_from_path(to_path)
+                    dist = get_dist_to_ls(area_pos, from_pos, to_pos)
+                    if dist <= self._config['edge_focus_dist_max']:
+                        new_focused_edge_info = { 'paths': edge }
 
         if self._state == STATE_MOVING:
             if (not self._focused_id) or (self._focused_id not in self._visible_devices):
@@ -515,7 +607,10 @@ class ConnectionsView(QWidget):
                             'pressed': True,
                         }
 
-        assert not new_focused_port_info or not new_focused_button_info
+        # Only one focused thing at a time
+        assert sum(1 for x in
+                (new_focused_port_info, new_focused_button_info, new_focused_edge_info)
+                if x) <= 1
 
         # Update focus info
         if self._focused_port_info != new_focused_port_info:
@@ -523,6 +618,9 @@ class ConnectionsView(QWidget):
             self.update()
         if self._focused_button_info != new_focused_button_info:
             self._focused_button_info = new_focused_button_info
+            self.update()
+        if self._focused_edge_info != new_focused_edge_info:
+            self._focused_edge_info = new_focused_edge_info
             self.update()
 
     def mousePressEvent(self, event):
