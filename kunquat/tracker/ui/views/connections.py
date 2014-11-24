@@ -657,9 +657,8 @@ class ConnectionsView(QWidget):
         def find_device(cur_dev_id, key_dev_id):
             if cur_dev_id == key_dev_id:
                 return True
-            for next_id in adj_lists[cur_dev_id]:
-                return find_device(next_id, key_dev_id)
-            return False
+            return any(find_device(next_id, key_dev_id)
+                    for next_id in adj_lists[cur_dev_id])
 
         return find_device(to_info['dev_id'], from_info['dev_id'])
 
