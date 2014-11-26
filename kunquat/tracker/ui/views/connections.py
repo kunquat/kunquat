@@ -30,11 +30,14 @@ _port_font.setWeight(QFont.Bold)
 
 
 DEFAULT_CONFIG = {
-        'bg_colour'          : QColor(0x11, 0x11, 0x11),
-        'edge_colour'        : QColor(0xcc, 0xcc, 0xcc),
-        'focused_edge_colour': QColor(0xff, 0x88, 0x44),
-        'focused_edge_width' : 3,
-        'edge_focus_dist_max': 4,
+        'bg_colour'               : QColor(0x11, 0x11, 0x11),
+        'edge_colour'             : QColor(0xcc, 0xcc, 0xcc),
+        'focused_edge_colour'     : QColor(0xff, 0x88, 0x44),
+        'focused_edge_width'      : 3,
+        'edge_focus_dist_max'     : 4,
+        'invalid_port_colour'     : QColor(0xff, 0x33, 0x33),
+        'invalid_port_line_width' : 3,
+        'invalid_port_marker_size': 13,
         'devices': {
             'width'              : 100,
             'title_font'         : _title_font,
@@ -608,6 +611,27 @@ class ConnectionsView(QWidget):
                         (self._focused_button_info == self._pressed_button_info)):
                     device.draw_button_highlight(painter, self._focused_button_info)
 
+        # Mark attempt to make an invalid connection
+        invalid_target_info = self._adding_edge_info.get('to_invalid')
+        if invalid_target_info:
+            dev_id = invalid_target_info['dev_id']
+            port_id = invalid_target_info['port']
+            pos = self._visible_devices[dev_id].get_port_center(port_id)
+            pos_x, pos_y = pos
+
+            pen = QPen(
+                    self._config['invalid_port_colour'],
+                    self._config['invalid_port_line_width'])
+            ofs = self._config['invalid_port_marker_size'] // 2
+
+            painter.save()
+            painter.translate(0.5, 0.5)
+            painter.setRenderHint(QPainter.Antialiasing)
+            painter.setPen(pen)
+            painter.drawLine(pos_x - ofs, pos_y - ofs, pos_x + ofs, pos_y + ofs)
+            painter.drawLine(pos_x + ofs, pos_y - ofs, pos_x - ofs, pos_y + ofs)
+            painter.restore()
+
         end = time.time()
         elapsed = end - start
         print('Connections view updated in {:.2f} ms'.format(elapsed * 1000))
@@ -739,6 +763,7 @@ class ConnectionsView(QWidget):
         elif self._state == STATE_ADDING_EDGE:
             self._adding_edge_info['mouse_pos'] = area_pos
             self._adding_edge_info['to'] = {}
+            self._adding_edge_info['to_invalid'] = {}
 
             from_info = self._adding_edge_info['from']
             is_from_send = self._is_send_port(from_info['dev_id'], from_info['port'])
@@ -751,11 +776,14 @@ class ConnectionsView(QWidget):
                 if port_id:
                     to_info = { 'dev_id': dev_id, 'port': port_id }
                     is_to_send = self._is_send_port(to_info['dev_id'], to_info['port'])
+
                     # Add suggested connection only if valid
                     if ((is_from_send != is_to_send) and
                             not self._edge_exists(from_info, to_info) and
                             not self._edge_completes_cycle(from_info, to_info)):
                         self._adding_edge_info['to'] = to_info
+                    elif to_info != from_info:
+                        self._adding_edge_info['to_invalid'] = to_info
 
             self.update()
 
