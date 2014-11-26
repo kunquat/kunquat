@@ -474,10 +474,10 @@ class ConnectionsView(QWidget):
 
         # Make devices
         default_pos_cfg = {
-                'i': { 'index': 0, 'offset_x': -200, 'offset_y': 120 },
-                'g': { 'index': 0, 'offset_x': -200, 'offset_y': 120 },
-                'e': { 'index': 0, 'offset_x': 0,    'offset_y': 120 },
-                'm': { 'index': 0, 'offset_x': 200,  'offset_y': 120 },
+                'ins': { 'index': 0, 'offset_x': -200, 'offset_y': 120 },
+                'gen': { 'index': 0, 'offset_x': -200, 'offset_y': 120 },
+                'eff': { 'index': 0, 'offset_x': 0,    'offset_y': 120 },
+                'master': { 'index': 0, 'offset_x': 200,  'offset_y': 120 },
             }
 
         new_visible_devices = {}
@@ -502,7 +502,7 @@ class ConnectionsView(QWidget):
                 offset = dev_layout['offset']
             else:
                 # Get a default position
-                index_key = dev_id[0]
+                index_key = dev_id.split('_')[0]
                 pos_cfg = default_pos_cfg[index_key]
                 y_offset_factor = (pos_cfg['index'] + 1) // 2
                 y_offset_factor *= (-1 if (pos_cfg['index'] % 2 == 1) else 1)
