@@ -113,9 +113,6 @@ bool Generator_init(
     gen->mix = mix;
     gen->init_vstate = init_vstate;
 
-    //Device_set_reset(&gen->parent, Generator_reset);
-    Device_register_port(&gen->parent, DEVICE_PORT_TYPE_SEND, 0);
-
     return true;
 }
 

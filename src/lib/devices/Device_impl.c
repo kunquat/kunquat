@@ -73,12 +73,30 @@ typedef struct Update_state_cb
 } Update_state_cb;
 
 
-bool Device_impl_init(Device_impl* dimpl, void (*destroy)(Device_impl* dimpl))
+void Device_impl_register_init(Device_impl* dimpl, bool (*init)(Device_impl*))
+{
+    assert(dimpl != NULL);
+    assert(init != NULL);
+    dimpl->init = init;
+    return;
+}
+
+
+void Device_impl_register_destroy(Device_impl* dimpl, void (*destroy)(Device_impl*))
 {
     assert(dimpl != NULL);
     assert(destroy != NULL);
+    dimpl->destroy = destroy;
+    return;
+}
 
-    dimpl->device = NULL;
+
+bool Device_impl_init(Device_impl* dimpl)
+{
+    assert(dimpl != NULL);
+    assert(dimpl->init != NULL);
+    assert(dimpl->destroy != NULL);
+
     dimpl->set_cbs = NULL;
     dimpl->update_state_cbs = NULL;
 
@@ -86,7 +104,6 @@ bool Device_impl_init(Device_impl* dimpl, void (*destroy)(Device_impl* dimpl))
     dimpl->set_buffer_size = NULL;
     dimpl->update_tempo = NULL;
     dimpl->reset = NULL;
-    dimpl->destroy = destroy;
 
     dimpl->set_cbs = new_AAtree(
             (int (*)(const void*, const void*))strcmp,
@@ -94,7 +111,9 @@ bool Device_impl_init(Device_impl* dimpl, void (*destroy)(Device_impl* dimpl))
     dimpl->update_state_cbs = new_AAtree(
             (int (*)(const void*, const void*))strcmp,
             memory_free);
-    if (dimpl->set_cbs == NULL || dimpl->update_state_cbs == NULL)
+    if ((dimpl->set_cbs == NULL) ||
+            (dimpl->update_state_cbs == NULL) ||
+            !dimpl->init(dimpl))
     {
         Device_impl_deinit(dimpl);
         return false;

@@ -42,6 +42,8 @@ typedef struct Generator_pulse
 } Generator_pulse;
 
 
+static bool Generator_pulse_init(Device_impl* dimpl);
+
 static Device_state* Generator_pulse_create_state(
         const Device* device, int32_t audio_rate, int32_t audio_buffer_size);
 
@@ -67,14 +69,22 @@ Device_impl* new_Generator_pulse(Generator* gen)
     if (pulse == NULL)
         return NULL;
 
-    if (!Device_impl_init(&pulse->parent, del_Generator_pulse))
-    {
-        memory_free(pulse);
-        return NULL;
-    }
-
     pulse->parent.device = (Device*)gen;
 
+    Device_impl_register_init(&pulse->parent, Generator_pulse_init);
+    Device_impl_register_destroy(&pulse->parent, del_Generator_pulse);
+
+    return &pulse->parent;
+}
+
+
+static bool Generator_pulse_init(Device_impl* dimpl)
+{
+    assert(dimpl != NULL);
+
+    Generator_pulse* pulse = (Generator_pulse*)dimpl;
+
+    Generator* gen = (Generator*)pulse->parent.device;
     gen->init_vstate = Generator_pulse_init_vstate;
     gen->mix = Generator_pulse_mix;
 
@@ -82,7 +92,7 @@ Device_impl* new_Generator_pulse(Generator* gen)
             pulse->parent.device,
             Generator_pulse_create_state);
 
-    return &pulse->parent;
+    return true;
 }
 
 

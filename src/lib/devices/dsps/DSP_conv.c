@@ -90,6 +90,8 @@ static void del_Conv_state(Device_state* dev_state)
 }
 
 
+static bool DSP_conv_init(Device_impl* dimpl);
+
 static Device_state* DSP_conv_create_state(
         const Device* device,
         int32_t audio_rate,
@@ -135,15 +137,22 @@ Device_impl* new_DSP_conv(DSP* dsp)
     if (conv == NULL)
         return NULL;
 
-    if (!Device_impl_init(&conv->parent, del_DSP_conv))
-    {
-        memory_free(conv);
-        return NULL;
-    }
-
     conv->parent.device = (Device*)dsp;
 
-    Device_set_process((Device*)dsp, DSP_conv_process);
+    Device_impl_register_init(&conv->parent, DSP_conv_init);
+    Device_impl_register_destroy(&conv->parent, del_DSP_conv);
+
+    return &conv->parent;
+}
+
+
+static bool DSP_conv_init(Device_impl* dimpl)
+{
+    assert(dimpl != NULL);
+
+    DSP_conv* conv = (DSP_conv*)dimpl;
+
+    Device_set_process(conv->parent.device, DSP_conv_process);
 
     Device_set_state_creator(conv->parent.device, DSP_conv_create_state);
 
@@ -171,10 +180,7 @@ Device_impl* new_DSP_conv(DSP* dsp)
             &conv->parent, "p_f_volume.json", DSP_conv_update_state_volume);
 
     if (!reg_success)
-    {
-        del_DSP_conv(&conv->parent);
-        return NULL;
-    }
+        return false;
 
     DSP_set_clear_history((DSP*)conv->parent.device, DSP_conv_clear_history);
 
@@ -189,10 +195,7 @@ Device_impl* new_DSP_conv(DSP* dsp)
     conv->ir = NULL;
     conv->actual_ir_len = 0;
 
-    Device_register_port(conv->parent.device, DEVICE_PORT_TYPE_RECEIVE, 0);
-    Device_register_port(conv->parent.device, DEVICE_PORT_TYPE_SEND, 0);
-
-    return &conv->parent;
+    return true;
 }
 
 

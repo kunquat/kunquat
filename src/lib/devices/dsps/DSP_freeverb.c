@@ -155,6 +155,8 @@ static void Freeverb_state_reset(
 }
 
 
+static bool DSP_freeverb_init(Device_impl* dimpl);
+
 static Device_state* DSP_freeverb_create_state(
         const Device* device, int32_t audio_rate, int32_t audio_buffer_size);
 
@@ -190,15 +192,22 @@ Device_impl* new_DSP_freeverb(DSP* dsp)
     if (freeverb == NULL)
         return NULL;
 
-    if (!Device_impl_init(&freeverb->parent, del_DSP_freeverb))
-    {
-        memory_free(freeverb);
-        return NULL;
-    }
-
     freeverb->parent.device = (Device*)dsp;
 
-    Device_set_process((Device*)dsp, DSP_freeverb_process);
+    Device_impl_register_init(&freeverb->parent, DSP_freeverb_init);
+    Device_impl_register_destroy(&freeverb->parent, del_DSP_freeverb);
+
+    return &freeverb->parent;
+}
+
+
+static bool DSP_freeverb_init(Device_impl* dimpl)
+{
+    assert(dimpl != NULL);
+
+    DSP_freeverb* freeverb = (DSP_freeverb*)dimpl;
+
+    Device_set_process(freeverb->parent.device, DSP_freeverb_process);
 
     Device_set_state_creator(
             freeverb->parent.device,
@@ -225,11 +234,11 @@ Device_impl* new_DSP_freeverb(DSP* dsp)
             DSP_freeverb_set_damp,
             NULL);
 
+    if (!reg_success)
+        return false;
+
     Device_impl_register_set_audio_rate(
             &freeverb->parent, DSP_freeverb_set_audio_rate);
-
-    Device_register_port(freeverb->parent.device, DEVICE_PORT_TYPE_RECEIVE, 0);
-    Device_register_port(freeverb->parent.device, DEVICE_PORT_TYPE_SEND, 0);
 
     freeverb->gain = 0;
     freeverb->reflect = 0;
@@ -248,7 +257,7 @@ Device_impl* new_DSP_freeverb(DSP* dsp)
     DSP_freeverb_update_gain(freeverb, fixed_gain);
     DSP_freeverb_update_wet(freeverb, initial_wet);
 
-    return &freeverb->parent;
+    return true;
 }
 
 

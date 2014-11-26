@@ -73,6 +73,18 @@ Connections* new_Connections_from_string(
 
 
 /**
+ * Check that each connection is between existing ports.
+ *
+ * \param graph   The Connections -- must not be \c NULL.
+ * \param err     Error string destination -- must not be \c NULL.
+ *
+ * \return   \c true if all connected ports exist, otherwise \c false.
+ */
+bool Connections_check_connections(
+        const Connections* graph, char err[DEVICE_CONNECTION_ERROR_LENGTH_MAX]);
+
+
+/**
  * Retrieve the master Device node of the Connections.
  *
  * \param graph   The Connections -- must not be \c NULL.

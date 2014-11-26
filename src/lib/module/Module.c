@@ -79,7 +79,6 @@ Module* new_Module(void)
     Device_register_set_audio_rate(&module->parent, Module_set_audio_rate);
     Device_register_update_tempo(&module->parent, Module_update_tempo);
     Device_register_set_buffer_size(&module->parent, Module_set_buffer_size);
-    Device_register_port(&module->parent, DEVICE_PORT_TYPE_RECEIVE, 0);
 
     // Clear fields
     module->songs = NULL;

@@ -126,7 +126,7 @@ bool Device_init(Device* device, bool req_impl)
     {
         for (Device_port_type type = DEVICE_PORT_TYPE_RECEIVE;
                 type < DEVICE_PORT_TYPES; ++type)
-            device->reg[type][port] = false;
+            device->existence[type][port] = false;
     }
 
     device->dparams = new_Device_params();
@@ -172,9 +172,18 @@ bool Device_is_existent(const Device* device)
 bool Device_set_impl(Device* device, Device_impl* dimpl)
 {
     assert(device != NULL);
+    assert(dimpl != NULL);
 
-    del_Device_impl(device->dimpl);
+    Device_impl* old_dimpl = device->dimpl;
     device->dimpl = dimpl;
+
+    if (!Device_impl_init(device->dimpl))
+    {
+        device->dimpl = old_dimpl;
+        return false;
+    }
+
+    del_Device_impl(old_dimpl);
 
     return true;
 }
@@ -262,12 +271,7 @@ void Device_set_reset(Device* device, void (*reset)(const Device*, Device_states
 void Device_set_process(
         Device* device,
         void (*process)(
-            const Device*,
-            Device_states*,
-            uint32_t,
-            uint32_t,
-            uint32_t,
-            double))
+            const Device*, Device_states*, uint32_t, uint32_t, uint32_t, double))
 {
     assert(device != NULL);
     assert(process != NULL);
@@ -278,43 +282,28 @@ void Device_set_process(
 }
 
 
-void Device_register_port(Device* device, Device_port_type type, int port)
+void Device_set_port_existence(
+        Device* device, Device_port_type type, int port, bool exists)
 {
     assert(device != NULL);
     assert(type < DEVICE_PORT_TYPES);
     assert(port >= 0);
     assert(port < KQT_DEVICE_PORTS_MAX);
 
-    device->reg[type][port] = true;
+    device->existence[type][port] = exists;
 
     return;
 }
 
 
-void Device_unregister_port(Device* device, Device_port_type type, int port)
+bool Device_get_port_existence(const Device* device, Device_port_type type, int port)
 {
     assert(device != NULL);
     assert(type < DEVICE_PORT_TYPES);
     assert(port >= 0);
     assert(port < KQT_DEVICE_PORTS_MAX);
 
-    device->reg[type][port] = false;
-
-    return;
-}
-
-
-bool Device_port_is_registered(
-        const Device* device,
-        Device_port_type type,
-        int port)
-{
-    assert(device != NULL);
-    assert(type < DEVICE_PORT_TYPES);
-    assert(port >= 0);
-    assert(port < KQT_DEVICE_PORTS_MAX);
-
-    return device->reg[type][port];
+    return device->existence[type][port];
 }
 
 
@@ -500,7 +489,7 @@ void Device_print(const Device* device, FILE* out)
     bool printed = false;
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
-        if (!device->reg[DEVICE_PORT_TYPE_SEND][port])
+        if (!device->existence[DEVICE_PORT_TYPE_SEND][port])
             continue;
 
         if (!printed)
@@ -515,7 +504,7 @@ void Device_print(const Device* device, FILE* out)
     printed = false;
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
-        if (!device->reg[DEVICE_PORT_TYPE_RECEIVE][port])
+        if (!device->existence[DEVICE_PORT_TYPE_RECEIVE][port])
             continue;
 
         if (!printed)
@@ -544,8 +533,8 @@ void Device_deinit(Device* device)
 
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
-        device->reg[DEVICE_PORT_TYPE_RECEIVE][port] = false;
-        device->reg[DEVICE_PORT_TYPE_SEND][port] = false;
+        device->existence[DEVICE_PORT_TYPE_RECEIVE][port] = false;
+        device->existence[DEVICE_PORT_TYPE_SEND][port] = false;
     }
 
     return;

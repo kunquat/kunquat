@@ -103,9 +103,6 @@ Instrument* new_Instrument(void)
     Device_register_set_audio_rate(&ins->parent, Instrument_set_audio_rate);
     Device_register_update_tempo(&ins->parent, Instrument_update_tempo);
     Device_register_set_buffer_size(&ins->parent, Instrument_set_buffer_size);
-    //Device_set_sync(&ins->parent, Instrument_sync);
-    Device_register_port(&ins->parent, DEVICE_PORT_TYPE_RECEIVE, 0);
-    Device_register_port(&ins->parent, DEVICE_PORT_TYPE_SEND, 0);
 
     ins->gens = new_Gen_table(KQT_GENERATORS_MAX);
     ins->effects = new_Effect_table(KQT_INST_EFFECTS_MAX);

@@ -154,6 +154,8 @@ typedef struct DSP_chorus
 } DSP_chorus;
 
 
+static bool DSP_chorus_init(Device_impl* dimpl);
+
 static Device_state* DSP_chorus_create_state(
         const Device* device, int32_t audio_rate, int32_t audio_buffer_size);
 
@@ -195,15 +197,22 @@ Device_impl* new_DSP_chorus(DSP* dsp)
     if (chorus == NULL)
         return NULL;
 
-    if (!Device_impl_init(&chorus->parent, del_DSP_chorus))
-    {
-        memory_free(chorus);
-        return NULL;
-    }
-
     chorus->parent.device = (Device*)dsp;
 
-    Device_set_process((Device*)dsp, DSP_chorus_process);
+    Device_impl_register_init(&chorus->parent, DSP_chorus_init);
+    Device_impl_register_destroy(&chorus->parent, del_DSP_chorus);
+
+    return &chorus->parent;
+}
+
+
+static bool DSP_chorus_init(Device_impl* dimpl)
+{
+    assert(dimpl != NULL);
+
+    DSP_chorus* chorus = (DSP_chorus*)dimpl;
+
+    Device_set_process(chorus->parent.device, DSP_chorus_process);
 
     Device_set_state_creator(chorus->parent.device, DSP_chorus_create_state);
 
@@ -232,10 +241,7 @@ Device_impl* new_DSP_chorus(DSP* dsp)
 #include <devices/dsps/DSP_chorus_params.h>
 
     if (!reg_success)
-    {
-        del_DSP_chorus(&chorus->parent);
-        return NULL;
-    }
+        return false;
 
     Device_impl_register_set_audio_rate(
             &chorus->parent, DSP_chorus_set_audio_rate);
@@ -250,10 +256,7 @@ Device_impl* new_DSP_chorus(DSP* dsp)
         params->volume = 1;
     }
 
-    Device_register_port(chorus->parent.device, DEVICE_PORT_TYPE_RECEIVE, 0);
-    Device_register_port(chorus->parent.device, DEVICE_PORT_TYPE_SEND, 0);
-
-    return &chorus->parent;
+    return true;
 }
 
 

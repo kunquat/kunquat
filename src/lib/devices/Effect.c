@@ -95,12 +95,6 @@ Effect* new_Effect(void)
     //Device_set_sync(&eff->parent, Effect_sync);
     Device_set_process(&eff->parent, Effect_process);
 
-    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
-    {
-        Device_register_port(&eff->parent, DEVICE_PORT_TYPE_RECEIVE, port);
-        Device_register_port(&eff->parent, DEVICE_PORT_TYPE_SEND, port);
-    }
-
     eff->out_iface = new_Effect_interface();
     eff->in_iface = new_Effect_interface();
     eff->dsps = new_DSP_table(KQT_DSPS_MAX);
@@ -112,13 +106,13 @@ Effect* new_Effect(void)
 
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
-        Device_register_port(&eff->out_iface->parent,
-                             DEVICE_PORT_TYPE_SEND, port);
-        Device_register_port(&eff->in_iface->parent,
-                             DEVICE_PORT_TYPE_SEND, port);
+        Device_set_port_existence(
+                &eff->out_iface->parent, DEVICE_PORT_TYPE_SEND, port, true);
+        Device_set_port_existence(
+                &eff->in_iface->parent, DEVICE_PORT_TYPE_SEND, port, true);
     }
-    Device_register_port(&eff->out_iface->parent,
-                         DEVICE_PORT_TYPE_RECEIVE, 0);
+    Device_set_port_existence(
+            &eff->out_iface->parent, DEVICE_PORT_TYPE_RECEIVE, 0, true);
 
     //fprintf(stderr, "New effect %p\n", (void*)eff);
 
@@ -168,6 +162,27 @@ DSP_table* Effect_get_dsps_mut(Effect* eff)
 }
 
 
+void Effect_set_port_existence(
+        Effect* eff, Device_port_type type, int port, bool exists)
+{
+    assert(eff != NULL);
+    assert(type < DEVICE_PORT_TYPES);
+    assert(port >= 0);
+    assert(port < KQT_DEVICE_PORTS_MAX);
+
+    Device_set_port_existence((Device*)eff, type, port, exists);
+
+    if (type == DEVICE_PORT_TYPE_RECEIVE)
+        Device_set_port_existence(
+                &eff->in_iface->parent, DEVICE_PORT_TYPE_SEND, port, exists);
+    else if (type == DEVICE_PORT_TYPE_SEND)
+        Device_set_port_existence(
+                &eff->out_iface->parent, DEVICE_PORT_TYPE_RECEIVE, port, exists);
+
+    return;
+}
+
+
 void Effect_set_connections(Effect* eff, Connections* graph)
 {
     assert(eff != NULL);
@@ -177,6 +192,13 @@ void Effect_set_connections(Effect* eff, Connections* graph)
     eff->connections = graph;
 
     return;
+}
+
+
+const Connections* Effect_get_connections(const Effect* eff)
+{
+    assert(eff != NULL);
+    return eff->connections;
 }
 
 

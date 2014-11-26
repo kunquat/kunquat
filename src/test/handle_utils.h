@@ -273,6 +273,7 @@ void setup_debug_instrument(void)
 {
     assert(handle != 0);
 
+    set_data("out_00/p_manifest.json", "{}");
     set_data("p_connections.json",
             "[ [\"ins_00/out_00\", \"out_00\"] ]");
 
@@ -280,11 +281,13 @@ void setup_debug_instrument(void)
     set_data("control_00/p_manifest.json", "{}");
 
     set_data("ins_00/p_manifest.json", "{}");
+    set_data("ins_00/out_00/p_manifest.json", "{}");
     set_data("ins_00/p_connections.json",
             "[ [\"gen_00/C/out_00\", \"out_00\"] ]");
 
     set_data("ins_00/gen_00/p_manifest.json", "{}");
     set_data("ins_00/gen_00/p_gen_type.json", "\"debug\"");
+    set_data("ins_00/gen_00/out_00/p_manifest.json", "{}");
 
     validate();
 

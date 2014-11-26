@@ -53,6 +53,8 @@ static Set_state_float_func DSP_volume_set_state_volume;
 static Update_float_func DSP_volume_update_state_volume;
 
 
+static bool DSP_volume_init(Device_impl* dimpl);
+
 static void DSP_volume_process(
         const Device* device,
         Device_states* states,
@@ -60,7 +62,6 @@ static void DSP_volume_process(
         uint32_t until,
         uint32_t freq,
         double tempo);
-
 
 static void del_DSP_volume(Device_impl* dsp_impl);
 
@@ -71,15 +72,22 @@ Device_impl* new_DSP_volume(DSP* dsp)
     if (volume == NULL)
         return NULL;
 
-    if (!Device_impl_init(&volume->parent, del_DSP_volume))
-    {
-        memory_free(volume);
-        return NULL;
-    }
-
     volume->parent.device = (Device*)dsp;
 
-    Device_set_process((Device*)dsp, DSP_volume_process);
+    Device_impl_register_init(&volume->parent, DSP_volume_init);
+    Device_impl_register_destroy(&volume->parent, del_DSP_volume);
+
+    return &volume->parent;
+}
+
+
+static bool DSP_volume_init(Device_impl* dimpl)
+{
+    assert(dimpl != NULL);
+
+    DSP_volume* volume = (DSP_volume*)dimpl;
+
+    Device_set_process(volume->parent.device, DSP_volume_process);
 
     Device_set_state_creator(volume->parent.device, DSP_volume_create_state);
 
@@ -99,17 +107,11 @@ Device_impl* new_DSP_volume(DSP* dsp)
             &volume->parent, "v", DSP_volume_update_state_volume);
 
     if (!reg_success)
-    {
-        del_DSP_volume(&volume->parent);
-        return NULL;
-    }
-
-    Device_register_port(volume->parent.device, DEVICE_PORT_TYPE_RECEIVE, 0);
-    Device_register_port(volume->parent.device, DEVICE_PORT_TYPE_SEND, 0);
+        return false;
 
     volume->scale = 1.0;
 
-    return &volume->parent;
+    return true;
 }
 
 

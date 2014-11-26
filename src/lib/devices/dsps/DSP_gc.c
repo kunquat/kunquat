@@ -40,6 +40,8 @@ typedef struct DSP_gc
 
 static Set_envelope_func DSP_gc_set_map;
 
+static bool DSP_gc_init(Device_impl* dimpl);
+
 static void DSP_gc_process(
         const Device* device,
         Device_states* states,
@@ -57,29 +59,30 @@ Device_impl* new_DSP_gc(DSP* dsp)
     if (gc == NULL)
         return NULL;
 
-    if (!Device_impl_init(&gc->parent, del_DSP_gc))
-    {
-        memory_free(gc);
-        return NULL;
-    }
-
     gc->parent.device = (Device*)dsp;
 
-    Device_set_process((Device*)dsp, DSP_gc_process);
+    Device_impl_register_init(&gc->parent, DSP_gc_init);
+    Device_impl_register_destroy(&gc->parent, del_DSP_gc);
+
+    return &gc->parent;
+}
+
+
+static bool DSP_gc_init(Device_impl* dimpl)
+{
+    assert(dimpl != NULL);
+
+    DSP_gc* gc = (DSP_gc*)dimpl;
+
+    Device_set_process(gc->parent.device, DSP_gc_process);
 
     gc->map = NULL;
 
     if (!Device_impl_register_set_envelope(
                 &gc->parent, "p_e_map.json", NULL, DSP_gc_set_map, NULL))
-    {
-        del_DSP_gc(&gc->parent);
-        return NULL;
-    }
+        return false;
 
-    Device_register_port(gc->parent.device, DEVICE_PORT_TYPE_RECEIVE, 0);
-    Device_register_port(gc->parent.device, DEVICE_PORT_TYPE_SEND, 0);
-
-    return &gc->parent;
+    return true;
 }
 
 
