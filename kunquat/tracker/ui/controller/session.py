@@ -26,6 +26,8 @@ class Session():
         self._progress_position = 1
         self._progress_steps = 1
         self._audio_levels = (0, 0)
+        self._selected_control_id = 0
+        self._control_id_override = None
         # TODO: get default control ids from libkunquat?
         self._channel_selected_control_id = defaultdict(lambda: 0)
         self._channel_active_control_id = defaultdict(lambda: 0)
@@ -99,10 +101,22 @@ class Session():
     def set_audio_levels(self, audio_levels):
         self._audio_levels = audio_levels
 
+    def get_selected_control_id(self):
+        return self._selected_control_id
+
+    def set_selected_control_id(self, control_id):
+        self._selected_control_id = control_id
+
+    def get_control_id_override(self):
+        return self._control_id_override
+
+    def set_control_id_override(self, control_id):
+        self._control_id_override = control_id
+
     def get_selected_control_id_by_channel(self, channel):
         return self._channel_selected_control_id[channel]
 
-    def set_selected_control_id(self, channel, control):
+    def set_selected_control_id_by_channel(self, channel, control):
         control_id = 'control_{0:02x}'.format(control)
         self._channel_selected_control_id[channel] = control_id
 
@@ -125,9 +139,9 @@ class Session():
                 del self._channel_active_note[channel]
             control_id = self.get_active_control_id_by_channel(channel)
             if control_id in self._control_active_notes:
-               notes = self._control_active_notes[control_id]
-               if channel in notes:
-                   del notes[channel]
+                notes = self._control_active_notes[control_id]
+                if channel in notes:
+                    del notes[channel]
         else:
             self._channel_active_note[channel] = pitch
             control_id = self.get_selected_control_id_by_channel(channel)

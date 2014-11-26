@@ -49,6 +49,15 @@ class Module():
             control_ids.add(control_id)
         return control_ids
 
+    def get_control_id_by_instrument_id(self, ins_id):
+        search_ins_num = int(ins_id.split('_')[1], 16)
+        control_map = self._store.get('p_control_map.json', [])
+        for control_num, ins_num in control_map:
+            if ins_num == search_ins_num:
+                control_id = 'control_{0:02x}'.format(control_num)
+                return control_id
+        return None
+
     def get_control(self, control_id):
         control = Control(control_id)
         control.set_controller(self._controller)

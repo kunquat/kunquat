@@ -246,7 +246,7 @@ class Controller():
         self._updater.signal_update()
 
     def update_selected_control(self, channel, control_id):
-        self._session.set_selected_control_id(channel, control_id)
+        self._session.set_selected_control_id_by_channel(channel, control_id)
         self._updater.signal_update()
 
     def update_active_note(self, channel, pitch):

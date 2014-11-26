@@ -35,6 +35,7 @@ class OctaveSelector(QFrame):
         self._update()
 
     def unregister_updaters(self):
+        self._keyboard_mapper.unregister_updaters()
         layout = self.layout()
         layout_items = [layout.itemAt(i) for i in xrange(layout.count())]
         for item in layout_items:

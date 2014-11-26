@@ -35,6 +35,9 @@ class KeyboardMapper():
         self._ui_model = ui_model
         self._typewriter_manager = ui_model.get_typewriter_manager()
 
+    def unregister_updaters(self):
+        pass
+
     def process_typewriter_button_event(self, event):
         # Note playback
         scancode = event.nativeScanCode()

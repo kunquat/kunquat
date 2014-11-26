@@ -12,6 +12,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+import random
 import itertools
 from bisect import bisect_left
 
@@ -53,6 +54,16 @@ class TypewriterManager():
         button_model.set_controller(self._controller)
         button_model.set_ui_model(self._ui_model)
         return button_model
+
+    def get_random_button_model(self):
+        active_coords = []
+        for ri, row_length in enumerate(self._ROW_LENGTHS):
+            active_coords.extend((ri, ci) for ci in xrange(row_length)
+                    if self.get_button_pitch((ri, ci)) != None)
+        if not active_coords:
+            return None
+        row, index = random.choice(active_coords)
+        return self.get_button_model(row, index)
 
     def get_octave_button_model(self, octave_id):
         ob_model = OctaveButtonModel(octave_id)

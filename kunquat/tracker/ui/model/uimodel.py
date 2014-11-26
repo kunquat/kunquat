@@ -13,7 +13,7 @@
 #
 
 from stat_manager import StatManager
-from ui_manager import UiManager
+from controlmanager import ControlManager
 from playback_manager import PlaybackManager
 from typewritermanager import TypewriterManager
 from eventhistory import EventHistory
@@ -86,7 +86,7 @@ class UiModel():
 
     def __init__(self):
         self._stat_manager = None
-        self._ui_manager = None
+        self._control_manager = None
         self._playback_manager = None
         self._typewriter_manager = None
         self._event_history = None
@@ -105,7 +105,7 @@ class UiModel():
         self._controller = controller
         self._module.set_controller(controller)
         self._stat_manager.set_controller(self._controller)
-        self._ui_manager.set_controller(self._controller)
+        self._control_manager.set_controller(self._controller)
         self._playback_manager.set_controller(self._controller)
         self._typewriter_manager.set_controller(self._controller)
         self._visibility_manager.set_controller(self._controller)
@@ -126,12 +126,12 @@ class UiModel():
     def get_stat_manager(self):
         return self._stat_manager
 
-    def set_ui_manager(self, ui_manager):
-        self._ui_manager = ui_manager
-        self._ui_manager.set_model(self)
+    def set_control_manager(self, control_manager):
+        self._control_manager = control_manager
+        self._control_manager.set_ui_model(self)
 
-    def get_ui_manager(self):
-        return self._ui_manager
+    def get_control_manager(self):
+        return self._control_manager
 
     def set_playback_manager(self, playback_manager):
         self._playback_manager = playback_manager
@@ -167,7 +167,7 @@ class UiModel():
 
     def set_selection(self, selection):
         self._selection = selection
-        self._selection.set_model(self)
+        self._selection.set_ui_model(self)
 
     def get_selection(self):
         return self._selection
@@ -232,7 +232,7 @@ class UiModel():
 
 def create_ui_model():
     stat_manager = StatManager()
-    ui_manager = UiManager()
+    control_manager = ControlManager()
     playback_manager = PlaybackManager()
     typewriter_manager = TypewriterManager()
     event_history = EventHistory()
@@ -245,7 +245,7 @@ def create_ui_model():
     icon_bank = IconBank()
     ui_model = UiModel()
     ui_model.set_stat_manager(stat_manager)
-    ui_model.set_ui_manager(ui_manager)
+    ui_model.set_control_manager(control_manager)
     ui_model.set_playback_manager(playback_manager)
     ui_model.set_typewriter_manager(typewriter_manager)
     ui_model.set_event_history(event_history)

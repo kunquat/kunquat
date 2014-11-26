@@ -21,15 +21,15 @@ class Selection():
         self._controller = None
         self._session = None
         self._updater = None
-        self._model = None
+        self._ui_model = None
 
     def set_controller(self, controller):
         self._controller = controller
         self._session = controller.get_session()
         self._updater = controller.get_updater()
 
-    def set_model(self, model):
-        self._model = model
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
 
     def set_location(self, trigger_position):
         self._session.set_selected_location(trigger_position)
