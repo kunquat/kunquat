@@ -562,11 +562,11 @@ class ConnectionsView(QWidget):
             from_info = self._adding_edge_info['from']
             from_dev_id = from_info['dev_id']
             from_port = from_info['port']
-            to_info = self._adding_edge_info['to']
-
             from_pos = self._visible_devices[from_dev_id].get_port_center(from_port)
             from_x, from_y = from_pos
+
             pen = QPen(self._config['focused_edge_colour'])
+            to_info = self._adding_edge_info['to']
 
             if to_info:
                 to_dev_id = to_info['dev_id']
@@ -590,7 +590,17 @@ class ConnectionsView(QWidget):
             device = self._visible_devices[dev_id]
             device.copy_pixmaps(painter)
 
-            device.draw_ports(painter, self._focused_port_info)
+            focus_info = self._focused_port_info
+            if self._adding_edge_info:
+                # Highlight port(s) of a new connection being added
+                from_info = self._adding_edge_info['from']
+                to_info = self._adding_edge_info['to']
+                if from_info.get('dev_id') == dev_id:
+                    focus_info = from_info
+                elif to_info.get('dev_id') == dev_id:
+                    focus_info = to_info
+
+            device.draw_ports(painter, focus_info)
 
             # Draw button highlight
             if self._focused_button_info.get('dev_id') == dev_id:
