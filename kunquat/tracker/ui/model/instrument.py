@@ -53,7 +53,6 @@ class Instrument():
             if key in self._store:
                 out_ports.append(port_id)
 
-        out_ports = ['out_00'] # test
         return out_ports
 
     def get_connections(self):
