@@ -40,6 +40,12 @@ class Module():
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
 
+    def get_title(self):
+        return self._store.get('m_title.json')
+
+    def get_name(self):
+        return self.get_title()
+
     def get_control_ids(self):
         try:
             input_map = self._store['p_control_map.json']

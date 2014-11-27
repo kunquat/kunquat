@@ -46,4 +46,8 @@ class Generator():
 
         return out_ports
 
+    def get_name(self):
+        key = self._get_key('m_name.json')
+        return self._store.get(key)
+
 
