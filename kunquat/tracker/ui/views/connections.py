@@ -360,7 +360,11 @@ class ConnectionsView(QWidget):
         self._config.update(config)
 
     def _perform_updates(self, signals):
-        update_signals = set(['signal_module', self._get_signal('signal_connections')])
+        update_signals = set([
+            'signal_module',
+            self._get_signal('signal_connections'),
+            'signal_controls',
+            ])
         if not signals.isdisjoint(update_signals):
             self._update_devices()
 
@@ -390,6 +394,10 @@ class ConnectionsView(QWidget):
     def _get_out_ports(self, dev_id):
         device = self._get_device(dev_id)
         return device.get_out_ports()
+
+    def _get_device_name(self, dev_id):
+        device = self._get_device(dev_id)
+        return device.get_name()
 
     def _update_devices(self):
         connections = self._get_connections()
@@ -444,7 +452,9 @@ class ConnectionsView(QWidget):
         new_devices = {}
         for dev_id in self._visible_device_ids:
             if dev_id in self._visible_devices:
-                new_devices[dev_id] = self._visible_devices[dev_id]
+                old_device = self._visible_devices[dev_id]
+                if old_device.get_name() == self._get_device_name(dev_id):
+                    new_devices[dev_id] = old_device
         self._visible_devices = new_devices
 
         QObject.emit(self, SIGNAL('positionsChanged()'))
@@ -496,7 +506,12 @@ class ConnectionsView(QWidget):
                     in_ports = self._get_in_ports(dev_id)
                     out_ports = self._get_out_ports(dev_id)
 
-                device = Device(dev_id, self._config['devices'], in_ports, out_ports)
+                device = Device(
+                        dev_id,
+                        self._config['devices'],
+                        in_ports,
+                        out_ports,
+                        self._get_device_name(dev_id))
                 device.draw_pixmaps()
                 new_visible_devices[dev_id] = device
 
@@ -909,12 +924,14 @@ class ConnectionsView(QWidget):
 
 class Device():
 
-    def __init__(self, dev_id, config, in_ports, out_ports):
+    def __init__(self, dev_id, config, in_ports, out_ports, name):
         self._id = dev_id
         self._config = config
 
         self._offset_x = 0
         self._offset_y = 0
+
+        self._name = name
 
         if dev_id == 'master':
             self._type_config = self._config['master']
@@ -932,6 +949,9 @@ class Device():
 
         self._bg = None
 
+    def get_name(self):
+        return self._name
+
     def draw_pixmaps(self):
         self._bg = QPixmap(self._config['width'], self._get_height())
         painter = QPainter(self._bg)
@@ -947,8 +967,12 @@ class Device():
         painter.setFont(self._config['title_font'])
         text_option = QTextOption(Qt.AlignCenter)
         title_height = self._get_title_height()
+        if self._id == 'master':
+            title = 'Master'
+        else:
+            title = self._name or '-'
         painter.drawText(
-                QRectF(0, pad, self._bg.width(), title_height), self._id, text_option)
+                QRectF(0, pad, self._bg.width(), title_height), title, text_option)
 
         # Ports
         painter.setFont(self._config['port_font'])
