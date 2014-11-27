@@ -785,6 +785,8 @@ class ConnectionsView(QWidget):
                     elif to_info != from_info:
                         self._adding_edge_info['to_invalid'] = to_info
 
+                    break
+
             self.update()
 
         # Only one focused thing at a time
