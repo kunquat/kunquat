@@ -15,6 +15,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 from connections import Connections
+from keyboardmapper import KeyboardMapper
 
 
 class ConnectionsWindow(QWidget):
@@ -23,6 +24,8 @@ class ConnectionsWindow(QWidget):
         QWidget.__init__(self)
         self._ui_model = None
         self._connections = Connections()
+
+        self._keyboard_mapper = KeyboardMapper()
 
         self.setWindowTitle('Connections')
 
@@ -35,8 +38,10 @@ class ConnectionsWindow(QWidget):
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._connections.set_ui_model(ui_model)
+        self._keyboard_mapper.set_ui_model(ui_model)
 
     def unregister_updaters(self):
+        self._keyboard_mapper.unregister_updaters()
         self._connections.unregister_updaters()
 
     def closeEvent(self, event):
@@ -46,5 +51,13 @@ class ConnectionsWindow(QWidget):
 
     def sizeHint(self):
         return QSize(800, 600)
+
+    def keyPressEvent(self, event):
+        if not self._keyboard_mapper.process_typewriter_button_event(event):
+            event.ignore()
+
+    def keyReleaseEvent(self, event):
+        if not self._keyboard_mapper.process_typewriter_button_event(event):
+            event.ignore()
 
 
