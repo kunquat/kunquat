@@ -13,6 +13,8 @@
 #
 
 from instrument import Instrument
+from effect import Effect
+from connections import Connections
 from control import Control
 from album import Album
 from song import Song
@@ -37,6 +39,12 @@ class Module():
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
+
+    def get_title(self):
+        return self._store.get('m_title.json')
+
+    def get_name(self):
+        return self.get_title()
 
     def get_control_ids(self):
         try:
@@ -85,6 +93,34 @@ class Module():
         #    valid = [i for i in all_instruments if i.get_existence()]
         #    return [] #valid
         return all_instruments
+
+    def get_effect(self, effect_id):
+        effect = Effect(effect_id)
+        effect.set_controller(self._controller)
+        return effect
+
+    def get_effect_ids(self):
+        effect_ids = set()
+        for key in self._store.keys():
+            if key.startswith('eff_'):
+                effect_id = key.split('/')[0]
+                effect_ids.add(effect_id)
+        return effect_ids
+
+    def get_out_ports(self):
+        out_ports = []
+        for i in xrange(0x100):
+            port_id = 'out_{:02x}'.format(i)
+            key = '{}/p_manifest.json'.format(port_id)
+            if key in self._store:
+                out_ports.append(port_id)
+
+        return out_ports
+
+    def get_connections(self):
+        connections = Connections()
+        connections.set_controller(self._controller)
+        return connections
 
     def get_album(self):
         album = Album()
