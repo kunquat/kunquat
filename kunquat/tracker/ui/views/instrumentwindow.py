@@ -46,4 +46,7 @@ class InstrumentWindow(QWidget):
         visibility_manager = self._ui_model.get_visibility_manager()
         visibility_manager.hide_instrument(self._ins_id)
 
+    def sizeHint(self):
+        return QSize(1024, 768)
+
 

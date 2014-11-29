@@ -53,3 +53,7 @@ class MainWindow(QWidget):
         visibility_manager = self._ui_model.get_visibility_manager()
         visibility_manager.hide_main()
 
+    def sizeHint(self):
+        return QSize(1024, 768)
+
+
