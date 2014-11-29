@@ -38,11 +38,15 @@ class About(QWidget):
         self._ui_model = None
 
         self._logo = Logo()
+        self._about_message = AboutMessage()
         self._render_stats = RenderStats()
 
         v = QVBoxLayout()
+        v.setAlignment(Qt.AlignHCenter)
         v.addWidget(self._logo)
-        v.addWidget(AboutMessage())
+        v.setAlignment(self._logo, Qt.AlignHCenter)
+        v.addWidget(self._about_message)
+        v.setAlignment(self._about_message, Qt.AlignHCenter)
         v.addWidget(self._render_stats)
         self.setLayout(v)
 
