@@ -26,10 +26,21 @@ sys.dont_write_bytecode = True
 try:
     import support.fabricate as fabricate
 except ImportError:
-    print('Fabricate was not found.'
-            ' Please run ./get_build_support.sh to retrieve it.',
-            file=sys.stderr)
-    sys.exit(1)
+    msg = 'Fabricate was not found. Please run ./get_build_support.sh to retrieve it.'
+
+    # Check for unsafe build option
+    check_args = sys.argv
+    if '--' in check_args:
+        check_args = check_args[:check_args.index('--')]
+    if '--unsafe' in check_args:
+        try:
+            import support.fabricate_unverified as fabricate
+        except ImportError:
+            print(msg, file=sys.stderr)
+            sys.exit(1)
+    else:
+        print(msg, file=sys.stderr)
+        sys.exit(1)
 
 import scripts.command as command
 from scripts.cc import get_cc
@@ -155,6 +166,9 @@ def install():
 prefix_option = Option('--prefix', type='string',
         help='installation directory prefix (default: {})'.format(options.prefix))
 
-fabricate.main(extra_options=[prefix_option])
+unsafe_option = Option('--unsafe', action='store_false',
+        help='allow building with an unverified version of Fabricate (not recommended)')
+
+fabricate.main(extra_options=[prefix_option, unsafe_option])
 
 
