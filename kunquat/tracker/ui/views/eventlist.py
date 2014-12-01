@@ -196,7 +196,6 @@ class EventList(QWidget):
     def __init__(self):
         QWidget.__init__(self)
         self._ui_model = None
-        self.resize(600, 400)
 
         self.setWindowTitle('Event Log')
 
@@ -224,5 +223,8 @@ class EventList(QWidget):
         event.ignore()
         visibility_manager = self._ui_model.get_visibility_manager()
         visibility_manager.hide_event_log()
+
+    def sizeHint(self):
+        return QSize(600, 768)
 
 
