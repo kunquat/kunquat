@@ -12,6 +12,7 @@
 #
 
 from __future__ import print_function
+import os
 import os.path
 
 import command
@@ -34,6 +35,22 @@ def build_examples(builder):
     for src, dest in packages.iteritems():
         dest_path = os.path.join(build_dir, dest)
         echo = echo_prefix + 'Building {}'.format(dest)
+
+        # Mega hack to ensure Fabricate tracks correct input files
+        script_path = os.path.join('scripts', 'write_example_file.py')
+        in_dir = os.path.join(example_dir, src)
+        in_files = []
+        for dir_path, _, fnames in os.walk(in_dir, src):
+            for fname in fnames:
+                fpath = os.path.join(dir_path, fname)
+                in_files.append(fpath)
+
+        if command.run_command(
+                builder, 'python', script_path, dest_path, in_dir, *in_files, echo=echo):
+            echo_prefix = ''
+
+        # The proper way to do it (probably) as soon as Fabricate supports it
+        '''
         if command.run_command(
                 builder,
                 'tar',
@@ -43,6 +60,7 @@ def build_examples(builder):
                 src,
                 echo=echo):
             echo_prefix = ''
+        '''
 
     # Copy the example instrument to share
     # TODO: remove once we figure out the instrument stuff
