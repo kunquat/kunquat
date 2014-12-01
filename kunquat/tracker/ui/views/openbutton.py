@@ -31,8 +31,10 @@ class OpenButton(QToolButton):
         pass
 
     def _clicked(self):
-        module_path = str(QFileDialog.getOpenFileName(
+        module_path_qstring = QFileDialog.getOpenFileName(
                 caption='Open Kunquat Composition',
-                filter='Kunquat compositions (*.kqt *.kqt.gz *.kqt.bz2)'))
-        process_manager = self._ui_model.get_process_manager()
-        process_manager.new_kunquat(module_path)
+                filter='Kunquat compositions (*.kqt *.kqt.gz *.kqt.bz2)')
+        if module_path_qstring:
+            module_path = str(module_path_qstring.toUtf8())
+            process_manager = self._ui_model.get_process_manager()
+            process_manager.new_kunquat(module_path)
