@@ -16,7 +16,12 @@ from copy import deepcopy
 import os.path
 import sys
 
-import support.fabricate as fabricate
+try:
+    import support.fabricate as fabricate
+except ImportError:
+    # If we have got this far without verified fabricate, we must be in unsafe mode
+    assert '--unsafe' in sys.argv
+    import support.fabricate_unverified as fabricate
 
 import command
 
