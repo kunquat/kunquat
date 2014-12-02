@@ -46,7 +46,8 @@ class Portal(QToolBar):
 
         self.addWidget(self._play_button)
         self.addWidget(self._play_pattern_button)
-        self.addWidget(self._record_button)
+        if cmdline.get_experimental():
+            self.addWidget(self._record_button)
         self.addWidget(self._silence_button)
         self.addSeparator()
         self.addWidget(self._event_list_button)
