@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Toni Ruottu, Finland 2013
+# Authors: Toni Ruottu, Finland 2013-2014
 #          Tomi Jylhä-Ollila, Finland 2014
 #
 # This file is part of Kunquat.
@@ -16,7 +16,7 @@
 class Updater(object):
 
     def __init__(self):
-        self._update_signals = set()
+        self._update_signals = set(['signal_init'])
         self._updaters = set()
         self._iterator = set()
         self._is_updating = False
