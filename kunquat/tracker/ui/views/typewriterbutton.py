@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Toni Ruottu, Finland 2013
+# Authors: Toni Ruottu, Finland 2013-2014
 #          Tomi Jylhä-Ollila, Finland 2013-2014
 #
 # This file is part of Kunquat.
@@ -89,7 +89,6 @@ class TypewriterButton(QPushButton):
         notename.setAlignment(Qt.AlignCenter)
         layout.addWidget(notename)
         layout.setAlignment(Qt.AlignCenter)
-        self.setFocusPolicy(Qt.NoFocus)
 
         self.setEnabled(False)
         QObject.connect(self, SIGNAL('pressed()'), self._press)

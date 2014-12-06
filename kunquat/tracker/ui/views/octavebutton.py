@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Toni Ruottu, Finland 2013
+# Authors: Toni Ruottu, Finland 2013-2014
 #          Tomi Jylhä-Ollila, Finland 2013-2014
 #
 # This file is part of Kunquat.
@@ -20,6 +20,7 @@ class OctaveButton(QPushButton):
 
     def __init__(self, octave_id):
         QPushButton.__init__(self)
+        self.setFocusPolicy(Qt.NoFocus)
         self._octave_id = octave_id
         self._typewriter_manager = None
         self._control_manager = None
