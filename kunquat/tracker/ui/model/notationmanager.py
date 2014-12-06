@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Authors: Tomi Jylhä-Ollila, Finland 2014
+#          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
 #
@@ -27,9 +28,31 @@ class NotationManager():
         self._share = controller.get_share()
         self._updater = controller.get_updater()
 
-    def get_notation(self):
-        name = self._session.get_notation_name()
-        notations = self._share.get_notations()
-        return Notation(notations[name])
+    def get_selected_notation_id(self):
+        notation_ids = self.get_notation_ids()
+        selected_id = self._session.get_selected_notation_id()
+        if len(notation_ids) < 1:
+            return None
+        if not selected_id in notation_ids:
+            some_id = sorted(notation_ids)[0]
+            return some_id
+        return selected_id
 
+    def get_notation(self, notation_id):
+        notations = self._share.get_notations()
+        return Notation(notations[notation_id])
+
+    def get_selected_notation(self):
+        notation_id = self.get_selected_notation_id()
+        notation = self.get_notation(notation_id)
+        return notation
+
+    def get_notation_ids(self):
+        notations = self._share.get_notations()
+        notation_ids = notations.keys()
+        return notation_ids
+
+    def set_selected_notation_id(self, notation_id):
+        self._session.set_selected_notation_id(notation_id)
+        self._updater.signal_update(set(['signal_notation']))
 

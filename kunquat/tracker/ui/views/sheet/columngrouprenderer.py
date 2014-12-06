@@ -430,7 +430,7 @@ class TRCache():
         return self._images.get_memory_usage()
 
     def _create_image(self, triggers):
-        notation = self._notation_manager.get_notation()
+        notation = self._notation_manager.get_selected_notation()
         rends = [TriggerRenderer(self._config, t, notation) for t in triggers]
         widths = [r.get_total_width() for r in rends]
 

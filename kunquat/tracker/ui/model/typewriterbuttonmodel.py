@@ -46,7 +46,7 @@ class TypewriterButtonModel():
         if pitch == None:
             return None
 
-        notation = self._notation_manager.get_notation()
+        notation = self._notation_manager.get_selected_notation()
         name = notation.get_full_name(pitch)
         return name
 

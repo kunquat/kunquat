@@ -105,7 +105,7 @@ class TypewriterButton(QPushButton):
         self._update_properties()
 
     def _perform_updates(self, signals):
-        if 'signal_octave' in signals:
+        if any(s in signals for s in ['signal_octave', 'signal_notation']):
             self._update_properties()
         self._update_leds()
 

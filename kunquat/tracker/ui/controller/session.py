@@ -28,6 +28,7 @@ class Session():
         self._audio_levels = (0, 0)
         self._selected_control_id = 0
         self._selected_keymap_id = None
+        self._selected_notation_id = None
         self._control_id_override = None
         # TODO: get default control ids from libkunquat?
         self._channel_selected_control_id = defaultdict(lambda: 0)
@@ -114,6 +115,12 @@ class Session():
     def set_selected_keymap_id(self, keymap_id):
         self._selected_keymap_id = keymap_id
 
+    def get_selected_notation_id(self):
+        return self._selected_notation_id
+
+    def set_selected_notation_id(self, notation_id):
+        self._selected_notation_id = notation_id
+
     def get_control_id_override(self):
         return self._control_id_override
 
@@ -185,9 +192,6 @@ class Session():
 
     def get_event_log(self):
         return list(self._event_log)
-
-    def get_notation_name(self):
-        return '12tet' # TODO: make this configurable
 
     def set_selected_location(self, trigger_position):
         self._selected_location = trigger_position
