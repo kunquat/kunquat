@@ -14,6 +14,7 @@
 
 from stat_manager import StatManager
 from controlmanager import ControlManager
+from keymapmanager import KeymapManager
 from playback_manager import PlaybackManager
 from typewritermanager import TypewriterManager
 from eventhistory import EventHistory
@@ -87,6 +88,7 @@ class UiModel():
     def __init__(self):
         self._stat_manager = None
         self._control_manager = None
+        self._keymap_manager = None
         self._playback_manager = None
         self._typewriter_manager = None
         self._event_history = None
@@ -106,6 +108,7 @@ class UiModel():
         self._module.set_controller(controller)
         self._stat_manager.set_controller(self._controller)
         self._control_manager.set_controller(self._controller)
+        self._keymap_manager.set_controller(self._controller)
         self._playback_manager.set_controller(self._controller)
         self._typewriter_manager.set_controller(self._controller)
         self._visibility_manager.set_controller(self._controller)
@@ -132,6 +135,13 @@ class UiModel():
 
     def get_control_manager(self):
         return self._control_manager
+
+    def set_keymap_manager(self, keymap_manager):
+        self._keymap_manager = keymap_manager
+        self._keymap_manager.set_ui_model(self)
+
+    def get_keymap_manager(self):
+        return self._keymap_manager
 
     def set_playback_manager(self, playback_manager):
         self._playback_manager = playback_manager
@@ -233,6 +243,7 @@ class UiModel():
 def create_ui_model():
     stat_manager = StatManager()
     control_manager = ControlManager()
+    keymap_manager = KeymapManager()
     playback_manager = PlaybackManager()
     typewriter_manager = TypewriterManager()
     event_history = EventHistory()
@@ -246,6 +257,7 @@ def create_ui_model():
     ui_model = UiModel()
     ui_model.set_stat_manager(stat_manager)
     ui_model.set_control_manager(control_manager)
+    ui_model.set_keymap_manager(keymap_manager)
     ui_model.set_playback_manager(playback_manager)
     ui_model.set_typewriter_manager(typewriter_manager)
     ui_model.set_event_history(event_history)

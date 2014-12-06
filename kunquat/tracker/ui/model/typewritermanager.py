@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Toni Ruottu, Finland 2013
+# Authors: Toni Ruottu, Finland 2013-2014
 #          Tomi Jylhä-Ollila, Finland 2014
 #
 # This file is part of Kunquat.
@@ -30,10 +30,13 @@ class TypewriterManager():
         self._share = None
         self._updater = None
         self._ui_model = None
+        self._keymap_manager = None
 
         # Cached data
         self._current_map = None
+        self._current_map_version = None
         self._pitches = None
+        self._pitches_version = None
 
     def set_controller(self, controller):
         self._controller = controller
@@ -41,13 +44,9 @@ class TypewriterManager():
         self._share = controller.get_share()
         self._updater = controller.get_updater()
 
-        keymap_name = self._session.get_keymap_name()
-        keymap_data = self._share.get_keymaps()[keymap_name]
-        base_octave = keymap_data['base_octave']
-        self.set_octave(base_octave)
-
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
+        self._keymap_manager = ui_model.get_keymap_manager()
 
     def get_button_model(self, row, index):
         button_model = TypewriterButtonModel(row, index)
@@ -111,9 +110,10 @@ class TypewriterManager():
         return lower_octaves
 
     def _create_current_map(self, keymap):
-        if self._current_map != None:
+        keymap_id = self._keymap_manager.get_selected_keymap_id()
+        if self._current_map_version == keymap_id:
             return
-
+        self._current_map_version = keymap_id
         upper_octaves = self._current_upper_octaves(keymap)
         lower_octaves = self._current_lower_octaves(keymap)
         (row0, row1) = self._octaves_to_rows(upper_octaves)
@@ -123,8 +123,7 @@ class TypewriterManager():
 
     def get_button_pitch(self, coord):
         (row, column) = coord
-        keymap_name = self._session.get_keymap_name()
-        keymap_data = self._share.get_keymaps()[keymap_name]
+        keymap_data = self._keymap_manager.get_selected_keymap()
         keymap = keymap_data['keymap']
         self._create_current_map(keymap)
         pitch_row = self._current_map[row]
@@ -135,16 +134,14 @@ class TypewriterManager():
         return pitch
 
     def get_pitches_by_octave(self, octave_id):
-        keymap_name = self._session.get_keymap_name()
-        keymap_data = self._share.get_keymaps()[keymap_name]
+        keymap_data = self._keymap_manager.get_selected_keymap()
         octaves = keymap_data['keymap']
         octave = octaves[octave_id]
         pitches = set(octave)
         return pitches
 
     def _get_pitches(self):
-        keymap_name = self._session.get_keymap_name()
-        keymap_data = self._share.get_keymaps()[keymap_name]
+        keymap_data = self._keymap_manager.get_selected_keymap()
         octaves = keymap_data['keymap']
         pitches = set()
         for pitch in itertools.chain(*octaves):
@@ -153,7 +150,9 @@ class TypewriterManager():
         return pitches
 
     def get_closest_keymap_pitch(self, pitch):
-        if self._pitches == None:
+        keymap_id = self._keymap_manager.get_selected_keymap_id()
+        if self._pitches_version != keymap_id:
+            self._pitches_version = keymap_id
             self._pitches = sorted(self._get_pitches())
         key_count = len(self._pitches)
         i = bisect_left(self._pitches, pitch)
@@ -170,18 +169,22 @@ class TypewriterManager():
                 return b
 
     def get_octave_count(self):
-        keymap_name = self._session.get_keymap_name()
-        keymap_data = self._share.get_keymaps()[keymap_name]
+        keymap_data = self._keymap_manager.get_selected_keymap()
         keymap = keymap_data['keymap']
         octave_count = len(keymap)
         return octave_count
 
     def get_octave(self):
-        return self._session.get_octave_id()
+        selected = self._session.get_octave_id()
+        if selected == None:
+            keymap_data = self._keymap_manager.get_selected_keymap()
+            base_octave = keymap_data['base_octave']
+            return base_octave
+        return selected
 
     def set_octave(self, octave_id):
         self._session.set_octave_id(octave_id)
-        self._current_map = None
+        self._current_map_version = None
         self._updater.signal_update(set(['signal_octave']))
 
 

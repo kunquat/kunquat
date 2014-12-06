@@ -27,13 +27,14 @@ class Session():
         self._progress_steps = 1
         self._audio_levels = (0, 0)
         self._selected_control_id = 0
+        self._selected_keymap_id = None
         self._control_id_override = None
         # TODO: get default control ids from libkunquat?
         self._channel_selected_control_id = defaultdict(lambda: 0)
         self._channel_active_control_id = defaultdict(lambda: 0)
         self._channel_active_note = dict()
         self._control_active_notes = dict()
-        self._octave_id = 0
+        self._octave_id = None
         self._visible = set()
         self._event_log = deque([], 1024)
         self._event_index = count()
@@ -107,6 +108,12 @@ class Session():
     def set_selected_control_id(self, control_id):
         self._selected_control_id = control_id
 
+    def get_selected_keymap_id(self):
+        return self._selected_keymap_id
+
+    def set_selected_keymap_id(self, keymap_id):
+        self._selected_keymap_id = keymap_id
+
     def get_control_id_override(self):
         return self._control_id_override
 
@@ -178,9 +185,6 @@ class Session():
 
     def get_event_log(self):
         return list(self._event_log)
-
-    def get_keymap_name(self):
-        return '12tet' # TODO: make this configurable
 
     def get_notation_name(self):
         return '12tet' # TODO: make this configurable
