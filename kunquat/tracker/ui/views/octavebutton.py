@@ -20,6 +20,7 @@ class OctaveButton(QPushButton):
 
     def __init__(self, octave_id):
         QPushButton.__init__(self)
+        self.setFocusPolicy(Qt.NoFocus)
         self._octave_id = octave_id
         self._typewriter_manager = None
         self._control_manager = None

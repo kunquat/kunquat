@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Toni Ruottu, Finland 2013
+# Authors: Toni Ruottu, Finland 2013-2014
 #          Tomi Jylhä-Ollila, Finland 2014
 #
 # This file is part of Kunquat.
@@ -15,6 +15,7 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
+from keyboardmapper import KeyboardMapper
 from typewriterbutton import TypewriterButton
 
 
@@ -24,21 +25,23 @@ class Typewriter(QFrame):
 
     def __init__(self):
         QFrame.__init__(self)
-        self.setFocusPolicy(Qt.NoFocus)
         self._ui_model = None
         self._updater = None
         self._typewriter_manager = None
         self._current_buttons = set()
+        self._keyboard_mapper = KeyboardMapper()
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
         self._typewriter_manager = ui_model.get_typewriter_manager()
+        self._keyboard_mapper.set_ui_model(ui_model)
 
         self.setLayout(self._get_layout())
 
     def unregister_updaters(self):
+        self._keyboard_mapper.unregister_updaters()
         self._updater.unregister_updater(self._perform_updates)
         self._unregister_button_updaters()
 
@@ -77,4 +80,11 @@ class Typewriter(QFrame):
             button.unregister_updaters()
             self._current_buttons.remove(button)
 
+    def keyPressEvent(self, event):
+        if not self._keyboard_mapper.process_typewriter_button_event(event):
+            event.ignore()
+
+    def keyReleaseEvent(self, event):
+        if not self._keyboard_mapper.process_typewriter_button_event(event):
+            event.ignore()
 
