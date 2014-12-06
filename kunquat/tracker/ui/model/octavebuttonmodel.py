@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Authors: Tomi Jylhä-Ollila, Finland 2014
+#          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
 #
@@ -39,6 +40,7 @@ class OctaveButtonModel():
         self._typewriter_manager.set_octave(self._octave_id)
 
     def is_selected(self):
-        return (self._octave_id == self._session.get_octave_id())
+        selected_octave = self._typewriter_manager.get_octave()
+        return (self._octave_id == selected_octave)
 
 

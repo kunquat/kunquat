@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Toni Ruottu, Finland 2013
+# Authors: Toni Ruottu, Finland 2013-2014
 #          Tomi Jylhä-Ollila, Finland 2013-2014
 #
 # This file is part of Kunquat.
@@ -82,7 +82,7 @@ class OctaveButton(QPushButton):
             self._led.setText('')
 
     def _perform_updates(self, signals):
-        if 'signal_octave' in signals:
+        if any(s in signals for s in ['signal_octave', 'signal_init']):
             self._update_pressed()
         self.update_leds()
 
