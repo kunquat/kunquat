@@ -50,4 +50,8 @@ class Generator():
         key = self._get_key('m_name.json')
         return self._store.get(key)
 
+    def set_name(self, name):
+        key = self._get_key('m_name.json')
+        self._store[key] = name
+
 

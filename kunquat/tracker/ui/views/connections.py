@@ -909,6 +909,8 @@ class ConnectionsView(QWidget):
         dev_id = button_info['dev_id']
         if dev_id.startswith('ins'):
             visibility_manager.show_instrument(dev_id)
+        elif dev_id.startswith('gen'):
+            visibility_manager.show_generator(self._ins_id, dev_id)
 
     def leaveEvent(self, event):
         if self._state == STATE_EDGE_MENU:
@@ -1182,7 +1184,8 @@ class Device():
 
     def _has_edit_button(self):
         # TODO: enable for generators & effects
-        return (self._id != 'master') and (self._id.startswith('ins'))
+        return ((self._id != 'master') and
+                (self._id.startswith('ins') or self._id.startswith('gen')))
 
     def _get_height(self):
         title_height = self._get_title_height()

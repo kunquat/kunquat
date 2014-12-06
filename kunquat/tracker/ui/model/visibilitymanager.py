@@ -93,6 +93,14 @@ class VisibilityManager():
         self._session.hide_ui(UI_ORDERLIST)
         self._updater.signal_update()
 
+    def show_generator(self, ins_id, gen_id):
+        self._session.show_ui((UI_GENERATOR, ins_id, gen_id))
+        self._updater.signal_update()
+
+    def hide_generator(self, ins_id, gen_id):
+        self._session.hide_ui((UI_GENERATOR, ins_id, gen_id))
+        self._updater.signal_update()
+
     def get_visible(self):
         return self._session.get_visible()
 

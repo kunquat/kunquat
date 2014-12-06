@@ -18,5 +18,6 @@ UI_EVENT_LOG = 'event_log'
 UI_CONNECTIONS = 'connections'
 UI_INSTRUMENT = 'instrument'
 UI_ORDERLIST = 'orderlist'
+UI_GENERATOR = 'generator'
 
 

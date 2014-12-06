@@ -23,6 +23,7 @@ from eventlist import EventList
 from connectionswindow import ConnectionsWindow
 from orderlistwindow import OrderlistWindow
 from instrumentwindow import InstrumentWindow
+from generatorwindow import GeneratorWindow
 
 
 class RootView():
@@ -38,6 +39,7 @@ class RootView():
         self._connections = None
         self._orderlist = None
         self._instrument_windows = {}
+        self._generator_windows = {}
         self._module = None
 
     def set_ui_model(self, ui_model):
@@ -105,6 +107,16 @@ class RootView():
                 self._instrument_windows[ins_id] = ins_window
                 if is_show_allowed:
                     self._instrument_windows[ins_id].show()
+            elif type(ui) == tuple and ui[0] == UI_GENERATOR:
+                ins_id = ui[1]
+                gen_id = ui[2]
+                gen_window = GeneratorWindow()
+                gen_window.set_ins_id(ins_id)
+                gen_window.set_gen_id(gen_id)
+                gen_window.set_ui_model(self._ui_model)
+                self._generator_windows[(ins_id, gen_id)] = gen_window
+                if is_show_allowed:
+                    self._generator_windows[(ins_id, gen_id)].show()
             else:
                 raise ValueError('Unsupported UI type: {}'.format(ui))
 
@@ -133,6 +145,12 @@ class RootView():
                 ins_window = self._instrument_windows.pop(ins_id)
                 ins_window.unregister_updaters()
                 ins_window.deleteLater()
+            elif type(ui) == tuple and ui[0] == UI_GENERATOR:
+                ins_id = ui[1]
+                gen_id = ui[2]
+                gen_window = self._generator_windows.pop((ins_id, gen_id))
+                gen_window.unregister_updaters()
+                gen_window.deleteLater()
             else:
                 raise ValueError('Unsupported UI type: {}'.format(ui))
 
