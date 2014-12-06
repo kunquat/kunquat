@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013-2014
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2014
+#          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
 #
@@ -159,6 +160,9 @@ class View(QWidget):
         self._updater.unregister_updater(self._perform_updates)
 
     def _perform_updates(self, signals):
+        if 'signal_notation' in signals:
+            self._update_all_patterns()
+            self.update()
         if 'signal_module' in signals:
             self._update_all_patterns()
             self.update()
@@ -327,7 +331,7 @@ class View(QWidget):
 
             row_ts = location.get_row_ts()
             if row_ts in cur_column.get_trigger_row_positions():
-                notation = self._notation_manager.get_notation()
+                notation = self._notation_manager.get_selected_notation()
 
                 # Get trigger row width information
                 trigger_index = location.get_trigger_index()
@@ -498,7 +502,7 @@ class View(QWidget):
                     QPoint(self._col_width, self._config['tr_height'] - 1)),
                 self._config['bg_colour'])
 
-        notation = self._notation_manager.get_notation()
+        notation = self._notation_manager.get_selected_notation()
         rends = [TriggerRenderer(self._config, trigger, notation)
                 for trigger in triggers]
         widths = [r.get_total_width() for r in rends]
@@ -556,7 +560,7 @@ class View(QWidget):
             # No triggers
             return
 
-        notation = self._notation_manager.get_notation()
+        notation = self._notation_manager.get_selected_notation()
 
         if delta < 0:
             if trigger_index == 0:
@@ -740,7 +744,7 @@ class View(QWidget):
         trigger_count = column.get_trigger_count_at_row(row_ts)
         triggers = (column.get_trigger(row_ts, i)
                 for i in xrange(trigger_count))
-        notation = self._notation_manager.get_notation()
+        notation = self._notation_manager.get_selected_notation()
         rends = (TriggerRenderer(self._config, trigger, notation)
                 for trigger in triggers)
         widths = [r.get_total_width() for r in rends]
@@ -937,7 +941,7 @@ class View(QWidget):
 
         column = self._sheet_manager.get_column_at_location(location)
         row_ts = location.get_row_ts()
-        notation = self._notation_manager.get_notation()
+        notation = self._notation_manager.get_selected_notation()
 
         try:
             trigger_count = column.get_trigger_count_at_row(row_ts)
@@ -1025,7 +1029,7 @@ class View(QWidget):
 
         # Offset field edit so that trigger type remains visible
         if trigger.get_type() not in ('n+', 'h'):
-            notation = self._notation_manager.get_notation()
+            notation = self._notation_manager.get_selected_notation()
             renderer = TriggerRenderer(self._config, trigger, notation)
             _, type_width = renderer.get_field_bounds(0)
             x_offset += type_width

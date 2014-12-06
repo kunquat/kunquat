@@ -22,6 +22,7 @@ from recordbutton import RecordButton
 from silencebutton import SilenceButton
 from eventlistbutton import EventListButton
 from connectionsbutton import ConnectionsButton
+from notationselect import NotationSelect
 from aboutbutton import AboutButton
 from newbutton import NewButton
 from openbutton import OpenButton
@@ -39,6 +40,7 @@ class Portal(QToolBar):
         self._silence_button = SilenceButton()
         self._event_list_button = EventListButton()
         self._connections_button = ConnectionsButton()
+        self._notation_select = NotationSelect()
         self._about_button = AboutButton()
         self._new_button = NewButton()
         self._open_button = OpenButton()
@@ -52,6 +54,7 @@ class Portal(QToolBar):
         self.addSeparator()
         self.addWidget(self._event_list_button)
         self.addWidget(self._connections_button)
+        self.addWidget(self._notation_select)
         self.addSeparator()
         self.addWidget(self._about_button)
         self.addSeparator()
@@ -67,6 +70,7 @@ class Portal(QToolBar):
         self._silence_button.set_ui_model(ui_model)
         self._event_list_button.set_ui_model(ui_model)
         self._connections_button.set_ui_model(ui_model)
+        self._notation_select.set_ui_model(ui_model)
         self._about_button.set_ui_model(ui_model)
         self._new_button.set_ui_model(ui_model)
         self._open_button.set_ui_model(ui_model)
@@ -78,6 +82,7 @@ class Portal(QToolBar):
         self._new_button.unregister_updaters()
         self._about_button.unregister_updaters()
         self._connections_button.unregister_updaters()
+        self._notation_select.unregister_updaters()
         self._event_list_button.unregister_updaters()
         self._silence_button.unregister_updaters()
         self._record_button.unregister_updaters()

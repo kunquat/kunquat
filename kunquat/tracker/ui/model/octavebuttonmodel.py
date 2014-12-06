@@ -33,7 +33,7 @@ class OctaveButtonModel():
         self._notation_manager = ui_model.get_notation_manager()
 
     def get_name(self):
-        notation = self._notation_manager.get_notation()
+        notation = self._notation_manager.get_selected_notation()
         return notation.get_octave_name(self._octave_id)
 
     def select(self):
