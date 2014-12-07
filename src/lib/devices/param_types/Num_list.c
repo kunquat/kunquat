@@ -63,6 +63,9 @@ Num_list* new_Num_list_from_string(Streader* sr)
     if (Streader_is_error_set(sr))
         return NULL;
 
+    if (!Streader_has_data(sr))
+        return NULL;
+
     Num_list* nl = memory_alloc_item(Num_list);
     if (nl == NULL)
     {
@@ -83,9 +86,6 @@ Num_list* new_Num_list_from_string(Streader* sr)
                 sr, "Could not allocate memory for number list");
         return NULL;
     }
-
-    if (!Streader_has_data(sr))
-        return nl;
 
     if (!Streader_read_list(sr, read_num, nl))
     {

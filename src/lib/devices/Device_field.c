@@ -298,7 +298,7 @@ bool Device_field_change(Device_field* field, Streader* sr)
         case DEVICE_FIELD_NUM_LIST:
         {
             Num_list* nl = new_Num_list_from_string(sr);
-            if (nl == NULL)
+            if (Streader_is_error_set(sr))
                 return false;
 
             del_Num_list(field->data.Num_list_type);
