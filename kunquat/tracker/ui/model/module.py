@@ -17,8 +17,6 @@ from effect import Effect
 from connections import Connections
 from control import Control
 from album import Album
-from song import Song
-from pattern import Pattern
 
 
 class Module():

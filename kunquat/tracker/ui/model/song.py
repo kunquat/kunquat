@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Authors: Tomi Jylhä-Ollila, Finland 2014
+#          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
 #
@@ -18,9 +19,10 @@ from patterninstance import PatternInstance
 
 class Song():
 
-    def __init__(self, song_id):
+    def __init__(self, song_id, track_num):
         assert song_id
         self._song_id = song_id
+        self._track_num = track_num
         self._store = None
         self._controller = None
 
@@ -52,4 +54,13 @@ class Song():
             order_list = get_default_value(key)
         return order_list
 
+    def get_containing_track_number(self):
+        return self._track_num
 
+    def get_name(self):
+        key = '{}/m_name.json'.format(self._song_id)
+        try:
+            name = self._store[key]
+        except KeyError:
+            name = '-'
+        return name

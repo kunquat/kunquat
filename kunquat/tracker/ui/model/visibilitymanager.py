@@ -85,6 +85,14 @@ class VisibilityManager():
         self._session.hide_ui((UI_INSTRUMENT, index))
         self._updater.signal_update()
 
+    def show_orderlist(self):
+        self._session.show_ui(UI_ORDERLIST)
+        self._updater.signal_update()
+
+    def hide_orderlist(self):
+        self._session.hide_ui(UI_ORDERLIST)
+        self._updater.signal_update()
+
     def get_visible(self):
         return self._session.get_visible()
 

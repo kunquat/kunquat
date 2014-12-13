@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Authors: Tomi Jylhä-Ollila, Finland 2014
+#          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
 #
@@ -39,4 +40,12 @@ class PatternInstance():
     def get_instance_num(self):
         return self._instance_num
 
+    def subscript(self, number):
+        nums = [int(i) for i in str(number)]
+        subs = [unichr(0x2080 + i) for i in nums]
+        return u''.join(subs)
 
+    def get_name(self):
+        ambiguous_name = u'pattern {0}'.format(self._pattern_num)
+        fullname = ambiguous_name + self.subscript(self._instance_num)
+        return fullname
