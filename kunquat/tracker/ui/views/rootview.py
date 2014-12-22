@@ -21,6 +21,7 @@ from mainwindow import MainWindow
 from aboutwindow import AboutWindow
 from eventlist import EventList
 from connectionswindow import ConnectionsWindow
+from orderlistwindow import OrderlistWindow
 from instrumentwindow import InstrumentWindow
 
 
@@ -35,6 +36,7 @@ class RootView():
         self._about_window = None
         self._event_log = None
         self._connections = None
+        self._orderlist = None
         self._instrument_windows = {}
         self._module = None
 
@@ -90,6 +92,11 @@ class RootView():
                 self._connections.set_ui_model(self._ui_model)
                 if is_show_allowed:
                     self._connections.show()
+            elif ui == UI_ORDERLIST:
+                self._orderlist = OrderlistWindow()
+                self._orderlist.set_ui_model(self._ui_model)
+                if is_show_allowed:
+                    self._orderlist.show()
             elif type(ui) == tuple and ui[0] == UI_INSTRUMENT:
                 ins_id = ui[1]
                 ins_window = InstrumentWindow()
@@ -117,6 +124,10 @@ class RootView():
                 self._connections.unregister_updaters()
                 self._connections.deleteLater()
                 self._connections = None
+            elif ui == UI_ORDERLIST:
+                self._orderlist.unregister_updaters()
+                self._orderlist.deleteLater()
+                self._orderlist = None
             elif type(ui) == tuple and ui[0] == UI_INSTRUMENT:
                 ins_id = ui[1]
                 ins_window = self._instrument_windows.pop(ins_id)

@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Authors: Tomi Jylhä-Ollila, Finland 2014
+#          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
 #
@@ -42,7 +43,7 @@ class Album():
         tracks = self._get_track_list()
         song_num = tracks[track_num]
         song_id = 'song_{:02x}'.format(song_num)
-        song = Song(song_id)
+        song = Song(song_id, track_num)
         song.set_controller(self._controller)
         return song
 
