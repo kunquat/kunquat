@@ -17,11 +17,18 @@ from PyQt4.QtGui import *
 from kunquat.tracker.ui.model.patterninstance import PatternInstance
 from kunquat.tracker.ui.model.song import Song
 
-class AlbumTreeModelNode(object):
+class AlbumTreeModelNode():
 
     def __init__(self, payload, parent=None):
-       self._payload = payload
-       self._parent = parent
+        self._payload = payload
+        self._parent = parent
+        self._children = []
+
+    def add_child(self, child):
+        self._children.append(child)
+
+    def get_children(self):
+        return self._children
 
     def is_song_node(self):
         return isinstance(self._payload, Song)
@@ -42,12 +49,23 @@ class AlbumTreeModel(QAbstractItemModel):
         QAbstractItemModel.__init__(self)
 
         # we store the nodes because PyQT fails reference handling
-        self._nodes = []
+        self._songs = []
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._module = self._ui_model.get_module()
         self._album = self._module.get_album()
+        self._make_nodes()
+
+    def _make_nodes(self):
+        for track_num in xrange(self._album.get_track_count()):
+            song = self._album.get_song_by_track(track_num)
+            song_node = AlbumTreeModelNode(song)
+            for system_num in xrange(song.get_system_count()):
+                pat_instance = song.get_pattern_instance(system_num)
+                pat_inst_node = AlbumTreeModelNode(pat_instance, song_node)
+                song_node.add_child(pat_inst_node)
+            self._songs.append(song_node)
 
     # override
     def columnCount(self, _):
@@ -57,13 +75,12 @@ class AlbumTreeModel(QAbstractItemModel):
     def rowCount(self, parent):
         if not parent.isValid():
             # album, count tracks
-            track_count = self._album.get_track_count()
+            track_count = len(self._songs)
             return track_count
         node = parent.internalPointer()
         if node.is_song_node():
             # track, count systems
-            song = node.get_payload()
-            return song.get_system_count()
+            return len(node.get_children())
         elif node.is_pattern_instance_node():
             # system, no children
             return 0
@@ -74,16 +91,12 @@ class AlbumTreeModel(QAbstractItemModel):
     def index(self, row, col, parent):
         if not parent.isValid():
             # album, row indicates track
-            payload = self._album.get_song_by_track(row)
-            node = AlbumTreeModelNode(payload)
+            node = self._songs[row]
         else:
             # song, row indicates system
             parent_node = parent.internalPointer()
             assert parent_node.is_song_node()
-            song = parent_node.get_payload()
-            payload = song.get_pattern_instance(row)
-            node = AlbumTreeModelNode(payload, parent_node)
-        self._nodes.append(node)
+            node = parent_node.get_children()[row]
         return self.createIndex(row, col, node)
 
     # override
@@ -101,8 +114,7 @@ class AlbumTreeModel(QAbstractItemModel):
             # pattern instance, some song is the parent
             parent_node = node.get_parent()
             assert parent_node.is_song_node()
-            song = parent_node.get_payload()
-            track = song.get_containing_track_number()
+            track = parent_node.get_children().index(node)
             return self.createIndex(track, 0, parent_node)
         else:
             assert False
