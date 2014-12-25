@@ -40,7 +40,6 @@ class Editor(QWidget):
         v = QVBoxLayout()
         v.setMargin(0)
         v.addWidget(self._name)
-        v.addWidget(self._gen_editor)
         self.setLayout(v)
 
     def set_ins_id(self, ins_id):
