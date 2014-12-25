@@ -58,4 +58,46 @@ class Generator():
         key = self._get_key('p_gen_type.json')
         return self._store.get(key)
 
+    def get_type_params(self):
+        types = { 'add': GeneratorParamsAdd }
+        cons = types[self.get_type()]
+        return cons(self._ins_id, self._gen_id, self._controller)
+
+
+class GeneratorParams():
+
+    def __init__(self, ins_id, gen_id, controller):
+        self._key_prefix = '{}/{}/'.format(ins_id, gen_id)
+        self._controller = controller
+        self._store = controller.get_store()
+
+    def _get_key(self, impl_or_conf, subkey):
+        assert impl_or_conf in ('i/', 'c/')
+        return ''.join((self._key_prefix, impl_or_conf, subkey))
+
+    # Protected interface
+
+    def _get_value(self, subkey, default_value):
+        conf_key = self._get_key('c/', subkey)
+        if conf_key in self._store:
+            return self._store[conf_key]
+        impl_key = self._get_key('i/', subkey)
+        return self._store.get(impl_key, default_value)
+
+    def _set_value(self, subkey, value):
+        key = self._get_key('c/', subkey)
+        self._store[key] = value
+
+
+class GeneratorParamsAdd(GeneratorParams):
+
+    def __init__(self, ins_id, gen_id, controller):
+        GeneratorParams.__init__(self, ins_id, gen_id, controller)
+
+    def get_phase_mod_enabled(self):
+        return (self._get_value('p_i_mod.json', 0) == 1)
+
+    def set_phase_mod_enabled(self, enabled):
+        self._set_value('p_i_mod.json', 1 if enabled else 0)
+
 
