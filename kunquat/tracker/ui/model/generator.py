@@ -58,20 +58,4 @@ class Generator():
         key = self._get_key('p_gen_type.json')
         return self._store.get(key)
 
-    def set_type(self, gen_type):
-        key = self._get_key('p_gen_type.json')
-        self._store[key] = gen_type
-
-    def _reset_with_prefix(self, relprefix):
-        prefix = self._get_key(relprefix)
-        remove_keys = [k for k in self._store.iterkeys() if k.startswith(prefix)]
-        for key in remove_keys:
-            del self._store[key]
-
-    def reset_impl(self):
-        self._reset_with_prefix('i/')
-
-    def reset_conf(self):
-        self._reset_with_prefix('c/')
-
 
