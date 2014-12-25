@@ -100,4 +100,10 @@ class GeneratorParamsAdd(GeneratorParams):
     def set_phase_mod_enabled(self, enabled):
         self._set_value('p_i_mod.json', 1 if enabled else 0)
 
+    def get_mod_volume(self):
+        return self._get_value('p_f_mod_volume.json', 0.0)
+
+    def set_mod_volume(self, volume):
+        self._set_value('p_f_mod_volume.json', volume)
+
 
