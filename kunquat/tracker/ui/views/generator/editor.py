@@ -18,6 +18,7 @@ from name import Name
 from addgen import AddGen
 from samplegen import SampleGen
 from unsupportedgen import UnsupportedGen
+from kunquat.tracker.ui.views.keyboardmapper import KeyboardMapper
 
 
 _gen_classes = {
@@ -34,8 +35,11 @@ class Editor(QWidget):
         self._gen_id = None
         self._ui_model = None
         self._updater = None
+        self._control_manager = None
         self._name = Name()
         self._gen_editor = None
+
+        self._keyboard_mapper = KeyboardMapper()
 
         v = QVBoxLayout()
         v.setMargin(0)
@@ -55,7 +59,9 @@ class Editor(QWidget):
         assert self._gen_id != None
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
+        self._control_manager = ui_model.get_control_manager()
         self._name.set_ui_model(ui_model)
+        self._keyboard_mapper.set_ui_model(ui_model)
         self._updater.register_updater(self._perform_updates)
         self._set_type()
 
@@ -76,10 +82,28 @@ class Editor(QWidget):
 
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
+        self._keyboard_mapper.unregister_updaters()
         self._gen_editor.unregister_updaters()
         self._name.unregister_updaters()
 
     def _perform_updates(self, signals):
         pass
+
+    def keyPressEvent(self, event):
+        # TODO: This plays the complete instrument,
+        #       change after adding generator jamming support
+        module = self._ui_model.get_module()
+        control_id = module.get_control_id_by_instrument_id(self._ins_id)
+        if not control_id:
+            return
+
+        self._control_manager.set_control_id_override(control_id)
+        if not self._keyboard_mapper.process_typewriter_button_event(event):
+            event.ignore()
+        self._control_manager.set_control_id_override(None)
+
+    def keyReleaseEvent(self, event):
+        if not self._keyboard_mapper.process_typewriter_button_event(event):
+            event.ignore()
 
 
