@@ -15,7 +15,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 from kunquat.tracker.ui.views.envelope import Envelope
-from numberslider import NumberSlider
+from kunquat.tracker.ui.views.numberslider import NumberSlider
 
 
 class TimeEnvelope(QWidget):

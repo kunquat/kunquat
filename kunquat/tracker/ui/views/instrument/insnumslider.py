@@ -14,7 +14,7 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from numberslider import NumberSlider
+from kunquat.tracker.ui.views.numberslider import NumberSlider
 
 
 class InsNumSlider(NumberSlider):
