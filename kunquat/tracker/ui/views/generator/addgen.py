@@ -101,7 +101,7 @@ class AddGen(QWidget):
 class ModVolume(GenNumSlider):
 
     def __init__(self):
-        GenNumSlider.__init__(self, 1, -64.0, 24.0)
+        GenNumSlider.__init__(self, 2, -64.0, 24.0, title='Mod volume')
         self.set_number(0)
 
     def _get_add_params(self):
