@@ -106,4 +106,19 @@ class GeneratorParamsAdd(GeneratorParams):
     def set_mod_volume(self, volume):
         self._set_value('p_f_mod_volume.json', volume)
 
+    def get_mod_envelope_enabled(self):
+        return self._get_value('p_b_mod_env_enabled.json', False)
+
+    def set_mod_envelope_enabled(self, enabled):
+        self._set_value('p_b_mod_env_enabled.json', enabled)
+
+    def get_mod_envelope(self):
+        ret_env = { 'nodes': [ [0, 1], [1, 1] ], 'smooth': False }
+        stored_env = self._get_value('p_e_mod_env.json', None) or {}
+        ret_env.update(stored_env)
+        return ret_env
+
+    def set_mod_envelope(self, envelope):
+        self._set_value('p_e_mod_env.json', envelope)
+
 
