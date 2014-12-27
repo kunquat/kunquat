@@ -429,20 +429,18 @@ static uint32_t Generator_add_mix(
                 double* next_node = Envelope_get_node(
                         add->mod_env,
                         add_state->mod_env_next_node);
-                assert(next_node != NULL);
 
                 double scale = NAN;
 
-                if (add_state->mod_env_pos >= next_node[0])
+                if ((next_node == NULL) || (add_state->mod_env_pos >= next_node[0]))
                 {
                     ++add_state->mod_env_next_node;
-                    scale = Envelope_get_value(add->mod_env,
-                                               add_state->mod_env_pos);
+                    scale = Envelope_get_value(add->mod_env, add_state->mod_env_pos);
 
                     if (!isfinite(scale))
                     {
-                        scale = Envelope_get_node(add->mod_env,
-                                Envelope_node_count(add->mod_env) - 1)[1];
+                        scale = Envelope_get_node(
+                                add->mod_env, Envelope_node_count(add->mod_env) - 1)[1];
                         if (scale == 0)
                             add_state->mod_active = false;
                     }
@@ -633,9 +631,6 @@ static bool Generator_add_set_mod_env(
         node = Envelope_get_node(
                 value,
                 Envelope_node_count(value) - 1);
-
-        if (node[1] != 0)
-            valid = false;
 
         for (int i = 0; i < Envelope_node_count(value); ++i)
         {
