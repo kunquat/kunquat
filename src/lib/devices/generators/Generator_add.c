@@ -58,6 +58,7 @@ typedef struct Generator_add
     Sample* mod;
     Mod_mode mod_mode;
     double mod_volume;
+    bool mod_env_enabled;
     const Envelope* mod_env;
     double mod_env_scale_amount;
     double mod_env_center;
@@ -79,6 +80,7 @@ static Set_num_list_func    Generator_add_set_base;
 static Set_num_list_func    Generator_add_set_mod_base;
 static Set_int_func         Generator_add_set_mod;
 static Set_float_func       Generator_add_set_mod_volume;
+static Set_bool_func        Generator_add_set_mod_env_enabled;
 static Set_envelope_func    Generator_add_set_mod_env;
 static Set_float_func       Generator_add_set_mod_env_scale_amount;
 static Set_float_func       Generator_add_set_mod_env_scale_center;
@@ -149,6 +151,12 @@ static bool Generator_add_init(Device_impl* dimpl)
             0.0,
             Generator_add_set_mod_volume,
             NULL);
+    reg_success &= Device_impl_register_set_bool(
+            &add->parent,
+            "p_b_mod_env_enabled.json",
+            false,
+            Generator_add_set_mod_env_enabled,
+            NULL);
     reg_success &= Device_impl_register_set_envelope(
             &add->parent,
             "p_e_mod_env.json",
@@ -211,6 +219,7 @@ static bool Generator_add_init(Device_impl* dimpl)
     add->mod = NULL;
     add->mod_mode = MOD_DISABLED;
     add->mod_volume = 1;
+    add->mod_env_enabled = false;
     add->mod_env = NULL;
     add->mod_env_scale_amount = 0;
     add->mod_env_center = 440;
@@ -415,7 +424,7 @@ static uint32_t Generator_add_mix(
                 mod_val *= factor;
             }
 
-            if (add->mod_env != NULL)
+            if (add->mod_env_enabled && (add->mod_env != NULL))
             {
                 if (add->mod_env_scale_amount != 0 &&
                         (vstate->actual_pitch != vstate->prev_actual_pitch ||
@@ -606,6 +615,20 @@ static bool Generator_add_set_mod_volume(
         add->mod_volume = exp2(value / 6.0);
     else
         add->mod_volume = 1.0;
+
+    return true;
+}
+
+
+static bool Generator_add_set_mod_env_enabled(
+        Device_impl* dimpl, Key_indices indices, bool enabled)
+{
+    assert(dimpl != NULL);
+    assert(indices != NULL);
+    (void)indices;
+
+    Generator_add* add = (Generator_add*)dimpl;
+    add->mod_env_enabled = enabled;
 
     return true;
 }
