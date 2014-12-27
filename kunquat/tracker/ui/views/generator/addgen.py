@@ -15,6 +15,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 from gennumslider import GenNumSlider
+from kunquat.tracker.ui.views.envelope import Envelope
 
 
 class AddGen(QWidget):
@@ -28,13 +29,17 @@ class AddGen(QWidget):
 
         self._phase_mod_enabled_toggle = QCheckBox('Phase modulation')
         self._phase_mod_volume = ModVolume()
+        self._phase_mod_env = ModEnv()
 
         self._phase_mod_container = QWidget()
         pmc_layout = QVBoxLayout()
+        pmc_layout.setSpacing(0)
         pmc_layout.addWidget(self._phase_mod_volume)
+        pmc_layout.addWidget(self._phase_mod_env)
         self._phase_mod_container.setLayout(pmc_layout)
 
         v = QVBoxLayout()
+        v.setSpacing(0)
         v.addWidget(self._phase_mod_enabled_toggle)
         v.addWidget(self._phase_mod_container)
         self.setLayout(v)
@@ -44,14 +49,17 @@ class AddGen(QWidget):
     def set_ins_id(self, ins_id):
         self._ins_id = ins_id
         self._phase_mod_volume.set_ins_id(ins_id)
+        self._phase_mod_env.set_ins_id(ins_id)
 
     def set_gen_id(self, gen_id):
         self._gen_id = gen_id
         self._phase_mod_volume.set_gen_id(gen_id)
+        self._phase_mod_env.set_gen_id(gen_id)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._phase_mod_volume.set_ui_model(ui_model)
+        self._phase_mod_env.set_ui_model(ui_model)
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
         self._update_gen()
@@ -63,6 +71,7 @@ class AddGen(QWidget):
 
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
+        self._phase_mod_env.unregister_updaters()
         self._phase_mod_volume.unregister_updaters()
 
     def _get_update_signal_type(self):
@@ -122,5 +131,101 @@ class ModVolume(GenNumSlider):
 
     def _get_update_signal_type(self):
         return ''.join(('signal_add_mod_volume_', self._ins_id, self._gen_id))
+
+
+class ModEnv(QWidget):
+
+    def __init__(self):
+        QWidget.__init__(self)
+        self._ins_id = None
+        self._gen_id = None
+        self._ui_model = None
+        self._updater = None
+
+        self._enabled_toggle = QCheckBox('Enabled')
+
+        h = QHBoxLayout()
+        h.addWidget(self._enabled_toggle)
+
+        self._envelope = self._make_envelope_widget()
+
+        v = QVBoxLayout()
+        v.setMargin(0)
+        v.setSpacing(0)
+        v.addLayout(h)
+        v.addWidget(self._envelope)
+        self.setLayout(v)
+
+    def set_ins_id(self, ins_id):
+        self._ins_id = ins_id
+
+    def set_gen_id(self, gen_id):
+        self._gen_id = gen_id
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+        self._update_envelope()
+
+        QObject.connect(
+                self._enabled_toggle,
+                SIGNAL('stateChanged(int)'),
+                self._enabled_changed)
+        QObject.connect(
+                self._envelope,
+                SIGNAL('envelopeChanged()'),
+                self._envelope_changed)
+
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _make_envelope_widget(self):
+        envelope = Envelope()
+        envelope.set_node_count_max(32)
+        envelope.set_y_range(0, 1)
+        envelope.set_x_range(0, 4)
+        envelope.set_first_lock(True, False)
+        envelope.set_x_range_adjust(False, True)
+        return envelope
+
+    def _get_update_signal_type(self):
+        return ''.join(('signal_add_mod_env_', self._ins_id, self._gen_id))
+
+    def _perform_updates(self, signals):
+        update_signals = set(['signal_instrument', self._get_update_signal_type()])
+        if not signals.isdisjoint(update_signals):
+            self._update_envelope()
+
+    def _get_add_params(self):
+        module = self._ui_model.get_module()
+        instrument = module.get_instrument(self._ins_id)
+        generator = instrument.get_generator(self._gen_id)
+        add_params = generator.get_type_params()
+        return add_params
+
+    def _update_envelope(self):
+        add_params = self._get_add_params()
+
+        old_block = self._enabled_toggle.blockSignals(True)
+        self._enabled_toggle.setCheckState(
+                Qt.Checked if add_params.get_mod_envelope_enabled() else Qt.Unchecked)
+        self._enabled_toggle.blockSignals(old_block)
+
+        envelope = add_params.get_mod_envelope()
+        self._envelope.set_nodes(envelope['nodes'])
+
+    def _enabled_changed(self, state):
+        new_enabled = (state == Qt.Checked)
+        add_params = self._get_add_params()
+        add_params.set_mod_envelope_enabled(new_enabled)
+        self._updater.signal_update(set([self._get_update_signal_type()]))
+
+    def _envelope_changed(self):
+        new_nodes, _ = self._envelope.get_clear_changed()
+        add_params = self._get_add_params()
+        add_params.set_mod_envelope({ 'nodes': new_nodes })
+        add_params.set_mod_envelope_enabled(True)
+        self._updater.signal_update(set([self._get_update_signal_type()]))
 
 
