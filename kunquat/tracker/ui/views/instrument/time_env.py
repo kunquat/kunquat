@@ -101,9 +101,7 @@ class TimeEnvelope(QWidget):
             self._update_envelope()
 
     def _update_envelope(self):
-        module = self._ui_model.get_module()
-        instrument = module.get_instrument(self._ins_id)
-        envelope = self._get_instrument_envelope(instrument)
+        envelope = self._get_envelope_data()
 
         old_block = self._enabled_toggle.blockSignals(True)
         self._enabled_toggle.setCheckState(
@@ -127,13 +125,10 @@ class TimeEnvelope(QWidget):
     def _bool_enabled_changed(self, key, state):
         new_enabled = (state == Qt.Checked)
 
-        module = self._ui_model.get_module()
-        instrument = module.get_instrument(self._ins_id)
-        envelope = self._get_instrument_envelope(instrument)
-
+        envelope = self._get_envelope_data()
         envelope[key] = new_enabled
 
-        self._set_instrument_envelope(instrument, envelope)
+        self._set_envelope_data(envelope)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _enabled_changed(self, state):
@@ -143,13 +138,11 @@ class TimeEnvelope(QWidget):
         self._bool_enabled_changed('loop', self._loop_toggle.checkState())
 
     def _scale_number_changed(self, key, num):
-        module = self._ui_model.get_module()
-        instrument = module.get_instrument(self._ins_id)
-        envelope = self._get_instrument_envelope(instrument)
+        envelope = self._get_envelope_data()
 
         envelope[key] = num
 
-        self._set_instrument_envelope(instrument, envelope)
+        self._set_envelope_data(envelope)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _scale_amount_changed(self, num):
@@ -161,10 +154,7 @@ class TimeEnvelope(QWidget):
     def _envelope_changed(self):
         new_nodes, new_loop = self._envelope.get_clear_changed()
 
-        module = self._ui_model.get_module()
-        instrument = module.get_instrument(self._ins_id)
-        envelope = self._get_instrument_envelope(instrument)
-
+        envelope = self._get_envelope_data()
         if new_nodes:
             envelope['envelope']['nodes'] = new_nodes
         if new_loop:
@@ -173,10 +163,10 @@ class TimeEnvelope(QWidget):
         if new_nodes or new_loop:
             envelope['enabled'] = True
 
-        self._set_instrument_envelope(instrument, envelope)
+        self._set_envelope_data(envelope)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
-    # Protected interface
+    # Protected callbacks
 
     def _get_title(self):
         raise NotImplementedError
@@ -190,10 +180,10 @@ class TimeEnvelope(QWidget):
     def _get_update_signal_type(self):
         raise NotImplementedError
 
-    def _get_instrument_envelope(self, instrument):
+    def _get_envelope_data(self):
         raise NotImplementedError
 
-    def _set_instrument_envelope(self, instrument, envelope):
+    def _set_envelope_data(self, envelope):
         raise NotImplementedError
 
 
