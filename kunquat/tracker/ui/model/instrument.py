@@ -134,33 +134,91 @@ class Instrument():
     def set_default_force(self, default_force):
         self._set_value_of_ins_dict('force', default_force)
 
-    def get_force_envelope(self):
+    def _get_force_envelope_dict(self):
         key = self._get_key('p_envelope_force.json')
         try:
-            envelope = get_default_value(key)
-            default_markers = envelope['envelope']['marks']
-            envelope.update(self._store[key])
-            if 'marks' not in envelope['envelope']:
-                envelope['envelope']['marks'] = default_markers
+            d = get_default_value(key)
+            default_markers = d['envelope']['marks']
+            d.update(self._store[key])
+            if 'marks' not in d['envelope']:
+                d['envelope']['marks'] = default_markers
         except KeyError:
             pass
-        return envelope
+        return d
+
+    def _set_force_envelope_dict_value(self, dkey, value):
+        key = self._get_key('p_envelope_force.json')
+        d = self._get_force_envelope_dict()
+        d[dkey] = value
+        self._store[key] = d
+
+    def get_force_envelope(self):
+        return self._get_force_envelope_dict()['envelope']
 
     def set_force_envelope(self, envelope):
-        key = self._get_key('p_envelope_force.json')
-        self._store[key] = envelope
+        self._set_force_envelope_dict_value('envelope', envelope)
 
-    def get_force_release_envelope(self):
+    def get_force_envelope_enabled(self):
+        return self._get_force_envelope_dict()['enabled']
+
+    def set_force_envelope_enabled(self, enabled):
+        self._set_force_envelope_dict_value('enabled', enabled)
+
+    def get_force_envelope_loop_enabled(self):
+        return self._get_force_envelope_dict()['loop']
+
+    def set_force_envelope_loop_enabled(self, enabled):
+        self._set_force_envelope_dict_value('loop', enabled)
+
+    def get_force_envelope_scale_amount(self):
+        return self._get_force_envelope_dict()['scale_amount']
+
+    def set_force_envelope_scale_amount(self, value):
+        self._set_force_envelope_dict_value('scale_amount', value)
+
+    def get_force_envelope_scale_center(self):
+        return self._get_force_envelope_dict()['scale_center']
+
+    def set_force_envelope_scale_center(self, value):
+        self._set_force_envelope_dict_value('scale_center', value)
+
+    def _get_force_release_envelope_dict(self):
         key = self._get_key('p_envelope_force_release.json')
         try:
-            envelope = get_default_value(key)
-            envelope.update(self._store[key])
+            d = get_default_value(key)
+            d.update(self._store[key])
         except KeyError:
             pass
-        return envelope
+        return d
+
+    def _set_force_release_envelope_dict_value(self, dkey, value):
+        key = self._get_key('p_envelope_force_release.json')
+        d = self._get_force_release_envelope_dict()
+        d[dkey] = value
+        self._store[key] = d
+
+    def get_force_release_envelope(self):
+        return self._get_force_release_envelope_dict()['envelope']
 
     def set_force_release_envelope(self, envelope):
-        key = self._get_key('p_envelope_force_release.json')
-        self._store[key] = envelope
+        self._set_force_release_envelope_dict_value('envelope', envelope)
+
+    def get_force_release_envelope_enabled(self):
+        return self._get_force_release_envelope_dict()['enabled']
+
+    def set_force_release_envelope_enabled(self, enabled):
+        self._set_force_release_envelope_dict_value('enabled', enabled)
+
+    def get_force_release_envelope_scale_amount(self):
+        return self._get_force_release_envelope_dict()['scale_amount']
+
+    def set_force_release_envelope_scale_amount(self, value):
+        self._set_force_release_envelope_dict_value('scale_amount', value)
+
+    def get_force_release_envelope_scale_center(self):
+        return self._get_force_release_envelope_dict()['scale_center']
+
+    def set_force_release_envelope_scale_center(self, value):
+        self._set_force_release_envelope_dict_value('scale_center', value)
 
 
