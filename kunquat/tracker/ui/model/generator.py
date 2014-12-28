@@ -11,6 +11,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+import math
+
 from kunquat.kunquat.kunquat import get_default_value
 
 
@@ -93,6 +95,14 @@ class GeneratorParamsAdd(GeneratorParams):
 
     def __init__(self, ins_id, gen_id, controller):
         GeneratorParams.__init__(self, ins_id, gen_id, controller)
+
+    def get_base_waveform(self):
+        base = self._get_value('p_ln_base.json', None)
+        if not base:
+            sample_count = 4096
+            base = [math.sin(phase * math.pi * 2 / sample_count)
+                    for phase in xrange(sample_count)]
+        return base
 
     def get_phase_mod_enabled(self):
         return (self._get_value('p_i_mod.json', 0) == 1)
