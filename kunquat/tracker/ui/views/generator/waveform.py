@@ -81,6 +81,9 @@ class Waveform(QWidget):
 
         if not self._path:
             self._path = QPainterPath()
+            self._path.moveTo(-16, self._waveform[-16])
+            for i in xrange(-15, 0):
+                self._path.lineTo(i, self._waveform[i])
             for i, sample in enumerate(self._waveform):
                 self._path.lineTo(i, sample)
             self._path.lineTo(len(self._waveform), self._waveform[0])
@@ -98,7 +101,7 @@ class Waveform(QWidget):
         painter.drawLine(0, center_y, self.width() - 1, center_y)
 
         # Draw the waveform
-        painter.setTransform(QTransform().translate(0.5, 0.5).scale(
+        painter.setTransform(QTransform().translate(0, 0.5).scale(
             self.width() / float(sample_count), -(self.height() - 1) / 2.0).translate(
                 0, -1))
         painter.setPen(self._config['waveform_colour'])
