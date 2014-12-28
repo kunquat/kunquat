@@ -645,7 +645,9 @@ static bool Generator_add_set_mod_env(
 
     bool valid = true;
 
-    if (value != NULL && Envelope_node_count(value) > 1)
+    if ((value != NULL) &&
+            (Envelope_node_count(value) > 1) &&
+            (Envelope_node_count(value) <= 32))
     {
         double* node = Envelope_get_node(value, 0);
         if (node[0] != 0)
