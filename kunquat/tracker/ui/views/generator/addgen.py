@@ -15,8 +15,9 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 from gennumslider import GenNumSlider
-from kunquat.tracker.ui.views.numberslider import NumberSlider
 from kunquat.tracker.ui.views.envelope import Envelope
+from kunquat.tracker.ui.views.numberslider import NumberSlider
+from kunquat.tracker.ui.views.instrument.time_env import TimeEnvelope
 
 
 class AddGen(QWidget):
@@ -134,64 +135,20 @@ class ModVolume(GenNumSlider):
         return ''.join(('signal_add_mod_volume_', self._ins_id, self._gen_id))
 
 
-class ModEnv(QWidget):
+class ModEnv(TimeEnvelope):
 
     def __init__(self):
-        QWidget.__init__(self)
-        self._ins_id = None
+        TimeEnvelope.__init__(self)
         self._gen_id = None
-        self._ui_model = None
-        self._updater = None
-
-        self._enabled_toggle = QCheckBox('Enabled')
-        self._scale_amount = NumberSlider(2, -4, 4, title='Scale amount:')
-        self._scale_center = NumberSlider(0, -3600, 3600, title='Scale center:')
-
-        h = QHBoxLayout()
-        h.addWidget(self._enabled_toggle)
-        h.addWidget(self._scale_amount)
-        h.addWidget(self._scale_center)
-
-        self._envelope = self._make_envelope_widget()
-
-        v = QVBoxLayout()
-        v.setMargin(0)
-        v.setSpacing(0)
-        v.addLayout(h)
-        v.addWidget(self._envelope)
-        self.setLayout(v)
-
-    def set_ins_id(self, ins_id):
-        self._ins_id = ins_id
 
     def set_gen_id(self, gen_id):
         self._gen_id = gen_id
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-        self._update_envelope()
+    def _get_title(self):
+        return 'Mod envelope'
 
-        QObject.connect(
-                self._enabled_toggle,
-                SIGNAL('stateChanged(int)'),
-                self._enabled_changed)
-        QObject.connect(
-                self._scale_amount,
-                SIGNAL('numberChanged(float)'),
-                self._scale_amount_changed)
-        QObject.connect(
-                self._scale_center,
-                SIGNAL('numberChanged(float)'),
-                self._scale_center_changed)
-        QObject.connect(
-                self._envelope,
-                SIGNAL('envelopeChanged()'),
-                self._envelope_changed)
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
+    def _allow_loop(self):
+        return False
 
     def _make_envelope_widget(self):
         envelope = Envelope()
@@ -205,10 +162,29 @@ class ModEnv(QWidget):
     def _get_update_signal_type(self):
         return ''.join(('signal_add_mod_env_', self._ins_id, self._gen_id))
 
-    def _perform_updates(self, signals):
-        update_signals = set(['signal_instrument', self._get_update_signal_type()])
-        if not signals.isdisjoint(update_signals):
-            self._update_envelope()
+    def _get_enabled(self):
+        return self._get_add_params().get_mod_envelope_enabled()
+
+    def _set_enabled(self, enabled):
+        self._get_add_params().set_mod_envelope_enabled(enabled)
+
+    def _get_scale_amount(self):
+        return self._get_add_params().get_mod_envelope_scale_amount()
+
+    def _set_scale_amount(self, value):
+        self._get_add_params().set_mod_envelope_scale_amount(value)
+
+    def _get_scale_center(self):
+        return self._get_add_params().get_mod_envelope_scale_center()
+
+    def _set_scale_center(self, value):
+        self._get_add_params().set_mod_envelope_scale_center(value)
+
+    def _get_envelope_data(self):
+        return self._get_add_params().get_mod_envelope()
+
+    def _set_envelope_data(self, envelope):
+        self._get_add_params().set_mod_envelope(envelope)
 
     def _get_add_params(self):
         module = self._ui_model.get_module()
@@ -216,42 +192,5 @@ class ModEnv(QWidget):
         generator = instrument.get_generator(self._gen_id)
         add_params = generator.get_type_params()
         return add_params
-
-    def _update_envelope(self):
-        add_params = self._get_add_params()
-
-        old_block = self._enabled_toggle.blockSignals(True)
-        self._enabled_toggle.setCheckState(
-                Qt.Checked if add_params.get_mod_envelope_enabled() else Qt.Unchecked)
-        self._enabled_toggle.blockSignals(old_block)
-
-        self._scale_amount.set_number(add_params.get_mod_envelope_scale_amount())
-        self._scale_center.set_number(add_params.get_mod_envelope_scale_center())
-
-        envelope = add_params.get_mod_envelope()
-        self._envelope.set_nodes(envelope['nodes'])
-
-    def _enabled_changed(self, state):
-        new_enabled = (state == Qt.Checked)
-        add_params = self._get_add_params()
-        add_params.set_mod_envelope_enabled(new_enabled)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
-
-    def _scale_amount_changed(self, num):
-        add_params = self._get_add_params()
-        add_params.set_mod_envelope_scale_amount(num)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
-
-    def _scale_center_changed(self, num):
-        add_params = self._get_add_params()
-        add_params.set_mod_envelope_scale_center(num)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
-
-    def _envelope_changed(self):
-        new_nodes, _ = self._envelope.get_clear_changed()
-        add_params = self._get_add_params()
-        add_params.set_mod_envelope({ 'nodes': new_nodes })
-        add_params.set_mod_envelope_enabled(True)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
 
 
