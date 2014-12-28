@@ -15,6 +15,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 from gennumslider import GenNumSlider
+from waveform import Waveform
 from kunquat.tracker.ui.views.envelope import Envelope
 from kunquat.tracker.ui.views.numberslider import NumberSlider
 from kunquat.tracker.ui.views.instrument.time_env import TimeEnvelope
@@ -29,6 +30,12 @@ class AddGen(QWidget):
         self._ui_model = None
         self._updater = None
 
+        self._base_waveform = BaseWaveform()
+
+        base_layout = QVBoxLayout()
+        base_layout.setSpacing(0)
+        base_layout.addWidget(self._base_waveform)
+
         self._phase_mod_enabled_toggle = QCheckBox('Phase modulation')
         self._phase_mod_volume = ModVolume()
         self._phase_mod_env = ModEnv()
@@ -40,26 +47,34 @@ class AddGen(QWidget):
         pmc_layout.addWidget(self._phase_mod_env)
         self._phase_mod_container.setLayout(pmc_layout)
 
-        v = QVBoxLayout()
-        v.setSpacing(0)
-        v.addWidget(self._phase_mod_enabled_toggle)
-        v.addWidget(self._phase_mod_container)
-        self.setLayout(v)
+        mod_layout = QVBoxLayout()
+        mod_layout.setSpacing(0)
+        mod_layout.addWidget(self._phase_mod_enabled_toggle)
+        mod_layout.addWidget(self._phase_mod_container)
+
+        h = QHBoxLayout()
+        h.setSpacing(5)
+        h.addLayout(base_layout)
+        h.addLayout(mod_layout)
+        self.setLayout(h)
 
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
 
     def set_ins_id(self, ins_id):
         self._ins_id = ins_id
+        self._base_waveform.set_ins_id(ins_id)
         self._phase_mod_volume.set_ins_id(ins_id)
         self._phase_mod_env.set_ins_id(ins_id)
 
     def set_gen_id(self, gen_id):
         self._gen_id = gen_id
+        self._base_waveform.set_gen_id(gen_id)
         self._phase_mod_volume.set_gen_id(gen_id)
         self._phase_mod_env.set_gen_id(gen_id)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
+        self._base_waveform.set_ui_model(ui_model)
         self._phase_mod_volume.set_ui_model(ui_model)
         self._phase_mod_env.set_ui_model(ui_model)
         self._updater = ui_model.get_updater()
@@ -75,6 +90,7 @@ class AddGen(QWidget):
         self._updater.unregister_updater(self._perform_updates)
         self._phase_mod_env.unregister_updaters()
         self._phase_mod_volume.unregister_updaters()
+        self._base_waveform.unregister_updaters()
 
     def _get_update_signal_type(self):
         return ''.join(('signal_gen_add_', self._ins_id, self._gen_id))
@@ -107,6 +123,26 @@ class AddGen(QWidget):
         add_params = self._get_add_params()
         add_params.set_phase_mod_enabled(new_enabled)
         self._updater.signal_update(set([self._get_update_signal_type()]))
+
+
+class BaseWaveform(Waveform):
+
+    def __init__(self):
+        Waveform.__init__(self)
+
+    def _get_add_params(self):
+        module = self._ui_model.get_module()
+        instrument = module.get_instrument(self._ins_id)
+        generator = instrument.get_generator(self._gen_id)
+        add_params = generator.get_type_params()
+        return add_params
+
+    def _get_update_signal_type(self):
+        return ''.join(('signal_gen_add_base_', self._ins_id, self._gen_id))
+
+    def _get_waveform_data(self):
+        add_params = self._get_add_params()
+        return add_params.get_base_waveform()
 
 
 class ModVolume(GenNumSlider):
