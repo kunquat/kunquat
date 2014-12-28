@@ -15,6 +15,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 from gennumslider import GenNumSlider
+from kunquat.tracker.ui.views.numberslider import NumberSlider
 from kunquat.tracker.ui.views.envelope import Envelope
 
 
@@ -143,9 +144,13 @@ class ModEnv(QWidget):
         self._updater = None
 
         self._enabled_toggle = QCheckBox('Enabled')
+        self._scale_amount = NumberSlider(2, -4, 4, title='Scale amount:')
+        self._scale_center = NumberSlider(0, -3600, 3600, title='Scale center:')
 
         h = QHBoxLayout()
         h.addWidget(self._enabled_toggle)
+        h.addWidget(self._scale_amount)
+        h.addWidget(self._scale_center)
 
         self._envelope = self._make_envelope_widget()
 
@@ -172,6 +177,14 @@ class ModEnv(QWidget):
                 self._enabled_toggle,
                 SIGNAL('stateChanged(int)'),
                 self._enabled_changed)
+        QObject.connect(
+                self._scale_amount,
+                SIGNAL('numberChanged(float)'),
+                self._scale_amount_changed)
+        QObject.connect(
+                self._scale_center,
+                SIGNAL('numberChanged(float)'),
+                self._scale_center_changed)
         QObject.connect(
                 self._envelope,
                 SIGNAL('envelopeChanged()'),
@@ -212,6 +225,9 @@ class ModEnv(QWidget):
                 Qt.Checked if add_params.get_mod_envelope_enabled() else Qt.Unchecked)
         self._enabled_toggle.blockSignals(old_block)
 
+        self._scale_amount.set_number(add_params.get_mod_envelope_scale_amount())
+        self._scale_center.set_number(add_params.get_mod_envelope_scale_center())
+
         envelope = add_params.get_mod_envelope()
         self._envelope.set_nodes(envelope['nodes'])
 
@@ -219,6 +235,16 @@ class ModEnv(QWidget):
         new_enabled = (state == Qt.Checked)
         add_params = self._get_add_params()
         add_params.set_mod_envelope_enabled(new_enabled)
+        self._updater.signal_update(set([self._get_update_signal_type()]))
+
+    def _scale_amount_changed(self, num):
+        add_params = self._get_add_params()
+        add_params.set_mod_envelope_scale_amount(num)
+        self._updater.signal_update(set([self._get_update_signal_type()]))
+
+    def _scale_center_changed(self, num):
+        add_params = self._get_add_params()
+        add_params.set_mod_envelope_scale_center(num)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _envelope_changed(self):

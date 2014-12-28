@@ -121,4 +121,16 @@ class GeneratorParamsAdd(GeneratorParams):
     def set_mod_envelope(self, envelope):
         self._set_value('p_e_mod_env.json', envelope)
 
+    def get_mod_envelope_scale_amount(self):
+        return self._get_value('p_f_mod_env_scale_amount.json', 0)
+
+    def set_mod_envelope_scale_amount(self, value):
+        self._set_value('p_f_mod_env_scale_amount.json', value)
+
+    def get_mod_envelope_scale_center(self):
+        return self._get_value('p_f_mod_env_scale_center.json', 0)
+
+    def set_mod_envelope_scale_center(self, value):
+        self._set_value('p_f_mod_env_scale_center.json', value)
+
 
