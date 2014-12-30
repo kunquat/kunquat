@@ -28,10 +28,6 @@ class Waveform(QWidget):
 
     def __init__(self, config={}):
         QWidget.__init__(self)
-        self._ins_id = None
-        self._gen_id = None
-        self._ui_model = None
-        self._updater = None
 
         self._config = None
         self._set_config(config)
@@ -47,30 +43,15 @@ class Waveform(QWidget):
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
         self.setFocusPolicy(Qt.NoFocus)
 
-    def set_ins_id(self, ins_id):
-        self._ins_id = ins_id
-
-    def set_gen_id(self, gen_id):
-        self._gen_id = gen_id
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
+    def set_waveform(self, waveform):
+        self._waveform = waveform
+        self._path = None
+        self._pixmap = None
+        self.update()
 
     def _set_config(self, config):
         self._config = DEFAULT_CONFIG.copy()
         self._config.update(config)
-
-    def _perform_updates(self, signals):
-        update_signals = set(['signal_instrument', self._get_update_signal_type()])
-        if not signals.isdisjoint(update_signals):
-            self._pixmap = None
-            self._waveform = None
-            self.update()
 
     def _update_pixmap(self):
         if not self._waveform:
@@ -132,13 +113,5 @@ class Waveform(QWidget):
 
     def sizeHint(self):
         return QSize(100, 50)
-
-    # Protected callbacks
-
-    def _get_update_signal_type(self):
-        raise NotImplementedError
-
-    def _get_waveform_data(self):
-        raise NotImplementedError
 
 

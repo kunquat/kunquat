@@ -30,7 +30,7 @@ class AddGen(QWidget):
         self._ui_model = None
         self._updater = None
 
-        self._base_waveform = BaseWaveform()
+        self._base_waveform = WaveformEditor()
 
         base_layout = QVBoxLayout()
         base_layout.setSpacing(0)
@@ -125,10 +125,56 @@ class AddGen(QWidget):
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
 
-class BaseWaveform(Waveform):
+class WaveformEditor(QWidget):
 
     def __init__(self):
-        Waveform.__init__(self)
+        QWidget.__init__(self)
+        self._ins_id = None
+        self._gen_id = None
+        self._ui_model = None
+        self._updater = None
+
+        self._prewarp_sliders = []
+        self._base_func_selector = QComboBox()
+        self._postwarp_sliders = []
+        self._waveform = Waveform()
+
+        v = QVBoxLayout()
+        for widget in self._prewarp_sliders:
+            v.addWidget(widget)
+        v.addWidget(self._base_func_selector)
+        for widget in self._postwarp_sliders:
+            v.addWidget(widget)
+        v.addWidget(self._waveform)
+        self.setLayout(v)
+
+    def set_ins_id(self, ins_id):
+        self._ins_id = ins_id
+
+    def set_gen_id(self, gen_id):
+        self._gen_id = gen_id
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+        self._update_all()
+
+        QObject.connect(
+                self._base_func_selector,
+                SIGNAL('currentIndexChanged(int)'),
+                self._base_func_selected)
+
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _get_update_signal_type(self):
+        return ''.join(('signal_gen_add_base_', self._ins_id, self._gen_id))
+
+    def _perform_updates(self, signals):
+        update_signals = set(['signal_instrument', self._get_update_signal_type()])
+        if not signals.isdisjoint(update_signals):
+            self._update_all()
 
     def _get_add_params(self):
         module = self._ui_model.get_module()
@@ -137,12 +183,25 @@ class BaseWaveform(Waveform):
         add_params = generator.get_type_params()
         return add_params
 
-    def _get_update_signal_type(self):
-        return ''.join(('signal_gen_add_base_', self._ins_id, self._gen_id))
-
-    def _get_waveform_data(self):
+    def _update_all(self):
         add_params = self._get_add_params()
-        return add_params.get_base_waveform()
+
+        selected_base_func = add_params.get_base_waveform_func()
+        old_block = self._base_func_selector.blockSignals(True)
+        self._base_func_selector.clear()
+        for i, name in enumerate(add_params.get_base_waveform_func_names()):
+            self._base_func_selector.addItem(name)
+            if name == selected_base_func:
+                self._base_func_selector.setCurrentIndex(i)
+        self._base_func_selector.blockSignals(old_block)
+
+        self._waveform.set_waveform(add_params.get_base_waveform())
+
+    def _base_func_selected(self, index):
+        add_params = self._get_add_params()
+        func_names = add_params.get_base_waveform_func_names()
+        add_params.set_base_waveform_func(func_names[index])
+        self._updater.signal_update(set([self._get_update_signal_type()]))
 
 
 class ModVolume(GenNumSlider):
