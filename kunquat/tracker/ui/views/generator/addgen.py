@@ -189,10 +189,14 @@ class WaveformEditor(QWidget):
         selected_base_func = add_params.get_base_waveform_func()
         old_block = self._base_func_selector.blockSignals(True)
         self._base_func_selector.clear()
-        for i, name in enumerate(add_params.get_base_waveform_func_names()):
+        func_names = add_params.get_base_waveform_func_names()
+        for i, name in enumerate(func_names):
             self._base_func_selector.addItem(name)
             if name == selected_base_func:
                 self._base_func_selector.setCurrentIndex(i)
+        if not selected_base_func:
+            self._base_func_selector.addItem('Custom')
+            self._base_func_selector.setCurrentIndex(len(func_names))
         self._base_func_selector.blockSignals(old_block)
 
         self._waveform.set_waveform(add_params.get_base_waveform())
