@@ -527,7 +527,7 @@ static uint32_t Generator_add_mix(
 static double sine(double phase, double modifier)
 {
     (void)modifier;
-    return sin(phase * PI * 2);
+    return -sin(phase * PI * 2);
 }
 
 
