@@ -91,7 +91,25 @@ class GeneratorParams():
         self._store[key] = value
 
 
+def wave_sine(x):
+    return math.sin(x * math.pi)
+
+def wave_triangle(x):
+    if x < -0.5:
+        return -x * 2 - 2
+    elif x > 0.5:
+        return -x * 2 + 2
+    return x * 2
+
+
 class GeneratorParamsAdd(GeneratorParams):
+
+    _WAVEFORM_SAMPLE_COUNT = 4096
+    _WAVEFORM_FUNCS = [
+            ('Sine', wave_sine),
+            ('Triangle', wave_triangle),
+        ]
+    _WAVEFORM_FUNCS_DICT = dict(_WAVEFORM_FUNCS)
 
     def __init__(self, ins_id, gen_id, controller):
         GeneratorParams.__init__(self, ins_id, gen_id, controller)
@@ -99,10 +117,50 @@ class GeneratorParamsAdd(GeneratorParams):
     def get_base_waveform(self):
         base = self._get_value('p_ln_base.json', None)
         if not base:
-            sample_count = 4096
-            base = [math.sin(phase * math.pi * 2 / sample_count)
-                    for phase in xrange(sample_count)]
+            base = [-math.sin(phase * math.pi * 2 / self._WAVEFORM_SAMPLE_COUNT)
+                    for phase in xrange(self._WAVEFORM_SAMPLE_COUNT)]
+        if len(base) != self._WAVEFORM_SAMPLE_COUNT:
+            base = base[:self._WAVEFORM_SAMPLE_COUNT]
+            base.extend([0] * (self._WAVEFORM_SAMPLE_COUNT - len(base)))
         return base
+
+    def get_base_waveform_func_names(self):
+        return [name for (name, _) in self._WAVEFORM_FUNCS]
+
+    def _get_base_waveform_def(self):
+        base_def = self._get_value('i_base.json', None)
+        if type(base_def) != dict:
+            base_def = {}
+
+        # Replace invalid entries with defaults
+        if base_def.get('base_func', None) not in self._WAVEFORM_FUNCS_DICT:
+            if not self._get_value('p_ln_base.json', None):
+                base_def['base_func'] = 'Sine'
+            else:
+                base_def['base_func'] = None
+
+        return base_def
+
+    def _update_base_waveform(self, base_def):
+        base = [0] * self._WAVEFORM_SAMPLE_COUNT
+        base_func = self._WAVEFORM_FUNCS_DICT[base_def['base_func']]
+
+        for i in xrange(self._WAVEFORM_SAMPLE_COUNT):
+            x = i * 2 / float(self._WAVEFORM_SAMPLE_COUNT) - 1
+            base[i] = base_func(x)
+
+        self._set_value('p_ln_base.json', base)
+        self._set_value('i_base.json', base_def)
+
+    def get_base_waveform_func(self):
+        base_def = self._get_base_waveform_def()
+        return base_def['base_func']
+
+    def set_base_waveform_func(self, name):
+        assert name in self._WAVEFORM_FUNCS_DICT
+        base_def = self._get_base_waveform_def()
+        base_def['base_func'] = name
+        self._update_base_waveform(base_def)
 
     def get_phase_mod_enabled(self):
         return (self._get_value('p_i_mod.json', 0) == 1)
