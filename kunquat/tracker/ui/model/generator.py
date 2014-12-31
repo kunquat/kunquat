@@ -126,6 +126,18 @@ def pre_stretch(x, amount):
         return -((-x)**(4**amount))
     return x**(4**amount)
 
+def pre_stretch_asym(x, amount):
+    amount *= 2
+    x = (x + 1) / 2
+    x = x**(4**amount)
+    return x * 2 - 1
+
+def pre_scale(x, amount):
+    return x * 8**amount
+
+def pre_sine_shift(x, amount):
+    return math.sin(x * 6**(amount + 0.5))
+
 
 class GeneratorParamsAdd(GeneratorParams):
 
@@ -134,6 +146,9 @@ class GeneratorParamsAdd(GeneratorParams):
             ('None', None),
             ('Shift', pre_shift),
             ('Stretch', pre_stretch),
+            ('Stretch asym', pre_stretch_asym),
+            ('Scale', pre_scale),
+            ('Sine shift', pre_sine_shift),
         ]
     _PREWARP_FUNCS_DICT = dict(_PREWARP_FUNCS)
 
