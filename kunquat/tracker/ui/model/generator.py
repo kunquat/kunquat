@@ -103,7 +103,7 @@ def wave_triangle(x):
         return -x * 2 + 2
     return x * 2
 
-def wave_pulse(x):
+def wave_square(x):
     if x < 0:
         return -1
     return 1
@@ -156,7 +156,7 @@ class GeneratorParamsAdd(GeneratorParams):
     _WAVEFORM_FUNCS = [
             ('Sine', wave_sine),
             ('Triangle', wave_triangle),
-            ('Pulse', wave_pulse),
+            ('Square', wave_square),
             ('Sawtooth', wave_saw),
         ]
     _WAVEFORM_FUNCS_DICT = dict(_WAVEFORM_FUNCS)
