@@ -134,19 +134,7 @@ class WaveformEditor(QWidget):
         self._ui_model = None
         self._updater = None
 
-        self._prewarp_sliders = []
-        self._base_func_selector = QComboBox()
-        self._postwarp_sliders = []
-        self._waveform = Waveform()
-
-        v = QVBoxLayout()
-        for widget in self._prewarp_sliders:
-            v.addWidget(widget)
-        v.addWidget(self._base_func_selector)
-        for widget in self._postwarp_sliders:
-            v.addWidget(widget)
-        v.addWidget(self._waveform)
-        self.setLayout(v)
+        # Note: widgets are created in set_ui_model because we need some context
 
     def set_ins_id(self, ins_id):
         self._ins_id = ins_id
@@ -156,6 +144,30 @@ class WaveformEditor(QWidget):
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
+
+        add_params = self._get_add_params()
+
+        self._prewarp_sliders = []
+        for i in xrange(add_params.get_prewarp_func_count()):
+            prewarp = WarpEditor(i)
+            prewarp.set_warp_func_names(add_params.get_prewarp_func_names())
+            self._prewarp_sliders.append(prewarp)
+            QObject.connect(
+                    prewarp, SIGNAL('warpChanged(int)'), self._prewarp_changed)
+        self._base_func_selector = QComboBox()
+        self._postwarp_sliders = []
+        self._waveform = Waveform()
+
+        v = QVBoxLayout()
+        v.setSpacing(0)
+        for widget in self._prewarp_sliders:
+            v.addWidget(widget)
+        v.addWidget(self._base_func_selector)
+        for widget in self._postwarp_sliders:
+            v.addWidget(widget)
+        v.addWidget(self._waveform)
+        self.setLayout(v)
+
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
         self._update_all()
@@ -187,6 +199,12 @@ class WaveformEditor(QWidget):
         add_params = self._get_add_params()
 
         selected_base_func = add_params.get_base_waveform_func()
+
+        for i, slider in enumerate(self._prewarp_sliders):
+            name, arg = add_params.get_prewarp_func(i)
+            slider.set_warp_func(name, arg)
+            slider.setEnabled(selected_base_func != None)
+
         old_block = self._base_func_selector.blockSignals(True)
         self._base_func_selector.clear()
         func_names = add_params.get_base_waveform_func_names()
@@ -201,11 +219,90 @@ class WaveformEditor(QWidget):
 
         self._waveform.set_waveform(add_params.get_base_waveform())
 
+    def _prewarp_changed(self, index):
+        add_params = self._get_add_params()
+        name = self._prewarp_sliders[index].get_warp_func()
+        arg = self._prewarp_sliders[index].get_warp_arg()
+        add_params.set_prewarp_func(index, name, arg)
+        self._updater.signal_update(set([self._get_update_signal_type()]))
+
     def _base_func_selected(self, index):
         add_params = self._get_add_params()
         func_names = add_params.get_base_waveform_func_names()
         add_params.set_base_waveform_func(func_names[index])
         self._updater.signal_update(set([self._get_update_signal_type()]))
+
+
+class WarpEditor(QWidget):
+
+    warpChanged = pyqtSignal(int, name='warpChanged')
+
+    _ARG_SCALE = 1000
+
+    def __init__(self, index):
+        QWidget.__init__(self)
+        self._index = index
+        self._func_selector = QComboBox()
+        self._slider = QSlider(Qt.Horizontal)
+        self._value_display = QLabel()
+
+        self._slider.setRange(-self._ARG_SCALE, self._ARG_SCALE)
+
+        fm = QFontMetrics(QFont())
+        value_width = fm.boundingRect('{}'.format(-1.0 / self._ARG_SCALE)).width()
+        value_width += 10
+        self._value_display.setFixedWidth(value_width)
+
+        h = QHBoxLayout()
+        h.setMargin(0)
+        h.addWidget(self._func_selector)
+        h.addWidget(self._slider)
+        h.addWidget(self._value_display)
+        self.setLayout(h)
+
+        QObject.connect(
+                self._func_selector,
+                SIGNAL('currentIndexChanged(int)'),
+                self._func_selected)
+        QObject.connect(
+                self._slider,
+                SIGNAL('valueChanged(int)'),
+                self._slider_adjusted)
+
+    def set_warp_func_names(self, func_names):
+        old_block = self._func_selector.blockSignals(True)
+        self._func_selector.clear()
+        for name in func_names:
+            self._func_selector.addItem(name)
+        self._func_selector.blockSignals(old_block)
+
+    def set_warp_func(self, new_name, new_arg):
+        old_block = self._func_selector.blockSignals(True)
+        for i in xrange(self._func_selector.count()):
+            if self._func_selector.itemText(i) == new_name:
+                self._func_selector.setCurrentIndex(i)
+                break
+        self._func_selector.blockSignals(old_block)
+
+        old_block = self._slider.blockSignals(True)
+        int_val = int(round(new_arg * self._ARG_SCALE))
+        self._slider.setValue(int_val)
+        self._slider.blockSignals(old_block)
+
+        self._value_display.setText(str(float(new_arg)))
+
+    def get_warp_func(self):
+        return str(self._func_selector.currentText())
+
+    def get_warp_arg(self):
+        value = self._slider.value() / float(self._ARG_SCALE)
+        return value
+
+    def _func_selected(self, index):
+        QObject.emit(self, SIGNAL('warpChanged(int)'), self._index)
+
+    def _slider_adjusted(self, int_val):
+        QObject.emit(self, SIGNAL('warpChanged(int)'), self._index)
 
 
 class ModVolume(GenNumSlider):
