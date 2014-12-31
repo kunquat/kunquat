@@ -91,6 +91,8 @@ class GeneratorParams():
         self._store[key] = value
 
 
+# Base wave functions
+
 def wave_sine(x):
     return math.sin(x * math.pi)
 
@@ -110,7 +112,30 @@ def wave_saw(x):
     return x
 
 
+# Warp functions
+
+def normalise(x):
+    return (x + 1) % 2 - 1
+
+def pre_shift(x, amount):
+    return x + amount
+
+def pre_stretch(x, amount):
+    amount *= 2
+    if x < 0:
+        return -((-x)**(4**amount))
+    return x**(4**amount)
+
+
 class GeneratorParamsAdd(GeneratorParams):
+
+    _PREWARP_FUNC_COUNT = 4
+    _PREWARP_FUNCS = [
+            ('None', None),
+            ('Shift', pre_shift),
+            ('Stretch', pre_stretch),
+        ]
+    _PREWARP_FUNCS_DICT = dict(_PREWARP_FUNCS)
 
     _WAVEFORM_SAMPLE_COUNT = 4096
     _WAVEFORM_FUNCS = [
@@ -143,6 +168,22 @@ class GeneratorParamsAdd(GeneratorParams):
             base_def = {}
 
         # Replace invalid entries with defaults
+        prewarps = base_def.get('prewarps')
+        if type(prewarps) != list:
+            prewarps = []
+        prewarp_count = len(prewarps)
+        for i in xrange(min(prewarp_count, self._PREWARP_FUNC_COUNT)):
+            prewarp = prewarps[i]
+            if ((type(prewarp) != list) or
+                    (len(prewarp) != 2) or
+                    (prewarp[0] not in self._PREWARP_FUNCS_DICT) or
+                    (type(prewarp[1]) not in (int, float))):
+                prewarps[i] = []
+        if len(prewarps) != self._PREWARP_FUNC_COUNT:
+            prewarps = prewarps[:self._PREWARP_FUNC_COUNT]
+            prewarps.extend([['None', 0]] * (self._PREWARP_FUNC_COUNT - len(prewarps)))
+        base_def['prewarps'] = prewarps
+
         if base_def.get('base_func', None) not in self._WAVEFORM_FUNCS_DICT:
             if not self._get_value('p_ln_base.json', None):
                 base_def['base_func'] = 'Sine'
@@ -155,8 +196,13 @@ class GeneratorParamsAdd(GeneratorParams):
         base = [0] * self._WAVEFORM_SAMPLE_COUNT
         base_func = self._WAVEFORM_FUNCS_DICT[base_def['base_func']]
 
+        prewarp_chain = [(self._PREWARP_FUNCS_DICT[name], value)
+                for (name, value) in base_def['prewarps'] if name != 'None']
+
         for i in xrange(self._WAVEFORM_SAMPLE_COUNT):
             x = i * 2 / float(self._WAVEFORM_SAMPLE_COUNT) - 1
+            for (f, a) in prewarp_chain:
+                x = normalise(f(x, a))
             base[i] = base_func(x)
 
         self._set_value('p_ln_base.json', base)
@@ -170,6 +216,21 @@ class GeneratorParamsAdd(GeneratorParams):
         assert name in self._WAVEFORM_FUNCS_DICT
         base_def = self._get_base_waveform_def()
         base_def['base_func'] = name
+        self._update_base_waveform(base_def)
+
+    def get_prewarp_func_names(self):
+        return [name for (name, _) in self._PREWARP_FUNCS]
+
+    def get_prewarp_func_count(self):
+        return self._PREWARP_FUNC_COUNT
+
+    def get_prewarp_func(self, index):
+        base_def = self._get_base_waveform_def()
+        return tuple(base_def['prewarps'][index])
+
+    def set_prewarp_func(self, index, name, arg):
+        base_def = self._get_base_waveform_def()
+        base_def['prewarps'][index] = [name, arg]
         self._update_base_waveform(base_def)
 
     def get_phase_mod_enabled(self):
