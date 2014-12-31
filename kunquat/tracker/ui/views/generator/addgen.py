@@ -154,8 +154,17 @@ class WaveformEditor(QWidget):
             self._prewarp_sliders.append(prewarp)
             QObject.connect(
                     prewarp, SIGNAL('warpChanged(int)'), self._prewarp_changed)
+
         self._base_func_selector = QComboBox()
+
         self._postwarp_sliders = []
+        for i in xrange(add_params.get_postwarp_func_count()):
+            postwarp = WarpEditor(i)
+            postwarp.set_warp_func_names(add_params.get_postwarp_func_names())
+            self._postwarp_sliders.append(postwarp)
+            QObject.connect(
+                    postwarp, SIGNAL('warpChanged(int)'), self._postwarp_changed)
+
         self._waveform = Waveform()
 
         v = QVBoxLayout()
@@ -217,6 +226,11 @@ class WaveformEditor(QWidget):
             self._base_func_selector.setCurrentIndex(len(func_names))
         self._base_func_selector.blockSignals(old_block)
 
+        for i, slider in enumerate(self._postwarp_sliders):
+            name, arg = add_params.get_postwarp_func(i)
+            slider.set_warp_func(name, arg)
+            slider.setEnabled(selected_base_func != None)
+
         self._waveform.set_waveform(add_params.get_base_waveform())
 
     def _prewarp_changed(self, index):
@@ -230,6 +244,13 @@ class WaveformEditor(QWidget):
         add_params = self._get_add_params()
         func_names = add_params.get_base_waveform_func_names()
         add_params.set_base_waveform_func(func_names[index])
+        self._updater.signal_update(set([self._get_update_signal_type()]))
+
+    def _postwarp_changed(self, index):
+        add_params = self._get_add_params()
+        name = self._postwarp_sliders[index].get_warp_func()
+        arg = self._postwarp_sliders[index].get_warp_arg()
+        add_params.set_postwarp_func(index, name, arg)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
 
