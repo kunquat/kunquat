@@ -128,6 +128,7 @@ class Share():
                 'edit',
                 'replace',
                 'delete',
+                'delete_small',
                 'rest',
                 'zoom_in',
                 'zoom_out',
