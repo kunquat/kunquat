@@ -134,7 +134,18 @@ class WaveformEditor(QWidget):
         self._ui_model = None
         self._updater = None
 
-        # Note: widgets are created in set_ui_model because we need some context
+        self._prewarp_list = WarpList()
+        self._base_func_selector = QComboBox()
+        self._postwarp_list = WarpList()
+        self._waveform = Waveform()
+
+        v = QVBoxLayout()
+        v.setSpacing(0)
+        v.addWidget(self._prewarp_list)
+        v.addWidget(self._base_func_selector)
+        v.addWidget(self._postwarp_list)
+        v.addWidget(self._waveform)
+        self.setLayout(v)
 
     def set_ins_id(self, ins_id):
         self._ins_id = ins_id
@@ -147,35 +158,8 @@ class WaveformEditor(QWidget):
 
         add_params = self._get_add_params()
 
-        self._prewarp_sliders = []
-        for i in xrange(add_params.get_prewarp_func_count()):
-            prewarp = WarpEditor(i)
-            prewarp.set_warp_func_names(add_params.get_prewarp_func_names())
-            self._prewarp_sliders.append(prewarp)
-            QObject.connect(
-                    prewarp, SIGNAL('warpChanged(int)'), self._prewarp_changed)
-
-        self._base_func_selector = QComboBox()
-
-        self._postwarp_sliders = []
-        for i in xrange(add_params.get_postwarp_func_count()):
-            postwarp = WarpEditor(i)
-            postwarp.set_warp_func_names(add_params.get_postwarp_func_names())
-            self._postwarp_sliders.append(postwarp)
-            QObject.connect(
-                    postwarp, SIGNAL('warpChanged(int)'), self._postwarp_changed)
-
-        self._waveform = Waveform()
-
-        v = QVBoxLayout()
-        v.setSpacing(0)
-        for widget in self._prewarp_sliders:
-            v.addWidget(widget)
-        v.addWidget(self._base_func_selector)
-        for widget in self._postwarp_sliders:
-            v.addWidget(widget)
-        v.addWidget(self._waveform)
-        self.setLayout(v)
+        self._prewarp_list.set_func_names(add_params.get_prewarp_func_names())
+        self._postwarp_list.set_func_names(add_params.get_postwarp_func_names())
 
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
@@ -185,6 +169,14 @@ class WaveformEditor(QWidget):
                 self._base_func_selector,
                 SIGNAL('currentIndexChanged(int)'),
                 self._base_func_selected)
+        QObject.connect(
+                self._prewarp_list,
+                SIGNAL('warpChanged(int)'),
+                self._prewarp_changed)
+        QObject.connect(
+                self._postwarp_list,
+                SIGNAL('warpChanged(int)'),
+                self._postwarp_changed)
 
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
@@ -208,11 +200,13 @@ class WaveformEditor(QWidget):
         add_params = self._get_add_params()
 
         selected_base_func = add_params.get_base_waveform_func()
+        enable_warps = (selected_base_func != None)
 
-        for i, slider in enumerate(self._prewarp_sliders):
+        self._prewarp_list.setEnabled(enable_warps)
+        self._prewarp_list.set_warp_count(add_params.get_prewarp_func_count())
+        for i in xrange(add_params.get_prewarp_func_count()):
             name, arg = add_params.get_prewarp_func(i)
-            slider.set_warp_func(name, arg)
-            slider.setEnabled(selected_base_func != None)
+            self._prewarp_list.set_warp(i, name, arg)
 
         old_block = self._base_func_selector.blockSignals(True)
         self._base_func_selector.clear()
@@ -226,17 +220,17 @@ class WaveformEditor(QWidget):
             self._base_func_selector.setCurrentIndex(len(func_names))
         self._base_func_selector.blockSignals(old_block)
 
-        for i, slider in enumerate(self._postwarp_sliders):
+        self._postwarp_list.setEnabled(enable_warps)
+        self._postwarp_list.set_warp_count(add_params.get_postwarp_func_count())
+        for i in xrange(add_params.get_postwarp_func_count()):
             name, arg = add_params.get_postwarp_func(i)
-            slider.set_warp_func(name, arg)
-            slider.setEnabled(selected_base_func != None)
+            self._postwarp_list.set_warp(i, name, arg)
 
         self._waveform.set_waveform(add_params.get_base_waveform())
 
     def _prewarp_changed(self, index):
         add_params = self._get_add_params()
-        name = self._prewarp_sliders[index].get_warp_func()
-        arg = self._prewarp_sliders[index].get_warp_arg()
+        name, arg = self._prewarp_list.get_warp(index)
         add_params.set_prewarp_func(index, name, arg)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
@@ -248,10 +242,70 @@ class WaveformEditor(QWidget):
 
     def _postwarp_changed(self, index):
         add_params = self._get_add_params()
-        name = self._postwarp_sliders[index].get_warp_func()
-        arg = self._postwarp_sliders[index].get_warp_arg()
+        name, arg = self._postwarp_list.get_warp(index)
         add_params.set_postwarp_func(index, name, arg)
         self._updater.signal_update(set([self._get_update_signal_type()]))
+
+
+class WarpListContainer(QWidget):
+
+    def __init__(self):
+        QWidget.__init__(self)
+        v = QVBoxLayout()
+        v.setMargin(0)
+        v.setSpacing(0)
+        v.setSizeConstraint(QLayout.SetMinimumSize)
+        self.setLayout(v)
+
+
+class WarpList(QScrollArea):
+
+    warpChanged = pyqtSignal(int, name='warpChanged')
+
+    def __init__(self):
+        QAbstractScrollArea.__init__(self)
+        self._func_names = None
+
+        self.setWidget(WarpListContainer())
+
+        # Create a temporary editor for height reference
+        test_warp = WarpEditor(0)
+        self._warp_height = test_warp.minimumSizeHint().height()
+
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+
+    def set_func_names(self, func_names):
+        self._func_names = func_names
+
+    def set_warp_count(self, count):
+        layout = self.widget().layout()
+
+        # Remove excess items
+        for i in xrange(layout.count() - 1, count - 1, -1):
+            layout.takeAt(i)
+
+        # Create new items
+        for i in xrange(layout.count(), count):
+            editor = WarpEditor(i)
+            editor.set_func_names(self._func_names)
+            QObject.connect(editor, SIGNAL('warpChanged(int)'), self._warp_changed)
+            layout.addWidget(editor)
+
+    def set_warp(self, index, name, arg):
+        editor = self.widget().layout().itemAt(index).widget()
+        editor.set_warp(name, arg)
+
+    def get_warp(self, index):
+        editor = self.widget().layout().itemAt(index).widget()
+        return editor.get_warp()
+
+    def _warp_changed(self, index):
+        QObject.emit(self, SIGNAL('warpChanged(int)'), index)
+
+    def resizeEvent(self, event):
+        self.widget().setMinimumWidth(
+                self.width() - self.verticalScrollBar().width() - 10)
 
 
 class WarpEditor(QWidget):
@@ -265,6 +319,7 @@ class WarpEditor(QWidget):
         self._index = index
         self._func_selector = QComboBox()
         self._slider = QSlider(Qt.Horizontal)
+        self._slider.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Preferred)
         self._value_display = QLabel()
 
         self._slider.setRange(-self._ARG_SCALE, self._ARG_SCALE)
@@ -290,14 +345,14 @@ class WarpEditor(QWidget):
                 SIGNAL('valueChanged(int)'),
                 self._slider_adjusted)
 
-    def set_warp_func_names(self, func_names):
+    def set_func_names(self, func_names):
         old_block = self._func_selector.blockSignals(True)
         self._func_selector.clear()
         for name in func_names:
             self._func_selector.addItem(name)
         self._func_selector.blockSignals(old_block)
 
-    def set_warp_func(self, new_name, new_arg):
+    def set_warp(self, new_name, new_arg):
         old_block = self._func_selector.blockSignals(True)
         for i in xrange(self._func_selector.count()):
             if self._func_selector.itemText(i) == new_name:
@@ -312,12 +367,10 @@ class WarpEditor(QWidget):
 
         self._value_display.setText(str(float(new_arg)))
 
-    def get_warp_func(self):
-        return str(self._func_selector.currentText())
-
-    def get_warp_arg(self):
-        value = self._slider.value() / float(self._ARG_SCALE)
-        return value
+    def get_warp(self):
+        name = str(self._func_selector.currentText())
+        arg = self._slider.value() / float(self._ARG_SCALE)
+        return name, arg
 
     def _func_selected(self, index):
         QObject.emit(self, SIGNAL('warpChanged(int)'), self._index)
