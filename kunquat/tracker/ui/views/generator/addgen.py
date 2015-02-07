@@ -134,9 +134,9 @@ class WaveformEditor(QWidget):
         self._ui_model = None
         self._updater = None
 
-        self._prewarp_list = WarpList()
+        self._prewarp_list = WarpList('Add prewarp')
         self._base_func_selector = QComboBox()
-        self._postwarp_list = WarpList()
+        self._postwarp_list = WarpList('Add postwarp')
         self._waveform = Waveform()
 
         v = QVBoxLayout()
@@ -169,10 +169,14 @@ class WaveformEditor(QWidget):
                 self._base_func_selector,
                 SIGNAL('currentIndexChanged(int)'),
                 self._base_func_selected)
+
+        QObject.connect(self._prewarp_list, SIGNAL('warpAdded()'), self._prewarp_added)
         QObject.connect(
                 self._prewarp_list,
                 SIGNAL('warpChanged(int)'),
                 self._prewarp_changed)
+
+        QObject.connect(self._postwarp_list, SIGNAL('warpAdded()'), self._postwarp_added)
         QObject.connect(
                 self._postwarp_list,
                 SIGNAL('warpChanged(int)'),
@@ -228,6 +232,11 @@ class WaveformEditor(QWidget):
 
         self._waveform.set_waveform(add_params.get_base_waveform())
 
+    def _prewarp_added(self):
+        add_params = self._get_add_params()
+        add_params.add_prewarp_func()
+        self._updater.signal_update(set([self._get_update_signal_type()]))
+
     def _prewarp_changed(self, index):
         add_params = self._get_add_params()
         name, arg = self._prewarp_list.get_warp(index)
@@ -238,6 +247,11 @@ class WaveformEditor(QWidget):
         add_params = self._get_add_params()
         func_names = add_params.get_base_waveform_func_names()
         add_params.set_base_waveform_func(func_names[index])
+        self._updater.signal_update(set([self._get_update_signal_type()]))
+
+    def _postwarp_added(self):
+        add_params = self._get_add_params()
+        add_params.add_postwarp_func()
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _postwarp_changed(self, index):
@@ -260,19 +274,21 @@ class WarpListContainer(QWidget):
 
 class WarpList(QScrollArea):
 
+    warpAdded = pyqtSignal(name='warpAdded')
     warpChanged = pyqtSignal(int, name='warpChanged')
 
-    def __init__(self):
+    def __init__(self, add_text):
         QAbstractScrollArea.__init__(self)
         self._func_names = None
 
         self.setWidget(WarpListContainer())
 
-        # Create a temporary editor for height reference
-        test_warp = WarpEditor(0)
-        self._warp_height = test_warp.minimumSizeHint().height()
+        add_button = QPushButton(add_text)
+        QObject.connect(add_button, SIGNAL('clicked()'), self._warp_added)
+        self.widget().layout().addWidget(add_button)
 
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
 
     def set_func_names(self, func_names):
@@ -282,15 +298,17 @@ class WarpList(QScrollArea):
         layout = self.widget().layout()
 
         # Remove excess items
-        for i in xrange(layout.count() - 1, count - 1, -1):
+        for i in xrange(layout.count() - 2, count - 1, -1):
             layout.takeAt(i)
 
         # Create new items
-        for i in xrange(layout.count(), count):
+        for i in xrange(layout.count() - 1, count):
             editor = WarpEditor(i)
             editor.set_func_names(self._func_names)
             QObject.connect(editor, SIGNAL('warpChanged(int)'), self._warp_changed)
-            layout.addWidget(editor)
+            layout.insertWidget(i, editor)
+
+        self._do_width_hack()
 
     def set_warp(self, index, name, arg):
         editor = self.widget().layout().itemAt(index).widget()
@@ -300,12 +318,18 @@ class WarpList(QScrollArea):
         editor = self.widget().layout().itemAt(index).widget()
         return editor.get_warp()
 
+    def _warp_added(self):
+        QObject.emit(self, SIGNAL('warpAdded()'))
+
     def _warp_changed(self, index):
         QObject.emit(self, SIGNAL('warpChanged(int)'), index)
 
-    def resizeEvent(self, event):
+    def _do_width_hack(self):
         self.widget().setMinimumWidth(
                 self.width() - self.verticalScrollBar().width() - 10)
+
+    def resizeEvent(self, event):
+        self._do_width_hack()
 
 
 class WarpEditor(QWidget):
