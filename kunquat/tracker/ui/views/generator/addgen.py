@@ -352,8 +352,8 @@ class WarpList(QScrollArea):
         QObject.emit(self, SIGNAL('warpRemoved(int)'), index)
 
     def _do_width_hack(self):
-        self.widget().setMinimumWidth(
-                self.width() - self.verticalScrollBar().width() - 10)
+        self.widget().setFixedWidth(
+                self.width() - self.verticalScrollBar().width() - 5)
 
     def resizeEvent(self, event):
         self._do_width_hack()
