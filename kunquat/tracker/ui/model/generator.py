@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2015
 #
 # This file is part of Kunquat.
 #
@@ -301,6 +301,11 @@ class GeneratorParamsAdd(GeneratorParams):
         base_def['prewarps'][index] = [name, arg]
         self._update_base_waveform(base_def)
 
+    def remove_prewarp_func(self, index):
+        base_def = self._get_base_waveform_def()
+        del base_def['prewarps'][index]
+        self._update_base_waveform(base_def)
+
     def get_postwarp_func_names(self):
         return [name for (name, _) in self._POSTWARP_FUNCS]
 
@@ -320,6 +325,11 @@ class GeneratorParamsAdd(GeneratorParams):
     def set_postwarp_func(self, index, name, arg):
         base_def = self._get_base_waveform_def()
         base_def['postwarps'][index] = [name, arg]
+        self._update_base_waveform(base_def)
+
+    def remove_postwarp_func(self, index):
+        base_def = self._get_base_waveform_def()
+        del base_def['postwarps'][index]
         self._update_base_waveform(base_def)
 
     def get_phase_mod_enabled(self):
