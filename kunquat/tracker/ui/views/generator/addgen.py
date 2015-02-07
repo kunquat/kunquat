@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2015
 #
 # This file is part of Kunquat.
 #
@@ -161,6 +161,10 @@ class WaveformEditor(QWidget):
         self._prewarp_list.set_func_names(add_params.get_prewarp_func_names())
         self._postwarp_list.set_func_names(add_params.get_postwarp_func_names())
 
+        icon_bank = self._ui_model.get_icon_bank()
+        self._prewarp_list.set_icon_bank(icon_bank)
+        self._postwarp_list.set_icon_bank(icon_bank)
+
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
         self._update_all()
@@ -172,15 +176,15 @@ class WaveformEditor(QWidget):
 
         QObject.connect(self._prewarp_list, SIGNAL('warpAdded()'), self._prewarp_added)
         QObject.connect(
-                self._prewarp_list,
-                SIGNAL('warpChanged(int)'),
-                self._prewarp_changed)
+                self._prewarp_list, SIGNAL('warpChanged(int)'), self._prewarp_changed)
+        QObject.connect(
+                self._prewarp_list, SIGNAL('warpRemoved(int)'), self._prewarp_removed)
 
         QObject.connect(self._postwarp_list, SIGNAL('warpAdded()'), self._postwarp_added)
         QObject.connect(
-                self._postwarp_list,
-                SIGNAL('warpChanged(int)'),
-                self._postwarp_changed)
+                self._postwarp_list, SIGNAL('warpChanged(int)'), self._postwarp_changed)
+        QObject.connect(
+                self._postwarp_list, SIGNAL('warpRemoved(int)'), self._postwarp_removed)
 
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
@@ -243,6 +247,11 @@ class WaveformEditor(QWidget):
         add_params.set_prewarp_func(index, name, arg)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
+    def _prewarp_removed(self, index):
+        add_params = self._get_add_params()
+        add_params.remove_prewarp_func(index)
+        self._updater.signal_update(set([self._get_update_signal_type()]))
+
     def _base_func_selected(self, index):
         add_params = self._get_add_params()
         func_names = add_params.get_base_waveform_func_names()
@@ -258,6 +267,11 @@ class WaveformEditor(QWidget):
         add_params = self._get_add_params()
         name, arg = self._postwarp_list.get_warp(index)
         add_params.set_postwarp_func(index, name, arg)
+        self._updater.signal_update(set([self._get_update_signal_type()]))
+
+    def _postwarp_removed(self, index):
+        add_params = self._get_add_params()
+        add_params.remove_postwarp_func(index)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
 
@@ -276,36 +290,46 @@ class WarpList(QScrollArea):
 
     warpAdded = pyqtSignal(name='warpAdded')
     warpChanged = pyqtSignal(int, name='warpChanged')
+    warpRemoved = pyqtSignal(int, name='warpRemoved')
 
     def __init__(self, add_text):
         QAbstractScrollArea.__init__(self)
         self._func_names = None
+        self._icon_bank = None
+        self._add_text = add_text
 
-        self.setWidget(WarpListContainer())
-
-        add_button = QPushButton(add_text)
-        QObject.connect(add_button, SIGNAL('clicked()'), self._warp_added)
-        self.widget().layout().addWidget(add_button)
+        self._init_container()
 
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
 
+    def _init_container(self):
+        self.setWidget(WarpListContainer())
+        add_button = QPushButton(self._add_text)
+        QObject.connect(add_button, SIGNAL('clicked()'), self._warp_added)
+        self.widget().layout().addWidget(add_button)
+
     def set_func_names(self, func_names):
         self._func_names = func_names
+
+    def set_icon_bank(self, icon_bank):
+        self._icon_bank = icon_bank
 
     def set_warp_count(self, count):
         layout = self.widget().layout()
 
-        # Remove excess items
-        for i in xrange(layout.count() - 2, count - 1, -1):
-            layout.takeAt(i)
+        if count < layout.count() - 1:
+            # Create contents from scratch because Qt sucks
+            self._init_container()
+            layout = self.widget().layout()
 
         # Create new items
         for i in xrange(layout.count() - 1, count):
-            editor = WarpEditor(i)
+            editor = WarpEditor(i, self._icon_bank.get_icon_path('delete_small'))
             editor.set_func_names(self._func_names)
             QObject.connect(editor, SIGNAL('warpChanged(int)'), self._warp_changed)
+            QObject.connect(editor, SIGNAL('warpRemoved(int)'), self._warp_removed)
             layout.insertWidget(i, editor)
 
         self._do_width_hack()
@@ -324,6 +348,9 @@ class WarpList(QScrollArea):
     def _warp_changed(self, index):
         QObject.emit(self, SIGNAL('warpChanged(int)'), index)
 
+    def _warp_removed(self, index):
+        QObject.emit(self, SIGNAL('warpRemoved(int)'), index)
+
     def _do_width_hack(self):
         self.widget().setMinimumWidth(
                 self.width() - self.verticalScrollBar().width() - 10)
@@ -335,16 +362,20 @@ class WarpList(QScrollArea):
 class WarpEditor(QWidget):
 
     warpChanged = pyqtSignal(int, name='warpChanged')
+    warpRemoved = pyqtSignal(int, name='warpRemoved')
 
     _ARG_SCALE = 1000
 
-    def __init__(self, index):
+    def __init__(self, index, remove_icon):
         QWidget.__init__(self)
         self._index = index
         self._func_selector = QComboBox()
         self._slider = QSlider(Qt.Horizontal)
         self._slider.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Preferred)
         self._value_display = QLabel()
+        self._remove_button = QPushButton()
+        self._remove_button.setStyleSheet('padding: 0;')
+        self._remove_button.setIcon(QIcon(remove_icon))
 
         self._slider.setRange(-self._ARG_SCALE, self._ARG_SCALE)
 
@@ -358,6 +389,7 @@ class WarpEditor(QWidget):
         h.addWidget(self._func_selector)
         h.addWidget(self._slider)
         h.addWidget(self._value_display)
+        h.addWidget(self._remove_button)
         self.setLayout(h)
 
         QObject.connect(
@@ -368,6 +400,10 @@ class WarpEditor(QWidget):
                 self._slider,
                 SIGNAL('valueChanged(int)'),
                 self._slider_adjusted)
+        QObject.connect(
+                self._remove_button,
+                SIGNAL('clicked()'),
+                self._removed)
 
     def set_func_names(self, func_names):
         old_block = self._func_selector.blockSignals(True)
@@ -401,6 +437,9 @@ class WarpEditor(QWidget):
 
     def _slider_adjusted(self, int_val):
         QObject.emit(self, SIGNAL('warpChanged(int)'), self._index)
+
+    def _removed(self):
+        QObject.emit(self, SIGNAL('warpRemoved(int)'), self._index)
 
 
 class ModVolume(GenNumSlider):
