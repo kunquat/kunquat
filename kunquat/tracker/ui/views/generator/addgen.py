@@ -178,11 +178,15 @@ class WaveformEditor(QWidget):
         QObject.connect(
                 self._prewarp_list, SIGNAL('warpChanged(int)'), self._prewarp_changed)
         QObject.connect(
+                self._prewarp_list, SIGNAL('warpMoved(int, int)'), self._prewarp_moved)
+        QObject.connect(
                 self._prewarp_list, SIGNAL('warpRemoved(int)'), self._prewarp_removed)
 
         QObject.connect(self._postwarp_list, SIGNAL('warpAdded()'), self._postwarp_added)
         QObject.connect(
                 self._postwarp_list, SIGNAL('warpChanged(int)'), self._postwarp_changed)
+        QObject.connect(
+                self._postwarp_list, SIGNAL('warpMoved(int, int)'), self._postwarp_moved)
         QObject.connect(
                 self._postwarp_list, SIGNAL('warpRemoved(int)'), self._postwarp_removed)
 
@@ -247,6 +251,11 @@ class WaveformEditor(QWidget):
         add_params.set_prewarp_func(index, name, arg)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
+    def _prewarp_moved(self, from_index, to_index):
+        add_params = self._get_add_params()
+        add_params.move_prewarp_func(from_index, to_index)
+        self._updater.signal_update(set([self._get_update_signal_type()]))
+
     def _prewarp_removed(self, index):
         add_params = self._get_add_params()
         add_params.remove_prewarp_func(index)
@@ -269,6 +278,11 @@ class WaveformEditor(QWidget):
         add_params.set_postwarp_func(index, name, arg)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
+    def _postwarp_moved(self, from_index, to_index):
+        add_params = self._get_add_params()
+        add_params.move_postwarp_func(from_index, to_index)
+        self._updater.signal_update(set([self._get_update_signal_type()]))
+
     def _postwarp_removed(self, index):
         add_params = self._get_add_params()
         add_params.remove_postwarp_func(index)
@@ -288,8 +302,9 @@ class WarpListContainer(QWidget):
 
 class WarpList(QScrollArea):
 
-    warpAdded = pyqtSignal(name='warpAdded')
+    warpAdded   = pyqtSignal(name='warpAdded')
     warpChanged = pyqtSignal(int, name='warpChanged')
+    warpMoved   = pyqtSignal(int, int, name='warpMoved')
     warpRemoved = pyqtSignal(int, name='warpRemoved')
 
     def __init__(self, add_text):
@@ -326,11 +341,19 @@ class WarpList(QScrollArea):
 
         # Create new items
         for i in xrange(layout.count() - 1, count):
-            editor = WarpEditor(i, self._icon_bank.get_icon_path('delete_small'))
+            editor = WarpEditor(i, self._icon_bank)
             editor.set_func_names(self._func_names)
             QObject.connect(editor, SIGNAL('warpChanged(int)'), self._warp_changed)
+            QObject.connect(editor, SIGNAL('warpMoved(int, int)'), self._warp_moved)
             QObject.connect(editor, SIGNAL('warpRemoved(int)'), self._warp_removed)
             layout.insertWidget(i, editor)
+
+        # Update arrows
+        for i in xrange(layout.count() - 1):
+            editor = layout.itemAt(i).widget()
+            down_enabled = i < layout.count() - 2
+            up_enabled = i > 0
+            editor.set_arrow_buttons_enabled(down_enabled, up_enabled)
 
         self._do_width_hack()
 
@@ -348,6 +371,9 @@ class WarpList(QScrollArea):
     def _warp_changed(self, index):
         QObject.emit(self, SIGNAL('warpChanged(int)'), index)
 
+    def _warp_moved(self, from_index, to_index):
+        QObject.emit(self, SIGNAL('warpMoved(int, int)'), from_index, to_index)
+
     def _warp_removed(self, index):
         QObject.emit(self, SIGNAL('warpRemoved(int)'), index)
 
@@ -359,23 +385,33 @@ class WarpList(QScrollArea):
         self._do_width_hack()
 
 
+class WarpEditorButton(QPushButton):
+
+    def __init__(self, icon):
+        QPushButton.__init__(self)
+        self.setStyleSheet('padding: 0 -2px;')
+        self.setIcon(QIcon(icon))
+
+
 class WarpEditor(QWidget):
 
     warpChanged = pyqtSignal(int, name='warpChanged')
+    warpMoved   = pyqtSignal(int, int, name='warpMoved')
     warpRemoved = pyqtSignal(int, name='warpRemoved')
 
     _ARG_SCALE = 1000
 
-    def __init__(self, index, remove_icon):
+    def __init__(self, index, icon_bank):
         QWidget.__init__(self)
         self._index = index
+
+        self._down_button = WarpEditorButton(icon_bank.get_icon_path('arrow_down_small'))
+        self._up_button = WarpEditorButton(icon_bank.get_icon_path('arrow_up_small'))
         self._func_selector = QComboBox()
         self._slider = QSlider(Qt.Horizontal)
         self._slider.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Preferred)
         self._value_display = QLabel()
-        self._remove_button = QPushButton()
-        self._remove_button.setStyleSheet('padding: 0;')
-        self._remove_button.setIcon(QIcon(remove_icon))
+        self._remove_button = WarpEditorButton(icon_bank.get_icon_path('delete_small'))
 
         self._slider.setRange(-self._ARG_SCALE, self._ARG_SCALE)
 
@@ -386,24 +422,23 @@ class WarpEditor(QWidget):
 
         h = QHBoxLayout()
         h.setMargin(0)
+        h.setSpacing(2)
+        h.addWidget(self._down_button)
+        h.addWidget(self._up_button)
         h.addWidget(self._func_selector)
         h.addWidget(self._slider)
         h.addWidget(self._value_display)
         h.addWidget(self._remove_button)
         self.setLayout(h)
 
+        QObject.connect(self._down_button, SIGNAL('clicked()'), self._moved_down)
+        QObject.connect(self._up_button, SIGNAL('clicked()'), self._moved_up)
         QObject.connect(
                 self._func_selector,
                 SIGNAL('currentIndexChanged(int)'),
                 self._func_selected)
-        QObject.connect(
-                self._slider,
-                SIGNAL('valueChanged(int)'),
-                self._slider_adjusted)
-        QObject.connect(
-                self._remove_button,
-                SIGNAL('clicked()'),
-                self._removed)
+        QObject.connect(self._slider, SIGNAL('valueChanged(int)'), self._slider_adjusted)
+        QObject.connect(self._remove_button, SIGNAL('clicked()'), self._removed)
 
     def set_func_names(self, func_names):
         old_block = self._func_selector.blockSignals(True)
@@ -411,6 +446,10 @@ class WarpEditor(QWidget):
         for name in func_names:
             self._func_selector.addItem(name)
         self._func_selector.blockSignals(old_block)
+
+    def set_arrow_buttons_enabled(self, down_enabled, up_enabled):
+        self._down_button.setEnabled(down_enabled)
+        self._up_button.setEnabled(up_enabled)
 
     def set_warp(self, new_name, new_arg):
         old_block = self._func_selector.blockSignals(True)
@@ -431,6 +470,12 @@ class WarpEditor(QWidget):
         name = str(self._func_selector.currentText())
         arg = self._slider.value() / float(self._ARG_SCALE)
         return name, arg
+
+    def _moved_down(self):
+        QObject.emit(self, SIGNAL('warpMoved(int, int)'), self._index, self._index + 1)
+
+    def _moved_up(self):
+        QObject.emit(self, SIGNAL('warpMoved(int, int)'), self._index, self._index - 1)
 
     def _func_selected(self, index):
         QObject.emit(self, SIGNAL('warpChanged(int)'), self._index)
