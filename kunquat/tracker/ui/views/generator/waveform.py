@@ -105,7 +105,7 @@ class Waveform(QWidget):
 
         end = time.time()
         elapsed = end - start
-        print('Waveform view updated in {:.2f} ms'.format(elapsed * 1000))
+        #print('Waveform view updated in {:.2f} ms'.format(elapsed * 1000))
 
     def resizeEvent(self, event):
         self._pixmap = None
