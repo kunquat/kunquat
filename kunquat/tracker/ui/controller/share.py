@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2014
+# Authors: Tomi Jylhä-Ollila, Finland 2014-2015
 #          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
@@ -121,6 +121,8 @@ class Share():
 
     def get_icon_path(self, icon_name):
         valid_names = [
+                'arrow_down_small',
+                'arrow_up_small',
                 'play',
                 'play_pattern',
                 'record',
