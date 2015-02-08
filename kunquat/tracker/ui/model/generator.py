@@ -301,6 +301,12 @@ class GeneratorParamsAdd(GeneratorParams):
         base_def['prewarps'][index] = [name, arg]
         self._update_base_waveform(base_def)
 
+    def move_prewarp_func(self, from_index, to_index):
+        base_def = self._get_base_waveform_def()
+        entry = base_def['prewarps'].pop(from_index)
+        base_def['prewarps'].insert(to_index, entry)
+        self._update_base_waveform(base_def)
+
     def remove_prewarp_func(self, index):
         base_def = self._get_base_waveform_def()
         del base_def['prewarps'][index]
@@ -325,6 +331,12 @@ class GeneratorParamsAdd(GeneratorParams):
     def set_postwarp_func(self, index, name, arg):
         base_def = self._get_base_waveform_def()
         base_def['postwarps'][index] = [name, arg]
+        self._update_base_waveform(base_def)
+
+    def move_postwarp_func(self, from_index, to_index):
+        base_def = self._get_base_waveform_def()
+        entry = base_def['postwarps'].pop(from_index)
+        base_def['postwarps'].insert(to_index, entry)
         self._update_base_waveform(base_def)
 
     def remove_postwarp_func(self, index):
