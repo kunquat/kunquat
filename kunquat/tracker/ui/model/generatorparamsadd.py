@@ -156,7 +156,7 @@ class GeneratorParamsAdd(GeneratorParams):
         if type(base_def) != dict:
             base_def = {}
 
-        # Replace invalid entries with defaults
+        # Remove invalid entries
         prewarps = base_def.get('prewarps')
         base_def['prewarps'] = self._get_clean_warp_funcs(
                 prewarps, self._PREWARP_FUNCS_DICT)
