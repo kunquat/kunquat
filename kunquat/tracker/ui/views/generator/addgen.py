@@ -31,10 +31,12 @@ class AddGen(QWidget):
         self._updater = None
 
         self._base_waveform = WaveformEditor()
+        self._base_tone_editor = ToneList()
 
         base_layout = QVBoxLayout()
         base_layout.setSpacing(0)
         base_layout.addWidget(self._base_waveform)
+        base_layout.addWidget(self._base_tone_editor)
 
         self._phase_mod_enabled_toggle = QCheckBox('Phase modulation')
         self._phase_mod_volume = ModVolume()
@@ -63,18 +65,21 @@ class AddGen(QWidget):
     def set_ins_id(self, ins_id):
         self._ins_id = ins_id
         self._base_waveform.set_ins_id(ins_id)
+        self._base_tone_editor.set_ins_id(ins_id)
         self._phase_mod_volume.set_ins_id(ins_id)
         self._phase_mod_env.set_ins_id(ins_id)
 
     def set_gen_id(self, gen_id):
         self._gen_id = gen_id
         self._base_waveform.set_gen_id(gen_id)
+        self._base_tone_editor.set_gen_id(gen_id)
         self._phase_mod_volume.set_gen_id(gen_id)
         self._phase_mod_env.set_gen_id(gen_id)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._base_waveform.set_ui_model(ui_model)
+        self._base_tone_editor.set_ui_model(ui_model)
         self._phase_mod_volume.set_ui_model(ui_model)
         self._phase_mod_env.set_ui_model(ui_model)
         self._updater = ui_model.get_updater()
@@ -90,6 +95,7 @@ class AddGen(QWidget):
         self._updater.unregister_updater(self._perform_updates)
         self._phase_mod_env.unregister_updaters()
         self._phase_mod_volume.unregister_updaters()
+        self._base_tone_editor.unregister_updaters()
         self._base_waveform.unregister_updaters()
 
     def _get_update_signal_type(self):
@@ -485,6 +491,277 @@ class WarpEditor(QWidget):
 
     def _removed(self):
         QObject.emit(self, SIGNAL('warpRemoved(int)'), self._index)
+
+
+class ToneListContainer(QWidget):
+
+    def __init__(self):
+        QWidget.__init__(self)
+        v = QVBoxLayout()
+        v.setMargin(0)
+        v.setSpacing(0)
+        v.setSizeConstraint(QLayout.SetMinimumSize)
+        self.setLayout(v)
+
+
+class ToneList(QScrollArea):
+
+    def __init__(self):
+        QScrollArea.__init__(self)
+        self._ins_id = None
+        self._gen_id = None
+        self._ui_model = None
+        self._updater = None
+        self._icon_bank = None
+
+        self._init_container()
+
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+
+    def _init_container(self):
+        self.setWidget(ToneListContainer())
+        add_button = QPushButton('Add tone')
+        QObject.connect(add_button, SIGNAL('clicked()'), self._tone_added)
+        self.widget().layout().addWidget(add_button)
+
+    def _disconnect_editors(self):
+        layout = self.widget().layout()
+        for i in xrange(layout.count() - 1):
+            editor = layout.itemAt(i).widget()
+            editor.unregister_updaters()
+
+    def set_ins_id(self, ins_id):
+        self._ins_id = ins_id
+
+    def set_gen_id(self, gen_id):
+        self._gen_id = gen_id
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._icon_bank = ui_model.get_icon_bank()
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+
+        self._update_all()
+
+    def unregister_updaters(self):
+        self._disconnect_editors()
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _get_update_signal_type(self):
+        return ''.join(('signal_gen_add_base_', self._ins_id, self._gen_id))
+
+    def _perform_updates(self, signals):
+        update_signals = set(['signal_instrument', self._get_update_signal_type()])
+        if not signals.isdisjoint(update_signals):
+            self._update_all()
+
+    def _get_add_params(self):
+        module = self._ui_model.get_module()
+        instrument = module.get_instrument(self._ins_id)
+        generator = instrument.get_generator(self._gen_id)
+        add_params = generator.get_type_params()
+        return add_params
+
+    def _update_all(self):
+        add_params = self._get_add_params()
+
+        # Set tone count
+        layout = self.widget().layout()
+        count = add_params.get_tone_count()
+        if count < layout.count() - 1:
+            self._disconnect_editors()
+            self._init_container()
+            layout = self.widget().layout()
+
+        # Create new tone editors
+        for i in xrange(layout.count() - 1, count):
+            editor = ToneEditor(i, self._icon_bank)
+            editor.set_ins_id(self._ins_id)
+            editor.set_gen_id(self._gen_id)
+            editor.set_ui_model(self._ui_model)
+            layout.insertWidget(i, editor)
+
+        self._do_width_hack()
+
+    def _do_width_hack(self):
+        self.widget().setFixedWidth(
+                self.width() - self.verticalScrollBar().width() - 5)
+
+    def _tone_added(self):
+        add_params = self._get_add_params()
+        add_params.add_tone()
+        self._updater.signal_update(set([self._get_update_signal_type()]))
+
+    def resizeEvent(self, event):
+        self._do_width_hack()
+
+
+class ToneEditor(QWidget):
+
+    _ARG_SCALE = 1000
+
+    def __init__(self, index, icon_bank):
+        QWidget.__init__(self)
+        self._index = index
+        self._icon_bank = icon_bank
+
+        self._pitch_spin = TonePitchSpin(index)
+        self._volume_slider = ToneVolumeSlider(index)
+        self._panning_slider = TonePanningSlider(index)
+
+        h = QHBoxLayout()
+        h.setMargin(0)
+        h.setSpacing(2)
+        h.addWidget(self._pitch_spin)
+        h.addWidget(self._volume_slider)
+        h.addWidget(self._panning_slider)
+        self.setLayout(h)
+
+    def set_ins_id(self, ins_id):
+        self._pitch_spin.set_ins_id(ins_id)
+        self._volume_slider.set_ins_id(ins_id)
+        self._panning_slider.set_ins_id(ins_id)
+
+    def set_gen_id(self, gen_id):
+        self._pitch_spin.set_gen_id(gen_id)
+        self._volume_slider.set_gen_id(gen_id)
+        self._panning_slider.set_gen_id(gen_id)
+
+    def set_ui_model(self, ui_model):
+        self._pitch_spin.set_ui_model(ui_model)
+        self._volume_slider.set_ui_model(ui_model)
+        self._panning_slider.set_ui_model(ui_model)
+
+    def unregister_updaters(self):
+        self._panning_slider.unregister_updaters()
+        self._volume_slider.unregister_updaters()
+        self._pitch_spin.unregister_updaters()
+
+
+class TonePitchSpin(QWidget):
+
+    def __init__(self, index):
+        QWidget.__init__(self)
+        self._ins_id = None
+        self._gen_id = None
+        self._ui_model = None
+        self._updater = None
+        self._index = index
+
+        self._spin = QDoubleSpinBox()
+        self._spin.setDecimals(3)
+        self._spin.setMinimum(0.001)
+        self._spin.setMaximum(1024.0)
+        self._spin.setValue(1)
+
+        h = QHBoxLayout()
+        h.setMargin(0)
+        h.addWidget(QLabel('Pitch'))
+        h.addWidget(self._spin)
+        self.setLayout(h)
+
+    def set_ins_id(self, ins_id):
+        self._ins_id = ins_id
+
+    def set_gen_id(self, gen_id):
+        self._gen_id = gen_id
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+
+        QObject.connect(self._spin, SIGNAL('valueChanged(double)'), self._value_changed)
+
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _get_add_params(self):
+        module = self._ui_model.get_module()
+        instrument = module.get_instrument(self._ins_id)
+        generator = instrument.get_generator(self._gen_id)
+        add_params = generator.get_type_params()
+        return add_params
+
+    def _get_update_signal_type(self):
+        return ''.join((
+            'signal_add_tone_pitch_', self._ins_id, self._gen_id, str(self._index)))
+
+    def _perform_updates(self, signals):
+        update_signals = set(['signal_instrument', self._get_update_signal_type()])
+        if not signals.isdisjoint(update_signals):
+            self._update_value()
+
+    def _update_value(self):
+        add_params = self._get_add_params()
+        old_block = self._spin.blockSignals(True)
+        new_pitch = add_params.get_tone_pitch(self._index)
+        if new_pitch != self._spin.value():
+            self._spin.setValue(new_pitch)
+        self._spin.blockSignals(old_block)
+
+    def _value_changed(self, pitch):
+        add_params = self._get_add_params()
+        add_params.set_tone_pitch(self._index, pitch)
+        self._updater.signal_update(set([self._get_update_signal_type()]))
+
+
+class ToneVolumeSlider(GenNumSlider):
+
+    def __init__(self, index):
+        GenNumSlider.__init__(self, 1, -64.0, 24.0, title='Volume')
+        self._index = index
+        self.set_number(0)
+
+    def _get_add_params(self):
+        module = self._ui_model.get_module()
+        instrument = module.get_instrument(self._ins_id)
+        generator = instrument.get_generator(self._gen_id)
+        add_params = generator.get_type_params()
+        return add_params
+
+    def _update_value(self):
+        add_params = self._get_add_params()
+        self.set_number(add_params.get_tone_volume(self._index))
+
+    def _value_changed(self, volume):
+        add_params = self._get_add_params()
+        add_params.set_tone_volume(self._index, volume)
+        self._updater.signal_update(set([self._get_update_signal_type()]))
+
+    def _get_update_signal_type(self):
+        return ''.join((
+            'signal_add_tone_volume_', self._ins_id, self._gen_id, str(self._index)))
+
+
+class TonePanningSlider(GenNumSlider):
+
+    def __init__(self, index):
+        GenNumSlider.__init__(self, 3, -1.0, 1.0, title='Panning')
+        self._index = index
+        self.set_number(0)
+
+    def _get_add_params(self):
+        module = self._ui_model.get_module()
+        instrument = module.get_instrument(self._ins_id)
+        generator = instrument.get_generator(self._gen_id)
+        add_params = generator.get_type_params()
+        return add_params
+
+    def _update_value(self):
+        add_params = self._get_add_params()
+        self.set_number(add_params.get_tone_panning(self._index))
+
+    def _value_changed(self, panning):
+        add_params = self._get_add_params()
+        add_params.set_tone_panning(self._index, panning)
+        self._updater.signal_update(set([self._get_update_signal_type()]))
+
+    def _get_update_signal_type(self):
+        return ''.join((
+            'signal_add_tone_panning_', self._ins_id, self._gen_id, str(self._index)))
 
 
 class ModVolume(GenNumSlider):
