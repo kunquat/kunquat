@@ -122,18 +122,28 @@ class GeneratorParamsAdd(GeneratorParams):
 
     _TONES_MAX = 32
 
+    _WAVES = {
+            'base': {
+                'waveform_key': 'p_ln_base.json',
+            },
+            'mod': {
+                'waveform_key': 'p_ln_mod_base.json',
+            }
+        }
+
     def __init__(self, ins_id, gen_id, controller):
         GeneratorParams.__init__(self, ins_id, gen_id, controller)
 
-    def get_base_waveform(self):
-        base = self._get_value('p_ln_base.json', None)
-        if not base:
-            base = [-math.sin(phase * math.pi * 2 / self._WAVEFORM_SAMPLE_COUNT)
+    def get_waveform(self, waveform_type):
+        key = self._WAVES[waveform_type]['waveform_key']
+        waveform = self._get_value(key, None)
+        if not waveform:
+            waveform = [-math.sin(phase * math.pi * 2 / self._WAVEFORM_SAMPLE_COUNT)
                     for phase in xrange(self._WAVEFORM_SAMPLE_COUNT)]
-        if len(base) != self._WAVEFORM_SAMPLE_COUNT:
-            base = base[:self._WAVEFORM_SAMPLE_COUNT]
-            base.extend([0] * (self._WAVEFORM_SAMPLE_COUNT - len(base)))
-        return base
+        if len(waveform) != self._WAVEFORM_SAMPLE_COUNT:
+            waveform = waveform[:self._WAVEFORM_SAMPLE_COUNT]
+            waveform.extend([0] * (self._WAVEFORM_SAMPLE_COUNT - len(waveform)))
+        return waveform
 
     def get_base_waveform_func_names(self):
         return [name for (name, _) in self._WAVEFORM_FUNCS]

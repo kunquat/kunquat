@@ -30,7 +30,7 @@ class AddGen(QWidget):
         self._ui_model = None
         self._updater = None
 
-        self._base_waveform = WaveformEditor()
+        self._base_waveform = WaveformEditor('base')
         self._base_tone_editor = ToneList()
 
         base_layout = QVBoxLayout()
@@ -133,12 +133,13 @@ class AddGen(QWidget):
 
 class WaveformEditor(QWidget):
 
-    def __init__(self):
+    def __init__(self, waveform_type):
         QWidget.__init__(self)
         self._ins_id = None
         self._gen_id = None
         self._ui_model = None
         self._updater = None
+        self._waveform_type = waveform_type
 
         self._prewarp_list = WarpList('Add prewarp')
         self._base_func_selector = QComboBox()
@@ -244,7 +245,7 @@ class WaveformEditor(QWidget):
             name, arg = add_params.get_postwarp_func(i)
             self._postwarp_list.set_warp(i, name, arg)
 
-        self._waveform.set_waveform(add_params.get_base_waveform())
+        self._waveform.set_waveform(add_params.get_waveform(self._waveform_type))
 
     def _prewarp_added(self):
         add_params = self._get_add_params()
