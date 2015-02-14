@@ -346,7 +346,7 @@ class GeneratorParamsAdd(GeneratorParams):
                 pitch = self._get_tone_pitch(wave_type, i)
                 volume = self._get_tone_volume(wave_type, i)
                 panning = self._get_tone_panning(wave_type, i)
-                tones_raw.append((pitch, volume, panning))
+                tones_raw.append([pitch, volume, panning])
             else:
                 tones_raw.append(None)
         return tones_raw
@@ -411,6 +411,14 @@ class GeneratorParamsAdd(GeneratorParams):
             self._set_all_tones(wave_type, tones)
         else:
             self._set_tone_panning(wave_type, index, panning)
+
+    def remove_tone(self, wave_type, index):
+        tones, has_holes = self._get_tones_and_packing_info(wave_type)
+        if has_holes:
+            del tones[index]
+            self._set_all_tones(wave_type, tones)
+        else:
+            self._remove_tone(wave_type, index)
 
     def get_phase_mod_enabled(self):
         return (self._get_value('p_i_mod.json', 0) == 1)
