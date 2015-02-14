@@ -126,16 +126,22 @@ class GeneratorParamsAdd(GeneratorParams):
             'base': {
                 'waveform_key': 'p_ln_base.json',
                 'waveform_funcs': _WAVEFORM_FUNCS,
+                'waveform_funcs_dict': _WAVEFORM_FUNCS_DICT,
                 'def_key': 'i_base.json',
                 'prewarp_funcs': _PREWARP_FUNCS,
+                'prewarp_funcs_dict': _PREWARP_FUNCS_DICT,
                 'postwarp_funcs': _POSTWARP_FUNCS,
+                'postwarp_funcs_dict': _POSTWARP_FUNCS_DICT,
             },
             'mod': {
                 'waveform_key': 'p_ln_mod_base.json',
                 'waveform_funcs': _WAVEFORM_FUNCS,
+                'waveform_funcs_dict': _WAVEFORM_FUNCS_DICT,
                 'def_key': 'i_mod.json',
                 'prewarp_funcs': _PREWARP_FUNCS,
+                'prewarp_funcs_dict': _PREWARP_FUNCS_DICT,
                 'postwarp_funcs': _POSTWARP_FUNCS,
+                'postwarp_funcs_dict': _POSTWARP_FUNCS_DICT,
             }
         }
 
@@ -180,9 +186,10 @@ class GeneratorParamsAdd(GeneratorParams):
         # Remove invalid entries
         prewarps = base_def.get('prewarps')
         base_def['prewarps'] = self._get_clean_warp_funcs(
-                prewarps, self._PREWARP_FUNCS_DICT)
+                prewarps, self._WAVES[wave_type]['prewarp_funcs_dict'])
 
-        if base_def.get('base_func', None) not in self._WAVEFORM_FUNCS_DICT:
+        waveform_funcs_dict = self._WAVES[wave_type]['waveform_funcs_dict']
+        if base_def.get('base_func', None) not in waveform_funcs_dict:
             if not self._get_value('p_ln_base.json', None):
                 base_def['base_func'] = 'Sine'
             else:
@@ -190,18 +197,19 @@ class GeneratorParamsAdd(GeneratorParams):
 
         postwarps = base_def.get('postwarps')
         base_def['postwarps'] = self._get_clean_warp_funcs(
-                postwarps, self._POSTWARP_FUNCS_DICT)
+                postwarps, self._WAVES[wave_type]['postwarp_funcs_dict'])
 
         return base_def
 
     def _update_waveform(self, wave_type, base_def):
         base = [0] * self._WAVEFORM_SAMPLE_COUNT
-        base_func = self._WAVEFORM_FUNCS_DICT[base_def['base_func']]
+        waveform_funcs_dict = self._WAVES[wave_type]['waveform_funcs_dict']
+        base_func = waveform_funcs_dict[base_def['base_func']]
 
-        prewarp_chain = [(self._PREWARP_FUNCS_DICT[name], value)
+        prewarp_chain = [(self._WAVES[wave_type]['prewarp_funcs_dict'][name], value)
                 for (name, value) in base_def['prewarps'] if name != 'None']
 
-        postwarp_chain = [(self._POSTWARP_FUNCS_DICT[name], value)
+        postwarp_chain = [(self._WAVES[wave_type]['postwarp_funcs_dict'][name], value)
                 for (name, value) in base_def['postwarps'] if name != 'None']
 
         for i in xrange(self._WAVEFORM_SAMPLE_COUNT):
@@ -223,7 +231,7 @@ class GeneratorParamsAdd(GeneratorParams):
         return base_def['base_func']
 
     def set_waveform_func(self, wave_type, name):
-        assert name in self._WAVEFORM_FUNCS_DICT
+        assert name in self._WAVES[wave_type]['waveform_funcs_dict']
         base_def = self._get_waveform_def(wave_type)
         base_def['base_func'] = name
         self._update_waveform(wave_type, base_def)
