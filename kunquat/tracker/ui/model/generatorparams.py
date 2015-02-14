@@ -28,9 +28,14 @@ class GeneratorParams():
     def _get_value(self, subkey, default_value):
         conf_key = self._get_key('c/', subkey)
         if conf_key in self._store:
-            return self._store[conf_key]
+            value = self._store[conf_key]
+            if value != None:
+                return value
         impl_key = self._get_key('i/', subkey)
-        return self._store.get(impl_key, default_value)
+        value = self._store.get(impl_key, default_value)
+        if value != None:
+            return value
+        return default_value
 
     def _set_value(self, subkey, value):
         key = self._get_key('c/', subkey)
