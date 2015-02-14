@@ -127,11 +127,15 @@ class GeneratorParamsAdd(GeneratorParams):
                 'waveform_key': 'p_ln_base.json',
                 'waveform_funcs': _WAVEFORM_FUNCS,
                 'def_key': 'i_base.json',
+                'prewarp_funcs': _PREWARP_FUNCS,
+                'postwarp_funcs': _POSTWARP_FUNCS,
             },
             'mod': {
                 'waveform_key': 'p_ln_mod_base.json',
                 'waveform_funcs': _WAVEFORM_FUNCS,
                 'def_key': 'i_mod.json',
+                'prewarp_funcs': _PREWARP_FUNCS,
+                'postwarp_funcs': _POSTWARP_FUNCS,
             }
         }
 
@@ -224,69 +228,69 @@ class GeneratorParamsAdd(GeneratorParams):
         base_def['base_func'] = name
         self._update_waveform(wave_type, base_def)
 
-    def get_prewarp_func_names(self):
-        return [name for (name, _) in self._PREWARP_FUNCS]
+    def get_prewarp_func_names(self, wave_type):
+        return [name for (name, _) in self._WAVES[wave_type]['prewarp_funcs']]
 
-    def get_prewarp_func_count(self):
-        base_def = self._get_waveform_def('base')
+    def get_prewarp_func_count(self, wave_type):
+        base_def = self._get_waveform_def(wave_type)
         return len(base_def['prewarps'])
 
-    def get_prewarp_func(self, index):
-        base_def = self._get_waveform_def('base')
+    def get_prewarp_func(self, wave_type, index):
+        base_def = self._get_waveform_def(wave_type)
         return tuple(base_def['prewarps'][index])
 
-    def add_prewarp_func(self):
-        base_def = self._get_waveform_def('base')
+    def add_prewarp_func(self, wave_type):
+        base_def = self._get_waveform_def(wave_type)
         base_def['prewarps'].append(['Shift', 0])
-        self._update_waveform('base', base_def)
+        self._update_waveform(wave_type, base_def)
 
-    def set_prewarp_func(self, index, name, arg):
-        base_def = self._get_waveform_def('base')
+    def set_prewarp_func(self, wave_type, index, name, arg):
+        base_def = self._get_waveform_def(wave_type)
         base_def['prewarps'][index] = [name, arg]
-        self._update_waveform('base', base_def)
+        self._update_waveform(wave_type, base_def)
 
-    def move_prewarp_func(self, from_index, to_index):
-        base_def = self._get_waveform_def('base')
+    def move_prewarp_func(self, wave_type, from_index, to_index):
+        base_def = self._get_waveform_def(wave_type)
         entry = base_def['prewarps'].pop(from_index)
         base_def['prewarps'].insert(to_index, entry)
-        self._update_waveform('base', base_def)
+        self._update_waveform(wave_type, base_def)
 
-    def remove_prewarp_func(self, index):
-        base_def = self._get_waveform_def('base')
+    def remove_prewarp_func(self, wave_type, index):
+        base_def = self._get_waveform_def(wave_type)
         del base_def['prewarps'][index]
-        self._update_waveform('base', base_def)
+        self._update_waveform(wave_type, base_def)
 
-    def get_postwarp_func_names(self):
-        return [name for (name, _) in self._POSTWARP_FUNCS]
+    def get_postwarp_func_names(self, wave_type):
+        return [name for (name, _) in self._WAVES[wave_type]['postwarp_funcs']]
 
-    def get_postwarp_func_count(self):
-        base_def = self._get_waveform_def('base')
+    def get_postwarp_func_count(self, wave_type):
+        base_def = self._get_waveform_def(wave_type)
         return len(base_def['postwarps'])
 
-    def get_postwarp_func(self, index):
-        base_def = self._get_waveform_def('base')
+    def get_postwarp_func(self, wave_type, index):
+        base_def = self._get_waveform_def(wave_type)
         return tuple(base_def['postwarps'][index])
 
-    def add_postwarp_func(self):
-        base_def = self._get_waveform_def('base')
+    def add_postwarp_func(self, wave_type):
+        base_def = self._get_waveform_def(wave_type)
         base_def['postwarps'].append(['Shift', 0])
-        self._update_waveform('base', base_def)
+        self._update_waveform(wave_type, base_def)
 
-    def set_postwarp_func(self, index, name, arg):
-        base_def = self._get_waveform_def('base')
+    def set_postwarp_func(self, wave_type, index, name, arg):
+        base_def = self._get_waveform_def(wave_type)
         base_def['postwarps'][index] = [name, arg]
-        self._update_waveform('base', base_def)
+        self._update_waveform(wave_type, base_def)
 
-    def move_postwarp_func(self, from_index, to_index):
-        base_def = self._get_waveform_def('base')
+    def move_postwarp_func(self, wave_type, from_index, to_index):
+        base_def = self._get_waveform_def(wave_type)
         entry = base_def['postwarps'].pop(from_index)
         base_def['postwarps'].insert(to_index, entry)
-        self._update_waveform('base', base_def)
+        self._update_waveform(wave_type, base_def)
 
-    def remove_postwarp_func(self, index):
-        base_def = self._get_waveform_def('base')
+    def remove_postwarp_func(self, wave_type, index):
+        base_def = self._get_waveform_def(wave_type)
         del base_def['postwarps'][index]
-        self._update_waveform('base', base_def)
+        self._update_waveform(wave_type, base_def)
 
     def _get_tone_subkey(self, index, subkey):
         return 'tone_{:02x}/{}'.format(index, subkey)

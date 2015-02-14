@@ -165,8 +165,10 @@ class WaveformEditor(QWidget):
 
         add_params = self._get_add_params()
 
-        self._prewarp_list.set_func_names(add_params.get_prewarp_func_names())
-        self._postwarp_list.set_func_names(add_params.get_postwarp_func_names())
+        self._prewarp_list.set_func_names(
+                add_params.get_prewarp_func_names(self._waveform_type))
+        self._postwarp_list.set_func_names(
+                add_params.get_postwarp_func_names(self._waveform_type))
 
         icon_bank = self._ui_model.get_icon_bank()
         self._prewarp_list.set_icon_bank(icon_bank)
@@ -222,9 +224,10 @@ class WaveformEditor(QWidget):
         enable_warps = (selected_base_func != None)
 
         self._prewarp_list.setEnabled(enable_warps)
-        self._prewarp_list.set_warp_count(add_params.get_prewarp_func_count())
-        for i in xrange(add_params.get_prewarp_func_count()):
-            name, arg = add_params.get_prewarp_func(i)
+        self._prewarp_list.set_warp_count(
+                add_params.get_prewarp_func_count(self._waveform_type))
+        for i in xrange(add_params.get_prewarp_func_count(self._waveform_type)):
+            name, arg = add_params.get_prewarp_func(self._waveform_type, i)
             self._prewarp_list.set_warp(i, name, arg)
 
         old_block = self._base_func_selector.blockSignals(True)
@@ -240,32 +243,33 @@ class WaveformEditor(QWidget):
         self._base_func_selector.blockSignals(old_block)
 
         self._postwarp_list.setEnabled(enable_warps)
-        self._postwarp_list.set_warp_count(add_params.get_postwarp_func_count())
-        for i in xrange(add_params.get_postwarp_func_count()):
-            name, arg = add_params.get_postwarp_func(i)
+        self._postwarp_list.set_warp_count(
+                add_params.get_postwarp_func_count(self._waveform_type))
+        for i in xrange(add_params.get_postwarp_func_count(self._waveform_type)):
+            name, arg = add_params.get_postwarp_func(self._waveform_type, i)
             self._postwarp_list.set_warp(i, name, arg)
 
         self._waveform.set_waveform(add_params.get_waveform(self._waveform_type))
 
     def _prewarp_added(self):
         add_params = self._get_add_params()
-        add_params.add_prewarp_func()
+        add_params.add_prewarp_func(self._waveform_type)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _prewarp_changed(self, index):
         add_params = self._get_add_params()
         name, arg = self._prewarp_list.get_warp(index)
-        add_params.set_prewarp_func(index, name, arg)
+        add_params.set_prewarp_func(self._waveform_type, index, name, arg)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _prewarp_moved(self, from_index, to_index):
         add_params = self._get_add_params()
-        add_params.move_prewarp_func(from_index, to_index)
+        add_params.move_prewarp_func(self._waveform_type, from_index, to_index)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _prewarp_removed(self, index):
         add_params = self._get_add_params()
-        add_params.remove_prewarp_func(index)
+        add_params.remove_prewarp_func(self._waveform_type, index)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _base_func_selected(self, index):
@@ -276,23 +280,23 @@ class WaveformEditor(QWidget):
 
     def _postwarp_added(self):
         add_params = self._get_add_params()
-        add_params.add_postwarp_func()
+        add_params.add_postwarp_func(self._waveform_type)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _postwarp_changed(self, index):
         add_params = self._get_add_params()
         name, arg = self._postwarp_list.get_warp(index)
-        add_params.set_postwarp_func(index, name, arg)
+        add_params.set_postwarp_func(self._waveform_type, index, name, arg)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _postwarp_moved(self, from_index, to_index):
         add_params = self._get_add_params()
-        add_params.move_postwarp_func(from_index, to_index)
+        add_params.move_postwarp_func(self._waveform_type, from_index, to_index)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _postwarp_removed(self, index):
         add_params = self._get_add_params()
-        add_params.remove_postwarp_func(index)
+        add_params.remove_postwarp_func(self._waveform_type, index)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
 
