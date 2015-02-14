@@ -141,9 +141,9 @@ class WaveformEditor(QWidget):
         self._updater = None
         self._wave_type = wave_type
 
-        self._prewarp_list = WarpList('Add prewarp')
+        self._prewarp_list = WarpList('pre')
         self._base_func_selector = QComboBox()
-        self._postwarp_list = WarpList('Add postwarp')
+        self._postwarp_list = WarpList('post')
         self._waveform = Waveform()
 
         v = QVBoxLayout()
@@ -166,9 +166,9 @@ class WaveformEditor(QWidget):
         add_params = self._get_add_params()
 
         self._prewarp_list.set_func_names(
-                add_params.get_prewarp_func_names(self._wave_type))
+                add_params.get_warp_func_names('pre'))
         self._postwarp_list.set_func_names(
-                add_params.get_postwarp_func_names(self._wave_type))
+                add_params.get_warp_func_names('post'))
 
         icon_bank = self._ui_model.get_icon_bank()
         self._prewarp_list.set_icon_bank(icon_bank)
@@ -226,9 +226,9 @@ class WaveformEditor(QWidget):
 
         self._prewarp_list.setEnabled(enable_warps)
         self._prewarp_list.set_warp_count(
-                add_params.get_prewarp_func_count(self._wave_type))
-        for i in xrange(add_params.get_prewarp_func_count(self._wave_type)):
-            name, arg = add_params.get_prewarp_func(self._wave_type, i)
+                add_params.get_warp_func_count(self._wave_type, 'pre'))
+        for i in xrange(add_params.get_warp_func_count(self._wave_type, 'pre')):
+            name, arg = add_params.get_warp_func(self._wave_type, 'pre', i)
             self._prewarp_list.set_warp(i, name, arg)
 
         old_block = self._base_func_selector.blockSignals(True)
@@ -245,32 +245,32 @@ class WaveformEditor(QWidget):
 
         self._postwarp_list.setEnabled(enable_warps)
         self._postwarp_list.set_warp_count(
-                add_params.get_postwarp_func_count(self._wave_type))
-        for i in xrange(add_params.get_postwarp_func_count(self._wave_type)):
-            name, arg = add_params.get_postwarp_func(self._wave_type, i)
+                add_params.get_warp_func_count(self._wave_type, 'post'))
+        for i in xrange(add_params.get_warp_func_count(self._wave_type, 'post')):
+            name, arg = add_params.get_warp_func(self._wave_type, 'post', i)
             self._postwarp_list.set_warp(i, name, arg)
 
         self._waveform.set_waveform(add_params.get_waveform(self._wave_type))
 
     def _prewarp_added(self):
         add_params = self._get_add_params()
-        add_params.add_prewarp_func(self._wave_type)
+        add_params.add_warp_func(self._wave_type, 'pre')
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _prewarp_changed(self, index):
         add_params = self._get_add_params()
         name, arg = self._prewarp_list.get_warp(index)
-        add_params.set_prewarp_func(self._wave_type, index, name, arg)
+        add_params.set_warp_func(self._wave_type, 'pre', index, name, arg)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _prewarp_moved(self, from_index, to_index):
         add_params = self._get_add_params()
-        add_params.move_prewarp_func(self._wave_type, from_index, to_index)
+        add_params.move_warp_func(self._wave_type, 'pre', from_index, to_index)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _prewarp_removed(self, index):
         add_params = self._get_add_params()
-        add_params.remove_prewarp_func(self._wave_type, index)
+        add_params.remove_warp_func(self._wave_type, 'pre', index)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _base_func_selected(self, index):
@@ -281,23 +281,23 @@ class WaveformEditor(QWidget):
 
     def _postwarp_added(self):
         add_params = self._get_add_params()
-        add_params.add_postwarp_func(self._wave_type)
+        add_params.add_warp_func(self._wave_type, 'post')
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _postwarp_changed(self, index):
         add_params = self._get_add_params()
         name, arg = self._postwarp_list.get_warp(index)
-        add_params.set_postwarp_func(self._wave_type, index, name, arg)
+        add_params.set_warp_func(self._wave_type, 'post', index, name, arg)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _postwarp_moved(self, from_index, to_index):
         add_params = self._get_add_params()
-        add_params.move_postwarp_func(self._wave_type, from_index, to_index)
+        add_params.move_warp_func(self._wave_type, 'post', from_index, to_index)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _postwarp_removed(self, index):
         add_params = self._get_add_params()
-        add_params.remove_postwarp_func(self._wave_type, index)
+        add_params.remove_warp_func(self._wave_type, 'post', index)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
 
@@ -319,11 +319,12 @@ class WarpList(QScrollArea):
     warpMoved   = pyqtSignal(int, int, name='warpMoved')
     warpRemoved = pyqtSignal(int, name='warpRemoved')
 
-    def __init__(self, add_text):
+    def __init__(self, warp_type):
         QAbstractScrollArea.__init__(self)
         self._func_names = None
         self._icon_bank = None
-        self._add_text = add_text
+        self._warp_type = warp_type
+        self._add_text = { 'pre': 'Add prewarp', 'post': 'Add postwarp' }[warp_type]
 
         self._init_container()
 
