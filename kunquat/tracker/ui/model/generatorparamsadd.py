@@ -362,6 +362,9 @@ class GeneratorParamsAdd(GeneratorParams):
         tones, _ = self._get_tones_and_packing_info(wave_type)
         return tones
 
+    def get_max_tone_count(self):
+        return self._TONES_MAX
+
     def get_tone_count(self, wave_type):
         return len(self._get_tones(wave_type))
 

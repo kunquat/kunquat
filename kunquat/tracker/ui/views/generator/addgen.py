@@ -613,6 +613,9 @@ class ToneList(QScrollArea):
             editor.set_ui_model(self._ui_model)
             layout.insertWidget(i, editor)
 
+        max_count_reached = (count >= add_params.get_max_tone_count())
+        layout.itemAt(layout.count() - 1).widget().setVisible(not max_count_reached)
+
         self._do_width_hack()
 
     def _do_width_hack(self):
