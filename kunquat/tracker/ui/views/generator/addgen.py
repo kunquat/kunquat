@@ -361,7 +361,7 @@ class WarpList(QScrollArea):
         self._do_width_hack()
 
 
-class WarpEditorButton(QPushButton):
+class SmallButton(QPushButton):
 
     def __init__(self, icon):
         QPushButton.__init__(self)
@@ -383,13 +383,13 @@ class WarpEditor(QWidget):
         self._warp_type = warp_type
         self._index = index
 
-        self._down_button = WarpEditorButton(icon_bank.get_icon_path('arrow_down_small'))
-        self._up_button = WarpEditorButton(icon_bank.get_icon_path('arrow_up_small'))
+        self._down_button = SmallButton(icon_bank.get_icon_path('arrow_down_small'))
+        self._up_button = SmallButton(icon_bank.get_icon_path('arrow_up_small'))
         self._func_selector = QComboBox()
         self._slider = QSlider(Qt.Horizontal)
         self._slider.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Preferred)
         self._value_display = QLabel()
-        self._remove_button = WarpEditorButton(icon_bank.get_icon_path('delete_small'))
+        self._remove_button = SmallButton(icon_bank.get_icon_path('delete_small'))
 
         self._slider.setRange(-self._ARG_SCALE, self._ARG_SCALE)
 
@@ -580,7 +580,7 @@ class ToneList(QScrollArea):
         self._updater.unregister_updater(self._perform_updates)
 
     def _get_update_signal_type(self):
-        return ''.join(('signal_gen_add_', self._ins_id, self._gen_id))
+        return ''.join(('signal_gen_add_tone_', self._ins_id, self._gen_id))
 
     def _perform_updates(self, signals):
         update_signals = set(['signal_instrument', self._get_update_signal_type()])
@@ -634,13 +634,18 @@ class ToneEditor(QWidget):
 
     def __init__(self, wave_type, index, icon_bank):
         QWidget.__init__(self)
+        self._ins_id = None
+        self._gen_id = None
+        self._ui_model = None
         self._wave_type = wave_type
         self._index = index
-        self._icon_bank = icon_bank
 
         self._pitch_spin = TonePitchSpin(self._wave_type, index)
         self._volume_slider = ToneVolumeSlider(self._wave_type, index)
         self._panning_slider = TonePanningSlider(self._wave_type, index)
+        self._remove_button = SmallButton(icon_bank.get_icon_path('delete_small'))
+
+        self._remove_button.setEnabled(self._index != 0)
 
         h = QHBoxLayout()
         h.setMargin(0)
@@ -649,31 +654,52 @@ class ToneEditor(QWidget):
         h.addWidget(self._volume_slider)
         if self._wave_type == 'base':
             h.addWidget(self._panning_slider)
+        h.addWidget(self._remove_button)
         self.setLayout(h)
 
     def set_ins_id(self, ins_id):
+        self._ins_id = ins_id
         self._pitch_spin.set_ins_id(ins_id)
         self._volume_slider.set_ins_id(ins_id)
         if self._wave_type == 'base':
             self._panning_slider.set_ins_id(ins_id)
 
     def set_gen_id(self, gen_id):
+        self._gen_id = gen_id
         self._pitch_spin.set_gen_id(gen_id)
         self._volume_slider.set_gen_id(gen_id)
         if self._wave_type == 'base':
             self._panning_slider.set_gen_id(gen_id)
 
     def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
         self._pitch_spin.set_ui_model(ui_model)
         self._volume_slider.set_ui_model(ui_model)
         if self._wave_type == 'base':
             self._panning_slider.set_ui_model(ui_model)
+        QObject.connect(self._remove_button, SIGNAL('clicked()'), self._removed)
 
     def unregister_updaters(self):
         if self._wave_type == 'base':
             self._panning_slider.unregister_updaters()
         self._volume_slider.unregister_updaters()
         self._pitch_spin.unregister_updaters()
+
+    def _get_add_params(self):
+        module = self._ui_model.get_module()
+        instrument = module.get_instrument(self._ins_id)
+        generator = instrument.get_generator(self._gen_id)
+        add_params = generator.get_type_params()
+        return add_params
+
+    def _get_update_signal_type(self):
+        return ''.join(('signal_gen_add_tone_', self._ins_id, self._gen_id))
+
+    def _removed(self):
+        add_params = self._get_add_params()
+        add_params.remove_tone(self._wave_type, self._index)
+        updater = self._ui_model.get_updater()
+        updater.signal_update(set([self._get_update_signal_type()]))
 
 
 class TonePitchSpin(QWidget):
@@ -709,6 +735,7 @@ class TonePitchSpin(QWidget):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
+        self._update_value()
 
         QObject.connect(self._spin, SIGNAL('valueChanged(double)'), self._value_changed)
 
@@ -723,8 +750,7 @@ class TonePitchSpin(QWidget):
         return add_params
 
     def _get_update_signal_type(self):
-        return ''.join((
-            'signal_add_tone_pitch_', self._ins_id, self._gen_id, str(self._index)))
+        return ''.join(('signal_gen_add_tone_', self._ins_id, self._gen_id))
 
     def _perform_updates(self, signals):
         update_signals = set(['signal_instrument', self._get_update_signal_type()])
@@ -733,6 +759,11 @@ class TonePitchSpin(QWidget):
 
     def _update_value(self):
         add_params = self._get_add_params()
+
+        if self._index >= add_params.get_tone_count(self._wave_type):
+            # We have been removed
+            return
+
         old_block = self._spin.blockSignals(True)
         new_pitch = add_params.get_tone_pitch(self._wave_type, self._index)
         if new_pitch != self._spin.value():
@@ -762,6 +793,11 @@ class ToneVolumeSlider(GenNumSlider):
 
     def _update_value(self):
         add_params = self._get_add_params()
+
+        if self._index >= add_params.get_tone_count(self._wave_type):
+            # We have been removed
+            return
+
         self.set_number(add_params.get_tone_volume(self._wave_type, self._index))
 
     def _value_changed(self, volume):
@@ -770,8 +806,7 @@ class ToneVolumeSlider(GenNumSlider):
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _get_update_signal_type(self):
-        return ''.join((
-            'signal_add_tone_volume_', self._ins_id, self._gen_id, str(self._index)))
+        return ''.join(('signal_gen_add_tone_', self._ins_id, self._gen_id))
 
 
 class TonePanningSlider(GenNumSlider):
@@ -791,6 +826,11 @@ class TonePanningSlider(GenNumSlider):
 
     def _update_value(self):
         add_params = self._get_add_params()
+
+        if self._index >= add_params.get_tone_count(self._wave_type):
+            # We have been removed
+            return
+
         self.set_number(add_params.get_tone_panning(self._wave_type, self._index))
 
     def _value_changed(self, panning):
@@ -799,8 +839,7 @@ class TonePanningSlider(GenNumSlider):
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _get_update_signal_type(self):
-        return ''.join((
-            'signal_add_tone_panning_', self._ins_id, self._gen_id, str(self._index)))
+        return ''.join(('signal_gen_add_tone_', self._ins_id, self._gen_id))
 
 
 class ModVolume(GenNumSlider):
