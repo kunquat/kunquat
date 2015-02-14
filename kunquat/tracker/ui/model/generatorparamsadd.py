@@ -132,6 +132,7 @@ class GeneratorParamsAdd(GeneratorParams):
                 'prewarp_funcs_dict': _PREWARP_FUNCS_DICT,
                 'postwarp_funcs': _POSTWARP_FUNCS,
                 'postwarp_funcs_dict': _POSTWARP_FUNCS_DICT,
+                'tone_key_fmt': 'tone_{:02x}/{}',
             },
             'mod': {
                 'waveform_key': 'p_ln_mod_base.json',
@@ -142,6 +143,7 @@ class GeneratorParamsAdd(GeneratorParams):
                 'prewarp_funcs_dict': _PREWARP_FUNCS_DICT,
                 'postwarp_funcs': _POSTWARP_FUNCS,
                 'postwarp_funcs_dict': _POSTWARP_FUNCS_DICT,
+                'tone_key_fmt': 'mod_{:02x}/{}',
             }
         }
 
@@ -300,130 +302,137 @@ class GeneratorParamsAdd(GeneratorParams):
         del base_def['postwarps'][index]
         self._update_waveform(wave_type, base_def)
 
-    def _get_tone_subkey(self, index, subkey):
-        return 'tone_{:02x}/{}'.format(index, subkey)
+    def _get_tone_subkey(self, wave_type, index, subkey):
+        return self._WAVES[wave_type]['tone_key_fmt'].format(index, subkey)
 
-    def _get_tone_value(self, index, subkey, default_value):
-        tone_subkey = self._get_tone_subkey(index, subkey)
+    def _get_tone_value(self, wave_type, index, subkey, default_value):
+        tone_subkey = self._get_tone_subkey(wave_type, index, subkey)
         return self._get_value(tone_subkey, default_value)
 
-    def _set_tone_value(self, index, subkey, value):
-        tone_subkey = self._get_tone_subkey(index, subkey)
+    def _set_tone_value(self, wave_type, index, subkey, value):
+        tone_subkey = self._get_tone_subkey(wave_type, index, subkey)
         self._set_value(tone_subkey, value)
 
-    def _get_tone_pitch(self, index):
+    def _get_tone_pitch(self, wave_type, index):
         default_pitch = 1 if (index == 0) else 0
-        return self._get_tone_value(index, 'p_f_pitch.json', default_pitch)
+        return self._get_tone_value(wave_type, index, 'p_f_pitch.json', default_pitch)
 
-    def _set_tone_pitch(self, index, pitch):
-        self._set_tone_value(index, 'p_f_pitch.json', pitch)
+    def _set_tone_pitch(self, wave_type, index, pitch):
+        self._set_tone_value(wave_type, index, 'p_f_pitch.json', pitch)
 
-    def _get_tone_volume(self, index):
+    def _get_tone_volume(self, wave_type, index):
         default_volume = 0 if (index == 0) else float('-inf')
-        return self._get_tone_value(index, 'p_f_volume.json', default_volume)
+        return self._get_tone_value(wave_type, index, 'p_f_volume.json', default_volume)
 
-    def _set_tone_volume(self, index, volume):
-        self._set_tone_value(index, 'p_f_volume.json', volume)
+    def _set_tone_volume(self, wave_type, index, volume):
+        self._set_tone_value(wave_type, index, 'p_f_volume.json', volume)
 
-    def _get_tone_panning(self, index):
-        return self._get_tone_value(index, 'p_f_pan.json', 0)
+    def _get_tone_panning(self, wave_type, index):
+        assert wave_type == 'base'
+        return self._get_tone_value(wave_type, index, 'p_f_pan.json', 0)
 
-    def _set_tone_panning(self, index, panning):
-        self._set_tone_value(index, 'p_f_pan.json', panning)
+    def _set_tone_panning(self, wave_type, index, panning):
+        assert wave_type == 'base'
+        self._set_tone_value(wave_type, index, 'p_f_pan.json', panning)
 
-    def _remove_tone(self, index):
+    def _remove_tone(self, wave_type, index):
         if index == 0:
-            self._set_tone_pitch(index, 0)
+            self._set_tone_pitch(wave_type, index, 0)
         else:
-            self._set_tone_pitch(index, None)
+            self._set_tone_pitch(wave_type, index, None)
 
-        self._set_tone_volume(index, None)
-        self._set_tone_panning(index, None)
+        self._set_tone_volume(wave_type, index, None)
+        if wave_type == 'base':
+            self._set_tone_panning(wave_type, index, None)
 
-    def _set_all_tones(self, tones):
+    def _set_all_tones(self, wave_type, tones):
         # TODO: do this in one transaction
         for i, tone in enumerate(tones):
             pitch, volume, panning = tone
-            self._set_tone_pitch(i, pitch)
-            self._set_tone_volume(i, volume)
-            self._set_tone_panning(i, panning)
+            self._set_tone_pitch(wave_type, i, pitch)
+            self._set_tone_volume(wave_type, i, volume)
+            if wave_type == 'base':
+                self._set_tone_panning(wave_type, i, panning)
         for i in xrange(len(tones), self._TONES_MAX):
-            self._remove_tone(i)
+            self._remove_tone(wave_type, i)
 
-    def _get_tone_existence(self, index):
-        has_pitch = (self._get_tone_pitch(index) > 0)
-        has_volume = not math.isinf(self._get_tone_volume(index))
+    def _get_tone_existence(self, wave_type, index):
+        has_pitch = (self._get_tone_pitch(wave_type, index) > 0)
+        has_volume = not math.isinf(self._get_tone_volume(wave_type, index))
         return (has_pitch and has_volume)
 
-    def _get_tones_raw(self):
+    def _get_tones_raw(self, wave_type):
         tones_raw = []
         for i in xrange(self._TONES_MAX):
-            if self._get_tone_existence(i):
-                pitch = self._get_tone_pitch(i)
-                volume = self._get_tone_volume(i)
-                panning = self._get_tone_panning(i)
+            if self._get_tone_existence(wave_type, i):
+                pitch = self._get_tone_pitch(wave_type, i)
+                volume = self._get_tone_volume(wave_type, i)
+                panning = self._get_tone_panning(wave_type, i)
                 tones_raw.append((pitch, volume, panning))
             else:
                 tones_raw.append(None)
         return tones_raw
 
-    def _get_tones_and_packing_info(self):
-        tones = self._get_tones_raw()
+    def _get_tones_and_packing_info(self, wave_type):
+        tones = self._get_tones_raw(wave_type)
         has_holes = (None in tones) and (
                 tones.index(None) < sum(1 for t in tones if t != None))
         tones = filter(lambda x: x != None, tones)
         return tones, has_holes
 
-    def _get_tones(self):
-        tones, _ = self._get_tones_and_packing_info()
+    def _get_tones(self, wave_type):
+        tones, _ = self._get_tones_and_packing_info(wave_type)
         return tones
 
-    def get_tone_count(self):
-        return len(self._get_tones())
+    def get_tone_count(self, wave_type):
+        return len(self._get_tones(wave_type))
 
-    def add_tone(self):
-        tones, has_holes = self._get_tones_and_packing_info()
+    def add_tone(self, wave_type):
+        tones, has_holes = self._get_tones_and_packing_info(wave_type)
         if has_holes:
             tones.append([1, 0, 0])
-            self._set_all_tones(tones)
+            self._set_all_tones(wave_type, tones)
         else:
             new_index = len(tones)
-            self._set_tone_pitch(new_index, 1)
-            self._set_tone_volume(new_index, 0)
-            self._set_tone_panning(new_index, 0)
+            self._set_tone_pitch(wave_type, new_index, 1)
+            self._set_tone_volume(wave_type, new_index, 0)
+            if wave_type == 'base':
+                self._set_tone_panning(wave_type, new_index, 0)
 
-    def get_tone_pitch(self, index):
-        return self._get_tones()[index][0]
+    def get_tone_pitch(self, wave_type, index):
+        return self._get_tones(wave_type)[index][0]
 
-    def set_tone_pitch(self, index, pitch):
-        tones, has_holes = self._get_tones_and_packing_info()
+    def set_tone_pitch(self, wave_type, index, pitch):
+        tones, has_holes = self._get_tones_and_packing_info(wave_type)
         if has_holes:
             tones[index][0] = pitch
-            self._set_all_tones(tones)
+            self._set_all_tones(wave_type, tones)
         else:
-            self._set_tone_pitch(index, pitch)
+            self._set_tone_pitch(wave_type, index, pitch)
 
-    def get_tone_volume(self, index):
-        return self._get_tones()[index][1]
+    def get_tone_volume(self, wave_type, index):
+        return self._get_tones(wave_type)[index][1]
 
-    def set_tone_volume(self, index, volume):
-        tones, has_holes = self._get_tones_and_packing_info()
+    def set_tone_volume(self, wave_type, index, volume):
+        tones, has_holes = self._get_tones_and_packing_info(wave_type)
         if has_holes:
             tones[index][1] = volume
-            self._set_all_tones(tones)
+            self._set_all_tones(wave_type, tones)
         else:
-            self._set_tone_volume(index, volume)
+            self._set_tone_volume(wave_type, index, volume)
 
-    def get_tone_panning(self, index):
-        return self._get_tones()[index][2]
+    def get_tone_panning(self, wave_type, index):
+        assert wave_type == 'base'
+        return self._get_tones(wave_type)[index][2]
 
-    def set_tone_panning(self, index, panning):
-        tones, has_holes = self._get_tones_and_packing_info()
+    def set_tone_panning(self, wave_type, index, panning):
+        assert wave_type == 'base'
+        tones, has_holes = self._get_tones_and_packing_info(wave_type)
         if has_holes:
             tones[index][2] = panning
-            self._set_all_tones(tones)
+            self._set_all_tones(wave_type, tones)
         else:
-            self._set_tone_panning(index, panning)
+            self._set_tone_panning(wave_type, index, panning)
 
     def get_phase_mod_enabled(self):
         return (self._get_value('p_i_mod.json', 0) == 1)

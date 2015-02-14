@@ -31,7 +31,7 @@ class AddGen(QWidget):
         self._updater = None
 
         self._base_waveform = WaveformEditor('base')
-        self._base_tone_editor = ToneList()
+        self._base_tone_editor = ToneList('base')
 
         base_layout = QVBoxLayout()
         base_layout.setSpacing(0)
@@ -511,13 +511,14 @@ class ToneListContainer(QWidget):
 
 class ToneList(QScrollArea):
 
-    def __init__(self):
+    def __init__(self, wave_type):
         QScrollArea.__init__(self)
         self._ins_id = None
         self._gen_id = None
         self._ui_model = None
         self._updater = None
         self._icon_bank = None
+        self._wave_type = wave_type
 
         self._init_container()
 
@@ -574,7 +575,7 @@ class ToneList(QScrollArea):
 
         # Set tone count
         layout = self.widget().layout()
-        count = add_params.get_tone_count()
+        count = add_params.get_tone_count(self._wave_type)
         if count < layout.count() - 1:
             self._disconnect_editors()
             self._init_container()
@@ -582,7 +583,7 @@ class ToneList(QScrollArea):
 
         # Create new tone editors
         for i in xrange(layout.count() - 1, count):
-            editor = ToneEditor(i, self._icon_bank)
+            editor = ToneEditor(self._wave_type, i, self._icon_bank)
             editor.set_ins_id(self._ins_id)
             editor.set_gen_id(self._gen_id)
             editor.set_ui_model(self._ui_model)
@@ -596,7 +597,7 @@ class ToneList(QScrollArea):
 
     def _tone_added(self):
         add_params = self._get_add_params()
-        add_params.add_tone()
+        add_params.add_tone(self._wave_type)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def resizeEvent(self, event):
@@ -607,52 +608,59 @@ class ToneEditor(QWidget):
 
     _ARG_SCALE = 1000
 
-    def __init__(self, index, icon_bank):
+    def __init__(self, wave_type, index, icon_bank):
         QWidget.__init__(self)
+        self._wave_type = wave_type
         self._index = index
         self._icon_bank = icon_bank
 
-        self._pitch_spin = TonePitchSpin(index)
-        self._volume_slider = ToneVolumeSlider(index)
-        self._panning_slider = TonePanningSlider(index)
+        self._pitch_spin = TonePitchSpin(self._wave_type, index)
+        self._volume_slider = ToneVolumeSlider(self._wave_type, index)
+        self._panning_slider = TonePanningSlider(self._wave_type, index)
 
         h = QHBoxLayout()
         h.setMargin(0)
         h.setSpacing(2)
         h.addWidget(self._pitch_spin)
         h.addWidget(self._volume_slider)
-        h.addWidget(self._panning_slider)
+        if self._wave_type == 'base':
+            h.addWidget(self._panning_slider)
         self.setLayout(h)
 
     def set_ins_id(self, ins_id):
         self._pitch_spin.set_ins_id(ins_id)
         self._volume_slider.set_ins_id(ins_id)
-        self._panning_slider.set_ins_id(ins_id)
+        if self._wave_type == 'base':
+            self._panning_slider.set_ins_id(ins_id)
 
     def set_gen_id(self, gen_id):
         self._pitch_spin.set_gen_id(gen_id)
         self._volume_slider.set_gen_id(gen_id)
-        self._panning_slider.set_gen_id(gen_id)
+        if self._wave_type == 'base':
+            self._panning_slider.set_gen_id(gen_id)
 
     def set_ui_model(self, ui_model):
         self._pitch_spin.set_ui_model(ui_model)
         self._volume_slider.set_ui_model(ui_model)
-        self._panning_slider.set_ui_model(ui_model)
+        if self._wave_type == 'base':
+            self._panning_slider.set_ui_model(ui_model)
 
     def unregister_updaters(self):
-        self._panning_slider.unregister_updaters()
+        if self._wave_type == 'base':
+            self._panning_slider.unregister_updaters()
         self._volume_slider.unregister_updaters()
         self._pitch_spin.unregister_updaters()
 
 
 class TonePitchSpin(QWidget):
 
-    def __init__(self, index):
+    def __init__(self, wave_type, index):
         QWidget.__init__(self)
         self._ins_id = None
         self._gen_id = None
         self._ui_model = None
         self._updater = None
+        self._wave_type = wave_type
         self._index = index
 
         self._spin = QDoubleSpinBox()
@@ -702,21 +710,22 @@ class TonePitchSpin(QWidget):
     def _update_value(self):
         add_params = self._get_add_params()
         old_block = self._spin.blockSignals(True)
-        new_pitch = add_params.get_tone_pitch(self._index)
+        new_pitch = add_params.get_tone_pitch(self._wave_type, self._index)
         if new_pitch != self._spin.value():
             self._spin.setValue(new_pitch)
         self._spin.blockSignals(old_block)
 
     def _value_changed(self, pitch):
         add_params = self._get_add_params()
-        add_params.set_tone_pitch(self._index, pitch)
+        add_params.set_tone_pitch(self._wave_type, self._index, pitch)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
 
 class ToneVolumeSlider(GenNumSlider):
 
-    def __init__(self, index):
+    def __init__(self, wave_type, index):
         GenNumSlider.__init__(self, 1, -64.0, 24.0, title='Volume')
+        self._wave_type = wave_type
         self._index = index
         self.set_number(0)
 
@@ -729,11 +738,11 @@ class ToneVolumeSlider(GenNumSlider):
 
     def _update_value(self):
         add_params = self._get_add_params()
-        self.set_number(add_params.get_tone_volume(self._index))
+        self.set_number(add_params.get_tone_volume(self._wave_type, self._index))
 
     def _value_changed(self, volume):
         add_params = self._get_add_params()
-        add_params.set_tone_volume(self._index, volume)
+        add_params.set_tone_volume(self._wave_type, self._index, volume)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _get_update_signal_type(self):
@@ -743,8 +752,9 @@ class ToneVolumeSlider(GenNumSlider):
 
 class TonePanningSlider(GenNumSlider):
 
-    def __init__(self, index):
+    def __init__(self, wave_type, index):
         GenNumSlider.__init__(self, 3, -1.0, 1.0, title='Panning')
+        self._wave_type = wave_type
         self._index = index
         self.set_number(0)
 
@@ -757,11 +767,11 @@ class TonePanningSlider(GenNumSlider):
 
     def _update_value(self):
         add_params = self._get_add_params()
-        self.set_number(add_params.get_tone_panning(self._index))
+        self.set_number(add_params.get_tone_panning(self._wave_type, self._index))
 
     def _value_changed(self, panning):
         add_params = self._get_add_params()
-        add_params.set_tone_panning(self._index, panning)
+        add_params.set_tone_panning(self._wave_type, self._index, panning)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _get_update_signal_type(self):
