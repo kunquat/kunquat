@@ -120,6 +120,7 @@ class GeneratorParamsAdd(GeneratorParams):
         ]
     _POSTWARP_FUNCS_DICT = dict(_POSTWARP_FUNCS)
 
+    _WARPS_MAX = 8
     _TONES_MAX = 32
 
     _WAVES = {
@@ -182,6 +183,7 @@ class GeneratorParamsAdd(GeneratorParams):
                     (not -1 <= warp[1] <= 1)):
                 warps[i] = None
         warps = filter(lambda w: w != None, warps)
+        warps = warps[:self._WARPS_MAX]
         return warps
 
     def _get_waveform_def(self, wave_type):
@@ -250,6 +252,9 @@ class GeneratorParamsAdd(GeneratorParams):
 
     def get_warp_func_names(self, warp_type):
         return [name for (name, _) in self._WARPS[warp_type]['funcs']]
+
+    def get_max_warp_func_count(self):
+        return self._WARPS_MAX
 
     def get_warp_func_count(self, wave_type, warp_type):
         base_def = self._get_waveform_def(wave_type)

@@ -338,6 +338,9 @@ class WarpList(QScrollArea):
             editor.set_ui_model(self._ui_model)
             layout.insertWidget(i, editor)
 
+        max_count_reached = (warp_count >= add_params.get_max_warp_func_count())
+        layout.itemAt(layout.count() - 1).widget().setVisible(not max_count_reached)
+
         self._do_width_hack()
 
     def set_warp(self, index, name, arg):
