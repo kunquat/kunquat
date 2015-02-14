@@ -141,9 +141,9 @@ class WaveformEditor(QWidget):
         self._updater = None
         self._wave_type = wave_type
 
-        self._prewarp_list = WarpList('pre')
+        self._prewarp_list = WarpList(self._wave_type, 'pre')
         self._base_func_selector = QComboBox()
-        self._postwarp_list = WarpList('post')
+        self._postwarp_list = WarpList(self._wave_type, 'post')
         self._waveform = Waveform()
 
         v = QVBoxLayout()
@@ -156,19 +156,20 @@ class WaveformEditor(QWidget):
 
     def set_ins_id(self, ins_id):
         self._ins_id = ins_id
+        self._prewarp_list.set_ins_id(ins_id)
+        self._postwarp_list.set_ins_id(ins_id)
 
     def set_gen_id(self, gen_id):
         self._gen_id = gen_id
+        self._prewarp_list.set_gen_id(gen_id)
+        self._postwarp_list.set_gen_id(gen_id)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
+        self._prewarp_list.set_ui_model(ui_model)
+        self._postwarp_list.set_ui_model(ui_model)
 
         add_params = self._get_add_params()
-
-        self._prewarp_list.set_func_names(
-                add_params.get_warp_func_names('pre'))
-        self._postwarp_list.set_func_names(
-                add_params.get_warp_func_names('post'))
 
         icon_bank = self._ui_model.get_icon_bank()
         self._prewarp_list.set_icon_bank(icon_bank)
@@ -183,28 +184,14 @@ class WaveformEditor(QWidget):
                 SIGNAL('currentIndexChanged(int)'),
                 self._base_func_selected)
 
-        QObject.connect(self._prewarp_list, SIGNAL('warpAdded()'), self._prewarp_added)
-        QObject.connect(
-                self._prewarp_list, SIGNAL('warpChanged(int)'), self._prewarp_changed)
-        QObject.connect(
-                self._prewarp_list, SIGNAL('warpMoved(int, int)'), self._prewarp_moved)
-        QObject.connect(
-                self._prewarp_list, SIGNAL('warpRemoved(int)'), self._prewarp_removed)
-
-        QObject.connect(self._postwarp_list, SIGNAL('warpAdded()'), self._postwarp_added)
-        QObject.connect(
-                self._postwarp_list, SIGNAL('warpChanged(int)'), self._postwarp_changed)
-        QObject.connect(
-                self._postwarp_list, SIGNAL('warpMoved(int, int)'), self._postwarp_moved)
-        QObject.connect(
-                self._postwarp_list, SIGNAL('warpRemoved(int)'), self._postwarp_removed)
-
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
+        self._prewarp_list.unregister_updaters()
+        self._postwarp_list.unregister_updaters()
 
     def _get_update_signal_type(self):
         return ''.join(
-                ('signal_gen_add_base_', self._ins_id, self._gen_id, self._wave_type))
+                ('signal_gen_add_', self._ins_id, self._gen_id, self._wave_type))
 
     def _perform_updates(self, signals):
         update_signals = set(['signal_instrument', self._get_update_signal_type()])
@@ -225,11 +212,6 @@ class WaveformEditor(QWidget):
         enable_warps = (selected_base_func != None)
 
         self._prewarp_list.setEnabled(enable_warps)
-        self._prewarp_list.set_warp_count(
-                add_params.get_warp_func_count(self._wave_type, 'pre'))
-        for i in xrange(add_params.get_warp_func_count(self._wave_type, 'pre')):
-            name, arg = add_params.get_warp_func(self._wave_type, 'pre', i)
-            self._prewarp_list.set_warp(i, name, arg)
 
         old_block = self._base_func_selector.blockSignals(True)
         self._base_func_selector.clear()
@@ -244,60 +226,13 @@ class WaveformEditor(QWidget):
         self._base_func_selector.blockSignals(old_block)
 
         self._postwarp_list.setEnabled(enable_warps)
-        self._postwarp_list.set_warp_count(
-                add_params.get_warp_func_count(self._wave_type, 'post'))
-        for i in xrange(add_params.get_warp_func_count(self._wave_type, 'post')):
-            name, arg = add_params.get_warp_func(self._wave_type, 'post', i)
-            self._postwarp_list.set_warp(i, name, arg)
 
         self._waveform.set_waveform(add_params.get_waveform(self._wave_type))
-
-    def _prewarp_added(self):
-        add_params = self._get_add_params()
-        add_params.add_warp_func(self._wave_type, 'pre')
-        self._updater.signal_update(set([self._get_update_signal_type()]))
-
-    def _prewarp_changed(self, index):
-        add_params = self._get_add_params()
-        name, arg = self._prewarp_list.get_warp(index)
-        add_params.set_warp_func(self._wave_type, 'pre', index, name, arg)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
-
-    def _prewarp_moved(self, from_index, to_index):
-        add_params = self._get_add_params()
-        add_params.move_warp_func(self._wave_type, 'pre', from_index, to_index)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
-
-    def _prewarp_removed(self, index):
-        add_params = self._get_add_params()
-        add_params.remove_warp_func(self._wave_type, 'pre', index)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _base_func_selected(self, index):
         add_params = self._get_add_params()
         func_names = add_params.get_waveform_func_names(self._wave_type)
         add_params.set_waveform_func(self._wave_type, func_names[index])
-        self._updater.signal_update(set([self._get_update_signal_type()]))
-
-    def _postwarp_added(self):
-        add_params = self._get_add_params()
-        add_params.add_warp_func(self._wave_type, 'post')
-        self._updater.signal_update(set([self._get_update_signal_type()]))
-
-    def _postwarp_changed(self, index):
-        add_params = self._get_add_params()
-        name, arg = self._postwarp_list.get_warp(index)
-        add_params.set_warp_func(self._wave_type, 'post', index, name, arg)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
-
-    def _postwarp_moved(self, from_index, to_index):
-        add_params = self._get_add_params()
-        add_params.move_warp_func(self._wave_type, 'post', from_index, to_index)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
-
-    def _postwarp_removed(self, index):
-        add_params = self._get_add_params()
-        add_params.remove_warp_func(self._wave_type, 'post', index)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
 
@@ -314,15 +249,14 @@ class WarpListContainer(QWidget):
 
 class WarpList(QScrollArea):
 
-    warpAdded   = pyqtSignal(name='warpAdded')
-    warpChanged = pyqtSignal(int, name='warpChanged')
-    warpMoved   = pyqtSignal(int, int, name='warpMoved')
-    warpRemoved = pyqtSignal(int, name='warpRemoved')
-
-    def __init__(self, warp_type):
+    def __init__(self, wave_type, warp_type):
         QAbstractScrollArea.__init__(self)
-        self._func_names = None
+        self._ins_id = None
+        self._gen_id = None
+        self._ui_model = None
+        self._updater = None
         self._icon_bank = None
+        self._wave_type = wave_type
         self._warp_type = warp_type
         self._add_text = { 'pre': 'Add prewarp', 'post': 'Add postwarp' }[warp_type]
 
@@ -332,41 +266,77 @@ class WarpList(QScrollArea):
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
 
+    def set_ins_id(self, ins_id):
+        self._ins_id = ins_id
+
+    def set_gen_id(self, gen_id):
+        self._gen_id = gen_id
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+        self._update_all()
+
+    def set_icon_bank(self, icon_bank):
+        self._icon_bank = icon_bank
+
+    def unregister_updaters(self):
+        layout = self.widget().layout()
+        for i in xrange(layout.count() - 1):
+            editor = layout.itemAt(i).widget()
+            editor.unregister_updaters()
+
+        self._updater.unregister_updater(self._perform_updates)
+
     def _init_container(self):
+        if self.widget():
+            old_layout = self.widget().layout()
+            for i in xrange(old_layout.count() - 1):
+                editor = old_layout.itemAt(i).widget()
+                editor.unregister_updaters()
+
         self.setWidget(WarpListContainer())
         add_button = QPushButton(self._add_text)
         QObject.connect(add_button, SIGNAL('clicked()'), self._warp_added)
         self.widget().layout().addWidget(add_button)
 
-    def set_func_names(self, func_names):
-        self._func_names = func_names
+    def _get_update_signal_type(self):
+        return ''.join(
+                ('signal_gen_add_', self._ins_id, self._gen_id, self._wave_type))
 
-    def set_icon_bank(self, icon_bank):
-        self._icon_bank = icon_bank
+    def _perform_updates(self, signals):
+        update_signals = set(['signal_instrument', self._get_update_signal_type()])
+        if not signals.isdisjoint(update_signals):
+            self._update_all()
 
-    def set_warp_count(self, count):
+    def _get_add_params(self):
+        module = self._ui_model.get_module()
+        instrument = module.get_instrument(self._ins_id)
+        generator = instrument.get_generator(self._gen_id)
+        add_params = generator.get_type_params()
+        return add_params
+
+    def _update_all(self):
+        add_params = self._get_add_params()
+
+        warp_count = add_params.get_warp_func_count(self._wave_type, self._warp_type)
+
         layout = self.widget().layout()
 
-        if count < layout.count() - 1:
-            # Create contents from scratch because Qt sucks
+        if warp_count < layout.count() - 1:
+            # Create contents from scratch because
+            # Qt doesn't update visuals properly on single item removal
             self._init_container()
             layout = self.widget().layout()
 
         # Create new items
-        for i in xrange(layout.count() - 1, count):
-            editor = WarpEditor(i, self._icon_bank)
-            editor.set_func_names(self._func_names)
-            QObject.connect(editor, SIGNAL('warpChanged(int)'), self._warp_changed)
-            QObject.connect(editor, SIGNAL('warpMoved(int, int)'), self._warp_moved)
-            QObject.connect(editor, SIGNAL('warpRemoved(int)'), self._warp_removed)
+        for i in xrange(layout.count() - 1, warp_count):
+            editor = WarpEditor(self._wave_type, self._warp_type, i, self._icon_bank)
+            editor.set_ins_id(self._ins_id)
+            editor.set_gen_id(self._gen_id)
+            editor.set_ui_model(self._ui_model)
             layout.insertWidget(i, editor)
-
-        # Update arrows
-        for i in xrange(layout.count() - 1):
-            editor = layout.itemAt(i).widget()
-            down_enabled = i < layout.count() - 2
-            up_enabled = i > 0
-            editor.set_arrow_buttons_enabled(down_enabled, up_enabled)
 
         self._do_width_hack()
 
@@ -379,16 +349,9 @@ class WarpList(QScrollArea):
         return editor.get_warp()
 
     def _warp_added(self):
-        QObject.emit(self, SIGNAL('warpAdded()'))
-
-    def _warp_changed(self, index):
-        QObject.emit(self, SIGNAL('warpChanged(int)'), index)
-
-    def _warp_moved(self, from_index, to_index):
-        QObject.emit(self, SIGNAL('warpMoved(int, int)'), from_index, to_index)
-
-    def _warp_removed(self, index):
-        QObject.emit(self, SIGNAL('warpRemoved(int)'), index)
+        add_params = self._get_add_params()
+        add_params.add_warp_func(self._wave_type, self._warp_type)
+        self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _do_width_hack(self):
         self.widget().setFixedWidth(
@@ -408,14 +371,16 @@ class WarpEditorButton(QPushButton):
 
 class WarpEditor(QWidget):
 
-    warpChanged = pyqtSignal(int, name='warpChanged')
-    warpMoved   = pyqtSignal(int, int, name='warpMoved')
-    warpRemoved = pyqtSignal(int, name='warpRemoved')
-
     _ARG_SCALE = 1000
 
-    def __init__(self, index, icon_bank):
+    def __init__(self, wave_type, warp_type, index, icon_bank):
         QWidget.__init__(self)
+        self._ins_id = None
+        self._gen_id = None
+        self._ui_model = None
+        self._updater = None
+        self._wave_type = wave_type
+        self._warp_type = warp_type
         self._index = index
 
         self._down_button = WarpEditorButton(icon_bank.get_icon_path('arrow_down_small'))
@@ -427,6 +392,8 @@ class WarpEditor(QWidget):
         self._remove_button = WarpEditorButton(icon_bank.get_icon_path('delete_small'))
 
         self._slider.setRange(-self._ARG_SCALE, self._ARG_SCALE)
+
+        self._up_button.setEnabled(self._index != 0)
 
         fm = QFontMetrics(QFont())
         value_width = fm.boundingRect('{}'.format(-1.0 / self._ARG_SCALE)).width()
@@ -444,6 +411,28 @@ class WarpEditor(QWidget):
         h.addWidget(self._remove_button)
         self.setLayout(h)
 
+    def set_ins_id(self, ins_id):
+        self._ins_id = ins_id
+
+    def set_gen_id(self, gen_id):
+        self._gen_id = gen_id
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+
+        add_params = self._get_add_params()
+
+        func_names = add_params.get_warp_func_names(self._warp_type)
+        old_block = self._func_selector.blockSignals(True)
+        self._func_selector.clear()
+        for name in func_names:
+            self._func_selector.addItem(name)
+        self._func_selector.blockSignals(old_block)
+
+        self._update_all()
+
         QObject.connect(self._down_button, SIGNAL('clicked()'), self._moved_down)
         QObject.connect(self._up_button, SIGNAL('clicked()'), self._moved_up)
         QObject.connect(
@@ -453,51 +442,84 @@ class WarpEditor(QWidget):
         QObject.connect(self._slider, SIGNAL('valueChanged(int)'), self._slider_adjusted)
         QObject.connect(self._remove_button, SIGNAL('clicked()'), self._removed)
 
-    def set_func_names(self, func_names):
-        old_block = self._func_selector.blockSignals(True)
-        self._func_selector.clear()
-        for name in func_names:
-            self._func_selector.addItem(name)
-        self._func_selector.blockSignals(old_block)
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
 
-    def set_arrow_buttons_enabled(self, down_enabled, up_enabled):
-        self._down_button.setEnabled(down_enabled)
-        self._up_button.setEnabled(up_enabled)
+    def _get_update_signal_type(self):
+        return ''.join(
+                ('signal_gen_add_', self._ins_id, self._gen_id, self._wave_type))
 
-    def set_warp(self, new_name, new_arg):
+    def _perform_updates(self, signals):
+        update_signals = set(['signal_instrument', self._get_update_signal_type()])
+        if not signals.isdisjoint(update_signals):
+            self._update_all()
+
+    def _get_add_params(self):
+        module = self._ui_model.get_module()
+        instrument = module.get_instrument(self._ins_id)
+        generator = instrument.get_generator(self._gen_id)
+        add_params = generator.get_type_params()
+        return add_params
+
+    def _update_all(self):
+        add_params = self._get_add_params()
+
+        warp_func_count = add_params.get_warp_func_count(
+                self._wave_type, self._warp_type)
+
+        if self._index >= warp_func_count:
+            # We have been removed
+            return
+
+        self._down_button.setEnabled(self._index < warp_func_count - 1)
+
+        name, arg = add_params.get_warp_func(
+                self._wave_type, self._warp_type, self._index)
+
         old_block = self._func_selector.blockSignals(True)
         for i in xrange(self._func_selector.count()):
-            if self._func_selector.itemText(i) == new_name:
+            if self._func_selector.itemText(i) == name:
                 self._func_selector.setCurrentIndex(i)
                 break
         self._func_selector.blockSignals(old_block)
 
         old_block = self._slider.blockSignals(True)
-        int_val = int(round(new_arg * self._ARG_SCALE))
+        int_val = int(round(arg * self._ARG_SCALE))
         self._slider.setValue(int_val)
         self._slider.blockSignals(old_block)
 
-        self._value_display.setText(str(float(new_arg)))
-
-    def get_warp(self):
-        name = str(self._func_selector.currentText())
-        arg = self._slider.value() / float(self._ARG_SCALE)
-        return name, arg
+        self._value_display.setText(str(float(arg)))
 
     def _moved_down(self):
-        QObject.emit(self, SIGNAL('warpMoved(int, int)'), self._index, self._index + 1)
+        add_params = self._get_add_params()
+        add_params.move_warp_func(
+                self._wave_type, self._warp_type, self._index, self._index + 1)
+        self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _moved_up(self):
-        QObject.emit(self, SIGNAL('warpMoved(int, int)'), self._index, self._index - 1)
+        add_params = self._get_add_params()
+        add_params.move_warp_func(
+                self._wave_type, self._warp_type, self._index, self._index - 1)
+        self._updater.signal_update(set([self._get_update_signal_type()]))
+
+    def _set_warp(self):
+        add_params = self._get_add_params()
+        name = str(self._func_selector.currentText())
+        arg = self._slider.value() / float(self._ARG_SCALE)
+        add_params.set_warp_func(
+                self._wave_type, self._warp_type, self._index, name, arg)
+        self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _func_selected(self, index):
-        QObject.emit(self, SIGNAL('warpChanged(int)'), self._index)
+        self._set_warp()
 
     def _slider_adjusted(self, int_val):
-        QObject.emit(self, SIGNAL('warpChanged(int)'), self._index)
+        self._set_warp()
 
     def _removed(self):
-        QObject.emit(self, SIGNAL('warpRemoved(int)'), self._index)
+        add_params = self._get_add_params()
+        add_params.remove_warp_func(self._wave_type, self._warp_type, self._index)
+        self._updater.signal_update(set([self._get_update_signal_type()]))
 
 
 class ToneListContainer(QWidget):
@@ -558,7 +580,7 @@ class ToneList(QScrollArea):
         self._updater.unregister_updater(self._perform_updates)
 
     def _get_update_signal_type(self):
-        return ''.join(('signal_gen_add_base_', self._ins_id, self._gen_id))
+        return ''.join(('signal_gen_add_', self._ins_id, self._gen_id))
 
     def _perform_updates(self, signals):
         update_signals = set(['signal_instrument', self._get_update_signal_type()])
