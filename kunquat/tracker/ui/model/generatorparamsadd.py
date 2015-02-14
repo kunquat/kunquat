@@ -214,15 +214,15 @@ class GeneratorParamsAdd(GeneratorParams):
         self._set_value(waveform_key, base)
         self._set_value(def_key, base_def)
 
-    def get_base_waveform_func(self):
-        base_def = self._get_waveform_def('base')
+    def get_waveform_func(self, wave_type):
+        base_def = self._get_waveform_def(wave_type)
         return base_def['base_func']
 
-    def set_base_waveform_func(self, name):
+    def set_waveform_func(self, wave_type, name):
         assert name in self._WAVEFORM_FUNCS_DICT
-        base_def = self._get_waveform_def('base')
+        base_def = self._get_waveform_def(wave_type)
         base_def['base_func'] = name
-        self._update_waveform('base', base_def)
+        self._update_waveform(wave_type, base_def)
 
     def get_prewarp_func_names(self):
         return [name for (name, _) in self._PREWARP_FUNCS]

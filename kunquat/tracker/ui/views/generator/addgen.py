@@ -218,7 +218,7 @@ class WaveformEditor(QWidget):
     def _update_all(self):
         add_params = self._get_add_params()
 
-        selected_base_func = add_params.get_base_waveform_func()
+        selected_base_func = add_params.get_waveform_func(self._waveform_type)
         enable_warps = (selected_base_func != None)
 
         self._prewarp_list.setEnabled(enable_warps)
@@ -271,7 +271,7 @@ class WaveformEditor(QWidget):
     def _base_func_selected(self, index):
         add_params = self._get_add_params()
         func_names = add_params.get_waveform_func_names(self._waveform_type)
-        add_params.set_base_waveform_func(func_names[index])
+        add_params.set_waveform_func(self._waveform_type, func_names[index])
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _postwarp_added(self):
