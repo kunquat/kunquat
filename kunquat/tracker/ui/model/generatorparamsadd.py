@@ -125,9 +125,11 @@ class GeneratorParamsAdd(GeneratorParams):
     _WAVES = {
             'base': {
                 'waveform_key': 'p_ln_base.json',
+                'waveform_funcs': _WAVEFORM_FUNCS,
             },
             'mod': {
                 'waveform_key': 'p_ln_mod_base.json',
+                'waveform_funcs': _WAVEFORM_FUNCS,
             }
         }
 
@@ -145,8 +147,8 @@ class GeneratorParamsAdd(GeneratorParams):
             waveform.extend([0] * (self._WAVEFORM_SAMPLE_COUNT - len(waveform)))
         return waveform
 
-    def get_base_waveform_func_names(self):
-        return [name for (name, _) in self._WAVEFORM_FUNCS]
+    def get_waveform_func_names(self, waveform_type):
+        return [name for (name, _) in self._WAVES[waveform_type]['waveform_funcs']]
 
     def _get_clean_warp_funcs(self, warps, funcs_dict):
         if type(warps) != list:

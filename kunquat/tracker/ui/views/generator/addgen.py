@@ -229,7 +229,7 @@ class WaveformEditor(QWidget):
 
         old_block = self._base_func_selector.blockSignals(True)
         self._base_func_selector.clear()
-        func_names = add_params.get_base_waveform_func_names()
+        func_names = add_params.get_waveform_func_names(self._waveform_type)
         for i, name in enumerate(func_names):
             self._base_func_selector.addItem(name)
             if name == selected_base_func:
@@ -270,7 +270,7 @@ class WaveformEditor(QWidget):
 
     def _base_func_selected(self, index):
         add_params = self._get_add_params()
-        func_names = add_params.get_base_waveform_func_names()
+        func_names = add_params.get_waveform_func_names(self._waveform_type)
         add_params.set_base_waveform_func(func_names[index])
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
