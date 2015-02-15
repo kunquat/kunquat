@@ -21,6 +21,7 @@ DEFAULT_CONFIG = {
     'bg_colour'         : QColor(0, 0, 0),
     'center_line_colour': QColor(0x66, 0x66, 0x66),
     'waveform_colour'   : QColor(0x55, 0xff, 0x55),
+    'disabled_colour'   : QColor(0x88, 0x88, 0x88, 0x7f),
 }
 
 
@@ -101,6 +102,11 @@ class Waveform(QWidget):
 
         painter = QPainter(self)
         painter.drawPixmap(0, 0, self._pixmap)
+
+        # Grey out disabled widget
+        if not self.isEnabled():
+            painter.fillRect(
+                    0, 0, self.width(), self.height(), self._config['disabled_colour'])
 
         end = time.time()
         elapsed = end - start
