@@ -92,7 +92,6 @@ def post_quantise(y, amount):
 class GeneratorParamsAdd(GeneratorParams):
 
     _PREWARP_FUNCS = [
-            ('None', None),
             ('Shift', pre_shift),
             ('Stretch', pre_stretch),
             ('Stretch asym', pre_stretch_asym),
@@ -111,7 +110,6 @@ class GeneratorParamsAdd(GeneratorParams):
     _WAVEFORM_FUNCS_DICT = dict(_WAVEFORM_FUNCS)
 
     _POSTWARP_FUNCS = [
-            ('None', None),
             ('Clip', post_clip),
             ('Shift', post_shift),
             ('Stretch', post_stretch),
