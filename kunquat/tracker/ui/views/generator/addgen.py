@@ -41,12 +41,16 @@ class AddGen(QWidget):
         self._phase_mod_enabled_toggle = QCheckBox('Phase modulation')
         self._phase_mod_volume = ModVolume()
         self._phase_mod_env = ModEnv()
+        self._phase_mod_waveform = WaveformEditor('mod')
+        self._phase_mod_tone_editor = ToneList('mod')
 
         self._phase_mod_container = QWidget()
         pmc_layout = QVBoxLayout()
         pmc_layout.setSpacing(0)
         pmc_layout.addWidget(self._phase_mod_volume)
         pmc_layout.addWidget(self._phase_mod_env)
+        pmc_layout.addWidget(self._phase_mod_waveform)
+        pmc_layout.addWidget(self._phase_mod_tone_editor)
         self._phase_mod_container.setLayout(pmc_layout)
 
         mod_layout = QVBoxLayout()
@@ -68,6 +72,8 @@ class AddGen(QWidget):
         self._base_tone_editor.set_ins_id(ins_id)
         self._phase_mod_volume.set_ins_id(ins_id)
         self._phase_mod_env.set_ins_id(ins_id)
+        self._phase_mod_waveform.set_ins_id(ins_id)
+        self._phase_mod_tone_editor.set_ins_id(ins_id)
 
     def set_gen_id(self, gen_id):
         self._gen_id = gen_id
@@ -75,6 +81,8 @@ class AddGen(QWidget):
         self._base_tone_editor.set_gen_id(gen_id)
         self._phase_mod_volume.set_gen_id(gen_id)
         self._phase_mod_env.set_gen_id(gen_id)
+        self._phase_mod_waveform.set_gen_id(gen_id)
+        self._phase_mod_tone_editor.set_gen_id(gen_id)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -82,6 +90,8 @@ class AddGen(QWidget):
         self._base_tone_editor.set_ui_model(ui_model)
         self._phase_mod_volume.set_ui_model(ui_model)
         self._phase_mod_env.set_ui_model(ui_model)
+        self._phase_mod_waveform.set_ui_model(ui_model)
+        self._phase_mod_tone_editor.set_ui_model(ui_model)
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
         self._update_gen()
@@ -93,6 +103,8 @@ class AddGen(QWidget):
 
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
+        self._phase_mod_tone_editor.unregister_updaters()
+        self._phase_mod_waveform.unregister_updaters()
         self._phase_mod_env.unregister_updaters()
         self._phase_mod_volume.unregister_updaters()
         self._base_tone_editor.unregister_updaters()
@@ -170,10 +182,6 @@ class WaveformEditor(QWidget):
         self._postwarp_list.set_ui_model(ui_model)
 
         add_params = self._get_add_params()
-
-        icon_bank = self._ui_model.get_icon_bank()
-        self._prewarp_list.set_icon_bank(icon_bank)
-        self._postwarp_list.set_icon_bank(icon_bank)
 
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
@@ -255,7 +263,6 @@ class WarpList(QScrollArea):
         self._gen_id = None
         self._ui_model = None
         self._updater = None
-        self._icon_bank = None
         self._wave_type = wave_type
         self._warp_type = warp_type
         self._add_text = { 'pre': 'Add prewarp', 'post': 'Add postwarp' }[warp_type]
@@ -276,10 +283,8 @@ class WarpList(QScrollArea):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
+        self._icon_bank = ui_model.get_icon_bank()
         self._update_all()
-
-    def set_icon_bank(self, icon_bank):
-        self._icon_bank = icon_bank
 
     def unregister_updaters(self):
         layout = self.widget().layout()
