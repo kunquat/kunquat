@@ -44,6 +44,7 @@ class Waveform(QWidget):
         self.setFocusPolicy(Qt.NoFocus)
 
     def set_waveform(self, waveform):
+        assert waveform != None
         self._waveform = waveform
         self._path = None
         self._pixmap = None
@@ -54,10 +55,8 @@ class Waveform(QWidget):
         self._config.update(config)
 
     def _update_pixmap(self):
-        if not self._waveform:
-            self._waveform = self._get_waveform_data()
-
         sample_count = 4096
+        assert self._waveform != None
         assert len(self._waveform) == sample_count
 
         if not self._path:
