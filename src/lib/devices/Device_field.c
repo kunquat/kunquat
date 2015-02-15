@@ -390,6 +390,9 @@ const bool* Device_field_get_bool(const Device_field* field)
     assert(field != NULL);
     assert(field->type == DEVICE_FIELD_BOOL);
 
+    if (field->empty)
+        return NULL;
+
     return &field->data.bool_type;
 }
 
@@ -398,6 +401,9 @@ const int64_t* Device_field_get_int(const Device_field* field)
 {
     assert(field != NULL);
     assert(field->type == DEVICE_FIELD_INT);
+
+    if (field->empty)
+        return NULL;
 
     return &field->data.int_type;
 }
@@ -408,6 +414,9 @@ const double* Device_field_get_float(const Device_field* field)
     assert(field != NULL);
     assert(field->type == DEVICE_FIELD_FLOAT);
 
+    if (field->empty)
+        return NULL;
+
     return &field->data.float_type;
 }
 
@@ -416,6 +425,9 @@ const Real* Device_field_get_real(const Device_field* field)
 {
     assert(field != NULL);
     assert(field->type == DEVICE_FIELD_REAL);
+
+    if (field->empty)
+        return NULL;
 
     return &field->data.Real_type;
 }
@@ -426,6 +438,9 @@ const Tstamp* Device_field_get_tstamp(const Device_field* field)
     assert(field != NULL);
     assert(field->type == DEVICE_FIELD_TSTAMP);
 
+    if (field->empty)
+        return NULL;
+
     return &field->data.Tstamp_type;
 }
 
@@ -434,6 +449,9 @@ const Envelope* Device_field_get_envelope(const Device_field* field)
 {
     assert(field != NULL);
     assert(field->type == DEVICE_FIELD_ENVELOPE);
+
+    if (field->empty)
+        return NULL;
 
     return field->data.Envelope_type;
 }
@@ -444,6 +462,9 @@ const Sample* Device_field_get_sample(const Device_field* field)
     assert(field != NULL);
     assert(field->type == DEVICE_FIELD_WAVPACK);
 
+    if (field->empty)
+        return NULL;
+
     return field->data.Sample_type;
 }
 
@@ -452,6 +473,9 @@ const Sample_params* Device_field_get_sample_params(const Device_field* field)
 {
     assert(field != NULL);
     assert(field->type == DEVICE_FIELD_SAMPLE_PARAMS);
+
+    if (field->empty)
+        return NULL;
 
     return &field->data.Sample_params_type;
 }
@@ -462,6 +486,9 @@ const Note_map* Device_field_get_note_map(const Device_field* field)
     assert(field != NULL);
     assert(field->type == DEVICE_FIELD_NOTE_MAP);
 
+    if (field->empty)
+        return NULL;
+
     return field->data.Note_map_type;
 }
 
@@ -471,6 +498,9 @@ const Hit_map* Device_field_get_hit_map(const Device_field* field)
     assert(field != NULL);
     assert(field->type == DEVICE_FIELD_HIT_MAP);
 
+    if (field->empty)
+        return NULL;
+
     return field->data.Hit_map_type;
 }
 
@@ -479,6 +509,9 @@ const Num_list* Device_field_get_num_list(const Device_field* field)
 {
     assert(field != NULL);
     assert(field->type == DEVICE_FIELD_NUM_LIST);
+
+    if (field->empty)
+        return NULL;
 
     return field->data.Num_list_type;
 }
