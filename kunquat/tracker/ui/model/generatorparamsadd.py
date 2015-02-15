@@ -350,7 +350,10 @@ class GeneratorParamsAdd(GeneratorParams):
             if self._get_tone_existence(wave_type, i):
                 pitch = self._get_tone_pitch(wave_type, i)
                 volume = self._get_tone_volume(wave_type, i)
-                panning = self._get_tone_panning(wave_type, i)
+                if wave_type == 'base':
+                    panning = self._get_tone_panning(wave_type, i)
+                else:
+                    panning = 0
                 tones_raw.append([pitch, volume, panning])
             else:
                 tones_raw.append(None)
