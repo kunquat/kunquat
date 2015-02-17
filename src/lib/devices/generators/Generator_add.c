@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2015
  *
  * This file is part of Kunquat.
  *
@@ -76,8 +76,8 @@ static void Generator_add_init_vstate(
 
 static double sine(double phase, double modifier);
 
-static Set_num_list_func    Generator_add_set_base;
-static Set_num_list_func    Generator_add_set_mod_base;
+static Set_sample_func      Generator_add_set_base;
+static Set_sample_func      Generator_add_set_mod_base;
 static Set_int_func         Generator_add_set_mod;
 static Set_float_func       Generator_add_set_mod_volume;
 static Set_bool_func        Generator_add_set_mod_env_enabled;
@@ -131,14 +131,10 @@ static bool Generator_add_init(Device_impl* dimpl)
 
     bool reg_success = true;
 
-    reg_success &= Device_impl_register_set_num_list(
-            &add->parent, "p_ln_base.json", NULL, Generator_add_set_base, NULL);
-    reg_success &= Device_impl_register_set_num_list(
-            &add->parent,
-            "p_ln_mod_base.json",
-            NULL,
-            Generator_add_set_mod_base,
-            NULL);
+    reg_success &= Device_impl_register_set_sample(
+            &add->parent, "p_base.wav", NULL, Generator_add_set_base, NULL);
+    reg_success &= Device_impl_register_set_sample(
+            &add->parent, "p_mod.wav", NULL, Generator_add_set_mod_base, NULL);
     reg_success &= Device_impl_register_set_int(
             &add->parent,
             "p_i_mod.json",
@@ -531,16 +527,18 @@ static double sine(double phase, double modifier)
 }
 
 
-static void fill_buf(float* buf, const Num_list* nl)
+static void fill_buf(float* buf, const Sample* sample)
 {
     assert(buf != NULL);
 
-    if (nl != NULL)
+    if ((sample != NULL) && (sample->data[0] != NULL) && sample->is_float)
     {
-        int32_t available = min(Num_list_length(nl), BASE_FUNC_SIZE);
+        int32_t available = min(sample->len, BASE_FUNC_SIZE);
+
+        const float* from_buf = sample->data[0];
 
         for (int i = 0; i < available; ++i)
-            buf[i] = clamp(Num_list_get_num(nl, i), -1.0, 1.0);
+            buf[i] = clamp(from_buf[i], -1.0, 1.0);
         for (int i = available; i < BASE_FUNC_SIZE; ++i)
             buf[i] = 0;
     }
@@ -555,7 +553,7 @@ static void fill_buf(float* buf, const Num_list* nl)
 
 
 static bool Generator_add_set_base(
-        Device_impl* dimpl, Key_indices indices, const Num_list* value)
+        Device_impl* dimpl, Key_indices indices, const Sample* value)
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
@@ -570,7 +568,7 @@ static bool Generator_add_set_base(
 
 
 static bool Generator_add_set_mod_base(
-        Device_impl* dimpl, Key_indices indices, const Num_list* value)
+        Device_impl* dimpl, Key_indices indices, const Sample* value)
 {
     assert(dimpl != NULL);
     assert(indices != NULL);

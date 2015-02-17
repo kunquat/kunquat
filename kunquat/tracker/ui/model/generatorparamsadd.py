@@ -13,6 +13,8 @@
 
 import math
 
+from kunquat.extras.sndfile import SndFileRMem, SndFileWMem
+
 from generatorparams import GeneratorParams
 
 
@@ -123,14 +125,14 @@ class GeneratorParamsAdd(GeneratorParams):
 
     _WAVES = {
             'base': {
-                'waveform_key': 'p_ln_base.json',
+                'waveform_key': 'p_base.wav',
                 'waveform_funcs': _WAVEFORM_FUNCS,
                 'waveform_funcs_dict': _WAVEFORM_FUNCS_DICT,
                 'def_key': 'i_base.json',
                 'tone_key_fmt': 'tone_{:02x}/{}',
             },
             'mod': {
-                'waveform_key': 'p_ln_mod_base.json',
+                'waveform_key': 'p_mod.wav',
                 'waveform_funcs': _WAVEFORM_FUNCS,
                 'waveform_funcs_dict': _WAVEFORM_FUNCS_DICT,
                 'def_key': 'i_mod.json',
@@ -156,10 +158,16 @@ class GeneratorParamsAdd(GeneratorParams):
 
     def get_waveform(self, wave_type):
         key = self._WAVES[wave_type]['waveform_key']
-        waveform = self._get_value(key, None)
-        if not waveform:
+        wav_data = self._get_value(key, None)
+        if wav_data:
+            sf = SndFileRMem(wav_data)
+            channels = sf.read()
+            waveform = channels[0]
+            sf.close()
+        else:
             waveform = [-math.sin(phase * math.pi * 2 / self._WAVEFORM_SAMPLE_COUNT)
                     for phase in xrange(self._WAVEFORM_SAMPLE_COUNT)]
+
         if len(waveform) != self._WAVEFORM_SAMPLE_COUNT:
             waveform = waveform[:self._WAVEFORM_SAMPLE_COUNT]
             waveform.extend([0] * (self._WAVEFORM_SAMPLE_COUNT - len(waveform)))
@@ -233,10 +241,14 @@ class GeneratorParamsAdd(GeneratorParams):
                 y = f(y, a)
             base[i] = y
 
-        waveform_key = self._WAVES[wave_type]['waveform_key']
         def_key = self._WAVES[wave_type]['def_key']
-        self._set_value(waveform_key, base)
         self._set_value(def_key, base_def)
+
+        waveform_key = self._WAVES[wave_type]['waveform_key']
+        sf = SndFileWMem(channels=1, use_float=True, bits=32)
+        sf.write(base)
+        sf.close()
+        self._set_value(waveform_key, str(sf.get_file_contents()))
 
     def get_waveform_func(self, wave_type):
         base_def = self._get_waveform_def(wave_type)
