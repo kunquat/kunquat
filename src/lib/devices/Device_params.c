@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -189,8 +189,9 @@ bool key_is_device_param(const char* key)
         return true;
 
     const Device_field_type type = get_keyp_device_field_type(key);
-    return type == DEVICE_FIELD_WAVPACK ||
-        type == DEVICE_FIELD_VORBIS;
+    return (type == DEVICE_FIELD_WAVPACK) ||
+        (type == DEVICE_FIELD_WAV) ||
+        (type == DEVICE_FIELD_VORBIS);
 }
 
 
@@ -736,7 +737,8 @@ const Sample* Device_params_get_sample(
     assert(params != NULL);
     assert(key != NULL);
 
-    if (get_keyp_device_field_type(key) != DEVICE_FIELD_WAVPACK)
+    const Device_field_type type = get_keyp_device_field_type(key);
+    if ((type != DEVICE_FIELD_WAVPACK) && (type != DEVICE_FIELD_WAV))
         return NULL;
 
     get_of_type(params, key, sample);
