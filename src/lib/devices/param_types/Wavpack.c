@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -31,7 +31,6 @@ bool Sample_parse_wavpack(Sample* sample, Streader* sr)
     assert(sample != NULL);
     assert(sr != NULL);
     (void)sample;
-    (void)sr;
 
     if (Streader_is_error_set(sr))
         return false;
