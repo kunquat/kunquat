@@ -43,6 +43,9 @@ enable_examples = True
 # Optimisation level (0..3).
 optimise = 2
 
+# Build with libsndfile support (recommended).
+with_sndfile = True
+
 # Build WavPack support (recommended).
 with_wavpack = True
 
