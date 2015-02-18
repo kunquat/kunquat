@@ -82,7 +82,15 @@ def post_stretch(y, amount):
     return pre_stretch(y, amount * 2)
 
 def post_stretch_asym(y, amount):
-    return pre_stretch_asym(y, amount * 2)
+    amount *= 4
+    if amount >= 0:
+        y = (y + 1) / 2
+        y = y**(4**amount)
+        return y * 2 - 1
+    else:
+        y = (-y + 1) / 2
+        y = y**(4**(-amount))
+        return 1 - y * 2
 
 def post_quantise(y, amount):
     amount = 2**(-(amount - 1.3) * 4)
