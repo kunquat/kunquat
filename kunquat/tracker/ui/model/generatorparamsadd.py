@@ -48,10 +48,17 @@ def pre_shift(x, amount):
     return x + amount
 
 def pre_stretch(x, amount):
-    amount *= 2
-    if x < 0:
-        return -((-x)**(4**amount))
-    return x**(4**amount)
+    amount *= 3
+    if amount >= 0:
+        if x >= 0:
+            return x**(4**amount)
+        else:
+            return -((-x)**(4**amount))
+    else:
+        if x >= 0:
+            return 1 - (1 - x)**(4**(-amount))
+        else:
+            return (1 + x)**(4**(-amount)) - 1
 
 def pre_stretch_asym(x, amount):
     amount *= 2
