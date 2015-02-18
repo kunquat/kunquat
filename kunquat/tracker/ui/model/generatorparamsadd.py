@@ -92,6 +92,9 @@ def post_stretch_asym(y, amount):
         y = y**(4**(-amount))
         return 1 - y * 2
 
+def post_stretch_sine(y, amount):
+    return math.sin(y * 2**((amount + 1) * 3))
+
 def post_quantise(y, amount):
     amount = 2**(-(amount - 1.1) * 3)
     y *= amount - 1
@@ -124,6 +127,7 @@ class GeneratorParamsAdd(GeneratorParams):
             ('Shift', post_shift),
             ('Stretch', post_stretch),
             ('Stretch asym', post_stretch_asym),
+            ('Stretch sine', post_stretch_sine),
             ('Quantise', post_quantise),
         ]
     _POSTWARP_FUNCS_DICT = dict(_POSTWARP_FUNCS)
