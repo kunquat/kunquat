@@ -93,7 +93,7 @@ def post_stretch_asym(y, amount):
         return 1 - y * 2
 
 def post_quantise(y, amount):
-    amount = 2**(-(amount - 1.3) * 4)
+    amount = 2**(-(amount - 1.1) * 3)
     y *= amount - 1
     y = math.floor(y) + 0.5
     return y / amount
