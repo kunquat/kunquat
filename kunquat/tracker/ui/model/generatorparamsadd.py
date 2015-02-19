@@ -82,6 +82,17 @@ def post_clip(y, amount):
     y *= 4**(amount + 1)
     return mod_y(y)
 
+def post_mirror(y, amount):
+    m = 4.0
+    y = wave_triangle(normalise(y * m * (amount + 1 + 0.5 / m)))
+    return mod_y(y)
+
+def post_quantise(y, amount):
+    amount = 2**(-(amount - 1.1) * 3)
+    y *= amount - 1
+    y = math.floor(y) + 0.5
+    return y / amount
+
 def post_shift(y, amount):
     return mod_y(y + amount)
 
@@ -102,21 +113,15 @@ def post_stretch_asym(y, amount):
 def post_stretch_sine(y, amount):
     return math.sin(y * 2**((amount + 1) * 3))
 
-def post_quantise(y, amount):
-    amount = 2**(-(amount - 1.1) * 3)
-    y *= amount - 1
-    y = math.floor(y) + 0.5
-    return y / amount
-
 
 class GeneratorParamsAdd(GeneratorParams):
 
     _PREWARP_FUNCS = [
+            ('Scale', pre_scale),
             ('Shift', pre_shift),
+            ('Sine shift', pre_sine_shift),
             ('Stretch', pre_stretch),
             ('Stretch asym', pre_stretch_asym),
-            ('Scale', pre_scale),
-            ('Sine shift', pre_sine_shift),
         ]
     _PREWARP_FUNCS_DICT = dict(_PREWARP_FUNCS)
 
@@ -131,11 +136,12 @@ class GeneratorParamsAdd(GeneratorParams):
 
     _POSTWARP_FUNCS = [
             ('Clip', post_clip),
+            ('Mirror', post_mirror),
+            ('Quantise', post_quantise),
             ('Shift', post_shift),
             ('Stretch', post_stretch),
             ('Stretch asym', post_stretch_asym),
             ('Stretch sine', post_stretch_sine),
-            ('Quantise', post_quantise),
         ]
     _POSTWARP_FUNCS_DICT = dict(_POSTWARP_FUNCS)
 
