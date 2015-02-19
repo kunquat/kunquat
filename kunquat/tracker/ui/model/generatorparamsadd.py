@@ -79,7 +79,7 @@ def mod_y(y):
     return y - 1
 
 def post_clip(y, amount):
-    y *= 8**amount
+    y *= 4**(amount + 1)
     return mod_y(y)
 
 def post_shift(y, amount):
