@@ -82,9 +82,6 @@ def pre_stretch_asym(x, amount):
 def pre_scale(x, amount):
     return x * 8**amount
 
-def pre_sine_shift(x, amount):
-    return math.sin(x * 6**(amount + 0.5))
-
 def mod_y(y):
     y += 1
     if not 0 <= y <= 2:
@@ -132,7 +129,6 @@ class GeneratorParamsAdd(GeneratorParams):
     _PREWARP_FUNCS = [
             ('Scale', pre_scale),
             ('Shift', pre_shift),
-            ('Sine shift', pre_sine_shift),
             ('Stretch', pre_stretch),
             ('Stretch asym', pre_stretch_asym),
             ('Stretch inv', pre_stretch_inverse),
