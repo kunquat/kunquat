@@ -73,12 +73,6 @@ def pre_stretch_inverse(x, amount):
         else:
             return -((-x)**(4**amount))
 
-def pre_stretch_asym(x, amount):
-    amount *= 2
-    x = (x + 1) / 2
-    x = x**(4**amount)
-    return x * 2 - 1
-
 def pre_scale(x, amount):
     return x * 8**amount
 
@@ -130,7 +124,6 @@ class GeneratorParamsAdd(GeneratorParams):
             ('Scale', pre_scale),
             ('Shift', pre_shift),
             ('Stretch', pre_stretch),
-            ('Stretch asym', pre_stretch_asym),
             ('Stretch inv', pre_stretch_inverse),
         ]
     _PREWARP_FUNCS_DICT = dict(_PREWARP_FUNCS)
