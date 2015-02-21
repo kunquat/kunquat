@@ -33,7 +33,7 @@ class AddGen(QWidget):
         self._base_waveform = WaveformEditor('base')
         self._base_tone_editor = ToneList('base')
 
-        base_layout = QVBoxLayout()
+        base_layout = QHBoxLayout()
         base_layout.setSpacing(0)
         base_layout.addWidget(self._base_waveform)
         base_layout.addWidget(self._base_tone_editor)
@@ -44,13 +44,21 @@ class AddGen(QWidget):
         self._phase_mod_waveform = WaveformEditor('mod')
         self._phase_mod_tone_editor = ToneList('mod')
 
+        pmvol_layout = QVBoxLayout()
+        pmvol_layout.setSpacing(0)
+        pmvol_layout.addWidget(self._phase_mod_volume)
+        pmvol_layout.addWidget(self._phase_mod_env)
+
+        pmwave_layout = QHBoxLayout()
+        pmwave_layout.setSpacing(0)
+        pmwave_layout.addWidget(self._phase_mod_waveform)
+        pmwave_layout.addWidget(self._phase_mod_tone_editor)
+
         self._phase_mod_container = QWidget()
         pmc_layout = QVBoxLayout()
-        pmc_layout.setSpacing(0)
-        pmc_layout.addWidget(self._phase_mod_volume)
-        pmc_layout.addWidget(self._phase_mod_env)
-        pmc_layout.addWidget(self._phase_mod_waveform)
-        pmc_layout.addWidget(self._phase_mod_tone_editor)
+        pmc_layout.setSpacing(2)
+        pmc_layout.addLayout(pmvol_layout, 5)
+        pmc_layout.addLayout(pmwave_layout, 2)
         self._phase_mod_container.setLayout(pmc_layout)
 
         mod_layout = QVBoxLayout()
@@ -58,10 +66,10 @@ class AddGen(QWidget):
         mod_layout.addWidget(self._phase_mod_enabled_toggle)
         mod_layout.addWidget(self._phase_mod_container)
 
-        h = QHBoxLayout()
+        h = QVBoxLayout()
         h.setSpacing(5)
-        h.addLayout(base_layout)
-        h.addLayout(mod_layout)
+        h.addLayout(base_layout, 1)
+        h.addLayout(mod_layout, 3)
         self.setLayout(h)
 
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
@@ -158,11 +166,15 @@ class WaveformEditor(QWidget):
         self._postwarp_list = WarpList(self._wave_type, 'post')
         self._waveform = Waveform()
 
-        v = QVBoxLayout()
+        pw_layout = QVBoxLayout()
+        pw_layout.setSpacing(0)
+        pw_layout.addWidget(self._prewarp_list)
+        pw_layout.addWidget(self._base_func_selector)
+        pw_layout.addWidget(self._postwarp_list)
+
+        v = QHBoxLayout()
         v.setSpacing(0)
-        v.addWidget(self._prewarp_list)
-        v.addWidget(self._base_func_selector)
-        v.addWidget(self._postwarp_list)
+        v.addLayout(pw_layout)
         v.addWidget(self._waveform)
         self.setLayout(v)
 
