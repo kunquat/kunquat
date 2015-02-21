@@ -41,13 +41,19 @@ class AddGen(QWidget):
         self._phase_mod_enabled_toggle = QCheckBox('Phase modulation')
         self._phase_mod_volume = ModVolume()
         self._phase_mod_env = ModEnv()
+        self._phase_force_mod_env = ForceModEnv()
         self._phase_mod_waveform = WaveformEditor('mod')
         self._phase_mod_tone_editor = ToneList('mod')
+
+        pmenv_layout = QHBoxLayout()
+        pmenv_layout.setSpacing(5)
+        pmenv_layout.addWidget(self._phase_mod_env, 5)
+        pmenv_layout.addWidget(self._phase_force_mod_env, 2)
 
         pmvol_layout = QVBoxLayout()
         pmvol_layout.setSpacing(0)
         pmvol_layout.addWidget(self._phase_mod_volume)
-        pmvol_layout.addWidget(self._phase_mod_env)
+        pmvol_layout.addLayout(pmenv_layout)
 
         pmwave_layout = QHBoxLayout()
         pmwave_layout.setSpacing(0)
@@ -80,6 +86,7 @@ class AddGen(QWidget):
         self._base_tone_editor.set_ins_id(ins_id)
         self._phase_mod_volume.set_ins_id(ins_id)
         self._phase_mod_env.set_ins_id(ins_id)
+        self._phase_force_mod_env.set_ins_id(ins_id)
         self._phase_mod_waveform.set_ins_id(ins_id)
         self._phase_mod_tone_editor.set_ins_id(ins_id)
 
@@ -89,6 +96,7 @@ class AddGen(QWidget):
         self._base_tone_editor.set_gen_id(gen_id)
         self._phase_mod_volume.set_gen_id(gen_id)
         self._phase_mod_env.set_gen_id(gen_id)
+        self._phase_force_mod_env.set_gen_id(gen_id)
         self._phase_mod_waveform.set_gen_id(gen_id)
         self._phase_mod_tone_editor.set_gen_id(gen_id)
 
@@ -98,6 +106,7 @@ class AddGen(QWidget):
         self._base_tone_editor.set_ui_model(ui_model)
         self._phase_mod_volume.set_ui_model(ui_model)
         self._phase_mod_env.set_ui_model(ui_model)
+        self._phase_force_mod_env.set_ui_model(ui_model)
         self._phase_mod_waveform.set_ui_model(ui_model)
         self._phase_mod_tone_editor.set_ui_model(ui_model)
         self._updater = ui_model.get_updater()
@@ -113,6 +122,7 @@ class AddGen(QWidget):
         self._updater.unregister_updater(self._perform_updates)
         self._phase_mod_tone_editor.unregister_updaters()
         self._phase_mod_waveform.unregister_updaters()
+        self._phase_force_mod_env.unregister_updaters()
         self._phase_mod_env.unregister_updaters()
         self._phase_mod_volume.unregister_updaters()
         self._base_tone_editor.unregister_updaters()
@@ -897,6 +907,8 @@ class ModEnv(TimeEnvelope):
         TimeEnvelope.__init__(self)
         self._gen_id = None
 
+        self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
+
     def set_gen_id(self, gen_id):
         self._gen_id = gen_id
 
@@ -941,6 +953,134 @@ class ModEnv(TimeEnvelope):
 
     def _set_envelope_data(self, envelope):
         self._get_add_params().set_mod_envelope(envelope)
+
+    def _get_add_params(self):
+        module = self._ui_model.get_module()
+        instrument = module.get_instrument(self._ins_id)
+        generator = instrument.get_generator(self._gen_id)
+        add_params = generator.get_type_params()
+        return add_params
+
+
+class ForceModEnv(QWidget):
+
+    def __init__(self):
+        QWidget.__init__(self)
+        self._ins_id = None
+        self._gen_id = None
+        self._ui_model = None
+        self._updater = None
+
+        header = QLabel(self._get_title())
+        header.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+        header_line = QFrame()
+        header_line.setFrameShape(QFrame.HLine)
+        header_line.setFrameShadow(QFrame.Sunken)
+        header_line.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Maximum)
+        header_layout = QHBoxLayout()
+        header_layout.setContentsMargins(5, 0, 5, 0)
+        header_layout.setSpacing(10)
+        header_layout.addWidget(header)
+        header_layout.addWidget(header_line)
+
+        self._enabled_toggle = QCheckBox('Enabled')
+
+        self._envelope = self._make_envelope_widget()
+
+        v = QVBoxLayout()
+        v.setMargin(0)
+        v.setSpacing(0)
+        v.addLayout(header_layout)
+        v.addWidget(self._enabled_toggle)
+        v.addWidget(self._envelope)
+        self.setLayout(v)
+
+    def set_ins_id(self, ins_id):
+        self._ins_id = ins_id
+
+    def set_gen_id(self, gen_id):
+        self._gen_id = gen_id
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+        self._update_envelope()
+
+        QObject.connect(
+                self._enabled_toggle,
+                SIGNAL('stateChanged(int)'),
+                self._enabled_changed)
+        QObject.connect(
+                self._envelope,
+                SIGNAL('envelopeChanged()'),
+                self._envelope_changed)
+
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _get_update_signal_type(self):
+        return ''.join(('signal_add_force_mod_volume_', self._ins_id, self._gen_id))
+
+    def _perform_updates(self, signals):
+        update_signals = set(['signal_instrument', self._get_update_signal_type()])
+        if not signals.isdisjoint(update_signals):
+            self._update_envelope()
+
+    def _update_envelope(self):
+        old_block = self._enabled_toggle.blockSignals(True)
+        self._enabled_toggle.setCheckState(
+                Qt.Checked if self._get_enabled() else Qt.Unchecked)
+        self._enabled_toggle.blockSignals(old_block)
+
+        envelope = self._get_envelope_data()
+        self._envelope.set_nodes(envelope['nodes'])
+
+    def _enabled_changed(self, state):
+        new_enabled = (state == Qt.Checked)
+        self._set_enabled(new_enabled)
+        self._updater.signal_update(set([self._get_update_signal_type()]))
+
+    def _envelope_changed(self):
+        new_nodes, _ = self._envelope.get_clear_changed()
+
+        envelope = self._get_envelope_data()
+        if new_nodes:
+            envelope['nodes'] = new_nodes
+
+        if new_nodes:
+            self._set_enabled(True)
+
+        self._set_envelope_data(envelope)
+        self._updater.signal_update(set([self._get_update_signal_type()]))
+
+    def _get_title(self):
+        return 'Force-mod envelope'
+
+    def _make_envelope_widget(self):
+        envelope = Envelope({ 'is_square_area': True })
+        envelope.set_node_count_max(32)
+        envelope.set_y_range(0, 1)
+        envelope.set_x_range(0, 1)
+        envelope.set_first_lock(True, False)
+        envelope.set_last_lock(True, False)
+        return envelope
+
+    def _get_enabled(self):
+        add_params = self._get_add_params()
+        return add_params.get_force_mod_envelope_enabled()
+
+    def _set_enabled(self, enabled):
+        add_params = self._get_add_params()
+        add_params.set_force_mod_envelope_enabled(enabled)
+
+    def _get_envelope_data(self):
+        add_params = self._get_add_params()
+        return add_params.get_force_mod_envelope()
+
+    def _set_envelope_data(self, envelope):
+        add_params = self._get_add_params()
+        add_params.set_force_mod_envelope(envelope)
 
     def _get_add_params(self):
         module = self._ui_model.get_module()
