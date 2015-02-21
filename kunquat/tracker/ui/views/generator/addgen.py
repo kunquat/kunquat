@@ -21,6 +21,14 @@ from kunquat.tracker.ui.views.numberslider import NumberSlider
 from kunquat.tracker.ui.views.instrument.time_env import TimeEnvelope
 
 
+def get_add_params(obj):
+    module = obj._ui_model.get_module()
+    instrument = module.get_instrument(obj._ins_id)
+    generator = instrument.get_generator(obj._gen_id)
+    add_params = generator.get_type_params()
+    return add_params
+
+
 class AddGen(QWidget):
 
     def __init__(self):
@@ -136,15 +144,8 @@ class AddGen(QWidget):
         if not signals.isdisjoint(update_signals):
             self._update_gen()
 
-    def _get_add_params(self):
-        module = self._ui_model.get_module()
-        instrument = module.get_instrument(self._ins_id)
-        generator = instrument.get_generator(self._gen_id)
-        add_params = generator.get_type_params()
-        return add_params
-
     def _update_gen(self):
-        add_params = self._get_add_params()
+        add_params = get_add_params(self)
         phase_mod_enabled = add_params.get_phase_mod_enabled()
 
         old_block = self._phase_mod_enabled_toggle.blockSignals(True)
@@ -156,7 +157,7 @@ class AddGen(QWidget):
 
     def _phase_mod_enabled_changed(self, state):
         new_enabled = (state == Qt.Checked)
-        add_params = self._get_add_params()
+        add_params = get_add_params(self)
         add_params.set_phase_mod_enabled(new_enabled)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
@@ -203,7 +204,7 @@ class WaveformEditor(QWidget):
         self._prewarp_list.set_ui_model(ui_model)
         self._postwarp_list.set_ui_model(ui_model)
 
-        add_params = self._get_add_params()
+        add_params = get_add_params(self)
 
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
@@ -228,15 +229,8 @@ class WaveformEditor(QWidget):
         if not signals.isdisjoint(update_signals):
             self._update_all()
 
-    def _get_add_params(self):
-        module = self._ui_model.get_module()
-        instrument = module.get_instrument(self._ins_id)
-        generator = instrument.get_generator(self._gen_id)
-        add_params = generator.get_type_params()
-        return add_params
-
     def _update_all(self):
-        add_params = self._get_add_params()
+        add_params = get_add_params(self)
 
         selected_base_func = add_params.get_waveform_func(self._wave_type)
         enable_warps = (selected_base_func != None)
@@ -260,7 +254,7 @@ class WaveformEditor(QWidget):
         self._waveform.set_waveform(add_params.get_waveform(self._wave_type))
 
     def _base_func_selected(self, index):
-        add_params = self._get_add_params()
+        add_params = get_add_params(self)
         func_names = add_params.get_waveform_func_names(self._wave_type)
         add_params.set_waveform_func(self._wave_type, func_names[index])
         self._updater.signal_update(set([self._get_update_signal_type()]))
@@ -337,15 +331,8 @@ class WarpList(QScrollArea):
         if not signals.isdisjoint(update_signals):
             self._update_all()
 
-    def _get_add_params(self):
-        module = self._ui_model.get_module()
-        instrument = module.get_instrument(self._ins_id)
-        generator = instrument.get_generator(self._gen_id)
-        add_params = generator.get_type_params()
-        return add_params
-
     def _update_all(self):
-        add_params = self._get_add_params()
+        add_params = get_add_params(self)
 
         warp_count = add_params.get_warp_func_count(self._wave_type, self._warp_type)
 
@@ -379,7 +366,7 @@ class WarpList(QScrollArea):
         return editor.get_warp()
 
     def _warp_added(self):
-        add_params = self._get_add_params()
+        add_params = get_add_params(self)
         add_params.add_warp_func(self._wave_type, self._warp_type)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
@@ -452,7 +439,7 @@ class WarpEditor(QWidget):
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
 
-        add_params = self._get_add_params()
+        add_params = get_add_params(self)
 
         func_names = add_params.get_warp_func_names(self._warp_type)
         old_block = self._func_selector.blockSignals(True)
@@ -484,15 +471,8 @@ class WarpEditor(QWidget):
         if not signals.isdisjoint(update_signals):
             self._update_all()
 
-    def _get_add_params(self):
-        module = self._ui_model.get_module()
-        instrument = module.get_instrument(self._ins_id)
-        generator = instrument.get_generator(self._gen_id)
-        add_params = generator.get_type_params()
-        return add_params
-
     def _update_all(self):
-        add_params = self._get_add_params()
+        add_params = get_add_params(self)
 
         warp_func_count = add_params.get_warp_func_count(
                 self._wave_type, self._warp_type)
@@ -521,19 +501,19 @@ class WarpEditor(QWidget):
         self._value_display.setText(str(float(arg)))
 
     def _moved_down(self):
-        add_params = self._get_add_params()
+        add_params = get_add_params(self)
         add_params.move_warp_func(
                 self._wave_type, self._warp_type, self._index, self._index + 1)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _moved_up(self):
-        add_params = self._get_add_params()
+        add_params = get_add_params(self)
         add_params.move_warp_func(
                 self._wave_type, self._warp_type, self._index, self._index - 1)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _set_warp(self):
-        add_params = self._get_add_params()
+        add_params = get_add_params(self)
         name = str(self._func_selector.currentText())
         arg = self._slider.value() / float(self._ARG_SCALE)
         add_params.set_warp_func(
@@ -547,7 +527,7 @@ class WarpEditor(QWidget):
         self._set_warp()
 
     def _removed(self):
-        add_params = self._get_add_params()
+        add_params = get_add_params(self)
         add_params.remove_warp_func(self._wave_type, self._warp_type, self._index)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
@@ -617,15 +597,8 @@ class ToneList(QScrollArea):
         if not signals.isdisjoint(update_signals):
             self._update_all()
 
-    def _get_add_params(self):
-        module = self._ui_model.get_module()
-        instrument = module.get_instrument(self._ins_id)
-        generator = instrument.get_generator(self._gen_id)
-        add_params = generator.get_type_params()
-        return add_params
-
     def _update_all(self):
-        add_params = self._get_add_params()
+        add_params = get_add_params(self)
 
         # Set tone count
         layout = self.widget().layout()
@@ -653,7 +626,7 @@ class ToneList(QScrollArea):
                 self.width() - self.verticalScrollBar().width() - 5)
 
     def _tone_added(self):
-        add_params = self._get_add_params()
+        add_params = get_add_params(self)
         add_params.add_tone(self._wave_type)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
@@ -718,18 +691,11 @@ class ToneEditor(QWidget):
         self._volume_slider.unregister_updaters()
         self._pitch_spin.unregister_updaters()
 
-    def _get_add_params(self):
-        module = self._ui_model.get_module()
-        instrument = module.get_instrument(self._ins_id)
-        generator = instrument.get_generator(self._gen_id)
-        add_params = generator.get_type_params()
-        return add_params
-
     def _get_update_signal_type(self):
         return ''.join(('signal_gen_add_tone_', self._ins_id, self._gen_id))
 
     def _removed(self):
-        add_params = self._get_add_params()
+        add_params = get_add_params(self)
         add_params.remove_tone(self._wave_type, self._index)
         updater = self._ui_model.get_updater()
         updater.signal_update(set([self._get_update_signal_type()]))
@@ -775,13 +741,6 @@ class TonePitchSpin(QWidget):
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
 
-    def _get_add_params(self):
-        module = self._ui_model.get_module()
-        instrument = module.get_instrument(self._ins_id)
-        generator = instrument.get_generator(self._gen_id)
-        add_params = generator.get_type_params()
-        return add_params
-
     def _get_update_signal_type(self):
         return ''.join(('signal_gen_add_tone_', self._ins_id, self._gen_id))
 
@@ -791,7 +750,7 @@ class TonePitchSpin(QWidget):
             self._update_value()
 
     def _update_value(self):
-        add_params = self._get_add_params()
+        add_params = get_add_params(self)
 
         if self._index >= add_params.get_tone_count(self._wave_type):
             # We have been removed
@@ -804,7 +763,7 @@ class TonePitchSpin(QWidget):
         self._spin.blockSignals(old_block)
 
     def _value_changed(self, pitch):
-        add_params = self._get_add_params()
+        add_params = get_add_params(self)
         add_params.set_tone_pitch(self._wave_type, self._index, pitch)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
@@ -817,15 +776,8 @@ class ToneVolumeSlider(GenNumSlider):
         self._index = index
         self.set_number(0)
 
-    def _get_add_params(self):
-        module = self._ui_model.get_module()
-        instrument = module.get_instrument(self._ins_id)
-        generator = instrument.get_generator(self._gen_id)
-        add_params = generator.get_type_params()
-        return add_params
-
     def _update_value(self):
-        add_params = self._get_add_params()
+        add_params = get_add_params(self)
 
         if self._index >= add_params.get_tone_count(self._wave_type):
             # We have been removed
@@ -834,7 +786,7 @@ class ToneVolumeSlider(GenNumSlider):
         self.set_number(add_params.get_tone_volume(self._wave_type, self._index))
 
     def _value_changed(self, volume):
-        add_params = self._get_add_params()
+        add_params = get_add_params(self)
         add_params.set_tone_volume(self._wave_type, self._index, volume)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
@@ -850,15 +802,8 @@ class TonePanningSlider(GenNumSlider):
         self._index = index
         self.set_number(0)
 
-    def _get_add_params(self):
-        module = self._ui_model.get_module()
-        instrument = module.get_instrument(self._ins_id)
-        generator = instrument.get_generator(self._gen_id)
-        add_params = generator.get_type_params()
-        return add_params
-
     def _update_value(self):
-        add_params = self._get_add_params()
+        add_params = get_add_params(self)
 
         if self._index >= add_params.get_tone_count(self._wave_type):
             # We have been removed
@@ -867,7 +812,7 @@ class TonePanningSlider(GenNumSlider):
         self.set_number(add_params.get_tone_panning(self._wave_type, self._index))
 
     def _value_changed(self, panning):
-        add_params = self._get_add_params()
+        add_params = get_add_params(self)
         add_params.set_tone_panning(self._wave_type, self._index, panning)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
@@ -881,19 +826,12 @@ class ModVolume(GenNumSlider):
         GenNumSlider.__init__(self, 2, -64.0, 24.0, title='Mod volume')
         self.set_number(0)
 
-    def _get_add_params(self):
-        module = self._ui_model.get_module()
-        instrument = module.get_instrument(self._ins_id)
-        generator = instrument.get_generator(self._gen_id)
-        add_params = generator.get_type_params()
-        return add_params
-
     def _update_value(self):
-        add_params = self._get_add_params()
+        add_params = get_add_params(self)
         self.set_number(add_params.get_mod_volume())
 
     def _value_changed(self, mod_volume):
-        add_params = self._get_add_params()
+        add_params = get_add_params(self)
         add_params.set_mod_volume(mod_volume)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
@@ -931,35 +869,28 @@ class ModEnv(TimeEnvelope):
         return ''.join(('signal_add_mod_env_', self._ins_id, self._gen_id))
 
     def _get_enabled(self):
-        return self._get_add_params().get_mod_envelope_enabled()
+        return get_add_params(self).get_mod_envelope_enabled()
 
     def _set_enabled(self, enabled):
-        self._get_add_params().set_mod_envelope_enabled(enabled)
+        get_add_params(self).set_mod_envelope_enabled(enabled)
 
     def _get_scale_amount(self):
-        return self._get_add_params().get_mod_envelope_scale_amount()
+        return get_add_params(self).get_mod_envelope_scale_amount()
 
     def _set_scale_amount(self, value):
-        self._get_add_params().set_mod_envelope_scale_amount(value)
+        get_add_params(self).set_mod_envelope_scale_amount(value)
 
     def _get_scale_center(self):
-        return self._get_add_params().get_mod_envelope_scale_center()
+        return get_add_params(self).get_mod_envelope_scale_center()
 
     def _set_scale_center(self, value):
-        self._get_add_params().set_mod_envelope_scale_center(value)
+        get_add_params(self).set_mod_envelope_scale_center(value)
 
     def _get_envelope_data(self):
-        return self._get_add_params().get_mod_envelope()
+        return get_add_params(self).get_mod_envelope()
 
     def _set_envelope_data(self, envelope):
-        self._get_add_params().set_mod_envelope(envelope)
-
-    def _get_add_params(self):
-        module = self._ui_model.get_module()
-        instrument = module.get_instrument(self._ins_id)
-        generator = instrument.get_generator(self._gen_id)
-        add_params = generator.get_type_params()
-        return add_params
+        get_add_params(self).set_mod_envelope(envelope)
 
 
 class ForceModEnv(QWidget):
@@ -1067,26 +998,19 @@ class ForceModEnv(QWidget):
         return envelope
 
     def _get_enabled(self):
-        add_params = self._get_add_params()
+        add_params = get_add_params(self)
         return add_params.get_force_mod_envelope_enabled()
 
     def _set_enabled(self, enabled):
-        add_params = self._get_add_params()
+        add_params = get_add_params(self)
         add_params.set_force_mod_envelope_enabled(enabled)
 
     def _get_envelope_data(self):
-        add_params = self._get_add_params()
+        add_params = get_add_params(self)
         return add_params.get_force_mod_envelope()
 
     def _set_envelope_data(self, envelope):
-        add_params = self._get_add_params()
+        add_params = get_add_params(self)
         add_params.set_force_mod_envelope(envelope)
-
-    def _get_add_params(self):
-        module = self._ui_model.get_module()
-        instrument = module.get_instrument(self._ins_id)
-        generator = instrument.get_generator(self._gen_id)
-        add_params = generator.get_type_params()
-        return add_params
 
 
