@@ -43,7 +43,7 @@ class AddGen(QWidget):
         self._base_tone_editor = ToneList('base')
 
         base_layout = QHBoxLayout()
-        base_layout.setSpacing(0)
+        base_layout.setSpacing(5)
         base_layout.addWidget(self._base_waveform)
         base_layout.addWidget(self._base_tone_editor)
 
@@ -65,13 +65,14 @@ class AddGen(QWidget):
         pmvol_layout.addLayout(pmenv_layout)
 
         pmwave_layout = QHBoxLayout()
-        pmwave_layout.setSpacing(0)
+        pmwave_layout.setSpacing(5)
         pmwave_layout.addWidget(self._phase_mod_waveform)
         pmwave_layout.addWidget(self._phase_mod_tone_editor)
 
         self._phase_mod_container = QWidget()
         pmc_layout = QVBoxLayout()
-        pmc_layout.setSpacing(2)
+        pmc_layout.setMargin(0)
+        pmc_layout.setSpacing(5)
         pmc_layout.addLayout(pmvol_layout, 5)
         pmc_layout.addLayout(pmwave_layout, 2)
         self._phase_mod_container.setLayout(pmc_layout)
@@ -82,7 +83,7 @@ class AddGen(QWidget):
         mod_layout.addWidget(self._phase_mod_container)
 
         v = QVBoxLayout()
-        v.setSpacing(5)
+        v.setSpacing(10)
         v.addLayout(base_layout, 1)
         v.addLayout(mod_layout, 3)
         self.setLayout(v)
@@ -184,11 +185,17 @@ class WaveformEditor(QWidget):
         pw_layout.addWidget(self._base_func_selector)
         pw_layout.addWidget(self._postwarp_list)
 
-        h = QHBoxLayout()
-        h.setSpacing(0)
-        h.addLayout(pw_layout)
-        h.addWidget(self._waveform)
-        self.setLayout(h)
+        ed_layout = QHBoxLayout()
+        ed_layout.setSpacing(0)
+        ed_layout.addLayout(pw_layout)
+        ed_layout.addWidget(self._waveform)
+
+        v = QVBoxLayout()
+        v.setMargin(0)
+        v.setSpacing(2)
+        v.addWidget(HeaderLine('Waveshaping'))
+        v.addLayout(ed_layout)
+        self.setLayout(v)
 
     def set_ins_id(self, ins_id):
         self._ins_id = ins_id
@@ -544,10 +551,24 @@ class ToneListContainer(QWidget):
         self.setLayout(v)
 
 
-class ToneList(QScrollArea):
+class ToneListArea(QScrollArea):
+
+    def __init__(self):
+        QScrollArea.__init__(self)
+
+    def do_width_hack(self):
+        self.widget().setFixedWidth(
+                self.width() - self.verticalScrollBar().width() - 5)
+
+    def resizeEvent(self, event):
+        self.do_width_hack()
+
+
+class ToneList(QWidget):
 
     def __init__(self, wave_type):
-        QScrollArea.__init__(self)
+        QWidget.__init__(self)
+
         self._ins_id = None
         self._gen_id = None
         self._ui_model = None
@@ -555,19 +576,28 @@ class ToneList(QScrollArea):
         self._icon_bank = None
         self._wave_type = wave_type
 
+        self._area = ToneListArea()
+
         self._init_container()
 
-        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        self._area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self._area.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+
+        v = QVBoxLayout()
+        v.setMargin(0)
+        v.setSpacing(2)
+        v.addWidget(HeaderLine('Tones'))
+        v.addWidget(self._area)
+        self.setLayout(v)
 
     def _init_container(self):
-        self.setWidget(ToneListContainer())
+        self._area.setWidget(ToneListContainer())
         add_button = QPushButton('Add tone')
         QObject.connect(add_button, SIGNAL('clicked()'), self._tone_added)
-        self.widget().layout().addWidget(add_button)
+        self._area.widget().layout().addWidget(add_button)
 
     def _disconnect_editors(self):
-        layout = self.widget().layout()
+        layout = self._area.widget().layout()
         for i in xrange(layout.count() - 1):
             editor = layout.itemAt(i).widget()
             editor.unregister_updaters()
@@ -602,12 +632,12 @@ class ToneList(QScrollArea):
         add_params = get_add_params(self)
 
         # Set tone count
-        layout = self.widget().layout()
+        layout = self._area.widget().layout()
         count = add_params.get_tone_count(self._wave_type)
         if count < layout.count() - 1:
             self._disconnect_editors()
             self._init_container()
-            layout = self.widget().layout()
+            layout = self._area.widget().layout()
 
         # Create new tone editors
         for i in xrange(layout.count() - 1, count):
@@ -620,19 +650,12 @@ class ToneList(QScrollArea):
         max_count_reached = (count >= add_params.get_max_tone_count())
         layout.itemAt(layout.count() - 1).widget().setVisible(not max_count_reached)
 
-        self._do_width_hack()
-
-    def _do_width_hack(self):
-        self.widget().setFixedWidth(
-                self.width() - self.verticalScrollBar().width() - 5)
+        self._area.do_width_hack()
 
     def _tone_added(self):
         add_params = get_add_params(self)
         add_params.add_tone(self._wave_type)
         self._updater.signal_update(set([self._get_update_signal_type()]))
-
-    def resizeEvent(self, event):
-        self._do_width_hack()
 
 
 class ToneEditor(QWidget):
