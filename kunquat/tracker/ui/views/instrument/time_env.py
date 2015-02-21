@@ -15,6 +15,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 from kunquat.tracker.ui.views.envelope import Envelope
+from kunquat.tracker.ui.views.headerline import HeaderLine
 from kunquat.tracker.ui.views.numberslider import NumberSlider
 
 
@@ -26,17 +27,7 @@ class TimeEnvelope(QWidget):
         self._ins_id = None
         self._updater = None
 
-        header = QLabel(self._get_title())
-        header.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
-        header_line = QFrame()
-        header_line.setFrameShape(QFrame.HLine)
-        header_line.setFrameShadow(QFrame.Sunken)
-        header_line.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Maximum)
-        header_layout = QHBoxLayout()
-        header_layout.setContentsMargins(5, 0, 5, 0)
-        header_layout.setSpacing(10)
-        header_layout.addWidget(header)
-        header_layout.addWidget(header_line)
+        header = HeaderLine(self._get_title())
 
         self._enabled_toggle = QCheckBox('Enabled')
         if self._allow_loop():
@@ -56,7 +47,7 @@ class TimeEnvelope(QWidget):
         v = QVBoxLayout()
         v.setMargin(0)
         v.setSpacing(0)
-        v.addLayout(header_layout)
+        v.addWidget(header)
         v.addLayout(h)
         v.addWidget(self._envelope)
         self.setLayout(v)
