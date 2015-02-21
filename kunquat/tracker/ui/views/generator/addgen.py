@@ -81,11 +81,11 @@ class AddGen(QWidget):
         mod_layout.addWidget(self._phase_mod_enabled_toggle)
         mod_layout.addWidget(self._phase_mod_container)
 
-        h = QVBoxLayout()
-        h.setSpacing(5)
-        h.addLayout(base_layout, 1)
-        h.addLayout(mod_layout, 3)
-        self.setLayout(h)
+        v = QVBoxLayout()
+        v.setSpacing(5)
+        v.addLayout(base_layout, 1)
+        v.addLayout(mod_layout, 3)
+        self.setLayout(v)
 
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
 
@@ -184,11 +184,11 @@ class WaveformEditor(QWidget):
         pw_layout.addWidget(self._base_func_selector)
         pw_layout.addWidget(self._postwarp_list)
 
-        v = QHBoxLayout()
-        v.setSpacing(0)
-        v.addLayout(pw_layout)
-        v.addWidget(self._waveform)
-        self.setLayout(v)
+        h = QHBoxLayout()
+        h.setSpacing(0)
+        h.addLayout(pw_layout)
+        h.addWidget(self._waveform)
+        self.setLayout(h)
 
     def set_ins_id(self, ins_id):
         self._ins_id = ins_id
