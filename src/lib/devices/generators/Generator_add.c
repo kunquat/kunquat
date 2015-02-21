@@ -62,6 +62,7 @@ typedef struct Generator_add
     const Envelope* mod_env;
     double mod_env_scale_amount;
     double mod_env_center;
+    bool force_mod_env_enabled;
     const Envelope* force_mod_env;
     double detune;
     Add_tone tones[HARMONICS_MAX];
@@ -84,6 +85,7 @@ static Set_bool_func        Generator_add_set_mod_env_enabled;
 static Set_envelope_func    Generator_add_set_mod_env;
 static Set_float_func       Generator_add_set_mod_env_scale_amount;
 static Set_float_func       Generator_add_set_mod_env_scale_center;
+static Set_bool_func        Generator_add_set_force_mod_env_enabled;
 static Set_envelope_func    Generator_add_set_force_mod_env;
 static Set_float_func       Generator_add_set_tone_pitch;
 static Set_float_func       Generator_add_set_tone_volume;
@@ -171,6 +173,12 @@ static bool Generator_add_init(Device_impl* dimpl)
             0.0,
             Generator_add_set_mod_env_scale_center,
             NULL);
+    reg_success &= Device_impl_register_set_bool(
+            &add->parent,
+            "p_b_force_mod_env_enabled.json",
+            NULL,
+            Generator_add_set_force_mod_env_enabled,
+            NULL);
     reg_success &= Device_impl_register_set_envelope(
             &add->parent,
             "p_e_force_mod_env.json",
@@ -219,6 +227,7 @@ static bool Generator_add_init(Device_impl* dimpl)
     add->mod_env = NULL;
     add->mod_env_scale_amount = 0;
     add->mod_env_center = 440;
+    add->force_mod_env_enabled = false;
     add->force_mod_env = NULL;
     add->detune = 1;
 
@@ -412,7 +421,7 @@ static uint32_t Generator_add_mix(
                             floor(add_state->mod_tones[h].phase);
             }
 
-            if (add->force_mod_env != NULL)
+            if (add->force_mod_env_enabled && (add->force_mod_env != NULL))
             {
                 double force = min(1, vstate->actual_force);
                 double factor = Envelope_get_value(add->force_mod_env, force);
@@ -701,6 +710,20 @@ static bool Generator_add_set_mod_env_scale_center(
     Generator_add* add = (Generator_add*)dimpl;
 
     add->mod_env_center = isfinite(value) ? exp2(value / 1200) * 440 : 440;
+
+    return true;
+}
+
+
+static bool Generator_add_set_force_mod_env_enabled(
+        Device_impl* dimpl, Key_indices indices, bool value)
+{
+    assert(dimpl != NULL);
+    assert(indices != NULL);
+    (void)indices;
+
+    Generator_add* add = (Generator_add*)dimpl;
+    add->force_mod_env_enabled = value;
 
     return true;
 }
