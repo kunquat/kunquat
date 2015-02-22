@@ -35,13 +35,16 @@ class NumberSlider(QWidget):
         self._value = QLabel()
         fm = QFontMetrics(QFont())
         if width_txt:
-            width = fm.width(width_txt)
+            width = fm.boundingRect(width_txt).width()
         else:
             val_fmt = self._get_val_fmt()
-            width = max(fm.width(val_fmt.format(val)) for val in (min_val, max_val))
+            width = max(fm.boundingRect(val_fmt.format(val)).width()
+                    for val in (min_val, max_val))
+        width += 10
         self._value.setFixedWidth(width)
 
         h = QHBoxLayout()
+        h.setSpacing(5)
         if title:
             h.addWidget(QLabel(title))
         h.addWidget(self._slider)

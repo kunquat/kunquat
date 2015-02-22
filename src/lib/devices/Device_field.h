@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -40,6 +40,7 @@ typedef enum
     DEVICE_FIELD_TSTAMP,
     DEVICE_FIELD_ENVELOPE,
     DEVICE_FIELD_WAVPACK,
+    DEVICE_FIELD_WAV,
     DEVICE_FIELD_VORBIS,
     DEVICE_FIELD_SAMPLE_PARAMS,
     DEVICE_FIELD_NOTE_MAP,
@@ -127,8 +128,8 @@ int Device_field_cmp(const Device_field* field1, const Device_field* field2);
 /**
  * Set the empty flag of the Device field.
  *
- * \param field   The Device field -- must not be \c NULL. Fields that are
- *                not real-time are not supported.
+ * \param field   The Device field -- must not be \c NULL and must have
+ *                real-time type.
  * \param flag    The empty flag.
  */
 void Device_field_set_empty(Device_field* field, bool empty);

@@ -42,10 +42,33 @@ class ForceReleaseEnvelope(TimeEnvelope):
     def _get_update_signal_type(self):
         return ''.join(('signal_forcerel_env_', self._ins_id))
 
-    def _get_instrument_envelope(self, instrument):
-        return instrument.get_force_release_envelope()
+    def _get_enabled(self):
+        return self._get_instrument().get_force_release_envelope_enabled()
 
-    def _set_instrument_envelope(self, instrument, envelope):
-        instrument.set_force_release_envelope(envelope)
+    def _set_enabled(self, enabled):
+        self._get_instrument().set_force_release_envelope_enabled(enabled)
+
+    def _get_scale_amount(self):
+        return self._get_instrument().get_force_release_envelope_scale_amount()
+
+    def _set_scale_amount(self, value):
+        self._get_instrument().set_force_release_envelope_scale_amount(value)
+
+    def _get_scale_center(self):
+        return self._get_instrument().get_force_release_envelope_scale_center()
+
+    def _set_scale_center(self, value):
+        self._get_instrument().set_force_release_envelope_scale_center(value)
+
+    def _get_envelope_data(self):
+        return self._get_instrument().get_force_release_envelope()
+
+    def _set_envelope_data(self, envelope):
+        self._get_instrument().set_force_release_envelope(envelope)
+
+    def _get_instrument(self):
+        module = self._ui_model.get_module()
+        instrument = module.get_instrument(self._ins_id)
+        return instrument
 
 

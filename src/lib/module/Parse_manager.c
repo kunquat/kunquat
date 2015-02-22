@@ -992,6 +992,9 @@ static bool read_gen_type(Reader_params* params)
         return false;
     }
 
+    // Force connection update so that we get buffers for the new Device state(s)
+    params->handle->update_connections = true;
+
     return true;
 }
 
@@ -1535,6 +1538,9 @@ static bool read_effect_dsp_type(
                 "Couldn't allocate memory while syncing DSP");
         return false;
     }
+
+    // Force connection update so that we get buffers for the new Device state(s)
+    params->handle->update_connections = true;
 
     return true;
 }

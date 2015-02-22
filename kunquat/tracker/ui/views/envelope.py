@@ -59,6 +59,7 @@ DEFAULT_CONFIG = {
         'focused_loop_handle_colour': QColor(0xff, 0xaa, 0x55),
         'loop_handle_size'          : 12,
         'loop_handle_focus_dist_max': 14,
+        'disabled_colour'           : QColor(0x88, 0x88, 0x88, 0x7f),
     }
 
 
@@ -1149,6 +1150,11 @@ class Envelope(QWidget):
             self._draw_loop_markers(painter)
 
         self._draw_envelope_nodes(painter)
+
+        # Grey out disabled widget
+        if not self.isEnabled():
+            painter.fillRect(
+                    0, 0, self.width(), self.height(), self._config['disabled_colour'])
 
         end = time.time()
         elapsed = end - start

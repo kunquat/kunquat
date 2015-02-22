@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2015
  *
  * This file is part of Kunquat.
  *
@@ -58,9 +58,11 @@ typedef struct Generator_add
     Sample* mod;
     Mod_mode mod_mode;
     double mod_volume;
+    bool mod_env_enabled;
     const Envelope* mod_env;
     double mod_env_scale_amount;
     double mod_env_center;
+    bool force_mod_env_enabled;
     const Envelope* force_mod_env;
     double detune;
     Add_tone tones[HARMONICS_MAX];
@@ -75,13 +77,15 @@ static void Generator_add_init_vstate(
 
 static double sine(double phase, double modifier);
 
-static Set_num_list_func    Generator_add_set_base;
-static Set_num_list_func    Generator_add_set_mod_base;
+static Set_sample_func      Generator_add_set_base;
+static Set_sample_func      Generator_add_set_mod_base;
 static Set_int_func         Generator_add_set_mod;
 static Set_float_func       Generator_add_set_mod_volume;
+static Set_bool_func        Generator_add_set_mod_env_enabled;
 static Set_envelope_func    Generator_add_set_mod_env;
 static Set_float_func       Generator_add_set_mod_env_scale_amount;
 static Set_float_func       Generator_add_set_mod_env_scale_center;
+static Set_bool_func        Generator_add_set_force_mod_env_enabled;
 static Set_envelope_func    Generator_add_set_force_mod_env;
 static Set_float_func       Generator_add_set_tone_pitch;
 static Set_float_func       Generator_add_set_tone_volume;
@@ -129,14 +133,10 @@ static bool Generator_add_init(Device_impl* dimpl)
 
     bool reg_success = true;
 
-    reg_success &= Device_impl_register_set_num_list(
-            &add->parent, "p_ln_base.json", NULL, Generator_add_set_base, NULL);
-    reg_success &= Device_impl_register_set_num_list(
-            &add->parent,
-            "p_ln_mod_base.json",
-            NULL,
-            Generator_add_set_mod_base,
-            NULL);
+    reg_success &= Device_impl_register_set_sample(
+            &add->parent, "p_base.wav", NULL, Generator_add_set_base, NULL);
+    reg_success &= Device_impl_register_set_sample(
+            &add->parent, "p_mod.wav", NULL, Generator_add_set_mod_base, NULL);
     reg_success &= Device_impl_register_set_int(
             &add->parent,
             "p_i_mod.json",
@@ -148,6 +148,12 @@ static bool Generator_add_init(Device_impl* dimpl)
             "p_f_mod_volume.json",
             0.0,
             Generator_add_set_mod_volume,
+            NULL);
+    reg_success &= Device_impl_register_set_bool(
+            &add->parent,
+            "p_b_mod_env_enabled.json",
+            false,
+            Generator_add_set_mod_env_enabled,
             NULL);
     reg_success &= Device_impl_register_set_envelope(
             &add->parent,
@@ -166,6 +172,12 @@ static bool Generator_add_init(Device_impl* dimpl)
             "p_f_mod_env_scale_center.json",
             0.0,
             Generator_add_set_mod_env_scale_center,
+            NULL);
+    reg_success &= Device_impl_register_set_bool(
+            &add->parent,
+            "p_b_force_mod_env_enabled.json",
+            NULL,
+            Generator_add_set_force_mod_env_enabled,
             NULL);
     reg_success &= Device_impl_register_set_envelope(
             &add->parent,
@@ -211,9 +223,11 @@ static bool Generator_add_init(Device_impl* dimpl)
     add->mod = NULL;
     add->mod_mode = MOD_DISABLED;
     add->mod_volume = 1;
+    add->mod_env_enabled = false;
     add->mod_env = NULL;
     add->mod_env_scale_amount = 0;
     add->mod_env_center = 440;
+    add->force_mod_env_enabled = false;
     add->force_mod_env = NULL;
     add->detune = 1;
 
@@ -407,7 +421,7 @@ static uint32_t Generator_add_mix(
                             floor(add_state->mod_tones[h].phase);
             }
 
-            if (add->force_mod_env != NULL)
+            if (add->force_mod_env_enabled && (add->force_mod_env != NULL))
             {
                 double force = min(1, vstate->actual_force);
                 double factor = Envelope_get_value(add->force_mod_env, force);
@@ -415,7 +429,7 @@ static uint32_t Generator_add_mix(
                 mod_val *= factor;
             }
 
-            if (add->mod_env != NULL)
+            if (add->mod_env_enabled && (add->mod_env != NULL))
             {
                 if (add->mod_env_scale_amount != 0 &&
                         (vstate->actual_pitch != vstate->prev_actual_pitch ||
@@ -429,20 +443,18 @@ static uint32_t Generator_add_mix(
                 double* next_node = Envelope_get_node(
                         add->mod_env,
                         add_state->mod_env_next_node);
-                assert(next_node != NULL);
 
                 double scale = NAN;
 
-                if (add_state->mod_env_pos >= next_node[0])
+                if ((next_node == NULL) || (add_state->mod_env_pos >= next_node[0]))
                 {
                     ++add_state->mod_env_next_node;
-                    scale = Envelope_get_value(add->mod_env,
-                                               add_state->mod_env_pos);
+                    scale = Envelope_get_value(add->mod_env, add_state->mod_env_pos);
 
                     if (!isfinite(scale))
                     {
-                        scale = Envelope_get_node(add->mod_env,
-                                Envelope_node_count(add->mod_env) - 1)[1];
+                        scale = Envelope_get_node(
+                                add->mod_env, Envelope_node_count(add->mod_env) - 1)[1];
                         if (scale == 0)
                             add_state->mod_active = false;
                     }
@@ -520,20 +532,22 @@ static uint32_t Generator_add_mix(
 static double sine(double phase, double modifier)
 {
     (void)modifier;
-    return sin(phase * PI * 2);
+    return -sin(phase * PI * 2);
 }
 
 
-static void fill_buf(float* buf, const Num_list* nl)
+static void fill_buf(float* buf, const Sample* sample)
 {
     assert(buf != NULL);
 
-    if (nl != NULL)
+    if ((sample != NULL) && (sample->data[0] != NULL) && sample->is_float)
     {
-        int32_t available = min(Num_list_length(nl), BASE_FUNC_SIZE);
+        int32_t available = min(sample->len, BASE_FUNC_SIZE);
+
+        const float* from_buf = sample->data[0];
 
         for (int i = 0; i < available; ++i)
-            buf[i] = clamp(Num_list_get_num(nl, i), -1.0, 1.0);
+            buf[i] = clamp(from_buf[i], -1.0, 1.0);
         for (int i = available; i < BASE_FUNC_SIZE; ++i)
             buf[i] = 0;
     }
@@ -548,7 +562,7 @@ static void fill_buf(float* buf, const Num_list* nl)
 
 
 static bool Generator_add_set_base(
-        Device_impl* dimpl, Key_indices indices, const Num_list* value)
+        Device_impl* dimpl, Key_indices indices, const Sample* value)
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
@@ -563,7 +577,7 @@ static bool Generator_add_set_base(
 
 
 static bool Generator_add_set_mod_base(
-        Device_impl* dimpl, Key_indices indices, const Num_list* value)
+        Device_impl* dimpl, Key_indices indices, const Sample* value)
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
@@ -613,6 +627,20 @@ static bool Generator_add_set_mod_volume(
 }
 
 
+static bool Generator_add_set_mod_env_enabled(
+        Device_impl* dimpl, Key_indices indices, bool enabled)
+{
+    assert(dimpl != NULL);
+    assert(indices != NULL);
+    (void)indices;
+
+    Generator_add* add = (Generator_add*)dimpl;
+    add->mod_env_enabled = enabled;
+
+    return true;
+}
+
+
 static bool Generator_add_set_mod_env(
         Device_impl* dimpl, Key_indices indices, const Envelope* value)
 {
@@ -624,7 +652,9 @@ static bool Generator_add_set_mod_env(
 
     bool valid = true;
 
-    if (value != NULL && Envelope_node_count(value) > 1)
+    if ((value != NULL) &&
+            (Envelope_node_count(value) > 1) &&
+            (Envelope_node_count(value) <= 32))
     {
         double* node = Envelope_get_node(value, 0);
         if (node[0] != 0)
@@ -633,9 +663,6 @@ static bool Generator_add_set_mod_env(
         node = Envelope_get_node(
                 value,
                 Envelope_node_count(value) - 1);
-
-        if (node[1] != 0)
-            valid = false;
 
         for (int i = 0; i < Envelope_node_count(value); ++i)
         {
@@ -683,6 +710,20 @@ static bool Generator_add_set_mod_env_scale_center(
     Generator_add* add = (Generator_add*)dimpl;
 
     add->mod_env_center = isfinite(value) ? exp2(value / 1200) * 440 : 440;
+
+    return true;
+}
+
+
+static bool Generator_add_set_force_mod_env_enabled(
+        Device_impl* dimpl, Key_indices indices, bool value)
+{
+    assert(dimpl != NULL);
+    assert(indices != NULL);
+    (void)indices;
+
+    Generator_add* add = (Generator_add*)dimpl;
+    add->force_mod_env_enabled = value;
 
     return true;
 }

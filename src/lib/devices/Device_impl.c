@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -515,6 +515,7 @@ bool Device_impl_set_key(Device_impl* dimpl, const char* key)
                 break;
 
             case DEVICE_FIELD_WAVPACK:
+            case DEVICE_FIELD_WAV:
                 SET_FIELDP(sample, Sample);
                 break;
 
@@ -623,6 +624,7 @@ bool Device_impl_set_state_key(
                 break;
 
             case DEVICE_FIELD_WAVPACK:
+            case DEVICE_FIELD_WAV:
                 SET_FIELDP(sample, Sample);
                 break;
 

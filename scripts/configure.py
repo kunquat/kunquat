@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2015
 #
 # This file is part of Kunquat.
 #
@@ -35,6 +35,16 @@ def test_add_external_deps(builder, options, cc):
             cc.add_define('HAS_EXECINFO')
             cc.set_dynamic_export(True)
 
+    if options.with_sndfile:
+        if _test_add_lib_with_header(builder, cc, 'sndfile', 'sndfile.h'):
+            cc.add_define('WITH_SNDFILE')
+        else:
+            conf_errors.append(
+                    'libsndfile support was requested but libsndfile was not found.')
+    else:
+        print('Warning: libsndfile support is disabled!'
+                ' Additive synthesis support will be very minimal.', file=sys.stderr)
+
     if options.with_wavpack:
         if _test_add_lib_with_header(builder, cc, 'wavpack', 'wavpack/wavpack.h'):
             cc.add_define('WITH_WAVPACK')
@@ -61,6 +71,8 @@ def test_add_external_deps(builder, options, cc):
     if options.enable_export:
         if not options.enable_python_bindings:
             conf_errors.append('kunquat-export was requested without Python bindings.')
+        if not options.with_sndfile:
+            conf_errors.append('kunquat-export was requested without libsndfile.')
 
     if options.enable_profiling:
         if not _test_add_lib_with_header(builder, cc, 'm_p', 'math.h'):

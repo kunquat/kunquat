@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -18,6 +18,7 @@
 
 #include <debug/assert.h>
 #include <devices/Device_field.h>
+#include <devices/param_types/Wav.h>
 #include <devices/param_types/Wavpack.h>
 #include <memory.h>
 #include <string/common.h>
@@ -81,6 +82,8 @@ Device_field_type get_keyp_device_field_type(const char* keyp)
     }
     else if (string_has_suffix(last_elem, ".wv"))
         return DEVICE_FIELD_WAVPACK;
+    else if (string_has_suffix(last_elem, ".wav"))
+        return DEVICE_FIELD_WAV;
 
     return DEVICE_FIELD_NONE;
 }
@@ -103,6 +106,7 @@ Device_field* new_Device_field(const char* key, void* data)
         [DEVICE_FIELD_HIT_MAP]          = sizeof(Hit_map*),
         [DEVICE_FIELD_NUM_LIST]         = sizeof(Num_list*),
         [DEVICE_FIELD_WAVPACK]          = sizeof(Sample*),
+        [DEVICE_FIELD_WAV]              = sizeof(Sample*),
     };
 
     const Device_field_type type = get_keyp_device_field_type(key);
@@ -266,6 +270,30 @@ bool Device_field_change(Device_field* field, Streader* sr)
         }
         break;
 
+        case DEVICE_FIELD_WAV:
+        {
+            Sample* sample = NULL;
+            if (data != NULL)
+            {
+                sample = new_Sample();
+                if (sample == NULL)
+                    return false;
+
+                if (!Sample_parse_wav(sample, sr))
+                {
+                    del_Sample(sample);
+                    return false;
+                }
+            }
+
+            assert(!Streader_is_error_set(sr));
+            if (field->data.Sample_type != NULL)
+                del_Sample(field->data.Sample_type);
+
+            field->data.Sample_type = sample;
+        }
+        break;
+
         case DEVICE_FIELD_SAMPLE_PARAMS:
         {
             if (!Sample_params_parse(&field->data.Sample_params_type, sr))
@@ -298,7 +326,7 @@ bool Device_field_change(Device_field* field, Streader* sr)
         case DEVICE_FIELD_NUM_LIST:
         {
             Num_list* nl = new_Num_list_from_string(sr);
-            if (nl == NULL)
+            if (Streader_is_error_set(sr))
                 return false;
 
             del_Num_list(field->data.Num_list_type);
@@ -333,9 +361,13 @@ int Device_field_cmp(const Device_field* field1, const Device_field* field2)
 void Device_field_set_empty(Device_field* field, bool empty)
 {
     assert(field != NULL);
+    assert(field->type != DEVICE_FIELD_ENVELOPE);
+    assert(field->type != DEVICE_FIELD_WAVPACK);
+    assert(field->type != DEVICE_FIELD_WAV);
+    assert(field->type != DEVICE_FIELD_NOTE_MAP);
+    assert(field->type != DEVICE_FIELD_HIT_MAP);
 
-    if (field->type != DEVICE_FIELD_WAVPACK)
-        field->empty = empty;
+    field->empty = empty;
 
     return;
 }
@@ -353,6 +385,7 @@ bool Device_field_modify(Device_field* field, void* data)
     assert(field != NULL);
     assert(field->type != DEVICE_FIELD_ENVELOPE);
     assert(field->type != DEVICE_FIELD_WAVPACK);
+    assert(field->type != DEVICE_FIELD_WAV);
     assert(field->type != DEVICE_FIELD_NOTE_MAP);
     assert(field->type != DEVICE_FIELD_HIT_MAP);
     assert(data != NULL);
@@ -390,6 +423,9 @@ const bool* Device_field_get_bool(const Device_field* field)
     assert(field != NULL);
     assert(field->type == DEVICE_FIELD_BOOL);
 
+    if (field->empty)
+        return NULL;
+
     return &field->data.bool_type;
 }
 
@@ -398,6 +434,9 @@ const int64_t* Device_field_get_int(const Device_field* field)
 {
     assert(field != NULL);
     assert(field->type == DEVICE_FIELD_INT);
+
+    if (field->empty)
+        return NULL;
 
     return &field->data.int_type;
 }
@@ -408,6 +447,9 @@ const double* Device_field_get_float(const Device_field* field)
     assert(field != NULL);
     assert(field->type == DEVICE_FIELD_FLOAT);
 
+    if (field->empty)
+        return NULL;
+
     return &field->data.float_type;
 }
 
@@ -416,6 +458,9 @@ const Real* Device_field_get_real(const Device_field* field)
 {
     assert(field != NULL);
     assert(field->type == DEVICE_FIELD_REAL);
+
+    if (field->empty)
+        return NULL;
 
     return &field->data.Real_type;
 }
@@ -426,6 +471,9 @@ const Tstamp* Device_field_get_tstamp(const Device_field* field)
     assert(field != NULL);
     assert(field->type == DEVICE_FIELD_TSTAMP);
 
+    if (field->empty)
+        return NULL;
+
     return &field->data.Tstamp_type;
 }
 
@@ -435,6 +483,9 @@ const Envelope* Device_field_get_envelope(const Device_field* field)
     assert(field != NULL);
     assert(field->type == DEVICE_FIELD_ENVELOPE);
 
+    if (field->empty)
+        return NULL;
+
     return field->data.Envelope_type;
 }
 
@@ -442,7 +493,10 @@ const Envelope* Device_field_get_envelope(const Device_field* field)
 const Sample* Device_field_get_sample(const Device_field* field)
 {
     assert(field != NULL);
-    assert(field->type == DEVICE_FIELD_WAVPACK);
+    assert((field->type == DEVICE_FIELD_WAVPACK) || (field->type == DEVICE_FIELD_WAV));
+
+    if (field->empty)
+        return NULL;
 
     return field->data.Sample_type;
 }
@@ -453,6 +507,9 @@ const Sample_params* Device_field_get_sample_params(const Device_field* field)
     assert(field != NULL);
     assert(field->type == DEVICE_FIELD_SAMPLE_PARAMS);
 
+    if (field->empty)
+        return NULL;
+
     return &field->data.Sample_params_type;
 }
 
@@ -461,6 +518,9 @@ const Note_map* Device_field_get_note_map(const Device_field* field)
 {
     assert(field != NULL);
     assert(field->type == DEVICE_FIELD_NOTE_MAP);
+
+    if (field->empty)
+        return NULL;
 
     return field->data.Note_map_type;
 }
@@ -471,6 +531,9 @@ const Hit_map* Device_field_get_hit_map(const Device_field* field)
     assert(field != NULL);
     assert(field->type == DEVICE_FIELD_HIT_MAP);
 
+    if (field->empty)
+        return NULL;
+
     return field->data.Hit_map_type;
 }
 
@@ -479,6 +542,9 @@ const Num_list* Device_field_get_num_list(const Device_field* field)
 {
     assert(field != NULL);
     assert(field->type == DEVICE_FIELD_NUM_LIST);
+
+    if (field->empty)
+        return NULL;
 
     return field->data.Num_list_type;
 }
@@ -491,7 +557,7 @@ void del_Device_field(Device_field* field)
 
     if (field->type == DEVICE_FIELD_ENVELOPE)
         del_Envelope(field->data.Envelope_type);
-    else if (field->type == DEVICE_FIELD_WAVPACK)
+    else if ((field->type == DEVICE_FIELD_WAVPACK) || (field->type == DEVICE_FIELD_WAV))
         del_Sample(field->data.Sample_type);
     else if (field->type == DEVICE_FIELD_NOTE_MAP)
         del_Note_map(field->data.Note_map_type);

@@ -15,7 +15,8 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 from kunquat.tracker.ui.views.envelope import Envelope
-from numberslider import NumberSlider
+from kunquat.tracker.ui.views.headerline import HeaderLine
+from kunquat.tracker.ui.views.numberslider import NumberSlider
 
 
 class TimeEnvelope(QWidget):
@@ -26,17 +27,7 @@ class TimeEnvelope(QWidget):
         self._ins_id = None
         self._updater = None
 
-        header = QLabel(self._get_title())
-        header.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
-        header_line = QFrame()
-        header_line.setFrameShape(QFrame.HLine)
-        header_line.setFrameShadow(QFrame.Sunken)
-        header_line.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Maximum)
-        header_layout = QHBoxLayout()
-        header_layout.setContentsMargins(5, 0, 5, 0)
-        header_layout.setSpacing(10)
-        header_layout.addWidget(header)
-        header_layout.addWidget(header_line)
+        header = HeaderLine(self._get_title())
 
         self._enabled_toggle = QCheckBox('Enabled')
         if self._allow_loop():
@@ -56,7 +47,7 @@ class TimeEnvelope(QWidget):
         v = QVBoxLayout()
         v.setMargin(0)
         v.setSpacing(0)
-        v.addLayout(header_layout)
+        v.addWidget(header)
         v.addLayout(h)
         v.addWidget(self._envelope)
         self.setLayout(v)
@@ -101,82 +92,60 @@ class TimeEnvelope(QWidget):
             self._update_envelope()
 
     def _update_envelope(self):
-        module = self._ui_model.get_module()
-        instrument = module.get_instrument(self._ins_id)
-        envelope = self._get_instrument_envelope(instrument)
-
         old_block = self._enabled_toggle.blockSignals(True)
         self._enabled_toggle.setCheckState(
-                Qt.Checked if envelope['enabled'] else Qt.Unchecked)
+                Qt.Checked if self._get_enabled() else Qt.Unchecked)
         self._enabled_toggle.blockSignals(old_block)
 
         if self._allow_loop():
             old_block = self._loop_toggle.blockSignals(True)
             self._loop_toggle.setCheckState(
-                    Qt.Checked if envelope['loop'] else Qt.Unchecked)
+                    Qt.Checked if self._get_loop_enabled() else Qt.Unchecked)
             self._loop_toggle.blockSignals(old_block)
 
-        self._scale_amount.set_number(envelope['scale_amount'])
-        self._scale_center.set_number(envelope['scale_center'])
+        self._scale_amount.set_number(self._get_scale_amount())
+        self._scale_center.set_number(self._get_scale_center())
 
-        self._envelope.set_nodes(envelope['envelope']['nodes'])
+        envelope = self._get_envelope_data()
+        self._envelope.set_nodes(envelope['nodes'])
         if self._allow_loop():
-            self._envelope.set_loop_markers(envelope['envelope']['marks'])
-            self._envelope.set_loop_enabled(envelope['loop'])
-
-    def _bool_enabled_changed(self, key, state):
-        new_enabled = (state == Qt.Checked)
-
-        module = self._ui_model.get_module()
-        instrument = module.get_instrument(self._ins_id)
-        envelope = self._get_instrument_envelope(instrument)
-
-        envelope[key] = new_enabled
-
-        self._set_instrument_envelope(instrument, envelope)
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+            self._envelope.set_loop_markers(envelope['marks'])
+            self._envelope.set_loop_enabled(self._get_loop_enabled())
 
     def _enabled_changed(self, state):
-        self._bool_enabled_changed('enabled', self._enabled_toggle.checkState())
+        new_enabled = (state == Qt.Checked)
+        self._set_enabled(new_enabled)
+        self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _loop_enabled_changed(self, state):
-        self._bool_enabled_changed('loop', self._loop_toggle.checkState())
-
-    def _scale_number_changed(self, key, num):
-        module = self._ui_model.get_module()
-        instrument = module.get_instrument(self._ins_id)
-        envelope = self._get_instrument_envelope(instrument)
-
-        envelope[key] = num
-
-        self._set_instrument_envelope(instrument, envelope)
+        new_enabled = (state == Qt.Checked)
+        self._set_loop_enabled(new_enabled)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _scale_amount_changed(self, num):
-        self._scale_number_changed('scale_amount', num)
+        self._set_scale_amount(num)
+        self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _scale_center_changed(self, num):
-        self._scale_number_changed('scale_center', num)
+        self._set_scale_center(num)
+        self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _envelope_changed(self):
         new_nodes, new_loop = self._envelope.get_clear_changed()
 
-        module = self._ui_model.get_module()
-        instrument = module.get_instrument(self._ins_id)
-        envelope = self._get_instrument_envelope(instrument)
-
+        envelope = self._get_envelope_data()
         if new_nodes:
-            envelope['envelope']['nodes'] = new_nodes
+            envelope['nodes'] = new_nodes
         if new_loop:
-            envelope['envelope']['marks'] = new_loop
+            envelope['marks'] = new_loop
 
         if new_nodes or new_loop:
-            envelope['enabled'] = True
+            self._set_enabled(True)
 
-        self._set_instrument_envelope(instrument, envelope)
+        self._set_envelope_data(envelope)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
-    # Protected interface
+    # Protected callbacks
 
     def _get_title(self):
         raise NotImplementedError
@@ -190,10 +159,34 @@ class TimeEnvelope(QWidget):
     def _get_update_signal_type(self):
         raise NotImplementedError
 
-    def _get_instrument_envelope(self, instrument):
+    def _get_enabled(self):
         raise NotImplementedError
 
-    def _set_instrument_envelope(self, instrument, envelope):
+    def _set_enabled(self, enabled):
+        raise NotImplementedError
+
+    def _get_loop_enabled(self):
+        raise NotImplementedError
+
+    def _set_loop_enabled(self, enabled):
+        raise NotImplementedError
+
+    def _get_scale_amount(self):
+        raise NotImplementedError
+
+    def _set_scale_amount(self, value):
+        raise NotImplementedError
+
+    def _get_scale_center(self):
+        raise NotImplementedError
+
+    def _set_scale_center(self, value):
+        raise NotImplementedError
+
+    def _get_envelope_data(self):
+        raise NotImplementedError
+
+    def _set_envelope_data(self, envelope):
         raise NotImplementedError
 
 
