@@ -481,7 +481,6 @@ uint32_t Sample_mix(
     const bool ramp_release_ended = (vstate->ramp_release >= 1);
 
     Generator_common_handle_filter(gen, vstate, wbs, 2, freq, nframes, offset);
-    Generator_common_ramp_attack(gen, vstate, wbs, 2, freq, nframes, offset);
     Generator_common_handle_panning(gen, vstate, wbs, nframes, offset);
 
     vstate->pos = new_pos;
