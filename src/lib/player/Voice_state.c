@@ -80,7 +80,6 @@ Voice_state* Voice_state_clear(Voice_state* state)
 
     state->hit_index = -1;
     state->pitch = 0;
-    state->prev_pitch = 0;
     state->actual_pitch = 0;
     state->prev_actual_pitch = 0;
     Slider_init(&state->pitch_slider, SLIDE_MODE_EXP);

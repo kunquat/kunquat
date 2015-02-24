@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -30,6 +30,7 @@
 #include <devices/param_types/Wavpack.h>
 #include <memory.h>
 #include <pitch_t.h>
+#include <player/Work_buffers.h>
 #include <string/common.h>
 
 
@@ -44,15 +45,7 @@ static bool Generator_pcm_init(Device_impl* dimpl);
 static void Generator_pcm_init_vstate(
         const Generator* gen, const Gen_state* gen_state, Voice_state* vstate);
 
-static uint32_t Generator_pcm_mix(
-        const Generator* gen,
-        Gen_state* gen_state,
-        Ins_state* ins_state,
-        Voice_state* vstate,
-        uint32_t nframes,
-        uint32_t offset,
-        uint32_t freq,
-        double tempo);
+static Generator_mix_func Generator_pcm_mix;
 
 static void del_Generator_pcm(Device_impl* gen);
 
@@ -142,6 +135,7 @@ uint32_t Generator_pcm_mix(
         Gen_state* gen_state,
         Ins_state* ins_state,
         Voice_state* vstate,
+        const Work_buffers* wbs,
         uint32_t nframes,
         uint32_t offset,
         uint32_t freq,
@@ -152,6 +146,7 @@ uint32_t Generator_pcm_mix(
     assert(gen_state != NULL);
     assert(ins_state != NULL);
     assert(vstate != NULL);
+    assert(wbs != NULL);
     assert(freq > 0);
     assert(tempo > 0);
 
@@ -314,7 +309,8 @@ uint32_t Generator_pcm_mix(
     // */
 
     return Sample_mix(
-            sample, header, gen, ins_state, vstate, nframes, offset, freq, tempo, bufs,
+            sample, header, gen, ins_state, vstate, wbs,
+            nframes, offset, freq, tempo, bufs,
             pcm_state->middle_tone, pcm_state->freq,
             pcm_state->volume);
 }

@@ -84,7 +84,12 @@ void Generator_common_check_relative_lengths(
  * \param gen     The Generator -- must not be \c NULL.
  * \param vstate   The Voice state -- must not be \c NULL.
  */
-void Generator_common_handle_pitch(const Generator* gen, Voice_state* vstate);
+void Generator_common_handle_pitch(
+        const Generator* gen,
+        Voice_state* vstate,
+        const Work_buffers* wbs,
+        int32_t nframes,
+        int32_t offset);
 
 
 /**
@@ -96,13 +101,14 @@ void Generator_common_handle_pitch(const Generator* gen, Voice_state* vstate);
  * \param frame_count   The number of frames to be modified -- must be > \c 0.
  * \param freq          The mixing frequency -- must be > \c 0.
  */
-void Generator_common_handle_force(
+int32_t Generator_common_handle_force(
         const Generator* gen,
         Ins_state* ins_state,
         Voice_state* vstate,
-        double frames[],
-        int frame_count,
-        uint32_t freq);
+        const Work_buffers* wbs,
+        uint32_t freq,
+        int32_t nframes,
+        int32_t offset);
 
 
 /**
@@ -119,9 +125,11 @@ void Generator_common_handle_force(
 void Generator_common_handle_filter(
         const Generator* gen,
         Voice_state* vstate,
-        double frames[],
-        int frame_count,
-        uint32_t freq);
+        const Work_buffers* wbs,
+        int ab_count,
+        uint32_t freq,
+        int32_t nframes,
+        int32_t offset);
 
 
 /**
@@ -139,9 +147,22 @@ void Generator_common_handle_filter(
 void Generator_common_ramp_attack(
         const Generator* gen,
         Voice_state* vstate,
-        double frames[],
-        int frame_count,
-        uint32_t freq);
+        const Work_buffers* wbs,
+        int ab_count,
+        uint32_t freq,
+        int32_t nframes,
+        int32_t offset);
+
+
+int32_t Generator_common_ramp_release(
+        const Generator* gen,
+        const Ins_state* ins_state,
+        Voice_state* vstate,
+        const Work_buffers* wbs,
+        int ab_count,
+        uint32_t freq,
+        int32_t nframes,
+        int32_t offset);
 
 
 /**
@@ -155,7 +176,8 @@ void Generator_common_ramp_attack(
 void Generator_common_handle_panning(
         const Generator* gen,
         Voice_state* vstate,
-        double frames[],
-        int frame_count);
+        const Work_buffers* wbs,
+        int32_t nframes,
+        int32_t offset);
 
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Authors: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Authors: Tomi Jylhä-Ollila, Finland 2010-2015
  *          Ossi Saresoja, Finland 2010
  *
  * This file is part of Kunquat.
@@ -28,6 +28,7 @@
 #include <kunquat/limits.h>
 #include <mathnum/common.h>
 #include <memory.h>
+#include <player/Work_buffers.h>
 #include <string/common.h>
 
 
@@ -56,15 +57,7 @@ static void Generator_noise_init_vstate(
         const Gen_state* gen_state,
         Voice_state* vstate);
 
-static uint32_t Generator_noise_mix(
-        const Generator* gen,
-        Gen_state* gen_state,
-        Ins_state* ins_state,
-        Voice_state* vstate,
-        uint32_t nframes,
-        uint32_t offset,
-        uint32_t freq,
-        double tempo);
+static Generator_mix_func Generator_noise_mix;
 
 static void del_Generator_noise(Device_impl* gen_impl);
 
@@ -171,6 +164,7 @@ static uint32_t Generator_noise_mix(
         Gen_state* gen_state,
         Ins_state* ins_state,
         Voice_state* vstate,
+        const Work_buffers* wbs,
         uint32_t nframes,
         uint32_t offset,
         uint32_t freq,
@@ -181,6 +175,7 @@ static uint32_t Generator_noise_mix(
     assert(gen_state != NULL);
     assert(ins_state != NULL);
     assert(vstate != NULL);
+    assert(wbs != NULL);
     assert(freq > 0);
     assert(tempo > 0);
 
@@ -204,13 +199,46 @@ static uint32_t Generator_noise_mix(
             noise_state->order = 0;
     }
 
+    Generator_common_handle_pitch(gen, vstate, wbs, nframes, offset);
+
+    const int32_t force_extent = Generator_common_handle_force(
+            gen, ins_state, vstate, wbs, freq, nframes, offset);
+
+    const bool force_ended = (force_extent < (int32_t)nframes);
+    if (force_ended)
+        nframes = force_extent;
+
+    const Work_buffer* wb_pitch_params = Work_buffers_get_buffer(
+            wbs, WORK_BUFFER_PITCH_PARAMS);
+    const Work_buffer* wb_actual_pitches = Work_buffers_get_buffer(
+            wbs, WORK_BUFFER_ACTUAL_PITCHES);
+    const Work_buffer* wb_actual_forces = Work_buffers_get_buffer(
+            wbs, WORK_BUFFER_ACTUAL_FORCES);
+    float* pitch_params = Work_buffer_get_contents_mut(wb_pitch_params) + 1;
+    float* actual_pitches = Work_buffer_get_contents_mut(wb_actual_pitches) + 1;
+    float* actual_forces = Work_buffer_get_contents_mut(wb_actual_forces) + 1;
+
+    const Work_buffer* wb_audio_l = Work_buffers_get_buffer(
+            wbs, WORK_BUFFER_AUDIO_L);
+    const Work_buffer* wb_audio_r = Work_buffers_get_buffer(
+            wbs, WORK_BUFFER_AUDIO_R);
+    float* audio_l = Work_buffer_get_contents_mut(wb_audio_l);
+    float* audio_r = Work_buffer_get_contents_mut(wb_audio_r);
+
     uint32_t mixed = offset;
     for (; mixed < nframes && vstate->active; ++mixed)
     {
-        Generator_common_handle_pitch(gen, vstate);
+        //Generator_common_handle_pitch(gen, vstate);
+
+        // Temp hack code
+        vstate->pitch = pitch_params[mixed];
+        vstate->actual_pitch = actual_pitches[mixed];
+        vstate->prev_actual_pitch = actual_pitches[(int32_t)mixed - 1];
+        vstate->actual_force = actual_forces[mixed];
+
         double vals[KQT_BUFFERS_MAX] = { 0 };
 
-        if(noise_state->order < 0)
+        if (noise_state->order < 0)
         {
             vals[0] = dc_pole_filter(
                     -noise_state->order,
@@ -233,20 +261,46 @@ static uint32_t Generator_noise_mix(
                     Random_get_float_signal(vstate->rand_s));
         }
 
-        Generator_common_handle_force(gen, ins_state, vstate, vals, 2, freq);
-        Generator_common_handle_filter(gen, vstate, vals, 2, freq);
-        Generator_common_ramp_attack(gen, vstate, vals, 2, freq);
-        vstate->pos = 1; // XXX: hackish
+        audio_l[mixed] = vals[0] * vstate->actual_force;
+        audio_r[mixed] = vals[1] * vstate->actual_force;
+
+        // Temp hack code
+        //for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
+        //    vals[i] *= vstate->actual_force;
+
+        //Generator_common_handle_force(gen, ins_state, vstate, vals, 2, freq);
+        //Generator_common_handle_filter(gen, vstate, vals, 2, freq);
+        //Generator_common_ramp_attack(gen, vstate, vals, 2, freq);
 
 //        Generator_common_handle_note_off(gen, vstate, vals, 2, freq);
-        Generator_common_handle_panning(gen, vstate, vals, 2);
-        bufs[0][mixed] += vals[0];
-        bufs[1][mixed] += vals[1];
+        //Generator_common_handle_panning(gen, vstate, vals, 2);
+        //bufs[0][mixed] += vals[0];
+        //bufs[1][mixed] += vals[1];
 /*      if (fabs(val_l) > max_amp)
         {
             max_amp = fabs(val_l);
         } */
     }
+
+    const int32_t release_limit = Generator_common_ramp_release(
+            gen, ins_state, vstate, wbs, 2, freq, nframes, offset);
+    if (release_limit < (int32_t)nframes)
+        nframes = release_limit;
+    const bool ramp_release_ended = (vstate->ramp_release >= 1);
+
+    Generator_common_handle_filter(gen, vstate, wbs, 2, freq, nframes, offset);
+    Generator_common_ramp_attack(gen, vstate, wbs, 2, freq, nframes, offset);
+    Generator_common_handle_panning(gen, vstate, wbs, nframes, offset);
+
+    vstate->pos = 1; // XXX: hackish
+
+    for (uint32_t i = offset; i < nframes; ++i)
+        bufs[0][i] += audio_l[i];
+    for (uint32_t i = offset; i < nframes; ++i)
+        bufs[1][i] += audio_r[i];
+
+    if (force_ended || ramp_release_ended)
+        vstate->active = false;
 
 //  fprintf(stderr, "max_amp is %lf\n", max_amp);
     return mixed;

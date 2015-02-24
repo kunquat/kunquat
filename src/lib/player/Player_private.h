@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -29,6 +29,7 @@
 #include <player/Master_params.h>
 #include <player/Player.h>
 #include <player/Voice_pool.h>
+#include <player/Work_buffers.h>
 
 
 struct Player
@@ -44,6 +45,7 @@ struct Player
     Env_state*     estate;
     Event_buffer*  event_buffer;
     Voice_pool*    voices;
+    Work_buffers*  work_buffers;
     Master_params  master_params;
     Channel*       channels[KQT_CHANNELS_MAX];
     Event_handler* event_handler;

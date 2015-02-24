@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -56,7 +56,6 @@ typedef struct Voice_state
 
     int hit_index;                 ///< The hit index (negative for normal notes).
     pitch_t pitch;                 ///< The frequency at which the note is played.
-    pitch_t prev_pitch;            ///< The frequency in the previous mixing cycle.
     pitch_t actual_pitch;          ///< The actual frequency (includes vibrato).
     pitch_t prev_actual_pitch;     ///< The actual frequency in the previous mixing cycle.
     Slider pitch_slider;

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -82,6 +82,7 @@ Player* new_Player(
     player->estate = NULL;
     player->event_buffer = NULL;
     player->voices = NULL;
+    player->work_buffers = NULL;
     Master_params_preinit(&player->master_params);
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
         player->channels[i] = NULL;
@@ -127,6 +128,13 @@ Player* new_Player(
                 player->device_states, master_state))
     {
         del_Device_state(master_state);
+        del_Player(player);
+        return NULL;
+    }
+
+    player->work_buffers = new_Work_buffers(player->audio_buffer_size + 1);
+    if (player->work_buffers == NULL)
+    {
         del_Player(player);
         return NULL;
     }
@@ -353,6 +361,10 @@ bool Player_set_audio_buffer_size(Player* player, int32_t size)
         player->audio_buffers[i] = new_buffer;
     }
 
+    // Update work buffers
+    if (!Work_buffers_resize(player->work_buffers, size + 1))
+        return false;
+
     // Set final supported buffer size
     player->audio_buffer_size = size;
 
@@ -412,6 +424,7 @@ static void Player_process_voices(
                     Voice_mix(
                             ch->fg[k],
                             player->device_states,
+                            player->work_buffers,
                             render_stop,
                             render_start,
                             player->audio_rate,
@@ -425,6 +438,7 @@ static void Player_process_voices(
     int16_t active_voices = Voice_pool_mix_bg(
             player->voices,
             player->device_states,
+            player->work_buffers,
             render_stop,
             render_start,
             player->audio_rate,
@@ -872,6 +886,7 @@ void del_Player(Player* player)
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
         del_Channel(player->channels[i]);
     Master_params_deinit(&player->master_params);
+    del_Work_buffers(player->work_buffers);
     del_Event_buffer(player->event_buffer);
     del_Env_state(player->estate);
     del_Device_states(player->device_states);

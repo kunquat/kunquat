@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -27,6 +27,7 @@
 #include <player/Gen_state.h>
 #include <player/Ins_state.h>
 #include <player/Voice_state.h>
+#include <player/Work_buffers.h>
 
 
 #define GEN_TYPE_LENGTH_MAX 128
@@ -36,7 +37,22 @@
  * Generator is an object used for creating sound based on a specific sound
  * synthesising method.
  */
-typedef struct Generator
+typedef struct Generator Generator;
+
+
+typedef uint32_t Generator_mix_func(
+        const Generator*,
+        Gen_state*,
+        Ins_state*,
+        Voice_state*,
+        const Work_buffers*,
+        uint32_t nframes,
+        uint32_t offset,
+        uint32_t freq,
+        double tempo);
+
+
+struct Generator
 {
     Device parent;
     //char type[GEN_TYPE_LENGTH_MAX];
@@ -46,16 +62,8 @@ typedef struct Generator
             const struct Generator*,
             const Gen_state*,
             Voice_state*);
-    uint32_t (*mix)(
-            const struct Generator*,
-            Gen_state*,
-            Ins_state*,
-            Voice_state*,
-            uint32_t,
-            uint32_t,
-            uint32_t,
-            double);
-} Generator;
+    Generator_mix_func* mix;
+};
 
 
 /**
@@ -84,15 +92,7 @@ Generator* new_Generator(const Instrument_params* ins_params);
 bool Generator_init(
         Generator* gen,
         //void (*destroy)(Generator*),
-        uint32_t (*mix)(
-            const Generator*,
-            Gen_state*,
-            Ins_state*,
-            Voice_state*,
-            uint32_t,
-            uint32_t,
-            uint32_t,
-            double),
+        Generator_mix_func mix,
         void (*init_vstate)(const Generator*, const Gen_state*, Voice_state*));
 
 
@@ -123,6 +123,7 @@ bool Generator_init(
  * \param gen       The Generator -- must not be \c NULL.
  * \param dstates   The Device states -- must not be \c NULL.
  * \param vstate    The Voice state -- must not be \c NULL.
+ * \param wbs       The Work buffers -- must not be \c NULL.
  * \param nframes   The number of frames to be mixed -- must not be greater
  *                  than the mixing buffer size.
  * \param offset    The starting frame offset (\a nframes - \a offset are
@@ -134,6 +135,7 @@ void Generator_mix(
         const Generator* gen,
         Device_states* dstates,
         Voice_state* vstate,
+        const Work_buffers* wbs,
         uint32_t nframes,
         uint32_t offset,
         uint32_t freq,

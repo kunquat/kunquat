@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -27,6 +27,7 @@
 #include <kunquat/limits.h>
 #include <mathnum/common.h>
 #include <memory.h>
+#include <player/Work_buffers.h>
 
 
 Sample* new_Sample(void)
@@ -187,6 +188,7 @@ uint32_t Sample_mix(
         const Generator* gen,
         Ins_state* ins_state,
         Voice_state* vstate,
+        const Work_buffers* wbs,
         uint32_t nframes,
         uint32_t offset,
         uint32_t freq,
@@ -202,6 +204,7 @@ uint32_t Sample_mix(
     assert(gen != NULL);
     assert(ins_state != NULL);
     assert(vstate != NULL);
+    assert(wbs != NULL);
     assert(freq > 0);
     assert(tempo > 0);
 //    assert(buf_count > 0);
@@ -214,6 +217,34 @@ uint32_t Sample_mix(
     Generator_common_check_active(gen, vstate, offset);
     Generator_common_check_relative_lengths(gen, vstate, freq, tempo);
 
+    Generator_common_handle_pitch(gen, vstate, wbs, nframes, offset);
+
+    int32_t force_extent = Generator_common_handle_force(
+            gen, ins_state, vstate, wbs, freq, nframes, offset);
+
+    const bool force_ended = (force_extent < (int32_t)nframes);
+    if (force_ended)
+        nframes = force_extent;
+
+    const Work_buffer* wb_pitch_params = Work_buffers_get_buffer(
+            wbs, WORK_BUFFER_PITCH_PARAMS);
+    const Work_buffer* wb_actual_pitches = Work_buffers_get_buffer(
+            wbs, WORK_BUFFER_ACTUAL_PITCHES);
+    const Work_buffer* wb_actual_forces = Work_buffers_get_buffer(
+            wbs, WORK_BUFFER_ACTUAL_FORCES);
+    const float* pitch_params = Work_buffer_get_contents_mut(wb_pitch_params) + 1;
+    const float* actual_pitches = Work_buffer_get_contents_mut(wb_actual_pitches) + 1;
+    const float* actual_forces = Work_buffer_get_contents_mut(wb_actual_forces) + 1;
+
+    const Work_buffer* wb_audio_l = Work_buffers_get_buffer(
+            wbs, WORK_BUFFER_AUDIO_L);
+    const Work_buffer* wb_audio_r = Work_buffers_get_buffer(
+            wbs, WORK_BUFFER_AUDIO_R);
+    float* audio_l = Work_buffer_get_contents_mut(wb_audio_l);
+    float* audio_r = Work_buffer_get_contents_mut(wb_audio_r);
+
+    uint64_t new_pos = vstate->pos;
+
     uint32_t mixed = offset;
     for (; mixed < nframes && vstate->active; ++mixed)
     {
@@ -223,7 +254,13 @@ uint32_t Sample_mix(
             break;
         }
 
-        Generator_common_handle_pitch(gen, vstate);
+        //Generator_common_handle_pitch(gen, vstate);
+
+        // Temp hack code
+        vstate->pitch = pitch_params[mixed];
+        vstate->actual_pitch = actual_pitches[mixed];
+        vstate->prev_actual_pitch = actual_pitches[(int32_t)mixed - 1];
+        vstate->actual_force = actual_forces[mixed];
 
         bool next_exists = false;
         uint64_t next_pos = 0;
@@ -343,29 +380,36 @@ uint32_t Sample_mix(
         }
 #undef get_items
 
-        Generator_common_handle_force(gen, ins_state, vstate, vals, 2, freq);
-        Generator_common_handle_filter(gen, vstate, vals, 2, freq);
+        // Temp hack code
+        //for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
+        //    vals[i] *= vstate->actual_force;
+
+        //Generator_common_handle_force(gen, ins_state, vstate, vals, 2, freq);
+        //Generator_common_handle_filter(gen, vstate, vals, 2, freq);
+
+        audio_l[mixed] = vals[0] * vstate->actual_force * vol_scale;
+        audio_r[mixed] = vals[1] * vstate->actual_force * vol_scale;
 
         double advance = (vstate->actual_pitch / middle_tone) * middle_freq / freq;
         uint64_t adv = floor(advance);
         double adv_rem = advance - adv;
 
-        vstate->pos += adv;
+        new_pos += adv;
         vstate->pos_rem += adv_rem;
 //        Generator_common_handle_note_off(gen, vstate, vals, 2, freq);
-        Generator_common_handle_panning(gen, vstate, vals, 2);
+        //Generator_common_handle_panning(gen, vstate, vals, 2);
 
-        bufs[0][mixed] += vals[0] * vol_scale;
-        bufs[1][mixed] += vals[1] * vol_scale;
+        //bufs[0][mixed] += vals[0] * vol_scale;
+        //bufs[1][mixed] += vals[1] * vol_scale;
 
         if (vstate->pos_rem >= 1)
         {
-            vstate->pos += floor(vstate->pos_rem);
+            new_pos += floor(vstate->pos_rem);
             vstate->pos_rem -= floor(vstate->pos_rem);
         }
         if (params->loop == SAMPLE_LOOP_OFF)
         {
-            vstate->rel_pos = vstate->pos;
+            vstate->rel_pos = new_pos;
             vstate->rel_pos_rem = vstate->pos_rem;
             if (vstate->rel_pos >= sample->len)
             {
@@ -380,11 +424,11 @@ uint32_t Sample_mix(
                 loop_len :
                 2 * loop_len - 2;
 
-            uint64_t virt_pos = vstate->pos;
+            uint64_t virt_pos = new_pos;
             if (virt_pos < params->loop_end)
             {
                 vstate->dir = 1;
-                vstate->rel_pos = vstate->pos;
+                vstate->rel_pos = new_pos;
                 vstate->rel_pos_rem = vstate->pos_rem;
             }
             else if (params->loop_start + 1 == params->loop_end)
@@ -429,6 +473,26 @@ uint32_t Sample_mix(
 
         assert(vstate->rel_pos < sample->len);
     }
+
+    const int32_t release_limit = Generator_common_ramp_release(
+            gen, ins_state, vstate, wbs, 2, freq, nframes, offset);
+    if (release_limit < (int32_t)nframes)
+        nframes = release_limit;
+    const bool ramp_release_ended = (vstate->ramp_release >= 1);
+
+    Generator_common_handle_filter(gen, vstate, wbs, 2, freq, nframes, offset);
+    Generator_common_ramp_attack(gen, vstate, wbs, 2, freq, nframes, offset);
+    Generator_common_handle_panning(gen, vstate, wbs, nframes, offset);
+
+    vstate->pos = new_pos;
+
+    for (uint32_t i = offset; i < nframes; ++i)
+        bufs[0][i] += audio_l[i];
+    for (uint32_t i = offset; i < nframes; ++i)
+        bufs[1][i] += audio_r[i];
+
+    if (force_ended || ramp_release_ended)
+        vstate->active = false;
 
     return mixed;
 }

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -21,6 +21,7 @@
 #include <devices/generators/Generator_common.h>
 #include <devices/generators/Generator_debug.h>
 #include <memory.h>
+#include <player/Work_buffers.h>
 #include <string/common.h>
 
 
@@ -35,15 +36,7 @@ static bool Generator_debug_init(Device_impl* dimpl);
 
 static Set_bool_func Generator_debug_set_single_pulse;
 
-static uint32_t Generator_debug_mix(
-        const Generator* gen,
-        Gen_state* gen_state,
-        Ins_state* ins_state,
-        Voice_state* vstate,
-        uint32_t nframes,
-        uint32_t offset,
-        uint32_t freq,
-        double tempo);
+static Generator_mix_func Generator_debug_mix;
 
 static void del_Generator_debug(Device_impl* gen_impl);
 
@@ -91,6 +84,7 @@ static uint32_t Generator_debug_mix(
         Gen_state* gen_state,
         Ins_state* ins_state,
         Voice_state* vstate,
+        const Work_buffers* wbs,
         uint32_t nframes,
         uint32_t offset,
         uint32_t freq,
@@ -101,9 +95,11 @@ static uint32_t Generator_debug_mix(
     assert(gen_state != NULL);
     assert(ins_state != NULL);
     assert(vstate != NULL);
+    assert(wbs != NULL);
     assert(freq > 0);
     assert(tempo > 0);
     (void)ins_state;
+    (void)wbs;
     (void)tempo;
 
     kqt_frame* bufs[] = { NULL, NULL };

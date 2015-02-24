@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -96,15 +96,7 @@ Generator* new_Generator(const Instrument_params* ins_params)
 
 bool Generator_init(
         Generator* gen,
-        uint32_t (*mix)(
-            const Generator*,
-            Gen_state*,
-            Ins_state*,
-            Voice_state*,
-            uint32_t,
-            uint32_t,
-            uint32_t,
-            double),
+        Generator_mix_func mix,
         void (*init_vstate)(const Generator*, const Gen_state*, Voice_state*))
 {
     assert(gen != NULL);
@@ -145,6 +137,7 @@ void Generator_mix(
         const Generator* gen,
         Device_states* dstates,
         Voice_state* vstate,
+        const Work_buffers* wbs,
         uint32_t nframes,
         uint32_t offset,
         uint32_t freq,
@@ -154,6 +147,7 @@ void Generator_mix(
     assert(gen->mix != NULL);
     assert(dstates != NULL);
     assert(vstate != NULL);
+    assert(wbs != NULL);
     assert(freq > 0);
     assert(tempo > 0);
 
@@ -166,7 +160,7 @@ void Generator_mix(
                 dstates,
                 gen->ins_params->device_id);
 
-        gen->mix(gen, gen_state, ins_state, vstate, nframes, offset, freq, tempo);
+        gen->mix(gen, gen_state, ins_state, vstate, wbs, nframes, offset, freq, tempo);
     }
 
     return;

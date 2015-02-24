@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -22,6 +22,7 @@
 #include <devices/param_types/Sample.h>
 #include <frame.h>
 #include <player/Voice_state.h>
+#include <player/Work_buffer.h>
 
 
 /**
@@ -33,6 +34,7 @@
  *                      \c NULL.
  * \param ins_state     The Instrument state -- must not be \c NULL.
  * \param vstate        The Voice state -- must not be \c NULL.
+ * \param wbs           The Work buffers -- must not be \c NULL.
  * \param nframes       The number of frames to be mixed.
  * \param offset        The buffer offset.
  * \param freq          The mixing frequency -- must be > \c 0.
@@ -51,6 +53,7 @@ uint32_t Sample_mix(
         const Generator* gen,
         Ins_state* ins_state,
         Voice_state* vstate,
+        const Work_buffers* wbs,
         uint32_t nframes,
         uint32_t offset,
         uint32_t freq,
