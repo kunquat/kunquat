@@ -178,7 +178,6 @@ uint32_t Generator_pulse_mix(
 
     kqt_frame* bufs[] = { NULL, NULL };
     Generator_common_get_buffers(gen_state, vstate, offset, bufs);
-    Generator_common_check_relative_lengths(gen, vstate, freq, tempo);
 //    double max_amp = 0;
 //  fprintf(stderr, "bufs are %p and %p\n", ins->bufs[0], ins->bufs[1]);
     Voice_state_pulse* pulse_vstate = (Voice_state_pulse*)vstate;

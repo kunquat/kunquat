@@ -133,6 +133,56 @@ const char* Generator_get_type(const Generator* gen)
 #endif
 
 
+/**
+ * Update voice parameter settings that depend on audio rate and/or tempo.
+ *
+ * \param vstate   The Voice state -- must not be \c NULL.
+ * \param freq     The audio rate -- must be positive.
+ * \param tempo    The tempo -- must be positive and finite.
+ */
+static void adjust_relative_lengths(Voice_state* vstate, uint32_t freq, double tempo)
+{
+    assert(vstate != NULL);
+    assert(freq > 0);
+    assert(tempo > 0);
+    assert(isfinite(tempo));
+
+    if (vstate->freq != freq || vstate->tempo != tempo)
+    {
+        Slider_set_mix_rate(&vstate->pitch_slider, freq);
+        Slider_set_tempo(&vstate->pitch_slider, tempo);
+        LFO_set_mix_rate(&vstate->vibrato, freq);
+        LFO_set_tempo(&vstate->vibrato, tempo);
+
+        if (vstate->arpeggio)
+        {
+            vstate->arpeggio_length *= (double)freq / vstate->freq;
+            vstate->arpeggio_length *= vstate->tempo / tempo;
+            vstate->arpeggio_frames *= (double)freq / vstate->freq;
+            vstate->arpeggio_frames *= vstate->tempo / tempo;
+        }
+
+        Slider_set_mix_rate(&vstate->force_slider, freq);
+        Slider_set_tempo(&vstate->force_slider, tempo);
+        LFO_set_mix_rate(&vstate->tremolo, freq);
+        LFO_set_tempo(&vstate->tremolo, tempo);
+
+        Slider_set_mix_rate(&vstate->panning_slider, freq);
+        Slider_set_tempo(&vstate->panning_slider, tempo);
+
+        Slider_set_mix_rate(&vstate->lowpass_slider, freq);
+        Slider_set_tempo(&vstate->lowpass_slider, tempo);
+        LFO_set_mix_rate(&vstate->autowah, freq);
+        LFO_set_tempo(&vstate->autowah, tempo);
+
+        vstate->freq = freq;
+        vstate->tempo = tempo;
+    }
+
+    return;
+}
+
+
 void Generator_mix(
         const Generator* gen,
         Device_states* dstates,
@@ -172,6 +222,8 @@ void Generator_mix(
         Ins_state* ins_state = (Ins_state*)Device_states_get_state(
                 dstates,
                 gen->ins_params->device_id);
+
+        adjust_relative_lengths(vstate, freq, tempo);
 
         gen->mix(gen, gen_state, ins_state, vstate, wbs, nframes, offset, freq, tempo);
     }

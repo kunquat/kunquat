@@ -28,55 +28,6 @@
 #define RAMP_RELEASE_TIME (200.0)
 
 
-void Generator_common_check_relative_lengths(
-        const Generator* gen,
-        Voice_state* vstate,
-        uint32_t freq,
-        double tempo)
-{
-    assert(gen != NULL);
-    assert(vstate != NULL);
-    assert(freq > 0);
-    assert(tempo > 0);
-    assert(isfinite(tempo));
-    (void)gen;
-
-    if (vstate->freq != freq || vstate->tempo != tempo)
-    {
-        Slider_set_mix_rate(&vstate->pitch_slider, freq);
-        Slider_set_tempo(&vstate->pitch_slider, tempo);
-        LFO_set_mix_rate(&vstate->vibrato, freq);
-        LFO_set_tempo(&vstate->vibrato, tempo);
-
-        if (vstate->arpeggio)
-        {
-            vstate->arpeggio_length *= (double)freq / vstate->freq;
-            vstate->arpeggio_length *= vstate->tempo / tempo;
-            vstate->arpeggio_frames *= (double)freq / vstate->freq;
-            vstate->arpeggio_frames *= vstate->tempo / tempo;
-        }
-
-        Slider_set_mix_rate(&vstate->force_slider, freq);
-        Slider_set_tempo(&vstate->force_slider, tempo);
-        LFO_set_mix_rate(&vstate->tremolo, freq);
-        LFO_set_tempo(&vstate->tremolo, tempo);
-
-        Slider_set_mix_rate(&vstate->panning_slider, freq);
-        Slider_set_tempo(&vstate->panning_slider, tempo);
-
-        Slider_set_mix_rate(&vstate->lowpass_slider, freq);
-        Slider_set_tempo(&vstate->lowpass_slider, tempo);
-        LFO_set_mix_rate(&vstate->autowah, freq);
-        LFO_set_tempo(&vstate->autowah, tempo);
-
-        vstate->freq = freq;
-        vstate->tempo = tempo;
-    }
-
-    return;
-}
-
-
 void Generator_common_handle_pitch(
         const Generator* gen,
         Voice_state* vstate,

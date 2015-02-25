@@ -43,23 +43,6 @@
 
 
 /**
- * Adjust Voice state according to tempo and/or mixing frequency changes.
- *
- * This should be called before the mixing loop of the Generator.
- *
- * \param gen      The Generator -- must not be \c NULL.
- * \param vstate   The Voice state -- must not be \c NULL.
- * \param freq     The mixing frequency -- must be > \c 0.
- * \param tempo    The tempo -- must be > \c 0 and finite.
- */
-void Generator_common_check_relative_lengths(
-        const Generator* gen,
-        Voice_state* vstate,
-        uint32_t freq,
-        double tempo);
-
-
-/**
  * Handle pitch.
  *
  * \param gen     The Generator -- must not be \c NULL.
