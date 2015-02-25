@@ -215,31 +215,58 @@ void Generator_mix(
         return;
     }
 
-    if (offset < nframes)
+    if (offset >= nframes)
+        return;
+
+    // Get states
+    Gen_state* gen_state = (Gen_state*)Device_states_get_state(
+            dstates,
+            Device_get_id(&gen->parent));
+    Ins_state* ins_state = (Ins_state*)Device_states_get_state(
+            dstates,
+            gen->ins_params->device_id);
+
+    // Get audio output buffers
+    Audio_buffer* audio_buffer = Device_state_get_audio_buffer(
+            &gen_state->parent, DEVICE_PORT_TYPE_SEND, 0);
+    if (audio_buffer == NULL)
+        return;
+    kqt_frame* out_l = Audio_buffer_get_buffer(audio_buffer, 0);
+    kqt_frame* out_r = Audio_buffer_get_buffer(audio_buffer, 1);
+
+    // Process common parameters required by implementations
+    adjust_relative_lengths(vstate, freq, tempo);
+
+    Generator_common_handle_pitch(gen, vstate, wbs, nframes, offset);
+
+    const int32_t force_stop = Generator_common_handle_force(
+            gen, ins_state, vstate, wbs, freq, nframes, offset);
+
+    const bool force_ended = (force_stop < (int32_t)nframes);
+    if (force_ended)
+        nframes = force_stop;
+
+    // Call the implementation
+    const int32_t impl_render_stop = gen->mix(
+            gen, gen_state, ins_state, vstate, wbs, nframes, offset, freq, tempo);
+
+    // Mix rendered audio
     {
-        Gen_state* gen_state = (Gen_state*)Device_states_get_state(
-                dstates,
-                Device_get_id(&gen->parent));
-        Ins_state* ins_state = (Ins_state*)Device_states_get_state(
-                dstates,
-                gen->ins_params->device_id);
+        const Work_buffer* wb_audio_l = Work_buffers_get_buffer(
+                wbs, WORK_BUFFER_AUDIO_L);
+        const Work_buffer* wb_audio_r = Work_buffers_get_buffer(
+                wbs, WORK_BUFFER_AUDIO_R);
+        float* audio_l = Work_buffer_get_contents_mut(wb_audio_l);
+        float* audio_r = Work_buffer_get_contents_mut(wb_audio_r);
 
-        adjust_relative_lengths(vstate, freq, tempo);
-
-        Generator_common_handle_pitch(gen, vstate, wbs, nframes, offset);
-
-        const int32_t force_stop = Generator_common_handle_force(
-                gen, ins_state, vstate, wbs, freq, nframes, offset);
-
-        const bool force_ended = (force_stop < (int32_t)nframes);
-        if (force_ended)
-            nframes = force_stop;
-
-        gen->mix(gen, gen_state, ins_state, vstate, wbs, nframes, offset, freq, tempo);
-
-        if (force_ended)
-            vstate->active = false;
+        for (int32_t i = offset; i < impl_render_stop; ++i)
+            out_l[i] += audio_l[i];
+        for (int32_t i = offset; i < impl_render_stop; ++i)
+            out_r[i] += audio_r[i];
     }
+
+    if (force_ended)
+        vstate->active = false;
 
     return;
 }

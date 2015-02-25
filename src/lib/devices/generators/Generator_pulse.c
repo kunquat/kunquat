@@ -176,8 +176,6 @@ uint32_t Generator_pulse_mix(
     assert(freq > 0);
     assert(tempo > 0);
 
-    kqt_frame* bufs[] = { NULL, NULL };
-    Generator_common_get_buffers(gen_state, vstate, offset, bufs);
 //    double max_amp = 0;
 //  fprintf(stderr, "bufs are %p and %p\n", ins->bufs[0], ins->bufs[1]);
     Voice_state_pulse* pulse_vstate = (Voice_state_pulse*)vstate;
@@ -204,7 +202,6 @@ uint32_t Generator_pulse_mix(
     const Work_buffer* wb_audio_r = Work_buffers_get_buffer(
             wbs, WORK_BUFFER_AUDIO_R);
     float* audio_l = Work_buffer_get_contents_mut(wb_audio_l);
-    float* audio_r = Work_buffer_get_contents_mut(wb_audio_r);
 
     uint32_t mixed = offset;
     for (; mixed < nframes && vstate->active; ++mixed)
@@ -239,21 +236,16 @@ uint32_t Generator_pulse_mix(
     const int32_t release_limit = Generator_common_ramp_release(
             gen, ins_state, vstate, wbs, 1, freq, nframes, offset);
     if (release_limit < (int32_t)nframes)
-        nframes = release_limit;
+        mixed = release_limit;
     const bool ramp_release_ended = (vstate->ramp_release >= 1);
 
-    Work_buffer_copy(wb_audio_r, wb_audio_l, offset, nframes);
+    Work_buffer_copy(wb_audio_r, wb_audio_l, offset, mixed);
 
-    Generator_common_handle_filter(gen, vstate, wbs, 2, freq, nframes, offset);
-    Generator_common_ramp_attack(gen, vstate, wbs, 2, freq, nframes, offset);
-    Generator_common_handle_panning(gen, vstate, wbs, nframes, offset);
+    Generator_common_handle_filter(gen, vstate, wbs, 2, freq, mixed, offset);
+    Generator_common_ramp_attack(gen, vstate, wbs, 2, freq, mixed, offset);
+    Generator_common_handle_panning(gen, vstate, wbs, mixed, offset);
 
     vstate->pos = 1; // XXX: hackish
-
-    for (uint32_t i = offset; i < nframes; ++i)
-        bufs[0][i] += audio_l[i];
-    for (uint32_t i = offset; i < nframes; ++i)
-        bufs[1][i] += audio_r[i];
 
     if (ramp_release_ended)
         vstate->active = false;

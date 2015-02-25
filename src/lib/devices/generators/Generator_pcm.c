@@ -150,9 +150,6 @@ uint32_t Generator_pcm_mix(
     assert(freq > 0);
     assert(tempo > 0);
 
-    kqt_frame* bufs[] = { NULL, NULL };
-    Generator_common_get_buffers(gen_state, vstate, offset, bufs);
-
 //    Generator_pcm* pcm = (Generator_pcm*)gen->parent.dimpl;
     Voice_state_pcm* pcm_state = (Voice_state_pcm*)vstate;
 
@@ -309,7 +306,7 @@ uint32_t Generator_pcm_mix(
 
     return Sample_mix(
             sample, header, gen, ins_state, vstate, wbs,
-            nframes, offset, freq, tempo, bufs,
+            nframes, offset, freq, tempo,
             pcm_state->middle_tone, pcm_state->freq,
             pcm_state->volume);
 }

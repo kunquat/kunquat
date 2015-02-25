@@ -193,8 +193,6 @@ uint32_t Sample_mix(
         uint32_t offset,
         uint32_t freq,
         double tempo,
-//        int buf_count,
-        kqt_frame** bufs,
         double middle_tone,
         double middle_freq,
         double vol_scale)
@@ -207,11 +205,6 @@ uint32_t Sample_mix(
     assert(wbs != NULL);
     assert(freq > 0);
     assert(tempo > 0);
-//    assert(buf_count > 0);
-//    (void)buf_count;
-    assert(bufs != NULL);
-    assert(bufs[0] != NULL);
-    assert(bufs[1] != NULL);
     assert(vol_scale >= 0);
 
     const Work_buffer* wb_actual_pitches = Work_buffers_get_buffer(
@@ -453,18 +446,13 @@ uint32_t Sample_mix(
     const int32_t release_limit = Generator_common_ramp_release(
             gen, ins_state, vstate, wbs, 2, freq, nframes, offset);
     if (release_limit < (int32_t)nframes)
-        nframes = release_limit;
+        mixed = release_limit;
     const bool ramp_release_ended = (vstate->ramp_release >= 1);
 
-    Generator_common_handle_filter(gen, vstate, wbs, 2, freq, nframes, offset);
-    Generator_common_handle_panning(gen, vstate, wbs, nframes, offset);
+    Generator_common_handle_filter(gen, vstate, wbs, 2, freq, mixed, offset);
+    Generator_common_handle_panning(gen, vstate, wbs, mixed, offset);
 
     vstate->pos = new_pos;
-
-    for (uint32_t i = offset; i < nframes; ++i)
-        bufs[0][i] += audio_l[i];
-    for (uint32_t i = offset; i < nframes; ++i)
-        bufs[1][i] += audio_r[i];
 
     if (ramp_release_ended)
         vstate->active = false;

@@ -371,8 +371,6 @@ static uint32_t Generator_add_mix(
     assert(tempo > 0);
 
     Generator_add* add = (Generator_add*)gen->parent.dimpl;
-    kqt_frame* bufs[] = { NULL, NULL };
-    Generator_common_get_buffers(gen_state, vstate, offset, bufs);
     Voice_state_add* add_state = (Voice_state_add*)vstate;
     assert(is_p2(BASE_FUNC_SIZE));
 
@@ -538,19 +536,14 @@ static uint32_t Generator_add_mix(
     const int32_t release_limit = Generator_common_ramp_release(
             gen, ins_state, vstate, wbs, 2, freq, nframes, offset);
     if (release_limit < (int32_t)nframes)
-        nframes = release_limit;
+        mixed = release_limit;
     const bool ramp_release_ended = (vstate->ramp_release >= 1);
 
-    Generator_common_handle_filter(gen, vstate, wbs, 2, freq, nframes, offset);
-    Generator_common_ramp_attack(gen, vstate, wbs, 2, freq, nframes, offset);
-    Generator_common_handle_panning(gen, vstate, wbs, nframes, offset);
+    Generator_common_handle_filter(gen, vstate, wbs, 2, freq, mixed, offset);
+    Generator_common_ramp_attack(gen, vstate, wbs, 2, freq, mixed, offset);
+    Generator_common_handle_panning(gen, vstate, wbs, mixed, offset);
 
     vstate->pos = 1; // XXX: hackish
-
-    for (uint32_t i = offset; i < nframes; ++i)
-        bufs[0][i] += audio_l[i];
-    for (uint32_t i = offset; i < nframes; ++i)
-        bufs[1][i] += audio_r[i];
 
     if (ramp_release_ended)
         vstate->active = false;

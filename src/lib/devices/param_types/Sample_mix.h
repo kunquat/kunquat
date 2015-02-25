@@ -39,8 +39,6 @@
  * \param offset        The buffer offset.
  * \param freq          The mixing frequency -- must be > \c 0.
  * \param tempo         The tempo -- must be > \c 0.
- * \param bufs          The buffers -- must not be \c NULL and must contain
- *                      \c 2 buffers.
  * \param middle_tone   The frequency of the sound in the native speed of the
  *                      Sample -- must be > \c 0.
  * \param middle_freq   The mixing speed of the Sample used for playing
@@ -58,8 +56,6 @@ uint32_t Sample_mix(
         uint32_t offset,
         uint32_t freq,
         double tempo,
-//        int buf_count,
-        kqt_frame** bufs,
         double middle_tone,
         double middle_freq,
         double vol_scale);

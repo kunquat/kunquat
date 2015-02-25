@@ -102,9 +102,6 @@ static uint32_t Generator_debug_mix(
     (void)wbs;
     (void)tempo;
 
-    kqt_frame* bufs[] = { NULL, NULL };
-    Generator_common_get_buffers(gen_state, vstate, offset, bufs);
-
     const Work_buffer* wb_actual_pitches = Work_buffers_get_buffer(
             wbs, WORK_BUFFER_ACTUAL_PITCHES);
     const Work_buffer* wb_actual_forces = Work_buffers_get_buffer(
@@ -112,13 +109,21 @@ static uint32_t Generator_debug_mix(
     const float* actual_pitches = Work_buffer_get_contents(wb_actual_pitches) + 1;
     const float* actual_forces = Work_buffer_get_contents(wb_actual_forces) + 1;
 
+    const Work_buffer* wb_audio_l = Work_buffers_get_buffer(
+            wbs, WORK_BUFFER_AUDIO_L);
+    const Work_buffer* wb_audio_r = Work_buffers_get_buffer(
+            wbs, WORK_BUFFER_AUDIO_R);
+    float* audio_l = Work_buffer_get_contents_mut(wb_audio_l);
+    float* audio_r = Work_buffer_get_contents_mut(wb_audio_r);
+
     Generator_debug* debug = (Generator_debug*)gen->parent.dimpl;
     if (debug->single_pulse)
     {
         if (offset < nframes)
         {
-            bufs[0][offset] += 1.0;
-            bufs[1][offset] += 1.0;
+            const float val = 1.0 * actual_forces[offset];
+            audio_l[offset] = val;
+            audio_r[offset] = val;
             vstate->active = false;
             return offset + 1;
         }
@@ -151,8 +156,8 @@ static uint32_t Generator_debug_mix(
         vals[0] *= actual_force;
         vals[1] *= actual_force;
 
-        bufs[0][i] += vals[0];
-        bufs[1][i] += vals[1];
+        audio_l[i] = vals[0];
+        audio_r[i] = vals[1];
 
         vstate->rel_pos_rem += actual_pitch / freq;
 
@@ -162,7 +167,7 @@ static uint32_t Generator_debug_mix(
             if (vstate->noff_pos_rem >= 2)
             {
                 vstate->active = false;
-                return i;
+                return i + 1;
             }
         }
 
@@ -172,7 +177,7 @@ static uint32_t Generator_debug_mix(
             if (vstate->pos >= 10)
             {
                 vstate->active = false;
-                return i;
+                return i + 1;
             }
             vstate->rel_pos = 0;
             vstate->rel_pos_rem -= floor(vstate->rel_pos_rem);
