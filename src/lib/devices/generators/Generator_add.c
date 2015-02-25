@@ -385,13 +385,10 @@ static uint32_t Generator_add_mix(
     if (force_ended)
         nframes = force_extent;
 
-    const Work_buffer* wb_pitch_params = Work_buffers_get_buffer(
-            wbs, WORK_BUFFER_PITCH_PARAMS);
     const Work_buffer* wb_actual_pitches = Work_buffers_get_buffer(
             wbs, WORK_BUFFER_ACTUAL_PITCHES);
     const Work_buffer* wb_actual_forces = Work_buffers_get_buffer(
             wbs, WORK_BUFFER_ACTUAL_FORCES);
-    const float* pitch_params = Work_buffer_get_contents(wb_pitch_params) + 1;
     const float* actual_pitches = Work_buffer_get_contents(wb_actual_pitches) + 1;
     const float* actual_forces = Work_buffer_get_contents(wb_actual_forces) + 1;
 
@@ -407,11 +404,9 @@ static uint32_t Generator_add_mix(
     {
         //Generator_common_handle_pitch(gen, vstate);
 
-        // Temp hack code
-        vstate->pitch = pitch_params[mixed];
-        vstate->actual_pitch = actual_pitches[mixed];
-        vstate->prev_actual_pitch = actual_pitches[(int32_t)mixed - 1];
-        vstate->actual_force = actual_forces[mixed];
+        const float actual_pitch = actual_pitches[mixed];
+        const float prev_actual_pitch = actual_pitches[(int32_t)mixed - 1];
+        const float actual_force = actual_forces[mixed];
 
         double vals[KQT_BUFFERS_MAX] = { 0 };
         vals[0] = 0;
@@ -438,7 +433,7 @@ static uint32_t Generator_add_mix(
                            add->mod_tones[h].volume_factor * add->mod_volume;
 
                 add_state->mod_tones[h].phase +=
-                    vstate->actual_pitch *
+                    actual_pitch *
                     add->mod_tones[h].pitch_factor / freq;
 
                 if (add_state->mod_tones[h].phase >= 1)
@@ -448,7 +443,7 @@ static uint32_t Generator_add_mix(
 
             if (add->force_mod_env_enabled && (add->force_mod_env != NULL))
             {
-                double force = min(1, vstate->actual_force);
+                double force = min(1, actual_force);
                 double factor = Envelope_get_value(add->force_mod_env, force);
                 assert(isfinite(factor));
                 mod_val *= factor;
@@ -457,10 +452,10 @@ static uint32_t Generator_add_mix(
             if (add->mod_env_enabled && (add->mod_env != NULL))
             {
                 if (add->mod_env_scale_amount != 0 &&
-                        (vstate->actual_pitch != vstate->prev_actual_pitch ||
+                        (actual_pitch != prev_actual_pitch ||
                          isnan(add_state->mod_env_scale)))
                     add_state->mod_env_scale = pow(
-                            vstate->actual_pitch / add->mod_env_center,
+                            actual_pitch / add->mod_env_center,
                             add->mod_env_scale_amount);
                 else if (isnan(add_state->mod_env_scale))
                     add_state->mod_env_scale = 1;
@@ -532,18 +527,14 @@ static uint32_t Generator_add_mix(
             vals[0] += val * (1 - add->tones[h].panning);
             vals[1] += val * (1 + add->tones[h].panning);
 
-            add_state->tones[h].phase += vstate->actual_pitch *
+            add_state->tones[h].phase += actual_pitch *
                                          add->tones[h].pitch_factor / freq;
             if (add_state->tones[h].phase >= 1)
                 add_state->tones[h].phase -= floor(add_state->tones[h].phase);
         }
 
-        audio_l[mixed] = vals[0] * vstate->actual_force;
-        audio_r[mixed] = vals[1] * vstate->actual_force;
-
-        // Temp hack code
-        //for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
-        //    vals[i] *= vstate->actual_force;
+        audio_l[mixed] = vals[0] * actual_force;
+        audio_r[mixed] = vals[1] * actual_force;
 
         //Generator_common_handle_force(gen, ins_state, vstate, vals, 2, freq);
         //Generator_common_handle_filter(gen, vstate, vals, 2, freq);

@@ -206,14 +206,8 @@ static uint32_t Generator_noise_mix(
     if (force_ended)
         nframes = force_extent;
 
-    const Work_buffer* wb_pitch_params = Work_buffers_get_buffer(
-            wbs, WORK_BUFFER_PITCH_PARAMS);
-    const Work_buffer* wb_actual_pitches = Work_buffers_get_buffer(
-            wbs, WORK_BUFFER_ACTUAL_PITCHES);
     const Work_buffer* wb_actual_forces = Work_buffers_get_buffer(
             wbs, WORK_BUFFER_ACTUAL_FORCES);
-    float* pitch_params = Work_buffer_get_contents_mut(wb_pitch_params) + 1;
-    float* actual_pitches = Work_buffer_get_contents_mut(wb_actual_pitches) + 1;
     float* actual_forces = Work_buffer_get_contents_mut(wb_actual_forces) + 1;
 
     const Work_buffer* wb_audio_l = Work_buffers_get_buffer(
@@ -228,11 +222,7 @@ static uint32_t Generator_noise_mix(
     {
         //Generator_common_handle_pitch(gen, vstate);
 
-        // Temp hack code
-        vstate->pitch = pitch_params[mixed];
-        vstate->actual_pitch = actual_pitches[mixed];
-        vstate->prev_actual_pitch = actual_pitches[(int32_t)mixed - 1];
-        vstate->actual_force = actual_forces[mixed];
+        const float actual_force = actual_forces[mixed];
 
         double vals[KQT_BUFFERS_MAX] = { 0 };
 
@@ -259,12 +249,8 @@ static uint32_t Generator_noise_mix(
                     Random_get_float_signal(vstate->rand_s));
         }
 
-        audio_l[mixed] = vals[0] * vstate->actual_force;
-        audio_r[mixed] = vals[1] * vstate->actual_force;
-
-        // Temp hack code
-        //for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
-        //    vals[i] *= vstate->actual_force;
+        audio_l[mixed] = vals[0] * actual_force;
+        audio_r[mixed] = vals[1] * actual_force;
 
         //Generator_common_handle_force(gen, ins_state, vstate, vals, 2, freq);
         //Generator_common_handle_filter(gen, vstate, vals, 2, freq);

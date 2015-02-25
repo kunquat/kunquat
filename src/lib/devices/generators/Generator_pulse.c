@@ -201,13 +201,10 @@ uint32_t Generator_pulse_mix(
     if (force_ended)
         nframes = force_extent;
 
-    const Work_buffer* wb_pitch_params = Work_buffers_get_buffer(
-            wbs, WORK_BUFFER_PITCH_PARAMS);
     const Work_buffer* wb_actual_pitches = Work_buffers_get_buffer(
             wbs, WORK_BUFFER_ACTUAL_PITCHES);
     const Work_buffer* wb_actual_forces = Work_buffers_get_buffer(
             wbs, WORK_BUFFER_ACTUAL_FORCES);
-    float* pitch_params = Work_buffer_get_contents_mut(wb_pitch_params) + 1;
     float* actual_pitches = Work_buffer_get_contents_mut(wb_actual_pitches) + 1;
     float* actual_forces = Work_buffer_get_contents_mut(wb_actual_forces) + 1;
 
@@ -223,21 +220,18 @@ uint32_t Generator_pulse_mix(
     {
         //Generator_common_handle_pitch(gen, vstate);
 
-        // Temp hack code
-        vstate->pitch = pitch_params[mixed];
-        vstate->actual_pitch = actual_pitches[mixed];
-        vstate->prev_actual_pitch = actual_pitches[(int32_t)mixed - 1];
-        vstate->actual_force = actual_forces[mixed];
+        const float actual_pitch = actual_pitches[mixed];
+        const float actual_force = actual_forces[mixed];
 
         double val = pulse(pulse_vstate->phase, pulse_vstate->pulse_width) / 6;
 
-        audio_l[mixed] = val * vstate->actual_force;
+        audio_l[mixed] = val * actual_force;
 
         //Generator_common_handle_force(gen, ins_state, vstate, vals, 1, freq);
         //Generator_common_handle_filter(gen, vstate, vals, 1, freq);
         //Generator_common_ramp_attack(gen, vstate, vals, 1, freq);
 
-        pulse_vstate->phase += vstate->actual_pitch / freq;
+        pulse_vstate->phase += actual_pitch / freq;
         if (pulse_vstate->phase >= 1)
             pulse_vstate->phase -= floor(pulse_vstate->phase);
 
