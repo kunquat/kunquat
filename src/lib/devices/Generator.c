@@ -19,6 +19,7 @@
 
 #include <debug/assert.h>
 #include <devices/generators/Gen_type.h>
+#include <devices/generators/Generator_common.h>
 #include <devices/Generator.h>
 #include <Filter.h>
 #include <memory.h>
@@ -224,6 +225,7 @@ void Generator_mix(
                 gen->ins_params->device_id);
 
         adjust_relative_lengths(vstate, freq, tempo);
+        Generator_common_handle_pitch(gen, vstate, wbs, nframes, offset);
 
         gen->mix(gen, gen_state, ins_state, vstate, wbs, nframes, offset, freq, tempo);
     }

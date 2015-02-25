@@ -197,8 +197,6 @@ static uint32_t Generator_noise_mix(
             noise_state->order = 0;
     }
 
-    Generator_common_handle_pitch(gen, vstate, wbs, nframes, offset);
-
     const int32_t force_extent = Generator_common_handle_force(
             gen, ins_state, vstate, wbs, freq, nframes, offset);
 
@@ -220,8 +218,6 @@ static uint32_t Generator_noise_mix(
     uint32_t mixed = offset;
     for (; mixed < nframes && vstate->active; ++mixed)
     {
-        //Generator_common_handle_pitch(gen, vstate);
-
         const float actual_force = actual_forces[mixed];
 
         double vals[KQT_BUFFERS_MAX] = { 0 };

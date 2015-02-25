@@ -214,8 +214,6 @@ uint32_t Sample_mix(
     assert(bufs[1] != NULL);
     assert(vol_scale >= 0);
 
-    Generator_common_handle_pitch(gen, vstate, wbs, nframes, offset);
-
     int32_t force_extent = Generator_common_handle_force(
             gen, ins_state, vstate, wbs, freq, nframes, offset);
 
@@ -247,8 +245,6 @@ uint32_t Sample_mix(
             vstate->active = false;
             break;
         }
-
-        //Generator_common_handle_pitch(gen, vstate);
 
         const float actual_pitch = actual_pitches[mixed];
         const float actual_force = actual_forces[mixed];

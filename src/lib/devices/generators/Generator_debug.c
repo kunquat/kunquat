@@ -105,8 +105,9 @@ static uint32_t Generator_debug_mix(
     kqt_frame* bufs[] = { NULL, NULL };
     Generator_common_get_buffers(gen_state, vstate, offset, bufs);
 
-    if (!vstate->active)
-        return offset;
+    const Work_buffer* wb_actual_pitches = Work_buffers_get_buffer(
+            wbs, WORK_BUFFER_ACTUAL_PITCHES);
+    const float* actual_pitches = Work_buffer_get_contents(wb_actual_pitches) + 1;
 
     Generator_debug* debug = (Generator_debug*)gen->parent.dimpl;
     if (debug->single_pulse)
@@ -123,6 +124,8 @@ static uint32_t Generator_debug_mix(
 
     for (uint32_t i = offset; i < nframes; ++i)
     {
+        const float actual_pitch = actual_pitches[i];
+
         double vals[KQT_BUFFERS_MAX] = { 0 };
 
         if (vstate->rel_pos == 0)
@@ -148,11 +151,11 @@ static uint32_t Generator_debug_mix(
         bufs[0][i] += vals[0];
         bufs[1][i] += vals[1];
 
-        vstate->rel_pos_rem += vstate->pitch / freq;
+        vstate->rel_pos_rem += actual_pitch / freq;
 
         if (!vstate->note_on)
         {
-            vstate->noff_pos_rem += vstate->pitch / freq;
+            vstate->noff_pos_rem += actual_pitch / freq;
             if (vstate->noff_pos_rem >= 2)
             {
                 vstate->active = false;

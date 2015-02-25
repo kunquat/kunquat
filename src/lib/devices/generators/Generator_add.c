@@ -376,8 +376,6 @@ static uint32_t Generator_add_mix(
     Voice_state_add* add_state = (Voice_state_add*)vstate;
     assert(is_p2(BASE_FUNC_SIZE));
 
-    Generator_common_handle_pitch(gen, vstate, wbs, nframes, offset);
-
     const int32_t force_extent = Generator_common_handle_force(
             gen, ins_state, vstate, wbs, freq, nframes, offset);
 
@@ -402,8 +400,6 @@ static uint32_t Generator_add_mix(
     uint32_t mixed = offset;
     for (; mixed < nframes && vstate->active; ++mixed)
     {
-        //Generator_common_handle_pitch(gen, vstate);
-
         const float actual_pitch = actual_pitches[mixed];
         const float prev_actual_pitch = actual_pitches[(int32_t)mixed - 1];
         const float actual_force = actual_forces[mixed];

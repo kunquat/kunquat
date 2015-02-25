@@ -192,8 +192,6 @@ uint32_t Generator_pulse_mix(
             pulse_vstate->pulse_width = 0.5;
     }
 
-    Generator_common_handle_pitch(gen, vstate, wbs, nframes, offset);
-
     const int32_t force_extent = Generator_common_handle_force(
             gen, ins_state, vstate, wbs, freq, nframes, offset);
 
@@ -218,8 +216,6 @@ uint32_t Generator_pulse_mix(
     uint32_t mixed = offset;
     for (; mixed < nframes && vstate->active; ++mixed)
     {
-        //Generator_common_handle_pitch(gen, vstate);
-
         const float actual_pitch = actual_pitches[mixed];
         const float actual_force = actual_forces[mixed];
 
