@@ -285,6 +285,11 @@ void setup_debug_instrument(void)
     set_data("ins_00/p_connections.json",
             "[ [\"gen_00/C/out_00\", \"out_00\"] ]");
 
+    // Make sure that we get the note release behavior specified in the debug generator
+    set_data("ins_00/p_envelope_force_release.json",
+            "{ \"enabled\": true, \"envelope\": {"
+            "  \"nodes\": [ [0, 1], [98, 1], [99, 0] ] } }");
+
     set_data("ins_00/gen_00/p_manifest.json", "{}");
     set_data("ins_00/gen_00/p_gen_type.json", "\"debug\"");
     set_data("ins_00/gen_00/out_00/p_manifest.json", "{}");
