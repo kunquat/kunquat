@@ -43,25 +43,6 @@
 
 
 /**
- * Check whether there's anything left of the note to be mixed.
- * This should be called at the beginning of the mixing function of the
- * Generator.
- */
-#define Generator_common_check_active(gen, vstate, mixed)                    \
-    if (true)                                                                \
-    {                                                                        \
-        if (!(vstate)->active || (!(vstate)->note_on &&                      \
-                                 ((vstate)->pos == 0) &&                     \
-                                 ((vstate)->pos_rem == 0) &&                 \
-                                 !(gen)->ins_params->env_force_rel_enabled)) \
-        {                                                                    \
-            (vstate)->active = false;                                        \
-            return (mixed);                                                  \
-        }                                                                    \
-    } else (void)0
-
-
-/**
  * Adjust Voice state according to tempo and/or mixing frequency changes.
  *
  * This should be called before the mixing loop of the Generator.

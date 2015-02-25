@@ -151,6 +151,19 @@ void Generator_mix(
     assert(freq > 0);
     assert(tempo > 0);
 
+    if (!vstate->active)
+        return;
+
+    // Check for voice cut before mixing anything (no need for volume ramping)
+    if (!vstate->note_on &&
+            (vstate->pos == 0) &&
+            (vstate->pos_rem == 0) &&
+            !gen->ins_params->env_force_rel_enabled)
+    {
+        vstate->active = false;
+        return;
+    }
+
     if (offset < nframes)
     {
         Gen_state* gen_state = (Gen_state*)Device_states_get_state(

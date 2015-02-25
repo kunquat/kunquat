@@ -373,7 +373,6 @@ static uint32_t Generator_add_mix(
     Generator_add* add = (Generator_add*)gen->parent.dimpl;
     kqt_frame* bufs[] = { NULL, NULL };
     Generator_common_get_buffers(gen_state, vstate, offset, bufs);
-    Generator_common_check_active(gen, vstate, offset);
     Generator_common_check_relative_lengths(gen, vstate, freq, tempo);
     Voice_state_add* add_state = (Voice_state_add*)vstate;
     assert(is_p2(BASE_FUNC_SIZE));

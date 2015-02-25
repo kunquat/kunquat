@@ -214,7 +214,6 @@ uint32_t Sample_mix(
     assert(bufs[1] != NULL);
     assert(vol_scale >= 0);
 
-    Generator_common_check_active(gen, vstate, offset);
     Generator_common_check_relative_lengths(gen, vstate, freq, tempo);
 
     Generator_common_handle_pitch(gen, vstate, wbs, nframes, offset);

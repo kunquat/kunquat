@@ -152,7 +152,6 @@ uint32_t Generator_pcm_mix(
 
     kqt_frame* bufs[] = { NULL, NULL };
     Generator_common_get_buffers(gen_state, vstate, offset, bufs);
-    Generator_common_check_active(gen, vstate, offset);
 
 //    Generator_pcm* pcm = (Generator_pcm*)gen->parent.dimpl;
     Voice_state_pcm* pcm_state = (Voice_state_pcm*)vstate;
