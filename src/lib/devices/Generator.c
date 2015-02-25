@@ -235,20 +235,60 @@ void Generator_mix(
     kqt_frame* out_r = Audio_buffer_get_buffer(audio_buffer, 1);
 
     // Process common parameters required by implementations
+    bool deactivate_after_processing = false;
+    int32_t process_stop = nframes;
+
     adjust_relative_lengths(vstate, freq, tempo);
 
-    Generator_common_handle_pitch(gen, vstate, wbs, nframes, offset);
+    Generator_common_handle_pitch(gen, vstate, wbs, process_stop, offset);
 
     const int32_t force_stop = Generator_common_handle_force(
-            gen, ins_state, vstate, wbs, freq, nframes, offset);
+            gen, ins_state, vstate, wbs, freq, process_stop, offset);
 
-    const bool force_ended = (force_stop < (int32_t)nframes);
+    const bool force_ended = (force_stop < process_stop);
     if (force_ended)
-        nframes = force_stop;
+    {
+        deactivate_after_processing = true;
+        assert(force_stop <= process_stop);
+        process_stop = force_stop;
+    }
+
+    const uint64_t old_pos = vstate->pos;
+    const double old_pos_rem = vstate->pos_rem;
 
     // Call the implementation
     const int32_t impl_render_stop = gen->mix(
-            gen, gen_state, ins_state, vstate, wbs, nframes, offset, freq, tempo);
+            gen, gen_state, ins_state, vstate, wbs, process_stop, offset, freq, tempo);
+    if (!vstate->active) // FIXME: communicate end of rendering in a cleaner way
+    {
+        vstate->active = true;
+        deactivate_after_processing = true;
+        assert(impl_render_stop <= process_stop);
+        process_stop = impl_render_stop;
+    }
+
+    // XXX: Hack to make post-processing work correctly below, fix properly!
+    const uint64_t new_pos = vstate->pos;
+    const double new_pos_rem = vstate->pos_rem;
+    vstate->pos = old_pos;
+    vstate->pos_rem = old_pos_rem;
+
+    // Apply common parameters to generated signal
+    const int32_t ramp_release_stop = Generator_common_ramp_release(
+            gen, ins_state, vstate, wbs, 2, freq, process_stop, offset);
+    const bool ramp_release_ended = (vstate->ramp_release >= 1);
+    if (ramp_release_ended)
+    {
+        deactivate_after_processing = true;
+        assert(ramp_release_stop <= process_stop);
+        process_stop = ramp_release_stop;
+    }
+
+    Generator_common_handle_filter(gen, vstate, wbs, 2, freq, process_stop, offset);
+    Generator_common_handle_panning(gen, vstate, wbs, process_stop, offset);
+
+    vstate->pos = new_pos;
+    vstate->pos_rem = new_pos_rem;
 
     // Mix rendered audio
     {
@@ -259,13 +299,13 @@ void Generator_mix(
         float* audio_l = Work_buffer_get_contents_mut(wb_audio_l);
         float* audio_r = Work_buffer_get_contents_mut(wb_audio_r);
 
-        for (int32_t i = offset; i < impl_render_stop; ++i)
+        for (int32_t i = offset; i < process_stop; ++i)
             out_l[i] += audio_l[i];
-        for (int32_t i = offset; i < impl_render_stop; ++i)
+        for (int32_t i = offset; i < process_stop; ++i)
             out_r[i] += audio_r[i];
     }
 
-    if (force_ended)
+    if (deactivate_after_processing)
         vstate->active = false;
 
     return;

@@ -443,19 +443,7 @@ uint32_t Sample_mix(
         assert(vstate->rel_pos < sample->len);
     }
 
-    const int32_t release_limit = Generator_common_ramp_release(
-            gen, ins_state, vstate, wbs, 2, freq, nframes, offset);
-    if (release_limit < (int32_t)nframes)
-        mixed = release_limit;
-    const bool ramp_release_ended = (vstate->ramp_release >= 1);
-
-    Generator_common_handle_filter(gen, vstate, wbs, 2, freq, mixed, offset);
-    Generator_common_handle_panning(gen, vstate, wbs, mixed, offset);
-
     vstate->pos = new_pos;
-
-    if (ramp_release_ended)
-        vstate->active = false;
 
     return mixed;
 }

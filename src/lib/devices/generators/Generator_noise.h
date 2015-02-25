@@ -1,7 +1,7 @@
 
 
 /*
- * Authors: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Authors: Tomi Jylhä-Ollila, Finland 2010-2015
  *          Ossi Saresoja, Finland 2010
  *
  * This file is part of Kunquat.
@@ -39,7 +39,7 @@ Device_impl* new_Generator_noise(Generator* gen);
  * \return   The Noise Generator property description matching
  *           \a property_type, or \c NULL if one does not exist.
  */
-const char* Generator_noise_property(Generator* gen, const char* property_type);
+const char* Generator_noise_property(const Generator* gen, const char* property_type);
 
 
 #endif // K_GENERATOR_NOISE_H

@@ -89,7 +89,7 @@ static bool Generator_pulse_init(Device_impl* dimpl)
 }
 
 
-const char* Generator_pulse_property(Generator* gen, const char* property_type)
+const char* Generator_pulse_property(const Generator* gen, const char* property_type)
 {
     assert(gen != NULL);
     //assert(string_eq(gen->type, "pulse"));
@@ -233,22 +233,11 @@ uint32_t Generator_pulse_mix(
     }
 //  fprintf(stderr, "max_amp is %lf\n", max_amp);
 
-    const int32_t release_limit = Generator_common_ramp_release(
-            gen, ins_state, vstate, wbs, 1, freq, nframes, offset);
-    if (release_limit < (int32_t)nframes)
-        mixed = release_limit;
-    const bool ramp_release_ended = (vstate->ramp_release >= 1);
+    Generator_common_ramp_attack(gen, vstate, wbs, 1, freq, mixed, offset);
 
     Work_buffer_copy(wb_audio_r, wb_audio_l, offset, mixed);
 
-    Generator_common_handle_filter(gen, vstate, wbs, 2, freq, mixed, offset);
-    Generator_common_ramp_attack(gen, vstate, wbs, 2, freq, mixed, offset);
-    Generator_common_handle_panning(gen, vstate, wbs, mixed, offset);
-
     vstate->pos = 1; // XXX: hackish
-
-    if (ramp_release_ended)
-        vstate->active = false;
 
     return mixed;
 }

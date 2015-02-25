@@ -79,7 +79,7 @@ static bool Generator_pcm_init(Device_impl* dimpl)
 }
 
 
-const char* Generator_pcm_property(Generator* gen, const char* property_type)
+const char* Generator_pcm_property(const Generator* gen, const char* property_type)
 {
     assert(gen != NULL);
     //assert(string_eq(gen->type, "pcm"));

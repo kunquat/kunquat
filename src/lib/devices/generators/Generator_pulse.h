@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -38,7 +38,7 @@ Device_impl* new_Generator_pulse(Generator* gen);
  * \return   The Pulse Generator property description matching
  *           \a property_type, or \c NULL if one does not exist.
  */
-const char* Generator_pulse_property(Generator* gen, const char* property_type);
+const char* Generator_pulse_property(const Generator* gen, const char* property_type);
 
 
 #endif // K_GENERATOR_PULSE_H

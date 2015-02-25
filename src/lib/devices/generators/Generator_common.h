@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -22,24 +22,6 @@
 #include <kunquat/limits.h>
 #include <player/Ins_state.h>
 #include <player/Voice_state.h>
-
-
-/**
- * Get the output buffers.
- */
-#define Generator_common_get_buffers(gs, vstate, mixed, bufs) \
-    if (true)                                                 \
-    {                                                         \
-        Audio_buffer* buffer = Device_state_get_audio_buffer( \
-                &(gs)->parent, DEVICE_PORT_TYPE_SEND, 0);     \
-        if (buffer == NULL)                                   \
-        {                                                     \
-            (vstate)->active = false;                         \
-            return (mixed);                                   \
-        }                                                     \
-        bufs[0] = Audio_buffer_get_buffer(buffer, 0);         \
-        bufs[1] = Audio_buffer_get_buffer(buffer, 1);         \
-    } else (void)0
 
 
 /**
