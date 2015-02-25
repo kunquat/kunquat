@@ -192,13 +192,6 @@ uint32_t Generator_pulse_mix(
             pulse_vstate->pulse_width = 0.5;
     }
 
-    const int32_t force_extent = Generator_common_handle_force(
-            gen, ins_state, vstate, wbs, freq, nframes, offset);
-
-    const bool force_ended = (force_extent < (int32_t)nframes);
-    if (force_ended)
-        nframes = force_extent;
-
     const Work_buffer* wb_actual_pitches = Work_buffers_get_buffer(
             wbs, WORK_BUFFER_ACTUAL_PITCHES);
     const Work_buffer* wb_actual_forces = Work_buffers_get_buffer(
@@ -262,7 +255,7 @@ uint32_t Generator_pulse_mix(
     for (uint32_t i = offset; i < nframes; ++i)
         bufs[1][i] += audio_r[i];
 
-    if (force_ended || ramp_release_ended)
+    if (ramp_release_ended)
         vstate->active = false;
 
     return mixed;

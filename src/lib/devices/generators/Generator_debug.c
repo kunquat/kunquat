@@ -107,7 +107,10 @@ static uint32_t Generator_debug_mix(
 
     const Work_buffer* wb_actual_pitches = Work_buffers_get_buffer(
             wbs, WORK_BUFFER_ACTUAL_PITCHES);
+    const Work_buffer* wb_actual_forces = Work_buffers_get_buffer(
+            wbs, WORK_BUFFER_ACTUAL_FORCES);
     const float* actual_pitches = Work_buffer_get_contents(wb_actual_pitches) + 1;
+    const float* actual_forces = Work_buffer_get_contents(wb_actual_forces) + 1;
 
     Generator_debug* debug = (Generator_debug*)gen->parent.dimpl;
     if (debug->single_pulse)
@@ -125,6 +128,7 @@ static uint32_t Generator_debug_mix(
     for (uint32_t i = offset; i < nframes; ++i)
     {
         const float actual_pitch = actual_pitches[i];
+        const float actual_force = actual_forces[i];
 
         double vals[KQT_BUFFERS_MAX] = { 0 };
 
@@ -144,9 +148,8 @@ static uint32_t Generator_debug_mix(
             vals[1] = -vals[1];
         }
 
-        vstate->actual_force = vstate->force * gen->ins_params->global_force;
-        vals[0] *= vstate->actual_force;
-        vals[1] *= vstate->actual_force;
+        vals[0] *= actual_force;
+        vals[1] *= actual_force;
 
         bufs[0][i] += vals[0];
         bufs[1][i] += vals[1];

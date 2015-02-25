@@ -225,9 +225,20 @@ void Generator_mix(
                 gen->ins_params->device_id);
 
         adjust_relative_lengths(vstate, freq, tempo);
+
         Generator_common_handle_pitch(gen, vstate, wbs, nframes, offset);
 
+        const int32_t force_stop = Generator_common_handle_force(
+                gen, ins_state, vstate, wbs, freq, nframes, offset);
+
+        const bool force_ended = (force_stop < (int32_t)nframes);
+        if (force_ended)
+            nframes = force_stop;
+
         gen->mix(gen, gen_state, ins_state, vstate, wbs, nframes, offset, freq, tempo);
+
+        if (force_ended)
+            vstate->active = false;
     }
 
     return;

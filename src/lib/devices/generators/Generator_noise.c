@@ -197,13 +197,6 @@ static uint32_t Generator_noise_mix(
             noise_state->order = 0;
     }
 
-    const int32_t force_extent = Generator_common_handle_force(
-            gen, ins_state, vstate, wbs, freq, nframes, offset);
-
-    const bool force_ended = (force_extent < (int32_t)nframes);
-    if (force_ended)
-        nframes = force_extent;
-
     const Work_buffer* wb_actual_forces = Work_buffers_get_buffer(
             wbs, WORK_BUFFER_ACTUAL_FORCES);
     float* actual_forces = Work_buffer_get_contents_mut(wb_actual_forces) + 1;
@@ -279,7 +272,7 @@ static uint32_t Generator_noise_mix(
     for (uint32_t i = offset; i < nframes; ++i)
         bufs[1][i] += audio_r[i];
 
-    if (force_ended || ramp_release_ended)
+    if (ramp_release_ended)
         vstate->active = false;
 
 //  fprintf(stderr, "max_amp is %lf\n", max_amp);
