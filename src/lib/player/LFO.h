@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -161,6 +161,9 @@ void LFO_turn_off(LFO* lfo);
 
 /**
  * Perform a step in the LFO.
+ *
+ * It is OK to call this function repeatedly after deactivation; the neutral
+ * oscillation value will be returned in that case.
  *
  * \param lfo   The LFO -- must not be \c NULL.
  *
