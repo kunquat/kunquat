@@ -99,41 +99,44 @@ int32_t Time_env_state_process(
         double* next_node = Envelope_get_node(env, testate->next_node_index);
         double value = NAN;
 
-        if (next_node == NULL)
+        if (next_node != NULL)
         {
-            const double* last_node = Envelope_get_node(
-                    env, Envelope_node_count(env) - 1);
-            value = last_node[1];
-        }
-        else if ((testate->cur_pos >= next_node[0]) || isnan(testate->update_value))
-        {
-            ++testate->next_node_index;
-            if ((loop_end_index >= 0) && (loop_end_index < testate->next_node_index))
+            if (testate->cur_pos < next_node[0])
             {
-                assert(loop_start_index >= 0);
-                testate->next_node_index = loop_start_index;
-            }
-
-            value = Envelope_get_value(env, testate->cur_pos);
-
-            if (isfinite(value))
-            {
-                const double next_value = Envelope_get_value(
-                        env, testate->cur_pos + 1.0 / audio_rate);
-                testate->cur_value = value;
-                testate->update_value = next_value - value;
+                assert(isfinite(testate->update_value));
+                testate->cur_value +=
+                    testate->update_value * testate->scale_factor * slowdown_fac;
+                value = clamp(testate->cur_value, min_value, max_value);
             }
             else
             {
-                value = Envelope_get_node(env, Envelope_node_count(env) - 1)[1];
+                ++testate->next_node_index;
+                if ((loop_end_index >= 0) && (loop_end_index < testate->next_node_index))
+                {
+                    assert(loop_start_index >= 0);
+                    testate->next_node_index = loop_start_index;
+                }
+
+                value = Envelope_get_value(env, testate->cur_pos);
+
+                if (isfinite(value))
+                {
+                    const double next_value = Envelope_get_value(
+                            env, testate->cur_pos + 1.0 / audio_rate);
+                    testate->cur_value = value;
+                    testate->update_value = next_value - value;
+                }
+                else
+                {
+                    value = Envelope_get_node(env, Envelope_node_count(env) - 1)[1];
+                }
             }
         }
         else
         {
-            assert(isfinite(testate->update_value));
-            testate->cur_value +=
-                testate->update_value * testate->scale_factor * slowdown_fac;
-            value = clamp(testate->cur_value, min_value, max_value);
+            const double* last_node = Envelope_get_node(
+                    env, Envelope_node_count(env) - 1);
+            value = last_node[1];
         }
 
         // Apply envelope value
