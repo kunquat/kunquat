@@ -217,6 +217,13 @@ int32_t Generator_common_handle_force(
             actual_forces[i] = actual_force;
     }
 
+    // Apply tremolo
+    if (LFO_active(&vstate->tremolo))
+    {
+        for (int32_t i = offset; i < nframes; ++i)
+            actual_forces[i] *= LFO_step(&vstate->tremolo);
+    }
+
     int32_t i = offset;
     for (; i < nframes; ++i)
     {
@@ -224,9 +231,6 @@ int32_t Generator_common_handle_force(
         const float prev_actual_pitch = actual_pitches[i - 1];
 
         float new_actual_force = actual_forces[i];
-
-        if (LFO_active(&vstate->tremolo))
-            new_actual_force *= LFO_step(&vstate->tremolo);
 
         if (gen->ins_params->env_force_enabled)
         {
