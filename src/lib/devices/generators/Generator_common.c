@@ -199,11 +199,13 @@ int32_t Generator_common_handle_force(
     actual_forces[offset] = new_actual_force;
     ++actual_forces;
 
+    int32_t buf_stop = nframes;
+
     // Apply force slide & global force
     if (Slider_in_progress(&vstate->force_slider))
     {
         float new_force = vstate->force;
-        for (int32_t i = offset; i < nframes; ++i)
+        for (int32_t i = offset; i < buf_stop; ++i)
         {
             new_force = Slider_step(&vstate->force_slider);
             actual_forces[i] = new_force * gen->ins_params->global_force;
@@ -213,37 +215,73 @@ int32_t Generator_common_handle_force(
     else
     {
         const float actual_force = vstate->force * gen->ins_params->global_force;
-        for (int32_t i = offset; i < nframes; ++i)
+        for (int32_t i = offset; i < buf_stop; ++i)
             actual_forces[i] = actual_force;
     }
 
     // Apply tremolo
     if (LFO_active(&vstate->tremolo))
     {
-        for (int32_t i = offset; i < nframes; ++i)
+        for (int32_t i = offset; i < buf_stop; ++i)
             actual_forces[i] *= LFO_step(&vstate->tremolo);
     }
 
-    int32_t i = offset;
-    for (; i < nframes; ++i)
+    // Apply force envelope
+    if (gen->ins_params->env_force_enabled)
     {
-        const float actual_pitch = actual_pitches[i];
-        const float prev_actual_pitch = actual_pitches[i - 1];
+        const Envelope* env = gen->ins_params->env_force;
 
-        float new_actual_force = actual_forces[i];
+        const int32_t env_force_stop = Time_env_state_process(
+                &vstate->force_env_state,
+                env,
+                gen->ins_params->env_force_scale_amount,
+                gen->ins_params->env_force_center,
+                0,
+                1,
+                wbs,
+                offset,
+                buf_stop,
+                freq);
 
-        if (gen->ins_params->env_force_enabled)
+        const Work_buffer* wb_time_env = Work_buffers_get_buffer(
+                wbs, WORK_BUFFER_TIME_ENV);
+        float* time_env = Work_buffer_get_contents_mut(wb_time_env) + 1;
+
+        if (vstate->force_env_state.is_finished)
         {
-            Envelope* env = gen->ins_params->env_force;
+            const double* last_node = Envelope_get_node(
+                    env, Envelope_node_count(env) - 1);
+            const double last_value = last_node[1];
+            if (last_value == 0)
+            {
+                buf_stop = env_force_stop;
+            }
+            else
+            {
+                // Fill the rest of the envelope buffer with the last value
+                for (int32_t i = env_force_stop; i < buf_stop; ++i)
+                    time_env[i] = last_value;
+            }
+        }
 
-            int loop_start_index = Envelope_get_mark(env, 0);
-            int loop_end_index = Envelope_get_mark(env, 1);
-            double* loop_start =
-                loop_start_index == -1 ? NULL :
-                Envelope_get_node(env, loop_start_index);
-            double* loop_end =
-                loop_end_index == -1 ? NULL :
-                Envelope_get_node(env, loop_end_index);
+        for (int32_t i = offset; i < buf_stop; ++i)
+            actual_forces[i] *= time_env[i];
+
+        /*
+        const int loop_start_index = Envelope_get_mark(env, 0);
+        const int loop_end_index = Envelope_get_mark(env, 1);
+        const double* loop_start =
+            loop_start_index == -1 ? NULL :
+            Envelope_get_node(env, loop_start_index);
+        const double* loop_end =
+            loop_end_index == -1 ? NULL :
+            Envelope_get_node(env, loop_end_index);
+
+        int32_t i = offset;
+        for (; i < nframes; ++i)
+        {
+            const float actual_pitch = actual_pitches[i];
+            const float prev_actual_pitch = actual_pitches[i - 1];
 
             if (gen->ins_params->env_force_scale_amount != 0 &&
                     actual_pitch != prev_actual_pitch)
@@ -295,9 +333,9 @@ int32_t Generator_common_handle_force(
                     scale = 0;
             }
 
-    //        double scale = Envelope_get_value(env, vstate->fe_pos);
+            // Apply envelope value
             assert(isfinite(scale));
-            new_actual_force *= scale;
+            actual_forces[i] *= scale;
 
             // Update envelope position
             double new_pos = vstate->fe_pos + vstate->fe_scale / freq;
@@ -335,6 +373,16 @@ int32_t Generator_common_handle_force(
             }
             vstate->fe_pos = new_pos;
         }
+        // */
+    }
+
+    int32_t i = offset;
+    for (; i < nframes; ++i)
+    {
+        const float actual_pitch = actual_pitches[i];
+        const float prev_actual_pitch = actual_pitches[i - 1];
+
+        float new_actual_force = actual_forces[i];
 
         if (!vstate->note_on)
         {

@@ -26,6 +26,7 @@
 #include <player/Channel_gen_state.h>
 #include <player/LFO.h>
 #include <player/Slider.h>
+#include <player/Time_env_state.h>
 #include <Tstamp.h>
 
 
@@ -77,11 +78,14 @@ typedef struct Voice_state
     uint64_t noff_pos;             ///< Note Off position.
     double noff_pos_rem;           ///< Note Off position remainder.
 
+    Time_env_state force_env_state;
+    /*
     double fe_pos;                 ///< Force envelope position.
     int fe_next_node;              ///< Next force envelope node.
     double fe_value;               ///< Current force envelope value.
     double fe_update;              ///< Force envelope update.
     double fe_scale;               ///< Current force envelope scale factor.
+    // */
 
     double rel_fe_pos;             ///< Release force envelope position.
     int rel_fe_next_node;          ///< Next release force envelope node.

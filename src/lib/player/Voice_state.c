@@ -109,11 +109,14 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->noff_pos = 0;
     state->noff_pos_rem = 0;
 
+    Time_env_state_init(&state->force_env_state);
+    /*
     state->fe_pos = 0;
     state->fe_next_node = 0;
     state->fe_value = NAN;
     state->fe_update = 0;
     state->fe_scale = 1;
+    // */
 
     state->rel_fe_pos = 0;
     state->rel_fe_next_node = 0;
