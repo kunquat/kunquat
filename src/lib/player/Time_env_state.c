@@ -43,6 +43,7 @@ int32_t Time_env_state_process(
         const Envelope* env,
         double scale_amount,
         double scale_center,
+        double sustain,
         double min_value,
         double max_value,
         const Work_buffers* wbs,
@@ -52,9 +53,16 @@ int32_t Time_env_state_process(
 {
     assert(testate != NULL);
     assert(env != NULL);
+    assert(isfinite(scale_amount));
+    assert(isfinite(scale_center));
+    assert(sustain >= 0);
+    assert(sustain <= 1);
+    assert(isfinite(min_value));
+    assert(isfinite(max_value));
     assert(wbs != NULL);
     assert(buf_start >= 0);
     assert(buf_stop >= 0);
+    assert(audio_rate > 0);
 
     const Work_buffer* wb_actual_pitches = Work_buffers_get_buffer(
             wbs, WORK_BUFFER_ACTUAL_PITCHES);
@@ -63,6 +71,8 @@ int32_t Time_env_state_process(
     const Work_buffer* wb_time_env = Work_buffers_get_buffer(
             wbs, WORK_BUFFER_TIME_ENV);
     float* values = Work_buffer_get_contents_mut(wb_time_env) + 1;
+
+    const double slowdown_fac = 1.0 - sustain;
 
     // Get loop information
     const int loop_start_index = Envelope_get_mark(env, 0);
@@ -121,7 +131,8 @@ int32_t Time_env_state_process(
         else
         {
             assert(isfinite(testate->update_value));
-            testate->cur_value += testate->update_value * testate->scale_factor;
+            testate->cur_value +=
+                testate->update_value * testate->scale_factor * slowdown_fac;
             value = clamp(testate->cur_value, min_value, max_value);
         }
 
@@ -130,7 +141,8 @@ int32_t Time_env_state_process(
         values[i] = value;
 
         // Update envelope position
-        double new_pos = testate->cur_pos + testate->scale_factor / audio_rate;
+        double new_pos =
+            testate->cur_pos + testate->scale_factor * slowdown_fac / audio_rate;
 
         if (has_loop)
         {
@@ -163,12 +175,9 @@ int32_t Time_env_state_process(
             double* last = Envelope_get_node(env, Envelope_node_count(env) - 1);
             if (new_pos > last[0])
             {
-                new_pos = last[0];
-                if ((testate->cur_pos > last[0]) && (last[1] == 0))
-                {
-                    testate->is_finished = true;
-                    break;
-                }
+                ++i;
+                testate->is_finished = true;
+                break;
             }
         }
 

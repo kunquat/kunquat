@@ -49,6 +49,8 @@ void Time_env_state_init(Time_env_state* testate);
  * \param env            The Envelope -- must not be \c NULL.
  * \param scale_amount   The time scale amount -- must be finite.
  * \param scale_center   The time scale center -- must be finite.
+ * \param sustain        Sustain value -- must be within range [0, 1]
+ *                       (0 indicates no sustain).
  * \param min_value      Minimum envelope value -- must be finite.
  * \param max_value      Maximum envelope value -- must be finite.
  * \param wbs            The Work buffers -- must not be \c NULL. The envelope
@@ -66,6 +68,7 @@ int32_t Time_env_state_process(
         const Envelope* env,
         double scale_amount,
         double scale_center,
+        double sustain,
         double min_value,
         double max_value,
         const Work_buffers* wbs,

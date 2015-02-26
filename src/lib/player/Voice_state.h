@@ -80,11 +80,7 @@ typedef struct Voice_state
 
     Time_env_state force_env_state;
 
-    double rel_fe_pos;             ///< Release force envelope position.
-    int rel_fe_next_node;          ///< Next release force envelope node.
-    double rel_fe_value;           ///< Current release force envelope value.
-    double rel_fe_update;          ///< Release force envelope update.
-    double rel_fe_scale;           ///< Current release force envelope scale factor.
+    Time_env_state force_rel_env_state;
 
     double force;                  ///< The current force (linear factor).
     double actual_force;           ///< The current actual force (includes tremolo & envs).

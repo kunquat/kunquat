@@ -186,17 +186,11 @@ int32_t Generator_common_handle_force(
     assert(vstate != NULL);
     assert(wbs != NULL);
 
-    const Work_buffer* wb_actual_pitches = Work_buffers_get_buffer(
-            wbs, WORK_BUFFER_ACTUAL_PITCHES);
     const Work_buffer* wb_actual_forces = Work_buffers_get_buffer(
             wbs, WORK_BUFFER_ACTUAL_FORCES);
 
-    const float* actual_pitches = Work_buffer_get_contents(wb_actual_pitches) + 1;
-
-    float new_actual_force = vstate->actual_force;
-
     float* actual_forces = Work_buffer_get_contents_mut(wb_actual_forces);
-    actual_forces[offset] = new_actual_force;
+    actual_forces[offset] = vstate->actual_force;
     ++actual_forces;
 
     int32_t buf_stop = nframes;
@@ -236,8 +230,8 @@ int32_t Generator_common_handle_force(
                 env,
                 gen->ins_params->env_force_scale_amount,
                 gen->ins_params->env_force_center,
-                0,
-                1,
+                0, // sustain
+                0, 1, // range
                 wbs,
                 offset,
                 buf_stop,
@@ -269,98 +263,41 @@ int32_t Generator_common_handle_force(
             actual_forces[i] *= time_env[i];
     }
 
-    int32_t i = offset;
-    for (; i < nframes; ++i)
+    // Apply force release envelope
+    if (!vstate->note_on && gen->ins_params->env_force_rel_enabled)
     {
-        const float actual_pitch = actual_pitches[i];
-        const float prev_actual_pitch = actual_pitches[i - 1];
+        const Envelope* env = gen->ins_params->env_force_rel;
 
-        float new_actual_force = actual_forces[i];
+        const int32_t env_force_rel_stop = Time_env_state_process(
+                &vstate->force_rel_env_state,
+                env,
+                gen->ins_params->env_force_rel_scale_amount,
+                gen->ins_params->env_force_rel_center,
+                ins_state->sustain,
+                0, 1, // range
+                wbs,
+                offset,
+                buf_stop,
+                freq);
 
-        if (!vstate->note_on)
-        {
-            if (gen->ins_params->env_force_rel_enabled)
-            {
-                if (gen->ins_params->env_force_rel_scale_amount != 0 &&
-                        (actual_pitch != prev_actual_pitch ||
-                         isnan(vstate->rel_fe_scale)))
-                {
-                    vstate->rel_fe_scale = pow(
-                            actual_pitch /
-                                gen->ins_params->env_force_rel_center,
-                            gen->ins_params->env_force_rel_scale_amount);
-                }
-                else if (isnan(vstate->rel_fe_scale))
-                {
-                    vstate->rel_fe_scale = 1;
-                }
+        if (vstate->force_rel_env_state.is_finished)
+            buf_stop = env_force_rel_stop;
 
-                Envelope* env = gen->ins_params->env_force_rel;
-                double* next_node = Envelope_get_node(env, vstate->rel_fe_next_node);
-                if (next_node == NULL)
-                {
-                    // This may occur if the user removes nodes during playback
-                    next_node = Envelope_get_node(env,
-                                                  Envelope_node_count(env) - 1);
-                    assert(next_node != NULL);
-                }
+        const Work_buffer* wb_time_env = Work_buffers_get_buffer(
+                wbs, WORK_BUFFER_TIME_ENV);
+        float* time_env = Work_buffer_get_contents_mut(wb_time_env) + 1;
 
-                double scale = NAN;
-
-                if (vstate->rel_fe_pos >= next_node[0])
-                {
-                    ++vstate->rel_fe_next_node;
-                    scale = Envelope_get_value(env, vstate->rel_fe_pos);
-                    if (!isfinite(scale))
-                        break;
-
-                    double next_scale = Envelope_get_value(
-                            env,
-                            vstate->rel_fe_pos + 1.0 / freq);
-                    vstate->rel_fe_value = scale;
-                    vstate->rel_fe_update = next_scale - scale;
-                }
-                else
-                {
-                    assert(isfinite(vstate->rel_fe_update));
-                    vstate->rel_fe_value +=
-                        vstate->rel_fe_update *
-                        vstate->rel_fe_scale * (1.0 - ins_state->sustain);
-
-                    scale = vstate->rel_fe_value;
-                    if (scale < 0)
-                        scale = 0;
-                }
-
-#if 0
-                double scale = Envelope_get_value(gen->ins_params->env_force_rel,
-                                                  vstate->rel_fe_pos);
-                if (!isfinite(scale))
-                {
-                    vstate->active = false;
-
-                    for (int i = 0; i < frame_count; ++i)
-                        frames[i] = 0;
-
-                    return;
-                }
-#endif
-
-                vstate->rel_fe_pos +=
-                    vstate->rel_fe_scale * (1.0 - ins_state->sustain) / freq;
-                new_actual_force *= scale;
-            }
-        }
-
-        actual_forces[i] = new_actual_force;
+        for (int32_t i = offset; i < buf_stop; ++i)
+            actual_forces[i] *= time_env[i];
     }
 
-    if (i < nframes)
+    // Update actual force for next iteration
+    if (buf_stop < nframes)
         vstate->actual_force = 0;
-    else
-        vstate->actual_force = new_actual_force;
+    else if (buf_stop > offset)
+        vstate->actual_force = actual_forces[buf_stop - 1];
 
-    return i;
+    return buf_stop;
 }
 
 

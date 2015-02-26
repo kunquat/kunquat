@@ -111,11 +111,7 @@ Voice_state* Voice_state_clear(Voice_state* state)
 
     Time_env_state_init(&state->force_env_state);
 
-    state->rel_fe_pos = 0;
-    state->rel_fe_next_node = 0;
-    state->rel_fe_value = NAN;
-    state->rel_fe_update = 0;
-    state->rel_fe_scale = NAN;
+    Time_env_state_init(&state->force_rel_env_state);
 
     state->force = 1;
     state->actual_force = 1;
