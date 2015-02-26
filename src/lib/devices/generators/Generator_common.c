@@ -191,13 +191,31 @@ int32_t Generator_common_handle_force(
     const Work_buffer* wb_actual_forces = Work_buffers_get_buffer(
             wbs, WORK_BUFFER_ACTUAL_FORCES);
 
-    float new_actual_force = vstate->actual_force;
-
     const float* actual_pitches = Work_buffer_get_contents(wb_actual_pitches) + 1;
+
+    float new_actual_force = vstate->actual_force;
 
     float* actual_forces = Work_buffer_get_contents_mut(wb_actual_forces);
     actual_forces[offset] = new_actual_force;
     ++actual_forces;
+
+    // Apply force slide & global force
+    if (Slider_in_progress(&vstate->force_slider))
+    {
+        float new_force = vstate->force;
+        for (int32_t i = offset; i < nframes; ++i)
+        {
+            new_force = Slider_step(&vstate->force_slider);
+            actual_forces[i] = new_force * gen->ins_params->global_force;
+        }
+        vstate->force = new_force;
+    }
+    else
+    {
+        const float actual_force = vstate->force * gen->ins_params->global_force;
+        for (int32_t i = offset; i < nframes; ++i)
+            actual_forces[i] = actual_force;
+    }
 
     int32_t i = offset;
     for (; i < nframes; ++i)
@@ -205,10 +223,7 @@ int32_t Generator_common_handle_force(
         const float actual_pitch = actual_pitches[i];
         const float prev_actual_pitch = actual_pitches[i - 1];
 
-        if (Slider_in_progress(&vstate->force_slider))
-            vstate->force = Slider_step(&vstate->force_slider);
-
-        new_actual_force = vstate->force * gen->ins_params->global_force;
+        float new_actual_force = actual_forces[i];
 
         if (LFO_active(&vstate->tremolo))
             new_actual_force *= LFO_step(&vstate->tremolo);
