@@ -30,6 +30,7 @@ typedef enum
     WORK_BUFFER_ACTUAL_FORCES,
     WORK_BUFFER_AUDIO_L,
     WORK_BUFFER_AUDIO_R,
+    WORK_BUFFER_TIME_ENV,
     WORK_BUFFER_COUNT_
 } Work_buffer_type;
 
