@@ -247,6 +247,7 @@ int32_t Generator_common_handle_force(
                 wbs, WORK_BUFFER_TIME_ENV);
         float* time_env = Work_buffer_get_contents_mut(wb_time_env) + 1;
 
+        // Check the end of envelope processing
         if (vstate->force_env_state.is_finished)
         {
             const double* last_node = Envelope_get_node(
@@ -266,114 +267,6 @@ int32_t Generator_common_handle_force(
 
         for (int32_t i = offset; i < buf_stop; ++i)
             actual_forces[i] *= time_env[i];
-
-        /*
-        const int loop_start_index = Envelope_get_mark(env, 0);
-        const int loop_end_index = Envelope_get_mark(env, 1);
-        const double* loop_start =
-            loop_start_index == -1 ? NULL :
-            Envelope_get_node(env, loop_start_index);
-        const double* loop_end =
-            loop_end_index == -1 ? NULL :
-            Envelope_get_node(env, loop_end_index);
-
-        int32_t i = offset;
-        for (; i < nframes; ++i)
-        {
-            const float actual_pitch = actual_pitches[i];
-            const float prev_actual_pitch = actual_pitches[i - 1];
-
-            if (gen->ins_params->env_force_scale_amount != 0 &&
-                    actual_pitch != prev_actual_pitch)
-            {
-                vstate->fe_scale = pow(
-                        actual_pitch / gen->ins_params->env_force_center,
-                        gen->ins_params->env_force_scale_amount);
-            }
-
-            double* next_node = Envelope_get_node(env, vstate->fe_next_node);
-            double scale = NAN;
-
-            if (next_node == NULL)
-            {
-                //assert(loop_start == NULL);
-                //assert(loop_end == NULL);
-                double* last_node = Envelope_get_node(env,
-                                            Envelope_node_count(env) - 1);
-                scale = last_node[1];
-            }
-            else if (vstate->fe_pos >= next_node[0] || isnan(vstate->fe_update))
-            {
-                ++vstate->fe_next_node;
-                if (loop_end_index >= 0 && loop_end_index < vstate->fe_next_node)
-                {
-                    assert(loop_start_index >= 0);
-                    vstate->fe_next_node = loop_start_index;
-                }
-                scale = Envelope_get_value(env, vstate->fe_pos);
-                if (isfinite(scale))
-                {
-                    double next_scale = Envelope_get_value(
-                            env,
-                            vstate->fe_pos + 1.0 / freq);
-                    vstate->fe_value = scale;
-                    vstate->fe_update = next_scale - scale;
-                }
-                else
-                {
-                    scale = Envelope_get_node(env, Envelope_node_count(env) - 1)[1];
-                }
-            }
-            else
-            {
-                assert(isfinite(vstate->fe_update));
-                vstate->fe_value += vstate->fe_update * vstate->fe_scale;
-                scale = vstate->fe_value;
-                if (scale < 0)
-                    scale = 0;
-            }
-
-            // Apply envelope value
-            assert(isfinite(scale));
-            actual_forces[i] *= scale;
-
-            // Update envelope position
-            double new_pos = vstate->fe_pos + vstate->fe_scale / freq;
-
-            if (loop_start != NULL && loop_end != NULL)
-            {
-                if (new_pos > loop_end[0])
-                {
-                    double loop_len = loop_end[0] - loop_start[0];
-                    assert(loop_len >= 0);
-                    if (loop_len == 0)
-                    {
-                        new_pos = loop_end[0];
-                    }
-                    else
-                    {
-                        double exceed = new_pos - loop_end[0];
-                        double offset = fmod(exceed, loop_len);
-                        new_pos = loop_start[0] + offset;
-                        assert(new_pos >= loop_start[0]);
-                        assert(new_pos <= loop_end[0]);
-                        vstate->fe_next_node = loop_start_index;
-                    }
-                }
-            }
-            else
-            {
-                double* last = Envelope_get_node(env, Envelope_node_count(env) - 1);
-                if (new_pos > last[0])
-                {
-                    new_pos = last[0];
-                    if (vstate->fe_pos > last[0] && last[1] == 0)
-                        break;
-                }
-            }
-            vstate->fe_pos = new_pos;
-        }
-        // */
     }
 
     int32_t i = offset;
