@@ -106,6 +106,7 @@ void Generator_common_handle_pitch(
         }
     }
 
+    // Update actual pitch for next iteration
     vstate->actual_pitch = actual_pitches[nframes - 1];
     vstate->prev_actual_pitch = actual_pitches[nframes - 2];
 
@@ -256,12 +257,36 @@ void Generator_common_handle_filter(
 
     const Work_buffer* wb_actual_forces = Work_buffers_get_buffer(
             wbs, WORK_BUFFER_ACTUAL_FORCES);
+
+    const float* actual_forces = Work_buffer_get_contents(wb_actual_forces);
+
+    const Work_buffer* wb_actual_lowpasses = Work_buffers_get_buffer(
+            wbs, WORK_BUFFER_ACTUAL_LOWPASSES);
+
+    float* actual_lowpasses = Work_buffer_get_contents_mut(wb_actual_lowpasses);
+
+    // Apply lowpass slide
+    if (Slider_in_progress(&vstate->lowpass_slider))
+    {
+        float new_lowpass = vstate->lowpass;
+        for (int32_t i = offset; i < nframes; ++i)
+        {
+            new_lowpass = Slider_step(&vstate->lowpass_slider);
+            actual_lowpasses[i] = new_lowpass;
+        }
+        vstate->lowpass = new_lowpass;
+    }
+    else
+    {
+        const float lowpass = vstate->lowpass;
+        for (int32_t i = offset; i < nframes; ++i)
+            actual_lowpasses[i] = lowpass;
+    }
+
     const Work_buffer* wb_audio_l = Work_buffers_get_buffer(
             wbs, WORK_BUFFER_AUDIO_L);
     const Work_buffer* wb_audio_r = Work_buffers_get_buffer(
             wbs, WORK_BUFFER_AUDIO_R);
-
-    const float* actual_forces = Work_buffer_get_contents(wb_actual_forces);
 
     float* abufs[KQT_BUFFERS_MAX] =
     {
@@ -271,10 +296,7 @@ void Generator_common_handle_filter(
 
     for (int32_t i = offset; i < nframes; ++i)
     {
-        if (Slider_in_progress(&vstate->lowpass_slider))
-            vstate->lowpass = Slider_step(&vstate->lowpass_slider);
-
-        vstate->actual_lowpass = vstate->lowpass;
+        vstate->actual_lowpass = actual_lowpasses[i];
 
         if (LFO_active(&vstate->autowah))
             vstate->actual_lowpass *= LFO_step(&vstate->autowah);
