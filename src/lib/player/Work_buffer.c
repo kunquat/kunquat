@@ -89,14 +89,14 @@ uint32_t Work_buffer_get_size(const Work_buffer* buffer)
 const float* Work_buffer_get_contents(const Work_buffer* buffer)
 {
     assert(buffer != NULL);
-    return buffer->contents;
+    return buffer->contents + 1;
 }
 
 
 float* Work_buffer_get_contents_mut(const Work_buffer* buffer)
 {
     assert(buffer != NULL);
-    return buffer->contents;
+    return buffer->contents + 1;
 }
 
 

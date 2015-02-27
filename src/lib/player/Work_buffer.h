@@ -71,9 +71,9 @@ uint32_t Work_buffer_get_size(const Work_buffer* buffer);
  *
  * \param buffer   The Work buffer -- must not be \c NULL.
  *
- * \return   The starting address of the internal buffer. For devices that
- *           receive the buffer from a caller, this function never returns
- *           \c NULL.
+ * \return   The address of the internal buffer, with -1 as the first valid
+ *           index. For devices that receive the buffer from a caller, this
+ *           function never returns \c NULL.
  */
 const float* Work_buffer_get_contents(const Work_buffer* buffer);
 
@@ -83,9 +83,9 @@ const float* Work_buffer_get_contents(const Work_buffer* buffer);
  *
  * \param buffer   The Work buffer -- must not be \c NULL.
  *
- * \return   The starting address of the internal buffer. For devices that
- *           receive the buffer from a caller, this function never returns
- *           \c NULL.
+ * \return   The address of the internal buffer, with -1 as the first valid
+ *           index. For devices that receive the buffer from a caller, this
+ *           function never returns \c NULL.
  */
 float* Work_buffer_get_contents_mut(const Work_buffer* buffer);
 

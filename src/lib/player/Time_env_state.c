@@ -66,11 +66,11 @@ int32_t Time_env_state_process(
 
     const Work_buffer* wb_actual_pitches = Work_buffers_get_buffer(
             wbs, WORK_BUFFER_ACTUAL_PITCHES);
-    const float* actual_pitches = Work_buffer_get_contents(wb_actual_pitches) + 1;
+    const float* actual_pitches = Work_buffer_get_contents(wb_actual_pitches);
 
     const Work_buffer* wb_time_env = Work_buffers_get_buffer(
             wbs, WORK_BUFFER_TIME_ENV);
-    float* values = Work_buffer_get_contents_mut(wb_time_env) + 1;
+    float* values = Work_buffer_get_contents_mut(wb_time_env);
 
     const double slowdown_fac = 1.0 - sustain;
 

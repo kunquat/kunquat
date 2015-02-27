@@ -49,12 +49,10 @@ void Generator_common_handle_pitch(
     float new_actual_pitch = vstate->actual_pitch;
 
     float* pitch_params = Work_buffer_get_contents_mut(wb_pitch_params);
-    pitch_params[offset] = new_pitch;
-    ++pitch_params;
+    pitch_params[offset - 1] = new_pitch;
 
     float* actual_pitches = Work_buffer_get_contents_mut(wb_actual_pitches);
-    actual_pitches[offset] = new_actual_pitch;
-    ++actual_pitches;
+    actual_pitches[offset - 1] = new_actual_pitch;
 
     for (int32_t i = offset; i < nframes; ++i)
     {
@@ -190,8 +188,7 @@ int32_t Generator_common_handle_force(
             wbs, WORK_BUFFER_ACTUAL_FORCES);
 
     float* actual_forces = Work_buffer_get_contents_mut(wb_actual_forces);
-    actual_forces[offset] = vstate->actual_force;
-    ++actual_forces;
+    actual_forces[offset - 1] = vstate->actual_force;
 
     int32_t buf_stop = nframes;
 
@@ -239,7 +236,7 @@ int32_t Generator_common_handle_force(
 
         const Work_buffer* wb_time_env = Work_buffers_get_buffer(
                 wbs, WORK_BUFFER_TIME_ENV);
-        float* time_env = Work_buffer_get_contents_mut(wb_time_env) + 1;
+        float* time_env = Work_buffer_get_contents_mut(wb_time_env);
 
         // Check the end of envelope processing
         if (vstate->force_env_state.is_finished)
@@ -285,7 +282,7 @@ int32_t Generator_common_handle_force(
 
         const Work_buffer* wb_time_env = Work_buffers_get_buffer(
                 wbs, WORK_BUFFER_TIME_ENV);
-        float* time_env = Work_buffer_get_contents_mut(wb_time_env) + 1;
+        float* time_env = Work_buffer_get_contents_mut(wb_time_env);
 
         for (int32_t i = offset; i < buf_stop; ++i)
             actual_forces[i] *= time_env[i];
@@ -321,7 +318,7 @@ void Generator_common_handle_filter(
     const Work_buffer* wb_audio_r = Work_buffers_get_buffer(
             wbs, WORK_BUFFER_AUDIO_R);
 
-    const float* actual_forces = Work_buffer_get_contents(wb_actual_forces) + 1;
+    const float* actual_forces = Work_buffer_get_contents(wb_actual_forces);
 
     float* abufs[KQT_BUFFERS_MAX] =
     {
@@ -803,7 +800,7 @@ void Generator_common_handle_panning(
     const Work_buffer* wb_audio_r = Work_buffers_get_buffer(
             wbs, WORK_BUFFER_AUDIO_R);
 
-    const float* pitch_params = Work_buffer_get_contents(wb_pitch_params) + 1;
+    const float* pitch_params = Work_buffer_get_contents(wb_pitch_params);
     float* audio_l = Work_buffer_get_contents_mut(wb_audio_l);
     float* audio_r = Work_buffer_get_contents_mut(wb_audio_r);
 

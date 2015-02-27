@@ -211,8 +211,8 @@ uint32_t Sample_mix(
             wbs, WORK_BUFFER_ACTUAL_PITCHES);
     const Work_buffer* wb_actual_forces = Work_buffers_get_buffer(
             wbs, WORK_BUFFER_ACTUAL_FORCES);
-    const float* actual_pitches = Work_buffer_get_contents_mut(wb_actual_pitches) + 1;
-    const float* actual_forces = Work_buffer_get_contents_mut(wb_actual_forces) + 1;
+    const float* actual_pitches = Work_buffer_get_contents_mut(wb_actual_pitches);
+    const float* actual_forces = Work_buffer_get_contents_mut(wb_actual_forces);
 
     const Work_buffer* wb_audio_l = Work_buffers_get_buffer(
             wbs, WORK_BUFFER_AUDIO_L);
