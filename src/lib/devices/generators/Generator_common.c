@@ -14,6 +14,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include <debug/assert.h>
 #include <devices/Generator.h>
@@ -45,31 +46,52 @@ void Generator_common_handle_pitch(
     const Work_buffer* wb_actual_pitches = Work_buffers_get_buffer(
             wbs, WORK_BUFFER_ACTUAL_PITCHES);
 
-    float new_pitch = vstate->pitch;
-    float new_actual_pitch = vstate->actual_pitch;
-
     float* pitch_params = Work_buffer_get_contents_mut(wb_pitch_params);
-    pitch_params[offset - 1] = new_pitch;
+    pitch_params[offset - 1] = vstate->pitch;
 
     float* actual_pitches = Work_buffer_get_contents_mut(wb_actual_pitches);
-    actual_pitches[offset - 1] = new_actual_pitch;
+    actual_pitches[offset - 1] = vstate->actual_pitch;
 
-    for (int32_t i = offset; i < nframes; ++i)
+    // Apply pitch slide
+    if (Slider_in_progress(&vstate->pitch_slider))
     {
-        // Update pitch slide
-        if (Slider_in_progress(&vstate->pitch_slider))
+        float new_pitch = vstate->pitch;
+        for (int32_t i = offset; i < nframes; ++i)
+        {
             new_pitch = Slider_step(&vstate->pitch_slider);
+            pitch_params[i] = new_pitch;
+        }
+        vstate->pitch = new_pitch;
+    }
+    else
+    {
+        for (int32_t i = offset; i < nframes; ++i)
+            pitch_params[i] = vstate->pitch;
+    }
 
-        new_actual_pitch = new_pitch;
+    // Initialise actual pitches
+    memcpy(actual_pitches + offset,
+            pitch_params + offset,
+            sizeof(float) * (nframes - offset));
 
-        if (vstate->arpeggio)
+    // Apply vibrato
+    if (LFO_active(&vstate->vibrato))
+    {
+        for (int32_t i = offset; i < nframes; ++i)
+            actual_pitches[i] *= LFO_step(&vstate->vibrato);
+    }
+
+    // Apply arpeggio
+    if (vstate->arpeggio)
+    {
+        for (int32_t i = offset; i < nframes; ++i)
         {
             // Adjust actual pitch according to the current arpeggio state
             assert(!isnan(vstate->arpeggio_tones[0]));
             double diff = exp2(
                     (vstate->arpeggio_tones[vstate->arpeggio_note] -
                         vstate->arpeggio_ref) / 1200);
-            new_actual_pitch *= diff;
+            actual_pitches[i] *= diff;
 
             // Update arpeggio state
             vstate->arpeggio_frames += 1;
@@ -82,92 +104,13 @@ void Generator_common_handle_pitch(
                     vstate->arpeggio_note = 0;
             }
         }
-
-        // Update vibrato
-        if (LFO_active(&vstate->vibrato))
-            new_actual_pitch *= LFO_step(&vstate->vibrato);
-
-        pitch_params[i] = new_pitch;
-        actual_pitches[i] = new_actual_pitch;
     }
 
-    vstate->pitch = new_pitch;
-    vstate->actual_pitch = new_actual_pitch;
+    vstate->actual_pitch = actual_pitches[nframes - 1];
     vstate->prev_actual_pitch = actual_pitches[nframes - 2];
 
     return;
 }
-
-
-#if 0
-void Generator_common_handle_pitch(const Generator* gen, Voice_state* vstate)
-{
-    assert(gen != NULL);
-    assert(vstate != NULL);
-    (void)gen;
-
-    if (Slider_in_progress(&vstate->pitch_slider))
-        vstate->pitch = Slider_step(&vstate->pitch_slider);
-
-    vstate->prev_actual_pitch = vstate->actual_pitch;
-    vstate->actual_pitch = vstate->pitch;
-
-#if 0
-    if (gen->conf->pitch_lock_enabled)
-    {
-        vstate->pitch = vstate->actual_pitch = gen->conf->pitch_lock_freq;
-        // TODO: The following alternative would enable a useful mode where
-        //       the actual pitch is locked but other pitch-dependent mappings
-        //       follow the original pitch.
-//        vstate->actual_pitch = gen->conf->pitch_lock_freq;
-    }
-    else
-#endif
-    {
-        if (vstate->arpeggio)
-        {
-            assert(!isnan(vstate->arpeggio_tones[0]));
-            double diff = exp2(
-                    (vstate->arpeggio_tones[vstate->arpeggio_note] -
-                        vstate->arpeggio_ref) / 1200);
-            vstate->actual_pitch *= diff;
-
-#if 0
-            if (vstate->arpeggio_note > 0)
-            {
-                vstate->actual_pitch *= vstate->arpeggio_factors[
-                                       vstate->arpeggio_note - 1];
-            }
-#endif
-
-            vstate->arpeggio_frames += 1;
-            if (vstate->arpeggio_frames >= vstate->arpeggio_length)
-            {
-                vstate->arpeggio_frames -= vstate->arpeggio_length;
-                ++vstate->arpeggio_note;
-                if (vstate->arpeggio_note > KQT_ARPEGGIO_NOTES_MAX ||
-                        isnan(vstate->arpeggio_tones[vstate->arpeggio_note]))
-                    vstate->arpeggio_note = 0;
-            }
-
-#if 0
-            if (vstate->arpeggio_note > 0)
-            {
-                fprintf(stderr, "%f %f %f %f\n", vstate->arpeggio_ref,
-                        vstate->arpeggio_tones[0],
-                        vstate->arpeggio_tones[vstate->arpeggio_note],
-                        diff);
-            }
-#endif
-        }
-
-        if (LFO_active(&vstate->vibrato))
-            vstate->actual_pitch *= LFO_step(&vstate->vibrato);
-    }
-
-    return;
-}
-#endif
 
 
 int32_t Generator_common_handle_force(
