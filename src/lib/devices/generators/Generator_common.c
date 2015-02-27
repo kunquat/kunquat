@@ -283,6 +283,13 @@ void Generator_common_handle_filter(
             actual_lowpasses[i] = lowpass;
     }
 
+    // Apply autowah
+    if (LFO_active(&vstate->autowah))
+    {
+        for (int32_t i = offset; i < nframes; ++i)
+            actual_lowpasses[i] *= LFO_step(&vstate->autowah);
+    }
+
     const Work_buffer* wb_audio_l = Work_buffers_get_buffer(
             wbs, WORK_BUFFER_AUDIO_L);
     const Work_buffer* wb_audio_r = Work_buffers_get_buffer(
@@ -297,9 +304,6 @@ void Generator_common_handle_filter(
     for (int32_t i = offset; i < nframes; ++i)
     {
         vstate->actual_lowpass = actual_lowpasses[i];
-
-        if (LFO_active(&vstate->autowah))
-            vstate->actual_lowpass *= LFO_step(&vstate->autowah);
 
         if (gen->ins_params->env_force_filter_enabled &&
                 vstate->lowpass_xfade_pos >= 1)
