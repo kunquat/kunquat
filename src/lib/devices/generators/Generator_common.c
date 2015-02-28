@@ -304,6 +304,9 @@ void Generator_common_handle_filter(
     static const double max_true_lowpass_change = 1.0145453349375237; // 2^(1/48)
     static const double min_true_lowpass_change = 1.0 / max_true_lowpass_change;
 
+    const double xfade_update = 200.0 / freq;
+    vstate->lowpass_xfade_update = xfade_update;
+
     for (int32_t i = offset; i < nframes; ++i)
     {
         vstate->actual_lowpass = actual_lowpasses[i];
@@ -334,8 +337,6 @@ void Generator_common_handle_filter(
                 vstate->lowpass_xfade_pos = 0;
             else
                 vstate->lowpass_xfade_pos = 1;
-
-            vstate->lowpass_xfade_update = 200.0 / freq; // FIXME: / freq
 
             if (vstate->actual_lowpass < freq / 2)
             {
