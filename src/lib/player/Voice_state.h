@@ -99,7 +99,6 @@ typedef struct Voice_state
 
     double effective_lowpass;      ///< The current filter cut-off frequency _really_ used.
     double effective_resonance;    ///< The current filter resonance _really_ used.
-    bool lowpass_update;           ///< Whether filter needs to be updated.
     double lowpass_xfade_pos;      ///< Filter crossfade position.
     double lowpass_xfade_update;   ///< The update amount of the filter crossfade.
     int lowpass_xfade_state_used;  ///< State fading out during the filter crossfade.

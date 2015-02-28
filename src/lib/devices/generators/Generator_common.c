@@ -301,6 +301,9 @@ void Generator_common_handle_filter(
         Work_buffer_get_contents_mut(wb_audio_r),
     };
 
+    static const double max_true_lowpass_change = 1.0145453349375237; // 2^(1/48)
+    static const double min_true_lowpass_change = 1.0 / max_true_lowpass_change;
+
     for (int32_t i = offset; i < nframes; ++i)
     {
         vstate->actual_lowpass = actual_lowpasses[i];
@@ -319,13 +322,11 @@ void Generator_common_handle_filter(
             vstate->actual_lowpass = min(vstate->actual_lowpass, 16384) * factor;
         }
 
-        if (!vstate->lowpass_update &&
-                vstate->lowpass_xfade_pos >= 1 &&
-                (vstate->actual_lowpass < vstate->effective_lowpass * 0.98566319864018759 ||
-                 vstate->actual_lowpass > vstate->effective_lowpass * 1.0145453349375237 ||
+        if (vstate->lowpass_xfade_pos >= 1 &&
+                (vstate->actual_lowpass < vstate->effective_lowpass * min_true_lowpass_change ||
+                 vstate->actual_lowpass > vstate->effective_lowpass * max_true_lowpass_change ||
                  vstate->lowpass_resonance != vstate->effective_resonance))
         {
-            vstate->lowpass_update = true;
             vstate->lowpass_xfade_state_used = vstate->lowpass_state_used;
 
             // TODO: figure out how to indicate start of note properly
@@ -366,7 +367,6 @@ void Generator_common_handle_filter(
 
             vstate->effective_lowpass = vstate->actual_lowpass;
             vstate->effective_resonance = vstate->lowpass_resonance;
-            vstate->lowpass_update = false;
         }
 
         if (vstate->lowpass_state_used > -1 || vstate->lowpass_xfade_state_used > -1)

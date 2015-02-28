@@ -128,7 +128,6 @@ Voice_state* Voice_state_clear(Voice_state* state)
     Slider_init(&state->lowpass_slider, SLIDE_MODE_EXP);
     state->lowpass_resonance = 1;
     state->effective_resonance = 1;
-    state->lowpass_update = false;
     state->lowpass_state_used = -1;
     state->lowpass_xfade_state_used = -1;
     state->lowpass_xfade_pos = 1;
