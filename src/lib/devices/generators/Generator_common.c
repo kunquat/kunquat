@@ -307,6 +307,8 @@ void Generator_common_handle_filter(
     const double xfade_update = 200.0 / freq;
     vstate->lowpass_xfade_update = xfade_update;
 
+    const double nyquist = (double)freq * 0.5;
+
     for (int32_t i = offset; i < nframes; ++i)
     {
         vstate->actual_lowpass = actual_lowpasses[i];
@@ -338,7 +340,7 @@ void Generator_common_handle_filter(
             else
                 vstate->lowpass_xfade_pos = 1;
 
-            if (vstate->actual_lowpass < freq / 2)
+            if (vstate->actual_lowpass < nyquist)
             {
                 int new_state = 1 - abs(vstate->lowpass_state_used);
                 double lowpass = max(vstate->actual_lowpass, 1);
