@@ -533,34 +533,6 @@ void Generator_common_ramp_attack(
 }
 
 
-#if 0
-void Generator_common_ramp_attack(
-        const Generator* gen,
-        Voice_state* vstate,
-        double frames[],
-        int frame_count,
-        uint32_t freq)
-{
-    assert(gen != NULL);
-    assert(vstate != NULL);
-    assert(frames != NULL);
-    assert(frame_count > 0);
-    assert(freq > 0);
-    (void)gen;
-
-    if (vstate->ramp_attack < 1)
-    {
-        for (int i = 0; i < frame_count; ++i)
-            frames[i] *= vstate->ramp_attack;
-
-        vstate->ramp_attack += RAMP_ATTACK_TIME / freq;
-    }
-
-    return;
-}
-#endif
-
-
 int32_t Generator_common_ramp_release(
         const Generator* gen,
         const Ins_state* ins_state,
