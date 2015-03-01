@@ -22,108 +22,161 @@
 #include <kunquat/limits.h>
 #include <player/Ins_state.h>
 #include <player/Voice_state.h>
+#include <player/Work_buffers.h>
 
 
 /**
- * Handle pitch.
+ * Process pitch.
  *
- * \param gen     The Generator -- must not be \c NULL.
- * \param vstate   The Voice state -- must not be \c NULL.
+ * This function fills WORK_BUFFER_PITCH_PARAMS and WORK_BUFFER_ACTUAL_PITCHES
+ * with up-to-date values in the specified buffer area.
+ *
+ * \param gen         The Generator -- must not be \c NULL.
+ * \param vstate      The Voice state -- must not be \c NULL.
+ * \param wbs         The Work buffers -- must not be \c NULL.
+ * \param buf_start   The start index of the buffer area to be processed.
+ * \param buf_stop    The stop index of the buffer area to be processed.
  */
 void Generator_common_handle_pitch(
         const Generator* gen,
         Voice_state* vstate,
         const Work_buffers* wbs,
-        int32_t nframes,
-        int32_t offset);
+        int32_t buf_start,
+        int32_t buf_stop);
 
 
 /**
- * Handle force.
+ * Process force.
+ *
+ * This function fills WORK_BUFFER_ACTUAL_FORCES with up-to-date values in the
+ * specified buffer area. It must be called after
+ * \a Generator_common_handle_pitch.
  *
  * \param gen           The Generator -- must not be \c NULL.
+ * \param ins_state     The Instrument state -- must not be \c NULL.
  * \param vstate        The Voice state -- must not be \c NULL.
- * \param frames        The frames to be modified -- must not be \c NULL.
- * \param frame_count   The number of frames to be modified -- must be > \c 0.
- * \param freq          The mixing frequency -- must be > \c 0.
+ * \param wbs           The Work buffers -- must not be \c NULL.
+ * \param audio_rate    The audio rate -- must be positive.
+ * \param buf_start     The start index of the buffer area to be processed.
+ * \param buf_stop      The stop index of the buffer area to be processed.
+ *
+ * \return   A new buffer stop index that is within the range of
+ *           [\a buf_start, \a buf_stop]. Values less than \a buf_stop
+ *           indicate that permanent silence is reached and the note should be
+ *           deactivated after the current process cycle.
  */
 int32_t Generator_common_handle_force(
         const Generator* gen,
         Ins_state* ins_state,
         Voice_state* vstate,
         const Work_buffers* wbs,
-        uint32_t freq,
-        int32_t nframes,
-        int32_t offset);
+        uint32_t audio_rate,
+        int32_t buf_start,
+        int32_t buf_stop);
 
 
 /**
- * Handle filter.
+ * Process lowpass filter.
  *
- * This should be called after force handling.
+ * This function fills WORK_BUFFER_ACTUAL_LOWPASSES with up-to-date values in
+ * the specified buffer area, and also modifies WORK_BUFFER_AUDIO_*. It must be
+ * called after \a Generator_common_handle_force and the generator
+ * implementation process function.
  *
- * \param gen           The Generator -- must not be \c NULL.
- * \param vstate        The Voice state -- must not be \c NULL.
- * \param frames        The frames to be modified -- must not be \c NULL.
- * \param frame_count   The number of frames to be modified -- must be > \c 0.
- * \param freq          The mixing frequency -- must be > \c 0.
+ * \param gen          The Generator -- must not be \c NULL.
+ * \param vstate       The Voice state -- must not be \c NULL.
+ * \param wbs          The Work buffers -- must not be \c NULL.
+ * \param ab_count     The number of audio buffers used -- must be \c 1 or
+ *                     \c 2. If \c 1, WORK_BUFFER_AUDIO_L will be updated.
+ * \param audio_rate   The audio rate -- must be positive.
+ * \param buf_start    The start index of the buffer area to be processed.
+ * \param buf_stop     The stop index of the buffer area to be processed.
  */
 void Generator_common_handle_filter(
         const Generator* gen,
         Voice_state* vstate,
         const Work_buffers* wbs,
         int ab_count,
-        uint32_t freq,
-        int32_t nframes,
-        int32_t offset);
+        uint32_t audio_rate,
+        int32_t buf_start,
+        int32_t buf_stop);
 
 
 /**
- * Ramp volume for note start and end.
+ * Process volume ramping at the start of a note.
  *
- * This should be called after force handling if needed (not all Generators
- * need this).
+ * This function modifies WORK_BUFFER_AUDIO_* and should be called by generator
+ * implementations (that need it) before returning from their process
+ * function.
  *
- * \param gen           The Generator -- must not be \c NULL.
- * \param vstate        The Voice state -- must not be \c NULL.
- * \param frames        The frames to be modified -- must not be \c NULL.
- * \param frame_count   The number of frames to be modified -- must be > \c 0.
- * \param freq          The mixing frequency -- must be > \c 0.
+ * \param gen          The Generator -- must not be \c NULL.
+ * \param vstate       The Voice state -- must not be \c NULL.
+ * \param wbs          The Work buffers -- must not be \c NULL.
+ * \param ab_count     The number of audio buffers used -- must be \c 1 or
+ *                     \c 2. If \c 1, WORK_BUFFER_AUDIO_L will be updated.
+ * \param audio_rate   The audio rate -- must be positive.
+ * \param buf_start    The start index of the buffer area to be processed.
+ * \param buf_stop     The stop index of the buffer area to be processed.
  */
 void Generator_common_ramp_attack(
         const Generator* gen,
         Voice_state* vstate,
         const Work_buffers* wbs,
         int ab_count,
-        uint32_t freq,
-        int32_t nframes,
-        int32_t offset);
+        uint32_t audio_rate,
+        int32_t buf_start,
+        int32_t buf_stop);
 
 
+/**
+ * Process volume ramping at the end of a note.
+ *
+ * This function modifies WORK_BUFFER_AUDIO_* and should be called after the
+ * generator implementation process function.
+ *
+ * \param gen          The Generator -- must not be \c NULL.
+ * \param ins_state    The Instrument state -- must not be \c NULL.
+ * \param vstate       The Voice state -- must not be \c NULL.
+ * \param wbs          The Work buffers -- must not be \c NULL.
+ * \param ab_count     The number of audio buffers used -- must be \c 1 or
+ *                     \c 2. If \c 1, WORK_BUFFER_AUDIO_L will be updated.
+ * \param audio_rate   The audio rate -- must be positive.
+ * \param buf_start    The start index of the buffer area to be processed.
+ * \param buf_stop     The stop index of the buffer area to be processed.
+ *
+ * \return   A new buffer stop index that is within the range of
+ *           [\a buf_start, \a buf_stop]. Values less than \a buf_stop
+ *           indicate that permanent silence is reached and the note should be
+ *           deactivated after the current process cycle.
+ */
 int32_t Generator_common_ramp_release(
         const Generator* gen,
         const Ins_state* ins_state,
         Voice_state* vstate,
         const Work_buffers* wbs,
         int ab_count,
-        uint32_t freq,
-        int32_t nframes,
-        int32_t offset);
+        uint32_t audio_rate,
+        int32_t buf_start,
+        int32_t buf_stop);
 
 
 /**
- * Handle panning.
+ * Process panning.
  *
- * \param gen           The Generator -- must not be \c NULL.
- * \param vstate        The Voice state -- must not be \c NULL.
- * \param frames        The frames to be modified -- must not be \c NULL.
- * \param frame_count   The number of frames to be modified -- must be > \c 0.
+ * This function modifies WORK_BUFFER_AUDIO_L and WORK_BUFFER_AUDIO_R and
+ * should be called after the generator implementation process function.
+ *
+ * \param gen         The Generator -- must not be \c NULL.
+ * \param vstate      The Voice state -- must not be \c NULL.
+ * \param wbs         The Work buffers -- must not be \c NULL.
+ * \param buf_start   The start index of the buffer area to be processed.
+ * \param buf_stop    The stop index of the buffer area to be processed.
  */
 void Generator_common_handle_panning(
         const Generator* gen,
         Voice_state* vstate,
         const Work_buffers* wbs,
-        int32_t nframes,
-        int32_t offset);
+        int32_t buf_start,
+        int32_t buf_stop);
 
 

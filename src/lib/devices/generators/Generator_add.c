@@ -533,7 +533,7 @@ static uint32_t Generator_add_mix(
         //bufs[1][mixed] += vals[1];
     }
 
-    Generator_common_ramp_attack(gen, vstate, wbs, 2, freq, mixed, offset);
+    Generator_common_ramp_attack(gen, vstate, wbs, 2, freq, offset, mixed);
 
     vstate->pos = 1; // XXX: hackish
 

@@ -33,8 +33,8 @@ void Generator_common_handle_pitch(
         const Generator* gen,
         Voice_state* vstate,
         const Work_buffers* wbs,
-        int32_t nframes,
-        int32_t offset)
+        int32_t buf_start,
+        int32_t buf_stop)
 {
     assert(gen != NULL);
     assert(vstate != NULL);
@@ -47,16 +47,16 @@ void Generator_common_handle_pitch(
             wbs, WORK_BUFFER_ACTUAL_PITCHES);
 
     float* pitch_params = Work_buffer_get_contents_mut(wb_pitch_params);
-    pitch_params[offset - 1] = vstate->pitch;
+    pitch_params[buf_start - 1] = vstate->pitch;
 
     float* actual_pitches = Work_buffer_get_contents_mut(wb_actual_pitches);
-    actual_pitches[offset - 1] = vstate->actual_pitch;
+    actual_pitches[buf_start - 1] = vstate->actual_pitch;
 
     // Apply pitch slide
     if (Slider_in_progress(&vstate->pitch_slider))
     {
         float new_pitch = vstate->pitch;
-        for (int32_t i = offset; i < nframes; ++i)
+        for (int32_t i = buf_start; i < buf_stop; ++i)
         {
             new_pitch = Slider_step(&vstate->pitch_slider);
             pitch_params[i] = new_pitch;
@@ -65,26 +65,26 @@ void Generator_common_handle_pitch(
     }
     else
     {
-        for (int32_t i = offset; i < nframes; ++i)
+        for (int32_t i = buf_start; i < buf_stop; ++i)
             pitch_params[i] = vstate->pitch;
     }
 
     // Initialise actual pitches
-    memcpy(actual_pitches + offset,
-            pitch_params + offset,
-            sizeof(float) * (nframes - offset));
+    memcpy(actual_pitches + buf_start,
+            pitch_params + buf_start,
+            sizeof(float) * (buf_stop - buf_start));
 
     // Apply vibrato
     if (LFO_active(&vstate->vibrato))
     {
-        for (int32_t i = offset; i < nframes; ++i)
+        for (int32_t i = buf_start; i < buf_stop; ++i)
             actual_pitches[i] *= LFO_step(&vstate->vibrato);
     }
 
     // Apply arpeggio
     if (vstate->arpeggio)
     {
-        for (int32_t i = offset; i < nframes; ++i)
+        for (int32_t i = buf_start; i < buf_stop; ++i)
         {
             // Adjust actual pitch according to the current arpeggio state
             assert(!isnan(vstate->arpeggio_tones[0]));
@@ -107,8 +107,8 @@ void Generator_common_handle_pitch(
     }
 
     // Update actual pitch for next iteration
-    vstate->actual_pitch = actual_pitches[nframes - 1];
-    vstate->prev_actual_pitch = actual_pitches[nframes - 2];
+    vstate->actual_pitch = actual_pitches[buf_stop - 1];
+    vstate->prev_actual_pitch = actual_pitches[buf_stop - 2];
 
     return;
 }
@@ -120,8 +120,8 @@ int32_t Generator_common_handle_force(
         Voice_state* vstate,
         const Work_buffers* wbs,
         uint32_t freq,
-        int32_t nframes,
-        int32_t offset)
+        int32_t buf_start,
+        int32_t buf_stop)
 {
     assert(gen != NULL);
     assert(ins_state != NULL);
@@ -132,15 +132,15 @@ int32_t Generator_common_handle_force(
             wbs, WORK_BUFFER_ACTUAL_FORCES);
 
     float* actual_forces = Work_buffer_get_contents_mut(wb_actual_forces);
-    actual_forces[offset - 1] = vstate->actual_force;
+    actual_forces[buf_start - 1] = vstate->actual_force;
 
-    int32_t buf_stop = nframes;
+    int32_t new_buf_stop = buf_stop;
 
     // Apply force slide & global force
     if (Slider_in_progress(&vstate->force_slider))
     {
         float new_force = vstate->force;
-        for (int32_t i = offset; i < buf_stop; ++i)
+        for (int32_t i = buf_start; i < new_buf_stop; ++i)
         {
             new_force = Slider_step(&vstate->force_slider);
             actual_forces[i] = new_force * gen->ins_params->global_force;
@@ -150,14 +150,14 @@ int32_t Generator_common_handle_force(
     else
     {
         const float actual_force = vstate->force * gen->ins_params->global_force;
-        for (int32_t i = offset; i < buf_stop; ++i)
+        for (int32_t i = buf_start; i < new_buf_stop; ++i)
             actual_forces[i] = actual_force;
     }
 
     // Apply tremolo
     if (LFO_active(&vstate->tremolo))
     {
-        for (int32_t i = offset; i < buf_stop; ++i)
+        for (int32_t i = buf_start; i < new_buf_stop; ++i)
             actual_forces[i] *= LFO_step(&vstate->tremolo);
     }
 
@@ -174,8 +174,8 @@ int32_t Generator_common_handle_force(
                 0, // sustain
                 0, 1, // range
                 wbs,
-                offset,
-                buf_stop,
+                buf_start,
+                new_buf_stop,
                 freq);
 
         const Work_buffer* wb_time_env = Work_buffers_get_buffer(
@@ -190,17 +190,17 @@ int32_t Generator_common_handle_force(
             const double last_value = last_node[1];
             if (last_value == 0)
             {
-                buf_stop = env_force_stop;
+                new_buf_stop = env_force_stop;
             }
             else
             {
                 // Fill the rest of the envelope buffer with the last value
-                for (int32_t i = env_force_stop; i < buf_stop; ++i)
+                for (int32_t i = env_force_stop; i < new_buf_stop; ++i)
                     time_env[i] = last_value;
             }
         }
 
-        for (int32_t i = offset; i < buf_stop; ++i)
+        for (int32_t i = buf_start; i < new_buf_stop; ++i)
             actual_forces[i] *= time_env[i];
     }
 
@@ -217,28 +217,28 @@ int32_t Generator_common_handle_force(
                 ins_state->sustain,
                 0, 1, // range
                 wbs,
-                offset,
-                buf_stop,
+                buf_start,
+                new_buf_stop,
                 freq);
 
         if (vstate->force_rel_env_state.is_finished)
-            buf_stop = env_force_rel_stop;
+            new_buf_stop = env_force_rel_stop;
 
         const Work_buffer* wb_time_env = Work_buffers_get_buffer(
                 wbs, WORK_BUFFER_TIME_ENV);
         float* time_env = Work_buffer_get_contents_mut(wb_time_env);
 
-        for (int32_t i = offset; i < buf_stop; ++i)
+        for (int32_t i = buf_start; i < new_buf_stop; ++i)
             actual_forces[i] *= time_env[i];
     }
 
     // Update actual force for next iteration
-    if (buf_stop < nframes)
+    if (new_buf_stop < buf_stop)
         vstate->actual_force = 0;
-    else if (buf_stop > offset)
-        vstate->actual_force = actual_forces[buf_stop - 1];
+    else if (new_buf_stop > buf_start)
+        vstate->actual_force = actual_forces[new_buf_stop - 1];
 
-    return buf_stop;
+    return new_buf_stop;
 }
 
 
@@ -337,12 +337,13 @@ void Generator_common_handle_filter(
         const Work_buffers* wbs,
         int ab_count,
         uint32_t freq,
-        int32_t nframes,
-        int32_t offset)
+        int32_t buf_start,
+        int32_t buf_stop)
 {
     assert(gen != NULL);
     assert(vstate != NULL);
     assert(wbs != NULL);
+    assert((ab_count == 1) || (ab_count == 2));
 
     const Work_buffer* wb_actual_forces = Work_buffers_get_buffer(
             wbs, WORK_BUFFER_ACTUAL_FORCES);
@@ -358,7 +359,7 @@ void Generator_common_handle_filter(
     if (Slider_in_progress(&vstate->lowpass_slider))
     {
         float new_lowpass = vstate->lowpass;
-        for (int32_t i = offset; i < nframes; ++i)
+        for (int32_t i = buf_start; i < buf_stop; ++i)
         {
             new_lowpass = Slider_step(&vstate->lowpass_slider);
             actual_lowpasses[i] = new_lowpass;
@@ -368,14 +369,14 @@ void Generator_common_handle_filter(
     else
     {
         const float lowpass = vstate->lowpass;
-        for (int32_t i = offset; i < nframes; ++i)
+        for (int32_t i = buf_start; i < buf_stop; ++i)
             actual_lowpasses[i] = lowpass;
     }
 
     // Apply autowah
     if (LFO_active(&vstate->autowah))
     {
-        for (int32_t i = offset; i < nframes; ++i)
+        for (int32_t i = buf_start; i < buf_stop; ++i)
             actual_lowpasses[i] *= LFO_step(&vstate->autowah);
     }
 
@@ -387,11 +388,11 @@ void Generator_common_handle_filter(
 
     const double nyquist = (double)freq * 0.5;
 
-    int32_t apply_filter_start = offset;
-    int32_t apply_filter_stop = nframes;
+    int32_t apply_filter_start = buf_start;
+    int32_t apply_filter_stop = buf_stop;
     double xfade_start = vstate->lowpass_xfade_pos;
 
-    for (int32_t i = offset; i < nframes; ++i)
+    for (int32_t i = buf_start; i < buf_stop; ++i)
     {
         vstate->actual_lowpass = actual_lowpasses[i];
 
@@ -429,12 +430,12 @@ void Generator_common_handle_filter(
 
             // Set up new range for next filter processing
             apply_filter_start = i;
-            apply_filter_stop = nframes;
+            apply_filter_stop = buf_stop;
 
             vstate->lowpass_xfade_state_used = vstate->lowpass_state_used;
 
             // TODO: figure out how to indicate start of note properly
-            if ((vstate->pos > 0) || (i > offset))
+            if ((vstate->pos > 0) || (i > buf_start))
                 vstate->lowpass_xfade_pos = 0;
             else
                 vstate->lowpass_xfade_pos = 1;
@@ -496,11 +497,13 @@ void Generator_common_ramp_attack(
         const Work_buffers* wbs,
         int ab_count,
         uint32_t freq,
-        int32_t nframes,
-        int32_t offset)
+        int32_t buf_start,
+        int32_t buf_stop)
 {
     assert(gen != NULL);
     assert(vstate != NULL);
+    assert(wbs != NULL);
+    assert((ab_count == 1) || (ab_count == 2));
 
     const Work_buffer* wb_audio_l = Work_buffers_get_buffer(
             wbs, WORK_BUFFER_AUDIO_L);
@@ -520,7 +523,7 @@ void Generator_common_ramp_attack(
     {
         float ramp_attack = start_ramp_attack;
 
-        for (int32_t i = offset; (i < nframes) && (ramp_attack < 1); ++i)
+        for (int32_t i = buf_start; (i < buf_stop) && (ramp_attack < 1); ++i)
         {
             abufs[ch][i] *= ramp_attack;
             ramp_attack += inc;
@@ -540,8 +543,8 @@ int32_t Generator_common_ramp_release(
         const Work_buffers* wbs,
         int ab_count,
         uint32_t freq,
-        int32_t nframes,
-        int32_t offset)
+        int32_t buf_start,
+        int32_t buf_stop)
 {
     assert(gen != NULL);
     assert(vstate != NULL);
@@ -568,12 +571,12 @@ int32_t Generator_common_ramp_release(
         const float ramp_shift = RAMP_RELEASE_TIME / freq;
         const float ramp_start = vstate->ramp_release;
         float ramp = ramp_start;
-        int32_t i = offset;
+        int32_t i = buf_start;
 
         for (int ch = 0; ch < ab_count; ++ch)
         {
             ramp = ramp_start;
-            for (i = offset; (i < nframes) && (ramp < 1); ++i)
+            for (i = buf_start; (i < buf_stop) && (ramp < 1); ++i)
             {
                 abufs[ch][i] *= 1 - ramp;
                 ramp += ramp_shift;
@@ -585,7 +588,7 @@ int32_t Generator_common_ramp_release(
         return i;
     }
 
-    return nframes;
+    return buf_stop;
 }
 
 
@@ -593,8 +596,8 @@ void Generator_common_handle_panning(
         const Generator* gen,
         Voice_state* vstate,
         const Work_buffers* wbs,
-        int32_t nframes,
-        int32_t offset)
+        int32_t buf_start,
+        int32_t buf_stop)
 {
     assert(gen != NULL);
     assert(vstate != NULL);
@@ -618,7 +621,7 @@ void Generator_common_handle_panning(
     if (Slider_in_progress(&vstate->panning_slider))
     {
         float new_panning = vstate->panning;
-        for (int32_t i = offset; i < nframes; ++i)
+        for (int32_t i = buf_start; i < buf_stop; ++i)
         {
             new_panning = Slider_step(&vstate->panning_slider);
             actual_pannings[i] = new_panning;
@@ -627,7 +630,7 @@ void Generator_common_handle_panning(
     }
     else
     {
-        for (int32_t i = offset; i < nframes; ++i)
+        for (int32_t i = buf_start; i < buf_stop; ++i)
             actual_pannings[i] = vstate->panning;
     }
 
@@ -636,7 +639,7 @@ void Generator_common_handle_panning(
     {
         const Envelope* env = gen->ins_params->env_pitch_pan;
 
-        for (int32_t i = offset; i < nframes; ++i)
+        for (int32_t i = buf_start; i < buf_stop; ++i)
         {
             float actual_panning = actual_pannings[i];
 
@@ -655,7 +658,7 @@ void Generator_common_handle_panning(
     }
 
     // Apply final panning to the audio signal
-    for (int32_t i = offset; i < nframes; ++i)
+    for (int32_t i = buf_start; i < buf_stop; ++i)
     {
         const float actual_panning = actual_pannings[i];
 

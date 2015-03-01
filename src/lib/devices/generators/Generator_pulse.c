@@ -233,7 +233,7 @@ uint32_t Generator_pulse_mix(
     }
 //  fprintf(stderr, "max_amp is %lf\n", max_amp);
 
-    Generator_common_ramp_attack(gen, vstate, wbs, 1, freq, mixed, offset);
+    Generator_common_ramp_attack(gen, vstate, wbs, 1, freq, offset, mixed);
 
     Work_buffer_copy(wb_audio_r, wb_audio_l, offset, mixed);
 

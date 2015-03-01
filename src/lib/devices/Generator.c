@@ -240,10 +240,10 @@ void Generator_mix(
 
     adjust_relative_lengths(vstate, freq, tempo);
 
-    Generator_common_handle_pitch(gen, vstate, wbs, process_stop, offset);
+    Generator_common_handle_pitch(gen, vstate, wbs, offset, process_stop);
 
     const int32_t force_stop = Generator_common_handle_force(
-            gen, ins_state, vstate, wbs, freq, process_stop, offset);
+            gen, ins_state, vstate, wbs, freq, offset, process_stop);
 
     const bool force_ended = (force_stop < process_stop);
     if (force_ended)
@@ -275,7 +275,7 @@ void Generator_mix(
 
     // Apply common parameters to generated signal
     const int32_t ramp_release_stop = Generator_common_ramp_release(
-            gen, ins_state, vstate, wbs, 2, freq, process_stop, offset);
+            gen, ins_state, vstate, wbs, 2, freq, offset, process_stop);
     const bool ramp_release_ended = (vstate->ramp_release >= 1);
     if (ramp_release_ended)
     {
@@ -284,8 +284,8 @@ void Generator_mix(
         process_stop = ramp_release_stop;
     }
 
-    Generator_common_handle_filter(gen, vstate, wbs, 2, freq, process_stop, offset);
-    Generator_common_handle_panning(gen, vstate, wbs, process_stop, offset);
+    Generator_common_handle_filter(gen, vstate, wbs, 2, freq, offset, process_stop);
+    Generator_common_handle_panning(gen, vstate, wbs, offset, process_stop);
 
     vstate->pos = new_pos;
     vstate->pos_rem = new_pos_rem;
