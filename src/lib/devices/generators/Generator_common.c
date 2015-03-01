@@ -575,9 +575,7 @@ int32_t Generator_common_ramp_release(
             ramp = ramp_start;
             for (i = offset; (i < nframes) && (ramp < 1); ++i)
             {
-                if (ramp < 1)
-                    abufs[ch][i] *= 1 - ramp;
-
+                abufs[ch][i] *= 1 - ramp;
                 ramp += ramp_shift;
             }
         }
