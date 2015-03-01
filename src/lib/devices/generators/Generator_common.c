@@ -340,12 +340,15 @@ void Generator_common_handle_filter(
             else
                 vstate->lowpass_xfade_pos = 1;
 
-            if (vstate->actual_lowpass < nyquist)
+            vstate->effective_lowpass = vstate->actual_lowpass;
+            vstate->effective_resonance = vstate->lowpass_resonance;
+
+            if (vstate->effective_lowpass < nyquist)
             {
                 int new_state = 1 - abs(vstate->lowpass_state_used);
-                double lowpass = max(vstate->actual_lowpass, 1);
+                double lowpass = max(vstate->effective_lowpass, 1);
                 two_pole_filter_create(lowpass / freq,
-                        vstate->lowpass_resonance,
+                        vstate->effective_resonance,
                         0,
                         vstate->lowpass_state[new_state].coeffs,
                         &vstate->lowpass_state[new_state].mul);
@@ -367,9 +370,6 @@ void Generator_common_handle_filter(
 
                 vstate->lowpass_state_used = -1;
             }
-
-            vstate->effective_lowpass = vstate->actual_lowpass;
-            vstate->effective_resonance = vstate->lowpass_resonance;
         }
 
         if (vstate->lowpass_state_used > -1 || vstate->lowpass_xfade_state_used > -1)
