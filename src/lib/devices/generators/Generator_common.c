@@ -270,9 +270,9 @@ void apply_filter_settings(
         Work_buffer_get_contents_mut(wb_audio_r),
     };
 
+    // Get filter states used
     Filter_state* in_fst = (vstate->lowpass_state_used > -1) ?
         &vstate->lowpass_state[vstate->lowpass_state_used] : NULL;
-
     Filter_state* out_fst = (vstate->lowpass_xfade_state_used > -1) ?
         &vstate->lowpass_state[vstate->lowpass_xfade_state_used] : NULL;
 
@@ -289,6 +289,7 @@ void apply_filter_settings(
             const float input = audio_buffer[i];
             double result = input;
 
+            // Apply primary filter
             if (in_fst != NULL)
             {
                 result = nq_zero_filter(
@@ -298,6 +299,7 @@ void apply_filter_settings(
                 result *= in_fst->mul;
             }
 
+            // Apply secondary filter with crossfade
             if (xfade < 1)
             {
                 result *= xfade;
