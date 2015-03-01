@@ -602,21 +602,38 @@ void Generator_common_handle_panning(
 
     const Work_buffer* wb_pitch_params = Work_buffers_get_buffer(
             wbs, WORK_BUFFER_PITCH_PARAMS);
+    const Work_buffer* wb_actual_pannings = Work_buffers_get_buffer(
+            wbs, WORK_BUFFER_ACTUAL_PANNINGS);
     const Work_buffer* wb_audio_l = Work_buffers_get_buffer(
             wbs, WORK_BUFFER_AUDIO_L);
     const Work_buffer* wb_audio_r = Work_buffers_get_buffer(
             wbs, WORK_BUFFER_AUDIO_R);
 
     const float* pitch_params = Work_buffer_get_contents(wb_pitch_params);
+    float* actual_pannings = Work_buffer_get_contents_mut(wb_actual_pannings);
     float* audio_l = Work_buffer_get_contents_mut(wb_audio_l);
     float* audio_r = Work_buffer_get_contents_mut(wb_audio_r);
 
+    // Apply panning slide
+    if (Slider_in_progress(&vstate->panning_slider))
+    {
+        float new_panning = vstate->panning;
+        for (int32_t i = offset; i < nframes; ++i)
+        {
+            new_panning = Slider_step(&vstate->panning_slider);
+            actual_pannings[i] = new_panning;
+        }
+        vstate->panning = new_panning;
+    }
+    else
+    {
+        for (int32_t i = offset; i < nframes; ++i)
+            actual_pannings[i] = vstate->panning;
+    }
+
     for (int32_t i = offset; i < nframes; ++i)
     {
-        if (Slider_in_progress(&vstate->panning_slider))
-            vstate->panning = Slider_step(&vstate->panning_slider);
-
-        vstate->actual_panning = vstate->panning;
+        float actual_panning = actual_pannings[i];
 
         if (gen->ins_params->env_pitch_pan_enabled)
         {
@@ -629,17 +646,17 @@ void Generator_common_handle_panning(
 
             double pan = Envelope_get_value(env, cents);
             assert(isfinite(pan));
-            double separation = 1 - fabs(vstate->actual_panning);
-            vstate->actual_panning += pan * separation;
+            double separation = 1 - fabs(actual_panning);
+            actual_panning += pan * separation;
 
-            if (vstate->actual_panning < -1)
-                vstate->actual_panning = -1;
-            else if (vstate->actual_panning > 1)
-                vstate->actual_panning = 1;
+            if (actual_panning < -1)
+                actual_panning = -1;
+            else if (actual_panning > 1)
+                actual_panning = 1;
         }
 
-        audio_l[i] *= 1 - vstate->actual_panning;
-        audio_r[i] *= 1 + vstate->actual_panning;
+        audio_l[i] *= 1 - actual_panning;
+        audio_r[i] *= 1 + actual_panning;
     }
 
     return;
