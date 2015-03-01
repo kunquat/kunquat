@@ -631,29 +631,33 @@ void Generator_common_handle_panning(
             actual_pannings[i] = vstate->panning;
     }
 
-    for (int32_t i = offset; i < nframes; ++i)
+    // Apply pitch->pan envelope
+    if (gen->ins_params->env_pitch_pan_enabled)
     {
-        float actual_panning = actual_pannings[i];
+        const Envelope* env = gen->ins_params->env_pitch_pan;
 
-        if (gen->ins_params->env_pitch_pan_enabled)
+        for (int32_t i = offset; i < nframes; ++i)
         {
-            Envelope* env = gen->ins_params->env_pitch_pan;
-            double cents = log2(pitch_params[i] / 440) * 1200;
-            if (cents < -6000)
-                cents = -6000;
-            else if (cents > 6000)
-                cents = 6000;
+            float actual_panning = actual_pannings[i];
 
-            double pan = Envelope_get_value(env, cents);
+            double cents = log2(pitch_params[i] / 440) * 1200;
+            cents = clamp(cents, -6000, 6000);
+
+            const double pan = Envelope_get_value(env, cents);
             assert(isfinite(pan));
+
             double separation = 1 - fabs(actual_panning);
             actual_panning += pan * separation;
+            actual_panning = clamp(actual_panning, -1, 1);
 
-            if (actual_panning < -1)
-                actual_panning = -1;
-            else if (actual_panning > 1)
-                actual_panning = 1;
+            actual_pannings[i] = actual_panning;
         }
+    }
+
+    // Apply final panning to the audio signal
+    for (int32_t i = offset; i < nframes; ++i)
+    {
+        const float actual_panning = actual_pannings[i];
 
         audio_l[i] *= 1 - actual_panning;
         audio_r[i] *= 1 + actual_panning;
