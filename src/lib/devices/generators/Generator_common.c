@@ -257,6 +257,8 @@ void apply_filter_settings(
     if ((vstate->lowpass_state_used == -1) && (vstate->lowpass_xfade_state_used == -1))
         return;
 
+    assert(vstate->lowpass_state_used != vstate->lowpass_xfade_state_used);
+
     const Work_buffer* wb_audio_l = Work_buffers_get_buffer(
             wbs, WORK_BUFFER_AUDIO_L);
     const Work_buffer* wb_audio_r = Work_buffers_get_buffer(
@@ -268,15 +270,17 @@ void apply_filter_settings(
         Work_buffer_get_contents_mut(wb_audio_r),
     };
 
+    const double xfade_start_clamped = min(xfade_start, 1);
+
     for (int32_t ch = 0; ch < ab_count; ++ch)
     {
-        double xfade_pos = xfade_start;
+        double xfade = xfade_start_clamped;
+
+        float* audio_buffer = abufs[ch];
 
         for (int32_t i = buf_start; i < buf_stop; ++i)
         {
-            assert(vstate->lowpass_state_used != vstate->lowpass_xfade_state_used);
-
-            const float input = abufs[ch][i];
+            const float input = audio_buffer[i];
             double result = input;
 
             if (vstate->lowpass_state_used > -1)
@@ -291,14 +295,10 @@ void apply_filter_settings(
                 result *= fst->mul;
             }
 
-            double vol = xfade_pos;
-            if (vol > 1)
-                vol = 1;
-
-            result *= vol;
-
-            if (xfade_pos < 1)
+            if (xfade < 1)
             {
+                result *= xfade;
+
                 double fade_result = input;
 
                 if (vstate->lowpass_xfade_state_used > -1)
@@ -313,13 +313,12 @@ void apply_filter_settings(
                     fade_result *= fst->mul;
                 }
 
-                double vol = 1 - xfade_pos;
-                result += fade_result * vol;
+                result += fade_result * (1 - xfade);
 
-                xfade_pos += xfade_step;
+                xfade += xfade_step;
             }
 
-            abufs[ch][i] = result;
+            audio_buffer[i] = result;
         }
     }
 
