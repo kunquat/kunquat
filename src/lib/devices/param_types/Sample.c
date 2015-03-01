@@ -353,9 +353,6 @@ uint32_t Sample_mix(
         }
 #undef get_items
 
-        //Generator_common_handle_force(gen, ins_state, vstate, vals, 2, freq);
-        //Generator_common_handle_filter(gen, vstate, vals, 2, freq);
-
         audio_l[mixed] = vals[0] * actual_force * vol_scale;
         audio_r[mixed] = vals[1] * actual_force * vol_scale;
 
@@ -365,11 +362,6 @@ uint32_t Sample_mix(
 
         new_pos += adv;
         vstate->pos_rem += adv_rem;
-//        Generator_common_handle_note_off(gen, vstate, vals, 2, freq);
-        //Generator_common_handle_panning(gen, vstate, vals, 2);
-
-        //bufs[0][mixed] += vals[0] * vol_scale;
-        //bufs[1][mixed] += vals[1] * vol_scale;
 
         if (vstate->pos_rem >= 1)
         {

@@ -251,12 +251,6 @@ static bool Generator_add_init(Device_impl* dimpl)
         return NULL;
     }
 
-#if 0
-    Sample_set_loop_start(add->base, 0);
-    Sample_set_loop_end(add->base, BASE_FUNC_SIZE);
-    Sample_set_loop(add->base, SAMPLE_LOOP_UNI);
-#endif
-
     for (int i = 0; i < BASE_FUNC_SIZE; ++i)
     {
         buf[i] = sine((double)i / BASE_FUNC_SIZE, 0);
@@ -522,15 +516,6 @@ static uint32_t Generator_add_mix(
 
         audio_l[mixed] = vals[0] * actual_force;
         audio_r[mixed] = vals[1] * actual_force;
-
-        //Generator_common_handle_force(gen, ins_state, vstate, vals, 2, freq);
-        //Generator_common_handle_filter(gen, vstate, vals, 2, freq);
-        //Generator_common_ramp_attack(gen, vstate, vals, 2, freq);
-
-        //Generator_common_handle_panning(gen, vstate, vals, 2);
-
-        //bufs[0][mixed] += vals[0];
-        //bufs[1][mixed] += vals[1];
     }
 
     Generator_common_ramp_attack(gen, vstate, wbs, 2, freq, offset, mixed);

@@ -213,23 +213,9 @@ uint32_t Generator_pulse_mix(
 
         audio_l[mixed] = val * actual_force;
 
-        //Generator_common_handle_force(gen, ins_state, vstate, vals, 1, freq);
-        //Generator_common_handle_filter(gen, vstate, vals, 1, freq);
-        //Generator_common_ramp_attack(gen, vstate, vals, 1, freq);
-
         pulse_vstate->phase += actual_pitch / freq;
         if (pulse_vstate->phase >= 1)
             pulse_vstate->phase -= floor(pulse_vstate->phase);
-
-//        Generator_common_handle_note_off(gen, vstate, vals, 1, freq);
-        //vals[1] = vals[0];
-        //Generator_common_handle_panning(gen, vstate, vals, 2);
-        //bufs[0][mixed] += vals[0];
-        //bufs[1][mixed] += vals[1];
-/*        if (fabs(val_l) > max_amp)
-        {
-            max_amp = fabs(val_l);
-        } */
     }
 //  fprintf(stderr, "max_amp is %lf\n", max_amp);
 

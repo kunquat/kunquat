@@ -238,19 +238,6 @@ static uint32_t Generator_noise_mix(
 
         audio_l[mixed] = vals[0] * actual_force;
         audio_r[mixed] = vals[1] * actual_force;
-
-        //Generator_common_handle_force(gen, ins_state, vstate, vals, 2, freq);
-        //Generator_common_handle_filter(gen, vstate, vals, 2, freq);
-        //Generator_common_ramp_attack(gen, vstate, vals, 2, freq);
-
-//        Generator_common_handle_note_off(gen, vstate, vals, 2, freq);
-        //Generator_common_handle_panning(gen, vstate, vals, 2);
-        //bufs[0][mixed] += vals[0];
-        //bufs[1][mixed] += vals[1];
-/*      if (fabs(val_l) > max_amp)
-        {
-            max_amp = fabs(val_l);
-        } */
     }
 
     Generator_common_ramp_attack(gen, vstate, wbs, 2, freq, offset, mixed);
