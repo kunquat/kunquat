@@ -82,6 +82,26 @@ const Work_buffer* Work_buffers_get_buffer(
 }
 
 
+const float* Work_buffers_get_buffer_contents(
+        const Work_buffers* buffers, Work_buffer_type type)
+{
+    assert(buffers != NULL);
+    assert(type < WORK_BUFFER_COUNT_);
+
+    return Work_buffer_get_contents(buffers->buffers[type]);
+}
+
+
+float* Work_buffers_get_buffer_contents_mut(
+        const Work_buffers* buffers, Work_buffer_type type)
+{
+    assert(buffers != NULL);
+    assert(type < WORK_BUFFER_COUNT_);
+
+    return Work_buffer_get_contents_mut(buffers->buffers[type]);
+}
+
+
 void del_Work_buffers(Work_buffers* buffers)
 {
     if (buffers == NULL)

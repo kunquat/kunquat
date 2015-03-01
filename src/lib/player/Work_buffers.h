@@ -68,10 +68,10 @@ bool Work_buffers_resize(Work_buffers* buffers, uint32_t new_size);
 
 
 /**
- * Retrieves a Work buffer.
+ * Get a Work buffer.
  *
- * \param buffer   The Work buffers -- must not be \c NULL.
- * \param type     The Work buffer type -- must be valid.
+ * \param buffers   The Work buffers -- must not be \c NULL.
+ * \param type      The Work buffer type -- must be valid.
  *
  * \return   The Work buffer. This is never \c NULL.
  */
@@ -80,7 +80,41 @@ const Work_buffer* Work_buffers_get_buffer(
 
 
 /**
- * Destroys existing Work buffers.
+ * Get contents of a Work buffer.
+ *
+ * This is a convenience function that uses \a Work_buffer_get_contents
+ * directly.
+ *
+ * \param buffers   The Work buffers -- must not be \c NULL.
+ * \param type      The Work buffer type -- must be valid.
+ *
+ * \return   The address of the internal buffer, with -1 as the first valid
+ *           index. For devices that receive the buffers from a caller, this
+ *           function never returns \c NULL.
+ */
+const float* Work_buffers_get_buffer_contents(
+        const Work_buffers* buffers, Work_buffer_type type);
+
+
+/**
+ * Get mutable contents of a Work buffer.
+ *
+ * This is a convenience function that uses \a Work_buffer_get_contents_mut
+ * directly.
+ *
+ * \param buffers   The Work buffers -- must not be \c NULL.
+ * \param type      The Work buffer type -- must be valid.
+ *
+ * \return   The address of the internal buffer, with -1 as the first valid
+ *           index. For devices that receive the buffers from a caller, this
+ *           function never returns \c NULL.
+ */
+float* Work_buffers_get_buffer_contents_mut(
+        const Work_buffers* buffers, Work_buffer_type type);
+
+
+/**
+ * Destroy existing Work buffers.
  *
  * \param buffers   The Work buffers, or \c NULL.
  */

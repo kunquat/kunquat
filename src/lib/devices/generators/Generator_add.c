@@ -368,19 +368,13 @@ static uint32_t Generator_add_mix(
     Voice_state_add* add_state = (Voice_state_add*)vstate;
     assert(is_p2(BASE_FUNC_SIZE));
 
-    const Work_buffer* wb_actual_pitches = Work_buffers_get_buffer(
+    const float* actual_pitches = Work_buffers_get_buffer_contents(
             wbs, WORK_BUFFER_ACTUAL_PITCHES);
-    const Work_buffer* wb_actual_forces = Work_buffers_get_buffer(
+    const float* actual_forces = Work_buffers_get_buffer_contents(
             wbs, WORK_BUFFER_ACTUAL_FORCES);
-    const float* actual_pitches = Work_buffer_get_contents(wb_actual_pitches);
-    const float* actual_forces = Work_buffer_get_contents(wb_actual_forces);
 
-    const Work_buffer* wb_audio_l = Work_buffers_get_buffer(
-            wbs, WORK_BUFFER_AUDIO_L);
-    const Work_buffer* wb_audio_r = Work_buffers_get_buffer(
-            wbs, WORK_BUFFER_AUDIO_R);
-    float* audio_l = Work_buffer_get_contents_mut(wb_audio_l);
-    float* audio_r = Work_buffer_get_contents_mut(wb_audio_r);
+    float* audio_l = Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_AUDIO_L);
+    float* audio_r = Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_AUDIO_R);
 
     uint32_t mixed = offset;
     for (; mixed < nframes && vstate->active; ++mixed)

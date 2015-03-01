@@ -41,15 +41,12 @@ void Generator_common_handle_pitch(
     assert(wbs != NULL);
     (void)gen;
 
-    const Work_buffer* wb_pitch_params = Work_buffers_get_buffer(
+    float* pitch_params = Work_buffers_get_buffer_contents_mut(
             wbs, WORK_BUFFER_PITCH_PARAMS);
-    const Work_buffer* wb_actual_pitches = Work_buffers_get_buffer(
-            wbs, WORK_BUFFER_ACTUAL_PITCHES);
-
-    float* pitch_params = Work_buffer_get_contents_mut(wb_pitch_params);
     pitch_params[buf_start - 1] = vstate->pitch;
 
-    float* actual_pitches = Work_buffer_get_contents_mut(wb_actual_pitches);
+    float* actual_pitches = Work_buffers_get_buffer_contents_mut(
+            wbs, WORK_BUFFER_ACTUAL_PITCHES);
     actual_pitches[buf_start - 1] = vstate->actual_pitch;
 
     // Apply pitch slide
@@ -128,10 +125,8 @@ int32_t Generator_common_handle_force(
     assert(vstate != NULL);
     assert(wbs != NULL);
 
-    const Work_buffer* wb_actual_forces = Work_buffers_get_buffer(
+    float* actual_forces = Work_buffers_get_buffer_contents_mut(
             wbs, WORK_BUFFER_ACTUAL_FORCES);
-
-    float* actual_forces = Work_buffer_get_contents_mut(wb_actual_forces);
     actual_forces[buf_start - 1] = vstate->actual_force;
 
     int32_t new_buf_stop = buf_stop;
@@ -259,15 +254,10 @@ void apply_filter_settings(
 
     assert(vstate->lowpass_state_used != vstate->lowpass_xfade_state_used);
 
-    const Work_buffer* wb_audio_l = Work_buffers_get_buffer(
-            wbs, WORK_BUFFER_AUDIO_L);
-    const Work_buffer* wb_audio_r = Work_buffers_get_buffer(
-            wbs, WORK_BUFFER_AUDIO_R);
-
     float* abufs[KQT_BUFFERS_MAX] =
     {
-        Work_buffer_get_contents_mut(wb_audio_l),
-        Work_buffer_get_contents_mut(wb_audio_r),
+        Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_AUDIO_L),
+        Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_AUDIO_R),
     };
 
     // Get filter states used
@@ -345,15 +335,11 @@ void Generator_common_handle_filter(
     assert(wbs != NULL);
     assert((ab_count == 1) || (ab_count == 2));
 
-    const Work_buffer* wb_actual_forces = Work_buffers_get_buffer(
+    const float* actual_forces = Work_buffers_get_buffer_contents(
             wbs, WORK_BUFFER_ACTUAL_FORCES);
 
-    const float* actual_forces = Work_buffer_get_contents(wb_actual_forces);
-
-    const Work_buffer* wb_actual_lowpasses = Work_buffers_get_buffer(
+    float* actual_lowpasses = Work_buffers_get_buffer_contents_mut(
             wbs, WORK_BUFFER_ACTUAL_LOWPASSES);
-
-    float* actual_lowpasses = Work_buffer_get_contents_mut(wb_actual_lowpasses);
 
     // Apply lowpass slide
     if (Slider_in_progress(&vstate->lowpass_slider))
@@ -505,15 +491,10 @@ void Generator_common_ramp_attack(
     assert(wbs != NULL);
     assert((ab_count == 1) || (ab_count == 2));
 
-    const Work_buffer* wb_audio_l = Work_buffers_get_buffer(
-            wbs, WORK_BUFFER_AUDIO_L);
-    const Work_buffer* wb_audio_r = Work_buffers_get_buffer(
-            wbs, WORK_BUFFER_AUDIO_R);
-
     float* abufs[KQT_BUFFERS_MAX] =
     {
-        Work_buffer_get_contents_mut(wb_audio_l),
-        Work_buffer_get_contents_mut(wb_audio_r),
+        Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_AUDIO_L),
+        Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_AUDIO_R),
     };
 
     const float start_ramp_attack = vstate->ramp_attack;
@@ -557,15 +538,10 @@ int32_t Generator_common_ramp_release(
 
     if (do_ramp_release)
     {
-        const Work_buffer* wb_audio_l = Work_buffers_get_buffer(
-                wbs, WORK_BUFFER_AUDIO_L);
-        const Work_buffer* wb_audio_r = Work_buffers_get_buffer(
-                wbs, WORK_BUFFER_AUDIO_R);
-
         float* abufs[KQT_BUFFERS_MAX] =
         {
-            Work_buffer_get_contents_mut(wb_audio_l),
-            Work_buffer_get_contents_mut(wb_audio_r),
+            Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_AUDIO_L),
+            Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_AUDIO_R),
         };
 
         const float ramp_shift = RAMP_RELEASE_TIME / freq;
@@ -603,19 +579,12 @@ void Generator_common_handle_panning(
     assert(vstate != NULL);
     assert(wbs != NULL);
 
-    const Work_buffer* wb_pitch_params = Work_buffers_get_buffer(
+    const float* pitch_params = Work_buffers_get_buffer_contents(
             wbs, WORK_BUFFER_PITCH_PARAMS);
-    const Work_buffer* wb_actual_pannings = Work_buffers_get_buffer(
+    float* actual_pannings = Work_buffers_get_buffer_contents_mut(
             wbs, WORK_BUFFER_ACTUAL_PANNINGS);
-    const Work_buffer* wb_audio_l = Work_buffers_get_buffer(
-            wbs, WORK_BUFFER_AUDIO_L);
-    const Work_buffer* wb_audio_r = Work_buffers_get_buffer(
-            wbs, WORK_BUFFER_AUDIO_R);
-
-    const float* pitch_params = Work_buffer_get_contents(wb_pitch_params);
-    float* actual_pannings = Work_buffer_get_contents_mut(wb_actual_pannings);
-    float* audio_l = Work_buffer_get_contents_mut(wb_audio_l);
-    float* audio_r = Work_buffer_get_contents_mut(wb_audio_r);
+    float* audio_l = Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_AUDIO_L);
+    float* audio_r = Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_AUDIO_R);
 
     // Apply panning slide
     if (Slider_in_progress(&vstate->panning_slider))

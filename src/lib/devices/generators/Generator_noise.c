@@ -195,16 +195,11 @@ static uint32_t Generator_noise_mix(
             noise_state->order = 0;
     }
 
-    const Work_buffer* wb_actual_forces = Work_buffers_get_buffer(
+    float* actual_forces = Work_buffers_get_buffer_contents_mut(
             wbs, WORK_BUFFER_ACTUAL_FORCES);
-    float* actual_forces = Work_buffer_get_contents_mut(wb_actual_forces);
 
-    const Work_buffer* wb_audio_l = Work_buffers_get_buffer(
-            wbs, WORK_BUFFER_AUDIO_L);
-    const Work_buffer* wb_audio_r = Work_buffers_get_buffer(
-            wbs, WORK_BUFFER_AUDIO_R);
-    float* audio_l = Work_buffer_get_contents_mut(wb_audio_l);
-    float* audio_r = Work_buffer_get_contents_mut(wb_audio_r);
+    float* audio_l = Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_AUDIO_L);
+    float* audio_r = Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_AUDIO_R);
 
     uint32_t mixed = offset;
     for (; mixed < nframes && vstate->active; ++mixed)
