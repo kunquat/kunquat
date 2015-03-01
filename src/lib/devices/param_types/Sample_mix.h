@@ -35,9 +35,9 @@
  * \param ins_state     The Instrument state -- must not be \c NULL.
  * \param vstate        The Voice state -- must not be \c NULL.
  * \param wbs           The Work buffers -- must not be \c NULL.
- * \param nframes       The number of frames to be mixed.
- * \param offset        The buffer offset.
- * \param freq          The mixing frequency -- must be > \c 0.
+ * \param buf_start     The start index of the buffer area to be processed.
+ * \param buf_stop      The stop index of the buffer area to be processed.
+ * \param audio_rate    The audio rate -- must be positive.
  * \param tempo         The tempo -- must be > \c 0.
  * \param middle_tone   The frequency of the sound in the native speed of the
  *                      Sample -- must be > \c 0.
@@ -52,9 +52,9 @@ uint32_t Sample_mix(
         Ins_state* ins_state,
         Voice_state* vstate,
         const Work_buffers* wbs,
-        uint32_t nframes,
-        uint32_t offset,
-        uint32_t freq,
+        int32_t buf_start,
+        int32_t buf_stop,
+        uint32_t audio_rate,
         double tempo,
         double middle_tone,
         double middle_freq,

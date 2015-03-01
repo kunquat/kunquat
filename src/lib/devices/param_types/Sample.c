@@ -189,9 +189,9 @@ uint32_t Sample_mix(
         Ins_state* ins_state,
         Voice_state* vstate,
         const Work_buffers* wbs,
-        uint32_t nframes,
-        uint32_t offset,
-        uint32_t freq,
+        int32_t buf_start,
+        int32_t buf_stop,
+        uint32_t audio_rate,
         double tempo,
         double middle_tone,
         double middle_freq,
@@ -203,7 +203,7 @@ uint32_t Sample_mix(
     assert(ins_state != NULL);
     assert(vstate != NULL);
     assert(wbs != NULL);
-    assert(freq > 0);
+    assert(audio_rate > 0);
     assert(tempo > 0);
     assert(vol_scale >= 0);
 
@@ -217,8 +217,8 @@ uint32_t Sample_mix(
 
     uint64_t new_pos = vstate->pos;
 
-    uint32_t mixed = offset;
-    for (; mixed < nframes && vstate->active; ++mixed)
+    int32_t mixed = buf_start;
+    for (; mixed < buf_stop && vstate->active; ++mixed)
     {
         if (vstate->rel_pos >= sample->len)
         {
@@ -350,7 +350,7 @@ uint32_t Sample_mix(
         audio_l[mixed] = vals[0] * actual_force * vol_scale;
         audio_r[mixed] = vals[1] * actual_force * vol_scale;
 
-        double advance = (actual_pitch / middle_tone) * middle_freq / freq;
+        double advance = (actual_pitch / middle_tone) * middle_freq / audio_rate;
         uint64_t adv = floor(advance);
         double adv_rem = advance - adv;
 

@@ -306,7 +306,7 @@ uint32_t Generator_pcm_mix(
 
     return Sample_mix(
             sample, header, gen, ins_state, vstate, wbs,
-            nframes, offset, freq, tempo,
+            offset, nframes, freq, tempo,
             pcm_state->middle_tone, pcm_state->freq,
             pcm_state->volume);
 }
