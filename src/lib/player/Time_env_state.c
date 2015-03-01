@@ -64,13 +64,10 @@ int32_t Time_env_state_process(
     assert(buf_stop >= 0);
     assert(audio_rate > 0);
 
-    const Work_buffer* wb_actual_pitches = Work_buffers_get_buffer(
+    const float* actual_pitches = Work_buffers_get_buffer_contents(
             wbs, WORK_BUFFER_ACTUAL_PITCHES);
-    const float* actual_pitches = Work_buffer_get_contents(wb_actual_pitches);
 
-    const Work_buffer* wb_time_env = Work_buffers_get_buffer(
-            wbs, WORK_BUFFER_TIME_ENV);
-    float* values = Work_buffer_get_contents_mut(wb_time_env);
+    float* values = Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_TIME_ENV);
 
     const double slowdown_fac = 1.0 - sustain;
 
