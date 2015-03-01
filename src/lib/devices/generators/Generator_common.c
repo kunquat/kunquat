@@ -270,6 +270,12 @@ void apply_filter_settings(
         Work_buffer_get_contents_mut(wb_audio_r),
     };
 
+    Filter_state* in_fst = (vstate->lowpass_state_used > -1) ?
+        &vstate->lowpass_state[vstate->lowpass_state_used] : NULL;
+
+    Filter_state* out_fst = (vstate->lowpass_xfade_state_used > -1) ?
+        &vstate->lowpass_state[vstate->lowpass_xfade_state_used] : NULL;
+
     const double xfade_start_clamped = min(xfade_start, 1);
 
     for (int32_t ch = 0; ch < ab_count; ++ch)
@@ -283,16 +289,13 @@ void apply_filter_settings(
             const float input = audio_buffer[i];
             double result = input;
 
-            if (vstate->lowpass_state_used > -1)
+            if (in_fst != NULL)
             {
-                Filter_state* fst =
-                        &vstate->lowpass_state[vstate->lowpass_state_used];
-
                 result = nq_zero_filter(
-                        FILTER_ORDER, fst->history1[ch], input);
+                        FILTER_ORDER, in_fst->history1[ch], input);
                 result = iir_filter_strict_cascade(
-                        FILTER_ORDER, fst->coeffs, fst->history2[ch], result);
-                result *= fst->mul;
+                        FILTER_ORDER, in_fst->coeffs, in_fst->history2[ch], result);
+                result *= in_fst->mul;
             }
 
             if (xfade < 1)
@@ -301,16 +304,16 @@ void apply_filter_settings(
 
                 double fade_result = input;
 
-                if (vstate->lowpass_xfade_state_used > -1)
+                if (out_fst != NULL)
                 {
-                    Filter_state* fst =
-                            &vstate->lowpass_state[vstate->lowpass_xfade_state_used];
-
                     fade_result = nq_zero_filter(
-                            FILTER_ORDER, fst->history1[ch], input);
+                            FILTER_ORDER, out_fst->history1[ch], input);
                     fade_result = iir_filter_strict_cascade(
-                            FILTER_ORDER, fst->coeffs, fst->history2[ch], fade_result);
-                    fade_result *= fst->mul;
+                            FILTER_ORDER,
+                            out_fst->coeffs,
+                            out_fst->history2[ch],
+                            fade_result);
+                    fade_result *= out_fst->mul;
                 }
 
                 result += fade_result * (1 - xfade);
