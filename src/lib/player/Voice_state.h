@@ -97,8 +97,8 @@ typedef struct Voice_state
     LFO autowah;
     double lowpass_resonance;      ///< The filter resonance (Q factor).
 
-    double effective_lowpass;      ///< The current filter cut-off frequency _really_ used.
-    double effective_resonance;    ///< The current filter resonance _really_ used.
+    double true_lowpass;           ///< The current real filter state cut-off frequency.
+    double true_resonance;         ///< The current real filter state resonance.
     double lowpass_xfade_pos;      ///< Filter crossfade position.
     double lowpass_xfade_update;   ///< The update amount of the filter crossfade.
     int lowpass_xfade_state_used;  ///< State fading out during the filter crossfade.

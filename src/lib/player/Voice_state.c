@@ -124,10 +124,10 @@ Voice_state* Voice_state_clear(Voice_state* state)
 
     state->lowpass = INFINITY;
     state->actual_lowpass = INFINITY;
-    state->effective_lowpass = INFINITY;
+    state->true_lowpass = INFINITY;
     Slider_init(&state->lowpass_slider, SLIDE_MODE_EXP);
     state->lowpass_resonance = 1;
-    state->effective_resonance = 1;
+    state->true_resonance = 1;
     state->lowpass_state_used = -1;
     state->lowpass_xfade_state_used = -1;
     state->lowpass_xfade_pos = 1;

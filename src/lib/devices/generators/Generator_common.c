@@ -395,6 +395,7 @@ void Generator_common_handle_filter(
     {
         vstate->actual_lowpass = actual_lowpasses[i];
 
+        // Apply force->filter envelope
         if (gen->ins_params->env_force_filter_enabled &&
                 vstate->lowpass_xfade_pos >= 1)
         {
@@ -409,10 +410,11 @@ void Generator_common_handle_filter(
             vstate->actual_lowpass = min(vstate->actual_lowpass, 16384) * factor;
         }
 
+        // Initialise new filter settings if needed
         if (vstate->lowpass_xfade_pos >= 1 &&
-                (vstate->actual_lowpass < vstate->effective_lowpass * min_true_lowpass_change ||
-                 vstate->actual_lowpass > vstate->effective_lowpass * max_true_lowpass_change ||
-                 vstate->lowpass_resonance != vstate->effective_resonance))
+                (vstate->actual_lowpass < vstate->true_lowpass * min_true_lowpass_change ||
+                 vstate->actual_lowpass > vstate->true_lowpass * max_true_lowpass_change ||
+                 vstate->lowpass_resonance != vstate->true_resonance))
         {
             // Apply previous filter settings to the signal
             apply_filter_stop = i;
@@ -437,15 +439,15 @@ void Generator_common_handle_filter(
             else
                 vstate->lowpass_xfade_pos = 1;
 
-            vstate->effective_lowpass = vstate->actual_lowpass;
-            vstate->effective_resonance = vstate->lowpass_resonance;
+            vstate->true_lowpass = vstate->actual_lowpass;
+            vstate->true_resonance = vstate->lowpass_resonance;
 
-            if (vstate->effective_lowpass < nyquist)
+            if (vstate->true_lowpass < nyquist)
             {
                 int new_state = 1 - abs(vstate->lowpass_state_used);
-                double lowpass = max(vstate->effective_lowpass, 1);
+                double lowpass = max(vstate->true_lowpass, 1);
                 two_pole_filter_create(lowpass / freq,
-                        vstate->effective_resonance,
+                        vstate->true_resonance,
                         0,
                         vstate->lowpass_state[new_state].coeffs,
                         &vstate->lowpass_state[new_state].mul);
