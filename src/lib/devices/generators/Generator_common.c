@@ -242,6 +242,91 @@ int32_t Generator_common_handle_force(
 }
 
 
+void apply_filter_settings(
+        Voice_state* vstate,
+        const Work_buffers* wbs,
+        int ab_count,
+        double xfade_start,
+        double xfade_step,
+        int32_t buf_start,
+        int32_t buf_stop)
+{
+    assert(vstate != NULL);
+    assert(wbs != NULL);
+
+    if ((vstate->lowpass_state_used == -1) && (vstate->lowpass_xfade_state_used == -1))
+        return;
+
+    const Work_buffer* wb_audio_l = Work_buffers_get_buffer(
+            wbs, WORK_BUFFER_AUDIO_L);
+    const Work_buffer* wb_audio_r = Work_buffers_get_buffer(
+            wbs, WORK_BUFFER_AUDIO_R);
+
+    float* abufs[KQT_BUFFERS_MAX] =
+    {
+        Work_buffer_get_contents_mut(wb_audio_l),
+        Work_buffer_get_contents_mut(wb_audio_r),
+    };
+
+    for (int32_t ch = 0; ch < ab_count; ++ch)
+    {
+        double xfade_pos = xfade_start;
+
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+        {
+            assert(vstate->lowpass_state_used != vstate->lowpass_xfade_state_used);
+
+            const float input = abufs[ch][i];
+            double result = input;
+
+            if (vstate->lowpass_state_used > -1)
+            {
+                Filter_state* fst =
+                        &vstate->lowpass_state[vstate->lowpass_state_used];
+
+                result = nq_zero_filter(
+                        FILTER_ORDER, fst->history1[ch], input);
+                result = iir_filter_strict_cascade(
+                        FILTER_ORDER, fst->coeffs, fst->history2[ch], result);
+                result *= fst->mul;
+            }
+
+            double vol = xfade_pos;
+            if (vol > 1)
+                vol = 1;
+
+            result *= vol;
+
+            if (xfade_pos < 1)
+            {
+                double fade_result = input;
+
+                if (vstate->lowpass_xfade_state_used > -1)
+                {
+                    Filter_state* fst =
+                            &vstate->lowpass_state[vstate->lowpass_xfade_state_used];
+
+                    fade_result = nq_zero_filter(
+                            FILTER_ORDER, fst->history1[ch], input);
+                    fade_result = iir_filter_strict_cascade(
+                            FILTER_ORDER, fst->coeffs, fst->history2[ch], fade_result);
+                    fade_result *= fst->mul;
+                }
+
+                double vol = 1 - xfade_pos;
+                result += fade_result * vol;
+
+                xfade_pos += xfade_step;
+            }
+
+            abufs[ch][i] = result;
+        }
+    }
+
+    return;
+}
+
+
 void Generator_common_handle_filter(
         const Generator* gen,
         Voice_state* vstate,
@@ -290,24 +375,17 @@ void Generator_common_handle_filter(
             actual_lowpasses[i] *= LFO_step(&vstate->autowah);
     }
 
-    const Work_buffer* wb_audio_l = Work_buffers_get_buffer(
-            wbs, WORK_BUFFER_AUDIO_L);
-    const Work_buffer* wb_audio_r = Work_buffers_get_buffer(
-            wbs, WORK_BUFFER_AUDIO_R);
-
-    float* abufs[KQT_BUFFERS_MAX] =
-    {
-        Work_buffer_get_contents_mut(wb_audio_l),
-        Work_buffer_get_contents_mut(wb_audio_r),
-    };
-
     static const double max_true_lowpass_change = 1.0145453349375237; // 2^(1/48)
     static const double min_true_lowpass_change = 1.0 / max_true_lowpass_change;
 
-    const double xfade_update = 200.0 / freq;
-    vstate->lowpass_xfade_update = xfade_update;
+    const double xfade_step = 200.0 / freq;
+    vstate->lowpass_xfade_update = xfade_step;
 
     const double nyquist = (double)freq * 0.5;
+
+    int32_t apply_filter_start = offset;
+    int32_t apply_filter_stop = nframes;
+    double xfade_start = vstate->lowpass_xfade_pos;
 
     for (int32_t i = offset; i < nframes; ++i)
     {
@@ -332,6 +410,21 @@ void Generator_common_handle_filter(
                  vstate->actual_lowpass > vstate->effective_lowpass * max_true_lowpass_change ||
                  vstate->lowpass_resonance != vstate->effective_resonance))
         {
+            // Apply previous filter settings to the signal
+            apply_filter_stop = i;
+            apply_filter_settings(
+                    vstate,
+                    wbs,
+                    ab_count,
+                    xfade_start,
+                    xfade_step,
+                    apply_filter_start,
+                    apply_filter_stop);
+
+            // Set up new range for next filter processing
+            apply_filter_start = i;
+            apply_filter_stop = nframes;
+
             vstate->lowpass_xfade_state_used = vstate->lowpass_state_used;
 
             // TODO: figure out how to indicate start of note properly
@@ -370,87 +463,22 @@ void Generator_common_handle_filter(
 
                 vstate->lowpass_state_used = -1;
             }
+
+            xfade_start = vstate->lowpass_xfade_pos;
         }
 
-        if (vstate->lowpass_state_used > -1 || vstate->lowpass_xfade_state_used > -1)
-        {
-            assert(vstate->lowpass_state_used != vstate->lowpass_xfade_state_used);
-            double result[KQT_BUFFERS_MAX] = { 0 };
-
-            if (vstate->lowpass_state_used > -1)
-            {
-                Filter_state* fst =
-                        &vstate->lowpass_state[vstate->lowpass_state_used];
-
-                for (int a = 0; a < ab_count; ++a)
-                {
-                    result[a] = nq_zero_filter(
-                            FILTER_ORDER,
-                            fst->history1[a],
-                            abufs[a][i]);
-                    result[a] = iir_filter_strict_cascade(
-                            FILTER_ORDER,
-                            fst->coeffs,
-                            fst->history2[a],
-                            result[a]);
-                    result[a] *= fst->mul;
-                }
-            }
-            else
-            {
-                for (int a = 0; a < ab_count; ++a)
-                    result[a] = abufs[a][i];
-            }
-
-            double vol = vstate->lowpass_xfade_pos;
-            if (vol > 1)
-                vol = 1;
-
-            for (int a = 0; a < ab_count; ++a)
-                result[a] *= vol;
-
-            if (vstate->lowpass_xfade_pos < 1)
-            {
-                double fade_result[KQT_BUFFERS_MAX] = { 0 };
-
-                if (vstate->lowpass_xfade_state_used > -1)
-                {
-                    Filter_state* fst =
-                            &vstate->lowpass_state[vstate->lowpass_xfade_state_used];
-                    for (int a = 0; a < ab_count; ++a)
-                    {
-                        fade_result[a] = nq_zero_filter(
-                                FILTER_ORDER,
-                                fst->history1[a],
-                                abufs[a][i]);
-                        fade_result[a] = iir_filter_strict_cascade(
-                                FILTER_ORDER,
-                                fst->coeffs,
-                                fst->history2[a],
-                                fade_result[a]);
-                        fade_result[a] *= fst->mul;
-                    }
-                }
-                else
-                {
-                    for (int a = 0; a < ab_count; ++a)
-                        fade_result[a] = abufs[a][i];
-                }
-
-                double vol = 1 - vstate->lowpass_xfade_pos;
-                if (vol > 0)
-                {
-                    for (int a = 0; a < ab_count; ++a)
-                        result[a] += fade_result[a] * vol;
-                }
-
-                vstate->lowpass_xfade_pos += vstate->lowpass_xfade_update;
-            }
-
-            for (int a = 0; a < ab_count; ++a)
-                abufs[a][i] = result[a];
-        }
+        vstate->lowpass_xfade_pos += xfade_step;
     }
+
+    // Apply previous filter settings to the remaining signal
+    apply_filter_settings(
+            vstate,
+            wbs,
+            ab_count,
+            xfade_start,
+            xfade_step,
+            apply_filter_start,
+            apply_filter_stop);
 
     return;
 }
