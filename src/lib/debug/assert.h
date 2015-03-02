@@ -25,6 +25,18 @@
 void assert_suppress_messages(void);
 
 
+/**
+ * Static (compile-time) assert.
+ */
+#ifndef static_assert
+#define concat_(x, y) x ## y
+#define make_unique2_(x, y) concat_(x, y)
+#define make_unique_(prefix) make_unique2_(prefix, __LINE__)
+#define static_assert(expr, msg) \
+    typedef char make_unique_(static_assert_) [(expr) ? 1 : -1]
+#endif
+
+
 #ifdef ENABLE_KUNQUAT_ASSERT
 
 
