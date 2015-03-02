@@ -206,6 +206,9 @@ uint32_t Sample_mix(
     assert(audio_rate > 0);
     assert(tempo > 0);
     assert(vol_scale >= 0);
+    (void)gen;
+    (void)ins_state;
+    (void)tempo;
 
     // This implementation does not support larger sample lengths :-P
     assert(sample->len < INT32_MAX - 1);
@@ -381,6 +384,7 @@ uint32_t Sample_mix(
             case 8:
             {
                 static const double scale = 1.0 / 0x80;
+                const double fixed_scale = vol_scale * scale;
                 for (int ch = 0; ch < sample->channels; ++ch)
                 {
                     const int8_t* data = sample->data[ch];
@@ -391,7 +395,7 @@ uint32_t Sample_mix(
                         const float actual_force = actual_forces[i];
                         float item = 0;
                         get_item(item);
-                        audio_buffer[i] = item * actual_force * scale;
+                        audio_buffer[i] = item * actual_force * fixed_scale;
                     }
                 }
             }
@@ -400,6 +404,7 @@ uint32_t Sample_mix(
             case 16:
             {
                 static const double scale = 1.0 / 0x8000UL;
+                const double fixed_scale = vol_scale * scale;
                 for (int ch = 0; ch < sample->channels; ++ch)
                 {
                     const int16_t* data = sample->data[ch];
@@ -410,7 +415,7 @@ uint32_t Sample_mix(
                         const float actual_force = actual_forces[i];
                         float item = 0;
                         get_item(item);
-                        audio_buffer[i] = item * actual_force * scale;
+                        audio_buffer[i] = item * actual_force * fixed_scale;
                     }
                 }
             }
@@ -419,6 +424,7 @@ uint32_t Sample_mix(
             case 32:
             {
                 static const double scale = 1.0 / 0x80000000UL;
+                const double fixed_scale = vol_scale * scale;
                 for (int ch = 0; ch < sample->channels; ++ch)
                 {
                     const int32_t* data = sample->data[ch];
@@ -429,7 +435,7 @@ uint32_t Sample_mix(
                         const float actual_force = actual_forces[i];
                         float item = 0;
                         get_item(item);
-                        audio_buffer[i] = item * actual_force * scale;
+                        audio_buffer[i] = item * actual_force * fixed_scale;
                     }
                 }
             }
@@ -451,7 +457,7 @@ uint32_t Sample_mix(
                 const float actual_force = actual_forces[i];
                 float item = 0;
                 get_item(item);
-                audio_buffer[i] = item * actual_force;
+                audio_buffer[i] = item * actual_force * vol_scale;
             }
         }
     }
