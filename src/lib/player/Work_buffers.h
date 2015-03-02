@@ -30,6 +30,9 @@ typedef enum
     WORK_BUFFER_ACTUAL_FORCES,
     WORK_BUFFER_ACTUAL_LOWPASSES,
     WORK_BUFFER_ACTUAL_PANNINGS,
+    WORK_BUFFER_IMPL_1,
+    WORK_BUFFER_IMPL_2,
+    WORK_BUFFER_IMPL_3,
     WORK_BUFFER_AUDIO_L,
     WORK_BUFFER_AUDIO_R,
     WORK_BUFFER_TIME_ENV,
@@ -88,9 +91,9 @@ const Work_buffer* Work_buffers_get_buffer(
  * \param buffers   The Work buffers -- must not be \c NULL.
  * \param type      The Work buffer type -- must be valid.
  *
- * \return   The address of the internal buffer, with -1 as the first valid
- *           index. For devices that receive the buffers from a caller, this
- *           function never returns \c NULL.
+ * \return   The address of the internal buffer, with a valid index range of
+ *           [-1, Work_buffer_get_size(\a buffer)]. For devices that receive
+ *           the buffer from a caller, this function never returns \c NULL.
  */
 const float* Work_buffers_get_buffer_contents(
         const Work_buffers* buffers, Work_buffer_type type);
@@ -105,11 +108,28 @@ const float* Work_buffers_get_buffer_contents(
  * \param buffers   The Work buffers -- must not be \c NULL.
  * \param type      The Work buffer type -- must be valid.
  *
- * \return   The address of the internal buffer, with -1 as the first valid
- *           index. For devices that receive the buffers from a caller, this
- *           function never returns \c NULL.
+ * \return   The address of the internal buffer, with a valid index range of
+ *           [-1, Work_buffer_get_size(\a buffer)]. For devices that receive
+ *           the buffer from a caller, this function never returns \c NULL.
  */
 float* Work_buffers_get_buffer_contents_mut(
+        const Work_buffers* buffers, Work_buffer_type type);
+
+
+/**
+ * Get mutable contents of a Work buffer as integer data.
+ *
+ * This is a convenience function that uses \a Work_buffer_get_contents_int_mut
+ * directly.
+ *
+ * \param buffers   The Work buffers -- must not be \c NULL.
+ * \param type      The Work buffer type -- must be valid.
+ *
+ * \return   The address of the internal buffer, with a valid index range of
+ *           [-1, Work_buffer_get_size(\a buffer)]. For devices that receive
+ *           the buffer from a caller, this function never returns \c NULL.
+ */
+int32_t* Work_buffers_get_buffer_contents_int_mut(
         const Work_buffers* buffers, Work_buffer_type type);
 
 

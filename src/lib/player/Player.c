@@ -132,7 +132,7 @@ Player* new_Player(
         return NULL;
     }
 
-    player->work_buffers = new_Work_buffers(player->audio_buffer_size + 1);
+    player->work_buffers = new_Work_buffers(player->audio_buffer_size);
     if (player->work_buffers == NULL)
     {
         del_Player(player);
@@ -362,7 +362,7 @@ bool Player_set_audio_buffer_size(Player* player, int32_t size)
     }
 
     // Update work buffers
-    if (!Work_buffers_resize(player->work_buffers, size + 1))
+    if (!Work_buffers_resize(player->work_buffers, size))
         return false;
 
     // Set final supported buffer size

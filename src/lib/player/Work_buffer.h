@@ -23,7 +23,7 @@
 #include <kunquat/limits.h>
 
 
-#define WORK_BUFFER_SIZE_MAX ((KQT_AUDIO_BUFFER_SIZE_MAX) + 1)
+#define WORK_BUFFER_SIZE_MAX ((KQT_AUDIO_BUFFER_SIZE_MAX) + 2)
 
 
 /**
@@ -71,9 +71,9 @@ uint32_t Work_buffer_get_size(const Work_buffer* buffer);
  *
  * \param buffer   The Work buffer -- must not be \c NULL.
  *
- * \return   The address of the internal buffer, with -1 as the first valid
- *           index. For devices that receive the buffer from a caller, this
- *           function never returns \c NULL.
+ * \return   The address of the internal buffer, with a valid index range of
+ *           [-1, Work_buffer_get_size(\a buffer)]. For devices that receive
+ *           the buffer from a caller, this function never returns \c NULL.
  */
 const float* Work_buffer_get_contents(const Work_buffer* buffer);
 
@@ -83,11 +83,23 @@ const float* Work_buffer_get_contents(const Work_buffer* buffer);
  *
  * \param buffer   The Work buffer -- must not be \c NULL.
  *
- * \return   The address of the internal buffer, with -1 as the first valid
- *           index. For devices that receive the buffer from a caller, this
- *           function never returns \c NULL.
+ * \return   The address of the internal buffer, with a valid index range of
+ *           [-1, Work_buffer_get_size(\a buffer)]. For devices that receive
+ *           the buffer from a caller, this function never returns \c NULL.
  */
 float* Work_buffer_get_contents_mut(const Work_buffer* buffer);
+
+
+/**
+ * Get the mutable contents of the Work buffer as integer data.
+ *
+ * \param buffer   The Work buffer -- must not be \c NULL.
+ *
+ * \return   The address of the internal buffer, with a valid index range of
+ *           [-1, Work_buffer_get_size(\a buffer)]. For devices that receive
+ *           the buffer from a caller, this function never returns \c NULL.
+ */
+int32_t* Work_buffer_get_contents_int_mut(const Work_buffer* buffer);
 
 
 /**

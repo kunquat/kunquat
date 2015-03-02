@@ -102,6 +102,16 @@ float* Work_buffers_get_buffer_contents_mut(
 }
 
 
+int32_t* Work_buffers_get_buffer_contents_int_mut(
+        const Work_buffers* buffers, Work_buffer_type type)
+{
+    assert(buffers != NULL);
+    assert(type < WORK_BUFFER_COUNT_);
+
+    return Work_buffer_get_contents_int_mut(buffers->buffers[type]);
+}
+
+
 void del_Work_buffers(Work_buffers* buffers)
 {
     if (buffers == NULL)

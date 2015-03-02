@@ -19,10 +19,16 @@
 #include <player/Work_buffer.h>
 
 
+#define WORK_BUFFER_ELEM_SIZE (sizeof(float))
+
+static_assert(sizeof(int32_t) <= WORK_BUFFER_ELEM_SIZE,
+        "Work buffers must have space for enough 32-bit integers.");
+
+
 struct Work_buffer
 {
     uint32_t size;
-    float* contents;
+    char* contents;
 };
 
 
@@ -42,7 +48,9 @@ Work_buffer* new_Work_buffer(uint32_t size)
     if (buffer->size > 0)
     {
         // Allocate buffers
-        buffer->contents = memory_calloc_items(float, size);
+        const uint32_t actual_size = size + 2;
+        buffer->contents = memory_calloc_items(
+                char, actual_size * WORK_BUFFER_ELEM_SIZE);
         if (buffer->contents == NULL)
         {
             del_Work_buffer(buffer);
@@ -68,7 +76,9 @@ bool Work_buffer_resize(Work_buffer* buffer, uint32_t new_size)
         return true;
     }
 
-    float* new_contents = memory_realloc_items(float, new_size, buffer->contents);
+    const uint32_t actual_size = new_size + 2;
+    char* new_contents = memory_realloc_items(
+            char, actual_size * WORK_BUFFER_ELEM_SIZE, buffer->contents);
     if (new_contents == NULL)
         return false;
 
@@ -89,14 +99,21 @@ uint32_t Work_buffer_get_size(const Work_buffer* buffer)
 const float* Work_buffer_get_contents(const Work_buffer* buffer)
 {
     assert(buffer != NULL);
-    return buffer->contents + 1;
+    return (float*)buffer->contents + 1;
 }
 
 
 float* Work_buffer_get_contents_mut(const Work_buffer* buffer)
 {
     assert(buffer != NULL);
-    return buffer->contents + 1;
+    return (float*)buffer->contents + 1;
+}
+
+
+int32_t* Work_buffer_get_contents_int_mut(const Work_buffer* buffer)
+{
+    assert(buffer != NULL);
+    return (int32_t*)buffer->contents + 1;
 }
 
 
@@ -115,10 +132,10 @@ void Work_buffer_copy(
     if (start >= stop)
         return;
 
-    float* dest_start = dest->contents + start;
-    const float* src_start = src->contents + start;
+    char* dest_start = dest->contents + (start * WORK_BUFFER_ELEM_SIZE);
+    const char* src_start = src->contents + (start * WORK_BUFFER_ELEM_SIZE);
     const uint32_t elem_count = stop - start;
-    memcpy(dest_start, src_start, elem_count * sizeof(float));
+    memcpy(dest_start, src_start, elem_count * WORK_BUFFER_ELEM_SIZE);
 
     return;
 }
