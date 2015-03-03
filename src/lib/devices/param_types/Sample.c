@@ -271,7 +271,7 @@ uint32_t Sample_mix(
 
     // Prevent invalid loop processing
     Sample_loop loop_mode = params->loop;
-    if ((params->loop_end > sample->len) || (params->loop_start > params->loop_end))
+    if ((params->loop_end > sample->len) || (params->loop_start >= params->loop_end))
         loop_mode = SAMPLE_LOOP_OFF;
 
     // Apply loop and length constraints to sample positions
@@ -313,7 +313,7 @@ uint32_t Sample_mix(
         {
             const int32_t loop_start = params->loop_start;
             const int32_t loop_end = params->loop_end;
-            const int32_t loop_length = max(1, loop_end - loop_start);
+            const int32_t loop_length = loop_end - loop_start;
 
             // Current positions
             for (int32_t i = buf_start; i < buf_stop; ++i)
@@ -342,7 +342,7 @@ uint32_t Sample_mix(
         case SAMPLE_LOOP_BI:
         {
             const int32_t loop_start = params->loop_start;
-            const int32_t uni_loop_length = max(1, params->loop_end - loop_start) - 1;
+            const int32_t uni_loop_length = params->loop_end - loop_start - 1;
             const int32_t loop_length = max(1, uni_loop_length * 2);
 
             for (int32_t i = buf_start; i < buf_stop; ++i)
