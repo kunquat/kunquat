@@ -343,7 +343,8 @@ uint32_t Sample_mix(
         {
             const int32_t loop_start = params->loop_start;
             const int32_t uni_loop_length = params->loop_end - loop_start - 1;
-            const int32_t loop_length = max(1, uni_loop_length * 2);
+            const int32_t step_count = uni_loop_length * 2;
+            const int32_t loop_length = max(1, step_count);
 
             // Current positions
             for (int32_t i = buf_start; i < buf_stop; ++i)
@@ -354,9 +355,10 @@ uint32_t Sample_mix(
                     int32_t loop_pos = cur_pos - loop_start;
                     loop_pos %= loop_length;
                     if (loop_pos >= uni_loop_length)
-                        loop_pos = uni_loop_length - loop_pos;
+                        loop_pos = step_count - loop_pos;
                     cur_pos = loop_start + loop_pos;
                     positions[i] = cur_pos;
+                    assert(cur_pos >= 0);
                 }
             }
 
@@ -369,7 +371,7 @@ uint32_t Sample_mix(
                     int32_t next_loop_pos = next_pos - loop_start;
                     next_loop_pos %= loop_length;
                     if (next_loop_pos >= uni_loop_length)
-                        next_loop_pos = uni_loop_length - next_loop_pos;
+                        next_loop_pos = step_count - next_loop_pos;
                     next_pos = loop_start + next_loop_pos;
                 }
                 next_positions[i] = next_pos;
