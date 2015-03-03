@@ -69,46 +69,6 @@ Sample* new_Sample_from_buffers(float* buffers[], int count, uint64_t length);
 
 
 /**
- * Copy Sample parameters into a Sample.
- *
- * This function copies all the fields except the format field.
- *
- * \param sample   The destination Sample -- must not be \c NULL.
- * \param params   The Sample parameters -- must not be \c NULL.
- */
-//void Sample_set_params(Sample* sample, Sample_params* params);
-
-
-/**
- * Get the file format of the Sample.
- *
- * \param sample   The Sample -- must not be \c NULL.
- *
- * \return   The Sample format.
- */
-//Sample_format Sample_get_format(Sample* sample);
-
-
-/**
- * Set the middle frequency of the Sample.
- *
- * \param sample   The Sample -- must not be \c NULL.
- * \param freq     The middle frequency -- must be > \c 0.
- */
-//void Sample_set_freq(Sample* sample, double freq);
-
-
-/**
- * Get the middle frequency of the Sample.
- *
- * \param sample   The Sample -- must not be \c NULL.
- *
- * \return   The middle frequency.
- */
-//double Sample_get_freq(Sample* sample);
-
-
-/**
  * Get the length of the Sample.
  *
  * \param sample   The Sample -- must not be \c NULL.
@@ -116,73 +76,6 @@ Sample* new_Sample_from_buffers(float* buffers[], int count, uint64_t length);
  * \return   The length in frames/buffer.
  */
 uint64_t Sample_get_len(const Sample* sample);
-
-
-/**
- * Set the loop mode of the Sample.
- *
- * If the loop becomes enabled, the end points may be changed.
- * The loop will not be enabled if the length of the sample is 0.
- *
- * \param sample   The Sample -- must not be \c NULL.
- * \param loop     The loop mode -- must be \c SAMPLE_LOOP_OFF,
- *                 \c SAMPLE_LOOP_UNI or \c SAMPLE_LOOP_BI.
- */
-//void Sample_set_loop(Sample* sample, Sample_loop loop);
-
-
-/**
- * Get the loop mode of the Sample.
- *
- * \param sample   The Sample -- must not be \c NULL.
- *
- * \return   The loop mode.
- */
-//Sample_loop Sample_get_loop(Sample* sample);
-
-
-/**
- * Set the start point of the Sample loop.
- *
- * If the start point is set past the end of the loop or Sample, the loop is
- * turned off.
- *
- * \param sample   The Sample -- must not be \c NULL.
- * \param start    The loop start -- must not be \c NULL.
- */
-//void Sample_set_loop_start(Sample* sample, uint64_t start);
-
-
-/**
- * Get the start point of the Sample loop.
- *
- * \param sample   The Sample -- must not be \c NULL.
- *
- * \return   The loop start.
- */
-//uint64_t Sample_get_loop_start(Sample* sample);
-
-
-/**
- * Set the end point of the Sample loop.
- *
- * If the end point is set at or before the start point or past the length of
- * the Sample, the loop is turned off.
- *
- * \param sample   The Sample -- must not be \c NULL.
- * \param end      The loop end -- must not be \c NULL.
- */
-//void Sample_set_loop_end(Sample* sample, uint64_t end);
-
-
-/**
- * Get the end point of the Sample loop.
- *
- * \param sample   The Sample -- must not be \c NULL.
- *
- * \return   The loop start.
- */
-//uint64_t Sample_get_loop_end(Sample* sample);
 
 
 /**

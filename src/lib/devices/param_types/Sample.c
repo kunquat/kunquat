@@ -76,102 +76,6 @@ Sample* new_Sample_from_buffers(float* buffers[], int count, uint64_t length)
 }
 
 
-#if 0
-void Sample_set_params(Sample* sample, Sample_params* params)
-{
-    assert(sample != NULL);
-    assert(params != NULL);
-
-    Sample_params_copy(&sample->params, params);
-
-    return;
-}
-#endif
-
-
-#if 0
-void Sample_set_loop(Sample* sample, Sample_loop loop)
-{
-    assert(sample != NULL);
-    assert(loop == SAMPLE_LOOP_OFF ||
-           loop == SAMPLE_LOOP_UNI ||
-           loop == SAMPLE_LOOP_BI);
-
-    if (sample->len == 0)
-    {
-        sample->params.loop = SAMPLE_LOOP_OFF;
-        return;
-    }
-
-    if (sample->params.loop_start > 0 &&
-            sample->params.loop_start >= sample->params.loop_end)
-        sample->params.loop_start = sample->params.loop_end - 1;
-
-    if (sample->params.loop_start >= sample->len)
-        sample->params.loop_start = sample->len - 1;
-
-    if (sample->params.loop_end <= sample->params.loop_start)
-    {
-        if (sample->params.loop_start == 0)
-            sample->params.loop_end = sample->len;
-        else
-            sample->params.loop_end = sample->params.loop_start + 1;
-    }
-
-    assert(sample->params.loop_start < sample->params.loop_end);
-    assert(sample->params.loop_end <= sample->len);
-    sample->params.loop = loop;
-
-    return;
-}
-
-
-Sample_loop Sample_get_loop(Sample* sample)
-{
-    assert(sample != NULL);
-    return sample->params.loop;
-}
-
-
-void Sample_set_loop_start(Sample* sample, uint64_t start)
-{
-    assert(sample != NULL);
-
-    if (start >= sample->len || start >= sample->params.loop_end)
-        sample->params.loop = SAMPLE_LOOP_OFF;
-    sample->params.loop_start = start;
-
-    return;
-}
-
-
-uint64_t Sample_get_loop_start(Sample* sample)
-{
-    assert(sample != NULL);
-    return sample->params.loop_start;
-}
-
-
-void Sample_set_loop_end(Sample* sample, uint64_t end)
-{
-    assert(sample != NULL);
-
-    if (end <= sample->params.loop_start || end >= sample->len)
-        sample->params.loop = SAMPLE_LOOP_OFF;
-    sample->params.loop_end = end;
-
-    return;
-}
-
-
-uint64_t Sample_get_loop_end(Sample* sample)
-{
-    assert(sample != NULL);
-    return sample->params.loop_end;
-}
-#endif
-
-
 void* Sample_get_buffer(Sample* sample, int ch)
 {
     assert(sample != NULL);
@@ -709,23 +613,6 @@ uint32_t Sample_mix(
     return mixed;
 #endif
 }
-
-
-#if 0
-void Sample_set_freq(Sample* sample, double freq)
-{
-    assert(sample != NULL);
-    sample->params.mid_freq = freq;
-    return;
-}
-
-
-double Sample_get_freq(Sample* sample)
-{
-    assert(sample != NULL);
-    return sample->params.mid_freq;
-}
-#endif
 
 
 uint64_t Sample_get_len(const Sample* sample)
