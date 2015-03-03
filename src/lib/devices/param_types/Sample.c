@@ -219,6 +219,7 @@ uint32_t Sample_mix(
         return buf_start;
     }
 
+    // Get work buffers
     const float* actual_pitches = Work_buffers_get_buffer_contents(
             wbs, WORK_BUFFER_ACTUAL_PITCHES);
     const float* actual_forces = Work_buffers_get_buffer_contents(
@@ -241,6 +242,7 @@ uint32_t Sample_mix(
     float* positions_rem = Work_buffers_get_buffer_contents_mut(
             wbs, SAMPLE_WORK_BUFFER_POSITIONS_REM);
 
+    // Position information to be updated
     int32_t new_pos = vstate->pos;
     double new_pos_rem = vstate->pos_rem;
 
@@ -464,6 +466,7 @@ uint32_t Sample_mix(
 
 #undef get_item
 
+    // Update position information
     vstate->pos = new_pos;
     vstate->pos_rem = new_pos_rem;
 
