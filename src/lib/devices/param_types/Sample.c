@@ -269,9 +269,14 @@ uint32_t Sample_mix(
         positions_rem[i + 1] = new_pos_rem;
     }
 
-    // Apply loops and length constraints to sample positions
+    // Prevent invalid loop processing
+    Sample_loop loop_mode = params->loop;
+    if ((params->loop_end > sample->len) || (params->loop_start > params->loop_end))
+        loop_mode = SAMPLE_LOOP_OFF;
+
+    // Apply loop and length constraints to sample positions
     int32_t new_buf_stop = buf_stop;
-    switch (params->loop)
+    switch (loop_mode)
     {
         case SAMPLE_LOOP_OFF:
         {
