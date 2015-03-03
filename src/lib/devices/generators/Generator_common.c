@@ -490,6 +490,7 @@ void Generator_common_ramp_attack(
     assert(vstate != NULL);
     assert(wbs != NULL);
     assert((ab_count == 1) || (ab_count == 2));
+    (void)gen;
 
     float* abufs[KQT_BUFFERS_MAX] =
     {

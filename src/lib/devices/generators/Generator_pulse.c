@@ -175,6 +175,9 @@ uint32_t Generator_pulse_mix(
     assert(wbs != NULL);
     assert(freq > 0);
     assert(tempo > 0);
+    (void)gen_state;
+    (void)ins_state;
+    (void)tempo;
 
 //    double max_amp = 0;
 //  fprintf(stderr, "bufs are %p and %p\n", ins->bufs[0], ins->bufs[1]);

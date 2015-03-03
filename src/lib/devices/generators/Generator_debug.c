@@ -98,6 +98,7 @@ static uint32_t Generator_debug_mix(
     assert(wbs != NULL);
     assert(freq > 0);
     assert(tempo > 0);
+    (void)gen_state;
     (void)ins_state;
     (void)wbs;
     (void)tempo;

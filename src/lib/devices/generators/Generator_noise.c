@@ -178,6 +178,8 @@ static uint32_t Generator_noise_mix(
     assert(wbs != NULL);
     assert(freq > 0);
     assert(tempo > 0);
+    (void)ins_state;
+    (void)tempo;
 
 //    double max_amp = 0;
 //  fprintf(stderr, "bufs are %p and %p\n", ins->bufs[0], ins->bufs[1]);

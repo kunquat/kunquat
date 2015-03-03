@@ -363,6 +363,9 @@ static uint32_t Generator_add_mix(
     assert(wbs != NULL);
     assert(freq > 0);
     assert(tempo > 0);
+    (void)gen_state;
+    (void)ins_state;
+    (void)tempo;
 
     Generator_add* add = (Generator_add*)gen->parent.dimpl;
     Voice_state_add* add_state = (Voice_state_add*)vstate;

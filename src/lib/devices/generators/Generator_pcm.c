@@ -149,6 +149,7 @@ uint32_t Generator_pcm_mix(
     assert(wbs != NULL);
     assert(freq > 0);
     assert(tempo > 0);
+    (void)gen_state;
 
 //    Generator_pcm* pcm = (Generator_pcm*)gen->parent.dimpl;
     Voice_state_pcm* pcm_state = (Voice_state_pcm*)vstate;
