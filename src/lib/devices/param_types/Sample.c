@@ -345,26 +345,34 @@ uint32_t Sample_mix(
             const int32_t uni_loop_length = params->loop_end - loop_start - 1;
             const int32_t loop_length = max(1, uni_loop_length * 2);
 
+            // Current positions
             for (int32_t i = buf_start; i < buf_stop; ++i)
             {
                 int32_t cur_pos = positions[i];
-                if (cur_pos >= loop_start)
+                if (cur_pos > loop_start)
                 {
-                    // Current positions
                     int32_t loop_pos = cur_pos - loop_start;
                     loop_pos %= loop_length;
                     if (loop_pos >= uni_loop_length)
                         loop_pos = uni_loop_length - loop_pos;
                     cur_pos = loop_start + loop_pos;
                     positions[i] = cur_pos;
+                }
+            }
 
-                    // Next positions
-                    int32_t next_loop_pos = cur_pos + 1 - loop_start;
+            // Next positions
+            for (int32_t i = buf_start; i < buf_stop; ++i)
+            {
+                int32_t next_pos = positions[i] + 1;
+                if (next_pos > loop_start)
+                {
+                    int32_t next_loop_pos = next_pos - loop_start;
                     next_loop_pos %= loop_length;
                     if (next_loop_pos >= uni_loop_length)
                         next_loop_pos = uni_loop_length - next_loop_pos;
-                    next_positions[i] = loop_start + next_loop_pos;
+                    next_pos = loop_start + next_loop_pos;
                 }
+                next_positions[i] = next_pos;
             }
         }
         break;
