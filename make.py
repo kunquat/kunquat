@@ -82,7 +82,7 @@ def build():
     #    compile_flags.append('-pg')
     #    link_flags.append('-pg')
 
-    if options.optimise not in xrange(4):
+    if options.optimise not in xrange(5):
         print('Unsupported optimisation level: {}'.format(options.optimise),
                 file=sys.stderr)
         sys.exit(1)
