@@ -389,6 +389,13 @@ uint32_t Sample_mix(
 
 #undef get_item
 
+    // Copy mono signal to the right channel
+    if (sample->channels == 1)
+    {
+        const int32_t frame_count = new_buf_stop - buf_start;
+        memcpy(abufs[1] + buf_start, abufs[0] + buf_start, sizeof(float) * frame_count);
+    }
+
     // Update position information
     vstate->pos = new_pos;
     vstate->pos_rem = new_pos_rem;
