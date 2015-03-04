@@ -2,7 +2,7 @@
 
 /*
  * Authors: Ossi Saresoja, Finland 2009-2012
- *          Tomi Jylhä-Ollila, Finland 2010-2014
+ *          Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -356,24 +356,6 @@ double dc_zero_filter(
         const double temp = buf[i];
         buf[i] = var;
         var -= temp;
-    }
-
-    return var;
-}
-
-
-double nq_zero_filter(
-        int n,
-        double buf[n],
-        double var)
-{
-    assert(buf != NULL);
-
-    for (int i = 0; i < n; ++i)
-    {
-        const double temp = buf[i];
-        buf[i] = var;
-        var += temp;
     }
 
     return var;

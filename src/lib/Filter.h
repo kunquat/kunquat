@@ -130,10 +130,22 @@ double dc_zero_filter(
         double var);
 
 
-double nq_zero_filter(
+inline double nq_zero_filter(
         int n,
         double buf[n],
-        double var);
+        double var)
+{
+    assert(buf != NULL);
+
+    for (int i = 0; i < n; ++i)
+    {
+        const double temp = buf[i];
+        buf[i] = var;
+        var += temp;
+    }
+
+    return var;
+}
 
 
 double dc_nq_zero_filter(
