@@ -69,7 +69,11 @@ int32_t Time_env_state_process(
 
     float* values = Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_TIME_ENV);
 
+    // Get constant values used inside the loop
     const double slowdown_fac = 1.0 - sustain;
+    const double inv_scale_center = 1.0 / scale_center;
+    const double inv_audio_rate = 1.0 / audio_rate;
+    const double slowdown_fac_inv_audio_rate = slowdown_fac * inv_audio_rate;
 
     const double* last_node = Envelope_get_node(env, Envelope_node_count(env) - 1);
 
@@ -83,6 +87,15 @@ int32_t Time_env_state_process(
 
     const bool has_loop = (loop_start != NULL) && (loop_end != NULL);
 
+    // Get state variables
+    double cur_pos = testate->cur_pos;
+    int next_node_index = testate->next_node_index;
+    double cur_value = testate->cur_value;
+    double update_value = testate->update_value;
+    double scale_factor = testate->scale_factor;
+
+    double* next_node = Envelope_get_node(env, next_node_index);
+
     int32_t i = buf_start;
     for (; i < buf_stop; ++i)
     {
@@ -91,42 +104,46 @@ int32_t Time_env_state_process(
 
         // Apply pitch-based scaling
         if ((scale_amount != 0) && (actual_pitch != prev_actual_pitch))
-            testate->scale_factor = pow(
-                    actual_pitch / scale_center, scale_amount);
+            scale_factor = pow(actual_pitch * inv_scale_center, scale_amount);
 
         // Get envelope value at current position
-        double* next_node = Envelope_get_node(env, testate->next_node_index);
         double value = last_node[1]; // initial value is used if next_node == NULL
 
         if (next_node != NULL)
         {
-            if (testate->cur_pos < next_node[0])
+            if (cur_pos < next_node[0])
             {
-                assert(isfinite(testate->update_value));
-                testate->cur_value +=
-                    testate->update_value * testate->scale_factor * slowdown_fac;
-                value = clamp(testate->cur_value, min_value, max_value);
+                // Get next value through calculated update value
+                // (faster than accessing the envelope directly)
+                assert(isfinite(update_value));
+                cur_value += update_value * scale_factor * slowdown_fac;
+                value = clamp(cur_value, min_value, max_value);
             }
             else
             {
-                ++testate->next_node_index;
-                if ((loop_end_index >= 0) && (loop_end_index < testate->next_node_index))
+                // Update value is obsolete, so use the envelope directly
+                ++next_node_index;
+                if ((loop_end_index >= 0) && (loop_end_index < next_node_index))
                 {
                     assert(loop_start_index >= 0);
-                    testate->next_node_index = loop_start_index;
+                    next_node_index = loop_start_index;
                 }
 
-                value = Envelope_get_value(env, testate->cur_pos);
+                next_node = Envelope_get_node(env, next_node_index);
+
+                value = Envelope_get_value(env, cur_pos);
 
                 if (isfinite(value))
                 {
+                    // Get new update value
                     const double next_value = Envelope_get_value(
-                            env, testate->cur_pos + 1.0 / audio_rate);
-                    testate->cur_value = value;
-                    testate->update_value = next_value - value;
+                            env, cur_pos + inv_audio_rate);
+                    cur_value = value;
+                    update_value = next_value - value;
                 }
                 else
                 {
+                    // Reached the end of envelope
                     value = last_node[1];
                 }
             }
@@ -137,8 +154,7 @@ int32_t Time_env_state_process(
         values[i] = value;
 
         // Update envelope position
-        double new_pos =
-            testate->cur_pos + testate->scale_factor * slowdown_fac / audio_rate;
+        double new_pos = cur_pos + scale_factor * slowdown_fac_inv_audio_rate;
 
         if (!has_loop)
         {
@@ -169,13 +185,21 @@ int32_t Time_env_state_process(
 
                     // Following iteration will check if this index is too low,
                     // so no need to find the exact result in a loop
-                    testate->next_node_index = loop_start_index;
+                    next_node_index = loop_start_index;
+                    next_node = Envelope_get_node(env, next_node_index);
                 }
             }
         }
 
-        testate->cur_pos = new_pos;
+        cur_pos = new_pos;
     }
+
+    // Update state for next process cycle
+    testate->cur_pos = cur_pos;
+    testate->next_node_index = next_node_index;
+    testate->cur_value = cur_value;
+    testate->update_value = update_value;
+    testate->scale_factor = scale_factor;
 
     return i;
 }
