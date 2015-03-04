@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *         Ossi Saresoja, Finland 2010-2013
  *
  * This file is part of Kunquat.
@@ -17,6 +17,7 @@
 #define K_FILTER_H
 
 
+#include <debug/assert.h>
 #include <frame.h>
 
 
@@ -92,6 +93,28 @@ double iir_filter_strict_cascade(
         const double coeffs[n],
         double buf[n],
         double var);
+
+
+inline double iir_filter_strict_cascade_even_order(
+        int n,
+        const double coeffs[n],
+        double buf[n],
+        double var)
+{
+    assert((n & 1) == 0);
+    assert(coeffs != NULL);
+    assert(buf != NULL);
+
+    for (int i = 0; i < (n & ~((int)1)); i += 2)
+    {
+        var -= coeffs[i  ] * buf[i  ] +
+               coeffs[i+1] * buf[i+1];
+        buf[i  ] = buf[i+1];
+        buf[i+1] = var;
+    }
+
+    return var;
+}
 
 
 double iir_filter_strict_transposed_cascade(

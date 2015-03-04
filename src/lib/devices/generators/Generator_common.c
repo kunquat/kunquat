@@ -284,7 +284,7 @@ void apply_filter_settings(
             {
                 result = nq_zero_filter(
                         FILTER_ORDER, in_fst->history1[ch], input);
-                result = iir_filter_strict_cascade(
+                result = iir_filter_strict_cascade_even_order(
                         FILTER_ORDER, in_fst->coeffs, in_fst->history2[ch], result);
                 result *= in_fst->mul;
             }
@@ -300,7 +300,7 @@ void apply_filter_settings(
                 {
                     fade_result = nq_zero_filter(
                             FILTER_ORDER, out_fst->history1[ch], input);
-                    fade_result = iir_filter_strict_cascade(
+                    fade_result = iir_filter_strict_cascade_even_order(
                             FILTER_ORDER,
                             out_fst->coeffs,
                             out_fst->history2[ch],
