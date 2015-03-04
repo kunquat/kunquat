@@ -71,6 +71,8 @@ int32_t Time_env_state_process(
 
     const double slowdown_fac = 1.0 - sustain;
 
+    const double* last_node = Envelope_get_node(env, Envelope_node_count(env) - 1);
+
     // Get loop information
     const int loop_start_index = Envelope_get_mark(env, 0);
     const int loop_end_index = Envelope_get_mark(env, 1);
@@ -94,7 +96,7 @@ int32_t Time_env_state_process(
 
         // Get envelope value at current position
         double* next_node = Envelope_get_node(env, testate->next_node_index);
-        double value = NAN;
+        double value = last_node[1]; // initial value is used if next_node == NULL
 
         if (next_node != NULL)
         {
@@ -125,15 +127,9 @@ int32_t Time_env_state_process(
                 }
                 else
                 {
-                    value = Envelope_get_node(env, Envelope_node_count(env) - 1)[1];
+                    value = last_node[1];
                 }
             }
-        }
-        else
-        {
-            const double* last_node = Envelope_get_node(
-                    env, Envelope_node_count(env) - 1);
-            value = last_node[1];
         }
 
         // Apply envelope value
@@ -144,18 +140,26 @@ int32_t Time_env_state_process(
         double new_pos =
             testate->cur_pos + testate->scale_factor * slowdown_fac / audio_rate;
 
-        if (has_loop)
+        if (!has_loop)
+        {
+            // Check for end of envelope
+            if (new_pos > last_node[0])
+            {
+                ++i;
+                testate->is_finished = true;
+                break;
+            }
+        }
+        else
         {
             // Handle loop
             if (new_pos > loop_end[0])
             {
                 const double loop_len = loop_end[0] - loop_start[0];
                 assert(loop_len >= 0);
-                if (loop_len == 0)
-                {
-                    new_pos = loop_end[0];
-                }
-                else
+                new_pos = loop_end[0];
+
+                if (loop_len > 0)
                 {
                     const double exceed = new_pos - loop_end[0];
                     const double offset = fmod(exceed, loop_len);
@@ -167,17 +171,6 @@ int32_t Time_env_state_process(
                     // so no need to find the exact result in a loop
                     testate->next_node_index = loop_start_index;
                 }
-            }
-        }
-        else
-        {
-            // Check for end of envelope
-            double* last = Envelope_get_node(env, Envelope_node_count(env) - 1);
-            if (new_pos > last[0])
-            {
-                ++i;
-                testate->is_finished = true;
-                break;
             }
         }
 
