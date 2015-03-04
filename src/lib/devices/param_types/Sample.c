@@ -192,12 +192,8 @@ uint32_t Sample_mix(
                 if (positions[i] >= length)
                 {
                     new_buf_stop = i;
-
-                    // Make the index safe to access
-                    positions[i] = length - 1;
-
+                    positions[i] = length - 1; // Make the index safe to access
                     vstate->active = false;
-
                     break;
                 }
             }
