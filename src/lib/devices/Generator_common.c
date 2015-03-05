@@ -569,16 +569,24 @@ void Generator_common_handle_panning(
 
         for (int32_t i = buf_start; i < buf_stop; ++i)
         {
+            const float pitch_param = pitch_params[i];
+
             float actual_panning = actual_pannings[i];
 
-            double cents = log2(pitch_params[i] / 440) * 1200;
-            cents = clamp(cents, -6000, 6000);
+            if (pitch_param != vstate->pitch_pan_ref_param)
+            {
+                double cents = log2(pitch_params[i] / 440) * 1200;
+                cents = clamp(cents, -6000, 6000);
 
-            const double pan = Envelope_get_value(env, cents);
-            assert(isfinite(pan));
+                const float pan = Envelope_get_value(env, cents);
+                assert(isfinite(pan));
+
+                vstate->pitch_pan_ref_param = pitch_param;
+                vstate->pitch_pan_value = pan;
+            }
 
             double separation = 1 - fabs(actual_panning);
-            actual_panning += pan * separation;
+            actual_panning += vstate->pitch_pan_value * separation;
             actual_panning = clamp(actual_panning, -1, 1);
 
             actual_pannings[i] = actual_panning;

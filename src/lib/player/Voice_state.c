@@ -12,6 +12,7 @@
  */
 
 
+#include <float.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <math.h>
@@ -121,6 +122,9 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->panning = 0;
     state->actual_panning = 0;
     Slider_init(&state->panning_slider, SLIDE_MODE_LINEAR);
+
+    state->pitch_pan_ref_param = FLT_MAX;
+    state->pitch_pan_value = 0;
 
     state->lowpass = INFINITY;
     state->actual_lowpass = INFINITY;

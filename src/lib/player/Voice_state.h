@@ -91,6 +91,9 @@ typedef struct Voice_state
     double actual_panning;         ///< The current actual panning.
     Slider panning_slider;
 
+    float pitch_pan_ref_param;     ///< Pitch value that maps to the stored pitch-pan value.
+    float pitch_pan_value;
+
     double lowpass;                ///< The current lowpass cut-off frequency.
     double actual_lowpass;         ///< The current actual lowpass cut-off frequency.
     Slider lowpass_slider;
