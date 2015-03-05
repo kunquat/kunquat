@@ -471,51 +471,6 @@ static uint32_t Generator_add_mix(
         audio_r[i] *= actual_force;
     }
 
-#if 0
-    uint32_t mixed = offset;
-    for (; mixed < nframes && vstate->active; ++mixed)
-    {
-        const float actual_pitch = actual_pitches[mixed];
-        const float actual_force = actual_forces[mixed];
-
-        double vals[KQT_BUFFERS_MAX] = { 0 };
-        vals[0] = 0;
-        double mod_val = mod_values[mixed];
-
-        float* base_buf = Sample_get_buffer(add->base, 0);
-        assert(base_buf != NULL);
-        for (int h = 0; h < add_state->tone_limit; ++h)
-        {
-            if (add->tones[h].pitch_factor <= 0 ||
-                    add->tones[h].volume_factor <= 0)
-                continue;
-
-            // FIXME: + mod_val is specifically phase modulation
-            double actual_phase = add_state->tones[h].phase + mod_val;
-            double pos = actual_phase * BASE_FUNC_SIZE;
-            int32_t pos1 = (int)pos & (BASE_FUNC_SIZE - 1);
-            int32_t pos2 = (pos1 + 1) & (BASE_FUNC_SIZE - 1);
-            float frame = base_buf[pos1];
-            float frame_diff = base_buf[pos2] - frame;
-            double remainder = pos - floor(pos);
-            double val =
-                (frame + remainder * frame_diff) *
-                add->tones[h].volume_factor;
-
-            vals[0] += val * (1 - add->tones[h].panning);
-            vals[1] += val * (1 + add->tones[h].panning);
-
-            add_state->tones[h].phase += actual_pitch *
-                                         add->tones[h].pitch_factor / freq;
-            if (add_state->tones[h].phase >= 1)
-                add_state->tones[h].phase -= floor(add_state->tones[h].phase);
-        }
-
-        audio_l[mixed] = vals[0] * actual_force;
-        audio_r[mixed] = vals[1] * actual_force;
-    }
-#endif
-
     Generator_common_ramp_attack(gen, vstate, wbs, 2, freq, offset, nframes);
 
     vstate->pos = 1; // XXX: hackish
