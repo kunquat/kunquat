@@ -421,6 +421,57 @@ static uint32_t Generator_add_mix(
         }
     }
 
+    // Add base waveform tones
+    for (uint32_t i = offset; i < nframes; ++i)
+    {
+        audio_l[i] = 0;
+        audio_r[i] = 0;
+    }
+
+    const float* base = Sample_get_buffer(add->base, 0);
+
+    for (int h = 0; h < add_state->tone_limit; ++h)
+    {
+        Add_tone* tone = &add->tones[h];
+        if ((tone->pitch_factor <= 0) || (tone->volume_factor <= 0))
+            continue;
+
+        Add_tone_state* tone_state = &add_state->tones[h];
+
+        for (uint32_t i = offset; i < nframes; ++i)
+        {
+            const float actual_pitch = actual_pitches[i];
+            const float mod_val = mod_values[i];
+
+            // Note: + mod_val is specific to phase modulation
+            const double actual_phase = tone_state->phase + mod_val;
+            const double pos = actual_phase * BASE_FUNC_SIZE;
+            const int32_t pos1 = (int)pos & BASE_FUNC_SIZE_MASK;
+            const int32_t pos2 = (pos1 + 1) & BASE_FUNC_SIZE_MASK;
+            const float item1 = base[pos1];
+            const float item_diff = base[pos2] - item1;
+            const double lerp_val = pos - floor(pos);
+            const double value =
+                (item1 + (lerp_val * item_diff)) * tone->volume_factor;
+
+            audio_l[i] += value * (1 - tone->panning);
+            audio_r[i] += value * (1 + tone->panning);
+
+            tone_state->phase += actual_pitch * tone->pitch_factor / freq;
+            if (tone_state->phase >= 1)
+                tone_state->phase -= floor(tone_state->phase);
+        }
+    }
+
+    // Apply actual force
+    for (uint32_t i = offset; i < nframes; ++i)
+    {
+        const float actual_force = actual_forces[i];
+        audio_l[i] *= actual_force;
+        audio_r[i] *= actual_force;
+    }
+
+#if 0
     uint32_t mixed = offset;
     for (; mixed < nframes && vstate->active; ++mixed)
     {
@@ -463,12 +514,13 @@ static uint32_t Generator_add_mix(
         audio_l[mixed] = vals[0] * actual_force;
         audio_r[mixed] = vals[1] * actual_force;
     }
+#endif
 
-    Generator_common_ramp_attack(gen, vstate, wbs, 2, freq, offset, mixed);
+    Generator_common_ramp_attack(gen, vstate, wbs, 2, freq, offset, nframes);
 
     vstate->pos = 1; // XXX: hackish
 
-    return mixed;
+    return nframes;
 }
 
 
