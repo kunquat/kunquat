@@ -28,11 +28,13 @@
 #include <kunquat/limits.h>
 #include <mathnum/common.h>
 #include <memory.h>
+#include <player/Time_env_state.h>
 #include <player/Work_buffers.h>
 #include <string/common.h>
 
 
 #define BASE_FUNC_SIZE 4096
+#define BASE_FUNC_SIZE_MASK (BASE_FUNC_SIZE - 1)
 
 
 typedef struct Add_tone
@@ -273,11 +275,15 @@ static void Generator_add_init_vstate(
     }
 
     add_state->mod_active = add->mod_mode != MOD_DISABLED;
+
+    Time_env_state_init(&add_state->mod_env_state);
+    /*
     add_state->mod_env_pos = 0;
     add_state->mod_env_next_node = 0;
     add_state->mod_env_value = NAN;
     add_state->mod_env_update = 0;
     add_state->mod_env_scale = NAN;
+    // */
 
     return;
 }
@@ -318,17 +324,114 @@ static uint32_t Generator_add_mix(
     float* audio_l = Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_AUDIO_L);
     float* audio_r = Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_AUDIO_R);
 
+    static const int ADD_WORK_BUFFER_MOD = WORK_BUFFER_IMPL_1;
+
+    float* mod_values = Work_buffers_get_buffer_contents_mut(wbs, ADD_WORK_BUFFER_MOD);
+
+    // Get modulation
+    for (uint32_t i = offset; i < nframes; ++i)
+        mod_values[i] = 0;
+
+    if (add_state->mod_active)
+    {
+        const float* mod_base = Sample_get_buffer(add->mod, 0);
+        assert(mod_base != NULL);
+
+        // Add modulation tones
+        for (int h = 0; h < add_state->mod_tone_limit; ++h)
+        {
+            Add_tone* mod_tone = &add->mod_tones[h];
+            if ((mod_tone->pitch_factor <= 0) || (mod_tone->volume_factor <= 0))
+                continue;
+
+            Add_tone_state* mod_tone_state = &add_state->mod_tones[h];
+
+            for (uint32_t i = offset; i < nframes; ++i)
+            {
+                const float actual_pitch = actual_pitches[i];
+
+                float mod_value = mod_values[i];
+
+                const double pos = mod_tone_state->phase * BASE_FUNC_SIZE;
+                const int32_t pos1 = (int)pos & BASE_FUNC_SIZE_MASK;
+                const int32_t pos2 = (pos1 + 1) & BASE_FUNC_SIZE_MASK;
+                const float item1 = mod_base[pos1];
+                const float item_diff = mod_base[pos2] - item1;
+                const double lerp_val = pos - floor(pos);
+                mod_value += (item1 + (lerp_val * item_diff)) *
+                    mod_tone->volume_factor * add->mod_volume;
+
+                mod_tone_state->phase += actual_pitch * mod_tone->pitch_factor / freq;
+                if (mod_tone_state->phase >= 1)
+                    mod_tone_state->phase -= floor(mod_tone_state->phase);
+
+                mod_values[i] = mod_value;
+            }
+        }
+
+        // Apply force->mod envelope
+        const Envelope* force_mod_env = add->force_mod_env;
+        if (add->force_mod_env_enabled && (force_mod_env != NULL))
+        {
+            for (uint32_t i = offset; i < nframes; ++i)
+            {
+                const float actual_force = actual_forces[i];
+
+                const double force = min(1, actual_force);
+                const double factor = Envelope_get_value(force_mod_env, force);
+                assert(isfinite(factor));
+                mod_values[i] *= factor;
+            }
+        }
+
+        // Apply mod envelope
+        if (add->mod_env_enabled && (add->mod_env != NULL))
+        {
+            const int32_t mod_env_stop = Time_env_state_process(
+                    &add_state->mod_env_state,
+                    add->mod_env,
+                    add->mod_env_scale_amount,
+                    add->mod_env_center,
+                    0, // sustain
+                    0, 1, // range
+                    wbs,
+                    offset,
+                    nframes,
+                    freq);
+
+            float* time_env = Work_buffers_get_buffer_contents_mut(
+                    wbs, WORK_BUFFER_TIME_ENV);
+
+            // Check the end of envelope processing
+            if (add_state->mod_env_state.is_finished)
+            {
+                const double* last_node = Envelope_get_node(
+                        add->mod_env, Envelope_node_count(add->mod_env) - 1);
+                const double last_value = last_node[1];
+                if (last_value == 0)
+                    add_state->mod_active = false;
+
+                // Fill the rest of the envelope buffer with the last value
+                for (uint32_t i = mod_env_stop; i < nframes; ++i)
+                    time_env[i] = last_value;
+            }
+
+            for (uint32_t i = offset; i < nframes; ++i)
+                mod_values[i] *= time_env[i];
+        }
+    }
+
     uint32_t mixed = offset;
     for (; mixed < nframes && vstate->active; ++mixed)
     {
         const float actual_pitch = actual_pitches[mixed];
-        const float prev_actual_pitch = actual_pitches[(int32_t)mixed - 1];
         const float actual_force = actual_forces[mixed];
 
         double vals[KQT_BUFFERS_MAX] = { 0 };
         vals[0] = 0;
-        double mod_val = 0;
+        double mod_val = mod_values[mixed];
 
+        /*
         if (add_state->mod_active)
         {
             float* mod_buf = Sample_get_buffer(add->mod, 0);
@@ -420,6 +523,7 @@ static uint32_t Generator_add_mix(
             if (mod_val < 0)
                 mod_val += floor(mod_val);
         }
+        // */
 
         float* base_buf = Sample_get_buffer(add->base, 0);
         assert(base_buf != NULL);

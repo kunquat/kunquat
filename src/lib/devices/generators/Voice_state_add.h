@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2015
  *
  * This file is part of Kunquat.
  *
@@ -16,6 +16,7 @@
 #define K_VOICE_STATE_ADD_H
 
 
+#include <player/Time_env_state.h>
 #include <player/Voice_state.h>
 
 
@@ -43,11 +44,15 @@ typedef struct Voice_state_add
     int mod_tone_limit;
 
     bool mod_active;
+
+    Time_env_state mod_env_state;
+    /*
     double mod_env_pos;
     int mod_env_next_node;
     double mod_env_value;
     double mod_env_update;
     double mod_env_scale;
+    // */
 
     Add_tone_state tones[HARMONICS_MAX];
     Add_tone_state mod_tones[HARMONICS_MAX];
