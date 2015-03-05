@@ -126,88 +126,27 @@ static bool Generator_add_init(Device_impl* dimpl)
 
     bool reg_success = true;
 
-    reg_success &= Device_impl_register_set_sample(
-            &add->parent, "p_base.wav", NULL, Generator_add_set_base, NULL);
-    reg_success &= Device_impl_register_set_sample(
-            &add->parent, "p_mod.wav", NULL, Generator_add_set_mod_base, NULL);
-    reg_success &= Device_impl_register_set_int(
-            &add->parent,
-            "p_i_mod.json",
-            MOD_DISABLED,
-            Generator_add_set_mod,
-            NULL);
-    reg_success &= Device_impl_register_set_float(
-            &add->parent,
-            "p_f_mod_volume.json",
-            0.0,
-            Generator_add_set_mod_volume,
-            NULL);
-    reg_success &= Device_impl_register_set_bool(
-            &add->parent,
-            "p_b_mod_env_enabled.json",
-            false,
-            Generator_add_set_mod_env_enabled,
-            NULL);
-    reg_success &= Device_impl_register_set_envelope(
-            &add->parent,
-            "p_e_mod_env.json",
-            NULL,
-            Generator_add_set_mod_env,
-            NULL);
-    reg_success &= Device_impl_register_set_float(
-            &add->parent,
-            "p_f_mod_env_scale_amount.json",
-            0.0,
-            Generator_add_set_mod_env_scale_amount,
-            NULL);
-    reg_success &= Device_impl_register_set_float(
-            &add->parent,
-            "p_f_mod_env_scale_center.json",
-            0.0,
-            Generator_add_set_mod_env_scale_center,
-            NULL);
-    reg_success &= Device_impl_register_set_bool(
-            &add->parent,
-            "p_b_force_mod_env_enabled.json",
-            NULL,
-            Generator_add_set_force_mod_env_enabled,
-            NULL);
-    reg_success &= Device_impl_register_set_envelope(
-            &add->parent,
-            "p_e_force_mod_env.json",
-            NULL,
-            Generator_add_set_force_mod_env,
-            NULL);
-    reg_success &= Device_impl_register_set_float(
-            &add->parent,
-            "tone_XX/p_f_pitch.json",
-            NAN,
-            Generator_add_set_tone_pitch,
-            NULL);
-    reg_success &= Device_impl_register_set_float(
-            &add->parent,
-            "tone_XX/p_f_volume.json",
-            NAN,
-            Generator_add_set_tone_volume,
-            NULL);
-    reg_success &= Device_impl_register_set_float(
-            &add->parent,
-            "tone_XX/p_f_pan.json",
-            0.0,
-            Generator_add_set_tone_panning,
-            NULL);
-    reg_success &= Device_impl_register_set_float(
-            &add->parent,
-            "mod_XX/p_f_pitch.json",
-            NAN,
-            Generator_add_set_mod_tone_pitch,
-            NULL);
-    reg_success &= Device_impl_register_set_float(
-            &add->parent,
-            "mod_XX/p_f_volume.json",
-            NAN,
-            Generator_add_set_mod_tone_volume,
-            NULL);
+#define REGISTER_SET(type, field, key, def_val) \
+    reg_success &= Device_impl_register_set_##type(                       \
+            &add->parent, key, def_val, Generator_add_set_##field, NULL)
+
+    REGISTER_SET(sample,    base,           "p_base.wav",               NULL);
+    REGISTER_SET(sample,    mod_base,       "p_mod.wav",                NULL);
+    REGISTER_SET(int,       mod,            "p_i_mod.json",             MOD_DISABLED);
+    REGISTER_SET(float,     mod_volume,     "p_f_mod_volume.json",      0.0);
+    REGISTER_SET(bool, mod_env_enabled, "p_b_mod_env_enabled.json",     false);
+    REGISTER_SET(envelope,  mod_env,        "p_e_mod_env.json",         NULL);
+    REGISTER_SET(float, mod_env_scale_amount, "p_f_mod_env_scale_amount.json", 0.0);
+    REGISTER_SET(float, mod_env_scale_center, "p_f_mod_env_scale_center.json", 0.0);
+    REGISTER_SET(bool, force_mod_env_enabled, "p_b_force_mod_env_enabled.json", false);
+    REGISTER_SET(envelope,  force_mod_env,  "p_e_force_mod_env.json",   NULL);
+    REGISTER_SET(float,     tone_pitch,     "tone_XX/p_f_pitch.json",   NAN);
+    REGISTER_SET(float,     tone_volume,    "tone_XX/p_f_volume.json",  NAN);
+    REGISTER_SET(float,     tone_panning,   "tone_XX/p_f_pan.json",     0.0);
+    REGISTER_SET(float,     mod_tone_pitch, "mod_XX/p_f_pitch.json",    NAN);
+    REGISTER_SET(float,     mod_tone_volume, "mod_XX/p_f_volume.json",  NAN);
+
+#undef REGISTER_SET
 
     if (!reg_success)
         return false;
