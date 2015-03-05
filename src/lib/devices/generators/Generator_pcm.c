@@ -21,7 +21,6 @@
 #include <debug/assert.h>
 #include <devices/Device_params.h>
 #include <devices/Generator.h>
-#include <devices/generators/Generator_common.h>
 #include <devices/generators/Generator_pcm.h>
 #include <devices/generators/Voice_state_pcm.h>
 #include <devices/param_types/Hit_map.h>

@@ -21,7 +21,7 @@
 #include <debug/assert.h>
 #include <devices/Device_params.h>
 #include <devices/Generator.h>
-#include <devices/generators/Generator_common.h>
+#include <devices/generators/Gen_utils.h>
 #include <devices/generators/Generator_pulse.h>
 #include <devices/generators/Voice_state_pulse.h>
 #include <kunquat/limits.h>

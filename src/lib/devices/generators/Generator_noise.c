@@ -22,7 +22,7 @@
 #include <debug/assert.h>
 #include <devices/Device_params.h>
 #include <devices/Generator.h>
-#include <devices/generators/Generator_common.h>
+#include <devices/generators/Gen_utils.h>
 #include <devices/generators/Generator_noise.h>
 #include <devices/generators/Voice_state_noise.h>
 #include <kunquat/limits.h>

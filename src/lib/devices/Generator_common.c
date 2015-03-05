@@ -18,14 +18,13 @@
 
 #include <debug/assert.h>
 #include <devices/Generator.h>
-#include <devices/generators/Generator_common.h>
+#include <devices/Generator_common.h>
 #include <Filter.h>
 #include <kunquat/limits.h>
 #include <mathnum/common.h>
 #include <player/Work_buffers.h>
 
 
-#define RAMP_ATTACK_TIME (500.0)
 #define RAMP_RELEASE_TIME (200.0)
 
 
@@ -472,47 +471,6 @@ void Generator_common_handle_filter(
             xfade_step,
             apply_filter_start,
             apply_filter_stop);
-
-    return;
-}
-
-
-void Generator_common_ramp_attack(
-        const Generator* gen,
-        Voice_state* vstate,
-        const Work_buffers* wbs,
-        int ab_count,
-        uint32_t freq,
-        int32_t buf_start,
-        int32_t buf_stop)
-{
-    assert(gen != NULL);
-    assert(vstate != NULL);
-    assert(wbs != NULL);
-    assert((ab_count == 1) || (ab_count == 2));
-    (void)gen;
-
-    float* abufs[KQT_BUFFERS_MAX] =
-    {
-        Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_AUDIO_L),
-        Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_AUDIO_R),
-    };
-
-    const float start_ramp_attack = vstate->ramp_attack;
-    const float inc = RAMP_ATTACK_TIME / freq;
-
-    for (int ch = 0; ch < ab_count; ++ch)
-    {
-        float ramp_attack = start_ramp_attack;
-
-        for (int32_t i = buf_start; (i < buf_stop) && (ramp_attack < 1); ++i)
-        {
-            abufs[ch][i] *= ramp_attack;
-            ramp_attack += inc;
-        }
-
-        vstate->ramp_attack = ramp_attack;
-    }
 
     return;
 }

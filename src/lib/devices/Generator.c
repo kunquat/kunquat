@@ -18,9 +18,9 @@
 #include <inttypes.h>
 
 #include <debug/assert.h>
-#include <devices/generators/Gen_type.h>
-#include <devices/generators/Generator_common.h>
 #include <devices/Generator.h>
+#include <devices/Generator_common.h>
+#include <devices/generators/Gen_type.h>
 #include <Filter.h>
 #include <memory.h>
 #include <pitch_t.h>

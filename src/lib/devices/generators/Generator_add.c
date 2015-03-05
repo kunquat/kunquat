@@ -20,8 +20,8 @@
 
 #include <debug/assert.h>
 #include <devices/Generator.h>
+#include <devices/generators/Gen_utils.h>
 #include <devices/generators/Generator_add.h>
-#include <devices/generators/Generator_common.h>
 #include <devices/generators/Voice_state_add.h>
 #include <devices/param_types/Num_list.h>
 #include <devices/param_types/Sample.h>
