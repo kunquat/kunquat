@@ -390,6 +390,7 @@ static uint32_t Generator_add_mix(
             const int32_t mod_env_stop = Time_env_state_process(
                     &add_state->mod_env_state,
                     add->mod_env,
+                    false, // no loop, TODO: add loop support
                     add->mod_env_scale_amount,
                     add->mod_env_center,
                     0, // sustain

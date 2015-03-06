@@ -61,6 +61,7 @@ typedef struct Instrument_params
     double volume; ///< Instrument volume.
 
     bool env_force_enabled;  ///< Force envelope toggle.
+    bool env_force_loop_enabled;
     bool env_force_carry;    ///< Force envelope carry.
     Envelope* env_force;     ///< Force envelope.
     double env_force_scale_amount; ///< Force envelope scale amount (frequency -> speed).

@@ -47,6 +47,7 @@ void Time_env_state_init(Time_env_state* testate);
  *
  * \param testate        The Time envelope state -- must not be \c NULL.
  * \param env            The Envelope -- must not be \c NULL.
+ * \param has_loop       Whether the Envelope contains a loop.
  * \param scale_amount   The time scale amount -- must be finite.
  * \param scale_center   The time scale center -- must be finite.
  * \param sustain        Sustain value -- must be within range [0, 1]
@@ -66,6 +67,7 @@ void Time_env_state_init(Time_env_state* testate);
 int32_t Time_env_state_process(
         Time_env_state* testate,
         const Envelope* env,
+        bool has_loop,
         double scale_amount,
         double scale_center,
         double sustain,

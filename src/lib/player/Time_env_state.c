@@ -41,6 +41,7 @@ void Time_env_state_init(Time_env_state* testate)
 int32_t Time_env_state_process(
         Time_env_state* testate,
         const Envelope* env,
+        bool has_loop,
         double scale_amount,
         double scale_center,
         double sustain,
@@ -84,8 +85,8 @@ int32_t Time_env_state_process(
         (loop_start_index == -1) ? NULL : Envelope_get_node(env, loop_start_index);
     const double* loop_end =
         (loop_end_index == -1) ? NULL : Envelope_get_node(env, loop_end_index);
-
-    const bool has_loop = (loop_start != NULL) && (loop_end != NULL);
+    assert(!has_loop || (loop_start != NULL));
+    assert(!has_loop || (loop_end != NULL));
 
     // Get state variables
     double cur_pos = testate->cur_pos;

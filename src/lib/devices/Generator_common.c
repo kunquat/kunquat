@@ -163,6 +163,7 @@ int32_t Generator_common_handle_force(
         const int32_t env_force_stop = Time_env_state_process(
                 &vstate->force_env_state,
                 env,
+                gen->ins_params->env_force_loop_enabled,
                 gen->ins_params->env_force_scale_amount,
                 gen->ins_params->env_force_center,
                 0, // sustain
@@ -206,6 +207,7 @@ int32_t Generator_common_handle_force(
         const int32_t env_force_rel_stop = Time_env_state_process(
                 &vstate->force_rel_env_state,
                 env,
+                false, // no loop
                 gen->ins_params->env_force_rel_scale_amount,
                 gen->ins_params->env_force_rel_center,
                 ins_state->sustain,

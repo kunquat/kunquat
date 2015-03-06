@@ -91,6 +91,7 @@ Instrument_params* Instrument_params_init(
 
     new_env_or_fail(ip->env_force, 32,  0, INFINITY, 0,  0, 1, 0);
     ip->env_force_enabled = false;
+    ip->env_force_loop_enabled = false;
     ip->env_force_carry = false;
     ip->env_force_scale_amount = 0;
     ip->env_force_center = 0;
@@ -321,21 +322,21 @@ static bool read_time_env(Streader* sr, const char* key, void* userdata)
     return !Streader_is_error_set(sr);
 }
 
-static Envelope* parse_env_time(Streader* sr, tdata* td)
+static void parse_env_time(Streader* sr, tdata* td)
 {
     assert(sr != NULL);
     assert(td != NULL);
     assert(td->env == NULL);
 
     if (Streader_is_error_set(sr))
-        return NULL;
+        return;
 
     td->env = new_Envelope(32, 0, INFINITY, 0, 0, 1, 0);
     if (td->env == NULL)
     {
         Streader_set_memory_error(
                 sr, "Could not allocate memory for envelope");
-        return NULL;
+        return;
     }
 
     if (Streader_has_data(sr))
@@ -344,19 +345,19 @@ static Envelope* parse_env_time(Streader* sr, tdata* td)
         {
             del_Envelope(td->env);
             td->env = NULL;
-            return NULL;
+            return;
         }
     }
 
     if (Envelope_node_count(td->env) == 0)
     {
         td->enabled = false;
-        return td->env;
+        return;
     }
 
     int loop_start = Envelope_get_mark(td->env, 0);
     int loop_end = Envelope_get_mark(td->env, 1);
-    if (td->release || !td->loop)
+    if (td->release)
     {
         Envelope_set_mark(td->env, 0, -1);
         Envelope_set_mark(td->env, 1, -1);
@@ -373,7 +374,7 @@ static Envelope* parse_env_time(Streader* sr, tdata* td)
         Envelope_set_mark(td->env, 1, loop_end);
     }
 
-    return td->env;
+    return;
 }
 
 
@@ -397,17 +398,18 @@ bool Instrument_params_parse_env_force(
         .release = false,
     };
 
-    Envelope* env = parse_env_time(sr, &td);
-    if (env == NULL)
+    parse_env_time(sr, &td);
+    if (td.env == NULL)
         return false;
 
     assert(!Streader_is_error_set(sr));
     ip->env_force_enabled = td.enabled;
+    ip->env_force_loop_enabled = td.loop;
     ip->env_force_scale_amount = td.scale_amount;
     ip->env_force_center = exp2(td.scale_center / 1200) * 440;
     ip->env_force_carry = td.carry;
     Envelope* old_env = ip->env_force;
-    ip->env_force = env;
+    ip->env_force = td.env;
     del_Envelope(old_env);
 
     return true;
@@ -434,8 +436,8 @@ bool Instrument_params_parse_env_force_rel(
         .release = true,
     };
 
-    Envelope* env = parse_env_time(sr, &td);
-    if (env == NULL)
+    parse_env_time(sr, &td);
+    if (td.env == NULL)
         return false;
 
     assert(!Streader_is_error_set(sr));
@@ -443,7 +445,7 @@ bool Instrument_params_parse_env_force_rel(
     ip->env_force_rel_scale_amount = td.scale_amount;
     ip->env_force_rel_center = exp2(td.scale_center / 1200) * 440;
     Envelope* old_env = ip->env_force_rel;
-    ip->env_force_rel = env;
+    ip->env_force_rel = td.env;
     del_Envelope(old_env);
 
     return true;
