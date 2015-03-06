@@ -63,6 +63,7 @@ typedef struct Generator_add
     double mod_volume;
     bool mod_env_enabled;
     const Envelope* mod_env;
+    bool mod_env_loop_enabled;
     double mod_env_scale_amount;
     double mod_env_center;
     bool force_mod_env_enabled;
@@ -86,6 +87,7 @@ static Set_int_func         Generator_add_set_mod;
 static Set_float_func       Generator_add_set_mod_volume;
 static Set_bool_func        Generator_add_set_mod_env_enabled;
 static Set_envelope_func    Generator_add_set_mod_env;
+static Set_bool_func        Generator_add_set_mod_env_loop_enabled;
 static Set_float_func       Generator_add_set_mod_env_scale_amount;
 static Set_float_func       Generator_add_set_mod_env_scale_center;
 static Set_bool_func        Generator_add_set_force_mod_env_enabled;
@@ -138,6 +140,7 @@ static bool Generator_add_init(Device_impl* dimpl)
     REGISTER_SET(float,     mod_volume,     "p_f_mod_volume.json",      0.0);
     REGISTER_SET(bool, mod_env_enabled, "p_b_mod_env_enabled.json",     false);
     REGISTER_SET(envelope,  mod_env,        "p_e_mod_env.json",         NULL);
+    REGISTER_SET(bool, mod_env_loop_enabled, "p_b_mod_env_loop_enabled.json", false);
     REGISTER_SET(float, mod_env_scale_amount, "p_f_mod_env_scale_amount.json", 0.0);
     REGISTER_SET(float, mod_env_scale_center, "p_f_mod_env_scale_center.json", 0.0);
     REGISTER_SET(bool, force_mod_env_enabled, "p_b_force_mod_env_enabled.json", false);
@@ -159,6 +162,7 @@ static bool Generator_add_init(Device_impl* dimpl)
     add->mod_volume = 1;
     add->mod_env_enabled = false;
     add->mod_env = NULL;
+    add->mod_env_loop_enabled = false;
     add->mod_env_scale_amount = 0;
     add->mod_env_center = 440;
     add->force_mod_env_enabled = false;
@@ -390,7 +394,7 @@ static uint32_t Generator_add_mix(
             const int32_t mod_env_stop = Time_env_state_process(
                     &add_state->mod_env_state,
                     add->mod_env,
-                    false, // no loop, TODO: add loop support
+                    add->mod_env_loop_enabled,
                     add->mod_env_scale_amount,
                     add->mod_env_center,
                     0, // sustain
@@ -631,6 +635,20 @@ static bool Generator_add_set_mod_env(
     }
 
     add->mod_env = valid ? value : NULL;
+
+    return true;
+}
+
+
+static bool Generator_add_set_mod_env_loop_enabled(
+        Device_impl* dimpl, Key_indices indices, bool enabled)
+{
+    assert(dimpl != NULL);
+    assert(indices != NULL);
+    (void)indices;
+
+    Generator_add* add = (Generator_add*)dimpl;
+    add->mod_env_loop_enabled = enabled;
 
     return true;
 }
