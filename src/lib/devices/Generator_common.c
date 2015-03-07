@@ -238,7 +238,7 @@ int32_t Generator_common_handle_force(
 }
 
 
-void apply_filter_settings(
+static void apply_filter_settings(
         Voice_state* vstate,
         const Work_buffers* wbs,
         int ab_count,
