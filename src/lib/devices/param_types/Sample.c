@@ -21,7 +21,6 @@
 
 #include <debug/assert.h>
 #include <devices/param_types/Sample.h>
-#include <devices/param_types/Sample_mix.h>
 #include <devices/param_types/Sample_params.h>
 #include <kunquat/limits.h>
 #include <mathnum/common.h>
@@ -85,11 +84,9 @@ void* Sample_get_buffer(Sample* sample, int ch)
 }
 
 
-uint32_t Sample_mix(
+uint32_t Sample_process_vstate(
         const Sample* sample,
         const Sample_params* params,
-        const Generator* gen,
-        Ins_state* ins_state,
         Voice_state* vstate,
         const Work_buffers* wbs,
         int32_t buf_start,
@@ -102,15 +99,11 @@ uint32_t Sample_mix(
 {
     assert(sample != NULL);
     assert(params != NULL);
-    assert(gen != NULL);
-    assert(ins_state != NULL);
     assert(vstate != NULL);
     assert(wbs != NULL);
     assert(audio_rate > 0);
     assert(tempo > 0);
     assert(vol_scale >= 0);
-    (void)gen;
-    (void)ins_state;
     (void)tempo;
 
     // This implementation does not support larger sample lengths :-P

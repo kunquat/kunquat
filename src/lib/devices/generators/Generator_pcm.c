@@ -25,7 +25,6 @@
 #include <devices/generators/Voice_state_pcm.h>
 #include <devices/param_types/Hit_map.h>
 #include <devices/param_types/Sample.h>
-#include <devices/param_types/Sample_mix.h>
 #include <devices/param_types/Wavpack.h>
 #include <memory.h>
 #include <pitch_t.h>
@@ -304,8 +303,8 @@ uint32_t Generator_pcm_process_vstate(
     Sample_set_loop(sample, pcm_state->params.loop);
     // */
 
-    return Sample_mix(
-            sample, header, gen, ins_state, vstate, wbs,
+    return Sample_process_vstate(
+            sample, header, vstate, wbs,
             buf_start, buf_stop, audio_rate, tempo,
             pcm_state->middle_tone, pcm_state->freq,
             pcm_state->volume);
