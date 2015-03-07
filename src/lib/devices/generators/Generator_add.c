@@ -367,8 +367,8 @@ static uint32_t Generator_add_mix(
                 float mod_value = mod_values[i];
 
                 const double pos = phase * BASE_FUNC_SIZE;
-                const int32_t pos1 = (int)pos & BASE_FUNC_SIZE_MASK;
-                const int32_t pos2 = (pos1 + 1) & BASE_FUNC_SIZE_MASK;
+                const uint32_t pos1 = (uint32_t)pos & BASE_FUNC_SIZE_MASK;
+                const uint32_t pos2 = (pos1 + 1) & BASE_FUNC_SIZE_MASK;
                 const float item1 = mod_base[pos1];
                 const float item_diff = mod_base[pos2] - item1;
                 const double lerp_val = pos - floor(pos);
@@ -470,8 +470,11 @@ static uint32_t Generator_add_mix(
             // Note: + mod_val is specific to phase modulation
             const double actual_phase = phase + mod_val;
             const double pos = actual_phase * BASE_FUNC_SIZE;
-            const int32_t pos1 = (int)pos & BASE_FUNC_SIZE_MASK;
-            const int32_t pos2 = (pos1 + 1) & BASE_FUNC_SIZE_MASK;
+
+            // Note: direct cast of negative doubles to uint32_t is undefined
+            const uint32_t pos1 = (uint32_t)(int32_t)pos & BASE_FUNC_SIZE_MASK;
+            const uint32_t pos2 = (pos1 + 1) & BASE_FUNC_SIZE_MASK;
+
             const float item1 = base[pos1];
             const float item_diff = base[pos2] - item1;
             const double lerp_val = pos - floor(pos);
