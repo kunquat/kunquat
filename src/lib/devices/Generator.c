@@ -85,7 +85,7 @@ Generator* new_Generator(const Instrument_params* ins_params)
     gen->ins_params = ins_params;
 
     gen->init_vstate = NULL;
-    gen->mix = NULL;
+    gen->process_vstate = NULL;
 
     Device_set_state_creator(
             &gen->parent,
@@ -97,13 +97,13 @@ Generator* new_Generator(const Instrument_params* ins_params)
 
 bool Generator_init(
         Generator* gen,
-        Generator_mix_func mix,
+        Generator_process_vstate_func process_vstate,
         void (*init_vstate)(const Generator*, const Gen_state*, Voice_state*))
 {
     assert(gen != NULL);
-    assert(mix != NULL);
+    assert(process_vstate != NULL);
 
-    gen->mix = mix;
+    gen->process_vstate = process_vstate;
     gen->init_vstate = init_vstate;
 
     return true;
@@ -137,46 +137,47 @@ const char* Generator_get_type(const Generator* gen)
 /**
  * Update voice parameter settings that depend on audio rate and/or tempo.
  *
- * \param vstate   The Voice state -- must not be \c NULL.
- * \param freq     The audio rate -- must be positive.
- * \param tempo    The tempo -- must be positive and finite.
+ * \param vstate       The Voice state -- must not be \c NULL.
+ * \param audio_rate   The new audio rate -- must be positive.
+ * \param tempo        The new tempo -- must be positive and finite.
  */
-static void adjust_relative_lengths(Voice_state* vstate, uint32_t freq, double tempo)
+static void adjust_relative_lengths(
+        Voice_state* vstate, uint32_t audio_rate, double tempo)
 {
     assert(vstate != NULL);
-    assert(freq > 0);
+    assert(audio_rate > 0);
     assert(tempo > 0);
     assert(isfinite(tempo));
 
-    if (vstate->freq != freq || vstate->tempo != tempo)
+    if (vstate->freq != audio_rate || vstate->tempo != tempo)
     {
-        Slider_set_mix_rate(&vstate->pitch_slider, freq);
+        Slider_set_mix_rate(&vstate->pitch_slider, audio_rate);
         Slider_set_tempo(&vstate->pitch_slider, tempo);
-        LFO_set_mix_rate(&vstate->vibrato, freq);
+        LFO_set_mix_rate(&vstate->vibrato, audio_rate);
         LFO_set_tempo(&vstate->vibrato, tempo);
 
         if (vstate->arpeggio)
         {
-            vstate->arpeggio_length *= (double)freq / vstate->freq;
+            vstate->arpeggio_length *= (double)audio_rate / vstate->freq;
             vstate->arpeggio_length *= vstate->tempo / tempo;
-            vstate->arpeggio_frames *= (double)freq / vstate->freq;
+            vstate->arpeggio_frames *= (double)audio_rate / vstate->freq;
             vstate->arpeggio_frames *= vstate->tempo / tempo;
         }
 
-        Slider_set_mix_rate(&vstate->force_slider, freq);
+        Slider_set_mix_rate(&vstate->force_slider, audio_rate);
         Slider_set_tempo(&vstate->force_slider, tempo);
-        LFO_set_mix_rate(&vstate->tremolo, freq);
+        LFO_set_mix_rate(&vstate->tremolo, audio_rate);
         LFO_set_tempo(&vstate->tremolo, tempo);
 
-        Slider_set_mix_rate(&vstate->panning_slider, freq);
+        Slider_set_mix_rate(&vstate->panning_slider, audio_rate);
         Slider_set_tempo(&vstate->panning_slider, tempo);
 
-        Slider_set_mix_rate(&vstate->lowpass_slider, freq);
+        Slider_set_mix_rate(&vstate->lowpass_slider, audio_rate);
         Slider_set_tempo(&vstate->lowpass_slider, tempo);
-        LFO_set_mix_rate(&vstate->autowah, freq);
+        LFO_set_mix_rate(&vstate->autowah, audio_rate);
         LFO_set_tempo(&vstate->autowah, tempo);
 
-        vstate->freq = freq;
+        vstate->freq = audio_rate;
         vstate->tempo = tempo;
     }
 
@@ -184,22 +185,22 @@ static void adjust_relative_lengths(Voice_state* vstate, uint32_t freq, double t
 }
 
 
-void Generator_mix(
+void Generator_process_vstate(
         const Generator* gen,
         Device_states* dstates,
         Voice_state* vstate,
         const Work_buffers* wbs,
-        uint32_t nframes,
-        uint32_t offset,
-        uint32_t freq,
+        int32_t buf_start,
+        int32_t buf_stop,
+        uint32_t audio_rate,
         double tempo)
 {
     assert(gen != NULL);
-    assert(gen->mix != NULL);
+    assert(gen->process_vstate != NULL);
     assert(dstates != NULL);
     assert(vstate != NULL);
     assert(wbs != NULL);
-    assert(freq > 0);
+    assert(audio_rate > 0);
     assert(tempo > 0);
 
     if (!vstate->active)
@@ -215,7 +216,7 @@ void Generator_mix(
         return;
     }
 
-    if (offset >= nframes)
+    if (buf_start >= buf_stop)
         return;
 
     // Get states
@@ -236,14 +237,14 @@ void Generator_mix(
 
     // Process common parameters required by implementations
     bool deactivate_after_processing = false;
-    int32_t process_stop = nframes;
+    int32_t process_stop = buf_stop;
 
-    adjust_relative_lengths(vstate, freq, tempo);
+    adjust_relative_lengths(vstate, audio_rate, tempo);
 
-    Generator_common_handle_pitch(gen, vstate, wbs, offset, process_stop);
+    Generator_common_handle_pitch(gen, vstate, wbs, buf_start, process_stop);
 
     const int32_t force_stop = Generator_common_handle_force(
-            gen, ins_state, vstate, wbs, freq, offset, process_stop);
+            gen, ins_state, vstate, wbs, audio_rate, buf_start, process_stop);
 
     const bool force_ended = (force_stop < process_stop);
     if (force_ended)
@@ -257,8 +258,16 @@ void Generator_mix(
     const double old_pos_rem = vstate->pos_rem;
 
     // Call the implementation
-    const int32_t impl_render_stop = gen->mix(
-            gen, gen_state, ins_state, vstate, wbs, process_stop, offset, freq, tempo);
+    const int32_t impl_render_stop = gen->process_vstate(
+            gen,
+            gen_state,
+            ins_state,
+            vstate,
+            wbs,
+            buf_start,
+            process_stop,
+            audio_rate,
+            tempo);
     if (!vstate->active) // FIXME: communicate end of rendering in a cleaner way
     {
         vstate->active = true;
@@ -275,7 +284,7 @@ void Generator_mix(
 
     // Apply common parameters to generated signal
     const int32_t ramp_release_stop = Generator_common_ramp_release(
-            gen, ins_state, vstate, wbs, 2, freq, offset, process_stop);
+            gen, ins_state, vstate, wbs, 2, audio_rate, buf_start, process_stop);
     const bool ramp_release_ended = (vstate->ramp_release >= 1);
     if (ramp_release_ended)
     {
@@ -284,8 +293,9 @@ void Generator_mix(
         process_stop = ramp_release_stop;
     }
 
-    Generator_common_handle_filter(gen, vstate, wbs, 2, freq, offset, process_stop);
-    Generator_common_handle_panning(gen, vstate, wbs, offset, process_stop);
+    Generator_common_handle_filter(
+            gen, vstate, wbs, 2, audio_rate, buf_start, process_stop);
+    Generator_common_handle_panning(gen, vstate, wbs, buf_start, process_stop);
 
     vstate->pos = new_pos;
     vstate->pos_rem = new_pos_rem;
@@ -299,9 +309,9 @@ void Generator_mix(
         float* audio_l = Work_buffer_get_contents_mut(wb_audio_l);
         float* audio_r = Work_buffer_get_contents_mut(wb_audio_r);
 
-        for (int32_t i = offset; i < process_stop; ++i)
+        for (int32_t i = buf_start; i < process_stop; ++i)
             out_l[i] += audio_l[i];
-        for (int32_t i = offset; i < process_stop; ++i)
+        for (int32_t i = buf_start; i < process_stop; ++i)
             out_r[i] += audio_r[i];
     }
 

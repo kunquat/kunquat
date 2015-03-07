@@ -166,8 +166,8 @@ void Voice_mix(
     if (voice->prio == VOICE_PRIO_INACTIVE)
         return;
 
-    uint32_t mixed = offset;
-    Generator_mix(voice->gen, states, voice->state, wbs, nframes, mixed, freq, tempo);
+    Generator_process_vstate(
+            voice->gen, states, voice->state, wbs, offset, nframes, freq, tempo);
 
     if (!voice->state->active)
         Voice_reset(voice);

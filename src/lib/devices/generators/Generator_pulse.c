@@ -51,7 +51,7 @@ static Device_state* Generator_pulse_create_state(
 static void Generator_pulse_init_vstate(
         const Generator* gen, const Gen_state* gen_state, Voice_state* vstate);
 
-static Generator_mix_func Generator_pulse_mix;
+static Generator_process_vstate_func Generator_pulse_process_vstate;
 
 static void del_Generator_pulse(Device_impl* gen);
 
@@ -79,7 +79,7 @@ static bool Generator_pulse_init(Device_impl* dimpl)
 
     Generator* gen = (Generator*)pulse->parent.device;
     gen->init_vstate = Generator_pulse_init_vstate;
-    gen->mix = Generator_pulse_mix;
+    gen->process_vstate = Generator_pulse_process_vstate;
 
     Device_set_state_creator(
             pulse->parent.device,
@@ -156,15 +156,15 @@ double pulse(double phase, double pulse_width)
 }
 
 
-uint32_t Generator_pulse_mix(
+uint32_t Generator_pulse_process_vstate(
         const Generator* gen,
         Gen_state* gen_state,
         Ins_state* ins_state,
         Voice_state* vstate,
         const Work_buffers* wbs,
-        uint32_t nframes,
-        uint32_t offset,
-        uint32_t freq,
+        int32_t buf_start,
+        int32_t buf_stop,
+        uint32_t audio_rate,
         double tempo)
 {
     assert(gen != NULL);
@@ -173,7 +173,7 @@ uint32_t Generator_pulse_mix(
     assert(ins_state != NULL);
     assert(vstate != NULL);
     assert(wbs != NULL);
-    assert(freq > 0);
+    assert(audio_rate > 0);
     assert(tempo > 0);
     (void)gen_state;
     (void)ins_state;
@@ -204,29 +204,28 @@ uint32_t Generator_pulse_mix(
             wbs, WORK_BUFFER_AUDIO_R);
     float* audio_l = Work_buffer_get_contents_mut(wb_audio_l);
 
-    uint32_t mixed = offset;
-    for (; mixed < nframes && vstate->active; ++mixed)
+    for (int32_t i = buf_start; i < buf_stop; ++i)
     {
-        const float actual_pitch = actual_pitches[mixed];
-        const float actual_force = actual_forces[mixed];
+        const float actual_pitch = actual_pitches[i];
+        const float actual_force = actual_forces[i];
 
         double val = pulse(pulse_vstate->phase, pulse_vstate->pulse_width) / 6;
 
-        audio_l[mixed] = val * actual_force;
+        audio_l[i] = val * actual_force;
 
-        pulse_vstate->phase += actual_pitch / freq;
+        pulse_vstate->phase += actual_pitch / audio_rate;
         if (pulse_vstate->phase >= 1)
             pulse_vstate->phase -= floor(pulse_vstate->phase);
     }
 //  fprintf(stderr, "max_amp is %lf\n", max_amp);
 
-    Generator_common_ramp_attack(gen, vstate, wbs, 1, freq, offset, mixed);
+    Generator_common_ramp_attack(gen, vstate, wbs, 1, audio_rate, buf_start, buf_stop);
 
-    Work_buffer_copy(wb_audio_r, wb_audio_l, offset, mixed);
+    Work_buffer_copy(wb_audio_r, wb_audio_l, buf_start, buf_stop);
 
     vstate->pos = 1; // XXX: hackish
 
-    return mixed;
+    return buf_stop;
 }
 
 

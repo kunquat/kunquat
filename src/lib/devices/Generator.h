@@ -40,15 +40,15 @@
 typedef struct Generator Generator;
 
 
-typedef uint32_t Generator_mix_func(
+typedef uint32_t Generator_process_vstate_func(
         const Generator*,
         Gen_state*,
         Ins_state*,
         Voice_state*,
         const Work_buffers*,
-        uint32_t nframes,
-        uint32_t offset,
-        uint32_t freq,
+        int32_t buf_start,
+        int32_t buf_stop,
+        uint32_t audio_rate,
         double tempo);
 
 
@@ -62,7 +62,7 @@ struct Generator
             const struct Generator*,
             const Gen_state*,
             Voice_state*);
-    Generator_mix_func* mix;
+    Generator_process_vstate_func* process_vstate;
 };
 
 
@@ -80,19 +80,19 @@ Generator* new_Generator(const Instrument_params* ins_params);
 /**
  * Initialise the general Generator parameters.
  *
- * \param gen           The Generator -- must not be \c NULL.
- * \param destroy       The destructor of the Generator --
- *                      must not be \c NULL.
- * \param mix           The mixing function of the Generator --
- *                      must not be \c NULL.
- * \param init_state    The Voice state initialiser, or \c NULL if not needed.
+ * \param gen              The Generator -- must not be \c NULL.
+ * \param destroy          The destructor of the Generator --
+ *                         must not be \c NULL.
+ * \param process_vstate   The Voice state process function of the Generator --
+ *                         must not be \c NULL.
+ * \param init_vstate      The Voice state initialiser, or \c NULL if not needed.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Generator_init(
         Generator* gen,
         //void (*destroy)(Generator*),
-        Generator_mix_func mix,
+        Generator_process_vstate_func process_vstate,
         void (*init_vstate)(const Generator*, const Gen_state*, Voice_state*));
 
 
@@ -118,27 +118,25 @@ bool Generator_init(
 
 
 /**
- * Mix the Generator.
+ * Process a Voice state that belongs to the Generator.
  *
- * \param gen       The Generator -- must not be \c NULL.
- * \param dstates   The Device states -- must not be \c NULL.
- * \param vstate    The Voice state -- must not be \c NULL.
- * \param wbs       The Work buffers -- must not be \c NULL.
- * \param nframes   The number of frames to be mixed -- must not be greater
- *                  than the mixing buffer size.
- * \param offset    The starting frame offset (\a nframes - \a offset are
- *                  actually mixed).
- * \param freq      The mixing frequency -- must be > \c 0.
- * \param tempo     The current tempo -- must be > \c 0.
+ * \param gen          The Generator -- must not be \c NULL.
+ * \param dstates      The Device states -- must not be \c NULL.
+ * \param vstate       The Voice state -- must not be \c NULL.
+ * \param wbs          The Work buffers -- must not be \c NULL.
+ * \param buf_start    The start index of the buffer area to be processed.
+ * \param buf_stop     The stop index of the buffer area to be processed.
+ * \param audio_rate   The mixing frequency -- must be > \c 0.
+ * \param tempo        The current tempo -- must be > \c 0.
  */
-void Generator_mix(
+void Generator_process_vstate(
         const Generator* gen,
         Device_states* dstates,
         Voice_state* vstate,
         const Work_buffers* wbs,
-        uint32_t nframes,
-        uint32_t offset,
-        uint32_t freq,
+        int32_t buf_start,
+        int32_t buf_stop,
+        uint32_t audio_rate,
         double tempo);
 
 

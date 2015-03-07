@@ -57,7 +57,7 @@ static void Generator_noise_init_vstate(
         const Gen_state* gen_state,
         Voice_state* vstate);
 
-static Generator_mix_func Generator_noise_mix;
+static Generator_process_vstate_func Generator_noise_process_vstate;
 
 static void del_Generator_noise(Device_impl* gen_impl);
 
@@ -85,7 +85,7 @@ static bool Generator_noise_init(Device_impl* dimpl)
 
     Generator* gen = (Generator*)noise->parent.device;
     gen->init_vstate = Generator_noise_init_vstate;
-    gen->mix = Generator_noise_mix;
+    gen->process_vstate = Generator_noise_process_vstate;
 
     Device_set_state_creator(
             noise->parent.device,
@@ -159,15 +159,15 @@ static void Generator_noise_init_vstate(
 }
 
 
-static uint32_t Generator_noise_mix(
+static uint32_t Generator_noise_process_vstate(
         const Generator* gen,
         Gen_state* gen_state,
         Ins_state* ins_state,
         Voice_state* vstate,
         const Work_buffers* wbs,
-        uint32_t nframes,
-        uint32_t offset,
-        uint32_t freq,
+        int32_t buf_start,
+        int32_t buf_stop,
+        uint32_t audio_rate,
         double tempo)
 {
     assert(gen != NULL);
@@ -176,7 +176,7 @@ static uint32_t Generator_noise_mix(
     assert(ins_state != NULL);
     assert(vstate != NULL);
     assert(wbs != NULL);
-    assert(freq > 0);
+    assert(audio_rate > 0);
     assert(tempo > 0);
     (void)ins_state;
     (void)tempo;
@@ -203,10 +203,9 @@ static uint32_t Generator_noise_mix(
     float* audio_l = Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_AUDIO_L);
     float* audio_r = Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_AUDIO_R);
 
-    uint32_t mixed = offset;
-    for (; mixed < nframes && vstate->active; ++mixed)
+    for (int32_t i = buf_start; i < buf_stop; ++i)
     {
-        const float actual_force = actual_forces[mixed];
+        const float actual_force = actual_forces[i];
 
         double vals[KQT_BUFFERS_MAX] = { 0 };
 
@@ -233,16 +232,16 @@ static uint32_t Generator_noise_mix(
                     Random_get_float_signal(vstate->rand_s));
         }
 
-        audio_l[mixed] = vals[0] * actual_force;
-        audio_r[mixed] = vals[1] * actual_force;
+        audio_l[i] = vals[0] * actual_force;
+        audio_r[i] = vals[1] * actual_force;
     }
 
-    Generator_common_ramp_attack(gen, vstate, wbs, 2, freq, offset, mixed);
+    Generator_common_ramp_attack(gen, vstate, wbs, 2, audio_rate, buf_start, buf_stop);
 
     vstate->pos = 1; // XXX: hackish
 
 //  fprintf(stderr, "max_amp is %lf\n", max_amp);
-    return mixed;
+    return buf_stop;
 }
 
 

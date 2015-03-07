@@ -44,7 +44,7 @@ static bool Generator_pcm_init(Device_impl* dimpl);
 static void Generator_pcm_init_vstate(
         const Generator* gen, const Gen_state* gen_state, Voice_state* vstate);
 
-static Generator_mix_func Generator_pcm_mix;
+static Generator_process_vstate_func Generator_pcm_process_vstate;
 
 static void del_Generator_pcm(Device_impl* gen);
 
@@ -72,7 +72,7 @@ static bool Generator_pcm_init(Device_impl* dimpl)
 
     Generator* gen = (Generator*)pcm->parent.device;
     gen->init_vstate = Generator_pcm_init_vstate;
-    gen->mix = Generator_pcm_mix;
+    gen->process_vstate = Generator_pcm_process_vstate;
 
     return true;
 }
@@ -129,15 +129,15 @@ static void Generator_pcm_init_vstate(
 }
 
 
-uint32_t Generator_pcm_mix(
+uint32_t Generator_pcm_process_vstate(
         const Generator* gen,
         Gen_state* gen_state,
         Ins_state* ins_state,
         Voice_state* vstate,
         const Work_buffers* wbs,
-        uint32_t nframes,
-        uint32_t offset,
-        uint32_t freq,
+        int32_t buf_start,
+        int32_t buf_stop,
+        uint32_t audio_rate,
         double tempo)
 {
     assert(gen != NULL);
@@ -146,15 +146,15 @@ uint32_t Generator_pcm_mix(
     assert(ins_state != NULL);
     assert(vstate != NULL);
     assert(wbs != NULL);
-    assert(freq > 0);
+    assert(audio_rate > 0);
     assert(tempo > 0);
     (void)gen_state;
 
 //    Generator_pcm* pcm = (Generator_pcm*)gen->parent.dimpl;
     Voice_state_pcm* pcm_state = (Voice_state_pcm*)vstate;
 
-    if (nframes <= offset)
-        return offset;
+    if (buf_start >= buf_stop)
+        return buf_start;
 
     if (pcm_state->sample < 0)
     {
@@ -170,7 +170,7 @@ uint32_t Generator_pcm_mix(
             if (*expression_arg < 0 || *expression_arg >= PCM_EXPRESSIONS_MAX)
             {
                 vstate->active = false;
-                return offset;
+                return buf_start;
             }
             expression = *expression_arg;
         }
@@ -182,7 +182,7 @@ uint32_t Generator_pcm_mix(
             if (*source_arg < 0 || *source_arg >= PCM_SOURCES_MAX)
             {
                 vstate->active = false;
-                return offset;
+                return buf_start;
             }
             source = *source_arg;
         }
@@ -205,7 +205,7 @@ uint32_t Generator_pcm_mix(
             if (map == NULL)
             {
                 vstate->active = false;
-                return offset;
+                return buf_start;
             }
 
             vstate->pitch = 440;
@@ -230,7 +230,7 @@ uint32_t Generator_pcm_mix(
             if (map == NULL)
             {
                 vstate->active = false;
-                return offset;
+                return buf_start;
             }
 
             //fprintf(stderr, "pitch @ %p: %f\n", (void*)&state->pitch, state->pitch);
@@ -245,7 +245,7 @@ uint32_t Generator_pcm_mix(
         if (entry == NULL || entry->sample >= PCM_SAMPLES_MAX)
         {
             vstate->active = false;
-            return offset;
+            return buf_start;
         }
 
         pcm_state->sample = entry->sample;
@@ -268,7 +268,7 @@ uint32_t Generator_pcm_mix(
     if (header == NULL)
     {
         vstate->active = false;
-        return offset;
+        return buf_start;
     }
 
     assert(header->mid_freq > 0);
@@ -290,7 +290,7 @@ uint32_t Generator_pcm_mix(
     if (sample == NULL)
     {
         vstate->active = false;
-        return offset;
+        return buf_start;
     }
 
     if (vstate->hit_index >= 0)
@@ -306,7 +306,7 @@ uint32_t Generator_pcm_mix(
 
     return Sample_mix(
             sample, header, gen, ins_state, vstate, wbs,
-            offset, nframes, freq, tempo,
+            buf_start, buf_stop, audio_rate, tempo,
             pcm_state->middle_tone, pcm_state->freq,
             pcm_state->volume);
 }

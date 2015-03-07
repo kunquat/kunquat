@@ -98,7 +98,7 @@ static Set_float_func       Generator_add_set_tone_panning;
 static Set_float_func       Generator_add_set_mod_tone_pitch;
 static Set_float_func       Generator_add_set_mod_tone_volume;
 
-static Generator_mix_func Generator_add_mix;
+static Generator_process_vstate_func Generator_add_process_vstate;
 
 static void del_Generator_add(Device_impl* gen_impl);
 
@@ -126,7 +126,7 @@ static bool Generator_add_init(Device_impl* dimpl)
 
     Generator* gen = (Generator*)add->parent.device;
     gen->init_vstate = Generator_add_init_vstate;
-    gen->mix = Generator_add_mix;
+    gen->process_vstate = Generator_add_process_vstate;
 
     bool reg_success = true;
 
@@ -293,14 +293,14 @@ static void Generator_add_init_vstate(
 }
 
 
-static uint32_t Generator_add_mix(
+static uint32_t Generator_add_process_vstate(
         const Generator* gen,
         Gen_state* gen_state,
         Ins_state* ins_state,
         Voice_state* vstate,
         const Work_buffers* wbs,
-        uint32_t nframes,
-        uint32_t offset,
+        int32_t buf_start,
+        int32_t buf_stop,
         uint32_t audio_rate,
         double tempo)
 {
@@ -335,7 +335,7 @@ static uint32_t Generator_add_mix(
     float* mod_values = Work_buffers_get_buffer_contents_mut(wbs, ADD_WORK_BUFFER_MOD);
 
     // Get modulation
-    for (uint32_t i = offset; i < nframes; ++i)
+    for (int32_t i = buf_start; i < buf_stop; ++i)
         mod_values[i] = 0;
 
     if (add_state->mod_active)
@@ -360,7 +360,7 @@ static uint32_t Generator_add_mix(
             Add_tone_state* mod_tone_state = &add_state->mod_tones[h];
             double phase = mod_tone_state->phase;
 
-            for (uint32_t i = offset; i < nframes; ++i)
+            for (int32_t i = buf_start; i < buf_stop; ++i)
             {
                 const float actual_pitch = actual_pitches[i];
 
@@ -389,7 +389,7 @@ static uint32_t Generator_add_mix(
         const Envelope* force_mod_env = add->force_mod_env;
         if (add->force_mod_env_enabled && (force_mod_env != NULL))
         {
-            for (uint32_t i = offset; i < nframes; ++i)
+            for (int32_t i = buf_start; i < buf_stop; ++i)
             {
                 const float actual_force = actual_forces[i];
 
@@ -412,8 +412,8 @@ static uint32_t Generator_add_mix(
                     0, // sustain
                     0, 1, // range
                     wbs,
-                    offset,
-                    nframes,
+                    buf_start,
+                    buf_stop,
                     audio_rate);
 
             float* time_env = Work_buffers_get_buffer_contents_mut(
@@ -429,17 +429,17 @@ static uint32_t Generator_add_mix(
                     add_state->mod_active = false;
 
                 // Fill the rest of the envelope buffer with the last value
-                for (uint32_t i = mod_env_stop; i < nframes; ++i)
+                for (int32_t i = mod_env_stop; i < buf_stop; ++i)
                     time_env[i] = last_value;
             }
 
-            for (uint32_t i = offset; i < nframes; ++i)
+            for (int32_t i = buf_start; i < buf_stop; ++i)
                 mod_values[i] *= time_env[i];
         }
     }
 
     // Add base waveform tones
-    for (uint32_t i = offset; i < nframes; ++i)
+    for (int32_t i = buf_start; i < buf_stop; ++i)
     {
         audio_l[i] = 0;
         audio_r[i] = 0;
@@ -462,7 +462,7 @@ static uint32_t Generator_add_mix(
         Add_tone_state* tone_state = &add_state->tones[h];
         double phase = tone_state->phase;
 
-        for (uint32_t i = offset; i < nframes; ++i)
+        for (int32_t i = buf_start; i < buf_stop; ++i)
         {
             const float actual_pitch = actual_pitches[i];
             const float mod_val = mod_values[i];
@@ -492,18 +492,18 @@ static uint32_t Generator_add_mix(
     }
 
     // Apply actual force
-    for (uint32_t i = offset; i < nframes; ++i)
+    for (int32_t i = buf_start; i < buf_stop; ++i)
     {
         const float actual_force = actual_forces[i];
         audio_l[i] *= actual_force;
         audio_r[i] *= actual_force;
     }
 
-    Generator_common_ramp_attack(gen, vstate, wbs, 2, audio_rate, offset, nframes);
+    Generator_common_ramp_attack(gen, vstate, wbs, 2, audio_rate, buf_start, buf_stop);
 
     vstate->pos = 1; // XXX: hackish
 
-    return nframes;
+    return buf_stop;
 }
 
 
