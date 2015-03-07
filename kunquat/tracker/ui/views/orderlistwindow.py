@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Toni Ruottu, Finland 2014
+# Authors: Toni Ruottu, Finland 2014
+#          Tomi Jylhä-Ollila, Finland 2015
 #
 # This file is part of Kunquat.
 #
@@ -14,7 +15,7 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from orderlist import Orderlist
+from orderlisteditor import OrderlistEditor
 
 
 class OrderlistWindow(QWidget):
@@ -22,22 +23,22 @@ class OrderlistWindow(QWidget):
     def __init__(self):
         QWidget.__init__(self)
         self._ui_model = None
-        self._orderlist = Orderlist()
+        self._orderlist_editor = OrderlistEditor()
 
         self.setWindowTitle('Orderlist')
 
         v = QVBoxLayout()
         v.setMargin(0)
         v.setSpacing(0)
-        v.addWidget(self._orderlist)
+        v.addWidget(self._orderlist_editor)
         self.setLayout(v)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
-        self._orderlist.set_ui_model(ui_model)
+        self._orderlist_editor.set_ui_model(ui_model)
 
     def unregister_updaters(self):
-        self._orderlist.unregister_updaters()
+        self._orderlist_editor.unregister_updaters()
 
     def closeEvent(self, event):
         event.ignore()
@@ -46,3 +47,5 @@ class OrderlistWindow(QWidget):
 
     def sizeHint(self):
         return QSize(400, 600)
+
+
