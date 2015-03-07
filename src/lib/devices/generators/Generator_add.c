@@ -301,7 +301,7 @@ static uint32_t Generator_add_mix(
         const Work_buffers* wbs,
         uint32_t nframes,
         uint32_t offset,
-        uint32_t freq,
+        uint32_t audio_rate,
         double tempo)
 {
     assert(gen != NULL);
@@ -310,7 +310,7 @@ static uint32_t Generator_add_mix(
     assert(ins_state != NULL);
     assert(vstate != NULL);
     assert(wbs != NULL);
-    assert(freq > 0);
+    assert(audio_rate > 0);
     assert(tempo > 0);
     (void)gen_state;
     (void)ins_state;
@@ -330,6 +330,8 @@ static uint32_t Generator_add_mix(
 
     static const int ADD_WORK_BUFFER_MOD = WORK_BUFFER_IMPL_1;
 
+    const double inv_audio_rate = 1.0 / audio_rate;
+
     float* mod_values = Work_buffers_get_buffer_contents_mut(wbs, ADD_WORK_BUFFER_MOD);
 
     // Get modulation
@@ -342,13 +344,21 @@ static uint32_t Generator_add_mix(
         assert(mod_base != NULL);
 
         // Add modulation tones
+        const double mod_volume = add->mod_volume;
+
         for (int h = 0; h < add_state->mod_tone_limit; ++h)
         {
             Add_tone* mod_tone = &add->mod_tones[h];
-            if ((mod_tone->pitch_factor <= 0) || (mod_tone->volume_factor <= 0))
+            const double pitch_factor = mod_tone->pitch_factor;
+            const double volume_factor = mod_tone->volume_factor;
+
+            if ((pitch_factor <= 0) || (volume_factor <= 0))
                 continue;
 
+            const double pitch_factor_inv_audio_rate = pitch_factor * inv_audio_rate;
+
             Add_tone_state* mod_tone_state = &add_state->mod_tones[h];
+            double phase = mod_tone_state->phase;
 
             for (uint32_t i = offset; i < nframes; ++i)
             {
@@ -356,21 +366,23 @@ static uint32_t Generator_add_mix(
 
                 float mod_value = mod_values[i];
 
-                const double pos = mod_tone_state->phase * BASE_FUNC_SIZE;
+                const double pos = phase * BASE_FUNC_SIZE;
                 const int32_t pos1 = (int)pos & BASE_FUNC_SIZE_MASK;
                 const int32_t pos2 = (pos1 + 1) & BASE_FUNC_SIZE_MASK;
                 const float item1 = mod_base[pos1];
                 const float item_diff = mod_base[pos2] - item1;
                 const double lerp_val = pos - floor(pos);
-                mod_value += (item1 + (lerp_val * item_diff)) *
-                    mod_tone->volume_factor * add->mod_volume;
+                mod_value +=
+                    (item1 + (lerp_val * item_diff)) * volume_factor * mod_volume;
 
-                mod_tone_state->phase += actual_pitch * mod_tone->pitch_factor / freq;
-                if (mod_tone_state->phase >= 1)
-                    mod_tone_state->phase -= floor(mod_tone_state->phase);
+                phase += actual_pitch * pitch_factor_inv_audio_rate;
+                if (phase >= 1)
+                    phase -= floor(phase);
 
                 mod_values[i] = mod_value;
             }
+
+            mod_tone_state->phase = phase;
         }
 
         // Apply force->mod envelope
@@ -402,7 +414,7 @@ static uint32_t Generator_add_mix(
                     wbs,
                     offset,
                     nframes,
-                    freq);
+                    audio_rate);
 
             float* time_env = Work_buffers_get_buffer_contents_mut(
                     wbs, WORK_BUFFER_TIME_ENV);
@@ -438,10 +450,17 @@ static uint32_t Generator_add_mix(
     for (int h = 0; h < add_state->tone_limit; ++h)
     {
         Add_tone* tone = &add->tones[h];
-        if ((tone->pitch_factor <= 0) || (tone->volume_factor <= 0))
+        const double pitch_factor = tone->pitch_factor;
+        const double volume_factor = tone->volume_factor;
+
+        if ((pitch_factor <= 0) || (volume_factor <= 0))
             continue;
 
+        const double panning = tone->panning;
+        const double pitch_factor_inv_audio_rate = pitch_factor * inv_audio_rate;
+
         Add_tone_state* tone_state = &add_state->tones[h];
+        double phase = tone_state->phase;
 
         for (uint32_t i = offset; i < nframes; ++i)
         {
@@ -449,23 +468,24 @@ static uint32_t Generator_add_mix(
             const float mod_val = mod_values[i];
 
             // Note: + mod_val is specific to phase modulation
-            const double actual_phase = tone_state->phase + mod_val;
+            const double actual_phase = phase + mod_val;
             const double pos = actual_phase * BASE_FUNC_SIZE;
             const int32_t pos1 = (int)pos & BASE_FUNC_SIZE_MASK;
             const int32_t pos2 = (pos1 + 1) & BASE_FUNC_SIZE_MASK;
             const float item1 = base[pos1];
             const float item_diff = base[pos2] - item1;
             const double lerp_val = pos - floor(pos);
-            const double value =
-                (item1 + (lerp_val * item_diff)) * tone->volume_factor;
+            const double value = (item1 + (lerp_val * item_diff)) * volume_factor;
 
-            audio_l[i] += value * (1 - tone->panning);
-            audio_r[i] += value * (1 + tone->panning);
+            audio_l[i] += value * (1 - panning);
+            audio_r[i] += value * (1 + panning);
 
-            tone_state->phase += actual_pitch * tone->pitch_factor / freq;
-            if (tone_state->phase >= 1)
-                tone_state->phase -= floor(tone_state->phase);
+            phase += actual_pitch * pitch_factor_inv_audio_rate;
+            if (phase >= 1)
+                phase -= floor(phase);
         }
+
+        tone_state->phase = phase;
     }
 
     // Apply actual force
@@ -476,7 +496,7 @@ static uint32_t Generator_add_mix(
         audio_r[i] *= actual_force;
     }
 
-    Generator_common_ramp_attack(gen, vstate, wbs, 2, freq, offset, nframes);
+    Generator_common_ramp_attack(gen, vstate, wbs, 2, audio_rate, offset, nframes);
 
     vstate->pos = 1; // XXX: hackish
 
