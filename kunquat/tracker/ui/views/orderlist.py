@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Toni Ruottu, Finland 2014
+# Authors: Toni Ruottu, Finland 2014
+#          Tomi Jylhä-Ollila, Finland 2014
 #
 # This file is part of Kunquat.
 #
