@@ -20,18 +20,21 @@
 
 #include <debug/assert.h>
 #include <devices/Generator.h>
+#include <devices/generators/Gen_utils.h>
 #include <devices/generators/Generator_add.h>
-#include <devices/generators/Generator_common.h>
 #include <devices/generators/Voice_state_add.h>
 #include <devices/param_types/Num_list.h>
 #include <devices/param_types/Sample.h>
 #include <kunquat/limits.h>
 #include <mathnum/common.h>
 #include <memory.h>
+#include <player/Time_env_state.h>
+#include <player/Work_buffers.h>
 #include <string/common.h>
 
 
 #define BASE_FUNC_SIZE 4096
+#define BASE_FUNC_SIZE_MASK (BASE_FUNC_SIZE - 1)
 
 
 typedef struct Add_tone
@@ -60,6 +63,7 @@ typedef struct Generator_add
     double mod_volume;
     bool mod_env_enabled;
     const Envelope* mod_env;
+    bool mod_env_loop_enabled;
     double mod_env_scale_amount;
     double mod_env_center;
     bool force_mod_env_enabled;
@@ -83,6 +87,7 @@ static Set_int_func         Generator_add_set_mod;
 static Set_float_func       Generator_add_set_mod_volume;
 static Set_bool_func        Generator_add_set_mod_env_enabled;
 static Set_envelope_func    Generator_add_set_mod_env;
+static Set_bool_func        Generator_add_set_mod_env_loop_enabled;
 static Set_float_func       Generator_add_set_mod_env_scale_amount;
 static Set_float_func       Generator_add_set_mod_env_scale_center;
 static Set_bool_func        Generator_add_set_force_mod_env_enabled;
@@ -93,15 +98,7 @@ static Set_float_func       Generator_add_set_tone_panning;
 static Set_float_func       Generator_add_set_mod_tone_pitch;
 static Set_float_func       Generator_add_set_mod_tone_volume;
 
-static uint32_t Generator_add_mix(
-        const Generator* gen,
-        Gen_state* gen_state,
-        Ins_state* ins_state,
-        Voice_state* vstate,
-        uint32_t nframes,
-        uint32_t offset,
-        uint32_t freq,
-        double tempo);
+static Generator_process_vstate_func Generator_add_process_vstate;
 
 static void del_Generator_add(Device_impl* gen_impl);
 
@@ -129,92 +126,32 @@ static bool Generator_add_init(Device_impl* dimpl)
 
     Generator* gen = (Generator*)add->parent.device;
     gen->init_vstate = Generator_add_init_vstate;
-    gen->mix = Generator_add_mix;
+    gen->process_vstate = Generator_add_process_vstate;
 
     bool reg_success = true;
 
-    reg_success &= Device_impl_register_set_sample(
-            &add->parent, "p_base.wav", NULL, Generator_add_set_base, NULL);
-    reg_success &= Device_impl_register_set_sample(
-            &add->parent, "p_mod.wav", NULL, Generator_add_set_mod_base, NULL);
-    reg_success &= Device_impl_register_set_int(
-            &add->parent,
-            "p_i_mod.json",
-            MOD_DISABLED,
-            Generator_add_set_mod,
-            NULL);
-    reg_success &= Device_impl_register_set_float(
-            &add->parent,
-            "p_f_mod_volume.json",
-            0.0,
-            Generator_add_set_mod_volume,
-            NULL);
-    reg_success &= Device_impl_register_set_bool(
-            &add->parent,
-            "p_b_mod_env_enabled.json",
-            false,
-            Generator_add_set_mod_env_enabled,
-            NULL);
-    reg_success &= Device_impl_register_set_envelope(
-            &add->parent,
-            "p_e_mod_env.json",
-            NULL,
-            Generator_add_set_mod_env,
-            NULL);
-    reg_success &= Device_impl_register_set_float(
-            &add->parent,
-            "p_f_mod_env_scale_amount.json",
-            0.0,
-            Generator_add_set_mod_env_scale_amount,
-            NULL);
-    reg_success &= Device_impl_register_set_float(
-            &add->parent,
-            "p_f_mod_env_scale_center.json",
-            0.0,
-            Generator_add_set_mod_env_scale_center,
-            NULL);
-    reg_success &= Device_impl_register_set_bool(
-            &add->parent,
-            "p_b_force_mod_env_enabled.json",
-            NULL,
-            Generator_add_set_force_mod_env_enabled,
-            NULL);
-    reg_success &= Device_impl_register_set_envelope(
-            &add->parent,
-            "p_e_force_mod_env.json",
-            NULL,
-            Generator_add_set_force_mod_env,
-            NULL);
-    reg_success &= Device_impl_register_set_float(
-            &add->parent,
-            "tone_XX/p_f_pitch.json",
-            NAN,
-            Generator_add_set_tone_pitch,
-            NULL);
-    reg_success &= Device_impl_register_set_float(
-            &add->parent,
-            "tone_XX/p_f_volume.json",
-            NAN,
-            Generator_add_set_tone_volume,
-            NULL);
-    reg_success &= Device_impl_register_set_float(
-            &add->parent,
-            "tone_XX/p_f_pan.json",
-            0.0,
-            Generator_add_set_tone_panning,
-            NULL);
-    reg_success &= Device_impl_register_set_float(
-            &add->parent,
-            "mod_XX/p_f_pitch.json",
-            NAN,
-            Generator_add_set_mod_tone_pitch,
-            NULL);
-    reg_success &= Device_impl_register_set_float(
-            &add->parent,
-            "mod_XX/p_f_volume.json",
-            NAN,
-            Generator_add_set_mod_tone_volume,
-            NULL);
+#define REGISTER_SET(type, field, key, def_val) \
+    reg_success &= Device_impl_register_set_##type(                       \
+            &add->parent, key, def_val, Generator_add_set_##field, NULL)
+
+    REGISTER_SET(sample,    base,           "p_base.wav",               NULL);
+    REGISTER_SET(sample,    mod_base,       "p_mod.wav",                NULL);
+    REGISTER_SET(int,       mod,            "p_i_mod.json",             MOD_DISABLED);
+    REGISTER_SET(float,     mod_volume,     "p_f_mod_volume.json",      0.0);
+    REGISTER_SET(bool, mod_env_enabled, "p_b_mod_env_enabled.json",     false);
+    REGISTER_SET(envelope,  mod_env,        "p_e_mod_env.json",         NULL);
+    REGISTER_SET(bool, mod_env_loop_enabled, "p_b_mod_env_loop_enabled.json", false);
+    REGISTER_SET(float, mod_env_scale_amount, "p_f_mod_env_scale_amount.json", 0.0);
+    REGISTER_SET(float, mod_env_scale_center, "p_f_mod_env_scale_center.json", 0.0);
+    REGISTER_SET(bool, force_mod_env_enabled, "p_b_force_mod_env_enabled.json", false);
+    REGISTER_SET(envelope,  force_mod_env,  "p_e_force_mod_env.json",   NULL);
+    REGISTER_SET(float,     tone_pitch,     "tone_XX/p_f_pitch.json",   NAN);
+    REGISTER_SET(float,     tone_volume,    "tone_XX/p_f_volume.json",  NAN);
+    REGISTER_SET(float,     tone_panning,   "tone_XX/p_f_pan.json",     0.0);
+    REGISTER_SET(float,     mod_tone_pitch, "mod_XX/p_f_pitch.json",    NAN);
+    REGISTER_SET(float,     mod_tone_volume, "mod_XX/p_f_volume.json",  NAN);
+
+#undef REGISTER_SET
 
     if (!reg_success)
         return false;
@@ -225,6 +162,7 @@ static bool Generator_add_init(Device_impl* dimpl)
     add->mod_volume = 1;
     add->mod_env_enabled = false;
     add->mod_env = NULL;
+    add->mod_env_loop_enabled = false;
     add->mod_env_scale_amount = 0;
     add->mod_env_center = 440;
     add->force_mod_env_enabled = false;
@@ -258,12 +196,6 @@ static bool Generator_add_init(Device_impl* dimpl)
         return NULL;
     }
 
-#if 0
-    Sample_set_loop_start(add->base, 0);
-    Sample_set_loop_end(add->base, BASE_FUNC_SIZE);
-    Sample_set_loop(add->base, SAMPLE_LOOP_UNI);
-#endif
-
     for (int i = 0; i < BASE_FUNC_SIZE; ++i)
     {
         buf[i] = sine((double)i / BASE_FUNC_SIZE, 0);
@@ -291,7 +223,7 @@ static bool Generator_add_init(Device_impl* dimpl)
 }
 
 
-const char* Generator_add_property(Generator* gen, const char* property_type)
+const char* Generator_add_property(const Generator* gen, const char* property_type)
 {
     assert(gen != NULL);
     //assert(string_eq(gen->type, "add"));
@@ -347,24 +279,22 @@ static void Generator_add_init_vstate(
     }
 
     add_state->mod_active = add->mod_mode != MOD_DISABLED;
-    add_state->mod_env_pos = 0;
-    add_state->mod_env_next_node = 0;
-    add_state->mod_env_value = NAN;
-    add_state->mod_env_update = 0;
-    add_state->mod_env_scale = NAN;
+
+    Time_env_state_init(&add_state->mod_env_state);
 
     return;
 }
 
 
-static uint32_t Generator_add_mix(
+static uint32_t Generator_add_process_vstate(
         const Generator* gen,
         Gen_state* gen_state,
         Ins_state* ins_state,
         Voice_state* vstate,
-        uint32_t nframes,
-        uint32_t offset,
-        uint32_t freq,
+        const Work_buffers* wbs,
+        int32_t buf_start,
+        int32_t buf_stop,
+        uint32_t audio_rate,
         double tempo)
 {
     assert(gen != NULL);
@@ -372,160 +302,201 @@ static uint32_t Generator_add_mix(
     assert(gen_state != NULL);
     assert(ins_state != NULL);
     assert(vstate != NULL);
-    assert(freq > 0);
+    assert(wbs != NULL);
+    assert(audio_rate > 0);
     assert(tempo > 0);
+    (void)gen_state;
+    (void)ins_state;
+    (void)tempo;
 
     Generator_add* add = (Generator_add*)gen->parent.dimpl;
-    kqt_frame* bufs[] = { NULL, NULL };
-    Generator_common_get_buffers(gen_state, vstate, offset, bufs);
-    Generator_common_check_active(gen, vstate, offset);
-    Generator_common_check_relative_lengths(gen, vstate, freq, tempo);
     Voice_state_add* add_state = (Voice_state_add*)vstate;
-    uint32_t mixed = offset;
     assert(is_p2(BASE_FUNC_SIZE));
 
-    for (; mixed < nframes && vstate->active; ++mixed)
+    const float* actual_pitches = Work_buffers_get_buffer_contents(
+            wbs, WORK_BUFFER_ACTUAL_PITCHES);
+    const float* actual_forces = Work_buffers_get_buffer_contents(
+            wbs, WORK_BUFFER_ACTUAL_FORCES);
+
+    float* audio_l = Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_AUDIO_L);
+    float* audio_r = Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_AUDIO_R);
+
+    static const int ADD_WORK_BUFFER_MOD = WORK_BUFFER_IMPL_1;
+
+    const double inv_audio_rate = 1.0 / audio_rate;
+
+    float* mod_values = Work_buffers_get_buffer_contents_mut(wbs, ADD_WORK_BUFFER_MOD);
+
+    // Get modulation
+    for (int32_t i = buf_start; i < buf_stop; ++i)
+        mod_values[i] = 0;
+
+    if (add_state->mod_active)
     {
-        Generator_common_handle_pitch(gen, vstate);
+        const float* mod_base = Sample_get_buffer(add->mod, 0);
+        assert(mod_base != NULL);
 
-        double vals[KQT_BUFFERS_MAX] = { 0 };
-        vals[0] = 0;
-        double mod_val = 0;
+        // Add modulation tones
+        const double mod_volume = add->mod_volume;
 
-        if (add_state->mod_active)
+        for (int h = 0; h < add_state->mod_tone_limit; ++h)
         {
-            float* mod_buf = Sample_get_buffer(add->mod, 0);
-            assert(mod_buf != NULL);
+            Add_tone* mod_tone = &add->mod_tones[h];
+            const double pitch_factor = mod_tone->pitch_factor;
+            const double volume_factor = mod_tone->volume_factor;
 
-            for (int h = 0; h < add_state->mod_tone_limit; ++h)
-            {
-                if (add->mod_tones[h].pitch_factor <= 0 ||
-                        add->mod_tones[h].volume_factor <= 0)
-                    continue;
-
-                double pos = add_state->mod_tones[h].phase * BASE_FUNC_SIZE;
-                int32_t pos1 = (int)pos & (BASE_FUNC_SIZE - 1);
-                int32_t pos2 = (pos1 + 1) & (BASE_FUNC_SIZE - 1);
-                float frame = mod_buf[pos1];
-                float frame_diff = mod_buf[pos2] - frame;
-                double remainder = pos - floor(pos);
-                mod_val += (frame + remainder * frame_diff) *
-                           add->mod_tones[h].volume_factor * add->mod_volume;
-
-                add_state->mod_tones[h].phase +=
-                    vstate->actual_pitch *
-                    add->mod_tones[h].pitch_factor / freq;
-
-                if (add_state->mod_tones[h].phase >= 1)
-                    add_state->mod_tones[h].phase -=
-                            floor(add_state->mod_tones[h].phase);
-            }
-
-            if (add->force_mod_env_enabled && (add->force_mod_env != NULL))
-            {
-                double force = min(1, vstate->actual_force);
-                double factor = Envelope_get_value(add->force_mod_env, force);
-                assert(isfinite(factor));
-                mod_val *= factor;
-            }
-
-            if (add->mod_env_enabled && (add->mod_env != NULL))
-            {
-                if (add->mod_env_scale_amount != 0 &&
-                        (vstate->actual_pitch != vstate->prev_actual_pitch ||
-                         isnan(add_state->mod_env_scale)))
-                    add_state->mod_env_scale = pow(
-                            vstate->actual_pitch / add->mod_env_center,
-                            add->mod_env_scale_amount);
-                else if (isnan(add_state->mod_env_scale))
-                    add_state->mod_env_scale = 1;
-
-                double* next_node = Envelope_get_node(
-                        add->mod_env,
-                        add_state->mod_env_next_node);
-
-                double scale = NAN;
-
-                if ((next_node == NULL) || (add_state->mod_env_pos >= next_node[0]))
-                {
-                    ++add_state->mod_env_next_node;
-                    scale = Envelope_get_value(add->mod_env, add_state->mod_env_pos);
-
-                    if (!isfinite(scale))
-                    {
-                        scale = Envelope_get_node(
-                                add->mod_env, Envelope_node_count(add->mod_env) - 1)[1];
-                        if (scale == 0)
-                            add_state->mod_active = false;
-                    }
-                    else
-                    {
-                        double next_scale = Envelope_get_value(add->mod_env,
-                                                    add_state->mod_env_pos +
-                                                    1.0 / freq);
-                        add_state->mod_env_value = scale;
-                        add_state->mod_env_update = next_scale - scale;
-                    }
-                }
-                else
-                {
-                    assert(isfinite(add_state->mod_env_update));
-                    add_state->mod_env_value += add_state->mod_env_update *
-                                                add_state->mod_env_scale;
-                    scale = add_state->mod_env_value;
-                    if (scale < 0)
-                        scale = 0;
-                }
-                add_state->mod_env_pos += add_state->mod_env_scale / freq;
-                mod_val *= scale;
-            }
-
-            if (mod_val < 0)
-                mod_val += floor(mod_val);
-        }
-
-        float* base_buf = Sample_get_buffer(add->base, 0);
-        assert(base_buf != NULL);
-        for (int h = 0; h < add_state->tone_limit; ++h)
-        {
-            if (add->tones[h].pitch_factor <= 0 ||
-                    add->tones[h].volume_factor <= 0)
+            if ((pitch_factor <= 0) || (volume_factor <= 0))
                 continue;
 
-            // FIXME: + mod_val is specifically phase modulation
-            double actual_phase = add_state->tones[h].phase + mod_val;
-            double pos = actual_phase * BASE_FUNC_SIZE;
-            int32_t pos1 = (int)pos & (BASE_FUNC_SIZE - 1);
-            int32_t pos2 = (pos1 + 1) & (BASE_FUNC_SIZE - 1);
-            float frame = base_buf[pos1];
-            float frame_diff = base_buf[pos2] - frame;
-            double remainder = pos - floor(pos);
-            double val =
-                (frame + remainder * frame_diff) *
-                add->tones[h].volume_factor;
+            const double pitch_factor_inv_audio_rate = pitch_factor * inv_audio_rate;
 
-            vals[0] += val * (1 - add->tones[h].panning);
-            vals[1] += val * (1 + add->tones[h].panning);
+            Add_tone_state* mod_tone_state = &add_state->mod_tones[h];
+            double phase = mod_tone_state->phase;
 
-            add_state->tones[h].phase += vstate->actual_pitch *
-                                         add->tones[h].pitch_factor / freq;
-            if (add_state->tones[h].phase >= 1)
-                add_state->tones[h].phase -= floor(add_state->tones[h].phase);
+            for (int32_t i = buf_start; i < buf_stop; ++i)
+            {
+                const float actual_pitch = actual_pitches[i];
+
+                float mod_value = mod_values[i];
+
+                const double pos = phase * BASE_FUNC_SIZE;
+                const uint32_t pos1 = (uint32_t)pos & BASE_FUNC_SIZE_MASK;
+                const uint32_t pos2 = (pos1 + 1) & BASE_FUNC_SIZE_MASK;
+                const float item1 = mod_base[pos1];
+                const float item_diff = mod_base[pos2] - item1;
+                const double lerp_val = pos - floor(pos);
+                mod_value +=
+                    (item1 + (lerp_val * item_diff)) * volume_factor * mod_volume;
+
+                phase += actual_pitch * pitch_factor_inv_audio_rate;
+                if (phase >= 1)
+                    phase -= floor(phase);
+
+                mod_values[i] = mod_value;
+            }
+
+            mod_tone_state->phase = phase;
         }
 
-        Generator_common_handle_force(gen, ins_state, vstate, vals, 2, freq);
-        Generator_common_handle_filter(gen, vstate, vals, 2, freq);
-        Generator_common_ramp_attack(gen, vstate, vals, 2, freq);
+        // Apply force->mod envelope
+        const Envelope* force_mod_env = add->force_mod_env;
+        if (add->force_mod_env_enabled && (force_mod_env != NULL))
+        {
+            for (int32_t i = buf_start; i < buf_stop; ++i)
+            {
+                const float actual_force = actual_forces[i];
 
-        vstate->pos = 1; // XXX: hackish
+                const double force = min(1, actual_force);
+                const double factor = Envelope_get_value(force_mod_env, force);
+                assert(isfinite(factor));
+                mod_values[i] *= factor;
+            }
+        }
 
-        Generator_common_handle_panning(gen, vstate, vals, 2);
+        // Apply mod envelope
+        if (add->mod_env_enabled && (add->mod_env != NULL))
+        {
+            const int32_t mod_env_stop = Time_env_state_process(
+                    &add_state->mod_env_state,
+                    add->mod_env,
+                    add->mod_env_loop_enabled,
+                    add->mod_env_scale_amount,
+                    add->mod_env_center,
+                    0, // sustain
+                    0, 1, // range
+                    wbs,
+                    buf_start,
+                    buf_stop,
+                    audio_rate);
 
-        bufs[0][mixed] += vals[0];
-        bufs[1][mixed] += vals[1];
+            float* time_env = Work_buffers_get_buffer_contents_mut(
+                    wbs, WORK_BUFFER_TIME_ENV);
+
+            // Check the end of envelope processing
+            if (add_state->mod_env_state.is_finished)
+            {
+                const double* last_node = Envelope_get_node(
+                        add->mod_env, Envelope_node_count(add->mod_env) - 1);
+                const double last_value = last_node[1];
+                if (last_value == 0)
+                    add_state->mod_active = false;
+
+                // Fill the rest of the envelope buffer with the last value
+                for (int32_t i = mod_env_stop; i < buf_stop; ++i)
+                    time_env[i] = last_value;
+            }
+
+            for (int32_t i = buf_start; i < buf_stop; ++i)
+                mod_values[i] *= time_env[i];
+        }
     }
 
-    return mixed;
+    // Add base waveform tones
+    for (int32_t i = buf_start; i < buf_stop; ++i)
+    {
+        audio_l[i] = 0;
+        audio_r[i] = 0;
+    }
+
+    const float* base = Sample_get_buffer(add->base, 0);
+
+    for (int h = 0; h < add_state->tone_limit; ++h)
+    {
+        Add_tone* tone = &add->tones[h];
+        const double pitch_factor = tone->pitch_factor;
+        const double volume_factor = tone->volume_factor;
+
+        if ((pitch_factor <= 0) || (volume_factor <= 0))
+            continue;
+
+        const double panning = tone->panning;
+        const double pitch_factor_inv_audio_rate = pitch_factor * inv_audio_rate;
+
+        Add_tone_state* tone_state = &add_state->tones[h];
+        double phase = tone_state->phase;
+
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+        {
+            const float actual_pitch = actual_pitches[i];
+            const float mod_val = mod_values[i];
+
+            // Note: + mod_val is specific to phase modulation
+            const double actual_phase = phase + mod_val;
+            const double pos = actual_phase * BASE_FUNC_SIZE;
+
+            // Note: direct cast of negative doubles to uint32_t is undefined
+            const uint32_t pos1 = (uint32_t)(int32_t)pos & BASE_FUNC_SIZE_MASK;
+            const uint32_t pos2 = (pos1 + 1) & BASE_FUNC_SIZE_MASK;
+
+            const float item1 = base[pos1];
+            const float item_diff = base[pos2] - item1;
+            const double lerp_val = pos - floor(pos);
+            const double value = (item1 + (lerp_val * item_diff)) * volume_factor;
+
+            audio_l[i] += value * (1 - panning);
+            audio_r[i] += value * (1 + panning);
+
+            phase += actual_pitch * pitch_factor_inv_audio_rate;
+            if (phase >= 1)
+                phase -= floor(phase);
+        }
+
+        tone_state->phase = phase;
+    }
+
+    // Apply actual force
+    for (int32_t i = buf_start; i < buf_stop; ++i)
+    {
+        const float actual_force = actual_forces[i];
+        audio_l[i] *= actual_force;
+        audio_r[i] *= actual_force;
+    }
+
+    Generator_common_ramp_attack(gen, vstate, wbs, 2, audio_rate, buf_start, buf_stop);
+
+    vstate->pos = 1; // XXX: hackish
+
+    return buf_stop;
 }
 
 
@@ -680,6 +651,20 @@ static bool Generator_add_set_mod_env(
     }
 
     add->mod_env = valid ? value : NULL;
+
+    return true;
+}
+
+
+static bool Generator_add_set_mod_env_loop_enabled(
+        Device_impl* dimpl, Key_indices indices, bool enabled)
+{
+    assert(dimpl != NULL);
+    assert(indices != NULL);
+    (void)indices;
+
+    Generator_add* add = (Generator_add*)dimpl;
+    add->mod_env_loop_enabled = enabled;
 
     return true;
 }

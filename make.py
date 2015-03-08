@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2015
 #
 # This file is part of Kunquat.
 #
@@ -82,7 +82,7 @@ def build():
     #    compile_flags.append('-pg')
     #    link_flags.append('-pg')
 
-    if options.optimise not in xrange(4):
+    if options.optimise not in xrange(5):
         print('Unsupported optimisation level: {}'.format(options.optimise),
                 file=sys.stderr)
         sys.exit(1)

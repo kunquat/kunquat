@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -18,8 +18,9 @@
 #include <inttypes.h>
 
 #include <debug/assert.h>
-#include <devices/generators/Gen_type.h>
 #include <devices/Generator.h>
+#include <devices/Generator_common.h>
+#include <devices/generators/Gen_type.h>
 #include <Filter.h>
 #include <memory.h>
 #include <pitch_t.h>
@@ -84,7 +85,7 @@ Generator* new_Generator(const Instrument_params* ins_params)
     gen->ins_params = ins_params;
 
     gen->init_vstate = NULL;
-    gen->mix = NULL;
+    gen->process_vstate = NULL;
 
     Device_set_state_creator(
             &gen->parent,
@@ -96,21 +97,13 @@ Generator* new_Generator(const Instrument_params* ins_params)
 
 bool Generator_init(
         Generator* gen,
-        uint32_t (*mix)(
-            const Generator*,
-            Gen_state*,
-            Ins_state*,
-            Voice_state*,
-            uint32_t,
-            uint32_t,
-            uint32_t,
-            double),
+        Generator_process_vstate_func process_vstate,
         void (*init_vstate)(const Generator*, const Gen_state*, Voice_state*))
 {
     assert(gen != NULL);
-    assert(mix != NULL);
+    assert(process_vstate != NULL);
 
-    gen->mix = mix;
+    gen->process_vstate = process_vstate;
     gen->init_vstate = init_vstate;
 
     return true;
@@ -141,33 +134,189 @@ const char* Generator_get_type(const Generator* gen)
 #endif
 
 
-void Generator_mix(
+/**
+ * Update voice parameter settings that depend on audio rate and/or tempo.
+ *
+ * \param vstate       The Voice state -- must not be \c NULL.
+ * \param audio_rate   The new audio rate -- must be positive.
+ * \param tempo        The new tempo -- must be positive and finite.
+ */
+static void adjust_relative_lengths(
+        Voice_state* vstate, uint32_t audio_rate, double tempo)
+{
+    assert(vstate != NULL);
+    assert(audio_rate > 0);
+    assert(tempo > 0);
+    assert(isfinite(tempo));
+
+    if (vstate->freq != audio_rate || vstate->tempo != tempo)
+    {
+        Slider_set_mix_rate(&vstate->pitch_slider, audio_rate);
+        Slider_set_tempo(&vstate->pitch_slider, tempo);
+        LFO_set_mix_rate(&vstate->vibrato, audio_rate);
+        LFO_set_tempo(&vstate->vibrato, tempo);
+
+        if (vstate->arpeggio)
+        {
+            vstate->arpeggio_length *= (double)audio_rate / vstate->freq;
+            vstate->arpeggio_length *= vstate->tempo / tempo;
+            vstate->arpeggio_frames *= (double)audio_rate / vstate->freq;
+            vstate->arpeggio_frames *= vstate->tempo / tempo;
+        }
+
+        Slider_set_mix_rate(&vstate->force_slider, audio_rate);
+        Slider_set_tempo(&vstate->force_slider, tempo);
+        LFO_set_mix_rate(&vstate->tremolo, audio_rate);
+        LFO_set_tempo(&vstate->tremolo, tempo);
+
+        Slider_set_mix_rate(&vstate->panning_slider, audio_rate);
+        Slider_set_tempo(&vstate->panning_slider, tempo);
+
+        Slider_set_mix_rate(&vstate->lowpass_slider, audio_rate);
+        Slider_set_tempo(&vstate->lowpass_slider, tempo);
+        LFO_set_mix_rate(&vstate->autowah, audio_rate);
+        LFO_set_tempo(&vstate->autowah, tempo);
+
+        vstate->freq = audio_rate;
+        vstate->tempo = tempo;
+    }
+
+    return;
+}
+
+
+void Generator_process_vstate(
         const Generator* gen,
         Device_states* dstates,
         Voice_state* vstate,
-        uint32_t nframes,
-        uint32_t offset,
-        uint32_t freq,
+        const Work_buffers* wbs,
+        int32_t buf_start,
+        int32_t buf_stop,
+        uint32_t audio_rate,
         double tempo)
 {
     assert(gen != NULL);
-    assert(gen->mix != NULL);
+    assert(gen->process_vstate != NULL);
     assert(dstates != NULL);
     assert(vstate != NULL);
-    assert(freq > 0);
+    assert(wbs != NULL);
+    assert(audio_rate > 0);
     assert(tempo > 0);
 
-    if (offset < nframes)
-    {
-        Gen_state* gen_state = (Gen_state*)Device_states_get_state(
-                dstates,
-                Device_get_id(&gen->parent));
-        Ins_state* ins_state = (Ins_state*)Device_states_get_state(
-                dstates,
-                gen->ins_params->device_id);
+    if (!vstate->active)
+        return;
 
-        gen->mix(gen, gen_state, ins_state, vstate, nframes, offset, freq, tempo);
+    // Check for voice cut before mixing anything (no need for volume ramping)
+    if (!vstate->note_on &&
+            (vstate->pos == 0) &&
+            (vstate->pos_rem == 0) &&
+            !gen->ins_params->env_force_rel_enabled)
+    {
+        vstate->active = false;
+        return;
     }
+
+    if (buf_start >= buf_stop)
+        return;
+
+    // Get states
+    Gen_state* gen_state = (Gen_state*)Device_states_get_state(
+            dstates,
+            Device_get_id(&gen->parent));
+    Ins_state* ins_state = (Ins_state*)Device_states_get_state(
+            dstates,
+            gen->ins_params->device_id);
+
+    // Get audio output buffers
+    Audio_buffer* audio_buffer = Device_state_get_audio_buffer(
+            &gen_state->parent, DEVICE_PORT_TYPE_SEND, 0);
+    if (audio_buffer == NULL)
+        return;
+    kqt_frame* out_l = Audio_buffer_get_buffer(audio_buffer, 0);
+    kqt_frame* out_r = Audio_buffer_get_buffer(audio_buffer, 1);
+
+    // Process common parameters required by implementations
+    bool deactivate_after_processing = false;
+    int32_t process_stop = buf_stop;
+
+    adjust_relative_lengths(vstate, audio_rate, tempo);
+
+    Generator_common_handle_pitch(gen, vstate, wbs, buf_start, process_stop);
+
+    const int32_t force_stop = Generator_common_handle_force(
+            gen, ins_state, vstate, wbs, audio_rate, buf_start, process_stop);
+
+    const bool force_ended = (force_stop < process_stop);
+    if (force_ended)
+    {
+        deactivate_after_processing = true;
+        assert(force_stop <= process_stop);
+        process_stop = force_stop;
+    }
+
+    const uint64_t old_pos = vstate->pos;
+    const double old_pos_rem = vstate->pos_rem;
+
+    // Call the implementation
+    const int32_t impl_render_stop = gen->process_vstate(
+            gen,
+            gen_state,
+            ins_state,
+            vstate,
+            wbs,
+            buf_start,
+            process_stop,
+            audio_rate,
+            tempo);
+    if (!vstate->active) // FIXME: communicate end of rendering in a cleaner way
+    {
+        vstate->active = true;
+        deactivate_after_processing = true;
+        assert(impl_render_stop <= process_stop);
+        process_stop = impl_render_stop;
+    }
+
+    // XXX: Hack to make post-processing work correctly below, fix properly!
+    const uint64_t new_pos = vstate->pos;
+    const double new_pos_rem = vstate->pos_rem;
+    vstate->pos = old_pos;
+    vstate->pos_rem = old_pos_rem;
+
+    // Apply common parameters to generated signal
+    const int32_t ramp_release_stop = Generator_common_ramp_release(
+            gen, ins_state, vstate, wbs, 2, audio_rate, buf_start, process_stop);
+    const bool ramp_release_ended = (vstate->ramp_release >= 1);
+    if (ramp_release_ended)
+    {
+        deactivate_after_processing = true;
+        assert(ramp_release_stop <= process_stop);
+        process_stop = ramp_release_stop;
+    }
+
+    Generator_common_handle_filter(
+            gen, vstate, wbs, 2, audio_rate, buf_start, process_stop);
+    Generator_common_handle_panning(gen, vstate, wbs, buf_start, process_stop);
+
+    vstate->pos = new_pos;
+    vstate->pos_rem = new_pos_rem;
+
+    // Mix rendered audio
+    {
+        const Work_buffer* wb_audio_l = Work_buffers_get_buffer(
+                wbs, WORK_BUFFER_AUDIO_L);
+        const Work_buffer* wb_audio_r = Work_buffers_get_buffer(
+                wbs, WORK_BUFFER_AUDIO_R);
+        float* audio_l = Work_buffer_get_contents_mut(wb_audio_l);
+        float* audio_r = Work_buffer_get_contents_mut(wb_audio_r);
+
+        for (int32_t i = buf_start; i < process_stop; ++i)
+            out_l[i] += audio_l[i];
+        for (int32_t i = buf_start; i < process_stop; ++i)
+            out_r[i] += audio_r[i];
+    }
+
+    if (deactivate_after_processing)
+        vstate->active = false;
 
     return;
 }

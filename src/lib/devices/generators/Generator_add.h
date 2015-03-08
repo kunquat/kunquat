@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2015
  *
  * This file is part of Kunquat.
  *
@@ -40,7 +40,7 @@ Device_impl* new_Generator_add(Generator* gen);
  * \return   The additive Generator property description matching
  *           \a property_type, or \c NULL if one does not exist.
  */
-const char* Generator_add_property(Generator* gen, const char* property_type);
+const char* Generator_add_property(const Generator* gen, const char* property_type);
 
 
 #endif // K_GENERATOR_ADD_H

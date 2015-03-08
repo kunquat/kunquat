@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -18,9 +18,10 @@
 
 #include <debug/assert.h>
 #include <devices/Device_params.h>
-#include <devices/generators/Generator_common.h>
+#include <devices/generators/Gen_utils.h>
 #include <devices/generators/Generator_debug.h>
 #include <memory.h>
+#include <player/Work_buffers.h>
 #include <string/common.h>
 
 
@@ -35,15 +36,7 @@ static bool Generator_debug_init(Device_impl* dimpl);
 
 static Set_bool_func Generator_debug_set_single_pulse;
 
-static uint32_t Generator_debug_mix(
-        const Generator* gen,
-        Gen_state* gen_state,
-        Ins_state* ins_state,
-        Voice_state* vstate,
-        uint32_t nframes,
-        uint32_t offset,
-        uint32_t freq,
-        double tempo);
+static Generator_process_vstate_func Generator_debug_process_vstate;
 
 static void del_Generator_debug(Device_impl* gen_impl);
 
@@ -70,7 +63,7 @@ static bool Generator_debug_init(Device_impl* dimpl)
     Generator_debug* debug = (Generator_debug*)dimpl;
 
     Generator* gen = (Generator*)debug->parent.device;
-    gen->mix = Generator_debug_mix;
+    gen->process_vstate = Generator_debug_process_vstate;
 
     if (!Device_impl_register_set_bool(
                 &debug->parent,
@@ -86,14 +79,15 @@ static bool Generator_debug_init(Device_impl* dimpl)
 }
 
 
-static uint32_t Generator_debug_mix(
+static uint32_t Generator_debug_process_vstate(
         const Generator* gen,
         Gen_state* gen_state,
         Ins_state* ins_state,
         Voice_state* vstate,
-        uint32_t nframes,
-        uint32_t offset,
-        uint32_t freq,
+        const Work_buffers* wbs,
+        int32_t buf_start,
+        int32_t buf_stop,
+        uint32_t audio_rate,
         double tempo)
 {
     assert(gen != NULL);
@@ -101,32 +95,41 @@ static uint32_t Generator_debug_mix(
     assert(gen_state != NULL);
     assert(ins_state != NULL);
     assert(vstate != NULL);
-    assert(freq > 0);
+    assert(wbs != NULL);
+    assert(audio_rate > 0);
     assert(tempo > 0);
+    (void)gen_state;
     (void)ins_state;
+    (void)wbs;
     (void)tempo;
 
-    kqt_frame* bufs[] = { NULL, NULL };
-    Generator_common_get_buffers(gen_state, vstate, offset, bufs);
+    const float* actual_pitches = Work_buffers_get_buffer_contents(
+            wbs, WORK_BUFFER_ACTUAL_PITCHES);
+    const float* actual_forces = Work_buffers_get_buffer_contents(
+            wbs, WORK_BUFFER_ACTUAL_FORCES);
 
-    if (!vstate->active)
-        return offset;
+    float* audio_l = Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_AUDIO_L);
+    float* audio_r = Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_AUDIO_R);
 
     Generator_debug* debug = (Generator_debug*)gen->parent.dimpl;
     if (debug->single_pulse)
     {
-        if (offset < nframes)
+        if (buf_start < buf_stop)
         {
-            bufs[0][offset] += 1.0;
-            bufs[1][offset] += 1.0;
+            const float val = 1.0 * actual_forces[buf_start];
+            audio_l[buf_start] = val;
+            audio_r[buf_start] = val;
             vstate->active = false;
-            return offset + 1;
+            return buf_start + 1;
         }
-        return offset;
+        return buf_start;
     }
 
-    for (uint32_t i = offset; i < nframes; ++i)
+    for (int32_t i = buf_start; i < buf_stop; ++i)
     {
+        const float actual_pitch = actual_pitches[i];
+        const float actual_force = actual_forces[i];
+
         double vals[KQT_BUFFERS_MAX] = { 0 };
 
         if (vstate->rel_pos == 0)
@@ -145,22 +148,21 @@ static uint32_t Generator_debug_mix(
             vals[1] = -vals[1];
         }
 
-        vstate->actual_force = vstate->force * gen->ins_params->global_force;
-        vals[0] *= vstate->actual_force;
-        vals[1] *= vstate->actual_force;
+        vals[0] *= actual_force;
+        vals[1] *= actual_force;
 
-        bufs[0][i] += vals[0];
-        bufs[1][i] += vals[1];
+        audio_l[i] = vals[0];
+        audio_r[i] = vals[1];
 
-        vstate->rel_pos_rem += vstate->pitch / freq;
+        vstate->rel_pos_rem += actual_pitch / audio_rate;
 
         if (!vstate->note_on)
         {
-            vstate->noff_pos_rem += vstate->pitch / freq;
+            vstate->noff_pos_rem += actual_pitch / audio_rate;
             if (vstate->noff_pos_rem >= 2)
             {
                 vstate->active = false;
-                return i;
+                return i + 1;
             }
         }
 
@@ -170,14 +172,14 @@ static uint32_t Generator_debug_mix(
             if (vstate->pos >= 10)
             {
                 vstate->active = false;
-                return i;
+                return i + 1;
             }
             vstate->rel_pos = 0;
             vstate->rel_pos_rem -= floor(vstate->rel_pos_rem);
         }
     }
 
-    return nframes;
+    return buf_stop;
 }
 
 

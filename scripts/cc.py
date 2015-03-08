@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2015
 #
 # This file is part of Kunquat.
 #
@@ -83,7 +83,9 @@ class GccCommand():
             self._compile_flags.append('-DNDEBUG')
 
     def set_optimisation(self, level):
-        self._compile_flags.append('-O{:d}'.format(level))
+        self._compile_flags.append('-O{:d}'.format(min(level, 3)))
+        if level > 3:
+            self._compile_flags.append('-funroll-loops')
 
     def set_dynamic_export(self, enabled):
         if enabled:

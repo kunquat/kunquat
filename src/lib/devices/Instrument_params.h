@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -61,6 +61,7 @@ typedef struct Instrument_params
     double volume; ///< Instrument volume.
 
     bool env_force_enabled;  ///< Force envelope toggle.
+    bool env_force_loop_enabled;
     bool env_force_carry;    ///< Force envelope carry.
     Envelope* env_force;     ///< Force envelope.
     double env_force_scale_amount; ///< Force envelope scale amount (frequency -> speed).

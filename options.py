@@ -40,8 +40,8 @@ enable_export = True
 enable_examples = True
 
 
-# Optimisation level (0..3).
-optimise = 2
+# Optimisation level (0..4).
+optimise = 4
 
 # Build with libsndfile support (recommended).
 with_sndfile = True

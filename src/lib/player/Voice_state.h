@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -26,6 +26,7 @@
 #include <player/Channel_gen_state.h>
 #include <player/LFO.h>
 #include <player/Slider.h>
+#include <player/Time_env_state.h>
 #include <Tstamp.h>
 
 
@@ -56,7 +57,6 @@ typedef struct Voice_state
 
     int hit_index;                 ///< The hit index (negative for normal notes).
     pitch_t pitch;                 ///< The frequency at which the note is played.
-    pitch_t prev_pitch;            ///< The frequency in the previous mixing cycle.
     pitch_t actual_pitch;          ///< The actual frequency (includes vibrato).
     pitch_t prev_actual_pitch;     ///< The actual frequency in the previous mixing cycle.
     Slider pitch_slider;
@@ -78,17 +78,9 @@ typedef struct Voice_state
     uint64_t noff_pos;             ///< Note Off position.
     double noff_pos_rem;           ///< Note Off position remainder.
 
-    double fe_pos;                 ///< Force envelope position.
-    int fe_next_node;              ///< Next force envelope node.
-    double fe_value;               ///< Current force envelope value.
-    double fe_update;              ///< Force envelope update.
-    double fe_scale;               ///< Current force envelope scale factor.
+    Time_env_state force_env_state;
 
-    double rel_fe_pos;             ///< Release force envelope position.
-    int rel_fe_next_node;          ///< Next release force envelope node.
-    double rel_fe_value;           ///< Current release force envelope value.
-    double rel_fe_update;          ///< Release force envelope update.
-    double rel_fe_scale;           ///< Current release force envelope scale factor.
+    Time_env_state force_rel_env_state;
 
     double force;                  ///< The current force (linear factor).
     double actual_force;           ///< The current actual force (includes tremolo & envs).
@@ -99,15 +91,17 @@ typedef struct Voice_state
     double actual_panning;         ///< The current actual panning.
     Slider panning_slider;
 
+    float pitch_pan_ref_param;     ///< Pitch value that maps to the stored pitch-pan value.
+    float pitch_pan_value;
+
     double lowpass;                ///< The current lowpass cut-off frequency.
     double actual_lowpass;         ///< The current actual lowpass cut-off frequency.
     Slider lowpass_slider;
     LFO autowah;
     double lowpass_resonance;      ///< The filter resonance (Q factor).
 
-    double effective_lowpass;      ///< The current filter cut-off frequency _really_ used.
-    double effective_resonance;    ///< The current filter resonance _really_ used.
-    bool lowpass_update;           ///< Whether filter needs to be updated.
+    double true_lowpass;           ///< The current real filter state cut-off frequency.
+    double true_resonance;         ///< The current real filter state resonance.
     double lowpass_xfade_pos;      ///< Filter crossfade position.
     double lowpass_xfade_update;   ///< The update amount of the filter crossfade.
     int lowpass_xfade_state_used;  ///< State fading out during the filter crossfade.

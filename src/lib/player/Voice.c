@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -151,6 +151,7 @@ void Voice_prepare(Voice* voice)
 void Voice_mix(
         Voice* voice,
         Device_states* states,
+        const Work_buffers* wbs,
         uint32_t nframes,
         uint32_t offset,
         uint32_t freq,
@@ -159,13 +160,14 @@ void Voice_mix(
     assert(voice != NULL);
     assert(voice->gen != NULL);
     assert(states != NULL);
+    assert(wbs != NULL);
     assert(freq > 0);
 
     if (voice->prio == VOICE_PRIO_INACTIVE)
         return;
 
-    uint32_t mixed = offset;
-    Generator_mix(voice->gen, states, voice->state, nframes, mixed, freq, tempo);
+    Generator_process_vstate(
+            voice->gen, states, voice->state, wbs, offset, nframes, freq, tempo);
 
     if (!voice->state->active)
         Voice_reset(voice);

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -196,6 +196,7 @@ void Voice_pool_prepare(Voice_pool* pool)
 uint16_t Voice_pool_mix_bg(
         Voice_pool* pool,
         Device_states* states,
+        const Work_buffers* wbs,
         uint32_t amount,
         uint32_t offset,
         uint32_t freq,
@@ -203,6 +204,7 @@ uint16_t Voice_pool_mix_bg(
 {
     assert(pool != NULL);
     assert(states != NULL);
+    assert(wbs != NULL);
     assert(freq > 0);
 
     if (pool->size == 0)
@@ -216,7 +218,7 @@ uint16_t Voice_pool_mix_bg(
             if (pool->voices[i]->prio <= VOICE_PRIO_BG)
             {
 //                fprintf(stderr, "Background mix start\n");
-                Voice_mix(pool->voices[i], states, amount, offset, freq, tempo);
+                Voice_mix(pool->voices[i], states, wbs, amount, offset, freq, tempo);
 //                fprintf(stderr, "Background mix end\n");
             }
             ++active_voices;

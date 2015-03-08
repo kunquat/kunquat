@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -44,7 +44,7 @@ typedef Device_impl* Generator_cons(Generator* gen);
  *
  * \return   The property for the Generator if one exists, otherwise \c NULL.
  */
-typedef const char* Generator_property(Generator* gen, const char* property_type);
+typedef const char* Generator_property(const Generator* gen, const char* property_type);
 
 
 typedef struct Gen_type Gen_type;

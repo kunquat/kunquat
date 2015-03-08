@@ -878,7 +878,7 @@ class ModEnv(TimeEnvelope):
         return 'Mod envelope'
 
     def _allow_loop(self):
-        return False
+        return True
 
     def _make_envelope_widget(self):
         envelope = Envelope()
@@ -897,6 +897,12 @@ class ModEnv(TimeEnvelope):
 
     def _set_enabled(self, enabled):
         get_add_params(self).set_mod_envelope_enabled(enabled)
+
+    def _get_loop_enabled(self):
+        return get_add_params(self).get_mod_envelope_loop_enabled()
+
+    def _set_loop_enabled(self, enabled):
+        get_add_params(self).set_mod_envelope_loop_enabled(enabled)
 
     def _get_scale_amount(self):
         return get_add_params(self).get_mod_envelope_scale_amount()

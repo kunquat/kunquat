@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -12,6 +12,7 @@
  */
 
 
+#include <float.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <math.h>
@@ -80,7 +81,6 @@ Voice_state* Voice_state_clear(Voice_state* state)
 
     state->hit_index = -1;
     state->pitch = 0;
-    state->prev_pitch = 0;
     state->actual_pitch = 0;
     state->prev_actual_pitch = 0;
     Slider_init(&state->pitch_slider, SLIDE_MODE_EXP);
@@ -110,17 +110,9 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->noff_pos = 0;
     state->noff_pos_rem = 0;
 
-    state->fe_pos = 0;
-    state->fe_next_node = 0;
-    state->fe_value = NAN;
-    state->fe_update = 0;
-    state->fe_scale = 1;
+    Time_env_state_init(&state->force_env_state);
 
-    state->rel_fe_pos = 0;
-    state->rel_fe_next_node = 0;
-    state->rel_fe_value = NAN;
-    state->rel_fe_update = 0;
-    state->rel_fe_scale = NAN;
+    Time_env_state_init(&state->force_rel_env_state);
 
     state->force = 1;
     state->actual_force = 1;
@@ -131,13 +123,15 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->actual_panning = 0;
     Slider_init(&state->panning_slider, SLIDE_MODE_LINEAR);
 
+    state->pitch_pan_ref_param = FLT_MAX;
+    state->pitch_pan_value = 0;
+
     state->lowpass = INFINITY;
     state->actual_lowpass = INFINITY;
-    state->effective_lowpass = INFINITY;
+    state->true_lowpass = INFINITY;
     Slider_init(&state->lowpass_slider, SLIDE_MODE_EXP);
     state->lowpass_resonance = 1;
-    state->effective_resonance = 1;
-    state->lowpass_update = false;
+    state->true_resonance = 1;
     state->lowpass_state_used = -1;
     state->lowpass_xfade_state_used = -1;
     state->lowpass_xfade_pos = 1;

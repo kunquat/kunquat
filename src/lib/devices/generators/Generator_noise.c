@@ -1,7 +1,7 @@
 
 
 /*
- * Authors: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Authors: Tomi Jylhä-Ollila, Finland 2010-2015
  *          Ossi Saresoja, Finland 2010
  *
  * This file is part of Kunquat.
@@ -22,12 +22,13 @@
 #include <debug/assert.h>
 #include <devices/Device_params.h>
 #include <devices/Generator.h>
-#include <devices/generators/Generator_common.h>
+#include <devices/generators/Gen_utils.h>
 #include <devices/generators/Generator_noise.h>
 #include <devices/generators/Voice_state_noise.h>
 #include <kunquat/limits.h>
 #include <mathnum/common.h>
 #include <memory.h>
+#include <player/Work_buffers.h>
 #include <string/common.h>
 
 
@@ -56,15 +57,7 @@ static void Generator_noise_init_vstate(
         const Gen_state* gen_state,
         Voice_state* vstate);
 
-static uint32_t Generator_noise_mix(
-        const Generator* gen,
-        Gen_state* gen_state,
-        Ins_state* ins_state,
-        Voice_state* vstate,
-        uint32_t nframes,
-        uint32_t offset,
-        uint32_t freq,
-        double tempo);
+static Generator_process_vstate_func Generator_noise_process_vstate;
 
 static void del_Generator_noise(Device_impl* gen_impl);
 
@@ -92,7 +85,7 @@ static bool Generator_noise_init(Device_impl* dimpl)
 
     Generator* gen = (Generator*)noise->parent.device;
     gen->init_vstate = Generator_noise_init_vstate;
-    gen->mix = Generator_noise_mix;
+    gen->process_vstate = Generator_noise_process_vstate;
 
     Device_set_state_creator(
             noise->parent.device,
@@ -102,7 +95,7 @@ static bool Generator_noise_init(Device_impl* dimpl)
 }
 
 
-const char* Generator_noise_property(Generator* gen, const char* property_type)
+const char* Generator_noise_property(const Generator* gen, const char* property_type)
 {
     assert(gen != NULL);
     //assert(string_eq(gen->type, "noise"));
@@ -166,14 +159,15 @@ static void Generator_noise_init_vstate(
 }
 
 
-static uint32_t Generator_noise_mix(
+static uint32_t Generator_noise_process_vstate(
         const Generator* gen,
         Gen_state* gen_state,
         Ins_state* ins_state,
         Voice_state* vstate,
-        uint32_t nframes,
-        uint32_t offset,
-        uint32_t freq,
+        const Work_buffers* wbs,
+        int32_t buf_start,
+        int32_t buf_stop,
+        uint32_t audio_rate,
         double tempo)
 {
     assert(gen != NULL);
@@ -181,13 +175,12 @@ static uint32_t Generator_noise_mix(
     assert(gen_state != NULL);
     assert(ins_state != NULL);
     assert(vstate != NULL);
-    assert(freq > 0);
+    assert(wbs != NULL);
+    assert(audio_rate > 0);
     assert(tempo > 0);
+    (void)ins_state;
+    (void)tempo;
 
-    kqt_frame* bufs[] = { NULL, NULL };
-    Generator_common_get_buffers(gen_state, vstate, offset, bufs);
-    Generator_common_check_active(gen, vstate, offset);
-    Generator_common_check_relative_lengths(gen, vstate, freq, tempo);
 //    double max_amp = 0;
 //  fprintf(stderr, "bufs are %p and %p\n", ins->bufs[0], ins->bufs[1]);
 
@@ -204,13 +197,19 @@ static uint32_t Generator_noise_mix(
             noise_state->order = 0;
     }
 
-    uint32_t mixed = offset;
-    for (; mixed < nframes && vstate->active; ++mixed)
+    float* actual_forces = Work_buffers_get_buffer_contents_mut(
+            wbs, WORK_BUFFER_ACTUAL_FORCES);
+
+    float* audio_l = Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_AUDIO_L);
+    float* audio_r = Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_AUDIO_R);
+
+    for (int32_t i = buf_start; i < buf_stop; ++i)
     {
-        Generator_common_handle_pitch(gen, vstate);
+        const float actual_force = actual_forces[i];
+
         double vals[KQT_BUFFERS_MAX] = { 0 };
 
-        if(noise_state->order < 0)
+        if (noise_state->order < 0)
         {
             vals[0] = dc_pole_filter(
                     -noise_state->order,
@@ -233,23 +232,16 @@ static uint32_t Generator_noise_mix(
                     Random_get_float_signal(vstate->rand_s));
         }
 
-        Generator_common_handle_force(gen, ins_state, vstate, vals, 2, freq);
-        Generator_common_handle_filter(gen, vstate, vals, 2, freq);
-        Generator_common_ramp_attack(gen, vstate, vals, 2, freq);
-        vstate->pos = 1; // XXX: hackish
-
-//        Generator_common_handle_note_off(gen, vstate, vals, 2, freq);
-        Generator_common_handle_panning(gen, vstate, vals, 2);
-        bufs[0][mixed] += vals[0];
-        bufs[1][mixed] += vals[1];
-/*      if (fabs(val_l) > max_amp)
-        {
-            max_amp = fabs(val_l);
-        } */
+        audio_l[i] = vals[0] * actual_force;
+        audio_r[i] = vals[1] * actual_force;
     }
 
+    Generator_common_ramp_attack(gen, vstate, wbs, 2, audio_rate, buf_start, buf_stop);
+
+    vstate->pos = 1; // XXX: hackish
+
 //  fprintf(stderr, "max_amp is %lf\n", max_amp);
-    return mixed;
+    return buf_stop;
 }
 
 

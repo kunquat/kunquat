@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -24,6 +24,7 @@
 #include <player/Channel_gen_state.h>
 #include <player/Device_states.h>
 #include <player/Voice_state.h>
+#include <player/Work_buffers.h>
 
 
 typedef enum
@@ -142,6 +143,7 @@ void Voice_prepare(Voice* voice);
  *
  * \param voice    The Voice -- must not be \c NULL.
  * \param states   The Device states -- must not be \c NULL.
+ * \param wbs      The Work buffers -- must not be \c NULL.
  * \param amount   The number of frames to be mixed.
  * \param offset   The buffer offset.
  * \param freq     The mixing frequency -- must be > \c 0.
@@ -150,6 +152,7 @@ void Voice_prepare(Voice* voice);
 void Voice_mix(
         Voice* voice,
         Device_states* states,
+        const Work_buffers* wbs,
         uint32_t amount,
         uint32_t offset,
         uint32_t freq,

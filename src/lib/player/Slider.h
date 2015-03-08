@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -81,6 +81,9 @@ void Slider_start(Slider* slider, double target, double start);
 
 /**
  * Perform a step in the Slider.
+ *
+ * It is OK to call this function repeatedly after a slide has finished; the
+ * target value will be returned in that case.
  *
  * \param slider   The Slider -- must not be \c NULL.
  *
