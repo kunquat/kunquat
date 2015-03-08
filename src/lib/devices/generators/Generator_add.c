@@ -281,13 +281,6 @@ static void Generator_add_init_vstate(
     add_state->mod_active = add->mod_mode != MOD_DISABLED;
 
     Time_env_state_init(&add_state->mod_env_state);
-    /*
-    add_state->mod_env_pos = 0;
-    add_state->mod_env_next_node = 0;
-    add_state->mod_env_value = NAN;
-    add_state->mod_env_update = 0;
-    add_state->mod_env_scale = NAN;
-    // */
 
     return;
 }

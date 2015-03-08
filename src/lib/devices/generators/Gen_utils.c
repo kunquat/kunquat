@@ -28,7 +28,7 @@ void Generator_common_ramp_attack(
         Voice_state* vstate,
         const Work_buffers* wbs,
         int ab_count,
-        uint32_t freq,
+        uint32_t audio_rate,
         int32_t buf_start,
         int32_t buf_stop)
 {
@@ -45,7 +45,7 @@ void Generator_common_ramp_attack(
     };
 
     const float start_ramp_attack = vstate->ramp_attack;
-    const float inc = RAMP_ATTACK_TIME / freq;
+    const float inc = RAMP_ATTACK_TIME / audio_rate;
 
     for (int ch = 0; ch < ab_count; ++ch)
     {
