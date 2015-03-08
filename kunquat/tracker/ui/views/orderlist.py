@@ -68,6 +68,13 @@ class AlbumTreeModel(QAbstractItemModel):
                 song_node.add_child(pat_inst_node)
             self._songs.append(song_node)
 
+    def get_song_index(self, track_num):
+        return self.createIndex(track_num, 0, self._songs[track_num])
+
+    def get_pattern_index(self, track_num, system_num):
+        song_node = self._songs[track_num]
+        return self.createIndex(system_num, 0, song_node.get_children()[system_num])
+
     # override
     def columnCount(self, _):
         return 1
@@ -147,6 +154,7 @@ class Orderlist(QWidget):
         QWidget.__init__(self)
         self._ui_model = None
         self._updater = None
+        self._orderlist_manager = None
         self._album_tree_model = None
 
         self._album_tree = AlbumTree()
@@ -164,6 +172,7 @@ class Orderlist(QWidget):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
+        self._orderlist_manager = ui_model.get_orderlist_manager()
         self._update_model()
 
     def _update_model(self):
@@ -171,6 +180,18 @@ class Orderlist(QWidget):
         self._album_tree_model.set_ui_model(self._ui_model)
         self._album_tree.setModel(self._album_tree_model)
         self._album_tree.expandAll()
+
+        # Fix selection
+        selection = self._orderlist_manager.get_orderlist_selection()
+        if selection != None:
+            if type(selection) == tuple:
+                track_num, system_num = selection
+                index = self._album_tree_model.get_pattern_index(track_num, system_num)
+                self._album_tree.setCurrentIndex(index)
+            else:
+                track_num = selection
+                index = self._album_tree_model.get_song_index(track_num)
+                self._album_tree.setCurrentIndex(index)
 
     def get_selected_object(self):
         selection_model = self._album_tree.selectionModel()

@@ -26,6 +26,7 @@ class OrderlistEditor(QWidget):
         self._ui_model = None
         self._updater = None
         self._album = None
+        self._orderlist_manager = None
         self._orderlist = Orderlist()
         self._toolbar = OrderlistToolBar()
 
@@ -41,6 +42,7 @@ class OrderlistEditor(QWidget):
         self._updater = ui_model.get_updater()
         module = ui_model.get_module()
         self._album = module.get_album()
+        self._orderlist_manager = ui_model.get_orderlist_manager()
         self._orderlist.set_ui_model(ui_model)
         self._toolbar.set_ui_model(ui_model)
 
@@ -55,6 +57,7 @@ class OrderlistEditor(QWidget):
             new_pattern_num = self._album.get_new_pattern_num()
             self._album.insert_pattern_instance(
                     track_num, system_num, new_pattern_num, 0)
+            self._orderlist_manager.set_orderlist_selection((track_num, system_num))
             self._updater.signal_update(set(['signal_order_list']))
 
     def keyPressEvent(self, event):

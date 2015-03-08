@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013-2014
-#          Tomi Jylhä-Ollila, Finland 2013-2014
+#          Tomi Jylhä-Ollila, Finland 2013-2015
 #
 # This file is part of Kunquat.
 #
@@ -58,6 +58,7 @@ class Session():
         self._pending_playback_cursor_track = 0
         self._pending_playback_cursor_system = 0
         self._playback_cursor_position = (0, 0, [0, 0])
+        self._orderlist_selection = None
         self._module_path = None
         self._is_saving = False
 
@@ -311,6 +312,12 @@ class Session():
 
     def get_playback_cursor_position(self):
         return self._playback_cursor_position
+
+    def set_orderlist_selection(self, selection):
+        self._orderlist_selection = selection
+
+    def get_orderlist_selection(self):
+        return self._orderlist_selection
 
     def set_module_path(self, path):
         self._module_path = path
