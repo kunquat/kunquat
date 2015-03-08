@@ -172,6 +172,19 @@ class Orderlist(QWidget):
         self._album_tree.setModel(self._album_tree_model)
         self._album_tree.expandAll()
 
+    def get_selected_object(self):
+        selection_model = self._album_tree.selectionModel()
+        index = selection_model.currentIndex()
+        if not index.isValid():
+            return None
+
+        node = index.internalPointer()
+        if not node:
+            return None
+
+        obj = node.get_payload()
+        return obj
+
     def _perform_updates(self, signals):
         if 'signal_order_list' in signals:
             self._update_model()

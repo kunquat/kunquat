@@ -14,6 +14,8 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
+from kunquat.tracker.ui.model.patterninstance import PatternInstance
+from kunquat.tracker.ui.model.song import Song
 from orderlist import Orderlist
 
 
@@ -22,6 +24,8 @@ class OrderlistEditor(QWidget):
     def __init__(self):
         QWidget.__init__(self)
         self._ui_model = None
+        self._updater = None
+        self._album = None
         self._orderlist = Orderlist()
         self._toolbar = OrderlistToolBar()
 
@@ -34,12 +38,31 @@ class OrderlistEditor(QWidget):
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        module = ui_model.get_module()
+        self._album = module.get_album()
         self._orderlist.set_ui_model(ui_model)
         self._toolbar.set_ui_model(ui_model)
 
     def unregister_updaters(self):
         self._toolbar.unregister_updaters()
         self._orderlist.unregister_updaters()
+
+    def _handle_insert(self):
+        selection = self._orderlist.get_selected_object()
+        if isinstance(selection, PatternInstance):
+            track_num, system_num = self._album.get_pattern_instance_location(selection)
+            new_pattern_num = self._album.get_new_pattern_num()
+            self._album.insert_pattern_instance(
+                    track_num, system_num, new_pattern_num, 0)
+            self._updater.signal_update(set(['signal_order_list']))
+
+    def keyPressEvent(self, event):
+        if event.modifiers() == Qt.NoModifier:
+            if event.key() == Qt.Key_Insert:
+                self._handle_insert()
+                return
+        event.ignore()
 
 
 class OrderlistToolBar(QToolBar):
@@ -51,7 +74,7 @@ class OrderlistToolBar(QToolBar):
 
         self._add_button = QToolButton()
         self._add_button.setText('Add pattern')
-        self._add_button.setToolTip('Add pattern')
+        self._add_button.setToolTip('Add pattern (Insert)')
 
         self.addWidget(self._add_button)
 

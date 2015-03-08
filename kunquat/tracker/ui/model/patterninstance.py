@@ -25,6 +25,12 @@ class PatternInstance():
         self._store = None
         self._controller = None
 
+    def __eq__(self, other):
+        if isinstance(other, PatternInstance):
+            return (self.get_pattern_num() == other.get_pattern_num() and
+                    self.get_instance_num() == other.get_instance_num())
+        return False
+
     def set_controller(self, controller):
         self._store = controller.get_store()
         self._controller = controller

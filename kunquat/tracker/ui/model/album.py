@@ -51,6 +51,15 @@ class Album():
         song.set_controller(self._controller)
         return song
 
+    def get_pattern_instance_location(self, pattern_instance):
+        for track_num in xrange(self.get_track_count()):
+            song = self.get_song_by_track(track_num)
+            for system_num in xrange(song.get_system_count()):
+                cur_pinst = song.get_pattern_instance(system_num)
+                if cur_pinst == pattern_instance:
+                    return (track_num, system_num)
+        return None
+
     def get_new_pattern_num(self):
         free_nums = set(xrange(PATTERNS_MAX))
 
