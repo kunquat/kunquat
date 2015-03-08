@@ -38,6 +38,7 @@ void Generator_common_handle_pitch(
     assert(gen != NULL);
     assert(vstate != NULL);
     assert(wbs != NULL);
+    assert(buf_start < buf_stop);
     (void)gen;
 
     float* pitch_params = Work_buffers_get_buffer_contents_mut(
