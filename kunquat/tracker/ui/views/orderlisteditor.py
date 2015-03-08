@@ -51,7 +51,7 @@ class OrderlistToolBar(QToolBar):
 
         self._add_button = QToolButton()
         self._add_button.setText('Add pattern')
-        self._add_button.setToolTip('Add pattern (Insert)')
+        self._add_button.setToolTip('Add pattern')
 
         self.addWidget(self._add_button)
 
