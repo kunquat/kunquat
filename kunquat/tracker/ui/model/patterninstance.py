@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2014
+# Authors: Tomi Jylhä-Ollila, Finland 2014-2015
 #          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
@@ -49,3 +49,13 @@ class PatternInstance():
         ambiguous_name = u'pattern {0}'.format(self._pattern_num)
         fullname = ambiguous_name + self.subscript(self._instance_num)
         return fullname
+
+    def _get_id(self):
+        return '{}/{}'.format(self._pattern_id, self._instance_id)
+
+    def get_edit_create_pattern_instance(self):
+        key = '{}/p_manifest.json'.format(self._get_id())
+        edit = { key: {} }
+        return edit
+
+

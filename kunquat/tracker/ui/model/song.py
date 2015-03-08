@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2014
+# Authors: Tomi Jylhä-Ollila, Finland 2014-2015
 #          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
@@ -45,9 +45,12 @@ class Song():
         pattern_instance.set_controller(self._controller)
         return pattern_instance
 
+    def _get_order_list_key(self):
+        return '{}/p_order_list.json'.format(self._song_id)
+
     def _get_order_list(self):
         assert self.get_existence()
-        key = '{}/p_order_list.json'.format(self._song_id)
+        key = self._get_order_list_key()
         try:
             order_list = self._store[key]
         except KeyError:
@@ -64,3 +67,14 @@ class Song():
         except KeyError:
             name = '-'
         return name
+
+    def get_edit_insert_pattern_instance(self, index, pattern_instance):
+        order_list = self._get_order_list()
+        pattern_num = pattern_instance.get_pattern_num()
+        instance_num = pattern_instance.get_instance_num()
+        order_list.insert(index, [pattern_num, instance_num])
+
+        edit = { self._get_order_list_key(): order_list }
+        return edit
+
+

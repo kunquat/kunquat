@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013-2014
+# Author: Tomi Jylhä-Ollila, Finland 2013-2015
 #
 # This file is part of Kunquat.
 #
@@ -72,7 +72,8 @@ class Ruler(QWidget):
         return sum(self._heights)
 
     def _perform_updates(self, signals):
-        if 'signal_module' in signals:
+        update_signals = set(['signal_module', 'signal_order_list'])
+        if not signals.isdisjoint(update_signals):
             self._update_all_patterns()
             self.update()
 

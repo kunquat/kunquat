@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2014
-#          Tomi Jylhä-Ollila, Finland 2014
+#          Tomi Jylhä-Ollila, Finland 2014-2015
 #
 # This file is part of Kunquat.
 #
@@ -164,13 +164,19 @@ class Orderlist(QWidget):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
+        self._update_model()
+
+    def _update_model(self):
         self._album_tree_model = AlbumTreeModel()
-        self._album_tree_model.set_ui_model(ui_model)
+        self._album_tree_model.set_ui_model(self._ui_model)
         self._album_tree.setModel(self._album_tree_model)
         self._album_tree.expandAll()
 
     def _perform_updates(self, signals):
-        pass
+        if 'signal_order_list' in signals:
+            self._update_model()
 
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
+
+

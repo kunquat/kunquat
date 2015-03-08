@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2014
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2015
 #          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
@@ -164,6 +164,9 @@ class View(QWidget):
             self._update_all_patterns()
             self.update()
         if 'signal_module' in signals:
+            self._update_all_patterns()
+            self.update()
+        if 'signal_order_list' in signals:
             self._update_all_patterns()
             self.update()
         if 'signal_column' in signals:

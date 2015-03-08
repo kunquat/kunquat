@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2015
 #
 # This file is part of Kunquat.
 #
@@ -27,7 +27,6 @@ class Pattern():
         self._pattern_id = pattern_id
         self._store = None
         self._controller = None
-        self._pattern_number = None
         self._existence = None
 
     def __eq__(self, other):
@@ -69,5 +68,10 @@ class Pattern():
         except KeyError:
             return None
         return name
+
+    def get_edit_create_pattern(self):
+        key = '{}/p_manifest.json'.format(self._pattern_id)
+        edit = { key: {} }
+        return edit
 
 
