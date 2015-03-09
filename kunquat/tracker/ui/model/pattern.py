@@ -61,6 +61,18 @@ class Pattern():
         column.set_controller(self._controller)
         return column
 
+    def get_instance_ids(self):
+        instance_ids = set()
+        for key in self._store:
+            start = '{}/instance_'.format(self._pattern_id)
+            if key.startswith(start):
+                instance_id = key.split('/')[1]
+                manifest_key = '{}/{}/p_manifest.json'.format(
+                        self._pattern_id, instance_id)
+                if manifest_key in self._store:
+                    instance_ids.add(instance_id)
+        return instance_ids
+
     def get_name(self):
         key = '{}/m_name.json'.format(self._pattern_id)
         try:
@@ -72,6 +84,14 @@ class Pattern():
     def get_edit_create_pattern(self):
         key = '{}/p_manifest.json'.format(self._pattern_id)
         edit = { key: {} }
+        return edit
+
+    def get_edit_remove_pattern(self):
+        edit = {}
+        for key in self._store:
+            start = '{}/'.format(self._pattern_id)
+            if key.startswith(start):
+                edit[key] = None
         return edit
 
 

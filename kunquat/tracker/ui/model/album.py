@@ -90,6 +90,23 @@ class Album():
         transaction.update(insert_pinst)
         self._store.put(transaction)
 
+    def remove_pattern_instance(self, track_num, system_num):
+        song = self.get_song_by_track(track_num)
+        assert song.get_system_count() > 1
+
+        pattern_instance = song.get_pattern_instance(system_num)
+        pattern = pattern_instance.get_pattern()
+        instance_ids = pattern.get_instance_ids()
+        is_last_instance = (len(instance_ids - set([pattern_instance.get_id()])) == 0)
+
+        transaction = {}
+        transaction.update(song.get_edit_remove_pattern_instance(system_num))
+        transaction.update(pattern_instance.get_edit_remove_pattern_instance())
+        if is_last_instance:
+            transaction.update(pattern.get_edit_remove_pattern())
+        print(transaction)
+        self._store.put(transaction)
+
     def _get_used_pattern_instances(self):
         pattern_instances = []
         for track_num in xrange(self.get_track_count()):

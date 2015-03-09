@@ -60,10 +60,24 @@ class OrderlistEditor(QWidget):
             self._orderlist_manager.set_orderlist_selection((track_num, system_num))
             self._updater.signal_update(set(['signal_order_list']))
 
+    def _handle_delete(self):
+        selection = self._orderlist.get_selected_object()
+        if isinstance(selection, PatternInstance):
+            track_num, system_num = self._album.get_pattern_instance_location(selection)
+            song = self._album.get_song_by_track(track_num)
+            if song.get_system_count() > 1:
+                self._album.remove_pattern_instance(track_num, system_num)
+                self._orderlist_manager.set_orderlist_selection(
+                        (track_num, min(system_num, song.get_system_count() - 1)))
+                self._updater.signal_update(set(['signal_order_list']))
+
     def keyPressEvent(self, event):
         if event.modifiers() == Qt.NoModifier:
             if event.key() == Qt.Key_Insert:
                 self._handle_insert()
+                return
+            if event.key() == Qt.Key_Delete:
+                self._handle_delete()
                 return
         event.ignore()
 

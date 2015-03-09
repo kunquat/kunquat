@@ -77,4 +77,11 @@ class Song():
         edit = { self._get_order_list_key(): order_list }
         return edit
 
+    def get_edit_remove_pattern_instance(self, index):
+        order_list = self._get_order_list()
+        del order_list[index]
+
+        edit = { self._get_order_list_key(): order_list }
+        return edit
+
 
