@@ -84,4 +84,13 @@ class Song():
         edit = { self._get_order_list_key(): order_list }
         return edit
 
+    def get_edit_move_pattern_instance(self, from_index, to_index):
+        order_list = self._get_order_list()
+        pinst = order_list[from_index]
+        del order_list[from_index]
+        order_list.insert(to_index, pinst)
+
+        edit = { self._get_order_list_key(): order_list }
+        return edit
+
 

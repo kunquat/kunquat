@@ -104,8 +104,27 @@ class Album():
         transaction.update(pattern_instance.get_edit_remove_pattern_instance())
         if is_last_instance:
             transaction.update(pattern.get_edit_remove_pattern())
-        print(transaction)
         self._store.put(transaction)
+
+    def move_pattern_instance(
+            self, from_track_num, from_system_num, to_track_num, to_system_num):
+        from_song = self.get_song_by_track(from_track_num)
+        if (from_song.get_system_count() == 1) and (from_track_num != to_track_num):
+            return False
+        to_song = self.get_song_by_track(to_track_num)
+
+        transaction = {}
+        if from_track_num == to_track_num:
+            transaction.update(from_song.get_edit_move_pattern_instance(
+                from_system_num, to_system_num))
+        else:
+            pattern_instance = from_song.get_pattern_instance(from_system_num)
+            transaction.update(from_song.get_edit_remove_pattern_instance(
+                from_system_num))
+            transaction.update(to_song.get_edit_insert_pattern_instance(
+                to_system_num, pattern_instance))
+        self._store.put(transaction)
+        return True
 
     def _get_used_pattern_instances(self):
         pattern_instances = []

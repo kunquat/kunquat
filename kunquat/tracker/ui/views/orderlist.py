@@ -12,6 +12,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+import json
+
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
@@ -54,6 +56,7 @@ class AlbumTreeModel(QAbstractItemModel):
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
         self._module = self._ui_model.get_module()
         self._album = self._module.get_album()
         self._make_nodes()
@@ -75,11 +78,11 @@ class AlbumTreeModel(QAbstractItemModel):
         song_node = self._songs[track_num]
         return self.createIndex(system_num, 0, song_node.get_children()[system_num])
 
-    # override
+    # Qt interface
+
     def columnCount(self, _):
         return 1
 
-    # override
     def rowCount(self, parent):
         if not parent.isValid():
             # album, count tracks
@@ -95,19 +98,22 @@ class AlbumTreeModel(QAbstractItemModel):
         else:
             assert False
 
-    # override
     def index(self, row, col, parent):
         if not parent.isValid():
             # album, row indicates track
+            if row >= len(self._songs):
+                return QModelIndex()
             node = self._songs[row]
         else:
             # song, row indicates system
             parent_node = parent.internalPointer()
             assert parent_node.is_song_node()
-            node = parent_node.get_children()[row]
+            children = parent_node.get_children()
+            if row >= len(children):
+                return QModelIndex()
+            node = children[row]
         return self.createIndex(row, col, node)
 
-    # override
     def parent(self, index):
         if not index.isValid():
             # album, has no parent
@@ -127,7 +133,6 @@ class AlbumTreeModel(QAbstractItemModel):
         else:
             assert False
 
-    # override
     def data(self, index, role):
         node = index.internalPointer()
         if node.is_song_node():
@@ -142,11 +147,97 @@ class AlbumTreeModel(QAbstractItemModel):
         else:
             assert False
 
+    def supportedDropActions(self):
+        return Qt.MoveAction
+
+    def flags(self, index):
+        default_flags = QAbstractItemModel.flags(self, index)
+        if not index.isValid():
+            return default_flags
+        node = index.internalPointer()
+        if node.is_song_node():
+            return default_flags
+        elif node.is_pattern_instance_node():
+            return Qt.ItemIsDragEnabled | Qt.ItemIsDropEnabled | default_flags
+        else:
+            assert False
+
+    def mimeTypes(self):
+        return ['application/json']
+
+    def _get_item(self, index):
+        assert index.isValid()
+        node = index.internalPointer()
+        if node.is_song_node():
+            song = node.get_payload()
+            track_num = song.get_containing_track_number()
+            return ('song', track_num)
+        elif node.is_pattern_instance_node():
+            pinst = node.get_payload()
+            track_num, system_num = self._album.get_pattern_instance_location(pinst)
+            return ('pinst', (track_num, system_num))
+        else:
+            assert False
+
+    def mimeData(self, index_list):
+        items = [self._get_item(index) for index in index_list]
+        serialised = json.dumps(items)
+        mimedata = QMimeData()
+        mimedata.setData('application/json', serialised)
+        return mimedata
+
+    def dropMimeData(self, mimedata, action, row, col, parent):
+        if action != Qt.MoveAction:
+            return False
+        if not mimedata.hasFormat('application/json'):
+            return False
+
+        data = mimedata.data('application/json')
+        items = json.loads(str(data))
+        assert len(items) == 1
+        item = items[0]
+
+        if item[0] == 'song':
+            return False
+        elif item[0] == 'pinst':
+            if not parent.isValid():
+                return False
+
+            # Find target track and system
+            if row == -1:
+                pinst_index = parent
+                song_index = pinst_index.parent()
+                if not song_index.isValid():
+                    return False
+                pinst_node = pinst_index.internalPointer()
+                pinst = pinst_node.get_payload()
+                to_track_num, to_system_num = self._album.get_pattern_instance_location(
+                        pinst)
+            else:
+                song_index = parent
+                song_node = song_index.internalPointer()
+                song = song_node.get_payload()
+                to_track_num = song.get_containing_track_number()
+                to_system_num = row
+
+            from_track_num, from_system_num = item[1]
+
+            success = self._album.move_pattern_instance(
+                    from_track_num, from_system_num, to_track_num, to_system_num)
+            if success:
+                self._updater.signal_update(set(['signal_order_list']))
+            return success
+
 
 class AlbumTree(QTreeView):
 
     def __init__(self):
         QTreeView.__init__(self)
+        self.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.setDragEnabled(True)
+        self.setAcceptDrops(True)
+        self.setDropIndicatorShown(True)
+
 
 class Orderlist(QWidget):
 
