@@ -91,13 +91,17 @@ class OrderlistToolBar(QToolBar):
         self._orderlist_manager = None
 
         self._orderlist = orderlist
+        self._selection = None
 
         self._add_button = QToolButton()
         self._add_button.setText('New pattern')
+        self._add_button.setEnabled(False)
         self._remove_button = QToolButton()
         self._remove_button.setText('Remove pattern')
+        self._remove_button.setEnabled(False)
         self._reuse_button = QToolButton()
         self._reuse_button.setText('Reuse pattern')
+        self._reuse_button.setEnabled(False)
 
         self.addWidget(self._add_button)
         self.addWidget(self._remove_button)
@@ -121,20 +125,24 @@ class OrderlistToolBar(QToolBar):
     def _perform_updates(self, signals):
         selection = self._orderlist.get_selected_object()
 
-        if isinstance(selection, PatternInstance):
-            self._reuse_button.setEnabled(True)
-            pinst_loc = self._album.get_pattern_instance_location(selection)
-            if pinst_loc:
-                track_num, system_num = pinst_loc
-                song = self._album.get_song_by_track(track_num)
-                self._remove_button.setEnabled(song.get_system_count() > 1)
-            else:
-                self._remove_button.setEnabled(False)
-        else:
-            self._reuse_button.setEnabled(False)
-            self._remove_button.setEnabled(False)
+        if selection != self._selection:
+            self._selection = selection
 
-        # TODO: disable add button if no song is selected or song is full
+            # TODO: disable add button if no song is selected or song is full
+            self._add_button.setEnabled(True)
+
+            if isinstance(selection, PatternInstance):
+                self._reuse_button.setEnabled(True)
+                pinst_loc = self._album.get_pattern_instance_location(selection)
+                if pinst_loc:
+                    track_num, system_num = pinst_loc
+                    song = self._album.get_song_by_track(track_num)
+                    self._remove_button.setEnabled(song.get_system_count() > 1)
+                else:
+                    self._remove_button.setEnabled(False)
+            else:
+                self._reuse_button.setEnabled(False)
+                self._remove_button.setEnabled(False)
 
     def _pattern_added(self):
         track_num = 0

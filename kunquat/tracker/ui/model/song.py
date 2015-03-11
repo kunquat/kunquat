@@ -26,6 +26,11 @@ class Song():
         self._store = None
         self._controller = None
 
+    def __eq__(self, other):
+        if not isinstance(other, Song):
+            return
+        return (self._song_id == other._song_id)
+
     def set_controller(self, controller):
         self._store = controller.get_store()
         self._controller = controller
