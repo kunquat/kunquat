@@ -19,6 +19,7 @@ from song import Song
 
 
 PATTERNS_MAX = 1024 # TODO: define in libkunquat interface
+PATTERN_INSTANCES_MAX = PATTERNS_MAX
 
 
 class Album():
@@ -70,6 +71,21 @@ class Album():
             return None
 
         # Return the ID with smallest pattern number
+        free_list = sorted(list(free_nums))
+        free_num = free_list[0]
+        return free_num
+
+    def get_new_pattern_instance_num(self, pattern_num):
+        free_nums = set(xrange(PATTERN_INSTANCES_MAX))
+
+        used_pinsts = self._get_used_pattern_instances()
+        free_nums -= set(p.get_instance_num()
+                for p in used_pinsts if (p.get_pattern_num() == pattern_num))
+
+        if not free_nums:
+            return None
+
+        # Return the ID with smallest instance number
         free_list = sorted(list(free_nums))
         free_num = free_list[0]
         return free_num

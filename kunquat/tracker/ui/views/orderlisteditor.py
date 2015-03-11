@@ -96,9 +96,12 @@ class OrderlistToolBar(QToolBar):
         self._add_button.setText('New pattern')
         self._remove_button = QToolButton()
         self._remove_button.setText('Remove pattern')
+        self._reuse_button = QToolButton()
+        self._reuse_button.setText('Reuse pattern')
 
         self.addWidget(self._add_button)
         self.addWidget(self._remove_button)
+        self.addWidget(self._reuse_button)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -110,6 +113,7 @@ class OrderlistToolBar(QToolBar):
 
         QObject.connect(self._add_button, SIGNAL('clicked()'), self._pattern_added)
         QObject.connect(self._remove_button, SIGNAL('clicked()'), self._pattern_removed)
+        QObject.connect(self._reuse_button, SIGNAL('clicked()'), self._pattern_reused)
 
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
@@ -118,6 +122,7 @@ class OrderlistToolBar(QToolBar):
         selection = self._orderlist.get_selected_object()
 
         if isinstance(selection, PatternInstance):
+            self._reuse_button.setEnabled(True)
             pinst_loc = self._album.get_pattern_instance_location(selection)
             if pinst_loc:
                 track_num, system_num = pinst_loc
@@ -126,6 +131,7 @@ class OrderlistToolBar(QToolBar):
             else:
                 self._remove_button.setEnabled(False)
         else:
+            self._reuse_button.setEnabled(False)
             self._remove_button.setEnabled(False)
 
         # TODO: disable add button if no song is selected or song is full
@@ -150,5 +156,19 @@ class OrderlistToolBar(QToolBar):
                 self._orderlist_manager.set_orderlist_selection(
                         (track_num, min(system_num, song.get_system_count() - 1)))
                 self._updater.signal_update(set(['signal_order_list']))
+
+    def _pattern_reused(self):
+        selection = self._orderlist.get_selected_object()
+        if isinstance(selection, PatternInstance):
+            track_num, system_num = self._album.get_pattern_instance_location(selection)
+            song = self._album.get_song_by_track(track_num)
+            pinst = song.get_pattern_instance(system_num)
+            pattern_num = pinst.get_pattern_num()
+            instance_num = self._album.get_new_pattern_instance_num(pattern_num)
+            self._album.insert_pattern_instance(
+                    track_num, system_num + 1, pattern_num, instance_num)
+            self._orderlist_manager.set_orderlist_selection(
+                    (track_num, system_num + 1))
+            self._updater.signal_update(set(['signal_order_list']))
 
 
