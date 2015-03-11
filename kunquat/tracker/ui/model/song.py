@@ -35,6 +35,10 @@ class Song():
         self._store = controller.get_store()
         self._controller = controller
 
+    def get_number(self):
+        parts = self._song_id.split('_')
+        return int(parts[1], 16)
+
     def get_existence(self):
         key = '{}/p_manifest.json'.format(self._song_id)
         manifest = self._store[key]
@@ -70,7 +74,7 @@ class Song():
         try:
             name = self._store[key]
         except KeyError:
-            name = '-'
+            name = None
         return name
 
     def get_edit_insert_pattern_instance(self, index, pattern_instance):

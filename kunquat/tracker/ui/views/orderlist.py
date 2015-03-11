@@ -138,7 +138,7 @@ class AlbumTreeModel(QAbstractItemModel):
         if node.is_song_node():
             if role == Qt.DisplayRole:
                 song = node.get_payload()
-                song_name = song.get_name()
+                song_name = song.get_name() or 'song {}'.format(song.get_number())
                 return song_name
         elif node.is_pattern_instance_node():
             if role == Qt.DisplayRole:
