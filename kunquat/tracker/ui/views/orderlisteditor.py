@@ -133,9 +133,11 @@ class OrderlistToolBar(QToolBar):
     def _pattern_added(self):
         track_num = 0
         song = self._album.get_song_by_track(track_num)
+        system_num = song.get_system_count()
         pattern_num = self._album.get_new_pattern_num()
         self._album.insert_pattern_instance(
-                track_num, song.get_system_count(), pattern_num, 0)
+                track_num, system_num, pattern_num, 0)
+        self._orderlist_manager.set_orderlist_selection((track_num, system_num))
         self._updater.signal_update(set(['signal_order_list']))
 
     def _pattern_removed(self):
