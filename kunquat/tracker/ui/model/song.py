@@ -41,7 +41,7 @@ class Song():
 
     def get_existence(self):
         key = '{}/p_manifest.json'.format(self._song_id)
-        manifest = self._store[key]
+        manifest = self._store.get(key)
         return (type(manifest) == type({}))
 
     def get_system_count(self):
@@ -58,7 +58,6 @@ class Song():
         return '{}/p_order_list.json'.format(self._song_id)
 
     def _get_order_list(self):
-        assert self.get_existence()
         key = self._get_order_list_key()
         try:
             order_list = self._store[key]
@@ -76,6 +75,11 @@ class Song():
         except KeyError:
             name = None
         return name
+
+    def get_edit_create_song(self):
+        key = '{}/p_manifest.json'.format(self._song_id)
+        edit = { key: {} }
+        return edit
 
     def get_edit_insert_pattern_instance(self, index, pattern_instance):
         order_list = self._get_order_list()

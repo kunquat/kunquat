@@ -18,7 +18,8 @@ from patterninstance import PatternInstance
 from song import Song
 
 
-PATTERNS_MAX = 1024 # TODO: define in libkunquat interface
+SONGS_MAX = 256 # TODO: define in libkunquat interface
+PATTERNS_MAX = 1024
 PATTERN_INSTANCES_MAX = PATTERNS_MAX
 
 
@@ -60,6 +61,20 @@ class Album():
                 if cur_pinst == pattern_instance:
                     return (track_num, system_num)
         return None
+
+    def get_new_song_num(self):
+        free_nums = set(xrange(SONGS_MAX))
+
+        used_songs = self._get_used_songs()
+        free_nums -= set(s.get_number() for s in used_songs)
+
+        if not free_nums:
+            return None
+
+        # Return the song ID with smallest number
+        free_list = sorted(list(free_nums))
+        free_num = free_list[0]
+        return free_num
 
     def get_new_pattern_num(self):
         free_nums = set(xrange(PATTERNS_MAX))
@@ -106,6 +121,28 @@ class Album():
         transaction.update(insert_pinst)
         self._store.put(transaction)
 
+    def insert_song(self, track_num):
+        song_num = self.get_new_song_num()
+        pattern_num = self.get_new_pattern_num()
+        if (song_num == None) or (pattern_num == None):
+            return
+
+        song_id = 'song_{:02x}'.format(song_num)
+        song = Song(song_id, track_num)
+        song.set_controller(self._controller)
+        pattern_instance = PatternInstance(pattern_num, 0)
+        pattern_instance.set_controller(self._controller)
+
+        track_list = self._get_track_list()
+        track_list.insert(track_num, song_num)
+
+        transaction = { 'album/p_tracks.json': track_list }
+        transaction.update(pattern_instance.get_edit_create_pattern_instance())
+        transaction.update(pattern_instance.get_pattern().get_edit_create_pattern())
+        transaction.update(song.get_edit_create_song())
+        transaction.update(song.get_edit_insert_pattern_instance(0, pattern_instance))
+        self._store.put(transaction)
+
     def remove_pattern_instance(self, track_num, system_num):
         song = self.get_song_by_track(track_num)
         assert song.get_system_count() > 1
@@ -141,6 +178,13 @@ class Album():
                 to_system_num, pattern_instance))
         self._store.put(transaction)
         return True
+
+    def _get_used_songs(self):
+        songs = []
+        for track_num in xrange(self.get_track_count()):
+            song = self.get_song_by_track(track_num)
+            songs.append(song)
+        return songs
 
     def _get_used_pattern_instances(self):
         pattern_instances = []
