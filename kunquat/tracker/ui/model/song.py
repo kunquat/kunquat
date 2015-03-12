@@ -63,7 +63,7 @@ class Song():
             order_list = self._store[key]
         except KeyError:
             order_list = get_default_value(key)
-        return order_list
+        return order_list or []
 
     def get_containing_track_number(self):
         return self._track_num
@@ -79,6 +79,14 @@ class Song():
     def get_edit_create_song(self):
         key = '{}/p_manifest.json'.format(self._song_id)
         edit = { key: {} }
+        return edit
+
+    def get_edit_remove_song(self):
+        edit = {}
+        start = '{}/'.format(self._song_id)
+        for key in self._store:
+            if key.startswith(start):
+                edit[key] = None
         return edit
 
     def get_edit_insert_pattern_instance(self, index, pattern_instance):

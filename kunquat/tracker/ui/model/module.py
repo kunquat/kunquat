@@ -123,8 +123,6 @@ class Module():
     def get_album(self):
         album = Album()
         album.set_controller(self._controller)
-        if not album.get_existence():
-            return None
         return album
 
     def set_path(self, path):

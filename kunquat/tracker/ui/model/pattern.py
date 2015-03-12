@@ -88,8 +88,8 @@ class Pattern():
 
     def get_edit_remove_pattern(self):
         edit = {}
+        start = '{}/'.format(self._pattern_id)
         for key in self._store:
-            start = '{}/'.format(self._pattern_id)
             if key.startswith(start):
                 edit[key] = None
         return edit

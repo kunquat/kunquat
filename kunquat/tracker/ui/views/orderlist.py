@@ -245,6 +245,7 @@ class Orderlist(QWidget):
         QWidget.__init__(self)
         self._ui_model = None
         self._updater = None
+        self._album = None
         self._orderlist_manager = None
         self._album_tree_model = None
 
@@ -263,6 +264,8 @@ class Orderlist(QWidget):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
+        module = ui_model.get_module()
+        self._album = module.get_album()
         self._orderlist_manager = ui_model.get_orderlist_manager()
         self._update_model()
 
@@ -277,12 +280,30 @@ class Orderlist(QWidget):
         if selection != None:
             if type(selection) == tuple:
                 track_num, system_num = selection
-                index = self._album_tree_model.get_pattern_index(track_num, system_num)
-                self._album_tree.setCurrentIndex(index)
+                if track_num >= self._album.get_track_count():
+                    system_num = 0
+                    track_num = self._album.get_track_count() - 1
+                if track_num < 0:
+                    self._orderlist_manager.set_orderlist_selection(None)
+                else:
+                    song = self._album.get_song_by_track(track_num)
+                    system_num = min(system_num, song.get_system_count() - 1)
+                    if system_num < 0:
+                        self._orderlist_manager.set_orderlist_selection(None)
+                    else:
+                        self._orderlist_manager.set_orderlist_selection(
+                                (track_num, system_num))
+                        index = self._album_tree_model.get_pattern_index(
+                                track_num, system_num)
+                        self._album_tree.setCurrentIndex(index)
             else:
                 track_num = selection
-                index = self._album_tree_model.get_song_index(track_num)
-                self._album_tree.setCurrentIndex(index)
+                track_num = min(track_num, self._album.get_track_count() - 1)
+                if track_num < 0:
+                    self._orderlist_manager.set_orderlist_selection(None)
+                else:
+                    index = self._album_tree_model.get_song_index(track_num)
+                    self._album_tree.setCurrentIndex(index)
 
     def get_selected_object(self):
         selection_model = self._album_tree.selectionModel()

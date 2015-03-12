@@ -42,7 +42,8 @@ class Album():
         return (type(manifest) == type({}))
 
     def get_track_count(self):
-        assert self.get_existence()
+        if not self.get_existence():
+            return 0
         return len(self._get_track_list())
 
     def get_song_by_track(self, track_num):
@@ -137,6 +138,8 @@ class Album():
         track_list.insert(track_num, song_num)
 
         transaction = { 'album/p_tracks.json': track_list }
+        if not self.get_existence():
+            transaction.update({ 'album/p_manifest.json': {} })
         transaction.update(pattern_instance.get_edit_create_pattern_instance())
         transaction.update(pattern_instance.get_pattern().get_edit_create_pattern())
         transaction.update(song.get_edit_create_song())
@@ -144,8 +147,10 @@ class Album():
         self._store.put(transaction)
 
     def remove_pattern_instance(self, track_num, system_num):
+        is_last_track = len(self._get_track_list()) == 1
+
         song = self.get_song_by_track(track_num)
-        assert song.get_system_count() > 1
+        is_last_system = (song.get_system_count() == 1)
 
         pattern_instance = song.get_pattern_instance(system_num)
         pattern = pattern_instance.get_pattern()
@@ -157,7 +162,21 @@ class Album():
         transaction.update(pattern_instance.get_edit_remove_pattern_instance())
         if is_last_instance:
             transaction.update(pattern.get_edit_remove_pattern())
+        if is_last_system:
+            transaction.update(song.get_edit_remove_song())
+            track_list = self._get_track_list()
+            del track_list[track_num]
+            transaction.update({ 'album/p_tracks.json': track_list })
+
+            if is_last_track:
+                transaction.update({ 'album/p_manifest.json': None })
+
         self._store.put(transaction)
+
+    def remove_song(self, track_num):
+        song = self.get_song_by_track(track_num)
+        while song.get_existence():
+            self.remove_pattern_instance(track_num, 0)
 
     def move_pattern_instance(
             self, from_track_num, from_system_num, to_track_num, to_system_num):
