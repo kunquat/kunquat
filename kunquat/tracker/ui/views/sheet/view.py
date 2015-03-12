@@ -305,7 +305,7 @@ class View(QWidget):
             album = module.get_album()
             song = album.get_song_by_track(track)
             cur_pinst = song.get_pattern_instance(system)
-        except AttributeError:
+        except (IndexError, AttributeError):
             return None
 
         for pinst, start_height in izip(self._pinsts, self._start_heights):
@@ -397,6 +397,9 @@ class View(QWidget):
 
         # Check vertical scrolling
         y_offset = self._get_row_offset(location)
+        if y_offset == None:
+            self.update()
+            return
         min_snap_dist = self._config['edit_cursor']['min_snap_dist']
         min_center_dist = min(min_snap_dist, self.height() // 2)
         tr_height = self._config['tr_height']
@@ -942,6 +945,8 @@ class View(QWidget):
         y_offset = self._get_row_offset(location)
 
         column = self._sheet_manager.get_column_at_location(location)
+        if not column:
+            return None
         row_ts = location.get_row_ts()
         notation = self._notation_manager.get_selected_notation()
 
