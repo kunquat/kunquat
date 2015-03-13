@@ -155,9 +155,7 @@ class AlbumTreeModel(QAbstractItemModel):
         if not index.isValid():
             return default_flags
         node = index.internalPointer()
-        if node.is_song_node():
-            return default_flags
-        elif node.is_pattern_instance_node():
+        if node.is_song_node() or node.is_pattern_instance_node():
             return Qt.ItemIsDragEnabled | Qt.ItemIsDropEnabled | default_flags
         else:
             assert False
@@ -198,7 +196,24 @@ class AlbumTreeModel(QAbstractItemModel):
         item = items[0]
 
         if item[0] == 'song':
-            return False
+            if row == -1:
+                song_index = parent
+                if not song_index.isValid():
+                    return False
+                song_node = song_index.internalPointer()
+                if not song_node.is_song_node():
+                    return False
+                song = song_node.get_payload()
+                to_track_num = song.get_containing_track_number()
+            else:
+                to_track_num = row
+
+            from_track_num = item[1]
+
+            self._album.move_song(from_track_num, to_track_num)
+            self._updater.signal_update(set(['signal_order_list']))
+            return True
+
         elif item[0] == 'pinst':
             if not parent.isValid():
                 return False
@@ -210,6 +225,8 @@ class AlbumTreeModel(QAbstractItemModel):
                 if not song_index.isValid():
                     return False
                 pinst_node = pinst_index.internalPointer()
+                if not pinst_node.is_pattern_instance_node():
+                    return False
                 pinst = pinst_node.get_payload()
                 to_track_num, to_system_num = self._album.get_pattern_instance_location(
                         pinst)

@@ -198,6 +198,13 @@ class Album():
         self._store.put(transaction)
         return True
 
+    def move_song(self, from_track_num, to_track_num):
+        track_list = self._get_track_list()
+        song_num = track_list[from_track_num]
+        del track_list[from_track_num]
+        track_list.insert(to_track_num, song_num)
+        self._store['album/p_tracks.json'] = track_list
+
     def _get_used_songs(self):
         songs = []
         for track_num in xrange(self.get_track_count()):
