@@ -77,6 +77,19 @@ class OrderlistEditor(QWidget):
                     (track_num, min(system_num, song.get_system_count() - 1)))
             self._updater.signal_update(set(['signal_order_list']))
 
+    def _handle_move_pattern_instance(self, offset):
+        selection = self._orderlist.get_selected_object()
+        if isinstance(selection, PatternInstance):
+            track_num, system_num = self._album.get_pattern_instance_location(selection)
+            song = self._album.get_song_by_track(track_num)
+            new_system_num = system_num + offset
+            if 0 <= new_system_num < song.get_system_count():
+                self._album.move_pattern_instance(
+                        track_num, system_num, track_num, new_system_num)
+                self._orderlist_manager.set_orderlist_selection(
+                        (track_num, new_system_num))
+                self._updater.signal_update(set(['signal_order_list']))
+
     def keyPressEvent(self, event):
         if event.modifiers() == Qt.NoModifier:
             if event.key() == Qt.Key_Insert:
@@ -87,6 +100,13 @@ class OrderlistEditor(QWidget):
                 return
             elif event.key() == Qt.Key_Delete:
                 self._handle_delete()
+                return
+        elif event.modifiers() == Qt.ShiftModifier:
+            if event.key() == Qt.Key_Up:
+                self._handle_move_pattern_instance(-1)
+                return
+            elif event.key() == Qt.Key_Down:
+                self._handle_move_pattern_instance(1)
                 return
         event.ignore()
 

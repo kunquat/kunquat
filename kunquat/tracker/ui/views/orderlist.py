@@ -255,7 +255,10 @@ class AlbumTree(QTreeView):
         self.setDropIndicatorShown(True)
 
     def keyPressEvent(self, event):
-        if event.key() == Qt.Key_N:
+        if Qt.Key_A <= event.key() <= Qt.Key_Z:
+            event.ignore()
+        elif ((event.modifiers() == Qt.ShiftModifier) and
+                (event.key() in (Qt.Key_Up, Qt.Key_Down))):
             event.ignore()
         else:
             QTreeView.keyPressEvent(self, event)
