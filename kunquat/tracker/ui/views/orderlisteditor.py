@@ -50,15 +50,22 @@ class OrderlistEditor(QWidget):
         self._toolbar.unregister_updaters()
         self._orderlist.unregister_updaters()
 
-    def _handle_insert(self):
+    def _handle_insert_at(self, offset):
         selection = self._orderlist.get_selected_object()
         if isinstance(selection, PatternInstance):
             track_num, system_num = self._album.get_pattern_instance_location(selection)
             new_pattern_num = self._album.get_new_pattern_num()
             self._album.insert_pattern_instance(
-                    track_num, system_num, new_pattern_num, 0)
-            self._orderlist_manager.set_orderlist_selection((track_num, system_num))
+                    track_num, system_num + offset, new_pattern_num, 0)
+            self._orderlist_manager.set_orderlist_selection(
+                    (track_num, system_num + offset))
             self._updater.signal_update(set(['signal_order_list']))
+
+    def _handle_insert_before(self):
+        self._handle_insert_at(0)
+
+    def _handle_insert_after(self):
+        self._handle_insert_at(1)
 
     def _handle_delete(self):
         selection = self._orderlist.get_selected_object()
@@ -73,9 +80,12 @@ class OrderlistEditor(QWidget):
     def keyPressEvent(self, event):
         if event.modifiers() == Qt.NoModifier:
             if event.key() == Qt.Key_Insert:
-                self._handle_insert()
+                self._handle_insert_before()
                 return
-            if event.key() == Qt.Key_Delete:
+            elif event.key() == Qt.Key_N:
+                self._handle_insert_after()
+                return
+            elif event.key() == Qt.Key_Delete:
                 self._handle_delete()
                 return
         event.ignore()

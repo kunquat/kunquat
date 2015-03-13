@@ -254,6 +254,12 @@ class AlbumTree(QTreeView):
         self.setAcceptDrops(True)
         self.setDropIndicatorShown(True)
 
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_N:
+            event.ignore()
+        else:
+            QTreeView.keyPressEvent(self, event)
+
 
 class Orderlist(QWidget):
 
