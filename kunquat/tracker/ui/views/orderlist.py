@@ -239,11 +239,10 @@ class AlbumTreeModel(QAbstractItemModel):
 
             from_track_num, from_system_num = item[1]
 
-            success = self._album.move_pattern_instance(
+            self._album.move_pattern_instance(
                     from_track_num, from_system_num, to_track_num, to_system_num)
-            if success:
-                self._updater.signal_update(set(['signal_order_list']))
-            return success
+            self._updater.signal_update(set(['signal_order_list']))
+            return True
 
 
 class AlbumTree(QTreeView):

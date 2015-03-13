@@ -181,9 +181,10 @@ class Album():
     def move_pattern_instance(
             self, from_track_num, from_system_num, to_track_num, to_system_num):
         from_song = self.get_song_by_track(from_track_num)
-        if (from_song.get_system_count() == 1) and (from_track_num != to_track_num):
-            return False
         to_song = self.get_song_by_track(to_track_num)
+
+        remove_source_song = ((from_song.get_system_count() == 1) and
+                (from_track_num != to_track_num))
 
         transaction = {}
         if from_track_num == to_track_num:
@@ -195,8 +196,12 @@ class Album():
                 from_system_num))
             transaction.update(to_song.get_edit_insert_pattern_instance(
                 to_system_num, pattern_instance))
+            if remove_source_song:
+                transaction.update(from_song.get_edit_remove_song())
+                track_list = self._get_track_list()
+                del track_list[from_track_num]
+                transaction.update({ 'album/p_tracks.json': track_list })
         self._store.put(transaction)
-        return True
 
     def move_song(self, from_track_num, to_track_num):
         track_list = self._get_track_list()
