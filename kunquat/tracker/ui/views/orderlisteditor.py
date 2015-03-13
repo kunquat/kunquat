@@ -155,6 +155,8 @@ class OrderlistToolBar(QToolBar):
         set_icon(self._new_song_button, 'new_song')
         set_icon(self._remove_song_button, 'remove_song')
 
+        self._update_buttons_enabled(None)
+
         QObject.connect(self._new_pat_button, SIGNAL('clicked()'), self._pattern_added)
         QObject.connect(
                 self._remove_pat_button, SIGNAL('clicked()'), self._pattern_removed)
@@ -172,25 +174,29 @@ class OrderlistToolBar(QToolBar):
         selection = self._orderlist.get_selected_object()
 
         if selection != self._selection:
-            self._selection = selection
+            self._update_buttons_enabled(selection)
 
-            if isinstance(selection, PatternInstance):
-                self._new_pat_button.setEnabled(True)
-                pinst_loc = self._album.get_pattern_instance_location(selection)
-                self._reuse_pat_button.setEnabled(bool(pinst_loc))
-                self._remove_pat_button.setEnabled(bool(pinst_loc))
-            else:
-                self._new_pat_button.setEnabled(False)
-                self._reuse_pat_button.setEnabled(False)
-                self._remove_pat_button.setEnabled(False)
-                self._new_song_button.setEnabled(True)
+    def _update_buttons_enabled(self, selection):
+        self._selection = selection
 
-            if isinstance(selection, Song):
-                self._new_pat_button.setEnabled(True)
-                self._new_song_button.setEnabled(True)
-                self._remove_song_button.setEnabled(True)
-            else:
-                self._remove_song_button.setEnabled(False)
+        if isinstance(selection, PatternInstance):
+            self._new_pat_button.setEnabled(True)
+            pinst_loc = self._album.get_pattern_instance_location(selection)
+            self._reuse_pat_button.setEnabled(bool(pinst_loc))
+            self._remove_pat_button.setEnabled(bool(pinst_loc))
+            self._new_song_button.setEnabled(False)
+        else:
+            self._new_pat_button.setEnabled(False)
+            self._reuse_pat_button.setEnabled(False)
+            self._remove_pat_button.setEnabled(False)
+            self._new_song_button.setEnabled(True)
+
+        if isinstance(selection, Song):
+            self._new_pat_button.setEnabled(True)
+            self._new_song_button.setEnabled(True)
+            self._remove_song_button.setEnabled(True)
+        else:
+            self._remove_song_button.setEnabled(False)
 
     def _pattern_added(self):
         selection = self._orderlist.get_selected_object()
