@@ -61,12 +61,6 @@ class OrderlistEditor(QWidget):
                     (track_num, system_num + offset))
             self._updater.signal_update(set(['signal_order_list']))
 
-    def _handle_insert_before(self):
-        self._handle_insert_at(0)
-
-    def _handle_insert_after(self):
-        self._handle_insert_at(1)
-
     def _handle_delete(self):
         selection = self._orderlist.get_selected_object()
         if isinstance(selection, PatternInstance):
@@ -93,10 +87,10 @@ class OrderlistEditor(QWidget):
     def keyPressEvent(self, event):
         if event.modifiers() == Qt.NoModifier:
             if event.key() == Qt.Key_Insert:
-                self._handle_insert_before()
+                self._handle_insert_at(0)
                 return
             elif event.key() == Qt.Key_N:
-                self._handle_insert_after()
+                self._handle_insert_at(1)
                 return
             elif event.key() == Qt.Key_Delete:
                 self._handle_delete()
