@@ -92,25 +92,23 @@ class OrderlistToolBar(QToolBar):
         self._orderlist = orderlist
         self._selection = None
 
-        self._new_pat_button = QToolButton()
-        self._new_pat_button.setText('New pattern')
-        self._new_pat_button.setEnabled(False)
-        self._remove_pat_button = QToolButton()
-        self._remove_pat_button.setText('Remove pattern')
-        self._remove_pat_button.setEnabled(False)
-        self._reuse_pat_button = QToolButton()
-        self._reuse_pat_button.setText('Reuse pattern')
-        self._reuse_pat_button.setEnabled(False)
-        self._new_song_button = QToolButton()
-        self._new_song_button.setText('New song')
-        self._new_song_button.setEnabled(False)
-        self._remove_song_button = QToolButton()
-        self._remove_song_button.setText('Remove song')
-        self._remove_song_button.setEnabled(False)
+        def create_button(text):
+            button = QToolButton()
+            button.setText(text)
+            button.setToolTip(text)
+            button.setEnabled(False)
+            return button
+
+        self._new_pat_button        = create_button('New pattern')
+        self._remove_pat_button     = create_button('Remove pattern')
+        self._reuse_pat_button      = create_button('Reuse pattern')
+        self._new_song_button       = create_button('New song')
+        self._remove_song_button    = create_button('Remove song')
 
         self.addWidget(self._new_pat_button)
         self.addWidget(self._remove_pat_button)
         self.addWidget(self._reuse_pat_button)
+        self.addSeparator()
         self.addWidget(self._new_song_button)
         self.addWidget(self._remove_song_button)
 
@@ -121,6 +119,17 @@ class OrderlistToolBar(QToolBar):
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
         self._orderlist_manager = ui_model.get_orderlist_manager()
+
+        icon_bank = ui_model.get_icon_bank()
+        def set_icon(button, icon_name):
+            icon_path = icon_bank.get_icon_path(icon_name)
+            button.setIcon(QIcon(icon_path))
+
+        set_icon(self._new_pat_button, 'new_pattern')
+        set_icon(self._remove_pat_button, 'remove_pattern')
+        set_icon(self._reuse_pat_button, 'reuse_pattern')
+        set_icon(self._new_song_button, 'new_song')
+        set_icon(self._remove_song_button, 'remove_song')
 
         QObject.connect(self._new_pat_button, SIGNAL('clicked()'), self._pattern_added)
         QObject.connect(
