@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2014
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2015
 #          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
@@ -123,7 +123,7 @@ class View(QWidget):
 
         self._px_per_beat = None
         self._px_offset = 0
-        self._patterns = []
+        self._pinsts = []
 
         self._col_width = None
         self._first_col = 0
@@ -166,6 +166,9 @@ class View(QWidget):
         if 'signal_module' in signals:
             self._update_all_patterns()
             self.update()
+        if 'signal_order_list' in signals:
+            self._update_all_patterns()
+            self.update()
         if 'signal_column' in signals:
             self._update_all_patterns()
             self.update()
@@ -179,8 +182,8 @@ class View(QWidget):
     def _update_all_patterns(self):
         for cr in self._col_rends:
             cr.flush_caches()
-        all_patterns = utils.get_all_patterns(self._ui_model)
-        self.set_patterns(all_patterns)
+        all_pinsts = utils.get_all_pattern_instances(self._ui_model)
+        self.set_pattern_instances(all_pinsts)
 
     def set_config(self, config):
         self._config = config
@@ -192,17 +195,17 @@ class View(QWidget):
             self._first_col = first_col
             self.update()
 
-    def set_patterns(self, patterns):
-        self._patterns = patterns
+    def set_pattern_instances(self, pinsts):
+        self._pinsts = pinsts
         self._set_pattern_heights()
-        lengths = [p.get_length() for p in patterns]
+        lengths = [pinst.get_pattern().get_length() for pinst in pinsts]
         for i, cr in enumerate(self._col_rends):
             cr.set_pattern_lengths(lengths)
-            columns = [p.get_column(i) for p in patterns]
+            columns = [pinst.get_pattern().get_column(i) for pinst in pinsts]
             cr.set_columns(columns)
 
     def _set_pattern_heights(self):
-        lengths = [p.get_length() for p in self._patterns]
+        lengths = [pinst.get_pattern().get_length() for pinst in self._pinsts]
         self._heights = utils.get_pat_heights(lengths, self._px_per_beat)
         self._start_heights = utils.get_pat_start_heights(self._heights)
         for cr in self._col_rends:
@@ -301,13 +304,12 @@ class View(QWidget):
             module = self._ui_model.get_module()
             album = module.get_album()
             song = album.get_song_by_track(track)
-            pat_instance = song.get_pattern_instance(system)
-            cur_pattern = pat_instance.get_pattern()
-        except AttributeError:
+            cur_pinst = song.get_pattern_instance(system)
+        except (IndexError, AttributeError):
             return None
 
-        for pattern, start_height in izip(self._patterns, self._start_heights):
-            if cur_pattern == pattern:
+        for pinst, start_height in izip(self._pinsts, self._start_heights):
+            if cur_pinst == pinst:
                 start_px = start_height - ref_offset
                 location_from_start_px = (
                         (row_ts.beats * tstamp.BEAT + row_ts.rem) *
@@ -395,6 +397,9 @@ class View(QWidget):
 
         # Check vertical scrolling
         y_offset = self._get_row_offset(location)
+        if y_offset == None:
+            self.update()
+            return
         min_snap_dist = self._config['edit_cursor']['min_snap_dist']
         min_center_dist = min(min_snap_dist, self.height() // 2)
         tr_height = self._config['tr_height']
@@ -417,7 +422,7 @@ class View(QWidget):
             self.update()
 
     def _draw_edit_cursor(self):
-        if not self._patterns:
+        if not self._pinsts:
             return
 
         selection = self._ui_model.get_selection()
@@ -788,7 +793,7 @@ class View(QWidget):
         # Get pattern index
         y_offset = self._px_offset + view_y_offset
         pat_index = utils.get_first_visible_pat_index(y_offset, self._start_heights)
-        pat_index = min(pat_index, len(self._patterns) - 1)
+        pat_index = min(pat_index, len(self._pinsts) - 1)
 
         # Get track and system
         track = -1
@@ -807,7 +812,7 @@ class View(QWidget):
         rel_y_offset = y_offset - self._start_heights[pat_index]
         assert rel_y_offset >= 0
         row_ts = utils.get_tstamp_from_px(rel_y_offset, self._px_per_beat)
-        row_ts = min(row_ts, self._patterns[pat_index].get_length())
+        row_ts = min(row_ts, self._pinsts[pat_index].get_pattern().get_length())
 
         # Get current selection info
         selection = self._ui_model.get_selection()
@@ -831,7 +836,7 @@ class View(QWidget):
                 stop_ts = row_ts
                 tr_rel_y_offset = rel_y_offset
             else:
-                stop_ts = self._patterns[tr_pat_index].get_length()
+                stop_ts = self._pinsts[tr_pat_index].get_pattern().get_length()
                 tr_rel_y_offset = self._heights[tr_pat_index] + rel_y_offset - 1
             stop_ts += tstamp.Tstamp(0, 1)
 
@@ -940,6 +945,8 @@ class View(QWidget):
         y_offset = self._get_row_offset(location)
 
         column = self._sheet_manager.get_column_at_location(location)
+        if not column:
+            return None
         row_ts = location.get_row_ts()
         notation = self._notation_manager.get_selected_notation()
 

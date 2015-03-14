@@ -123,21 +123,26 @@ class Share():
         valid_names = [
                 'arrow_down_small',
                 'arrow_up_small',
+                'delete',
+                'delete_small',
+                'edit',
+                'new_pattern',
+                'new_song',
                 'play',
                 'play_pattern',
                 'record',
-                'silence',
-                'edit',
+                'remove_pattern',
+                'remove_song',
                 'replace',
-                'delete',
-                'delete_small',
                 'rest',
+                'reuse_pattern',
+                'silence',
                 'zoom_in',
                 'zoom_out',
                 'zoom_reset',
             ]
         if not icon_name in valid_names:
-            raise ValueError('invalid icon name %s' % icon_name)
-        icon_filename = '%s.png' % icon_name
+            raise ValueError('invalid icon name {}'.format(icon_name))
+        icon_filename = '{}.png'.format(icon_name)
         icon_path = os.path.join(self._icons_path, icon_filename)
         return icon_path

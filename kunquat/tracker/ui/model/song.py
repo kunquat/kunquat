@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2014
+# Authors: Tomi Jylhä-Ollila, Finland 2014-2015
 #          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
@@ -26,13 +26,22 @@ class Song():
         self._store = None
         self._controller = None
 
+    def __eq__(self, other):
+        if not isinstance(other, Song):
+            return
+        return (self._song_id == other._song_id)
+
     def set_controller(self, controller):
         self._store = controller.get_store()
         self._controller = controller
 
+    def get_number(self):
+        parts = self._song_id.split('_')
+        return int(parts[1], 16)
+
     def get_existence(self):
         key = '{}/p_manifest.json'.format(self._song_id)
-        manifest = self._store[key]
+        manifest = self._store.get(key)
         return (type(manifest) == type({}))
 
     def get_system_count(self):
@@ -45,14 +54,16 @@ class Song():
         pattern_instance.set_controller(self._controller)
         return pattern_instance
 
+    def _get_order_list_key(self):
+        return '{}/p_order_list.json'.format(self._song_id)
+
     def _get_order_list(self):
-        assert self.get_existence()
-        key = '{}/p_order_list.json'.format(self._song_id)
+        key = self._get_order_list_key()
         try:
             order_list = self._store[key]
         except KeyError:
             order_list = get_default_value(key)
-        return order_list
+        return order_list or []
 
     def get_containing_track_number(self):
         return self._track_num
@@ -62,5 +73,45 @@ class Song():
         try:
             name = self._store[key]
         except KeyError:
-            name = '-'
+            name = None
         return name
+
+    def get_edit_create_song(self):
+        key = '{}/p_manifest.json'.format(self._song_id)
+        edit = { key: {} }
+        return edit
+
+    def get_edit_remove_song(self):
+        edit = {}
+        start = '{}/'.format(self._song_id)
+        for key in self._store:
+            if key.startswith(start):
+                edit[key] = None
+        return edit
+
+    def get_edit_insert_pattern_instance(self, index, pattern_instance):
+        order_list = self._get_order_list()
+        pattern_num = pattern_instance.get_pattern_num()
+        instance_num = pattern_instance.get_instance_num()
+        order_list.insert(index, [pattern_num, instance_num])
+
+        edit = { self._get_order_list_key(): order_list }
+        return edit
+
+    def get_edit_remove_pattern_instance(self, index):
+        order_list = self._get_order_list()
+        del order_list[index]
+
+        edit = { self._get_order_list_key(): order_list }
+        return edit
+
+    def get_edit_move_pattern_instance(self, from_index, to_index):
+        order_list = self._get_order_list()
+        pinst = order_list[from_index]
+        del order_list[from_index]
+        order_list.insert(to_index, pinst)
+
+        edit = { self._get_order_list_key(): order_list }
+        return edit
+
+

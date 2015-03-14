@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2015
 #
 # This file is part of Kunquat.
 #
@@ -54,7 +54,7 @@ class SheetManager():
     def get_clamped_location(self, location):
         column = self.get_column_at_location(location)
         if not column:
-            return 0
+            return None
 
         row_ts = location.get_row_ts()
         if column.has_trigger(row_ts, 0):
@@ -109,6 +109,8 @@ class SheetManager():
             return False
 
         cur_column = self.get_column_at_location(location)
+        if not cur_column:
+            return False
         row_ts = location.get_row_ts()
         index = location.get_trigger_index()
 
@@ -133,6 +135,8 @@ class SheetManager():
             return
 
         cur_column = self.get_column_at_location(location)
+        if not cur_column:
+            return
         row_ts = location.get_row_ts()
         index = location.get_trigger_index()
 
@@ -174,6 +178,8 @@ class SheetManager():
             return
 
         cur_column = self.get_column_at_location(location)
+        if not cur_column:
+            return
         row_ts = location.get_row_ts()
         index = location.get_trigger_index()
 

@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013
-#          Tomi Jylhä-Ollila, Finland 2013-2014
+#          Tomi Jylhä-Ollila, Finland 2013-2015
 #
 # This file is part of Kunquat.
 #
@@ -123,8 +123,6 @@ class Module():
     def get_album(self):
         album = Album()
         album.set_controller(self._controller)
-        if not album.get_existence():
-            return None
         return album
 
     def set_path(self, path):

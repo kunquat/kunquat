@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -113,7 +113,7 @@ bool Pattern_parse_header(Pattern* pat, Streader* sr)
         .len = *PATTERN_DEFAULT_LENGTH,
     };
 
-    if (!Streader_read_dict(sr, read_pat_param, pp))
+    if (Streader_has_data(sr) && !Streader_read_dict(sr, read_pat_param, pp))
         return false;
 
     Pattern_set_length(pat, &pp->len);

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013-2014
+# Author: Tomi Jylhä-Ollila, Finland 2013-2015
 #
 # This file is part of Kunquat.
 #
@@ -22,7 +22,7 @@ import kunquat.tracker.ui.model.tstamp as tstamp
 
 # Model utils
 
-def get_all_patterns_with_locations(ui_model):
+def get_all_pattern_instances_with_locations(ui_model):
     module = ui_model.get_module()
 
     album = module.get_album()
@@ -35,17 +35,19 @@ def get_all_patterns_with_locations(ui_model):
         system_count = song.get_system_count()
         pattern_instances = (song.get_pattern_instance(i)
                 for i in xrange(system_count))
-        patterns = (pinst.get_pattern() for pinst in pattern_instances)
-        for system, pattern in enumerate(patterns):
-            yield (track, system), pattern
+        for system, pinst in enumerate(pattern_instances):
+            yield (track, system), pinst
 
     return
 
+def get_all_pattern_instances(ui_model):
+    return [info[1] for info in get_all_pattern_instances_with_locations(ui_model)]
+
 def get_all_patterns(ui_model):
-    return [info[1] for info in get_all_patterns_with_locations(ui_model)]
+    return [pinst.get_pattern() for pinst in get_all_pattern_instances(ui_model)]
 
 def get_pattern_index_at_location(ui_model, track, system):
-    for index, info in enumerate(get_all_patterns_with_locations(ui_model)):
+    for index, info in enumerate(get_all_pattern_instances_with_locations(ui_model)):
         loc, _ = info
         cur_track, cur_system = loc
         if track == cur_track and system == cur_system:

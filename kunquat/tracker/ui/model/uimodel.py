@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2014
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2015
 #          Toni Ruottu, Finland 2013-2014
 #
 # This file is part of Kunquat.
@@ -23,6 +23,7 @@ from visibilitymanager import VisibilityManager
 from selection import Selection
 from sheetmanager import SheetManager
 from notationmanager import NotationManager
+from orderlistmanager import OrderlistManager
 from processmanager import ProcessManager
 from iconbank import IconBank
 
@@ -97,6 +98,7 @@ class UiModel():
         self._selection = None
         self._sheet_manager = None
         self._notation_manager = None
+        self._orderlist_manager = None
         self._process_manager = None
         self._icon_bank = None
 
@@ -116,6 +118,7 @@ class UiModel():
         self._selection.set_controller(self._controller)
         self._sheet_manager.set_controller(self._controller)
         self._notation_manager.set_controller(self._controller)
+        self._orderlist_manager.set_controller(self._controller)
         self._process_manager.set_controller(self._controller)
         self._icon_bank.set_controller(self._controller)
 
@@ -195,6 +198,12 @@ class UiModel():
     def get_notation_manager(self):
         return self._notation_manager
 
+    def set_orderlist_manager(self, orderlist_manager):
+        self._orderlist_manager = orderlist_manager
+
+    def get_orderlist_manager(self):
+        return self._orderlist_manager
+
     def set_process_manager(self, process_manager):
         self._process_manager = process_manager
 
@@ -252,6 +261,7 @@ def create_ui_model():
     selection = Selection()
     sheet_manager = SheetManager()
     notation_manager = NotationManager()
+    orderlist_manager = OrderlistManager()
     process_manager = ProcessManager()
     icon_bank = IconBank()
     ui_model = UiModel()
@@ -266,6 +276,7 @@ def create_ui_model():
     ui_model.set_selection(selection)
     ui_model.set_sheet_manager(sheet_manager)
     ui_model.set_notation_manager(notation_manager)
+    ui_model.set_orderlist_manager(orderlist_manager)
     ui_model.set_process_manager(process_manager)
     ui_model.set_icon_bank(icon_bank)
     return ui_model

@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Toni Ruottu, Finland 2014
+# Authors: Toni Ruottu, Finland 2014
+#          Tomi Jylhä-Ollila, Finland 2014-2015
 #
 # This file is part of Kunquat.
 #
@@ -10,6 +11,8 @@
 # To the extent possible under law, Kunquat Affirmers have waived all
 # copyright and related or neighboring rights to Kunquat.
 #
+
+import json
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
@@ -53,6 +56,7 @@ class AlbumTreeModel(QAbstractItemModel):
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
         self._module = self._ui_model.get_module()
         self._album = self._module.get_album()
         self._make_nodes()
@@ -67,11 +71,18 @@ class AlbumTreeModel(QAbstractItemModel):
                 song_node.add_child(pat_inst_node)
             self._songs.append(song_node)
 
-    # override
+    def get_song_index(self, track_num):
+        return self.createIndex(track_num, 0, self._songs[track_num])
+
+    def get_pattern_index(self, track_num, system_num):
+        song_node = self._songs[track_num]
+        return self.createIndex(system_num, 0, song_node.get_children()[system_num])
+
+    # Qt interface
+
     def columnCount(self, _):
         return 1
 
-    # override
     def rowCount(self, parent):
         if not parent.isValid():
             # album, count tracks
@@ -87,19 +98,22 @@ class AlbumTreeModel(QAbstractItemModel):
         else:
             assert False
 
-    # override
     def index(self, row, col, parent):
         if not parent.isValid():
             # album, row indicates track
+            if row >= len(self._songs):
+                return QModelIndex()
             node = self._songs[row]
         else:
             # song, row indicates system
             parent_node = parent.internalPointer()
             assert parent_node.is_song_node()
-            node = parent_node.get_children()[row]
+            children = parent_node.get_children()
+            if row >= len(children):
+                return QModelIndex()
+            node = children[row]
         return self.createIndex(row, col, node)
 
-    # override
     def parent(self, index):
         if not index.isValid():
             # album, has no parent
@@ -119,13 +133,12 @@ class AlbumTreeModel(QAbstractItemModel):
         else:
             assert False
 
-    # override
     def data(self, index, role):
         node = index.internalPointer()
         if node.is_song_node():
             if role == Qt.DisplayRole:
                 song = node.get_payload()
-                song_name = song.get_name()
+                song_name = song.get_name() or 'song {}'.format(song.get_number())
                 return song_name
         elif node.is_pattern_instance_node():
             if role == Qt.DisplayRole:
@@ -134,11 +147,122 @@ class AlbumTreeModel(QAbstractItemModel):
         else:
             assert False
 
+    def supportedDropActions(self):
+        return Qt.MoveAction
+
+    def flags(self, index):
+        default_flags = QAbstractItemModel.flags(self, index)
+        if not index.isValid():
+            return default_flags
+        node = index.internalPointer()
+        if node.is_song_node() or node.is_pattern_instance_node():
+            return Qt.ItemIsDragEnabled | Qt.ItemIsDropEnabled | default_flags
+        else:
+            assert False
+
+    def mimeTypes(self):
+        return ['application/json']
+
+    def _get_item(self, index):
+        assert index.isValid()
+        node = index.internalPointer()
+        if node.is_song_node():
+            song = node.get_payload()
+            track_num = song.get_containing_track_number()
+            return ('song', track_num)
+        elif node.is_pattern_instance_node():
+            pinst = node.get_payload()
+            track_num, system_num = self._album.get_pattern_instance_location(pinst)
+            return ('pinst', (track_num, system_num))
+        else:
+            assert False
+
+    def mimeData(self, index_list):
+        items = [self._get_item(index) for index in index_list]
+        serialised = json.dumps(items)
+        mimedata = QMimeData()
+        mimedata.setData('application/json', serialised)
+        return mimedata
+
+    def dropMimeData(self, mimedata, action, row, col, parent):
+        if action != Qt.MoveAction:
+            return False
+        if not mimedata.hasFormat('application/json'):
+            return False
+
+        data = mimedata.data('application/json')
+        items = json.loads(str(data))
+        assert len(items) == 1
+        item = items[0]
+
+        if item[0] == 'song':
+            if row == -1:
+                song_index = parent
+                if not song_index.isValid():
+                    return False
+                song_node = song_index.internalPointer()
+                if not song_node.is_song_node():
+                    return False
+                song = song_node.get_payload()
+                to_track_num = song.get_containing_track_number()
+            else:
+                to_track_num = row
+
+            from_track_num = item[1]
+
+            self._album.move_song(from_track_num, to_track_num)
+            self._updater.signal_update(set(['signal_order_list']))
+            return True
+
+        elif item[0] == 'pinst':
+            if not parent.isValid():
+                return False
+
+            # Find target track and system
+            if row == -1:
+                pinst_index = parent
+                song_index = pinst_index.parent()
+                if not song_index.isValid():
+                    return False
+                pinst_node = pinst_index.internalPointer()
+                if not pinst_node.is_pattern_instance_node():
+                    return False
+                pinst = pinst_node.get_payload()
+                to_track_num, to_system_num = self._album.get_pattern_instance_location(
+                        pinst)
+            else:
+                song_index = parent
+                song_node = song_index.internalPointer()
+                song = song_node.get_payload()
+                to_track_num = song.get_containing_track_number()
+                to_system_num = row
+
+            from_track_num, from_system_num = item[1]
+
+            self._album.move_pattern_instance(
+                    from_track_num, from_system_num, to_track_num, to_system_num)
+            self._updater.signal_update(set(['signal_order_list']))
+            return True
+
 
 class AlbumTree(QTreeView):
 
     def __init__(self):
         QTreeView.__init__(self)
+        self.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.setDragEnabled(True)
+        self.setAcceptDrops(True)
+        self.setDropIndicatorShown(True)
+
+    def keyPressEvent(self, event):
+        if Qt.Key_A <= event.key() <= Qt.Key_Z:
+            event.ignore()
+        elif ((event.modifiers() == Qt.ShiftModifier) and
+                (event.key() in (Qt.Key_Up, Qt.Key_Down))):
+            event.ignore()
+        else:
+            QTreeView.keyPressEvent(self, event)
+
 
 class Orderlist(QWidget):
 
@@ -146,6 +270,8 @@ class Orderlist(QWidget):
         QWidget.__init__(self)
         self._ui_model = None
         self._updater = None
+        self._album = None
+        self._orderlist_manager = None
         self._album_tree_model = None
 
         self._album_tree = AlbumTree()
@@ -163,13 +289,65 @@ class Orderlist(QWidget):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
+        module = ui_model.get_module()
+        self._album = module.get_album()
+        self._orderlist_manager = ui_model.get_orderlist_manager()
+        self._update_model()
+
+    def _update_model(self):
         self._album_tree_model = AlbumTreeModel()
-        self._album_tree_model.set_ui_model(ui_model)
+        self._album_tree_model.set_ui_model(self._ui_model)
         self._album_tree.setModel(self._album_tree_model)
         self._album_tree.expandAll()
 
+        # Fix selection
+        selection = self._orderlist_manager.get_orderlist_selection()
+        if selection != None:
+            if type(selection) == tuple:
+                track_num, system_num = selection
+                if track_num >= self._album.get_track_count():
+                    system_num = 0
+                    track_num = self._album.get_track_count() - 1
+                if track_num < 0:
+                    self._orderlist_manager.set_orderlist_selection(None)
+                else:
+                    song = self._album.get_song_by_track(track_num)
+                    system_num = min(system_num, song.get_system_count() - 1)
+                    if system_num < 0:
+                        self._orderlist_manager.set_orderlist_selection(None)
+                    else:
+                        self._orderlist_manager.set_orderlist_selection(
+                                (track_num, system_num))
+                        index = self._album_tree_model.get_pattern_index(
+                                track_num, system_num)
+                        self._album_tree.setCurrentIndex(index)
+            else:
+                track_num = selection
+                track_num = min(track_num, self._album.get_track_count() - 1)
+                if track_num < 0:
+                    self._orderlist_manager.set_orderlist_selection(None)
+                else:
+                    index = self._album_tree_model.get_song_index(track_num)
+                    self._album_tree.setCurrentIndex(index)
+
+    def get_selected_object(self):
+        selection_model = self._album_tree.selectionModel()
+        index = selection_model.currentIndex()
+        if not index.isValid():
+            return None
+
+        node = index.internalPointer()
+        if not node:
+            return None
+
+        obj = node.get_payload()
+        return obj
+
     def _perform_updates(self, signals):
-        pass
+        if 'signal_order_list' in signals:
+            self._update_model()
 
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
+
+

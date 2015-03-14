@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2015
 #
 # This file is part of Kunquat.
 #
@@ -27,7 +27,6 @@ class Pattern():
         self._pattern_id = pattern_id
         self._store = None
         self._controller = None
-        self._pattern_number = None
         self._existence = None
 
     def __eq__(self, other):
@@ -62,6 +61,18 @@ class Pattern():
         column.set_controller(self._controller)
         return column
 
+    def get_instance_ids(self):
+        instance_ids = set()
+        for key in self._store:
+            start = '{}/instance_'.format(self._pattern_id)
+            if key.startswith(start):
+                instance_id = key.split('/')[1]
+                manifest_key = '{}/{}/p_manifest.json'.format(
+                        self._pattern_id, instance_id)
+                if manifest_key in self._store:
+                    instance_ids.add(instance_id)
+        return instance_ids
+
     def get_name(self):
         key = '{}/m_name.json'.format(self._pattern_id)
         try:
@@ -69,5 +80,18 @@ class Pattern():
         except KeyError:
             return None
         return name
+
+    def get_edit_create_pattern(self):
+        key = '{}/p_manifest.json'.format(self._pattern_id)
+        edit = { key: {} }
+        return edit
+
+    def get_edit_remove_pattern(self):
+        edit = {}
+        start = '{}/'.format(self._pattern_id)
+        for key in self._store:
+            if key.startswith(start):
+                edit[key] = None
+        return edit
 
 

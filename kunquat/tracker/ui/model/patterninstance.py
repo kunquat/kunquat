@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2014
+# Authors: Tomi Jylhä-Ollila, Finland 2014-2015
 #          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
@@ -24,6 +24,15 @@ class PatternInstance():
         self._instance_id = 'instance_{:03x}'.format(instance_num)
         self._store = None
         self._controller = None
+
+    def __eq__(self, other):
+        if isinstance(other, PatternInstance):
+            return (self.get_pattern_num() == other.get_pattern_num() and
+                    self.get_instance_num() == other.get_instance_num())
+        return False
+
+    def get_id(self):
+        return self._instance_id
 
     def set_controller(self, controller):
         self._store = controller.get_store()
@@ -49,3 +58,21 @@ class PatternInstance():
         ambiguous_name = u'pattern {0}'.format(self._pattern_num)
         fullname = ambiguous_name + self.subscript(self._instance_num)
         return fullname
+
+    def _get_full_id(self):
+        return '{}/{}'.format(self._pattern_id, self._instance_id)
+
+    def get_edit_create_pattern_instance(self):
+        key = '{}/p_manifest.json'.format(self._get_full_id())
+        edit = { key: {} }
+        return edit
+
+    def get_edit_remove_pattern_instance(self):
+        edit = {}
+        for key in self._store:
+            start = '{}/'.format(self._get_full_id())
+            if key.startswith(start):
+                edit[key] = None
+        return edit
+
+

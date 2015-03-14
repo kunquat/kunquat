@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2015
 #
 # This file is part of Kunquat.
 #
@@ -77,7 +77,7 @@ class ColumnGroupRenderer():
         self._start_heights = start_heights
 
         # FIXME: revisit cache creation
-        if self._caches:
+        if self._caches and (len(self._caches) == len(self._heights)):
             self._sync_caches()
         else:
             self._create_caches()
