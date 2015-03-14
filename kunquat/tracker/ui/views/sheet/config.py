@@ -24,6 +24,7 @@ DEFAULT_CONFIG = {
             'line_len_short'  : 2,
             'line_len_long'   : 4,
             'num_min_dist'    : 48,
+            'inactive_dim'    : 0.6,
             },
         'header': {
             'bg_colour'    : QColor(0x22, 0x44, 0x22),

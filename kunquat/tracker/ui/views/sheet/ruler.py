@@ -36,6 +36,8 @@ class Ruler(QWidget):
         self._px_offset = 0
         self._px_per_beat = None
         self._cache = RulerCache()
+        self._inactive_cache = RulerCache()
+        self._inactive_cache.set_inactive()
 
         self._heights = []
         self._start_heights = []
@@ -58,6 +60,10 @@ class Ruler(QWidget):
         self._cache.set_width(self._width)
         self._cache.set_num_height(num_space.height())
 
+        self._inactive_cache.set_config(config)
+        self._inactive_cache.set_width(self._width)
+        self._inactive_cache.set_num_height(num_space.height())
+
         self.update()
 
     def set_ui_model(self, ui_model):
@@ -77,6 +83,9 @@ class Ruler(QWidget):
             self._update_all_patterns()
             self.update()
 
+        if 'signal_selection' in signals:
+            self.update()
+
     def _update_all_patterns(self):
         all_patterns = utils.get_all_patterns(self._ui_model)
         self.set_patterns(all_patterns)
@@ -85,6 +94,7 @@ class Ruler(QWidget):
         changed = self._px_per_beat != px_per_beat
         self._px_per_beat = px_per_beat
         self._cache.set_px_per_beat(px_per_beat)
+        self._inactive_cache.set_px_per_beat(px_per_beat)
         if changed:
             self._set_pattern_heights()
             self.update()
@@ -105,6 +115,16 @@ class Ruler(QWidget):
             self._set_pattern_heights()
             self.update()
 
+    def _get_final_colour(self, colour, inactive):
+        if inactive:
+            dim_factor = self._config['inactive_dim']
+            new_colour = QColor(colour)
+            new_colour.setRed(colour.red() * dim_factor)
+            new_colour.setGreen(colour.green() * dim_factor)
+            new_colour.setBlue(colour.blue() * dim_factor)
+            return new_colour
+        return colour
+
     def paintEvent(self, ev):
         start = time.time()
 
@@ -117,6 +137,15 @@ class Ruler(QWidget):
 
         rel_end_height = 0 # empty song
 
+        # Get pattern index that contains the edit cursor
+        selection = self._ui_model.get_selection()
+        location = selection.get_location()
+        if location:
+            active_pattern_index = utils.get_pattern_index_at_location(
+                    self._ui_model, location.get_track(), location.get_system())
+        else:
+            active_pattern_index = None
+
         for pi in xrange(first_index, len(self._heights)):
             if self._start_heights[pi] > self._px_offset + self.height():
                 break
@@ -126,17 +155,25 @@ class Ruler(QWidget):
             rel_end_height = rel_start_height + self._heights[pi]
             cur_offset = max(0, -rel_start_height)
 
+            # Choose cache (based on whether this pattern contains the edit cursor
+            cache = self._cache if (pi == active_pattern_index) else self._inactive_cache
+
             # Draw pixmaps
             canvas_y = max(0, rel_start_height)
-            for (src_rect, pixmap) in self._cache.iter_pixmaps(
+            for (src_rect, pixmap) in cache.iter_pixmaps(
                     cur_offset, min(rel_end_height, self.height()) - canvas_y):
                 dest_rect = QRect(0, canvas_y, self.width(), src_rect.height())
+                if pi - 1 == active_pattern_index:
+                    # Make sure the active bottom border remains visible
+                    src_rect.setTop(src_rect.top() + 1)
+                    dest_rect.setTop(dest_rect.top() + 1)
                 painter.drawPixmap(dest_rect, pixmap, src_rect)
                 canvas_y += src_rect.height()
 
             # Draw bottom border
             if rel_end_height <= self.height():
-                painter.setPen(self._config['fg_colour'])
+                painter.setPen(self._get_final_colour(
+                    self._config['fg_colour'], pi != active_pattern_index))
                 painter.drawLine(
                         QPoint(0, rel_end_height - 1),
                         QPoint(self._width - 1, rel_end_height - 1))
@@ -154,8 +191,9 @@ class Ruler(QWidget):
         elapsed = end - start
         #print('Ruler updated in {:.2f} ms'.format(elapsed * 1000))
 
-    def resizeEvent(self, ev):
-        self._cache.set_width(ev.size().width())
+    def resizeEvent(self, event):
+        self._cache.set_width(event.size().width())
+        self._inactive_cache.set_width(event.size().width())
 
     def sizeHint(self):
         return QSize(self._width, 128)
@@ -169,6 +207,10 @@ class RulerCache():
         self._width = 0
         self._px_per_beat = None
         self._pixmaps = {}
+        self._inactive = False
+
+    def set_inactive(self):
+        self._inactive = True
 
     def set_config(self, config):
         self._config = config
@@ -213,6 +255,16 @@ class RulerCache():
                 create_count, 's' if create_count != 1 else ''))
             """
 
+    def _get_final_colour(self, colour):
+        if self._inactive:
+            dim_factor = self._config['inactive_dim']
+            new_colour = QColor(colour)
+            new_colour.setRed(colour.red() * dim_factor)
+            new_colour.setGreen(colour.green() * dim_factor)
+            new_colour.setBlue(colour.blue() * dim_factor)
+            return new_colour
+        return colour
+
     def _create_pixmap(self, index):
         pixmap = QPixmap(self._width, RulerCache.PIXMAP_HEIGHT)
 
@@ -221,9 +273,9 @@ class RulerCache():
         painter = QPainter(pixmap)
 
         # Background
-        painter.setBackground(cfg['bg_colour'])
+        painter.setBackground(self._get_final_colour(cfg['bg_colour']))
         painter.eraseRect(QRect(0, 0, self._width - 1, RulerCache.PIXMAP_HEIGHT))
-        painter.setPen(cfg['fg_colour'])
+        painter.setPen(self._get_final_colour(cfg['fg_colour']))
         painter.drawLine(
                 QPoint(self._width - 1, 0),
                 QPoint(self._width - 1, RulerCache.PIXMAP_HEIGHT - 1))
