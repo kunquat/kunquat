@@ -315,6 +315,7 @@ class RulerCache():
                 self._px_per_beat)
 
         text_option = QTextOption(Qt.AlignRight | Qt.AlignVCenter)
+
         def draw_number(painter, y, num_pos, nums_per_beat):
             if num_pos == [0, 0]:
                 return
@@ -326,7 +327,7 @@ class RulerCache():
 
             # Draw
             rect = QRectF(0, y - self._num_height,
-                    self._width - cfg['line_len_long'] - 2, self._num_height)
+                    self._width - cfg['line_len_long'] - 2, self._num_height + 3)
             painter.drawText(rect, text, text_option)
 
         painter.setFont(self._config['font'])
