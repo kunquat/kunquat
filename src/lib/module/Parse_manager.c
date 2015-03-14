@@ -811,6 +811,39 @@ static bool read_gen_manifest(Reader_params* params)
 }
 
 
+static bool read_gen_in_port_manifest(Reader_params* params)
+{
+    assert(params != NULL);
+
+    int32_t ins_index = -1;
+    acquire_ins_index(ins_index, params);
+    int32_t gen_index = -1;
+    acquire_gen_index(gen_index, params);
+    int32_t in_port_index = -1;
+    acquire_port_index(in_port_index, params, 2);
+
+    Instrument* ins = NULL;
+    acquire_ins(ins, params->handle, ins_index);
+    Gen_table* gen_table = Instrument_get_gens(ins);
+
+    const bool existent = read_default_manifest(params->sr);
+    if (Streader_is_error_set(params->sr))
+    {
+        set_error(params);
+        return false;
+    }
+
+    Generator* gen = add_generator(params->handle, ins, gen_table, gen_index);
+    if (gen == NULL)
+        return false;
+
+    Device_set_port_existence(
+            (Device*)gen, DEVICE_PORT_TYPE_RECEIVE, in_port_index, existent);
+
+    return true;
+}
+
+
 static bool read_gen_out_port_manifest(Reader_params* params)
 {
     assert(params != NULL);

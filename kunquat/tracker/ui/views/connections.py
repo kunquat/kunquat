@@ -385,7 +385,7 @@ class ConnectionsView(QWidget):
         return container
 
     def _get_in_ports(self, dev_id):
-        if dev_id.startswith('ins') or dev_id.startswith('gen'):
+        if dev_id.startswith('ins'):
             return []
 
         device = self._get_device(dev_id)

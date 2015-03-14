@@ -475,7 +475,6 @@ static int validate_connection_path(
         return -1;
 
     bool instrument = false;
-    bool generator = false;
     //bool effect = false;
     //bool dsp = false;
     bool root = true;
@@ -580,7 +579,6 @@ static int validate_connection_path(
         }
 
         root = false;
-        generator = true;
         str += strlen("gen_");
         if (read_index(str) >= KQT_GENERATORS_MAX)
         {
@@ -663,12 +661,11 @@ static int validate_connection_path(
     if (string_has_prefix(str, "in_") || string_has_prefix(str, "out_"))
     {
         // TODO: check effect connections
-        if (string_has_prefix(str, "in_") && (instrument || generator))
+        if (string_has_prefix(str, "in_") && instrument)
         {
             Streader_set_error(
                     sr,
-                    "Input ports are not allowed for instruments"
-                        " or generators: \"%s\"",
+                    "Input ports are not allowed for instruments: \"%s\"",
                     path);
             return -1;
         }
