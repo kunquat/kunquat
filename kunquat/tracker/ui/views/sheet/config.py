@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013-2014
+# Author: Tomi Jylhä-Ollila, Finland 2013-2015
 #
 # This file is part of Kunquat.
 #
@@ -34,6 +34,7 @@ DEFAULT_CONFIG = {
         'col_width'       : 12, # unit is em
         'trs_per_beat'    : 4,
         'zoom_factor'     : 1.25,
+        'inactive_dim'    : 0.6,
         'canvas_bg_colour': QColor(0x11, 0x11, 0x11),
         'bg_colour'       : QColor(0, 0, 0),
         'border_colour'   : QColor(0x55, 0x55, 0x55),

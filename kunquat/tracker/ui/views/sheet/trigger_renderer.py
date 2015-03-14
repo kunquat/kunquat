@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2015
 #
 # This file is part of Kunquat.
 #
@@ -25,8 +25,12 @@ class TriggerRenderer():
         self._config = config
         self._trigger = trigger
         self._notation = notation
+        self._inactive = False
 
         self._setup_fields()
+
+    def set_inactive(self):
+        self._inactive = True
 
     def get_field_count(self):
         return len(self._fields)
@@ -38,6 +42,16 @@ class TriggerRenderer():
 
     def get_total_width(self):
         return self._total_width
+
+    def _get_final_colour(self, colour):
+        if self._inactive:
+            dim_factor = self._config['inactive_dim']
+            new_colour = QColor(colour)
+            new_colour.setRed(colour.red() * dim_factor)
+            new_colour.setGreen(colour.green() * dim_factor)
+            new_colour.setBlue(colour.blue() * dim_factor)
+            return new_colour
+        return colour
 
     def draw_trigger(self, painter, include_line=True, select=False):
         # Select colour based on event type
@@ -51,6 +65,8 @@ class TriggerRenderer():
         else:
             evtype_fg_colour = self._config['trigger']['default_colour']
 
+        evtype_fg_colour = self._get_final_colour(evtype_fg_colour)
+
         # Set colours
         painter.save()
         if select:
@@ -58,7 +74,8 @@ class TriggerRenderer():
             painter.fillRect(
                     QRect(0, 0, self._total_width - 1, height - 1),
                     evtype_fg_colour)
-        painter.setPen(self._config['bg_colour'] if select else evtype_fg_colour)
+        painter.setPen(self._get_final_colour(self._config['bg_colour'])
+                if select else evtype_fg_colour)
 
         # Draw fields
         for i, field in enumerate(self._fields):

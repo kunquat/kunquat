@@ -36,6 +36,7 @@ class ColumnGroupRenderer():
         self._ui_model = None
 
         self._caches = None
+        self._inactive_caches = None
 
         self._width = DEFAULT_CONFIG['col_width']
         self._px_offset = 0
@@ -53,6 +54,9 @@ class ColumnGroupRenderer():
         if self._caches:
             for cache in self._caches:
                 cache.set_ui_model(ui_model)
+        if self._inactive_caches:
+            for cache in self._inactive_caches:
+                cache.set_ui_model(ui_model)
 
     def set_width(self, width):
         if self._width != width:
@@ -63,10 +67,15 @@ class ColumnGroupRenderer():
         self._columns = columns
         for i, cache in enumerate(self._caches):
             cache.set_column(self._columns[i])
+        for i, cache in enumerate(self._inactive_caches):
+            cache.set_column(self._columns[i])
 
     def flush_caches(self):
         if self._caches:
             for cache in self._caches:
+                cache.flush()
+        if self._inactive_caches:
+            for cache in self._inactive_caches:
                 cache.flush()
 
     def set_pattern_lengths(self, lengths):
@@ -78,6 +87,7 @@ class ColumnGroupRenderer():
 
         # FIXME: revisit cache creation
         if self._caches and (len(self._caches) == len(self._heights)):
+            assert self._inactive_caches
             self._sync_caches()
         else:
             self._create_caches()
@@ -88,11 +98,23 @@ class ColumnGroupRenderer():
         for cache in self._caches:
             cache.set_config(self._config)
             cache.set_ui_model(self._ui_model)
+
+        self._inactive_caches = [ColumnCache(self._num, i)
+                for i in xrange(len(self._heights))]
+        for cache in self._inactive_caches:
+            cache.set_inactive()
+            cache.set_config(self._config)
+            cache.set_ui_model(self._ui_model)
+
         self._sync_caches()
 
     def _sync_caches(self):
         if self._caches:
             for cache in self._caches:
+                cache.set_width(self._width)
+                cache.set_px_per_beat(self._px_per_beat)
+        if self._inactive_caches:
+            for cache in self._inactive_caches:
                 cache.set_width(self._width)
                 cache.set_px_per_beat(self._px_per_beat)
 
@@ -107,7 +129,8 @@ class ColumnGroupRenderer():
 
     def get_memory_usage(self):
         try:
-            return sum(cache.get_memory_usage() for cache in self._caches)
+            return (sum(cache.get_memory_usage() for cache in self._caches) +
+                    sum(cache.get_memory_usage() for cache in self._inactive_caches))
         except TypeError:
             return 0
 
@@ -126,6 +149,15 @@ class ColumnGroupRenderer():
 
         rel_end_height = 0 # empty song
 
+        # Get pattern index that contains the edit cursor
+        selection = self._ui_model.get_selection()
+        location = selection.get_location()
+        if location:
+            active_pattern_index = utils.get_pattern_index_at_location(
+                    self._ui_model, location.get_track(), location.get_system())
+        else:
+            active_pattern_index = None
+
         for pi in xrange(first_index, len(self._heights)):
             if self._start_heights[pi] > self._px_offset + height:
                 break
@@ -135,9 +167,12 @@ class ColumnGroupRenderer():
             rel_end_height = rel_start_height + self._heights[pi]
             cur_offset = max(0, -rel_start_height)
 
+            # Choose cache (based on whether this pattern contains the edit cursor
+            cache = (self._caches[pi] if (pi == active_pattern_index)
+                    else self._inactive_caches[pi])
+
             # Draw pixmaps
             canvas_y = max(0, rel_start_height)
-            cache = self._caches[pi]
             for (src_rect, pixmap) in cache.iter_pixmaps(
                     cur_offset, min(rel_end_height, height) - canvas_y):
                 dest_rect = QRect(0, canvas_y, self._width, src_rect.height())
@@ -225,6 +260,7 @@ class ColumnCache():
     def __init__(self, col_num, pat_num):
         self._col_num = col_num
         self._pat_num = pat_num
+        self._inactive = False
 
         self._pixmaps = BufferCache()
         self._pixmaps_created = 0
@@ -233,6 +269,10 @@ class ColumnCache():
 
         self._width = DEFAULT_CONFIG['col_width']
         self._px_per_beat = None
+
+    def set_inactive(self):
+        self._inactive = True
+        self._tr_cache.set_inactive()
 
     def set_config(self, config):
         self._config = config
@@ -300,13 +340,23 @@ class ColumnCache():
     def get_pixmaps_created(self):
         return self._pixmaps_created
 
+    def _get_final_colour(self, colour):
+        if self._inactive:
+            dim_factor = self._config['inactive_dim']
+            new_colour = QColor(colour)
+            new_colour.setRed(colour.red() * dim_factor)
+            new_colour.setGreen(colour.green() * dim_factor)
+            new_colour.setBlue(colour.blue() * dim_factor)
+            return new_colour
+        return colour
+
     def _create_pixmap(self, index):
         pixmap = QPixmap(self._width, ColumnCache.PIXMAP_HEIGHT)
 
         painter = QPainter(pixmap)
 
         # Background
-        painter.setBackground(self._config['bg_colour'])
+        painter.setBackground(self._get_final_colour(self._config['bg_colour']))
         painter.eraseRect(QRect(0, 0, self._width - 1, ColumnCache.PIXMAP_HEIGHT))
 
         # Start and stop timestamps
@@ -344,7 +394,7 @@ class ColumnCache():
             painter.drawImage(dest_rect, image, src_rect)
 
         # Border
-        painter.setPen(self._config['border_colour'])
+        painter.setPen(self._get_final_colour(self._config['border_colour']))
         painter.drawLine(
                 QPoint(self._width - 1, 0),
                 QPoint(self._width - 1, ColumnCache.PIXMAP_HEIGHT))
@@ -374,6 +424,10 @@ class TRCache():
         self._images = BufferCache()
         self._ui_model = None
         self._notation_manager = None
+        self._inactive = False
+
+    def set_inactive(self):
+        self._inactive = True
 
     def set_config(self, config):
         self._config = config
@@ -433,6 +487,10 @@ class TRCache():
         notation = self._notation_manager.get_selected_notation()
         rends = [TriggerRenderer(self._config, t, notation) for t in triggers]
         widths = [r.get_total_width() for r in rends]
+
+        if self._inactive:
+            for r in rends:
+                r.set_inactive()
 
         image = QImage(
                 sum(widths),
