@@ -98,15 +98,28 @@ Generator* new_Generator(const Instrument_params* ins_params)
 bool Generator_init(
         Generator* gen,
         Generator_process_vstate_func process_vstate,
-        void (*init_vstate)(const Generator*, const Gen_state*, Voice_state*))
+        void (*init_vstate)(const Generator*, const Gen_state*, Voice_state*),
+        Device_process_signal_func* process_signal)
 {
     assert(gen != NULL);
-    assert(process_vstate != NULL);
 
     gen->process_vstate = process_vstate;
     gen->init_vstate = init_vstate;
+    Device_set_process(&gen->parent, process_signal);
 
     return true;
+}
+
+
+void Generator_set_clear_history(
+        Generator* gen, void (*func)(const Device_impl*, Gen_state*))
+{
+    assert(gen != NULL);
+    assert(func != NULL);
+
+    gen->clear_history = func;
+
+    return;
 }
 
 
@@ -123,6 +136,17 @@ void Generator_reset(Device* device, Device_states* dstates)
     return;
 }
 #endif
+
+
+void Generator_clear_history(const Generator* gen, Gen_state* gen_state)
+{
+    assert(gen != NULL);
+
+    if ((gen->clear_history != NULL) && (gen->parent.dimpl != NULL))
+        gen->clear_history(gen->parent.dimpl, gen_state);
+
+    return;
+}
 
 
 #if 0

@@ -63,6 +63,7 @@ struct Generator
             const Gen_state*,
             Voice_state*);
     Generator_process_vstate_func* process_vstate;
+    void (*clear_history)(const Device_impl*, Gen_state*);
 };
 
 
@@ -83,9 +84,10 @@ Generator* new_Generator(const Instrument_params* ins_params);
  * \param gen              The Generator -- must not be \c NULL.
  * \param destroy          The destructor of the Generator --
  *                         must not be \c NULL.
- * \param process_vstate   The Voice state process function of the Generator --
- *                         must not be \c NULL.
+ * \param process_vstate   The Voice state process function of the Generator,
+ *                         or \c NULL if not needed.
  * \param init_vstate      The Voice state initialiser, or \c NULL if not needed.
+ * \param process_signal   The signal processing function, or \c NULL if not needed.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
@@ -93,7 +95,19 @@ bool Generator_init(
         Generator* gen,
         //void (*destroy)(Generator*),
         Generator_process_vstate_func process_vstate,
-        void (*init_vstate)(const Generator*, const Gen_state*, Voice_state*));
+        void (*init_vstate)(const Generator*, const Gen_state*, Voice_state*),
+        Device_process_signal_func* process_signal);
+
+
+/**
+ * Set a function that clears the internal buffers of the Generator
+ * implementation.
+ *
+ * \param gen    The Generator -- must not be \c NULL.
+ * \param func   The clear function -- must not be \c NULL.
+ */
+void Generator_set_clear_history(
+        Generator* gen, void(*func)(const Device_impl*, Gen_state*));
 
 
 /**
@@ -105,6 +119,15 @@ bool Generator_init(
  * \param dstates   The Device states -- must not be \c NULL.
  */
 //void Generator_reset(Device* device, Device_states* dstates);
+
+
+/**
+ * Clear the internal buffers (if any) of the Generator.
+ *
+ * \param gen         The Generator -- must not be \c NULL.
+ * \param gen_state   The Generator state -- must not be \c NULL.
+ */
+void Generator_clear_history(const Generator* gen, Gen_state* gen_state);
 
 
 /**
