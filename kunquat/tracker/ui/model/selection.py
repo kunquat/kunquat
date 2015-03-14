@@ -36,7 +36,35 @@ class Selection():
         self._updater.signal_update(set(['signal_selection']))
 
     def get_location(self):
-        return (self._session.get_selected_location() or
-                TriggerPosition(0, 0, 0, tstamp.Tstamp(0), 0))
+        location = self._session.get_selected_location()
+        fallback = TriggerPosition(0, 0, 0, tstamp.Tstamp(0), 0)
+        if not location:
+            return fallback
+
+        # Clamp to album limits
+        module = self._ui_model.get_module()
+        album = module.get_album()
+
+        track = location.get_track()
+        track_count = album.get_track_count()
+        if track_count == 0:
+            return fallback
+        if track >= track_count:
+            track = track_count - 1
+            location.set_track(track)
+
+        song = album.get_song_by_track(track)
+        system = location.get_system()
+        system_count = song.get_system_count()
+        if system >= system_count:
+            system = system_count - 1
+            location.set_system(system)
+
+        pinst = song.get_pattern_instance(system)
+        pattern = pinst.get_pattern()
+        row_ts = min(location.get_row_ts(), pattern.get_length())
+        location.set_row_ts(row_ts)
+
+        return location
 
 
