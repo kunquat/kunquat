@@ -155,7 +155,7 @@ class Ruler(QWidget):
             rel_end_height = rel_start_height + self._heights[pi]
             cur_offset = max(0, -rel_start_height)
 
-            # Choose cache (based on whether this pattern contains the edit cursor
+            # Choose cache based on whether this pattern contains the edit cursor
             cache = self._cache if (pi == active_pattern_index) else self._inactive_cache
 
             # Draw pixmaps
