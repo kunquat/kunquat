@@ -72,7 +72,8 @@ class Ruler(QWidget):
         return sum(self._heights)
 
     def _perform_updates(self, signals):
-        update_signals = set(['signal_module', 'signal_order_list'])
+        update_signals = set(
+                ['signal_module', 'signal_order_list', 'signal_pattern_length'])
         if not signals.isdisjoint(update_signals):
             self._update_all_patterns()
             self.update()
