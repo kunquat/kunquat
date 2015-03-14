@@ -30,6 +30,15 @@
 #include <Tstamp.h>
 
 
+typedef void Device_process_signal_func(
+        const Device*,
+        Device_states*,
+        uint32_t buf_start,
+        uint32_t buf_stop,
+        uint32_t audio_rate,
+        double tempo);
+
+
 struct Device
 {
     uint32_t id;
@@ -44,8 +53,7 @@ struct Device
     bool (*set_buffer_size)(const struct Device*, Device_states*, int32_t);
     void (*update_tempo)(const struct Device*, Device_states*, double);
     void (*reset)(const struct Device*, Device_states*);
-    void (*process)(
-            const struct Device*, Device_states*, uint32_t, uint32_t, uint32_t, double);
+    Device_process_signal_func* process_signal;
 
     bool existence[DEVICE_PORT_TYPES][KQT_DEVICE_PORTS_MAX];
 };
@@ -189,15 +197,12 @@ void Device_set_reset(Device* device, void (*reset)(const Device*, Device_states
 
 
 /**
- * Set the process function of the Device.
+ * Set the signal process function of the Device.
  *
- * \param device    The Device -- must not be \c NULL.
- * \param process   The process function -- must not be \c NULL.
+ * \param device           The Device -- must not be \c NULL.
+ * \param process_signal   The signal process function, or \c NULL.
  */
-void Device_set_process(
-        Device* device,
-        void (*process)(
-            const Device*, Device_states*, uint32_t, uint32_t, uint32_t, double));
+void Device_set_process(Device* device, Device_process_signal_func* process_signal);
 
 
 /**

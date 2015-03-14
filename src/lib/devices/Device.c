@@ -120,7 +120,7 @@ bool Device_init(Device* device, bool req_impl)
     device->set_buffer_size = Device_set_buffer_size_default;
     device->update_tempo = Device_update_tempo_default;
     device->reset = Device_reset_default;
-    device->process = NULL;
+    device->process_signal = NULL;
 
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
@@ -260,24 +260,15 @@ void Device_register_update_tempo(
 void Device_set_reset(Device* device, void (*reset)(const Device*, Device_states*))
 {
     assert(device != NULL);
-    assert(reset != NULL);
-
     device->reset = reset;
-
     return;
 }
 
 
-void Device_set_process(
-        Device* device,
-        void (*process)(
-            const Device*, Device_states*, uint32_t, uint32_t, uint32_t, double))
+void Device_set_process(Device* device, Device_process_signal_func* process_signal)
 {
     assert(device != NULL);
-    assert(process != NULL);
-
-    device->process = process;
-
+    device->process_signal = process_signal;
     return;
 }
 
@@ -474,8 +465,8 @@ void Device_process(
     assert(isfinite(tempo));
     assert(tempo > 0);
 
-    if (device->process != NULL)
-        device->process(device, states, start, until, freq, tempo);
+    if (device->process_signal != NULL)
+        device->process_signal(device, states, start, until, freq, tempo);
 
     return;
 }
