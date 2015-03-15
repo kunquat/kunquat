@@ -55,6 +55,12 @@ class Pattern():
             default_header = get_default_value(key)
             return tstamp.Tstamp(default_header['length'])
 
+    def set_length(self, length):
+        key = '{}/p_pattern.json'.format(self._pattern_id)
+        header = self._store.get(key, get_default_value(key))
+        header['length'] = list(length)
+        self._store[key] = header
+
     def get_column(self, column_index):
         assert 0 <= column_index < COLUMNS_MAX
         column = Column(self._pattern_id, column_index)

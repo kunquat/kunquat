@@ -169,6 +169,9 @@ class View(QWidget):
         if 'signal_order_list' in signals:
             self._update_all_patterns()
             self.update()
+        if 'signal_pattern_length' in signals:
+            self._update_all_patterns()
+            self.update()
         if 'signal_column' in signals:
             self._update_all_patterns()
             self.update()

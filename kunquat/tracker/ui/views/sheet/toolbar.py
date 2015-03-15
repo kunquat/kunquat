@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2015
 #
 # This file is part of Kunquat.
 #
@@ -20,6 +20,7 @@ from replacebutton import ReplaceButton
 from restbutton import RestButton
 from delselectionbutton import DelSelectionButton
 from zoombutton import ZoomButton
+from lengtheditor import LengthEditor
 
 
 class Toolbar(QToolBar):
@@ -36,6 +37,7 @@ class Toolbar(QToolBar):
                 ZoomButton('original'),
                 ZoomButton('in'),
             ]
+        self._length_editor = LengthEditor()
 
         if cmdline.get_experimental():
             self._zoom_buttons.extend([
@@ -54,6 +56,12 @@ class Toolbar(QToolBar):
         for button in self._zoom_buttons:
             self.addWidget(button)
 
+        spacer = QWidget()
+        spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        self.addWidget(spacer)
+
+        self.addWidget(self._length_editor)
+
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._edit_button.set_ui_model(ui_model)
@@ -62,6 +70,7 @@ class Toolbar(QToolBar):
         self._del_selection_button.set_ui_model(ui_model)
         for button in self._zoom_buttons:
             button.set_ui_model(ui_model)
+        self._length_editor.set_ui_model(ui_model)
 
     def unregister_updaters(self):
         self._edit_button.unregister_updaters()
@@ -70,5 +79,6 @@ class Toolbar(QToolBar):
         self._del_selection_button.unregister_updaters()
         for button in self._zoom_buttons:
             button.unregister_updaters()
+        self._length_editor.unregister_updaters()
 
 
