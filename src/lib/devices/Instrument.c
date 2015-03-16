@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -22,11 +22,13 @@
 #include <debug/assert.h>
 #include <devices/Device.h>
 #include <devices/Effect.h>
+#include <devices/Effect_interface.h>
 #include <devices/Gen_table.h>
 #include <devices/Generator.h>
 #include <devices/Instrument.h>
 #include <memory.h>
 #include <module/Effect_table.h>
+#include <module/Ins_table.h>
 #include <player/Ins_state.h>
 #include <string/common.h>
 
@@ -35,6 +37,8 @@ struct Instrument
 {
     Device parent;
 
+    Effect_interface* out_iface;
+    Effect_interface* in_iface;
     Connections* connections;
 
 //    double default_force;       ///< Default force.
@@ -44,6 +48,7 @@ struct Instrument
     Instrument_params params;   ///< All the Instrument parameters that Generators need.
 
     Gen_table* gens;
+    Ins_table* insts;
     Effect_table* effects;
 };
 
@@ -72,6 +77,14 @@ static void Instrument_update_tempo(
 
 //static bool Instrument_sync(Device* device, Device_states* dstates);
 
+static void Instrument_process_signal(
+        const Device* device,
+        Device_states* dstates,
+        uint32_t buf_start,
+        uint32_t buf_stop,
+        uint32_t audio_rate,
+        double tempo);
+
 
 Instrument* new_Instrument(void)
 {
@@ -80,6 +93,8 @@ Instrument* new_Instrument(void)
         return NULL;
 
     //fprintf(stderr, "New Instrument %p\n", (void*)ins);
+    ins->out_iface = NULL;
+    ins->in_iface = NULL;
     ins->connections = NULL;
     ins->gens = NULL;
     ins->effects = NULL;
@@ -103,14 +118,32 @@ Instrument* new_Instrument(void)
     Device_register_set_audio_rate(&ins->parent, Instrument_set_audio_rate);
     Device_register_update_tempo(&ins->parent, Instrument_update_tempo);
     Device_register_set_buffer_size(&ins->parent, Instrument_set_buffer_size);
+    Device_set_process(&ins->parent, Instrument_process_signal);
 
+    ins->out_iface = new_Effect_interface();
+    ins->in_iface = new_Effect_interface();
     ins->gens = new_Gen_table(KQT_GENERATORS_MAX);
+    ins->insts = new_Ins_table(KQT_INSTRUMENTS_MAX);
     ins->effects = new_Effect_table(KQT_INST_EFFECTS_MAX);
-    if (ins->gens == NULL || ins->effects == NULL)
+    if ((ins->out_iface == NULL) ||
+            (ins->in_iface == NULL) ||
+            (ins->gens == NULL) ||
+            (ins->insts == NULL) ||
+            (ins->effects == NULL))
     {
         del_Instrument(ins);
         return NULL;
     }
+
+    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+    {
+        Device_set_port_existence(
+                &ins->out_iface->parent, DEVICE_PORT_TYPE_SEND, port, true);
+        Device_set_port_existence(
+                &ins->in_iface->parent, DEVICE_PORT_TYPE_SEND, port, true);
+    }
+    Device_set_port_existence(
+            &ins->out_iface->parent, DEVICE_PORT_TYPE_RECEIVE, 0, true);
 
 //    ins->default_force = INS_DEFAULT_FORCE;
     ins->params.force_variation = INS_DEFAULT_FORCE_VAR;
@@ -274,6 +307,15 @@ const Effect* Instrument_get_effect(const Instrument* ins, int index)
 }
 
 
+Ins_table* Instrument_get_insts(Instrument* ins)
+{
+    assert(ins != NULL);
+    assert(ins->insts != NULL);
+
+    return ins->insts;
+}
+
+
 Effect_table* Instrument_get_effects(Instrument* ins)
 {
     assert(ins != NULL);
@@ -295,10 +337,43 @@ void Instrument_set_connections(Instrument* ins, Connections* graph)
 }
 
 
-Connections* Instrument_get_connections(Instrument* ins)
+const Connections* Instrument_get_connections(const Instrument* ins)
 {
     assert(ins != NULL);
     return ins->connections;
+}
+
+
+Connections* Instrument_get_connections_mut(const Instrument* ins)
+{
+    assert(ins != NULL);
+    return ins->connections;
+}
+
+
+bool Instrument_prepare_connections(const Instrument* ins, Device_states* states)
+{
+    assert(ins != NULL);
+    assert(states != NULL);
+
+    if (ins->connections == NULL)
+        return true;
+
+    return Connections_prepare(ins->connections, states);
+}
+
+
+const Device* Instrument_get_input_interface(const Instrument* ins)
+{
+    assert(ins != NULL);
+    return &ins->in_iface->parent;
+}
+
+
+const Device* Instrument_get_output_interface(const Instrument* ins)
+{
+    assert(ins != NULL);
+    return &ins->out_iface->parent;
 }
 
 
@@ -477,6 +552,78 @@ static bool Instrument_sync(Device* device, Device_states* dstates)
 #endif
 
 
+static void mix_interface_connection(
+        Device_state* out_ds,
+        const Device_state* in_ds,
+        uint32_t buf_start,
+        uint32_t buf_stop)
+{
+    assert(out_ds != NULL);
+    assert(in_ds != NULL);
+
+    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+    {
+        Audio_buffer* out = Device_state_get_audio_buffer(
+                out_ds, DEVICE_PORT_TYPE_SEND, port);
+        const Audio_buffer* in = Device_state_get_audio_buffer(
+                in_ds, DEVICE_PORT_TYPE_RECEIVE, port);
+
+        if ((out != NULL) && (in != NULL))
+            Audio_buffer_mix(out, in, buf_start, buf_stop);
+    }
+
+    return;
+}
+
+
+static void Instrument_process_signal(
+        const Device* device,
+        Device_states* dstates,
+        uint32_t buf_start,
+        uint32_t buf_stop,
+        uint32_t audio_rate,
+        double tempo)
+{
+    assert(device != NULL);
+    assert(dstates != NULL);
+    assert(audio_rate > 0);
+    assert(isfinite(tempo));
+
+    Ins_state* ins_state = (Ins_state*)Device_states_get_state(
+            dstates, Device_get_id(device));
+
+    const Instrument* ins = (const Instrument*)device;
+
+    if (ins_state->bypass)
+    {
+        Device_state* ds = Device_states_get_state(dstates, Device_get_id(device));
+
+        mix_interface_connection(ds, ds, buf_start, buf_stop);
+    }
+    else if (ins->connections != NULL)
+    {
+        //Connections_clear_buffers(ins->connections, dstates, buf_start, buf_stop);
+
+        // Fill input interface buffers
+        Device_state* ds = Device_states_get_state(dstates, Device_get_id(device));
+        Device_state* in_iface_ds = Device_states_get_state(
+                dstates, Device_get_id(Instrument_get_input_interface(ins)));
+        mix_interface_connection(in_iface_ds, ds, buf_start, buf_stop);
+
+        // Process instrument graph
+        Connections_mix(
+                ins->connections, dstates, buf_start, buf_stop, audio_rate, tempo);
+
+        // Fill output interface buffers
+        Device_state* out_iface_ds = Device_states_get_state(
+                dstates, Device_get_id(Instrument_get_output_interface(ins)));
+        mix_interface_connection(ds, out_iface_ds, buf_start, buf_stop);
+    }
+
+    return;
+}
+
+
 void del_Instrument(Instrument* ins)
 {
     if (ins == NULL)
@@ -484,6 +631,8 @@ void del_Instrument(Instrument* ins)
 
     Instrument_params_deinit(&ins->params);
     del_Connections(ins->connections);
+    del_Effect_interface(ins->in_iface);
+    del_Effect_interface(ins->out_iface);
     del_Gen_table(ins->gens);
     del_Effect_table(ins->effects);
     Device_deinit(&ins->parent);

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -20,6 +20,8 @@ void Ins_state_reset(Ins_state* ins_state)
 {
     assert(ins_state != NULL);
 
+    Device_state_reset(&ins_state->parent);
+    ins_state->bypass = false;
     ins_state->sustain = 0.0;
 
     return;

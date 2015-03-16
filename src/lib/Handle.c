@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -24,6 +24,7 @@
 
 #include <Connections.h>
 #include <debug/assert.h>
+#include <devices/Instrument.h>
 #include <Handle_private.h>
 #include <kunquat/limits.h>
 #include <memory.h>

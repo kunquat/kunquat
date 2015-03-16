@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -12,29 +12,29 @@
  */
 
 
-#ifndef K_DSP_FREEVERB_H
-#define K_DSP_FREEVERB_H
+#ifndef K_GENERATOR_FREEVERB_H
+#define K_GENERATOR_FREEVERB_H
 
 
 #include <stdint.h>
 
-#include <devices/DSP.h>
-#include <kunquat/limits.h>
+#include <devices/Device_impl.h>
+#include <devices/Generator.h>
 
 
 /**
- * Create a new Freeverb DSP.
+ * Create a new Freeverb Generator.
  *
  * This is a rewrite of the Freeverb public domain reverb by Jezar at
  * Dreampoint in 2000. Unlike the original, this implementation supports
  * arbitrary audio rates.
  *
- * \return   The new Freeverb DSP if successful, or \c NULL if memory
+ * \return   The new Freeverb Generator if successful, or \c NULL if memory
  *           allocation failed.
  */
-Device_impl* new_DSP_freeverb(DSP* dsp);
+Device_impl* new_Generator_freeverb(Generator* gen);
 
 
-#endif // K_DSP_FREEVERB_H
+#endif // K_GENERATOR_FREEVERB_H
 
 

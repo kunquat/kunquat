@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -18,13 +18,13 @@
 
 #include <stdbool.h>
 
-#include <devices/Instrument.h>
+#include <Decl.h>
 
 
 /**
  * This is the storage object for Instruments.
  */
-typedef struct Ins_table Ins_table;
+//typedef struct Ins_table Ins_table;
 
 
 /**

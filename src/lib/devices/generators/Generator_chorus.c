@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2015
  *
  * This file is part of Kunquat.
  *
@@ -21,9 +21,9 @@
 #include <Audio_buffer.h>
 #include <debug/assert.h>
 #include <devices/Device_impl.h>
-#include <devices/DSP.h>
+#include <devices/Generator.h>
 #include <devices/dsps/DSP_common.h>
-#include <devices/dsps/DSP_chorus.h>
+#include <devices/generators/Generator_chorus.h>
 #include <mathnum/common.h>
 #include <memory.h>
 #include <player/LFO.h>
@@ -58,7 +58,7 @@ typedef struct Chorus_voice
 
 typedef struct Chorus_state
 {
-    DSP_state parent;
+    Gen_state parent;
 
     Audio_buffer* buf;
     int32_t buf_pos;
@@ -113,7 +113,7 @@ static void Chorus_state_reset(
     assert(cstate != NULL);
     assert(voice_params != NULL);
 
-    DSP_state_reset(&cstate->parent);
+    Gen_state_reset(&cstate->parent);
 
     uint32_t buf_size = Audio_buffer_get_size(cstate->buf);
     Audio_buffer_clear(cstate->buf, 0, buf_size);
@@ -146,41 +146,41 @@ static void del_Chorus_state(Device_state* dev_state)
 }
 
 
-typedef struct DSP_chorus
+typedef struct Generator_chorus
 {
     Device_impl parent;
 
     Chorus_voice_params voice_params[CHORUS_VOICES_MAX];
-} DSP_chorus;
+} Generator_chorus;
 
 
-static bool DSP_chorus_init(Device_impl* dimpl);
+static bool Generator_chorus_init(Device_impl* dimpl);
 
-static Device_state* DSP_chorus_create_state(
+static Device_state* Generator_chorus_create_state(
         const Device* device, int32_t audio_rate, int32_t audio_buffer_size);
 
-static void DSP_chorus_update_tempo(
+static void Generator_chorus_update_tempo(
         const Device_impl* dimpl, Device_state* dstate, double tempo);
 
-static void DSP_chorus_reset(const Device_impl* dimpl, Device_state* dstate);
+static void Generator_chorus_reset(const Device_impl* dimpl, Device_state* dstate);
 
 
-#define CHORUS_PARAM(name, dev_key, update_key, def_value)           \
-    static Set_float_func DSP_chorus_set_voice_ ## name;             \
-    static Set_state_float_func DSP_chorus_set_state_voice_ ## name; \
-    static Update_float_func DSP_chorus_update_state_voice_ ## name;
-#include <devices/dsps/DSP_chorus_params.h>
+#define CHORUS_PARAM(name, dev_key, update_key, def_value)                 \
+    static Set_float_func Generator_chorus_set_voice_ ## name;             \
+    static Set_state_float_func Generator_chorus_set_state_voice_ ## name; \
+    static Update_float_func Generator_chorus_update_state_voice_ ## name;
+#include <devices/generators/Generator_chorus_params.h>
 
 
-static void DSP_chorus_clear_history(
-        const Device_impl* dimpl, DSP_state* dsp_state);
+static void Generator_chorus_clear_history(
+        const Device_impl* dimpl, Gen_state* gen_state);
 
-static bool DSP_chorus_set_audio_rate(
+static bool Generator_chorus_set_audio_rate(
         const Device_impl* dimpl,
         Device_state* dstate,
         int32_t audio_rate);
 
-static void DSP_chorus_process(
+static void Generator_chorus_process(
         const Device* device,
         Device_states* states,
         uint32_t start,
@@ -188,38 +188,38 @@ static void DSP_chorus_process(
         uint32_t freq,
         double tempo);
 
-static void del_DSP_chorus(Device_impl* dsp_impl);
+static void del_Generator_chorus(Device_impl* dsp_impl);
 
 
-Device_impl* new_DSP_chorus(DSP* dsp)
+Device_impl* new_Generator_chorus(Generator* gen)
 {
-    DSP_chorus* chorus = memory_alloc_item(DSP_chorus);
+    Generator_chorus* chorus = memory_alloc_item(Generator_chorus);
     if (chorus == NULL)
         return NULL;
 
-    chorus->parent.device = (Device*)dsp;
+    chorus->parent.device = (Device*)gen;
 
-    Device_impl_register_init(&chorus->parent, DSP_chorus_init);
-    Device_impl_register_destroy(&chorus->parent, del_DSP_chorus);
+    Device_impl_register_init(&chorus->parent, Generator_chorus_init);
+    Device_impl_register_destroy(&chorus->parent, del_Generator_chorus);
 
     return &chorus->parent;
 }
 
 
-static bool DSP_chorus_init(Device_impl* dimpl)
+static bool Generator_chorus_init(Device_impl* dimpl)
 {
     assert(dimpl != NULL);
 
-    DSP_chorus* chorus = (DSP_chorus*)dimpl;
+    Generator_chorus* chorus = (Generator_chorus*)dimpl;
 
-    Device_set_process(chorus->parent.device, DSP_chorus_process);
+    Device_set_process(chorus->parent.device, Generator_chorus_process);
 
-    Device_set_state_creator(chorus->parent.device, DSP_chorus_create_state);
+    Device_set_state_creator(chorus->parent.device, Generator_chorus_create_state);
 
-    DSP_set_clear_history((DSP*)chorus->parent.device, DSP_chorus_clear_history);
+    Generator_set_clear_history((Generator*)chorus->parent.device, Generator_chorus_clear_history);
 
-    Device_impl_register_update_tempo(&chorus->parent, DSP_chorus_update_tempo);
-    Device_impl_register_reset_device_state(&chorus->parent, DSP_chorus_reset);
+    Device_impl_register_update_tempo(&chorus->parent, Generator_chorus_update_tempo);
+    Device_impl_register_reset_device_state(&chorus->parent, Generator_chorus_reset);
 
     // Register key set/update handlers
     bool reg_success = true;
@@ -229,22 +229,22 @@ static bool DSP_chorus_init(Device_impl* dimpl)
             &chorus->parent,                               \
             dev_key,                                       \
             def_value,                                     \
-            DSP_chorus_set_voice_ ## name,                 \
-            DSP_chorus_set_state_voice_ ## name);
-#include <devices/dsps/DSP_chorus_params.h>
+            Generator_chorus_set_voice_ ## name,           \
+            Generator_chorus_set_state_voice_ ## name);
+#include <devices/generators/Generator_chorus_params.h>
 
 #define CHORUS_PARAM(name, dev_key, update_key, def_value)  \
     reg_success &= Device_impl_register_update_state_float( \
             &chorus->parent,                                \
             update_key,                                     \
-            DSP_chorus_update_state_voice_ ## name);
-#include <devices/dsps/DSP_chorus_params.h>
+            Generator_chorus_update_state_voice_ ## name);
+#include <devices/generators/Generator_chorus_params.h>
 
     if (!reg_success)
         return false;
 
     Device_impl_register_set_audio_rate(
-            &chorus->parent, DSP_chorus_set_audio_rate);
+            &chorus->parent, Generator_chorus_set_audio_rate);
 
     for (int i = 0; i < CHORUS_VOICES_MAX; ++i)
     {
@@ -260,7 +260,7 @@ static bool DSP_chorus_init(Device_impl* dimpl)
 }
 
 
-static Device_state* DSP_chorus_create_state(
+static Device_state* Generator_chorus_create_state(
         const Device* device,
         int32_t audio_rate,
         int32_t audio_buffer_size)
@@ -273,12 +273,12 @@ static Device_state* DSP_chorus_create_state(
     if (cstate == NULL)
         return NULL;
 
-    DSP_state_init(&cstate->parent, device, audio_rate, audio_buffer_size);
+    Gen_state_init(&cstate->parent, device, audio_rate, audio_buffer_size);
     cstate->parent.parent.destroy = del_Chorus_state;
     cstate->buf = NULL;
     cstate->buf_pos = 0;
 
-    const long buf_len = CHORUS_BUF_TIME * audio_buffer_size + 1;
+    const long buf_len = CHORUS_BUF_TIME * audio_rate + 1;
     cstate->buf = new_Audio_buffer(buf_len);
     if (cstate->buf == NULL)
     {
@@ -292,14 +292,14 @@ static Device_state* DSP_chorus_create_state(
         LFO_init(&voice->delay_variance, LFO_MODE_LINEAR);
     }
 
-    DSP_chorus* chorus = (DSP_chorus*)device->dimpl;
+    Generator_chorus* chorus = (Generator_chorus*)device->dimpl;
     Chorus_state_reset(cstate, chorus->voice_params);
 
     return &cstate->parent.parent;
 }
 
 
-static void DSP_chorus_update_tempo(
+static void Generator_chorus_update_tempo(
         const Device_impl* dimpl, Device_state* dstate, double tempo)
 {
     assert(dimpl != NULL);
@@ -320,15 +320,15 @@ static void DSP_chorus_update_tempo(
 }
 
 
-static void DSP_chorus_reset(const Device_impl* dimpl, Device_state* dstate)
+static void Generator_chorus_reset(const Device_impl* dimpl, Device_state* dstate)
 {
     assert(dimpl != NULL);
     assert(dstate != NULL);
 
-    const DSP_chorus* chorus = (const DSP_chorus*)dimpl;
+    const Generator_chorus* chorus = (const Generator_chorus*)dimpl;
     Chorus_state* cstate = (Chorus_state*)dstate;
 
-    DSP_chorus_clear_history(dimpl, &cstate->parent); // XXX: do we need this?
+    Generator_chorus_clear_history(dimpl, &cstate->parent); // XXX: do we need this?
 
     Chorus_state_reset(cstate, chorus->voice_params);
 
@@ -336,15 +336,15 @@ static void DSP_chorus_reset(const Device_impl* dimpl, Device_state* dstate)
 }
 
 
-static void DSP_chorus_clear_history(
-        const Device_impl* dimpl, DSP_state* dsp_state)
+static void Generator_chorus_clear_history(
+        const Device_impl* dimpl, Gen_state* gen_state)
 {
     assert(dimpl != NULL);
     //assert(string_eq(dsp->type, "chorus"));
-    assert(dsp_state != NULL);
+    assert(gen_state != NULL);
     (void)dimpl;
 
-    Chorus_state* cstate = (Chorus_state*)dsp_state;
+    Chorus_state* cstate = (Chorus_state*)gen_state;
     Audio_buffer_clear(cstate->buf, 0, cstate->parent.parent.audio_buffer_size);
 
     return;
@@ -376,7 +376,7 @@ static double get_voice_volume(double value)
 
 
 #define CHORUS_PARAM(name, dev_key, update_key, def_value)               \
-    static bool DSP_chorus_set_voice_ ## name(                           \
+    static bool Generator_chorus_set_voice_ ## name(                     \
             Device_impl* dimpl, Key_indices indices, double value)       \
     {                                                                    \
         assert(dimpl != NULL);                                           \
@@ -385,35 +385,35 @@ static double get_voice_volume(double value)
         if (indices[0] < 0 || indices[0] >= CHORUS_VOICES_MAX)           \
             return true;                                                 \
                                                                          \
-        DSP_chorus* chorus = (DSP_chorus*)dimpl;                         \
+        Generator_chorus* chorus = (Generator_chorus*)dimpl;             \
         Chorus_voice_params* params = &chorus->voice_params[indices[0]]; \
                                                                          \
         params->name = get_voice_ ## name(value);                        \
                                                                          \
         return true;                                                     \
     }
-#include <devices/dsps/DSP_chorus_params.h>
+#include <devices/generators/Generator_chorus_params.h>
 
 
-#define CHORUS_PARAM(name, dev_key, update_key, def_value)                     \
-    static bool DSP_chorus_set_state_voice_ ## name(                           \
-            const Device_impl* dimpl,                                          \
-            Device_state* dstate,                                              \
-            Key_indices indices,                                               \
-            double value)                                                      \
-    {                                                                          \
-        assert(dimpl != NULL);                                                 \
-        assert(dstate != NULL);                                                \
-        assert(indices != NULL);                                               \
-                                                                               \
-        DSP_chorus_update_state_voice_ ## name(dimpl, dstate, indices, value); \
-                                                                               \
-        return true;                                                           \
+#define CHORUS_PARAM(name, dev_key, update_key, def_value)                           \
+    static bool Generator_chorus_set_state_voice_ ## name(                           \
+            const Device_impl* dimpl,                                                \
+            Device_state* dstate,                                                    \
+            Key_indices indices,                                                     \
+            double value)                                                            \
+    {                                                                                \
+        assert(dimpl != NULL);                                                       \
+        assert(dstate != NULL);                                                      \
+        assert(indices != NULL);                                                     \
+                                                                                     \
+        Generator_chorus_update_state_voice_ ## name(dimpl, dstate, indices, value); \
+                                                                                     \
+        return true;                                                                 \
     }
-#include <devices/dsps/DSP_chorus_params.h>
+#include <devices/generators/Generator_chorus_params.h>
 
 
-static void DSP_chorus_update_state_voice_delay(
+static void Generator_chorus_update_state_voice_delay(
         const Device_impl* dimpl,
         Device_state* dstate,
         Key_indices indices,
@@ -426,7 +426,7 @@ static void DSP_chorus_update_state_voice_delay(
     if (indices[0] < 0 || indices[0] >= CHORUS_VOICES_MAX)
         return;
 
-    const DSP_chorus* chorus = (const DSP_chorus*)dimpl;
+    const Generator_chorus* chorus = (const Generator_chorus*)dimpl;
     const Chorus_voice_params* params = &chorus->voice_params[indices[0]];
 
     Chorus_state* cstate = (Chorus_state*)dstate;
@@ -442,7 +442,7 @@ static void DSP_chorus_update_state_voice_delay(
 }
 
 
-static void DSP_chorus_update_state_voice_range(
+static void Generator_chorus_update_state_voice_range(
         const Device_impl* dimpl,
         Device_state* dstate,
         Key_indices indices,
@@ -455,7 +455,7 @@ static void DSP_chorus_update_state_voice_range(
     if (indices[0] < 0 || indices[0] >= CHORUS_VOICES_MAX)
         return;
 
-    const DSP_chorus* chorus = (const DSP_chorus*)dimpl;
+    const Generator_chorus* chorus = (const Generator_chorus*)dimpl;
     const Chorus_voice_params* params = &chorus->voice_params[indices[0]];
 
     Chorus_state* cstate = (Chorus_state*)dstate;
@@ -476,7 +476,7 @@ static void DSP_chorus_update_state_voice_range(
 }
 
 
-static void DSP_chorus_update_state_voice_speed(
+static void Generator_chorus_update_state_voice_speed(
         const Device_impl* dimpl,
         Device_state* dstate,
         Key_indices indices,
@@ -489,7 +489,7 @@ static void DSP_chorus_update_state_voice_speed(
     if (indices[0] < 0 || indices[0] >= CHORUS_VOICES_MAX)
         return;
 
-    const DSP_chorus* chorus = (const DSP_chorus*)dimpl;
+    const Generator_chorus* chorus = (const Generator_chorus*)dimpl;
     const Chorus_voice_params* params = &chorus->voice_params[indices[0]];
 
     Chorus_state* cstate = (Chorus_state*)dstate;
@@ -507,7 +507,7 @@ static void DSP_chorus_update_state_voice_speed(
 }
 
 
-static void DSP_chorus_update_state_voice_volume(
+static void Generator_chorus_update_state_voice_volume(
         const Device_impl* dimpl,
         Device_state* dstate,
         Key_indices indices,
@@ -520,7 +520,7 @@ static void DSP_chorus_update_state_voice_volume(
     if (indices[0] < 0 || indices[0] >= CHORUS_VOICES_MAX)
         return;
 
-    const DSP_chorus* chorus = (const DSP_chorus*)dimpl;
+    const Generator_chorus* chorus = (const Generator_chorus*)dimpl;
     const Chorus_voice_params* params = &chorus->voice_params[indices[0]];
 
     Chorus_state* cstate = (Chorus_state*)dstate;
@@ -536,7 +536,7 @@ static void DSP_chorus_update_state_voice_volume(
 }
 
 
-static bool DSP_chorus_set_audio_rate(
+static bool Generator_chorus_set_audio_rate(
         const Device_impl* dimpl,
         Device_state* dstate,
         int32_t audio_rate)
@@ -595,7 +595,7 @@ static void check_params(Chorus_state* cstate, double tempo)
 }
 
 
-static void DSP_chorus_process(
+static void Generator_chorus_process(
         const Device* device,
         Device_states* states,
         uint32_t start,
@@ -696,13 +696,13 @@ static void DSP_chorus_process(
 }
 
 
-static void del_DSP_chorus(Device_impl* dsp_impl)
+static void del_Generator_chorus(Device_impl* gen_impl)
 {
-    if (dsp_impl == NULL)
+    if (gen_impl == NULL)
         return;
 
     //assert(string_eq(dsp->type, "chorus"));
-    DSP_chorus* chorus = (DSP_chorus*)dsp_impl;
+    Generator_chorus* chorus = (Generator_chorus*)gen_impl;
     memory_free(chorus);
 
     return;

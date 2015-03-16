@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -19,6 +19,8 @@
 typedef struct Connections Connections;
 typedef struct Device Device;
 typedef struct Device_impl Device_impl;
+typedef struct Ins_table Ins_table;
+typedef struct Instrument Instrument;
 typedef struct Module Module;
 
 

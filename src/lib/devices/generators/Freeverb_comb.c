@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -16,7 +16,7 @@
 #include <stdint.h>
 
 #include <debug/assert.h>
-#include <devices/dsps/Freeverb_comb.h>
+#include <devices/generators/Freeverb_comb.h>
 #include <mathnum/common.h>
 #include <memory.h>
 

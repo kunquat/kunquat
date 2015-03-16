@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2015
  *
  * This file is part of Kunquat.
  *
@@ -21,28 +21,28 @@
 #include <Audio_buffer.h>
 #include <debug/assert.h>
 #include <devices/Device_impl.h>
-#include <devices/DSP.h>
 #include <devices/dsps/DSP_common.h>
-#include <devices/dsps/DSP_gc.h>
+#include <devices/Generator.h>
+#include <devices/generators/Generator_gc.h>
 #include <devices/param_types/Envelope.h>
 #include <mathnum/common.h>
 #include <memory.h>
 #include <string/common.h>
 
 
-typedef struct DSP_gc
+typedef struct Generator_gc
 {
     Device_impl parent;
 
     const Envelope* map;
-} DSP_gc;
+} Generator_gc;
 
 
-static Set_envelope_func DSP_gc_set_map;
+static Set_envelope_func Generator_gc_set_map;
 
-static bool DSP_gc_init(Device_impl* dimpl);
+static bool Generator_gc_init(Device_impl* dimpl);
 
-static void DSP_gc_process(
+static void Generator_gc_process(
         const Device* device,
         Device_states* states,
         uint32_t start,
@@ -50,50 +50,50 @@ static void DSP_gc_process(
         uint32_t freq,
         double tempo);
 
-static void del_DSP_gc(Device_impl* dsp_impl);
+static void del_Generator_gc(Device_impl* gen_impl);
 
 
-Device_impl* new_DSP_gc(DSP* dsp)
+Device_impl* new_Generator_gc(Generator* gen)
 {
-    DSP_gc* gc = memory_alloc_item(DSP_gc);
+    Generator_gc* gc = memory_alloc_item(Generator_gc);
     if (gc == NULL)
         return NULL;
 
-    gc->parent.device = (Device*)dsp;
+    gc->parent.device = (Device*)gen;
 
-    Device_impl_register_init(&gc->parent, DSP_gc_init);
-    Device_impl_register_destroy(&gc->parent, del_DSP_gc);
+    Device_impl_register_init(&gc->parent, Generator_gc_init);
+    Device_impl_register_destroy(&gc->parent, del_Generator_gc);
 
     return &gc->parent;
 }
 
 
-static bool DSP_gc_init(Device_impl* dimpl)
+static bool Generator_gc_init(Device_impl* dimpl)
 {
     assert(dimpl != NULL);
 
-    DSP_gc* gc = (DSP_gc*)dimpl;
+    Generator_gc* gc = (Generator_gc*)dimpl;
 
-    Device_set_process(gc->parent.device, DSP_gc_process);
+    Device_set_process(gc->parent.device, Generator_gc_process);
 
     gc->map = NULL;
 
     if (!Device_impl_register_set_envelope(
-                &gc->parent, "p_e_map.json", NULL, DSP_gc_set_map, NULL))
+                &gc->parent, "p_e_map.json", NULL, Generator_gc_set_map, NULL))
         return false;
 
     return true;
 }
 
 
-static bool DSP_gc_set_map(
+static bool Generator_gc_set_map(
         Device_impl* dimpl, Key_indices indices, const Envelope* value)
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
     (void)indices;
 
-    DSP_gc* gc = (DSP_gc*)dimpl;
+    Generator_gc* gc = (Generator_gc*)dimpl;
 
     bool valid = true;
     if (value != NULL && Envelope_node_count(value) > 1)
@@ -127,7 +127,7 @@ static bool DSP_gc_set_map(
 }
 
 
-static void DSP_gc_process(
+static void Generator_gc_process(
         const Device* device,
         Device_states* states,
         uint32_t start,
@@ -145,7 +145,7 @@ static void DSP_gc_process(
 
     (void)freq;
     (void)tempo;
-    DSP_gc* gc = (DSP_gc*)device->dimpl;
+    Generator_gc* gc = (Generator_gc*)device->dimpl;
     //assert(string_eq(gc->parent.type, "gaincomp"));
     kqt_frame* in_data[] = { NULL, NULL };
     kqt_frame* out_data[] = { NULL, NULL };
@@ -184,13 +184,13 @@ static void DSP_gc_process(
 }
 
 
-static void del_DSP_gc(Device_impl* dsp_impl)
+static void del_Generator_gc(Device_impl* gen_impl)
 {
-    if (dsp_impl == NULL)
+    if (gen_impl == NULL)
         return;
 
     //assert(string_eq(dsp->type, "gaincomp"));
-    DSP_gc* gc = (DSP_gc*)dsp_impl;
+    Generator_gc* gc = (Generator_gc*)gen_impl;
     memory_free(gc);
 
     return;

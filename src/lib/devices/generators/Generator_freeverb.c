@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -20,11 +20,11 @@
 
 #include <debug/assert.h>
 #include <devices/Device_impl.h>
-#include <devices/DSP.h>
 #include <devices/dsps/DSP_common.h>
-#include <devices/dsps/DSP_freeverb.h>
-#include <devices/dsps/Freeverb_allpass.h>
-#include <devices/dsps/Freeverb_comb.h>
+#include <devices/Generator.h>
+#include <devices/generators/Generator_freeverb.h>
+#include <devices/generators/Freeverb_allpass.h>
+#include <devices/generators/Freeverb_comb.h>
 #include <frame.h>
 #include <mathnum/common.h>
 #include <memory.h>
@@ -65,7 +65,7 @@ static const double allpass_tuning[FREEVERB_ALLPASSES] =
 
 typedef struct Freeverb_state
 {
-    DSP_state parent;
+    Gen_state parent;
 
     Freeverb_comb* comb_left[FREEVERB_COMBS];
     Freeverb_comb* comb_right[FREEVERB_COMBS];
@@ -95,7 +95,7 @@ static void del_Freeverb_state(Device_state* dev_state)
 }
 
 
-typedef struct DSP_freeverb
+typedef struct Generator_freeverb
 {
     Device_impl parent;
 
@@ -111,12 +111,12 @@ typedef struct DSP_freeverb
     double width;
     double reflect_setting;
     double damp_setting;
-} DSP_freeverb;
+} Generator_freeverb;
 
 
 static void Freeverb_state_reset(
         Freeverb_state* fstate,
-        const DSP_freeverb* freeverb)
+        const Generator_freeverb* freeverb)
 {
     assert(fstate != NULL);
     assert(freeverb != NULL);
@@ -155,22 +155,22 @@ static void Freeverb_state_reset(
 }
 
 
-static bool DSP_freeverb_init(Device_impl* dimpl);
+static bool Generator_freeverb_init(Device_impl* dimpl);
 
-static Device_state* DSP_freeverb_create_state(
+static Device_state* Generator_freeverb_create_state(
         const Device* device, int32_t audio_rate, int32_t audio_buffer_size);
 
-static void DSP_freeverb_reset(const Device_impl* dimpl, Device_state* dstate);
+static void Generator_freeverb_reset(const Device_impl* dimpl, Device_state* dstate);
 
-static void DSP_freeverb_clear_history(const Device_impl* dimpl, DSP_state* dsp_state);
+static void Generator_freeverb_clear_history(const Device_impl* dimpl, Gen_state* gen_state);
 
-static Set_float_func DSP_freeverb_set_refl;
-static Set_float_func DSP_freeverb_set_damp;
+static Set_float_func Generator_freeverb_set_refl;
+static Set_float_func Generator_freeverb_set_damp;
 
-static bool DSP_freeverb_set_audio_rate(
+static bool Generator_freeverb_set_audio_rate(
         const Device_impl* dimpl, Device_state* dstate, int32_t audio_rate);
 
-static void DSP_freeverb_process(
+static void Generator_freeverb_process(
         const Device* device,
         Device_states* states,
         uint32_t start,
@@ -178,45 +178,45 @@ static void DSP_freeverb_process(
         uint32_t freq,
         double tempo);
 
-static void DSP_freeverb_update_reflectivity(DSP_freeverb* freeverb, double reflect);
-static void DSP_freeverb_update_damp(DSP_freeverb* freeverb, double damp);
-static void DSP_freeverb_update_gain(DSP_freeverb* freeverb, double gain);
-static void DSP_freeverb_update_wet(DSP_freeverb* freeverb, double wet);
+static void Generator_freeverb_update_reflectivity(Generator_freeverb* freeverb, double reflect);
+static void Generator_freeverb_update_damp(Generator_freeverb* freeverb, double damp);
+static void Generator_freeverb_update_gain(Generator_freeverb* freeverb, double gain);
+static void Generator_freeverb_update_wet(Generator_freeverb* freeverb, double wet);
 
-static void del_DSP_freeverb(Device_impl* dsp_impl);
+static void del_Generator_freeverb(Device_impl* gen_impl);
 
 
-Device_impl* new_DSP_freeverb(DSP* dsp)
+Device_impl* new_Generator_freeverb(Generator* gen)
 {
-    DSP_freeverb* freeverb = memory_alloc_item(DSP_freeverb);
+    Generator_freeverb* freeverb = memory_alloc_item(Generator_freeverb);
     if (freeverb == NULL)
         return NULL;
 
-    freeverb->parent.device = (Device*)dsp;
+    freeverb->parent.device = (Device*)gen;
 
-    Device_impl_register_init(&freeverb->parent, DSP_freeverb_init);
-    Device_impl_register_destroy(&freeverb->parent, del_DSP_freeverb);
+    Device_impl_register_init(&freeverb->parent, Generator_freeverb_init);
+    Device_impl_register_destroy(&freeverb->parent, del_Generator_freeverb);
 
     return &freeverb->parent;
 }
 
 
-static bool DSP_freeverb_init(Device_impl* dimpl)
+static bool Generator_freeverb_init(Device_impl* dimpl)
 {
     assert(dimpl != NULL);
 
-    DSP_freeverb* freeverb = (DSP_freeverb*)dimpl;
+    Generator_freeverb* freeverb = (Generator_freeverb*)dimpl;
 
-    Device_set_process(freeverb->parent.device, DSP_freeverb_process);
+    Device_set_process(freeverb->parent.device, Generator_freeverb_process);
 
     Device_set_state_creator(
             freeverb->parent.device,
-            DSP_freeverb_create_state);
+            Generator_freeverb_create_state);
 
-    DSP_set_clear_history((DSP*)freeverb->parent.device, DSP_freeverb_clear_history);
+    Generator_set_clear_history((Generator*)freeverb->parent.device, Generator_freeverb_clear_history);
 
     Device_impl_register_reset_device_state(
-            &freeverb->parent, DSP_freeverb_reset);
+            &freeverb->parent, Generator_freeverb_reset);
 
     // Register key set/update handlers
     bool reg_success = true;
@@ -225,20 +225,20 @@ static bool DSP_freeverb_init(Device_impl* dimpl)
             &freeverb->parent,
             "p_f_refl.json",
             initial_reflect,
-            DSP_freeverb_set_refl,
+            Generator_freeverb_set_refl,
             NULL);
     reg_success &= Device_impl_register_set_float(
             &freeverb->parent,
             "p_f_damp.json",
             initial_damp,
-            DSP_freeverb_set_damp,
+            Generator_freeverb_set_damp,
             NULL);
 
     if (!reg_success)
         return false;
 
     Device_impl_register_set_audio_rate(
-            &freeverb->parent, DSP_freeverb_set_audio_rate);
+            &freeverb->parent, Generator_freeverb_set_audio_rate);
 
     freeverb->gain = 0;
     freeverb->reflect = 0;
@@ -251,30 +251,30 @@ static bool DSP_freeverb_init(Device_impl* dimpl)
 //    freeverb->dry = 0;
     freeverb->width = 0;
 
-    DSP_freeverb_update_reflectivity(freeverb, initial_reflect);
-    DSP_freeverb_update_damp(freeverb, initial_damp);
+    Generator_freeverb_update_reflectivity(freeverb, initial_reflect);
+    Generator_freeverb_update_damp(freeverb, initial_damp);
     const double fixed_gain = 0.015;
-    DSP_freeverb_update_gain(freeverb, fixed_gain);
-    DSP_freeverb_update_wet(freeverb, initial_wet);
+    Generator_freeverb_update_gain(freeverb, fixed_gain);
+    Generator_freeverb_update_wet(freeverb, initial_wet);
 
     return true;
 }
 
 
-static Device_state* DSP_freeverb_create_state(
+static Device_state* Generator_freeverb_create_state(
         const Device* device, int32_t audio_rate, int32_t audio_buffer_size)
 {
     assert(device != NULL);
     assert(audio_rate > 0);
     assert(audio_buffer_size >= 0);
 
-    DSP_freeverb* freeverb = (DSP_freeverb*)device->dimpl;
+    Generator_freeverb* freeverb = (Generator_freeverb*)device->dimpl;
 
     Freeverb_state* fstate = memory_alloc_item(Freeverb_state);
     if (fstate == NULL)
         return NULL;
 
-    DSP_state_init(&fstate->parent, device, audio_rate, audio_buffer_size);
+    Gen_state_init(&fstate->parent, device, audio_rate, audio_buffer_size);
     fstate->parent.parent.destroy = del_Freeverb_state;
 
     for (int i = 0; i < FREEVERB_COMBS; ++i)
@@ -344,78 +344,78 @@ static Device_state* DSP_freeverb_create_state(
 }
 
 
-static void DSP_freeverb_reset(const Device_impl* dimpl, Device_state* dstate)
+static void Generator_freeverb_reset(const Device_impl* dimpl, Device_state* dstate)
 {
     assert(dimpl != NULL);
     assert(dstate != NULL);
 
-    DSP_state* dsp_state = (DSP_state*)dstate;
-    DSP_freeverb_clear_history(dimpl, dsp_state);
+    Gen_state* gen_state = (Gen_state*)dstate;
+    Generator_freeverb_clear_history(dimpl, gen_state);
 
     return;
 }
 
 
-static void DSP_freeverb_clear_history(const Device_impl* dimpl, DSP_state* dsp_state)
+static void Generator_freeverb_clear_history(const Device_impl* dimpl, Gen_state* gen_state)
 {
     assert(dimpl != NULL);
     //assert(string_eq(dsp->type, "freeverb"));
-    assert(dsp_state != NULL);
+    assert(gen_state != NULL);
 
-    Freeverb_state* fstate = (Freeverb_state*)dsp_state;
-    const DSP_freeverb* freeverb = (const DSP_freeverb*)dimpl;
+    Freeverb_state* fstate = (Freeverb_state*)gen_state;
+    const Generator_freeverb* freeverb = (const Generator_freeverb*)dimpl;
     Freeverb_state_reset(fstate, freeverb);
 
     return;
 }
 
 
-static bool DSP_freeverb_set_refl(Device_impl* dimpl, Key_indices indices, double value)
+static bool Generator_freeverb_set_refl(Device_impl* dimpl, Key_indices indices, double value)
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
     (void)indices;
 
-    DSP_freeverb* freeverb = (DSP_freeverb*)dimpl;
+    Generator_freeverb* freeverb = (Generator_freeverb*)dimpl;
 
     if (value > 200)
         value = 200;
     else if (value < 0)
         value = 0;
 
-    DSP_freeverb_update_reflectivity(freeverb, value);
+    Generator_freeverb_update_reflectivity(freeverb, value);
 
     return true;
 }
 
 
-static bool DSP_freeverb_set_damp(Device_impl* dimpl, Key_indices indices, double value)
+static bool Generator_freeverb_set_damp(Device_impl* dimpl, Key_indices indices, double value)
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
     (void)indices;
 
-    DSP_freeverb* freeverb = (DSP_freeverb*)dimpl;
+    Generator_freeverb* freeverb = (Generator_freeverb*)dimpl;
 
     if (value > 100)
         value = 100;
     else if (value < 0)
         value = 0;
 
-    DSP_freeverb_update_damp(freeverb, value);
+    Generator_freeverb_update_damp(freeverb, value);
 
     return true;
 }
 
 
-static bool DSP_freeverb_set_audio_rate(
+static bool Generator_freeverb_set_audio_rate(
         const Device_impl* dimpl, Device_state* dstate, int32_t audio_rate)
 {
     assert(dimpl != NULL);
     assert(dstate != NULL);
     assert(audio_rate > 0);
 
-    const DSP_freeverb* freeverb = (const DSP_freeverb*)dimpl;
+    const Generator_freeverb* freeverb = (const Generator_freeverb*)dimpl;
     Freeverb_state* fstate = (Freeverb_state*)dstate;
 
     for (int i = 0; i < FREEVERB_COMBS; ++i)
@@ -456,7 +456,7 @@ static bool DSP_freeverb_set_audio_rate(
 }
 
 
-static void DSP_freeverb_update_reflectivity(DSP_freeverb* freeverb, double reflect)
+static void Generator_freeverb_update_reflectivity(Generator_freeverb* freeverb, double reflect)
 {
     assert(freeverb != NULL);
 
@@ -468,7 +468,7 @@ static void DSP_freeverb_update_reflectivity(DSP_freeverb* freeverb, double refl
 }
 
 
-static void DSP_freeverb_update_damp(DSP_freeverb* freeverb, double damp)
+static void Generator_freeverb_update_damp(Generator_freeverb* freeverb, double damp)
 {
     assert(freeverb != NULL);
 
@@ -480,7 +480,7 @@ static void DSP_freeverb_update_damp(DSP_freeverb* freeverb, double damp)
 }
 
 
-static void DSP_freeverb_update_gain(DSP_freeverb* freeverb, double gain)
+static void Generator_freeverb_update_gain(Generator_freeverb* freeverb, double gain)
 {
     assert(freeverb != NULL);
 
@@ -490,7 +490,7 @@ static void DSP_freeverb_update_gain(DSP_freeverb* freeverb, double gain)
 }
 
 
-static void DSP_freeverb_update_wet(DSP_freeverb* freeverb, double wet)
+static void Generator_freeverb_update_wet(Generator_freeverb* freeverb, double wet)
 {
     assert(freeverb != NULL);
 
@@ -505,7 +505,7 @@ static void DSP_freeverb_update_wet(DSP_freeverb* freeverb, double wet)
 }
 
 
-static void DSP_freeverb_process(
+static void Generator_freeverb_process(
         const Device* device,
         Device_states* states,
         uint32_t start,
@@ -523,7 +523,7 @@ static void DSP_freeverb_process(
     Freeverb_state* fstate = (Freeverb_state*)Device_states_get_state(
             states, Device_get_id(device));
 
-    DSP_freeverb* freeverb = (DSP_freeverb*)device->dimpl;
+    Generator_freeverb* freeverb = (Generator_freeverb*)device->dimpl;
     //assert(string_eq(freeverb->parent.type, "freeverb"));
     kqt_frame* in_data[] = { NULL, NULL };
     kqt_frame* out_data[] = { NULL, NULL };
@@ -560,13 +560,13 @@ static void DSP_freeverb_process(
 }
 
 
-static void del_DSP_freeverb(Device_impl* dsp_impl)
+static void del_Generator_freeverb(Device_impl* gen_impl)
 {
-    if (dsp_impl == NULL)
+    if (gen_impl == NULL)
         return;
 
     //assert(string_eq(dsp->type, "freeverb"));
-    DSP_freeverb* freeverb = (DSP_freeverb*)dsp_impl;
+    Generator_freeverb* freeverb = (Generator_freeverb*)gen_impl;
 
     memory_free(freeverb);
 

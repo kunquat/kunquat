@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -24,6 +24,7 @@
 #include <devices/Device_params.h>
 #include <devices/dsps/DSP_type.h>
 #include <devices/generators/Gen_type.h>
+#include <devices/Instrument.h>
 #include <Handle_private.h>
 #include <memory.h>
 #include <module/Bind.h>
@@ -520,77 +521,88 @@ static bool read_album_tracks(Reader_params* params)
 }
 
 
-static Instrument* add_instrument(Handle* handle, int index)
+static Instrument* add_instrument(Handle* handle, Ins_table* ins_table, int index)
 {
     assert(handle != NULL);
+    assert(ins_table != NULL);
     assert(index >= 0);
     assert(index < KQT_INSTRUMENTS_MAX);
 
     static const char* memory_error_str =
         "Couldn't allocate memory for a new instrument";
 
-    Module* module = Handle_get_module(handle);
-
     // Return existing instrument
-    Instrument* ins = Ins_table_get(Module_get_insts(module), index);
+    Instrument* ins = Ins_table_get(ins_table, index);
     if (ins != NULL)
         return ins;
 
     // Create new instrument
     ins = new_Instrument();
-    if (ins == NULL || !Ins_table_set(Module_get_insts(module), index, ins))
+    if (ins == NULL || !Ins_table_set(ins_table, index, ins))
     {
         Handle_set_error(handle, ERROR_MEMORY, memory_error_str);
         del_Instrument(ins);
         return NULL;
     }
 
-    // Allocate Device state(s) for the new Instrument
-    Device_state* ds = Device_create_state(
-            (Device*)ins,
-            Player_get_audio_rate(handle->player),
-            Player_get_audio_buffer_size(handle->player));
-    if (ds == NULL || !Device_states_add_state(
-                Player_get_device_states(handle->player), ds))
+    // Allocate Device states for the new Instrument
+    const Device* ins_devices[] =
     {
-        Handle_set_error(handle, ERROR_MEMORY, memory_error_str);
-        Ins_table_remove(Module_get_insts(module), index);
-        return NULL;
+        (const Device*)ins,
+        Instrument_get_input_interface(ins),
+        Instrument_get_output_interface(ins),
+        NULL
+    };
+    for (int i = 0; i < 3; ++i)
+    {
+        assert(ins_devices[i] != NULL);
+        Device_state* ds = Device_create_state(
+                ins_devices[i],
+                Player_get_audio_rate(handle->player),
+                Player_get_audio_buffer_size(handle->player));
+        if (ds == NULL || !Device_states_add_state(
+                    Player_get_device_states(handle->player), ds))
+        {
+            del_Device_state(ds);
+            Handle_set_error(handle, ERROR_MEMORY, memory_error_str);
+            Ins_table_remove(ins_table, index);
+            return NULL;
+        }
     }
 
     return ins;
 }
 
 
-#define acquire_ins_index(index, params)                   \
+#define acquire_ins_index(index, params, level)            \
     if (true)                                              \
     {                                                      \
-        (index) = (params)->indices[0];                    \
+        (index) = (params)->indices[(level)];              \
         if ((index) < 0 || (index) >= KQT_INSTRUMENTS_MAX) \
             return true;                                   \
     }                                                      \
     else (void)0
 
 
-#define acquire_ins(ins, handle, index)            \
-    if (true)                                      \
-    {                                              \
-        (ins) = add_instrument((handle), (index)); \
-        if ((ins) == NULL)                         \
-            return false;                          \
-    }                                              \
+#define acquire_ins(ins, handle, ins_table, index)              \
+    if (true)                                                   \
+    {                                                           \
+        (ins) = add_instrument((handle), (ins_table), (index)); \
+        if ((ins) == NULL)                                      \
+            return false;                                       \
+    }                                                           \
     else (void)0
 
 
-static bool read_ins_manifest(Reader_params* params)
+static bool read_any_ins_manifest(Reader_params* params, Ins_table* ins_table, int level)
 {
     assert(params != NULL);
 
     int32_t index = -1;
-    acquire_ins_index(index, params);
+    acquire_ins_index(index, params, level);
 
     Instrument* ins = NULL;
-    acquire_ins(ins, params->handle, index);
+    acquire_ins(ins, params->handle, ins_table, index);
 
     const bool existent = read_default_manifest(params->sr);
     if (Streader_is_error_set(params->sr))
@@ -605,15 +617,15 @@ static bool read_ins_manifest(Reader_params* params)
 }
 
 
-static bool read_ins(Reader_params* params)
+static bool read_any_ins(Reader_params* params, Ins_table* ins_table, int level)
 {
     assert(params != NULL);
 
     int32_t index = -1;
-    acquire_ins_index(index, params);
+    acquire_ins_index(index, params, level);
 
     Instrument* ins = NULL;
-    acquire_ins(ins, params->handle, index);
+    acquire_ins(ins, params->handle, ins_table, index);
 
     if (!Instrument_parse_header(ins, params->sr))
     {
@@ -625,14 +637,14 @@ static bool read_ins(Reader_params* params)
 }
 
 
-static bool read_ins_out_port_manifest(Reader_params* params)
+static bool read_any_ins_in_port_manifest(Reader_params* params, Ins_table* ins_table, int level)
 {
     assert(params != NULL);
 
     int32_t ins_index = -1;
-    acquire_ins_index(ins_index, params);
-    int32_t out_port_index = -1;
-    acquire_port_index(out_port_index, params, 1);
+    acquire_ins_index(ins_index, params, level);
+    int32_t in_port_index = -1;
+    acquire_port_index(in_port_index, params, level + 1);
 
     const bool existent = read_default_manifest(params->sr);
     if (Streader_is_error_set(params->sr))
@@ -642,7 +654,35 @@ static bool read_ins_out_port_manifest(Reader_params* params)
     }
 
     Instrument* ins = NULL;
-    acquire_ins(ins, params->handle, ins_index);
+    acquire_ins(ins, params->handle, ins_table, ins_index);
+
+    Device_set_port_existence(
+            (Device*)ins, DEVICE_PORT_TYPE_RECEIVE, in_port_index, existent);
+    Device_set_port_existence(
+            (Device*)ins, DEVICE_PORT_TYPE_SEND, in_port_index, existent);
+
+    return true;
+}
+
+
+static bool read_any_ins_out_port_manifest(Reader_params* params, Ins_table* ins_table, int level)
+{
+    assert(params != NULL);
+
+    int32_t ins_index = -1;
+    acquire_ins_index(ins_index, params, level);
+    int32_t out_port_index = -1;
+    acquire_port_index(out_port_index, params, level + 1);
+
+    const bool existent = read_default_manifest(params->sr);
+    if (Streader_is_error_set(params->sr))
+    {
+        set_error(params);
+        return false;
+    }
+
+    Instrument* ins = NULL;
+    acquire_ins(ins, params->handle, ins_table, ins_index);
 
     Device_set_port_existence(
             (Device*)ins, DEVICE_PORT_TYPE_RECEIVE, out_port_index, existent);
@@ -653,15 +693,15 @@ static bool read_ins_out_port_manifest(Reader_params* params)
 }
 
 
-static bool read_ins_connections(Reader_params* params)
+static bool read_any_ins_connections(Reader_params* params, Ins_table* ins_table, int level)
 {
     assert(params != NULL);
 
     int32_t index = -1;
-    acquire_ins_index(index, params);
+    acquire_ins_index(index, params, level);
 
     Instrument* ins = NULL;
-    acquire_ins(ins, params->handle, index);
+    acquire_ins(ins, params->handle, ins_table, index);
 
     if (!Streader_has_data(params->sr))
     {
@@ -673,7 +713,7 @@ static bool read_ins_connections(Reader_params* params)
         Connections* graph = new_Connections_from_string(
                 params->sr,
                 CONNECTION_LEVEL_INSTRUMENT,
-                Module_get_insts(Handle_get_module(params->handle)),
+                Instrument_get_insts(ins),
                 Instrument_get_effects(ins),
                 NULL,
                 (Device*)ins);
@@ -691,16 +731,19 @@ static bool read_ins_connections(Reader_params* params)
 }
 
 
-static bool read_ins_env_generic(
-        Reader_params* params, bool parse_func(Instrument_params*, Streader*))
+static bool read_any_ins_env_generic(
+        Reader_params* params,
+        Ins_table* ins_table,
+        int level,
+        bool parse_func(Instrument_params*, Streader*))
 {
     assert(params != NULL);
 
     int32_t index = -1;
-    acquire_ins_index(index, params);
+    acquire_ins_index(index, params, level);
 
     Instrument* ins = NULL;
-    acquire_ins(ins, params->handle, index);
+    acquire_ins(ins, params->handle, ins_table, index);
 
     if (!parse_func(Instrument_get_params(ins), params->sr))
     {
@@ -712,31 +755,31 @@ static bool read_ins_env_generic(
 }
 
 
-static bool read_ins_env_force(Reader_params* params)
+static bool read_any_ins_env_force(Reader_params* params, Ins_table* ins_table, int level)
 {
     assert(params != NULL);
-    return read_ins_env_generic(params, Instrument_params_parse_env_force);
+    return read_any_ins_env_generic(params, ins_table, level, Instrument_params_parse_env_force);
 }
 
 
-static bool read_ins_env_force_release(Reader_params* params)
+static bool read_any_ins_env_force_release(Reader_params* params, Ins_table* ins_table, int level)
 {
     assert(params != NULL);
-    return read_ins_env_generic(params, Instrument_params_parse_env_force_rel);
+    return read_any_ins_env_generic(params, ins_table, level, Instrument_params_parse_env_force_rel);
 }
 
 
-static bool read_ins_env_force_filter(Reader_params* params)
+static bool read_any_ins_env_force_filter(Reader_params* params, Ins_table* ins_table, int level)
 {
     assert(params != NULL);
-    return read_ins_env_generic(params, Instrument_params_parse_env_force_filter);
+    return read_any_ins_env_generic(params, ins_table, level, Instrument_params_parse_env_force_filter);
 }
 
 
-static bool read_ins_env_pitch_pan(Reader_params* params)
+static bool read_any_ins_env_pitch_pan(Reader_params* params, Ins_table* ins_table, int level)
 {
     assert(params != NULL);
-    return read_ins_env_generic(params, Instrument_params_parse_env_pitch_pan);
+    return read_any_ins_env_generic(params, ins_table, level, Instrument_params_parse_env_pitch_pan);
 }
 
 
@@ -773,27 +816,27 @@ static Generator* add_generator(
 }
 
 
-#define acquire_gen_index(index, params)                  \
+#define acquire_gen_index(index, params, level)           \
     if (true)                                             \
     {                                                     \
-        (index) = (params)->indices[1];                   \
+        (index) = (params)->indices[(level)];             \
         if ((index) < 0 || (index) >= KQT_GENERATORS_MAX) \
             return true;                                  \
     }                                                     \
     else (void)0
 
 
-static bool read_gen_manifest(Reader_params* params)
+static bool read_any_gen_manifest(Reader_params* params, Ins_table* ins_table, int level)
 {
     assert(params != NULL);
 
     int32_t ins_index = -1;
-    acquire_ins_index(ins_index, params);
+    acquire_ins_index(ins_index, params, level);
     int32_t gen_index = -1;
-    acquire_gen_index(gen_index, params);
+    acquire_gen_index(gen_index, params, level + 1);
 
     Instrument* ins = NULL;
-    acquire_ins(ins, params->handle, ins_index);
+    acquire_ins(ins, params->handle, ins_table, ins_index);
 
     Gen_table* table = Instrument_get_gens(ins);
     assert(table != NULL);
@@ -811,19 +854,19 @@ static bool read_gen_manifest(Reader_params* params)
 }
 
 
-static bool read_gen_in_port_manifest(Reader_params* params)
+static bool read_any_gen_in_port_manifest(Reader_params* params, Ins_table* ins_table, int level)
 {
     assert(params != NULL);
 
     int32_t ins_index = -1;
-    acquire_ins_index(ins_index, params);
+    acquire_ins_index(ins_index, params, level);
     int32_t gen_index = -1;
-    acquire_gen_index(gen_index, params);
+    acquire_gen_index(gen_index, params, level + 1);
     int32_t in_port_index = -1;
-    acquire_port_index(in_port_index, params, 2);
+    acquire_port_index(in_port_index, params, level + 2);
 
     Instrument* ins = NULL;
-    acquire_ins(ins, params->handle, ins_index);
+    acquire_ins(ins, params->handle, ins_table, ins_index);
     Gen_table* gen_table = Instrument_get_gens(ins);
 
     const bool existent = read_default_manifest(params->sr);
@@ -844,19 +887,19 @@ static bool read_gen_in_port_manifest(Reader_params* params)
 }
 
 
-static bool read_gen_out_port_manifest(Reader_params* params)
+static bool read_any_gen_out_port_manifest(Reader_params* params, Ins_table* ins_table, int level)
 {
     assert(params != NULL);
 
     int32_t ins_index = -1;
-    acquire_ins_index(ins_index, params);
+    acquire_ins_index(ins_index, params, level);
     int32_t gen_index = -1;
-    acquire_gen_index(gen_index, params);
+    acquire_gen_index(gen_index, params, level + 1);
     int32_t out_port_index = -1;
-    acquire_port_index(out_port_index, params, 2);
+    acquire_port_index(out_port_index, params, level + 2);
 
     Instrument* ins = NULL;
-    acquire_ins(ins, params->handle, ins_index);
+    acquire_ins(ins, params->handle, ins_table, ins_index);
     Gen_table* gen_table = Instrument_get_gens(ins);
 
     const bool existent = read_default_manifest(params->sr);
@@ -877,14 +920,14 @@ static bool read_gen_out_port_manifest(Reader_params* params)
 }
 
 
-static bool read_gen_type(Reader_params* params)
+static bool read_any_gen_type(Reader_params* params, Ins_table* ins_table, int level)
 {
     assert(params != NULL);
 
     int32_t ins_index = -1;
-    acquire_ins_index(ins_index, params);
+    acquire_ins_index(ins_index, params, level);
     int32_t gen_index = -1;
-    acquire_gen_index(gen_index, params);
+    acquire_gen_index(gen_index, params, level + 1);
 
     if (!Streader_has_data(params->sr))
     {
@@ -901,7 +944,7 @@ static bool read_gen_type(Reader_params* params)
     }
 
     Instrument* ins = NULL;
-    acquire_ins(ins, params->handle, ins_index);
+    acquire_ins(ins, params->handle, ins_table, ins_index);
     Gen_table* gen_table = Instrument_get_gens(ins);
 
     Generator* gen = add_generator(params->handle, ins, gen_table, gen_index);
@@ -1032,7 +1075,7 @@ static bool read_gen_type(Reader_params* params)
 }
 
 
-static bool read_gen_impl_conf_key(Reader_params* params)
+static bool read_any_gen_impl_conf_key(Reader_params* params, Ins_table* ins_table, int level)
 {
     assert(params != NULL);
 
@@ -1040,12 +1083,12 @@ static bool read_gen_impl_conf_key(Reader_params* params)
         return true;
 
     int32_t ins_index = -1;
-    acquire_ins_index(ins_index, params);
+    acquire_ins_index(ins_index, params, level);
     int32_t gen_index = -1;
-    acquire_gen_index(gen_index, params);
+    acquire_gen_index(gen_index, params, level + 1);
 
     Instrument* ins = NULL;
-    acquire_ins(ins, params->handle, ins_index);
+    acquire_ins(ins, params->handle, ins_table, ins_index);
     Gen_table* gen_table = Instrument_get_gens(ins);
 
     Generator* gen = add_generator(params->handle, ins, gen_table, gen_index);
@@ -1069,7 +1112,7 @@ static bool read_gen_impl_conf_key(Reader_params* params)
 }
 
 
-static bool read_gen_impl_key(Reader_params* params)
+static bool read_any_gen_impl_key(Reader_params* params, Ins_table* ins_table, int level)
 {
     assert(params != NULL);
     assert(strlen(params->subkey) < KQT_KEY_LENGTH_MAX - 2);
@@ -1079,11 +1122,11 @@ static bool read_gen_impl_key(Reader_params* params)
     Reader_params hack_params = *params;
     hack_params.subkey = hack_subkey;
 
-    return read_gen_impl_conf_key(&hack_params);
+    return read_any_gen_impl_conf_key(&hack_params, ins_table, level);
 }
 
 
-static bool read_gen_conf_key(Reader_params* params)
+static bool read_any_gen_conf_key(Reader_params* params, Ins_table* ins_table, int level)
 {
     assert(params != NULL);
     assert(strlen(params->subkey) < KQT_KEY_LENGTH_MAX - 2);
@@ -1093,10 +1136,62 @@ static bool read_gen_conf_key(Reader_params* params)
     Reader_params hack_params = *params;
     hack_params.subkey = hack_subkey;
 
-    return read_gen_impl_conf_key(&hack_params);
+    return read_any_gen_impl_conf_key(&hack_params, ins_table, level);
 }
 
 
+#define MAKE_INS_INS_READER(base_name)                                      \
+    static bool read_ins_ ## base_name(Reader_params* params)               \
+    {                                                                       \
+        assert(params != NULL);                                             \
+                                                                            \
+        int32_t top_ins_index = -1;                                         \
+        acquire_ins_index(top_ins_index, params, 0);                        \
+                                                                            \
+        Module* module = Handle_get_module(params->handle);                 \
+        Ins_table* top_ins_table = Module_get_insts(module);                \
+                                                                            \
+        Instrument* top_ins = NULL;                                         \
+        acquire_ins(top_ins, params->handle, top_ins_table, top_ins_index); \
+                                                                            \
+        Ins_table* ins_table = Instrument_get_insts(top_ins);               \
+                                                                            \
+        return read_any_ ## base_name(params, ins_table, 1);                \
+    }
+
+#define MAKE_GLOBAL_INS_READER(base_name)                       \
+    static bool read_ ## base_name(Reader_params* params)       \
+    {                                                           \
+        assert(params != NULL);                                 \
+                                                                \
+        Module* module = Handle_get_module(params->handle);     \
+        Ins_table* ins_table = Module_get_insts(module);        \
+                                                                \
+        return read_any_ ## base_name(params, ins_table, 0);    \
+    }
+
+#define MAKE_INS_READERS(base_name) \
+    MAKE_INS_INS_READER(base_name) \
+    MAKE_GLOBAL_INS_READER(base_name)
+
+MAKE_INS_READERS(ins_manifest)
+MAKE_INS_READERS(ins)
+MAKE_INS_READERS(ins_in_port_manifest)
+MAKE_INS_READERS(ins_out_port_manifest)
+MAKE_INS_READERS(ins_connections)
+MAKE_INS_READERS(ins_env_force)
+MAKE_INS_READERS(ins_env_force_release)
+MAKE_INS_READERS(ins_env_force_filter)
+MAKE_INS_READERS(ins_env_pitch_pan)
+MAKE_INS_READERS(gen_manifest)
+MAKE_INS_READERS(gen_in_port_manifest)
+MAKE_INS_READERS(gen_out_port_manifest)
+MAKE_INS_READERS(gen_type)
+MAKE_INS_READERS(gen_impl_key)
+MAKE_INS_READERS(gen_conf_key)
+
+
+#if 0
 static Effect* add_effect(Handle* handle, int index, Effect_table* table)
 {
     assert(handle != NULL);
@@ -1650,6 +1745,7 @@ static bool read_effect_dsp_conf_key(
 }
 
 
+#if 0
 #define acquire_ins_effects(eff_table, params)         \
     if (true)                                          \
     {                                                  \
@@ -1660,20 +1756,33 @@ static bool read_effect_dsp_conf_key(
         (eff_table) = Instrument_get_effects(ins);     \
     }                                                  \
     else (void)0
+#endif
+
+#define acquire_ins_insts(ins_table, params)                 \
+    if (true)                                                \
+    {                                                        \
+        int32_t ins_index = -1;                              \
+        acquire_ins_index(ins_index, (params));              \
+        Instrument* ins = NULL;                              \
+        acquire_ins(ins, (params)->handle, NULL, ins_index); \
+        (ins_table) = Instrument_get_insts(ins);             \
+    }                                                        \
+    else (void)0
 
 #define MAKE_INS_EFFECT_READER(base_name)                                   \
     static bool read_ins_ ## base_name(Reader_params* params)               \
     {                                                                       \
         assert(params != NULL);                                             \
                                                                             \
-        Effect_table* eff_table = NULL;                                     \
-        acquire_ins_effects(eff_table, params);                             \
+        Ins_table* ins_table = NULL;                                        \
+        acquire_ins_insts(ins_table, params);                               \
                                                                             \
         static const bool is_instrument = true;                             \
                                                                             \
-        return read_effect_ ## base_name(params, eff_table, is_instrument); \
+        return read_effect_ ## base_name(params, ins_table, is_instrument); \
     }
 
+#if 0
 #define MAKE_GLOBAL_EFFECT_READER(base_name)                                \
     static bool read_ ## base_name(Reader_params* params)                   \
     {                                                                       \
@@ -1690,17 +1799,20 @@ static bool read_effect_dsp_conf_key(
 #define MAKE_EFFECT_READERS(base_name)   \
     MAKE_INS_EFFECT_READER(base_name)    \
     MAKE_GLOBAL_EFFECT_READER(base_name)
+#endif
 
-MAKE_EFFECT_READERS(effect_manifest)
-MAKE_EFFECT_READERS(effect_in_port_manifest)
-MAKE_EFFECT_READERS(effect_out_port_manifest)
-MAKE_EFFECT_READERS(effect_connections)
-MAKE_EFFECT_READERS(dsp_manifest)
-MAKE_EFFECT_READERS(dsp_in_port_manifest)
-MAKE_EFFECT_READERS(dsp_out_port_manifest)
-MAKE_EFFECT_READERS(dsp_type)
-MAKE_EFFECT_READERS(dsp_impl_key)
-MAKE_EFFECT_READERS(dsp_conf_key)
+MAKE_INS_EFFECT_READER(effect_manifest)
+MAKE_INS_EFFECT_READER(effect_in_port_manifest)
+MAKE_INS_EFFECT_READER(effect_out_port_manifest)
+MAKE_INS_EFFECT_READER(effect_connections)
+MAKE_INS_EFFECT_READER(dsp_manifest)
+MAKE_INS_EFFECT_READER(dsp_in_port_manifest)
+MAKE_INS_EFFECT_READER(dsp_out_port_manifest)
+MAKE_INS_EFFECT_READER(dsp_type)
+MAKE_INS_EFFECT_READER(dsp_impl_key)
+MAKE_INS_EFFECT_READER(dsp_conf_key)
+
+#endif
 
 
 #define acquire_pattern(pattern, handle, index)                         \

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -25,6 +25,7 @@ typedef struct Ins_state
 {
     Device_state parent;
 
+    bool bypass;
     double sustain; // 0 = no sustain, 1.0 = full sustain
 } Ins_state;
 

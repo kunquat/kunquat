@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -21,6 +21,7 @@
 #include <debug/assert.h>
 #include <Device_node.h>
 #include <devices/Generator.h>
+#include <devices/Instrument.h>
 #include <kunquat/limits.h>
 #include <memory.h>
 #include <string/common.h>
@@ -65,7 +66,7 @@ struct Device_node
 };
 
 
-static Device_node* Device_node_get_ins_dual(const Device_node* node);
+//static Device_node* Device_node_get_ins_dual(const Device_node* node);
 
 
 Device_node* new_Device_node(
@@ -114,7 +115,7 @@ Device_node* new_Device_node(
     }
     else if (string_eq(node->name, "Iin"))
     {
-        assert(dsps != NULL);
+        //assert(dsps != NULL);
         node->type = DEVICE_TYPE_MASTER;
         node->index = -1;
     }
@@ -247,6 +248,7 @@ void Device_node_reset(Device_node* node)
 
     Device_node_set_state(node, DEVICE_NODE_STATE_NEW);
 
+#if 0
     if (node->type == DEVICE_TYPE_INSTRUMENT)
     {
         Instrument* ins = Ins_table_get(node->insts, node->index);
@@ -268,6 +270,7 @@ void Device_node_reset(Device_node* node)
         Device_node_set_state(ins_node, DEVICE_NODE_STATE_NEW);
         node = ins_node;
     }
+#endif
 
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
@@ -301,6 +304,7 @@ bool Device_node_init_buffers_simple(Device_node* node, Device_states* states)
         return true;
     }
 
+#if 0
     if (node->type == DEVICE_TYPE_INSTRUMENT)
     {
         Instrument* ins = Ins_table_get(node->insts, node->index);
@@ -323,6 +327,7 @@ bool Device_node_init_buffers_simple(Device_node* node, Device_states* states)
         Device_node_set_state(ins_node, DEVICE_NODE_STATE_REACHED);
         node = ins_node;
     }
+#endif
 
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
@@ -413,6 +418,9 @@ bool Device_node_init_effect_buffers(Device_node* node, Device_states* states)
             return true;
         }
 
+        if (!Instrument_prepare_connections(ins, states))
+            return false;
+#if 0
         Connections* ins_graph = Instrument_get_connections(ins);
         Device_node* ins_node = NULL;
         if (ins_graph == NULL ||
@@ -425,6 +433,7 @@ bool Device_node_init_effect_buffers(Device_node* node, Device_states* states)
         Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
         Device_node_set_state(ins_node, DEVICE_NODE_STATE_REACHED);
         node = ins_node;
+#endif
     }
     else if (node->type == DEVICE_TYPE_EFFECT)
     {
@@ -485,6 +494,7 @@ void Device_node_clear_buffers(
         return;
     }
 
+#if 0
     if (node->type == DEVICE_TYPE_INSTRUMENT)
     {
         Device_node* ins_node = Device_node_get_ins_dual(node);
@@ -498,9 +508,20 @@ void Device_node_clear_buffers(
         Device_node_set_state(ins_node, DEVICE_NODE_STATE_REACHED);
         node = ins_node;
     }
+#endif
 
     //fprintf(stderr, "Clearing buffers of %p\n", (void*)Device_node_get_device(node));
     const Device* device = Device_node_get_device(node);
+
+    if (node->type == DEVICE_TYPE_INSTRUMENT)
+    {
+        // Clear the instrument buffers
+        const Instrument* ins = (const Instrument*)device;
+        Connections* ins_conns = Instrument_get_connections_mut(ins);
+        if (ins_conns != NULL)
+            Connections_clear_buffers(ins_conns, states, start, until);
+    }
+
     Device_state* ds = Device_states_get_state(states, Device_get_id(device));
 
     if (ds != NULL)
@@ -555,6 +576,7 @@ void Device_node_mix(
         return;
     }
 
+#if 0
     if (node->type == DEVICE_TYPE_INSTRUMENT)
     {
         Instrument* ins = Ins_table_get(node->insts, node->index);
@@ -599,6 +621,7 @@ void Device_node_mix(
         Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
         return;
     }
+#endif
 
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
@@ -633,7 +656,7 @@ void Device_node_mix(
                     port);
             if (receive == NULL || send == NULL)
             {
-#if 0
+                /*
                 if (receive != NULL)
                 {
                     fprintf(stderr, "receive %p of %p %s, but no send from %p!\n",
@@ -643,14 +666,17 @@ void Device_node_mix(
                 {
                     fprintf(stderr, "send %p, but no receive!\n", (void*)send);
                 }
-#endif
+                // */
                 edge = edge->next;
                 continue;
             }
 
-            //fprintf(stderr, "%s %.1f\n",
-            //        send_device->name,
-            //        Audio_buffer_get_buffer(send, 0)[0]);
+            /*
+            fprintf(stderr, "%s %d %.1f\n",
+                    edge->node->name,
+                    (int)Device_get_id((const Device*)send_device),
+                    Audio_buffer_get_buffer(send, 0)[0]);
+            // */
             Audio_buffer_mix(receive, send, start, until);
 
             edge = edge->next;
@@ -851,6 +877,7 @@ void Device_node_print(const Device_node* node, FILE* out)
             (const void*)Device_node_get_device(node),
             states[Device_node_get_state(node)]);
 
+#if 0
     if (node->type == DEVICE_TYPE_INSTRUMENT)
     {
         const Device_node* ins_node = Device_node_get_ins_dual(node);
@@ -861,6 +888,7 @@ void Device_node_print(const Device_node* node, FILE* out)
         Device_node_print(ins_node, out);
         return;
     }
+#endif
 
     if (Device_node_get_device(node) != NULL)
         Device_print(Device_node_get_device(node), out);
@@ -941,6 +969,7 @@ void del_Device_node(Device_node* node)
 }
 
 
+#if 0
 static Device_node* Device_node_get_ins_dual(const Device_node* node)
 {
     assert(node != NULL);
@@ -956,5 +985,6 @@ static Device_node* Device_node_get_ins_dual(const Device_node* node)
 
     return Connections_get_master(ins_graph);
 }
+#endif
 
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -26,6 +26,7 @@
 #include <Device_node.h>
 #include <devices/DSP_table.h>
 #include <devices/Effect.h>
+#include <devices/Instrument.h>
 #include <memory.h>
 #include <string/common.h>
 
@@ -129,7 +130,7 @@ static bool read_connection(Streader* sr, int32_t index, void* userdata)
     if (Streader_is_error_set(sr))
         return false;
 
-    if ((rcdata->level & CONNECTION_LEVEL_EFFECT))
+    if ((rcdata->level & (CONNECTION_LEVEL_INSTRUMENT | CONNECTION_LEVEL_EFFECT)))
     {
         if (string_eq(src_name, ""))
             strcpy(src_name, "Iin");
@@ -138,6 +139,9 @@ static bool read_connection(Streader* sr, int32_t index, void* userdata)
     if (AAtree_get_exact(rcdata->graph->nodes, src_name) == NULL)
     {
         const Device* actual_master = rcdata->master;
+        if ((rcdata->level & CONNECTION_LEVEL_INSTRUMENT) &&
+                string_eq(src_name, "Iin"))
+            actual_master = Instrument_get_input_interface((Instrument*)rcdata->master);
         if ((rcdata->level & CONNECTION_LEVEL_EFFECT) &&
                 string_eq(src_name, "Iin"))
             actual_master = Effect_get_input_interface((Effect*)rcdata->master);
@@ -233,7 +237,12 @@ Connections* new_Connections_from_string(
     mem_error_if(graph->iter == NULL, graph, NULL, sr);
 
     Device_node* master_node = NULL;
-    if ((level & CONNECTION_LEVEL_EFFECT))
+    if ((level & CONNECTION_LEVEL_INSTRUMENT))
+    {
+        const Device* iface = Instrument_get_output_interface((Instrument*)master);
+        master_node = new_Device_node("", insts, effects, dsps, iface);
+    }
+    else if ((level & CONNECTION_LEVEL_EFFECT))
     {
         const Device* iface = Effect_get_output_interface((Effect*)master);
         master_node = new_Device_node("", insts, effects, dsps, iface);
@@ -474,7 +483,6 @@ static int validate_connection_path(
     if (Streader_is_error_set(sr))
         return -1;
 
-    bool instrument = false;
     //bool effect = false;
     //bool dsp = false;
     bool root = true;
@@ -483,7 +491,8 @@ static int validate_connection_path(
 
     if (string_has_prefix(str, "ins_"))
     {
-        if (level != CONNECTION_LEVEL_GLOBAL)
+        // TODO: disallow instrument in more than 2 levels
+        if ((level != CONNECTION_LEVEL_GLOBAL) && (level != CONNECTION_LEVEL_INSTRUMENT))
         {
             Streader_set_error(
                     sr,
@@ -492,7 +501,6 @@ static int validate_connection_path(
             return -1;
         }
 
-        instrument = true;
         root = false;
         str += strlen("ins_");
         if (read_index(str) >= KQT_INSTRUMENTS_MAX)
@@ -566,14 +574,6 @@ static int validate_connection_path(
             Streader_set_error(
                     sr,
                     "Generator directory in a root-level connection: \"%s\"",
-                    path);
-            return -1;
-        }
-        if ((level & CONNECTION_LEVEL_EFFECT))
-        {
-            Streader_set_error(
-                    sr,
-                    "Generator directory in an effect-level connection: \"%s\"",
                     path);
             return -1;
         }
@@ -660,18 +660,8 @@ static int validate_connection_path(
     }
     if (string_has_prefix(str, "in_") || string_has_prefix(str, "out_"))
     {
-        // TODO: check effect connections
-        if (string_has_prefix(str, "in_") && instrument)
-        {
-            Streader_set_error(
-                    sr,
-                    "Input ports are not allowed for instruments: \"%s\"",
-                    path);
-            return -1;
-        }
-
         if (string_has_prefix(str, "in_") && root &&
-                !(level & CONNECTION_LEVEL_EFFECT))
+                !(level & (CONNECTION_LEVEL_INSTRUMENT | CONNECTION_LEVEL_EFFECT)))
         {
             Streader_set_error(
                     sr, "Input ports are not allowed for master: \"%s\"", path);

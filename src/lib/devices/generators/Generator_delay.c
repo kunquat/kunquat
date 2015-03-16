@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2015
  *
  * This file is part of Kunquat.
  *
@@ -20,9 +20,9 @@
 #include <Audio_buffer.h>
 #include <debug/assert.h>
 #include <devices/Device_impl.h>
-#include <devices/DSP.h>
 #include <devices/dsps/DSP_common.h>
-#include <devices/dsps/DSP_delay.h>
+#include <devices/Generator.h>
+#include <devices/generators/Generator_delay.h>
 #include <mathnum/common.h>
 #include <memory.h>
 #include <string/common.h>
@@ -45,7 +45,7 @@ typedef struct Tap_state
 
 typedef struct Delay_state
 {
-    DSP_state parent;
+    Gen_state parent;
 
     Audio_buffer* buf;
     int32_t buf_pos;
@@ -60,13 +60,13 @@ typedef struct Tap
 } Tap;
 
 
-typedef struct DSP_delay
+typedef struct Generator_delay
 {
     Device_impl parent;
 
     double max_delay;
     Tap taps[TAPS_MAX];
-} DSP_delay;
+} Generator_delay;
 
 
 static void Tap_state_set(
@@ -106,7 +106,7 @@ static void Delay_state_reset(Delay_state* dlstate, const Tap taps[])
 {
     assert(dlstate != NULL);
 
-    DSP_state_reset(&dlstate->parent);
+    Gen_state_reset(&dlstate->parent);
 
     Audio_buffer_clear(
             dlstate->buf,
@@ -143,31 +143,31 @@ static void del_Delay_state(Device_state* dev_state)
 }
 
 
-static bool DSP_delay_init(Device_impl* dimpl);
+static bool Generator_delay_init(Device_impl* dimpl);
 
-static Device_state* DSP_delay_create_state(
+static Device_state* Generator_delay_create_state(
         const Device* device, int32_t audio_rate, int32_t audio_buffer_size);
 
-static void DSP_delay_reset(const Device_impl* dimpl, Device_state* dstate);
+static void Generator_delay_reset(const Device_impl* dimpl, Device_state* dstate);
 
-static Set_float_func DSP_delay_set_max_delay;
-static Set_float_func DSP_delay_set_tap_delay;
-static Set_float_func DSP_delay_set_tap_volume;
+static Set_float_func Generator_delay_set_max_delay;
+static Set_float_func Generator_delay_set_tap_delay;
+static Set_float_func Generator_delay_set_tap_volume;
 
-static Set_state_float_func DSP_delay_set_state_max_delay;
-static Set_state_float_func DSP_delay_set_state_tap_delay;
-static Set_state_float_func DSP_delay_set_state_tap_volume;
+static Set_state_float_func Generator_delay_set_state_max_delay;
+static Set_state_float_func Generator_delay_set_state_tap_delay;
+static Set_state_float_func Generator_delay_set_state_tap_volume;
 
-static Update_float_func DSP_delay_update_state_tap_delay;
-static Update_float_func DSP_delay_update_state_tap_volume;
+static Update_float_func Generator_delay_update_state_tap_delay;
+static Update_float_func Generator_delay_update_state_tap_volume;
 
-static void DSP_delay_clear_history(
-        const Device_impl* dimpl, DSP_state* dsp_state);
+static void Generator_delay_clear_history(
+        const Device_impl* dimpl, Gen_state* gen_state);
 
-static bool DSP_delay_set_audio_rate(
+static bool Generator_delay_set_audio_rate(
         const Device_impl* dimpl, Device_state* dstate, int32_t audio_rate);
 
-static void DSP_delay_process(
+static void Generator_delay_process(
         const Device* device,
         Device_states* states,
         uint32_t start,
@@ -175,35 +175,35 @@ static void DSP_delay_process(
         uint32_t freq,
         double tempo);
 
-static void del_DSP_delay(Device_impl* dsp_impl);
+static void del_Generator_delay(Device_impl* dsp_impl);
 
 
-Device_impl* new_DSP_delay(DSP* dsp)
+Device_impl* new_Generator_delay(Generator* gen)
 {
-    DSP_delay* delay = memory_alloc_item(DSP_delay);
+    Generator_delay* delay = memory_alloc_item(Generator_delay);
     if (delay == NULL)
         return NULL;
 
-    delay->parent.device = (Device*)dsp;
+    delay->parent.device = (Device*)gen;
 
-    Device_impl_register_init(&delay->parent, DSP_delay_init);
-    Device_impl_register_destroy(&delay->parent, del_DSP_delay);
+    Device_impl_register_init(&delay->parent, Generator_delay_init);
+    Device_impl_register_destroy(&delay->parent, del_Generator_delay);
 
     return &delay->parent;
 }
 
 
-static bool DSP_delay_init(Device_impl* dimpl)
+static bool Generator_delay_init(Device_impl* dimpl)
 {
     assert(dimpl != NULL);
 
-    DSP_delay* delay = (DSP_delay*)dimpl;
+    Generator_delay* delay = (Generator_delay*)dimpl;
 
-    Device_set_process(delay->parent.device, DSP_delay_process);
+    Device_set_process(delay->parent.device, Generator_delay_process);
 
-    Device_set_state_creator(delay->parent.device, DSP_delay_create_state);
+    Device_set_state_creator(delay->parent.device, Generator_delay_create_state);
 
-    Device_impl_register_reset_device_state(&delay->parent, DSP_delay_reset);
+    Device_impl_register_reset_device_state(&delay->parent, Generator_delay_reset);
 
     // Register key set/update handlers
     bool reg_success = true;
@@ -212,37 +212,37 @@ static bool DSP_delay_init(Device_impl* dimpl)
             &delay->parent,
             "p_f_max_delay.json",
             2.0,
-            DSP_delay_set_max_delay,
-            DSP_delay_set_state_max_delay);
+            Generator_delay_set_max_delay,
+            Generator_delay_set_state_max_delay);
     reg_success &= Device_impl_register_set_float(
             &delay->parent,
             "tap_XX/p_f_delay.json",
             -1.0,
-            DSP_delay_set_tap_delay,
-            DSP_delay_set_state_tap_delay);
+            Generator_delay_set_tap_delay,
+            Generator_delay_set_state_tap_delay);
     reg_success &= Device_impl_register_set_float(
             &delay->parent,
             "tap_XX/p_f_volume.json",
             0.0,
-            DSP_delay_set_tap_volume,
-            DSP_delay_set_state_tap_volume);
+            Generator_delay_set_tap_volume,
+            Generator_delay_set_state_tap_volume);
 
     reg_success &= Device_impl_register_update_state_float(
             &delay->parent,
             "t_XX/d",
-            DSP_delay_update_state_tap_delay);
+            Generator_delay_update_state_tap_delay);
     reg_success &= Device_impl_register_update_state_float(
             &delay->parent,
             "t_XX/v",
-            DSP_delay_update_state_tap_volume);
+            Generator_delay_update_state_tap_volume);
 
     if (!reg_success)
         return false;
 
-    DSP_set_clear_history((DSP*)delay->parent.device, DSP_delay_clear_history);
+    Generator_set_clear_history((Generator*)delay->parent.device, Generator_delay_clear_history);
     Device_impl_register_set_audio_rate(
             &delay->parent,
-            DSP_delay_set_audio_rate);
+            Generator_delay_set_audio_rate);
 
     delay->max_delay = 2;
 
@@ -256,7 +256,7 @@ static bool DSP_delay_init(Device_impl* dimpl)
 }
 
 
-static Device_state* DSP_delay_create_state(
+static Device_state* Generator_delay_create_state(
         const Device* device, int32_t audio_rate, int32_t audio_buffer_size)
 {
     assert(device != NULL);
@@ -267,9 +267,9 @@ static Device_state* DSP_delay_create_state(
     if (dlstate == NULL)
         return NULL;
 
-    const DSP_delay* delay = (DSP_delay*)device->dimpl;
+    const Generator_delay* delay = (Generator_delay*)device->dimpl;
 
-    DSP_state_init(&dlstate->parent, device, audio_rate, audio_buffer_size);
+    Gen_state_init(&dlstate->parent, device, audio_rate, audio_buffer_size);
     dlstate->parent.parent.destroy = del_Delay_state;
     dlstate->buf = NULL;
 
@@ -306,21 +306,21 @@ static double get_tap_volume(double value)
 }
 
 
-static bool DSP_delay_set_max_delay(
+static bool Generator_delay_set_max_delay(
         Device_impl* dimpl, Key_indices indices, double value)
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
     (void)indices;
 
-    DSP_delay* delay = (DSP_delay*)dimpl;
+    Generator_delay* delay = (Generator_delay*)dimpl;
     delay->max_delay = min(value, MAX_BUF_TIME);
 
     return true;
 }
 
 
-static bool DSP_delay_set_tap_delay(
+static bool Generator_delay_set_tap_delay(
         Device_impl* dimpl, Key_indices indices, double value)
 {
     assert(dimpl != NULL);
@@ -329,14 +329,14 @@ static bool DSP_delay_set_tap_delay(
     if (indices[0] < 0 || indices[0] >= TAPS_MAX)
         return true;
 
-    DSP_delay* delay = (DSP_delay*)dimpl;
+    Generator_delay* delay = (Generator_delay*)dimpl;
     delay->taps[indices[0]].delay = get_tap_delay(value);
 
     return true;
 }
 
 
-static bool DSP_delay_set_tap_volume(
+static bool Generator_delay_set_tap_volume(
         Device_impl* dimpl, Key_indices indices, double value)
 {
     assert(dimpl != NULL);
@@ -345,14 +345,14 @@ static bool DSP_delay_set_tap_volume(
     if (indices[0] < 0 || indices[0] >= TAPS_MAX)
         return true;
 
-    DSP_delay* delay = (DSP_delay*)dimpl;
+    Generator_delay* delay = (Generator_delay*)dimpl;
     delay->taps[indices[0]].scale = get_tap_volume(value);
 
     return true;
 }
 
 
-static bool DSP_delay_set_state_max_delay(
+static bool Generator_delay_set_state_max_delay(
         const Device_impl* dimpl,
         Device_state* dstate,
         Key_indices indices,
@@ -375,7 +375,7 @@ static bool DSP_delay_set_state_max_delay(
 }
 
 
-static bool DSP_delay_set_state_tap_delay(
+static bool Generator_delay_set_state_tap_delay(
         const Device_impl* dimpl,
         Device_state* dstate,
         Key_indices indices,
@@ -385,13 +385,13 @@ static bool DSP_delay_set_state_tap_delay(
     assert(dstate != NULL);
     assert(indices != NULL);
 
-    DSP_delay_update_state_tap_delay(dimpl, dstate, indices, value);
+    Generator_delay_update_state_tap_delay(dimpl, dstate, indices, value);
 
     return true;
 }
 
 
-static bool DSP_delay_set_state_tap_volume(
+static bool Generator_delay_set_state_tap_volume(
         const Device_impl* dimpl,
         Device_state* dstate,
         Key_indices indices,
@@ -401,13 +401,13 @@ static bool DSP_delay_set_state_tap_volume(
     assert(dstate != NULL);
     assert(indices != NULL);
 
-    DSP_delay_update_state_tap_volume(dimpl, dstate, indices, value);
+    Generator_delay_update_state_tap_volume(dimpl, dstate, indices, value);
 
     return true;
 }
 
 
-static void DSP_delay_update_state_tap_delay(
+static void Generator_delay_update_state_tap_delay(
         const Device_impl* dimpl,
         Device_state* dstate,
         Key_indices indices,
@@ -420,7 +420,7 @@ static void DSP_delay_update_state_tap_delay(
     if (indices[0] < 0 || indices[0] >= TAPS_MAX)
         return;
 
-    const DSP_delay* delay = (const DSP_delay*)dimpl;
+    const Generator_delay* delay = (const Generator_delay*)dimpl;
     Delay_state* dlstate = (Delay_state*)dstate;
     Tap_state_set(
             &dlstate->tap_states[indices[0]],
@@ -433,7 +433,7 @@ static void DSP_delay_update_state_tap_delay(
 }
 
 
-static void DSP_delay_update_state_tap_volume(
+static void Generator_delay_update_state_tap_volume(
         const Device_impl* dimpl,
         Device_state* dstate,
         Key_indices indices,
@@ -454,41 +454,41 @@ static void DSP_delay_update_state_tap_volume(
 }
 
 
-static void DSP_delay_reset(const Device_impl* dimpl, Device_state* dstate)
+static void Generator_delay_reset(const Device_impl* dimpl, Device_state* dstate)
 {
     assert(dimpl != NULL);
     assert(dstate != NULL);
 
-    DSP_state* dsp_state = (DSP_state*)dstate;
-    DSP_delay_clear_history(dimpl, dsp_state);
+    Gen_state* gen_state = (Gen_state*)dstate;
+    Generator_delay_clear_history(dimpl, gen_state);
 
     return;
 }
 
 
-static void DSP_delay_clear_history(
-        const Device_impl* dimpl, DSP_state* dsp_state)
+static void Generator_delay_clear_history(
+        const Device_impl* dimpl, Gen_state* gen_state)
 {
     assert(dimpl != NULL);
     //assert(string_eq(dsp->type, "delay"));
-    assert(dsp_state != NULL);
+    assert(gen_state != NULL);
     (void)dimpl;
 
-    Delay_state* dlstate = (Delay_state*)dsp_state;
+    Delay_state* dlstate = (Delay_state*)gen_state;
     Audio_buffer_clear(dlstate->buf, 0, Audio_buffer_get_size(dlstate->buf));
 
     return;
 }
 
 
-static bool DSP_delay_set_audio_rate(
+static bool Generator_delay_set_audio_rate(
         const Device_impl* dimpl, Device_state* dstate, int32_t audio_rate)
 {
     assert(dimpl != NULL);
     assert(dstate != NULL);
     assert(audio_rate > 0);
 
-    const DSP_delay* delay = (const DSP_delay*)dimpl;
+    const Generator_delay* delay = (const Generator_delay*)dimpl;
     Delay_state* dlstate = (Delay_state*)dstate;
 
     assert(dlstate->buf != NULL);
@@ -507,7 +507,7 @@ static bool DSP_delay_set_audio_rate(
 }
 
 
-static void DSP_delay_process(
+static void Generator_delay_process(
         const Device* device,
         Device_states* dstates,
         uint32_t start,
@@ -526,7 +526,7 @@ static void DSP_delay_process(
             dstates,
             Device_get_id(device));
 
-    DSP_delay* delay = (DSP_delay*)device->dimpl;
+    Generator_delay* delay = (Generator_delay*)device->dimpl;
     //assert(string_eq(delay->parent.type, "delay"));
     kqt_frame* in_data[] = { NULL, NULL };
     kqt_frame* out_data[] = { NULL, NULL };
@@ -629,13 +629,13 @@ static void DSP_delay_process(
 }
 
 
-static void del_DSP_delay(Device_impl* dsp_impl)
+static void del_Generator_delay(Device_impl* gen_impl)
 {
-    if (dsp_impl == NULL)
+    if (gen_impl == NULL)
         return;
 
     //assert(string_eq(dsp->type, "delay"));
-    DSP_delay* delay = (DSP_delay*)dsp_impl;
+    Generator_delay* delay = (Generator_delay*)gen_impl;
     memory_free(delay);
 
     return;

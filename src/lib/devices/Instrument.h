@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -30,9 +30,6 @@
 #include <module/Scale.h>
 #include <player/Voice_state.h>
 #include <string/Streader.h>
-
-
-typedef struct Instrument Instrument;
 
 
 #define INS_DEFAULT_GLOBAL_FORCE 0
@@ -132,6 +129,16 @@ const Effect* Instrument_get_effect(const Instrument* ins, int index);
 
 
 /**
+ * Get the Instrument table of the Instrument.
+ *
+ * \param ins   The Instrument -- must not be \c NULL.
+ *
+ * \return   The Instrument table.
+ */
+Ins_table* Instrument_get_insts(Instrument* ins);
+
+
+/**
  * Get the Effect table of the Instrument.
  *
  * \param ins   The Instrument -- must not be \c NULL.
@@ -159,7 +166,51 @@ void Instrument_set_connections(Instrument* ins, Connections* graph);
  *
  * \return   The Connections, or \c NULL if none exist.
  */
-Connections* Instrument_get_connections(Instrument* ins);
+const Connections* Instrument_get_connections(const Instrument* ins);
+
+
+/**
+ * Get the mutable Connections of the Instrument.
+ *
+ * \param ins   The Instrument -- must not be \c NULL.
+ *
+ * \return   The Connections, or \c NULL if none exist.
+ */
+Connections* Instrument_get_connections_mut(const Instrument* ins);
+
+
+/**
+ * Prepare the Connections of the Instrument.
+ *
+ * This function assumes that the outer input and output buffers of the Instrument
+ * have been allocated.
+ *
+ * \param ins      The Instrument -- must not be \c NULL.
+ * \param states   The Device states -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Instrument_prepare_connections(const Instrument* ins, Device_states* states);
+
+
+/**
+ * Get the input interface of the Instrument.
+ *
+ * \param ins   The Instrument -- must not be \c NULL.
+ *
+ * \return   The input interface.
+ */
+const Device* Instrument_get_input_interface(const Instrument* ins);
+
+
+/**
+ * Get the output interface of the Instrument.
+ *
+ * \param ins   The Instrument -- must not be \c NULL.
+ *
+ * \return   The output interface.
+ */
+const Device* Instrument_get_output_interface(const Instrument* ins);
 
 
 /**

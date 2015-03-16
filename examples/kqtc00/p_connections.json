@@ -1,11 +1,11 @@
 
 
 [
-    ["ins_02/out_00", "eff_02/in_00"],
-    ["eff_02/out_00", "eff_01/in_00"],
-    ["ins_03/out_00", "eff_00/in_00"],
-    ["eff_01/out_00", "out_00"],
-    ["eff_00/out_00", "eff_01/in_00"]
+    ["ins_02/out_00", "ins_06/in_00"],
+    ["ins_06/out_00", "ins_05/in_00"],
+    ["ins_03/out_00", "ins_04/in_00"],
+    ["ins_05/out_00", "out_00"],
+    ["ins_04/out_00", "ins_05/in_00"]
 ]
 
 

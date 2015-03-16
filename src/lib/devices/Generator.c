@@ -337,6 +337,13 @@ void Generator_process_vstate(
             out_l[i] += audio_l[i];
         for (int32_t i = buf_start; i < process_stop; ++i)
             out_r[i] += audio_r[i];
+
+        /*
+        fprintf(stderr, "1st item by %d @ %p: %.1f\n",
+                (int)Device_get_id((const Device*)gen),
+                (const void*)audio_buffer,
+                out_l[buf_start]);
+        // */
     }
 
     if (deactivate_after_processing)
