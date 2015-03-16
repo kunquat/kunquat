@@ -86,6 +86,7 @@ Generator* new_Generator(const Instrument_params* ins_params)
 
     gen->init_vstate = NULL;
     gen->process_vstate = NULL;
+    gen->clear_history = NULL;
 
     Device_set_state_creator(
             &gen->parent,
