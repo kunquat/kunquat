@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -22,15 +22,21 @@
 
 
 bool Event_ins_set_sustain_process(
+        const Instrument* ins,
         const Instrument_params* ins_params,
         Ins_state* ins_state,
+        Device_states* dstates,
         const Value* value)
 {
+    assert(ins != NULL);
     assert(ins_params != NULL);
     assert(ins_state != NULL);
+    assert(dstates != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
+    (void)ins;
     (void)ins_params;
+    (void)dstates;
 
     ins_state->sustain = value->value.float_type;
 

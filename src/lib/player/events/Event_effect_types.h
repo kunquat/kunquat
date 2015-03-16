@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -18,8 +18,6 @@
 
 
 //               Name       Type suffix             Arg type        Validator
-EVENT_EFFECT_DEF("ebp+",    bypass_on,              NONE,           NULL)
-EVENT_EFFECT_DEF("ebp-",    bypass_off,             NONE,           NULL)
 
 
 #undef EVENT_EFFECT_DEF

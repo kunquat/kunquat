@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -18,6 +18,7 @@
 
 #include <stdbool.h>
 
+#include <devices/Instrument.h>
 #include <devices/Instrument_params.h>
 #include <player/Ins_state.h>
 #include <Value.h>
@@ -27,8 +28,10 @@
 
 #define EVENT_INS_DEF(name, type_suffix, arg_type, validator) \
     bool Event_ins_##type_suffix##_process(                   \
+            const Instrument* ins,                            \
             const Instrument_params* ins_params,              \
             Ins_state* ins_state,                             \
+            Device_states* dstates,                           \
             const Value* value);
 #include <player/events/Event_ins_types.h>
 
