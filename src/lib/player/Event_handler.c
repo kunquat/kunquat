@@ -41,7 +41,6 @@
 #include <player/events/Event_channel_decl.h>
 #include <player/events/Event_ins_decl.h>
 #include <player/events/Event_generator_decl.h>
-#include <player/events/Event_effect_decl.h>
 
 #include <memory.h>
 
@@ -67,11 +66,6 @@ struct Event_handler
             const Value*);
     bool (*generator_process[Event_generator_STOP])(
             const Device_impl*, Device_state*, Channel*, const Value*);
-    bool (*effect_process[Event_effect_STOP])(
-            const Effect*,
-            Effect_state*,
-            Device_states*,
-            const Value*);
 };
 
 
@@ -135,11 +129,6 @@ Event_handler* new_Event_handler(
         Event_handler_set_generator_process(                                         \
         eh, Event_generator_##type_suffix, Event_generator_##type_suffix##_process);
 #include <player/events/Event_generator_types.h>
-
-#define EVENT_EFFECT_DEF(name, type_suffix, arg_type, validator)               \
-        Event_handler_set_effect_process(                                      \
-        eh, Event_effect_##type_suffix, Event_effect_##type_suffix##_process);
-#include <player/events/Event_effect_types.h>
 
     return eh;
 }
@@ -243,22 +232,6 @@ bool Event_handler_set_generator_process(
 }
 
 
-bool Event_handler_set_effect_process(
-        Event_handler* eh,
-        Event_type type,
-        bool (*effect_process)(
-            const Effect*, Effect_state*, Device_states*, const Value*))
-{
-    assert(eh != NULL);
-    assert(Event_is_effect(type));
-    assert(effect_process != NULL);
-
-    eh->effect_process[type] = effect_process;
-
-    return true;
-}
-
-
 static bool Event_handler_handle(
         Event_handler* eh,
         int index,
@@ -332,39 +305,6 @@ static bool Event_handler_handle(
 
         return eh->generator_process[type](
                 dimpl, dstate, eh->channels[index], value);
-    }
-    else if (Event_is_effect(type))
-    {
-        Effect_table* effects = eh->effects;
-        if (eh->channels[index]->inst_effects)
-        {
-            if (eh->channels[index]->effect >= KQT_INST_EFFECTS_MAX)
-                return false;
-
-            // Find our instrument
-            Instrument* ins = Module_get_ins_from_input(
-                    eh->master_params->parent.module,
-                    eh->channels[index]->ins_input);
-            if (ins == NULL)
-                return false;
-
-            effects = Instrument_get_effects(ins);
-        }
-        if (effects == NULL)
-            return false;
-
-        const Effect* eff = Effect_table_get(effects, eh->channels[index]->effect);
-        if (eff == NULL)
-            return false;
-        Effect_state* eff_state = (Effect_state*)Device_states_get_state(
-                eh->device_states,
-                Device_get_id((const Device*)eff));
-
-        return eh->effect_process[type](
-                eff,
-                eff_state,
-                eh->device_states,
-                value);
     }
     else if (Event_is_control(type))
     {

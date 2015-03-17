@@ -154,24 +154,6 @@ bool Event_handler_set_generator_process(
 
 
 /**
- * Register an Effect Event processor.
- *
- * \param eh        The Event handler -- must not be \c NULL.
- * \param name      The name of the Event -- must not be \c NULL, empty string
- *                  or longer than EVENT_NAME_MAX characters.
- * \param type      The type of the Event -- must be an Effect Event.
- * \param process   The process function -- must not be \c NULL.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-bool Event_handler_set_effect_process(
-        Event_handler* eh,
-        Event_type type,
-        bool (*effect_process)(
-            const Effect*, Effect_state*, Device_states*, const Value*));
-
-
-/**
  * Trigger an event.
  *
  * \param eh       The Event handler -- must not be \c NULL.

@@ -56,12 +56,6 @@ typedef enum
 #include <player/events/Event_generator_types.h>
     Event_generator_STOP,
 
-    Event_effect_START,
-#define EVENT_EFFECT_DEF(name, type_suffix, arg_type, validator) \
-        Event_effect_##type_suffix,
-#include <player/events/Event_effect_types.h>
-    Event_effect_STOP,
-
     Event_query_START,
 
     Event_query_location,
@@ -97,8 +91,6 @@ typedef enum
                                   (type) < Event_ins_STOP)
 #define Event_is_generator(type) ((type) > Event_generator_START && \
                                   (type) < Event_generator_STOP)
-#define Event_is_effect(type)    ((type) > Event_effect_START && \
-                                  (type) < Event_effect_STOP)
 #define Event_is_query(type)     ((type) > Event_query_START && \
                                   (type) < Event_query_STOP)
 #define Event_is_auto(type)      ((type) > Event_auto_START && \
@@ -107,7 +99,6 @@ typedef enum
                                   Event_is_general((type))   || \
                                   Event_is_generator((type)) || \
                                   Event_is_master((type))    || \
-                                  Event_is_effect((type))    || \
                                   Event_is_channel((type))   || \
                                   Event_is_control((type))   || \
                                   Event_is_query((type)))
