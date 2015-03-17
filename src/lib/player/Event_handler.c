@@ -42,7 +42,6 @@
 #include <player/events/Event_ins_decl.h>
 #include <player/events/Event_generator_decl.h>
 #include <player/events/Event_effect_decl.h>
-#include <player/events/Event_dsp_decl.h>
 
 #include <memory.h>
 
@@ -73,8 +72,6 @@ struct Event_handler
             Effect_state*,
             Device_states*,
             const Value*);
-    bool (*dsp_process[Event_dsp_STOP])(
-            const Device_impl*, Device_state*, Channel*, const Value*);
 };
 
 
@@ -143,11 +140,6 @@ Event_handler* new_Event_handler(
         Event_handler_set_effect_process(                                      \
         eh, Event_effect_##type_suffix, Event_effect_##type_suffix##_process);
 #include <player/events/Event_effect_types.h>
-
-#define EVENT_DSP_DEF(name, type_suffix, arg_type, validator)            \
-        Event_handler_set_dsp_process(                                   \
-        eh, Event_dsp_##type_suffix, Event_dsp_##type_suffix##_process);
-#include <player/events/Event_dsp_types.h>
 
     return eh;
 }
@@ -267,22 +259,6 @@ bool Event_handler_set_effect_process(
 }
 
 
-bool Event_handler_set_dsp_process(
-        Event_handler* eh,
-        Event_type type,
-        bool (*dsp_process)(
-            const Device_impl*, Device_state*, Channel*, const Value*))
-{
-    assert(eh != NULL);
-    assert(Event_is_dsp(type));
-    assert(dsp_process != NULL);
-
-    eh->dsp_process[type] = dsp_process;
-
-    return true;
-}
-
-
 static bool Event_handler_handle(
         Event_handler* eh,
         int index,
@@ -389,46 +365,6 @@ static bool Event_handler_handle(
                 eff_state,
                 eh->device_states,
                 value);
-    }
-    else if (Event_is_dsp(type))
-    {
-        Effect_table* effects = eh->effects;
-        if (eh->channels[index]->inst_effects)
-        {
-            if (eh->channels[index]->effect >= KQT_INST_EFFECTS_MAX)
-                return false;
-
-            // Find our instrument
-            Instrument* ins = Module_get_ins_from_input(
-                    eh->master_params->parent.module,
-                    eh->channels[index]->ins_input);
-            if (ins == NULL)
-                return false;
-
-            effects = Instrument_get_effects(ins);
-        }
-        if (effects == NULL)
-            return false;
-
-        const Effect* eff = Effect_table_get(effects, eh->channels[index]->effect);
-        if (eff == NULL)
-            return false;
-
-        const DSP_table* dsps = Effect_get_dsps(eff);
-        const Device* device = (const Device*)DSP_table_get_dsp(
-                dsps, eh->channels[index]->dsp);
-        if (device == NULL)
-            return false;
-
-        const Device_impl* dimpl = device->dimpl;
-        if (dimpl == NULL)
-            return false;
-
-        Device_state* dstate = Device_states_get_state(
-                eh->device_states,
-                Device_get_id(device));
-
-        return eh->dsp_process[type](dimpl, dstate, eh->channels[index], value);
     }
     else if (Event_is_control(type))
     {
