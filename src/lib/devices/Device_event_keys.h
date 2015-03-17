@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -23,7 +23,6 @@
 typedef enum
 {
     DEVICE_EVENT_TYPE_GENERATOR = 0,
-    DEVICE_EVENT_TYPE_DSP
 } Device_event_type;
 
 
