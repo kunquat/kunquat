@@ -50,7 +50,7 @@ struct Device_node
 
     // These fields are required for adaptation to changes
     Ins_table* insts;
-    const Device* master; ///< The global, Instrument or Effect master
+    const Device* master; ///< The global or Instrument master
 
     Device_type type;
     int index;

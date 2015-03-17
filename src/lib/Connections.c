@@ -24,7 +24,6 @@
 #include <Connections.h>
 #include <debug/assert.h>
 #include <Device_node.h>
-#include <devices/Effect.h>
 #include <devices/Instrument.h>
 #include <memory.h>
 #include <string/common.h>

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -25,7 +25,6 @@
 #include <kunquat/limits.h>
 #include <mathnum/Random.h>
 #include <module/Bind.h>
-#include <module/Effect_table.h>
 #include <module/Environment.h>
 #include <module/Input_map.h>
 #include <module/Ins_table.h>
@@ -50,7 +49,6 @@ struct Module
     Input_map* ins_map;                 ///< Instrument input map.
     Bit_array* ins_controls;            ///< Existent instrument controls.
     Ins_table* insts;                   ///< The Instruments.
-    Effect_table* effects;              ///< The global Effects.
     Connections* connections;           ///< Device connections.
     Scale* scales[KQT_SCALES_MAX];      ///< The Scales.
     double mix_vol_dB;                  ///< Mixing volume in dB.
@@ -257,16 +255,6 @@ Input_map* Module_get_ins_map(const Module* module);
  * \return   The Instrument table.
  */
 Ins_table* Module_get_insts(const Module* module);
-
-
-/**
- * Get the Effects of the Module.
- *
- * \param module   The Module -- must not be \c NULL.
- *
- * \return   The Effect table.
- */
-Effect_table* Module_get_effects(const Module* module);
 
 
 /**

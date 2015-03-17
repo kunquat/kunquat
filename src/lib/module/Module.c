@@ -86,7 +86,6 @@ Module* new_Module(void)
     module->ins_map = NULL;
     module->ins_controls = NULL;
     module->insts = NULL;
-    module->effects = NULL;
     module->connections = NULL;
     module->random = NULL;
     module->env = NULL;
@@ -104,13 +103,11 @@ Module* new_Module(void)
     module->pats = new_Pat_table(KQT_PATTERNS_MAX);
     module->ins_controls = new_Bit_array(KQT_CONTROLS_MAX);
     module->insts = new_Ins_table(KQT_INSTRUMENTS_MAX);
-    module->effects = new_Effect_table(KQT_EFFECTS_MAX);
     if (module->random == NULL           ||
             module->songs == NULL        ||
             module->pats == NULL         ||
             module->ins_controls == NULL ||
-            module->insts == NULL        ||
-            module->effects == NULL)
+            module->insts == NULL)
     {
         del_Module(module);
         return NULL;
@@ -448,13 +445,6 @@ Ins_table* Module_get_insts(const Module* module)
 }
 
 
-Effect_table* Module_get_effects(const Module* module)
-{
-    assert(module != NULL);
-    return module->effects;
-}
-
-
 void Module_set_bind(Module* module, Bind* bind)
 {
     assert(module != NULL);
@@ -546,14 +536,6 @@ static void Module_reset(const Device* device, Device_states* dstates)
             Device_reset((const Device*)ins, dstates);
     }
 
-    // Reset effects
-    for (int i = 0; i < KQT_EFFECTS_MAX; ++i)
-    {
-        const Effect* eff = Effect_table_get(module->effects, i);
-        if (eff != NULL)
-            Device_reset((const Device*)eff, dstates);
-    }
-
     Random_reset(module->random);
 
     return;
@@ -590,14 +572,6 @@ static bool Module_set_audio_rate(
             return false;
     }
 
-    for (int i = 0; i < KQT_EFFECTS_MAX; ++i)
-    {
-        const Effect* eff = Effect_table_get(module->effects, i);
-        if (eff != NULL &&
-                !Device_set_audio_rate((const Device*)eff, dstates, audio_rate))
-            return false;
-    }
-
     return true;
 }
 
@@ -619,13 +593,6 @@ static void Module_update_tempo(
         const Instrument* ins = Ins_table_get(module->insts, i);
         if (ins != NULL)
             Device_update_tempo((const Device*)ins, dstates, tempo);
-    }
-
-    for (int i = 0; i < KQT_EFFECTS_MAX; ++i)
-    {
-        const Effect* eff = Effect_table_get(module->effects, i);
-        if (eff != NULL)
-            Device_update_tempo((const Device*)eff, dstates, tempo);
     }
 
     return;
@@ -650,14 +617,6 @@ static bool Module_set_buffer_size(
             return false;
     }
 
-    for (int i = 0; i < KQT_EFFECTS_MAX; ++i)
-    {
-        const Effect* eff = Effect_table_get(module->effects, i);
-        if (eff != NULL &&
-                !Device_set_buffer_size((const Device*)eff, dstates, size))
-            return false;
-    }
-
     return true;
 }
 
@@ -674,7 +633,6 @@ void del_Module(Module* module)
     del_Ins_table(module->insts);
     del_Bit_array(module->ins_controls);
     del_Input_map(module->ins_map);
-    del_Effect_table(module->effects);
     del_Track_list(module->track_list);
 
     for (int i = 0; i < KQT_SONGS_MAX; ++i)

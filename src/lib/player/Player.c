@@ -171,8 +171,7 @@ Player* new_Player(
             &player->master_params,
             player->channels,
             player->device_states,
-            Module_get_insts(player->module),
-            Module_get_effects(player->module));
+            Module_get_insts(player->module));
     if (player->event_handler == NULL)
     {
         del_Player(player);

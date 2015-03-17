@@ -20,7 +20,6 @@
 
 #include <devices/Generator.h>
 #include <player/Channel.h>
-#include <player/Effect_state.h>
 #include <player/Event_names.h>
 #include <player/Event_type.h>
 #include <player/General_state.h>
@@ -42,8 +41,7 @@ Event_handler* new_Event_handler(
         Master_params* master_params,
         Channel** channels,
         Device_states* device_states,
-        Ins_table* insts,
-        Effect_table* effects);
+        Ins_table* insts);
 
 
 /**

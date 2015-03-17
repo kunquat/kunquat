@@ -84,8 +84,8 @@ uint32_t Device_get_id(const Device* device);
 /**
  * Find out if the Device has a complete type.
  *
- * All instruments and effects have a complete type; a generator has
- * a complete type if it has a Device implementation.
+ * All instruments have a complete type; a generator has a complete type if it
+ * has a Device implementation.
  *
  * \param device   The Device -- must not be \c NULL.
  *

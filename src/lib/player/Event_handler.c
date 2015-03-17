@@ -19,7 +19,6 @@
 #include <math.h>
 
 #include <debug/assert.h>
-#include <devices/Effect.h>
 #include <devices/Generator.h>
 #include <devices/Instrument.h>
 #include <kunquat/limits.h>
@@ -51,7 +50,6 @@ struct Event_handler
     Device_states* device_states;
     Master_params* master_params;
     Ins_table* insts;
-    Effect_table* effects;
     Event_names* event_names;
 
     bool (*control_process[Event_control_STOP])(General_state*, const Value*);
@@ -73,14 +71,12 @@ Event_handler* new_Event_handler(
         Master_params* master_params,
         Channel** channels,
         Device_states* device_states,
-        Ins_table* insts,
-        Effect_table* effects)
+        Ins_table* insts)
 {
     assert(master_params != NULL);
     assert(channels != NULL);
     assert(device_states != NULL);
     assert(insts != NULL);
-    assert(effects != NULL);
 
     Event_handler* eh = memory_alloc_item(Event_handler);
     if (eh == NULL)
@@ -98,7 +94,6 @@ Event_handler* new_Event_handler(
         eh->channels[i] = channels[i];
     eh->device_states = device_states;
     eh->insts = insts;
-    eh->effects = effects;
 
 #define EVENT_CONTROL_DEF(name, type_suffix, arg_type, validator)                \
         Event_handler_set_control_process(                                       \
