@@ -16,7 +16,6 @@
 
 #include <debug/assert.h>
 #include <devices/dsps/DSP_type.h>
-#include <devices/dsps/DSP_conv.h>
 #include <string/common.h>
 
 
@@ -30,7 +29,6 @@ struct DSP_type
 
 static const DSP_type dsp_types[] =
 {
-    { "convolution", new_DSP_conv, NULL },
     { NULL, NULL, NULL }
 };
 
