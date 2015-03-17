@@ -248,30 +248,6 @@ void Device_node_reset(Device_node* node)
 
     Device_node_set_state(node, DEVICE_NODE_STATE_NEW);
 
-#if 0
-    if (node->type == DEVICE_TYPE_INSTRUMENT)
-    {
-        Instrument* ins = Ins_table_get(node->insts, node->index);
-        if (ins == NULL)
-        {
-            Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
-            return;
-        }
-
-        Connections* ins_graph = Instrument_get_connections(ins);
-        Device_node* ins_node = NULL;
-        if (ins_graph == NULL ||
-                (ins_node = Connections_get_master(ins_graph)) == NULL)
-        {
-            Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
-            return;
-        }
-
-        Device_node_set_state(ins_node, DEVICE_NODE_STATE_NEW);
-        node = ins_node;
-    }
-#endif
-
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
         Connection* edge = node->receive[port];
@@ -303,31 +279,6 @@ bool Device_node_init_buffers_simple(Device_node* node, Device_states* states)
         Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
         return true;
     }
-
-#if 0
-    if (node->type == DEVICE_TYPE_INSTRUMENT)
-    {
-        Instrument* ins = Ins_table_get(node->insts, node->index);
-        if (ins == NULL)
-        {
-            Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
-            return true;
-        }
-
-        Connections* ins_graph = Instrument_get_connections(ins);
-        Device_node* ins_node = NULL;
-        if (ins_graph == NULL ||
-                (ins_node = Connections_get_master(ins_graph)) == NULL)
-        {
-            Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
-            return true;
-        }
-
-        Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
-        Device_node_set_state(ins_node, DEVICE_NODE_STATE_REACHED);
-        node = ins_node;
-    }
-#endif
 
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
@@ -420,20 +371,6 @@ bool Device_node_init_effect_buffers(Device_node* node, Device_states* states)
 
         if (!Instrument_prepare_connections(ins, states))
             return false;
-#if 0
-        Connections* ins_graph = Instrument_get_connections(ins);
-        Device_node* ins_node = NULL;
-        if (ins_graph == NULL ||
-                (ins_node = Connections_get_master(ins_graph)) == NULL)
-        {
-            Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
-            return true;
-        }
-
-        Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
-        Device_node_set_state(ins_node, DEVICE_NODE_STATE_REACHED);
-        node = ins_node;
-#endif
     }
     else if (node->type == DEVICE_TYPE_EFFECT)
     {
@@ -493,22 +430,6 @@ void Device_node_clear_buffers(
         Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
         return;
     }
-
-#if 0
-    if (node->type == DEVICE_TYPE_INSTRUMENT)
-    {
-        Device_node* ins_node = Device_node_get_ins_dual(node);
-        if (ins_node == NULL)
-        {
-            Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
-            return;
-        }
-
-        Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
-        Device_node_set_state(ins_node, DEVICE_NODE_STATE_REACHED);
-        node = ins_node;
-    }
-#endif
 
     //fprintf(stderr, "Clearing buffers of %p\n", (void*)Device_node_get_device(node));
     const Device* device = Device_node_get_device(node);
@@ -575,53 +496,6 @@ void Device_node_mix(
         Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
         return;
     }
-
-#if 0
-    if (node->type == DEVICE_TYPE_INSTRUMENT)
-    {
-        Instrument* ins = Ins_table_get(node->insts, node->index);
-        if (ins == NULL)
-        {
-            Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
-            return;
-        }
-
-        Connections* ins_graph = Instrument_get_connections(ins);
-        Device_node* ins_node = NULL;
-        Device_state* ins_state = Device_states_get_state(
-                states,
-                Device_get_id((Device*)ins));
-        if (ins_graph == NULL ||
-                (ins_node = Connections_get_master(ins_graph)) == NULL ||
-                ins_state == NULL)
-        {
-            Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
-            return;
-        }
-
-        // Mix audio inside the instrument
-        Device_node_mix(ins_node, states, start, until, freq, tempo);
-
-        // Copy audio to instrument front end
-        for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
-        {
-            Audio_buffer* receive = Device_state_get_audio_buffer(
-                    ins_state,
-                    DEVICE_PORT_TYPE_RECEIVE,
-                    port);
-            Audio_buffer* send = Device_state_get_audio_buffer(
-                    ins_state,
-                    DEVICE_PORT_TYPE_SEND,
-                    port);
-
-            if (receive != NULL && send != NULL)
-                Audio_buffer_mix(send, receive, start, until);
-        }
-
-        Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
-        return;
-    }
-#endif
 
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
@@ -877,19 +751,6 @@ void Device_node_print(const Device_node* node, FILE* out)
             (const void*)Device_node_get_device(node),
             states[Device_node_get_state(node)]);
 
-#if 0
-    if (node->type == DEVICE_TYPE_INSTRUMENT)
-    {
-        const Device_node* ins_node = Device_node_get_ins_dual(node);
-        if (ins_node == NULL)
-            return;
-
-        fprintf(out, "Instrument dual:");
-        Device_node_print(ins_node, out);
-        return;
-    }
-#endif
-
     if (Device_node_get_device(node) != NULL)
         Device_print(Device_node_get_device(node), out);
 
@@ -967,24 +828,5 @@ void del_Device_node(Device_node* node)
     memory_free(node);
     return;
 }
-
-
-#if 0
-static Device_node* Device_node_get_ins_dual(const Device_node* node)
-{
-    assert(node != NULL);
-    assert(node->type == DEVICE_TYPE_INSTRUMENT);
-
-    Instrument* ins = Ins_table_get(node->insts, node->index);
-    if (ins == NULL)
-        return NULL;
-
-    Connections* ins_graph = Instrument_get_connections(ins);
-    if (ins_graph == NULL)
-        return NULL;
-
-    return Connections_get_master(ins_graph);
-}
-#endif
 
 
