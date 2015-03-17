@@ -456,39 +456,21 @@ int kqt_Handle_validate(kqt_Handle handle)
                 }
 
                 // Instrument effects
-                for (int eff_index = 0; eff_index < KQT_INST_EFFECTS_MAX; ++eff_index)
+                for (int sub_ins_index = 0; sub_ins_index < KQT_INSTRUMENTS_MAX; ++sub_ins_index)
                 {
-                    const Effect* eff = Instrument_get_effect(ins, eff_index);
-                    if (eff != NULL)
+                    const Instrument* sub_ins = Instrument_get_ins(ins, sub_ins_index);
+                    if (sub_ins != NULL)
                     {
-                        const Connections* eff_conns = Effect_get_connections(eff);
-                        if (eff_conns != NULL)
+                        const Connections* conns = Instrument_get_connections(sub_ins);
+                        if (conns != NULL)
                         {
                             set_invalid_if(
-                                    !Connections_check_connections(eff_conns, err_msg),
+                                    !Connections_check_connections(conns, err_msg),
                                     "Error in connections of device"
-                                        " ins_%02x/eff_%02x: %s",
-                                    ins_index, eff_index, err_msg);
+                                        " ins_%02x/ins_%02x: %s",
+                                    ins_index, sub_ins_index, err_msg);
                         }
                     }
-                }
-            }
-        }
-
-        // Top-level effects
-        Effect_table* eff_table = Module_get_effects(h->module);
-        for (int eff_index = 0; eff_index < KQT_EFFECTS_MAX; ++eff_index)
-        {
-            const Effect* eff = Effect_table_get(eff_table, eff_index);
-            if (eff != NULL)
-            {
-                const Connections* eff_conns = Effect_get_connections(eff);
-                if (eff_conns != NULL)
-                {
-                    set_invalid_if(
-                            !Connections_check_connections(eff_conns, err_msg),
-                            "Error in connections of device eff_%02x: %s",
-                            eff_index, err_msg);
                 }
             }
         }
