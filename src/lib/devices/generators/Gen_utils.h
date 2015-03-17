@@ -50,6 +50,50 @@ void Generator_common_ramp_attack(
         int32_t buf_stop);
 
 
+#define get_raw_buffers(ds, type, port, buffers)          \
+    if (true)                                             \
+    {                                                     \
+        assert((buffers) != NULL);                        \
+        Audio_buffer* in = Device_state_get_audio_buffer( \
+                (ds), (type), (port));                    \
+        if (in == NULL)                                   \
+            return;                                       \
+                                                          \
+        (buffers)[0] = Audio_buffer_get_buffer(in, 0);    \
+        (buffers)[1] = Audio_buffer_get_buffer(in, 1);    \
+    } else (void)0
+
+
+/**
+ * Retrieve raw input buffers from the Generator.
+ *
+ * This macro stops the calling function if the buffers do not exist.
+ *
+ * \param ds        The Device state -- must not be \c NULL.
+ * \param num       The port number -- must be >= \c and
+ *                  < \c KQT_DEVICE_PORTS_MAX.
+ * \param buffers   The array where the buffers are stored -- must not
+ *                  be \c NULL.
+ */
+#define get_raw_input(ds, port, buffers) \
+    get_raw_buffers((ds), DEVICE_PORT_TYPE_RECEIVE, (port), (buffers))
+
+
+/**
+ * Retrieve raw output buffers from the Generator.
+ *
+ * This macro stops the calling function if the buffers do not exist.
+ *
+ * \param ds        The Device state -- must not be \c NULL.
+ * \param num       The port number -- must be >= \c and
+ *                  < \c KQT_DEVICE_PORTS_MAX.
+ * \param buffers   The array where the buffers are stored -- must not
+ *                  be \c NULL.
+ */
+#define get_raw_output(ds, port, buffers) \
+    get_raw_buffers((ds), DEVICE_PORT_TYPE_SEND, (port), (buffers))
+
+
 #endif // K_GEN_UTILS_H
 
 

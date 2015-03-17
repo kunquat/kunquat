@@ -20,8 +20,8 @@
 
 #include <debug/assert.h>
 #include <devices/Device_impl.h>
-#include <devices/dsps/DSP_common.h>
 #include <devices/Generator.h>
+#include <devices/generators/Gen_utils.h>
 #include <devices/generators/Generator_freeverb.h>
 #include <devices/generators/Freeverb_allpass.h>
 #include <devices/generators/Freeverb_comb.h>
@@ -527,8 +527,8 @@ static void Generator_freeverb_process(
     //assert(string_eq(freeverb->parent.type, "freeverb"));
     kqt_frame* in_data[] = { NULL, NULL };
     kqt_frame* out_data[] = { NULL, NULL };
-    DSP_get_raw_input(&fstate->parent.parent, 0, in_data);
-    DSP_get_raw_output(&fstate->parent.parent, 0, out_data);
+    get_raw_input(&fstate->parent.parent, 0, in_data);
+    get_raw_output(&fstate->parent.parent, 0, out_data);
 
     for (uint32_t i = start; i < until; ++i)
     {

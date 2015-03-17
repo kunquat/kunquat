@@ -20,8 +20,8 @@
 #include <Audio_buffer.h>
 #include <debug/assert.h>
 #include <devices/Device_impl.h>
-#include <devices/dsps/DSP_common.h>
 #include <devices/Generator.h>
+#include <devices/generators/Gen_utils.h>
 #include <devices/generators/Generator_delay.h>
 #include <mathnum/common.h>
 #include <memory.h>
@@ -530,8 +530,8 @@ static void Generator_delay_process(
     //assert(string_eq(delay->parent.type, "delay"));
     kqt_frame* in_data[] = { NULL, NULL };
     kqt_frame* out_data[] = { NULL, NULL };
-    DSP_get_raw_input(&dlstate->parent.parent, 0, in_data);
-    DSP_get_raw_output(&dlstate->parent.parent, 0, out_data);
+    get_raw_input(&dlstate->parent.parent, 0, in_data);
+    get_raw_output(&dlstate->parent.parent, 0, out_data);
     kqt_frame* delay_data[] =
     {
         Audio_buffer_get_buffer(dlstate->buf, 0),

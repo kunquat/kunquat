@@ -21,8 +21,8 @@
 #include <Audio_buffer.h>
 #include <debug/assert.h>
 #include <devices/Device_impl.h>
-#include <devices/dsps/DSP_common.h>
 #include <devices/Generator.h>
+#include <devices/generators/Gen_utils.h>
 #include <devices/generators/Generator_gc.h>
 #include <devices/param_types/Envelope.h>
 #include <mathnum/common.h>
@@ -149,8 +149,8 @@ static void Generator_gc_process(
     //assert(string_eq(gc->parent.type, "gaincomp"));
     kqt_frame* in_data[] = { NULL, NULL };
     kqt_frame* out_data[] = { NULL, NULL };
-    DSP_get_raw_input(ds, 0, in_data);
-    DSP_get_raw_output(ds, 0, out_data);
+    get_raw_input(ds, 0, in_data);
+    get_raw_output(ds, 0, out_data);
 
     if (gc->map != NULL)
     {

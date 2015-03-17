@@ -21,7 +21,7 @@
 #include <debug/assert.h>
 #include <devices/Device_impl.h>
 #include <devices/Generator.h>
-#include <devices/dsps/DSP_common.h>
+#include <devices/generators/Gen_utils.h>
 #include <devices/generators/Generator_volume.h>
 #include <player/Gen_state.h>
 #include <string/common.h>
@@ -230,8 +230,8 @@ static void Generator_volume_process(
     //assert(string_eq(volume->parent.type, "volume"));
     kqt_frame* in_data[] = { NULL, NULL };
     kqt_frame* out_data[] = { NULL, NULL };
-    DSP_get_raw_input(&vol_state->parent.parent, 0, in_data);
-    DSP_get_raw_output(&vol_state->parent.parent, 0, out_data);
+    get_raw_input(&vol_state->parent.parent, 0, in_data);
+    get_raw_output(&vol_state->parent.parent, 0, out_data);
 
     for (uint32_t frame = start; frame < until; ++frame)
     {
