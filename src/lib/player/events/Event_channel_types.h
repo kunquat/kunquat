@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -23,7 +23,6 @@ EVENT_CHANNEL_DEF(".g",     set_generator,          INT,            v_gen)
 EVENT_CHANNEL_DEF(".e",     set_effect,             INT,            v_effect)
 EVENT_CHANNEL_DEF(".ge",    set_global_effects,     NONE,           NULL)
 EVENT_CHANNEL_DEF(".ie",    set_instrument_effects, NONE,           NULL)
-EVENT_CHANNEL_DEF(".d",     set_dsp,                INT,            v_dsp)
 
 EVENT_CHANNEL_DEF("n+",     note_on,                FLOAT,          v_pitch)
 EVENT_CHANNEL_DEF("h",      hit,                    INT,            v_hit)

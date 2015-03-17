@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -100,23 +100,6 @@ bool Event_channel_set_effect_process(
     assert(value->type == VALUE_TYPE_INT);
 
     ch->effect = value->value.int_type;
-
-    return true;
-}
-
-
-bool Event_channel_set_dsp_process(
-        Channel* ch,
-        Device_states* dstates,
-        const Value* value)
-{
-    assert(ch != NULL);
-    assert(dstates != NULL);
-    (void)dstates;
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_INT);
-
-    ch->dsp = value->value.int_type;
 
     return true;
 }

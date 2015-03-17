@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2015
  *
  * This file is part of Kunquat.
  *
@@ -34,8 +34,6 @@ bool v_arp_speed(const char* param);
 bool v_cond(const char* param);
 
 bool v_counter(const char* param);
-
-bool v_dsp(const char* param);
 
 bool v_effect(const char* param);
 
