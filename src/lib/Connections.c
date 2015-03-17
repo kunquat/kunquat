@@ -24,7 +24,6 @@
 #include <Connections.h>
 #include <debug/assert.h>
 #include <Device_node.h>
-#include <devices/DSP_table.h>
 #include <devices/Effect.h>
 #include <devices/Instrument.h>
 #include <memory.h>
@@ -96,7 +95,6 @@ typedef struct read_conn_data
     Connection_level level;
     Ins_table* insts;
     Effect_table* effects;
-    const DSP_table* dsps;
     Device* master;
 } read_conn_data;
 
@@ -147,11 +145,7 @@ static bool read_connection(Streader* sr, int32_t index, void* userdata)
             actual_master = Effect_get_input_interface((Effect*)rcdata->master);
 
         Device_node* new_src = new_Device_node(
-                src_name,
-                rcdata->insts,
-                rcdata->effects,
-                rcdata->dsps,
-                actual_master);
+                src_name, rcdata->insts, rcdata->effects, actual_master);
 
         mem_error_if(new_src == NULL, rcdata->graph, NULL, sr);
         mem_error_if(
@@ -173,11 +167,7 @@ static bool read_connection(Streader* sr, int32_t index, void* userdata)
         }
 #endif
         Device_node* new_dest = new_Device_node(
-                dest_name,
-                rcdata->insts,
-                rcdata->effects,
-                rcdata->dsps,
-                rcdata->master);
+                dest_name, rcdata->insts, rcdata->effects, rcdata->master);
 
         mem_error_if(new_dest == NULL, rcdata->graph, NULL, sr);
         mem_error_if(
@@ -204,7 +194,6 @@ Connections* new_Connections_from_string(
         Connection_level level,
         Ins_table* insts,
         Effect_table* effects,
-        const DSP_table* dsps,
         Device* master)
 {
     assert(sr != NULL);
@@ -212,8 +201,6 @@ Connections* new_Connections_from_string(
                      CONNECTION_LEVEL_EFFECT)) == 0);
     assert(insts != NULL);
     assert(effects != NULL);
-    assert(!(level & CONNECTION_LEVEL_EFFECT) || (dsps != NULL));
-    assert((dsps == NULL) || (level & CONNECTION_LEVEL_EFFECT));
     assert(master != NULL);
 
     if (Streader_is_error_set(sr))
@@ -240,16 +227,16 @@ Connections* new_Connections_from_string(
     if ((level & CONNECTION_LEVEL_INSTRUMENT))
     {
         const Device* iface = Instrument_get_output_interface((Instrument*)master);
-        master_node = new_Device_node("", insts, effects, dsps, iface);
+        master_node = new_Device_node("", insts, effects, iface);
     }
     else if ((level & CONNECTION_LEVEL_EFFECT))
     {
         const Device* iface = Effect_get_output_interface((Effect*)master);
-        master_node = new_Device_node("", insts, effects, dsps, iface);
+        master_node = new_Device_node("", insts, effects, iface);
     }
     else
     {
-        master_node = new_Device_node("", insts, effects, dsps, master);
+        master_node = new_Device_node("", insts, effects, master);
     }
     mem_error_if(master_node == NULL, graph, NULL, sr);
     mem_error_if(!AAtree_ins(graph->nodes, master_node), graph, master_node, sr);
@@ -260,7 +247,7 @@ Connections* new_Connections_from_string(
         return graph;
     }
 
-    read_conn_data rcdata = { graph, level, insts, effects, dsps, master };
+    read_conn_data rcdata = { graph, level, insts, effects, master };
     if (!Streader_read_list(sr, read_connection, &rcdata))
     {
         del_Connections(graph);
@@ -489,6 +476,7 @@ static int validate_connection_path(
     char* path = str;
     char* trim_point = str;
 
+    // Device
     if (string_has_prefix(str, "ins_"))
     {
         // TODO: disallow instrument in more than 2 levels
@@ -614,50 +602,8 @@ static int validate_connection_path(
         str += strlen("C/");
         trim_point = str - 1;
     }
-    else if (string_has_prefix(str, "dsp_"))
-    {
-        if (!(level & CONNECTION_LEVEL_EFFECT))
-        {
-            Streader_set_error(
-                    sr, "DSP directory outside an effect: \"%s\"", path);
-            return -1;
-        }
 
-        root = false;
-        //dsp = true;
-        str += strlen("dsp_");
-        if (read_index(str) >= KQT_DSPS_MAX)
-        {
-            Streader_set_error(
-                    sr, "Invalid DSP number in the connection: \"%s\"", path);
-            return -1;
-        }
-
-        str += 2;
-        if (!string_has_prefix(str, "/"))
-        {
-            Streader_set_error(
-                    sr,
-                    "Missing trailing '/' after the DSP number"
-                        " in the connection: \"%s\"",
-                    path);
-            return -1;
-        }
-
-        ++str;
-        if (!string_has_prefix(str, "C/"))
-        {
-            Streader_set_error(
-                    sr,
-                    "Invalid DSP parameter directory"
-                        " in the connection: \"%s\"",
-                    path);
-            return -1;
-        }
-
-        str += strlen("C/");
-        trim_point = str - 1;
-    }
+    // Port
     if (string_has_prefix(str, "in_") || string_has_prefix(str, "out_"))
     {
         if (string_has_prefix(str, "in_") && root &&

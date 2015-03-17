@@ -32,7 +32,6 @@ typedef enum
     DEVICE_TYPE_MASTER     = 1,
     DEVICE_TYPE_GENERATOR  = 2,
     DEVICE_TYPE_EFFECT     = 4,
-    DEVICE_TYPE_DSP        = 6,
     DEVICE_TYPE_INSTRUMENT = 8,
 } Device_type;
 
@@ -53,7 +52,6 @@ struct Device_node
     // These fields are required for adaptation to changes
     Ins_table* insts;
     Effect_table* effects;
-    const DSP_table* dsps;
     const Device* master; ///< The global, Instrument or Effect master
 
     Device_type type;
@@ -70,11 +68,7 @@ struct Device_node
 
 
 Device_node* new_Device_node(
-        const char* name,
-        Ins_table* insts,
-        Effect_table* effects,
-        const DSP_table* dsps,
-        const Device* master)
+        const char* name, Ins_table* insts, Effect_table* effects, const Device* master)
 {
     assert(name != NULL);
     assert(insts != NULL);
@@ -115,17 +109,8 @@ Device_node* new_Device_node(
     }
     else if (string_eq(node->name, "Iin"))
     {
-        //assert(dsps != NULL);
         node->type = DEVICE_TYPE_MASTER;
         node->index = -1;
-    }
-    else if (string_has_prefix(node->name, "dsp_"))
-    {
-        node->type = DEVICE_TYPE_DSP;
-        node->index = string_extract_index(node->name, "dsp_", 2, NULL);
-        assert(node->index >= 0);
-        //assert(ins != NULL || node->index < KQT_DSP_EFFECTS_MAX);
-        //assert(ins == NULL || node->index < KQT_INSTRUMENT_DSPS_MAX);
     }
     else
     {
@@ -135,7 +120,6 @@ Device_node* new_Device_node(
     //node->ins_dual = NULL;
     node->insts = insts;
     node->effects = effects;
-    node->dsps = dsps;
     node->master = master;
     //node->device = NULL;
     node->name[KQT_DEVICE_NODE_NAME_MAX - 1] = '\0';
@@ -585,8 +569,6 @@ const Device* Device_node_get_device(const Device_node* node)
         return (const Device*)Instrument_get_gen(
                 (const Instrument*)node->master,
                 node->index);
-    else if (node->type == DEVICE_TYPE_DSP)
-        return (const Device*)DSP_table_get_dsp(node->dsps, node->index);
 
     assert(false);
     return NULL;

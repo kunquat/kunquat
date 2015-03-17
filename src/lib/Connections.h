@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -56,7 +56,6 @@ typedef enum
  * \param ins_level   Whether this is an instrument-level graph or not.
  * \param insts       The Instrument table -- must not be \c NULL.
  * \param effects     The Effect table -- must not be \c NULL.
- * \param dsps        The DSP table -- must not be \c NULL.
  * \param master      The global or Instrument master node
  *                    -- must not be \c NULL.
  *
@@ -68,7 +67,6 @@ Connections* new_Connections_from_string(
         Connection_level level,
         Ins_table* insts,
         Effect_table* effects,
-        const DSP_table* dsps,
         Device* master);
 
 

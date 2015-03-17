@@ -327,7 +327,6 @@ static bool read_connections(Reader_params* params)
             CONNECTION_LEVEL_GLOBAL,
             Module_get_insts(module),
             Module_get_effects(module),
-            NULL,
             (Device*)module);
     if (graph == NULL)
     {
@@ -673,7 +672,6 @@ static bool read_any_ins_connections(Reader_params* params, Ins_table* ins_table
                 CONNECTION_LEVEL_INSTRUMENT,
                 Instrument_get_insts(ins),
                 Instrument_get_effects(ins),
-                NULL,
                 (Device*)ins);
         if (graph == NULL)
         {

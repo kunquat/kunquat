@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -57,7 +57,6 @@ typedef struct Device_node Device_node;
  * \param name      The name of the node -- must not be \c NULL.
  * \param insts     The Instrument table -- must not be \c NULL.
  * \param effects   The Effect table -- must not be \c NULL.
- * \param dsps      The DSP table -- must not be \c NULL.
  * \param master    The global or Instrumet master Device
  *                  -- must not be \c NULL.
  *
@@ -65,11 +64,7 @@ typedef struct Device_node Device_node;
  *           allocation failed.
  */
 Device_node* new_Device_node(
-        const char* name,
-        Ins_table* insts,
-        Effect_table* effects,
-        const DSP_table* dsps,
-        const Device* master);
+        const char* name, Ins_table* insts, Effect_table* effects, const Device* master);
 
 
 /**
