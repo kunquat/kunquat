@@ -83,30 +83,6 @@ MODULE_INS_KEYP(gen_conf_key,           "ins_XX/gen_XX/c/",                     
 
 #undef MODULE_INS_KEYP
 
-#if 0
-MODULE_KEYP(ins_effect_manifest,    "ins_XX/ins_XX/p_manifest.json",        "")
-MODULE_KEYP(ins_effect_in_port_manifest, "ins_XX/ins_XX/in_XX/p_manifest.json", "")
-MODULE_KEYP(ins_effect_out_port_manifest, "ins_XX/ins_XX/out_XX/p_manifest.json", "")
-MODULE_KEYP(ins_effect_connections, "ins_XX/ins_XX/p_connections.json",     "")
-MODULE_KEYP(ins_dsp_manifest,       "ins_XX/ins_XX/gen_XX/p_manifest.json", "")
-MODULE_KEYP(ins_dsp_in_port_manifest, "ins_XX/ins_XX/gen_XX/in_XX/p_manifest.json", "")
-MODULE_KEYP(ins_dsp_out_port_manifest, "ins_XX/ins_XX/gen_XX/out_XX/p_manifest.json", "")
-MODULE_KEYP(ins_dsp_type,           "ins_XX/ins_XX/gen_XX/p_gen_type.json", "")
-MODULE_KEYP(ins_dsp_impl_key,       "ins_XX/ins_XX/gen_XX/i/",              "")
-MODULE_KEYP(ins_dsp_conf_key,       "ins_XX/ins_XX/gen_XX/c/",              "")
-#endif
-
-//MODULE_KEYP(effect_manifest,        "eff_XX/p_manifest.json",               "")
-//MODULE_KEYP(effect_in_port_manifest, "eff_XX/in_XX/p_manifest.json",        "")
-//MODULE_KEYP(effect_out_port_manifest, "eff_XX/out_XX/p_manifest.json",      "")
-//MODULE_KEYP(effect_connections,     "eff_XX/p_connections.json",            "[]")
-//MODULE_KEYP(dsp_manifest,           "ins_XX/gen_XX/p_manifest.json",        "")
-//MODULE_KEYP(dsp_in_port_manifest,   "ins_XX/gen_XX/in_XX/p_manifest.json",  "")
-//MODULE_KEYP(dsp_out_port_manifest,  "ins_XX/gen_XX/out_XX/p_manifest.json", "")
-//MODULE_KEYP(dsp_type,               "ins_XX/gen_XX/p_gen_type.json",        "")
-//MODULE_KEYP(dsp_impl_key,           "ins_XX/gen_XX/i/",                     "")
-//MODULE_KEYP(dsp_conf_key,           "ins_XX/gen_XX/c/",                     "")
-
 MODULE_KEYP(pattern_manifest, "pat_XXX/p_manifest.json", "")
 MODULE_KEYP(pattern,          "pat_XXX/p_pattern.json", "{ \"length\": [16, 0] }")
 MODULE_KEYP(column,           "pat_XXX/col_XX/p_triggers.json", "[]")
