@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -52,7 +52,6 @@ typedef struct Channel
     int generator;                 ///< Currently active Generator.
     int effect;                    ///< Currently active Effect.
     bool inst_effects;             ///< Instrument effect control enabled.
-    int dsp;                       ///< Currently active DSP.
     Ins_table* insts;
     int32_t* freq;
     double* tempo;

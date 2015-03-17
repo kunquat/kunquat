@@ -22,7 +22,6 @@
 #include <debug/assert.h>
 #include <devices/Device_event_keys.h>
 #include <devices/Device_params.h>
-#include <devices/dsps/DSP_type.h>
 #include <devices/generators/Gen_type.h>
 #include <devices/Instrument.h>
 #include <Handle_private.h>

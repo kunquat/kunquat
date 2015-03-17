@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -84,7 +84,7 @@ uint32_t Device_get_id(const Device* device);
 /**
  * Find out if the Device has a complete type.
  *
- * All instruments and effects have a complete type; a generator or a DSP has
+ * All instruments and effects have a complete type; a generator has
  * a complete type if it has a Device implementation.
  *
  * \param device   The Device -- must not be \c NULL.

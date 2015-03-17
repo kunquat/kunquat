@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -23,7 +23,7 @@
 
 
 /**
- * This is the lowpass-feedback-comb filter used by the Freeverb DSP.
+ * This is the lowpass-feedback-comb filter used by the Freeverb processor.
  */
 typedef struct Freeverb_comb Freeverb_comb;
 

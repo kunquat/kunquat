@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2015
  *
  * This file is part of Kunquat.
  *
@@ -24,7 +24,6 @@ typedef enum Active_cat
     ACTIVE_CAT_ENV = 0,
     ACTIVE_CAT_GEN,
     ACTIVE_CAT_CH_GEN,
-    ACTIVE_CAT_DSP,
     ACTIVE_CAT_LAST
 } Active_cat;
 

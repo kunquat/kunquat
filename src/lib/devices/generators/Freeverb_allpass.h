@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -23,9 +23,9 @@
 
 
 /**
- * This is the "allpass" filter used by the Freeverb DSP. It is not really an
- * allpass filter at most settings, but the name is kept in line with the
- * original Freeverb implementation.
+ * This is the "allpass" filter used by the Freeverb processor. It is not
+ * really an allpass filter at most settings, but the name is kept in line with
+ * the original Freeverb implementation.
  */
 typedef struct Freeverb_allpass Freeverb_allpass;
 

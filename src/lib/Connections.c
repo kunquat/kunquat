@@ -449,8 +449,6 @@ static int validate_connection_path(
     if (Streader_is_error_set(sr))
         return -1;
 
-    //bool effect = false;
-    //bool dsp = false;
     bool root = true;
     char* path = str;
     char* trim_point = str;

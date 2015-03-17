@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -135,7 +135,6 @@ void Channel_reset(Channel* ch)
     ch->generator = 0;
     ch->effect = 0;
     ch->inst_effects = false;
-    ch->dsp = 0;
 
     ch->volume = 1;
 
