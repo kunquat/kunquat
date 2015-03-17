@@ -72,12 +72,49 @@ static const struct
     } else (void)0
 
 
-static bool is_ins_out_conn_possible(Handle* handle, int32_t ins_index, int32_t port)
+static const Instrument* find_ins(
+        Handle* handle, int32_t ins_index, int32_t sub_ins_index)
 {
     assert(handle != NULL);
+
     const Module* module = Handle_get_module(handle);
 
-    const Instrument* ins = Ins_table_get(Module_get_insts(module), ins_index);
+    Instrument* ins = Ins_table_get(Module_get_insts(module), ins_index);
+    if (ins == NULL)
+        return NULL;
+
+    if (sub_ins_index >= 0)
+    {
+        Ins_table* ins_table = Instrument_get_insts(ins);
+        if (ins_table == NULL)
+            return NULL;
+
+        ins = Ins_table_get(ins_table, sub_ins_index);
+    }
+
+    return ins;
+}
+
+
+static bool is_ins_in_conn_possible(
+        Handle* handle, int32_t ins_index, int32_t sub_ins_index, int32_t port)
+{
+    assert(handle != NULL);
+
+    const Instrument* ins = find_ins(handle, ins_index, sub_ins_index);
+    if (ins == NULL)
+        return false;
+
+    return Device_get_port_existence((const Device*)ins, DEVICE_PORT_TYPE_RECEIVE, port);
+}
+
+
+static bool is_ins_out_conn_possible(
+        Handle* handle, int32_t ins_index, int32_t sub_ins_index, int32_t port)
+{
+    assert(handle != NULL);
+
+    const Instrument* ins = find_ins(handle, ins_index, sub_ins_index);
     if (ins == NULL)
         return false;
 
@@ -85,131 +122,56 @@ static bool is_ins_out_conn_possible(Handle* handle, int32_t ins_index, int32_t 
 }
 
 
-static bool is_gen_out_conn_possible(
-        Handle* handle, int32_t ins_index, int32_t gen_index, int32_t port)
+static const Generator* find_complete_gen(
+        Handle* handle, int32_t ins_index, int32_t sub_ins_index, int32_t gen_index)
 {
     assert(handle != NULL);
 
-    const Module* module = Handle_get_module(handle);
-
-    const Instrument* ins = Ins_table_get(Module_get_insts(module), ins_index);
+    const Instrument* ins = find_ins(handle, ins_index, sub_ins_index);
     if (ins == NULL)
         return false;
 
     const Generator* gen = Instrument_get_gen(ins, gen_index);
     if ((gen == NULL) || !Device_has_complete_type((const Device*)gen))
+        return NULL;
+
+    return gen;
+}
+
+
+static bool is_gen_in_conn_possible(
+        Handle* handle,
+        int32_t ins_index,
+        int32_t sub_ins_index,
+        int32_t gen_index,
+        int32_t port)
+{
+    assert(handle != NULL);
+
+    const Generator* gen = find_complete_gen(
+            handle, ins_index, sub_ins_index, gen_index);
+    if (gen == NULL)
+        return false;
+
+    return Device_get_port_existence((const Device*)gen, DEVICE_PORT_TYPE_RECEIVE, port);
+}
+
+
+static bool is_gen_out_conn_possible(
+        Handle* handle,
+        int32_t ins_index,
+        int32_t sub_ins_index,
+        int32_t gen_index,
+        int32_t port)
+{
+    assert(handle != NULL);
+
+    const Generator* gen = find_complete_gen(
+            handle, ins_index, sub_ins_index, gen_index);
+    if (gen == NULL)
         return false;
 
     return Device_get_port_existence((const Device*)gen, DEVICE_PORT_TYPE_SEND, port);
-}
-
-
-static const Effect_table* find_effect_table(Handle* handle, int32_t ins_index)
-{
-    assert(handle != NULL);
-
-    const Module* module = Handle_get_module(handle);
-
-    const Effect_table* eff_table = Module_get_effects(module);
-    if (ins_index >= 0)
-    {
-        Instrument* ins = Ins_table_get(Module_get_insts(module), ins_index);
-        if (ins == NULL)
-            return NULL;
-
-        eff_table = Instrument_get_effects(ins);
-    }
-
-    return eff_table;
-}
-
-
-static const Effect* find_effect(Handle* handle, int32_t ins_index, int32_t eff_index)
-{
-    assert(handle != NULL);
-
-    const Effect_table* eff_table = find_effect_table(handle, ins_index);
-    if (eff_table == NULL)
-        return NULL;
-
-    return Effect_table_get(eff_table, eff_index);
-}
-
-
-static bool is_eff_in_conn_possible(
-        Handle* handle, int32_t ins_index, int32_t eff_index, int32_t port)
-{
-    assert(handle != NULL);
-
-    const Effect* eff = find_effect(handle, ins_index, eff_index);
-    if (eff == NULL)
-        return false;
-
-    return Device_get_port_existence((const Device*)eff, DEVICE_PORT_TYPE_RECEIVE, port);
-}
-
-
-static bool is_eff_out_conn_possible(
-        Handle* handle, int32_t ins_index, int32_t eff_index, int32_t port)
-{
-    assert(handle != NULL);
-
-    const Effect* eff = find_effect(handle, ins_index, eff_index);
-    if (eff == NULL)
-        return false;
-
-    return Device_get_port_existence((const Device*)eff, DEVICE_PORT_TYPE_SEND, port);
-}
-
-
-static const DSP* find_complete_dsp(
-        Handle* handle, int32_t ins_index, int32_t eff_index, int32_t dsp_index)
-{
-    assert(handle != NULL);
-
-    const Effect* eff = find_effect(handle, ins_index, eff_index);
-    if (eff == NULL)
-        return NULL;
-
-    const DSP* dsp = Effect_get_dsp(eff, dsp_index);
-    if ((dsp == NULL) || !Device_has_complete_type((const Device*)dsp))
-        return NULL;
-
-    return dsp;
-}
-
-
-static bool is_dsp_in_conn_possible(
-        Handle* handle,
-        int32_t ins_index,
-        int32_t eff_index,
-        int32_t dsp_index,
-        int32_t port)
-{
-    assert(handle != NULL);
-
-    const DSP* dsp = find_complete_dsp(handle, ins_index, eff_index, dsp_index);
-    if (dsp == NULL)
-        return false;
-
-    return Device_get_port_existence((const Device*)dsp, DEVICE_PORT_TYPE_RECEIVE, port);
-}
-
-
-static bool is_dsp_out_conn_possible(
-        Handle* handle,
-        int32_t ins_index,
-        int32_t eff_index,
-        int32_t dsp_index,
-        int32_t port)
-{
-    assert(handle != NULL);
-
-    const DSP* dsp = find_complete_dsp(handle, ins_index, eff_index, dsp_index);
-    if (dsp == NULL)
-        return false;
-
-    return Device_get_port_existence((const Device*)dsp, DEVICE_PORT_TYPE_SEND, port);
 }
 
 
@@ -220,28 +182,24 @@ static bool is_connection_possible(
     assert(keyp != NULL);
     assert(indices != NULL);
 
-    if (string_has_prefix(keyp, "ins_XX/eff_XX/dsp_XX/in_XX/"))
-        return is_dsp_in_conn_possible(
+    if (string_has_prefix(keyp, "ins_XX/ins_XX/gen_XX/in_XX/"))
+        return is_gen_in_conn_possible(
                 handle, indices[0], indices[1], indices[2], indices[3]);
-    else if (string_has_prefix(keyp, "ins_XX/eff_XX/dsp_XX/out_XX/"))
-        return is_dsp_out_conn_possible(
+    else if (string_has_prefix(keyp, "ins_XX/ins_XX/gen_XX/out_XX/"))
+        return is_gen_out_conn_possible(
                 handle, indices[0], indices[1], indices[2], indices[3]);
-    else if (string_has_prefix(keyp, "ins_XX/eff_XX/in_XX/"))
-        return is_eff_in_conn_possible(handle, indices[0], indices[1], indices[2]);
-    else if (string_has_prefix(keyp, "ins_XX/eff_XX/out_XX/"))
-        return is_eff_out_conn_possible(handle, indices[0], indices[1], indices[2]);
+    else if (string_has_prefix(keyp, "ins_XX/ins_XX/in_XX/"))
+        return is_ins_in_conn_possible(handle, indices[0], indices[1], indices[2]);
+    else if (string_has_prefix(keyp, "ins_XX/ins_XX/out_XX/"))
+        return is_ins_out_conn_possible(handle, indices[0], indices[1], indices[2]);
+    else if (string_has_prefix(keyp, "ins_XX/gen_XX/in_XX/"))
+        return is_gen_in_conn_possible(handle, indices[0], -1, indices[1], indices[2]);
     else if (string_has_prefix(keyp, "ins_XX/gen_XX/out_XX/"))
-        return is_gen_out_conn_possible(handle, indices[0], indices[1], indices[2]);
+        return is_gen_out_conn_possible(handle, indices[0], -1, indices[1], indices[2]);
+    else if (string_has_prefix(keyp, "ins_XX/in_XX/"))
+        return is_ins_in_conn_possible(handle, indices[0], -1, indices[1]);
     else if (string_has_prefix(keyp, "ins_XX/out_XX/"))
-        return is_ins_out_conn_possible(handle, indices[0], indices[1]);
-    else if (string_has_prefix(keyp, "eff_XX/dsp_XX/in_XX/"))
-        return is_dsp_in_conn_possible(handle, -1, indices[0], indices[1], indices[2]);
-    else if (string_has_prefix(keyp, "eff_XX/dsp_XX/out_XX/"))
-        return is_dsp_out_conn_possible(handle, -1, indices[0], indices[1], indices[2]);
-    else if (string_has_prefix(keyp, "eff_XX/in_XX/"))
-        return is_eff_in_conn_possible(handle, -1, indices[0], indices[1]);
-    else if (string_has_prefix(keyp, "eff_XX/out_XX/"))
-        return is_eff_out_conn_possible(handle, -1, indices[0], indices[1]);
+        return is_ins_out_conn_possible(handle, indices[0], -1, indices[1]);
 
     return false;
 }
