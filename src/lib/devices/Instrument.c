@@ -508,35 +508,6 @@ static bool Instrument_set_buffer_size(
 }
 
 
-#if 0
-static bool Instrument_sync(Device* device, Device_states* dstates)
-{
-    assert(device != NULL);
-    assert(dstates != NULL);
-
-    Instrument* ins = (Instrument*)device;
-
-    // Sync generators
-    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
-    {
-        Generator* gen = Gen_table_get_gen(ins->gens, i);
-        if (gen != NULL && !Device_sync((Device*)gen, dstates))
-            return false;
-    }
-
-    // Sync effects
-    for (int i = 0; i < KQT_INST_EFFECTS_MAX; ++i)
-    {
-        Effect* eff = Effect_table_get(ins->effects, i);
-        if (eff != NULL && !Device_sync((Device*)eff, dstates))
-            return false;
-    }
-
-    return true;
-}
-#endif
-
-
 static void mix_interface_connection(
         Device_state* out_ds,
         const Device_state* in_ds,
