@@ -19,14 +19,12 @@
 #include <stdbool.h>
 
 #include <Decl.h>
-#include <devices/Effect.h>
 #include <devices/Gen_table.h>
 #include <devices/Generator.h>
 #include <devices/Instrument_params.h>
 #include <devices/param_types/Envelope.h>
 #include <frame.h>
 #include <kunquat/limits.h>
-#include <module/Effect_table.h>
 #include <module/Scale.h>
 #include <player/Voice_state.h>
 #include <string/Streader.h>
@@ -117,15 +115,15 @@ Gen_table* Instrument_get_gens(Instrument* ins);
 
 
 /**
- * Get an Effect of the Instrument.
+ * Get an Instrument contained within the Instrument.
  *
  * \param ins     The Instrument -- must not be \c NULL.
- * \param index   The index of the Effect -- must be >= \c 0 and
- *                < \c KQT_INST_EFFECTS_MAX.
+ * \param index   The index of the Instrument -- must be >= \c 0 and
+ *                < \c KQT_INSTRUMENTS_MAX.
  *
- * \return   The Effect if one exists, otherwise \c NULL.
+ * \return   The Instrument if one exists, otherwise \c NULL.
  */
-const Effect* Instrument_get_effect(const Instrument* ins, int index);
+const Instrument* Instrument_get_ins(const Instrument* ins, int index);
 
 
 /**
@@ -136,16 +134,6 @@ const Effect* Instrument_get_effect(const Instrument* ins, int index);
  * \return   The Instrument table.
  */
 Ins_table* Instrument_get_insts(Instrument* ins);
-
-
-/**
- * Get the Effect table of the Instrument.
- *
- * \param ins   The Instrument -- must not be \c NULL.
- *
- * \return   The Effect table.
- */
-Effect_table* Instrument_get_effects(Instrument* ins);
 
 
 /**

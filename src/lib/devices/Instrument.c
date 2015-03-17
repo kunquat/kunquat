@@ -21,13 +21,11 @@
 #include <Connections.h>
 #include <debug/assert.h>
 #include <devices/Device.h>
-#include <devices/Effect.h>
 #include <devices/Effect_interface.h>
 #include <devices/Gen_table.h>
 #include <devices/Generator.h>
 #include <devices/Instrument.h>
 #include <memory.h>
-#include <module/Effect_table.h>
 #include <module/Ins_table.h>
 #include <player/Ins_state.h>
 #include <string/common.h>
@@ -49,7 +47,6 @@ struct Instrument
 
     Gen_table* gens;
     Ins_table* insts;
-    Effect_table* effects;
 };
 
 
@@ -97,7 +94,6 @@ Instrument* new_Instrument(void)
     ins->in_iface = NULL;
     ins->connections = NULL;
     ins->gens = NULL;
-    ins->effects = NULL;
 
     if (!Device_init(&ins->parent, false))
     {
@@ -124,12 +120,10 @@ Instrument* new_Instrument(void)
     ins->in_iface = new_Effect_interface();
     ins->gens = new_Gen_table(KQT_GENERATORS_MAX);
     ins->insts = new_Ins_table(KQT_INSTRUMENTS_MAX);
-    ins->effects = new_Effect_table(KQT_INST_EFFECTS_MAX);
     if ((ins->out_iface == NULL) ||
             (ins->in_iface == NULL) ||
             (ins->gens == NULL) ||
-            (ins->insts == NULL) ||
-            (ins->effects == NULL))
+            (ins->insts == NULL))
     {
         del_Instrument(ins);
         return NULL;
@@ -296,14 +290,14 @@ Gen_table* Instrument_get_gens(Instrument* ins)
 }
 
 
-const Effect* Instrument_get_effect(const Instrument* ins, int index)
+const Instrument* Instrument_get_ins(const Instrument* ins, int index)
 {
     assert(ins != NULL);
-    assert(ins->effects != NULL);
+    assert(ins->insts != NULL);
     assert(index >= 0);
-    assert(index < KQT_INST_EFFECTS_MAX);
+    assert(index < KQT_INSTRUMENTS_MAX);
 
-    return Effect_table_get(ins->effects, index);
+    return Ins_table_get(ins->insts, index);
 }
 
 
@@ -313,15 +307,6 @@ Ins_table* Instrument_get_insts(Instrument* ins)
     assert(ins->insts != NULL);
 
     return ins->insts;
-}
-
-
-Effect_table* Instrument_get_effects(Instrument* ins)
-{
-    assert(ins != NULL);
-    assert(ins->effects != NULL);
-
-    return ins->effects;
 }
 
 
@@ -412,12 +397,12 @@ static void Instrument_reset(const Device* device, Device_states* dstates)
             Device_reset((const Device*)gen, dstates);
     }
 
-    // Reset effects
-    for (int i = 0; i < KQT_INST_EFFECTS_MAX; ++i)
+    // Reset internal instruments
+    for (int i = 0; i < KQT_INSTRUMENTS_MAX; ++i)
     {
-        const Effect* eff = Effect_table_get(ins->effects, i);
-        if (eff != NULL)
-            Device_reset((const Device*)eff, dstates);
+        const Instrument* sub_ins = Ins_table_get(ins->insts, i);
+        if (sub_ins != NULL)
+            Device_reset((const Device*)sub_ins, dstates);
     }
 
     // Reset instrument state
@@ -449,11 +434,11 @@ static bool Instrument_set_audio_rate(
             return false;
     }
 
-    for (int i = 0; i < KQT_INST_EFFECTS_MAX; ++i)
+    for (int i = 0; i < KQT_INSTRUMENTS_MAX; ++i)
     {
-        const Effect* eff = Effect_table_get(ins->effects, i);
-        if (eff != NULL &&
-                !Device_set_audio_rate((const Device*)eff, dstates, audio_rate))
+        const Instrument* sub_ins = Ins_table_get(ins->insts, i);
+        if ((sub_ins != NULL) &&
+                !Device_set_audio_rate((const Device*)sub_ins, dstates, audio_rate))
             return false;
     }
 
@@ -480,11 +465,11 @@ static void Instrument_update_tempo(
             Device_update_tempo((const Device*)gen, dstates, tempo);
     }
 
-    for (int i = 0; i < KQT_INST_EFFECTS_MAX; ++i)
+    for (int i = 0; i < KQT_INSTRUMENTS_MAX; ++i)
     {
-        const Effect* eff = Effect_table_get(ins->effects, i);
-        if (eff != NULL)
-            Device_update_tempo((const Device*)eff, dstates, tempo);
+        const Instrument* sub_ins = Ins_table_get(ins->insts, i);
+        if (sub_ins != NULL)
+            Device_update_tempo((const Device*)sub_ins, dstates, tempo);
     }
 
     return;
@@ -511,11 +496,11 @@ static bool Instrument_set_buffer_size(
             return false;
     }
 
-    for (int i = 0; i < KQT_INST_EFFECTS_MAX; ++i)
+    for (int i = 0; i < KQT_INSTRUMENTS_MAX; ++i)
     {
-        const Effect* eff = Effect_table_get(ins->effects, i);
-        if (eff != NULL &&
-                !Device_set_buffer_size((const Device*)eff, dstates, size))
+        const Instrument* sub_ins = Ins_table_get(ins->insts, i);
+        if ((sub_ins != NULL) &&
+                !Device_set_buffer_size((const Device*)sub_ins, dstates, size))
             return false;
     }
 
@@ -634,7 +619,6 @@ void del_Instrument(Instrument* ins)
     del_Effect_interface(ins->in_iface);
     del_Effect_interface(ins->out_iface);
     del_Gen_table(ins->gens);
-    del_Effect_table(ins->effects);
     Device_deinit(&ins->parent);
     memory_free(ins);
 
