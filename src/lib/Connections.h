@@ -23,8 +23,6 @@
 #include <Decl.h>
 #include <Device_node.h>
 #include <devices/Device.h>
-#include <devices/DSP_table.h>
-#include <module/Effect_table.h>
 #include <module/Ins_table.h>
 #include <player/Device_states.h>
 #include <string/Streader.h>
@@ -38,14 +36,11 @@ struct Connections;
 
 /**
  * Where the connection is located.
- *
- * Instrument and effect levels can be combined by bitwise OR.
  */
 typedef enum
 {
     CONNECTION_LEVEL_GLOBAL = 0,
     CONNECTION_LEVEL_INSTRUMENT = 1,
-    CONNECTION_LEVEL_EFFECT = 2,
 } Connection_level;
 
 
@@ -55,7 +50,6 @@ typedef enum
  * \param sr          The Streader of the JSON input -- must not be \c NULL.
  * \param ins_level   Whether this is an instrument-level graph or not.
  * \param insts       The Instrument table -- must not be \c NULL.
- * \param effects     The Effect table -- must not be \c NULL.
  * \param master      The global or Instrument master node
  *                    -- must not be \c NULL.
  *
@@ -66,7 +60,6 @@ Connections* new_Connections_from_string(
         Streader* sr,
         Connection_level level,
         Ins_table* insts,
-        Effect_table* effects,
         Device* master);
 
 

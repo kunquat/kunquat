@@ -136,7 +136,6 @@ Module* new_Module(void)
             conn_sr,
             false,
             module->insts,
-            module->effects,
             &module->parent);
     if (module->connections == NULL)
     {

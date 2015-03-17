@@ -31,7 +31,6 @@ typedef enum
 {
     DEVICE_TYPE_MASTER     = 1,
     DEVICE_TYPE_GENERATOR  = 2,
-    DEVICE_TYPE_EFFECT     = 4,
     DEVICE_TYPE_INSTRUMENT = 8,
 } Device_type;
 
@@ -51,7 +50,6 @@ struct Device_node
 
     // These fields are required for adaptation to changes
     Ins_table* insts;
-    Effect_table* effects;
     const Device* master; ///< The global, Instrument or Effect master
 
     Device_type type;
@@ -68,11 +66,10 @@ struct Device_node
 
 
 Device_node* new_Device_node(
-        const char* name, Ins_table* insts, Effect_table* effects, const Device* master)
+        const char* name, Ins_table* insts, const Device* master)
 {
     assert(name != NULL);
     assert(insts != NULL);
-    assert(effects != NULL);
     assert(master != NULL);
 
     Device_node* node = memory_alloc_item(Device_node);
@@ -100,13 +97,6 @@ Device_node* new_Device_node(
         assert(node->index >= 0);
         assert(node->index < KQT_GENERATORS_MAX);
     }
-    else if (string_has_prefix(node->name, "eff_"))
-    {
-        node->type = DEVICE_TYPE_EFFECT;
-        node->index = string_extract_index(node->name, "eff_", 2, NULL);
-        assert(node->index >= 0);
-        // TODO: upper bound
-    }
     else if (string_eq(node->name, "Iin"))
     {
         node->type = DEVICE_TYPE_MASTER;
@@ -117,9 +107,7 @@ Device_node* new_Device_node(
         assert(false);
     }
 
-    //node->ins_dual = NULL;
     node->insts = insts;
-    node->effects = effects;
     node->master = master;
     //node->device = NULL;
     node->name[KQT_DEVICE_NODE_NAME_MAX - 1] = '\0';
@@ -356,18 +344,6 @@ bool Device_node_init_effect_buffers(Device_node* node, Device_states* states)
         if (!Instrument_prepare_connections(ins, states))
             return false;
     }
-    else if (node->type == DEVICE_TYPE_EFFECT)
-    {
-        const Effect* eff = Effect_table_get(node->effects, node->index);
-        if (eff == NULL)
-        {
-            Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
-            return true;
-        }
-
-        if (!Effect_prepare_connections(eff, states))
-            return false;
-    }
 
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
@@ -563,8 +539,6 @@ const Device* Device_node_get_device(const Device_node* node)
         return node->master;
     else if (node->type == DEVICE_TYPE_INSTRUMENT)
         return (const Device*)Ins_table_get(node->insts, node->index);
-    else if (node->type == DEVICE_TYPE_EFFECT)
-        return (const Device*)Effect_table_get(node->effects, node->index);
     else if (node->type == DEVICE_TYPE_GENERATOR)
         return (const Device*)Instrument_get_gen(
                 (const Instrument*)node->master,
