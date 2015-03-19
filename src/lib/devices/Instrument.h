@@ -19,10 +19,10 @@
 #include <stdbool.h>
 
 #include <Decl.h>
-#include <devices/Gen_table.h>
-#include <devices/Generator.h>
 #include <devices/Instrument_params.h>
 #include <devices/param_types/Envelope.h>
+#include <devices/Proc_table.h>
+#include <devices/Processor.h>
 #include <frame.h>
 #include <kunquat/limits.h>
 #include <module/Scale.h>
@@ -79,39 +79,25 @@ Instrument_params* Instrument_get_params(Instrument* ins);
 
 
 /**
- * Get a Generator of the Instrument.
+ * Get a Processor of the Instrument.
  *
  * \param ins     The Instrument -- must not be \c NULL.
- * \param index   The index of the Generator -- must be >= \c 0 and
- *                < \c KQT_GENERATORS_MAX.
+ * \param index   The index of the Processor -- must be >= \c 0 and
+ *                < \c KQT_PROCESSORS_MAX.
  *
- * \return   The Generator if found, otherwise \c NULL.
+ * \return   The Processor if found, otherwise \c NULL.
  */
-const Generator* Instrument_get_gen(const Instrument* ins, int index);
+const Processor* Instrument_get_proc(const Instrument* ins, int index);
 
 
 /**
- * Get the Generator table of the Instrument.
+ * Get the Processor table of the Instrument.
  *
  * \param ins   The Instrument -- must not be \c NULL.
  *
- * \return   The Generator table.
+ * \return   The Processor table.
  */
-Gen_table* Instrument_get_gens(Instrument* ins);
-
-
-/**
- * Remove a Generator of the Instrument.
- *
- * The Generators located at greater indices will be shifted backward in the
- * table. If the target Generator doesn't exist, the Instrument won't be
- * modified.
- *
- * \param ins     The Instrument -- must not be \c NULL.
- * \param index   The index of the Generator -- must be >= \c 0 and
- *                < \c KQT_GENERATORS_MAX.
- */
-//void Instrument_del_gen(Instrument* ins, int index);
+Proc_table* Instrument_get_procs(Instrument* ins);
 
 
 /**

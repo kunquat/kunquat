@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -40,7 +40,7 @@ bool Event_channel_set_lowpass_process(
     else
         cutoff = exp2((value->value.float_type + 86) / 12);
 
-    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;
@@ -66,7 +66,7 @@ bool Event_channel_slide_lowpass_process(
     const double target_cutoff_exp = exp2((target_cutoff + 86) / 12);
     const double inf_limit = exp2((86.0 + 86) / 12);
 
-    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;
@@ -97,7 +97,7 @@ bool Event_channel_slide_lowpass_length_process(
             &ch->filter_slide_length,
             &value->value.Tstamp_type);
 
-    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;
@@ -122,7 +122,7 @@ bool Event_channel_autowah_speed_process(
     ch->autowah_speed = value->value.float_type;
     LFO_set_speed(&ch->autowah, value->value.float_type);
 
-    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;
@@ -152,7 +152,7 @@ bool Event_channel_autowah_depth_process(
     const double actual_depth = value->value.float_type / 8;
     ch->autowah_depth = actual_depth;
 
-    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;
@@ -182,7 +182,7 @@ bool Event_channel_autowah_speed_slide_process(
     Tstamp_copy(&ch->autowah_speed_slide, &value->value.Tstamp_type);
     LFO_set_speed_slide(&ch->autowah, &value->value.Tstamp_type);
 
-    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;
@@ -209,7 +209,7 @@ bool Event_channel_autowah_depth_slide_process(
             &value->value.Tstamp_type);
     LFO_set_depth_slide(&ch->autowah, &value->value.Tstamp_type);
 
-    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;
@@ -233,7 +233,7 @@ bool Event_channel_set_resonance_process(
 
     double resonance = pow(1.055, value->value.float_type);
 
-    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;

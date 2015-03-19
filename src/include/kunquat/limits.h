@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -138,9 +138,9 @@ extern "C" {
 
 
 /**
- * Maximum number of Generators in a Kunquat Instruemnt.
+ * Maximum number of processors in a Kunquat Instruemnt.
  */
-#define KQT_GENERATORS_MAX 256
+#define KQT_PROCESSORS_MAX 256
 
 
 /**
@@ -164,7 +164,7 @@ extern "C" {
 /**
  * Maximum number of input/output ports in a Device.
  */
-#define KQT_DEVICE_PORTS_MAX KQT_GENERATORS_MAX
+#define KQT_DEVICE_PORTS_MAX KQT_PROCESSORS_MAX
 
 
 /**

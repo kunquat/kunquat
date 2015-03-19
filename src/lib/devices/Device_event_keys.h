@@ -22,7 +22,7 @@
 
 typedef enum
 {
-    DEVICE_EVENT_TYPE_GENERATOR = 0,
+    DEVICE_EVENT_TYPE_PROCESSOR = 0,
 } Device_event_type;
 
 
@@ -30,7 +30,7 @@ typedef enum
  * Parse the Device Event list.
  *
  * \param params   The Device parameters -- must not be \c NULL.
- * \param type     The type of Events -- must be \c DEVICE_EVENT_TYPE_GENERATOR
+ * \param type     The type of Events -- must be \c DEVICE_EVENT_TYPE_PROCESSOR
  *                 or \c DEVICE_EVENT_TYPE_DSP.
  * \param player   The Player -- must not be \c NULL.
  * \param str      The textual description.

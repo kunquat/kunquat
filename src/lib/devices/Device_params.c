@@ -446,7 +446,7 @@ bool Device_params_parse_events(Device_params* params,
         str = read_string(str, param, 99, state);
         clean_if_fail();
 
-        if (!channel_level) // generator level
+        if (!channel_level) // processor level
         {
             if (!key_is_real_time_device_param(param))
             {
@@ -486,7 +486,7 @@ bool Device_params_parse_events(Device_params* params,
                                      " through events", param);
                 clean_if_fail();
             }
-            if (type == DEVICE_EVENT_TYPE_GENERATOR)
+            if (type == DEVICE_EVENT_TYPE_PROCESSOR)
             {
                 if (!Player_add_channel_gen_state_key(player, param))
                 {

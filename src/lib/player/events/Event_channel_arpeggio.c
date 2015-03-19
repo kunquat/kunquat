@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2015
  *
  * This file is part of Kunquat.
  *
@@ -34,22 +34,22 @@ bool Event_channel_arpeggio_on_process(
     (void)dstates;
     (void)value;
 
-    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         Event_check_voice(ch, i);
         Voice* voice = ch->fg[i];
         Voice_state* vs = voice->state;
         //pitch_t orig_pitch = -1;
-        if (vs->arpeggio || voice->gen->ins_params->pitch_locks[i].enabled)
+        if (vs->arpeggio || voice->proc->ins_params->pitch_locks[i].enabled)
             continue;
 
 #if 0
-        if (voice->gen->ins_params->scale != NULL &&
-                *voice->gen->ins_params->scale != NULL &&
-                **voice->gen->ins_params->scale != NULL)
+        if (voice->proc->ins_params->scale != NULL &&
+                *voice->proc->ins_params->scale != NULL &&
+                **voice->proc->ins_params->scale != NULL)
         {
             orig_pitch = Scale_get_pitch_from_cents(
-                         **voice->gen->ins_params->scale, vs->orig_cents);
+                         **voice->proc->ins_params->scale, vs->orig_cents);
         }
         else
         {
@@ -79,11 +79,11 @@ bool Event_channel_arpeggio_on_process(
                 last_nonzero = k;
             }
             pitch_t new_pitch = -1;
-            if (voice->gen->ins_params->scale != NULL &&
-                    *voice->gen->ins_params->scale != NULL &&
-                    **voice->gen->ins_params->scale != NULL)
+            if (voice->proc->ins_params->scale != NULL &&
+                    *voice->proc->ins_params->scale != NULL &&
+                    **voice->proc->ins_params->scale != NULL)
             {
-                Scale* scale = **voice->gen->ins_params->scale;
+                Scale* scale = **voice->proc->ins_params->scale;
                 new_pitch = Scale_get_pitch_from_cents(scale,
                             vs->orig_cents + data[k + 1].field.double_type);
             }
@@ -135,7 +135,7 @@ bool Event_channel_arpeggio_off_process(
     (void)dstates;
     (void)value;
 
-    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         Event_check_voice(ch, i);
         ch->fg[i]->state->arpeggio = false;
@@ -177,7 +177,7 @@ bool Event_channel_set_arpeggio_note_process(
             ch->arpeggio_edit_pos < KQT_ARPEGGIO_NOTES_MAX - 1)
     {
         ch->arpeggio_tones[ch->arpeggio_edit_pos + 1] = NAN;
-        for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+        for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
         {
             Event_check_voice(ch, i);
             Voice_state* vs = ch->fg[i]->state;
@@ -188,7 +188,7 @@ bool Event_channel_set_arpeggio_note_process(
     ch->arpeggio_tones[ch->arpeggio_edit_pos] =
             value->value.float_type;
 
-    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;
@@ -220,7 +220,7 @@ bool Event_channel_set_arpeggio_speed_process(
             *ch->tempo,
             *ch->freq);
 
-    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;
@@ -245,7 +245,7 @@ bool Event_channel_reset_arpeggio_process(
     ch->arpeggio_edit_pos = 1;
     ch->arpeggio_tones[0] = ch->arpeggio_tones[1] = NAN;
 
-    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;

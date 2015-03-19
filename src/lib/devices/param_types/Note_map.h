@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -43,7 +43,7 @@ Note_map* new_Note_map_from_string(Streader* sr);
 /**
  * Add a Sample entry into the Note map.
  *
- * This function is for Generators that create their own Note maps.
+ * This function is for Processors that create their own Note maps.
  *
  * \param map     The Note map -- must not be \c NULL.
  * \param cents   The pitch in cents -- must be finite.

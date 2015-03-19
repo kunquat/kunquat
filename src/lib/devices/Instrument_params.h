@@ -41,7 +41,7 @@ typedef struct Instrument_params
     double force;                  ///< Default force.
     double force_variation;        ///< Force variation.
 
-    Pitch_lock pitch_locks[KQT_GENERATORS_MAX];
+    Pitch_lock pitch_locks[KQT_PROCESSORS_MAX];
 #if 0
     bool pitch_lock_enabled;
     double pitch_lock_cents;

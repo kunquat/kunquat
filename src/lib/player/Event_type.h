@@ -50,11 +50,11 @@ typedef enum
 #include <player/events/Event_ins_types.h>
     Event_ins_STOP,
 
-    Event_generator_START,
-#define EVENT_GENERATOR_DEF(name, type_suffix, arg_type, validator) \
-        Event_generator_##type_suffix,
-#include <player/events/Event_generator_types.h>
-    Event_generator_STOP,
+    Event_processor_START,
+#define EVENT_PROCESSOR_DEF(name, type_suffix, arg_type, validator) \
+        Event_processor_##type_suffix,
+#include <player/events/Event_processor_types.h>
+    Event_processor_STOP,
 
     Event_query_START,
 
@@ -89,15 +89,15 @@ typedef enum
                                   (type) < Event_channel_STOP)
 #define Event_is_ins(type)       ((type) > Event_ins_START && \
                                   (type) < Event_ins_STOP)
-#define Event_is_generator(type) ((type) > Event_generator_START && \
-                                  (type) < Event_generator_STOP)
+#define Event_is_processor(type) ((type) > Event_processor_START && \
+                                  (type) < Event_processor_STOP)
 #define Event_is_query(type)     ((type) > Event_query_START && \
                                   (type) < Event_query_STOP)
 #define Event_is_auto(type)      ((type) > Event_auto_START && \
                                   (type) < Event_auto_STOP)
 #define Event_is_trigger(type)   (Event_is_ins((type))       || \
                                   Event_is_general((type))   || \
-                                  Event_is_generator((type)) || \
+                                  Event_is_processor((type)) || \
                                   Event_is_master((type))    || \
                                   Event_is_channel((type))   || \
                                   Event_is_control((type))   || \

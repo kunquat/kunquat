@@ -150,16 +150,16 @@ bool v_force(const char* param)
 }
 
 
-bool v_gen(const char* param)
+bool v_proc(const char* param)
 {
     assert(param != NULL);
 
-    int64_t gen = -1;
+    int64_t proc = -1;
     Streader* sr = init_c_streader(param);
 
-    return Streader_read_int(sr, &gen) &&
-        gen >= 0 &&
-        gen < KQT_GENERATORS_MAX;
+    return Streader_read_int(sr, &proc) &&
+        proc >= 0 &&
+        proc < KQT_PROCESSORS_MAX;
 }
 
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -229,7 +229,7 @@ void Player_process_event(
             {
                 assert(arg->type == VALUE_TYPE_INT);
                 assert(arg->value.int_type >= 0);
-                assert(arg->value.int_type < KQT_GENERATORS_MAX);
+                assert(arg->value.int_type < KQT_PROCESSORS_MAX);
 
                 Value* force = VALUE_AUTO;
                 force->type = VALUE_TYPE_FLOAT;

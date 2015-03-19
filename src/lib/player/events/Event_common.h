@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -21,19 +21,19 @@
 #include <Tstamp.h>
 
 
-#define Event_check_voice(ch_state, gen)                        \
-    if (true)                                                   \
-    {                                                           \
-        if ((ch_state)->fg[(gen)] == NULL)                      \
-            continue;                                           \
-                                                                \
-        (ch_state)->fg[(gen)] =                                 \
-                Voice_pool_get_voice((ch_state)->pool,          \
-                                     (ch_state)->fg[(gen)],     \
-                                     (ch_state)->fg_id[(gen)]); \
-        if ((ch_state)->fg[(gen)] == NULL)                      \
-            continue;                                           \
-    }                                                           \
+#define Event_check_voice(ch_state, proc)              \
+    if (true)                                          \
+    {                                                  \
+        if ((ch_state)->fg[(proc)] == NULL)            \
+            continue;                                  \
+                                                       \
+        (ch_state)->fg[(proc)] = Voice_pool_get_voice( \
+                        (ch_state)->pool,              \
+                        (ch_state)->fg[(proc)],        \
+                        (ch_state)->fg_id[(proc)]);    \
+        if ((ch_state)->fg[(proc)] == NULL)            \
+            continue;                                  \
+    }                                                  \
     else (void)0
 
 

@@ -496,18 +496,18 @@ static int validate_connection_path(
         {
             Streader_set_error(
                     sr,
-                    "Generator directory in a root-level connection: \"%s\"",
+                    "Processor directory in a root-level connection: \"%s\"",
                     path);
             return -1;
         }
 
         root = false;
         str += strlen("gen_");
-        if (read_index(str) >= KQT_GENERATORS_MAX)
+        if (read_index(str) >= KQT_PROCESSORS_MAX)
         {
             Streader_set_error(
                     sr,
-                    "Invalid generator number in the connection: \"%s\"",
+                    "Invalid processor number in the connection: \"%s\"",
                     path);
             return -1;
         }
@@ -517,7 +517,7 @@ static int validate_connection_path(
         {
             Streader_set_error(
                     sr,
-                    "Missing trailing '/' after the generator number"
+                    "Missing trailing '/' after the processor number"
                         " in the connection: \"%s\"",
                     path);
             return -1;
@@ -528,7 +528,7 @@ static int validate_connection_path(
         {
             Streader_set_error(
                     sr,
-                    "Invalid generator parameter directory"
+                    "Invalid processor parameter directory"
                         " in the connection: \"%s\"",
                     path);
             return -1;

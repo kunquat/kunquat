@@ -18,7 +18,7 @@
 
 #include <stdbool.h>
 
-#include <devices/Generator.h>
+#include <devices/Processor.h>
 #include <player/Channel.h>
 #include <player/Event_names.h>
 #include <player/Event_type.h>
@@ -134,21 +134,20 @@ bool Event_handler_set_ins_process(
 
 
 /**
- * Register a Generator Event processor.
+ * Register a Processor Event processor.
  *
- * \param eh        The Event handler -- must not be \c NULL.
- * \param name      The name of the Event -- must not be \c NULL, empty string
- *                  or longer than EVENT_NAME_MAX characters.
- * \param type      The type of the Event -- must be a Generator Event.
- * \param process   The process function -- must not be \c NULL.
+ * \param eh             The Event handler -- must not be \c NULL.
+ * \param name           The name of the Event -- must not be \c NULL, empty
+ *                       string or longer than EVENT_NAME_MAX characters.
+ * \param type           The type of the Event -- must be a Processor Event.
+ * \param proc_process   The process function -- must not be \c NULL.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Event_handler_set_generator_process(
+bool Event_handler_set_processor_process(
         Event_handler* eh,
         Event_type type,
-        bool (*gen_process)(
-            const Device_impl*, Device_state*, Channel*, const Value*));
+        bool (*proc_process)(const Device_impl*, Device_state*, Channel*, const Value*));
 
 
 /**
@@ -171,14 +170,14 @@ bool Event_handler_trigger(
 
 
 /**
- * Add a key into all Channel-specific generator parameter dictionaries.
+ * Add a key into all Channel-specific processor parameter dictionaries.
  *
  * \param eh    The Event handler -- must not be \c NULL.
  * \param key   The key -- must not be \c NULL.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-//bool Event_handler_add_channel_gen_state_key(
+//bool Event_handler_add_channel_proc_state_key(
 //        Event_handler* eh,
 //        const char* key);
 

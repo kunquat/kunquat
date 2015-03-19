@@ -19,7 +19,7 @@
 #include <math.h>
 
 #include <debug/assert.h>
-#include <devices/Generator.h>
+#include <devices/Processor.h>
 #include <devices/Instrument.h>
 #include <kunquat/limits.h>
 #include <module/Bind.h>
@@ -39,7 +39,7 @@
 #include <player/events/Event_master_decl.h>
 #include <player/events/Event_channel_decl.h>
 #include <player/events/Event_ins_decl.h>
-#include <player/events/Event_generator_decl.h>
+#include <player/events/Event_processor_decl.h>
 
 #include <memory.h>
 
@@ -62,7 +62,7 @@ struct Event_handler
             Ins_state*,
             Device_states*,
             const Value*);
-    bool (*generator_process[Event_generator_STOP])(
+    bool (*processor_process[Event_processor_STOP])(
             const Device_impl*, Device_state*, Channel*, const Value*);
 };
 
@@ -120,10 +120,10 @@ Event_handler* new_Event_handler(
         eh, Event_ins_##type_suffix, Event_ins_##type_suffix##_process);
 #include <player/events/Event_ins_types.h>
 
-#define EVENT_GENERATOR_DEF(name, type_suffix, arg_type, validator)                  \
-        Event_handler_set_generator_process(                                         \
-        eh, Event_generator_##type_suffix, Event_generator_##type_suffix##_process);
-#include <player/events/Event_generator_types.h>
+#define EVENT_PROCESSOR_DEF(name, type_suffix, arg_type, validator)                  \
+        Event_handler_set_processor_process(                                         \
+        eh, Event_processor_##type_suffix, Event_processor_##type_suffix##_process);
+#include <player/events/Event_processor_types.h>
 
     return eh;
 }
@@ -211,17 +211,16 @@ bool Event_handler_set_ins_process(
 }
 
 
-bool Event_handler_set_generator_process(
+bool Event_handler_set_processor_process(
         Event_handler* eh,
         Event_type type,
-        bool (*gen_process)(
-            const Device_impl*, Device_state*, Channel*, const Value*))
+        bool (*proc_process)(const Device_impl*, Device_state*, Channel*, const Value*))
 {
     assert(eh != NULL);
-    assert(Event_is_generator(type));
-    assert(gen_process != NULL);
+    assert(Event_is_processor(type));
+    assert(proc_process != NULL);
 
-    eh->generator_process[type] = gen_process;
+    eh->processor_process[type] = proc_process;
 
     return true;
 }
@@ -276,7 +275,7 @@ static bool Event_handler_handle(
 
         return eh->master_process[type](eh->master_params, value);
     }
-    else if (Event_is_generator(type))
+    else if (Event_is_processor(type))
     {
         // Find our instrument
         Instrument* ins = Module_get_ins_from_input(
@@ -285,8 +284,8 @@ static bool Event_handler_handle(
         if (ins == NULL)
             return false;
 
-        const Device* device = (const Device*)Instrument_get_gen(
-                ins, eh->channels[index]->generator);
+        const Device* device = (const Device*)Instrument_get_proc(
+                ins, eh->channels[index]->processor);
         if (device == NULL)
             return false;
 
@@ -298,7 +297,7 @@ static bool Event_handler_handle(
                 eh->device_states,
                 Device_get_id(device));
 
-        return eh->generator_process[type](
+        return eh->processor_process[type](
                 dimpl, dstate, eh->channels[index], value);
     }
     else if (Event_is_control(type))
@@ -391,7 +390,7 @@ bool Event_handler_process_type(
 
 
 #if 0
-bool Event_handler_add_channel_gen_state_key(
+bool Event_handler_add_channel_proc_state_key(
         Event_handler* eh,
         const char* key)
 {
@@ -400,7 +399,7 @@ bool Event_handler_add_channel_gen_state_key(
 
     for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
     {
-        if (!Channel_gen_state_set_key(eh->channels[i]->cgstate, key))
+        if (!Channel_proc_state_set_key(eh->channels[i]->cgstate, key))
             return false;
     }
 

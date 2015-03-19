@@ -22,8 +22,8 @@
 #include <debug/assert.h>
 #include <devices/Device_event_keys.h>
 #include <devices/Device_params.h>
-#include <devices/generators/Gen_type.h>
 #include <devices/Instrument.h>
+#include <devices/Proc_type.h>
 #include <Handle_private.h>
 #include <memory.h>
 #include <module/Bind.h>
@@ -121,8 +121,8 @@ static bool is_ins_out_conn_possible(
 }
 
 
-static const Generator* find_complete_gen(
-        Handle* handle, int32_t ins_index, int32_t sub_ins_index, int32_t gen_index)
+static const Processor* find_complete_proc(
+        Handle* handle, int32_t ins_index, int32_t sub_ins_index, int32_t proc_index)
 {
     assert(handle != NULL);
 
@@ -130,47 +130,48 @@ static const Generator* find_complete_gen(
     if (ins == NULL)
         return false;
 
-    const Generator* gen = Instrument_get_gen(ins, gen_index);
-    if ((gen == NULL) || !Device_has_complete_type((const Device*)gen))
+    const Processor* proc = Instrument_get_proc(ins, proc_index);
+    if ((proc == NULL) || !Device_has_complete_type((const Device*)proc))
         return NULL;
 
-    return gen;
+    return proc;
 }
 
 
-static bool is_gen_in_conn_possible(
+static bool is_proc_in_conn_possible(
         Handle* handle,
         int32_t ins_index,
         int32_t sub_ins_index,
-        int32_t gen_index,
+        int32_t proc_index,
         int32_t port)
 {
     assert(handle != NULL);
 
-    const Generator* gen = find_complete_gen(
-            handle, ins_index, sub_ins_index, gen_index);
-    if (gen == NULL)
+    const Processor* proc = find_complete_proc(
+            handle, ins_index, sub_ins_index, proc_index);
+    if (proc == NULL)
         return false;
 
-    return Device_get_port_existence((const Device*)gen, DEVICE_PORT_TYPE_RECEIVE, port);
+    return Device_get_port_existence(
+            (const Device*)proc, DEVICE_PORT_TYPE_RECEIVE, port);
 }
 
 
-static bool is_gen_out_conn_possible(
+static bool is_proc_out_conn_possible(
         Handle* handle,
         int32_t ins_index,
         int32_t sub_ins_index,
-        int32_t gen_index,
+        int32_t proc_index,
         int32_t port)
 {
     assert(handle != NULL);
 
-    const Generator* gen = find_complete_gen(
-            handle, ins_index, sub_ins_index, gen_index);
-    if (gen == NULL)
+    const Processor* proc = find_complete_proc(
+            handle, ins_index, sub_ins_index, proc_index);
+    if (proc == NULL)
         return false;
 
-    return Device_get_port_existence((const Device*)gen, DEVICE_PORT_TYPE_SEND, port);
+    return Device_get_port_existence((const Device*)proc, DEVICE_PORT_TYPE_SEND, port);
 }
 
 
@@ -182,19 +183,19 @@ static bool is_connection_possible(
     assert(indices != NULL);
 
     if (string_has_prefix(keyp, "ins_XX/ins_XX/gen_XX/in_XX/"))
-        return is_gen_in_conn_possible(
+        return is_proc_in_conn_possible(
                 handle, indices[0], indices[1], indices[2], indices[3]);
     else if (string_has_prefix(keyp, "ins_XX/ins_XX/gen_XX/out_XX/"))
-        return is_gen_out_conn_possible(
+        return is_proc_out_conn_possible(
                 handle, indices[0], indices[1], indices[2], indices[3]);
     else if (string_has_prefix(keyp, "ins_XX/ins_XX/in_XX/"))
         return is_ins_in_conn_possible(handle, indices[0], indices[1], indices[2]);
     else if (string_has_prefix(keyp, "ins_XX/ins_XX/out_XX/"))
         return is_ins_out_conn_possible(handle, indices[0], indices[1], indices[2]);
     else if (string_has_prefix(keyp, "ins_XX/gen_XX/in_XX/"))
-        return is_gen_in_conn_possible(handle, indices[0], -1, indices[1], indices[2]);
+        return is_proc_in_conn_possible(handle, indices[0], -1, indices[1], indices[2]);
     else if (string_has_prefix(keyp, "ins_XX/gen_XX/out_XX/"))
-        return is_gen_out_conn_possible(handle, indices[0], -1, indices[1], indices[2]);
+        return is_proc_out_conn_possible(handle, indices[0], -1, indices[1], indices[2]);
     else if (string_has_prefix(keyp, "ins_XX/in_XX/"))
         return is_ins_in_conn_possible(handle, indices[0], -1, indices[1]);
     else if (string_has_prefix(keyp, "ins_XX/out_XX/"))
@@ -736,62 +737,63 @@ static bool read_any_ins_env_pitch_pan(Reader_params* params, Ins_table* ins_tab
 }
 
 
-static Generator* add_generator(
+static Processor* add_processor(
         Handle* handle,
         Instrument* ins,
-        Gen_table* gen_table,
-        int gen_index)
+        Proc_table* proc_table,
+        int proc_index)
 {
     assert(handle != NULL);
     assert(ins != NULL);
-    assert(gen_table != NULL);
-    assert(gen_index >= 0);
-    assert(gen_index < KQT_GENERATORS_MAX);
+    assert(proc_table != NULL);
+    assert(proc_index >= 0);
+    assert(proc_index < KQT_PROCESSORS_MAX);
 
     static const char* memory_error_str =
-        "Couldn't allocate memory for a new generator";
+        "Couldn't allocate memory for a new processor";
 
-    // Return existing generator
-    Generator* gen = Gen_table_get_gen_mut(gen_table, gen_index);
-    if (gen != NULL)
-        return gen;
+    // Return existing processor
+    Processor* proc = Proc_table_get_proc_mut(proc_table, proc_index);
+    if (proc != NULL)
+        return proc;
 
-    // Create new generator
-    gen = new_Generator(Instrument_get_params(ins));
-    if (gen == NULL || !Gen_table_set_gen(gen_table, gen_index, gen))
+    // Create new processor
+    proc = new_Processor(Instrument_get_params(ins));
+    if (proc == NULL || !Proc_table_set_proc(proc_table, proc_index, proc))
     {
         Handle_set_error(handle, ERROR_MEMORY, memory_error_str);
-        del_Generator(gen);
+        del_Processor(proc);
         return NULL;
     }
 
-    return gen;
+    return proc;
 }
 
 
-#define acquire_gen_index(index, params, level)           \
+#define acquire_proc_index(index, params, level)           \
     if (true)                                             \
     {                                                     \
         (index) = (params)->indices[(level)];             \
-        if ((index) < 0 || (index) >= KQT_GENERATORS_MAX) \
+        if ((index) < 0 || (index) >= KQT_PROCESSORS_MAX) \
             return true;                                  \
     }                                                     \
     else (void)0
 
 
-static bool read_any_gen_manifest(Reader_params* params, Ins_table* ins_table, int level)
+static bool read_any_proc_manifest(
+        Reader_params* params, Ins_table* ins_table, int level)
 {
     assert(params != NULL);
 
     int32_t ins_index = -1;
     acquire_ins_index(ins_index, params, level);
-    int32_t gen_index = -1;
-    acquire_gen_index(gen_index, params, level + 1);
+    int32_t proc_index = -1;
+    acquire_proc_index(proc_index, params, level + 1);
 
     Instrument* ins = NULL;
     acquire_ins(ins, params->handle, ins_table, ins_index);
 
-    Gen_table* table = Instrument_get_gens(ins);
+    Proc_table* table = Instrument_get_procs(ins);
     assert(table != NULL);
 
     const bool existent = read_default_manifest(params->sr);
@@ -801,26 +803,27 @@ static bool read_any_gen_manifest(Reader_params* params, Ins_table* ins_table, i
         return false;
     }
 
-    Gen_table_set_existent(table, gen_index, existent);
+    Proc_table_set_existent(table, proc_index, existent);
 
     return true;
 }
 
 
-static bool read_any_gen_in_port_manifest(Reader_params* params, Ins_table* ins_table, int level)
+static bool read_any_proc_in_port_manifest(
+        Reader_params* params, Ins_table* ins_table, int level)
 {
     assert(params != NULL);
 
     int32_t ins_index = -1;
     acquire_ins_index(ins_index, params, level);
-    int32_t gen_index = -1;
-    acquire_gen_index(gen_index, params, level + 1);
+    int32_t proc_index = -1;
+    acquire_proc_index(proc_index, params, level + 1);
     int32_t in_port_index = -1;
     acquire_port_index(in_port_index, params, level + 2);
 
     Instrument* ins = NULL;
     acquire_ins(ins, params->handle, ins_table, ins_index);
-    Gen_table* gen_table = Instrument_get_gens(ins);
+    Proc_table* proc_table = Instrument_get_procs(ins);
 
     const bool existent = read_default_manifest(params->sr);
     if (Streader_is_error_set(params->sr))
@@ -829,31 +832,32 @@ static bool read_any_gen_in_port_manifest(Reader_params* params, Ins_table* ins_
         return false;
     }
 
-    Generator* gen = add_generator(params->handle, ins, gen_table, gen_index);
-    if (gen == NULL)
+    Processor* proc = add_processor(params->handle, ins, proc_table, proc_index);
+    if (proc == NULL)
         return false;
 
     Device_set_port_existence(
-            (Device*)gen, DEVICE_PORT_TYPE_RECEIVE, in_port_index, existent);
+            (Device*)proc, DEVICE_PORT_TYPE_RECEIVE, in_port_index, existent);
 
     return true;
 }
 
 
-static bool read_any_gen_out_port_manifest(Reader_params* params, Ins_table* ins_table, int level)
+static bool read_any_proc_out_port_manifest(
+        Reader_params* params, Ins_table* ins_table, int level)
 {
     assert(params != NULL);
 
     int32_t ins_index = -1;
     acquire_ins_index(ins_index, params, level);
-    int32_t gen_index = -1;
-    acquire_gen_index(gen_index, params, level + 1);
+    int32_t proc_index = -1;
+    acquire_proc_index(proc_index, params, level + 1);
     int32_t out_port_index = -1;
     acquire_port_index(out_port_index, params, level + 2);
 
     Instrument* ins = NULL;
     acquire_ins(ins, params->handle, ins_table, ins_index);
-    Gen_table* gen_table = Instrument_get_gens(ins);
+    Proc_table* proc_table = Instrument_get_procs(ins);
 
     const bool existent = read_default_manifest(params->sr);
     if (Streader_is_error_set(params->sr))
@@ -862,90 +866,90 @@ static bool read_any_gen_out_port_manifest(Reader_params* params, Ins_table* ins
         return false;
     }
 
-    Generator* gen = add_generator(params->handle, ins, gen_table, gen_index);
-    if (gen == NULL)
+    Processor* proc = add_processor(params->handle, ins, proc_table, proc_index);
+    if (proc == NULL)
         return false;
 
     Device_set_port_existence(
-            (Device*)gen, DEVICE_PORT_TYPE_SEND, out_port_index, existent);
+            (Device*)proc, DEVICE_PORT_TYPE_SEND, out_port_index, existent);
 
     return true;
 }
 
 
-static bool read_any_gen_type(Reader_params* params, Ins_table* ins_table, int level)
+static bool read_any_proc_type(Reader_params* params, Ins_table* ins_table, int level)
 {
     assert(params != NULL);
 
     int32_t ins_index = -1;
     acquire_ins_index(ins_index, params, level);
-    int32_t gen_index = -1;
-    acquire_gen_index(gen_index, params, level + 1);
+    int32_t proc_index = -1;
+    acquire_proc_index(proc_index, params, level + 1);
 
     if (!Streader_has_data(params->sr))
     {
-        // Remove generator
+        // Remove processor
         Module* module = Handle_get_module(params->handle);
         Instrument* ins = Ins_table_get(Module_get_insts(module), ins_index);
         if (ins == NULL)
             return true;
 
-        Gen_table* gen_table = Instrument_get_gens(ins);
-        Gen_table_remove_gen(gen_table, gen_index);
+        Proc_table* proc_table = Instrument_get_procs(ins);
+        Proc_table_remove_proc(proc_table, proc_index);
 
         return true;
     }
 
     Instrument* ins = NULL;
     acquire_ins(ins, params->handle, ins_table, ins_index);
-    Gen_table* gen_table = Instrument_get_gens(ins);
+    Proc_table* proc_table = Instrument_get_procs(ins);
 
-    Generator* gen = add_generator(params->handle, ins, gen_table, gen_index);
-    if (gen == NULL)
+    Processor* proc = add_processor(params->handle, ins, proc_table, proc_index);
+    if (proc == NULL)
         return false;
 
-    // Create the Generator implementation
-    char type[GEN_TYPE_LENGTH_MAX] = "";
-    if (!Streader_read_string(params->sr, GEN_TYPE_LENGTH_MAX, type))
+    // Create the Processor implementation
+    char type[PROC_TYPE_LENGTH_MAX] = "";
+    if (!Streader_read_string(params->sr, PROC_TYPE_LENGTH_MAX, type))
     {
         set_error(params);
         return false;
     }
 
-    Generator_cons* cons = Gen_type_find_cons(type);
+    Proc_cons* cons = Proc_type_find_cons(type);
     if (cons == NULL)
     {
         Handle_set_error(params->handle, ERROR_FORMAT,
-                "Unsupported Generator type: %s", type);
+                "Unsupported Processor type: %s", type);
         return false;
     }
 
-    Device_impl* gen_impl = cons(gen);
-    if (gen_impl == NULL)
+    Device_impl* proc_impl = cons(proc);
+    if (proc_impl == NULL)
     {
         Handle_set_error(params->handle, ERROR_MEMORY,
-                "Couldn't allocate memory for generator implementation");
+                "Couldn't allocate memory for processor implementation");
         return false;
     }
 
-    if (!Device_set_impl((Device*)gen, gen_impl))
+    if (!Device_set_impl((Device*)proc, proc_impl))
     {
-        del_Device_impl(gen_impl);
+        del_Device_impl(proc_impl);
         Handle_set_error(params->handle, ERROR_MEMORY,
-                "Couldn't allocate memory while initialising Generator implementation");
+                "Couldn't allocate memory while initialising Processor implementation");
         return false;
     }
 
-    // Remove old Generator Device state
+    // Remove old Processor Device state
     Device_states* dstates = Player_get_device_states(params->handle->player);
-    Device_states_remove_state(dstates, Device_get_id((Device*)gen));
+    Device_states_remove_state(dstates, Device_get_id((Device*)proc));
 
-    // Get generator properties
-    Generator_property* property = Gen_type_find_property(type);
+    // Get processor properties
+    Proc_property* property = Proc_type_find_property(type);
     if (property != NULL)
     {
         // Allocate Voice state space
-        const char* size_str = property(gen, "voice_state_size");
+        const char* size_str = property(proc, "voice_state_size");
         if (size_str != NULL)
         {
             Streader* size_sr = Streader_init(
@@ -962,22 +966,22 @@ static bool read_any_gen_type(Reader_params* params, Ins_table* ins_table, int l
                         params->handle->length_counter, size))
             {
                 Handle_set_error(params->handle, ERROR_MEMORY,
-                        "Couldn't allocate memory for generator voice states");
-                del_Device_impl(gen_impl);
+                        "Couldn't allocate memory for processor voice states");
+                del_Device_impl(proc_impl);
                 return false;
             }
         }
 
-        // Allocate channel-specific generator state space
-        const char* gen_state_vars = property(gen, "gen_state_vars");
-        if (gen_state_vars != NULL)
+        // Allocate channel-specific processor state space
+        const char* proc_state_vars = property(proc, "proc_state_vars");
+        if (proc_state_vars != NULL)
         {
             Streader* gsv_sr = Streader_init(
                     STREADER_AUTO,
-                    gen_state_vars,
-                    strlen(gen_state_vars));
+                    proc_state_vars,
+                    strlen(proc_state_vars));
 
-            if (!Player_alloc_channel_gen_state_keys(
+            if (!Player_alloc_channel_proc_state_keys(
                         params->handle->player, gsv_sr))
             {
                 Reader_params gsv_params;
@@ -989,9 +993,9 @@ static bool read_any_gen_type(Reader_params* params, Ins_table* ins_table, int l
         }
     }
 
-    // Allocate Device state(s) for this Generator
+    // Allocate Device state(s) for this Processor
     Device_state* ds = Device_create_state(
-            (Device*)gen,
+            (Device*)proc,
             Player_get_audio_rate(params->handle->player),
             Player_get_audio_buffer_size(params->handle->player));
     if (ds == NULL || !Device_states_add_state(dstates, ds))
@@ -999,25 +1003,25 @@ static bool read_any_gen_type(Reader_params* params, Ins_table* ins_table, int l
         Handle_set_error(params->handle, ERROR_MEMORY,
                 "Couldn't allocate memory for device state");
         del_Device_state(ds);
-        del_Generator(gen);
+        del_Processor(proc);
         return false;
     }
 
-    // Sync the Generator
-    if (!Device_sync((Device*)gen))
+    // Sync the Processor
+    if (!Device_sync((Device*)proc))
     {
         Handle_set_error(params->handle, ERROR_MEMORY,
-                "Couldn't allocate memory while syncing generator");
+                "Couldn't allocate memory while syncing processor");
         return false;
     }
 
     // Sync the Device state(s)
     if (!Device_sync_states(
-                (Device*)gen,
+                (Device*)proc,
                 Player_get_device_states(params->handle->player)))
     {
         Handle_set_error(params->handle, ERROR_MEMORY,
-                "Couldn't allocate memory while syncing generator");
+                "Couldn't allocate memory while syncing processor");
         return false;
     }
 
@@ -1028,7 +1032,8 @@ static bool read_any_gen_type(Reader_params* params, Ins_table* ins_table, int l
 }
 
 
-static bool read_any_gen_impl_conf_key(Reader_params* params, Ins_table* ins_table, int level)
+static bool read_any_proc_impl_conf_key(
+        Reader_params* params, Ins_table* ins_table, int level)
 {
     assert(params != NULL);
 
@@ -1037,19 +1042,19 @@ static bool read_any_gen_impl_conf_key(Reader_params* params, Ins_table* ins_tab
 
     int32_t ins_index = -1;
     acquire_ins_index(ins_index, params, level);
-    int32_t gen_index = -1;
-    acquire_gen_index(gen_index, params, level + 1);
+    int32_t proc_index = -1;
+    acquire_proc_index(proc_index, params, level + 1);
 
     Instrument* ins = NULL;
     acquire_ins(ins, params->handle, ins_table, ins_index);
-    Gen_table* gen_table = Instrument_get_gens(ins);
+    Proc_table* proc_table = Instrument_get_procs(ins);
 
-    Generator* gen = add_generator(params->handle, ins, gen_table, gen_index);
-    if (gen == NULL)
+    Processor* proc = add_processor(params->handle, ins, proc_table, proc_index);
+    if (proc == NULL)
         return false;
 
     // Update Device
-    if (!Device_set_key((Device*)gen, params->subkey, params->sr))
+    if (!Device_set_key((Device*)proc, params->subkey, params->sr))
     {
         set_error(params);
         return false;
@@ -1057,7 +1062,7 @@ static bool read_any_gen_impl_conf_key(Reader_params* params, Ins_table* ins_tab
 
     // Update Device state
     Device_set_state_key(
-            (Device*)gen,
+            (Device*)proc,
             Player_get_device_states(params->handle->player),
             params->subkey);
 
@@ -1065,7 +1070,8 @@ static bool read_any_gen_impl_conf_key(Reader_params* params, Ins_table* ins_tab
 }
 
 
-static bool read_any_gen_impl_key(Reader_params* params, Ins_table* ins_table, int level)
+static bool read_any_proc_impl_key(
+        Reader_params* params, Ins_table* ins_table, int level)
 {
     assert(params != NULL);
     assert(strlen(params->subkey) < KQT_KEY_LENGTH_MAX - 2);
@@ -1075,11 +1081,12 @@ static bool read_any_gen_impl_key(Reader_params* params, Ins_table* ins_table, i
     Reader_params hack_params = *params;
     hack_params.subkey = hack_subkey;
 
-    return read_any_gen_impl_conf_key(&hack_params, ins_table, level);
+    return read_any_proc_impl_conf_key(&hack_params, ins_table, level);
 }
 
 
-static bool read_any_gen_conf_key(Reader_params* params, Ins_table* ins_table, int level)
+static bool read_any_proc_conf_key(
+        Reader_params* params, Ins_table* ins_table, int level)
 {
     assert(params != NULL);
     assert(strlen(params->subkey) < KQT_KEY_LENGTH_MAX - 2);
@@ -1089,7 +1096,7 @@ static bool read_any_gen_conf_key(Reader_params* params, Ins_table* ins_table, i
     Reader_params hack_params = *params;
     hack_params.subkey = hack_subkey;
 
-    return read_any_gen_impl_conf_key(&hack_params, ins_table, level);
+    return read_any_proc_impl_conf_key(&hack_params, ins_table, level);
 }
 
 
@@ -1136,12 +1143,12 @@ MAKE_INS_READERS(ins_env_force)
 MAKE_INS_READERS(ins_env_force_release)
 MAKE_INS_READERS(ins_env_force_filter)
 MAKE_INS_READERS(ins_env_pitch_pan)
-MAKE_INS_READERS(gen_manifest)
-MAKE_INS_READERS(gen_in_port_manifest)
-MAKE_INS_READERS(gen_out_port_manifest)
-MAKE_INS_READERS(gen_type)
-MAKE_INS_READERS(gen_impl_key)
-MAKE_INS_READERS(gen_conf_key)
+MAKE_INS_READERS(proc_manifest)
+MAKE_INS_READERS(proc_in_port_manifest)
+MAKE_INS_READERS(proc_out_port_manifest)
+MAKE_INS_READERS(proc_type)
+MAKE_INS_READERS(proc_impl_key)
+MAKE_INS_READERS(proc_conf_key)
 
 
 #define acquire_pattern(pattern, handle, index)                         \

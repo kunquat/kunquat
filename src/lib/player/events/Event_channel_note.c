@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -60,29 +60,28 @@ bool Event_channel_note_on_process(
 //    ch->panning_slide = 0;
     double force_var = NAN;
 
-    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
-        const Generator* gen = Instrument_get_gen(ins, i);
-        if (gen == NULL || !Device_is_existent((const Device*)gen))
+        const Processor* proc = Instrument_get_proc(ins, i);
+        if (proc == NULL || !Device_is_existent((const Device*)proc))
             continue;
 
-        const Gen_state* gen_state = (Gen_state*)Device_states_get_state(
-                dstates,
-                Device_get_id((const Device*)gen));
+        const Proc_state* proc_state = (Proc_state*)Device_states_get_state(
+                dstates, Device_get_id((const Device*)proc));
 
-        reserve_voice(ch, ins, gen_state, i);
+        reserve_voice(ch, ins, proc_state, i);
 
         Voice* voice = ch->fg[i];
         Voice_state* vs = voice->state;
 
-        if (voice->gen->ins_params->pitch_locks[i].enabled)
+        if (voice->proc->ins_params->pitch_locks[i].enabled)
         {
-            vs->pitch = voice->gen->ins_params->pitch_locks[i].freq;
+            vs->pitch = voice->proc->ins_params->pitch_locks[i].freq;
         }
 #if 0
-        else if (voice->gen->ins_params->scale == NULL ||
-                 *voice->gen->ins_params->scale == NULL ||
-                 **voice->gen->ins_params->scale == NULL)
+        else if (voice->proc->ins_params->scale == NULL ||
+                 *voice->proc->ins_params->scale == NULL ||
+                 **voice->proc->ins_params->scale == NULL)
         {
             vs->pitch = exp2(value->value.float_type / 1200) * 440;
         }
@@ -91,7 +90,7 @@ bool Event_channel_note_on_process(
         {
 #if 0
             pitch_t pitch = Scale_get_pitch_from_cents(
-                    **voice->gen->ins_params->scale,
+                    **voice->proc->ins_params->scale,
                     value->value.float_type);
             if (pitch > 0)
             {
@@ -139,17 +138,16 @@ bool Event_channel_hit_process(
 
     double force_var = NAN;
 
-    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
-        const Generator* gen = Instrument_get_gen(ins, i);
-        if (gen == NULL || !Device_is_existent((const Device*)gen))
+        const Processor* proc = Instrument_get_proc(ins, i);
+        if (proc == NULL || !Device_is_existent((const Device*)proc))
             continue;
 
-        const Gen_state* gen_state = (Gen_state*)Device_states_get_state(
-                dstates,
-                Device_get_id((const Device*)gen));
+        const Proc_state* proc_state = (Proc_state*)Device_states_get_state(
+                dstates, Device_get_id((const Device*)proc));
 
-        reserve_voice(ch, ins, gen_state, i);
+        reserve_voice(ch, ins, proc_state, i);
 
         Voice* voice = ch->fg[i];
         Voice_state* vs = voice->state;
@@ -171,7 +169,7 @@ bool Event_channel_note_off_process(
     (void)dstates;
     (void)value;
 
-    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         if (ch->fg[i] != NULL)
         {

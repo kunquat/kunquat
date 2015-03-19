@@ -56,7 +56,7 @@ Instrument_params* Instrument_params_init(
     ip->force = 0;
     ip->force_variation = 0;
 
-    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         ip->pitch_locks[i].enabled = false;
         ip->pitch_locks[i].cents = 0;

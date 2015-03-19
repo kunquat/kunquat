@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2015
  *
  * This file is part of Kunquat.
  *
@@ -21,19 +21,19 @@
 
 
 /**
- * Reserve a Voice for a Generator in an Instrument.
+ * Reserve a Voice for a processor in an Instrument.
  *
- * \param ch          The Channel -- must not be \c NULL.
- * \param ins         The Instrument -- must not be \c NULL.
- * \param gen_state   The Generator state -- must not be \c NULL.
- * \param gen_num     The number of the Generator -- must be >= \c 0 and
- *                    < \c KQT_GENERATORS_MAX.
+ * \param ch           The Channel -- must not be \c NULL.
+ * \param ins          The Instrument -- must not be \c NULL.
+ * \param proc_state   The processor state -- must not be \c NULL.
+ * \param proc_num     The number of the Processor -- must be >= \c 0 and
+ *                     < \c KQT_PROCESSORS_MAX.
  */
 void reserve_voice(
         Channel* ch,
         Instrument* ins,
-        const Gen_state* gen_state,
-        int gen_num);
+        const Proc_state* proc_state,
+        int proc_num);
 
 
 /**

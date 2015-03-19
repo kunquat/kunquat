@@ -41,7 +41,7 @@ bool v_finite_float(const char* param);
 
 bool v_force(const char* param);
 
-bool v_gen(const char* param);
+bool v_proc(const char* param);
 
 bool v_hit(const char* param);
 

@@ -61,7 +61,7 @@ UPDATE_FUNC_TYPE(tstamp,    const Tstamp*);
 
 
 /**
- * The base class of a Generator implementation.
+ * The base class of a Processor implementation.
  */
 struct Device_impl
 {

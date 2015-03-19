@@ -19,9 +19,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <devices/Generator.h>
+#include <devices/Processor.h>
 #include <mathnum/Random.h>
-#include <player/Channel_gen_state.h>
+#include <player/Channel_proc_state.h>
 #include <player/Device_states.h>
 #include <player/Voice_state.h>
 #include <player/Work_buffers.h>
@@ -38,17 +38,17 @@ typedef enum
 
 /**
  * This contains all the playback state information of a single note of a
- * Generator being played.
+ * Processor being played.
  */
 typedef struct Voice
 {
-    uint64_t id;            ///< An identification number for this initialisation.
-    Voice_prio prio;        ///< Current priority of the Voice.
-    const Generator* gen;   ///< The Generator.
-    size_t state_size;      ///< The amount bytes allocated for the Voice state.
-    Voice_state* state;     ///< The current playback state.
-    Random* rand_p;         ///< Parameter random source.
-    Random* rand_s;         ///< Signal random source.
+    uint64_t id;             ///< An identification number for this initialisation.
+    Voice_prio prio;         ///< Current priority of the Voice.
+    const Processor* proc;   ///< The Processor.
+    size_t state_size;       ///< The amount bytes allocated for the Voice state.
+    Voice_state* state;      ///< The current playback state.
+    Random* rand_p;          ///< Parameter random source.
+    Random* rand_s;          ///< Signal random source.
 } Voice;
 
 
@@ -103,20 +103,20 @@ uint64_t Voice_id(const Voice* voice);
 /**
  * Initialise the Voice for mixing.
  *
- * \param voice       The Voice -- must not be \c NULL.
- * \param gen         The Generator used -- must not be \c NULL.
- * \param gen_state   The Generator state -- must not be \c NULL.
- * \param cgstate     The Channel-specific Generator state -- must not be
- *                    \c NULL.
- * \param seed        The random seed.
- * \param freq        The mixing frequency -- must be > \c 0.
- * \param tempo       The current tempo -- must be > \c 0.
+ * \param voice        The Voice -- must not be \c NULL.
+ * \param proc         The Processor used -- must not be \c NULL.
+ * \param proc_state   The Processor state -- must not be \c NULL.
+ * \param cpstate      The Channel-specific Processor state -- must not be
+ *                     \c NULL.
+ * \param seed         The random seed.
+ * \param freq         The mixing frequency -- must be > \c 0.
+ * \param tempo        The current tempo -- must be > \c 0.
  */
 void Voice_init(
         Voice* voice,
-        const Generator* gen,
-        const Gen_state* gen_state,
-        Channel_gen_state* cgstate,
+        const Processor* proc,
+        const Proc_state* proc_state,
+        Channel_proc_state* cpstate,
         uint64_t seed,
         uint32_t freq,
         double tempo);

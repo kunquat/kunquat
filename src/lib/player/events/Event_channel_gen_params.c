@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -39,7 +39,7 @@ bool Event_channel_set_gen_bool_process(
             ACTIVE_CAT_CH_GEN,
             ACTIVE_TYPE_BOOL);
 
-    return Channel_gen_state_modify_value(ch->cgstate, key, value);
+    return Channel_proc_state_modify_value(ch->cpstate, key, value);
 }
 
 
@@ -78,7 +78,7 @@ bool Event_channel_set_gen_float_process(
             ACTIVE_CAT_CH_GEN,
             ACTIVE_TYPE_FLOAT);
 
-    return Channel_gen_state_modify_value(ch->cgstate, key, value);
+    return Channel_proc_state_modify_value(ch->cpstate, key, value);
 }
 
 
@@ -117,7 +117,7 @@ bool Event_channel_set_gen_int_process(
             ACTIVE_CAT_CH_GEN,
             ACTIVE_TYPE_INT);
 
-    return Channel_gen_state_modify_value(ch->cgstate, key, value);
+    return Channel_proc_state_modify_value(ch->cpstate, key, value);
 }
 
 
@@ -156,7 +156,7 @@ bool Event_channel_set_gen_tstamp_process(
             ACTIVE_CAT_CH_GEN,
             ACTIVE_TYPE_TSTAMP);
 
-    return Channel_gen_state_modify_value(ch->cgstate, key, value);
+    return Channel_proc_state_modify_value(ch->cpstate, key, value);
 }
 
 

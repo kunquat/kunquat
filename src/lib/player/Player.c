@@ -217,15 +217,14 @@ bool Player_reserve_voice_state_space(Player* player, size_t size)
 }
 
 
-bool Player_alloc_channel_gen_state_keys(Player* player, Streader* sr)
+bool Player_alloc_channel_proc_state_keys(Player* player, Streader* sr)
 {
     assert(player != NULL);
     assert(sr != NULL);
 
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
     {
-        if (!Channel_gen_state_alloc_keys(
-                    player->channels[i]->cgstate, sr))
+        if (!Channel_proc_state_alloc_keys(player->channels[i]->cpstate, sr))
             return false;
     }
 
@@ -406,7 +405,7 @@ static void Player_process_voices(
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
     {
         Channel* ch = player->channels[i];
-        for (int k = 0; k < KQT_GENERATORS_MAX; ++k)
+        for (int k = 0; k < KQT_PROCESSORS_MAX; ++k)
         {
             if (ch->fg[k] != NULL)
             {

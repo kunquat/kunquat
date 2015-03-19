@@ -16,10 +16,10 @@
 #include <stdbool.h>
 
 #include <debug/assert.h>
-#include <devices/Generator.h>
+#include <devices/Processor.h>
 #include <player/events/Event_common.h>
 #include <player/events/Event_ins_decl.h>
-#include <player/Gen_state.h>
+#include <player/Proc_state.h>
 #include <Value.h>
 
 
@@ -40,14 +40,14 @@ bool Event_ins_bypass_on_process(
 
     ins_state->bypass = true;
 
-    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
-        const Generator* gen = Instrument_get_gen(ins, i);
-        if (gen != NULL)
+        const Processor* proc = Instrument_get_proc(ins, i);
+        if (proc != NULL)
         {
-            Gen_state* gen_state = (Gen_state*)Device_states_get_state(
-                    dstates, Device_get_id((const Device*)gen));
-            Generator_clear_history(gen, gen_state);
+            Proc_state* proc_state = (Proc_state*)Device_states_get_state(
+                    dstates, Device_get_id((const Device*)proc));
+            Processor_clear_history(proc, proc_state);
         }
     }
 

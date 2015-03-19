@@ -19,7 +19,7 @@
 
 //                Name      Type suffix             Arg type        Validator
 EVENT_CHANNEL_DEF(".i",     set_ins_input,          INT,            v_ins)
-EVENT_CHANNEL_DEF(".g",     set_generator,          INT,            v_gen)
+EVENT_CHANNEL_DEF(".g",     set_processor,          INT,            v_proc)
 EVENT_CHANNEL_DEF(".e",     set_effect,             INT,            v_effect)
 EVENT_CHANNEL_DEF(".ge",    set_global_effects,     NONE,           NULL)
 EVENT_CHANNEL_DEF(".ie",    set_instrument_effects, NONE,           NULL)

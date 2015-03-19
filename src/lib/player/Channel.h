@@ -22,7 +22,7 @@
 #include <kunquat/limits.h>
 #include <mathnum/Random.h>
 #include <module/Ins_table.h>
-#include <player/Channel_gen_state.h>
+#include <player/Channel_proc_state.h>
 #include <player/Env_state.h>
 #include <player/Event_cache.h>
 #include <player/General_state.h>
@@ -39,17 +39,17 @@ typedef struct Channel
 {
     General_state parent;
     int num;                       ///< Channel number.
-    Channel_gen_state* cgstate;    ///< Channel-specific generator state.
+    Channel_proc_state* cpstate;   ///< Channel-specific processor state.
     Random* rand;                  ///< Random source for this channel.
     Event_cache* event_cache;
 
     Voice_pool* pool;              ///< All Voices.
-    Voice* fg[KQT_GENERATORS_MAX]; ///< Foreground Voices.
-    uint64_t fg_id[KQT_GENERATORS_MAX]; ///< Voice reservation IDs.
+    Voice* fg[KQT_PROCESSORS_MAX]; ///< Foreground Voices.
+    uint64_t fg_id[KQT_PROCESSORS_MAX]; ///< Voice reservation IDs.
     int fg_count;
 
     int32_t ins_input;             ///< Currently active Instrument input.
-    int generator;                 ///< Currently active Generator.
+    int processor;                 ///< Currently active Processor.
     int effect;                    ///< Currently active Effect.
     bool inst_effects;             ///< Instrument effect control enabled.
     Ins_table* insts;
@@ -143,14 +143,14 @@ void Channel_reset(Channel* ch);
 /**
  * Return an actual force of a current foreground Voice.
  *
- * \param ch          The Channel -- must not be \c NULL.
- * \param gen_index   The Generator index -- must be >= \c 0 and
- *                    < \c KQT_GENERATORS_MAX.
+ * \param ch           The Channel -- must not be \c NULL.
+ * \param proc_index   The Processor index -- must be >= \c 0 and
+ *                     < \c KQT_PROCESSORS_MAX.
  *
- * \return   The actual force if the active foreground Voice at \a gen_index
+ * \return   The actual force if the active foreground Voice at \a proc_index
  *           exists, otherwise NAN.
  */
-double Channel_get_fg_force(Channel* ch, int gen_index);
+double Channel_get_fg_force(Channel* ch, int proc_index);
 
 
 /**

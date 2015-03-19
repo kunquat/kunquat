@@ -22,8 +22,8 @@
 #include <debug/assert.h>
 #include <devices/Device.h>
 #include <devices/Effect_interface.h>
-#include <devices/Gen_table.h>
-#include <devices/Generator.h>
+#include <devices/Proc_table.h>
+#include <devices/Processor.h>
 #include <devices/Instrument.h>
 #include <memory.h>
 #include <module/Ins_table.h>
@@ -43,9 +43,9 @@ struct Instrument
 
     int scale_index;            ///< The index of the Scale used (-1 means the default).
 
-    Instrument_params params;   ///< All the Instrument parameters that Generators need.
+    Instrument_params params;   ///< All the Instrument parameters that Processors need.
 
-    Gen_table* gens;
+    Proc_table* procs;
     Ins_table* insts;
 };
 
@@ -93,7 +93,7 @@ Instrument* new_Instrument(void)
     ins->out_iface = NULL;
     ins->in_iface = NULL;
     ins->connections = NULL;
-    ins->gens = NULL;
+    ins->procs = NULL;
 
     if (!Device_init(&ins->parent, false))
     {
@@ -118,11 +118,11 @@ Instrument* new_Instrument(void)
 
     ins->out_iface = new_Effect_interface();
     ins->in_iface = new_Effect_interface();
-    ins->gens = new_Gen_table(KQT_GENERATORS_MAX);
+    ins->procs = new_Proc_table(KQT_PROCESSORS_MAX);
     ins->insts = new_Ins_table(KQT_INSTRUMENTS_MAX);
     if ((ins->out_iface == NULL) ||
             (ins->in_iface == NULL) ||
-            (ins->gens == NULL) ||
+            (ins->procs == NULL) ||
             (ins->insts == NULL))
     {
         del_Instrument(ins);
@@ -243,23 +243,23 @@ bool Instrument_parse_value(Instrument* ins, const char* subkey, Streader* sr)
     if (Streader_is_error_set(sr))
         return false;
 
-    int gen_index = -1;
-    if ((gen_index = string_extract_index(subkey,
+    int proc_index = -1;
+    if ((proc_index = string_extract_index(subkey,
                              "p_pitch_lock_enabled_", 2, ".json")) >= 0 &&
-            gen_index < KQT_GENERATORS_MAX)
+            proc_index < KQT_PROCESSORS_MAX)
     {
-        if (!Streader_read_bool(sr, &ins->params.pitch_locks[gen_index].enabled))
+        if (!Streader_read_bool(sr, &ins->params.pitch_locks[proc_index].enabled))
             return false;
     }
-    else if ((gen_index = string_extract_index(subkey,
+    else if ((proc_index = string_extract_index(subkey,
                                   "p_pitch_lock_cents_", 2, ".json")) >= 0 &&
-            gen_index < KQT_GENERATORS_MAX)
+            proc_index < KQT_PROCESSORS_MAX)
     {
-        if (!Streader_read_float(sr, &ins->params.pitch_locks[gen_index].cents))
+        if (!Streader_read_float(sr, &ins->params.pitch_locks[proc_index].cents))
             return false;
 
-        ins->params.pitch_locks[gen_index].freq =
-                exp2(ins->params.pitch_locks[gen_index].cents / 1200.0) * 440;
+        ins->params.pitch_locks[proc_index].freq =
+                exp2(ins->params.pitch_locks[proc_index].cents / 1200.0) * 440;
     }
 
     return true;
@@ -273,20 +273,20 @@ Instrument_params* Instrument_get_params(Instrument* ins)
 }
 
 
-const Generator* Instrument_get_gen(const Instrument* ins, int index)
+const Processor* Instrument_get_proc(const Instrument* ins, int index)
 {
     assert(ins != NULL);
     assert(index >= 0);
-    assert(index < KQT_GENERATORS_MAX);
+    assert(index < KQT_PROCESSORS_MAX);
 
-    return Gen_table_get_gen(ins->gens, index);
+    return Proc_table_get_proc(ins->procs, index);
 }
 
 
-Gen_table* Instrument_get_gens(Instrument* ins)
+Proc_table* Instrument_get_procs(Instrument* ins)
 {
     assert(ins != NULL);
-    return ins->gens;
+    return ins->procs;
 }
 
 
@@ -389,12 +389,12 @@ static void Instrument_reset(const Device* device, Device_states* dstates)
 
     const Instrument* ins = (const Instrument*)device;
 
-    // Reset generators
-    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    // Reset processors
+    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
-        const Generator* gen = Gen_table_get_gen(ins->gens, i);
-        if (gen != NULL)
-            Device_reset((const Device*)gen, dstates);
+        const Processor* proc = Proc_table_get_proc(ins->procs, i);
+        if (proc != NULL)
+            Device_reset((const Device*)proc, dstates);
     }
 
     // Reset internal instruments
@@ -426,11 +426,11 @@ static bool Instrument_set_audio_rate(
 
     const Instrument* ins = (const Instrument*)device;
 
-    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
-        const Generator* gen = Gen_table_get_gen(ins->gens, i);
-        if (gen != NULL &&
-                !Device_set_audio_rate((const Device*)gen, dstates, audio_rate))
+        const Processor* proc = Proc_table_get_proc(ins->procs, i);
+        if (proc != NULL &&
+                !Device_set_audio_rate((const Device*)proc, dstates, audio_rate))
             return false;
     }
 
@@ -458,11 +458,11 @@ static void Instrument_update_tempo(
 
     const Instrument* ins = (const Instrument*)device;
 
-    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
-        const Generator* gen = Gen_table_get_gen(ins->gens, i);
-        if (gen != NULL)
-            Device_update_tempo((const Device*)gen, dstates, tempo);
+        const Processor* proc = Proc_table_get_proc(ins->procs, i);
+        if (proc != NULL)
+            Device_update_tempo((const Device*)proc, dstates, tempo);
     }
 
     for (int i = 0; i < KQT_INSTRUMENTS_MAX; ++i)
@@ -488,11 +488,11 @@ static bool Instrument_set_buffer_size(
 
     const Instrument* ins = (const Instrument*)device;
 
-    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
-        const Generator* gen = Gen_table_get_gen(ins->gens, i);
-        if (gen != NULL &&
-                !Device_set_buffer_size((const Device*)gen, dstates, size))
+        const Processor* proc = Proc_table_get_proc(ins->procs, i);
+        if (proc != NULL &&
+                !Device_set_buffer_size((const Device*)proc, dstates, size))
             return false;
     }
 
@@ -589,7 +589,7 @@ void del_Instrument(Instrument* ins)
     del_Connections(ins->connections);
     del_Effect_interface(ins->in_iface);
     del_Effect_interface(ins->out_iface);
-    del_Gen_table(ins->gens);
+    del_Proc_table(ins->procs);
     Device_deinit(&ins->parent);
     memory_free(ins);
 

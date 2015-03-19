@@ -39,7 +39,7 @@ bool Event_channel_set_ins_input_process(
 }
 
 
-bool Event_channel_set_generator_process(
+bool Event_channel_set_processor_process(
         Channel* ch,
         Device_states* dstates,
         const Value* value)
@@ -50,7 +50,7 @@ bool Event_channel_set_generator_process(
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_INT);
 
-    ch->generator = value->value.int_type;
+    ch->processor = value->value.int_type;
 
     return true;
 }

@@ -20,8 +20,8 @@
 #include <Connections.h>
 #include <debug/assert.h>
 #include <Device_node.h>
-#include <devices/Generator.h>
 #include <devices/Instrument.h>
+#include <devices/Processor.h>
 #include <kunquat/limits.h>
 #include <memory.h>
 #include <string/common.h>
@@ -30,7 +30,7 @@
 typedef enum
 {
     DEVICE_TYPE_MASTER     = 1,
-    DEVICE_TYPE_GENERATOR  = 2,
+    DEVICE_TYPE_PROCESSOR  = 2,
     DEVICE_TYPE_INSTRUMENT = 8,
 } Device_type;
 
@@ -92,10 +92,10 @@ Device_node* new_Device_node(
     }
     else if (string_has_prefix(node->name, "gen_"))
     {
-        node->type = DEVICE_TYPE_GENERATOR;
+        node->type = DEVICE_TYPE_PROCESSOR;
         node->index = string_extract_index(node->name, "gen_", 2, NULL);
         assert(node->index >= 0);
-        assert(node->index < KQT_GENERATORS_MAX);
+        assert(node->index < KQT_PROCESSORS_MAX);
     }
     else if (string_eq(node->name, "Iin"))
     {
@@ -539,8 +539,8 @@ const Device* Device_node_get_device(const Device_node* node)
         return node->master;
     else if (node->type == DEVICE_TYPE_INSTRUMENT)
         return (const Device*)Ins_table_get(node->insts, node->index);
-    else if (node->type == DEVICE_TYPE_GENERATOR)
-        return (const Device*)Instrument_get_gen(
+    else if (node->type == DEVICE_TYPE_PROCESSOR)
+        return (const Device*)Instrument_get_proc(
                 (const Instrument*)node->master,
                 node->index);
 
