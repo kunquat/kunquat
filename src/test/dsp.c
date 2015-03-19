@@ -28,29 +28,29 @@ START_TEST(Trivial_chorus_is_identity)
     set_mix_volume(0);
     pause();
 
-    set_data("ins_03/gen_01/c/voice_00/p_f_delay.json", "0");
-    set_data("ins_03/gen_01/c/voice_00/p_f_range.json", "0");
-    set_data("ins_03/gen_01/c/voice_00/p_f_speed.json", "0");
-    set_data("ins_03/gen_01/c/voice_00/p_f_volume.json", "0");
-    set_data("ins_03/gen_01/p_gen_type.json", "\"chorus\"");
-    set_data("ins_03/gen_01/in_00/p_manifest.json", "{}");
-    set_data("ins_03/gen_01/out_00/p_manifest.json", "{}");
-    set_data("ins_03/gen_01/p_manifest.json", "{}");
+    set_data("ins_03/prc_01/c/voice_00/p_f_delay.json", "0");
+    set_data("ins_03/prc_01/c/voice_00/p_f_range.json", "0");
+    set_data("ins_03/prc_01/c/voice_00/p_f_speed.json", "0");
+    set_data("ins_03/prc_01/c/voice_00/p_f_volume.json", "0");
+    set_data("ins_03/prc_01/p_prc_type.json", "\"chorus\"");
+    set_data("ins_03/prc_01/in_00/p_manifest.json", "{}");
+    set_data("ins_03/prc_01/out_00/p_manifest.json", "{}");
+    set_data("ins_03/prc_01/p_manifest.json", "{}");
 
     set_data("ins_03/p_connections.json",
-            "[ [\"in_00\", \"gen_01/C/in_00\"], "
-            "  [\"gen_01/C/out_00\", \"out_00\"] ]");
+            "[ [\"in_00\", \"prc_01/C/in_00\"], "
+            "  [\"prc_01/C/out_00\", \"out_00\"] ]");
     set_data("ins_03/in_00/p_manifest.json", "{}");
     set_data("ins_03/out_00/p_manifest.json", "{}");
     set_data("ins_03/p_manifest.json", "{}");
 
-    set_data("ins_02/gen_00/p_gen_type.json", "\"debug\"");
-    set_data("ins_02/gen_00/out_00/p_manifest.json", "{}");
-    set_data("ins_02/gen_00/p_manifest.json", "{}");
+    set_data("ins_02/prc_00/p_prc_type.json", "\"debug\"");
+    set_data("ins_02/prc_00/out_00/p_manifest.json", "{}");
+    set_data("ins_02/prc_00/p_manifest.json", "{}");
     set_data("ins_02/p_manifest.json", "{}");
     set_data("ins_02/out_00/p_manifest.json", "{}");
     set_data("ins_02/p_connections.json",
-            "[ [\"gen_00/C/out_00\", \"out_00\"] ]");
+            "[ [\"prc_00/C/out_00\", \"out_00\"] ]");
 
     set_data("out_00/p_manifest.json", "{}");
     set_data("p_connections.json",

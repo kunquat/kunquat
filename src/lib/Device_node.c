@@ -90,10 +90,10 @@ Device_node* new_Device_node(
         assert(node->index >= 0);
         assert(node->index < KQT_INSTRUMENTS_MAX);
     }
-    else if (string_has_prefix(node->name, "gen_"))
+    else if (string_has_prefix(node->name, "prc_"))
     {
         node->type = DEVICE_TYPE_PROCESSOR;
-        node->index = string_extract_index(node->name, "gen_", 2, NULL);
+        node->index = string_extract_index(node->name, "prc_", 2, NULL);
         assert(node->index >= 0);
         assert(node->index < KQT_PROCESSORS_MAX);
     }

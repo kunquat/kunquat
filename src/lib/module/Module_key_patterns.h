@@ -74,12 +74,12 @@ MODULE_INS_KEYP(ins_env_force_release,  "ins_XX/p_envelope_force_release.json",
 MODULE_INS_KEYP(ins_env_force_filter,   "ins_XX/p_envelope_force_filter.json",  "")
 MODULE_INS_KEYP(ins_env_pitch_pan,      "ins_XX/p_envelope_pitch_pan.json",     "")
 
-MODULE_INS_KEYP(proc_manifest,          "ins_XX/gen_XX/p_manifest.json",        "")
-MODULE_INS_KEYP(proc_in_port_manifest,  "ins_XX/gen_XX/in_XX/p_manifest.json",  "")
-MODULE_INS_KEYP(proc_out_port_manifest, "ins_XX/gen_XX/out_XX/p_manifest.json", "")
-MODULE_INS_KEYP(proc_type,              "ins_XX/gen_XX/p_gen_type.json",        "")
-MODULE_INS_KEYP(proc_impl_key,          "ins_XX/gen_XX/i/",                     "")
-MODULE_INS_KEYP(proc_conf_key,          "ins_XX/gen_XX/c/",                     "")
+MODULE_INS_KEYP(proc_manifest,          "ins_XX/prc_XX/p_manifest.json",        "")
+MODULE_INS_KEYP(proc_in_port_manifest,  "ins_XX/prc_XX/in_XX/p_manifest.json",  "")
+MODULE_INS_KEYP(proc_out_port_manifest, "ins_XX/prc_XX/out_XX/p_manifest.json", "")
+MODULE_INS_KEYP(proc_type,              "ins_XX/prc_XX/p_prc_type.json",        "")
+MODULE_INS_KEYP(proc_impl_key,          "ins_XX/prc_XX/i/",                     "")
+MODULE_INS_KEYP(proc_conf_key,          "ins_XX/prc_XX/c/",                     "")
 
 #undef MODULE_INS_KEYP
 

@@ -34,10 +34,10 @@ START_TEST(Trivial_effect_is_identity)
     set_data("ins_00/p_manifest.json", "{}");
     set_data("ins_00/out_00/p_manifest.json", "{}");
     set_data("ins_00/p_connections.json",
-            "[ [\"gen_00/C/out_00\", \"out_00\"] ]");
-    set_data("ins_00/gen_00/p_manifest.json", "{}");
-    set_data("ins_00/gen_00/p_gen_type.json", "\"debug\"");
-    set_data("ins_00/gen_00/out_00/p_manifest.json", "{}");
+            "[ [\"prc_00/C/out_00\", \"out_00\"] ]");
+    set_data("ins_00/prc_00/p_manifest.json", "{}");
+    set_data("ins_00/prc_00/p_prc_type.json", "\"debug\"");
+    set_data("ins_00/prc_00/out_00/p_manifest.json", "{}");
 
     set_data("ins_01/p_manifest.json", "{}");
     set_data("ins_01/in_00/p_manifest.json", "{}");
@@ -77,21 +77,21 @@ START_TEST(Effect_with_default_volume_dsp_is_identity)
     set_data("ins_00/p_manifest.json", "{}");
     set_data("ins_00/out_00/p_manifest.json", "{}");
     set_data("ins_00/p_connections.json",
-            "[ [\"gen_00/C/out_00\", \"out_00\"] ]");
-    set_data("ins_00/gen_00/p_manifest.json", "{}");
-    set_data("ins_00/gen_00/p_gen_type.json", "\"debug\"");
-    set_data("ins_00/gen_00/out_00/p_manifest.json", "{}");
+            "[ [\"prc_00/C/out_00\", \"out_00\"] ]");
+    set_data("ins_00/prc_00/p_manifest.json", "{}");
+    set_data("ins_00/prc_00/p_prc_type.json", "\"debug\"");
+    set_data("ins_00/prc_00/out_00/p_manifest.json", "{}");
 
     set_data("ins_01/p_manifest.json", "{}");
     set_data("ins_01/in_00/p_manifest.json", "{}");
     set_data("ins_01/out_00/p_manifest.json", "{}");
-    set_data("ins_01/gen_00/p_manifest.json", "{}");
-    set_data("ins_01/gen_00/p_gen_type.json", "\"volume\"");
-    set_data("ins_01/gen_00/in_00/p_manifest.json", "{}");
-    set_data("ins_01/gen_00/out_00/p_manifest.json", "{}");
+    set_data("ins_01/prc_00/p_manifest.json", "{}");
+    set_data("ins_01/prc_00/p_prc_type.json", "\"volume\"");
+    set_data("ins_01/prc_00/in_00/p_manifest.json", "{}");
+    set_data("ins_01/prc_00/out_00/p_manifest.json", "{}");
     set_data("ins_01/p_connections.json",
-            "[ [\"in_00\", \"gen_00/C/in_00\"],"
-            "  [\"gen_00/C/out_00\", \"out_00\"] ]");
+            "[ [\"in_00\", \"prc_00/C/in_00\"],"
+            "  [\"prc_00/C/out_00\", \"out_00\"] ]");
 
     set_data("out_00/p_manifest.json", "{}");
     set_data("p_connections.json",
@@ -126,23 +126,23 @@ START_TEST(Effect_with_double_volume_dsp_and_bypass_triples_volume)
     set_data("ins_00/p_manifest.json", "{}");
     set_data("ins_00/out_00/p_manifest.json", "{}");
     set_data("ins_00/p_connections.json",
-            "[ [\"gen_00/C/out_00\", \"out_00\"] ]");
-    set_data("ins_00/gen_00/p_manifest.json", "{}");
-    set_data("ins_00/gen_00/out_00/p_manifest.json", "{}");
-    set_data("ins_00/gen_00/p_gen_type.json", "\"debug\"");
+            "[ [\"prc_00/C/out_00\", \"out_00\"] ]");
+    set_data("ins_00/prc_00/p_manifest.json", "{}");
+    set_data("ins_00/prc_00/out_00/p_manifest.json", "{}");
+    set_data("ins_00/prc_00/p_prc_type.json", "\"debug\"");
 
     set_data("ins_01/p_manifest.json", "{}");
     set_data("ins_01/in_00/p_manifest.json", "{}");
     set_data("ins_01/out_00/p_manifest.json", "{}");
-    set_data("ins_01/gen_00/p_manifest.json", "{}");
-    set_data("ins_01/gen_00/in_00/p_manifest.json", "{}");
-    set_data("ins_01/gen_00/out_00/p_manifest.json", "{}");
-    set_data("ins_01/gen_00/p_gen_type.json", "\"volume\"");
-    set_data("ins_01/gen_00/c/p_f_volume.json", "6");
+    set_data("ins_01/prc_00/p_manifest.json", "{}");
+    set_data("ins_01/prc_00/in_00/p_manifest.json", "{}");
+    set_data("ins_01/prc_00/out_00/p_manifest.json", "{}");
+    set_data("ins_01/prc_00/p_prc_type.json", "\"volume\"");
+    set_data("ins_01/prc_00/c/p_f_volume.json", "6");
     set_data("ins_01/p_connections.json",
             "[ [\"in_00\", \"out_00\"],"
-            "  [\"in_00\", \"gen_00/C/in_00\"],"
-            "  [\"gen_00/C/out_00\", \"out_00\"] ]");
+            "  [\"in_00\", \"prc_00/C/in_00\"],"
+            "  [\"prc_00/C/out_00\", \"out_00\"] ]");
 
     set_data("out_00/p_manifest.json", "{}");
     set_data("p_connections.json",
@@ -179,10 +179,10 @@ START_TEST(Connect_instrument_effect_with_unconnected_dsp_and_mix)
     set_data("ins_00/ins_01/p_manifest.json", "{}");
     set_data("ins_00/ins_01/in_00/p_manifest.json", "{}");
     set_data("ins_00/ins_01/out_00/p_manifest.json", "{}");
-    set_data("ins_00/ins_01/gen_00/p_manifest.json", "{}");
-    set_data("ins_00/ins_01/gen_00/in_00/p_manifest.json", "{}");
-    set_data("ins_00/ins_01/gen_00/out_00/p_manifest.json", "{}");
-    set_data("ins_00/ins_01/gen_00/p_gen_type.json", "\"volume\"");
+    set_data("ins_00/ins_01/prc_00/p_manifest.json", "{}");
+    set_data("ins_00/ins_01/prc_00/in_00/p_manifest.json", "{}");
+    set_data("ins_00/ins_01/prc_00/out_00/p_manifest.json", "{}");
+    set_data("ins_00/ins_01/prc_00/p_prc_type.json", "\"volume\"");
     set_data("ins_00/p_connections.json",
             "[ [\"ins_01/out_00\", \"out_00\"] ]");
 

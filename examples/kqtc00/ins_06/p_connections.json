@@ -1,9 +1,9 @@
 
 
 [
-    ["in_00", "gen_00/C/in_00"],
-    ["gen_00/C/out_00", "gen_01/C/in_00"],
-    ["gen_01/C/out_00", "out_00"]
+    ["in_00", "prc_00/C/in_00"],
+    ["prc_00/C/out_00", "prc_01/C/in_00"],
+    ["prc_01/C/out_00", "out_00"]
 ]
 
 

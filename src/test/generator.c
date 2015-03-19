@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -36,11 +36,11 @@ static void setup_single_pulse_without_generator_manifest(void)
     set_data("ins_00/p_manifest.json", "{}");
     set_data("ins_00/out_00/p_manifest.json", "{}");
     set_data("ins_00/p_connections.json",
-            "[ [\"gen_00/C/out_00\", \"out_00\"] ]");
+            "[ [\"prc_00/C/out_00\", \"out_00\"] ]");
 
-    set_data("ins_00/gen_00/p_gen_type.json", "\"debug\"");
-    set_data("ins_00/gen_00/out_00/p_manifest.json", "{}");
-    set_data("ins_00/gen_00/c/p_b_single_pulse.json", "true");
+    set_data("ins_00/prc_00/p_prc_type.json", "\"debug\"");
+    set_data("ins_00/prc_00/out_00/p_manifest.json", "{}");
+    set_data("ins_00/prc_00/c/p_b_single_pulse.json", "true");
 
     return;
 }
@@ -74,7 +74,7 @@ START_TEST(Adding_manifest_enables_generator)
     pause();
 
     setup_single_pulse_without_generator_manifest();
-    set_data("ins_00/gen_00/p_manifest.json", "{}");
+    set_data("ins_00/prc_00/p_manifest.json", "{}");
     validate();
     check_unexpected_error();
 
@@ -129,11 +129,11 @@ START_TEST(Connect_generator_without_type)
     set_data("ins_00/p_manifest.json", "{}");
     set_data("ins_00/out_00/p_manifest.json", "{}");
     set_data("ins_00/p_connections.json",
-            "[ [\"gen_00/C/out_00\", \"out_00\"] ]");
+            "[ [\"prc_00/C/out_00\", \"out_00\"] ]");
 
-    set_data("ins_00/gen_00/p_manifest.json", "{}");
-    set_data("ins_00/gen_00/out_00/p_manifest.json", "{}");
-    set_data("ins_00/gen_00/c/p_b_single_pulse.json", "true");
+    set_data("ins_00/prc_00/p_manifest.json", "{}");
+    set_data("ins_00/prc_00/out_00/p_manifest.json", "{}");
+    set_data("ins_00/prc_00/c/p_b_single_pulse.json", "true");
 
     validate();
 }
