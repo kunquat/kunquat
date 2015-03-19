@@ -451,7 +451,7 @@ int kqt_Handle_validate(kqt_Handle handle)
                 {
                     set_invalid_if(
                             !Connections_check_connections(au_conns, err_msg),
-                            "Error in connections of device ins_%02x: %s",
+                            "Error in connections of device au_%02x: %s",
                             au_index, err_msg);
                 }
 
@@ -467,7 +467,7 @@ int kqt_Handle_validate(kqt_Handle handle)
                             set_invalid_if(
                                     !Connections_check_connections(conns, err_msg),
                                     "Error in connections of device"
-                                        " ins_%02x/ins_%02x: %s",
+                                        " au_%02x/au_%02x: %s",
                                     au_index, sub_au_index, err_msg);
                         }
                     }

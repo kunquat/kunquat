@@ -79,17 +79,17 @@ Device_node* new_Device_node(
         node->type = DEVICE_TYPE_MASTER;
         node->index = -1;
     }
-    else if (string_has_prefix(node->name, "ins_"))
+    else if (string_has_prefix(node->name, "au_"))
     {
         node->type = DEVICE_TYPE_AU;
-        node->index = string_extract_index(node->name, "ins_", 2, NULL);
+        node->index = string_extract_index(node->name, "au_", 2, NULL);
         assert(node->index >= 0);
         assert(node->index < KQT_AUDIO_UNITS_MAX);
     }
-    else if (string_has_prefix(node->name, "prc_"))
+    else if (string_has_prefix(node->name, "proc_"))
     {
         node->type = DEVICE_TYPE_PROCESSOR;
-        node->index = string_extract_index(node->name, "prc_", 2, NULL);
+        node->index = string_extract_index(node->name, "proc_", 2, NULL);
         assert(node->index >= 0);
         assert(node->index < KQT_PROCESSORS_MAX);
     }

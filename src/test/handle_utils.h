@@ -275,24 +275,24 @@ void setup_debug_instrument(void)
 
     set_data("out_00/p_manifest.json", "{}");
     set_data("p_connections.json",
-            "[ [\"ins_00/out_00\", \"out_00\"] ]");
+            "[ [\"au_00/out_00\", \"out_00\"] ]");
 
     set_data("p_control_map.json", "[ [0, 0] ]");
     set_data("control_00/p_manifest.json", "{}");
 
-    set_data("ins_00/p_manifest.json", "{}");
-    set_data("ins_00/out_00/p_manifest.json", "{}");
-    set_data("ins_00/p_connections.json",
-            "[ [\"prc_00/C/out_00\", \"out_00\"] ]");
+    set_data("au_00/p_manifest.json", "{}");
+    set_data("au_00/out_00/p_manifest.json", "{}");
+    set_data("au_00/p_connections.json",
+            "[ [\"proc_00/C/out_00\", \"out_00\"] ]");
 
     // Make sure that we get the note release behavior specified in the debug processor
-    set_data("ins_00/p_envelope_force_release.json",
+    set_data("au_00/p_envelope_force_release.json",
             "{ \"enabled\": true, \"envelope\": {"
             "  \"nodes\": [ [0, 1], [98, 1], [99, 0] ] } }");
 
-    set_data("ins_00/prc_00/p_manifest.json", "{}");
-    set_data("ins_00/prc_00/p_prc_type.json", "\"debug\"");
-    set_data("ins_00/prc_00/out_00/p_manifest.json", "{}");
+    set_data("au_00/proc_00/p_manifest.json", "{}");
+    set_data("au_00/proc_00/p_proc_type.json", "\"debug\"");
+    set_data("au_00/proc_00/out_00/p_manifest.json", "{}");
 
     validate();
 
@@ -306,7 +306,7 @@ void setup_debug_single_pulse(void)
 {
     assert(handle != 0);
 
-    set_data("ins_00/prc_00/c/p_b_single_pulse.json", "true");
+    set_data("au_00/proc_00/c/p_b_single_pulse.json", "true");
 
     validate();
 

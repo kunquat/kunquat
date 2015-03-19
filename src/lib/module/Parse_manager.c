@@ -182,23 +182,23 @@ static bool is_connection_possible(
     assert(keyp != NULL);
     assert(indices != NULL);
 
-    if (string_has_prefix(keyp, "ins_XX/ins_XX/prc_XX/in_XX/"))
+    if (string_has_prefix(keyp, "au_XX/au_XX/proc_XX/in_XX/"))
         return is_proc_in_conn_possible(
                 handle, indices[0], indices[1], indices[2], indices[3]);
-    else if (string_has_prefix(keyp, "ins_XX/ins_XX/prc_XX/out_XX/"))
+    else if (string_has_prefix(keyp, "au_XX/au_XX/proc_XX/out_XX/"))
         return is_proc_out_conn_possible(
                 handle, indices[0], indices[1], indices[2], indices[3]);
-    else if (string_has_prefix(keyp, "ins_XX/ins_XX/in_XX/"))
+    else if (string_has_prefix(keyp, "au_XX/au_XX/in_XX/"))
         return is_au_in_conn_possible(handle, indices[0], indices[1], indices[2]);
-    else if (string_has_prefix(keyp, "ins_XX/ins_XX/out_XX/"))
+    else if (string_has_prefix(keyp, "au_XX/au_XX/out_XX/"))
         return is_au_out_conn_possible(handle, indices[0], indices[1], indices[2]);
-    else if (string_has_prefix(keyp, "ins_XX/prc_XX/in_XX/"))
+    else if (string_has_prefix(keyp, "au_XX/proc_XX/in_XX/"))
         return is_proc_in_conn_possible(handle, indices[0], -1, indices[1], indices[2]);
-    else if (string_has_prefix(keyp, "ins_XX/prc_XX/out_XX/"))
+    else if (string_has_prefix(keyp, "au_XX/proc_XX/out_XX/"))
         return is_proc_out_conn_possible(handle, indices[0], -1, indices[1], indices[2]);
-    else if (string_has_prefix(keyp, "ins_XX/in_XX/"))
+    else if (string_has_prefix(keyp, "au_XX/in_XX/"))
         return is_au_in_conn_possible(handle, indices[0], -1, indices[1]);
-    else if (string_has_prefix(keyp, "ins_XX/out_XX/"))
+    else if (string_has_prefix(keyp, "au_XX/out_XX/"))
         return is_au_out_conn_possible(handle, indices[0], -1, indices[1]);
 
     return false;

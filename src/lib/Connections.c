@@ -450,7 +450,7 @@ static int validate_connection_path(
     char* trim_point = str;
 
     // Device
-    if (string_has_prefix(str, "ins_"))
+    if (string_has_prefix(str, "au_"))
     {
         // TODO: disallow audio unit in more than 2 levels
         if ((level != CONNECTION_LEVEL_GLOBAL) && (level != CONNECTION_LEVEL_AU))
@@ -463,7 +463,7 @@ static int validate_connection_path(
         }
 
         root = false;
-        str += strlen("ins_");
+        str += strlen("au_");
         if (read_index(str) >= KQT_AUDIO_UNITS_MAX)
         {
             Streader_set_error(
@@ -487,7 +487,7 @@ static int validate_connection_path(
         ++str;
         trim_point = str - 1;
     }
-    else if (string_has_prefix(str, "prc_"))
+    else if (string_has_prefix(str, "proc_"))
     {
         if (level != CONNECTION_LEVEL_AU)
         {
@@ -499,7 +499,7 @@ static int validate_connection_path(
         }
 
         root = false;
-        str += strlen("prc_");
+        str += strlen("proc_");
         if (read_index(str) >= KQT_PROCESSORS_MAX)
         {
             Streader_set_error(
