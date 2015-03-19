@@ -161,7 +161,7 @@ START_TEST(Input_map_maintains_indices)
     // Test rendering
     float actual_buf[buf_len] = { 0.0f };
 
-    kqt_Handle_fire_event(handle, 0, "[\".i\", 0]");
+    kqt_Handle_fire_event(handle, 0, "[\".a\", 0]");
     kqt_Handle_fire_event(handle, 0, Note_On_55_Hz);
     check_unexpected_error();
 
@@ -169,7 +169,7 @@ START_TEST(Input_map_maintains_indices)
 
     mix_and_fill(actual_buf, note_offset);
 
-    kqt_Handle_fire_event(handle, 1, "[\".i\", 1]");
+    kqt_Handle_fire_event(handle, 1, "[\".a\", 1]");
     kqt_Handle_fire_event(handle, 1, Note_On_55_Hz);
     check_unexpected_error();
 

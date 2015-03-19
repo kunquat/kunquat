@@ -18,9 +18,9 @@
 
 
 //            Name          Type suffix             Arg type        Validator
-EVENT_AU_DEF("ibp+",       bypass_on,              NONE,           NULL)
-EVENT_AU_DEF("ibp-",       bypass_off,             NONE,           NULL)
-EVENT_AU_DEF("i.sus",      set_sustain,            FLOAT,          v_sustain)
+EVENT_AU_DEF("abp+",       bypass_on,              NONE,           NULL)
+EVENT_AU_DEF("abp-",       bypass_off,             NONE,           NULL)
+EVENT_AU_DEF("a.sus",      set_sustain,            FLOAT,          v_sustain)
 
 
 #undef EVENT_AU_DEF

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -1003,11 +1003,11 @@ START_TEST(Events_from_many_triggers_are_skipped_by_fire)
 
     kqt_Handle_play(handle, 10);
 
-    kqt_Handle_fire_event(handle, 0, "[\".i\", 0]");
+    kqt_Handle_fire_event(handle, 0, "[\".a\", 0]");
     check_unexpected_error();
 
     const char* events = kqt_Handle_receive_events(handle);
-    const char* expected = "[[0, [\".i\", 0]]]";
+    const char* expected = "[[0, [\".a\", 0]]]";
     fail_if(strcmp(events, expected) != 0,
             "Received event list %s instead of %s",
             events, expected);
