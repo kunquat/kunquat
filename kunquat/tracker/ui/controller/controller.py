@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2014
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2015
 #          Toni Ruottu, Finland 2013-2014
 #
 # This file is part of Kunquat.
@@ -32,7 +32,7 @@ from updater import Updater
 from notechannelmapper import NoteChannelMapper
 
 #TODO: figure a place for the events
-EVENT_SELECT_CONTROL = '.i'
+EVENT_SELECT_CONTROL = '.a'
 EVENT_NOTE_ON = 'n+'
 EVENT_NOTE_OFF = 'n-'
 
@@ -163,7 +163,7 @@ class Controller():
 
         self._updater.signal_update(set(['signal_save_module_finished']))
 
-    def get_task_load_instrument(self, kqtifile):
+    def get_task_load_audio_unit(self, kqtifile):
         for _ in kqtifile.get_read_steps():
             yield
         contents = kqtifile.get_contents()
@@ -171,7 +171,7 @@ class Controller():
         # TODO: Validate contents
 
         ins_number = 0
-        ins_prefix = 'ins_{:02x}'.format(ins_number)
+        ins_prefix = 'au_{:02x}'.format(ins_number)
         transaction = {}
 
         # TODO: Figure out a proper way of connecting the instrument

@@ -140,7 +140,7 @@ class Module():
         assert not self.is_saving()
         self._controller.create_sandbox()
         kqtifile = self._controller.get_share().get_default_instrument()
-        task = self._controller.get_task_load_instrument(kqtifile)
+        task = self._controller.get_task_load_audio_unit(kqtifile)
         task_executer(task)
 
     def is_saving(self):
