@@ -62,7 +62,7 @@ void Proc_table_set_existent(Proc_table* table, int index, bool existent);
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Proc_table_set_proc(Proc_table* table, int index, Processor* gen);
+bool Proc_table_set_proc(Proc_table* table, int index, Processor* proc);
 
 
 /**
