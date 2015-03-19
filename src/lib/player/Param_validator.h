@@ -31,6 +31,8 @@ bool v_any_ts(const char* param);
 bool v_arp_index(const char* param);
 bool v_arp_speed(const char* param);
 
+bool v_au(const char* param);
+
 bool v_cond(const char* param);
 
 bool v_counter(const char* param);
@@ -44,8 +46,6 @@ bool v_force(const char* param);
 bool v_proc(const char* param);
 
 bool v_hit(const char* param);
-
-bool v_ins(const char* param);
 
 bool v_key(const char* param);
 

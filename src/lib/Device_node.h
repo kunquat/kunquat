@@ -21,7 +21,7 @@
 #include <stdio.h>
 
 #include <devices/Device.h>
-#include <module/Ins_table.h>
+#include <module/Au_table.h>
 #include <player/Device_states.h>
 
 
@@ -53,16 +53,15 @@ typedef struct Device_node Device_node;
 /**
  * Create a new Device node.
  *
- * \param name      The name of the node -- must not be \c NULL.
- * \param insts     The Instrument table -- must not be \c NULL.
- * \param master    The global or Instrumet master Device
- *                  -- must not be \c NULL.
+ * \param name       The name of the node -- must not be \c NULL.
+ * \param au_table   The Audio unit table -- must not be \c NULL.
+ * \param master     The global or Audio unit master Device
+ *                   -- must not be \c NULL.
  *
  * \return   The new Device node if successful, or \c NULL if memory
  *           allocation failed.
  */
-Device_node* new_Device_node(
-        const char* name, Ins_table* insts, const Device* master);
+Device_node* new_Device_node(const char* name, Au_table* au_table, const Device* master);
 
 
 /**

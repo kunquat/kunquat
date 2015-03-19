@@ -17,7 +17,7 @@
 #include <string.h>
 
 #include <debug/assert.h>
-#include <devices/Instrument_params.h>
+#include <devices/Au_params.h>
 #include <string/common.h>
 
 
@@ -28,111 +28,109 @@
                 (ymin), (ymax), (ystep));                                 \
         if ((env) == NULL)                                                \
         {                                                                 \
-            Instrument_params_deinit(ip);                                 \
+            Au_params_deinit(aup);                                        \
             return NULL;                                                  \
         }                                                                 \
     } else (void)0
 
-Instrument_params* Instrument_params_init(
-        Instrument_params* ip,
-        uint32_t device_id)
+Au_params* Au_params_init(Au_params* aup, uint32_t device_id)
 {
-    assert(ip != NULL);
+    assert(aup != NULL);
     assert(device_id > 0);
 
-    ip->device_id = device_id;
+    aup->device_id = device_id;
 
-    ip->force_volume_env = NULL;
-    ip->env_force_filter = NULL;
-    ip->force_pitch_env = NULL;
-    ip->env_force = NULL;
-    ip->env_force_rel = NULL;
-    ip->env_pitch_pan = NULL;
-    ip->filter_env = NULL;
-    ip->filter_off_env = NULL;
+    aup->force_volume_env = NULL;
+    aup->env_force_filter = NULL;
+    aup->force_pitch_env = NULL;
+    aup->env_force = NULL;
+    aup->env_force_rel = NULL;
+    aup->env_pitch_pan = NULL;
+    aup->filter_env = NULL;
+    aup->filter_off_env = NULL;
 
-    ip->volume = 1;
-    ip->global_force = 1;
-    ip->force = 0;
-    ip->force_variation = 0;
+    aup->volume = 1;
+    aup->global_force = 1;
+    aup->force = 0;
+    aup->force_variation = 0;
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
-        ip->pitch_locks[i].enabled = false;
-        ip->pitch_locks[i].cents = 0;
-        ip->pitch_locks[i].freq = exp2(0 / 1200.0) * 440;
+        aup->pitch_locks[i].enabled = false;
+        aup->pitch_locks[i].cents = 0;
+        aup->pitch_locks[i].freq = exp2(0 / 1200.0) * 440;
     }
 #if 0
-    ip->pitch_lock_enabled = false;
-    ip->pitch_lock_cents = 0;
-    ip->pitch_lock_freq = exp2(ip->pitch_lock_cents / 1200.0) * 440;
+    aup->pitch_lock_enabled = false;
+    aup->pitch_lock_cents = 0;
+    aup->pitch_lock_freq = exp2(aup->pitch_lock_cents / 1200.0) * 440;
 #endif
 
-    new_env_or_fail(ip->force_volume_env, 8,  0, 1, 0,  0, 1, 0);
-    ip->force_volume_env_enabled = false;
-    Envelope_set_node(ip->force_volume_env, 0, 0);
-    Envelope_set_node(ip->force_volume_env, 1, 1);
-    Envelope_set_first_lock(ip->force_volume_env, true, true);
-    Envelope_set_last_lock(ip->force_volume_env, true, false);
+    new_env_or_fail(aup->force_volume_env, 8,  0, 1, 0,  0, 1, 0);
+    aup->force_volume_env_enabled = false;
+    Envelope_set_node(aup->force_volume_env, 0, 0);
+    Envelope_set_node(aup->force_volume_env, 1, 1);
+    Envelope_set_first_lock(aup->force_volume_env, true, true);
+    Envelope_set_last_lock(aup->force_volume_env, true, false);
 
-    new_env_or_fail(ip->env_force_filter, 8,  0, 1, 0,  0, 1, 0);
-    ip->env_force_filter_enabled = false;
-    Envelope_set_node(ip->env_force_filter, 0, 1);
-    Envelope_set_node(ip->env_force_filter, 1, 1);
-    Envelope_set_first_lock(ip->env_force_filter, true, false);
-    Envelope_set_last_lock(ip->env_force_filter, true, false);
+    new_env_or_fail(aup->env_force_filter, 8,  0, 1, 0,  0, 1, 0);
+    aup->env_force_filter_enabled = false;
+    Envelope_set_node(aup->env_force_filter, 0, 1);
+    Envelope_set_node(aup->env_force_filter, 1, 1);
+    Envelope_set_first_lock(aup->env_force_filter, true, false);
+    Envelope_set_last_lock(aup->env_force_filter, true, false);
 
-    new_env_or_fail(ip->force_pitch_env, 8,  0, 1, 0,  -1, 1, 0);
-    ip->force_pitch_env_enabled = false;
-    Envelope_set_node(ip->force_pitch_env, 0, 0);
-    Envelope_set_node(ip->force_pitch_env, 1, 0);
-    Envelope_set_first_lock(ip->force_pitch_env, true, false);
-    Envelope_set_last_lock(ip->force_pitch_env, true, false);
+    new_env_or_fail(aup->force_pitch_env, 8,  0, 1, 0,  -1, 1, 0);
+    aup->force_pitch_env_enabled = false;
+    Envelope_set_node(aup->force_pitch_env, 0, 0);
+    Envelope_set_node(aup->force_pitch_env, 1, 0);
+    Envelope_set_first_lock(aup->force_pitch_env, true, false);
+    Envelope_set_last_lock(aup->force_pitch_env, true, false);
 
-    new_env_or_fail(ip->env_force, 32,  0, INFINITY, 0,  0, 1, 0);
-    ip->env_force_enabled = false;
-    ip->env_force_loop_enabled = false;
-    ip->env_force_carry = false;
-    ip->env_force_scale_amount = 0;
-    ip->env_force_center = 0;
-    Envelope_set_node(ip->env_force, 0, 1);
-    Envelope_set_node(ip->env_force, 1, 1);
-    Envelope_set_first_lock(ip->env_force, true, false);
+    new_env_or_fail(aup->env_force, 32,  0, INFINITY, 0,  0, 1, 0);
+    aup->env_force_enabled = false;
+    aup->env_force_loop_enabled = false;
+    aup->env_force_carry = false;
+    aup->env_force_scale_amount = 0;
+    aup->env_force_center = 0;
+    Envelope_set_node(aup->env_force, 0, 1);
+    Envelope_set_node(aup->env_force, 1, 1);
+    Envelope_set_first_lock(aup->env_force, true, false);
 
-    new_env_or_fail(ip->env_force_rel, 32,  0, INFINITY, 0,  0, 1, 0);
-    ip->env_force_rel_enabled = false;
-    ip->env_force_rel_scale_amount = 0;
-    ip->env_force_rel_center = 0;
-    Envelope_set_node(ip->env_force_rel, 0, 1);
-    Envelope_set_node(ip->env_force_rel, 1, 0);
-    Envelope_set_first_lock(ip->env_force_rel, true, false);
-    Envelope_set_last_lock(ip->env_force_rel, false, true);
+    new_env_or_fail(aup->env_force_rel, 32,  0, INFINITY, 0,  0, 1, 0);
+    aup->env_force_rel_enabled = false;
+    aup->env_force_rel_scale_amount = 0;
+    aup->env_force_rel_center = 0;
+    Envelope_set_node(aup->env_force_rel, 0, 1);
+    Envelope_set_node(aup->env_force_rel, 1, 0);
+    Envelope_set_first_lock(aup->env_force_rel, true, false);
+    Envelope_set_last_lock(aup->env_force_rel, false, true);
 
-    new_env_or_fail(ip->env_pitch_pan, 8,  -6000, 6000, 0,  -1, 1, 0);
-    ip->env_pitch_pan_enabled = false;
-    Envelope_set_node(ip->env_pitch_pan, -1, 0);
-    Envelope_set_node(ip->env_pitch_pan, 0, 0);
-    Envelope_set_node(ip->env_pitch_pan, 1, 0);
-    Envelope_set_first_lock(ip->env_pitch_pan, true, false);
-    Envelope_set_last_lock(ip->env_pitch_pan, true, false);
+    new_env_or_fail(aup->env_pitch_pan, 8,  -6000, 6000, 0,  -1, 1, 0);
+    aup->env_pitch_pan_enabled = false;
+    Envelope_set_node(aup->env_pitch_pan, -1, 0);
+    Envelope_set_node(aup->env_pitch_pan, 0, 0);
+    Envelope_set_node(aup->env_pitch_pan, 1, 0);
+    Envelope_set_first_lock(aup->env_pitch_pan, true, false);
+    Envelope_set_last_lock(aup->env_pitch_pan, true, false);
 
-    new_env_or_fail(ip->filter_env, 32,  0, INFINITY, 0,  0, 1, 0);
-    ip->filter_env_enabled = false;
-    ip->filter_env_scale = 1;
-    ip->filter_env_center = 440;
-    Envelope_set_node(ip->filter_env, 0, 1);
-    Envelope_set_node(ip->filter_env, 1, 1);
-    Envelope_set_first_lock(ip->filter_env, true, false);
+    new_env_or_fail(aup->filter_env, 32,  0, INFINITY, 0,  0, 1, 0);
+    aup->filter_env_enabled = false;
+    aup->filter_env_scale = 1;
+    aup->filter_env_center = 440;
+    Envelope_set_node(aup->filter_env, 0, 1);
+    Envelope_set_node(aup->filter_env, 1, 1);
+    Envelope_set_first_lock(aup->filter_env, true, false);
 
-    new_env_or_fail(ip->filter_off_env, 32,  0, INFINITY, 0,  0, 1, 0);
-    ip->filter_off_env_enabled = false;
-    ip->filter_off_env_scale = 1;
-    ip->filter_off_env_center = 440;
-    Envelope_set_node(ip->filter_off_env, 0, 1);
-    Envelope_set_node(ip->filter_off_env, 1, 1);
-    Envelope_set_first_lock(ip->filter_off_env, true, false);
+    new_env_or_fail(aup->filter_off_env, 32,  0, INFINITY, 0,  0, 1, 0);
+    aup->filter_off_env_enabled = false;
+    aup->filter_off_env_scale = 1;
+    aup->filter_off_env_center = 440;
+    Envelope_set_node(aup->filter_off_env, 0, 1);
+    Envelope_set_node(aup->filter_off_env, 1, 1);
+    Envelope_set_first_lock(aup->filter_off_env, true, false);
 
-    return ip;
+    return aup;
 }
 
 #undef new_env_or_fail
@@ -175,10 +173,9 @@ static bool read_nontime_env(Streader* sr, const char* key, void* userdata)
     return true;
 }
 
-bool Instrument_params_parse_env_force_filter(
-        Instrument_params* ip, Streader* sr)
+bool Au_params_parse_env_force_filter(Au_params* aup, Streader* sr)
 {
-    assert(ip != NULL);
+    assert(aup != NULL);
     assert(sr != NULL);
 
     if (Streader_is_error_set(sr))
@@ -209,9 +206,9 @@ bool Instrument_params_parse_env_force_filter(
         }
     }
 
-    ip->env_force_filter_enabled = d.enabled;
-    Envelope* old_env = ip->env_force_filter;
-    ip->env_force_filter = env;
+    aup->env_force_filter_enabled = d.enabled;
+    Envelope* old_env = aup->env_force_filter;
+    aup->env_force_filter = env;
     del_Envelope(old_env);
 
     if (!d.nodes_found)
@@ -228,10 +225,9 @@ bool Instrument_params_parse_env_force_filter(
 }
 
 
-bool Instrument_params_parse_env_pitch_pan(
-        Instrument_params* ip, Streader* sr)
+bool Au_params_parse_env_pitch_pan(Au_params* aup, Streader* sr)
 {
-    assert(ip != NULL);
+    assert(aup != NULL);
     assert(sr != NULL);
 
     if (Streader_is_error_set(sr))
@@ -262,9 +258,9 @@ bool Instrument_params_parse_env_pitch_pan(
         }
     }
 
-    ip->env_pitch_pan_enabled = d.enabled;
-    Envelope* old_env = ip->env_pitch_pan;
-    ip->env_pitch_pan = env;
+    aup->env_pitch_pan_enabled = d.enabled;
+    Envelope* old_env = aup->env_pitch_pan;
+    aup->env_pitch_pan = env;
     del_Envelope(old_env);
 
     if (!d.nodes_found)
@@ -378,10 +374,9 @@ static void parse_env_time(Streader* sr, tdata* td)
 }
 
 
-bool Instrument_params_parse_env_force(
-        Instrument_params* ip, Streader* sr)
+bool Au_params_parse_env_force(Au_params* aup, Streader* sr)
 {
-    assert(ip != NULL);
+    assert(aup != NULL);
     assert(sr != NULL);
 
     if (Streader_is_error_set(sr))
@@ -403,23 +398,22 @@ bool Instrument_params_parse_env_force(
         return false;
 
     assert(!Streader_is_error_set(sr));
-    ip->env_force_enabled = td.enabled;
-    ip->env_force_loop_enabled = td.loop;
-    ip->env_force_scale_amount = td.scale_amount;
-    ip->env_force_center = exp2(td.scale_center / 1200) * 440;
-    ip->env_force_carry = td.carry;
-    Envelope* old_env = ip->env_force;
-    ip->env_force = td.env;
+    aup->env_force_enabled = td.enabled;
+    aup->env_force_loop_enabled = td.loop;
+    aup->env_force_scale_amount = td.scale_amount;
+    aup->env_force_center = exp2(td.scale_center / 1200) * 440;
+    aup->env_force_carry = td.carry;
+    Envelope* old_env = aup->env_force;
+    aup->env_force = td.env;
     del_Envelope(old_env);
 
     return true;
 }
 
 
-bool Instrument_params_parse_env_force_rel(
-        Instrument_params* ip, Streader* sr)
+bool Au_params_parse_env_force_rel(Au_params* aup, Streader* sr)
 {
-    assert(ip != NULL);
+    assert(aup != NULL);
     assert(sr != NULL);
 
     if (Streader_is_error_set(sr))
@@ -441,11 +435,11 @@ bool Instrument_params_parse_env_force_rel(
         return false;
 
     assert(!Streader_is_error_set(sr));
-    ip->env_force_rel_enabled = td.enabled;
-    ip->env_force_rel_scale_amount = td.scale_amount;
-    ip->env_force_rel_center = exp2(td.scale_center / 1200) * 440;
-    Envelope* old_env = ip->env_force_rel;
-    ip->env_force_rel = td.env;
+    aup->env_force_rel_enabled = td.enabled;
+    aup->env_force_rel_scale_amount = td.scale_amount;
+    aup->env_force_rel_center = exp2(td.scale_center / 1200) * 440;
+    Envelope* old_env = aup->env_force_rel;
+    aup->env_force_rel = td.env;
     del_Envelope(old_env);
 
     return true;
@@ -459,19 +453,19 @@ bool Instrument_params_parse_env_force_rel(
         (env) = NULL;        \
     } else (void)0
 
-void Instrument_params_deinit(Instrument_params* ip)
+void Au_params_deinit(Au_params* aup)
 {
-    if (ip == NULL)
+    if (aup == NULL)
         return;
 
-    del_env_check(ip->force_volume_env);
-    del_env_check(ip->env_force_filter);
-    del_env_check(ip->force_pitch_env);
-    del_env_check(ip->env_force);
-    del_env_check(ip->env_force_rel);
-    del_env_check(ip->env_pitch_pan);
-    del_env_check(ip->filter_env);
-    del_env_check(ip->filter_off_env);
+    del_env_check(aup->force_volume_env);
+    del_env_check(aup->env_force_filter);
+    del_env_check(aup->force_pitch_env);
+    del_env_check(aup->env_force);
+    del_env_check(aup->env_force_rel);
+    del_env_check(aup->env_pitch_pan);
+    del_env_check(aup->filter_env);
+    del_env_check(aup->filter_off_env);
 
     return;
 }

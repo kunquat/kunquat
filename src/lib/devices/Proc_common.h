@@ -24,7 +24,7 @@
 #include <devices/Processor.h>
 #include <frame.h>
 #include <kunquat/limits.h>
-#include <player/Ins_state.h>
+#include <player/Au_state.h>
 #include <player/Voice_state.h>
 #include <player/Work_buffers.h>
 
@@ -56,7 +56,7 @@ void Proc_common_handle_pitch(
  * specified buffer area. It must be called after \a Proc_common_handle_pitch.
  *
  * \param proc          The Processor -- must not be \c NULL.
- * \param ins_state     The Instrument state -- must not be \c NULL.
+ * \param au_state      The Audio unit state -- must not be \c NULL.
  * \param vstate        The Voice state -- must not be \c NULL.
  * \param wbs           The Work buffers -- must not be \c NULL.
  * \param audio_rate    The audio rate -- must be positive.
@@ -70,7 +70,7 @@ void Proc_common_handle_pitch(
  */
 int32_t Proc_common_handle_force(
         const Processor* proc,
-        Ins_state* ins_state,
+        Au_state* au_state,
         Voice_state* vstate,
         const Work_buffers* wbs,
         uint32_t audio_rate,
@@ -112,7 +112,7 @@ void Proc_common_handle_filter(
  * process function of the processor implementation.
  *
  * \param proc         The Processor -- must not be \c NULL.
- * \param ins_state    The Instrument state -- must not be \c NULL.
+ * \param au_state     The Audio unit state -- must not be \c NULL.
  * \param vstate       The Voice state -- must not be \c NULL.
  * \param wbs          The Work buffers -- must not be \c NULL.
  * \param ab_count     The number of audio buffers used -- must be \c 1 or
@@ -128,7 +128,7 @@ void Proc_common_handle_filter(
  */
 int32_t Proc_common_ramp_release(
         const Processor* proc,
-        const Ins_state* ins_state,
+        const Au_state* au_state,
         Voice_state* vstate,
         const Work_buffers* wbs,
         int ab_count,

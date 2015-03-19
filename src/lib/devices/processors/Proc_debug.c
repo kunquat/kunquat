@@ -82,7 +82,7 @@ static bool Proc_debug_init(Device_impl* dimpl)
 static uint32_t Proc_debug_process_vstate(
         const Processor* proc,
         Proc_state* proc_state,
-        Ins_state* ins_state,
+        Au_state* au_state,
         Voice_state* vstate,
         const Work_buffers* wbs,
         int32_t buf_start,
@@ -92,13 +92,13 @@ static uint32_t Proc_debug_process_vstate(
 {
     assert(proc != NULL);
     assert(proc_state != NULL);
-    assert(ins_state != NULL);
+    assert(au_state != NULL);
     assert(vstate != NULL);
     assert(wbs != NULL);
     assert(audio_rate > 0);
     assert(tempo > 0);
     (void)proc_state;
-    (void)ins_state;
+    (void)au_state;
     (void)wbs;
     (void)tempo;
 

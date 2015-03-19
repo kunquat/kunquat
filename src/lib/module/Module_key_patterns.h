@@ -45,43 +45,43 @@ MODULE_KEYP(bind,                   "p_bind.json",                          "[]"
 MODULE_KEYP(album_manifest,         "album/p_manifest.json",                "")
 MODULE_KEYP(album_tracks,           "album/p_tracks.json",                  "[]")
 
-#define MODULE_INS_KEYP(name, keyp, def_val)                    \
-    MODULE_KEYP(name,           keyp,               def_val)    \
-    MODULE_KEYP(ins_ ## name,   "ins_XX/" keyp,     def_val)
+#define MODULE_AU_KEYP(name, keyp, def_val)                  \
+    MODULE_KEYP(name,           keyp,               def_val) \
+    MODULE_KEYP(au_ ## name,    "ins_XX/" keyp,     def_val)
 
-MODULE_INS_KEYP(ins_manifest,           "ins_XX/p_manifest.json",               "")
-MODULE_INS_KEYP(ins,                    "ins_XX/p_instrument.json",
+MODULE_AU_KEYP(au_manifest,             "ins_XX/p_manifest.json",               "")
+MODULE_AU_KEYP(au,                      "ins_XX/p_instrument.json",
         "{ \"global_force\": 0"
         ", \"force\": 0"
         ", \"force_variation\": 0"
         "}")
-MODULE_INS_KEYP(ins_in_port_manifest,   "ins_XX/in_XX/p_manifest.json",         "")
-MODULE_INS_KEYP(ins_out_port_manifest,  "ins_XX/out_XX/p_manifest.json",        "")
-MODULE_INS_KEYP(ins_connections,        "ins_XX/p_connections.json",            "[]")
-MODULE_INS_KEYP(ins_env_force,          "ins_XX/p_envelope_force.json",
+MODULE_AU_KEYP(au_in_port_manifest,     "ins_XX/in_XX/p_manifest.json",         "")
+MODULE_AU_KEYP(au_out_port_manifest,    "ins_XX/out_XX/p_manifest.json",        "")
+MODULE_AU_KEYP(au_connections,          "ins_XX/p_connections.json",            "[]")
+MODULE_AU_KEYP(au_env_force,            "ins_XX/p_envelope_force.json",
         "{ \"enabled\": false"
         ", \"scale_amount\": 0"
         ", \"scale_center\": 0"
         ", \"loop\": false"
         ", \"envelope\": { \"nodes\": [ [0, 1], [1, 1] ], \"marks\": [0, 1] }"
         "}")
-MODULE_INS_KEYP(ins_env_force_release,  "ins_XX/p_envelope_force_release.json",
+MODULE_AU_KEYP(au_env_force_release,    "ins_XX/p_envelope_force_release.json",
         "{ \"enabled\": false"
         ", \"scale_amount\": 0"
         ", \"scale_center\": 0"
         ", \"envelope\": { \"nodes\": [ [0, 1], [1, 0] ] }"
         "}")
-MODULE_INS_KEYP(ins_env_force_filter,   "ins_XX/p_envelope_force_filter.json",  "")
-MODULE_INS_KEYP(ins_env_pitch_pan,      "ins_XX/p_envelope_pitch_pan.json",     "")
+MODULE_AU_KEYP(au_env_force_filter,     "ins_XX/p_envelope_force_filter.json",  "")
+MODULE_AU_KEYP(au_env_pitch_pan,        "ins_XX/p_envelope_pitch_pan.json",     "")
 
-MODULE_INS_KEYP(proc_manifest,          "ins_XX/prc_XX/p_manifest.json",        "")
-MODULE_INS_KEYP(proc_in_port_manifest,  "ins_XX/prc_XX/in_XX/p_manifest.json",  "")
-MODULE_INS_KEYP(proc_out_port_manifest, "ins_XX/prc_XX/out_XX/p_manifest.json", "")
-MODULE_INS_KEYP(proc_type,              "ins_XX/prc_XX/p_prc_type.json",        "")
-MODULE_INS_KEYP(proc_impl_key,          "ins_XX/prc_XX/i/",                     "")
-MODULE_INS_KEYP(proc_conf_key,          "ins_XX/prc_XX/c/",                     "")
+MODULE_AU_KEYP(proc_manifest,           "ins_XX/prc_XX/p_manifest.json",        "")
+MODULE_AU_KEYP(proc_in_port_manifest,   "ins_XX/prc_XX/in_XX/p_manifest.json",  "")
+MODULE_AU_KEYP(proc_out_port_manifest,  "ins_XX/prc_XX/out_XX/p_manifest.json", "")
+MODULE_AU_KEYP(proc_type,               "ins_XX/prc_XX/p_prc_type.json",        "")
+MODULE_AU_KEYP(proc_impl_key,           "ins_XX/prc_XX/i/",                     "")
+MODULE_AU_KEYP(proc_conf_key,           "ins_XX/prc_XX/c/",                     "")
 
-#undef MODULE_INS_KEYP
+#undef MODULE_AU_KEYP
 
 MODULE_KEYP(pattern_manifest, "pat_XXX/p_manifest.json", "")
 MODULE_KEYP(pattern,          "pat_XXX/p_pattern.json", "{ \"length\": [16, 0] }")

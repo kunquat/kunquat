@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -43,7 +43,7 @@ typedef enum
 
 /**
  * Envelope defines a mapping from one type of a value to another. They are
- * used mostly in Instruments.
+ * mostly used inside Audio units.
  */
 typedef struct Envelope Envelope;
 

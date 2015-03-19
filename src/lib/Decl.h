@@ -16,11 +16,11 @@
 #define K_DECL_H
 
 
+typedef struct Au_table Au_table;
+typedef struct Audio_unit Audio_unit;
 typedef struct Connections Connections;
 typedef struct Device Device;
 typedef struct Device_impl Device_impl;
-typedef struct Ins_table Ins_table;
-typedef struct Instrument Instrument;
 typedef struct Module Module;
 
 

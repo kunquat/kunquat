@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_INSTRUMENT_PARAMS_H
-#define K_INSTRUMENT_PARAMS_H
+#ifndef K_AU_PARAMS_H
+#define K_AU_PARAMS_H
 
 
 #include <stdint.h>
@@ -33,7 +33,7 @@ typedef struct Pitch_lock
 } Pitch_lock;
 
 
-typedef struct Instrument_params
+typedef struct Au_params
 {
     uint32_t device_id;
 
@@ -58,7 +58,7 @@ typedef struct Instrument_params
     Envelope* force_pitch_env;     ///< Force-pitch envelope.
     double force_pitch_env_scale;  ///< Force-pitch envelope scale factor.
 
-    double volume; ///< Instrument volume.
+    double volume; ///< Audio unit volume.
 
     bool env_force_enabled;  ///< Force envelope toggle.
     bool env_force_loop_enabled;
@@ -86,55 +86,49 @@ typedef struct Instrument_params
     Envelope* filter_off_env;     ///< Note Off filter envelope.
     double filter_off_env_scale;  ///< Note Off filter envelope scale factor (frequency -> speed).
     double filter_off_env_center; ///< Note Off filter envelope scale center frequency.
-} Instrument_params;
+} Au_params;
 
 
 /**
- * Initialise the Instrument parameters.
+ * Initialise the Audio unit parameters.
  *
- * \param ip          The Instrument parameters -- must not be \c NULL.
- * \param device_id   The instrument device ID -- must be > \c 0.
+ * \param aup         The Audio unit parameters -- must not be \c NULL.
+ * \param device_id   The audio unit device ID -- must be > \c 0.
  *
- * \return   The parameter \a ip if successful, or \c NULL if memory
+ * \return   The parameter \a aup if successful, or \c NULL if memory
  *           allocation failed.
  */
-Instrument_params* Instrument_params_init(
-        Instrument_params* ip,
-        uint32_t device_id);
+Au_params* Au_params_init(Au_params* aup, uint32_t device_id);
 
 
 /**
- * Parse an Instrument parameter file.
+ * Parse an Audio unit parameter file.
  *
- * \param ip   The Instrument parameters -- must not be \c NULL.
- * \param sr   The Streader of the JSON data -- must not be \c NULL.
+ * \param aup   The Audio unit parameters -- must not be \c NULL.
+ * \param sr    The Streader of the JSON data -- must not be \c NULL.
  *
  * \return   \c true if successful, otherwise \c false.
  */
-bool Instrument_params_parse_env_force_rel(
-        Instrument_params* ip, Streader* sr);
+bool Au_params_parse_env_force_rel(Au_params* aup, Streader* sr);
 
 
-bool Instrument_params_parse_env_force(
-        Instrument_params* ip, Streader* sr);
+bool Au_params_parse_env_force(Au_params* aup, Streader* sr);
 
 
-bool Instrument_params_parse_env_force_filter(
-        Instrument_params* ip, Streader* sr);
+bool Au_params_parse_env_force_filter(Au_params* aup, Streader* sr);
 
 
-bool Instrument_params_parse_env_pitch_pan(
-        Instrument_params* ip, Streader* sr);
+bool Au_params_parse_env_pitch_pan(Au_params* aup, Streader* sr);
 
 
 /**
- * Deinitialise the Instrument parameters.
+ * Deinitialise the Audio unit parameters.
  *
- * \param ip   The Instrument parameters, or \c NULL.
+ * \param aup   The Audio unit parameters, or \c NULL.
  */
-void Instrument_params_deinit(Instrument_params* ip);
+void Au_params_deinit(Au_params* aup);
 
 
-#endif // K_INSTRUMENT_PARAMS_H
+#endif // K_AU_PARAMS_H
 
 

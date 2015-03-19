@@ -24,7 +24,7 @@
 
 #include <Connections.h>
 #include <debug/assert.h>
-#include <devices/Instrument.h>
+#include <devices/Audio_unit.h>
 #include <Handle_private.h>
 #include <kunquat/limits.h>
 #include <memory.h>
@@ -428,10 +428,10 @@ int kqt_Handle_validate(kqt_Handle handle)
     }
 
     // Check controls
-    if (h->module->ins_map != NULL)
+    if (h->module->au_map != NULL)
     {
         set_invalid_if(
-                !Input_map_is_valid(h->module->ins_map, h->module->ins_controls),
+                !Input_map_is_valid(h->module->au_map, h->module->au_controls),
                 "Control map uses nonexistent controls");
     }
 
@@ -439,36 +439,36 @@ int kqt_Handle_validate(kqt_Handle handle)
     {
         char err_msg[DEVICE_CONNECTION_ERROR_LENGTH_MAX] = "";
 
-        // Instruments
-        Ins_table* insts = Module_get_insts(h->module);
-        for (int ins_index = 0; ins_index < KQT_INSTRUMENTS_MAX; ++ins_index)
+        // Audio units
+        Au_table* au_table = Module_get_au_table(h->module);
+        for (int au_index = 0; au_index < KQT_AUDIO_UNITS_MAX; ++au_index)
         {
-            Instrument* ins = Ins_table_get(insts, ins_index);
-            if (ins != NULL)
+            Audio_unit* au = Au_table_get(au_table, au_index);
+            if (au != NULL)
             {
-                const Connections* ins_conns = Instrument_get_connections(ins);
-                if (ins_conns != NULL)
+                const Connections* au_conns = Audio_unit_get_connections(au);
+                if (au_conns != NULL)
                 {
                     set_invalid_if(
-                            !Connections_check_connections(ins_conns, err_msg),
+                            !Connections_check_connections(au_conns, err_msg),
                             "Error in connections of device ins_%02x: %s",
-                            ins_index, err_msg);
+                            au_index, err_msg);
                 }
 
-                // Instrument effects
-                for (int sub_ins_index = 0; sub_ins_index < KQT_INSTRUMENTS_MAX; ++sub_ins_index)
+                // Audio unit effects
+                for (int sub_au_index = 0; sub_au_index < KQT_AUDIO_UNITS_MAX; ++sub_au_index)
                 {
-                    const Instrument* sub_ins = Instrument_get_ins(ins, sub_ins_index);
-                    if (sub_ins != NULL)
+                    const Audio_unit* sub_au = Audio_unit_get_au(au, sub_au_index);
+                    if (sub_au != NULL)
                     {
-                        const Connections* conns = Instrument_get_connections(sub_ins);
+                        const Connections* conns = Audio_unit_get_connections(sub_au);
                         if (conns != NULL)
                         {
                             set_invalid_if(
                                     !Connections_check_connections(conns, err_msg),
                                     "Error in connections of device"
                                         " ins_%02x/ins_%02x: %s",
-                                    ins_index, sub_ins_index, err_msg);
+                                    au_index, sub_au_index, err_msg);
                         }
                     }
                 }

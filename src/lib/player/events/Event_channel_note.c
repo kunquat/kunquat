@@ -31,9 +31,7 @@
 
 
 bool Event_channel_note_on_process(
-        Channel* ch,
-        Device_states* dstates,
-        const Value* value)
+        Channel* ch, Device_states* dstates, const Value* value)
 {
     assert(ch != NULL);
     assert(ch->freq != NULL);
@@ -49,11 +47,11 @@ bool Event_channel_note_on_process(
 
     ch->fg_count = 0;
 
-    // Find our instrument
-    Instrument* ins = Module_get_ins_from_input(
+    // Find our audio unit
+    Audio_unit* au = Module_get_au_from_input(
             ch->parent.module,
-            ch->ins_input);
-    if (ins == NULL)
+            ch->au_input);
+    if (au == NULL)
         return true;
 
     // Allocate new Voices
@@ -62,26 +60,26 @@ bool Event_channel_note_on_process(
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
-        const Processor* proc = Instrument_get_proc(ins, i);
+        const Processor* proc = Audio_unit_get_proc(au, i);
         if (proc == NULL || !Device_is_existent((const Device*)proc))
             continue;
 
         const Proc_state* proc_state = (Proc_state*)Device_states_get_state(
                 dstates, Device_get_id((const Device*)proc));
 
-        reserve_voice(ch, ins, proc_state, i);
+        reserve_voice(ch, au, proc_state, i);
 
         Voice* voice = ch->fg[i];
         Voice_state* vs = voice->state;
 
-        if (voice->proc->ins_params->pitch_locks[i].enabled)
+        if (voice->proc->au_params->pitch_locks[i].enabled)
         {
-            vs->pitch = voice->proc->ins_params->pitch_locks[i].freq;
+            vs->pitch = voice->proc->au_params->pitch_locks[i].freq;
         }
 #if 0
-        else if (voice->proc->ins_params->scale == NULL ||
-                 *voice->proc->ins_params->scale == NULL ||
-                 **voice->proc->ins_params->scale == NULL)
+        else if (voice->proc->au_params->scale == NULL ||
+                 *voice->proc->au_params->scale == NULL ||
+                 **voice->proc->au_params->scale == NULL)
         {
             vs->pitch = exp2(value->value.float_type / 1200) * 440;
         }
@@ -90,7 +88,7 @@ bool Event_channel_note_on_process(
         {
 #if 0
             pitch_t pitch = Scale_get_pitch_from_cents(
-                    **voice->proc->ins_params->scale,
+                    **voice->proc->au_params->scale,
                     value->value.float_type);
             if (pitch > 0)
             {
@@ -105,7 +103,7 @@ bool Event_channel_note_on_process(
         //fprintf(stderr, "Event set pitch @ %p: %f\n", (void*)&vs->pitch, vs->pitch);
         vs->orig_cents = value->value.float_type;
 
-        set_instrument_properties(voice, vs, ch, &force_var);
+        set_au_properties(voice, vs, ch, &force_var);
     }
 
     return true;
@@ -129,30 +127,30 @@ bool Event_channel_hit_process(
 
     ch->fg_count = 0;
 
-    // Find our instrument
-    Instrument* ins = Module_get_ins_from_input(
+    // Find our audio unit
+    Audio_unit* au = Module_get_au_from_input(
             ch->parent.module,
-            ch->ins_input);
-    if (ins == NULL)
+            ch->au_input);
+    if (au == NULL)
         return true;
 
     double force_var = NAN;
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
-        const Processor* proc = Instrument_get_proc(ins, i);
+        const Processor* proc = Audio_unit_get_proc(au, i);
         if (proc == NULL || !Device_is_existent((const Device*)proc))
             continue;
 
         const Proc_state* proc_state = (Proc_state*)Device_states_get_state(
                 dstates, Device_get_id((const Device*)proc));
 
-        reserve_voice(ch, ins, proc_state, i);
+        reserve_voice(ch, au, proc_state, i);
 
         Voice* voice = ch->fg[i];
         Voice_state* vs = voice->state;
         vs->hit_index = value->value.int_type;
-        set_instrument_properties(voice, vs, ch, &force_var);
+        set_au_properties(voice, vs, ch, &force_var);
     }
 
     return true;

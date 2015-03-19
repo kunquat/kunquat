@@ -63,7 +63,7 @@ static bool Channel_init(
 Channel* new_Channel(
         const Module* module,
         int num,
-        Ins_table* insts,
+        Au_table* au_table,
         Env_state* estate,
         Voice_pool* voices,
         double* tempo,
@@ -71,7 +71,7 @@ Channel* new_Channel(
 {
     assert(num >= 0);
     assert(num < KQT_CHANNELS_MAX);
-    assert(insts != NULL);
+    assert(au_table != NULL);
     assert(estate != NULL);
     assert(voices != NULL);
     assert(tempo != NULL);
@@ -87,7 +87,7 @@ Channel* new_Channel(
         return NULL;
     }
 
-    ch->insts = insts;
+    ch->au_table = au_table;
     ch->pool = voices;
     ch->tempo = tempo;
     ch->freq = audio_rate;
@@ -131,10 +131,10 @@ void Channel_reset(Channel* ch)
     }
     ch->fg_count = 0;
 
-    ch->ins_input = 0;
+    ch->au_input = 0;
     ch->processor = 0;
     ch->effect = 0;
-    ch->inst_effects = false;
+    ch->au_effects = false;
 
     ch->volume = 1;
 

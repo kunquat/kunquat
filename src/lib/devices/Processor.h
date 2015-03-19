@@ -19,12 +19,12 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include <devices/Au_params.h>
 #include <devices/Device.h>
 #include <devices/Device_params.h>
-#include <devices/Instrument_params.h>
 #include <kunquat/limits.h>
 #include <pitch_t.h>
-#include <player/Ins_state.h>
+#include <player/Au_state.h>
 #include <player/Proc_state.h>
 #include <player/Voice_state.h>
 #include <player/Work_buffers.h>
@@ -39,7 +39,7 @@ typedef struct Processor Processor;
 typedef uint32_t Proc_process_vstate_func(
         const Processor*,
         Proc_state*,
-        Ins_state*,
+        Au_state*,
         Voice_state*,
         const Work_buffers*,
         int32_t buf_start,
@@ -51,7 +51,7 @@ typedef uint32_t Proc_process_vstate_func(
 struct Processor
 {
     Device parent;
-    const Instrument_params* ins_params;
+    const Au_params* au_params;
 
     void (*init_vstate)(const Processor*, const Proc_state*, Voice_state*);
     Proc_process_vstate_func* process_vstate;
@@ -62,12 +62,12 @@ struct Processor
 /**
  * Create a new Processor of the specified type.
  *
- * \param ins_params   The Instrument parameters -- must not be \c NULL.
+ * \param au_params   The Audio unit parameters -- must not be \c NULL.
  *
  * \return   The new Processor if successful, or \c NULL if memory allocation
  *           failed.
  */
-Processor* new_Processor(const Instrument_params* ins_params);
+Processor* new_Processor(const Au_params* au_params);
 
 
 /**

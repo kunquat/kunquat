@@ -21,7 +21,7 @@
 
 #include <kunquat/limits.h>
 #include <mathnum/Random.h>
-#include <module/Ins_table.h>
+#include <module/Au_table.h>
 #include <player/Channel_proc_state.h>
 #include <player/Env_state.h>
 #include <player/Event_cache.h>
@@ -48,11 +48,11 @@ typedef struct Channel
     uint64_t fg_id[KQT_PROCESSORS_MAX]; ///< Voice reservation IDs.
     int fg_count;
 
-    int32_t ins_input;             ///< Currently active Instrument input.
+    int32_t au_input;              ///< Currently active Audio unit input.
     int processor;                 ///< Currently active Processor.
     int effect;                    ///< Currently active Effect.
-    bool inst_effects;             ///< Instrument effect control enabled.
-    Ins_table* insts;
+    bool au_effects;               ///< Audio unit effect control enabled.
+    Au_table* au_table;
     int32_t* freq;
     double* tempo;
 
@@ -92,14 +92,14 @@ typedef struct Channel
 /**
  * Create a new Channel.
  *
- * \param module   The Module -- must not be \c NULL.
- * \param num      The Channel number -- must be >= \c 0 and
- *                 < \c KQT_CHANNELS_MAX.
- * \param insts    The instrument table -- must not be \c NULL.
- * \param estate   The Environment state -- must not be \c NULL.
- * \param voices   The Voice pool -- must not be \c NULL.
- * \param tempo    A reference to the current tempo -- must not be \c NULL.
- * \param rate     A reference to the current audio rate -- must not be \c NULL.
+ * \param module     The Module -- must not be \c NULL.
+ * \param num        The Channel number -- must be >= \c 0 and
+ *                   < \c KQT_CHANNELS_MAX.
+ * \param au_table   The audio unit table -- must not be \c NULL.
+ * \param estate     The Environment state -- must not be \c NULL.
+ * \param voices     The Voice pool -- must not be \c NULL.
+ * \param tempo      A reference to the current tempo -- must not be \c NULL.
+ * \param rate       A reference to the current audio rate -- must not be \c NULL.
  *
  * \return   The new Channel state if successful, or \c NULL if memory
  *           allocation failed.
@@ -107,7 +107,7 @@ typedef struct Channel
 Channel* new_Channel(
         const Module* module,
         int num,
-        Ins_table* insts,
+        Au_table* au_table,
         Env_state* estate,
         Voice_pool* voices,
         double* tempo,

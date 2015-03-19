@@ -22,7 +22,7 @@
 #include <Value.h>
 
 
-bool Event_channel_set_ins_input_process(
+bool Event_channel_set_au_input_process(
         Channel* ch,
         Device_states* dstates,
         const Value* value)
@@ -33,7 +33,7 @@ bool Event_channel_set_ins_input_process(
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_INT);
 
-    ch->ins_input = value->value.int_type;
+    ch->au_input = value->value.int_type;
 
     return true;
 }
@@ -66,13 +66,13 @@ bool Event_channel_set_global_effects_process(
     (void)dstates;
     (void)value;
 
-    ch->inst_effects = false;
+    ch->au_effects = false;
 
     return true;
 }
 
 
-bool Event_channel_set_instrument_effects_process(
+bool Event_channel_set_au_effects_process(
         Channel* ch,
         Device_states* dstates,
         const Value* value)
@@ -82,7 +82,7 @@ bool Event_channel_set_instrument_effects_process(
     (void)dstates;
     (void)value;
 
-    ch->inst_effects = true;
+    ch->au_effects = true;
 
     return true;
 }

@@ -23,7 +23,7 @@
 #include <player/Event_names.h>
 #include <player/Event_type.h>
 #include <player/General_state.h>
-#include <player/Ins_state.h>
+#include <player/Au_state.h>
 #include <player/Master_params.h>
 #include <Value.h>
 
@@ -41,7 +41,7 @@ Event_handler* new_Event_handler(
         Master_params* master_params,
         Channel** channels,
         Device_states* device_states,
-        Ins_table* insts);
+        Au_table* au_table);
 
 
 /**
@@ -117,20 +117,25 @@ bool Event_handler_set_master_process(
 
 
 /**
- * Register an Instrument Event processor.
+ * Register an Audio unit Event processor.
  *
  * \param eh        The Event handler -- must not be \c NULL.
  * \param name      The name of the Event -- must not be \c NULL, empty string
  *                  or longer than EVENT_NAME_MAX characters.
- * \param type      The type of the Event -- must be an Instrument Event.
+ * \param type      The type of the Event -- must be an Audio unit Event.
  * \param process   The process function -- must not be \c NULL.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Event_handler_set_ins_process(
+bool Event_handler_set_au_process(
         Event_handler* eh,
         Event_type type,
-        bool (*ins_process)(const Instrument*, const Instrument_params*, Ins_state*, Device_states*, const Value*));
+        bool (*au_process)(
+            const Audio_unit*,
+            const Au_params*,
+            Au_state*,
+            Device_states*,
+            const Value*));
 
 
 /**

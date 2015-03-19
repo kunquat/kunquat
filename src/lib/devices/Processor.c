@@ -43,9 +43,9 @@ static Device_state* Processor_create_state_plain(
 }
 
 
-Processor* new_Processor(const Instrument_params* ins_params)
+Processor* new_Processor(const Au_params* au_params)
 {
-    assert(ins_params != NULL);
+    assert(au_params != NULL);
 
     Processor* proc = memory_alloc_item(Processor);
     if (proc == NULL)
@@ -58,7 +58,7 @@ Processor* new_Processor(const Instrument_params* ins_params)
     }
 
     //fprintf(stderr, "New Processor %p\n", (void*)proc);
-    proc->ins_params = ins_params;
+    proc->au_params = au_params;
 
     proc->init_vstate = NULL;
     proc->process_vstate = NULL;
@@ -187,7 +187,7 @@ void Processor_process_vstate(
     if (!vstate->note_on &&
             (vstate->pos == 0) &&
             (vstate->pos_rem == 0) &&
-            !proc->ins_params->env_force_rel_enabled)
+            !proc->au_params->env_force_rel_enabled)
     {
         vstate->active = false;
         return;
@@ -200,9 +200,9 @@ void Processor_process_vstate(
     Proc_state* proc_state = (Proc_state*)Device_states_get_state(
             dstates,
             Device_get_id(&proc->parent));
-    Ins_state* ins_state = (Ins_state*)Device_states_get_state(
+    Au_state* au_state = (Au_state*)Device_states_get_state(
             dstates,
-            proc->ins_params->device_id);
+            proc->au_params->device_id);
 
     // Get audio output buffers
     Audio_buffer* audio_buffer = Device_state_get_audio_buffer(
@@ -221,7 +221,7 @@ void Processor_process_vstate(
     Proc_common_handle_pitch(proc, vstate, wbs, buf_start, process_stop);
 
     const int32_t force_stop = Proc_common_handle_force(
-            proc, ins_state, vstate, wbs, audio_rate, buf_start, process_stop);
+            proc, au_state, vstate, wbs, audio_rate, buf_start, process_stop);
 
     const bool force_ended = (force_stop < process_stop);
     if (force_ended)
@@ -238,7 +238,7 @@ void Processor_process_vstate(
     const int32_t impl_render_stop = proc->process_vstate(
             proc,
             proc_state,
-            ins_state,
+            au_state,
             vstate,
             wbs,
             buf_start,
@@ -261,7 +261,7 @@ void Processor_process_vstate(
 
     // Apply common parameters to generated signal
     const int32_t ramp_release_stop = Proc_common_ramp_release(
-            proc, ins_state, vstate, wbs, 2, audio_rate, buf_start, process_stop);
+            proc, au_state, vstate, wbs, 2, audio_rate, buf_start, process_stop);
     const bool ramp_release_ended = (vstate->ramp_release >= 1);
     if (ramp_release_ended)
     {

@@ -12,17 +12,17 @@
  */
 
 
-#ifndef EVENT_INS_DEF
-#error "EVENT_INS_DEF(..) not defined"
+#ifndef EVENT_AU_DEF
+#error "EVENT_AU_DEF(..) not defined"
 #endif
 
 
 //            Name          Type suffix             Arg type        Validator
-EVENT_INS_DEF("ibp+",       bypass_on,              NONE,           NULL)
-EVENT_INS_DEF("ibp-",       bypass_off,             NONE,           NULL)
-EVENT_INS_DEF("i.sus",      set_sustain,            FLOAT,          v_sustain)
+EVENT_AU_DEF("ibp+",       bypass_on,              NONE,           NULL)
+EVENT_AU_DEF("ibp-",       bypass_off,             NONE,           NULL)
+EVENT_AU_DEF("i.sus",      set_sustain,            FLOAT,          v_sustain)
 
 
-#undef EVENT_INS_DEF
+#undef EVENT_AU_DEF
 
 

@@ -113,7 +113,7 @@ void Proc_common_handle_pitch(
 
 int32_t Proc_common_handle_force(
         const Processor* proc,
-        Ins_state* ins_state,
+        Au_state* au_state,
         Voice_state* vstate,
         const Work_buffers* wbs,
         uint32_t freq,
@@ -121,7 +121,7 @@ int32_t Proc_common_handle_force(
         int32_t buf_stop)
 {
     assert(proc != NULL);
-    assert(ins_state != NULL);
+    assert(au_state != NULL);
     assert(vstate != NULL);
     assert(wbs != NULL);
 
@@ -138,13 +138,13 @@ int32_t Proc_common_handle_force(
         for (int32_t i = buf_start; i < new_buf_stop; ++i)
         {
             new_force = Slider_step(&vstate->force_slider);
-            actual_forces[i] = new_force * proc->ins_params->global_force;
+            actual_forces[i] = new_force * proc->au_params->global_force;
         }
         vstate->force = new_force;
     }
     else
     {
-        const float actual_force = vstate->force * proc->ins_params->global_force;
+        const float actual_force = vstate->force * proc->au_params->global_force;
         for (int32_t i = buf_start; i < new_buf_stop; ++i)
             actual_forces[i] = actual_force;
     }
@@ -157,16 +157,16 @@ int32_t Proc_common_handle_force(
     }
 
     // Apply force envelope
-    if (proc->ins_params->env_force_enabled)
+    if (proc->au_params->env_force_enabled)
     {
-        const Envelope* env = proc->ins_params->env_force;
+        const Envelope* env = proc->au_params->env_force;
 
         const int32_t env_force_stop = Time_env_state_process(
                 &vstate->force_env_state,
                 env,
-                proc->ins_params->env_force_loop_enabled,
-                proc->ins_params->env_force_scale_amount,
-                proc->ins_params->env_force_center,
+                proc->au_params->env_force_loop_enabled,
+                proc->au_params->env_force_scale_amount,
+                proc->au_params->env_force_center,
                 0, // sustain
                 0, 1, // range
                 wbs,
@@ -201,17 +201,17 @@ int32_t Proc_common_handle_force(
     }
 
     // Apply force release envelope
-    if (!vstate->note_on && proc->ins_params->env_force_rel_enabled)
+    if (!vstate->note_on && proc->au_params->env_force_rel_enabled)
     {
-        const Envelope* env = proc->ins_params->env_force_rel;
+        const Envelope* env = proc->au_params->env_force_rel;
 
         const int32_t env_force_rel_stop = Time_env_state_process(
                 &vstate->force_rel_env_state,
                 env,
                 false, // no loop
-                proc->ins_params->env_force_rel_scale_amount,
-                proc->ins_params->env_force_rel_center,
-                ins_state->sustain,
+                proc->au_params->env_force_rel_scale_amount,
+                proc->au_params->env_force_rel_center,
+                au_state->sustain,
                 0, 1, // range
                 wbs,
                 buf_start,
@@ -385,7 +385,7 @@ void Proc_common_handle_filter(
         vstate->actual_lowpass = actual_lowpasses[i];
 
         // Apply force->filter envelope
-        if (proc->ins_params->env_force_filter_enabled &&
+        if (proc->au_params->env_force_filter_enabled &&
                 vstate->lowpass_xfade_pos >= 1)
         {
             double force = actual_forces[i];
@@ -393,7 +393,7 @@ void Proc_common_handle_filter(
                 force = 1;
 
             double factor = Envelope_get_value(
-                    proc->ins_params->env_force_filter,
+                    proc->au_params->env_force_filter,
                     force);
             assert(isfinite(factor));
             vstate->actual_lowpass = min(vstate->actual_lowpass, 16384) * factor;
@@ -481,7 +481,7 @@ void Proc_common_handle_filter(
 
 int32_t Proc_common_ramp_release(
         const Processor* proc,
-        const Ins_state* ins_state,
+        const Au_state* au_state,
         Voice_state* vstate,
         const Work_buffers* wbs,
         int ab_count,
@@ -496,7 +496,7 @@ int32_t Proc_common_ramp_release(
     const bool do_ramp_release =
         !vstate->note_on &&
         ((vstate->ramp_release > 0) ||
-            (!proc->ins_params->env_force_rel_enabled && (ins_state->sustain < 0.5)));
+            (!proc->au_params->env_force_rel_enabled && (au_state->sustain < 0.5)));
 
     if (do_ramp_release)
     {
@@ -566,9 +566,9 @@ void Proc_common_handle_panning(
     }
 
     // Apply pitch->pan envelope
-    if (proc->ins_params->env_pitch_pan_enabled)
+    if (proc->au_params->env_pitch_pan_enabled)
     {
-        const Envelope* env = proc->ins_params->env_pitch_pan;
+        const Envelope* env = proc->au_params->env_pitch_pan;
 
         for (int32_t i = buf_start; i < buf_stop; ++i)
         {

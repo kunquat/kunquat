@@ -41,15 +41,15 @@ bool Event_channel_slide_pitch_process(
     {
         Event_check_voice(ch, i);
         Voice* voice = ch->fg[i];
-        if (voice->proc->ins_params->pitch_locks[i].enabled)
+        if (voice->proc->au_params->pitch_locks[i].enabled)
             continue;
 
         Voice_state* vs = voice->state;
         pitch_t pitch = -1;
 #if 0
-        if (voice->proc->ins_params->scale == NULL ||
-                *voice->proc->ins_params->scale == NULL ||
-                **voice->proc->ins_params->scale == NULL)
+        if (voice->proc->au_params->scale == NULL ||
+                *voice->proc->au_params->scale == NULL ||
+                **voice->proc->au_params->scale == NULL)
 #endif
         {
             pitch = exp2(value->value.float_type / 1200) * 440;
@@ -58,7 +58,7 @@ bool Event_channel_slide_pitch_process(
         else
         {
             pitch = Scale_get_pitch_from_cents(
-                    **voice->proc->ins_params->scale,
+                    **voice->proc->au_params->scale,
                     value->value.float_type);
         }
 #endif
@@ -116,7 +116,7 @@ bool Event_channel_vibrato_speed_process(
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         Event_check_voice(ch, i);
-        if (ch->fg[i]->proc->ins_params->pitch_locks[i].enabled)
+        if (ch->fg[i]->proc->au_params->pitch_locks[i].enabled)
             continue;
 
         Voice_state* vs = ch->fg[i]->state;
@@ -149,7 +149,7 @@ bool Event_channel_vibrato_depth_process(
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         Event_check_voice(ch, i);
-        if (ch->fg[i]->proc->ins_params->pitch_locks[i].enabled)
+        if (ch->fg[i]->proc->au_params->pitch_locks[i].enabled)
             continue;
 
         Voice_state* vs = ch->fg[i]->state;

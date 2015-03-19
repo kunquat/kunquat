@@ -17,32 +17,32 @@
 
 #include <debug/assert.h>
 #include <devices/Processor.h>
+#include <player/events/Event_au_decl.h>
 #include <player/events/Event_common.h>
-#include <player/events/Event_ins_decl.h>
 #include <player/Proc_state.h>
 #include <Value.h>
 
 
-bool Event_ins_bypass_on_process(
-        const Instrument* ins,
-        const Instrument_params* ins_params,
-        Ins_state* ins_state,
+bool Event_au_bypass_on_process(
+        const Audio_unit* au,
+        const Au_params* au_params,
+        Au_state* au_state,
         Device_states* dstates,
         const Value* value)
 {
-    assert(ins != NULL);
-    assert(ins_params != NULL);
-    assert(ins_state != NULL);
+    assert(au != NULL);
+    assert(au_params != NULL);
+    assert(au_state != NULL);
     assert(dstates != NULL);
     assert(value != NULL);
-    (void)ins_params;
+    (void)au_params;
     (void)value;
 
-    ins_state->bypass = true;
+    au_state->bypass = true;
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
-        const Processor* proc = Instrument_get_proc(ins, i);
+        const Processor* proc = Audio_unit_get_proc(au, i);
         if (proc != NULL)
         {
             Proc_state* proc_state = (Proc_state*)Device_states_get_state(
@@ -55,24 +55,24 @@ bool Event_ins_bypass_on_process(
 }
 
 
-bool Event_ins_bypass_off_process(
-        const Instrument* ins,
-        const Instrument_params* ins_params,
-        Ins_state* ins_state,
+bool Event_au_bypass_off_process(
+        const Audio_unit* au,
+        const Au_params* au_params,
+        Au_state* au_state,
         Device_states* dstates,
         const Value* value)
 {
-    assert(ins != NULL);
-    assert(ins_params != NULL);
-    assert(ins_state != NULL);
+    assert(au != NULL);
+    assert(au_params != NULL);
+    assert(au_state != NULL);
     assert(dstates != NULL);
     assert(value != NULL);
-    (void)ins;
-    (void)ins_params;
+    (void)au;
+    (void)au_params;
     (void)dstates;
     (void)value;
 
-    ins_state->bypass = false;
+    au_state->bypass = false;
 
     return true;
 }

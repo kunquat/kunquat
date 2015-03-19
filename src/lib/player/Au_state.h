@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_INS_STATE_H
-#define K_INS_STATE_H
+#ifndef K_AU_STATE_H
+#define K_AU_STATE_H
 
 
 #include <stdlib.h>
@@ -21,23 +21,23 @@
 #include <player/Device_state.h>
 
 
-typedef struct Ins_state
+typedef struct Au_state
 {
     Device_state parent;
 
     bool bypass;
     double sustain; // 0 = no sustain, 1.0 = full sustain
-} Ins_state;
+} Au_state;
 
 
 /**
- * Reset the Instrument state.
+ * Reset the Audio unit state.
  *
- * \param ins_state   The Instrument state -- must not be \c NULL.
+ * \param au_state   The Audio unit state -- must not be \c NULL.
  */
-void Ins_state_reset(Ins_state* ins_state);
+void Au_state_reset(Au_state* au_state);
 
 
-#endif // K_INS_STATE_H
+#endif // K_AU_STATE_H
 
 

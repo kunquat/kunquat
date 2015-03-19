@@ -20,7 +20,7 @@
 #include <Connections.h>
 #include <debug/assert.h>
 #include <Device_node.h>
-#include <devices/Instrument.h>
+#include <devices/Audio_unit.h>
 #include <devices/Processor.h>
 #include <kunquat/limits.h>
 #include <memory.h>
@@ -29,9 +29,9 @@
 
 typedef enum
 {
-    DEVICE_TYPE_MASTER     = 1,
-    DEVICE_TYPE_PROCESSOR  = 2,
-    DEVICE_TYPE_INSTRUMENT = 8,
+    DEVICE_TYPE_MASTER    = 1,
+    DEVICE_TYPE_PROCESSOR = 2,
+    DEVICE_TYPE_AU        = 8,
 } Device_type;
 
 
@@ -46,11 +46,10 @@ typedef struct Connection
 struct Device_node
 {
     char name[KQT_DEVICE_NODE_NAME_MAX];
-    //Device_node* ins_dual;
 
     // These fields are required for adaptation to changes
-    Ins_table* insts;
-    const Device* master; ///< The global or Instrument master
+    Au_table* au_table;
+    const Device* master; ///< The global or Audio unit master
 
     Device_type type;
     int index;
@@ -62,14 +61,11 @@ struct Device_node
 };
 
 
-//static Device_node* Device_node_get_ins_dual(const Device_node* node);
-
-
 Device_node* new_Device_node(
-        const char* name, Ins_table* insts, const Device* master)
+        const char* name, Au_table* au_table, const Device* master)
 {
     assert(name != NULL);
-    assert(insts != NULL);
+    assert(au_table != NULL);
     assert(master != NULL);
 
     Device_node* node = memory_alloc_item(Device_node);
@@ -85,10 +81,10 @@ Device_node* new_Device_node(
     }
     else if (string_has_prefix(node->name, "ins_"))
     {
-        node->type = DEVICE_TYPE_INSTRUMENT;
+        node->type = DEVICE_TYPE_AU;
         node->index = string_extract_index(node->name, "ins_", 2, NULL);
         assert(node->index >= 0);
-        assert(node->index < KQT_INSTRUMENTS_MAX);
+        assert(node->index < KQT_AUDIO_UNITS_MAX);
     }
     else if (string_has_prefix(node->name, "prc_"))
     {
@@ -107,7 +103,7 @@ Device_node* new_Device_node(
         assert(false);
     }
 
-    node->insts = insts;
+    node->au_table = au_table;
     node->master = master;
     //node->device = NULL;
     node->name[KQT_DEVICE_NODE_NAME_MAX - 1] = '\0';
@@ -332,16 +328,16 @@ bool Device_node_init_effect_buffers(Device_node* node, Device_states* states)
         return true;
     }
 
-    if (node->type == DEVICE_TYPE_INSTRUMENT)
+    if (node->type == DEVICE_TYPE_AU)
     {
-        Instrument* ins = Ins_table_get(node->insts, node->index);
-        if (ins == NULL)
+        Audio_unit* au = Au_table_get(node->au_table, node->index);
+        if (au == NULL)
         {
             Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
             return true;
         }
 
-        if (!Instrument_prepare_connections(ins, states))
+        if (!Audio_unit_prepare_connections(au, states))
             return false;
     }
 
@@ -394,13 +390,13 @@ void Device_node_clear_buffers(
     //fprintf(stderr, "Clearing buffers of %p\n", (void*)Device_node_get_device(node));
     const Device* device = Device_node_get_device(node);
 
-    if (node->type == DEVICE_TYPE_INSTRUMENT)
+    if (node->type == DEVICE_TYPE_AU)
     {
-        // Clear the instrument buffers
-        const Instrument* ins = (const Instrument*)device;
-        Connections* ins_conns = Instrument_get_connections_mut(ins);
-        if (ins_conns != NULL)
-            Connections_clear_buffers(ins_conns, states, start, until);
+        // Clear the audio unit buffers
+        const Audio_unit* au = (const Audio_unit*)device;
+        Connections* au_conns = Audio_unit_get_connections_mut(au);
+        if (au_conns != NULL)
+            Connections_clear_buffers(au_conns, states, start, until);
     }
 
     Device_state* ds = Device_states_get_state(states, Device_get_id(device));
@@ -537,11 +533,11 @@ const Device* Device_node_get_device(const Device_node* node)
 
     if (node->type == DEVICE_TYPE_MASTER)
         return node->master;
-    else if (node->type == DEVICE_TYPE_INSTRUMENT)
-        return (const Device*)Ins_table_get(node->insts, node->index);
+    else if (node->type == DEVICE_TYPE_AU)
+        return (const Device*)Au_table_get(node->au_table, node->index);
     else if (node->type == DEVICE_TYPE_PROCESSOR)
-        return (const Device*)Instrument_get_proc(
-                (const Instrument*)node->master,
+        return (const Device*)Audio_unit_get_proc(
+                (const Audio_unit*)node->master,
                 node->index);
 
     assert(false);

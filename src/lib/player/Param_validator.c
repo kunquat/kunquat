@@ -94,6 +94,19 @@ bool v_arp_speed(const char* param)
 }
 
 
+bool v_au(const char* param)
+{
+    assert(param != NULL);
+
+    int64_t au = -1;
+    Streader* sr = init_c_streader(param);
+
+    return Streader_read_int(sr, &au) &&
+        au >= 0 &&
+        au < KQT_AUDIO_UNITS_MAX;
+}
+
+
 bool v_cond(const char* param)
 {
     assert(param != NULL);
@@ -171,19 +184,6 @@ bool v_hit(const char* param)
     Streader* sr = init_c_streader(param);
 
     return Streader_read_int(sr, &hit) && (hit >= 0) && (hit < KQT_HITS_MAX);
-}
-
-
-bool v_ins(const char* param)
-{
-    assert(param != NULL);
-
-    int64_t ins = -1;
-    Streader* sr = init_c_streader(param);
-
-    return Streader_read_int(sr, &ins) &&
-        ins >= 0 &&
-        ins < KQT_INSTRUMENTS_MAX;
 }
 
 

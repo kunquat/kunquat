@@ -1,0 +1,200 @@
+
+
+/*
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
+ *
+ * This file is part of Kunquat.
+ *
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
+ *
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
+ */
+
+
+#ifndef K_AUDIO_UNIT_H
+#define K_AUDIO_UNIT_H
+
+
+#include <stdbool.h>
+
+#include <Decl.h>
+#include <devices/Au_params.h>
+#include <devices/param_types/Envelope.h>
+#include <devices/Proc_table.h>
+#include <devices/Processor.h>
+#include <frame.h>
+#include <kunquat/limits.h>
+#include <module/Scale.h>
+#include <player/Voice_state.h>
+#include <string/Streader.h>
+
+
+#define AU_DEFAULT_GLOBAL_FORCE 0
+#define AU_DEFAULT_FORCE 0
+#define AU_DEFAULT_FORCE_VAR 0
+#define AU_DEFAULT_SCALE_INDEX (-1)
+
+
+/**
+ * Create a new Audio unit.
+ *
+ * \return   The new Audio unit if successful, or \c NULL if memory allocation
+ *           failed.
+ */
+Audio_unit* new_Audio_unit(void);
+
+
+/**
+ * Parse an Audio unit header from a textual description.
+ *
+ * \param au   The Audio unit -- must not be \c NULL.
+ * \param sr   The Streader of the JSON data -- must not be \c NULL.
+ *
+ * \return   \c true if successful, otherwise \c false.
+ */
+bool Audio_unit_parse_header(Audio_unit* au, Streader* sr);
+
+
+/**
+ * Parse an Audio unit-level value from a textual description.
+ *
+ * \param au       The Audio unit -- must not be \c NULL.
+ * \param subkey   The subkey -- must not be \c NULL.
+ * \param sr       The Streader of the JSON data -- must not be \c NULL.
+ *
+ * \return   \c true if successful, otherwise \c false.
+ */
+bool Audio_unit_parse_value(Audio_unit* au, const char* subkey, Streader* sr);
+
+
+/**
+ * Get the Audio unit parameters of the Audio unit.
+ *
+ * \param au   The Audio unit -- must not be \c NULL.
+ *
+ * \return   The Audio unit parameters.
+ */
+Au_params* Audio_unit_get_params(Audio_unit* au);
+
+
+/**
+ * Get a Processor of the Audio unit.
+ *
+ * \param au      The Audio unit -- must not be \c NULL.
+ * \param index   The index of the Processor -- must be >= \c 0 and
+ *                < \c KQT_PROCESSORS_MAX.
+ *
+ * \return   The Processor if found, otherwise \c NULL.
+ */
+const Processor* Audio_unit_get_proc(const Audio_unit* au, int index);
+
+
+/**
+ * Get the Processor table of the Audio unit.
+ *
+ * \param au   The Audio unit -- must not be \c NULL.
+ *
+ * \return   The Processor table.
+ */
+Proc_table* Audio_unit_get_procs(Audio_unit* au);
+
+
+/**
+ * Get an Audio unit contained within the Audio unit.
+ *
+ * \param au      The Audio unit -- must not be \c NULL.
+ * \param index   The index of the Audio unit -- must be >= \c 0 and
+ *                < \c KQT_AUDIO_UNITS_MAX.
+ *
+ * \return   The Audio unit if one exists, otherwise \c NULL.
+ */
+const Audio_unit* Audio_unit_get_au(const Audio_unit* au, int index);
+
+
+/**
+ * Get the Audio unit table of the Audio unit.
+ *
+ * \param au   The Audio unit -- must not be \c NULL.
+ *
+ * \return   The Audio unit table.
+ */
+Au_table* Audio_unit_get_au_table(Audio_unit* au);
+
+
+/**
+ * Set the Connections of the Audio unit.
+ *
+ * Previously set Connections will be removed if found.
+ *
+ * \param au      The Audio unit -- must not be \c NULL.
+ * \param graph   The Connections, or \c NULL.
+ */
+void Audio_unit_set_connections(Audio_unit* au, Connections* graph);
+
+
+/**
+ * Get the Connections of the Audio unit.
+ *
+ * \param au   The Audio unit -- must not be \c NULL.
+ *
+ * \return   The Connections, or \c NULL if none exist.
+ */
+const Connections* Audio_unit_get_connections(const Audio_unit* au);
+
+
+/**
+ * Get the mutable Connections of the Audio unit.
+ *
+ * \param au   The Audio unit -- must not be \c NULL.
+ *
+ * \return   The Connections, or \c NULL if none exist.
+ */
+Connections* Audio_unit_get_connections_mut(const Audio_unit* au);
+
+
+/**
+ * Prepare the Connections of the Audio unit.
+ *
+ * This function assumes that the outer input and output buffers of the Audio unit
+ * have been allocated.
+ *
+ * \param au       The Audio unit -- must not be \c NULL.
+ * \param states   The Device states -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Audio_unit_prepare_connections(const Audio_unit* au, Device_states* states);
+
+
+/**
+ * Get the input interface of the Audio unit.
+ *
+ * \param au   The Audio unit -- must not be \c NULL.
+ *
+ * \return   The input interface.
+ */
+const Device* Audio_unit_get_input_interface(const Audio_unit* au);
+
+
+/**
+ * Get the output interface of the Audio unit.
+ *
+ * \param au   The Audio unit -- must not be \c NULL.
+ *
+ * \return   The output interface.
+ */
+const Device* Audio_unit_get_output_interface(const Audio_unit* au);
+
+
+/**
+ * Destroy an existing Audio unit.
+ *
+ * \param au   The Audio unit, or \c NULL.
+ */
+void del_Audio_unit(Audio_unit* au);
+
+
+#endif // K_AUDIO_UNIT_H
+
+

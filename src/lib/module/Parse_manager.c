@@ -20,9 +20,9 @@
 
 #include <Connections.h>
 #include <debug/assert.h>
+#include <devices/Audio_unit.h>
 #include <devices/Device_event_keys.h>
 #include <devices/Device_params.h>
-#include <devices/Instrument.h>
 #include <devices/Proc_type.h>
 #include <Handle_private.h>
 #include <memory.h>
@@ -71,66 +71,66 @@ static const struct
     } else (void)0
 
 
-static const Instrument* find_ins(
-        Handle* handle, int32_t ins_index, int32_t sub_ins_index)
+static const Audio_unit* find_au(
+        Handle* handle, int32_t au_index, int32_t sub_au_index)
 {
     assert(handle != NULL);
 
     const Module* module = Handle_get_module(handle);
 
-    Instrument* ins = Ins_table_get(Module_get_insts(module), ins_index);
-    if (ins == NULL)
+    Audio_unit* au = Au_table_get(Module_get_au_table(module), au_index);
+    if (au == NULL)
         return NULL;
 
-    if (sub_ins_index >= 0)
+    if (sub_au_index >= 0)
     {
-        Ins_table* ins_table = Instrument_get_insts(ins);
-        if (ins_table == NULL)
+        Au_table* au_table = Audio_unit_get_au_table(au);
+        if (au_table == NULL)
             return NULL;
 
-        ins = Ins_table_get(ins_table, sub_ins_index);
+        au = Au_table_get(au_table, sub_au_index);
     }
 
-    return ins;
+    return au;
 }
 
 
-static bool is_ins_in_conn_possible(
-        Handle* handle, int32_t ins_index, int32_t sub_ins_index, int32_t port)
+static bool is_au_in_conn_possible(
+        Handle* handle, int32_t au_index, int32_t sub_au_index, int32_t port)
 {
     assert(handle != NULL);
 
-    const Instrument* ins = find_ins(handle, ins_index, sub_ins_index);
-    if (ins == NULL)
+    const Audio_unit* au = find_au(handle, au_index, sub_au_index);
+    if (au == NULL)
         return false;
 
-    return Device_get_port_existence((const Device*)ins, DEVICE_PORT_TYPE_RECEIVE, port);
+    return Device_get_port_existence((const Device*)au, DEVICE_PORT_TYPE_RECEIVE, port);
 }
 
 
-static bool is_ins_out_conn_possible(
-        Handle* handle, int32_t ins_index, int32_t sub_ins_index, int32_t port)
+static bool is_au_out_conn_possible(
+        Handle* handle, int32_t au_index, int32_t sub_au_index, int32_t port)
 {
     assert(handle != NULL);
 
-    const Instrument* ins = find_ins(handle, ins_index, sub_ins_index);
-    if (ins == NULL)
+    const Audio_unit* au = find_au(handle, au_index, sub_au_index);
+    if (au == NULL)
         return false;
 
-    return Device_get_port_existence((const Device*)ins, DEVICE_PORT_TYPE_SEND, port);
+    return Device_get_port_existence((const Device*)au, DEVICE_PORT_TYPE_SEND, port);
 }
 
 
 static const Processor* find_complete_proc(
-        Handle* handle, int32_t ins_index, int32_t sub_ins_index, int32_t proc_index)
+        Handle* handle, int32_t au_index, int32_t sub_au_index, int32_t proc_index)
 {
     assert(handle != NULL);
 
-    const Instrument* ins = find_ins(handle, ins_index, sub_ins_index);
-    if (ins == NULL)
+    const Audio_unit* au = find_au(handle, au_index, sub_au_index);
+    if (au == NULL)
         return false;
 
-    const Processor* proc = Instrument_get_proc(ins, proc_index);
+    const Processor* proc = Audio_unit_get_proc(au, proc_index);
     if ((proc == NULL) || !Device_has_complete_type((const Device*)proc))
         return NULL;
 
@@ -140,15 +140,15 @@ static const Processor* find_complete_proc(
 
 static bool is_proc_in_conn_possible(
         Handle* handle,
-        int32_t ins_index,
-        int32_t sub_ins_index,
+        int32_t au_index,
+        int32_t sub_au_index,
         int32_t proc_index,
         int32_t port)
 {
     assert(handle != NULL);
 
     const Processor* proc = find_complete_proc(
-            handle, ins_index, sub_ins_index, proc_index);
+            handle, au_index, sub_au_index, proc_index);
     if (proc == NULL)
         return false;
 
@@ -159,15 +159,15 @@ static bool is_proc_in_conn_possible(
 
 static bool is_proc_out_conn_possible(
         Handle* handle,
-        int32_t ins_index,
-        int32_t sub_ins_index,
+        int32_t au_index,
+        int32_t sub_au_index,
         int32_t proc_index,
         int32_t port)
 {
     assert(handle != NULL);
 
     const Processor* proc = find_complete_proc(
-            handle, ins_index, sub_ins_index, proc_index);
+            handle, au_index, sub_au_index, proc_index);
     if (proc == NULL)
         return false;
 
@@ -189,17 +189,17 @@ static bool is_connection_possible(
         return is_proc_out_conn_possible(
                 handle, indices[0], indices[1], indices[2], indices[3]);
     else if (string_has_prefix(keyp, "ins_XX/ins_XX/in_XX/"))
-        return is_ins_in_conn_possible(handle, indices[0], indices[1], indices[2]);
+        return is_au_in_conn_possible(handle, indices[0], indices[1], indices[2]);
     else if (string_has_prefix(keyp, "ins_XX/ins_XX/out_XX/"))
-        return is_ins_out_conn_possible(handle, indices[0], indices[1], indices[2]);
+        return is_au_out_conn_possible(handle, indices[0], indices[1], indices[2]);
     else if (string_has_prefix(keyp, "ins_XX/prc_XX/in_XX/"))
         return is_proc_in_conn_possible(handle, indices[0], -1, indices[1], indices[2]);
     else if (string_has_prefix(keyp, "ins_XX/prc_XX/out_XX/"))
         return is_proc_out_conn_possible(handle, indices[0], -1, indices[1], indices[2]);
     else if (string_has_prefix(keyp, "ins_XX/in_XX/"))
-        return is_ins_in_conn_possible(handle, indices[0], -1, indices[1]);
+        return is_au_in_conn_possible(handle, indices[0], -1, indices[1]);
     else if (string_has_prefix(keyp, "ins_XX/out_XX/"))
-        return is_ins_out_conn_possible(handle, indices[0], -1, indices[1]);
+        return is_au_out_conn_possible(handle, indices[0], -1, indices[1]);
 
     return false;
 }
@@ -325,7 +325,7 @@ static bool read_connections(Reader_params* params)
     Connections* graph = new_Connections_from_string(
             params->sr,
             CONNECTION_LEVEL_GLOBAL,
-            Module_get_insts(module),
+            Module_get_au_table(module),
             (Device*)module);
     if (graph == NULL)
     {
@@ -348,7 +348,7 @@ static bool read_control_map(Reader_params* params)
 {
     assert(params != NULL);
 
-    if (!Module_set_ins_map(Handle_get_module(params->handle), params->sr))
+    if (!Module_set_au_map(Handle_get_module(params->handle), params->sr))
     {
         set_error(params);
         return false;
@@ -477,43 +477,43 @@ static bool read_album_tracks(Reader_params* params)
 }
 
 
-static Instrument* add_instrument(Handle* handle, Ins_table* ins_table, int index)
+static Audio_unit* add_audio_unit(Handle* handle, Au_table* au_table, int index)
 {
     assert(handle != NULL);
-    assert(ins_table != NULL);
+    assert(au_table != NULL);
     assert(index >= 0);
-    assert(index < KQT_INSTRUMENTS_MAX);
+    assert(index < KQT_AUDIO_UNITS_MAX);
 
     static const char* memory_error_str =
-        "Couldn't allocate memory for a new instrument";
+        "Couldn't allocate memory for a new audio unit";
 
-    // Return existing instrument
-    Instrument* ins = Ins_table_get(ins_table, index);
-    if (ins != NULL)
-        return ins;
+    // Return existing audio unit
+    Audio_unit* au = Au_table_get(au_table, index);
+    if (au != NULL)
+        return au;
 
-    // Create new instrument
-    ins = new_Instrument();
-    if (ins == NULL || !Ins_table_set(ins_table, index, ins))
+    // Create new audio unit
+    au = new_Audio_unit();
+    if (au == NULL || !Au_table_set(au_table, index, au))
     {
         Handle_set_error(handle, ERROR_MEMORY, memory_error_str);
-        del_Instrument(ins);
+        del_Audio_unit(au);
         return NULL;
     }
 
-    // Allocate Device states for the new Instrument
-    const Device* ins_devices[] =
+    // Allocate Device states for the new audio unit
+    const Device* au_devices[] =
     {
-        (const Device*)ins,
-        Instrument_get_input_interface(ins),
-        Instrument_get_output_interface(ins),
+        (const Device*)au,
+        Audio_unit_get_input_interface(au),
+        Audio_unit_get_output_interface(au),
         NULL
     };
     for (int i = 0; i < 3; ++i)
     {
-        assert(ins_devices[i] != NULL);
+        assert(au_devices[i] != NULL);
         Device_state* ds = Device_create_state(
-                ins_devices[i],
+                au_devices[i],
                 Player_get_audio_rate(handle->player),
                 Player_get_audio_buffer_size(handle->player));
         if (ds == NULL || !Device_states_add_state(
@@ -521,44 +521,44 @@ static Instrument* add_instrument(Handle* handle, Ins_table* ins_table, int inde
         {
             del_Device_state(ds);
             Handle_set_error(handle, ERROR_MEMORY, memory_error_str);
-            Ins_table_remove(ins_table, index);
+            Au_table_remove(au_table, index);
             return NULL;
         }
     }
 
-    return ins;
+    return au;
 }
 
 
-#define acquire_ins_index(index, params, level)            \
+#define acquire_au_index(index, params, level)             \
     if (true)                                              \
     {                                                      \
         (index) = (params)->indices[(level)];              \
-        if ((index) < 0 || (index) >= KQT_INSTRUMENTS_MAX) \
+        if ((index) < 0 || (index) >= KQT_AUDIO_UNITS_MAX) \
             return true;                                   \
     }                                                      \
     else (void)0
 
 
-#define acquire_ins(ins, handle, ins_table, index)              \
-    if (true)                                                   \
-    {                                                           \
-        (ins) = add_instrument((handle), (ins_table), (index)); \
-        if ((ins) == NULL)                                      \
-            return false;                                       \
-    }                                                           \
+#define acquire_au(au, handle, au_table, index)               \
+    if (true)                                                 \
+    {                                                         \
+        (au) = add_audio_unit((handle), (au_table), (index)); \
+        if ((au) == NULL)                                     \
+            return false;                                     \
+    }                                                         \
     else (void)0
 
 
-static bool read_any_ins_manifest(Reader_params* params, Ins_table* ins_table, int level)
+static bool read_any_au_manifest(Reader_params* params, Au_table* au_table, int level)
 {
     assert(params != NULL);
 
     int32_t index = -1;
-    acquire_ins_index(index, params, level);
+    acquire_au_index(index, params, level);
 
-    Instrument* ins = NULL;
-    acquire_ins(ins, params->handle, ins_table, index);
+    Audio_unit* au = NULL;
+    acquire_au(au, params->handle, au_table, index);
 
     const bool existent = read_default_manifest(params->sr);
     if (Streader_is_error_set(params->sr))
@@ -567,23 +567,23 @@ static bool read_any_ins_manifest(Reader_params* params, Ins_table* ins_table, i
         return false;
     }
 
-    Device_set_existent((Device*)ins, existent);
+    Device_set_existent((Device*)au, existent);
 
     return true;
 }
 
 
-static bool read_any_ins(Reader_params* params, Ins_table* ins_table, int level)
+static bool read_any_au(Reader_params* params, Au_table* au_table, int level)
 {
     assert(params != NULL);
 
     int32_t index = -1;
-    acquire_ins_index(index, params, level);
+    acquire_au_index(index, params, level);
 
-    Instrument* ins = NULL;
-    acquire_ins(ins, params->handle, ins_table, index);
+    Audio_unit* au = NULL;
+    acquire_au(au, params->handle, au_table, index);
 
-    if (!Instrument_parse_header(ins, params->sr))
+    if (!Audio_unit_parse_header(au, params->sr))
     {
         set_error(params);
         return false;
@@ -593,12 +593,12 @@ static bool read_any_ins(Reader_params* params, Ins_table* ins_table, int level)
 }
 
 
-static bool read_any_ins_in_port_manifest(Reader_params* params, Ins_table* ins_table, int level)
+static bool read_any_au_in_port_manifest(Reader_params* params, Au_table* au_table, int level)
 {
     assert(params != NULL);
 
-    int32_t ins_index = -1;
-    acquire_ins_index(ins_index, params, level);
+    int32_t au_index = -1;
+    acquire_au_index(au_index, params, level);
     int32_t in_port_index = -1;
     acquire_port_index(in_port_index, params, level + 1);
 
@@ -609,24 +609,24 @@ static bool read_any_ins_in_port_manifest(Reader_params* params, Ins_table* ins_
         return false;
     }
 
-    Instrument* ins = NULL;
-    acquire_ins(ins, params->handle, ins_table, ins_index);
+    Audio_unit* au = NULL;
+    acquire_au(au, params->handle, au_table, au_index);
 
     Device_set_port_existence(
-            (Device*)ins, DEVICE_PORT_TYPE_RECEIVE, in_port_index, existent);
+            (Device*)au, DEVICE_PORT_TYPE_RECEIVE, in_port_index, existent);
     Device_set_port_existence(
-            (Device*)ins, DEVICE_PORT_TYPE_SEND, in_port_index, existent);
+            (Device*)au, DEVICE_PORT_TYPE_SEND, in_port_index, existent);
 
     return true;
 }
 
 
-static bool read_any_ins_out_port_manifest(Reader_params* params, Ins_table* ins_table, int level)
+static bool read_any_au_out_port_manifest(Reader_params* params, Au_table* au_table, int level)
 {
     assert(params != NULL);
 
-    int32_t ins_index = -1;
-    acquire_ins_index(ins_index, params, level);
+    int32_t au_index = -1;
+    acquire_au_index(au_index, params, level);
     int32_t out_port_index = -1;
     acquire_port_index(out_port_index, params, level + 1);
 
@@ -637,47 +637,44 @@ static bool read_any_ins_out_port_manifest(Reader_params* params, Ins_table* ins
         return false;
     }
 
-    Instrument* ins = NULL;
-    acquire_ins(ins, params->handle, ins_table, ins_index);
+    Audio_unit* au = NULL;
+    acquire_au(au, params->handle, au_table, au_index);
 
     Device_set_port_existence(
-            (Device*)ins, DEVICE_PORT_TYPE_RECEIVE, out_port_index, existent);
+            (Device*)au, DEVICE_PORT_TYPE_RECEIVE, out_port_index, existent);
     Device_set_port_existence(
-            (Device*)ins, DEVICE_PORT_TYPE_SEND, out_port_index, existent);
+            (Device*)au, DEVICE_PORT_TYPE_SEND, out_port_index, existent);
 
     return true;
 }
 
 
-static bool read_any_ins_connections(Reader_params* params, Ins_table* ins_table, int level)
+static bool read_any_au_connections(Reader_params* params, Au_table* au_table, int level)
 {
     assert(params != NULL);
 
     int32_t index = -1;
-    acquire_ins_index(index, params, level);
+    acquire_au_index(index, params, level);
 
-    Instrument* ins = NULL;
-    acquire_ins(ins, params->handle, ins_table, index);
+    Audio_unit* au = NULL;
+    acquire_au(au, params->handle, au_table, index);
 
     if (!Streader_has_data(params->sr))
     {
-        Instrument_set_connections(ins, NULL);
+        Audio_unit_set_connections(au, NULL);
         params->handle->update_connections = true;
     }
     else
     {
         Connections* graph = new_Connections_from_string(
-                params->sr,
-                CONNECTION_LEVEL_INSTRUMENT,
-                Instrument_get_insts(ins),
-                (Device*)ins);
+                params->sr, CONNECTION_LEVEL_AU, Audio_unit_get_au_table(au), (Device*)au);
         if (graph == NULL)
         {
             set_error(params);
             return false;
         }
 
-        Instrument_set_connections(ins, graph);
+        Audio_unit_set_connections(au, graph);
         params->handle->update_connections = true;
     }
 
@@ -685,21 +682,21 @@ static bool read_any_ins_connections(Reader_params* params, Ins_table* ins_table
 }
 
 
-static bool read_any_ins_env_generic(
+static bool read_any_au_env_generic(
         Reader_params* params,
-        Ins_table* ins_table,
+        Au_table* au_table,
         int level,
-        bool parse_func(Instrument_params*, Streader*))
+        bool parse_func(Au_params*, Streader*))
 {
     assert(params != NULL);
 
     int32_t index = -1;
-    acquire_ins_index(index, params, level);
+    acquire_au_index(index, params, level);
 
-    Instrument* ins = NULL;
-    acquire_ins(ins, params->handle, ins_table, index);
+    Audio_unit* au = NULL;
+    acquire_au(au, params->handle, au_table, index);
 
-    if (!parse_func(Instrument_get_params(ins), params->sr))
+    if (!parse_func(Audio_unit_get_params(au), params->sr))
     {
         set_error(params);
         return false;
@@ -709,42 +706,48 @@ static bool read_any_ins_env_generic(
 }
 
 
-static bool read_any_ins_env_force(Reader_params* params, Ins_table* ins_table, int level)
+static bool read_any_au_env_force(Reader_params* params, Au_table* au_table, int level)
 {
     assert(params != NULL);
-    return read_any_ins_env_generic(params, ins_table, level, Instrument_params_parse_env_force);
+    return read_any_au_env_generic(params, au_table, level, Au_params_parse_env_force);
 }
 
 
-static bool read_any_ins_env_force_release(Reader_params* params, Ins_table* ins_table, int level)
+static bool read_any_au_env_force_release(
+        Reader_params* params, Au_table* au_table, int level)
 {
     assert(params != NULL);
-    return read_any_ins_env_generic(params, ins_table, level, Instrument_params_parse_env_force_rel);
+    return read_any_au_env_generic(
+            params, au_table, level, Au_params_parse_env_force_rel);
 }
 
 
-static bool read_any_ins_env_force_filter(Reader_params* params, Ins_table* ins_table, int level)
+static bool read_any_au_env_force_filter(
+        Reader_params* params, Au_table* au_table, int level)
 {
     assert(params != NULL);
-    return read_any_ins_env_generic(params, ins_table, level, Instrument_params_parse_env_force_filter);
+    return read_any_au_env_generic(
+            params, au_table, level, Au_params_parse_env_force_filter);
 }
 
 
-static bool read_any_ins_env_pitch_pan(Reader_params* params, Ins_table* ins_table, int level)
+static bool read_any_au_env_pitch_pan(
+        Reader_params* params, Au_table* au_table, int level)
 {
     assert(params != NULL);
-    return read_any_ins_env_generic(params, ins_table, level, Instrument_params_parse_env_pitch_pan);
+    return read_any_au_env_generic(
+            params, au_table, level, Au_params_parse_env_pitch_pan);
 }
 
 
 static Processor* add_processor(
         Handle* handle,
-        Instrument* ins,
+        Audio_unit* au,
         Proc_table* proc_table,
         int proc_index)
 {
     assert(handle != NULL);
-    assert(ins != NULL);
+    assert(au != NULL);
     assert(proc_table != NULL);
     assert(proc_index >= 0);
     assert(proc_index < KQT_PROCESSORS_MAX);
@@ -758,7 +761,7 @@ static Processor* add_processor(
         return proc;
 
     // Create new processor
-    proc = new_Processor(Instrument_get_params(ins));
+    proc = new_Processor(Audio_unit_get_params(au));
     if (proc == NULL || !Proc_table_set_proc(proc_table, proc_index, proc))
     {
         Handle_set_error(handle, ERROR_MEMORY, memory_error_str);
@@ -770,7 +773,7 @@ static Processor* add_processor(
 }
 
 
-#define acquire_proc_index(index, params, level)           \
+#define acquire_proc_index(index, params, level)          \
     if (true)                                             \
     {                                                     \
         (index) = (params)->indices[(level)];             \
@@ -781,19 +784,19 @@ static Processor* add_processor(
 
 
 static bool read_any_proc_manifest(
-        Reader_params* params, Ins_table* ins_table, int level)
+        Reader_params* params, Au_table* au_table, int level)
 {
     assert(params != NULL);
 
-    int32_t ins_index = -1;
-    acquire_ins_index(ins_index, params, level);
+    int32_t au_index = -1;
+    acquire_au_index(au_index, params, level);
     int32_t proc_index = -1;
     acquire_proc_index(proc_index, params, level + 1);
 
-    Instrument* ins = NULL;
-    acquire_ins(ins, params->handle, ins_table, ins_index);
+    Audio_unit* au = NULL;
+    acquire_au(au, params->handle, au_table, au_index);
 
-    Proc_table* table = Instrument_get_procs(ins);
+    Proc_table* table = Audio_unit_get_procs(au);
     assert(table != NULL);
 
     const bool existent = read_default_manifest(params->sr);
@@ -810,20 +813,20 @@ static bool read_any_proc_manifest(
 
 
 static bool read_any_proc_in_port_manifest(
-        Reader_params* params, Ins_table* ins_table, int level)
+        Reader_params* params, Au_table* au_table, int level)
 {
     assert(params != NULL);
 
-    int32_t ins_index = -1;
-    acquire_ins_index(ins_index, params, level);
+    int32_t au_index = -1;
+    acquire_au_index(au_index, params, level);
     int32_t proc_index = -1;
     acquire_proc_index(proc_index, params, level + 1);
     int32_t in_port_index = -1;
     acquire_port_index(in_port_index, params, level + 2);
 
-    Instrument* ins = NULL;
-    acquire_ins(ins, params->handle, ins_table, ins_index);
-    Proc_table* proc_table = Instrument_get_procs(ins);
+    Audio_unit* au = NULL;
+    acquire_au(au, params->handle, au_table, au_index);
+    Proc_table* proc_table = Audio_unit_get_procs(au);
 
     const bool existent = read_default_manifest(params->sr);
     if (Streader_is_error_set(params->sr))
@@ -832,7 +835,7 @@ static bool read_any_proc_in_port_manifest(
         return false;
     }
 
-    Processor* proc = add_processor(params->handle, ins, proc_table, proc_index);
+    Processor* proc = add_processor(params->handle, au, proc_table, proc_index);
     if (proc == NULL)
         return false;
 
@@ -844,20 +847,20 @@ static bool read_any_proc_in_port_manifest(
 
 
 static bool read_any_proc_out_port_manifest(
-        Reader_params* params, Ins_table* ins_table, int level)
+        Reader_params* params, Au_table* au_table, int level)
 {
     assert(params != NULL);
 
-    int32_t ins_index = -1;
-    acquire_ins_index(ins_index, params, level);
+    int32_t au_index = -1;
+    acquire_au_index(au_index, params, level);
     int32_t proc_index = -1;
     acquire_proc_index(proc_index, params, level + 1);
     int32_t out_port_index = -1;
     acquire_port_index(out_port_index, params, level + 2);
 
-    Instrument* ins = NULL;
-    acquire_ins(ins, params->handle, ins_table, ins_index);
-    Proc_table* proc_table = Instrument_get_procs(ins);
+    Audio_unit* au = NULL;
+    acquire_au(au, params->handle, au_table, au_index);
+    Proc_table* proc_table = Audio_unit_get_procs(au);
 
     const bool existent = read_default_manifest(params->sr);
     if (Streader_is_error_set(params->sr))
@@ -866,7 +869,7 @@ static bool read_any_proc_out_port_manifest(
         return false;
     }
 
-    Processor* proc = add_processor(params->handle, ins, proc_table, proc_index);
+    Processor* proc = add_processor(params->handle, au, proc_table, proc_index);
     if (proc == NULL)
         return false;
 
@@ -877,12 +880,12 @@ static bool read_any_proc_out_port_manifest(
 }
 
 
-static bool read_any_proc_type(Reader_params* params, Ins_table* ins_table, int level)
+static bool read_any_proc_type(Reader_params* params, Au_table* au_table, int level)
 {
     assert(params != NULL);
 
-    int32_t ins_index = -1;
-    acquire_ins_index(ins_index, params, level);
+    int32_t au_index = -1;
+    acquire_au_index(au_index, params, level);
     int32_t proc_index = -1;
     acquire_proc_index(proc_index, params, level + 1);
 
@@ -890,21 +893,21 @@ static bool read_any_proc_type(Reader_params* params, Ins_table* ins_table, int 
     {
         // Remove processor
         Module* module = Handle_get_module(params->handle);
-        Instrument* ins = Ins_table_get(Module_get_insts(module), ins_index);
-        if (ins == NULL)
+        Audio_unit* au = Au_table_get(Module_get_au_table(module), au_index);
+        if (au == NULL)
             return true;
 
-        Proc_table* proc_table = Instrument_get_procs(ins);
+        Proc_table* proc_table = Audio_unit_get_procs(au);
         Proc_table_remove_proc(proc_table, proc_index);
 
         return true;
     }
 
-    Instrument* ins = NULL;
-    acquire_ins(ins, params->handle, ins_table, ins_index);
-    Proc_table* proc_table = Instrument_get_procs(ins);
+    Audio_unit* au = NULL;
+    acquire_au(au, params->handle, au_table, au_index);
+    Proc_table* proc_table = Audio_unit_get_procs(au);
 
-    Processor* proc = add_processor(params->handle, ins, proc_table, proc_index);
+    Processor* proc = add_processor(params->handle, au, proc_table, proc_index);
     if (proc == NULL)
         return false;
 
@@ -1033,23 +1036,23 @@ static bool read_any_proc_type(Reader_params* params, Ins_table* ins_table, int 
 
 
 static bool read_any_proc_impl_conf_key(
-        Reader_params* params, Ins_table* ins_table, int level)
+        Reader_params* params, Au_table* au_table, int level)
 {
     assert(params != NULL);
 
     if (!key_is_device_param(params->subkey))
         return true;
 
-    int32_t ins_index = -1;
-    acquire_ins_index(ins_index, params, level);
+    int32_t au_index = -1;
+    acquire_au_index(au_index, params, level);
     int32_t proc_index = -1;
     acquire_proc_index(proc_index, params, level + 1);
 
-    Instrument* ins = NULL;
-    acquire_ins(ins, params->handle, ins_table, ins_index);
-    Proc_table* proc_table = Instrument_get_procs(ins);
+    Audio_unit* au = NULL;
+    acquire_au(au, params->handle, au_table, au_index);
+    Proc_table* proc_table = Audio_unit_get_procs(au);
 
-    Processor* proc = add_processor(params->handle, ins, proc_table, proc_index);
+    Processor* proc = add_processor(params->handle, au, proc_table, proc_index);
     if (proc == NULL)
         return false;
 
@@ -1071,7 +1074,7 @@ static bool read_any_proc_impl_conf_key(
 
 
 static bool read_any_proc_impl_key(
-        Reader_params* params, Ins_table* ins_table, int level)
+        Reader_params* params, Au_table* au_table, int level)
 {
     assert(params != NULL);
     assert(strlen(params->subkey) < KQT_KEY_LENGTH_MAX - 2);
@@ -1081,12 +1084,12 @@ static bool read_any_proc_impl_key(
     Reader_params hack_params = *params;
     hack_params.subkey = hack_subkey;
 
-    return read_any_proc_impl_conf_key(&hack_params, ins_table, level);
+    return read_any_proc_impl_conf_key(&hack_params, au_table, level);
 }
 
 
 static bool read_any_proc_conf_key(
-        Reader_params* params, Ins_table* ins_table, int level)
+        Reader_params* params, Au_table* au_table, int level)
 {
     assert(params != NULL);
     assert(strlen(params->subkey) < KQT_KEY_LENGTH_MAX - 2);
@@ -1096,59 +1099,59 @@ static bool read_any_proc_conf_key(
     Reader_params hack_params = *params;
     hack_params.subkey = hack_subkey;
 
-    return read_any_proc_impl_conf_key(&hack_params, ins_table, level);
+    return read_any_proc_impl_conf_key(&hack_params, au_table, level);
 }
 
 
-#define MAKE_INS_INS_READER(base_name)                                      \
-    static bool read_ins_ ## base_name(Reader_params* params)               \
-    {                                                                       \
-        assert(params != NULL);                                             \
-                                                                            \
-        int32_t top_ins_index = -1;                                         \
-        acquire_ins_index(top_ins_index, params, 0);                        \
-                                                                            \
-        Module* module = Handle_get_module(params->handle);                 \
-        Ins_table* top_ins_table = Module_get_insts(module);                \
-                                                                            \
-        Instrument* top_ins = NULL;                                         \
-        acquire_ins(top_ins, params->handle, top_ins_table, top_ins_index); \
-                                                                            \
-        Ins_table* ins_table = Instrument_get_insts(top_ins);               \
-                                                                            \
-        return read_any_ ## base_name(params, ins_table, 1);                \
+#define MAKE_AU_EFFECT_READER(base_name)                                \
+    static bool read_au_ ## base_name(Reader_params* params)            \
+    {                                                                   \
+        assert(params != NULL);                                         \
+                                                                        \
+        int32_t top_au_index = -1;                                      \
+        acquire_au_index(top_au_index, params, 0);                      \
+                                                                        \
+        Module* module = Handle_get_module(params->handle);             \
+        Au_table* top_au_table = Module_get_au_table(module);           \
+                                                                        \
+        Audio_unit* top_au = NULL;                                      \
+        acquire_au(top_au, params->handle, top_au_table, top_au_index); \
+                                                                        \
+        Au_table* au_table = Audio_unit_get_au_table(top_au);           \
+                                                                        \
+        return read_any_ ## base_name(params, au_table, 1);             \
     }
 
-#define MAKE_GLOBAL_INS_READER(base_name)                       \
-    static bool read_ ## base_name(Reader_params* params)       \
-    {                                                           \
-        assert(params != NULL);                                 \
-                                                                \
-        Module* module = Handle_get_module(params->handle);     \
-        Ins_table* ins_table = Module_get_insts(module);        \
-                                                                \
-        return read_any_ ## base_name(params, ins_table, 0);    \
+#define MAKE_GLOBAL_AU_READER(base_name)                    \
+    static bool read_ ## base_name(Reader_params* params)   \
+    {                                                       \
+        assert(params != NULL);                             \
+                                                            \
+        Module* module = Handle_get_module(params->handle); \
+        Au_table* au_table = Module_get_au_table(module);   \
+                                                            \
+        return read_any_ ## base_name(params, au_table, 0); \
     }
 
-#define MAKE_INS_READERS(base_name) \
-    MAKE_INS_INS_READER(base_name) \
-    MAKE_GLOBAL_INS_READER(base_name)
+#define MAKE_AU_READERS(base_name)   \
+    MAKE_AU_EFFECT_READER(base_name) \
+    MAKE_GLOBAL_AU_READER(base_name)
 
-MAKE_INS_READERS(ins_manifest)
-MAKE_INS_READERS(ins)
-MAKE_INS_READERS(ins_in_port_manifest)
-MAKE_INS_READERS(ins_out_port_manifest)
-MAKE_INS_READERS(ins_connections)
-MAKE_INS_READERS(ins_env_force)
-MAKE_INS_READERS(ins_env_force_release)
-MAKE_INS_READERS(ins_env_force_filter)
-MAKE_INS_READERS(ins_env_pitch_pan)
-MAKE_INS_READERS(proc_manifest)
-MAKE_INS_READERS(proc_in_port_manifest)
-MAKE_INS_READERS(proc_out_port_manifest)
-MAKE_INS_READERS(proc_type)
-MAKE_INS_READERS(proc_impl_key)
-MAKE_INS_READERS(proc_conf_key)
+MAKE_AU_READERS(au_manifest)
+MAKE_AU_READERS(au)
+MAKE_AU_READERS(au_in_port_manifest)
+MAKE_AU_READERS(au_out_port_manifest)
+MAKE_AU_READERS(au_connections)
+MAKE_AU_READERS(au_env_force)
+MAKE_AU_READERS(au_env_force_release)
+MAKE_AU_READERS(au_env_force_filter)
+MAKE_AU_READERS(au_env_pitch_pan)
+MAKE_AU_READERS(proc_manifest)
+MAKE_AU_READERS(proc_in_port_manifest)
+MAKE_AU_READERS(proc_out_port_manifest)
+MAKE_AU_READERS(proc_type)
+MAKE_AU_READERS(proc_impl_key)
+MAKE_AU_READERS(proc_conf_key)
 
 
 #define acquire_pattern(pattern, handle, index)                         \

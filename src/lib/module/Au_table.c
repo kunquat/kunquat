@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -16,28 +16,28 @@
 
 #include <containers/Etable.h>
 #include <debug/assert.h>
-#include <devices/Instrument.h>
+#include <devices/Audio_unit.h>
 #include <memory.h>
-#include <module/Ins_table.h>
+#include <module/Au_table.h>
 
 
-struct Ins_table
+struct Au_table
 {
     int size;
-    Etable* insts;
+    Etable* aus;
 };
 
 
-Ins_table* new_Ins_table(int size)
+Au_table* new_Au_table(int size)
 {
     assert(size > 0);
 
-    Ins_table* table = memory_alloc_item(Ins_table);
+    Au_table* table = memory_alloc_item(Au_table);
     if (table == NULL)
         return NULL;
 
-    table->insts = new_Etable(size, (void (*)(void*))del_Instrument);
-    if (table->insts == NULL)
+    table->aus = new_Etable(size, (void (*)(void*))del_Audio_unit);
+    if (table->aus == NULL)
     {
         memory_free(table);
         return NULL;
@@ -49,53 +49,53 @@ Ins_table* new_Ins_table(int size)
 }
 
 
-bool Ins_table_set(Ins_table* table, int index, Instrument* ins)
+bool Au_table_set(Au_table* table, int index, Audio_unit* au)
 {
     assert(table != NULL);
     assert(index >= 0);
     assert(index < table->size);
-    assert(ins != NULL);
+    assert(au != NULL);
 
-    return Etable_set(table->insts, index, ins);
+    return Etable_set(table->aus, index, au);
 }
 
 
-Instrument* Ins_table_get(Ins_table* table, int index)
+Audio_unit* Au_table_get(Au_table* table, int index)
 {
     assert(table != NULL);
     assert(index >= 0);
     assert(index < table->size);
 
-    return Etable_get(table->insts, index);
+    return Etable_get(table->aus, index);
 }
 
 
-void Ins_table_remove(Ins_table* table, int index)
+void Au_table_remove(Au_table* table, int index)
 {
     assert(table != NULL);
     assert(index >= 0);
     assert(index < table->size);
 
-    Etable_remove(table->insts, index);
+    Etable_remove(table->aus, index);
 
     return;
 }
 
 
-void Ins_table_clear(Ins_table* table)
+void Au_table_clear(Au_table* table)
 {
     assert(table != NULL);
-    Etable_clear(table->insts);
+    Etable_clear(table->aus);
     return;
 }
 
 
-void del_Ins_table(Ins_table* table)
+void del_Au_table(Au_table* table)
 {
     if (table == NULL)
         return;
 
-    del_Etable(table->insts);
+    del_Etable(table->aus);
     memory_free(table);
 
     return;

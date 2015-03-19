@@ -19,11 +19,11 @@
 #include <math.h>
 
 #include <debug/assert.h>
+#include <devices/Audio_unit.h>
 #include <devices/Processor.h>
-#include <devices/Instrument.h>
 #include <kunquat/limits.h>
+#include <module/Au_table.h>
 #include <module/Bind.h>
-#include <module/Ins_table.h>
 #include <module/Module.h>
 #include <player/Channel.h>
 #include <player/Event_handler.h>
@@ -38,7 +38,7 @@
 #include <player/events/Event_general_decl.h>
 #include <player/events/Event_master_decl.h>
 #include <player/events/Event_channel_decl.h>
-#include <player/events/Event_ins_decl.h>
+#include <player/events/Event_au_decl.h>
 #include <player/events/Event_processor_decl.h>
 
 #include <memory.h>
@@ -49,17 +49,17 @@ struct Event_handler
     Channel* channels[KQT_COLUMNS_MAX];
     Device_states* device_states;
     Master_params* master_params;
-    Ins_table* insts;
+    Au_table* au_table;
     Event_names* event_names;
 
     bool (*control_process[Event_control_STOP])(General_state*, const Value*);
     bool (*general_process[Event_general_STOP])(General_state*, const Value*);
     bool (*ch_process[Event_channel_STOP])(Channel*, Device_states*, const Value*);
     bool (*master_process[Event_master_STOP])(Master_params*, const Value*);
-    bool (*ins_process[Event_ins_STOP])(
-            const Instrument*,
-            const Instrument_params*,
-            Ins_state*,
+    bool (*au_process[Event_au_STOP])(
+            const Audio_unit*,
+            const Au_params*,
+            Au_state*,
             Device_states*,
             const Value*);
     bool (*processor_process[Event_processor_STOP])(
@@ -71,12 +71,12 @@ Event_handler* new_Event_handler(
         Master_params* master_params,
         Channel** channels,
         Device_states* device_states,
-        Ins_table* insts)
+        Au_table* au_table)
 {
     assert(master_params != NULL);
     assert(channels != NULL);
     assert(device_states != NULL);
-    assert(insts != NULL);
+    assert(au_table != NULL);
 
     Event_handler* eh = memory_alloc_item(Event_handler);
     if (eh == NULL)
@@ -93,7 +93,7 @@ Event_handler* new_Event_handler(
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
         eh->channels[i] = channels[i];
     eh->device_states = device_states;
-    eh->insts = insts;
+    eh->au_table = au_table;
 
 #define EVENT_CONTROL_DEF(name, type_suffix, arg_type, validator)                \
         Event_handler_set_control_process(                                       \
@@ -115,10 +115,10 @@ Event_handler* new_Event_handler(
         eh, Event_channel_##type_suffix, Event_channel_##type_suffix##_process);
 #include <player/events/Event_channel_types.h>
 
-#define EVENT_INS_DEF(name, type_suffix, arg_type, validator)            \
-        Event_handler_set_ins_process(                                   \
-        eh, Event_ins_##type_suffix, Event_ins_##type_suffix##_process);
-#include <player/events/Event_ins_types.h>
+#define EVENT_AU_DEF(name, type_suffix, arg_type, validator)           \
+        Event_handler_set_au_process(                                  \
+        eh, Event_au_##type_suffix, Event_au_##type_suffix##_process);
+#include <player/events/Event_au_types.h>
 
 #define EVENT_PROCESSOR_DEF(name, type_suffix, arg_type, validator)                  \
         Event_handler_set_processor_process(                                         \
@@ -196,16 +196,21 @@ bool Event_handler_set_master_process(
 }
 
 
-bool Event_handler_set_ins_process(
+bool Event_handler_set_au_process(
         Event_handler* eh,
         Event_type type,
-        bool (*ins_process)(const Instrument*, const Instrument_params*, Ins_state*, Device_states*, const Value*))
+        bool (*au_process)(
+            const Audio_unit*,
+            const Au_params*,
+            Au_state*,
+            Device_states*,
+            const Value*))
 {
     assert(eh != NULL);
-    assert(Event_is_ins(type));
-    assert(ins_process != NULL);
+    assert(Event_is_au(type));
+    assert(au_process != NULL);
 
-    eh->ins_process[type] = ins_process;
+    eh->au_process[type] = au_process;
 
     return true;
 }
@@ -251,22 +256,22 @@ static bool Event_handler_handle(
                 eh->device_states,
                 value);
     }
-    else if (Event_is_ins(type))
+    else if (Event_is_au(type))
     {
-        // Find our instrument
-        Instrument* ins = Module_get_ins_from_input(
+        // Find our audio unit
+        Audio_unit* au = Module_get_au_from_input(
                 eh->master_params->parent.module,
-                eh->channels[index]->ins_input);
-        if (ins == NULL)
+                eh->channels[index]->au_input);
+        if (au == NULL)
             return false;
 
-        const Instrument_params* ins_params = Instrument_get_params(ins);
-        assert(ins_params != NULL);
-        Ins_state* ins_state = (Ins_state*)Device_states_get_state(
+        const Au_params* au_params = Audio_unit_get_params(au);
+        assert(au_params != NULL);
+        Au_state* au_state = (Au_state*)Device_states_get_state(
                 eh->device_states,
-                Device_get_id((Device*)ins));
+                Device_get_id((Device*)au));
 
-        return eh->ins_process[type](ins, ins_params, ins_state, eh->device_states, value);
+        return eh->au_process[type](au, au_params, au_state, eh->device_states, value);
     }
     else if (Event_is_master(type))
     {
@@ -277,15 +282,15 @@ static bool Event_handler_handle(
     }
     else if (Event_is_processor(type))
     {
-        // Find our instrument
-        Instrument* ins = Module_get_ins_from_input(
+        // Find our audio unit
+        Audio_unit* au = Module_get_au_from_input(
                 eh->master_params->parent.module,
-                eh->channels[index]->ins_input);
-        if (ins == NULL)
+                eh->channels[index]->au_input);
+        if (au == NULL)
             return false;
 
-        const Device* device = (const Device*)Instrument_get_proc(
-                ins, eh->channels[index]->processor);
+        const Device* device = (const Device*)Audio_unit_get_proc(
+                au, eh->channels[index]->processor);
         if (device == NULL)
             return false;
 

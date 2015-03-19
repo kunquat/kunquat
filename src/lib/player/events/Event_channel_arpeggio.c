@@ -40,16 +40,16 @@ bool Event_channel_arpeggio_on_process(
         Voice* voice = ch->fg[i];
         Voice_state* vs = voice->state;
         //pitch_t orig_pitch = -1;
-        if (vs->arpeggio || voice->proc->ins_params->pitch_locks[i].enabled)
+        if (vs->arpeggio || voice->proc->au_params->pitch_locks[i].enabled)
             continue;
 
 #if 0
-        if (voice->proc->ins_params->scale != NULL &&
-                *voice->proc->ins_params->scale != NULL &&
-                **voice->proc->ins_params->scale != NULL)
+        if (voice->proc->au_params->scale != NULL &&
+                *voice->proc->au_params->scale != NULL &&
+                **voice->proc->au_params->scale != NULL)
         {
             orig_pitch = Scale_get_pitch_from_cents(
-                         **voice->proc->ins_params->scale, vs->orig_cents);
+                         **voice->proc->au_params->scale, vs->orig_cents);
         }
         else
         {
@@ -79,11 +79,11 @@ bool Event_channel_arpeggio_on_process(
                 last_nonzero = k;
             }
             pitch_t new_pitch = -1;
-            if (voice->proc->ins_params->scale != NULL &&
-                    *voice->proc->ins_params->scale != NULL &&
-                    **voice->proc->ins_params->scale != NULL)
+            if (voice->proc->au_params->scale != NULL &&
+                    *voice->proc->au_params->scale != NULL &&
+                    **voice->proc->au_params->scale != NULL)
             {
-                Scale* scale = **voice->proc->ins_params->scale;
+                Scale* scale = **voice->proc->au_params->scale;
                 new_pitch = Scale_get_pitch_from_cents(scale,
                             vs->orig_cents + data[k + 1].field.double_type);
             }

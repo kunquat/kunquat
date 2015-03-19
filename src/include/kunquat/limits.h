@@ -126,15 +126,15 @@ extern "C" {
 
 
 /**
- * Maximum number of Instruments in a Kunquat Handle.
+ * Maximum number of Audio units in a Kunquat Handle.
  */
-#define KQT_INSTRUMENTS_MAX 256
+#define KQT_AUDIO_UNITS_MAX 256
 
 
 /**
- * Maximum number of Instrument controls in a Kunquat Handle.
+ * Maximum number of Audio unit controls in a Kunquat Handle.
  */
-#define KQT_CONTROLS_MAX KQT_INSTRUMENTS_MAX
+#define KQT_CONTROLS_MAX KQT_AUDIO_UNITS_MAX
 
 
 /**
@@ -168,7 +168,7 @@ extern "C" {
 
 
 /**
- * Maximum number of distinct hit values in a Kunquat instrument.
+ * Maximum number of distinct hit values in an audio unit.
  */
 #define KQT_HITS_MAX 128
 

@@ -33,9 +33,9 @@
     EVENT_TRIGGER_TYPE_DEF(name, channel, type_suffix, arg_type, validator)
 #include <player/events/Event_channel_types.h>
 
-#define EVENT_INS_DEF(name, type_suffix, arg_type, validator) \
-    EVENT_TRIGGER_TYPE_DEF(name, ins, type_suffix, arg_type, validator)
-#include <player/events/Event_ins_types.h>
+#define EVENT_AU_DEF(name, type_suffix, arg_type, validator) \
+    EVENT_TRIGGER_TYPE_DEF(name, au, type_suffix, arg_type, validator)
+#include <player/events/Event_au_types.h>
 
 #define EVENT_PROCESSOR_DEF(name, type_suffix, arg_type, validator) \
     EVENT_TRIGGER_TYPE_DEF(name, processor, type_suffix, arg_type, validator)

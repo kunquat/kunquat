@@ -13,16 +13,16 @@
 
 
 #include <debug/assert.h>
-#include <player/Ins_state.h>
+#include <player/Au_state.h>
 
 
-void Ins_state_reset(Ins_state* ins_state)
+void Au_state_reset(Au_state* au_state)
 {
-    assert(ins_state != NULL);
+    assert(au_state != NULL);
 
-    Device_state_reset(&ins_state->parent);
-    ins_state->bypass = false;
-    ins_state->sustain = 0.0;
+    Device_state_reset(&au_state->parent);
+    au_state->bypass = false;
+    au_state->sustain = 0.0;
 
     return;
 }

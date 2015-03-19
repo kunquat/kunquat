@@ -17,28 +17,28 @@
 
 #include <debug/assert.h>
 #include <player/events/Event_common.h>
-#include <player/events/Event_ins_decl.h>
+#include <player/events/Event_au_decl.h>
 #include <Value.h>
 
 
-bool Event_ins_set_sustain_process(
-        const Instrument* ins,
-        const Instrument_params* ins_params,
-        Ins_state* ins_state,
+bool Event_au_set_sustain_process(
+        const Audio_unit* au,
+        const Au_params* au_params,
+        Au_state* au_state,
         Device_states* dstates,
         const Value* value)
 {
-    assert(ins != NULL);
-    assert(ins_params != NULL);
-    assert(ins_state != NULL);
+    assert(au != NULL);
+    assert(au_params != NULL);
+    assert(au_state != NULL);
     assert(dstates != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
-    (void)ins;
-    (void)ins_params;
+    (void)au;
+    (void)au_params;
     (void)dstates;
 
-    ins_state->sustain = value->value.float_type;
+    au_state->sustain = value->value.float_type;
 
     return true;
 }
