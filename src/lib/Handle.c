@@ -485,6 +485,44 @@ int kqt_Handle_validate(kqt_Handle handle)
         }
     }
 
+    // Check that audio unit types are allowed in their contexts
+    {
+        Au_table* au_table = Module_get_au_table(h->module);
+        for (int au_index = 0; au_index < KQT_AUDIO_UNITS_MAX; ++au_index)
+        {
+            Audio_unit* au = Au_table_get(au_table, au_index);
+            if ((au != NULL) && Device_is_existent((Device*)au))
+            {
+                const Au_type au_type = Audio_unit_get_type(au);
+
+                for (int sub_au_index = 0;
+                        sub_au_index < KQT_AUDIO_UNITS_MAX;
+                        ++sub_au_index)
+                {
+                    const Audio_unit* sub_au = Audio_unit_get_au(au, sub_au_index);
+                    if ((sub_au != NULL) && Device_is_existent((Device*)au))
+                    {
+                        if (au_type == AU_TYPE_INSTRUMENT)
+                        {
+                            const Au_type sub_au_type = Audio_unit_get_type(sub_au);
+                            set_invalid_if(
+                                    sub_au_type == AU_TYPE_INSTRUMENT,
+                                    "Audio unit au_%02x is an instrument but contains"
+                                        " another instrument",
+                                    au_index);
+                        }
+
+                        set_invalid_if(
+                                au_type == AU_TYPE_EFFECT,
+                                "Audio unit au_%02x is an effect but contains"
+                                    " another audio unit",
+                                au_index);
+                    }
+                }
+            }
+        }
+    }
+
     // Data is OK
     h->data_is_validated = true;
 

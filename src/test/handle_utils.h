@@ -280,7 +280,7 @@ void setup_debug_instrument(void)
     set_data("p_control_map.json", "[ [0, 0] ]");
     set_data("control_00/p_manifest.json", "{}");
 
-    set_data("au_00/p_manifest.json", "{}");
+    set_data("au_00/p_manifest.json", "{ \"type\": \"instrument\" }");
     set_data("au_00/out_00/p_manifest.json", "{}");
     set_data("au_00/p_connections.json",
             "[ [\"proc_00/C/out_00\", \"out_00\"] ]");

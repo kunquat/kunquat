@@ -41,11 +41,11 @@ START_TEST(Trivial_chorus_is_identity)
             "  [\"proc_01/C/out_00\", \"out_00\"] ]");
     set_data("au_03/in_00/p_manifest.json", "{}");
     set_data("au_03/out_00/p_manifest.json", "{}");
-    set_data("au_03/p_manifest.json", "{}");
+    set_data("au_03/p_manifest.json", "{ \"type\": \"effect\" }");
 
     set_data("au_02/proc_00/out_00/p_manifest.json", "{}");
     set_data("au_02/proc_00/p_manifest.json", "{ \"type\": \"debug\" }");
-    set_data("au_02/p_manifest.json", "{}");
+    set_data("au_02/p_manifest.json", "{ \"type\": \"instrument\" }");
     set_data("au_02/out_00/p_manifest.json", "{}");
     set_data("au_02/p_connections.json",
             "[ [\"proc_00/C/out_00\", \"out_00\"] ]");

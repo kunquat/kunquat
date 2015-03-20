@@ -35,6 +35,8 @@ struct Audio_unit
 {
     Device parent;
 
+    Au_type type;
+
     Effect_interface* out_iface;
     Effect_interface* in_iface;
     Connections* connections;
@@ -82,6 +84,7 @@ Audio_unit* new_Audio_unit(void)
         return NULL;
 
     //fprintf(stderr, "New Audio unit %p\n", (void*)au);
+    au->type = AU_TYPE_INVALID;
     au->out_iface = NULL;
     au->in_iface = NULL;
     au->connections = NULL;
@@ -138,6 +141,24 @@ Audio_unit* new_Audio_unit(void)
     au->scale_index = AU_DEFAULT_SCALE_INDEX;
 
     return au;
+}
+
+
+void Audio_unit_set_type(Audio_unit* au, Au_type type)
+{
+    assert(au != NULL);
+    assert(type != AU_TYPE_INVALID);
+
+    au->type = type;
+
+    return;
+}
+
+
+Au_type Audio_unit_get_type(const Audio_unit* au)
+{
+    assert(au != NULL);
+    return au->type;
 }
 
 

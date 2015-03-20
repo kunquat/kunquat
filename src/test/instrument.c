@@ -75,7 +75,7 @@ START_TEST(Adding_manifest_enables_instrument)
     pause();
 
     setup_single_pulse_without_instrument_manifest();
-    set_data("au_00/p_manifest.json", "{}");
+    set_data("au_00/p_manifest.json", "{ \"type\": \"instrument\" }");
     validate();
     check_unexpected_error();
 
@@ -134,7 +134,7 @@ START_TEST(Input_map_maintains_indices)
     set_data("control_00/p_manifest.json", "{}");
     set_data("control_01/p_manifest.json", "{}");
 
-    set_data("au_00/p_manifest.json", "{}");
+    set_data("au_00/p_manifest.json", "{ \"type\": \"instrument\" }");
     set_data("au_00/out_00/p_manifest.json", "{}");
     set_data("au_00/p_connections.json",
             "[ [\"proc_00/C/out_00\", \"out_00\"] ]");
@@ -144,7 +144,7 @@ START_TEST(Input_map_maintains_indices)
 
     set_data("au_00/proc_00/c/p_b_single_pulse.json", "true");
 
-    set_data("au_01/p_manifest.json", "{}");
+    set_data("au_01/p_manifest.json", "{ \"type\": \"instrument\" }");
     set_data("au_01/out_00/p_manifest.json", "{}");
     set_data("au_01/p_connections.json",
             "[ [\"proc_00/C/out_00\", \"out_00\"] ]");

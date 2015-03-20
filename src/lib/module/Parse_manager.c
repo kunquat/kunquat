@@ -549,6 +549,47 @@ static Audio_unit* add_audio_unit(Handle* handle, Au_table* au_table, int index)
     else (void)0
 
 
+typedef struct amdata
+{
+    Handle* handle;
+    Au_type type;
+} amdata;
+
+
+static bool read_au_manifest_entry(Streader* sr, const char* key, void* userdata)
+{
+    assert(sr != NULL);
+    assert(key != NULL);
+    assert(userdata != NULL);
+
+    amdata* d = userdata;
+
+    if (string_eq(key, "type"))
+    {
+        char type[64] = "";
+        if (!Streader_read_string(sr, 64, type))
+            return false;
+
+        if (string_eq(type, "instrument"))
+        {
+            d->type = AU_TYPE_INSTRUMENT;
+        }
+        else if (string_eq(type, "effect"))
+        {
+            d->type = AU_TYPE_EFFECT;
+        }
+        else
+        {
+            Handle_set_error(d->handle, ERROR_FORMAT,
+                    "Unsupported Audio unit type: %s", type);
+            return false;
+        }
+    }
+
+    return true;
+}
+
+
 static bool read_any_au_manifest(Reader_params* params, Au_table* au_table, int level)
 {
     assert(params != NULL);
@@ -559,14 +600,21 @@ static bool read_any_au_manifest(Reader_params* params, Au_table* au_table, int 
     Audio_unit* au = NULL;
     acquire_au(au, params->handle, au_table, index);
 
-    const bool existent = read_default_manifest(params->sr);
-    if (Streader_is_error_set(params->sr))
+    if (!Streader_has_data(params->sr))
     {
-        set_error(params);
-        return false;
+        Device_set_existent((Device*)au, false);
+        return true;
     }
 
-    Device_set_existent((Device*)au, existent);
+    amdata* d = &(amdata){ .handle = params->handle, .type = AU_TYPE_INVALID };
+    if (!Streader_read_dict(params->sr, read_au_manifest_entry, d))
+        return false;
+
+    if (d->type == AU_TYPE_INVALID)
+        return false;
+
+    Audio_unit_set_type(au, d->type);
+    Device_set_existent((Device*)au, true);
 
     return true;
 }

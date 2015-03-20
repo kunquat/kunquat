@@ -36,6 +36,14 @@
 #define AU_DEFAULT_SCALE_INDEX (-1)
 
 
+typedef enum
+{
+    AU_TYPE_INVALID = 0,
+    AU_TYPE_INSTRUMENT,
+    AU_TYPE_EFFECT,
+} Au_type;
+
+
 /**
  * Create a new Audio unit.
  *
@@ -43,6 +51,25 @@
  *           failed.
  */
 Audio_unit* new_Audio_unit(void);
+
+
+/**
+ * Set the type of the Audio unit.
+ *
+ * \param au     The Audio unit -- must not be \c NULL.
+ * \param type   The Audio unit type -- must be valid.
+ */
+void Audio_unit_set_type(Audio_unit* au, Au_type type);
+
+
+/**
+ * Get the type of the Audio unit.
+ *
+ * \param au   The Audio unit -- must not be \c NULL.
+ *
+ * \return   The type of the Audio unit.
+ */
+Au_type Audio_unit_get_type(const Audio_unit* au);
 
 
 /**
