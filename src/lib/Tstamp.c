@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -30,7 +30,7 @@
         assert((ts)->rem < KQT_TSTAMP_BEAT); \
     } else (void)0
 #else
-    #define Tstamp_validate(ts) ((void)0)
+    #define Tstamp_validate(ts) (ignore(ts))
 #endif
 
 

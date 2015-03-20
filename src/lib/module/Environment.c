@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2015
  *
  * This file is part of Kunquat.
  *
@@ -79,8 +79,8 @@ Environment* new_Environment(void)
 static bool read_env_var(Streader* sr, int32_t index, void* userdata)
 {
     assert(sr != NULL);
-    (void)index;
     assert(userdata != NULL);
+    ignore(index);
 
     AAtree* new_vars = userdata;
 

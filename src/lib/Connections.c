@@ -99,8 +99,8 @@ typedef struct read_conn_data
 static bool read_connection(Streader* sr, int32_t index, void* userdata)
 {
     assert(sr != NULL);
-    (void)index;
     assert(userdata != NULL);
+    ignore(index);
 
     read_conn_data* rcdata = userdata;
 

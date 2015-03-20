@@ -227,7 +227,6 @@ const char* Proc_add_property(const Processor* proc, const char* property_type)
 {
     assert(proc != NULL);
     assert(property_type != NULL);
-    (void)proc;
 
     if (string_eq(property_type, "voice_state_size"))
     {
@@ -246,9 +245,7 @@ static void Proc_add_init_vstate(
         const Processor* proc, const Proc_state* proc_state, Voice_state* vstate)
 {
     assert(proc != NULL);
-    //assert(string_eq(proc->type, "add"));
     assert(proc_state != NULL);
-    (void)proc_state;
     assert(vstate != NULL);
 
     Proc_add* add = (Proc_add*)proc->parent.dimpl;
@@ -297,16 +294,12 @@ static uint32_t Proc_add_process_vstate(
         double tempo)
 {
     assert(proc != NULL);
-    //assert(string_eq(proc->type, "add"));
     assert(proc_state != NULL);
     assert(au_state != NULL);
     assert(vstate != NULL);
     assert(wbs != NULL);
     assert(audio_rate > 0);
     assert(tempo > 0);
-    (void)proc_state;
-    (void)au_state;
-    (void)tempo;
 
     Proc_add* add = (Proc_add*)proc->parent.dimpl;
     Voice_state_add* add_state = (Voice_state_add*)vstate;
@@ -501,7 +494,7 @@ static uint32_t Proc_add_process_vstate(
 
 static double sine(double phase, double modifier)
 {
-    (void)modifier;
+    ignore(modifier);
     return -sin(phase * PI * 2);
 }
 
@@ -536,7 +529,6 @@ static bool Proc_add_set_base(
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
-    (void)indices;
 
     Proc_add* add = (Proc_add*)dimpl;
 
@@ -551,7 +543,6 @@ static bool Proc_add_set_mod_base(
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
-    (void)indices;
 
     Proc_add* add = (Proc_add*)dimpl;
 
@@ -566,7 +557,6 @@ static bool Proc_add_set_mod(
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
-    (void)indices;
 
     Proc_add* add = (Proc_add*)dimpl;
 
@@ -584,7 +574,6 @@ static bool Proc_add_set_mod_volume(
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
-    (void)indices;
 
     Proc_add* add = (Proc_add*)dimpl;
 
@@ -602,7 +591,6 @@ static bool Proc_add_set_mod_env_enabled(
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
-    (void)indices;
 
     Proc_add* add = (Proc_add*)dimpl;
     add->mod_env_enabled = enabled;
@@ -616,7 +604,6 @@ static bool Proc_add_set_mod_env(
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
-    (void)indices;
 
     Proc_add* add = (Proc_add*)dimpl;
 
@@ -660,7 +647,6 @@ static bool Proc_add_set_mod_env_loop_enabled(
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
-    (void)indices;
 
     Proc_add* add = (Proc_add*)dimpl;
     add->mod_env_loop_enabled = enabled;
@@ -674,7 +660,6 @@ static bool Proc_add_set_mod_env_scale_amount(
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
-    (void)indices;
 
     Proc_add* add = (Proc_add*)dimpl;
 
@@ -689,7 +674,6 @@ static bool Proc_add_set_mod_env_scale_center(
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
-    (void)indices;
 
     Proc_add* add = (Proc_add*)dimpl;
 
@@ -704,7 +688,6 @@ static bool Proc_add_set_force_mod_env_enabled(
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
-    (void)indices;
 
     Proc_add* add = (Proc_add*)dimpl;
     add->force_mod_env_enabled = value;
@@ -718,7 +701,6 @@ static bool Proc_add_set_force_mod_env(
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
-    (void)indices;
 
     Proc_add* add = (Proc_add*)dimpl;
 

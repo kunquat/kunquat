@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2015
  *
  * This file is part of Kunquat.
  *
@@ -1428,8 +1428,8 @@ static bool func_ts(
 {
     assert(args != NULL);
     assert(res != NULL);
-    (void)rand;
     assert(sr != NULL);
+    ignore(rand);
 
     if (Streader_is_error_set(sr))
         return false;
@@ -1553,8 +1553,8 @@ static bool func_pat(
 {
     assert(args != NULL);
     assert(res != NULL);
-    (void)rand;
     assert(sr != NULL);
+    ignore(rand);
 
     if (Streader_is_error_set(sr))
         return false;

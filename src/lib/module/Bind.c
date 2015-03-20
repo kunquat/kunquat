@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2015
  *
  * This file is part of Kunquat.
  *
@@ -121,8 +121,8 @@ typedef struct bedata
 static bool read_bind_entry(Streader* sr, int32_t index, void* userdata)
 {
     assert(sr != NULL);
-    (void)index;
     assert(userdata != NULL);
+    ignore(index);
 
     bedata* bd = userdata;
 
@@ -374,8 +374,8 @@ static bool Bind_dfs(Bind* map, char* name)
 static bool read_constraint(Streader* sr, int32_t index, void* userdata)
 {
     assert(sr != NULL);
-    (void)index;
     assert(userdata != NULL);
+    ignore(index);
 
     Cblist_item* item = userdata;
 
@@ -393,7 +393,6 @@ static bool read_constraints(Streader* sr, Bind* map, Cblist_item* item)
 {
     assert(sr != NULL);
     assert(map != NULL);
-    (void)map;
     assert(item != NULL);
 
     return Streader_read_list(sr, read_constraint, item);
@@ -409,8 +408,8 @@ typedef struct edata
 static bool read_event(Streader* sr, int32_t index, void* userdata)
 {
     assert(sr != NULL);
-    (void)index;
     assert(userdata != NULL);
+    ignore(index);
 
     edata* ed = userdata;
 

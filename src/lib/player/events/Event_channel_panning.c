@@ -30,7 +30,6 @@ bool Event_channel_set_panning_process(
 {
     assert(ch != NULL);
     assert(dstates != NULL);
-    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
@@ -58,7 +57,6 @@ bool Event_channel_slide_panning_process(
 {
     assert(ch != NULL);
     assert(dstates != NULL);
-    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
@@ -90,7 +88,6 @@ bool Event_channel_slide_panning_length_process(
 {
     assert(ch != NULL);
     assert(dstates != NULL);
-    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_TSTAMP);
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2015
  *
  * This file is part of Kunquat.
  *
@@ -47,7 +47,7 @@ bool Event_general_cond_process(General_state* gstate, const Value* value)
 bool Event_general_if_process(General_state* gstate, const Value* value)
 {
     assert(gstate != NULL);
-    (void)value;
+    ignore(value);
 
     ++gstate->cond_level_index;
     assert(gstate->cond_level_index >= 0);
@@ -69,7 +69,7 @@ bool Event_general_if_process(General_state* gstate, const Value* value)
 bool Event_general_else_process(General_state* gstate, const Value* value)
 {
     assert(gstate != NULL);
-    (void)value;
+    ignore(value);
 
     ++gstate->cond_level_index;
     assert(gstate->cond_level_index >= 0);
@@ -89,7 +89,7 @@ bool Event_general_else_process(General_state* gstate, const Value* value)
 bool Event_general_end_if_process(General_state* gstate, const Value* value)
 {
     assert(gstate != NULL);
-    (void)value;
+    ignore(value);
 
     if (gstate->cond_level_index >= 0)
         --gstate->cond_level_index;

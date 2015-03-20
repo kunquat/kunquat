@@ -33,7 +33,6 @@ bool Event_channel_slide_pitch_process(
 {
     assert(ch != NULL);
     assert(dstates != NULL);
-    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
@@ -82,7 +81,6 @@ bool Event_channel_slide_pitch_length_process(
 {
     assert(ch != NULL);
     assert(dstates != NULL);
-    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_TSTAMP);
 
@@ -106,7 +104,6 @@ bool Event_channel_vibrato_speed_process(
 {
     assert(ch != NULL);
     assert(dstates != NULL);
-    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
@@ -138,7 +135,6 @@ bool Event_channel_vibrato_depth_process(
 {
     assert(ch != NULL);
     assert(dstates != NULL);
-    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
@@ -171,7 +167,6 @@ bool Event_channel_vibrato_speed_slide_process(
 {
     assert(ch != NULL);
     assert(dstates != NULL);
-    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_TSTAMP);
 
@@ -196,7 +191,6 @@ bool Event_channel_vibrato_depth_slide_process(
 {
     assert(ch != NULL);
     assert(dstates != NULL);
-    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_TSTAMP);
 

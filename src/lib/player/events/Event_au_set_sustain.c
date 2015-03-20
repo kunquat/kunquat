@@ -34,9 +34,6 @@ bool Event_au_set_sustain_process(
     assert(dstates != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
-    (void)au;
-    (void)au_params;
-    (void)dstates;
 
     au_state->sustain = value->value.float_type;
 

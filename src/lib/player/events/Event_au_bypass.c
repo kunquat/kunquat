@@ -35,8 +35,6 @@ bool Event_au_bypass_on_process(
     assert(au_state != NULL);
     assert(dstates != NULL);
     assert(value != NULL);
-    (void)au_params;
-    (void)value;
 
     au_state->bypass = true;
 
@@ -67,10 +65,6 @@ bool Event_au_bypass_off_process(
     assert(au_state != NULL);
     assert(dstates != NULL);
     assert(value != NULL);
-    (void)au;
-    (void)au_params;
-    (void)dstates;
-    (void)value;
 
     au_state->bypass = false;
 

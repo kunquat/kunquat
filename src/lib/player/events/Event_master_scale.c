@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -27,8 +27,6 @@ bool Event_master_set_scale_process(Master_params* master_params, const Value* v
     assert(master_params != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_INT);
-    (void)master_params;
-    (void)value;
 
     return false;
 
@@ -47,8 +45,6 @@ bool Event_master_set_scale_fixed_point_process(
     assert(master_params != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_INT);
-    (void)master_params;
-    (void)value;
 
     return false;
 
@@ -67,8 +63,6 @@ bool Event_master_set_scale_offset_process(
     assert(master_params != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
-    (void)master_params;
-    (void)value;
 
     return false;
 
@@ -95,8 +89,6 @@ bool Event_master_mimic_scale_process(
     assert(master_params != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_INT);
-    (void)master_params;
-    (void)value;
 
     return false;
 
@@ -124,8 +116,6 @@ bool Event_master_shift_scale_intervals_process(
     assert(master_params != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_INT);
-    (void)master_params;
-    (void)value;
 
     return false;
 

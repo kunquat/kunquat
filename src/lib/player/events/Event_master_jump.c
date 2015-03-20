@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -69,7 +69,7 @@ bool Event_master_set_jump_pat_inst_process(
 bool Event_master_jump_process(Master_params* master_params, const Value* value)
 {
     assert(master_params != NULL);
-    (void)value;
+    ignore(value);
 
     if (master_params->jump_counter <= 0)
         return true;

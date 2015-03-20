@@ -163,7 +163,6 @@ static bool Proc_volume_set_volume(
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
-    (void)indices;
 
     Proc_volume* volume = (Proc_volume*)dimpl;
     volume->scale = dB_to_scale(value);
@@ -197,8 +196,6 @@ static void Proc_volume_update_state_volume(
     assert(dimpl != NULL);
     assert(dstate != NULL);
     assert(indices != NULL);
-    (void)dimpl;
-    (void)indices;
 
     Volume_state* vol_state = (Volume_state*)dstate;
     vol_state->scale = dB_to_scale(value);
@@ -225,9 +222,6 @@ static void Proc_volume_process(
             states, Device_get_id(device));
     assert(vol_state != NULL);
 
-    (void)freq;
-    (void)tempo;
-    //assert(string_eq(volume->parent.type, "volume"));
     kqt_frame* in_data[] = { NULL, NULL };
     kqt_frame* out_data[] = { NULL, NULL };
     get_raw_input(&vol_state->parent.parent, 0, in_data);

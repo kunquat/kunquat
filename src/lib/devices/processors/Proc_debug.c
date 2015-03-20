@@ -97,10 +97,6 @@ static uint32_t Proc_debug_process_vstate(
     assert(wbs != NULL);
     assert(audio_rate > 0);
     assert(tempo > 0);
-    (void)proc_state;
-    (void)au_state;
-    (void)wbs;
-    (void)tempo;
 
     const float* actual_pitches = Work_buffers_get_buffer_contents(
             wbs, WORK_BUFFER_ACTUAL_PITCHES);
@@ -187,7 +183,6 @@ static bool Proc_debug_set_single_pulse(
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
-    (void)indices;
 
     Proc_debug* debug = (Proc_debug*)dimpl;
     debug->single_pulse = value;

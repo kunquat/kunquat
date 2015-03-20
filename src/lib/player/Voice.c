@@ -143,7 +143,6 @@ void Voice_reset(Voice* voice)
 void Voice_prepare(Voice* voice)
 {
     assert(voice != NULL);
-    (void)voice;
     return;
 }
 

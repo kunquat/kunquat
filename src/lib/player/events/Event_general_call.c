@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2015
  *
  * This file is part of Kunquat.
  *
@@ -24,7 +24,6 @@
 bool Event_general_call_bool_process(General_state* gstate, const Value* value)
 {
     assert(gstate != NULL);
-    (void)gstate;
     assert(value != NULL);
     return value->type == VALUE_TYPE_BOOL;
 }
@@ -33,7 +32,6 @@ bool Event_general_call_bool_process(General_state* gstate, const Value* value)
 bool Event_general_call_float_process(General_state* gstate, const Value* value)
 {
     assert(gstate != NULL);
-    (void)gstate;
     assert(value != NULL);
     return value->type == VALUE_TYPE_FLOAT;
 }
@@ -42,7 +40,6 @@ bool Event_general_call_float_process(General_state* gstate, const Value* value)
 bool Event_general_call_int_process(General_state* gstate, const Value* value)
 {
     assert(gstate != NULL);
-    (void)gstate;
     assert(value != NULL);
     return value->type == VALUE_TYPE_INT;
 }

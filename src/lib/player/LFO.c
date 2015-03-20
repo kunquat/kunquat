@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -274,7 +274,6 @@ double LFO_step(LFO* lfo)
 double LFO_skip(LFO* lfo, uint64_t steps)
 {
     assert(lfo != NULL);
-    (void)steps;
 
     if (steps == 0)
     {

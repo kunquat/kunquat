@@ -312,7 +312,6 @@ static bool Proc_delay_set_max_delay(
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
-    (void)indices;
 
     Proc_delay* delay = (Proc_delay*)dimpl;
     delay->max_delay = min(value, MAX_BUF_TIME);
@@ -362,8 +361,6 @@ static bool Proc_delay_set_state_max_delay(
     assert(dimpl != NULL);
     assert(dstate != NULL);
     assert(indices != NULL);
-    (void)dimpl;
-    (void)indices;
 
     Delay_state* dlstate = (Delay_state*)dstate;
 
@@ -443,7 +440,6 @@ static void Proc_delay_update_state_tap_volume(
     assert(dimpl != NULL);
     assert(dstate != NULL);
     assert(indices != NULL);
-    (void)dimpl;
 
     if (indices[0] < 0 || indices[0] >= TAPS_MAX)
         return;
@@ -471,9 +467,7 @@ static void Proc_delay_clear_history(
         const Device_impl* dimpl, Proc_state* proc_state)
 {
     assert(dimpl != NULL);
-    //assert(string_eq(dsp->type, "delay"));
     assert(proc_state != NULL);
-    (void)dimpl;
 
     Delay_state* dlstate = (Delay_state*)proc_state;
     Audio_buffer_clear(dlstate->buf, 0, Audio_buffer_get_size(dlstate->buf));
@@ -520,8 +514,6 @@ static void Proc_delay_process(
     assert(dstates != NULL);
     assert(freq > 0);
     assert(tempo > 0);
-    (void)freq;
-    (void)tempo;
 
     Delay_state* dlstate = (Delay_state*)Device_states_get_state(
             dstates,

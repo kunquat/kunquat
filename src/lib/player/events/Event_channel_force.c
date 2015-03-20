@@ -30,7 +30,6 @@ bool Event_channel_set_force_process(
 {
     assert(ch != NULL);
     assert(dstates != NULL);
-    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
@@ -60,7 +59,6 @@ bool Event_channel_slide_force_process(
 {
     assert(ch != NULL);
     assert(dstates != NULL);
-    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
@@ -87,7 +85,6 @@ bool Event_channel_slide_force_length_process(
 {
     assert(ch != NULL);
     assert(dstates != NULL);
-    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_TSTAMP);
 
@@ -111,7 +108,6 @@ bool Event_channel_tremolo_speed_process(
 {
     assert(ch != NULL);
     assert(dstates != NULL);
-    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
@@ -141,7 +137,6 @@ bool Event_channel_tremolo_depth_process(
 {
     assert(ch != NULL);
     assert(dstates != NULL);
-    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
@@ -171,7 +166,6 @@ bool Event_channel_tremolo_speed_slide_process(
 {
     assert(ch != NULL);
     assert(dstates != NULL);
-    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_TSTAMP);
 
@@ -196,7 +190,6 @@ bool Event_channel_tremolo_depth_slide_process(
 {
     assert(ch != NULL);
     assert(dstates != NULL);
-    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_TSTAMP);
 

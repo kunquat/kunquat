@@ -91,7 +91,6 @@ static bool Proc_gc_set_map(
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
-    (void)indices;
 
     Proc_gc* gc = (Proc_gc*)dimpl;
 
@@ -143,8 +142,6 @@ static void Proc_gc_process(
     Device_state* ds = Device_states_get_state(states, Device_get_id(device));
     assert(ds != NULL);
 
-    (void)freq;
-    (void)tempo;
     Proc_gc* gc = (Proc_gc*)device->dimpl;
     kqt_frame* in_data[] = { NULL, NULL };
     kqt_frame* out_data[] = { NULL, NULL };

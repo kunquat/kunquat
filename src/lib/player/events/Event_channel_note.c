@@ -164,8 +164,7 @@ bool Event_channel_note_off_process(
 {
     assert(ch != NULL);
     assert(dstates != NULL);
-    (void)dstates;
-    (void)value;
+    ignore(value);
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {

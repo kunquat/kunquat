@@ -31,8 +31,7 @@ bool Event_channel_arpeggio_on_process(
 {
     assert(ch != NULL);
     assert(dstates != NULL);
-    (void)dstates;
-    (void)value;
+    ignore(value);
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
@@ -132,8 +131,7 @@ bool Event_channel_arpeggio_off_process(
 {
     assert(ch != NULL);
     assert(dstates != NULL);
-    (void)dstates;
-    (void)value;
+    ignore(value);
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
@@ -152,7 +150,6 @@ bool Event_channel_set_arpeggio_index_process(
 {
     assert(ch != NULL);
     assert(dstates != NULL);
-    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_INT);
 
@@ -169,7 +166,6 @@ bool Event_channel_set_arpeggio_note_process(
 {
     assert(ch != NULL);
     assert(dstates != NULL);
-    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
@@ -210,7 +206,6 @@ bool Event_channel_set_arpeggio_speed_process(
 {
     assert(ch != NULL);
     assert(dstates != NULL);
-    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
@@ -238,8 +233,7 @@ bool Event_channel_reset_arpeggio_process(
 {
     assert(ch != NULL);
     assert(dstates != NULL);
-    (void)dstates;
-    (void)value;
+    ignore(value);
 
     ch->arpeggio_ref = NAN;
     ch->arpeggio_edit_pos = 1;

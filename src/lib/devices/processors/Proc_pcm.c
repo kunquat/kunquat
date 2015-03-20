@@ -80,9 +80,7 @@ static bool Proc_pcm_init(Device_impl* dimpl)
 const char* Proc_pcm_property(const Processor* proc, const char* property_type)
 {
     assert(proc != NULL);
-    //assert(string_eq(proc->type, "pcm"));
     assert(property_type != NULL);
-    (void)proc;
 
     if (string_eq(property_type, "voice_state_size"))
     {
@@ -109,10 +107,7 @@ static void Proc_pcm_init_vstate(
         const Processor* proc, const Proc_state* proc_state, Voice_state* vstate)
 {
     assert(proc != NULL);
-    //assert(string_eq(proc->type, "pcm"));
-    (void)proc;
     assert(proc_state != NULL);
-    (void)proc_state;
     assert(vstate != NULL);
 
     Voice_state_pcm* pcm_state = (Voice_state_pcm*)vstate;
@@ -147,7 +142,6 @@ uint32_t Proc_pcm_process_vstate(
     assert(wbs != NULL);
     assert(audio_rate > 0);
     assert(tempo > 0);
-    (void)proc_state;
 
 //    Proc_pcm* pcm = (Proc_pcm*)proc->parent.dimpl;
     Voice_state_pcm* pcm_state = (Voice_state_pcm*)vstate;

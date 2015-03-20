@@ -78,7 +78,7 @@ Channel_proc_state* new_Channel_proc_state(void)
 static bool read_entry(Streader* sr, int32_t index, void* userdata)
 {
     assert(sr != NULL);
-    (void)index;
+    ignore(index);
     assert(userdata != NULL);
 
     Channel_proc_state* cpstate = userdata;

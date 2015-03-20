@@ -373,7 +373,6 @@ static bool Proc_freeverb_set_refl(Device_impl* dimpl, Key_indices indices, doub
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
-    (void)indices;
 
     Proc_freeverb* freeverb = (Proc_freeverb*)dimpl;
 
@@ -392,7 +391,6 @@ static bool Proc_freeverb_set_damp(Device_impl* dimpl, Key_indices indices, doub
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
-    (void)indices;
 
     Proc_freeverb* freeverb = (Proc_freeverb*)dimpl;
 
@@ -516,8 +514,6 @@ static void Proc_freeverb_process(
     assert(states != NULL);
     assert(freq > 0);
     assert(tempo > 0);
-    (void)freq;
-    (void)tempo;
 
     Freeverb_state* fstate = (Freeverb_state*)Device_states_get_state(
             states, Device_get_id(device));

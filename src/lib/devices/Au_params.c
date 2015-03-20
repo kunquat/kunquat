@@ -218,7 +218,6 @@ bool Au_params_parse_env_force_filter(Au_params* aup, Streader* sr)
         assert(index == 0);
         index = Envelope_set_node(env, 1, 1);
         assert(index == 1);
-        (void)index;
     }
 
     return true;
@@ -270,7 +269,6 @@ bool Au_params_parse_env_pitch_pan(Au_params* aup, Streader* sr)
         assert(index == 0);
         index = Envelope_set_node(env, 6000, 0);
         assert(index == 1);
-        (void)index;
     }
 
     return true;

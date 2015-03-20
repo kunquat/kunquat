@@ -90,9 +90,7 @@ static bool Proc_pulse_init(Device_impl* dimpl)
 const char* Proc_pulse_property(const Processor* proc, const char* property_type)
 {
     assert(proc != NULL);
-    //assert(string_eq(proc->type, "pulse"));
     assert(property_type != NULL);
-    (void)proc;
 
     if (string_eq(property_type, "voice_state_size"))
     {
@@ -134,8 +132,6 @@ static void Proc_pulse_init_vstate(
         const Processor* proc, const Proc_state* proc_state, Voice_state* vstate)
 {
     assert(proc != NULL);
-    //assert(string_eq(proc->type, "pulse"));
-    (void)proc;
     assert(proc_state != NULL);
     assert(vstate != NULL);
 
@@ -166,16 +162,12 @@ uint32_t Proc_pulse_process_vstate(
         double tempo)
 {
     assert(proc != NULL);
-    //assert(string_eq(proc->type, "pulse"));
     assert(proc_state != NULL);
     assert(au_state != NULL);
     assert(vstate != NULL);
     assert(wbs != NULL);
     assert(audio_rate > 0);
     assert(tempo > 0);
-    (void)proc_state;
-    (void)au_state;
-    (void)tempo;
 
 //    double max_amp = 0;
 //  fprintf(stderr, "bufs are %p and %p\n", ins->bufs[0], ins->bufs[1]);

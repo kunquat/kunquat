@@ -29,7 +29,6 @@ bool Event_channel_set_au_input_process(
 {
     assert(ch != NULL);
     assert(dstates != NULL);
-    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_INT);
 
@@ -46,7 +45,6 @@ bool Event_channel_set_processor_process(
 {
     assert(ch != NULL);
     assert(dstates != NULL);
-    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_INT);
 
@@ -63,8 +61,7 @@ bool Event_channel_set_global_effects_process(
 {
     assert(ch != NULL);
     assert(dstates != NULL);
-    (void)dstates;
-    (void)value;
+    ignore(value);
 
     ch->au_effects = false;
 
@@ -79,8 +76,7 @@ bool Event_channel_set_au_effects_process(
 {
     assert(ch != NULL);
     assert(dstates != NULL);
-    (void)dstates;
-    (void)value;
+    ignore(value);
 
     ch->au_effects = true;
 
@@ -95,7 +91,6 @@ bool Event_channel_set_effect_process(
 {
     assert(ch != NULL);
     assert(dstates != NULL);
-    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_INT);
 

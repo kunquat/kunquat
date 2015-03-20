@@ -307,7 +307,6 @@ static void Proc_chorus_update_tempo(
     assert(dstate != NULL);
     assert(isfinite(tempo));
     assert(tempo > 0);
-    (void)dimpl;
 
     Chorus_state* cstate = (Chorus_state*)dstate;
 
@@ -341,9 +340,7 @@ static void Proc_chorus_clear_history(
         const Device_impl* dimpl, Proc_state* proc_state)
 {
     assert(dimpl != NULL);
-    //assert(string_eq(dsp->type, "chorus"));
     assert(proc_state != NULL);
-    (void)dimpl;
 
     Chorus_state* cstate = (Chorus_state*)proc_state;
     Audio_buffer_clear(cstate->buf, 0, cstate->parent.parent.audio_buffer_size);
@@ -545,7 +542,6 @@ static bool Proc_chorus_set_audio_rate(
     assert(dimpl != NULL);
     assert(dstate != NULL);
     assert(audio_rate > 0);
-    (void)dimpl;
 
     long buf_len = CHORUS_BUF_TIME * audio_rate + 1;
 
