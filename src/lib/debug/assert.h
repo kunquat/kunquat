@@ -18,6 +18,8 @@
 
 #include <stdlib.h>
 
+#include <common.h>
+
 
 /**
  * Suppress error message printing.
@@ -35,9 +37,6 @@ void assert_suppress_messages(void);
 #define static_assert(expr, msg) \
     typedef char make_unique_(static_assert_) [(expr) ? 1 : -1]
 #endif
-
-
-#ifdef ENABLE_KUNQUAT_ASSERT
 
 
 /**
@@ -98,16 +97,9 @@ void assert_print_msg(
 
 #else // NDEBUG
 
-#define assert(expr) (void)0
+#define assert(expr) ignore(expr)
 
 #endif // NDEBUG
-
-
-#else // ENABLE_KUNQUAT_ASSERT
-
-#include <assert.h>
-
-#endif // ENABLE_KUNQUAT_ASSERT
 
 
 #endif // K_ASSERT_H

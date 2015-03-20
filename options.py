@@ -12,9 +12,6 @@ enable_profiling = False
 # Enable libkunquat.
 enable_libkunquat = True
 
-# Enable internal assert code.
-enable_kunquat_assert = True
-
 # Install development files.
 enable_libkunquat_dev = True
 
