@@ -86,6 +86,7 @@ Audio_unit* new_Audio_unit(void)
     au->in_iface = NULL;
     au->connections = NULL;
     au->procs = NULL;
+    au->au_table = NULL;
 
     if (!Device_init(&au->parent, false))
     {
@@ -573,6 +574,7 @@ void del_Audio_unit(Audio_unit* au)
     del_Connections(au->connections);
     del_Effect_interface(au->in_iface);
     del_Effect_interface(au->out_iface);
+    del_Au_table(au->au_table);
     del_Proc_table(au->procs);
     Device_deinit(&au->parent);
     memory_free(au);
