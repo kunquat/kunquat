@@ -37,9 +37,8 @@ void setup_single_pulse_without_instrument_manifest(void)
     set_data("p_control_map.json", "[ [0, 0] ]");
     set_data("control_00/p_manifest.json", "{}");
 
-    set_data("au_00/proc_00/p_manifest.json", "{}");
+    set_data("au_00/proc_00/p_manifest.json", "{ \"type\": \"debug\" }");
     set_data("au_00/proc_00/out_00/p_manifest.json", "{}");
-    set_data("au_00/proc_00/p_proc_type.json", "\"debug\"");
     set_data("au_00/proc_00/c/p_b_single_pulse.json", "true");
 
     check_unexpected_error();
@@ -140,8 +139,7 @@ START_TEST(Input_map_maintains_indices)
     set_data("au_00/p_connections.json",
             "[ [\"proc_00/C/out_00\", \"out_00\"] ]");
 
-    set_data("au_00/proc_00/p_manifest.json", "{}");
-    set_data("au_00/proc_00/p_proc_type.json", "\"debug\"");
+    set_data("au_00/proc_00/p_manifest.json", "{ \"type\": \"debug\" }");
     set_data("au_00/proc_00/out_00/p_manifest.json", "{}");
 
     set_data("au_00/proc_00/c/p_b_single_pulse.json", "true");
@@ -151,8 +149,7 @@ START_TEST(Input_map_maintains_indices)
     set_data("au_01/p_connections.json",
             "[ [\"proc_00/C/out_00\", \"out_00\"] ]");
 
-    set_data("au_01/proc_00/p_manifest.json", "{}");
-    set_data("au_01/proc_00/p_proc_type.json", "\"debug\"");
+    set_data("au_01/proc_00/p_manifest.json", "{ \"type\": \"debug\" }");
     set_data("au_01/proc_00/out_00/p_manifest.json", "{}");
 
     validate();

@@ -77,7 +77,6 @@ MODULE_AU_KEYP(au_env_pitch_pan,        "au_XX/p_envelope_pitch_pan.json",      
 MODULE_AU_KEYP(proc_manifest,           "au_XX/proc_XX/p_manifest.json",         "")
 MODULE_AU_KEYP(proc_in_port_manifest,   "au_XX/proc_XX/in_XX/p_manifest.json",   "")
 MODULE_AU_KEYP(proc_out_port_manifest,  "au_XX/proc_XX/out_XX/p_manifest.json",  "")
-MODULE_AU_KEYP(proc_type,               "au_XX/proc_XX/p_proc_type.json",        "")
 MODULE_AU_KEYP(proc_impl_key,           "au_XX/proc_XX/i/",                      "")
 MODULE_AU_KEYP(proc_conf_key,           "au_XX/proc_XX/c/",                      "")
 

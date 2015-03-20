@@ -32,10 +32,9 @@ START_TEST(Trivial_chorus_is_identity)
     set_data("au_03/proc_01/c/voice_00/p_f_range.json", "0");
     set_data("au_03/proc_01/c/voice_00/p_f_speed.json", "0");
     set_data("au_03/proc_01/c/voice_00/p_f_volume.json", "0");
-    set_data("au_03/proc_01/p_proc_type.json", "\"chorus\"");
     set_data("au_03/proc_01/in_00/p_manifest.json", "{}");
     set_data("au_03/proc_01/out_00/p_manifest.json", "{}");
-    set_data("au_03/proc_01/p_manifest.json", "{}");
+    set_data("au_03/proc_01/p_manifest.json", "{ \"type\": \"chorus\" }");
 
     set_data("au_03/p_connections.json",
             "[ [\"in_00\", \"proc_01/C/in_00\"], "
@@ -44,9 +43,8 @@ START_TEST(Trivial_chorus_is_identity)
     set_data("au_03/out_00/p_manifest.json", "{}");
     set_data("au_03/p_manifest.json", "{}");
 
-    set_data("au_02/proc_00/p_proc_type.json", "\"debug\"");
     set_data("au_02/proc_00/out_00/p_manifest.json", "{}");
-    set_data("au_02/proc_00/p_manifest.json", "{}");
+    set_data("au_02/proc_00/p_manifest.json", "{ \"type\": \"debug\" }");
     set_data("au_02/p_manifest.json", "{}");
     set_data("au_02/out_00/p_manifest.json", "{}");
     set_data("au_02/p_connections.json",

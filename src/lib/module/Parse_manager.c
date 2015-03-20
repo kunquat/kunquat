@@ -71,8 +71,7 @@ static const struct
     } else (void)0
 
 
-static const Audio_unit* find_au(
-        Handle* handle, int32_t au_index, int32_t sub_au_index)
+static const Audio_unit* find_au(Handle* handle, int32_t au_index, int32_t sub_au_index)
 {
     assert(handle != NULL);
 
@@ -783,35 +782,6 @@ static Processor* add_processor(
     else (void)0
 
 
-static bool read_any_proc_manifest(
-        Reader_params* params, Au_table* au_table, int level)
-{
-    assert(params != NULL);
-
-    int32_t au_index = -1;
-    acquire_au_index(au_index, params, level);
-    int32_t proc_index = -1;
-    acquire_proc_index(proc_index, params, level + 1);
-
-    Audio_unit* au = NULL;
-    acquire_au(au, params->handle, au_table, au_index);
-
-    Proc_table* table = Audio_unit_get_procs(au);
-    assert(table != NULL);
-
-    const bool existent = read_default_manifest(params->sr);
-    if (Streader_is_error_set(params->sr))
-    {
-        set_error(params);
-        return false;
-    }
-
-    Proc_table_set_existent(table, proc_index, existent);
-
-    return true;
-}
-
-
 static bool read_any_proc_in_port_manifest(
         Reader_params* params, Au_table* au_table, int level)
 {
@@ -880,7 +850,44 @@ static bool read_any_proc_out_port_manifest(
 }
 
 
-static bool read_any_proc_type(Reader_params* params, Au_table* au_table, int level)
+typedef struct pmdata
+{
+    Handle* handle;
+    Proc_cons* cons;
+    Proc_property* prop;
+} pmdata;
+
+
+static bool read_proc_manifest_entry(Streader* sr, const char* key, void* userdata)
+{
+    assert(sr != NULL);
+    assert(key != NULL);
+    assert(userdata != NULL);
+
+    pmdata* d = userdata;
+
+    if (string_eq(key, "type"))
+    {
+        char type[PROC_TYPE_LENGTH_MAX] = "";
+        if (!Streader_read_string(sr, PROC_TYPE_LENGTH_MAX, type))
+            return false;
+
+        d->cons = Proc_type_find_cons(type);
+        if (d->cons == NULL)
+        {
+            Handle_set_error(d->handle, ERROR_FORMAT,
+                    "Unsupported Processor type: %s", type);
+            return false;
+        }
+
+        d->prop = Proc_type_find_property(type);
+    }
+
+    return true;
+}
+
+
+static bool read_any_proc_manifest(Reader_params* params, Au_table* au_table, int level)
 {
     assert(params != NULL);
 
@@ -898,6 +905,7 @@ static bool read_any_proc_type(Reader_params* params, Au_table* au_table, int le
             return true;
 
         Proc_table* proc_table = Audio_unit_get_procs(au);
+        Proc_table_set_existent(proc_table, proc_index, false);
         Proc_table_remove_proc(proc_table, proc_index);
 
         return true;
@@ -912,22 +920,15 @@ static bool read_any_proc_type(Reader_params* params, Au_table* au_table, int le
         return false;
 
     // Create the Processor implementation
-    char type[PROC_TYPE_LENGTH_MAX] = "";
-    if (!Streader_read_string(params->sr, PROC_TYPE_LENGTH_MAX, type))
-    {
-        set_error(params);
+    pmdata* d = &(pmdata){ .handle = params->handle, .cons = NULL, .prop = NULL };
+    if (!Streader_read_dict(params->sr, read_proc_manifest_entry, d))
         return false;
-    }
 
-    Proc_cons* cons = Proc_type_find_cons(type);
-    if (cons == NULL)
-    {
-        Handle_set_error(params->handle, ERROR_FORMAT,
-                "Unsupported Processor type: %s", type);
+    if (d->cons == NULL)
         return false;
-    }
 
-    Device_impl* proc_impl = cons(proc);
+    assert(d->cons != NULL);
+    Device_impl* proc_impl = d->cons(proc);
     if (proc_impl == NULL)
     {
         Handle_set_error(params->handle, ERROR_MEMORY,
@@ -948,7 +949,7 @@ static bool read_any_proc_type(Reader_params* params, Au_table* au_table, int le
     Device_states_remove_state(dstates, Device_get_id((Device*)proc));
 
     // Get processor properties
-    Proc_property* property = Proc_type_find_property(type);
+    Proc_property* property = d->prop;
     if (property != NULL)
     {
         // Allocate Voice state space
@@ -1030,6 +1031,8 @@ static bool read_any_proc_type(Reader_params* params, Au_table* au_table, int le
 
     // Force connection update so that we get buffers for the new Device state(s)
     params->handle->update_connections = true;
+
+    Proc_table_set_existent(proc_table, proc_index, true);
 
     return true;
 }
@@ -1149,7 +1152,6 @@ MAKE_AU_READERS(au_env_pitch_pan)
 MAKE_AU_READERS(proc_manifest)
 MAKE_AU_READERS(proc_in_port_manifest)
 MAKE_AU_READERS(proc_out_port_manifest)
-MAKE_AU_READERS(proc_type)
 MAKE_AU_READERS(proc_impl_key)
 MAKE_AU_READERS(proc_conf_key)
 

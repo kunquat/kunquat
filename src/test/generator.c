@@ -22,6 +22,7 @@
 #define buf_len 128
 
 
+// TODO: see if this makes sense with the new manifest format
 static void setup_single_pulse_without_generator_manifest(void)
 {
     assert(handle != 0);
@@ -38,7 +39,6 @@ static void setup_single_pulse_without_generator_manifest(void)
     set_data("au_00/p_connections.json",
             "[ [\"proc_00/C/out_00\", \"out_00\"] ]");
 
-    set_data("au_00/proc_00/p_proc_type.json", "\"debug\"");
     set_data("au_00/proc_00/out_00/p_manifest.json", "{}");
     set_data("au_00/proc_00/c/p_b_single_pulse.json", "true");
 
@@ -74,7 +74,7 @@ START_TEST(Adding_manifest_enables_generator)
     pause();
 
     setup_single_pulse_without_generator_manifest();
-    set_data("au_00/proc_00/p_manifest.json", "{}");
+    set_data("au_00/proc_00/p_manifest.json", "{ \"type\": \"debug\" }");
     validate();
     check_unexpected_error();
 
@@ -117,29 +117,6 @@ END_TEST
 #endif
 
 
-START_TEST(Connect_generator_without_type)
-{
-    set_data("out_00/p_manifest.json", "{}");
-    set_data("p_connections.json",
-            "[ [\"au_00/out_00\", \"out_00\"] ]");
-
-    set_data("p_control_map.json", "[ [0, 0] ]");
-    set_data("control_00/p_manifest.json", "{}");
-
-    set_data("au_00/p_manifest.json", "{}");
-    set_data("au_00/out_00/p_manifest.json", "{}");
-    set_data("au_00/p_connections.json",
-            "[ [\"proc_00/C/out_00\", \"out_00\"] ]");
-
-    set_data("au_00/proc_00/p_manifest.json", "{}");
-    set_data("au_00/proc_00/out_00/p_manifest.json", "{}");
-    set_data("au_00/proc_00/c/p_b_single_pulse.json", "true");
-
-    validate();
-}
-END_TEST
-
-
 START_TEST(Setting_type_syncs_keys)
 {
     set_mix_volume(0);
@@ -177,7 +154,6 @@ Suite* Generator_suite(void)
     //tcase_add_test(tc_general, Generator_without_manifest_is_silent);
     tcase_add_test(tc_general, Adding_manifest_enables_generator);
     //tcase_add_test(tc_general, Removing_manifest_disables_generator);
-    tcase_add_test(tc_general, Connect_generator_without_type);
     tcase_add_test(tc_general, Setting_type_syncs_keys);
 
     return s;

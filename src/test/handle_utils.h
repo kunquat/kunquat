@@ -290,8 +290,7 @@ void setup_debug_instrument(void)
             "{ \"enabled\": true, \"envelope\": {"
             "  \"nodes\": [ [0, 1], [98, 1], [99, 0] ] } }");
 
-    set_data("au_00/proc_00/p_manifest.json", "{}");
-    set_data("au_00/proc_00/p_proc_type.json", "\"debug\"");
+    set_data("au_00/proc_00/p_manifest.json", "{ \"type\": \"debug\" }");
     set_data("au_00/proc_00/out_00/p_manifest.json", "{}");
 
     validate();
