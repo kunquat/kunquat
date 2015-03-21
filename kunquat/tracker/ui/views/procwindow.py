@@ -14,7 +14,7 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from proc.editor import Editor
+from processor.editor import Editor
 
 
 class ProcWindow(QWidget):
