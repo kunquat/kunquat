@@ -37,8 +37,6 @@ bool v_cond(const char* param);
 
 bool v_counter(const char* param);
 
-bool v_effect(const char* param);
-
 bool v_finite_float(const char* param);
 
 bool v_force(const char* param);

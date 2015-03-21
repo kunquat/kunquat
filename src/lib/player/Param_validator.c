@@ -128,19 +128,6 @@ bool v_counter(const char* param)
 }
 
 
-bool v_effect(const char* param)
-{
-    assert(param != NULL);
-
-    int64_t effect = -1;
-    Streader* sr = init_c_streader(param);
-
-    return Streader_read_int(sr, &effect) &&
-        effect >= 0 &&
-        effect < KQT_EFFECTS_MAX;
-}
-
-
 bool v_finite_float(const char* param)
 {
     assert(param != NULL);
