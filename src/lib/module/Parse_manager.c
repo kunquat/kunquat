@@ -21,7 +21,6 @@
 #include <Connections.h>
 #include <debug/assert.h>
 #include <devices/Audio_unit.h>
-#include <devices/Device_event_keys.h>
 #include <devices/Device_params.h>
 #include <devices/Proc_type.h>
 #include <Handle_private.h>
