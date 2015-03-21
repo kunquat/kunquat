@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2015
 #
 # This file is part of Kunquat.
 #
@@ -23,6 +23,7 @@ class SilenceButton(QToolButton):
         self._playback_manager = None
 
         self.setText('Silence')
+        self.setToolTip('Silence (Period)')
         self.setAutoRaise(True)
 
     def set_ui_model(self, ui_model):

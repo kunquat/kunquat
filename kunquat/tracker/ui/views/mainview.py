@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2014
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2015
 #          Toni Ruottu, Finland 2013-2014
 #
 # This file is part of Kunquat.
@@ -55,4 +55,21 @@ class MainView(QWidget):
         self._import_progress.unregister_updaters()
         self._main_splitter.unregister_updaters()
         self._portal.unregister_updaters()
+
+    def keyPressEvent(self, event):
+        if event.modifiers() == Qt.NoModifier:
+            if event.key() == Qt.Key_Comma:
+                self._ui_model.play()
+            elif event.key() == Qt.Key_Period:
+                self._ui_model.silence()
+            else:
+                event.ignore()
+        elif event.modifiers() == Qt.ControlModifier:
+            if event.key() == Qt.Key_Comma:
+                self._ui_model.play_pattern()
+            else:
+                event.ignore()
+        else:
+            event.ignore()
+
 

@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013
-#          Tomi Jylhä-Ollila, Finland 2014
+#          Tomi Jylhä-Ollila, Finland 2014-2015
 #
 # This file is part of Kunquat.
 #
@@ -23,6 +23,7 @@ class PlayButton(QToolButton):
         self._ui_model = None
 
         self.setText('Play')
+        self.setToolTip('Play (Comma)')
         self.setAutoRaise(True)
 
     def set_ui_model(self, ui_model):

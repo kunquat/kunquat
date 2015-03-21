@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2015
 #
 # This file is part of Kunquat.
 #
@@ -21,7 +21,8 @@ class PlayPatternButton(QToolButton):
         QToolButton.__init__(self)
         self._ui_model = None
 
-        self.setText('Play pattern')
+        self.setText('Play Pattern')
+        self.setToolTip('Play Pattern (Ctrl + Comma)')
         self.setAutoRaise(True)
 
     def set_ui_model(self, ui_model):
