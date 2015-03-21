@@ -24,7 +24,6 @@
 #include <devices/processors/Proc_gc.h>
 #include <devices/processors/Proc_noise.h>
 #include <devices/processors/Proc_pcm.h>
-#include <devices/processors/Proc_pulse.h>
 #include <devices/processors/Proc_volume.h>
 #include <string/common.h>
 
@@ -47,7 +46,6 @@ static const Proc_type proc_types[] =
     { "gaincomp", new_Proc_gc, NULL },
     { "noise", new_Proc_noise, Proc_noise_property },
     { "pcm", new_Proc_pcm, Proc_pcm_property },
-    { "pulse", new_Proc_pulse, Proc_pulse_property },
     { "volume", new_Proc_volume, NULL },
     { NULL, NULL, NULL }
 };
