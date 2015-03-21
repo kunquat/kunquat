@@ -403,6 +403,8 @@ class ConnectionsView(QWidget):
 
         module = self._ui_model.get_module()
         if self._ins_id != None:
+            visible_set |= set(['Iin'])
+
             instrument = module.get_instrument(self._ins_id)
             gen_ids = instrument.get_generator_ids()
             existent_gen_ids = [gen_id for gen_id in gen_ids
@@ -451,7 +453,10 @@ class ConnectionsView(QWidget):
     def _split_path(self, path):
         parts = path.split('/')
         port_id = parts[-1]
-        dev_id = parts[0] if len(parts) > 1 else 'master'
+        if len(parts) > 1:
+            dev_id = parts[0]
+        else:
+            dev_id = 'master' if port_id.startswith('out') else 'Iin'
         return (dev_id, port_id)
 
     def _get_port_center_from_path(self, path):
@@ -474,11 +479,13 @@ class ConnectionsView(QWidget):
         layout = connections.get_layout()
 
         # Make devices
+        mid_offset = -200 if (self._ins_id == None) else 0
         default_pos_cfg = {
-                'au': { 'index': 0, 'offset_x': -200, 'offset_y': 120 },
-                'proc': { 'index': 0, 'offset_x': -200, 'offset_y': 120 },
-                'eff': { 'index': 0, 'offset_x': 0,    'offset_y': 120 },
-                'master': { 'index': 0, 'offset_x': 200,  'offset_y': 120 },
+                'au':       { 'index': 0, 'offset_x': mid_offset,   'offset_y': 120 },
+                'proc':     { 'index': 0, 'offset_x': mid_offset,   'offset_y': 120 },
+                'eff':      { 'index': 0, 'offset_x': 0,            'offset_y': 120 },
+                'master':   { 'index': 0, 'offset_x': 200,          'offset_y': 120 },
+                'Iin':      { 'index': 0, 'offset_x': -200,         'offset_y': 120 },
             }
 
         new_visible_devices = {}
@@ -490,6 +497,9 @@ class ConnectionsView(QWidget):
                 if dev_id == 'master':
                     in_ports = self._get_out_ports(dev_id)
                     out_ports = []
+                elif dev_id == 'Iin':
+                    in_ports = []
+                    out_ports = self._get_in_ports(dev_id)
                 else:
                     in_ports = self._get_in_ports(dev_id)
                     out_ports = self._get_out_ports(dev_id)
@@ -657,13 +667,13 @@ class ConnectionsView(QWidget):
 
     def _is_send_port(self, dev_id, port_id):
         is_out = port_id.startswith('out')
-        if dev_id == 'master':
+        if dev_id in ('master', 'Iin'):
             return not is_out
         return is_out
 
     def _make_path(self, port_info):
         parts = []
-        if port_info['dev_id'] != 'master':
+        if port_info['dev_id'] not in ('master', 'Iin'):
             parts.append(port_info['dev_id'])
         if port_info['dev_id'].startswith('proc'):
             parts.append('C')
@@ -923,7 +933,7 @@ class Device():
 
         self._name = name
 
-        if dev_id == 'master':
+        if dev_id in ('master', 'Iin'):
             self._type_config = self._config['master']
         elif dev_id.startswith('au'):
             self._type_config = self._config['instrument']
@@ -956,7 +966,9 @@ class Device():
         text_option = QTextOption(Qt.AlignCenter)
         title_height = self._get_title_height()
         if self._id == 'master':
-            title = 'Master'
+            title = 'Master Out'
+        elif self._id == 'Iin':
+            title = 'Master In'
         else:
             title = self._name or '-'
         painter.drawText(
@@ -1034,7 +1046,7 @@ class Device():
             port_y += self._get_port_height()
 
     def get_port_center(self, port_id):
-        if port_id.startswith('in') != (self._id == 'master'):
+        if port_id.startswith('in') != (self._id in ('master', 'Iin')):
             for i, point in enumerate(self._get_in_port_centers()):
                 if self._in_ports[i] == port_id:
                     return point
@@ -1169,7 +1181,7 @@ class Device():
                 self._bg.height() + 1)
 
     def _has_edit_button(self):
-        return ((self._id != 'master') and
+        return ((self._id not in ('master', 'Iin')) and
                 (self._id.startswith('au') or self._id.startswith('proc')))
 
     def _get_height(self):
@@ -1177,7 +1189,10 @@ class Device():
         port_height = self._get_port_height()
         ports_height = max(len(self._in_ports), len(self._out_ports)) * port_height
 
-        total_height = title_height + ports_height
+        if ports_height > 0:
+            total_height = title_height + ports_height
+        else:
+            total_height = title_height + self._config['padding'] * 2
 
         if self._has_edit_button():
             edit_button_height = self._get_edit_button_height()
