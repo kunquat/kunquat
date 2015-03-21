@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -12,14 +12,14 @@
  */
 
 
-#ifndef K_VOICE_STATE_PCM_H
-#define K_VOICE_STATE_PCM_H
+#ifndef K_VOICE_STATE_SAMPLE_H
+#define K_VOICE_STATE_SAMPLE_H
 
 
 #include <player/Voice_state.h>
 
 
-typedef struct Voice_state_pcm
+typedef struct Voice_state_sample
 {
     Voice_state parent;
     int sample;
@@ -29,9 +29,9 @@ typedef struct Voice_state_pcm
     uint8_t source;
     uint8_t expr;
     double middle_tone;
-} Voice_state_pcm;
+} Voice_state_sample;
 
 
-#endif // K_VOICE_STATE_PCM_H
+#endif // K_VOICE_STATE_SAMPLE_H
 
 

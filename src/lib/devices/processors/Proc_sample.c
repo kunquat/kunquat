@@ -20,64 +20,64 @@
 #include <containers/AAtree.h>
 #include <debug/assert.h>
 #include <devices/Device_params.h>
-#include <devices/Processor.h>
-#include <devices/processors/Proc_pcm.h>
-#include <devices/processors/Voice_state_pcm.h>
 #include <devices/param_types/Hit_map.h>
 #include <devices/param_types/Sample.h>
 #include <devices/param_types/Wavpack.h>
+#include <devices/Processor.h>
+#include <devices/processors/Proc_sample.h>
+#include <devices/processors/Voice_state_sample.h>
 #include <memory.h>
 #include <pitch_t.h>
 #include <player/Work_buffers.h>
 #include <string/common.h>
 
 
-typedef struct Proc_pcm
+typedef struct Proc_sample
 {
     Device_impl parent;
-} Proc_pcm;
+} Proc_sample;
 
 
-static bool Proc_pcm_init(Device_impl* dimpl);
+static bool Proc_sample_init(Device_impl* dimpl);
 
-static void Proc_pcm_init_vstate(
+static void Proc_sample_init_vstate(
         const Processor* proc, const Proc_state* proc_state, Voice_state* vstate);
 
-static Proc_process_vstate_func Proc_pcm_process_vstate;
+static Proc_process_vstate_func Proc_sample_process_vstate;
 
-static void del_Proc_pcm(Device_impl* dimpl);
+static void del_Proc_sample(Device_impl* dimpl);
 
 
-Device_impl* new_Proc_pcm(Processor* proc)
+Device_impl* new_Proc_sample(Processor* proc)
 {
-    Proc_pcm* pcm = memory_alloc_item(Proc_pcm);
-    if (pcm == NULL)
+    Proc_sample* sample_p = memory_alloc_item(Proc_sample);
+    if (sample_p == NULL)
         return NULL;
 
-    pcm->parent.device = (Device*)proc;
+    sample_p->parent.device = (Device*)proc;
 
-    Device_impl_register_init(&pcm->parent, Proc_pcm_init);
-    Device_impl_register_destroy(&pcm->parent, del_Proc_pcm);
+    Device_impl_register_init(&sample_p->parent, Proc_sample_init);
+    Device_impl_register_destroy(&sample_p->parent, del_Proc_sample);
 
-    return &pcm->parent;
+    return &sample_p->parent;
 }
 
 
-static bool Proc_pcm_init(Device_impl* dimpl)
+static bool Proc_sample_init(Device_impl* dimpl)
 {
     assert(dimpl != NULL);
 
-    Proc_pcm* pcm = (Proc_pcm*)dimpl;
+    Proc_sample* sample_p = (Proc_sample*)dimpl;
 
-    Processor* proc = (Processor*)pcm->parent.device;
-    proc->init_vstate = Proc_pcm_init_vstate;
-    proc->process_vstate = Proc_pcm_process_vstate;
+    Processor* proc = (Processor*)sample_p->parent.device;
+    proc->init_vstate = Proc_sample_init_vstate;
+    proc->process_vstate = Proc_sample_process_vstate;
 
     return true;
 }
 
 
-const char* Proc_pcm_property(const Processor* proc, const char* property_type)
+const char* Proc_sample_property(const Processor* proc, const char* property_type)
 {
     assert(proc != NULL);
     assert(property_type != NULL);
@@ -86,7 +86,7 @@ const char* Proc_pcm_property(const Processor* proc, const char* property_type)
     {
         static char size_str[8] = { '\0' };
         if (string_eq(size_str, ""))
-            snprintf(size_str, 8, "%zd", sizeof(Voice_state_pcm));
+            snprintf(size_str, 8, "%zd", sizeof(Voice_state_sample));
 
         return size_str;
     }
@@ -103,27 +103,27 @@ const char* Proc_pcm_property(const Processor* proc, const char* property_type)
 }
 
 
-static void Proc_pcm_init_vstate(
+static void Proc_sample_init_vstate(
         const Processor* proc, const Proc_state* proc_state, Voice_state* vstate)
 {
     assert(proc != NULL);
     assert(proc_state != NULL);
     assert(vstate != NULL);
 
-    Voice_state_pcm* pcm_state = (Voice_state_pcm*)vstate;
-    pcm_state->sample = -1;
-    pcm_state->cents = 0;
-    pcm_state->freq = 0;
-    pcm_state->volume = 0;
-    pcm_state->source = 0;
-    pcm_state->expr = 0;
-    pcm_state->middle_tone = 0;
+    Voice_state_sample* sample_state = (Voice_state_sample*)vstate;
+    sample_state->sample = -1;
+    sample_state->cents = 0;
+    sample_state->freq = 0;
+    sample_state->volume = 0;
+    sample_state->source = 0;
+    sample_state->expr = 0;
+    sample_state->middle_tone = 0;
 
     return;
 }
 
 
-uint32_t Proc_pcm_process_vstate(
+uint32_t Proc_sample_process_vstate(
         const Processor* proc,
         Proc_state* proc_state,
         Au_state* au_state,
@@ -135,7 +135,6 @@ uint32_t Proc_pcm_process_vstate(
         double tempo)
 {
     assert(proc != NULL);
-    //assert(string_eq(proc->type, "pcm"));
     assert(proc_state != NULL);
     assert(au_state != NULL);
     assert(vstate != NULL);
@@ -143,13 +142,12 @@ uint32_t Proc_pcm_process_vstate(
     assert(audio_rate > 0);
     assert(tempo > 0);
 
-//    Proc_pcm* pcm = (Proc_pcm*)proc->parent.dimpl;
-    Voice_state_pcm* pcm_state = (Voice_state_pcm*)vstate;
+    Voice_state_sample* sample_state = (Voice_state_sample*)vstate;
 
     if (buf_start >= buf_stop)
         return buf_start;
 
-    if (pcm_state->sample < 0)
+    if (sample_state->sample < 0)
     {
         // Select our sample
 
@@ -160,7 +158,7 @@ uint32_t Proc_pcm_process_vstate(
                 vstate->cpstate, "e");
         if (expression_arg != NULL)
         {
-            if (*expression_arg < 0 || *expression_arg >= PCM_EXPRESSIONS_MAX)
+            if (*expression_arg < 0 || *expression_arg >= SAMPLE_EXPRESSIONS_MAX)
             {
                 vstate->active = false;
                 return buf_start;
@@ -172,7 +170,7 @@ uint32_t Proc_pcm_process_vstate(
                 vstate->cpstate, "s");
         if (source_arg != NULL)
         {
-            if (*source_arg < 0 || *source_arg >= PCM_SOURCES_MAX)
+            if (*source_arg < 0 || *source_arg >= SAMPLE_SOURCES_MAX)
             {
                 vstate->active = false;
                 return buf_start;
@@ -232,21 +230,21 @@ uint32_t Proc_pcm_process_vstate(
                     log2(vstate->pitch / 440) * 1200,
                     vstate->force,
                     vstate->rand_p);
-            pcm_state->middle_tone = entry->ref_freq;
+            sample_state->middle_tone = entry->ref_freq;
         }
 
-        if (entry == NULL || entry->sample >= PCM_SAMPLES_MAX)
+        if (entry == NULL || entry->sample >= SAMPLES_MAX)
         {
             vstate->active = false;
             return buf_start;
         }
 
-        pcm_state->sample = entry->sample;
-        pcm_state->volume = entry->vol_scale;
-        pcm_state->cents = entry->cents;
+        sample_state->sample = entry->sample;
+        sample_state->volume = entry->vol_scale;
+        sample_state->cents = entry->cents;
     }
 
-    assert(pcm_state->sample < PCM_SAMPLES_MAX);
+    assert(sample_state->sample < SAMPLES_MAX);
 
     // Find sample params
     char header_key[] = "smp_XXX/p_sh_sample.json";
@@ -254,7 +252,7 @@ uint32_t Proc_pcm_process_vstate(
             header_key,
             strlen(header_key) + 1,
             "smp_%03x/p_sh_sample.json",
-            pcm_state->sample);
+            sample_state->sample);
     const Sample_params* header = Device_params_get_sample_params(
             proc->parent.dparams,
             header_key);
@@ -275,7 +273,7 @@ uint32_t Proc_pcm_process_vstate(
 
     char sample_key[] = "smp_XXX/p_sample.NONE";
     snprintf(sample_key, strlen(sample_key) + 1,
-             "smp_%03x/p_sample.%s", pcm_state->sample,
+             "smp_%03x/p_sample.%s", sample_state->sample,
              extensions[header->format]);
 
     const Sample* sample = Device_params_get_sample(
@@ -287,31 +285,31 @@ uint32_t Proc_pcm_process_vstate(
     }
 
     if (vstate->hit_index >= 0)
-        pcm_state->middle_tone = 440;
+        sample_state->middle_tone = 440;
 
-    pcm_state->freq = header->mid_freq * exp2(pcm_state->cents / 1200);
+    sample_state->freq = header->mid_freq * exp2(sample_state->cents / 1200);
 
     /*
-    Sample_set_loop_start(sample, pcm_state->params.loop_start);
-    Sample_set_loop_end(sample, pcm_state->params.loop_end);
-    Sample_set_loop(sample, pcm_state->params.loop);
+    Sample_set_loop_start(sample, sample_state->params.loop_start);
+    Sample_set_loop_end(sample, sample_state->params.loop_end);
+    Sample_set_loop(sample, sample_state->params.loop);
     // */
 
     return Sample_process_vstate(
             sample, header, vstate, wbs,
             buf_start, buf_stop, audio_rate, tempo,
-            pcm_state->middle_tone, pcm_state->freq,
-            pcm_state->volume);
+            sample_state->middle_tone, sample_state->freq,
+            sample_state->volume);
 }
 
 
-void del_Proc_pcm(Device_impl* dimpl)
+void del_Proc_sample(Device_impl* dimpl)
 {
     if (dimpl == NULL)
         return;
 
-    Proc_pcm* pcm = (Proc_pcm*)dimpl;
-    memory_free(pcm);
+    Proc_sample* sample_p = (Proc_sample*)dimpl;
+    memory_free(sample_p);
 
     return;
 }

@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_PROC_PCM_H
-#define K_PROC_PCM_H
+#ifndef K_PROC_SAMPLE_H
+#define K_PROC_SAMPLE_H
 
 
 #include <stdint.h>
@@ -24,34 +24,34 @@
 #include <devices/Processor.h>
 
 
-#define PCM_SAMPLES_MAX (512)
+#define SAMPLES_MAX (512)
 
-#define PCM_SOURCES_MAX (16)
-#define PCM_EXPRESSIONS_MAX (16)
-#define PCM_RANDOMS_MAX (8)
+#define SAMPLE_SOURCES_MAX (16)
+#define SAMPLE_EXPRESSIONS_MAX (16)
+#define SAMPLE_RANDOMS_MAX (8)
 
 
 /**
- * Create a new PCM Processor.
+ * Create a new Sample Processor.
  *
- * \return   The new PCM Processor if successful, or \c NULL if memory
+ * \return   The new Sample Processor if successful, or \c NULL if memory
  *           allocation failed.
  */
-Device_impl* new_Proc_pcm(Processor* proc);
+Device_impl* new_Proc_sample(Processor* proc);
 
 
 /**
- * Return PCM Processor property information.
+ * Return Sample Processor property information.
  *
- * \param proc            The PCM Processor -- must be valid.
+ * \param proc            The Sample Processor -- must be valid.
  * \param property_type   The property type -- must not be \c NULL.
  *
- * \return   The PCM Processor property description matching
+ * \return   The Sample Processor property description matching
  *           \a property_type, or \c NULL if one does not exist.
  */
-const char* Proc_pcm_property(const Processor* proc, const char* property_type);
+const char* Proc_sample_property(const Processor* proc, const char* property_type);
 
 
-#endif // K_PROC_PCM_H
+#endif // K_PROC_SAMPLE_H
 
 

@@ -22,8 +22,8 @@ from kunquat.tracker.ui.views.keyboardmapper import KeyboardMapper
 
 
 _proc_classes = {
-    'add': AddProc,
-    'pcm': SampleProc,
+    'add':      AddProc,
+    'sample':   SampleProc,
 }
 
 
