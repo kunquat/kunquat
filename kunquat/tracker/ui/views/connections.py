@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2015
 #
 # This file is part of Kunquat.
 #
@@ -373,21 +373,14 @@ class ConnectionsView(QWidget):
         if self._ins_id != None:
             container = container.get_instrument(self._ins_id)
 
-        if dev_id.startswith('ins'):
+        if dev_id.startswith('au'):
             return container.get_instrument(dev_id)
-        elif dev_id.startswith('gen'):
+        elif dev_id.startswith('proc'):
             return container.get_generator(dev_id)
-        elif dev_id.startswith('eff'):
-            return container.get_effect(dev_id)
-        elif dev_id.startswith('dsp'):
-            return container.get_dsp(dev_id)
 
         return container
 
     def _get_in_ports(self, dev_id):
-        if dev_id.startswith('ins'):
-            return []
-
         device = self._get_device(dev_id)
         return device.get_in_ports()
 
@@ -416,9 +409,9 @@ class ConnectionsView(QWidget):
                     if instrument.get_generator(gen_id).get_existence()]
             visible_set |= set(existent_gen_ids)
 
-            eff_ids = instrument.get_effect_ids()
+            eff_ids = instrument.get_au_ids()
             existent_eff_ids = [eff_id for eff_id in eff_ids
-                    if instrument.get_effect(eff_id).get_existence()]
+                    if instrument.get_au(eff_id).get_existence()]
             visible_set |= set(existent_eff_ids)
 
         else:
@@ -426,11 +419,6 @@ class ConnectionsView(QWidget):
             existent_ins_ids = [ins_id for ins_id in ins_ids
                     if module.get_instrument(ins_id).get_existence()]
             visible_set |= set(existent_ins_ids)
-
-            eff_ids = module.get_effect_ids()
-            existent_eff_ids = [eff_id for eff_id in eff_ids
-                    if module.get_effect(eff_id).get_existence()]
-            visible_set |= set(existent_eff_ids)
 
         new_dev_ids = []
 
@@ -487,8 +475,8 @@ class ConnectionsView(QWidget):
 
         # Make devices
         default_pos_cfg = {
-                'ins': { 'index': 0, 'offset_x': -200, 'offset_y': 120 },
-                'gen': { 'index': 0, 'offset_x': -200, 'offset_y': 120 },
+                'au': { 'index': 0, 'offset_x': -200, 'offset_y': 120 },
+                'proc': { 'index': 0, 'offset_x': -200, 'offset_y': 120 },
                 'eff': { 'index': 0, 'offset_x': 0,    'offset_y': 120 },
                 'master': { 'index': 0, 'offset_x': 200,  'offset_y': 120 },
             }
@@ -677,7 +665,7 @@ class ConnectionsView(QWidget):
         parts = []
         if port_info['dev_id'] != 'master':
             parts.append(port_info['dev_id'])
-        if port_info['dev_id'].startswith(('gen', 'dsp')):
+        if port_info['dev_id'].startswith('proc'):
             parts.append('C')
         parts.append(port_info['port'])
         return '/'.join(parts)
@@ -907,9 +895,9 @@ class ConnectionsView(QWidget):
     def _perform_button_click(self, button_info):
         visibility_manager = self._ui_model.get_visibility_manager()
         dev_id = button_info['dev_id']
-        if dev_id.startswith('ins'):
+        if dev_id.startswith('au'):
             visibility_manager.show_instrument(dev_id)
-        elif dev_id.startswith('gen'):
+        elif dev_id.startswith('proc'):
             visibility_manager.show_generator(self._ins_id, dev_id)
 
     def leaveEvent(self, event):
@@ -937,11 +925,9 @@ class Device():
 
         if dev_id == 'master':
             self._type_config = self._config['master']
-        elif dev_id.startswith('ins'):
+        elif dev_id.startswith('au'):
             self._type_config = self._config['instrument']
-        elif dev_id.startswith('eff'):
-            self._type_config = self._config['effect']
-        elif dev_id.startswith('gen'):
+        elif dev_id.startswith('proc'):
             self._type_config = self._config['generator']
         else:
             raise ValueError('Unexpected type of device ID: {}'.format(dev_id))
@@ -1183,9 +1169,8 @@ class Device():
                 self._bg.height() + 1)
 
     def _has_edit_button(self):
-        # TODO: enable for generators & effects
         return ((self._id != 'master') and
-                (self._id.startswith('ins') or self._id.startswith('gen')))
+                (self._id.startswith('au') or self._id.startswith('proc')))
 
     def _get_height(self):
         title_height = self._get_title_height()

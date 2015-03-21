@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013
-#          Tomi Jylhä-Ollila, Finland 2013-2014
+#          Tomi Jylhä-Ollila, Finland 2013-2015
 #
 # This file is part of Kunquat.
 #
@@ -43,7 +43,7 @@ class Control():
             input_map = []
         controls = dict(input_map)
         instrument_number = controls[control_number]
-        instrument_id = 'ins_{0:02x}'.format(instrument_number)
+        instrument_id = 'au_{0:02x}'.format(instrument_number)
         module = self._ui_model.get_module()
         instrument = module.get_instrument(instrument_id)
         return instrument

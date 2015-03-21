@@ -62,8 +62,11 @@ class Generator():
         self._store[key] = name
 
     def get_type(self):
-        key = self._get_key('p_gen_type.json')
-        return self._store.get(key)
+        key = self._get_key('p_manifest.json')
+        manifest = self._store.get(key)
+        if manifest:
+            return manifest['type']
+        return None
 
     def get_type_params(self):
         types = { 'add': GeneratorParamsAdd }

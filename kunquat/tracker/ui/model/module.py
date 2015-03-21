@@ -78,7 +78,7 @@ class Module():
     def get_instrument_ids(self):
         instrument_ids = set()
         for key in self._store.keys():
-            if key.startswith('ins_'):
+            if key.startswith('au_'):
                 instrument_id = key.split('/')[0]
                 instrument_ids.add(instrument_id)
         return instrument_ids
@@ -91,19 +91,6 @@ class Module():
         #    valid = [i for i in all_instruments if i.get_existence()]
         #    return [] #valid
         return all_instruments
-
-    def get_effect(self, effect_id):
-        effect = Effect(effect_id)
-        effect.set_controller(self._controller)
-        return effect
-
-    def get_effect_ids(self):
-        effect_ids = set()
-        for key in self._store.keys():
-            if key.startswith('eff_'):
-                effect_id = key.split('/')[0]
-                effect_ids.add(effect_id)
-        return effect_ids
 
     def get_out_ports(self):
         out_ports = []

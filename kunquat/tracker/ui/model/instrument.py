@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013
-#          Tomi Jylhä-Ollila, Finland 2013-2014
+#          Tomi Jylhä-Ollila, Finland 2013-2015
 #
 # This file is part of Kunquat.
 #
@@ -45,6 +45,16 @@ class Instrument():
             return True
         return False
 
+    def get_in_ports(self):
+        in_ports = []
+        for i in xrange(0x100):
+            port_id = 'in_{:02x}'.format(i)
+            key = self._get_key('{}/p_manifest.json'.format(port_id))
+            if key in self._store:
+                in_ports.append(port_id)
+
+        return in_ports
+
     def get_out_ports(self):
         out_ports = []
         for i in xrange(0x100):
@@ -69,26 +79,26 @@ class Instrument():
     def get_generator_ids(self):
         gen_ids = set()
         for key in self._store.keys():
-            start = '{}/gen_'.format(self._instrument_id)
+            start = '{}/proc_'.format(self._instrument_id)
             if key.startswith(start):
                 gen_id = key.split('/')[1]
                 gen_ids.add(gen_id)
         return gen_ids
 
-    def get_effect(self, eff_id):
-        effect = Effect(eff_id)
-        effect.set_ins_id(self._instrument_id)
-        effect.set_controller(self._controller)
-        return effect
+    def get_au(self, au_id):
+        key = '/'.join((self._instrument_id, au_id))
+        au = Instrument(au_id)
+        au.set_controller(self._controller)
+        return au
 
-    def get_effect_ids(self):
-        effect_ids = set()
+    def get_au_ids(self):
+        au_ids = set()
+        start = '{}/au_'.format(self._instrument_id)
         for key in self._store.keys():
-            start = '{}/eff_'.format(self._instrument_id)
             if key.startswith(start):
-                effect_id = key.split('/')[1]
-                effect_ids.add(effect_id)
-        return effect_ids
+                au_id = key.split('/')
+                au_ids.add(au_id)
+        return au_ids
 
     def get_name(self):
         key = self._get_key('m_name.json')
@@ -103,7 +113,7 @@ class Instrument():
         self._store[key] = name
 
     def _get_value_from_ins_dict(self, entry_key):
-        key = self._get_key('p_instrument.json')
+        key = self._get_key('p_audio_unit.json')
         try:
             value = self._store[key][entry_key]
         except KeyError:
@@ -111,7 +121,7 @@ class Instrument():
         return value
 
     def _set_value_of_ins_dict(self, entry_key, value):
-        key = self._get_key('p_instrument.json')
+        key = self._get_key('p_audio_unit.json')
         d = self._store.get(key, get_default_value(key))
         d[entry_key] = value
         self._store[key] = d
