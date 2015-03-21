@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2015
 #
 # This file is part of Kunquat.
 #
@@ -24,7 +24,7 @@ class TimeEnvelope(QWidget):
     def __init__(self):
         QWidget.__init__(self)
         self._ui_model = None
-        self._ins_id = None
+        self._au_id = None
         self._updater = None
 
         header = HeaderLine(self._get_title())
@@ -52,8 +52,8 @@ class TimeEnvelope(QWidget):
         v.addWidget(self._envelope)
         self.setLayout(v)
 
-    def set_ins_id(self, ins_id):
-        self._ins_id = ins_id
+    def set_au_id(self, au_id):
+        self._au_id = au_id
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -87,7 +87,7 @@ class TimeEnvelope(QWidget):
         self._updater.unregister_updater(self._perform_updates)
 
     def _perform_updates(self, signals):
-        update_signals = set(['signal_instrument', self._get_update_signal_type()])
+        update_signals = set(['signal_au', self._get_update_signal_type()])
         if not signals.isdisjoint(update_signals):
             self._update_envelope()
 

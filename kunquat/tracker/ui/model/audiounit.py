@@ -17,14 +17,14 @@ from connections import Connections
 from processor import Processor
 
 
-class Instrument():
+class AudioUnit():
 
-    def __init__(self, instrument_id):
-        assert(instrument_id)
-        self._instrument_id = instrument_id
+    def __init__(self, au_id):
+        assert(au_id)
+        self._au_id = au_id
         self._store = None
         self._controller = None
-        self._instrument_number = None
+        self._au_number = None
         self._existence = None
 
     def set_controller(self, controller):
@@ -32,10 +32,10 @@ class Instrument():
         self._controller = controller
 
     def get_id(self):
-        return self._instrument_id
+        return self._au_id
 
     def _get_key(self, subkey):
-        return '{}/{}'.format(self._instrument_id, subkey)
+        return '{}/{}'.format(self._au_id, subkey)
 
     def get_existence(self):
         key = self._get_key('p_manifest.json')
@@ -66,33 +66,33 @@ class Instrument():
 
     def get_connections(self):
         connections = Connections()
-        connections.set_ins_id(self._instrument_id)
+        connections.set_au_id(self._au_id)
         connections.set_controller(self._controller)
         return connections
 
     def get_processor(self, proc_id):
-        proc = Processor(self._instrument_id, proc_id)
+        proc = Processor(self._au_id, proc_id)
         proc.set_controller(self._controller)
         return proc
 
     def get_processor_ids(self):
         proc_ids = set()
         for key in self._store.keys():
-            start = '{}/proc_'.format(self._instrument_id)
+            start = '{}/proc_'.format(self._au_id)
             if key.startswith(start):
                 proc_id = key.split('/')[1]
                 proc_ids.add(proc_id)
         return proc_ids
 
     def get_au(self, au_id):
-        key = '/'.join((self._instrument_id, au_id))
-        au = Instrument(au_id)
+        key = '/'.join((self._au_id, au_id))
+        au = AudioUnit(au_id)
         au.set_controller(self._controller)
         return au
 
     def get_au_ids(self):
         au_ids = set()
-        start = '{}/au_'.format(self._instrument_id)
+        start = '{}/au_'.format(self._au_id)
         for key in self._store.keys():
             if key.startswith(start):
                 au_id = key.split('/')
@@ -111,7 +111,7 @@ class Instrument():
         key = self._get_key('m_name.json')
         self._store[key] = name
 
-    def _get_value_from_ins_dict(self, entry_key):
+    def _get_value_from_au_dict(self, entry_key):
         key = self._get_key('p_audio_unit.json')
         try:
             value = self._store[key][entry_key]
@@ -119,29 +119,29 @@ class Instrument():
             value = get_default_value(key)[entry_key]
         return value
 
-    def _set_value_of_ins_dict(self, entry_key, value):
+    def _set_value_of_au_dict(self, entry_key, value):
         key = self._get_key('p_audio_unit.json')
         d = self._store.get(key, get_default_value(key))
         d[entry_key] = value
         self._store[key] = d
 
     def get_global_force(self):
-        return self._get_value_from_ins_dict('global_force')
+        return self._get_value_from_au_dict('global_force')
 
     def set_global_force(self, global_force):
-        self._set_value_of_ins_dict('global_force', global_force)
+        self._set_value_of_au_dict('global_force', global_force)
 
     def get_force_variation(self):
-        return self._get_value_from_ins_dict('force_variation')
+        return self._get_value_from_au_dict('force_variation')
 
     def set_force_variation(self, force_var):
-        self._set_value_of_ins_dict('force_variation', force_var)
+        self._set_value_of_au_dict('force_variation', force_var)
 
     def get_default_force(self):
-        return self._get_value_from_ins_dict('force')
+        return self._get_value_from_au_dict('force')
 
     def set_default_force(self, default_force):
-        self._set_value_of_ins_dict('force', default_force)
+        self._set_value_of_au_dict('force', default_force)
 
     def _get_force_envelope_dict(self):
         key = self._get_key('p_envelope_force.json')

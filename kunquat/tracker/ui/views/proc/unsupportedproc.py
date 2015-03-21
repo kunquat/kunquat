@@ -21,7 +21,7 @@ class UnsupportedProc(QWidget):
         QWidget.__init__(self)
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
 
-    def set_ins_id(self, ins_id):
+    def set_au_id(self, au_id):
         pass
 
     def set_proc_id(self, proc_id):

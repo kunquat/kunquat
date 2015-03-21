@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2014
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2015
 #          Toni Ruottu, Finland 2013-2014
 #
 # This file is part of Kunquat.
@@ -145,7 +145,6 @@ def create_ui_launcher():
     ui_launcher = UiLauncher()
     ui_launcher.set_ui_model(ui_model)
     ui_launcher.set_controller(controller)
-    #ui_launcher.set_instrument_class(Instrument)
     return ui_launcher
 
 

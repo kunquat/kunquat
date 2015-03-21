@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013
-#          Tomi Jylhä-Ollila, Finland 2013-2014
+#          Tomi Jylhä-Ollila, Finland 2013-2015
 #
 # This file is part of Kunquat.
 #
@@ -50,10 +50,10 @@ class InstrumentSelect(QComboBox):
             second = parts[1]
             control_number = int(second, 16)
             control = self._module.get_control(control_id)
-            instrument = control.get_instrument()
-            instrument_name = instrument.get_name() or '-'
+            au = control.get_audio_unit()
+            au_name = au.get_name() or '-'
             play = '' if len(control.get_active_notes()) < 1 else u'*'
-            text = 'instrument %s: %s %s' % (control_number, instrument_name, play)
+            text = 'instrument %s: %s %s' % (control_number, au_name, play)
             self.setItemText(i, text)
 
     def _update_controls(self):

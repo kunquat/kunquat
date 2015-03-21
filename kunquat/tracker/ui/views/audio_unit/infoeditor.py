@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2015
 #
 # This file is part of Kunquat.
 #
@@ -22,16 +22,16 @@ class InfoEditor(QWidget):
     def __init__(self):
         QWidget.__init__(self)
         self._ui_model = None
-        self._ins_id = None
+        self._au_id = None
         self._name = Name()
 
         v = QVBoxLayout()
         v.addWidget(self._name)
         self.setLayout(v)
 
-    def set_ins_id(self, ins_id):
-        self._ins_id = ins_id
-        self._name.set_ins_id(ins_id)
+    def set_au_id(self, au_id):
+        self._au_id = au_id
+        self._name.set_au_id(au_id)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model

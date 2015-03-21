@@ -31,7 +31,7 @@ class Editor(QWidget):
 
     def __init__(self):
         QWidget.__init__(self)
-        self._ins_id = None
+        self._au_id = None
         self._proc_id = None
         self._ui_model = None
         self._updater = None
@@ -46,16 +46,16 @@ class Editor(QWidget):
         v.addWidget(self._name)
         self.setLayout(v)
 
-    def set_ins_id(self, ins_id):
-        self._ins_id = ins_id
-        self._name.set_ins_id(ins_id)
+    def set_au_id(self, au_id):
+        self._au_id = au_id
+        self._name.set_au_id(au_id)
 
     def set_proc_id(self, proc_id):
         self._proc_id = proc_id
         self._name.set_proc_id(proc_id)
 
     def set_ui_model(self, ui_model):
-        assert self._ins_id != None
+        assert self._au_id != None
         assert self._proc_id != None
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
@@ -69,13 +69,13 @@ class Editor(QWidget):
         assert self._proc_editor == None
 
         module = self._ui_model.get_module()
-        instrument = module.get_instrument(self._ins_id)
-        proc = instrument.get_processor(self._proc_id)
+        au = module.get_audio_unit(self._au_id)
+        proc = au.get_processor(self._proc_id)
         proctype = proc.get_type()
 
         cons = _proc_classes.get(proctype, UnsupportedProc)
         self._proc_editor = cons()
-        self._proc_editor.set_ins_id(self._ins_id)
+        self._proc_editor.set_au_id(self._au_id)
         self._proc_editor.set_proc_id(self._proc_id)
         self._proc_editor.set_ui_model(self._ui_model)
         self.layout().addWidget(self._proc_editor)
@@ -90,10 +90,10 @@ class Editor(QWidget):
         pass
 
     def keyPressEvent(self, event):
-        # TODO: This plays the complete instrument,
+        # TODO: This plays the complete audio unit,
         #       change after adding processor jamming support
         module = self._ui_model.get_module()
-        control_id = module.get_control_id_by_instrument_id(self._ins_id)
+        control_id = module.get_control_id_by_au_id(self._au_id)
         if not control_id:
             return
 

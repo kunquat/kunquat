@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2015
 #
 # This file is part of Kunquat.
 #
@@ -20,15 +20,15 @@ class TestButton(QPushButton):
     def __init__(self):
         QPushButton.__init__(self)
         self._ui_model = None
-        self._ins_id = None
+        self._au_id = None
         self._control_manager = None
         self._typewriter_manager = None
         self._button_model = None
 
         self.setText('Test')
 
-    def set_ins_id(self, ins_id):
-        self._ins_id = ins_id
+    def set_au_id(self, au_id):
+        self._au_id = au_id
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -42,7 +42,7 @@ class TestButton(QPushButton):
 
     def _pressed(self):
         module = self._ui_model.get_module()
-        control_id = module.get_control_id_by_instrument_id(self._ins_id)
+        control_id = module.get_control_id_by_au_id(self._au_id)
         if not control_id:
             self._button_model = None
             return

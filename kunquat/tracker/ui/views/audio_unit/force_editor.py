@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2015
 #
 # This file is part of Kunquat.
 #
@@ -26,7 +26,7 @@ class ForceEditor(QWidget):
     def __init__(self):
         QWidget.__init__(self)
         self._ui_model = None
-        self._ins_id = None
+        self._au_id = None
         self._global_force = GlobalForce()
         self._force_var = ForceVariation()
         self._default_force = DefaultForce()
@@ -48,13 +48,13 @@ class ForceEditor(QWidget):
         v.addWidget(self._force_rel_env)
         self.setLayout(v)
 
-    def set_ins_id(self, ins_id):
-        self._ins_id = ins_id
-        self._global_force.set_ins_id(ins_id)
-        self._force_var.set_ins_id(ins_id)
-        self._default_force.set_ins_id(ins_id)
-        self._force_env.set_ins_id(ins_id)
-        self._force_rel_env.set_ins_id(ins_id)
+    def set_au_id(self, au_id):
+        self._au_id = au_id
+        self._global_force.set_au_id(au_id)
+        self._force_var.set_au_id(au_id)
+        self._default_force.set_au_id(au_id)
+        self._force_env.set_au_id(au_id)
+        self._force_rel_env.set_au_id(au_id)
 
     def set_ui_model(self, ui_model):
         self._global_force.set_ui_model(ui_model)

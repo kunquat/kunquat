@@ -19,7 +19,7 @@ class SampleProc(QWidget):
 
     def __init__(self):
         QWidget.__init__(self)
-        self._ins_id = None
+        self._au_id = None
         self._proc_id = None
         self._ui_model = None
 
@@ -29,8 +29,8 @@ class SampleProc(QWidget):
 
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
 
-    def set_ins_id(self, ins_id):
-        self._ins_id = ins_id
+    def set_au_id(self, au_id):
+        self._au_id = au_id
 
     def set_proc_id(self, proc_id):
         self._proc_id = proc_id

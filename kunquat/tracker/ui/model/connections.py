@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2015
 #
 # This file is part of Kunquat.
 #
@@ -19,11 +19,11 @@ class Connections():
     def __init__(self):
         self._controller = None
         self._store = None
-        self._ins_id = None
+        self._au_id = None
         self._eff_id = None
 
-    def set_ins_id(self, ins_id):
-        self._ins_id = ins_id
+    def set_au_id(self, au_id):
+        self._au_id = au_id
 
     def set_eff_id(self, eff_id):
         self._eff_id = eff_id
@@ -34,8 +34,8 @@ class Connections():
 
     def _get_complete_key(self, subkey):
         parts = []
-        if self._ins_id:
-            parts.append(self._ins_id)
+        if self._au_id:
+            parts.append(self._au_id)
         if self._eff_id:
             parts.append(self._eff_id)
         parts.append(subkey)

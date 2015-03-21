@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2015
 #
 # This file is part of Kunquat.
 #
@@ -26,7 +26,7 @@ class Editor(QWidget):
     def __init__(self):
         QWidget.__init__(self)
         self._ui_model = None
-        self._ins_id = None
+        self._au_id = None
         self._control_manager = None
 
         self._test_button = TestButton()
@@ -47,12 +47,12 @@ class Editor(QWidget):
         v.addWidget(self._tabs)
         self.setLayout(v)
 
-    def set_ins_id(self, ins_id):
-        self._ins_id = ins_id
-        self._test_button.set_ins_id(ins_id)
-        self._force_editor.set_ins_id(ins_id)
-        self._connections.set_ins_id(ins_id)
-        self._info_editor.set_ins_id(ins_id)
+    def set_au_id(self, au_id):
+        self._au_id = au_id
+        self._test_button.set_au_id(au_id)
+        self._force_editor.set_au_id(au_id)
+        self._connections.set_au_id(au_id)
+        self._info_editor.set_au_id(au_id)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -72,7 +72,7 @@ class Editor(QWidget):
 
     def keyPressEvent(self, event):
         module = self._ui_model.get_module()
-        control_id = module.get_control_id_by_instrument_id(self._ins_id)
+        control_id = module.get_control_id_by_au_id(self._au_id)
         if not control_id:
             return
 

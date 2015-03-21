@@ -21,7 +21,7 @@ class ProcWindow(QWidget):
 
     def __init__(self):
         QWidget.__init__(self)
-        self._ins_id = None
+        self._au_id = None
         self._proc_id = None
         self._ui_model = None
         self._updater = None
@@ -32,16 +32,16 @@ class ProcWindow(QWidget):
         v.addWidget(self._editor)
         self.setLayout(v)
 
-    def set_ins_id(self, ins_id):
-        self._ins_id = ins_id
-        self._editor.set_ins_id(ins_id)
+    def set_au_id(self, au_id):
+        self._au_id = au_id
+        self._editor.set_au_id(au_id)
 
     def set_proc_id(self, proc_id):
         self._proc_id = proc_id
         self._editor.set_proc_id(proc_id)
 
     def set_ui_model(self, ui_model):
-        assert self._ins_id != None
+        assert self._au_id != None
         assert self._proc_id != None
         self._ui_model = ui_model
         self._editor.set_ui_model(ui_model)
@@ -59,16 +59,16 @@ class ProcWindow(QWidget):
 
     def _update_title(self):
         module = self._ui_model.get_module()
-        instrument = module.get_instrument(self._ins_id)
-        proc = instrument.get_processor(self._proc_id)
+        au = module.get_audio_unit(self._au_id)
+        proc = au.get_processor(self._proc_id)
 
         parts = []
-        ins_name = instrument.get_name()
+        au_name = au.get_name()
         proc_name = proc.get_name()
         if proc_name:
             parts.append(proc_name)
-        if ins_name:
-            parts.append('[{}]'.format(ins_name))
+        if au_name:
+            parts.append('[{}]'.format(au_name))
 
         if parts:
             title = u'{} – Kunquat Tracker'.format(u' '.join(parts))
@@ -79,7 +79,7 @@ class ProcWindow(QWidget):
     def closeEvent(self, event):
         event.ignore()
         visibility_manager = self._ui_model.get_visibility_manager()
-        visibility_manager.hide_processor(self._ins_id, self._proc_id)
+        visibility_manager.hide_processor(self._au_id, self._proc_id)
 
     def sizeHint(self):
         return QSize(1024, 768)

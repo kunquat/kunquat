@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2015
 #
 # This file is part of Kunquat.
 #
@@ -22,7 +22,7 @@ class KqtiFile():
         self._contents = None
 
     def get_read_steps(self):
-        ins_prefix = 'kqti00'
+        au_prefix = 'kqti00'
         self._contents = {}
 
         tfile = tarfile.open(self._path, format=tarfile.USTAR_FORMAT)
@@ -31,7 +31,7 @@ class KqtiFile():
             yield
             path = entry.name
             path_components = path.split('/')
-            if path_components[0] != ins_prefix:
+            if path_components[0] != au_prefix:
                 raise NotImplementedError # TODO: invalid path
             if entry.isfile():
                 stripped_path = '/'.join(path_components[1:])

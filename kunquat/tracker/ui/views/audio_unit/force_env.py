@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2015
 #
 # This file is part of Kunquat.
 #
@@ -39,41 +39,41 @@ class ForceEnvelope(TimeEnvelope):
         return envelope
 
     def _get_update_signal_type(self):
-        return ''.join(('signal_force_env_', self._ins_id))
+        return ''.join(('signal_force_env_', self._au_id))
 
     def _get_enabled(self):
-        return self._get_instrument().get_force_envelope_enabled()
+        return self._get_audio_unit().get_force_envelope_enabled()
 
     def _set_enabled(self, enabled):
-        self._get_instrument().set_force_envelope_enabled(enabled)
+        self._get_audio_unit().set_force_envelope_enabled(enabled)
 
     def _get_loop_enabled(self):
-        return self._get_instrument().get_force_envelope_loop_enabled()
+        return self._get_audio_unit().get_force_envelope_loop_enabled()
 
     def _set_loop_enabled(self, enabled):
-        self._get_instrument().set_force_envelope_loop_enabled(enabled)
+        self._get_audio_unit().set_force_envelope_loop_enabled(enabled)
 
     def _get_scale_amount(self):
-        return self._get_instrument().get_force_envelope_scale_amount()
+        return self._get_audio_unit().get_force_envelope_scale_amount()
 
     def _set_scale_amount(self, value):
-        self._get_instrument().set_force_envelope_scale_amount(value)
+        self._get_audio_unit().set_force_envelope_scale_amount(value)
 
     def _get_scale_center(self):
-        return self._get_instrument().get_force_envelope_scale_center()
+        return self._get_audio_unit().get_force_envelope_scale_center()
 
     def _set_scale_center(self, value):
-        self._get_instrument().set_force_envelope_scale_center(value)
+        self._get_audio_unit().set_force_envelope_scale_center(value)
 
     def _get_envelope_data(self):
-        return self._get_instrument().get_force_envelope()
+        return self._get_audio_unit().get_force_envelope()
 
     def _set_envelope_data(self, envelope):
-        self._get_instrument().set_force_envelope(envelope)
+        self._get_audio_unit().set_force_envelope(envelope)
 
-    def _get_instrument(self):
+    def _get_audio_unit(self):
         module = self._ui_model.get_module()
-        instrument = module.get_instrument(self._ins_id)
-        return instrument
+        au = module.get_audio_unit(self._au_id)
+        return au
 
 

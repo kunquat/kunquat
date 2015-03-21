@@ -19,7 +19,7 @@ class Name(QWidget):
 
     def __init__(self):
         QWidget.__init__(self)
-        self._ins_id = None
+        self._au_id = None
         self._proc_id = None
         self._ui_model = None
         self._updater = None
@@ -30,8 +30,8 @@ class Name(QWidget):
         h.addWidget(self._edit)
         self.setLayout(h)
 
-    def set_ins_id(self, ins_id):
-        self._ins_id = ins_id
+    def set_au_id(self, au_id):
+        self._au_id = au_id
 
     def set_proc_id(self, proc_id):
         self._proc_id = proc_id
@@ -53,16 +53,16 @@ class Name(QWidget):
     def _update_name(self):
         old_block = self._edit.blockSignals(True)
         module = self._ui_model.get_module()
-        instrument = module.get_instrument(self._ins_id)
-        proc = instrument.get_processor(self._proc_id)
+        au = module.get_audio_unit(self._au_id)
+        proc = au.get_processor(self._proc_id)
         self._edit.setText(proc.get_name() or '')
         self._edit.blockSignals(old_block)
 
     def _text_edited(self, text):
         text = unicode(text)
         module = self._ui_model.get_module()
-        instrument = module.get_instrument(self._ins_id)
-        proc = instrument.get_processor(self._proc_id)
+        au = module.get_audio_unit(self._au_id)
+        proc = au.get_processor(self._proc_id)
         proc.set_name(text)
         self._updater.signal_update(set(['signal_controls']))
 

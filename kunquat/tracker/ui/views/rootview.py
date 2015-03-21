@@ -22,7 +22,7 @@ from aboutwindow import AboutWindow
 from eventlist import EventList
 from connectionswindow import ConnectionsWindow
 from orderlistwindow import OrderlistWindow
-from instrumentwindow import InstrumentWindow
+from auwindow import AuWindow
 from procwindow import ProcWindow
 
 
@@ -38,7 +38,7 @@ class RootView():
         self._event_log = None
         self._connections = None
         self._orderlist = None
-        self._instrument_windows = {}
+        self._au_windows = {}
         self._proc_windows = {}
         self._module = None
 
@@ -99,24 +99,24 @@ class RootView():
                 self._orderlist.set_ui_model(self._ui_model)
                 if is_show_allowed:
                     self._orderlist.show()
-            elif type(ui) == tuple and ui[0] == UI_INSTRUMENT:
-                ins_id = ui[1]
-                ins_window = InstrumentWindow()
-                ins_window.set_ins_id(ins_id)
-                ins_window.set_ui_model(self._ui_model)
-                self._instrument_windows[ins_id] = ins_window
+            elif type(ui) == tuple and ui[0] == UI_AUDIO_UNIT:
+                au_id = ui[1]
+                au_window = AuWindow()
+                au_window.set_au_id(au_id)
+                au_window.set_ui_model(self._ui_model)
+                self._au_windows[au_id] = au_window
                 if is_show_allowed:
-                    self._instrument_windows[ins_id].show()
+                    self._au_windows[au_id].show()
             elif type(ui) == tuple and ui[0] == UI_PROCESSOR:
-                ins_id = ui[1]
+                au_id = ui[1]
                 proc_id = ui[2]
                 proc_window = ProcWindow()
-                proc_window.set_ins_id(ins_id)
+                proc_window.set_au_id(au_id)
                 proc_window.set_proc_id(proc_id)
                 proc_window.set_ui_model(self._ui_model)
-                self._proc_windows[(ins_id, proc_id)] = proc_window
+                self._proc_windows[(au_id, proc_id)] = proc_window
                 if is_show_allowed:
-                    self._proc_windows[(ins_id, proc_id)].show()
+                    self._proc_windows[(au_id, proc_id)].show()
             else:
                 raise ValueError('Unsupported UI type: {}'.format(ui))
 
@@ -140,15 +140,15 @@ class RootView():
                 self._orderlist.unregister_updaters()
                 self._orderlist.deleteLater()
                 self._orderlist = None
-            elif type(ui) == tuple and ui[0] == UI_INSTRUMENT:
-                ins_id = ui[1]
-                ins_window = self._instrument_windows.pop(ins_id)
-                ins_window.unregister_updaters()
-                ins_window.deleteLater()
+            elif type(ui) == tuple and ui[0] == UI_AUDIO_UNIT:
+                au_id = ui[1]
+                au_window = self._au_windows.pop(au_id)
+                au_window.unregister_updaters()
+                au_window.deleteLater()
             elif type(ui) == tuple and ui[0] == UI_PROCESSOR:
-                ins_id = ui[1]
+                au_id = ui[1]
                 proc_id = ui[2]
-                proc_window = self._proc_windows.pop((ins_id, proc_id))
+                proc_window = self._proc_windows.pop((au_id, proc_id))
                 proc_window.unregister_updaters()
                 proc_window.deleteLater()
             else:

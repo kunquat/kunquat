@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2015
 #
 # This file is part of Kunquat.
 #
@@ -20,7 +20,7 @@ class Name(QWidget):
     def __init__(self):
         QWidget.__init__(self)
         self._ui_model = None
-        self._ins_id = None
+        self._au_id = None
         self._updater = None
         self._edit = QLineEdit()
 
@@ -29,8 +29,8 @@ class Name(QWidget):
         h.addWidget(self._edit)
         self.setLayout(h)
 
-    def set_ins_id(self, ins_id):
-        self._ins_id = ins_id
+    def set_au_id(self, au_id):
+        self._au_id = au_id
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -49,15 +49,15 @@ class Name(QWidget):
     def _update_name(self):
         old_block = self._edit.blockSignals(True)
         module = self._ui_model.get_module()
-        instrument = module.get_instrument(self._ins_id)
-        self._edit.setText(instrument.get_name() or '')
+        au = module.get_audio_unit(self._au_id)
+        self._edit.setText(au.get_name() or '')
         self._edit.blockSignals(old_block)
 
     def _text_edited(self, text):
         text = unicode(text)
         module = self._ui_model.get_module()
-        instrument = module.get_instrument(self._ins_id)
-        instrument.set_name(text)
+        au = module.get_audio_unit(self._au_id)
+        au.set_name(text)
         self._updater.signal_update(set(['signal_controls']))
 
 

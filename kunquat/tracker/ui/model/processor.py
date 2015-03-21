@@ -17,10 +17,10 @@ from procparamsadd import ProcParamsAdd
 
 class Processor():
 
-    def __init__(self, ins_id, proc_id):
-        assert ins_id
+    def __init__(self, au_id, proc_id):
+        assert au_id
         assert proc_id
-        self._ins_id = ins_id
+        self._au_id = au_id
         self._proc_id = proc_id
         self._store = None
         self._controller = None
@@ -30,7 +30,7 @@ class Processor():
         self._controller = controller
 
     def _get_key(self, subkey):
-        return '{}/{}/{}'.format(self._ins_id, self._proc_id, subkey)
+        return '{}/{}/{}'.format(self._au_id, self._proc_id, subkey)
 
     def get_existence(self):
         key = self._get_key('p_manifest.json')
@@ -71,6 +71,6 @@ class Processor():
     def get_type_params(self):
         types = { 'add': ProcParamsAdd }
         cons = types[self.get_type()]
-        return cons(self._ins_id, self._proc_id, self._controller)
+        return cons(self._au_id, self._proc_id, self._controller)
 
 

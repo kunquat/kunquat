@@ -49,7 +49,7 @@ DEFAULT_CONFIG = {
             'padding'            : 4,
             'button_width'       : 50,
             'button_padding'     : 2,
-            'instrument': {
+            'audio_unit': {
                 'bg_colour'       : QColor(0x33, 0x33, 0x55),
                 'fg_colour'       : QColor(0xdd, 0xee, 0xff),
                 'button_bg_colour': QColor(0x11, 0x11, 0x33),
@@ -142,8 +142,8 @@ class Connections(QAbstractScrollArea):
         self.horizontalScrollBar().setSingleStep(8)
         self.verticalScrollBar().setSingleStep(8)
 
-    def set_ins_id(self, ins_id):
-        self.viewport().set_ins_id(ins_id)
+    def set_au_id(self, au_id):
+        self.viewport().set_au_id(au_id)
 
     def set_ui_model(self, ui_model):
         self.viewport().set_ui_model(ui_model)
@@ -239,7 +239,7 @@ class ConnectionsView(QWidget):
     def __init__(self, config={}):
         QWidget.__init__(self)
         self._ui_model = None
-        self._ins_id = None
+        self._au_id = None
         self._updater = None
 
         self._state = STATE_IDLE
@@ -280,9 +280,9 @@ class ConnectionsView(QWidget):
         self.setFocusPolicy(Qt.ClickFocus)
         self.setMouseTracking(True)
 
-    def set_ins_id(self, ins_id):
-        assert self._ui_model == None, "Cannot set instrument ID after UI model"
-        self._ins_id = ins_id
+    def set_au_id(self, au_id):
+        assert self._ui_model == None, "Cannot set audio unit ID after UI model"
+        self._au_id = au_id
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -312,16 +312,16 @@ class ConnectionsView(QWidget):
     def _get_connections(self):
         module = self._ui_model.get_module()
 
-        if self._ins_id != None:
-            instrument = module.get_instrument(self._ins_id)
-            return instrument.get_connections()
+        if self._au_id != None:
+            au = module.get_audio_unit(self._au_id)
+            return au.get_connections()
 
         return module.get_connections()
 
     def _get_signal(self, base):
         parts = [base]
-        if self._ins_id != None:
-            parts.append(self._ins_id)
+        if self._au_id != None:
+            parts.append(self._au_id)
         return '_'.join(parts)
 
     def _change_layout_entry(self, key, value):
@@ -370,11 +370,11 @@ class ConnectionsView(QWidget):
 
     def _get_device(self, dev_id):
         container = self._ui_model.get_module()
-        if self._ins_id != None:
-            container = container.get_instrument(self._ins_id)
+        if self._au_id != None:
+            container = container.get_audio_unit(self._au_id)
 
         if dev_id.startswith('au'):
-            return container.get_instrument(dev_id)
+            return container.get_audio_unit(dev_id)
         elif dev_id.startswith('proc'):
             return container.get_processor(dev_id)
 
@@ -402,25 +402,25 @@ class ConnectionsView(QWidget):
         visible_set = set(['master'])
 
         module = self._ui_model.get_module()
-        if self._ins_id != None:
+        if self._au_id != None:
             visible_set |= set(['Iin'])
 
-            instrument = module.get_instrument(self._ins_id)
-            proc_ids = instrument.get_processor_ids()
+            au = module.get_audio_unit(self._au_id)
+            proc_ids = au.get_processor_ids()
             existent_proc_ids = [proc_id for proc_id in proc_ids
-                    if instrument.get_processor(proc_id).get_existence()]
+                    if au.get_processor(proc_id).get_existence()]
             visible_set |= set(existent_proc_ids)
 
-            eff_ids = instrument.get_au_ids()
+            eff_ids = au.get_au_ids()
             existent_eff_ids = [eff_id for eff_id in eff_ids
-                    if instrument.get_au(eff_id).get_existence()]
+                    if au.get_au(eff_id).get_existence()]
             visible_set |= set(existent_eff_ids)
 
         else:
-            ins_ids = module.get_instrument_ids()
-            existent_ins_ids = [ins_id for ins_id in ins_ids
-                    if module.get_instrument(ins_id).get_existence()]
-            visible_set |= set(existent_ins_ids)
+            au_ids = module.get_au_ids()
+            existent_au_ids = [au_id for au_id in au_ids
+                    if module.get_audio_unit(au_id).get_existence()]
+            visible_set |= set(existent_au_ids)
 
         new_dev_ids = []
 
@@ -479,7 +479,7 @@ class ConnectionsView(QWidget):
         layout = connections.get_layout()
 
         # Make devices
-        mid_offset = -200 if (self._ins_id == None) else 0
+        mid_offset = -200 if (self._au_id == None) else 0
         default_pos_cfg = {
                 'au':       { 'index': 0, 'offset_x': mid_offset,   'offset_y': 120 },
                 'proc':     { 'index': 0, 'offset_x': mid_offset,   'offset_y': 120 },
@@ -906,9 +906,9 @@ class ConnectionsView(QWidget):
         visibility_manager = self._ui_model.get_visibility_manager()
         dev_id = button_info['dev_id']
         if dev_id.startswith('au'):
-            visibility_manager.show_instrument(dev_id)
+            visibility_manager.show_audio_unit(dev_id)
         elif dev_id.startswith('proc'):
-            visibility_manager.show_processor(self._ins_id, dev_id)
+            visibility_manager.show_processor(self._au_id, dev_id)
 
     def leaveEvent(self, event):
         if self._state == STATE_EDGE_MENU:
@@ -936,7 +936,7 @@ class Device():
         if dev_id in ('master', 'Iin'):
             self._type_config = self._config['master']
         elif dev_id.startswith('au'):
-            self._type_config = self._config['instrument']
+            self._type_config = self._config['audio_unit']
         elif dev_id.startswith('proc'):
             self._type_config = self._config['processor']
         else:
