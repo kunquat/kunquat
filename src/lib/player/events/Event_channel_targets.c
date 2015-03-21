@@ -84,19 +84,3 @@ bool Event_channel_set_au_effects_process(
 }
 
 
-bool Event_channel_set_effect_process(
-        Channel* ch,
-        Device_states* dstates,
-        const Value* value)
-{
-    assert(ch != NULL);
-    assert(dstates != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_INT);
-
-    ch->effect = value->value.int_type;
-
-    return true;
-}
-
-
