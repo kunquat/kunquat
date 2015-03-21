@@ -39,7 +39,7 @@ bool Event_channel_arpeggio_on_process(
         Voice* voice = ch->fg[i];
         Voice_state* vs = voice->state;
         //pitch_t orig_pitch = -1;
-        if (vs->arpeggio || voice->proc->au_params->pitch_locks[i].enabled)
+        if (vs->arpeggio)
             continue;
 
 #if 0

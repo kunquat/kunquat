@@ -25,14 +25,6 @@
 #include <string/Streader.h>
 
 
-typedef struct Pitch_lock
-{
-    bool enabled;
-    double cents;
-    double freq;
-} Pitch_lock;
-
-
 typedef struct Au_params
 {
     uint32_t device_id;
@@ -40,13 +32,6 @@ typedef struct Au_params
     double global_force;           ///< Global force.
     double force;                  ///< Default force.
     double force_variation;        ///< Force variation.
-
-    Pitch_lock pitch_locks[KQT_PROCESSORS_MAX];
-#if 0
-    bool pitch_lock_enabled;
-    double pitch_lock_cents;
-    double pitch_lock_freq;
-#endif
 
     bool force_volume_env_enabled; ///< Force-volume envelope toggle.
     Envelope* force_volume_env;    ///< Force-volume envelope.

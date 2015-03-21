@@ -74,10 +74,6 @@ bool Event_channel_note_on_process(
         Voice* voice = ch->fg[i];
         Voice_state* vs = voice->state;
 
-        if (voice->proc->au_params->pitch_locks[i].enabled)
-        {
-            vs->pitch = voice->proc->au_params->pitch_locks[i].freq;
-        }
 #if 0
         else if (voice->proc->au_params->scale == NULL ||
                  *voice->proc->au_params->scale == NULL ||

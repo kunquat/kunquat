@@ -54,18 +54,6 @@ Au_params* Au_params_init(Au_params* aup, uint32_t device_id)
     aup->force = 0;
     aup->force_variation = 0;
 
-    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
-    {
-        aup->pitch_locks[i].enabled = false;
-        aup->pitch_locks[i].cents = 0;
-        aup->pitch_locks[i].freq = exp2(0 / 1200.0) * 440;
-    }
-#if 0
-    aup->pitch_lock_enabled = false;
-    aup->pitch_lock_cents = 0;
-    aup->pitch_lock_freq = exp2(aup->pitch_lock_cents / 1200.0) * 440;
-#endif
-
     new_env_or_fail(aup->force_volume_env, 8,  0, 1, 0,  0, 1, 0);
     aup->force_volume_env_enabled = false;
     Envelope_set_node(aup->force_volume_env, 0, 0);

@@ -40,8 +40,6 @@ bool Event_channel_slide_pitch_process(
     {
         Event_check_voice(ch, i);
         Voice* voice = ch->fg[i];
-        if (voice->proc->au_params->pitch_locks[i].enabled)
-            continue;
 
         Voice_state* vs = voice->state;
         pitch_t pitch = -1;
@@ -113,8 +111,6 @@ bool Event_channel_vibrato_speed_process(
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         Event_check_voice(ch, i);
-        if (ch->fg[i]->proc->au_params->pitch_locks[i].enabled)
-            continue;
 
         Voice_state* vs = ch->fg[i]->state;
         LFO_set_speed(&vs->vibrato, value->value.float_type);
@@ -145,8 +141,6 @@ bool Event_channel_vibrato_depth_process(
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         Event_check_voice(ch, i);
-        if (ch->fg[i]->proc->au_params->pitch_locks[i].enabled)
-            continue;
 
         Voice_state* vs = ch->fg[i]->state;
         if (ch->vibrato_speed > 0)

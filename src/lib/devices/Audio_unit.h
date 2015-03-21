@@ -84,18 +84,6 @@ bool Audio_unit_parse_header(Audio_unit* au, Streader* sr);
 
 
 /**
- * Parse an Audio unit-level value from a textual description.
- *
- * \param au       The Audio unit -- must not be \c NULL.
- * \param subkey   The subkey -- must not be \c NULL.
- * \param sr       The Streader of the JSON data -- must not be \c NULL.
- *
- * \return   \c true if successful, otherwise \c false.
- */
-bool Audio_unit_parse_value(Audio_unit* au, const char* subkey, Streader* sr);
-
-
-/**
  * Get the Audio unit parameters of the Audio unit.
  *
  * \param au   The Audio unit -- must not be \c NULL.

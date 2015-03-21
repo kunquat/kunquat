@@ -184,12 +184,6 @@ static bool read_au_field(Streader* sr, const char* key, void* userdata)
         Streader_read_float(sr, &p->force_variation);
     else if (string_eq(key, "global_force"))
         Streader_read_float(sr, &p->global_force);
-#if 0
-    else if (string_eq(key, "pitch_lock"))
-        str = read_bool(str, &pitch_lock_enabled, state);
-    else if (string_eq(key, "pitch_lock_cents"))
-        str = read_double(str, &pitch_lock_cents, state);
-#endif
     else if (string_eq(key, "scale"))
     {
         if (!Streader_read_int(sr, &p->scale_index))
@@ -225,10 +219,6 @@ bool Audio_unit_parse_header(Audio_unit* au, Streader* sr)
         .global_force = AU_DEFAULT_GLOBAL_FORCE,
         .default_force = AU_DEFAULT_FORCE,
         .force_variation = AU_DEFAULT_FORCE_VAR,
-#if 0
-        bool pitch_lock_enabled = false;
-        double pitch_lock_cents = 0;
-#endif
         .scale_index = AU_DEFAULT_SCALE_INDEX,
     };
 
@@ -238,43 +228,6 @@ bool Audio_unit_parse_header(Audio_unit* au, Streader* sr)
     au->params.force = p->default_force;
     au->params.force_variation = p->force_variation;
     au->params.global_force = exp2(p->global_force / 6);
-#if 0
-    au->params.pitch_lock_enabled = pitch_lock_enabled;
-    au->params.pitch_lock_cents = pitch_lock_cents;
-    au->params.pitch_lock_freq = exp2(au->params.pitch_lock_cents / 1200.0) * 440;
-#endif
-
-    return true;
-}
-
-
-bool Audio_unit_parse_value(Audio_unit* au, const char* subkey, Streader* sr)
-{
-    assert(au != NULL);
-    assert(subkey != NULL);
-    assert(sr != NULL);
-
-    if (Streader_is_error_set(sr))
-        return false;
-
-    int proc_index = -1;
-    if ((proc_index = string_extract_index(subkey,
-                             "p_pitch_lock_enabled_", 2, ".json")) >= 0 &&
-            proc_index < KQT_PROCESSORS_MAX)
-    {
-        if (!Streader_read_bool(sr, &au->params.pitch_locks[proc_index].enabled))
-            return false;
-    }
-    else if ((proc_index = string_extract_index(subkey,
-                                  "p_pitch_lock_cents_", 2, ".json")) >= 0 &&
-            proc_index < KQT_PROCESSORS_MAX)
-    {
-        if (!Streader_read_float(sr, &au->params.pitch_locks[proc_index].cents))
-            return false;
-
-        au->params.pitch_locks[proc_index].freq =
-                exp2(au->params.pitch_locks[proc_index].cents / 1200.0) * 440;
-    }
 
     return true;
 }
