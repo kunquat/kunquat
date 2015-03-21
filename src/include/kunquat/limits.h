@@ -144,24 +144,6 @@ extern "C" {
 
 
 /**
- * Maximum number of Effects in the global Connections.
- */
-#define KQT_EFFECTS_MAX 256
-
-
-/**
- * Maximum number of Effects in a Kunquat instrument.
- */
-#define KQT_INST_EFFECTS_MAX 16
-
-
-/**
- * Maximum number of DSPs inside an Effect.
- */
-#define KQT_DSPS_MAX 64
-
-
-/**
  * Maximum number of input/output ports in a Device.
  */
 #define KQT_DEVICE_PORTS_MAX KQT_PROCESSORS_MAX
