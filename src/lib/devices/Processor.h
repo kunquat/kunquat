@@ -112,6 +112,17 @@ void Processor_clear_history(const Processor* proc, Proc_state* proc_state);
 
 
 /**
+ * Get Voice state processing support information.
+ *
+ * \param proc   The Processor -- must not be \c NULL.
+ *
+ * \return   \c true if \a proc supports Voice state processing, otherwise
+ *           \c false.
+ */
+bool Processor_get_vstate_support(const Processor* proc);
+
+
+/**
  * Process a Voice state that belongs to the Processor.
  *
  * \param proc         The Processor -- must not be \c NULL.

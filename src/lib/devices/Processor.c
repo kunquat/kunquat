@@ -162,6 +162,13 @@ static void adjust_relative_lengths(
 }
 
 
+bool Processor_get_vstate_support(const Processor* proc)
+{
+    assert(proc != NULL);
+    return (proc->process_vstate != NULL);
+}
+
+
 void Processor_process_vstate(
         const Processor* proc,
         Device_states* dstates,

@@ -61,7 +61,9 @@ bool Event_channel_note_on_process(
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         const Processor* proc = Audio_unit_get_proc(au, i);
-        if (proc == NULL || !Device_is_existent((const Device*)proc))
+        if (proc == NULL ||
+                !Device_is_existent((const Device*)proc) ||
+                !Processor_get_vstate_support(proc))
             continue;
 
         const Proc_state* proc_state = (Proc_state*)Device_states_get_state(
@@ -139,7 +141,9 @@ bool Event_channel_hit_process(
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         const Processor* proc = Audio_unit_get_proc(au, i);
-        if (proc == NULL || !Device_is_existent((const Device*)proc))
+        if (proc == NULL ||
+                !Device_is_existent((const Device*)proc) ||
+                !Processor_get_vstate_support(proc))
             continue;
 
         const Proc_state* proc_state = (Proc_state*)Device_states_get_state(
