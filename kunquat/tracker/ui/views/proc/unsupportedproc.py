@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2015
 #
 # This file is part of Kunquat.
 #
@@ -15,7 +15,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 
-class UnsupportedGen(QWidget):
+class UnsupportedProc(QWidget):
 
     def __init__(self):
         QWidget.__init__(self)
@@ -24,7 +24,7 @@ class UnsupportedGen(QWidget):
     def set_ins_id(self, ins_id):
         pass
 
-    def set_gen_id(self, gen_id):
+    def set_proc_id(self, proc_id):
         pass
 
     def set_ui_model(self, ui_model):

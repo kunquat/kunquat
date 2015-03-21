@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2015
 #
 # This file is part of Kunquat.
 #
@@ -14,15 +14,15 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from generator.editor import Editor
+from proc.editor import Editor
 
 
-class GeneratorWindow(QWidget):
+class ProcWindow(QWidget):
 
     def __init__(self):
         QWidget.__init__(self)
         self._ins_id = None
-        self._gen_id = None
+        self._proc_id = None
         self._ui_model = None
         self._updater = None
         self._editor = Editor()
@@ -36,13 +36,13 @@ class GeneratorWindow(QWidget):
         self._ins_id = ins_id
         self._editor.set_ins_id(ins_id)
 
-    def set_gen_id(self, gen_id):
-        self._gen_id = gen_id
-        self._editor.set_gen_id(gen_id)
+    def set_proc_id(self, proc_id):
+        self._proc_id = proc_id
+        self._editor.set_proc_id(proc_id)
 
     def set_ui_model(self, ui_model):
         assert self._ins_id != None
-        assert self._gen_id != None
+        assert self._proc_id != None
         self._ui_model = ui_model
         self._editor.set_ui_model(ui_model)
         self._updater = ui_model.get_updater()
@@ -60,13 +60,13 @@ class GeneratorWindow(QWidget):
     def _update_title(self):
         module = self._ui_model.get_module()
         instrument = module.get_instrument(self._ins_id)
-        generator = instrument.get_generator(self._gen_id)
+        proc = instrument.get_processor(self._proc_id)
 
         parts = []
         ins_name = instrument.get_name()
-        gen_name = generator.get_name()
-        if gen_name:
-            parts.append(gen_name)
+        proc_name = proc.get_name()
+        if proc_name:
+            parts.append(proc_name)
         if ins_name:
             parts.append('[{}]'.format(ins_name))
 
@@ -79,7 +79,7 @@ class GeneratorWindow(QWidget):
     def closeEvent(self, event):
         event.ignore()
         visibility_manager = self._ui_model.get_visibility_manager()
-        visibility_manager.hide_generator(self._ins_id, self._gen_id)
+        visibility_manager.hide_processor(self._ins_id, self._proc_id)
 
     def sizeHint(self):
         return QSize(1024, 768)

@@ -55,7 +55,7 @@ DEFAULT_CONFIG = {
                 'button_bg_colour': QColor(0x11, 0x11, 0x33),
                 'button_focused_bg_colour': QColor(0, 0, 0x77),
             },
-            'generator': {
+            'processor': {
                 'bg_colour'       : QColor(0x22, 0x55, 0x55),
                 'fg_colour'       : QColor(0xcc, 0xff, 0xff),
                 'button_bg_colour': QColor(0x11, 0x33, 0x33),
@@ -376,7 +376,7 @@ class ConnectionsView(QWidget):
         if dev_id.startswith('au'):
             return container.get_instrument(dev_id)
         elif dev_id.startswith('proc'):
-            return container.get_generator(dev_id)
+            return container.get_processor(dev_id)
 
         return container
 
@@ -406,10 +406,10 @@ class ConnectionsView(QWidget):
             visible_set |= set(['Iin'])
 
             instrument = module.get_instrument(self._ins_id)
-            gen_ids = instrument.get_generator_ids()
-            existent_gen_ids = [gen_id for gen_id in gen_ids
-                    if instrument.get_generator(gen_id).get_existence()]
-            visible_set |= set(existent_gen_ids)
+            proc_ids = instrument.get_processor_ids()
+            existent_proc_ids = [proc_id for proc_id in proc_ids
+                    if instrument.get_processor(proc_id).get_existence()]
+            visible_set |= set(existent_proc_ids)
 
             eff_ids = instrument.get_au_ids()
             existent_eff_ids = [eff_id for eff_id in eff_ids
@@ -908,7 +908,7 @@ class ConnectionsView(QWidget):
         if dev_id.startswith('au'):
             visibility_manager.show_instrument(dev_id)
         elif dev_id.startswith('proc'):
-            visibility_manager.show_generator(self._ins_id, dev_id)
+            visibility_manager.show_processor(self._ins_id, dev_id)
 
     def leaveEvent(self, event):
         if self._state == STATE_EDGE_MENU:
@@ -938,7 +938,7 @@ class Device():
         elif dev_id.startswith('au'):
             self._type_config = self._config['instrument']
         elif dev_id.startswith('proc'):
-            self._type_config = self._config['generator']
+            self._type_config = self._config['processor']
         else:
             raise ValueError('Unexpected type of device ID: {}'.format(dev_id))
 

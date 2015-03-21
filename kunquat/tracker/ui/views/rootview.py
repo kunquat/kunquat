@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2014
+# Authors: Tomi Jylhä-Ollila, Finland 2014-2015
 #          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
@@ -23,7 +23,7 @@ from eventlist import EventList
 from connectionswindow import ConnectionsWindow
 from orderlistwindow import OrderlistWindow
 from instrumentwindow import InstrumentWindow
-from generatorwindow import GeneratorWindow
+from procwindow import ProcWindow
 
 
 class RootView():
@@ -39,7 +39,7 @@ class RootView():
         self._connections = None
         self._orderlist = None
         self._instrument_windows = {}
-        self._generator_windows = {}
+        self._proc_windows = {}
         self._module = None
 
     def set_ui_model(self, ui_model):
@@ -107,16 +107,16 @@ class RootView():
                 self._instrument_windows[ins_id] = ins_window
                 if is_show_allowed:
                     self._instrument_windows[ins_id].show()
-            elif type(ui) == tuple and ui[0] == UI_GENERATOR:
+            elif type(ui) == tuple and ui[0] == UI_PROCESSOR:
                 ins_id = ui[1]
-                gen_id = ui[2]
-                gen_window = GeneratorWindow()
-                gen_window.set_ins_id(ins_id)
-                gen_window.set_gen_id(gen_id)
-                gen_window.set_ui_model(self._ui_model)
-                self._generator_windows[(ins_id, gen_id)] = gen_window
+                proc_id = ui[2]
+                proc_window = ProcWindow()
+                proc_window.set_ins_id(ins_id)
+                proc_window.set_proc_id(proc_id)
+                proc_window.set_ui_model(self._ui_model)
+                self._proc_windows[(ins_id, proc_id)] = proc_window
                 if is_show_allowed:
-                    self._generator_windows[(ins_id, gen_id)].show()
+                    self._proc_windows[(ins_id, proc_id)].show()
             else:
                 raise ValueError('Unsupported UI type: {}'.format(ui))
 
@@ -145,12 +145,12 @@ class RootView():
                 ins_window = self._instrument_windows.pop(ins_id)
                 ins_window.unregister_updaters()
                 ins_window.deleteLater()
-            elif type(ui) == tuple and ui[0] == UI_GENERATOR:
+            elif type(ui) == tuple and ui[0] == UI_PROCESSOR:
                 ins_id = ui[1]
-                gen_id = ui[2]
-                gen_window = self._generator_windows.pop((ins_id, gen_id))
-                gen_window.unregister_updaters()
-                gen_window.deleteLater()
+                proc_id = ui[2]
+                proc_window = self._proc_windows.pop((ins_id, proc_id))
+                proc_window.unregister_updaters()
+                proc_window.deleteLater()
             else:
                 raise ValueError('Unsupported UI type: {}'.format(ui))
 

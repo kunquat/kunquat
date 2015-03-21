@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2015
 #
 # This file is part of Kunquat.
 #
@@ -20,7 +20,7 @@ class Name(QWidget):
     def __init__(self):
         QWidget.__init__(self)
         self._ins_id = None
-        self._gen_id = None
+        self._proc_id = None
         self._ui_model = None
         self._updater = None
         self._edit = QLineEdit()
@@ -33,8 +33,8 @@ class Name(QWidget):
     def set_ins_id(self, ins_id):
         self._ins_id = ins_id
 
-    def set_gen_id(self, gen_id):
-        self._gen_id = gen_id
+    def set_proc_id(self, proc_id):
+        self._proc_id = proc_id
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -54,16 +54,16 @@ class Name(QWidget):
         old_block = self._edit.blockSignals(True)
         module = self._ui_model.get_module()
         instrument = module.get_instrument(self._ins_id)
-        generator = instrument.get_generator(self._gen_id)
-        self._edit.setText(generator.get_name() or '')
+        proc = instrument.get_processor(self._proc_id)
+        self._edit.setText(proc.get_name() or '')
         self._edit.blockSignals(old_block)
 
     def _text_edited(self, text):
         text = unicode(text)
         module = self._ui_model.get_module()
         instrument = module.get_instrument(self._ins_id)
-        generator = instrument.get_generator(self._gen_id)
-        generator.set_name(text)
+        proc = instrument.get_processor(self._proc_id)
+        proc.set_name(text)
         self._updater.signal_update(set(['signal_controls']))
 
 

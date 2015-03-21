@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2015
 #
 # This file is part of Kunquat.
 #
@@ -17,12 +17,12 @@ from PyQt4.QtGui import *
 from kunquat.tracker.ui.views.instrument.insnumslider import InsNumSlider
 
 
-class GenNumSlider(InsNumSlider):
+class ProcNumSlider(InsNumSlider):
 
     def __init__(self, decimal_count, min_val, max_val, title='', width_txt=''):
         InsNumSlider.__init__(self, decimal_count, min_val, max_val, title, width_txt)
 
-    def set_gen_id(self, gen_id):
-        self._gen_id = gen_id
+    def set_proc_id(self, proc_id):
+        self._proc_id = proc_id
 
 

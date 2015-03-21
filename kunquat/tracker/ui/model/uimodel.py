@@ -38,20 +38,20 @@ class UiModel():
     >>> module.instruments()
     [0]
     >>> instrument = module.get_instrument(0)
-    >>> instrument.generators()
+    >>> instrument.processors()
     []
-    >>> instrument.create_generator()
-    >>> instrument.generators()
+    >>> instrument.create_processor()
+    >>> instrument.processors()
     [0]
-    >>> generator = instrument.get_generator(0)
-    >>> generator.set_type('debug')
+    >>> proc = instrument.get_processor(0)
+    >>> proc.set_type('debug')
     >>> instrument_output = instrument.get_output(0)
-    >>> genrator_output = generator.get_output(0)
+    >>> proc_output = proc.get_output(0)
     >>> instrument.list_connections()
     []
-    >>> instrument.connect(generator_output, instrument_master)
+    >>> instrument.connect(proc_output, instrument_master)
     >>> instrument.list_connections()
-    [(<generator_output>, <instrument_output>)]
+    [(<processor_output>, <instrument_output>)]
     >>> master_output = module.get_output()
     >>> module.connect(instrument_output, master_output)
     >>> module.track_count()

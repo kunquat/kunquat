@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2015
 #
 # This file is part of Kunquat.
 #
@@ -15,15 +15,15 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 from name import Name
-from addgen import AddGen
-from samplegen import SampleGen
-from unsupportedgen import UnsupportedGen
+from addproc import AddProc
+from sampleproc import SampleProc
+from unsupportedproc import UnsupportedProc
 from kunquat.tracker.ui.views.keyboardmapper import KeyboardMapper
 
 
-_gen_classes = {
-    'add': AddGen,
-    'pcm': SampleGen,
+_proc_classes = {
+    'add': AddProc,
+    'pcm': SampleProc,
 }
 
 
@@ -32,12 +32,12 @@ class Editor(QWidget):
     def __init__(self):
         QWidget.__init__(self)
         self._ins_id = None
-        self._gen_id = None
+        self._proc_id = None
         self._ui_model = None
         self._updater = None
         self._control_manager = None
         self._name = Name()
-        self._gen_editor = None
+        self._proc_editor = None
 
         self._keyboard_mapper = KeyboardMapper()
 
@@ -50,13 +50,13 @@ class Editor(QWidget):
         self._ins_id = ins_id
         self._name.set_ins_id(ins_id)
 
-    def set_gen_id(self, gen_id):
-        self._gen_id = gen_id
-        self._name.set_gen_id(gen_id)
+    def set_proc_id(self, proc_id):
+        self._proc_id = proc_id
+        self._name.set_proc_id(proc_id)
 
     def set_ui_model(self, ui_model):
         assert self._ins_id != None
-        assert self._gen_id != None
+        assert self._proc_id != None
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
         self._control_manager = ui_model.get_control_manager()
@@ -66,24 +66,24 @@ class Editor(QWidget):
         self._set_type()
 
     def _set_type(self):
-        assert self._gen_editor == None
+        assert self._proc_editor == None
 
         module = self._ui_model.get_module()
         instrument = module.get_instrument(self._ins_id)
-        generator = instrument.get_generator(self._gen_id)
-        gentype = generator.get_type()
+        proc = instrument.get_processor(self._proc_id)
+        proctype = proc.get_type()
 
-        cons = _gen_classes.get(gentype, UnsupportedGen)
-        self._gen_editor = cons()
-        self._gen_editor.set_ins_id(self._ins_id)
-        self._gen_editor.set_gen_id(self._gen_id)
-        self._gen_editor.set_ui_model(self._ui_model)
-        self.layout().addWidget(self._gen_editor)
+        cons = _proc_classes.get(proctype, UnsupportedProc)
+        self._proc_editor = cons()
+        self._proc_editor.set_ins_id(self._ins_id)
+        self._proc_editor.set_proc_id(self._proc_id)
+        self._proc_editor.set_ui_model(self._ui_model)
+        self.layout().addWidget(self._proc_editor)
 
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
         self._keyboard_mapper.unregister_updaters()
-        self._gen_editor.unregister_updaters()
+        self._proc_editor.unregister_updaters()
         self._name.unregister_updaters()
 
     def _perform_updates(self, signals):
@@ -91,7 +91,7 @@ class Editor(QWidget):
 
     def keyPressEvent(self, event):
         # TODO: This plays the complete instrument,
-        #       change after adding generator jamming support
+        #       change after adding processor jamming support
         module = self._ui_model.get_module()
         control_id = module.get_control_id_by_instrument_id(self._ins_id)
         if not control_id:

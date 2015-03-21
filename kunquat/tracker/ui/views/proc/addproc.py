@@ -14,7 +14,7 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from gennumslider import GenNumSlider
+from procnumslider import ProcNumSlider
 from waveform import Waveform
 from kunquat.tracker.ui.views.envelope import Envelope
 from kunquat.tracker.ui.views.headerline import HeaderLine
@@ -25,17 +25,17 @@ from kunquat.tracker.ui.views.instrument.time_env import TimeEnvelope
 def get_add_params(obj):
     module = obj._ui_model.get_module()
     instrument = module.get_instrument(obj._ins_id)
-    generator = instrument.get_generator(obj._gen_id)
-    add_params = generator.get_type_params()
+    proc = instrument.get_processor(obj._proc_id)
+    add_params = proc.get_type_params()
     return add_params
 
 
-class AddGen(QWidget):
+class AddProc(QWidget):
 
     def __init__(self):
         QWidget.__init__(self)
         self._ins_id = None
-        self._gen_id = None
+        self._proc_id = None
         self._ui_model = None
         self._updater = None
 
@@ -100,15 +100,15 @@ class AddGen(QWidget):
         self._phase_mod_waveform.set_ins_id(ins_id)
         self._phase_mod_tone_editor.set_ins_id(ins_id)
 
-    def set_gen_id(self, gen_id):
-        self._gen_id = gen_id
-        self._base_waveform.set_gen_id(gen_id)
-        self._base_tone_editor.set_gen_id(gen_id)
-        self._phase_mod_volume.set_gen_id(gen_id)
-        self._phase_mod_env.set_gen_id(gen_id)
-        self._phase_force_mod_env.set_gen_id(gen_id)
-        self._phase_mod_waveform.set_gen_id(gen_id)
-        self._phase_mod_tone_editor.set_gen_id(gen_id)
+    def set_proc_id(self, proc_id):
+        self._proc_id = proc_id
+        self._base_waveform.set_proc_id(proc_id)
+        self._base_tone_editor.set_proc_id(proc_id)
+        self._phase_mod_volume.set_proc_id(proc_id)
+        self._phase_mod_env.set_proc_id(proc_id)
+        self._phase_force_mod_env.set_proc_id(proc_id)
+        self._phase_mod_waveform.set_proc_id(proc_id)
+        self._phase_mod_tone_editor.set_proc_id(proc_id)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -121,7 +121,7 @@ class AddGen(QWidget):
         self._phase_mod_tone_editor.set_ui_model(ui_model)
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
-        self._update_gen()
+        self._update_proc()
 
         QObject.connect(
                 self._phase_mod_enabled_toggle,
@@ -139,14 +139,14 @@ class AddGen(QWidget):
         self._base_waveform.unregister_updaters()
 
     def _get_update_signal_type(self):
-        return ''.join(('signal_gen_add_', self._ins_id, self._gen_id))
+        return ''.join(('signal_proc_add_', self._ins_id, self._proc_id))
 
     def _perform_updates(self, signals):
         update_signals = set(['signal_instrument', self._get_update_signal_type()])
         if not signals.isdisjoint(update_signals):
-            self._update_gen()
+            self._update_proc()
 
-    def _update_gen(self):
+    def _update_proc(self):
         add_params = get_add_params(self)
         phase_mod_enabled = add_params.get_phase_mod_enabled()
 
@@ -169,7 +169,7 @@ class WaveformEditor(QWidget):
     def __init__(self, wave_type):
         QWidget.__init__(self)
         self._ins_id = None
-        self._gen_id = None
+        self._proc_id = None
         self._ui_model = None
         self._updater = None
         self._wave_type = wave_type
@@ -202,10 +202,10 @@ class WaveformEditor(QWidget):
         self._prewarp_list.set_ins_id(ins_id)
         self._postwarp_list.set_ins_id(ins_id)
 
-    def set_gen_id(self, gen_id):
-        self._gen_id = gen_id
-        self._prewarp_list.set_gen_id(gen_id)
-        self._postwarp_list.set_gen_id(gen_id)
+    def set_proc_id(self, proc_id):
+        self._proc_id = proc_id
+        self._prewarp_list.set_proc_id(proc_id)
+        self._postwarp_list.set_proc_id(proc_id)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -230,7 +230,7 @@ class WaveformEditor(QWidget):
 
     def _get_update_signal_type(self):
         return ''.join(
-                ('signal_gen_add_', self._ins_id, self._gen_id, self._wave_type))
+                ('signal_proc_add_', self._ins_id, self._proc_id, self._wave_type))
 
     def _perform_updates(self, signals):
         update_signals = set(['signal_instrument', self._get_update_signal_type()])
@@ -284,7 +284,7 @@ class WarpList(QScrollArea):
     def __init__(self, wave_type, warp_type):
         QAbstractScrollArea.__init__(self)
         self._ins_id = None
-        self._gen_id = None
+        self._proc_id = None
         self._ui_model = None
         self._updater = None
         self._wave_type = wave_type
@@ -300,8 +300,8 @@ class WarpList(QScrollArea):
     def set_ins_id(self, ins_id):
         self._ins_id = ins_id
 
-    def set_gen_id(self, gen_id):
-        self._gen_id = gen_id
+    def set_proc_id(self, proc_id):
+        self._proc_id = proc_id
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -332,7 +332,7 @@ class WarpList(QScrollArea):
 
     def _get_update_signal_type(self):
         return ''.join(
-                ('signal_gen_add_', self._ins_id, self._gen_id, self._wave_type))
+                ('signal_proc_add_', self._ins_id, self._proc_id, self._wave_type))
 
     def _perform_updates(self, signals):
         update_signals = set(['signal_instrument', self._get_update_signal_type()])
@@ -356,7 +356,7 @@ class WarpList(QScrollArea):
         for i in xrange(layout.count() - 1, warp_count):
             editor = WarpEditor(self._wave_type, self._warp_type, i, self._icon_bank)
             editor.set_ins_id(self._ins_id)
-            editor.set_gen_id(self._gen_id)
+            editor.set_proc_id(self._proc_id)
             editor.set_ui_model(self._ui_model)
             layout.insertWidget(i, editor)
 
@@ -401,7 +401,7 @@ class WarpEditor(QWidget):
     def __init__(self, wave_type, warp_type, index, icon_bank):
         QWidget.__init__(self)
         self._ins_id = None
-        self._gen_id = None
+        self._proc_id = None
         self._ui_model = None
         self._updater = None
         self._wave_type = wave_type
@@ -439,8 +439,8 @@ class WarpEditor(QWidget):
     def set_ins_id(self, ins_id):
         self._ins_id = ins_id
 
-    def set_gen_id(self, gen_id):
-        self._gen_id = gen_id
+    def set_proc_id(self, proc_id):
+        self._proc_id = proc_id
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -472,7 +472,7 @@ class WarpEditor(QWidget):
 
     def _get_update_signal_type(self):
         return ''.join(
-                ('signal_gen_add_', self._ins_id, self._gen_id, self._wave_type))
+                ('signal_proc_add_', self._ins_id, self._proc_id, self._wave_type))
 
     def _perform_updates(self, signals):
         update_signals = set(['signal_instrument', self._get_update_signal_type()])
@@ -570,7 +570,7 @@ class ToneList(QWidget):
         QWidget.__init__(self)
 
         self._ins_id = None
-        self._gen_id = None
+        self._proc_id = None
         self._ui_model = None
         self._updater = None
         self._icon_bank = None
@@ -605,8 +605,8 @@ class ToneList(QWidget):
     def set_ins_id(self, ins_id):
         self._ins_id = ins_id
 
-    def set_gen_id(self, gen_id):
-        self._gen_id = gen_id
+    def set_proc_id(self, proc_id):
+        self._proc_id = proc_id
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -621,7 +621,7 @@ class ToneList(QWidget):
         self._updater.unregister_updater(self._perform_updates)
 
     def _get_update_signal_type(self):
-        return ''.join(('signal_gen_add_tone_', self._ins_id, self._gen_id))
+        return ''.join(('signal_proc_add_tone_', self._ins_id, self._proc_id))
 
     def _perform_updates(self, signals):
         update_signals = set(['signal_instrument', self._get_update_signal_type()])
@@ -643,7 +643,7 @@ class ToneList(QWidget):
         for i in xrange(layout.count() - 1, count):
             editor = ToneEditor(self._wave_type, i, self._icon_bank)
             editor.set_ins_id(self._ins_id)
-            editor.set_gen_id(self._gen_id)
+            editor.set_proc_id(self._proc_id)
             editor.set_ui_model(self._ui_model)
             layout.insertWidget(i, editor)
 
@@ -665,7 +665,7 @@ class ToneEditor(QWidget):
     def __init__(self, wave_type, index, icon_bank):
         QWidget.__init__(self)
         self._ins_id = None
-        self._gen_id = None
+        self._proc_id = None
         self._ui_model = None
         self._wave_type = wave_type
         self._index = index
@@ -694,12 +694,12 @@ class ToneEditor(QWidget):
         if self._wave_type == 'base':
             self._panning_slider.set_ins_id(ins_id)
 
-    def set_gen_id(self, gen_id):
-        self._gen_id = gen_id
-        self._pitch_spin.set_gen_id(gen_id)
-        self._volume_slider.set_gen_id(gen_id)
+    def set_proc_id(self, proc_id):
+        self._proc_id = proc_id
+        self._pitch_spin.set_proc_id(proc_id)
+        self._volume_slider.set_proc_id(proc_id)
         if self._wave_type == 'base':
-            self._panning_slider.set_gen_id(gen_id)
+            self._panning_slider.set_proc_id(proc_id)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -716,7 +716,7 @@ class ToneEditor(QWidget):
         self._pitch_spin.unregister_updaters()
 
     def _get_update_signal_type(self):
-        return ''.join(('signal_gen_add_tone_', self._ins_id, self._gen_id))
+        return ''.join(('signal_proc_add_tone_', self._ins_id, self._proc_id))
 
     def _removed(self):
         add_params = get_add_params(self)
@@ -730,7 +730,7 @@ class TonePitchSpin(QWidget):
     def __init__(self, wave_type, index):
         QWidget.__init__(self)
         self._ins_id = None
-        self._gen_id = None
+        self._proc_id = None
         self._ui_model = None
         self._updater = None
         self._wave_type = wave_type
@@ -751,8 +751,8 @@ class TonePitchSpin(QWidget):
     def set_ins_id(self, ins_id):
         self._ins_id = ins_id
 
-    def set_gen_id(self, gen_id):
-        self._gen_id = gen_id
+    def set_proc_id(self, proc_id):
+        self._proc_id = proc_id
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -766,7 +766,7 @@ class TonePitchSpin(QWidget):
         self._updater.unregister_updater(self._perform_updates)
 
     def _get_update_signal_type(self):
-        return ''.join(('signal_gen_add_tone_', self._ins_id, self._gen_id))
+        return ''.join(('signal_proc_add_tone_', self._ins_id, self._proc_id))
 
     def _perform_updates(self, signals):
         update_signals = set(['signal_instrument', self._get_update_signal_type()])
@@ -792,10 +792,10 @@ class TonePitchSpin(QWidget):
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
 
-class ToneVolumeSlider(GenNumSlider):
+class ToneVolumeSlider(ProcNumSlider):
 
     def __init__(self, wave_type, index):
-        GenNumSlider.__init__(self, 1, -64.0, 24.0, title='Volume')
+        ProcNumSlider.__init__(self, 1, -64.0, 24.0, title='Volume')
         self._wave_type = wave_type
         self._index = index
         self.set_number(0)
@@ -815,13 +815,13 @@ class ToneVolumeSlider(GenNumSlider):
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _get_update_signal_type(self):
-        return ''.join(('signal_gen_add_tone_', self._ins_id, self._gen_id))
+        return ''.join(('signal_proc_add_tone_', self._ins_id, self._proc_id))
 
 
-class TonePanningSlider(GenNumSlider):
+class TonePanningSlider(ProcNumSlider):
 
     def __init__(self, wave_type, index):
-        GenNumSlider.__init__(self, 3, -1.0, 1.0, title='Panning')
+        ProcNumSlider.__init__(self, 3, -1.0, 1.0, title='Panning')
         self._wave_type = wave_type
         self._index = index
         self.set_number(0)
@@ -841,13 +841,13 @@ class TonePanningSlider(GenNumSlider):
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _get_update_signal_type(self):
-        return ''.join(('signal_gen_add_tone_', self._ins_id, self._gen_id))
+        return ''.join(('signal_proc_add_tone_', self._ins_id, self._proc_id))
 
 
-class ModVolume(GenNumSlider):
+class ModVolume(ProcNumSlider):
 
     def __init__(self):
-        GenNumSlider.__init__(self, 2, -64.0, 24.0, title='Mod volume')
+        ProcNumSlider.__init__(self, 2, -64.0, 24.0, title='Mod volume')
         self.set_number(0)
 
     def _update_value(self):
@@ -860,19 +860,19 @@ class ModVolume(GenNumSlider):
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
     def _get_update_signal_type(self):
-        return ''.join(('signal_add_mod_volume_', self._ins_id, self._gen_id))
+        return ''.join(('signal_add_mod_volume_', self._ins_id, self._proc_id))
 
 
 class ModEnv(TimeEnvelope):
 
     def __init__(self):
         TimeEnvelope.__init__(self)
-        self._gen_id = None
+        self._proc_id = None
 
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
 
-    def set_gen_id(self, gen_id):
-        self._gen_id = gen_id
+    def set_proc_id(self, proc_id):
+        self._proc_id = proc_id
 
     def _get_title(self):
         return 'Mod envelope'
@@ -890,7 +890,7 @@ class ModEnv(TimeEnvelope):
         return envelope
 
     def _get_update_signal_type(self):
-        return ''.join(('signal_add_mod_env_', self._ins_id, self._gen_id))
+        return ''.join(('signal_add_mod_env_', self._ins_id, self._proc_id))
 
     def _get_enabled(self):
         return get_add_params(self).get_mod_envelope_enabled()
@@ -928,7 +928,7 @@ class ForceModEnv(QWidget):
     def __init__(self):
         QWidget.__init__(self)
         self._ins_id = None
-        self._gen_id = None
+        self._proc_id = None
         self._ui_model = None
         self._updater = None
 
@@ -949,8 +949,8 @@ class ForceModEnv(QWidget):
     def set_ins_id(self, ins_id):
         self._ins_id = ins_id
 
-    def set_gen_id(self, gen_id):
-        self._gen_id = gen_id
+    def set_proc_id(self, proc_id):
+        self._proc_id = proc_id
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -971,7 +971,7 @@ class ForceModEnv(QWidget):
         self._updater.unregister_updater(self._perform_updates)
 
     def _get_update_signal_type(self):
-        return ''.join(('signal_add_force_mod_volume_', self._ins_id, self._gen_id))
+        return ''.join(('signal_add_force_mod_volume_', self._ins_id, self._proc_id))
 
     def _perform_updates(self, signals):
         update_signals = set(['signal_instrument', self._get_update_signal_type()])

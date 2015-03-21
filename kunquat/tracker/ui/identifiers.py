@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2014
+# Authors: Tomi Jylhä-Ollila, Finland 2014-2015
 #          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
@@ -18,6 +18,6 @@ UI_EVENT_LOG = 'event_log'
 UI_CONNECTIONS = 'connections'
 UI_INSTRUMENT = 'instrument'
 UI_ORDERLIST = 'orderlist'
-UI_GENERATOR = 'generator'
+UI_PROCESSOR = 'processor'
 
 

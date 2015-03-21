@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2014
+# Authors: Tomi Jylhä-Ollila, Finland 2014-2015
 #          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
@@ -93,12 +93,12 @@ class VisibilityManager():
         self._session.hide_ui(UI_ORDERLIST)
         self._updater.signal_update()
 
-    def show_generator(self, ins_id, gen_id):
-        self._session.show_ui((UI_GENERATOR, ins_id, gen_id))
+    def show_processor(self, ins_id, proc_id):
+        self._session.show_ui((UI_PROCESSOR, ins_id, proc_id))
         self._updater.signal_update()
 
-    def hide_generator(self, ins_id, gen_id):
-        self._session.hide_ui((UI_GENERATOR, ins_id, gen_id))
+    def hide_processor(self, ins_id, proc_id):
+        self._session.hide_ui((UI_PROCESSOR, ins_id, proc_id))
         self._updater.signal_update()
 
     def get_visible(self):

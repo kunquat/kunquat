@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2015
 #
 # This file is part of Kunquat.
 #
@@ -15,12 +15,12 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 
-class SampleGen(QWidget):
+class SampleProc(QWidget):
 
     def __init__(self):
         QWidget.__init__(self)
         self._ins_id = None
-        self._gen_id = None
+        self._proc_id = None
         self._ui_model = None
 
         v = QVBoxLayout()
@@ -32,8 +32,8 @@ class SampleGen(QWidget):
     def set_ins_id(self, ins_id):
         self._ins_id = ins_id
 
-    def set_gen_id(self, gen_id):
-        self._gen_id = gen_id
+    def set_proc_id(self, proc_id):
+        self._proc_id = proc_id
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model

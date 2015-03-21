@@ -14,8 +14,7 @@
 
 from kunquat.kunquat.kunquat import get_default_value
 from connections import Connections
-from generator import Generator
-from effect import Effect
+from processor import Processor
 
 
 class Instrument():
@@ -71,19 +70,19 @@ class Instrument():
         connections.set_controller(self._controller)
         return connections
 
-    def get_generator(self, gen_id):
-        generator = Generator(self._instrument_id, gen_id)
-        generator.set_controller(self._controller)
-        return generator
+    def get_processor(self, proc_id):
+        proc = Processor(self._instrument_id, proc_id)
+        proc.set_controller(self._controller)
+        return proc
 
-    def get_generator_ids(self):
-        gen_ids = set()
+    def get_processor_ids(self):
+        proc_ids = set()
         for key in self._store.keys():
             start = '{}/proc_'.format(self._instrument_id)
             if key.startswith(start):
-                gen_id = key.split('/')[1]
-                gen_ids.add(gen_id)
-        return gen_ids
+                proc_id = key.split('/')[1]
+                proc_ids.add(proc_id)
+        return proc_ids
 
     def get_au(self, au_id):
         key = '/'.join((self._instrument_id, au_id))

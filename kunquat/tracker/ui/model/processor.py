@@ -11,17 +11,17 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from generatorparamsadd import GeneratorParamsAdd
 from kunquat.kunquat.kunquat import get_default_value
+from procparamsadd import ProcParamsAdd
 
 
-class Generator():
+class Processor():
 
-    def __init__(self, ins_id, gen_id):
+    def __init__(self, ins_id, proc_id):
         assert ins_id
-        assert gen_id
+        assert proc_id
         self._ins_id = ins_id
-        self._gen_id = gen_id
+        self._proc_id = proc_id
         self._store = None
         self._controller = None
 
@@ -30,7 +30,7 @@ class Generator():
         self._controller = controller
 
     def _get_key(self, subkey):
-        return '{}/{}/{}'.format(self._ins_id, self._gen_id, subkey)
+        return '{}/{}/{}'.format(self._ins_id, self._proc_id, subkey)
 
     def get_existence(self):
         key = self._get_key('p_manifest.json')
@@ -69,8 +69,8 @@ class Generator():
         return None
 
     def get_type_params(self):
-        types = { 'add': GeneratorParamsAdd }
+        types = { 'add': ProcParamsAdd }
         cons = types[self.get_type()]
-        return cons(self._ins_id, self._gen_id, self._controller)
+        return cons(self._ins_id, self._proc_id, self._controller)
 
 

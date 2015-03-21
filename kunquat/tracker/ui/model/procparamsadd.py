@@ -15,7 +15,7 @@ import math
 
 from kunquat.extras.sndfile import SndFileRMem, SndFileWMem
 
-from generatorparams import GeneratorParams
+from procparams import ProcParams
 
 
 # Base wave functions
@@ -118,7 +118,7 @@ def post_stretch_sine(y, amount):
     return math.sin(y * 2**((amount + 1) * 3))
 
 
-class GeneratorParamsAdd(GeneratorParams):
+class ProcParamsAdd(ProcParams):
 
     _PREWARP_FUNCS = [
             ('Scale', pre_scale),
@@ -181,8 +181,8 @@ class GeneratorParamsAdd(GeneratorParams):
             },
         }
 
-    def __init__(self, ins_id, gen_id, controller):
-        GeneratorParams.__init__(self, ins_id, gen_id, controller)
+    def __init__(self, ins_id, proc_id, controller):
+        ProcParams.__init__(self, ins_id, proc_id, controller)
 
     def get_waveform(self, wave_type):
         key = self._WAVES[wave_type]['waveform_key']
