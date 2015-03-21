@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -80,8 +80,7 @@ kqt_Handle kqt_new_Handle(void);
  * \li kqt_Handle_validate
  * \li kqt_del_Handle
  *
- * \param handle   The Kunquat Handle -- should be valid and should support
- *                 writing.
+ * \param handle   The Kunquat Handle -- should be valid.
  * \param key      The key of the data -- should not be \c NULL.
  * \param data     The data to be set -- should not be \c NULL unless
  *                 \a length is \c 0.
@@ -91,10 +90,7 @@ kqt_Handle kqt_new_Handle(void);
  *           Handle error is set accordingly.
  */
 int kqt_Handle_set_data(
-        kqt_Handle handle,
-        const char* key,
-        const void* data,
-        long length);
+        kqt_Handle handle, const char* key, const void* data, long length);
 
 
 /**
@@ -105,7 +101,7 @@ int kqt_Handle_set_data(
  *
  * \li "ArgumentError" -- a Kunquat function was called with an inappropriate
  *                        argument value.
- * \li "FormatError"   -- an input file or value to be stored was invalid.
+ * \li "FormatError"   -- a value to be stored was invalid.
  * \li "MemoryError"   -- memory allocation failed.
  * \li "ResourceError" -- libkunquat couldn't get service from an external
  *                        resource.
