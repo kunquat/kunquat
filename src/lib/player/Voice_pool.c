@@ -33,6 +33,8 @@ Voice_pool* new_Voice_pool(uint16_t size)
     pool->state_size = 0;
     pool->new_group_id = 0;
     pool->voices = NULL;
+    pool->group_iter_offset = 0;
+    pool->group_iter = *VOICE_GROUP_AUTO;
 
     if (size > 0)
     {
@@ -188,20 +190,6 @@ Voice* Voice_pool_get_voice(Voice_pool* pool, Voice* voice, uint64_t id)
 }
 
 
-void Voice_pool_prepare(Voice_pool* pool)
-{
-    assert(pool != NULL);
-
-    for (uint16_t i = 0; i < pool->size; ++i)
-    {
-        if (pool->voices[i]->prio != VOICE_PRIO_INACTIVE)
-            Voice_prepare(pool->voices[i]);
-    }
-
-    return;
-}
-
-
 static uint64_t get_voice_group_prio(const Voice* voice)
 {
     // Overflow group ID 0 to maximum so that inactive voices are placed last
@@ -213,7 +201,7 @@ static void Voice_pool_sort_groups(Voice_pool* pool)
 {
     assert(pool != NULL);
 
-    // Simple insertion sort based on group IDs...
+    // Simple insertion sort based on group IDs
     for (uint16_t i = 1; i < pool->size; ++i)
     {
         Voice* current = pool->voices[i];
@@ -235,6 +223,40 @@ static void Voice_pool_sort_groups(Voice_pool* pool)
 }
 
 
+Voice_group* Voice_pool_start_group_iteration(Voice_pool* pool)
+{
+    assert(pool != NULL);
+
+    Voice_pool_sort_groups(pool);
+
+    Voice_group_init(&pool->group_iter, pool->voices, 0, pool->size);
+    pool->group_iter_offset = Voice_group_get_size(&pool->group_iter);
+
+    if (Voice_group_get_size(&pool->group_iter) == 0)
+        return NULL;
+
+    return &pool->group_iter;
+}
+
+
+Voice_group* Voice_pool_get_next_group(Voice_pool* pool)
+{
+    assert(pool != NULL);
+
+    if (pool->group_iter_offset >= pool->size)
+        return NULL;
+
+    Voice_group_init(
+            &pool->group_iter, pool->voices, pool->group_iter_offset, pool->size);
+    pool->group_iter_offset += Voice_group_get_size(&pool->group_iter);
+
+    if (Voice_group_get_size(&pool->group_iter) == 0)
+        return NULL;
+
+    return &pool->group_iter;
+}
+
+
 uint16_t Voice_pool_mix(
         Voice_pool* pool,
         Device_states* states,
@@ -251,8 +273,6 @@ uint16_t Voice_pool_mix(
 
     if (pool->size == 0)
         return 0;
-
-    Voice_pool_sort_groups(pool);
 
     uint16_t active_voices = 0;
     for (uint16_t i = 0; i < pool->size; ++i)

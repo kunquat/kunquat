@@ -97,6 +97,13 @@ uint64_t Voice_get_group_id(const Voice* voice)
 }
 
 
+const Processor* Voice_get_proc(const Voice* voice)
+{
+    assert(voice != NULL);
+    return voice->proc;
+}
+
+
 void Voice_init(
         Voice* voice,
         const Processor* proc,
@@ -147,13 +154,6 @@ void Voice_reset(Voice* voice)
     Random_reset(voice->rand_p);
     Random_reset(voice->rand_s);
 
-    return;
-}
-
-
-void Voice_prepare(Voice* voice)
-{
-    assert(voice != NULL);
     return;
 }
 

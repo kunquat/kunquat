@@ -26,6 +26,7 @@
 #include <player/Player_private.h>
 #include <player/Player_seq.h>
 #include <player/Position.h>
+#include <player/Voice_group.h>
 #include <string/common.h>
 
 
@@ -397,9 +398,8 @@ static void Player_process_voices(
     if (frame_count == 0)
         return;
 
-    const int32_t render_stop = render_start + frame_count;
-
     // Verify foreground voice ownerships
+    // TODO: is this really needed?
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
     {
         Channel* ch = player->channels[i];
@@ -416,18 +416,32 @@ static void Player_process_voices(
         }
     }
 
-    // Mix voices
-    int16_t active_voices = Voice_pool_mix(
-            player->voices,
-            player->device_states,
-            player->work_buffers,
-            render_stop,
-            render_start,
-            player->audio_rate,
-            player->master_params.tempo);
+    // Process active Voice groups
+    const int32_t render_stop = render_start + frame_count;
+    int16_t active_voice_count = 0;
+
+    Voice_group* vg = Voice_pool_start_group_iteration(player->voices);
+
+    while (vg != NULL)
+    {
+        for (uint16_t i = 0; i < Voice_group_get_size(vg); ++i)
+        {
+            Voice* voice = Voice_group_get_voice(vg, i);
+            Voice_mix(
+                    voice,
+                    player->device_states,
+                    player->work_buffers,
+                    render_stop,
+                    render_start,
+                    player->audio_rate,
+                    player->master_params.tempo);
+            ++active_voice_count;
+        }
+        vg = Voice_pool_get_next_group(player->voices);
+    }
 
     player->master_params.active_voices =
-        max(player->master_params.active_voices, active_voices);
+        max(player->master_params.active_voices, active_voice_count);
 }
 
 

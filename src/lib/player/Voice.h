@@ -112,6 +112,16 @@ uint64_t Voice_get_group_id(const Voice* voice);
 
 
 /**
+ * Get the Processor associated with the Voice.
+ *
+ * \param voice   The Voice -- must not be \c NULL.
+ *
+ * \return   The Processor.
+ */
+const Processor* Voice_get_proc(const Voice* voice);
+
+
+/**
  * Initialise the Voice for mixing.
  *
  * \param voice        The Voice -- must not be \c NULL.
@@ -142,14 +152,6 @@ void Voice_init(
  * \param voice   The Voice -- must not be \c NULL.
  */
 void Voice_reset(Voice* voice);
-
-
-/**
- * Prepare the Voice for a new mixing cycle.
- *
- * \param voice   The Voice -- must not be \c NULL.
- */
-void Voice_prepare(Voice* voice);
 
 
 /**

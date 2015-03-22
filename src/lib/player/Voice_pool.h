@@ -20,6 +20,7 @@
 #include <stdbool.h>
 
 #include <player/Voice.h>
+#include <player/Voice_group.h>
 #include <player/Work_buffers.h>
 
 
@@ -32,6 +33,9 @@ typedef struct Voice_pool
     size_t state_size;
     uint64_t new_group_id;
     Voice** voices;
+
+    uint16_t group_iter_offset;
+    Voice_group group_iter;
 } Voice_pool;
 
 
@@ -115,11 +119,25 @@ Voice* Voice_pool_get_voice(Voice_pool* pool, Voice* voice, uint64_t id);
 
 
 /**
- * Prepare the Voice pool for a new mixing cycle.
+ * Start Voice group iteration.
  *
  * \param pool   The Voice pool -- must not be \c NULL.
+ *
+ * \return   The first Voice group to be processed, or \c NULL if there are
+ *           no active Voices.
  */
-void Voice_pool_prepare(Voice_pool* pool);
+Voice_group* Voice_pool_start_group_iteration(Voice_pool* pool);
+
+
+/**
+ * Get the next Voice group.
+ *
+ * \param pool   The Voice pool -- must not be \c NULL.
+ *
+ * \return   The next Voice group, or \c NULL if there are no groups left to
+ *           be processed.
+ */
+Voice_group* Voice_pool_get_next_group(Voice_pool* pool);
 
 
 /**
