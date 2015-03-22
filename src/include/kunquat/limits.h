@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2013
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -126,49 +126,31 @@ extern "C" {
 
 
 /**
- * Maximum number of Instruments in a Kunquat Handle.
+ * Maximum number of Audio units in a Kunquat Handle.
  */
-#define KQT_INSTRUMENTS_MAX 256
+#define KQT_AUDIO_UNITS_MAX 256
 
 
 /**
- * Maximum number of Instrument controls in a Kunquat Handle.
+ * Maximum number of Audio unit controls in a Kunquat Handle.
  */
-#define KQT_CONTROLS_MAX KQT_INSTRUMENTS_MAX
+#define KQT_CONTROLS_MAX KQT_AUDIO_UNITS_MAX
 
 
 /**
- * Maximum number of Generators in a Kunquat Instruemnt.
+ * Maximum number of processors in a Kunquat Instruemnt.
  */
-#define KQT_GENERATORS_MAX 256
-
-
-/**
- * Maximum number of Effects in the global Connections.
- */
-#define KQT_EFFECTS_MAX 256
-
-
-/**
- * Maximum number of Effects in a Kunquat instrument.
- */
-#define KQT_INST_EFFECTS_MAX 16
-
-
-/**
- * Maximum number of DSPs inside an Effect.
- */
-#define KQT_DSPS_MAX 64
+#define KQT_PROCESSORS_MAX 256
 
 
 /**
  * Maximum number of input/output ports in a Device.
  */
-#define KQT_DEVICE_PORTS_MAX KQT_GENERATORS_MAX
+#define KQT_DEVICE_PORTS_MAX KQT_PROCESSORS_MAX
 
 
 /**
- * Maximum number of distinct hit values in a Kunquat instrument.
+ * Maximum number of distinct hit values in an audio unit.
  */
 #define KQT_HITS_MAX 128
 

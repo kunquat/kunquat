@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -18,13 +18,12 @@
 
 #include <stdbool.h>
 
-#include <devices/Generator.h>
+#include <devices/Processor.h>
 #include <player/Channel.h>
-#include <player/Effect_state.h>
 #include <player/Event_names.h>
 #include <player/Event_type.h>
 #include <player/General_state.h>
-#include <player/Ins_state.h>
+#include <player/Au_state.h>
 #include <player/Master_params.h>
 #include <Value.h>
 
@@ -42,8 +41,7 @@ Event_handler* new_Event_handler(
         Master_params* master_params,
         Channel** channels,
         Device_states* device_states,
-        Ins_table* insts,
-        Effect_table* effects);
+        Au_table* au_table);
 
 
 /**
@@ -119,74 +117,42 @@ bool Event_handler_set_master_process(
 
 
 /**
- * Register an Instrument Event processor.
+ * Register an Audio unit Event processor.
  *
  * \param eh        The Event handler -- must not be \c NULL.
  * \param name      The name of the Event -- must not be \c NULL, empty string
  *                  or longer than EVENT_NAME_MAX characters.
- * \param type      The type of the Event -- must be an Instrument Event.
+ * \param type      The type of the Event -- must be an Audio unit Event.
  * \param process   The process function -- must not be \c NULL.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Event_handler_set_ins_process(
+bool Event_handler_set_au_process(
         Event_handler* eh,
         Event_type type,
-        bool (*ins_process)(const Instrument_params*, Ins_state*, const Value*));
+        bool (*au_process)(
+            const Audio_unit*,
+            const Au_params*,
+            Au_state*,
+            Device_states*,
+            const Value*));
 
 
 /**
- * Register a Generator Event processor.
+ * Register a Processor Event processor.
  *
- * \param eh        The Event handler -- must not be \c NULL.
- * \param name      The name of the Event -- must not be \c NULL, empty string
- *                  or longer than EVENT_NAME_MAX characters.
- * \param type      The type of the Event -- must be a Generator Event.
- * \param process   The process function -- must not be \c NULL.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-bool Event_handler_set_generator_process(
-        Event_handler* eh,
-        Event_type type,
-        bool (*gen_process)(
-            const Device_impl*, Device_state*, Channel*, const Value*));
-
-
-/**
- * Register an Effect Event processor.
- *
- * \param eh        The Event handler -- must not be \c NULL.
- * \param name      The name of the Event -- must not be \c NULL, empty string
- *                  or longer than EVENT_NAME_MAX characters.
- * \param type      The type of the Event -- must be an Effect Event.
- * \param process   The process function -- must not be \c NULL.
+ * \param eh             The Event handler -- must not be \c NULL.
+ * \param name           The name of the Event -- must not be \c NULL, empty
+ *                       string or longer than EVENT_NAME_MAX characters.
+ * \param type           The type of the Event -- must be a Processor Event.
+ * \param proc_process   The process function -- must not be \c NULL.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Event_handler_set_effect_process(
+bool Event_handler_set_processor_process(
         Event_handler* eh,
         Event_type type,
-        bool (*effect_process)(
-            const Effect*, Effect_state*, Device_states*, const Value*));
-
-
-/**
- * Register a DSP Event processor.
- *
- * \param eh        The Event handler -- must not be \c NULL.
- * \param name      The name of the Event -- must not be \c NULL, empty string
- *                  or longer than EVENT_NAME_MAX characters.
- * \param type      The type of the Event -- must be a DSP Event.
- * \param process   The process function -- must not be \c NULL.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-bool Event_handler_set_dsp_process(
-        Event_handler* eh,
-        Event_type type,
-        bool (*dsp_process)(
-            const Device_impl*, Device_state*, Channel*, const Value*));
+        bool (*proc_process)(const Device_impl*, Device_state*, Channel*, const Value*));
 
 
 /**
@@ -209,14 +175,14 @@ bool Event_handler_trigger(
 
 
 /**
- * Add a key into all Channel-specific generator parameter dictionaries.
+ * Add a key into all Channel-specific processor parameter dictionaries.
  *
  * \param eh    The Event handler -- must not be \c NULL.
  * \param key   The key -- must not be \c NULL.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-//bool Event_handler_add_channel_gen_state_key(
+//bool Event_handler_add_channel_proc_state_key(
 //        Event_handler* eh,
 //        const char* key);
 

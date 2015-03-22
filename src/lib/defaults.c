@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2014
+ * Author: Tomi Jylhä-Ollila, Finland 2014-2015
  *
  * This file is part of Kunquat.
  *
@@ -12,6 +12,7 @@
  */
 
 
+#include <Decl.h>
 #include <Handle_private.h>
 #include <kunquat/defaults.h>
 #include <string/common.h>

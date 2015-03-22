@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2015
  *
  * This file is part of Kunquat.
  *
@@ -25,8 +25,7 @@
 bool Event_control_goto_process(General_state* gstate, const Value* value)
 {
     assert(gstate != NULL);
-    (void)gstate;
-    (void)value;
+    ignore(value);
 
     return false;
 
@@ -49,8 +48,6 @@ bool Event_control_set_goto_row_process(General_state* gstate, const Value* valu
 {
     assert(gstate != NULL);
     assert(value != NULL);
-    (void)gstate;
-    (void)value;
 
     return false;
 
@@ -72,8 +69,6 @@ bool Event_control_set_goto_section_process(
 {
     assert(gstate != NULL);
     assert(value != NULL);
-    (void)gstate;
-    (void)value;
 
     return false;
 
@@ -95,8 +90,6 @@ bool Event_control_set_goto_song_process(
 {
     assert(gstate != NULL);
     assert(value != NULL);
-    (void)gstate;
-    (void)value;
 
     return false;
 

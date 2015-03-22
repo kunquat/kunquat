@@ -29,8 +29,7 @@ import command
 def test_add_external_deps(builder, options, cc):
     conf_errors = []
 
-    if options.enable_kunquat_assert and options.enable_debug:
-        cc.add_define('ENABLE_KUNQUAT_ASSERT')
+    if options.enable_debug:
         if _test_header(builder, cc, 'execinfo.h'):
             cc.add_define('HAS_EXECINFO')
             cc.set_dynamic_export(True)

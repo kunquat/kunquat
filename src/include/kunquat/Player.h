@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -132,7 +132,7 @@ const float* kqt_Handle_get_audio(kqt_Handle handle, int index);
  *
  * \return   \c 1 if successful, or \c 0 if memory allocation failed. Memory
  *           allocation failure is possible if the composition uses features
- *           that allocate buffers based on the mixing rate.
+ *           that allocate buffers based on the audio rate.
  */
 int kqt_Handle_set_audio_rate(kqt_Handle handle, long rate);
 
@@ -162,7 +162,7 @@ long kqt_Handle_get_audio_rate(kqt_Handle handle);
  * \param handle   The Handle -- should be valid.
  * \param size     The new buffer size -- should be > \c 0 and
  *                 <= \c KQT_BUFFER_SIZE_MAX. The upper limit is a safety
- *                 measure -- typically, implementations use a buffer size of
+ *                 measure; typically, implementations use a buffer size of
  *                 no more than a couple of thousand frames.
  *
  * \return   \c 1 if successful, otherwise \c 0.
@@ -187,14 +187,15 @@ long kqt_Handle_get_audio_buffer_size(kqt_Handle handle);
  * Estimate the duration of a track in the Kunquat Handle.
  *
  * This function will not calculate the length of a track further
- * than 30 days.
+ * than KQT_MAX_CALC_DURATION nanoseconds.
  *
  * \param handle   The Handle -- should be valid.
  * \param track    The track number -- should be >= \c -1 and
  *                 < \c KQT_TRACKS_MAX (\c -1 denotes all tracks).
  *
- * \return   The length in nanoseconds, or KQT_MAX_CALC_DURATION if the
- *           length is 30 days or longer, or \c -1 if failed.
+ * \return   The length in nanoseconds, or KQT_MAX_CALC_DURATION if the length
+ *           is KQT_MAX_CALC_DURATION nanoseconds or longer, or \c -1 if
+ *           failed.
  */
 long long kqt_Handle_get_duration(kqt_Handle handle, int track);
 
@@ -213,10 +214,7 @@ long long kqt_Handle_get_duration(kqt_Handle handle, int track);
  *
  * \return   \c 1 if successful, otherwise \c 0.
  */
-int kqt_Handle_set_position(
-        kqt_Handle handle,
-        int track,
-        long long nanoseconds);
+int kqt_Handle_set_position(kqt_Handle handle, int track, long long nanoseconds);
 
 
 /**

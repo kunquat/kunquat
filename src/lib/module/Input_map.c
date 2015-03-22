@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -50,8 +50,8 @@ struct Input_map
 static bool read_entry(Streader* sr, int32_t index, void* userdata)
 {
     assert(sr != NULL);
-    (void)index;
     assert(userdata != NULL);
+    ignore(index);
 
     Input_map* im = userdata;
 

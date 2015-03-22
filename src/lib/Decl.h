@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -16,6 +16,8 @@
 #define K_DECL_H
 
 
+typedef struct Au_table Au_table;
+typedef struct Audio_unit Audio_unit;
 typedef struct Connections Connections;
 typedef struct Device Device;
 typedef struct Device_impl Device_impl;

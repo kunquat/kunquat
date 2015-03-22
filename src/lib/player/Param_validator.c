@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2015
  *
  * This file is part of Kunquat.
  *
@@ -94,6 +94,19 @@ bool v_arp_speed(const char* param)
 }
 
 
+bool v_au(const char* param)
+{
+    assert(param != NULL);
+
+    int64_t au = -1;
+    Streader* sr = init_c_streader(param);
+
+    return Streader_read_int(sr, &au) &&
+        au >= 0 &&
+        au < KQT_AUDIO_UNITS_MAX;
+}
+
+
 bool v_cond(const char* param)
 {
     assert(param != NULL);
@@ -112,30 +125,6 @@ bool v_counter(const char* param)
     return Streader_read_int(sr, &counter) &&
         counter >= 0 &&
         counter < 65535;
-}
-
-
-bool v_dsp(const char* param)
-{
-    assert(param != NULL);
-
-    int64_t dsp = -1;
-    Streader* sr = init_c_streader(param);
-
-    return Streader_read_int(sr, &dsp) && (dsp >= 0) && (dsp < KQT_DSPS_MAX);
-}
-
-
-bool v_effect(const char* param)
-{
-    assert(param != NULL);
-
-    int64_t effect = -1;
-    Streader* sr = init_c_streader(param);
-
-    return Streader_read_int(sr, &effect) &&
-        effect >= 0 &&
-        effect < KQT_EFFECTS_MAX;
 }
 
 
@@ -161,16 +150,16 @@ bool v_force(const char* param)
 }
 
 
-bool v_gen(const char* param)
+bool v_proc(const char* param)
 {
     assert(param != NULL);
 
-    int64_t gen = -1;
+    int64_t proc = -1;
     Streader* sr = init_c_streader(param);
 
-    return Streader_read_int(sr, &gen) &&
-        gen >= 0 &&
-        gen < KQT_GENERATORS_MAX;
+    return Streader_read_int(sr, &proc) &&
+        proc >= 0 &&
+        proc < KQT_PROCESSORS_MAX;
 }
 
 
@@ -182,19 +171,6 @@ bool v_hit(const char* param)
     Streader* sr = init_c_streader(param);
 
     return Streader_read_int(sr, &hit) && (hit >= 0) && (hit < KQT_HITS_MAX);
-}
-
-
-bool v_ins(const char* param)
-{
-    assert(param != NULL);
-
-    int64_t ins = -1;
-    Streader* sr = init_c_streader(param);
-
-    return Streader_read_int(sr, &ins) &&
-        ins >= 0 &&
-        ins < KQT_INSTRUMENTS_MAX;
 }
 
 

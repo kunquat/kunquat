@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2015
  *
  * This file is part of Kunquat.
  *
@@ -16,28 +16,25 @@
 #define K_NOTE_SETUP_H
 
 
-#include <devices/Instrument.h>
+#include <devices/Audio_unit.h>
 #include <player/Channel.h>
 
 
 /**
- * Reserve a Voice for a Generator in an Instrument.
+ * Reserve a Voice for a processor in an Audio unit.
  *
- * \param ch          The Channel -- must not be \c NULL.
- * \param ins         The Instrument -- must not be \c NULL.
- * \param gen_state   The Generator state -- must not be \c NULL.
- * \param gen_num     The number of the Generator -- must be >= \c 0 and
- *                    < \c KQT_GENERATORS_MAX.
+ * \param ch           The Channel -- must not be \c NULL.
+ * \param au           The Audio unit -- must not be \c NULL.
+ * \param proc_state   The processor state -- must not be \c NULL.
+ * \param proc_num     The number of the Processor -- must be >= \c 0 and
+ *                     < \c KQT_PROCESSORS_MAX.
  */
 void reserve_voice(
-        Channel* ch,
-        Instrument* ins,
-        const Gen_state* gen_state,
-        int gen_num);
+        Channel* ch, Audio_unit* au, const Proc_state* proc_state, int proc_num);
 
 
 /**
- * Set initial values of parameters according to the Instrument.
+ * Set initial values of parameters according to the Audio unit.
  *
  * \param voice       The Voice -- must not be \c NULL.
  * \param vs          The Voice state -- must not be \c NULL.
@@ -45,11 +42,7 @@ void reserve_voice(
  * \param force_var   A reference to the force variation value -- must not be
  *                    \c NULL.
  */
-void set_instrument_properties(
-        Voice* voice,
-        Voice_state* vs,
-        Channel* ch,
-        double* force_var);
+void set_au_properties(Voice* voice, Voice_state* vs, Channel* ch, double* force_var);
 
 
 #endif // K_NOTE_SETUP_H

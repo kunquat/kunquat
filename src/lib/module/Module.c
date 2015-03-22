@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -83,10 +83,9 @@ Module* new_Module(void)
     // Clear fields
     module->songs = NULL;
     module->pats = NULL;
-    module->ins_map = NULL;
-    module->ins_controls = NULL;
-    module->insts = NULL;
-    module->effects = NULL;
+    module->au_map = NULL;
+    module->au_controls = NULL;
+    module->au_table = NULL;
     module->connections = NULL;
     module->random = NULL;
     module->env = NULL;
@@ -102,15 +101,13 @@ Module* new_Module(void)
     module->random = new_Random();
     module->songs = new_Song_table();
     module->pats = new_Pat_table(KQT_PATTERNS_MAX);
-    module->ins_controls = new_Bit_array(KQT_CONTROLS_MAX);
-    module->insts = new_Ins_table(KQT_INSTRUMENTS_MAX);
-    module->effects = new_Effect_table(KQT_EFFECTS_MAX);
-    if (module->random == NULL           ||
-            module->songs == NULL        ||
-            module->pats == NULL         ||
-            module->ins_controls == NULL ||
-            module->insts == NULL        ||
-            module->effects == NULL)
+    module->au_controls = new_Bit_array(KQT_CONTROLS_MAX);
+    module->au_table = new_Au_table(KQT_AUDIO_UNITS_MAX);
+    if (module->random == NULL          ||
+            module->songs == NULL       ||
+            module->pats == NULL        ||
+            module->au_controls == NULL ||
+            module->au_table == NULL)
     {
         del_Module(module);
         return NULL;
@@ -135,9 +132,7 @@ Module* new_Module(void)
     module->connections = new_Connections_from_string(
             conn_sr,
             false,
-            module->insts,
-            module->effects,
-            NULL,
+            module->au_table,
             &module->parent);
     if (module->connections == NULL)
     {
@@ -380,21 +375,21 @@ Pat_table* Module_get_pats(Module* module)
 }
 
 
-Instrument* Module_get_ins_from_input(const Module* module, int32_t input)
+Audio_unit* Module_get_au_from_input(const Module* module, int32_t input)
 {
     assert(module != NULL);
     assert(input >= 0);
 
-    if (module->ins_map == NULL)
+    if (module->au_map == NULL)
         return NULL;
 
-    int32_t ins_index = Input_map_get_device_index(module->ins_map, input);
-    if (ins_index < 0)
+    int32_t au_index = Input_map_get_device_index(module->au_map, input);
+    if (au_index < 0)
         return NULL;
 
-    assert(Bit_array_get(module->ins_controls, input));
-    assert(ins_index < KQT_INSTRUMENTS_MAX);
-    return Ins_table_get(module->insts, ins_index);
+    assert(Bit_array_get(module->au_controls, input));
+    assert(au_index < KQT_AUDIO_UNITS_MAX);
+    return Au_table_get(module->au_table, au_index);
 }
 
 
@@ -404,7 +399,7 @@ void Module_set_control(Module* module, int control, bool existent)
     assert(control >= 0);
     assert(control < KQT_CONTROLS_MAX);
 
-    Bit_array_set(module->ins_controls, control, existent);
+    Bit_array_set(module->au_controls, control, existent);
 
     return;
 }
@@ -416,44 +411,37 @@ bool Module_get_control(const Module* module, int control)
     assert(control >= 0);
     assert(control < KQT_CONTROLS_MAX);
 
-    return Bit_array_get(module->ins_controls, control);
+    return Bit_array_get(module->au_controls, control);
 }
 
 
-bool Module_set_ins_map(Module* module, Streader* sr)
+bool Module_set_au_map(Module* module, Streader* sr)
 {
     assert(module != NULL);
     assert(sr != NULL);
 
-    Input_map* im = new_Input_map(sr, INT32_MAX, KQT_INSTRUMENTS_MAX);
+    Input_map* im = new_Input_map(sr, INT32_MAX, KQT_AUDIO_UNITS_MAX);
     if (im == NULL)
         return false;
 
-    del_Input_map(module->ins_map);
-    module->ins_map = im;
+    del_Input_map(module->au_map);
+    module->au_map = im;
 
     return true;
 }
 
 
-Input_map* Module_get_ins_map(const Module* module)
+Input_map* Module_get_au_map(const Module* module)
 {
     assert(module != NULL);
-    return module->ins_map;
+    return module->au_map;
 }
 
 
-Ins_table* Module_get_insts(const Module* module)
+Au_table* Module_get_au_table(const Module* module)
 {
     assert(module != NULL);
-    return module->insts;
-}
-
-
-Effect_table* Module_get_effects(const Module* module)
-{
-    assert(module != NULL);
-    return module->effects;
+    return module->au_table;
 }
 
 
@@ -540,20 +528,12 @@ static void Module_reset(const Device* device, Device_states* dstates)
 
     const Module* module = (const Module*)device;
 
-    // Reset instruments
-    for (int i = 0; i < KQT_INSTRUMENTS_MAX; ++i)
+    // Reset audio units
+    for (int i = 0; i < KQT_AUDIO_UNITS_MAX; ++i)
     {
-        const Instrument* ins = Ins_table_get(module->insts, i);
-        if (ins != NULL)
-            Device_reset((const Device*)ins, dstates);
-    }
-
-    // Reset effects
-    for (int i = 0; i < KQT_EFFECTS_MAX; ++i)
-    {
-        const Effect* eff = Effect_table_get(module->effects, i);
-        if (eff != NULL)
-            Device_reset((const Device*)eff, dstates);
+        const Audio_unit* au = Au_table_get(module->au_table, i);
+        if (au != NULL)
+            Device_reset((const Device*)au, dstates);
     }
 
     Random_reset(module->random);
@@ -584,19 +564,11 @@ static bool Module_set_audio_rate(
 
     const Module* module = (const Module*)device;
 
-    for (int i = 0; i < KQT_INSTRUMENTS_MAX; ++i)
+    for (int i = 0; i < KQT_AUDIO_UNITS_MAX; ++i)
     {
-        const Instrument* ins = Ins_table_get(module->insts, i);
-        if (ins != NULL &&
-                !Device_set_audio_rate((const Device*)ins, dstates, audio_rate))
-            return false;
-    }
-
-    for (int i = 0; i < KQT_EFFECTS_MAX; ++i)
-    {
-        const Effect* eff = Effect_table_get(module->effects, i);
-        if (eff != NULL &&
-                !Device_set_audio_rate((const Device*)eff, dstates, audio_rate))
+        const Audio_unit* au = Au_table_get(module->au_table, i);
+        if (au != NULL &&
+                !Device_set_audio_rate((const Device*)au, dstates, audio_rate))
             return false;
     }
 
@@ -616,18 +588,11 @@ static void Module_update_tempo(
 
     const Module* module = (const Module*)device;
 
-    for (int i = 0; i < KQT_INSTRUMENTS_MAX; ++i)
+    for (int i = 0; i < KQT_AUDIO_UNITS_MAX; ++i)
     {
-        const Instrument* ins = Ins_table_get(module->insts, i);
-        if (ins != NULL)
-            Device_update_tempo((const Device*)ins, dstates, tempo);
-    }
-
-    for (int i = 0; i < KQT_EFFECTS_MAX; ++i)
-    {
-        const Effect* eff = Effect_table_get(module->effects, i);
-        if (eff != NULL)
-            Device_update_tempo((const Device*)eff, dstates, tempo);
+        const Audio_unit* au = Au_table_get(module->au_table, i);
+        if (au != NULL)
+            Device_update_tempo((const Device*)au, dstates, tempo);
     }
 
     return;
@@ -644,19 +609,11 @@ static bool Module_set_buffer_size(
 
     const Module* module = (const Module*)device;
 
-    for (int i = 0; i < KQT_INSTRUMENTS_MAX; ++i)
+    for (int i = 0; i < KQT_AUDIO_UNITS_MAX; ++i)
     {
-        Instrument* ins = Ins_table_get(module->insts, i);
-        if (ins != NULL &&
-                !Device_set_buffer_size((Device*)ins, dstates, size))
-            return false;
-    }
-
-    for (int i = 0; i < KQT_EFFECTS_MAX; ++i)
-    {
-        const Effect* eff = Effect_table_get(module->effects, i);
-        if (eff != NULL &&
-                !Device_set_buffer_size((const Device*)eff, dstates, size))
+        Audio_unit* au = Au_table_get(module->au_table, i);
+        if (au != NULL &&
+                !Device_set_buffer_size((Device*)au, dstates, size))
             return false;
     }
 
@@ -673,10 +630,9 @@ void del_Module(Module* module)
     del_Song_table(module->songs);
     del_Pat_table(module->pats);
     del_Connections(module->connections);
-    del_Ins_table(module->insts);
-    del_Bit_array(module->ins_controls);
-    del_Input_map(module->ins_map);
-    del_Effect_table(module->effects);
+    del_Au_table(module->au_table);
+    del_Bit_array(module->au_controls);
+    del_Input_map(module->au_map);
     del_Track_list(module->track_list);
 
     for (int i = 0; i < KQT_SONGS_MAX; ++i)

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -30,6 +30,15 @@
 #include <Tstamp.h>
 
 
+typedef void Device_process_signal_func(
+        const Device*,
+        Device_states*,
+        uint32_t buf_start,
+        uint32_t buf_stop,
+        uint32_t audio_rate,
+        double tempo);
+
+
 struct Device
 {
     uint32_t id;
@@ -44,8 +53,7 @@ struct Device
     bool (*set_buffer_size)(const struct Device*, Device_states*, int32_t);
     void (*update_tempo)(const struct Device*, Device_states*, double);
     void (*reset)(const struct Device*, Device_states*);
-    void (*process)(
-            const struct Device*, Device_states*, uint32_t, uint32_t, uint32_t, double);
+    Device_process_signal_func* process_signal;
 
     bool existence[DEVICE_PORT_TYPES][KQT_DEVICE_PORTS_MAX];
 };
@@ -76,8 +84,8 @@ uint32_t Device_get_id(const Device* device);
 /**
  * Find out if the Device has a complete type.
  *
- * All instruments and effects have a complete type; a generator or a DSP has
- * a complete type if it has a Device implementation.
+ * All audio units have a complete type; a processor has a complete type if it
+ * has a Device implementation.
  *
  * \param device   The Device -- must not be \c NULL.
  *
@@ -130,9 +138,7 @@ bool Device_set_impl(Device* device, Device_impl* dimpl);
  *           allocation failed.
  */
 Device_state* Device_create_state(
-        const Device* device,
-        int32_t audio_rate,
-        int32_t buffer_size);
+        const Device* device, int32_t audio_rate, int32_t buffer_size);
 
 
 /**
@@ -142,8 +148,7 @@ Device_state* Device_create_state(
  * \param creator   The creator function, or \c NULL for default creator.
  */
 void Device_set_state_creator(
-        Device* device,
-        Device_state* (*creator)(const Device*, int32_t, int32_t));
+        Device* device, Device_state* (*creator)(const Device*, int32_t, int32_t));
 
 
 /**
@@ -153,8 +158,7 @@ void Device_set_state_creator(
  * \param set      The audio rate set function -- must not be \c NULL.
  */
 void Device_register_set_audio_rate(
-        Device* device,
-        bool (*set)(const Device*, Device_states*, int32_t));
+        Device* device, bool (*set)(const Device*, Device_states*, int32_t));
 
 
 /**
@@ -164,8 +168,7 @@ void Device_register_set_audio_rate(
  * \param set      The audio buffer size set function -- must not be \c NULL.
  */
 void Device_register_set_buffer_size(
-        Device* device,
-        bool (*set)(const Device*, Device_states*, int32_t));
+        Device* device, bool (*set)(const Device*, Device_states*, int32_t));
 
 
 /**
@@ -175,8 +178,7 @@ void Device_register_set_buffer_size(
  * \param update   The tempo update function -- must not be \c NULL.
  */
 void Device_register_update_tempo(
-        Device* device,
-        void (*update)(const Device*, Device_states*, double));
+        Device* device, void (*update)(const Device*, Device_states*, double));
 
 
 /**
@@ -189,15 +191,12 @@ void Device_set_reset(Device* device, void (*reset)(const Device*, Device_states
 
 
 /**
- * Set the process function of the Device.
+ * Set the signal process function of the Device.
  *
- * \param device    The Device -- must not be \c NULL.
- * \param process   The process function -- must not be \c NULL.
+ * \param device           The Device -- must not be \c NULL.
+ * \param process_signal   The signal process function, or \c NULL.
  */
-void Device_set_process(
-        Device* device,
-        void (*process)(
-            const Device*, Device_states*, uint32_t, uint32_t, uint32_t, double));
+void Device_set_process(Device* device, Device_process_signal_func* process_signal);
 
 
 /**
@@ -235,10 +234,7 @@ bool Device_get_port_existence(const Device* device, Device_port_type type, int 
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Device_set_audio_rate(
-        const Device* device,
-        Device_states* dstates,
-        int32_t rate);
+bool Device_set_audio_rate(const Device* device, Device_states* dstates, int32_t rate);
 
 
 /**
@@ -248,10 +244,7 @@ bool Device_set_audio_rate(
  * \param dstates   The Device states -- must not be \c NULL.
  * \param tempo     The new tempo -- must be finite and > \c 0.
  */
-void Device_update_tempo(
-        const Device* device,
-        Device_states* dstates,
-        double tempo);
+void Device_update_tempo(const Device* device, Device_states* dstates, double tempo);
 
 
 /**
@@ -264,10 +257,7 @@ void Device_update_tempo(
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Device_set_buffer_size(
-        const Device* device,
-        Device_states* dstates,
-        int32_t size);
+bool Device_set_buffer_size(const Device* device, Device_states* dstates, int32_t size);
 
 
 /**
@@ -319,10 +309,7 @@ bool Device_set_key(Device* device, const char* key, Streader* sr);
  *
  * \return   \c true if successful, or \c false if a fatal error occurred.
  */
-bool Device_set_state_key(
-        const Device* device,
-        Device_states* dstates,
-        const char* key);
+bool Device_set_state_key(const Device* device, Device_states* dstates, const char* key);
 
 
 /**
@@ -335,9 +322,7 @@ bool Device_set_state_key(
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Device_update_state_key(
-        const Device* device,
-        Device_states* dstates,
-        const char* key);
+        const Device* device, Device_states* dstates, const char* key);
 
 
 /**

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -28,19 +28,18 @@ void setup_single_pulse_without_instrument_manifest(void)
 
     set_data("out_00/p_manifest.json", "{}");
     set_data("p_connections.json",
-            "[ [\"ins_00/out_00\", \"out_00\"] ]");
+            "[ [\"au_00/out_00\", \"out_00\"] ]");
 
-    set_data("ins_00/out_00/p_manifest.json", "{}");
-    set_data("ins_00/p_connections.json",
-            "[ [\"gen_00/C/out_00\", \"out_00\"] ]");
+    set_data("au_00/out_00/p_manifest.json", "{}");
+    set_data("au_00/p_connections.json",
+            "[ [\"proc_00/C/out_00\", \"out_00\"] ]");
 
     set_data("p_control_map.json", "[ [0, 0] ]");
     set_data("control_00/p_manifest.json", "{}");
 
-    set_data("ins_00/gen_00/p_manifest.json", "{}");
-    set_data("ins_00/gen_00/out_00/p_manifest.json", "{}");
-    set_data("ins_00/gen_00/p_gen_type.json", "\"debug\"");
-    set_data("ins_00/gen_00/c/p_b_single_pulse.json", "true");
+    set_data("au_00/proc_00/p_manifest.json", "{ \"type\": \"debug\" }");
+    set_data("au_00/proc_00/out_00/p_manifest.json", "{}");
+    set_data("au_00/proc_00/c/p_b_single_pulse.json", "true");
 
     check_unexpected_error();
 
@@ -76,7 +75,7 @@ START_TEST(Adding_manifest_enables_instrument)
     pause();
 
     setup_single_pulse_without_instrument_manifest();
-    set_data("ins_00/p_manifest.json", "{}");
+    set_data("au_00/p_manifest.json", "{ \"type\": \"instrument\" }");
     validate();
     check_unexpected_error();
 
@@ -101,7 +100,7 @@ START_TEST(Removing_manifest_disables_instrument)
 
     setup_debug_instrument();
     setup_debug_single_pulse();
-    set_data("ins_00/p_manifest.json", "");
+    set_data("au_00/p_manifest.json", "");
     validate();
     check_unexpected_error();
 
@@ -128,32 +127,30 @@ START_TEST(Input_map_maintains_indices)
     // Set up two debug instruments
     set_data("out_00/p_manifest.json", "{}");
     set_data("p_connections.json",
-            "[ [\"ins_00/out_00\", \"out_00\"],"
-            "  [\"ins_01/out_00\", \"out_00\"] ]");
+            "[ [\"au_00/out_00\", \"out_00\"],"
+            "  [\"au_01/out_00\", \"out_00\"] ]");
 
     set_data("p_control_map.json", "[[0, 0], [1, 1]]");
     set_data("control_00/p_manifest.json", "{}");
     set_data("control_01/p_manifest.json", "{}");
 
-    set_data("ins_00/p_manifest.json", "{}");
-    set_data("ins_00/out_00/p_manifest.json", "{}");
-    set_data("ins_00/p_connections.json",
-            "[ [\"gen_00/C/out_00\", \"out_00\"] ]");
+    set_data("au_00/p_manifest.json", "{ \"type\": \"instrument\" }");
+    set_data("au_00/out_00/p_manifest.json", "{}");
+    set_data("au_00/p_connections.json",
+            "[ [\"proc_00/C/out_00\", \"out_00\"] ]");
 
-    set_data("ins_00/gen_00/p_manifest.json", "{}");
-    set_data("ins_00/gen_00/p_gen_type.json", "\"debug\"");
-    set_data("ins_00/gen_00/out_00/p_manifest.json", "{}");
+    set_data("au_00/proc_00/p_manifest.json", "{ \"type\": \"debug\" }");
+    set_data("au_00/proc_00/out_00/p_manifest.json", "{}");
 
-    set_data("ins_00/gen_00/c/p_b_single_pulse.json", "true");
+    set_data("au_00/proc_00/c/p_b_single_pulse.json", "true");
 
-    set_data("ins_01/p_manifest.json", "{}");
-    set_data("ins_01/out_00/p_manifest.json", "{}");
-    set_data("ins_01/p_connections.json",
-            "[ [\"gen_00/C/out_00\", \"out_00\"] ]");
+    set_data("au_01/p_manifest.json", "{ \"type\": \"instrument\" }");
+    set_data("au_01/out_00/p_manifest.json", "{}");
+    set_data("au_01/p_connections.json",
+            "[ [\"proc_00/C/out_00\", \"out_00\"] ]");
 
-    set_data("ins_01/gen_00/p_manifest.json", "{}");
-    set_data("ins_01/gen_00/p_gen_type.json", "\"debug\"");
-    set_data("ins_01/gen_00/out_00/p_manifest.json", "{}");
+    set_data("au_01/proc_00/p_manifest.json", "{ \"type\": \"debug\" }");
+    set_data("au_01/proc_00/out_00/p_manifest.json", "{}");
 
     validate();
     check_unexpected_error();
@@ -161,7 +158,7 @@ START_TEST(Input_map_maintains_indices)
     // Test rendering
     float actual_buf[buf_len] = { 0.0f };
 
-    kqt_Handle_fire_event(handle, 0, "[\".i\", 0]");
+    kqt_Handle_fire_event(handle, 0, "[\".a\", 0]");
     kqt_Handle_fire_event(handle, 0, Note_On_55_Hz);
     check_unexpected_error();
 
@@ -169,7 +166,7 @@ START_TEST(Input_map_maintains_indices)
 
     mix_and_fill(actual_buf, note_offset);
 
-    kqt_Handle_fire_event(handle, 1, "[\".i\", 1]");
+    kqt_Handle_fire_event(handle, 1, "[\".a\", 1]");
     kqt_Handle_fire_event(handle, 1, Note_On_55_Hz);
     check_unexpected_error();
 

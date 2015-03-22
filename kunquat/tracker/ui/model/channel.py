@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Toni Ruottu, Finland 2013
+# Authors: Toni Ruottu, Finland 2013
+#          Tomi Jylhä-Ollila, Finland 2015
 #
 # This file is part of Kunquat.
 #
@@ -11,15 +12,17 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+
 class Channel():
 
     def __init__(self):
-        self._active_instrument_number = None
-        self._selected_instrument_number = None
+        self._active_au_number = None
+        self._selected_au_number = None
 
-    def get_active_instrument_number(self):
-        return self._active_instrument_number
+    def get_active_au_number(self):
+        return self._active_au_number
 
-    def get_selected_instrument_number(self):
-        return self._selected_instrument_number
+    def get_selected_au_number(self):
+        return self._selected_au_number
+
 

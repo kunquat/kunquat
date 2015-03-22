@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -20,10 +20,9 @@
 
 #include <Connections.h>
 #include <debug/assert.h>
-#include <devices/Device_event_keys.h>
+#include <devices/Audio_unit.h>
 #include <devices/Device_params.h>
-#include <devices/dsps/DSP_type.h>
-#include <devices/generators/Gen_type.h>
+#include <devices/Proc_type.h>
 #include <Handle_private.h>
 #include <memory.h>
 #include <module/Bind.h>
@@ -71,144 +70,106 @@ static const struct
     } else (void)0
 
 
-static bool is_ins_out_conn_possible(Handle* handle, int32_t ins_index, int32_t port)
-{
-    assert(handle != NULL);
-    const Module* module = Handle_get_module(handle);
-
-    const Instrument* ins = Ins_table_get(Module_get_insts(module), ins_index);
-    if (ins == NULL)
-        return false;
-
-    return Device_get_port_existence((const Device*)ins, DEVICE_PORT_TYPE_SEND, port);
-}
-
-
-static bool is_gen_out_conn_possible(
-        Handle* handle, int32_t ins_index, int32_t gen_index, int32_t port)
+static const Audio_unit* find_au(Handle* handle, int32_t au_index, int32_t sub_au_index)
 {
     assert(handle != NULL);
 
     const Module* module = Handle_get_module(handle);
 
-    const Instrument* ins = Ins_table_get(Module_get_insts(module), ins_index);
-    if (ins == NULL)
-        return false;
+    Audio_unit* au = Au_table_get(Module_get_au_table(module), au_index);
+    if (au == NULL)
+        return NULL;
 
-    const Generator* gen = Instrument_get_gen(ins, gen_index);
-    if ((gen == NULL) || !Device_has_complete_type((const Device*)gen))
-        return false;
-
-    return Device_get_port_existence((const Device*)gen, DEVICE_PORT_TYPE_SEND, port);
-}
-
-
-static const Effect_table* find_effect_table(Handle* handle, int32_t ins_index)
-{
-    assert(handle != NULL);
-
-    const Module* module = Handle_get_module(handle);
-
-    const Effect_table* eff_table = Module_get_effects(module);
-    if (ins_index >= 0)
+    if (sub_au_index >= 0)
     {
-        Instrument* ins = Ins_table_get(Module_get_insts(module), ins_index);
-        if (ins == NULL)
+        Au_table* au_table = Audio_unit_get_au_table(au);
+        if (au_table == NULL)
             return NULL;
 
-        eff_table = Instrument_get_effects(ins);
+        au = Au_table_get(au_table, sub_au_index);
     }
 
-    return eff_table;
+    return au;
 }
 
 
-static const Effect* find_effect(Handle* handle, int32_t ins_index, int32_t eff_index)
+static bool is_au_in_conn_possible(
+        Handle* handle, int32_t au_index, int32_t sub_au_index, int32_t port)
 {
     assert(handle != NULL);
 
-    const Effect_table* eff_table = find_effect_table(handle, ins_index);
-    if (eff_table == NULL)
-        return NULL;
-
-    return Effect_table_get(eff_table, eff_index);
-}
-
-
-static bool is_eff_in_conn_possible(
-        Handle* handle, int32_t ins_index, int32_t eff_index, int32_t port)
-{
-    assert(handle != NULL);
-
-    const Effect* eff = find_effect(handle, ins_index, eff_index);
-    if (eff == NULL)
+    const Audio_unit* au = find_au(handle, au_index, sub_au_index);
+    if (au == NULL)
         return false;
 
-    return Device_get_port_existence((const Device*)eff, DEVICE_PORT_TYPE_RECEIVE, port);
+    return Device_get_port_existence((const Device*)au, DEVICE_PORT_TYPE_RECEIVE, port);
 }
 
 
-static bool is_eff_out_conn_possible(
-        Handle* handle, int32_t ins_index, int32_t eff_index, int32_t port)
+static bool is_au_out_conn_possible(
+        Handle* handle, int32_t au_index, int32_t sub_au_index, int32_t port)
 {
     assert(handle != NULL);
 
-    const Effect* eff = find_effect(handle, ins_index, eff_index);
-    if (eff == NULL)
+    const Audio_unit* au = find_au(handle, au_index, sub_au_index);
+    if (au == NULL)
         return false;
 
-    return Device_get_port_existence((const Device*)eff, DEVICE_PORT_TYPE_SEND, port);
+    return Device_get_port_existence((const Device*)au, DEVICE_PORT_TYPE_SEND, port);
 }
 
 
-static const DSP* find_complete_dsp(
-        Handle* handle, int32_t ins_index, int32_t eff_index, int32_t dsp_index)
+static const Processor* find_complete_proc(
+        Handle* handle, int32_t au_index, int32_t sub_au_index, int32_t proc_index)
 {
     assert(handle != NULL);
 
-    const Effect* eff = find_effect(handle, ins_index, eff_index);
-    if (eff == NULL)
+    const Audio_unit* au = find_au(handle, au_index, sub_au_index);
+    if (au == NULL)
+        return false;
+
+    const Processor* proc = Audio_unit_get_proc(au, proc_index);
+    if ((proc == NULL) || !Device_has_complete_type((const Device*)proc))
         return NULL;
 
-    const DSP* dsp = Effect_get_dsp(eff, dsp_index);
-    if ((dsp == NULL) || !Device_has_complete_type((const Device*)dsp))
-        return NULL;
-
-    return dsp;
+    return proc;
 }
 
 
-static bool is_dsp_in_conn_possible(
+static bool is_proc_in_conn_possible(
         Handle* handle,
-        int32_t ins_index,
-        int32_t eff_index,
-        int32_t dsp_index,
+        int32_t au_index,
+        int32_t sub_au_index,
+        int32_t proc_index,
         int32_t port)
 {
     assert(handle != NULL);
 
-    const DSP* dsp = find_complete_dsp(handle, ins_index, eff_index, dsp_index);
-    if (dsp == NULL)
+    const Processor* proc = find_complete_proc(
+            handle, au_index, sub_au_index, proc_index);
+    if (proc == NULL)
         return false;
 
-    return Device_get_port_existence((const Device*)dsp, DEVICE_PORT_TYPE_RECEIVE, port);
+    return Device_get_port_existence(
+            (const Device*)proc, DEVICE_PORT_TYPE_RECEIVE, port);
 }
 
 
-static bool is_dsp_out_conn_possible(
+static bool is_proc_out_conn_possible(
         Handle* handle,
-        int32_t ins_index,
-        int32_t eff_index,
-        int32_t dsp_index,
+        int32_t au_index,
+        int32_t sub_au_index,
+        int32_t proc_index,
         int32_t port)
 {
     assert(handle != NULL);
 
-    const DSP* dsp = find_complete_dsp(handle, ins_index, eff_index, dsp_index);
-    if (dsp == NULL)
+    const Processor* proc = find_complete_proc(
+            handle, au_index, sub_au_index, proc_index);
+    if (proc == NULL)
         return false;
 
-    return Device_get_port_existence((const Device*)dsp, DEVICE_PORT_TYPE_SEND, port);
+    return Device_get_port_existence((const Device*)proc, DEVICE_PORT_TYPE_SEND, port);
 }
 
 
@@ -219,28 +180,24 @@ static bool is_connection_possible(
     assert(keyp != NULL);
     assert(indices != NULL);
 
-    if (string_has_prefix(keyp, "ins_XX/eff_XX/dsp_XX/in_XX/"))
-        return is_dsp_in_conn_possible(
+    if (string_has_prefix(keyp, "au_XX/au_XX/proc_XX/in_XX/"))
+        return is_proc_in_conn_possible(
                 handle, indices[0], indices[1], indices[2], indices[3]);
-    else if (string_has_prefix(keyp, "ins_XX/eff_XX/dsp_XX/out_XX/"))
-        return is_dsp_out_conn_possible(
+    else if (string_has_prefix(keyp, "au_XX/au_XX/proc_XX/out_XX/"))
+        return is_proc_out_conn_possible(
                 handle, indices[0], indices[1], indices[2], indices[3]);
-    else if (string_has_prefix(keyp, "ins_XX/eff_XX/in_XX/"))
-        return is_eff_in_conn_possible(handle, indices[0], indices[1], indices[2]);
-    else if (string_has_prefix(keyp, "ins_XX/eff_XX/out_XX/"))
-        return is_eff_out_conn_possible(handle, indices[0], indices[1], indices[2]);
-    else if (string_has_prefix(keyp, "ins_XX/gen_XX/out_XX/"))
-        return is_gen_out_conn_possible(handle, indices[0], indices[1], indices[2]);
-    else if (string_has_prefix(keyp, "ins_XX/out_XX/"))
-        return is_ins_out_conn_possible(handle, indices[0], indices[1]);
-    else if (string_has_prefix(keyp, "eff_XX/dsp_XX/in_XX/"))
-        return is_dsp_in_conn_possible(handle, -1, indices[0], indices[1], indices[2]);
-    else if (string_has_prefix(keyp, "eff_XX/dsp_XX/out_XX/"))
-        return is_dsp_out_conn_possible(handle, -1, indices[0], indices[1], indices[2]);
-    else if (string_has_prefix(keyp, "eff_XX/in_XX/"))
-        return is_eff_in_conn_possible(handle, -1, indices[0], indices[1]);
-    else if (string_has_prefix(keyp, "eff_XX/out_XX/"))
-        return is_eff_out_conn_possible(handle, -1, indices[0], indices[1]);
+    else if (string_has_prefix(keyp, "au_XX/au_XX/in_XX/"))
+        return is_au_in_conn_possible(handle, indices[0], indices[1], indices[2]);
+    else if (string_has_prefix(keyp, "au_XX/au_XX/out_XX/"))
+        return is_au_out_conn_possible(handle, indices[0], indices[1], indices[2]);
+    else if (string_has_prefix(keyp, "au_XX/proc_XX/in_XX/"))
+        return is_proc_in_conn_possible(handle, indices[0], -1, indices[1], indices[2]);
+    else if (string_has_prefix(keyp, "au_XX/proc_XX/out_XX/"))
+        return is_proc_out_conn_possible(handle, indices[0], -1, indices[1], indices[2]);
+    else if (string_has_prefix(keyp, "au_XX/in_XX/"))
+        return is_au_in_conn_possible(handle, indices[0], -1, indices[1]);
+    else if (string_has_prefix(keyp, "au_XX/out_XX/"))
+        return is_au_out_conn_possible(handle, indices[0], -1, indices[1]);
 
     return false;
 }
@@ -366,9 +323,7 @@ static bool read_connections(Reader_params* params)
     Connections* graph = new_Connections_from_string(
             params->sr,
             CONNECTION_LEVEL_GLOBAL,
-            Module_get_insts(module),
-            Module_get_effects(module),
-            NULL,
+            Module_get_au_table(module),
             (Device*)module);
     if (graph == NULL)
     {
@@ -391,7 +346,7 @@ static bool read_control_map(Reader_params* params)
 {
     assert(params != NULL);
 
-    if (!Module_set_ins_map(Handle_get_module(params->handle), params->sr))
+    if (!Module_set_au_map(Handle_get_module(params->handle), params->sr))
     {
         set_error(params);
         return false;
@@ -520,170 +475,252 @@ static bool read_album_tracks(Reader_params* params)
 }
 
 
-static Instrument* add_instrument(Handle* handle, int index)
+static Audio_unit* add_audio_unit(Handle* handle, Au_table* au_table, int index)
 {
     assert(handle != NULL);
+    assert(au_table != NULL);
     assert(index >= 0);
-    assert(index < KQT_INSTRUMENTS_MAX);
+    assert(index < KQT_AUDIO_UNITS_MAX);
 
     static const char* memory_error_str =
-        "Couldn't allocate memory for a new instrument";
+        "Couldn't allocate memory for a new audio unit";
 
-    Module* module = Handle_get_module(handle);
+    // Return existing audio unit
+    Audio_unit* au = Au_table_get(au_table, index);
+    if (au != NULL)
+        return au;
 
-    // Return existing instrument
-    Instrument* ins = Ins_table_get(Module_get_insts(module), index);
-    if (ins != NULL)
-        return ins;
-
-    // Create new instrument
-    ins = new_Instrument();
-    if (ins == NULL || !Ins_table_set(Module_get_insts(module), index, ins))
+    // Create new audio unit
+    au = new_Audio_unit();
+    if (au == NULL || !Au_table_set(au_table, index, au))
     {
         Handle_set_error(handle, ERROR_MEMORY, memory_error_str);
-        del_Instrument(ins);
+        del_Audio_unit(au);
         return NULL;
     }
 
-    // Allocate Device state(s) for the new Instrument
-    Device_state* ds = Device_create_state(
-            (Device*)ins,
-            Player_get_audio_rate(handle->player),
-            Player_get_audio_buffer_size(handle->player));
-    if (ds == NULL || !Device_states_add_state(
-                Player_get_device_states(handle->player), ds))
+    // Allocate Device states for the new audio unit
+    const Device* au_devices[] =
     {
-        Handle_set_error(handle, ERROR_MEMORY, memory_error_str);
-        Ins_table_remove(Module_get_insts(module), index);
-        return NULL;
+        (const Device*)au,
+        Audio_unit_get_input_interface(au),
+        Audio_unit_get_output_interface(au),
+        NULL
+    };
+    for (int i = 0; i < 3; ++i)
+    {
+        assert(au_devices[i] != NULL);
+        Device_state* ds = Device_create_state(
+                au_devices[i],
+                Player_get_audio_rate(handle->player),
+                Player_get_audio_buffer_size(handle->player));
+        if (ds == NULL || !Device_states_add_state(
+                    Player_get_device_states(handle->player), ds))
+        {
+            del_Device_state(ds);
+            Handle_set_error(handle, ERROR_MEMORY, memory_error_str);
+            Au_table_remove(au_table, index);
+            return NULL;
+        }
     }
 
-    return ins;
+    return au;
 }
 
 
-#define acquire_ins_index(index, params)                   \
+#define acquire_au_index(index, params, level)             \
     if (true)                                              \
     {                                                      \
-        (index) = (params)->indices[0];                    \
-        if ((index) < 0 || (index) >= KQT_INSTRUMENTS_MAX) \
+        (index) = (params)->indices[(level)];              \
+        if ((index) < 0 || (index) >= KQT_AUDIO_UNITS_MAX) \
             return true;                                   \
     }                                                      \
     else (void)0
 
 
-#define acquire_ins(ins, handle, index)            \
-    if (true)                                      \
-    {                                              \
-        (ins) = add_instrument((handle), (index)); \
-        if ((ins) == NULL)                         \
-            return false;                          \
-    }                                              \
+#define acquire_au(au, handle, au_table, index)               \
+    if (true)                                                 \
+    {                                                         \
+        (au) = add_audio_unit((handle), (au_table), (index)); \
+        if ((au) == NULL)                                     \
+            return false;                                     \
+    }                                                         \
     else (void)0
 
 
-static bool read_ins_manifest(Reader_params* params)
+typedef struct amdata
 {
-    assert(params != NULL);
+    Handle* handle;
+    Au_type type;
+} amdata;
 
-    int32_t index = -1;
-    acquire_ins_index(index, params);
 
-    Instrument* ins = NULL;
-    acquire_ins(ins, params->handle, index);
+static bool read_au_manifest_entry(Streader* sr, const char* key, void* userdata)
+{
+    assert(sr != NULL);
+    assert(key != NULL);
+    assert(userdata != NULL);
 
-    const bool existent = read_default_manifest(params->sr);
-    if (Streader_is_error_set(params->sr))
+    amdata* d = userdata;
+
+    if (string_eq(key, "type"))
     {
-        set_error(params);
-        return false;
-    }
+        char type[64] = "";
+        if (!Streader_read_string(sr, 64, type))
+            return false;
 
-    Device_set_existent((Device*)ins, existent);
+        if (string_eq(type, "instrument"))
+        {
+            d->type = AU_TYPE_INSTRUMENT;
+        }
+        else if (string_eq(type, "effect"))
+        {
+            d->type = AU_TYPE_EFFECT;
+        }
+        else
+        {
+            Handle_set_error(d->handle, ERROR_FORMAT,
+                    "Unsupported Audio unit type: %s", type);
+            return false;
+        }
+    }
 
     return true;
 }
 
 
-static bool read_ins(Reader_params* params)
+static bool read_any_au_manifest(Reader_params* params, Au_table* au_table, int level)
 {
     assert(params != NULL);
 
     int32_t index = -1;
-    acquire_ins_index(index, params);
+    acquire_au_index(index, params, level);
 
-    Instrument* ins = NULL;
-    acquire_ins(ins, params->handle, index);
-
-    if (!Instrument_parse_header(ins, params->sr))
-    {
-        set_error(params);
-        return false;
-    }
-
-    return true;
-}
-
-
-static bool read_ins_out_port_manifest(Reader_params* params)
-{
-    assert(params != NULL);
-
-    int32_t ins_index = -1;
-    acquire_ins_index(ins_index, params);
-    int32_t out_port_index = -1;
-    acquire_port_index(out_port_index, params, 1);
-
-    const bool existent = read_default_manifest(params->sr);
-    if (Streader_is_error_set(params->sr))
-    {
-        set_error(params);
-        return false;
-    }
-
-    Instrument* ins = NULL;
-    acquire_ins(ins, params->handle, ins_index);
-
-    Device_set_port_existence(
-            (Device*)ins, DEVICE_PORT_TYPE_RECEIVE, out_port_index, existent);
-    Device_set_port_existence(
-            (Device*)ins, DEVICE_PORT_TYPE_SEND, out_port_index, existent);
-
-    return true;
-}
-
-
-static bool read_ins_connections(Reader_params* params)
-{
-    assert(params != NULL);
-
-    int32_t index = -1;
-    acquire_ins_index(index, params);
-
-    Instrument* ins = NULL;
-    acquire_ins(ins, params->handle, index);
+    Audio_unit* au = NULL;
+    acquire_au(au, params->handle, au_table, index);
 
     if (!Streader_has_data(params->sr))
     {
-        Instrument_set_connections(ins, NULL);
+        Device_set_existent((Device*)au, false);
+        return true;
+    }
+
+    amdata* d = &(amdata){ .handle = params->handle, .type = AU_TYPE_INVALID };
+    if (!Streader_read_dict(params->sr, read_au_manifest_entry, d))
+        return false;
+
+    if (d->type == AU_TYPE_INVALID)
+        return false;
+
+    Audio_unit_set_type(au, d->type);
+    Device_set_existent((Device*)au, true);
+
+    return true;
+}
+
+
+static bool read_any_au(Reader_params* params, Au_table* au_table, int level)
+{
+    assert(params != NULL);
+
+    int32_t index = -1;
+    acquire_au_index(index, params, level);
+
+    Audio_unit* au = NULL;
+    acquire_au(au, params->handle, au_table, index);
+
+    if (!Audio_unit_parse_header(au, params->sr))
+    {
+        set_error(params);
+        return false;
+    }
+
+    return true;
+}
+
+
+static bool read_any_au_in_port_manifest(Reader_params* params, Au_table* au_table, int level)
+{
+    assert(params != NULL);
+
+    int32_t au_index = -1;
+    acquire_au_index(au_index, params, level);
+    int32_t in_port_index = -1;
+    acquire_port_index(in_port_index, params, level + 1);
+
+    const bool existent = read_default_manifest(params->sr);
+    if (Streader_is_error_set(params->sr))
+    {
+        set_error(params);
+        return false;
+    }
+
+    Audio_unit* au = NULL;
+    acquire_au(au, params->handle, au_table, au_index);
+
+    Device_set_port_existence(
+            (Device*)au, DEVICE_PORT_TYPE_RECEIVE, in_port_index, existent);
+    Device_set_port_existence(
+            (Device*)au, DEVICE_PORT_TYPE_SEND, in_port_index, existent);
+
+    return true;
+}
+
+
+static bool read_any_au_out_port_manifest(Reader_params* params, Au_table* au_table, int level)
+{
+    assert(params != NULL);
+
+    int32_t au_index = -1;
+    acquire_au_index(au_index, params, level);
+    int32_t out_port_index = -1;
+    acquire_port_index(out_port_index, params, level + 1);
+
+    const bool existent = read_default_manifest(params->sr);
+    if (Streader_is_error_set(params->sr))
+    {
+        set_error(params);
+        return false;
+    }
+
+    Audio_unit* au = NULL;
+    acquire_au(au, params->handle, au_table, au_index);
+
+    Device_set_port_existence(
+            (Device*)au, DEVICE_PORT_TYPE_RECEIVE, out_port_index, existent);
+    Device_set_port_existence(
+            (Device*)au, DEVICE_PORT_TYPE_SEND, out_port_index, existent);
+
+    return true;
+}
+
+
+static bool read_any_au_connections(Reader_params* params, Au_table* au_table, int level)
+{
+    assert(params != NULL);
+
+    int32_t index = -1;
+    acquire_au_index(index, params, level);
+
+    Audio_unit* au = NULL;
+    acquire_au(au, params->handle, au_table, index);
+
+    if (!Streader_has_data(params->sr))
+    {
+        Audio_unit_set_connections(au, NULL);
         params->handle->update_connections = true;
     }
     else
     {
         Connections* graph = new_Connections_from_string(
-                params->sr,
-                CONNECTION_LEVEL_INSTRUMENT,
-                Module_get_insts(Handle_get_module(params->handle)),
-                Instrument_get_effects(ins),
-                NULL,
-                (Device*)ins);
+                params->sr, CONNECTION_LEVEL_AU, Audio_unit_get_au_table(au), (Device*)au);
         if (graph == NULL)
         {
             set_error(params);
             return false;
         }
 
-        Instrument_set_connections(ins, graph);
+        Audio_unit_set_connections(au, graph);
         params->handle->update_connections = true;
     }
 
@@ -691,18 +728,21 @@ static bool read_ins_connections(Reader_params* params)
 }
 
 
-static bool read_ins_env_generic(
-        Reader_params* params, bool parse_func(Instrument_params*, Streader*))
+static bool read_any_au_env_generic(
+        Reader_params* params,
+        Au_table* au_table,
+        int level,
+        bool parse_func(Au_params*, Streader*))
 {
     assert(params != NULL);
 
     int32_t index = -1;
-    acquire_ins_index(index, params);
+    acquire_au_index(index, params, level);
 
-    Instrument* ins = NULL;
-    acquire_ins(ins, params->handle, index);
+    Audio_unit* au = NULL;
+    acquire_au(au, params->handle, au_table, index);
 
-    if (!parse_func(Instrument_get_params(ins), params->sr))
+    if (!parse_func(Audio_unit_get_params(au), params->sr))
     {
         set_error(params);
         return false;
@@ -712,91 +752,98 @@ static bool read_ins_env_generic(
 }
 
 
-static bool read_ins_env_force(Reader_params* params)
+static bool read_any_au_env_force(Reader_params* params, Au_table* au_table, int level)
 {
     assert(params != NULL);
-    return read_ins_env_generic(params, Instrument_params_parse_env_force);
+    return read_any_au_env_generic(params, au_table, level, Au_params_parse_env_force);
 }
 
 
-static bool read_ins_env_force_release(Reader_params* params)
+static bool read_any_au_env_force_release(
+        Reader_params* params, Au_table* au_table, int level)
 {
     assert(params != NULL);
-    return read_ins_env_generic(params, Instrument_params_parse_env_force_rel);
+    return read_any_au_env_generic(
+            params, au_table, level, Au_params_parse_env_force_rel);
 }
 
 
-static bool read_ins_env_force_filter(Reader_params* params)
+static bool read_any_au_env_force_filter(
+        Reader_params* params, Au_table* au_table, int level)
 {
     assert(params != NULL);
-    return read_ins_env_generic(params, Instrument_params_parse_env_force_filter);
+    return read_any_au_env_generic(
+            params, au_table, level, Au_params_parse_env_force_filter);
 }
 
 
-static bool read_ins_env_pitch_pan(Reader_params* params)
+static bool read_any_au_env_pitch_pan(
+        Reader_params* params, Au_table* au_table, int level)
 {
     assert(params != NULL);
-    return read_ins_env_generic(params, Instrument_params_parse_env_pitch_pan);
+    return read_any_au_env_generic(
+            params, au_table, level, Au_params_parse_env_pitch_pan);
 }
 
 
-static Generator* add_generator(
+static Processor* add_processor(
         Handle* handle,
-        Instrument* ins,
-        Gen_table* gen_table,
-        int gen_index)
+        Audio_unit* au,
+        Proc_table* proc_table,
+        int proc_index)
 {
     assert(handle != NULL);
-    assert(ins != NULL);
-    assert(gen_table != NULL);
-    assert(gen_index >= 0);
-    assert(gen_index < KQT_GENERATORS_MAX);
+    assert(au != NULL);
+    assert(proc_table != NULL);
+    assert(proc_index >= 0);
+    assert(proc_index < KQT_PROCESSORS_MAX);
 
     static const char* memory_error_str =
-        "Couldn't allocate memory for a new generator";
+        "Couldn't allocate memory for a new processor";
 
-    // Return existing generator
-    Generator* gen = Gen_table_get_gen_mut(gen_table, gen_index);
-    if (gen != NULL)
-        return gen;
+    // Return existing processor
+    Processor* proc = Proc_table_get_proc_mut(proc_table, proc_index);
+    if (proc != NULL)
+        return proc;
 
-    // Create new generator
-    gen = new_Generator(Instrument_get_params(ins));
-    if (gen == NULL || !Gen_table_set_gen(gen_table, gen_index, gen))
+    // Create new processor
+    proc = new_Processor(Audio_unit_get_params(au));
+    if (proc == NULL || !Proc_table_set_proc(proc_table, proc_index, proc))
     {
         Handle_set_error(handle, ERROR_MEMORY, memory_error_str);
-        del_Generator(gen);
+        del_Processor(proc);
         return NULL;
     }
 
-    return gen;
+    return proc;
 }
 
 
-#define acquire_gen_index(index, params)                  \
+#define acquire_proc_index(index, params, level)          \
     if (true)                                             \
     {                                                     \
-        (index) = (params)->indices[1];                   \
-        if ((index) < 0 || (index) >= KQT_GENERATORS_MAX) \
+        (index) = (params)->indices[(level)];             \
+        if ((index) < 0 || (index) >= KQT_PROCESSORS_MAX) \
             return true;                                  \
     }                                                     \
     else (void)0
 
 
-static bool read_gen_manifest(Reader_params* params)
+static bool read_any_proc_in_port_manifest(
+        Reader_params* params, Au_table* au_table, int level)
 {
     assert(params != NULL);
 
-    int32_t ins_index = -1;
-    acquire_ins_index(ins_index, params);
-    int32_t gen_index = -1;
-    acquire_gen_index(gen_index, params);
+    int32_t au_index = -1;
+    acquire_au_index(au_index, params, level);
+    int32_t proc_index = -1;
+    acquire_proc_index(proc_index, params, level + 1);
+    int32_t in_port_index = -1;
+    acquire_port_index(in_port_index, params, level + 2);
 
-    Instrument* ins = NULL;
-    acquire_ins(ins, params->handle, ins_index);
-
-    Gen_table* table = Instrument_get_gens(ins);
-    assert(table != NULL);
+    Audio_unit* au = NULL;
+    acquire_au(au, params->handle, au_table, au_index);
+    Proc_table* proc_table = Audio_unit_get_procs(au);
 
     const bool existent = read_default_manifest(params->sr);
     if (Streader_is_error_set(params->sr))
@@ -805,118 +852,155 @@ static bool read_gen_manifest(Reader_params* params)
         return false;
     }
 
-    Gen_table_set_existent(table, gen_index, existent);
-
-    return true;
-}
-
-
-static bool read_gen_out_port_manifest(Reader_params* params)
-{
-    assert(params != NULL);
-
-    int32_t ins_index = -1;
-    acquire_ins_index(ins_index, params);
-    int32_t gen_index = -1;
-    acquire_gen_index(gen_index, params);
-    int32_t out_port_index = -1;
-    acquire_port_index(out_port_index, params, 2);
-
-    Instrument* ins = NULL;
-    acquire_ins(ins, params->handle, ins_index);
-    Gen_table* gen_table = Instrument_get_gens(ins);
-
-    const bool existent = read_default_manifest(params->sr);
-    if (Streader_is_error_set(params->sr))
-    {
-        set_error(params);
-        return false;
-    }
-
-    Generator* gen = add_generator(params->handle, ins, gen_table, gen_index);
-    if (gen == NULL)
+    Processor* proc = add_processor(params->handle, au, proc_table, proc_index);
+    if (proc == NULL)
         return false;
 
     Device_set_port_existence(
-            (Device*)gen, DEVICE_PORT_TYPE_SEND, out_port_index, existent);
+            (Device*)proc, DEVICE_PORT_TYPE_RECEIVE, in_port_index, existent);
 
     return true;
 }
 
 
-static bool read_gen_type(Reader_params* params)
+static bool read_any_proc_out_port_manifest(
+        Reader_params* params, Au_table* au_table, int level)
 {
     assert(params != NULL);
 
-    int32_t ins_index = -1;
-    acquire_ins_index(ins_index, params);
-    int32_t gen_index = -1;
-    acquire_gen_index(gen_index, params);
+    int32_t au_index = -1;
+    acquire_au_index(au_index, params, level);
+    int32_t proc_index = -1;
+    acquire_proc_index(proc_index, params, level + 1);
+    int32_t out_port_index = -1;
+    acquire_port_index(out_port_index, params, level + 2);
+
+    Audio_unit* au = NULL;
+    acquire_au(au, params->handle, au_table, au_index);
+    Proc_table* proc_table = Audio_unit_get_procs(au);
+
+    const bool existent = read_default_manifest(params->sr);
+    if (Streader_is_error_set(params->sr))
+    {
+        set_error(params);
+        return false;
+    }
+
+    Processor* proc = add_processor(params->handle, au, proc_table, proc_index);
+    if (proc == NULL)
+        return false;
+
+    Device_set_port_existence(
+            (Device*)proc, DEVICE_PORT_TYPE_SEND, out_port_index, existent);
+
+    return true;
+}
+
+
+typedef struct pmdata
+{
+    Handle* handle;
+    Proc_cons* cons;
+    Proc_property* prop;
+} pmdata;
+
+
+static bool read_proc_manifest_entry(Streader* sr, const char* key, void* userdata)
+{
+    assert(sr != NULL);
+    assert(key != NULL);
+    assert(userdata != NULL);
+
+    pmdata* d = userdata;
+
+    if (string_eq(key, "type"))
+    {
+        char type[PROC_TYPE_LENGTH_MAX] = "";
+        if (!Streader_read_string(sr, PROC_TYPE_LENGTH_MAX, type))
+            return false;
+
+        d->cons = Proc_type_find_cons(type);
+        if (d->cons == NULL)
+        {
+            Handle_set_error(d->handle, ERROR_FORMAT,
+                    "Unsupported Processor type: %s", type);
+            return false;
+        }
+
+        d->prop = Proc_type_find_property(type);
+    }
+
+    return true;
+}
+
+
+static bool read_any_proc_manifest(Reader_params* params, Au_table* au_table, int level)
+{
+    assert(params != NULL);
+
+    int32_t au_index = -1;
+    acquire_au_index(au_index, params, level);
+    int32_t proc_index = -1;
+    acquire_proc_index(proc_index, params, level + 1);
 
     if (!Streader_has_data(params->sr))
     {
-        // Remove generator
+        // Remove processor
         Module* module = Handle_get_module(params->handle);
-        Instrument* ins = Ins_table_get(Module_get_insts(module), ins_index);
-        if (ins == NULL)
+        Audio_unit* au = Au_table_get(Module_get_au_table(module), au_index);
+        if (au == NULL)
             return true;
 
-        Gen_table* gen_table = Instrument_get_gens(ins);
-        Gen_table_remove_gen(gen_table, gen_index);
+        Proc_table* proc_table = Audio_unit_get_procs(au);
+        Proc_table_set_existent(proc_table, proc_index, false);
+        Proc_table_remove_proc(proc_table, proc_index);
 
         return true;
     }
 
-    Instrument* ins = NULL;
-    acquire_ins(ins, params->handle, ins_index);
-    Gen_table* gen_table = Instrument_get_gens(ins);
+    Audio_unit* au = NULL;
+    acquire_au(au, params->handle, au_table, au_index);
+    Proc_table* proc_table = Audio_unit_get_procs(au);
 
-    Generator* gen = add_generator(params->handle, ins, gen_table, gen_index);
-    if (gen == NULL)
+    Processor* proc = add_processor(params->handle, au, proc_table, proc_index);
+    if (proc == NULL)
         return false;
 
-    // Create the Generator implementation
-    char type[GEN_TYPE_LENGTH_MAX] = "";
-    if (!Streader_read_string(params->sr, GEN_TYPE_LENGTH_MAX, type))
-    {
-        set_error(params);
+    // Create the Processor implementation
+    pmdata* d = &(pmdata){ .handle = params->handle, .cons = NULL, .prop = NULL };
+    if (!Streader_read_dict(params->sr, read_proc_manifest_entry, d))
         return false;
-    }
 
-    Generator_cons* cons = Gen_type_find_cons(type);
-    if (cons == NULL)
-    {
-        Handle_set_error(params->handle, ERROR_FORMAT,
-                "Unsupported Generator type: %s", type);
+    if (d->cons == NULL)
         return false;
-    }
 
-    Device_impl* gen_impl = cons(gen);
-    if (gen_impl == NULL)
+    assert(d->cons != NULL);
+    Device_impl* proc_impl = d->cons(proc);
+    if (proc_impl == NULL)
     {
         Handle_set_error(params->handle, ERROR_MEMORY,
-                "Couldn't allocate memory for generator implementation");
+                "Couldn't allocate memory for processor implementation");
         return false;
     }
 
-    if (!Device_set_impl((Device*)gen, gen_impl))
+    if (!Device_set_impl((Device*)proc, proc_impl))
     {
-        del_Device_impl(gen_impl);
+        del_Device_impl(proc_impl);
         Handle_set_error(params->handle, ERROR_MEMORY,
-                "Couldn't allocate memory while initialising Generator implementation");
+                "Couldn't allocate memory while initialising Processor implementation");
         return false;
     }
 
-    // Remove old Generator Device state
+    // Remove old Processor Device state
     Device_states* dstates = Player_get_device_states(params->handle->player);
-    Device_states_remove_state(dstates, Device_get_id((Device*)gen));
+    Device_states_remove_state(dstates, Device_get_id((Device*)proc));
 
-    // Get generator properties
-    Generator_property* property = Gen_type_find_property(type);
+    // Get processor properties
+    Proc_property* property = d->prop;
     if (property != NULL)
     {
         // Allocate Voice state space
-        const char* size_str = property(gen, "voice_state_size");
+        const char* size_str = property(proc, "voice_state_size");
         if (size_str != NULL)
         {
             Streader* size_sr = Streader_init(
@@ -933,22 +1017,22 @@ static bool read_gen_type(Reader_params* params)
                         params->handle->length_counter, size))
             {
                 Handle_set_error(params->handle, ERROR_MEMORY,
-                        "Couldn't allocate memory for generator voice states");
-                del_Device_impl(gen_impl);
+                        "Couldn't allocate memory for processor voice states");
+                del_Device_impl(proc_impl);
                 return false;
             }
         }
 
-        // Allocate channel-specific generator state space
-        const char* gen_state_vars = property(gen, "gen_state_vars");
-        if (gen_state_vars != NULL)
+        // Allocate channel-specific processor state space
+        const char* proc_state_vars = property(proc, "proc_state_vars");
+        if (proc_state_vars != NULL)
         {
             Streader* gsv_sr = Streader_init(
                     STREADER_AUTO,
-                    gen_state_vars,
-                    strlen(gen_state_vars));
+                    proc_state_vars,
+                    strlen(proc_state_vars));
 
-            if (!Player_alloc_channel_gen_state_keys(
+            if (!Player_alloc_channel_proc_state_keys(
                         params->handle->player, gsv_sr))
             {
                 Reader_params gsv_params;
@@ -960,9 +1044,9 @@ static bool read_gen_type(Reader_params* params)
         }
     }
 
-    // Allocate Device state(s) for this Generator
+    // Allocate Device state(s) for this Processor
     Device_state* ds = Device_create_state(
-            (Device*)gen,
+            (Device*)proc,
             Player_get_audio_rate(params->handle->player),
             Player_get_audio_buffer_size(params->handle->player));
     if (ds == NULL || !Device_states_add_state(dstates, ds))
@@ -970,57 +1054,60 @@ static bool read_gen_type(Reader_params* params)
         Handle_set_error(params->handle, ERROR_MEMORY,
                 "Couldn't allocate memory for device state");
         del_Device_state(ds);
-        del_Generator(gen);
+        del_Processor(proc);
         return false;
     }
 
-    // Sync the Generator
-    if (!Device_sync((Device*)gen))
+    // Sync the Processor
+    if (!Device_sync((Device*)proc))
     {
         Handle_set_error(params->handle, ERROR_MEMORY,
-                "Couldn't allocate memory while syncing generator");
+                "Couldn't allocate memory while syncing processor");
         return false;
     }
 
     // Sync the Device state(s)
     if (!Device_sync_states(
-                (Device*)gen,
+                (Device*)proc,
                 Player_get_device_states(params->handle->player)))
     {
         Handle_set_error(params->handle, ERROR_MEMORY,
-                "Couldn't allocate memory while syncing generator");
+                "Couldn't allocate memory while syncing processor");
         return false;
     }
 
     // Force connection update so that we get buffers for the new Device state(s)
     params->handle->update_connections = true;
 
+    Proc_table_set_existent(proc_table, proc_index, true);
+
     return true;
 }
 
 
-static bool read_gen_impl_conf_key(Reader_params* params)
+static bool read_any_proc_impl_conf_key(
+        Reader_params* params, Au_table* au_table, int level)
 {
     assert(params != NULL);
 
     if (!key_is_device_param(params->subkey))
         return true;
 
-    int32_t ins_index = -1;
-    acquire_ins_index(ins_index, params);
-    int32_t gen_index = -1;
-    acquire_gen_index(gen_index, params);
+    int32_t au_index = -1;
+    acquire_au_index(au_index, params, level);
+    int32_t proc_index = -1;
+    acquire_proc_index(proc_index, params, level + 1);
 
-    Instrument* ins = NULL;
-    acquire_ins(ins, params->handle, ins_index);
-    Gen_table* gen_table = Instrument_get_gens(ins);
+    Audio_unit* au = NULL;
+    acquire_au(au, params->handle, au_table, au_index);
+    Proc_table* proc_table = Audio_unit_get_procs(au);
 
-    Generator* gen = add_generator(params->handle, ins, gen_table, gen_index);
-    if (gen == NULL)
+    Processor* proc = add_processor(params->handle, au, proc_table, proc_index);
+    if (proc == NULL)
         return false;
 
     // Update Device
-    if (!Device_set_key((Device*)gen, params->subkey, params->sr))
+    if (!Device_set_key((Device*)proc, params->subkey, params->sr))
     {
         set_error(params);
         return false;
@@ -1028,7 +1115,7 @@ static bool read_gen_impl_conf_key(Reader_params* params)
 
     // Update Device state
     Device_set_state_key(
-            (Device*)gen,
+            (Device*)proc,
             Player_get_device_states(params->handle->player),
             params->subkey);
 
@@ -1036,7 +1123,8 @@ static bool read_gen_impl_conf_key(Reader_params* params)
 }
 
 
-static bool read_gen_impl_key(Reader_params* params)
+static bool read_any_proc_impl_key(
+        Reader_params* params, Au_table* au_table, int level)
 {
     assert(params != NULL);
     assert(strlen(params->subkey) < KQT_KEY_LENGTH_MAX - 2);
@@ -1046,11 +1134,12 @@ static bool read_gen_impl_key(Reader_params* params)
     Reader_params hack_params = *params;
     hack_params.subkey = hack_subkey;
 
-    return read_gen_impl_conf_key(&hack_params);
+    return read_any_proc_impl_conf_key(&hack_params, au_table, level);
 }
 
 
-static bool read_gen_conf_key(Reader_params* params)
+static bool read_any_proc_conf_key(
+        Reader_params* params, Au_table* au_table, int level)
 {
     assert(params != NULL);
     assert(strlen(params->subkey) < KQT_KEY_LENGTH_MAX - 2);
@@ -1060,614 +1149,58 @@ static bool read_gen_conf_key(Reader_params* params)
     Reader_params hack_params = *params;
     hack_params.subkey = hack_subkey;
 
-    return read_gen_impl_conf_key(&hack_params);
+    return read_any_proc_impl_conf_key(&hack_params, au_table, level);
 }
 
 
-static Effect* add_effect(Handle* handle, int index, Effect_table* table)
-{
-    assert(handle != NULL);
-    assert(index >= 0);
-    assert(table != NULL);
-
-    static const char* memory_error_str =
-        "Couldn't allocate memory for a new effect";
-
-    // Return existing effect
-    Effect* eff = Effect_table_get_mut(table, index);
-    if (eff != NULL)
-        return eff;
-
-    // Create new effect
-    eff = new_Effect();
-    if (eff == NULL || !Effect_table_set(table, index, eff))
-    {
-        del_Effect(eff);
-        Handle_set_error(handle, ERROR_MEMORY, memory_error_str);
-        return NULL;
+#define MAKE_AU_EFFECT_READER(base_name)                                \
+    static bool read_au_ ## base_name(Reader_params* params)            \
+    {                                                                   \
+        assert(params != NULL);                                         \
+                                                                        \
+        int32_t top_au_index = -1;                                      \
+        acquire_au_index(top_au_index, params, 0);                      \
+                                                                        \
+        Module* module = Handle_get_module(params->handle);             \
+        Au_table* top_au_table = Module_get_au_table(module);           \
+                                                                        \
+        Audio_unit* top_au = NULL;                                      \
+        acquire_au(top_au, params->handle, top_au_table, top_au_index); \
+                                                                        \
+        Au_table* au_table = Audio_unit_get_au_table(top_au);           \
+                                                                        \
+        return read_any_ ## base_name(params, au_table, 1);             \
     }
 
-    // Allocate Device states for the new Effect
-    const Device* eff_devices[] =
-    {
-        (Device*)eff,
-        Effect_get_input_interface(eff),
-        Effect_get_output_interface(eff),
-        NULL
-    };
-    for (int i = 0; i < 3; ++i)
-    {
-        assert(eff_devices[i] != NULL);
-        Device_state* ds = Device_create_state(
-                eff_devices[i],
-                Player_get_audio_rate(handle->player),
-                Player_get_audio_buffer_size(handle->player));
-        if (ds == NULL || !Device_states_add_state(
-                    Player_get_device_states(handle->player), ds))
-        {
-            del_Device_state(ds);
-            Handle_set_error(handle, ERROR_MEMORY, memory_error_str);
-            Effect_table_remove(table, index);
-            return NULL;
-        }
+#define MAKE_GLOBAL_AU_READER(base_name)                    \
+    static bool read_ ## base_name(Reader_params* params)   \
+    {                                                       \
+        assert(params != NULL);                             \
+                                                            \
+        Module* module = Handle_get_module(params->handle); \
+        Au_table* au_table = Module_get_au_table(module);   \
+                                                            \
+        return read_any_ ## base_name(params, au_table, 0); \
     }
 
-    return eff;
-}
-
-
-#define acquire_effect(effect, handle, table, index)       \
-    if (true)                                              \
-    {                                                      \
-        (effect) = add_effect((handle), (index), (table)); \
-        if ((effect) == NULL)                              \
-            return false;                                  \
-    }                                                      \
-    else (void)0
-
-
-static int get_effect_index_stop(bool is_instrument)
-{
-    return (is_instrument ? KQT_INST_EFFECTS_MAX : KQT_EFFECTS_MAX);
-}
-
-
-static int get_effect_index_loc(bool is_instrument)
-{
-    return (is_instrument ? 1 : 0);
-}
-
-
-static int get_dsp_index_loc(bool is_instrument)
-{
-    return get_effect_index_loc(is_instrument) + 1;
-}
-
-
-#define acquire_effect_index(index, params, is_instrument)                  \
-    if (true)                                                               \
-    {                                                                       \
-        const int index_stop = get_effect_index_stop((is_instrument));      \
-        (index) = (params)->indices[get_effect_index_loc((is_instrument))]; \
-        if ((index) < 0 || (index) >= (index_stop))                         \
-            return true;                                                    \
-    }                                                                       \
-    else (void)0
-
-
-static bool read_effect_effect_manifest(
-        Reader_params* params, Effect_table* eff_table, bool is_instrument)
-{
-    assert(params != NULL);
-    assert(eff_table != NULL);
-
-    int32_t eff_index = -1;
-    acquire_effect_index(eff_index, params, is_instrument);
-
-    Effect* effect = NULL;
-    acquire_effect(effect, params->handle, eff_table, eff_index);
-
-    const bool existent = read_default_manifest(params->sr);
-    if (Streader_is_error_set(params->sr))
-    {
-        set_error(params);
-        return false;
-    }
-
-    Device_set_existent((Device*)effect, existent);
-
-    return true;
-}
-
-
-static bool read_effect_effect_in_port_manifest(
-        Reader_params* params, Effect_table* eff_table, bool is_instrument)
-{
-    assert(params != NULL);
-    assert(eff_table != NULL);
-
-    int32_t eff_index = -1;
-    acquire_effect_index(eff_index, params, is_instrument);
-    int32_t in_port_index = -1;
-    acquire_port_index(in_port_index, params, is_instrument ? 2 : 1);
-
-    const bool existent = read_default_manifest(params->sr);
-    if (Streader_is_error_set(params->sr))
-    {
-        set_error(params);
-        return false;
-    }
-
-    Effect* effect = NULL;
-    acquire_effect(effect, params->handle, eff_table, eff_index);
-
-    Effect_set_port_existence(effect, DEVICE_PORT_TYPE_RECEIVE, in_port_index, existent);
-
-    return true;
-}
-
-
-static bool read_effect_effect_out_port_manifest(
-        Reader_params* params, Effect_table* eff_table, bool is_instrument)
-{
-    assert(params != NULL);
-    assert(eff_table != NULL);
-
-    int32_t eff_index = -1;
-    acquire_effect_index(eff_index, params, is_instrument);
-    int32_t out_port_index = -1;
-    acquire_port_index(out_port_index, params, is_instrument ? 2 : 1);
-
-    const bool existent = read_default_manifest(params->sr);
-    if (Streader_is_error_set(params->sr))
-    {
-        set_error(params);
-        return false;
-    }
-
-    Effect* effect = NULL;
-    acquire_effect(effect, params->handle, eff_table, eff_index);
-
-    Effect_set_port_existence(effect, DEVICE_PORT_TYPE_SEND, out_port_index, existent);
-
-    return true;
-}
-
-
-static bool read_effect_effect_connections(
-        Reader_params* params, Effect_table* eff_table, bool is_instrument)
-{
-    assert(params != NULL);
-    assert(eff_table != NULL);
-
-    int32_t eff_index = -1;
-    acquire_effect_index(eff_index, params, is_instrument);
-
-    Effect* effect = NULL;
-    acquire_effect(effect, params->handle, eff_table, eff_index);
-
-    if (!Streader_has_data(params->sr))
-    {
-        Effect_set_connections(effect, NULL);
-        params->handle->update_connections = true;
-    }
-    else
-    {
-        Module* module = Handle_get_module(params->handle);
-
-        Connection_level level = CONNECTION_LEVEL_EFFECT;
-        if (eff_table != Module_get_effects(module))
-            level |= CONNECTION_LEVEL_INSTRUMENT;
-
-        Connections* graph = new_Connections_from_string(
-                params->sr,
-                level,
-                Module_get_insts(module),
-                eff_table,
-                Effect_get_dsps(effect),
-                (Device*)effect);
-        if (graph == NULL)
-        {
-            set_error(params);
-            return false;
-        }
-
-        Effect_set_connections(effect, graph);
-        params->handle->update_connections = true;
-    }
-
-    return true;
-}
-
-
-static DSP* add_dsp(
-        Handle* handle,
-        DSP_table* dsp_table,
-        int dsp_index)
-{
-    assert(handle != NULL);
-    assert(dsp_table != NULL);
-    assert(dsp_index >= 0);
-    //assert(dsp_index < KQT_DSPS_MAX);
-
-    static const char* memory_error_str =
-        "Couldn't allocate memory for a new DSP";
-
-    // Return existing DSP
-    DSP* dsp = DSP_table_get_dsp(dsp_table, dsp_index);
-    if (dsp != NULL)
-        return dsp;
-
-    // Create new DSP
-    dsp = new_DSP();
-    if (dsp == NULL || !DSP_table_set_dsp(dsp_table, dsp_index, dsp))
-    {
-        Handle_set_error(handle, ERROR_MEMORY, memory_error_str);
-        del_DSP(dsp);
-        return NULL;
-    }
-
-    return dsp;
-}
-
-
-#define acquire_dsp_index(index, params, is_instrument)                  \
-    if (true)                                                            \
-    {                                                                    \
-        (index) = (params)->indices[get_dsp_index_loc((is_instrument))]; \
-        if ((index) < 0 || (index) >= KQT_DSPS_MAX)                      \
-            return true;                                                 \
-    }                                                                    \
-    else (void)0
-
-
-static bool read_effect_dsp_manifest(
-        Reader_params* params, Effect_table* eff_table, bool is_instrument)
-{
-    assert(params != NULL);
-    assert(eff_table != NULL);
-
-    int32_t eff_index = -1;
-    acquire_effect_index(eff_index, params, is_instrument);
-    int32_t dsp_index = -1;
-    acquire_dsp_index(dsp_index, params, is_instrument);
-
-    const bool existent = read_default_manifest(params->sr);
-    if (Streader_is_error_set(params->sr))
-    {
-        set_error(params);
-        return false;
-    }
-
-    Effect* effect = NULL;
-    if (existent)
-    {
-        acquire_effect(effect, params->handle, eff_table, eff_index);
-    }
-    else
-    {
-        effect = Effect_table_get_mut(eff_table, eff_index);
-        if (effect == NULL)
-            return true;
-    }
-
-    DSP_table* dsp_table = Effect_get_dsps_mut(effect);
-    DSP_table_set_existent(dsp_table, dsp_index, existent);
-
-    return true;
-}
-
-
-static bool read_effect_dsp_in_port_manifest(
-        Reader_params* params, Effect_table* eff_table, bool is_instrument)
-{
-    assert(params != NULL);
-    assert(eff_table != NULL);
-
-    int32_t eff_index = -1;
-    acquire_effect_index(eff_index, params, is_instrument);
-    int32_t dsp_index = -1;
-    acquire_dsp_index(dsp_index, params, is_instrument);
-    int32_t in_port_index = -1;
-    acquire_port_index(in_port_index, params, is_instrument ? 3 : 2);
-
-    const bool existent = read_default_manifest(params->sr);
-    if (Streader_is_error_set(params->sr))
-    {
-        set_error(params);
-        return false;
-    }
-
-    Effect* effect = NULL;
-    acquire_effect(effect, params->handle, eff_table, eff_index);
-    DSP_table* dsp_table = Effect_get_dsps_mut(effect);
-
-    DSP* dsp = add_dsp(params->handle, dsp_table, dsp_index);
-    if (dsp == NULL)
-        return false;
-
-    Device_set_port_existence(
-            (Device*)dsp, DEVICE_PORT_TYPE_RECEIVE, in_port_index, existent);
-
-    return true;
-}
-
-
-static bool read_effect_dsp_out_port_manifest(
-        Reader_params* params, Effect_table* eff_table, bool is_instrument)
-{
-    assert(params != NULL);
-    assert(eff_table != NULL);
-
-    int32_t eff_index = -1;
-    acquire_effect_index(eff_index, params, is_instrument);
-    int32_t dsp_index = -1;
-    acquire_dsp_index(dsp_index, params, is_instrument);
-    int32_t out_port_index = -1;
-    acquire_port_index(out_port_index, params, is_instrument ? 3 : 2);
-
-    const bool existent = read_default_manifest(params->sr);
-    if (Streader_is_error_set(params->sr))
-    {
-        set_error(params);
-        return false;
-    }
-
-    Effect* effect = NULL;
-    acquire_effect(effect, params->handle, eff_table, eff_index);
-    DSP_table* dsp_table = Effect_get_dsps_mut(effect);
-
-    DSP* dsp = add_dsp(params->handle, dsp_table, dsp_index);
-    if (dsp == NULL)
-        return false;
-
-    Device_set_port_existence(
-            (Device*)dsp, DEVICE_PORT_TYPE_SEND, out_port_index, existent);
-
-    return true;
-}
-
-
-static bool read_effect_dsp_type(
-        Reader_params* params, Effect_table* eff_table, bool is_instrument)
-{
-    assert(params != NULL);
-    assert(eff_table != NULL);
-
-    int32_t eff_index = -1;
-    acquire_effect_index(eff_index, params, is_instrument);
-    int32_t dsp_index = -1;
-    acquire_dsp_index(dsp_index, params, is_instrument);
-
-    if (!Streader_has_data(params->sr))
-    {
-        // Remove DSP
-        Effect* effect = Effect_table_get_mut(eff_table, eff_index);
-        if (effect == NULL)
-            return true;
-
-        DSP_table* dsp_table = Effect_get_dsps_mut(effect);
-        DSP_table_remove_dsp(dsp_table, dsp_index);
-
-        return true;
-    }
-
-    Effect* effect = NULL;
-    acquire_effect(effect, params->handle, eff_table, eff_index);
-    DSP_table* dsp_table = Effect_get_dsps_mut(effect);
-
-    DSP* dsp = add_dsp(params->handle, dsp_table, dsp_index);
-    if (dsp == NULL)
-        return false;
-
-    // Create the DSP implementation
-    char type[DSP_TYPE_LENGTH_MAX] = "";
-    if (!Streader_read_string(params->sr, DSP_TYPE_LENGTH_MAX, type))
-    {
-        set_error(params);
-        return false;
-    }
-    DSP_cons* cons = DSP_type_find_cons(type);
-    if (cons == NULL)
-    {
-        Handle_set_error(params->handle, ERROR_FORMAT,
-                "Unsupported DSP type: %s", type);
-        return false;
-    }
-    Device_impl* dsp_impl = cons(dsp);
-    if (dsp_impl == NULL)
-    {
-        Handle_set_error(params->handle, ERROR_MEMORY,
-                "Couldn't allocate memory for DSP implementation");
-        return false;
-    }
-
-    if (!Device_set_impl((Device*)dsp, dsp_impl))
-    {
-        Handle_set_error(params->handle, ERROR_MEMORY,
-                "Couldn't allocate memory while initialising DSP implementation");
-        return false;
-    }
-
-    const Player* player = params->handle->player;
-
-    // Remove old DSP Device state
-    Device_states* dstates = Player_get_device_states(player);
-    Device_states_remove_state(dstates, Device_get_id((Device*)dsp));
-
-    // Allocate Device state(s) for this DSP
-    Device_state* ds = Device_create_state(
-            (Device*)dsp,
-            Player_get_audio_rate(player),
-            Player_get_audio_buffer_size(player));
-    if (ds == NULL || !Device_states_add_state(
-                Player_get_device_states(player), ds))
-    {
-        Handle_set_error(params->handle, ERROR_MEMORY,
-                "Couldn't allocate memory for device state");
-        del_Device_state(ds);
-        del_DSP(dsp);
-        return false;
-    }
-
-    // Set DSP resources
-    if (!Device_set_audio_rate((Device*)dsp,
-                dstates,
-                Player_get_audio_rate(player)) ||
-            !Device_set_buffer_size((Device*)dsp,
-                dstates,
-                Player_get_audio_buffer_size(player)))
-    {
-        Handle_set_error(params->handle, ERROR_MEMORY,
-                "Couldn't allocate memory for DSP state");
-        return false;
-    }
-
-    // Sync the DSP
-    if (!Device_sync((Device*)dsp))
-    {
-        Handle_set_error(params->handle, ERROR_MEMORY,
-                "Couldn't allocate memory while syncing DSP");
-        return false;
-    }
-
-    // Sync the Device state(s)
-    if (!Device_sync_states((Device*)dsp, Player_get_device_states(player)))
-    {
-        Handle_set_error(params->handle, ERROR_MEMORY,
-                "Couldn't allocate memory while syncing DSP");
-        return false;
-    }
-
-    // Force connection update so that we get buffers for the new Device state(s)
-    params->handle->update_connections = true;
-
-    return true;
-}
-
-
-static bool read_effect_dsp_impl_conf_key(
-        Reader_params* params, Effect_table* eff_table, bool is_instrument)
-{
-    assert(params != NULL);
-    assert(eff_table != NULL);
-
-    if (!key_is_device_param(params->subkey))
-        return true;
-
-    int32_t eff_index = -1;
-    acquire_effect_index(eff_index, params, is_instrument);
-    int32_t dsp_index = -1;
-    acquire_dsp_index(dsp_index, params, is_instrument);
-
-    Effect* effect = NULL;
-    acquire_effect(effect, params->handle, eff_table, eff_index);
-    DSP_table* dsp_table = Effect_get_dsps_mut(effect);
-
-    DSP* dsp = add_dsp(params->handle, dsp_table, dsp_index);
-    if (dsp == NULL)
-        return false;
-
-    // Update Device
-    if (!Device_set_key((Device*)dsp, params->subkey, params->sr))
-    {
-        set_error(params);
-        return false;
-    }
-
-    // Notify Device state
-    Device_set_state_key(
-            (Device*)dsp,
-            Player_get_device_states(params->handle->player),
-            params->subkey);
-
-    return true;
-}
-
-
-static bool read_effect_dsp_impl_key(
-        Reader_params* params, Effect_table* eff_table, bool is_instrument)
-{
-    assert(params != NULL);
-    assert(eff_table != NULL);
-    assert(strlen(params->subkey) < KQT_KEY_LENGTH_MAX - 2);
-
-    char hack_subkey[KQT_KEY_LENGTH_MAX] = "i/";
-    strcat(hack_subkey, params->subkey);
-    Reader_params hack_params = *params;
-    hack_params.subkey = hack_subkey;
-
-    return read_effect_dsp_impl_conf_key(&hack_params, eff_table, is_instrument);
-}
-
-
-static bool read_effect_dsp_conf_key(
-        Reader_params* params, Effect_table* eff_table, bool is_instrument)
-{
-    assert(params != NULL);
-    assert(eff_table != NULL);
-    assert(strlen(params->subkey) < KQT_KEY_LENGTH_MAX - 2);
-
-    char hack_subkey[KQT_KEY_LENGTH_MAX] = "c/";
-    strcat(hack_subkey, params->subkey);
-    Reader_params hack_params = *params;
-    hack_params.subkey = hack_subkey;
-
-    return read_effect_dsp_impl_conf_key(&hack_params, eff_table, is_instrument);
-}
-
-
-#define acquire_ins_effects(eff_table, params)         \
-    if (true)                                          \
-    {                                                  \
-        int32_t ins_index = -1;                        \
-        acquire_ins_index(ins_index, (params));        \
-        Instrument* ins = NULL;                        \
-        acquire_ins(ins, (params)->handle, ins_index); \
-        (eff_table) = Instrument_get_effects(ins);     \
-    }                                                  \
-    else (void)0
-
-#define MAKE_INS_EFFECT_READER(base_name)                                   \
-    static bool read_ins_ ## base_name(Reader_params* params)               \
-    {                                                                       \
-        assert(params != NULL);                                             \
-                                                                            \
-        Effect_table* eff_table = NULL;                                     \
-        acquire_ins_effects(eff_table, params);                             \
-                                                                            \
-        static const bool is_instrument = true;                             \
-                                                                            \
-        return read_effect_ ## base_name(params, eff_table, is_instrument); \
-    }
-
-#define MAKE_GLOBAL_EFFECT_READER(base_name)                                \
-    static bool read_ ## base_name(Reader_params* params)                   \
-    {                                                                       \
-        assert(params != NULL);                                             \
-                                                                            \
-        Module* module = Handle_get_module(params->handle);                 \
-        Effect_table* eff_table = Module_get_effects(module);               \
-                                                                            \
-        static const bool is_instrument = false;                            \
-                                                                            \
-        return read_effect_ ## base_name(params, eff_table, is_instrument); \
-    }
-
-#define MAKE_EFFECT_READERS(base_name)   \
-    MAKE_INS_EFFECT_READER(base_name)    \
-    MAKE_GLOBAL_EFFECT_READER(base_name)
-
-MAKE_EFFECT_READERS(effect_manifest)
-MAKE_EFFECT_READERS(effect_in_port_manifest)
-MAKE_EFFECT_READERS(effect_out_port_manifest)
-MAKE_EFFECT_READERS(effect_connections)
-MAKE_EFFECT_READERS(dsp_manifest)
-MAKE_EFFECT_READERS(dsp_in_port_manifest)
-MAKE_EFFECT_READERS(dsp_out_port_manifest)
-MAKE_EFFECT_READERS(dsp_type)
-MAKE_EFFECT_READERS(dsp_impl_key)
-MAKE_EFFECT_READERS(dsp_conf_key)
+#define MAKE_AU_READERS(base_name)   \
+    MAKE_AU_EFFECT_READER(base_name) \
+    MAKE_GLOBAL_AU_READER(base_name)
+
+MAKE_AU_READERS(au_manifest)
+MAKE_AU_READERS(au)
+MAKE_AU_READERS(au_in_port_manifest)
+MAKE_AU_READERS(au_out_port_manifest)
+MAKE_AU_READERS(au_connections)
+MAKE_AU_READERS(au_env_force)
+MAKE_AU_READERS(au_env_force_release)
+MAKE_AU_READERS(au_env_force_filter)
+MAKE_AU_READERS(au_env_pitch_pan)
+MAKE_AU_READERS(proc_manifest)
+MAKE_AU_READERS(proc_in_port_manifest)
+MAKE_AU_READERS(proc_out_port_manifest)
+MAKE_AU_READERS(proc_impl_key)
+MAKE_AU_READERS(proc_conf_key)
 
 
 #define acquire_pattern(pattern, handle, index)                         \

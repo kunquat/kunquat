@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -21,8 +21,8 @@
 
 #include <kunquat/limits.h>
 #include <mathnum/Random.h>
-#include <module/Ins_table.h>
-#include <player/Channel_gen_state.h>
+#include <module/Au_table.h>
+#include <player/Channel_proc_state.h>
 #include <player/Env_state.h>
 #include <player/Event_cache.h>
 #include <player/General_state.h>
@@ -39,21 +39,20 @@ typedef struct Channel
 {
     General_state parent;
     int num;                       ///< Channel number.
-    Channel_gen_state* cgstate;    ///< Channel-specific generator state.
+    Channel_proc_state* cpstate;   ///< Channel-specific processor state.
     Random* rand;                  ///< Random source for this channel.
     Event_cache* event_cache;
 
     Voice_pool* pool;              ///< All Voices.
-    Voice* fg[KQT_GENERATORS_MAX]; ///< Foreground Voices.
-    uint64_t fg_id[KQT_GENERATORS_MAX]; ///< Voice reservation IDs.
+    Voice* fg[KQT_PROCESSORS_MAX]; ///< Foreground Voices.
+    uint64_t fg_id[KQT_PROCESSORS_MAX]; ///< Voice reservation IDs.
     int fg_count;
 
-    int32_t ins_input;             ///< Currently active Instrument input.
-    int generator;                 ///< Currently active Generator.
+    int32_t au_input;              ///< Currently active Audio unit input.
+    int processor;                 ///< Currently active Processor.
     int effect;                    ///< Currently active Effect.
-    bool inst_effects;             ///< Instrument effect control enabled.
-    int dsp;                       ///< Currently active DSP.
-    Ins_table* insts;
+    bool au_effects;               ///< Audio unit effect control enabled.
+    Au_table* au_table;
     int32_t* freq;
     double* tempo;
 
@@ -93,14 +92,14 @@ typedef struct Channel
 /**
  * Create a new Channel.
  *
- * \param module   The Module -- must not be \c NULL.
- * \param num      The Channel number -- must be >= \c 0 and
- *                 < \c KQT_CHANNELS_MAX.
- * \param insts    The instrument table -- must not be \c NULL.
- * \param estate   The Environment state -- must not be \c NULL.
- * \param voices   The Voice pool -- must not be \c NULL.
- * \param tempo    A reference to the current tempo -- must not be \c NULL.
- * \param rate     A reference to the current audio rate -- must not be \c NULL.
+ * \param module     The Module -- must not be \c NULL.
+ * \param num        The Channel number -- must be >= \c 0 and
+ *                   < \c KQT_CHANNELS_MAX.
+ * \param au_table   The audio unit table -- must not be \c NULL.
+ * \param estate     The Environment state -- must not be \c NULL.
+ * \param voices     The Voice pool -- must not be \c NULL.
+ * \param tempo      A reference to the current tempo -- must not be \c NULL.
+ * \param rate       A reference to the current audio rate -- must not be \c NULL.
  *
  * \return   The new Channel state if successful, or \c NULL if memory
  *           allocation failed.
@@ -108,7 +107,7 @@ typedef struct Channel
 Channel* new_Channel(
         const Module* module,
         int num,
-        Ins_table* insts,
+        Au_table* au_table,
         Env_state* estate,
         Voice_pool* voices,
         double* tempo,
@@ -144,14 +143,14 @@ void Channel_reset(Channel* ch);
 /**
  * Return an actual force of a current foreground Voice.
  *
- * \param ch          The Channel -- must not be \c NULL.
- * \param gen_index   The Generator index -- must be >= \c 0 and
- *                    < \c KQT_GENERATORS_MAX.
+ * \param ch           The Channel -- must not be \c NULL.
+ * \param proc_index   The Processor index -- must be >= \c 0 and
+ *                     < \c KQT_PROCESSORS_MAX.
  *
- * \return   The actual force if the active foreground Voice at \a gen_index
+ * \return   The actual force if the active foreground Voice at \a proc_index
  *           exists, otherwise NAN.
  */
-double Channel_get_fg_force(Channel* ch, int gen_index);
+double Channel_get_fg_force(Channel* ch, int proc_index);
 
 
 /**

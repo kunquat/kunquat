@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -61,7 +61,7 @@ UPDATE_FUNC_TYPE(tstamp,    const Tstamp*);
 
 
 /**
- * The base class of Generator and DSP implementations.
+ * The base class of a Processor implementation.
  */
 struct Device_impl
 {

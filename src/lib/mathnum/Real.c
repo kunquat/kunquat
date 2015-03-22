@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -44,7 +44,7 @@ static Real* Real_normalise(Real* real);
     static bool Real_validate_(const Real* real);
     #define Real_validate(real)   (assert(Real_validate_(real)))
 #else
-    #define Real_validate(real)   ((void)0)
+    #define Real_validate(real)   (ignore(real))
 #endif
 
 

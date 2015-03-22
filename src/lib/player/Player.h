@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -83,14 +83,14 @@ bool Player_reserve_voice_state_space(Player* player, size_t size);
 
 
 /**
- * Allocate memory for a list of Channel-specific generator variables.
+ * Allocate memory for a list of Channel-specific processor variables.
  *
  * \param player   The Player -- must not be \c NULL.
  * \param sr       The Streader of the JSON data -- must not be \c NULL.
  *
  * \return   \c true if successful, otherwise \c false.
  */
-bool Player_alloc_channel_gen_state_keys(Player* player, Streader* sr);
+bool Player_alloc_channel_proc_state_keys(Player* player, Streader* sr);
 
 
 /**

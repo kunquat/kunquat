@@ -32,7 +32,7 @@ Voice* new_Voice(void)
 
     voice->id = 0;
     voice->prio = VOICE_PRIO_INACTIVE;
-    voice->gen = NULL;
+    voice->proc = NULL;
     voice->state_size = 0;
     voice->state = NULL;
 
@@ -91,22 +91,22 @@ uint64_t Voice_id(const Voice* voice)
 
 void Voice_init(
         Voice* voice,
-        const Generator* gen,
-        const Gen_state* gen_state,
-        Channel_gen_state* cgstate,
+        const Processor* proc,
+        const Proc_state* proc_state,
+        Channel_proc_state* cgstate,
         uint64_t seed,
         uint32_t freq,
         double tempo)
 {
     assert(voice != NULL);
-    assert(gen != NULL);
-    assert(gen_state != NULL);
+    assert(proc != NULL);
+    assert(proc_state != NULL);
     assert(cgstate != NULL);
     assert(freq > 0);
     assert(tempo > 0);
 
     voice->prio = VOICE_PRIO_NEW;
-    voice->gen = gen;
+    voice->proc = proc;
     Random_set_seed(voice->rand_p, seed);
     Random_set_seed(voice->rand_s, seed);
 
@@ -118,8 +118,8 @@ void Voice_init(
             freq,
             tempo);
 
-    if (gen->init_vstate != NULL)
-        gen->init_vstate(gen, gen_state, voice->state);
+    if (proc->init_vstate != NULL)
+        proc->init_vstate(proc, proc_state, voice->state);
 
     return;
 }
@@ -132,7 +132,7 @@ void Voice_reset(Voice* voice)
     voice->id = 0;
     voice->prio = VOICE_PRIO_INACTIVE;
     Voice_state_clear(voice->state);
-    voice->gen = NULL;
+    voice->proc = NULL;
     Random_reset(voice->rand_p);
     Random_reset(voice->rand_s);
 
@@ -143,7 +143,6 @@ void Voice_reset(Voice* voice)
 void Voice_prepare(Voice* voice)
 {
     assert(voice != NULL);
-    (void)voice;
     return;
 }
 
@@ -158,7 +157,7 @@ void Voice_mix(
         double tempo)
 {
     assert(voice != NULL);
-    assert(voice->gen != NULL);
+    assert(voice->proc != NULL);
     assert(states != NULL);
     assert(wbs != NULL);
     assert(freq > 0);
@@ -166,8 +165,8 @@ void Voice_mix(
     if (voice->prio == VOICE_PRIO_INACTIVE)
         return;
 
-    Generator_process_vstate(
-            voice->gen, states, voice->state, wbs, offset, nframes, freq, tempo);
+    Processor_process_vstate(
+            voice->proc, states, voice->state, wbs, offset, nframes, freq, tempo);
 
     if (!voice->state->active)
         Voice_reset(voice);

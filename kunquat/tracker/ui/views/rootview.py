@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2014
+# Authors: Tomi Jylhä-Ollila, Finland 2014-2015
 #          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
@@ -22,8 +22,8 @@ from aboutwindow import AboutWindow
 from eventlist import EventList
 from connectionswindow import ConnectionsWindow
 from orderlistwindow import OrderlistWindow
-from instrumentwindow import InstrumentWindow
-from generatorwindow import GeneratorWindow
+from auwindow import AuWindow
+from procwindow import ProcWindow
 
 
 class RootView():
@@ -38,8 +38,8 @@ class RootView():
         self._event_log = None
         self._connections = None
         self._orderlist = None
-        self._instrument_windows = {}
-        self._generator_windows = {}
+        self._au_windows = {}
+        self._proc_windows = {}
         self._module = None
 
     def set_ui_model(self, ui_model):
@@ -99,24 +99,24 @@ class RootView():
                 self._orderlist.set_ui_model(self._ui_model)
                 if is_show_allowed:
                     self._orderlist.show()
-            elif type(ui) == tuple and ui[0] == UI_INSTRUMENT:
-                ins_id = ui[1]
-                ins_window = InstrumentWindow()
-                ins_window.set_ins_id(ins_id)
-                ins_window.set_ui_model(self._ui_model)
-                self._instrument_windows[ins_id] = ins_window
+            elif type(ui) == tuple and ui[0] == UI_AUDIO_UNIT:
+                au_id = ui[1]
+                au_window = AuWindow()
+                au_window.set_au_id(au_id)
+                au_window.set_ui_model(self._ui_model)
+                self._au_windows[au_id] = au_window
                 if is_show_allowed:
-                    self._instrument_windows[ins_id].show()
-            elif type(ui) == tuple and ui[0] == UI_GENERATOR:
-                ins_id = ui[1]
-                gen_id = ui[2]
-                gen_window = GeneratorWindow()
-                gen_window.set_ins_id(ins_id)
-                gen_window.set_gen_id(gen_id)
-                gen_window.set_ui_model(self._ui_model)
-                self._generator_windows[(ins_id, gen_id)] = gen_window
+                    self._au_windows[au_id].show()
+            elif type(ui) == tuple and ui[0] == UI_PROCESSOR:
+                au_id = ui[1]
+                proc_id = ui[2]
+                proc_window = ProcWindow()
+                proc_window.set_au_id(au_id)
+                proc_window.set_proc_id(proc_id)
+                proc_window.set_ui_model(self._ui_model)
+                self._proc_windows[(au_id, proc_id)] = proc_window
                 if is_show_allowed:
-                    self._generator_windows[(ins_id, gen_id)].show()
+                    self._proc_windows[(au_id, proc_id)].show()
             else:
                 raise ValueError('Unsupported UI type: {}'.format(ui))
 
@@ -140,17 +140,17 @@ class RootView():
                 self._orderlist.unregister_updaters()
                 self._orderlist.deleteLater()
                 self._orderlist = None
-            elif type(ui) == tuple and ui[0] == UI_INSTRUMENT:
-                ins_id = ui[1]
-                ins_window = self._instrument_windows.pop(ins_id)
-                ins_window.unregister_updaters()
-                ins_window.deleteLater()
-            elif type(ui) == tuple and ui[0] == UI_GENERATOR:
-                ins_id = ui[1]
-                gen_id = ui[2]
-                gen_window = self._generator_windows.pop((ins_id, gen_id))
-                gen_window.unregister_updaters()
-                gen_window.deleteLater()
+            elif type(ui) == tuple and ui[0] == UI_AUDIO_UNIT:
+                au_id = ui[1]
+                au_window = self._au_windows.pop(au_id)
+                au_window.unregister_updaters()
+                au_window.deleteLater()
+            elif type(ui) == tuple and ui[0] == UI_PROCESSOR:
+                au_id = ui[1]
+                proc_id = ui[2]
+                proc_window = self._proc_windows.pop((au_id, proc_id))
+                proc_window.unregister_updaters()
+                proc_window.deleteLater()
             else:
                 raise ValueError('Unsupported UI type: {}'.format(ui))
 

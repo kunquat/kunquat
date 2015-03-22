@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -20,7 +20,8 @@
 #include <Connections.h>
 #include <debug/assert.h>
 #include <Device_node.h>
-#include <devices/Generator.h>
+#include <devices/Audio_unit.h>
+#include <devices/Processor.h>
 #include <kunquat/limits.h>
 #include <memory.h>
 #include <string/common.h>
@@ -28,11 +29,9 @@
 
 typedef enum
 {
-    DEVICE_TYPE_MASTER     = 1,
-    DEVICE_TYPE_GENERATOR  = 2,
-    DEVICE_TYPE_EFFECT     = 4,
-    DEVICE_TYPE_DSP        = 6,
-    DEVICE_TYPE_INSTRUMENT = 8,
+    DEVICE_TYPE_MASTER    = 1,
+    DEVICE_TYPE_PROCESSOR = 2,
+    DEVICE_TYPE_AU        = 8,
 } Device_type;
 
 
@@ -47,13 +46,10 @@ typedef struct Connection
 struct Device_node
 {
     char name[KQT_DEVICE_NODE_NAME_MAX];
-    //Device_node* ins_dual;
 
     // These fields are required for adaptation to changes
-    Ins_table* insts;
-    Effect_table* effects;
-    const DSP_table* dsps;
-    const Device* master; ///< The global, Instrument or Effect master
+    Au_table* au_table;
+    const Device* master; ///< The global or Audio unit master
 
     Device_type type;
     int index;
@@ -65,19 +61,11 @@ struct Device_node
 };
 
 
-static Device_node* Device_node_get_ins_dual(const Device_node* node);
-
-
 Device_node* new_Device_node(
-        const char* name,
-        Ins_table* insts,
-        Effect_table* effects,
-        const DSP_table* dsps,
-        const Device* master)
+        const char* name, Au_table* au_table, const Device* master)
 {
     assert(name != NULL);
-    assert(insts != NULL);
-    assert(effects != NULL);
+    assert(au_table != NULL);
     assert(master != NULL);
 
     Device_node* node = memory_alloc_item(Device_node);
@@ -91,50 +79,31 @@ Device_node* new_Device_node(
         node->type = DEVICE_TYPE_MASTER;
         node->index = -1;
     }
-    else if (string_has_prefix(node->name, "ins_"))
+    else if (string_has_prefix(node->name, "au_"))
     {
-        node->type = DEVICE_TYPE_INSTRUMENT;
-        node->index = string_extract_index(node->name, "ins_", 2, NULL);
+        node->type = DEVICE_TYPE_AU;
+        node->index = string_extract_index(node->name, "au_", 2, NULL);
         assert(node->index >= 0);
-        assert(node->index < KQT_INSTRUMENTS_MAX);
+        assert(node->index < KQT_AUDIO_UNITS_MAX);
     }
-    else if (string_has_prefix(node->name, "gen_"))
+    else if (string_has_prefix(node->name, "proc_"))
     {
-        node->type = DEVICE_TYPE_GENERATOR;
-        node->index = string_extract_index(node->name, "gen_", 2, NULL);
+        node->type = DEVICE_TYPE_PROCESSOR;
+        node->index = string_extract_index(node->name, "proc_", 2, NULL);
         assert(node->index >= 0);
-        assert(node->index < KQT_GENERATORS_MAX);
-    }
-    else if (string_has_prefix(node->name, "eff_"))
-    {
-        node->type = DEVICE_TYPE_EFFECT;
-        node->index = string_extract_index(node->name, "eff_", 2, NULL);
-        assert(node->index >= 0);
-        // TODO: upper bound
+        assert(node->index < KQT_PROCESSORS_MAX);
     }
     else if (string_eq(node->name, "Iin"))
     {
-        assert(dsps != NULL);
         node->type = DEVICE_TYPE_MASTER;
         node->index = -1;
-    }
-    else if (string_has_prefix(node->name, "dsp_"))
-    {
-        node->type = DEVICE_TYPE_DSP;
-        node->index = string_extract_index(node->name, "dsp_", 2, NULL);
-        assert(node->index >= 0);
-        //assert(ins != NULL || node->index < KQT_DSP_EFFECTS_MAX);
-        //assert(ins == NULL || node->index < KQT_INSTRUMENT_DSPS_MAX);
     }
     else
     {
         assert(false);
     }
 
-    //node->ins_dual = NULL;
-    node->insts = insts;
-    node->effects = effects;
-    node->dsps = dsps;
+    node->au_table = au_table;
     node->master = master;
     //node->device = NULL;
     node->name[KQT_DEVICE_NODE_NAME_MAX - 1] = '\0';
@@ -247,28 +216,6 @@ void Device_node_reset(Device_node* node)
 
     Device_node_set_state(node, DEVICE_NODE_STATE_NEW);
 
-    if (node->type == DEVICE_TYPE_INSTRUMENT)
-    {
-        Instrument* ins = Ins_table_get(node->insts, node->index);
-        if (ins == NULL)
-        {
-            Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
-            return;
-        }
-
-        Connections* ins_graph = Instrument_get_connections(ins);
-        Device_node* ins_node = NULL;
-        if (ins_graph == NULL ||
-                (ins_node = Connections_get_master(ins_graph)) == NULL)
-        {
-            Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
-            return;
-        }
-
-        Device_node_set_state(ins_node, DEVICE_NODE_STATE_NEW);
-        node = ins_node;
-    }
-
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
         Connection* edge = node->receive[port];
@@ -299,29 +246,6 @@ bool Device_node_init_buffers_simple(Device_node* node, Device_states* states)
     {
         Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
         return true;
-    }
-
-    if (node->type == DEVICE_TYPE_INSTRUMENT)
-    {
-        Instrument* ins = Ins_table_get(node->insts, node->index);
-        if (ins == NULL)
-        {
-            Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
-            return true;
-        }
-
-        Connections* ins_graph = Instrument_get_connections(ins);
-        Device_node* ins_node = NULL;
-        if (ins_graph == NULL ||
-                (ins_node = Connections_get_master(ins_graph)) == NULL)
-        {
-            Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
-            return true;
-        }
-
-        Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
-        Device_node_set_state(ins_node, DEVICE_NODE_STATE_REACHED);
-        node = ins_node;
     }
 
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
@@ -404,38 +328,16 @@ bool Device_node_init_effect_buffers(Device_node* node, Device_states* states)
         return true;
     }
 
-    if (node->type == DEVICE_TYPE_INSTRUMENT)
+    if (node->type == DEVICE_TYPE_AU)
     {
-        Instrument* ins = Ins_table_get(node->insts, node->index);
-        if (ins == NULL)
+        Audio_unit* au = Au_table_get(node->au_table, node->index);
+        if (au == NULL)
         {
             Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
             return true;
         }
 
-        Connections* ins_graph = Instrument_get_connections(ins);
-        Device_node* ins_node = NULL;
-        if (ins_graph == NULL ||
-                (ins_node = Connections_get_master(ins_graph)) == NULL)
-        {
-            Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
-            return true;
-        }
-
-        Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
-        Device_node_set_state(ins_node, DEVICE_NODE_STATE_REACHED);
-        node = ins_node;
-    }
-    else if (node->type == DEVICE_TYPE_EFFECT)
-    {
-        const Effect* eff = Effect_table_get(node->effects, node->index);
-        if (eff == NULL)
-        {
-            Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
-            return true;
-        }
-
-        if (!Effect_prepare_connections(eff, states))
+        if (!Audio_unit_prepare_connections(au, states))
             return false;
     }
 
@@ -485,22 +387,18 @@ void Device_node_clear_buffers(
         return;
     }
 
-    if (node->type == DEVICE_TYPE_INSTRUMENT)
-    {
-        Device_node* ins_node = Device_node_get_ins_dual(node);
-        if (ins_node == NULL)
-        {
-            Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
-            return;
-        }
-
-        Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
-        Device_node_set_state(ins_node, DEVICE_NODE_STATE_REACHED);
-        node = ins_node;
-    }
-
     //fprintf(stderr, "Clearing buffers of %p\n", (void*)Device_node_get_device(node));
     const Device* device = Device_node_get_device(node);
+
+    if (node->type == DEVICE_TYPE_AU)
+    {
+        // Clear the audio unit buffers
+        const Audio_unit* au = (const Audio_unit*)device;
+        Connections* au_conns = Audio_unit_get_connections_mut(au);
+        if (au_conns != NULL)
+            Connections_clear_buffers(au_conns, states, start, until);
+    }
+
     Device_state* ds = Device_states_get_state(states, Device_get_id(device));
 
     if (ds != NULL)
@@ -555,51 +453,6 @@ void Device_node_mix(
         return;
     }
 
-    if (node->type == DEVICE_TYPE_INSTRUMENT)
-    {
-        Instrument* ins = Ins_table_get(node->insts, node->index);
-        if (ins == NULL)
-        {
-            Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
-            return;
-        }
-
-        Connections* ins_graph = Instrument_get_connections(ins);
-        Device_node* ins_node = NULL;
-        Device_state* ins_state = Device_states_get_state(
-                states,
-                Device_get_id((Device*)ins));
-        if (ins_graph == NULL ||
-                (ins_node = Connections_get_master(ins_graph)) == NULL ||
-                ins_state == NULL)
-        {
-            Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
-            return;
-        }
-
-        // Mix audio inside the instrument
-        Device_node_mix(ins_node, states, start, until, freq, tempo);
-
-        // Copy audio to instrument front end
-        for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
-        {
-            Audio_buffer* receive = Device_state_get_audio_buffer(
-                    ins_state,
-                    DEVICE_PORT_TYPE_RECEIVE,
-                    port);
-            Audio_buffer* send = Device_state_get_audio_buffer(
-                    ins_state,
-                    DEVICE_PORT_TYPE_SEND,
-                    port);
-
-            if (receive != NULL && send != NULL)
-                Audio_buffer_mix(send, receive, start, until);
-        }
-
-        Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
-        return;
-    }
-
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
         Connection* edge = node->receive[port];
@@ -633,7 +486,7 @@ void Device_node_mix(
                     port);
             if (receive == NULL || send == NULL)
             {
-#if 0
+                /*
                 if (receive != NULL)
                 {
                     fprintf(stderr, "receive %p of %p %s, but no send from %p!\n",
@@ -643,14 +496,17 @@ void Device_node_mix(
                 {
                     fprintf(stderr, "send %p, but no receive!\n", (void*)send);
                 }
-#endif
+                // */
                 edge = edge->next;
                 continue;
             }
 
-            //fprintf(stderr, "%s %.1f\n",
-            //        send_device->name,
-            //        Audio_buffer_get_buffer(send, 0)[0]);
+            /*
+            fprintf(stderr, "%s %d %.1f\n",
+                    edge->node->name,
+                    (int)Device_get_id((const Device*)send_device),
+                    Audio_buffer_get_buffer(send, 0)[0]);
+            // */
             Audio_buffer_mix(receive, send, start, until);
 
             edge = edge->next;
@@ -677,16 +533,12 @@ const Device* Device_node_get_device(const Device_node* node)
 
     if (node->type == DEVICE_TYPE_MASTER)
         return node->master;
-    else if (node->type == DEVICE_TYPE_INSTRUMENT)
-        return (const Device*)Ins_table_get(node->insts, node->index);
-    else if (node->type == DEVICE_TYPE_EFFECT)
-        return (const Device*)Effect_table_get(node->effects, node->index);
-    else if (node->type == DEVICE_TYPE_GENERATOR)
-        return (const Device*)Instrument_get_gen(
-                (const Instrument*)node->master,
+    else if (node->type == DEVICE_TYPE_AU)
+        return (const Device*)Au_table_get(node->au_table, node->index);
+    else if (node->type == DEVICE_TYPE_PROCESSOR)
+        return (const Device*)Audio_unit_get_proc(
+                (const Audio_unit*)node->master,
                 node->index);
-    else if (node->type == DEVICE_TYPE_DSP)
-        return (const Device*)DSP_table_get_dsp(node->dsps, node->index);
 
     assert(false);
     return NULL;
@@ -851,17 +703,6 @@ void Device_node_print(const Device_node* node, FILE* out)
             (const void*)Device_node_get_device(node),
             states[Device_node_get_state(node)]);
 
-    if (node->type == DEVICE_TYPE_INSTRUMENT)
-    {
-        const Device_node* ins_node = Device_node_get_ins_dual(node);
-        if (ins_node == NULL)
-            return;
-
-        fprintf(out, "Instrument dual:");
-        Device_node_print(ins_node, out);
-        return;
-    }
-
     if (Device_node_get_device(node) != NULL)
         Device_print(Device_node_get_device(node), out);
 
@@ -938,23 +779,6 @@ void del_Device_node(Device_node* node)
 
     memory_free(node);
     return;
-}
-
-
-static Device_node* Device_node_get_ins_dual(const Device_node* node)
-{
-    assert(node != NULL);
-    assert(node->type == DEVICE_TYPE_INSTRUMENT);
-
-    Instrument* ins = Ins_table_get(node->insts, node->index);
-    if (ins == NULL)
-        return NULL;
-
-    Connections* ins_graph = Instrument_get_connections(ins);
-    if (ins_graph == NULL)
-        return NULL;
-
-    return Connections_get_master(ins_graph);
 }
 
 

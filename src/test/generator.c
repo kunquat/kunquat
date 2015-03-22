@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -22,25 +22,25 @@
 #define buf_len 128
 
 
+// TODO: see if this makes sense with the new manifest format
 static void setup_single_pulse_without_generator_manifest(void)
 {
     assert(handle != 0);
 
     set_data("out_00/p_manifest.json", "{}");
     set_data("p_connections.json",
-            "[ [\"ins_00/out_00\", \"out_00\"] ]");
+            "[ [\"au_00/out_00\", \"out_00\"] ]");
 
     set_data("p_control_map.json", "[ [0, 0] ]");
     set_data("control_00/p_manifest.json", "{}");
 
-    set_data("ins_00/p_manifest.json", "{}");
-    set_data("ins_00/out_00/p_manifest.json", "{}");
-    set_data("ins_00/p_connections.json",
-            "[ [\"gen_00/C/out_00\", \"out_00\"] ]");
+    set_data("au_00/p_manifest.json", "{ \"type\": \"instrument\" }");
+    set_data("au_00/out_00/p_manifest.json", "{}");
+    set_data("au_00/p_connections.json",
+            "[ [\"proc_00/C/out_00\", \"out_00\"] ]");
 
-    set_data("ins_00/gen_00/p_gen_type.json", "\"debug\"");
-    set_data("ins_00/gen_00/out_00/p_manifest.json", "{}");
-    set_data("ins_00/gen_00/c/p_b_single_pulse.json", "true");
+    set_data("au_00/proc_00/out_00/p_manifest.json", "{}");
+    set_data("au_00/proc_00/c/p_b_single_pulse.json", "true");
 
     return;
 }
@@ -74,7 +74,7 @@ START_TEST(Adding_manifest_enables_generator)
     pause();
 
     setup_single_pulse_without_generator_manifest();
-    set_data("ins_00/gen_00/p_manifest.json", "{}");
+    set_data("au_00/proc_00/p_manifest.json", "{ \"type\": \"debug\" }");
     validate();
     check_unexpected_error();
 
@@ -99,7 +99,7 @@ START_TEST(Removing_manifest_disables_generator)
 
     setup_debug_instrument();
     setup_debug_single_pulse();
-    set_data("ins_00/gen_00/p_manifest.json", "");
+    set_data("au_00/gen_00/p_manifest.json", "");
     validate();
     check_unexpected_error();
 
@@ -115,29 +115,6 @@ START_TEST(Removing_manifest_disables_generator)
 }
 END_TEST
 #endif
-
-
-START_TEST(Connect_generator_without_type)
-{
-    set_data("out_00/p_manifest.json", "{}");
-    set_data("p_connections.json",
-            "[ [\"ins_00/out_00\", \"out_00\"] ]");
-
-    set_data("p_control_map.json", "[ [0, 0] ]");
-    set_data("control_00/p_manifest.json", "{}");
-
-    set_data("ins_00/p_manifest.json", "{}");
-    set_data("ins_00/out_00/p_manifest.json", "{}");
-    set_data("ins_00/p_connections.json",
-            "[ [\"gen_00/C/out_00\", \"out_00\"] ]");
-
-    set_data("ins_00/gen_00/p_manifest.json", "{}");
-    set_data("ins_00/gen_00/out_00/p_manifest.json", "{}");
-    set_data("ins_00/gen_00/c/p_b_single_pulse.json", "true");
-
-    validate();
-}
-END_TEST
 
 
 START_TEST(Setting_type_syncs_keys)
@@ -177,7 +154,6 @@ Suite* Generator_suite(void)
     //tcase_add_test(tc_general, Generator_without_manifest_is_silent);
     tcase_add_test(tc_general, Adding_manifest_enables_generator);
     //tcase_add_test(tc_general, Removing_manifest_disables_generator);
-    tcase_add_test(tc_general, Connect_generator_without_type);
     tcase_add_test(tc_general, Setting_type_syncs_keys);
 
     return s;

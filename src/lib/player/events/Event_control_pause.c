@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -26,7 +26,7 @@
 bool Event_control_pause_process(General_state* gstate, const Value* value)
 {
     assert(gstate != NULL);
-    (void)value;
+    ignore(value);
 
     if (!gstate->global)
         return false;
@@ -39,7 +39,7 @@ bool Event_control_pause_process(General_state* gstate, const Value* value)
 bool Event_control_resume_process(General_state* gstate, const Value* value)
 {
     assert(gstate != NULL);
-    (void)value;
+    ignore(value);
 
     if (!gstate->global)
         return false;

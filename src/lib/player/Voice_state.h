@@ -23,7 +23,7 @@
 #include <kunquat/limits.h>
 #include <mathnum/Random.h>
 #include <pitch_t.h>
-#include <player/Channel_gen_state.h>
+#include <player/Channel_proc_state.h>
 #include <player/LFO.h>
 #include <player/Slider.h>
 #include <player/Time_env_state.h>
@@ -47,7 +47,7 @@ typedef struct Voice_state
     bool active;                   ///< Whether there is anything left to process.
     uint32_t freq;                 ///< The last mixing frequency used.
     double tempo;                  ///< The last tempo setting used.
-    Channel_gen_state* cgstate;    ///< Channel-specific Generator parameters.
+    Channel_proc_state* cpstate;   ///< Channel-specific Processor parameters.
     Random* rand_p;                ///< Parameter random source.
     Random* rand_s;                ///< Signal random source.
 
@@ -114,7 +114,7 @@ typedef struct Voice_state
  * Initialise a Voice state.
  *
  * \param state     The Voice state -- must not be \c NULL.
- * \param cgstate   The Channel-specific Generator state -- must not be
+ * \param cpstate   The Channel-specific Processor state -- must not be
  *                  \c NULL.
  * \param rand_p    The parameter Random source -- must not be \c NULL.
  * \param rand_s    The signal Random source -- must not be \c NULL.
@@ -125,7 +125,7 @@ typedef struct Voice_state
  */
 Voice_state* Voice_state_init(
         Voice_state* state,
-        Channel_gen_state* cgstate,
+        Channel_proc_state* cpstate,
         Random* rand_p,
         Random* rand_s,
         uint32_t freq,

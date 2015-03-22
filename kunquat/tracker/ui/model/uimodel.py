@@ -32,28 +32,28 @@ class UiModel():
     >>> ui_model = UiModel()
     >>> project = ui_model.get_project()
     >>> module = project.get_module()
-    >>> module.instruments()
+    >>> module.audio_units()
     []
-    >>> module.create_instrument()
-    >>> module.instruments()
+    >>> module.create_audio_unit()
+    >>> module.audio_units()
     [0]
-    >>> instrument = module.get_instrument(0)
-    >>> instrument.generators()
+    >>> au = module.get_audio_unit(0)
+    >>> au.processors()
     []
-    >>> instrument.create_generator()
-    >>> instrument.generators()
+    >>> au.create_processor()
+    >>> au.processors()
     [0]
-    >>> generator = instrument.get_generator(0)
-    >>> generator.set_type('debug')
-    >>> instrument_output = instrument.get_output(0)
-    >>> genrator_output = generator.get_output(0)
-    >>> instrument.list_connections()
+    >>> proc = au.get_processor(0)
+    >>> proc.set_type('debug')
+    >>> au_output = au.get_output(0)
+    >>> proc_output = proc.get_output(0)
+    >>> au.list_connections()
     []
-    >>> instrument.connect(generator_output, instrument_master)
-    >>> instrument.list_connections()
-    [(<generator_output>, <instrument_output>)]
+    >>> au.connect(proc_output, au_master)
+    >>> au.list_connections()
+    [(<processor_output>, <audio_unit_output>)]
     >>> master_output = module.get_output()
-    >>> module.connect(instrument_output, master_output)
+    >>> module.connect(au_output, master_output)
     >>> module.track_count()
     0
     >>> module.create_track()

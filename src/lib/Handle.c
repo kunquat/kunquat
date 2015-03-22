@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -24,6 +24,7 @@
 
 #include <Connections.h>
 #include <debug/assert.h>
+#include <devices/Audio_unit.h>
 #include <Handle_private.h>
 #include <kunquat/limits.h>
 #include <memory.h>
@@ -427,10 +428,10 @@ int kqt_Handle_validate(kqt_Handle handle)
     }
 
     // Check controls
-    if (h->module->ins_map != NULL)
+    if (h->module->au_map != NULL)
     {
         set_invalid_if(
-                !Input_map_is_valid(h->module->ins_map, h->module->ins_controls),
+                !Input_map_is_valid(h->module->au_map, h->module->au_controls),
                 "Control map uses nonexistent controls");
     }
 
@@ -438,56 +439,38 @@ int kqt_Handle_validate(kqt_Handle handle)
     {
         char err_msg[DEVICE_CONNECTION_ERROR_LENGTH_MAX] = "";
 
-        // Instruments
-        Ins_table* insts = Module_get_insts(h->module);
-        for (int ins_index = 0; ins_index < KQT_INSTRUMENTS_MAX; ++ins_index)
+        // Audio units
+        Au_table* au_table = Module_get_au_table(h->module);
+        for (int au_index = 0; au_index < KQT_AUDIO_UNITS_MAX; ++au_index)
         {
-            Instrument* ins = Ins_table_get(insts, ins_index);
-            if (ins != NULL)
+            Audio_unit* au = Au_table_get(au_table, au_index);
+            if (au != NULL)
             {
-                const Connections* ins_conns = Instrument_get_connections(ins);
-                if (ins_conns != NULL)
+                const Connections* au_conns = Audio_unit_get_connections(au);
+                if (au_conns != NULL)
                 {
                     set_invalid_if(
-                            !Connections_check_connections(ins_conns, err_msg),
-                            "Error in connections of device ins_%02x: %s",
-                            ins_index, err_msg);
+                            !Connections_check_connections(au_conns, err_msg),
+                            "Error in connections of device au_%02x: %s",
+                            au_index, err_msg);
                 }
 
-                // Instrument effects
-                for (int eff_index = 0; eff_index < KQT_INST_EFFECTS_MAX; ++eff_index)
+                // Audio unit effects
+                for (int sub_au_index = 0; sub_au_index < KQT_AUDIO_UNITS_MAX; ++sub_au_index)
                 {
-                    const Effect* eff = Instrument_get_effect(ins, eff_index);
-                    if (eff != NULL)
+                    const Audio_unit* sub_au = Audio_unit_get_au(au, sub_au_index);
+                    if (sub_au != NULL)
                     {
-                        const Connections* eff_conns = Effect_get_connections(eff);
-                        if (eff_conns != NULL)
+                        const Connections* conns = Audio_unit_get_connections(sub_au);
+                        if (conns != NULL)
                         {
                             set_invalid_if(
-                                    !Connections_check_connections(eff_conns, err_msg),
+                                    !Connections_check_connections(conns, err_msg),
                                     "Error in connections of device"
-                                        " ins_%02x/eff_%02x: %s",
-                                    ins_index, eff_index, err_msg);
+                                        " au_%02x/au_%02x: %s",
+                                    au_index, sub_au_index, err_msg);
                         }
                     }
-                }
-            }
-        }
-
-        // Top-level effects
-        Effect_table* eff_table = Module_get_effects(h->module);
-        for (int eff_index = 0; eff_index < KQT_EFFECTS_MAX; ++eff_index)
-        {
-            const Effect* eff = Effect_table_get(eff_table, eff_index);
-            if (eff != NULL)
-            {
-                const Connections* eff_conns = Effect_get_connections(eff);
-                if (eff_conns != NULL)
-                {
-                    set_invalid_if(
-                            !Connections_check_connections(eff_conns, err_msg),
-                            "Error in connections of device eff_%02x: %s",
-                            eff_index, err_msg);
                 }
             }
         }
@@ -499,6 +482,44 @@ int kqt_Handle_validate(kqt_Handle handle)
                     !Connections_check_connections(h->module->connections, err_msg),
                     "Error in top-level connections: %s",
                     err_msg);
+        }
+    }
+
+    // Check that audio unit types are allowed in their contexts
+    {
+        Au_table* au_table = Module_get_au_table(h->module);
+        for (int au_index = 0; au_index < KQT_AUDIO_UNITS_MAX; ++au_index)
+        {
+            Audio_unit* au = Au_table_get(au_table, au_index);
+            if ((au != NULL) && Device_is_existent((Device*)au))
+            {
+                const Au_type au_type = Audio_unit_get_type(au);
+
+                for (int sub_au_index = 0;
+                        sub_au_index < KQT_AUDIO_UNITS_MAX;
+                        ++sub_au_index)
+                {
+                    const Audio_unit* sub_au = Audio_unit_get_au(au, sub_au_index);
+                    if ((sub_au != NULL) && Device_is_existent((Device*)au))
+                    {
+                        if (au_type == AU_TYPE_INSTRUMENT)
+                        {
+                            const Au_type sub_au_type = Audio_unit_get_type(sub_au);
+                            set_invalid_if(
+                                    sub_au_type == AU_TYPE_INSTRUMENT,
+                                    "Audio unit au_%02x is an instrument but contains"
+                                        " another instrument",
+                                    au_index);
+                        }
+
+                        set_invalid_if(
+                                au_type == AU_TYPE_EFFECT,
+                                "Audio unit au_%02x is an effect but contains"
+                                    " another audio unit",
+                                au_index);
+                    }
+                }
+            }
         }
     }
 

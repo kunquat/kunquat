@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2014
+ * Author: Tomi Jylhä-Ollila, Finland 2014-2015
  *
  * This file is part of Kunquat.
  *
@@ -12,7 +12,7 @@
  */
 
 
-#include <devices/Instrument.h>
+#include <Decl.h>
 #include <module/sheet/Song.h>
 #include <module/Module.h>
 
@@ -45,57 +45,42 @@ MODULE_KEYP(bind,                   "p_bind.json",                          "[]"
 MODULE_KEYP(album_manifest,         "album/p_manifest.json",                "")
 MODULE_KEYP(album_tracks,           "album/p_tracks.json",                  "[]")
 
-MODULE_KEYP(ins_manifest,           "ins_XX/p_manifest.json",               "")
-MODULE_KEYP(ins,                    "ins_XX/p_instrument.json",
-        "{ \"global_force\": "      MAKE_STRING(INS_DEFAULT_GLOBAL_FORCE)
-        ", \"force\": "             MAKE_STRING(INS_DEFAULT_FORCE)
-        ", \"force_variation\": "   MAKE_STRING(INS_DEFAULT_FORCE_VAR)
+#define MODULE_AU_KEYP(name, keyp, def_val)                  \
+    MODULE_KEYP(name,           keyp,               def_val) \
+    MODULE_KEYP(au_ ## name,    "au_XX/" keyp,      def_val)
+
+MODULE_AU_KEYP(au_manifest,             "au_XX/p_manifest.json",                "")
+MODULE_AU_KEYP(au,                      "au_XX/p_audio_unit.json",
+        "{ \"global_force\": 0"
+        ", \"force\": 0"
+        ", \"force_variation\": 0"
         "}")
-MODULE_KEYP(ins_out_port_manifest,  "ins_XX/out_XX/p_manifest.json",        "")
-MODULE_KEYP(ins_connections,        "ins_XX/p_connections.json",            "[]")
-MODULE_KEYP(ins_env_force,          "ins_XX/p_envelope_force.json",
+MODULE_AU_KEYP(au_in_port_manifest,     "au_XX/in_XX/p_manifest.json",          "")
+MODULE_AU_KEYP(au_out_port_manifest,    "au_XX/out_XX/p_manifest.json",         "")
+MODULE_AU_KEYP(au_connections,          "au_XX/p_connections.json",             "[]")
+MODULE_AU_KEYP(au_env_force,            "au_XX/p_envelope_force.json",
         "{ \"enabled\": false"
         ", \"scale_amount\": 0"
         ", \"scale_center\": 0"
         ", \"loop\": false"
         ", \"envelope\": { \"nodes\": [ [0, 1], [1, 1] ], \"marks\": [0, 1] }"
         "}")
-MODULE_KEYP(ins_env_force_release,  "ins_XX/p_envelope_force_release.json",
+MODULE_AU_KEYP(au_env_force_release,    "au_XX/p_envelope_force_release.json",
         "{ \"enabled\": false"
         ", \"scale_amount\": 0"
         ", \"scale_center\": 0"
         ", \"envelope\": { \"nodes\": [ [0, 1], [1, 0] ] }"
         "}")
-MODULE_KEYP(ins_env_force_filter,   "ins_XX/p_envelope_force_filter.json",  "")
-MODULE_KEYP(ins_env_pitch_pan,      "ins_XX/p_envelope_pitch_pan.json",     "")
+MODULE_AU_KEYP(au_env_force_filter,     "au_XX/p_envelope_force_filter.json",   "")
+MODULE_AU_KEYP(au_env_pitch_pan,        "au_XX/p_envelope_pitch_pan.json",      "")
 
-MODULE_KEYP(gen_manifest,           "ins_XX/gen_XX/p_manifest.json",        "")
-MODULE_KEYP(gen_out_port_manifest,  "ins_XX/gen_XX/out_XX/p_manifest.json", "")
-MODULE_KEYP(gen_type,               "ins_XX/gen_XX/p_gen_type.json",        "")
-MODULE_KEYP(gen_impl_key,           "ins_XX/gen_XX/i/",                     "")
-MODULE_KEYP(gen_conf_key,           "ins_XX/gen_XX/c/",                     "")
+MODULE_AU_KEYP(proc_manifest,           "au_XX/proc_XX/p_manifest.json",         "")
+MODULE_AU_KEYP(proc_in_port_manifest,   "au_XX/proc_XX/in_XX/p_manifest.json",   "")
+MODULE_AU_KEYP(proc_out_port_manifest,  "au_XX/proc_XX/out_XX/p_manifest.json",  "")
+MODULE_AU_KEYP(proc_impl_key,           "au_XX/proc_XX/i/",                      "")
+MODULE_AU_KEYP(proc_conf_key,           "au_XX/proc_XX/c/",                      "")
 
-MODULE_KEYP(ins_effect_manifest,    "ins_XX/eff_XX/p_manifest.json",        "")
-MODULE_KEYP(ins_effect_in_port_manifest, "ins_XX/eff_XX/in_XX/p_manifest.json", "")
-MODULE_KEYP(ins_effect_out_port_manifest, "ins_XX/eff_XX/out_XX/p_manifest.json", "")
-MODULE_KEYP(ins_effect_connections, "ins_XX/eff_XX/p_connections.json",     "")
-MODULE_KEYP(ins_dsp_manifest,       "ins_XX/eff_XX/dsp_XX/p_manifest.json", "")
-MODULE_KEYP(ins_dsp_in_port_manifest, "ins_XX/eff_XX/dsp_XX/in_XX/p_manifest.json", "")
-MODULE_KEYP(ins_dsp_out_port_manifest, "ins_XX/eff_XX/dsp_XX/out_XX/p_manifest.json", "")
-MODULE_KEYP(ins_dsp_type,           "ins_XX/eff_XX/dsp_XX/p_dsp_type.json", "")
-MODULE_KEYP(ins_dsp_impl_key,       "ins_XX/eff_XX/dsp_XX/i/",              "")
-MODULE_KEYP(ins_dsp_conf_key,       "ins_XX/eff_XX/dsp_XX/c/",              "")
-
-MODULE_KEYP(effect_manifest,        "eff_XX/p_manifest.json",               "")
-MODULE_KEYP(effect_in_port_manifest, "eff_XX/in_XX/p_manifest.json",        "")
-MODULE_KEYP(effect_out_port_manifest, "eff_XX/out_XX/p_manifest.json",      "")
-MODULE_KEYP(effect_connections,     "eff_XX/p_connections.json",            "[]")
-MODULE_KEYP(dsp_manifest,           "eff_XX/dsp_XX/p_manifest.json",        "")
-MODULE_KEYP(dsp_in_port_manifest,   "eff_XX/dsp_XX/in_XX/p_manifest.json",  "")
-MODULE_KEYP(dsp_out_port_manifest,  "eff_XX/dsp_XX/out_XX/p_manifest.json", "")
-MODULE_KEYP(dsp_type,               "eff_XX/dsp_XX/p_dsp_type.json",        "")
-MODULE_KEYP(dsp_impl_key,           "eff_XX/dsp_XX/i/",                     "")
-MODULE_KEYP(dsp_conf_key,           "eff_XX/dsp_XX/c/",                     "")
+#undef MODULE_AU_KEYP
 
 MODULE_KEYP(pattern_manifest, "pat_XXX/p_manifest.json", "")
 MODULE_KEYP(pattern,          "pat_XXX/p_pattern.json", "{ \"length\": [16, 0] }")

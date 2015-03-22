@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -24,8 +24,7 @@
 #include <Connections.h>
 #include <debug/assert.h>
 #include <Device_node.h>
-#include <devices/DSP_table.h>
-#include <devices/Effect.h>
+#include <devices/Audio_unit.h>
 #include <memory.h>
 #include <string/common.h>
 
@@ -93,17 +92,15 @@ typedef struct read_conn_data
 {
     Connections* graph;
     Connection_level level;
-    Ins_table* insts;
-    Effect_table* effects;
-    const DSP_table* dsps;
+    Au_table* au_table;
     Device* master;
 } read_conn_data;
 
 static bool read_connection(Streader* sr, int32_t index, void* userdata)
 {
     assert(sr != NULL);
-    (void)index;
     assert(userdata != NULL);
+    ignore(index);
 
     read_conn_data* rcdata = userdata;
 
@@ -129,7 +126,7 @@ static bool read_connection(Streader* sr, int32_t index, void* userdata)
     if (Streader_is_error_set(sr))
         return false;
 
-    if ((rcdata->level & CONNECTION_LEVEL_EFFECT))
+    if (rcdata->level == CONNECTION_LEVEL_AU)
     {
         if (string_eq(src_name, ""))
             strcpy(src_name, "Iin");
@@ -138,16 +135,12 @@ static bool read_connection(Streader* sr, int32_t index, void* userdata)
     if (AAtree_get_exact(rcdata->graph->nodes, src_name) == NULL)
     {
         const Device* actual_master = rcdata->master;
-        if ((rcdata->level & CONNECTION_LEVEL_EFFECT) &&
+        if ((rcdata->level == CONNECTION_LEVEL_AU) &&
                 string_eq(src_name, "Iin"))
-            actual_master = Effect_get_input_interface((Effect*)rcdata->master);
+            actual_master = Audio_unit_get_input_interface((Audio_unit*)rcdata->master);
 
         Device_node* new_src = new_Device_node(
-                src_name,
-                rcdata->insts,
-                rcdata->effects,
-                rcdata->dsps,
-                actual_master);
+                src_name, rcdata->au_table, actual_master);
 
         mem_error_if(new_src == NULL, rcdata->graph, NULL, sr);
         mem_error_if(
@@ -160,20 +153,8 @@ static bool read_connection(Streader* sr, int32_t index, void* userdata)
 
     if (AAtree_get_exact(rcdata->graph->nodes, dest_name) == NULL)
     {
-#if 0
-        Device* actual_master = rcdata->master;
-        if ((rcdata->level & CONNECTION_LEVEL_EFFECT) &&
-                string_eq(dest_name, ""))
-        {
-            actual_master = Effect_get_output_interface((Effect*)rcdata->master);
-        }
-#endif
         Device_node* new_dest = new_Device_node(
-                dest_name,
-                rcdata->insts,
-                rcdata->effects,
-                rcdata->dsps,
-                rcdata->master);
+                dest_name, rcdata->au_table, rcdata->master);
 
         mem_error_if(new_dest == NULL, rcdata->graph, NULL, sr);
         mem_error_if(
@@ -196,20 +177,10 @@ static bool read_connection(Streader* sr, int32_t index, void* userdata)
 }
 
 Connections* new_Connections_from_string(
-        Streader* sr,
-        Connection_level level,
-        Ins_table* insts,
-        Effect_table* effects,
-        const DSP_table* dsps,
-        Device* master)
+        Streader* sr, Connection_level level, Au_table* au_table, Device* master)
 {
     assert(sr != NULL);
-    assert((level & ~(CONNECTION_LEVEL_INSTRUMENT |
-                     CONNECTION_LEVEL_EFFECT)) == 0);
-    assert(insts != NULL);
-    assert(effects != NULL);
-    assert(!(level & CONNECTION_LEVEL_EFFECT) || (dsps != NULL));
-    assert((dsps == NULL) || (level & CONNECTION_LEVEL_EFFECT));
+    assert(au_table != NULL);
     assert(master != NULL);
 
     if (Streader_is_error_set(sr))
@@ -233,14 +204,14 @@ Connections* new_Connections_from_string(
     mem_error_if(graph->iter == NULL, graph, NULL, sr);
 
     Device_node* master_node = NULL;
-    if ((level & CONNECTION_LEVEL_EFFECT))
+    if (level == CONNECTION_LEVEL_AU)
     {
-        const Device* iface = Effect_get_output_interface((Effect*)master);
-        master_node = new_Device_node("", insts, effects, dsps, iface);
+        const Device* iface = Audio_unit_get_output_interface((Audio_unit*)master);
+        master_node = new_Device_node("", au_table, iface);
     }
     else
     {
-        master_node = new_Device_node("", insts, effects, dsps, master);
+        master_node = new_Device_node("", au_table, master);
     }
     mem_error_if(master_node == NULL, graph, NULL, sr);
     mem_error_if(!AAtree_ins(graph->nodes, master_node), graph, master_node, sr);
@@ -251,7 +222,7 @@ Connections* new_Connections_from_string(
         return graph;
     }
 
-    read_conn_data rcdata = { graph, level, insts, effects, dsps, master };
+    read_conn_data rcdata = { graph, level, au_table, master };
     if (!Streader_read_list(sr, read_connection, &rcdata))
     {
         del_Connections(graph);
@@ -474,33 +445,30 @@ static int validate_connection_path(
     if (Streader_is_error_set(sr))
         return -1;
 
-    bool instrument = false;
-    bool generator = false;
-    //bool effect = false;
-    //bool dsp = false;
     bool root = true;
     char* path = str;
     char* trim_point = str;
 
-    if (string_has_prefix(str, "ins_"))
+    // Device
+    if (string_has_prefix(str, "au_"))
     {
-        if (level != CONNECTION_LEVEL_GLOBAL)
+        // TODO: disallow audio unit in more than 2 levels
+        if ((level != CONNECTION_LEVEL_GLOBAL) && (level != CONNECTION_LEVEL_AU))
         {
             Streader_set_error(
                     sr,
-                    "Instrument directory in a deep-level connection: \"%s\"",
+                    "Audio unit directory in a deep-level connection: \"%s\"",
                     path);
             return -1;
         }
 
-        instrument = true;
         root = false;
-        str += strlen("ins_");
-        if (read_index(str) >= KQT_INSTRUMENTS_MAX)
+        str += strlen("au_");
+        if (read_index(str) >= KQT_AUDIO_UNITS_MAX)
         {
             Streader_set_error(
                     sr,
-                    "Invalid instrument number in the connection: \"%s\"",
+                    "Invalid audio unit number in the connection: \"%s\"",
                     path);
             return -1;
         }
@@ -510,7 +478,7 @@ static int validate_connection_path(
         {
             Streader_set_error(
                     sr,
-                    "Missing trailing '/' after the instrument number"
+                    "Missing trailing '/' after the audio unit number"
                         " in the connection: \"%s\"",
                     path);
             return -1;
@@ -519,29 +487,24 @@ static int validate_connection_path(
         ++str;
         trim_point = str - 1;
     }
-    else if (string_has_prefix(str, "eff_"))
+    else if (string_has_prefix(str, "proc_"))
     {
-        if ((level & CONNECTION_LEVEL_EFFECT))
+        if (level != CONNECTION_LEVEL_AU)
         {
             Streader_set_error(
                     sr,
-                    "Effect directory in an effect-level connection: \"%s\"",
+                    "Processor directory in a root-level connection: \"%s\"",
                     path);
             return -1;
         }
 
-        //effect = true;
         root = false;
-        str += strlen("eff_");
-        int max = KQT_EFFECTS_MAX;
-        if ((level & CONNECTION_LEVEL_INSTRUMENT))
-            max = KQT_INST_EFFECTS_MAX;
-
-        if (read_index(str) >= max)
+        str += strlen("proc_");
+        if (read_index(str) >= KQT_PROCESSORS_MAX)
         {
             Streader_set_error(
                     sr,
-                    "Invalid effect number in the connection: \"%s\"",
+                    "Invalid processor number in the connection: \"%s\"",
                     path);
             return -1;
         }
@@ -551,52 +514,7 @@ static int validate_connection_path(
         {
             Streader_set_error(
                     sr,
-                    "Missing trailing '/' after the effect number in"
-                        " the connection: \"%s\"",
-                    path);
-            return -1;
-        }
-
-        ++str;
-        trim_point = str - 1;
-    }
-    else if (string_has_prefix(str, "gen_"))
-    {
-        if (!(level & CONNECTION_LEVEL_INSTRUMENT))
-        {
-            Streader_set_error(
-                    sr,
-                    "Generator directory in a root-level connection: \"%s\"",
-                    path);
-            return -1;
-        }
-        if ((level & CONNECTION_LEVEL_EFFECT))
-        {
-            Streader_set_error(
-                    sr,
-                    "Generator directory in an effect-level connection: \"%s\"",
-                    path);
-            return -1;
-        }
-
-        root = false;
-        generator = true;
-        str += strlen("gen_");
-        if (read_index(str) >= KQT_GENERATORS_MAX)
-        {
-            Streader_set_error(
-                    sr,
-                    "Invalid generator number in the connection: \"%s\"",
-                    path);
-            return -1;
-        }
-
-        str += 2;
-        if (!string_has_prefix(str, "/"))
-        {
-            Streader_set_error(
-                    sr,
-                    "Missing trailing '/' after the generator number"
+                    "Missing trailing '/' after the processor number"
                         " in the connection: \"%s\"",
                     path);
             return -1;
@@ -607,7 +525,7 @@ static int validate_connection_path(
         {
             Streader_set_error(
                     sr,
-                    "Invalid generator parameter directory"
+                    "Invalid processor parameter directory"
                         " in the connection: \"%s\"",
                     path);
             return -1;
@@ -616,65 +534,13 @@ static int validate_connection_path(
         str += strlen("C/");
         trim_point = str - 1;
     }
-    else if (string_has_prefix(str, "dsp_"))
-    {
-        if (!(level & CONNECTION_LEVEL_EFFECT))
-        {
-            Streader_set_error(
-                    sr, "DSP directory outside an effect: \"%s\"", path);
-            return -1;
-        }
 
-        root = false;
-        //dsp = true;
-        str += strlen("dsp_");
-        if (read_index(str) >= KQT_DSPS_MAX)
-        {
-            Streader_set_error(
-                    sr, "Invalid DSP number in the connection: \"%s\"", path);
-            return -1;
-        }
-
-        str += 2;
-        if (!string_has_prefix(str, "/"))
-        {
-            Streader_set_error(
-                    sr,
-                    "Missing trailing '/' after the DSP number"
-                        " in the connection: \"%s\"",
-                    path);
-            return -1;
-        }
-
-        ++str;
-        if (!string_has_prefix(str, "C/"))
-        {
-            Streader_set_error(
-                    sr,
-                    "Invalid DSP parameter directory"
-                        " in the connection: \"%s\"",
-                    path);
-            return -1;
-        }
-
-        str += strlen("C/");
-        trim_point = str - 1;
-    }
+    // Port
     if (string_has_prefix(str, "in_") || string_has_prefix(str, "out_"))
     {
-        // TODO: check effect connections
-        if (string_has_prefix(str, "in_") && (instrument || generator))
-        {
-            Streader_set_error(
-                    sr,
-                    "Input ports are not allowed for instruments"
-                        " or generators: \"%s\"",
-                    path);
-            return -1;
-        }
-
-        if (string_has_prefix(str, "in_") && root &&
-                !(level & CONNECTION_LEVEL_EFFECT))
+        if (string_has_prefix(str, "in_") &&
+                root &&
+                (level != CONNECTION_LEVEL_AU))
         {
             Streader_set_error(
                     sr, "Input ports are not allowed for master: \"%s\"", path);

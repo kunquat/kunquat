@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2015
  *
  * This file is part of Kunquat.
  *
@@ -15,7 +15,7 @@
 #include <stdlib.h>
 
 #include <debug/assert.h>
-#include <devices/Instrument.h>
+#include <devices/Audio_unit.h>
 #include <kunquat/limits.h>
 #include <player/Channel.h>
 #include <player/events/note_setup.h>
@@ -23,31 +23,28 @@
 
 
 void reserve_voice(
-        Channel* ch,
-        Instrument* ins,
-        const Gen_state* gen_state,
-        int gen_num)
+        Channel* ch, Audio_unit* au, const Proc_state* proc_state, int proc_num)
 {
     assert(ch != NULL);
     assert(ch->freq != NULL);
     assert(*ch->freq > 0);
     assert(ch->tempo != NULL);
     assert(*ch->tempo > 0);
-    assert(ins != NULL);
-    assert(gen_state != NULL);
-    assert(gen_num >= 0);
-    assert(gen_num < KQT_GENERATORS_MAX);
+    assert(au != NULL);
+    assert(proc_state != NULL);
+    assert(proc_num >= 0);
+    assert(proc_num < KQT_PROCESSORS_MAX);
 
     ++ch->fg_count;
-    ch->fg[gen_num] = Voice_pool_get_voice(ch->pool, NULL, 0);
-    assert(ch->fg[gen_num] != NULL);
-//    fprintf(stderr, "allocated Voice %p\n", (void*)ch->fg[gen_num]);
-    ch->fg_id[gen_num] = Voice_id(ch->fg[gen_num]);
+    ch->fg[proc_num] = Voice_pool_get_voice(ch->pool, NULL, 0);
+    assert(ch->fg[proc_num] != NULL);
+//    fprintf(stderr, "allocated Voice %p\n", (void*)ch->fg[proc_num]);
+    ch->fg_id[proc_num] = Voice_id(ch->fg[proc_num]);
 
-    Voice_init(ch->fg[gen_num],
-               Instrument_get_gen(ins, gen_num),
-               gen_state,
-               ch->cgstate,
+    Voice_init(ch->fg[proc_num],
+               Audio_unit_get_proc(au, proc_num),
+               proc_state,
+               ch->cpstate,
                Random_get_uint64(ch->rand),
                *ch->freq,
                *ch->tempo);
@@ -56,27 +53,23 @@ void reserve_voice(
 }
 
 
-void set_instrument_properties(
-        Voice* voice,
-        Voice_state* vs,
-        Channel* ch,
-        double* force_var)
+void set_au_properties(Voice* voice, Voice_state* vs, Channel* ch, double* force_var)
 {
     assert(force_var != NULL);
 
-    vs->force = exp2(voice->gen->ins_params->force / 6);
+    vs->force = exp2(voice->proc->au_params->force / 6);
 
-    if (voice->gen->ins_params->force_variation != 0)
+    if (voice->proc->au_params->force_variation != 0)
     {
         if (isnan(*force_var))
         {
             double var_dB = Random_get_float_scale(ch->rand) *
-                            voice->gen->ins_params->force_variation;
-            var_dB -= voice->gen->ins_params->force_variation / 2;
+                            voice->proc->au_params->force_variation;
+            var_dB -= voice->proc->au_params->force_variation / 2;
             *force_var = exp2(var_dB / 6);
         }
         vs->force *= *force_var;
-        vs->actual_force = vs->force * voice->gen->ins_params->global_force;
+        vs->actual_force = vs->force * voice->proc->au_params->global_force;
     }
 
     Slider_set_length(&vs->force_slider, &ch->force_slide_length);

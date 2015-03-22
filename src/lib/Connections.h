@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -23,9 +23,7 @@
 #include <Decl.h>
 #include <Device_node.h>
 #include <devices/Device.h>
-#include <devices/DSP_table.h>
-#include <module/Effect_table.h>
-#include <module/Ins_table.h>
+#include <module/Au_table.h>
 #include <player/Device_states.h>
 #include <string/Streader.h>
 
@@ -38,38 +36,28 @@ struct Connections;
 
 /**
  * Where the connection is located.
- *
- * Instrument and effect levels can be combined by bitwise OR.
  */
 typedef enum
 {
     CONNECTION_LEVEL_GLOBAL = 0,
-    CONNECTION_LEVEL_INSTRUMENT = 1,
-    CONNECTION_LEVEL_EFFECT = 2,
+    CONNECTION_LEVEL_AU = 1,
 } Connection_level;
 
 
 /**
  * Create new Connections from a string.
  *
- * \param sr          The Streader of the JSON input -- must not be \c NULL.
- * \param ins_level   Whether this is an instrument-level graph or not.
- * \param insts       The Instrument table -- must not be \c NULL.
- * \param effects     The Effect table -- must not be \c NULL.
- * \param dsps        The DSP table -- must not be \c NULL.
- * \param master      The global or Instrument master node
- *                    -- must not be \c NULL.
+ * \param sr         The Streader of the JSON input -- must not be \c NULL.
+ * \param au_level   Whether this is an audio unit level graph or not.
+ * \param au_table   The Audio unit table -- must not be \c NULL.
+ * \param master     The global or Audio unit master node
+ *                   -- must not be \c NULL.
  *
  * \return   The new Connections if successful, otherwise \c NULL. \a state
  *           will not be modified if memory allocation failed.
  */
 Connections* new_Connections_from_string(
-        Streader* sr,
-        Connection_level level,
-        Ins_table* insts,
-        Effect_table* effects,
-        const DSP_table* dsps,
-        Device* master);
+        Streader* sr, Connection_level level, Au_table* au_table, Device* master);
 
 
 /**

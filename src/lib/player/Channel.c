@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -38,12 +38,12 @@ static bool Channel_init(
 
     General_state_preinit(&ch->parent);
 
-    ch->cgstate = new_Channel_gen_state();
+    ch->cpstate = new_Channel_proc_state();
     ch->rand = new_Random();
-    if (ch->cgstate == NULL || ch->rand == NULL ||
+    if (ch->cpstate == NULL || ch->rand == NULL ||
             !General_state_init(&ch->parent, false, estate, module))
     {
-        del_Channel_gen_state(ch->cgstate);
+        del_Channel_proc_state(ch->cpstate);
         del_Random(ch->rand);
         return false;
     }
@@ -63,7 +63,7 @@ static bool Channel_init(
 Channel* new_Channel(
         const Module* module,
         int num,
-        Ins_table* insts,
+        Au_table* au_table,
         Env_state* estate,
         Voice_pool* voices,
         double* tempo,
@@ -71,7 +71,7 @@ Channel* new_Channel(
 {
     assert(num >= 0);
     assert(num < KQT_CHANNELS_MAX);
-    assert(insts != NULL);
+    assert(au_table != NULL);
     assert(estate != NULL);
     assert(voices != NULL);
     assert(tempo != NULL);
@@ -87,7 +87,7 @@ Channel* new_Channel(
         return NULL;
     }
 
-    ch->insts = insts;
+    ch->au_table = au_table;
     ch->pool = voices;
     ch->tempo = tempo;
     ch->freq = audio_rate;
@@ -124,18 +124,17 @@ void Channel_reset(Channel* ch)
 
     General_state_reset(&ch->parent);
 
-    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         ch->fg[i] = NULL;
         ch->fg_id[i] = 0;
     }
     ch->fg_count = 0;
 
-    ch->ins_input = 0;
-    ch->generator = 0;
+    ch->au_input = 0;
+    ch->processor = 0;
     ch->effect = 0;
-    ch->inst_effects = false;
-    ch->dsp = 0;
+    ch->au_effects = false;
 
     ch->volume = 1;
 
@@ -176,16 +175,16 @@ void Channel_reset(Channel* ch)
 }
 
 
-double Channel_get_fg_force(Channel* ch, int gen_index)
+double Channel_get_fg_force(Channel* ch, int proc_index)
 {
     assert(ch != NULL);
-    assert(gen_index >= 0);
-    assert(gen_index < KQT_GENERATORS_MAX);
+    assert(proc_index >= 0);
+    assert(proc_index < KQT_PROCESSORS_MAX);
 
-    if (ch->fg[gen_index] == NULL)
+    if (ch->fg[proc_index] == NULL)
         return NAN;
 
-    return Voice_get_actual_force(ch->fg[gen_index]);
+    return Voice_get_actual_force(ch->fg[proc_index]);
 }
 
 
@@ -196,8 +195,8 @@ void Channel_deinit(Channel* ch)
 
     del_Event_cache(ch->event_cache);
     ch->event_cache = NULL;
-    del_Channel_gen_state(ch->cgstate);
-    ch->cgstate = NULL;
+    del_Channel_proc_state(ch->cpstate);
+    ch->cpstate = NULL;
     del_Random(ch->rand);
     ch->rand = NULL;
     General_state_deinit(&ch->parent);

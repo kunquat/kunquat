@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013
-#          Tomi Jylhä-Ollila, Finland 2013-2014
+#          Tomi Jylhä-Ollila, Finland 2013-2015
 #
 # This file is part of Kunquat.
 #
@@ -19,7 +19,7 @@ class Control():
         assert(control_id)
         self._control_id = control_id
         self._controller = None
-        self._instrument_number = None
+        self._au_number = None
         self._existence = None
         self._session = None
         self._store = None
@@ -33,7 +33,7 @@ class Control():
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
 
-    def get_instrument(self):
+    def get_audio_unit(self):
         parts = self._control_id.split('_')
         second = parts[1]
         control_number = int(second, 16)
@@ -42,11 +42,11 @@ class Control():
         except KeyError:
             input_map = []
         controls = dict(input_map)
-        instrument_number = controls[control_number]
-        instrument_id = 'ins_{0:02x}'.format(instrument_number)
+        au_number = controls[control_number]
+        au_id = 'au_{0:02x}'.format(au_number)
         module = self._ui_model.get_module()
-        instrument = module.get_instrument(instrument_id)
-        return instrument
+        au = module.get_audio_unit(au_id)
+        return au
 
     def get_active_notes(self):
         notes = self._session.get_active_notes_by_control_id(self._control_id)

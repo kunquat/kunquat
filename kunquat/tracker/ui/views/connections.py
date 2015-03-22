@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2015
 #
 # This file is part of Kunquat.
 #
@@ -49,13 +49,13 @@ DEFAULT_CONFIG = {
             'padding'            : 4,
             'button_width'       : 50,
             'button_padding'     : 2,
-            'instrument': {
+            'audio_unit': {
                 'bg_colour'       : QColor(0x33, 0x33, 0x55),
                 'fg_colour'       : QColor(0xdd, 0xee, 0xff),
                 'button_bg_colour': QColor(0x11, 0x11, 0x33),
                 'button_focused_bg_colour': QColor(0, 0, 0x77),
             },
-            'generator': {
+            'processor': {
                 'bg_colour'       : QColor(0x22, 0x55, 0x55),
                 'fg_colour'       : QColor(0xcc, 0xff, 0xff),
                 'button_bg_colour': QColor(0x11, 0x33, 0x33),
@@ -142,8 +142,8 @@ class Connections(QAbstractScrollArea):
         self.horizontalScrollBar().setSingleStep(8)
         self.verticalScrollBar().setSingleStep(8)
 
-    def set_ins_id(self, ins_id):
-        self.viewport().set_ins_id(ins_id)
+    def set_au_id(self, au_id):
+        self.viewport().set_au_id(au_id)
 
     def set_ui_model(self, ui_model):
         self.viewport().set_ui_model(ui_model)
@@ -239,7 +239,7 @@ class ConnectionsView(QWidget):
     def __init__(self, config={}):
         QWidget.__init__(self)
         self._ui_model = None
-        self._ins_id = None
+        self._au_id = None
         self._updater = None
 
         self._state = STATE_IDLE
@@ -280,9 +280,9 @@ class ConnectionsView(QWidget):
         self.setFocusPolicy(Qt.ClickFocus)
         self.setMouseTracking(True)
 
-    def set_ins_id(self, ins_id):
-        assert self._ui_model == None, "Cannot set instrument ID after UI model"
-        self._ins_id = ins_id
+    def set_au_id(self, au_id):
+        assert self._ui_model == None, "Cannot set audio unit ID after UI model"
+        self._au_id = au_id
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -312,16 +312,16 @@ class ConnectionsView(QWidget):
     def _get_connections(self):
         module = self._ui_model.get_module()
 
-        if self._ins_id != None:
-            instrument = module.get_instrument(self._ins_id)
-            return instrument.get_connections()
+        if self._au_id != None:
+            au = module.get_audio_unit(self._au_id)
+            return au.get_connections()
 
         return module.get_connections()
 
     def _get_signal(self, base):
         parts = [base]
-        if self._ins_id != None:
-            parts.append(self._ins_id)
+        if self._au_id != None:
+            parts.append(self._au_id)
         return '_'.join(parts)
 
     def _change_layout_entry(self, key, value):
@@ -370,24 +370,17 @@ class ConnectionsView(QWidget):
 
     def _get_device(self, dev_id):
         container = self._ui_model.get_module()
-        if self._ins_id != None:
-            container = container.get_instrument(self._ins_id)
+        if self._au_id != None:
+            container = container.get_audio_unit(self._au_id)
 
-        if dev_id.startswith('ins'):
-            return container.get_instrument(dev_id)
-        elif dev_id.startswith('gen'):
-            return container.get_generator(dev_id)
-        elif dev_id.startswith('eff'):
-            return container.get_effect(dev_id)
-        elif dev_id.startswith('dsp'):
-            return container.get_dsp(dev_id)
+        if dev_id.startswith('au'):
+            return container.get_audio_unit(dev_id)
+        elif dev_id.startswith('proc'):
+            return container.get_processor(dev_id)
 
         return container
 
     def _get_in_ports(self, dev_id):
-        if dev_id.startswith('ins') or dev_id.startswith('gen'):
-            return []
-
         device = self._get_device(dev_id)
         return device.get_in_ports()
 
@@ -409,28 +402,25 @@ class ConnectionsView(QWidget):
         visible_set = set(['master'])
 
         module = self._ui_model.get_module()
-        if self._ins_id != None:
-            instrument = module.get_instrument(self._ins_id)
-            gen_ids = instrument.get_generator_ids()
-            existent_gen_ids = [gen_id for gen_id in gen_ids
-                    if instrument.get_generator(gen_id).get_existence()]
-            visible_set |= set(existent_gen_ids)
+        if self._au_id != None:
+            visible_set |= set(['Iin'])
 
-            eff_ids = instrument.get_effect_ids()
+            au = module.get_audio_unit(self._au_id)
+            proc_ids = au.get_processor_ids()
+            existent_proc_ids = [proc_id for proc_id in proc_ids
+                    if au.get_processor(proc_id).get_existence()]
+            visible_set |= set(existent_proc_ids)
+
+            eff_ids = au.get_au_ids()
             existent_eff_ids = [eff_id for eff_id in eff_ids
-                    if instrument.get_effect(eff_id).get_existence()]
+                    if au.get_au(eff_id).get_existence()]
             visible_set |= set(existent_eff_ids)
 
         else:
-            ins_ids = module.get_instrument_ids()
-            existent_ins_ids = [ins_id for ins_id in ins_ids
-                    if module.get_instrument(ins_id).get_existence()]
-            visible_set |= set(existent_ins_ids)
-
-            eff_ids = module.get_effect_ids()
-            existent_eff_ids = [eff_id for eff_id in eff_ids
-                    if module.get_effect(eff_id).get_existence()]
-            visible_set |= set(existent_eff_ids)
+            au_ids = module.get_au_ids()
+            existent_au_ids = [au_id for au_id in au_ids
+                    if module.get_audio_unit(au_id).get_existence()]
+            visible_set |= set(existent_au_ids)
 
         new_dev_ids = []
 
@@ -463,7 +453,10 @@ class ConnectionsView(QWidget):
     def _split_path(self, path):
         parts = path.split('/')
         port_id = parts[-1]
-        dev_id = parts[0] if len(parts) > 1 else 'master'
+        if len(parts) > 1:
+            dev_id = parts[0]
+        else:
+            dev_id = 'master' if port_id.startswith('out') else 'Iin'
         return (dev_id, port_id)
 
     def _get_port_center_from_path(self, path):
@@ -486,11 +479,13 @@ class ConnectionsView(QWidget):
         layout = connections.get_layout()
 
         # Make devices
+        mid_offset = -200 if (self._au_id == None) else 0
         default_pos_cfg = {
-                'ins': { 'index': 0, 'offset_x': -200, 'offset_y': 120 },
-                'gen': { 'index': 0, 'offset_x': -200, 'offset_y': 120 },
-                'eff': { 'index': 0, 'offset_x': 0,    'offset_y': 120 },
-                'master': { 'index': 0, 'offset_x': 200,  'offset_y': 120 },
+                'au':       { 'index': 0, 'offset_x': mid_offset,   'offset_y': 120 },
+                'proc':     { 'index': 0, 'offset_x': mid_offset,   'offset_y': 120 },
+                'eff':      { 'index': 0, 'offset_x': 0,            'offset_y': 120 },
+                'master':   { 'index': 0, 'offset_x': 200,          'offset_y': 120 },
+                'Iin':      { 'index': 0, 'offset_x': -200,         'offset_y': 120 },
             }
 
         new_visible_devices = {}
@@ -502,6 +497,9 @@ class ConnectionsView(QWidget):
                 if dev_id == 'master':
                     in_ports = self._get_out_ports(dev_id)
                     out_ports = []
+                elif dev_id == 'Iin':
+                    in_ports = []
+                    out_ports = self._get_in_ports(dev_id)
                 else:
                     in_ports = self._get_in_ports(dev_id)
                     out_ports = self._get_out_ports(dev_id)
@@ -669,15 +667,15 @@ class ConnectionsView(QWidget):
 
     def _is_send_port(self, dev_id, port_id):
         is_out = port_id.startswith('out')
-        if dev_id == 'master':
+        if dev_id in ('master', 'Iin'):
             return not is_out
         return is_out
 
     def _make_path(self, port_info):
         parts = []
-        if port_info['dev_id'] != 'master':
+        if port_info['dev_id'] not in ('master', 'Iin'):
             parts.append(port_info['dev_id'])
-        if port_info['dev_id'].startswith(('gen', 'dsp')):
+        if port_info['dev_id'].startswith('proc'):
             parts.append('C')
         parts.append(port_info['port'])
         return '/'.join(parts)
@@ -907,10 +905,10 @@ class ConnectionsView(QWidget):
     def _perform_button_click(self, button_info):
         visibility_manager = self._ui_model.get_visibility_manager()
         dev_id = button_info['dev_id']
-        if dev_id.startswith('ins'):
-            visibility_manager.show_instrument(dev_id)
-        elif dev_id.startswith('gen'):
-            visibility_manager.show_generator(self._ins_id, dev_id)
+        if dev_id.startswith('au'):
+            visibility_manager.show_audio_unit(dev_id)
+        elif dev_id.startswith('proc'):
+            visibility_manager.show_processor(self._au_id, dev_id)
 
     def leaveEvent(self, event):
         if self._state == STATE_EDGE_MENU:
@@ -935,14 +933,12 @@ class Device():
 
         self._name = name
 
-        if dev_id == 'master':
+        if dev_id in ('master', 'Iin'):
             self._type_config = self._config['master']
-        elif dev_id.startswith('ins'):
-            self._type_config = self._config['instrument']
-        elif dev_id.startswith('eff'):
-            self._type_config = self._config['effect']
-        elif dev_id.startswith('gen'):
-            self._type_config = self._config['generator']
+        elif dev_id.startswith('au'):
+            self._type_config = self._config['audio_unit']
+        elif dev_id.startswith('proc'):
+            self._type_config = self._config['processor']
         else:
             raise ValueError('Unexpected type of device ID: {}'.format(dev_id))
 
@@ -970,7 +966,9 @@ class Device():
         text_option = QTextOption(Qt.AlignCenter)
         title_height = self._get_title_height()
         if self._id == 'master':
-            title = 'Master'
+            title = 'Master Out'
+        elif self._id == 'Iin':
+            title = 'Master In'
         else:
             title = self._name or '-'
         painter.drawText(
@@ -1048,7 +1046,7 @@ class Device():
             port_y += self._get_port_height()
 
     def get_port_center(self, port_id):
-        if port_id.startswith('in') != (self._id == 'master'):
+        if port_id.startswith('in') != (self._id in ('master', 'Iin')):
             for i, point in enumerate(self._get_in_port_centers()):
                 if self._in_ports[i] == port_id:
                     return point
@@ -1183,16 +1181,18 @@ class Device():
                 self._bg.height() + 1)
 
     def _has_edit_button(self):
-        # TODO: enable for generators & effects
-        return ((self._id != 'master') and
-                (self._id.startswith('ins') or self._id.startswith('gen')))
+        return ((self._id not in ('master', 'Iin')) and
+                (self._id.startswith('au') or self._id.startswith('proc')))
 
     def _get_height(self):
         title_height = self._get_title_height()
         port_height = self._get_port_height()
         ports_height = max(len(self._in_ports), len(self._out_ports)) * port_height
 
-        total_height = title_height + ports_height
+        if ports_height > 0:
+            total_height = title_height + ports_height
+        else:
+            total_height = title_height + self._config['padding'] * 2
 
         if self._has_edit_button():
             edit_button_height = self._get_edit_button_height()

@@ -12,8 +12,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from instrument import Instrument
-from effect import Effect
+from audiounit import AudioUnit
 from connections import Connections
 from control import Control
 from album import Album
@@ -27,7 +26,7 @@ class Module():
         self._store = None
         self._controller = None
         self._ui_model = None
-        self._instruments = {}
+        self._audio_units = {}
 
     def set_controller(self, controller):
         self._updater = controller.get_updater()
@@ -55,11 +54,11 @@ class Module():
             control_ids.add(control_id)
         return control_ids
 
-    def get_control_id_by_instrument_id(self, ins_id):
-        search_ins_num = int(ins_id.split('_')[1], 16)
+    def get_control_id_by_au_id(self, au_id):
+        search_au_num = int(au_id.split('_')[1], 16)
         control_map = self._store.get('p_control_map.json', [])
-        for control_num, ins_num in control_map:
-            if ins_num == search_ins_num:
+        for control_num, au_num in control_map:
+            if au_num == search_au_num:
                 control_id = 'control_{0:02x}'.format(control_num)
                 return control_id
         return None
@@ -70,40 +69,27 @@ class Module():
         control.set_ui_model(self._ui_model)
         return control
 
-    def get_instrument(self, instrument_id):
-        instrument = Instrument(instrument_id)
-        instrument.set_controller(self._controller)
-        return instrument
+    def get_audio_unit(self, au_id):
+        au = AudioUnit(au_id)
+        au.set_controller(self._controller)
+        return au
 
-    def get_instrument_ids(self):
-        instrument_ids = set()
+    def get_au_ids(self):
+        au_ids = set()
         for key in self._store.keys():
-            if key.startswith('ins_'):
-                instrument_id = key.split('/')[0]
-                instrument_ids.add(instrument_id)
-        return instrument_ids
+            if key.startswith('au_'):
+                au_id = key.split('/')[0]
+                au_ids.add(au_id)
+        return au_ids
 
-    def get_instruments(self, validate=True):
-        instrument_ids = self.get_instrument_ids()
-        all_instruments = [self.get_instrument(i) for i in instrument_ids]
-        #all_instruments = self._instruments.values()
+    def get_audio_units(self, validate=True):
+        au_ids = self.get_au_ids()
+        all_audio_units = [self.get_audio_unit(i) for i in au_ids]
+        #all_auidio_units = self._audio_units.values()
         #if validate:
-        #    valid = [i for i in all_instruments if i.get_existence()]
+        #    valid = [i for i in all_audio_units if i.get_existence()]
         #    return [] #valid
-        return all_instruments
-
-    def get_effect(self, effect_id):
-        effect = Effect(effect_id)
-        effect.set_controller(self._controller)
-        return effect
-
-    def get_effect_ids(self):
-        effect_ids = set()
-        for key in self._store.keys():
-            if key.startswith('eff_'):
-                effect_id = key.split('/')[0]
-                effect_ids.add(effect_id)
-        return effect_ids
+        return all_audio_units
 
     def get_out_ports(self):
         out_ports = []
@@ -140,7 +126,7 @@ class Module():
         assert not self.is_saving()
         self._controller.create_sandbox()
         kqtifile = self._controller.get_share().get_default_instrument()
-        task = self._controller.get_task_load_instrument(kqtifile)
+        task = self._controller.get_task_load_audio_unit(kqtifile)
         task_executer(task)
 
     def is_saving(self):

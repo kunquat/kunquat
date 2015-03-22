@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -33,23 +33,20 @@ bool Event_channel_slide_pitch_process(
 {
     assert(ch != NULL);
     assert(dstates != NULL);
-    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
-    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         Event_check_voice(ch, i);
         Voice* voice = ch->fg[i];
-        if (voice->gen->ins_params->pitch_locks[i].enabled)
-            continue;
 
         Voice_state* vs = voice->state;
         pitch_t pitch = -1;
 #if 0
-        if (voice->gen->ins_params->scale == NULL ||
-                *voice->gen->ins_params->scale == NULL ||
-                **voice->gen->ins_params->scale == NULL)
+        if (voice->proc->au_params->scale == NULL ||
+                *voice->proc->au_params->scale == NULL ||
+                **voice->proc->au_params->scale == NULL)
 #endif
         {
             pitch = exp2(value->value.float_type / 1200) * 440;
@@ -58,7 +55,7 @@ bool Event_channel_slide_pitch_process(
         else
         {
             pitch = Scale_get_pitch_from_cents(
-                    **voice->gen->ins_params->scale,
+                    **voice->proc->au_params->scale,
                     value->value.float_type);
         }
 #endif
@@ -82,13 +79,12 @@ bool Event_channel_slide_pitch_length_process(
 {
     assert(ch != NULL);
     assert(dstates != NULL);
-    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_TSTAMP);
 
     Tstamp_copy(&ch->pitch_slide_length, &value->value.Tstamp_type);
 
-    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;
@@ -106,18 +102,15 @@ bool Event_channel_vibrato_speed_process(
 {
     assert(ch != NULL);
     assert(dstates != NULL);
-    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
     ch->vibrato_speed = value->value.float_type;
     LFO_set_speed(&ch->vibrato, value->value.float_type);
 
-    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         Event_check_voice(ch, i);
-        if (ch->fg[i]->gen->ins_params->pitch_locks[i].enabled)
-            continue;
 
         Voice_state* vs = ch->fg[i]->state;
         LFO_set_speed(&vs->vibrato, value->value.float_type);
@@ -138,7 +131,6 @@ bool Event_channel_vibrato_depth_process(
 {
     assert(ch != NULL);
     assert(dstates != NULL);
-    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
@@ -146,11 +138,9 @@ bool Event_channel_vibrato_depth_process(
     ch->vibrato_depth = actual_depth;
     LFO_set_depth(&ch->vibrato, actual_depth); // unit is 5 cents
 
-    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         Event_check_voice(ch, i);
-        if (ch->fg[i]->gen->ins_params->pitch_locks[i].enabled)
-            continue;
 
         Voice_state* vs = ch->fg[i]->state;
         if (ch->vibrato_speed > 0)
@@ -171,14 +161,13 @@ bool Event_channel_vibrato_speed_slide_process(
 {
     assert(ch != NULL);
     assert(dstates != NULL);
-    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_TSTAMP);
 
     Tstamp_copy(&ch->vibrato_speed_slide, &value->value.Tstamp_type);
     LFO_set_speed_slide(&ch->vibrato, &value->value.Tstamp_type);
 
-    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;
@@ -196,7 +185,6 @@ bool Event_channel_vibrato_depth_slide_process(
 {
     assert(ch != NULL);
     assert(dstates != NULL);
-    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_TSTAMP);
 
@@ -204,7 +192,7 @@ bool Event_channel_vibrato_depth_slide_process(
                  &value->value.Tstamp_type);
     LFO_set_depth_slide(&ch->vibrato, &value->value.Tstamp_type);
 
-    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;

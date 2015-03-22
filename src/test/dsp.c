@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -28,34 +28,32 @@ START_TEST(Trivial_chorus_is_identity)
     set_mix_volume(0);
     pause();
 
-    set_data("eff_02/dsp_01/c/voice_00/p_f_delay.json", "0");
-    set_data("eff_02/dsp_01/c/voice_00/p_f_range.json", "0");
-    set_data("eff_02/dsp_01/c/voice_00/p_f_speed.json", "0");
-    set_data("eff_02/dsp_01/c/voice_00/p_f_volume.json", "0");
-    set_data("eff_02/dsp_01/p_dsp_type.json", "\"chorus\"");
-    set_data("eff_02/dsp_01/in_00/p_manifest.json", "{}");
-    set_data("eff_02/dsp_01/out_00/p_manifest.json", "{}");
-    set_data("eff_02/dsp_01/p_manifest.json", "{}");
+    set_data("au_03/proc_01/c/voice_00/p_f_delay.json", "0");
+    set_data("au_03/proc_01/c/voice_00/p_f_range.json", "0");
+    set_data("au_03/proc_01/c/voice_00/p_f_speed.json", "0");
+    set_data("au_03/proc_01/c/voice_00/p_f_volume.json", "0");
+    set_data("au_03/proc_01/in_00/p_manifest.json", "{}");
+    set_data("au_03/proc_01/out_00/p_manifest.json", "{}");
+    set_data("au_03/proc_01/p_manifest.json", "{ \"type\": \"chorus\" }");
 
-    set_data("eff_02/p_connections.json",
-            "[ [\"in_00\", \"dsp_01/C/in_00\"], "
-            "  [\"dsp_01/C/out_00\", \"out_00\"] ]");
-    set_data("eff_02/in_00/p_manifest.json", "{}");
-    set_data("eff_02/out_00/p_manifest.json", "{}");
-    set_data("eff_02/p_manifest.json", "{}");
+    set_data("au_03/p_connections.json",
+            "[ [\"in_00\", \"proc_01/C/in_00\"], "
+            "  [\"proc_01/C/out_00\", \"out_00\"] ]");
+    set_data("au_03/in_00/p_manifest.json", "{}");
+    set_data("au_03/out_00/p_manifest.json", "{}");
+    set_data("au_03/p_manifest.json", "{ \"type\": \"effect\" }");
 
-    set_data("ins_02/gen_00/p_gen_type.json", "\"debug\"");
-    set_data("ins_02/gen_00/out_00/p_manifest.json", "{}");
-    set_data("ins_02/gen_00/p_manifest.json", "{}");
-    set_data("ins_02/p_manifest.json", "{}");
-    set_data("ins_02/out_00/p_manifest.json", "{}");
-    set_data("ins_02/p_connections.json",
-            "[ [\"gen_00/C/out_00\", \"out_00\"] ]");
+    set_data("au_02/proc_00/out_00/p_manifest.json", "{}");
+    set_data("au_02/proc_00/p_manifest.json", "{ \"type\": \"debug\" }");
+    set_data("au_02/p_manifest.json", "{ \"type\": \"instrument\" }");
+    set_data("au_02/out_00/p_manifest.json", "{}");
+    set_data("au_02/p_connections.json",
+            "[ [\"proc_00/C/out_00\", \"out_00\"] ]");
 
     set_data("out_00/p_manifest.json", "{}");
     set_data("p_connections.json",
-            "[ [\"ins_02/out_00\", \"eff_02/in_00\"], "
-            "  [\"eff_02/out_00\", \"out_00\"] ]");
+            "[ [\"au_02/out_00\", \"au_03/in_00\"], "
+            "  [\"au_03/out_00\", \"out_00\"] ]");
     set_data("p_control_map.json", "[ [0, 2] ]");
     set_data("control_00/p_manifest.json", "{}");
 

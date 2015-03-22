@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -25,10 +25,9 @@
 #include <kunquat/limits.h>
 #include <mathnum/Random.h>
 #include <module/Bind.h>
-#include <module/Effect_table.h>
 #include <module/Environment.h>
 #include <module/Input_map.h>
-#include <module/Ins_table.h>
+#include <module/Au_table.h>
 #include <module/Scale.h>
 #include <module/sheet/Order_list.h>
 #include <module/sheet/Pat_table.h>
@@ -47,10 +46,9 @@ struct Module
     Track_list* track_list;             ///< Track list.
     Order_list* order_lists[KQT_SONGS_MAX]; ///< Order lists.
     Pat_table* pats;                    ///< The Patterns.
-    Input_map* ins_map;                 ///< Instrument input map.
-    Bit_array* ins_controls;            ///< Existent instrument controls.
-    Ins_table* insts;                   ///< The Instruments.
-    Effect_table* effects;              ///< The global Effects.
+    Input_map* au_map;                  ///< Audio unit input map.
+    Bit_array* au_controls;             ///< Audio unit control existence info.
+    Au_table* au_table;                 ///< The Audio units.
     Connections* connections;           ///< Device connections.
     Scale* scales[KQT_SCALES_MAX];      ///< The Scales.
     double mix_vol_dB;                  ///< Mixing volume in dB.
@@ -196,13 +194,13 @@ Pat_table* Module_get_pats(Module* module);
 
 
 /**
- * Get the Instrument corresponding to an input index.
+ * Get the Audio unit corresponding to an input index.
  *
  * \param module   The Module -- must not be \c NULL.
  *
- * \return   The Instrument.
+ * \return   The Audio unit.
  */
-Instrument* Module_get_ins_from_input(const Module* module, int32_t input);
+Audio_unit* Module_get_au_from_input(const Module* module, int32_t input);
 
 
 /**
@@ -229,44 +227,34 @@ bool Module_get_control(const Module* module, int control);
 
 
 /**
- * Set the Instrument input map of the Module.
+ * Set the Audio unit input map of the Module.
  *
  * \param module   The Module -- must not be \c NULL.
  * \param sr       The Streader of the input data -- must not be \c NULL.
  *
  * \return   \c true if successful, otherwise \c false.
  */
-bool Module_set_ins_map(Module* module, Streader* sr);
+bool Module_set_au_map(Module* module, Streader* sr);
 
 
 /**
- * Get the Instrument input map of the Module.
+ * Get the Audio unit input map of the Module.
  *
  * \param module   The Module -- must not be \c NULL.
  *
- * \return   The Instrument input map.
+ * \return   The Audio unit input map.
  */
-Input_map* Module_get_ins_map(const Module* module);
+Input_map* Module_get_au_map(const Module* module);
 
 
 /**
- * Get the Instruments of the Module.
+ * Get the Audio units of the Module.
  *
  * \param module   The Module -- must not be \c NULL.
  *
- * \return   The Instrument table.
+ * \return   The Audio unit table.
  */
-Ins_table* Module_get_insts(const Module* module);
-
-
-/**
- * Get the Effects of the Module.
- *
- * \param module   The Module -- must not be \c NULL.
- *
- * \return   The Effect table.
- */
-Effect_table* Module_get_effects(const Module* module);
+Au_table* Module_get_au_table(const Module* module);
 
 
 /**

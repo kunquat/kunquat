@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -22,35 +22,33 @@
 #include <Value.h>
 
 
-bool Event_channel_set_ins_input_process(
+bool Event_channel_set_au_input_process(
         Channel* ch,
         Device_states* dstates,
         const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
-    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_INT);
 
-    ch->ins_input = value->value.int_type;
+    ch->au_input = value->value.int_type;
 
     return true;
 }
 
 
-bool Event_channel_set_generator_process(
+bool Event_channel_set_processor_process(
         Channel* ch,
         Device_states* dstates,
         const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
-    (void)dstates;
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_INT);
 
-    ch->generator = value->value.int_type;
+    ch->processor = value->value.int_type;
 
     return true;
 }
@@ -63,60 +61,24 @@ bool Event_channel_set_global_effects_process(
 {
     assert(ch != NULL);
     assert(dstates != NULL);
-    (void)dstates;
-    (void)value;
+    ignore(value);
 
-    ch->inst_effects = false;
+    ch->au_effects = false;
 
     return true;
 }
 
 
-bool Event_channel_set_instrument_effects_process(
+bool Event_channel_set_au_effects_process(
         Channel* ch,
         Device_states* dstates,
         const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
-    (void)dstates;
-    (void)value;
+    ignore(value);
 
-    ch->inst_effects = true;
-
-    return true;
-}
-
-
-bool Event_channel_set_effect_process(
-        Channel* ch,
-        Device_states* dstates,
-        const Value* value)
-{
-    assert(ch != NULL);
-    assert(dstates != NULL);
-    (void)dstates;
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_INT);
-
-    ch->effect = value->value.int_type;
-
-    return true;
-}
-
-
-bool Event_channel_set_dsp_process(
-        Channel* ch,
-        Device_states* dstates,
-        const Value* value)
-{
-    assert(ch != NULL);
-    assert(dstates != NULL);
-    (void)dstates;
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_INT);
-
-    ch->dsp = value->value.int_type;
+    ch->au_effects = true;
 
     return true;
 }

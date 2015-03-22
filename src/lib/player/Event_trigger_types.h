@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2014
+ * Author: Tomi Jylhä-Ollila, Finland 2014-2015
  *
  * This file is part of Kunquat.
  *
@@ -33,21 +33,13 @@
     EVENT_TRIGGER_TYPE_DEF(name, channel, type_suffix, arg_type, validator)
 #include <player/events/Event_channel_types.h>
 
-#define EVENT_INS_DEF(name, type_suffix, arg_type, validator) \
-    EVENT_TRIGGER_TYPE_DEF(name, ins, type_suffix, arg_type, validator)
-#include <player/events/Event_ins_types.h>
+#define EVENT_AU_DEF(name, type_suffix, arg_type, validator) \
+    EVENT_TRIGGER_TYPE_DEF(name, au, type_suffix, arg_type, validator)
+#include <player/events/Event_au_types.h>
 
-#define EVENT_GENERATOR_DEF(name, type_suffix, arg_type, validator) \
-    EVENT_TRIGGER_TYPE_DEF(name, generator, type_suffix, arg_type, validator)
-#include <player/events/Event_generator_types.h>
-
-#define EVENT_EFFECT_DEF(name, type_suffix, arg_type, validator) \
-    EVENT_TRIGGER_TYPE_DEF(name, effect, type_suffix, arg_type, validator)
-#include <player/events/Event_effect_types.h>
-
-#define EVENT_DSP_DEF(name, type_suffix, arg_type, validator) \
-    EVENT_TRIGGER_TYPE_DEF(name, dsp, type_suffix, arg_type, validator)
-#include <player/events/Event_dsp_types.h>
+#define EVENT_PROCESSOR_DEF(name, type_suffix, arg_type, validator) \
+    EVENT_TRIGGER_TYPE_DEF(name, processor, type_suffix, arg_type, validator)
+#include <player/events/Event_processor_types.h>
 
 #define EVENT_QUERY_DEF(name, type_suffix, arg_type, validator) \
     EVENT_TRIGGER_TYPE_DEF(name, query, type_suffix, arg_type, validator)

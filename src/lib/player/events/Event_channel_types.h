@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -18,12 +18,10 @@
 
 
 //                Name      Type suffix             Arg type        Validator
-EVENT_CHANNEL_DEF(".i",     set_ins_input,          INT,            v_ins)
-EVENT_CHANNEL_DEF(".g",     set_generator,          INT,            v_gen)
-EVENT_CHANNEL_DEF(".e",     set_effect,             INT,            v_effect)
+EVENT_CHANNEL_DEF(".a",     set_au_input,           INT,            v_au)
+EVENT_CHANNEL_DEF(".g",     set_processor,          INT,            v_proc)
 EVENT_CHANNEL_DEF(".ge",    set_global_effects,     NONE,           NULL)
-EVENT_CHANNEL_DEF(".ie",    set_instrument_effects, NONE,           NULL)
-EVENT_CHANNEL_DEF(".d",     set_dsp,                INT,            v_dsp)
+EVENT_CHANNEL_DEF(".ie",    set_au_effects,         NONE,           NULL)
 
 EVENT_CHANNEL_DEF("n+",     note_on,                FLOAT,          v_pitch)
 EVENT_CHANNEL_DEF("h",      hit,                    INT,            v_hit)
@@ -66,15 +64,6 @@ EVENT_CHANNEL_DEF(".r",     set_resonance,          FLOAT,          v_resonance)
 EVENT_CHANNEL_DEF(".P",     set_panning,            FLOAT,          v_panning)
 EVENT_CHANNEL_DEF("/P",     slide_panning,          FLOAT,          v_panning)
 EVENT_CHANNEL_DEF("/=P",    slide_panning_length,   TSTAMP,         v_nonneg_ts)
-
-EVENT_CHANNEL_DEF(".gBn",   set_gen_bool_name,      STRING,         v_key)
-EVENT_CHANNEL_DEF(".gB",    set_gen_bool,           BOOL,           v_any_bool)
-EVENT_CHANNEL_DEF(".gIn",   set_gen_int_name,       STRING,         v_key)
-EVENT_CHANNEL_DEF(".gI",    set_gen_int,            INT,            v_any_int)
-EVENT_CHANNEL_DEF(".gFn",   set_gen_float_name,     STRING,         v_key)
-EVENT_CHANNEL_DEF(".gF",    set_gen_float,          FLOAT,          v_any_float)
-EVENT_CHANNEL_DEF(".gTn",   set_gen_tstamp_name,    STRING,         v_key)
-EVENT_CHANNEL_DEF(".gT",    set_gen_tstamp,         TSTAMP,         v_any_ts)
 
 
 #undef EVENT_CHANNEL_DEF
