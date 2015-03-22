@@ -20,9 +20,9 @@
 
 #include <Connections.h>
 #include <debug/assert.h>
+#include <devices/Au_interface.h>
 #include <devices/Audio_unit.h>
 #include <devices/Device.h>
-#include <devices/Effect_interface.h>
 #include <devices/Proc_table.h>
 #include <devices/Processor.h>
 #include <memory.h>
@@ -37,8 +37,8 @@ struct Audio_unit
 
     Au_type type;
 
-    Effect_interface* out_iface;
-    Effect_interface* in_iface;
+    Au_interface* out_iface;
+    Au_interface* in_iface;
     Connections* connections;
 
 //    double default_force;       ///< Default force.
@@ -112,8 +112,8 @@ Audio_unit* new_Audio_unit(void)
     Device_register_set_buffer_size(&au->parent, Audio_unit_set_buffer_size);
     Device_set_process(&au->parent, Audio_unit_process_signal);
 
-    au->out_iface = new_Effect_interface();
-    au->in_iface = new_Effect_interface();
+    au->out_iface = new_Au_interface();
+    au->in_iface = new_Au_interface();
     au->procs = new_Proc_table(KQT_PROCESSORS_MAX);
     au->au_table = new_Au_table(KQT_AUDIO_UNITS_MAX);
     if ((au->out_iface == NULL) ||
@@ -546,8 +546,8 @@ void del_Audio_unit(Audio_unit* au)
 
     Au_params_deinit(&au->params);
     del_Connections(au->connections);
-    del_Effect_interface(au->in_iface);
-    del_Effect_interface(au->out_iface);
+    del_Au_interface(au->in_iface);
+    del_Au_interface(au->out_iface);
     del_Au_table(au->au_table);
     del_Proc_table(au->procs);
     Device_deinit(&au->parent);
