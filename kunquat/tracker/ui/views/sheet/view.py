@@ -1071,57 +1071,6 @@ class View(QWidget):
             return self.keyPressEvent(ev) or False
         return QWidget.event(self, ev)
 
-    def _handle_move_up(self, event):
-        self._vertical_move_state.press_up()
-        self._move_edit_cursor_tstamp()
-
-    def _handle_move_down(self, event):
-        self._vertical_move_state.press_down()
-        self._move_edit_cursor_tstamp()
-
-    def _handle_move_left(self, event):
-        self._horizontal_move_state.press_left()
-        self._move_edit_cursor_trow()
-
-    def _handle_move_right(self, event):
-        self._horizontal_move_state.press_right()
-        self._move_edit_cursor_trow()
-
-    def _handle_rest(self, event):
-        if not event.isAutoRepeat():
-            self._add_rest()
-
-    def _handle_typewriter_connection(self, event):
-        if not event.isAutoRepeat():
-            connected = self._sheet_manager.get_typewriter_connected()
-            self._sheet_manager.set_typewriter_connected(not connected)
-
-    def _handle_replace_mode(self, event):
-        if not event.isAutoRepeat():
-            is_replace = self._sheet_manager.get_replace_mode()
-            self._sheet_manager.set_replace_mode(not is_replace)
-
-    def _handle_field_edit(self, event):
-        if (self._sheet_manager.get_replace_mode() and
-                self._sheet_manager.is_at_trigger()):
-            self._start_trigger_argument_entry()
-        else:
-            self._start_trigger_type_entry()
-
-    def _handle_decrease_column_width(self, event):
-        if cmdline.get_experimental():
-            self._sheet_manager.set_column_width(
-                    self._sheet_manager.get_column_width() - 1)
-
-    def _handle_increase_column_width(self, event):
-        if cmdline.get_experimental():
-            self._sheet_manager.set_column_width(
-                    self._sheet_manager.get_column_width() + 1)
-
-    def _handle_reset_column_width(self, event):
-        if cmdline.get_experimental():
-            self._sheet_manager.set_column_width(0)
-
     def keyPressEvent(self, event):
         if self._keyboard_mapper.process_typewriter_button_event(event):
             return
@@ -1135,41 +1084,92 @@ class View(QWidget):
             self._move_edit_cursor_column(-1)
             return True
 
+        def handle_move_up():
+            self._vertical_move_state.press_up()
+            self._move_edit_cursor_tstamp()
+
+        def handle_move_down():
+            self._vertical_move_state.press_down()
+            self._move_edit_cursor_tstamp()
+
+        def handle_move_left():
+            self._horizontal_move_state.press_left()
+            self._move_edit_cursor_trow()
+
+        def handle_move_right():
+            self._horizontal_move_state.press_right()
+            self._move_edit_cursor_trow()
+
+        def handle_rest():
+            if not event.isAutoRepeat():
+                self._add_rest()
+
+        def handle_typewriter_connection():
+            if not event.isAutoRepeat():
+                connected = self._sheet_manager.get_typewriter_connected()
+                self._sheet_manager.set_typewriter_connected(not connected)
+
+        def handle_replace_mode():
+            if not event.isAutoRepeat():
+                is_replace = self._sheet_manager.get_replace_mode()
+                self._sheet_manager.set_replace_mode(not is_replace)
+
+        def handle_field_edit():
+            if (self._sheet_manager.get_replace_mode() and
+                    self._sheet_manager.is_at_trigger()):
+                self._start_trigger_argument_entry()
+            else:
+                self._start_trigger_type_entry()
+
+        def handle_decrease_column_width():
+            if cmdline.get_experimental():
+                self._sheet_manager.set_column_width(
+                        self._sheet_manager.get_column_width() - 1)
+
+        def handle_increase_column_width():
+            if cmdline.get_experimental():
+                self._sheet_manager.set_column_width(
+                        self._sheet_manager.get_column_width() + 1)
+
+        def handle_reset_column_width():
+            if cmdline.get_experimental():
+                self._sheet_manager.set_column_width(0)
+
         keymap = {
             int(Qt.NoModifier): {
-                Qt.Key_Up:      self._handle_move_up,
-                Qt.Key_Down:    self._handle_move_down,
-                Qt.Key_Left:    self._handle_move_left,
-                Qt.Key_Right:   self._handle_move_right,
+                Qt.Key_Up:      handle_move_up,
+                Qt.Key_Down:    handle_move_down,
+                Qt.Key_Left:    handle_move_left,
+                Qt.Key_Right:   handle_move_right,
 
-                Qt.Key_Home:    lambda e: self._move_edit_cursor_trigger_index(0),
-                Qt.Key_End: lambda e: self._move_edit_cursor_trigger_index(2**24), # :-P
+                Qt.Key_Home:    lambda: self._move_edit_cursor_trigger_index(0),
+                Qt.Key_End: lambda: self._move_edit_cursor_trigger_index(2**24), # :-P
 
                 # TODO: Some rare keyboard layouts have the 1 key in a location
                 #       that interferes with the typewriter
-                Qt.Key_1:       self._handle_rest,
+                Qt.Key_1:       handle_rest,
 
-                Qt.Key_Delete:  lambda e: self._try_delete_selection(),
-                Qt.Key_Backspace: lambda e: self._perform_backspace(),
+                Qt.Key_Delete:  lambda: self._try_delete_selection(),
+                Qt.Key_Backspace: lambda: self._perform_backspace(),
 
-                Qt.Key_Space:   self._handle_typewriter_connection,
-                Qt.Key_Insert:  self._handle_replace_mode,
+                Qt.Key_Space:   handle_typewriter_connection,
+                Qt.Key_Insert:  handle_replace_mode,
 
-                Qt.Key_Return:  self._handle_field_edit,
+                Qt.Key_Return:  handle_field_edit,
             },
 
             int(Qt.ControlModifier): {
-                Qt.Key_Minus:   lambda e: self._sheet_manager.set_zoom(
+                Qt.Key_Minus:   lambda: self._sheet_manager.set_zoom(
                                     self._sheet_manager.get_zoom() - 1),
-                Qt.Key_Plus:    lambda e: self._sheet_manager.set_zoom(
+                Qt.Key_Plus:    lambda: self._sheet_manager.set_zoom(
                                     self._sheet_manager.get_zoom() + 1),
-                Qt.Key_0:       lambda e: self._sheet_manager.set_zoom(0),
+                Qt.Key_0:       lambda: self._sheet_manager.set_zoom(0),
             },
 
             int(Qt.ControlModifier | Qt.AltModifier): {
-                Qt.Key_Minus:   self._handle_decrease_column_width,
-                Qt.Key_Plus:    self._handle_increase_column_width,
-                Qt.Key_0:       self._handle_reset_column_width,
+                Qt.Key_Minus:   handle_decrease_column_width,
+                Qt.Key_Plus:    handle_increase_column_width,
+                Qt.Key_0:       handle_reset_column_width,
             },
         }
 
@@ -1178,7 +1178,7 @@ class View(QWidget):
         if mod_map:
             func = mod_map.get(event.key())
             if func:
-                func(event)
+                func()
                 is_handled = True
 
         if not is_handled:
