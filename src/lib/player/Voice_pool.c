@@ -202,6 +202,39 @@ void Voice_pool_prepare(Voice_pool* pool)
 }
 
 
+static uint64_t get_voice_group_prio(const Voice* voice)
+{
+    // Overflow group ID 0 to maximum so that inactive voices are placed last
+    return Voice_get_group_id(voice) - 1;
+}
+
+
+static void Voice_pool_sort_groups(Voice_pool* pool)
+{
+    assert(pool != NULL);
+
+    // Simple insertion sort based on group IDs...
+    for (uint16_t i = 1; i < pool->size; ++i)
+    {
+        Voice* current = pool->voices[i];
+        uint16_t target_index = i;
+
+        for (; target_index > 0; --target_index)
+        {
+            Voice* prev = pool->voices[target_index - 1];
+            if (get_voice_group_prio(prev) <= get_voice_group_prio(current))
+                break;
+
+            pool->voices[target_index] = prev;
+        }
+
+        pool->voices[target_index] = current;
+    }
+
+    return;
+}
+
+
 uint16_t Voice_pool_mix(
         Voice_pool* pool,
         Device_states* states,
@@ -218,6 +251,8 @@ uint16_t Voice_pool_mix(
 
     if (pool->size == 0)
         return 0;
+
+    Voice_pool_sort_groups(pool);
 
     uint16_t active_voices = 0;
     for (uint16_t i = 0; i < pool->size; ++i)

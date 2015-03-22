@@ -102,6 +102,16 @@ uint64_t Voice_id(const Voice* voice);
 
 
 /**
+ * Get the group ID of the Voice.
+ *
+ * \param voice   The Voice -- must not be \c NULL.
+ *
+ * \return   The group ID.
+ */
+uint64_t Voice_get_group_id(const Voice* voice);
+
+
+/**
  * Initialise the Voice for mixing.
  *
  * \param voice        The Voice -- must not be \c NULL.

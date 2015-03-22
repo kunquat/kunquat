@@ -29,7 +29,6 @@
 typedef struct Voice_pool
 {
     uint16_t size;
-    uint8_t events;
     size_t state_size;
     uint64_t new_group_id;
     Voice** voices;

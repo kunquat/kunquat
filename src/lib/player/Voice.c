@@ -90,6 +90,13 @@ uint64_t Voice_id(const Voice* voice)
 }
 
 
+uint64_t Voice_get_group_id(const Voice* voice)
+{
+    assert(voice != NULL);
+    return voice->group_id;
+}
+
+
 void Voice_init(
         Voice* voice,
         const Processor* proc,
@@ -133,6 +140,7 @@ void Voice_reset(Voice* voice)
     assert(voice != NULL);
 
     voice->id = 0;
+    voice->group_id = 0;
     voice->prio = VOICE_PRIO_INACTIVE;
     Voice_state_clear(voice->state);
     voice->proc = NULL;
