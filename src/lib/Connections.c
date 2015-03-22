@@ -319,6 +319,38 @@ void Connections_clear_buffers(
 }
 
 
+void Connections_process_voice_group(
+        Connections* graph,
+        Voice_group* vgroup,
+        Device_states* dstates,
+        const Work_buffers* wbs,
+        int32_t buf_start,
+        int32_t buf_stop,
+        uint32_t audio_rate,
+        double tempo)
+{
+    assert(graph != NULL);
+    assert(vgroup != NULL);
+    assert(dstates != NULL);
+    assert(wbs != NULL);
+    assert(buf_start >= 0);
+    assert(buf_stop >= 0);
+    assert(audio_rate > 0);
+    assert(tempo > 0);
+
+    Device_node* master = AAtree_get_exact(graph->nodes, "");
+    assert(master != NULL);
+    if (buf_start >= buf_stop)
+        return;
+
+    Device_node_reset(master);
+    Device_node_process_voice_group(
+            master, vgroup, dstates, wbs, buf_start, buf_stop, audio_rate, tempo);
+
+    return;
+}
+
+
 void Connections_mix(
         Connections* graph,
         Device_states* states,

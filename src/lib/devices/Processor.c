@@ -169,6 +169,13 @@ bool Processor_get_vstate_support(const Processor* proc)
 }
 
 
+const Au_params* Processor_get_au_params(const Processor* proc)
+{
+    assert(proc != NULL);
+    return proc->au_params;
+}
+
+
 void Processor_process_vstate(
         const Processor* proc,
         Device_states* dstates,

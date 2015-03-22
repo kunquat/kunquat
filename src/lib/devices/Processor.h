@@ -123,6 +123,16 @@ bool Processor_get_vstate_support(const Processor* proc);
 
 
 /**
+ * Get the Audio unit parameters associated with the Processor.
+ *
+ * \param proc   The Processor -- must not be \c NULL.
+ *
+ * \return   The Audio unit parameters.
+ */
+const Au_params* Processor_get_au_params(const Processor* proc);
+
+
+/**
  * Process a Voice state that belongs to the Processor.
  *
  * \param proc         The Processor -- must not be \c NULL.

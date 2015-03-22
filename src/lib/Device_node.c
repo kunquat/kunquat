@@ -24,6 +24,7 @@
 #include <devices/Processor.h>
 #include <kunquat/limits.h>
 #include <memory.h>
+#include <player/Voice_group.h>
 #include <string/common.h>
 
 
@@ -412,6 +413,77 @@ void Device_node_clear_buffers(
             Device_node_clear_buffers(edge->node, states, start, until);
             edge = edge->next;
         }
+    }
+
+    Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
+    return;
+}
+
+
+void Device_node_process_voice_group(
+        Device_node* node,
+        Voice_group* vgroup,
+        Device_states* dstates,
+        const Work_buffers* wbs,
+        int32_t buf_start,
+        int32_t buf_stop,
+        uint32_t audio_rate,
+        double tempo)
+{
+    assert(node != NULL);
+    assert(vgroup != NULL);
+    assert(dstates != NULL);
+    assert(wbs != NULL);
+    assert(buf_start >= 0);
+    assert(buf_stop >= 0);
+    assert(audio_rate > 0);
+    assert(tempo > 0);
+
+    if (Device_node_get_state(node) > DEVICE_NODE_STATE_NEW)
+    {
+        assert(Device_node_get_state(node) == DEVICE_NODE_STATE_VISITED);
+        return;
+    }
+
+    Device_node_set_state(node, DEVICE_NODE_STATE_REACHED);
+    const Device* node_device = Device_node_get_device(node);
+
+    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+    {
+        Connection* edge = node->receive[port];
+        while (edge != NULL)
+        {
+            const Device* send_device = Device_node_get_device(edge->node);
+            if (send_device == NULL)
+            {
+                edge = edge->next;
+                continue;
+            }
+
+            Device_node_process_voice_group(
+                    edge->node,
+                    vgroup,
+                    dstates,
+                    wbs,
+                    buf_start,
+                    buf_stop,
+                    audio_rate,
+                    tempo);
+
+            // TODO: Mix voice audio buffers if the current device is a processor
+
+            edge = edge->next;
+        }
+    }
+
+    if (node->type == DEVICE_TYPE_PROCESSOR)
+    {
+        // Find the Voice that belongs to the current Processor
+        const uint32_t proc_id = Device_get_id((const Device*)node_device);
+        Voice* voice = Voice_group_get_voice_by_proc(vgroup, proc_id);
+
+        if (voice != NULL)
+            Voice_mix(voice, dstates, wbs, buf_stop, buf_start, audio_rate, tempo);
     }
 
     Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);

@@ -19,6 +19,8 @@
 
 #include <debug/assert.h>
 #include <Device_node.h>
+#include <devices/Au_params.h>
+#include <devices/Audio_unit.h>
 #include <mathnum/common.h>
 #include <memory.h>
 #include <Pat_inst_ref.h>
@@ -424,19 +426,28 @@ static void Player_process_voices(
 
     while (vg != NULL)
     {
-        for (uint16_t i = 0; i < Voice_group_get_size(vg); ++i)
-        {
-            Voice* voice = Voice_group_get_voice(vg, i);
-            Voice_mix(
-                    voice,
-                    player->device_states,
-                    player->work_buffers,
-                    render_stop,
-                    render_start,
-                    player->audio_rate,
-                    player->master_params.tempo);
-            ++active_voice_count;
-        }
+        // Find the connections that contain the processors
+        const Voice* first_voice = Voice_group_get_voice(vg, 0);
+        const Processor* first_proc = Voice_get_proc(first_voice);
+        const Au_params* first_au_params = Processor_get_au_params(first_proc);
+        const uint32_t au_id = first_au_params->device_id;
+        const Device_state* au_state = Device_states_get_state(
+                player->device_states, au_id);
+        const Audio_unit* au = (const Audio_unit*)Device_state_get_device(au_state);
+        Connections* conns = Audio_unit_get_connections_mut(au);
+
+        Connections_process_voice_group(
+                conns,
+                vg,
+                player->device_states,
+                player->work_buffers,
+                render_start,
+                render_stop,
+                player->audio_rate,
+                player->master_params.tempo);
+
+        active_voice_count += Voice_group_get_size(vg);
+
         vg = Voice_pool_get_next_group(player->voices);
     }
 

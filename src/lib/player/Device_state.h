@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -100,6 +100,16 @@ Device_state* new_Device_state_plain(
  *           \a ds2.
  */
 int Device_state_cmp(const Device_state* ds1, const Device_state* ds2);
+
+
+/**
+ * Get the Device associated with the Device state.
+ *
+ * \param ds   The Device state -- must not be \c NULL.
+ *
+ * \return   The Device.
+ */
+const Device* Device_state_get_device(const Device_state* ds);
 
 
 /**

@@ -80,6 +80,13 @@ int Device_state_cmp(const Device_state* ds1, const Device_state* ds2)
 }
 
 
+const Device* Device_state_get_device(const Device_state* ds)
+{
+    assert(ds != NULL);
+    return ds->device;
+}
+
+
 bool Device_state_set_audio_rate(Device_state* ds, int32_t rate)
 {
     assert(ds != NULL);
