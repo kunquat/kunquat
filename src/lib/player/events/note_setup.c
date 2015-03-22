@@ -23,7 +23,11 @@
 
 
 void reserve_voice(
-        Channel* ch, Audio_unit* au, const Proc_state* proc_state, int proc_num)
+        Channel* ch,
+        Audio_unit* au,
+        uint64_t group_id,
+        const Proc_state* proc_state,
+        int proc_num)
 {
     assert(ch != NULL);
     assert(ch->freq != NULL);
@@ -43,6 +47,7 @@ void reserve_voice(
 
     Voice_init(ch->fg[proc_num],
                Audio_unit_get_proc(au, proc_num),
+               group_id,
                proc_state,
                ch->cpstate,
                Random_get_uint64(ch->rand),

@@ -31,6 +31,7 @@ Voice_pool* new_Voice_pool(uint16_t size)
 
     pool->size = size;
     pool->state_size = 0;
+    pool->new_group_id = 0;
     pool->voices = NULL;
 
     if (size > 0)
@@ -146,6 +147,14 @@ uint16_t Voice_pool_get_size(const Voice_pool* pool)
 }
 
 
+uint64_t Voice_pool_new_group_id(Voice_pool* pool)
+{
+    assert(pool != NULL);
+    ++pool->new_group_id;
+    return pool->new_group_id;
+}
+
+
 Voice* Voice_pool_get_voice(Voice_pool* pool, Voice* voice, uint64_t id)
 {
     assert(pool != NULL);
@@ -193,7 +202,7 @@ void Voice_pool_prepare(Voice_pool* pool)
 }
 
 
-uint16_t Voice_pool_mix_bg(
+uint16_t Voice_pool_mix(
         Voice_pool* pool,
         Device_states* states,
         const Work_buffers* wbs,
@@ -215,12 +224,7 @@ uint16_t Voice_pool_mix_bg(
     {
         if (pool->voices[i]->prio != VOICE_PRIO_INACTIVE)
         {
-            if (pool->voices[i]->prio <= VOICE_PRIO_BG)
-            {
-//                fprintf(stderr, "Background mix start\n");
-                Voice_mix(pool->voices[i], states, wbs, amount, offset, freq, tempo);
-//                fprintf(stderr, "Background mix end\n");
-            }
+            Voice_mix(pool->voices[i], states, wbs, amount, offset, freq, tempo);
             ++active_voices;
         }
     }

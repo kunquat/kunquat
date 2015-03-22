@@ -43,6 +43,7 @@ typedef enum
 typedef struct Voice
 {
     uint64_t id;             ///< An identification number for this initialisation.
+    uint64_t group_id;       ///< The ID of the group this Voice currently belogns to.
     Voice_prio prio;         ///< Current priority of the Voice.
     const Processor* proc;   ///< The Processor.
     size_t state_size;       ///< The amount bytes allocated for the Voice state.
@@ -105,6 +106,8 @@ uint64_t Voice_id(const Voice* voice);
  *
  * \param voice        The Voice -- must not be \c NULL.
  * \param proc         The Processor used -- must not be \c NULL.
+ * \param group_id     The ID of the group this Voice belongs to. This is used
+ *                     to identify which Voices are connected.
  * \param proc_state   The Processor state -- must not be \c NULL.
  * \param cpstate      The Channel-specific Processor state -- must not be
  *                     \c NULL.
@@ -115,6 +118,7 @@ uint64_t Voice_id(const Voice* voice);
 void Voice_init(
         Voice* voice,
         const Processor* proc,
+        uint64_t group_id,
         const Proc_state* proc_state,
         Channel_proc_state* cpstate,
         uint64_t seed,

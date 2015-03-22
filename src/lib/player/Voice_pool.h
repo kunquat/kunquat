@@ -31,6 +31,7 @@ typedef struct Voice_pool
     uint16_t size;
     uint8_t events;
     size_t state_size;
+    uint64_t new_group_id;
     Voice** voices;
 } Voice_pool;
 
@@ -81,6 +82,16 @@ uint16_t Voice_pool_get_size(const Voice_pool* pool);
 
 
 /**
+ * Get a new Voice group ID from the Voice pool.
+ *
+ * \param pool   The Voice pool -- must not be \c NULL.
+ *
+ * \return   The new group ID.
+ */
+uint64_t Voice_pool_new_group_id(Voice_pool* pool);
+
+
+/**
  * Get a Voice from the Voice pool.
  *
  * In case all the Voices are in use, the Voice considered least important is
@@ -113,7 +124,7 @@ void Voice_pool_prepare(Voice_pool* pool);
 
 
 /**
- * Mix the background Voices in the Voice pool.
+ * Mix the Voices in the Voice pool.
  *
  * \param pool     The Voice pool -- must not be \c NULL.
  * \param states   The Device states -- must not be \c NULL.
@@ -124,7 +135,7 @@ void Voice_pool_prepare(Voice_pool* pool);
  *
  * \return   The number of active Voices.
  */
-uint16_t Voice_pool_mix_bg(
+uint16_t Voice_pool_mix(
         Voice_pool* pool,
         Device_states* states,
         const Work_buffers* wbs,

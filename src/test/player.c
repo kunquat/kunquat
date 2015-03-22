@@ -1282,7 +1282,7 @@ START_TEST(Query_voice_count_with_note)
     pause();
 
     kqt_Handle_fire_event(handle, 0, Note_On_55_Hz);
-    kqt_Handle_play(handle, 1);
+    kqt_Handle_play(handle, 2048);
     kqt_Handle_fire_event(handle, 0, "[\"qvoices\", null]");
 
     const char* events1 = kqt_Handle_receive_events(handle);
@@ -1291,7 +1291,7 @@ START_TEST(Query_voice_count_with_note)
     fail_if(strcmp(events1, expected1) != 0,
             "Received event list %s instead of %s", events1, expected1);
 
-    kqt_Handle_play(handle, 2048);
+    kqt_Handle_play(handle, 1);
     kqt_Handle_fire_event(handle, 0, "[\"qvoices\", null]");
 
     const char* events0 = kqt_Handle_receive_events(handle);
