@@ -226,7 +226,10 @@ void Processor_process_vstate(
     Audio_buffer* audio_buffer = Device_state_get_audio_buffer(
             &proc_state->parent, DEVICE_PORT_TYPE_SEND, 0);
     if (audio_buffer == NULL)
+    {
+        vstate->active = false;
         return;
+    }
     kqt_frame* out_l = Audio_buffer_get_buffer(audio_buffer, 0);
     kqt_frame* out_r = Audio_buffer_get_buffer(audio_buffer, 1);
 
