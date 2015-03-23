@@ -198,6 +198,16 @@ void Processor_process_vstate(
     assert(audio_rate > 0);
     assert(tempo > 0);
 
+    // Get processor state
+    Proc_state* proc_state = (Proc_state*)Device_states_get_state(
+            dstates, Device_get_id(&proc->parent));
+
+    // Get voice output buffer and make sure it is cleared
+    Audio_buffer* voice_out_buf = Proc_state_get_output_voice_buffer(proc_state);
+    Audio_buffer_clear(voice_out_buf, buf_start, buf_stop);
+    kqt_frame* voice_out_l = Audio_buffer_get_buffer(voice_out_buf, 0);
+    kqt_frame* voice_out_r = Audio_buffer_get_buffer(voice_out_buf, 1);
+
     if (!vstate->active)
         return;
 
@@ -214,13 +224,9 @@ void Processor_process_vstate(
     if (buf_start >= buf_stop)
         return;
 
-    // Get states
-    Proc_state* proc_state = (Proc_state*)Device_states_get_state(
-            dstates,
-            Device_get_id(&proc->parent));
+    // Get audio unit state
     Au_state* au_state = (Au_state*)Device_states_get_state(
-            dstates,
-            proc->au_params->device_id);
+            dstates, proc->au_params->device_id);
 
     // Get audio output buffers
     Audio_buffer* audio_buffer = Device_state_get_audio_buffer(
@@ -230,8 +236,6 @@ void Processor_process_vstate(
         vstate->active = false;
         return;
     }
-    kqt_frame* out_l = Audio_buffer_get_buffer(audio_buffer, 0);
-    kqt_frame* out_r = Audio_buffer_get_buffer(audio_buffer, 1);
 
     // Process common parameters required by implementations
     bool deactivate_after_processing = false;
@@ -298,7 +302,7 @@ void Processor_process_vstate(
     vstate->pos = new_pos;
     vstate->pos_rem = new_pos_rem;
 
-    // Mix rendered audio
+    // Copy and mix rendered audio to output buffers
     {
         const Work_buffer* wb_audio_l = Work_buffers_get_buffer(
                 wbs, WORK_BUFFER_AUDIO_L);
@@ -308,9 +312,11 @@ void Processor_process_vstate(
         float* audio_r = Work_buffer_get_contents_mut(wb_audio_r);
 
         for (int32_t i = buf_start; i < process_stop; ++i)
-            out_l[i] += audio_l[i];
+            voice_out_l[i] = audio_l[i];
         for (int32_t i = buf_start; i < process_stop; ++i)
-            out_r[i] += audio_r[i];
+            voice_out_r[i] = audio_r[i];
+
+        Audio_buffer_mix(audio_buffer, voice_out_buf, buf_start, buf_stop);
 
         /*
         fprintf(stderr, "1st item by %d @ %p: %.1f\n",

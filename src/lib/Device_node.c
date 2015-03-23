@@ -448,6 +448,17 @@ void Device_node_process_voice_group(
     Device_node_set_state(node, DEVICE_NODE_STATE_REACHED);
     const Device* node_device = Device_node_get_device(node);
 
+    Audio_buffer* recv_buf = NULL;
+    if (node->type == DEVICE_TYPE_PROCESSOR)
+    {
+        Proc_state* recv_state = (Proc_state*)Device_states_get_state(
+                dstates, Device_get_id(node_device));
+        recv_buf = Proc_state_get_input_voice_buffer(recv_state);
+
+        // Clear the input buffer for new contents
+        Audio_buffer_clear(recv_buf, buf_start, buf_stop);
+    }
+
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
         Connection* edge = node->receive[port];
@@ -470,7 +481,18 @@ void Device_node_process_voice_group(
                     audio_rate,
                     tempo);
 
-            // TODO: Mix voice audio buffers if the current device is a processor
+            if ((node->type == DEVICE_TYPE_PROCESSOR) &&
+                    (edge->node->type == DEVICE_TYPE_PROCESSOR))
+            {
+                // Mix voice audio buffers
+                Proc_state* send_state = (Proc_state*)Device_states_get_state(
+                        dstates, Device_get_id(send_device));
+                const Audio_buffer* send_buf = Proc_state_get_output_voice_buffer(
+                        send_state);
+
+                assert(recv_buf != NULL);
+                Audio_buffer_mix(recv_buf, send_buf, buf_start, buf_stop);
+            }
 
             edge = edge->next;
         }
