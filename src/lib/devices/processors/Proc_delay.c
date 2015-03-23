@@ -128,7 +128,7 @@ static void Delay_state_reset(Delay_state* dlstate, const Tap taps[])
 }
 
 
-static void del_Delay_state(Device_state* dev_state)
+static void Delay_state_deinit(Device_state* dev_state)
 {
     assert(dev_state != NULL);
 
@@ -138,6 +138,8 @@ static void del_Delay_state(Device_state* dev_state)
         del_Audio_buffer(dlstate->buf);
         dlstate->buf = NULL;
     }
+
+    Proc_state_deinit(&dlstate->parent.parent);
 
     return;
 }
@@ -268,16 +270,21 @@ static Device_state* Proc_delay_create_state(
     if (dlstate == NULL)
         return NULL;
 
+    if (!Proc_state_init(&dlstate->parent, device, audio_rate, audio_buffer_size))
+    {
+        memory_free(dlstate);
+        return NULL;
+    }
+
     const Proc_delay* delay = (Proc_delay*)device->dimpl;
 
-    Proc_state_init(&dlstate->parent, device, audio_rate, audio_buffer_size);
-    dlstate->parent.parent.destroy = del_Delay_state;
+    dlstate->parent.parent.deinit = Delay_state_deinit;
     dlstate->buf = NULL;
 
     dlstate->buf = new_Audio_buffer(delay->max_delay * audio_rate + 1);
     if (dlstate->buf == NULL)
     {
-        del_Delay_state(&dlstate->parent.parent);
+        del_Device_state(&dlstate->parent.parent);
         return NULL;
     }
 

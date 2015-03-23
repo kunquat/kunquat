@@ -74,7 +74,7 @@ typedef struct Freeverb_state
 } Freeverb_state;
 
 
-static void del_Freeverb_state(Device_state* dev_state)
+static void Freeverb_state_deinit(Device_state* dev_state)
 {
     assert(dev_state != NULL);
 
@@ -90,6 +90,8 @@ static void del_Freeverb_state(Device_state* dev_state)
         del_Freeverb_allpass(fstate->allpass_left[i]);
         del_Freeverb_allpass(fstate->allpass_right[i]);
     }
+
+    Proc_state_deinit(&fstate->parent.parent);
 
     return;
 }
@@ -274,8 +276,13 @@ static Device_state* Proc_freeverb_create_state(
     if (fstate == NULL)
         return NULL;
 
-    Proc_state_init(&fstate->parent, device, audio_rate, audio_buffer_size);
-    fstate->parent.parent.destroy = del_Freeverb_state;
+    if (!Proc_state_init(&fstate->parent, device, audio_rate, audio_buffer_size))
+    {
+        memory_free(fstate);
+        return NULL;
+    }
+
+    fstate->parent.parent.deinit = Freeverb_state_deinit;
 
     for (int i = 0; i < FREEVERB_COMBS; ++i)
     {
@@ -295,7 +302,7 @@ static Device_state* Proc_freeverb_create_state(
         fstate->comb_left[i] = new_Freeverb_comb(left_size);
         if (fstate->comb_left[i] == NULL)
         {
-            del_Freeverb_state(&fstate->parent.parent);
+            del_Device_state(&fstate->parent.parent);
             return NULL;
         }
 
@@ -305,7 +312,7 @@ static Device_state* Proc_freeverb_create_state(
         fstate->comb_right[i] = new_Freeverb_comb(right_size);
         if (fstate->comb_right[i] == NULL)
         {
-            del_Freeverb_state(&fstate->parent.parent);
+            del_Device_state(&fstate->parent.parent);
             return NULL;
         }
     }
@@ -319,7 +326,7 @@ static Device_state* Proc_freeverb_create_state(
             fstate->allpass_left[i] = new_Freeverb_allpass(left_size);
             if (fstate->allpass_left[i] == NULL)
             {
-                del_Freeverb_state(&fstate->parent.parent);
+                del_Device_state(&fstate->parent.parent);
                 return NULL;
             }
         }
@@ -332,7 +339,7 @@ static Device_state* Proc_freeverb_create_state(
             fstate->allpass_right[i] = new_Freeverb_allpass(right_size);
             if (fstate->allpass_right[i] == NULL)
             {
-                del_Freeverb_state(&fstate->parent.parent);
+                del_Device_state(&fstate->parent.parent);
                 return NULL;
             }
         }

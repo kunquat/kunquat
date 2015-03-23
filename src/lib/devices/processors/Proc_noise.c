@@ -128,7 +128,12 @@ static Device_state* Proc_noise_create_state(
     if (noise_state == NULL)
         return NULL;
 
-    Proc_state_init(&noise_state->parent, device, audio_rate, audio_buffer_size);
+    if (!Proc_state_init(&noise_state->parent, device, audio_rate, audio_buffer_size))
+    {
+        memory_free(noise_state);
+        return NULL;
+    }
+
     noise_state->order = 0;
 
     return &noise_state->parent.parent;

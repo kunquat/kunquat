@@ -37,7 +37,11 @@ static Device_state* Processor_create_state_plain(
     if (proc_state == NULL)
         return NULL;
 
-    Proc_state_init(proc_state, device, audio_rate, audio_buffer_size);
+    if (!Proc_state_init(proc_state, device, audio_rate, audio_buffer_size))
+    {
+        memory_free(proc_state);
+        return NULL;
+    }
 
     return &proc_state->parent;
 }

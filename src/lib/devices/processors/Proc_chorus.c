@@ -131,7 +131,7 @@ static void Chorus_state_reset(
 }
 
 
-static void del_Chorus_state(Device_state* dev_state)
+static void Chorus_state_deinit(Device_state* dev_state)
 {
     assert(dev_state != NULL);
 
@@ -141,6 +141,8 @@ static void del_Chorus_state(Device_state* dev_state)
         del_Audio_buffer(cstate->buf);
         cstate->buf = NULL;
     }
+
+    Proc_state_deinit(&cstate->parent.parent);
 
     return;
 }
@@ -274,8 +276,13 @@ static Device_state* Proc_chorus_create_state(
     if (cstate == NULL)
         return NULL;
 
-    Proc_state_init(&cstate->parent, device, audio_rate, audio_buffer_size);
-    cstate->parent.parent.destroy = del_Chorus_state;
+    if (!Proc_state_init(&cstate->parent, device, audio_rate, audio_buffer_size))
+    {
+        memory_free(cstate);
+        return NULL;
+    }
+
+    cstate->parent.parent.deinit = Chorus_state_deinit;
     cstate->buf = NULL;
     cstate->buf_pos = 0;
 

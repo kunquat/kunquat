@@ -48,7 +48,8 @@ typedef struct Device_state
     Audio_buffer* buffers[DEVICE_PORT_TYPES][KQT_DEVICE_PORTS_MAX];
 
     // Virtual functions
-    void (*destroy)(struct Device_state* ds);
+    bool (*resize_buffers)(struct Device_state* ds, int32_t new_size);
+    void (*deinit)(struct Device_state* ds);
 } Device_state;
 
 

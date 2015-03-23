@@ -42,7 +42,8 @@ void Device_state_init(
             ds->buffers[type][port] = NULL;
     }
 
-    ds->destroy = NULL;
+    ds->resize_buffers = NULL;
+    ds->deinit = NULL;
 
     return;
 }
@@ -126,6 +127,9 @@ bool Device_state_set_audio_buffer_size(Device_state* ds, int32_t size)
         }
     }
 
+    if ((ds->resize_buffers != NULL) && !ds->resize_buffers(ds, size))
+        return false;
+
     ds->audio_buffer_size = size;
     return true;
 }
@@ -207,8 +211,8 @@ void del_Device_state(Device_state* ds)
     if (ds == NULL)
         return;
 
-    if (ds->destroy != NULL)
-        ds->destroy(ds);
+    if (ds->deinit != NULL)
+        ds->deinit(ds);
 
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {

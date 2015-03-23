@@ -127,7 +127,12 @@ static Device_state* Proc_volume_create_state(
     if (vol_state == NULL)
         return NULL;
 
-    Proc_state_init(&vol_state->parent, device, audio_rate, audio_buffer_size);
+    if (!Proc_state_init(&vol_state->parent, device, audio_rate, audio_buffer_size))
+    {
+        memory_free(vol_state);
+        return NULL;
+    }
+
     vol_state->scale = 1.0;
 
     return &vol_state->parent.parent;
