@@ -59,6 +59,20 @@ void Proc_state_reset(Proc_state* proc_state)
 }
 
 
+Audio_buffer* Proc_state_get_input_voice_buffer(Proc_state* proc_state)
+{
+    assert(proc_state != NULL);
+    return proc_state->in_voice_buf;
+}
+
+
+Audio_buffer* Proc_state_get_output_voice_buffer(Proc_state* proc_state)
+{
+    assert(proc_state != NULL);
+    return proc_state->out_voice_buf;
+}
+
+
 bool Proc_state_resize_buffers(Device_state* dstate, int32_t new_size)
 {
     assert(dstate != NULL);

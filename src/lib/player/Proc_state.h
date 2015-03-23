@@ -58,6 +58,26 @@ void Proc_state_reset(Proc_state* proc_state);
 
 
 /**
+ * Get the input voice buffer of the Processor state.
+ *
+ * \param proc_state   The Processor state -- must not be \c NULL.
+ *
+ * \return   The input voice buffer.
+ */
+Audio_buffer* Proc_state_get_input_voice_buffer(Proc_state* proc_state);
+
+
+/**
+ * Get the output voice buffer of the Processor state.
+ *
+ * \param proc_state   The Processor state -- must not be \c NULL.
+ *
+ * \return   The output voice buffer.
+ */
+Audio_buffer* Proc_state_get_output_voice_buffer(Proc_state* proc_state);
+
+
+/**
  * Resize buffers of the Processor state.
  *
  * \param dstate     The Processor state -- must not be \c NULL.
