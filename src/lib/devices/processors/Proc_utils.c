@@ -17,10 +17,31 @@
 #include <debug/assert.h>
 #include <devices/Processor.h>
 #include <devices/processors/Proc_utils.h>
+#include <memory.h>
+#include <player/Proc_state.h>
 #include <player/Work_buffers.h>
 
 
 #define RAMP_ATTACK_TIME (500.0)
+
+
+Device_state* new_Proc_state_default(
+        const Device* device, int32_t audio_rate, int32_t audio_buffer_size)
+{
+    assert(device != NULL);
+    assert(audio_rate > 0);
+    assert(audio_buffer_size >= 0);
+
+    Proc_state* pstate = memory_alloc_item(Proc_state);
+    if ((pstate == NULL) ||
+            !Proc_state_init(pstate, device, audio_rate, audio_buffer_size))
+    {
+        del_Device_state(&pstate->parent);
+        return NULL;
+    }
+
+    return &pstate->parent;
+}
 
 
 void Proc_ramp_attack(

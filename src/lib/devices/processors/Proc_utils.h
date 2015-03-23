@@ -20,8 +20,24 @@
 #include <stdlib.h>
 
 #include <devices/Processor.h>
+#include <player/Device_state.h>
 #include <player/Voice_state.h>
 #include <player/Work_buffers.h>
+
+
+/**
+ * Create a default Processor state.
+ *
+ * \param device              The Processor associated with the state
+ *                            -- must not be \c NULL.
+ * \param audio_rate          The audio rate -- must be positive.
+ * \param audio_buffer_size   The audio buffer size -- must not be negative.
+ *
+ * \return   The new Processor state if successful, or \c NULL if memory
+ *           allocation failed.
+ */
+Device_state* new_Proc_state_default(
+        const Device* device, int32_t audio_rate, int32_t audio_buffer_size);
 
 
 /**

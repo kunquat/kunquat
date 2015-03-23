@@ -25,6 +25,7 @@
 #include <devices/param_types/Wavpack.h>
 #include <devices/Processor.h>
 #include <devices/processors/Proc_sample.h>
+#include <devices/processors/Proc_utils.h>
 #include <devices/processors/Voice_state_sample.h>
 #include <memory.h>
 #include <pitch_t.h>
@@ -68,6 +69,8 @@ static bool Proc_sample_init(Device_impl* dimpl)
     assert(dimpl != NULL);
 
     Proc_sample* sample_p = (Proc_sample*)dimpl;
+
+    Device_set_state_creator(dimpl->device, new_Proc_state_default);
 
     Processor* proc = (Processor*)sample_p->parent.device;
     proc->init_vstate = Proc_sample_init_vstate;
