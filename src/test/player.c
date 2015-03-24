@@ -18,9 +18,7 @@
 #include <handle_utils.h>
 #include <test_common.h>
 
-#include <Handle_private.h>
 #include <kunquat/Handle.h>
-#include <player/Player.h>
 #include <string/Streader.h>
 
 
