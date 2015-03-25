@@ -19,6 +19,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include <debug/assert.h>
 #include <devices/Au_params.h>
 #include <devices/Device.h>
 #include <devices/Device_params.h>
@@ -48,10 +49,30 @@ typedef uint32_t Proc_process_vstate_func(
         double tempo);
 
 
+typedef enum
+{
+    VOICE_FEATURE_PITCH,
+    VOICE_FEATURE_FORCE,
+    VOICE_FEATURE_CUT,
+    VOICE_FEATURE_FILTER,
+    VOICE_FEATURE_PANNING,
+    VOICE_FEATURE_COUNT_
+} Voice_feature;
+
+static_assert(
+        VOICE_FEATURE_COUNT_ <= 31,
+        "Too many voice features defined, change flag container type");
+
+#define VOICE_FEATURE_FLAG(feature) (1 << (feature))
+
+#define VOICE_FEATURES_ALL ((1 << VOICE_FEATURE_COUNT_) - 1)
+
+
 struct Processor
 {
     Device parent;
     const Au_params* au_params;
+    uint32_t voice_features;
 
     void (*init_vstate)(const Processor*, const Proc_state*, Voice_state*);
     Proc_process_vstate_func* process_vstate;
@@ -89,6 +110,27 @@ bool Processor_init(
         Proc_process_vstate_func process_vstate,
         void (*init_vstate)(const Processor*, const Proc_state*, Voice_state*),
         Device_process_signal_func* process_signal);
+
+
+/**
+ * Set a voice feature of the Processor.
+ *
+ * \param proc      The Processor -- must not be \c NULL.
+ * \param feature   The voice feature -- must be valid.
+ * \param enabled   Whether \a feature is enabled or not.
+ */
+void Processor_set_voice_feature(Processor* proc, Voice_feature feature, bool enabled);
+
+
+/**
+ * Get a voice feature enabled status of the Processor.
+ *
+ * \param proc      The Processor -- must not be \c NULL.
+ * \param feature   The voice feature -- must be valid.
+ *
+ * \return   \c true if \a feature is enabled, otherwise \c false.
+ */
+bool Processor_is_voice_feature_enabled(const Processor* proc, Voice_feature feature);
 
 
 /**

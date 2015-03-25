@@ -63,6 +63,7 @@ Processor* new_Processor(const Au_params* au_params)
 
     //fprintf(stderr, "New Processor %p\n", (void*)proc);
     proc->au_params = au_params;
+    proc->voice_features = VOICE_FEATURES_ALL;
 
     proc->init_vstate = NULL;
     proc->process_vstate = NULL;
@@ -89,6 +90,29 @@ bool Processor_init(
     Device_set_process(&proc->parent, process_signal);
 
     return true;
+}
+
+
+void Processor_set_voice_feature(Processor* proc, Voice_feature feature, bool enabled)
+{
+    assert(proc != NULL);
+    assert(feature < VOICE_FEATURE_COUNT_);
+
+    if (enabled)
+        proc->voice_features |= VOICE_FEATURE_FLAG(feature);
+    else
+        proc->voice_features &= ~VOICE_FEATURE_FLAG(feature);
+
+    return;
+}
+
+
+bool Processor_is_voice_feature_enabled(const Processor* proc, Voice_feature feature)
+{
+    assert(proc != NULL);
+    assert(feature < VOICE_FEATURE_COUNT_);
+
+    return (proc->voice_features & VOICE_FEATURE_FLAG(feature)) != 0;
 }
 
 
