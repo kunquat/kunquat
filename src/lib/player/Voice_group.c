@@ -72,7 +72,7 @@ Voice* Voice_group_get_voice_by_proc(Voice_group* vg, uint32_t proc_id)
     for (uint16_t i = 0; i < vg->size; ++i)
     {
         const Processor* proc = Voice_get_proc(vg->voices[i]);
-        if (Device_get_id((const Device*)proc) == proc_id)
+        if ((proc != NULL) && (Device_get_id((const Device*)proc) == proc_id))
             return vg->voices[i];
     }
 
