@@ -1153,6 +1153,71 @@ static bool read_any_proc_conf_key(
 }
 
 
+static bool read_any_proc_voice_feature(
+        Reader_params* params, Au_table* au_table, int level, Voice_feature feature)
+{
+    assert(params != NULL);
+
+    int32_t au_index = -1;
+    acquire_au_index(au_index, params, level);
+    int32_t proc_index = -1;
+    acquire_proc_index(proc_index, params, level + 1);
+
+    Audio_unit* au = NULL;
+    acquire_au(au, params->handle, au_table, au_index);
+    Proc_table* proc_table = Audio_unit_get_procs(au);
+
+    Processor* proc = add_processor(params->handle, au, proc_table, proc_index);
+    if (proc == NULL)
+        return false;
+
+    bool feature_enabled = true;
+    if (Streader_has_data(params->sr) &&
+            !Streader_read_bool(params->sr, &feature_enabled))
+        return false;
+
+    Processor_set_voice_feature(proc, feature, feature_enabled);
+
+    return true;
+}
+
+
+static bool read_any_proc_vf_pitch(
+        Reader_params* params, Au_table* au_table, int level)
+{
+    return read_any_proc_voice_feature(params, au_table, level, VOICE_FEATURE_PITCH);
+}
+
+
+static bool read_any_proc_vf_force(
+        Reader_params* params, Au_table* au_table, int level)
+{
+    return read_any_proc_voice_feature(params, au_table, level, VOICE_FEATURE_FORCE);
+}
+
+
+static bool read_any_proc_vf_cut(
+        Reader_params* params, Au_table* au_table, int level)
+{
+    return read_any_proc_voice_feature(
+            params, au_table, level, VOICE_FEATURE_CUT);
+}
+
+
+static bool read_any_proc_vf_filter(
+        Reader_params* params, Au_table* au_table, int level)
+{
+    return read_any_proc_voice_feature(params, au_table, level, VOICE_FEATURE_FILTER);
+}
+
+
+static bool read_any_proc_vf_panning(
+        Reader_params* params, Au_table* au_table, int level)
+{
+    return read_any_proc_voice_feature(params, au_table, level, VOICE_FEATURE_PANNING);
+}
+
+
 #define MAKE_AU_EFFECT_READER(base_name)                                \
     static bool read_au_ ## base_name(Reader_params* params)            \
     {                                                                   \
@@ -1187,20 +1252,9 @@ static bool read_any_proc_conf_key(
     MAKE_AU_EFFECT_READER(base_name) \
     MAKE_GLOBAL_AU_READER(base_name)
 
-MAKE_AU_READERS(au_manifest)
-MAKE_AU_READERS(au)
-MAKE_AU_READERS(au_in_port_manifest)
-MAKE_AU_READERS(au_out_port_manifest)
-MAKE_AU_READERS(au_connections)
-MAKE_AU_READERS(au_env_force)
-MAKE_AU_READERS(au_env_force_release)
-MAKE_AU_READERS(au_env_force_filter)
-MAKE_AU_READERS(au_env_pitch_pan)
-MAKE_AU_READERS(proc_manifest)
-MAKE_AU_READERS(proc_in_port_manifest)
-MAKE_AU_READERS(proc_out_port_manifest)
-MAKE_AU_READERS(proc_impl_key)
-MAKE_AU_READERS(proc_conf_key)
+#define MODULE_KEYP(name, keyp, def_val)
+#define MODULE_AU_KEYP(name, keyp, def_val) MAKE_AU_READERS(name)
+#include <module/Module_key_patterns.h>
 
 
 #define acquire_pattern(pattern, handle, index)                         \
