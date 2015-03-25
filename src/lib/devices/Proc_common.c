@@ -48,6 +48,19 @@ void Proc_common_handle_pitch(
             wbs, WORK_BUFFER_ACTUAL_PITCHES);
     actual_pitches[buf_start - 1] = vstate->actual_pitch;
 
+    if (!Processor_is_voice_feature_enabled(proc, VOICE_FEATURE_PITCH))
+    {
+        const float default_pitch = 440;
+        vstate->pitch = default_pitch;
+
+        for (int32_t i = buf_start - 1; i < buf_stop + 1; ++i)
+            pitch_params[i] = default_pitch;
+        for (int32_t i = buf_start - 1; i < buf_stop + 1; ++i)
+            actual_pitches[i] = default_pitch;
+
+        return;
+    }
+
     // Apply pitch slide
     if (Slider_in_progress(&vstate->pitch_slider))
     {
@@ -127,6 +140,16 @@ int32_t Proc_common_handle_force(
     float* actual_forces = Work_buffers_get_buffer_contents_mut(
             wbs, WORK_BUFFER_ACTUAL_FORCES);
     actual_forces[buf_start - 1] = vstate->actual_force;
+
+    if (!Processor_is_voice_feature_enabled(proc, VOICE_FEATURE_FORCE))
+    {
+        vstate->force = 1;
+        vstate->actual_force = 1;
+        for (int32_t i = buf_start - 1; i < buf_stop + 1; ++i)
+            actual_forces[i] = 1;
+
+        return buf_stop;
+    }
 
     int32_t new_buf_stop = buf_stop;
 
@@ -336,6 +359,9 @@ void Proc_common_handle_filter(
     assert(wbs != NULL);
     assert((ab_count == 1) || (ab_count == 2));
 
+    if (!Processor_is_voice_feature_enabled(proc, VOICE_FEATURE_FILTER))
+        return;
+
     const float* actual_forces = Work_buffers_get_buffer_contents(
             wbs, WORK_BUFFER_ACTUAL_FORCES);
 
@@ -492,10 +518,15 @@ int32_t Proc_common_ramp_release(
     assert(vstate != NULL);
     assert(wbs != NULL);
 
+    const bool is_env_force_rel_used =
+        Processor_is_voice_feature_enabled(proc, VOICE_FEATURE_FORCE) &&
+        proc->au_params->env_force_rel_enabled;
+
     const bool do_ramp_release =
         !vstate->note_on &&
+        Processor_is_voice_feature_enabled(proc, VOICE_FEATURE_CUT) &&
         ((vstate->ramp_release > 0) ||
-            (!proc->au_params->env_force_rel_enabled && (au_state->sustain < 0.5)));
+            (!is_env_force_rel_used && (au_state->sustain < 0.5)));
 
     if (do_ramp_release)
     {
@@ -539,6 +570,9 @@ void Proc_common_handle_panning(
     assert(proc != NULL);
     assert(vstate != NULL);
     assert(wbs != NULL);
+
+    if (!Processor_is_voice_feature_enabled(proc, VOICE_FEATURE_PANNING))
+        return;
 
     const float* pitch_params = Work_buffers_get_buffer_contents(
             wbs, WORK_BUFFER_PITCH_PARAMS);
