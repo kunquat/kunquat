@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -34,6 +34,14 @@ typedef struct Bit_array Bit_array;
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 Bit_array* new_Bit_array(size_t size);
+
+
+/**
+ * Fills the Bit array with zero.
+ *
+ * \param ba   The Bit array -- must not be \c NULL.
+ */
+void Bit_array_clear(Bit_array* ba);
 
 
 /**

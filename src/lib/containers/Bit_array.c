@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -14,6 +14,7 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 
 #include <containers/Bit_array.h>
 #include <debug/assert.h>
@@ -60,12 +61,22 @@ Bit_array* new_Bit_array(size_t size)
 }
 
 
+void Bit_array_clear(Bit_array* ba)
+{
+    assert(ba != NULL);
+
+    memset(ba->bits, 0, byte_index(ba->size));
+
+    return;
+}
+
+
 void Bit_array_set(Bit_array* ba, size_t index, bool value)
 {
     assert(ba != NULL);
     assert(index < ba->size);
 
-    uint8_t mask = 1 << bit_offset(index);
+    const uint8_t mask = 1 << bit_offset(index);
     assert(mask != 0);
 
     if (value)
@@ -82,7 +93,7 @@ bool Bit_array_get(const Bit_array* ba, size_t index)
     assert(ba != NULL);
     assert(index < ba->size);
 
-    uint8_t mask = 1 << bit_offset(index);
+    const uint8_t mask = 1 << bit_offset(index);
     assert(mask != 0);
 
     return (ba->bits[byte_index(index)] & mask) != 0;
