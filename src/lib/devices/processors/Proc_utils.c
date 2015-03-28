@@ -105,10 +105,3 @@ Cond_work_buffer* Cond_work_buffer_init(
 }
 
 
-float Cond_work_buffer_get_value(const Cond_work_buffer* cwb, int32_t index)
-{
-    assert(cwb != NULL);
-    return cwb->wb_contents[index & cwb->index_mask];
-}
-
-

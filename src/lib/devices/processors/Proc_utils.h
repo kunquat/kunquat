@@ -149,7 +149,11 @@ Cond_work_buffer* Cond_work_buffer_init(
  *
  * \return   The value at \a index.
  */
-float Cond_work_buffer_get_value(const Cond_work_buffer* cwb, int32_t index);
+inline float Cond_work_buffer_get_value(const Cond_work_buffer* cwb, int32_t index)
+{
+    assert(cwb != NULL);
+    return cwb->wb_contents[index & cwb->index_mask];
+}
 
 
 #endif // K_PROC_UTILS_H
