@@ -1085,6 +1085,66 @@ static bool read_any_proc_manifest(Reader_params* params, Au_table* au_table, in
 }
 
 
+static bool read_any_proc_voice_support(
+        Reader_params* params, Au_table* au_table, int level)
+{
+    assert(params != NULL);
+    assert(au_table != NULL);
+
+    int32_t au_index = -1;
+    acquire_au_index(au_index, params, level);
+    int32_t proc_index = -1;
+    acquire_proc_index(proc_index, params, level + 1);
+
+    Audio_unit* au = NULL;
+    acquire_au(au, params->handle, au_table, au_index);
+    Proc_table* proc_table = Audio_unit_get_procs(au);
+
+    Processor* proc = add_processor(params->handle, au, proc_table, proc_index);
+    if (proc == NULL)
+        return false;
+
+    bool voice_support_enabled = false;
+    if (Streader_has_data(params->sr) &&
+            !Streader_read_bool(params->sr, &voice_support_enabled))
+        return false;
+
+    Processor_set_voice_support(proc, voice_support_enabled);
+
+    return true;
+}
+
+
+static bool read_any_proc_signal_support(
+        Reader_params* params, Au_table* au_table, int level)
+{
+    assert(params != NULL);
+    assert(au_table != NULL);
+
+    int32_t au_index = -1;
+    acquire_au_index(au_index, params, level);
+    int32_t proc_index = -1;
+    acquire_proc_index(proc_index, params, level + 1);
+
+    Audio_unit* au = NULL;
+    acquire_au(au, params->handle, au_table, au_index);
+    Proc_table* proc_table = Audio_unit_get_procs(au);
+
+    Processor* proc = add_processor(params->handle, au, proc_table, proc_index);
+    if (proc == NULL)
+        return false;
+
+    bool signal_support_enabled = false;
+    if (Streader_has_data(params->sr) &&
+            !Streader_read_bool(params->sr, &signal_support_enabled))
+        return false;
+
+    Device_set_signal_support((Device*)proc, signal_support_enabled);
+
+    return true;
+}
+
+
 static bool read_any_proc_impl_conf_key(
         Reader_params* params, Au_table* au_table, int level)
 {

@@ -72,6 +72,9 @@ struct Processor
     const Au_params* au_params;
     uint32_t voice_features[KQT_DEVICE_PORTS_MAX];
 
+    bool enable_voice_support;
+    bool enable_signal_support;
+
     void (*init_vstate)(const Processor*, const Proc_state*, Voice_state*);
     Proc_process_vstate_func* process_vstate;
     void (*clear_history)(const Device_impl*, Proc_state*);
@@ -158,14 +161,26 @@ void Processor_clear_history(const Processor* proc, Proc_state* proc_state);
 
 
 /**
- * Get Voice state processing support information.
+ * Set Voice processing support.
+ *
+ * Note that Voice processing may be always disabled for certain Processor
+ * types.
+ *
+ * \param proc      The Processor -- must not be \c NULL.
+ * \param enabled   \c true if Voice processing should be enabled, otherwise
+ *                  \c false.
+ */
+void Processor_set_voice_support(Processor* proc, bool enabled);
+
+
+/**
+ * Get Voice processing support information.
  *
  * \param proc   The Processor -- must not be \c NULL.
  *
- * \return   \c true if \a proc supports Voice state processing, otherwise
- *           \c false.
+ * \return   \c true if \a proc supports Voice processing, otherwise \c false.
  */
-bool Processor_get_vstate_support(const Processor* proc);
+bool Processor_get_voice_support(const Processor* proc);
 
 
 /**

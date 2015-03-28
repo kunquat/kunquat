@@ -77,6 +77,8 @@ MODULE_AU_KEYP(au_env_force_filter,     "au_XX/p_envelope_force_filter.json",   
 MODULE_AU_KEYP(au_env_pitch_pan,        "au_XX/p_envelope_pitch_pan.json",      "")
 
 MODULE_AU_KEYP(proc_manifest,           "au_XX/proc_XX/p_manifest.json",        "")
+MODULE_AU_KEYP(proc_voice_support,      "au_XX/proc_XX/p_voice_support.json",   "false")
+MODULE_AU_KEYP(proc_signal_support,     "au_XX/proc_XX/p_signal_support.json",  "false")
 MODULE_AU_KEYP(proc_in_port_manifest,   "au_XX/proc_XX/in_XX/p_manifest.json",  "")
 MODULE_AU_KEYP(proc_out_port_manifest,  "au_XX/proc_XX/out_XX/p_manifest.json", "")
 MODULE_AU_KEYP(proc_vf_pitch,           "au_XX/proc_XX/out_XX/p_vf_pitch.json", "true")

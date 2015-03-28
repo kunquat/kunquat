@@ -66,6 +66,9 @@ Processor* new_Processor(const Au_params* au_params)
     for (int port_num = 0; port_num < KQT_DEVICE_PORTS_MAX; ++port_num)
         proc->voice_features[port_num] = VOICE_FEATURES_ALL;
 
+    proc->enable_voice_support = false;
+    proc->enable_signal_support = false;
+
     proc->init_vstate = NULL;
     proc->process_vstate = NULL;
     proc->clear_history = NULL;
@@ -197,10 +200,33 @@ static void adjust_relative_lengths(
 }
 
 
-bool Processor_get_vstate_support(const Processor* proc)
+void Processor_set_voice_support(Processor* proc, bool enabled)
 {
     assert(proc != NULL);
-    return (proc->process_vstate != NULL);
+    proc->enable_voice_support = enabled;
+    return;
+}
+
+
+bool Processor_get_voice_support(const Processor* proc)
+{
+    assert(proc != NULL);
+    return (proc->process_vstate != NULL) && proc->enable_voice_support;
+}
+
+
+void Processor_set_signal_support(Processor* proc, bool enabled)
+{
+    assert(proc != NULL);
+    proc->enable_signal_support = enabled;
+    return;
+}
+
+
+bool Processor_get_signal_support(const Processor* proc)
+{
+    assert(proc != NULL);
+    return (proc->parent.process_signal != NULL) && proc->enable_signal_support;
 }
 
 

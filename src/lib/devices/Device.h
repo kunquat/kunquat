@@ -45,6 +45,8 @@ struct Device
     bool existent;
     bool req_impl;
 
+    bool enable_signal_support;
+
     Device_params* dparams;
     Device_impl* dimpl;
 
@@ -188,6 +190,18 @@ void Device_register_update_tempo(
  * \param reset    The reset function -- must not be \c NULL.
  */
 void Device_set_reset(Device* device, void (*reset)(const Device*, Device_states*));
+
+
+/**
+ * Set signal processing support.
+ *
+ * Note that signal processing may be always disabled for certain Devices.
+ *
+ * \param proc      The Device -- must not be \c NULL.
+ * \param enabled   \c true if signal processing should be enabled, otherwise
+ *                  \c false.
+ */
+void Device_set_signal_support(Device* device, bool enabled);
 
 
 /**
