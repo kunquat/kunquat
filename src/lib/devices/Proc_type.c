@@ -20,6 +20,7 @@
 #include <devices/processors/Proc_add.h>
 #include <devices/processors/Proc_chorus.h>
 #include <devices/processors/Proc_delay.h>
+#include <devices/processors/Proc_envgen.h>
 #include <devices/processors/Proc_freeverb.h>
 #include <devices/processors/Proc_gc.h>
 #include <devices/processors/Proc_noise.h>
@@ -43,6 +44,7 @@ static const Proc_type proc_types[] =
     { "add", new_Proc_add, Proc_add_property },
     { "chorus", new_Proc_chorus, NULL },
     { "delay", new_Proc_delay, NULL },
+    { "envgen", new_Proc_envgen, Proc_envgen_property },
     { "freeverb", new_Proc_freeverb, NULL },
     { "gaincomp", new_Proc_gc, NULL },
     { "noise", new_Proc_noise, Proc_noise_property },
