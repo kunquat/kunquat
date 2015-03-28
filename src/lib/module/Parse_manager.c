@@ -1154,14 +1154,20 @@ static bool read_any_proc_conf_key(
 
 
 static bool read_any_proc_voice_feature(
-        Reader_params* params, Au_table* au_table, int level, Voice_feature feature)
+        Reader_params* params,
+        Au_table* au_table,
+        int level,
+        Voice_feature feature)
 {
     assert(params != NULL);
+    assert(au_table != NULL);
 
     int32_t au_index = -1;
     acquire_au_index(au_index, params, level);
     int32_t proc_index = -1;
     acquire_proc_index(proc_index, params, level + 1);
+    int32_t port_num = -1;
+    acquire_port_index(port_num, params, level + 2);
 
     Audio_unit* au = NULL;
     acquire_au(au, params->handle, au_table, au_index);
@@ -1176,7 +1182,7 @@ static bool read_any_proc_voice_feature(
             !Streader_read_bool(params->sr, &feature_enabled))
         return false;
 
-    Processor_set_voice_feature(proc, feature, feature_enabled);
+    Processor_set_voice_feature(proc, port_num, feature, feature_enabled);
 
     return true;
 }

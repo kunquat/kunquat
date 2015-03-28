@@ -20,8 +20,11 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include <Audio_buffer.h>
+#include <Decl.h>
 #include <devices/param_types/Sample_params.h>
 #include <frame.h>
+#include <player/Proc_state.h>
 #include <player/Voice_state.h>
 #include <player/Work_buffer.h>
 
@@ -98,7 +101,10 @@ void* Sample_get_buffer(Sample* sample, int ch);
  * \param sample        The Sample -- must not be \c NULL.
  * \param params        The Sample parameters -- must not be \c NULL.
  * \param vstate        The Voice state -- must not be \c NULL.
+ * \param proc          The Processor -- must not be \c NULL.
+ * \param proc_state    The Processor state -- must not be \c NULL.
  * \param wbs           The Work buffers -- must not be \c NULL.
+ * \param out_buffer    The audio output buffer -- must not be \c NULL.
  * \param buf_start     The start index of the buffer area to be processed.
  * \param buf_stop      The stop index of the buffer area to be processed.
  * \param audio_rate    The audio rate -- must be positive.
@@ -113,7 +119,10 @@ uint32_t Sample_process_vstate(
         const Sample* sample,
         const Sample_params* params,
         Voice_state* vstate,
+        const Processor* proc,
+        const Proc_state* proc_state,
         const Work_buffers* wbs,
+        Audio_buffer* out_buffer,
         int32_t buf_start,
         int32_t buf_stop,
         uint32_t audio_rate,

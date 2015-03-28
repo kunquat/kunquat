@@ -169,13 +169,14 @@ bool Device_node_check_connections(
                     (conn->node->type == DEVICE_TYPE_PROCESSOR))
             {
                 const Processor* proc = (const Processor*)send_device;
-                if (!Processor_is_voice_feature_enabled(proc, VOICE_FEATURE_CUT))
+                if (!Processor_is_voice_feature_enabled(
+                            proc, conn->port, VOICE_FEATURE_CUT))
                 {
                     snprintf(
                             err, DEVICE_CONNECTION_ERROR_LENGTH_MAX,
-                            "Device %s is connected to audio unit output"
+                            "Device %s port %d is connected to audio unit output"
                             " but has voice cutting feature disabled",
-                            send_dev_name);
+                            send_dev_name, conn->port);
                     return false;
                 }
             }
@@ -467,15 +468,14 @@ void Device_node_process_voice_group(
     Device_node_set_state(node, DEVICE_NODE_STATE_REACHED);
     const Device* node_device = Device_node_get_device(node);
 
-    Audio_buffer* recv_buf = NULL;
+    Proc_state* recv_state = NULL;
     if (node->type == DEVICE_TYPE_PROCESSOR)
     {
-        Proc_state* recv_state = (Proc_state*)Device_states_get_state(
+        recv_state = (Proc_state*)Device_states_get_state(
                 dstates, Device_get_id(node_device));
-        recv_buf = Proc_state_get_input_voice_buffer(recv_state);
 
-        // Clear the input buffer for new contents
-        Audio_buffer_clear(recv_buf, buf_start, buf_stop);
+        // Clear the voice buffers for new contents
+        Proc_state_clear_voice_buffers(recv_state);
     }
 
     bool active_voices_found = false;
@@ -508,11 +508,14 @@ void Device_node_process_voice_group(
                 // Mix voice audio buffers
                 Proc_state* send_state = (Proc_state*)Device_states_get_state(
                         dstates, Device_get_id(send_device));
-                const Audio_buffer* send_buf = Proc_state_get_output_voice_buffer(
-                        send_state);
+                const Audio_buffer* send_buf = Proc_state_get_voice_buffer(
+                        send_state, DEVICE_PORT_TYPE_SEND, edge->port);
 
-                assert(recv_buf != NULL);
-                Audio_buffer_mix(recv_buf, send_buf, buf_start, buf_stop);
+                Audio_buffer* recv_buf = Proc_state_get_voice_buffer(
+                        recv_state, DEVICE_PORT_TYPE_RECEIVE, port);
+
+                if ((send_buf != NULL) && (recv_buf != NULL))
+                    Audio_buffer_mix(recv_buf, send_buf, buf_start, buf_stop);
             }
 
             // See if any of the connected voices are active

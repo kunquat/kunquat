@@ -16,9 +16,11 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <Audio_buffer.h>
 #include <debug/assert.h>
 #include <devices/Proc_common.h>
 #include <devices/Processor.h>
+#include <devices/processors/Proc_utils.h>
 #include <Filter.h>
 #include <kunquat/limits.h>
 #include <mathnum/common.h>
@@ -47,19 +49,6 @@ void Proc_common_handle_pitch(
     float* actual_pitches = Work_buffers_get_buffer_contents_mut(
             wbs, WORK_BUFFER_ACTUAL_PITCHES);
     actual_pitches[buf_start - 1] = vstate->actual_pitch;
-
-    if (!Processor_is_voice_feature_enabled(proc, VOICE_FEATURE_PITCH))
-    {
-        const float default_pitch = 440;
-        vstate->pitch = default_pitch;
-
-        for (int32_t i = buf_start - 1; i < buf_stop + 1; ++i)
-            pitch_params[i] = default_pitch;
-        for (int32_t i = buf_start - 1; i < buf_stop + 1; ++i)
-            actual_pitches[i] = default_pitch;
-
-        return;
-    }
 
     // Apply pitch slide
     if (Slider_in_progress(&vstate->pitch_slider))
@@ -141,16 +130,6 @@ int32_t Proc_common_handle_force(
             wbs, WORK_BUFFER_ACTUAL_FORCES);
     actual_forces[buf_start - 1] = vstate->actual_force;
 
-    if (!Processor_is_voice_feature_enabled(proc, VOICE_FEATURE_FORCE))
-    {
-        vstate->force = 1;
-        vstate->actual_force = 1;
-        for (int32_t i = buf_start - 1; i < buf_stop + 1; ++i)
-            actual_forces[i] = 1;
-
-        return buf_stop;
-    }
-
     int32_t new_buf_stop = buf_stop;
 
     // Apply force slide & global force
@@ -191,6 +170,7 @@ int32_t Proc_common_handle_force(
                 proc->au_params->env_force_center,
                 0, // sustain
                 0, 1, // range
+                Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_PITCH),
                 wbs,
                 buf_start,
                 new_buf_stop,
@@ -235,6 +215,7 @@ int32_t Proc_common_handle_force(
                 proc->au_params->env_force_rel_center,
                 au_state->sustain,
                 0, 1, // range
+                Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_PITCH),
                 wbs,
                 buf_start,
                 new_buf_stop,
@@ -263,7 +244,7 @@ int32_t Proc_common_handle_force(
 
 static void apply_filter_settings(
         Voice_state* vstate,
-        const Work_buffers* wbs,
+        Audio_buffer* voice_out_buf,
         int ab_count,
         double xfade_start,
         double xfade_step,
@@ -271,17 +252,17 @@ static void apply_filter_settings(
         int32_t buf_stop)
 {
     assert(vstate != NULL);
-    assert(wbs != NULL);
+    assert(voice_out_buf != NULL);
 
     if ((vstate->lowpass_state_used == -1) && (vstate->lowpass_xfade_state_used == -1))
         return;
 
     assert(vstate->lowpass_state_used != vstate->lowpass_xfade_state_used);
 
-    float* abufs[KQT_BUFFERS_MAX] =
+    kqt_frame* abufs[KQT_BUFFERS_MAX] =
     {
-        Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_AUDIO_L),
-        Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_AUDIO_R),
+        Audio_buffer_get_buffer(voice_out_buf, 0),
+        Audio_buffer_get_buffer(voice_out_buf, 1),
     };
 
     // Get filter states used
@@ -349,6 +330,7 @@ void Proc_common_handle_filter(
         const Processor* proc,
         Voice_state* vstate,
         const Work_buffers* wbs,
+        Audio_buffer* voice_out_buf,
         int ab_count,
         uint32_t freq,
         int32_t buf_start,
@@ -357,13 +339,19 @@ void Proc_common_handle_filter(
     assert(proc != NULL);
     assert(vstate != NULL);
     assert(wbs != NULL);
+    assert(voice_out_buf != NULL);
     assert((ab_count == 1) || (ab_count == 2));
 
-    if (!Processor_is_voice_feature_enabled(proc, VOICE_FEATURE_FILTER))
+    // TODO: if we actually get processors with multiple voice output ports,
+    //       process filtering correctly for all of them
+    if (!Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_FILTER))
         return;
 
-    const float* actual_forces = Work_buffers_get_buffer_contents(
-            wbs, WORK_BUFFER_ACTUAL_FORCES);
+    const Cond_work_buffer* actual_forces = Cond_work_buffer_init(
+            COND_WORK_BUFFER_AUTO,
+            Work_buffers_get_buffer(wbs, WORK_BUFFER_ACTUAL_FORCES),
+            1,
+            Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_FORCE));
 
     float* actual_lowpasses = Work_buffers_get_buffer_contents_mut(
             wbs, WORK_BUFFER_ACTUAL_LOWPASSES);
@@ -413,7 +401,7 @@ void Proc_common_handle_filter(
         if (proc->au_params->env_force_filter_enabled &&
                 vstate->lowpass_xfade_pos >= 1)
         {
-            double force = actual_forces[i];
+            double force = Cond_work_buffer_get_value(actual_forces, i);
             if (force > 1)
                 force = 1;
 
@@ -434,7 +422,7 @@ void Proc_common_handle_filter(
             apply_filter_stop = i;
             apply_filter_settings(
                     vstate,
-                    wbs,
+                    voice_out_buf,
                     ab_count,
                     xfade_start,
                     xfade_step,
@@ -493,7 +481,7 @@ void Proc_common_handle_filter(
     // Apply previous filter settings to the remaining signal
     apply_filter_settings(
             vstate,
-            wbs,
+            voice_out_buf,
             ab_count,
             xfade_start,
             xfade_step,
@@ -509,6 +497,7 @@ int32_t Proc_common_ramp_release(
         const Au_state* au_state,
         Voice_state* vstate,
         const Work_buffers* wbs,
+        Audio_buffer* voice_out_buf,
         int ab_count,
         uint32_t freq,
         int32_t buf_start,
@@ -517,23 +506,27 @@ int32_t Proc_common_ramp_release(
     assert(proc != NULL);
     assert(vstate != NULL);
     assert(wbs != NULL);
+    assert(voice_out_buf != NULL);
+
+    // TODO: if we actually get processors with multiple voice output ports,
+    //       process ramping correctly for all of them
 
     const bool is_env_force_rel_used =
-        Processor_is_voice_feature_enabled(proc, VOICE_FEATURE_FORCE) &&
+        Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_FORCE) &&
         proc->au_params->env_force_rel_enabled;
 
     const bool do_ramp_release =
         !vstate->note_on &&
-        Processor_is_voice_feature_enabled(proc, VOICE_FEATURE_CUT) &&
+        Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_CUT) &&
         ((vstate->ramp_release > 0) ||
             (!is_env_force_rel_used && (au_state->sustain < 0.5)));
 
     if (do_ramp_release)
     {
-        float* abufs[KQT_BUFFERS_MAX] =
+        kqt_frame* abufs[KQT_BUFFERS_MAX] =
         {
-            Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_AUDIO_L),
-            Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_AUDIO_R),
+            Audio_buffer_get_buffer(voice_out_buf, 0),
+            Audio_buffer_get_buffer(voice_out_buf, 1),
         };
 
         const float ramp_shift = RAMP_RELEASE_TIME / freq;
@@ -564,22 +557,29 @@ void Proc_common_handle_panning(
         const Processor* proc,
         Voice_state* vstate,
         const Work_buffers* wbs,
+        Audio_buffer* voice_out_buf,
         int32_t buf_start,
         int32_t buf_stop)
 {
     assert(proc != NULL);
     assert(vstate != NULL);
     assert(wbs != NULL);
+    assert(voice_out_buf != NULL);
 
-    if (!Processor_is_voice_feature_enabled(proc, VOICE_FEATURE_PANNING))
+    // TODO: if we actually get processors with multiple voice output ports,
+    //       process panning correctly for all of them
+    if (!Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_PANNING))
         return;
 
-    const float* pitch_params = Work_buffers_get_buffer_contents(
-            wbs, WORK_BUFFER_PITCH_PARAMS);
+    const Cond_work_buffer* pitch_params = Cond_work_buffer_init(
+            COND_WORK_BUFFER_AUTO,
+            Work_buffers_get_buffer(wbs, WORK_BUFFER_PITCH_PARAMS),
+            440,
+            Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_PITCH));
     float* actual_pannings = Work_buffers_get_buffer_contents_mut(
             wbs, WORK_BUFFER_ACTUAL_PANNINGS);
-    float* audio_l = Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_AUDIO_L);
-    float* audio_r = Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_AUDIO_R);
+    kqt_frame* audio_l = Audio_buffer_get_buffer(voice_out_buf, 0);
+    kqt_frame* audio_r = Audio_buffer_get_buffer(voice_out_buf, 1);
 
     // Apply panning slide
     if (Slider_in_progress(&vstate->panning_slider))
@@ -605,13 +605,13 @@ void Proc_common_handle_panning(
 
         for (int32_t i = buf_start; i < buf_stop; ++i)
         {
-            const float pitch_param = pitch_params[i];
+            const float pitch_param = Cond_work_buffer_get_value(pitch_params, i);
 
             float actual_panning = actual_pannings[i];
 
             if (pitch_param != vstate->pitch_pan_ref_param)
             {
-                double cents = log2(pitch_params[i] / 440) * 1200;
+                double cents = log2(pitch_param / 440) * 1200;
                 cents = clamp(cents, -6000, 6000);
 
                 const float pan = Envelope_get_value(env, cents);

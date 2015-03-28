@@ -45,22 +45,24 @@ void Time_env_state_init(Time_env_state* testate);
 /**
  * Process the given envelope.
  *
- * \param testate        The Time envelope state -- must not be \c NULL.
- * \param env            The Envelope -- must not be \c NULL.
- * \param has_loop       Whether the Envelope contains a loop.
- * \param scale_amount   The time scale amount -- must be finite.
- * \param scale_center   The time scale center -- must be finite.
- * \param sustain        Sustain value -- must be within range [0, 1]
- *                       (0 indicates no sustain).
- * \param min_value      Minimum envelope value -- must be finite.
- * \param max_value      Maximum envelope value -- must be finite.
- * \param wbs            The Work buffers -- must not be \c NULL. The envelope
- *                       values will be stored in \c WORK_BUFFER_TIME_ENV.
- * \param buf_start      Write starting position of the work buffer
- *                       -- must be >= \c 0.
- * \param buf_stop       Write stopping position of the work buffer
- *                       -- must be >= \c 0.
- * \param audio_rate     The audio rate -- must be positive.
+ * \param testate         The Time envelope state -- must not be \c NULL.
+ * \param env             The Envelope -- must not be \c NULL.
+ * \param has_loop        Whether the Envelope contains a loop.
+ * \param scale_amount    The time scale amount -- must be finite.
+ * \param scale_center    The time scale center -- must be finite.
+ * \param sustain         Sustain value -- must be within range [0, 1]
+ *                        (0 indicates no sustain).
+ * \param min_value       Minimum envelope value -- must be finite.
+ * \param max_value       Maximum envelope value -- must be finite.
+ * \param pitch_enabled   \c true if pitch processing is enabled, otherwise
+ *                        \c false.
+ * \param wbs             The Work buffers -- must not be \c NULL. The envelope
+ *                        values will be stored in \c WORK_BUFFER_TIME_ENV.
+ * \param buf_start       Write starting position of the work buffer
+ *                        -- must be >= \c 0.
+ * \param buf_stop        Write stopping position of the work buffer
+ *                        -- must be >= \c 0.
+ * \param audio_rate      The audio rate -- must be positive.
  *
  * \return   The stop index of the processing.
  */
@@ -73,6 +75,7 @@ int32_t Time_env_state_process(
         double sustain,
         double min_value,
         double max_value,
+        bool pitch_enabled,
         const Work_buffers* wbs,
         int32_t buf_start,
         int32_t buf_stop,

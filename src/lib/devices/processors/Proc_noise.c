@@ -19,6 +19,7 @@
 #include <string.h>
 #include <math.h>
 
+#include <Audio_buffer.h>
 #include <debug/assert.h>
 #include <devices/Device_params.h>
 #include <devices/Processor.h>
@@ -192,15 +193,23 @@ static uint32_t Proc_noise_process_vstate(
             noise_state->order = 0;
     }
 
-    float* actual_forces = Work_buffers_get_buffer_contents_mut(
-            wbs, WORK_BUFFER_ACTUAL_FORCES);
+    // Get actual forces
+    const Cond_work_buffer* actual_forces = Cond_work_buffer_init(
+            COND_WORK_BUFFER_AUTO,
+            Work_buffers_get_buffer(wbs, WORK_BUFFER_ACTUAL_FORCES),
+            1,
+            Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_FORCE));
 
-    float* audio_l = Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_AUDIO_L);
-    float* audio_r = Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_AUDIO_R);
+    Audio_buffer* out_buffer = Proc_state_get_voice_buffer(
+            proc_state, DEVICE_PORT_TYPE_SEND, 0);
+    assert(out_buffer != NULL);
+    Proc_state_set_voice_out_buffer_modified(proc_state, 0);
+    kqt_frame* audio_l = Audio_buffer_get_buffer(out_buffer, 0);
+    kqt_frame* audio_r = Audio_buffer_get_buffer(out_buffer, 1);
 
     for (int32_t i = buf_start; i < buf_stop; ++i)
     {
-        const float actual_force = actual_forces[i];
+        const float actual_force = Cond_work_buffer_get_value(actual_forces, i);
 
         double vals[KQT_BUFFERS_MAX] = { 0 };
 
@@ -231,7 +240,7 @@ static uint32_t Proc_noise_process_vstate(
         audio_r[i] = vals[1] * actual_force;
     }
 
-    Proc_ramp_attack(proc, vstate, wbs, 2, audio_rate, buf_start, buf_stop);
+    Proc_ramp_attack(proc, vstate, out_buffer, 2, audio_rate, buf_start, buf_stop);
 
     vstate->pos = 1; // XXX: hackish
 

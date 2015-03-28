@@ -20,6 +20,7 @@
 #include <stdlib.h>
 
 #include <Audio_buffer.h>
+#include <containers/Bit_array.h>
 #include <player/Device_state.h>
 
 
@@ -27,8 +28,8 @@ typedef struct Proc_state
 {
     Device_state parent;
 
-    Audio_buffer* in_voice_buf;
-    Audio_buffer* out_voice_buf;
+    Audio_buffer* voice_buffers[DEVICE_PORT_TYPES][KQT_DEVICE_PORTS_MAX];
+    Bit_array* voice_out_buffers_modified;
 } Proc_state;
 
 
@@ -58,34 +59,45 @@ void Proc_state_reset(Proc_state* proc_state);
 
 
 /**
- * Get the input voice buffer of the Processor state.
+ * Clear the voice buffers of the Processor state.
  *
  * \param proc_state   The Processor state -- must not be \c NULL.
- *
- * \return   The input voice buffer.
  */
-Audio_buffer* Proc_state_get_input_voice_buffer(Proc_state* proc_state);
+void Proc_state_clear_voice_buffers(Proc_state* proc_state);
 
 
 /**
- * Get the output voice buffer of the Processor state.
+ * Mark voice output buffer as modified.
  *
  * \param proc_state   The Processor state -- must not be \c NULL.
- *
- * \return   The output voice buffer.
+ * \param port_num     The port number -- must be >= \c 0 and
+ *                     < \c KQT_DEVICE_PORTS_MAX.
  */
-Audio_buffer* Proc_state_get_output_voice_buffer(Proc_state* proc_state);
+void Proc_state_set_voice_out_buffer_modified(Proc_state* proc_state, int port_num);
 
 
 /**
- * Resize buffers of the Processor state.
+ * Get voice output buffer modification status.
  *
- * \param dstate     The Processor state -- must not be \c NULL.
- * \param new_size   The new buffer size -- must not be negative.
+ * \param proc_state   The Processor state -- must not be \c NULL.
  *
- * \return   \c true if successful, or \c false if memory allocation failed.
+ * \return   \c true if the buffer has been modified, otherwise \c false.
  */
-bool Proc_state_resize_buffers(Device_state* dstate, int32_t new_size);
+bool Proc_state_is_voice_out_buffer_modified(Proc_state* proc_state, int port_num);
+
+
+/**
+ * Get a voice buffer of the Processor state.
+ *
+ * \param proc_state   The Processor state -- must not be \c NULL.
+ * \param type         The port type -- must be valid.
+ * \param port         The port number -- must be >= \c 0 and
+ *                     < \c KQT_DEVICE_PORTS_MAX.
+ *
+ * \return   The voice buffer if one exists, otherwise \c NULL.
+ */
+Audio_buffer* Proc_state_get_voice_buffer(
+        Proc_state* proc_state, Device_port_type type, int port);
 
 
 /**

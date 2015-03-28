@@ -18,6 +18,7 @@
 #include <string.h>
 #include <math.h>
 
+#include <Audio_buffer.h>
 #include <debug/assert.h>
 #include <devices/Processor.h>
 #include <devices/processors/Proc_add.h>
@@ -307,13 +308,27 @@ static uint32_t Proc_add_process_vstate(
     Voice_state_add* add_state = (Voice_state_add*)vstate;
     assert(is_p2(BASE_FUNC_SIZE));
 
-    const float* actual_pitches = Work_buffers_get_buffer_contents(
-            wbs, WORK_BUFFER_ACTUAL_PITCHES);
-    const float* actual_forces = Work_buffers_get_buffer_contents(
-            wbs, WORK_BUFFER_ACTUAL_FORCES);
+    // Get actual pitches
+    const Cond_work_buffer* actual_pitches = Cond_work_buffer_init(
+            COND_WORK_BUFFER_AUTO,
+            Work_buffers_get_buffer(wbs, WORK_BUFFER_ACTUAL_PITCHES),
+            440,
+            Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_PITCH));
 
-    float* audio_l = Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_AUDIO_L);
-    float* audio_r = Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_AUDIO_R);
+    // Get actual forces
+    const Cond_work_buffer* actual_forces = Cond_work_buffer_init(
+            COND_WORK_BUFFER_AUTO,
+            Work_buffers_get_buffer(wbs, WORK_BUFFER_ACTUAL_FORCES),
+            1,
+            Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_FORCE));
+
+    // Get output buffer for writing
+    Audio_buffer* out_buffer = Proc_state_get_voice_buffer(
+            proc_state, DEVICE_PORT_TYPE_SEND, 0);
+    assert(out_buffer != NULL);
+    Proc_state_set_voice_out_buffer_modified(proc_state, 0);
+    kqt_frame* audio_l = Audio_buffer_get_buffer(out_buffer, 0);
+    kqt_frame* audio_r = Audio_buffer_get_buffer(out_buffer, 1);
 
     static const int ADD_WORK_BUFFER_MOD = WORK_BUFFER_IMPL_1;
 
@@ -349,7 +364,8 @@ static uint32_t Proc_add_process_vstate(
 
             for (int32_t i = buf_start; i < buf_stop; ++i)
             {
-                const float actual_pitch = actual_pitches[i];
+                const float actual_pitch = Cond_work_buffer_get_value(
+                        actual_pitches, i);
 
                 float mod_value = mod_values[i];
 
@@ -378,7 +394,8 @@ static uint32_t Proc_add_process_vstate(
         {
             for (int32_t i = buf_start; i < buf_stop; ++i)
             {
-                const float actual_force = actual_forces[i];
+                const float actual_force = Cond_work_buffer_get_value(
+                        actual_forces, i);
 
                 const double force = min(1, actual_force);
                 const double factor = Envelope_get_value(force_mod_env, force);
@@ -398,6 +415,7 @@ static uint32_t Proc_add_process_vstate(
                     add->mod_env_center,
                     0, // sustain
                     0, 1, // range
+                    Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_PITCH),
                     wbs,
                     buf_start,
                     buf_stop,
@@ -451,7 +469,8 @@ static uint32_t Proc_add_process_vstate(
 
         for (int32_t i = buf_start; i < buf_stop; ++i)
         {
-            const float actual_pitch = actual_pitches[i];
+            const float actual_pitch = Cond_work_buffer_get_value(
+                    actual_pitches, i);
             const float mod_val = mod_values[i];
 
             // Note: + mod_val is specific to phase modulation
@@ -481,12 +500,13 @@ static uint32_t Proc_add_process_vstate(
     // Apply actual force
     for (int32_t i = buf_start; i < buf_stop; ++i)
     {
-        const float actual_force = actual_forces[i];
+        const float actual_force = Cond_work_buffer_get_value(
+                actual_forces, i);
         audio_l[i] *= actual_force;
         audio_r[i] *= actual_force;
     }
 
-    Proc_ramp_attack(proc, vstate, wbs, 2, audio_rate, buf_start, buf_stop);
+    Proc_ramp_attack(proc, vstate, out_buffer, 2, audio_rate, buf_start, buf_stop);
 
     vstate->pos = 1; // XXX: hackish
 

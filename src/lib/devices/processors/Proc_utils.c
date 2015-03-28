@@ -47,7 +47,7 @@ Device_state* new_Proc_state_default(
 void Proc_ramp_attack(
         const Processor* proc,
         Voice_state* vstate,
-        const Work_buffers* wbs,
+        Audio_buffer* voice_out_buf,
         int ab_count,
         uint32_t audio_rate,
         int32_t buf_start,
@@ -55,14 +55,14 @@ void Proc_ramp_attack(
 {
     assert(proc != NULL);
     assert(vstate != NULL);
-    assert(wbs != NULL);
+    assert(voice_out_buf != NULL);
     assert((ab_count == 1) || (ab_count == 2));
     (void)proc;
 
-    float* abufs[KQT_BUFFERS_MAX] =
+    kqt_frame* abufs[KQT_BUFFERS_MAX] =
     {
-        Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_AUDIO_L),
-        Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_AUDIO_R),
+        Audio_buffer_get_buffer(voice_out_buf, 0),
+        Audio_buffer_get_buffer(voice_out_buf, 1),
     };
 
     const float start_ramp_attack = vstate->ramp_attack;
@@ -82,6 +82,33 @@ void Proc_ramp_attack(
     }
 
     return;
+}
+
+
+Cond_work_buffer* Cond_work_buffer_init(
+        Cond_work_buffer* cwb, const Work_buffer* wb, float def_value, bool enabled)
+{
+    assert(cwb != NULL);
+    assert(wb != NULL);
+
+    cwb->index_mask = 0;
+    cwb->def_value = def_value;
+    cwb->wb_contents = &cwb->def_value;
+
+    if (enabled)
+    {
+        cwb->index_mask = ~(int32_t)0;
+        cwb->wb_contents = Work_buffer_get_contents(wb);
+    }
+
+    return cwb;
+}
+
+
+float Cond_work_buffer_get_value(const Cond_work_buffer* cwb, int32_t index)
+{
+    assert(cwb != NULL);
+    return cwb->wb_contents[index & cwb->index_mask];
 }
 
 

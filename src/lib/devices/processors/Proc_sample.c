@@ -17,6 +17,7 @@
 #include <math.h>
 #include <stdio.h>
 
+#include <Audio_buffer.h>
 #include <containers/AAtree.h>
 #include <debug/assert.h>
 #include <devices/Device_params.h>
@@ -298,9 +299,14 @@ uint32_t Proc_sample_process_vstate(
     Sample_set_loop(sample, sample_state->params.loop);
     // */
 
+    Audio_buffer* out_buffer = Proc_state_get_voice_buffer(
+            proc_state, DEVICE_PORT_TYPE_SEND, 0);
+    assert(out_buffer != NULL);
+    Proc_state_set_voice_out_buffer_modified(proc_state, 0);
+
     return Sample_process_vstate(
-            sample, header, vstate, wbs,
-            buf_start, buf_stop, audio_rate, tempo,
+            sample, header, vstate, proc, proc_state, wbs,
+            out_buffer, buf_start, buf_stop, audio_rate, tempo,
             sample_state->middle_tone, sample_state->freq,
             sample_state->volume);
 }

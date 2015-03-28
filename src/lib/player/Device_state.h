@@ -47,7 +47,8 @@ typedef struct Device_state
 
     Audio_buffer* buffers[DEVICE_PORT_TYPES][KQT_DEVICE_PORTS_MAX];
 
-    // Virtual functions
+    // Protected interface
+    bool (*add_buffer)(struct Device_state*, Device_port_type, int port);
     bool (*resize_buffers)(struct Device_state* ds, int32_t new_size);
     void (*deinit)(struct Device_state* ds);
 } Device_state;
@@ -198,9 +199,7 @@ void Device_state_clear_audio_buffers(
  * \return   The Audio buffer if one exists, otherwise \c NULL.
  */
 Audio_buffer* Device_state_get_audio_buffer(
-        const Device_state* ds,
-        Device_port_type type,
-        int port);
+        const Device_state* ds, Device_port_type type, int port);
 
 
 /**
