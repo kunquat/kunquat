@@ -91,8 +91,8 @@ int32_t Time_env_state_process(
         (loop_start_index == -1) ? NULL : Envelope_get_node(env, loop_start_index);
     const double* loop_end =
         (loop_end_index == -1) ? NULL : Envelope_get_node(env, loop_end_index);
-    assert(!has_loop || (loop_start != NULL));
-    assert(!has_loop || (loop_end != NULL));
+    if ((loop_start == NULL) || (loop_end == NULL))
+        has_loop = false;
 
     // Get state variables
     double cur_pos = testate->cur_pos;
