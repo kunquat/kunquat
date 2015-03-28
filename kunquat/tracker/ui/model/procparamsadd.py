@@ -117,6 +117,11 @@ def post_stretch_asym(y, amount):
 def post_stretch_sine(y, amount):
     return math.sin(y * 2**((amount + 1) * 3))
 
+def post_scaled_shift(y, amount):
+    scale = 1 - abs(amount)
+    offset = amount
+    return (scale * y) + offset
+
 
 class ProcParamsAdd(ProcParams):
 
@@ -141,6 +146,7 @@ class ProcParamsAdd(ProcParams):
             ('Clip', post_clip),
             ('Mirror', post_mirror),
             ('Quantise', post_quantise),
+            ('Scaled shift', post_scaled_shift),
             ('Shift', post_shift),
             ('Stretch', post_stretch),
             ('Stretch asym', post_stretch_asym),
