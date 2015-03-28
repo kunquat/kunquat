@@ -92,18 +92,6 @@ void Proc_state_clear_voice_buffers(Proc_state* proc_state)
 }
 
 
-void Proc_state_set_voice_out_buffer_modified(Proc_state* proc_state, int port_num)
-{
-    assert(proc_state != NULL);
-    assert(port_num >= 0);
-    assert(port_num < KQT_DEVICE_PORTS_MAX);
-
-    Bit_array_set(proc_state->voice_out_buffers_modified, port_num, true);
-
-    return;
-}
-
-
 bool Proc_state_is_voice_out_buffer_modified(Proc_state* proc_state, int port_num)
 {
     assert(proc_state != NULL);
@@ -114,13 +102,28 @@ bool Proc_state_is_voice_out_buffer_modified(Proc_state* proc_state, int port_nu
 }
 
 
-Audio_buffer* Proc_state_get_voice_buffer(
+const Audio_buffer* Proc_state_get_voice_buffer(
+        const Proc_state* proc_state, Device_port_type port_type, int port_num)
+{
+    assert(proc_state != NULL);
+    assert(port_type == DEVICE_PORT_TYPE_RECEIVE || port_type == DEVICE_PORT_TYPE_SEND);
+    assert(port_num >= 0);
+    assert(port_num < KQT_DEVICE_PORTS_MAX);
+
+    return proc_state->voice_buffers[port_type][port_num];
+}
+
+
+Audio_buffer* Proc_state_get_voice_buffer_mut(
         Proc_state* proc_state, Device_port_type port_type, int port_num)
 {
     assert(proc_state != NULL);
     assert(port_type == DEVICE_PORT_TYPE_RECEIVE || port_type == DEVICE_PORT_TYPE_SEND);
     assert(port_num >= 0);
     assert(port_num < KQT_DEVICE_PORTS_MAX);
+
+    if (port_type == DEVICE_PORT_TYPE_SEND)
+        Bit_array_set(proc_state->voice_out_buffers_modified, port_num, true);
 
     return proc_state->voice_buffers[port_type][port_num];
 }

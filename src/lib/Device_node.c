@@ -511,7 +511,7 @@ void Device_node_process_voice_group(
                 const Audio_buffer* send_buf = Proc_state_get_voice_buffer(
                         send_state, DEVICE_PORT_TYPE_SEND, edge->port);
 
-                Audio_buffer* recv_buf = Proc_state_get_voice_buffer(
+                Audio_buffer* recv_buf = Proc_state_get_voice_buffer_mut(
                         recv_state, DEVICE_PORT_TYPE_RECEIVE, port);
 
                 if ((send_buf != NULL) && (recv_buf != NULL))

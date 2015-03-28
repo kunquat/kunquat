@@ -200,10 +200,10 @@ static uint32_t Proc_noise_process_vstate(
             1,
             Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_FORCE));
 
-    Audio_buffer* out_buffer = Proc_state_get_voice_buffer(
+    // Get output buffer for writing
+    Audio_buffer* out_buffer = Proc_state_get_voice_buffer_mut(
             proc_state, DEVICE_PORT_TYPE_SEND, 0);
     assert(out_buffer != NULL);
-    Proc_state_set_voice_out_buffer_modified(proc_state, 0);
     kqt_frame* audio_l = Audio_buffer_get_buffer(out_buffer, 0);
     kqt_frame* audio_r = Audio_buffer_get_buffer(out_buffer, 1);
 

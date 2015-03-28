@@ -67,16 +67,6 @@ void Proc_state_clear_voice_buffers(Proc_state* proc_state);
 
 
 /**
- * Mark voice output buffer as modified.
- *
- * \param proc_state   The Processor state -- must not be \c NULL.
- * \param port_num     The port number -- must be >= \c 0 and
- *                     < \c KQT_DEVICE_PORTS_MAX.
- */
-void Proc_state_set_voice_out_buffer_modified(Proc_state* proc_state, int port_num);
-
-
-/**
  * Get voice output buffer modification status.
  *
  * \param proc_state   The Processor state -- must not be \c NULL.
@@ -96,7 +86,24 @@ bool Proc_state_is_voice_out_buffer_modified(Proc_state* proc_state, int port_nu
  *
  * \return   The voice buffer if one exists, otherwise \c NULL.
  */
-Audio_buffer* Proc_state_get_voice_buffer(
+const Audio_buffer* Proc_state_get_voice_buffer(
+        const Proc_state* proc_state, Device_port_type type, int port);
+
+
+/**
+ * Get a mutable voice buffer of the Processor state.
+ *
+ * For output buffers, this function marks the returned buffer as modified so
+ * that any default post-processing code will be applied to the buffer later.
+ *
+ * \param proc_state   The Processor state -- must not be \c NULL.
+ * \param type         The port type -- must be valid.
+ * \param port         The port number -- must be >= \c 0 and
+ *                     < \c KQT_DEVICE_PORTS_MAX.
+ *
+ * \return   The voice buffer if one exists, otherwise \c NULL.
+ */
+Audio_buffer* Proc_state_get_voice_buffer_mut(
         Proc_state* proc_state, Device_port_type type, int port);
 
 

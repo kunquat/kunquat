@@ -262,7 +262,7 @@ void Processor_process_vstate(
         return;
     }
 
-    Audio_buffer* voice_out_buf = Proc_state_get_voice_buffer(
+    Audio_buffer* voice_out_buf = Proc_state_get_voice_buffer_mut(
             proc_state, DEVICE_PORT_TYPE_SEND, 0);
     if (voice_out_buf == NULL)
     {
