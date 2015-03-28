@@ -41,11 +41,13 @@ typedef struct Proc_envgen
 {
     Device_impl parent;
 
+    bool is_time_env_enabled;
     const Envelope* time_env;
     bool is_loop_enabled;
     double scale_amount;
     double scale_center;
 
+    bool is_force_env_enabled;
     const Envelope* force_env;
 
     double y_min;
@@ -58,10 +60,12 @@ static bool Proc_envgen_init(Device_impl* dimpl);
 static void Proc_envgen_init_vstate(
         const Processor* proc, const Proc_state* proc_state, Voice_state* vstate);
 
+static Set_bool_func        Proc_envgen_set_time_env_enabled;
 static Set_envelope_func    Proc_envgen_set_time_env;
 static Set_bool_func        Proc_envgen_set_loop_enabled;
 static Set_float_func       Proc_envgen_set_scale_amount;
 static Set_float_func       Proc_envgen_set_scale_center;
+static Set_bool_func        Proc_envgen_set_force_env_enabled;
 static Set_envelope_func    Proc_envgen_set_force_env;
 static Set_num_list_func    Proc_envgen_set_y_range;
 
@@ -81,11 +85,13 @@ Device_impl* new_Proc_envgen(Processor* proc)
     Device_impl_register_init(&egen->parent, Proc_envgen_init);
     Device_impl_register_destroy(&egen->parent, del_Proc_envgen);
 
+    egen->is_time_env_enabled = false;
     egen->time_env = NULL;
     egen->is_loop_enabled = false;
     egen->scale_amount = 0;
     egen->scale_center = 440;
 
+    egen->is_force_env_enabled = false;
     egen->force_env = NULL;
 
     egen->y_min = 0;
@@ -113,12 +119,14 @@ static bool Proc_envgen_init(Device_impl* dimpl)
     reg_success &= Device_impl_register_set_##type(                     \
             &egen->parent, key, def_val, Proc_envgen_set_##field, NULL)
 
-    REGISTER_SET(envelope,  time_env,       "p_e_time_env.json",        NULL);
-    REGISTER_SET(bool,      loop_enabled,   "p_b_loop_enabled.json",    false);
-    REGISTER_SET(float,     scale_amount,   "p_f_scale_amount.json",    0.0);
-    REGISTER_SET(float,     scale_center,   "p_f_scale_center.json",    0.0);
-    REGISTER_SET(envelope,  force_env,      "p_e_force_env.json",       NULL);
-    REGISTER_SET(num_list,  y_range,        "p_ln_y_range.json",        NULL);
+    REGISTER_SET(bool,      time_env_enabled,   "p_b_time_env_enabled.json",    false);
+    REGISTER_SET(envelope,  time_env,           "p_e_time_env.json",            NULL);
+    REGISTER_SET(bool,      loop_enabled,       "p_b_loop_enabled.json",        false);
+    REGISTER_SET(float,     scale_amount,       "p_f_scale_amount.json",        0.0);
+    REGISTER_SET(float,     scale_center,       "p_f_scale_center.json",        0.0);
+    REGISTER_SET(bool,      force_env_enabled,  "p_b_force_env_enabled.json",   false);
+    REGISTER_SET(envelope,  force_env,          "p_e_force_env.json",           NULL);
+    REGISTER_SET(num_list,  y_range,            "p_ln_y_range.json",            NULL);
 
 #undef REGISTER_SET
 
@@ -194,12 +202,21 @@ static uint32_t Proc_envgen_process_vstate(
     kqt_frame* audio_l = Audio_buffer_get_buffer(out_buffer, 0);
     kqt_frame* audio_r = Audio_buffer_get_buffer(out_buffer, 1);
 
+    const bool is_time_env_enabled =
+        egen->is_time_env_enabled && (egen->time_env != NULL);
+    const bool is_force_env_enabled =
+        egen->is_force_env_enabled && (egen->force_env != NULL);
+
+    const double range_width = egen->y_max - egen->y_min;
+
     int32_t new_buf_stop = buf_stop;
 
-    if (egen->time_env != NULL)
-    {
-        const double range_width = egen->y_max - egen->y_min;
+    // Initialise with default values
+    for (int32_t i = buf_start; i < new_buf_stop; ++i)
+        audio_l[i] = 1;
 
+    if (is_time_env_enabled)
+    {
         const int32_t env_stop = Time_env_state_process(
                 &egen_state->env_state,
                 egen->time_env,
@@ -211,7 +228,7 @@ static uint32_t Proc_envgen_process_vstate(
                 Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_PITCH),
                 wbs,
                 buf_start,
-                buf_stop,
+                new_buf_stop,
                 audio_rate);
 
         float* time_env = Work_buffers_get_buffer_contents_mut(
@@ -239,52 +256,54 @@ static uint32_t Proc_envgen_process_vstate(
         // Write to audio output
         for (int32_t i = buf_start; i < new_buf_stop; ++i)
             audio_l[i] = time_env[i];
+    }
 
-        // Apply range
-        if ((egen->y_min != 0) || (egen->y_max != 1))
+    // Apply range
+    if ((egen->y_min != 0) || (egen->y_max != 1))
+    {
+        for (int32_t i = buf_start; i < new_buf_stop; ++i)
+            audio_l[i] = egen->y_min + audio_l[i] * range_width;
+    }
+
+    if (Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_FORCE))
+    {
+        const float* actual_forces = Work_buffers_get_buffer_contents(
+                wbs, WORK_BUFFER_ACTUAL_FORCES);
+
+        if (is_force_env_enabled)
         {
+            // Apply force envelope
             for (int32_t i = buf_start; i < new_buf_stop; ++i)
-                audio_l[i] = egen->y_min + audio_l[i] * range_width;
-        }
-
-        if (Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_FORCE))
-        {
-            const float* actual_forces = Work_buffers_get_buffer_contents(
-                    wbs, WORK_BUFFER_ACTUAL_FORCES);
-
-            if (egen->force_env != NULL)
             {
-                // Apply force envelope
-                for (int32_t i = buf_start; i < new_buf_stop; ++i)
-                {
-                    const float actual_force = actual_forces[i];
+                const float actual_force = actual_forces[i];
 
-                    const double force_clamped = min(1, actual_force);
-                    const double factor = Envelope_get_value(
-                            egen->force_env, force_clamped);
-                    assert(isfinite(factor));
-                    audio_l[i] *= factor;
-                }
-            }
-            else
-            {
-                // Apply linear scaling by default
-                for (int32_t i = buf_start; i < new_buf_stop; ++i)
-                    audio_l[i] *= actual_forces[i];
+                const double force_clamped = min(1, actual_force);
+                const double factor = Envelope_get_value(egen->force_env, force_clamped);
+                assert(isfinite(factor));
+                audio_l[i] *= factor;
             }
         }
         else
         {
-            if (egen->force_env != NULL)
-            {
-                // Just apply the rightmost force envelope value (as we assume force 1)
-                const double factor = Envelope_get_node(
-                        egen->force_env, Envelope_node_count(egen->force_env) - 1)[1];
-                for (int32_t i = buf_start; i < new_buf_stop; ++i)
-                    audio_l[i] *= factor;
-            }
+            // Apply linear scaling by default
+            for (int32_t i = buf_start; i < new_buf_stop; ++i)
+                audio_l[i] *= actual_forces[i];
         }
+    }
+    else
+    {
+        if (is_force_env_enabled)
+        {
+            // Just apply the rightmost force envelope value (as we assume force 1)
+            const double factor = Envelope_get_node(
+                    egen->force_env, Envelope_node_count(egen->force_env) - 1)[1];
+            for (int32_t i = buf_start; i < new_buf_stop; ++i)
+                audio_l[i] *= factor;
+        }
+    }
 
+    // Copy to the right channel
+    {
         const int32_t frame_count = new_buf_stop - buf_start;
         assert(frame_count >= 0);
         memcpy(audio_r + buf_start, audio_l + buf_start, sizeof(float) * frame_count);
@@ -294,6 +313,19 @@ static uint32_t Proc_envgen_process_vstate(
     vstate->pos = 1;
 
     return new_buf_stop;
+}
+
+
+static bool Proc_envgen_set_time_env_enabled(
+        Device_impl* dimpl, Key_indices indices, bool value)
+{
+    assert(dimpl != NULL);
+    assert(indices != NULL);
+
+    Proc_envgen* egen = (Proc_envgen*)dimpl;
+    egen->is_time_env_enabled = value;
+
+    return true;
 }
 
 
@@ -374,6 +406,19 @@ static bool Proc_envgen_set_scale_center(
 
     Proc_envgen* egen = (Proc_envgen*)dimpl;
     egen->scale_center = isfinite(value) ? exp2(value / 1200) * 440 : 440;
+
+    return true;
+}
+
+
+static bool Proc_envgen_set_force_env_enabled(
+        Device_impl* dimpl, Key_indices indices, bool value)
+{
+    assert(dimpl != NULL);
+    assert(indices != NULL);
+
+    Proc_envgen* egen = (Proc_envgen*)dimpl;
+    egen->is_force_env_enabled = value;
 
     return true;
 }
