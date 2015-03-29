@@ -125,9 +125,9 @@ static bool Proc_envgen_init(Device_impl* dimpl)
             &egen->parent, key, def_val, Proc_envgen_set_##field, NULL)
 
     REGISTER_SET(float,     scale,              "p_f_scale.json",               0.0);
-    REGISTER_SET(bool,      time_env_enabled,   "p_b_time_env_enabled.json",    false);
-    REGISTER_SET(envelope,  time_env,           "p_e_time_env.json",            NULL);
-    REGISTER_SET(bool,      loop_enabled,       "p_b_loop_enabled.json",        false);
+    REGISTER_SET(bool,      time_env_enabled,   "p_b_env_enabled.json",         false);
+    REGISTER_SET(envelope,  time_env,           "p_e_env.json",                 NULL);
+    REGISTER_SET(bool,      loop_enabled,       "p_b_env_loop_enabled.json",    false);
     REGISTER_SET(float,     env_scale_amount,   "p_f_env_scale_amount.json",    0.0);
     REGISTER_SET(float,     env_scale_center,   "p_f_env_scale_center.json",    0.0);
     REGISTER_SET(bool,      force_env_enabled,  "p_b_force_env_enabled.json",   false);
