@@ -266,7 +266,9 @@ void Processor_process_vstate(
     if (!vstate->note_on &&
             (vstate->pos == 0) &&
             (vstate->pos_rem == 0) &&
-            !proc->au_params->env_force_rel_enabled)
+            Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_CUT) &&
+            (!proc->au_params->env_force_rel_enabled ||
+                !Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_FORCE)))
     {
         vstate->active = false;
         return;
