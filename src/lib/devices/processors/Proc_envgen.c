@@ -41,11 +41,13 @@ typedef struct Proc_envgen
 {
     Device_impl parent;
 
+    double scale;
+
     bool is_time_env_enabled;
     const Envelope* time_env;
     bool is_loop_enabled;
-    double scale_amount;
-    double scale_center;
+    double env_scale_amount;
+    double env_scale_center;
 
     bool is_force_env_enabled;
     const Envelope* force_env;
@@ -60,11 +62,12 @@ static bool Proc_envgen_init(Device_impl* dimpl);
 static void Proc_envgen_init_vstate(
         const Processor* proc, const Proc_state* proc_state, Voice_state* vstate);
 
+static Set_float_func       Proc_envgen_set_scale;
 static Set_bool_func        Proc_envgen_set_time_env_enabled;
 static Set_envelope_func    Proc_envgen_set_time_env;
 static Set_bool_func        Proc_envgen_set_loop_enabled;
-static Set_float_func       Proc_envgen_set_scale_amount;
-static Set_float_func       Proc_envgen_set_scale_center;
+static Set_float_func       Proc_envgen_set_env_scale_amount;
+static Set_float_func       Proc_envgen_set_env_scale_center;
 static Set_bool_func        Proc_envgen_set_force_env_enabled;
 static Set_envelope_func    Proc_envgen_set_force_env;
 static Set_num_list_func    Proc_envgen_set_y_range;
@@ -85,11 +88,13 @@ Device_impl* new_Proc_envgen(Processor* proc)
     Device_impl_register_init(&egen->parent, Proc_envgen_init);
     Device_impl_register_destroy(&egen->parent, del_Proc_envgen);
 
+    egen->scale = 1;
+
     egen->is_time_env_enabled = false;
     egen->time_env = NULL;
     egen->is_loop_enabled = false;
-    egen->scale_amount = 0;
-    egen->scale_center = 440;
+    egen->env_scale_amount = 0;
+    egen->env_scale_center = 440;
 
     egen->is_force_env_enabled = false;
     egen->force_env = NULL;
@@ -119,11 +124,12 @@ static bool Proc_envgen_init(Device_impl* dimpl)
     reg_success &= Device_impl_register_set_##type(                     \
             &egen->parent, key, def_val, Proc_envgen_set_##field, NULL)
 
+    REGISTER_SET(float,     scale,              "p_f_scale.json",               0.0);
     REGISTER_SET(bool,      time_env_enabled,   "p_b_time_env_enabled.json",    false);
     REGISTER_SET(envelope,  time_env,           "p_e_time_env.json",            NULL);
     REGISTER_SET(bool,      loop_enabled,       "p_b_loop_enabled.json",        false);
-    REGISTER_SET(float,     scale_amount,       "p_f_scale_amount.json",        0.0);
-    REGISTER_SET(float,     scale_center,       "p_f_scale_center.json",        0.0);
+    REGISTER_SET(float,     env_scale_amount,   "p_f_env_scale_amount.json",    0.0);
+    REGISTER_SET(float,     env_scale_center,   "p_f_env_scale_center.json",    0.0);
     REGISTER_SET(bool,      force_env_enabled,  "p_b_force_env_enabled.json",   false);
     REGISTER_SET(envelope,  force_env,          "p_e_force_env.json",           NULL);
     REGISTER_SET(num_list,  y_range,            "p_ln_y_range.json",            NULL);
@@ -221,8 +227,8 @@ static uint32_t Proc_envgen_process_vstate(
                 &egen_state->env_state,
                 egen->time_env,
                 egen->is_loop_enabled,
-                egen->scale_amount,
-                egen->scale_center,
+                egen->env_scale_amount,
+                egen->env_scale_center,
                 0, // sustain
                 0, 1, // range, NOTE: this needs to be mapped to our [y_min, y_max]!
                 Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_PITCH),
@@ -263,6 +269,14 @@ static uint32_t Proc_envgen_process_vstate(
     {
         for (int32_t i = buf_start; i < new_buf_stop; ++i)
             audio_l[i] = egen->y_min + audio_l[i] * range_width;
+    }
+
+    // Apply our internal scaling
+    if (egen->scale != 1)
+    {
+        const double scale = egen->scale;
+        for (int32_t i = buf_start; i < new_buf_stop; ++i)
+            audio_l[i] *= scale;
     }
 
     if (Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_FORCE))
@@ -313,6 +327,19 @@ static uint32_t Proc_envgen_process_vstate(
     vstate->pos = 1;
 
     return new_buf_stop;
+}
+
+
+static bool Proc_envgen_set_scale(
+        Device_impl* dimpl, Key_indices indices, double value)
+{
+    assert(dimpl != NULL);
+    assert(indices != NULL);
+
+    Proc_envgen* egen = (Proc_envgen*)dimpl;
+    egen->scale = isfinite(value) ? exp2(value / 6) : 1;
+
+    return true;
 }
 
 
@@ -385,27 +412,27 @@ static bool Proc_envgen_set_loop_enabled(
 }
 
 
-static bool Proc_envgen_set_scale_amount(
+static bool Proc_envgen_set_env_scale_amount(
         Device_impl* dimpl, Key_indices indices, double value)
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
 
     Proc_envgen* egen = (Proc_envgen*)dimpl;
-    egen->scale_amount = isfinite(value) ? value : 0;
+    egen->env_scale_amount = isfinite(value) ? value : 0;
 
     return true;
 }
 
 
-static bool Proc_envgen_set_scale_center(
+static bool Proc_envgen_set_env_scale_center(
         Device_impl* dimpl, Key_indices indices, double value)
 {
     assert(dimpl != NULL);
     assert(indices != NULL);
 
     Proc_envgen* egen = (Proc_envgen*)dimpl;
-    egen->scale_center = isfinite(value) ? exp2(value / 1200) * 440 : 440;
+    egen->env_scale_center = isfinite(value) ? exp2(value / 1200) * 440 : 440;
 
     return true;
 }
