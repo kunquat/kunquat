@@ -29,13 +29,16 @@
  * \param proc_state   The processor state -- must not be \c NULL.
  * \param proc_num     The number of the Processor -- must be >= \c 0 and
  *                     < \c KQT_PROCESSORS_MAX.
+ * \param rand_seed    The random seed passed to the Voice (NOTE: should be
+ *                     the same for every Voice with the same group!)
  */
 void reserve_voice(
         Channel* ch,
         Audio_unit* au,
         uint64_t group_id,
         const Proc_state* proc_state,
-        int proc_num);
+        int proc_num,
+        uint64_t rand_seed);
 
 
 /**

@@ -56,6 +56,9 @@ bool Event_channel_note_on_process(
 //    ch->panning_slide = 0;
     double force_var = NAN;
 
+    bool is_voice_rand_seed_set = false;
+    uint64_t voice_rand_seed = 0;
+
     const uint64_t new_group_id = Voice_pool_new_group_id(ch->pool);
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
@@ -69,7 +72,13 @@ bool Event_channel_note_on_process(
         const Proc_state* proc_state = (Proc_state*)Device_states_get_state(
                 dstates, Device_get_id((const Device*)proc));
 
-        reserve_voice(ch, au, new_group_id, proc_state, i);
+        if (!is_voice_rand_seed_set)
+        {
+            voice_rand_seed = Random_get_uint64(ch->rand);
+            is_voice_rand_seed_set = true;
+        }
+
+        reserve_voice(ch, au, new_group_id, proc_state, i, voice_rand_seed);
 
         Voice* voice = ch->fg[i];
         Voice_state* vs = voice->state;
@@ -134,6 +143,9 @@ bool Event_channel_hit_process(
 
     double force_var = NAN;
 
+    bool is_voice_rand_seed_set = false;
+    uint64_t voice_rand_seed = 0;
+
     const uint64_t new_group_id = Voice_pool_new_group_id(ch->pool);
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
@@ -147,7 +159,13 @@ bool Event_channel_hit_process(
         const Proc_state* proc_state = (Proc_state*)Device_states_get_state(
                 dstates, Device_get_id((const Device*)proc));
 
-        reserve_voice(ch, au, new_group_id, proc_state, i);
+        if (!is_voice_rand_seed_set)
+        {
+            voice_rand_seed = Random_get_uint64(ch->rand);
+            is_voice_rand_seed_set = true;
+        }
+
+        reserve_voice(ch, au, new_group_id, proc_state, i, voice_rand_seed);
 
         Voice* voice = ch->fg[i];
         Voice_state* vs = voice->state;
