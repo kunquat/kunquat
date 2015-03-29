@@ -71,7 +71,7 @@ int32_t Time_env_state_process(
     const Cond_work_buffer* actual_pitches = Cond_work_buffer_init(
             COND_WORK_BUFFER_AUTO,
             Work_buffers_get_buffer(wbs, WORK_BUFFER_ACTUAL_PITCHES),
-            1,
+            440,
             pitch_enabled);
 
     float* values = Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_TIME_ENV);
