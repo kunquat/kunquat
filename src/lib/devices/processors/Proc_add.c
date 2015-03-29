@@ -316,7 +316,7 @@ static uint32_t Proc_add_process_vstate(
 
         for (int32_t ch = 0; ch < 2; ++ch)
         {
-            const double panning = pannings[ch];
+            const double panning_factor = 1 + pannings[ch];
             const float* mod_values_ch = mod_values[ch];
 
             double phase = tone_state->phase[ch];
@@ -339,9 +339,10 @@ static uint32_t Proc_add_process_vstate(
                 const float item1 = base[pos1];
                 const float item_diff = base[pos2] - item1;
                 const double lerp_val = pos - floor(pos);
-                const double value = (item1 + (lerp_val * item_diff)) * volume_factor;
+                const double value =
+                    (item1 + (lerp_val * item_diff)) * volume_factor * panning_factor;
 
-                out_values_ch[i] += value * (1 + panning);
+                out_values_ch[i] += value;
 
                 phase += actual_pitch * pitch_factor_inv_audio_rate;
                 if (phase >= 1)
