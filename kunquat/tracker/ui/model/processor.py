@@ -13,6 +13,7 @@
 
 from kunquat.kunquat.kunquat import get_default_value
 from procparamsadd import ProcParamsAdd
+from procparamsenvgen import ProcParamsEnvgen
 
 
 class Processor():
@@ -69,7 +70,10 @@ class Processor():
         return None
 
     def get_type_params(self):
-        types = { 'add': ProcParamsAdd }
+        types = {
+            'add':      ProcParamsAdd,
+            'envgen':   ProcParamsEnvgen,
+        }
         cons = types[self.get_type()]
         return cons(self._au_id, self._proc_id, self._controller)
 
