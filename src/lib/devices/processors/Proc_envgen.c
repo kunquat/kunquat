@@ -217,12 +217,9 @@ static uint32_t Proc_envgen_process_vstate(
 
     int32_t new_buf_stop = buf_stop;
 
-    // Initialise with default values
-    for (int32_t i = buf_start; i < new_buf_stop; ++i)
-        audio_l[i] = 1;
-
     if (is_time_env_enabled)
     {
+        // Apply the time envelope
         const int32_t env_stop = Time_env_state_process(
                 &egen_state->env_state,
                 egen->time_env,
@@ -262,6 +259,12 @@ static uint32_t Proc_envgen_process_vstate(
         // Write to audio output
         for (int32_t i = buf_start; i < new_buf_stop; ++i)
             audio_l[i] = time_env[i];
+    }
+    else
+    {
+        // Initialise with default values
+        for (int32_t i = buf_start; i < new_buf_stop; ++i)
+            audio_l[i] = 1;
     }
 
     // Apply range
