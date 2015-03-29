@@ -1071,76 +1071,118 @@ class View(QWidget):
             return self.keyPressEvent(ev) or False
         return QWidget.event(self, ev)
 
-    def keyPressEvent(self, ev):
-        if self._keyboard_mapper.process_typewriter_button_event(ev):
+    def keyPressEvent(self, event):
+        if self._keyboard_mapper.process_typewriter_button_event(event):
             return
 
-        if ev.modifiers() == Qt.NoModifier:
-            if ev.key() == Qt.Key_Up:
-                self._vertical_move_state.press_up()
-                self._move_edit_cursor_tstamp()
-            elif ev.key() == Qt.Key_Down:
-                self._vertical_move_state.press_down()
-                self._move_edit_cursor_tstamp()
-            elif ev.key() == Qt.Key_Left:
-                self._horizontal_move_state.press_left()
-                self._move_edit_cursor_trow()
-            elif ev.key() == Qt.Key_Right:
-                self._horizontal_move_state.press_right()
-                self._move_edit_cursor_trow()
-            elif ev.key() == Qt.Key_Home:
-                self._move_edit_cursor_trigger_index(0)
-            elif ev.key() == Qt.Key_End:
-                self._move_edit_cursor_trigger_index(2**24) # :-P
-            elif ev.key() == Qt.Key_1:
-                # TODO: Some rare keyboard layouts have the 1 key in a location
-                #       that interferes with the typewriter
-                if not ev.isAutoRepeat():
-                    self._add_rest()
-            elif ev.key() == Qt.Key_Delete:
-                self._try_delete_selection()
-            elif ev.key() == Qt.Key_Backspace:
-                self._perform_backspace()
-            elif ev.key() == Qt.Key_Space:
-                if not ev.isAutoRepeat():
-                    connected = self._sheet_manager.get_typewriter_connected()
-                    self._sheet_manager.set_typewriter_connected(not connected)
-            elif ev.key() == Qt.Key_Insert:
-                if not ev.isAutoRepeat():
-                    is_replace = self._sheet_manager.get_replace_mode()
-                    self._sheet_manager.set_replace_mode(not is_replace)
-            elif ev.key() == Qt.Key_Return:
-                if (self._sheet_manager.get_replace_mode() and
-                        self._sheet_manager.is_at_trigger()):
-                    self._start_trigger_argument_entry()
-                else:
-                    self._start_trigger_type_entry()
-
-        if ev.key() == Qt.Key_Tab:
+        if event.key() == Qt.Key_Tab:
+            event.accept()
             self._move_edit_cursor_column(1)
             return True
-        elif ev.key() == Qt.Key_Backtab:
+        elif event.key() == Qt.Key_Backtab:
+            event.accept()
             self._move_edit_cursor_column(-1)
             return True
 
-        if ev.modifiers() == Qt.ControlModifier:
-            if ev.key() == Qt.Key_Minus:
-                self._sheet_manager.set_zoom(self._sheet_manager.get_zoom() - 1)
-            elif ev.key() == Qt.Key_Plus:
-                self._sheet_manager.set_zoom(self._sheet_manager.get_zoom() + 1)
-            elif ev.key() == Qt.Key_0:
-                self._sheet_manager.set_zoom(0)
+        def handle_move_up():
+            self._vertical_move_state.press_up()
+            self._move_edit_cursor_tstamp()
 
-        if ev.modifiers() == (Qt.ControlModifier | Qt.AltModifier):
+        def handle_move_down():
+            self._vertical_move_state.press_down()
+            self._move_edit_cursor_tstamp()
+
+        def handle_move_left():
+            self._horizontal_move_state.press_left()
+            self._move_edit_cursor_trow()
+
+        def handle_move_right():
+            self._horizontal_move_state.press_right()
+            self._move_edit_cursor_trow()
+
+        def handle_rest():
+            if not event.isAutoRepeat():
+                self._add_rest()
+
+        def handle_typewriter_connection():
+            if not event.isAutoRepeat():
+                connected = self._sheet_manager.get_typewriter_connected()
+                self._sheet_manager.set_typewriter_connected(not connected)
+
+        def handle_replace_mode():
+            if not event.isAutoRepeat():
+                is_replace = self._sheet_manager.get_replace_mode()
+                self._sheet_manager.set_replace_mode(not is_replace)
+
+        def handle_field_edit():
+            if (self._sheet_manager.get_replace_mode() and
+                    self._sheet_manager.is_at_trigger()):
+                self._start_trigger_argument_entry()
+            else:
+                self._start_trigger_type_entry()
+
+        def handle_decrease_column_width():
             if cmdline.get_experimental():
-                if ev.key() == Qt.Key_Minus:
-                    self._sheet_manager.set_column_width(
-                            self._sheet_manager.get_column_width() - 1)
-                elif ev.key() == Qt.Key_Plus:
-                    self._sheet_manager.set_column_width(
-                            self._sheet_manager.get_column_width() + 1)
-                elif ev.key() == Qt.Key_0:
-                    self._sheet_manager.set_column_width(0)
+                self._sheet_manager.set_column_width(
+                        self._sheet_manager.get_column_width() - 1)
+
+        def handle_increase_column_width():
+            if cmdline.get_experimental():
+                self._sheet_manager.set_column_width(
+                        self._sheet_manager.get_column_width() + 1)
+
+        def handle_reset_column_width():
+            if cmdline.get_experimental():
+                self._sheet_manager.set_column_width(0)
+
+        keymap = {
+            int(Qt.NoModifier): {
+                Qt.Key_Up:      handle_move_up,
+                Qt.Key_Down:    handle_move_down,
+                Qt.Key_Left:    handle_move_left,
+                Qt.Key_Right:   handle_move_right,
+
+                Qt.Key_Home:    lambda: self._move_edit_cursor_trigger_index(0),
+                Qt.Key_End: lambda: self._move_edit_cursor_trigger_index(2**24), # :-P
+
+                # TODO: Some rare keyboard layouts have the 1 key in a location
+                #       that interferes with the typewriter
+                Qt.Key_1:       handle_rest,
+
+                Qt.Key_Delete:  lambda: self._try_delete_selection(),
+                Qt.Key_Backspace: lambda: self._perform_backspace(),
+
+                Qt.Key_Space:   handle_typewriter_connection,
+                Qt.Key_Insert:  handle_replace_mode,
+
+                Qt.Key_Return:  handle_field_edit,
+            },
+
+            int(Qt.ControlModifier): {
+                Qt.Key_Minus:   lambda: self._sheet_manager.set_zoom(
+                                    self._sheet_manager.get_zoom() - 1),
+                Qt.Key_Plus:    lambda: self._sheet_manager.set_zoom(
+                                    self._sheet_manager.get_zoom() + 1),
+                Qt.Key_0:       lambda: self._sheet_manager.set_zoom(0),
+            },
+
+            int(Qt.ControlModifier | Qt.AltModifier): {
+                Qt.Key_Minus:   handle_decrease_column_width,
+                Qt.Key_Plus:    handle_increase_column_width,
+                Qt.Key_0:       handle_reset_column_width,
+            },
+        }
+
+        is_handled = False
+        mod_map = keymap.get(int(event.modifiers()))
+        if mod_map:
+            func = mod_map.get(event.key())
+            if func:
+                func()
+                is_handled = True
+
+        if not is_handled:
+            QWidget.keyPressEvent(self, event)
 
     def keyReleaseEvent(self, ev):
         if self._keyboard_mapper.process_typewriter_button_event(ev):
