@@ -304,17 +304,23 @@ void Processor_process_vstate(
 
     adjust_relative_lengths(vstate, audio_rate, tempo);
 
-    Proc_common_handle_pitch(proc, vstate, wbs, buf_start, process_stop);
+    // NOTE: checking voice features before processing in order to save time
+    //       Revisit if we ever add support for several output ports!
+    if (Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_PITCH))
+        Proc_common_handle_pitch(proc, vstate, wbs, buf_start, process_stop);
 
-    const int32_t force_stop = Proc_common_handle_force(
-            proc, au_state, vstate, wbs, audio_rate, buf_start, process_stop);
-
-    const bool force_ended = (force_stop < process_stop);
-    if (force_ended)
+    if (Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_FORCE))
     {
-        deactivate_after_processing = true;
-        assert(force_stop <= process_stop);
-        process_stop = force_stop;
+        const int32_t force_stop = Proc_common_handle_force(
+                proc, au_state, vstate, wbs, audio_rate, buf_start, process_stop);
+
+        const bool force_ended = (force_stop < process_stop);
+        if (force_ended)
+        {
+            deactivate_after_processing = true;
+            assert(force_stop <= process_stop);
+            process_stop = force_stop;
+        }
     }
 
     const uint64_t old_pos = vstate->pos;
