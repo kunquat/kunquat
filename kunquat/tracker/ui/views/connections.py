@@ -647,7 +647,7 @@ class ConnectionsView(QWidget):
 
         end = time.time()
         elapsed = end - start
-        print('Connections view updated in {:.2f} ms'.format(elapsed * 1000))
+        #print('Connections view updated in {:.2f} ms'.format(elapsed * 1000))
 
     def _get_area_pos(self, widget_x, widget_y):
         return (widget_x - self.width() // 2 + self._center_pos[0],
