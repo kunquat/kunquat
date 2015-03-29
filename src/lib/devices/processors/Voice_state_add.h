@@ -25,7 +25,7 @@
 
 typedef struct Add_tone_state
 {
-    double phase;
+    double phase[2];
 #if 0
     uint64_t pos;
     double pos_rem;

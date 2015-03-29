@@ -59,6 +59,7 @@ typedef struct Proc_add
     Device_impl parent;
 
     Sample* base;
+    bool is_ramp_attack_enabled;
     Sample* mod;
     Mod_mode mod_mode;
     double mod_volume;
@@ -83,6 +84,7 @@ static void Proc_add_init_vstate(
 static double sine(double phase, double modifier);
 
 static Set_sample_func      Proc_add_set_base;
+static Set_bool_func        Proc_add_set_ramp_attack;
 static Set_sample_func      Proc_add_set_mod_base;
 static Set_int_func         Proc_add_set_mod;
 static Set_float_func       Proc_add_set_mod_volume;
@@ -138,6 +140,7 @@ static bool Proc_add_init(Device_impl* dimpl)
             &add->parent, key, def_val, Proc_add_set_##field, NULL)
 
     REGISTER_SET(sample,    base,           "p_base.wav",               NULL);
+    REGISTER_SET(bool,      ramp_attack,    "p_b_ramp_attack.json",     true);
     REGISTER_SET(sample,    mod_base,       "p_mod.wav",                NULL);
     REGISTER_SET(int,       mod,            "p_i_mod.json",             MOD_DISABLED);
     REGISTER_SET(float,     mod_volume,     "p_f_mod_volume.json",      0.0);
@@ -160,6 +163,7 @@ static bool Proc_add_init(Device_impl* dimpl)
         return false;
 
     add->base = NULL;
+    add->is_ramp_attack_enabled = true;
     add->mod = NULL;
     add->mod_mode = MOD_DISABLED;
     add->mod_volume = 1;
@@ -264,9 +268,11 @@ static void Proc_add_init_vstate(
             continue;
 
         add_state->tone_limit = h + 1;
-        add_state->tones[h].phase = 0;
+        for (int ch = 0; ch < 2; ++ch)
+            add_state->tones[h].phase[ch] = 0;
     }
 
+#if 0
     for (int h = 0; h < HARMONICS_MAX; ++h)
     {
         if (add->mod_tones[h].pitch_factor <= 0 ||
@@ -276,6 +282,7 @@ static void Proc_add_init_vstate(
         add_state->mod_tone_limit = h + 1;
         add_state->mod_tones[h].phase = 0;
     }
+#endif
 
     add_state->mod_active = add->mod_mode != MOD_DISABLED;
 
@@ -326,19 +333,59 @@ static uint32_t Proc_add_process_vstate(
     Audio_buffer* out_buffer = Proc_state_get_voice_buffer_mut(
             proc_state, DEVICE_PORT_TYPE_SEND, 0);
     assert(out_buffer != NULL);
-    kqt_frame* audio_l = Audio_buffer_get_buffer(out_buffer, 0);
-    kqt_frame* audio_r = Audio_buffer_get_buffer(out_buffer, 1);
+    Audio_buffer_clear(out_buffer, buf_start, buf_stop);
 
-    static const int ADD_WORK_BUFFER_MOD = WORK_BUFFER_IMPL_1;
+    kqt_frame* out_values[] =
+    {
+        Audio_buffer_get_buffer(out_buffer, 0),
+        Audio_buffer_get_buffer(out_buffer, 1),
+    };
 
-    const double inv_audio_rate = 1.0 / audio_rate;
+    // Get phase modulation signal
+    static const int ADD_WORK_BUFFER_MOD_L = WORK_BUFFER_IMPL_1;
+    static const int ADD_WORK_BUFFER_MOD_R = WORK_BUFFER_IMPL_2;
 
-    float* mod_values = Work_buffers_get_buffer_contents_mut(wbs, ADD_WORK_BUFFER_MOD);
+    float* mod_values[] =
+    {
+        Work_buffers_get_buffer_contents_mut(wbs, ADD_WORK_BUFFER_MOD_L),
+        Work_buffers_get_buffer_contents_mut(wbs, ADD_WORK_BUFFER_MOD_R),
+    };
 
-    // Get modulation
-    for (int32_t i = buf_start; i < buf_stop; ++i)
-        mod_values[i] = 0;
+    Audio_buffer* mod_buffer = Proc_state_get_voice_buffer_mut(
+            proc_state, DEVICE_PORT_TYPE_RECEIVE, 0);
 
+    if (mod_buffer != NULL)
+    {
+        // Copy from the input voice buffer
+        // XXX: not sure if the best way to handle this...
+        const kqt_frame* mod_in_values[] =
+        {
+            Audio_buffer_get_buffer(mod_buffer, 0),
+            Audio_buffer_get_buffer(mod_buffer, 1),
+        };
+
+        for (int ch = 0; ch < 2; ++ch)
+        {
+            const kqt_frame* mod_in_values_ch = mod_in_values[ch];
+            float* mod_values_ch = mod_values[ch];
+
+            for (int32_t i = buf_start; i < buf_stop; ++i)
+                mod_values_ch[i] = mod_in_values_ch[i];
+        }
+    }
+    else
+    {
+        // Fill with zeroes if no modulation signal
+        for (int ch = 0; ch < 2; ++ch)
+        {
+            float* mod_values_ch = mod_values[ch];
+
+            for (int32_t i = buf_start; i < buf_stop; ++i)
+                mod_values_ch[i] = 0;
+        }
+    }
+
+#if 0
     if (add_state->mod_active)
     {
         const float* mod_base = Sample_get_buffer(add->mod, 0);
@@ -441,13 +488,11 @@ static uint32_t Proc_add_process_vstate(
                 mod_values[i] *= time_env[i];
         }
     }
+#endif
 
     // Add base waveform tones
-    for (int32_t i = buf_start; i < buf_stop; ++i)
-    {
-        audio_l[i] = 0;
-        audio_r[i] = 0;
-    }
+
+    const double inv_audio_rate = 1.0 / audio_rate;
 
     const float* base = Sample_get_buffer(add->base, 0);
 
@@ -460,40 +505,52 @@ static uint32_t Proc_add_process_vstate(
         if ((pitch_factor <= 0) || (volume_factor <= 0))
             continue;
 
-        const double panning = tone->panning;
+        const double pannings[] =
+        {
+            -tone->panning,
+            tone->panning,
+        };
+
         const double pitch_factor_inv_audio_rate = pitch_factor * inv_audio_rate;
 
         Add_tone_state* tone_state = &add_state->tones[h];
-        double phase = tone_state->phase;
 
-        for (int32_t i = buf_start; i < buf_stop; ++i)
+        for (int32_t ch = 0; ch < 2; ++ch)
         {
-            const float actual_pitch = Cond_work_buffer_get_value(
-                    actual_pitches, i);
-            const float mod_val = mod_values[i];
+            const double panning = pannings[ch];
+            const float* mod_values_ch = mod_values[ch];
 
-            // Note: + mod_val is specific to phase modulation
-            const double actual_phase = phase + mod_val;
-            const double pos = actual_phase * BASE_FUNC_SIZE;
+            double phase = tone_state->phase[ch];
+            float* out_values_ch = out_values[ch];
 
-            // Note: direct cast of negative doubles to uint32_t is undefined
-            const uint32_t pos1 = (uint32_t)(int32_t)pos & BASE_FUNC_SIZE_MASK;
-            const uint32_t pos2 = (pos1 + 1) & BASE_FUNC_SIZE_MASK;
+            for (int32_t i = buf_start; i < buf_stop; ++i)
+            {
+                const float actual_pitch = Cond_work_buffer_get_value(
+                        actual_pitches, i);
+                const float mod_val = mod_values_ch[i];
 
-            const float item1 = base[pos1];
-            const float item_diff = base[pos2] - item1;
-            const double lerp_val = pos - floor(pos);
-            const double value = (item1 + (lerp_val * item_diff)) * volume_factor;
+                // Note: + mod_val is specific to phase modulation
+                const double actual_phase = phase + mod_val;
+                const double pos = actual_phase * BASE_FUNC_SIZE;
 
-            audio_l[i] += value * (1 - panning);
-            audio_r[i] += value * (1 + panning);
+                // Note: direct cast of negative doubles to uint32_t is undefined
+                const uint32_t pos1 = (uint32_t)(int32_t)pos & BASE_FUNC_SIZE_MASK;
+                const uint32_t pos2 = (pos1 + 1) & BASE_FUNC_SIZE_MASK;
 
-            phase += actual_pitch * pitch_factor_inv_audio_rate;
-            if (phase >= 1)
-                phase -= floor(phase);
+                const float item1 = base[pos1];
+                const float item_diff = base[pos2] - item1;
+                const double lerp_val = pos - floor(pos);
+                const double value = (item1 + (lerp_val * item_diff)) * volume_factor;
+
+                out_values_ch[i] += value * (1 + panning);
+
+                phase += actual_pitch * pitch_factor_inv_audio_rate;
+                if (phase >= 1)
+                    phase -= floor(phase);
+            }
+
+            tone_state->phase[ch] = phase;
         }
-
-        tone_state->phase = phase;
     }
 
     // Apply actual force
@@ -501,11 +558,12 @@ static uint32_t Proc_add_process_vstate(
     {
         const float actual_force = Cond_work_buffer_get_value(
                 actual_forces, i);
-        audio_l[i] *= actual_force;
-        audio_r[i] *= actual_force;
+        out_values[0][i] *= actual_force;
+        out_values[1][i] *= actual_force;
     }
 
-    Proc_ramp_attack(proc, vstate, out_buffer, 2, audio_rate, buf_start, buf_stop);
+    if (add->is_ramp_attack_enabled)
+        Proc_ramp_attack(proc, vstate, out_buffer, 2, audio_rate, buf_start, buf_stop);
 
     vstate->pos = 1; // XXX: hackish
 
@@ -554,6 +612,19 @@ static bool Proc_add_set_base(
     Proc_add* add = (Proc_add*)dimpl;
 
     fill_buf(Sample_get_buffer(add->base, 0), value);
+
+    return true;
+}
+
+
+static bool Proc_add_set_ramp_attack(
+        Device_impl* dimpl, Key_indices indices, bool enabled)
+{
+    assert(dimpl != NULL);
+    assert(indices != NULL);
+
+    Proc_add* add = (Proc_add*)dimpl;
+    add->is_ramp_attack_enabled = enabled;
 
     return true;
 }
