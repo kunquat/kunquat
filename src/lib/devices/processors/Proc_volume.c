@@ -56,6 +56,8 @@ static Update_float_func Proc_volume_update_state_volume;
 
 static bool Proc_volume_init(Device_impl* dimpl);
 
+static Proc_process_vstate_func Proc_volume_process_vstate;
+
 static void Proc_volume_process(
         const Device* device,
         Device_states* states,
@@ -93,6 +95,9 @@ static bool Proc_volume_init(Device_impl* dimpl)
     Device_set_state_creator(volume->parent.device, Proc_volume_create_state);
 
     Device_impl_register_reset_device_state(&volume->parent, Proc_volume_reset);
+
+    Processor* proc = (Processor*)volume->parent.device;
+    proc->process_vstate = Proc_volume_process_vstate;
 
     // Register key set/update handlers
     bool reg_success = true;
@@ -206,6 +211,72 @@ static void Proc_volume_update_state_volume(
     vol_state->scale = dB_to_scale(value);
 
     return;
+}
+
+
+static uint32_t Proc_volume_process_vstate(
+        const Processor* proc,
+        Proc_state* proc_state,
+        Au_state* au_state,
+        Voice_state* vstate,
+        const Work_buffers* wbs,
+        int32_t buf_start,
+        int32_t buf_stop,
+        uint32_t audio_rate,
+        double tempo)
+{
+    assert(proc != NULL);
+    assert(proc_state != NULL);
+    assert(au_state != NULL);
+    assert(vstate != NULL);
+    assert(wbs != NULL);
+    assert(buf_start >= 0);
+    assert(buf_stop >= 0);
+    assert(audio_rate > 0);
+    assert(tempo > 0);
+    assert(isfinite(tempo));
+
+    Volume_state* vol_state = (Volume_state*)proc_state;
+
+    // Get buffers
+    Audio_buffer* in_buffer = Proc_state_get_voice_buffer_mut(
+            proc_state, DEVICE_PORT_TYPE_RECEIVE, 0);
+    Audio_buffer* out_buffer = Proc_state_get_voice_buffer_mut(
+            proc_state, DEVICE_PORT_TYPE_SEND, 0);
+    if (in_buffer == NULL)
+    {
+        vstate->active = false;
+        return buf_start;
+    }
+    assert(out_buffer != NULL);
+
+    // Scale
+    for (int ch = 0; ch < 2; ++ch)
+    {
+        const kqt_frame* in_values = Audio_buffer_get_buffer(in_buffer, ch);
+        kqt_frame* out_values = Audio_buffer_get_buffer(out_buffer, ch);
+
+        const float scale = vol_state->scale;
+
+        if (Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_FORCE))
+        {
+            const float* actual_forces = Work_buffers_get_buffer_contents(
+                    wbs, WORK_BUFFER_ACTUAL_FORCES);
+
+            for (int32_t i = buf_start; i < buf_stop; ++i)
+                out_values[i] = in_values[i] * scale * actual_forces[i];
+        }
+        else
+        {
+            for (int32_t i = buf_start; i < buf_stop; ++i)
+                out_values[i] = in_values[i] * scale;
+        }
+    }
+
+    // Mark state as started, TODO: fix this mess
+    vstate->pos = 1;
+
+    return buf_stop;
 }
 
 
