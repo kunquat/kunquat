@@ -562,6 +562,9 @@ class ToneList(QWidget):
         add_params.add_tone(self._wave_type)
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
+    def resizeEvent(self, event):
+        self._area.do_width_hack()
+
 
 class ToneEditor(QWidget):
 
