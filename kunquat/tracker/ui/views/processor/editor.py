@@ -17,6 +17,7 @@ from PyQt4.QtGui import *
 from name import Name
 from addproc import AddProc
 from envgenproc import EnvgenProc
+from ringmodproc import RingmodProc
 from sampleproc import SampleProc
 from unsupportedproc import UnsupportedProc
 from kunquat.tracker.ui.views.keyboardmapper import KeyboardMapper
@@ -25,6 +26,7 @@ from kunquat.tracker.ui.views.keyboardmapper import KeyboardMapper
 _proc_classes = {
     'add':      AddProc,
     'envgen':   EnvgenProc,
+    'ringmod':  RingmodProc,
     'sample':   SampleProc,
 }
 
