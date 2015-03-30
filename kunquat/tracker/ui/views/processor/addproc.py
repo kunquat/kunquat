@@ -61,6 +61,9 @@ class AddProc(QWidget):
         self._base_waveform.set_ui_model(ui_model)
         self._base_tone_editor.set_ui_model(ui_model)
 
+    def get_name(self):
+        return 'Additive synthesis'
+
     def unregister_updaters(self):
         self._base_tone_editor.unregister_updaters()
         self._base_waveform.unregister_updaters()

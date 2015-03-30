@@ -69,6 +69,9 @@ class EnvgenProc(QWidget):
         self._time_env.set_ui_model(ui_model)
         self._force_env.set_ui_model(ui_model)
 
+    def get_name(self):
+        return 'Envelope generator'
+
     def unregister_updaters(self):
         self._force_env.unregister_updaters()
         self._time_env.unregister_updaters()
