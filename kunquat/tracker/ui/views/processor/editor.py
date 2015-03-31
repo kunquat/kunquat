@@ -122,6 +122,11 @@ class Editor(QWidget):
 
 class Signals(QWidget):
 
+    _SIGNAL_INFO = [
+        (u'voice', 'Voice signals'),
+        (u'mixed', 'Mixed signals'),
+    ]
+
     def __init__(self):
         QWidget.__init__(self)
         self._au_id = None
@@ -129,12 +134,13 @@ class Signals(QWidget):
         self._ui_model = None
         self._updater = None
 
-        self._voice_signals_enabled = QCheckBox('Enable voice signals')
-        self._mixed_signals_enabled = QCheckBox('Enable mixed signals')
+        self._signal_type = QComboBox()
+        for info in self._SIGNAL_INFO:
+            _, text = info
+            self._signal_type.addItem(text)
 
         v = QVBoxLayout()
-        v.addWidget(self._voice_signals_enabled)
-        v.addWidget(self._mixed_signals_enabled)
+        v.addWidget(self._signal_type)
         self.setLayout(v)
 
     def set_au_id(self, au_id):
@@ -150,13 +156,9 @@ class Signals(QWidget):
         self._update_settings()
 
         QObject.connect(
-                self._voice_signals_enabled,
-                SIGNAL('stateChanged(int)'),
-                self._voice_signals_changed)
-        QObject.connect(
-                self._mixed_signals_enabled,
-                SIGNAL('stateChanged(int)'),
-                self._mixed_signals_changed)
+                self._signal_type,
+                SIGNAL('currentIndexChanged(int)'),
+                self._signal_type_changed)
 
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
@@ -173,32 +175,19 @@ class Signals(QWidget):
         au = module.get_audio_unit(self._au_id)
         proc = au.get_processor(self._proc_id)
 
-        old_block = self._voice_signals_enabled.blockSignals(True)
-        self._voice_signals_enabled.setCheckState(
-                Qt.Checked if proc.get_voice_signals_enabled() else Qt.Unchecked)
-        self._voice_signals_enabled.blockSignals(old_block)
+        old_block = self._signal_type.blockSignals(True)
+        type_names = [info[0] for info in self._SIGNAL_INFO]
+        index = type_names.index(proc.get_signal_type())
+        assert 0 <= index < len(self._SIGNAL_INFO)
+        self._signal_type.setCurrentIndex(index)
+        self._signal_type.blockSignals(old_block)
 
-        old_block = self._mixed_signals_enabled.blockSignals(True)
-        self._mixed_signals_enabled.setCheckState(
-                Qt.Checked if proc.get_mixed_signals_enabled() else Qt.Unchecked)
-        self._mixed_signals_enabled.blockSignals(old_block)
-
-    def _voice_signals_changed(self, new_state):
+    def _signal_type_changed(self, index):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
         proc = au.get_processor(self._proc_id)
 
-        enabled = (new_state == Qt.Checked)
-        proc.set_voice_signals_enabled(enabled)
-        self._updater.signal_update(set([self._get_update_signal_type]))
-
-    def _mixed_signals_changed(self, new_state):
-        module = self._ui_model.get_module()
-        au = module.get_audio_unit(self._au_id)
-        proc = au.get_processor(self._proc_id)
-
-        enabled = (new_state == Qt.Checked)
-        proc.set_mixed_signals_enabled(enabled)
+        proc.set_signal_type(self._SIGNAL_INFO[index][0])
         self._updater.signal_update(set([self._get_update_signal_type]))
 
 

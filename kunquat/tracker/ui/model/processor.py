@@ -77,20 +77,12 @@ class Processor():
         cons = types[self.get_type()]
         return cons(self._au_id, self._proc_id, self._controller)
 
-    def get_voice_signals_enabled(self):
-        key = self._get_key('p_voice_support.json')
-        return self._store.get(key)
+    def get_signal_type(self):
+        key = self._get_key('p_signal_type.json')
+        return self._store.get(key, get_default_value(key))
 
-    def set_voice_signals_enabled(self, enabled):
-        key = self._get_key('p_voice_support.json')
-        self._store[key] = enabled
-
-    def get_mixed_signals_enabled(self):
-        key = self._get_key('p_signal_support.json')
-        return self._store.get(key)
-
-    def set_mixed_signals_enabled(self, enabled):
-        key = self._get_key('p_signal_support.json')
-        self._store[key] = enabled
+    def set_signal_type(self, signal_type):
+        key = self._get_key('p_signal_type.json')
+        self._store[key] = signal_type
 
 
