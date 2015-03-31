@@ -20,6 +20,7 @@ from envgenproc import EnvgenProc
 from ringmodproc import RingmodProc
 from sampleproc import SampleProc
 from unsupportedproc import UnsupportedProc
+from kunquat.tracker.ui.views.headerline import HeaderLine
 from kunquat.tracker.ui.views.keyboardmapper import KeyboardMapper
 
 
@@ -120,6 +121,19 @@ class Editor(QWidget):
             event.ignore()
 
 
+class HeaderFrame(QWidget):
+
+    def __init__(self, header_text, contents):
+        QWidget.__init__(self)
+
+        v = QVBoxLayout()
+        v.setMargin(0)
+        v.setSpacing(5)
+        v.addWidget(HeaderLine(header_text), 0, Qt.AlignTop)
+        v.addWidget(contents, 1, Qt.AlignTop)
+        self.setLayout(v)
+
+
 class Signals(QWidget):
 
     _SIGNAL_INFO = [
@@ -139,8 +153,25 @@ class Signals(QWidget):
             _, text = info
             self._signal_type.addItem(text)
 
-        v = QVBoxLayout()
-        v.addWidget(self._signal_type)
+        self._vf_cut = QCheckBox('Cut')
+        self._vf_pitch = QCheckBox('Pitch')
+        self._vf_force = QCheckBox('Force')
+        self._vf_filter = QCheckBox('Filter')
+        self._vf_panning = QCheckBox('Panning')
+
+        vf_layout = QVBoxLayout()
+        vf_layout.addWidget(self._vf_cut)
+        vf_layout.addWidget(self._vf_pitch)
+        vf_layout.addWidget(self._vf_force)
+        vf_layout.addWidget(self._vf_filter)
+        vf_layout.addWidget(self._vf_panning)
+
+        self._vf_container = QWidget()
+        self._vf_container.setLayout(vf_layout)
+
+        v = QHBoxLayout()
+        v.addWidget(HeaderFrame('Signal type', self._signal_type))
+        v.addWidget(HeaderFrame('Voice features', self._vf_container))
         self.setLayout(v)
 
     def set_au_id(self, au_id):
@@ -160,14 +191,32 @@ class Signals(QWidget):
                 SIGNAL('currentIndexChanged(int)'),
                 self._signal_type_changed)
 
+        vf_info = [
+            (self._vf_cut, self._vf_cut_changed),
+            (self._vf_pitch, self._vf_pitch_changed),
+            (self._vf_force, self._vf_force_changed),
+            (self._vf_filter, self._vf_filter_changed),
+            (self._vf_panning, self._vf_panning_changed),
+        ]
+
+        for info in vf_info:
+            checkbox, handler = info
+            QObject.connect(
+                    checkbox, SIGNAL('stateChanged(int)'), handler)
+
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
 
     def _get_update_signal_type(self):
         return '_'.join(('signal_proc_signals', self._au_id, self._proc_id))
 
+    def _get_connections_signal_type(self):
+        return '_'.join(('signal_connections', self._au_id))
+
     def _perform_updates(self, signals):
-        if self._get_update_signal_type() in signals:
+        update_signals = set([
+            self._get_update_signal_type(), self._get_connections_signal_type()])
+        if not signals.isdisjoint(update_signals):
             self._update_settings()
 
     def _update_settings(self):
@@ -175,12 +224,34 @@ class Signals(QWidget):
         au = module.get_audio_unit(self._au_id)
         proc = au.get_processor(self._proc_id)
 
+        connections = au.get_connections()
+        signal_type = proc.get_signal_type()
+
+        # Update signal type selector
         old_block = self._signal_type.blockSignals(True)
         type_names = [info[0] for info in self._SIGNAL_INFO]
-        index = type_names.index(proc.get_signal_type())
+        index = type_names.index(signal_type)
         assert 0 <= index < len(self._SIGNAL_INFO)
         self._signal_type.setCurrentIndex(index)
         self._signal_type.blockSignals(old_block)
+
+        # Update voice features
+        self._vf_container.setEnabled(signal_type == 'voice')
+        self._vf_cut.setEnabled(not connections.is_proc_connected_to_out(self._proc_id))
+
+        vf_info = [
+            (self._vf_cut, proc.get_vf_cut),
+            (self._vf_pitch, proc.get_vf_pitch),
+            (self._vf_force, proc.get_vf_force),
+            (self._vf_filter, proc.get_vf_filter),
+            (self._vf_panning, proc.get_vf_panning),
+        ]
+
+        for info in vf_info:
+            checkbox, get_vf = info
+            old_block = checkbox.blockSignals(True)
+            checkbox.setCheckState(Qt.Checked if get_vf(0) else Qt.Unchecked)
+            checkbox.blockSignals(old_block)
 
     def _signal_type_changed(self, index):
         module = self._ui_model.get_module()
@@ -188,6 +259,39 @@ class Signals(QWidget):
         proc = au.get_processor(self._proc_id)
 
         proc.set_signal_type(self._SIGNAL_INFO[index][0])
-        self._updater.signal_update(set([self._get_update_signal_type]))
+        self._updater.signal_update(set([self._get_update_signal_type()]))
+
+    def _vf_changed(self, state, vf_name):
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+        proc = au.get_processor(self._proc_id)
+
+        enabled = (state == Qt.Checked)
+
+        vf_info = {
+            'cut': proc.set_vf_cut,
+            'pitch': proc.set_vf_pitch,
+            'force': proc.set_vf_force,
+            'filter': proc.set_vf_filter,
+            'panning': proc.set_vf_panning,
+        }
+
+        vf_info[vf_name](0, enabled)
+        self._updater.signal_update(set([self._get_update_signal_type()]))
+
+    def _vf_cut_changed(self, state):
+        self._vf_changed(state, 'cut')
+
+    def _vf_pitch_changed(self, state):
+        self._vf_changed(state, 'pitch')
+
+    def _vf_force_changed(self, state):
+        self._vf_changed(state, 'force')
+
+    def _vf_filter_changed(self, state):
+        self._vf_changed(state, 'filter')
+
+    def _vf_panning_changed(self, state):
+        self._vf_changed(state, 'panning')
 
 
