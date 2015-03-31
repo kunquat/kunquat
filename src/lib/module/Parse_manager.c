@@ -1085,7 +1085,7 @@ static bool read_any_proc_manifest(Reader_params* params, Au_table* au_table, in
 }
 
 
-static bool read_any_proc_voice_support(
+static bool read_any_proc_signal_type(
         Reader_params* params, Au_table* au_table, int level)
 {
     assert(params != NULL);
@@ -1104,42 +1104,29 @@ static bool read_any_proc_voice_support(
     if (proc == NULL)
         return false;
 
-    bool voice_support_enabled = false;
-    if (Streader_has_data(params->sr) &&
-            !Streader_read_bool(params->sr, &voice_support_enabled))
-        return false;
+    bool voice_signals_selected = true;
+    if (Streader_has_data(params->sr))
+    {
+        char type_name[64] = "";
+        if (!Streader_read_string(params->sr, 64, type_name))
+            return false;
 
-    Processor_set_voice_support(proc, voice_support_enabled);
+        if (string_eq(type_name, "voice"))
+            voice_signals_selected = true;
+        else if (string_eq(type_name, "mixed"))
+            voice_signals_selected = false;
+        else
+        {
+            Handle_set_error(params->handle, ERROR_FORMAT,
+                    "Unrecognised processor signal type: %s", type_name);
+            return false;
+        }
+    }
 
-    return true;
-}
+    const bool mixed_signals_selected = !voice_signals_selected;
 
-
-static bool read_any_proc_signal_support(
-        Reader_params* params, Au_table* au_table, int level)
-{
-    assert(params != NULL);
-    assert(au_table != NULL);
-
-    int32_t au_index = -1;
-    acquire_au_index(au_index, params, level);
-    int32_t proc_index = -1;
-    acquire_proc_index(proc_index, params, level + 1);
-
-    Audio_unit* au = NULL;
-    acquire_au(au, params->handle, au_table, au_index);
-    Proc_table* proc_table = Audio_unit_get_procs(au);
-
-    Processor* proc = add_processor(params->handle, au, proc_table, proc_index);
-    if (proc == NULL)
-        return false;
-
-    bool signal_support_enabled = false;
-    if (Streader_has_data(params->sr) &&
-            !Streader_read_bool(params->sr, &signal_support_enabled))
-        return false;
-
-    Device_set_signal_support((Device*)proc, signal_support_enabled);
+    Processor_set_voice_signals(proc, voice_signals_selected);
+    Device_set_mixed_signals((Device*)proc, mixed_signals_selected);
 
     return true;
 }

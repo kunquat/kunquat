@@ -161,26 +161,25 @@ void Processor_clear_history(const Processor* proc, Proc_state* proc_state);
 
 
 /**
- * Set Voice processing support.
+ * Set Voice signal support.
  *
- * Note that Voice processing may be always disabled for certain Processor
- * types.
+ * Note that Voice signals may be always disabled for certain Processor types.
  *
  * \param proc      The Processor -- must not be \c NULL.
- * \param enabled   \c true if Voice processing should be enabled, otherwise
+ * \param enabled   \c true if Voice signals should be enabled, otherwise
  *                  \c false.
  */
-void Processor_set_voice_support(Processor* proc, bool enabled);
+void Processor_set_voice_signals(Processor* proc, bool enabled);
 
 
 /**
- * Get Voice processing support information.
+ * Get Voice signal support information.
  *
  * \param proc   The Processor -- must not be \c NULL.
  *
- * \return   \c true if \a proc supports Voice processing, otherwise \c false.
+ * \return   \c true if \a proc has Voice signals enabled, otherwise \c false.
  */
-bool Processor_get_voice_support(const Processor* proc);
+bool Processor_get_voice_signals(const Processor* proc);
 
 
 /**

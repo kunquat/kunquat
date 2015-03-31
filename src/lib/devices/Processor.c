@@ -200,7 +200,7 @@ static void adjust_relative_lengths(
 }
 
 
-void Processor_set_voice_support(Processor* proc, bool enabled)
+void Processor_set_voice_signals(Processor* proc, bool enabled)
 {
     assert(proc != NULL);
     proc->enable_voice_support = enabled;
@@ -208,7 +208,7 @@ void Processor_set_voice_support(Processor* proc, bool enabled)
 }
 
 
-bool Processor_get_voice_support(const Processor* proc)
+bool Processor_get_voice_signals(const Processor* proc)
 {
     assert(proc != NULL);
     return (proc->process_vstate != NULL) && proc->enable_voice_support;

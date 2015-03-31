@@ -110,7 +110,7 @@ Audio_unit* new_Audio_unit(void)
     Device_register_set_audio_rate(&au->parent, Audio_unit_set_audio_rate);
     Device_register_update_tempo(&au->parent, Audio_unit_update_tempo);
     Device_register_set_buffer_size(&au->parent, Audio_unit_set_buffer_size);
-    Device_set_signal_support(&au->parent, true);
+    Device_set_mixed_signals(&au->parent, true);
     Device_set_process(&au->parent, Audio_unit_process_signal);
 
     au->out_iface = new_Au_interface();

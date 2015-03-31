@@ -267,7 +267,7 @@ void Device_set_reset(Device* device, void (*reset)(const Device*, Device_states
 }
 
 
-void Device_set_signal_support(Device* device, bool enabled)
+void Device_set_mixed_signals(Device* device, bool enabled)
 {
     assert(device != NULL);
     device->enable_signal_support = enabled;

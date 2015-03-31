@@ -36,7 +36,7 @@ START_TEST(Trivial_effect_is_identity)
     set_data("au_00/p_connections.json",
             "[ [\"proc_00/C/out_00\", \"out_00\"] ]");
     set_data("au_00/proc_00/p_manifest.json", "{ \"type\": \"debug\" }");
-    set_data("au_00/proc_00/p_voice_support.json", "true");
+    set_data("au_00/proc_00/p_signal_type.json", "\"voice\"");
     set_data("au_00/proc_00/out_00/p_manifest.json", "{}");
 
     set_data("au_01/p_manifest.json", "{ \"type\": \"effect\" }");
@@ -79,14 +79,14 @@ START_TEST(Effect_with_default_volume_dsp_is_identity)
     set_data("au_00/p_connections.json",
             "[ [\"proc_00/C/out_00\", \"out_00\"] ]");
     set_data("au_00/proc_00/p_manifest.json", "{ \"type\": \"debug\" }");
-    set_data("au_00/proc_00/p_voice_support.json", "true");
+    set_data("au_00/proc_00/p_signal_type.json", "\"voice\"");
     set_data("au_00/proc_00/out_00/p_manifest.json", "{}");
 
     set_data("au_01/p_manifest.json", "{ \"type\": \"effect\" }");
     set_data("au_01/in_00/p_manifest.json", "{}");
     set_data("au_01/out_00/p_manifest.json", "{}");
     set_data("au_01/proc_00/p_manifest.json", "{ \"type\": \"volume\" }");
-    set_data("au_01/proc_00/p_signal_support.json", "true");
+    set_data("au_01/proc_00/p_signal_type.json", "\"mixed\"");
     set_data("au_01/proc_00/in_00/p_manifest.json", "{}");
     set_data("au_01/proc_00/out_00/p_manifest.json", "{}");
     set_data("au_01/p_connections.json",
@@ -128,14 +128,14 @@ START_TEST(Effect_with_double_volume_dsp_and_bypass_triples_volume)
     set_data("au_00/p_connections.json",
             "[ [\"proc_00/C/out_00\", \"out_00\"] ]");
     set_data("au_00/proc_00/p_manifest.json", "{ \"type\": \"debug\" }");
-    set_data("au_00/proc_00/p_voice_support.json", "true");
+    set_data("au_00/proc_00/p_signal_type.json", "\"voice\"");
     set_data("au_00/proc_00/out_00/p_manifest.json", "{}");
 
     set_data("au_01/p_manifest.json", "{ \"type\": \"effect\" }");
     set_data("au_01/in_00/p_manifest.json", "{}");
     set_data("au_01/out_00/p_manifest.json", "{}");
     set_data("au_01/proc_00/p_manifest.json", "{ \"type\": \"volume\" }");
-    set_data("au_01/proc_00/p_signal_support.json", "true");
+    set_data("au_01/proc_00/p_signal_type.json", "\"mixed\"");
     set_data("au_01/proc_00/in_00/p_manifest.json", "{}");
     set_data("au_01/proc_00/out_00/p_manifest.json", "{}");
     set_data("au_01/proc_00/c/p_f_volume.json", "6");

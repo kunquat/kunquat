@@ -193,15 +193,15 @@ void Device_set_reset(Device* device, void (*reset)(const Device*, Device_states
 
 
 /**
- * Set signal processing support.
+ * Set mixed signal processing support.
  *
- * Note that signal processing may be always disabled for certain Devices.
+ * Note that mixed signals may be always disabled for certain Devices.
  *
  * \param proc      The Device -- must not be \c NULL.
- * \param enabled   \c true if signal processing should be enabled, otherwise
+ * \param enabled   \c true if mixed signals should be enabled, otherwise
  *                  \c false.
  */
-void Device_set_signal_support(Device* device, bool enabled);
+void Device_set_mixed_signals(Device* device, bool enabled);
 
 
 /**
