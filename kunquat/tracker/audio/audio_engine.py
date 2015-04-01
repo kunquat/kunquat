@@ -22,7 +22,7 @@ import kunquat.tracker.cmdline as cmdline
 
 from drivers.pushaudio import Pushaudio
 
-EVENT_SELECT_CONTROL = '.i'
+EVENT_SELECT_CONTROL = '.a'
 EVENT_NOTE_ON = 'n+'
 EVENT_NOTE_OFF = 'n-'
 
