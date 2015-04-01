@@ -346,8 +346,11 @@ static uint32_t Proc_add_process_vstate(
                 out_values_ch[i] += value;
 
                 phase += actual_pitch * pitch_factor_inv_audio_rate;
-                if (phase >= 1)
-                    phase -= floor(phase);
+
+                // Normalise to range [0, 1)
+                // phase is usually < 2, so this is faster than subtracting floor(phase)
+                while (phase >= 1)
+                    phase -= 1;
             }
 
             tone_state->phase[ch] = phase;
