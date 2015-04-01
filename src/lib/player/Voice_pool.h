@@ -141,28 +141,6 @@ Voice_group* Voice_pool_get_next_group(Voice_pool* pool);
 
 
 /**
- * Mix the Voices in the Voice pool.
- *
- * \param pool     The Voice pool -- must not be \c NULL.
- * \param states   The Device states -- must not be \c NULL.
- * \param wbs      The Work buffers -- must not be \c NULL.
- * \param amount   The number of frames to be mixed.
- * \param offset   The buffer offset.
- * \param freq     The mixing frequency -- must be > \c 0.
- *
- * \return   The number of active Voices.
- */
-uint16_t Voice_pool_mix(
-        Voice_pool* pool,
-        Device_states* states,
-        const Work_buffers* wbs,
-        uint32_t amount,
-        uint32_t offset,
-        uint32_t freq,
-        double tempo);
-
-
-/**
  * Reset all Voices in the Voice pool.
  *
  * \param pool   The Voice pool -- must not be \c NULL.

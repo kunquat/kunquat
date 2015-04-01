@@ -257,37 +257,6 @@ Voice_group* Voice_pool_get_next_group(Voice_pool* pool)
 }
 
 
-uint16_t Voice_pool_mix(
-        Voice_pool* pool,
-        Device_states* states,
-        const Work_buffers* wbs,
-        uint32_t amount,
-        uint32_t offset,
-        uint32_t freq,
-        double tempo)
-{
-    assert(pool != NULL);
-    assert(states != NULL);
-    assert(wbs != NULL);
-    assert(freq > 0);
-
-    if (pool->size == 0)
-        return 0;
-
-    uint16_t active_voices = 0;
-    for (uint16_t i = 0; i < pool->size; ++i)
-    {
-        if (pool->voices[i]->prio != VOICE_PRIO_INACTIVE)
-        {
-            Voice_mix(pool->voices[i], states, wbs, amount, offset, freq, tempo);
-            ++active_voices;
-        }
-    }
-
-    return active_voices;
-}
-
-
 void Voice_pool_reset(Voice_pool* pool)
 {
     assert(pool != NULL);
