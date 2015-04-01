@@ -120,14 +120,14 @@ static bool Proc_add_init(Device_impl* dimpl)
     add->base = NULL;
     add->is_ramp_attack_enabled = true;
 
-    float* buf = memory_alloc_items(float, BASE_FUNC_SIZE);
+    float* buf = memory_alloc_items(float, BASE_FUNC_SIZE + 1);
     if (buf == NULL)
     {
         del_Device_impl(&add->parent);
         return NULL;
     }
 
-    add->base = new_Sample_from_buffers(&buf, 1, BASE_FUNC_SIZE);
+    add->base = new_Sample_from_buffers(&buf, 1, BASE_FUNC_SIZE + 1);
     if (add->base == NULL)
     {
         memory_free(buf);
@@ -137,6 +137,7 @@ static bool Proc_add_init(Device_impl* dimpl)
 
     for (int i = 0; i < BASE_FUNC_SIZE; ++i)
         buf[i] = sine((double)i / BASE_FUNC_SIZE, 0);
+    buf[BASE_FUNC_SIZE] = buf[0];
 
     for (int h = 0; h < HARMONICS_MAX; ++h)
     {
@@ -334,7 +335,7 @@ static uint32_t Proc_add_process_vstate(
 
                 // Note: direct cast of negative doubles to uint32_t is undefined
                 const uint32_t pos1 = (uint32_t)(int32_t)pos & BASE_FUNC_SIZE_MASK;
-                const uint32_t pos2 = (pos1 + 1) & BASE_FUNC_SIZE_MASK;
+                const uint32_t pos2 = pos1 + 1;
 
                 const float item1 = base[pos1];
                 const float item_diff = base[pos2] - item1;
@@ -398,6 +399,8 @@ static void fill_buf(float* buf, const Sample* sample)
         for (int i = 0; i < BASE_FUNC_SIZE; ++i)
             buf[i] = sine((double)i / BASE_FUNC_SIZE, 0);
     }
+
+    buf[BASE_FUNC_SIZE] = buf[0];
 
     return;
 }
