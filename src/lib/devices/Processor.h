@@ -64,7 +64,7 @@ static_assert(
 
 
 /**
- * Processor creates signal output based on voice and/or signal input.
+ * Processor creates signal output based on voice or signal input.
  */
 struct Processor
 {
