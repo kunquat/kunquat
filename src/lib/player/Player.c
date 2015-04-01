@@ -401,7 +401,7 @@ static void Player_process_voices(
         return;
 
     // Verify foreground voice ownerships
-    // TODO: is this really needed?
+    // TODO: this is required for correct event processing, move elsewhere maybe?
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
     {
         Channel* ch = player->channels[i];
