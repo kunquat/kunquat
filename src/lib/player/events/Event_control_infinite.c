@@ -24,17 +24,31 @@
 #include <Value.h>
 
 
-bool Event_control_infinite_process(General_state* gstate, const Value* value)
+bool Event_control_infinite_on_process(General_state* gstate, const Value* value)
 {
     assert(gstate != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_BOOL);
+    ignore(value);
 
     if (!gstate->global)
         return false;
 
     Master_params* master_params = (Master_params*)gstate;
-    master_params->is_infinite = value->value.bool_type;
+    master_params->is_infinite = true;
+
+    return true;
+}
+
+
+bool Event_control_infinite_off_process(General_state* gstate, const Value* value)
+{
+    assert(gstate != NULL);
+    ignore(value);
+
+    if (!gstate->global)
+        return false;
+
+    Master_params* master_params = (Master_params*)gstate;
+    master_params->is_infinite = false;
 
     return true;
 }

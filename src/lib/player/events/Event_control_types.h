@@ -37,7 +37,8 @@ EVENT_CONTROL_DEF("I.gs",       set_goto_section,       INT,            v_system
 EVENT_CONTROL_DEF("I.gss",      set_goto_song,          INT,            v_song)
 EVENT_CONTROL_DEF("Ig",         goto,                   NONE,           NULL)
 
-EVENT_CONTROL_DEF("I.infinite", infinite,               BOOL,           v_any_bool)
+EVENT_CONTROL_DEF("cinfinite+", infinite_on,            NONE,           NULL)
+EVENT_CONTROL_DEF("cinfinite-", infinite_off,           NONE,           NULL)
 
 
 #undef EVENT_CONTROL_DEF

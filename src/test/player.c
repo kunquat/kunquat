@@ -555,7 +555,7 @@ START_TEST(Infinite_mode_loops_composition)
 
     validate();
 
-    kqt_Handle_fire_event(handle, 0, "[\"I.infinite\", true]");
+    kqt_Handle_fire_event(handle, 0, "[\"cinfinite+\", null]");
     check_unexpected_error();
 
     float actual_buf[buf_len] = { 0.0f };
