@@ -392,7 +392,7 @@ START_TEST(Pattern_playback_repeats_pattern)
 
     validate();
 
-    kqt_Handle_fire_event(handle, 0, "[\"Ipattern\", [0, 0]]");
+    kqt_Handle_fire_event(handle, 0, "[\"cpattern\", [0, 0]]");
 
     float actual_buf[buf_len] = { 0.0f };
     mix_and_fill(actual_buf, buf_len);
@@ -432,7 +432,7 @@ START_TEST(Pattern_playback_pauses_zero_length_pattern)
 
     validate();
 
-    kqt_Handle_fire_event(handle, 0, "[\"Ipattern\", [0, 0]]");
+    kqt_Handle_fire_event(handle, 0, "[\"cpattern\", [0, 0]]");
 
     float actual_buf[buf_len] = { 0.0f };
     long frames_left = buf_len;
@@ -847,13 +847,13 @@ START_TEST(Events_appear_in_event_buffer)
             "Wrong events received"
             KT_VALUES("%s", expected_events_none, actual_events));
 
-    kqt_Handle_fire_event(handle, 0, "[\"Ipause\", null]");
+    kqt_Handle_fire_event(handle, 0, "[\"cpause\", null]");
     check_unexpected_error();
 
     actual_events = kqt_Handle_receive_events(handle);
     check_unexpected_error();
     const char expected_events_1[] =
-        "[[0, [\"Ipause\", null]]]";
+        "[[0, [\"cpause\", null]]]";
 
     fail_unless(strcmp(actual_events, expected_events_1) == 0,
             "Wrong events received"
