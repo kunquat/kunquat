@@ -19,12 +19,15 @@
 #include <string.h>
 #include <math.h>
 
+#include <Audio_buffer.h>
 #include <debug/assert.h>
 #include <devices/param_types/Sample.h>
 #include <devices/param_types/Sample_params.h>
+#include <devices/processors/Proc_utils.h>
 #include <kunquat/limits.h>
 #include <mathnum/common.h>
 #include <memory.h>
+#include <player/Proc_state.h>
 #include <player/Work_buffers.h>
 
 
@@ -88,7 +91,10 @@ uint32_t Sample_process_vstate(
         const Sample* sample,
         const Sample_params* params,
         Voice_state* vstate,
+        const Processor* proc,
+        const Proc_state* proc_state,
         const Work_buffers* wbs,
+        Audio_buffer* out_buffer,
         int32_t buf_start,
         int32_t buf_stop,
         uint32_t audio_rate,
@@ -100,6 +106,7 @@ uint32_t Sample_process_vstate(
     assert(sample != NULL);
     assert(params != NULL);
     assert(vstate != NULL);
+    assert(proc_state != NULL);
     assert(wbs != NULL);
     assert(audio_rate > 0);
     assert(tempo > 0);
@@ -115,16 +122,24 @@ uint32_t Sample_process_vstate(
         return buf_start;
     }
 
-    // Get work buffers
-    const float* actual_pitches = Work_buffers_get_buffer_contents(
-            wbs, WORK_BUFFER_ACTUAL_PITCHES);
-    const float* actual_forces = Work_buffers_get_buffer_contents(
-            wbs, WORK_BUFFER_ACTUAL_FORCES);
+    // Get actual pitches
+    const Cond_work_buffer* actual_pitches = Cond_work_buffer_init(
+            COND_WORK_BUFFER_AUTO,
+            Work_buffers_get_buffer(wbs, WORK_BUFFER_ACTUAL_PITCHES),
+            440,
+            Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_PITCH));
 
-    float* abufs[KQT_BUFFERS_MAX] =
+    // Get actual forces
+    const Cond_work_buffer* actual_forces = Cond_work_buffer_init(
+            COND_WORK_BUFFER_AUTO,
+            Work_buffers_get_buffer(wbs, WORK_BUFFER_ACTUAL_FORCES),
+            1,
+            Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_FORCE));
+
+    kqt_frame* abufs[KQT_BUFFERS_MAX] =
     {
-        Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_AUDIO_L),
-        Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_AUDIO_R),
+        Audio_buffer_get_buffer(out_buffer, 0),
+        Audio_buffer_get_buffer(out_buffer, 1),
     };
 
     static const int SAMPLE_WORK_BUFFER_POSITIONS = WORK_BUFFER_IMPL_1;
@@ -149,7 +164,7 @@ uint32_t Sample_process_vstate(
 
     for (int32_t i = buf_start; i < buf_stop; ++i)
     {
-        const float actual_pitch = actual_pitches[i];
+        const float actual_pitch = Cond_work_buffer_get_value(actual_pitches, i);
         const double shift_total = actual_pitch * shift_factor;
 
         const int32_t shift_floor = floor(shift_total);
@@ -305,7 +320,8 @@ uint32_t Sample_process_vstate(
 
                     for (int32_t i = buf_start; i < new_buf_stop; ++i)
                     {
-                        const float actual_force = actual_forces[i];
+                        const float actual_force = Cond_work_buffer_get_value(
+                                actual_forces, i);
                         float item = 0;
                         get_item(item);
                         audio_buffer[i] = item * actual_force * fixed_scale;
@@ -325,7 +341,8 @@ uint32_t Sample_process_vstate(
 
                     for (int32_t i = buf_start; i < new_buf_stop; ++i)
                     {
-                        const float actual_force = actual_forces[i];
+                        const float actual_force = Cond_work_buffer_get_value(
+                                actual_forces, i);
                         float item = 0;
                         get_item(item);
                         audio_buffer[i] = item * actual_force * fixed_scale;
@@ -345,7 +362,8 @@ uint32_t Sample_process_vstate(
 
                     for (int32_t i = buf_start; i < new_buf_stop; ++i)
                     {
-                        const float actual_force = actual_forces[i];
+                        const float actual_force = Cond_work_buffer_get_value(
+                                actual_forces, i);
                         float item = 0;
                         get_item(item);
                         audio_buffer[i] = item * actual_force * fixed_scale;
@@ -367,7 +385,7 @@ uint32_t Sample_process_vstate(
 
             for (int32_t i = buf_start; i < new_buf_stop; ++i)
             {
-                const float actual_force = actual_forces[i];
+                const float actual_force = Cond_work_buffer_get_value(actual_forces, i);
                 float item = 0;
                 get_item(item);
                 audio_buffer[i] = item * actual_force * vol_scale;

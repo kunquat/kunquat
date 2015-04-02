@@ -19,6 +19,8 @@
 
 #include <debug/assert.h>
 #include <Device_node.h>
+#include <devices/Au_params.h>
+#include <devices/Audio_unit.h>
 #include <mathnum/common.h>
 #include <memory.h>
 #include <Pat_inst_ref.h>
@@ -26,6 +28,7 @@
 #include <player/Player_private.h>
 #include <player/Player_seq.h>
 #include <player/Position.h>
+#include <player/Voice_group.h>
 #include <string/common.h>
 
 
@@ -388,20 +391,17 @@ int64_t Player_get_nanoseconds(const Player* player)
 
 
 static void Player_process_voices(
-        Player* player,
-        int32_t render_start,
-        int32_t nframes)
+        Player* player, int32_t render_start, int32_t frame_count)
 {
     assert(player != NULL);
     assert(render_start >= 0);
-    assert(nframes >= 0);
+    assert(frame_count >= 0);
 
-    if (nframes == 0)
+    if (frame_count == 0)
         return;
 
-    const int32_t render_stop = render_start + nframes;
-
-    // Foreground voices
+    // Verify foreground voice ownerships
+    // TODO: this is required for correct event processing, move elsewhere maybe?
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
     {
         Channel* ch = player->channels[i];
@@ -414,36 +414,45 @@ static void Player_process_voices(
                         player->voices,
                         ch->fg[k],
                         ch->fg_id[k]);
-
-                if (ch->fg[k] != NULL)
-                {
-                    // Render
-                    assert(ch->fg[k]->prio > VOICE_PRIO_INACTIVE);
-                    Voice_mix(
-                            ch->fg[k],
-                            player->device_states,
-                            player->work_buffers,
-                            render_stop,
-                            render_start,
-                            player->audio_rate,
-                            player->master_params.tempo);
-                }
             }
         }
     }
 
-    // Background voices
-    int16_t active_voices = Voice_pool_mix_bg(
-            player->voices,
-            player->device_states,
-            player->work_buffers,
-            render_stop,
-            render_start,
-            player->audio_rate,
-            player->master_params.tempo);
+    // Process active Voice groups
+    const int32_t render_stop = render_start + frame_count;
+    int16_t active_voice_count = 0;
+
+    Voice_group* vg = Voice_pool_start_group_iteration(player->voices);
+
+    while (vg != NULL)
+    {
+        // Find the connections that contain the processors
+        const Voice* first_voice = Voice_group_get_voice(vg, 0);
+        const Processor* first_proc = Voice_get_proc(first_voice);
+        const Au_params* first_au_params = Processor_get_au_params(first_proc);
+        const uint32_t au_id = first_au_params->device_id;
+        const Device_state* au_state = Device_states_get_state(
+                player->device_states, au_id);
+        const Audio_unit* au = (const Audio_unit*)Device_state_get_device(au_state);
+        Connections* conns = Audio_unit_get_connections_mut(au);
+
+        Connections_process_voice_group(
+                conns,
+                vg,
+                player->device_states,
+                player->work_buffers,
+                render_start,
+                render_stop,
+                player->audio_rate,
+                player->master_params.tempo);
+
+        active_voice_count += Voice_group_get_size(vg);
+
+        vg = Voice_pool_get_next_group(player->voices);
+    }
 
     player->master_params.active_voices =
-        max(player->master_params.active_voices, active_voices);
+        max(player->master_params.active_voices, active_voice_count);
 }
 
 
@@ -530,16 +539,14 @@ void Player_play(Player* player, int32_t nframes)
 
     // TODO: separate data and playback state in connections
     Connections* connections = player->module->connections;
+    assert(connections != NULL);
 
     Device_states_clear_audio_buffers(player->device_states, 0, nframes);
-    if (connections != NULL)
-    {
-        Connections_clear_buffers(
-                connections,
-                player->device_states,
-                0,
-                nframes);
-    }
+    Connections_clear_buffers(
+            connections,
+            player->device_states,
+            0,
+            nframes);
 
     // TODO: check if song or pattern instance location has changed
 
@@ -590,8 +597,7 @@ void Player_play(Player* player, int32_t nframes)
                 Slider_skip(&ch->panning_slider, to_be_rendered);
         }
 
-        // Process connection graph
-        if (connections != NULL)
+        // Process signals in the connection graph
         {
             Connections_mix(
                     connections,
@@ -640,7 +646,7 @@ void Player_play(Player* player, int32_t nframes)
 
     bool audio_buffers_filled = false;
 
-    if (connections != NULL)
+    // Apply global parameters to the mixed signal
     {
         Device_state* master_state = Device_states_get_state(
                 player->device_states,

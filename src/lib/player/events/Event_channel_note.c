@@ -48,9 +48,7 @@ bool Event_channel_note_on_process(
     ch->fg_count = 0;
 
     // Find our audio unit
-    Audio_unit* au = Module_get_au_from_input(
-            ch->parent.module,
-            ch->au_input);
+    Audio_unit* au = Module_get_au_from_input(ch->parent.module, ch->au_input);
     if (au == NULL)
         return true;
 
@@ -58,18 +56,29 @@ bool Event_channel_note_on_process(
 //    ch->panning_slide = 0;
     double force_var = NAN;
 
+    bool is_voice_rand_seed_set = false;
+    uint64_t voice_rand_seed = 0;
+
+    const uint64_t new_group_id = Voice_pool_new_group_id(ch->pool);
+
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         const Processor* proc = Audio_unit_get_proc(au, i);
         if (proc == NULL ||
                 !Device_is_existent((const Device*)proc) ||
-                !Processor_get_vstate_support(proc))
+                !Processor_get_voice_signals(proc))
             continue;
 
         const Proc_state* proc_state = (Proc_state*)Device_states_get_state(
                 dstates, Device_get_id((const Device*)proc));
 
-        reserve_voice(ch, au, proc_state, i);
+        if (!is_voice_rand_seed_set)
+        {
+            voice_rand_seed = Random_get_uint64(ch->rand);
+            is_voice_rand_seed_set = true;
+        }
+
+        reserve_voice(ch, au, new_group_id, proc_state, i, voice_rand_seed);
 
         Voice* voice = ch->fg[i];
         Voice_state* vs = voice->state;
@@ -134,18 +143,29 @@ bool Event_channel_hit_process(
 
     double force_var = NAN;
 
+    bool is_voice_rand_seed_set = false;
+    uint64_t voice_rand_seed = 0;
+
+    const uint64_t new_group_id = Voice_pool_new_group_id(ch->pool);
+
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         const Processor* proc = Audio_unit_get_proc(au, i);
         if (proc == NULL ||
                 !Device_is_existent((const Device*)proc) ||
-                !Processor_get_vstate_support(proc))
+                !Processor_get_voice_signals(proc))
             continue;
 
         const Proc_state* proc_state = (Proc_state*)Device_states_get_state(
                 dstates, Device_get_id((const Device*)proc));
 
-        reserve_voice(ch, au, proc_state, i);
+        if (!is_voice_rand_seed_set)
+        {
+            voice_rand_seed = Random_get_uint64(ch->rand);
+            is_voice_rand_seed_set = true;
+        }
+
+        reserve_voice(ch, au, new_group_id, proc_state, i, voice_rand_seed);
 
         Voice* voice = ch->fg[i];
         Voice_state* vs = voice->state;

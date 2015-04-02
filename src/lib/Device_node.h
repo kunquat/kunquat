@@ -23,6 +23,7 @@
 #include <devices/Device.h>
 #include <module/Au_table.h>
 #include <player/Device_states.h>
+#include <player/Voice_group.h>
 
 
 /**
@@ -138,6 +139,29 @@ void Device_node_clear_buffers(
         Device_states* states,
         uint32_t start,
         uint32_t until);
+
+
+/**
+ * Process a Voice group in the Device node and its subgraph.
+ *
+ * \param node         The Device node -- must not be \c NULL.
+ * \param vgroup       The Voice group -- must not be \c NULL.
+ * \param dstates      The Device states -- must not be \c NULL.
+ * \param wbs          The Work buffers -- must not be \c NULL.
+ * \param buf_start    The start index of the buffer area to be processed.
+ * \param buf_stop     The stop index of the buffer area to be processed.
+ * \param audio_rate   The audio rate -- must be > \c 0.
+ * \param tempo        The current tempo -- must be > \c 0.
+ */
+void Device_node_process_voice_group(
+        Device_node* node,
+        Voice_group* vgroup,
+        Device_states* dstates,
+        const Work_buffers* wbs,
+        int32_t buf_start,
+        int32_t buf_stop,
+        uint32_t audio_rate,
+        double tempo);
 
 
 /**

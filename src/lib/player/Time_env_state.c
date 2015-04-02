@@ -18,7 +18,9 @@
 
 #include <debug/assert.h>
 #include <devices/param_types/Envelope.h>
+#include <devices/processors/Proc_utils.h>
 #include <mathnum/common.h>
+#include <player/Proc_state.h>
 #include <player/Time_env_state.h>
 #include <player/Work_buffers.h>
 
@@ -47,6 +49,7 @@ int32_t Time_env_state_process(
         double sustain,
         double min_value,
         double max_value,
+        bool pitch_enabled,
         const Work_buffers* wbs,
         int32_t buf_start,
         int32_t buf_stop,
@@ -65,8 +68,11 @@ int32_t Time_env_state_process(
     assert(buf_stop >= 0);
     assert(audio_rate > 0);
 
-    const float* actual_pitches = Work_buffers_get_buffer_contents(
-            wbs, WORK_BUFFER_ACTUAL_PITCHES);
+    const Cond_work_buffer* actual_pitches = Cond_work_buffer_init(
+            COND_WORK_BUFFER_AUTO,
+            Work_buffers_get_buffer(wbs, WORK_BUFFER_ACTUAL_PITCHES),
+            440,
+            pitch_enabled);
 
     float* values = Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_TIME_ENV);
 
@@ -85,8 +91,8 @@ int32_t Time_env_state_process(
         (loop_start_index == -1) ? NULL : Envelope_get_node(env, loop_start_index);
     const double* loop_end =
         (loop_end_index == -1) ? NULL : Envelope_get_node(env, loop_end_index);
-    assert(!has_loop || (loop_start != NULL));
-    assert(!has_loop || (loop_end != NULL));
+    if ((loop_start == NULL) || (loop_end == NULL))
+        has_loop = false;
 
     // Get state variables
     double cur_pos = testate->cur_pos;
@@ -100,8 +106,9 @@ int32_t Time_env_state_process(
     int32_t i = buf_start;
     for (; i < buf_stop; ++i)
     {
-        const float actual_pitch = actual_pitches[i];
-        const float prev_actual_pitch = actual_pitches[i - 1];
+        const float actual_pitch = Cond_work_buffer_get_value(actual_pitches, i);
+        const float prev_actual_pitch = Cond_work_buffer_get_value(
+                actual_pitches, i - 1);
 
         // Apply pitch-based scaling
         if ((scale_amount != 0) && (actual_pitch != prev_actual_pitch))

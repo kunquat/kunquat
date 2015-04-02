@@ -45,9 +45,11 @@ MODULE_KEYP(bind,                   "p_bind.json",                          "[]"
 MODULE_KEYP(album_manifest,         "album/p_manifest.json",                "")
 MODULE_KEYP(album_tracks,           "album/p_tracks.json",                  "[]")
 
+#ifndef MODULE_AU_KEYP
 #define MODULE_AU_KEYP(name, keyp, def_val)                  \
     MODULE_KEYP(name,           keyp,               def_val) \
     MODULE_KEYP(au_ ## name,    "au_XX/" keyp,      def_val)
+#endif
 
 MODULE_AU_KEYP(au_manifest,             "au_XX/p_manifest.json",                "")
 MODULE_AU_KEYP(au,                      "au_XX/p_audio_unit.json",
@@ -74,11 +76,17 @@ MODULE_AU_KEYP(au_env_force_release,    "au_XX/p_envelope_force_release.json",
 MODULE_AU_KEYP(au_env_force_filter,     "au_XX/p_envelope_force_filter.json",   "")
 MODULE_AU_KEYP(au_env_pitch_pan,        "au_XX/p_envelope_pitch_pan.json",      "")
 
-MODULE_AU_KEYP(proc_manifest,           "au_XX/proc_XX/p_manifest.json",         "")
-MODULE_AU_KEYP(proc_in_port_manifest,   "au_XX/proc_XX/in_XX/p_manifest.json",   "")
-MODULE_AU_KEYP(proc_out_port_manifest,  "au_XX/proc_XX/out_XX/p_manifest.json",  "")
-MODULE_AU_KEYP(proc_impl_key,           "au_XX/proc_XX/i/",                      "")
-MODULE_AU_KEYP(proc_conf_key,           "au_XX/proc_XX/c/",                      "")
+MODULE_AU_KEYP(proc_manifest,           "au_XX/proc_XX/p_manifest.json",        "")
+MODULE_AU_KEYP(proc_signal_type,        "au_XX/proc_XX/p_signal_type.json",     "\"voice\"")
+MODULE_AU_KEYP(proc_in_port_manifest,   "au_XX/proc_XX/in_XX/p_manifest.json",  "")
+MODULE_AU_KEYP(proc_out_port_manifest,  "au_XX/proc_XX/out_XX/p_manifest.json", "")
+MODULE_AU_KEYP(proc_vf_pitch,           "au_XX/proc_XX/out_XX/p_vf_pitch.json", "true")
+MODULE_AU_KEYP(proc_vf_force,           "au_XX/proc_XX/out_XX/p_vf_force.json", "true")
+MODULE_AU_KEYP(proc_vf_cut,             "au_XX/proc_XX/out_XX/p_vf_cut.json",   "true")
+MODULE_AU_KEYP(proc_vf_filter,          "au_XX/proc_XX/out_XX/p_vf_filter.json", "true")
+MODULE_AU_KEYP(proc_vf_panning,         "au_XX/proc_XX/out_XX/p_vf_panning.json", "true")
+MODULE_AU_KEYP(proc_impl_key,           "au_XX/proc_XX/i/",                     "")
+MODULE_AU_KEYP(proc_conf_key,           "au_XX/proc_XX/c/",                     "")
 
 #undef MODULE_AU_KEYP
 

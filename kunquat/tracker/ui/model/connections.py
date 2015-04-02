@@ -63,4 +63,11 @@ class Connections():
         key = self._get_layout_key()
         self._store[key] = layout
 
+    def is_proc_connected_to_out(self, proc_id):
+        for conn in self.get_connections():
+            from_path, to_path = conn
+            if to_path.startswith('out_') and from_path.split('/')[0] == proc_id:
+                return True
+        return False
+
 

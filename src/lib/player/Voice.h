@@ -43,6 +43,7 @@ typedef enum
 typedef struct Voice
 {
     uint64_t id;             ///< An identification number for this initialisation.
+    uint64_t group_id;       ///< The ID of the group this Voice currently belogns to.
     Voice_prio prio;         ///< Current priority of the Voice.
     const Processor* proc;   ///< The Processor.
     size_t state_size;       ///< The amount bytes allocated for the Voice state.
@@ -101,10 +102,32 @@ uint64_t Voice_id(const Voice* voice);
 
 
 /**
+ * Get the group ID of the Voice.
+ *
+ * \param voice   The Voice -- must not be \c NULL.
+ *
+ * \return   The group ID.
+ */
+uint64_t Voice_get_group_id(const Voice* voice);
+
+
+/**
+ * Get the Processor associated with the Voice.
+ *
+ * \param voice   The Voice -- must not be \c NULL.
+ *
+ * \return   The Processor.
+ */
+const Processor* Voice_get_proc(const Voice* voice);
+
+
+/**
  * Initialise the Voice for mixing.
  *
  * \param voice        The Voice -- must not be \c NULL.
  * \param proc         The Processor used -- must not be \c NULL.
+ * \param group_id     The ID of the group this Voice belongs to. This is used
+ *                     to identify which Voices are connected.
  * \param proc_state   The Processor state -- must not be \c NULL.
  * \param cpstate      The Channel-specific Processor state -- must not be
  *                     \c NULL.
@@ -115,6 +138,7 @@ uint64_t Voice_id(const Voice* voice);
 void Voice_init(
         Voice* voice,
         const Processor* proc,
+        uint64_t group_id,
         const Proc_state* proc_state,
         Channel_proc_state* cpstate,
         uint64_t seed,
@@ -128,14 +152,6 @@ void Voice_init(
  * \param voice   The Voice -- must not be \c NULL.
  */
 void Voice_reset(Voice* voice);
-
-
-/**
- * Prepare the Voice for a new mixing cycle.
- *
- * \param voice   The Voice -- must not be \c NULL.
- */
-void Voice_prepare(Voice* voice);
 
 
 /**

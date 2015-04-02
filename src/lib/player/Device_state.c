@@ -42,7 +42,9 @@ void Device_state_init(
             ds->buffers[type][port] = NULL;
     }
 
-    ds->destroy = NULL;
+    ds->add_buffer = NULL;
+    ds->resize_buffers = NULL;
+    ds->deinit = NULL;
 
     return;
 }
@@ -77,6 +79,13 @@ int Device_state_cmp(const Device_state* ds1, const Device_state* ds2)
     else if (ds1->device_id > ds2->device_id)
         return 1;
     return 0;
+}
+
+
+const Device* Device_state_get_device(const Device_state* ds)
+{
+    assert(ds != NULL);
+    return ds->device;
 }
 
 
@@ -119,6 +128,9 @@ bool Device_state_set_audio_buffer_size(Device_state* ds, int32_t size)
         }
     }
 
+    if ((ds->resize_buffers != NULL) && !ds->resize_buffers(ds, size))
+        return false;
+
     ds->audio_buffer_size = size;
     return true;
 }
@@ -150,6 +162,9 @@ bool Device_state_add_audio_buffer(
     if (ds->buffers[type][port] == NULL)
         return false;
 
+    if ((ds->add_buffer != NULL) && !ds->add_buffer(ds, type, port))
+        return false;
+
     return true;
 }
 
@@ -175,9 +190,7 @@ void Device_state_clear_audio_buffers(
 
 
 Audio_buffer* Device_state_get_audio_buffer(
-        const Device_state* ds,
-        Device_port_type type,
-        int port)
+        const Device_state* ds, Device_port_type type, int port)
 {
     assert(ds != NULL);
     assert(type == DEVICE_PORT_TYPE_RECEIVE || type == DEVICE_PORT_TYPE_SEND);
@@ -200,8 +213,8 @@ void del_Device_state(Device_state* ds)
     if (ds == NULL)
         return;
 
-    if (ds->destroy != NULL)
-        ds->destroy(ds);
+    if (ds->deinit != NULL)
+        ds->deinit(ds);
 
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {

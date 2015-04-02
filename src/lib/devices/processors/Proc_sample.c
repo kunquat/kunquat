@@ -17,6 +17,7 @@
 #include <math.h>
 #include <stdio.h>
 
+#include <Audio_buffer.h>
 #include <containers/AAtree.h>
 #include <debug/assert.h>
 #include <devices/Device_params.h>
@@ -25,6 +26,7 @@
 #include <devices/param_types/Wavpack.h>
 #include <devices/Processor.h>
 #include <devices/processors/Proc_sample.h>
+#include <devices/processors/Proc_utils.h>
 #include <devices/processors/Voice_state_sample.h>
 #include <memory.h>
 #include <pitch_t.h>
@@ -68,6 +70,8 @@ static bool Proc_sample_init(Device_impl* dimpl)
     assert(dimpl != NULL);
 
     Proc_sample* sample_p = (Proc_sample*)dimpl;
+
+    Device_set_state_creator(dimpl->device, new_Proc_state_default);
 
     Processor* proc = (Processor*)sample_p->parent.device;
     proc->init_vstate = Proc_sample_init_vstate;
@@ -295,9 +299,13 @@ uint32_t Proc_sample_process_vstate(
     Sample_set_loop(sample, sample_state->params.loop);
     // */
 
+    Audio_buffer* out_buffer = Proc_state_get_voice_buffer_mut(
+            proc_state, DEVICE_PORT_TYPE_SEND, 0);
+    assert(out_buffer != NULL);
+
     return Sample_process_vstate(
-            sample, header, vstate, wbs,
-            buf_start, buf_stop, audio_rate, tempo,
+            sample, header, vstate, proc, proc_state, wbs,
+            out_buffer, buf_start, buf_stop, audio_rate, tempo,
             sample_state->middle_tone, sample_state->freq,
             sample_state->volume);
 }

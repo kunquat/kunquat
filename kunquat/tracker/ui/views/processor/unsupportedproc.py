@@ -30,6 +30,9 @@ class UnsupportedProc(QWidget):
     def set_ui_model(self, ui_model):
         pass
 
+    def get_name(self):
+        return '(Unsupported)'
+
     def unregister_updaters(self):
         pass
 

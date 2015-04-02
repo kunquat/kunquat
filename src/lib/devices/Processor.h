@@ -19,6 +19,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include <debug/assert.h>
+#include <Decl.h>
 #include <devices/Au_params.h>
 #include <devices/Device.h>
 #include <devices/Device_params.h>
@@ -28,12 +30,6 @@
 #include <player/Proc_state.h>
 #include <player/Voice_state.h>
 #include <player/Work_buffers.h>
-
-
-/**
- * Processor creates signal output based on voice and/or signal input.
- */
-typedef struct Processor Processor;
 
 
 typedef uint32_t Proc_process_vstate_func(
@@ -48,10 +44,36 @@ typedef uint32_t Proc_process_vstate_func(
         double tempo);
 
 
+typedef enum
+{
+    VOICE_FEATURE_PITCH,
+    VOICE_FEATURE_FORCE,
+    VOICE_FEATURE_CUT,
+    VOICE_FEATURE_FILTER,
+    VOICE_FEATURE_PANNING,
+    VOICE_FEATURE_COUNT_
+} Voice_feature;
+
+static_assert(
+        VOICE_FEATURE_COUNT_ <= 31,
+        "Too many voice features defined, change flag container type");
+
+#define VOICE_FEATURE_FLAG(feature) (1 << (feature))
+
+#define VOICE_FEATURES_ALL ((1 << VOICE_FEATURE_COUNT_) - 1)
+
+
+/**
+ * Processor creates signal output based on voice or signal input.
+ */
 struct Processor
 {
     Device parent;
     const Au_params* au_params;
+    uint32_t voice_features[KQT_DEVICE_PORTS_MAX];
+
+    bool enable_voice_support;
+    bool enable_signal_support;
 
     void (*init_vstate)(const Processor*, const Proc_state*, Voice_state*);
     Proc_process_vstate_func* process_vstate;
@@ -92,6 +114,33 @@ bool Processor_init(
 
 
 /**
+ * Set a voice feature of the Processor.
+ *
+ * \param proc       The Processor -- must not be \c NULL.
+ * \param port_num   The output port number -- must be >= \c 0 and
+ *                   < \c KQT_DEVICE_PORTS_MAX.
+ * \param feature    The voice feature -- must be valid.
+ * \param enabled    Whether \a feature is enabled or not.
+ */
+void Processor_set_voice_feature(
+        Processor* proc, int port_num, Voice_feature feature, bool enabled);
+
+
+/**
+ * Get a voice feature enabled status of the Processor.
+ *
+ * \param proc       The Processor -- must not be \c NULL.
+ * \param port_num   The output port number -- must be >= \c 0 and
+ *                   < \c KQT_DEVICE_PORTS_MAX.
+ * \param feature    The voice feature -- must be valid.
+ *
+ * \return   \c true if \a feature is enabled, otherwise \c false.
+ */
+bool Processor_is_voice_feature_enabled(
+        const Processor* proc, int port_num, Voice_feature feature);
+
+
+/**
  * Set a function that clears the internal buffers of the Processor
  * implementation.
  *
@@ -112,14 +161,35 @@ void Processor_clear_history(const Processor* proc, Proc_state* proc_state);
 
 
 /**
- * Get Voice state processing support information.
+ * Set Voice signal support.
+ *
+ * Note that Voice signals may be always disabled for certain Processor types.
+ *
+ * \param proc      The Processor -- must not be \c NULL.
+ * \param enabled   \c true if Voice signals should be enabled, otherwise
+ *                  \c false.
+ */
+void Processor_set_voice_signals(Processor* proc, bool enabled);
+
+
+/**
+ * Get Voice signal support information.
  *
  * \param proc   The Processor -- must not be \c NULL.
  *
- * \return   \c true if \a proc supports Voice state processing, otherwise
- *           \c false.
+ * \return   \c true if \a proc has Voice signals enabled, otherwise \c false.
  */
-bool Processor_get_vstate_support(const Processor* proc);
+bool Processor_get_voice_signals(const Processor* proc);
+
+
+/**
+ * Get the Audio unit parameters associated with the Processor.
+ *
+ * \param proc   The Processor -- must not be \c NULL.
+ *
+ * \return   The Audio unit parameters.
+ */
+const Au_params* Processor_get_au_params(const Processor* proc);
 
 
 /**

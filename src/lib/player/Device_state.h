@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -47,8 +47,10 @@ typedef struct Device_state
 
     Audio_buffer* buffers[DEVICE_PORT_TYPES][KQT_DEVICE_PORTS_MAX];
 
-    // Virtual functions
-    void (*destroy)(struct Device_state* ds);
+    // Protected interface
+    bool (*add_buffer)(struct Device_state*, Device_port_type, int port);
+    bool (*resize_buffers)(struct Device_state* ds, int32_t new_size);
+    void (*deinit)(struct Device_state* ds);
 } Device_state;
 
 
@@ -100,6 +102,16 @@ Device_state* new_Device_state_plain(
  *           \a ds2.
  */
 int Device_state_cmp(const Device_state* ds1, const Device_state* ds2);
+
+
+/**
+ * Get the Device associated with the Device state.
+ *
+ * \param ds   The Device state -- must not be \c NULL.
+ *
+ * \return   The Device.
+ */
+const Device* Device_state_get_device(const Device_state* ds);
 
 
 /**
@@ -187,9 +199,7 @@ void Device_state_clear_audio_buffers(
  * \return   The Audio buffer if one exists, otherwise \c NULL.
  */
 Audio_buffer* Device_state_get_audio_buffer(
-        const Device_state* ds,
-        Device_port_type type,
-        int port);
+        const Device_state* ds, Device_port_type type, int port);
 
 
 /**

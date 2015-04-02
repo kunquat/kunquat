@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -51,9 +51,7 @@ bool Device_states_add_state(Device_states* states, Device_state* state);
  *
  * \return   The Device state matching \a id.
  */
-Device_state* Device_states_get_state(
-        const Device_states* states,
-        uint32_t id);
+Device_state* Device_states_get_state(const Device_states* states, uint32_t id);
 
 
 /**
@@ -96,9 +94,7 @@ bool Device_states_set_audio_buffer_size(Device_states* states, int32_t size);
  *                 equal to the buffer size.
  */
 void Device_states_clear_audio_buffers(
-        Device_states* states,
-        uint32_t start,
-        uint32_t stop);
+        Device_states* states, uint32_t start, uint32_t stop);
 
 
 /**

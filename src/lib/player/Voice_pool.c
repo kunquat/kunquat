@@ -31,7 +31,10 @@ Voice_pool* new_Voice_pool(uint16_t size)
 
     pool->size = size;
     pool->state_size = 0;
+    pool->new_group_id = 0;
     pool->voices = NULL;
+    pool->group_iter_offset = 0;
+    pool->group_iter = *VOICE_GROUP_AUTO;
 
     if (size > 0)
     {
@@ -146,6 +149,14 @@ uint16_t Voice_pool_get_size(const Voice_pool* pool)
 }
 
 
+uint64_t Voice_pool_new_group_id(Voice_pool* pool)
+{
+    assert(pool != NULL);
+    ++pool->new_group_id;
+    return pool->new_group_id;
+}
+
+
 Voice* Voice_pool_get_voice(Voice_pool* pool, Voice* voice, uint64_t id)
 {
     assert(pool != NULL);
@@ -179,53 +190,70 @@ Voice* Voice_pool_get_voice(Voice_pool* pool, Voice* voice, uint64_t id)
 }
 
 
-void Voice_pool_prepare(Voice_pool* pool)
+static uint64_t get_voice_group_prio(const Voice* voice)
+{
+    // Overflow group ID 0 to maximum so that inactive voices are placed last
+    return Voice_get_group_id(voice) - 1;
+}
+
+
+static void Voice_pool_sort_groups(Voice_pool* pool)
 {
     assert(pool != NULL);
 
-    for (uint16_t i = 0; i < pool->size; ++i)
+    // Simple insertion sort based on group IDs
+    for (uint16_t i = 1; i < pool->size; ++i)
     {
-        if (pool->voices[i]->prio != VOICE_PRIO_INACTIVE)
-            Voice_prepare(pool->voices[i]);
+        Voice* current = pool->voices[i];
+        uint16_t target_index = i;
+
+        for (; target_index > 0; --target_index)
+        {
+            Voice* prev = pool->voices[target_index - 1];
+            if (get_voice_group_prio(prev) <= get_voice_group_prio(current))
+                break;
+
+            pool->voices[target_index] = prev;
+        }
+
+        pool->voices[target_index] = current;
     }
 
     return;
 }
 
 
-uint16_t Voice_pool_mix_bg(
-        Voice_pool* pool,
-        Device_states* states,
-        const Work_buffers* wbs,
-        uint32_t amount,
-        uint32_t offset,
-        uint32_t freq,
-        double tempo)
+Voice_group* Voice_pool_start_group_iteration(Voice_pool* pool)
 {
     assert(pool != NULL);
-    assert(states != NULL);
-    assert(wbs != NULL);
-    assert(freq > 0);
 
-    if (pool->size == 0)
-        return 0;
+    Voice_pool_sort_groups(pool);
 
-    uint16_t active_voices = 0;
-    for (uint16_t i = 0; i < pool->size; ++i)
-    {
-        if (pool->voices[i]->prio != VOICE_PRIO_INACTIVE)
-        {
-            if (pool->voices[i]->prio <= VOICE_PRIO_BG)
-            {
-//                fprintf(stderr, "Background mix start\n");
-                Voice_mix(pool->voices[i], states, wbs, amount, offset, freq, tempo);
-//                fprintf(stderr, "Background mix end\n");
-            }
-            ++active_voices;
-        }
-    }
+    Voice_group_init(&pool->group_iter, pool->voices, 0, pool->size);
+    pool->group_iter_offset = Voice_group_get_size(&pool->group_iter);
 
-    return active_voices;
+    if (Voice_group_get_size(&pool->group_iter) == 0)
+        return NULL;
+
+    return &pool->group_iter;
+}
+
+
+Voice_group* Voice_pool_get_next_group(Voice_pool* pool)
+{
+    assert(pool != NULL);
+
+    if (pool->group_iter_offset >= pool->size)
+        return NULL;
+
+    Voice_group_init(
+            &pool->group_iter, pool->voices, pool->group_iter_offset, pool->size);
+    pool->group_iter_offset += Voice_group_get_size(&pool->group_iter);
+
+    if (Voice_group_get_size(&pool->group_iter) == 0)
+        return NULL;
+
+    return &pool->group_iter;
 }
 
 

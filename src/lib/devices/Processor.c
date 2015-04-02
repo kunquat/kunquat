@@ -37,7 +37,11 @@ static Device_state* Processor_create_state_plain(
     if (proc_state == NULL)
         return NULL;
 
-    Proc_state_init(proc_state, device, audio_rate, audio_buffer_size);
+    if (!Proc_state_init(proc_state, device, audio_rate, audio_buffer_size))
+    {
+        memory_free(proc_state);
+        return NULL;
+    }
 
     return &proc_state->parent;
 }
@@ -59,6 +63,11 @@ Processor* new_Processor(const Au_params* au_params)
 
     //fprintf(stderr, "New Processor %p\n", (void*)proc);
     proc->au_params = au_params;
+    for (int port_num = 0; port_num < KQT_DEVICE_PORTS_MAX; ++port_num)
+        proc->voice_features[port_num] = VOICE_FEATURES_ALL;
+
+    proc->enable_voice_support = false;
+    proc->enable_signal_support = false;
 
     proc->init_vstate = NULL;
     proc->process_vstate = NULL;
@@ -85,6 +94,35 @@ bool Processor_init(
     Device_set_process(&proc->parent, process_signal);
 
     return true;
+}
+
+
+void Processor_set_voice_feature(
+        Processor* proc, int port_num, Voice_feature feature, bool enabled)
+{
+    assert(proc != NULL);
+    assert(port_num >= 0);
+    assert(port_num < KQT_DEVICE_PORTS_MAX);
+    assert(feature < VOICE_FEATURE_COUNT_);
+
+    if (enabled)
+        proc->voice_features[port_num] |= VOICE_FEATURE_FLAG(feature);
+    else
+        proc->voice_features[port_num] &= ~VOICE_FEATURE_FLAG(feature);
+
+    return;
+}
+
+
+bool Processor_is_voice_feature_enabled(
+        const Processor* proc, int port_num, Voice_feature feature)
+{
+    assert(proc != NULL);
+    assert(port_num >= 0);
+    assert(port_num < KQT_DEVICE_PORTS_MAX);
+    assert(feature < VOICE_FEATURE_COUNT_);
+
+    return (proc->voice_features[port_num] & VOICE_FEATURE_FLAG(feature)) != 0;
 }
 
 
@@ -162,10 +200,40 @@ static void adjust_relative_lengths(
 }
 
 
-bool Processor_get_vstate_support(const Processor* proc)
+void Processor_set_voice_signals(Processor* proc, bool enabled)
 {
     assert(proc != NULL);
-    return (proc->process_vstate != NULL);
+    proc->enable_voice_support = enabled;
+    return;
+}
+
+
+bool Processor_get_voice_signals(const Processor* proc)
+{
+    assert(proc != NULL);
+    return (proc->process_vstate != NULL) && proc->enable_voice_support;
+}
+
+
+void Processor_set_signal_support(Processor* proc, bool enabled)
+{
+    assert(proc != NULL);
+    proc->enable_signal_support = enabled;
+    return;
+}
+
+
+bool Processor_get_signal_support(const Processor* proc)
+{
+    assert(proc != NULL);
+    return (proc->parent.process_signal != NULL) && proc->enable_signal_support;
+}
+
+
+const Au_params* Processor_get_au_params(const Processor* proc)
+{
+    assert(proc != NULL);
+    return proc->au_params;
 }
 
 
@@ -187,6 +255,10 @@ void Processor_process_vstate(
     assert(audio_rate > 0);
     assert(tempo > 0);
 
+    // Get processor state
+    Proc_state* proc_state = (Proc_state*)Device_states_get_state(
+            dstates, Device_get_id(&proc->parent));
+
     if (!vstate->active)
         return;
 
@@ -194,7 +266,9 @@ void Processor_process_vstate(
     if (!vstate->note_on &&
             (vstate->pos == 0) &&
             (vstate->pos_rem == 0) &&
-            !proc->au_params->env_force_rel_enabled)
+            Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_CUT) &&
+            (!proc->au_params->env_force_rel_enabled ||
+                !Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_FORCE)))
     {
         vstate->active = false;
         return;
@@ -203,21 +277,26 @@ void Processor_process_vstate(
     if (buf_start >= buf_stop)
         return;
 
-    // Get states
-    Proc_state* proc_state = (Proc_state*)Device_states_get_state(
-            dstates,
-            Device_get_id(&proc->parent));
+    // Get audio unit state
     Au_state* au_state = (Au_state*)Device_states_get_state(
-            dstates,
-            proc->au_params->device_id);
+            dstates, proc->au_params->device_id);
 
     // Get audio output buffers
     Audio_buffer* audio_buffer = Device_state_get_audio_buffer(
             &proc_state->parent, DEVICE_PORT_TYPE_SEND, 0);
     if (audio_buffer == NULL)
+    {
+        vstate->active = false;
         return;
-    kqt_frame* out_l = Audio_buffer_get_buffer(audio_buffer, 0);
-    kqt_frame* out_r = Audio_buffer_get_buffer(audio_buffer, 1);
+    }
+
+    Audio_buffer* voice_out_buf = Proc_state_get_voice_buffer_mut(
+            proc_state, DEVICE_PORT_TYPE_SEND, 0);
+    if (voice_out_buf == NULL)
+    {
+        vstate->active = false;
+        return;
+    }
 
     // Process common parameters required by implementations
     bool deactivate_after_processing = false;
@@ -225,17 +304,23 @@ void Processor_process_vstate(
 
     adjust_relative_lengths(vstate, audio_rate, tempo);
 
-    Proc_common_handle_pitch(proc, vstate, wbs, buf_start, process_stop);
+    // NOTE: checking voice features before processing in order to save time
+    //       Revisit if we ever add support for several output ports!
+    if (Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_PITCH))
+        Proc_common_handle_pitch(proc, vstate, wbs, buf_start, process_stop);
 
-    const int32_t force_stop = Proc_common_handle_force(
-            proc, au_state, vstate, wbs, audio_rate, buf_start, process_stop);
-
-    const bool force_ended = (force_stop < process_stop);
-    if (force_ended)
+    if (Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_FORCE))
     {
-        deactivate_after_processing = true;
-        assert(force_stop <= process_stop);
-        process_stop = force_stop;
+        const int32_t force_stop = Proc_common_handle_force(
+                proc, au_state, vstate, wbs, audio_rate, buf_start, process_stop);
+
+        const bool force_ended = (force_stop < process_stop);
+        if (force_ended)
+        {
+            deactivate_after_processing = true;
+            assert(force_stop <= process_stop);
+            process_stop = force_stop;
+        }
     }
 
     const uint64_t old_pos = vstate->pos;
@@ -267,36 +352,47 @@ void Processor_process_vstate(
     vstate->pos_rem = old_pos_rem;
 
     // Apply common parameters to generated signal
-    const int32_t ramp_release_stop = Proc_common_ramp_release(
-            proc, au_state, vstate, wbs, 2, audio_rate, buf_start, process_stop);
-    const bool ramp_release_ended = (vstate->ramp_release >= 1);
-    if (ramp_release_ended)
+    // TODO: does not work with multiple voice output ports
+    if (Proc_state_is_voice_out_buffer_modified(proc_state, 0))
     {
-        deactivate_after_processing = true;
-        assert(ramp_release_stop <= process_stop);
-        process_stop = ramp_release_stop;
-    }
+        const int32_t ramp_release_stop = Proc_common_ramp_release(
+                proc,
+                au_state,
+                vstate,
+                wbs,
+                voice_out_buf,
+                2,
+                audio_rate,
+                buf_start,
+                process_stop);
+        const bool ramp_release_ended = (vstate->ramp_release >= 1);
+        if (ramp_release_ended)
+        {
+            deactivate_after_processing = true;
+            assert(ramp_release_stop <= process_stop);
+            process_stop = ramp_release_stop;
+        }
 
-    Proc_common_handle_filter(
-            proc, vstate, wbs, 2, audio_rate, buf_start, process_stop);
-    Proc_common_handle_panning(proc, vstate, wbs, buf_start, process_stop);
+        Proc_common_handle_filter(
+                proc,
+                vstate,
+                wbs,
+                voice_out_buf,
+                2,
+                audio_rate,
+                buf_start,
+                process_stop);
+
+        Proc_common_handle_panning(
+                proc, vstate, wbs, voice_out_buf, buf_start, process_stop);
+    }
 
     vstate->pos = new_pos;
     vstate->pos_rem = new_pos_rem;
 
-    // Mix rendered audio
+    // Mix rendered audio to the combined signal buffer
     {
-        const Work_buffer* wb_audio_l = Work_buffers_get_buffer(
-                wbs, WORK_BUFFER_AUDIO_L);
-        const Work_buffer* wb_audio_r = Work_buffers_get_buffer(
-                wbs, WORK_BUFFER_AUDIO_R);
-        float* audio_l = Work_buffer_get_contents_mut(wb_audio_l);
-        float* audio_r = Work_buffer_get_contents_mut(wb_audio_r);
-
-        for (int32_t i = buf_start; i < process_stop; ++i)
-            out_l[i] += audio_l[i];
-        for (int32_t i = buf_start; i < process_stop; ++i)
-            out_r[i] += audio_r[i];
+        Audio_buffer_mix(audio_buffer, voice_out_buf, buf_start, process_stop);
 
         /*
         fprintf(stderr, "1st item by %d @ %p: %.1f\n",

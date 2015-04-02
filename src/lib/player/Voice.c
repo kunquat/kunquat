@@ -31,6 +31,7 @@ Voice* new_Voice(void)
         return NULL;
 
     voice->id = 0;
+    voice->group_id = 0;
     voice->prio = VOICE_PRIO_INACTIVE;
     voice->proc = NULL;
     voice->state_size = 0;
@@ -89,9 +90,24 @@ uint64_t Voice_id(const Voice* voice)
 }
 
 
+uint64_t Voice_get_group_id(const Voice* voice)
+{
+    assert(voice != NULL);
+    return voice->group_id;
+}
+
+
+const Processor* Voice_get_proc(const Voice* voice)
+{
+    assert(voice != NULL);
+    return voice->proc;
+}
+
+
 void Voice_init(
         Voice* voice,
         const Processor* proc,
+        uint64_t group_id,
         const Proc_state* proc_state,
         Channel_proc_state* cgstate,
         uint64_t seed,
@@ -107,6 +123,7 @@ void Voice_init(
 
     voice->prio = VOICE_PRIO_NEW;
     voice->proc = proc;
+    voice->group_id = group_id;
     Random_set_seed(voice->rand_p, seed);
     Random_set_seed(voice->rand_s, seed);
 
@@ -130,19 +147,13 @@ void Voice_reset(Voice* voice)
     assert(voice != NULL);
 
     voice->id = 0;
+    voice->group_id = 0;
     voice->prio = VOICE_PRIO_INACTIVE;
     Voice_state_clear(voice->state);
     voice->proc = NULL;
     Random_reset(voice->rand_p);
     Random_reset(voice->rand_s);
 
-    return;
-}
-
-
-void Voice_prepare(Voice* voice)
-{
-    assert(voice != NULL);
     return;
 }
 

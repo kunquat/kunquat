@@ -22,6 +22,7 @@ typedef struct Connections Connections;
 typedef struct Device Device;
 typedef struct Device_impl Device_impl;
 typedef struct Module Module;
+typedef struct Processor Processor;
 
 
 #endif // K_DECL_H

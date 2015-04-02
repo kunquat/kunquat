@@ -74,6 +74,8 @@ static bool Proc_gc_init(Device_impl* dimpl)
 
     Proc_gc* gc = (Proc_gc*)dimpl;
 
+    Device_set_state_creator(dimpl->device, new_Proc_state_default);
+
     Device_set_process(gc->parent.device, Proc_gc_process);
 
     gc->map = NULL;

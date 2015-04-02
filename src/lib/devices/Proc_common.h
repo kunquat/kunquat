@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <math.h>
 
+#include <Audio_buffer.h>
 #include <devices/Processor.h>
 #include <frame.h>
 #include <kunquat/limits.h>
@@ -82,23 +83,25 @@ int32_t Proc_common_handle_force(
  * Process lowpass filter.
  *
  * This function fills WORK_BUFFER_ACTUAL_LOWPASSES with up-to-date values in
- * the specified buffer area, and also modifies WORK_BUFFER_AUDIO_*. It must be
- * called after \a Proc_common_handle_force and the process function of the
- * processor implementation.
+ * the specified buffer area. It must be called after
+ * \a Proc_common_handle_force and the process function of the processor
+ * implementation.
  *
- * \param proc         The Processor -- must not be \c NULL.
- * \param vstate       The Voice state -- must not be \c NULL.
- * \param wbs          The Work buffers -- must not be \c NULL.
- * \param ab_count     The number of audio buffers used -- must be \c 1 or
- *                     \c 2. If \c 1, only WORK_BUFFER_AUDIO_L will be updated.
- * \param audio_rate   The audio rate -- must be positive.
- * \param buf_start    The start index of the buffer area to be processed.
- * \param buf_stop     The stop index of the buffer area to be processed.
+ * \param proc            The Processor -- must not be \c NULL.
+ * \param vstate          The Voice state -- must not be \c NULL.
+ * \param wbs             The Work buffers -- must not be \c NULL.
+ * \param voice_out_buf   The audio output buffer -- must not be \c NULL.
+ * \param ab_count        The number of audio buffers used -- must be \c 1 or
+ *                        \c 2. If \c 1, only the left channel will be updated.
+ * \param audio_rate      The audio rate -- must be positive.
+ * \param buf_start       The start index of the buffer area to be processed.
+ * \param buf_stop        The stop index of the buffer area to be processed.
  */
 void Proc_common_handle_filter(
         const Processor* proc,
         Voice_state* vstate,
         const Work_buffers* wbs,
+        Audio_buffer* voice_out_buf,
         int ab_count,
         uint32_t audio_rate,
         int32_t buf_start,
@@ -108,18 +111,19 @@ void Proc_common_handle_filter(
 /**
  * Process volume ramping at the end of a note.
  *
- * This function modifies WORK_BUFFER_AUDIO_* and should be called after the
- * process function of the processor implementation.
+ * This function should be called after the process function of the processor
+ * implementation.
  *
- * \param proc         The Processor -- must not be \c NULL.
- * \param au_state     The Audio unit state -- must not be \c NULL.
- * \param vstate       The Voice state -- must not be \c NULL.
- * \param wbs          The Work buffers -- must not be \c NULL.
- * \param ab_count     The number of audio buffers used -- must be \c 1 or
- *                     \c 2. If \c 1, only WORK_BUFFER_AUDIO_L will be updated.
- * \param audio_rate   The audio rate -- must be positive.
- * \param buf_start    The start index of the buffer area to be processed.
- * \param buf_stop     The stop index of the buffer area to be processed.
+ * \param proc            The Processor -- must not be \c NULL.
+ * \param au_state        The Audio unit state -- must not be \c NULL.
+ * \param vstate          The Voice state -- must not be \c NULL.
+ * \param wbs             The Work buffers -- must not be \c NULL.
+ * \param voice_out_buf   The audio output buffer -- must not be \c NULL.
+ * \param ab_count        The number of audio buffers used -- must be \c 1 or
+ *                        \c 2. If \c 1, only the left channel will be updated.
+ * \param audio_rate      The audio rate -- must be positive.
+ * \param buf_start       The start index of the buffer area to be processed.
+ * \param buf_stop        The stop index of the buffer area to be processed.
  *
  * \return   A new buffer stop index that is within the range of
  *           [\a buf_start, \a buf_stop]. Values less than \a buf_stop
@@ -131,6 +135,7 @@ int32_t Proc_common_ramp_release(
         const Au_state* au_state,
         Voice_state* vstate,
         const Work_buffers* wbs,
+        Audio_buffer* voice_out_buf,
         int ab_count,
         uint32_t audio_rate,
         int32_t buf_start,
@@ -140,19 +145,21 @@ int32_t Proc_common_ramp_release(
 /**
  * Process panning.
  *
- * This function modifies WORK_BUFFER_AUDIO_L and WORK_BUFFER_AUDIO_R and
- * should be called after the process function of the processor implementation.
+ * This function should be called after the process function of the processor
+ * implementation.
  *
- * \param proc        The Processor -- must not be \c NULL.
- * \param vstate      The Voice state -- must not be \c NULL.
- * \param wbs         The Work buffers -- must not be \c NULL.
- * \param buf_start   The start index of the buffer area to be processed.
- * \param buf_stop    The stop index of the buffer area to be processed.
+ * \param proc            The Processor -- must not be \c NULL.
+ * \param vstate          The Voice state -- must not be \c NULL.
+ * \param wbs             The Work buffers -- must not be \c NULL.
+ * \param voice_out_buf   The audio output buffer -- must not be \c NULL.
+ * \param buf_start       The start index of the buffer area to be processed.
+ * \param buf_stop        The stop index of the buffer area to be processed.
  */
 void Proc_common_handle_panning(
         const Processor* proc,
         Voice_state* vstate,
         const Work_buffers* wbs,
+        Audio_buffer* voice_out_buf,
         int32_t buf_start,
         int32_t buf_stop);
 

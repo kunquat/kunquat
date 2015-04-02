@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -111,6 +111,8 @@ bool Device_init(Device* device, bool req_impl)
 
     device->existent = false;
     device->req_impl = req_impl;
+
+    device->enable_signal_support = false;
 
     device->dparams = NULL;
     device->dimpl = NULL;
@@ -261,6 +263,14 @@ void Device_set_reset(Device* device, void (*reset)(const Device*, Device_states
 {
     assert(device != NULL);
     device->reset = reset;
+    return;
+}
+
+
+void Device_set_mixed_signals(Device* device, bool enabled)
+{
+    assert(device != NULL);
+    device->enable_signal_support = enabled;
     return;
 }
 
@@ -465,7 +475,7 @@ void Device_process(
     assert(isfinite(tempo));
     assert(tempo > 0);
 
-    if (device->process_signal != NULL)
+    if (device->enable_signal_support && (device->process_signal != NULL))
         device->process_signal(device, states, start, until, freq, tempo);
 
     return;

@@ -25,6 +25,7 @@
 #include <devices/Device.h>
 #include <module/Au_table.h>
 #include <player/Device_states.h>
+#include <player/Voice_group.h>
 #include <string/Streader.h>
 
 
@@ -120,6 +121,31 @@ void Connections_clear_buffers(
         Device_states* states,
         uint32_t start,
         uint32_t until);
+
+
+/**
+ * Process a Voice group inside the Connections.
+ *
+ * \param graph        The Connections -- must not be \c NULL.
+ * \param vgroup       The Voice group -- must not be \c NULL.
+ * \param dstates      The Device states -- must not be \c NULL.
+ * \param wbs          The Work buffers -- must not be \c NULL.
+ * \param buf_start    The start index of the buffer area to be processed
+ *                     -- must not be negative.
+ * \param buf_stop     The stop index of the buffer area to be processed
+ *                     -- must not be negative.
+ * \param audio_rate   The audio rate -- must be > \c 0.
+ * \param tempo        The current tempo -- must be > \c 0.
+ */
+void Connections_process_voice_group(
+        Connections* graph,
+        Voice_group* vgroup,
+        Device_states* dstates,
+        const Work_buffers* wbs,
+        int32_t buf_start,
+        int32_t buf_stop,
+        uint32_t audio_rate,
+        double tempo);
 
 
 /**

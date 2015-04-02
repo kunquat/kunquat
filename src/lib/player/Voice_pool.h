@@ -20,6 +20,7 @@
 #include <stdbool.h>
 
 #include <player/Voice.h>
+#include <player/Voice_group.h>
 #include <player/Work_buffers.h>
 
 
@@ -29,9 +30,12 @@
 typedef struct Voice_pool
 {
     uint16_t size;
-    uint8_t events;
     size_t state_size;
+    uint64_t new_group_id;
     Voice** voices;
+
+    uint16_t group_iter_offset;
+    Voice_group group_iter;
 } Voice_pool;
 
 
@@ -81,6 +85,16 @@ uint16_t Voice_pool_get_size(const Voice_pool* pool);
 
 
 /**
+ * Get a new Voice group ID from the Voice pool.
+ *
+ * \param pool   The Voice pool -- must not be \c NULL.
+ *
+ * \return   The new group ID.
+ */
+uint64_t Voice_pool_new_group_id(Voice_pool* pool);
+
+
+/**
  * Get a Voice from the Voice pool.
  *
  * In case all the Voices are in use, the Voice considered least important is
@@ -105,33 +119,25 @@ Voice* Voice_pool_get_voice(Voice_pool* pool, Voice* voice, uint64_t id);
 
 
 /**
- * Prepare the Voice pool for a new mixing cycle.
+ * Start Voice group iteration.
  *
  * \param pool   The Voice pool -- must not be \c NULL.
+ *
+ * \return   The first Voice group to be processed, or \c NULL if there are
+ *           no active Voices.
  */
-void Voice_pool_prepare(Voice_pool* pool);
+Voice_group* Voice_pool_start_group_iteration(Voice_pool* pool);
 
 
 /**
- * Mix the background Voices in the Voice pool.
+ * Get the next Voice group.
  *
- * \param pool     The Voice pool -- must not be \c NULL.
- * \param states   The Device states -- must not be \c NULL.
- * \param wbs      The Work buffers -- must not be \c NULL.
- * \param amount   The number of frames to be mixed.
- * \param offset   The buffer offset.
- * \param freq     The mixing frequency -- must be > \c 0.
+ * \param pool   The Voice pool -- must not be \c NULL.
  *
- * \return   The number of active Voices.
+ * \return   The next Voice group, or \c NULL if there are no groups left to
+ *           be processed.
  */
-uint16_t Voice_pool_mix_bg(
-        Voice_pool* pool,
-        Device_states* states,
-        const Work_buffers* wbs,
-        uint32_t amount,
-        uint32_t offset,
-        uint32_t freq,
-        double tempo);
+Voice_group* Voice_pool_get_next_group(Voice_pool* pool);
 
 
 /**

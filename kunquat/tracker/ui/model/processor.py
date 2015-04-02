@@ -13,6 +13,7 @@
 
 from kunquat.kunquat.kunquat import get_default_value
 from procparamsadd import ProcParamsAdd
+from procparamsenvgen import ProcParamsEnvgen
 
 
 class Processor():
@@ -69,8 +70,62 @@ class Processor():
         return None
 
     def get_type_params(self):
-        types = { 'add': ProcParamsAdd }
+        types = {
+            'add':      ProcParamsAdd,
+            'envgen':   ProcParamsEnvgen,
+        }
         cons = types[self.get_type()]
         return cons(self._au_id, self._proc_id, self._controller)
+
+    def get_signal_type(self):
+        key = self._get_key('p_signal_type.json')
+        return self._store.get(key, get_default_value(key))
+
+    def set_signal_type(self, signal_type):
+        key = self._get_key('p_signal_type.json')
+        self._store[key] = signal_type
+
+    def _get_vf_key(self, port, vf):
+        return 'out_{:02x}/p_vf_{}.json'.format(port, vf)
+
+    def get_vf_cut(self, port):
+        key = self._get_key(self._get_vf_key(port, 'cut'))
+        return self._store.get(key, get_default_value(key))
+
+    def set_vf_cut(self, port, enabled):
+        key = self._get_key(self._get_vf_key(port, 'cut'))
+        self._store[key] = enabled
+
+    def get_vf_pitch(self, port):
+        key = self._get_key(self._get_vf_key(port, 'pitch'))
+        return self._store.get(key, get_default_value(key))
+
+    def set_vf_pitch(self, port, enabled):
+        key = self._get_key(self._get_vf_key(port, 'pitch'))
+        self._store[key] = enabled
+
+    def get_vf_force(self, port):
+        key = self._get_key(self._get_vf_key(port, 'force'))
+        return self._store.get(key, get_default_value(key))
+
+    def set_vf_force(self, port, enabled):
+        key = self._get_key(self._get_vf_key(port, 'force'))
+        self._store[key] = enabled
+
+    def get_vf_filter(self, port):
+        key = self._get_key(self._get_vf_key(port, 'filter'))
+        return self._store.get(key, get_default_value(key))
+
+    def set_vf_filter(self, port, enabled):
+        key = self._get_key(self._get_vf_key(port, 'filter'))
+        self._store[key] = enabled
+
+    def get_vf_panning(self, port):
+        key = self._get_key(self._get_vf_key(port, 'panning'))
+        return self._store.get(key, get_default_value(key))
+
+    def set_vf_panning(self, port, enabled):
+        key = self._get_key(self._get_vf_key(port, 'panning'))
+        self._store[key] = enabled
 
 

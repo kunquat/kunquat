@@ -16,6 +16,7 @@
 #include <stdint.h>
 #include <math.h>
 
+#include <Audio_buffer.h>
 #include <debug/assert.h>
 #include <devices/Device_params.h>
 #include <devices/processors/Proc_debug.h>
@@ -62,6 +63,8 @@ static bool Proc_debug_init(Device_impl* dimpl)
 
     Proc_debug* debug = (Proc_debug*)dimpl;
 
+    Device_set_state_creator(dimpl->device, new_Proc_state_default);
+
     Processor* proc = (Processor*)debug->parent.device;
     proc->process_vstate = Proc_debug_process_vstate;
 
@@ -98,20 +101,33 @@ static uint32_t Proc_debug_process_vstate(
     assert(audio_rate > 0);
     assert(tempo > 0);
 
-    const float* actual_pitches = Work_buffers_get_buffer_contents(
-            wbs, WORK_BUFFER_ACTUAL_PITCHES);
-    const float* actual_forces = Work_buffers_get_buffer_contents(
-            wbs, WORK_BUFFER_ACTUAL_FORCES);
+    // Get actual pitches
+    const Cond_work_buffer* actual_pitches = Cond_work_buffer_init(
+            COND_WORK_BUFFER_AUTO,
+            Work_buffers_get_buffer(wbs, WORK_BUFFER_ACTUAL_PITCHES),
+            440,
+            Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_PITCH));
 
-    float* audio_l = Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_AUDIO_L);
-    float* audio_r = Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_AUDIO_R);
+    // Get actual forces
+    const Cond_work_buffer* actual_forces = Cond_work_buffer_init(
+            COND_WORK_BUFFER_AUTO,
+            Work_buffers_get_buffer(wbs, WORK_BUFFER_ACTUAL_FORCES),
+            1,
+            Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_FORCE));
+
+    // Get output buffer for writing
+    Audio_buffer* out_buffer = Proc_state_get_voice_buffer_mut(
+            proc_state, DEVICE_PORT_TYPE_SEND, 0);
+    assert(out_buffer != NULL);
+    kqt_frame* audio_l = Audio_buffer_get_buffer(out_buffer, 0);
+    kqt_frame* audio_r = Audio_buffer_get_buffer(out_buffer, 1);
 
     Proc_debug* debug = (Proc_debug*)proc->parent.dimpl;
     if (debug->single_pulse)
     {
         if (buf_start < buf_stop)
         {
-            const float val = 1.0 * actual_forces[buf_start];
+            const float val = 1.0 * Cond_work_buffer_get_value(actual_forces, buf_start);
             audio_l[buf_start] = val;
             audio_r[buf_start] = val;
             vstate->active = false;
@@ -122,8 +138,8 @@ static uint32_t Proc_debug_process_vstate(
 
     for (int32_t i = buf_start; i < buf_stop; ++i)
     {
-        const float actual_pitch = actual_pitches[i];
-        const float actual_force = actual_forces[i];
+        const float actual_pitch = Cond_work_buffer_get_value(actual_pitches, i);
+        const float actual_force = Cond_work_buffer_get_value(actual_forces, i);
 
         double vals[KQT_BUFFERS_MAX] = { 0 };
 

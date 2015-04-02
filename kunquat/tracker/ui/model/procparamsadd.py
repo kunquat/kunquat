@@ -117,6 +117,11 @@ def post_stretch_asym(y, amount):
 def post_stretch_sine(y, amount):
     return math.sin(y * 2**((amount + 1) * 3))
 
+def post_scaled_shift(y, amount):
+    scale = 1 - abs(amount)
+    offset = amount
+    return (scale * y) + offset
+
 
 class ProcParamsAdd(ProcParams):
 
@@ -141,6 +146,7 @@ class ProcParamsAdd(ProcParams):
             ('Clip', post_clip),
             ('Mirror', post_mirror),
             ('Quantise', post_quantise),
+            ('Scaled shift', post_scaled_shift),
             ('Shift', post_shift),
             ('Stretch', post_stretch),
             ('Stretch asym', post_stretch_asym),
@@ -158,13 +164,6 @@ class ProcParamsAdd(ProcParams):
                 'waveform_funcs_dict': _WAVEFORM_FUNCS_DICT,
                 'def_key': 'i_base.json',
                 'tone_key_fmt': 'tone_{:02x}/{}',
-            },
-            'mod': {
-                'waveform_key': 'p_mod.wav',
-                'waveform_funcs': _WAVEFORM_FUNCS,
-                'waveform_funcs_dict': _WAVEFORM_FUNCS_DICT,
-                'def_key': 'i_mod.json',
-                'tone_key_fmt': 'mod_{:02x}/{}',
             },
         }
 
@@ -468,65 +467,5 @@ class ProcParamsAdd(ProcParams):
             self._set_all_tones(wave_type, tones)
         else:
             self._remove_tone(wave_type, index)
-
-    def get_phase_mod_enabled(self):
-        return (self._get_value('p_i_mod.json', 0) == 1)
-
-    def set_phase_mod_enabled(self, enabled):
-        self._set_value('p_i_mod.json', 1 if enabled else 0)
-
-    def get_mod_volume(self):
-        return self._get_value('p_f_mod_volume.json', 0.0)
-
-    def set_mod_volume(self, volume):
-        self._set_value('p_f_mod_volume.json', volume)
-
-    def get_mod_envelope_enabled(self):
-        return self._get_value('p_b_mod_env_enabled.json', False)
-
-    def set_mod_envelope_enabled(self, enabled):
-        self._set_value('p_b_mod_env_enabled.json', enabled)
-
-    def get_mod_envelope(self):
-        ret_env = { 'nodes': [ [0, 1], [1, 1] ], 'marks': [0, 1], 'smooth': False }
-        stored_env = self._get_value('p_e_mod_env.json', None) or {}
-        ret_env.update(stored_env)
-        return ret_env
-
-    def set_mod_envelope(self, envelope):
-        self._set_value('p_e_mod_env.json', envelope)
-
-    def get_mod_envelope_loop_enabled(self):
-        return self._get_value('p_b_mod_env_loop_enabled.json', False)
-
-    def set_mod_envelope_loop_enabled(self, enabled):
-        self._set_value('p_b_mod_env_loop_enabled.json', enabled)
-
-    def get_mod_envelope_scale_amount(self):
-        return self._get_value('p_f_mod_env_scale_amount.json', 0)
-
-    def set_mod_envelope_scale_amount(self, value):
-        self._set_value('p_f_mod_env_scale_amount.json', value)
-
-    def get_mod_envelope_scale_center(self):
-        return self._get_value('p_f_mod_env_scale_center.json', 0)
-
-    def set_mod_envelope_scale_center(self, value):
-        self._set_value('p_f_mod_env_scale_center.json', value)
-
-    def get_force_mod_envelope_enabled(self):
-        return self._get_value('p_b_force_mod_env_enabled.json', False)
-
-    def set_force_mod_envelope_enabled(self, enabled):
-        self._set_value('p_b_force_mod_env_enabled.json', enabled)
-
-    def get_force_mod_envelope(self):
-        ret_env = { 'nodes': [ [0, 1], [1, 1] ], 'smooth': False }
-        stored_env = self._get_value('p_e_force_mod_env.json', None) or {}
-        ret_env.update(stored_env)
-        return ret_env
-
-    def set_force_mod_envelope(self, envelope):
-        self._set_value('p_e_force_mod_env.json', envelope)
 
 
