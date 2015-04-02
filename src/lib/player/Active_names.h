@@ -22,8 +22,6 @@
 typedef enum Active_cat
 {
     ACTIVE_CAT_ENV = 0,
-    ACTIVE_CAT_GEN,
-    ACTIVE_CAT_CH_GEN,
     ACTIVE_CAT_LAST
 } Active_cat;
 
