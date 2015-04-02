@@ -39,7 +39,6 @@
 #include <player/events/Event_master_decl.h>
 #include <player/events/Event_channel_decl.h>
 #include <player/events/Event_au_decl.h>
-#include <player/events/Event_processor_decl.h>
 
 #include <memory.h>
 
@@ -62,8 +61,6 @@ struct Event_handler
             Au_state*,
             Device_states*,
             const Value*);
-    bool (*processor_process[Event_processor_STOP])(
-            const Device_impl*, Device_state*, Channel*, const Value*);
 };
 
 
@@ -119,11 +116,6 @@ Event_handler* new_Event_handler(
         Event_handler_set_au_process(                                  \
         eh, Event_au_##type_suffix, Event_au_##type_suffix##_process);
 #include <player/events/Event_au_types.h>
-
-#define EVENT_PROCESSOR_DEF(name, type_suffix, arg_type, validator)                  \
-        Event_handler_set_processor_process(                                         \
-        eh, Event_processor_##type_suffix, Event_processor_##type_suffix##_process);
-#include <player/events/Event_processor_types.h>
 
     return eh;
 }
@@ -216,21 +208,6 @@ bool Event_handler_set_au_process(
 }
 
 
-bool Event_handler_set_processor_process(
-        Event_handler* eh,
-        Event_type type,
-        bool (*proc_process)(const Device_impl*, Device_state*, Channel*, const Value*))
-{
-    assert(eh != NULL);
-    assert(Event_is_processor(type));
-    assert(proc_process != NULL);
-
-    eh->processor_process[type] = proc_process;
-
-    return true;
-}
-
-
 static bool Event_handler_handle(
         Event_handler* eh,
         int index,
@@ -279,31 +256,6 @@ static bool Event_handler_handle(
             return false;
 
         return eh->master_process[type](eh->master_params, value);
-    }
-    else if (Event_is_processor(type))
-    {
-        // Find our audio unit
-        Audio_unit* au = Module_get_au_from_input(
-                eh->master_params->parent.module,
-                eh->channels[index]->au_input);
-        if (au == NULL)
-            return false;
-
-        const Device* device = (const Device*)Audio_unit_get_proc(
-                au, eh->channels[index]->processor);
-        if (device == NULL)
-            return false;
-
-        const Device_impl* dimpl = device->dimpl;
-        if (dimpl == NULL)
-            return false;
-
-        Device_state* dstate = Device_states_get_state(
-                eh->device_states,
-                Device_get_id(device));
-
-        return eh->processor_process[type](
-                dimpl, dstate, eh->channels[index], value);
     }
     else if (Event_is_control(type))
     {

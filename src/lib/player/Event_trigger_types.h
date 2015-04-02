@@ -37,10 +37,6 @@
     EVENT_TRIGGER_TYPE_DEF(name, au, type_suffix, arg_type, validator)
 #include <player/events/Event_au_types.h>
 
-#define EVENT_PROCESSOR_DEF(name, type_suffix, arg_type, validator) \
-    EVENT_TRIGGER_TYPE_DEF(name, processor, type_suffix, arg_type, validator)
-#include <player/events/Event_processor_types.h>
-
 #define EVENT_QUERY_DEF(name, type_suffix, arg_type, validator) \
     EVENT_TRIGGER_TYPE_DEF(name, query, type_suffix, arg_type, validator)
 #include <player/Event_query_types.h>
