@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -23,6 +23,7 @@
 #include <memory.h>
 #include <module/sheet/Song.h>
 #include <string/common.h>
+#include <string/Streader.h>
 
 
 static bool Song_parse(Song* song, Streader* sr);
