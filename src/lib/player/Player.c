@@ -267,19 +267,8 @@ bool Player_refresh_bind_state(Player* player)
 }
 
 
-void Player_reset(Player* player, int16_t track_num)
+static void Player_reset_channels(Player* player, int16_t track_num)
 {
-    assert(player != NULL);
-    assert(track_num >= -1);
-    assert(track_num < KQT_TRACKS_MAX);
-
-    Master_params_reset(&player->master_params);
-
-    Player_update_sliders_and_lfos_audio_rate(player);
-    Player_update_sliders_and_lfos_tempo(player);
-
-    player->frame_remainder = 0.0;
-
     // Find the initial Song (for channel defaults)
     int16_t song_index = -1;
     const Track_list* tl = Module_get_track_list(player->module);
@@ -314,6 +303,25 @@ void Player_reset(Player* player, int16_t track_num)
             Channel_apply_defaults(player->channels[i], def_ch_defs);
         }
     }
+
+    return;
+}
+
+
+void Player_reset(Player* player, int16_t track_num)
+{
+    assert(player != NULL);
+    assert(track_num >= -1);
+    assert(track_num < KQT_TRACKS_MAX);
+
+    Master_params_reset(&player->master_params);
+
+    Player_update_sliders_and_lfos_audio_rate(player);
+    Player_update_sliders_and_lfos_tempo(player);
+
+    player->frame_remainder = 0.0;
+
+    Player_reset_channels(player, track_num);
 
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
         Cgiter_reset(&player->cgiters[i], &player->master_params.cur_pos);
@@ -604,6 +612,8 @@ void Player_play(Player* player, int32_t nframes)
                         (const Device*)player->module,
                         player->device_states,
                         player->master_params.tempo);
+
+                Player_reset_channels(player, player->master_params.cur_pos.track);
 
                 for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
                     Cgiter_reset(
