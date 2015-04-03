@@ -136,7 +136,8 @@ void Player_process_event(
                 event_name,
                 arg))
     {
-        fprintf(stderr, "`%s` not triggered\n", event_name);
+        // FIXME: add a proper way of reporting event errors
+        fprintf(stderr, "`%s` not fired\n", event_name);
         return;
     }
 
@@ -340,6 +341,66 @@ static void Player_start_pattern_playback_mode(Player* player)
 }
 
 
+static void Player_set_new_playback_position(
+        Player* player, const Pat_inst_ref* target_piref, const Tstamp* target_row)
+{
+    assert(player != NULL);
+    assert(target_piref != NULL);
+    assert(target_row != NULL);
+
+    Pat_inst_ref actual_target_piref = *target_piref;
+    Tstamp* actual_target_row = Tstamp_copy(TSTAMP_AUTO, target_row);
+
+    if (player->master_params.playback_state == PLAYBACK_PATTERN)
+    {
+        // Don't jump outside the pattern instance
+        // in pattern playback mode
+        if (actual_target_piref.pat != player->master_params.cur_pos.piref.pat ||
+                actual_target_piref.inst != player->master_params.cur_pos.piref.inst)
+        {
+            actual_target_piref = player->master_params.cur_pos.piref;
+            Tstamp_set(actual_target_row, 0, 0);
+        }
+    }
+
+    // Find new track and system
+    Position target_pos;
+    Position_init(&target_pos);
+    if (!Module_find_pattern_location(
+                player->module,
+                &actual_target_piref,
+                &target_pos.track,
+                &target_pos.system))
+    {
+        // Stop if the jump target does not exist
+        player->master_params.playback_state = PLAYBACK_STOPPED;
+    }
+    else
+    {
+        // Move cgiters to the new position
+        Tstamp_copy(&target_pos.pat_pos, actual_target_row);
+        target_pos.piref = actual_target_piref;
+
+        if (player->master_params.playback_state == PLAYBACK_PATTERN)
+        {
+            target_pos.track = -1;
+            target_pos.system = -1;
+        }
+
+        for (int k = 0; k < KQT_CHANNELS_MAX; ++k)
+            Cgiter_reset(
+                    &player->cgiters[k],
+                    &target_pos);
+    }
+
+    // Make sure all triggers are processed after the jump
+    player->master_params.cur_ch = 0;
+    player->master_params.cur_trigger = 0;
+
+    return;
+}
+
+
 void Player_process_cgiters(Player* player, Tstamp* limit, bool skip)
 {
     assert(player != NULL);
@@ -493,6 +554,26 @@ void Player_process_cgiters(Player* player, Tstamp* limit, bool skip)
                 if (player->master_params.pattern_playback_flag)
                     Player_start_pattern_playback_mode(player);
 
+                // Perform goto
+                if (player->master_params.do_goto)
+                {
+                    player->master_params.do_goto = false;
+
+                    // Get target pattern instance
+                    Pat_inst_ref target_piref = player->master_params.goto_target_piref;
+                    if (target_piref.pat < 0)
+                        target_piref = player->master_params.cur_pos.piref;
+
+                    // Get target row
+                    Tstamp* target_row = TSTAMP_AUTO;
+                    Tstamp_copy(target_row, &player->master_params.goto_target_row);
+
+                    Player_set_new_playback_position(player, &target_piref, target_row);
+
+                    Tstamp_set(limit, 0, 0);
+                    return;
+                }
+
                 // Perform jump
                 if (player->master_params.do_jump)
                 {
@@ -517,54 +598,11 @@ void Player_process_cgiters(Player* player, Tstamp* limit, bool skip)
                     if (target_piref.pat < 0)
                         target_piref = player->master_params.cur_pos.piref;
 
+                    // Get target row
                     Tstamp* target_row = TSTAMP_AUTO;
                     Tstamp_copy(target_row, &next_jc->target_row);
 
-                    if (player->master_params.playback_state == PLAYBACK_PATTERN)
-                    {
-                        // Don't jump outside the pattern instance
-                        // in pattern playback mode
-                        if (target_piref.pat != player->master_params.cur_pos.piref.pat ||
-                                target_piref.inst != player->master_params.cur_pos.piref.inst)
-                        {
-                            target_piref = player->master_params.cur_pos.piref;
-                            Tstamp_set(target_row, 0, 0);
-                        }
-                    }
-
-                    // Find new track and system
-                    Position target_pos;
-                    Position_init(&target_pos);
-                    if (!Module_find_pattern_location(
-                                player->module,
-                                &target_piref,
-                                &target_pos.track,
-                                &target_pos.system))
-                    {
-                        // Stop if the jump target does not exist
-                        player->master_params.playback_state = PLAYBACK_STOPPED;
-                    }
-                    else
-                    {
-                        // Move cgiters to the new position
-                        Tstamp_copy(&target_pos.pat_pos, target_row);
-                        target_pos.piref = target_piref;
-
-                        if (player->master_params.playback_state == PLAYBACK_PATTERN)
-                        {
-                            target_pos.track = -1;
-                            target_pos.system = -1;
-                        }
-
-                        for (int k = 0; k < KQT_CHANNELS_MAX; ++k)
-                            Cgiter_reset(
-                                    &player->cgiters[k],
-                                    &target_pos);
-                    }
-
-                    // Make sure all triggers are processed after the jump
-                    player->master_params.cur_ch = 0;
-                    player->master_params.cur_trigger = 0;
+                    Player_set_new_playback_position(player, &target_piref, target_row);
 
                     Tstamp_set(limit, 0, 0);
                     return;
@@ -774,6 +812,12 @@ int32_t Player_move_forwards(Player* player, int32_t nframes, bool skip)
     {
         // Process cgiters
         Player_process_cgiters(player, limit, skip);
+    }
+
+    if (Tstamp_cmp(limit, TSTAMP_AUTO) > 0)
+    {
+        // We are moving forwards, so reset our goto safety counter
+        player->master_params.goto_safety_counter = 0;
     }
 
     // Get actual number of frames to be rendered

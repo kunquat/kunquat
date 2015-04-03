@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -55,6 +55,12 @@ static void Master_params_clear(Master_params* params)
     params->jump_target_piref.inst = -1;
     Tstamp_init(&params->jump_target_row);
     Active_jumps_reset(params->active_jumps, params->jump_cache);
+
+    params->do_goto = false;
+    params->goto_safety_counter = 0;
+    params->goto_target_piref.pat = -1;
+    params->goto_target_piref.inst = -1;
+    Tstamp_init(&params->goto_target_row);
 
     params->active_voices = 0;
 

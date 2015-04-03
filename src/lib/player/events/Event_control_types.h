@@ -32,10 +32,9 @@ EVENT_CONTROL_DEF("c.F",        env_set_float,          FLOAT,          v_any_fl
 EVENT_CONTROL_DEF("c.Tn",       env_set_tstamp_name,    STRING,         v_key)
 EVENT_CONTROL_DEF("c.T",        env_set_tstamp,         TSTAMP,         v_any_ts)
 
-EVENT_CONTROL_DEF("I.gr",       set_goto_row,           TSTAMP,         v_nonneg_ts)
-EVENT_CONTROL_DEF("I.gs",       set_goto_section,       INT,            v_system)
-EVENT_CONTROL_DEF("I.gss",      set_goto_song,          INT,            v_song)
-EVENT_CONTROL_DEF("Ig",         goto,                   NONE,           NULL)
+EVENT_CONTROL_DEF("c.gr",       set_goto_row,           TSTAMP,         v_nonneg_ts)
+EVENT_CONTROL_DEF("c.gp",       set_goto_pat_inst,      PAT_INST_REF,   v_piref)
+EVENT_CONTROL_DEF("cg",         goto,                   NONE,           NULL)
 
 EVENT_CONTROL_DEF("cinfinite+", infinite_on,            NONE,           NULL)
 EVENT_CONTROL_DEF("cinfinite-", infinite_off,           NONE,           NULL)
