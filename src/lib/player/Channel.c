@@ -20,6 +20,7 @@
 #include <debug/assert.h>
 #include <memory.h>
 #include <module/Environment.h>
+#include <module/sheet/Channel_defaults.h>
 #include <player/Channel.h>
 #include <Tstamp.h>
 
@@ -167,6 +168,17 @@ void Channel_reset(Channel* ch)
     Random_reset(ch->rand);
     if (ch->event_cache != NULL)
         Event_cache_reset(ch->event_cache);
+
+    return;
+}
+
+
+void Channel_apply_defaults(Channel* ch, const Channel_defaults* ch_defaults)
+{
+    assert(ch != NULL);
+    assert(ch_defaults != NULL);
+
+    ch->au_input = ch_defaults->control_id;
 
     return;
 }

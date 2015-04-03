@@ -114,14 +114,6 @@ void Handle_set_validation_error_from_Error(Handle* handle, const Error* error);
 
 
 /**
- * Reset the playback pointer of the Kunquat Handle.
- *
- * \param handle   The Kunquat Handle -- must not be \c NULL.
- */
-void Handle_stop(Handle* handle);
-
-
-/**
  * Check the validity of a Kunquat Handle.
  *
  * \param handle   The ID of the supposed Kunquat Handle.

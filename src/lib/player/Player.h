@@ -168,9 +168,10 @@ int64_t Player_get_nanoseconds(const Player* player);
 /**
  * Reset the Player state.
  *
- * \param player   The Player -- must not be \c NULL.
+ * \param player      The Player -- must not be \c NULL.
+ * \param track_num   The track number, or \c -1 to indicate all tracks.
  */
-void Player_reset(Player* player);
+void Player_reset(Player* player, int16_t track_num);
 
 
 /**

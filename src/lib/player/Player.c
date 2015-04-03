@@ -23,6 +23,7 @@
 #include <devices/Audio_unit.h>
 #include <mathnum/common.h>
 #include <memory.h>
+#include <module/sheet/Channel_defaults.h>
 #include <Pat_inst_ref.h>
 #include <player/Player.h>
 #include <player/Player_private.h>
@@ -266,9 +267,11 @@ bool Player_refresh_bind_state(Player* player)
 }
 
 
-void Player_reset(Player* player)
+void Player_reset(Player* player, int16_t track_num)
 {
     assert(player != NULL);
+    assert(track_num >= -1);
+    assert(track_num < KQT_TRACKS_MAX);
 
     Master_params_reset(&player->master_params);
 
@@ -277,8 +280,40 @@ void Player_reset(Player* player)
 
     player->frame_remainder = 0.0;
 
-    for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
-        Channel_reset(player->channels[i]);
+    // Find the initial Song (for channel defaults)
+    int16_t song_index = -1;
+    const Track_list* tl = Module_get_track_list(player->module);
+    if (tl != NULL)
+    {
+        const int16_t actual_track_num = max(0, track_num);
+        if (actual_track_num < (int32_t)Track_list_get_len(tl))
+            song_index = Track_list_get_song_index(tl, actual_track_num);
+    }
+
+    // Reset channels
+    const Channel_defaults_list* cdl = NULL;
+    if (song_index >= 0)
+        cdl = Module_get_ch_defaults_list(player->module, song_index);
+
+    if (cdl != NULL)
+    {
+        for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
+        {
+            Channel_reset(player->channels[i]);
+            Channel_apply_defaults(
+                    player->channels[i], Channel_defaults_list_get(cdl, i));
+        }
+    }
+    else
+    {
+        const Channel_defaults* def_ch_defs =
+            Channel_defaults_init(CHANNEL_DEFAULTS_AUTO);
+        for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
+        {
+            Channel_reset(player->channels[i]);
+            Channel_apply_defaults(player->channels[i], def_ch_defs);
+        }
+    }
 
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
         Cgiter_reset(&player->cgiters[i], &player->master_params.cur_pos);
