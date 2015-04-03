@@ -49,9 +49,6 @@ typedef struct Channel
     int fg_count;
 
     int32_t au_input;              ///< Currently active Audio unit input.
-    int processor;                 ///< Currently active Processor.
-    int effect;                    ///< Currently active Effect.
-    bool au_effects;               ///< Audio unit effect control enabled.
     Au_table* au_table;
     int32_t* freq;
     double* tempo;
