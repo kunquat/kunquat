@@ -100,6 +100,9 @@ class TypewriterButtonModel():
                 if trigger.get_argument_type() == events.EVENT_ARG_PITCH:
                     new_trigger = Trigger(trigger.get_type(), unicode(pitch))
                     self._sheet_manager.add_trigger(new_trigger)
+                elif trigger.get_type() == 'n-':
+                    new_trigger = Trigger('n+', unicode(pitch))
+                    self._sheet_manager.add_trigger(new_trigger)
             else:
                 trigger = Trigger('n+', unicode(pitch))
                 self._sheet_manager.add_trigger(trigger)
