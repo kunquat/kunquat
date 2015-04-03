@@ -517,36 +517,40 @@ void Player_process_cgiters(Player* player, Tstamp* limit, bool skip)
                             Event_is_general(event_type) ||
                             Event_is_master(event_type))
                     {
-                        // Break if event buffer is full
-                        if (Event_buffer_is_full(player->event_buffer))
+                        if (!Event_is_control(event_type) ||
+                                player->master_params.is_infinite)
                         {
-                            Tstamp_set(limit, 0, 0);
+                            // Break if event buffer is full
+                            if (Event_buffer_is_full(player->event_buffer))
+                            {
+                                Tstamp_set(limit, 0, 0);
 
-                            // Make sure we get this row again next time
-                            Cgiter_clear_returned_status(cgiter);
-                            return;
+                                // Make sure we get this row again next time
+                                Cgiter_clear_returned_status(cgiter);
+                                return;
+                            }
+
+                            Player_process_expr_event(
+                                    player,
+                                    i,
+                                    Trigger_get_desc(trl->trigger),
+                                    NULL, // no meta value
+                                    skip);
+
+                            // Break if started event skipping
+                            if (Event_buffer_is_skipping(player->event_buffer))
+                            {
+                                assert(Event_buffer_is_full(player->event_buffer));
+                                Tstamp_set(limit, 0, 0);
+
+                                // Make sure we get this row again next time
+                                Cgiter_clear_returned_status(cgiter);
+                                return;
+                            }
+
+                            // Event fully processed
+                            Event_buffer_reset_add_counter(player->event_buffer);
                         }
-
-                        Player_process_expr_event(
-                                player,
-                                i,
-                                Trigger_get_desc(trl->trigger),
-                                NULL, // no meta value
-                                skip);
-
-                        // Break if started event skipping
-                        if (Event_buffer_is_skipping(player->event_buffer))
-                        {
-                            assert(Event_buffer_is_full(player->event_buffer));
-                            Tstamp_set(limit, 0, 0);
-
-                            // Make sure we get this row again next time
-                            Cgiter_clear_returned_status(cgiter);
-                            return;
-                        }
-
-                        // Event fully processed
-                        Event_buffer_reset_add_counter(player->event_buffer);
                     }
                 }
 
