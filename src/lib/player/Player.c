@@ -270,8 +270,6 @@ void Player_reset(Player* player)
 {
     assert(player != NULL);
 
-    // TODO: playback mode and start pos as arguments
-
     Master_params_reset(&player->master_params);
 
     Player_update_sliders_and_lfos_audio_rate(player);
@@ -280,9 +278,10 @@ void Player_reset(Player* player)
     player->frame_remainder = 0.0;
 
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
-    {
+        Channel_reset(player->channels[i]);
+
+    for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
         Cgiter_reset(&player->cgiters[i], &player->master_params.cur_pos);
-    }
 
     Event_buffer_clear(player->event_buffer);
 
