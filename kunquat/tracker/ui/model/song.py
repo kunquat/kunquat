@@ -14,6 +14,7 @@
 
 from kunquat.kunquat.kunquat import get_default_value
 
+from channeldefaults import ChannelDefaults
 from patterninstance import PatternInstance
 
 
@@ -113,5 +114,10 @@ class Song():
 
         edit = { self._get_order_list_key(): order_list }
         return edit
+
+    def get_channel_defaults(self):
+        chd = ChannelDefaults(self._song_id)
+        chd.set_controller(self._controller)
+        return chd
 
 
