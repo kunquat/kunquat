@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013-2014
-#          Tomi Jylhä-Ollila, Finland 2013-2014
+#          Tomi Jylhä-Ollila, Finland 2013-2015
 #
 # This file is part of Kunquat.
 #
