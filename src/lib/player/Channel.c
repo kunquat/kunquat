@@ -178,7 +178,7 @@ void Channel_apply_defaults(Channel* ch, const Channel_defaults* ch_defaults)
     assert(ch != NULL);
     assert(ch_defaults != NULL);
 
-    ch->au_input = ch_defaults->control_id;
+    ch->au_input = ch_defaults->control_num;
 
     return;
 }

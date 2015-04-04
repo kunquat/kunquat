@@ -29,11 +29,11 @@
  */
 typedef struct Channel_defaults
 {
-    int16_t control_id;
+    int16_t control_num;
 } Channel_defaults;
 
 
-#define CHANNEL_DEFAULTS_AUTO &(Channel_defaults){ .control_id = 0 }
+#define CHANNEL_DEFAULTS_AUTO &(Channel_defaults){ .control_num = 0 }
 
 
 /**

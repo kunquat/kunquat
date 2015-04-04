@@ -27,7 +27,7 @@ Channel_defaults* Channel_defaults_init(Channel_defaults* chd)
 {
     assert(chd != NULL);
 
-    chd->control_id = 0;
+    chd->control_num = 0;
 
     return chd;
 }
@@ -41,19 +41,19 @@ static bool read_ch_defaults_item(Streader* sr, const char* key, void* userdata)
 
     Channel_defaults* chd = userdata;
 
-    if (string_eq(key, "control_id"))
+    if (string_eq(key, "control"))
     {
-        int64_t cid = -1;
-        if (!Streader_read_int(sr, &cid))
+        int64_t cnum = -1;
+        if (!Streader_read_int(sr, &cnum))
             return false;
 
-        if ((cid < 0) || (cid >= KQT_CONTROLS_MAX))
+        if ((cnum < 0) || (cnum >= KQT_CONTROLS_MAX))
         {
-            Streader_set_error(sr, "Invalid control ID: %" PRId64, cid);
+            Streader_set_error(sr, "Invalid control number: %" PRId64, cnum);
             return false;
         }
 
-        chd->control_id = cid;
+        chd->control_num = cnum;
     }
     else
     {

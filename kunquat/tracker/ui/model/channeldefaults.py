@@ -43,7 +43,7 @@ class ChannelDefaults():
 
     def get_default_control_id(self, ch_num):
         entry = self._get_entry(ch_num)
-        return 'control_{:02x}'.format(entry['control_id'])
+        return 'control_{:02x}'.format(entry['control'])
 
     def set_default_control_id(self, ch_num, control_id):
         key = self._get_key()
@@ -56,7 +56,7 @@ class ChannelDefaults():
         control_num = int(control_id_parts[1], 16)
 
         entry = chd_list[ch_num]
-        entry['control_id'] = control_num
+        entry['control'] = control_num
 
         self._store[key] = chd_list
 
