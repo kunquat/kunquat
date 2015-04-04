@@ -77,7 +77,13 @@ class Store(MutableMapping):
         self.put(transaction)
 
     def __iter__(self):
-        return self._content.iterkeys()
+        included_keys = set()
+        for _, transaction in reversed(self._pending_validation):
+            for key in transaction.iterkeys():
+                included_keys.add(key)
+        for key in self._content.iterkeys():
+            included_keys.add(key)
+        return (key for key in included_keys)
 
     def __len__(self):
         return len(self._content)
