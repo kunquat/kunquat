@@ -29,6 +29,10 @@ def get_add_params(obj):
 
 class AddProc(QWidget):
 
+    @staticmethod
+    def get_name():
+        return u'Additive synthesis'
+
     def __init__(self):
         QWidget.__init__(self)
         self._au_id = None
@@ -60,9 +64,6 @@ class AddProc(QWidget):
         self._ui_model = ui_model
         self._base_waveform.set_ui_model(ui_model)
         self._base_tone_editor.set_ui_model(ui_model)
-
-    def get_name(self):
-        return 'Additive synthesis'
 
     def unregister_updaters(self):
         self._base_tone_editor.unregister_updaters()

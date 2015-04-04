@@ -17,6 +17,10 @@ from PyQt4.QtGui import *
 
 class RingmodProc(QWidget):
 
+    @staticmethod
+    def get_name():
+        return u'Ring modulation'
+
     def __init__(self):
         QWidget.__init__(self)
 
@@ -34,9 +38,6 @@ class RingmodProc(QWidget):
 
     def set_ui_model(self, ui_model):
         pass
-
-    def get_name(self):
-        return 'Ring modulation'
 
     def unregister_updaters(self):
         pass
