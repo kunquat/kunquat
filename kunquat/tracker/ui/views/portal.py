@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2014
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2015
 #          Toni Ruottu, Finland 2013-2014
 #
 # This file is part of Kunquat.
@@ -42,6 +42,7 @@ class Portal(QToolBar):
         self._event_list_button = EventListButton()
         self._connections_button = ConnectionsButton()
         self._orderlist_button = OrderlistButton()
+        self._ch_defaults_button = ChDefaultsButton()
         self._notation_select = NotationSelect()
         self._about_button = AboutButton()
         self._new_button = NewButton()
@@ -57,6 +58,7 @@ class Portal(QToolBar):
         self.addWidget(self._event_list_button)
         self.addWidget(self._connections_button)
         self.addWidget(self._orderlist_button)
+        self.addWidget(self._ch_defaults_button)
         self.addWidget(self._notation_select)
         self.addSeparator()
         self.addWidget(self._about_button)
@@ -74,6 +76,7 @@ class Portal(QToolBar):
         self._event_list_button.set_ui_model(ui_model)
         self._connections_button.set_ui_model(ui_model)
         self._orderlist_button.set_ui_model(ui_model)
+        self._ch_defaults_button.set_ui_model(ui_model)
         self._notation_select.set_ui_model(ui_model)
         self._about_button.set_ui_model(ui_model)
         self._new_button.set_ui_model(ui_model)
@@ -87,10 +90,32 @@ class Portal(QToolBar):
         self._about_button.unregister_updaters()
         self._connections_button.unregister_updaters()
         self._orderlist_button.unregister_updaters()
+        self._ch_defaults_button.unregister_updaters()
         self._notation_select.unregister_updaters()
         self._event_list_button.unregister_updaters()
         self._silence_button.unregister_updaters()
         self._record_button.unregister_updaters()
         self._play_pattern_button.unregister_updaters()
         self._play_button.unregister_updaters()
+
+
+class ChDefaultsButton(QToolButton):
+
+    def __init__(self):
+        QToolButton.__init__(self)
+        self._ui_model = None
+
+        self.setText('Channel defaults')
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        QObject.connect(self, SIGNAL('clicked()'), self._clicked)
+
+    def unregister_updaters(self):
+        pass
+
+    def _clicked(self):
+        visibility_manager = self._ui_model.get_visibility_manager()
+        visibility_manager.show_ch_defaults()
+
 
