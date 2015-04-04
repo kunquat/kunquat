@@ -24,7 +24,6 @@
 #include <mathnum/Real.h>
 #include <memory.h>
 #include <module/Module.h>
-#include <module/sheet/Channel_defaults.h>
 #include <module/sheet/Channel_defaults_list.h>
 #include <string/common.h>
 
