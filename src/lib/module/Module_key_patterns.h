@@ -111,7 +111,8 @@ MODULE_KEYP(song,               "song_XX/p_song.json",
         ", \"scale\": " MAKE_STRING(SONG_DEFAULT_SCALE)
         "}")
 MODULE_KEYP(song_order_list,    "song_XX/p_order_list.json",        "[]")
-MODULE_KEYP(song_ch_defaults,   "song_XX/p_channel_defaults.json",  "[]")
+MODULE_KEYP(song_ch_defaults,   "song_XX/p_channel_defaults.json",
+        "[{ \"control_id\": 0 }]")
 
 
 #undef MAKE_STRING
