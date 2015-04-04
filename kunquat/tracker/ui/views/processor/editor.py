@@ -15,21 +15,9 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 from name import Name
-from addproc import AddProc
-from envgenproc import EnvgenProc
-from ringmodproc import RingmodProc
-from sampleproc import SampleProc
-from unsupportedproc import UnsupportedProc
+import proctypeinfo
 from kunquat.tracker.ui.views.headerline import HeaderLine
 from kunquat.tracker.ui.views.keyboardmapper import KeyboardMapper
-
-
-_proc_classes = {
-    'add':      AddProc,
-    'envgen':   EnvgenProc,
-    'ringmod':  RingmodProc,
-    'sample':   SampleProc,
-}
 
 
 class Editor(QWidget):
@@ -81,7 +69,7 @@ class Editor(QWidget):
         proctype = proc.get_type()
 
         # Create the type-specific editor
-        cons = _proc_classes.get(proctype, UnsupportedProc)
+        cons = proctypeinfo.get_class(proctype)
         self._proc_editor = cons()
         self._proc_editor.set_au_id(self._au_id)
         self._proc_editor.set_proc_id(self._proc_id)
