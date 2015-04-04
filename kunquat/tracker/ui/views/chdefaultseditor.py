@@ -151,6 +151,8 @@ class ChDefaults(QWidget):
         self._module = None
         self._updater = None
 
+        self._control_catalog = {}
+
         num_widget = QLabel('{}'.format(self._ch_num))
         num_font = QFont()
         num_font.setWeight(QFont.Bold)
@@ -181,6 +183,11 @@ class ChDefaults(QWidget):
 
         self._update_all()
 
+        QObject.connect(
+                self._au_selector,
+                SIGNAL('currentIndexChanged(int)'),
+                self._select_audio_unit)
+
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
 
@@ -206,26 +213,35 @@ class ChDefaults(QWidget):
         text = 'Audio unit {}: {}'.format(control_num, au_name)
         return text
 
-    def _update_all(self):
+    def _get_channel_defaults(self):
         album = self._module.get_album()
 
         track_num = album.get_selected_track_num()
-        if track_num >= 0:
-            song = album.get_song_by_track(track_num)
-            chd = song.get_channel_defaults()
-            default_control_id = chd.get_default_control_id(self._ch_num)
-        else:
-            default_control_id = None
+        if track_num < 0:
+            return None
+
+        song = album.get_song_by_track(track_num)
+        return song.get_channel_defaults()
+
+    def _update_all(self):
+        chd = self._get_channel_defaults()
+        default_control_id = chd.get_default_control_id(self._ch_num) if chd else None
 
         control_ids = self._module.get_control_ids()
-        control_catalog = dict(enumerate(sorted(control_ids)))
+        self._control_catalog = dict(enumerate(sorted(control_ids)))
 
         old_block = self._au_selector.blockSignals(True)
         self._au_selector.clear()
-        for i, control_id in control_catalog.items():
+        for i, control_id in self._control_catalog.items():
             self._au_selector.addItem(self._get_control_text(control_id))
             if default_control_id == control_id:
                 self._au_selector.setCurrentIndex(i)
         self._au_selector.blockSignals(old_block)
+
+    def _select_audio_unit(self, index):
+        control_id = self._control_catalog[index]
+        chd = self._get_channel_defaults()
+        if chd:
+            chd.set_default_control_id(self._ch_num, control_id)
 
 

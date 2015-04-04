@@ -46,6 +46,18 @@ class ChannelDefaults():
         return 'control_{:02x}'.format(entry['control_id'])
 
     def set_default_control_id(self, ch_num, control_id):
-        raise NotImplementedError
+        key = self._get_key()
+        chd_list = self._store.get(key, [])
+        def_entry = self._get_default_entry()
+        for _ in xrange(ch_num + 1 - len(chd_list)):
+            chd_list.append(def_entry.copy())
+
+        control_id_parts = control_id.split('_')
+        control_num = int(control_id_parts[1], 16)
+
+        entry = chd_list[ch_num]
+        entry['control_id'] = control_num
+
+        self._store[key] = chd_list
 
 
