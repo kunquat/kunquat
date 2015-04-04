@@ -17,6 +17,23 @@ from connections import Connections
 from processor import Processor
 
 
+PROCESSORS_MAX = 256 # TODO: define in Kunquat interface...
+
+
+# Default processor settings
+_proc_defaults = {
+    'add':      { 'signal_type': u'voice', 'ports': ['in_00', 'out_00'] },
+    'chorus':   { 'signal_type': u'mixed', 'ports': ['in_00', 'out_00'] },
+    'delay':    { 'signal_type': u'mixed', 'ports': ['in_00', 'out_00'] },
+    'envgen':   { 'signal_type': u'voice', 'ports': ['out_00'] },
+    'freeverb': { 'signal_type': u'mixed', 'ports': ['in_00', 'out_00'] },
+    'gaincomp': { 'signal_type': u'mixed', 'ports': ['in_00', 'out_00'] },
+    'ringmod':  { 'signal_type': u'mixed', 'ports': ['in_00', 'in_01', 'out_00'] },
+    'sample':   { 'signal_type': u'voice', 'ports': ['out_00'] },
+    'volume':   { 'signal_type': u'mixed', 'ports': ['in_00', 'out_00'] },
+}
+
+
 class AudioUnit():
 
     def __init__(self, au_id):
@@ -83,6 +100,31 @@ class AudioUnit():
                 proc_id = key.split('/')[1]
                 proc_ids.add(proc_id)
         return proc_ids
+
+    def get_free_processor_id(self):
+        used_proc_ids = self.get_processor_ids()
+        all_proc_ids = set('proc_{:02x}'.format(i) for i in xrange(PROCESSORS_MAX))
+        free_proc_ids = all_proc_ids - used_proc_ids
+        free_list = sorted(list(free_proc_ids))
+        if not free_list:
+            return None
+        return free_list[0]
+
+    def add_processor(self, proc_id, proc_type):
+        key_prefix = '{}/{}'.format(self._au_id, proc_id)
+        transaction = {}
+
+        manifest_key = '{}/p_manifest.json'.format(key_prefix)
+        transaction[manifest_key] = { 'type': proc_type }
+
+        signal_type_key = '{}/p_signal_type.json'.format(key_prefix)
+        transaction[signal_type_key] = _proc_defaults[proc_type]['signal_type']
+
+        for port_id in _proc_defaults[proc_type]['ports']:
+            port_manifest_key = '{}/{}/p_manifest.json'.format(key_prefix, port_id)
+            transaction[port_manifest_key] = {}
+
+        self._store.put(transaction)
 
     def get_au(self, au_id):
         key = '/'.join((self._au_id, au_id))
