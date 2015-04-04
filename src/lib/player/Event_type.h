@@ -50,12 +50,6 @@ typedef enum
 #include <player/events/Event_au_types.h>
     Event_au_STOP,
 
-    Event_processor_START,
-#define EVENT_PROCESSOR_DEF(name, type_suffix, arg_type, validator) \
-        Event_processor_##type_suffix,
-#include <player/events/Event_processor_types.h>
-    Event_processor_STOP,
-
     Event_query_START,
 
     Event_query_location,
@@ -89,15 +83,12 @@ typedef enum
                                   (type) < Event_channel_STOP)
 #define Event_is_au(type)        ((type) > Event_au_START && \
                                   (type) < Event_au_STOP)
-#define Event_is_processor(type) ((type) > Event_processor_START && \
-                                  (type) < Event_processor_STOP)
 #define Event_is_query(type)     ((type) > Event_query_START && \
                                   (type) < Event_query_STOP)
 #define Event_is_auto(type)      ((type) > Event_auto_START && \
                                   (type) < Event_auto_STOP)
 #define Event_is_trigger(type)   (Event_is_au((type))        || \
                                   Event_is_general((type))   || \
-                                  Event_is_processor((type)) || \
                                   Event_is_master((type))    || \
                                   Event_is_channel((type))   || \
                                   Event_is_control((type))   || \

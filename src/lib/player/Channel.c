@@ -132,9 +132,6 @@ void Channel_reset(Channel* ch)
     ch->fg_count = 0;
 
     ch->au_input = 0;
-    ch->processor = 0;
-    ch->effect = 0;
-    ch->au_effects = false;
 
     ch->volume = 1;
 

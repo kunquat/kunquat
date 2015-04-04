@@ -392,7 +392,7 @@ START_TEST(Pattern_playback_repeats_pattern)
 
     validate();
 
-    kqt_Handle_fire_event(handle, 0, "[\"Ipattern\", [0, 0]]");
+    kqt_Handle_fire_event(handle, 0, "[\"cpattern\", [0, 0]]");
 
     float actual_buf[buf_len] = { 0.0f };
     mix_and_fill(actual_buf, buf_len);
@@ -432,7 +432,7 @@ START_TEST(Pattern_playback_pauses_zero_length_pattern)
 
     validate();
 
-    kqt_Handle_fire_event(handle, 0, "[\"Ipattern\", [0, 0]]");
+    kqt_Handle_fire_event(handle, 0, "[\"cpattern\", [0, 0]]");
 
     float actual_buf[buf_len] = { 0.0f };
     long frames_left = buf_len;
@@ -555,7 +555,7 @@ START_TEST(Infinite_mode_loops_composition)
 
     validate();
 
-    kqt_Handle_fire_event(handle, 0, "[\"I.infinite\", true]");
+    kqt_Handle_fire_event(handle, 0, "[\"cinfinite+\", null]");
     check_unexpected_error();
 
     float actual_buf[buf_len] = { 0.0f };
@@ -847,13 +847,13 @@ START_TEST(Events_appear_in_event_buffer)
             "Wrong events received"
             KT_VALUES("%s", expected_events_none, actual_events));
 
-    kqt_Handle_fire_event(handle, 0, "[\"Ipause\", null]");
+    kqt_Handle_fire_event(handle, 0, "[\"cpause\", null]");
     check_unexpected_error();
 
     actual_events = kqt_Handle_receive_events(handle);
     check_unexpected_error();
     const char expected_events_1[] =
-        "[[0, [\"Ipause\", null]]]";
+        "[[0, [\"cpause\", null]]]";
 
     fail_unless(strcmp(actual_events, expected_events_1) == 0,
             "Wrong events received"
@@ -894,8 +894,12 @@ void setup_many_triggers(int event_count)
     for (int i = 1; i < event_count; ++i)
     {
         assert(cur_pos - triggers < 65000);
-        cur_pos += snprintf(cur_pos, 65536 - (cur_pos - triggers),
-                ", [[0, 0], [\"n+\", \"%d\"]]", i);
+        cur_pos += snprintf(
+                cur_pos,
+                65536 - (cur_pos - triggers),
+                ", [[0, 0], [\"%s\", \"%d\"]]",
+                (i % 16 == 0) ? "n+" : "vs",
+                i);
     }
 
     cur_pos += snprintf(cur_pos, 65536 - (cur_pos - triggers), " ]");
@@ -919,8 +923,10 @@ bool read_received_events(Streader* sr, int32_t index, void* userdata)
     int32_t* expected = userdata;
     double actual = NAN;
 
+    const char* event_name = (*expected % 16 == 0) ? "n+" : "vs";
+
     if (!(Streader_readf(sr, "[0, [") &&
-                Streader_match_string(sr, "n+") &&
+                Streader_match_string(sr, event_name) &&
                 Streader_readf(sr, ", %f]]", &actual))
        )
         return false;
@@ -946,7 +952,10 @@ START_TEST(Events_from_many_triggers_can_be_retrieved_with_multiple_receives)
     setup_debug_instrument();
     setup_debug_single_pulse();
 
-    const int event_count = 2048;
+    const int event_count = 2049;
+    const int note_count = event_count / 16 + 1;
+    fail_if(note_count >= 256, "Too many notes to check correct audio output");
+
     setup_many_triggers(event_count);
 
     // Play
@@ -985,8 +994,7 @@ START_TEST(Events_from_many_triggers_can_be_retrieved_with_multiple_receives)
             "Kunquat handle rendered %ld instead of 10 frames",
             kqt_Handle_get_frames_available(handle));
 
-    // FIXME: We can only check for 256 notes as we run out of voices :-P
-    const float expected_buf[10] = { min((float)event_count, 256) };
+    const float expected_buf[10] = { (float)note_count };
     const float* actual_buf = kqt_Handle_get_audio(handle, 0);
     check_buffers_equal(expected_buf, actual_buf, 10, 0.0f);
 }

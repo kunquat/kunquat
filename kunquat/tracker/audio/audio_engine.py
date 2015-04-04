@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013-2014
-#          Tomi Jylhä-Ollila, Finland 2013-2014
+#          Tomi Jylhä-Ollila, Finland 2013-2015
 #
 # This file is part of Kunquat.
 #
@@ -63,7 +63,7 @@ class AudioEngine():
     def set_rendering_engine(self, rendering_engine):
         self._rendering_engine = rendering_engine
         self._rendering_engine.nanoseconds = 0
-        self._rendering_engine.fire_event(0, ('Ipause', None))
+        self._rendering_engine.fire_event(0, ('cpause', None))
 
     def set_audio_output(self, audio_output):
         self._audio_output = audio_output
@@ -153,7 +153,7 @@ class AudioEngine():
 
     def silence(self):
         self._rendering_engine.nanoseconds = 0
-        pause_event = ('Ipause', None)
+        pause_event = ('cpause', None)
         self.tfire_event(0, pause_event)
 
     def _average_time(self, times):

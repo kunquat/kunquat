@@ -225,7 +225,7 @@ void pause(void)
 {
     assert(handle != 0);
 
-    kqt_Handle_fire_event(handle, 0, "[\"Ipause\", null]");
+    kqt_Handle_fire_event(handle, 0, "[\"cpause\", null]");
     check_unexpected_error();
 
     return;

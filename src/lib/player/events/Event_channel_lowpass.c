@@ -17,6 +17,7 @@
 #include <math.h>
 
 #include <debug/assert.h>
+#include <mathnum/common.h>
 #include <player/events/Event_channel_decl.h>
 #include <player/events/Event_common.h>
 #include <player/Voice.h>
@@ -223,7 +224,8 @@ bool Event_channel_set_resonance_process(
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
-    double resonance = pow(1.055, value->value.float_type);
+    const double clamped_res = clamp(value->value.float_type, 0, 100);
+    const double resonance = pow(1.055, clamped_res);
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {

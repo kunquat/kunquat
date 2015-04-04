@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2014
+ * Author: Tomi Jylhä-Ollila, Finland 2014-2015
  *
  * This file is part of Kunquat.
  *
@@ -20,7 +20,6 @@
 //             Name         Type suffix             Arg type        Validator
 EVENT_AUTO_DEF("Atrack",    location_track,         INT,            v_track)
 EVENT_AUTO_DEF("Asystem",   location_system,        INT,            v_system)
-EVENT_AUTO_DEF("Apattern",  location_pattern,       INT,            v_pattern)
 EVENT_AUTO_DEF("Arow",      location_row,           TSTAMP,         v_any_ts)
 EVENT_AUTO_DEF("Avoices",   voice_count,            INT,            v_any_int)
 EVENT_AUTO_DEF("Af",        actual_force,           FLOAT,          v_any_float)

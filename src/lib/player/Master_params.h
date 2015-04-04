@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -79,6 +79,11 @@ typedef struct Master_params
     Tstamp        jump_target_row;
     Active_jumps* active_jumps;
     Jump_cache*   jump_cache;
+
+    bool          do_goto;
+    int16_t       goto_safety_counter;
+    Pat_inst_ref  goto_target_piref;
+    Tstamp        goto_target_row;
 
     // Statistics
     int16_t active_voices;
