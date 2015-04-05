@@ -17,6 +17,10 @@ from PyQt4.QtGui import *
 
 class SampleProc(QWidget):
 
+    @staticmethod
+    def get_name():
+        return u'Sample synthesis'
+
     def __init__(self):
         QWidget.__init__(self)
         self._au_id = None
@@ -37,9 +41,6 @@ class SampleProc(QWidget):
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
-
-    def get_name(self):
-        return 'Sample synthesis'
 
     def unregister_updaters(self):
         pass
