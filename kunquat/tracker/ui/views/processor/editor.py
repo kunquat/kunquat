@@ -225,7 +225,8 @@ class Signals(QWidget):
 
         # Update voice features
         self._vf_container.setEnabled(signal_type == 'voice')
-        self._vf_cut.setEnabled(not connections.is_proc_connected_to_out(self._proc_id))
+        self._vf_cut.setEnabled(
+                not connections.is_proc_out_connected_to_mixed_device(self._proc_id))
 
         vf_info = [
             (self._vf_cut, proc.get_vf_cut),
@@ -246,8 +247,36 @@ class Signals(QWidget):
         au = module.get_audio_unit(self._au_id)
         proc = au.get_processor(self._proc_id)
 
-        proc.set_signal_type(self._SIGNAL_INFO[index][0])
-        self._updater.signal_update(set([self._get_update_signal_type()]))
+        new_signal_type = self._SIGNAL_INFO[index][0]
+
+        update_signals = set([
+            self._get_update_signal_type(), self._get_connections_signal_type()])
+
+        # Enable voice cutting if leaving it disabled would cause problems :-P
+        connections = au.get_connections()
+        if ((new_signal_type == 'voice') and
+                (not proc.get_vf_cut(0)) and
+                connections.is_proc_out_connected_to_mixed_device(self._proc_id)):
+            proc.set_vf_cut(0, True)
+
+        # Give up if other device configurations prevent signal type change :-P
+        if new_signal_type == 'mixed':
+            send_device_ids = connections.get_send_device_ids(self._proc_id)
+            violating_proc_ids = set()
+            for dev_id in send_device_ids:
+                dev_id_parts = dev_id.split('/')
+                if dev_id_parts[-1].startswith('proc_'):
+                    send_proc = au.get_processor(dev_id)
+                    if not send_proc.get_vf_cut(0):
+                        violating_proc_ids.add(dev_id)
+            if violating_proc_ids:
+                dialog = ToMixedConnFailureDialog(violating_proc_ids)
+                dialog.exec_()
+                self._updater.signal_update(update_signals)
+                return
+
+        proc.set_signal_type(new_signal_type)
+        self._updater.signal_update(update_signals)
 
     def _vf_changed(self, state, vf_name):
         module = self._ui_model.get_module()
@@ -281,5 +310,37 @@ class Signals(QWidget):
 
     def _vf_panning_changed(self, state):
         self._vf_changed(state, 'panning')
+
+
+class ToMixedConnFailureDialog(QDialog):
+
+    def __init__(self, violating_proc_ids):
+        QDialog.__init__(self)
+
+        self.setWindowTitle('Conflict between connected processor features')
+
+        if len(violating_proc_ids) == 1:
+            reason = ('another processor with voice cut feature disabled is sending'
+                    ' audio to this processor')
+            solution = ('You may wish to enable the voice cut feature of that'
+                    ' processor, or remove the connection to this processor.')
+        else:
+            reason = ('other processors with voice cut feature disabled are sending'
+                    ' audio to this processor')
+            solution = ('You may wish to enable the voice cut features of those'
+                    ' processors, or remove the connections to this processor.')
+        msg = ''.join((
+            '<p>Sorry, the signal type cannot be changed, because ', reason, '.</p>'))
+        msg += ''.join(('<p>', solution, '</p>'))
+
+        self._message = QLabel(msg)
+        self._okbutton = QPushButton('OK')
+
+        v = QVBoxLayout()
+        v.addWidget(self._message)
+        v.addWidget(self._okbutton)
+        self.setLayout(v)
+
+        QObject.connect(self._okbutton, SIGNAL('clicked()'), self.close)
 
 
