@@ -43,12 +43,16 @@ class AudioUnit():
         self._au_id = au_id
         self._store = None
         self._controller = None
+        self._ui_model = None
         self._au_number = None
         self._existence = None
 
     def set_controller(self, controller):
         self._store = controller.get_store()
         self._controller = controller
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
 
     def get_id(self):
         return self._au_id
@@ -113,6 +117,7 @@ class AudioUnit():
         connections = Connections()
         connections.set_au_id(self._au_id)
         connections.set_controller(self._controller)
+        connections.set_ui_model(self._ui_model)
         return connections
 
     def get_processor(self, proc_id):
@@ -163,6 +168,7 @@ class AudioUnit():
         assert len(au_id.split('/')) == len(self._au_id.split('/')) + 1
         au = AudioUnit(au_id)
         au.set_controller(self._controller)
+        au.set_ui_model(self._ui_model)
         return au
 
     def get_au_ids(self):
@@ -189,6 +195,7 @@ class AudioUnit():
         key = '/'.join((self._au_id, au_id))
         au = AudioUnit(au_id)
         au.set_controller(self._controller)
+        au.set_ui_model(self._ui_model)
         au.set_existence('effect')
         au.set_port_existence('in_00', True)
         au.set_port_existence('out_00', True)
