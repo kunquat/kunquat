@@ -449,6 +449,8 @@ static void Player_process_voices(
 
         active_voice_count += Voice_group_get_size(vg);
 
+        Voice_group_deactivate_unreachable(vg);
+
         vg = Voice_pool_get_next_group(player->voices);
     }
 

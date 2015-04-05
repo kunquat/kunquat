@@ -32,6 +32,7 @@ Voice* new_Voice(void)
 
     voice->id = 0;
     voice->group_id = 0;
+    voice->updated = false;
     voice->prio = VOICE_PRIO_INACTIVE;
     voice->proc = NULL;
     voice->state_size = 0;
@@ -178,6 +179,8 @@ void Voice_mix(
 
     Processor_process_vstate(
             voice->proc, states, voice->state, wbs, offset, nframes, freq, tempo);
+
+    voice->updated = true;
 
     if (!voice->state->active)
         Voice_reset(voice);

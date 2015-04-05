@@ -197,11 +197,21 @@ void Device_set_reset(Device* device, void (*reset)(const Device*, Device_states
  *
  * Note that mixed signals may be always disabled for certain Devices.
  *
- * \param proc      The Device -- must not be \c NULL.
+ * \param device    The Device -- must not be \c NULL.
  * \param enabled   \c true if mixed signals should be enabled, otherwise
  *                  \c false.
  */
 void Device_set_mixed_signals(Device* device, bool enabled);
+
+
+/**
+ * Get mixed signal support information.
+ *
+ * \param device   The Device -- must not be \c NULL.
+ *
+ * \return   \c true if \a device has mixed signals enabled, otherwise \c false.
+ */
+bool Device_get_mixed_signals(const Device* device);
 
 
 /**

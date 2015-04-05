@@ -275,6 +275,13 @@ void Device_set_mixed_signals(Device* device, bool enabled)
 }
 
 
+bool Device_get_mixed_signals(const Device* device)
+{
+    assert(device != NULL);
+    return device->enable_signal_support;
+}
+
+
 void Device_set_process(Device* device, Device_process_signal_func* process_signal)
 {
     assert(device != NULL);
