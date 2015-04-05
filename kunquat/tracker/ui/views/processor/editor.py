@@ -196,7 +196,7 @@ class Signals(QWidget):
         self._updater.unregister_updater(self._perform_updates)
 
     def _get_update_signal_type(self):
-        return '_'.join(('signal_proc_signals', self._au_id, self._proc_id))
+        return '_'.join(('signal_proc_signals', self._proc_id))
 
     def _get_connections_signal_type(self):
         return '_'.join(('signal_connections', self._au_id))
