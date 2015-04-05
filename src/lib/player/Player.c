@@ -267,47 +267,6 @@ bool Player_refresh_bind_state(Player* player)
 }
 
 
-static void Player_reset_channels(Player* player, int16_t track_num)
-{
-    // Find the initial Song (for channel defaults)
-    int16_t song_index = -1;
-    const Track_list* tl = Module_get_track_list(player->module);
-    if (tl != NULL)
-    {
-        const int16_t actual_track_num = max(0, track_num);
-        if (actual_track_num < (int32_t)Track_list_get_len(tl))
-            song_index = Track_list_get_song_index(tl, actual_track_num);
-    }
-
-    // Reset channels
-    const Channel_defaults_list* cdl = NULL;
-    if (song_index >= 0)
-        cdl = Module_get_ch_defaults_list(player->module, song_index);
-
-    if (cdl != NULL)
-    {
-        for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
-        {
-            Channel_reset(player->channels[i]);
-            Channel_apply_defaults(
-                    player->channels[i], Channel_defaults_list_get(cdl, i));
-        }
-    }
-    else
-    {
-        const Channel_defaults* def_ch_defs =
-            Channel_defaults_init(CHANNEL_DEFAULTS_AUTO);
-        for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
-        {
-            Channel_reset(player->channels[i]);
-            Channel_apply_defaults(player->channels[i], def_ch_defs);
-        }
-    }
-
-    return;
-}
-
-
 void Player_reset(Player* player, int16_t track_num)
 {
     assert(player != NULL);

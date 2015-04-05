@@ -18,6 +18,7 @@
 
 #include <debug/assert.h>
 #include <expr.h>
+#include <mathnum/common.h>
 #include <player/Player_seq.h>
 #include <string/common.h>
 
@@ -327,6 +328,47 @@ static void Player_process_expr_event(
 }
 
 
+void Player_reset_channels(Player* player, int16_t track_num)
+{
+    // Find the initial Song (for channel defaults)
+    int16_t song_index = -1;
+    const Track_list* tl = Module_get_track_list(player->module);
+    if (tl != NULL)
+    {
+        const int16_t actual_track_num = max(0, track_num);
+        if (actual_track_num < (int32_t)Track_list_get_len(tl))
+            song_index = Track_list_get_song_index(tl, actual_track_num);
+    }
+
+    // Reset channels
+    const Channel_defaults_list* cdl = NULL;
+    if (song_index >= 0)
+        cdl = Module_get_ch_defaults_list(player->module, song_index);
+
+    if (cdl != NULL)
+    {
+        for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
+        {
+            Channel_reset(player->channels[i]);
+            Channel_apply_defaults(
+                    player->channels[i], Channel_defaults_list_get(cdl, i));
+        }
+    }
+    else
+    {
+        const Channel_defaults* def_ch_defs =
+            Channel_defaults_init(CHANNEL_DEFAULTS_AUTO);
+        for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
+        {
+            Channel_reset(player->channels[i]);
+            Channel_apply_defaults(player->channels[i], def_ch_defs);
+        }
+    }
+
+    return;
+}
+
+
 static void Player_start_pattern_playback_mode(Player* player)
 {
     assert(player != NULL);
@@ -335,9 +377,18 @@ static void Player_start_pattern_playback_mode(Player* player)
 
     player->master_params.pattern_playback_flag = false;
 
+    // Apply channel defaults of the containing song
+    int16_t track = -1;
+    int16_t system = -1;
+    Module_find_pattern_location(
+                player->module, &player->master_params.cur_pos.piref, &track, &system);
+    Player_reset_channels(player, track);
+
     // Move cgiters to the new pattern
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
         Cgiter_reset(&player->cgiters[i], &player->master_params.cur_pos);
+
+    return;
 }
 
 

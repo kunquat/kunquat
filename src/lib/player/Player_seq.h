@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -29,6 +29,9 @@ bool get_event_type_info(
         const Event_names* names,
         char* ret_name,
         Event_type* ret_type);
+
+
+void Player_reset_channels(Player* player, int16_t track_num);
 
 
 void Player_process_event(
