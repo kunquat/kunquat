@@ -50,7 +50,7 @@ DEFAULT_CONFIG = {
             'padding'            : 4,
             'button_width'       : 50,
             'button_padding'     : 2,
-            'audio_unit': {
+            'instrument': {
                 'bg_colour'       : QColor(0x33, 0x33, 0x55),
                 'fg_colour'       : QColor(0xdd, 0xee, 0xff),
                 'button_bg_colour': QColor(0x11, 0x11, 0x33),
@@ -525,7 +525,7 @@ class ConnectionsView(QWidget):
                         self._config['devices'],
                         in_ports,
                         out_ports,
-                        self._get_device_name(dev_id))
+                        lambda: self._get_device(dev_id))
                 device.draw_pixmaps()
                 new_visible_devices[dev_id] = device
 
@@ -958,19 +958,26 @@ class ConnectionsView(QWidget):
 
 class Device():
 
-    def __init__(self, dev_id, config, in_ports, out_ports, name):
+    def __init__(self, dev_id, config, in_ports, out_ports, get_model_device):
         self._id = dev_id
         self._config = config
 
         self._offset_x = 0
         self._offset_y = 0
 
+        model_device = get_model_device()
+        name = model_device.get_name()
+
         self._name = name
 
         if dev_id in ('master', 'Iin'):
             self._type_config = self._config['master']
         elif dev_id.startswith('au'):
-            self._type_config = self._config['audio_unit']
+            if model_device.is_instrument():
+                self._type_config = self._config['instrument']
+            else:
+                assert model_device.is_effect()
+                self._type_config = self._config['effect']
         elif dev_id.startswith('proc'):
             self._type_config = self._config['processor']
         else:
