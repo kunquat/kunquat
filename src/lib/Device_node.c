@@ -165,11 +165,13 @@ bool Device_node_check_connections(
 
             // Check that Processors connected to mixed signal devices
             // have the voice cut feature enabled
-            if (Device_get_mixed_signals(recv_device) &&
+            if (((node->type == DEVICE_TYPE_MASTER) ||
+                        Device_get_mixed_signals(recv_device)) &&
                     (conn->node->type == DEVICE_TYPE_PROCESSOR))
             {
                 const Processor* proc = (const Processor*)send_device;
-                if (!Processor_is_voice_feature_enabled(
+                if (Processor_get_voice_signals(proc) &&
+                        !Processor_is_voice_feature_enabled(
                             proc, conn->port, VOICE_FEATURE_CUT))
                 {
                     snprintf(
