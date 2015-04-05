@@ -19,6 +19,7 @@ import time
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
+from kunquat.tracker.ui.model.processor import Processor
 from linesegment import LineSegment
 
 
@@ -729,11 +730,13 @@ class ConnectionsView(QWidget):
         if not self._is_send_port(from_info['dev_id'], from_info['port']):
             from_info, to_info = to_info, from_info
 
-        if to_info['dev_id'] == 'master':
+        to_device = self._get_device(to_info['dev_id'])
+        if ((not isinstance(to_device, Processor)) or
+                (to_device.get_signal_type() == 'mixed')):
             if from_info['dev_id'].startswith('proc_'):
                 proc = self._get_device(from_info['dev_id'])
                 port_num = int(from_info['port'].split('_')[1], 16)
-                if not proc.get_vf_cut(port_num):
+                if (proc.get_signal_type() == 'voice') and not proc.get_vf_cut(port_num):
                     return True
 
         return False
