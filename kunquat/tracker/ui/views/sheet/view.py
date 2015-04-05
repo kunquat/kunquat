@@ -1072,7 +1072,16 @@ class View(QWidget):
         return QWidget.event(self, ev)
 
     def keyPressEvent(self, event):
-        if self._keyboard_mapper.process_typewriter_button_event(event):
+        selection = self._ui_model.get_selection()
+        location = selection.get_location()
+        sheet_manager = self._ui_model.get_sheet_manager()
+        control_id = sheet_manager.get_inferred_active_control_id_at_location(location)
+
+        control_manager = self._ui_model.get_control_manager()
+        control_manager.set_control_id_override(control_id)
+        note_pressed = self._keyboard_mapper.process_typewriter_button_event(event)
+        control_manager.set_control_id_override(None)
+        if note_pressed:
             return
 
         if event.key() == Qt.Key_Tab:

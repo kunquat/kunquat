@@ -59,6 +59,7 @@ class Session():
         self._pending_playback_cursor_system = 0
         self._playback_cursor_position = (0, 0, [0, 0])
         self._orderlist_selection = None
+        self._track_selection = 0
         self._module_path = None
         self._is_saving = False
 
@@ -318,6 +319,12 @@ class Session():
 
     def get_orderlist_selection(self):
         return self._orderlist_selection
+
+    def set_selected_track_num(self, track_num):
+        self._track_selection = track_num
+
+    def get_selected_track_num(self):
+        return self._track_selection
 
     def set_module_path(self, path):
         self._module_path = path

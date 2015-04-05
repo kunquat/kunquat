@@ -187,7 +187,7 @@ class WarpListContainer(QWidget):
 class WarpList(QScrollArea):
 
     def __init__(self, wave_type, warp_type):
-        QAbstractScrollArea.__init__(self)
+        QScrollArea.__init__(self)
         self._au_id = None
         self._proc_id = None
         self._ui_model = None

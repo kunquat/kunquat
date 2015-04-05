@@ -24,6 +24,7 @@
 #include <mathnum/Real.h>
 #include <memory.h>
 #include <module/Module.h>
+#include <module/sheet/Channel_defaults_list.h>
 #include <string/common.h>
 
 
@@ -94,6 +95,8 @@ Module* new_Module(void)
     module->track_list = NULL;
     for (int i = 0; i < KQT_SONGS_MAX; ++i)
         module->order_lists[i] = NULL;
+    for (int i = 0; i < KQT_SONGS_MAX; ++i)
+        module->cdls[i] = NULL;
     for (int i = 0; i < KQT_SCALES_MAX; ++i)
         module->scales[i] = NULL;
 
@@ -277,6 +280,31 @@ const Order_list* Module_get_order_list(const Module* module, int16_t song)
 
     assert(module->order_lists[song] != NULL);
     return module->order_lists[song];
+}
+
+
+void Module_set_ch_defaults_list(
+        Module* module, int16_t song_index, Channel_defaults_list* cdl)
+{
+    assert(module != NULL);
+    assert(song_index >= 0);
+    assert(song_index < KQT_SONGS_MAX);
+
+    del_Channel_defaults_list(module->cdls[song_index]);
+    module->cdls[song_index] = cdl;
+
+    return;
+}
+
+
+const Channel_defaults_list* Module_get_ch_defaults_list(
+        const Module* module, int16_t song_index)
+{
+    assert(module != NULL);
+    assert(song_index >= 0);
+    assert(song_index < KQT_SONGS_MAX);
+
+    return module->cdls[song_index];
 }
 
 
@@ -637,6 +665,9 @@ void del_Module(Module* module)
 
     for (int i = 0; i < KQT_SONGS_MAX; ++i)
         del_Order_list(module->order_lists[i]);
+
+    for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
+        del_Channel_defaults_list(module->cdls[i]);
 
     for (int i = 0; i < KQT_SCALES_MAX; ++i)
         del_Scale(module->scales[i]);

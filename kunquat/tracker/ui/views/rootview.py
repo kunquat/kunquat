@@ -22,6 +22,7 @@ from aboutwindow import AboutWindow
 from eventlist import EventList
 from connectionswindow import ConnectionsWindow
 from orderlistwindow import OrderlistWindow
+from chdefaultswindow import ChDefaultsWindow
 from auwindow import AuWindow
 from procwindow import ProcWindow
 
@@ -38,6 +39,7 @@ class RootView():
         self._event_log = None
         self._connections = None
         self._orderlist = None
+        self._ch_defaults = None
         self._au_windows = {}
         self._proc_windows = {}
         self._module = None
@@ -99,6 +101,11 @@ class RootView():
                 self._orderlist.set_ui_model(self._ui_model)
                 if is_show_allowed:
                     self._orderlist.show()
+            elif ui == UI_CH_DEFAULTS:
+                self._ch_defaults = ChDefaultsWindow()
+                self._ch_defaults.set_ui_model(self._ui_model)
+                if is_show_allowed:
+                    self._ch_defaults.show()
             elif type(ui) == tuple and ui[0] == UI_AUDIO_UNIT:
                 au_id = ui[1]
                 au_window = AuWindow()
@@ -140,6 +147,10 @@ class RootView():
                 self._orderlist.unregister_updaters()
                 self._orderlist.deleteLater()
                 self._orderlist = None
+            elif ui == UI_CH_DEFAULTS:
+                self._ch_defaults.unregister_updaters()
+                self._ch_defaults.deleteLater()
+                self._ch_defaults = None
             elif type(ui) == tuple and ui[0] == UI_AUDIO_UNIT:
                 au_id = ui[1]
                 au_window = self._au_windows.pop(au_id)

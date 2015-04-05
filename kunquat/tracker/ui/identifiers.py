@@ -18,6 +18,7 @@ UI_EVENT_LOG = 'event_log'
 UI_CONNECTIONS = 'connections'
 UI_AUDIO_UNIT = 'audio_unit'
 UI_ORDERLIST = 'orderlist'
+UI_CH_DEFAULTS = 'ch_defaults'
 UI_PROCESSOR = 'processor'
 
 

@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013-2014
-#          Tomi Jylhä-Ollila, Finland 2013-2014
+#          Tomi Jylhä-Ollila, Finland 2013-2015
 #
 # This file is part of Kunquat.
 #
@@ -72,6 +72,7 @@ class TypewriterButton(QPushButton):
 
     def __init__(self, row, index):
         QPushButton.__init__(self)
+        self._ui_model = None
         self._updater = None
         self._control_manager = None
         self._typewriter_manager = None
@@ -95,6 +96,7 @@ class TypewriterButton(QPushButton):
         QObject.connect(self, SIGNAL('released()'), self._release)
 
     def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
         self._control_manager = ui_model.get_control_manager()
@@ -119,7 +121,15 @@ class TypewriterButton(QPushButton):
             self.setEnabled(False)
 
     def _press(self):
+        selection = self._ui_model.get_selection()
+        location = selection.get_location()
+        sheet_manager = self._ui_model.get_sheet_manager()
+        control_id = sheet_manager.get_inferred_active_control_id_at_location(location)
+
+        control_manager = self._ui_model.get_control_manager()
+        control_manager.set_control_id_override(control_id)
         self._button_model.start_tracked_note()
+        control_manager.set_control_id_override(None)
 
     def _release(self):
         self._button_model.stop_tracked_note()

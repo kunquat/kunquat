@@ -22,6 +22,7 @@
 #include <kunquat/limits.h>
 #include <mathnum/Random.h>
 #include <module/Au_table.h>
+#include <module/sheet/Channel_defaults.h>
 #include <player/Channel_proc_state.h>
 #include <player/Env_state.h>
 #include <player/Event_cache.h>
@@ -135,6 +136,15 @@ void Channel_set_event_cache(Channel* ch, Event_cache* cache);
  * \param ch   The Channel -- must not be \c NULL.
  */
 void Channel_reset(Channel* ch);
+
+
+/**
+ * Apply Channel defaults to the Channel.
+ *
+ * \param ch            The Channel -- must not be \c NULL.
+ * \param ch_defaults   The Channel defaults -- must not be \c NULL.
+ */
+void Channel_apply_defaults(Channel* ch, const Channel_defaults* ch_defaults);
 
 
 /**
