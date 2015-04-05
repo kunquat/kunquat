@@ -115,15 +115,16 @@ class RootView():
                 if is_show_allowed:
                     self._au_windows[au_id].show()
             elif type(ui) == tuple and ui[0] == UI_PROCESSOR:
-                au_id = ui[1]
-                proc_id = ui[2]
+                proc_id = ui[1]
+                proc_id_parts = proc_id.split('/')
+                au_id = '/'.join(proc_id_parts[:-1])
                 proc_window = ProcWindow()
                 proc_window.set_au_id(au_id)
                 proc_window.set_proc_id(proc_id)
                 proc_window.set_ui_model(self._ui_model)
-                self._proc_windows[(au_id, proc_id)] = proc_window
+                self._proc_windows[proc_id] = proc_window
                 if is_show_allowed:
-                    self._proc_windows[(au_id, proc_id)].show()
+                    self._proc_windows[proc_id].show()
             else:
                 raise ValueError('Unsupported UI type: {}'.format(ui))
 
@@ -157,9 +158,8 @@ class RootView():
                 au_window.unregister_updaters()
                 au_window.deleteLater()
             elif type(ui) == tuple and ui[0] == UI_PROCESSOR:
-                au_id = ui[1]
-                proc_id = ui[2]
-                proc_window = self._proc_windows.pop((au_id, proc_id))
+                proc_id = ui[1]
+                proc_window = self._proc_windows.pop(proc_id)
                 proc_window.unregister_updaters()
                 proc_window.deleteLater()
             else:

@@ -16,8 +16,8 @@ from procparams import ProcParams
 
 class ProcParamsEnvgen(ProcParams):
 
-    def __init__(self, au_id, proc_id, controller):
-        ProcParams.__init__(self, au_id, proc_id, controller)
+    def __init__(self, proc_id, controller):
+        ProcParams.__init__(self, proc_id, controller)
 
     def get_scale(self):
         return self._get_value('p_f_scale.json', 1.0)

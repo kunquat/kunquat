@@ -77,12 +77,12 @@ class VisibilityManager():
         self._session.hide_ui(UI_CONNECTIONS)
         self._updater.signal_update()
 
-    def show_audio_unit(self, index):
-        self._session.show_ui((UI_AUDIO_UNIT, index))
+    def show_audio_unit(self, au_id):
+        self._session.show_ui((UI_AUDIO_UNIT, au_id))
         self._updater.signal_update()
 
-    def hide_audio_unit(self, index):
-        self._session.hide_ui((UI_AUDIO_UNIT, index))
+    def hide_audio_unit(self, au_id):
+        self._session.hide_ui((UI_AUDIO_UNIT, au_id))
         self._updater.signal_update()
 
     def show_orderlist(self):
@@ -101,12 +101,12 @@ class VisibilityManager():
         self._session.hide_ui(UI_CH_DEFAULTS)
         self._updater.signal_update()
 
-    def show_processor(self, au_id, proc_id):
-        self._session.show_ui((UI_PROCESSOR, au_id, proc_id))
+    def show_processor(self, proc_id):
+        self._session.show_ui((UI_PROCESSOR, proc_id))
         self._updater.signal_update()
 
-    def hide_processor(self, au_id, proc_id):
-        self._session.hide_ui((UI_PROCESSOR, au_id, proc_id))
+    def hide_processor(self, proc_id):
+        self._session.hide_ui((UI_PROCESSOR, proc_id))
         self._updater.signal_update()
 
     def get_visible(self):

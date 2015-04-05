@@ -66,6 +66,8 @@ class Module():
         return min(free_control_ids)
 
     def get_control_id_by_au_id(self, au_id):
+        if '/' in au_id:
+            return None
         search_au_num = int(au_id.split('_')[1], 16)
         control_map = self._store.get('p_control_map.json', [])
         for control_num, au_num in control_map:
@@ -120,6 +122,13 @@ class Module():
         au = AudioUnit(au_id)
         au.set_controller(self._controller)
         au.set_existence('instrument')
+        au.set_port_existence('in_00', True)
+        au.set_port_existence('out_00', True)
+
+    def add_effect(self, au_id):
+        au = AudioUnit(au_id)
+        au.set_controller(self._controller)
+        au.set_existence('effect')
         au.set_port_existence('in_00', True)
         au.set_port_existence('out_00', True)
 

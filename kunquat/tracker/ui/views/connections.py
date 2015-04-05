@@ -368,15 +368,30 @@ class ConnectionsView(QWidget):
         if not signals.isdisjoint(update_signals):
             self._update_devices()
 
+    def _get_full_id(self, dev_id):
+        assert '/' not in dev_id
+        if not self._au_id:
+            return dev_id
+        return '/'.join((self._au_id, dev_id))
+
+    def _get_sub_id(self, full_dev_id):
+        if not self._au_id:
+            assert '/' not in full_dev_id
+            return full_dev_id
+
+        assert full_dev_id.startswith(self._au_id + '/')
+        return full_dev_id[len(self._au_id) + 1:]
+
     def _get_device(self, dev_id):
+        full_dev_id = self._get_full_id(dev_id)
         container = self._ui_model.get_module()
         if self._au_id != None:
             container = container.get_audio_unit(self._au_id)
 
         if dev_id.startswith('au'):
-            return container.get_audio_unit(dev_id)
+            return container.get_audio_unit(full_dev_id)
         elif dev_id.startswith('proc'):
-            return container.get_processor(dev_id)
+            return container.get_processor(full_dev_id)
 
         return container
 
@@ -406,20 +421,20 @@ class ConnectionsView(QWidget):
             visible_set |= set(['Iin'])
 
             au = module.get_audio_unit(self._au_id)
-            proc_ids = au.get_processor_ids()
-            existent_proc_ids = [proc_id for proc_id in proc_ids
-                    if au.get_processor(proc_id).get_existence()]
+            full_proc_ids = au.get_processor_ids()
+            existent_proc_ids = [self._get_sub_id(fpid) for fpid in full_proc_ids
+                    if au.get_processor(fpid).get_existence()]
             visible_set |= set(existent_proc_ids)
 
-            eff_ids = au.get_au_ids()
-            existent_eff_ids = [eff_id for eff_id in eff_ids
-                    if au.get_au(eff_id).get_existence()]
+            full_eff_ids = au.get_au_ids()
+            existent_eff_ids = [self._get_sub_id(feid) for feid in full_eff_ids
+                    if au.get_audio_unit(feid).get_existence()]
             visible_set |= set(existent_eff_ids)
 
         else:
-            au_ids = module.get_au_ids()
-            existent_au_ids = [au_id for au_id in au_ids
-                    if module.get_audio_unit(au_id).get_existence()]
+            full_au_ids = module.get_au_ids()
+            existent_au_ids = [self._get_sub_id(faid) for faid in full_au_ids
+                    if module.get_audio_unit(faid).get_existence()]
             visible_set |= set(existent_au_ids)
 
         new_dev_ids = []
@@ -922,9 +937,9 @@ class ConnectionsView(QWidget):
         visibility_manager = self._ui_model.get_visibility_manager()
         dev_id = button_info['dev_id']
         if dev_id.startswith('au'):
-            visibility_manager.show_audio_unit(dev_id)
+            visibility_manager.show_audio_unit(self._get_full_id(dev_id))
         elif dev_id.startswith('proc'):
-            visibility_manager.show_processor(self._au_id, dev_id)
+            visibility_manager.show_processor(self._get_full_id(dev_id))
 
     def leaveEvent(self, event):
         if self._state == STATE_EDGE_MENU:

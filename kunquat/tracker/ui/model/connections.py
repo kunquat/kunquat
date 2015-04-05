@@ -20,13 +20,9 @@ class Connections():
         self._controller = None
         self._store = None
         self._au_id = None
-        self._eff_id = None
 
     def set_au_id(self, au_id):
         self._au_id = au_id
-
-    def set_eff_id(self, eff_id):
-        self._eff_id = eff_id
 
     def set_controller(self, controller):
         self._store = controller.get_store()
@@ -36,8 +32,6 @@ class Connections():
         parts = []
         if self._au_id:
             parts.append(self._au_id)
-        if self._eff_id:
-            parts.append(self._eff_id)
         parts.append(subkey)
         return '/'.join(parts)
 
@@ -64,9 +58,10 @@ class Connections():
         self._store[key] = layout
 
     def is_proc_connected_to_out(self, proc_id):
+        sub_proc_id = proc_id.split('/')[-1]
         for conn in self.get_connections():
             from_path, to_path = conn
-            if to_path.startswith('out_') and from_path.split('/')[0] == proc_id:
+            if to_path.startswith('out_') and from_path.split('/')[0] == sub_proc_id:
                 return True
         return False
 
