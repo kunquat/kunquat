@@ -12,6 +12,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from kunquat.kunquat.kunquat import get_default_value
+
 
 class Control():
 
@@ -33,20 +35,37 @@ class Control():
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
 
+    def set_existence(self, existence):
+        key = '{}/p_manifest.json'.format(self._control_id)
+        if existence:
+            self._store[key] = {}
+        else:
+            del self._store[key]
+
     def get_audio_unit(self):
         parts = self._control_id.split('_')
         second = parts[1]
         control_number = int(second, 16)
-        try:
-            input_map = self._store['p_control_map.json']
-        except KeyError:
-            input_map = []
+        cmap_key = 'p_control_map.json'
+        input_map = self._store.get(cmap_key, get_default_value(cmap_key))
         controls = dict(input_map)
         au_number = controls[control_number]
         au_id = 'au_{0:02x}'.format(au_number)
         module = self._ui_model.get_module()
         au = module.get_audio_unit(au_id)
         return au
+
+    def connect_to_au(self, au_id):
+        control_num = int(self._control_id.split('_')[1], 16)
+        au_num = int(au_id.split('_')[1], 16)
+
+        cmap_key = 'p_control_map.json'
+        control_map = self._store.get(cmap_key, get_default_value(cmap_key))
+        controls = dict(control_map)
+        controls[control_num] = au_num
+        self._store[cmap_key] = list(controls.iteritems())
+
+        self._au_number = au_num
 
     def get_active_notes(self):
         notes = self._session.get_active_notes_by_control_id(self._control_id)

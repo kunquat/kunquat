@@ -54,6 +54,15 @@ class AudioUnit():
     def _get_key(self, subkey):
         return '{}/{}'.format(self._au_id, subkey)
 
+    def set_existence(self, au_type):
+        assert (not au_type) or (au_type in ('instrument', 'effect'))
+        key = self._get_key('p_manifest.json')
+        if au_type:
+            manifest = { 'type': au_type }
+            self._store[key] = manifest
+        else:
+            del self._store[key]
+
     def get_existence(self):
         key = self._get_key('p_manifest.json')
         manifest = self._store[key]
@@ -80,6 +89,13 @@ class AudioUnit():
                 out_ports.append(port_id)
 
         return out_ports
+
+    def set_port_existence(self, port_id, existence):
+        key = self._get_key('{}/p_manifest.json'.format(port_id))
+        if existence:
+            self._store[key] = {}
+        else:
+            del self._store[key]
 
     def get_connections(self):
         connections = Connections()
