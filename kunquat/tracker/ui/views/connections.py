@@ -56,17 +56,23 @@ DEFAULT_CONFIG = {
                 'button_bg_colour': QColor(0x11, 0x11, 0x33),
                 'button_focused_bg_colour': QColor(0, 0, 0x77),
             },
-            'processor': {
-                'bg_colour'       : QColor(0x22, 0x55, 0x55),
-                'fg_colour'       : QColor(0xcc, 0xff, 0xff),
-                'button_bg_colour': QColor(0x11, 0x33, 0x33),
-                'button_focused_bg_colour': QColor(0, 0x55, 0x55),
-            },
             'effect': {
                 'bg_colour'       : QColor(0x55, 0x44, 0x33),
                 'fg_colour'       : QColor(0xff, 0xee, 0xdd),
                 'button_bg_colour': QColor(0x33, 0x22, 0x11),
                 'button_focused_bg_colour': QColor(0x77, 0x22, 0),
+            },
+            'proc_voice': {
+                'bg_colour'       : QColor(0x22, 0x55, 0x55),
+                'fg_colour'       : QColor(0xcc, 0xff, 0xff),
+                'button_bg_colour': QColor(0x11, 0x33, 0x33),
+                'button_focused_bg_colour': QColor(0, 0x55, 0x55),
+            },
+            'proc_mixed': {
+                'bg_colour'       : QColor(0x55, 0x22, 0x55),
+                'fg_colour'       : QColor(0xff, 0xcc, 0xff),
+                'button_bg_colour': QColor(0x33, 0x11, 0x33),
+                'button_focused_bg_colour': QColor(0x55, 0, 0x55),
             },
             'master': {
                 'bg_colour'       : QColor(0x33, 0x55, 0x33),
@@ -459,7 +465,16 @@ class ConnectionsView(QWidget):
         for dev_id in self._visible_device_ids:
             if dev_id in self._visible_devices:
                 old_device = self._visible_devices[dev_id]
-                if old_device.get_name() == self._get_device_name(dev_id):
+
+                old_type_cfg_name = old_device.get_type_config_name()
+                was_proc_voice = (old_type_cfg_name == 'proc_voice')
+
+                model_device = self._get_device(dev_id)
+                is_proc_voice = (isinstance(model_device, Processor) and
+                        model_device.get_signal_type() == 'voice')
+
+                if (old_device.get_name() == self._get_device_name(dev_id) and
+                        was_proc_voice == is_proc_voice):
                     new_devices[dev_id] = old_device
         self._visible_devices = new_devices
 
@@ -975,11 +990,17 @@ class Device():
         elif dev_id.startswith('au'):
             if model_device.is_instrument():
                 self._type_config = self._config['instrument']
-            else:
-                assert model_device.is_effect()
+            elif model_device.is_effect():
                 self._type_config = self._config['effect']
+            else:
+                assert False
         elif dev_id.startswith('proc'):
-            self._type_config = self._config['processor']
+            if model_device.get_signal_type() == 'voice':
+                self._type_config = self._config['proc_voice']
+            elif model_device.get_signal_type() == 'mixed':
+                self._type_config = self._config['proc_mixed']
+            else:
+                assert False
         else:
             raise ValueError('Unexpected type of device ID: {}'.format(dev_id))
 
@@ -990,6 +1011,11 @@ class Device():
 
     def get_name(self):
         return self._name
+
+    def get_type_config_name(self):
+        for key, v in self._config.iteritems():
+            if self._type_config == v:
+                return key
 
     def draw_pixmaps(self):
         self._bg = QPixmap(self._config['width'], self._get_height())
