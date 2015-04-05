@@ -54,6 +54,9 @@ class ConnectionsToolBar(QToolBar):
         self._ui_model = None
         self._updater = None
 
+        self._add_ins_button = QToolButton()
+        self._add_ins_button.setText('Add instrument')
+
         self._add_proc_button = QToolButton()
         self._add_proc_button.setText('Add processor')
         self._add_proc_button.setPopupMode(QToolButton.InstantPopup)
@@ -76,6 +79,13 @@ class ConnectionsToolBar(QToolBar):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
 
+        if self._au_id == None:
+            self.addWidget(self._add_ins_button)
+            QObject.connect(
+                    self._add_ins_button,
+                    SIGNAL('clicked()'),
+                    self._add_instrument)
+
         if self._au_id != None:
             self.addWidget(self._add_proc_button)
             QObject.connect(
@@ -85,6 +95,17 @@ class ConnectionsToolBar(QToolBar):
 
     def unregister_updaters(self):
         pass
+
+    def _add_instrument(self):
+        module = self._ui_model.get_module()
+        new_control_id = module.get_free_control_id()
+        new_au_id = module.get_free_au_id()
+        if new_control_id and new_au_id:
+            module.add_instrument(new_au_id)
+            module.add_control(new_control_id)
+            control = module.get_control(new_control_id)
+            control.connect_to_au(new_au_id)
+            self._updater.signal_update(set(['signal_connections']))
 
     def _add_processor(self, action):
         assert action != None
