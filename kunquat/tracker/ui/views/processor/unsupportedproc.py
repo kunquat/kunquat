@@ -17,6 +17,10 @@ from PyQt4.QtGui import *
 
 class UnsupportedProc(QWidget):
 
+    @staticmethod
+    def get_name():
+        return u'(Unsupported)'
+
     def __init__(self):
         QWidget.__init__(self)
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
@@ -29,9 +33,6 @@ class UnsupportedProc(QWidget):
 
     def set_ui_model(self, ui_model):
         pass
-
-    def get_name(self):
-        return '(Unsupported)'
 
     def unregister_updaters(self):
         pass

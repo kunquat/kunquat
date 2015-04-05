@@ -30,6 +30,10 @@ def get_egen_params(obj):
 
 class EnvgenProc(QWidget):
 
+    @staticmethod
+    def get_name():
+        return u'Envelope generation'
+
     def __init__(self):
         QWidget.__init__(self)
         self._au_id = None
@@ -68,9 +72,6 @@ class EnvgenProc(QWidget):
         self._scale.set_ui_model(ui_model)
         self._time_env.set_ui_model(ui_model)
         self._force_env.set_ui_model(ui_model)
-
-    def get_name(self):
-        return 'Envelope generation'
 
     def unregister_updaters(self):
         self._force_env.unregister_updaters()
