@@ -97,7 +97,6 @@ class ConnectionsToolBar(QToolBar):
         if new_proc_id != None:
             au.add_processor(new_proc_id, proc_type)
             update_signal = '_'.join(('signal_connections', self._au_id))
-            print(update_signal)
             self._updater.signal_update(set([update_signal]))
 
 
