@@ -28,10 +28,12 @@ class Album():
     def __init__(self):
         self._store = None
         self._controller = None
+        self._session = None
 
     def set_controller(self, controller):
         self._store = controller.get_store()
         self._controller = controller
+        self._session = controller.get_session()
 
     def get_existence(self):
         key = 'album/p_manifest.json'
@@ -53,6 +55,13 @@ class Album():
         song = Song(song_id, track_num)
         song.set_controller(self._controller)
         return song
+
+    def set_selected_track_num(self, track_num):
+        # FIXME: this is for the channel defaults editor, find a cleaner approach
+        self._session.set_selected_track_num(track_num)
+
+    def get_selected_track_num(self):
+        return min(self._session.get_selected_track_num(), self.get_track_count() - 1)
 
     def get_pattern_instance_location(self, pattern_instance):
         for track_num in xrange(self.get_track_count()):

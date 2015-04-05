@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -209,17 +209,14 @@ long long kqt_Handle_get_duration(kqt_Handle handle, int track)
         return -1;
     }
 
-    Player_reset(h->length_counter);
+    Player_reset(h->length_counter, track);
     Player_skip(h->length_counter, KQT_MAX_CALC_DURATION);
 
     return Player_get_nanoseconds(h->length_counter);
 }
 
 
-int kqt_Handle_set_position(
-        kqt_Handle handle,
-        int track,
-        long long nanoseconds)
+int kqt_Handle_set_position(kqt_Handle handle, int track, long long nanoseconds)
 {
     check_handle(handle, 0);
 
@@ -234,19 +231,16 @@ int kqt_Handle_set_position(
     }
     if (nanoseconds < 0)
     {
-        Handle_set_error(
-                h, ERROR_ARGUMENT, "nanoseconds must be non-negative");
+        Handle_set_error(h, ERROR_ARGUMENT, "nanoseconds must be non-negative");
         return 0;
     }
 
     int64_t skip_frames = ((double)nanoseconds / 1000000000L) *
         Player_get_audio_rate(h->player);
 
-    Device_reset(
-            (Device*)h->module,
-            Player_get_device_states(h->player));
+    Device_reset((Device*)h->module, Player_get_device_states(h->player));
 
-    Player_reset(h->player);
+    Player_reset(h->player, track);
     Player_skip(h->player, skip_frames);
 
     return 1;
@@ -309,29 +303,6 @@ const char* kqt_Handle_receive_events(kqt_Handle handle)
     check_data_is_validated(h, 0);
 
     return Player_get_events(h->player);
-}
-
-
-void Handle_stop(Handle* handle)
-{
-    assert(handle != NULL);
-
-    Player_reset(handle->player);
-
-#if 0
-    handle->module->play_state->mode = STOP;
-    Device_reset((Device*)handle->module);
-#if 0
-    Playdata_reset(handle->module->play_state);
-    for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
-    {
-        Channel_reset(handle->module->channels[i]);
-    }
-#endif
-    handle->module->play_state->track = 0;
-    handle->module->play_state->tempo = NAN;
-#endif
-    return;
 }
 
 

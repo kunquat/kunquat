@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -111,14 +111,6 @@ void Handle_set_error_from_Error(Handle* handle, const Error* error);
  *                 must have an error set.
  */
 void Handle_set_validation_error_from_Error(Handle* handle, const Error* error);
-
-
-/**
- * Reset the playback pointer of the Kunquat Handle.
- *
- * \param handle   The Kunquat Handle -- must not be \c NULL.
- */
-void Handle_stop(Handle* handle);
 
 
 /**

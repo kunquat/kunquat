@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013-2014
-#          Tomi Jylhä-Ollila, Finland 2014
+#          Tomi Jylhä-Ollila, Finland 2014-2015
 #
 # This file is part of Kunquat.
 #
@@ -81,8 +81,16 @@ class Typewriter(QFrame):
             self._current_buttons.remove(button)
 
     def keyPressEvent(self, event):
+        selection = self._ui_model.get_selection()
+        location = selection.get_location()
+        sheet_manager = self._ui_model.get_sheet_manager()
+        control_id = sheet_manager.get_inferred_active_control_id_at_location(location)
+
+        control_manager = self._ui_model.get_control_manager()
+        control_manager.set_control_id_override(control_id)
         if not self._keyboard_mapper.process_typewriter_button_event(event):
             event.ignore()
+        control_manager.set_control_id_override(None)
 
     def keyReleaseEvent(self, event):
         if not self._keyboard_mapper.process_typewriter_button_event(event):

@@ -205,8 +205,8 @@ bool Handle_init(Handle* handle)
         return false;
     }
 
-    Handle_stop(handle);
-    //kqt_Handle_set_position(handle, 0, 0);
+    Player_reset(handle->player, -1);
+
     return true;
 }
 

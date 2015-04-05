@@ -29,6 +29,7 @@
 #include <module/Environment.h>
 #include <module/manifest.h>
 #include <module/Parse_manager.h>
+#include <module/sheet/Channel_defaults_list.h>
 #include <string/common.h>
 #include <string/key_pattern.h>
 #include <string/Streader.h>
@@ -1543,6 +1544,27 @@ static bool read_song_order_list(Reader_params* params)
         del_Order_list(module->order_lists[index]);
 
     module->order_lists[index] = ol;
+
+    return true;
+}
+
+
+static bool read_song_ch_defaults(Reader_params* params)
+{
+    assert(params != NULL);
+
+    int32_t index = -1;
+    acquire_song_index(index, params);
+
+    Channel_defaults_list* cdl = new_Channel_defaults_list(params->sr);
+    if (cdl == NULL)
+    {
+        set_error(params);
+        return false;
+    }
+
+    Module* module = Handle_get_module(params->handle);
+    Module_set_ch_defaults_list(module, index, cdl);
 
     return true;
 }
