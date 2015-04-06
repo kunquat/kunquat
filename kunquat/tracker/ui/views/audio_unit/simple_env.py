@@ -71,6 +71,8 @@ class SimpleEnvelope(QWidget):
                 Qt.Checked if self._get_enabled() else Qt.Unchecked)
         self._enabled_toggle.blockSignals(old_block)
 
+        self._envelope.setEnabled(self._get_enabled())
+
         envelope = self._get_envelope_data()
         self._envelope.set_nodes(envelope['nodes'])
 
