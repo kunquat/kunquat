@@ -966,7 +966,7 @@ class ConnectionsView(QWidget):
             if button_info['button_type'] == 'edit':
                 visibility_manager.show_audio_unit(self._get_full_id(dev_id))
             elif (button_info['button_type'] == 'remove'):
-                remove_action = lambda: self._remove_au(self._get_full_id(dev_id))
+                remove_action = lambda: self._remove_au(dev_id)
                 if shift_pressed:
                     remove_action()
                 else:
@@ -976,14 +976,16 @@ class ConnectionsView(QWidget):
             if button_info['button_type'] == 'edit':
                 visibility_manager.show_processor(self._get_full_id(dev_id))
             elif (button_info['button_type'] == 'remove'):
-                remove_action = lambda: self._remove_proc(self._get_full_id(dev_id))
+                remove_action = lambda: self._remove_proc(dev_id)
                 if shift_pressed:
                     remove_action()
                 else:
                     dialog = RemoveDeviceConfirmDialog(remove_action)
                     dialog.exec_()
 
-    def _remove_au(self, full_dev_id):
+    def _remove_au(self, dev_id):
+        full_dev_id = self._get_full_id(dev_id)
+
         visibility_manager = self._ui_model.get_visibility_manager()
         visibility_manager.hide_audio_unit(full_dev_id)
 
@@ -1001,12 +1003,19 @@ class ConnectionsView(QWidget):
             container = module
         container.remove_audio_unit(full_dev_id)
 
+        layout = connections.get_layout()
+        if dev_id in layout:
+            del layout[dev_id]
+            connections.set_layout(layout)
+
         update_signals = set([self._get_signal('signal_connections')])
         if self._au_id == None:
             update_signals.add('signal_controls')
         self._updater.signal_update(update_signals)
 
-    def _remove_proc(self, full_dev_id):
+    def _remove_proc(self, dev_id):
+        full_dev_id = self._get_full_id(dev_id)
+
         assert self._au_id != None
         visibility_manager = self._ui_model.get_visibility_manager()
         visibility_manager.hide_processor(full_dev_id)
@@ -1017,6 +1026,11 @@ class ConnectionsView(QWidget):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
         au.remove_processor(full_dev_id)
+
+        layout = connections.get_layout()
+        if dev_id in layout:
+            del layout[dev_id]
+            connections.set_layout(layout)
 
         update_signals = set([self._get_signal('signal_connections')])
         self._updater.signal_update(update_signals)
