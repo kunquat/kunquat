@@ -29,48 +29,53 @@ typedef struct Au_params
 {
     uint32_t device_id;
 
-    double global_force;           ///< Global force.
-    double force;                  ///< Default force.
-    double force_variation;        ///< Force variation.
+    // Basic force settings
+    double global_force;
+    double force;
+    double force_variation;
 
-    bool force_volume_env_enabled; ///< Force-volume envelope toggle.
-    Envelope* force_volume_env;    ///< Force-volume envelope.
+    // Force -> param envelopes
+    bool force_volume_env_enabled;
+    Envelope* force_volume_env;
 
-    bool env_force_filter_enabled; ///< Force-filter envelope toggle.
-    Envelope* env_force_filter;    ///< Force-filter envelope.
+    bool env_force_filter_enabled;
+    Envelope* env_force_filter;
 
-    bool force_pitch_env_enabled;  ///< Force-pitch envelope toggle.
-    Envelope* force_pitch_env;     ///< Force-pitch envelope.
-    double force_pitch_env_scale;  ///< Force-pitch envelope scale factor.
+    bool force_pitch_env_enabled;
+    Envelope* force_pitch_env;
+    double force_pitch_env_scale;
 
     double volume; ///< Audio unit volume.
 
-    bool env_force_enabled;  ///< Force envelope toggle.
+    // Force envelopes
+    bool env_force_enabled;
     bool env_force_loop_enabled;
-    bool env_force_carry;    ///< Force envelope carry.
-    Envelope* env_force;     ///< Force envelope.
-    double env_force_scale_amount; ///< Force envelope scale amount (frequency -> speed).
-    double env_force_center; ///< Force envelope scale center frequency.
+    bool env_force_carry;
+    Envelope* env_force;
+    double env_force_scale_amount;
+    double env_force_center;
 
-    bool env_force_rel_enabled;  ///< Release force envelope toggle.
-    Envelope* env_force_rel;     ///< Release force envelope.
-    double env_force_rel_scale_amount; ///< Release force envelope scale amount (frequency -> speed).
-    double env_force_rel_center; ///< Release force envelope scale center frequency.
+    bool env_force_rel_enabled;
+    Envelope* env_force_rel;
+    double env_force_rel_scale_amount;
+    double env_force_rel_center;
 
-    bool panning_enabled;       ///< Default panning toggle.
-    double panning;             ///< Default panning.
-    bool env_pitch_pan_enabled; ///< Pitch-panning envelope toggle.
-    Envelope* env_pitch_pan;    ///< Pitch-panning envelope.
+    // Panning settings
+    bool panning_enabled;
+    double panning;
+    bool env_pitch_pan_enabled;
+    Envelope* env_pitch_pan;
 
-    bool filter_env_enabled;    ///< Filter envelope toggle.
-    Envelope* filter_env;       ///< Filter envelope.
-    double filter_env_scale;    ///< Filter envelope scale factor (frequency -> speed).
-    double filter_env_center;   ///< Filter envelope scale center frequency.
+    // Lowpass filter settings
+    bool filter_env_enabled;
+    Envelope* filter_env;
+    double filter_env_scale;
+    double filter_env_center;
 
-    bool filter_off_env_enabled;  ///< Note Off filter envelope toggle.
-    Envelope* filter_off_env;     ///< Note Off filter envelope.
-    double filter_off_env_scale;  ///< Note Off filter envelope scale factor (frequency -> speed).
-    double filter_off_env_center; ///< Note Off filter envelope scale center frequency.
+    bool filter_off_env_enabled;
+    Envelope* filter_off_env;
+    double filter_off_env_scale;
+    double filter_off_env_center;
 } Au_params;
 
 
