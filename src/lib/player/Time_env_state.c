@@ -148,7 +148,11 @@ int32_t Time_env_state_process(
                     const double next_value = Envelope_get_value(
                             env, cur_pos + inv_audio_rate);
                     cur_value = value;
-                    update_value = next_value - value;
+
+                    if (isfinite(next_value))
+                        update_value = next_value - value;
+                    else
+                        value = last_node[1];
                 }
                 else
                 {
