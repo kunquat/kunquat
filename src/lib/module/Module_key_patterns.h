@@ -73,7 +73,8 @@ MODULE_AU_KEYP(au_env_force_release,    "au_XX/p_envelope_force_release.json",
         ", \"scale_center\": 0"
         ", \"envelope\": { \"nodes\": [ [0, 1], [1, 0] ] }"
         "}")
-MODULE_AU_KEYP(au_env_force_filter,     "au_XX/p_envelope_force_filter.json",   "")
+MODULE_AU_KEYP(au_env_force_filter,     "au_XX/p_envelope_force_filter.json",
+        "{ \"enabled\": false, \"envelope\": { \"nodes\": [ [0, 1], [1, 1] ] } }")
 MODULE_AU_KEYP(au_env_pitch_pan,        "au_XX/p_envelope_pitch_pan.json",      "")
 MODULE_AU_KEYP(au_env_filter,           "au_XX/p_envelope_filter.json",
         "{ \"enabled\": false"
