@@ -98,9 +98,12 @@ class TimeEnvelope(QWidget):
         self._enabled_toggle.blockSignals(old_block)
 
         self._envelope.setEnabled(self._get_enabled())
+        self._scale_amount.setEnabled(self._get_enabled())
+        self._scale_center.setEnabled(self._get_enabled())
 
         if self._allow_loop():
             old_block = self._loop_toggle.blockSignals(True)
+            self._loop_toggle.setEnabled(self._get_enabled())
             self._loop_toggle.setCheckState(
                     Qt.Checked if self._get_loop_enabled() else Qt.Unchecked)
             self._loop_toggle.blockSignals(old_block)
