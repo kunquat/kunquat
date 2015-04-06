@@ -409,4 +409,29 @@ class AudioUnit():
     def set_filter_release_envelope_scale_center(self, value):
         self._set_filter_release_envelope_dict_value('scale_center', value)
 
+    def _get_force_filter_envelope_dict(self):
+        key = self._get_key('p_envelope_force_filter.json')
+        ret = get_default_value(key)
+        if key in self._store:
+            stored = self._store[key]
+            ret.update(stored)
+        return ret
+
+    def _set_force_filter_envelope_dict_value(self, dkey, value):
+        d = self._get_force_filter_envelope_dict()
+        d[dkey] = value
+        self._store[self._get_key('p_envelope_force_filter.json')] = d
+
+    def get_force_filter_envelope(self):
+        return self._get_force_filter_envelope_dict()['envelope']
+
+    def set_force_filter_envelope(self, envelope):
+        self._set_force_filter_envelope_dict_value('envelope', envelope)
+
+    def get_force_filter_envelope_enabled(self):
+        return self._get_force_filter_envelope_dict()['enabled']
+
+    def set_force_filter_envelope_enabled(self, enabled):
+        self._set_force_filter_envelope_dict_value('enabled', enabled)
+
 
