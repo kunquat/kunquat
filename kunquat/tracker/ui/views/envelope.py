@@ -1158,7 +1158,7 @@ class Envelope(QWidget):
 
         end = time.time()
         elapsed = end - start
-        print('Envelope view updated in {:.2f} ms'.format(elapsed * 1000))
+        #print('Envelope view updated in {:.2f} ms'.format(elapsed * 1000))
 
     def _get_display_x_range_width(self):
         r = self._range_x
