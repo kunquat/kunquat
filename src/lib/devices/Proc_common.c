@@ -328,6 +328,7 @@ static void apply_filter_settings(
 
 void Proc_common_handle_filter(
         const Processor* proc,
+        Au_state* au_state,
         Voice_state* vstate,
         const Work_buffers* wbs,
         Audio_buffer* voice_out_buf,
@@ -337,6 +338,7 @@ void Proc_common_handle_filter(
         int32_t buf_stop)
 {
     assert(proc != NULL);
+    assert(au_state != NULL);
     assert(vstate != NULL);
     assert(wbs != NULL);
     assert(voice_out_buf != NULL);
@@ -379,6 +381,92 @@ void Proc_common_handle_filter(
     {
         for (int32_t i = buf_start; i < buf_stop; ++i)
             actual_lowpasses[i] *= LFO_step(&vstate->autowah);
+    }
+
+    // Apply time->filter envelope
+    if (proc->au_params->env_filter_enabled)
+    {
+        const Envelope* env = proc->au_params->env_filter;
+
+        const int32_t env_filter_stop = Time_env_state_process(
+                &vstate->env_filter_state,
+                env,
+                proc->au_params->env_filter_loop_enabled,
+                proc->au_params->env_filter_scale_amount,
+                proc->au_params->env_filter_scale_center,
+                0, // sustain
+                0, 1, // range
+                Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_PITCH),
+                wbs,
+                buf_start,
+                buf_stop,
+                freq);
+
+        const Work_buffer* wb_time_env = Work_buffers_get_buffer(
+                wbs, WORK_BUFFER_TIME_ENV);
+        float* time_env = Work_buffer_get_contents_mut(wb_time_env);
+
+        // Check the end of envelope processing
+        if (vstate->env_filter_state.is_finished)
+        {
+            const double* last_node = Envelope_get_node(
+                    env, Envelope_node_count(env) - 1);
+            const double last_value = last_node[1];
+
+            // Fill the rest of the envelope buffer with the last value
+            for (int32_t i = env_filter_stop; i < buf_stop; ++i)
+                time_env[i] = last_value;
+        }
+
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+        {
+            float actual_lowpass = actual_lowpasses[i];
+            actual_lowpass = min(actual_lowpass, 20000) * time_env[i];
+            actual_lowpasses[i] = actual_lowpass;
+        }
+    }
+
+    // Apply time->filter release envelope
+    if (!vstate->note_on && proc->au_params->env_filter_rel_enabled)
+    {
+        const Envelope* env = proc->au_params->env_filter_rel;
+
+        const int32_t env_filter_rel_stop = Time_env_state_process(
+                &vstate->env_filter_rel_state,
+                env,
+                false, // no loop
+                proc->au_params->env_filter_rel_scale_amount,
+                proc->au_params->env_filter_rel_scale_center,
+                au_state->sustain,
+                0, 1, // range
+                Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_PITCH),
+                wbs,
+                buf_start,
+                buf_stop,
+                freq);
+
+        const Work_buffer* wb_time_env = Work_buffers_get_buffer(
+                wbs, WORK_BUFFER_TIME_ENV);
+        float* time_env = Work_buffer_get_contents_mut(wb_time_env);
+
+        // Check the end of envelope processing
+        if (vstate->env_filter_rel_state.is_finished)
+        {
+            const double* last_node = Envelope_get_node(
+                    env, Envelope_node_count(env) - 1);
+            const double last_value = last_node[1];
+
+            // Fill the rest of the envelope buffer with the last value
+            for (int32_t i = env_filter_rel_stop; i < buf_stop; ++i)
+                time_env[i] = last_value;
+        }
+
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+        {
+            float actual_lowpass = actual_lowpasses[i];
+            actual_lowpass = min(actual_lowpass, 20000) * time_env[i];
+            actual_lowpasses[i] = actual_lowpass;
+        }
     }
 
     static const double max_true_lowpass_change = 1.0145453349375237; // 2^(1/48)

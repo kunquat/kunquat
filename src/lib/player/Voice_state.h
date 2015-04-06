@@ -79,7 +79,6 @@ typedef struct Voice_state
     double noff_pos_rem;           ///< Note Off position remainder.
 
     Time_env_state force_env_state;
-
     Time_env_state force_rel_env_state;
 
     double force;                  ///< The current force (linear factor).
@@ -93,6 +92,9 @@ typedef struct Voice_state
 
     float pitch_pan_ref_param;     ///< Pitch value that maps to the stored pitch-pan value.
     float pitch_pan_value;
+
+    Time_env_state env_filter_state;
+    Time_env_state env_filter_rel_state;
 
     double lowpass;                ///< The current lowpass cut-off frequency.
     double actual_lowpass;         ///< The current actual lowpass cut-off frequency.

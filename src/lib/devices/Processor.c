@@ -375,6 +375,7 @@ void Processor_process_vstate(
 
         Proc_common_handle_filter(
                 proc,
+                au_state,
                 vstate,
                 wbs,
                 voice_out_buf,
