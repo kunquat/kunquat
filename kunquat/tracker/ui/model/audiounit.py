@@ -186,7 +186,7 @@ class AudioUnit():
         all_au_ids = set('{}/au_{:02x}'.format(self._au_id, i)
                 for i in xrange(AUDIO_UNITS_MAX))
         used_au_ids = self.get_au_ids()
-        free_au_ids = all_au_ids
+        free_au_ids = all_au_ids - used_au_ids
         if not free_au_ids:
             return None
         return min(free_au_ids)
