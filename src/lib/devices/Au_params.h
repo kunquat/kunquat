@@ -67,15 +67,16 @@ typedef struct Au_params
     Envelope* env_pitch_pan;
 
     // Lowpass filter settings
-    bool filter_env_enabled;
-    Envelope* filter_env;
-    double filter_env_scale;
-    double filter_env_center;
+    bool env_filter_enabled;
+    bool env_filter_loop_enabled;
+    Envelope* env_filter;
+    double env_filter_scale_amount;
+    double env_filter_scale_center;
 
-    bool filter_off_env_enabled;
-    Envelope* filter_off_env;
-    double filter_off_env_scale;
-    double filter_off_env_center;
+    bool env_filter_rel_enabled;
+    Envelope* env_filter_rel;
+    double env_filter_rel_scale_amount;
+    double env_filter_rel_scale_center;
 } Au_params;
 
 
@@ -109,6 +110,12 @@ bool Au_params_parse_env_force_filter(Au_params* aup, Streader* sr);
 
 
 bool Au_params_parse_env_pitch_pan(Au_params* aup, Streader* sr);
+
+
+bool Au_params_parse_env_filter(Au_params* aup, Streader* sr);
+
+
+bool Au_params_parse_env_filter_rel(Au_params* aup, Streader* sr);
 
 
 /**
