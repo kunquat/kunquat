@@ -87,7 +87,7 @@ MODULE_AU_KEYP(au_env_filter_release,   "au_XX/p_envelope_filter_release.json",
         "{ \"enabled\": false"
         ", \"scale_amount\": 0"
         ", \"scale_center\": 0"
-        ", \"envelope\": { \"nodes\": [ [0, 1], [1, 0] ] }"
+        ", \"envelope\": { \"nodes\": [ [0, 1], [1, 1] ] }"
         "}")
 
 MODULE_AU_KEYP(proc_manifest,           "au_XX/proc_XX/p_manifest.json",        "")
