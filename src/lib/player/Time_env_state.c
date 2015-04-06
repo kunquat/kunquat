@@ -111,7 +111,8 @@ int32_t Time_env_state_process(
                 actual_pitches, i - 1);
 
         // Apply pitch-based scaling
-        if ((scale_amount != 0) && (actual_pitch != prev_actual_pitch))
+        if ((scale_amount != 0) &&
+                ((cur_pos == 0) || (actual_pitch != prev_actual_pitch)))
             scale_factor = pow(actual_pitch * inv_scale_center, scale_amount);
 
         // Get envelope value at current position
