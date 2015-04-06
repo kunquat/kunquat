@@ -47,6 +47,9 @@ Voice_group* Voice_group_init(
         ++vg->size;
     }
 
+    for (uint16_t i = 0; i < vg->size; ++i)
+        vg->voices[i]->updated = false;
+
     return vg;
 }
 
@@ -69,6 +72,8 @@ Voice* Voice_group_get_voice(Voice_group* vg, uint16_t index)
 
 Voice* Voice_group_get_voice_by_proc(Voice_group* vg, uint32_t proc_id)
 {
+    assert(vg != NULL);
+
     for (uint16_t i = 0; i < vg->size; ++i)
     {
         const Processor* proc = Voice_get_proc(vg->voices[i]);
@@ -77,6 +82,21 @@ Voice* Voice_group_get_voice_by_proc(Voice_group* vg, uint32_t proc_id)
     }
 
     return NULL;
+}
+
+
+void Voice_group_deactivate_unreachable(Voice_group* vg)
+{
+    assert(vg != NULL);
+
+    for (uint16_t i = 0; i < vg->size; ++i)
+    {
+        Voice* voice = vg->voices[i];
+        if (!voice->updated)
+            Voice_reset(voice);
+    }
+
+    return;
 }
 
 

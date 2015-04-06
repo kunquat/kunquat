@@ -54,6 +54,9 @@ class ConnectionsToolBar(QToolBar):
         self._ui_model = None
         self._updater = None
 
+        self._add_ins_button = QToolButton()
+        self._add_ins_button.setText('Add instrument')
+
         self._add_proc_button = QToolButton()
         self._add_proc_button.setText('Add processor')
         self._add_proc_button.setPopupMode(QToolButton.InstantPopup)
@@ -68,6 +71,9 @@ class ConnectionsToolBar(QToolBar):
 
         self._add_proc_button.setMenu(procmenu)
 
+        self._add_effect_button = QToolButton()
+        self._add_effect_button.setText('Add effect')
+
     def set_au_id(self, au_id):
         assert self._ui_model == None, "Audio unit ID must be set before UI model"
         self._au_id = au_id
@@ -76,6 +82,13 @@ class ConnectionsToolBar(QToolBar):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
 
+        if self._au_id == None:
+            self.addWidget(self._add_ins_button)
+            QObject.connect(
+                    self._add_ins_button,
+                    SIGNAL('clicked()'),
+                    self._add_instrument)
+
         if self._au_id != None:
             self.addWidget(self._add_proc_button)
             QObject.connect(
@@ -83,8 +96,31 @@ class ConnectionsToolBar(QToolBar):
                     SIGNAL('triggered(QAction*)'),
                     self._add_processor)
 
+        is_effect_allowed = (self._au_id == None)
+        if self._au_id != None:
+            module = self._ui_model.get_module()
+            au = module.get_audio_unit(self._au_id)
+            is_effect_allowed = au.is_instrument()
+        if is_effect_allowed:
+            self.addWidget(self._add_effect_button)
+            QObject.connect(
+                    self._add_effect_button,
+                    SIGNAL('clicked()'),
+                    self._add_effect)
+
     def unregister_updaters(self):
         pass
+
+    def _add_instrument(self):
+        module = self._ui_model.get_module()
+        new_control_id = module.get_free_control_id()
+        new_au_id = module.get_free_au_id()
+        if new_control_id and new_au_id:
+            module.add_instrument(new_au_id)
+            module.add_control(new_control_id)
+            control = module.get_control(new_control_id)
+            control.connect_to_au(new_au_id)
+            self._updater.signal_update(set(['signal_connections']))
 
     def _add_processor(self, action):
         assert action != None
@@ -97,6 +133,28 @@ class ConnectionsToolBar(QToolBar):
         if new_proc_id != None:
             au.add_processor(new_proc_id, proc_type)
             update_signal = '_'.join(('signal_connections', self._au_id))
+            self._updater.signal_update(set([update_signal]))
+
+    def _add_effect(self):
+        module = self._ui_model.get_module()
+        is_control_needed = True
+        parent_device = module
+        if self._au_id != None:
+            is_control_needed = False
+            parent_device = module.get_audio_unit(self._au_id)
+
+        new_au_id = parent_device.get_free_au_id()
+        new_control_id = module.get_free_control_id() if is_control_needed else None
+
+        if (not is_control_needed or new_control_id) and new_au_id:
+            parent_device.add_effect(new_au_id)
+            if is_control_needed:
+                parent_device.add_control(new_control_id)
+                control = parent_device.get_control(new_control_id)
+                control.connect_to_au(new_au_id)
+            update_signal = 'signal_connections'
+            if self._au_id != None:
+                update_signal = '_'.join((update_signal, self._au_id))
             self._updater.signal_update(set([update_signal]))
 
 

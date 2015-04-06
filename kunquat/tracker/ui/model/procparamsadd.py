@@ -180,8 +180,8 @@ class ProcParamsAdd(ProcParams):
             },
         }
 
-    def __init__(self, au_id, proc_id, controller):
-        ProcParams.__init__(self, au_id, proc_id, controller)
+    def __init__(self, proc_id, controller):
+        ProcParams.__init__(self, proc_id, controller)
 
     def get_waveform(self, wave_type):
         key = self._WAVES[wave_type]['waveform_key']

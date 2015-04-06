@@ -83,6 +83,14 @@ Voice* Voice_group_get_voice(Voice_group* vg, uint16_t index);
 Voice* Voice_group_get_voice_by_proc(Voice_group* vg, uint32_t proc_id);
 
 
+/**
+ * Deactivate Voices in the Voice group that have not been updated.
+ *
+ * \param vg   The Voice group -- must not be \c NULL.
+ */
+void Voice_group_deactivate_unreachable(Voice_group* vg);
+
+
 #endif // K_VOICE_GROUP_H
 
 

@@ -19,6 +19,7 @@ import time
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
+from kunquat.tracker.ui.model.processor import Processor
 from linesegment import LineSegment
 
 
@@ -49,23 +50,29 @@ DEFAULT_CONFIG = {
             'padding'            : 4,
             'button_width'       : 50,
             'button_padding'     : 2,
-            'audio_unit': {
+            'instrument': {
                 'bg_colour'       : QColor(0x33, 0x33, 0x55),
                 'fg_colour'       : QColor(0xdd, 0xee, 0xff),
                 'button_bg_colour': QColor(0x11, 0x11, 0x33),
                 'button_focused_bg_colour': QColor(0, 0, 0x77),
-            },
-            'processor': {
-                'bg_colour'       : QColor(0x22, 0x55, 0x55),
-                'fg_colour'       : QColor(0xcc, 0xff, 0xff),
-                'button_bg_colour': QColor(0x11, 0x33, 0x33),
-                'button_focused_bg_colour': QColor(0, 0x55, 0x55),
             },
             'effect': {
                 'bg_colour'       : QColor(0x55, 0x44, 0x33),
                 'fg_colour'       : QColor(0xff, 0xee, 0xdd),
                 'button_bg_colour': QColor(0x33, 0x22, 0x11),
                 'button_focused_bg_colour': QColor(0x77, 0x22, 0),
+            },
+            'proc_voice': {
+                'bg_colour'       : QColor(0x22, 0x55, 0x55),
+                'fg_colour'       : QColor(0xcc, 0xff, 0xff),
+                'button_bg_colour': QColor(0x11, 0x33, 0x33),
+                'button_focused_bg_colour': QColor(0, 0x55, 0x55),
+            },
+            'proc_mixed': {
+                'bg_colour'       : QColor(0x55, 0x22, 0x55),
+                'fg_colour'       : QColor(0xff, 0xcc, 0xff),
+                'button_bg_colour': QColor(0x33, 0x11, 0x33),
+                'button_focused_bg_colour': QColor(0x55, 0, 0x55),
             },
             'master': {
                 'bg_colour'       : QColor(0x33, 0x55, 0x33),
@@ -368,15 +375,30 @@ class ConnectionsView(QWidget):
         if not signals.isdisjoint(update_signals):
             self._update_devices()
 
+    def _get_full_id(self, dev_id):
+        assert '/' not in dev_id
+        if not self._au_id:
+            return dev_id
+        return '/'.join((self._au_id, dev_id))
+
+    def _get_sub_id(self, full_dev_id):
+        if not self._au_id:
+            assert '/' not in full_dev_id
+            return full_dev_id
+
+        assert full_dev_id.startswith(self._au_id + '/')
+        return full_dev_id[len(self._au_id) + 1:]
+
     def _get_device(self, dev_id):
+        full_dev_id = self._get_full_id(dev_id)
         container = self._ui_model.get_module()
         if self._au_id != None:
             container = container.get_audio_unit(self._au_id)
 
         if dev_id.startswith('au'):
-            return container.get_audio_unit(dev_id)
+            return container.get_audio_unit(full_dev_id)
         elif dev_id.startswith('proc'):
-            return container.get_processor(dev_id)
+            return container.get_processor(full_dev_id)
 
         return container
 
@@ -406,20 +428,20 @@ class ConnectionsView(QWidget):
             visible_set |= set(['Iin'])
 
             au = module.get_audio_unit(self._au_id)
-            proc_ids = au.get_processor_ids()
-            existent_proc_ids = [proc_id for proc_id in proc_ids
-                    if au.get_processor(proc_id).get_existence()]
+            full_proc_ids = au.get_processor_ids()
+            existent_proc_ids = [self._get_sub_id(fpid) for fpid in full_proc_ids
+                    if au.get_processor(fpid).get_existence()]
             visible_set |= set(existent_proc_ids)
 
-            eff_ids = au.get_au_ids()
-            existent_eff_ids = [eff_id for eff_id in eff_ids
-                    if au.get_au(eff_id).get_existence()]
+            full_eff_ids = au.get_au_ids()
+            existent_eff_ids = [self._get_sub_id(feid) for feid in full_eff_ids
+                    if au.get_audio_unit(feid).get_existence()]
             visible_set |= set(existent_eff_ids)
 
         else:
-            au_ids = module.get_au_ids()
-            existent_au_ids = [au_id for au_id in au_ids
-                    if module.get_audio_unit(au_id).get_existence()]
+            full_au_ids = module.get_au_ids()
+            existent_au_ids = [self._get_sub_id(faid) for faid in full_au_ids
+                    if module.get_audio_unit(faid).get_existence()]
             visible_set |= set(existent_au_ids)
 
         new_dev_ids = []
@@ -443,7 +465,16 @@ class ConnectionsView(QWidget):
         for dev_id in self._visible_device_ids:
             if dev_id in self._visible_devices:
                 old_device = self._visible_devices[dev_id]
-                if old_device.get_name() == self._get_device_name(dev_id):
+
+                old_type_cfg_name = old_device.get_type_config_name()
+                was_proc_voice = (old_type_cfg_name == 'proc_voice')
+
+                model_device = self._get_device(dev_id)
+                is_proc_voice = (isinstance(model_device, Processor) and
+                        model_device.get_signal_type() == 'voice')
+
+                if (old_device.get_name() == self._get_device_name(dev_id) and
+                        was_proc_voice == is_proc_voice):
                     new_devices[dev_id] = old_device
         self._visible_devices = new_devices
 
@@ -509,7 +540,7 @@ class ConnectionsView(QWidget):
                         self._config['devices'],
                         in_ports,
                         out_ports,
-                        self._get_device_name(dev_id))
+                        lambda: self._get_device(dev_id))
                 device.draw_pixmaps()
                 new_visible_devices[dev_id] = device
 
@@ -714,11 +745,13 @@ class ConnectionsView(QWidget):
         if not self._is_send_port(from_info['dev_id'], from_info['port']):
             from_info, to_info = to_info, from_info
 
-        if to_info['dev_id'] == 'master':
+        to_device = self._get_device(to_info['dev_id'])
+        if ((not isinstance(to_device, Processor)) or
+                (to_device.get_signal_type() == 'mixed')):
             if from_info['dev_id'].startswith('proc_'):
                 proc = self._get_device(from_info['dev_id'])
                 port_num = int(from_info['port'].split('_')[1], 16)
-                if not proc.get_vf_cut(port_num):
+                if (proc.get_signal_type() == 'voice') and not proc.get_vf_cut(port_num):
                     return True
 
         return False
@@ -922,9 +955,9 @@ class ConnectionsView(QWidget):
         visibility_manager = self._ui_model.get_visibility_manager()
         dev_id = button_info['dev_id']
         if dev_id.startswith('au'):
-            visibility_manager.show_audio_unit(dev_id)
+            visibility_manager.show_audio_unit(self._get_full_id(dev_id))
         elif dev_id.startswith('proc'):
-            visibility_manager.show_processor(self._au_id, dev_id)
+            visibility_manager.show_processor(self._get_full_id(dev_id))
 
     def leaveEvent(self, event):
         if self._state == STATE_EDGE_MENU:
@@ -940,21 +973,34 @@ class ConnectionsView(QWidget):
 
 class Device():
 
-    def __init__(self, dev_id, config, in_ports, out_ports, name):
+    def __init__(self, dev_id, config, in_ports, out_ports, get_model_device):
         self._id = dev_id
         self._config = config
 
         self._offset_x = 0
         self._offset_y = 0
 
+        model_device = get_model_device()
+        name = model_device.get_name()
+
         self._name = name
 
         if dev_id in ('master', 'Iin'):
             self._type_config = self._config['master']
         elif dev_id.startswith('au'):
-            self._type_config = self._config['audio_unit']
+            if model_device.is_instrument():
+                self._type_config = self._config['instrument']
+            elif model_device.is_effect():
+                self._type_config = self._config['effect']
+            else:
+                assert False
         elif dev_id.startswith('proc'):
-            self._type_config = self._config['processor']
+            if model_device.get_signal_type() == 'voice':
+                self._type_config = self._config['proc_voice']
+            elif model_device.get_signal_type() == 'mixed':
+                self._type_config = self._config['proc_mixed']
+            else:
+                assert False
         else:
             raise ValueError('Unexpected type of device ID: {}'.format(dev_id))
 
@@ -965,6 +1011,11 @@ class Device():
 
     def get_name(self):
         return self._name
+
+    def get_type_config_name(self):
+        for key, v in self._config.iteritems():
+            if self._type_config == v:
+                return key
 
     def draw_pixmaps(self):
         self._bg = QPixmap(self._config['width'], self._get_height())

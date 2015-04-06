@@ -437,17 +437,22 @@ static void Player_process_voices(
         const Audio_unit* au = (const Audio_unit*)Device_state_get_device(au_state);
         Connections* conns = Audio_unit_get_connections_mut(au);
 
-        Connections_process_voice_group(
-                conns,
-                vg,
-                player->device_states,
-                player->work_buffers,
-                render_start,
-                render_stop,
-                player->audio_rate,
-                player->master_params.tempo);
+        if (conns != NULL)
+        {
+            Connections_process_voice_group(
+                    conns,
+                    vg,
+                    player->device_states,
+                    player->work_buffers,
+                    render_start,
+                    render_stop,
+                    player->audio_rate,
+                    player->master_params.tempo);
 
-        active_voice_count += Voice_group_get_size(vg);
+            active_voice_count += Voice_group_get_size(vg);
+        }
+
+        Voice_group_deactivate_unreachable(vg);
 
         vg = Voice_pool_get_next_group(player->voices);
     }

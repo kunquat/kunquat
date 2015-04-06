@@ -163,18 +163,20 @@ bool Device_node_check_connections(
                 return false;
             }
 
-            // Check that Processors connected to Audio unit outputs
+            // Check that Processors connected to mixed signal devices
             // have the voice cut feature enabled
-            if ((node->type == DEVICE_TYPE_MASTER) &&
+            if (((node->type == DEVICE_TYPE_MASTER) ||
+                        Device_get_mixed_signals(recv_device)) &&
                     (conn->node->type == DEVICE_TYPE_PROCESSOR))
             {
                 const Processor* proc = (const Processor*)send_device;
-                if (!Processor_is_voice_feature_enabled(
+                if (Processor_get_voice_signals(proc) &&
+                        !Processor_is_voice_feature_enabled(
                             proc, conn->port, VOICE_FEATURE_CUT))
                 {
                     snprintf(
                             err, DEVICE_CONNECTION_ERROR_LENGTH_MAX,
-                            "Device %s port %d is connected to audio unit output"
+                            "Device %s port %d is connected to a mixed signal device"
                             " but has voice cutting feature disabled",
                             send_dev_name, conn->port);
                     return false;
@@ -476,9 +478,19 @@ void Device_node_process_voice_group(
 
         // Clear the voice buffers for new contents
         Proc_state_clear_voice_buffers(recv_state);
-    }
 
-    bool active_voices_found = false;
+        if (Processor_get_voice_signals((const Processor*)node_device))
+        {
+            // Stop recursing if we don't have an active Voice
+            const uint32_t proc_id = Device_get_id(node_device);
+            Voice* voice = Voice_group_get_voice_by_proc(vgroup, proc_id);
+            if ((voice == NULL) || (!voice->state->active))
+            {
+                Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
+                return;
+            }
+        }
+    }
 
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
@@ -518,41 +530,20 @@ void Device_node_process_voice_group(
                     Audio_buffer_mix(recv_buf, send_buf, buf_start, buf_stop);
             }
 
-            // See if any of the connected voices are active
-            if (edge->node->type == DEVICE_TYPE_PROCESSOR)
-            {
-                const Voice* send_voice = Voice_group_get_voice_by_proc(
-                        vgroup, Device_get_id(send_device));
-                if ((send_voice != NULL) && send_voice->state->active)
-                    active_voices_found = true;
-            }
-
             edge = edge->next;
         }
     }
 
     if (node->type == DEVICE_TYPE_PROCESSOR)
     {
-        // Find the Voice that belongs to the current Processor
-        const uint32_t proc_id = Device_get_id(node_device);
-        Voice* voice = Voice_group_get_voice_by_proc(vgroup, proc_id);
-
-        if (voice != NULL)
-            Voice_mix(voice, dstates, wbs, buf_stop, buf_start, audio_rate, tempo);
-    }
-
-    if ((node->type == DEVICE_TYPE_MASTER) && string_eq(node->name, ""))
-    {
-        // Deactivate all Voices if output is not possible
-        if (!active_voices_found)
+        if (Processor_get_voice_signals((const Processor*)node_device))
         {
-            const uint16_t voice_count = Voice_group_get_size(vgroup);
-            for (uint16_t i = 0; i < voice_count; ++i)
-            {
-                Voice* voice = Voice_group_get_voice(vgroup, i);
-                assert(voice != NULL);
-                Voice_reset(voice);
-            }
+            // Find the Voice that belongs to the current Processor
+            const uint32_t proc_id = Device_get_id(node_device);
+            Voice* voice = Voice_group_get_voice_by_proc(vgroup, proc_id);
+
+            if (voice != NULL)
+                Voice_mix(voice, dstates, wbs, buf_stop, buf_start, audio_rate, tempo);
         }
     }
 

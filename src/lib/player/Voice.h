@@ -44,6 +44,7 @@ typedef struct Voice
 {
     uint64_t id;             ///< An identification number for this initialisation.
     uint64_t group_id;       ///< The ID of the group this Voice currently belogns to.
+    bool updated;            ///< Used to cut Voices that are not updated.
     Voice_prio prio;         ///< Current priority of the Voice.
     const Processor* proc;   ///< The Processor.
     size_t state_size;       ///< The amount bytes allocated for the Voice state.

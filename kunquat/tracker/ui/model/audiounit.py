@@ -17,6 +17,7 @@ from connections import Connections
 from processor import Processor
 
 
+AUDIO_UNITS_MAX = 256
 PROCESSORS_MAX = 256 # TODO: define in Kunquat interface...
 
 
@@ -37,10 +38,12 @@ _proc_defaults = {
 class AudioUnit():
 
     def __init__(self, au_id):
-        assert(au_id)
+        assert au_id
+        assert len(au_id.split('/')) <= 2
         self._au_id = au_id
         self._store = None
         self._controller = None
+        self._ui_model = None
         self._au_number = None
         self._existence = None
 
@@ -48,11 +51,23 @@ class AudioUnit():
         self._store = controller.get_store()
         self._controller = controller
 
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+
     def get_id(self):
         return self._au_id
 
     def _get_key(self, subkey):
         return '{}/{}'.format(self._au_id, subkey)
+
+    def set_existence(self, au_type):
+        assert (not au_type) or (au_type in ('instrument', 'effect'))
+        key = self._get_key('p_manifest.json')
+        if au_type:
+            manifest = { 'type': au_type }
+            self._store[key] = manifest
+        else:
+            del self._store[key]
 
     def get_existence(self):
         key = self._get_key('p_manifest.json')
@@ -60,6 +75,16 @@ class AudioUnit():
         if type(manifest) == type({}):
             return True
         return False
+
+    def is_instrument(self):
+        key = self._get_key('p_manifest.json')
+        manifest = self._store[key]
+        return self.get_existence() and (manifest.get('type') == 'instrument')
+
+    def is_effect(self):
+        key = self._get_key('p_manifest.json')
+        manifest = self._store[key]
+        return self.get_existence() and (manifest.get('type') == 'effect')
 
     def get_in_ports(self):
         in_ports = []
@@ -81,10 +106,18 @@ class AudioUnit():
 
         return out_ports
 
+    def set_port_existence(self, port_id, existence):
+        key = self._get_key('{}/p_manifest.json'.format(port_id))
+        if existence:
+            self._store[key] = {}
+        else:
+            del self._store[key]
+
     def get_connections(self):
         connections = Connections()
         connections.set_au_id(self._au_id)
         connections.set_controller(self._controller)
+        connections.set_ui_model(self._ui_model)
         return connections
 
     def get_processor(self, proc_id):
@@ -97,13 +130,16 @@ class AudioUnit():
         for key in self._store.keys():
             start = '{}/proc_'.format(self._au_id)
             if key.startswith(start):
-                proc_id = key.split('/')[1]
+                proc_id_pos = len(self._au_id.split('/'))
+                key_parts = key.split('/')
+                proc_id = '/'.join(key_parts[:proc_id_pos + 1])
                 proc_ids.add(proc_id)
         return proc_ids
 
     def get_free_processor_id(self):
         used_proc_ids = self.get_processor_ids()
-        all_proc_ids = set('proc_{:02x}'.format(i) for i in xrange(PROCESSORS_MAX))
+        all_proc_ids = set('{}/proc_{:02x}'.format(self._au_id, i)
+                for i in xrange(PROCESSORS_MAX))
         free_proc_ids = all_proc_ids - used_proc_ids
         free_list = sorted(list(free_proc_ids))
         if not free_list:
@@ -111,7 +147,8 @@ class AudioUnit():
         return free_list[0]
 
     def add_processor(self, proc_id, proc_type):
-        key_prefix = '{}/{}'.format(self._au_id, proc_id)
+        assert proc_id.startswith(self._au_id)
+        key_prefix = proc_id
         transaction = {}
 
         manifest_key = '{}/p_manifest.json'.format(key_prefix)
@@ -126,10 +163,12 @@ class AudioUnit():
 
         self._store.put(transaction)
 
-    def get_au(self, au_id):
-        key = '/'.join((self._au_id, au_id))
+    def get_audio_unit(self, au_id):
+        assert au_id.startswith(self._au_id + '/')
+        assert len(au_id.split('/')) == len(self._au_id.split('/')) + 1
         au = AudioUnit(au_id)
         au.set_controller(self._controller)
+        au.set_ui_model(self._ui_model)
         return au
 
     def get_au_ids(self):
@@ -137,9 +176,29 @@ class AudioUnit():
         start = '{}/au_'.format(self._au_id)
         for key in self._store.keys():
             if key.startswith(start):
-                au_id = key.split('/')
+                sub_au_id_pos = len(self._au_id.split('/'))
+                key_parts = key.split('/')
+                au_id = '/'.join(key_parts[:sub_au_id_pos + 1])
                 au_ids.add(au_id)
         return au_ids
+
+    def get_free_au_id(self):
+        all_au_ids = set('{}/au_{:02x}'.format(self._au_id, i)
+                for i in xrange(AUDIO_UNITS_MAX))
+        used_au_ids = self.get_au_ids()
+        free_au_ids = all_au_ids
+        if not free_au_ids:
+            return None
+        return min(free_au_ids)
+
+    def add_effect(self, au_id):
+        key = '/'.join((self._au_id, au_id))
+        au = AudioUnit(au_id)
+        au.set_controller(self._controller)
+        au.set_ui_model(self._ui_model)
+        au.set_existence('effect')
+        au.set_port_existence('in_00', True)
+        au.set_port_existence('out_00', True)
 
     def get_name(self):
         key = self._get_key('m_name.json')

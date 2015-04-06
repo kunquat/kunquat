@@ -12,10 +12,15 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from kunquat.kunquat.kunquat import get_default_value
 from audiounit import AudioUnit
 from connections import Connections
 from control import Control
 from album import Album
+
+
+AUDIO_UNITS_MAX = 256 # TODO: define in Kunquat interface
+CONTROLS_MAX = 256
 
 
 class Module():
@@ -44,17 +49,25 @@ class Module():
         return self.get_title()
 
     def get_control_ids(self):
-        try:
-            input_map = self._store['p_control_map.json']
-        except KeyError:
-            input_map = []
+        key = 'p_control_map.json'
+        input_map = self._store.get(key, get_default_value(key))
         control_ids = set()
         for (control_number, _) in input_map:
             control_id = 'control_{0:02x}'.format(control_number)
             control_ids.add(control_id)
         return control_ids
 
+    def get_free_control_id(self):
+        all_control_ids = set('control_{:02x}'.format(i) for i in xrange(CONTROLS_MAX))
+        used_control_ids = self.get_control_ids()
+        free_control_ids = all_control_ids - used_control_ids
+        if not free_control_ids:
+            return None
+        return min(free_control_ids)
+
     def get_control_id_by_au_id(self, au_id):
+        if '/' in au_id:
+            return None
         search_au_num = int(au_id.split('_')[1], 16)
         control_map = self._store.get('p_control_map.json', [])
         for control_num, au_num in control_map:
@@ -69,9 +82,16 @@ class Module():
         control.set_ui_model(self._ui_model)
         return control
 
+    def add_control(self, control_id):
+        control = Control(control_id)
+        control.set_controller(self._controller)
+        control.set_ui_model(self._ui_model)
+        control.set_existence(True)
+
     def get_audio_unit(self, au_id):
         au = AudioUnit(au_id)
         au.set_controller(self._controller)
+        au.set_ui_model(self._ui_model)
         return au
 
     def get_au_ids(self):
@@ -82,6 +102,14 @@ class Module():
                 au_ids.add(au_id)
         return au_ids
 
+    def get_free_au_id(self):
+        all_au_ids = set('au_{:02x}'.format(i) for i in xrange(AUDIO_UNITS_MAX))
+        used_au_ids = self.get_au_ids()
+        free_au_ids = all_au_ids - used_au_ids
+        if not free_au_ids:
+            return None
+        return min(free_au_ids)
+
     def get_audio_units(self, validate=True):
         au_ids = self.get_au_ids()
         all_audio_units = [self.get_audio_unit(i) for i in au_ids]
@@ -90,6 +118,22 @@ class Module():
         #    valid = [i for i in all_audio_units if i.get_existence()]
         #    return [] #valid
         return all_audio_units
+
+    def add_instrument(self, au_id):
+        au = AudioUnit(au_id)
+        au.set_controller(self._controller)
+        au.set_ui_model(self._ui_model)
+        au.set_existence('instrument')
+        au.set_port_existence('in_00', True)
+        au.set_port_existence('out_00', True)
+
+    def add_effect(self, au_id):
+        au = AudioUnit(au_id)
+        au.set_controller(self._controller)
+        au.set_ui_model(self._ui_model)
+        au.set_existence('effect')
+        au.set_port_existence('in_00', True)
+        au.set_port_existence('out_00', True)
 
     def get_out_ports(self):
         out_ports = []
@@ -104,6 +148,7 @@ class Module():
     def get_connections(self):
         connections = Connections()
         connections.set_controller(self._controller)
+        connections.set_ui_model(self._ui_model)
         return connections
 
     def get_album(self):

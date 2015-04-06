@@ -14,8 +14,8 @@
 
 class ProcParams():
 
-    def __init__(self, au_id, proc_id, controller):
-        self._key_prefix = '{}/{}/'.format(au_id, proc_id)
+    def __init__(self, proc_id, controller):
+        self._key_prefix = '{}/'.format(proc_id)
         self._controller = controller
         self._store = controller.get_store()
 

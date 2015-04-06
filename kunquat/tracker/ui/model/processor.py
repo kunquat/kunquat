@@ -21,6 +21,8 @@ class Processor():
     def __init__(self, au_id, proc_id):
         assert au_id
         assert proc_id
+        assert proc_id.startswith(au_id)
+        assert len(proc_id.split('/')) == len(au_id.split('/')) + 1
         self._au_id = au_id
         self._proc_id = proc_id
         self._store = None
@@ -31,7 +33,7 @@ class Processor():
         self._controller = controller
 
     def _get_key(self, subkey):
-        return '{}/{}/{}'.format(self._au_id, self._proc_id, subkey)
+        return '{}/{}'.format(self._proc_id, subkey)
 
     def get_existence(self):
         key = self._get_key('p_manifest.json')
@@ -75,7 +77,7 @@ class Processor():
             'envgen':   ProcParamsEnvgen,
         }
         cons = types[self.get_type()]
-        return cons(self._au_id, self._proc_id, self._controller)
+        return cons(self._proc_id, self._controller)
 
     def get_signal_type(self):
         key = self._get_key('p_signal_type.json')
