@@ -154,7 +154,59 @@ class Module():
     def get_album(self):
         album = Album()
         album.set_controller(self._controller)
+        album.set_ui_model(self._ui_model)
         return album
+
+    def remove_controls_to_audio_unit(self, au_id):
+        transaction = {}
+
+        # Update channel defaults
+        fallback_au_ids = self.get_au_ids()
+        fallback_au_ids.discard(au_id)
+        fallback_au_id = min(fallback_au_ids) if fallback_au_ids else 'au_00'
+        if fallback_au_id == au_id:
+            return
+        fallback_control_id = self.get_control_id_by_au_id(fallback_au_id)
+
+        album = self.get_album()
+        songs = (album.get_song_by_track(i) for i in xrange(album.get_track_count()))
+        for song in songs:
+            chd = song.get_channel_defaults()
+            transaction.update(chd.get_edit_remove_controls_to_audio_unit(
+                au_id, fallback_control_id))
+
+        # Remove controls
+        remove_control_nums = []
+        for i in xrange(CONTROLS_MAX):
+            control_id = 'control_{:02x}'.format(i)
+            control = Control(control_id)
+            control.set_controller(self._controller)
+            control.set_ui_model(self._ui_model)
+            if control.get_existence() and (control.get_audio_unit().get_id() == au_id):
+                remove_control_nums.append(i)
+                transaction.update(control.get_edit_remove_control())
+
+        # Update the control map
+        cmap_key = 'p_control_map.json'
+        control_map = self._store.get(cmap_key, get_default_value(cmap_key))
+        new_map = []
+        for pair in control_map:
+            cnum, au_num = pair
+            cur_au_id = 'au_{:02x}'.format(au_num)
+            if cur_au_id != au_id:
+                new_map.append(pair)
+        transaction.update({ cmap_key: new_map })
+
+        self._store.put(transaction)
+
+    def remove_audio_unit(self, au_id):
+        transaction = {}
+        start = au_id + '/'
+        for key in self._store.iterkeys():
+            if key.startswith(start):
+                transaction[key] = None
+
+        self._store.put(transaction)
 
     def set_path(self, path):
         self._session.set_module_path(path)

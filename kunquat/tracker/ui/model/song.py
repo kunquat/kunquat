@@ -26,6 +26,7 @@ class Song():
         self._track_num = track_num
         self._store = None
         self._controller = None
+        self._ui_model = None
 
     def __eq__(self, other):
         if not isinstance(other, Song):
@@ -35,6 +36,9 @@ class Song():
     def set_controller(self, controller):
         self._store = controller.get_store()
         self._controller = controller
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
 
     def get_number(self):
         parts = self._song_id.split('_')
@@ -118,6 +122,7 @@ class Song():
     def get_channel_defaults(self):
         chd = ChannelDefaults(self._song_id)
         chd.set_controller(self._controller)
+        chd.set_ui_model(self._ui_model)
         return chd
 
 
