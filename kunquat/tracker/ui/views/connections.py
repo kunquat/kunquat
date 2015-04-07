@@ -19,6 +19,7 @@ import time
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
+from kunquat.tracker.ui.model.module import Module
 from kunquat.tracker.ui.model.processor import Processor
 from linesegment import LineSegment
 
@@ -634,6 +635,13 @@ class ConnectionsView(QWidget):
 
         # Draw devices
         for dev_id in self._visible_device_ids:
+            # Verify existence of the device
+            # This fixes the occasional momentary glitch after device removal
+            model_device = self._get_device(dev_id)
+            if not isinstance(model_device, Module):
+                if not model_device.get_existence():
+                    continue
+
             device = self._visible_devices[dev_id]
             device.copy_pixmaps(painter)
 
