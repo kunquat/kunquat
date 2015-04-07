@@ -111,7 +111,6 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->noff_pos_rem = 0;
 
     Time_env_state_init(&state->force_env_state);
-
     Time_env_state_init(&state->force_rel_env_state);
 
     state->force = 1;
@@ -125,6 +124,9 @@ Voice_state* Voice_state_clear(Voice_state* state)
 
     state->pitch_pan_ref_param = FLT_MAX;
     state->pitch_pan_value = 0;
+
+    Time_env_state_init(&state->env_filter_state);
+    Time_env_state_init(&state->env_filter_rel_state);
 
     state->lowpass = INFINITY;
     state->actual_lowpass = INFINITY;

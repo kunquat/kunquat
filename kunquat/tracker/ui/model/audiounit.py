@@ -244,10 +244,10 @@ class AudioUnit():
     def set_default_force(self, default_force):
         self._set_value_of_au_dict('force', default_force)
 
-    def _get_force_envelope_dict(self):
-        key = self._get_key('p_envelope_force.json')
+    def _get_time_envelope_dict(self, subkey):
+        key = self._get_key(subkey)
+        d = get_default_value(key)
         try:
-            d = get_default_value(key)
             default_markers = d['envelope']['marks']
             d.update(self._store[key])
             if 'marks' not in d['envelope']:
@@ -256,11 +256,30 @@ class AudioUnit():
             pass
         return d
 
-    def _set_force_envelope_dict_value(self, dkey, value):
-        key = self._get_key('p_envelope_force.json')
-        d = self._get_force_envelope_dict()
+    def _set_time_envelope_dict_value(self, env_subkey, dkey, value):
+        d = self._get_time_envelope_dict(env_subkey)
         d[dkey] = value
-        self._store[key] = d
+        self._store[self._get_key(env_subkey)] = d
+
+    def _get_time_release_envelope_dict(self, subkey):
+        key = self._get_key(subkey)
+        d = get_default_value(key)
+        try:
+            d.update(self._store[key])
+        except KeyError:
+            pass
+        return d
+
+    def _set_time_release_envelope_dict_value(self, env_subkey, dkey, value):
+        d = self._get_time_release_envelope_dict(env_subkey)
+        d[dkey] = value
+        self._store[self._get_key(env_subkey)] = d
+
+    def _get_force_envelope_dict(self):
+        return self._get_time_envelope_dict('p_envelope_force.json')
+
+    def _set_force_envelope_dict_value(self, dkey, value):
+        self._set_time_envelope_dict_value('p_envelope_force.json', dkey, value)
 
     def get_force_envelope(self):
         return self._get_force_envelope_dict()['envelope']
@@ -293,19 +312,11 @@ class AudioUnit():
         self._set_force_envelope_dict_value('scale_center', value)
 
     def _get_force_release_envelope_dict(self):
-        key = self._get_key('p_envelope_force_release.json')
-        try:
-            d = get_default_value(key)
-            d.update(self._store[key])
-        except KeyError:
-            pass
-        return d
+        return self._get_time_release_envelope_dict('p_envelope_force_release.json')
 
     def _set_force_release_envelope_dict_value(self, dkey, value):
-        key = self._get_key('p_envelope_force_release.json')
-        d = self._get_force_release_envelope_dict()
-        d[dkey] = value
-        self._store[key] = d
+        self._set_time_release_envelope_dict_value(
+                'p_envelope_force_release.json', dkey, value)
 
     def get_force_release_envelope(self):
         return self._get_force_release_envelope_dict()['envelope']
@@ -330,5 +341,97 @@ class AudioUnit():
 
     def set_force_release_envelope_scale_center(self, value):
         self._set_force_release_envelope_dict_value('scale_center', value)
+
+    def _get_filter_envelope_dict(self):
+        return self._get_time_envelope_dict('p_envelope_filter.json')
+
+    def _set_filter_envelope_dict_value(self, dkey, value):
+        self._set_time_envelope_dict_value('p_envelope_filter.json', dkey, value)
+
+    def get_filter_envelope(self):
+        return self._get_filter_envelope_dict()['envelope']
+
+    def set_filter_envelope(self, envelope):
+        self._set_filter_envelope_dict_value('envelope', envelope)
+
+    def get_filter_envelope_enabled(self):
+        return self._get_filter_envelope_dict()['enabled']
+
+    def set_filter_envelope_enabled(self, enabled):
+        self._set_filter_envelope_dict_value('enabled', enabled)
+
+    def get_filter_envelope_loop_enabled(self):
+        return self._get_filter_envelope_dict()['loop']
+
+    def set_filter_envelope_loop_enabled(self, enabled):
+        self._set_filter_envelope_dict_value('loop', enabled)
+
+    def get_filter_envelope_scale_amount(self):
+        return self._get_filter_envelope_dict()['scale_amount']
+
+    def set_filter_envelope_scale_amount(self, value):
+        self._set_filter_envelope_dict_value('scale_amount', value)
+
+    def get_filter_envelope_scale_center(self):
+        return self._get_filter_envelope_dict()['scale_center']
+
+    def set_filter_envelope_scale_center(self, value):
+        self._set_filter_envelope_dict_value('scale_center', value)
+
+    def _get_filter_release_envelope_dict(self):
+        return self._get_time_release_envelope_dict('p_envelope_filter_release.json')
+
+    def _set_filter_release_envelope_dict_value(self, dkey, value):
+        self._set_time_release_envelope_dict_value(
+                'p_envelope_filter_release.json', dkey, value)
+
+    def get_filter_release_envelope(self):
+        return self._get_filter_release_envelope_dict()['envelope']
+
+    def set_filter_release_envelope(self, envelope):
+        self._set_filter_release_envelope_dict_value('envelope', envelope)
+
+    def get_filter_release_envelope_enabled(self):
+        return self._get_filter_release_envelope_dict()['enabled']
+
+    def set_filter_release_envelope_enabled(self, enabled):
+        self._set_filter_release_envelope_dict_value('enabled', enabled)
+
+    def get_filter_release_envelope_scale_amount(self):
+        return self._get_filter_release_envelope_dict()['scale_amount']
+
+    def set_filter_release_envelope_scale_amount(self, value):
+        self._set_filter_release_envelope_dict_value('scale_amount', value)
+
+    def get_filter_release_envelope_scale_center(self):
+        return self._get_filter_release_envelope_dict()['scale_center']
+
+    def set_filter_release_envelope_scale_center(self, value):
+        self._set_filter_release_envelope_dict_value('scale_center', value)
+
+    def _get_force_filter_envelope_dict(self):
+        key = self._get_key('p_envelope_force_filter.json')
+        ret = get_default_value(key)
+        if key in self._store:
+            stored = self._store[key]
+            ret.update(stored)
+        return ret
+
+    def _set_force_filter_envelope_dict_value(self, dkey, value):
+        d = self._get_force_filter_envelope_dict()
+        d[dkey] = value
+        self._store[self._get_key('p_envelope_force_filter.json')] = d
+
+    def get_force_filter_envelope(self):
+        return self._get_force_filter_envelope_dict()['envelope']
+
+    def set_force_filter_envelope(self, envelope):
+        self._set_force_filter_envelope_dict_value('envelope', envelope)
+
+    def get_force_filter_envelope_enabled(self):
+        return self._get_force_filter_envelope_dict()['enabled']
+
+    def set_force_filter_envelope_enabled(self, enabled):
+        self._set_force_filter_envelope_dict_value('enabled', enabled)
 
 

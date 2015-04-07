@@ -46,8 +46,8 @@ Au_params* Au_params_init(Au_params* aup, uint32_t device_id)
     aup->env_force = NULL;
     aup->env_force_rel = NULL;
     aup->env_pitch_pan = NULL;
-    aup->filter_env = NULL;
-    aup->filter_off_env = NULL;
+    aup->env_filter = NULL;
+    aup->env_filter_rel = NULL;
 
     aup->volume = 1;
     aup->global_force = 1;
@@ -102,21 +102,22 @@ Au_params* Au_params_init(Au_params* aup, uint32_t device_id)
     Envelope_set_first_lock(aup->env_pitch_pan, true, false);
     Envelope_set_last_lock(aup->env_pitch_pan, true, false);
 
-    new_env_or_fail(aup->filter_env, 32,  0, INFINITY, 0,  0, 1, 0);
-    aup->filter_env_enabled = false;
-    aup->filter_env_scale = 1;
-    aup->filter_env_center = 440;
-    Envelope_set_node(aup->filter_env, 0, 1);
-    Envelope_set_node(aup->filter_env, 1, 1);
-    Envelope_set_first_lock(aup->filter_env, true, false);
+    new_env_or_fail(aup->env_filter, 32,  0, INFINITY, 0,  0, 1, 0);
+    aup->env_filter_enabled = false;
+    aup->env_filter_loop_enabled = false;
+    aup->env_filter_scale_amount = 1;
+    aup->env_filter_scale_center = 440;
+    Envelope_set_node(aup->env_filter, 0, 1);
+    Envelope_set_node(aup->env_filter, 1, 1);
+    Envelope_set_first_lock(aup->env_filter, true, false);
 
-    new_env_or_fail(aup->filter_off_env, 32,  0, INFINITY, 0,  0, 1, 0);
-    aup->filter_off_env_enabled = false;
-    aup->filter_off_env_scale = 1;
-    aup->filter_off_env_center = 440;
-    Envelope_set_node(aup->filter_off_env, 0, 1);
-    Envelope_set_node(aup->filter_off_env, 1, 1);
-    Envelope_set_first_lock(aup->filter_off_env, true, false);
+    new_env_or_fail(aup->env_filter_rel, 32,  0, INFINITY, 0,  0, 1, 0);
+    aup->env_filter_rel_enabled = false;
+    aup->env_filter_rel_scale_amount = 1;
+    aup->env_filter_rel_scale_center = 440;
+    Envelope_set_node(aup->env_filter_rel, 0, 1);
+    Envelope_set_node(aup->env_filter_rel, 1, 1);
+    Envelope_set_first_lock(aup->env_filter_rel, true, false);
 
     return aup;
 }
@@ -432,6 +433,77 @@ bool Au_params_parse_env_force_rel(Au_params* aup, Streader* sr)
 }
 
 
+bool Au_params_parse_env_filter(Au_params* aup, Streader* sr)
+{
+    assert(aup != NULL);
+    assert(sr != NULL);
+
+    if (Streader_is_error_set(sr))
+        return false;
+
+    tdata td =
+    {
+        .env = NULL,
+        .enabled = false,
+        .scale_amount = 0,
+        .scale_center = 0,
+        .carry = false,
+        .loop = false,
+        .release = false,
+    };
+
+    parse_env_time(sr, &td);
+    if (td.env == NULL)
+        return false;
+
+    assert(!Streader_is_error_set(sr));
+    aup->env_filter_enabled = td.enabled;
+    aup->env_filter_loop_enabled = td.loop;
+    aup->env_filter_scale_amount = td.scale_amount;
+    aup->env_filter_scale_center = exp2(td.scale_center / 1200) * 440;
+    Envelope* old_env = aup->env_filter;
+    aup->env_filter = td.env;
+    del_Envelope(old_env);
+
+    return true;
+}
+
+
+bool Au_params_parse_env_filter_rel(Au_params* aup, Streader* sr)
+{
+    assert(aup != NULL);
+    assert(sr != NULL);
+
+    if (Streader_is_error_set(sr))
+        return false;
+
+    tdata td =
+    {
+        .env = NULL,
+        .enabled = false,
+        .scale_amount = 0,
+        .scale_center = 0,
+        .carry = false,
+        .loop = false,
+        .release = true,
+    };
+
+    parse_env_time(sr, &td);
+    if (td.env == NULL)
+        return false;
+
+    assert(!Streader_is_error_set(sr));
+    aup->env_filter_rel_enabled = td.enabled;
+    aup->env_filter_rel_scale_amount = td.scale_amount;
+    aup->env_filter_rel_scale_center = exp2(td.scale_center / 1200) * 440;
+    Envelope* old_env = aup->env_filter_rel;
+    aup->env_filter_rel = td.env;
+    del_Envelope(old_env);
+
+    return true;
+}
+
+
 #define del_env_check(env)   \
     if (true)                \
     {                        \
@@ -450,8 +522,8 @@ void Au_params_deinit(Au_params* aup)
     del_env_check(aup->env_force);
     del_env_check(aup->env_force_rel);
     del_env_check(aup->env_pitch_pan);
-    del_env_check(aup->filter_env);
-    del_env_check(aup->filter_off_env);
+    del_env_check(aup->env_filter);
+    del_env_check(aup->env_filter_rel);
 
     return;
 }

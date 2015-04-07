@@ -787,6 +787,24 @@ static bool read_any_au_env_pitch_pan(
 }
 
 
+static bool read_any_au_env_filter(
+        Reader_params* params, Au_table* au_table, int level)
+{
+    assert(params != NULL);
+    return read_any_au_env_generic(
+            params, au_table, level, Au_params_parse_env_filter);
+}
+
+
+static bool read_any_au_env_filter_release(
+        Reader_params* params, Au_table* au_table, int level)
+{
+    assert(params != NULL);
+    return read_any_au_env_generic(
+            params, au_table, level, Au_params_parse_env_filter_rel);
+}
+
+
 static Processor* add_processor(
         Handle* handle,
         Audio_unit* au,

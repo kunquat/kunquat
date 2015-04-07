@@ -88,6 +88,7 @@ int32_t Proc_common_handle_force(
  * implementation.
  *
  * \param proc            The Processor -- must not be \c NULL.
+ * \param au_state        The Audio unit state -- must not be \c NULL.
  * \param vstate          The Voice state -- must not be \c NULL.
  * \param wbs             The Work buffers -- must not be \c NULL.
  * \param voice_out_buf   The audio output buffer -- must not be \c NULL.
@@ -99,6 +100,7 @@ int32_t Proc_common_handle_force(
  */
 void Proc_common_handle_filter(
         const Processor* proc,
+        Au_state* au_state,
         Voice_state* vstate,
         const Work_buffers* wbs,
         Audio_buffer* voice_out_buf,
