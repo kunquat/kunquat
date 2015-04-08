@@ -12,6 +12,7 @@
 #
 
 from addproc import AddProc
+from delayproc import DelayProc
 from envgenproc import EnvgenProc
 from freeverbproc import FreeverbProc
 from ringmodproc import RingmodProc
@@ -22,6 +23,7 @@ from unsupportedproc import UnsupportedProc
 
 _proc_classes = {
     'add':      AddProc,
+    'delay':    DelayProc,
     'envgen':   EnvgenProc,
     'freeverb': FreeverbProc,
     'ringmod':  RingmodProc,
