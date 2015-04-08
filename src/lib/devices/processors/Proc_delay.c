@@ -81,7 +81,7 @@ static void Tap_state_set(
     assert(buf_size > 0);
     assert(audio_rate > 0);
 
-    if (!isfinite(delay))
+    if (!(delay >= 0))
     {
         tstate->enabled = false;
         return;
