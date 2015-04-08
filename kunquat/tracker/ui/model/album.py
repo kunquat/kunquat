@@ -29,11 +29,15 @@ class Album():
         self._store = None
         self._controller = None
         self._session = None
+        self._ui_model = None
 
     def set_controller(self, controller):
         self._store = controller.get_store()
         self._controller = controller
         self._session = controller.get_session()
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
 
     def get_existence(self):
         key = 'album/p_manifest.json'
@@ -54,6 +58,7 @@ class Album():
         song_id = 'song_{:02x}'.format(song_num)
         song = Song(song_id, track_num)
         song.set_controller(self._controller)
+        song.set_ui_model(self._ui_model)
         return song
 
     def set_selected_track_num(self, track_num):
@@ -140,6 +145,7 @@ class Album():
         song_id = 'song_{:02x}'.format(song_num)
         song = Song(song_id, track_num)
         song.set_controller(self._controller)
+        song.set_ui_model(self._ui_model)
         pattern_instance = PatternInstance(pattern_num, 0)
         pattern_instance.set_controller(self._controller)
 

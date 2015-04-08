@@ -42,6 +42,14 @@ class Control():
         else:
             del self._store[key]
 
+    def get_existence(self):
+        key = '{}/p_manifest.json'.format(self._control_id)
+        return (type(self._store.get(key)) == dict)
+
+    def get_edit_remove_control(self):
+        key = '{}/p_manifest.json'.format(self._control_id)
+        return { key: None }
+
     def get_audio_unit(self):
         parts = self._control_id.split('_')
         second = parts[1]

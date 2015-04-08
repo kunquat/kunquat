@@ -99,4 +99,16 @@ class Connections():
 
         return send_ids
 
+    def disconnect_device(self, dev_id):
+        sub_dev_id = dev_id.split('/')[-1]
+
+        keep_conns = []
+        for conn in self.get_connections():
+            from_path, to_path = conn
+            if not (from_path.startswith(sub_dev_id) or to_path.startswith(sub_dev_id)):
+                keep_conns.append(conn)
+
+        key = self._get_graph_key()
+        self._store[key] = keep_conns
+
 

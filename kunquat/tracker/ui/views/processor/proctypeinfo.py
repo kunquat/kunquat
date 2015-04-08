@@ -22,7 +22,6 @@ _proc_classes = {
     'add':      AddProc,
     'envgen':   EnvgenProc,
     'ringmod':  RingmodProc,
-    'sample':   SampleProc,
 }
 
 

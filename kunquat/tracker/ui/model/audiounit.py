@@ -186,7 +186,7 @@ class AudioUnit():
         all_au_ids = set('{}/au_{:02x}'.format(self._au_id, i)
                 for i in xrange(AUDIO_UNITS_MAX))
         used_au_ids = self.get_au_ids()
-        free_au_ids = all_au_ids
+        free_au_ids = all_au_ids - used_au_ids
         if not free_au_ids:
             return None
         return min(free_au_ids)
@@ -199,6 +199,23 @@ class AudioUnit():
         au.set_existence('effect')
         au.set_port_existence('in_00', True)
         au.set_port_existence('out_00', True)
+
+    def _remove_device(self, dev_id):
+        assert dev_id.startswith(self._au_id)
+
+        transaction = {}
+        start = dev_id + '/'
+        for key in self._store.iterkeys():
+            if key.startswith(start):
+                transaction[key] = None
+
+        self._store.put(transaction)
+
+    def remove_audio_unit(self, au_id):
+        self._remove_device(au_id)
+
+    def remove_processor(self, proc_id):
+        self._remove_device(proc_id)
 
     def get_name(self):
         key = self._get_key('m_name.json')

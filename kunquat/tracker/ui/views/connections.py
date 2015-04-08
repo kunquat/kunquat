@@ -19,6 +19,7 @@ import time
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
+from kunquat.tracker.ui.model.module import Module
 from kunquat.tracker.ui.model.processor import Processor
 from linesegment import LineSegment
 
@@ -48,7 +49,7 @@ DEFAULT_CONFIG = {
             'port_colour'        : QColor(0xee, 0xcc, 0xaa),
             'focused_port_colour': QColor(0xff, 0x77, 0x22),
             'padding'            : 4,
-            'button_width'       : 50,
+            'button_width'       : 44,
             'button_padding'     : 2,
             'instrument': {
                 'bg_colour'       : QColor(0x33, 0x33, 0x55),
@@ -634,6 +635,13 @@ class ConnectionsView(QWidget):
 
         # Draw devices
         for dev_id in self._visible_device_ids:
+            # Verify existence of the device
+            # This fixes the occasional momentary glitch after device removal
+            model_device = self._get_device(dev_id)
+            if not isinstance(model_device, Module):
+                if not model_device.get_existence():
+                    continue
+
             device = self._visible_devices[dev_id]
             device.copy_pixmaps(painter)
 
@@ -777,7 +785,10 @@ class ConnectionsView(QWidget):
                 elif device.contains_rel_pos(dev_rel_pos):
                     on_device = True
                     if device.has_button_at(dev_rel_pos):
-                        new_focused_button_info = { 'dev_id': dev_id }
+                        new_focused_button_info = {
+                            'dev_id': dev_id,
+                            'button_type': device.get_button_type_at(dev_rel_pos),
+                        }
                     break
 
             if not on_device:
@@ -817,6 +828,7 @@ class ConnectionsView(QWidget):
                             self._pressed_button_info.get('dev_id') == dev_id):
                         new_focused_button_info = {
                             'dev_id': dev_id,
+                            'button_type': device.get_button_type_at(dev_rel_pos),
                             'pressed': True,
                         }
 
@@ -902,7 +914,10 @@ class ConnectionsView(QWidget):
             if device.has_button_at(dev_rel_pos):
                 self._state = STATE_PRESSING
                 self._pressed_button_info = {
-                        'dev_id': self._focused_id, 'pressed': True }
+                    'dev_id': self._focused_id,
+                    'button_type': device.get_button_type_at(dev_rel_pos),
+                    'pressed': True
+                }
                 self._focused_button_info = self._pressed_button_info.copy()
             elif self._focused_port_info:
                 self._state = STATE_ADDING_EDGE
@@ -922,9 +937,10 @@ class ConnectionsView(QWidget):
         if self._state == STATE_MOVING:
             pass
         elif self._state == STATE_PRESSING:
+            shift_pressed = (event.modifiers() == Qt.ShiftModifier)
             clicked = (self._focused_button_info == self._pressed_button_info)
             if clicked:
-                self._perform_button_click(self._focused_button_info)
+                self._perform_button_click(self._focused_button_info, shift_pressed)
 
             self._focused_button_info['pressed'] = False
             self._pressed_button_info = {}
@@ -951,13 +967,81 @@ class ConnectionsView(QWidget):
 
         self._state = STATE_IDLE
 
-    def _perform_button_click(self, button_info):
+    def _perform_button_click(self, button_info, shift_pressed):
         visibility_manager = self._ui_model.get_visibility_manager()
         dev_id = button_info['dev_id']
         if dev_id.startswith('au'):
-            visibility_manager.show_audio_unit(self._get_full_id(dev_id))
+            if button_info['button_type'] == 'edit':
+                visibility_manager.show_audio_unit(self._get_full_id(dev_id))
+            elif (button_info['button_type'] == 'remove'):
+                remove_action = lambda: self._remove_au(dev_id)
+                if shift_pressed:
+                    remove_action()
+                else:
+                    dialog = RemoveDeviceConfirmDialog(remove_action)
+                    dialog.exec_()
         elif dev_id.startswith('proc'):
-            visibility_manager.show_processor(self._get_full_id(dev_id))
+            if button_info['button_type'] == 'edit':
+                visibility_manager.show_processor(self._get_full_id(dev_id))
+            elif (button_info['button_type'] == 'remove'):
+                remove_action = lambda: self._remove_proc(dev_id)
+                if shift_pressed:
+                    remove_action()
+                else:
+                    dialog = RemoveDeviceConfirmDialog(remove_action)
+                    dialog.exec_()
+
+    def _remove_au(self, dev_id):
+        full_dev_id = self._get_full_id(dev_id)
+
+        visibility_manager = self._ui_model.get_visibility_manager()
+        visibility_manager.hide_audio_unit(full_dev_id)
+
+        connections = self._get_connections()
+        connections.disconnect_device(full_dev_id)
+
+        module = self._ui_model.get_module()
+
+        if self._au_id == None:
+            module.remove_controls_to_audio_unit(full_dev_id)
+
+        if self._au_id != None:
+            container = module.get_audio_unit(self._au_id)
+        else:
+            container = module
+        container.remove_audio_unit(full_dev_id)
+
+        layout = connections.get_layout()
+        if dev_id in layout:
+            del layout[dev_id]
+            connections.set_layout(layout)
+
+        update_signals = set([self._get_signal('signal_connections')])
+        if self._au_id == None:
+            update_signals.add('signal_controls')
+        self._updater.signal_update(update_signals)
+
+    def _remove_proc(self, dev_id):
+        full_dev_id = self._get_full_id(dev_id)
+
+        assert self._au_id != None
+        visibility_manager = self._ui_model.get_visibility_manager()
+        visibility_manager.hide_processor(full_dev_id)
+
+        connections = self._get_connections()
+        connections.disconnect_device(full_dev_id)
+
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+        au.remove_processor(full_dev_id)
+
+        layout = connections.get_layout()
+        if dev_id in layout:
+            del layout[dev_id]
+            connections.set_layout(layout)
+
+        update_signals = set([self._get_signal('signal_connections')])
+        self._updater.signal_update(update_signals)
 
     def leaveEvent(self, event):
         if self._state == STATE_EDGE_MENU:
@@ -969,6 +1053,40 @@ class ConnectionsView(QWidget):
         self._pressed_button_info = {}
         self._focused_port_info = {}
         self._focused_edge_info = {}
+
+
+class RemoveDeviceConfirmDialog(QDialog):
+
+    def __init__(self, action_on_confirm):
+        QDialog.__init__(self)
+
+        self._action_on_confirm = action_on_confirm
+
+        self.setWindowTitle('Confirm device removal')
+
+        msg = '<p>Do you really want to remove the device?</p>'
+        msg += ('<p>(Tip: You can Shift+click the Del button to remove'
+            ' without confirmation.)</p>')
+
+        self._message = QLabel(msg)
+        self._remove_button = QPushButton('Remove the device')
+        self._cancel_button = QPushButton('Keep the device')
+
+        b = QHBoxLayout()
+        b.addWidget(self._remove_button)
+        b.addWidget(self._cancel_button)
+
+        v = QVBoxLayout()
+        v.addWidget(self._message)
+        v.addLayout(b)
+        self.setLayout(v)
+
+        QObject.connect(self._remove_button, SIGNAL('clicked()'), self._perform_action)
+        QObject.connect(self._cancel_button, SIGNAL('clicked()'), self.close)
+
+    def _perform_action(self):
+        self._action_on_confirm()
+        self.close()
 
 
 class Device():
@@ -1076,6 +1194,13 @@ class Device():
                     self._type_config['button_bg_colour'],
                     self._type_config['fg_colour'])
 
+        # Remove button
+        if self._has_remove_button():
+            self._draw_remove_button(
+                    painter,
+                    self._type_config['button_bg_colour'],
+                    self._type_config['fg_colour'])
+
     def copy_pixmaps(self, painter):
         painter.save()
 
@@ -1160,7 +1285,7 @@ class Device():
         painter.restore()
 
     def draw_button_highlight(self, painter, info):
-        assert self._has_edit_button()
+        assert 'button_type' in info
         painter.save()
         shift_x, shift_y = self._get_top_left_pos((0, 0))
         painter.translate(self._offset_x + shift_x, self._offset_y + shift_y)
@@ -1170,7 +1295,12 @@ class Device():
         if info.get('pressed'):
             bg_colour, fg_colour = fg_colour, bg_colour
 
-        self._draw_edit_button(painter, bg_colour, fg_colour)
+        if info['button_type'] == 'edit':
+            assert self._has_edit_button()
+            self._draw_edit_button(painter, bg_colour, fg_colour)
+        elif info['button_type'] == 'remove':
+            assert self._has_remove_button()
+            self._draw_remove_button(painter, bg_colour, fg_colour)
 
         painter.restore()
 
@@ -1182,16 +1312,22 @@ class Device():
         center_x, center_y = center_pos
         return (center_x + self._bg.width() // 2, center_y + self._bg.height() // 2)
 
-    def _draw_edit_button(self, painter, bg_colour, fg_colour):
-        rect = self._get_edit_button_rect()
-
+    def _draw_button(self, painter, bg_colour, fg_colour, rect, text):
         painter.setPen(fg_colour)
         painter.setBrush(bg_colour)
         painter.drawRect(rect)
 
         painter.setFont(self._config['title_font'])
         text_option = QTextOption(Qt.AlignCenter)
-        painter.drawText(QRectF(rect), 'Edit', text_option)
+        painter.drawText(QRectF(rect), text, text_option)
+
+    def _draw_edit_button(self, painter, bg_colour, fg_colour):
+        rect = self._get_edit_button_rect()
+        self._draw_button(painter, bg_colour, fg_colour, rect, 'Edit')
+
+    def _draw_remove_button(self, painter, bg_colour, fg_colour):
+        rect = self._get_remove_button_rect()
+        self._draw_button(painter, bg_colour, fg_colour, rect, 'Del')
 
     def set_offset(self, offset):
         self._offset_x, self._offset_y = offset
@@ -1231,7 +1367,7 @@ class Device():
 
         return None
 
-    def has_button_at(self, rel_pos):
+    def _has_edit_button_at(self, rel_pos):
         if not self._has_edit_button():
             return False
 
@@ -1239,6 +1375,26 @@ class Device():
         rect = self._get_edit_button_rect()
         return (rect.left() <= biased_x <= rect.right() and
                 rect.top() <= biased_y <= rect.bottom())
+
+    def _has_remove_button_at(self, rel_pos):
+        if not self._has_remove_button():
+            return False
+
+        biased_x, biased_y = self._get_dev_biased_pos(rel_pos)
+        rect = self._get_remove_button_rect()
+        return (rect.left() <= biased_x <= rect.right() and
+                rect.top() <= biased_y <= rect.bottom())
+
+    def has_button_at(self, rel_pos):
+        return (self._has_edit_button_at(rel_pos) or self._has_remove_button_at(rel_pos))
+
+    def get_button_type_at(self, rel_pos):
+        if self._has_edit_button_at(rel_pos):
+            return 'edit'
+        elif self._has_remove_button_at(rel_pos):
+            return 'remove'
+        else:
+            assert False
 
     def get_rect_in_area(self):
         return QRect(
@@ -1248,6 +1404,10 @@ class Device():
                 self._bg.height() + 1)
 
     def _has_edit_button(self):
+        return ((self._id not in ('master', 'Iin')) and
+                (self._id.startswith('au') or self._id.startswith('proc')))
+
+    def _has_remove_button(self):
         return ((self._id not in ('master', 'Iin')) and
                 (self._id.startswith('au') or self._id.startswith('proc')))
 
@@ -1280,7 +1440,18 @@ class Device():
 
     def _get_edit_button_rect(self):
         height = self._get_edit_button_height()
-        left = (self._config['width'] - self._config['button_width']) // 2
+        left = 4 #(self._config['width'] - self._config['button_width']) // 2
+        top = self._get_height() - height - self._config['padding']
+        return QRect(
+                left, top,
+                self._config['button_width'] - 1, height - 1)
+
+    def _get_remove_button_height(self):
+        return self._get_title_height() + self._config['button_padding'] * 2
+
+    def _get_remove_button_rect(self):
+        height = self._get_remove_button_height()
+        left = (self._config['width'] - self._config['button_width']) - 4
         top = self._get_height() - height - self._config['padding']
         return QRect(
                 left, top,

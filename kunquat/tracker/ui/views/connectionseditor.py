@@ -120,7 +120,8 @@ class ConnectionsToolBar(QToolBar):
             module.add_control(new_control_id)
             control = module.get_control(new_control_id)
             control.connect_to_au(new_au_id)
-            self._updater.signal_update(set(['signal_connections']))
+            update_signals = set(['signal_connections', 'signal_controls'])
+            self._updater.signal_update(update_signals)
 
     def _add_processor(self, action):
         assert action != None
@@ -148,13 +149,18 @@ class ConnectionsToolBar(QToolBar):
 
         if (not is_control_needed or new_control_id) and new_au_id:
             parent_device.add_effect(new_au_id)
+            update_signals = set()
             if is_control_needed:
                 parent_device.add_control(new_control_id)
                 control = parent_device.get_control(new_control_id)
                 control.connect_to_au(new_au_id)
+                update_signals.add('signal_controls')
+
             update_signal = 'signal_connections'
             if self._au_id != None:
                 update_signal = '_'.join((update_signal, self._au_id))
-            self._updater.signal_update(set([update_signal]))
+            update_signals.add(update_signal)
+
+            self._updater.signal_update(update_signals)
 
 
