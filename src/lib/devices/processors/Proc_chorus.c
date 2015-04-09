@@ -69,9 +69,14 @@ typedef struct Chorus_state
 static void Chorus_voice_reset(
         Chorus_voice* voice,
         const Chorus_voice_params* params,
+        int32_t master_buf_pos,
         int32_t audio_rate,
         uint32_t buffer_size)
 {
+    assert(voice != NULL);
+    assert(params != NULL);
+    assert(master_buf_pos < (int32_t)buffer_size);
+
     voice->delay = 0;
     voice->offset = 0;
     voice->range = 0;
@@ -86,9 +91,7 @@ static void Chorus_voice_reset(
     voice->offset = 0;
     voice->delay = params->delay;
 
-    voice->range = params->range;
-    if (voice->range >= voice->delay)
-        voice->range = 0.999 * voice->delay;
+    voice->range = min(params->range, 0.999 * voice->delay);
     LFO_set_depth(&voice->delay_variance, voice->range);
 
     voice->speed = params->speed;
@@ -99,7 +102,7 @@ static void Chorus_voice_reset(
     double buf_pos = voice->delay * audio_rate;
     assert(buf_pos >= 0);
     assert(buf_pos < buffer_size - 1);
-    voice->buf_pos = fmod((buffer_size - buf_pos), buffer_size);
+    voice->buf_pos = fmod((buffer_size + master_buf_pos - buf_pos), buffer_size);
     assert(voice->buf_pos >= 0);
 
     return;
@@ -124,7 +127,11 @@ static void Chorus_state_reset(
         const Chorus_voice_params* params = &voice_params[i];
         Chorus_voice* voice = &cstate->voices[i];
         Chorus_voice_reset(
-                voice, params, cstate->parent.parent.audio_rate, buf_size);
+                voice,
+                params,
+                cstate->buf_pos,
+                cstate->parent.parent.audio_rate,
+                buf_size);
     }
 
     return;
@@ -441,7 +448,7 @@ static void Proc_chorus_update_state_voice_delay(
     voice->delay = get_voice_delay(value);
 
     Chorus_voice_reset(
-            voice, params, cstate->parent.parent.audio_rate, buf_size);
+            voice, params, cstate->buf_pos, cstate->parent.parent.audio_rate, buf_size);
 
     return;
 }
@@ -468,14 +475,12 @@ static void Proc_chorus_update_state_voice_range(
     uint32_t buf_size = Audio_buffer_get_size(cstate->buf);
 
     voice->range = get_voice_range(value);
-
-    if (voice->range >= voice->delay)
-        voice->range = 0.999 * voice->delay;
+    voice->range = min(voice->range, 0.999 * voice->delay);
 
     LFO_set_depth(&voice->delay_variance, voice->range);
 
     Chorus_voice_reset(
-            voice, params, cstate->parent.parent.audio_rate, buf_size);
+            voice, params, cstate->buf_pos, cstate->parent.parent.audio_rate, buf_size);
 
     return;
 }
@@ -506,7 +511,7 @@ static void Proc_chorus_update_state_voice_speed(
     LFO_set_speed(&voice->delay_variance, voice->speed);
 
     Chorus_voice_reset(
-            voice, params, cstate->parent.parent.audio_rate, buf_size);
+            voice, params, cstate->buf_pos, cstate->parent.parent.audio_rate, buf_size);
 
     return;
 }
@@ -535,7 +540,7 @@ static void Proc_chorus_update_state_voice_volume(
     voice->volume = get_voice_volume(value);
 
     Chorus_voice_reset(
-            voice, params, cstate->parent.parent.audio_rate, buf_size);
+            voice, params, cstate->buf_pos, cstate->parent.parent.audio_rate, buf_size);
 
     return;
 }
