@@ -73,6 +73,8 @@ class ProcParamsChorus(ProcParams):
             self._set_voice_range(i, vrange)
             self._set_voice_speed(i, speed)
             self._set_voice_volume(i, volume)
+        for i in xrange(len(voices), self._VOICES_MAX):
+            self._remove_voice(i)
 
     def _get_voice_existence(self, index):
         has_delay = (self._get_voice_delay(index) >= 0)
