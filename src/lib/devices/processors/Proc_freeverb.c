@@ -67,6 +67,9 @@ typedef struct Freeverb_state
 {
     Proc_state parent;
 
+    double active_reflect;
+    double active_damp;
+
     Freeverb_comb* comb_left[FREEVERB_COMBS];
     Freeverb_comb* comb_right[FREEVERB_COMBS];
     Freeverb_allpass* allpass_left[FREEVERB_ALLPASSES];
@@ -117,8 +120,7 @@ typedef struct Proc_freeverb
 
 
 static void Freeverb_state_reset(
-        Freeverb_state* fstate,
-        const Proc_freeverb* freeverb)
+        Freeverb_state* fstate, const Proc_freeverb* freeverb)
 {
     assert(fstate != NULL);
     assert(freeverb != NULL);
@@ -135,14 +137,17 @@ static void Freeverb_state_reset(
         Freeverb_allpass_clear(fstate->allpass_right[i]);
     }
 
+    fstate->active_reflect = freeverb->reflect1;
+    fstate->active_damp = freeverb->damp1;
+
     for (int i = 0; i < FREEVERB_COMBS; ++i)
     {
         assert(fstate->comb_left[i] != NULL);
         assert(fstate->comb_right[i] != NULL);
-        Freeverb_comb_set_feedback(fstate->comb_left[i], freeverb->reflect1);
-        Freeverb_comb_set_feedback(fstate->comb_right[i], freeverb->reflect1);
-        Freeverb_comb_set_damp(fstate->comb_left[i], freeverb->damp1);
-        Freeverb_comb_set_damp(fstate->comb_right[i], freeverb->damp1);
+        Freeverb_comb_set_feedback(fstate->comb_left[i], fstate->active_reflect);
+        Freeverb_comb_set_feedback(fstate->comb_right[i], fstate->active_reflect);
+        Freeverb_comb_set_damp(fstate->comb_left[i], fstate->active_damp);
+        Freeverb_comb_set_damp(fstate->comb_right[i], fstate->active_damp);
     }
 
     for (int i = 0; i < FREEVERB_ALLPASSES; ++i)
@@ -283,6 +288,9 @@ static Device_state* Proc_freeverb_create_state(
     }
 
     fstate->parent.parent.deinit = Freeverb_state_deinit;
+
+    fstate->active_reflect = initial_reflect;
+    fstate->active_damp = initial_damp;
 
     for (int i = 0; i < FREEVERB_COMBS; ++i)
     {
@@ -531,6 +539,30 @@ static void Proc_freeverb_process(
     kqt_frame* out_data[] = { NULL, NULL };
     get_raw_input(&fstate->parent.parent, 0, in_data);
     get_raw_output(&fstate->parent.parent, 0, out_data);
+
+    if (fstate->active_reflect != freeverb->reflect1)
+    {
+        // Update reflectivity settings
+        fstate->active_reflect = freeverb->reflect1;
+
+        for (int i = 0; i < FREEVERB_COMBS; ++i)
+        {
+            Freeverb_comb_set_feedback(fstate->comb_left[i], fstate->active_reflect);
+            Freeverb_comb_set_feedback(fstate->comb_right[i], fstate->active_reflect);
+        }
+    }
+
+    if (fstate->active_damp != freeverb->damp1)
+    {
+        // Update damp settings
+        fstate->active_damp = freeverb->damp1;
+
+        for (int i = 0; i < FREEVERB_COMBS; ++i)
+        {
+            Freeverb_comb_set_damp(fstate->comb_left[i], fstate->active_damp);
+            Freeverb_comb_set_damp(fstate->comb_right[i], fstate->active_damp);
+        }
+    }
 
     for (uint32_t i = start; i < until; ++i)
     {

@@ -13,6 +13,7 @@
 
 from addproc import AddProc
 from envgenproc import EnvgenProc
+from freeverbproc import FreeverbProc
 from ringmodproc import RingmodProc
 from sampleproc import SampleProc
 from volumeproc import VolumeProc
@@ -22,6 +23,7 @@ from unsupportedproc import UnsupportedProc
 _proc_classes = {
     'add':      AddProc,
     'envgen':   EnvgenProc,
+    'freeverb': FreeverbProc,
     'ringmod':  RingmodProc,
     'volume':   VolumeProc,
 }

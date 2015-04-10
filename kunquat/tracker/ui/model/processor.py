@@ -14,6 +14,7 @@
 from kunquat.kunquat.kunquat import get_default_value
 from procparamsadd import ProcParamsAdd
 from procparamsenvgen import ProcParamsEnvgen
+from procparamsfreeverb import ProcParamsFreeverb
 from procparamsvolume import ProcParamsVolume
 
 
@@ -76,6 +77,7 @@ class Processor():
         types = {
             'add':      ProcParamsAdd,
             'envgen':   ProcParamsEnvgen,
+            'freeverb': ProcParamsFreeverb,
             'volume':   ProcParamsVolume,
         }
         cons = types[self.get_type()]
