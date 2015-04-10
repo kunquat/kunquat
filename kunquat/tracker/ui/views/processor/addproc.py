@@ -38,12 +38,15 @@ class AddProc(QWidget):
         self._au_id = None
         self._proc_id = None
         self._ui_model = None
+        self._updater = None
 
+        self._ramp_attack = QCheckBox('Ramp attack')
         self._base_waveform = WaveformEditor('base')
         self._base_tone_editor = ToneList('base')
 
         v = QVBoxLayout()
         v.setSpacing(10)
+        v.addWidget(self._ramp_attack)
         v.addWidget(self._base_waveform)
         v.addWidget(self._base_tone_editor)
         self.setLayout(v)
@@ -64,10 +67,39 @@ class AddProc(QWidget):
         self._ui_model = ui_model
         self._base_waveform.set_ui_model(ui_model)
         self._base_tone_editor.set_ui_model(ui_model)
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+
+        self._update_ramp_attack()
+
+        QObject.connect(
+                self._ramp_attack, SIGNAL('stateChanged(int)'), self._change_ramp_attack)
 
     def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
         self._base_tone_editor.unregister_updaters()
         self._base_waveform.unregister_updaters()
+
+    def _get_update_signal_type(self):
+        return '_'.join(('signal_proc_add_ramp_attack', self._proc_id))
+
+    def _perform_updates(self, signals):
+        if self._get_update_signal_type() in signals:
+            self._update_ramp_attack()
+
+    def _update_ramp_attack(self):
+        add_params = get_add_params(self)
+        enabled = add_params.get_ramp_attack_enabled()
+
+        old_block = self._ramp_attack.blockSignals(True)
+        self._ramp_attack.setCheckState(Qt.Checked if enabled else Qt.Unchecked)
+        self._ramp_attack.blockSignals(old_block)
+
+    def _change_ramp_attack(self, state):
+        enabled = (state == Qt.Checked)
+        add_params = get_add_params(self)
+        add_params.set_ramp_attack_enabled(enabled)
+        self._updater.signal_update(set([self._get_update_signal_type()]))
 
 
 class WaveformEditor(QWidget):
