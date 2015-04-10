@@ -94,14 +94,6 @@ class Processor():
     def _get_vf_key(self, port, vf):
         return 'out_{:02x}/p_vf_{}.json'.format(port, vf)
 
-    def get_vf_cut(self, port):
-        key = self._get_key(self._get_vf_key(port, 'cut'))
-        return self._store.get(key, get_default_value(key))
-
-    def set_vf_cut(self, port, enabled):
-        key = self._get_key(self._get_vf_key(port, 'cut'))
-        self._store[key] = enabled
-
     def get_vf_pitch(self, port):
         key = self._get_key(self._get_vf_key(port, 'pitch'))
         return self._store.get(key, get_default_value(key))
