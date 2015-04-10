@@ -93,10 +93,9 @@ Module* new_Module(void)
     module->bind = NULL;
     module->album_is_existent = false;
     module->track_list = NULL;
+    module->ch_defs = NULL;
     for (int i = 0; i < KQT_SONGS_MAX; ++i)
         module->order_lists[i] = NULL;
-    for (int i = 0; i < KQT_SONGS_MAX; ++i)
-        module->cdls[i] = NULL;
     for (int i = 0; i < KQT_SCALES_MAX; ++i)
         module->scales[i] = NULL;
 
@@ -283,28 +282,21 @@ const Order_list* Module_get_order_list(const Module* module, int16_t song)
 }
 
 
-void Module_set_ch_defaults_list(
-        Module* module, int16_t song_index, Channel_defaults_list* cdl)
+void Module_set_ch_defaults_list(Module* module, Channel_defaults_list* ch_defs)
 {
     assert(module != NULL);
-    assert(song_index >= 0);
-    assert(song_index < KQT_SONGS_MAX);
 
-    del_Channel_defaults_list(module->cdls[song_index]);
-    module->cdls[song_index] = cdl;
+    del_Channel_defaults_list(module->ch_defs);
+    module->ch_defs = ch_defs;
 
     return;
 }
 
 
-const Channel_defaults_list* Module_get_ch_defaults_list(
-        const Module* module, int16_t song_index)
+const Channel_defaults_list* Module_get_ch_defaults_list(const Module* module)
 {
     assert(module != NULL);
-    assert(song_index >= 0);
-    assert(song_index < KQT_SONGS_MAX);
-
-    return module->cdls[song_index];
+    return module->ch_defs;
 }
 
 
@@ -662,12 +654,10 @@ void del_Module(Module* module)
     del_Bit_array(module->au_controls);
     del_Input_map(module->au_map);
     del_Track_list(module->track_list);
+    del_Channel_defaults_list(module->ch_defs);
 
     for (int i = 0; i < KQT_SONGS_MAX; ++i)
         del_Order_list(module->order_lists[i]);
-
-    for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
-        del_Channel_defaults_list(module->cdls[i]);
 
     for (int i = 0; i < KQT_SCALES_MAX; ++i)
         del_Scale(module->scales[i]);
