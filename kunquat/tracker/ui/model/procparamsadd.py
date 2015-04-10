@@ -183,6 +183,12 @@ class ProcParamsAdd(ProcParams):
     def __init__(self, proc_id, controller):
         ProcParams.__init__(self, proc_id, controller)
 
+    def get_ramp_attack_enabled(self):
+        return self._get_value('p_b_ramp_attack.json', True)
+
+    def set_ramp_attack_enabled(self, enabled):
+        self._set_value('p_b_ramp_attack.json', enabled)
+
     def get_waveform(self, wave_type):
         key = self._WAVES[wave_type]['waveform_key']
         wav_data = self._get_value(key, None)
