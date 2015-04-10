@@ -75,20 +75,14 @@ class SheetManager():
 
     def get_inferred_active_control_id_at_location(self, location):
         ret_id = 'control_00'
-
-        # Return our fallback if there are no songs
-        module = self._ui_model.get_module()
-        album = module.get_album()
-        if album.get_track_count() == 0:
-            return ret_id
-
-        # Our improved guess is the channel default of the current song
         clamped_loc = self.get_clamped_location(location)
-        song = album.get_song_by_track(clamped_loc.get_track())
-        chd = song.get_channel_defaults()
-        ret_id = chd.get_default_control_id(clamped_loc.get_col_num())
 
-        # Set if there is an audio unit set event at the selected row
+        # Use channel default if we don't get any better ideas
+        module = self._ui_model.get_module()
+        ch_defs = module.get_channel_defaults()
+        ret_id = ch_defs.get_default_control_id(clamped_loc.get_col_num())
+
+        # See if there is an audio unit set event at the selected row
         column = self.get_column_at_location(clamped_loc)
         if column.has_trigger(clamped_loc.get_row_ts(), 0):
             triggers = [column.get_trigger(clamped_loc.get_row_ts(), i)
