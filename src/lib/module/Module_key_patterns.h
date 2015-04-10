@@ -96,7 +96,6 @@ MODULE_AU_KEYP(proc_in_port_manifest,   "au_XX/proc_XX/in_XX/p_manifest.json",  
 MODULE_AU_KEYP(proc_out_port_manifest,  "au_XX/proc_XX/out_XX/p_manifest.json", "")
 MODULE_AU_KEYP(proc_vf_pitch,           "au_XX/proc_XX/out_XX/p_vf_pitch.json", "true")
 MODULE_AU_KEYP(proc_vf_force,           "au_XX/proc_XX/out_XX/p_vf_force.json", "true")
-MODULE_AU_KEYP(proc_vf_cut,             "au_XX/proc_XX/out_XX/p_vf_cut.json",   "true")
 MODULE_AU_KEYP(proc_vf_filter,          "au_XX/proc_XX/out_XX/p_vf_filter.json", "true")
 MODULE_AU_KEYP(proc_vf_panning,         "au_XX/proc_XX/out_XX/p_vf_panning.json", "true")
 MODULE_AU_KEYP(proc_impl_key,           "au_XX/proc_XX/i/",                     "")

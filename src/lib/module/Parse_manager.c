@@ -1147,6 +1147,8 @@ static bool read_any_proc_signal_type(
     Processor_set_voice_signals(proc, voice_signals_selected);
     Device_set_mixed_signals((Device*)proc, mixed_signals_selected);
 
+    params->handle->update_connections = true;
+
     return true;
 }
 
@@ -1265,14 +1267,6 @@ static bool read_any_proc_vf_force(
         Reader_params* params, Au_table* au_table, int level)
 {
     return read_any_proc_voice_feature(params, au_table, level, VOICE_FEATURE_FORCE);
-}
-
-
-static bool read_any_proc_vf_cut(
-        Reader_params* params, Au_table* au_table, int level)
-{
-    return read_any_proc_voice_feature(
-            params, au_table, level, VOICE_FEATURE_CUT);
 }
 
 

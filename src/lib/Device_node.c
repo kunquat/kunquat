@@ -62,6 +62,9 @@ struct Device_node
 };
 
 
+Processor* Device_node_get_processor_mut(Device_node* node);
+
+
 Device_node* new_Device_node(
         const char* name, Au_table* au_table, const Device* master)
 {
@@ -126,6 +129,101 @@ int Device_node_cmp(const Device_node* n1, const Device_node* n2)
     assert(n2 != NULL);
 
     return strcmp(n1->name, n2->name);
+}
+
+
+void Device_node_clear_processor_voice_cut_settings(Device_node* node)
+{
+    assert(node != NULL);
+    assert(Device_node_get_state(node) != DEVICE_NODE_STATE_REACHED);
+
+    if (Device_node_get_state(node) == DEVICE_NODE_STATE_VISITED)
+        return;
+
+    Device_node_set_state(node, DEVICE_NODE_STATE_REACHED);
+
+    const Device* node_device = Device_node_get_device(node);
+    if (node_device == NULL)
+    {
+        Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
+        return;
+    }
+
+    if (node->type == DEVICE_TYPE_PROCESSOR)
+    {
+        Processor* proc = Device_node_get_processor_mut(node);
+        Processor_set_voice_feature(proc, 0, VOICE_FEATURE_CUT, false);
+    }
+
+    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+    {
+        Connection* edge = node->receive[port];
+        while (edge != NULL)
+        {
+            if (Device_node_get_device(edge->node) == NULL)
+            {
+                edge = edge->next;
+                continue;
+            }
+
+            Device_node_clear_processor_voice_cut_settings(edge->node);
+
+            edge = edge->next;
+        }
+    }
+
+    Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
+    return;
+}
+
+
+void Device_node_init_processor_voice_cut_settings(Device_node* node)
+{
+    assert(node != NULL);
+    assert(Device_node_get_state(node) != DEVICE_NODE_STATE_REACHED);
+
+    if (Device_node_get_state(node) == DEVICE_NODE_STATE_VISITED)
+        return;
+
+    Device_node_set_state(node, DEVICE_NODE_STATE_REACHED);
+
+    const Device* node_device = Device_node_get_device(node);
+    if (node_device == NULL)
+    {
+        Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
+        return;
+    }
+
+    bool is_mixed_device = true;
+    if (node->type == DEVICE_TYPE_PROCESSOR)
+        is_mixed_device = Device_get_mixed_signals(node_device);
+
+    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+    {
+        Connection* edge = node->receive[port];
+        while (edge != NULL)
+        {
+            if (Device_node_get_device(edge->node) == NULL)
+            {
+                edge = edge->next;
+                continue;
+            }
+
+            if (is_mixed_device && (edge->node->type == DEVICE_TYPE_PROCESSOR))
+            {
+                Processor* proc = Device_node_get_processor_mut(edge->node);
+                if (proc != NULL)
+                    Processor_set_voice_feature(proc, 0, VOICE_FEATURE_CUT, true);
+            }
+
+            Device_node_init_processor_voice_cut_settings(edge->node);
+
+            edge = edge->next;
+        }
+    }
+
+    Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
+    return;
 }
 
 
@@ -657,6 +755,16 @@ char* Device_node_get_name(Device_node* node)
 {
     assert(node != NULL);
     return node->name;
+}
+
+
+Processor* Device_node_get_processor_mut(Device_node* node)
+{
+    assert(node != NULL);
+    assert(node->type == DEVICE_TYPE_PROCESSOR);
+
+    Proc_table* procs = Audio_unit_get_procs((const Audio_unit*)node->master);
+    return Proc_table_get_proc_mut(procs, node->index);
 }
 
 

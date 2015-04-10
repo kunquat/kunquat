@@ -422,6 +422,22 @@ static bool Connections_is_cyclic(Connections* graph)
 }
 
 
+void Connections_init_processor_voice_cut_settings(Connections* graph)
+{
+    assert(graph != NULL);
+
+    Device_node* master = AAtree_get_exact(graph->nodes, "");
+    assert(master != NULL);
+
+    Connections_reset(graph);
+    Device_node_clear_processor_voice_cut_settings(master);
+    Connections_reset(graph);
+    Device_node_init_processor_voice_cut_settings(master);
+
+    return;
+}
+
+
 void Connections_print(Connections* graph, FILE* out)
 {
     assert(graph != NULL);
