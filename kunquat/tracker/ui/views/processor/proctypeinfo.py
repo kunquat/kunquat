@@ -36,7 +36,7 @@ def get_class(proc_type):
 
 
 def get_sorted_type_info_list():
-    return sorted(list(_proc_classes.items()))
+    return sorted(list(_proc_classes.items()), key=lambda x: x[1].get_name())
 
 
 def get_supported_classes():
