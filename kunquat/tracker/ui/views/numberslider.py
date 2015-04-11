@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2015
 #
 # This file is part of Kunquat.
 #
@@ -29,8 +29,7 @@ class NumberSlider(QWidget):
 
         self._slider = QSlider()
         self._slider.setOrientation(Qt.Horizontal)
-        self._slider.setMinimum(int(min_val * self._scale))
-        self._slider.setMaximum(int(max_val * self._scale))
+        self.set_range(min_val, max_val)
 
         self._value = QLabel()
         fm = QFontMetrics(QFont())
@@ -65,6 +64,12 @@ class NumberSlider(QWidget):
 
         val_fmt = self._get_val_fmt()
         self._value.setText(val_fmt.format(num))
+
+    def set_range(self, min_val, max_val):
+        old_block = self._slider.blockSignals(True)
+        self._slider.setMinimum(int(min_val * self._scale))
+        self._slider.setMaximum(int(max_val * self._scale))
+        self._slider.blockSignals(old_block)
 
     def _get_val_fmt(self):
         return '{{:.{}f}}'.format(self._decimal_count)

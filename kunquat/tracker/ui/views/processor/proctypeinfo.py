@@ -12,6 +12,7 @@
 #
 
 from addproc import AddProc
+from delayproc import DelayProc
 from envgenproc import EnvgenProc
 from freeverbproc import FreeverbProc
 from ringmodproc import RingmodProc
@@ -22,6 +23,7 @@ from unsupportedproc import UnsupportedProc
 
 _proc_classes = {
     'add':      AddProc,
+    'delay':    DelayProc,
     'envgen':   EnvgenProc,
     'freeverb': FreeverbProc,
     'ringmod':  RingmodProc,
@@ -34,7 +36,7 @@ def get_class(proc_type):
 
 
 def get_sorted_type_info_list():
-    return sorted(list(_proc_classes.items()))
+    return sorted(list(_proc_classes.items()), key=lambda x: x[1].get_name())
 
 
 def get_supported_classes():

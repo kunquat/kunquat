@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -22,6 +22,9 @@
 #include <frame.h>
 
 
+#define KQT_INTERNAL_AUDIO_BUFFER_SIZE_MAX 67108864
+
+
 typedef struct Audio_buffer Audio_buffer;
 
 
@@ -29,7 +32,7 @@ typedef struct Audio_buffer Audio_buffer;
  * Create a new Audio buffer.
  *
  * \param size   The buffer size -- must be >= \c 0 and
- *               <= \c KQT_AUDIO_BUFFER_SIZE_MAX.
+ *               <= \c KQT_INTERNAL_AUDIO_BUFFER_SIZE_MAX.
  *
  * \return   The new buffer if successful, or \c NULL if memory allocation
  *           failed.
@@ -52,7 +55,7 @@ uint32_t Audio_buffer_get_size(const Audio_buffer* buffer);
  *
  * \param buffer   The Audio buffer -- must not be \c NULL.
  * \param size     The new buffer size -- must be >= \c 0 and
- *                 <= \c KQT_AUDIO_BUFFER_SIZE_MAX.
+ *                 <= \c KQT_INTERNAL_AUDIO_BUFFER_SIZE_MAX.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */

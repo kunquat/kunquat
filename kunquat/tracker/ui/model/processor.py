@@ -13,6 +13,7 @@
 
 from kunquat.kunquat.kunquat import get_default_value
 from procparamsadd import ProcParamsAdd
+from procparamsdelay import ProcParamsDelay
 from procparamsenvgen import ProcParamsEnvgen
 from procparamsfreeverb import ProcParamsFreeverb
 from procparamsvolume import ProcParamsVolume
@@ -76,6 +77,7 @@ class Processor():
     def get_type_params(self):
         types = {
             'add':      ProcParamsAdd,
+            'delay':    ProcParamsDelay,
             'envgen':   ProcParamsEnvgen,
             'freeverb': ProcParamsFreeverb,
             'volume':   ProcParamsVolume,

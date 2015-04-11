@@ -73,15 +73,17 @@ static void Tap_state_set(
         Tap_state* tstate,
         double delay,
         double scale,
+        int32_t master_buf_pos,
         int32_t buf_size,
         int32_t audio_rate)
 {
     assert(tstate != NULL);
     assert(isfinite(scale));
+    assert(master_buf_pos < buf_size);
     assert(buf_size > 0);
     assert(audio_rate > 0);
 
-    if (!isfinite(delay))
+    if (!(delay >= 0))
     {
         tstate->enabled = false;
         return;
@@ -93,7 +95,7 @@ static void Tap_state_set(
     const int32_t delay_frames = delay * audio_rate;
     assert(delay_frames >= 0);
     assert(delay_frames <= buf_size);
-    tstate->buf_pos = (buf_size - delay_frames) % buf_size;
+    tstate->buf_pos = (buf_size + master_buf_pos - delay_frames) % buf_size;
     assert(tstate->buf_pos >= 0);
 
     tstate->scale = scale;
@@ -121,7 +123,8 @@ static void Delay_state_reset(Delay_state* dlstate, const Tap taps[])
         const Tap* tap = &taps[i];
         Tap_state* tstate = &dlstate->tap_states[i];
 
-        Tap_state_set(tstate, tap->delay, tap->scale, buf_size, audio_rate);
+        Tap_state_set(
+                tstate, tap->delay, tap->scale, dlstate->buf_pos, buf_size, audio_rate);
     }
 
     return;
@@ -431,6 +434,7 @@ static void Proc_delay_update_state_tap_delay(
             &dlstate->tap_states[indices[0]],
             value,
             delay->taps[indices[0]].scale,
+            dlstate->buf_pos,
             Audio_buffer_get_size(dlstate->buf),
             dstate->audio_rate);
 
