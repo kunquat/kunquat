@@ -153,9 +153,9 @@ class PeakMeter(QWidget):
                 hold[0] = self._levels_dB[ch]
                 hold[1] = cur_time
 
-            # Update max level
-            self._max_levels_dB[ch] = max(
-                    self._levels_dB[ch], self._max_levels_dB[ch])
+        max_levels = self._stat_manager.get_max_audio_levels()
+        self._max_levels_dB = [
+                (math.log(s, 2) * 6 if s > 0 else float('-inf')) for s in max_levels]
 
         self.update()
 
