@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013-2014
+# Author: Tomi Jylhä-Ollila, Finland 2013-2015
 #
 # This file is part of Kunquat.
 #
@@ -31,7 +31,7 @@ DEFAULT_CONFIG = {
         'thickness' : 4,
         'padding'   : 2,
         'clip_width': 20,
-        'lowest'    : -60,
+        'lowest'    : -96,
         'highest'   : 0,
         'hold_time' : 1,
         'hold_width': 6,
@@ -141,7 +141,7 @@ class PeakMeter(QWidget):
 
         for ch, level in enumerate(levels):
             if level > 0:
-                self._levels_dB[ch] = math.log(level, 2)
+                self._levels_dB[ch] = math.log(level, 2) * 6
             else:
                 self._levels_dB[ch] = float('-inf')
 
