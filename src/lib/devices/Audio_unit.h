@@ -112,7 +112,7 @@ const Processor* Audio_unit_get_proc(const Audio_unit* au, int index);
  *
  * \return   The Processor table.
  */
-Proc_table* Audio_unit_get_procs(Audio_unit* au);
+Proc_table* Audio_unit_get_procs(const Audio_unit* au);
 
 
 /**

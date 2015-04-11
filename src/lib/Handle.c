@@ -435,6 +435,22 @@ int kqt_Handle_validate(kqt_Handle handle)
                 "Control map uses nonexistent controls");
     }
 
+    // Update voice cut features if needed
+    if (h->update_connections)
+    {
+        Au_table* au_table = Module_get_au_table(h->module);
+        for (int au_index = 0; au_index < KQT_AUDIO_UNITS_MAX; ++au_index)
+        {
+            Audio_unit* au = Au_table_get(au_table, au_index);
+            if (au != NULL)
+            {
+                Connections* conns = Audio_unit_get_connections_mut(au);
+                if (conns != NULL)
+                    Connections_init_processor_voice_cut_settings(conns);
+            }
+        }
+    }
+
     // Check that all connections are between existing ports
     {
         char err_msg[DEVICE_CONNECTION_ERROR_LENGTH_MAX] = "";

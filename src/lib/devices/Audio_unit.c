@@ -251,7 +251,7 @@ const Processor* Audio_unit_get_proc(const Audio_unit* au, int index)
 }
 
 
-Proc_table* Audio_unit_get_procs(Audio_unit* au)
+Proc_table* Audio_unit_get_procs(const Audio_unit* au)
 {
     assert(au != NULL);
     return au->procs;

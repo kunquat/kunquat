@@ -749,21 +749,6 @@ class ConnectionsView(QWidget):
 
         return find_device(to_info['dev_id'], from_info['dev_id'])
 
-    def _edge_violates_vf_cut(self, from_info, to_info):
-        if not self._is_send_port(from_info['dev_id'], from_info['port']):
-            from_info, to_info = to_info, from_info
-
-        to_device = self._get_device(to_info['dev_id'])
-        if ((not isinstance(to_device, Processor)) or
-                (to_device.get_signal_type() == 'mixed')):
-            if from_info['dev_id'].startswith('proc_'):
-                proc = self._get_device(from_info['dev_id'])
-                port_num = int(from_info['port'].split('_')[1], 16)
-                if (proc.get_signal_type() == 'voice') and not proc.get_vf_cut(port_num):
-                    return True
-
-        return False
-
     def mouseMoveEvent(self, event):
         area_pos = self._get_area_pos(event.x(), event.y())
 
@@ -852,8 +837,7 @@ class ConnectionsView(QWidget):
                     # Add suggested connection only if valid
                     if ((is_from_send != is_to_send) and
                             not self._edge_exists(from_info, to_info) and
-                            not self._edge_completes_cycle(from_info, to_info) and
-                            not self._edge_violates_vf_cut(from_info, to_info)):
+                            not self._edge_completes_cycle(from_info, to_info)):
                         self._adding_edge_info['to'] = to_info
                     elif to_info != from_info:
                         self._adding_edge_info['to_invalid'] = to_info

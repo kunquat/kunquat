@@ -79,6 +79,26 @@ int Device_node_cmp(const Device_node* n1, const Device_node* n2);
 
 
 /**
+ * Clear processor voice cut settings of the Device node.
+ *
+ * NOTE: The resulting subgraph will be invalid after calling this function.
+ * Call \a Device_node_init_processor_voice_cut_settings before validating the
+ * graph.
+ *
+ * \param node   The Device node -- must not be \c NULL.
+ */
+void Device_node_clear_processor_voice_cut_settings(Device_node* node);
+
+
+/**
+ * Initialise processor voice cut settings of the Device node.
+ *
+ * \param node   The Device node -- must not be \c NULL.
+ */
+void Device_node_init_processor_voice_cut_settings(Device_node* node);
+
+
+/**
  * Check that each connection to the Device node is between existing ports.
  *
  * \param node   The Device node -- must not be \c NULL.

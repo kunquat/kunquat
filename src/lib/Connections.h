@@ -62,6 +62,14 @@ Connections* new_Connections_from_string(
 
 
 /**
+ * Initialise voice cut settings of the processors.
+ *
+ * \param graph   The Connections -- must not be \c NULL.
+ */
+void Connections_init_processor_voice_cut_settings(Connections* graph);
+
+
+/**
  * Check that each connection is between existing ports.
  *
  * \param graph   The Connections -- must not be \c NULL.

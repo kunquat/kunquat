@@ -141,14 +141,12 @@ class Signals(QWidget):
             _, text = info
             self._signal_type.addItem(text)
 
-        self._vf_cut = QCheckBox('Cut')
         self._vf_pitch = QCheckBox('Pitch')
         self._vf_force = QCheckBox('Force')
         self._vf_filter = QCheckBox('Filter')
         self._vf_panning = QCheckBox('Panning')
 
         vf_layout = QVBoxLayout()
-        vf_layout.addWidget(self._vf_cut)
         vf_layout.addWidget(self._vf_pitch)
         vf_layout.addWidget(self._vf_force)
         vf_layout.addWidget(self._vf_filter)
@@ -180,7 +178,6 @@ class Signals(QWidget):
                 self._signal_type_changed)
 
         vf_info = [
-            (self._vf_cut, self._vf_cut_changed),
             (self._vf_pitch, self._vf_pitch_changed),
             (self._vf_force, self._vf_force_changed),
             (self._vf_filter, self._vf_filter_changed),
@@ -225,11 +222,8 @@ class Signals(QWidget):
 
         # Update voice features
         self._vf_container.setEnabled(signal_type == 'voice')
-        self._vf_cut.setEnabled(
-                not connections.is_proc_out_connected_to_mixed_device(self._proc_id))
 
         vf_info = [
-            (self._vf_cut, proc.get_vf_cut),
             (self._vf_pitch, proc.get_vf_pitch),
             (self._vf_force, proc.get_vf_force),
             (self._vf_filter, proc.get_vf_filter),
@@ -252,29 +246,6 @@ class Signals(QWidget):
         update_signals = set([
             self._get_update_signal_type(), self._get_connections_signal_type()])
 
-        # Enable voice cutting if leaving it disabled would cause problems :-P
-        connections = au.get_connections()
-        if ((new_signal_type == 'voice') and
-                (not proc.get_vf_cut(0)) and
-                connections.is_proc_out_connected_to_mixed_device(self._proc_id)):
-            proc.set_vf_cut(0, True)
-
-        # Give up if other device configurations prevent signal type change :-P
-        if new_signal_type == 'mixed':
-            send_device_ids = connections.get_send_device_ids(self._proc_id)
-            violating_proc_ids = set()
-            for dev_id in send_device_ids:
-                dev_id_parts = dev_id.split('/')
-                if dev_id_parts[-1].startswith('proc_'):
-                    send_proc = au.get_processor(dev_id)
-                    if not send_proc.get_vf_cut(0):
-                        violating_proc_ids.add(dev_id)
-            if violating_proc_ids:
-                dialog = ToMixedConnFailureDialog(violating_proc_ids)
-                dialog.exec_()
-                self._updater.signal_update(update_signals)
-                return
-
         proc.set_signal_type(new_signal_type)
         self._updater.signal_update(update_signals)
 
@@ -286,7 +257,6 @@ class Signals(QWidget):
         enabled = (state == Qt.Checked)
 
         vf_info = {
-            'cut': proc.set_vf_cut,
             'pitch': proc.set_vf_pitch,
             'force': proc.set_vf_force,
             'filter': proc.set_vf_filter,
@@ -295,9 +265,6 @@ class Signals(QWidget):
 
         vf_info[vf_name](0, enabled)
         self._updater.signal_update(set([self._get_update_signal_type()]))
-
-    def _vf_cut_changed(self, state):
-        self._vf_changed(state, 'cut')
 
     def _vf_pitch_changed(self, state):
         self._vf_changed(state, 'pitch')
@@ -310,37 +277,5 @@ class Signals(QWidget):
 
     def _vf_panning_changed(self, state):
         self._vf_changed(state, 'panning')
-
-
-class ToMixedConnFailureDialog(QDialog):
-
-    def __init__(self, violating_proc_ids):
-        QDialog.__init__(self)
-
-        self.setWindowTitle('Conflict between connected processor features')
-
-        if len(violating_proc_ids) == 1:
-            reason = ('another processor with voice cut feature disabled is sending'
-                    ' audio to this processor')
-            solution = ('You may wish to enable the voice cut feature of that'
-                    ' processor, or remove the connection to this processor.')
-        else:
-            reason = ('other processors with voice cut feature disabled are sending'
-                    ' audio to this processor')
-            solution = ('You may wish to enable the voice cut features of those'
-                    ' processors, or remove the connections to this processor.')
-        msg = ''.join((
-            '<p>Sorry, the signal type cannot be changed, because ', reason, '.</p>'))
-        msg += ''.join(('<p>', solution, '</p>'))
-
-        self._message = QLabel(msg)
-        self._okbutton = QPushButton('OK')
-
-        v = QVBoxLayout()
-        v.addWidget(self._message)
-        v.addWidget(self._okbutton)
-        self.setLayout(v)
-
-        QObject.connect(self._okbutton, SIGNAL('clicked()'), self.close)
 
 

@@ -61,28 +61,6 @@ class Connections():
         key = self._get_layout_key()
         self._store[key] = layout
 
-    def is_proc_out_connected_to_mixed_device(self, proc_id):
-        assert self._au_id
-        module = self._ui_model.get_module()
-        au = module.get_audio_unit(self._au_id)
-
-        sub_proc_id = proc_id.split('/')[-1]
-        for conn in self.get_connections():
-            from_path, to_path = conn
-
-            is_target_mixed = True
-            if not to_path.startswith('out_'):
-                target_sub_id = to_path.split('/')[0]
-                if target_sub_id.startswith('proc_'):
-                    target_id = '/'.join((self._au_id, target_sub_id))
-                    proc = au.get_processor(target_id)
-                    is_target_mixed = (proc.get_signal_type() == 'mixed')
-
-            if is_target_mixed and from_path.split('/')[0] == sub_proc_id:
-                return True
-
-        return False
-
     def get_send_device_ids(self, recv_id):
         sub_recv_id = recv_id.split('/')[-1]
 
