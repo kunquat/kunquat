@@ -22,7 +22,7 @@ from PyQt4.QtGui import *
 DEFAULT_CONFIG = {
         'colours'   : {
             'bg'  : QColor(0, 0, 0),
-            'low' : QColor(0x11, 0xbb, 0x11),
+            'low' : QColor(0x11, 0x99, 0x11),
             'mid' : QColor(0xdd, 0xcc, 0x33),
             'high': QColor(0xee, 0x22, 0x11),
             'clip': QColor(0xff, 0x33, 0x22),
