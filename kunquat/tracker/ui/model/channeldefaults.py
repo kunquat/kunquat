@@ -20,8 +20,7 @@ CHANNELS_MAX = 64 # TODO: Define in Kunquat interface...
 
 class ChannelDefaults():
 
-    def __init__(self, song_id):
-        self._song_id = song_id
+    def __init__(self):
         self._controller = None
         self._ui_model = None
         self._store = None
@@ -34,7 +33,7 @@ class ChannelDefaults():
         self._ui_model = ui_model
 
     def _get_key(self):
-        return '{}/p_channel_defaults.json'.format(self._song_id)
+        return 'p_channel_defaults.json'
 
     def _get_default_entry(self):
         default_list = get_default_value(self._get_key())

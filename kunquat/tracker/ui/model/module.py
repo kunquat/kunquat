@@ -14,6 +14,7 @@
 
 from kunquat.kunquat.kunquat import get_default_value
 from audiounit import AudioUnit
+from channeldefaults import ChannelDefaults
 from connections import Connections
 from control import Control
 from album import Album
@@ -157,6 +158,12 @@ class Module():
         album.set_ui_model(self._ui_model)
         return album
 
+    def get_channel_defaults(self):
+        ch_defs = ChannelDefaults()
+        ch_defs.set_controller(self._controller)
+        ch_defs.set_ui_model(self._ui_model)
+        return ch_defs
+
     def remove_controls_to_audio_unit(self, au_id):
         transaction = {}
 
@@ -168,12 +175,9 @@ class Module():
             return
         fallback_control_id = self.get_control_id_by_au_id(fallback_au_id)
 
-        album = self.get_album()
-        songs = (album.get_song_by_track(i) for i in xrange(album.get_track_count()))
-        for song in songs:
-            chd = song.get_channel_defaults()
-            transaction.update(chd.get_edit_remove_controls_to_audio_unit(
-                au_id, fallback_control_id))
+        ch_defs = self.get_channel_defaults()
+        transaction.update(ch_defs.get_edit_remove_controls_to_audio_unit(
+            au_id, fallback_control_id))
 
         # Remove controls
         remove_control_nums = []

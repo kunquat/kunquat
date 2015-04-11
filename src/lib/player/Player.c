@@ -280,7 +280,7 @@ void Player_reset(Player* player, int16_t track_num)
 
     player->frame_remainder = 0.0;
 
-    Player_reset_channels(player, track_num);
+    Player_reset_channels(player);
 
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
         Cgiter_reset(&player->cgiters[i], &player->master_params.cur_pos);
@@ -577,7 +577,7 @@ void Player_play(Player* player, int32_t nframes)
                         player->device_states,
                         player->master_params.tempo);
 
-                Player_reset_channels(player, player->master_params.cur_pos.track);
+                Player_reset_channels(player);
 
                 for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
                     Cgiter_reset(

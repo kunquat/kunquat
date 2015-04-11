@@ -328,30 +328,18 @@ static void Player_process_expr_event(
 }
 
 
-void Player_reset_channels(Player* player, int16_t track_num)
+void Player_reset_channels(Player* player)
 {
-    // Find the initial Song (for channel defaults)
-    int16_t song_index = -1;
-    const Track_list* tl = Module_get_track_list(player->module);
-    if (tl != NULL)
-    {
-        const int16_t actual_track_num = max(0, track_num);
-        if (actual_track_num < (int32_t)Track_list_get_len(tl))
-            song_index = Track_list_get_song_index(tl, actual_track_num);
-    }
-
     // Reset channels
-    const Channel_defaults_list* cdl = NULL;
-    if (song_index >= 0)
-        cdl = Module_get_ch_defaults_list(player->module, song_index);
+    const Channel_defaults_list* ch_defs = Module_get_ch_defaults_list(player->module);
 
-    if (cdl != NULL)
+    if (ch_defs != NULL)
     {
         for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
         {
             Channel_reset(player->channels[i]);
             Channel_apply_defaults(
-                    player->channels[i], Channel_defaults_list_get(cdl, i));
+                    player->channels[i], Channel_defaults_list_get(ch_defs, i));
         }
     }
     else
@@ -382,7 +370,7 @@ static void Player_start_pattern_playback_mode(Player* player)
     int16_t system = -1;
     Module_find_pattern_location(
                 player->module, &player->master_params.cur_pos.piref, &track, &system);
-    Player_reset_channels(player, track);
+    Player_reset_channels(player);
 
     // Move cgiters to the new pattern
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)

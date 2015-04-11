@@ -46,7 +46,7 @@ struct Module
     bool album_is_existent;             ///< Album existence status.
     Track_list* track_list;             ///< Track list.
     Order_list* order_lists[KQT_SONGS_MAX]; ///< Order lists.
-    Channel_defaults_list* cdls[KQT_SONGS_MAX]; ///< Channel defaults.
+    Channel_defaults_list* ch_defs;     ///< Channel defaults.
     Pat_table* pats;                    ///< The Patterns.
     Input_map* au_map;                  ///< Audio unit input map.
     Bit_array* au_controls;             ///< Audio unit control existence info.
@@ -120,28 +120,22 @@ const Order_list* Module_get_order_list(const Module* module, int16_t song);
 
 
 /**
- * Set a list of channel defaults.
+ * Set the list of channel defaults.
  *
- * \param module       The Module -- must not be \c NULL.
- * \param song_index   The song index -- must be >= \c 0 and
- *                     < \c KQT_SONGS_MAX.
- * \param cdl          The Channel defaults list, or \c NULL.
+ * \param module    The Module -- must not be \c NULL.
+ * \param ch_defs   The Channel defaults list, or \c NULL.
  */
-void Module_set_ch_defaults_list(
-        Module* module, int16_t song_index, Channel_defaults_list* cdl);
+void Module_set_ch_defaults_list(Module* module, Channel_defaults_list* ch_defs);
 
 
 /**
- * Get a list of channel defaults in the Module.
+ * Get the list of channel defaults in the Module.
  *
- * \param module       The Module -- must not be \c NULL.
- * \param song_index   The song index -- must be >= \c 0 and
- *                     < \c KQT_SONGS_MAX.
+ * \param module   The Module -- must not be \c NULL.
  *
  * \return   The channel defaults list if one exists, otherwise \c NULL.
  */
-const Channel_defaults_list* Module_get_ch_defaults_list(
-        const Module* module, int16_t song_index);
+const Channel_defaults_list* Module_get_ch_defaults_list(const Module* module);
 
 
 /**

@@ -31,7 +31,7 @@ bool get_event_type_info(
         Event_type* ret_type);
 
 
-void Player_reset_channels(Player* player, int16_t track_num);
+void Player_reset_channels(Player* player);
 
 
 void Player_process_event(

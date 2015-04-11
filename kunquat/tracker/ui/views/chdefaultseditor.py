@@ -23,79 +23,19 @@ class ChDefaultsEditor(QWidget):
     def __init__(self):
         QWidget.__init__(self)
 
-        self._song_selector = SongSelector()
         self._ch_defaults_list = ChDefaultsList()
-
-        song_layout = QHBoxLayout()
-        song_layout.setMargin(5)
-        song_layout.setSpacing(5)
-        song_layout.addWidget(QLabel('Song'))
-        song_layout.addWidget(self._song_selector)
 
         v = QVBoxLayout()
         v.setMargin(0)
         v.setSpacing(0)
-        v.addLayout(song_layout)
         v.addWidget(self._ch_defaults_list, 1000)
         self.setLayout(v)
 
     def set_ui_model(self, ui_model):
-        self._song_selector.set_ui_model(ui_model)
         self._ch_defaults_list.set_ui_model(ui_model)
 
     def unregister_updaters(self):
         self._ch_defaults_list.unregister_updaters()
-        self._song_selector.unregister_updaters()
-
-
-class SongSelector(QComboBox):
-
-    def __init__(self):
-        QComboBox.__init__(self)
-        self._ui_model = None
-        self._updater = None
-
-        self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Preferred)
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-
-        self._update_song()
-
-        QObject.connect(self, SIGNAL('currentIndexChanged(int)'), self._select_track)
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        update_signals = set(['signal_order_list', 'signal_ch_defaults_song'])
-        if not signals.isdisjoint(update_signals):
-            self._update_song()
-
-    def _update_song(self):
-        module = self._ui_model.get_module()
-        album = module.get_album()
-
-        selected_track_num = album.get_selected_track_num()
-
-        songs = [album.get_song_by_track(i) for i in xrange(album.get_track_count())]
-
-        old_block = self.blockSignals(True)
-        self.clear()
-        for i, song in enumerate(songs):
-            display_name = song.get_name() or 'Song {}'.format(song.get_number())
-            self.addItem(display_name)
-            if selected_track_num == i:
-                self.setCurrentIndex(i)
-        self.blockSignals(old_block)
-
-    def _select_track(self, track_num):
-        module = self._ui_model.get_module()
-        album = module.get_album()
-        album.set_selected_track_num(track_num)
-        self._updater.signal_update(set(['signal_ch_defaults_song']))
 
 
 class ChDefaultsListContainer(QWidget):
@@ -198,7 +138,6 @@ class ChDefaults(QWidget):
         update_signals = set([
             'signal_controls',
             'signal_order_list',
-            'signal_ch_defaults_song',
             self._get_update_signal_type()])
         if not signals.isdisjoint(update_signals):
             self._update_all()
@@ -213,18 +152,8 @@ class ChDefaults(QWidget):
         text = 'Audio unit {}: {}'.format(control_num, au_name)
         return text
 
-    def _get_channel_defaults(self):
-        album = self._module.get_album()
-
-        track_num = album.get_selected_track_num()
-        if track_num < 0:
-            return None
-
-        song = album.get_song_by_track(track_num)
-        return song.get_channel_defaults()
-
     def _update_all(self):
-        chd = self._get_channel_defaults()
+        chd = self._module.get_channel_defaults()
         default_control_id = chd.get_default_control_id(self._ch_num) if chd else None
 
         control_ids = self._module.get_control_ids()
@@ -240,7 +169,7 @@ class ChDefaults(QWidget):
 
     def _select_audio_unit(self, index):
         control_id = self._control_catalog[index]
-        chd = self._get_channel_defaults()
+        chd = self._module.get_channel_defaults()
         if chd:
             chd.set_default_control_id(self._ch_num, control_id)
 
