@@ -176,7 +176,7 @@ class ProcParamsChorus(ProcParams):
         voices, has_holes = self._get_voices_and_packing_info()
         if has_holes:
             del voices[index]
-            self._set_all_voices(voice)
+            self._set_all_voices(voices)
         else:
             self._remove_voice(index)
 
