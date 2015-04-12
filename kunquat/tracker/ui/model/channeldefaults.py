@@ -53,6 +53,8 @@ class ChannelDefaults():
         return 'control_{:02x}'.format(entry['control'])
 
     def set_default_control_id(self, ch_num, control_id):
+        assert control_id
+
         key = self._get_key()
         chd_list = self._store.get(key, [])
         def_entry = self._get_default_entry()
@@ -68,6 +70,8 @@ class ChannelDefaults():
         self._store[key] = chd_list
 
     def get_edit_remove_controls_to_audio_unit(self, au_id, fallback_control_id):
+        assert fallback_control_id
+
         transaction = {}
 
         for ch_num in xrange(CHANNELS_MAX):
