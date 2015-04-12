@@ -12,6 +12,7 @@
 #
 
 from addproc import AddProc
+from chorusproc import ChorusProc
 from delayproc import DelayProc
 from envgenproc import EnvgenProc
 from freeverbproc import FreeverbProc
@@ -23,6 +24,7 @@ from unsupportedproc import UnsupportedProc
 
 _proc_classes = {
     'add':      AddProc,
+    'chorus':   ChorusProc,
     'delay':    DelayProc,
     'envgen':   EnvgenProc,
     'freeverb': FreeverbProc,
