@@ -148,8 +148,9 @@ class ChDefaults(QWidget):
         control_num = int(second, 16)
         control = self._module.get_control(control_id)
         au = control.get_audio_unit()
+        au_type = 'Instrument' if au.is_instrument() else 'Effect'
         au_name = au.get_name() or '-'
-        text = 'Audio unit {}: {}'.format(control_num, au_name)
+        text = '{} {}: {}'.format(au_type, control_num, au_name)
         return text
 
     def _update_all(self):

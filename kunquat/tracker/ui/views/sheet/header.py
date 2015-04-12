@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013-2014
+# Author: Tomi Jylhä-Ollila, Finland 2013-2015
 #
 # This file is part of Kunquat.
 #
@@ -119,7 +119,7 @@ class ColumnHeader(QWidget):
         # Number
         num_width = self._pixmap.width()
         x_offset = (self.width() - num_width) // 2
-        painter.drawPixmap(x_offset, 0, self._pixmap)
+        painter.drawPixmap(x_offset, 1, self._pixmap)
 
         # Border
         painter.setPen(self._config['header']['border_colour'])
