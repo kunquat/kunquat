@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013-2014
+# Author: Tomi Jylhä-Ollila, Finland 2013-2015
 #
 # This file is part of Kunquat.
 #
@@ -22,7 +22,7 @@ from PyQt4.QtGui import *
 DEFAULT_CONFIG = {
         'colours'   : {
             'bg'  : QColor(0, 0, 0),
-            'low' : QColor(0x11, 0xbb, 0x11),
+            'low' : QColor(0x11, 0x99, 0x11),
             'mid' : QColor(0xdd, 0xcc, 0x33),
             'high': QColor(0xee, 0x22, 0x11),
             'clip': QColor(0xff, 0x33, 0x22),
@@ -31,7 +31,7 @@ DEFAULT_CONFIG = {
         'thickness' : 4,
         'padding'   : 2,
         'clip_width': 20,
-        'lowest'    : -60,
+        'lowest'    : -96,
         'highest'   : 0,
         'hold_time' : 1,
         'hold_width': 6,
@@ -141,7 +141,7 @@ class PeakMeter(QWidget):
 
         for ch, level in enumerate(levels):
             if level > 0:
-                self._levels_dB[ch] = math.log(level, 2)
+                self._levels_dB[ch] = math.log(level, 2) * 6
             else:
                 self._levels_dB[ch] = float('-inf')
 
@@ -153,9 +153,9 @@ class PeakMeter(QWidget):
                 hold[0] = self._levels_dB[ch]
                 hold[1] = cur_time
 
-            # Update max level
-            self._max_levels_dB[ch] = max(
-                    self._levels_dB[ch], self._max_levels_dB[ch])
+        max_levels = self._stat_manager.get_max_audio_levels()
+        self._max_levels_dB = [
+                (math.log(s, 2) * 6 if s > 0 else float('-inf')) for s in max_levels]
 
         self.update()
 

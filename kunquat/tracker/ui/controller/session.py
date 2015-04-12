@@ -26,6 +26,7 @@ class Session():
         self._progress_position = 1
         self._progress_steps = 1
         self._audio_levels = (0, 0)
+        self._max_audio_levels = [0, 0]
         self._selected_control_id = 0
         self._selected_keymap_id = None
         self._selected_notation_id = None
@@ -104,6 +105,14 @@ class Session():
 
     def set_audio_levels(self, audio_levels):
         self._audio_levels = audio_levels
+        for ch, level in enumerate(audio_levels):
+            self._max_audio_levels[ch] = max(self._max_audio_levels[ch], level)
+
+    def get_max_audio_levels(self):
+        return self._max_audio_levels
+
+    def reset_max_audio_levels(self):
+        self._max_audio_levels = [0, 0]
 
     def get_selected_control_id(self):
         return self._selected_control_id

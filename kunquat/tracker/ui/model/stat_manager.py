@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013
-#          Tomi Jylhä-Ollila, Finland 2013
+#          Tomi Jylhä-Ollila, Finland 2013-2015
 #
 # This file is part of Kunquat.
 #
@@ -49,4 +49,8 @@ class StatManager():
 
     def get_audio_levels(self):
         return self._session.get_audio_levels()
+
+    def get_max_audio_levels(self):
+        return self._session.get_max_audio_levels()
+
 
