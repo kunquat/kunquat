@@ -462,6 +462,7 @@ class ConnectionsView(QWidget):
         # Update device info
         self._visible_device_ids = new_dev_ids
 
+        # Remove outdated devices
         new_devices = {}
         for dev_id in self._visible_device_ids:
             if dev_id in self._visible_devices:
@@ -479,38 +480,7 @@ class ConnectionsView(QWidget):
                     new_devices[dev_id] = old_device
         self._visible_devices = new_devices
 
-        QObject.emit(self, SIGNAL('positionsChanged()'))
-        self.update()
-
-    def _split_path(self, path):
-        parts = path.split('/')
-        port_id = parts[-1]
-        if len(parts) > 1:
-            dev_id = parts[0]
-        else:
-            dev_id = 'master' if port_id.startswith('out') else 'Iin'
-        return (dev_id, port_id)
-
-    def _get_port_center_from_path(self, path):
-        dev_id, port_id = self._split_path(path)
-        port_center = self._visible_devices[dev_id].get_port_center(port_id)
-        return port_center
-
-    def paintEvent(self, event):
-        start = time.time()
-
-        painter = QPainter(self)
-        painter.setBackground(self._config['bg_colour'])
-        painter.eraseRect(0, 0, self.width(), self.height())
-
-        painter.translate(
-                self.width() // 2 - self._center_pos[0],
-                self.height() // 2 - self._center_pos[1])
-
-        connections = self._get_connections()
-        layout = connections.get_layout()
-
-        # Make devices
+        # Make new devices
         mid_offset = -200 if (self._au_id == None) else 0
         default_pos_cfg = {
                 'au':       { 'index': 0, 'offset_x': mid_offset,   'offset_y': 120 },
@@ -564,6 +534,38 @@ class ConnectionsView(QWidget):
             device.set_offset(offset)
 
         self._visible_devices = new_visible_devices
+
+        # Update finished
+        QObject.emit(self, SIGNAL('positionsChanged()'))
+        self.update()
+
+    def _split_path(self, path):
+        parts = path.split('/')
+        port_id = parts[-1]
+        if len(parts) > 1:
+            dev_id = parts[0]
+        else:
+            dev_id = 'master' if port_id.startswith('out') else 'Iin'
+        return (dev_id, port_id)
+
+    def _get_port_center_from_path(self, path):
+        dev_id, port_id = self._split_path(path)
+        port_center = self._visible_devices[dev_id].get_port_center(port_id)
+        return port_center
+
+    def paintEvent(self, event):
+        start = time.time()
+
+        painter = QPainter(self)
+        painter.setBackground(self._config['bg_colour'])
+        painter.eraseRect(0, 0, self.width(), self.height())
+
+        painter.translate(
+                self.width() // 2 - self._center_pos[0],
+                self.height() // 2 - self._center_pos[1])
+
+        connections = self._get_connections()
+        layout = connections.get_layout()
 
         # Draw connections
         new_ls_cache = {}
@@ -879,7 +881,7 @@ class ConnectionsView(QWidget):
 
         # Raise focused device to the top
         if self._focused_id:
-            new_visible_ids = self._visible_device_ids
+            new_visible_ids = list(self._visible_device_ids)
             new_visible_ids.remove(self._focused_id)
             new_visible_ids.append(self._focused_id)
             self._change_layout_entry('z_order', new_visible_ids)
