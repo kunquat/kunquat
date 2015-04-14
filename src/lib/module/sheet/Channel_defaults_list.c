@@ -53,13 +53,11 @@ Channel_defaults_list* new_Channel_defaults_list(Streader* sr)
         return NULL;
     }
 
-    if (!Streader_has_data(sr))
-    {
-        for (int ch = 0; ch < KQT_CHANNELS_MAX; ++ch)
-            Channel_defaults_init(&cdl->ch_defaults[ch]);
+    for (int ch = 0; ch < KQT_CHANNELS_MAX; ++ch)
+        Channel_defaults_init(&cdl->ch_defaults[ch]);
 
+    if (!Streader_has_data(sr))
         return cdl;
-    }
 
     if (!Streader_read_list(sr, read_ch_defaults_item, cdl))
     {
