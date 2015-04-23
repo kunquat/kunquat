@@ -76,6 +76,8 @@ class SheetManager():
     def get_inferred_active_control_id_at_location(self, location):
         ret_id = 'control_00'
         clamped_loc = self.get_clamped_location(location)
+        if not clamped_loc:
+            return ret_id
 
         # Use channel default if we don't get any better ideas
         module = self._ui_model.get_module()
