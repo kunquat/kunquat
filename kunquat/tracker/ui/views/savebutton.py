@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2014
+# Authors: Tomi Jylhä-Ollila, Finland 2014-2015
 #
 # This file is part of Kunquat.
 #
@@ -22,6 +22,8 @@ class SaveButton(QToolButton):
         self._ui_model = None
         self._updater = None
 
+        self._module_loaded = False
+
         self.setText('Save')
         self.setEnabled(False)
 
@@ -36,7 +38,11 @@ class SaveButton(QToolButton):
 
     def _perform_updates(self, signals):
         if 'signal_module' in signals:
-            self.setEnabled(True)
+            self._module_loaded = True
+
+        if self._module_loaded:
+            module = self._ui_model.get_module()
+            self.setEnabled(module.is_modified())
 
     def _clicked(self):
         module = self._ui_model.get_module()
