@@ -168,8 +168,10 @@ static bool Proc_chorus_init(Device_impl* dimpl);
 static Device_state* Proc_chorus_create_state(
         const Device* device, int32_t audio_rate, int32_t audio_buffer_size);
 
+/*
 static void Proc_chorus_update_tempo(
         const Device_impl* dimpl, Device_state* dstate, double tempo);
+// */
 
 static void Proc_chorus_reset(const Device_impl* dimpl, Device_state* dstate);
 
@@ -228,7 +230,7 @@ static bool Proc_chorus_init(Device_impl* dimpl)
     Processor_set_clear_history(
             (Processor*)chorus->parent.device, Proc_chorus_clear_history);
 
-    Device_impl_register_update_tempo(&chorus->parent, Proc_chorus_update_tempo);
+    //Device_impl_register_update_tempo(&chorus->parent, Proc_chorus_update_tempo);
     Device_impl_register_reset_device_state(&chorus->parent, Proc_chorus_reset);
 
     // Register key set/update handlers
@@ -314,6 +316,7 @@ static Device_state* Proc_chorus_create_state(
 }
 
 
+/*
 static void Proc_chorus_update_tempo(
         const Device_impl* dimpl, Device_state* dstate, double tempo)
 {
@@ -332,6 +335,7 @@ static void Proc_chorus_update_tempo(
 
     return;
 }
+// */
 
 
 static void Proc_chorus_reset(const Device_impl* dimpl, Device_state* dstate)
@@ -586,6 +590,7 @@ static bool Proc_chorus_set_audio_rate(
 
 
 // FIXME: get rid of this mess
+/*
 static void check_params(Chorus_state* cstate, double tempo)
 {
     assert(cstate != NULL);
@@ -602,6 +607,7 @@ static void check_params(Chorus_state* cstate, double tempo)
 
     return;
 }
+// */
 
 
 static void Proc_chorus_process(
@@ -638,7 +644,7 @@ static void Proc_chorus_process(
     const int32_t buf_size = Audio_buffer_get_size(cstate->buf);
     assert(start <= until);
 
-    check_params(cstate, tempo);
+    //check_params(cstate, tempo);
 
     for (uint32_t i = start; i < until; ++i)
     {
