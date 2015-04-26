@@ -12,6 +12,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from itertools import chain
+
 from kunquat.kunquat.kunquat import get_default_value
 from audiounit import AudioUnit
 from channeldefaults import ChannelDefaults
@@ -42,6 +44,9 @@ class Module():
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
+
+    def is_modified(self):
+        return self._store.is_modified()
 
     def get_title(self):
         return self._store.get('m_title.json')
@@ -224,11 +229,17 @@ class Module():
         task = self._controller.get_task_load_module(self.get_path())
         task_executer(task)
 
+    def finalise_create_sandbox(self):
+        yield # make this a generator
+        self._store.clear_modified_flag()
+
     def execute_create_sandbox(self, task_executer):
         assert not self.is_saving()
         self._controller.create_sandbox()
         kqtifile = self._controller.get_share().get_default_instrument()
-        task = self._controller.get_task_load_audio_unit(kqtifile)
+        load_au_task = self._controller.get_task_load_audio_unit(kqtifile)
+        finalise_task = self.finalise_create_sandbox()
+        task = chain(load_au_task, finalise_task)
         task_executer(task)
 
     def is_saving(self):
@@ -238,6 +249,7 @@ class Module():
         assert not self.is_saving()
         self._session.set_saving(True)
         self._store.set_saving(True)
+        self._store.clear_modified_flag()
         self._updater.signal_update(set(['signal_start_save_module']))
 
     def flush(self, callback):

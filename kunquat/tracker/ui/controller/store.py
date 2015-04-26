@@ -25,6 +25,7 @@ class Store(MutableMapping):
         self._transaction_ids = count()
         self._flush_callbacks = {}
         self._is_saving = False
+        self._is_modified = False
 
     def set_audio_engine(self, audio_engine):
         self._audio_engine = audio_engine
@@ -34,6 +35,7 @@ class Store(MutableMapping):
         transaction_id = self._transaction_ids.next()
         self._audio_engine.set_data(transaction_id, transaction)
         self._pending_validation.append((transaction_id, transaction))
+        self._is_modified = True
 
     def flush(self, callback):
         transaction_id = self._transaction_ids.next()
@@ -54,6 +56,12 @@ class Store(MutableMapping):
 
     def set_saving(self, enabled):
         self._is_saving = enabled
+
+    def is_modified(self):
+        return self._is_modified
+
+    def clear_modified_flag(self):
+        self._is_modified = False
 
     def _get_validated_transaction(self, validated_id):
         transaction_id, transaction = self._pending_validation.popleft()

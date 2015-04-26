@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2014
+# Authors: Tomi Jylhä-Ollila, Finland 2014-2015
 #
 # This file is part of Kunquat.
 #
@@ -14,6 +14,8 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
+from saving import get_module_save_path
+
 
 class SaveButton(QToolButton):
 
@@ -21,6 +23,8 @@ class SaveButton(QToolButton):
         QToolButton.__init__(self)
         self._ui_model = None
         self._updater = None
+
+        self._module_loaded = False
 
         self.setText('Save')
         self.setEnabled(False)
@@ -36,18 +40,19 @@ class SaveButton(QToolButton):
 
     def _perform_updates(self, signals):
         if 'signal_module' in signals:
-            self.setEnabled(True)
+            self._module_loaded = True
+
+        if self._module_loaded:
+            module = self._ui_model.get_module()
+            self.setEnabled(module.is_modified())
 
     def _clicked(self):
         module = self._ui_model.get_module()
 
         if not module.get_path():
-            module_path_qstring = QFileDialog.getSaveFileName(
-                    caption='Save Kunquat Composition',
-                    filter='Kunquat compositions (*.kqt *.kqt.gz *.kqt.bz2)')
-            if not module_path_qstring:
+            module_path = get_module_save_path()
+            if not module_path:
                 return
-            module_path = str(module_path_qstring.toUtf8())
             module.set_path(module_path)
 
         module.start_save()

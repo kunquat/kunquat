@@ -129,6 +129,7 @@ class Controller():
                 self.update_import_progress(i + 1, member_count)
             tfile.close()
             self._store.put(values)
+            self._store.clear_modified_flag()
             self._updater.signal_update(set(['signal_controls', 'signal_module']))
 
     def get_task_save_module(self, module_path):

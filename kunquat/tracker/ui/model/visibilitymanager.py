@@ -49,6 +49,11 @@ class VisibilityManager():
         self._session.hide_ui(UI_MAIN)
         self._updater.signal_update()
 
+    def hide_main_after_saving(self):
+        # XXX: This hacky version can be called from an update function
+        #      It only works because there are always some signals emitted
+        self._session.hide_ui(UI_MAIN)
+
     def show_about(self):
         if self._is_closing:
             return
