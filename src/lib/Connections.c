@@ -426,13 +426,31 @@ void Connections_init_processor_voice_cut_settings(Connections* graph)
 {
     assert(graph != NULL);
 
-    Device_node* master = AAtree_get_exact(graph->nodes, "");
-    assert(master != NULL);
+    // Clear all voice cut settings
+    {
+        AAiter* iter = AAITER_AUTO;
+        AAiter_change_tree(iter, graph->nodes);
 
-    Connections_reset(graph);
-    Device_node_clear_processor_voice_cut_settings(master);
-    Connections_reset(graph);
-    Device_node_init_processor_voice_cut_settings(master);
+        Device_node* node = AAiter_get_at_least(iter, "");
+        while (node != NULL)
+        {
+            Device_node_clear_processor_voice_cut_settings(node);
+            node = AAiter_get_next(iter);
+        }
+    }
+
+    // Enable voice cut for all devices that need it
+    {
+        AAiter* iter = AAITER_AUTO;
+        AAiter_change_tree(iter, graph->nodes);
+
+        Device_node* node = AAiter_get_at_least(iter, "");
+        while (node != NULL)
+        {
+            Device_node_init_processor_voice_cut_settings(node);
+            node = AAiter_get_next(iter);
+        }
+    }
 
     return;
 }
