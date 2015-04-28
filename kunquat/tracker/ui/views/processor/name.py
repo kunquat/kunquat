@@ -55,7 +55,9 @@ class Name(QWidget):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
         proc = au.get_processor(self._proc_id)
-        self._edit.setText(proc.get_name() or '')
+        vis_name = proc.get_name() or ''
+        if vis_name != self._edit.text():
+            self._edit.setText(vis_name)
         self._edit.blockSignals(old_block)
 
     def _text_edited(self, text):
