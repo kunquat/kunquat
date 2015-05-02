@@ -440,6 +440,28 @@ static void Player_set_new_playback_position(
 }
 
 
+bool Player_check_perform_goto(Player* player)
+{
+    if (!player->master_params.do_goto)
+        return false;
+
+    player->master_params.do_goto = false;
+
+    // Get target pattern instance
+    Pat_inst_ref target_piref = player->master_params.goto_target_piref;
+    if (target_piref.pat < 0)
+        target_piref = player->master_params.cur_pos.piref;
+
+    // Get target row
+    Tstamp* target_row = TSTAMP_AUTO;
+    Tstamp_copy(target_row, &player->master_params.goto_target_row);
+
+    Player_set_new_playback_position(player, &target_piref, target_row);
+
+    return true;
+}
+
+
 void Player_process_cgiters(Player* player, Tstamp* limit, bool skip)
 {
     assert(player != NULL);
@@ -598,21 +620,8 @@ void Player_process_cgiters(Player* player, Tstamp* limit, bool skip)
                     Player_start_pattern_playback_mode(player);
 
                 // Perform goto
-                if (player->master_params.do_goto)
+                if (Player_check_perform_goto(player))
                 {
-                    player->master_params.do_goto = false;
-
-                    // Get target pattern instance
-                    Pat_inst_ref target_piref = player->master_params.goto_target_piref;
-                    if (target_piref.pat < 0)
-                        target_piref = player->master_params.cur_pos.piref;
-
-                    // Get target row
-                    Tstamp* target_row = TSTAMP_AUTO;
-                    Tstamp_copy(target_row, &player->master_params.goto_target_row);
-
-                    Player_set_new_playback_position(player, &target_piref, target_row);
-
                     Tstamp_set(limit, 0, 0);
                     return;
                 }
