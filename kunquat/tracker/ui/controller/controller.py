@@ -197,9 +197,13 @@ class Controller():
         self._session.reset_max_audio_levels()
 
     def play_pattern(self, pattern_instance):
-        self.play()
+        self._audio_engine.reset_and_pause()
+
         play_event = ('cpattern', pattern_instance)
         self._audio_engine.tfire_event(0, play_event)
+
+        self._session.reset_max_audio_levels()
+        self._audio_engine.tfire_event(0, ('cresume', None))
 
     def play_from_cursor(self, pattern_instance, row_ts):
         self._audio_engine.reset_and_pause()
