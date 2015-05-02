@@ -34,10 +34,12 @@ typedef struct Proc_gc
 {
     Device_impl parent;
 
+    bool is_map_enabled;
     const Envelope* map;
 } Proc_gc;
 
 
+static Set_bool_func     Proc_gc_set_map_enabled;
 static Set_envelope_func Proc_gc_set_map;
 
 static bool Proc_gc_init(Device_impl* dimpl);
@@ -78,11 +80,35 @@ static bool Proc_gc_init(Device_impl* dimpl)
 
     Device_set_process(gc->parent.device, Proc_gc_process);
 
+    gc->is_map_enabled = false;
     gc->map = NULL;
 
-    if (!Device_impl_register_set_envelope(
-                &gc->parent, "p_e_map.json", NULL, Proc_gc_set_map, NULL))
+    bool reg_success = true;
+
+#define REGISTER_SET(type, field, key, def_val)                   \
+    reg_success &= Device_impl_register_set_##type(               \
+            &gc->parent, key, def_val, Proc_gc_set_##field, NULL)
+
+    REGISTER_SET(bool,      map_enabled,    "p_b_map_enabled.json",     false);
+    REGISTER_SET(envelope,  map,            "p_e_map.json",             NULL);
+
+#undef REGISTER_SET
+
+    if (!reg_success)
         return false;
+
+    return true;
+}
+
+
+static bool Proc_gc_set_map_enabled(
+        Device_impl* dimpl, Key_indices indices, bool value)
+{
+    assert(dimpl != NULL);
+    assert(indices != NULL);
+
+    Proc_gc* gc = (Proc_gc*)dimpl;
+    gc->is_map_enabled = value;
 
     return true;
 }
@@ -150,7 +176,7 @@ static void Proc_gc_process(
     get_raw_input(ds, 0, in_data);
     get_raw_output(ds, 0, out_data);
 
-    if (gc->map != NULL)
+    if (gc->is_map_enabled && (gc->map != NULL))
     {
         for (uint32_t i = start; i < until; ++i)
         {
