@@ -219,29 +219,51 @@ class UiModel():
     def play(self):
         self._controller.play()
 
-    def play_pattern(self):
+    def _get_pattern_instance(self, location):
         module = self.get_module()
         album = module.get_album()
         if not album:
-            return
-
-        selection = self.get_selection()
-        location = selection.get_location()
-        if not location:
-            return
+            return None
 
         track = location.get_track()
         if track >= album.get_track_count():
-            return
+            return None
 
         song = album.get_song_by_track(track)
 
         system = location.get_system()
         if system >= song.get_system_count():
+            return None
+
+        pinst = song.get_pattern_instance(system)
+        return pinst
+
+    def play_pattern(self):
+        selection = self.get_selection()
+        location = selection.get_location()
+        if not location:
             return
 
-        pi = song.get_pattern_instance(system)
-        self._controller.play_pattern((pi.get_pattern_num(), pi.get_instance_num()))
+        pinst = self._get_pattern_instance(location)
+        if not pinst:
+            return
+
+        self._controller.play_pattern(
+                (pinst.get_pattern_num(), pinst.get_instance_num()))
+
+    def play_from_cursor(self):
+        selection = self.get_selection()
+        location = selection.get_location()
+        if not location:
+            return
+
+        pinst = self._get_pattern_instance(location)
+        if not pinst:
+            return
+
+        self._controller.play_from_cursor(
+                (pinst.get_pattern_num(), pinst.get_instance_num()),
+                location.get_row_ts())
 
     def silence(self):
         self._controller.silence()
