@@ -201,8 +201,19 @@ class Controller():
         play_event = ('cpattern', pattern_instance)
         self._audio_engine.tfire_event(0, play_event)
 
+    def play_from_cursor(self, pattern_instance, row_ts):
+        self._audio_engine.reset_and_pause()
+
+        set_goto_pinst = ('c.gp', pattern_instance)
+        set_goto_row = ('c.gr', row_ts)
+        self._audio_engine.tfire_event(0, set_goto_pinst)
+        self._audio_engine.tfire_event(0, set_goto_row)
+        self._audio_engine.tfire_event(0, ('cg', None))
+
+        self._audio_engine.tfire_event(0, ('cresume', None))
+
     def silence(self):
-        self._audio_engine.silence()
+        self._audio_engine.reset_and_pause()
 
         # Note: easy way out for syncing note kills, but causes event noise
         for ch in xrange(64): # TODO: channel count constant
