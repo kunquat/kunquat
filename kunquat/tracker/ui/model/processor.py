@@ -17,6 +17,7 @@ from procparamschorus import ProcParamsChorus
 from procparamsdelay import ProcParamsDelay
 from procparamsenvgen import ProcParamsEnvgen
 from procparamsfreeverb import ProcParamsFreeverb
+from procparamsgaincomp import ProcParamsGainComp
 from procparamsvolume import ProcParamsVolume
 
 
@@ -82,6 +83,7 @@ class Processor():
             'delay':    ProcParamsDelay,
             'envgen':   ProcParamsEnvgen,
             'freeverb': ProcParamsFreeverb,
+            'gaincomp': ProcParamsGainComp,
             'volume':   ProcParamsVolume,
         }
         cons = types[self.get_type()]
