@@ -69,6 +69,11 @@ class MainView(QWidget):
                 self._ui_model.play_pattern()
             else:
                 event.ignore()
+        elif event.modifiers() == Qt.AltModifier:
+            if event.key() == Qt.Key_Comma:
+                self._ui_model.play_from_cursor()
+            else:
+                event.ignore()
         else:
             event.ignore()
 
