@@ -129,6 +129,7 @@ class Share():
                 'new_pattern',
                 'new_song',
                 'play',
+                'play_from_cursor',
                 'play_pattern',
                 'record',
                 'remove_pattern',
