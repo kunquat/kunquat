@@ -76,6 +76,22 @@ void Audio_buffer_clear(Audio_buffer* buffer, uint32_t start, uint32_t until);
 
 
 /**
+ * Copy contents of an Audio buffer into another.
+ *
+ * \param dest        The destination Audio buffer -- must not be \c NULL.
+ * \param src         The source Audio buffer -- must not be \c NULL or \a dest.
+ * \param buf_start   The start index of the copied area -- must be >= \c 0.
+ * \param buf_stop    The stop index of the copied area -- must be >= \c 0 and
+ *                    <= the buffer size.
+ */
+void Audio_buffer_copy(
+        Audio_buffer* restrict dest,
+        const Audio_buffer* restrict src,
+        int32_t buf_start,
+        int32_t buf_stop);
+
+
+/**
  * Mix the contents of an Audio buffer into another.
  *
  * If the two buffers are the same Audio buffer, this function does nothing.
