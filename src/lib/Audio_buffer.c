@@ -14,6 +14,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include <Audio_buffer.h>
 #include <debug/assert.h>
@@ -128,6 +129,36 @@ void Audio_buffer_clear(Audio_buffer* buffer, uint32_t start, uint32_t until)
     {
         for (uint32_t k = start; k < until; ++k)
             buffer->bufs[i][k] = 0;
+    }
+
+    return;
+}
+
+
+void Audio_buffer_copy(
+        Audio_buffer* restrict dest,
+        const Audio_buffer* restrict src,
+        int32_t buf_start,
+        int32_t buf_stop)
+{
+    assert(dest != NULL);
+    assert(src != NULL);
+    assert(dest != src);
+    assert(buf_start >= 0);
+    assert(buf_stop >= 0);
+    assert(buf_stop <= (int32_t)dest->size);
+
+    if (buf_stop <= buf_start)
+        return;
+
+    const int32_t frame_count = buf_stop - buf_start;
+    const size_t byte_count = frame_count * sizeof(kqt_frame);
+
+    for (int ch = 0; ch < KQT_BUFFERS_MAX; ++ch)
+    {
+        kqt_frame* dest_values = &dest->bufs[ch][buf_start];
+        const kqt_frame* src_values = &src->bufs[ch][buf_start];
+        memcpy(dest_values, src_values, byte_count);
     }
 
     return;

@@ -34,19 +34,23 @@ typedef struct Proc_gc
 {
     Device_impl parent;
 
+    bool is_map_enabled;
     const Envelope* map;
 } Proc_gc;
 
 
+static Set_bool_func     Proc_gc_set_map_enabled;
 static Set_envelope_func Proc_gc_set_map;
 
 static bool Proc_gc_init(Device_impl* dimpl);
 
-static void Proc_gc_process(
+static Proc_process_vstate_func Proc_gc_process_vstate;
+
+static void Proc_gc_process_signal(
         const Device* device,
         Device_states* states,
-        uint32_t start,
-        uint32_t until,
+        uint32_t buf_start,
+        uint32_t buf_stop,
         uint32_t freq,
         double tempo);
 
@@ -76,13 +80,40 @@ static bool Proc_gc_init(Device_impl* dimpl)
 
     Device_set_state_creator(dimpl->device, new_Proc_state_default);
 
-    Device_set_process(gc->parent.device, Proc_gc_process);
+    Processor* proc = (Processor*)gc->parent.device;
+    proc->process_vstate = Proc_gc_process_vstate;
 
+    Device_set_process(gc->parent.device, Proc_gc_process_signal);
+
+    gc->is_map_enabled = false;
     gc->map = NULL;
 
-    if (!Device_impl_register_set_envelope(
-                &gc->parent, "p_e_map.json", NULL, Proc_gc_set_map, NULL))
+    bool reg_success = true;
+
+#define REGISTER_SET(type, field, key, def_val)                   \
+    reg_success &= Device_impl_register_set_##type(               \
+            &gc->parent, key, def_val, Proc_gc_set_##field, NULL)
+
+    REGISTER_SET(bool,      map_enabled,    "p_b_map_enabled.json",     false);
+    REGISTER_SET(envelope,  map,            "p_e_map.json",             NULL);
+
+#undef REGISTER_SET
+
+    if (!reg_success)
         return false;
+
+    return true;
+}
+
+
+static bool Proc_gc_set_map_enabled(
+        Device_impl* dimpl, Key_indices indices, bool value)
+{
+    assert(dimpl != NULL);
+    assert(indices != NULL);
+
+    Proc_gc* gc = (Proc_gc*)dimpl;
+    gc->is_map_enabled = value;
 
     return true;
 }
@@ -128,11 +159,100 @@ static bool Proc_gc_set_map(
 }
 
 
-static void Proc_gc_process(
+static void distort(
+        const Proc_gc* gc,
+        Audio_buffer* in_buffer,
+        Audio_buffer* out_buffer,
+        int32_t buf_start,
+        int32_t buf_stop)
+{
+    assert(gc != NULL);
+    assert(in_buffer != NULL);
+    assert(out_buffer != NULL);
+    assert(buf_start >= 0);
+    assert(buf_stop >= 0);
+
+    if (gc->is_map_enabled && (gc->map != NULL))
+    {
+        for (int ch = 0; ch < 2; ++ch)
+        {
+            const kqt_frame* in_values = Audio_buffer_get_buffer(in_buffer, ch);
+            kqt_frame* out_values = Audio_buffer_get_buffer(out_buffer, ch);
+
+            for (int32_t i = buf_start; i < buf_stop; ++i)
+            {
+                const kqt_frame in_value = in_values[i];
+                const kqt_frame abs_value = fabs(in_value);
+
+                kqt_frame out_value = Envelope_get_value(gc->map, min(abs_value, 1));
+                if (in_value < 0)
+                    out_value = -out_value;
+
+                out_values[i] = out_value;
+            }
+        }
+    }
+    else
+    {
+        Audio_buffer_copy(out_buffer, in_buffer, buf_start, buf_stop);
+    }
+
+    return;
+}
+
+
+static uint32_t Proc_gc_process_vstate(
+        const Processor* proc,
+        Proc_state* proc_state,
+        Au_state* au_state,
+        Voice_state* vstate,
+        const Work_buffers* wbs,
+        int32_t buf_start,
+        int32_t buf_stop,
+        uint32_t audio_rate,
+        double tempo)
+{
+    assert(proc != NULL);
+    assert(proc_state != NULL);
+    assert(au_state != NULL);
+    assert(vstate != NULL);
+    assert(wbs != NULL);
+    assert(buf_start >= 0);
+    assert(buf_stop >= 0);
+    assert(audio_rate > 0);
+    assert(tempo > 0);
+    assert(isfinite(tempo));
+
+    // Get input
+    Audio_buffer* in_buffer = Proc_state_get_voice_buffer_mut(
+            proc_state, DEVICE_PORT_TYPE_RECEIVE, 0);
+    if (in_buffer == NULL)
+    {
+        vstate->active = false;
+        return buf_start;
+    }
+
+    // Get output
+    Audio_buffer* out_buffer = Proc_state_get_voice_buffer_mut(
+            proc_state, DEVICE_PORT_TYPE_SEND, 0);
+    assert(out_buffer != NULL);
+
+    // Distort the signal
+    const Proc_gc* gc = (const Proc_gc*)proc->parent.dimpl;
+    distort(gc, in_buffer, out_buffer, buf_start, buf_stop);
+
+    // Mark state as started, TODO: fix this mess
+    vstate->pos = 1;
+
+    return buf_stop;
+}
+
+
+static void Proc_gc_process_signal(
         const Device* device,
         Device_states* states,
-        uint32_t start,
-        uint32_t until,
+        uint32_t buf_start,
+        uint32_t buf_stop,
         uint32_t freq,
         double tempo)
 {
@@ -141,42 +261,23 @@ static void Proc_gc_process(
     assert(freq > 0);
     assert(tempo > 0);
 
-    Device_state* ds = Device_states_get_state(states, Device_get_id(device));
-    assert(ds != NULL);
+    Device_state* dstate = Device_states_get_state(states, Device_get_id(device));
+    assert(dstate != NULL);
 
-    Proc_gc* gc = (Proc_gc*)device->dimpl;
-    kqt_frame* in_data[] = { NULL, NULL };
-    kqt_frame* out_data[] = { NULL, NULL };
-    get_raw_input(ds, 0, in_data);
-    get_raw_output(ds, 0, out_data);
+    // Get input
+    Audio_buffer* in_buffer = Device_state_get_audio_buffer(
+            dstate, DEVICE_PORT_TYPE_RECEIVE, 0);
+    if (in_buffer == NULL)
+        return;
 
-    if (gc->map != NULL)
-    {
-        for (uint32_t i = start; i < until; ++i)
-        {
-            kqt_frame val_l = fabs(in_data[0][i]);
-            kqt_frame val_r = fabs(in_data[1][i]);
-            val_l = Envelope_get_value(gc->map, min(val_l, 1));
-            val_r = Envelope_get_value(gc->map, min(val_r, 1));
-            if (in_data[0][i] < 0)
-                val_l = -val_l;
-            if (in_data[1][i] < 0)
-                val_r = -val_r;
+    // Get output
+    Audio_buffer* out_buffer = Device_state_get_audio_buffer(
+            dstate, DEVICE_PORT_TYPE_SEND, 0);
+    assert(out_buffer != NULL);
 
-            out_data[0][i] += val_l;
-            out_data[1][i] += val_r;
-            assert(!isnan(out_data[0][i]) || isnan(in_data[0][i]));
-            assert(!isnan(out_data[0][i]) || isnan(in_data[1][i]));
-        }
-    }
-    else
-    {
-        for (uint32_t i = start; i < until; ++i)
-        {
-            out_data[0][i] += in_data[0][i];
-            out_data[1][i] += in_data[1][i];
-        }
-    }
+    // Distort the signal
+    const Proc_gc* gc = (const Proc_gc*)device->dimpl;
+    distort(gc, in_buffer, out_buffer, buf_start, buf_stop);
 
     return;
 }
