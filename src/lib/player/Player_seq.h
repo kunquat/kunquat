@@ -42,6 +42,12 @@ void Player_process_event(
         bool skip);
 
 
+bool Player_check_perform_goto(Player* player);
+
+
+// TODO: Implement Player_check_perform_jump
+
+
 void Player_process_cgiters(Player* player, Tstamp* limit, bool skip);
 
 

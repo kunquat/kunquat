@@ -485,6 +485,9 @@ static bool Player_update_receive(Player* player)
                     player->susp_event_name,
                     &player->susp_event_value,
                     false);
+
+            // Check and perform goto if needed
+            Player_check_perform_goto(player);
         }
 
         if (Event_buffer_is_skipping(player->event_buffer))
@@ -869,6 +872,9 @@ bool Player_fire(Player* player, int ch, Streader* event_reader)
         event_name,
         value,
         false);
+
+    // Check and perform goto if needed
+    Player_check_perform_goto(player);
 
     // Store event parameters if processing was suspended
     if (Event_buffer_is_skipping(player->event_buffer))
