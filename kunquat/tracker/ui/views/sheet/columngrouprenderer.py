@@ -70,6 +70,17 @@ class ColumnGroupRenderer():
         for i, cache in enumerate(self._inactive_caches):
             cache.set_column(self._columns[i])
 
+    def update_column(self, pattern_index, col_data):
+        self._columns[pattern_index] = col_data
+        if self._caches:
+            cache = self._caches[pattern_index]
+            cache.flush()
+            cache.set_column(self._columns[pattern_index])
+        if self._inactive_caches:
+            cache = self._inactive_caches[pattern_index]
+            cache.flush()
+            cache.set_column(self._columns[pattern_index])
+
     def flush_caches(self):
         if self._caches:
             for cache in self._caches:

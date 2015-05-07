@@ -23,6 +23,7 @@ from PyQt4.QtGui import *
 import kunquat.kunquat.events as events
 import kunquat.tracker.cmdline as cmdline
 import kunquat.tracker.ui.model.tstamp as tstamp
+from kunquat.tracker.ui.model.sheetmanager import SheetManager
 from kunquat.tracker.ui.model.trigger import Trigger
 from kunquat.tracker.ui.model.triggerposition import TriggerPosition
 from kunquat.tracker.ui.views.keyboardmapper import KeyboardMapper
@@ -172,9 +173,6 @@ class View(QWidget):
         if 'signal_pattern_length' in signals:
             self._update_all_patterns()
             self.update()
-        if 'signal_column' in signals:
-            self._update_all_patterns()
-            self.update()
         if 'signal_selection' in signals:
             self._follow_edit_cursor()
         if 'signal_edit_mode' in signals:
@@ -182,11 +180,23 @@ class View(QWidget):
         if 'signal_replace_mode' in signals:
             self.update()
 
+        for signal in signals:
+            if signal.startswith(SheetManager.get_column_signal_head()):
+                track_num, system_num, col_num = SheetManager.decode_column_signal(signal)
+                self._update_column(track_num, system_num, col_num)
+                self.update()
+
     def _update_all_patterns(self):
         for cr in self._col_rends:
             cr.flush_caches()
         all_pinsts = utils.get_all_pattern_instances(self._ui_model)
         self.set_pattern_instances(all_pinsts)
+
+    def _update_column(self, track_num, system_num, col_num):
+        pattern_index = utils.get_pattern_index_at_location(
+                self._ui_model, track_num, system_num)
+        col_data = self._pinsts[pattern_index].get_pattern().get_column(col_num)
+        self._col_rends[col_num].update_column(pattern_index, col_data)
 
     def set_config(self, config):
         self._config = config

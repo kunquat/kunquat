@@ -20,6 +20,28 @@ COLUMN_COUNT = 64 # TODO: define in kunquat interface
 
 class SheetManager():
 
+    @staticmethod
+    def get_column_signal_head():
+        return 'signal_column'
+
+    @staticmethod
+    def encode_column_signal(track_num, system_num, col_num):
+        return '_'.join((
+            SheetManager.get_column_signal_head(),
+            str(track_num),
+            str(system_num),
+            str(col_num)))
+
+    @staticmethod
+    def decode_column_signal(signal):
+        head = SheetManager.get_column_signal_head()
+        assert signal.startswith(head)
+        numbers_part = signal[len(head):]
+        str_parts = numbers_part.split('_')[1:]
+        int_parts = [int(s) for s in str_parts]
+        track_num, system_num, col_num = int_parts
+        return (track_num, system_num, col_num)
+
     def __init__(self):
         self._controller = None
         self._session = None
@@ -208,8 +230,7 @@ class SheetManager():
 
         selection.set_location(new_location)
 
-        self._updater.signal_update(set(['signal_column_add']))
-        self._on_column_update()
+        self._on_column_update(location)
 
     def try_remove_trigger(self):
         if not self.is_editing_enabled():
@@ -228,10 +249,15 @@ class SheetManager():
 
         if cur_column.has_trigger(row_ts, index):
             cur_column.remove_trigger(row_ts, index)
-            self._on_column_update()
+            self._on_column_update(location)
 
-    def _on_column_update(self):
-        self._updater.signal_update(set(['signal_column']))
+    def _on_column_update(self, location):
+        track_num = location.get_track()
+        system_num = location.get_system()
+        col_num = location.get_col_num()
+        signal = SheetManager.encode_column_signal(track_num, system_num, col_num)
+
+        self._updater.signal_update(set([signal]))
 
         # Clear cached column data
         self._session.set_last_column(None)
