@@ -19,6 +19,7 @@ from kunquat import get_limit_info
 """
 
 
+# Define libkunquat limit constants in the module namespace
 for (limit_name, limit_value) in get_limit_info().iteritems():
     globals()[limit_name] = limit_value
 
