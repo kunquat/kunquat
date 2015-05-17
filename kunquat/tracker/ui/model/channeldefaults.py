@@ -12,10 +12,8 @@
 #
 
 from kunquat.kunquat.kunquat import get_default_value
+from kunquat.kunquat.limits import *
 from control import Control
-
-
-CHANNELS_MAX = 64 # TODO: Define in Kunquat interface...
 
 
 class ChannelDefaults():

@@ -13,14 +13,10 @@
 #
 
 from kunquat.kunquat.kunquat import get_default_value
+from kunquat.kunquat.limits import *
 
 from patterninstance import PatternInstance
 from song import Song
-
-
-SONGS_MAX = 256 # TODO: define in libkunquat interface
-PATTERNS_MAX = 1024
-PATTERN_INSTANCES_MAX = PATTERNS_MAX
 
 
 class Album():

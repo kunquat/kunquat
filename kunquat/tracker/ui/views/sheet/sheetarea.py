@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013-2014
+# Author: Tomi Jylhä-Ollila, Finland 2013-2015
 #
 # This file is part of Kunquat.
 #
@@ -23,6 +23,7 @@ from header import Header
 from ruler import Ruler
 import utils
 from view import View
+from kunquat.kunquat.limits import *
 import kunquat.tracker.ui.model.tstamp as tstamp
 
 
@@ -241,7 +242,7 @@ class SheetArea(QAbstractScrollArea):
         max_visible_cols = vp_width // self._col_width_levels[cur_col_width_index]
         hscrollbar = self.horizontalScrollBar()
         hscrollbar.setPageStep(max_visible_cols)
-        hscrollbar.setRange(0, COLUMN_COUNT - max_visible_cols)
+        hscrollbar.setRange(0, COLUMNS_MAX - max_visible_cols)
 
     def _follow_cursor(self, new_y_offset_str, new_first_col):
         new_y_offset = long(new_y_offset_str)

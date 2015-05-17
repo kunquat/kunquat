@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2015
 #
 # This file is part of Kunquat.
 #
@@ -12,6 +12,8 @@
 #
 
 from collections import deque
+
+from kunquat.kunquat.limits import *
 
 
 class Note():
@@ -37,9 +39,6 @@ class Note():
 
     def get_channel(self):
         return self._channel
-
-
-CHANNELS_MAX = 64 # TODO: get from libkunquat interface
 
 
 class NoteChannelMapper():

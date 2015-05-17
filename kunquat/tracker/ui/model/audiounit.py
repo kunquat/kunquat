@@ -13,12 +13,9 @@
 #
 
 from kunquat.kunquat.kunquat import get_default_value
+from kunquat.kunquat.limits import *
 from connections import Connections
 from processor import Processor
-
-
-AUDIO_UNITS_MAX = 256
-PROCESSORS_MAX = 256 # TODO: define in Kunquat interface...
 
 
 # Default processor settings

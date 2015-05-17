@@ -15,15 +15,12 @@
 from itertools import chain
 
 from kunquat.kunquat.kunquat import get_default_value
+from kunquat.kunquat.limits import *
 from audiounit import AudioUnit
 from channeldefaults import ChannelDefaults
 from connections import Connections
 from control import Control
 from album import Album
-
-
-AUDIO_UNITS_MAX = 256 # TODO: define in Kunquat interface
-CONTROLS_MAX = 256
 
 
 class Module():
