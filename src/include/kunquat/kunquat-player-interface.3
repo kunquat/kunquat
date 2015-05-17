@@ -1,4 +1,4 @@
-.TH kunquat\-player\-interface 3 "2015\-03\-21" "" "Kunquat"
+.TH kunquat\-player\-interface 3 "2015\-05\-17" "" "Kunquat"
 
 .SH NAME
 Kunquat player API
@@ -112,8 +112,8 @@ Return the audio buffer size of \fIhandle\fR, or 0 if \fIhandle\fR is invalid.
 .IP "\fBlong long kqt_Handle_get_duration(kqt_Handle\fR \fIhandle\fR\fB, int\fR \fItrack\fR\fB);\fR"
 Estimate the duration of \fItrack\fR in \fIhandle\fR. If \fItrack\fR is
 -1, the function estimates the total length of all tracks. The return value
-is the length in nanoseconds, or KQT_MAX_CALC_DURATION if the length is
-KQT_MAX_CALC_DURATION nanoseconds or longer, or -1 in case of an error.
+is the length in nanoseconds, or KQT_CALC_DURATION_MAX if the length is
+KQT_CALC_DURATION_MAX nanoseconds or longer, or -1 in case of an error.
 
 .IP "\fBint kqt_Handle_set_position(kqt_Handle\fR \fIhandle\fR\fB, int\fR \fItrack\fR\fB, long long\fR \fInanoseconds\fR\fB);\fR"
 Seek to a position inside \fItrack\fR in \fIhandle\fR. The \fInanoseconds\fR

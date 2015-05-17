@@ -59,7 +59,7 @@ extern "C" {
  *
  * The constant corresponds to 30 days.
  */
-#define KQT_MAX_CALC_DURATION 2592000000000000LL
+#define KQT_CALC_DURATION_MAX 2592000000000000LL
 
 
 /**
