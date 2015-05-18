@@ -210,7 +210,7 @@ long long kqt_Handle_get_duration(kqt_Handle handle, int track)
     }
 
     Player_reset(h->length_counter, track);
-    Player_skip(h->length_counter, KQT_MAX_CALC_DURATION);
+    Player_skip(h->length_counter, KQT_CALC_DURATION_MAX);
 
     return Player_get_nanoseconds(h->length_counter);
 }

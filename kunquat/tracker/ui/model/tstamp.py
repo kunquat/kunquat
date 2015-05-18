@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013
+# Author: Tomi Jylhä-Ollila, Finland 2013-2015
 #
 # This file is part of Kunquat.
 #
@@ -15,8 +15,10 @@ from collections import Sequence
 import math
 import numbers
 
+from kunquat.kunquat.limits import TSTAMP_BEAT
 
-BEAT = 882161280
+
+BEAT = TSTAMP_BEAT
 
 
 class Tstamp(numbers.Real, tuple):

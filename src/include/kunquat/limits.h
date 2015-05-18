@@ -59,7 +59,7 @@ extern "C" {
  *
  * The constant corresponds to 30 days.
  */
-#define KQT_MAX_CALC_DURATION 2592000000000000LL
+#define KQT_CALC_DURATION_MAX 2592000000000000LL
 
 
 /**
@@ -179,9 +179,9 @@ extern "C" {
 /**
  * Environment variable name limits.
  */
-#define ENV_VAR_NAME_MAX 32
-#define ENV_VAR_INIT_CHARS "abcdefghijklmnopqrstuvwxyz_"
-#define ENV_VAR_CHARS ENV_VAR_INIT_CHARS "0123456789"
+#define KQT_ENV_VAR_NAME_MAX 32
+#define KQT_ENV_VAR_INIT_CHARS "abcdefghijklmnopqrstuvwxyz_"
+#define KQT_ENV_VAR_CHARS KQT_ENV_VAR_INIT_CHARS "0123456789"
 
 
 #ifdef __cplusplus

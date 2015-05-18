@@ -12,12 +12,10 @@
 #
 
 from kunquat.kunquat.kunquat import get_default_value
+from kunquat.kunquat.limits import *
 
 from column import Column
 import tstamp
-
-
-COLUMNS_MAX = 64 # TODO: define in libkunquat interface
 
 
 class Pattern():

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2015
  *
  * This file is part of Kunquat.
  *
@@ -49,7 +49,7 @@ typedef struct Value
         double float_type;
         Real Real_type;
         Tstamp Tstamp_type;
-        char string_type[ENV_VAR_NAME_MAX];
+        char string_type[KQT_ENV_VAR_NAME_MAX];
         Pat_inst_ref Pat_inst_ref_type;
     } value;
 } Value;

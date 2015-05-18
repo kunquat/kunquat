@@ -14,8 +14,7 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-
-CHANNELS_MAX = 64 # TODO: define in libkunuqat interface
+from kunquat.kunquat.limits import *
 
 
 class ChDefaultsEditor(QWidget):

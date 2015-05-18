@@ -187,14 +187,14 @@ long kqt_Handle_get_audio_buffer_size(kqt_Handle handle);
  * Estimate the duration of a track in the Kunquat Handle.
  *
  * This function will not calculate the length of a track further
- * than KQT_MAX_CALC_DURATION nanoseconds.
+ * than KQT_CALC_DURATION_MAX nanoseconds.
  *
  * \param handle   The Handle -- should be valid.
  * \param track    The track number -- should be >= \c -1 and
  *                 < \c KQT_TRACKS_MAX (\c -1 denotes all tracks).
  *
- * \return   The length in nanoseconds, or KQT_MAX_CALC_DURATION if the length
- *           is KQT_MAX_CALC_DURATION nanoseconds or longer, or \c -1 if
+ * \return   The length in nanoseconds, or KQT_CALC_DURATION_MAX if the length
+ *           is KQT_CALC_DURATION_MAX nanoseconds or longer, or \c -1 if
  *           failed.
  */
 long long kqt_Handle_get_duration(kqt_Handle handle, int track);

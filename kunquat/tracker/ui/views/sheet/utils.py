@@ -17,6 +17,7 @@ import math
 from PyQt4.QtCore import *
 
 from config import *
+from kunquat.kunquat.limits import *
 import kunquat.tracker.ui.model.tstamp as tstamp
 
 
@@ -58,13 +59,13 @@ def get_pattern_index_at_location(ui_model, track, system):
 # Column view utils
 
 def get_max_visible_cols(full_width, col_width):
-    return min(full_width // col_width + 1, COLUMN_COUNT + 1)
+    return min(full_width // col_width + 1, COLUMNS_MAX + 1)
 
 def clamp_start_col(first_col, max_visible_cols):
-    return min(first_col, COLUMN_COUNT - max_visible_cols + 1)
+    return min(first_col, COLUMNS_MAX - max_visible_cols + 1)
 
 def get_visible_cols(first_col, max_visible_cols):
-    if first_col + max_visible_cols > COLUMN_COUNT:
+    if first_col + max_visible_cols > COLUMNS_MAX:
         return max_visible_cols - 1
     return max_visible_cols
 

@@ -21,6 +21,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 import kunquat.kunquat.events as events
+from kunquat.kunquat.limits import *
 import kunquat.tracker.cmdline as cmdline
 import kunquat.tracker.ui.model.tstamp as tstamp
 from kunquat.tracker.ui.model.sheetmanager import SheetManager
@@ -130,7 +131,7 @@ class View(QWidget):
         self._first_col = 0
         self._visible_cols = 0
 
-        self._col_rends = [ColumnGroupRenderer(i) for i in xrange(COLUMN_COUNT)]
+        self._col_rends = [ColumnGroupRenderer(i) for i in xrange(COLUMNS_MAX)]
 
         self._heights = []
         self._start_heights = []
@@ -640,7 +641,7 @@ class View(QWidget):
         row_ts = location.get_row_ts()
         trigger_index = location.get_trigger_index()
 
-        new_col_num = min(max(0, col_num + delta), COLUMN_COUNT - 1)
+        new_col_num = min(max(0, col_num + delta), COLUMNS_MAX - 1)
 
         test_location = TriggerPosition(track, system, new_col_num, row_ts, 0)
         new_location = self._sheet_manager.get_clamped_location(test_location)
@@ -799,7 +800,7 @@ class View(QWidget):
 
         # Get column number
         col_num = self._first_col + (view_x_offset // self._col_width)
-        if col_num >= COLUMN_COUNT:
+        if col_num >= COLUMNS_MAX:
             return
         rel_x_offset = view_x_offset % self._col_width
 
@@ -1253,7 +1254,7 @@ class View(QWidget):
         # See which columns should be drawn
         draw_col_start = rect.x() // self._col_width
         draw_col_stop = 1 + (rect.x() + rect.width() - 1) // self._col_width
-        draw_col_stop = min(draw_col_stop, COLUMN_COUNT - self._first_col)
+        draw_col_stop = min(draw_col_stop, COLUMNS_MAX - self._first_col)
 
         # Draw columns
         pixmaps_created = 0

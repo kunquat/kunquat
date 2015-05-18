@@ -54,6 +54,3 @@ DEFAULT_CONFIG = {
         }
 
 
-COLUMN_COUNT = 64
-
-

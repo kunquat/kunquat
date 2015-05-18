@@ -11,11 +11,9 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from kunquat.kunquat.limits import *
 from triggerposition import TriggerPosition
 import tstamp
-
-
-COLUMN_COUNT = 64 # TODO: define in kunquat interface
 
 
 class SheetManager():
@@ -210,7 +208,7 @@ class SheetManager():
         cur_column.insert_trigger(row_ts, index, trigger)
 
         cur_col_num = location.get_col_num()
-        if self.get_chord_mode() and (cur_col_num < COLUMN_COUNT - 1):
+        if self.get_chord_mode() and (cur_col_num < COLUMNS_MAX - 1):
             new_col_num = cur_col_num + 1
             new_location = TriggerPosition(
                     location.get_track(),

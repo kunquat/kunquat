@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2015
 #
 # This file is part of Kunquat.
 #
@@ -11,11 +11,9 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from kunquat.kunquat.limits import *
 from trigger import Trigger
 import tstamp
-
-
-COLUMNS_MAX = 64 # TODO: define in libkunquat interface
 
 
 class Column():
