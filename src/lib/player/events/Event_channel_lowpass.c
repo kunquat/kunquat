@@ -24,21 +24,31 @@
 #include <Value.h>
 
 
+#define CUTOFF_INF_LIMIT 96.0
+#define CUTOFF_BIAS 81.37631656229591
+
+
+static double get_cutoff_freq(double param)
+{
+    assert(isfinite(param));
+
+    if (param > CUTOFF_INF_LIMIT)
+        return INFINITY;
+
+    param = max(-100, param);
+    return exp2((param + CUTOFF_BIAS) / 12.0);
+}
+
+
 bool Event_channel_set_lowpass_process(
-        Channel* ch,
-        Device_states* dstates,
-        const Value* value)
+        Channel* ch, Device_states* dstates, const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
-    double cutoff = NAN;
-    if (value->value.float_type > 86)
-        cutoff = INFINITY;
-    else
-        cutoff = exp2((value->value.float_type + 86) / 12);
+    const double cutoff = get_cutoff_freq(value->value.float_type);
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
@@ -52,29 +62,28 @@ bool Event_channel_set_lowpass_process(
 
 
 bool Event_channel_slide_lowpass_process(
-        Channel* ch,
-        Device_states* dstates,
-        const Value* value)
+        Channel* ch, Device_states* dstates, const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
-    const double target_cutoff = value->value.float_type;
-    const double target_cutoff_exp = exp2((target_cutoff + 86) / 12);
-    const double inf_limit = exp2((86.0 + 86) / 12);
+    const double target_cutoff = get_cutoff_freq(value->value.float_type);
+    const double inf_limit = get_cutoff_freq(CUTOFF_INF_LIMIT);
+    assert(isfinite(inf_limit));
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;
         if (Slider_in_progress(&vs->lowpass_slider))
-            Slider_change_target(&vs->lowpass_slider, target_cutoff_exp);
+            Slider_change_target(&vs->lowpass_slider, target_cutoff);
         else
-            Slider_start(&vs->lowpass_slider,
-                         target_cutoff_exp,
-                         isfinite(vs->lowpass) ? vs->lowpass : inf_limit);
+            Slider_start(
+                    &vs->lowpass_slider,
+                    target_cutoff,
+                    isfinite(vs->lowpass) ? vs->lowpass : inf_limit);
     }
 
     return true;
@@ -82,18 +91,14 @@ bool Event_channel_slide_lowpass_process(
 
 
 bool Event_channel_slide_lowpass_length_process(
-        Channel* ch,
-        Device_states* dstates,
-        const Value* value)
+        Channel* ch, Device_states* dstates, const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_TSTAMP);
 
-    Tstamp_copy(
-            &ch->filter_slide_length,
-            &value->value.Tstamp_type);
+    Tstamp_copy(&ch->filter_slide_length, &value->value.Tstamp_type);
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
@@ -107,9 +112,7 @@ bool Event_channel_slide_lowpass_length_process(
 
 
 bool Event_channel_autowah_speed_process(
-        Channel* ch,
-        Device_states* dstates,
-        const Value* value)
+        Channel* ch, Device_states* dstates, const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
@@ -136,9 +139,7 @@ bool Event_channel_autowah_speed_process(
 
 
 bool Event_channel_autowah_depth_process(
-        Channel* ch,
-        Device_states* dstates,
-        const Value* value)
+        Channel* ch, Device_states* dstates, const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
@@ -165,9 +166,7 @@ bool Event_channel_autowah_depth_process(
 
 
 bool Event_channel_autowah_speed_slide_process(
-        Channel* ch,
-        Device_states* dstates,
-        const Value* value)
+        Channel* ch, Device_states* dstates, const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
@@ -189,18 +188,14 @@ bool Event_channel_autowah_speed_slide_process(
 
 
 bool Event_channel_autowah_depth_slide_process(
-        Channel* ch,
-        Device_states* dstates,
-        const Value* value)
+        Channel* ch, Device_states* dstates, const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_TSTAMP);
 
-    Tstamp_copy(
-            &ch->autowah_depth_slide,
-            &value->value.Tstamp_type);
+    Tstamp_copy(&ch->autowah_depth_slide, &value->value.Tstamp_type);
     LFO_set_depth_slide(&ch->autowah, &value->value.Tstamp_type);
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
@@ -223,9 +218,7 @@ static double get_resonance(double param)
 
 
 bool Event_channel_set_resonance_process(
-        Channel* ch,
-        Device_states* dstates,
-        const Value* value)
+        Channel* ch, Device_states* dstates, const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
