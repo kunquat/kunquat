@@ -75,7 +75,7 @@ class FilterEnvelope(TimeEnvelope):
     def _make_envelope_widget(self):
         envelope = Envelope()
         envelope.set_node_count_max(32)
-        envelope.set_y_range(0, 1)
+        envelope.set_y_range(0, 100)
         envelope.set_x_range(0, 4)
         envelope.set_first_lock(True, False)
         envelope.set_x_range_adjust(False, True)
@@ -134,7 +134,7 @@ class FilterReleaseEnvelope(TimeEnvelope):
     def _make_envelope_widget(self):
         envelope = Envelope()
         envelope.set_node_count_max(32)
-        envelope.set_y_range(0, 1)
+        envelope.set_y_range(0, 100)
         envelope.set_x_range(0, 4)
         envelope.set_first_lock(True, False)
         envelope.set_x_range_adjust(False, True)
