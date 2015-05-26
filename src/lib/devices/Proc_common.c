@@ -326,6 +326,22 @@ static void apply_filter_settings(
 }
 
 
+#define CUTOFF_INF_LIMIT 100.0
+#define CUTOFF_BIAS 81.37631656229591
+
+
+static double get_cutoff_freq(double param)
+{
+    assert(isfinite(param));
+
+    if (param >= CUTOFF_INF_LIMIT)
+        return INFINITY;
+
+    param = max(-100, param);
+    return exp2((param + CUTOFF_BIAS) / 12.0);
+}
+
+
 void Proc_common_handle_filter(
         const Processor* proc,
         Au_state* au_state,
@@ -380,7 +396,7 @@ void Proc_common_handle_filter(
     if (LFO_active(&vstate->autowah))
     {
         for (int32_t i = buf_start; i < buf_stop; ++i)
-            actual_lowpasses[i] *= LFO_step(&vstate->autowah);
+            actual_lowpasses[i] += LFO_step(&vstate->autowah);
     }
 
     // Apply time->filter envelope
@@ -395,7 +411,7 @@ void Proc_common_handle_filter(
                 proc->au_params->env_filter_scale_amount,
                 proc->au_params->env_filter_scale_center,
                 0, // sustain
-                0, 1, // range
+                0, 100, // range
                 Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_PITCH),
                 wbs,
                 buf_start,
@@ -421,7 +437,7 @@ void Proc_common_handle_filter(
         for (int32_t i = buf_start; i < buf_stop; ++i)
         {
             float actual_lowpass = actual_lowpasses[i];
-            actual_lowpass = min(actual_lowpass, 20000) * time_env[i];
+            actual_lowpass = actual_lowpass + time_env[i] - 100;
             actual_lowpasses[i] = actual_lowpass;
         }
     }
@@ -438,7 +454,7 @@ void Proc_common_handle_filter(
                 proc->au_params->env_filter_rel_scale_amount,
                 proc->au_params->env_filter_rel_scale_center,
                 au_state->sustain,
-                0, 1, // range
+                0, 100, // range
                 Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_PITCH),
                 wbs,
                 buf_start,
@@ -464,13 +480,14 @@ void Proc_common_handle_filter(
         for (int32_t i = buf_start; i < buf_stop; ++i)
         {
             float actual_lowpass = actual_lowpasses[i];
-            actual_lowpass = min(actual_lowpass, 20000) * time_env[i];
+            actual_lowpass = actual_lowpass + time_env[i] - 100;
             actual_lowpasses[i] = actual_lowpass;
         }
     }
 
-    static const double max_true_lowpass_change = 1.0145453349375237; // 2^(1/48)
-    static const double min_true_lowpass_change = 1.0 / max_true_lowpass_change;
+    //static const double max_true_lowpass_change = 1.0145453349375237; // 2^(1/48)
+    //static const double min_true_lowpass_change = 1.0 / max_true_lowpass_change;
+    static const double max_true_lowpass_change = 0.25;
 
     const double xfade_step = 200.0 / freq;
     vstate->lowpass_xfade_update = xfade_step;
@@ -497,13 +514,13 @@ void Proc_common_handle_filter(
                     proc->au_params->env_force_filter,
                     force);
             assert(isfinite(factor));
-            vstate->actual_lowpass = min(vstate->actual_lowpass, 16384) * factor;
+            vstate->actual_lowpass += (factor * 100) - 100;
         }
 
         // Initialise new filter settings if needed
         if (vstate->lowpass_xfade_pos >= 1 &&
-                (vstate->actual_lowpass < vstate->true_lowpass * min_true_lowpass_change ||
-                 vstate->actual_lowpass > vstate->true_lowpass * max_true_lowpass_change ||
+                ((fabs(vstate->actual_lowpass - vstate->applied_lowpass) >
+                    max_true_lowpass_change) ||
                  vstate->lowpass_resonance != vstate->true_resonance))
         {
             // Apply previous filter settings to the signal
@@ -529,7 +546,8 @@ void Proc_common_handle_filter(
             else
                 vstate->lowpass_xfade_pos = 1;
 
-            vstate->true_lowpass = vstate->actual_lowpass;
+            vstate->applied_lowpass = vstate->actual_lowpass;
+            vstate->true_lowpass = get_cutoff_freq(vstate->applied_lowpass);
             vstate->true_resonance = vstate->lowpass_resonance;
 
             if (vstate->true_lowpass < nyquist)

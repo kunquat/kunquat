@@ -96,12 +96,13 @@ typedef struct Voice_state
     Time_env_state env_filter_state;
     Time_env_state env_filter_rel_state;
 
-    double lowpass;                ///< The current lowpass cut-off frequency.
-    double actual_lowpass;         ///< The current actual lowpass cut-off frequency.
+    double lowpass;                ///< The current lowpass parameter.
+    double actual_lowpass;         ///< The current actual lowpass parameter.
     Slider lowpass_slider;
     LFO autowah;
     double lowpass_resonance;      ///< The filter resonance (Q factor).
 
+    double applied_lowpass;        ///< The currently applied lowpass parameter.
     double true_lowpass;           ///< The current real filter state cut-off frequency.
     double true_resonance;         ///< The current real filter state resonance.
     double lowpass_xfade_pos;      ///< Filter crossfade position.

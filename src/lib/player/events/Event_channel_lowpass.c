@@ -24,22 +24,6 @@
 #include <Value.h>
 
 
-#define CUTOFF_INF_LIMIT 96.0
-#define CUTOFF_BIAS 81.37631656229591
-
-
-static double get_cutoff_freq(double param)
-{
-    assert(isfinite(param));
-
-    if (param > CUTOFF_INF_LIMIT)
-        return INFINITY;
-
-    param = max(-100, param);
-    return exp2((param + CUTOFF_BIAS) / 12.0);
-}
-
-
 bool Event_channel_set_lowpass_process(
         Channel* ch, Device_states* dstates, const Value* value)
 {
@@ -48,13 +32,13 @@ bool Event_channel_set_lowpass_process(
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
-    const double cutoff = get_cutoff_freq(value->value.float_type);
-
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;
-        vs->lowpass = cutoff;
+        vs->lowpass = value->value.float_type;
+
+        Slider_break(&vs->lowpass_slider);
     }
 
     return true;
@@ -69,21 +53,16 @@ bool Event_channel_slide_lowpass_process(
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
-    const double target_cutoff = get_cutoff_freq(value->value.float_type);
-    const double inf_limit = get_cutoff_freq(CUTOFF_INF_LIMIT);
-    assert(isfinite(inf_limit));
+    const double target_lowpass = value->value.float_type;
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;
         if (Slider_in_progress(&vs->lowpass_slider))
-            Slider_change_target(&vs->lowpass_slider, target_cutoff);
+            Slider_change_target(&vs->lowpass_slider, target_lowpass);
         else
-            Slider_start(
-                    &vs->lowpass_slider,
-                    target_cutoff,
-                    isfinite(vs->lowpass) ? vs->lowpass : inf_limit);
+            Slider_start(&vs->lowpass_slider, target_lowpass, vs->lowpass);
     }
 
     return true;
@@ -146,7 +125,7 @@ bool Event_channel_autowah_depth_process(
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
-    const double actual_depth = value->value.float_type / 8;
+    const double actual_depth = value->value.float_type;
     ch->autowah_depth = actual_depth;
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)

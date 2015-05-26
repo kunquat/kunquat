@@ -99,7 +99,7 @@ Voice_state* Voice_state_clear(Voice_state* state)
     }
 #endif
 
-    LFO_init(&state->autowah, LFO_MODE_EXP);
+    LFO_init(&state->autowah, LFO_MODE_LINEAR);
 
     state->pos = 0;
     state->pos_rem = 0;
@@ -128,10 +128,11 @@ Voice_state* Voice_state_clear(Voice_state* state)
     Time_env_state_init(&state->env_filter_state);
     Time_env_state_init(&state->env_filter_rel_state);
 
-    state->lowpass = INFINITY;
-    state->actual_lowpass = INFINITY;
+    state->lowpass = 100;
+    state->actual_lowpass = state->lowpass;
+    state->applied_lowpass = state->actual_lowpass;
     state->true_lowpass = INFINITY;
-    Slider_init(&state->lowpass_slider, SLIDE_MODE_EXP);
+    Slider_init(&state->lowpass_slider, SLIDE_MODE_LINEAR);
     state->lowpass_resonance = 1;
     state->true_resonance = 1;
     state->lowpass_state_used = -1;
