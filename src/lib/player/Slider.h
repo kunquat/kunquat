@@ -72,9 +72,9 @@ Slider* Slider_copy(Slider* restrict dest, const Slider* restrict src);
 /**
  * Start a slide.
  *
- * \param slider     The Slider -- must not be \c NULL.
- * \param target     The target value -- must be finite.
- * \param start      The starting value -- must be finite.
+ * \param slider   The Slider -- must not be \c NULL.
+ * \param target   The target value -- must be finite.
+ * \param start    The starting value -- must be finite.
  */
 void Slider_start(Slider* slider, double target, double start);
 
