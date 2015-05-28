@@ -258,6 +258,12 @@ class AudioUnit():
     def set_default_force(self, default_force):
         self._set_value_of_au_dict('force', default_force)
 
+    def get_global_lowpass(self):
+        return self._get_value_from_au_dict('global_lowpass')
+
+    def set_global_lowpass(self, global_lowpass):
+        self._set_value_of_au_dict('global_lowpass', global_lowpass)
+
     def _get_time_envelope_dict(self, subkey):
         key = self._get_key(subkey)
         d = get_default_value(key)
