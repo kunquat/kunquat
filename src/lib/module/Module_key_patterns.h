@@ -58,6 +58,7 @@ MODULE_AU_KEYP(au,                      "au_XX/p_audio_unit.json",
         "{ \"global_force\": 0"
         ", \"force\": 0"
         ", \"force_variation\": 0"
+        ", \"global_lowpass\": 100"
         "}")
 MODULE_AU_KEYP(au_in_port_manifest,     "au_XX/in_XX/p_manifest.json",          "")
 MODULE_AU_KEYP(au_out_port_manifest,    "au_XX/out_XX/p_manifest.json",         "")

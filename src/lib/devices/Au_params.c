@@ -103,6 +103,7 @@ Au_params* Au_params_init(Au_params* aup, uint32_t device_id)
     Envelope_set_last_lock(aup->env_pitch_pan, true, false);
 
     new_env_or_fail(aup->env_filter, 32,  0, INFINITY, 0,  0, 100, 0);
+    aup->global_lowpass = 100;
     aup->env_filter_enabled = false;
     aup->env_filter_loop_enabled = false;
     aup->env_filter_scale_amount = 1;

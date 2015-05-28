@@ -67,6 +67,7 @@ typedef struct Au_params
     Envelope* env_pitch_pan;
 
     // Lowpass filter settings
+    double global_lowpass;
     bool env_filter_enabled;
     bool env_filter_loop_enabled;
     Envelope* env_filter;

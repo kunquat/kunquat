@@ -374,6 +374,8 @@ void Proc_common_handle_filter(
     float* actual_lowpasses = Work_buffers_get_buffer_contents_mut(
             wbs, WORK_BUFFER_ACTUAL_LOWPASSES);
 
+    const float global_lowpass_delta = proc->au_params->global_lowpass - 100;
+
     // Apply lowpass slide
     if (Slider_in_progress(&vstate->lowpass_slider))
     {
@@ -381,13 +383,13 @@ void Proc_common_handle_filter(
         for (int32_t i = buf_start; i < buf_stop; ++i)
         {
             new_lowpass = Slider_step(&vstate->lowpass_slider);
-            actual_lowpasses[i] = new_lowpass;
+            actual_lowpasses[i] = new_lowpass + global_lowpass_delta;
         }
         vstate->lowpass = new_lowpass;
     }
     else
     {
-        const float lowpass = vstate->lowpass;
+        const float lowpass = vstate->lowpass + global_lowpass_delta;
         for (int32_t i = buf_start; i < buf_stop; ++i)
             actual_lowpasses[i] = lowpass;
     }
