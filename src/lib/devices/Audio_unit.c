@@ -170,6 +170,7 @@ typedef struct au_params
     double default_force;
     double force_variation;
     double global_lowpass;
+    double default_lowpass;
     int64_t scale_index;
 } au_params;
 
@@ -189,6 +190,8 @@ static bool read_au_field(Streader* sr, const char* key, void* userdata)
         Streader_read_float(sr, &p->global_force);
     else if (string_eq(key, "global_lowpass"))
         Streader_read_float(sr, &p->global_lowpass);
+    else if (string_eq(key, "default_lowpass"))
+        Streader_read_float(sr, &p->default_lowpass);
     else if (string_eq(key, "scale"))
     {
         if (!Streader_read_int(sr, &p->scale_index))
@@ -225,6 +228,7 @@ bool Audio_unit_parse_header(Audio_unit* au, Streader* sr)
         .default_force = AU_DEFAULT_FORCE,
         .force_variation = AU_DEFAULT_FORCE_VAR,
         .global_lowpass = AU_DEFAULT_GLOBAL_LOWPASS,
+        .default_lowpass = 100,
         .scale_index = AU_DEFAULT_SCALE_INDEX,
     };
 
@@ -235,6 +239,7 @@ bool Audio_unit_parse_header(Audio_unit* au, Streader* sr)
     au->params.force_variation = p->force_variation;
     au->params.global_force = exp2(p->global_force / 6);
     au->params.global_lowpass = clamp(p->global_lowpass, 0, 200);
+    au->params.default_lowpass = clamp(p->default_lowpass, 0, 100);
 
     return true;
 }
