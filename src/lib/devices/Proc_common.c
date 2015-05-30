@@ -495,6 +495,25 @@ void Proc_common_handle_filter(
         }
     }
 
+    // Apply pitch->lowpass scaling
+    if (Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_PITCH) &&
+            (proc->au_params->pitch_lowpass_scale != 0))
+    {
+        static const double inv_center = 1.0 / 440.0;
+        const double scale = proc->au_params->pitch_lowpass_scale;
+
+        const float* actual_pitches = Work_buffers_get_buffer_contents(
+            wbs, WORK_BUFFER_ACTUAL_PITCHES);
+
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+        {
+            const float actual_pitch = actual_pitches[i];
+            float actual_lowpass = actual_lowpasses[i];
+            actual_lowpass += log2(pow(actual_pitch * inv_center, scale)) * 12;
+            actual_lowpasses[i] = actual_lowpass;
+        }
+    }
+
     //static const double max_true_lowpass_change = 1.0145453349375237; // 2^(1/48)
     //static const double min_true_lowpass_change = 1.0 / max_true_lowpass_change;
     static const double max_true_lowpass_change = 0.25;

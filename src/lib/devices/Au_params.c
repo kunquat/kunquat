@@ -106,6 +106,7 @@ Au_params* Au_params_init(Au_params* aup, uint32_t device_id)
     aup->global_lowpass = 100;
     aup->default_lowpass = 100;
     aup->default_resonance = 0;
+    aup->pitch_lowpass_scale = 0;
     aup->env_filter_enabled = false;
     aup->env_filter_loop_enabled = false;
     aup->env_filter_scale_amount = 1;

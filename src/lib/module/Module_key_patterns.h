@@ -61,6 +61,7 @@ MODULE_AU_KEYP(au,                      "au_XX/p_audio_unit.json",
         ", \"global_lowpass\": 100"
         ", \"default_lowpass\": 100"
         ", \"default_resonance\": 0"
+        ", \"pitch_lowpass_scale\": 0"
         "}")
 MODULE_AU_KEYP(au_in_port_manifest,     "au_XX/in_XX/p_manifest.json",          "")
 MODULE_AU_KEYP(au_out_port_manifest,    "au_XX/out_XX/p_manifest.json",         "")

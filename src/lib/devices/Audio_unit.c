@@ -172,6 +172,7 @@ typedef struct au_params
     double global_lowpass;
     double default_lowpass;
     double default_resonance;
+    double pitch_lowpass_scale;
     int64_t scale_index;
 } au_params;
 
@@ -195,6 +196,8 @@ static bool read_au_field(Streader* sr, const char* key, void* userdata)
         Streader_read_float(sr, &p->default_lowpass);
     else if (string_eq(key, "default_resonance"))
         Streader_read_float(sr, &p->default_resonance);
+    else if (string_eq(key, "pitch_lowpass_scale"))
+        Streader_read_float(sr, &p->pitch_lowpass_scale);
     else if (string_eq(key, "scale"))
     {
         if (!Streader_read_int(sr, &p->scale_index))
@@ -244,6 +247,7 @@ bool Audio_unit_parse_header(Audio_unit* au, Streader* sr)
     au->params.global_lowpass = clamp(p->global_lowpass, 0, 200);
     au->params.default_lowpass = clamp(p->default_lowpass, 0, 100);
     au->params.default_resonance = clamp(p->default_resonance, 0, 100);
+    au->params.pitch_lowpass_scale = clamp(p->pitch_lowpass_scale, -4, 4);
 
     return true;
 }
