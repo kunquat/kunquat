@@ -69,6 +69,7 @@ typedef struct Au_params
     // Lowpass filter settings
     double global_lowpass;
     double default_lowpass;
+    double default_resonance;
     bool env_filter_enabled;
     bool env_filter_loop_enabled;
     Envelope* env_filter;

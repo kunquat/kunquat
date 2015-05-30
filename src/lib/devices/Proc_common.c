@@ -342,6 +342,14 @@ static double get_cutoff_freq(double param)
 }
 
 
+static double get_resonance(double param)
+{
+    const double clamped_res = clamp(param, 0, 100);
+    const double resonance = pow(1.055, clamped_res) * 0.5;
+    return resonance;
+}
+
+
 void Proc_common_handle_filter(
         const Processor* proc,
         Au_state* au_state,
@@ -523,7 +531,7 @@ void Proc_common_handle_filter(
         if (vstate->lowpass_xfade_pos >= 1 &&
                 ((fabs(vstate->actual_lowpass - vstate->applied_lowpass) >
                     max_true_lowpass_change) ||
-                 vstate->lowpass_resonance != vstate->true_resonance))
+                 vstate->lowpass_resonance != vstate->applied_resonance))
         {
             // Apply previous filter settings to the signal
             apply_filter_stop = i;
@@ -550,7 +558,9 @@ void Proc_common_handle_filter(
 
             vstate->applied_lowpass = vstate->actual_lowpass;
             vstate->true_lowpass = get_cutoff_freq(vstate->applied_lowpass);
-            vstate->true_resonance = vstate->lowpass_resonance;
+
+            vstate->applied_resonance = vstate->lowpass_resonance;
+            vstate->true_resonance = get_resonance(vstate->applied_resonance);
 
             if (vstate->true_lowpass < nyquist)
             {

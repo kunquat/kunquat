@@ -188,14 +188,6 @@ bool Event_channel_autowah_depth_slide_process(
 }
 
 
-static double get_resonance(double param)
-{
-    const double clamped_res = clamp(param, 0, 100);
-    const double resonance = pow(1.055, clamped_res) * 0.5;
-    return resonance;
-}
-
-
 bool Event_channel_set_resonance_process(
         Channel* ch, Device_states* dstates, const Value* value)
 {
@@ -204,7 +196,7 @@ bool Event_channel_set_resonance_process(
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
-    const double resonance = get_resonance(value->value.float_type);
+    const double resonance = value->value.float_type;
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
