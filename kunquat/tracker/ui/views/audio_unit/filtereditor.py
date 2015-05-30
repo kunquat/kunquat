@@ -33,6 +33,7 @@ class FilterEditor(QWidget):
         self._filter_env = FilterEnvelope()
         self._filter_rel_env = FilterReleaseEnvelope()
         self._force_filter_env = ForceFilterEnvelope()
+        self._pitch_lowpass_scale = PitchLowpassScale()
 
         sliders = QGridLayout()
         sliders.setVerticalSpacing(0)
@@ -42,6 +43,8 @@ class FilterEditor(QWidget):
         sliders.addWidget(self._default_lowpass, 1, 1)
         sliders.addWidget(QLabel('Default resonance:'), 2, 0)
         sliders.addWidget(self._default_resonance, 2, 1)
+        sliders.addWidget(QLabel('Pitch->lowpass scale:'), 3, 0)
+        sliders.addWidget(self._pitch_lowpass_scale, 3, 1)
 
         b = QHBoxLayout()
         b.setMargin(0)
@@ -62,6 +65,7 @@ class FilterEditor(QWidget):
         self._global_lowpass.set_au_id(au_id)
         self._default_lowpass.set_au_id(au_id)
         self._default_resonance.set_au_id(au_id)
+        self._pitch_lowpass_scale.set_au_id(au_id)
         self._filter_env.set_au_id(au_id)
         self._filter_rel_env.set_au_id(au_id)
         self._force_filter_env.set_au_id(au_id)
@@ -71,6 +75,7 @@ class FilterEditor(QWidget):
         self._global_lowpass.set_ui_model(ui_model)
         self._default_lowpass.set_ui_model(ui_model)
         self._default_resonance.set_ui_model(ui_model)
+        self._pitch_lowpass_scale.set_ui_model(ui_model)
         self._filter_env.set_ui_model(ui_model)
         self._filter_rel_env.set_ui_model(ui_model)
         self._force_filter_env.set_ui_model(ui_model)
@@ -79,6 +84,7 @@ class FilterEditor(QWidget):
         self._force_filter_env.unregister_updaters()
         self._filter_rel_env.unregister_updaters()
         self._filter_env.unregister_updaters()
+        self._pitch_lowpass_scale.unregister_updaters()
         self._default_resonance.unregister_updaters()
         self._default_lowpass.unregister_updaters()
         self._global_lowpass.unregister_updaters()
@@ -145,6 +151,26 @@ class DefaultResonance(AuNumSlider):
 
     def _get_update_signal_type(self):
         return '_'.join(('signal_default_resonance', self._au_id))
+
+
+class PitchLowpassScale(AuNumSlider):
+
+    def __init__(self):
+        AuNumSlider.__init__(self, 3, -4.0, 4.0, width_txt='-000.00')
+
+    def _update_value(self):
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+        self.set_number(au.get_pitch_lowpass_scale())
+
+    def _value_changed(self, scale):
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+        au.set_pitch_lowpass_scale(scale)
+        self._updater.signal_update(set([self._get_update_signal_type()]))
+
+    def _get_update_signal_type(self):
+        return '_'.join(('signal_pitch_lowpass_scale', self._au_id))
 
 
 class FilterEnvelope(TimeEnvelope):

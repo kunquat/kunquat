@@ -276,6 +276,12 @@ class AudioUnit():
     def set_default_resonance(self, default_resonance):
         self._set_value_of_au_dict('default_resonance', default_resonance)
 
+    def get_pitch_lowpass_scale(self):
+        return self._get_value_from_au_dict('pitch_lowpass_scale')
+
+    def set_pitch_lowpass_scale(self, scale):
+        self._set_value_of_au_dict('pitch_lowpass_scale', scale)
+
     def _get_time_envelope_dict(self, subkey):
         key = self._get_key(subkey)
         d = get_default_value(key)
