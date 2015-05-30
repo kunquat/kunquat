@@ -29,6 +29,7 @@ class FilterEditor(QWidget):
 
         self._global_lowpass = GlobalLowpass()
         self._default_lowpass = DefaultLowpass()
+        self._default_resonance = DefaultResonance()
         self._filter_env = FilterEnvelope()
         self._filter_rel_env = FilterReleaseEnvelope()
         self._force_filter_env = ForceFilterEnvelope()
@@ -39,6 +40,8 @@ class FilterEditor(QWidget):
         sliders.addWidget(self._global_lowpass, 0, 1)
         sliders.addWidget(QLabel('Default lowpass:'), 1, 0)
         sliders.addWidget(self._default_lowpass, 1, 1)
+        sliders.addWidget(QLabel('Default resonance:'), 2, 0)
+        sliders.addWidget(self._default_resonance, 2, 1)
 
         b = QHBoxLayout()
         b.setMargin(0)
@@ -58,6 +61,7 @@ class FilterEditor(QWidget):
         self._au_id = au_id
         self._global_lowpass.set_au_id(au_id)
         self._default_lowpass.set_au_id(au_id)
+        self._default_resonance.set_au_id(au_id)
         self._filter_env.set_au_id(au_id)
         self._filter_rel_env.set_au_id(au_id)
         self._force_filter_env.set_au_id(au_id)
@@ -66,6 +70,7 @@ class FilterEditor(QWidget):
         self._ui_model = ui_model
         self._global_lowpass.set_ui_model(ui_model)
         self._default_lowpass.set_ui_model(ui_model)
+        self._default_resonance.set_ui_model(ui_model)
         self._filter_env.set_ui_model(ui_model)
         self._filter_rel_env.set_ui_model(ui_model)
         self._force_filter_env.set_ui_model(ui_model)
@@ -74,6 +79,7 @@ class FilterEditor(QWidget):
         self._force_filter_env.unregister_updaters()
         self._filter_rel_env.unregister_updaters()
         self._filter_env.unregister_updaters()
+        self._default_resonance.unregister_updaters()
         self._default_lowpass.unregister_updaters()
         self._global_lowpass.unregister_updaters()
 
@@ -118,6 +124,27 @@ class DefaultLowpass(AuNumSlider):
 
     def _get_update_signal_type(self):
         return '_'.join(('signal_default_lowpass', self._au_id))
+
+
+class DefaultResonance(AuNumSlider):
+
+    def __init__(self):
+        AuNumSlider.__init__(self, 2, 0.0, 100.0, width_txt='-000.00')
+        self.set_number(0)
+
+    def _update_value(self):
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+        self.set_number(au.get_default_resonance())
+
+    def _value_changed(self, default_resonance):
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+        au.set_default_resonance(default_resonance)
+        self._updater.signal_update(set([self._get_update_signal_type()]))
+
+    def _get_update_signal_type(self):
+        return '_'.join(('signal_default_resonance', self._au_id))
 
 
 class FilterEnvelope(TimeEnvelope):
