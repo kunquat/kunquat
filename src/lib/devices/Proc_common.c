@@ -516,7 +516,7 @@ void Proc_common_handle_filter(
 
     //static const double max_true_lowpass_change = 1.0145453349375237; // 2^(1/48)
     //static const double min_true_lowpass_change = 1.0 / max_true_lowpass_change;
-    static const double max_true_lowpass_change = 0.25;
+    static const double max_true_lowpass_change = 0.01;
 
     const double xfade_step = 200.0 / freq;
     vstate->lowpass_xfade_update = xfade_step;
