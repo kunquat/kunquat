@@ -350,6 +350,27 @@ static double get_resonance(double param)
 }
 
 
+#define FILTER_XFADE_SPEED_MIN 40.0
+#define FILTER_XFADE_SPEED_MAX 200.0
+
+
+static double get_xfade_step(double freq, double true_lowpass, double resonance)
+{
+    assert(freq > 0);
+
+    if (true_lowpass >= freq * 0.5)
+        return FILTER_XFADE_SPEED_MAX / freq;
+
+    static const double xfade_range = FILTER_XFADE_SPEED_MAX - FILTER_XFADE_SPEED_MIN;
+
+    const double clamped_res = clamp(resonance, 0, 100);
+    const double xfade_norm = clamped_res / 100;
+    const double xfade_speed = FILTER_XFADE_SPEED_MAX - xfade_norm * xfade_range;
+
+    return xfade_speed / freq;
+}
+
+
 void Proc_common_handle_filter(
         const Processor* proc,
         Au_state* au_state,
@@ -518,8 +539,8 @@ void Proc_common_handle_filter(
     //static const double min_true_lowpass_change = 1.0 / max_true_lowpass_change;
     static const double max_true_lowpass_change = 0.01;
 
-    const double xfade_step = 200.0 / freq;
-    vstate->lowpass_xfade_update = xfade_step;
+    vstate->lowpass_xfade_update = get_xfade_step(
+            freq, vstate->true_lowpass, vstate->applied_resonance);
 
     const double nyquist = (double)freq * 0.5;
 
@@ -559,7 +580,7 @@ void Proc_common_handle_filter(
                     voice_out_buf,
                     ab_count,
                     xfade_start,
-                    xfade_step,
+                    vstate->lowpass_xfade_update,
                     apply_filter_start,
                     apply_filter_stop);
 
@@ -580,6 +601,9 @@ void Proc_common_handle_filter(
 
             vstate->applied_resonance = vstate->lowpass_resonance;
             vstate->true_resonance = get_resonance(vstate->applied_resonance);
+
+            vstate->lowpass_xfade_update = get_xfade_step(
+                    freq, vstate->true_lowpass, vstate->applied_resonance);
 
             if (vstate->true_lowpass < nyquist)
             {
@@ -612,7 +636,7 @@ void Proc_common_handle_filter(
             xfade_start = vstate->lowpass_xfade_pos;
         }
 
-        vstate->lowpass_xfade_pos += xfade_step;
+        vstate->lowpass_xfade_pos += vstate->lowpass_xfade_update;
     }
 
     // Apply previous filter settings to the remaining signal
@@ -621,7 +645,7 @@ void Proc_common_handle_filter(
             voice_out_buf,
             ab_count,
             xfade_start,
-            xfade_step,
+            vstate->lowpass_xfade_update,
             apply_filter_start,
             apply_filter_stop);
 
