@@ -403,6 +403,9 @@ void Proc_common_handle_filter(
     float* actual_lowpasses = Work_buffers_get_buffer_contents_mut(
             wbs, WORK_BUFFER_ACTUAL_LOWPASSES);
 
+    float* resonances = Work_buffers_get_buffer_contents_mut(
+            wbs, WORK_BUFFER_LOWPASS_RESONANCES);
+
     const float global_lowpass_delta = proc->au_params->global_lowpass - 100;
 
     // Apply lowpass slide
@@ -535,9 +538,26 @@ void Proc_common_handle_filter(
         }
     }
 
-    //static const double max_true_lowpass_change = 1.0145453349375237; // 2^(1/48)
-    //static const double min_true_lowpass_change = 1.0 / max_true_lowpass_change;
+    // Apply resonance slide
+    if (Slider_in_progress(&vstate->lowpass_resonance_slider))
+    {
+        float new_resonance = vstate->lowpass_resonance;
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+        {
+            new_resonance = Slider_step(&vstate->lowpass_resonance_slider);
+            resonances[i] = new_resonance;
+        }
+        vstate->lowpass_resonance = new_resonance;
+    }
+    else
+    {
+        const float resonance = vstate->lowpass_resonance;
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+            resonances[i] = resonance;
+    }
+
     static const double max_true_lowpass_change = 0.01;
+    static const double max_resonance_change = 0.01;
 
     vstate->lowpass_xfade_update = get_xfade_step(
             freq, vstate->true_lowpass, vstate->applied_resonance);
@@ -551,6 +571,7 @@ void Proc_common_handle_filter(
     for (int32_t i = buf_start; i < buf_stop; ++i)
     {
         vstate->actual_lowpass = actual_lowpasses[i];
+        const float resonance = resonances[i];
 
         // Apply force->filter envelope
         if (proc->au_params->env_force_filter_enabled &&
@@ -571,7 +592,8 @@ void Proc_common_handle_filter(
         if (vstate->lowpass_xfade_pos >= 1 &&
                 ((fabs(vstate->actual_lowpass - vstate->applied_lowpass) >
                     max_true_lowpass_change) ||
-                 vstate->lowpass_resonance != vstate->applied_resonance))
+                 (fabs(resonance - vstate->applied_resonance) >
+                    max_resonance_change)))
         {
             // Apply previous filter settings to the signal
             apply_filter_stop = i;
@@ -599,7 +621,7 @@ void Proc_common_handle_filter(
             vstate->applied_lowpass = vstate->actual_lowpass;
             vstate->true_lowpass = get_cutoff_freq(vstate->applied_lowpass);
 
-            vstate->applied_resonance = vstate->lowpass_resonance;
+            vstate->applied_resonance = resonance;
             vstate->true_resonance = get_resonance(vstate->applied_resonance);
 
             vstate->lowpass_xfade_update = get_xfade_step(

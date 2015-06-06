@@ -71,6 +71,7 @@ typedef struct Channel
     Tstamp vibrato_depth_slide;
 
     Tstamp filter_slide_length;
+    Tstamp lowpass_resonance_slide_length;
     LFO autowah;
     double autowah_speed;
     Tstamp autowah_speed_slide;

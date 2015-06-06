@@ -101,6 +101,7 @@ typedef struct Voice_state
     Slider lowpass_slider;
     LFO autowah;
     double lowpass_resonance;      ///< The filter resonance (Q factor).
+    Slider lowpass_resonance_slider;
 
     // Lowpass filter implementation state
     double applied_lowpass;

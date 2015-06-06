@@ -209,3 +209,51 @@ bool Event_channel_set_resonance_process(
 }
 
 
+bool Event_channel_slide_resonance_process(
+        Channel* ch, Device_states* dstates, const Value* value)
+{
+    assert(ch != NULL);
+    assert(dstates != NULL);
+    assert(value != NULL);
+    assert(value->type == VALUE_TYPE_FLOAT);
+
+    const double target_resonance = value->value.float_type;
+
+    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
+    {
+        Event_check_voice(ch, i);
+        Voice_state* vs = ch->fg[i]->state;
+        if (Slider_in_progress(&vs->lowpass_resonance_slider))
+            Slider_change_target(&vs->lowpass_resonance_slider, target_resonance);
+        else
+            Slider_start(
+                    &vs->lowpass_resonance_slider,
+                    target_resonance,
+                    vs->lowpass_resonance);
+    }
+
+    return true;
+}
+
+
+bool Event_channel_slide_resonance_length_process(
+        Channel* ch, Device_states* dstates, const Value* value)
+{
+    assert(ch != NULL);
+    assert(dstates != NULL);
+    assert(value != NULL);
+    assert(value->type == VALUE_TYPE_TSTAMP);
+
+    Tstamp_copy(&ch->lowpass_resonance_slide_length, &value->value.Tstamp_type);
+
+    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
+    {
+        Event_check_voice(ch, i);
+        Voice_state* vs = ch->fg[i]->state;
+        Slider_set_length(&vs->lowpass_resonance_slider, &value->value.Tstamp_type);
+    }
+
+    return true;
+}
+
+
