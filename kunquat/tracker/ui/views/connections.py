@@ -1055,20 +1055,20 @@ class RemoveDeviceConfirmDialog(QDialog):
             ' without confirmation.)</p>')
 
         self._message = QLabel(msg)
-        self._remove_button = QPushButton('Remove the device')
         self._cancel_button = QPushButton('Keep the device')
+        self._remove_button = QPushButton('Remove the device')
 
         b = QHBoxLayout()
-        b.addWidget(self._remove_button)
         b.addWidget(self._cancel_button)
+        b.addWidget(self._remove_button)
 
         v = QVBoxLayout()
         v.addWidget(self._message)
         v.addLayout(b)
         self.setLayout(v)
 
-        QObject.connect(self._remove_button, SIGNAL('clicked()'), self._perform_action)
         QObject.connect(self._cancel_button, SIGNAL('clicked()'), self.close)
+        QObject.connect(self._remove_button, SIGNAL('clicked()'), self._perform_action)
 
     def _perform_action(self):
         self._action_on_confirm()
