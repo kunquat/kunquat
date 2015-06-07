@@ -141,6 +141,7 @@ class Share():
                 'rest',
                 'reuse_pattern',
                 'silence',
+                'warning',
                 'zoom_in',
                 'zoom_out',
                 'zoom_reset',
