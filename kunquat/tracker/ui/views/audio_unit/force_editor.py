@@ -43,9 +43,10 @@ class ForceEditor(QWidget):
         sliders.addWidget(self._default_force, 2, 1)
 
         v = QVBoxLayout()
+        v.setMargin(8)
+        v.setSpacing(16)
         v.addLayout(sliders)
         v.addWidget(self._force_env)
-        v.addSpacing(8)
         v.addWidget(self._force_rel_env)
         self.setLayout(v)
 
