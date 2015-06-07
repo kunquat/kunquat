@@ -102,21 +102,25 @@ Au_params* Au_params_init(Au_params* aup, uint32_t device_id)
     Envelope_set_first_lock(aup->env_pitch_pan, true, false);
     Envelope_set_last_lock(aup->env_pitch_pan, true, false);
 
-    new_env_or_fail(aup->env_filter, 32,  0, INFINITY, 0,  0, 1, 0);
+    new_env_or_fail(aup->env_filter, 32,  0, INFINITY, 0,  0, 100, 0);
+    aup->global_lowpass = 100;
+    aup->default_lowpass = 100;
+    aup->default_resonance = 0;
+    aup->pitch_lowpass_scale = 0;
     aup->env_filter_enabled = false;
     aup->env_filter_loop_enabled = false;
     aup->env_filter_scale_amount = 1;
     aup->env_filter_scale_center = 440;
-    Envelope_set_node(aup->env_filter, 0, 1);
-    Envelope_set_node(aup->env_filter, 1, 1);
+    Envelope_set_node(aup->env_filter, 0, 100);
+    Envelope_set_node(aup->env_filter, 1, 100);
     Envelope_set_first_lock(aup->env_filter, true, false);
 
-    new_env_or_fail(aup->env_filter_rel, 32,  0, INFINITY, 0,  0, 1, 0);
+    new_env_or_fail(aup->env_filter_rel, 32,  0, INFINITY, 0,  0, 100, 0);
     aup->env_filter_rel_enabled = false;
     aup->env_filter_rel_scale_amount = 1;
     aup->env_filter_rel_scale_center = 440;
-    Envelope_set_node(aup->env_filter_rel, 0, 1);
-    Envelope_set_node(aup->env_filter_rel, 1, 1);
+    Envelope_set_node(aup->env_filter_rel, 0, 100);
+    Envelope_set_node(aup->env_filter_rel, 1, 100);
     Envelope_set_first_lock(aup->env_filter_rel, true, false);
 
     return aup;
@@ -305,7 +309,11 @@ static bool read_time_env(Streader* sr, const char* key, void* userdata)
     return !Streader_is_error_set(sr);
 }
 
-static void parse_env_time(Streader* sr, tdata* td)
+static void parse_env_time(
+        Streader* sr,
+        tdata* td,
+        double min_x, double max_x, double step_x,
+        double min_y, double max_y, double step_y)
 {
     assert(sr != NULL);
     assert(td != NULL);
@@ -314,7 +322,7 @@ static void parse_env_time(Streader* sr, tdata* td)
     if (Streader_is_error_set(sr))
         return;
 
-    td->env = new_Envelope(32, 0, INFINITY, 0, 0, 1, 0);
+    td->env = new_Envelope(32, min_x, max_x, step_x, min_y, max_y, step_y);
     if (td->env == NULL)
     {
         Streader_set_memory_error(
@@ -380,7 +388,7 @@ bool Au_params_parse_env_force(Au_params* aup, Streader* sr)
         .release = false,
     };
 
-    parse_env_time(sr, &td);
+    parse_env_time(sr, &td, 0, INFINITY, 0, 0, 1, 0);
     if (td.env == NULL)
         return false;
 
@@ -417,7 +425,7 @@ bool Au_params_parse_env_force_rel(Au_params* aup, Streader* sr)
         .release = true,
     };
 
-    parse_env_time(sr, &td);
+    parse_env_time(sr, &td, 0, INFINITY, 0, 0, 1, 0);
     if (td.env == NULL)
         return false;
 
@@ -452,7 +460,7 @@ bool Au_params_parse_env_filter(Au_params* aup, Streader* sr)
         .release = false,
     };
 
-    parse_env_time(sr, &td);
+    parse_env_time(sr, &td, 0, INFINITY, 0, 0, 100, 0);
     if (td.env == NULL)
         return false;
 
@@ -488,7 +496,7 @@ bool Au_params_parse_env_filter_rel(Au_params* aup, Streader* sr)
         .release = true,
     };
 
-    parse_env_time(sr, &td);
+    parse_env_time(sr, &td, 0, INFINITY, 0, 0, 100, 0);
     if (td.env == NULL)
         return false;
 

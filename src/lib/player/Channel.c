@@ -156,6 +156,7 @@ void Channel_reset(Channel* ch)
     Tstamp_init(&ch->autowah_speed_slide);
     ch->autowah_depth = 0;
     Tstamp_init(&ch->autowah_depth_slide);
+    Tstamp_set(&ch->lowpass_resonance_slide_length, 0, 0);
 
     ch->panning = 0;
     Slider_init(&ch->panning_slider, SLIDE_MODE_LINEAR);

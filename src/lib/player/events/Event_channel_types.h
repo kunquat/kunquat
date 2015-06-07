@@ -55,8 +55,8 @@ EVENT_CHANNEL_DEF("w/=s",   autowah_speed_slide,    TSTAMP,         v_nonneg_ts)
 EVENT_CHANNEL_DEF("w/=d",   autowah_depth_slide,    TSTAMP,         v_nonneg_ts)
 
 EVENT_CHANNEL_DEF(".r",     set_resonance,          FLOAT,          v_resonance)
-//EVENT_CHANNEL_DEF("/r",     slide_resonance,        FLOAT,          v_resonance)
-//EVENT_CHANNEL_DEF("/=r",    slide_resonance_length, TSTAMP,         v_nonneg_ts)
+EVENT_CHANNEL_DEF("/r",     slide_resonance,        FLOAT,          v_resonance)
+EVENT_CHANNEL_DEF("/=r",    slide_resonance_length, TSTAMP,         v_nonneg_ts)
 
 EVENT_CHANNEL_DEF(".P",     set_panning,            FLOAT,          v_panning)
 EVENT_CHANNEL_DEF("/P",     slide_panning,          FLOAT,          v_panning)

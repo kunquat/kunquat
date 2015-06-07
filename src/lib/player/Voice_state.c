@@ -48,20 +48,20 @@ Voice_state* Voice_state_init(
     state->rand_p = rand_p;
     state->rand_s = rand_s;
 
-    Slider_set_mix_rate(&state->pitch_slider, freq);
-    Slider_set_tempo(&state->pitch_slider, tempo);
-    LFO_set_mix_rate(&state->vibrato, freq);
-    LFO_set_tempo(&state->vibrato, tempo);
-    Slider_set_mix_rate(&state->force_slider, freq);
-    Slider_set_tempo(&state->force_slider, tempo);
-    LFO_set_mix_rate(&state->tremolo, freq);
-    LFO_set_tempo(&state->tremolo, tempo);
-    Slider_set_mix_rate(&state->panning_slider, freq);
-    Slider_set_tempo(&state->panning_slider, tempo);
-    Slider_set_mix_rate(&state->lowpass_slider, freq);
-    Slider_set_tempo(&state->lowpass_slider, tempo);
-    LFO_set_mix_rate(&state->autowah, freq);
-    LFO_set_tempo(&state->autowah, tempo);
+#define SET_RATE_TEMPO(type, field) \
+    type ## _set_mix_rate(&state->field, freq); \
+    type ## _set_tempo(&state->field, tempo)
+
+    SET_RATE_TEMPO(Slider, pitch_slider);
+    SET_RATE_TEMPO(LFO, vibrato);
+    SET_RATE_TEMPO(Slider, force_slider);
+    SET_RATE_TEMPO(LFO, tremolo);
+    SET_RATE_TEMPO(Slider, panning_slider);
+    SET_RATE_TEMPO(Slider, lowpass_slider);
+    SET_RATE_TEMPO(LFO, autowah);
+    SET_RATE_TEMPO(Slider, lowpass_resonance_slider);
+
+#undef SET_RATE_TEMPO
 
     return state;
 }
@@ -99,7 +99,7 @@ Voice_state* Voice_state_clear(Voice_state* state)
     }
 #endif
 
-    LFO_init(&state->autowah, LFO_MODE_EXP);
+    LFO_init(&state->autowah, LFO_MODE_LINEAR);
 
     state->pos = 0;
     state->pos_rem = 0;
@@ -128,12 +128,16 @@ Voice_state* Voice_state_clear(Voice_state* state)
     Time_env_state_init(&state->env_filter_state);
     Time_env_state_init(&state->env_filter_rel_state);
 
-    state->lowpass = INFINITY;
-    state->actual_lowpass = INFINITY;
+    state->lowpass = 100;
+    state->actual_lowpass = state->lowpass;
+    state->lowpass_resonance = 0;
+
+    state->applied_lowpass = state->actual_lowpass;
+    state->applied_resonance = state->lowpass_resonance;
     state->true_lowpass = INFINITY;
-    Slider_init(&state->lowpass_slider, SLIDE_MODE_EXP);
-    state->lowpass_resonance = 1;
-    state->true_resonance = 1;
+    Slider_init(&state->lowpass_slider, SLIDE_MODE_LINEAR);
+    Slider_init(&state->lowpass_resonance_slider, SLIDE_MODE_LINEAR);
+    state->true_resonance = 0.5;
     state->lowpass_state_used = -1;
     state->lowpass_xfade_state_used = -1;
     state->lowpass_xfade_pos = 1;

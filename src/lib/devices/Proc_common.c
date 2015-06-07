@@ -326,6 +326,51 @@ static void apply_filter_settings(
 }
 
 
+#define CUTOFF_INF_LIMIT 100.0
+#define CUTOFF_BIAS 81.37631656229591
+
+
+static double get_cutoff_freq(double param)
+{
+    assert(isfinite(param));
+
+    if (param >= CUTOFF_INF_LIMIT)
+        return INFINITY;
+
+    param = max(-100, param);
+    return exp2((param + CUTOFF_BIAS) / 12.0);
+}
+
+
+static double get_resonance(double param)
+{
+    const double clamped_res = clamp(param, 0, 100);
+    const double resonance = pow(1.055, clamped_res) * 0.5;
+    return resonance;
+}
+
+
+#define FILTER_XFADE_SPEED_MIN 40.0
+#define FILTER_XFADE_SPEED_MAX 200.0
+
+
+static double get_xfade_step(double freq, double true_lowpass, double resonance)
+{
+    assert(freq > 0);
+
+    if (true_lowpass >= freq * 0.5)
+        return FILTER_XFADE_SPEED_MAX / freq;
+
+    static const double xfade_range = FILTER_XFADE_SPEED_MAX - FILTER_XFADE_SPEED_MIN;
+
+    const double clamped_res = clamp(resonance, 0, 100);
+    const double xfade_norm = clamped_res / 100;
+    const double xfade_speed = FILTER_XFADE_SPEED_MAX - xfade_norm * xfade_range;
+
+    return xfade_speed / freq;
+}
+
+
 void Proc_common_handle_filter(
         const Processor* proc,
         Au_state* au_state,
@@ -358,6 +403,11 @@ void Proc_common_handle_filter(
     float* actual_lowpasses = Work_buffers_get_buffer_contents_mut(
             wbs, WORK_BUFFER_ACTUAL_LOWPASSES);
 
+    float* resonances = Work_buffers_get_buffer_contents_mut(
+            wbs, WORK_BUFFER_LOWPASS_RESONANCES);
+
+    const float global_lowpass_delta = proc->au_params->global_lowpass - 100;
+
     // Apply lowpass slide
     if (Slider_in_progress(&vstate->lowpass_slider))
     {
@@ -365,13 +415,13 @@ void Proc_common_handle_filter(
         for (int32_t i = buf_start; i < buf_stop; ++i)
         {
             new_lowpass = Slider_step(&vstate->lowpass_slider);
-            actual_lowpasses[i] = new_lowpass;
+            actual_lowpasses[i] = new_lowpass + global_lowpass_delta;
         }
         vstate->lowpass = new_lowpass;
     }
     else
     {
-        const float lowpass = vstate->lowpass;
+        const float lowpass = vstate->lowpass + global_lowpass_delta;
         for (int32_t i = buf_start; i < buf_stop; ++i)
             actual_lowpasses[i] = lowpass;
     }
@@ -380,7 +430,7 @@ void Proc_common_handle_filter(
     if (LFO_active(&vstate->autowah))
     {
         for (int32_t i = buf_start; i < buf_stop; ++i)
-            actual_lowpasses[i] *= LFO_step(&vstate->autowah);
+            actual_lowpasses[i] += LFO_step(&vstate->autowah);
     }
 
     // Apply time->filter envelope
@@ -395,7 +445,7 @@ void Proc_common_handle_filter(
                 proc->au_params->env_filter_scale_amount,
                 proc->au_params->env_filter_scale_center,
                 0, // sustain
-                0, 1, // range
+                0, 100, // range
                 Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_PITCH),
                 wbs,
                 buf_start,
@@ -421,7 +471,7 @@ void Proc_common_handle_filter(
         for (int32_t i = buf_start; i < buf_stop; ++i)
         {
             float actual_lowpass = actual_lowpasses[i];
-            actual_lowpass = min(actual_lowpass, 20000) * time_env[i];
+            actual_lowpass = actual_lowpass + time_env[i] - 100;
             actual_lowpasses[i] = actual_lowpass;
         }
     }
@@ -438,7 +488,7 @@ void Proc_common_handle_filter(
                 proc->au_params->env_filter_rel_scale_amount,
                 proc->au_params->env_filter_rel_scale_center,
                 au_state->sustain,
-                0, 1, // range
+                0, 100, // range
                 Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_PITCH),
                 wbs,
                 buf_start,
@@ -464,16 +514,53 @@ void Proc_common_handle_filter(
         for (int32_t i = buf_start; i < buf_stop; ++i)
         {
             float actual_lowpass = actual_lowpasses[i];
-            actual_lowpass = min(actual_lowpass, 20000) * time_env[i];
+            actual_lowpass = actual_lowpass + time_env[i] - 100;
             actual_lowpasses[i] = actual_lowpass;
         }
     }
 
-    static const double max_true_lowpass_change = 1.0145453349375237; // 2^(1/48)
-    static const double min_true_lowpass_change = 1.0 / max_true_lowpass_change;
+    // Apply pitch->lowpass scaling
+    if (Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_PITCH) &&
+            (proc->au_params->pitch_lowpass_scale != 0))
+    {
+        static const double inv_center = 1.0 / 440.0;
+        const double scale = proc->au_params->pitch_lowpass_scale;
 
-    const double xfade_step = 200.0 / freq;
-    vstate->lowpass_xfade_update = xfade_step;
+        const float* actual_pitches = Work_buffers_get_buffer_contents(
+            wbs, WORK_BUFFER_ACTUAL_PITCHES);
+
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+        {
+            const float actual_pitch = actual_pitches[i];
+            float actual_lowpass = actual_lowpasses[i];
+            actual_lowpass += log2(pow(actual_pitch * inv_center, scale)) * 12;
+            actual_lowpasses[i] = actual_lowpass;
+        }
+    }
+
+    // Apply resonance slide
+    if (Slider_in_progress(&vstate->lowpass_resonance_slider))
+    {
+        float new_resonance = vstate->lowpass_resonance;
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+        {
+            new_resonance = Slider_step(&vstate->lowpass_resonance_slider);
+            resonances[i] = new_resonance;
+        }
+        vstate->lowpass_resonance = new_resonance;
+    }
+    else
+    {
+        const float resonance = vstate->lowpass_resonance;
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+            resonances[i] = resonance;
+    }
+
+    static const double max_true_lowpass_change = 0.01;
+    static const double max_resonance_change = 0.01;
+
+    vstate->lowpass_xfade_update = get_xfade_step(
+            freq, vstate->true_lowpass, vstate->applied_resonance);
 
     const double nyquist = (double)freq * 0.5;
 
@@ -484,6 +571,7 @@ void Proc_common_handle_filter(
     for (int32_t i = buf_start; i < buf_stop; ++i)
     {
         vstate->actual_lowpass = actual_lowpasses[i];
+        const float resonance = resonances[i];
 
         // Apply force->filter envelope
         if (proc->au_params->env_force_filter_enabled &&
@@ -497,14 +585,15 @@ void Proc_common_handle_filter(
                     proc->au_params->env_force_filter,
                     force);
             assert(isfinite(factor));
-            vstate->actual_lowpass = min(vstate->actual_lowpass, 16384) * factor;
+            vstate->actual_lowpass += (factor * 100) - 100;
         }
 
         // Initialise new filter settings if needed
         if (vstate->lowpass_xfade_pos >= 1 &&
-                (vstate->actual_lowpass < vstate->true_lowpass * min_true_lowpass_change ||
-                 vstate->actual_lowpass > vstate->true_lowpass * max_true_lowpass_change ||
-                 vstate->lowpass_resonance != vstate->true_resonance))
+                ((fabs(vstate->actual_lowpass - vstate->applied_lowpass) >
+                    max_true_lowpass_change) ||
+                 (fabs(resonance - vstate->applied_resonance) >
+                    max_resonance_change)))
         {
             // Apply previous filter settings to the signal
             apply_filter_stop = i;
@@ -513,7 +602,7 @@ void Proc_common_handle_filter(
                     voice_out_buf,
                     ab_count,
                     xfade_start,
-                    xfade_step,
+                    vstate->lowpass_xfade_update,
                     apply_filter_start,
                     apply_filter_stop);
 
@@ -529,8 +618,14 @@ void Proc_common_handle_filter(
             else
                 vstate->lowpass_xfade_pos = 1;
 
-            vstate->true_lowpass = vstate->actual_lowpass;
-            vstate->true_resonance = vstate->lowpass_resonance;
+            vstate->applied_lowpass = vstate->actual_lowpass;
+            vstate->true_lowpass = get_cutoff_freq(vstate->applied_lowpass);
+
+            vstate->applied_resonance = resonance;
+            vstate->true_resonance = get_resonance(vstate->applied_resonance);
+
+            vstate->lowpass_xfade_update = get_xfade_step(
+                    freq, vstate->true_lowpass, vstate->applied_resonance);
 
             if (vstate->true_lowpass < nyquist)
             {
@@ -563,7 +658,7 @@ void Proc_common_handle_filter(
             xfade_start = vstate->lowpass_xfade_pos;
         }
 
-        vstate->lowpass_xfade_pos += xfade_step;
+        vstate->lowpass_xfade_pos += vstate->lowpass_xfade_update;
     }
 
     // Apply previous filter settings to the remaining signal
@@ -572,7 +667,7 @@ void Proc_common_handle_filter(
             voice_out_buf,
             ab_count,
             xfade_start,
-            xfade_step,
+            vstate->lowpass_xfade_update,
             apply_filter_start,
             apply_filter_stop);
 

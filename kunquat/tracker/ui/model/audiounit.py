@@ -258,6 +258,30 @@ class AudioUnit():
     def set_default_force(self, default_force):
         self._set_value_of_au_dict('force', default_force)
 
+    def get_global_lowpass(self):
+        return self._get_value_from_au_dict('global_lowpass')
+
+    def set_global_lowpass(self, global_lowpass):
+        self._set_value_of_au_dict('global_lowpass', global_lowpass)
+
+    def get_default_lowpass(self):
+        return self._get_value_from_au_dict('default_lowpass')
+
+    def set_default_lowpass(self, default_lowpass):
+        self._set_value_of_au_dict('default_lowpass', default_lowpass)
+
+    def get_default_resonance(self):
+        return self._get_value_from_au_dict('default_resonance')
+
+    def set_default_resonance(self, default_resonance):
+        self._set_value_of_au_dict('default_resonance', default_resonance)
+
+    def get_pitch_lowpass_scale(self):
+        return self._get_value_from_au_dict('pitch_lowpass_scale')
+
+    def set_pitch_lowpass_scale(self, scale):
+        self._set_value_of_au_dict('pitch_lowpass_scale', scale)
+
     def _get_time_envelope_dict(self, subkey):
         key = self._get_key(subkey)
         d = get_default_value(key)

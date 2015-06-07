@@ -201,7 +201,11 @@ bool v_key(const char* param)
 bool v_lowpass(const char* param)
 {
     assert(param != NULL);
-    return v_finite_float(param); // TODO
+
+    double res = NAN;
+    Streader* sr = init_c_streader(param);
+
+    return Streader_read_float(sr, &res) && (res >= -100) && (res <= 200);
 }
 
 
@@ -283,7 +287,7 @@ bool v_resonance(const char* param)
     double res = NAN;
     Streader* sr = init_c_streader(param);
 
-    return Streader_read_float(sr, &res) && (res >= 0) && (res <= 99);
+    return Streader_read_float(sr, &res) && (res >= 0) && (res <= 100);
 }
 
 

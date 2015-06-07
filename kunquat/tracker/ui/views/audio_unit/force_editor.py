@@ -34,6 +34,7 @@ class ForceEditor(QWidget):
         self._force_rel_env = ForceReleaseEnvelope()
 
         sliders = QGridLayout()
+        sliders.setVerticalSpacing(0)
         sliders.addWidget(QLabel('Global force:'), 0, 0)
         sliders.addWidget(self._global_force, 0, 1)
         sliders.addWidget(QLabel('Force variation:'), 1, 0)

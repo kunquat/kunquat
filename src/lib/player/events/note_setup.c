@@ -78,6 +78,9 @@ void set_au_properties(Voice* voice, Voice_state* vs, Channel* ch, double* force
         vs->actual_force = vs->force * voice->proc->au_params->global_force;
     }
 
+    vs->lowpass = voice->proc->au_params->default_lowpass;
+    vs->lowpass_resonance = voice->proc->au_params->default_resonance;
+
     Slider_set_length(&vs->force_slider, &ch->force_slide_length);
 //    LFO_copy(&vs->tremolo, &ch->tremolo);
     Slider_set_length(&vs->pitch_slider, &ch->pitch_slide_length);

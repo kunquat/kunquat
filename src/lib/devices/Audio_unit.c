@@ -25,6 +25,7 @@
 #include <devices/Device.h>
 #include <devices/Proc_table.h>
 #include <devices/Processor.h>
+#include <mathnum/common.h>
 #include <memory.h>
 #include <module/Au_table.h>
 #include <player/Au_state.h>
@@ -168,6 +169,10 @@ typedef struct au_params
     double global_force;
     double default_force;
     double force_variation;
+    double global_lowpass;
+    double default_lowpass;
+    double default_resonance;
+    double pitch_lowpass_scale;
     int64_t scale_index;
 } au_params;
 
@@ -185,6 +190,14 @@ static bool read_au_field(Streader* sr, const char* key, void* userdata)
         Streader_read_float(sr, &p->force_variation);
     else if (string_eq(key, "global_force"))
         Streader_read_float(sr, &p->global_force);
+    else if (string_eq(key, "global_lowpass"))
+        Streader_read_float(sr, &p->global_lowpass);
+    else if (string_eq(key, "default_lowpass"))
+        Streader_read_float(sr, &p->default_lowpass);
+    else if (string_eq(key, "default_resonance"))
+        Streader_read_float(sr, &p->default_resonance);
+    else if (string_eq(key, "pitch_lowpass_scale"))
+        Streader_read_float(sr, &p->pitch_lowpass_scale);
     else if (string_eq(key, "scale"))
     {
         if (!Streader_read_int(sr, &p->scale_index))
@@ -220,6 +233,8 @@ bool Audio_unit_parse_header(Audio_unit* au, Streader* sr)
         .global_force = AU_DEFAULT_GLOBAL_FORCE,
         .default_force = AU_DEFAULT_FORCE,
         .force_variation = AU_DEFAULT_FORCE_VAR,
+        .global_lowpass = AU_DEFAULT_GLOBAL_LOWPASS,
+        .default_lowpass = 100,
         .scale_index = AU_DEFAULT_SCALE_INDEX,
     };
 
@@ -229,6 +244,10 @@ bool Audio_unit_parse_header(Audio_unit* au, Streader* sr)
     au->params.force = p->default_force;
     au->params.force_variation = p->force_variation;
     au->params.global_force = exp2(p->global_force / 6);
+    au->params.global_lowpass = clamp(p->global_lowpass, 0, 200);
+    au->params.default_lowpass = clamp(p->default_lowpass, 0, 100);
+    au->params.default_resonance = clamp(p->default_resonance, 0, 100);
+    au->params.pitch_lowpass_scale = clamp(p->pitch_lowpass_scale, -4, 4);
 
     return true;
 }

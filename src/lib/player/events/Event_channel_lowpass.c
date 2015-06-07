@@ -25,26 +25,20 @@
 
 
 bool Event_channel_set_lowpass_process(
-        Channel* ch,
-        Device_states* dstates,
-        const Value* value)
+        Channel* ch, Device_states* dstates, const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
-    double cutoff = NAN;
-    if (value->value.float_type > 86)
-        cutoff = INFINITY;
-    else
-        cutoff = exp2((value->value.float_type + 86) / 12);
-
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;
-        vs->lowpass = cutoff;
+        vs->lowpass = value->value.float_type;
+
+        Slider_break(&vs->lowpass_slider);
     }
 
     return true;
@@ -52,29 +46,23 @@ bool Event_channel_set_lowpass_process(
 
 
 bool Event_channel_slide_lowpass_process(
-        Channel* ch,
-        Device_states* dstates,
-        const Value* value)
+        Channel* ch, Device_states* dstates, const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
-    const double target_cutoff = value->value.float_type;
-    const double target_cutoff_exp = exp2((target_cutoff + 86) / 12);
-    const double inf_limit = exp2((86.0 + 86) / 12);
+    const double target_lowpass = value->value.float_type;
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;
         if (Slider_in_progress(&vs->lowpass_slider))
-            Slider_change_target(&vs->lowpass_slider, target_cutoff_exp);
+            Slider_change_target(&vs->lowpass_slider, target_lowpass);
         else
-            Slider_start(&vs->lowpass_slider,
-                         target_cutoff_exp,
-                         isfinite(vs->lowpass) ? vs->lowpass : inf_limit);
+            Slider_start(&vs->lowpass_slider, target_lowpass, vs->lowpass);
     }
 
     return true;
@@ -82,18 +70,14 @@ bool Event_channel_slide_lowpass_process(
 
 
 bool Event_channel_slide_lowpass_length_process(
-        Channel* ch,
-        Device_states* dstates,
-        const Value* value)
+        Channel* ch, Device_states* dstates, const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_TSTAMP);
 
-    Tstamp_copy(
-            &ch->filter_slide_length,
-            &value->value.Tstamp_type);
+    Tstamp_copy(&ch->filter_slide_length, &value->value.Tstamp_type);
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
@@ -107,9 +91,7 @@ bool Event_channel_slide_lowpass_length_process(
 
 
 bool Event_channel_autowah_speed_process(
-        Channel* ch,
-        Device_states* dstates,
-        const Value* value)
+        Channel* ch, Device_states* dstates, const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
@@ -136,16 +118,14 @@ bool Event_channel_autowah_speed_process(
 
 
 bool Event_channel_autowah_depth_process(
-        Channel* ch,
-        Device_states* dstates,
-        const Value* value)
+        Channel* ch, Device_states* dstates, const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
-    const double actual_depth = value->value.float_type / 8;
+    const double actual_depth = value->value.float_type;
     ch->autowah_depth = actual_depth;
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
@@ -165,9 +145,7 @@ bool Event_channel_autowah_depth_process(
 
 
 bool Event_channel_autowah_speed_slide_process(
-        Channel* ch,
-        Device_states* dstates,
-        const Value* value)
+        Channel* ch, Device_states* dstates, const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
@@ -189,18 +167,14 @@ bool Event_channel_autowah_speed_slide_process(
 
 
 bool Event_channel_autowah_depth_slide_process(
-        Channel* ch,
-        Device_states* dstates,
-        const Value* value)
+        Channel* ch, Device_states* dstates, const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_TSTAMP);
 
-    Tstamp_copy(
-            &ch->autowah_depth_slide,
-            &value->value.Tstamp_type);
+    Tstamp_copy(&ch->autowah_depth_slide, &value->value.Tstamp_type);
     LFO_set_depth_slide(&ch->autowah, &value->value.Tstamp_type);
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
@@ -215,23 +189,68 @@ bool Event_channel_autowah_depth_slide_process(
 
 
 bool Event_channel_set_resonance_process(
-        Channel* ch,
-        Device_states* dstates,
-        const Value* value)
+        Channel* ch, Device_states* dstates, const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
 
-    const double clamped_res = clamp(value->value.float_type, 0, 100);
-    const double resonance = pow(1.055, clamped_res);
+    const double resonance = value->value.float_type;
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;
         vs->lowpass_resonance = resonance;
+    }
+
+    return true;
+}
+
+
+bool Event_channel_slide_resonance_process(
+        Channel* ch, Device_states* dstates, const Value* value)
+{
+    assert(ch != NULL);
+    assert(dstates != NULL);
+    assert(value != NULL);
+    assert(value->type == VALUE_TYPE_FLOAT);
+
+    const double target_resonance = value->value.float_type;
+
+    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
+    {
+        Event_check_voice(ch, i);
+        Voice_state* vs = ch->fg[i]->state;
+        if (Slider_in_progress(&vs->lowpass_resonance_slider))
+            Slider_change_target(&vs->lowpass_resonance_slider, target_resonance);
+        else
+            Slider_start(
+                    &vs->lowpass_resonance_slider,
+                    target_resonance,
+                    vs->lowpass_resonance);
+    }
+
+    return true;
+}
+
+
+bool Event_channel_slide_resonance_length_process(
+        Channel* ch, Device_states* dstates, const Value* value)
+{
+    assert(ch != NULL);
+    assert(dstates != NULL);
+    assert(value != NULL);
+    assert(value->type == VALUE_TYPE_TSTAMP);
+
+    Tstamp_copy(&ch->lowpass_resonance_slide_length, &value->value.Tstamp_type);
+
+    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
+    {
+        Event_check_voice(ch, i);
+        Voice_state* vs = ch->fg[i]->state;
+        Slider_set_length(&vs->lowpass_resonance_slider, &value->value.Tstamp_type);
     }
 
     return true;
