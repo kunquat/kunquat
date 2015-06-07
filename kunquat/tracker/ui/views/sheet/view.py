@@ -1141,20 +1141,6 @@ class View(QWidget):
             else:
                 self._start_trigger_type_entry()
 
-        def handle_decrease_column_width():
-            if cmdline.get_experimental():
-                self._sheet_manager.set_column_width(
-                        self._sheet_manager.get_column_width() - 1)
-
-        def handle_increase_column_width():
-            if cmdline.get_experimental():
-                self._sheet_manager.set_column_width(
-                        self._sheet_manager.get_column_width() + 1)
-
-        def handle_reset_column_width():
-            if cmdline.get_experimental():
-                self._sheet_manager.set_column_width(0)
-
         keymap = {
             int(Qt.NoModifier): {
                 Qt.Key_Up:      handle_move_up,
@@ -1187,9 +1173,11 @@ class View(QWidget):
             },
 
             int(Qt.ControlModifier | Qt.AltModifier): {
-                Qt.Key_Minus:   handle_decrease_column_width,
-                Qt.Key_Plus:    handle_increase_column_width,
-                Qt.Key_0:       handle_reset_column_width,
+                Qt.Key_Minus:   lambda: self._sheet_manager.set_column_width(
+                                    self._sheet_manager.get_column_width() - 1),
+                Qt.Key_Plus:    lambda: self._sheet_manager.set_column_width(
+                                    self._sheet_manager.get_column_width() + 1),
+                Qt.Key_0:       lambda: self._sheet_manager.set_column_width(0),
             },
         }
 

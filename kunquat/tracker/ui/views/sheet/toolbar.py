@@ -37,15 +37,11 @@ class Toolbar(QWidget):
                 ZoomButton('out'),
                 ZoomButton('original'),
                 ZoomButton('in'),
+                ZoomButton('shrink_w'),
+                ZoomButton('original_w'),
+                ZoomButton('expand_w'),
             ]
         self._length_editor = LengthEditor()
-
-        if cmdline.get_experimental():
-            self._zoom_buttons.extend([
-                    ZoomButton('shrink_w'),
-                    ZoomButton('original_w'),
-                    ZoomButton('expand_w'),
-                ])
 
         h = QHBoxLayout()
         h.setContentsMargins(4, 0, 4, 4)
