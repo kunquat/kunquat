@@ -21,6 +21,7 @@ from PyQt4.QtGui import *
 
 from kunquat.tracker.ui.model.module import Module
 from kunquat.tracker.ui.model.processor import Processor
+from confirmdialog import ConfirmDialog
 from linesegment import LineSegment
 
 
@@ -956,6 +957,7 @@ class ConnectionsView(QWidget):
     def _perform_button_click(self, button_info, shift_pressed):
         visibility_manager = self._ui_model.get_visibility_manager()
         dev_id = button_info['dev_id']
+        icon_bank = self._ui_model.get_icon_bank()
         if dev_id.startswith('au'):
             if button_info['button_type'] == 'edit':
                 visibility_manager.show_audio_unit(self._get_full_id(dev_id))
@@ -964,7 +966,7 @@ class ConnectionsView(QWidget):
                 if shift_pressed:
                     remove_action()
                 else:
-                    dialog = RemoveDeviceConfirmDialog(remove_action)
+                    dialog = RemoveDeviceConfirmDialog(icon_bank, remove_action)
                     dialog.exec_()
         elif dev_id.startswith('proc'):
             if button_info['button_type'] == 'edit':
@@ -974,7 +976,7 @@ class ConnectionsView(QWidget):
                 if shift_pressed:
                     remove_action()
                 else:
-                    dialog = RemoveDeviceConfirmDialog(remove_action)
+                    dialog = RemoveDeviceConfirmDialog(icon_bank, remove_action)
                     dialog.exec_()
 
     def _remove_au(self, dev_id):
@@ -1041,10 +1043,10 @@ class ConnectionsView(QWidget):
         self._focused_edge_info = {}
 
 
-class RemoveDeviceConfirmDialog(QDialog):
+class RemoveDeviceConfirmDialog(ConfirmDialog):
 
-    def __init__(self, action_on_confirm):
-        QDialog.__init__(self)
+    def __init__(self, icon_bank, action_on_confirm):
+        ConfirmDialog.__init__(self, icon_bank)
 
         self._action_on_confirm = action_on_confirm
 
@@ -1053,19 +1055,14 @@ class RemoveDeviceConfirmDialog(QDialog):
         msg = '<p>Do you really want to remove the device?</p>'
         msg += ('<p>(Tip: You can Shift+click the Del button to remove'
             ' without confirmation.)</p>')
+        self._set_message(msg)
 
-        self._message = QLabel(msg)
         self._cancel_button = QPushButton('Keep the device')
         self._remove_button = QPushButton('Remove the device')
 
-        b = QHBoxLayout()
+        b = self._get_button_layout()
         b.addWidget(self._cancel_button)
         b.addWidget(self._remove_button)
-
-        v = QVBoxLayout()
-        v.addWidget(self._message)
-        v.addLayout(b)
-        self.setLayout(v)
 
         QObject.connect(self._cancel_button, SIGNAL('clicked()'), self.close)
         QObject.connect(self._remove_button, SIGNAL('clicked()'), self._perform_action)

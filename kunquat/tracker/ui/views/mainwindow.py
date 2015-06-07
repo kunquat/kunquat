@@ -16,6 +16,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 import kunquat.tracker.cmdline as cmdline
+from confirmdialog import ConfirmDialog
 from mainview import MainView
 from saving import get_module_save_path
 
@@ -83,7 +84,9 @@ class MainWindow(QWidget):
         module = self._ui_model.get_module()
         if module.is_modified():
             dialog = ExitUnsavedConfirmDialog(
-                    self._perform_save_and_close, self._perform_discard_and_close)
+                    self._ui_model.get_icon_bank(),
+                    self._perform_save_and_close,
+                    self._perform_discard_and_close)
             dialog.exec_()
         else:
             visibility_manager = self._ui_model.get_visibility_manager()
@@ -93,10 +96,10 @@ class MainWindow(QWidget):
         return QSize(1024, 768)
 
 
-class ExitUnsavedConfirmDialog(QDialog):
+class ExitUnsavedConfirmDialog(ConfirmDialog):
 
-    def __init__(self, action_save, action_discard):
-        QDialog.__init__(self)
+    def __init__(self, icon_bank, action_save, action_discard):
+        ConfirmDialog.__init__(self, icon_bank)
 
         self._action_save = action_save
         self._action_discard = action_discard
@@ -104,21 +107,16 @@ class ExitUnsavedConfirmDialog(QDialog):
         self.setWindowTitle('Unsaved changes')
 
         msg = 'There are unsaved changes in the project.'
+        self._set_message(msg)
 
-        self._message = QLabel(msg)
         self._discard_button = QPushButton('Discard changes and exit')
         self._cancel_button = QPushButton('Keep the project open')
         self._save_button = QPushButton('Save changes and exit')
 
-        b = QHBoxLayout()
+        b = self._get_button_layout()
         b.addWidget(self._discard_button)
         b.addWidget(self._cancel_button)
         b.addWidget(self._save_button)
-
-        v = QVBoxLayout()
-        v.addWidget(self._message)
-        v.addLayout(b)
-        self.setLayout(v)
 
         self._cancel_button.setFocus(Qt.PopupFocusReason)
 
