@@ -24,6 +24,7 @@ class ReplaceButton(QToolButton):
         self._sheet_manager = None
 
         self.setCheckable(True)
+        self.setAutoRaise(True)
         self.setText('Replace')
         self.setToolTip('Replace (Insert)')
 

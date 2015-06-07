@@ -25,6 +25,7 @@ class RestButton(QToolButton):
         self._updater = None
         self._sheet_manager = None
 
+        self.setAutoRaise(True)
         self.setText(u'══')
         self.setToolTip('Add rest (1)')
 

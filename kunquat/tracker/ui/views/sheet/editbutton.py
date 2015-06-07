@@ -24,6 +24,7 @@ class EditButton(QToolButton):
         self._sheet_manager = None
 
         self.setCheckable(True)
+        self.setAutoRaise(True)
         self.setText('Edit')
         self.setToolTip('Edit (Space)')
 

@@ -33,6 +33,7 @@ class ZoomButton(QToolButton):
         self._sheet_manager = None
 
         self._mode = mode
+        self.setAutoRaise(True)
         self.setText(self._get_text(mode))
         self.setToolTip(self._get_tooltip(mode))
 

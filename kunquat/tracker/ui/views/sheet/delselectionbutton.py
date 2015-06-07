@@ -23,6 +23,7 @@ class DelSelectionButton(QToolButton):
         self._updater = None
         self._sheet_manager = None
 
+        self.setAutoRaise(True)
         self.setText('Del')
         self.setToolTip('Delete selection (Delete)')
 

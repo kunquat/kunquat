@@ -23,11 +23,12 @@ from zoombutton import ZoomButton
 from lengtheditor import LengthEditor
 
 
-class Toolbar(QToolBar):
+class Toolbar(QWidget):
 
     def __init__(self):
         QToolBar.__init__(self)
         self._ui_model = None
+
         self._edit_button = EditButton()
         self._replace_button = ReplaceButton()
         self._rest_button = RestButton()
@@ -46,21 +47,27 @@ class Toolbar(QToolBar):
                     ZoomButton('expand_w'),
                 ])
 
-        self.addWidget(self._edit_button)
-        self.addWidget(self._replace_button)
-        self.addSeparator()
-        self.addWidget(self._rest_button)
+        h = QHBoxLayout()
+        h.setContentsMargins(4, 0, 4, 4)
+        h.setSpacing(5)
+
+        h.addWidget(self._edit_button)
+        h.addWidget(self._replace_button)
+        h.addWidget(HackSeparator())
+        h.addWidget(self._rest_button)
         if cmdline.get_experimental():
-            self.addWidget(self._del_selection_button)
-        self.addSeparator()
+            h.addWidget(self._del_selection_button)
+        h.addWidget(HackSeparator())
         for button in self._zoom_buttons:
-            self.addWidget(button)
+            h.addWidget(button)
 
         spacer = QWidget()
         spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-        self.addWidget(spacer)
+        h.addWidget(spacer)
 
-        self.addWidget(self._length_editor)
+        h.addWidget(self._length_editor)
+
+        self.setLayout(h)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -80,5 +87,13 @@ class Toolbar(QToolBar):
         for button in self._zoom_buttons:
             button.unregister_updaters()
         self._length_editor.unregister_updaters()
+
+
+class HackSeparator(QFrame):
+
+    def __init__(self):
+        QFrame.__init__(self)
+        self.setFrameShape(QFrame.VLine)
+        self.setFrameShadow(QFrame.Sunken)
 
 
