@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013-2014
-#          Tomi Jylhä-Ollila, Finland 2014
+#          Tomi Jylhä-Ollila, Finland 2014-2015
 #
 # This file is part of Kunquat.
 #
@@ -46,6 +46,8 @@ class OctaveSelector(QFrame):
     def _get_layout(self):
         octave_count = self._typewriter_manager.get_octave_count()
         row = QHBoxLayout()
+        row.setMargin(0)
+        row.setSpacing(4)
         for i in range(octave_count):
             button = self._get_button(i)
             row.addWidget(button)

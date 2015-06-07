@@ -33,7 +33,8 @@ class MainView(QWidget):
         self._peak_meter = PeakMeter()
 
         v = QVBoxLayout()
-        v.setContentsMargins(0, 0, 0, 0)
+        v.setMargin(0)
+        v.setSpacing(4)
         v.addWidget(self._portal)
         v.addWidget(self._main_splitter)
         v.addWidget(self._import_progress)
