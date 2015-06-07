@@ -27,6 +27,7 @@ class AuWindow(QWidget):
         self._editor = Editor()
 
         v = QVBoxLayout()
+        v.setMargin(0)
         v.addWidget(self._editor)
         self.setLayout(v)
 

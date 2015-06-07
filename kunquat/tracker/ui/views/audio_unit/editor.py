@@ -45,7 +45,8 @@ class Editor(QWidget):
         self._keyboard_mapper = KeyboardMapper()
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setMargin(4)
+        v.setSpacing(4)
         v.addWidget(self._test_button)
         v.addWidget(self._tabs)
         self.setLayout(v)
