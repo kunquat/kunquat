@@ -106,19 +106,21 @@ class ExitUnsavedConfirmDialog(QDialog):
         msg = 'There are unsaved changes in the project.'
 
         self._message = QLabel(msg)
-        self._save_button = QPushButton('Save changes and exit')
         self._discard_button = QPushButton('Discard changes and exit')
         self._cancel_button = QPushButton('Keep the project open')
+        self._save_button = QPushButton('Save changes and exit')
 
         b = QHBoxLayout()
-        b.addWidget(self._save_button)
         b.addWidget(self._discard_button)
         b.addWidget(self._cancel_button)
+        b.addWidget(self._save_button)
 
         v = QVBoxLayout()
         v.addWidget(self._message)
         v.addLayout(b)
         self.setLayout(v)
+
+        self._cancel_button.setFocus(Qt.PopupFocusReason)
 
         QObject.connect(self._save_button, SIGNAL('clicked()'), self._perform_save)
         QObject.connect(self._discard_button, SIGNAL('clicked()'), self._perform_discard)
