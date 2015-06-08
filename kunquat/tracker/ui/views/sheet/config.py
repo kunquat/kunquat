@@ -48,8 +48,10 @@ DEFAULT_CONFIG = {
             'padding'        : 3,
             },
         'edit_cursor': {
-            'line_colour'  : QColor(0xff, 0x88, 0x44),
-            'min_snap_dist': 64,
+            'view_line_colour': QColor(0xdd, 0xee, 0xff),
+            'edit_line_colour': QColor(0xff, 0x88, 0x44),
+            'min_snap_dist'   : 64,
+            'guide_colour'    : QColor(0xff, 0x77, 0x22, 0x7f),
             },
         }
 

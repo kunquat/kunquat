@@ -435,7 +435,7 @@ class View(QWidget):
         else:
             self.update()
 
-    def _draw_edit_cursor(self):
+    def _draw_edit_cursor(self, painter):
         if not self._pinsts:
             return
 
@@ -454,13 +454,29 @@ class View(QWidget):
         if not -self._config['tr_height'] < y_offset < self.height():
             return
 
-        # Set up paint device
-        painter = QPainter(self)
+        # Draw guide extension line
+        if self._sheet_manager.is_editing_enabled():
+            painter.setPen(self._config['edit_cursor']['guide_colour'])
+            visible_col_nums = list(xrange(
+                self._first_col, self._first_col + self._visible_cols))
+            for col_num in visible_col_nums:
+                if col_num != selected_col:
+                    col_x_offset = self._get_col_offset(col_num)
+                    tfm = QTransform().translate(col_x_offset, y_offset)
+                    painter.setTransform(tfm)
+                    painter.drawLine(
+                            QPoint(0, 0),
+                            QPoint(self._col_width - 2, 0))
+
+        # Set up paint device for the actual cursor
         tfm = QTransform().translate(x_offset, y_offset)
         painter.setTransform(tfm)
 
         # Draw the horizontal line
-        painter.setPen(self._config['edit_cursor']['line_colour'])
+        line_colour = self._config['edit_cursor']['view_line_colour']
+        if self._sheet_manager.is_editing_enabled():
+            line_colour = self._config['edit_cursor']['edit_line_colour']
+        painter.setPen(line_colour)
         painter.drawLine(
                 QPoint(0, 0),
                 QPoint(self._col_width - 2, 0))
@@ -1263,7 +1279,7 @@ class View(QWidget):
 
         # Draw edit cursor
         if self._sheet_manager.get_edit_mode():
-            self._draw_edit_cursor()
+            self._draw_edit_cursor(painter)
 
         if pixmaps_created == 0:
             pass # TODO: update was easy, predraw a likely next pixmap
