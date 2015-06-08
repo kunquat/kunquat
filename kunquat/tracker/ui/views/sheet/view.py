@@ -1176,6 +1176,7 @@ class View(QWidget):
 
                 Qt.Key_Space:   handle_typewriter_connection,
                 Qt.Key_Insert:  handle_replace_mode,
+                Qt.Key_Escape:  lambda: self._sheet_manager.set_typewriter_connected(False),
 
                 Qt.Key_Return:  handle_field_edit,
             },
