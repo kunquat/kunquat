@@ -280,6 +280,7 @@ class SheetArea(QAbstractScrollArea):
 
     def resizeEvent(self, ev):
         self._update_scrollbars()
+        self.viewport().resizeEvent(ev)
 
     def scrollContentsBy(self, dx, dy):
         hvalue = self.horizontalScrollBar().value()
