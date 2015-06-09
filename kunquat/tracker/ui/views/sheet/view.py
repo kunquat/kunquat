@@ -1270,6 +1270,13 @@ class View(QWidget):
             pixmaps_created += self._col_rends[
                     self._first_col + rel_col_index].draw(painter, self.height())
 
+        # Flush caches of (most) out-of-view columns
+        first_kept_col = max(0, self._first_col - 1)
+        last_kept_col = min(COLUMNS_MAX - 1, self._first_col + draw_col_stop)
+        for col_index in xrange(COLUMNS_MAX):
+            if not (first_kept_col <= col_index <= last_kept_col):
+                self._col_rends[col_index].flush_caches()
+
         painter.setTransform(QTransform())
 
         # Fill horizontal trailing blank
