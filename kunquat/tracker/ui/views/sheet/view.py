@@ -1292,14 +1292,15 @@ class View(QWidget):
         if pixmaps_created == 0:
             pass # TODO: update was easy, predraw a likely next pixmap
         else:
-            print('{} column pixmap{} created'.format(
-                pixmaps_created, 's' if pixmaps_created != 1 else ''))
+            pass
+            #print('{} column pixmap{} created'.format(
+            #    pixmaps_created, 's' if pixmaps_created != 1 else ''))
 
         end = time.time()
         elapsed = end - start
         memory_usage = sum(cr.get_memory_usage() for cr in self._col_rends)
-        print('View updated in {:.2f} ms, cache size {:.2f} MB'.format(
-            elapsed * 1000, memory_usage / float(2**20)))
+        #print('View updated in {:.2f} ms, cache size {:.2f} MB'.format(
+        #    elapsed * 1000, memory_usage / float(2**20)))
 
     def focusInEvent(self, ev):
         self._sheet_manager.set_edit_mode(True)
