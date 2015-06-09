@@ -772,6 +772,90 @@ class View(QWidget):
         new_location = TriggerPosition(track, system, col_num, new_ts, 0)
         selection.set_location(new_location)
 
+    def _move_edit_cursor_bar(self, delta):
+        assert delta in (-1, 1)
+
+        module = self._ui_model.get_module()
+        album = module.get_album()
+        if not album or album.get_track_count() == 0:
+            return
+
+        # Get location info
+        selection = self._ui_model.get_selection()
+        location = selection.get_location()
+        track = location.get_track()
+        system = location.get_system()
+        col_num = location.get_col_num()
+        row_ts = location.get_row_ts()
+        trigger_index = location.get_trigger_index()
+
+        cur_song = album.get_song_by_track(track)
+        cur_pattern = cur_song.get_pattern_instance(system).get_pattern()
+        cur_pat_length = cur_pattern.get_length()
+
+        new_ts = row_ts + 4 * delta
+
+        if new_ts < 0:
+            new_track = track
+            new_system = system - 1
+            if new_system < 0:
+                new_track -= 1
+                if new_track < 0:
+                    # Start of sheet
+                    new_track = 0
+                    new_system = 0
+                    new_ts = tstamp.Tstamp(0)
+                    new_location = TriggerPosition(
+                            new_track, new_system, col_num, new_ts, 0)
+                    selection.set_location(new_location)
+                    return
+                else:
+                    new_song = album.get_song_by_track(new_track)
+                    new_system = new_song.get_system_count() - 1
+
+            # Previous pattern
+            bar_offset = tstamp.Tstamp(row_ts.beats % 4, row_ts.rem)
+            new_song = album.get_song_by_track(new_track)
+            new_pattern = new_song.get_pattern_instance(new_system).get_pattern()
+            new_pat_length = new_pattern.get_length()
+            if new_pat_length.rem == 0:
+                last_bar_start = (max(0, new_pat_length.beats - 1) // 4) * 4
+            else:
+                last_bar_start = (new_pat_length.beats // 4) * 4
+            new_ts = min(bar_offset + last_bar_start, new_pat_length)
+
+            new_location = TriggerPosition(new_track, new_system, col_num, new_ts, 0)
+            selection.set_location(new_location)
+            return
+
+        elif ((new_ts > cur_pat_length) or
+                (cur_pat_length.rem == 0 and new_ts == cur_pat_length)):
+            new_track = track
+            new_system = system + 1
+            if new_system >= cur_song.get_system_count():
+                new_track += 1
+                new_system = 0
+                if new_track >= album.get_track_count():
+                    # End of sheet
+                    new_ts = cur_pattern.get_length()
+                    new_location = TriggerPosition(
+                            track, system, col_num, new_ts, 0)
+                    selection.set_location(new_location)
+                    return
+
+            # Next pattern
+            new_song = album.get_song_by_track(new_track)
+            new_pattern = new_song.get_pattern_instance(new_system).get_pattern()
+            new_ts = tstamp.Tstamp(row_ts.beats % 4, row_ts.rem)
+            new_ts = min(new_ts, new_pattern.get_length())
+
+            new_location = TriggerPosition(new_track, new_system, col_num, new_ts, 0)
+            selection.set_location(new_location)
+            return
+
+        new_location = TriggerPosition(track, system, col_num, new_ts, 0)
+        selection.set_location(new_location)
+
     def _get_trigger_index(self, column, row_ts, x_offset):
         if not column.has_trigger(row_ts, 0):
             return -1
@@ -1163,6 +1247,9 @@ class View(QWidget):
                 Qt.Key_Down:    handle_move_down,
                 Qt.Key_Left:    handle_move_left,
                 Qt.Key_Right:   handle_move_right,
+
+                Qt.Key_PageUp:  lambda: self._move_edit_cursor_bar(-1),
+                Qt.Key_PageDown: lambda: self._move_edit_cursor_bar(1),
 
                 Qt.Key_Home:    lambda: self._move_edit_cursor_trigger_index(0),
                 Qt.Key_End: lambda: self._move_edit_cursor_trigger_index(2**24), # :-P
