@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2015
 #
 # This file is part of Kunquat.
 #
@@ -25,7 +25,8 @@ from kunquat.tracker.errorbase import *
 MESSAGE_RICH = \
 '''<h3>We are sorry, but Kunquat Tracker
 encountered an error and needs to close.</h3>
-<p>Please submit an issue to Kunquat issue tracker at
+<p>This is a programming error. If you would like to help us fix it,
+please submit an issue to Kunquat issue tracker at
 <a href="https://github.com/kunquat/kunquat/issues">https://github.com/kunquat/kunquat/issues</a>
 with the following information attached.</p>'''
 
@@ -58,6 +59,7 @@ class ErrorDialog(QDialog):
 
         self.setWindowTitle('Oh no!')
         self._message = QLabel(MESSAGE_RICH)
+        self._message.setWordWrap(True)
         self._details = ErrorDetails()
         self._closebutton = QPushButton('Exit Kunquat')
 
@@ -92,5 +94,8 @@ class ErrorDialog(QDialog):
         self._details.set_details(details)
         self.exec_()
         os.abort()
+
+    def sizeHint(self):
+        return QSize(768, 512)
 
 
