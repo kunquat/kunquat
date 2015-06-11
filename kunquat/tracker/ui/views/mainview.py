@@ -17,6 +17,7 @@ from PyQt4.QtGui import *
 
 import kunquat.tracker.cmdline as cmdline
 from portal import Portal
+from topcontrols import TopControls
 from mainsplitter import MainSplitter
 from importprogress import ImportProgress
 from peakmeter import PeakMeter
@@ -28,16 +29,20 @@ class MainView(QWidget):
         QWidget.__init__(self)
         self._ui_model = None
         self._portal = Portal()
+        self._top_controls = TopControls()
         self._main_splitter = MainSplitter()
         self._import_progress = ImportProgress()
         self._peak_meter = PeakMeter()
 
         v = QVBoxLayout()
         v.setMargin(0)
-        v.setSpacing(4)
+        v.setSpacing(0)
         v.addWidget(self._portal)
+        v.addWidget(self._top_controls)
+        v.addSpacing(4)
         v.addWidget(self._main_splitter)
         v.addWidget(self._import_progress)
+        v.addSpacing(4)
         v.addWidget(self._peak_meter)
         self.setLayout(v)
 
@@ -47,6 +52,7 @@ class MainView(QWidget):
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._portal.set_ui_model(ui_model)
+        self._top_controls.set_ui_model(ui_model)
         self._main_splitter.set_ui_model(ui_model)
         self._import_progress.set_ui_model(ui_model)
         self._peak_meter.set_ui_model(ui_model)
@@ -55,6 +61,7 @@ class MainView(QWidget):
         self._peak_meter.unregister_updaters()
         self._import_progress.unregister_updaters()
         self._main_splitter.unregister_updaters()
+        self._top_controls.unregister_updaters()
         self._portal.unregister_updaters()
 
     def keyPressEvent(self, event):
