@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2014
+# Authors: Tomi Jylhä-Ollila, Finland 2014-2015
 #          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
@@ -15,6 +15,8 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
+from kunquat.tracker.version import KUNQUAT_VERSION
+from kunquat.kunquat.kunquat import get_version
 from renderstats import RenderStats
 from logo import Logo
 
@@ -25,9 +27,17 @@ class AboutMessage(QLabel):
         QLabel.__init__(self)
         self.setTextFormat(Qt.RichText)
 
-        contents = """
-            <h1>Kunquat Tracker</h1>
-            """
+        p = '<p align="center">'
+        h1 = '<h1 align="center">'
+
+        tracker_version_str = '{}Unreleased version</p>'.format(p)
+        if KUNQUAT_VERSION:
+            tracker_version_str = '{}Version {}</p>'.format(p, KUNQUAT_VERSION)
+
+        lib_version_str = '{}Library version: {}</p>'.format(p, get_version())
+
+        contents = ''.join((
+            '{}Kunquat Tracker</h1>'.format(h1), tracker_version_str, lib_version_str))
         self.setText(contents)
 
 
