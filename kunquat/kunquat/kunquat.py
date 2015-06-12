@@ -406,6 +406,11 @@ def get_default_value(key):
     return obj
 
 
+def get_version():
+    ret = str(_kunquat.kqt_get_version())
+    return ret
+
+
 def fake_out_of_memory():
     _kunquat.kqt_fake_out_of_memory(0)
 
@@ -497,6 +502,9 @@ _kunquat.kqt_get_int_limit.restype = ctypes.c_int64
 
 _kunquat.kqt_get_default_value.argtypes = [ctypes.c_char_p]
 _kunquat.kqt_get_default_value.restype = ctypes.c_char_p
+
+_kunquat.kqt_get_version.argtypes = []
+_kunquat.kqt_get_version.restype = ctypes.c_char_p
 
 _kunquat.kqt_fake_out_of_memory.argtypes = [ctypes.c_long]
 _kunquat.kqt_fake_out_of_memory.restype = None
