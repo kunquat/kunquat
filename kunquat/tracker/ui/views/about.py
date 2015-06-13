@@ -42,10 +42,17 @@ class AboutMessage(QWidget):
         lib_version = QLabel(lib_version_str)
         lib_version.setAlignment(Qt.AlignHCenter)
 
+        website_str = '<a href="http://kunquat.org/">http://kunquat.org/</a>'
+        website = QLabel(website_str)
+        website.setTextFormat(Qt.RichText)
+        website.setAlignment(Qt.AlignHCenter)
+
         v = QVBoxLayout()
         v.addWidget(program_name)
         v.addWidget(tracker_version)
         v.addWidget(lib_version)
+        v.addSpacing(8)
+        v.addWidget(website)
         v.addStretch(1)
         self.setLayout(v)
 
