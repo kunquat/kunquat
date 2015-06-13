@@ -21,24 +21,33 @@ from renderstats import RenderStats
 from logo import Logo
 
 
-class AboutMessage(QLabel):
+class AboutMessage(QWidget):
 
     def __init__(self):
-        QLabel.__init__(self)
-        self.setTextFormat(Qt.RichText)
+        QWidget.__init__(self)
 
-        p = '<p align="center">'
-        h1 = '<h1 align="center">'
+        font_family = QFont().defaultFamily()
 
-        tracker_version_str = '{}Unreleased version</p>'.format(p)
+        program_name = QLabel('Kunquat Tracker')
+        program_name.setAlignment(Qt.AlignHCenter)
+        program_name.setFont(QFont('DejaVu Sans', 20, QFont.DemiBold))
+
+        tracker_version_str = 'Unreleased tracker version'
         if KUNQUAT_VERSION:
-            tracker_version_str = '{}Version {}</p>'.format(p, KUNQUAT_VERSION)
+            tracker_version_str = 'Tracker version {}'.format(KUNQUAT_VERSION)
+        tracker_version = QLabel(tracker_version_str)
+        tracker_version.setAlignment(Qt.AlignHCenter)
 
-        lib_version_str = '{}Library version: {}</p>'.format(p, get_version())
+        lib_version_str = 'Library version: {}'.format(get_version())
+        lib_version = QLabel(lib_version_str)
+        lib_version.setAlignment(Qt.AlignHCenter)
 
-        contents = ''.join((
-            '{}Kunquat Tracker</h1>'.format(h1), tracker_version_str, lib_version_str))
-        self.setText(contents)
+        v = QVBoxLayout()
+        v.addWidget(program_name)
+        v.addWidget(tracker_version)
+        v.addWidget(lib_version)
+        v.addStretch(1)
+        self.setLayout(v)
 
 
 class About(QWidget):
