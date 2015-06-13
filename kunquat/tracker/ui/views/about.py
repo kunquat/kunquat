@@ -29,23 +29,25 @@ class AboutMessage(QWidget):
         font_family = QFont().defaultFamily()
 
         program_name = QLabel('Kunquat Tracker')
-        program_name.setAlignment(Qt.AlignHCenter)
         program_name.setFont(QFont('DejaVu Sans', 20, QFont.DemiBold))
 
         tracker_version_str = 'Unreleased tracker version'
         if KUNQUAT_VERSION:
             tracker_version_str = 'Tracker version {}'.format(KUNQUAT_VERSION)
         tracker_version = QLabel(tracker_version_str)
-        tracker_version.setAlignment(Qt.AlignHCenter)
 
         lib_version_str = 'Library version: {}'.format(get_version())
         lib_version = QLabel(lib_version_str)
-        lib_version.setAlignment(Qt.AlignHCenter)
 
         website_str = '<a href="http://kunquat.org/">http://kunquat.org/</a>'
         website = QLabel(website_str)
         website.setTextFormat(Qt.RichText)
-        website.setAlignment(Qt.AlignHCenter)
+
+        copyright_str = 'CC0 1.0 Universal'
+        copyright = QLabel(copyright_str)
+
+        for label in (program_name, tracker_version, lib_version, website, copyright):
+            label.setAlignment(Qt.AlignHCenter)
 
         v = QVBoxLayout()
         v.addWidget(program_name)
@@ -53,6 +55,8 @@ class AboutMessage(QWidget):
         v.addWidget(lib_version)
         v.addSpacing(8)
         v.addWidget(website)
+        v.addSpacing(8)
+        v.addWidget(copyright)
         v.addStretch(1)
         self.setLayout(v)
 
