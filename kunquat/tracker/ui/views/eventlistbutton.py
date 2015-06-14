@@ -76,7 +76,7 @@ class EventListButton(QToolButton):
         self._text = QLabel(self._get_text(0))
 
         h = QHBoxLayout()
-        h.setContentsMargins(5, 5, 5, 5)
+        h.setMargin(6)
         h.addItem(light_layout)
         h.addWidget(self._text)
         self.setLayout(h)

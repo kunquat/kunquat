@@ -155,7 +155,7 @@ class RenderStatsButton(QToolButton):
         self._load_meter = RenderLoadMeter()
 
         h = QHBoxLayout()
-        h.setContentsMargins(5, 5, 5, 5)
+        h.setMargin(6)
         h.addWidget(self._load_meter, 0, Qt.AlignVCenter)
         h.addWidget(QLabel('System load'))
         self.setLayout(h)
