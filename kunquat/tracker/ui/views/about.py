@@ -17,7 +17,6 @@ from PyQt4.QtGui import *
 
 from kunquat.tracker.version import KUNQUAT_VERSION
 from kunquat.kunquat.kunquat import get_version
-from renderstats import RenderStats
 from logo import Logo
 
 
@@ -69,7 +68,6 @@ class About(QWidget):
 
         self._logo = Logo()
         self._about_message = AboutMessage()
-        self._render_stats = RenderStats()
 
         v = QVBoxLayout()
         v.setAlignment(Qt.AlignHCenter)
@@ -77,16 +75,13 @@ class About(QWidget):
         v.setAlignment(self._logo, Qt.AlignHCenter)
         v.addWidget(self._about_message)
         v.setAlignment(self._about_message, Qt.AlignHCenter)
-        v.addWidget(self._render_stats)
         self.setLayout(v)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._logo.set_ui_model(ui_model)
-        self._render_stats.set_ui_model(ui_model)
 
     def unregister_updaters(self):
         self._logo.unregister_updaters()
-        self._render_stats.unregister_updaters()
 
 
