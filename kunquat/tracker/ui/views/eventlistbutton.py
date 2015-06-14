@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2015
 #
 # This file is part of Kunquat.
 #
@@ -14,6 +14,8 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
+import utils
+
 
 _LIGHT_CONFIG = {
         'width'     : 12,
@@ -22,18 +24,7 @@ _LIGHT_CONFIG = {
         'fade_time' : 0.25,
         'colour_on' : QColor(0xff, 0x33, 0),
         'colour_off': QColor(0x44, 0, 0),
-        }
-
-def lerp_val(v1, v2, t):
-    assert 0 <= t <= 1
-    return v1 + (v2 - v1) * t
-
-def lerp_colour(c1, c2, t):
-    assert 0 <= t <= 1
-    return QColor(
-            lerp_val(c1.red(), c2.red(), t),
-            lerp_val(c1.green(), c2.green(), t),
-            lerp_val(c1.blue(), c2.blue(), t))
+    }
 
 
 class EventLight(QWidget):
@@ -61,7 +52,7 @@ class EventLight(QWidget):
 
     def paintEvent(self, event):
         painter = QPainter(self)
-        colour = lerp_colour(
+        colour = utils.lerp_colour(
                 self._config['colour_off'],
                 self._config['colour_on'],
                 self._light_norm)
