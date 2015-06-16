@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2014
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2015
 #          Toni Ruottu, Finland 2013-2014
 #
 # This file is part of Kunquat.
@@ -30,6 +30,8 @@ class MainSplitter(QSplitter):
         self._typewriter_panel = TypewriterPanel()
 
         v = QVBoxLayout()
+        v.setMargin(0)
+        v.setSpacing(0)
         v.addWidget(self._composition)
         v.addWidget(self._typewriter_panel)
         self.setLayout(v)

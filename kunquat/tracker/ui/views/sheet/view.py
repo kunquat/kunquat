@@ -435,7 +435,7 @@ class View(QWidget):
         else:
             self.update()
 
-    def _draw_edit_cursor(self):
+    def _draw_edit_cursor(self, painter):
         if not self._pinsts:
             return
 
@@ -454,13 +454,29 @@ class View(QWidget):
         if not -self._config['tr_height'] < y_offset < self.height():
             return
 
-        # Set up paint device
-        painter = QPainter(self)
+        # Draw guide extension line
+        if self._sheet_manager.is_editing_enabled():
+            painter.setPen(self._config['edit_cursor']['guide_colour'])
+            visible_col_nums = list(xrange(
+                self._first_col, self._first_col + self._visible_cols))
+            for col_num in visible_col_nums:
+                if col_num != selected_col:
+                    col_x_offset = self._get_col_offset(col_num)
+                    tfm = QTransform().translate(col_x_offset, y_offset)
+                    painter.setTransform(tfm)
+                    painter.drawLine(
+                            QPoint(0, 0),
+                            QPoint(self._col_width - 2, 0))
+
+        # Set up paint device for the actual cursor
         tfm = QTransform().translate(x_offset, y_offset)
         painter.setTransform(tfm)
 
         # Draw the horizontal line
-        painter.setPen(self._config['edit_cursor']['line_colour'])
+        line_colour = self._config['edit_cursor']['view_line_colour']
+        if self._sheet_manager.is_editing_enabled():
+            line_colour = self._config['edit_cursor']['edit_line_colour']
+        painter.setPen(line_colour)
         painter.drawLine(
                 QPoint(0, 0),
                 QPoint(self._col_width - 2, 0))
@@ -753,6 +769,90 @@ class View(QWidget):
             return
 
         # Move inside pattern
+        new_location = TriggerPosition(track, system, col_num, new_ts, 0)
+        selection.set_location(new_location)
+
+    def _move_edit_cursor_bar(self, delta):
+        assert delta in (-1, 1)
+
+        module = self._ui_model.get_module()
+        album = module.get_album()
+        if not album or album.get_track_count() == 0:
+            return
+
+        # Get location info
+        selection = self._ui_model.get_selection()
+        location = selection.get_location()
+        track = location.get_track()
+        system = location.get_system()
+        col_num = location.get_col_num()
+        row_ts = location.get_row_ts()
+        trigger_index = location.get_trigger_index()
+
+        cur_song = album.get_song_by_track(track)
+        cur_pattern = cur_song.get_pattern_instance(system).get_pattern()
+        cur_pat_length = cur_pattern.get_length()
+
+        new_ts = row_ts + 4 * delta
+
+        if new_ts < 0:
+            new_track = track
+            new_system = system - 1
+            if new_system < 0:
+                new_track -= 1
+                if new_track < 0:
+                    # Start of sheet
+                    new_track = 0
+                    new_system = 0
+                    new_ts = tstamp.Tstamp(0)
+                    new_location = TriggerPosition(
+                            new_track, new_system, col_num, new_ts, 0)
+                    selection.set_location(new_location)
+                    return
+                else:
+                    new_song = album.get_song_by_track(new_track)
+                    new_system = new_song.get_system_count() - 1
+
+            # Previous pattern
+            bar_offset = tstamp.Tstamp(row_ts.beats % 4, row_ts.rem)
+            new_song = album.get_song_by_track(new_track)
+            new_pattern = new_song.get_pattern_instance(new_system).get_pattern()
+            new_pat_length = new_pattern.get_length()
+            if new_pat_length.rem == 0:
+                last_bar_start = (max(0, new_pat_length.beats - 1) // 4) * 4
+            else:
+                last_bar_start = (new_pat_length.beats // 4) * 4
+            new_ts = min(bar_offset + last_bar_start, new_pat_length)
+
+            new_location = TriggerPosition(new_track, new_system, col_num, new_ts, 0)
+            selection.set_location(new_location)
+            return
+
+        elif ((new_ts > cur_pat_length) or
+                (cur_pat_length.rem == 0 and new_ts == cur_pat_length)):
+            new_track = track
+            new_system = system + 1
+            if new_system >= cur_song.get_system_count():
+                new_track += 1
+                new_system = 0
+                if new_track >= album.get_track_count():
+                    # End of sheet
+                    new_ts = cur_pattern.get_length()
+                    new_location = TriggerPosition(
+                            track, system, col_num, new_ts, 0)
+                    selection.set_location(new_location)
+                    return
+
+            # Next pattern
+            new_song = album.get_song_by_track(new_track)
+            new_pattern = new_song.get_pattern_instance(new_system).get_pattern()
+            new_ts = tstamp.Tstamp(row_ts.beats % 4, row_ts.rem)
+            new_ts = min(new_ts, new_pattern.get_length())
+
+            new_location = TriggerPosition(new_track, new_system, col_num, new_ts, 0)
+            selection.set_location(new_location)
+            return
+
         new_location = TriggerPosition(track, system, col_num, new_ts, 0)
         selection.set_location(new_location)
 
@@ -1141,26 +1241,15 @@ class View(QWidget):
             else:
                 self._start_trigger_type_entry()
 
-        def handle_decrease_column_width():
-            if cmdline.get_experimental():
-                self._sheet_manager.set_column_width(
-                        self._sheet_manager.get_column_width() - 1)
-
-        def handle_increase_column_width():
-            if cmdline.get_experimental():
-                self._sheet_manager.set_column_width(
-                        self._sheet_manager.get_column_width() + 1)
-
-        def handle_reset_column_width():
-            if cmdline.get_experimental():
-                self._sheet_manager.set_column_width(0)
-
         keymap = {
             int(Qt.NoModifier): {
                 Qt.Key_Up:      handle_move_up,
                 Qt.Key_Down:    handle_move_down,
                 Qt.Key_Left:    handle_move_left,
                 Qt.Key_Right:   handle_move_right,
+
+                Qt.Key_PageUp:  lambda: self._move_edit_cursor_bar(-1),
+                Qt.Key_PageDown: lambda: self._move_edit_cursor_bar(1),
 
                 Qt.Key_Home:    lambda: self._move_edit_cursor_trigger_index(0),
                 Qt.Key_End: lambda: self._move_edit_cursor_trigger_index(2**24), # :-P
@@ -1174,6 +1263,7 @@ class View(QWidget):
 
                 Qt.Key_Space:   handle_typewriter_connection,
                 Qt.Key_Insert:  handle_replace_mode,
+                Qt.Key_Escape:  lambda: self._sheet_manager.set_typewriter_connected(False),
 
                 Qt.Key_Return:  handle_field_edit,
             },
@@ -1187,9 +1277,11 @@ class View(QWidget):
             },
 
             int(Qt.ControlModifier | Qt.AltModifier): {
-                Qt.Key_Minus:   handle_decrease_column_width,
-                Qt.Key_Plus:    handle_increase_column_width,
-                Qt.Key_0:       handle_reset_column_width,
+                Qt.Key_Minus:   lambda: self._sheet_manager.set_column_width(
+                                    self._sheet_manager.get_column_width() - 1),
+                Qt.Key_Plus:    lambda: self._sheet_manager.set_column_width(
+                                    self._sheet_manager.get_column_width() + 1),
+                Qt.Key_0:       lambda: self._sheet_manager.set_column_width(0),
             },
         }
 
@@ -1265,6 +1357,13 @@ class View(QWidget):
             pixmaps_created += self._col_rends[
                     self._first_col + rel_col_index].draw(painter, self.height())
 
+        # Flush caches of (most) out-of-view columns
+        first_kept_col = max(0, self._first_col - 1)
+        last_kept_col = min(COLUMNS_MAX - 1, self._first_col + draw_col_stop)
+        for col_index in xrange(COLUMNS_MAX):
+            if not (first_kept_col <= col_index <= last_kept_col):
+                self._col_rends[col_index].flush_caches()
+
         painter.setTransform(QTransform())
 
         # Fill horizontal trailing blank
@@ -1275,19 +1374,20 @@ class View(QWidget):
 
         # Draw edit cursor
         if self._sheet_manager.get_edit_mode():
-            self._draw_edit_cursor()
+            self._draw_edit_cursor(painter)
 
         if pixmaps_created == 0:
             pass # TODO: update was easy, predraw a likely next pixmap
         else:
-            print('{} column pixmap{} created'.format(
-                pixmaps_created, 's' if pixmaps_created != 1 else ''))
+            pass
+            #print('{} column pixmap{} created'.format(
+            #    pixmaps_created, 's' if pixmaps_created != 1 else ''))
 
         end = time.time()
         elapsed = end - start
         memory_usage = sum(cr.get_memory_usage() for cr in self._col_rends)
-        print('View updated in {:.2f} ms, cache size {:.2f} MB'.format(
-            elapsed * 1000, memory_usage / float(2**20)))
+        #print('View updated in {:.2f} ms, cache size {:.2f} MB'.format(
+        #    elapsed * 1000, memory_usage / float(2**20)))
 
     def focusInEvent(self, ev):
         self._sheet_manager.set_edit_mode(True)

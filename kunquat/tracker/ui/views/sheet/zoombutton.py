@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2015
 #
 # This file is part of Kunquat.
 #
@@ -21,9 +21,9 @@ class ZoomButton(QToolButton):
             'in': ('Zoom In', 'zoom_in', 'Ctrl + +'),
             'out': ('Zoom Out', 'zoom_out', 'Ctrl + -'),
             'original': ('Zoom to Original', 'zoom_reset', 'Ctrl + 0'),
-            'expand_w': ('Wider', None, 'Ctrl + Alt + +'),
-            'shrink_w': ('Narrower', None, 'Ctrl + Alt + -'),
-            'original_w': ('Original Width', None, 'Ctrl + Alt + 0'),
+            'expand_w': ('Expand Columns', 'col_expand', 'Ctrl + Alt + +'),
+            'shrink_w': ('Shrink Columns', 'col_shrink', 'Ctrl + Alt + -'),
+            'original_w': ('Reset Column Width', 'col_reset_width', 'Ctrl + Alt + 0'),
         }
 
     def __init__(self, mode):
@@ -33,6 +33,7 @@ class ZoomButton(QToolButton):
         self._sheet_manager = None
 
         self._mode = mode
+        self.setAutoRaise(True)
         self.setText(self._get_text(mode))
         self.setToolTip(self._get_tooltip(mode))
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2015
 #
 # This file is part of Kunquat.
 #
@@ -24,6 +24,7 @@ class EditButton(QToolButton):
         self._sheet_manager = None
 
         self.setCheckable(True)
+        self.setAutoRaise(True)
         self.setText('Edit')
         self.setToolTip('Edit (Space)')
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2015
+# Author: Tomi Jylhä-Ollila, Finland 2015
 #
 # This file is part of Kunquat.
 #
@@ -14,32 +14,35 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from sheetarea import SheetArea
-from toolbar import Toolbar
+from renderstats import RenderStats
 
 
-class Sheet(QWidget):
+class RenderStatsWindow(QWidget):
 
     def __init__(self):
         QWidget.__init__(self)
         self._ui_model = None
-        self._toolbar = Toolbar()
-        self._sheet_area = SheetArea()
+        self._render_stats = RenderStats()
+
+        self.setWindowTitle('System load')
 
         v = QVBoxLayout()
-        v.setContentsMargins(0, 0, 0, 4)
-        v.setSpacing(0)
-        v.addWidget(self._toolbar)
-        v.addWidget(self._sheet_area)
+        v.addWidget(self._render_stats)
         self.setLayout(v)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
-        self._toolbar.set_ui_model(ui_model)
-        self._sheet_area.set_ui_model(ui_model)
+        self._render_stats.set_ui_model(ui_model)
 
     def unregister_updaters(self):
-        self._sheet_area.unregister_updaters()
-        self._toolbar.unregister_updaters()
+        self._render_stats.unregister_updaters()
+
+    def closeEvent(self, event):
+        event.ignore()
+        visibility_manager = self._ui_model.get_visibility_manager()
+        visibility_manager.hide_render_stats()
+
+    def sizeHint(self):
+        return QSize(512, 384)
 
 

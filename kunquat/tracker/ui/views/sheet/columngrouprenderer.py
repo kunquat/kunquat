@@ -487,9 +487,9 @@ class TRCache():
 
             yield (ts, image, next_ts)
 
-        if images_created > 0:
-            print('{} trigger row image{} created'.format(
-                images_created, 's' if images_created != 1 else ''))
+        #if images_created > 0:
+        #    print('{} trigger row image{} created'.format(
+        #        images_created, 's' if images_created != 1 else ''))
 
     def get_memory_usage(self):
         return self._images.get_memory_usage()

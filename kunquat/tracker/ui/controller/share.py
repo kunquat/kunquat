@@ -123,6 +123,9 @@ class Share():
         valid_names = [
                 'arrow_down_small',
                 'arrow_up_small',
+                'col_expand',
+                'col_reset_width',
+                'col_shrink',
                 'delete',
                 'delete_small',
                 'edit',
@@ -138,6 +141,7 @@ class Share():
                 'rest',
                 'reuse_pattern',
                 'silence',
+                'warning',
                 'zoom_in',
                 'zoom_out',
                 'zoom_reset',

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2015
+# Author: Tomi Jylhä-Ollila, Finland 2015
 #
 # This file is part of Kunquat.
 #
@@ -14,32 +14,36 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from sheetarea import SheetArea
-from toolbar import Toolbar
+from name import Name
 
 
-class Sheet(QWidget):
+class InfoEditor(QWidget):
 
     def __init__(self):
         QWidget.__init__(self)
+        self._au_id = None
+        self._proc_id = None
         self._ui_model = None
-        self._toolbar = Toolbar()
-        self._sheet_area = SheetArea()
+
+        self._name = Name()
 
         v = QVBoxLayout()
-        v.setContentsMargins(0, 0, 0, 4)
-        v.setSpacing(0)
-        v.addWidget(self._toolbar)
-        v.addWidget(self._sheet_area)
+        v.addWidget(self._name, 0, Qt.AlignTop)
         self.setLayout(v)
+
+    def set_au_id(self, au_id):
+        self._au_id = au_id
+        self._name.set_au_id(au_id)
+
+    def set_proc_id(self, proc_id):
+        self._proc_id = proc_id
+        self._name.set_proc_id(proc_id)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
-        self._toolbar.set_ui_model(ui_model)
-        self._sheet_area.set_ui_model(ui_model)
+        self._name.set_ui_model(ui_model)
 
     def unregister_updaters(self):
-        self._sheet_area.unregister_updaters()
-        self._toolbar.unregister_updaters()
+        self._name.unregister_updaters()
 
 

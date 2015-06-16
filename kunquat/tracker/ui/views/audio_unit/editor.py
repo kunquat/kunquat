@@ -37,15 +37,14 @@ class Editor(QWidget):
         self._filter_editor = FilterEditor()
         self._conns_editor = ConnectionsEditor()
         self._info_editor = InfoEditor()
-        self._tabs.addTab(self._force_editor, 'Force')
-        self._tabs.addTab(self._filter_editor, 'Filter')
         self._tabs.addTab(self._conns_editor, 'Connections')
         self._tabs.addTab(self._info_editor, 'Info')
 
         self._keyboard_mapper = KeyboardMapper()
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setMargin(4)
+        v.setSpacing(4)
         v.addWidget(self._test_button)
         v.addWidget(self._tabs)
         self.setLayout(v)
@@ -67,6 +66,13 @@ class Editor(QWidget):
         self._conns_editor.set_ui_model(ui_model)
         self._info_editor.set_ui_model(ui_model)
         self._keyboard_mapper.set_ui_model(ui_model)
+
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+        if au.is_instrument():
+            self._tabs.insertTab(0, self._force_editor, 'Force')
+            self._tabs.insertTab(1, self._filter_editor, 'Filter')
+            self._tabs.setCurrentIndex(0)
 
     def unregister_updaters(self):
         self._keyboard_mapper.unregister_updaters()

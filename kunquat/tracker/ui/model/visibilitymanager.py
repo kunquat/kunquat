@@ -114,6 +114,14 @@ class VisibilityManager():
         self._session.hide_ui((UI_PROCESSOR, proc_id))
         self._updater.signal_update()
 
+    def show_render_stats(self):
+        self._session.show_ui(UI_RENDER_STATS)
+        self._updater.signal_update()
+
+    def hide_render_stats(self):
+        self._session.hide_ui(UI_RENDER_STATS)
+        self._updater.signal_update()
+
     def get_visible(self):
         return self._session.get_visible()
 

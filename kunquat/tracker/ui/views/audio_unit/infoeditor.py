@@ -26,7 +26,7 @@ class InfoEditor(QWidget):
         self._name = Name()
 
         v = QVBoxLayout()
-        v.addWidget(self._name)
+        v.addWidget(self._name, 0, Qt.AlignTop)
         self.setLayout(v)
 
     def set_au_id(self, au_id):

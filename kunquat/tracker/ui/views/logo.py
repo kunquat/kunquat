@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Toni Ruottu, Finland 2014
+# Authors: Toni Ruottu, Finland 2014
+#          Tomi Jylhä-Ollila, Finland 2015
 #
 # This file is part of Kunquat.
 #
@@ -21,8 +22,7 @@ class Logo(QWidget):
     def __init__(self):
         QWidget.__init__(self)
         self._ui_model = None
-        self.setMinimumSize(200, 200)
-        self.setMaximumSize(200, 200)
+        self.setFixedSize(200, 200)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model

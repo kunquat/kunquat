@@ -51,12 +51,14 @@ class Typewriter(QFrame):
     def _get_layout(self):
         rows = QVBoxLayout()
         rows.setContentsMargins(0, 0, 0, 0)
+        rows.setSpacing(2)
         for row_index in xrange(self._typewriter_manager.get_row_count()):
             rows.addLayout(self._get_row(row_index))
         return rows
 
     def _get_row(self, index):
         row = QHBoxLayout()
+        row.setSpacing(4)
 
         pad_px = self._PAD * self._typewriter_manager.get_pad_factor_at_row(index)
         row.addWidget(self._get_pad(pad_px))

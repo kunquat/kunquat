@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2015
 #
 # This file is part of Kunquat.
 #
@@ -23,6 +23,7 @@ class DelSelectionButton(QToolButton):
         self._updater = None
         self._sheet_manager = None
 
+        self.setAutoRaise(True)
         self.setText('Del')
         self.setToolTip('Delete selection (Delete)')
 

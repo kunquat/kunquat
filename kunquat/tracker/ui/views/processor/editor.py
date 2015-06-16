@@ -14,7 +14,7 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from name import Name
+from infoeditor import InfoEditor
 import proctypeinfo
 from kunquat.tracker.ui.views.headerline import HeaderLine
 from kunquat.tracker.ui.views.keyboardmapper import KeyboardMapper
@@ -29,27 +29,27 @@ class Editor(QWidget):
         self._ui_model = None
         self._updater = None
         self._control_manager = None
-        self._name = Name()
         self._proc_editor = None
+
         self._signals = Signals()
+        self._info_editor = InfoEditor()
 
         self._keyboard_mapper = KeyboardMapper()
 
         v = QVBoxLayout()
-        v.setMargin(0)
+        v.setMargin(4)
         v.setSpacing(5)
-        v.addWidget(self._name)
         self.setLayout(v)
 
     def set_au_id(self, au_id):
         self._au_id = au_id
-        self._name.set_au_id(au_id)
         self._signals.set_au_id(au_id)
+        self._info_editor.set_au_id(au_id)
 
     def set_proc_id(self, proc_id):
         self._proc_id = proc_id
-        self._name.set_proc_id(proc_id)
         self._signals.set_proc_id(proc_id)
+        self._info_editor.set_proc_id(proc_id)
 
     def set_ui_model(self, ui_model):
         assert self._au_id != None
@@ -57,8 +57,8 @@ class Editor(QWidget):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
         self._control_manager = ui_model.get_control_manager()
-        self._name.set_ui_model(ui_model)
         self._signals.set_ui_model(ui_model)
+        self._info_editor.set_ui_model(ui_model)
         self._keyboard_mapper.set_ui_model(ui_model)
         self._updater.register_updater(self._perform_updates)
 
@@ -79,14 +79,15 @@ class Editor(QWidget):
         tabs = QTabWidget()
         tabs.addTab(self._proc_editor, self._proc_editor.get_name())
         tabs.addTab(self._signals, 'Signal Types')
+        tabs.addTab(self._info_editor, 'Info')
         self.layout().addWidget(tabs)
 
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
         self._keyboard_mapper.unregister_updaters()
         self._proc_editor.unregister_updaters()
+        self._info_editor.unregister_updaters()
         self._signals.unregister_updaters()
-        self._name.unregister_updaters()
 
     def _perform_updates(self, signals):
         pass

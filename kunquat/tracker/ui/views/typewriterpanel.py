@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2014
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2015
 #          Toni Ruottu, Finland 2013-2014
 #
 # This file is part of Kunquat.
@@ -41,7 +41,8 @@ class TypewriterPanel(QFrame):
         ins_layout.addWidget(self._instrument_edit_button)
 
         v = QVBoxLayout()
-        v.setContentsMargins(0, 0, 0, 0)
+        v.setContentsMargins(4, 4, 4, 0)
+        v.setSpacing(2)
         v.addWidget(self._octave_selector)
         v.addLayout(ins_layout)
         v.addWidget(self._keymap_select)
