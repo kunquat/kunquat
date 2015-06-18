@@ -68,10 +68,8 @@ class AudioUnit():
 
     def get_existence(self):
         key = self._get_key('p_manifest.json')
-        manifest = self._store[key]
-        if type(manifest) == type({}):
-            return True
-        return False
+        manifest = self._store.get(key, None)
+        return (type(manifest) == dict)
 
     def is_instrument(self):
         key = self._get_key('p_manifest.json')
