@@ -210,6 +210,10 @@ class Signals(QWidget):
         au = module.get_audio_unit(self._au_id)
         proc = au.get_processor(self._proc_id)
 
+        # Don't try to update if we have been removed
+        if not proc.get_existence():
+            return
+
         connections = au.get_connections()
         signal_type = proc.get_signal_type()
 
