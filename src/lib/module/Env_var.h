@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2015
  *
  * This file is part of Kunquat.
  *
@@ -35,12 +35,14 @@ typedef struct Env_var Env_var;
 /**
  * Create a new Environment variable.
  *
+ * \param type   The type of the variable -- must be \c VALUE_TYPE_BOOL,
+ *               \c VALUE_TYPE_INT, \c VALUE_TYPE_FLOAT  or \c VALUE_TYPE_TSTAMP.
  * \param name   The name of the variable -- must be a valid variable name.
  *
  * \return   The new Environment variable if successful, or \c NULL if memory
  *           allocation failed.
  */
-Env_var* new_Env_var(const char* name);
+Env_var* new_Env_var(Value_type type, const char* name);
 
 
 /**

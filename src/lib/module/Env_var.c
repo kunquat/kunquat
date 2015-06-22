@@ -41,8 +41,10 @@ static bool is_valid_name(const char* name)
 }
 
 
-Env_var* new_Env_var(const char* name)
+Env_var* new_Env_var(Value_type type, const char* name)
 {
+    assert((type == VALUE_TYPE_BOOL) || (type == VALUE_TYPE_INT) ||
+            (type == VALUE_TYPE_FLOAT) || (type == VALUE_TYPE_TSTAMP));
     assert(name != NULL);
     assert(is_valid_name(name));
 
@@ -51,7 +53,7 @@ Env_var* new_Env_var(const char* name)
         return NULL;
 
     strcpy(var->name, name);
-    var->value.type = VALUE_TYPE_NONE;
+    var->value.type = type;
 
     return var;
 }
@@ -124,7 +126,7 @@ Env_var* new_Env_var_from_string(Streader* sr)
     if (!Streader_match_char(sr, ']'))
         return NULL;
 
-    Env_var* var = new_Env_var(name);
+    Env_var* var = new_Env_var(value->type, name);
     if (var == NULL)
     {
         Streader_set_memory_error(
