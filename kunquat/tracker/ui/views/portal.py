@@ -36,6 +36,7 @@ class Portal(QToolBar):
         self._connections_button = ConnectionsButton()
         self._orderlist_button = OrderlistButton()
         self._ch_defaults_button = ChDefaultsButton()
+        self._env_button = EnvButton()
         self._event_list_button = EventListButton()
         self._render_stats_button = RenderStatsButton()
 
@@ -46,6 +47,7 @@ class Portal(QToolBar):
         self.addWidget(self._connections_button)
         self.addWidget(self._orderlist_button)
         self.addWidget(self._ch_defaults_button)
+        self.addWidget(self._env_button)
         self.addSeparator()
         self.addWidget(self._event_list_button)
         self.addWidget(self._render_stats_button)
@@ -59,6 +61,7 @@ class Portal(QToolBar):
         self._connections_button.set_ui_model(ui_model)
         self._orderlist_button.set_ui_model(ui_model)
         self._ch_defaults_button.set_ui_model(ui_model)
+        self._env_button.set_ui_model(ui_model)
         self._event_list_button.set_ui_model(ui_model)
         self._render_stats_button.set_ui_model(ui_model)
         self._about_button.set_ui_model(ui_model)
@@ -67,6 +70,7 @@ class Portal(QToolBar):
         self._about_button.unregister_updaters()
         self._event_list_button.unregister_updaters()
         self._render_stats_button.unregister_updaters()
+        self._env_button.unregister_updaters()
         self._ch_defaults_button.unregister_updaters()
         self._orderlist_button.unregister_updaters()
         self._connections_button.unregister_updaters()
@@ -75,13 +79,13 @@ class Portal(QToolBar):
         self._new_button.unregister_updaters()
 
 
-class ChDefaultsButton(QToolButton):
+class WindowOpenerButton(QToolButton):
 
-    def __init__(self):
+    def __init__(self, text):
         QToolButton.__init__(self)
         self._ui_model = None
 
-        self.setText('Channel defaults')
+        self.setText(text)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -92,7 +96,30 @@ class ChDefaultsButton(QToolButton):
 
     def _clicked(self):
         visibility_manager = self._ui_model.get_visibility_manager()
+        self._show_action(visibility_manager)
+
+    # Protected interface
+
+    def _show_action(self, visibility_manager):
+        raise NotImplementedError
+
+
+class ChDefaultsButton(WindowOpenerButton):
+
+    def __init__(self):
+        WindowOpenerButton.__init__(self, 'Channel defaults')
+
+    def _show_action(self, visibility_manager):
         visibility_manager.show_ch_defaults()
+
+
+class EnvButton(WindowOpenerButton):
+
+    def __init__(self):
+        WindowOpenerButton.__init__(self, 'Environment')
+
+    def _show_action(self, visibility_manager):
+        visibility_manager.show_environment()
 
 
 _RENDER_LOAD_METER_CONFIG = {

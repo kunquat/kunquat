@@ -106,6 +106,14 @@ class VisibilityManager():
         self._session.hide_ui(UI_CH_DEFAULTS)
         self._updater.signal_update()
 
+    def show_environment(self):
+        self._session.show_ui(UI_ENVIRONMENT)
+        self._updater.signal_update()
+
+    def hide_environment(self):
+        self._session.hide_ui(UI_ENVIRONMENT)
+        self._updater.signal_update()
+
     def show_processor(self, proc_id):
         self._session.show_ui((UI_PROCESSOR, proc_id))
         self._updater.signal_update()

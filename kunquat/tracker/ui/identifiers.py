@@ -19,6 +19,7 @@ UI_CONNECTIONS  = 'connections'
 UI_AUDIO_UNIT   = 'audio_unit'
 UI_ORDERLIST    = 'orderlist'
 UI_CH_DEFAULTS  = 'ch_defaults'
+UI_ENVIRONMENT  = 'environment'
 UI_PROCESSOR    = 'processor'
 UI_RENDER_STATS = 'render_stats'
 
