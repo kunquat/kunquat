@@ -171,9 +171,11 @@ class VariableAdder(QWidget):
         QWidget.__init__(self)
         self._ui_model = None
         self._updater = None
-        self._var_name = NewVarNameEditor()
-        self._var_add_button = NewVarAddButton()
 
+        self._var_name = NewVarNameEditor()
+
+        self._var_add_button = QPushButton()
+        self._var_add_button.setText('Add new variable')
         self._var_add_button.setEnabled(False)
 
         h = QHBoxLayout()
@@ -270,13 +272,5 @@ class NewVarNameEditor(QLineEdit):
     def set_used_names(self, used_names):
         self._validator = VarNameValidator(used_names)
         self.setValidator(self._validator)
-
-
-class NewVarAddButton(QPushButton):
-
-    def __init__(self):
-        QPushButton.__init__(self)
-
-        self.setText('Add new variable')
 
 
