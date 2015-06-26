@@ -23,146 +23,188 @@ class EnvironmentEditor(QWidget):
 
     def __init__(self):
         QWidget.__init__(self)
-        self._table = EnvEditorTable()
-        self._var_adder = VariableAdder()
+        self._vars = VariableList()
 
         v = QVBoxLayout()
         v.setMargin(4)
         v.setSpacing(4)
-        v.addWidget(self._table)
-        v.addWidget(self._var_adder)
+        v.addWidget(self._vars)
         self.setLayout(v)
 
     def set_ui_model(self, ui_model):
-        self._table.set_ui_model(ui_model)
-        self._var_adder.set_ui_model(ui_model)
+        self._vars.set_ui_model(ui_model)
 
     def unregister_updaters(self):
-        self._var_adder.unregister_updaters()
-        self._table.unregister_updaters()
+        self._vars.unregister_updaters()
 
 
-class EnvModel(QAbstractTableModel):
+class VariableListContainer(QWidget):
 
     def __init__(self):
-        QAbstractTableModel.__init__(self)
-        self._ui_model = None
-        self._updater = None
-
-        self._entries = None
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        module = self._ui_model.get_module()
-
-        self._make_table(module)
-
-    def _make_table(self, module):
-        env = module.get_environment()
-        names = env.get_var_names()
-
-        entries = []
-        for name in names:
-            var_type = env.get_var_type(name)
-            init_value = env.get_var_init_value(name)
-            entry = (name, var_type, init_value)
-            entries.append(entry)
-
-        self._entries = entries
-
-    # Qt interface
-
-    def columnCount(self, parent):
-        if parent.isValid():
-            return 0
-        return 4
-
-    def rowCount(self, parent):
-        if parent.isValid():
-            return 0
-        return len(self._entries)
-
-    def data(self, index, role):
-        if role == Qt.DisplayRole:
-            row = index.row()
-            col = index.column()
-            if (0 <= row < len(self._entries)) and (0 <= col < 3):
-                if col == 0:
-                    return QVariant(self._entries[row][col])
-
-        return QVariant()
-
-    def headerData(self, section, orientation, role):
-        if (orientation == Qt.Horizontal) and (role == Qt.DisplayRole):
-            headers = ['Name', 'Type', 'Initial value']
-            if 0 <= section < len(headers):
-                return QVariant(headers[section])
-
-        return QVariant()
-
-    def setData(self, index, value, role):
-        if not index.isValid():
-            return False
-
-        module = self._ui_model.get_module()
-        env = module.get_environment()
-
-        if role == Qt.EditRole:
-            row = index.row()
-            col = index.column()
-            if 0 <= row < len(self._entries):
-                orig_entry = self._entries[row]
-                if col == 0:
-                    orig_name = orig_entry[0]
-                    new_name = unicode(value.toString())
-                    env.change_var_name(orig_name, new_name)
-                    self._updater.signal_update(set(['signal_environment']))
-                    return True
-
-        return False
-
-    def flags(self, index):
-        default_flags = QAbstractItemModel.flags(self, index)
-        if not index.isValid():
-            return default_flags
-        if 0 <= index.column() < 3:
-            return Qt.ItemIsEditable | default_flags
-        return default_flags
+        QWidget.__init__(self)
+        v = QVBoxLayout()
+        v.setMargin(0)
+        v.setSpacing(0)
+        v.setSizeConstraint(QLayout.SetMinimumSize)
+        self.setLayout(v)
 
 
-class EnvEditorTable(QTableView):
+class VariableListArea(QScrollArea):
+
+    def __init__(self):
+        QScrollArea.__init__(self)
+
+    def do_width_hack(self):
+        widget = self.widget()
+        if widget:
+            widget.setFixedWidth(self.width() - self.verticalScrollBar().width() - 5)
+
+    def resizeEvent(self, event):
+        self.do_width_hack()
+
+
+class VariableList(QWidget):
 
     def __init__(self):
         QTableView.__init__(self)
         self._ui_model = None
         self._updater = None
-        self._env_model = None
+        self._icon_bank = None
 
-        horiz_header = self.horizontalHeader()
-        horiz_header.setVisible(True)
-        horiz_header.setStretchLastSection(True)
+        self._area = VariableListArea()
 
-        self.verticalHeader().setVisible(False)
+        self._area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self._area.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+
+        v = QVBoxLayout()
+        v.setMargin(0)
+        v.setSpacing(0)
+        v.addWidget(self._area)
+        self.setLayout(v)
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._icon_bank = ui_model.get_icon_bank()
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+
+        self._update_all()
+
+    def unregister_updaters(self):
+        self._disconnect_editors()
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _init_container(self):
+        self._area.setWidget(VariableListContainer())
+        adder = VariableAdder()
+        adder.set_ui_model(self._ui_model)
+        self._area.widget().layout().addWidget(adder)
+
+    def _disconnect_editors(self):
+        layout = self._area.widget().layout()
+        for i in xrange(layout.count()):
+            widget = layout.itemAt(i).widget()
+            widget.unregister_updaters()
+
+    def _perform_updates(self, signals):
+        if 'signal_environment' in signals:
+            self._update_all()
+
+    def _update_all(self):
+        module = self._ui_model.get_module()
+        env = module.get_environment()
+
+        var_names = env.get_var_names()
+        var_count = len(var_names)
+
+        if not self._area.widget():
+            self._init_container()
+
+        layout = self._area.widget().layout()
+
+        if var_count < layout.count() - 1:
+            self._disconnect_editors()
+            self._init_container()
+            layout = self._area.widget().layout()
+
+        # Create new variable editors
+        for i in xrange(layout.count() - 1, var_count):
+            editor = VariableEditor(self._icon_bank)
+            editor.set_ui_model(self._ui_model)
+            layout.insertWidget(i, editor)
+
+        # Update editor contents
+        for i, name in enumerate(var_names):
+            editor = layout.itemAt(i).widget()
+            editor.set_var_name(name)
+
+        self._area.do_width_hack()
+
+
+class VariableEditor(QWidget):
+
+    def __init__(self, icon_bank):
+        QWidget.__init__(self)
+        self._ui_model = None
+        self._updater = None
+        self._var_name = None
+
+        self._name_editor = VarNameEditor()
+        self._remove_button = VarRemoveButton(icon_bank.get_icon_path('delete_small'))
+
+        h = QHBoxLayout()
+        h.setMargin(0)
+        h.setSpacing(4)
+        h.addWidget(self._name_editor)
+        h.addWidget(self._remove_button)
+        self.setLayout(h)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+        self._name_editor.set_ui_model(ui_model)
 
-        self._update_model()
+        QObject.connect(self._remove_button, SIGNAL('clicked()'), self._remove)
 
     def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
+        self._name_editor.unregister_updaters()
 
-    def _perform_updates(self, signals):
-        if 'signal_environment' in signals:
-            self._update_model()
+    def set_var_name(self, name):
+        self._var_name = name
 
-    def _update_model(self):
-        self._env_model = EnvModel()
-        self._env_model.set_ui_model(self._ui_model)
-        self.setModel(self._env_model)
+        module = self._ui_model.get_module()
+        env = module.get_environment()
+
+        old_block = self._name_editor.blockSignals(True)
+        self._name_editor.setText(name)
+        self._name_editor.blockSignals(old_block)
+
+    def _remove(self):
+        module = self._ui_model.get_module()
+        env = module.get_environment()
+        env.remove_var(self._var_name)
+        self._updater.signal_update(set(['signal_environment']))
+
+
+class VarNameEditor(QLineEdit):
+
+    def __init__(self):
+        QWidget.__init__(self)
+        self._ui_model = None
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+
+    def unregister_updaters(self):
+        pass
+
+
+class VarRemoveButton(QPushButton):
+
+    def __init__(self, icon):
+        QPushButton.__init__(self)
+        self.setStyleSheet('padding: 0 -2px;')
+        self.setIcon(QIcon(icon))
 
 
 class VariableAdder(QWidget):
