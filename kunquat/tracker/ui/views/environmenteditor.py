@@ -69,7 +69,6 @@ class VariableList(QWidget):
         QTableView.__init__(self)
         self._ui_model = None
         self._updater = None
-        self._icon_bank = None
 
         self._area = VariableListArea()
 
@@ -84,7 +83,6 @@ class VariableList(QWidget):
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
-        self._icon_bank = ui_model.get_icon_bank()
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
 
@@ -129,7 +127,7 @@ class VariableList(QWidget):
 
         # Create new variable editors
         for i in xrange(layout.count() - 1, var_count):
-            editor = VariableEditor(self._icon_bank)
+            editor = VariableEditor()
             editor.set_ui_model(self._ui_model)
             layout.insertWidget(i, editor)
 
@@ -143,13 +141,13 @@ class VariableList(QWidget):
 
 class VariableEditor(QWidget):
 
-    def __init__(self, icon_bank):
+    def __init__(self):
         QWidget.__init__(self)
         self._ui_model = None
         self._var_name = None
 
         self._name_editor = VarNameEditor()
-        self._remove_button = VarRemoveButton(icon_bank.get_icon_path('delete_small'))
+        self._remove_button = VarRemoveButton()
 
         h = QHBoxLayout()
         h.setMargin(0)
@@ -220,7 +218,7 @@ class VarNameEditor(QLineEdit):
 
 class VarRemoveButton(QPushButton):
 
-    def __init__(self, icon):
+    def __init__(self):
         QPushButton.__init__(self)
         self._ui_model = None
         self._updater = None
@@ -228,11 +226,13 @@ class VarRemoveButton(QPushButton):
         self._var_name = None
 
         self.setStyleSheet('padding: 0 -2px;')
-        self.setIcon(QIcon(icon))
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
+
+        icon_bank = ui_model.get_icon_bank()
+        self.setIcon(QIcon(icon_bank.get_icon_path('delete_small')))
 
         QObject.connect(self, SIGNAL('clicked()'), self._remove)
 
