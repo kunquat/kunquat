@@ -146,7 +146,6 @@ class VariableEditor(QWidget):
     def __init__(self, icon_bank):
         QWidget.__init__(self)
         self._ui_model = None
-        self._updater = None
         self._var_name = None
 
         self._name_editor = VarNameEditor()
@@ -161,7 +160,6 @@ class VariableEditor(QWidget):
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
 
         self._name_editor.set_ui_model(ui_model)
         self._remove_button.set_ui_model(ui_model)
@@ -173,10 +171,7 @@ class VariableEditor(QWidget):
     def set_var_name(self, name):
         self._var_name = name
 
-        old_block = self._name_editor.blockSignals(True)
-        self._name_editor.setText(name)
-        self._name_editor.blockSignals(old_block)
-
+        self._name_editor.set_var_name(name)
         self._remove_button.set_var_name(name)
 
 
@@ -185,12 +180,42 @@ class VarNameEditor(QLineEdit):
     def __init__(self):
         QWidget.__init__(self)
         self._ui_model = None
+        self._updater = None
+
+        self._var_name = None
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+
+        QObject.connect(self, SIGNAL('editingFinished()'), self._change_name)
 
     def unregister_updaters(self):
         pass
+
+    def set_var_name(self, name):
+        self._var_name = name
+
+        old_block = self.blockSignals(True)
+        self.setText(self._var_name)
+        self.blockSignals(old_block)
+
+    def _change_name(self):
+        new_name = unicode(self.text())
+        if new_name == self._var_name:
+            return
+
+        module = self._ui_model.get_module()
+        env = module.get_environment()
+        env.change_var_name(self._var_name, new_name)
+        self._updater.signal_update(set(['signal_environment']))
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Escape:
+            event.accept()
+            self.set_var_name(self._var_name)
+        else:
+            return QLineEdit.keyPressEvent(self, event)
 
 
 class VarRemoveButton(QPushButton):
