@@ -132,9 +132,11 @@ class VariableList(QWidget):
             layout.insertWidget(i, editor)
 
         # Update editor contents
+        var_names_set = set(var_names)
         for i, name in enumerate(var_names):
             editor = layout.itemAt(i).widget()
             editor.set_var_name(name)
+            editor.set_used_names(var_names_set)
 
         self._area.do_width_hack()
 
@@ -172,6 +174,9 @@ class VariableEditor(QWidget):
         self._name_editor.set_var_name(name)
         self._remove_button.set_var_name(name)
 
+    def set_used_names(self, used_names):
+        self._name_editor.set_used_names(used_names)
+
 
 class VarNameEditor(QLineEdit):
 
@@ -179,6 +184,9 @@ class VarNameEditor(QLineEdit):
         QWidget.__init__(self)
         self._ui_model = None
         self._updater = None
+        self._validator = None
+
+        self.set_used_names(set())
 
         self._var_name = None
 
@@ -197,6 +205,10 @@ class VarNameEditor(QLineEdit):
         old_block = self.blockSignals(True)
         self.setText(self._var_name)
         self.blockSignals(old_block)
+
+    def set_used_names(self, used_names):
+        self._validator = VarNameValidator(used_names)
+        self.setValidator(self._validator)
 
     def _change_name(self):
         new_name = unicode(self.text())
