@@ -162,28 +162,22 @@ class VariableEditor(QWidget):
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
-        self._name_editor.set_ui_model(ui_model)
 
-        QObject.connect(self._remove_button, SIGNAL('clicked()'), self._remove)
+        self._name_editor.set_ui_model(ui_model)
+        self._remove_button.set_ui_model(ui_model)
 
     def unregister_updaters(self):
+        self._remove_button.unregister_updaters()
         self._name_editor.unregister_updaters()
 
     def set_var_name(self, name):
         self._var_name = name
 
-        module = self._ui_model.get_module()
-        env = module.get_environment()
-
         old_block = self._name_editor.blockSignals(True)
         self._name_editor.setText(name)
         self._name_editor.blockSignals(old_block)
 
-    def _remove(self):
-        module = self._ui_model.get_module()
-        env = module.get_environment()
-        env.remove_var(self._var_name)
-        self._updater.signal_update(set(['signal_environment']))
+        self._remove_button.set_var_name(name)
 
 
 class VarNameEditor(QLineEdit):
@@ -203,8 +197,31 @@ class VarRemoveButton(QPushButton):
 
     def __init__(self, icon):
         QPushButton.__init__(self)
+        self._ui_model = None
+        self._updater = None
+
+        self._var_name = None
+
         self.setStyleSheet('padding: 0 -2px;')
         self.setIcon(QIcon(icon))
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+
+        QObject.connect(self, SIGNAL('clicked()'), self._remove)
+
+    def unregister_updaters(self):
+        pass
+
+    def set_var_name(self, name):
+        self._var_name = name
+
+    def _remove(self):
+        module = self._ui_model.get_module()
+        env = module.get_environment()
+        env.remove_var(self._var_name)
+        self._updater.signal_update(set(['signal_environment']))
 
 
 class VariableAdder(QWidget):
