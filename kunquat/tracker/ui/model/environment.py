@@ -29,6 +29,9 @@ class Environment():
         var_names = [entry[1] for entry in self._get_env_list()]
         return var_names
 
+    def get_var_types(self):
+        return [bool, int, float, tstamp.Tstamp]
+
     def get_var_type(self, var_name):
         env_dict = self._get_env_dict()
         var_entry = env_dict[var_name]
@@ -68,6 +71,7 @@ class Environment():
         env_list = self._get_env_list()
         index = self._get_entry_index(env_list, var_name)
         env_list[index][0] = new_type_name
+        env_list[index][2] = new_type(0)
 
         self._store[self._get_key()] = env_list
 

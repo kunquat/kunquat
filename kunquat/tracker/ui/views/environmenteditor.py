@@ -17,6 +17,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 from kunquat.kunquat.limits import *
+import kunquat.tracker.ui.model.tstamp as tstamp
 
 
 class EnvironmentEditor(QWidget):
@@ -149,12 +150,14 @@ class VariableEditor(QWidget):
         self._var_name = None
 
         self._name_editor = VarNameEditor()
+        self._type_editor = VarTypeEditor()
         self._remove_button = VarRemoveButton()
 
         h = QHBoxLayout()
         h.setMargin(0)
         h.setSpacing(4)
         h.addWidget(self._name_editor)
+        h.addWidget(self._type_editor)
         h.addWidget(self._remove_button)
         self.setLayout(h)
 
@@ -162,16 +165,19 @@ class VariableEditor(QWidget):
         self._ui_model = ui_model
 
         self._name_editor.set_ui_model(ui_model)
+        self._type_editor.set_ui_model(ui_model)
         self._remove_button.set_ui_model(ui_model)
 
     def unregister_updaters(self):
         self._remove_button.unregister_updaters()
+        self._type_editor.unregister_updaters()
         self._name_editor.unregister_updaters()
 
     def set_var_name(self, name):
         self._var_name = name
 
         self._name_editor.set_var_name(name)
+        self._type_editor.set_var_name(name)
         self._remove_button.set_var_name(name)
 
     def set_used_names(self, used_names):
@@ -226,6 +232,60 @@ class VarNameEditor(QLineEdit):
             self.set_var_name(self._var_name)
         else:
             return QLineEdit.keyPressEvent(self, event)
+
+
+class VarTypeEditor(QComboBox):
+
+    def __init__(self):
+        QComboBox.__init__(self)
+        self._ui_model = None
+        self._updater = None
+
+        self._var_name = None
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+
+        module = self._ui_model.get_module()
+        env = module.get_environment()
+        var_types = env.get_var_types()
+
+        var_type_names = {
+                bool: 'Boolean',
+                int: 'Integer',
+                float: 'Floating point',
+                tstamp.Tstamp: 'Timestamp',
+            }
+
+        for t in var_types:
+            type_name = var_type_names[t]
+            self.addItem(type_name)
+
+        QObject.connect(self, SIGNAL('currentIndexChanged(int)'), self._change_type)
+
+    def unregister_updaters(self):
+        pass
+
+    def set_var_name(self, name):
+        self._var_name = name
+
+        module = self._ui_model.get_module()
+        env = module.get_environment()
+        var_types = env.get_var_types()
+        var_type = env.get_var_type(self._var_name)
+        var_type_index = var_types.index(var_type)
+
+        old_block = self.blockSignals(True)
+        self.setCurrentIndex(var_type_index)
+        self.blockSignals(old_block)
+
+    def _change_type(self, index):
+        module = self._ui_model.get_module()
+        env = module.get_environment()
+        var_types = env.get_var_types()
+        env.change_var_type(self._var_name, var_types[index])
+        self._updater.signal_update(set(['signal_environment']))
 
 
 class VarRemoveButton(QPushButton):
