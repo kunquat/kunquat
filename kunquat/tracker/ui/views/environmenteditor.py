@@ -18,17 +18,20 @@ from PyQt4.QtGui import *
 
 from kunquat.kunquat.limits import *
 import kunquat.tracker.ui.model.tstamp as tstamp
+from headerline import HeaderLine
 
 
 class EnvironmentEditor(QWidget):
 
     def __init__(self):
         QWidget.__init__(self)
+        self._header = HeaderLine('Initial environment state')
         self._vars = VariableList()
 
         v = QVBoxLayout()
         v.setMargin(4)
         v.setSpacing(4)
+        v.addWidget(self._header)
         v.addWidget(self._vars)
         self.setLayout(v)
 
