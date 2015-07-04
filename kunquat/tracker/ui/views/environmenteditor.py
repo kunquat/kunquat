@@ -151,6 +151,7 @@ class VariableEditor(QWidget):
 
         self._name_editor = VarNameEditor()
         self._type_editor = VarTypeEditor()
+        self._value_editor = VarValueEditor()
         self._remove_button = VarRemoveButton()
 
         h = QHBoxLayout()
@@ -158,6 +159,7 @@ class VariableEditor(QWidget):
         h.setSpacing(4)
         h.addWidget(self._name_editor)
         h.addWidget(self._type_editor)
+        h.addWidget(self._value_editor)
         h.addWidget(self._remove_button)
         self.setLayout(h)
 
@@ -166,10 +168,12 @@ class VariableEditor(QWidget):
 
         self._name_editor.set_ui_model(ui_model)
         self._type_editor.set_ui_model(ui_model)
+        self._value_editor.set_ui_model(ui_model)
         self._remove_button.set_ui_model(ui_model)
 
     def unregister_updaters(self):
         self._remove_button.unregister_updaters()
+        self._value_editor.unregister_updaters()
         self._type_editor.unregister_updaters()
         self._name_editor.unregister_updaters()
 
@@ -178,6 +182,7 @@ class VariableEditor(QWidget):
 
         self._name_editor.set_var_name(name)
         self._type_editor.set_var_name(name)
+        self._value_editor.set_var_name(name)
         self._remove_button.set_var_name(name)
 
     def set_used_names(self, used_names):
@@ -286,6 +291,159 @@ class VarTypeEditor(QComboBox):
         var_types = env.get_var_types()
         env.change_var_type(self._var_name, var_types[index])
         self._updater.signal_update(set(['signal_environment']))
+
+
+class IntValidator(QValidator):
+
+    def __init__(self):
+        QValidator.__init__(self)
+
+    def validate(self, contents, pos):
+        in_str = unicode(contents)
+        if not in_str:
+            return (QValidator.Intermediate, pos)
+
+        stripped = in_str.strip()
+        if stripped in ('+', '-'):
+            return (QValidator.Intermediate, pos)
+
+        try:
+            value = int(stripped)
+        except ValueError:
+            return (QValidator.Invalid, pos)
+
+        return (QValidator.Acceptable, pos)
+
+
+class FloatValidator(QValidator):
+
+    def __init__(self):
+        QValidator.__init__(self)
+
+    def validate(self, contents, pos):
+        in_str = unicode(contents)
+        if not in_str:
+            return (QValidator.Intermediate, pos)
+
+        stripped = in_str.strip()
+        if stripped in ('+', '-', '.', '+.', '-.'):
+            return (QValidator.Intermediate, pos)
+
+        try:
+            value = float(in_str)
+        except ValueError:
+            return (QValidator.Invalid, pos)
+
+        return (QValidator.Acceptable, pos)
+
+
+class VarValueEditor(QWidget):
+
+    def __init__(self):
+        QWidget.__init__(self)
+        self._ui_model = None
+        self._updater = None
+
+        self._var_name = None
+        self._var_type = float
+
+        self._editors = {
+            bool:           QCheckBox(),
+            int:            QLineEdit(),
+            float:          QLineEdit(),
+            tstamp.Tstamp:  QLineEdit(),
+        }
+
+        self._editors[bool].setText(' ') # work around broken clickable region
+
+        self._editors[int].setValidator(IntValidator())
+        self._editors[float].setValidator(FloatValidator())
+        self._editors[tstamp.Tstamp].setValidator(FloatValidator())
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+
+        module = self._ui_model.get_module()
+        env = module.get_environment()
+        var_types = env.get_var_types()
+
+        s = QStackedLayout()
+        for t in var_types:
+            s.addWidget(self._editors[t])
+        self.setLayout(s)
+
+        QObject.connect(
+                self._editors[bool],
+                SIGNAL('stateChanged(int)'),
+                self._change_bool_value)
+        QObject.connect(
+                self._editors[int],
+                SIGNAL('editingFinished()'),
+                self._change_int_value)
+        QObject.connect(
+                self._editors[float],
+                SIGNAL('editingFinished()'),
+                self._change_float_value)
+        QObject.connect(
+                self._editors[tstamp.Tstamp],
+                SIGNAL('editingFinished()'),
+                self._change_tstamp_value)
+
+    def unregister_updaters(self):
+        pass
+
+    def set_var_name(self, name):
+        self._var_name = name
+
+        module = self._ui_model.get_module()
+        env = module.get_environment()
+
+        var_types = env.get_var_types()
+        var_type = env.get_var_type(self._var_name)
+        var_type_index = var_types.index(var_type)
+        self.layout().setCurrentIndex(var_type_index)
+
+        var_value = env.get_var_init_value(self._var_name)
+
+        editor = self._editors[var_type]
+        old_block = editor.blockSignals(True)
+        if var_type == bool:
+            editor.setCheckState(Qt.Checked if var_value else Qt.Unchecked)
+        elif var_type == int:
+            editor.setText(unicode(var_value))
+        elif var_type == float:
+            editor.setText(unicode(var_value))
+        elif var_type == tstamp.Tstamp:
+            editor.setText(unicode(float(var_value)))
+        else:
+            assert False
+        editor.blockSignals(old_block)
+
+    def _change_value(self, new_value):
+        module = self._ui_model.get_module()
+        env = module.get_environment()
+        env.change_var_init_value(self._var_name, new_value)
+        self._updater.signal_update(set(['signal_environment']))
+
+    def _change_bool_value(self, new_state):
+        new_value = (new_state == Qt.Checked)
+        self._change_value(new_value)
+
+    def _change_int_value(self):
+        new_qstring = self._editors[int].text()
+        new_value = int(unicode(new_qstring))
+        self._change_value(new_value)
+
+    def _change_float_value(self):
+        new_qstring = self._editors[float].text()
+        new_value = float(unicode(new_qstring))
+        self._change_value(new_value)
+
+    def _change_tstamp_value(self):
+        new_qstring = self._editors[tstamp.Tstamp].text()
+        new_value = tstamp.Tstamp(float(unicode(new_qstring)))
+        self._change_value(new_value)
 
 
 class VarRemoveButton(QPushButton):
