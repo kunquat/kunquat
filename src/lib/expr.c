@@ -641,7 +641,8 @@ static bool Value_from_token(
 
         assert(Env_var_get_type(ev) == VALUE_TYPE_BOOL ||
                 Env_var_get_type(ev) == VALUE_TYPE_INT ||
-                Env_var_get_type(ev) == VALUE_TYPE_FLOAT);
+                Env_var_get_type(ev) == VALUE_TYPE_FLOAT ||
+                Env_var_get_type(ev) == VALUE_TYPE_TSTAMP);
 
         Value_copy(val, Env_var_get_value(ev));
 
