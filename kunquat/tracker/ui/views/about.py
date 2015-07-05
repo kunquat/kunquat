@@ -34,7 +34,7 @@ class AboutMessage(QWidget):
 
         tracker_version_str = 'Unreleased tracker version'
         if KUNQUAT_VERSION:
-            tracker_version_str = 'Tracker version {}'.format(KUNQUAT_VERSION)
+            tracker_version_str = 'Tracker version: {}'.format(KUNQUAT_VERSION)
         tracker_version = QLabel(tracker_version_str)
         tracker_version.setFont(QFont(default_family, default_size + 1, QFont.DemiBold))
 

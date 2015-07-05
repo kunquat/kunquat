@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -59,7 +59,9 @@ bool Env_state_refresh_space(Env_state* estate)
     const char* name = Environment_iter_get_next_name(iter);
     while (name != NULL)
     {
-        Env_var* var = new_Env_var(name);
+        const Env_var* init_var = Environment_get(estate->env, name);
+
+        Env_var* var = new_Env_var(Env_var_get_type(init_var), name);
         if (var == NULL || !AAtree_ins(vars, var))
         {
             del_Env_var(var);

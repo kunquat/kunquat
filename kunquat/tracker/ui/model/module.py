@@ -21,6 +21,7 @@ from channeldefaults import ChannelDefaults
 from connections import Connections
 from control import Control
 from album import Album
+from environment import Environment
 
 
 class Module():
@@ -165,6 +166,11 @@ class Module():
         ch_defs.set_controller(self._controller)
         ch_defs.set_ui_model(self._ui_model)
         return ch_defs
+
+    def get_environment(self):
+        env = Environment()
+        env.set_controller(self._controller)
+        return env
 
     def remove_controls_to_audio_unit(self, au_id):
         transaction = {}

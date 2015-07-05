@@ -23,6 +23,7 @@ from eventlist import EventList
 from connectionswindow import ConnectionsWindow
 from orderlistwindow import OrderlistWindow
 from chdefaultswindow import ChDefaultsWindow
+from environmentwindow import EnvironmentWindow
 from auwindow import AuWindow
 from procwindow import ProcWindow
 from renderstatswindow import RenderStatsWindow
@@ -41,6 +42,7 @@ class RootView():
         self._connections = None
         self._orderlist = None
         self._ch_defaults = None
+        self._environment = None
         self._au_windows = {}
         self._proc_windows = {}
         self._render_stats = None
@@ -108,6 +110,11 @@ class RootView():
                 self._ch_defaults.set_ui_model(self._ui_model)
                 if is_show_allowed:
                     self._ch_defaults.show()
+            elif ui == UI_ENVIRONMENT:
+                self._environment = EnvironmentWindow()
+                self._environment.set_ui_model(self._ui_model)
+                if is_show_allowed:
+                    self._environment.show()
             elif type(ui) == tuple and ui[0] == UI_AUDIO_UNIT:
                 au_id = ui[1]
                 au_window = AuWindow()
@@ -159,6 +166,10 @@ class RootView():
                 self._ch_defaults.unregister_updaters()
                 self._ch_defaults.deleteLater()
                 self._ch_defaults = None
+            elif ui == UI_ENVIRONMENT:
+                self._environment.unregister_updaters()
+                self._environment.deleteLater()
+                self._environment = None
             elif type(ui) == tuple and ui[0] == UI_AUDIO_UNIT:
                 au_id = ui[1]
                 au_window = self._au_windows.pop(au_id)
