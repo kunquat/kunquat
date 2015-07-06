@@ -18,6 +18,7 @@ from PyQt4.QtGui import *
 
 from kunquat.kunquat.limits import *
 import kunquat.tracker.ui.model.tstamp as tstamp
+from editorlist import EditorList
 from headerline import HeaderLine
 
 
@@ -25,13 +26,12 @@ class EnvironmentEditor(QWidget):
 
     def __init__(self):
         QWidget.__init__(self)
-        self._header = HeaderLine('Initial environment state')
         self._vars = VariableList()
 
         v = QVBoxLayout()
         v.setMargin(4)
         v.setSpacing(4)
-        v.addWidget(self._header)
+        v.addWidget(HeaderLine('Initial environment state'))
         v.addWidget(self._vars)
         self.setLayout(v)
 
@@ -42,107 +42,61 @@ class EnvironmentEditor(QWidget):
         self._vars.unregister_updaters()
 
 
-class VariableListContainer(QWidget):
+class VariableList(EditorList):
 
     def __init__(self):
-        QWidget.__init__(self)
-        v = QVBoxLayout()
-        v.setMargin(0)
-        v.setSpacing(0)
-        v.setSizeConstraint(QLayout.SetMinimumSize)
-        self.setLayout(v)
-
-
-class VariableListArea(QScrollArea):
-
-    def __init__(self):
-        QScrollArea.__init__(self)
-
-    def do_width_hack(self):
-        widget = self.widget()
-        if widget:
-            widget.setFixedWidth(self.width() - self.verticalScrollBar().width() - 5)
-
-    def resizeEvent(self, event):
-        self.do_width_hack()
-
-
-class VariableList(QWidget):
-
-    def __init__(self):
-        QTableView.__init__(self)
+        EditorList.__init__(self)
         self._ui_model = None
         self._updater = None
 
-        self._area = VariableListArea()
-
-        self._area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self._area.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
-
-        v = QVBoxLayout()
-        v.setMargin(0)
-        v.setSpacing(0)
-        v.addWidget(self._area)
-        self.setLayout(v)
+        self._var_names = None
+        self._var_names_set = None
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
 
-        self._update_all()
+        self._update_var_names()
 
     def unregister_updaters(self):
-        self._disconnect_editors()
+        self.disconnect_widgets()
         self._updater.unregister_updater(self._perform_updates)
 
-    def _init_container(self):
-        self._area.setWidget(VariableListContainer())
-        adder = VariableAdder()
-        adder.set_ui_model(self._ui_model)
-        self._area.widget().layout().addWidget(adder)
+    def _update_var_names(self):
+        module = self._ui_model.get_module()
+        env = module.get_environment()
+        self._var_names = env.get_var_names()
+        self._var_names_set = set(self._var_names)
 
-    def _disconnect_editors(self):
-        layout = self._area.widget().layout()
-        for i in xrange(layout.count()):
-            widget = layout.itemAt(i).widget()
-            widget.unregister_updaters()
+        self.update_list()
 
     def _perform_updates(self, signals):
         if 'signal_environment' in signals:
-            self._update_all()
+            self._update_var_names()
 
-    def _update_all(self):
-        module = self._ui_model.get_module()
-        env = module.get_environment()
+    def _make_adder_widget(self):
+        adder = VariableAdder()
+        adder.set_ui_model(self._ui_model)
+        return adder
 
-        var_names = env.get_var_names()
-        var_count = len(var_names)
+    def _get_updated_editor_count(self):
+        var_count = len(self._var_names)
+        return var_count
 
-        if not self._area.widget():
-            self._init_container()
+    def _make_editor_widget(self, index):
+        editor = VariableEditor()
+        editor.set_ui_model(self._ui_model)
+        return editor
 
-        layout = self._area.widget().layout()
+    def _update_editor(self, index, editor):
+        var_name = self._var_names[index]
 
-        if var_count < layout.count() - 1:
-            self._disconnect_editors()
-            self._init_container()
-            layout = self._area.widget().layout()
+        editor.set_var_name(var_name)
+        editor.set_used_names(self._var_names_set)
 
-        # Create new variable editors
-        for i in xrange(layout.count() - 1, var_count):
-            editor = VariableEditor()
-            editor.set_ui_model(self._ui_model)
-            layout.insertWidget(i, editor)
-
-        # Update editor contents
-        var_names_set = set(var_names)
-        for i, name in enumerate(var_names):
-            editor = layout.itemAt(i).widget()
-            editor.set_var_name(name)
-            editor.set_used_names(var_names_set)
-
-        self._area.do_width_hack()
+    def _disconnect_widget(self, widget):
+        widget.unregister_updaters()
 
 
 class VariableEditor(QWidget):
