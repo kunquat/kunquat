@@ -15,6 +15,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 from kunquat.kunquat.limits import *
+from editorlist import EditorList
 
 
 class ChDefaultsEditor(QWidget):
@@ -37,48 +38,32 @@ class ChDefaultsEditor(QWidget):
         self._ch_defaults_list.unregister_updaters()
 
 
-class ChDefaultsListContainer(QWidget):
+class ChDefaultsList(EditorList):
 
     def __init__(self):
-        QWidget.__init__(self)
-        v = QVBoxLayout()
-        v.setMargin(0)
-        v.setSpacing(3)
-        v.setSizeConstraint(QLayout.SetMinimumSize)
-        self.setLayout(v)
-
-
-class ChDefaultsList(QScrollArea):
-
-    def __init__(self):
-        QScrollArea.__init__(self)
-
-        self.setWidget(ChDefaultsListContainer())
-
-        for i in xrange(CHANNELS_MAX):
-            chd = ChDefaults(i)
-            self.widget().layout().addWidget(chd)
-
-        self._do_width_hack()
+        EditorList.__init__(self)
+        self._ui_model = None
 
     def set_ui_model(self, ui_model):
-        layout = self.widget().layout()
-        for i in xrange(layout.count()):
-            chd = layout.itemAt(i).widget()
-            chd.set_ui_model(ui_model)
+        self._ui_model = ui_model
+        self.update_list()
 
     def unregister_updaters(self):
-        layout = self.widget().layout()
-        for i in xrange(layout.count()):
-            chd = layout.itemAt(i).widget()
-            chd.unregister_updaters()
+        self.disconnect_widgets()
 
-    def _do_width_hack(self):
-        self.widget().setFixedWidth(
-                self.width() - self.verticalScrollBar().width() - 5)
+    def _get_updated_editor_count(self):
+        return CHANNELS_MAX
 
-    def resizeEvent(self, event):
-        self._do_width_hack()
+    def _make_editor_widget(self, index):
+        chd = ChDefaults(index)
+        chd.set_ui_model(self._ui_model)
+        return chd
+
+    def _update_editor(self, index, editor):
+        pass
+
+    def _disconnect_widget(self, widget):
+        widget.unregister_updaters()
 
 
 class ChDefaults(QWidget):
