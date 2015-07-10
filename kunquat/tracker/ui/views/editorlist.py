@@ -80,6 +80,9 @@ class EditorList(QWidget):
             self._has_adder = True
             self._area.widget().layout().addWidget(adder)
 
+    def resizeEvent(self, event):
+        self._area.do_width_hack()
+
     # Callbacks
 
     def _make_adder_widget(self):
