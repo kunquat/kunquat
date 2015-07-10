@@ -15,6 +15,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 from procnumslider import ProcNumSlider
+from kunquat.tracker.ui.views.editorlist import EditorList
 from kunquat.tracker.ui.views.headerline import HeaderLine
 
 
@@ -57,53 +58,17 @@ class ChorusProc(QWidget):
         self._voice_list.unregister_updaters()
 
 
-class VoiceListContainer(QWidget):
+class VoiceList(EditorList):
 
     def __init__(self):
-        QWidget.__init__(self)
-        v = QVBoxLayout()
-        v.setMargin(0)
-        v.setSpacing(0)
-        v.setSizeConstraint(QLayout.SetMinimumSize)
-        self.setLayout(v)
-
-
-class VoiceListArea(QScrollArea):
-
-    def __init__(self):
-        QScrollArea.__init__(self)
-
-    def do_width_hack(self):
-        self.widget().setFixedWidth(
-                self.width() - self.verticalScrollBar().width() - 5)
-
-    def resizeEvent(self, event):
-        self.do_width_hack()
-
-
-class VoiceList(QWidget):
-
-    def __init__(self):
-        QWidget.__init__(self)
+        EditorList.__init__(self)
         self._au_id = None
         self._proc_id = None
         self._ui_model = None
         self._updater = None
         self._icon_bank = None
 
-        self._area = VoiceListArea()
-
-        self._init_container()
-
-        self._area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self._area.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
-
-        v = QVBoxLayout()
-        v.setMargin(0)
-        v.setSpacing(2)
-        v.addWidget(HeaderLine('Chorus voices'))
-        v.addWidget(self._area)
-        self.setLayout(v)
+        self._adder = None
 
     def set_au_id(self, au_id):
         self._au_id = au_id
@@ -120,20 +85,33 @@ class VoiceList(QWidget):
         self._update_all()
 
     def unregister_updaters(self):
-        self._disconnect_editors()
+        self.disconnect_widgets()
         self._updater.unregister_updater(self._perform_updates)
 
-    def _init_container(self):
-        self._area.setWidget(VoiceListContainer())
-        add_button = QPushButton('Add voice')
-        QObject.connect(add_button, SIGNAL('clicked()'), self._add_voice)
-        self._area.widget().layout().addWidget(add_button)
+    def _make_adder_widget(self):
+        self._adder = VoiceAdder()
+        self._adder.set_au_id(self._au_id)
+        self._adder.set_proc_id(self._proc_id)
+        self._adder.set_ui_model(self._ui_model)
+        return self._adder
 
-    def _disconnect_editors(self):
-        layout = self._area.widget().layout()
-        for i in xrange(layout.count() - 1):
-            editor = layout.itemAt(i).widget()
-            editor.unregister_updaters()
+    def _get_updated_editor_count(self):
+        chorus_params = get_chorus_params(self)
+        voice_count = chorus_params.get_voice_count()
+        return voice_count
+
+    def _make_editor_widget(self, index):
+        editor = VoiceEditor(index, self._icon_bank)
+        editor.set_au_id(self._au_id)
+        editor.set_proc_id(self._proc_id)
+        editor.set_ui_model(self._ui_model)
+        return editor
+
+    def _update_editor(self, index, editor):
+        pass
+
+    def _disconnect_widget(self, widget):
+        widget.unregister_updaters()
 
     def _get_update_signal_type(self):
         return '_'.join(('signal_proc_chorus_voice', self._proc_id))
@@ -143,38 +121,47 @@ class VoiceList(QWidget):
             self._update_all()
 
     def _update_all(self):
+        self.update_list()
+
         chorus_params = get_chorus_params(self)
-
         voice_count = chorus_params.get_voice_count()
-
-        layout = self._area.widget().layout()
-
-        # Set voice count
-        if voice_count < layout.count() - 1:
-            self._disconnect_editors()
-            self._init_container()
-            layout = self._area.widget().layout()
-
-        # Create new voice editors
-        for i in xrange(layout.count() - 1, voice_count):
-            editor = VoiceEditor(i, self._icon_bank)
-            editor.set_au_id(self._au_id)
-            editor.set_proc_id(self._proc_id)
-            editor.set_ui_model(self._ui_model)
-            layout.insertWidget(i, editor)
-
         max_count_reached = (voice_count >= chorus_params.get_max_voice_count())
-        layout.itemAt(layout.count() - 1).widget().setVisible(not max_count_reached)
+        self._adder.setVisible(not max_count_reached)
 
-        self._area.do_width_hack()
+
+class VoiceAdder(QPushButton):
+
+    def __init__(self):
+        QPushButton.__init__(self)
+        self._au_id = None
+        self._proc_id = None
+        self._ui_model = None
+        self._updater = None
+
+        self.setText('Add voice')
+
+    def set_au_id(self, au_id):
+        self._au_id = au_id
+
+    def set_proc_id(self, proc_id):
+        self._proc_id = proc_id
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+
+        QObject.connect(self, SIGNAL('clicked()'), self._add_voice)
+
+    def unregister_updaters(self):
+        pass
+
+    def _get_update_signal_type(self):
+        return '_'.join(('signal_proc_chorus_voice', self._proc_id))
 
     def _add_voice(self):
         chorus_params = get_chorus_params(self)
         chorus_params.add_voice()
         self._updater.signal_update(set([self._get_update_signal_type()]))
-
-    def resizeEvent(self, event):
-        self._area.do_width_hack()
 
 
 class RemoveButton(QPushButton):
