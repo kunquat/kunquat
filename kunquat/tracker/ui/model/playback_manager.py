@@ -28,6 +28,12 @@ class PlaybackManager():
             self._channels[channel_number] = Channel()
         return self._channels[channel_number]
 
+    def set_infinite_mode(self, enabled):
+        self._controller.set_infinite_mode(enabled)
+
+    def get_infinite_mode(self):
+        return self._controller.get_infinite_mode()
+
     def start_recording(self):
         self._session.set_record_mode(True)
         self._updater.signal_update(set(['signal_record_mode']))

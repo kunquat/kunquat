@@ -27,6 +27,7 @@ class Session():
         self._progress_steps = 1
         self._audio_levels = (0, 0)
         self._max_audio_levels = [0, 0]
+        self._infinite_mode = False
         self._selected_control_id = 0
         self._selected_keymap_id = None
         self._selected_notation_id = None
@@ -113,6 +114,12 @@ class Session():
 
     def reset_max_audio_levels(self):
         self._max_audio_levels = [0, 0]
+
+    def set_infinite_mode(self, enabled):
+        self._infinite_mode = enabled
+
+    def get_infinite_mode(self):
+        return self._infinite_mode
 
     def get_selected_control_id(self):
         return self._selected_control_id
