@@ -31,6 +31,7 @@ class TopControls(QToolBar):
         self._play_from_cursor_button = PlayFromCursorButton()
         self._record_button = RecordButton()
         self._silence_button = SilenceButton()
+        self._interactivity_button = InteractivityButton()
         self._notation_select = NotationSelect()
 
         self.addWidget(self._play_button)
@@ -40,6 +41,8 @@ class TopControls(QToolBar):
             self.addWidget(self._record_button)
         self.addWidget(self._silence_button)
         self.addSeparator()
+        self.addWidget(self._interactivity_button)
+        self.addSeparator()
         self.addWidget(self._notation_select)
 
     def set_ui_model(self, ui_model):
@@ -48,10 +51,12 @@ class TopControls(QToolBar):
         self._play_from_cursor_button.set_ui_model(ui_model)
         self._record_button.set_ui_model(ui_model)
         self._silence_button.set_ui_model(ui_model)
+        self._interactivity_button.set_ui_model(ui_model)
         self._notation_select.set_ui_model(ui_model)
 
     def unregister_updaters(self):
         self._notation_select.unregister_updaters()
+        self._interactivity_button.unregister_updaters()
         self._silence_button.unregister_updaters()
         self._record_button.unregister_updaters()
         self._play_from_cursor_button.unregister_updaters()
@@ -79,5 +84,26 @@ class PlayFromCursorButton(QToolButton):
 
     def unregister_updaters(self):
         pass
+
+
+class InteractivityButton(QToolButton):
+
+    def __init__(self):
+        QToolButton.__init__(self)
+        self._ui_model = None
+
+        self.setText('Interactivity')
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+
+        QObject.connect(self, SIGNAL('clicked()'), self._show_ia_window)
+
+    def unregister_updaters(self):
+        pass
+
+    def _show_ia_window(self):
+        visibility_manager = self._ui_model.get_visibility_manager()
+        visibility_manager.show_interactivity_controls()
 
 

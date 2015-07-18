@@ -130,6 +130,14 @@ class VisibilityManager():
         self._session.hide_ui(UI_RENDER_STATS)
         self._updater.signal_update()
 
+    def show_interactivity_controls(self):
+        self._session.show_ui(UI_IA_CONTROLS)
+        self._updater.signal_update()
+
+    def hide_interactivity_controls(self):
+        self._session.hide_ui(UI_IA_CONTROLS)
+        self._updater.signal_update()
+
     def get_visible(self):
         return self._session.get_visible()
 
