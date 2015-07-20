@@ -45,6 +45,6 @@ class IAWindow(QWidget):
         visibility_manager.hide_interactivity_controls()
 
     def sizeHint(self):
-        return QSize(640, 768)
+        return QSize(640, 360)
 
 
