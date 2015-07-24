@@ -302,7 +302,6 @@ class VarValueEditor(QWidget):
         self._updater = None
 
         self._var_name = None
-        self._var_type = float
 
         self._editors = {
             bool:           QCheckBox(),
