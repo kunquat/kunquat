@@ -192,9 +192,14 @@ class Controller():
         self._store.put(transaction)
         self._updater.signal_update(set(['signal_controls', 'signal_module']))
 
+    def _reset_runtime_env(self):
+        self._session.reset_runtime_env()
+        self._updater.signal_update(set(['signal_runtime_env']))
+
     def play(self):
         self._audio_engine.reset_and_pause()
         self._session.reset_max_audio_levels()
+        self._reset_runtime_env()
 
         if self._session.get_infinite_mode():
             self._audio_engine.tfire_event(0, ('cinfinite+', None))
@@ -203,6 +208,7 @@ class Controller():
 
     def play_pattern(self, pattern_instance):
         self._audio_engine.reset_and_pause()
+        self._reset_runtime_env()
 
         if self._session.get_infinite_mode():
             self._audio_engine.tfire_event(0, ('cinfinite+', None))
@@ -215,6 +221,7 @@ class Controller():
 
     def play_from_cursor(self, pattern_instance, row_ts):
         self._audio_engine.reset_and_pause()
+        self._reset_runtime_env()
 
         if self._session.get_infinite_mode():
             self._audio_engine.tfire_event(0, ('cinfinite+', None))
@@ -230,6 +237,7 @@ class Controller():
 
     def silence(self):
         self._audio_engine.reset_and_pause()
+        self._reset_runtime_env()
 
         # Note: easy way out for syncing note kills, but causes event noise
         # TODO: figure out a better solution, this may mess things up with bind
@@ -296,6 +304,13 @@ class Controller():
     def update_active_note(self, channel, pitch):
         self._session.set_active_note(channel, pitch)
         self._updater.signal_update()
+
+    def update_active_var_name(self, var_type, var_name):
+        self._session.set_active_var_name(var_type, var_name)
+
+    def update_active_var_value(self, var_type, var_value):
+        self._session.set_active_var_value(var_type, var_value)
+        self._updater.signal_update(set(['signal_runtime_env']))
 
     def send_queries(self):
         if self._session.get_record_mode():

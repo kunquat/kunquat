@@ -64,6 +64,8 @@ class Session():
         self._track_selection = 0
         self._module_path = None
         self._is_saving = False
+        self._active_var_names = {}
+        self._runtime_env = {}
 
     def get_output_speed(self):
         return self._output_speed
@@ -353,5 +355,20 @@ class Session():
 
     def is_saving(self):
         return self._is_saving
+
+    def set_active_var_name(self, var_type, var_name):
+        self._active_var_names[var_type] = var_name
+
+    def set_active_var_value(self, var_type, var_value):
+        var_name = self._active_var_names.get(var_type)
+        if var_name:
+            self._runtime_env[var_name] = var_value
+
+    def get_runtime_var_value(self, var_name):
+        return self._runtime_env.get(var_name)
+
+    def reset_runtime_env(self):
+        self._active_var_names = {}
+        self._runtime_env = {}
 
 

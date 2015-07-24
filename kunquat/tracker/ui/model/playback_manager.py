@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Toni Ruottu, Finland 2013-2014
+# Authors: Toni Ruottu, Finland 2013-2014
+#          Tomi Jylhä-Ollila, Finland 2015
 #
 # This file is part of Kunquat.
 #
@@ -44,3 +45,8 @@ class PlaybackManager():
 
     def is_recording(self):
         return self._session.get_record_mode()
+
+    def get_runtime_var_value(self, var_name):
+        return self._session.get_runtime_var_value(var_name)
+
+

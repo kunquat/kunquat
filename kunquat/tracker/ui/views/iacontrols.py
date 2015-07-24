@@ -16,6 +16,7 @@ import string
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
+import kunquat.tracker.ui.model.tstamp as tstamp
 from editorlist import EditorList
 from headerline import HeaderLine
 
@@ -129,7 +130,7 @@ class RuntimeVarList(EditorList):
         widget.unregister_updaters()
 
     def _perform_updates(self, signals):
-        if 'signal_environment' in signals:
+        if 'signal_runtime_env' in signals:
             self.update_list()
 
 
@@ -142,26 +143,125 @@ class RuntimeVarEditor(QWidget):
 
         self._name = None
         self._header = QLabel()
+        self._editor = RuntimeVarValueEditor()
 
         h = QHBoxLayout()
         h.setMargin(0)
         h.setSpacing(4)
-        h.addWidget(self._header)
+        h.addWidget(self._header, 2)
+        h.addWidget(self._editor, 1)
         self.setLayout(h)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
+        self._editor.set_ui_model(self._ui_model)
 
     def unregister_updaters(self):
+        self._editor.unregister_updaters()
         self._updater.unregister_updater(self._perform_updates)
 
     def update_name(self, name):
         self._name = name
         self._header.setText(self._name)
+        self._editor.set_var_name(self._name)
 
     def _perform_updates(self, signals):
+        pass
+
+
+class RuntimeVarValueEditor(QWidget):
+
+    def __init__(self):
+        QWidget.__init__(self)
+        self._ui_model = None
+        self._updater = None
+
+        self._var_name = None
+
+        self._editors = {
+            bool:           QCheckBox(),
+            int:            QLineEdit(),
+            float:          QLineEdit(),
+            tstamp.Tstamp:  QLineEdit(),
+        }
+
+        self._editors[bool].setText(' ') # work around broken clickable region
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+
+        module = self._ui_model.get_module()
+        env = module.get_environment()
+        var_types = env.get_var_types()
+
+        s = QStackedLayout()
+        for t in var_types:
+            s.addWidget(self._editors[t])
+        self.setLayout(s)
+
+        QObject.connect(
+                self._editors[bool],
+                SIGNAL('stateChanged(int)'),
+                self._change_bool_value)
+        QObject.connect(
+                self._editors[int],
+                SIGNAL('editingFinished()'),
+                self._change_int_value)
+        QObject.connect(
+                self._editors[float],
+                SIGNAL('editingFinished()'),
+                self._change_float_value)
+        QObject.connect(
+                self._editors[tstamp.Tstamp],
+                SIGNAL('editingFinished()'),
+                self._change_tstamp_value)
+
+    def unregister_updaters(self):
+        pass
+
+    def set_var_name(self, name):
+        self._var_name = name
+
+        module = self._ui_model.get_module()
+        env = module.get_environment()
+        playback_manager = self._ui_model.get_playback_manager()
+
+        var_types = env.get_var_types()
+        var_type = env.get_var_type(self._var_name)
+        var_type_index = var_types.index(var_type)
+        self.layout().setCurrentIndex(var_type_index)
+
+        runtime_var_value = playback_manager.get_runtime_var_value(self._var_name)
+        if runtime_var_value == None:
+            runtime_var_value = env.get_var_init_value(self._var_name)
+
+        editor = self._editors[var_type]
+        old_block = editor.blockSignals(True)
+        if var_type == bool:
+            editor.setCheckState(Qt.Checked if runtime_var_value else Qt.Unchecked)
+        elif var_type == int:
+            editor.setText(unicode(runtime_var_value))
+        elif var_type == float:
+            editor.setText(unicode(runtime_var_value))
+        elif var_type == tstamp.Tstamp:
+            editor.setText(unicode(float(runtime_var_value)))
+        else:
+            assert False
+        editor.blockSignals(old_block)
+
+    def _change_bool_value(self, new_state):
+        pass
+
+    def _change_int_value(self):
+        pass
+
+    def _change_float_value(self):
+        pass
+
+    def _change_tstamp_value(self):
         pass
 
 
