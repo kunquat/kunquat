@@ -130,7 +130,8 @@ class RuntimeVarList(EditorList):
         widget.unregister_updaters()
 
     def _perform_updates(self, signals):
-        if 'signal_runtime_env' in signals:
+        update_signals = set(['signal_runtime_env', 'signal_environment'])
+        if not signals.isdisjoint(update_signals):
             self.update_list()
 
 
