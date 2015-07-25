@@ -362,10 +362,10 @@ class Session():
     def set_active_var_value(self, var_type, var_value):
         var_name = self._active_var_names.get(var_type)
         if var_name:
-            self._runtime_env[var_name] = var_value
+            self._runtime_env[(var_type, var_name)] = var_value
 
-    def get_runtime_var_value(self, var_name):
-        return self._runtime_env.get(var_name)
+    def get_runtime_var_value(self, var_type, var_name):
+        return self._runtime_env.get((var_type, var_name))
 
     def reset_runtime_env(self):
         self._active_var_names = {}

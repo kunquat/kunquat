@@ -235,7 +235,8 @@ class RuntimeVarValueEditor(QWidget):
         var_type_index = var_types.index(var_type)
         self.layout().setCurrentIndex(var_type_index)
 
-        runtime_var_value = playback_manager.get_runtime_var_value(self._var_name)
+        runtime_var_value = playback_manager.get_runtime_var_value(
+                var_type, self._var_name)
         if runtime_var_value == None:
             runtime_var_value = env.get_var_init_value(self._var_name)
 
