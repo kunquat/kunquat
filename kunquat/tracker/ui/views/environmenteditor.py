@@ -20,6 +20,7 @@ from kunquat.kunquat.limits import *
 import kunquat.tracker.ui.model.tstamp as tstamp
 from editorlist import EditorList
 from headerline import HeaderLine
+from varvalidators import *
 
 
 class EnvironmentEditor(QWidget):
@@ -248,50 +249,6 @@ class VarTypeEditor(QComboBox):
         var_types = env.get_var_types()
         env.change_var_type(self._var_name, var_types[index])
         self._updater.signal_update(set(['signal_environment']))
-
-
-class IntValidator(QValidator):
-
-    def __init__(self):
-        QValidator.__init__(self)
-
-    def validate(self, contents, pos):
-        in_str = unicode(contents)
-        if not in_str:
-            return (QValidator.Intermediate, pos)
-
-        stripped = in_str.strip()
-        if stripped in ('+', '-'):
-            return (QValidator.Intermediate, pos)
-
-        try:
-            value = int(stripped)
-        except ValueError:
-            return (QValidator.Invalid, pos)
-
-        return (QValidator.Acceptable, pos)
-
-
-class FloatValidator(QValidator):
-
-    def __init__(self):
-        QValidator.__init__(self)
-
-    def validate(self, contents, pos):
-        in_str = unicode(contents)
-        if not in_str:
-            return (QValidator.Intermediate, pos)
-
-        stripped = in_str.strip()
-        if stripped in ('+', '-', '.', '+.', '-.'):
-            return (QValidator.Intermediate, pos)
-
-        try:
-            value = float(in_str)
-        except ValueError:
-            return (QValidator.Invalid, pos)
-
-        return (QValidator.Acceptable, pos)
 
 
 class VarValueEditor(QWidget):

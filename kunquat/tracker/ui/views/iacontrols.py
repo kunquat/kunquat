@@ -19,6 +19,7 @@ from PyQt4.QtGui import *
 import kunquat.tracker.ui.model.tstamp as tstamp
 from editorlist import EditorList
 from headerline import HeaderLine
+from varvalidators import *
 
 
 class IAControls(QWidget):
@@ -189,6 +190,10 @@ class RuntimeVarValueEditor(QWidget):
         }
 
         self._editors[bool].setText(' ') # work around broken clickable region
+
+        self._editors[int].setValidator(IntValidator())
+        self._editors[float].setValidator(FloatValidator())
+        self._editors[tstamp.Tstamp].setValidator(FloatValidator())
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
