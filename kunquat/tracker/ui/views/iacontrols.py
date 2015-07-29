@@ -182,6 +182,8 @@ class RuntimeVarValueEditor(QWidget):
 
         self._var_name = None
 
+        self._update_flag = False
+
         self._editors = {
             bool:           QCheckBox(),
             int:            QLineEdit(),
@@ -231,6 +233,13 @@ class RuntimeVarValueEditor(QWidget):
     def set_var_name(self, name):
         self._var_name = name
 
+        editor = self.layout().currentWidget()
+        if (not editor) or editor.hasFocus():
+            self._update_flag = True
+        else:
+            self._set_var_value()
+
+    def _set_var_value(self):
         module = self._ui_model.get_module()
         env = module.get_environment()
         playback_manager = self._ui_model.get_playback_manager()
@@ -270,5 +279,10 @@ class RuntimeVarValueEditor(QWidget):
 
     def _change_tstamp_value(self):
         pass
+
+    def focusOutEvent(self, event):
+        if self._update_flag:
+            self._set_var_value()
+            self._update_flag = False
 
 
