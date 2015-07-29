@@ -234,7 +234,7 @@ class RuntimeVarValueEditor(QWidget):
         self._var_name = name
 
         editor = self.layout().currentWidget()
-        if (not editor) or editor.hasFocus():
+        if ((not editor) or editor.hasFocus()) and (editor != self._editors[bool]):
             self._update_flag = True
         else:
             self._set_var_value()
@@ -269,16 +269,28 @@ class RuntimeVarValueEditor(QWidget):
         editor.blockSignals(old_block)
 
     def _change_bool_value(self, new_state):
-        pass
+        enabled = (new_state == Qt.Checked)
+
+        playback_manager = self._ui_model.get_playback_manager()
+        playback_manager.set_runtime_var_value(bool, self._var_name, enabled)
 
     def _change_int_value(self):
-        pass
+        value = int(self._editors[int].text())
+
+        playback_manager = self._ui_model.get_playback_manager()
+        playback_manager.set_runtime_var_value(int, self._var_name, value)
 
     def _change_float_value(self):
-        pass
+        value = float(self._editors[float].text())
+
+        playback_manager = self._ui_model.get_playback_manager()
+        playback_manager.set_runtime_var_value(float, self._var_name, value)
 
     def _change_tstamp_value(self):
-        pass
+        value = tstamp.Tstamp(float(self._editors[tstamp.Tstamp].text()))
+
+        playback_manager = self._ui_model.get_playback_manager()
+        playback_manager.set_runtime_var_value(tstamp.Tstamp, self._var_name, value)
 
     def focusOutEvent(self, event):
         if self._update_flag:

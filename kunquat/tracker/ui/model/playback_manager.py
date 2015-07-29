@@ -49,4 +49,7 @@ class PlaybackManager():
     def get_runtime_var_value(self, var_type, var_name):
         return self._session.get_runtime_var_value(var_type, var_name)
 
+    def set_runtime_var_value(self, var_type, var_name, var_value):
+        self._controller.set_runtime_var_value(var_type, var_name, var_value)
+
 

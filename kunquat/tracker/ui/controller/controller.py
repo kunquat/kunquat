@@ -312,6 +312,26 @@ class Controller():
         self._session.set_active_var_value(var_type, var_value)
         self._updater.signal_update(set(['signal_runtime_env']))
 
+    def set_runtime_var_value(self, var_type, var_name, var_value):
+        # Get current active variable name info
+        old_name = self._session.get_active_var_name(var_name) or ''
+
+        # Set new value
+        base_event_names = {
+            bool:           'c.B',
+            int:            'c.I',
+            float:          'c.F',
+            tstamp.Tstamp:  'c.T',
+        }
+        name_event = ('{}n'.format(base_event_names[var_type]), var_name)
+        value_event = (base_event_names[var_type], var_value)
+        self._audio_engine.tfire_event(0, name_event)
+        self._audio_engine.tfire_event(0, value_event)
+
+        # Restore old active variable name so that we don't mess up playback
+        old_name_event = ('{}n'.format(base_event_names[var_type]), old_name)
+        self._audio_engine.tfire_event(0, old_name_event)
+
     def send_queries(self):
         if self._session.get_record_mode():
             location_feedback_event = ('qlocation', None)
