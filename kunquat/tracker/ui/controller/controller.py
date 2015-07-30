@@ -305,16 +305,16 @@ class Controller():
         self._session.set_active_note(channel, pitch)
         self._updater.signal_update()
 
-    def update_active_var_name(self, var_type, var_name):
-        self._session.set_active_var_name(var_type, var_name)
+    def update_active_var_name(self, ch, var_type, var_name):
+        self._session.set_active_var_name(ch, var_type, var_name)
 
-    def update_active_var_value(self, var_type, var_value):
-        self._session.set_active_var_value(var_type, var_value)
+    def update_active_var_value(self, ch, var_type, var_value):
+        self._session.set_active_var_value(ch, var_type, var_value)
         self._updater.signal_update(set(['signal_runtime_env']))
 
     def set_runtime_var_value(self, var_type, var_name, var_value):
-        # Get current active variable name info
-        old_name = self._session.get_active_var_name(var_name) or ''
+        # Get current active variable name
+        old_name = self._session.get_active_var_name(0, var_type) or ''
 
         # Set new value
         base_event_names = {
