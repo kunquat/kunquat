@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2015
  *
  * This file is part of Kunquat.
  *
@@ -42,6 +42,14 @@ bool Value_convert(Value* dest, const Value* src, Value_type new_type)
     assert(new_type > VALUE_TYPE_NONE);
     assert(new_type < VALUE_TYPE_COUNT);
 
+    if (src->type == new_type)
+    {
+        if (dest != src)
+            Value_copy(dest, src);
+
+        return true;
+    }
+
     switch (new_type)
     {
         case VALUE_TYPE_INT:
@@ -49,9 +57,19 @@ bool Value_convert(Value* dest, const Value* src, Value_type new_type)
             if (src->type == VALUE_TYPE_FLOAT)
             {
                 dest->type = VALUE_TYPE_INT;
-                dest->value.int_type = src->value.float_type;
+
+                const double float_val = src->value.float_type;
+                if ((float_val < INT64_MIN) || (float_val > INT64_MAX))
+                    return false;
+
+                dest->value.int_type = float_val;
             }
-            else if (src->type != VALUE_TYPE_INT)
+            else if (src->type == VALUE_TYPE_TSTAMP)
+            {
+                dest->type = VALUE_TYPE_INT;
+                dest->value.int_type = Tstamp_get_beats(&src->value.Tstamp_type);
+            }
+            else
                 return false;
         }
         break;
@@ -63,7 +81,16 @@ bool Value_convert(Value* dest, const Value* src, Value_type new_type)
                 dest->type = VALUE_TYPE_FLOAT;
                 dest->value.float_type = src->value.int_type;
             }
-            else if (src->type != VALUE_TYPE_FLOAT)
+            else if (src->type == VALUE_TYPE_TSTAMP)
+            {
+                dest->type = VALUE_TYPE_FLOAT;
+
+                const Tstamp* src_tstamp = &src->value.Tstamp_type;
+                dest->value.float_type =
+                    Tstamp_get_beats(src_tstamp) +
+                    ((double)Tstamp_get_rem(src_tstamp) / (double)KQT_TSTAMP_BEAT);
+            }
+            else
                 return false;
         }
         break;
@@ -80,14 +107,18 @@ bool Value_convert(Value* dest, const Value* src, Value_type new_type)
             else if (src->type == VALUE_TYPE_FLOAT)
             {
                 dest->type = VALUE_TYPE_TSTAMP;
-                double beats_f = src->value.float_type;
-                double beats = floor(beats_f);
+                const double beats_f = src->value.float_type;
+                const double beats = floor(beats_f);
+
+                if ((beats < INT64_MIN) || (beats > INT64_MAX))
+                    return false;
+
                 Tstamp_set(
                         &dest->value.Tstamp_type,
                         beats,
                         (beats_f - beats) * KQT_TSTAMP_BEAT);
             }
-            else if (src->type != VALUE_TYPE_TSTAMP)
+            else
                 return false;
         }
         break;
@@ -95,8 +126,7 @@ bool Value_convert(Value* dest, const Value* src, Value_type new_type)
         default:
         {
             // Other types don't support conversions
-            if (src->type != new_type)
-                return false;
+            return false;
         }
         break;
     }
