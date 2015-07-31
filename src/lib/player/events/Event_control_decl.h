@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -24,8 +24,9 @@
 
 // Process function declarations
 
-#define EVENT_CONTROL_DEF(name, type_suffix, arg_type, validator) \
-    bool Event_control_##type_suffix##_process(General_state* gstate, const Value* value);
+#define EVENT_CONTROL_DEF(name, type_suffix, arg_type, validator)               \
+    bool Event_control_##type_suffix##_process(                                 \
+            General_state* global_state, Channel* channel, const Value* value);
 #include <player/events/Event_control_types.h>
 
 

@@ -16,6 +16,7 @@
 #include <stdbool.h>
 
 #include <debug/assert.h>
+#include <player/Channel.h>
 #include <player/Event_type.h>
 #include <player/events/Event_common.h>
 #include <player/events/Event_control_decl.h>
@@ -24,30 +25,28 @@
 #include <Value.h>
 
 
-bool Event_control_infinite_on_process(General_state* gstate, const Value* value)
+bool Event_control_infinite_on_process(
+        General_state* global_state, Channel* channel, const Value* value)
 {
-    assert(gstate != NULL);
+    assert(global_state != NULL);
+    assert(channel != NULL);
     ignore(value);
 
-    if (!gstate->global)
-        return false;
-
-    Master_params* master_params = (Master_params*)gstate;
+    Master_params* master_params = (Master_params*)global_state;
     master_params->is_infinite = true;
 
     return true;
 }
 
 
-bool Event_control_infinite_off_process(General_state* gstate, const Value* value)
+bool Event_control_infinite_off_process(
+        General_state* global_state, Channel* channel, const Value* value)
 {
-    assert(gstate != NULL);
+    assert(global_state != NULL);
+    assert(channel != NULL);
     ignore(value);
 
-    if (!gstate->global)
-        return false;
-
-    Master_params* master_params = (Master_params*)gstate;
+    Master_params* master_params = (Master_params*)global_state;
     master_params->is_infinite = false;
 
     return true;

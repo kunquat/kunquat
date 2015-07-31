@@ -51,7 +51,7 @@ struct Event_handler
     Au_table* au_table;
     Event_names* event_names;
 
-    bool (*control_process[Event_control_STOP])(General_state*, const Value*);
+    bool (*control_process[Event_control_STOP])(General_state*, Channel*, const Value*);
     bool (*general_process[Event_general_STOP])(General_state*, const Value*);
     bool (*ch_process[Event_channel_STOP])(Channel*, Device_states*, const Value*);
     bool (*master_process[Event_master_STOP])(Master_params*, const Value*);
@@ -161,7 +161,7 @@ bool Event_handler_set_general_process(
 bool Event_handler_set_control_process(
         Event_handler* eh,
         Event_type type,
-        bool (*control_process)(General_state*, const Value*))
+        bool (*control_process)(General_state*, Channel*, const Value*))
 {
     assert(eh != NULL);
     assert(Event_is_control(type));
@@ -260,8 +260,7 @@ static bool Event_handler_handle(
     else if (Event_is_control(type))
     {
         return eh->control_process[type](
-                (General_state*)eh->master_params,
-                value);
+                (General_state*)eh->master_params, eh->channels[index], value);
     }
     else if (Event_is_general(type))
     {

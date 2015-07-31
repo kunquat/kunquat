@@ -17,34 +17,33 @@
 #include <stdio.h>
 
 #include <debug/assert.h>
+#include <player/Channel.h>
 #include <player/events/Event_common.h>
 #include <player/events/Event_control_decl.h>
 #include <player/General_state.h>
 #include <Value.h>
 
 
-bool Event_control_pause_process(General_state* gstate, const Value* value)
+bool Event_control_pause_process(
+        General_state* global_state, Channel* channel, const Value* value)
 {
-    assert(gstate != NULL);
+    assert(global_state != NULL);
+    assert(channel != NULL);
     ignore(value);
 
-    if (!gstate->global)
-        return false;
-
-    gstate->pause = true;
+    global_state->pause = true;
     return true;
 }
 
 
-bool Event_control_resume_process(General_state* gstate, const Value* value)
+bool Event_control_resume_process(
+        General_state* global_state, Channel* channel, const Value* value)
 {
-    assert(gstate != NULL);
+    assert(global_state != NULL);
+    assert(channel != NULL);
     ignore(value);
 
-    if (!gstate->global)
-        return false;
-
-    gstate->pause = false;
+    global_state->pause = false;
     return true;
 }
 
