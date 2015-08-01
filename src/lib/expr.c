@@ -128,7 +128,7 @@ static Operator operators[] =
 
 
 typedef bool (*Func)(
-        Value* args,
+        const Value* args,
         Value* res,
         Random* rand,
         Streader* sr);
@@ -148,10 +148,7 @@ typedef struct Func_desc
 
 
 #define FUNC_PROTO(fn) static bool func_##fn( \
-        Value* args,                          \
-        Value* res,                           \
-        Random* rand,                         \
-        Streader* sr)
+        const Value* args, Value* res, Random* rand, Streader* sr)
 
 FUNC_PROTO(ts);
 FUNC_PROTO(rand);
@@ -1560,11 +1557,7 @@ static bool op_pow(const Value* op1, const Value* op2, Value* res, Streader* sr)
 }
 
 
-static bool func_ts(
-        Value* args,
-        Value* res,
-        Random* rand,
-        Streader* sr)
+static bool func_ts(const Value* args, Value* res, Random* rand, Streader* sr)
 {
     assert(args != NULL);
     assert(res != NULL);
@@ -1645,11 +1638,7 @@ static bool func_ts(
 }
 
 
-static bool func_rand(
-        Value* args,
-        Value* res,
-        Random* rand,
-        Streader* sr)
+static bool func_rand(const Value* args, Value* res, Random* rand, Streader* sr)
 {
     assert(args != NULL);
     assert(res != NULL);
@@ -1685,11 +1674,7 @@ static bool func_rand(
 }
 
 
-static bool func_pat(
-        Value* args,
-        Value* res,
-        Random* rand,
-        Streader* sr)
+static bool func_pat(const Value* args, Value* res, Random* rand, Streader* sr)
 {
     assert(args != NULL);
     assert(res != NULL);
