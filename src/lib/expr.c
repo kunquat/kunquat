@@ -30,7 +30,7 @@
 #define STACK_SIZE 32
 
 
-typedef bool (*Op_func)(Value* op1, Value* op2, Value* res, Streader* sr);
+typedef bool (*Op_func)(const Value* op1, const Value* op2, Value* res, Streader* sr);
 
 
 typedef struct Operator
@@ -86,20 +86,24 @@ static bool Operator_from_token(Operator* op, char* token);
 //static void Operator_print(Operator* op);
 
 
-static bool op_neq(Value* op1, Value* op2, Value* res, Streader* sr);
-static bool op_leq(Value* op1, Value* op2, Value* res, Streader* sr);
-static bool op_geq(Value* op1, Value* op2, Value* res, Streader* sr);
-static bool op_or(Value* op1, Value* op2, Value* res, Streader* sr);
-static bool op_and(Value* op1, Value* op2, Value* res, Streader* sr);
-static bool op_eq(Value* op1, Value* op2, Value* res, Streader* sr);
-static bool op_lt(Value* op1, Value* op2, Value* res, Streader* sr);
-static bool op_gt(Value* op1, Value* op2, Value* res, Streader* sr);
-static bool op_add(Value* op1, Value* op2, Value* res, Streader* sr);
-static bool op_sub(Value* op1, Value* op2, Value* res, Streader* sr);
-static bool op_mul(Value* op1, Value* op2, Value* res, Streader* sr);
-static bool op_div(Value* op1, Value* op2, Value* res, Streader* sr);
-static bool op_mod(Value* op1, Value* op2, Value* res, Streader* sr);
-static bool op_pow(Value* op1, Value* op2, Value* res, Streader* sr);
+#define OP_PROTO(name) static bool name(const Value*, const Value*, Value*, Streader* sr)
+
+OP_PROTO(op_neq);
+OP_PROTO(op_leq);
+OP_PROTO(op_geq);
+OP_PROTO(op_or);
+OP_PROTO(op_and);
+OP_PROTO(op_eq);
+OP_PROTO(op_lt);
+OP_PROTO(op_gt);
+OP_PROTO(op_add);
+OP_PROTO(op_sub);
+OP_PROTO(op_mul);
+OP_PROTO(op_div);
+OP_PROTO(op_mod);
+OP_PROTO(op_pow);
+
+#undef OP_PROTO
 
 
 static Operator operators[] =
@@ -932,7 +936,7 @@ static bool promote_arithmetic_types(
 }
 
 
-static bool op_eq(Value* op1, Value* op2, Value* res, Streader* sr)
+static bool op_eq(const Value* op1, const Value* op2, Value* res, Streader* sr)
 {
     assert(op1 != NULL);
     assert(op2 != NULL);
@@ -947,7 +951,7 @@ static bool op_eq(Value* op1, Value* op2, Value* res, Streader* sr)
     // Eliminate testing of symmetric cases
     if (op1->type < op2->type)
     {
-        Value* tmp = op1;
+        const Value* tmp = op1;
         op1 = op2;
         op2 = tmp;
     }
@@ -1015,7 +1019,7 @@ static bool op_eq(Value* op1, Value* op2, Value* res, Streader* sr)
 }
 
 
-static bool op_neq(Value* op1, Value* op2, Value* res, Streader* sr)
+static bool op_neq(const Value* op1, const Value* op2, Value* res, Streader* sr)
 {
     assert(op1 != NULL);
     assert(op2 != NULL);
@@ -1033,7 +1037,7 @@ static bool op_neq(Value* op1, Value* op2, Value* res, Streader* sr)
 }
 
 
-static bool op_leq(Value* op1, Value* op2, Value* res, Streader* sr)
+static bool op_leq(const Value* op1, const Value* op2, Value* res, Streader* sr)
 {
     assert(op1 != NULL);
     assert(op2 != NULL);
@@ -1050,7 +1054,7 @@ static bool op_leq(Value* op1, Value* op2, Value* res, Streader* sr)
 }
 
 
-static bool op_geq(Value* op1, Value* op2, Value* res, Streader* sr)
+static bool op_geq(const Value* op1, const Value* op2, Value* res, Streader* sr)
 {
     assert(op1 != NULL);
     assert(op2 != NULL);
@@ -1061,7 +1065,7 @@ static bool op_geq(Value* op1, Value* op2, Value* res, Streader* sr)
 }
 
 
-static bool op_or(Value* op1, Value* op2, Value* res, Streader* sr)
+static bool op_or(const Value* op1, const Value* op2, Value* res, Streader* sr)
 {
     assert(op1 != NULL);
     assert(op2 != NULL);
@@ -1084,7 +1088,7 @@ static bool op_or(Value* op1, Value* op2, Value* res, Streader* sr)
 }
 
 
-static bool op_and(Value* op1, Value* op2, Value* res, Streader* sr)
+static bool op_and(const Value* op1, const Value* op2, Value* res, Streader* sr)
 {
     assert(op1 != NULL);
     assert(op2 != NULL);
@@ -1107,7 +1111,7 @@ static bool op_and(Value* op1, Value* op2, Value* res, Streader* sr)
 }
 
 
-static bool op_lt(Value* op1, Value* op2, Value* res, Streader* sr)
+static bool op_lt(const Value* op1, const Value* op2, Value* res, Streader* sr)
 {
     assert(op1 != NULL);
     assert(op2 != NULL);
@@ -1161,7 +1165,7 @@ static bool op_lt(Value* op1, Value* op2, Value* res, Streader* sr)
 }
 
 
-static bool op_gt(Value* op1, Value* op2, Value* res, Streader* sr)
+static bool op_gt(const Value* op1, const Value* op2, Value* res, Streader* sr)
 {
     assert(op1 != NULL);
     assert(op2 != NULL);
@@ -1172,7 +1176,7 @@ static bool op_gt(Value* op1, Value* op2, Value* res, Streader* sr)
 }
 
 
-static bool op_add(Value* op1, Value* op2, Value* res, Streader* sr)
+static bool op_add(const Value* op1, const Value* op2, Value* res, Streader* sr)
 {
     assert(op1 != NULL);
     assert(op2 != NULL);
@@ -1221,7 +1225,7 @@ static bool op_add(Value* op1, Value* op2, Value* res, Streader* sr)
 }
 
 
-static bool op_sub(Value* op1, Value* op2, Value* res, Streader* sr)
+static bool op_sub(const Value* op1, const Value* op2, Value* res, Streader* sr)
 {
     assert(op1 != NULL);
     assert(op2 != NULL);
@@ -1238,29 +1242,32 @@ static bool op_sub(Value* op1, Value* op2, Value* res, Streader* sr)
         return false;
     }
 
-    if (op2->type == VALUE_TYPE_INT)
+    // Negate the second operand
+    Value* neg_op2 = Value_copy(VALUE_AUTO, op2);
+
+    if (neg_op2->type == VALUE_TYPE_INT)
     {
-        op2->value.int_type = -op2->value.int_type;
+        neg_op2->value.int_type = -neg_op2->value.int_type;
     }
-    else if (op2->type == VALUE_TYPE_FLOAT)
+    else if (neg_op2->type == VALUE_TYPE_FLOAT)
     {
-        op2->value.float_type = -op2->value.float_type;
+        neg_op2->value.float_type = -neg_op2->value.float_type;
     }
-    else if (op2->type == VALUE_TYPE_TSTAMP)
+    else if (neg_op2->type == VALUE_TYPE_TSTAMP)
     {
         const Tstamp* zero_ts = Tstamp_init(TSTAMP_AUTO);
-        Tstamp_sub(&op2->value.Tstamp_type, zero_ts, &op2->value.Tstamp_type);
+        Tstamp_sub(&neg_op2->value.Tstamp_type, zero_ts, &neg_op2->value.Tstamp_type);
     }
     else
     {
         assert(false);
     }
 
-    return op_add(op1, op2, res, sr);
+    return op_add(op1, neg_op2, res, sr);
 }
 
 
-static bool op_mul(Value* op1, Value* op2, Value* res, Streader* sr)
+static bool op_mul(const Value* op1, const Value* op2, Value* res, Streader* sr)
 {
     assert(op1 != NULL);
     assert(op2 != NULL);
@@ -1310,7 +1317,7 @@ static bool op_mul(Value* op1, Value* op2, Value* res, Streader* sr)
 }
 
 
-static bool op_div(Value* op1, Value* op2, Value* res, Streader* sr)
+static bool op_div(const Value* op1, const Value* op2, Value* res, Streader* sr)
 {
     assert(op1 != NULL);
     assert(op2 != NULL);
@@ -1388,7 +1395,7 @@ static bool op_div(Value* op1, Value* op2, Value* res, Streader* sr)
 }
 
 
-static bool op_mod(Value* op1, Value* op2, Value* res, Streader* sr)
+static bool op_mod(const Value* op1, const Value* op2, Value* res, Streader* sr)
 {
     assert(op1 != NULL);
     assert(op2 != NULL);
@@ -1465,7 +1472,7 @@ static bool op_mod(Value* op1, Value* op2, Value* res, Streader* sr)
 }
 
 
-static bool float_pow(Value* pr_op1, Value* pr_op2, Value* res, Streader* sr)
+static bool float_pow(const Value* pr_op1, const Value* pr_op2, Value* res, Streader* sr)
 {
     assert(pr_op1 != NULL);
     assert(pr_op1->type == VALUE_TYPE_FLOAT);
@@ -1488,7 +1495,7 @@ static bool float_pow(Value* pr_op1, Value* pr_op2, Value* res, Streader* sr)
 }
 
 
-static bool op_pow(Value* op1, Value* op2, Value* res, Streader* sr)
+static bool op_pow(const Value* op1, const Value* op2, Value* res, Streader* sr)
 {
     assert(op1 != NULL);
     assert(op2 != NULL);
