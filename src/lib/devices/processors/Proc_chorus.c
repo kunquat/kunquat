@@ -653,6 +653,11 @@ static void Proc_chorus_process(
 
     //check_params(cstate, tempo);
 
+    static const int CHORUS_WORK_BUFFER_TOTAL_OFFSETS = WORK_BUFFER_IMPL_1;
+
+    float* total_offsets = Work_buffers_get_buffer_contents_mut(
+            wbs, CHORUS_WORK_BUFFER_TOTAL_OFFSETS);
+
     int32_t cur_cstate_buf_pos = cstate->buf_pos;
 
     // Mix chorus voices
@@ -669,14 +674,17 @@ static void Proc_chorus_process(
         //int32_t offset_base = voice->buf_pos;
         const double offset_base = -voice->delay * audio_rate;
 
-        for (uint32_t i = buf_start; i < buf_stop; ++i)
+        // Get total offsets
+        for (uint32_t i = buf_start, chunk_offset = 0; i < buf_stop; ++i, ++chunk_offset)
         {
-            // Get total offset
-            //   Device input buffer contents are used for non-negative offsets
-            //   Delay buffer contents are used for negative offsets
-            const int32_t chunk_offset = i - buf_start;
             const double cur_delay_var = LFO_step(&voice->delay_variance) * audio_rate;
             const double total_offset = offset_base + chunk_offset + cur_delay_var;
+            total_offsets[i] = total_offset;
+        }
+
+        for (uint32_t i = buf_start; i < buf_stop; ++i)
+        {
+            const float total_offset = total_offsets[i];
 
             // Get buffer positions
             const int32_t cur_pos = (int32_t)floor(total_offset);
@@ -692,13 +700,15 @@ static void Proc_chorus_process(
             double next_val_r = 0;
             if (next_pos >= 0)
             {
-                next_val_l = in_data[0][buf_start + next_pos];
-                next_val_r = in_data[1][buf_start + next_pos];
+                const int32_t in_next_pos = buf_start + next_pos;
+                next_val_l = in_data[0][in_next_pos];
+                next_val_r = in_data[1][in_next_pos];
 
                 if (cur_pos >= 0)
                 {
-                    cur_val_l = in_data[0][buf_start + cur_pos];
-                    cur_val_r = in_data[1][buf_start + cur_pos];
+                    const int32_t in_cur_pos = buf_start + cur_pos;
+                    cur_val_l = in_data[0][in_cur_pos];
+                    cur_val_r = in_data[1][in_cur_pos];
                 }
                 else
                 {
