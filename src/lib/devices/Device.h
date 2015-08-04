@@ -26,6 +26,7 @@
 #include <frame.h>
 #include <kunquat/limits.h>
 #include <player/Device_states.h>
+#include <player/Work_buffers.h>
 #include <string/Streader.h>
 #include <Tstamp.h>
 
@@ -33,6 +34,7 @@
 typedef void Device_process_signal_func(
         const Device*,
         Device_states*,
+        const Work_buffers*,
         uint32_t buf_start,
         uint32_t buf_stop,
         uint32_t audio_rate,
@@ -354,6 +356,7 @@ bool Device_update_state_key(
  *
  * \param device   The Device -- must not be \c NULL.
  * \param states   The Device states -- must not be \c NULL.
+ * \param wbs      The Work buffers -- must not be \c NULL.
  * \param start    The first frame to be processed -- must be less than the
  *                 buffer size.
  * \param until    The first frame not to be processed -- must be less than or
@@ -365,6 +368,7 @@ bool Device_update_state_key(
 void Device_process(
         const Device* device,
         Device_states* states,
+        const Work_buffers* wbs,
         uint32_t start,
         uint32_t until,
         uint32_t freq,

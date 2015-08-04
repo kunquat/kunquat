@@ -197,6 +197,7 @@ static bool Proc_chorus_set_audio_rate(
 static void Proc_chorus_process(
         const Device* device,
         Device_states* dstates,
+        const Work_buffers* wbs,
         uint32_t buf_start,
         uint32_t buf_stop,
         uint32_t audio_rate,
@@ -618,6 +619,7 @@ static void check_params(Chorus_state* cstate, double tempo)
 static void Proc_chorus_process(
         const Device* device,
         Device_states* dstates,
+        const Work_buffers* wbs,
         uint32_t buf_start,
         uint32_t buf_stop,
         uint32_t audio_rate,
@@ -625,6 +627,7 @@ static void Proc_chorus_process(
 {
     assert(device != NULL);
     assert(dstates != NULL);
+    assert(wbs != NULL);
     assert(audio_rate > 0);
     assert(tempo > 0);
 

@@ -29,6 +29,7 @@
 #include <memory.h>
 #include <module/Au_table.h>
 #include <player/Au_state.h>
+#include <player/Work_buffers.h>
 #include <string/common.h>
 
 
@@ -72,6 +73,7 @@ static void Audio_unit_update_tempo(
 static void Audio_unit_process_signal(
         const Device* device,
         Device_states* dstates,
+        const Work_buffers* wbs,
         uint32_t buf_start,
         uint32_t buf_stop,
         uint32_t audio_rate,
@@ -514,6 +516,7 @@ static void mix_interface_connection(
 static void Audio_unit_process_signal(
         const Device* device,
         Device_states* dstates,
+        const Work_buffers* wbs,
         uint32_t buf_start,
         uint32_t buf_stop,
         uint32_t audio_rate,
@@ -521,6 +524,7 @@ static void Audio_unit_process_signal(
 {
     assert(device != NULL);
     assert(dstates != NULL);
+    assert(wbs != NULL);
     assert(audio_rate > 0);
     assert(isfinite(tempo));
 
@@ -545,9 +549,9 @@ static void Audio_unit_process_signal(
                 dstates, Device_get_id(Audio_unit_get_input_interface(au)));
         mix_interface_connection(in_iface_ds, ds, buf_start, buf_stop);
 
-        // Process autrument graph
+        // Process audio unit graph
         Connections_mix(
-                au->connections, dstates, buf_start, buf_stop, audio_rate, tempo);
+                au->connections, dstates, wbs, buf_start, buf_stop, audio_rate, tempo);
 
         // Fill output interface buffers
         Device_state* out_iface_ds = Device_states_get_state(
