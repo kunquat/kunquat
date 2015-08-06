@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2014
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2015
 #          Toni Ruottu, Finland 2013-2014
 #
 # This file is part of Kunquat.
@@ -74,6 +74,12 @@ class UiThread(MonitoringThread):
 
     def update_active_note(self, channel_number, pitch):
         self._q.push('update_active_note', channel_number, pitch)
+
+    def update_active_var_name(self, channel_number, var_type, var_name):
+        self._q.push('update_active_var_name', channel_number, var_type, var_name)
+
+    def update_active_var_value(self, channel_number, var_type, var_value):
+        self._q.push('update_active_var_value', channel_number, var_type, var_value)
 
     def update_pending_playback_cursor_track(self, track):
         self._q.push('update_pending_playback_cursor_track', track)

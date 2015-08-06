@@ -27,6 +27,7 @@ class Session():
         self._progress_steps = 1
         self._audio_levels = (0, 0)
         self._max_audio_levels = [0, 0]
+        self._infinite_mode = False
         self._selected_control_id = 0
         self._selected_keymap_id = None
         self._selected_notation_id = None
@@ -63,6 +64,8 @@ class Session():
         self._track_selection = 0
         self._module_path = None
         self._is_saving = False
+        self._active_var_names = defaultdict(lambda: {})
+        self._runtime_env = {}
 
     def get_output_speed(self):
         return self._output_speed
@@ -113,6 +116,12 @@ class Session():
 
     def reset_max_audio_levels(self):
         self._max_audio_levels = [0, 0]
+
+    def set_infinite_mode(self, enabled):
+        self._infinite_mode = enabled
+
+    def get_infinite_mode(self):
+        return self._infinite_mode
 
     def get_selected_control_id(self):
         return self._selected_control_id
@@ -346,5 +355,23 @@ class Session():
 
     def is_saving(self):
         return self._is_saving
+
+    def set_active_var_name(self, ch, var_type, var_name):
+        self._active_var_names[ch][var_type] = var_name
+
+    def get_active_var_name(self, ch, var_type):
+        return self._active_var_names[ch].get(var_type)
+
+    def set_active_var_value(self, ch, var_type, var_value):
+        var_name = self.get_active_var_name(ch, var_type)
+        if var_name:
+            self._runtime_env[(var_type, var_name)] = var_value
+
+    def get_runtime_var_value(self, var_type, var_name):
+        return self._runtime_env.get((var_type, var_name))
+
+    def reset_runtime_env(self):
+        self._active_var_names.clear()
+        self._runtime_env.clear()
 
 

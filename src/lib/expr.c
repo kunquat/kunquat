@@ -30,7 +30,7 @@
 #define STACK_SIZE 32
 
 
-typedef bool (*Op_func)(Value* op1, Value* op2, Value* res, Streader* sr);
+typedef bool (*Op_func)(const Value* op1, const Value* op2, Value* res, Streader* sr);
 
 
 typedef struct Operator
@@ -86,20 +86,24 @@ static bool Operator_from_token(Operator* op, char* token);
 //static void Operator_print(Operator* op);
 
 
-static bool op_neq(Value* op1, Value* op2, Value* res, Streader* sr);
-static bool op_leq(Value* op1, Value* op2, Value* res, Streader* sr);
-static bool op_geq(Value* op1, Value* op2, Value* res, Streader* sr);
-static bool op_or(Value* op1, Value* op2, Value* res, Streader* sr);
-static bool op_and(Value* op1, Value* op2, Value* res, Streader* sr);
-static bool op_eq(Value* op1, Value* op2, Value* res, Streader* sr);
-static bool op_lt(Value* op1, Value* op2, Value* res, Streader* sr);
-static bool op_gt(Value* op1, Value* op2, Value* res, Streader* sr);
-static bool op_add(Value* op1, Value* op2, Value* res, Streader* sr);
-static bool op_sub(Value* op1, Value* op2, Value* res, Streader* sr);
-static bool op_mul(Value* op1, Value* op2, Value* res, Streader* sr);
-static bool op_div(Value* op1, Value* op2, Value* res, Streader* sr);
-static bool op_mod(Value* op1, Value* op2, Value* res, Streader* sr);
-static bool op_pow(Value* op1, Value* op2, Value* res, Streader* sr);
+#define OP_PROTO(name) static bool name(const Value*, const Value*, Value*, Streader* sr)
+
+OP_PROTO(op_neq);
+OP_PROTO(op_leq);
+OP_PROTO(op_geq);
+OP_PROTO(op_or);
+OP_PROTO(op_and);
+OP_PROTO(op_eq);
+OP_PROTO(op_lt);
+OP_PROTO(op_gt);
+OP_PROTO(op_add);
+OP_PROTO(op_sub);
+OP_PROTO(op_mul);
+OP_PROTO(op_div);
+OP_PROTO(op_mod);
+OP_PROTO(op_pow);
+
+#undef OP_PROTO
 
 
 static Operator operators[] =
@@ -124,7 +128,7 @@ static Operator operators[] =
 
 
 typedef bool (*Func)(
-        Value* args,
+        const Value* args,
         Value* res,
         Random* rand,
         Streader* sr);
@@ -144,10 +148,7 @@ typedef struct Func_desc
 
 
 #define FUNC_PROTO(fn) static bool func_##fn( \
-        Value* args,                          \
-        Value* res,                           \
-        Random* rand,                         \
-        Streader* sr)
+        const Value* args, Value* res, Random* rand, Streader* sr)
 
 FUNC_PROTO(ts);
 FUNC_PROTO(rand);
@@ -871,7 +872,68 @@ static bool get_op_token(Streader* sr, char* result)
 }
 
 
-static bool op_eq(Value* op1, Value* op2, Value* res, Streader* sr)
+static bool promote_arithmetic_types(
+        Value* pr_op1, Value* pr_op2, const Value* op1, const Value* op2, Streader* sr)
+{
+    assert(pr_op1 != NULL);
+    assert(pr_op2 != NULL);
+    assert(op1 != NULL);
+    assert(op2 != NULL);
+    assert(sr != NULL);
+
+    if (Streader_is_error_set(sr))
+        return false;
+
+    // Verify that both types are arithmetic
+    if ((op1->type < VALUE_TYPE_INT) || (op1->type > VALUE_TYPE_TSTAMP) ||
+            (op2->type < VALUE_TYPE_INT) || (op2->type > VALUE_TYPE_TSTAMP))
+    {
+        Streader_set_error(sr, "Non-arithmetic type used in arithmetic expression");
+        return false;
+    }
+
+    // Types match
+    if (op1->type == op2->type)
+    {
+        Value_copy(pr_op1, op1);
+        Value_copy(pr_op2, op2);
+        return true;
+    }
+
+    // Convert the lower type in the type hierarchy
+    static const int type_prio[VALUE_TYPE_COUNT] =
+    {
+        [VALUE_TYPE_INT] = 1,
+        [VALUE_TYPE_TSTAMP] = 2,
+        [VALUE_TYPE_FLOAT] = 3,
+    };
+
+    bool success = false;
+
+    if (type_prio[op1->type] < type_prio[op2->type])
+    {
+        success = Value_convert(pr_op1, op1, op2->type);
+        Value_copy(pr_op2, op2);
+    }
+    else
+    {
+        Value_copy(pr_op1, op1);
+        success = Value_convert(pr_op2, op2, op1->type);
+    }
+
+    if (!success)
+    {
+        Streader_set_error(sr, "Could not promote operand type");
+        return false;
+    }
+
+    assert(pr_op1->type == pr_op2->type);
+
+    return true;
+}
+
+
+static bool op_eq(const Value* op1, const Value* op2, Value* res, Streader* sr)
 {
     assert(op1 != NULL);
     assert(op2 != NULL);
@@ -883,75 +945,78 @@ static bool op_eq(Value* op1, Value* op2, Value* res, Streader* sr)
     if (Streader_is_error_set(sr))
         return false;
 
-    if (op1->type == op2->type)
+    // Eliminate testing of symmetric cases
+    if (op1->type < op2->type)
     {
-        res->type = VALUE_TYPE_BOOL;
-        switch(op1->type)
-        {
-            case VALUE_TYPE_BOOL:
-            {
-                res->value.bool_type =
-                    op1->value.bool_type == op2->value.bool_type;
-            }
-            break;
-
-            case VALUE_TYPE_INT:
-            {
-                res->value.bool_type =
-                    op1->value.int_type == op2->value.int_type;
-            }
-            break;
-
-            case VALUE_TYPE_FLOAT:
-            {
-                res->value.bool_type =
-                    op1->value.float_type == op2->value.float_type;
-            }
-            break;
-
-            case VALUE_TYPE_STRING:
-            {
-                res->value.bool_type = string_eq(
-                        op1->value.string_type,
-                        op2->value.string_type);
-            }
-            break;
-
-            default:
-                assert(false);
-        }
-        return true;
-    }
-
-    if (op1->type > op2->type)
-    {
-        Value* tmp = op1;
+        const Value* tmp = op1;
         op1 = op2;
         op2 = tmp;
     }
 
     res->type = VALUE_TYPE_BOOL;
+
+    // Check non-arithmetic types first
     if (op1->type == VALUE_TYPE_BOOL)
     {
-        Streader_set_error(sr, "Comparison between boolean and number");
-        return false;
+        if (op1->type != op2->type)
+        {
+            Streader_set_error(sr, "Comparison between boolean and non-boolean");
+            return false;
+        }
+
+        res->value.bool_type = (op1->value.bool_type == op2->value.bool_type);
+        return true;
     }
     else if (op2->type == VALUE_TYPE_STRING)
     {
-        Streader_set_error(sr, "Comparison between string and non-string");
-        return false;
+        if (op1->type != op2->type)
+        {
+            Streader_set_error(sr, "Comparison between string and non-string");
+            return false;
+        }
+
+        res->value.bool_type = string_eq(op1->value.string_type, op2->value.string_type);
+        return true;
     }
 
-    assert(op1->type == VALUE_TYPE_INT);
-    assert(op2->type == VALUE_TYPE_FLOAT);
+    // Compare arithmetic types
+    Value* pr_op1 = VALUE_AUTO;
+    Value* pr_op2 = VALUE_AUTO;
 
-    res->value.bool_type = op1->value.int_type == op2->value.float_type;
+    if (!promote_arithmetic_types(pr_op1, pr_op2, op1, op2, sr))
+        return false;
+
+    switch (pr_op1->type)
+    {
+        case VALUE_TYPE_INT:
+        {
+            res->value.bool_type = (pr_op1->value.int_type == pr_op2->value.int_type);
+        }
+        break;
+
+        case VALUE_TYPE_FLOAT:
+        {
+            res->value.bool_type =
+                (pr_op1->value.float_type == pr_op2->value.float_type);
+        }
+        break;
+
+        case VALUE_TYPE_TSTAMP:
+        {
+            res->value.bool_type =
+                (Tstamp_cmp(&pr_op1->value.Tstamp_type, &pr_op2->value.Tstamp_type) == 0);
+        }
+        break;
+
+        default:
+            assert(false);
+    }
 
     return true;
 }
 
 
-static bool op_neq(Value* op1, Value* op2, Value* res, Streader* sr)
+static bool op_neq(const Value* op1, const Value* op2, Value* res, Streader* sr)
 {
     assert(op1 != NULL);
     assert(op2 != NULL);
@@ -969,7 +1034,7 @@ static bool op_neq(Value* op1, Value* op2, Value* res, Streader* sr)
 }
 
 
-static bool op_leq(Value* op1, Value* op2, Value* res, Streader* sr)
+static bool op_leq(const Value* op1, const Value* op2, Value* res, Streader* sr)
 {
     assert(op1 != NULL);
     assert(op2 != NULL);
@@ -986,7 +1051,7 @@ static bool op_leq(Value* op1, Value* op2, Value* res, Streader* sr)
 }
 
 
-static bool op_geq(Value* op1, Value* op2, Value* res, Streader* sr)
+static bool op_geq(const Value* op1, const Value* op2, Value* res, Streader* sr)
 {
     assert(op1 != NULL);
     assert(op2 != NULL);
@@ -997,7 +1062,7 @@ static bool op_geq(Value* op1, Value* op2, Value* res, Streader* sr)
 }
 
 
-static bool op_or(Value* op1, Value* op2, Value* res, Streader* sr)
+static bool op_or(const Value* op1, const Value* op2, Value* res, Streader* sr)
 {
     assert(op1 != NULL);
     assert(op2 != NULL);
@@ -1020,7 +1085,7 @@ static bool op_or(Value* op1, Value* op2, Value* res, Streader* sr)
 }
 
 
-static bool op_and(Value* op1, Value* op2, Value* res, Streader* sr)
+static bool op_and(const Value* op1, const Value* op2, Value* res, Streader* sr)
 {
     assert(op1 != NULL);
     assert(op2 != NULL);
@@ -1043,7 +1108,7 @@ static bool op_and(Value* op1, Value* op2, Value* res, Streader* sr)
 }
 
 
-static bool op_lt(Value* op1, Value* op2, Value* res, Streader* sr)
+static bool op_lt(const Value* op1, const Value* op2, Value* res, Streader* sr)
 {
     assert(op1 != NULL);
     assert(op2 != NULL);
@@ -1056,53 +1121,48 @@ static bool op_lt(Value* op1, Value* op2, Value* res, Streader* sr)
     if (op1->type <= VALUE_TYPE_BOOL || op2->type <= VALUE_TYPE_BOOL ||
             op1->type >= VALUE_TYPE_STRING || op2->type >= VALUE_TYPE_STRING)
     {
-        Streader_set_error(sr, "Ordinal comparison between non-numbers");
+        Streader_set_error(sr, "Ordinal comparison between non-arithmetic types");
         return false;
     }
 
-    if (op1->type == op2->type)
-    {
-        res->type = VALUE_TYPE_BOOL;
-        switch(op1->type)
-        {
-            case VALUE_TYPE_INT:
-            {
-                res->value.bool_type =
-                    op1->value.int_type < op2->value.int_type;
-            }
-            break;
+    Value* pr_op1 = VALUE_AUTO;
+    Value* pr_op2 = VALUE_AUTO;
 
-            case VALUE_TYPE_FLOAT:
-            {
-                res->value.bool_type =
-                    op1->value.float_type < op2->value.float_type;
-            }
-            break;
-
-            default:
-                assert(false);
-        }
-        return true;
-    }
+    if (!promote_arithmetic_types(pr_op1, pr_op2, op1, op2, sr))
+        return false;
 
     res->type = VALUE_TYPE_BOOL;
-    if (op1->type == VALUE_TYPE_INT)
+
+    switch (pr_op1->type)
     {
-        assert(op2->type == VALUE_TYPE_FLOAT);
-        res->value.bool_type = op1->value.int_type < op2->value.float_type;
-    }
-    else
-    {
-        assert(op1->type == VALUE_TYPE_FLOAT);
-        assert(op2->type == VALUE_TYPE_INT);
-        res->value.bool_type = op1->value.float_type < op2->value.int_type;
+        case VALUE_TYPE_INT:
+        {
+            res->value.bool_type = (pr_op1->value.int_type < pr_op2->value.int_type);
+        }
+        break;
+
+        case VALUE_TYPE_FLOAT:
+        {
+            res->value.bool_type = (pr_op1->value.float_type < pr_op2->value.float_type);
+        }
+        break;
+
+        case VALUE_TYPE_TSTAMP:
+        {
+            res->value.bool_type =
+                (Tstamp_cmp(&pr_op1->value.Tstamp_type, &pr_op2->value.Tstamp_type) < 0);
+        }
+        break;
+
+        default:
+            assert(false);
     }
 
     return true;
 }
 
 
-static bool op_gt(Value* op1, Value* op2, Value* res, Streader* sr)
+static bool op_gt(const Value* op1, const Value* op2, Value* res, Streader* sr)
 {
     assert(op1 != NULL);
     assert(op2 != NULL);
@@ -1113,7 +1173,7 @@ static bool op_gt(Value* op1, Value* op2, Value* res, Streader* sr)
 }
 
 
-static bool op_add(Value* op1, Value* op2, Value* res, Streader* sr)
+static bool op_add(const Value* op1, const Value* op2, Value* res, Streader* sr)
 {
     assert(op1 != NULL);
     assert(op2 != NULL);
@@ -1123,55 +1183,46 @@ static bool op_add(Value* op1, Value* op2, Value* res, Streader* sr)
     if (Streader_is_error_set(sr))
         return false;
 
-    if (op1->type <= VALUE_TYPE_BOOL || op2->type <= VALUE_TYPE_BOOL ||
-            op1->type >= VALUE_TYPE_STRING || op2->type >= VALUE_TYPE_STRING)
-    {
-        Streader_set_error(sr, "Addition with non-numbers");
+    Value* pr_op1 = VALUE_AUTO;
+    Value* pr_op2 = VALUE_AUTO;
+
+    if (!promote_arithmetic_types(pr_op1, pr_op2, op1, op2, sr))
         return false;
-    }
 
-    if (op1->type == op2->type)
+    res->type = pr_op1->type;
+
+    switch (pr_op1->type)
     {
-        res->type = op1->type;
-        switch(op1->type)
+        case VALUE_TYPE_INT:
         {
-            case VALUE_TYPE_INT:
-            {
-                res->value.int_type =
-                    op1->value.int_type + op2->value.int_type;
-            }
-            break;
-
-            case VALUE_TYPE_FLOAT:
-            {
-                res->value.float_type =
-                    op1->value.float_type + op2->value.float_type;
-            }
-            break;
-
-            default:
-                assert(false);
+            res->value.int_type = pr_op1->value.int_type + pr_op2->value.int_type;
         }
-        return true;
-    }
+        break;
 
-    if (op1->type > op2->type)
-    {
-        Value* tmp = op1;
-        op1 = op2;
-        op2 = tmp;
-    }
+        case VALUE_TYPE_FLOAT:
+        {
+            res->value.float_type = pr_op1->value.float_type + pr_op2->value.float_type;
+        }
+        break;
 
-    assert(op1->type == VALUE_TYPE_INT);
-    assert(op2->type == VALUE_TYPE_FLOAT);
-    res->type = VALUE_TYPE_FLOAT;
-    res->value.float_type = op1->value.int_type + op2->value.float_type;
+        case VALUE_TYPE_TSTAMP:
+        {
+            Tstamp_add(
+                    &res->value.Tstamp_type,
+                    &pr_op1->value.Tstamp_type,
+                    &pr_op2->value.Tstamp_type);
+        }
+        break;
+
+        default:
+            assert(false);
+    }
 
     return true;
 }
 
 
-static bool op_sub(Value* op1, Value* op2, Value* res, Streader* sr)
+static bool op_sub(const Value* op1, const Value* op2, Value* res, Streader* sr)
 {
     assert(op1 != NULL);
     assert(op2 != NULL);
@@ -1188,18 +1239,32 @@ static bool op_sub(Value* op1, Value* op2, Value* res, Streader* sr)
         return false;
     }
 
-    if (op2->type == VALUE_TYPE_INT)
-        op2->value.int_type = -op2->value.int_type;
-    else if (op2->type == VALUE_TYPE_FLOAT)
-        op2->value.float_type = -op2->value.float_type;
+    // Negate the second operand
+    Value* neg_op2 = Value_copy(VALUE_AUTO, op2);
+
+    if (neg_op2->type == VALUE_TYPE_INT)
+    {
+        neg_op2->value.int_type = -neg_op2->value.int_type;
+    }
+    else if (neg_op2->type == VALUE_TYPE_FLOAT)
+    {
+        neg_op2->value.float_type = -neg_op2->value.float_type;
+    }
+    else if (neg_op2->type == VALUE_TYPE_TSTAMP)
+    {
+        const Tstamp* zero_ts = Tstamp_init(TSTAMP_AUTO);
+        Tstamp_sub(&neg_op2->value.Tstamp_type, zero_ts, &neg_op2->value.Tstamp_type);
+    }
     else
+    {
         assert(false);
+    }
 
-    return op_add(op1, op2, res, sr);
+    return op_add(op1, neg_op2, res, sr);
 }
 
 
-static bool op_mul(Value* op1, Value* op2, Value* res, Streader* sr)
+static bool op_mul(const Value* op1, const Value* op2, Value* res, Streader* sr)
 {
     assert(op1 != NULL);
     assert(op2 != NULL);
@@ -1209,165 +1274,125 @@ static bool op_mul(Value* op1, Value* op2, Value* res, Streader* sr)
     if (Streader_is_error_set(sr))
         return false;
 
-    if (op1->type <= VALUE_TYPE_BOOL || op2->type <= VALUE_TYPE_BOOL ||
-            op1->type >= VALUE_TYPE_STRING || op2->type >= VALUE_TYPE_STRING)
-    {
-        Streader_set_error(sr, "Multiplication with non-numbers");
+    Value* pr_op1 = VALUE_AUTO;
+    Value* pr_op2 = VALUE_AUTO;
+
+    if (!promote_arithmetic_types(pr_op1, pr_op2, op1, op2, sr))
         return false;
+
+    res->type = pr_op1->type;
+
+    switch (pr_op1->type)
+    {
+        case VALUE_TYPE_INT:
+        {
+            res->value.int_type = pr_op1->value.int_type * pr_op2->value.int_type;
+        }
+        break;
+
+        case VALUE_TYPE_FLOAT:
+        {
+            res->value.float_type = pr_op1->value.float_type * pr_op2->value.float_type;
+        }
+        break;
+
+        case VALUE_TYPE_TSTAMP:
+        {
+            Value_convert(pr_op1, pr_op1, VALUE_TYPE_FLOAT);
+            Value_convert(pr_op2, pr_op2, VALUE_TYPE_FLOAT);
+
+            res->type = VALUE_TYPE_FLOAT;
+            res->value.float_type = pr_op1->value.float_type * pr_op2->value.float_type;
+        }
+        break;
+
+        default:
+            assert(false);
     }
 
-    if (op1->type == op2->type)
-    {
-        res->type = op1->type;
-        switch(op1->type)
-        {
-            case VALUE_TYPE_INT:
-            {
-                res->value.int_type =
-                    op1->value.int_type * op2->value.int_type;
-            }
-            break;
+    return true;
+}
 
-            case VALUE_TYPE_FLOAT:
+
+static bool op_div(const Value* op1, const Value* op2, Value* res, Streader* sr)
+{
+    assert(op1 != NULL);
+    assert(op2 != NULL);
+    assert(res != NULL);
+    assert(sr != NULL);
+
+    if (Streader_is_error_set(sr))
+        return false;
+
+    Value* pr_op1 = VALUE_AUTO;
+    Value* pr_op2 = VALUE_AUTO;
+
+    if (!promote_arithmetic_types(pr_op1, pr_op2, op1, op2, sr))
+        return false;
+
+    res->type = pr_op1->type;
+
+    switch (pr_op1->type)
+    {
+        case VALUE_TYPE_INT:
+        {
+            if (pr_op2->value.int_type == 0)
             {
+                Streader_set_error(sr, "Division by zero");
+                return false;
+            }
+
+            if (pr_op1->value.int_type % pr_op2->value.int_type == 0)
+            {
+                res->type = VALUE_TYPE_INT;
+                res->value.int_type = pr_op1->value.int_type / pr_op2->value.int_type;
+            }
+            else
+            {
+                res->type = VALUE_TYPE_FLOAT;
                 res->value.float_type =
-                    op1->value.float_type * op2->value.float_type;
+                    (double)pr_op1->value.float_type / (double)pr_op2->value.float_type;
             }
-            break;
-
-            default:
-                assert(false);
         }
-        return true;
-    }
+        break;
 
-    if (op1->type > op2->type)
-    {
-        Value* tmp = op1;
-        op1 = op2;
-        op2 = tmp;
-    }
-
-    assert(op1->type == VALUE_TYPE_INT);
-    assert(op2->type == VALUE_TYPE_FLOAT);
-    res->type = VALUE_TYPE_FLOAT;
-    res->value.float_type = op1->value.int_type * op2->value.float_type;
-
-    return true;
-}
-
-
-static bool op_div(Value* op1, Value* op2, Value* res, Streader* sr)
-{
-    assert(op1 != NULL);
-    assert(op2 != NULL);
-    assert(res != NULL);
-    assert(sr != NULL);
-
-    if (Streader_is_error_set(sr))
-        return false;
-
-    if (op1->type <= VALUE_TYPE_BOOL || op2->type <= VALUE_TYPE_BOOL ||
-            op1->type >= VALUE_TYPE_STRING || op2->type >= VALUE_TYPE_STRING)
-    {
-        Streader_set_error(sr, "Division with non-numbers");
-        return false;
-    }
-
-    if ((op2->type == VALUE_TYPE_INT && op2->value.int_type == 0) ||
-            (op2->type == VALUE_TYPE_FLOAT && op2->value.float_type == 0))
-    {
-        Streader_set_error(sr, "Division by zero");
-        return false;
-    }
-
-    if (op1->type == VALUE_TYPE_INT && op2->type == VALUE_TYPE_INT &&
-            op1->value.int_type % op2->value.int_type == 0)
-    {
-        res->type = VALUE_TYPE_INT;
-        res->value.int_type = op1->value.int_type / op2->value.int_type;
-        return true;
-    }
-
-    if (op2->type == VALUE_TYPE_INT)
-    {
-        op2->type = VALUE_TYPE_FLOAT;
-        op2->value.float_type = op2->value.int_type;
-    }
-
-    op2->value.float_type = 1.0 / op2->value.float_type;
-
-    return op_mul(op1, op2, res, sr);
-}
-
-
-static bool op_mod(Value* op1, Value* op2, Value* res, Streader* sr)
-{
-    assert(op1 != NULL);
-    assert(op2 != NULL);
-    assert(res != NULL);
-    assert(sr != NULL);
-
-    if (Streader_is_error_set(sr))
-        return false;
-
-    if (op1->type <= VALUE_TYPE_BOOL || op2->type <= VALUE_TYPE_BOOL ||
-            op1->type >= VALUE_TYPE_STRING || op2->type >= VALUE_TYPE_STRING)
-    {
-        Streader_set_error(sr, "Modulo with non-numbers");
-        return false;
-    }
-
-    if ((op2->type == VALUE_TYPE_INT && op2->value.int_type == 0) ||
-            (op2->type == VALUE_TYPE_FLOAT && op2->value.float_type == 0))
-    {
-        Streader_set_error(sr, "Modulo by zero");
-        return false;
-    }
-
-    if (op1->type == VALUE_TYPE_INT && op2->type == VALUE_TYPE_INT)
-    {
-        res->type = VALUE_TYPE_INT;
-        res->value.int_type = op1->value.int_type % op2->value.int_type;
-        if (res->value.int_type < 0)
+        case VALUE_TYPE_FLOAT:
         {
-            res->value.int_type += op2->value.int_type;
+            if (pr_op2->value.float_type == 0)
+            {
+                Streader_set_error(sr, "Division by zero");
+                return false;
+            }
+
+            res->value.float_type = pr_op1->value.float_type / pr_op2->value.float_type;
         }
-        return true;
-    }
+        break;
 
-    double dividend = NAN;
-    if (op1->type == VALUE_TYPE_INT)
-    {
-        dividend = op1->value.int_type;
-    }
-    else
-    {
-        assert(op1->type == VALUE_TYPE_FLOAT);
-        dividend = op1->value.float_type;
-    }
+        case VALUE_TYPE_TSTAMP:
+        {
+            Value_convert(pr_op1, pr_op1, VALUE_TYPE_FLOAT);
+            Value_convert(pr_op2, pr_op2, VALUE_TYPE_FLOAT);
 
-    double divisor = NAN;
-    if (op2->type == VALUE_TYPE_INT)
-    {
-        divisor = op2->value.int_type;
-    }
-    else
-    {
-        assert(op2->type == VALUE_TYPE_FLOAT);
-        divisor = op2->value.float_type;
-    }
+            if (pr_op2->value.float_type == 0)
+            {
+                Streader_set_error(sr, "Division by zero");
+                return false;
+            }
 
-    res->type = VALUE_TYPE_FLOAT;
-    res->value.float_type = fmod(dividend, divisor);
-    if (res->value.float_type < 0)
-        res->value.float_type += divisor;
+            res->type = VALUE_TYPE_FLOAT;
+            res->value.float_type = pr_op1->value.float_type / pr_op2->value.float_type;
+        }
+        break;
+
+        default:
+            assert(false);
+    }
 
     return true;
 }
 
 
-static bool op_pow(Value* op1, Value* op2, Value* res, Streader* sr)
+static bool op_mod(const Value* op1, const Value* op2, Value* res, Streader* sr)
 {
     assert(op1 != NULL);
     assert(op2 != NULL);
@@ -1377,55 +1402,162 @@ static bool op_pow(Value* op1, Value* op2, Value* res, Streader* sr)
     if (Streader_is_error_set(sr))
         return false;
 
-    if (op1->type <= VALUE_TYPE_BOOL || op2->type <= VALUE_TYPE_BOOL ||
-            op1->type >= VALUE_TYPE_STRING || op2->type >= VALUE_TYPE_STRING)
-    {
-        Streader_set_error(sr, "Power with non-numbers");
+    Value* pr_op1 = VALUE_AUTO;
+    Value* pr_op2 = VALUE_AUTO;
+
+    if (!promote_arithmetic_types(pr_op1, pr_op2, op1, op2, sr))
         return false;
-    }
 
-    if (op1->type == VALUE_TYPE_INT && op2->type == VALUE_TYPE_INT &&
-            op2->value.int_type >= 0)
-    {
-        res->type = VALUE_TYPE_INT;
-        res->value.int_type = ipowi(op1->value.int_type, op2->value.int_type);
-        return true;
-    }
+    res->type = pr_op1->type;
 
-    double base = NAN;
-    if (op1->type == VALUE_TYPE_INT)
+    switch (pr_op1->type)
     {
-        base = op1->value.int_type;
-    }
-    else
-    {
-        assert(op1->type == VALUE_TYPE_FLOAT);
-        base = op1->value.float_type;
-    }
+        case VALUE_TYPE_INT:
+        {
+            if (pr_op2->value.int_type == 0)
+            {
+                Streader_set_error(sr, "Modulo by zero");
+                return false;
+            }
 
-    double exp = NAN;
-    if (op2->type == VALUE_TYPE_INT)
-    {
-        exp = op2->value.int_type;
-    }
-    else
-    {
-        assert(op2->type == VALUE_TYPE_FLOAT);
-        exp = op2->value.float_type;
-    }
+            res->value.int_type = pr_op1->value.int_type % pr_op2->value.int_type;
+            if (res->value.int_type < 0)
+                res->value.int_type += pr_op2->value.int_type;
+        }
+        break;
 
-    res->type = VALUE_TYPE_FLOAT;
-    res->value.float_type = pow(base, exp);
+        case VALUE_TYPE_FLOAT:
+        {
+            if (pr_op2->value.float_type == 0)
+            {
+                Streader_set_error(sr, "Modulo by zero");
+                return false;
+            }
+
+            const double divisor = pr_op2->value.float_type;
+            res->value.float_type = fmod(pr_op1->value.float_type, divisor);
+            if (res->value.float_type < 0)
+                res->value.float_type += divisor;
+        }
+        break;
+
+        case VALUE_TYPE_TSTAMP:
+        {
+            Value_convert(pr_op1, pr_op1, VALUE_TYPE_FLOAT);
+            Value_convert(pr_op2, pr_op2, VALUE_TYPE_FLOAT);
+
+            if (pr_op2->value.float_type == 0)
+            {
+                Streader_set_error(sr, "Modulo by zero");
+                return false;
+            }
+
+            res->type = VALUE_TYPE_FLOAT;
+
+            const double divisor = pr_op2->value.float_type;
+            res->value.float_type = fmod(pr_op1->value.float_type, divisor);
+            if (res->value.float_type < 0)
+                res->value.float_type += divisor;
+        }
+        break;
+
+        default:
+            assert(false);
+    }
 
     return true;
 }
 
 
-static bool func_ts(
-        Value* args,
-        Value* res,
-        Random* rand,
-        Streader* sr)
+static bool float_pow(const Value* pr_op1, const Value* pr_op2, Value* res, Streader* sr)
+{
+    assert(pr_op1 != NULL);
+    assert(pr_op1->type == VALUE_TYPE_FLOAT);
+    assert(pr_op2 != NULL);
+    assert(pr_op2->type == VALUE_TYPE_FLOAT);
+    assert(res != NULL);
+    assert(sr != NULL);
+    assert(!Streader_is_error_set(sr));
+
+    if ((pr_op1->value.float_type == 0) && (pr_op2->value.float_type == 0))
+    {
+        Streader_set_error(sr, "0 ^ 0 is undefined");
+        return false;
+    }
+
+    res->type = VALUE_TYPE_FLOAT;
+    res->value.float_type = pow(pr_op1->value.float_type, pr_op2->value.float_type);
+
+    return true;
+}
+
+
+static bool op_pow(const Value* op1, const Value* op2, Value* res, Streader* sr)
+{
+    assert(op1 != NULL);
+    assert(op2 != NULL);
+    assert(res != NULL);
+    assert(sr != NULL);
+
+    if (Streader_is_error_set(sr))
+        return false;
+
+    Value* pr_op1 = VALUE_AUTO;
+    Value* pr_op2 = VALUE_AUTO;
+
+    if (!promote_arithmetic_types(pr_op1, pr_op2, op1, op2, sr))
+        return false;
+
+    res->type = pr_op1->type;
+
+    switch (pr_op1->type)
+    {
+        case VALUE_TYPE_INT:
+        {
+            if (pr_op2->value.int_type >= 0)
+            {
+                if ((pr_op1->value.int_type == 0) && (pr_op2->value.int_type == 0))
+                {
+                    Streader_set_error(sr, "0 ^ 0 is undefined");
+                    return false;
+                }
+
+                res->type = VALUE_TYPE_INT;
+                res->value.int_type = ipowi(
+                        pr_op1->value.int_type, pr_op2->value.int_type);
+            }
+            else
+            {
+                Value_convert(pr_op1, pr_op1, VALUE_TYPE_FLOAT);
+                Value_convert(pr_op2, pr_op2, VALUE_TYPE_FLOAT);
+                return float_pow(pr_op1, pr_op2, res, sr);
+            }
+        }
+        break;
+
+        case VALUE_TYPE_FLOAT:
+        {
+            return float_pow(pr_op1, pr_op2, res, sr);
+        }
+        break;
+
+        case VALUE_TYPE_TSTAMP:
+        {
+            Value_convert(pr_op1, pr_op1, VALUE_TYPE_FLOAT);
+            Value_convert(pr_op2, pr_op2, VALUE_TYPE_FLOAT);
+            return float_pow(pr_op1, pr_op2, res, sr);
+        }
+        break;
+
+        default:
+            assert(false);
+    }
+
+    return true;
+}
+
+
+static bool func_ts(const Value* args, Value* res, Random* rand, Streader* sr)
 {
     assert(args != NULL);
     assert(res != NULL);
@@ -1506,11 +1638,7 @@ static bool func_ts(
 }
 
 
-static bool func_rand(
-        Value* args,
-        Value* res,
-        Random* rand,
-        Streader* sr)
+static bool func_rand(const Value* args, Value* res, Random* rand, Streader* sr)
 {
     assert(args != NULL);
     assert(res != NULL);
@@ -1546,11 +1674,7 @@ static bool func_rand(
 }
 
 
-static bool func_pat(
-        Value* args,
-        Value* res,
-        Random* rand,
-        Streader* sr)
+static bool func_pat(const Value* args, Value* res, Random* rand, Streader* sr)
 {
     assert(args != NULL);
     assert(res != NULL);

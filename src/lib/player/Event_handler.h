@@ -62,7 +62,7 @@ const Event_names* Event_handler_get_names(const Event_handler* eh);
 bool Event_handler_set_control_process(
         Event_handler* eh,
         Event_type type,
-        bool (*control_process)(General_state*, const Value*));
+        bool (*control_process)(General_state*, Channel* channel, const Value*));
 
 
 /**

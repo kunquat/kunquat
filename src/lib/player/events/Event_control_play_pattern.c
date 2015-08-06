@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -17,6 +17,7 @@
 
 #include <debug/assert.h>
 #include <kunquat/limits.h>
+#include <player/Channel.h>
 #include <player/Event_type.h>
 #include <player/events/Event_common.h>
 #include <player/events/Event_control_decl.h>
@@ -24,16 +25,15 @@
 #include <Value.h>
 
 
-bool Event_control_play_pattern_process(General_state* gstate, const Value* value)
+bool Event_control_play_pattern_process(
+        General_state* global_state, Channel* channel, const Value* value)
 {
-    assert(gstate != NULL);
+    assert(global_state != NULL);
+    assert(channel != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_PAT_INST_REF);
 
-    if (!gstate->global)
-        return false;
-
-    Master_params* master_params = (Master_params*)gstate;
+    Master_params* master_params = (Master_params*)global_state;
     master_params->playback_state = PLAYBACK_PATTERN;
     master_params->pattern_playback_flag = true;
 

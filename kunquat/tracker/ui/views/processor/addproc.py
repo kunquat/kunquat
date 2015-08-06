@@ -16,6 +16,7 @@ from PyQt4.QtGui import *
 
 from procnumslider import ProcNumSlider
 from waveform import Waveform
+from kunquat.tracker.ui.views.editorlist import EditorList
 from kunquat.tracker.ui.views.headerline import HeaderLine
 
 
@@ -206,34 +207,19 @@ class WaveformEditor(QWidget):
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
 
-class WarpListContainer(QWidget):
-
-    def __init__(self):
-        QWidget.__init__(self)
-        v = QVBoxLayout()
-        v.setMargin(0)
-        v.setSpacing(0)
-        v.setSizeConstraint(QLayout.SetMinimumSize)
-        self.setLayout(v)
-
-
-class WarpList(QScrollArea):
+class WarpList(EditorList):
 
     def __init__(self, wave_type, warp_type):
-        QScrollArea.__init__(self)
+        EditorList.__init__(self)
         self._au_id = None
         self._proc_id = None
         self._ui_model = None
         self._updater = None
+        self._icon_bank = None
         self._wave_type = wave_type
         self._warp_type = warp_type
-        self._add_text = { 'pre': 'Add prewarp', 'post': 'Add postwarp' }[warp_type]
 
-        self._init_container()
-
-        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
-        self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        self._adder = None
 
     def set_au_id(self, au_id):
         self._au_id = au_id
@@ -249,24 +235,37 @@ class WarpList(QScrollArea):
         self._update_all()
 
     def unregister_updaters(self):
-        layout = self.widget().layout()
-        for i in xrange(layout.count() - 1):
-            editor = layout.itemAt(i).widget()
-            editor.unregister_updaters()
-
+        self.disconnect_widgets()
         self._updater.unregister_updater(self._perform_updates)
 
-    def _init_container(self):
-        if self.widget():
-            old_layout = self.widget().layout()
-            for i in xrange(old_layout.count() - 1):
-                editor = old_layout.itemAt(i).widget()
-                editor.unregister_updaters()
+    def _make_adder_widget(self):
+        self._adder = WarpAdder(self._wave_type, self._warp_type)
+        self._adder.set_au_id(self._au_id)
+        self._adder.set_proc_id(self._proc_id)
+        self._adder.set_ui_model(self._ui_model)
+        return self._adder
 
-        self.setWidget(WarpListContainer())
-        add_button = QPushButton(self._add_text)
-        QObject.connect(add_button, SIGNAL('clicked()'), self._warp_added)
-        self.widget().layout().addWidget(add_button)
+    def _get_updated_editor_count(self):
+        add_params = get_add_params(self)
+        count = add_params.get_warp_func_count(self._wave_type, self._warp_type)
+
+        max_count_reached = (count >= add_params.get_max_warp_func_count())
+        self._adder.setVisible(not max_count_reached)
+
+        return count
+
+    def _make_editor_widget(self, index):
+        editor = WarpEditor(self._wave_type, self._warp_type, index, self._icon_bank)
+        editor.set_au_id(self._au_id)
+        editor.set_proc_id(self._proc_id)
+        editor.set_ui_model(self._ui_model)
+        return editor
+
+    def _update_editor(self, index, editor):
+        pass
+
+    def _disconnect_widget(self, widget):
+        widget.unregister_updaters()
 
     def _get_update_signal_type(self):
         return ''.join(
@@ -278,50 +277,51 @@ class WarpList(QScrollArea):
             self._update_all()
 
     def _update_all(self):
+        self.update_list()
+
         add_params = get_add_params(self)
-
         warp_count = add_params.get_warp_func_count(self._wave_type, self._warp_type)
-
-        layout = self.widget().layout()
-
-        if warp_count < layout.count() - 1:
-            # Create contents from scratch because
-            # Qt doesn't update visuals properly on single item removal
-            self._init_container()
-            layout = self.widget().layout()
-
-        # Create new items
-        for i in xrange(layout.count() - 1, warp_count):
-            editor = WarpEditor(self._wave_type, self._warp_type, i, self._icon_bank)
-            editor.set_au_id(self._au_id)
-            editor.set_proc_id(self._proc_id)
-            editor.set_ui_model(self._ui_model)
-            layout.insertWidget(i, editor)
-
         max_count_reached = (warp_count >= add_params.get_max_warp_func_count())
-        layout.itemAt(layout.count() - 1).widget().setVisible(not max_count_reached)
+        self._adder.setVisible(not max_count_reached)
 
-        self._do_width_hack()
 
-    def set_warp(self, index, name, arg):
-        editor = self.widget().layout().itemAt(index).widget()
-        editor.set_warp(name, arg)
+class WarpAdder(QPushButton):
 
-    def get_warp(self, index):
-        editor = self.widget().layout().itemAt(index).widget()
-        return editor.get_warp()
+    def __init__(self, wave_type, warp_type):
+        QPushButton.__init__(self)
+        self._au_id = None
+        self._proc_id = None
+        self._ui_model = None
+        self._updater = None
+        self._wave_type = wave_type
+        self._warp_type = warp_type
 
-    def _warp_added(self):
+        self._add_text = { 'pre': 'Add prewarp', 'post': 'Add postwarp' }[warp_type]
+        self.setText(self._add_text)
+
+    def set_au_id(self, au_id):
+        self._au_id = au_id
+
+    def set_proc_id(self, proc_id):
+        self._proc_id = proc_id
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+
+        QObject.connect(self, SIGNAL('clicked()'), self._add_warp)
+
+    def unregister_updaters(self):
+        pass
+
+    def _get_update_signal_type(self):
+        return ''.join(
+                ('signal_proc_add_', self._au_id, self._proc_id, self._wave_type))
+
+    def _add_warp(self):
         add_params = get_add_params(self)
         add_params.add_warp_func(self._wave_type, self._warp_type)
         self._updater.signal_update(set([self._get_update_signal_type()]))
-
-    def _do_width_hack(self):
-        self.widget().setFixedWidth(
-                self.width() - self.verticalScrollBar().width() - 5)
-
-    def resizeEvent(self, event):
-        self._do_width_hack()
 
 
 class SmallButton(QPushButton):
@@ -478,34 +478,10 @@ class WarpEditor(QWidget):
         self._updater.signal_update(set([self._get_update_signal_type()]))
 
 
-class ToneListContainer(QWidget):
-
-    def __init__(self):
-        QWidget.__init__(self)
-        v = QVBoxLayout()
-        v.setMargin(0)
-        v.setSpacing(0)
-        v.setSizeConstraint(QLayout.SetMinimumSize)
-        self.setLayout(v)
-
-
-class ToneListArea(QScrollArea):
-
-    def __init__(self):
-        QScrollArea.__init__(self)
-
-    def do_width_hack(self):
-        self.widget().setFixedWidth(
-                self.width() - self.verticalScrollBar().width() - 5)
-
-    def resizeEvent(self, event):
-        self.do_width_hack()
-
-
-class ToneList(QWidget):
+class ToneList(EditorList):
 
     def __init__(self, wave_type):
-        QWidget.__init__(self)
+        EditorList.__init__(self)
 
         self._au_id = None
         self._proc_id = None
@@ -514,31 +490,7 @@ class ToneList(QWidget):
         self._icon_bank = None
         self._wave_type = wave_type
 
-        self._area = ToneListArea()
-
-        self._init_container()
-
-        self._area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self._area.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
-
-        v = QVBoxLayout()
-        v.setMargin(0)
-        v.setSpacing(2)
-        v.addWidget(HeaderLine('Tones'))
-        v.addWidget(self._area)
-        self.setLayout(v)
-
-    def _init_container(self):
-        self._area.setWidget(ToneListContainer())
-        add_button = QPushButton('Add tone')
-        QObject.connect(add_button, SIGNAL('clicked()'), self._tone_added)
-        self._area.widget().layout().addWidget(add_button)
-
-    def _disconnect_editors(self):
-        layout = self._area.widget().layout()
-        for i in xrange(layout.count() - 1):
-            editor = layout.itemAt(i).widget()
-            editor.unregister_updaters()
+        self._adder = None
 
     def set_au_id(self, au_id):
         self._au_id = au_id
@@ -555,8 +507,33 @@ class ToneList(QWidget):
         self._update_all()
 
     def unregister_updaters(self):
-        self._disconnect_editors()
+        self.disconnect_widgets()
         self._updater.unregister_updater(self._perform_updates)
+
+    def _make_adder_widget(self):
+        self._adder = ToneAdder(self._wave_type)
+        self._adder.set_au_id(self._au_id)
+        self._adder.set_proc_id(self._proc_id)
+        self._adder.set_ui_model(self._ui_model)
+        return self._adder
+
+    def _get_updated_editor_count(self):
+        add_params = get_add_params(self)
+        count = add_params.get_tone_count(self._wave_type)
+        return count
+
+    def _make_editor_widget(self, index):
+        editor = ToneEditor(self._wave_type, index, self._icon_bank)
+        editor.set_au_id(self._au_id)
+        editor.set_proc_id(self._proc_id)
+        editor.set_ui_model(self._ui_model)
+        return editor
+
+    def _update_editor(self, index, editor):
+        pass
+
+    def _disconnect_widget(self, widget):
+        widget.unregister_updaters()
 
     def _get_update_signal_type(self):
         return ''.join(('signal_proc_add_tone_', self._au_id, self._proc_id))
@@ -567,36 +544,46 @@ class ToneList(QWidget):
             self._update_all()
 
     def _update_all(self):
+        self.update_list()
+
         add_params = get_add_params(self)
-
-        # Set tone count
-        layout = self._area.widget().layout()
         count = add_params.get_tone_count(self._wave_type)
-        if count < layout.count() - 1:
-            self._disconnect_editors()
-            self._init_container()
-            layout = self._area.widget().layout()
-
-        # Create new tone editors
-        for i in xrange(layout.count() - 1, count):
-            editor = ToneEditor(self._wave_type, i, self._icon_bank)
-            editor.set_au_id(self._au_id)
-            editor.set_proc_id(self._proc_id)
-            editor.set_ui_model(self._ui_model)
-            layout.insertWidget(i, editor)
-
         max_count_reached = (count >= add_params.get_max_tone_count())
-        layout.itemAt(layout.count() - 1).widget().setVisible(not max_count_reached)
+        self._adder.setVisible(not max_count_reached)
 
-        self._area.do_width_hack()
 
-    def _tone_added(self):
+class ToneAdder(QPushButton):
+
+    def __init__(self, wave_type):
+        QPushButton.__init__(self, 'Add tone')
+        self._au_id = None
+        self._proc_id = None
+        self._ui_model = None
+        self._updater = None
+        self._wave_type = wave_type
+
+    def set_au_id(self, au_id):
+        self._au_id = au_id
+
+    def set_proc_id(self, proc_id):
+        self._proc_id = proc_id
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+
+        QObject.connect(self, SIGNAL('clicked()'), self._add_tone)
+
+    def unregister_updaters(self):
+        pass
+
+    def _get_update_signal_type(self):
+        return ''.join(('signal_proc_add_tone_', self._au_id, self._proc_id))
+
+    def _add_tone(self):
         add_params = get_add_params(self)
         add_params.add_tone(self._wave_type)
         self._updater.signal_update(set([self._get_update_signal_type()]))
-
-    def resizeEvent(self, event):
-        self._area.do_width_hack()
 
 
 class ToneEditor(QWidget):

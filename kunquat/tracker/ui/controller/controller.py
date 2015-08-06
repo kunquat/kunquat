@@ -192,12 +192,26 @@ class Controller():
         self._store.put(transaction)
         self._updater.signal_update(set(['signal_controls', 'signal_module']))
 
+    def _reset_runtime_env(self):
+        self._session.reset_runtime_env()
+        self._updater.signal_update(set(['signal_runtime_env']))
+
     def play(self):
-        self._audio_engine.nanoseconds(0)
+        self._audio_engine.reset_and_pause()
         self._session.reset_max_audio_levels()
+        self._reset_runtime_env()
+
+        if self._session.get_infinite_mode():
+            self._audio_engine.tfire_event(0, ('cinfinite+', None))
+
+        self._audio_engine.tfire_event(0, ('cresume', None))
 
     def play_pattern(self, pattern_instance):
         self._audio_engine.reset_and_pause()
+        self._reset_runtime_env()
+
+        if self._session.get_infinite_mode():
+            self._audio_engine.tfire_event(0, ('cinfinite+', None))
 
         play_event = ('cpattern', pattern_instance)
         self._audio_engine.tfire_event(0, play_event)
@@ -207,6 +221,10 @@ class Controller():
 
     def play_from_cursor(self, pattern_instance, row_ts):
         self._audio_engine.reset_and_pause()
+        self._reset_runtime_env()
+
+        if self._session.get_infinite_mode():
+            self._audio_engine.tfire_event(0, ('cinfinite+', None))
 
         set_goto_pinst = ('c.gp', pattern_instance)
         set_goto_row = ('c.gr', row_ts)
@@ -219,13 +237,27 @@ class Controller():
 
     def silence(self):
         self._audio_engine.reset_and_pause()
+        self._reset_runtime_env()
 
         # Note: easy way out for syncing note kills, but causes event noise
+        # TODO: figure out a better solution, this may mess things up with bind
         for ch in xrange(64): # TODO: channel count constant
             note_off_event = ('n-', None)
             self._audio_engine.tfire_event(ch, note_off_event)
 
+        if self._session.get_infinite_mode():
+            self._audio_engine.tfire_event(0, ('cinfinite+', None))
+
         self._session.reset_max_audio_levels()
+
+    def set_infinite_mode(self, enabled):
+        self._session.set_infinite_mode(enabled)
+
+        event_name = 'cinfinite+' if self._session.get_infinite_mode() else 'cinfinite-'
+        self._audio_engine.tfire_event(0, (event_name, None))
+
+    def get_infinite_mode(self):
+        return self._session.get_infinite_mode()
 
     def start_tracked_note(self, channel_number, control_id, pitch):
         note = self._note_channel_mapper.get_tracked_note(channel_number, False)
@@ -272,6 +304,33 @@ class Controller():
     def update_active_note(self, channel, pitch):
         self._session.set_active_note(channel, pitch)
         self._updater.signal_update()
+
+    def update_active_var_name(self, ch, var_type, var_name):
+        self._session.set_active_var_name(ch, var_type, var_name)
+
+    def update_active_var_value(self, ch, var_type, var_value):
+        self._session.set_active_var_value(ch, var_type, var_value)
+        self._updater.signal_update(set(['signal_runtime_env']))
+
+    def set_runtime_var_value(self, var_type, var_name, var_value):
+        # Get current active variable name
+        old_name = self._session.get_active_var_name(0, var_type) or ''
+
+        # Set new value
+        base_event_names = {
+            bool:           'c.B',
+            int:            'c.I',
+            float:          'c.F',
+            tstamp.Tstamp:  'c.T',
+        }
+        name_event = ('{}n'.format(base_event_names[var_type]), var_name)
+        value_event = (base_event_names[var_type], var_value)
+        self._audio_engine.tfire_event(0, name_event)
+        self._audio_engine.tfire_event(0, value_event)
+
+        # Restore old active variable name so that we don't mess up playback
+        old_name_event = ('{}n'.format(base_event_names[var_type]), old_name)
+        self._audio_engine.tfire_event(0, old_name_event)
 
     def send_queries(self):
         if self._session.get_record_mode():
