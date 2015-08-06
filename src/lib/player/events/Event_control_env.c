@@ -143,7 +143,7 @@ bool Event_control_env_set_tstamp_process(
             Active_names_get(
                 channel->parent.active_names,
                 ACTIVE_CAT_ENV,
-                ACTIVE_TYPE_FLOAT));
+                ACTIVE_TYPE_TSTAMP));
     if (var == NULL || Env_var_get_type(var) != VALUE_TYPE_TSTAMP)
         return true;
 
