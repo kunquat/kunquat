@@ -47,12 +47,10 @@ typedef struct Chorus_voice_params
 typedef struct Chorus_voice
 {
     double delay;
-    //double offset;
     LFO delay_variance;
     double range;
     double speed;
     double volume;
-    //int32_t buf_pos;
 } Chorus_voice;
 
 
@@ -79,17 +77,14 @@ static void Chorus_voice_reset(
     ignore(audio_rate);
 
     voice->delay = 0;
-    //voice->offset = 0;
     voice->range = 0;
     voice->speed = 0;
     voice->volume = 0;
-    //voice->buf_pos = 0;
 
     voice->delay = params->delay;
     if (voice->delay < 0 || voice->delay >= CHORUS_BUF_TIME / 2)
         return;
 
-    //voice->offset = 0;
     voice->delay = params->delay;
 
     voice->range = min(params->range, 0.999 * voice->delay);
@@ -99,14 +94,6 @@ static void Chorus_voice_reset(
     LFO_set_speed(&voice->delay_variance, voice->speed);
 
     voice->volume = params->volume;
-
-    /*
-    double buf_pos = voice->delay * audio_rate;
-    assert(buf_pos >= 0);
-    assert(buf_pos < buffer_size - 1);
-    voice->buf_pos = fmod((buffer_size + master_buf_pos - buf_pos), buffer_size);
-    assert(voice->buf_pos >= 0);
-    // */
 
     return;
 }
@@ -171,11 +158,6 @@ static bool Proc_chorus_init(Device_impl* dimpl);
 static Device_state* Proc_chorus_create_state(
         const Device* device, int32_t audio_rate, int32_t audio_buffer_size);
 
-/*
-static void Proc_chorus_update_tempo(
-        const Device_impl* dimpl, Device_state* dstate, double tempo);
-// */
-
 static void Proc_chorus_reset(const Device_impl* dimpl, Device_state* dstate);
 
 
@@ -234,7 +216,6 @@ static bool Proc_chorus_init(Device_impl* dimpl)
     Processor_set_clear_history(
             (Processor*)chorus->parent.device, Proc_chorus_clear_history);
 
-    //Device_impl_register_update_tempo(&chorus->parent, Proc_chorus_update_tempo);
     Device_impl_register_reset_device_state(&chorus->parent, Proc_chorus_reset);
 
     // Register key set/update handlers
@@ -318,28 +299,6 @@ static Device_state* Proc_chorus_create_state(
 
     return &cstate->parent.parent;
 }
-
-
-/*
-static void Proc_chorus_update_tempo(
-        const Device_impl* dimpl, Device_state* dstate, double tempo)
-{
-    assert(dimpl != NULL);
-    assert(dstate != NULL);
-    assert(isfinite(tempo));
-    assert(tempo > 0);
-
-    Chorus_state* cstate = (Chorus_state*)dstate;
-
-    for (int i = 0; i < CHORUS_VOICES_MAX; ++i)
-    {
-        Chorus_voice* voice = &cstate->voices[i];
-        LFO_set_tempo(&voice->delay_variance, tempo);
-    }
-
-    return;
-}
-// */
 
 
 static void Proc_chorus_reset(const Device_impl* dimpl, Device_state* dstate)
@@ -577,43 +536,11 @@ static bool Proc_chorus_set_audio_rate(
     for (int i = 0; i < CHORUS_VOICES_MAX; ++i)
     {
         Chorus_voice* voice = &cstate->voices[i];
-
         LFO_set_mix_rate(&voice->delay_variance, audio_rate);
-        if (voice->delay < 0 || voice->delay >= CHORUS_BUF_TIME / 2)
-            continue;
-
-        /*
-        double buf_pos = voice->delay * audio_rate;
-        assert(buf_pos >= 0);
-        assert(buf_pos < buf_len - 1);
-        voice->buf_pos = fmod((buf_len - buf_pos), buf_len);
-        assert(voice->buf_pos >= 0);
-        // */
     }
 
     return true;
 }
-
-
-// FIXME: get rid of this mess
-/*
-static void check_params(Chorus_state* cstate, double tempo)
-{
-    assert(cstate != NULL);
-    assert(tempo > 0);
-
-    for (int i = 0; i < CHORUS_VOICES_MAX; ++i)
-    {
-        Chorus_voice* voice = &cstate->voices[i];
-        if (voice->delay < 0 || voice->delay >= CHORUS_BUF_TIME / 2)
-            continue;
-
-        LFO_set_tempo(&voice->delay_variance, tempo);
-    }
-
-    return;
-}
-// */
 
 
 static void Proc_chorus_process(
@@ -650,8 +577,6 @@ static void Proc_chorus_process(
 
     const int32_t buf_size = Audio_buffer_get_size(cstate->buf);
     assert(buf_start <= buf_stop);
-
-    //check_params(cstate, tempo);
 
     static const int CHORUS_WORK_BUFFER_TOTAL_OFFSETS = WORK_BUFFER_IMPL_1;
 
@@ -745,54 +670,6 @@ static void Proc_chorus_process(
 
             out_data[0][i] += val_l;
             out_data[1][i] += val_r;
-
-            /*
-            // Update relative offset
-            //voice->offset = LFO_step(&voice->delay_variance);
-            assert(voice->delay + voice->offset >= 0);
-            assert(voice->delay + voice->offset < CHORUS_BUF_TIME);
-
-            // Update buffer position
-            const double ideal_buf_pos = voice->buf_pos + audio_rate * voice->offset;
-            int32_t buf_pos = (int32_t)ideal_buf_pos;
-            const double remainder = ideal_buf_pos - buf_pos;
-
-            if (buf_pos >= buf_size)
-            {
-                buf_pos -= buf_size;
-                assert(buf_pos < buf_size);
-            }
-            else if (buf_pos < 0)
-            {
-                buf_pos += buf_size;
-                assert(buf_pos >= 0);
-            }
-
-            int32_t next_pos = buf_pos + 1;
-            if (next_pos >= buf_size)
-                next_pos = 0;
-
-            // New frame
-            const double prev_scale = 1 - remainder;
-            const kqt_frame val_l =
-                (prev_scale * voice_volume * buf[0][buf_pos]) +
-                (remainder * voice_volume * buf[0][next_pos]);
-            const kqt_frame val_r =
-                (prev_scale * voice_volume * buf[1][buf_pos]) +
-                (remainder * voice_volume * buf[1][next_pos]);
-
-            // Add signal to output buffers
-            out_data[0][i] += val_l;
-            out_data[1][i] += val_r;
-
-            // Advance buffer position
-            ++voice->buf_pos;
-            if (voice->buf_pos >= buf_size)
-            {
-                assert(voice->buf_pos == buf_size);
-                voice->buf_pos = 0;
-            }
-            // */
         }
     }
 
@@ -813,70 +690,6 @@ static void Proc_chorus_process(
     }
 
     cstate->buf_pos = cur_cstate_buf_pos;
-
-    // TODO: obsolete implementation, remove
-#if 0
-    for (uint32_t i = buf_start; i < buf_stop; ++i)
-    {
-        buf[0][cstate->buf_pos] = in_data[0][i];
-        buf[1][cstate->buf_pos] = in_data[1][i];
-
-        kqt_frame val_l = 0;
-        kqt_frame val_r = 0;
-
-        for (int vi = 0; vi < CHORUS_VOICES_MAX; ++vi)
-        {
-            Chorus_voice* voice = &cstate->voices[vi];
-            if (voice->delay < 0 || voice->delay >= CHORUS_BUF_TIME / 2)
-                continue;
-
-            LFO_turn_on(&voice->delay_variance);
-            voice->offset = LFO_step(&voice->delay_variance);
-            assert(voice->delay + voice->offset >= 0);
-            assert(voice->delay + voice->offset < CHORUS_BUF_TIME);
-            double ideal_buf_pos = voice->buf_pos + audio_rate * voice->offset;
-            int32_t buf_pos = (int32_t)ideal_buf_pos;
-            double remainder = ideal_buf_pos - buf_pos;
-
-            if (buf_pos >= buf_size)
-            {
-                buf_pos -= buf_size;
-                assert(buf_pos < buf_size);
-            }
-            else if (buf_pos < 0)
-            {
-                buf_pos += buf_size;
-                assert(buf_pos >= 0);
-            }
-
-            int32_t next_pos = buf_pos + 1;
-            if (next_pos >= buf_size)
-                next_pos = 0;
-
-            val_l += (1 - remainder) * voice->volume * buf[0][buf_pos];
-            val_l += remainder * voice->volume * buf[0][next_pos];
-            val_r += (1 - remainder) * voice->volume * buf[1][buf_pos];
-            val_r += remainder * voice->volume * buf[1][next_pos];
-
-            ++voice->buf_pos;
-            if (voice->buf_pos >= buf_size)
-            {
-                assert(voice->buf_pos == buf_size);
-                voice->buf_pos = 0;
-            }
-        }
-
-        out_data[0][i] += val_l;
-        out_data[1][i] += val_r;
-
-        ++cstate->buf_pos;
-        if (cstate->buf_pos >= buf_size)
-        {
-            assert(cstate->buf_pos == buf_size);
-            cstate->buf_pos = 0;
-        }
-    }
-#endif
 
     return;
 }
