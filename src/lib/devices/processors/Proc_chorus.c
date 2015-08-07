@@ -641,42 +641,43 @@ static void Proc_chorus_process(
             double cur_val_r = 0;
             double next_val_l = 0;
             double next_val_r = 0;
-            if (next_pos >= 0)
+
+            if (cur_pos >= 0)
             {
+                const int32_t in_cur_pos = buf_start + cur_pos;
+                assert(in_cur_pos < (int32_t)buf_stop);
+                cur_val_l = in_data[0][in_cur_pos];
+                cur_val_r = in_data[1][in_cur_pos];
+
                 const int32_t in_next_pos = min(buf_start + next_pos, i);
                 assert(in_next_pos < (int32_t)buf_stop);
                 next_val_l = in_data[0][in_next_pos];
                 next_val_r = in_data[1][in_next_pos];
-
-                if (cur_pos >= 0)
-                {
-                    const int32_t in_cur_pos = buf_start + cur_pos;
-                    assert(in_cur_pos < (int32_t)buf_stop);
-                    cur_val_l = in_data[0][in_cur_pos];
-                    cur_val_r = in_data[1][in_cur_pos];
-                }
-                else
-                {
-                    const int32_t cur_delay_buf_pos =
-                        (cur_cstate_buf_pos + cur_pos + delay_buf_size) % delay_buf_size;
-                    assert(cur_delay_buf_pos >= 0);
-                    cur_val_l = buf[0][cur_delay_buf_pos];
-                    cur_val_r = buf[1][cur_delay_buf_pos];
-                }
             }
             else
             {
                 const int32_t cur_delay_buf_pos =
                     (cur_cstate_buf_pos + cur_pos + delay_buf_size) % delay_buf_size;
-                const int32_t next_delay_buf_pos =
-                    (cur_cstate_buf_pos + next_pos + delay_buf_size) % delay_buf_size;
                 assert(cur_delay_buf_pos >= 0);
-                assert(next_delay_buf_pos >= 0);
 
                 cur_val_l = buf[0][cur_delay_buf_pos];
                 cur_val_r = buf[1][cur_delay_buf_pos];
-                next_val_l = buf[0][next_delay_buf_pos];
-                next_val_r = buf[1][next_delay_buf_pos];
+
+                if (next_pos < 0)
+                {
+                    const int32_t next_delay_buf_pos =
+                        (cur_cstate_buf_pos + next_pos + delay_buf_size) % delay_buf_size;
+                    assert(next_delay_buf_pos >= 0);
+
+                    next_val_l = buf[0][next_delay_buf_pos];
+                    next_val_r = buf[1][next_delay_buf_pos];
+                }
+                else
+                {
+                    assert(next_pos == 0);
+                    next_val_l = in_data[0][buf_start];
+                    next_val_r = in_data[1][buf_start];
+                }
             }
 
             // Create output frame
