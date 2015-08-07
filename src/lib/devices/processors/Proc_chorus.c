@@ -108,8 +108,8 @@ static void Chorus_state_reset(
 
     Proc_state_reset(&cstate->parent);
 
-    uint32_t buf_size = Audio_buffer_get_size(cstate->buf);
-    Audio_buffer_clear(cstate->buf, 0, buf_size);
+    uint32_t delay_buf_size = Audio_buffer_get_size(cstate->buf);
+    Audio_buffer_clear(cstate->buf, 0, delay_buf_size);
     cstate->buf_pos = 0;
 
     for (int i = 0; i < CHORUS_VOICES_MAX; ++i)
@@ -121,7 +121,7 @@ static void Chorus_state_reset(
                 params,
                 cstate->buf_pos,
                 cstate->parent.parent.audio_rate,
-                buf_size);
+                delay_buf_size);
     }
 
     return;
@@ -324,7 +324,9 @@ static void Proc_chorus_clear_history(
     assert(proc_state != NULL);
 
     Chorus_state* cstate = (Chorus_state*)proc_state;
-    Audio_buffer_clear(cstate->buf, 0, cstate->parent.parent.audio_buffer_size);
+    Audio_buffer_clear(cstate->buf, 0, Audio_buffer_get_size(cstate->buf));
+
+    cstate->buf_pos = 0;
 
     return;
 }
@@ -410,12 +412,16 @@ static void Proc_chorus_update_state_voice_delay(
 
     Chorus_state* cstate = (Chorus_state*)dstate;
     Chorus_voice* voice = &cstate->voices[indices[0]];
-    uint32_t buf_size = Audio_buffer_get_size(cstate->buf);
+    uint32_t delay_buf_size = Audio_buffer_get_size(cstate->buf);
 
     voice->delay = get_voice_delay(value);
 
     Chorus_voice_reset(
-            voice, params, cstate->buf_pos, cstate->parent.parent.audio_rate, buf_size);
+            voice,
+            params,
+            cstate->buf_pos,
+            cstate->parent.parent.audio_rate,
+            delay_buf_size);
 
     return;
 }
@@ -439,7 +445,7 @@ static void Proc_chorus_update_state_voice_range(
 
     Chorus_state* cstate = (Chorus_state*)dstate;
     Chorus_voice* voice = &cstate->voices[indices[0]];
-    uint32_t buf_size = Audio_buffer_get_size(cstate->buf);
+    uint32_t delay_buf_size = Audio_buffer_get_size(cstate->buf);
 
     voice->range = get_voice_range(value);
     voice->range = min(voice->range, 0.999 * voice->delay);
@@ -447,7 +453,11 @@ static void Proc_chorus_update_state_voice_range(
     LFO_set_depth(&voice->delay_variance, voice->range);
 
     Chorus_voice_reset(
-            voice, params, cstate->buf_pos, cstate->parent.parent.audio_rate, buf_size);
+            voice,
+            params,
+            cstate->buf_pos,
+            cstate->parent.parent.audio_rate,
+            delay_buf_size);
 
     return;
 }
@@ -471,14 +481,18 @@ static void Proc_chorus_update_state_voice_speed(
 
     Chorus_state* cstate = (Chorus_state*)dstate;
     Chorus_voice* voice = &cstate->voices[indices[0]];
-    uint32_t buf_size = Audio_buffer_get_size(cstate->buf);
+    uint32_t delay_buf_size = Audio_buffer_get_size(cstate->buf);
 
     voice->speed = get_voice_speed(value);
 
     LFO_set_speed(&voice->delay_variance, voice->speed);
 
     Chorus_voice_reset(
-            voice, params, cstate->buf_pos, cstate->parent.parent.audio_rate, buf_size);
+            voice,
+            params,
+            cstate->buf_pos,
+            cstate->parent.parent.audio_rate,
+            delay_buf_size);
 
     return;
 }
@@ -502,12 +516,16 @@ static void Proc_chorus_update_state_voice_volume(
 
     Chorus_state* cstate = (Chorus_state*)dstate;
     Chorus_voice* voice = &cstate->voices[indices[0]];
-    uint32_t buf_size = Audio_buffer_get_size(cstate->buf);
+    uint32_t delay_buf_size = Audio_buffer_get_size(cstate->buf);
 
     voice->volume = get_voice_volume(value);
 
     Chorus_voice_reset(
-            voice, params, cstate->buf_pos, cstate->parent.parent.audio_rate, buf_size);
+            voice,
+            params,
+            cstate->buf_pos,
+            cstate->parent.parent.audio_rate,
+            delay_buf_size);
 
     return;
 }
@@ -575,7 +593,7 @@ static void Proc_chorus_process(
         Audio_buffer_get_buffer(cstate->buf, 1),
     };
 
-    const int32_t buf_size = Audio_buffer_get_size(cstate->buf);
+    const int32_t delay_buf_size = Audio_buffer_get_size(cstate->buf);
     assert(buf_start <= buf_stop);
 
     static const int CHORUS_WORK_BUFFER_TOTAL_OFFSETS = WORK_BUFFER_IMPL_1;
@@ -616,7 +634,7 @@ static void Proc_chorus_process(
             const double remainder = total_offset - cur_pos;
             assert(cur_pos <= (int32_t)i);
             assert(!(cur_pos == (int32_t)i) || (remainder == 0));
-            const int32_t next_pos = min(cur_pos + 1, (int32_t)i);
+            const int32_t next_pos = cur_pos + 1;
 
             // Get audio frames
             double cur_val_l = 0;
@@ -625,20 +643,22 @@ static void Proc_chorus_process(
             double next_val_r = 0;
             if (next_pos >= 0)
             {
-                const int32_t in_next_pos = buf_start + next_pos;
+                const int32_t in_next_pos = min(buf_start + next_pos, i);
+                assert(in_next_pos < (int32_t)buf_stop);
                 next_val_l = in_data[0][in_next_pos];
                 next_val_r = in_data[1][in_next_pos];
 
                 if (cur_pos >= 0)
                 {
                     const int32_t in_cur_pos = buf_start + cur_pos;
+                    assert(in_cur_pos < (int32_t)buf_stop);
                     cur_val_l = in_data[0][in_cur_pos];
                     cur_val_r = in_data[1][in_cur_pos];
                 }
                 else
                 {
                     const int32_t cur_delay_buf_pos =
-                        (cur_cstate_buf_pos + cur_pos + buf_size) % buf_size;
+                        (cur_cstate_buf_pos + cur_pos + delay_buf_size) % delay_buf_size;
                     assert(cur_delay_buf_pos >= 0);
                     cur_val_l = buf[0][cur_delay_buf_pos];
                     cur_val_r = buf[1][cur_delay_buf_pos];
@@ -647,9 +667,9 @@ static void Proc_chorus_process(
             else
             {
                 const int32_t cur_delay_buf_pos =
-                    (cur_cstate_buf_pos + cur_pos + buf_size) % buf_size;
+                    (cur_cstate_buf_pos + cur_pos + delay_buf_size) % delay_buf_size;
                 const int32_t next_delay_buf_pos =
-                    (cur_cstate_buf_pos + next_pos + buf_size) % buf_size;
+                    (cur_cstate_buf_pos + next_pos + delay_buf_size) % delay_buf_size;
                 assert(cur_delay_buf_pos >= 0);
                 assert(next_delay_buf_pos >= 0);
 
@@ -679,12 +699,12 @@ static void Proc_chorus_process(
         buf[0][cur_cstate_buf_pos] = in_data[0][i];
         buf[1][cur_cstate_buf_pos] = in_data[1][i];
 
-        //cur_cstate_buf_pos = (cur_cstate_buf_pos + 1) % buf_size;
+        //cur_cstate_buf_pos = (cur_cstate_buf_pos + 1) % delay_buf_size;
 
         ++cur_cstate_buf_pos;
-        if (cur_cstate_buf_pos >= buf_size)
+        if (cur_cstate_buf_pos >= delay_buf_size)
         {
-            assert(cur_cstate_buf_pos == buf_size);
+            assert(cur_cstate_buf_pos == delay_buf_size);
             cur_cstate_buf_pos = 0;
         }
     }
