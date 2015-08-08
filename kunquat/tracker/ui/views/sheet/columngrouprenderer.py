@@ -89,6 +89,14 @@ class ColumnGroupRenderer():
             for cache in self._inactive_caches:
                 cache.flush()
 
+    def flush_final_pixmaps(self):
+        if self._caches:
+            for cache in self._caches:
+                cache.flush_final_pixmaps()
+        if self._inactive_caches:
+            for cache in self._inactive_caches:
+                cache.flush_final_pixmaps()
+
     def set_pattern_lengths(self, lengths):
         self._lengths = lengths
 
@@ -264,6 +272,13 @@ class ColumnGroupRenderer():
         return pixmaps_created
 
 
+GRID_LINE_PENS = {
+    0: QPen(QBrush(QColor(0xa0, 0xa0, 0xa0)), 1, Qt.SolidLine),
+    1: QPen(QBrush(QColor(0x60, 0x60, 0x60)), 1, Qt.SolidLine),
+    2: QPen(QBrush(QColor(0x40, 0x40, 0x40)), 1, Qt.DashLine),
+}
+
+
 class ColumnCache():
 
     PIXMAP_HEIGHT = 256
@@ -272,6 +287,7 @@ class ColumnCache():
         self._col_num = col_num
         self._pat_num = pat_num
         self._inactive = False
+        self._ui_model = None
 
         self._pixmaps = BufferCache()
         self._pixmaps_created = 0
@@ -291,6 +307,7 @@ class ColumnCache():
         self._tr_cache.set_config(config)
 
     def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
         self._tr_cache.set_ui_model(ui_model)
 
     def set_column(self, column):
@@ -300,6 +317,9 @@ class ColumnCache():
     def flush(self):
         self._pixmaps.flush()
         self._tr_cache.flush()
+
+    def flush_final_pixmaps(self):
+        self._pixmaps.flush()
 
     def set_width(self, width):
         if self._width != width:
@@ -385,6 +405,27 @@ class ColumnCache():
             abs_y = rems * self._px_per_beat // tstamp.BEAT
             y_offset = abs_y - start_px
             return y_offset
+
+        # Grid
+        sheet_manager = self._ui_model.get_sheet_manager()
+        if sheet_manager.is_grid_enabled():
+            grid_start_ts = tstamp.Tstamp(0, start_px * tstamp.BEAT // self._px_per_beat)
+            lines = sheet_manager.get_grid_lines(self._col_num, grid_start_ts, stop_ts)
+            painter.save()
+
+            for line_info in lines:
+                line_ts, line_style = line_info
+                line_y_offset = ts_to_y_offset(line_ts)
+
+                pen = QPen(GRID_LINE_PENS[line_style])
+                pen.setColor(self._get_final_colour(pen.color()))
+
+                painter.setPen(pen)
+                painter.drawLine(
+                        QPoint(0, line_y_offset),
+                        QPoint(self._width - 1, line_y_offset))
+
+            painter.restore()
 
         # Trigger rows
         painter.setCompositionMode(QPainter.CompositionMode_SourceOver)

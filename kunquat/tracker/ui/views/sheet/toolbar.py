@@ -41,6 +41,7 @@ class Toolbar(QWidget):
                 ZoomButton('original_w'),
                 ZoomButton('expand_w'),
             ]
+        self._grid_toggle = GridToggle()
         self._length_editor = LengthEditor()
 
         h = QHBoxLayout()
@@ -56,6 +57,8 @@ class Toolbar(QWidget):
         h.addWidget(HackSeparator())
         for button in self._zoom_buttons:
             h.addWidget(button)
+        h.addWidget(HackSeparator())
+        h.addWidget(self._grid_toggle)
 
         spacer = QWidget()
         spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
@@ -73,6 +76,7 @@ class Toolbar(QWidget):
         self._del_selection_button.set_ui_model(ui_model)
         for button in self._zoom_buttons:
             button.set_ui_model(ui_model)
+        self._grid_toggle.set_ui_model(ui_model)
         self._length_editor.set_ui_model(ui_model)
 
     def unregister_updaters(self):
@@ -82,7 +86,49 @@ class Toolbar(QWidget):
         self._del_selection_button.unregister_updaters()
         for button in self._zoom_buttons:
             button.unregister_updaters()
+        self._grid_toggle.unregister_updaters()
         self._length_editor.unregister_updaters()
+
+
+class GridToggle(QCheckBox):
+
+    def __init__(self):
+        QCheckBox.__init__(self)
+        self._ui_model = None
+        self._updater = None
+
+        self.setText('Grid')
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+
+        QObject.connect(self, SIGNAL('clicked()'), self._set_grid_enabled)
+
+        self._update_state()
+
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _perform_updates(self, signals):
+        if 'signal_grid' in signals:
+            self._update_state()
+
+    def _update_state(self):
+        sheet_manager = self._ui_model.get_sheet_manager()
+        is_grid_enabled = sheet_manager.is_grid_enabled()
+
+        old_block = self.blockSignals(True)
+        self.setCheckState(Qt.Checked if is_grid_enabled else Qt.Unchecked)
+        self.blockSignals(old_block)
+
+    def _set_grid_enabled(self):
+        enabled = (self.checkState() == Qt.Checked)
+
+        sheet_manager = self._ui_model.get_sheet_manager()
+        sheet_manager.set_grid_enabled(enabled)
+        self._updater.signal_update(set(['signal_grid']))
 
 
 class HackSeparator(QFrame):

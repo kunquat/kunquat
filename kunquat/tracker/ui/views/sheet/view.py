@@ -180,6 +180,9 @@ class View(QWidget):
             self.update()
         if 'signal_replace_mode' in signals:
             self.update()
+        if 'signal_grid' in signals:
+            self._update_grid()
+            self.update()
 
         for signal in signals:
             if signal.startswith(SheetManager.get_column_signal_head()):
@@ -213,6 +216,10 @@ class View(QWidget):
             cr.flush_caches()
         all_pinsts = utils.get_all_pattern_instances(self._ui_model)
         self.set_pattern_instances(all_pinsts)
+
+    def _update_grid(self):
+        for cr in self._col_rends:
+            cr.flush_final_pixmaps()
 
     def _update_column(self, track_num, system_num, col_num):
         pattern_index = utils.get_pattern_index_at_location(
