@@ -326,4 +326,26 @@ class SheetManager():
     def get_replace_mode(self):
         return self._session.get_replace_mode()
 
+    def set_grid_enabled(self, enabled):
+        self._session.set_grid_enabled(enabled)
+
+    def is_grid_enabled(self):
+        return self._session.is_grid_enabled()
+
+    def get_grid_lines(self, col, start_ts, stop_ts):
+        # TODO: quick test grid, this should come from module data
+        import math
+        start_pos_scaled = int(math.ceil(float(start_ts * 4)))
+        stop_pos_scaled = int(math.ceil(float(stop_ts * 4)))
+        lines = []
+        for pos_scaled in xrange(start_pos_scaled, stop_pos_scaled):
+            ts = tstamp.Tstamp(pos_scaled * 0.25)
+            if ts.rem == 0:
+                line_style = 0 if ts.beats % 4 == 0 else 1
+            else:
+                line_style = 2
+            lines.append((ts, line_style))
+
+        return lines
+
 

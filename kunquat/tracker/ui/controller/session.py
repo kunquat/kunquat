@@ -57,6 +57,7 @@ class Session():
         self._typewriter_connected = False
         self._replace_mode_enabled = False
         self._record_mode_enabled = False
+        self._is_grid_enabled = True
         self._pending_playback_cursor_track = 0
         self._pending_playback_cursor_system = 0
         self._playback_cursor_position = (0, 0, [0, 0])
@@ -343,6 +344,12 @@ class Session():
 
     def get_selected_track_num(self):
         return self._track_selection
+
+    def set_grid_enabled(self, enabled):
+        self._is_grid_enabled = enabled
+
+    def is_grid_enabled(self):
+        return self._is_grid_enabled
 
     def set_module_path(self, path):
         self._module_path = path
