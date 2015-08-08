@@ -161,6 +161,7 @@ void Connections_process_voice_group(
  *
  * \param graph    The Connections -- must not be \c NULL.
  * \param states   The Device states -- must not be \c NULL.
+ * \param wbs      The Work buffers -- must not be \c NULL.
  * \param start    The first frame to be mixed -- must be less than the
  *                 buffer size.
  * \param until    The first frame not to be mixed -- must be less than or
@@ -172,6 +173,7 @@ void Connections_process_voice_group(
 void Connections_mix(
         Connections* graph,
         Device_states* device_states,
+        const Work_buffers* wbs,
         uint32_t start,
         uint32_t until,
         uint32_t freq,

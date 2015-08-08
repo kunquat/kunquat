@@ -614,6 +614,7 @@ void Device_node_process_voice_group(
 void Device_node_mix(
         Device_node* node,
         Device_states* states,
+        const Work_buffers* wbs,
         uint32_t start,
         uint32_t until,
         uint32_t freq,
@@ -621,6 +622,7 @@ void Device_node_mix(
 {
     assert(node != NULL);
     assert(states != NULL);
+    assert(wbs != NULL);
     assert(freq > 0);
     assert(isfinite(tempo));
     assert(tempo > 0);
@@ -666,7 +668,7 @@ void Device_node_mix(
                 continue;
             }
 
-            Device_node_mix(edge->node, states, start, until, freq, tempo);
+            Device_node_mix(edge->node, states, wbs, start, until, freq, tempo);
 
             Audio_buffer* send = Device_state_get_audio_buffer(
                     send_state,
@@ -706,7 +708,7 @@ void Device_node_mix(
     }
 
     //fprintf(stderr, "Calling Device_process on %p %s\n", (void*)node, node->name);
-    Device_process(node_device, states, start, until, freq, tempo);
+    Device_process(node_device, states, wbs, start, until, freq, tempo);
     Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
     return;
 }

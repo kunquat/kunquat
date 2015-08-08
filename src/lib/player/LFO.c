@@ -21,6 +21,7 @@
 
 #include <debug/assert.h>
 #include <mathnum/common.h>
+#include <mathnum/fast_sin.h>
 #include <player/LFO.h>
 #include <player/Player.h>
 
@@ -262,7 +263,7 @@ double LFO_step(LFO* lfo)
         lfo->phase = new_phase;
     }
 
-    const double value = sin(lfo->phase) * lfo->depth;
+    const double value = fast_sin(lfo->phase) * lfo->depth;
     if (lfo->mode == LFO_MODE_EXP)
         return exp2(value);
 
@@ -294,7 +295,7 @@ double LFO_skip(LFO* lfo, uint64_t steps)
     // TODO: calculate phase properly :-)
     lfo->phase = fmod(lfo->phase + lfo->update, 2 * PI);
 
-    const double value = sin(lfo->phase) * lfo->depth;
+    const double value = fast_sin(lfo->phase) * lfo->depth;
     if (lfo->mode == LFO_MODE_EXP)
         return exp2(value);
 

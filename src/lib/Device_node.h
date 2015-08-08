@@ -185,6 +185,7 @@ void Device_node_process_voice_group(
  *
  * \param node     The Device node -- must not be \c NULL.
  * \param states   The Device states -- must not be \c NULL.
+ * \param wbs      The Work buffers -- must not be \c NULL.
  * \param start    The first frame to be mixed -- must be less than the
  *                  buffer size.
  * \param until    The first frame not to be mixed -- must be less than or
@@ -196,6 +197,7 @@ void Device_node_process_voice_group(
 void Device_node_mix(
         Device_node* node,
         Device_states* states,
+        const Work_buffers* wbs,
         uint32_t start,
         uint32_t until,
         uint32_t freq,

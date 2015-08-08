@@ -613,6 +613,7 @@ void Player_play(Player* player, int32_t nframes)
             Connections_mix(
                     connections,
                     player->device_states,
+                    player->work_buffers,
                     rendered,
                     rendered + to_be_rendered,
                     player->audio_rate,

@@ -61,6 +61,7 @@ static Proc_process_vstate_func Proc_volume_process_vstate;
 static void Proc_volume_process(
         const Device* device,
         Device_states* states,
+        const Work_buffers* wbs,
         uint32_t start,
         uint32_t until,
         uint32_t freq,
@@ -283,6 +284,7 @@ static uint32_t Proc_volume_process_vstate(
 static void Proc_volume_process(
         const Device* device,
         Device_states* states,
+        const Work_buffers* wbs,
         uint32_t start,
         uint32_t until,
         uint32_t freq,
@@ -290,6 +292,7 @@ static void Proc_volume_process(
 {
     assert(device != NULL);
     assert(states != NULL);
+    assert(wbs != NULL);
     assert(freq > 0);
     assert(isfinite(tempo));
     assert(tempo > 0);

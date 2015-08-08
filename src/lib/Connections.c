@@ -354,6 +354,7 @@ void Connections_process_voice_group(
 void Connections_mix(
         Connections* graph,
         Device_states* states,
+        const Work_buffers* wbs,
         uint32_t start,
         uint32_t until,
         uint32_t freq,
@@ -361,6 +362,7 @@ void Connections_mix(
 {
     assert(graph != NULL);
     assert(states != NULL);
+    assert(wbs != NULL);
     assert(freq > 0);
     assert(isfinite(tempo));
     assert(tempo > 0);
@@ -381,7 +383,7 @@ void Connections_mix(
 #endif
 
     Device_node_reset(master);
-    Device_node_mix(master, states, start, until, freq, tempo);
+    Device_node_mix(master, states, wbs, start, until, freq, tempo);
 
     return;
 }

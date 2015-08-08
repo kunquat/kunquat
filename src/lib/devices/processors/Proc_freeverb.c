@@ -181,6 +181,7 @@ static bool Proc_freeverb_set_audio_rate(
 static void Proc_freeverb_process(
         const Device* device,
         Device_states* states,
+        const Work_buffers* wbs,
         uint32_t start,
         uint32_t until,
         uint32_t freq,
@@ -520,6 +521,7 @@ static void Proc_freeverb_update_wet(Proc_freeverb* freeverb, double wet)
 static void Proc_freeverb_process(
         const Device* device,
         Device_states* states,
+        const Work_buffers* wbs,
         uint32_t start,
         uint32_t until,
         uint32_t freq,
@@ -527,6 +529,7 @@ static void Proc_freeverb_process(
 {
     assert(device != NULL);
     assert(states != NULL);
+    assert(wbs != NULL);
     assert(freq > 0);
     assert(tempo > 0);
 

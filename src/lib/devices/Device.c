@@ -471,6 +471,7 @@ bool Device_set_state_key(
 void Device_process(
         const Device* device,
         Device_states* states,
+        const Work_buffers* wbs,
         uint32_t start,
         uint32_t until,
         uint32_t freq,
@@ -478,12 +479,13 @@ void Device_process(
 {
     assert(device != NULL);
     assert(states != NULL);
+    assert(wbs != NULL);
     assert(freq > 0);
     assert(isfinite(tempo));
     assert(tempo > 0);
 
     if (device->enable_signal_support && (device->process_signal != NULL))
-        device->process_signal(device, states, start, until, freq, tempo);
+        device->process_signal(device, states, wbs, start, until, freq, tempo);
 
     return;
 }

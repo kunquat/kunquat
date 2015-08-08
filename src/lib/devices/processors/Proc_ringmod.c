@@ -38,6 +38,7 @@ static Proc_process_vstate_func Proc_ringmod_process_vstate;
 static void Proc_ringmod_process_signal(
         const Device* device,
         Device_states* dstates,
+        const Work_buffers* wbs,
         uint32_t buf_start,
         uint32_t buf_stop,
         uint32_t audio_rate,
@@ -156,6 +157,7 @@ static uint32_t Proc_ringmod_process_vstate(
 static void Proc_ringmod_process_signal(
         const Device* device,
         Device_states* dstates,
+        const Work_buffers* wbs,
         uint32_t buf_start,
         uint32_t buf_stop,
         uint32_t audio_rate,
@@ -163,6 +165,7 @@ static void Proc_ringmod_process_signal(
 {
     assert(device != NULL);
     assert(dstates != NULL);
+    assert(wbs != NULL);
     assert(audio_rate > 0);
     assert(tempo > 0);
     assert(isfinite(tempo));

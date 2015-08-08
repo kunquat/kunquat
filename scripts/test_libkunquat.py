@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2015
 #
 # This file is part of Kunquat.
 #
@@ -45,12 +45,12 @@ def test_libkunquat(builder, options, cc):
     # Define which tests depend on others
     deps = defaultdict(lambda: [], {
             'handle': ['streader', 'tstamp'],
-            'player': ['handle', 'streader'],
+            'player': ['handle', 'streader', 'fast_sin'],
             'memory': ['handle'],
             'connections': ['handle', 'player'],
             'generator': ['connections'],
             'instrument': ['connections'],
-            'dsp': ['connections'],
+            'dsp': ['connections', 'fast_sin'],
             'validation': ['handle'],
         })
     finished_tests = set()
