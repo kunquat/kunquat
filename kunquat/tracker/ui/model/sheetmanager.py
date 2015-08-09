@@ -332,7 +332,7 @@ class SheetManager():
     def is_grid_enabled(self):
         return self._session.is_grid_enabled()
 
-    def get_grid_lines(self, col, start_ts, stop_ts):
+    def get_grid_lines(self, pat_num, col_num, start_ts, stop_ts):
         # TODO: quick test grid, this should come from module data
         import math
         start_pos_scaled = int(math.ceil(float(start_ts * 4)))

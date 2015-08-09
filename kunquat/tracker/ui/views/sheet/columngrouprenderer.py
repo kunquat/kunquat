@@ -410,7 +410,8 @@ class ColumnCache():
         sheet_manager = self._ui_model.get_sheet_manager()
         if sheet_manager.is_grid_enabled():
             grid_start_ts = tstamp.Tstamp(0, start_px * tstamp.BEAT // self._px_per_beat)
-            lines = sheet_manager.get_grid_lines(self._col_num, grid_start_ts, stop_ts)
+            lines = sheet_manager.get_grid_lines(
+                    self._pat_num, self._col_num, grid_start_ts, stop_ts)
             painter.save()
 
             for line_info in lines:
