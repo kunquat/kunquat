@@ -12,6 +12,7 @@
 #
 
 from kunquat.kunquat.limits import *
+from grid import Grid
 from triggerposition import TriggerPosition
 import tstamp
 
@@ -333,19 +334,9 @@ class SheetManager():
         return self._session.is_grid_enabled()
 
     def get_grid_lines(self, pat_num, col_num, start_ts, stop_ts):
-        # TODO: quick test grid, this should come from module data
-        import math
-        start_pos_scaled = int(math.ceil(float(start_ts * 4)))
-        stop_pos_scaled = int(math.ceil(float(stop_ts * 4)))
-        lines = []
-        for pos_scaled in xrange(start_pos_scaled, stop_pos_scaled):
-            ts = tstamp.Tstamp(pos_scaled * 0.25)
-            if ts.rem == 0:
-                line_style = 0 if ts.beats % 4 == 0 else 1
-            else:
-                line_style = 2
-            lines.append((ts, line_style))
+        grid = Grid()
+        grid.set_controller(self._controller)
 
-        return lines
+        return grid.get_grid_lines(pat_num, col_num, start_ts, stop_ts)
 
 
