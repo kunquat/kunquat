@@ -93,7 +93,13 @@ class Tstamp(numbers.Real, tuple):
             return False
         return self.rem < other_ts.rem
 
-    def __mod__(self):
+    def __mod__(self, other):
+        if isinstance(other, Tstamp):
+            self_rems = self.beats * BEAT + self.rem
+            other_rems = other.beats * BEAT + other.rem
+            mod_rems = self_rems % other_rems
+            return Tstamp(0, mod_rems)
+
         raise NotImplementedError
 
     def __mul__(self, other):
