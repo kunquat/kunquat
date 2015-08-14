@@ -333,10 +333,9 @@ class SheetManager():
     def is_grid_enabled(self):
         return self._session.is_grid_enabled()
 
-    def get_grid_lines(self, pat_num, col_num, start_ts, stop_ts):
+    def get_grid(self):
         grid = Grid()
         grid.set_controller(self._controller)
-
-        return grid.get_grid_lines(pat_num, col_num, start_ts, stop_ts)
+        return grid
 
 
