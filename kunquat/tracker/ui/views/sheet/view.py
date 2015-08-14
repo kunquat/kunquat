@@ -676,6 +676,10 @@ class View(QWidget):
         if not album or album.get_track_count() == 0:
             return
 
+        sheet_manager = self._ui_model.get_sheet_manager()
+        is_grid_enabled = sheet_manager.is_grid_enabled()
+        grid = sheet_manager.get_grid()
+
         # Get location info
         selection = self._ui_model.get_selection()
         location = selection.get_location()
@@ -739,15 +743,38 @@ class View(QWidget):
 
         cur_column = self._sheet_manager.get_column_at_location(location)
 
-        # Get default trigger tstamp on the current pixel position
-        cur_px_offset = utils.get_px_from_tstamp(row_ts, self._px_per_beat)
-        def_ts = utils.get_tstamp_from_px(cur_px_offset, self._px_per_beat)
-        assert utils.get_px_from_tstamp(def_ts, self._px_per_beat) == cur_px_offset
+        if is_grid_enabled:
+            song = album.get_song_by_track(track)
+            pinst = song.get_pattern_instance(system)
+            pat_num = pinst.get_pattern_num()
 
-        # Get target tstamp
-        new_px_offset = cur_px_offset + px_delta
-        new_ts = utils.get_tstamp_from_px(new_px_offset, self._px_per_beat)
-        assert utils.get_px_from_tstamp(new_ts, self._px_per_beat) != cur_px_offset
+            # Get closest grid line in our target direction
+            if px_delta < 0:
+                line_info = grid.get_prev_line(pat_num, col_num, row_ts)
+                if line_info:
+                    new_ts, _ = line_info
+                else:
+                    new_ts = tstamp.Tstamp(0)
+            else:
+                line_info = grid.get_next_line(pat_num, col_num, row_ts)
+                if line_info:
+                    new_ts, _ = line_info
+                else:
+                    pattern = pinst.get_pattern()
+                    new_ts = pattern.get_length()
+
+            if line_info:
+                new_ts, _ = line_info
+        else:
+            # Get default trigger tstamp on the current pixel position
+            cur_px_offset = utils.get_px_from_tstamp(row_ts, self._px_per_beat)
+            def_ts = utils.get_tstamp_from_px(cur_px_offset, self._px_per_beat)
+            assert utils.get_px_from_tstamp(def_ts, self._px_per_beat) == cur_px_offset
+
+            # Get target tstamp
+            new_px_offset = cur_px_offset + px_delta
+            new_ts = utils.get_tstamp_from_px(new_px_offset, self._px_per_beat)
+            assert utils.get_px_from_tstamp(new_ts, self._px_per_beat) != cur_px_offset
 
         # Get shortest movement between target tstamp and closest trigger row
         move_range_start = min(new_ts, row_ts)
@@ -761,7 +788,9 @@ class View(QWidget):
         trow_tstamps = cur_column.get_trigger_row_positions_in_range(
                 move_range_start, move_range_stop)
         if trow_tstamps:
-            self._vertical_move_state.try_snap_delay()
+            if not is_grid_enabled:
+                self._vertical_move_state.try_snap_delay()
+
             if px_delta < 0:
                 new_ts = max(trow_tstamps)
             else:
@@ -772,7 +801,8 @@ class View(QWidget):
         cur_pattern = cur_song.get_pattern_instance(system).get_pattern()
 
         if new_ts <= 0:
-            self._vertical_move_state.try_snap_delay()
+            if not is_grid_enabled:
+                self._vertical_move_state.try_snap_delay()
             new_ts = tstamp.Tstamp(0)
         elif new_ts > cur_pattern.get_length():
             new_track = track
@@ -789,7 +819,8 @@ class View(QWidget):
                     return
 
             # Next pattern
-            self._vertical_move_state.try_snap_delay()
+            if not is_grid_enabled:
+                self._vertical_move_state.try_snap_delay()
             new_ts = tstamp.Tstamp(0)
             new_location = TriggerPosition(
                     new_track, new_system, col_num, new_ts, 0)
