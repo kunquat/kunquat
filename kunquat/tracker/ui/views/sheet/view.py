@@ -993,6 +993,7 @@ class View(QWidget):
         cur_column = self._sheet_manager.get_column_at_location(cur_location)
 
         # Select a trigger if its description overlaps with the mouse cursor
+        trigger_selected = False
         trigger_index = 0
         tr_track, tr_system = track, system
         tr_pat_index = pat_index
@@ -1053,6 +1054,7 @@ class View(QWidget):
                     if new_trigger_index >= 0:
                         trigger_index = new_trigger_index
                         track, system, row_ts = cur_track, cur_system, cur_ts
+                        trigger_selected = True
                         break
 
             if trow_tstamps:
@@ -1071,6 +1073,7 @@ class View(QWidget):
                 if new_trigger_index >= 0:
                     trigger_index = new_trigger_index
                     track, system, row_ts = tr_track, tr_system, check_ts
+                    trigger_selected = True
                     break
 
             # Check previous system
@@ -1083,6 +1086,58 @@ class View(QWidget):
                     break
                 song = album.get_song_by_track(tr_track)
                 tr_system = song.get_system_count() - 1
+
+        # Make sure we snap to something if grid is enabled
+        sheet_manager = self._ui_model.get_sheet_manager()
+        if (not trigger_selected) and sheet_manager.is_grid_enabled():
+            grid = sheet_manager.get_grid()
+            cur_song = album.get_song_by_track(track)
+            cur_pinst = cur_song.get_pattern_instance(system)
+            cur_pattern = cur_pinst.get_pattern()
+            pat_num = cur_pinst.get_pattern_num()
+
+            # Select grid line above if an infinite trigger row would
+            # overlap with the click position
+            prev_line_selected = False
+            prev_ts = tstamp.Tstamp(0)
+            prev_line_info = grid.get_prev_or_current_line(pat_num, col_num, row_ts)
+            if prev_line_info:
+                prev_ts, _ = prev_line_info
+                prev_y_offset = utils.get_px_from_tstamp(prev_ts, self._px_per_beat)
+                cur_y_offset = utils.get_px_from_tstamp(row_ts, self._px_per_beat)
+                y_dist = cur_y_offset - prev_y_offset
+                assert y_dist >= 0
+                is_close_enough = (y_dist < self._config['tr_height'] - 1)
+                if is_close_enough:
+                    row_ts = prev_ts
+                    prev_line_selected = True
+
+            if not prev_line_selected:
+                # Get whatever trigger row or grid line is nearest
+                next_ts = cur_pattern.get_length()
+                next_line_info = grid.get_next_or_current_line(pat_num, col_num, row_ts)
+                if next_line_info:
+                    next_ts, _ = next_line_info
+
+                cur_column = cur_pattern.get_column(col_num)
+
+                # Get nearest previous target timestamp
+                prev_tstamps = cur_column.get_trigger_row_positions_in_range(
+                        prev_ts, row_ts)
+                if prev_tstamps:
+                    prev_ts = max(prev_tstamps)
+
+                # Get nearest next target timestamp
+                next_tstamps = cur_column.get_trigger_row_positions_in_range(
+                        row_ts, next_ts)
+                if next_tstamps:
+                    next_ts = min(next_tstamps)
+
+                # Get nearest of the two timestamps
+                if (row_ts - prev_ts) < (next_ts - row_ts):
+                    row_ts = prev_ts
+                else:
+                    row_ts = next_ts
 
         location = TriggerPosition(track, system, col_num, row_ts, trigger_index)
         selection.set_location(location)
