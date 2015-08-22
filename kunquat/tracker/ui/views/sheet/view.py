@@ -695,6 +695,11 @@ class View(QWidget):
         new_location = self._sheet_manager.get_clamped_location(test_location)
         selection.set_location(new_location)
 
+    def _get_min_grid_line_dist(self):
+        return utils.get_tstamp_from_px(
+                self._config['tr_height'] * self._config['grid']['min_rel_dist'],
+                self._px_per_beat)
+
     def _move_edit_cursor_tstamp(self):
         px_delta = self._vertical_move_state.get_delta()
         if px_delta == 0:
@@ -747,16 +752,17 @@ class View(QWidget):
             song = album.get_song_by_track(track)
             pinst = song.get_pattern_instance(system)
             pat_num = pinst.get_pattern_num()
+            min_line_dist = self._get_min_grid_line_dist()
 
             # Get closest grid line in our target direction
             if px_delta < 0:
-                line_info = grid.get_prev_line(pat_num, col_num, row_ts)
+                line_info = grid.get_prev_line(pat_num, col_num, row_ts, min_line_dist)
                 if line_info:
                     new_ts, _ = line_info
                 else:
                     new_ts = tstamp.Tstamp(0)
             else:
-                line_info = grid.get_next_line(pat_num, col_num, row_ts)
+                line_info = grid.get_next_line(pat_num, col_num, row_ts, min_line_dist)
                 if line_info:
                     new_ts, _ = line_info
                 else:
@@ -1091,6 +1097,8 @@ class View(QWidget):
         sheet_manager = self._ui_model.get_sheet_manager()
         if (not trigger_selected) and sheet_manager.is_grid_enabled():
             grid = sheet_manager.get_grid()
+            min_line_dist = self._get_min_grid_line_dist()
+
             cur_song = album.get_song_by_track(track)
             cur_pinst = cur_song.get_pattern_instance(system)
             cur_pattern = cur_pinst.get_pattern()
@@ -1100,7 +1108,8 @@ class View(QWidget):
             # overlap with the click position
             prev_line_selected = False
             prev_ts = tstamp.Tstamp(0)
-            prev_line_info = grid.get_prev_or_current_line(pat_num, col_num, row_ts)
+            prev_line_info = grid.get_prev_or_current_line(
+                    pat_num, col_num, row_ts, min_line_dist)
             if prev_line_info:
                 prev_ts, _ = prev_line_info
                 prev_y_offset = utils.get_px_from_tstamp(prev_ts, self._px_per_beat)
@@ -1115,7 +1124,8 @@ class View(QWidget):
             if not prev_line_selected:
                 # Get whatever trigger row or grid line is nearest
                 next_ts = cur_pattern.get_length()
-                next_line_info = grid.get_next_or_current_line(pat_num, col_num, row_ts)
+                next_line_info = grid.get_next_or_current_line(
+                        pat_num, col_num, row_ts, min_line_dist)
                 if next_line_info:
                     next_ts, _ = next_line_info
 

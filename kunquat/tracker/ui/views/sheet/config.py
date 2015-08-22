@@ -53,6 +53,9 @@ DEFAULT_CONFIG = {
             'min_snap_dist'   : 64,
             'guide_colour'    : QColor(0xff, 0x77, 0x22, 0x7f),
             },
+        'grid': {
+            'min_rel_dist': 0.5,
+            },
         }
 
 
