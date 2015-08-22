@@ -62,7 +62,7 @@ class Grid():
 
         return spec
 
-    def _get_next_line_info(self, pat_num, col_num, row_ts):
+    def _get_next_or_current_line_info(self, pat_num, col_num, row_ts):
         grid_spec = self._get_grid_spec()
 
         grid_length = grid_spec['length']
@@ -85,7 +85,7 @@ class Grid():
         return line_index, line_pat_ts
 
     def get_next_or_current_line(self, pat_num, col_num, row_ts):
-        line_info = self._get_next_line_info(pat_num, col_num, row_ts)
+        line_info = self._get_next_or_current_line_info(pat_num, col_num, row_ts)
         if not line_info:
             return None
 
@@ -100,8 +100,12 @@ class Grid():
         next_ts = row_ts + tstamp.Tstamp(0, 1)
         return self.get_next_or_current_line(pat_num, col_num, next_ts)
 
+    def get_prev_or_current_line(self, pat_num, col_num, row_ts):
+        next_ts = row_ts - tstamp.Tstamp(0, 1)
+        return self.get_prev_line(pat_num, col_num, next_ts)
+
     def get_prev_line(self, pat_num, col_num, row_ts):
-        line_info = self._get_next_line_info(pat_num, col_num, row_ts)
+        line_info = self._get_next_or_current_line_info(pat_num, col_num, row_ts)
         if not line_info:
             return None
 
@@ -131,7 +135,7 @@ class Grid():
         grid_lines = grid_spec['lines']
         if grid_length > 0 and grid_lines:
             # Find our first line in the grid pattern
-            line_index, line_pat_ts = self._get_next_line_info(
+            line_index, line_pat_ts = self._get_next_or_current_line_info(
                     pat_num, col_num, start_ts)
 
             # Add lines from the grid pattern until stop_ts is reached
