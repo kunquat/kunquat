@@ -58,6 +58,7 @@ class Session():
         self._replace_mode_enabled = False
         self._record_mode_enabled = False
         self._is_grid_enabled = True
+        self._selected_grid_pattern_id = None
         self._pending_playback_cursor_track = 0
         self._pending_playback_cursor_system = 0
         self._playback_cursor_position = (0, 0, [0, 0])
@@ -350,6 +351,12 @@ class Session():
 
     def is_grid_enabled(self):
         return self._is_grid_enabled
+
+    def select_grid_pattern(self, gp_id):
+        self._selected_grid_pattern_id = gp_id
+
+    def get_selected_grid_pattern_id(self):
+        return self._selected_grid_pattern_id
 
     def set_module_path(self, path):
         self._module_path = path
