@@ -11,6 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 
@@ -55,6 +56,11 @@ DEFAULT_CONFIG = {
             },
         'grid': {
             'min_rel_dist': 0.5,
+            'styles': {
+                0: QPen(QBrush(QColor(0xa0, 0xa0, 0xa0)), 1, Qt.SolidLine),
+                1: QPen(QBrush(QColor(0x60, 0x60, 0x60)), 1, Qt.SolidLine),
+                2: QPen(QBrush(QColor(0x40, 0x40, 0x40)), 1, Qt.DashLine),
+                },
             },
         }
 

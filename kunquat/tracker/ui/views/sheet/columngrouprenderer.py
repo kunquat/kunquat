@@ -589,13 +589,6 @@ class TRCache():
         return None
 
 
-GRID_LINE_PENS = {
-    0: QPen(QBrush(QColor(0xa0, 0xa0, 0xa0)), 1, Qt.SolidLine),
-    1: QPen(QBrush(QColor(0x60, 0x60, 0x60)), 1, Qt.SolidLine),
-    2: QPen(QBrush(QColor(0x40, 0x40, 0x40)), 1, Qt.DashLine),
-}
-
-
 class GridLineCache():
 
     def __init__(self):
@@ -643,7 +636,7 @@ class GridLineCache():
         painter.eraseRect(QRect(0, 0, self._width - 1, 1))
 
         # Line
-        pen = QPen(GRID_LINE_PENS[style])
+        pen = QPen(self._config['grid']['styles'][style])
         pen.setColor(self._get_final_colour(pen.color()))
         painter.setPen(pen)
         painter.drawLine(QPoint(0, 0), QPoint(self._width - 1, 0))
