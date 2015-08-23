@@ -37,6 +37,34 @@ EVENT_NOTE_ON = 'n+'
 EVENT_NOTE_OFF = 'n-'
 
 
+def _get_default_grid_patterns():
+    gps = {
+        0: {
+            'name'  : u'4/4/4',
+            'length': [4, 0],
+            'lines' : [
+                [[0, 0], 0],
+                [[0, 220540320], 2],
+                [[0, 441080640], 2],
+                [[0, 661620960], 2],
+                [[1, 0], 1],
+                [[1, 220540320], 2],
+                [[1, 441080640], 2],
+                [[1, 661620960], 2],
+                [[2, 0], 1],
+                [[2, 220540320], 2],
+                [[2, 441080640], 2],
+                [[2, 661620960], 2],
+                [[3, 0], 1],
+                [[3, 220540320], 2],
+                [[3, 441080640], 2],
+                [[3, 661620960], 2],
+            ],
+        },
+    }
+    return gps
+
+
 class Controller():
 
     def __init__(self):
@@ -103,6 +131,7 @@ class Controller():
             'pat_000/p_manifest.json'             : {},
             'pat_000/instance_000/p_manifest.json': {},
             'out_00/p_manifest.json'              : {},
+            'i_grid_patterns.json'                : _get_default_grid_patterns(),
         }
         self._store.put(transaction)
 
