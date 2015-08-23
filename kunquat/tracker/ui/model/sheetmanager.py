@@ -13,6 +13,7 @@
 
 from kunquat.kunquat.limits import *
 from grid import Grid
+from gridpatterns import GridPatterns
 from triggerposition import TriggerPosition
 import tstamp
 
@@ -332,6 +333,11 @@ class SheetManager():
 
     def is_grid_enabled(self):
         return self._session.is_grid_enabled()
+
+    def get_grid_catalog(self):
+        grid_patterns = GridPatterns()
+        grid_patterns.set_controller(self._controller)
+        return grid_patterns
 
     def get_grid(self):
         grid = Grid()
