@@ -26,6 +26,7 @@ from chdefaultswindow import ChDefaultsWindow
 from environmentwindow import EnvironmentWindow
 from auwindow import AuWindow
 from procwindow import ProcWindow
+from sheet.grideditorwindow import GridEditorWindow
 from iawindow import IAWindow
 from renderstatswindow import RenderStatsWindow
 
@@ -46,6 +47,7 @@ class RootView():
         self._environment = None
         self._au_windows = {}
         self._proc_windows = {}
+        self._grid_editor = None
         self._ia_controls = None
         self._render_stats = None
         self._module = None
@@ -136,6 +138,11 @@ class RootView():
                 self._proc_windows[proc_id] = proc_window
                 if is_show_allowed:
                     self._proc_windows[proc_id].show()
+            elif ui == UI_GRID_EDITOR:
+                self._grid_editor = GridEditorWindow()
+                self._grid_editor.set_ui_model(self._ui_model)
+                if is_show_allowed:
+                    self._grid_editor.show()
             elif ui == UI_IA_CONTROLS:
                 self._ia_controls = IAWindow()
                 self._ia_controls.set_ui_model(self._ui_model)
@@ -187,6 +194,10 @@ class RootView():
                 proc_window = self._proc_windows.pop(proc_id)
                 proc_window.unregister_updaters()
                 proc_window.deleteLater()
+            elif ui == UI_GRID_EDITOR:
+                self._grid_editor.unregister_updaters()
+                self._grid_editor.deleteLater()
+                self._grid_editor = None
             elif ui == UI_IA_CONTROLS:
                 self._ia_controls.unregister_updaters()
                 self._ia_controls.deleteLater()

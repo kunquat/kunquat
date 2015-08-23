@@ -21,6 +21,7 @@ UI_ORDERLIST    = 'orderlist'
 UI_CH_DEFAULTS  = 'ch_defaults'
 UI_ENVIRONMENT  = 'environment'
 UI_PROCESSOR    = 'processor'
+UI_GRID_EDITOR  = 'grid_editor'
 UI_IA_CONTROLS  = 'ia_controls'
 UI_RENDER_STATS = 'render_stats'
 
