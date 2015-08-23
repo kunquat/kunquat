@@ -161,7 +161,7 @@ class SheetArea(QAbstractScrollArea):
         self._config = DEFAULT_CONFIG.copy()
         self._config.update(config)
 
-        for subcfg in ('ruler', 'header', 'trigger', 'edit_cursor'):
+        for subcfg in ('ruler', 'header', 'trigger', 'edit_cursor', 'grid'):
             self._config[subcfg] = DEFAULT_CONFIG[subcfg].copy()
             if subcfg in config:
                 self._config[subcfg].update(config[subcfg])
