@@ -123,7 +123,8 @@ class SheetArea(QAbstractScrollArea):
 
         # Default zoom level
         px_per_beat = self._config['trs_per_beat'] * self._config['tr_height']
-        self._zoom_levels = self._get_zoom_levels(1, px_per_beat, tstamp.BEAT)
+        self._zoom_levels = utils.get_zoom_levels(
+                1, px_per_beat, tstamp.BEAT, self._config['zoom_factor'])
         self._default_zoom_index = self._zoom_levels.index(px_per_beat)
         self._sheet_manager.set_zoom_range(
                 -self._default_zoom_index,
@@ -188,34 +189,6 @@ class SheetArea(QAbstractScrollArea):
         self._config['tr_height'] = fm.tightBoundingRect('Ag').height() + 1
 
         self.viewport().set_config(self._config)
-
-    def _get_zoom_levels(self, min_val, default_val, max_val):
-        zoom_levels = [default_val]
-
-        # Fill zoom out levels until minimum
-        prev_val = zoom_levels[-1]
-        next_val = prev_val / self._config['zoom_factor']
-        while int(next_val) > min_val:
-            actual_val = int(next_val)
-            assert actual_val < prev_val
-            zoom_levels.append(actual_val)
-            prev_val = actual_val
-            next_val = prev_val / self._config['zoom_factor']
-        zoom_levels.append(min_val)
-        zoom_levels = list(reversed(zoom_levels))
-
-        # Fill zoom in levels until maximum
-        prev_val = zoom_levels[-1]
-        next_val = prev_val * self._config['zoom_factor']
-        while math.ceil(next_val) < tstamp.BEAT:
-            actual_val = int(math.ceil(next_val))
-            assert actual_val > prev_val
-            zoom_levels.append(actual_val)
-            prev_val = actual_val
-            next_val = prev_val * self._config['zoom_factor']
-        zoom_levels.append(tstamp.BEAT)
-
-        return zoom_levels
 
     def _set_px_per_beat(self, px_per_beat):
         self._ruler.set_px_per_beat(px_per_beat)
