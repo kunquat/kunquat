@@ -102,7 +102,7 @@ class Album():
         return free_num
 
     def get_new_pattern_instance_num(self, pattern_num):
-        free_nums = set(xrange(PATTERN_INSTANCES_MAX))
+        free_nums = set(xrange(PAT_INSTANCES_MAX))
 
         used_pinsts = self._get_used_pattern_instances()
         free_nums -= set(p.get_instance_num()
