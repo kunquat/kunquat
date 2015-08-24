@@ -185,6 +185,27 @@ class View(QWidget):
             if signal.startswith(SheetManager.get_column_signal_head()):
                 track_num, system_num, col_num = SheetManager.decode_column_signal(signal)
                 self._update_column(track_num, system_num, col_num)
+
+                # Check if the pattern has multiple instances
+                module = self._ui_model.get_module()
+                album = module.get_album()
+                assert album
+                song = album.get_song_by_track(track_num)
+                signal_pinst = song.get_pattern_instance(system_num)
+                signal_pat_num = signal_pinst.get_pattern_num()
+                signal_pinst_num = signal_pinst.get_instance_num()
+
+                if len(signal_pinst.get_pattern().get_instance_ids()) > 1:
+                    # Update columns of other instances
+                    for cur_track_num in xrange(album.get_track_count()):
+                        cur_song = album.get_song_by_track(cur_track_num)
+                        for cur_system_num in xrange(cur_song.get_system_count()):
+                            cur_pinst = song.get_pattern_instance(cur_system_num)
+                            if ((cur_pinst.get_pattern_num() == signal_pat_num) and
+                                    (cur_pinst.get_instance_num() != signal_pinst_num)):
+                                self._update_column(
+                                        cur_track_num, cur_system_num, col_num)
+
                 self.update()
 
     def _update_all_patterns(self):
