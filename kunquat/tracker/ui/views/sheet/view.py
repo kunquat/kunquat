@@ -747,8 +747,10 @@ class View(QWidget):
                         track, system, col_num, row_ts, trigger_index)
 
         cur_column = self._sheet_manager.get_column_at_location(location)
+        is_grid_enabled = self._sheet_manager.is_grid_enabled()
 
         if is_grid_enabled:
+            grid = self._sheet_manager.get_grid()
             song = album.get_song_by_track(track)
             pinst = song.get_pattern_instance(system)
             pat_num = pinst.get_pattern_num()
