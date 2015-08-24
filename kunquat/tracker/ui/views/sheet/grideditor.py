@@ -11,11 +11,15 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+import math
+import time
+
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 from config import *
 from ruler import Ruler
+import kunquat.tracker.ui.model.tstamp as tstamp
 from kunquat.tracker.ui.views.headerline import HeaderLine
 import utils
 
@@ -336,7 +340,11 @@ class GridView(QWidget):
 
     def set_config(self, config):
         self._config = config
-        self._width = self._config['col_width']
+
+        fm = self._config['font_metrics']
+        em_px = int(math.ceil(fm.tightBoundingRect('m').width()))
+        self._width = self._config['col_width'] * em_px
+        self.setFixedWidth(self._width)
 
     def set_px_per_beat(self, px_per_beat):
         self._px_per_beat = px_per_beat
@@ -346,10 +354,55 @@ class GridView(QWidget):
             self.update()
 
     def paintEvent(self, event):
+        start = time.time()
+
         painter = QPainter(self)
 
         # Background
         painter.setBackground(self._config['canvas_bg_colour'])
-        painter.eraseRect(event.rect())
+        painter.eraseRect(QRect(0, 0, self._width, self.height()))
+
+        # Get selected grid pattern
+        sheet_manager = self._ui_model.get_sheet_manager()
+        grid_patterns = sheet_manager.get_grid_catalog()
+        gp_id = grid_patterns.get_selected_grid_pattern_id()
+        if gp_id == None:
+            all_ids = grid_patterns.get_grid_pattern_ids()
+            if all_ids:
+                gp_id = all_ids[0]
+            else:
+                return
+
+        gp = grid_patterns.get_grid_pattern(gp_id)
+
+        # Column background
+        painter.setBackground(self._config['bg_colour'])
+        length_ts = tstamp.Tstamp(gp['length'])
+        length_rems = length_ts.beats * tstamp.BEAT + length_ts.rem
+        height_px = length_rems * self._px_per_beat // tstamp.BEAT
+        bg_extent = height_px - self._px_offset
+        painter.eraseRect(QRect(0, 0, self._width, bg_extent))
+
+        # Grid lines
+        for line in gp['lines']:
+            line_ts_raw, line_style = line
+
+            line_ts = tstamp.Tstamp(line_ts_raw)
+            if line_ts >= gp['length']:
+                continue
+
+            rems = line_ts.beats * tstamp.BEAT + line_ts.rem
+            abs_y = rems * self._px_per_beat // tstamp.BEAT
+            y_offset = abs_y - self._px_offset
+            if not 0 <= y_offset < self.height():
+                continue
+
+            pen = QPen(self._config['grid']['styles'][line_style])
+            painter.setPen(pen)
+            painter.drawLine(QPoint(0, y_offset), QPoint(self._width - 1, y_offset))
+
+        end = time.time()
+        elapsed = end - start
+        #print('Grid pattern view updated in {:.2f} ms'.format(elapsed * 1000))
 
 
