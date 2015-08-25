@@ -113,9 +113,17 @@ class GridPatterns():
         return lines
 
     def select_grid_pattern(self, gp_id):
+        if gp_id != self.get_selected_grid_pattern_id():
+            self.select_grid_pattern_line(None)
         self._session.select_grid_pattern(gp_id)
 
     def get_selected_grid_pattern_id(self):
         return self._session.get_selected_grid_pattern_id()
+
+    def select_grid_pattern_line(self, line_ts):
+        self._session.select_grid_pattern_line(line_ts)
+
+    def get_selected_grid_pattern_line(self):
+        return self._session.get_selected_grid_pattern_line()
 
 
