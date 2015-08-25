@@ -353,6 +353,15 @@ class GridView(QWidget):
         if 'signal_grid_pattern_selection' in signals:
             self.update()
 
+    def _get_visible_grid_pattern_id(self, grid_patterns):
+        gp_id = grid_patterns.get_selected_grid_pattern_id()
+        if gp_id == None:
+            all_ids = grid_patterns.get_grid_pattern_ids()
+            if all_ids:
+                gp_id = all_ids[0]
+
+        return gp_id
+
     def paintEvent(self, event):
         start = time.time()
 
@@ -362,19 +371,16 @@ class GridView(QWidget):
         painter.setBackground(self._config['canvas_bg_colour'])
         painter.eraseRect(QRect(0, 0, self._width, self.height()))
 
-        # Get selected grid pattern
+        # Get grid pattern info
         sheet_manager = self._ui_model.get_sheet_manager()
         grid_patterns = sheet_manager.get_grid_catalog()
-        gp_id = grid_patterns.get_selected_grid_pattern_id()
+        gp_id = self._get_visible_grid_pattern_id(grid_patterns)
         if gp_id == None:
-            all_ids = grid_patterns.get_grid_pattern_ids()
-            if all_ids:
-                gp_id = all_ids[0]
-            else:
-                return
+            return
 
         gp_length = grid_patterns.get_grid_pattern_length(gp_id)
         gp_lines = grid_patterns.get_grid_pattern_lines(gp_id)
+        selected_line_ts = grid_patterns.get_selected_grid_pattern_line()
 
         # Column background
         painter.setBackground(self._config['bg_colour'])
@@ -401,8 +407,56 @@ class GridView(QWidget):
             painter.setPen(pen)
             painter.drawLine(QPoint(0, y_offset), QPoint(self._width - 1, y_offset))
 
+            if line_ts == selected_line_ts:
+                cursor_config = self._config['grid']['edit_cursor']
+                cursor_max_y = (cursor_config['height'] - 1) // 2
+
+                painter.save()
+                painter.setRenderHint(QPainter.Antialiasing)
+                painter.translate(QPointF(0.5, 0.5 + y_offset))
+                painter.setPen(cursor_config['colour'])
+                painter.setBrush(cursor_config['colour'])
+                painter.drawPolygon(
+                        QPoint(0, cursor_max_y),
+                        QPoint(cursor_config['width'], 0),
+                        QPoint(0, -cursor_max_y))
+                painter.restore()
+
         end = time.time()
         elapsed = end - start
         #print('Grid pattern view updated in {:.2f} ms'.format(elapsed * 1000))
+
+    def mousePressEvent(self, event):
+        if not event.buttons() == Qt.LeftButton:
+            return
+
+        # Get grid pattern info
+        sheet_manager = self._ui_model.get_sheet_manager()
+        grid_patterns = sheet_manager.get_grid_catalog()
+        gp_id = self._get_visible_grid_pattern_id(grid_patterns)
+        if gp_id == None:
+            return
+
+        gp_length = grid_patterns.get_grid_pattern_length(gp_id)
+        gp_lines = grid_patterns.get_grid_pattern_lines(gp_id)
+
+        # Get timestamp at clicked position
+        rel_y_offset = event.y()
+        y_offset = rel_y_offset + self._px_offset
+        click_ts = utils.get_tstamp_from_px(y_offset, self._px_per_beat)
+
+        # Find the nearest grid line
+        nearest_ts = None
+        nearest_dist = gp_length * 2
+        for line in gp_lines:
+            line_ts, _ = line
+            dist = abs(click_ts - line_ts)
+            if dist < nearest_dist:
+                nearest_ts = line_ts
+                nearest_dist = dist
+
+        assert nearest_ts != None
+        grid_patterns.select_grid_pattern_line(nearest_ts)
+        self.update()
 
 

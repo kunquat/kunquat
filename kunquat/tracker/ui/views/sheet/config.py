@@ -61,6 +61,11 @@ DEFAULT_CONFIG = {
                 1: QPen(QBrush(QColor(0x60, 0x60, 0x60)), 1, Qt.SolidLine),
                 2: QPen(QBrush(QColor(0x40, 0x40, 0x40)), 1, Qt.DashLine),
                 },
+            'edit_cursor': {
+                'height': 11,
+                'width' : 13,
+                'colour': QColor(0xee, 0x77, 0x33),
+                },
             },
         }
 
