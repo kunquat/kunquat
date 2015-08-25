@@ -75,6 +75,8 @@ class GridPatterns():
             return False
         if not all(self._is_valid_grid_line(line) for line in gp['lines']):
             return False
+        if len(set(tstamp.Tstamp(line[0]) for line in gp['lines'])) < len(gp['lines']):
+            return False
 
         return True
 
