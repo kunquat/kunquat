@@ -104,9 +104,8 @@ class Ruler(QWidget):
                 gp_id = all_ids[0]
 
         if gp_id != None:
-            gp = grid_catalog.get_grid_pattern(gp_id)
-            length = tstamp.Tstamp(gp['length'])
-            self._lengths = [length]
+            gp_length = grid_catalog.get_grid_pattern_length(gp_id)
+            self._lengths = [gp_length]
 
         self._set_pattern_heights()
         self.update()

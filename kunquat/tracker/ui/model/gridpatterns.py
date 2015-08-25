@@ -83,15 +83,34 @@ class GridPatterns():
         data = self._store.get(key, {})
         return data if isinstance(data, dict) else {}
 
+    def _get_grid_pattern(self, gp_id):
+        raw_dict = self._get_raw_grid_dict()
+        gp = raw_dict.get(gp_id, None)
+        return gp if self._is_valid_grid_pattern(gp) else PLACEHOLDER_GRID_PATTERN
+
     def get_grid_pattern_ids(self):
         raw_dict = self._get_raw_grid_dict()
         valid_keys = [k for k in raw_dict if isinstance(k, int) and (k >= 0)]
         return valid_keys
 
-    def get_grid_pattern(self, gp_id):
-        raw_dict = self._get_raw_grid_dict()
-        gp = raw_dict.get(gp_id, None)
-        return gp if self._is_valid_grid_pattern(gp) else PLACEHOLDER_GRID_PATTERN
+    def get_grid_pattern_name(self, gp_id):
+        gp = self._get_grid_pattern(gp_id)
+        return gp['name']
+
+    def get_grid_pattern_length(self, gp_id):
+        gp = self._get_grid_pattern(gp_id)
+        return tstamp.Tstamp(gp['length'])
+
+    def get_grid_pattern_lines(self, gp_id):
+        gp = self._get_grid_pattern(gp_id)
+
+        lines = []
+        for line_raw in gp['lines']:
+            ts_raw, style = line_raw
+            ts = tstamp.Tstamp(ts_raw)
+            lines.append((ts, style))
+
+        return lines
 
     def select_grid_pattern(self, gp_id):
         self._session.select_grid_pattern(gp_id)

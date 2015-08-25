@@ -82,8 +82,8 @@ class GridListModel(QAbstractListModel):
         grid_catalog = sheet_manager.get_grid_catalog()
 
         for gp_id in grid_catalog.get_grid_pattern_ids():
-            grid_pattern = grid_catalog.get_grid_pattern(gp_id)
-            self._items.append((gp_id, grid_pattern))
+            gp_name = grid_catalog.get_grid_pattern_name(gp_id)
+            self._items.append((gp_id, gp_name))
 
     def unregister_updaters(self):
         pass
@@ -98,8 +98,8 @@ class GridListModel(QAbstractListModel):
             row = index.row()
             if 0 <= row < len(self._items):
                 item = self._items[row]
-                _, gp = item
-                return QVariant(gp['name'])
+                _, gp_name = item
+                return QVariant(gp_name)
 
         return QVariant()
 
@@ -373,22 +373,22 @@ class GridView(QWidget):
             else:
                 return
 
-        gp = grid_patterns.get_grid_pattern(gp_id)
+        gp_length = grid_patterns.get_grid_pattern_length(gp_id)
+        gp_lines = grid_patterns.get_grid_pattern_lines(gp_id)
 
         # Column background
         painter.setBackground(self._config['bg_colour'])
-        length_ts = tstamp.Tstamp(gp['length'])
-        length_rems = length_ts.beats * tstamp.BEAT + length_ts.rem
+        length_rems = gp_length.beats * tstamp.BEAT + gp_length.rem
         height_px = length_rems * self._px_per_beat // tstamp.BEAT
         bg_extent = height_px - self._px_offset
         painter.eraseRect(QRect(0, 0, self._width, bg_extent))
 
         # Grid lines
-        for line in gp['lines']:
+        for line in gp_lines:
             line_ts_raw, line_style = line
 
             line_ts = tstamp.Tstamp(line_ts_raw)
-            if line_ts >= gp['length']:
+            if line_ts >= gp_length:
                 continue
 
             rems = line_ts.beats * tstamp.BEAT + line_ts.rem
