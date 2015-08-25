@@ -162,3 +162,13 @@ def get_zoom_levels(min_val, default_val, max_val, zoom_factor):
     return zoom_levels
 
 
+# Colours
+
+def scale_colour(colour, factor):
+    new_colour = QColor(colour)
+    new_colour.setRed(colour.red() * factor)
+    new_colour.setGreen(colour.green() * factor)
+    new_colour.setBlue(colour.blue() * factor)
+    return new_colour
+
+

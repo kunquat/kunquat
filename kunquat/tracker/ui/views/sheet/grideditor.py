@@ -320,11 +320,10 @@ class GridHeader(QWidget):
 
     def paintEvent(self, event):
         painter = QPainter(self)
-        painter.setBackground(self._config['header']['bg_colour'])
+        bg_colour = utils.scale_colour(
+                self._config['header']['bg_colour'], self._config['inactive_dim'])
+        painter.setBackground(bg_colour)
         painter.eraseRect(0, 0, self.width(), self.height())
-
-        painter.setPen(self._config['header']['border_colour'])
-        painter.drawLine(self.width() - 1, 0, self.width() - 1, self.height() - 1)
 
 
 class GridView(QWidget):
