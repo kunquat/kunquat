@@ -366,6 +366,8 @@ class GridView(QWidget):
     def _perform_updates(self, signals):
         if 'signal_grid_pattern_selection' in signals:
             self.update()
+        elif 'signal_grid_pattern_line_selection' in signals:
+            self.update()
 
     def _get_visible_grid_pattern_id(self, grid_patterns):
         gp_id = grid_patterns.get_selected_grid_pattern_id()
@@ -471,7 +473,7 @@ class GridView(QWidget):
 
         assert nearest_ts != None
         grid_patterns.select_grid_pattern_line(nearest_ts)
-        self.update()
+        self._updater.signal_update(set(['signal_grid_pattern_line_selection']))
 
 
 class LineEditor(QWidget):
