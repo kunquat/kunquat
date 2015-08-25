@@ -32,11 +32,13 @@ class GridEditor(QWidget):
         self._grid_list = GridList()
 
         self._grid_area = GridArea()
+        self._line_editor = LineEditor()
 
         el = QHBoxLayout()
         el.setMargin(0)
         el.setSpacing(0)
         el.addWidget(self._grid_area)
+        el.addWidget(self._line_editor)
 
         v = QVBoxLayout()
         v.setMargin(0)
@@ -50,8 +52,10 @@ class GridEditor(QWidget):
     def set_ui_model(self, ui_model):
         self._grid_list.set_ui_model(ui_model)
         self._grid_area.set_ui_model(ui_model)
+        self._line_editor.set_ui_model(ui_model)
 
     def unregister_updaters(self):
+        self._line_editor.unregister_updaters()
         self._grid_area.unregister_updaters()
         self._grid_list.unregister_updaters()
 
@@ -213,6 +217,8 @@ class GridArea(QAbstractScrollArea):
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
 
+        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.MinimumExpanding)
+
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
@@ -273,6 +279,12 @@ class GridArea(QAbstractScrollArea):
     def _update_selected_grid_pattern(self):
         self._ruler.update_grid_pattern()
 
+    def sizeHint(self):
+        width = (self._ruler.width() +
+                self.viewport().width() +
+                self.verticalScrollBar().width())
+        return QSize(width, 200)
+
     def paintEvent(self, event):
         self.viewport().paintEvent(event)
 
@@ -302,6 +314,9 @@ class GridHeader(QWidget):
         fm = QFontMetrics(self._config['header']['font'], self)
         height = fm.tightBoundingRect('Ag').height()
         return QSize(self._width, height)
+
+    def sizeHint(self):
+        return self.minimumSizeHint()
 
     def paintEvent(self, event):
         painter = QPainter(self)
@@ -458,5 +473,22 @@ class GridView(QWidget):
         assert nearest_ts != None
         grid_patterns.select_grid_pattern_line(nearest_ts)
         self.update()
+
+
+class LineEditor(QWidget):
+
+    def __init__(self):
+        QWidget.__init__(self)
+
+        v = QVBoxLayout()
+        v.setMargin(0)
+        v.setSpacing(0)
+        self.setLayout(v)
+
+    def set_ui_model(self, ui_model):
+        pass
+
+    def unregister_updaters(self):
+        pass
 
 
