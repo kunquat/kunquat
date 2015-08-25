@@ -24,14 +24,6 @@ from buffercache import BufferCache
 from trigger_renderer import TriggerRenderer
 
 
-def _scale_colour(colour, factor):
-    new_colour = QColor(colour)
-    new_colour.setRed(colour.red() * factor)
-    new_colour.setGreen(colour.green() * factor)
-    new_colour.setBlue(colour.blue() * factor)
-    return new_colour
-
-
 class ColumnGroupRenderer():
 
     """Manages rendering of column n for each pattern.
@@ -380,7 +372,7 @@ class ColumnCache():
 
     def _get_final_colour(self, colour):
         if self._inactive:
-            return _scale_colour(colour, self._config['inactive_dim'])
+            return utils.scale_colour(colour, self._config['inactive_dim'])
         return colour
 
     def _create_pixmap(self, index):
@@ -623,7 +615,7 @@ class GridLineCache():
 
     def _get_final_colour(self, colour):
         if self._inactive:
-            return _scale_colour(colour, self._config['inactive_dim'])
+            return utils.scale_colour(colour, self._config['inactive_dim'])
         return colour
 
     def _create_line_pixmap(self, style):
