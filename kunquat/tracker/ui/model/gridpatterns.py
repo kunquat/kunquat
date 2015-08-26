@@ -80,8 +80,12 @@ class GridPatterns():
 
         return True
 
-    def _get_raw_grid_dict(self):
+    def _get_key(self):
         key = 'i_grid_patterns.json'
+        return key
+
+    def _get_raw_grid_dict(self):
+        key = self._get_key()
         data = self._store.get(key, {})
         return data if isinstance(data, dict) else {}
 
@@ -127,5 +131,23 @@ class GridPatterns():
 
     def get_selected_grid_pattern_line(self):
         return self._session.get_selected_grid_pattern_line()
+
+    def _set_raw_grid_dict(self, raw_dict):
+        key = self._get_key()
+        self._store[key] = raw_dict
+
+    def remove_grid_pattern_line(self, gp_id, line_ts):
+        raw_dict = self._get_raw_grid_dict()
+        gp_dict = raw_dict[gp_id]
+        lines = gp_dict['lines']
+
+        new_lines = []
+        for line in lines:
+            cur_line_ts, _ = line
+            if cur_line_ts != line_ts:
+                new_lines.append(line)
+
+        gp_dict['lines'] = new_lines
+        self._set_raw_grid_dict(raw_dict)
 
 
