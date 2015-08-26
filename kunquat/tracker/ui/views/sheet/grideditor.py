@@ -364,9 +364,11 @@ class GridView(QWidget):
         self._px_per_beat = px_per_beat
 
     def _perform_updates(self, signals):
-        if 'signal_grid_pattern_selection' in signals:
-            self.update()
-        elif 'signal_grid_pattern_line_selection' in signals:
+        update_signals = set([
+            'signal_grid_pattern_selection',
+            'signal_grid_pattern_line_selection',
+            'signal_grid_pattern_modified'])
+        if not signals.isdisjoint(update_signals):
             self.update()
 
     def _get_visible_grid_pattern_id(self, grid_patterns):
@@ -390,7 +392,7 @@ class GridView(QWidget):
         # Get grid pattern info
         sheet_manager = self._ui_model.get_sheet_manager()
         grid_patterns = sheet_manager.get_grid_catalog()
-        gp_id = self._get_visible_grid_pattern_id(grid_patterns)
+        gp_id = grid_patterns.get_selected_grid_pattern_id()
         if gp_id == None:
             return
 
@@ -484,16 +486,68 @@ class LineEditor(QWidget):
 
     def __init__(self):
         QWidget.__init__(self)
+        self._ui_model = None
+        self._updater = None
+
+        self._remove_button = QPushButton()
+        self._remove_button.setText('Remove')
 
         v = QVBoxLayout()
         v.setMargin(0)
         v.setSpacing(0)
+        v.addWidget(self._remove_button)
         self.setLayout(v)
 
     def set_ui_model(self, ui_model):
-        pass
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+
+        QObject.connect(
+                self._remove_button, SIGNAL('clicked()'), self._remove_selected_line)
+
+        self._update_enabled()
 
     def unregister_updaters(self):
-        pass
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _perform_updates(self, signals):
+        update_signals = set([
+            'signal_grid_pattern_selection',
+            'signal_grid_pattern_line_selection',
+            'signal_grid_pattern_modified'])
+        if not signals.isdisjoint(update_signals):
+            self._update_enabled()
+
+    def _get_grid_patterns(self):
+        sheet_manager = self._ui_model.get_sheet_manager()
+        grid_patterns = sheet_manager.get_grid_catalog()
+        return grid_patterns
+
+    def _update_enabled(self):
+        grid_patterns = self._get_grid_patterns()
+        gp_id = grid_patterns.get_selected_grid_pattern_id()
+        if gp_id == None:
+            self.setEnabled(False)
+            return
+
+        gp_lines = grid_patterns.get_grid_pattern_lines(gp_id)
+        lines_dict = dict(gp_lines)
+        selected_line_ts = grid_patterns.get_selected_grid_pattern_line()
+        has_selected_line = selected_line_ts in lines_dict
+        is_selected_line_major = (lines_dict.get(selected_line_ts, None) == 0)
+
+        self.setEnabled(has_selected_line)
+
+        self._remove_button.setEnabled(not is_selected_line_major)
+
+    def _remove_selected_line(self):
+        grid_patterns = self._get_grid_patterns()
+        gp_id = grid_patterns.get_selected_grid_pattern_id()
+        assert gp_id != None
+
+        selected_line_ts = grid_patterns.get_selected_grid_pattern_line()
+        grid_patterns.remove_grid_pattern_line(gp_id, selected_line_ts)
+        self._updater.signal_update(set(['signal_grid_pattern_modified']))
 
 

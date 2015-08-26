@@ -96,15 +96,10 @@ class Ruler(QWidget):
         self._lengths = []
 
         sheet_manager = self._ui_model.get_sheet_manager()
-        grid_catalog = sheet_manager.get_grid_catalog()
-        gp_id = grid_catalog.get_selected_grid_pattern_id()
-        if gp_id == None:
-            all_ids = grid_catalog.get_grid_pattern_ids()
-            if all_ids:
-                gp_id = all_ids[0]
-
+        grid_pattern = sheet_manager.get_grid_catalog()
+        gp_id = grid_pattern.get_selected_grid_pattern_id()
         if gp_id != None:
-            gp_length = grid_catalog.get_grid_pattern_length(gp_id)
+            gp_length = grid_pattern.get_grid_pattern_length(gp_id)
             self._lengths = [gp_length]
 
         self._set_pattern_heights()
