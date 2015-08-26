@@ -406,6 +406,7 @@ class GridView(QWidget):
         painter.eraseRect(QRect(0, 0, self._width, bg_extent))
 
         # Grid lines
+        selected_line_found = False
         for line in gp_lines:
             line_ts_raw, line_style = line
 
@@ -413,8 +414,7 @@ class GridView(QWidget):
             if line_ts >= gp_length:
                 continue
 
-            rems = line_ts.beats * tstamp.BEAT + line_ts.rem
-            abs_y = rems * self._px_per_beat // tstamp.BEAT
+            abs_y = utils.get_px_from_tstamp(line_ts, self._px_per_beat)
             y_offset = abs_y - self._px_offset
             if not 0 <= y_offset < self.height():
                 continue
@@ -424,19 +424,23 @@ class GridView(QWidget):
             painter.drawLine(QPoint(0, y_offset), QPoint(self._width - 1, y_offset))
 
             if line_ts == selected_line_ts:
-                cursor_config = self._config['grid']['edit_cursor']
-                cursor_max_y = (cursor_config['height'] - 1) // 2
+                selected_line_found = True
 
-                painter.save()
-                painter.setRenderHint(QPainter.Antialiasing)
-                painter.translate(QPointF(0.5, 0.5 + y_offset))
-                painter.setPen(cursor_config['colour'])
-                painter.setBrush(cursor_config['colour'])
-                painter.drawPolygon(
-                        QPoint(0, cursor_max_y),
-                        QPoint(cursor_config['width'], 0),
-                        QPoint(0, -cursor_max_y))
-                painter.restore()
+        if selected_line_found:
+            cursor_config = self._config['grid']['edit_cursor']
+            cursor_max_y = (cursor_config['height'] - 1) // 2
+
+            abs_y = utils.get_px_from_tstamp(selected_line_ts, self._px_per_beat)
+            y_offset = abs_y - self._px_offset
+
+            painter.setRenderHint(QPainter.Antialiasing)
+            painter.translate(QPointF(0.5, 0.5 + y_offset))
+            painter.setPen(cursor_config['colour'])
+            painter.setBrush(cursor_config['colour'])
+            painter.drawPolygon(
+                    QPoint(0, cursor_max_y),
+                    QPoint(cursor_config['width'], 0),
+                    QPoint(0, -cursor_max_y))
 
         end = time.time()
         elapsed = end - start
