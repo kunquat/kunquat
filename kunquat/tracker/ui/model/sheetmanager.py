@@ -342,6 +342,7 @@ class SheetManager():
     def get_grid(self):
         grid = Grid()
         grid.set_controller(self._controller)
+        grid.set_ui_model(self._ui_model)
         return grid
 
 

@@ -12,6 +12,7 @@
 #
 
 from copy import deepcopy
+from itertools import izip
 
 import tstamp
 
@@ -75,8 +76,11 @@ class GridPatterns():
             return False
         if not all(self._is_valid_grid_line(line) for line in gp['lines']):
             return False
-        if len(set(tstamp.Tstamp(line[0]) for line in gp['lines'])) < len(gp['lines']):
-            return False
+        for prev_line, line in izip(gp['lines'], gp['lines'][1:]):
+            prev_ts, _ = prev_line
+            cur_ts, _ = line
+            if prev_ts >= cur_ts:
+                return False
 
         return True
 
