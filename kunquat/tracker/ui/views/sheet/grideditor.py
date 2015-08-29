@@ -37,7 +37,7 @@ class GridEditor(QWidget):
 
         el = QHBoxLayout()
         el.setMargin(0)
-        el.setSpacing(0)
+        el.setSpacing(4)
         el.addWidget(self._grid_area)
         el.addWidget(self._line_editor)
 
@@ -492,13 +492,21 @@ class LineEditor(QWidget):
 
         self._line_style = LineStyle()
         self._remove_button = QPushButton()
-        self._remove_button.setText('Remove')
+        self._remove_button.setText('Remove line')
+
+        ls = QHBoxLayout()
+        ls.setMargin(0)
+        ls.setSpacing(2)
+        ls.addWidget(QLabel('Style:'), 0)
+        ls.addWidget(self._line_style, 1)
 
         v = QVBoxLayout()
         v.setMargin(0)
-        v.setSpacing(0)
-        v.addWidget(self._line_style)
-        v.addWidget(self._remove_button)
+        v.setSpacing(2)
+        v.addWidget(HeaderLine('Current line'), 0, Qt.AlignTop)
+        v.addLayout(ls, 0)
+        v.addWidget(self._remove_button, 0, Qt.AlignTop)
+        v.addWidget(QWidget(), 1)
         self.setLayout(v)
 
     def set_ui_model(self, ui_model):
