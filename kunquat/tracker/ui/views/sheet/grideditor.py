@@ -20,6 +20,7 @@ from PyQt4.QtGui import *
 from config import *
 from ruler import Ruler
 import kunquat.tracker.ui.model.tstamp as tstamp
+from kunquat.tracker.ui.model.gridpatterns import STYLE_COUNT
 from kunquat.tracker.ui.views.headerline import HeaderLine
 import utils
 
@@ -489,12 +490,14 @@ class LineEditor(QWidget):
         self._ui_model = None
         self._updater = None
 
+        self._line_style = LineStyle()
         self._remove_button = QPushButton()
         self._remove_button.setText('Remove')
 
         v = QVBoxLayout()
         v.setMargin(0)
         v.setSpacing(0)
+        v.addWidget(self._line_style)
         v.addWidget(self._remove_button)
         self.setLayout(v)
 
@@ -504,9 +507,13 @@ class LineEditor(QWidget):
         self._updater.register_updater(self._perform_updates)
 
         QObject.connect(
+                self._line_style,
+                SIGNAL('currentIndexChanged(int)'),
+                self._change_line_style)
+        QObject.connect(
                 self._remove_button, SIGNAL('clicked()'), self._remove_selected_line)
 
-        self._update_enabled()
+        self._update_all()
 
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
@@ -517,29 +524,50 @@ class LineEditor(QWidget):
             'signal_grid_pattern_line_selection',
             'signal_grid_pattern_modified'])
         if not signals.isdisjoint(update_signals):
-            self._update_enabled()
+            self._update_all()
 
     def _get_grid_patterns(self):
         sheet_manager = self._ui_model.get_sheet_manager()
         grid_patterns = sheet_manager.get_grid_catalog()
         return grid_patterns
 
-    def _update_enabled(self):
+    def _update_all(self):
         grid_patterns = self._get_grid_patterns()
         gp_id = grid_patterns.get_selected_grid_pattern_id()
         if gp_id == None:
             self.setEnabled(False)
             return
 
+        # Get line selection info
         gp_lines = grid_patterns.get_grid_pattern_lines(gp_id)
         lines_dict = dict(gp_lines)
         selected_line_ts = grid_patterns.get_selected_grid_pattern_line()
         has_selected_line = selected_line_ts in lines_dict
         is_selected_line_major = (lines_dict.get(selected_line_ts, None) == 0)
 
+        # Set editor parts as enabled if we have an appropriate selection
         self.setEnabled(has_selected_line)
 
         self._remove_button.setEnabled(not is_selected_line_major)
+        self._line_style.setEnabled(not is_selected_line_major)
+
+        # Set line style selection
+        if has_selected_line:
+            selected_line_style = lines_dict[selected_line_ts]
+            self._line_style.select_line_style(selected_line_style)
+
+    def _change_line_style(self, ls_index):
+        line_style = self._line_style.get_current_line_style()
+        assert line_style != None
+
+        grid_patterns = self._get_grid_patterns()
+        gp_id = grid_patterns.get_selected_grid_pattern_id()
+        assert gp_id != None
+
+        selected_line_ts = grid_patterns.get_selected_grid_pattern_line()
+        grid_patterns.change_grid_pattern_line_style(
+                gp_id, selected_line_ts, line_style)
+        self._updater.signal_update(set(['signal_grid_pattern_modified']))
 
     def _remove_selected_line(self):
         grid_patterns = self._get_grid_patterns()
@@ -549,5 +577,208 @@ class LineEditor(QWidget):
         selected_line_ts = grid_patterns.get_selected_grid_pattern_line()
         grid_patterns.remove_grid_pattern_line(gp_id, selected_line_ts)
         self._updater.signal_update(set(['signal_grid_pattern_modified']))
+
+
+class LineStyleDelegate(QItemDelegate):
+
+    def __init__(self):
+        QItemDelegate.__init__(self)
+        self._config = None
+
+        self._pixmaps = {}
+        self._list_pixmap = None
+
+        self._pixmap_width = 0
+        self._pixmap_height = 0
+        self._pixmap_horiz_margin = 0
+
+    def set_config(self, config):
+        self._config = config
+
+        fm = QFontMetrics(self._config['font'], QWidget())
+        em_px = int(math.ceil(fm.tightBoundingRect('m').width()))
+        self._line_length = self._config['col_width'] * em_px
+
+        # Pixmap style
+        h_margin = 10
+        v_margin = 8
+        p_width = self._line_length + 2 * h_margin + 1
+        p_height = 1 + 2 * v_margin
+
+        self._pixmap_horiz_margin = h_margin
+        self._pixmap_width = p_width
+        self._pixmap_height = p_height
+
+        # Create line pixmaps
+        for i in xrange(STYLE_COUNT):
+            pixmap = self._create_line_pixmap(i, p_width, p_height, h_margin, v_margin)
+            self._pixmaps[i] = pixmap
+
+        # Create list pixmap (work-around for incorrect drawing of selected entries)
+        list_width = self._pixmap_width
+        list_height = (STYLE_COUNT - 1) * self._pixmap_height
+        self._list_pixmap = QPixmap(list_width, list_height)
+
+        lpainter = QPainter(self._list_pixmap)
+        for i in xrange(1, STYLE_COUNT):
+            pixmap = self._pixmaps[i]
+            lpainter.drawPixmap(0, 0, pixmap)
+            lpainter.translate(0, pixmap.height())
+
+    def get_line_pixmap(self, line_style):
+        return self._pixmaps[line_style]
+
+    def _create_line_pixmap(self, line_style, width, height, horiz_margin, vert_margin):
+        pixmap = QPixmap(width, height)
+
+        painter = QPainter(pixmap)
+
+        painter.setBackground(self._config['bg_colour'])
+        painter.eraseRect(QRect(0, 0, width, height))
+
+        painter.setPen(self._config['grid']['styles'][line_style])
+
+        painter.translate(horiz_margin, vert_margin)
+        painter.drawLine(0, 0, self._line_length, 0)
+
+        return pixmap
+
+    def paint(self, painter, option, index):
+        pixmap_index_data = index.data(Qt.UserRole).toInt()
+        pixmap_index, _ = pixmap_index_data
+        assert pixmap_index in self._pixmaps
+
+        # Background
+        painter.setBackground(self._config['bg_colour'])
+        painter.eraseRect(option.rect)
+
+        # Line pixmap
+        cursor_width = self._config['grid']['edit_cursor']['width']
+        pixmap = self._pixmaps[pixmap_index]
+        pixmap_pos = option.rect.translated(cursor_width, 0).topLeft()
+        painter.drawPixmap(QRect(pixmap_pos, pixmap.size()), pixmap)
+        QItemDelegate.paint(self, painter, option, index)
+
+    def drawBackground(self, painter, option, index):
+        pass
+
+    def drawCheck(self, painter, option, rect, state):
+        pass
+
+    def drawDecoration(self, painter, option, rect, pixmap):
+        pass
+
+    def drawDisplay(self, painter, option, rect, text):
+        pass
+
+    def drawFocus(self, painter, option, rect):
+        if option.state & QStyle.State_HasFocus:
+            cursor_width = self._config['grid']['edit_cursor']['width']
+
+            # Background
+            painter.setBackground(self._config['bg_colour'])
+            painter.eraseRect(rect)
+
+            # Line pixmap
+            pixmap_size = QSize(self._pixmap_width, self._pixmap_height)
+            pixmap_pos = rect.translated(cursor_width, 0).topLeft()
+            pixmap_rect = QRect(rect.topLeft(), pixmap_size)
+            painter.drawPixmap(pixmap_pos, self._list_pixmap, pixmap_rect)
+
+            # Focus cursor triangle
+            cursor_config = self._config['grid']['edit_cursor']
+            cursor_max_y = (cursor_config['height'] - 1) // 2
+
+            painter.save()
+            painter.setRenderHint(QPainter.Antialiasing)
+
+            arrow_y_offset = pixmap_pos.y() + (self._pixmap_height - 1) // 2
+            arrow_x_offset = (self._pixmap_horiz_margin // 2) - 1
+            painter.translate(QPointF(0.5 + arrow_x_offset, 0.5 + arrow_y_offset))
+
+            painter.setPen(cursor_config['colour'])
+            painter.setBrush(cursor_config['colour'])
+
+            painter.drawPolygon(
+                    QPoint(0, cursor_max_y),
+                    QPoint(cursor_config['width'], 0),
+                    QPoint(0, -cursor_max_y))
+
+            painter.restore()
+
+    def sizeHint(self, option, index):
+        pixmap_index_data = index.data(Qt.UserRole).toInt()
+        pixmap_index, _ = pixmap_index_data
+        assert pixmap_index in self._pixmaps
+
+        pixmap = self._pixmaps[pixmap_index]
+        return pixmap.size()
+
+
+class LineStyle(QComboBox):
+
+    def __init__(self):
+        QComboBox.__init__(self)
+
+        self._is_major_displayed = True
+        self._ls_delegate = None
+
+        self.set_config(DEFAULT_CONFIG)
+
+    def set_config(self, config):
+        self._config = config
+
+        self._ls_delegate = LineStyleDelegate()
+        self._ls_delegate.set_config(self._config)
+
+        self.setItemDelegate(self._ls_delegate)
+
+        for i in xrange(1, STYLE_COUNT):
+            self.addItem(str(i), QVariant(i))
+
+    def get_current_line_style(self):
+        line_style, success = self.itemData(self.currentIndex()).toInt()
+        return line_style if success else None
+
+    def select_line_style(self, new_style):
+        old_block = self.blockSignals(True)
+
+        if new_style == 0:
+            self._is_major_displayed = True
+        else:
+            self._is_major_displayed = False
+            self.setCurrentIndex(new_style - 1)
+
+        self.blockSignals(old_block)
+        self.update()
+
+    def paintEvent(self, event):
+        painter = QStylePainter(self)
+        painter.setPen(self.palette().color(QPalette.Text))
+
+        option = QStyleOptionComboBox()
+        self.initStyleOption(option)
+        painter.drawComplexControl(QStyle.CC_ComboBox, option)
+
+        arrow_rect = painter.style().subControlRect(
+                QStyle.CC_ComboBox, option, QStyle.SC_ComboBoxArrow, self)
+        arrow_width = arrow_rect.width()
+
+        if self._is_major_displayed:
+            line_style = 0
+        else:
+            line_style = self.get_current_line_style()
+        pixmap = self._ls_delegate.get_line_pixmap(line_style)
+
+        top = (self.height() - pixmap.height()) // 2
+        left = (self.width() - pixmap.width() - arrow_width) // 2
+
+        painter.drawPixmap(left, top, pixmap)
+
+        if not self.isEnabled():
+            painter.fillRect(
+                    left, top,
+                    pixmap.width(), pixmap.height(),
+                    self._config['disabled_colour'])
 
 

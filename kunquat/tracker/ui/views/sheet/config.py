@@ -41,6 +41,7 @@ DEFAULT_CONFIG = {
         'bg_colour'       : QColor(0, 0, 0),
         'border_colour'   : QColor(0x55, 0x55, 0x55),
         'font'            : QFont(QFont().defaultFamily(), 12),
+        'disabled_colour' : QColor(0x88, 0x88, 0x88, 0x7f),
         'trigger': {
             'default_colour' : QColor(0xcc, 0xdd, 0xee),
             'note_on_colour' : QColor(0xff, 0xdd, 0xbb),
@@ -60,6 +61,8 @@ DEFAULT_CONFIG = {
                 0: QPen(QBrush(QColor(0xa0, 0xa0, 0xa0)), 1, Qt.SolidLine),
                 1: QPen(QBrush(QColor(0x60, 0x60, 0x60)), 1, Qt.SolidLine),
                 2: QPen(QBrush(QColor(0x40, 0x40, 0x40)), 1, Qt.DashLine),
+                3: QPen(QBrush(QColor(0x40, 0x40, 0x40)), 1, Qt.DashDotLine),
+                4: QPen(QBrush(QColor(0x40, 0x40, 0x40)), 1, Qt.DotLine),
                 },
             'edit_cursor': {
                 'height': 11,
