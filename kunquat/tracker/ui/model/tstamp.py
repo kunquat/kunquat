@@ -46,8 +46,12 @@ class Tstamp(numbers.Real, tuple):
         other_ts = Tstamp(other)
         return Tstamp(self.beats + other_ts.beats, self.rem + other_ts.rem)
 
-    def __div__(self):
-        raise NotImplementedError
+    def __div__(self, other):
+        if isinstance(other, Tstamp):
+            raise NotImplementedError
+
+        rems = self.beats * BEAT + self.rem
+        return Tstamp(0, rems / other)
 
     def __eq__(self, other):
         if other == None:
@@ -110,6 +114,7 @@ class Tstamp(numbers.Real, tuple):
                     self.rem * other.beats +
                     self.rem * other.rem / BEAT)
             return Tstamp(0, total_rems)
+
         rems = self.beats * BEAT + self.rem
         return Tstamp(0, rems * other)
 
