@@ -140,6 +140,38 @@ class GridPatterns():
         key = self._get_key()
         self._store[key] = raw_dict
 
+    def subdivide_grid_pattern_interval(self, gp_id, line_ts, part_count, line_style):
+        raw_dict = self._get_raw_grid_dict()
+        gp_dict = raw_dict[gp_id]
+        lines = gp_dict['lines']
+        gp_length = tstamp.Tstamp(gp_dict['length'])
+
+        # Get the length of the interval
+        cur_line_tss = [tstamp.Tstamp(line[0]) for line in lines]
+        following_line_tss = filter(lambda ts: line_ts < ts < gp_length, cur_line_tss)
+        if following_line_tss:
+            next_ts = following_line_tss[0]
+        else:
+            first_ts = cur_line_tss[0]
+            assert first_ts <= line_ts
+            next_ts = first_ts + gp_length
+        interval_length = next_ts - line_ts
+        assert interval_length > 0
+
+        # Get the timestamps of new lines
+        new_line_tss = []
+        for i in xrange(1, part_count):
+            rel_ts = (i * interval_length) / part_count
+            new_ts = (rel_ts + line_ts) % gp_length
+            new_line_tss.append(new_ts)
+
+        # Merge new lines with the existing ones
+        added_lines = [[list(ts), line_style] for ts in new_line_tss]
+        new_lines = sorted(lines + added_lines)
+
+        gp_dict['lines'] = new_lines
+        self._set_raw_grid_dict(raw_dict)
+
     def change_grid_pattern_line_style(self, gp_id, line_ts, new_style):
         raw_dict = self._get_raw_grid_dict()
         gp_dict = raw_dict[gp_id]
