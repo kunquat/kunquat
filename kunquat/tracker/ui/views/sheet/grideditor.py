@@ -33,13 +33,20 @@ class GridEditor(QWidget):
         self._grid_list = GridList()
 
         self._grid_area = GridArea()
+        self._subdiv_editor = SubdivEditor()
         self._line_editor = LineEditor()
+
+        r = QVBoxLayout()
+        r.setMargin(0)
+        r.setSpacing(8)
+        r.addWidget(self._subdiv_editor)
+        r.addWidget(self._line_editor)
 
         el = QHBoxLayout()
         el.setMargin(0)
         el.setSpacing(4)
         el.addWidget(self._grid_area)
-        el.addWidget(self._line_editor)
+        el.addLayout(r)
 
         v = QVBoxLayout()
         v.setMargin(0)
@@ -53,10 +60,12 @@ class GridEditor(QWidget):
     def set_ui_model(self, ui_model):
         self._grid_list.set_ui_model(ui_model)
         self._grid_area.set_ui_model(ui_model)
+        self._subdiv_editor.set_ui_model(ui_model)
         self._line_editor.set_ui_model(ui_model)
 
     def unregister_updaters(self):
         self._line_editor.unregister_updaters()
+        self._subdiv_editor.unregister_updaters()
         self._grid_area.unregister_updaters()
         self._grid_list.unregister_updaters()
 
@@ -483,6 +492,98 @@ class GridView(QWidget):
         self._updater.signal_update(set(['signal_grid_pattern_line_selection']))
 
 
+class SubdivEditor(QWidget):
+
+    def __init__(self):
+        QWidget.__init__(self)
+        self._ui_model = None
+        self._updater = None
+
+        self._subdiv_count = QSpinBox()
+        self._subdiv_count.setMinimum(2)
+        self._subdiv_count.setMaximum(32)
+        self._subdiv_line_style = LineStyle()
+        self._subdiv_apply = QPushButton('Add subdivision')
+
+        self._subdiv_line_style.select_line_style(1)
+
+        sl = QGridLayout()
+        sl.setMargin(0)
+        sl.setSpacing(2)
+        sl.setColumnStretch(0, 0)
+        sl.setColumnStretch(1, 1)
+        sl.addWidget(QLabel('Parts:'), 0, 0)
+        sl.addWidget(self._subdiv_count, 0, 1)
+        sl.addWidget(QLabel('Style:'), 1, 0)
+        sl.addWidget(self._subdiv_line_style, 1, 1)
+
+        v = QVBoxLayout()
+        v.setMargin(0)
+        v.setSpacing(2)
+        v.addWidget(HeaderLine('Current subdivision'), 0, Qt.AlignTop)
+        v.addLayout(sl, 0)
+        v.addWidget(self._subdiv_apply, 0)
+        self.setLayout(v)
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+
+        QObject.connect(self._subdiv_apply, SIGNAL('clicked()'), self._apply_subdivision)
+
+        self._update_all()
+
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _perform_updates(self, signals):
+        update_signals = set([
+            'signal_grid_pattern_selection',
+            'signal_grid_pattern_line_selection',
+            'signal_grid_pattern_modified'])
+        if not signals.isdisjoint(update_signals):
+            self._update_all()
+
+    def _get_grid_patterns(self):
+        sheet_manager = self._ui_model.get_sheet_manager()
+        grid_patterns = sheet_manager.get_grid_catalog()
+        return grid_patterns
+
+    def _get_selected_line_ts(self, grid_patterns, gp_id):
+        if gp_id == None:
+            return None
+
+        # Get line selection info
+        gp_lines = grid_patterns.get_grid_pattern_lines(gp_id)
+        lines_dict = dict(gp_lines)
+        selected_line_ts = grid_patterns.get_selected_grid_pattern_line()
+
+        return selected_line_ts if selected_line_ts in lines_dict else None
+
+    def _update_all(self):
+        grid_patterns = self._get_grid_patterns()
+        gp_id = grid_patterns.get_selected_grid_pattern_id()
+        selected_line_ts = self._get_selected_line_ts(grid_patterns, gp_id)
+        self.setEnabled(selected_line_ts != None)
+
+    def _apply_subdivision(self):
+        grid_patterns = self._get_grid_patterns()
+        gp_id = grid_patterns.get_selected_grid_pattern_id()
+        if gp_id == None:
+            return
+
+        part_count = self._subdiv_count.value()
+        line_style = self._subdiv_line_style.get_current_line_style()
+        assert line_style != 0
+
+        selected_line_ts = self._get_selected_line_ts(grid_patterns, gp_id)
+
+        grid_patterns.subdivide_grid_pattern_interval(
+                gp_id, selected_line_ts, part_count, line_style)
+        self._updater.signal_update(set(['signal_grid_pattern_modified']))
+
+
 class LineEditor(QWidget):
 
     def __init__(self):
@@ -491,8 +592,7 @@ class LineEditor(QWidget):
         self._updater = None
 
         self._line_style = LineStyle()
-        self._remove_button = QPushButton()
-        self._remove_button.setText('Remove line')
+        self._remove_button = QPushButton('Remove line')
 
         ls = QHBoxLayout()
         ls.setMargin(0)
