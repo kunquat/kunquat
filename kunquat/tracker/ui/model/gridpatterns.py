@@ -17,7 +17,7 @@ from itertools import izip
 import tstamp
 
 
-STYLE_COUNT = 4
+STYLE_COUNT = 5
 
 PLACEHOLDER_GRID_PATTERN = {
     'name'  : u'1/4',
@@ -139,6 +139,22 @@ class GridPatterns():
     def _set_raw_grid_dict(self, raw_dict):
         key = self._get_key()
         self._store[key] = raw_dict
+
+    def change_grid_pattern_line_style(self, gp_id, line_ts, new_style):
+        raw_dict = self._get_raw_grid_dict()
+        gp_dict = raw_dict[gp_id]
+        lines = gp_dict['lines']
+
+        new_lines = []
+        for line in lines:
+            cur_line_ts, cur_line_style = line
+            if cur_line_ts != line_ts:
+                new_lines.append(line)
+            else:
+                new_lines.append([cur_line_ts, new_style])
+
+        gp_dict['lines'] = new_lines
+        self._set_raw_grid_dict(raw_dict)
 
     def remove_grid_pattern_line(self, gp_id, line_ts):
         raw_dict = self._get_raw_grid_dict()
