@@ -405,11 +405,10 @@ class ColumnCache():
         if sheet_manager.is_grid_enabled():
             grid_start_ts = tstamp.Tstamp(0, start_px * tstamp.BEAT // self._px_per_beat)
             grid = sheet_manager.get_grid()
-            min_line_dist = utils.get_tstamp_from_px(
-                    self._config['tr_height'] * self._config['grid']['min_rel_dist'],
-                    self._px_per_beat)
+            tr_height_ts = utils.get_tstamp_from_px(
+                    self._config['tr_height'], self._px_per_beat)
             lines = grid.get_grid_lines(
-                    self._pat_num, self._col_num, grid_start_ts, stop_ts, min_line_dist)
+                    self._pat_num, self._col_num, grid_start_ts, stop_ts, tr_height_ts)
 
             for line_info in lines:
                 line_ts, line_style = line_info

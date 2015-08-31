@@ -72,6 +72,15 @@ class GridPatterns():
         except (ValueError, TypeError):
             return False
 
+        if (('min_style_spacing' not in gp) or
+                (not isinstance(gp['min_style_spacing'], list))):
+            return False
+        spacings = gp['min_style_spacing']
+        if len(spacings) < STYLE_COUNT:
+            return False
+        if not all((isinstance(sp, (float, int)) and sp > 0) for sp in spacings):
+            return False
+
         if ('lines' not in gp) or (not isinstance(gp['lines'], list)):
             return False
         if not all(self._is_valid_grid_line(line) for line in gp['lines']):
@@ -111,6 +120,11 @@ class GridPatterns():
         gp = self._get_grid_pattern(gp_id)
         return tstamp.Tstamp(gp['length'])
 
+    def get_grid_pattern_line_style_spacing(self, gp_id, line_style):
+        raw_dict = self._get_raw_grid_dict()
+        gp_dict = raw_dict[gp_id]
+        return gp_dict['min_style_spacing'][line_style]
+
     def get_grid_pattern_lines(self, gp_id):
         gp = self._get_grid_pattern(gp_id)
 
@@ -145,6 +159,11 @@ class GridPatterns():
     def set_grid_pattern_length(self, gp_id, length):
         raw_dict = self._get_raw_grid_dict()
         raw_dict[gp_id]['length'] = list(length)
+        self._set_raw_grid_dict(raw_dict)
+
+    def set_grid_pattern_line_style_spacing(self, gp_id, line_style, spacing):
+        raw_dict = self._get_raw_grid_dict()
+        raw_dict[gp_id]['min_style_spacing'][line_style] = spacing
         self._set_raw_grid_dict(raw_dict)
 
     def subdivide_grid_pattern_interval(self, gp_id, line_ts, part_count, line_style):

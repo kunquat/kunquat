@@ -56,7 +56,6 @@ DEFAULT_CONFIG = {
             'guide_colour'    : QColor(0xff, 0x77, 0x22, 0x7f),
             },
         'grid': {
-            'min_rel_dist': 0.5,
             'styles': {
                 0: QPen(QBrush(QColor(0xa0, 0xa0, 0xa0)), 1, Qt.SolidLine),
                 1: QPen(QBrush(QColor(0x60, 0x60, 0x60)), 1, Qt.SolidLine),

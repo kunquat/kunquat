@@ -30,12 +30,14 @@ class Grid():
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
 
-    def _get_allowed_line_styles(self, spec, min_line_dist):
+    def _get_allowed_line_styles(self, spec, tr_height_ts):
         allowed_styles = set(xrange(STYLE_COUNT))
 
         for style in xrange(1, STYLE_COUNT):
+            min_line_dist = spec['min_style_spacing'][style] * tr_height_ts
             first_ts = None
             prev_ts = None
+
             for line in spec['lines']:
                 line_ts, line_style = line
 
@@ -60,24 +62,31 @@ class Grid():
 
         return allowed_styles
 
-    def _get_grid_spec(self, gp_id, min_line_dist):
+    def _get_grid_spec(self, gp_id, tr_height_ts):
         sheet_manager = self._ui_model.get_sheet_manager()
         grid_patterns = sheet_manager.get_grid_catalog()
 
         gp_length = grid_patterns.get_grid_pattern_length(gp_id)
         gp_lines = grid_patterns.get_grid_pattern_lines(gp_id)
+        gp_style_spacing = [
+                grid_patterns.get_grid_pattern_line_style_spacing(gp_id, i)
+                for i in xrange(STYLE_COUNT)]
 
-        spec = { 'length': gp_length, 'lines': gp_lines }
+        spec = {
+            'length': gp_length,
+            'lines': gp_lines,
+            'min_style_spacing': gp_style_spacing,
+        }
 
         # Filter out line styles with insufficient separation
-        allowed_styles = self._get_allowed_line_styles(spec, min_line_dist)
+        allowed_styles = self._get_allowed_line_styles(spec, tr_height_ts)
         filtered_lines = [line for line in gp_lines if line[1] in allowed_styles]
         spec['lines'] = filtered_lines
 
         return spec
 
-    def _get_next_or_current_line_info(self, pat_num, col_num, row_ts, min_line_dist):
-        grid_spec = self._get_grid_spec(0, min_line_dist)
+    def _get_next_or_current_line_info(self, pat_num, col_num, row_ts, tr_height_ts):
+        grid_spec = self._get_grid_spec(0, tr_height_ts)
 
         grid_length = grid_spec['length']
         grid_lines = grid_spec['lines']
@@ -98,34 +107,34 @@ class Grid():
 
         return line_index, line_pat_ts
 
-    def get_next_or_current_line(self, pat_num, col_num, row_ts, min_line_dist):
+    def get_next_or_current_line(self, pat_num, col_num, row_ts, tr_height_ts):
         line_info = self._get_next_or_current_line_info(
-                pat_num, col_num, row_ts, min_line_dist)
+                pat_num, col_num, row_ts, tr_height_ts)
         if not line_info:
             return None
 
-        grid_spec = self._get_grid_spec(0, min_line_dist)
+        grid_spec = self._get_grid_spec(0, tr_height_ts)
 
         line_index, line_pat_ts = line_info
         _, line_style = grid_spec['lines'][line_index]
 
         return line_pat_ts, line_style
 
-    def get_next_line(self, pat_num, col_num, row_ts, min_line_dist):
+    def get_next_line(self, pat_num, col_num, row_ts, tr_height_ts):
         next_ts = row_ts + tstamp.Tstamp(0, 1)
-        return self.get_next_or_current_line(pat_num, col_num, next_ts, min_line_dist)
+        return self.get_next_or_current_line(pat_num, col_num, next_ts, tr_height_ts)
 
-    def get_prev_or_current_line(self, pat_num, col_num, row_ts, min_line_dist):
+    def get_prev_or_current_line(self, pat_num, col_num, row_ts, tr_height_ts):
         next_ts = row_ts - tstamp.Tstamp(0, 1)
-        return self.get_prev_line(pat_num, col_num, next_ts, min_line_dist)
+        return self.get_prev_line(pat_num, col_num, next_ts, tr_height_ts)
 
-    def get_prev_line(self, pat_num, col_num, row_ts, min_line_dist):
+    def get_prev_line(self, pat_num, col_num, row_ts, tr_height_ts):
         line_info = self._get_next_or_current_line_info(
-                pat_num, col_num, row_ts, min_line_dist)
+                pat_num, col_num, row_ts, tr_height_ts)
         if not line_info:
             return None
 
-        grid_spec = self._get_grid_spec(0, min_line_dist)
+        grid_spec = self._get_grid_spec(0, tr_height_ts)
         grid_length = grid_spec['length']
         grid_lines = grid_spec['lines']
 
@@ -143,16 +152,16 @@ class Grid():
 
         return line_pat_ts, line_style
 
-    def get_grid_lines(self, pat_num, col_num, start_ts, stop_ts, min_line_dist):
+    def get_grid_lines(self, pat_num, col_num, start_ts, stop_ts, tr_height_ts):
         lines = []
-        grid_spec = self._get_grid_spec(0, min_line_dist)
+        grid_spec = self._get_grid_spec(0, tr_height_ts)
 
         grid_length = grid_spec['length']
         grid_lines = grid_spec['lines']
         if grid_length > 0 and grid_lines:
             # Find our first line in the grid pattern
             line_index, line_pat_ts = self._get_next_or_current_line_info(
-                    pat_num, col_num, start_ts, min_line_dist)
+                    pat_num, col_num, start_ts, tr_height_ts)
 
             # Add lines from the grid pattern until stop_ts is reached
             while line_pat_ts < stop_ts:
