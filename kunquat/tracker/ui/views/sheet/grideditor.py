@@ -510,12 +510,32 @@ class GeneralEditor(QWidget):
         self._length.setMaximum(32)
         self._length.setDecimals(3)
 
-        h = QHBoxLayout()
-        h.setMargin(0)
-        h.setSpacing(2)
-        h.addWidget(QLabel('Grid length:'), 0)
-        h.addWidget(self._length, 1)
-        self.setLayout(h)
+        self._spacing_style = LineStyle(is_major_enabled=True)
+        self._spacing_value = QDoubleSpinBox()
+        self._spacing_value.setMinimum(0.001)
+        self._spacing_value.setMaximum(1.0)
+        self._spacing_value.setDecimals(3)
+
+        ll = QHBoxLayout()
+        ll.setMargin(0)
+        ll.setSpacing(2)
+        ll.addWidget(QLabel('Grid length:'), 0)
+        ll.addWidget(self._length, 1)
+
+        sl = QHBoxLayout()
+        sl.setMargin(0)
+        sl.setSpacing(2)
+        sl.addWidget(QLabel('Min. spacing of style'), 0)
+        sl.addWidget(self._spacing_style, 2)
+        sl.addWidget(QLabel(':'), 0)
+        sl.addWidget(self._spacing_value, 1)
+
+        v = QVBoxLayout()
+        v.setContentsMargins(4, 0, 4, 0)
+        v.setSpacing(2)
+        v.addLayout(ll)
+        v.addLayout(sl)
+        self.setLayout(v)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -524,6 +544,16 @@ class GeneralEditor(QWidget):
 
         QObject.connect(
                 self._length, SIGNAL('valueChanged(double)'), self._change_length)
+
+        QObject.connect(
+                self._spacing_style,
+                SIGNAL('currentIndexChanged(int)'),
+                self._select_spacing_style)
+
+        QObject.connect(
+                self._spacing_value,
+                SIGNAL('valueChanged(double)'),
+                self._change_spacing)
 
         self._update_all()
 
@@ -555,6 +585,13 @@ class GeneralEditor(QWidget):
         self._length.setValue(float(gp_length))
         self._length.blockSignals(old_block)
 
+        spacing_value = grid_patterns.get_grid_pattern_line_style_spacing(
+                gp_id, self._spacing_style.get_current_line_style())
+
+        old_block = self._spacing_value.blockSignals(True)
+        self._spacing_value.setValue(spacing_value)
+        self._spacing_value.blockSignals(old_block)
+
     def _change_length(self, new_length):
         new_length_ts = tstamp.Tstamp(new_length)
 
@@ -564,6 +601,21 @@ class GeneralEditor(QWidget):
             return
 
         grid_patterns.set_grid_pattern_length(gp_id, new_length_ts)
+        self._updater.signal_update(set(['signal_grid_pattern_modified']))
+
+    def _select_spacing_style(self, new_style):
+        self._spacing_style.select_line_style(new_style)
+        self._update_all()
+
+    def _change_spacing(self, new_spacing):
+        grid_patterns = self._get_grid_patterns()
+        gp_id = grid_patterns.get_selected_grid_pattern_id()
+        if gp_id == None:
+            return
+
+        line_style = self._spacing_style.get_current_line_style()
+        grid_patterns.set_grid_pattern_line_style_spacing(
+                gp_id, line_style, new_spacing)
         self._updater.signal_update(set(['signal_grid_pattern_modified']))
 
 
@@ -764,9 +816,11 @@ class LineEditor(QWidget):
 
 class LineStyleDelegate(QItemDelegate):
 
-    def __init__(self):
+    def __init__(self, is_major_enabled):
         QItemDelegate.__init__(self)
         self._config = None
+
+        self._first_style = 0 if is_major_enabled else 1
 
         self._pixmaps = {}
         self._list_pixmap = None
@@ -799,11 +853,11 @@ class LineStyleDelegate(QItemDelegate):
 
         # Create list pixmap (work-around for incorrect drawing of selected entries)
         list_width = self._pixmap_width
-        list_height = (STYLE_COUNT - 1) * self._pixmap_height
+        list_height = (STYLE_COUNT - self._first_style) * self._pixmap_height
         self._list_pixmap = QPixmap(list_width, list_height)
 
         lpainter = QPainter(self._list_pixmap)
-        for i in xrange(1, STYLE_COUNT):
+        for i in xrange(self._first_style, STYLE_COUNT):
             pixmap = self._pixmaps[i]
             lpainter.drawPixmap(0, 0, pixmap)
             lpainter.translate(0, pixmap.height())
@@ -900,9 +954,10 @@ class LineStyleDelegate(QItemDelegate):
 
 class LineStyle(QComboBox):
 
-    def __init__(self):
+    def __init__(self, is_major_enabled=False):
         QComboBox.__init__(self)
 
+        self._first_style = 0 if is_major_enabled else 1
         self._is_major_displayed = True
         self._ls_delegate = None
 
@@ -911,12 +966,13 @@ class LineStyle(QComboBox):
     def set_config(self, config):
         self._config = config
 
-        self._ls_delegate = LineStyleDelegate()
+        is_major_enabled = (self._first_style == 0)
+        self._ls_delegate = LineStyleDelegate(is_major_enabled)
         self._ls_delegate.set_config(self._config)
 
         self.setItemDelegate(self._ls_delegate)
 
-        for i in xrange(1, STYLE_COUNT):
+        for i in xrange(self._first_style, STYLE_COUNT):
             self.addItem(str(i), QVariant(i))
 
     def get_current_line_style(self):
@@ -930,7 +986,7 @@ class LineStyle(QComboBox):
             self._is_major_displayed = True
         else:
             self._is_major_displayed = False
-            self.setCurrentIndex(new_style - 1)
+            self.setCurrentIndex(new_style - self._first_style)
 
         self.blockSignals(old_block)
         self.update()
