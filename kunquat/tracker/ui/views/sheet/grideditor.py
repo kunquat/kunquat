@@ -31,16 +31,15 @@ class GridEditor(QWidget):
         QWidget.__init__(self)
 
         self._grid_list = GridList()
+        self._general_editor = GeneralEditor()
 
         self._grid_area = GridArea()
-        self._general_editor = GeneralEditor()
         self._subdiv_editor = SubdivEditor()
         self._line_editor = LineEditor()
 
         r = QVBoxLayout()
         r.setMargin(0)
         r.setSpacing(8)
-        r.addWidget(self._general_editor)
         r.addWidget(self._subdiv_editor)
         r.addWidget(self._line_editor)
 
@@ -52,25 +51,26 @@ class GridEditor(QWidget):
 
         v = QVBoxLayout()
         v.setMargin(0)
-        v.setSpacing(0)
+        v.setSpacing(2)
         v.addWidget(self._grid_list, 1)
-        v.addSpacing(4)
+        v.addSpacing(2)
         v.addWidget(HeaderLine('Grid editor'))
+        v.addWidget(self._general_editor)
         v.addLayout(el, 4)
         self.setLayout(v)
 
     def set_ui_model(self, ui_model):
         self._grid_list.set_ui_model(ui_model)
-        self._grid_area.set_ui_model(ui_model)
         self._general_editor.set_ui_model(ui_model)
+        self._grid_area.set_ui_model(ui_model)
         self._subdiv_editor.set_ui_model(ui_model)
         self._line_editor.set_ui_model(ui_model)
 
     def unregister_updaters(self):
         self._line_editor.unregister_updaters()
         self._subdiv_editor.unregister_updaters()
-        self._general_editor.unregister_updaters()
         self._grid_area.unregister_updaters()
+        self._general_editor.unregister_updaters()
         self._grid_list.unregister_updaters()
 
 
@@ -513,7 +513,7 @@ class GeneralEditor(QWidget):
         h = QHBoxLayout()
         h.setMargin(0)
         h.setSpacing(2)
-        h.addWidget(QLabel('Length:'), 0)
+        h.addWidget(QLabel('Grid length:'), 0)
         h.addWidget(self._length, 1)
         self.setLayout(h)
 
