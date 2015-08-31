@@ -67,7 +67,7 @@ class GridPatterns():
             return False
         try:
             length_ts = tstamp.Tstamp(gp['length'])
-            if length_ts <= 0:
+            if length_ts < 1:
                 return False
         except (ValueError, TypeError):
             return False
@@ -118,6 +118,8 @@ class GridPatterns():
         for line_raw in gp['lines']:
             ts_raw, style = line_raw
             ts = tstamp.Tstamp(ts_raw)
+            if ts >= gp['length']:
+                break
             lines.append((ts, style))
 
         return lines
@@ -140,14 +142,20 @@ class GridPatterns():
         key = self._get_key()
         self._store[key] = raw_dict
 
+    def set_grid_pattern_length(self, gp_id, length):
+        raw_dict = self._get_raw_grid_dict()
+        raw_dict[gp_id]['length'] = list(length)
+        self._set_raw_grid_dict(raw_dict)
+
     def subdivide_grid_pattern_interval(self, gp_id, line_ts, part_count, line_style):
         raw_dict = self._get_raw_grid_dict()
         gp_dict = raw_dict[gp_id]
-        lines = gp_dict['lines']
+        lines = [line for line in gp_dict['lines'] if line[0] < gp_dict['length']]
         gp_length = tstamp.Tstamp(gp_dict['length'])
 
         # Get the length of the interval
-        cur_line_tss = [tstamp.Tstamp(line[0]) for line in lines]
+        all_cur_line_tss = (tstamp.Tstamp(line[0]) for line in lines)
+        cur_line_tss = [ts for ts in all_cur_line_tss if ts < gp_length]
         following_line_tss = filter(lambda ts: line_ts < ts < gp_length, cur_line_tss)
         if following_line_tss:
             next_ts = following_line_tss[0]
@@ -181,7 +189,8 @@ class GridPatterns():
         for line in lines:
             cur_line_ts, cur_line_style = line
             if cur_line_ts != line_ts:
-                new_lines.append(line)
+                if cur_line_ts < gp_dict['length']:
+                    new_lines.append(line)
             else:
                 new_lines.append([cur_line_ts, new_style])
 
@@ -196,7 +205,7 @@ class GridPatterns():
         new_lines = []
         for line in lines:
             cur_line_ts, _ = line
-            if cur_line_ts != line_ts:
+            if (cur_line_ts != line_ts) and (cur_line_ts < gp_dict['length']):
                 new_lines.append(line)
 
         gp_dict['lines'] = new_lines
