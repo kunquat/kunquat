@@ -578,7 +578,7 @@ class SubdivEditor(QWidget):
         self._subdiv_count.setMinimum(2)
         self._subdiv_count.setMaximum(32)
         self._subdiv_line_style = LineStyle()
-        self._subdiv_apply = QPushButton('Add subdivision')
+        self._subdiv_apply = QPushButton('Subdivide')
 
         self._subdiv_line_style.select_line_style(1)
 
@@ -595,7 +595,7 @@ class SubdivEditor(QWidget):
         v = QVBoxLayout()
         v.setMargin(0)
         v.setSpacing(2)
-        v.addWidget(HeaderLine('Current subdivision'), 0, Qt.AlignTop)
+        v.addWidget(HeaderLine('Create subdivision'), 0, Qt.AlignTop)
         v.addLayout(sl, 0)
         v.addWidget(self._subdiv_apply, 0)
         self.setLayout(v)
