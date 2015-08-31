@@ -33,12 +33,14 @@ class GridEditor(QWidget):
         self._grid_list = GridList()
 
         self._grid_area = GridArea()
+        self._general_editor = GeneralEditor()
         self._subdiv_editor = SubdivEditor()
         self._line_editor = LineEditor()
 
         r = QVBoxLayout()
         r.setMargin(0)
         r.setSpacing(8)
+        r.addWidget(self._general_editor)
         r.addWidget(self._subdiv_editor)
         r.addWidget(self._line_editor)
 
@@ -60,12 +62,14 @@ class GridEditor(QWidget):
     def set_ui_model(self, ui_model):
         self._grid_list.set_ui_model(ui_model)
         self._grid_area.set_ui_model(ui_model)
+        self._general_editor.set_ui_model(ui_model)
         self._subdiv_editor.set_ui_model(ui_model)
         self._line_editor.set_ui_model(ui_model)
 
     def unregister_updaters(self):
         self._line_editor.unregister_updaters()
         self._subdiv_editor.unregister_updaters()
+        self._general_editor.unregister_updaters()
         self._grid_area.unregister_updaters()
         self._grid_list.unregister_updaters()
 
@@ -283,7 +287,9 @@ class GridArea(QAbstractScrollArea):
         self.viewport().set_px_per_beat(px_per_beat)
 
     def _perform_updates(self, signals):
-        if 'signal_grid_pattern_selection' in signals:
+        update_signals = set([
+            'signal_grid_pattern_selection', 'signal_grid_pattern_modified'])
+        if not signals.isdisjoint(update_signals):
             self._update_selected_grid_pattern()
 
     def _update_selected_grid_pattern(self):
@@ -490,6 +496,75 @@ class GridView(QWidget):
         assert nearest_ts != None
         grid_patterns.select_grid_pattern_line(nearest_ts)
         self._updater.signal_update(set(['signal_grid_pattern_line_selection']))
+
+
+class GeneralEditor(QWidget):
+
+    def __init__(self):
+        QWidget.__init__(self)
+        self._ui_model = None
+        self._updater = None
+
+        self._length = QDoubleSpinBox()
+        self._length.setMinimum(1)
+        self._length.setMaximum(32)
+        self._length.setDecimals(3)
+
+        h = QHBoxLayout()
+        h.setMargin(0)
+        h.setSpacing(2)
+        h.addWidget(QLabel('Length:'), 0)
+        h.addWidget(self._length, 1)
+        self.setLayout(h)
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+
+        QObject.connect(
+                self._length, SIGNAL('valueChanged(double)'), self._change_length)
+
+        self._update_all()
+
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _perform_updates(self, signals):
+        update_signals = set([
+            'signal_grid_pattern_selection', 'signal_grid_pattern_modified'])
+        if not signals.isdisjoint(update_signals):
+            self._update_all()
+
+    def _get_grid_patterns(self):
+        sheet_manager = self._ui_model.get_sheet_manager()
+        grid_patterns = sheet_manager.get_grid_catalog()
+        return grid_patterns
+
+    def _update_all(self):
+        grid_patterns = self._get_grid_patterns()
+        gp_id = grid_patterns.get_selected_grid_pattern_id()
+
+        self.setEnabled(gp_id != None)
+        if gp_id == None:
+            return
+
+        gp_length = grid_patterns.get_grid_pattern_length(gp_id)
+
+        old_block = self._length.blockSignals(True)
+        self._length.setValue(float(gp_length))
+        self._length.blockSignals(old_block)
+
+    def _change_length(self, new_length):
+        new_length_ts = tstamp.Tstamp(new_length)
+
+        grid_patterns = self._get_grid_patterns()
+        gp_id = grid_patterns.get_selected_grid_pattern_id()
+        if gp_id == None:
+            return
+
+        grid_patterns.set_grid_pattern_length(gp_id, new_length_ts)
+        self._updater.signal_update(set(['signal_grid_pattern_modified']))
 
 
 class SubdivEditor(QWidget):
