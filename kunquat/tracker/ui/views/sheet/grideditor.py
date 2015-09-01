@@ -516,6 +516,11 @@ class GeneralEditor(QWidget):
         self._spacing_value.setMaximum(1.0)
         self._spacing_value.setDecimals(3)
 
+        self._offset = QDoubleSpinBox()
+        self._offset.setMinimum(0)
+        self._offset.setMaximum(32)
+        self._offset.setDecimals(3)
+
         ll = QHBoxLayout()
         ll.setMargin(0)
         ll.setSpacing(2)
@@ -530,11 +535,18 @@ class GeneralEditor(QWidget):
         sl.addWidget(QLabel(':'), 0)
         sl.addWidget(self._spacing_value, 1)
 
+        ol = QHBoxLayout()
+        ol.setMargin(0)
+        ol.setSpacing(2)
+        ol.addWidget(QLabel('Grid offset:'), 0)
+        ol.addWidget(self._offset, 1)
+
         v = QVBoxLayout()
         v.setContentsMargins(4, 0, 4, 0)
         v.setSpacing(2)
         v.addLayout(ll)
         v.addLayout(sl)
+        v.addLayout(ol)
         self.setLayout(v)
 
     def set_ui_model(self, ui_model):
@@ -554,6 +566,9 @@ class GeneralEditor(QWidget):
                 self._spacing_value,
                 SIGNAL('valueChanged(double)'),
                 self._change_spacing)
+
+        QObject.connect(
+                self._offset, SIGNAL('valueChanged(double)'), self._change_offset)
 
         self._update_all()
 
@@ -580,17 +595,28 @@ class GeneralEditor(QWidget):
             return
 
         gp_length = grid_patterns.get_grid_pattern_length(gp_id)
+        gp_length_f = float(gp_length)
 
-        old_block = self._length.blockSignals(True)
-        self._length.setValue(float(gp_length))
-        self._length.blockSignals(old_block)
+        if gp_length_f != self._length.value():
+            old_block = self._length.blockSignals(True)
+            self._length.setValue(gp_length_f)
+            self._length.blockSignals(old_block)
 
         spacing_value = grid_patterns.get_grid_pattern_line_style_spacing(
                 gp_id, self._spacing_style.get_current_line_style())
 
-        old_block = self._spacing_value.blockSignals(True)
-        self._spacing_value.setValue(spacing_value)
-        self._spacing_value.blockSignals(old_block)
+        if spacing_value != self._spacing_value.value():
+            old_block = self._spacing_value.blockSignals(True)
+            self._spacing_value.setValue(spacing_value)
+            self._spacing_value.blockSignals(old_block)
+
+        gp_offset = grid_patterns.get_grid_pattern_offset(gp_id)
+        gp_offset_f = float(gp_offset)
+
+        if gp_offset_f != self._offset.value():
+            old_block = self._offset.blockSignals(True)
+            self._offset.setValue(gp_offset_f)
+            self._offset.blockSignals(old_block)
 
     def _change_length(self, new_length):
         new_length_ts = tstamp.Tstamp(new_length)
@@ -616,6 +642,17 @@ class GeneralEditor(QWidget):
         line_style = self._spacing_style.get_current_line_style()
         grid_patterns.set_grid_pattern_line_style_spacing(
                 gp_id, line_style, new_spacing)
+        self._updater.signal_update(set(['signal_grid_pattern_modified']))
+
+    def _change_offset(self, new_offset):
+        new_offset_ts = tstamp.Tstamp(new_offset)
+
+        grid_patterns = self._get_grid_patterns()
+        gp_id = grid_patterns.get_selected_grid_pattern_id()
+        if gp_id == None:
+            return
+
+        grid_patterns.set_grid_pattern_offset(gp_id, new_offset_ts)
         self._updater.signal_update(set(['signal_grid_pattern_modified']))
 
 
