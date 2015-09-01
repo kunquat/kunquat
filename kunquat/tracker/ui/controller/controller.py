@@ -42,6 +42,7 @@ def _get_default_grid_patterns():
         0: {
             'name'  : u'4/4/4',
             'length': [4, 0],
+            'offset': [0, 0],
             'min_style_spacing': [1, 1, 0.6, 0.6, 0.6],
             'lines' : [
                 [[0, 0], 0],

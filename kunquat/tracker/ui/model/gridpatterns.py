@@ -22,6 +22,7 @@ STYLE_COUNT = 5
 PLACEHOLDER_GRID_PATTERN = {
     'name'  : u'1/4',
     'length': [1, 0],
+    'offset': [0, 0],
     'min_style_spacing': [1] * STYLE_COUNT,
     'lines' : [ [[0, 0], 0] ],
 }
@@ -69,6 +70,15 @@ class GridPatterns():
         try:
             length_ts = tstamp.Tstamp(gp['length'])
             if length_ts < 1:
+                return False
+        except (ValueError, TypeError):
+            return False
+
+        if 'offset' not in gp:
+            return False
+        try:
+            offset_ts = tstamp.Tstamp(gp['offset'])
+            if offset_ts < 0:
                 return False
         except (ValueError, TypeError):
             return False
@@ -123,6 +133,10 @@ class GridPatterns():
         gp = self._get_grid_pattern(gp_id)
         return tstamp.Tstamp(gp['length'])
 
+    def get_grid_pattern_offset(self, gp_id):
+        gp = self._get_grid_pattern(gp_id)
+        return tstamp.Tstamp(gp['offset'])
+
     def get_grid_pattern_line_style_spacing(self, gp_id, line_style):
         gp = self._get_grid_pattern(gp_id)
         return gp['min_style_spacing'][line_style]
@@ -130,15 +144,19 @@ class GridPatterns():
     def get_grid_pattern_lines(self, gp_id):
         gp = self._get_grid_pattern(gp_id)
 
+        offset = tstamp.Tstamp(gp['offset'])
+        length = tstamp.Tstamp(gp['length'])
+
         lines = []
         for line_raw in gp['lines']:
             ts_raw, style = line_raw
             ts = tstamp.Tstamp(ts_raw)
-            if ts >= gp['length']:
+            if ts >= length:
                 break
-            lines.append((ts, style))
+            final_ts = (ts + offset) % length
+            lines.append((final_ts, style))
 
-        return lines
+        return sorted(lines)
 
     def select_grid_pattern(self, gp_id):
         if gp_id != self.get_selected_grid_pattern_id():
@@ -163,6 +181,11 @@ class GridPatterns():
         raw_dict[gp_id]['length'] = list(length)
         self._set_raw_grid_dict(raw_dict)
 
+    def set_grid_pattern_offset(self, gp_id, offset):
+        raw_dict = self._get_raw_grid_dict()
+        raw_dict[gp_id]['offset'] = list(offset)
+        self._set_raw_grid_dict(raw_dict)
+
     def set_grid_pattern_line_style_spacing(self, gp_id, line_style, spacing):
         raw_dict = self._get_raw_grid_dict()
         raw_dict[gp_id]['min_style_spacing'][line_style] = spacing
@@ -172,7 +195,12 @@ class GridPatterns():
         raw_dict = self._get_raw_grid_dict()
         gp_dict = raw_dict[gp_id]
         lines = [line for line in gp_dict['lines'] if line[0] < gp_dict['length']]
+
         gp_length = tstamp.Tstamp(gp_dict['length'])
+
+        # Remove offset from the timestamp argument
+        gp_offset = tstamp.Tstamp(gp_dict['offset'])
+        line_ts = (line_ts + gp_length - gp_offset) % gp_length
 
         # Get the length of the interval
         all_cur_line_tss = (tstamp.Tstamp(line[0]) for line in lines)
@@ -206,6 +234,11 @@ class GridPatterns():
         gp_dict = raw_dict[gp_id]
         lines = gp_dict['lines']
 
+        # Remove offset from the timestamp argument
+        gp_length = tstamp.Tstamp(gp_dict['length'])
+        gp_offset = tstamp.Tstamp(gp_dict['offset'])
+        line_ts = (line_ts + gp_length - gp_offset) % gp_length
+
         new_lines = []
         for line in lines:
             cur_line_ts, cur_line_style = line
@@ -222,6 +255,11 @@ class GridPatterns():
         raw_dict = self._get_raw_grid_dict()
         gp_dict = raw_dict[gp_id]
         lines = gp_dict['lines']
+
+        # Remove offset from the timestamp argument
+        gp_length = tstamp.Tstamp(gp_dict['length'])
+        gp_offset = tstamp.Tstamp(gp_dict['offset'])
+        line_ts = (line_ts + gp_length - gp_offset) % gp_length
 
         new_lines = []
         for line in lines:
