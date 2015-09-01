@@ -91,7 +91,7 @@ class GridPatterns():
             cur_ts, _ = line
             if prev_ts >= cur_ts:
                 return False
-        if sum(1 for line in gp['lines'] if line[1] == 0) != 1:
+        if sum(1 for line in gp['lines'] if line[0] < gp['length'] and line[1] == 0) != 1:
             return False
 
         return True
