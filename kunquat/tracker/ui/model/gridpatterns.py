@@ -22,6 +22,7 @@ STYLE_COUNT = 5
 PLACEHOLDER_GRID_PATTERN = {
     'name'  : u'1/4',
     'length': [1, 0],
+    'min_style_spacing': [1] * STYLE_COUNT,
     'lines' : [ [[0, 0], 0] ],
 }
 
@@ -123,9 +124,8 @@ class GridPatterns():
         return tstamp.Tstamp(gp['length'])
 
     def get_grid_pattern_line_style_spacing(self, gp_id, line_style):
-        raw_dict = self._get_raw_grid_dict()
-        gp_dict = raw_dict[gp_id]
-        return gp_dict['min_style_spacing'][line_style]
+        gp = self._get_grid_pattern(gp_id)
+        return gp['min_style_spacing'][line_style]
 
     def get_grid_pattern_lines(self, gp_id):
         gp = self._get_grid_pattern(gp_id)
