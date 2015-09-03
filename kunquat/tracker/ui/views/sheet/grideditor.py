@@ -22,6 +22,7 @@ from ruler import Ruler
 import kunquat.tracker.ui.model.tstamp as tstamp
 from kunquat.tracker.ui.model.gridpatterns import STYLE_COUNT
 from kunquat.tracker.ui.views.headerline import HeaderLine
+from kunquat.tracker.ui.views.numberslider import NumberSlider
 import utils
 
 
@@ -663,10 +664,14 @@ class SubdivEditor(QWidget):
         self._ui_model = None
         self._updater = None
 
+        self._warp_value = 0.5
+
         self._subdiv_count = QSpinBox()
         self._subdiv_count.setMinimum(2)
         self._subdiv_count.setMaximum(32)
         self._subdiv_line_style = LineStyle()
+        self._subdiv_warp = NumberSlider(3, 0.001, 0.999)
+        self._subdiv_warp.set_number(self._warp_value)
         self._subdiv_apply = QPushButton('Subdivide')
 
         self._subdiv_line_style.select_line_style(1)
@@ -680,6 +685,8 @@ class SubdivEditor(QWidget):
         sl.addWidget(self._subdiv_count, 0, 1)
         sl.addWidget(QLabel('Style:'), 1, 0)
         sl.addWidget(self._subdiv_line_style, 1, 1)
+        sl.addWidget(QLabel('Warp:'), 2, 0)
+        sl.addWidget(self._subdiv_warp, 2, 1)
 
         v = QVBoxLayout()
         v.setMargin(0)
@@ -693,6 +700,9 @@ class SubdivEditor(QWidget):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
+
+        QObject.connect(
+                self._subdiv_warp, SIGNAL('numberChanged(float)'), self._update_warp)
 
         QObject.connect(self._subdiv_apply, SIGNAL('clicked()'), self._apply_subdivision)
 
@@ -731,6 +741,10 @@ class SubdivEditor(QWidget):
         selected_line_ts = self._get_selected_line_ts(grid_patterns, gp_id)
         self.setEnabled(selected_line_ts != None)
 
+    def _update_warp(self, new_warp):
+        self._warp_value = new_warp
+        self._subdiv_warp.set_number(self._warp_value)
+
     def _apply_subdivision(self):
         grid_patterns = self._get_grid_patterns()
         gp_id = grid_patterns.get_selected_grid_pattern_id()
@@ -744,7 +758,7 @@ class SubdivEditor(QWidget):
         selected_line_ts = self._get_selected_line_ts(grid_patterns, gp_id)
 
         grid_patterns.subdivide_grid_pattern_interval(
-                gp_id, selected_line_ts, part_count, line_style)
+                gp_id, selected_line_ts, part_count, self._warp_value, line_style)
         self._updater.signal_update(set(['signal_grid_pattern_modified']))
 
 

@@ -13,6 +13,7 @@
 
 from copy import deepcopy
 from itertools import izip
+import math
 
 import tstamp
 
@@ -191,7 +192,13 @@ class GridPatterns():
         raw_dict[gp_id]['min_style_spacing'][line_style] = spacing
         self._set_raw_grid_dict(raw_dict)
 
-    def subdivide_grid_pattern_interval(self, gp_id, line_ts, part_count, line_style):
+    def _get_warp_func(self, warp_value):
+        def warp_func(x):
+            return x**(math.log(1.0 / warp_value, 2))
+        return warp_func
+
+    def subdivide_grid_pattern_interval(
+            self, gp_id, line_ts, part_count, warp_value, line_style):
         raw_dict = self._get_raw_grid_dict()
         gp_dict = raw_dict[gp_id]
         lines = [line for line in gp_dict['lines'] if line[0] < gp_dict['length']]
@@ -216,9 +223,14 @@ class GridPatterns():
         assert interval_length > 0
 
         # Get the timestamps of new lines
+        warp_func = self._get_warp_func(warp_value)
         new_line_tss = []
         for i in xrange(1, part_count):
-            rel_ts = (i * interval_length) / part_count
+            if warp_value == 0.5:
+                rel_ts = tstamp.Tstamp(i * interval_length) / part_count
+            else:
+                pos_norm = warp_func(float(i) / float(part_count))
+                rel_ts = tstamp.Tstamp(pos_norm) * interval_length
             new_ts = (rel_ts + line_ts) % gp_length
             new_line_tss.append(new_ts)
 
