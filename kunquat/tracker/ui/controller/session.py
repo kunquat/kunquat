@@ -60,6 +60,9 @@ class Session():
         self._is_grid_enabled = True
         self._selected_grid_pattern_id = None
         self._selected_grid_pattern_line = None
+        self._gp_zoom = 0
+        self._gp_zoom_min = 0
+        self._gp_zoom_max = 0
         self._pending_playback_cursor_track = 0
         self._pending_playback_cursor_system = 0
         self._playback_cursor_position = (0, 0, [0, 0])
@@ -364,6 +367,20 @@ class Session():
 
     def get_selected_grid_pattern_line(self):
         return self._selected_grid_pattern_line
+
+    def set_grid_pattern_zoom(self, zoom):
+        self._gp_zoom = min(max(self._gp_zoom_min, zoom), self._gp_zoom_max)
+
+    def set_grid_pattern_zoom_range(self, minimum, maximum):
+        self._gp_zoom_min = minimum
+        self._gp_zoom_max = max(minimum, maximum)
+        self.set_grid_pattern_zoom(self._gp_zoom)
+
+    def get_grid_pattern_zoom(self):
+        return self._gp_zoom
+
+    def get_grid_pattern_zoom_range(self):
+        return (self._gp_zoom_min, self._gp_zoom_max)
 
     def set_module_path(self, path):
         self._module_path = path

@@ -313,4 +313,16 @@ class GridPatterns():
         gp_dict['lines'] = new_lines
         self._set_raw_grid_dict(raw_dict)
 
+    def set_zoom(self, zoom):
+        self._session.set_grid_pattern_zoom(zoom)
+
+    def set_zoom_range(self, minimum, maximum):
+        self._session.set_grid_pattern_zoom_range(minimum, maximum)
+
+    def get_zoom(self):
+        return self._session.get_grid_pattern_zoom()
+
+    def get_zoom_range(self):
+        return self._session.get_grid_pattern_zoom_range()
+
 
