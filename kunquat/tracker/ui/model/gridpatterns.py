@@ -170,6 +170,37 @@ class GridPatterns():
     def select_grid_pattern_line(self, line_ts):
         self._session.select_grid_pattern_line(line_ts)
 
+    def _select_grid_pattern_line_delta(self, gp_id, delta):
+        assert delta in (-1, 1)
+
+        # Get lines
+        lines = self.get_grid_pattern_lines(gp_id)
+
+        cur_selection = self.get_selected_grid_pattern_line()
+
+        # Find the list index of the current selection
+        for i, line in enumerate(lines):
+            line_ts, _ = line
+            if line_ts == cur_selection:
+                selected_index = i
+                break
+        else:
+            # No previous selection, so select the first line
+            line_ts, _ = lines[0]
+            self.select_grid_pattern_line(line_ts)
+            return
+
+        selected_index = min(max(0, (selected_index + delta)), len(lines) - 1)
+        selected_line = lines[selected_index]
+        selected_line_ts, _ = selected_line
+        self.select_grid_pattern_line(selected_line_ts)
+
+    def select_prev_grid_pattern_line(self, gp_id):
+        self._select_grid_pattern_line_delta(gp_id, -1)
+
+    def select_next_grid_pattern_line(self, gp_id):
+        self._select_grid_pattern_line_delta(gp_id, 1)
+
     def get_selected_grid_pattern_line(self):
         return self._session.get_selected_grid_pattern_line()
 

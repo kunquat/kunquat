@@ -390,11 +390,6 @@ class GridView(QWidget):
 
     def _get_visible_grid_pattern_id(self, grid_patterns):
         gp_id = grid_patterns.get_selected_grid_pattern_id()
-        if gp_id == None:
-            all_ids = grid_patterns.get_grid_pattern_ids()
-            if all_ids:
-                gp_id = all_ids[0]
-
         return gp_id
 
     def paintEvent(self, event):
@@ -497,6 +492,38 @@ class GridView(QWidget):
         assert nearest_ts != None
         grid_patterns.select_grid_pattern_line(nearest_ts)
         self._updater.signal_update(set(['signal_grid_pattern_line_selection']))
+
+    def keyPressEvent(self, event):
+        if event.modifiers() != Qt.NoModifier:
+            return
+
+        # Get grid pattern info
+        sheet_manager = self._ui_model.get_sheet_manager()
+        grid_patterns = sheet_manager.get_grid_catalog()
+        gp_id = self._get_visible_grid_pattern_id(grid_patterns)
+        if gp_id == None:
+            return
+
+        if event.key() == Qt.Key_Up:
+            grid_patterns.select_prev_grid_pattern_line(gp_id)
+            self._updater.signal_update(set(['signal_grid_pattern_line_selection']))
+        elif event.key() == Qt.Key_Down:
+            grid_patterns.select_next_grid_pattern_line(gp_id)
+            self._updater.signal_update(set(['signal_grid_pattern_line_selection']))
+        elif event.key() == Qt.Key_Delete:
+            selected_line_ts = grid_patterns.get_selected_grid_pattern_line()
+            lines = grid_patterns.get_grid_pattern_lines(gp_id)
+            lines_dict = dict(lines)
+            line_style = lines_dict.get(selected_line_ts, 0)
+            if line_style != 0:
+                grid_patterns.select_next_grid_pattern_line(gp_id)
+                if grid_patterns.get_selected_grid_pattern_line() == selected_line_ts:
+                    grid_patterns.select_prev_grid_pattern_line(gp_id)
+
+                grid_patterns.remove_grid_pattern_line(gp_id, selected_line_ts)
+                self._updater.signal_update(set([
+                    'signal_grid_pattern_line_selection',
+                    'signal_grid_pattern_modified']))
 
 
 class GeneralEditor(QWidget):
@@ -770,7 +797,7 @@ class LineEditor(QWidget):
         self._updater = None
 
         self._line_style = LineStyle()
-        self._remove_button = QPushButton('Remove line')
+        self._remove_button = QPushButton('Remove line (Delete)')
 
         ls = QHBoxLayout()
         ls.setMargin(0)
