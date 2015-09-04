@@ -256,6 +256,11 @@ class GridArea(QAbstractScrollArea):
         self._ruler.set_ui_model(ui_model)
         self.viewport().set_ui_model(ui_model)
 
+        QObject.connect(
+                self.viewport(),
+                SIGNAL('followCursor(QString)'),
+                self._follow_cursor)
+
         self._update_selected_grid_pattern()
 
     def unregister_updaters(self):
@@ -313,6 +318,38 @@ class GridArea(QAbstractScrollArea):
     def _update_selected_grid_pattern(self):
         self._ruler.update_grid_pattern()
 
+    def _update_scrollbars(self):
+        sheet_manager = self._ui_model.get_sheet_manager()
+        grid_patterns = sheet_manager.get_grid_catalog()
+        gp_id = grid_patterns.get_selected_grid_pattern_id()
+        if gp_id == None:
+            self.verticalScrollBar().setRange(0, 0)
+            return
+
+        gp_length = grid_patterns.get_grid_pattern_length(gp_id)
+
+        total_height_px = self.viewport().get_total_height()
+        vp_height = self.viewport().height()
+        vscrollbar = self.verticalScrollBar()
+        vscrollbar.setPageStep(vp_height)
+        vscrollbar.setRange(0, total_height_px - vp_height)
+
+    def _follow_cursor(self, new_y_offset_str):
+        new_y_offset = long(new_y_offset_str)
+
+        vscrollbar = self.verticalScrollBar()
+        old_y_offset = vscrollbar.value()
+
+        self._update_scrollbars()
+        vscrollbar.setValue(new_y_offset)
+
+        self.viewport().update()
+
+    def scrollContentsBy(self, dx, dy):
+        px_offset = self.verticalScrollBar().value()
+        self._ruler.set_px_offset(px_offset)
+        self.viewport().set_px_offset(px_offset)
+
     def sizeHint(self):
         width = (self._ruler.width() +
                 self.viewport().width() +
@@ -362,6 +399,8 @@ class GridHeader(QWidget):
 
 class GridView(QWidget):
 
+    followCursor = pyqtSignal(str, name='followCursor')
+
     def __init__(self):
         QWidget.__init__(self)
 
@@ -394,17 +433,86 @@ class GridView(QWidget):
         self._width = self._config['col_width'] * em_px
         self.setFixedWidth(self._width)
 
+    def set_px_offset(self, new_offset):
+        if self._px_offset != new_offset:
+            self._px_offset = new_offset
+            self.update()
+
     def set_px_per_beat(self, px_per_beat):
-        self._px_per_beat = px_per_beat
+        if self._px_per_beat != px_per_beat:
+            orig_px_per_beat = self._px_per_beat
+            orig_px_offset = self._px_offset
+
+            self._px_per_beat = px_per_beat
+
+            if not self._ui_model:
+                return
+
+            # Get old edit cursor offset
+            sheet_manager = self._ui_model.get_sheet_manager()
+            grid_patterns = sheet_manager.get_grid_catalog()
+            selected_line_ts = (grid_patterns.get_selected_grid_pattern_line() or
+                    tstamp.Tstamp(0))
+            orig_relative_offset = utils.get_px_from_tstamp(
+                    selected_line_ts, orig_px_per_beat) - orig_px_offset
+
+            # Adjust vertical position so that edit cursor maintains its height
+            new_cursor_offset = utils.get_px_from_tstamp(selected_line_ts, px_per_beat)
+            new_px_offset = new_cursor_offset - orig_relative_offset
+            QObject.emit(self, SIGNAL('followCursor(QString)'), str(new_px_offset))
+
+    def get_total_height(self):
+        sheet_manager = self._ui_model.get_sheet_manager()
+        grid_patterns = sheet_manager.get_grid_catalog()
+        gp_id = grid_patterns.get_selected_grid_pattern_id()
+        if gp_id == None:
+            return 0
+
+        gp_length = grid_patterns.get_grid_pattern_length(gp_id)
+
+        return (utils.get_px_from_tstamp(gp_length, self._px_per_beat) +
+                self._config['tr_height'])
 
     def _perform_updates(self, signals):
-        update_signals = set([
-            'signal_grid_pattern_selection',
-            'signal_grid_pattern_line_selection',
-            'signal_grid_pattern_modified',
-            'signal_grid_zoom'])
+        cursor_signals = set([
+            'signal_grid_pattern_selection', 'signal_grid_pattern_line_selection'])
+        update_signals = cursor_signals | set([
+            'signal_grid_pattern_modified', 'signal_grid_zoom'])
+
+        if not signals.isdisjoint(cursor_signals):
+            self._follow_edit_cursor()
+
         if not signals.isdisjoint(update_signals):
             self.update()
+
+    def _follow_edit_cursor(self):
+        sheet_manager = self._ui_model.get_sheet_manager()
+        grid_patterns = sheet_manager.get_grid_catalog()
+        gp_id = grid_patterns.get_selected_grid_pattern_id()
+        if gp_id == None:
+            return
+
+        selected_line_ts = (grid_patterns.get_selected_grid_pattern_line() or
+                tstamp.Tstamp(0))
+        cursor_abs_y = utils.get_px_from_tstamp(selected_line_ts, self._px_per_beat)
+        cursor_rel_y = cursor_abs_y - self._px_offset
+
+        is_scrolling_required = False
+
+        min_snap_dist = self._config['edit_cursor']['min_snap_dist']
+        min_center_dist = min(min_snap_dist, self.height() // 2)
+        min_y_offset = min_center_dist
+        max_y_offset = self.height() - min_center_dist
+
+        if cursor_rel_y < min_center_dist:
+            is_scrolling_required = True
+            new_px_offset = self._px_offset - (min_y_offset - cursor_rel_y)
+        elif cursor_rel_y >= max_y_offset:
+            is_scrolling_required = True
+            new_px_offset = self._px_offset + (cursor_rel_y - max_y_offset)
+
+        if is_scrolling_required:
+            QObject.emit(self, SIGNAL('followCursor(QString)'), str(new_px_offset))
 
     def _get_visible_grid_pattern_id(self, grid_patterns):
         gp_id = grid_patterns.get_selected_grid_pattern_id()
