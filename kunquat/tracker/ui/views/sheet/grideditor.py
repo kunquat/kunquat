@@ -239,11 +239,17 @@ class GridArea(QAbstractScrollArea):
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
 
+        sheet_manager = self._ui_model.get_sheet_manager()
+        grid_patterns = sheet_manager.get_grid_catalog()
+
         # Default zoom level
         px_per_beat = self._config['trs_per_beat'] * self._config['tr_height']
         self._zoom_levels = utils.get_zoom_levels(
                 16, px_per_beat, 512, self._config['zoom_factor'])
         self._default_zoom_index = self._zoom_levels.index(px_per_beat)
+        grid_patterns.set_zoom_range(
+                -self._default_zoom_index,
+                len(self._zoom_levels) - self._default_zoom_index - 1)
 
         self._set_px_per_beat(self._zoom_levels[self._default_zoom_index])
 
@@ -287,11 +293,22 @@ class GridArea(QAbstractScrollArea):
         self._ruler.set_px_per_beat(px_per_beat)
         self.viewport().set_px_per_beat(px_per_beat)
 
+    def _update_zoom(self):
+        sheet_manager = self._ui_model.get_sheet_manager()
+        grid_patterns = sheet_manager.get_grid_catalog()
+
+        zoom_level = grid_patterns.get_zoom()
+        cur_zoom_index = zoom_level + self._default_zoom_index
+        self._set_px_per_beat(self._zoom_levels[cur_zoom_index])
+
     def _perform_updates(self, signals):
         update_signals = set([
             'signal_grid_pattern_selection', 'signal_grid_pattern_modified'])
         if not signals.isdisjoint(update_signals):
             self._update_selected_grid_pattern()
+
+        if 'signal_grid_zoom' in signals:
+            self._update_zoom()
 
     def _update_selected_grid_pattern(self):
         self._ruler.update_grid_pattern()
@@ -384,7 +401,8 @@ class GridView(QWidget):
         update_signals = set([
             'signal_grid_pattern_selection',
             'signal_grid_pattern_line_selection',
-            'signal_grid_pattern_modified'])
+            'signal_grid_pattern_modified',
+            'signal_grid_zoom'])
         if not signals.isdisjoint(update_signals):
             self.update()
 
@@ -494,9 +512,6 @@ class GridView(QWidget):
         self._updater.signal_update(set(['signal_grid_pattern_line_selection']))
 
     def keyPressEvent(self, event):
-        if event.modifiers() != Qt.NoModifier:
-            return
-
         # Get grid pattern info
         sheet_manager = self._ui_model.get_sheet_manager()
         grid_patterns = sheet_manager.get_grid_catalog()
@@ -504,26 +519,38 @@ class GridView(QWidget):
         if gp_id == None:
             return
 
-        if event.key() == Qt.Key_Up:
-            grid_patterns.select_prev_grid_pattern_line(gp_id)
-            self._updater.signal_update(set(['signal_grid_pattern_line_selection']))
-        elif event.key() == Qt.Key_Down:
-            grid_patterns.select_next_grid_pattern_line(gp_id)
-            self._updater.signal_update(set(['signal_grid_pattern_line_selection']))
-        elif event.key() == Qt.Key_Delete:
-            selected_line_ts = grid_patterns.get_selected_grid_pattern_line()
-            lines = grid_patterns.get_grid_pattern_lines(gp_id)
-            lines_dict = dict(lines)
-            line_style = lines_dict.get(selected_line_ts, 0)
-            if line_style != 0:
+        if event.modifiers() == Qt.NoModifier:
+            if event.key() == Qt.Key_Up:
+                grid_patterns.select_prev_grid_pattern_line(gp_id)
+                self._updater.signal_update(set(['signal_grid_pattern_line_selection']))
+            elif event.key() == Qt.Key_Down:
                 grid_patterns.select_next_grid_pattern_line(gp_id)
-                if grid_patterns.get_selected_grid_pattern_line() == selected_line_ts:
-                    grid_patterns.select_prev_grid_pattern_line(gp_id)
+                self._updater.signal_update(set(['signal_grid_pattern_line_selection']))
+            elif event.key() == Qt.Key_Delete:
+                selected_line_ts = grid_patterns.get_selected_grid_pattern_line()
+                lines = grid_patterns.get_grid_pattern_lines(gp_id)
+                lines_dict = dict(lines)
+                line_style = lines_dict.get(selected_line_ts, 0)
+                if line_style != 0:
+                    grid_patterns.select_next_grid_pattern_line(gp_id)
+                    if (grid_patterns.get_selected_grid_pattern_line() ==
+                            selected_line_ts):
+                        grid_patterns.select_prev_grid_pattern_line(gp_id)
 
-                grid_patterns.remove_grid_pattern_line(gp_id, selected_line_ts)
-                self._updater.signal_update(set([
-                    'signal_grid_pattern_line_selection',
-                    'signal_grid_pattern_modified']))
+                    grid_patterns.remove_grid_pattern_line(gp_id, selected_line_ts)
+                    self._updater.signal_update(set([
+                        'signal_grid_pattern_line_selection',
+                        'signal_grid_pattern_modified']))
+        elif event.modifiers() == Qt.ControlModifier:
+            if event.key() == Qt.Key_Minus:
+                grid_patterns.set_zoom(grid_patterns.get_zoom() - 1)
+                self._updater.signal_update(set(['signal_grid_zoom']))
+            elif event.key() == Qt.Key_Plus:
+                grid_patterns.set_zoom(grid_patterns.get_zoom() + 1)
+                self._updater.signal_update(set(['signal_grid_zoom']))
+            elif event.key() == Qt.Key_0:
+                grid_patterns.set_zoom(0)
+                self._updater.signal_update(set(['signal_grid_zoom']))
 
 
 class GeneralEditor(QWidget):
