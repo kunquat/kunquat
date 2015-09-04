@@ -151,13 +151,13 @@ def get_zoom_levels(min_val, default_val, max_val, zoom_factor):
     # Fill zoom in levels until maximum
     prev_val = zoom_levels[-1]
     next_val = prev_val * zoom_factor
-    while math.ceil(next_val) < tstamp.BEAT:
+    while math.ceil(next_val) < max_val:
         actual_val = int(math.ceil(next_val))
         assert actual_val > prev_val
         zoom_levels.append(actual_val)
         prev_val = actual_val
         next_val = prev_val * zoom_factor
-    zoom_levels.append(tstamp.BEAT)
+    zoom_levels.append(max_val)
 
     return zoom_levels
 
