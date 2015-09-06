@@ -657,6 +657,8 @@ class GeneralEditor(QWidget):
         self._ui_model = None
         self._updater = None
 
+        self._name = QLineEdit()
+
         self._length = QDoubleSpinBox()
         self._length.setMinimum(1)
         self._length.setMaximum(32)
@@ -672,6 +674,12 @@ class GeneralEditor(QWidget):
         self._offset.setMinimum(0)
         self._offset.setMaximum(32)
         self._offset.setDecimals(3)
+
+        nl = QHBoxLayout()
+        nl.setMargin(0)
+        nl.setSpacing(2)
+        nl.addWidget(QLabel('Name:'), 0)
+        nl.addWidget(self._name, 1)
 
         ll = QHBoxLayout()
         ll.setMargin(0)
@@ -696,6 +704,7 @@ class GeneralEditor(QWidget):
         v = QVBoxLayout()
         v.setContentsMargins(4, 0, 4, 0)
         v.setSpacing(2)
+        v.addLayout(nl)
         v.addLayout(ll)
         v.addLayout(sl)
         v.addLayout(ol)
@@ -705,6 +714,9 @@ class GeneralEditor(QWidget):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
+
+        QObject.connect(
+                self._name, SIGNAL('textEdited(QString)'), self._change_name)
 
         QObject.connect(
                 self._length, SIGNAL('valueChanged(double)'), self._change_length)
@@ -748,6 +760,12 @@ class GeneralEditor(QWidget):
         if gp == None:
             return
 
+        gp_name = gp.get_name()
+        if gp_name != self._name.text():
+            old_block = self._name.blockSignals(True)
+            self._name.setText(gp_name)
+            self._name.blockSignals(old_block)
+
         gp_length = gp.get_length()
         gp_length_f = float(gp_length)
 
@@ -771,6 +789,17 @@ class GeneralEditor(QWidget):
             old_block = self._offset.blockSignals(True)
             self._offset.setValue(gp_offset_f)
             self._offset.blockSignals(old_block)
+
+    def _change_name(self, text):
+        text = unicode(text)
+
+        gp = self._get_selected_grid_pattern()
+        if gp == None:
+            return
+
+        gp.set_name(text)
+        self._updater.signal_update(set([
+            'signal_grid_pattern_modified', 'signal_grid_pattern_list']))
 
     def _change_length(self, new_length):
         new_length_ts = tstamp.Tstamp(new_length)
