@@ -153,7 +153,7 @@ class ColumnGroupRenderer():
         except TypeError:
             return 0
 
-    def draw(self, painter, height):
+    def draw(self, painter, height, grid):
         # Render columns of visible patterns
         first_index = utils.get_first_visible_pat_index(
                 self._px_offset,
@@ -193,7 +193,7 @@ class ColumnGroupRenderer():
             # Draw pixmaps
             canvas_y = max(0, rel_start_height)
             for (src_rect, pixmap) in cache.iter_pixmaps(
-                    cur_offset, min(rel_end_height, height) - canvas_y):
+                    cur_offset, min(rel_end_height, height) - canvas_y, grid):
                 dest_rect = QRect(0, canvas_y, self._width, src_rect.height())
                 painter.drawPixmap(dest_rect, pixmap, src_rect)
                 canvas_y += src_rect.height()
@@ -339,7 +339,7 @@ class ColumnCache():
         tr_memory_usage = self._tr_cache.get_memory_usage()
         return self._pixmaps.get_memory_usage() + tr_memory_usage
 
-    def iter_pixmaps(self, start_px, height_px):
+    def iter_pixmaps(self, start_px, height_px, grid):
         assert start_px >= 0
         assert height_px >= 0
 
@@ -353,7 +353,7 @@ class ColumnCache():
 
         for i in xrange(start_index, stop_index):
             if i not in self._pixmaps:
-                pixmap = self._create_pixmap(i)
+                pixmap = self._create_pixmap(i, grid)
                 self._pixmaps[i] = pixmap
                 self._pixmaps_created += 1
             else:
@@ -375,7 +375,7 @@ class ColumnCache():
             return utils.scale_colour(colour, self._config['inactive_dim'])
         return colour
 
-    def _create_pixmap(self, index):
+    def _create_pixmap(self, index, grid):
         pixmap = QPixmap(self._width, ColumnCache.PIXMAP_HEIGHT)
 
         painter = QPainter(pixmap)
@@ -404,7 +404,6 @@ class ColumnCache():
         sheet_manager = self._ui_model.get_sheet_manager()
         if sheet_manager.is_grid_enabled():
             grid_start_ts = tstamp.Tstamp(0, start_px * tstamp.BEAT // self._px_per_beat)
-            grid = sheet_manager.get_grid()
             tr_height_ts = utils.get_tstamp_from_px(
                     self._config['tr_height'], self._px_per_beat)
             lines = grid.get_grid_lines(

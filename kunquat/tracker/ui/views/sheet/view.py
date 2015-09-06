@@ -1471,6 +1471,10 @@ class View(QWidget):
         draw_col_stop = 1 + (rect.x() + rect.width() - 1) // self._col_width
         draw_col_stop = min(draw_col_stop, COLUMNS_MAX - self._first_col)
 
+        # Get grid (moved here from ColumnGroupRenderer for cached data access)
+        sheet_manager = self._ui_model.get_sheet_manager()
+        grid = sheet_manager.get_grid()
+
         # Draw columns
         pixmaps_created = 0
         for rel_col_index in xrange(draw_col_start, draw_col_stop):
@@ -1478,7 +1482,7 @@ class View(QWidget):
             tfm = QTransform().translate(x_offset, 0)
             painter.setTransform(tfm)
             pixmaps_created += self._col_rends[
-                    self._first_col + rel_col_index].draw(painter, self.height())
+                    self._first_col + rel_col_index].draw(painter, self.height(), grid)
 
         # Flush caches of (most) out-of-view columns
         first_kept_col = max(0, self._first_col - 1)

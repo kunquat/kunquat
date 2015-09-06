@@ -23,6 +23,9 @@ class Grid():
         self._store = None
         self._ui_model = None
 
+        self._cached_grid_patterns = {}
+        self._cached_allowed_line_styles = {}
+
     def set_controller(self, controller):
         self._controller = controller
         self._store = controller.get_store()
@@ -63,8 +66,12 @@ class Grid():
         return allowed_styles
 
     def _get_grid_spec(self, gp_id, tr_height_ts):
-        grid_manager = self._ui_model.get_grid_manager()
-        gp = grid_manager.get_grid_pattern(gp_id)
+        if gp_id in self._cached_grid_patterns:
+            gp = self._cached_grid_patterns[gp_id]
+        else:
+            grid_manager = self._ui_model.get_grid_manager()
+            gp = grid_manager.get_grid_pattern(gp_id)
+            self._cached_grid_patterns[gp_id] = gp
 
         gp_length = gp.get_length()
         gp_lines = gp.get_lines()
@@ -77,7 +84,11 @@ class Grid():
         }
 
         # Filter out line styles with insufficient separation
-        allowed_styles = self._get_allowed_line_styles(spec, tr_height_ts)
+        if (gp_id, tr_height_ts) in self._cached_allowed_line_styles:
+            allowed_styles = self._cached_allowed_line_styles[(gp_id, tr_height_ts)]
+        else:
+            allowed_styles = self._get_allowed_line_styles(spec, tr_height_ts)
+            self._cached_allowed_line_styles[(gp_id, tr_height_ts)] = allowed_styles
         filtered_lines = [line for line in gp_lines if line[1] in allowed_styles]
         spec['lines'] = filtered_lines
 
