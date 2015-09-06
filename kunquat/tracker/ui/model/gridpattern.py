@@ -221,6 +221,12 @@ class GridPattern():
         raw_master_dict[self._id] = raw_dict
         self._store[master_key] = raw_master_dict
 
+    def set_name(self, name):
+        assert isinstance(name, unicode)
+        gp = self._get_model_data()
+        gp['name'] = name
+        self._set_grid_pattern_data(gp)
+
     def set_length(self, length):
         gp = self._get_model_data()
         gp['length'] = length
