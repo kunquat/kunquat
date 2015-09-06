@@ -11,7 +11,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from gridpattern import GridPattern
+import tstamp
+from gridpattern import GridPattern, STYLE_COUNT
 
 
 class GridManager():
@@ -30,17 +31,17 @@ class GridManager():
         key = 'i_grid_patterns.json'
         return key
 
-    def _set_raw_grid_dict(self, raw_dict):
+    def _set_raw_master_dict(self, raw_dict):
         key = self._get_key()
         self._store[key] = raw_dict
 
-    def _get_raw_grid_dict(self):
+    def _get_raw_master_dict(self):
         key = self._get_key()
         data = self._store.get(key, {})
         return data if isinstance(data, dict) else {}
 
     def get_grid_pattern_ids(self):
-        raw_dict = self._get_raw_grid_dict()
+        raw_dict = self._get_raw_master_dict()
         valid_keys = [k for k in raw_dict if isinstance(k, int) and (k >= 0)]
         return valid_keys
 
@@ -56,6 +57,57 @@ class GridManager():
         gp = GridPattern(gp_id)
         gp.set_controller(self._controller)
         return gp
+
+    def add_grid_pattern(self):
+        raw_master_dict = self._get_raw_master_dict()
+
+        # Find a new unique ID
+        used_ids = set(raw_master_dict.iterkeys())
+        for i in xrange(len(used_ids) + 1):
+            new_id = i
+            if new_id not in used_ids:
+                break
+        else:
+            assert False
+
+        # Get used names
+        used_names = set()
+        for raw_grid in raw_master_dict.itervalues():
+            if isinstance(raw_grid, dict) and 'name' in raw_grid:
+                name = raw_grid['name']
+                if isinstance(name, unicode):
+                    used_names.add(raw_grid['name'])
+
+        # Find a unique placeholder name for the new grid pattern
+        for i in xrange(len(used_names) + 1):
+            placeholder = u'New grid{}'.format(' ' + str(i + 1) if i > 0 else '')
+            if placeholder not in used_names:
+                break
+        else:
+            assert False
+
+        # Create new grid pattern
+        lines = []
+        for i in xrange(16):
+            line_ts_raw = list(tstamp.Tstamp(i) / 4)
+            style = 0 if (i == 0) else (1 if (i % 4) == 0 else 2)
+            lines.append([line_ts_raw, style])
+
+        new_raw_dict = {
+            'name'             : placeholder,
+            'length'           : [4, 0],
+            'offset'           : [0, 0],
+            'min_style_spacing': [1] * STYLE_COUNT,
+            'lines'            : lines,
+        }
+
+        raw_master_dict[new_id] = new_raw_dict
+        self._set_raw_master_dict(raw_master_dict)
+
+    def remove_grid_pattern(self, gp_id):
+        raw_master_dict = self._get_raw_master_dict()
+        del raw_master_dict[gp_id]
+        self._set_raw_master_dict(raw_master_dict)
 
     def set_zoom(self, zoom):
         self._session.set_grid_pattern_zoom(zoom)
