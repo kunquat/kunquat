@@ -13,7 +13,7 @@
 
 import tstamp
 
-from gridpatterns import STYLE_COUNT
+from gridpattern import STYLE_COUNT
 
 
 class Grid():
@@ -63,14 +63,12 @@ class Grid():
         return allowed_styles
 
     def _get_grid_spec(self, gp_id, tr_height_ts):
-        sheet_manager = self._ui_model.get_sheet_manager()
-        grid_patterns = sheet_manager.get_grid_catalog()
+        grid_manager = self._ui_model.get_grid_manager()
+        gp = grid_manager.get_grid_pattern(gp_id)
 
-        gp_length = grid_patterns.get_grid_pattern_length(gp_id)
-        gp_lines = grid_patterns.get_grid_pattern_lines(gp_id)
-        gp_style_spacing = [
-                grid_patterns.get_grid_pattern_line_style_spacing(gp_id, i)
-                for i in xrange(STYLE_COUNT)]
+        gp_length = gp.get_length()
+        gp_lines = gp.get_lines()
+        gp_style_spacing = [gp.get_line_style_spacing(i) for i in xrange(STYLE_COUNT)]
 
         spec = {
             'length': gp_length,
