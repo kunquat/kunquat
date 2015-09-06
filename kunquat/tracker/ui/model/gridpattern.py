@@ -235,6 +235,10 @@ class GridPattern():
     def set_offset(self, offset):
         gp = self._get_model_data()
         gp['offset'] = offset
+
+        # Filter out lines beyond the grid length to avoid confusion
+        gp['lines'] = [(ts, s) for (ts, s) in gp['lines'] if ts < gp['length']]
+
         self._set_grid_pattern_data(gp)
 
     def set_line_style_spacing(self, line_style, spacing):
