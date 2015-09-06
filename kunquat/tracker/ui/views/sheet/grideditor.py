@@ -104,6 +104,8 @@ class GridListModel(QAbstractListModel):
             gp_name = gp.get_name()
             self._items.append((gp_id, gp_name))
 
+        self._items = sorted(self._items, lambda x, y: cmp(x[1], y[1]))
+
     def unregister_updaters(self):
         pass
 
@@ -165,12 +167,15 @@ class GridList(QWidget):
         self._ui_model = None
         self._updater = None
 
+        self._toolbar = GridListToolBar()
+
         self._grid_list_model = None
         self._grid_list_view = GridListView()
 
         v = QVBoxLayout()
         v.setMargin(0)
         v.setSpacing(0)
+        v.addWidget(self._toolbar)
         v.addWidget(self._grid_list_view)
         self.setLayout(v)
 
@@ -178,11 +183,13 @@ class GridList(QWidget):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
         self._updater.register_updater(self._perform_updates)
+        self._toolbar.set_ui_model(ui_model)
         self._grid_list_view.set_ui_model(ui_model)
         self._update_model()
 
     def unregister_updaters(self):
         self._grid_list_view.unregister_updaters()
+        self._toolbar.unregister_updaters()
         self._updater.unregister_updater(self._perform_updates)
 
     def _perform_updates(self, signals):
@@ -193,6 +200,67 @@ class GridList(QWidget):
         self._grid_list_model = GridListModel()
         self._grid_list_model.set_ui_model(self._ui_model)
         self._grid_list_view.setModel(self._grid_list_model)
+
+
+class GridListToolBar(QToolBar):
+
+    def __init__(self):
+        QToolBar.__init__(self)
+        self._ui_model = None
+        self._updater = None
+
+        self._new_button = QToolButton()
+        self._new_button.setText('New grid')
+        self._new_button.setEnabled(True)
+
+        self._remove_button = QToolButton()
+        self._remove_button.setText('Remove grid')
+        self._remove_button.setEnabled(False)
+
+        self.addWidget(self._new_button)
+        self.addWidget(self._remove_button)
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+
+        QObject.connect(self._new_button, SIGNAL('clicked()'), self._add_grid_pattern)
+        QObject.connect(
+                self._remove_button, SIGNAL('clicked()'), self._remove_grid_pattern)
+
+        self._update_all()
+
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _perform_updates(self, signals):
+        update_signals = set([
+            'signal_grid_pattern_list', 'signal_grid_pattern_selection'])
+        if not signals.isdisjoint(update_signals):
+            self._update_all()
+
+    def _update_all(self):
+        grid_manager = self._ui_model.get_grid_manager()
+        gp_count = len(grid_manager.get_grid_pattern_ids())
+        selected_gp_id = grid_manager.get_selected_grid_pattern_id()
+        self._remove_button.setEnabled((gp_count > 1) and (selected_gp_id != None))
+
+    def _add_grid_pattern(self):
+        grid_manager = self._ui_model.get_grid_manager()
+        grid_manager.add_grid_pattern()
+        self._updater.signal_update(set(['signal_grid_pattern_list']))
+
+    def _remove_grid_pattern(self):
+        grid_manager = self._ui_model.get_grid_manager()
+
+        gp_id = grid_manager.get_selected_grid_pattern_id()
+        if gp_id == None:
+            return
+
+        grid_manager.remove_grid_pattern(gp_id)
+        self._updater.signal_update(set([
+            'signal_grid_pattern_list', 'signal_grid_pattern_modified']))
 
 
 class GridArea(QAbstractScrollArea):
@@ -761,7 +829,7 @@ class GeneralEditor(QWidget):
             return
 
         gp_name = gp.get_name()
-        if gp_name != self._name.text():
+        if gp_name != unicode(self._name.text()):
             old_block = self._name.blockSignals(True)
             self._name.setText(gp_name)
             self._name.blockSignals(old_block)
