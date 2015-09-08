@@ -40,7 +40,7 @@ EVENT_NOTE_OFF = 'n-'
 def _get_default_grid_patterns():
     gps = {
         0: {
-            'name'  : u'4/4/4',
+            'name'  : u'4/4 w/ 16th & 32nd subdiv.',
             'length': [4, 0],
             'offset': [0, 0],
             'min_style_spacing': [1, 1, 0.6, 0.6, 0.6],
