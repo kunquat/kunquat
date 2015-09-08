@@ -259,8 +259,11 @@ class GridListToolBar(QToolBar):
             return
 
         grid_manager.remove_grid_pattern(gp_id)
+        grid_manager.select_grid_pattern(None)
         self._updater.signal_update(set([
-            'signal_grid_pattern_list', 'signal_grid_pattern_modified']))
+            'signal_grid_pattern_list',
+            'signal_grid_pattern_modified',
+            'signal_grid_pattern_selection']))
 
 
 class GridArea(QAbstractScrollArea):
