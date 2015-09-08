@@ -145,7 +145,7 @@ class GridEditorButton(QToolButton):
         self.setStyleSheet('padding: 4px 0 4px 0;')
 
         self.setAutoRaise(True)
-        self.setText('Edit grid')
+        self.setText('Edit grids')
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
