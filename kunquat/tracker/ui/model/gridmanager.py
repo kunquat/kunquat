@@ -121,4 +121,11 @@ class GridManager():
     def get_zoom_range(self):
         return self._session.get_grid_pattern_zoom_range()
 
+    def set_default_grid_pattern_id(self, gp_id):
+        assert (gp_id == None) or isinstance(gp_id, int)
+        self._session.set_default_grid_pattern_id(gp_id)
+
+    def get_default_grid_pattern_id(self):
+        return self._session.get_default_grid_pattern_id()
+
 

@@ -25,6 +25,7 @@ class Pattern():
         self._pattern_id = pattern_id
         self._store = None
         self._controller = None
+        self._session = None
         self._existence = None
 
     def __eq__(self, other):
@@ -37,6 +38,7 @@ class Pattern():
     def set_controller(self, controller):
         self._store = controller.get_store()
         self._controller = controller
+        self._session = controller.get_session()
 
     def get_existence(self):
         key = '{}/p_manifest.json'.format(self._pattern_id)
@@ -88,6 +90,9 @@ class Pattern():
     def get_edit_create_pattern(self):
         key = '{}/p_manifest.json'.format(self._pattern_id)
         edit = { key: {} }
+        gp_id = self._session.get_default_grid_pattern_id()
+        if gp_id != None:
+            edit['{}/i_base_grid.json'.format(self._pattern_id)] = gp_id
         return edit
 
     def get_edit_remove_pattern(self):
@@ -97,5 +102,14 @@ class Pattern():
             if key.startswith(start):
                 edit[key] = None
         return edit
+
+    def set_base_grid_pattern_id(self, gp_id):
+        assert (gp_id == None) or isinstance(gp_id, int)
+        key = '{}/i_base_grid.json'.format(self._pattern_id)
+        self._store[key] = gp_id
+
+    def get_base_grid_pattern_id(self):
+        key = '{}/i_base_grid.json'.format(self._pattern_id)
+        return self._store.get(key, None)
 
 

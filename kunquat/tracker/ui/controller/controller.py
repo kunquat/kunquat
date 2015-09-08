@@ -147,6 +147,7 @@ class Controller():
             'song_00/p_manifest.json'             : {},
             'song_00/p_order_list.json'           : [[0, 0]],
             'pat_000/p_manifest.json'             : {},
+            'pat_000/i_base_grid.json'            : 0,
             'pat_000/instance_000/p_manifest.json': {},
             'out_00/p_manifest.json'              : {},
             'i_grid_patterns.json'                : _get_default_grid_patterns(),

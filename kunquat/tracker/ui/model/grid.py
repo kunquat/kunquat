@@ -14,6 +14,7 @@
 import tstamp
 
 from gridpattern import STYLE_COUNT
+from pattern import Pattern
 
 
 class Grid():
@@ -94,8 +95,22 @@ class Grid():
 
         return spec
 
+    def _get_pattern(self, pat_num):
+        pattern_id = 'pat_{:03x}'.format(pat_num)
+        pattern = Pattern(pattern_id)
+        pattern.set_controller(self._controller)
+        return pattern
+
+    def _get_base_grid_pattern_id(self, pat_num):
+        pattern = self._get_pattern(pat_num)
+        return pattern.get_base_grid_pattern_id()
+
     def _get_next_or_current_line_info(self, pat_num, col_num, row_ts, tr_height_ts):
-        grid_spec = self._get_grid_spec(0, tr_height_ts)
+        gp_id = self._get_base_grid_pattern_id(pat_num)
+        if gp_id == None:
+            return None
+
+        grid_spec = self._get_grid_spec(gp_id, tr_height_ts)
 
         grid_length = grid_spec['length']
         grid_lines = grid_spec['lines']
@@ -122,7 +137,11 @@ class Grid():
         if not line_info:
             return None
 
-        grid_spec = self._get_grid_spec(0, tr_height_ts)
+        gp_id = self._get_base_grid_pattern_id(pat_num)
+        if gp_id == None:
+            return None
+
+        grid_spec = self._get_grid_spec(gp_id, tr_height_ts)
 
         line_index, line_pat_ts = line_info
         _, line_style = grid_spec['lines'][line_index]
@@ -143,7 +162,11 @@ class Grid():
         if not line_info:
             return None
 
-        grid_spec = self._get_grid_spec(0, tr_height_ts)
+        gp_id = self._get_base_grid_pattern_id(pat_num)
+        if gp_id == None:
+            return None
+
+        grid_spec = self._get_grid_spec(gp_id, tr_height_ts)
         grid_length = grid_spec['length']
         grid_lines = grid_spec['lines']
 
@@ -162,8 +185,13 @@ class Grid():
         return line_pat_ts, line_style
 
     def get_grid_lines(self, pat_num, col_num, start_ts, stop_ts, tr_height_ts):
+        gp_id = self._get_base_grid_pattern_id(pat_num)
+        if gp_id == None:
+            return []
+
+        grid_spec = self._get_grid_spec(gp_id, tr_height_ts)
+
         lines = []
-        grid_spec = self._get_grid_spec(0, tr_height_ts)
 
         grid_length = grid_spec['length']
         grid_lines = grid_spec['lines']
