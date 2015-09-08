@@ -184,6 +184,8 @@ class GridSelector(QComboBox):
         self._ui_model = None
         self._updater = None
 
+        self.setSizeAdjustPolicy(QComboBox.AdjustToContents)
+
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
