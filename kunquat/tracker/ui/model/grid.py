@@ -67,6 +67,9 @@ class Grid():
         return allowed_styles
 
     def _get_grid_spec(self, gp_id, tr_height_ts):
+        if gp_id == None:
+            gp_id = 0
+
         if gp_id in self._cached_grid_patterns:
             gp = self._cached_grid_patterns[gp_id]
         else:
@@ -107,9 +110,6 @@ class Grid():
 
     def _get_next_or_current_line_info(self, pat_num, col_num, row_ts, tr_height_ts):
         gp_id = self._get_base_grid_pattern_id(pat_num)
-        if gp_id == None:
-            return None
-
         grid_spec = self._get_grid_spec(gp_id, tr_height_ts)
 
         grid_length = grid_spec['length']
@@ -138,9 +138,6 @@ class Grid():
             return None
 
         gp_id = self._get_base_grid_pattern_id(pat_num)
-        if gp_id == None:
-            return None
-
         grid_spec = self._get_grid_spec(gp_id, tr_height_ts)
 
         line_index, line_pat_ts = line_info
@@ -163,9 +160,6 @@ class Grid():
             return None
 
         gp_id = self._get_base_grid_pattern_id(pat_num)
-        if gp_id == None:
-            return None
-
         grid_spec = self._get_grid_spec(gp_id, tr_height_ts)
         grid_length = grid_spec['length']
         grid_lines = grid_spec['lines']
@@ -186,9 +180,6 @@ class Grid():
 
     def get_grid_lines(self, pat_num, col_num, start_ts, stop_ts, tr_height_ts):
         gp_id = self._get_base_grid_pattern_id(pat_num)
-        if gp_id == None:
-            return []
-
         grid_spec = self._get_grid_spec(gp_id, tr_height_ts)
 
         lines = []
