@@ -691,9 +691,22 @@ class GridView(QWidget):
             if event.key() == Qt.Key_Up:
                 gp.select_prev_line()
                 self._updater.signal_update(set(['signal_grid_pattern_line_selection']))
+
             elif event.key() == Qt.Key_Down:
                 gp.select_next_line()
                 self._updater.signal_update(set(['signal_grid_pattern_line_selection']))
+
+            elif event.key() == Qt.Key_Insert:
+                selected_line_ts = gp.get_selected_line()
+                if selected_line_ts != None:
+                    part_count = grid_manager.get_grid_pattern_subdiv_part_count()
+                    warp_value = grid_manager.get_grid_pattern_subdiv_warp()
+                    line_style = grid_manager.get_grid_pattern_subdiv_line_style()
+
+                    gp.subdivide_interval(
+                            selected_line_ts, part_count, warp_value, line_style)
+                    self._updater.signal_update(set(['signal_grid_pattern_modified']))
+
             elif event.key() == Qt.Key_Delete:
                 selected_line_ts = gp.get_selected_line()
                 lines = gp.get_lines()
@@ -918,7 +931,7 @@ class SubdivEditor(QWidget):
         self._subdiv_count.setMaximum(32)
         self._subdiv_line_style = LineStyle()
         self._subdiv_warp = NumberSlider(3, 0.001, 0.999)
-        self._subdiv_apply = QPushButton('Subdivide')
+        self._subdiv_apply = QPushButton('Subdivide (Insert)')
 
         self._subdiv_line_style.select_line_style(1)
 
@@ -1027,8 +1040,8 @@ class SubdivEditor(QWidget):
         gp = grid_manager.get_grid_pattern(gp_id)
 
         part_count = grid_manager.get_grid_pattern_subdiv_part_count()
-        line_style = grid_manager.get_grid_pattern_subdiv_line_style()
         warp_value = grid_manager.get_grid_pattern_subdiv_warp()
+        line_style = grid_manager.get_grid_pattern_subdiv_line_style()
 
         gp.subdivide_interval(selected_line_ts, part_count, warp_value, line_style)
         self._updater.signal_update(set(['signal_grid_pattern_modified']))
