@@ -58,10 +58,14 @@ DEFAULT_CONFIG = {
         'grid': {
             'styles': {
                 0: QPen(QBrush(QColor(0xa0, 0xa0, 0xa0)), 1, Qt.SolidLine),
-                1: QPen(QBrush(QColor(0x60, 0x60, 0x60)), 1, Qt.SolidLine),
-                2: QPen(QBrush(QColor(0x40, 0x40, 0x40)), 1, Qt.DashLine),
-                3: QPen(QBrush(QColor(0x40, 0x40, 0x40)), 1, Qt.DashDotLine),
-                4: QPen(QBrush(QColor(0x40, 0x40, 0x40)), 1, Qt.DotLine),
+                1: QPen(QBrush(QColor(0xa0, 0xa0, 0xa0)), 1, Qt.DashLine),
+                2: QPen(QBrush(QColor(0xa0, 0xa0, 0xa0)), 1, Qt.DotLine),
+                3: QPen(QBrush(QColor(0x60, 0x60, 0x60)), 1, Qt.SolidLine),
+                4: QPen(QBrush(QColor(0x60, 0x60, 0x60)), 1, Qt.DashLine),
+                5: QPen(QBrush(QColor(0x60, 0x60, 0x60)), 1, Qt.DotLine),
+                6: QPen(QBrush(QColor(0x40, 0x40, 0x40)), 1, Qt.SolidLine),
+                7: QPen(QBrush(QColor(0x40, 0x40, 0x40)), 1, Qt.DashLine),
+                8: QPen(QBrush(QColor(0x40, 0x40, 0x40)), 1, Qt.DotLine),
                 },
             'edit_cursor': {
                 'height': 11,
