@@ -60,6 +60,9 @@ class Session():
         self._is_grid_enabled = True
         self._selected_grid_pattern_id = None
         self._selected_grid_pattern_line = None
+        self._gp_subdiv_part_count = 2
+        self._gp_subdiv_line_style = 1
+        self._gp_subdiv_warp = 0.5
         self._gp_zoom = 0
         self._gp_zoom_min = 0
         self._gp_zoom_max = 0
@@ -368,6 +371,24 @@ class Session():
 
     def get_selected_grid_pattern_line(self):
         return self._selected_grid_pattern_line
+
+    def set_grid_pattern_subdiv_part_count(self, count):
+        self._gp_subdiv_part_count = count
+
+    def get_grid_pattern_subdiv_part_count(self):
+        return self._gp_subdiv_part_count
+
+    def set_grid_pattern_subdiv_line_style(self, style):
+        self._gp_subdiv_line_style = style
+
+    def get_grid_pattern_subdiv_line_style(self):
+        return self._gp_subdiv_line_style
+
+    def set_grid_pattern_subdiv_warp(self, warp):
+        self._gp_subdiv_warp = warp
+
+    def get_grid_pattern_subdiv_warp(self):
+        return self._gp_subdiv_warp
 
     def set_grid_pattern_zoom(self, zoom):
         self._gp_zoom = min(max(self._gp_zoom_min, zoom), self._gp_zoom_max)

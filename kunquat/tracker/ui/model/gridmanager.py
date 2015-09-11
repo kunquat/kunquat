@@ -113,6 +113,27 @@ class GridManager():
         del raw_master_dict[gp_id]
         self._set_raw_master_dict(raw_master_dict)
 
+    def set_grid_pattern_subdiv_part_count(self, count):
+        assert count >= 2
+        self._session.set_grid_pattern_subdiv_part_count(count)
+
+    def get_grid_pattern_subdiv_part_count(self):
+        return self._session.get_grid_pattern_subdiv_part_count()
+
+    def set_grid_pattern_subdiv_line_style(self, style):
+        assert 0 < style < STYLE_COUNT
+        self._session.set_grid_pattern_subdiv_line_style(style)
+
+    def get_grid_pattern_subdiv_line_style(self):
+        return self._session.get_grid_pattern_subdiv_line_style()
+
+    def set_grid_pattern_subdiv_warp(self, warp):
+        assert 0 < warp < 1
+        self._session.set_grid_pattern_subdiv_warp(warp)
+
+    def get_grid_pattern_subdiv_warp(self):
+        return self._session.get_grid_pattern_subdiv_warp()
+
     def set_zoom(self, zoom):
         self._session.set_grid_pattern_zoom(zoom)
 

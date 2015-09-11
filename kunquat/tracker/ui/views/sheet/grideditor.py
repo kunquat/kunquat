@@ -913,14 +913,11 @@ class SubdivEditor(QWidget):
         self._ui_model = None
         self._updater = None
 
-        self._warp_value = 0.5
-
         self._subdiv_count = QSpinBox()
         self._subdiv_count.setMinimum(2)
         self._subdiv_count.setMaximum(32)
         self._subdiv_line_style = LineStyle()
         self._subdiv_warp = NumberSlider(3, 0.001, 0.999)
-        self._subdiv_warp.set_number(self._warp_value)
         self._subdiv_apply = QPushButton('Subdivide')
 
         self._subdiv_line_style.select_line_style(1)
@@ -951,7 +948,15 @@ class SubdivEditor(QWidget):
         self._updater.register_updater(self._perform_updates)
 
         QObject.connect(
-                self._subdiv_warp, SIGNAL('numberChanged(float)'), self._update_warp)
+                self._subdiv_count, SIGNAL('valueChanged(int)'), self._change_count)
+
+        QObject.connect(
+                self._subdiv_line_style,
+                SIGNAL('currentIndexChanged(int)'),
+                self._change_line_style)
+
+        QObject.connect(
+                self._subdiv_warp, SIGNAL('numberChanged(float)'), self._change_warp)
 
         QObject.connect(self._subdiv_apply, SIGNAL('clicked()'), self._apply_subdivision)
 
@@ -964,7 +969,8 @@ class SubdivEditor(QWidget):
         update_signals = set([
             'signal_grid_pattern_selection',
             'signal_grid_pattern_line_selection',
-            'signal_grid_pattern_modified'])
+            'signal_grid_pattern_modified',
+            'signal_grid_pattern_subdiv'])
         if not signals.isdisjoint(update_signals):
             self._update_all()
 
@@ -986,23 +992,45 @@ class SubdivEditor(QWidget):
         selected_line_ts = self._get_selected_line_ts()
         self.setEnabled(selected_line_ts != None)
 
-    def _update_warp(self, new_warp):
-        self._warp_value = new_warp
-        self._subdiv_warp.set_number(self._warp_value)
+        grid_manager = self._ui_model.get_grid_manager()
+
+        old_block = self._subdiv_count.blockSignals(True)
+        self._subdiv_count.setValue(grid_manager.get_grid_pattern_subdiv_part_count())
+        self._subdiv_count.blockSignals(old_block)
+
+        self._subdiv_line_style.select_line_style(
+                grid_manager.get_grid_pattern_subdiv_line_style())
+        self._subdiv_warp.set_number(grid_manager.get_grid_pattern_subdiv_warp())
+
+    def _change_count(self, new_count):
+        grid_manager = self._ui_model.get_grid_manager()
+        grid_manager.set_grid_pattern_subdiv_part_count(new_count)
+        self._updater.signal_update(set(['signal_grid_pattern_subdiv']))
+
+    def _change_line_style(self, dummy):
+        new_style = self._subdiv_line_style.get_current_line_style()
+        grid_manager = self._ui_model.get_grid_manager()
+        grid_manager.set_grid_pattern_subdiv_line_style(new_style)
+        self._updater.signal_update(set(['signal_grid_pattern_subdiv']))
+
+    def _change_warp(self, new_warp):
+        grid_manager = self._ui_model.get_grid_manager()
+        grid_manager.set_grid_pattern_subdiv_warp(new_warp)
+        self._updater.signal_update(set(['signal_grid_pattern_subdiv']))
 
     def _apply_subdivision(self):
         selected_line_ts = self._get_selected_line_ts()
         assert selected_line_ts != None
 
-        part_count = self._subdiv_count.value()
-        line_style = self._subdiv_line_style.get_current_line_style()
-        assert line_style != 0
-
         grid_manager = self._ui_model.get_grid_manager()
         gp_id = grid_manager.get_selected_grid_pattern_id()
         gp = grid_manager.get_grid_pattern(gp_id)
 
-        gp.subdivide_interval(selected_line_ts, part_count, self._warp_value, line_style)
+        part_count = grid_manager.get_grid_pattern_subdiv_part_count()
+        line_style = grid_manager.get_grid_pattern_subdiv_line_style()
+        warp_value = grid_manager.get_grid_pattern_subdiv_warp()
+
+        gp.subdivide_interval(selected_line_ts, part_count, warp_value, line_style)
         self._updater.signal_update(set(['signal_grid_pattern_modified']))
 
 
