@@ -199,7 +199,7 @@ class GridSelector(QComboBox):
 
     def _update_grid_pattern_names(self):
         grid_manager = self._ui_model.get_grid_manager()
-        gp_ids = grid_manager.get_grid_pattern_ids()
+        gp_ids = grid_manager.get_all_grid_pattern_ids()
 
         gp_items = [(gp_id, grid_manager.get_grid_pattern(gp_id).get_name())
             for gp_id in gp_ids]
@@ -236,7 +236,7 @@ class GridSelector(QComboBox):
 
         # Fall back to whatever we can find from the grid pattern collection
         if gp_id == None:
-            all_gp_ids = grid_manager.get_grid_pattern_ids()
+            all_gp_ids = grid_manager.get_all_grid_pattern_ids()
             if all_gp_ids:
                 gp_id = all_gp_ids[0]
 
@@ -249,6 +249,8 @@ class GridSelector(QComboBox):
 
         old_block = self.blockSignals(True)
         index = self.findData(default_id)
+        if index < 0:
+            index = self.findData(0)
         assert index >= 0
         self.setCurrentIndex(index)
         self.blockSignals(old_block)

@@ -11,8 +11,10 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from copy import deepcopy
+
 import tstamp
-from gridpattern import GridPattern, STYLE_COUNT
+from gridpattern import GridPattern, STYLE_COUNT, DEFAULT_GRID_PATTERN
 
 
 class GridManager():
@@ -40,7 +42,10 @@ class GridManager():
         data = self._store.get(key, {})
         return data if isinstance(data, dict) else {}
 
-    def get_grid_pattern_ids(self):
+    def get_all_grid_pattern_ids(self):
+        return [0] + self.get_editable_grid_pattern_ids()
+
+    def get_editable_grid_pattern_ids(self):
         raw_dict = self._get_raw_master_dict()
         valid_keys = [k for k in raw_dict if isinstance(k, int) and (k >= 0)]
         return valid_keys
@@ -63,12 +68,13 @@ class GridManager():
 
         # Find a new unique ID
         used_ids = set(raw_master_dict.iterkeys())
-        for i in xrange(len(used_ids) + 1):
+        for i in xrange(1, len(used_ids) + 2):
             new_id = i
             if new_id not in used_ids:
                 break
         else:
             assert False
+        assert new_id != 0
 
         # Get used names
         used_names = set()
@@ -88,23 +94,21 @@ class GridManager():
 
         # Create new grid pattern
         lines = []
-        for i in xrange(16):
-            line_ts_raw = list(tstamp.Tstamp(i) / 4)
-            style = 0 if (i == 0) else (1 if (i % 4) == 0 else 2)
+        for i in xrange(32):
+            line_ts_raw = list(tstamp.Tstamp(i) / 8)
+            style = 0
+            if i > 0:
+                style = (1 if (i % 8) == 0 else (2 if (i % 2) == 0 else 4))
             lines.append([line_ts_raw, style])
 
-        new_raw_dict = {
-            'name'             : placeholder,
-            'length'           : [4, 0],
-            'offset'           : [0, 0],
-            'min_style_spacing': [1] * STYLE_COUNT,
-            'lines'            : lines,
-        }
+        new_raw_dict = deepcopy(DEFAULT_GRID_PATTERN)
+        new_raw_dict['name'] = placeholder
 
         raw_master_dict[new_id] = new_raw_dict
         self._set_raw_master_dict(raw_master_dict)
 
     def remove_grid_pattern(self, gp_id):
+        assert gp_id != 0
         raw_master_dict = self._get_raw_master_dict()
         del raw_master_dict[gp_id]
         self._set_raw_master_dict(raw_master_dict)

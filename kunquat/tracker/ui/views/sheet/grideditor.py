@@ -99,7 +99,7 @@ class GridListModel(QAbstractListModel):
     def _make_items(self):
         grid_manager = self._ui_model.get_grid_manager()
 
-        for gp_id in grid_manager.get_grid_pattern_ids():
+        for gp_id in grid_manager.get_editable_grid_pattern_ids():
             gp = grid_manager.get_grid_pattern(gp_id)
             gp_name = gp.get_name()
             self._items.append((gp_id, gp_name))
@@ -242,9 +242,9 @@ class GridListToolBar(QToolBar):
 
     def _update_all(self):
         grid_manager = self._ui_model.get_grid_manager()
-        gp_count = len(grid_manager.get_grid_pattern_ids())
+        gp_count = len(grid_manager.get_editable_grid_pattern_ids())
         selected_gp_id = grid_manager.get_selected_grid_pattern_id()
-        self._remove_button.setEnabled((gp_count > 1) and (selected_gp_id != None))
+        self._remove_button.setEnabled((gp_count > 0) and (selected_gp_id != None))
 
     def _add_grid_pattern(self):
         grid_manager = self._ui_model.get_grid_manager()

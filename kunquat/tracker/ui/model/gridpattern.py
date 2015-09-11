@@ -20,12 +20,45 @@ import tstamp
 
 STYLE_COUNT = 5
 
-PLACEHOLDER_GRID_PATTERN = {
-    'name'  : u'1/4',
-    'length': [1, 0],
+DEFAULT_GRID_PATTERN = {
+    'name'  : u'<default grid>',
+    'length': [4, 0],
     'offset': [0, 0],
-    'min_style_spacing': [1] * STYLE_COUNT,
-    'lines' : [ [[0, 0], 0] ],
+    'min_style_spacing': [0.6] * STYLE_COUNT,
+    'lines' : [
+        [[0, 0], 0],
+        [[0, 110270160], 4],
+        [[0, 220540320], 2],
+        [[0, 330810480], 4],
+        [[0, 441080640], 2],
+        [[0, 551350800], 4],
+        [[0, 661620960], 2],
+        [[0, 771891120], 4],
+        [[1, 0], 1],
+        [[1, 110270160], 4],
+        [[1, 220540320], 2],
+        [[1, 330810480], 4],
+        [[1, 441080640], 2],
+        [[1, 551350800], 4],
+        [[1, 661620960], 2],
+        [[1, 771891120], 4],
+        [[2, 0], 1],
+        [[2, 110270160], 4],
+        [[2, 220540320], 2],
+        [[2, 330810480], 4],
+        [[2, 441080640], 2],
+        [[2, 551350800], 4],
+        [[2, 661620960], 2],
+        [[2, 771891120], 4],
+        [[3, 0], 1],
+        [[3, 110270160], 4],
+        [[3, 220540320], 2],
+        [[3, 330810480], 4],
+        [[3, 441080640], 2],
+        [[3, 551350800], 4],
+        [[3, 661620960], 2],
+        [[3, 771891120], 4],
+    ],
 }
 
 
@@ -124,14 +157,19 @@ class GridPattern():
         data = self._store.get(key, {})
         return data if isinstance(data, dict) else {}
 
+    def _make_placeholder_grid_pattern(self):
+        raw_gp = deepcopy(DEFAULT_GRID_PATTERN)
+        raw_gp['name'] = u'<invalid>'
+        return self._make_model_dict(raw_gp)
+
     def _get_model_data(self):
         if self._model_data:
             return self._model_data
 
         raw_master_dict = self._get_raw_master_dict()
-        raw_gp = raw_master_dict.get(self._id, None)
+        raw_gp = raw_master_dict.get(self._id, DEFAULT_GRID_PATTERN)
         model_gp = (self._make_model_dict(raw_gp) or
-                self._make_model_dict(PLACEHOLDER_GRID_PATTERN))
+                self._make_placeholder_grid_pattern())
         assert model_gp
 
         shifted_lines = []
@@ -222,17 +260,20 @@ class GridPattern():
         self._store[master_key] = raw_master_dict
 
     def set_name(self, name):
+        assert self._id != 0
         assert isinstance(name, unicode)
         gp = self._get_model_data()
         gp['name'] = name
         self._set_grid_pattern_data(gp)
 
     def set_length(self, length):
+        assert self._id != 0
         gp = self._get_model_data()
         gp['length'] = length
         self._set_grid_pattern_data(gp)
 
     def set_offset(self, offset):
+        assert self._id != 0
         gp = self._get_model_data()
         gp['offset'] = offset
 
@@ -242,6 +283,7 @@ class GridPattern():
         self._set_grid_pattern_data(gp)
 
     def set_line_style_spacing(self, line_style, spacing):
+        assert self._id != 0
         gp = self._get_model_data()
         gp['min_style_spacing'][line_style] = spacing
         self._set_grid_pattern_data(gp)
@@ -253,6 +295,8 @@ class GridPattern():
 
     def subdivide_interval(
             self, line_ts, part_count, warp_value, line_style):
+        assert self._id != 0
+
         gp = self._get_model_data()
         lines = [line for line in gp['lines'] if line[0] < gp['length']]
 
@@ -292,6 +336,7 @@ class GridPattern():
         self._set_grid_pattern_data(gp)
 
     def change_line_style(self, line_ts, new_style):
+        assert self._id != 0
         gp = self._get_model_data()
         lines = gp['lines']
 
@@ -311,6 +356,7 @@ class GridPattern():
         self._set_grid_pattern_data(gp)
 
     def remove_line(self, line_ts):
+        assert self._id != 0
         gp = self._get_model_data()
         lines = gp['lines']
 
