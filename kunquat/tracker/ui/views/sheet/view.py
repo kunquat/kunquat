@@ -676,10 +676,6 @@ class View(QWidget):
         if not album or album.get_track_count() == 0:
             return
 
-        sheet_manager = self._ui_model.get_sheet_manager()
-        is_grid_enabled = sheet_manager.is_grid_enabled()
-        grid = sheet_manager.get_grid()
-
         # Get location info
         selection = self._ui_model.get_selection()
         location = selection.get_location()
@@ -856,7 +852,13 @@ class View(QWidget):
         cur_pattern = cur_song.get_pattern_instance(system).get_pattern()
         cur_pat_length = cur_pattern.get_length()
 
-        new_ts = row_ts + 4 * delta
+        # Use grid pattern length as our step
+        gp_id = cur_pattern.get_base_grid_pattern_id()
+        grid_manager = self._ui_model.get_grid_manager()
+        gp = grid_manager.get_grid_pattern(gp_id)
+        page_step = gp.get_length()
+
+        new_ts = row_ts + page_step * delta
 
         if new_ts < 0:
             new_track = track
