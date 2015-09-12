@@ -13,8 +13,11 @@
 
 from copy import deepcopy
 
+from kunquat.kunquat.limits import PATTERNS_MAX
 import tstamp
 from gridpattern import GridPattern, STYLE_COUNT, DEFAULT_GRID_PATTERN
+from pattern import Pattern
+from patterninstance import PatternInstance
 
 
 class GridManager():
@@ -107,11 +110,24 @@ class GridManager():
         raw_master_dict[new_id] = new_raw_dict
         self._set_raw_master_dict(raw_master_dict)
 
+    def _get_all_patterns(self):
+        for i in xrange(PATTERNS_MAX):
+            pinst = PatternInstance(i, 0)
+            pinst.set_controller(self._controller)
+            pattern = pinst.get_pattern()
+            if pattern.get_existence():
+                yield pattern
+
     def remove_grid_pattern(self, gp_id):
         assert gp_id != 0
         raw_master_dict = self._get_raw_master_dict()
         del raw_master_dict[gp_id]
         self._set_raw_master_dict(raw_master_dict)
+
+        # Remove references to the removed grid pattern
+        for pattern in self._get_all_patterns():
+            if pattern.get_base_grid_pattern_id() == gp_id:
+                pattern.set_base_grid_pattern_id(None)
 
     def set_grid_pattern_subdiv_part_count(self, count):
         assert count >= 2

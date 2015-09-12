@@ -42,8 +42,8 @@ class Pattern():
 
     def get_existence(self):
         key = '{}/p_manifest.json'.format(self._pattern_id)
-        manifest = self._store[key]
-        return (type(manifest) == type({}))
+        manifest = self._store.get(key, None)
+        return (type(manifest) == dict)
 
     def get_length(self):
         key = '{}/p_pattern.json'.format(self._pattern_id)
