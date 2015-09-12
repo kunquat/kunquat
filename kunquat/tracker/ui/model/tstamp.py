@@ -62,8 +62,14 @@ class Tstamp(numbers.Real, tuple):
     def __float__(self):
         return float(self.beats) + float(self.rem) / BEAT
 
-    def __floordiv__(self):
-        raise NotImplementedError
+    def __floordiv__(self, other):
+        if isinstance(other, Tstamp):
+            self_rems = self.beats * BEAT + self.rem
+            other_rems = other.beats * BEAT + other.rem
+            return Tstamp(self_rems // other_rems, 0)
+
+        div_ts = self / other
+        return Tstamp(div_ts, 0)
 
     def __ge__(self, other):
         other_ts = Tstamp(other)
