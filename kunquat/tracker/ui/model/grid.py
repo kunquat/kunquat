@@ -11,8 +11,9 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-import tstamp
+import math
 
+import tstamp
 from gridpattern import STYLE_COUNT
 from pattern import Pattern
 
@@ -85,6 +86,7 @@ class Grid():
             'length': gp_length,
             'lines': gp_lines,
             'min_style_spacing': gp_style_spacing,
+            'cycles_per_line': 1,
         }
 
         # Filter out line styles with insufficient separation
@@ -95,6 +97,14 @@ class Grid():
             self._cached_allowed_line_styles[(gp_id, tr_height_ts)] = allowed_styles
         filtered_lines = [line for line in gp_lines if line[1] in allowed_styles]
         spec['lines'] = filtered_lines
+
+        top_min_line_dist = spec['min_style_spacing'][0] * tr_height_ts
+        if spec['length'] < top_min_line_dist:
+            # Remove some top-level lines as they are too close to one another
+            cycles_per_line = int(2**math.ceil(
+                math.log(top_min_line_dist / float(spec['length']), 2)))
+            assert cycles_per_line > 1
+            spec['cycles_per_line'] = cycles_per_line
 
         return spec
 
@@ -128,6 +138,14 @@ class Grid():
                 line_index = i
                 line_pat_ts = row_ts + line_ts - gp_row_ts
                 break
+
+        # Skip grid pattern cycles if we are zoomed far out
+        cycles_per_line = grid_spec['cycles_per_line']
+        gp_cycle_index = int(line_pat_ts // grid_length)
+        gp_cycle_index_mod = gp_cycle_index % cycles_per_line
+        if gp_cycle_index_mod != 0:
+            skip_count = (cycles_per_line - gp_cycle_index_mod)
+            line_pat_ts += skip_count * grid_length
 
         return line_index, line_pat_ts
 
@@ -176,6 +194,13 @@ class Grid():
 
         line_pat_ts = next_line_pat_ts - ts_to_next_line
 
+        # Skip grid pattern_cycles if we are zoomed far out
+        cycles_per_line = grid_spec['cycles_per_line']
+        gp_cycle_index = int(line_pat_ts // grid_length)
+        gp_cycle_index_mod = gp_cycle_index % cycles_per_line
+        if gp_cycle_index_mod != 0:
+            line_pat_ts -= gp_cycle_index_mod * grid_length
+
         return line_pat_ts, line_style
 
     def get_grid_lines(self, pat_num, col_num, start_ts, stop_ts, tr_height_ts):
@@ -192,9 +217,12 @@ class Grid():
                     pat_num, col_num, start_ts, tr_height_ts)
 
             # Add lines from the grid pattern until stop_ts is reached
+            skip_mod = 0
             while line_pat_ts < stop_ts:
                 _, line_style = grid_lines[line_index]
-                lines.append((line_pat_ts, line_style))
+                if skip_mod == 0:
+                    lines.append((line_pat_ts, line_style))
+                skip_mod = (skip_mod + 1) % grid_spec['cycles_per_line']
 
                 next_line_index = (line_index + 1) % len(grid_lines)
 
