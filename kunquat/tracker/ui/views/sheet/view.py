@@ -1151,12 +1151,26 @@ class View(QWidget):
         location = TriggerPosition(track, system, col_num, row_ts, trigger_index)
         selection.set_location(location)
 
+    def _handle_cursor_down_with_grid(self):
+        # TODO: fix this mess
+        is_editing_grid_enabled = (self._sheet_manager.is_editing_enabled() and
+                self._sheet_manager.is_grid_enabled())
+        if is_editing_grid_enabled:
+            self._vertical_move_state.press_down()
+            self._move_edit_cursor_tstamp()
+            self._vertical_move_state.release_down()
+
     def _add_rest(self):
         trigger = Trigger('n-', None)
         self._sheet_manager.add_trigger(trigger)
+        self._handle_cursor_down_with_grid()
 
     def _try_delete_selection(self):
         self._sheet_manager.try_remove_trigger()
+
+    def _perform_delete(self):
+        self._try_delete_selection()
+        self._handle_cursor_down_with_grid()
 
     def _perform_backspace(self):
         if not self._sheet_manager.is_editing_enabled():
@@ -1381,7 +1395,7 @@ class View(QWidget):
                 #       that interferes with the typewriter
                 Qt.Key_1:       handle_rest,
 
-                Qt.Key_Delete:  lambda: self._try_delete_selection(),
+                Qt.Key_Delete:  lambda: self._perform_delete(),
                 Qt.Key_Backspace: lambda: self._perform_backspace(),
 
                 Qt.Key_Space:   handle_typewriter_connection,
@@ -1419,20 +1433,25 @@ class View(QWidget):
         if not is_handled:
             QWidget.keyPressEvent(self, event)
 
-    def keyReleaseEvent(self, ev):
-        if self._keyboard_mapper.process_typewriter_button_event(ev):
+    def keyReleaseEvent(self, event):
+        was_chord_mode = self._sheet_manager.get_chord_mode()
+
+        if self._keyboard_mapper.process_typewriter_button_event(event):
+            is_chord_mode = self._sheet_manager.get_chord_mode()
+            if was_chord_mode and not is_chord_mode:
+                self._handle_cursor_down_with_grid()
             return
 
-        if ev.isAutoRepeat():
+        if event.isAutoRepeat():
             return
 
-        if ev.key() == Qt.Key_Up:
+        if event.key() == Qt.Key_Up:
             self._vertical_move_state.release_up()
-        elif ev.key() == Qt.Key_Down:
+        elif event.key() == Qt.Key_Down:
             self._vertical_move_state.release_down()
-        elif ev.key() == Qt.Key_Left:
+        elif event.key() == Qt.Key_Left:
             self._horizontal_move_state.release_left()
-        elif ev.key() == Qt.Key_Right:
+        elif event.key() == Qt.Key_Right:
             self._horizontal_move_state.release_right()
 
     def resizeEvent(self, ev):
