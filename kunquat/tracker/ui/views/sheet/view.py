@@ -180,6 +180,9 @@ class View(QWidget):
             self.update()
         if 'signal_replace_mode' in signals:
             self.update()
+        if ('signal_grid' in signals) or ('signal_grid_pattern_modified' in signals):
+            self._update_grid()
+            self.update()
 
         for signal in signals:
             if signal.startswith(SheetManager.get_column_signal_head()):
@@ -213,6 +216,10 @@ class View(QWidget):
             cr.flush_caches()
         all_pinsts = utils.get_all_pattern_instances(self._ui_model)
         self.set_pattern_instances(all_pinsts)
+
+    def _update_grid(self):
+        for cr in self._col_rends:
+            cr.flush_final_pixmaps()
 
     def _update_column(self, track_num, system_num, col_num):
         pattern_index = utils.get_pattern_index_at_location(
@@ -731,16 +738,43 @@ class View(QWidget):
                         track, system, col_num, row_ts, trigger_index)
 
         cur_column = self._sheet_manager.get_column_at_location(location)
+        is_grid_enabled = self._sheet_manager.is_grid_enabled()
 
-        # Get default trigger tstamp on the current pixel position
-        cur_px_offset = utils.get_px_from_tstamp(row_ts, self._px_per_beat)
-        def_ts = utils.get_tstamp_from_px(cur_px_offset, self._px_per_beat)
-        assert utils.get_px_from_tstamp(def_ts, self._px_per_beat) == cur_px_offset
+        if is_grid_enabled:
+            grid = self._sheet_manager.get_grid()
+            song = album.get_song_by_track(track)
+            pinst = song.get_pattern_instance(system)
+            pat_num = pinst.get_pattern_num()
+            tr_height_ts = utils.get_tstamp_from_px(
+                    self._config['tr_height'], self._px_per_beat)
 
-        # Get target tstamp
-        new_px_offset = cur_px_offset + px_delta
-        new_ts = utils.get_tstamp_from_px(new_px_offset, self._px_per_beat)
-        assert utils.get_px_from_tstamp(new_ts, self._px_per_beat) != cur_px_offset
+            # Get closest grid line in our target direction
+            if px_delta < 0:
+                line_info = grid.get_prev_line(pat_num, col_num, row_ts, tr_height_ts)
+                if line_info:
+                    new_ts, _ = line_info
+                else:
+                    new_ts = tstamp.Tstamp(0)
+            else:
+                line_info = grid.get_next_line(pat_num, col_num, row_ts, tr_height_ts)
+                if line_info:
+                    new_ts, _ = line_info
+                else:
+                    pattern = pinst.get_pattern()
+                    new_ts = pattern.get_length()
+
+            if line_info:
+                new_ts, _ = line_info
+        else:
+            # Get default trigger tstamp on the current pixel position
+            cur_px_offset = utils.get_px_from_tstamp(row_ts, self._px_per_beat)
+            def_ts = utils.get_tstamp_from_px(cur_px_offset, self._px_per_beat)
+            assert utils.get_px_from_tstamp(def_ts, self._px_per_beat) == cur_px_offset
+
+            # Get target tstamp
+            new_px_offset = cur_px_offset + px_delta
+            new_ts = utils.get_tstamp_from_px(new_px_offset, self._px_per_beat)
+            assert utils.get_px_from_tstamp(new_ts, self._px_per_beat) != cur_px_offset
 
         # Get shortest movement between target tstamp and closest trigger row
         move_range_start = min(new_ts, row_ts)
@@ -754,7 +788,9 @@ class View(QWidget):
         trow_tstamps = cur_column.get_trigger_row_positions_in_range(
                 move_range_start, move_range_stop)
         if trow_tstamps:
-            self._vertical_move_state.try_snap_delay()
+            if not is_grid_enabled:
+                self._vertical_move_state.try_snap_delay()
+
             if px_delta < 0:
                 new_ts = max(trow_tstamps)
             else:
@@ -765,7 +801,8 @@ class View(QWidget):
         cur_pattern = cur_song.get_pattern_instance(system).get_pattern()
 
         if new_ts <= 0:
-            self._vertical_move_state.try_snap_delay()
+            if not is_grid_enabled:
+                self._vertical_move_state.try_snap_delay()
             new_ts = tstamp.Tstamp(0)
         elif new_ts > cur_pattern.get_length():
             new_track = track
@@ -782,7 +819,8 @@ class View(QWidget):
                     return
 
             # Next pattern
-            self._vertical_move_state.try_snap_delay()
+            if not is_grid_enabled:
+                self._vertical_move_state.try_snap_delay()
             new_ts = tstamp.Tstamp(0)
             new_location = TriggerPosition(
                     new_track, new_system, col_num, new_ts, 0)
@@ -814,7 +852,13 @@ class View(QWidget):
         cur_pattern = cur_song.get_pattern_instance(system).get_pattern()
         cur_pat_length = cur_pattern.get_length()
 
-        new_ts = row_ts + 4 * delta
+        # Use grid pattern length as our step
+        gp_id = cur_pattern.get_base_grid_pattern_id()
+        grid_manager = self._ui_model.get_grid_manager()
+        gp = grid_manager.get_grid_pattern(gp_id)
+        page_step = gp.get_length()
+
+        new_ts = row_ts + page_step * delta
 
         if new_ts < 0:
             new_track = track
@@ -955,6 +999,7 @@ class View(QWidget):
         cur_column = self._sheet_manager.get_column_at_location(cur_location)
 
         # Select a trigger if its description overlaps with the mouse cursor
+        trigger_selected = False
         trigger_index = 0
         tr_track, tr_system = track, system
         tr_pat_index = pat_index
@@ -1015,6 +1060,7 @@ class View(QWidget):
                     if new_trigger_index >= 0:
                         trigger_index = new_trigger_index
                         track, system, row_ts = cur_track, cur_system, cur_ts
+                        trigger_selected = True
                         break
 
             if trow_tstamps:
@@ -1033,6 +1079,7 @@ class View(QWidget):
                 if new_trigger_index >= 0:
                     trigger_index = new_trigger_index
                     track, system, row_ts = tr_track, tr_system, check_ts
+                    trigger_selected = True
                     break
 
             # Check previous system
@@ -1046,15 +1093,86 @@ class View(QWidget):
                 song = album.get_song_by_track(tr_track)
                 tr_system = song.get_system_count() - 1
 
+        # Make sure we snap to something if grid is enabled
+        sheet_manager = self._ui_model.get_sheet_manager()
+        if (not trigger_selected) and sheet_manager.is_grid_enabled():
+            grid = sheet_manager.get_grid()
+            tr_height_ts = utils.get_tstamp_from_px(
+                    self._config['tr_height'], self._px_per_beat)
+
+            cur_song = album.get_song_by_track(track)
+            cur_pinst = cur_song.get_pattern_instance(system)
+            cur_pattern = cur_pinst.get_pattern()
+            pat_num = cur_pinst.get_pattern_num()
+
+            # Select grid line above if an infinite trigger row would
+            # overlap with the click position
+            prev_line_selected = False
+            prev_ts = tstamp.Tstamp(0)
+            prev_line_info = grid.get_prev_or_current_line(
+                    pat_num, col_num, row_ts, tr_height_ts)
+            if prev_line_info:
+                prev_ts, _ = prev_line_info
+                prev_y_offset = utils.get_px_from_tstamp(prev_ts, self._px_per_beat)
+                cur_y_offset = utils.get_px_from_tstamp(row_ts, self._px_per_beat)
+                y_dist = cur_y_offset - prev_y_offset
+                assert y_dist >= 0
+                is_close_enough = (y_dist < self._config['tr_height'] - 1)
+                if is_close_enough:
+                    row_ts = prev_ts
+                    prev_line_selected = True
+
+            if not prev_line_selected:
+                # Get whatever trigger row or grid line is nearest
+                next_ts = cur_pattern.get_length()
+                next_line_info = grid.get_next_or_current_line(
+                        pat_num, col_num, row_ts, tr_height_ts)
+                if next_line_info:
+                    next_ts, _ = next_line_info
+
+                cur_column = cur_pattern.get_column(col_num)
+
+                # Get nearest previous target timestamp
+                prev_tstamps = cur_column.get_trigger_row_positions_in_range(
+                        prev_ts, row_ts)
+                if prev_tstamps:
+                    prev_ts = max(prev_tstamps)
+
+                # Get nearest next target timestamp
+                next_tstamps = cur_column.get_trigger_row_positions_in_range(
+                        row_ts, next_ts)
+                if next_tstamps:
+                    next_ts = min(next_tstamps)
+
+                # Get nearest of the two timestamps
+                if (row_ts - prev_ts) < (next_ts - row_ts):
+                    row_ts = prev_ts
+                else:
+                    row_ts = next_ts
+
         location = TriggerPosition(track, system, col_num, row_ts, trigger_index)
         selection.set_location(location)
+
+    def _handle_cursor_down_with_grid(self):
+        # TODO: fix this mess
+        is_editing_grid_enabled = (self._sheet_manager.is_editing_enabled() and
+                self._sheet_manager.is_grid_enabled())
+        if is_editing_grid_enabled:
+            self._vertical_move_state.press_down()
+            self._move_edit_cursor_tstamp()
+            self._vertical_move_state.release_down()
 
     def _add_rest(self):
         trigger = Trigger('n-', None)
         self._sheet_manager.add_trigger(trigger)
+        self._handle_cursor_down_with_grid()
 
     def _try_delete_selection(self):
         self._sheet_manager.try_remove_trigger()
+
+    def _perform_delete(self):
+        self._try_delete_selection()
+        self._handle_cursor_down_with_grid()
 
     def _perform_backspace(self):
         if not self._sheet_manager.is_editing_enabled():
@@ -1279,7 +1397,7 @@ class View(QWidget):
                 #       that interferes with the typewriter
                 Qt.Key_1:       handle_rest,
 
-                Qt.Key_Delete:  lambda: self._try_delete_selection(),
+                Qt.Key_Delete:  lambda: self._perform_delete(),
                 Qt.Key_Backspace: lambda: self._perform_backspace(),
 
                 Qt.Key_Space:   handle_typewriter_connection,
@@ -1317,20 +1435,25 @@ class View(QWidget):
         if not is_handled:
             QWidget.keyPressEvent(self, event)
 
-    def keyReleaseEvent(self, ev):
-        if self._keyboard_mapper.process_typewriter_button_event(ev):
+    def keyReleaseEvent(self, event):
+        was_chord_mode = self._sheet_manager.get_chord_mode()
+
+        if self._keyboard_mapper.process_typewriter_button_event(event):
+            is_chord_mode = self._sheet_manager.get_chord_mode()
+            if was_chord_mode and not is_chord_mode:
+                self._handle_cursor_down_with_grid()
             return
 
-        if ev.isAutoRepeat():
+        if event.isAutoRepeat():
             return
 
-        if ev.key() == Qt.Key_Up:
+        if event.key() == Qt.Key_Up:
             self._vertical_move_state.release_up()
-        elif ev.key() == Qt.Key_Down:
+        elif event.key() == Qt.Key_Down:
             self._vertical_move_state.release_down()
-        elif ev.key() == Qt.Key_Left:
+        elif event.key() == Qt.Key_Left:
             self._horizontal_move_state.release_left()
-        elif ev.key() == Qt.Key_Right:
+        elif event.key() == Qt.Key_Right:
             self._horizontal_move_state.release_right()
 
     def resizeEvent(self, ev):
@@ -1369,6 +1492,10 @@ class View(QWidget):
         draw_col_stop = 1 + (rect.x() + rect.width() - 1) // self._col_width
         draw_col_stop = min(draw_col_stop, COLUMNS_MAX - self._first_col)
 
+        # Get grid (moved here from ColumnGroupRenderer for cached data access)
+        sheet_manager = self._ui_model.get_sheet_manager()
+        grid = sheet_manager.get_grid()
+
         # Draw columns
         pixmaps_created = 0
         for rel_col_index in xrange(draw_col_start, draw_col_stop):
@@ -1376,7 +1503,7 @@ class View(QWidget):
             tfm = QTransform().translate(x_offset, 0)
             painter.setTransform(tfm)
             pixmaps_created += self._col_rends[
-                    self._first_col + rel_col_index].draw(painter, self.height())
+                    self._first_col + rel_col_index].draw(painter, self.height(), grid)
 
         # Flush caches of (most) out-of-view columns
         first_kept_col = max(0, self._first_col - 1)

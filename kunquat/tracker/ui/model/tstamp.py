@@ -46,8 +46,12 @@ class Tstamp(numbers.Real, tuple):
         other_ts = Tstamp(other)
         return Tstamp(self.beats + other_ts.beats, self.rem + other_ts.rem)
 
-    def __div__(self):
-        raise NotImplementedError
+    def __div__(self, other):
+        if isinstance(other, Tstamp):
+            raise NotImplementedError
+
+        rems = self.beats * BEAT + self.rem
+        return Tstamp(0, rems / other)
 
     def __eq__(self, other):
         if other == None:
@@ -58,8 +62,14 @@ class Tstamp(numbers.Real, tuple):
     def __float__(self):
         return float(self.beats) + float(self.rem) / BEAT
 
-    def __floordiv__(self):
-        raise NotImplementedError
+    def __floordiv__(self, other):
+        if isinstance(other, Tstamp):
+            self_rems = self.beats * BEAT + self.rem
+            other_rems = other.beats * BEAT + other.rem
+            return Tstamp(self_rems // other_rems, 0)
+
+        div_ts = self / other
+        return Tstamp(div_ts, 0)
 
     def __ge__(self, other):
         other_ts = Tstamp(other)
@@ -93,7 +103,13 @@ class Tstamp(numbers.Real, tuple):
             return False
         return self.rem < other_ts.rem
 
-    def __mod__(self):
+    def __mod__(self, other):
+        if isinstance(other, Tstamp):
+            self_rems = self.beats * BEAT + self.rem
+            other_rems = other.beats * BEAT + other.rem
+            mod_rems = self_rems % other_rems
+            return Tstamp(0, mod_rems)
+
         raise NotImplementedError
 
     def __mul__(self, other):
@@ -104,6 +120,7 @@ class Tstamp(numbers.Real, tuple):
                     self.rem * other.beats +
                     self.rem * other.rem / BEAT)
             return Tstamp(0, total_rems)
+
         rems = self.beats * BEAT + self.rem
         return Tstamp(0, rems * other)
 

@@ -131,3 +131,44 @@ def get_pixmap_rect(index, start_px, stop_px, width, pixmap_height):
     return QRect(0, rect_start, width, min(rect_height, stop_px - start_px))
 
 
+# Zoom configuration
+
+def get_zoom_levels(min_val, default_val, max_val, zoom_factor):
+    zoom_levels = [default_val]
+
+    # Fill zoom out levels until minimum
+    prev_val = zoom_levels[-1]
+    next_val = prev_val / zoom_factor
+    while int(next_val) > min_val:
+        actual_val = int(next_val)
+        assert actual_val < prev_val
+        zoom_levels.append(actual_val)
+        prev_val = actual_val
+        next_val = prev_val / zoom_factor
+    zoom_levels.append(min_val)
+    zoom_levels = list(reversed(zoom_levels))
+
+    # Fill zoom in levels until maximum
+    prev_val = zoom_levels[-1]
+    next_val = prev_val * zoom_factor
+    while math.ceil(next_val) < max_val:
+        actual_val = int(math.ceil(next_val))
+        assert actual_val > prev_val
+        zoom_levels.append(actual_val)
+        prev_val = actual_val
+        next_val = prev_val * zoom_factor
+    zoom_levels.append(max_val)
+
+    return zoom_levels
+
+
+# Colours
+
+def scale_colour(colour, factor):
+    new_colour = QColor(colour)
+    new_colour.setRed(colour.red() * factor)
+    new_colour.setGreen(colour.green() * factor)
+    new_colour.setBlue(colour.blue() * factor)
+    return new_colour
+
+

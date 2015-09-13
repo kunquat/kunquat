@@ -11,6 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 
@@ -40,6 +41,7 @@ DEFAULT_CONFIG = {
         'bg_colour'       : QColor(0, 0, 0),
         'border_colour'   : QColor(0x55, 0x55, 0x55),
         'font'            : QFont(QFont().defaultFamily(), 12),
+        'disabled_colour' : QColor(0x88, 0x88, 0x88, 0x7f),
         'trigger': {
             'default_colour' : QColor(0xcc, 0xdd, 0xee),
             'note_on_colour' : QColor(0xff, 0xdd, 0xbb),
@@ -52,6 +54,24 @@ DEFAULT_CONFIG = {
             'edit_line_colour': QColor(0xff, 0x88, 0x44),
             'min_snap_dist'   : 64,
             'guide_colour'    : QColor(0xff, 0x77, 0x22, 0x7f),
+            },
+        'grid': {
+            'styles': {
+                0: QPen(QBrush(QColor(0xa0, 0xa0, 0xa0)), 1, Qt.SolidLine),
+                1: QPen(QBrush(QColor(0xa0, 0xa0, 0xa0)), 1, Qt.DashLine),
+                2: QPen(QBrush(QColor(0xa0, 0xa0, 0xa0)), 1, Qt.DotLine),
+                3: QPen(QBrush(QColor(0x60, 0x60, 0x60)), 1, Qt.SolidLine),
+                4: QPen(QBrush(QColor(0x60, 0x60, 0x60)), 1, Qt.DashLine),
+                5: QPen(QBrush(QColor(0x60, 0x60, 0x60)), 1, Qt.DotLine),
+                6: QPen(QBrush(QColor(0x40, 0x40, 0x40)), 1, Qt.SolidLine),
+                7: QPen(QBrush(QColor(0x40, 0x40, 0x40)), 1, Qt.DashLine),
+                8: QPen(QBrush(QColor(0x40, 0x40, 0x40)), 1, Qt.DotLine),
+                },
+            'edit_cursor': {
+                'height': 11,
+                'width' : 13,
+                'colour': QColor(0xee, 0x77, 0x33),
+                },
             },
         }
 

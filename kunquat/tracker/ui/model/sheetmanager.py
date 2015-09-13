@@ -12,6 +12,7 @@
 #
 
 from kunquat.kunquat.limits import *
+from grid import Grid
 from triggerposition import TriggerPosition
 import tstamp
 
@@ -325,5 +326,17 @@ class SheetManager():
 
     def get_replace_mode(self):
         return self._session.get_replace_mode()
+
+    def set_grid_enabled(self, enabled):
+        self._session.set_grid_enabled(enabled)
+
+    def is_grid_enabled(self):
+        return self._session.is_grid_enabled()
+
+    def get_grid(self):
+        grid = Grid()
+        grid.set_controller(self._controller)
+        grid.set_ui_model(self._ui_model)
+        return grid
 
 

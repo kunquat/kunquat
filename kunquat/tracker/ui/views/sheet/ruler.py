@@ -27,10 +27,12 @@ class Ruler(QWidget):
 
     heightChanged = pyqtSignal(name='heightChanged')
 
-    def __init__(self):
+    def __init__(self, is_grid_ruler=False):
         QWidget.__init__(self)
         self._ui_model = None
         self._updater = None
+
+        self._is_grid_ruler = is_grid_ruler
 
         self._lengths = []
         self._px_offset = 0
@@ -78,14 +80,30 @@ class Ruler(QWidget):
         return sum(self._heights)
 
     def _perform_updates(self, signals):
-        update_signals = set(
-                ['signal_module', 'signal_order_list', 'signal_pattern_length'])
-        if not signals.isdisjoint(update_signals):
-            self._update_all_patterns()
-            self.update()
+        if not self._is_grid_ruler:
+            update_signals = set(
+                    ['signal_module', 'signal_order_list', 'signal_pattern_length'])
+            if not signals.isdisjoint(update_signals):
+                self._update_all_patterns()
+                self.update()
 
         if 'signal_selection' in signals:
             self.update()
+
+    def update_grid_pattern(self):
+        assert self._is_grid_ruler
+
+        self._lengths = []
+
+        grid_manager = self._ui_model.get_grid_manager()
+        gp_id = grid_manager.get_selected_grid_pattern_id()
+        if gp_id != None:
+            gp = grid_manager.get_grid_pattern(gp_id)
+            gp_length = gp.get_length()
+            self._lengths = [gp_length]
+
+        self._set_pattern_heights()
+        self.update()
 
     def _update_all_patterns(self):
         all_patterns = utils.get_all_patterns(self._ui_model)

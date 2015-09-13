@@ -89,6 +89,14 @@ class ColumnGroupRenderer():
             for cache in self._inactive_caches:
                 cache.flush()
 
+    def flush_final_pixmaps(self):
+        if self._caches:
+            for cache in self._caches:
+                cache.flush_final_pixmaps()
+        if self._inactive_caches:
+            for cache in self._inactive_caches:
+                cache.flush_final_pixmaps()
+
     def set_pattern_lengths(self, lengths):
         self._lengths = lengths
 
@@ -145,7 +153,7 @@ class ColumnGroupRenderer():
         except TypeError:
             return 0
 
-    def draw(self, painter, height):
+    def draw(self, painter, height, grid):
         # Render columns of visible patterns
         first_index = utils.get_first_visible_pat_index(
                 self._px_offset,
@@ -185,7 +193,7 @@ class ColumnGroupRenderer():
             # Draw pixmaps
             canvas_y = max(0, rel_start_height)
             for (src_rect, pixmap) in cache.iter_pixmaps(
-                    cur_offset, min(rel_end_height, height) - canvas_y):
+                    cur_offset, min(rel_end_height, height) - canvas_y, grid):
                 dest_rect = QRect(0, canvas_y, self._width, src_rect.height())
                 painter.drawPixmap(dest_rect, pixmap, src_rect)
                 canvas_y += src_rect.height()
@@ -272,11 +280,13 @@ class ColumnCache():
         self._col_num = col_num
         self._pat_num = pat_num
         self._inactive = False
+        self._ui_model = None
 
         self._pixmaps = BufferCache()
         self._pixmaps_created = 0
 
         self._tr_cache = TRCache()
+        self._gl_cache = GridLineCache()
 
         self._width = DEFAULT_CONFIG['col_width']
         self._px_per_beat = None
@@ -284,13 +294,16 @@ class ColumnCache():
     def set_inactive(self):
         self._inactive = True
         self._tr_cache.set_inactive()
+        self._gl_cache.set_inactive()
 
     def set_config(self, config):
         self._config = config
         self._pixmaps.flush()
         self._tr_cache.set_config(config)
+        self._gl_cache.set_config(config)
 
     def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
         self._tr_cache.set_ui_model(ui_model)
 
     def set_column(self, column):
@@ -300,8 +313,14 @@ class ColumnCache():
     def flush(self):
         self._pixmaps.flush()
         self._tr_cache.flush()
+        self._gl_cache.flush()
+
+    def flush_final_pixmaps(self):
+        self._pixmaps.flush()
 
     def set_width(self, width):
+        self._gl_cache.set_width(width)
+
         if self._width != width:
             self._width = width
             self._pixmaps.flush()
@@ -320,7 +339,7 @@ class ColumnCache():
         tr_memory_usage = self._tr_cache.get_memory_usage()
         return self._pixmaps.get_memory_usage() + tr_memory_usage
 
-    def iter_pixmaps(self, start_px, height_px):
+    def iter_pixmaps(self, start_px, height_px, grid):
         assert start_px >= 0
         assert height_px >= 0
 
@@ -334,7 +353,7 @@ class ColumnCache():
 
         for i in xrange(start_index, stop_index):
             if i not in self._pixmaps:
-                pixmap = self._create_pixmap(i)
+                pixmap = self._create_pixmap(i, grid)
                 self._pixmaps[i] = pixmap
                 self._pixmaps_created += 1
             else:
@@ -353,15 +372,10 @@ class ColumnCache():
 
     def _get_final_colour(self, colour):
         if self._inactive:
-            dim_factor = self._config['inactive_dim']
-            new_colour = QColor(colour)
-            new_colour.setRed(colour.red() * dim_factor)
-            new_colour.setGreen(colour.green() * dim_factor)
-            new_colour.setBlue(colour.blue() * dim_factor)
-            return new_colour
+            return utils.scale_colour(colour, self._config['inactive_dim'])
         return colour
 
-    def _create_pixmap(self, index):
+    def _create_pixmap(self, index, grid):
         pixmap = QPixmap(self._width, ColumnCache.PIXMAP_HEIGHT)
 
         painter = QPainter(pixmap)
@@ -385,6 +399,22 @@ class ColumnCache():
             abs_y = rems * self._px_per_beat // tstamp.BEAT
             y_offset = abs_y - start_px
             return y_offset
+
+        # Grid
+        sheet_manager = self._ui_model.get_sheet_manager()
+        if sheet_manager.is_grid_enabled():
+            grid_start_ts = tstamp.Tstamp(0, start_px * tstamp.BEAT // self._px_per_beat)
+            tr_height_ts = utils.get_tstamp_from_px(
+                    self._config['tr_height'], self._px_per_beat)
+            lines = grid.get_grid_lines(
+                    self._pat_num, self._col_num, grid_start_ts, stop_ts, tr_height_ts)
+
+            for line_info in lines:
+                line_ts, line_style = line_info
+                line_y_offset = ts_to_y_offset(line_ts)
+
+                line_pixmap = self._gl_cache.get_line_pixmap(line_style)
+                painter.drawPixmap(QPoint(0, line_y_offset), line_pixmap)
 
         # Trigger rows
         painter.setCompositionMode(QPainter.CompositionMode_SourceOver)
@@ -547,5 +577,60 @@ class TRCache():
                     return None
                 return ts, self._images[ts]
         return None
+
+
+class GridLineCache():
+
+    def __init__(self):
+        self._config = None
+        self._inactive = False
+
+        self._pixmaps = BufferCache()
+
+        self._width = DEFAULT_CONFIG['col_width']
+
+    def set_inactive(self):
+        self._inactive = True
+        self._pixmaps.flush()
+
+    def set_config(self, config):
+        self._config = config
+        self._pixmaps.flush()
+
+    def flush(self):
+        self._pixmaps.flush()
+
+    def set_width(self, width):
+        if self._width != width:
+            self._width = width
+            self._pixmaps.flush()
+
+    def get_line_pixmap(self, style):
+        if style not in self._pixmaps:
+            pixmap = self._create_line_pixmap(style)
+            self._pixmaps[style] = pixmap
+        return self._pixmaps[style]
+
+    def _get_final_colour(self, colour):
+        if self._inactive:
+            return utils.scale_colour(colour, self._config['inactive_dim'])
+        return colour
+
+    def _create_line_pixmap(self, style):
+        pixmap = QPixmap(self._width, 1)
+
+        painter = QPainter(pixmap)
+
+        # Background
+        painter.setBackground(self._get_final_colour(self._config['bg_colour']))
+        painter.eraseRect(QRect(0, 0, self._width - 1, 1))
+
+        # Line
+        pen = QPen(self._config['grid']['styles'][style])
+        pen.setColor(self._get_final_colour(pen.color()))
+        painter.setPen(pen)
+        painter.drawLine(QPoint(0, 0), QPoint(self._width - 1, 0))
+
+        return pixmap
 
 
