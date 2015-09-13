@@ -51,12 +51,12 @@ class Name(QWidget):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
         vis_text = au.get_name() or ''
-        if vis_text != self._edit.text():
+        if vis_text != unicode(self._edit.text()):
             self._edit.setText(vis_text)
         self._edit.blockSignals(old_block)
 
-    def _text_edited(self, text):
-        text = unicode(text)
+    def _text_edited(self, text_qstring):
+        text = unicode(text_qstring)
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
         au.set_name(text)
