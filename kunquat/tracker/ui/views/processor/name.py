@@ -56,7 +56,7 @@ class Name(QWidget):
         au = module.get_audio_unit(self._au_id)
         proc = au.get_processor(self._proc_id)
         vis_name = proc.get_name() or ''
-        if vis_name != self._edit.text():
+        if vis_name != unicode(self._edit.text()):
             self._edit.setText(vis_name)
         self._edit.blockSignals(old_block)
 
