@@ -221,6 +221,7 @@ class AudioUnit():
         return name
 
     def set_name(self, name):
+        assert isinstance(name, unicode)
         key = self._get_key('m_name.json')
         self._store[key] = name
 

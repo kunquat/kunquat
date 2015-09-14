@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014
+# Author: Tomi Jylhä-Ollila, Finland 2014-2015
 #
 # This file is part of Kunquat.
 #
@@ -15,6 +15,7 @@ from __future__ import print_function
 import sys
 import traceback
 import os
+import warnings
 
 
 _ERROR_BRIEF = 'Kunquat Tracker encountered an error.'
@@ -41,6 +42,9 @@ def log_error(eclass, einst, trace):
 
 def setup_basic_error_handler():
     sys.excepthook = _basic_handler
+
+    # Convert all warnings into exceptions
+    warnings.filterwarnings('error')
 
 
 def _basic_handler(eclass, einst, trace):

@@ -68,7 +68,7 @@ class ProcWindow(QWidget):
         if proc_name:
             parts.append(proc_name)
         if au_name:
-            parts.append('[{}]'.format(au_name))
+            parts.append(u'[{}]'.format(au_name))
 
         if parts:
             title = u'{} – Kunquat Tracker'.format(u' '.join(parts))
