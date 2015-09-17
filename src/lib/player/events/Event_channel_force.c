@@ -24,9 +24,7 @@
 
 
 bool Event_channel_set_force_process(
-        Channel* ch,
-        Device_states* dstates,
-        const Value* value)
+        Channel* ch, Device_states* dstates, const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
@@ -35,16 +33,19 @@ bool Event_channel_set_force_process(
 
     const double force = exp2(value->value.float_type / 6);
 
+    ch->force_controls.force = force;
+    Slider_break(&ch->force_controls.slider);
+
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;
 
         // Update actual force in case it's queried before another render call
-        vs->actual_force *= (force / vs->force);
+        vs->actual_force *= (force / vs->force_controls.force);
 
-        vs->force = force;
-        Slider_break(&vs->force_slider);
+        vs->force_controls.force = force;
+        Slider_break(&vs->force_controls.slider);
 //        vs->force_slide = 0;
     }
 
@@ -53,9 +54,7 @@ bool Event_channel_set_force_process(
 
 
 bool Event_channel_slide_force_process(
-        Channel* ch,
-        Device_states* dstates,
-        const Value* value)
+        Channel* ch, Device_states* dstates, const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
@@ -63,15 +62,22 @@ bool Event_channel_slide_force_process(
     assert(value->type == VALUE_TYPE_FLOAT);
 
     double slide_target = exp2(value->value.float_type / 6);
+
+    if (Slider_in_progress(&ch->force_controls.slider))
+        Slider_change_target(&ch->force_controls.slider, slide_target);
+    else
+        Slider_start(&ch->force_controls.slider, slide_target, ch->force_controls.force);
+
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;
 
-        if (Slider_in_progress(&vs->force_slider))
-            Slider_change_target(&vs->force_slider, slide_target);
+        if (Slider_in_progress(&vs->force_controls.slider))
+            Slider_change_target(&vs->force_controls.slider, slide_target);
         else
-            Slider_start(&vs->force_slider, slide_target, vs->force);
+            Slider_start(
+                    &vs->force_controls.slider, slide_target, vs->force_controls.force);
     }
 
     return true;
@@ -79,9 +85,7 @@ bool Event_channel_slide_force_process(
 
 
 bool Event_channel_slide_force_length_process(
-        Channel* ch,
-        Device_states* dstates,
-        const Value* value)
+        Channel* ch, Device_states* dstates, const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
@@ -90,11 +94,13 @@ bool Event_channel_slide_force_length_process(
 
     Tstamp_copy(&ch->force_slide_length, &value->value.Tstamp_type);
 
+    Slider_set_length(&ch->force_controls.slider, &ch->force_slide_length);
+
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;
-        Slider_set_length(&vs->force_slider, &value->value.Tstamp_type);
+        Slider_set_length(&vs->force_controls.slider, &ch->force_slide_length);
     }
 
     return true;
@@ -102,9 +108,7 @@ bool Event_channel_slide_force_length_process(
 
 
 bool Event_channel_tremolo_speed_process(
-        Channel* ch,
-        Device_states* dstates,
-        const Value* value)
+        Channel* ch, Device_states* dstates, const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
@@ -112,18 +116,25 @@ bool Event_channel_tremolo_speed_process(
     assert(value->type == VALUE_TYPE_FLOAT);
 
     ch->tremolo_speed = value->value.float_type;
-    LFO_set_speed(&ch->tremolo, value->value.float_type);
+
+    LFO_set_speed(&ch->force_controls.tremolo, ch->tremolo_speed);
+
+    if (ch->tremolo_depth > 0)
+        LFO_set_depth(&ch->force_controls.tremolo, ch->tremolo_depth);
+
+    LFO_turn_on(&ch->force_controls.tremolo);
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;
-        LFO_set_speed(&vs->tremolo, value->value.float_type);
+
+        LFO_set_speed(&vs->force_controls.tremolo, value->value.float_type);
 
         if (ch->tremolo_depth > 0)
-            LFO_set_depth(&vs->tremolo, ch->tremolo_depth);
+            LFO_set_depth(&vs->force_controls.tremolo, ch->tremolo_depth);
 
-        LFO_turn_on(&vs->tremolo);
+        LFO_turn_on(&vs->force_controls.tremolo);
     }
 
     return true;
@@ -131,9 +142,7 @@ bool Event_channel_tremolo_speed_process(
 
 
 bool Event_channel_tremolo_depth_process(
-        Channel* ch,
-        Device_states* dstates,
-        const Value* value)
+        Channel* ch, Device_states* dstates, const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
@@ -143,16 +152,22 @@ bool Event_channel_tremolo_depth_process(
     const double actual_depth = value->value.float_type / 6;
     ch->tremolo_depth = actual_depth;
 
+    if (ch->tremolo_speed > 0)
+        LFO_set_speed(&ch->force_controls.tremolo, ch->tremolo_speed);
+
+    LFO_set_depth(&ch->force_controls.tremolo, actual_depth);
+    LFO_turn_on(&ch->force_controls.tremolo);
+
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;
 
         if (ch->tremolo_speed > 0)
-            LFO_set_speed(&vs->tremolo, ch->tremolo_speed);
+            LFO_set_speed(&vs->force_controls.tremolo, ch->tremolo_speed);
 
-        LFO_set_depth(&vs->tremolo, actual_depth);
-        LFO_turn_on(&vs->tremolo);
+        LFO_set_depth(&vs->force_controls.tremolo, actual_depth);
+        LFO_turn_on(&vs->force_controls.tremolo);
     }
 
     return true;
@@ -160,9 +175,7 @@ bool Event_channel_tremolo_depth_process(
 
 
 bool Event_channel_tremolo_speed_slide_process(
-        Channel* ch,
-        Device_states* dstates,
-        const Value* value)
+        Channel* ch, Device_states* dstates, const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
@@ -170,13 +183,14 @@ bool Event_channel_tremolo_speed_slide_process(
     assert(value->type == VALUE_TYPE_TSTAMP);
 
     Tstamp_copy(&ch->tremolo_speed_slide, &value->value.Tstamp_type);
-    LFO_set_speed_slide(&ch->tremolo, &value->value.Tstamp_type);
+
+    LFO_set_speed_slide(&ch->force_controls.tremolo, &value->value.Tstamp_type);
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;
-        LFO_set_speed_slide(&vs->tremolo, &value->value.Tstamp_type);
+        LFO_set_speed_slide(&vs->force_controls.tremolo, &value->value.Tstamp_type);
     }
 
     return true;
@@ -184,26 +198,49 @@ bool Event_channel_tremolo_speed_slide_process(
 
 
 bool Event_channel_tremolo_depth_slide_process(
-        Channel* ch,
-        Device_states* dstates,
-        const Value* value)
+        Channel* ch, Device_states* dstates, const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_TSTAMP);
 
-    Tstamp_copy(
-            &ch->tremolo_depth_slide,
-            &value->value.Tstamp_type);
-    LFO_set_depth_slide(&ch->tremolo, &value->value.Tstamp_type);
+    Tstamp_copy(&ch->tremolo_depth_slide, &value->value.Tstamp_type);
+
+    LFO_set_depth_slide(&ch->force_controls.tremolo, &value->value.Tstamp_type);
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;
-        LFO_set_depth_slide(&vs->tremolo, &value->value.Tstamp_type);
+        LFO_set_depth_slide(&vs->force_controls.tremolo, &value->value.Tstamp_type);
     }
+
+    return true;
+}
+
+
+bool Event_channel_carry_force_on_process(
+        Channel* ch, Device_states* dstates, const Value* value)
+{
+    assert(ch != NULL);
+    assert(dstates != NULL);
+    ignore(value);
+
+    ch->carry_force = true;
+
+    return true;
+}
+
+
+bool Event_channel_carry_force_off_process(
+        Channel* ch, Device_states* dstates, const Value* value)
+{
+    assert(ch != NULL);
+    assert(dstates != NULL);
+    ignore(value);
+
+    ch->carry_force = false;
 
     return true;
 }

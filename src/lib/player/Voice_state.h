@@ -24,6 +24,7 @@
 #include <mathnum/Random.h>
 #include <pitch_t.h>
 #include <player/Channel_proc_state.h>
+#include <player/Force_controls.h>
 #include <player/LFO.h>
 #include <player/Slider.h>
 #include <player/Time_env_state.h>
@@ -81,10 +82,11 @@ typedef struct Voice_state
     Time_env_state force_env_state;
     Time_env_state force_rel_env_state;
 
-    double force;                  ///< The current force (linear factor).
+    Force_controls force_controls;
+    //double force;                  ///< The current force (linear factor).
     double actual_force;           ///< The current actual force (includes tremolo & envs).
-    Slider force_slider;
-    LFO tremolo;
+    //Slider force_slider;
+    //LFO tremolo;
 
     double panning;                ///< The current panning.
     double actual_panning;         ///< The current actual panning.

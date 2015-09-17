@@ -207,7 +207,7 @@ uint32_t Proc_sample_process_vstate(
             entry = Hit_map_get_entry(
                     map,
                     vstate->hit_index,
-                    vstate->force,
+                    vstate->force_controls.force,
                     vstate->rand_p);
         }
         else
@@ -232,7 +232,7 @@ uint32_t Proc_sample_process_vstate(
             entry = Note_map_get_entry(
                     map,
                     log2(vstate->pitch / 440) * 1200,
-                    vstate->force,
+                    vstate->force_controls.force,
                     vstate->rand_p);
             sample_state->middle_tone = entry->ref_freq;
         }

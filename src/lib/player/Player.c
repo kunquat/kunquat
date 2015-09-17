@@ -42,10 +42,7 @@ static void Player_update_sliders_and_lfos_audio_rate(Player* player)
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
     {
         Channel* ch = player->channels[i];
-        LFO_set_mix_rate(&ch->vibrato, rate);
-        LFO_set_mix_rate(&ch->tremolo, rate);
-        Slider_set_mix_rate(&ch->panning_slider, rate);
-        LFO_set_mix_rate(&ch->autowah, rate);
+        Channel_set_audio_rate(ch, rate);
     }
 
     Master_params* mp = &player->master_params;
@@ -599,6 +596,19 @@ void Player_play(Player* player, int32_t nframes)
 
         // Process voices
         Player_process_voices(player, rendered, to_be_rendered);
+
+        // Update carried force controls
+        for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
+        {
+            Channel* ch = player->channels[i];
+            Force_controls* fc = &ch->force_controls;
+
+            if (Slider_in_progress(&fc->slider))
+                fc->force = Slider_skip(&fc->slider, to_be_rendered);
+
+            if (LFO_active(&fc->tremolo))
+                LFO_skip(&fc->tremolo, to_be_rendered);
+        }
 
         // Update panning slides, TODO: revisit
         for (int i = 0; i < KQT_CHANNELS_MAX; ++i)

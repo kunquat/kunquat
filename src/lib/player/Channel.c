@@ -97,6 +97,34 @@ Channel* new_Channel(
 }
 
 
+void Channel_set_audio_rate(Channel* ch, int32_t audio_rate)
+{
+    assert(ch != NULL);
+    assert(audio_rate > 0);
+
+    Force_controls_set_audio_rate(&ch->force_controls, audio_rate);
+    LFO_set_mix_rate(&ch->vibrato, audio_rate);
+    Slider_set_mix_rate(&ch->panning_slider, audio_rate);
+    LFO_set_mix_rate(&ch->autowah, audio_rate);
+
+    return;
+}
+
+
+void Channel_set_tempo(Channel* ch, double tempo)
+{
+    assert(ch != NULL);
+    assert(tempo > 0);
+
+    Force_controls_set_tempo(&ch->force_controls, tempo);
+    LFO_set_tempo(&ch->vibrato, tempo);
+    Slider_set_tempo(&ch->panning_slider, tempo);
+    LFO_set_tempo(&ch->autowah, tempo);
+
+    return;
+}
+
+
 void Channel_set_random_seed(Channel* ch, uint64_t seed)
 {
     assert(ch != NULL);
@@ -137,11 +165,13 @@ void Channel_reset(Channel* ch)
     ch->volume = 1;
 
     Tstamp_set(&ch->force_slide_length, 0, 0);
-    LFO_init(&ch->tremolo, LFO_MODE_EXP);
+    //LFO_init(&ch->tremolo, LFO_MODE_EXP);
     ch->tremolo_speed = 0;
     Tstamp_init(&ch->tremolo_speed_slide);
     ch->tremolo_depth = 0;
     Tstamp_init(&ch->tremolo_depth_slide);
+    ch->carry_force = false;
+    Force_controls_reset(&ch->force_controls);
 
     Tstamp_set(&ch->pitch_slide_length, 0, 0);
     LFO_init(&ch->vibrato, LFO_MODE_EXP);

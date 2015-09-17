@@ -130,31 +130,33 @@ int32_t Proc_common_handle_force(
             wbs, WORK_BUFFER_ACTUAL_FORCES);
     actual_forces[buf_start - 1] = vstate->actual_force;
 
+    Force_controls* fc = &vstate->force_controls;
+
     int32_t new_buf_stop = buf_stop;
 
     // Apply force slide & global force
-    if (Slider_in_progress(&vstate->force_slider))
+    if (Slider_in_progress(&fc->slider))
     {
-        float new_force = vstate->force;
+        float new_force = fc->force;
         for (int32_t i = buf_start; i < new_buf_stop; ++i)
         {
-            new_force = Slider_step(&vstate->force_slider);
+            new_force = Slider_step(&fc->slider);
             actual_forces[i] = new_force * proc->au_params->global_force;
         }
-        vstate->force = new_force;
+        fc->force = new_force;
     }
     else
     {
-        const float actual_force = vstate->force * proc->au_params->global_force;
+        const float actual_force = fc->force * proc->au_params->global_force;
         for (int32_t i = buf_start; i < new_buf_stop; ++i)
             actual_forces[i] = actual_force;
     }
 
     // Apply tremolo
-    if (LFO_active(&vstate->tremolo))
+    if (LFO_active(&fc->tremolo))
     {
         for (int32_t i = buf_start; i < new_buf_stop; ++i)
-            actual_forces[i] *= LFO_step(&vstate->tremolo);
+            actual_forces[i] *= LFO_step(&fc->tremolo);
     }
 
     // Apply force envelope

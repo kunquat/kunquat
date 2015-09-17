@@ -799,10 +799,7 @@ void Player_update_sliders_and_lfos_tempo(Player* player)
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
     {
         Channel* ch = player->channels[i];
-        LFO_set_tempo(&ch->vibrato, tempo);
-        LFO_set_tempo(&ch->tremolo, tempo);
-        Slider_set_tempo(&ch->panning_slider, tempo);
-        LFO_set_tempo(&ch->autowah, tempo);
+        Channel_set_tempo(ch, tempo);
     }
 
     Master_params* mp = &player->master_params;

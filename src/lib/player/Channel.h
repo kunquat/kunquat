@@ -26,6 +26,7 @@
 #include <player/Channel_proc_state.h>
 #include <player/Env_state.h>
 #include <player/Event_cache.h>
+#include <player/Force_controls.h>
 #include <player/General_state.h>
 #include <player/LFO.h>
 #include <player/Voice_pool.h>
@@ -57,11 +58,13 @@ typedef struct Channel
     double volume;                 ///< Channel volume (linear factor).
 
     Tstamp force_slide_length;
-    LFO tremolo;
+    //LFO tremolo;
     double tremolo_speed;
     Tstamp tremolo_speed_slide;
     double tremolo_depth;
     Tstamp tremolo_depth_slide;
+    bool carry_force;
+    Force_controls force_controls;
 
     Tstamp pitch_slide_length;
     LFO vibrato;
@@ -111,6 +114,24 @@ Channel* new_Channel(
         Voice_pool* voices,
         double* tempo,
         int32_t* audio_rate);
+
+
+/**
+ * Set the Channel audio rate.
+ *
+ * \param ch           The Channel -- must not be \c NULL.
+ * \param audio_rate   The audio rate -- must be positive.
+ */
+void Channel_set_audio_rate(Channel* ch, int32_t audio_rate);
+
+
+/**
+ * Set the Channel tempo.
+ *
+ * \param ch      The Channel -- must not be \c NULL.
+ * \param tempo   The tempo -- must be positive.
+ */
+void Channel_set_tempo(Channel* ch, double tempo);
 
 
 /**

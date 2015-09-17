@@ -48,14 +48,14 @@ Voice_state* Voice_state_init(
     state->rand_p = rand_p;
     state->rand_s = rand_s;
 
+    Force_controls_init(&state->force_controls, freq, tempo);
+
 #define SET_RATE_TEMPO(type, field) \
     type ## _set_mix_rate(&state->field, freq); \
     type ## _set_tempo(&state->field, tempo)
 
     SET_RATE_TEMPO(Slider, pitch_slider);
     SET_RATE_TEMPO(LFO, vibrato);
-    SET_RATE_TEMPO(Slider, force_slider);
-    SET_RATE_TEMPO(LFO, tremolo);
     SET_RATE_TEMPO(Slider, panning_slider);
     SET_RATE_TEMPO(Slider, lowpass_slider);
     SET_RATE_TEMPO(LFO, autowah);
@@ -113,10 +113,8 @@ Voice_state* Voice_state_clear(Voice_state* state)
     Time_env_state_init(&state->force_env_state);
     Time_env_state_init(&state->force_rel_env_state);
 
-    state->force = 1;
+    Force_controls_reset(&state->force_controls);
     state->actual_force = 1;
-    Slider_init(&state->force_slider, SLIDE_MODE_EXP);
-    LFO_init(&state->tremolo, LFO_MODE_EXP);
 
     state->panning = 0;
     state->actual_panning = 0;
