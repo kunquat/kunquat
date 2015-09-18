@@ -91,9 +91,7 @@ bool Event_channel_note_on_process(
             vs->pitch = exp2(value->value.float_type / 1200) * 440;
         }
         else
-#endif
         {
-#if 0
             pitch_t pitch = Scale_get_pitch_from_cents(
                     **voice->proc->au_params->scale,
                     value->value.float_type);
@@ -102,13 +100,39 @@ bool Event_channel_note_on_process(
                 vs->pitch = pitch;
             }
             else
-#endif
             {
                 vs->pitch = exp2(value->value.float_type / 1200) * 440;
             }
         }
+#endif
+
+        if (ch->carry_pitch)
+        {
+            if (isnan(ch->pitch_controls.pitch))
+                ch->pitch_controls.pitch = exp2(value->value.float_type / 1200) * 440;
+            if (isnan(ch->pitch_controls.orig_pitch))
+                ch->pitch_controls.orig_pitch = value->value.float_type;
+
+            const double pitch_diff =
+                value->value.float_type - ch->pitch_controls.orig_pitch;
+            if (pitch_diff != 0)
+                ch->pitch_controls.freq_mul = exp2(pitch_diff / 1200);
+            else
+                ch->pitch_controls.freq_mul = 1;
+
+            Pitch_controls_copy(&vs->pitch_controls, &ch->pitch_controls);
+        }
+        else
+        {
+            vs->pitch_controls.pitch = exp2(value->value.float_type / 1200) * 440;
+            vs->pitch_controls.orig_pitch = value->value.float_type;
+
+            Slider_set_length(&vs->pitch_controls.slider, &ch->pitch_slide_length);
+
+            Pitch_controls_copy(&ch->pitch_controls, &vs->pitch_controls);
+        }
+
         //fprintf(stderr, "Event set pitch @ %p: %f\n", (void*)&vs->pitch, vs->pitch);
-        vs->orig_cents = value->value.float_type;
 
         set_au_properties(voice, vs, ch, &force_var);
     }

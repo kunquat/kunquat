@@ -166,10 +166,8 @@ static void adjust_relative_lengths(
 
     if (vstate->freq != audio_rate || vstate->tempo != tempo)
     {
-        Slider_set_mix_rate(&vstate->pitch_slider, audio_rate);
-        Slider_set_tempo(&vstate->pitch_slider, tempo);
-        LFO_set_mix_rate(&vstate->vibrato, audio_rate);
-        LFO_set_tempo(&vstate->vibrato, tempo);
+        Pitch_controls_set_audio_rate(&vstate->pitch_controls, audio_rate);
+        Pitch_controls_set_tempo(&vstate->pitch_controls, tempo);
 
         if (vstate->arpeggio)
         {

@@ -26,6 +26,7 @@
 #include <player/Channel_proc_state.h>
 #include <player/Force_controls.h>
 #include <player/LFO.h>
+#include <player/Pitch_controls.h>
 #include <player/Slider.h>
 #include <player/Time_env_state.h>
 #include <Tstamp.h>
@@ -54,14 +55,15 @@ typedef struct Voice_state
 
     double ramp_attack;            ///< The current state of volume ramp during attack.
     double ramp_release;           ///< The current state of volume ramp during release.
-    double orig_cents;             ///< The pitch in cents used at the beginning.
+    //double orig_cents;             ///< The pitch in cents used at the beginning.
 
     int hit_index;                 ///< The hit index (negative for normal notes).
-    pitch_t pitch;                 ///< The frequency at which the note is played.
+    Pitch_controls pitch_controls;
+    //pitch_t pitch;                 ///< The frequency at which the note is played.
     pitch_t actual_pitch;          ///< The actual frequency (includes vibrato).
     pitch_t prev_actual_pitch;     ///< The actual frequency in the previous mixing cycle.
-    Slider pitch_slider;
-    LFO vibrato;
+    //Slider pitch_slider;
+    //LFO vibrato;
 
     bool arpeggio;                 ///< Arpeggio enabled.
     double arpeggio_ref;           ///< Arpeggio reference note in cents.

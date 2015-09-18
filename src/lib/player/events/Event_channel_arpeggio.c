@@ -61,7 +61,7 @@ bool Event_channel_arpeggio_on_process(
         }
 #endif
         if (isnan(ch->arpeggio_ref))
-            ch->arpeggio_ref = vs->orig_cents;
+            ch->arpeggio_ref = vs->pitch_controls.orig_pitch;
 
         if (isnan(ch->arpeggio_tones[0]))
             ch->arpeggio_tones[0] = ch->arpeggio_ref;

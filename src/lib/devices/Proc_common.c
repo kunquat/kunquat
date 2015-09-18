@@ -42,29 +42,38 @@ void Proc_common_handle_pitch(
     assert(wbs != NULL);
     assert(buf_start < buf_stop);
 
+    Pitch_controls* pc = &vstate->pitch_controls;
+
     float* pitch_params = Work_buffers_get_buffer_contents_mut(
             wbs, WORK_BUFFER_PITCH_PARAMS);
-    pitch_params[buf_start - 1] = vstate->pitch;
+    pitch_params[buf_start - 1] = pc->pitch;
 
     float* actual_pitches = Work_buffers_get_buffer_contents_mut(
             wbs, WORK_BUFFER_ACTUAL_PITCHES);
     actual_pitches[buf_start - 1] = vstate->actual_pitch;
 
     // Apply pitch slide
-    if (Slider_in_progress(&vstate->pitch_slider))
+    if (Slider_in_progress(&pc->slider))
     {
-        float new_pitch = vstate->pitch;
+        float new_pitch = pc->pitch;
         for (int32_t i = buf_start; i < buf_stop; ++i)
         {
-            new_pitch = Slider_step(&vstate->pitch_slider);
+            new_pitch = Slider_step(&pc->slider);
             pitch_params[i] = new_pitch;
         }
-        vstate->pitch = new_pitch;
+        pc->pitch = new_pitch;
     }
     else
     {
         for (int32_t i = buf_start; i < buf_stop; ++i)
-            pitch_params[i] = vstate->pitch;
+            pitch_params[i] = pc->pitch;
+    }
+
+    // Adjust carried pitch
+    if (pc->freq_mul != 1)
+    {
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+            pitch_params[i] *= pc->freq_mul;
     }
 
     // Initialise actual pitches
@@ -73,10 +82,10 @@ void Proc_common_handle_pitch(
             sizeof(float) * (buf_stop - buf_start));
 
     // Apply vibrato
-    if (LFO_active(&vstate->vibrato))
+    if (LFO_active(&pc->vibrato))
     {
         for (int32_t i = buf_start; i < buf_stop; ++i)
-            actual_pitches[i] *= LFO_step(&vstate->vibrato);
+            actual_pitches[i] *= LFO_step(&pc->vibrato);
     }
 
     // Apply arpeggio

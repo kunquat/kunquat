@@ -203,7 +203,7 @@ uint32_t Proc_sample_process_vstate(
                 return buf_start;
             }
 
-            vstate->pitch = 440;
+            vstate->pitch_controls.pitch = 440;
             entry = Hit_map_get_entry(
                     map,
                     vstate->hit_index,
@@ -231,7 +231,7 @@ uint32_t Proc_sample_process_vstate(
             //fprintf(stderr, "pitch @ %p: %f\n", (void*)&state->pitch, state->pitch);
             entry = Note_map_get_entry(
                     map,
-                    log2(vstate->pitch / 440) * 1200,
+                    log2(vstate->pitch_controls.pitch / 440) * 1200,
                     vstate->force_controls.force,
                     vstate->rand_p);
             sample_state->middle_tone = entry->ref_freq;

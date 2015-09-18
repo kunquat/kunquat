@@ -67,11 +67,14 @@ typedef struct Channel
     Force_controls force_controls;
 
     Tstamp pitch_slide_length;
-    LFO vibrato;
+    //LFO vibrato;
     double vibrato_speed;
     Tstamp vibrato_speed_slide;
     double vibrato_depth;
     Tstamp vibrato_depth_slide;
+    bool carry_pitch;
+    double orig_pitch;
+    Pitch_controls pitch_controls;
 
     Tstamp filter_slide_length;
     Tstamp lowpass_resonance_slide_length;

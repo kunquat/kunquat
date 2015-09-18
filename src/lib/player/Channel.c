@@ -103,7 +103,7 @@ void Channel_set_audio_rate(Channel* ch, int32_t audio_rate)
     assert(audio_rate > 0);
 
     Force_controls_set_audio_rate(&ch->force_controls, audio_rate);
-    LFO_set_mix_rate(&ch->vibrato, audio_rate);
+    Pitch_controls_set_audio_rate(&ch->pitch_controls, audio_rate);
     Slider_set_mix_rate(&ch->panning_slider, audio_rate);
     LFO_set_mix_rate(&ch->autowah, audio_rate);
 
@@ -117,7 +117,7 @@ void Channel_set_tempo(Channel* ch, double tempo)
     assert(tempo > 0);
 
     Force_controls_set_tempo(&ch->force_controls, tempo);
-    LFO_set_tempo(&ch->vibrato, tempo);
+    Pitch_controls_set_tempo(&ch->pitch_controls, tempo);
     Slider_set_tempo(&ch->panning_slider, tempo);
     LFO_set_tempo(&ch->autowah, tempo);
 
@@ -174,11 +174,14 @@ void Channel_reset(Channel* ch)
     Force_controls_reset(&ch->force_controls);
 
     Tstamp_set(&ch->pitch_slide_length, 0, 0);
-    LFO_init(&ch->vibrato, LFO_MODE_EXP);
+    //LFO_init(&ch->vibrato, LFO_MODE_EXP);
     ch->vibrato_speed = 0;
     Tstamp_init(&ch->vibrato_speed_slide);
     ch->vibrato_depth = 0;
     Tstamp_init(&ch->vibrato_depth_slide);
+    ch->carry_pitch = false;
+    ch->orig_pitch = NAN;
+    Pitch_controls_reset(&ch->pitch_controls);
 
     Tstamp_set(&ch->filter_slide_length, 0, 0);
     LFO_init(&ch->autowah, LFO_MODE_EXP);

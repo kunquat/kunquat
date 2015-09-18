@@ -597,17 +597,30 @@ void Player_play(Player* player, int32_t nframes)
         // Process voices
         Player_process_voices(player, rendered, to_be_rendered);
 
-        // Update carried force controls
+        // Update carried force and pitch controls
         for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
         {
             Channel* ch = player->channels[i];
-            Force_controls* fc = &ch->force_controls;
 
-            if (Slider_in_progress(&fc->slider))
-                fc->force = Slider_skip(&fc->slider, to_be_rendered);
+            {
+                Force_controls* fc = &ch->force_controls;
 
-            if (LFO_active(&fc->tremolo))
-                LFO_skip(&fc->tremolo, to_be_rendered);
+                if (Slider_in_progress(&fc->slider))
+                    fc->force = Slider_skip(&fc->slider, to_be_rendered);
+
+                if (LFO_active(&fc->tremolo))
+                    LFO_skip(&fc->tremolo, to_be_rendered);
+            }
+
+            {
+                Pitch_controls* pc = &ch->pitch_controls;
+
+                if (Slider_in_progress(&pc->slider))
+                    pc->pitch = Slider_skip(&pc->slider, to_be_rendered);
+
+                if (LFO_active(&pc->vibrato))
+                    LFO_skip(&pc->vibrato, to_be_rendered);
+            }
         }
 
         // Update panning slides, TODO: revisit
