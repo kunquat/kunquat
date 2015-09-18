@@ -58,7 +58,6 @@ typedef struct Channel
     double volume;                 ///< Channel volume (linear factor).
 
     Tstamp force_slide_length;
-    //LFO tremolo;
     double tremolo_speed;
     Tstamp tremolo_speed_slide;
     double tremolo_depth;
@@ -67,7 +66,6 @@ typedef struct Channel
     Force_controls force_controls;
 
     Tstamp pitch_slide_length;
-    //LFO vibrato;
     double vibrato_speed;
     Tstamp vibrato_speed_slide;
     double vibrato_depth;
@@ -78,7 +76,6 @@ typedef struct Channel
 
     Tstamp filter_slide_length;
     Tstamp lowpass_resonance_slide_length;
-    //LFO autowah;
     double autowah_speed;
     Tstamp autowah_speed_slide;
     double autowah_depth;

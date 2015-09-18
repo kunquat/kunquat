@@ -115,9 +115,7 @@ Voice_state* Voice_state_clear(Voice_state* state)
     Time_env_state_init(&state->env_filter_rel_state);
 
     Filter_controls_reset(&state->filter_controls);
-    //state->lowpass = 100;
     state->actual_lowpass = 100;
-    //state->lowpass_resonance = 0;
 
     state->applied_lowpass = state->actual_lowpass;
     state->applied_resonance = state->filter_controls.resonance;

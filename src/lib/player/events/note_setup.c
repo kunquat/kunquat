@@ -117,11 +117,8 @@ void set_au_properties(Voice* voice, Voice_state* vs, Channel* ch, double* force
         Filter_controls_copy(&ch->filter_controls, &vs->filter_controls);
     }
 
-
-//    LFO_copy(&vs->vibrato, &ch->vibrato);
     vs->panning = ch->panning;
     Slider_copy(&vs->panning_slider, &ch->panning_slider);
-//    LFO_copy(&vs->autowah, &ch->autowah);
 
     return;
 }

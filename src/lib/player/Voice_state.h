@@ -59,12 +59,9 @@ typedef struct Voice_state
 
     int hit_index;                 ///< The hit index (negative for normal notes).
     Pitch_controls pitch_controls;
-    //pitch_t pitch;                 ///< The frequency at which the note is played.
     double orig_pitch_param;       ///< The original pitch parameter.
     pitch_t actual_pitch;          ///< The actual frequency (includes vibrato).
     pitch_t prev_actual_pitch;     ///< The actual frequency in the previous mixing cycle.
-    //Slider pitch_slider;
-    //LFO vibrato;
 
     bool arpeggio;                 ///< Arpeggio enabled.
     double arpeggio_ref;           ///< Arpeggio reference note in cents.
@@ -86,10 +83,7 @@ typedef struct Voice_state
     Time_env_state force_rel_env_state;
 
     Force_controls force_controls;
-    //double force;                  ///< The current force (linear factor).
     double actual_force;           ///< The current actual force (includes tremolo & envs).
-    //Slider force_slider;
-    //LFO tremolo;
 
     double panning;                ///< The current panning.
     double actual_panning;         ///< The current actual panning.
@@ -102,12 +96,7 @@ typedef struct Voice_state
     Time_env_state env_filter_rel_state;
 
     Filter_controls filter_controls;
-    //double lowpass;                ///< The current lowpass parameter.
     double actual_lowpass;         ///< The current actual lowpass parameter.
-    //Slider lowpass_slider;
-    //LFO autowah;
-    //double lowpass_resonance;      ///< The filter resonance (Q factor).
-    //Slider lowpass_resonance_slider;
 
     // Lowpass filter implementation state
     double applied_lowpass;
