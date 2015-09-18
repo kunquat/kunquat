@@ -183,10 +183,8 @@ static void adjust_relative_lengths(
         Slider_set_mix_rate(&vstate->panning_slider, audio_rate);
         Slider_set_tempo(&vstate->panning_slider, tempo);
 
-        Slider_set_mix_rate(&vstate->lowpass_slider, audio_rate);
-        Slider_set_tempo(&vstate->lowpass_slider, tempo);
-        LFO_set_mix_rate(&vstate->autowah, audio_rate);
-        LFO_set_tempo(&vstate->autowah, tempo);
+        Filter_controls_set_audio_rate(&vstate->filter_controls, audio_rate);
+        Filter_controls_set_tempo(&vstate->filter_controls, tempo);
 
         vstate->freq = audio_rate;
         vstate->tempo = tempo;

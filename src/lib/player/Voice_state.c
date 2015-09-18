@@ -50,17 +50,10 @@ Voice_state* Voice_state_init(
 
     Force_controls_init(&state->force_controls, freq, tempo);
     Pitch_controls_init(&state->pitch_controls, freq, tempo);
+    Filter_controls_init(&state->filter_controls, freq, tempo);
 
-#define SET_RATE_TEMPO(type, field) \
-    type ## _set_mix_rate(&state->field, freq); \
-    type ## _set_tempo(&state->field, tempo)
-
-    SET_RATE_TEMPO(Slider, panning_slider);
-    SET_RATE_TEMPO(Slider, lowpass_slider);
-    SET_RATE_TEMPO(LFO, autowah);
-    SET_RATE_TEMPO(Slider, lowpass_resonance_slider);
-
-#undef SET_RATE_TEMPO
+    Slider_set_mix_rate(&state->panning_slider, freq);
+    Slider_set_tempo(&state->panning_slider, tempo);
 
     return state;
 }
@@ -95,8 +88,6 @@ Voice_state* Voice_state_clear(Voice_state* state)
     }
 #endif
 
-    LFO_init(&state->autowah, LFO_MODE_LINEAR);
-
     state->pos = 0;
     state->pos_rem = 0;
     state->rel_pos = 0;
@@ -122,15 +113,14 @@ Voice_state* Voice_state_clear(Voice_state* state)
     Time_env_state_init(&state->env_filter_state);
     Time_env_state_init(&state->env_filter_rel_state);
 
-    state->lowpass = 100;
-    state->actual_lowpass = state->lowpass;
-    state->lowpass_resonance = 0;
+    Filter_controls_reset(&state->filter_controls);
+    //state->lowpass = 100;
+    state->actual_lowpass = 100;
+    //state->lowpass_resonance = 0;
 
     state->applied_lowpass = state->actual_lowpass;
-    state->applied_resonance = state->lowpass_resonance;
+    state->applied_resonance = state->filter_controls.resonance;
     state->true_lowpass = INFINITY;
-    Slider_init(&state->lowpass_slider, SLIDE_MODE_LINEAR);
-    Slider_init(&state->lowpass_resonance_slider, SLIDE_MODE_LINEAR);
     state->true_resonance = 0.5;
     state->lowpass_state_used = -1;
     state->lowpass_xfade_state_used = -1;

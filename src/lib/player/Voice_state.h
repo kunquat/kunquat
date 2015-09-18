@@ -24,6 +24,7 @@
 #include <mathnum/Random.h>
 #include <pitch_t.h>
 #include <player/Channel_proc_state.h>
+#include <player/Filter_controls.h>
 #include <player/Force_controls.h>
 #include <player/LFO.h>
 #include <player/Pitch_controls.h>
@@ -100,12 +101,13 @@ typedef struct Voice_state
     Time_env_state env_filter_state;
     Time_env_state env_filter_rel_state;
 
-    double lowpass;                ///< The current lowpass parameter.
+    Filter_controls filter_controls;
+    //double lowpass;                ///< The current lowpass parameter.
     double actual_lowpass;         ///< The current actual lowpass parameter.
-    Slider lowpass_slider;
-    LFO autowah;
-    double lowpass_resonance;      ///< The filter resonance (Q factor).
-    Slider lowpass_resonance_slider;
+    //Slider lowpass_slider;
+    //LFO autowah;
+    //double lowpass_resonance;      ///< The filter resonance (Q factor).
+    //Slider lowpass_resonance_slider;
 
     // Lowpass filter implementation state
     double applied_lowpass;

@@ -105,7 +105,7 @@ void Channel_set_audio_rate(Channel* ch, int32_t audio_rate)
     Force_controls_set_audio_rate(&ch->force_controls, audio_rate);
     Pitch_controls_set_audio_rate(&ch->pitch_controls, audio_rate);
     Slider_set_mix_rate(&ch->panning_slider, audio_rate);
-    LFO_set_mix_rate(&ch->autowah, audio_rate);
+    Filter_controls_set_audio_rate(&ch->filter_controls, audio_rate);
 
     return;
 }
@@ -119,7 +119,7 @@ void Channel_set_tempo(Channel* ch, double tempo)
     Force_controls_set_tempo(&ch->force_controls, tempo);
     Pitch_controls_set_tempo(&ch->pitch_controls, tempo);
     Slider_set_tempo(&ch->panning_slider, tempo);
-    LFO_set_tempo(&ch->autowah, tempo);
+    Filter_controls_set_tempo(&ch->filter_controls, tempo);
 
     return;
 }
@@ -184,12 +184,14 @@ void Channel_reset(Channel* ch)
     Pitch_controls_reset(&ch->pitch_controls);
 
     Tstamp_set(&ch->filter_slide_length, 0, 0);
-    LFO_init(&ch->autowah, LFO_MODE_EXP);
+    //LFO_init(&ch->autowah, LFO_MODE_EXP);
     ch->autowah_speed = 0;
     Tstamp_init(&ch->autowah_speed_slide);
     ch->autowah_depth = 0;
     Tstamp_init(&ch->autowah_depth_slide);
     Tstamp_set(&ch->lowpass_resonance_slide_length, 0, 0);
+    ch->carry_filter = false;
+    Filter_controls_reset(&ch->filter_controls);
 
     ch->panning = 0;
     Slider_init(&ch->panning_slider, SLIDE_MODE_LINEAR);

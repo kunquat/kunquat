@@ -419,29 +419,31 @@ void Proc_common_handle_filter(
 
     const float global_lowpass_delta = proc->au_params->global_lowpass - 100;
 
+    Filter_controls* fc = &vstate->filter_controls;
+
     // Apply lowpass slide
-    if (Slider_in_progress(&vstate->lowpass_slider))
+    if (Slider_in_progress(&fc->lowpass_slider))
     {
-        float new_lowpass = vstate->lowpass;
+        float new_lowpass = fc->lowpass;
         for (int32_t i = buf_start; i < buf_stop; ++i)
         {
-            new_lowpass = Slider_step(&vstate->lowpass_slider);
+            new_lowpass = Slider_step(&fc->lowpass_slider);
             actual_lowpasses[i] = new_lowpass + global_lowpass_delta;
         }
-        vstate->lowpass = new_lowpass;
+        fc->lowpass = new_lowpass;
     }
     else
     {
-        const float lowpass = vstate->lowpass + global_lowpass_delta;
+        const float lowpass = fc->lowpass + global_lowpass_delta;
         for (int32_t i = buf_start; i < buf_stop; ++i)
             actual_lowpasses[i] = lowpass;
     }
 
     // Apply autowah
-    if (LFO_active(&vstate->autowah))
+    if (LFO_active(&fc->autowah))
     {
         for (int32_t i = buf_start; i < buf_stop; ++i)
-            actual_lowpasses[i] += LFO_step(&vstate->autowah);
+            actual_lowpasses[i] += LFO_step(&fc->autowah);
     }
 
     // Apply time->filter envelope
@@ -550,19 +552,19 @@ void Proc_common_handle_filter(
     }
 
     // Apply resonance slide
-    if (Slider_in_progress(&vstate->lowpass_resonance_slider))
+    if (Slider_in_progress(&fc->resonance_slider))
     {
-        float new_resonance = vstate->lowpass_resonance;
+        float new_resonance = fc->resonance;
         for (int32_t i = buf_start; i < buf_stop; ++i)
         {
-            new_resonance = Slider_step(&vstate->lowpass_resonance_slider);
+            new_resonance = Slider_step(&fc->resonance_slider);
             resonances[i] = new_resonance;
         }
-        vstate->lowpass_resonance = new_resonance;
+        fc->resonance = new_resonance;
     }
     else
     {
-        const float resonance = vstate->lowpass_resonance;
+        const float resonance = fc->resonance;
         for (int32_t i = buf_start; i < buf_stop; ++i)
             resonances[i] = resonance;
     }

@@ -95,13 +95,32 @@ void set_au_properties(Voice* voice, Voice_state* vs, Channel* ch, double* force
             vs->force_controls.force * voice->proc->au_params->global_force;
     }
 
-    vs->lowpass = voice->proc->au_params->default_lowpass;
-    vs->lowpass_resonance = voice->proc->au_params->default_resonance;
+    if (ch->carry_filter)
+    {
+        if (isnan(ch->filter_controls.lowpass))
+            ch->filter_controls.lowpass = voice->proc->au_params->default_lowpass;
+        if (isnan(ch->filter_controls.resonance))
+            ch->filter_controls.resonance = voice->proc->au_params->default_resonance;
+
+        Filter_controls_copy(&vs->filter_controls, &ch->filter_controls);
+    }
+    else
+    {
+        vs->filter_controls.lowpass = voice->proc->au_params->default_lowpass;
+        vs->filter_controls.resonance = voice->proc->au_params->default_resonance;
+
+        Slider_set_length(&vs->filter_controls.lowpass_slider, &ch->filter_slide_length);
+        Slider_set_length(
+                &vs->filter_controls.resonance_slider,
+                &ch->lowpass_resonance_slide_length);
+
+        Filter_controls_copy(&ch->filter_controls, &vs->filter_controls);
+    }
+
 
 //    LFO_copy(&vs->vibrato, &ch->vibrato);
     vs->panning = ch->panning;
     Slider_copy(&vs->panning_slider, &ch->panning_slider);
-    Slider_set_length(&vs->lowpass_slider, &ch->filter_slide_length);
 //    LFO_copy(&vs->autowah, &ch->autowah);
 
     return;

@@ -597,7 +597,7 @@ void Player_play(Player* player, int32_t nframes)
         // Process voices
         Player_process_voices(player, rendered, to_be_rendered);
 
-        // Update carried force and pitch controls
+        // Update carried controls
         for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
         {
             Channel* ch = player->channels[i];
@@ -620,6 +620,19 @@ void Player_play(Player* player, int32_t nframes)
 
                 if (LFO_active(&pc->vibrato))
                     LFO_skip(&pc->vibrato, to_be_rendered);
+            }
+
+            {
+                Filter_controls* fc = &ch->filter_controls;
+
+                if (Slider_in_progress(&fc->lowpass_slider))
+                    fc->lowpass = Slider_skip(&fc->lowpass_slider, to_be_rendered);
+
+                if (LFO_active(&fc->autowah))
+                    LFO_skip(&fc->autowah, to_be_rendered);
+
+                if (Slider_in_progress(&fc->resonance_slider))
+                    fc->resonance = Slider_skip(&fc->resonance_slider, to_be_rendered);
             }
         }
 

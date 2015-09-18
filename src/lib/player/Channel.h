@@ -78,11 +78,13 @@ typedef struct Channel
 
     Tstamp filter_slide_length;
     Tstamp lowpass_resonance_slide_length;
-    LFO autowah;
+    //LFO autowah;
     double autowah_speed;
     Tstamp autowah_speed_slide;
     double autowah_depth;
     Tstamp autowah_depth_slide;
+    bool carry_filter;
+    Filter_controls filter_controls;
 
     double panning;                ///< The current panning.
     Slider panning_slider;
