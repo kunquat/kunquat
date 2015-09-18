@@ -106,15 +106,17 @@ bool Event_channel_note_on_process(
         }
 #endif
 
+        vs->orig_pitch_param = value->value.float_type;
+
         if (ch->carry_pitch)
         {
             if (isnan(ch->pitch_controls.pitch))
-                ch->pitch_controls.pitch = exp2(value->value.float_type / 1200) * 440;
-            if (isnan(ch->pitch_controls.orig_pitch))
-                ch->pitch_controls.orig_pitch = value->value.float_type;
+                ch->pitch_controls.pitch = exp2(vs->orig_pitch_param / 1200) * 440;
+            if (isnan(ch->pitch_controls.orig_carried_pitch))
+                ch->pitch_controls.orig_carried_pitch = vs->orig_pitch_param;
 
             const double pitch_diff =
-                value->value.float_type - ch->pitch_controls.orig_pitch;
+                vs->orig_pitch_param - ch->pitch_controls.orig_carried_pitch;
             if (pitch_diff != 0)
                 ch->pitch_controls.freq_mul = exp2(pitch_diff / 1200);
             else
@@ -124,8 +126,8 @@ bool Event_channel_note_on_process(
         }
         else
         {
-            vs->pitch_controls.pitch = exp2(value->value.float_type / 1200) * 440;
-            vs->pitch_controls.orig_pitch = value->value.float_type;
+            vs->pitch_controls.pitch = exp2(vs->orig_pitch_param / 1200) * 440;
+            vs->pitch_controls.orig_carried_pitch = vs->orig_pitch_param;
 
             Slider_set_length(&vs->pitch_controls.slider, &ch->pitch_slide_length);
 

@@ -72,6 +72,7 @@ Voice_state* Voice_state_clear(Voice_state* state)
 
     state->hit_index = -1;
     Pitch_controls_reset(&state->pitch_controls);
+    state->orig_pitch_param = NAN;
     state->actual_pitch = 0;
     state->prev_actual_pitch = 0;
 

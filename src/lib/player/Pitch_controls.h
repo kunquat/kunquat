@@ -28,8 +28,8 @@
  */
 typedef struct Pitch_controls
 {
-    double pitch;       // TODO: change this to cents
-    double orig_pitch;  // Note: this is in cents
+    double pitch;               // TODO: change this to cents
+    double orig_carried_pitch;  // Note: this is in cents
     double freq_mul;
     Slider slider;
     LFO    vibrato;
