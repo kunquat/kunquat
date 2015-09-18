@@ -60,7 +60,7 @@ void Force_controls_reset(Force_controls* fc)
 {
     assert(fc != NULL);
 
-    fc->force = 1;
+    fc->force = NAN;
     Slider_init(&fc->slider, SLIDE_MODE_EXP);
     LFO_init(&fc->tremolo, LFO_MODE_EXP);
 
