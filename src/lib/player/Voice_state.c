@@ -48,20 +48,12 @@ Voice_state* Voice_state_init(
     state->rand_p = rand_p;
     state->rand_s = rand_s;
 
-#define SET_RATE_TEMPO(type, field) \
-    type ## _set_mix_rate(&state->field, freq); \
-    type ## _set_tempo(&state->field, tempo)
+    Force_controls_init(&state->force_controls, freq, tempo);
+    Pitch_controls_init(&state->pitch_controls, freq, tempo);
+    Filter_controls_init(&state->filter_controls, freq, tempo);
 
-    SET_RATE_TEMPO(Slider, pitch_slider);
-    SET_RATE_TEMPO(LFO, vibrato);
-    SET_RATE_TEMPO(Slider, force_slider);
-    SET_RATE_TEMPO(LFO, tremolo);
-    SET_RATE_TEMPO(Slider, panning_slider);
-    SET_RATE_TEMPO(Slider, lowpass_slider);
-    SET_RATE_TEMPO(LFO, autowah);
-    SET_RATE_TEMPO(Slider, lowpass_resonance_slider);
-
-#undef SET_RATE_TEMPO
+    Slider_set_mix_rate(&state->panning_slider, freq);
+    Slider_set_tempo(&state->panning_slider, tempo);
 
     return state;
 }
@@ -77,14 +69,12 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->tempo = 0;
     state->ramp_attack = 0;
     state->ramp_release = 0;
-    state->orig_cents = 0;
 
     state->hit_index = -1;
-    state->pitch = 0;
+    Pitch_controls_reset(&state->pitch_controls);
+    state->orig_pitch_param = NAN;
     state->actual_pitch = 0;
     state->prev_actual_pitch = 0;
-    Slider_init(&state->pitch_slider, SLIDE_MODE_EXP);
-    LFO_init(&state->vibrato, LFO_MODE_EXP);
 
     state->arpeggio = false;
     state->arpeggio_ref = NAN;
@@ -99,8 +89,6 @@ Voice_state* Voice_state_clear(Voice_state* state)
     }
 #endif
 
-    LFO_init(&state->autowah, LFO_MODE_LINEAR);
-
     state->pos = 0;
     state->pos_rem = 0;
     state->rel_pos = 0;
@@ -113,10 +101,8 @@ Voice_state* Voice_state_clear(Voice_state* state)
     Time_env_state_init(&state->force_env_state);
     Time_env_state_init(&state->force_rel_env_state);
 
-    state->force = 1;
+    Force_controls_reset(&state->force_controls);
     state->actual_force = 1;
-    Slider_init(&state->force_slider, SLIDE_MODE_EXP);
-    LFO_init(&state->tremolo, LFO_MODE_EXP);
 
     state->panning = 0;
     state->actual_panning = 0;
@@ -128,15 +114,12 @@ Voice_state* Voice_state_clear(Voice_state* state)
     Time_env_state_init(&state->env_filter_state);
     Time_env_state_init(&state->env_filter_rel_state);
 
-    state->lowpass = 100;
-    state->actual_lowpass = state->lowpass;
-    state->lowpass_resonance = 0;
+    Filter_controls_reset(&state->filter_controls);
+    state->actual_lowpass = 100;
 
     state->applied_lowpass = state->actual_lowpass;
-    state->applied_resonance = state->lowpass_resonance;
+    state->applied_resonance = state->filter_controls.resonance;
     state->true_lowpass = INFINITY;
-    Slider_init(&state->lowpass_slider, SLIDE_MODE_LINEAR);
-    Slider_init(&state->lowpass_resonance_slider, SLIDE_MODE_LINEAR);
     state->true_resonance = 0.5;
     state->lowpass_state_used = -1;
     state->lowpass_xfade_state_used = -1;

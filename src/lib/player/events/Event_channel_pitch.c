@@ -27,14 +27,19 @@
 
 
 bool Event_channel_slide_pitch_process(
-        Channel* ch,
-        Device_states* dstates,
-        const Value* value)
+        Channel* ch, Device_states* dstates, const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_FLOAT);
+
+    const double pitch = exp2(value->value.float_type / 1200) * 440;
+
+    if (Slider_in_progress(&ch->pitch_controls.slider))
+        Slider_change_target(&ch->pitch_controls.slider, pitch);
+    else
+        Slider_start(&ch->pitch_controls.slider, pitch, ch->pitch_controls.pitch);
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
@@ -42,30 +47,28 @@ bool Event_channel_slide_pitch_process(
         Voice* voice = ch->fg[i];
 
         Voice_state* vs = voice->state;
-        pitch_t pitch = -1;
 #if 0
+        pitch_t pitch = -1;
         if (voice->proc->au_params->scale == NULL ||
                 *voice->proc->au_params->scale == NULL ||
                 **voice->proc->au_params->scale == NULL)
-#endif
         {
             pitch = exp2(value->value.float_type / 1200) * 440;
         }
-#if 0
         else
         {
             pitch = Scale_get_pitch_from_cents(
                     **voice->proc->au_params->scale,
                     value->value.float_type);
         }
-#endif
         if (pitch <= 0)
             continue;
+#endif
 
-        if (Slider_in_progress(&vs->pitch_slider))
-            Slider_change_target(&vs->pitch_slider, pitch);
+        if (Slider_in_progress(&vs->pitch_controls.slider))
+            Slider_change_target(&vs->pitch_controls.slider, pitch);
         else
-            Slider_start(&vs->pitch_slider, pitch, vs->pitch);
+            Slider_start(&vs->pitch_controls.slider, pitch, vs->pitch_controls.pitch);
     }
 
     return true;
@@ -73,9 +76,7 @@ bool Event_channel_slide_pitch_process(
 
 
 bool Event_channel_slide_pitch_length_process(
-        Channel* ch,
-        Device_states* dstates,
-        const Value* value)
+        Channel* ch, Device_states* dstates, const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
@@ -84,11 +85,13 @@ bool Event_channel_slide_pitch_length_process(
 
     Tstamp_copy(&ch->pitch_slide_length, &value->value.Tstamp_type);
 
+    Slider_set_length(&ch->pitch_controls.slider, &ch->pitch_slide_length);
+
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;
-        Slider_set_length(&vs->pitch_slider, &value->value.Tstamp_type);
+        Slider_set_length(&vs->pitch_controls.slider, &ch->pitch_slide_length);
     }
 
     return true;
@@ -96,9 +99,7 @@ bool Event_channel_slide_pitch_length_process(
 
 
 bool Event_channel_vibrato_speed_process(
-        Channel* ch,
-        Device_states* dstates,
-        const Value* value)
+        Channel* ch, Device_states* dstates, const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
@@ -106,18 +107,23 @@ bool Event_channel_vibrato_speed_process(
     assert(value->type == VALUE_TYPE_FLOAT);
 
     ch->vibrato_speed = value->value.float_type;
-    LFO_set_speed(&ch->vibrato, value->value.float_type);
+
+    LFO_set_speed(&ch->pitch_controls.vibrato, ch->vibrato_speed);
+    if (ch->vibrato_depth > 0)
+        LFO_set_depth(&ch->pitch_controls.vibrato, ch->vibrato_depth);
+
+    LFO_turn_on(&ch->pitch_controls.vibrato);
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         Event_check_voice(ch, i);
 
         Voice_state* vs = ch->fg[i]->state;
-        LFO_set_speed(&vs->vibrato, value->value.float_type);
+        LFO_set_speed(&vs->pitch_controls.vibrato, ch->vibrato_speed);
         if (ch->vibrato_depth > 0)
-            LFO_set_depth(&vs->vibrato, ch->vibrato_depth);
+            LFO_set_depth(&vs->pitch_controls.vibrato, ch->vibrato_depth);
 
-        LFO_turn_on(&vs->vibrato);
+        LFO_turn_on(&vs->pitch_controls.vibrato);
     }
 
     return true;
@@ -125,9 +131,7 @@ bool Event_channel_vibrato_speed_process(
 
 
 bool Event_channel_vibrato_depth_process(
-        Channel* ch,
-        Device_states* dstates,
-        const Value* value)
+        Channel* ch, Device_states* dstates, const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
@@ -136,7 +140,12 @@ bool Event_channel_vibrato_depth_process(
 
     const double actual_depth = value->value.float_type / 240; // unit is 5 cents
     ch->vibrato_depth = actual_depth;
-    LFO_set_depth(&ch->vibrato, actual_depth); // unit is 5 cents
+
+    if (ch->vibrato_speed > 0)
+        LFO_set_speed(&ch->pitch_controls.vibrato, ch->vibrato_speed);
+
+    LFO_set_depth(&ch->pitch_controls.vibrato, actual_depth);
+    LFO_turn_on(&ch->pitch_controls.vibrato);
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
@@ -144,10 +153,10 @@ bool Event_channel_vibrato_depth_process(
 
         Voice_state* vs = ch->fg[i]->state;
         if (ch->vibrato_speed > 0)
-            LFO_set_speed(&vs->vibrato, ch->vibrato_speed);
+            LFO_set_speed(&vs->pitch_controls.vibrato, ch->vibrato_speed);
 
-        LFO_set_depth(&vs->vibrato, actual_depth);
-        LFO_turn_on(&vs->vibrato);
+        LFO_set_depth(&vs->pitch_controls.vibrato, actual_depth);
+        LFO_turn_on(&vs->pitch_controls.vibrato);
     }
 
     return true;
@@ -155,9 +164,7 @@ bool Event_channel_vibrato_depth_process(
 
 
 bool Event_channel_vibrato_speed_slide_process(
-        Channel* ch,
-        Device_states* dstates,
-        const Value* value)
+        Channel* ch, Device_states* dstates, const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
@@ -165,13 +172,14 @@ bool Event_channel_vibrato_speed_slide_process(
     assert(value->type == VALUE_TYPE_TSTAMP);
 
     Tstamp_copy(&ch->vibrato_speed_slide, &value->value.Tstamp_type);
-    LFO_set_speed_slide(&ch->vibrato, &value->value.Tstamp_type);
+
+    LFO_set_speed_slide(&ch->pitch_controls.vibrato, &ch->vibrato_speed_slide);
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;
-        LFO_set_speed_slide(&vs->vibrato, &value->value.Tstamp_type);
+        LFO_set_speed_slide(&vs->pitch_controls.vibrato, &ch->vibrato_speed_slide);
     }
 
     return true;
@@ -179,25 +187,49 @@ bool Event_channel_vibrato_speed_slide_process(
 
 
 bool Event_channel_vibrato_depth_slide_process(
-        Channel* ch,
-        Device_states* dstates,
-        const Value* value)
+        Channel* ch, Device_states* dstates, const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_TSTAMP);
 
-    Tstamp_copy(&ch->vibrato_depth_slide,
-                 &value->value.Tstamp_type);
-    LFO_set_depth_slide(&ch->vibrato, &value->value.Tstamp_type);
+    Tstamp_copy(&ch->vibrato_depth_slide, &value->value.Tstamp_type);
+
+    LFO_set_depth_slide(&ch->pitch_controls.vibrato, &ch->vibrato_depth_slide);
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         Event_check_voice(ch, i);
         Voice_state* vs = ch->fg[i]->state;
-        LFO_set_depth_slide(&vs->vibrato, &value->value.Tstamp_type);
+        LFO_set_depth_slide(&vs->pitch_controls.vibrato, &ch->vibrato_depth_slide);
     }
+
+    return true;
+}
+
+
+bool Event_channel_carry_pitch_on_process(
+        Channel* ch, Device_states* dstates, const Value* value)
+{
+    assert(ch != NULL);
+    assert(dstates != NULL);
+    ignore(value);
+
+    ch->carry_pitch = true;
+
+    return true;
+}
+
+
+bool Event_channel_carry_pitch_off_process(
+        Channel* ch, Device_states* dstates, const Value* value)
+{
+    assert(ch != NULL);
+    assert(dstates != NULL);
+    ignore(value);
+
+    ch->carry_pitch = false;
 
     return true;
 }

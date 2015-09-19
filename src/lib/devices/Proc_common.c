@@ -42,29 +42,38 @@ void Proc_common_handle_pitch(
     assert(wbs != NULL);
     assert(buf_start < buf_stop);
 
+    Pitch_controls* pc = &vstate->pitch_controls;
+
     float* pitch_params = Work_buffers_get_buffer_contents_mut(
             wbs, WORK_BUFFER_PITCH_PARAMS);
-    pitch_params[buf_start - 1] = vstate->pitch;
+    pitch_params[buf_start - 1] = pc->pitch;
 
     float* actual_pitches = Work_buffers_get_buffer_contents_mut(
             wbs, WORK_BUFFER_ACTUAL_PITCHES);
     actual_pitches[buf_start - 1] = vstate->actual_pitch;
 
     // Apply pitch slide
-    if (Slider_in_progress(&vstate->pitch_slider))
+    if (Slider_in_progress(&pc->slider))
     {
-        float new_pitch = vstate->pitch;
+        float new_pitch = pc->pitch;
         for (int32_t i = buf_start; i < buf_stop; ++i)
         {
-            new_pitch = Slider_step(&vstate->pitch_slider);
+            new_pitch = Slider_step(&pc->slider);
             pitch_params[i] = new_pitch;
         }
-        vstate->pitch = new_pitch;
+        pc->pitch = new_pitch;
     }
     else
     {
         for (int32_t i = buf_start; i < buf_stop; ++i)
-            pitch_params[i] = vstate->pitch;
+            pitch_params[i] = pc->pitch;
+    }
+
+    // Adjust carried pitch
+    if (pc->freq_mul != 1)
+    {
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+            pitch_params[i] *= pc->freq_mul;
     }
 
     // Initialise actual pitches
@@ -73,10 +82,10 @@ void Proc_common_handle_pitch(
             sizeof(float) * (buf_stop - buf_start));
 
     // Apply vibrato
-    if (LFO_active(&vstate->vibrato))
+    if (LFO_active(&pc->vibrato))
     {
         for (int32_t i = buf_start; i < buf_stop; ++i)
-            actual_pitches[i] *= LFO_step(&vstate->vibrato);
+            actual_pitches[i] *= LFO_step(&pc->vibrato);
     }
 
     // Apply arpeggio
@@ -130,31 +139,33 @@ int32_t Proc_common_handle_force(
             wbs, WORK_BUFFER_ACTUAL_FORCES);
     actual_forces[buf_start - 1] = vstate->actual_force;
 
+    Force_controls* fc = &vstate->force_controls;
+
     int32_t new_buf_stop = buf_stop;
 
     // Apply force slide & global force
-    if (Slider_in_progress(&vstate->force_slider))
+    if (Slider_in_progress(&fc->slider))
     {
-        float new_force = vstate->force;
+        float new_force = fc->force;
         for (int32_t i = buf_start; i < new_buf_stop; ++i)
         {
-            new_force = Slider_step(&vstate->force_slider);
+            new_force = Slider_step(&fc->slider);
             actual_forces[i] = new_force * proc->au_params->global_force;
         }
-        vstate->force = new_force;
+        fc->force = new_force;
     }
     else
     {
-        const float actual_force = vstate->force * proc->au_params->global_force;
+        const float actual_force = fc->force * proc->au_params->global_force;
         for (int32_t i = buf_start; i < new_buf_stop; ++i)
             actual_forces[i] = actual_force;
     }
 
     // Apply tremolo
-    if (LFO_active(&vstate->tremolo))
+    if (LFO_active(&fc->tremolo))
     {
         for (int32_t i = buf_start; i < new_buf_stop; ++i)
-            actual_forces[i] *= LFO_step(&vstate->tremolo);
+            actual_forces[i] *= LFO_step(&fc->tremolo);
     }
 
     // Apply force envelope
@@ -408,29 +419,31 @@ void Proc_common_handle_filter(
 
     const float global_lowpass_delta = proc->au_params->global_lowpass - 100;
 
+    Filter_controls* fc = &vstate->filter_controls;
+
     // Apply lowpass slide
-    if (Slider_in_progress(&vstate->lowpass_slider))
+    if (Slider_in_progress(&fc->lowpass_slider))
     {
-        float new_lowpass = vstate->lowpass;
+        float new_lowpass = fc->lowpass;
         for (int32_t i = buf_start; i < buf_stop; ++i)
         {
-            new_lowpass = Slider_step(&vstate->lowpass_slider);
+            new_lowpass = Slider_step(&fc->lowpass_slider);
             actual_lowpasses[i] = new_lowpass + global_lowpass_delta;
         }
-        vstate->lowpass = new_lowpass;
+        fc->lowpass = new_lowpass;
     }
     else
     {
-        const float lowpass = vstate->lowpass + global_lowpass_delta;
+        const float lowpass = fc->lowpass + global_lowpass_delta;
         for (int32_t i = buf_start; i < buf_stop; ++i)
             actual_lowpasses[i] = lowpass;
     }
 
     // Apply autowah
-    if (LFO_active(&vstate->autowah))
+    if (LFO_active(&fc->autowah))
     {
         for (int32_t i = buf_start; i < buf_stop; ++i)
-            actual_lowpasses[i] += LFO_step(&vstate->autowah);
+            actual_lowpasses[i] += LFO_step(&fc->autowah);
     }
 
     // Apply time->filter envelope
@@ -539,19 +552,19 @@ void Proc_common_handle_filter(
     }
 
     // Apply resonance slide
-    if (Slider_in_progress(&vstate->lowpass_resonance_slider))
+    if (Slider_in_progress(&fc->resonance_slider))
     {
-        float new_resonance = vstate->lowpass_resonance;
+        float new_resonance = fc->resonance;
         for (int32_t i = buf_start; i < buf_stop; ++i)
         {
-            new_resonance = Slider_step(&vstate->lowpass_resonance_slider);
+            new_resonance = Slider_step(&fc->resonance_slider);
             resonances[i] = new_resonance;
         }
-        vstate->lowpass_resonance = new_resonance;
+        fc->resonance = new_resonance;
     }
     else
     {
-        const float resonance = vstate->lowpass_resonance;
+        const float resonance = fc->resonance;
         for (int32_t i = buf_start; i < buf_stop; ++i)
             resonances[i] = resonance;
     }

@@ -63,7 +63,23 @@ void set_au_properties(Voice* voice, Voice_state* vs, Channel* ch, double* force
 {
     assert(force_var != NULL);
 
-    vs->force = exp2(voice->proc->au_params->force / 6);
+    if (ch->carry_force)
+    {
+        if (isnan(ch->force_controls.force))
+            ch->force_controls.force = exp2(voice->proc->au_params->force / 6);
+
+        Force_controls_copy(&vs->force_controls, &ch->force_controls);
+        vs->actual_force =
+            vs->force_controls.force * voice->proc->au_params->global_force;
+    }
+    else
+    {
+        vs->force_controls.force = exp2(voice->proc->au_params->force / 6);
+
+        Slider_set_length(&vs->force_controls.slider, &ch->force_slide_length);
+
+        Force_controls_copy(&ch->force_controls, &vs->force_controls);
+    }
 
     if (voice->proc->au_params->force_variation != 0)
     {
@@ -74,21 +90,35 @@ void set_au_properties(Voice* voice, Voice_state* vs, Channel* ch, double* force
             var_dB -= voice->proc->au_params->force_variation / 2;
             *force_var = exp2(var_dB / 6);
         }
-        vs->force *= *force_var;
-        vs->actual_force = vs->force * voice->proc->au_params->global_force;
+        vs->force_controls.force *= *force_var;
+        vs->actual_force =
+            vs->force_controls.force * voice->proc->au_params->global_force;
     }
 
-    vs->lowpass = voice->proc->au_params->default_lowpass;
-    vs->lowpass_resonance = voice->proc->au_params->default_resonance;
+    if (ch->carry_filter)
+    {
+        if (isnan(ch->filter_controls.lowpass))
+            ch->filter_controls.lowpass = voice->proc->au_params->default_lowpass;
+        if (isnan(ch->filter_controls.resonance))
+            ch->filter_controls.resonance = voice->proc->au_params->default_resonance;
 
-    Slider_set_length(&vs->force_slider, &ch->force_slide_length);
-//    LFO_copy(&vs->tremolo, &ch->tremolo);
-    Slider_set_length(&vs->pitch_slider, &ch->pitch_slide_length);
-//    LFO_copy(&vs->vibrato, &ch->vibrato);
+        Filter_controls_copy(&vs->filter_controls, &ch->filter_controls);
+    }
+    else
+    {
+        vs->filter_controls.lowpass = voice->proc->au_params->default_lowpass;
+        vs->filter_controls.resonance = voice->proc->au_params->default_resonance;
+
+        Slider_set_length(&vs->filter_controls.lowpass_slider, &ch->filter_slide_length);
+        Slider_set_length(
+                &vs->filter_controls.resonance_slider,
+                &ch->lowpass_resonance_slide_length);
+
+        Filter_controls_copy(&ch->filter_controls, &vs->filter_controls);
+    }
+
     vs->panning = ch->panning;
     Slider_copy(&vs->panning_slider, &ch->panning_slider);
-    Slider_set_length(&vs->lowpass_slider, &ch->filter_slide_length);
-//    LFO_copy(&vs->autowah, &ch->autowah);
 
     return;
 }

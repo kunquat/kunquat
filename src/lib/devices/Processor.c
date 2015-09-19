@@ -166,10 +166,8 @@ static void adjust_relative_lengths(
 
     if (vstate->freq != audio_rate || vstate->tempo != tempo)
     {
-        Slider_set_mix_rate(&vstate->pitch_slider, audio_rate);
-        Slider_set_tempo(&vstate->pitch_slider, tempo);
-        LFO_set_mix_rate(&vstate->vibrato, audio_rate);
-        LFO_set_tempo(&vstate->vibrato, tempo);
+        Pitch_controls_set_audio_rate(&vstate->pitch_controls, audio_rate);
+        Pitch_controls_set_tempo(&vstate->pitch_controls, tempo);
 
         if (vstate->arpeggio)
         {
@@ -179,18 +177,14 @@ static void adjust_relative_lengths(
             vstate->arpeggio_frames *= vstate->tempo / tempo;
         }
 
-        Slider_set_mix_rate(&vstate->force_slider, audio_rate);
-        Slider_set_tempo(&vstate->force_slider, tempo);
-        LFO_set_mix_rate(&vstate->tremolo, audio_rate);
-        LFO_set_tempo(&vstate->tremolo, tempo);
+        Force_controls_set_audio_rate(&vstate->force_controls, audio_rate);
+        Force_controls_set_tempo(&vstate->force_controls, tempo);
 
         Slider_set_mix_rate(&vstate->panning_slider, audio_rate);
         Slider_set_tempo(&vstate->panning_slider, tempo);
 
-        Slider_set_mix_rate(&vstate->lowpass_slider, audio_rate);
-        Slider_set_tempo(&vstate->lowpass_slider, tempo);
-        LFO_set_mix_rate(&vstate->autowah, audio_rate);
-        LFO_set_tempo(&vstate->autowah, tempo);
+        Filter_controls_set_audio_rate(&vstate->filter_controls, audio_rate);
+        Filter_controls_set_tempo(&vstate->filter_controls, tempo);
 
         vstate->freq = audio_rate;
         vstate->tempo = tempo;

@@ -292,8 +292,7 @@ double LFO_skip(LFO* lfo, uint64_t steps)
     lfo->speed = Slider_skip(&lfo->speed_slider, steps);
     lfo->update = (lfo->speed * (2 * PI)) / lfo->mix_rate;
     lfo->depth = Slider_skip(&lfo->depth_slider, steps);
-    // TODO: calculate phase properly :-)
-    lfo->phase = fmod(lfo->phase + lfo->update, 2 * PI);
+    lfo->phase = fmod(lfo->phase + (lfo->update * steps), 2 * PI);
 
     const double value = fast_sin(lfo->phase) * lfo->depth;
     if (lfo->mode == LFO_MODE_EXP)
