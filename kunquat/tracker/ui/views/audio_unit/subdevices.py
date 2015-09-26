@@ -150,6 +150,7 @@ class ControlVariableEditor(QWidget):
         self._name_editor = ControlVariableNameEditor()
         self._type_editor = ControlVariableTypeEditor()
         self._init_value_editor = ControlVariableInitValueEditor()
+        self._ext_editor = ControlVariableExtEditor()
 
         h = QHBoxLayout()
         h.setMargin(0)
@@ -157,19 +158,23 @@ class ControlVariableEditor(QWidget):
         h.addWidget(self._name_editor)
         #h.addWidget(self._type_editor)
         h.addWidget(self._init_value_editor)
+        h.addWidget(self._ext_editor)
         self.setLayout(h)
 
     def set_au_id(self, au_id):
         self._name_editor.set_au_id(au_id)
         self._type_editor.set_au_id(au_id)
         self._init_value_editor.set_au_id(au_id)
+        self._ext_editor.set_au_id(au_id)
 
     def set_ui_model(self, ui_model):
         self._name_editor.set_ui_model(ui_model)
         self._type_editor.set_ui_model(ui_model)
         self._init_value_editor.set_ui_model(ui_model)
+        self._ext_editor.set_ui_model(ui_model)
 
     def unregister_updaters(self):
+        self._ext_editor.unregister_updaters()
         self._init_value_editor.unregister_updaters()
         self._type_editor.unregister_updaters()
         self._name_editor.unregister_updaters()
@@ -178,6 +183,7 @@ class ControlVariableEditor(QWidget):
         self._name_editor.set_var_name(name)
         self._type_editor.set_var_name(name)
         self._init_value_editor.set_var_name(name)
+        self._ext_editor.set_var_name(name)
 
     def set_used_names(self, used_names):
         self._name_editor.set_used_names(used_names)
@@ -297,7 +303,7 @@ class ControlVariableTypeEditor(QComboBox):
 
 class ControlVariableValueEditor(QWidget):
 
-    def __init__(self):
+    def __init__(self, label):
         QWidget.__init__(self)
         self._au_id = None
         self._ui_model = None
@@ -305,11 +311,19 @@ class ControlVariableValueEditor(QWidget):
 
         self._var_name = None
 
+        self._editor_layout = None
+
         self._editors = {
             float:  QLineEdit(),
         }
 
         self._editors[float].setValidator(FloatValidator())
+
+        h = QHBoxLayout()
+        h.setMargin(0)
+        h.setSpacing(2)
+        h.addWidget(QLabel(label))
+        self.setLayout(h)
 
     def set_au_id(self, au_id):
         self._au_id = au_id
@@ -322,10 +336,10 @@ class ControlVariableValueEditor(QWidget):
         au = module.get_audio_unit(self._au_id)
         var_types = au.get_control_var_types()
 
-        s = QStackedLayout()
+        self._editor_layout = QStackedLayout()
         for t in var_types:
-            s.addWidget(self._editors[t])
-        self.setLayout(s)
+            self._editor_layout.addWidget(self._editors[t])
+        self.layout().addLayout(self._editor_layout)
 
         QObject.connect(
                 self._editors[float],
@@ -344,7 +358,7 @@ class ControlVariableValueEditor(QWidget):
         var_types = au.get_control_var_types()
         var_type = au.get_control_var_type(self._var_name)
         var_type_index = var_types.index(var_type)
-        self.layout().setCurrentIndex(var_type_index)
+        self._editor_layout.setCurrentIndex(var_type_index)
 
         var_value = self._get_value(au)
 
@@ -377,13 +391,144 @@ class ControlVariableValueEditor(QWidget):
 class ControlVariableInitValueEditor(ControlVariableValueEditor):
 
     def __init__(self):
-        ControlVariableValueEditor.__init__(self)
+        ControlVariableValueEditor.__init__(self, 'Initial value:')
 
     def _get_value(self, au):
         return au.get_control_var_init_value(self._var_name)
 
     def _set_value(self, au, new_value):
         au.change_control_var_init_value(self._var_name, new_value)
+
+
+class ControlVariableMinValueEditor(ControlVariableValueEditor):
+
+    def __init__(self):
+        ControlVariableValueEditor.__init__(self, 'Minimum value:')
+
+    def _get_value(self, au):
+        return au.get_control_var_min_value(self._var_name)
+
+    def _set_value(self, au, new_value):
+        au.change_control_var_min_value(self._var_name, new_value)
+
+
+class ControlVariableMaxValueEditor(ControlVariableValueEditor):
+
+    def __init__(self):
+        ControlVariableValueEditor.__init__(self, 'Maximum value:')
+
+    def _get_value(self, au):
+        return au.get_control_var_max_value(self._var_name)
+
+    def _set_value(self, au, new_value):
+        au.change_control_var_max_value(self._var_name, new_value)
+
+
+class ControlVariableExtEditor(QWidget):
+
+    def __init__(self):
+        QWidget.__init__(self)
+        self._au_id = None
+        self._ui_model = None
+        self._updater = None
+
+        self._var_name = None
+
+        self._editors = {
+            float: ControlVariableFloatExtEditor(),
+        }
+
+    def set_au_id(self, au_id):
+        self._au_id = au_id
+
+        for editor in self._editors.itervalues():
+            editor.set_au_id(au_id)
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+
+        for editor in self._editors.itervalues():
+            editor.set_ui_model(ui_model)
+
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+        var_types = au.get_control_var_types()
+
+        s = QStackedLayout()
+        for t in var_types:
+            s.addWidget(self._editors[t])
+        self.setLayout(s)
+
+    def unregister_updaters(self):
+        for editor in self._editors.itervalues():
+            editor.unregister_updaters()
+
+    def set_var_name(self, name):
+        self._var_name = name
+
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+
+        var_types = au.get_control_var_types()
+        var_type = au.get_control_var_type(self._var_name)
+        var_type_index = var_types.index(var_type)
+        self.layout().setCurrentIndex(var_type_index)
+
+        editor = self._editors[var_type]
+        editor.set_var_name(name)
+
+
+class ControlVariableFloatExtEditor(QWidget):
+
+    def __init__(self):
+        QWidget.__init__(self)
+        self._au_id = None
+        self._ui_model = None
+        self._updater = None
+
+        self._var_name = None
+
+        self._min_value_editor = ControlVariableMinValueEditor()
+        self._max_value_editor = ControlVariableMaxValueEditor()
+
+        h = QHBoxLayout()
+        h.setMargin(0)
+        h.setSpacing(4)
+        h.addWidget(self._min_value_editor)
+        h.addWidget(self._max_value_editor)
+        self.setLayout(h)
+
+    def set_au_id(self, au_id):
+        self._au_id = au_id
+        self._min_value_editor.set_au_id(au_id)
+        self._max_value_editor.set_au_id(au_id)
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._min_value_editor.set_ui_model(ui_model)
+        self._max_value_editor.set_ui_model(ui_model)
+
+    def unregister_updaters(self):
+        self._max_value_editor.unregister_updaters()
+        self._min_value_editor.unregister_updaters()
+
+    def set_var_name(self, name):
+        self._var_name = name
+
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+
+        var_type = au.get_control_var_type(self._var_name)
+        if var_type != float:
+            self.setEnabled(False)
+            return
+
+        self.setEnabled(True)
+
+        self._min_value_editor.set_var_name(name)
+        self._max_value_editor.set_var_name(name)
 
 
 class ControlVariableAdder(QWidget):
@@ -486,7 +631,7 @@ class ControlVariableBindings(QWidget):
 
         v = QVBoxLayout()
         v.setMargin(0)
-        v.setSpacing(2)
+        v.setSpacing(4)
         v.addWidget(HeaderLine('Bindings'))
         v.addWidget(self._bind_list)
         self.setLayout(v)
