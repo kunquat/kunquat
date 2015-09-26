@@ -16,6 +16,7 @@ from kunquat.kunquat.kunquat import get_default_value
 from kunquat.kunquat.limits import *
 from connections import Connections
 from processor import Processor
+import tstamp
 
 
 # Default processor settings
@@ -470,5 +471,106 @@ class AudioUnit():
 
     def set_force_filter_envelope_enabled(self, enabled):
         self._set_force_filter_envelope_dict_value('enabled', enabled)
+
+    def _get_control_var_list(self):
+        key = self._get_key('p_control_vars.json')
+        ret = self._store.get(key, get_default_value(key))
+        return ret
+
+    def _get_control_var_dict(self):
+        var_list = self._get_control_var_list()
+        var_dict = {}
+        for entry in var_list:
+            type_name, var_name, init_value, ext, bindings = entry
+            var_dict[var_name] = (type_name, init_value, ext, bindings)
+        return var_dict
+
+    def _get_control_var_entry_index(self, var_list, var_name):
+        for i, entry in enumerate(var_list):
+            if entry[1] == var_name:
+                return i
+        raise ValueError('Variable name {} not in list'.format(var_name))
+
+    def _set_control_var_list(self, var_list):
+        key = self._get_key('p_control_vars.json')
+        self._store[key] = var_list
+
+    def _get_control_var_object_type(self, type_name):
+        type_map = {
+                'bool': bool,
+                'int': int,
+                'float': float,
+                'timestamp': tstamp.Tstamp,
+            }
+        return type_map[type_name]
+
+    def _get_control_var_format_type(self, obj_type):
+        type_map = {
+                bool: 'bool',
+                int: 'int',
+                float: 'float',
+                tstamp.Tstamp: 'timestamp',
+            }
+        return type_map[obj_type]
+
+    def get_control_var_names(self):
+        var_list = self._get_control_var_list()
+        return [var[1] for var in var_list]
+
+    def get_control_var_types(self):
+        return [float] # TODO: extended if more types are needed
+
+    def add_control_var_float(self, var_name, init_value, min_value, max_value):
+        var_list = self._get_control_var_list()
+        type_name = self._get_control_var_format_type(float)
+        new_entry = [type_name, var_name, init_value, [min_value, max_value], []]
+        var_list.append(new_entry)
+        self._set_control_var_list(var_list)
+
+    def get_control_var_type(self, var_name):
+        var_dict = self._get_control_var_dict()
+        var_entry = var_dict[var_name]
+        return self._get_control_var_object_type(var_entry[0])
+
+    def get_control_var_init_value(self, var_name):
+        var_dict = self._get_control_var_dict()
+        var_entry = var_dict[var_name]
+        var_type = self._get_control_var_object_type(var_entry[0])
+        return var_type(var_entry[1])
+
+    def change_control_var_name(self, var_name, new_name):
+        var_list = self._get_control_var_list()
+        index = self._get_control_var_entry_index(var_list, var_name)
+        var_list[index][1] = new_name
+
+        self._set_control_var_list(var_list)
+
+    def change_control_var_type(self, var_name, new_type):
+        new_type_name = self._get_control_var_format_type(new_type)
+
+        var_list = self._get_control_var_list()
+        index = self._get_control_var_entry_index(var_list, var_name)
+        var_list[index][0] = new_type_name
+        var_list[index][2] = new_type(0)
+
+        # Set default extended params as they are type-specific
+        if new_type == bool:
+            var_list[index][3] = []
+        elif new_type == float:
+            var_list[index][3] = [0.0, 1.0]
+        else:
+            raise NotImplementedError
+
+        # Remove existing bindings as they are type-specific
+        var_list[index][4] = []
+
+        self._set_control_var_list(var_list)
+
+    def change_control_var_init_value(self, var_name, new_value):
+        var_list = self._get_control_var_list()
+        index = self._get_control_var_entry_index(var_list, var_name)
+        var_list[index][2] = new_value
+
+        self._set_control_var_list(var_list)
 
 
