@@ -823,6 +823,23 @@ static bool read_any_au_env_filter_release(
 }
 
 
+static bool read_any_au_control_vars(
+        Reader_params* params, Au_table* au_table, int level)
+{
+    assert(params != NULL);
+
+    int32_t index = -1;
+    acquire_au_index(index, params, level);
+
+    Audio_unit* au = NULL;
+    acquire_au(au, params->handle, au_table, index);
+
+    // TODO: implement
+
+    return true;
+}
+
+
 static Processor* add_processor(
         Handle* handle,
         Audio_unit* au,
