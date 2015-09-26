@@ -538,6 +538,20 @@ class AudioUnit():
         var_type = self._get_control_var_object_type(var_entry[0])
         return var_type(var_entry[1])
 
+    def get_control_var_min_value(self, var_name):
+        var_dict = self._get_control_var_dict()
+        var_entry = var_dict[var_name]
+        assert self._get_control_var_object_type(var_entry[0]) == float
+        ext = var_entry[2]
+        return ext[0]
+
+    def get_control_var_max_value(self, var_name):
+        var_dict = self._get_control_var_dict()
+        var_entry = var_dict[var_name]
+        assert self._get_control_var_object_type(var_entry[0]) == float
+        ext = var_entry[2]
+        return ext[1]
+
     def change_control_var_name(self, var_name, new_name):
         var_list = self._get_control_var_list()
         index = self._get_control_var_entry_index(var_list, var_name)
@@ -570,6 +584,35 @@ class AudioUnit():
         var_list = self._get_control_var_list()
         index = self._get_control_var_entry_index(var_list, var_name)
         var_list[index][2] = new_value
+
+        var_type = self._get_control_var_object_type(var_list[index][0])
+        if var_type == float:
+            ext = var_list[index][3]
+            var_list[index][2] = min(max(ext[0], new_value), ext[1])
+
+        self._set_control_var_list(var_list)
+
+    def change_control_var_min_value(self, var_name, new_value):
+        var_list = self._get_control_var_list()
+        index = self._get_control_var_entry_index(var_list, var_name)
+        assert self._get_control_var_object_type(var_list[index][0]) == float
+        ext = var_list[index][3]
+        ext[0] = new_value
+
+        var_list[index][2] = max(var_list[index][2], new_value)
+        ext[1] = max(ext[1], new_value)
+
+        self._set_control_var_list(var_list)
+
+    def change_control_var_max_value(self, var_name, new_value):
+        var_list = self._get_control_var_list()
+        index = self._get_control_var_entry_index(var_list, var_name)
+        assert self._get_control_var_object_type(var_list[index][0]) == float
+        ext = var_list[index][3]
+        ext[1] = new_value
+
+        var_list[index][2] = min(var_list[index][2], new_value)
+        ext[0] = min(ext[0], new_value)
 
         self._set_control_var_list(var_list)
 
