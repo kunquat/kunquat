@@ -17,8 +17,8 @@ from PyQt4.QtGui import *
 from force_editor import ForceEditor
 from filtereditor import FilterEditor
 from infoeditor import InfoEditor
+from subdevices import Subdevices
 from testbutton import TestButton
-from kunquat.tracker.ui.views.connectionseditor import ConnectionsEditor
 from kunquat.tracker.ui.views.keyboardmapper import KeyboardMapper
 
 
@@ -35,9 +35,9 @@ class Editor(QWidget):
 
         self._force_editor = ForceEditor()
         self._filter_editor = FilterEditor()
-        self._conns_editor = ConnectionsEditor()
+        self._subdevices = Subdevices()
         self._info_editor = InfoEditor()
-        self._tabs.addTab(self._conns_editor, 'Connections')
+        self._tabs.addTab(self._subdevices, 'Subdevices')
         self._tabs.addTab(self._info_editor, 'Info')
 
         self._keyboard_mapper = KeyboardMapper()
@@ -54,7 +54,7 @@ class Editor(QWidget):
         self._test_button.set_au_id(au_id)
         self._force_editor.set_au_id(au_id)
         self._filter_editor.set_au_id(au_id)
-        self._conns_editor.set_au_id(au_id)
+        self._subdevices.set_au_id(au_id)
         self._info_editor.set_au_id(au_id)
 
     def set_ui_model(self, ui_model):
@@ -63,7 +63,7 @@ class Editor(QWidget):
         self._test_button.set_ui_model(ui_model)
         self._force_editor.set_ui_model(ui_model)
         self._filter_editor.set_ui_model(ui_model)
-        self._conns_editor.set_ui_model(ui_model)
+        self._subdevices.set_ui_model(ui_model)
         self._info_editor.set_ui_model(ui_model)
         self._keyboard_mapper.set_ui_model(ui_model)
 
@@ -77,7 +77,7 @@ class Editor(QWidget):
     def unregister_updaters(self):
         self._keyboard_mapper.unregister_updaters()
         self._info_editor.unregister_updaters()
-        self._conns_editor.unregister_updaters()
+        self._subdevices.unregister_updaters()
         self._filter_editor.unregister_updaters()
         self._force_editor.unregister_updaters()
         self._test_button.unregister_updaters()
