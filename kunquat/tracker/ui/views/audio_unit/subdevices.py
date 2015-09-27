@@ -151,6 +151,7 @@ class ControlVariableEditor(QWidget):
         self._type_editor = ControlVariableTypeEditor()
         self._init_value_editor = ControlVariableInitValueEditor()
         self._ext_editor = ControlVariableExtEditor()
+        self._remove_button = ControlVariableRemoveButton()
 
         h = QHBoxLayout()
         h.setMargin(0)
@@ -159,6 +160,7 @@ class ControlVariableEditor(QWidget):
         #h.addWidget(self._type_editor)
         h.addWidget(self._init_value_editor)
         h.addWidget(self._ext_editor)
+        h.addWidget(self._remove_button)
         self.setLayout(h)
 
     def set_au_id(self, au_id):
@@ -166,14 +168,17 @@ class ControlVariableEditor(QWidget):
         self._type_editor.set_au_id(au_id)
         self._init_value_editor.set_au_id(au_id)
         self._ext_editor.set_au_id(au_id)
+        self._remove_button.set_au_id(au_id)
 
     def set_ui_model(self, ui_model):
         self._name_editor.set_ui_model(ui_model)
         self._type_editor.set_ui_model(ui_model)
         self._init_value_editor.set_ui_model(ui_model)
         self._ext_editor.set_ui_model(ui_model)
+        self._remove_button.set_ui_model(ui_model)
 
     def unregister_updaters(self):
+        self._remove_button.unregister_updaters()
         self._ext_editor.unregister_updaters()
         self._init_value_editor.unregister_updaters()
         self._type_editor.unregister_updaters()
@@ -184,6 +189,7 @@ class ControlVariableEditor(QWidget):
         self._type_editor.set_var_name(name)
         self._init_value_editor.set_var_name(name)
         self._ext_editor.set_var_name(name)
+        self._remove_button.set_var_name(name)
 
     def set_used_names(self, used_names):
         self._name_editor.set_used_names(used_names)
@@ -620,6 +626,45 @@ class NewControlVarNameEditor(QLineEdit):
     def set_used_names(self, used_names):
         self._validator = VarNameValidator(used_names)
         self.setValidator(self._validator)
+
+
+class ControlVariableRemoveButton(QPushButton):
+
+    def __init__(self):
+        QPushButton.__init__(self)
+        self._au_id = None
+        self._ui_model = None
+        self._updater = None
+
+        self._var_name = None
+
+        self.setToolTip('Remove')
+
+        self.setStyleSheet('padding: 0 -2px;')
+
+    def set_au_id(self, au_id):
+        self._au_id = au_id
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+
+        icon_bank = ui_model.get_icon_bank()
+        self.setIcon(QIcon(icon_bank.get_icon_path('delete_small')))
+
+        QObject.connect(self, SIGNAL('clicked()'), self._remove)
+
+    def unregister_updaters(self):
+        pass
+
+    def set_var_name(self, name):
+        self._var_name = name
+
+    def _remove(self):
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+        au.remove_control_var(self._var_name)
+        self._updater.signal_update(set([_get_update_signal_type(self._au_id)]))
 
 
 class ControlVariableBindings(QWidget):
