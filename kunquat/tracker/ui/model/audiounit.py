@@ -527,6 +527,13 @@ class AudioUnit():
         var_list.append(new_entry)
         self._set_control_var_list(var_list)
 
+    def remove_control_var(self, var_name):
+        var_list = self._get_control_var_list()
+        index = self._get_control_var_entry_index(var_list, var_name)
+        del var_list[index]
+
+        self._set_control_var_list(var_list)
+
     def get_control_var_type(self, var_name):
         var_dict = self._get_control_var_dict()
         var_entry = var_dict[var_name]
