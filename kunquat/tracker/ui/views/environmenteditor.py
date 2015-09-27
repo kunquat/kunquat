@@ -367,6 +367,8 @@ class VarRemoveButton(QPushButton):
 
         self._var_name = None
 
+        self.setToolTip('Remove')
+
         self.setStyleSheet('padding: 0 -2px;')
 
     def set_ui_model(self, ui_model):
