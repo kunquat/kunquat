@@ -41,6 +41,7 @@ class AudioUnit():
         self._au_id = au_id
         self._store = None
         self._controller = None
+        self._session = None
         self._ui_model = None
         self._au_number = None
         self._existence = None
@@ -48,6 +49,7 @@ class AudioUnit():
     def set_controller(self, controller):
         self._store = controller.get_store()
         self._controller = controller
+        self._session = controller.get_session()
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -533,6 +535,12 @@ class AudioUnit():
         del var_list[index]
 
         self._set_control_var_list(var_list)
+
+    def set_control_var_expanded(self, var_name, expanded):
+        self._session.set_au_var_expanded(self._au_id, var_name, expanded)
+
+    def is_control_var_expanded(self, var_name):
+        return self._session.is_au_var_expanded(self._au_id, var_name)
 
     def get_control_var_type(self, var_name):
         var_dict = self._get_control_var_dict()
