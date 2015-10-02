@@ -28,7 +28,7 @@ class EditorList(QWidget):
         v.addWidget(self._area)
         self.setLayout(v)
 
-    def update_list(self):
+    def update_list(self, force_rebuild=False):
         if not self._area.widget():
             self._init_container()
 
@@ -43,7 +43,7 @@ class EditorList(QWidget):
             assert cur_editor_count >= 0
             new_widget_count += 1
 
-        if new_widget_count < layout.count():
+        if (new_widget_count < layout.count()) or force_rebuild:
             # Create contents from scratch because
             # Qt doesn't update visuals properly on single item removal
             self.disconnect_widgets()
