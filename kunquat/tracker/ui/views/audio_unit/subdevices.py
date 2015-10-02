@@ -26,6 +26,9 @@ from kunquat.tracker.ui.views.varvalidators import *
 def _get_update_signal_type(au_id):
     return 'signal_au_control_vars_{}'.format(au_id)
 
+def _get_collapse_signal_type(au_id):
+    return 'signal_au_control_vars_collapse_{}'.format(au_id)
+
 
 class Subdevices(QWidget):
 
@@ -105,16 +108,17 @@ class ControlVariableList(EditorList):
         self._updater.unregister_updater(self._perform_updates)
 
     def _perform_updates(self, signals):
+        force_rebuild = _get_collapse_signal_type(self._au_id) in signals
         if _get_update_signal_type(self._au_id) in signals:
-            self._update_var_names()
+            self._update_var_names(force_rebuild)
 
-    def _update_var_names(self):
+    def _update_var_names(self, force_rebuild=False):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
         self._var_names = au.get_control_var_names()
         self._var_names_set = set(self._var_names)
 
-        self.update_list()
+        self.update_list(force_rebuild)
 
     def _make_adder_widget(self):
         adder = ControlVariableAdder()
@@ -146,12 +150,19 @@ class ControlVariableEditor(QWidget):
 
     def __init__(self):
         QWidget.__init__(self)
+        self._au_id = None
+        self._ui_model = None
+        self._updater = None
 
+        self._var_name = None
+
+        self._expander = ControlVariableTypeExpander()
         self._name_editor = ControlVariableNameEditor()
         self._type_editor = ControlVariableTypeEditor()
         self._init_value_editor = ControlVariableInitValueEditor()
         self._ext_editor = ControlVariableExtEditor()
         self._remove_button = ControlVariableRemoveButton()
+        self._bindings = ControlVariableBindings()
 
         h = QHBoxLayout()
         h.setMargin(0)
@@ -161,23 +172,38 @@ class ControlVariableEditor(QWidget):
         h.addWidget(self._init_value_editor)
         h.addWidget(self._ext_editor)
         h.addWidget(self._remove_button)
-        self.setLayout(h)
+
+        g = QGridLayout()
+        g.setMargin(0)
+        g.setSpacing(0)
+        g.addWidget(self._expander, 0, 0)
+        g.addLayout(h, 0, 1)
+        g.addWidget(self._bindings, 1, 1)
+        self.setLayout(g)
 
     def set_au_id(self, au_id):
+        self._au_id = au_id
         self._name_editor.set_au_id(au_id)
         self._type_editor.set_au_id(au_id)
         self._init_value_editor.set_au_id(au_id)
         self._ext_editor.set_au_id(au_id)
         self._remove_button.set_au_id(au_id)
+        self._bindings.set_au_id(au_id)
 
     def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
         self._name_editor.set_ui_model(ui_model)
         self._type_editor.set_ui_model(ui_model)
         self._init_value_editor.set_ui_model(ui_model)
         self._ext_editor.set_ui_model(ui_model)
         self._remove_button.set_ui_model(ui_model)
+        self._bindings.set_ui_model(ui_model)
+
+        QObject.connect(self._expander, SIGNAL('clicked(bool)'), self._toggle_expand)
 
     def unregister_updaters(self):
+        self._bindings.unregister_updaters()
         self._remove_button.unregister_updaters()
         self._ext_editor.unregister_updaters()
         self._init_value_editor.unregister_updaters()
@@ -185,14 +211,72 @@ class ControlVariableEditor(QWidget):
         self._name_editor.unregister_updaters()
 
     def set_var_name(self, name):
+        self._var_name = name
         self._name_editor.set_var_name(name)
         self._type_editor.set_var_name(name)
         self._init_value_editor.set_var_name(name)
         self._ext_editor.set_var_name(name)
         self._remove_button.set_var_name(name)
+        self._bindings.set_var_name(name)
+
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+        is_expanded = au.is_control_var_expanded(self._var_name)
+
+        old_block = self._expander.blockSignals(True)
+        self._expander.setChecked(is_expanded)
+        self._expander.blockSignals(old_block)
 
     def set_used_names(self, used_names):
         self._name_editor.set_used_names(used_names)
+
+    def _toggle_expand(self, expand):
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+        au.set_control_var_expanded(self._var_name, expand)
+
+        if expand:
+            self._bindings.setVisible(True)
+        else:
+            self._updater.signal_update(set([
+                _get_update_signal_type(self._au_id),
+                _get_collapse_signal_type(self._au_id)]))
+
+
+class ControlVariableTypeExpander(QPushButton):
+
+    def __init__(self):
+        QPushButton.__init__(self)
+
+        self.setCheckable(True)
+
+    def sizeHint(self):
+        sh = QPushButton.sizeHint(self)
+        return QSize(sh.height(), sh.height())
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+
+        colour = self.palette().color(QPalette.Text)
+        painter.setPen(colour)
+        painter.setBrush(colour)
+
+        center_x = self.width() // 2
+        center_y = self.height() // 2
+
+        triangle_extent = 5
+
+        painter.translate(QPoint(center_x, center_y))
+        if self.isChecked():
+            painter.drawPolygon(
+                    QPoint(-triangle_extent, 0),
+                    QPoint(0, triangle_extent),
+                    QPoint(triangle_extent, 0))
+        else:
+            painter.drawPolygon(
+                    QPoint(0, -triangle_extent),
+                    QPoint(triangle_extent, 0),
+                    QPoint(0, triangle_extent))
 
 
 class ControlVariableNameEditor(QLineEdit):
@@ -317,7 +401,13 @@ class ControlVariableValueEditor(QWidget):
 
         self._var_name = None
 
+        # TODO: The QStackedLayout causes flickering during update for some reason, fix
+
+        '''
         self._editor_layout = None
+        '''
+
+        self._editors = None
 
         self._editors = {
             float:  QLineEdit(),
@@ -329,6 +419,7 @@ class ControlVariableValueEditor(QWidget):
         h.setMargin(0)
         h.setSpacing(2)
         h.addWidget(QLabel(label))
+        h.addWidget(self._editors[float])
         self.setLayout(h)
 
     def set_au_id(self, au_id):
@@ -342,10 +433,12 @@ class ControlVariableValueEditor(QWidget):
         au = module.get_audio_unit(self._au_id)
         var_types = au.get_control_var_types()
 
+        '''
         self._editor_layout = QStackedLayout()
         for t in var_types:
             self._editor_layout.addWidget(self._editors[t])
         self.layout().addLayout(self._editor_layout)
+        '''
 
         QObject.connect(
                 self._editors[float],
@@ -364,7 +457,9 @@ class ControlVariableValueEditor(QWidget):
         var_types = au.get_control_var_types()
         var_type = au.get_control_var_type(self._var_name)
         var_type_index = var_types.index(var_type)
+        '''
         self._editor_layout.setCurrentIndex(var_type_index)
+        '''
 
         var_value = self._get_value(au)
 
@@ -444,6 +539,14 @@ class ControlVariableExtEditor(QWidget):
             float: ControlVariableFloatExtEditor(),
         }
 
+        # TODO: The QStackedLayout causes flickering during update for some reason, fix
+
+        h = QHBoxLayout()
+        h.setMargin(0)
+        h.setSpacing(2)
+        h.addWidget(self._editors[float])
+        self.setLayout(h)
+
     def set_au_id(self, au_id):
         self._au_id = au_id
 
@@ -461,10 +564,12 @@ class ControlVariableExtEditor(QWidget):
         au = module.get_audio_unit(self._au_id)
         var_types = au.get_control_var_types()
 
+        '''
         s = QStackedLayout()
         for t in var_types:
             s.addWidget(self._editors[t])
         self.setLayout(s)
+        '''
 
     def unregister_updaters(self):
         for editor in self._editors.itervalues():
@@ -479,7 +584,9 @@ class ControlVariableExtEditor(QWidget):
         var_types = au.get_control_var_types()
         var_type = au.get_control_var_type(self._var_name)
         var_type_index = var_types.index(var_type)
+        '''
         self.layout().setCurrentIndex(var_type_index)
+        '''
 
         editor = self._editors[var_type]
         editor.set_var_name(name)
@@ -671,15 +778,81 @@ class ControlVariableBindings(QWidget):
 
     def __init__(self):
         QWidget.__init__(self)
+        self._au_id = None
+        self._ui_model = None
+        self._updater = None
 
-        self._bind_list = ControlVariableBindingList()
+        self._var_name = None
+
+        self._adder = BindTargetAdder()
+
+        self.setVisible(False)
 
         v = QVBoxLayout()
         v.setMargin(0)
-        v.setSpacing(4)
-        v.addWidget(HeaderLine('Bindings'))
-        v.addWidget(self._bind_list)
+        v.setSpacing(2)
+        v.addWidget(self._adder)
         self.setLayout(v)
+
+    def _get_widgets(self):
+        for i in xrange(self.layout().count()):
+            yield self.layout().itemAt(i).widget()
+
+    def set_au_id(self, au_id):
+        self._au_id = au_id
+        for widget in self._get_widgets():
+            widget.set_au_id(au_id)
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+
+        for widget in self._get_widgets():
+            widget.set_ui_model(ui_model)
+
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
+        for widget in self._get_widgets():
+            widget.unregister_updaters()
+
+    def set_var_name(self, name):
+        self._var_name = name
+
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+        self.setVisible(au.is_control_var_expanded(self._var_name))
+
+        for widget in self._get_widgets():
+            widget.set_var_name(name)
+
+    def _perform_updates(self, signals):
+        if _get_update_signal_type(self._au_id) in signals:
+            pass
+
+
+class BindTargetAdder(QWidget):
+
+    def __init__(self):
+        QWidget.__init__(self)
+        self._au_id = None
+        self._ui_model = None
+        self._updater = None
+
+        self._var_name = None
+
+        self._bind_target = NewBindTargetNameEditor()
+
+        self._bind_add_button = QPushButton()
+        self._bind_add_button.setText('Add new binding')
+        self._bind_add_button.setEnabled(False)
+
+        h = QHBoxLayout()
+        h.setMargin(0)
+        h.setSpacing(4)
+        h.addWidget(self._bind_target)
+        h.addWidget(self._bind_add_button)
+        self.setLayout(h)
 
     def set_au_id(self, au_id):
         self._au_id = au_id
@@ -687,13 +860,23 @@ class ControlVariableBindings(QWidget):
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
 
+    def set_var_name(self, name):
+        self._var_name = name
+
     def unregister_updaters(self):
         pass
 
 
-class ControlVariableBindingList(EditorList):
+class NewBindTargetNameEditor(QLineEdit):
 
     def __init__(self):
-        EditorList.__init__(self)
+        QLineEdit.__init__(self)
+        self.setMaxLength(ENV_VAR_NAME_MAX - 1)
+        self._validator = VarNameValidator(set())
+        self.setValidator(self._validator)
+
+    def set_used_names(self, used_names):
+        self._validator = VarNameValidator(used_names)
+        self.setValidator(self._validator)
 
 
