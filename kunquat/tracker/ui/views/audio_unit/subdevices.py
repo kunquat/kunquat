@@ -11,6 +11,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from itertools import izip
+
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
@@ -644,7 +646,7 @@ class ControlVariableFloatExtEditor(QWidget):
         self._max_value_editor.set_var_name(name)
 
 
-class ControlVariableAdder(QWidget):
+class Adder(QWidget):
 
     def __init__(self):
         QWidget.__init__(self)
@@ -652,17 +654,17 @@ class ControlVariableAdder(QWidget):
         self._ui_model = None
         self._updater = None
 
-        self._var_name = NewControlVarNameEditor()
+        self._name_editor = NewNameEditor()
 
-        self._var_add_button = QPushButton()
-        self._var_add_button.setText('Add new variable')
-        self._var_add_button.setEnabled(False)
+        self._add_button = QPushButton()
+        self._add_button.setText(self._get_add_text())
+        self._add_button.setEnabled(False)
 
         h = QHBoxLayout()
         h.setMargin(0)
         h.setSpacing(4)
-        h.addWidget(self._var_name)
-        h.addWidget(self._var_add_button)
+        h.addWidget(self._name_editor)
+        h.addWidget(self._add_button)
         self.setLayout(h)
 
     def set_au_id(self, au_id):
@@ -676,11 +678,11 @@ class ControlVariableAdder(QWidget):
         self._update_used_names()
 
         QObject.connect(
-                self._var_name, SIGNAL('textChanged(QString)'), self._text_changed)
+                self._name_editor, SIGNAL('textChanged(QString)'), self._text_changed)
         QObject.connect(
-                self._var_name, SIGNAL('returnPressed()'), self._add_new_var)
+                self._name_editor, SIGNAL('returnPressed()'), self._add_new)
         QObject.connect(
-                self._var_add_button, SIGNAL('clicked()'), self._add_new_var)
+                self._add_button, SIGNAL('clicked()'), self._add_new)
 
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
@@ -689,40 +691,41 @@ class ControlVariableAdder(QWidget):
         if _get_update_signal_type(self._au_id) in signals:
             self._update_used_names()
 
-    def _get_used_names(self):
-        module = self._ui_model.get_module()
-        au = module.get_audio_unit(self._au_id)
-        used_names = set(au.get_control_var_names())
-        return used_names
-
     def _update_used_names(self):
         used_names = self._get_used_names()
-        self._var_name.set_used_names(used_names)
+        self._name_editor.set_used_names(used_names)
 
-        is_add_allowed = bool(self._var_name.text())
-        self._var_add_button.setEnabled(is_add_allowed)
+        is_add_allowed = bool(self._name_editor.text())
+        self._add_button.setEnabled(is_add_allowed)
 
     def _text_changed(self, text_qstring):
         text = unicode(text_qstring)
         used_names = self._get_used_names()
 
         is_add_allowed = bool(text) and (text not in used_names)
-        self._var_add_button.setEnabled(is_add_allowed)
+        self._add_button.setEnabled(is_add_allowed)
 
-    def _add_new_var(self):
-        text = unicode(self._var_name.text())
+    def _add_new(self):
+        text = unicode(self._name_editor.text())
         assert text and (text not in self._get_used_names())
 
-        module = self._ui_model.get_module()
-        au = module.get_audio_unit(self._au_id)
-        au.add_control_var_float(text, 0.0, 0.0, 1.0)
+        self._add_new_entry(text)
 
-        self._var_name.setText('')
+        self._name_editor.setText('')
 
-        self._updater.signal_update(set([_get_update_signal_type(self._au_id)]))
+    # Protected interface
+
+    def _get_add_text(self):
+        raise NotImplementedError
+
+    def _get_used_names(self):
+        raise NotImplementedError
+
+    def _add_new_entry(self, name):
+        raise NotImplementedError
 
 
-class NewControlVarNameEditor(QLineEdit):
+class NewNameEditor(QLineEdit):
 
     def __init__(self):
         QLineEdit.__init__(self)
@@ -733,6 +736,29 @@ class NewControlVarNameEditor(QLineEdit):
     def set_used_names(self, used_names):
         self._validator = VarNameValidator(used_names)
         self.setValidator(self._validator)
+
+
+class ControlVariableAdder(Adder):
+
+    def __init__(self):
+        Adder.__init__(self)
+
+    def _get_add_text(self):
+        return 'Add new variable'
+
+    def _get_used_names(self):
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+
+        used_names = set(au.get_control_var_names())
+        return used_names
+
+    def _add_new_entry(self, name):
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+
+        au.add_control_var_float(name, 0.0, 0.0, 1.0)
+        self._updater.signal_update(set([_get_update_signal_type(self._au_id)]))
 
 
 class ControlVariableRemoveButton(QPushButton):
@@ -798,6 +824,10 @@ class ControlVariableBindings(QWidget):
         for i in xrange(self.layout().count()):
             yield self.layout().itemAt(i).widget()
 
+    def _get_editors(self):
+        for i in xrange(self.layout().count() - 1):
+            yield self.layout().itemAt(i).widget()
+
     def set_au_id(self, au_id):
         self._au_id = au_id
         for widget in self._get_widgets():
@@ -823,15 +853,30 @@ class ControlVariableBindings(QWidget):
         au = module.get_audio_unit(self._au_id)
         self.setVisible(au.is_control_var_expanded(self._var_name))
 
+        binding_targets = au.get_control_var_binding_targets(self._var_name)
+
+        cur_binding_count = self.layout().count() - 1
+
+        # Add missing editors
+        layout = self.layout()
+        for i in xrange(cur_binding_count, len(binding_targets)):
+            editor = BindTargetEditor()
+            editor.set_au_id(self._au_id)
+            editor.set_ui_model(self._ui_model)
+            layout.insertWidget(i, editor)
+
         for widget in self._get_widgets():
             widget.set_var_name(name)
+
+        for name, editor in izip(binding_targets, self._get_editors()):
+            editor.set_target_name(name)
 
     def _perform_updates(self, signals):
         if _get_update_signal_type(self._au_id) in signals:
             pass
 
 
-class BindTargetAdder(QWidget):
+class BindTargetEditor(QWidget):
 
     def __init__(self):
         QWidget.__init__(self)
@@ -840,18 +885,12 @@ class BindTargetAdder(QWidget):
         self._updater = None
 
         self._var_name = None
-
-        self._bind_target = NewBindTargetNameEditor()
-
-        self._bind_add_button = QPushButton()
-        self._bind_add_button.setText('Add new binding')
-        self._bind_add_button.setEnabled(False)
+        self._target_name = None
 
         h = QHBoxLayout()
         h.setMargin(0)
-        h.setSpacing(4)
-        h.addWidget(self._bind_target)
-        h.addWidget(self._bind_add_button)
+        h.setSpacing(2)
+        h.addWidget(QLabel('target editor'))
         self.setLayout(h)
 
     def set_au_id(self, au_id):
@@ -859,12 +898,52 @@ class BindTargetAdder(QWidget):
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
 
     def set_var_name(self, name):
         self._var_name = name
 
+    def set_target_name(self, name):
+        assert self._var_name
+        self._target_name = name
+
     def unregister_updaters(self):
         pass
+
+
+class BindTargetAdder(Adder):
+
+    def __init__(self):
+        Adder.__init__(self)
+
+        self._var_name = None
+
+    def set_var_name(self, name):
+        self._var_name = name
+
+    def _get_add_text(self):
+        return 'Add new binding'
+
+    def _get_used_names(self):
+        if not self._var_name:
+            return set()
+
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+
+        # Escape if we are being removed
+        if self._var_name not in au.get_control_var_names():
+            return set()
+
+        used_names = set(au.get_control_var_binding_targets(self._var_name))
+        return used_names
+
+    def _add_new_entry(self, name):
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+
+        au.add_control_var_binding_float(self._var_name, name, 0.0, 1.0)
+        self._updater.signal_update(set([_get_update_signal_type(self._au_id)]))
 
 
 class NewBindTargetNameEditor(QLineEdit):
