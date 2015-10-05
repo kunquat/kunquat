@@ -497,6 +497,20 @@ class AudioUnit():
         key = self._get_key('p_control_vars.json')
         self._store[key] = var_list
 
+    def _get_control_var_binding_list(self, var_name):
+        var_dict = self._get_control_var_dict()
+        var_entry = var_dict[var_name]
+        return var_entry[3]
+
+    def _set_control_var_binding_list(self, var_name, binding_list):
+        var_list = self._get_control_var_list()
+        index = self._get_control_var_entry_index(var_list, var_name)
+        var_entry = var_list[index]
+
+        var_entry[4] = binding_list
+        var_list[index] = var_entry
+        self._set_control_var_list(var_list)
+
     def _get_control_var_object_type(self, type_name):
         type_map = {
                 'bool': bool,
@@ -630,5 +644,17 @@ class AudioUnit():
         ext[0] = min(ext[0], new_value)
 
         self._set_control_var_list(var_list)
+
+    def get_control_var_binding_targets(self, var_name):
+        assert var_name
+        binding_list = self._get_control_var_binding_list(var_name)
+        return [entry[0] for entry in binding_list]
+
+    def add_control_var_binding_float(
+            self, var_name, target_name, map_min_to, map_max_to):
+        assert var_name
+        binding_list = self._get_control_var_binding_list(var_name)
+        binding_list.append([target_name, map_min_to, map_max_to])
+        self._set_control_var_binding_list(var_name, binding_list)
 
 
