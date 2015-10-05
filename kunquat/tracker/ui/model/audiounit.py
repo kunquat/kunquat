@@ -664,6 +664,12 @@ class AudioUnit():
         binding_list.append([type_name, target_name, map_min_to, map_max_to])
         self._set_control_var_binding_list(var_name, binding_list)
 
+    def remove_control_var_binding(self, var_name, target_name):
+        binding_list = self._get_control_var_binding_list(var_name)
+        index = self._get_control_var_binding_entry_index(binding_list, target_name)
+        del binding_list[index]
+        self._set_control_var_binding_list(var_name, binding_list)
+
     def get_control_var_binding_map_to_min(self, var_name, target_name):
         binding_list = self._get_control_var_binding_list(var_name)
         index = self._get_control_var_binding_entry_index(binding_list, target_name)
