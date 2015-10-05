@@ -502,6 +502,12 @@ class AudioUnit():
         var_entry = var_dict[var_name]
         return var_entry[3]
 
+    def _get_control_var_binding_entry_index(self, binding_list, target_name):
+        for i, entry in enumerate(binding_list):
+            if entry[1] == target_name:
+                return i
+        raise ValueError('Binding target {} not in list'.format(target_name))
+
     def _set_control_var_binding_list(self, var_name, binding_list):
         var_list = self._get_control_var_list()
         index = self._get_control_var_entry_index(var_list, var_name)
@@ -648,13 +654,20 @@ class AudioUnit():
     def get_control_var_binding_targets(self, var_name):
         assert var_name
         binding_list = self._get_control_var_binding_list(var_name)
-        return [entry[0] for entry in binding_list]
+        return [entry[1] for entry in binding_list]
 
     def add_control_var_binding_float(
             self, var_name, target_name, map_min_to, map_max_to):
         assert var_name
         binding_list = self._get_control_var_binding_list(var_name)
-        binding_list.append([target_name, map_min_to, map_max_to])
+        type_name = self._get_control_var_format_type(float)
+        binding_list.append([type_name, target_name, map_min_to, map_max_to])
+        self._set_control_var_binding_list(var_name, binding_list)
+
+    def change_control_var_binding_target(self, var_name, target_name, new_target_name):
+        binding_list = self._get_control_var_binding_list(var_name)
+        index = self._get_control_var_binding_entry_index(binding_list, target_name)
+        binding_list[index][1] = new_target_name
         self._set_control_var_binding_list(var_name, binding_list)
 
 
