@@ -540,7 +540,7 @@ class AudioUnit():
         return [var[1] for var in var_list]
 
     def get_control_var_types(self):
-        return [float] # TODO: extended if more types are needed
+        return [float] # TODO: extend if more types are needed
 
     def add_control_var_float(self, var_name, init_value, min_value, max_value):
         var_list = self._get_control_var_list()
@@ -664,10 +664,36 @@ class AudioUnit():
         binding_list.append([type_name, target_name, map_min_to, map_max_to])
         self._set_control_var_binding_list(var_name, binding_list)
 
+    def get_control_var_binding_map_to_min(self, var_name, target_name):
+        binding_list = self._get_control_var_binding_list(var_name)
+        index = self._get_control_var_binding_entry_index(binding_list, target_name)
+        entry = binding_list[index]
+        return entry[2]
+
+    def get_control_var_binding_map_to_max(self, var_name, target_name):
+        binding_list = self._get_control_var_binding_list(var_name)
+        index = self._get_control_var_binding_entry_index(binding_list, target_name)
+        entry = binding_list[index]
+        return entry[3]
+
     def change_control_var_binding_target(self, var_name, target_name, new_target_name):
         binding_list = self._get_control_var_binding_list(var_name)
         index = self._get_control_var_binding_entry_index(binding_list, target_name)
         binding_list[index][1] = new_target_name
+        self._set_control_var_binding_list(var_name, binding_list)
+
+    def change_control_var_binding_map_to_min(self, var_name, target_name, new_value):
+        binding_list = self._get_control_var_binding_list(var_name)
+        index = self._get_control_var_binding_entry_index(binding_list, target_name)
+        entry = binding_list[index]
+        entry[2] = new_value
+        self._set_control_var_binding_list(var_name, binding_list)
+
+    def change_control_var_binding_map_to_max(self, var_name, target_name, new_value):
+        binding_list = self._get_control_var_binding_list(var_name)
+        index = self._get_control_var_binding_entry_index(binding_list, target_name)
+        entry = binding_list[index]
+        entry[3] = new_value
         self._set_control_var_binding_list(var_name, binding_list)
 
 
