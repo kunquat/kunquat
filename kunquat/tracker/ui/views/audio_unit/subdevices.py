@@ -471,7 +471,12 @@ class ControlVariableValueEditor(QWidget):
 
     def set_var_name(self, name):
         self._var_name = name
+        self._on_set_var_name()
 
+    # Protected interface
+
+    def _on_set_var_name(self):
+        # TODO: this callback contains stuff that doesn't belong here, fix
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
 
@@ -907,33 +912,47 @@ class BindTargetEditor(QWidget):
         self._target_name = None
 
         self._name_editor = BindTargetNameEditor()
+        self._map_to_min_editor = BindTargetMapToMinEditor()
+        self._map_to_max_editor = BindTargetMapToMaxEditor()
 
         h = QHBoxLayout()
         h.setMargin(0)
         h.setSpacing(2)
         h.addWidget(self._name_editor)
+        h.addWidget(self._map_to_min_editor)
+        h.addWidget(self._map_to_max_editor)
         self.setLayout(h)
 
     def set_au_id(self, au_id):
         self._au_id = au_id
         self._name_editor.set_au_id(au_id)
+        self._map_to_min_editor.set_au_id(au_id)
+        self._map_to_max_editor.set_au_id(au_id)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
         self._name_editor.set_ui_model(ui_model)
+        self._map_to_min_editor.set_ui_model(ui_model)
+        self._map_to_max_editor.set_ui_model(ui_model)
 
     def unregister_updaters(self):
+        self._map_to_max_editor.unregister_updaters()
+        self._map_to_min_editor.unregister_updaters()
         self._name_editor.unregister_updaters()
 
     def set_var_name(self, name):
         self._var_name = name
         self._name_editor.set_var_name(name)
+        self._map_to_min_editor.set_var_name(name)
+        self._map_to_max_editor.set_var_name(name)
 
     def set_target_name(self, name):
         assert self._var_name
         self._target_name = name
         self._name_editor.set_target_name(name)
+        self._map_to_min_editor.set_target_name(name)
+        self._map_to_max_editor.set_target_name(name)
 
     def set_used_names(self, used_names):
         self._name_editor.set_used_names(used_names)
@@ -965,6 +984,72 @@ class BindTargetNameEditor(NameEditor):
         au = module.get_audio_unit(self._au_id)
         au.change_control_var_binding_target(self._var_name, self._target_name, new_name)
         self._updater.signal_update(set([_get_update_signal_type(self._au_id)]))
+
+
+class BindTargetMapToMinEditor(ControlVariableValueEditor):
+
+    def __init__(self):
+        ControlVariableValueEditor.__init__(self, 'Map minimum to:')
+
+        self._target_name = None
+
+    def set_target_name(self, name):
+        self._target_name = name
+
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+
+        var_value = self._get_value(au)
+
+        editor = self._editors[float]
+        old_block = editor.blockSignals(True)
+        editor.setText(unicode(var_value))
+        editor.blockSignals(old_block)
+
+    def _on_set_var_name(self):
+        pass
+
+    def _get_value(self, au):
+        assert self._target_name
+        return au.get_control_var_binding_map_to_min(self._var_name, self._target_name)
+
+    def _set_value(self, au, new_value):
+        assert self._target_name
+        au.change_control_var_binding_map_to_min(
+                self._var_name, self._target_name, new_value)
+
+
+class BindTargetMapToMaxEditor(ControlVariableValueEditor):
+
+    def __init__(self):
+        ControlVariableValueEditor.__init__(self, 'Map maximum to:')
+
+        self._target_name = None
+
+    def set_target_name(self, name):
+        self._target_name = name
+
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+
+        var_value = self._get_value(au)
+
+        editor = self._editors[float]
+        old_block = editor.blockSignals(True)
+        editor.setText(unicode(var_value))
+        editor.blockSignals(old_block)
+
+    def _on_set_var_name(self):
+        pass
+
+    def _get_value(self, au):
+        assert self._target_name
+        return au.get_control_var_binding_map_to_max(self._var_name, self._target_name)
+
+    def _set_value(self, au, new_value):
+        assert self._target_name
+        au.change_control_var_binding_map_to_max(
+                self._var_name, self._target_name, new_value)
 
 
 class BindTargetAdder(Adder):
