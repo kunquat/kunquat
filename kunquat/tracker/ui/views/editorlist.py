@@ -127,5 +127,6 @@ class EditorListArea(QScrollArea):
 
     def resizeEvent(self, event):
         self.do_width_hack()
+        self.widget().updateGeometry()
 
 
