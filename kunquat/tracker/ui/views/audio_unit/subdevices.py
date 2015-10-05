@@ -281,7 +281,7 @@ class ControlVariableTypeExpander(QPushButton):
                     QPoint(0, triangle_extent))
 
 
-class ControlVariableNameEditor(QLineEdit):
+class NameEditor(QLineEdit):
 
     def __init__(self):
         QLineEdit.__init__(self)
@@ -301,31 +301,22 @@ class ControlVariableNameEditor(QLineEdit):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
 
-        QObject.connect(self, SIGNAL('editingFinished()'), self._change_name)
+        QObject.connect(self, SIGNAL('editingFinished()'), self._change_name_handler)
 
     def unregister_updaters(self):
         pass
-
-    def set_var_name(self, name):
-        self._var_name = name
-
-        old_block = self.blockSignals(True)
-        self.setText(self._var_name)
-        self.blockSignals(old_block)
 
     def set_used_names(self, used_names):
         self._validator = VarNameValidator(used_names)
         self.setValidator(self._validator)
 
-    def _change_name(self):
-        new_name = unicode(self.text())
-        if new_name == self._var_name:
-            return
+    def set_var_name(self, name):
+        self._var_name = name
+        self._set_var_name(name)
 
-        module = self._ui_model.get_module()
-        au = module.get_audio_unit(self._au_id)
-        au.change_control_var_name(self._var_name, new_name)
-        self._updater.signal_update(set([_get_update_signal_type(self._au_id)]))
+    def _change_name_handler(self):
+        new_name = unicode(self.text())
+        self._change_name(new_name)
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
@@ -333,6 +324,34 @@ class ControlVariableNameEditor(QLineEdit):
             self.set_var_name(self._var_name)
         else:
             return QLineEdit.keyPressEvent(self, event)
+
+    # Protected interface
+
+    def _set_var_name(self, name):
+        raise NotImplementedError
+
+    def _change_name(self, new_name):
+        raise NotImplementedError
+
+
+class ControlVariableNameEditor(NameEditor):
+
+    def __init__(self):
+        NameEditor.__init__(self)
+
+    def _set_var_name(self, name):
+        old_block = self.blockSignals(True)
+        self.setText(self._var_name)
+        self.blockSignals(old_block)
+
+    def _change_name(self, new_name):
+        if new_name == self._var_name:
+            return
+
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+        au.change_control_var_name(self._var_name, new_name)
+        self._updater.signal_update(set([_get_update_signal_type(self._au_id)]))
 
 
 class ControlVariableTypeEditor(QComboBox):
@@ -887,28 +906,65 @@ class BindTargetEditor(QWidget):
         self._var_name = None
         self._target_name = None
 
+        self._name_editor = BindTargetNameEditor()
+
         h = QHBoxLayout()
         h.setMargin(0)
         h.setSpacing(2)
-        h.addWidget(QLabel('target editor'))
+        h.addWidget(self._name_editor)
         self.setLayout(h)
 
     def set_au_id(self, au_id):
         self._au_id = au_id
+        self._name_editor.set_au_id(au_id)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
+        self._name_editor.set_ui_model(ui_model)
+
+    def unregister_updaters(self):
+        self._name_editor.unregister_updaters()
 
     def set_var_name(self, name):
         self._var_name = name
+        self._name_editor.set_var_name(name)
+
+    def set_target_name(self, name):
+        assert self._var_name
+        self._target_name = name
+        self._name_editor.set_target_name(name)
+
+    def set_used_names(self, used_names):
+        self._name_editor.set_used_names(used_names)
+
+
+class BindTargetNameEditor(NameEditor):
+
+    def __init__(self):
+        NameEditor.__init__(self)
+
+        self._target_name = None
 
     def set_target_name(self, name):
         assert self._var_name
         self._target_name = name
 
-    def unregister_updaters(self):
+        old_block = self.blockSignals(True)
+        self.setText(self._target_name)
+        self.blockSignals(old_block)
+
+    def _set_var_name(self, name):
         pass
+
+    def _change_name(self, new_name):
+        if new_name == self._target_name:
+            return
+
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+        au.change_control_var_binding_target(self._var_name, self._target_name, new_name)
+        self._updater.signal_update(set([_get_update_signal_type(self._au_id)]))
 
 
 class BindTargetAdder(Adder):
