@@ -785,7 +785,7 @@ class ControlVariableAdder(Adder):
         self._updater.signal_update(set([_get_update_signal_type(self._au_id)]))
 
 
-class ControlVariableRemoveButton(QPushButton):
+class RemoveButton(QPushButton):
 
     def __init__(self):
         QPushButton.__init__(self)
@@ -811,11 +811,25 @@ class ControlVariableRemoveButton(QPushButton):
 
         QObject.connect(self, SIGNAL('clicked()'), self._remove)
 
+    def set_var_name(self, name):
+        self._var_name = name
+
     def unregister_updaters(self):
         pass
 
-    def set_var_name(self, name):
-        self._var_name = name
+    # Protected interface
+
+    def _get_button_text(self):
+        raise NotImplementedError
+
+    def _remove(self):
+        raise NotImplementedError
+
+
+class ControlVariableRemoveButton(RemoveButton):
+
+    def __init__(self):
+        RemoveButton.__init__(self)
 
     def _remove(self):
         module = self._ui_model.get_module()
@@ -914,6 +928,7 @@ class BindTargetEditor(QWidget):
         self._name_editor = BindTargetNameEditor()
         self._map_to_min_editor = BindTargetMapToMinEditor()
         self._map_to_max_editor = BindTargetMapToMaxEditor()
+        self._remove_button = BindTargetRemoveButton()
 
         h = QHBoxLayout()
         h.setMargin(0)
@@ -921,6 +936,7 @@ class BindTargetEditor(QWidget):
         h.addWidget(self._name_editor)
         h.addWidget(self._map_to_min_editor)
         h.addWidget(self._map_to_max_editor)
+        h.addWidget(self._remove_button)
         self.setLayout(h)
 
     def set_au_id(self, au_id):
@@ -928,6 +944,7 @@ class BindTargetEditor(QWidget):
         self._name_editor.set_au_id(au_id)
         self._map_to_min_editor.set_au_id(au_id)
         self._map_to_max_editor.set_au_id(au_id)
+        self._remove_button.set_au_id(au_id)
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -935,8 +952,10 @@ class BindTargetEditor(QWidget):
         self._name_editor.set_ui_model(ui_model)
         self._map_to_min_editor.set_ui_model(ui_model)
         self._map_to_max_editor.set_ui_model(ui_model)
+        self._remove_button.set_ui_model(ui_model)
 
     def unregister_updaters(self):
+        self._remove_button.unregister_updaters()
         self._map_to_max_editor.unregister_updaters()
         self._map_to_min_editor.unregister_updaters()
         self._name_editor.unregister_updaters()
@@ -946,6 +965,7 @@ class BindTargetEditor(QWidget):
         self._name_editor.set_var_name(name)
         self._map_to_min_editor.set_var_name(name)
         self._map_to_max_editor.set_var_name(name)
+        self._remove_button.set_var_name(name)
 
     def set_target_name(self, name):
         assert self._var_name
@@ -953,6 +973,7 @@ class BindTargetEditor(QWidget):
         self._name_editor.set_target_name(name)
         self._map_to_min_editor.set_target_name(name)
         self._map_to_max_editor.set_target_name(name)
+        self._remove_button.set_target_name(name)
 
     def set_used_names(self, used_names):
         self._name_editor.set_used_names(used_names)
@@ -1050,6 +1071,26 @@ class BindTargetMapToMaxEditor(ControlVariableValueEditor):
         assert self._target_name
         au.change_control_var_binding_map_to_max(
                 self._var_name, self._target_name, new_value)
+
+
+class BindTargetRemoveButton(RemoveButton):
+
+    def __init__(self):
+        RemoveButton.__init__(self)
+
+        self._target_name = None
+
+    def set_target_name(self, name):
+        self._target_name = name
+
+    def _remove(self):
+        assert self._target_name
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+        au.remove_control_var_binding(self._var_name, self._target_name)
+        self._updater.signal_update(set([
+            _get_update_signal_type(self._au_id),
+            _get_collapse_signal_type(self._au_id)]))
 
 
 class BindTargetAdder(Adder):
