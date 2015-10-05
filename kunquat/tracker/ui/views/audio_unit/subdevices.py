@@ -32,20 +32,18 @@ def _get_collapse_signal_type(au_id):
     return 'signal_au_control_vars_collapse_{}'.format(au_id)
 
 
-class Subdevices(QWidget):
+class Subdevices(QSplitter):
 
     def __init__(self):
-        QWidget.__init__(self)
+        QSplitter.__init__(self, Qt.Vertical)
 
         self._conns_editor = ConnectionsEditor()
         self._control_vars = ControlVariables()
 
-        v = QVBoxLayout()
-        v.setMargin(0)
-        v.setSpacing(2)
-        v.addWidget(self._conns_editor, 4)
-        v.addWidget(self._control_vars, 1)
-        self.setLayout(v)
+        self.addWidget(self._conns_editor)
+        self.addWidget(self._control_vars)
+
+        self.setStretchFactor(0, 4)
 
     def set_au_id(self, au_id):
         self._conns_editor.set_au_id(au_id)
