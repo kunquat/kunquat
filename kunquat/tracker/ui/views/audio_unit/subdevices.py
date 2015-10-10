@@ -131,15 +131,18 @@ class ControlVariableList(EditorList):
         return var_count
 
     def _make_editor_widget(self, index):
+        var_name = self._var_names[index]
+
         editor = ControlVariableEditor()
         editor.set_au_id(self._au_id)
+        editor.set_context(var_name)
         editor.set_ui_model(self._ui_model)
         return editor
 
     def _update_editor(self, index, editor):
         var_name = self._var_names[index]
 
-        editor.set_var_name(var_name)
+        editor.set_context(var_name)
         editor.set_used_names(self._var_names_set)
 
     def _disconnect_widget(self, widget):
@@ -151,10 +154,9 @@ class ControlVariableEditor(QWidget):
     def __init__(self):
         QWidget.__init__(self)
         self._au_id = None
+        self._context = None
         self._ui_model = None
         self._updater = None
-
-        self._var_name = None
 
         self._expander = ControlVariableTypeExpander()
         self._name_editor = ControlVariableNameEditor()
@@ -190,6 +192,18 @@ class ControlVariableEditor(QWidget):
         self._remove_button.set_au_id(au_id)
         self._bindings.set_au_id(au_id)
 
+    def set_context(self, context):
+        self._context = context
+        self._name_editor.set_context(context)
+        self._type_editor.set_context(context)
+        self._init_value_editor.set_context(context)
+        self._ext_editor.set_context(context)
+        self._remove_button.set_context(context)
+        self._bindings.set_context(context)
+
+        if self._ui_model:
+            self._update_contents()
+
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
@@ -202,6 +216,8 @@ class ControlVariableEditor(QWidget):
 
         QObject.connect(self._expander, SIGNAL('clicked(bool)'), self._toggle_expand)
 
+        self._update_contents()
+
     def unregister_updaters(self):
         self._bindings.unregister_updaters()
         self._remove_button.unregister_updaters()
@@ -210,30 +226,26 @@ class ControlVariableEditor(QWidget):
         self._type_editor.unregister_updaters()
         self._name_editor.unregister_updaters()
 
-    def set_var_name(self, name):
-        self._var_name = name
-        self._name_editor.set_var_name(name)
-        self._type_editor.set_var_name(name)
-        self._init_value_editor.set_var_name(name)
-        self._ext_editor.set_var_name(name)
-        self._remove_button.set_var_name(name)
-        self._bindings.set_var_name(name)
+    def set_used_names(self, used_names):
+        self._name_editor.set_used_names(used_names)
+
+    def _update_contents(self):
+        var_name = self._context
 
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
-        is_expanded = au.is_control_var_expanded(self._var_name)
+        is_expanded = au.is_control_var_expanded(var_name)
 
         old_block = self._expander.blockSignals(True)
         self._expander.setChecked(is_expanded)
         self._expander.blockSignals(old_block)
 
-    def set_used_names(self, used_names):
-        self._name_editor.set_used_names(used_names)
-
     def _toggle_expand(self, expand):
+        var_name = self._context
+
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
-        au.set_control_var_expanded(self._var_name, expand)
+        au.set_control_var_expanded(var_name, expand)
 
         if expand:
             self._bindings.setVisible(True)
@@ -247,7 +259,6 @@ class ControlVariableTypeExpander(QPushButton):
 
     def __init__(self):
         QPushButton.__init__(self)
-
         self.setCheckable(True)
 
     def sizeHint(self):
@@ -284,22 +295,29 @@ class NameEditor(QLineEdit):
     def __init__(self):
         QLineEdit.__init__(self)
         self._au_id = None
+        self._context = None
         self._ui_model = None
         self._updater = None
         self._validator = None
 
         self.set_used_names(set())
 
-        self._var_name = None
-
     def set_au_id(self, au_id):
         self._au_id = au_id
+
+    def set_context(self, context):
+        self._context = context
+
+        if self._ui_model:
+            self._update_contents()
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
 
         QObject.connect(self, SIGNAL('editingFinished()'), self._change_name_handler)
+
+        self._update_contents()
 
     def unregister_updaters(self):
         pass
@@ -308,10 +326,6 @@ class NameEditor(QLineEdit):
         self._validator = VarNameValidator(used_names)
         self.setValidator(self._validator)
 
-    def set_var_name(self, name):
-        self._var_name = name
-        self._set_var_name(name)
-
     def _change_name_handler(self):
         new_name = unicode(self.text())
         self._change_name(new_name)
@@ -319,13 +333,13 @@ class NameEditor(QLineEdit):
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
             event.accept()
-            self.set_var_name(self._var_name)
+            self.set_context(self._context)
         else:
             return QLineEdit.keyPressEvent(self, event)
 
     # Protected interface
 
-    def _set_var_name(self, name):
+    def _update_contents(self):
         raise NotImplementedError
 
     def _change_name(self, new_name):
@@ -337,18 +351,18 @@ class ControlVariableNameEditor(NameEditor):
     def __init__(self):
         NameEditor.__init__(self)
 
-    def _set_var_name(self, name):
+    def _update_contents(self):
         old_block = self.blockSignals(True)
-        self.setText(self._var_name)
+        self.setText(self._context)
         self.blockSignals(old_block)
 
     def _change_name(self, new_name):
-        if new_name == self._var_name:
+        if new_name == self._context:
             return
 
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
-        au.change_control_var_name(self._var_name, new_name)
+        au.change_control_var_name(self._context, new_name)
         self._updater.signal_update(set([_get_update_signal_type(self._au_id)]))
 
 
@@ -357,13 +371,18 @@ class ControlVariableTypeEditor(QComboBox):
     def __init__(self):
         QComboBox.__init__(self)
         self._au_id = None
+        self._context = None
         self._ui_model = None
         self._updater = None
 
-        self._var_name = None
-
     def set_au_id(self, au_id):
         self._au_id = au_id
+
+    def set_context(self, context):
+        self._context = context
+
+        if self._ui_model:
+            self._update_contents()
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -386,16 +405,16 @@ class ControlVariableTypeEditor(QComboBox):
 
         QObject.connect(self, SIGNAL('currentIndexChanged(int)'), self._change_type)
 
+        self._update_contents()
+
     def unregister_updaters(self):
         pass
 
-    def set_var_name(self, name):
-        self._var_name = name
-
+    def _update_contents(self):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
         var_types = au.get_control_var_types()
-        var_type = au.get_control_var_type(self._var_name)
+        var_type = au.get_control_var_type(self._context)
         var_type_index = var_types.index(var_type)
 
         old_block = self.blockSignals(True)
@@ -406,7 +425,7 @@ class ControlVariableTypeEditor(QComboBox):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
         var_types = au.get_control_var_types()
-        au.change_control_var_type(self._var_name, var_types[index])
+        au.change_control_var_type(self._context, var_types[index])
         self._updater.signal_update(set([_get_update_signal_type(self._au_id)]))
 
 
@@ -415,10 +434,9 @@ class ControlVariableValueEditor(QWidget):
     def __init__(self, label):
         QWidget.__init__(self)
         self._au_id = None
+        self._context = None
         self._ui_model = None
         self._updater = None
-
-        self._var_name = None
 
         # TODO: The QStackedLayout causes flickering during update for some reason, fix
 
@@ -444,6 +462,12 @@ class ControlVariableValueEditor(QWidget):
     def set_au_id(self, au_id):
         self._au_id = au_id
 
+    def set_context(self, context):
+        self._context = context
+
+        if self._ui_model:
+            self._update_contents()
+
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
@@ -464,22 +488,31 @@ class ControlVariableValueEditor(QWidget):
                 SIGNAL('editingFinished()'),
                 self._change_float_value)
 
+        self._update_contents()
+
     def unregister_updaters(self):
         pass
 
-    def set_var_name(self, name):
-        self._var_name = name
-        self._on_set_var_name()
+    def _change_value(self, new_value):
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+        self._set_value(au, new_value)
+        self._updater.signal_update(set([_get_update_signal_type(self._au_id)]))
+
+    def _change_float_value(self):
+        new_qstring = self._editors[float].text()
+        new_value = float(unicode(new_qstring))
+        self._change_value(new_value)
 
     # Protected interface
 
-    def _on_set_var_name(self):
+    def _update_contents(self):
         # TODO: this callback contains stuff that doesn't belong here, fix
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
 
         var_types = au.get_control_var_types()
-        var_type = au.get_control_var_type(self._var_name)
+        var_type = au.get_control_var_type(self._context)
         var_type_index = var_types.index(var_type)
         '''
         self._editor_layout.setCurrentIndex(var_type_index)
@@ -501,17 +534,6 @@ class ControlVariableValueEditor(QWidget):
     def _set_value(self, au, new_value):
         raise NotImplementedError
 
-    def _change_value(self, new_value):
-        module = self._ui_model.get_module()
-        au = module.get_audio_unit(self._au_id)
-        self._set_value(au, new_value)
-        self._updater.signal_update(set([_get_update_signal_type(self._au_id)]))
-
-    def _change_float_value(self):
-        new_qstring = self._editors[float].text()
-        new_value = float(unicode(new_qstring))
-        self._change_value(new_value)
-
 
 class ControlVariableInitValueEditor(ControlVariableValueEditor):
 
@@ -519,10 +541,10 @@ class ControlVariableInitValueEditor(ControlVariableValueEditor):
         ControlVariableValueEditor.__init__(self, 'Initial value:')
 
     def _get_value(self, au):
-        return au.get_control_var_init_value(self._var_name)
+        return au.get_control_var_init_value(self._context)
 
     def _set_value(self, au, new_value):
-        au.change_control_var_init_value(self._var_name, new_value)
+        au.change_control_var_init_value(self._context, new_value)
 
 
 class ControlVariableMinValueEditor(ControlVariableValueEditor):
@@ -531,10 +553,10 @@ class ControlVariableMinValueEditor(ControlVariableValueEditor):
         ControlVariableValueEditor.__init__(self, 'Minimum value:')
 
     def _get_value(self, au):
-        return au.get_control_var_min_value(self._var_name)
+        return au.get_control_var_min_value(self._context)
 
     def _set_value(self, au, new_value):
-        au.change_control_var_min_value(self._var_name, new_value)
+        au.change_control_var_min_value(self._context, new_value)
 
 
 class ControlVariableMaxValueEditor(ControlVariableValueEditor):
@@ -543,10 +565,10 @@ class ControlVariableMaxValueEditor(ControlVariableValueEditor):
         ControlVariableValueEditor.__init__(self, 'Maximum value:')
 
     def _get_value(self, au):
-        return au.get_control_var_max_value(self._var_name)
+        return au.get_control_var_max_value(self._context)
 
     def _set_value(self, au, new_value):
-        au.change_control_var_max_value(self._var_name, new_value)
+        au.change_control_var_max_value(self._context, new_value)
 
 
 class ControlVariableExtEditor(QWidget):
@@ -554,10 +576,9 @@ class ControlVariableExtEditor(QWidget):
     def __init__(self):
         QWidget.__init__(self)
         self._au_id = None
+        self._context = None
         self._ui_model = None
         self._updater = None
-
-        self._var_name = None
 
         self._editors = {
             float: ControlVariableFloatExtEditor(),
@@ -577,6 +598,15 @@ class ControlVariableExtEditor(QWidget):
         for editor in self._editors.itervalues():
             editor.set_au_id(au_id)
 
+    def set_context(self, context):
+        self._context = context
+
+        if self._ui_model:
+            self._update_contents()
+        else:
+            for editor in self._editors.itervalues():
+                editor.set_context(self._context)
+
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
@@ -595,25 +625,25 @@ class ControlVariableExtEditor(QWidget):
         self.setLayout(s)
         '''
 
+        self._update_contents()
+
     def unregister_updaters(self):
         for editor in self._editors.itervalues():
             editor.unregister_updaters()
 
-    def set_var_name(self, name):
-        self._var_name = name
-
+    def _update_contents(self):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
 
         var_types = au.get_control_var_types()
-        var_type = au.get_control_var_type(self._var_name)
+        var_type = au.get_control_var_type(self._context)
         var_type_index = var_types.index(var_type)
         '''
         self.layout().setCurrentIndex(var_type_index)
         '''
 
         editor = self._editors[var_type]
-        editor.set_var_name(name)
+        editor.set_context(self._context)
 
 
 class ControlVariableFloatExtEditor(QWidget):
@@ -621,10 +651,9 @@ class ControlVariableFloatExtEditor(QWidget):
     def __init__(self):
         QWidget.__init__(self)
         self._au_id = None
+        self._context = None
         self._ui_model = None
         self._updater = None
-
-        self._var_name = None
 
         self._min_value_editor = ControlVariableMinValueEditor()
         self._max_value_editor = ControlVariableMaxValueEditor()
@@ -641,31 +670,40 @@ class ControlVariableFloatExtEditor(QWidget):
         self._min_value_editor.set_au_id(au_id)
         self._max_value_editor.set_au_id(au_id)
 
+    def set_context(self, context):
+        self._context = context
+
+        if self._ui_model:
+            self._update_contents()
+        else:
+            self._min_value_editor.set_context(self._context)
+            self._max_value_editor.set_context(self._context)
+
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
         self._min_value_editor.set_ui_model(ui_model)
         self._max_value_editor.set_ui_model(ui_model)
 
+        self._update_contents()
+
     def unregister_updaters(self):
         self._max_value_editor.unregister_updaters()
         self._min_value_editor.unregister_updaters()
 
-    def set_var_name(self, name):
-        self._var_name = name
-
+    def _update_contents(self):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
 
-        var_type = au.get_control_var_type(self._var_name)
+        var_type = au.get_control_var_type(self._context)
         if var_type != float:
             self.setEnabled(False)
             return
 
         self.setEnabled(True)
 
-        self._min_value_editor.set_var_name(name)
-        self._max_value_editor.set_var_name(name)
+        self._min_value_editor.set_context(self._context)
+        self._max_value_editor.set_context(self._context)
 
 
 class Adder(QWidget):
@@ -788,10 +826,9 @@ class RemoveButton(QPushButton):
     def __init__(self):
         QPushButton.__init__(self)
         self._au_id = None
+        self._context = None
         self._ui_model = None
         self._updater = None
-
-        self._var_name = None
 
         self.setToolTip('Remove')
 
@@ -799,6 +836,9 @@ class RemoveButton(QPushButton):
 
     def set_au_id(self, au_id):
         self._au_id = au_id
+
+    def set_context(self, context):
+        self._context = context
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -808,9 +848,6 @@ class RemoveButton(QPushButton):
         self.setIcon(QIcon(icon_bank.get_icon_path('delete_small')))
 
         QObject.connect(self, SIGNAL('clicked()'), self._remove)
-
-    def set_var_name(self, name):
-        self._var_name = name
 
     def unregister_updaters(self):
         pass
@@ -830,9 +867,11 @@ class ControlVariableRemoveButton(RemoveButton):
         RemoveButton.__init__(self)
 
     def _remove(self):
+        var_name = self._context
+
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
-        au.remove_control_var(self._var_name)
+        au.remove_control_var(var_name)
         self._updater.signal_update(set([_get_update_signal_type(self._au_id)]))
 
 
@@ -841,10 +880,9 @@ class ControlVariableBindings(QWidget):
     def __init__(self):
         QWidget.__init__(self)
         self._au_id = None
+        self._context = None
         self._ui_model = None
         self._updater = None
-
-        self._var_name = None
 
         self._adder = BindTargetAdder()
 
@@ -855,6 +893,10 @@ class ControlVariableBindings(QWidget):
         v.setSpacing(2)
         v.addWidget(self._adder)
         self.setLayout(v)
+
+    def _get_adder(self):
+        layout = self.layout()
+        return layout.itemAt(layout.count() - 1).widget()
 
     def _get_widgets(self):
         for i in xrange(self.layout().count()):
@@ -869,6 +911,12 @@ class ControlVariableBindings(QWidget):
         for widget in self._get_widgets():
             widget.set_au_id(au_id)
 
+    def set_context(self, context):
+        self._context = context
+
+        if self._ui_model:
+            self._update_contents()
+
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
@@ -877,19 +925,21 @@ class ControlVariableBindings(QWidget):
         for widget in self._get_widgets():
             widget.set_ui_model(ui_model)
 
+        self._update_contents()
+
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
         for widget in self._get_widgets():
             widget.unregister_updaters()
 
-    def set_var_name(self, name):
-        self._var_name = name
+    def _update_contents(self):
+        var_name = self._context
 
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
-        self.setVisible(au.is_control_var_expanded(self._var_name))
+        self.setVisible(au.is_control_var_expanded(var_name))
 
-        binding_targets = au.get_control_var_binding_targets(self._var_name)
+        binding_targets = au.get_control_var_binding_targets(var_name)
 
         cur_binding_count = self.layout().count() - 1
 
@@ -901,11 +951,12 @@ class ControlVariableBindings(QWidget):
             editor.set_ui_model(self._ui_model)
             layout.insertWidget(i, editor)
 
-        for widget in self._get_widgets():
-            widget.set_var_name(name)
+        self._get_adder().set_context(var_name)
 
-        for name, editor in izip(binding_targets, self._get_editors()):
-            editor.set_target_name(name)
+        for target_name, editor in izip(binding_targets, self._get_editors()):
+            dev = 'foo' # TODO
+            context = (var_name, dev, target_name)
+            editor.set_context(context)
 
     def _perform_updates(self, signals):
         if _get_update_signal_type(self._au_id) in signals:
@@ -916,12 +967,6 @@ class BindTargetEditor(QWidget):
 
     def __init__(self):
         QWidget.__init__(self)
-        self._au_id = None
-        self._ui_model = None
-        self._updater = None
-
-        self._var_name = None
-        self._target_name = None
 
         self._name_editor = BindTargetNameEditor()
         self._map_to_min_editor = BindTargetMapToMinEditor()
@@ -938,15 +983,18 @@ class BindTargetEditor(QWidget):
         self.setLayout(h)
 
     def set_au_id(self, au_id):
-        self._au_id = au_id
         self._name_editor.set_au_id(au_id)
         self._map_to_min_editor.set_au_id(au_id)
         self._map_to_max_editor.set_au_id(au_id)
         self._remove_button.set_au_id(au_id)
 
+    def set_context(self, context):
+        self._name_editor.set_context(context)
+        self._map_to_min_editor.set_context(context)
+        self._map_to_max_editor.set_context(context)
+        self._remove_button.set_context(context)
+
     def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
         self._name_editor.set_ui_model(ui_model)
         self._map_to_min_editor.set_ui_model(ui_model)
         self._map_to_max_editor.set_ui_model(ui_model)
@@ -958,21 +1006,6 @@ class BindTargetEditor(QWidget):
         self._map_to_min_editor.unregister_updaters()
         self._name_editor.unregister_updaters()
 
-    def set_var_name(self, name):
-        self._var_name = name
-        self._name_editor.set_var_name(name)
-        self._map_to_min_editor.set_var_name(name)
-        self._map_to_max_editor.set_var_name(name)
-        self._remove_button.set_var_name(name)
-
-    def set_target_name(self, name):
-        assert self._var_name
-        self._target_name = name
-        self._name_editor.set_target_name(name)
-        self._map_to_min_editor.set_target_name(name)
-        self._map_to_max_editor.set_target_name(name)
-        self._remove_button.set_target_name(name)
-
     def set_used_names(self, used_names):
         self._name_editor.set_used_names(used_names)
 
@@ -982,27 +1015,26 @@ class BindTargetNameEditor(NameEditor):
     def __init__(self):
         NameEditor.__init__(self)
 
-        self._target_name = None
-
-    def set_target_name(self, name):
-        assert self._var_name
-        self._target_name = name
-
-        old_block = self.blockSignals(True)
-        self.setText(self._target_name)
-        self.blockSignals(old_block)
-
-    def _set_var_name(self, name):
-        pass
-
     def _change_name(self, new_name):
-        if new_name == self._target_name:
+        var_name, target_dev, target_name = self._context
+
+        if new_name == target_name:
             return
 
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
-        au.change_control_var_binding_target(self._var_name, self._target_name, new_name)
+        au.change_control_var_binding_target(var_name, target_name, new_name)
         self._updater.signal_update(set([_get_update_signal_type(self._au_id)]))
+
+    def _update_contents(self):
+        if not self._context:
+            return
+
+        target_name = self._context[2]
+
+        old_block = self.blockSignals(True)
+        self.setText(target_name)
+        self.blockSignals(old_block)
 
 
 class BindTargetMapToMinEditor(ControlVariableValueEditor):
@@ -1010,10 +1042,18 @@ class BindTargetMapToMinEditor(ControlVariableValueEditor):
     def __init__(self):
         ControlVariableValueEditor.__init__(self, 'Map minimum to:')
 
-        self._target_name = None
+    def _get_value(self, au):
+        var_name, target_dev, target_name = self._context
+        return au.get_control_var_binding_map_to_min(var_name, target_name)
 
-    def set_target_name(self, name):
-        self._target_name = name
+    def _set_value(self, au, new_value):
+        var_name, target_dev, target_name = self._context
+        au.change_control_var_binding_map_to_min(
+                var_name, target_name, new_value)
+
+    def _update_contents(self):
+        if not self._context:
+            return
 
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
@@ -1024,18 +1064,6 @@ class BindTargetMapToMinEditor(ControlVariableValueEditor):
         old_block = editor.blockSignals(True)
         editor.setText(unicode(var_value))
         editor.blockSignals(old_block)
-
-    def _on_set_var_name(self):
-        pass
-
-    def _get_value(self, au):
-        assert self._target_name
-        return au.get_control_var_binding_map_to_min(self._var_name, self._target_name)
-
-    def _set_value(self, au, new_value):
-        assert self._target_name
-        au.change_control_var_binding_map_to_min(
-                self._var_name, self._target_name, new_value)
 
 
 class BindTargetMapToMaxEditor(ControlVariableValueEditor):
@@ -1043,10 +1071,18 @@ class BindTargetMapToMaxEditor(ControlVariableValueEditor):
     def __init__(self):
         ControlVariableValueEditor.__init__(self, 'Map maximum to:')
 
-        self._target_name = None
+    def _get_value(self, au):
+        var_name, target_dev, target_name = self._context
+        return au.get_control_var_binding_map_to_max(var_name, target_name)
 
-    def set_target_name(self, name):
-        self._target_name = name
+    def _set_value(self, au, new_value):
+        var_name, target_dev, target_name = self._context
+        au.change_control_var_binding_map_to_max(
+                var_name, target_name, new_value)
+
+    def _update_contents(self):
+        if not self._context:
+            return
 
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
@@ -1058,34 +1094,17 @@ class BindTargetMapToMaxEditor(ControlVariableValueEditor):
         editor.setText(unicode(var_value))
         editor.blockSignals(old_block)
 
-    def _on_set_var_name(self):
-        pass
-
-    def _get_value(self, au):
-        assert self._target_name
-        return au.get_control_var_binding_map_to_max(self._var_name, self._target_name)
-
-    def _set_value(self, au, new_value):
-        assert self._target_name
-        au.change_control_var_binding_map_to_max(
-                self._var_name, self._target_name, new_value)
-
 
 class BindTargetRemoveButton(RemoveButton):
 
     def __init__(self):
         RemoveButton.__init__(self)
 
-        self._target_name = None
-
-    def set_target_name(self, name):
-        self._target_name = name
-
     def _remove(self):
-        assert self._target_name
+        var_name, target_dev, target_name = self._context
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
-        au.remove_control_var_binding(self._var_name, self._target_name)
+        au.remove_control_var_binding(var_name, target_name)
         self._updater.signal_update(set([
             _get_update_signal_type(self._au_id),
             _get_collapse_signal_type(self._au_id)]))
@@ -1096,33 +1115,37 @@ class BindTargetAdder(Adder):
     def __init__(self):
         Adder.__init__(self)
 
-        self._var_name = None
+        self._context = None
 
-    def set_var_name(self, name):
-        self._var_name = name
+    def set_context(self, context):
+        self._context = context
 
     def _get_add_text(self):
         return 'Add new binding'
 
     def _get_used_names(self):
-        if not self._var_name:
+        if not self._context:
             return set()
+
+        var_name = self._context
 
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
 
         # Escape if we are being removed
-        if self._var_name not in au.get_control_var_names():
+        if var_name not in au.get_control_var_names():
             return set()
 
-        used_names = set(au.get_control_var_binding_targets(self._var_name))
+        used_names = set(au.get_control_var_binding_targets(var_name))
         return used_names
 
     def _add_new_entry(self, name):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
 
-        au.add_control_var_binding_float(self._var_name, name, 0.0, 1.0)
+        var_name = self._context
+
+        au.add_control_var_binding_float(var_name, name, 0.0, 1.0)
         self._updater.signal_update(set([_get_update_signal_type(self._au_id)]))
 
 
