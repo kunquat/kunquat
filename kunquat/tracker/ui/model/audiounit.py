@@ -502,9 +502,10 @@ class AudioUnit():
         var_entry = var_dict[var_name]
         return var_entry[3]
 
-    def _get_control_var_binding_entry_index(self, binding_list, target_name):
+    def _get_control_var_binding_entry_index(
+            self, binding_list, target_dev_id, target_var_name):
         for i, entry in enumerate(binding_list):
-            if entry[1] == target_name:
+            if (entry[0] == target_dev_id) and (entry[1] == target_var_name):
                 return i
         raise ValueError('Binding target {} not in list'.format(target_name))
 
@@ -654,52 +655,73 @@ class AudioUnit():
     def get_control_var_binding_targets(self, var_name):
         assert var_name
         binding_list = self._get_control_var_binding_list(var_name)
-        return [entry[1] for entry in binding_list]
+        return [(entry[0], entry[1]) for entry in binding_list]
 
     def add_control_var_binding_float(
-            self, var_name, target_name, map_min_to, map_max_to):
+            self, var_name, target_dev_id, target_var_name, map_min_to, map_max_to):
         assert var_name
+        assert target_dev_id
         binding_list = self._get_control_var_binding_list(var_name)
         type_name = self._get_control_var_format_type(float)
-        binding_list.append([type_name, target_name, map_min_to, map_max_to])
+        binding_list.append([
+            target_dev_id, target_var_name, type_name, map_min_to, map_max_to])
         self._set_control_var_binding_list(var_name, binding_list)
 
-    def remove_control_var_binding(self, var_name, target_name):
+    def remove_control_var_binding(self, var_name, target_dev_id, target_var_name):
         binding_list = self._get_control_var_binding_list(var_name)
-        index = self._get_control_var_binding_entry_index(binding_list, target_name)
+        index = self._get_control_var_binding_entry_index(
+                binding_list, target_dev_id, target_var_name)
         del binding_list[index]
         self._set_control_var_binding_list(var_name, binding_list)
 
-    def get_control_var_binding_map_to_min(self, var_name, target_name):
+    def get_control_var_binding_map_to_min(
+            self, var_name, target_dev_id, target_var_name):
         binding_list = self._get_control_var_binding_list(var_name)
-        index = self._get_control_var_binding_entry_index(binding_list, target_name)
-        entry = binding_list[index]
-        return entry[2]
-
-    def get_control_var_binding_map_to_max(self, var_name, target_name):
-        binding_list = self._get_control_var_binding_list(var_name)
-        index = self._get_control_var_binding_entry_index(binding_list, target_name)
+        index = self._get_control_var_binding_entry_index(
+                binding_list, target_dev_id, target_var_name)
         entry = binding_list[index]
         return entry[3]
 
-    def change_control_var_binding_target(self, var_name, target_name, new_target_name):
+    def get_control_var_binding_map_to_max(
+            self, var_name, target_dev_id, target_var_name):
         binding_list = self._get_control_var_binding_list(var_name)
-        index = self._get_control_var_binding_entry_index(binding_list, target_name)
+        index = self._get_control_var_binding_entry_index(
+                binding_list, target_dev_id, target_var_name)
+        entry = binding_list[index]
+        return entry[4]
+
+    def change_control_var_binding_target_dev(
+            self, var_name, target_dev_id, target_var_name, new_target_dev_id):
+        binding_list = self._get_control_var_binding_list(var_name)
+        index = self._get_control_var_binding_entry_index(
+                binding_list, target_dev_id, target_var_name)
+        binding_list[index][0] = new_target_dev_id
+        self._set_control_var_binding_list(var_name, binding_list)
+
+    def change_control_var_binding_target_name(
+            self, var_name, target_dev_id, target_var_name, new_target_name):
+        binding_list = self._get_control_var_binding_list(var_name)
+        index = self._get_control_var_binding_entry_index(
+                binding_list, target_dev_id, target_var_name)
         binding_list[index][1] = new_target_name
         self._set_control_var_binding_list(var_name, binding_list)
 
-    def change_control_var_binding_map_to_min(self, var_name, target_name, new_value):
+    def change_control_var_binding_map_to_min(
+            self, var_name, target_dev_id, target_var_name, new_value):
         binding_list = self._get_control_var_binding_list(var_name)
-        index = self._get_control_var_binding_entry_index(binding_list, target_name)
-        entry = binding_list[index]
-        entry[2] = new_value
-        self._set_control_var_binding_list(var_name, binding_list)
-
-    def change_control_var_binding_map_to_max(self, var_name, target_name, new_value):
-        binding_list = self._get_control_var_binding_list(var_name)
-        index = self._get_control_var_binding_entry_index(binding_list, target_name)
+        index = self._get_control_var_binding_entry_index(
+                binding_list, target_dev_id, target_var_name)
         entry = binding_list[index]
         entry[3] = new_value
+        self._set_control_var_binding_list(var_name, binding_list)
+
+    def change_control_var_binding_map_to_max(
+            self, var_name, target_dev_id, target_var_name, new_value):
+        binding_list = self._get_control_var_binding_list(var_name)
+        index = self._get_control_var_binding_entry_index(
+                binding_list, target_dev_id, target_var_name)
+        entry = binding_list[index]
+        entry[4] = new_value
         self._set_control_var_binding_list(var_name, binding_list)
 
 

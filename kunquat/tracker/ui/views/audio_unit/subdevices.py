@@ -28,8 +28,8 @@ from kunquat.tracker.ui.views.varvalidators import *
 def _get_update_signal_type(au_id):
     return 'signal_au_control_vars_{}'.format(au_id)
 
-def _get_collapse_signal_type(au_id):
-    return 'signal_au_control_vars_collapse_{}'.format(au_id)
+def _get_rebuild_signal_type(au_id):
+    return 'signal_au_control_vars_rebuild_{}'.format(au_id)
 
 
 class Subdevices(QSplitter):
@@ -108,7 +108,7 @@ class ControlVariableList(EditorList):
         self._updater.unregister_updater(self._perform_updates)
 
     def _perform_updates(self, signals):
-        force_rebuild = _get_collapse_signal_type(self._au_id) in signals
+        force_rebuild = _get_rebuild_signal_type(self._au_id) in signals
         if _get_update_signal_type(self._au_id) in signals:
             self._update_var_names(force_rebuild)
 
@@ -252,7 +252,7 @@ class ControlVariableEditor(QWidget):
         else:
             self._updater.signal_update(set([
                 _get_update_signal_type(self._au_id),
-                _get_collapse_signal_type(self._au_id)]))
+                _get_rebuild_signal_type(self._au_id)]))
 
 
 class ControlVariableTypeExpander(QPushButton):
@@ -953,9 +953,9 @@ class ControlVariableBindings(QWidget):
 
         self._get_adder().set_context(var_name)
 
-        for target_name, editor in izip(binding_targets, self._get_editors()):
-            dev = 'foo' # TODO
-            context = (var_name, dev, target_name)
+        for target_info, editor in izip(binding_targets, self._get_editors()):
+            target_dev_id, target_var_name = target_info
+            context = (var_name, target_dev_id, target_var_name)
             editor.set_context(context)
 
     def _perform_updates(self, signals):
@@ -968,6 +968,7 @@ class BindTargetEditor(QWidget):
     def __init__(self):
         QWidget.__init__(self)
 
+        self._target_dev_selector = BindTargetDeviceSelector()
         self._name_editor = BindTargetNameEditor()
         self._map_to_min_editor = BindTargetMapToMinEditor()
         self._map_to_max_editor = BindTargetMapToMaxEditor()
@@ -976,6 +977,7 @@ class BindTargetEditor(QWidget):
         h = QHBoxLayout()
         h.setMargin(0)
         h.setSpacing(2)
+        h.addWidget(self._target_dev_selector)
         h.addWidget(self._name_editor)
         h.addWidget(self._map_to_min_editor)
         h.addWidget(self._map_to_max_editor)
@@ -983,18 +985,21 @@ class BindTargetEditor(QWidget):
         self.setLayout(h)
 
     def set_au_id(self, au_id):
+        self._target_dev_selector.set_au_id(au_id)
         self._name_editor.set_au_id(au_id)
         self._map_to_min_editor.set_au_id(au_id)
         self._map_to_max_editor.set_au_id(au_id)
         self._remove_button.set_au_id(au_id)
 
     def set_context(self, context):
+        self._target_dev_selector.set_context(context)
         self._name_editor.set_context(context)
         self._map_to_min_editor.set_context(context)
         self._map_to_max_editor.set_context(context)
         self._remove_button.set_context(context)
 
     def set_ui_model(self, ui_model):
+        self._target_dev_selector.set_ui_model(ui_model)
         self._name_editor.set_ui_model(ui_model)
         self._map_to_min_editor.set_ui_model(ui_model)
         self._map_to_max_editor.set_ui_model(ui_model)
@@ -1005,9 +1010,116 @@ class BindTargetEditor(QWidget):
         self._map_to_max_editor.unregister_updaters()
         self._map_to_min_editor.unregister_updaters()
         self._name_editor.unregister_updaters()
+        self._target_dev_selector.unregister_updaters()
 
     def set_used_names(self, used_names):
         self._name_editor.set_used_names(used_names)
+
+
+class BindTargetDeviceSelector(QComboBox):
+
+    def __init__(self):
+        QComboBox.__init__(self)
+        self._au_id = None
+        self._context = None
+        self._ui_model = None
+        self._updater = None
+
+        self.setSizeAdjustPolicy(QComboBox.AdjustToContents)
+
+    def set_au_id(self, au_id):
+        self._au_id = au_id
+
+    def set_context(self, context):
+        self._context = context
+
+        if self._ui_model:
+            self._update_contents()
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+
+        QObject.connect(
+                self, SIGNAL('currentIndexChanged(int)'), self._change_target_dev_id)
+
+        self._update_contents()
+
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _get_internal_dev_ids(self):
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+
+        for au_id in au.get_au_ids():
+            yield au_id
+
+        for proc_id in au.get_processor_ids():
+            yield proc_id
+
+    def _get_internal_dev(self, dev_id):
+        module = self._ui_model.get_module()
+
+        if 'proc' in dev_id:
+            dev_id_parts = dev_id.split('/')
+            internal_au_id_parts = dev_id_parts[:-1]
+            internal_au_id = '/'.join(internal_au_id_parts)
+            internal_au = module.get_audio_unit(internal_au_id)
+            dev = internal_au.get_processor(dev_id)
+        else:
+            dev = module.get_audio_unit(dev_id)
+
+        return dev
+
+    def _update_contents(self):
+        if not self._context:
+            return
+
+        target_dev_id = self._context[1]
+
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+
+        old_block = self.blockSignals(True)
+
+        self.clear()
+        for dev_id in self._get_internal_dev_ids():
+            dev = self._get_internal_dev(dev_id)
+
+            if dev.get_existence():
+                name = dev.get_name() or '-'
+                cur_target_dev_id = dev_id.split('/')[-1]
+                self.addItem(name, QVariant(cur_target_dev_id))
+
+        selected_index = self.findData(QVariant(target_dev_id))
+        if selected_index >= 0:
+            self.setCurrentIndex(selected_index)
+
+        self.blockSignals(old_block)
+
+    def _perform_updates(self, signals):
+        update_signals = set([
+            '_'.join(('signal_connections', self._au_id)),
+            'signal_controls'])
+        if not signals.isdisjoint(update_signals):
+            self._update_contents()
+
+    def _change_target_dev_id(self, index):
+        if index < 0:
+            return
+
+        new_target_dev_id = str(self.itemData(index).toString())
+
+        var_name, target_dev_id, target_var_name = self._context
+
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+        au.change_control_var_binding_target_dev(
+                var_name, target_dev_id, target_var_name, new_target_dev_id)
+
+        self._updater.signal_update(set([_get_update_signal_type(self._au_id)]))
 
 
 class BindTargetNameEditor(NameEditor):
@@ -1016,14 +1128,15 @@ class BindTargetNameEditor(NameEditor):
         NameEditor.__init__(self)
 
     def _change_name(self, new_name):
-        var_name, target_dev, target_name = self._context
+        var_name, target_dev_id, target_var_name = self._context
 
-        if new_name == target_name:
+        if new_name == target_var_name:
             return
 
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
-        au.change_control_var_binding_target(var_name, target_name, new_name)
+        au.change_control_var_binding_target_name(
+                var_name, target_dev_id, target_var_name, new_name)
         self._updater.signal_update(set([_get_update_signal_type(self._au_id)]))
 
     def _update_contents(self):
@@ -1043,13 +1156,14 @@ class BindTargetMapToMinEditor(ControlVariableValueEditor):
         ControlVariableValueEditor.__init__(self, 'Map minimum to:')
 
     def _get_value(self, au):
-        var_name, target_dev, target_name = self._context
-        return au.get_control_var_binding_map_to_min(var_name, target_name)
+        var_name, target_dev_id, target_var_name = self._context
+        return au.get_control_var_binding_map_to_min(
+                var_name, target_dev_id, target_var_name)
 
     def _set_value(self, au, new_value):
-        var_name, target_dev, target_name = self._context
+        var_name, target_dev_id, target_var_name = self._context
         au.change_control_var_binding_map_to_min(
-                var_name, target_name, new_value)
+                var_name, target_dev_id, target_var_name, new_value)
 
     def _update_contents(self):
         if not self._context:
@@ -1072,13 +1186,14 @@ class BindTargetMapToMaxEditor(ControlVariableValueEditor):
         ControlVariableValueEditor.__init__(self, 'Map maximum to:')
 
     def _get_value(self, au):
-        var_name, target_dev, target_name = self._context
-        return au.get_control_var_binding_map_to_max(var_name, target_name)
+        var_name, target_dev_id, target_var_name = self._context
+        return au.get_control_var_binding_map_to_max(
+                var_name, target_dev_id, target_var_name)
 
     def _set_value(self, au, new_value):
-        var_name, target_dev, target_name = self._context
+        var_name, target_dev_id, target_var_name = self._context
         au.change_control_var_binding_map_to_max(
-                var_name, target_name, new_value)
+                var_name, target_dev_id, target_var_name, new_value)
 
     def _update_contents(self):
         if not self._context:
@@ -1101,13 +1216,13 @@ class BindTargetRemoveButton(RemoveButton):
         RemoveButton.__init__(self)
 
     def _remove(self):
-        var_name, target_dev, target_name = self._context
+        var_name, target_dev_id, target_var_name = self._context
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
-        au.remove_control_var_binding(var_name, target_name)
+        au.remove_control_var_binding(var_name, target_dev_id, target_var_name)
         self._updater.signal_update(set([
             _get_update_signal_type(self._au_id),
-            _get_collapse_signal_type(self._au_id)]))
+            _get_rebuild_signal_type(self._au_id)]))
 
 
 class BindTargetAdder(Adder):
@@ -1145,7 +1260,17 @@ class BindTargetAdder(Adder):
 
         var_name = self._context
 
-        au.add_control_var_binding_float(var_name, name, 0.0, 1.0)
+        internal_au_ids = au.get_au_ids()
+        if internal_au_ids:
+            dev_id = min(internal_au_ids)
+        else:
+            proc_ids = au.get_processor_ids()
+            if proc_ids:
+                dev_id = min(proc_ids)
+            else:
+                assert False, 'Trying to add binding target without internal devices'
+
+        au.add_control_var_binding_float(var_name, dev_id, name, 0.0, 1.0)
         self._updater.signal_update(set([_get_update_signal_type(self._au_id)]))
 
 
