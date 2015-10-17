@@ -20,6 +20,7 @@
 
 #include <Connections.h>
 #include <debug/assert.h>
+#include <devices/Au_control_vars.h>
 #include <devices/Au_interface.h>
 #include <devices/Audio_unit.h>
 #include <devices/Device.h>
@@ -51,6 +52,8 @@ struct Audio_unit
 
     Proc_table* procs;
     Au_table* au_table;
+
+    Au_control_vars* control_vars;
 };
 
 
@@ -93,6 +96,7 @@ Audio_unit* new_Audio_unit(void)
     au->connections = NULL;
     au->procs = NULL;
     au->au_table = NULL;
+    au->control_vars = NULL;
 
     if (!Device_init(&au->parent, false))
     {
@@ -351,6 +355,17 @@ const Device* Audio_unit_get_output_interface(const Audio_unit* au)
 }
 
 
+void Audio_unit_set_control_vars(Audio_unit* au, Au_control_vars* au_control_vars)
+{
+    assert(au != NULL);
+
+    del_Au_control_vars(au->control_vars);
+    au->control_vars = au_control_vars;
+
+    return;
+}
+
+
 static Device_state* Audio_unit_create_state(
         const Device* device, int32_t audio_rate, int32_t audio_buffer_size)
 {
@@ -574,6 +589,7 @@ void del_Audio_unit(Audio_unit* au)
     del_Au_interface(au->out_iface);
     del_Au_table(au->au_table);
     del_Proc_table(au->procs);
+    del_Au_control_vars(au->control_vars);
     Device_deinit(&au->parent);
     memory_free(au);
 

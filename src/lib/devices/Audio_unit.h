@@ -19,6 +19,7 @@
 #include <stdbool.h>
 
 #include <Decl.h>
+#include <devices/Au_control_vars.h>
 #include <devices/Au_params.h>
 #include <devices/param_types/Envelope.h>
 #include <devices/Proc_table.h>
@@ -201,6 +202,15 @@ const Device* Audio_unit_get_input_interface(const Audio_unit* au);
  * \return   The output interface.
  */
 const Device* Audio_unit_get_output_interface(const Audio_unit* au);
+
+
+/**
+ * Set the control variable mapping of the Audio unit.
+ *
+ * \param au                The Audio unit -- must not be \c NULL.
+ * \param au_control_vars   The Audio unit control variables, or \c NULL.
+ */
+void Audio_unit_set_control_vars(Audio_unit* au, Au_control_vars* au_control_vars);
 
 
 /**

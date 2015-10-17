@@ -834,7 +834,21 @@ static bool read_any_au_control_vars(
     Audio_unit* au = NULL;
     acquire_au(au, params->handle, au_table, index);
 
-    // TODO: implement
+    if (Streader_has_data(params->sr))
+    {
+        Au_control_vars* au_control_vars = new_Au_control_vars(params->sr);
+        if (au_control_vars == NULL)
+        {
+            set_error(params);
+            return false;
+        }
+
+        Audio_unit_set_control_vars(au, au_control_vars);
+    }
+    else
+    {
+        Audio_unit_set_control_vars(au, NULL);
+    }
 
     return true;
 }
