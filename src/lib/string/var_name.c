@@ -27,7 +27,7 @@ bool is_valid_var_name(const char* str)
 
     const size_t length = strlen(str);
 
-    return (length < KQT_VAR_NAME_MAX) &&
+    return (0 < length) && (length < KQT_VAR_NAME_MAX) &&
         (strspn(str, KQT_VAR_CHARS) == length) &&
         (strchr(KQT_VAR_INIT_CHARS, str[0]) != NULL);
 }
