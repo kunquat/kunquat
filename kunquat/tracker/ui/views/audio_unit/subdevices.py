@@ -1260,9 +1260,9 @@ class BindTargetAdder(Adder):
 
         var_name = self._context
 
-        internal_au_ids = au.get_au_ids()
-        if internal_au_ids:
-            dev_id = min(internal_au_ids)
+        au_ids = au.get_au_ids()
+        if au_ids:
+            dev_id = min(au_ids)
         else:
             proc_ids = au.get_processor_ids()
             if proc_ids:
@@ -1270,7 +1270,9 @@ class BindTargetAdder(Adder):
             else:
                 assert False, 'Trying to add binding target without internal devices'
 
-        au.add_control_var_binding_float(var_name, dev_id, name, 0.0, 1.0)
+        internal_dev_id = dev_id.split('/')[-1]
+
+        au.add_control_var_binding_float(var_name, internal_dev_id, name, 0.0, 1.0)
         self._updater.signal_update(set([_get_update_signal_type(self._au_id)]))
 
 
