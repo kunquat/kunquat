@@ -54,8 +54,7 @@ typedef enum
  * \param master     The global or Audio unit master node
  *                   -- must not be \c NULL.
  *
- * \return   The new Connections if successful, otherwise \c NULL. \a state
- *           will not be modified if memory allocation failed.
+ * \return   The new Connections if successful, otherwise \c NULL.
  */
 Connections* new_Connections_from_string(
         Streader* sr, Connection_level level, Au_table* au_table, Device* master);
