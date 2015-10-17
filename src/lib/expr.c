@@ -249,7 +249,7 @@ static bool evaluate_expr_(
 
     int orig_vsi = vsi;
     int orig_osi = osi;
-    char token[KQT_ENV_VAR_NAME_MAX + 4] = ""; // + 4 for delimiting \"s
+    char token[KQT_VAR_NAME_MAX + 4] = ""; // + 4 for delimiting \"s
     bool expect_operand = true;
     bool found_not = false;
     bool found_minus = false;
@@ -610,7 +610,7 @@ static bool Value_from_token(
         int i = 0;
         while (!string_has_prefix(&token[i], end_str))
         {
-            if (i >= KQT_ENV_VAR_NAME_MAX - 1)
+            if (i >= KQT_VAR_NAME_MAX - 1)
             {
                 return false;
             }
@@ -634,7 +634,7 @@ static bool Value_from_token(
         Value_copy(val, meta);
         return true;
     }
-    else if (strchr(KQT_ENV_VAR_INIT_CHARS, token[0]) != NULL)
+    else if (strchr(KQT_VAR_INIT_CHARS, token[0]) != NULL)
     {
         const Env_var* ev = Env_state_get_var(estate, token);
         if (ev == NULL)
@@ -741,7 +741,7 @@ static bool get_token(Streader* sr, char* result)
         strcpy(result, ",");
         return true;
     }
-    else if (strchr(KQT_ENV_VAR_INIT_CHARS, *str) != NULL)
+    else if (strchr(KQT_VAR_INIT_CHARS, *str) != NULL)
     {
         return get_var_token(sr, result);
     }
@@ -774,7 +774,7 @@ static bool get_num_token(Streader* sr, char* result)
     assert(end_pos >= start_pos);
 
     const size_t len = end_pos - start_pos;
-    if (len >= KQT_ENV_VAR_NAME_MAX - 1)
+    if (len >= KQT_VAR_NAME_MAX - 1)
     {
         Streader_set_error(sr, "Exceeded maximum token length");
         return false;
@@ -803,7 +803,7 @@ static bool get_str_token(Streader* sr, char* result)
     int i = 1;
     while (!string_has_prefix(str, end_str))
     {
-        if (i >= KQT_ENV_VAR_NAME_MAX + 1) // + 1 includes compensation for \"
+        if (i >= KQT_VAR_NAME_MAX + 1) // + 1 includes compensation for \"
         {
             Streader_set_error(sr, "Exceeded maximum token length");
             return false;
@@ -830,8 +830,8 @@ static bool get_var_token(Streader* sr, char* result)
     // FIXME: ugly haxoring with Streader internals
     const char* str = &sr->str[sr->pos];
 
-    int len = strspn(str, KQT_ENV_VAR_CHARS);
-    if (len >= KQT_ENV_VAR_NAME_MAX)
+    int len = strspn(str, KQT_VAR_CHARS);
+    if (len >= KQT_VAR_NAME_MAX)
     {
         Streader_set_error(sr, "Exceeded maximum token length");
         return false;
@@ -857,7 +857,7 @@ static bool get_op_token(Streader* sr, char* result)
     const char* str = &sr->str[sr->pos];
 
     int len = strspn(str, op_chars);
-    if (len >= KQT_ENV_VAR_NAME_MAX)
+    if (len >= KQT_VAR_NAME_MAX)
     {
         Streader_set_error(sr, "Exceeded maximum token length");
         return false;

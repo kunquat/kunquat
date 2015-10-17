@@ -49,7 +49,7 @@ typedef struct Value
         double float_type;
         Real Real_type;
         Tstamp Tstamp_type;
-        char string_type[KQT_ENV_VAR_NAME_MAX];
+        char string_type[KQT_VAR_NAME_MAX + 2]; // add 2 chars for quotes
         Pat_inst_ref Pat_inst_ref_type;
     } value;
 } Value;

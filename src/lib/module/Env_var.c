@@ -26,7 +26,7 @@
 
 struct Env_var
 {
-    char name[KQT_ENV_VAR_NAME_MAX];
+    char name[KQT_VAR_NAME_MAX];
     Value value;
 };
 
@@ -35,9 +35,9 @@ static bool is_valid_name(const char* name)
 {
     assert(name != NULL);
 
-    return strlen(name) < KQT_ENV_VAR_NAME_MAX &&
-        strspn(name, KQT_ENV_VAR_CHARS) == strlen(name) &&
-        strchr(KQT_ENV_VAR_INIT_CHARS, name[0]) != NULL;
+    return strlen(name) < KQT_VAR_NAME_MAX &&
+        strspn(name, KQT_VAR_CHARS) == strlen(name) &&
+        strchr(KQT_VAR_INIT_CHARS, name[0]) != NULL;
 }
 
 
@@ -67,9 +67,9 @@ Env_var* new_Env_var_from_string(Streader* sr)
         return NULL;
 
     char type_name[16] = "";
-    char name[KQT_ENV_VAR_NAME_MAX] = "";
+    char name[KQT_VAR_NAME_MAX] = "";
 
-    if (!Streader_readf(sr, "[%s,%s,", 16, type_name, KQT_ENV_VAR_NAME_MAX, name))
+    if (!Streader_readf(sr, "[%s,%s,", 16, type_name, KQT_VAR_NAME_MAX, name))
         return NULL;
 
     if (!is_valid_name(name))

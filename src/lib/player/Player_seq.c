@@ -287,10 +287,7 @@ static void Player_process_expr_event(
                 VALUE_TYPE_STRING)
         {
             arg->type = VALUE_TYPE_STRING;
-            Streader_read_string(
-                    sr,
-                    KQT_ENV_VAR_NAME_MAX,
-                    arg->value.string_type);
+            Streader_read_string(sr, KQT_VAR_NAME_MAX, arg->value.string_type);
         }
         else
         {

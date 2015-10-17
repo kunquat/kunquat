@@ -51,7 +51,7 @@ bool Active_names_set(
     assert(name != NULL);
 
     if (strlen(name) >=
-            (cat == ACTIVE_CAT_ENV ? KQT_ENV_VAR_NAME_MAX : KQT_KEY_LENGTH_MAX))
+            (cat == ACTIVE_CAT_ENV ? KQT_VAR_NAME_MAX : KQT_KEY_LENGTH_MAX))
         return false;
 
     strcpy(names->names[cat][type], name);

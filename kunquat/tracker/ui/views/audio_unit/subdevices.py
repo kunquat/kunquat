@@ -789,7 +789,7 @@ class NewNameEditor(QLineEdit):
 
     def __init__(self):
         QLineEdit.__init__(self)
-        self.setMaxLength(ENV_VAR_NAME_MAX - 1)
+        self.setMaxLength(VAR_NAME_MAX - 1)
         self._validator = VarNameValidator(set())
         self.setValidator(self._validator)
 
@@ -1280,7 +1280,7 @@ class NewBindTargetNameEditor(QLineEdit):
 
     def __init__(self):
         QLineEdit.__init__(self)
-        self.setMaxLength(ENV_VAR_NAME_MAX - 1)
+        self.setMaxLength(VAR_NAME_MAX - 1)
         self._validator = VarNameValidator(set())
         self.setValidator(self._validator)
 

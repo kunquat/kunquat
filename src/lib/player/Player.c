@@ -887,7 +887,7 @@ bool Player_fire(Player* player, int ch, Streader* event_reader)
         case VALUE_TYPE_STRING:
         {
             Streader_read_string(
-                    event_reader, KQT_ENV_VAR_NAME_MAX, value->value.string_type);
+                    event_reader, KQT_VAR_NAME_MAX, value->value.string_type);
         }
         break;
 
