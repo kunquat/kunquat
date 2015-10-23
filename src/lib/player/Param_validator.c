@@ -24,6 +24,7 @@
 #include <Pat_inst_ref.h>
 #include <player/Param_validator.h>
 #include <string/Streader.h>
+#include <string/var_name.h>
 
 
 #define init_c_streader(param) \
@@ -373,6 +374,18 @@ bool v_tremolo_depth(const char* param)
     Streader* sr = init_c_streader(param);
 
     return Streader_read_float(sr, &depth) && (depth >= 0) && (depth <= 24);
+}
+
+
+bool v_var_name(const char* param)
+{
+    assert(param != NULL);
+
+    Streader* sr = init_c_streader(param);
+
+    char str[KQT_VAR_NAME_MAX + 1] = "";
+
+    return Streader_read_string(sr, KQT_VAR_NAME_MAX + 1, str) && is_valid_var_name(str);
 }
 
 
