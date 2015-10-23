@@ -47,6 +47,13 @@ static Device_state* Processor_create_state_plain(
 }
 
 
+static void Processor_set_control_var_float(
+        const Device* device,
+        Device_states* dstates,
+        const char* var_name,
+        double value);
+
+
 Processor* new_Processor(const Au_params* au_params)
 {
     assert(au_params != NULL);
@@ -76,6 +83,9 @@ Processor* new_Processor(const Au_params* au_params)
     Device_set_state_creator(
             &proc->parent,
             Processor_create_state_plain);
+
+    Device_set_control_var_float_modifiers(
+            &proc->parent, Processor_set_control_var_float);
 
     return proc;
 }
@@ -399,6 +409,26 @@ void Processor_process_vstate(
 
     if (deactivate_after_processing)
         vstate->active = false;
+
+    return;
+}
+
+
+static void Processor_set_control_var_float(
+        const Device* device,
+        Device_states* dstates,
+        const char* var_name,
+        double value)
+{
+    assert(device != NULL);
+    assert(dstates != NULL);
+    assert(var_name != NULL);
+    assert(isfinite(value));
+
+    // TODO: clean up the boundary between interfaces here; var_name should be key pattern
+    const Device_impl* dimpl = device->dimpl;
+    Device_state* dstate = Device_states_get_state(dstates, Device_get_id(device));
+    Device_impl_update_state_float(dimpl, dstate, var_name, value);
 
     return;
 }

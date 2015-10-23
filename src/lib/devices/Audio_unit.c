@@ -82,6 +82,12 @@ static void Audio_unit_process_signal(
         uint32_t audio_rate,
         double tempo);
 
+static void Audio_unit_set_control_var_float(
+        const Device* device,
+        Device_states* dstates,
+        const char* var_name,
+        double value);
+
 
 Audio_unit* new_Audio_unit(void)
 {
@@ -119,6 +125,9 @@ Audio_unit* new_Audio_unit(void)
     Device_register_set_buffer_size(&au->parent, Audio_unit_set_buffer_size);
     Device_set_mixed_signals(&au->parent, true);
     Device_set_process(&au->parent, Audio_unit_process_signal);
+
+    Device_set_control_var_float_modifiers(
+            &au->parent, Audio_unit_set_control_var_float);
 
     au->out_iface = new_Au_interface();
     au->in_iface = new_Au_interface();
@@ -572,6 +581,52 @@ static void Audio_unit_process_signal(
         Device_state* out_iface_ds = Device_states_get_state(
                 dstates, Device_get_id(Audio_unit_get_output_interface(au)));
         mix_interface_connection(ds, out_iface_ds, buf_start, buf_stop);
+    }
+
+    return;
+}
+
+
+static void Audio_unit_set_control_var_float(
+        const Device* device,
+        Device_states* dstates,
+        const char* var_name,
+        double value)
+{
+    assert(device != NULL);
+    assert(dstates != NULL);
+    assert(var_name != NULL);
+    assert(isfinite(value));
+
+    const Audio_unit* au = (const Audio_unit*)device;
+
+    if (au->control_vars == NULL)
+        return;
+
+    // Map our value to each bound target range and
+    // call control value setter for corresponding subdevice
+    Au_control_binding_iter iter;
+    bool has_entry =
+        Au_control_binding_iter_init_float(&iter, au->control_vars, var_name, value);
+    while (has_entry)
+    {
+        // Get our target device
+        const Device* target_dev = NULL;
+        if (iter.target_dev_type == TARGET_DEV_AU)
+            target_dev = (const Device*)Au_table_get(
+                    au->au_table, iter.target_dev_index);
+        else if (iter.target_dev_type == TARGET_DEV_PROC)
+            target_dev = (const Device*)Proc_table_get_proc(
+                    au->procs, iter.target_dev_index);
+
+        // Send our mapped value forwards
+        Device_set_control_var_float(
+                target_dev,
+                dstates,
+                iter.target_var_name,
+                iter.target_value.value.float_type);
+
+        has_entry = Au_control_binding_iter_get_next_entry(&iter);
     }
 
     return;

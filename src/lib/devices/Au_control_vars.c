@@ -21,6 +21,7 @@
 #include <containers/AAtree.h>
 #include <debug/assert.h>
 #include <devices/Au_control_vars.h>
+#include <mathnum/common.h>
 #include <memory.h>
 #include <string/common.h>
 #include <string/Streader.h>
@@ -34,15 +35,7 @@ struct Au_control_vars
 };
 
 
-typedef enum
-{
-    TARGET_DEV_NONE,
-    TARGET_DEV_AU,
-    TARGET_DEV_PROC,
-} Target_dev_type;
-
-
-typedef struct Bind_entry
+struct Bind_entry
 {
     Target_dev_type target_dev_type;
     int target_dev_index;
@@ -60,7 +53,10 @@ typedef struct Bind_entry
     } ext;
 
     struct Bind_entry* next;
-} Bind_entry;
+};
+
+
+typedef struct Bind_entry Bind_entry;
 
 
 typedef struct Var_entry
@@ -99,6 +95,90 @@ void del_Var_entry(Var_entry* entry)
     memory_free(entry);
 
     return;
+}
+
+
+static void Au_control_binding_iter_update(Au_control_binding_iter* iter)
+{
+    assert(iter != NULL);
+    assert(iter->iter != NULL);
+
+    iter->target_dev_type = iter->iter->target_dev_type;
+    iter->target_dev_index = iter->iter->target_dev_index;
+    iter->target_var_name = iter->iter->target_var_name;
+
+    switch (iter->src_value.type)
+    {
+        case VALUE_TYPE_FLOAT:
+        {
+            // Map to target range
+            const double map_min_to = iter->iter->ext.float_type.map_min_to;
+            const double map_max_to = iter->iter->ext.float_type.map_max_to;
+            const double target_value = lerp(
+                    map_min_to, map_max_to, iter->ext.float_type.src_range_norm);
+
+            iter->target_value.type = VALUE_TYPE_FLOAT;
+            iter->target_value.value.float_type = target_value;
+        }
+        break;
+
+        default:
+            assert(false);
+    }
+
+    return;
+}
+
+
+bool Au_control_binding_iter_init_float(
+        Au_control_binding_iter* iter,
+        const Au_control_vars* aucv,
+        const char* var_name,
+        double value)
+{
+    assert(iter != NULL);
+    assert(aucv != NULL);
+    assert(var_name != NULL);
+    assert(isfinite(value));
+
+    iter->iter = NULL;
+    iter->src_value.type = VALUE_TYPE_FLOAT;
+    iter->src_value.value.float_type = value;
+
+    const Var_entry* var_entry = AAtree_get_exact(aucv->vars, var_name);
+    if ((var_entry == NULL) || (var_entry->init_value.type != VALUE_TYPE_FLOAT))
+        return false;
+
+    iter->iter = var_entry->first_bind_entry;
+    if (iter->iter == NULL)
+        return false;
+
+    // Get normalised source value position in our source range
+    const double min_value = var_entry->ext.float_type.min_value;
+    const double max_value = var_entry->ext.float_type.max_value;
+    const double clamped_src_value = clamp(value, min_value, max_value);
+    iter->ext.float_type.src_range_norm =
+        (clamped_src_value - min_value) / (max_value - min_value);
+
+    Au_control_binding_iter_update(iter);
+
+    return true;
+}
+
+
+bool Au_control_binding_iter_get_next_entry(Au_control_binding_iter* iter)
+{
+    assert(iter != NULL);
+    assert(iter->iter != NULL);
+
+    iter->iter = iter->iter->next;
+
+    if (iter->iter == NULL)
+        return false;
+
+    Au_control_binding_iter_update(iter);
+
+    return true;
 }
 
 
@@ -312,6 +392,8 @@ static bool read_var_entry(Streader* sr, int32_t index, void* userdata)
         entry->ext.float_type.min_value = NAN;
         entry->ext.float_type.max_value = NAN;
 
+        entry->init_value.type = VALUE_TYPE_FLOAT;
+
         if (!Streader_readf(
                     sr,
                     "%f,%l,%l]",
@@ -353,40 +435,40 @@ Au_control_vars* new_Au_control_vars(Streader* sr)
     if (Streader_is_error_set(sr))
         return NULL;
 
-    Au_control_vars* acv = memory_alloc_item(Au_control_vars);
-    if (acv == NULL)
+    Au_control_vars* aucv = memory_alloc_item(Au_control_vars);
+    if (aucv == NULL)
     {
         Streader_set_memory_error(sr, mem_error_str);
         return NULL;
     }
 
-    acv->vars = new_AAtree(
+    aucv->vars = new_AAtree(
             (int (*)(const void*, const void*))strcmp,
             (void (*)(void*))del_Var_entry);
-    if (acv->vars == NULL)
+    if (aucv->vars == NULL)
     {
-        del_Au_control_vars(acv);
+        del_Au_control_vars(aucv);
         Streader_set_memory_error(sr, mem_error_str);
         return NULL;
     }
 
-    if (!Streader_read_list(sr, read_var_entry, acv))
+    if (!Streader_read_list(sr, read_var_entry, aucv))
     {
-        del_Au_control_vars(acv);
+        del_Au_control_vars(aucv);
         return NULL;
     }
 
-    return acv;
+    return aucv;
 }
 
 
-void del_Au_control_vars(Au_control_vars* acv)
+void del_Au_control_vars(Au_control_vars* aucv)
 {
-    if (acv == NULL)
+    if (aucv == NULL)
         return;
 
-    del_AAtree(acv->vars);
-    memory_free(acv);
+    del_AAtree(aucv->vars);
+    memory_free(aucv);
 
     return;
 }

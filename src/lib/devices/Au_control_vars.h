@@ -18,13 +18,73 @@
 
 #include <stdlib.h>
 
+#include <kunquat/limits.h>
 #include <string/Streader.h>
+#include <Value.h>
 
 
 /**
  * An abstraction layer for controlling internal device parameters during playback.
  */
 typedef struct Au_control_vars Au_control_vars;
+
+
+typedef enum
+{
+    TARGET_DEV_NONE,
+    TARGET_DEV_AU,
+    TARGET_DEV_PROC,
+} Target_dev_type;
+
+
+typedef struct Bind_entry Au_control_bind_entry;
+
+
+typedef struct Au_control_binding_iter
+{
+    const Au_control_bind_entry* iter;
+    Value src_value;
+    union
+    {
+        struct
+        {
+            double src_range_norm;
+        } float_type;
+    } ext;
+
+    Target_dev_type target_dev_type;
+    int target_dev_index;
+    const char* target_var_name;
+    Value target_value;
+} Au_control_binding_iter;
+
+
+/**
+ * Start iterating over results of floating-point control variable bindings.
+ *
+ * \param iter        The iterator -- must not be \c NULL.
+ * \param aucv        The Audio unit control variables -- must not be \c NULL.
+ * \param var_name    The name of the variable -- must not be \c NULL.
+ * \param value       The source value -- must be finite.
+ *
+ * \return   \c true if at least one result is found, otherwise \c false.
+ */
+bool Au_control_binding_iter_init_float(
+        Au_control_binding_iter* iter,
+        const Au_control_vars* aucv,
+        const char* var_name,
+        double value);
+
+
+/**
+ * Get the next result of control variable bindings.
+ *
+ * \param iter   The iterator -- must not be \c NULL.
+ *
+ * \return   \c true if the iterator is updated with new result, or \c false if
+ *           there are no more results.
+ */
+bool Au_control_binding_iter_get_next_entry(Au_control_binding_iter* iter);
 
 
 /**
@@ -42,7 +102,7 @@ Au_control_vars* new_Au_control_vars(Streader* sr);
  *
  * \param acv   The Audio unit control variables, or \c NULL.
  */
-void del_Au_control_vars(Au_control_vars* acv);
+void del_Au_control_vars(Au_control_vars* aucv);
 
 
 #endif // K_AU_CONTROL_VARS_H

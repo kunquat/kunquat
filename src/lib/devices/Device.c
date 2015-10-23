@@ -124,6 +124,8 @@ bool Device_init(Device* device, bool req_impl)
     device->reset = Device_reset_default;
     device->process_signal = NULL;
 
+    device->set_control_var_float = NULL;
+
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
         for (Device_port_type type = DEVICE_PORT_TYPE_RECEIVE;
@@ -286,6 +288,15 @@ void Device_set_process(Device* device, Device_process_signal_func* process_sign
 {
     assert(device != NULL);
     device->process_signal = process_signal;
+    return;
+}
+
+
+void Device_set_control_var_float_modifiers(
+        Device* device, Device_set_control_var_float_func* set_float_func)
+{
+    assert(device != NULL);
+    device->set_control_var_float = set_float_func;
     return;
 }
 
@@ -486,6 +497,21 @@ void Device_process(
 
     if (device->enable_signal_support && (device->process_signal != NULL))
         device->process_signal(device, states, wbs, start, until, freq, tempo);
+
+    return;
+}
+
+
+void Device_set_control_var_float(
+        const Device* device, Device_states* dstates, const char* var_name, double value)
+{
+    assert(device != NULL);
+    assert(dstates != NULL);
+    assert(var_name != NULL);
+    assert(isfinite(value));
+
+    if (device->set_control_var_float != NULL)
+        device->set_control_var_float(device, dstates, var_name, value);
 
     return;
 }

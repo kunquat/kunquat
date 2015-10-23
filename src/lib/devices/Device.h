@@ -41,6 +41,10 @@ typedef void Device_process_signal_func(
         double tempo);
 
 
+typedef void Device_set_control_var_float_func(
+        const Device*, Device_states*, const char* var_name, double value);
+
+
 struct Device
 {
     uint32_t id;
@@ -58,6 +62,8 @@ struct Device
     void (*update_tempo)(const struct Device*, Device_states*, double);
     void (*reset)(const struct Device*, Device_states*);
     Device_process_signal_func* process_signal;
+
+    Device_set_control_var_float_func* set_control_var_float;
 
     bool existence[DEVICE_PORT_TYPES][KQT_DEVICE_PORTS_MAX];
 };
@@ -226,6 +232,16 @@ void Device_set_process(Device* device, Device_process_signal_func* process_sign
 
 
 /**
+ * Set functions for modifying floating-point control variables.
+ *
+ * \param device           The Device -- must not be \c NULL.
+ * \param set_float_func   The float setting function, or \c NULL.
+ */
+void Device_set_control_var_float_modifiers(
+        Device* device, Device_set_control_var_float_func* set_float_func);
+
+
+/**
  * Set existence of a port in the Device.
  *
  * \param device   The Device -- must not be \c NULL.
@@ -373,6 +389,18 @@ void Device_process(
         uint32_t until,
         uint32_t freq,
         double tempo);
+
+
+/**
+ * Set new value of a floating-point Device control variable.
+ *
+ * \param device     The Device -- must not be \c NULL.
+ * \param dstates    The Device states -- must not be \c NULL.
+ * \param var_name   The name of the control variable, or \c NULL.
+ * \param value      The new floating-point value -- must be finite.
+ */
+void Device_set_control_var_float(
+        const Device* device, Device_states* dstates, const char* var_name, double value);
 
 
 /**
