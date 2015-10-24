@@ -17,6 +17,24 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 
+def get_var_name_validation_status(text):
+    assert isinstance(text, unicode)
+
+    if not text:
+        return QValidator.Intermediate
+
+    allowed_init_chars = '_' + string.ascii_lowercase
+    allowed_chars = allowed_init_chars + string.digits
+
+    if text[0] not in allowed_init_chars:
+        return QValidator.Invalid
+
+    if all(ch in allowed_chars for ch in text):
+        return QValidator.Acceptable
+
+    return QValidator.Invalid
+
+
 class VarNameValidator(QValidator):
 
     def __init__(self, used_names):
@@ -25,21 +43,9 @@ class VarNameValidator(QValidator):
 
     def validate(self, contents, pos):
         in_str = unicode(contents)
-        if not in_str:
+        status = get_var_name_validation_status(in_str)
+        if (status == QValidator.Acceptable) and (in_str in self._used_names):
             return (QValidator.Intermediate, pos)
-
-        allowed_init_chars = '_' + string.ascii_lowercase
-        allowed_chars = allowed_init_chars + string.digits
-
-        if in_str[0] not in allowed_init_chars:
-            return (QValidator.Invalid, pos)
-
-        if all(ch in allowed_chars for ch in in_str):
-            if in_str not in self._used_names:
-                return (QValidator.Acceptable, pos)
-            else:
-                return (QValidator.Intermediate, pos)
-
-        return (QValidator.Invalid, pos)
+        return (status, pos)
 
 

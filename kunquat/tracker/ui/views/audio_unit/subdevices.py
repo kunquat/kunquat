@@ -21,7 +21,7 @@ import kunquat.tracker.ui.model.tstamp as tstamp
 from kunquat.tracker.ui.views.connectionseditor import ConnectionsEditor
 from kunquat.tracker.ui.views.editorlist import EditorList
 from kunquat.tracker.ui.views.headerline import HeaderLine
-from kunquat.tracker.ui.views.varnamevalidator import VarNameValidator
+from kunquat.tracker.ui.views.varnamevalidator import *
 from kunquat.tracker.ui.views.varvalidators import *
 
 
@@ -292,13 +292,14 @@ class ControlVariableTypeExpander(QPushButton):
 
 class NameEditor(QLineEdit):
 
-    def __init__(self):
+    def __init__(self, validator_cls):
         QLineEdit.__init__(self)
         self._au_id = None
         self._context = None
         self._ui_model = None
         self._updater = None
         self._validator = None
+        self._validator_cls = validator_cls
 
         self.set_used_names(set())
 
@@ -323,7 +324,7 @@ class NameEditor(QLineEdit):
         pass
 
     def set_used_names(self, used_names):
-        self._validator = VarNameValidator(used_names)
+        self._validator = self._validator_cls(used_names)
         self.setValidator(self._validator)
 
     def _change_name_handler(self):
@@ -349,7 +350,7 @@ class NameEditor(QLineEdit):
 class ControlVariableNameEditor(NameEditor):
 
     def __init__(self):
-        NameEditor.__init__(self)
+        NameEditor.__init__(self, VarNameValidator)
 
     def _update_contents(self):
         old_block = self.blockSignals(True)
@@ -1122,10 +1123,25 @@ class BindTargetDeviceSelector(QComboBox):
         self._updater.signal_update(set([_get_update_signal_type(self._au_id)]))
 
 
+class BindTargetNameValidator(QValidator):
+
+    def __init__(self, used_names):
+        QValidator.__init__(self)
+        self._used_names = used_names
+
+    def validate(self, contents, pos):
+        in_str = unicode(contents)
+        parts = in_str.split('/')
+        status = min(get_var_name_validation_status(part) for part in parts)
+        if (status == QValidator.Acceptable) and (in_str in self._used_names):
+            return (QValidator.Intermediate, pos)
+        return (status, pos)
+
+
 class BindTargetNameEditor(NameEditor):
 
     def __init__(self):
-        NameEditor.__init__(self)
+        NameEditor.__init__(self, BindTargetNameValidator)
 
     def _change_name(self, new_name):
         var_name, target_dev_id, target_var_name = self._context
@@ -1281,11 +1297,11 @@ class NewBindTargetNameEditor(QLineEdit):
     def __init__(self):
         QLineEdit.__init__(self)
         self.setMaxLength(VAR_NAME_MAX - 1)
-        self._validator = VarNameValidator(set())
+        self._validator = BindTargetNameValidator(set())
         self.setValidator(self._validator)
 
     def set_used_names(self, used_names):
-        self._validator = VarNameValidator(used_names)
+        self._validator = BindTargetNameValidator(used_names)
         self.setValidator(self._validator)
 
 
