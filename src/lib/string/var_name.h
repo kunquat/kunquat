@@ -30,6 +30,16 @@
 bool is_valid_var_name(const char* str);
 
 
+/**
+ * Check if a string is a valid variable path.
+ *
+ * \param str   The string -- must not be \c NULL.
+ *
+ * \return   \c true if \a str is a valid variable path, otherwise \c false.
+ */
+bool is_valid_var_path(const char* str);
+
+
 #endif // K_VAR_NAME_H
 
 
