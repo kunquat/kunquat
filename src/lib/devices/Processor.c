@@ -425,10 +425,11 @@ static void Processor_set_control_var_float(
     assert(var_name != NULL);
     assert(isfinite(value));
 
-    // TODO: clean up the boundary between interfaces here; var_name should be key pattern
+    const char* key_pattern = var_name;
+
     const Device_impl* dimpl = device->dimpl;
     Device_state* dstate = Device_states_get_state(dstates, Device_get_id(device));
-    Device_impl_update_state_float(dimpl, dstate, var_name, value);
+    Device_impl_update_state_float(dimpl, dstate, key_pattern, value);
 
     return;
 }

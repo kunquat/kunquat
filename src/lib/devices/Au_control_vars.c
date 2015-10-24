@@ -222,14 +222,14 @@ static Bind_entry* new_Bind_entry_common(Streader* sr)
         return NULL;
     }
 
-    // Check target variable name
-    if (!is_valid_var_name(target_var_name))
+    // Check target variable path
+    if (!is_valid_var_path(target_var_name))
     {
         Streader_set_error(
                 sr,
-                "Illegal target variable name %s"
-                    " (Variable names may only contain"
-                    " lower-case letters and underscores"
+                "Illegal target variable path %s"
+                    " (Variable path components must contain"
+                    " only lower-case letters and underscores"
                     " (and digits as other than first characters))",
                 target_var_name);
         return NULL;
