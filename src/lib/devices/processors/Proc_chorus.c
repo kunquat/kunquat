@@ -392,15 +392,11 @@ static void Proc_chorus_update_state_voice_delay(
     if (indices[0] < 0 || indices[0] >= CHORUS_VOICES_MAX)
         return;
 
-    const Proc_chorus* chorus = (const Proc_chorus*)dimpl;
-    const Chorus_voice_params* params = &chorus->voice_params[indices[0]];
-
     Chorus_state* cstate = (Chorus_state*)dstate;
     Chorus_voice* voice = &cstate->voices[indices[0]];
 
     voice->delay = get_voice_delay(value);
-
-    Chorus_voice_reset(voice, params, cstate->parent.parent.audio_rate);
+    voice->range = min(voice->range, 0.999 * voice->delay);
 
     return;
 }
@@ -419,9 +415,6 @@ static void Proc_chorus_update_state_voice_range(
     if (indices[0] < 0 || indices[0] >= CHORUS_VOICES_MAX)
         return;
 
-    const Proc_chorus* chorus = (const Proc_chorus*)dimpl;
-    const Chorus_voice_params* params = &chorus->voice_params[indices[0]];
-
     Chorus_state* cstate = (Chorus_state*)dstate;
     Chorus_voice* voice = &cstate->voices[indices[0]];
 
@@ -429,8 +422,6 @@ static void Proc_chorus_update_state_voice_range(
     voice->range = min(voice->range, 0.999 * voice->delay);
 
     LFO_set_depth(&voice->delay_variance, voice->range);
-
-    Chorus_voice_reset(voice, params, cstate->parent.parent.audio_rate);
 
     return;
 }
@@ -449,17 +440,12 @@ static void Proc_chorus_update_state_voice_speed(
     if (indices[0] < 0 || indices[0] >= CHORUS_VOICES_MAX)
         return;
 
-    const Proc_chorus* chorus = (const Proc_chorus*)dimpl;
-    const Chorus_voice_params* params = &chorus->voice_params[indices[0]];
-
     Chorus_state* cstate = (Chorus_state*)dstate;
     Chorus_voice* voice = &cstate->voices[indices[0]];
 
     voice->speed = get_voice_speed(value);
 
     LFO_set_speed(&voice->delay_variance, voice->speed);
-
-    Chorus_voice_reset(voice, params, cstate->parent.parent.audio_rate);
 
     return;
 }
@@ -478,15 +464,10 @@ static void Proc_chorus_update_state_voice_volume(
     if (indices[0] < 0 || indices[0] >= CHORUS_VOICES_MAX)
         return;
 
-    const Proc_chorus* chorus = (const Proc_chorus*)dimpl;
-    const Chorus_voice_params* params = &chorus->voice_params[indices[0]];
-
     Chorus_state* cstate = (Chorus_state*)dstate;
     Chorus_voice* voice = &cstate->voices[indices[0]];
 
     voice->volume = get_voice_volume(value);
-
-    Chorus_voice_reset(voice, params, cstate->parent.parent.audio_rate);
 
     return;
 }
