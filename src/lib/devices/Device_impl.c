@@ -388,7 +388,6 @@ bool Device_impl_register_updaters_cv_float(
     assert(dimpl != NULL);
     assert(keyp != NULL);
     assert(strlen(keyp) < KQT_KEY_LENGTH_MAX);
-    assert(set_cv != NULL);
 
     Update_control_var_cb* update_cv_cb = memory_alloc_item(Update_control_var_cb);
     if (update_cv_cb == NULL)

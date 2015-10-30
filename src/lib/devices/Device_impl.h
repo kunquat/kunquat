@@ -436,8 +436,7 @@ bool Device_impl_register_set_cv_bool(
  *
  * \param dimpl          The Device implementation -- must not be \c NULL.
  * \param keyp           The key pattern -- must not be \c NULL.
- * \param set_cv         The control variable set callback function
- *                       -- must not be \c NULL.
+ * \param set_cv         The control variable set callback function, or \c NULL.
  * \param slide_target   The slide target function, or \c NULL.
  * \param slide_length   The slide length function, or \c NULL.
  * \param osc_speed      The oscillation speed function, or \c NULL.
