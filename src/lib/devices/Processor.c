@@ -48,10 +48,7 @@ static Device_state* Processor_create_state_plain(
 
 
 static void Processor_set_control_var_float(
-        const Device* device,
-        Device_states* dstates,
-        const char* var_name,
-        double value);
+        const Device* device, Device_states* dstates, const char* key, double value);
 
 
 Processor* new_Processor(const Au_params* au_params)
@@ -415,21 +412,16 @@ void Processor_process_vstate(
 
 
 static void Processor_set_control_var_float(
-        const Device* device,
-        Device_states* dstates,
-        const char* var_name,
-        double value)
+        const Device* device, Device_states* dstates, const char* key, double value)
 {
     assert(device != NULL);
     assert(dstates != NULL);
-    assert(var_name != NULL);
+    assert(key != NULL);
     assert(isfinite(value));
-
-    const char* key_pattern = var_name;
 
     const Device_impl* dimpl = device->dimpl;
     Device_state* dstate = Device_states_get_state(dstates, Device_get_id(device));
-    Device_impl_update_state_float(dimpl, dstate, key_pattern, value);
+    Device_impl_set_cv_float(dimpl, dstate, key, value);
 
     return;
 }

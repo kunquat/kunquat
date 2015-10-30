@@ -355,19 +355,6 @@ bool Device_set_state_key(const Device* device, Device_states* dstates, const ch
 
 
 /**
- * Notify the Device state of a key change and updates the internal state.
- *
- * \param device    The Device -- must not be \c NULL.
- * \param dstates   The Device states -- must not be \c NULL.
- * \param key       The key that changed -- must not be \c NULL.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-bool Device_update_state_key(
-        const Device* device, Device_states* dstates, const char* key);
-
-
-/**
  * Process audio in the Device.
  *
  * \param device   The Device -- must not be \c NULL.

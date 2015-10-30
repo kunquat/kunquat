@@ -154,7 +154,7 @@ static void Proc_chorus_reset(const Device_impl* dimpl, Device_state* dstate);
 #define CHORUS_PARAM(name, dev_key, update_key, def_value)            \
     static Set_float_func Proc_chorus_set_voice_ ## name;             \
     static Set_state_float_func Proc_chorus_set_state_voice_ ## name; \
-    static Update_float_func Proc_chorus_update_state_voice_ ## name;
+    static Set_cv_float_func Proc_chorus_set_cv_voice_ ## name;
 #include <devices/processors/Proc_chorus_params.h>
 
 
@@ -218,11 +218,14 @@ static bool Proc_chorus_init(Device_impl* dimpl)
 #include <devices/processors/Proc_chorus_params.h>
 
 #define CHORUS_PARAM(name, dev_key, update_key, def_value)  \
-    reg_success &= Device_impl_register_update_state_float( \
+    reg_success &= Device_impl_register_updaters_cv_float(  \
             &chorus->parent,                                \
             update_key,                                     \
-            Proc_chorus_update_state_voice_ ## name);
+            Proc_chorus_set_cv_voice_ ## name,              \
+            NULL, NULL, NULL, NULL, NULL, NULL);
 #include <devices/processors/Proc_chorus_params.h>
+
+    // TODO: register appropriate sliders and oscillators
 
     if (!reg_success)
         return false;
@@ -361,25 +364,25 @@ static double get_voice_volume(double value)
 #include <devices/processors/Proc_chorus_params.h>
 
 
-#define CHORUS_PARAM(name, dev_key, update_key, def_value)                      \
-    static bool Proc_chorus_set_state_voice_ ## name(                           \
-            const Device_impl* dimpl,                                           \
-            Device_state* dstate,                                               \
-            Key_indices indices,                                                \
-            double value)                                                       \
-    {                                                                           \
-        assert(dimpl != NULL);                                                  \
-        assert(dstate != NULL);                                                 \
-        assert(indices != NULL);                                                \
-                                                                                \
-        Proc_chorus_update_state_voice_ ## name(dimpl, dstate, indices, value); \
-                                                                                \
-        return true;                                                            \
+#define CHORUS_PARAM(name, dev_key, update_key, def_value)                  \
+    static bool Proc_chorus_set_state_voice_ ## name(                       \
+            const Device_impl* dimpl,                                       \
+            Device_state* dstate,                                           \
+            Key_indices indices,                                            \
+            double value)                                                   \
+    {                                                                       \
+        assert(dimpl != NULL);                                              \
+        assert(dstate != NULL);                                             \
+        assert(indices != NULL);                                            \
+                                                                            \
+        Proc_chorus_set_cv_voice_ ## name(dimpl, dstate, indices, value);   \
+                                                                            \
+        return true;                                                        \
     }
 #include <devices/processors/Proc_chorus_params.h>
 
 
-static void Proc_chorus_update_state_voice_delay(
+static void Proc_chorus_set_cv_voice_delay(
         const Device_impl* dimpl,
         Device_state* dstate,
         Key_indices indices,
@@ -402,7 +405,7 @@ static void Proc_chorus_update_state_voice_delay(
 }
 
 
-static void Proc_chorus_update_state_voice_range(
+static void Proc_chorus_set_cv_voice_range(
         const Device_impl* dimpl,
         Device_state* dstate,
         Key_indices indices,
@@ -427,7 +430,7 @@ static void Proc_chorus_update_state_voice_range(
 }
 
 
-static void Proc_chorus_update_state_voice_speed(
+static void Proc_chorus_set_cv_voice_speed(
         const Device_impl* dimpl,
         Device_state* dstate,
         Key_indices indices,
@@ -451,7 +454,7 @@ static void Proc_chorus_update_state_voice_speed(
 }
 
 
-static void Proc_chorus_update_state_voice_volume(
+static void Proc_chorus_set_cv_voice_volume(
         const Device_impl* dimpl,
         Device_state* dstate,
         Key_indices indices,

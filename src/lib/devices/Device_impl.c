@@ -57,20 +57,31 @@ typedef struct Set_cb
 } Set_cb;
 
 
-typedef struct Update_state_cb
+typedef struct Update_control_var_cb
 {
     char key_pattern[KQT_KEY_LENGTH_MAX];
     Value_type type;
 
     union
     {
-        Update_bool_func* update_bool;
-        Update_float_func* update_float;
-        Update_int_func* update_int;
-        Update_tstamp_func* update_tstamp;
+        Set_cv_bool_func* set_cv_bool;
+
+        Set_cv_int_func* set_cv_int;
+        Set_cv_tstamp_func* set_cv_tstamp;
+
+        struct
+        {
+            Set_cv_float_func* set_cv;
+            Slide_target_cv_float_func* slide_target;
+            Slide_length_cv_float_func* slide_length;
+            Osc_speed_cv_float_func* osc_speed;
+            Osc_depth_cv_float_func* osc_depth;
+            Osc_speed_slide_length_cv_float_func* osc_speed_sl;
+            Osc_depth_slide_length_cv_float_func* osc_depth_sl;
+        } update_float;
     } cb;
 
-} Update_state_cb;
+} Update_control_var_cb;
 
 
 void Device_impl_register_init(Device_impl* dimpl, bool (*init)(Device_impl*))
@@ -98,7 +109,7 @@ bool Device_impl_init(Device_impl* dimpl)
     assert(dimpl->destroy != NULL);
 
     dimpl->set_cbs = NULL;
-    dimpl->update_state_cbs = NULL;
+    dimpl->update_cv_cbs = NULL;
 
     dimpl->set_audio_rate = NULL;
     dimpl->set_buffer_size = NULL;
@@ -108,11 +119,11 @@ bool Device_impl_init(Device_impl* dimpl)
     dimpl->set_cbs = new_AAtree(
             (int (*)(const void*, const void*))strcmp,
             memory_free);
-    dimpl->update_state_cbs = new_AAtree(
+    dimpl->update_cv_cbs = new_AAtree(
             (int (*)(const void*, const void*))strcmp,
             memory_free);
     if ((dimpl->set_cbs == NULL) ||
-            (dimpl->update_state_cbs == NULL) ||
+            (dimpl->update_cv_cbs == NULL) ||
             !dimpl->init(dimpl))
     {
         Device_impl_deinit(dimpl);
@@ -328,60 +339,100 @@ bool Device_impl_register_set_num_list(
 }
 
 
-#define REGISTER_UPDATE(type_name, TYPE, ctype)                    \
-    bool Device_impl_register_update_state_ ## type_name(          \
+#define REGISTER_SET_CV(type_name, TYPE, ctype)                    \
+    bool Device_impl_register_set_cv_ ## type_name(                \
             Device_impl* dimpl,                                    \
             const char* keyp,                                      \
-            Update_ ## type_name ## _func update_state)            \
+            Set_cv_ ## type_name ## _func set_cv)                  \
     {                                                              \
         assert(dimpl != NULL);                                     \
         assert(keyp != NULL);                                      \
         assert(strlen(keyp) < KQT_KEY_LENGTH_MAX);                 \
-        assert(update_state != NULL);                              \
+        assert(set_cv != NULL);                                    \
                                                                    \
-        Update_state_cb* update_state_cb = memory_alloc_item(      \
-                Update_state_cb);                                  \
-        if (update_state_cb == NULL)                               \
+        Update_control_var_cb* update_cv_cb = memory_alloc_item(   \
+                Update_control_var_cb);                            \
+        if (update_cv_cb == NULL)                                  \
             return false;                                          \
                                                                    \
-        strcpy(update_state_cb->key_pattern, keyp);                \
-        update_state_cb->type = VALUE_TYPE_##TYPE;                 \
-        update_state_cb->cb.update_ ## type_name = update_state;   \
+        strcpy(update_cv_cb->key_pattern, keyp);                   \
+        update_cv_cb->type = VALUE_TYPE_##TYPE;                    \
+        update_cv_cb->cb.set_cv_ ## type_name = set_cv;            \
                                                                    \
-        if (!AAtree_ins(dimpl->update_state_cbs, update_state_cb)) \
+        if (!AAtree_ins(dimpl->update_cv_cbs, update_cv_cb))       \
         {                                                          \
-            memory_free(update_state_cb);                          \
+            memory_free(update_cv_cb);                             \
             return false;                                          \
         }                                                          \
                                                                    \
         return true;                                               \
     }
 
-REGISTER_UPDATE(bool, BOOL, bool)
-REGISTER_UPDATE(float, FLOAT, double)
-REGISTER_UPDATE(int, INT, int64_t)
+REGISTER_SET_CV(bool, BOOL, bool)
+REGISTER_SET_CV(int, INT, int64_t)
 
 #undef REGISTER_UPDATE
 
-bool Device_impl_register_update_state_tstamp(
-        Device_impl* dimpl, const char* keyp, Update_tstamp_func update_state)
+
+bool Device_impl_register_updaters_cv_float(
+        Device_impl* dimpl,
+        const char* keyp,
+        Set_cv_float_func set_cv,
+        Slide_target_cv_float_func slide_target,
+        Slide_length_cv_float_func slide_length,
+        Osc_speed_cv_float_func osc_speed,
+        Osc_depth_cv_float_func osc_depth,
+        Osc_speed_slide_length_cv_float_func osc_speed_sl,
+        Osc_depth_slide_length_cv_float_func osc_depth_sl)
 {
     assert(dimpl != NULL);
     assert(keyp != NULL);
     assert(strlen(keyp) < KQT_KEY_LENGTH_MAX);
-    assert(update_state != NULL);
+    assert(set_cv != NULL);
 
-    Update_state_cb* update_state_cb = memory_alloc_item(Update_state_cb);
-    if (update_state_cb == NULL)
+    Update_control_var_cb* update_cv_cb = memory_alloc_item(Update_control_var_cb);
+    if (update_cv_cb == NULL)
         return false;
 
-    strcpy(update_state_cb->key_pattern, keyp);
-    update_state_cb->type = VALUE_TYPE_TSTAMP;
-    update_state_cb->cb.update_tstamp = update_state;
+    strcpy(update_cv_cb->key_pattern, keyp);
+    update_cv_cb->type = VALUE_TYPE_FLOAT;
+    update_cv_cb->cb.update_float.set_cv = set_cv;
+    update_cv_cb->cb.update_float.slide_target = slide_target;
+    update_cv_cb->cb.update_float.slide_length = slide_length;
+    update_cv_cb->cb.update_float.osc_speed = osc_speed;
+    update_cv_cb->cb.update_float.osc_depth = osc_depth;
+    update_cv_cb->cb.update_float.osc_speed_sl = osc_speed_sl;
+    update_cv_cb->cb.update_float.osc_depth_sl = osc_depth_sl;
 
-    if (!AAtree_ins(dimpl->update_state_cbs, update_state_cb))
+    if (!AAtree_ins(dimpl->update_cv_cbs, update_cv_cb))
     {
-        memory_free(update_state_cb);
+        memory_free(update_cv_cb);
+        return false;
+    }
+
+    return true;
+}
+
+
+bool Device_impl_register_set_cv_tstamp(
+        Device_impl* dimpl, const char* keyp, Set_cv_tstamp_func set_cv)
+{
+    assert(dimpl != NULL);
+    assert(keyp != NULL);
+    assert(strlen(keyp) < KQT_KEY_LENGTH_MAX);
+    assert(set_cv != NULL);
+
+    Update_control_var_cb* update_cv_cb = memory_alloc_item(Update_control_var_cb);
+    if (update_cv_cb == NULL)
+        return false;
+
+    strcpy(update_cv_cb->key_pattern, keyp);
+    update_cv_cb->type = VALUE_TYPE_TSTAMP;
+    update_cv_cb->cb.set_cv_tstamp = set_cv;
+
+    if (!AAtree_ins(dimpl->update_cv_cbs, update_cv_cb))
+    {
+        memory_free(update_cv_cb);
         return false;
     }
 
@@ -656,8 +707,24 @@ bool Device_impl_set_state_key(
 }
 
 
-#define UPDATE_STATE_VALUE(type_name, type_upper, ctype)            \
-    void Device_impl_update_state_ ## type_name(                    \
+static const Update_control_var_cb* get_update_control_var_cb(
+        const Device_impl* dimpl, const char* key, Key_indices indices)
+{
+    assert(dimpl != NULL);
+    assert(key != NULL);
+    assert(indices != NULL);
+
+    memset(indices, '\xff', KEY_INDICES_MAX * sizeof(int32_t));
+
+    char keyp[KQT_KEY_LENGTH_MAX] = "";
+    extract_key_pattern(key, keyp, indices);
+
+    return AAtree_get_exact(dimpl->update_cv_cbs, keyp);
+}
+
+
+#define SET_CV(type_name, type_upper, ctype)                        \
+    void Device_impl_set_cv_ ## type_name(                          \
             const Device_impl* dimpl,                               \
             Device_state* dstate,                                   \
             const char* key,                                        \
@@ -666,32 +733,47 @@ bool Device_impl_set_state_key(
         assert(dimpl != NULL);                                      \
         assert(dstate != NULL);                                     \
         assert(key != NULL);                                        \
-                                                                    \
         assert(strlen(key) < KQT_KEY_LENGTH_MAX);                   \
-        char keyp[KQT_KEY_LENGTH_MAX] = "";                         \
+                                                                    \
         Key_indices indices = { 0 };                                \
-        memset(indices, '\xff', KEY_INDICES_MAX * sizeof(int32_t)); \
+        const Update_control_var_cb* update_cv_cb =                 \
+            get_update_control_var_cb(dimpl, key, indices);         \
                                                                     \
-        extract_key_pattern(key, keyp, indices);                    \
-                                                                    \
-        const Update_state_cb* update_state_cb = AAtree_get_exact(  \
-                dimpl->update_state_cbs, keyp);                     \
-        if (update_state_cb != NULL &&                              \
-                update_state_cb->type == VALUE_TYPE_ ## type_upper) \
-            update_state_cb->cb.update_ ## type_name(               \
+        if (update_cv_cb != NULL &&                                 \
+                update_cv_cb->type == VALUE_TYPE_ ## type_upper)    \
+            update_cv_cb->cb.set_cv_ ## type_name(                  \
                     dimpl, dstate, indices, value);                 \
                                                                     \
         return;                                                     \
     }
 
-UPDATE_STATE_VALUE(bool, BOOL, bool)
-UPDATE_STATE_VALUE(float, FLOAT, double)
-UPDATE_STATE_VALUE(int, INT, int64_t)
+SET_CV(bool, BOOL, bool)
+SET_CV(int, INT, int64_t)
 
-#undef UPDATE_VALUE
+#undef SET_CV
 
 
-void Device_impl_update_state_tstamp(
+void Device_impl_set_cv_float(
+        const Device_impl* dimpl, Device_state* dstate, const char* key, double value)
+{
+    assert(dimpl != NULL);
+    assert(dstate != NULL);
+    assert(key != NULL);
+    assert(strlen(key) < KQT_KEY_LENGTH_MAX);
+    assert(isfinite(value));
+
+    Key_indices indices = { 0 };
+    const Update_control_var_cb* update_cv_cb =
+        get_update_control_var_cb(dimpl, key, indices);
+
+    if ((update_cv_cb != NULL) && (update_cv_cb->type == VALUE_TYPE_FLOAT))
+        update_cv_cb->cb.update_float.set_cv(dimpl, dstate, indices, value);
+
+    return;
+}
+
+
+void Device_impl_set_cv_tstamp(
         const Device_impl* dimpl,
         Device_state* dstate,
         const char* key,
@@ -709,12 +791,10 @@ void Device_impl_update_state_tstamp(
 
     extract_key_pattern(key, keyp, indices);
 
-    const Update_state_cb* update_state_cb = AAtree_get_exact(
-            dimpl->update_state_cbs,
-            keyp);
-    if (update_state_cb != NULL && update_state_cb->type == VALUE_TYPE_TSTAMP)
-        update_state_cb->cb.update_tstamp(
-                dimpl, dstate, indices, value);
+    const Update_control_var_cb* update_cv_cb =
+        AAtree_get_exact(dimpl->update_cv_cbs, keyp);
+    if (update_cv_cb != NULL && update_cv_cb->type == VALUE_TYPE_TSTAMP)
+        update_cv_cb->cb.set_cv_tstamp(dimpl, dstate, indices, value);
 
     return;
 }
@@ -724,8 +804,8 @@ void Device_impl_deinit(Device_impl* dimpl)
 {
     assert(dimpl != NULL);
 
-    del_AAtree(dimpl->update_state_cbs);
-    dimpl->update_state_cbs = NULL;
+    del_AAtree(dimpl->update_cv_cbs);
+    dimpl->update_cv_cbs = NULL;
     del_AAtree(dimpl->set_cbs);
     dimpl->set_cbs = NULL;
 

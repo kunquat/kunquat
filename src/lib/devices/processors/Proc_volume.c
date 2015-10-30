@@ -51,7 +51,7 @@ static Set_float_func Proc_volume_set_volume;
 
 static Set_state_float_func Proc_volume_set_state_volume;
 
-static Update_float_func Proc_volume_update_state_volume;
+static Set_cv_float_func Proc_volume_set_cv_volume;
 
 
 static bool Proc_volume_init(Device_impl* dimpl);
@@ -100,7 +100,7 @@ static bool Proc_volume_init(Device_impl* dimpl)
     Processor* proc = (Processor*)volume->parent.device;
     proc->process_vstate = Proc_volume_process_vstate;
 
-    // Register key set/update handlers
+    // Register key and control variable handlers
     bool reg_success = true;
 
     reg_success &= Device_impl_register_set_float(
@@ -110,8 +110,9 @@ static bool Proc_volume_init(Device_impl* dimpl)
             Proc_volume_set_volume,
             Proc_volume_set_state_volume);
 
-    reg_success &= Device_impl_register_update_state_float(
-            &volume->parent, "v", Proc_volume_update_state_volume);
+    reg_success &= Device_impl_register_updaters_cv_float(
+            &volume->parent, "v", Proc_volume_set_cv_volume,
+            NULL, NULL, NULL, NULL, NULL, NULL);
 
     if (!reg_success)
         return false;
@@ -192,13 +193,13 @@ static bool Proc_volume_set_state_volume(
     assert(dstate != NULL);
     assert(indices != NULL);
 
-    Proc_volume_update_state_volume(dimpl, dstate, indices, value);
+    Proc_volume_set_cv_volume(dimpl, dstate, indices, value);
 
     return true;
 }
 
 
-static void Proc_volume_update_state_volume(
+static void Proc_volume_set_cv_volume(
         const Device_impl* dimpl,
         Device_state* dstate,
         Key_indices indices,
