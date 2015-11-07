@@ -589,6 +589,33 @@ void Device_impl_set_cv_float(
 
 
 /**
+ * Slide float control variable to target value in a Device state.
+ *
+ * \param dimpl    The Device implementation -- must not be \c NULL.
+ * \param dstate   The Device state -- must not be \c NULL.
+ * \param key      The key to be updated -- must not be \c NULL.
+ * \param value    The target value.
+ */
+void Device_impl_slide_cv_float_target(
+        const Device_impl* dimpl, Device_state* dstate, const char* key, double value);
+
+
+/**
+ * Set slide length of float control variable in a Device state.
+ *
+ * \param dimpl    The Device implementation -- must not be \c NULL.
+ * \param dstate   The Device state -- must not be \c NULL.
+ * \param key      The key to be updated -- must not be \c NULL.
+ * \param length   The slide length -- must not be \c NULL.
+ */
+void Device_impl_slide_cv_float_length(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        const char* key,
+        const Tstamp* length);
+
+
+/**
  * Set an integral control in a Device state.
  *
  * \param dimpl    The Device implementation -- must not be \c NULL.

@@ -125,6 +125,8 @@ bool Device_init(Device* device, bool req_impl)
     device->process_signal = NULL;
 
     device->set_control_var_float = NULL;
+    device->slide_control_var_float_target = NULL;
+    device->slide_control_var_float_length = NULL;
 
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
@@ -292,11 +294,30 @@ void Device_set_process(Device* device, Device_process_signal_func* process_sign
 }
 
 
-void Device_set_control_var_float_modifiers(
+void Device_register_set_control_var_float(
         Device* device, Device_set_control_var_float_func* set_float_func)
 {
     assert(device != NULL);
+    assert(set_float_func != NULL);
+
     device->set_control_var_float = set_float_func;
+
+    return;
+}
+
+
+void Device_register_slide_control_var_float(
+        Device* device,
+        Device_slide_control_var_float_target_func* slide_target_func,
+        Device_slide_control_var_float_length_func* slide_length_func)
+{
+    assert(device != NULL);
+    assert(slide_target_func != NULL);
+    assert(slide_length_func != NULL);
+
+    device->slide_control_var_float_target = slide_target_func;
+    device->slide_control_var_float_length = slide_length_func;
+
     return;
 }
 
@@ -512,6 +533,39 @@ void Device_set_control_var_float(
 
     if (device->set_control_var_float != NULL)
         device->set_control_var_float(device, dstates, var_name, value);
+
+    return;
+}
+
+
+void Device_slide_control_var_float_target(
+        const Device* device, Device_states* dstates, const char* var_name, double value)
+{
+    assert(device != NULL);
+    assert(dstates != NULL);
+    assert(var_name != NULL);
+    assert(isfinite(value));
+
+    if (device->slide_control_var_float_target != NULL)
+        device->slide_control_var_float_target(device, dstates, var_name, value);
+
+    return;
+}
+
+
+void Device_slide_control_var_float_length(
+        const Device* device,
+        Device_states* dstates,
+        const char* var_name,
+        const Tstamp* length)
+{
+    assert(device != NULL);
+    assert(dstates != NULL);
+    assert(var_name != NULL);
+    assert(length != NULL);
+
+    if (device->slide_control_var_float_length != NULL)
+        device->slide_control_var_float_length(device, dstates, var_name, length);
 
     return;
 }

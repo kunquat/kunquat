@@ -98,6 +98,25 @@ void del_Var_entry(Var_entry* entry)
 }
 
 
+static bool Au_control_binding_iter_init_common(
+        Au_control_binding_iter* iter, const Au_control_vars* aucv, const char* var_name)
+{
+    assert(iter != NULL);
+    assert(aucv != NULL);
+    assert(var_name != NULL);
+
+    const Var_entry* var_entry = AAtree_get_exact(aucv->vars, var_name);
+    if (var_entry == NULL)
+        return false;
+
+    iter->iter = var_entry->first_bind_entry;
+    if (iter->iter == NULL)
+        return false;
+
+    return true;
+}
+
+
 static void Au_control_binding_iter_update(Au_control_binding_iter* iter)
 {
     assert(iter != NULL);
@@ -109,6 +128,11 @@ static void Au_control_binding_iter_update(Au_control_binding_iter* iter)
 
     switch (iter->src_value.type)
     {
+        case VALUE_TYPE_NONE:
+        {
+        }
+        break;
+
         case VALUE_TYPE_FLOAT:
         {
             // Map to target range
@@ -130,6 +154,29 @@ static void Au_control_binding_iter_update(Au_control_binding_iter* iter)
 }
 
 
+bool Au_control_binding_iter_init(
+        Au_control_binding_iter* iter,
+        const Au_control_vars* aucv,
+        const char* var_name)
+{
+    assert(iter != NULL);
+    assert(aucv != NULL);
+    assert(var_name != NULL);
+
+    iter->iter = NULL;
+    iter->src_value.type = VALUE_TYPE_NONE;
+
+    if (!Au_control_binding_iter_init_common(iter, aucv, var_name))
+        return false;
+
+    iter->target_value.type = VALUE_TYPE_NONE;
+
+    Au_control_binding_iter_update(iter);
+
+    return true;
+}
+
+
 bool Au_control_binding_iter_init_float(
         Au_control_binding_iter* iter,
         const Au_control_vars* aucv,
@@ -145,15 +192,13 @@ bool Au_control_binding_iter_init_float(
     iter->src_value.type = VALUE_TYPE_FLOAT;
     iter->src_value.value.float_type = value;
 
-    const Var_entry* var_entry = AAtree_get_exact(aucv->vars, var_name);
-    if ((var_entry == NULL) || (var_entry->init_value.type != VALUE_TYPE_FLOAT))
-        return false;
-
-    iter->iter = var_entry->first_bind_entry;
-    if (iter->iter == NULL)
+    if (!Au_control_binding_iter_init_common(iter, aucv, var_name))
         return false;
 
     // Get normalised source value position in our source range
+    const Var_entry* var_entry = AAtree_get_exact(aucv->vars, var_name);
+    assert(var_entry != NULL);
+
     const double min_value = var_entry->ext.float_type.min_value;
     const double max_value = var_entry->ext.float_type.max_value;
     const double clamped_src_value = clamp(value, min_value, max_value);

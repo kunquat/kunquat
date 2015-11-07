@@ -88,6 +88,18 @@ static void Audio_unit_set_control_var_float(
         const char* var_name,
         double value);
 
+static void Audio_unit_slide_control_var_float_target(
+        const Device* device,
+        Device_states* dstates,
+        const char* var_name,
+        double value);
+
+static void Audio_unit_slide_control_var_float_length(
+        const Device* device,
+        Device_states* dstates,
+        const char* var_name,
+        const Tstamp* length);
+
 
 Audio_unit* new_Audio_unit(void)
 {
@@ -126,8 +138,11 @@ Audio_unit* new_Audio_unit(void)
     Device_set_mixed_signals(&au->parent, true);
     Device_set_process(&au->parent, Audio_unit_process_signal);
 
-    Device_set_control_var_float_modifiers(
-            &au->parent, Audio_unit_set_control_var_float);
+    Device_register_set_control_var_float(&au->parent, Audio_unit_set_control_var_float);
+    Device_register_slide_control_var_float(
+            &au->parent,
+            Audio_unit_slide_control_var_float_target,
+            Audio_unit_slide_control_var_float_length);
 
     au->out_iface = new_Au_interface();
     au->in_iface = new_Au_interface();
@@ -587,6 +602,25 @@ static void Audio_unit_process_signal(
 }
 
 
+static const Device* get_cv_target_device(
+        const Audio_unit* au, const Au_control_binding_iter* iter)
+{
+    assert(au != NULL);
+    assert(iter != NULL);
+
+    const Device* target_dev = NULL;
+    if (iter->target_dev_type == TARGET_DEV_AU)
+        target_dev = (const Device*)Au_table_get(
+                au->au_table, iter->target_dev_index);
+    else if (iter->target_dev_type == TARGET_DEV_PROC)
+        target_dev = (const Device*)Proc_table_get_proc(
+                au->procs, iter->target_dev_index);
+
+    assert(target_dev != NULL);
+    return target_dev;
+}
+
+
 static void Audio_unit_set_control_var_float(
         const Device* device,
         Device_states* dstates,
@@ -605,28 +639,91 @@ static void Audio_unit_set_control_var_float(
 
     // Map our value to each bound target range and
     // call control value setter for corresponding subdevice
-    Au_control_binding_iter iter;
+    Au_control_binding_iter* iter = AU_CONTROL_BINDING_ITER_AUTO;
     bool has_entry =
-        Au_control_binding_iter_init_float(&iter, au->control_vars, var_name, value);
+        Au_control_binding_iter_init_float(iter, au->control_vars, var_name, value);
     while (has_entry)
     {
-        // Get our target device
-        const Device* target_dev = NULL;
-        if (iter.target_dev_type == TARGET_DEV_AU)
-            target_dev = (const Device*)Au_table_get(
-                    au->au_table, iter.target_dev_index);
-        else if (iter.target_dev_type == TARGET_DEV_PROC)
-            target_dev = (const Device*)Proc_table_get_proc(
-                    au->procs, iter.target_dev_index);
+        const Device* target_dev = get_cv_target_device(au, iter);
 
-        // Send our mapped value forwards
         Device_set_control_var_float(
                 target_dev,
                 dstates,
-                iter.target_var_name,
-                iter.target_value.value.float_type);
+                iter->target_var_name,
+                iter->target_value.value.float_type);
 
-        has_entry = Au_control_binding_iter_get_next_entry(&iter);
+        has_entry = Au_control_binding_iter_get_next_entry(iter);
+    }
+
+    return;
+}
+
+
+static void Audio_unit_slide_control_var_float_target(
+        const Device* device,
+        Device_states* dstates,
+        const char* var_name,
+        double value)
+{
+    assert(device != NULL);
+    assert(dstates != NULL);
+    assert(var_name != NULL);
+    assert(isfinite(value));
+
+    const Audio_unit* au = (const Audio_unit*)device;
+
+    if (au->control_vars == NULL)
+        return;
+
+    // Map our value to each bound target range and
+    // call control value slider for corresponding subdevice
+    Au_control_binding_iter* iter = AU_CONTROL_BINDING_ITER_AUTO;
+    bool has_entry =
+        Au_control_binding_iter_init_float(iter, au->control_vars, var_name, value);
+    while (has_entry)
+    {
+        const Device* target_dev = get_cv_target_device(au, iter);
+
+        Device_slide_control_var_float_target(
+                target_dev,
+                dstates,
+                iter->target_var_name,
+                iter->target_value.value.float_type);
+
+        has_entry = Au_control_binding_iter_get_next_entry(iter);
+    }
+
+    return;
+}
+
+
+static void Audio_unit_slide_control_var_float_length(
+        const Device* device,
+        Device_states* dstates,
+        const char* var_name,
+        const Tstamp* length)
+{
+    assert(device != NULL);
+    assert(dstates != NULL);
+    assert(var_name != NULL);
+    assert(length != NULL);
+
+    const Audio_unit* au = (const Audio_unit*)device;
+
+    if (au->control_vars == NULL)
+        return;
+
+    // Set slide length for target devices
+    Au_control_binding_iter* iter = AU_CONTROL_BINDING_ITER_AUTO;
+    bool has_entry = Au_control_binding_iter_init(iter, au->control_vars, var_name);
+    while (has_entry)
+    {
+        const Device* target_dev = get_cv_target_device(au, iter);
+
+        Device_slide_control_var_float_length(
+                target_dev, dstates, iter->target_var_name, length);
+
+        has_entry = Au_control_binding_iter_get_next_entry(iter);
     }
 
     return;

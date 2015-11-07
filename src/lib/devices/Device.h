@@ -31,6 +31,10 @@
 #include <Tstamp.h>
 
 
+typedef Device_state* Device_create_state_func(
+        const Device*, int32_t buffer_size, int32_t audio_rate);
+
+
 typedef void Device_process_signal_func(
         const Device*,
         Device_states*,
@@ -44,6 +48,12 @@ typedef void Device_process_signal_func(
 typedef void Device_set_control_var_float_func(
         const Device*, Device_states*, const char* var_name, double value);
 
+typedef void Device_slide_control_var_float_target_func(
+        const Device*, Device_states*, const char* var_name, double value);
+
+typedef void Device_slide_control_var_float_length_func(
+        const Device*, Device_states*, const char* var_name, const Tstamp* length);
+
 
 struct Device
 {
@@ -56,7 +66,7 @@ struct Device
     Device_params* dparams;
     Device_impl* dimpl;
 
-    Device_state* (*create_state)(const struct Device*, int32_t, int32_t);
+    Device_create_state_func* create_state;
     bool (*set_audio_rate)(const struct Device*, Device_states*, int32_t);
     bool (*set_buffer_size)(const struct Device*, Device_states*, int32_t);
     void (*update_tempo)(const struct Device*, Device_states*, double);
@@ -64,6 +74,8 @@ struct Device
     Device_process_signal_func* process_signal;
 
     Device_set_control_var_float_func* set_control_var_float;
+    Device_slide_control_var_float_target_func* slide_control_var_float_target;
+    Device_slide_control_var_float_length_func* slide_control_var_float_length;
 
     bool existence[DEVICE_PORT_TYPES][KQT_DEVICE_PORTS_MAX];
 };
@@ -232,13 +244,26 @@ void Device_set_process(Device* device, Device_process_signal_func* process_sign
 
 
 /**
- * Set functions for modifying floating-point control variables.
+ * Set function for setting floating-point control variables.
  *
- * \param device           The Device -- must not be \c NULL.
- * \param set_float_func   The float setting function, or \c NULL.
+ * \param device     The Device -- must not be \c NULL.
+ * \param set_func   The float setting function -- must not be \c NULL.
  */
-void Device_set_control_var_float_modifiers(
+void Device_register_set_control_var_float(
         Device* device, Device_set_control_var_float_func* set_float_func);
+
+
+/**
+ * Set functions for sliding floating-point control variables.
+ *
+ * \param device              The Device -- must not be \c NULL.
+ * \param slide_target_func   The slide target function -- must not be \c NULL.
+ * \param slide_length_func   The slide length function -- must not be \c NULL.
+ */
+void Device_register_slide_control_var_float(
+        Device* device,
+        Device_slide_control_var_float_target_func* slide_target_func,
+        Device_slide_control_var_float_length_func* slide_length_func);
 
 
 /**
@@ -388,6 +413,33 @@ void Device_process(
  */
 void Device_set_control_var_float(
         const Device* device, Device_states* dstates, const char* var_name, double value);
+
+
+/**
+ * Slide to a new value of a floating-point Device control variable.
+ *
+ * \param device     The Device -- must not be \c NULL.
+ * \param dstates    The Device states -- must not be \c NULL.
+ * \param var_name   The name of the control variable, or \c NULL.
+ * \param value      The target value -- must be finite.
+ */
+void Device_slide_control_var_float_target(
+        const Device* device, Device_states* dstates, const char* var_name, double value);
+
+
+/**
+ * Set slide length of a floating-point Device control variable.
+ *
+ * \param device     The Device -- must not be \c NULL.
+ * \param dstates    The Device states -- must not be \c NULL.
+ * \param var_name   The name of the control variable, or \c NULL.
+ * \param length     The new slide length -- must not be \c NULL.
+ */
+void Device_slide_control_var_float_length(
+        const Device* device,
+        Device_states* dstates,
+        const char* var_name,
+        const Tstamp* length);
 
 
 /**

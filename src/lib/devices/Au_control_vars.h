@@ -59,13 +59,35 @@ typedef struct Au_control_binding_iter
 } Au_control_binding_iter;
 
 
+#define AU_CONTROL_BINDING_ITER_AUTO (&(Au_control_binding_iter){ \
+        .iter = NULL, .target_dev_type = TARGET_DEV_NONE })
+
+
+/**
+ * Start iterating over bound control variable targets.
+ *
+ * This initialises the iterator to be suitable for retrieving bound target
+ * devices only; no mapped target values are calculated.
+ *
+ * \param iter       The iterator -- must not be \c NULL.
+ * \param aucv       The Audio unit control variables -- must not be \c NULL.
+ * \param var_name   The name of the variable -- must not be \c NULL.
+ *
+ * \return   \a true if at least one result is found, otherwise \c false.
+ */
+bool Au_control_binding_iter_init(
+        Au_control_binding_iter* iter,
+        const Au_control_vars* aucv,
+        const char* var_name);
+
+
 /**
  * Start iterating over results of floating-point control variable bindings.
  *
- * \param iter        The iterator -- must not be \c NULL.
- * \param aucv        The Audio unit control variables -- must not be \c NULL.
- * \param var_name    The name of the variable -- must not be \c NULL.
- * \param value       The source value -- must be finite.
+ * \param iter       The iterator -- must not be \c NULL.
+ * \param aucv       The Audio unit control variables -- must not be \c NULL.
+ * \param var_name   The name of the variable -- must not be \c NULL.
+ * \param value      The source value -- must be finite.
  *
  * \return   \c true if at least one result is found, otherwise \c false.
  */

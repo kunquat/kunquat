@@ -50,6 +50,15 @@ static Device_state* Processor_create_state_plain(
 static void Processor_set_control_var_float(
         const Device* device, Device_states* dstates, const char* key, double value);
 
+static void Processor_slide_control_var_float_target(
+        const Device* device, Device_states* dstates, const char* key, double value);
+
+static void Processor_slide_control_var_float_length(
+        const Device* device,
+        Device_states* dstates,
+        const char* key,
+        const Tstamp* length);
+
 
 Processor* new_Processor(const Au_params* au_params)
 {
@@ -81,8 +90,13 @@ Processor* new_Processor(const Au_params* au_params)
             &proc->parent,
             Processor_create_state_plain);
 
-    Device_set_control_var_float_modifiers(
+    Device_register_set_control_var_float(
             &proc->parent, Processor_set_control_var_float);
+
+    Device_register_slide_control_var_float(
+            &proc->parent,
+            Processor_slide_control_var_float_target,
+            Processor_slide_control_var_float_length);
 
     return proc;
 }
@@ -422,6 +436,41 @@ static void Processor_set_control_var_float(
     const Device_impl* dimpl = device->dimpl;
     Device_state* dstate = Device_states_get_state(dstates, Device_get_id(device));
     Device_impl_set_cv_float(dimpl, dstate, key, value);
+
+    return;
+}
+
+
+static void Processor_slide_control_var_float_target(
+        const Device* device, Device_states* dstates, const char* key, double value)
+{
+    assert(device != NULL);
+    assert(dstates != NULL);
+    assert(key != NULL);
+    assert(isfinite(value));
+
+    const Device_impl* dimpl = device->dimpl;
+    Device_state* dstate = Device_states_get_state(dstates, Device_get_id(device));
+    Device_impl_slide_cv_float_target(dimpl, dstate, key, value);
+
+    return;
+}
+
+
+static void Processor_slide_control_var_float_length(
+        const Device* device,
+        Device_states* dstates,
+        const char* key,
+        const Tstamp* length)
+{
+    assert(device != NULL);
+    assert(dstates != NULL);
+    assert(key != NULL);
+    assert(length != NULL);
+
+    const Device_impl* dimpl = device->dimpl;
+    Device_state* dstate = Device_states_get_state(dstates, Device_get_id(device));
+    Device_impl_slide_cv_float_length(dimpl, dstate, key, length);
 
     return;
 }

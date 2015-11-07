@@ -772,6 +772,52 @@ void Device_impl_set_cv_float(
 }
 
 
+void Device_impl_slide_cv_float_target(
+        const Device_impl* dimpl, Device_state* dstate, const char* key, double value)
+{
+    assert(dimpl != NULL);
+    assert(dstate != NULL);
+    assert(key != NULL);
+    assert(strlen(key) < KQT_KEY_LENGTH_MAX);
+    assert(isfinite(value));
+
+    Key_indices indices = { 0 };
+    const Update_control_var_cb* update_cv_cb =
+        get_update_control_var_cb(dimpl, key, indices);
+
+    if ((update_cv_cb != NULL) &&
+            (update_cv_cb->type == VALUE_TYPE_FLOAT) &&
+            (update_cv_cb->cb.update_float.slide_target != NULL))
+        update_cv_cb->cb.update_float.slide_target(dimpl, dstate, indices, value);
+
+    return;
+}
+
+
+void Device_impl_slide_cv_float_length(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        const char* key,
+        const Tstamp* length)
+{
+    assert(dimpl != NULL);
+    assert(dstate != NULL);
+    assert(key != NULL);
+    assert(length != NULL);
+
+    Key_indices indices = { 0 };
+    const Update_control_var_cb* update_cv_cb =
+        get_update_control_var_cb(dimpl, key, indices);
+
+    if ((update_cv_cb != NULL) &&
+            (update_cv_cb->type == VALUE_TYPE_FLOAT) &&
+            (update_cv_cb->cb.update_float.slide_length != NULL))
+        update_cv_cb->cb.update_float.slide_length(dimpl, dstate, indices, length);
+
+    return;
+}
+
+
 void Device_impl_set_cv_tstamp(
         const Device_impl* dimpl,
         Device_state* dstate,
