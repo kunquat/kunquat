@@ -23,7 +23,9 @@ EVENT_AU_DEF("abp-",        bypass_off,             NONE,           NULL)
 EVENT_AU_DEF("a.sus",       set_sustain,            FLOAT,          v_sustain)
 
 EVENT_AU_DEF("a.Fn",        set_cv_float_name,      STRING,         v_var_name)
-EVENT_AU_DEF("a.F",         set_cv_float_value,     FLOAT,          v_any_float)
+EVENT_AU_DEF("a.F",         set_cv_float_value,     FLOAT,          v_finite_float)
+EVENT_AU_DEF("a/F",         slide_cv_float_target,  FLOAT,          v_finite_float)
+EVENT_AU_DEF("a/=F",        slide_cv_float_length,  TSTAMP,         v_nonneg_ts)
 
 
 #undef EVENT_AU_DEF
