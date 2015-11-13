@@ -59,6 +59,30 @@ static void Processor_slide_control_var_float_length(
         const char* key,
         const Tstamp* length);
 
+static void Processor_osc_speed_cv_float(
+        const Device* device,
+        Device_states* dstates,
+        const char* key,
+        double speed);
+
+static void Processor_osc_depth_cv_float(
+        const Device* device,
+        Device_states* dstates,
+        const char* key,
+        double depth);
+
+static void Processor_osc_speed_slide_cv_float(
+        const Device* device,
+        Device_states* dstates,
+        const char* key,
+        const Tstamp* length);
+
+static void Processor_osc_depth_slide_cv_float(
+        const Device* device,
+        Device_states* dstates,
+        const char* key,
+        const Tstamp* length);
+
 
 Processor* new_Processor(const Au_params* au_params)
 {
@@ -97,6 +121,13 @@ Processor* new_Processor(const Au_params* au_params)
             &proc->parent,
             Processor_slide_control_var_float_target,
             Processor_slide_control_var_float_length);
+
+    Device_register_osc_cv_float(
+            &proc->parent,
+            Processor_osc_speed_cv_float,
+            Processor_osc_depth_cv_float,
+            Processor_osc_speed_slide_cv_float,
+            Processor_osc_depth_slide_cv_float);
 
     return proc;
 }
@@ -471,6 +502,82 @@ static void Processor_slide_control_var_float_length(
     const Device_impl* dimpl = device->dimpl;
     Device_state* dstate = Device_states_get_state(dstates, Device_get_id(device));
     Device_impl_slide_cv_float_length(dimpl, dstate, key, length);
+
+    return;
+}
+
+
+static void Processor_osc_speed_cv_float(
+        const Device* device,
+        Device_states* dstates,
+        const char* key,
+        double speed)
+{
+    assert(device != NULL);
+    assert(dstates != NULL);
+    assert(key != NULL);
+    assert(speed >= 0);
+
+    const Device_impl* dimpl = device->dimpl;
+    Device_state* dstate = Device_states_get_state(dstates, Device_get_id(device));
+    Device_impl_osc_speed_cv_float(dimpl, dstate, key, speed);
+
+    return;
+}
+
+
+static void Processor_osc_depth_cv_float(
+        const Device* device,
+        Device_states* dstates,
+        const char* key,
+        double depth)
+{
+    assert(device != NULL);
+    assert(dstates != NULL);
+    assert(key != NULL);
+    assert(isfinite(depth));
+
+    const Device_impl* dimpl = device->dimpl;
+    Device_state* dstate = Device_states_get_state(dstates, Device_get_id(device));
+    Device_impl_osc_depth_cv_float(dimpl, dstate, key, depth);
+
+    return;
+}
+
+
+static void Processor_osc_speed_slide_cv_float(
+        const Device* device,
+        Device_states* dstates,
+        const char* key,
+        const Tstamp* length)
+{
+    assert(device != NULL);
+    assert(dstates != NULL);
+    assert(key != NULL);
+    assert(length != NULL);
+
+    const Device_impl* dimpl = device->dimpl;
+    Device_state* dstate = Device_states_get_state(dstates, Device_get_id(device));
+    Device_impl_osc_speed_slide_cv_float(dimpl, dstate, key, length);
+
+    return;
+}
+
+
+static void Processor_osc_depth_slide_cv_float(
+        const Device* device,
+        Device_states* dstates,
+        const char* key,
+        const Tstamp* length)
+{
+    assert(device != NULL);
+    assert(dstates != NULL);
+    assert(key != NULL);
+    assert(length != NULL);
+
+    const Device_impl* dimpl = device->dimpl;
+    Device_state* dstate = Device_states_get_state(dstates, Device_get_id(device));
+    Device_impl_osc_depth_slide_cv_float(dimpl, dstate, key, length);
 
     return;
 }
