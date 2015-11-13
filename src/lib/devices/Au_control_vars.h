@@ -43,13 +43,19 @@ typedef struct Bind_entry Au_control_bind_entry;
 typedef struct Au_control_binding_iter
 {
     const Au_control_bind_entry* iter;
+    int iter_mode;
     Value src_value;
     union
     {
         struct
         {
             double src_range_norm;
-        } float_type;
+        } set_float_type;
+
+        struct
+        {
+            double osc_range_norm;
+        } osc_float_type;
     } ext;
 
     Target_dev_type target_dev_type;
@@ -60,7 +66,7 @@ typedef struct Au_control_binding_iter
 
 
 #define AU_CONTROL_BINDING_ITER_AUTO (&(Au_control_binding_iter){ \
-        .iter = NULL, .target_dev_type = TARGET_DEV_NONE })
+        .iter = NULL, .iter_mode = -1, .target_dev_type = TARGET_DEV_NONE })
 
 
 /**
@@ -82,7 +88,7 @@ bool Au_control_binding_iter_init(
 
 
 /**
- * Start iterating over results of floating-point control variable bindings.
+ * Start iterating over results of setting floating-point control variable bindings.
  *
  * \param iter       The iterator -- must not be \c NULL.
  * \param aucv       The Audio unit control variables -- must not be \c NULL.
@@ -91,11 +97,28 @@ bool Au_control_binding_iter_init(
  *
  * \return   \c true if at least one result is found, otherwise \c false.
  */
-bool Au_control_binding_iter_init_float(
+bool Au_control_binding_iter_init_set_float(
         Au_control_binding_iter* iter,
         const Au_control_vars* aucv,
         const char* var_name,
         double value);
+
+
+/**
+ * Start iterating over floating-point control variable oscillation depth bindings.
+ *
+ * \param iter       The iterator -- must not be \c NULL.
+ * \param aucv       The Audio unit control variables -- must not be \c NULL.
+ * \param var_name   The name of the variable -- must not be \c NULL.
+ * \param value      The source oscillation depth -- must be finite.
+ *
+ * \return   \c true if at least one result is found, otherwise \c false.
+ */
+bool Au_control_binding_iter_init_osc_depth_float(
+        Au_control_binding_iter* iter,
+        const Au_control_vars* aucv,
+        const char* var_name,
+        double depth);
 
 
 /**

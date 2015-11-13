@@ -35,6 +35,15 @@ struct Au_control_vars
 };
 
 
+typedef enum
+{
+    ITER_MODE_DEVICES,
+    ITER_MODE_SET_GENERIC,
+    ITER_MODE_SET_FLOAT,
+    ITER_MODE_OSC_DEPTH_FLOAT,
+} Iter_mode;
+
+
 struct Bind_entry
 {
     Target_dev_type target_dev_type;
@@ -99,7 +108,10 @@ void del_Var_entry(Var_entry* entry)
 
 
 static bool Au_control_binding_iter_init_common(
-        Au_control_binding_iter* iter, const Au_control_vars* aucv, const char* var_name)
+        Au_control_binding_iter* iter,
+        const Au_control_vars* aucv,
+        const char* var_name,
+        Iter_mode iter_mode)
 {
     assert(iter != NULL);
     assert(aucv != NULL);
@@ -113,8 +125,13 @@ static bool Au_control_binding_iter_init_common(
     if (iter->iter == NULL)
         return false;
 
+    iter->iter_mode = iter_mode;
+
     return true;
 }
+
+
+static const double range_eps = 0.000001;
 
 
 static void Au_control_binding_iter_update(Au_control_binding_iter* iter)
@@ -126,23 +143,46 @@ static void Au_control_binding_iter_update(Au_control_binding_iter* iter)
     iter->target_dev_index = iter->iter->target_dev_index;
     iter->target_var_name = iter->iter->target_var_name;
 
-    switch (iter->src_value.type)
+    switch (iter->iter_mode)
     {
-        case VALUE_TYPE_NONE:
+        case ITER_MODE_DEVICES:
         {
         }
         break;
 
-        case VALUE_TYPE_FLOAT:
+        case ITER_MODE_SET_GENERIC:
         {
+        }
+        break;
+
+        case ITER_MODE_SET_FLOAT:
+        {
+            assert(iter->src_value.type == VALUE_TYPE_FLOAT);
+
             // Map to target range
             const double map_min_to = iter->iter->ext.float_type.map_min_to;
             const double map_max_to = iter->iter->ext.float_type.map_max_to;
             const double target_value = lerp(
-                    map_min_to, map_max_to, iter->ext.float_type.src_range_norm);
+                    map_min_to, map_max_to, iter->ext.set_float_type.src_range_norm);
 
             iter->target_value.type = VALUE_TYPE_FLOAT;
             iter->target_value.value.float_type = target_value;
+        }
+        break;
+
+        case ITER_MODE_OSC_DEPTH_FLOAT:
+        {
+            assert(iter->src_value.type == VALUE_TYPE_FLOAT);
+
+            // Scale oscillation depth to target range
+            const double map_min_to = iter->iter->ext.float_type.map_min_to;
+            const double map_max_to = iter->iter->ext.float_type.map_max_to;
+            const double target_range = map_max_to - map_min_to;
+            const double osc_range_norm = iter->ext.osc_float_type.osc_range_norm;
+            const double target_depth = target_range * osc_range_norm;
+
+            iter->target_value.type = VALUE_TYPE_FLOAT;
+            iter->target_value.value.float_type = target_depth;
         }
         break;
 
@@ -166,7 +206,7 @@ bool Au_control_binding_iter_init(
     iter->iter = NULL;
     iter->src_value.type = VALUE_TYPE_NONE;
 
-    if (!Au_control_binding_iter_init_common(iter, aucv, var_name))
+    if (!Au_control_binding_iter_init_common(iter, aucv, var_name, ITER_MODE_DEVICES))
         return false;
 
     iter->target_value.type = VALUE_TYPE_NONE;
@@ -177,7 +217,7 @@ bool Au_control_binding_iter_init(
 }
 
 
-bool Au_control_binding_iter_init_float(
+bool Au_control_binding_iter_init_set_float(
         Au_control_binding_iter* iter,
         const Au_control_vars* aucv,
         const char* var_name,
@@ -192,7 +232,7 @@ bool Au_control_binding_iter_init_float(
     iter->src_value.type = VALUE_TYPE_FLOAT;
     iter->src_value.value.float_type = value;
 
-    if (!Au_control_binding_iter_init_common(iter, aucv, var_name))
+    if (!Au_control_binding_iter_init_common(iter, aucv, var_name, ITER_MODE_SET_FLOAT))
         return false;
 
     // Get normalised source value position in our source range
@@ -202,8 +242,49 @@ bool Au_control_binding_iter_init_float(
     const double min_value = var_entry->ext.float_type.min_value;
     const double max_value = var_entry->ext.float_type.max_value;
     const double clamped_src_value = clamp(value, min_value, max_value);
-    iter->ext.float_type.src_range_norm =
+    iter->ext.set_float_type.src_range_norm =
         (clamped_src_value - min_value) / (max_value - min_value);
+
+    Au_control_binding_iter_update(iter);
+
+    return true;
+}
+
+
+bool Au_control_binding_iter_init_osc_depth_float(
+        Au_control_binding_iter* iter,
+        const Au_control_vars* aucv,
+        const char* var_name,
+        double depth)
+{
+    assert(iter != NULL);
+    assert(aucv != NULL);
+    assert(var_name != NULL);
+    assert(isfinite(depth));
+
+    iter->iter = NULL;
+    iter->src_value.type = VALUE_TYPE_FLOAT;
+    iter->src_value.value.float_type = depth;
+
+    if (!Au_control_binding_iter_init_common(
+                iter, aucv, var_name, ITER_MODE_OSC_DEPTH_FLOAT))
+        return false;
+
+    const Var_entry* var_entry = AAtree_get_exact(aucv->vars, var_name);
+    assert(var_entry != NULL);
+
+    const double min_value = var_entry->ext.float_type.min_value;
+    const double max_value = var_entry->ext.float_type.max_value;
+    const double src_range = max_value - min_value;
+    if (src_range > range_eps)
+    {
+        const double range_norm_unclamped = depth / src_range;
+        iter->ext.osc_float_type.osc_range_norm = clamp(range_norm_unclamped, -1.0, 1.0);
+    }
+    else
+    {
+        iter->ext.osc_float_type.osc_range_norm = 0.0;
+    }
 
     Au_control_binding_iter_update(iter);
 
