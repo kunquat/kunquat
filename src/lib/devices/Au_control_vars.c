@@ -242,8 +242,9 @@ bool Au_control_binding_iter_init_set_float(
     const double min_value = var_entry->ext.float_type.min_value;
     const double max_value = var_entry->ext.float_type.max_value;
     const double clamped_src_value = clamp(value, min_value, max_value);
+    const double src_range = max_value - min_value;
     iter->ext.set_float_type.src_range_norm =
-        (clamped_src_value - min_value) / (max_value - min_value);
+        (src_range > range_eps) ? (clamped_src_value - min_value) / src_range : 0.0;
 
     Au_control_binding_iter_update(iter);
 
