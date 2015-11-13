@@ -62,6 +62,10 @@ static Set_state_float_func Proc_volume_set_state_volume;
 static Set_cv_float_func Proc_volume_set_cv_volume;
 static Slide_target_cv_float_func Proc_volume_slide_target_cv_volume;
 static Slide_length_cv_float_func Proc_volume_slide_length_cv_volume;
+static Osc_speed_cv_float_func Proc_volume_osc_speed_cv_volume;
+static Osc_depth_cv_float_func Proc_volume_osc_depth_cv_volume;
+static Osc_speed_slide_cv_float_func Proc_volume_osc_speed_slide_cv_volume;
+static Osc_depth_slide_cv_float_func Proc_volume_osc_depth_slide_cv_volume;
 
 
 static bool Proc_volume_init(Device_impl* dimpl);
@@ -128,7 +132,10 @@ static bool Proc_volume_init(Device_impl* dimpl)
             Proc_volume_set_cv_volume,
             Proc_volume_slide_target_cv_volume,
             Proc_volume_slide_length_cv_volume,
-            NULL, NULL, NULL, NULL);
+            Proc_volume_osc_speed_cv_volume,
+            Proc_volume_osc_depth_cv_volume,
+            Proc_volume_osc_speed_slide_cv_volume,
+            Proc_volume_osc_depth_slide_cv_volume);
 
     if (!reg_success)
         return false;
@@ -199,6 +206,8 @@ static void Proc_volume_reset(const Device_impl* dimpl, Device_state* dstate)
     assert(dstate != NULL);
 
     Volume_state* vol_state = (Volume_state*)dstate;
+
+    Linear_controls_reset(&vol_state->volume);
 
     const double* vol_dB = Device_params_get_float(
             dimpl->device->dparams, "p_f_volume.json");
@@ -289,6 +298,78 @@ static void Proc_volume_slide_length_cv_volume(
 
     Volume_state* vol_state = (Volume_state*)dstate;
     Linear_controls_slide_value_length(&vol_state->volume, length);
+
+    return;
+}
+
+
+static void Proc_volume_osc_speed_cv_volume(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        Key_indices indices,
+        double speed)
+{
+    assert(dimpl != NULL);
+    assert(dstate != NULL);
+    assert(indices != NULL);
+    assert(speed >= 0);
+
+    Volume_state* vol_state = (Volume_state*)dstate;
+    Linear_controls_osc_speed_value(&vol_state->volume, speed);
+
+    return;
+}
+
+
+static void Proc_volume_osc_depth_cv_volume(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        Key_indices indices,
+        double depth)
+{
+    assert(dimpl != NULL);
+    assert(dstate != NULL);
+    assert(indices != NULL);
+    assert(isfinite(depth));
+
+    Volume_state* vol_state = (Volume_state*)dstate;
+    Linear_controls_osc_depth_value(&vol_state->volume, depth);
+
+    return;
+}
+
+
+static void Proc_volume_osc_speed_slide_cv_volume(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        Key_indices indices,
+        const Tstamp* length)
+{
+    assert(dimpl != NULL);
+    assert(dstate != NULL);
+    assert(indices != NULL);
+    assert(length != NULL);
+
+    Volume_state* vol_state = (Volume_state*)dstate;
+    Linear_controls_osc_speed_slide_value(&vol_state->volume, length);
+
+    return;
+}
+
+
+static void Proc_volume_osc_depth_slide_cv_volume(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        Key_indices indices,
+        const Tstamp* length)
+{
+    assert(dimpl != NULL);
+    assert(dstate != NULL);
+    assert(indices != NULL);
+    assert(length != NULL);
+
+    Volume_state* vol_state = (Volume_state*)dstate;
+    Linear_controls_osc_depth_slide_value(&vol_state->volume, length);
 
     return;
 }
