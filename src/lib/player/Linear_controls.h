@@ -19,6 +19,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include <player/LFO.h>
 #include <player/Slider.h>
 #include <player/Work_buffer.h>
 #include <Tstamp.h>
@@ -27,7 +28,10 @@
 typedef struct Linear_controls
 {
     double value;
+    double osc_speed;
+    double osc_depth;
     Slider slider;
+    LFO lfo;
 } Linear_controls;
 
 
@@ -92,6 +96,42 @@ void Linear_controls_slide_value_target(Linear_controls* lc, double value);
  * \param length   The length of the slide -- must not be \c NULL.
  */
 void Linear_controls_slide_value_length(Linear_controls* lc, const Tstamp* length);
+
+
+/**
+ * Set the oscillation speed in the Linear controls.
+ *
+ * \param lc      The Linear controls -- must not be \c NULL.
+ * \param speed   The oscillation speed -- must be >= \c 0.
+ */
+void Linear_controls_osc_speed_value(Linear_controls* lc, double speed);
+
+
+/**
+ * Set the oscillation depth in the Linear controls.
+ *
+ * \param lc      The Linear controls -- must not be \c NULL.
+ * \param depth   The oscillation depth -- must be finite.
+ */
+void Linear_controls_osc_depth_value(Linear_controls* lc, double depth);
+
+
+/**
+ * Set the oscillation speed slide in the Linear controls.
+ *
+ * \param lc       The Linear controls -- must not be \c NULL.
+ * \param length   The slide length -- must not be \c NULL.
+ */
+void Linear_controls_osc_speed_slide_value(Linear_controls* lc, const Tstamp* length);
+
+
+/**
+ * Set the oscillation depth slide in the Linear controls.
+ *
+ * \param lc       The Linear controls -- must not be \c NULL.
+ * \param length   The slide length -- must not be \c NULL.
+ */
+void Linear_controls_osc_depth_slide_value(Linear_controls* lc, const Tstamp* length);
 
 
 /**

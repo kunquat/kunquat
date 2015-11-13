@@ -44,6 +44,7 @@ void Linear_controls_set_audio_rate(Linear_controls* lc, int32_t audio_rate)
     assert(audio_rate > 0);
 
     Slider_set_mix_rate(&lc->slider, audio_rate);
+    LFO_set_mix_rate(&lc->lfo, audio_rate);
 
     return;
 }
@@ -55,6 +56,7 @@ void Linear_controls_set_tempo(Linear_controls* lc, double tempo)
     assert(tempo > 0);
 
     Slider_set_tempo(&lc->slider, tempo);
+    LFO_set_tempo(&lc->lfo, tempo);
 
     return;
 }
@@ -65,7 +67,10 @@ void Linear_controls_reset(Linear_controls* lc)
     assert(lc != NULL);
 
     lc->value = NAN;
+    lc->osc_speed = NAN;
+    lc->osc_depth = NAN;
     Slider_init(&lc->slider, SLIDE_MODE_LINEAR);
+    LFO_init(&lc->lfo, LFO_MODE_LINEAR);
 
     return;
 }
@@ -108,6 +113,63 @@ void Linear_controls_slide_value_length(Linear_controls* lc, const Tstamp* lengt
 }
 
 
+void Linear_controls_osc_speed_value(Linear_controls* lc, double speed)
+{
+    assert(lc != NULL);
+    assert(speed >= 0);
+
+    lc->osc_speed = speed;
+
+    LFO_set_speed(&lc->lfo, lc->osc_speed);
+
+    if (lc->osc_depth > 0)
+        LFO_set_depth(&lc->lfo, lc->osc_depth);
+
+    LFO_turn_on(&lc->lfo);
+
+    return;
+}
+
+
+void Linear_controls_osc_depth_value(Linear_controls* lc, double depth)
+{
+    assert(lc != NULL);
+    assert(isfinite(depth));
+
+    lc->osc_depth = depth;
+
+    if (lc->osc_speed > 0)
+        LFO_set_speed(&lc->lfo, lc->osc_speed);
+
+    LFO_set_depth(&lc->lfo, lc->osc_depth);
+    LFO_turn_on(&lc->lfo);
+
+    return;
+}
+
+
+void Linear_controls_osc_speed_slide_value(Linear_controls* lc, const Tstamp* length)
+{
+    assert(lc != NULL);
+    assert(length != NULL);
+
+    LFO_set_speed_slide(&lc->lfo, length);
+
+    return;
+}
+
+
+void Linear_controls_osc_depth_slide_value(Linear_controls* lc, const Tstamp* length)
+{
+    assert(lc != NULL);
+    assert(length != NULL);
+
+    LFO_set_depth_slide(&lc->lfo, length);
+
+    return;
+}
+
+
 void Linear_controls_fill_work_buffer(
         Linear_controls* lc,
         const Work_buffer* wb,
@@ -136,6 +198,12 @@ void Linear_controls_fill_work_buffer(
             values[i] = lc->value;
     }
 
+    if (LFO_active(&lc->lfo))
+    {
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+            values[i] += LFO_step(&lc->lfo);
+    }
+
     return;
 }
 
@@ -149,6 +217,7 @@ void Linear_controls_copy(
 
     dest->value = src->value;
     Slider_copy(&dest->slider, &src->slider);
+    LFO_copy(&dest->lfo, &src->lfo);
 
     return;
 }
