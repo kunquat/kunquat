@@ -76,8 +76,8 @@ typedef struct Update_control_var_cb
             Slide_length_cv_float_func* slide_length;
             Osc_speed_cv_float_func* osc_speed;
             Osc_depth_cv_float_func* osc_depth;
-            Osc_speed_slide_length_cv_float_func* osc_speed_sl;
-            Osc_depth_slide_length_cv_float_func* osc_depth_sl;
+            Osc_speed_slide_cv_float_func* osc_speed_sl;
+            Osc_depth_slide_cv_float_func* osc_depth_sl;
         } update_float;
     } cb;
 
@@ -382,8 +382,8 @@ bool Device_impl_register_updaters_cv_float(
         Slide_length_cv_float_func slide_length,
         Osc_speed_cv_float_func osc_speed,
         Osc_depth_cv_float_func osc_depth,
-        Osc_speed_slide_length_cv_float_func osc_speed_sl,
-        Osc_depth_slide_length_cv_float_func osc_depth_sl)
+        Osc_speed_slide_cv_float_func osc_speed_sl,
+        Osc_depth_slide_cv_float_func osc_depth_sl)
 {
     assert(dimpl != NULL);
     assert(keyp != NULL);
@@ -813,6 +813,102 @@ void Device_impl_slide_cv_float_length(
             (update_cv_cb->type == VALUE_TYPE_FLOAT) &&
             (update_cv_cb->cb.update_float.slide_length != NULL))
         update_cv_cb->cb.update_float.slide_length(dimpl, dstate, indices, length);
+
+    return;
+}
+
+
+void Device_impl_osc_speed_cv_float(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        const char* key,
+        double speed)
+{
+    assert(dimpl != NULL);
+    assert(dstate != NULL);
+    assert(key != NULL);
+    assert(speed >= 0);
+
+    Key_indices indices = { 0 };
+    const Update_control_var_cb* update_cv_cb =
+        get_update_control_var_cb(dimpl, key, indices);
+
+    if ((update_cv_cb != NULL) &&
+            (update_cv_cb->type == VALUE_TYPE_FLOAT) &&
+            (update_cv_cb->cb.update_float.osc_speed != NULL))
+        update_cv_cb->cb.update_float.osc_speed(dimpl, dstate, indices, speed);
+
+    return;
+}
+
+
+void Device_impl_osc_depth_cv_float(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        const char* key,
+        double depth)
+{
+    assert(dimpl != NULL);
+    assert(dstate != NULL);
+    assert(key != NULL);
+    assert(isfinite(depth));
+
+    Key_indices indices = { 0 };
+    const Update_control_var_cb* update_cv_cb =
+        get_update_control_var_cb(dimpl, key, indices);
+
+    if ((update_cv_cb != NULL) &&
+            (update_cv_cb->type == VALUE_TYPE_FLOAT) &&
+            (update_cv_cb->cb.update_float.osc_depth != NULL))
+        update_cv_cb->cb.update_float.osc_depth(dimpl, dstate, indices, depth);
+
+    return;
+}
+
+
+void Device_impl_osc_speed_slide_cv_float(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        const char* key,
+        const Tstamp* length)
+{
+    assert(dimpl != NULL);
+    assert(dstate != NULL);
+    assert(key != NULL);
+    assert(length != NULL);
+
+    Key_indices indices = { 0 };
+    const Update_control_var_cb* update_cv_cb =
+        get_update_control_var_cb(dimpl, key, indices);
+
+    if ((update_cv_cb != NULL) &&
+            (update_cv_cb->type == VALUE_TYPE_FLOAT) &&
+            (update_cv_cb->cb.update_float.osc_speed_sl != NULL))
+        update_cv_cb->cb.update_float.osc_speed_sl(dimpl, dstate, indices, length);
+
+    return;
+}
+
+
+void Device_impl_osc_depth_slide_cv_float(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        const char* key,
+        const Tstamp* length)
+{
+    assert(dimpl != NULL);
+    assert(dstate != NULL);
+    assert(key != NULL);
+    assert(length != NULL);
+
+    Key_indices indices = { 0 };
+    const Update_control_var_cb* update_cv_cb =
+        get_update_control_var_cb(dimpl, key, indices);
+
+    if ((update_cv_cb != NULL) &&
+            (update_cv_cb->type == VALUE_TYPE_FLOAT) &&
+            (update_cv_cb->cb.update_float.osc_depth_sl != NULL))
+        update_cv_cb->cb.update_float.osc_depth_sl(dimpl, dstate, indices, length);
 
     return;
 }

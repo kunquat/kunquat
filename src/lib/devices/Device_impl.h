@@ -74,9 +74,9 @@ typedef void (Osc_speed_cv_float_func)(
         const Device_impl*, Device_state*, Key_indices, double);
 typedef void (Osc_depth_cv_float_func)(
         const Device_impl*, Device_state*, Key_indices, double);
-typedef void (Osc_speed_slide_length_cv_float_func)(
+typedef void (Osc_speed_slide_cv_float_func)(
         const Device_impl*, Device_state*, Key_indices, const Tstamp*);
-typedef void (Osc_depth_slide_length_cv_float_func)(
+typedef void (Osc_depth_slide_cv_float_func)(
         const Device_impl*, Device_state*, Key_indices, const Tstamp*);
 
 
@@ -454,8 +454,8 @@ bool Device_impl_register_updaters_cv_float(
         Slide_length_cv_float_func slide_length,
         Osc_speed_cv_float_func osc_speed,
         Osc_depth_cv_float_func osc_depth,
-        Osc_speed_slide_length_cv_float_func osc_speed_sl,
-        Osc_depth_slide_length_cv_float_func osc_depth_sl);
+        Osc_speed_slide_cv_float_func osc_speed_sl,
+        Osc_depth_slide_cv_float_func osc_depth_sl);
 
 
 /**
@@ -609,6 +609,66 @@ void Device_impl_slide_cv_float_target(
  * \param length   The slide length -- must not be \c NULL.
  */
 void Device_impl_slide_cv_float_length(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        const char* key,
+        const Tstamp* length);
+
+
+/**
+ * Set oscillation speed of float control variable in a Device state.
+ *
+ * \param dimpl    The Device implementation -- must not be \c NULL.
+ * \param dstate   The Device state -- must not be \c NULL.
+ * \param key      The key to be updated -- must not be \c NULL.
+ * \param speed    The oscillation speed -- must be >= \c 0.
+ */
+void Device_impl_osc_speed_cv_float(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        const char* key,
+        double speed);
+
+
+/**
+ * Set oscillation depth of float control variable in a Device state.
+ *
+ * \param dimpl    The Device implementation -- must not be \c NULL.
+ * \param dstate   The Device state -- must not be \c NULL.
+ * \param key      The key to be updated -- must not be \c NULL.
+ * \param depth    The oscillation depth -- must be >= \c 0.
+ */
+void Device_impl_osc_depth_cv_float(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        const char* key,
+        double depth);
+
+
+/**
+ * Set oscillation speed slide of float control variable in a Device state.
+ *
+ * \param dimpl    The Device implementation -- must not be \c NULL.
+ * \param dstate   The Device state -- must not be \c NULL.
+ * \param key      The key to be updated -- must not be \c NULL.
+ * \param length   The slide length -- must be >= \c 0.
+ */
+void Device_impl_osc_speed_slide_cv_float(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        const char* key,
+        const Tstamp* length);
+
+
+/**
+ * Set oscillation depth slide of float control variable in a Device state.
+ *
+ * \param dimpl    The Device implementation -- must not be \c NULL.
+ * \param dstate   The Device state -- must not be \c NULL.
+ * \param key      The key to be updated -- must not be \c NULL.
+ * \param length   The slide length -- must be >= \c 0.
+ */
+void Device_impl_osc_depth_slide_cv_float(
         const Device_impl* dimpl,
         Device_state* dstate,
         const char* key,
