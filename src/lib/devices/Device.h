@@ -54,6 +54,18 @@ typedef void Device_slide_control_var_float_target_func(
 typedef void Device_slide_control_var_float_length_func(
         const Device*, Device_states*, const char* var_name, const Tstamp* length);
 
+typedef void Device_osc_speed_cv_float_func(
+        const Device*, Device_states*, const char* var_name, double speed);
+
+typedef void Device_osc_depth_cv_float_func(
+        const Device*, Device_states*, const char* var_name, double depth);
+
+typedef void Device_osc_speed_slide_cv_float_func(
+        const Device*, Device_states*, const char* var_name, const Tstamp* length);
+
+typedef void Device_osc_depth_slide_cv_float_func(
+        const Device*, Device_states*, const char* var_name, const Tstamp* length);
+
 
 struct Device
 {
@@ -76,6 +88,10 @@ struct Device
     Device_set_control_var_float_func* set_control_var_float;
     Device_slide_control_var_float_target_func* slide_control_var_float_target;
     Device_slide_control_var_float_length_func* slide_control_var_float_length;
+    Device_osc_speed_cv_float_func* osc_speed_cv_float;
+    Device_osc_depth_cv_float_func* osc_depth_cv_float;
+    Device_osc_speed_slide_cv_float_func* osc_speed_slide_cv_float;
+    Device_osc_depth_slide_cv_float_func* osc_depth_slide_cv_float;
 
     bool existence[DEVICE_PORT_TYPES][KQT_DEVICE_PORTS_MAX];
 };
@@ -267,6 +283,25 @@ void Device_register_slide_control_var_float(
 
 
 /**
+ * Set functions for oscillating floating-point control variables.
+ *
+ * \param device             The Device -- must not be \c NULL.
+ * \param speed_func         The oscillation depth function -- must not be \c NULL.
+ * \param depth_func         The oscillation depth function -- must not be \c NULL.
+ * \param speed_slide_func   The oscillation depth slide function -- must
+ *                           not be \c NULL.
+ * \param depth_slide_func   The oscillation depth slide function -- must
+ *                           not be \c NULL.
+ */
+void Device_register_osc_cv_float(
+        Device* device,
+        Device_osc_speed_cv_float_func* speed_func,
+        Device_osc_depth_cv_float_func* depth_func,
+        Device_osc_speed_slide_cv_float_func* speed_slide_func,
+        Device_osc_depth_slide_cv_float_func* depth_slide_func);
+
+
+/**
  * Set existence of a port in the Device.
  *
  * \param device   The Device -- must not be \c NULL.
@@ -436,6 +471,66 @@ void Device_slide_control_var_float_target(
  * \param length     The new slide length -- must not be \c NULL.
  */
 void Device_slide_control_var_float_length(
+        const Device* device,
+        Device_states* dstates,
+        const char* var_name,
+        const Tstamp* length);
+
+
+/**
+ * Set oscillation speed of a floating-point Device control variable.
+ *
+ * \param device     The Device -- must not be \c NULL.
+ * \param dstates    The Device states -- must not be \c NULL.
+ * \param var_name   The name of the control variable, or \c NULL.
+ * \param speed      The oscillation speed -- must be >= \c 0.
+ */
+void Device_osc_speed_cv_float(
+        const Device* device,
+        Device_states* dstates,
+        const char* var_name,
+        double speed);
+
+
+/**
+ * Set oscillation depth of a floating-point Device control variable.
+ *
+ * \param device     The Device -- must not be \c NULL.
+ * \param dstates    The Device states -- must not be \c NULL.
+ * \param var_name   The name of the control variable, or \c NULL.
+ * \param depth      The oscillation depth -- must be finite.
+ */
+void Device_osc_depth_cv_float(
+        const Device* device,
+        Device_states* dstates,
+        const char* var_name,
+        double depth);
+
+
+/**
+ * Set oscillation speed slide of a floating-point Device control variable.
+ *
+ * \param device     The Device -- must not be \c NULL.
+ * \param dstates    The Device states -- must not be \c NULL.
+ * \param var_name   The name of the control variable, or \c NULL.
+ * \param length     The slide length of the speed -- must not be \c NULL.
+ */
+void Device_osc_speed_slide_cv_float(
+        const Device* device,
+        Device_states* dstates,
+        const char* var_name,
+        const Tstamp* length);
+
+
+/**
+ * Set oscillation depth slide of a floating-point Device control variable.
+ *
+ * \param device     The Device -- must not be \c NULL.
+ * \param dstates    The Device states -- must not be \c NULL.
+ * \param var_name   The name of the control variable, or \c NULL.
+ * \param length     The slide length of the depth -- must not be \c NULL.
+ */
+void Device_osc_depth_slide_cv_float(
         const Device* device,
         Device_states* dstates,
         const char* var_name,

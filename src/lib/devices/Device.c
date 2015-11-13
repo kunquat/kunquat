@@ -322,6 +322,28 @@ void Device_register_slide_control_var_float(
 }
 
 
+void Device_register_osc_cv_float(
+        Device* device,
+        Device_osc_speed_cv_float_func* speed_func,
+        Device_osc_depth_cv_float_func* depth_func,
+        Device_osc_speed_slide_cv_float_func* speed_slide_func,
+        Device_osc_depth_slide_cv_float_func* depth_slide_func)
+{
+    assert(device != NULL);
+    assert(speed_func != NULL);
+    assert(depth_func != NULL);
+    assert(speed_slide_func != NULL);
+    assert(depth_slide_func != NULL);
+
+    device->osc_speed_cv_float = speed_func;
+    device->osc_depth_cv_float = depth_func;
+    device->osc_speed_slide_cv_float = speed_slide_func;
+    device->osc_depth_slide_cv_float = depth_slide_func;
+
+    return;
+}
+
+
 void Device_set_port_existence(
         Device* device, Device_port_type type, int port, bool exists)
 {
@@ -566,6 +588,79 @@ void Device_slide_control_var_float_length(
 
     if (device->slide_control_var_float_length != NULL)
         device->slide_control_var_float_length(device, dstates, var_name, length);
+
+    return;
+}
+
+
+void Device_osc_speed_cv_float(
+        const Device* device,
+        Device_states* dstates,
+        const char* var_name,
+        double speed)
+{
+    assert(device != NULL);
+    assert(dstates != NULL);
+    assert(var_name != NULL);
+    assert(speed >= 0);
+    assert(isfinite(speed));
+
+    if (device->osc_speed_cv_float != NULL)
+        device->osc_speed_cv_float(device, dstates, var_name, speed);
+
+    return;
+}
+
+
+void Device_osc_depth_cv_float(
+        const Device* device,
+        Device_states* dstates,
+        const char* var_name,
+        double depth)
+{
+    assert(device != NULL);
+    assert(dstates != NULL);
+    assert(var_name != NULL);
+    assert(isfinite(depth));
+
+    if (device->osc_depth_cv_float != NULL)
+        device->osc_depth_cv_float(device, dstates, var_name, depth);
+
+    return;
+}
+
+
+void Device_osc_speed_slide_cv_float(
+        const Device* device,
+        Device_states* dstates,
+        const char* var_name,
+        const Tstamp* length)
+{
+    assert(device != NULL);
+    assert(dstates != NULL);
+    assert(var_name != NULL);
+    assert(length != NULL);
+
+    if (device->osc_speed_slide_cv_float != NULL)
+        device->osc_speed_slide_cv_float(device, dstates, var_name, length);
+
+    return;
+}
+
+
+void Device_osc_depth_slide_cv_float(
+        const Device* device,
+        Device_states* dstates,
+        const char* var_name,
+        const Tstamp* length)
+{
+    assert(device != NULL);
+    assert(dstates != NULL);
+    assert(var_name != NULL);
+    assert(length != NULL);
+
+    if (device->osc_depth_slide_cv_float != NULL)
+        device->osc_depth_slide_cv_float(device, dstates, var_name, length);
 
     return;
 }
