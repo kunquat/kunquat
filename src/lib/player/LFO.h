@@ -117,7 +117,7 @@ void LFO_set_speed_slide(LFO* lfo, const Tstamp* length);
  * [-depth, depth].
  *
  * \param lfo     The LFO -- must not be \c NULL.
- * \param depth   The depth -- must be finite and >= \c 0.
+ * \param depth   The depth -- must be finite.
  */
 void LFO_set_depth(LFO* lfo, double depth);
 
