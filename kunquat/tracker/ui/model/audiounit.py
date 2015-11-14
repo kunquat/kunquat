@@ -33,6 +33,9 @@ _proc_defaults = {
 }
 
 
+FLOAT_SLIDE_TYPE = 'float_slide'
+
+
 class AudioUnit():
 
     def __init__(self, au_id):
@@ -524,6 +527,7 @@ class AudioUnit():
                 'int': int,
                 'float': float,
                 'timestamp': tstamp.Tstamp,
+                FLOAT_SLIDE_TYPE: FLOAT_SLIDE_TYPE,
             }
         return type_map[type_name]
 
@@ -533,6 +537,7 @@ class AudioUnit():
                 int: 'int',
                 float: 'float',
                 tstamp.Tstamp: 'timestamp',
+                FLOAT_SLIDE_TYPE: FLOAT_SLIDE_TYPE,
             }
         return type_map[obj_type]
 
@@ -541,11 +546,11 @@ class AudioUnit():
         return [var[1] for var in var_list]
 
     def get_control_var_types(self):
-        return [float] # TODO: extend if more types are needed
+        return [bool, int, float, tstamp.Tstamp, FLOAT_SLIDE_TYPE]
 
-    def add_control_var_float(self, var_name, init_value, min_value, max_value):
+    def add_control_var_float_slide(self, var_name, init_value, min_value, max_value):
         var_list = self._get_control_var_list()
-        type_name = self._get_control_var_format_type(float)
+        type_name = self._get_control_var_format_type(FLOAT_SLIDE_TYPE)
         new_entry = [type_name, var_name, init_value, [min_value, max_value], []]
         var_list.append(new_entry)
         self._set_control_var_list(var_list)
@@ -572,19 +577,21 @@ class AudioUnit():
         var_dict = self._get_control_var_dict()
         var_entry = var_dict[var_name]
         var_type = self._get_control_var_object_type(var_entry[0])
+        if var_type == FLOAT_SLIDE_TYPE:
+            var_type = float
         return var_type(var_entry[1])
 
     def get_control_var_min_value(self, var_name):
         var_dict = self._get_control_var_dict()
         var_entry = var_dict[var_name]
-        assert self._get_control_var_object_type(var_entry[0]) == float
+        assert self._get_control_var_object_type(var_entry[0]) == FLOAT_SLIDE_TYPE
         ext = var_entry[2]
         return ext[0]
 
     def get_control_var_max_value(self, var_name):
         var_dict = self._get_control_var_dict()
         var_entry = var_dict[var_name]
-        assert self._get_control_var_object_type(var_entry[0]) == float
+        assert self._get_control_var_object_type(var_entry[0]) == FLOAT_SLIDE_TYPE
         ext = var_entry[2]
         return ext[1]
 
@@ -604,9 +611,9 @@ class AudioUnit():
         var_list[index][2] = new_type(0)
 
         # Set default extended params as they are type-specific
-        if new_type == bool:
+        if new_type in (bool, int, float, tstamp.Tstamp):
             var_list[index][3] = []
-        elif new_type == float:
+        elif new_type == FLOAT_SLIDE_TYPE:
             var_list[index][3] = [0.0, 1.0]
         else:
             raise NotImplementedError
@@ -622,7 +629,7 @@ class AudioUnit():
         var_list[index][2] = new_value
 
         var_type = self._get_control_var_object_type(var_list[index][0])
-        if var_type == float:
+        if var_type == FLOAT_SLIDE_TYPE:
             ext = var_list[index][3]
             var_list[index][2] = min(max(ext[0], new_value), ext[1])
 
@@ -631,7 +638,7 @@ class AudioUnit():
     def change_control_var_min_value(self, var_name, new_value):
         var_list = self._get_control_var_list()
         index = self._get_control_var_entry_index(var_list, var_name)
-        assert self._get_control_var_object_type(var_list[index][0]) == float
+        assert self._get_control_var_object_type(var_list[index][0]) == FLOAT_SLIDE_TYPE
         ext = var_list[index][3]
         ext[0] = new_value
 
@@ -643,7 +650,7 @@ class AudioUnit():
     def change_control_var_max_value(self, var_name, new_value):
         var_list = self._get_control_var_list()
         index = self._get_control_var_entry_index(var_list, var_name)
-        assert self._get_control_var_object_type(var_list[index][0]) == float
+        assert self._get_control_var_object_type(var_list[index][0]) == FLOAT_SLIDE_TYPE
         ext = var_list[index][3]
         ext[1] = new_value
 
@@ -657,7 +664,7 @@ class AudioUnit():
         binding_list = self._get_control_var_binding_list(var_name)
         return [(entry[0], entry[1]) for entry in binding_list]
 
-    def add_control_var_binding_float(
+    def add_control_var_binding_float_slide(
             self, var_name, target_dev_id, target_var_name, map_min_to, map_max_to):
         assert var_name
         assert target_dev_id

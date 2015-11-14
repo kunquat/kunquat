@@ -17,6 +17,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 from kunquat.kunquat.limits import *
+from kunquat.tracker.ui.model.audiounit import FLOAT_SLIDE_TYPE
 import kunquat.tracker.ui.model.tstamp as tstamp
 from kunquat.tracker.ui.views.connectionseditor import ConnectionsEditor
 from kunquat.tracker.ui.views.editorlist import EditorList
@@ -398,6 +399,7 @@ class ControlVariableTypeEditor(QComboBox):
             int: 'Integer',
             float: 'Floating point',
             tstamp.Tstamp: 'Timestamp',
+            FLOAT_SLIDE_TYPE: FLOAT_SLIDE_TYPE,
         }
 
         for t in var_types:
@@ -448,16 +450,16 @@ class ControlVariableValueEditor(QWidget):
         self._editors = None
 
         self._editors = {
-            float:  QLineEdit(),
+            FLOAT_SLIDE_TYPE:  QLineEdit(),
         }
 
-        self._editors[float].setValidator(FloatValidator())
+        self._editors[FLOAT_SLIDE_TYPE].setValidator(FloatValidator())
 
         h = QHBoxLayout()
         h.setMargin(0)
         h.setSpacing(2)
         h.addWidget(QLabel(label))
-        h.addWidget(self._editors[float])
+        h.addWidget(self._editors[FLOAT_SLIDE_TYPE])
         self.setLayout(h)
 
     def set_au_id(self, au_id):
@@ -485,7 +487,7 @@ class ControlVariableValueEditor(QWidget):
         '''
 
         QObject.connect(
-                self._editors[float],
+                self._editors[FLOAT_SLIDE_TYPE],
                 SIGNAL('editingFinished()'),
                 self._change_float_value)
 
@@ -501,7 +503,7 @@ class ControlVariableValueEditor(QWidget):
         self._updater.signal_update(set([_get_update_signal_type(self._au_id)]))
 
     def _change_float_value(self):
-        new_qstring = self._editors[float].text()
+        new_qstring = self._editors[FLOAT_SLIDE_TYPE].text()
         new_value = float(unicode(new_qstring))
         self._change_value(new_value)
 
@@ -523,7 +525,7 @@ class ControlVariableValueEditor(QWidget):
 
         editor = self._editors[var_type]
         old_block = editor.blockSignals(True)
-        if var_type == float:
+        if var_type == FLOAT_SLIDE_TYPE:
             editor.setText(unicode(var_value))
         else:
             assert False
@@ -582,7 +584,7 @@ class ControlVariableExtEditor(QWidget):
         self._updater = None
 
         self._editors = {
-            float: ControlVariableFloatExtEditor(),
+            FLOAT_SLIDE_TYPE: ControlVariableFloatExtEditor(),
         }
 
         # TODO: The QStackedLayout causes flickering during update for some reason, fix
@@ -590,7 +592,7 @@ class ControlVariableExtEditor(QWidget):
         h = QHBoxLayout()
         h.setMargin(0)
         h.setSpacing(2)
-        h.addWidget(self._editors[float])
+        h.addWidget(self._editors[FLOAT_SLIDE_TYPE])
         self.setLayout(h)
 
     def set_au_id(self, au_id):
@@ -697,7 +699,7 @@ class ControlVariableFloatExtEditor(QWidget):
         au = module.get_audio_unit(self._au_id)
 
         var_type = au.get_control_var_type(self._context)
-        if var_type != float:
+        if var_type != FLOAT_SLIDE_TYPE:
             self.setEnabled(False)
             return
 
@@ -818,7 +820,7 @@ class ControlVariableAdder(Adder):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
 
-        au.add_control_var_float(name, 0.0, 0.0, 1.0)
+        au.add_control_var_float_slide(name, 0.0, 0.0, 1.0)
         self._updater.signal_update(set([_get_update_signal_type(self._au_id)]))
 
 
@@ -1190,7 +1192,7 @@ class BindTargetMapToMinEditor(ControlVariableValueEditor):
 
         var_value = self._get_value(au)
 
-        editor = self._editors[float]
+        editor = self._editors[FLOAT_SLIDE_TYPE]
         old_block = editor.blockSignals(True)
         editor.setText(unicode(var_value))
         editor.blockSignals(old_block)
@@ -1220,7 +1222,7 @@ class BindTargetMapToMaxEditor(ControlVariableValueEditor):
 
         var_value = self._get_value(au)
 
-        editor = self._editors[float]
+        editor = self._editors[FLOAT_SLIDE_TYPE]
         old_block = editor.blockSignals(True)
         editor.setText(unicode(var_value))
         editor.blockSignals(old_block)
@@ -1288,7 +1290,8 @@ class BindTargetAdder(Adder):
 
         internal_dev_id = dev_id.split('/')[-1]
 
-        au.add_control_var_binding_float(var_name, internal_dev_id, name, 0.0, 1.0)
+        au.add_control_var_binding_float_slide(
+                var_name, internal_dev_id, name, 0.0, 1.0)
         self._updater.signal_update(set([_get_update_signal_type(self._au_id)]))
 
 
