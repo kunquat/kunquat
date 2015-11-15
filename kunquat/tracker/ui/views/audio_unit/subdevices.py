@@ -171,7 +171,7 @@ class ControlVariableEditor(QWidget):
         h.setMargin(0)
         h.setSpacing(4)
         h.addWidget(self._name_editor)
-        #h.addWidget(self._type_editor)
+        h.addWidget(self._type_editor)
         h.addWidget(self._init_value_editor)
         h.addWidget(self._ext_editor)
         h.addWidget(self._remove_button)
@@ -399,7 +399,7 @@ class ControlVariableTypeEditor(QComboBox):
             int: 'Integer',
             float: 'Floating point',
             tstamp.Tstamp: 'Timestamp',
-            FLOAT_SLIDE_TYPE: FLOAT_SLIDE_TYPE,
+            FLOAT_SLIDE_TYPE: 'Floating with mapped range',
         }
 
         for t in var_types:
@@ -429,7 +429,9 @@ class ControlVariableTypeEditor(QComboBox):
         au = module.get_audio_unit(self._au_id)
         var_types = au.get_control_var_types()
         au.change_control_var_type(self._context, var_types[index])
-        self._updater.signal_update(set([_get_update_signal_type(self._au_id)]))
+        self._updater.signal_update(set([
+            _get_update_signal_type(self._au_id),
+            _get_rebuild_signal_type(self._au_id)]))
 
 
 class ControlVariableValueEditor(QWidget):
@@ -441,14 +443,10 @@ class ControlVariableValueEditor(QWidget):
         self._ui_model = None
         self._updater = None
 
-        # TODO: The QStackedLayout causes flickering during update for some reason, fix
+        self._label = label
+        self._editor = None
 
         '''
-        self._editor_layout = None
-        '''
-
-        self._editors = None
-
         self._editors = {
             FLOAT_SLIDE_TYPE:  QLineEdit(),
         }
@@ -461,6 +459,7 @@ class ControlVariableValueEditor(QWidget):
         h.addWidget(QLabel(label))
         h.addWidget(self._editors[FLOAT_SLIDE_TYPE])
         self.setLayout(h)
+        '''
 
     def set_au_id(self, au_id):
         self._au_id = au_id
@@ -472,13 +471,58 @@ class ControlVariableValueEditor(QWidget):
             self._update_contents()
 
     def set_ui_model(self, ui_model):
+        if not self._context:
+            return
+
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
 
+        var_name = self._context if type(self._context) != tuple else self._context[0]
+
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
-        var_types = au.get_control_var_types()
+        var_type = au.get_control_var_type(var_name)
 
+        if var_type == bool:
+            self._editor = QCheckBox()
+            QObject.connect(
+                    self._editor,
+                    SIGNAL('stateChanged(int)'),
+                    self._change_bool_value)
+
+        elif var_type == int:
+            self._editor = QLineEdit()
+            self._editor.setValidator(IntValidator())
+            QObject.connect(
+                    self._editor,
+                    SIGNAL('editingFinished()'),
+                    self._change_int_value)
+
+        elif var_type == float:
+            self._editor = QLineEdit()
+            self._editor.setValidator(FloatValidator())
+            QObject.connect(
+                    self._editor,
+                    SIGNAL('editingFinished()'),
+                    self._change_float_value)
+
+        elif var_type == tstamp.Tstamp:
+            self._editor = QLineEdit()
+            self._editor.setValidator(FloatValidator())
+            QObject.connect(
+                    self._editor,
+                    SIGNAL('editingFinished()'),
+                    self._change_tstamp_value)
+
+        elif var_type in FLOAT_SLIDE_TYPE:
+            self._editor = QLineEdit()
+            self._editor.setValidator(FloatValidator())
+            QObject.connect(
+                    self._editor,
+                    SIGNAL('editingFinished()'),
+                    self._change_float_value)
+        else:
+            assert False
         '''
         self._editor_layout = QStackedLayout()
         for t in var_types:
@@ -486,10 +530,19 @@ class ControlVariableValueEditor(QWidget):
         self.layout().addLayout(self._editor_layout)
         '''
 
+        '''
         QObject.connect(
                 self._editors[FLOAT_SLIDE_TYPE],
                 SIGNAL('editingFinished()'),
                 self._change_float_value)
+        '''
+
+        h = QHBoxLayout()
+        h.setMargin(0)
+        h.setSpacing(2)
+        h.addWidget(QLabel(self._label))
+        h.addWidget(self._editor)
+        self.setLayout(h)
 
         self._update_contents()
 
@@ -502,9 +555,23 @@ class ControlVariableValueEditor(QWidget):
         self._set_value(au, new_value)
         self._updater.signal_update(set([_get_update_signal_type(self._au_id)]))
 
+    def _change_bool_value(self, new_state):
+        new_value = (new_state == Qt.Checked)
+        self._change_value(new_value)
+
+    def _change_int_value(self):
+        new_qstring = self._editor.text()
+        new_value = int(unicode(new_qstring))
+        self._change_value(new_value)
+
     def _change_float_value(self):
-        new_qstring = self._editors[FLOAT_SLIDE_TYPE].text()
+        new_qstring = self._editor.text()
         new_value = float(unicode(new_qstring))
+        self._change_value(new_value)
+
+    def _change_tstamp_value(self):
+        new_qstring = self._editor.text()
+        new_value = tstamp.Tstamp(float(unicode(new_qstring)))
         self._change_value(new_value)
 
     # Protected interface
@@ -516,6 +583,7 @@ class ControlVariableValueEditor(QWidget):
 
         var_types = au.get_control_var_types()
         var_type = au.get_control_var_type(self._context)
+        var_types = au.get_control_var_types()
         var_type_index = var_types.index(var_type)
         '''
         self._editor_layout.setCurrentIndex(var_type_index)
@@ -523,13 +591,16 @@ class ControlVariableValueEditor(QWidget):
 
         var_value = self._get_value(au)
 
-        editor = self._editors[var_type]
-        old_block = editor.blockSignals(True)
-        if var_type == FLOAT_SLIDE_TYPE:
-            editor.setText(unicode(var_value))
+        old_block = self._editor.blockSignals(True)
+        if var_type == bool:
+            self._editor.setCheckState(Qt.Checked if var_value else Qt.Unchecked)
+        elif var_type in (int, float, FLOAT_SLIDE_TYPE):
+            self._editor.setText(unicode(var_value))
+        elif var_type == tstamp.Tstamp:
+            self._editor.setText(unicode(float(var_value)))
         else:
             assert False
-        editor.blockSignals(old_block)
+        self._editor.blockSignals(old_block)
 
     def _get_value(self, au):
         raise NotImplementedError
@@ -583,6 +654,9 @@ class ControlVariableExtEditor(QWidget):
         self._ui_model = None
         self._updater = None
 
+        self._editor = None
+
+        '''
         self._editors = {
             FLOAT_SLIDE_TYPE: ControlVariableFloatExtEditor(),
         }
@@ -594,32 +668,52 @@ class ControlVariableExtEditor(QWidget):
         h.setSpacing(2)
         h.addWidget(self._editors[FLOAT_SLIDE_TYPE])
         self.setLayout(h)
+        '''
 
     def set_au_id(self, au_id):
         self._au_id = au_id
 
+        '''
         for editor in self._editors.itervalues():
             editor.set_au_id(au_id)
+        '''
 
     def set_context(self, context):
         self._context = context
 
         if self._ui_model:
             self._update_contents()
+        '''
         else:
             for editor in self._editors.itervalues():
                 editor.set_context(self._context)
+        '''
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
 
+        '''
         for editor in self._editors.itervalues():
             editor.set_ui_model(ui_model)
+        '''
 
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
         var_types = au.get_control_var_types()
+        var_type = au.get_control_var_type(self._context)
+
+        if var_type == FLOAT_SLIDE_TYPE:
+            self._editor = ControlVariableFloatExtEditor()
+            self._editor.set_au_id(self._au_id)
+            self._editor.set_context(self._context)
+            self._editor.set_ui_model(self._ui_model)
+
+            h = QHBoxLayout()
+            h.setMargin(0)
+            h.setSpacing(2)
+            h.addWidget(self._editor)
+            self.setLayout(h)
 
         '''
         s = QStackedLayout()
@@ -631,8 +725,12 @@ class ControlVariableExtEditor(QWidget):
         self._update_contents()
 
     def unregister_updaters(self):
+        if self._editor:
+            self._editor.unregister_updaters()
+        '''
         for editor in self._editors.itervalues():
             editor.unregister_updaters()
+        '''
 
     def _update_contents(self):
         module = self._ui_model.get_module()
@@ -645,8 +743,16 @@ class ControlVariableExtEditor(QWidget):
         self.layout().setCurrentIndex(var_type_index)
         '''
 
+        if var_type == FLOAT_SLIDE_TYPE:
+            self._editor.set_context(self._context)
+        else:
+            self.setVisible(False)
+            return
+
+        '''
         editor = self._editors[var_type]
         editor.set_context(self._context)
+        '''
 
 
 class ControlVariableFloatExtEditor(QWidget):
@@ -951,7 +1057,6 @@ class ControlVariableBindings(QWidget):
         for i in xrange(cur_binding_count, len(binding_targets)):
             editor = BindTargetEditor()
             editor.set_au_id(self._au_id)
-            editor.set_ui_model(self._ui_model)
             layout.insertWidget(i, editor)
 
         self._get_adder().set_context(var_name)
@@ -960,6 +1065,7 @@ class ControlVariableBindings(QWidget):
             target_dev_id, target_var_name = target_info
             context = (var_name, target_dev_id, target_var_name)
             editor.set_context(context)
+            editor.set_ui_model(self._ui_model)
 
     def _perform_updates(self, signals):
         if _get_update_signal_type(self._au_id) in signals:
@@ -970,13 +1076,18 @@ class BindTargetEditor(QWidget):
 
     def __init__(self):
         QWidget.__init__(self)
+        self._au_id = None
+        self._context = None
+        self._ui_model = None
 
         self._target_dev_selector = BindTargetDeviceSelector()
         self._name_editor = BindTargetNameEditor()
-        self._map_to_min_editor = BindTargetMapToMinEditor()
-        self._map_to_max_editor = BindTargetMapToMaxEditor()
+        self._ext_editors = []
+        #self._map_to_min_editor = BindTargetMapToMinEditor()
+        #self._map_to_max_editor = BindTargetMapToMaxEditor()
         self._remove_button = BindTargetRemoveButton()
 
+        '''
         h = QHBoxLayout()
         h.setMargin(0)
         h.setSpacing(2)
@@ -986,32 +1097,72 @@ class BindTargetEditor(QWidget):
         h.addWidget(self._map_to_max_editor)
         h.addWidget(self._remove_button)
         self.setLayout(h)
+        '''
 
     def set_au_id(self, au_id):
+        self._au_id = au_id
         self._target_dev_selector.set_au_id(au_id)
         self._name_editor.set_au_id(au_id)
-        self._map_to_min_editor.set_au_id(au_id)
-        self._map_to_max_editor.set_au_id(au_id)
+        #self._map_to_min_editor.set_au_id(au_id)
+        #self._map_to_max_editor.set_au_id(au_id)
         self._remove_button.set_au_id(au_id)
 
     def set_context(self, context):
+        self._context = context
         self._target_dev_selector.set_context(context)
         self._name_editor.set_context(context)
-        self._map_to_min_editor.set_context(context)
-        self._map_to_max_editor.set_context(context)
+        #self._map_to_min_editor.set_context(context)
+        #self._map_to_max_editor.set_context(context)
         self._remove_button.set_context(context)
 
+        for editor in self._ext_editors:
+            editor.set_context(context)
+
     def set_ui_model(self, ui_model):
+        assert self._context
+
+        if self._ui_model:
+            return
+        self._ui_model = ui_model
+
         self._target_dev_selector.set_ui_model(ui_model)
         self._name_editor.set_ui_model(ui_model)
-        self._map_to_min_editor.set_ui_model(ui_model)
-        self._map_to_max_editor.set_ui_model(ui_model)
+        #self._map_to_min_editor.set_ui_model(ui_model)
+        #self._map_to_max_editor.set_ui_model(ui_model)
         self._remove_button.set_ui_model(ui_model)
 
+        var_name, target_dev_id, target_var_name = self._context
+
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+        var_type = au.get_control_var_type(var_name)
+
+        if var_type == FLOAT_SLIDE_TYPE:
+            self._ext_editors = [BindTargetMapToMinEditor(), BindTargetMapToMaxEditor()]
+        else:
+            self._ext_editors = [BindTargetExpressionEditor()]
+
+        for editor in self._ext_editors:
+            editor.set_au_id(self._au_id)
+            editor.set_context(self._context)
+            editor.set_ui_model(self._ui_model)
+
+        h = QHBoxLayout()
+        h.setMargin(0)
+        h.setSpacing(2)
+        h.addWidget(self._target_dev_selector)
+        h.addWidget(self._name_editor)
+        for editor in self._ext_editors:
+            h.addWidget(editor)
+        h.addWidget(self._remove_button)
+        self.setLayout(h)
+
     def unregister_updaters(self):
+        for editor in self._ext_editors:
+            editor.unregister_updaters()
         self._remove_button.unregister_updaters()
-        self._map_to_max_editor.unregister_updaters()
-        self._map_to_min_editor.unregister_updaters()
+        #self._map_to_max_editor.unregister_updaters()
+        #self._map_to_min_editor.unregister_updaters()
         self._name_editor.unregister_updaters()
         self._target_dev_selector.unregister_updaters()
 
@@ -1168,6 +1319,93 @@ class BindTargetNameEditor(NameEditor):
         self.blockSignals(old_block)
 
 
+class ExpressionValidator(QValidator):
+
+    def __init__(self):
+        QValidator.__init__(self)
+
+    def validate(self, contents, pos):
+        in_str = unicode(contents)
+
+        ranges_ok = all(0x20 <= ord(ch) <= 0x7e for ch in in_str)
+        if not ranges_ok:
+            return (QValidator.Invalid, pos)
+
+        return (QValidator.Acceptable, pos)
+
+
+class BindTargetExpressionEditor(QWidget):
+
+    def __init__(self):
+        QWidget.__init__(self)
+        self._au_id = None
+        self._context = None
+        self._ui_model = None
+        self._updater = None
+
+        self._editor = QLineEdit()
+        self._editor.setValidator(ExpressionValidator())
+
+        h = QHBoxLayout()
+        h.setMargin(0)
+        h.setSpacing(2)
+        h.addWidget(QLabel('Value expression:'))
+        h.addWidget(self._editor)
+        self.setLayout(h)
+
+    def set_au_id(self, au_id):
+        self._au_id = au_id
+
+    def set_context(self, context):
+        self._context = context
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+        self._updater.register_updater(self._perform_updates)
+
+        QObject.connect(
+                self._editor,
+                SIGNAL('textChanged(QString)'),
+                self._change_expression)
+
+    def unregister_updaters(self):
+        self._updater.unregister_updater(self._perform_updates)
+
+    def _perform_updates(self, signals):
+        if _get_update_signal_type(self._au_id) in signals:
+            self._update_expression()
+
+    def _update_expression(self):
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+
+        var_name, target_dev_id, target_var_name = self._context
+
+        expr = au.get_control_var_binding_expression(
+                var_name, target_dev_id, target_var_name)
+
+        old_block = self._editor.blockSignals(True)
+        if expr != self._editor.text():
+            self._editor.setText(expr)
+        self._editor.blockSignals(old_block)
+
+    def _change_expression(self, expr_qstring):
+        try:
+            expr = unicode(expr_qstring)
+        except ValueError:
+            return
+
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+
+        var_name, target_dev_id, target_var_name = self._context
+
+        au.change_control_var_binding_expression(
+                var_name, target_dev_id, target_var_name, expr)
+        self._updater.signal_update(set([_get_update_signal_type(self._au_id)]))
+
+
 class BindTargetMapToMinEditor(ControlVariableValueEditor):
 
     def __init__(self):
@@ -1192,10 +1430,9 @@ class BindTargetMapToMinEditor(ControlVariableValueEditor):
 
         var_value = self._get_value(au)
 
-        editor = self._editors[FLOAT_SLIDE_TYPE]
-        old_block = editor.blockSignals(True)
-        editor.setText(unicode(var_value))
-        editor.blockSignals(old_block)
+        old_block = self._editor.blockSignals(True)
+        self._editor.setText(unicode(var_value))
+        self._editor.blockSignals(old_block)
 
 
 class BindTargetMapToMaxEditor(ControlVariableValueEditor):
@@ -1222,10 +1459,9 @@ class BindTargetMapToMaxEditor(ControlVariableValueEditor):
 
         var_value = self._get_value(au)
 
-        editor = self._editors[FLOAT_SLIDE_TYPE]
-        old_block = editor.blockSignals(True)
-        editor.setText(unicode(var_value))
-        editor.blockSignals(old_block)
+        old_block = self._editor.blockSignals(True)
+        self._editor.setText(unicode(var_value))
+        self._editor.blockSignals(old_block)
 
 
 class BindTargetRemoveButton(RemoveButton):
@@ -1277,6 +1513,7 @@ class BindTargetAdder(Adder):
         au = module.get_audio_unit(self._au_id)
 
         var_name = self._context
+        var_type = au.get_control_var_type(var_name)
 
         au_ids = au.get_au_ids()
         if au_ids:
@@ -1290,8 +1527,12 @@ class BindTargetAdder(Adder):
 
         internal_dev_id = dev_id.split('/')[-1]
 
-        au.add_control_var_binding_float_slide(
-                var_name, internal_dev_id, name, 0.0, 1.0)
+        if var_type == FLOAT_SLIDE_TYPE:
+            au.add_control_var_binding_float_slide(
+                    var_name, internal_dev_id, name, 0.0, 1.0)
+        else:
+            au.add_control_var_binding(var_name, internal_dev_id, var_type, name)
+
         self._updater.signal_update(set([_get_update_signal_type(self._au_id)]))
 
 
