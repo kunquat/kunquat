@@ -1140,7 +1140,8 @@ class BindTargetEditor(QWidget):
         if var_type == FLOAT_SLIDE_TYPE:
             self._ext_editors = [BindTargetMapToMinEditor(), BindTargetMapToMaxEditor()]
         else:
-            self._ext_editors = [BindTargetExpressionEditor()]
+            self._ext_editors = [
+                    BindTargetVariableTypeEditor(), BindTargetExpressionEditor()]
 
         for editor in self._ext_editors:
             editor.set_au_id(self._au_id)
@@ -1317,6 +1318,77 @@ class BindTargetNameEditor(NameEditor):
         old_block = self.blockSignals(True)
         self.setText(target_name)
         self.blockSignals(old_block)
+
+
+class BindTargetVariableTypeEditor(QComboBox):
+
+    def __init__(self):
+        QComboBox.__init__(self)
+        self._au_id = None
+        self._context = None
+        self._ui_model = None
+        self._updater = None
+
+    def set_au_id(self, au_id):
+        self._au_id = au_id
+
+    def set_context(self, context):
+        self._context = context
+
+        if self._ui_model:
+            self._update_contents()
+
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
+
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+        var_types = au.get_control_var_binding_target_types()
+
+        var_type_names = {
+            bool: 'Boolean',
+            int: 'Integer',
+            float: 'Floating point',
+            tstamp.Tstamp: 'Timestamp',
+        }
+
+        for t in var_types:
+            type_name = var_type_names[t]
+            self.addItem(type_name)
+
+        QObject.connect(self, SIGNAL('currentIndexChanged(int)'), self._change_type)
+
+        self._update_contents()
+
+    def unregister_updaters(self):
+        pass
+
+    def _update_contents(self):
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+        var_types = au.get_control_var_binding_target_types()
+
+        var_name, target_dev_id, target_var_name = self._context
+        var_type = au.get_control_var_binding_target_type(
+                var_name, target_dev_id, target_var_name)
+        var_type_index = var_types.index(var_type)
+
+        old_block = self.blockSignals(True)
+        self.setCurrentIndex(var_type_index)
+        self.blockSignals(old_block)
+
+    def _change_type(self, index):
+        module = self._ui_model.get_module()
+        au = module.get_audio_unit(self._au_id)
+        var_types = au.get_control_var_binding_target_types()
+
+        var_name, target_dev_id, target_var_name = self._context
+        au.change_control_var_binding_target_type(
+                var_name, target_dev_id, target_var_name, var_types[index])
+
+        self._updater.signal_update(set([
+            _get_update_signal_type(self._au_id)]))
 
 
 class ExpressionValidator(QValidator):
