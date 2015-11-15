@@ -526,7 +526,7 @@ class AudioUnit():
                 'bool': bool,
                 'int': int,
                 'float': float,
-                'timestamp': tstamp.Tstamp,
+                'tstamp': tstamp.Tstamp,
                 FLOAT_SLIDE_TYPE: FLOAT_SLIDE_TYPE,
             }
         return type_map[type_name]
@@ -536,7 +536,7 @@ class AudioUnit():
                 bool: 'bool',
                 int: 'int',
                 float: 'float',
-                tstamp.Tstamp: 'timestamp',
+                tstamp.Tstamp: 'tstamp',
                 FLOAT_SLIDE_TYPE: FLOAT_SLIDE_TYPE,
             }
         return type_map[obj_type]
@@ -605,10 +605,12 @@ class AudioUnit():
     def change_control_var_type(self, var_name, new_type):
         new_type_name = self._get_control_var_format_type(new_type)
 
+        cons = new_type if new_type != FLOAT_SLIDE_TYPE else float
+
         var_list = self._get_control_var_list()
         index = self._get_control_var_entry_index(var_list, var_name)
         var_list[index][0] = new_type_name
-        var_list[index][2] = new_type(0)
+        var_list[index][2] = cons(0)
 
         # Set default extended params as they are type-specific
         if new_type in (bool, int, float, tstamp.Tstamp):
@@ -664,6 +666,16 @@ class AudioUnit():
         binding_list = self._get_control_var_binding_list(var_name)
         return [(entry[0], entry[1]) for entry in binding_list]
 
+    def add_control_var_binding(
+            self, var_name, target_dev_id, target_var_type, target_var_name):
+        assert var_name
+        assert target_dev_id
+        binding_list = self._get_control_var_binding_list(var_name)
+        type_name = self._get_control_var_format_type(target_var_type)
+        binding_list.append([
+            target_dev_id, target_var_name, type_name, ''])
+        self._set_control_var_binding_list(var_name, binding_list)
+
     def add_control_var_binding_float_slide(
             self, var_name, target_dev_id, target_var_name, map_min_to, map_max_to):
         assert var_name
@@ -680,6 +692,14 @@ class AudioUnit():
                 binding_list, target_dev_id, target_var_name)
         del binding_list[index]
         self._set_control_var_binding_list(var_name, binding_list)
+
+    def get_control_var_binding_expression(
+            self, var_name, target_dev_id, target_var_name):
+        binding_list = self._get_control_var_binding_list(var_name)
+        index = self._get_control_var_binding_entry_index(
+                binding_list, target_dev_id, target_var_name)
+        entry = binding_list[index]
+        return entry[3]
 
     def get_control_var_binding_map_to_min(
             self, var_name, target_dev_id, target_var_name):
@@ -711,6 +731,15 @@ class AudioUnit():
         index = self._get_control_var_binding_entry_index(
                 binding_list, target_dev_id, target_var_name)
         binding_list[index][1] = new_target_name
+        self._set_control_var_binding_list(var_name, binding_list)
+
+    def change_control_var_binding_expression(
+            self, var_name, target_dev_id, target_var_name, expr):
+        binding_list = self._get_control_var_binding_list(var_name)
+        index = self._get_control_var_binding_entry_index(
+                binding_list, target_dev_id, target_var_name)
+        entry = binding_list[index]
+        entry[3] = expr
         self._set_control_var_binding_list(var_name, binding_list)
 
     def change_control_var_binding_map_to_min(
