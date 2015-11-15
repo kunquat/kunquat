@@ -548,6 +548,9 @@ class AudioUnit():
     def get_control_var_types(self):
         return [bool, int, float, tstamp.Tstamp, FLOAT_SLIDE_TYPE]
 
+    def get_control_var_binding_target_types(self):
+        return [bool, int, float, tstamp.Tstamp]
+
     def add_control_var_float_slide(self, var_name, init_value, min_value, max_value):
         var_list = self._get_control_var_list()
         type_name = self._get_control_var_format_type(FLOAT_SLIDE_TYPE)
@@ -693,6 +696,14 @@ class AudioUnit():
         del binding_list[index]
         self._set_control_var_binding_list(var_name, binding_list)
 
+    def get_control_var_binding_target_type(
+            self, var_name, target_dev_id, target_var_name):
+        binding_list = self._get_control_var_binding_list(var_name)
+        index = self._get_control_var_binding_entry_index(
+                binding_list, target_dev_id, target_var_name)
+        entry = binding_list[index]
+        return self._get_control_var_object_type(entry[2])
+
     def get_control_var_binding_expression(
             self, var_name, target_dev_id, target_var_name):
         binding_list = self._get_control_var_binding_list(var_name)
@@ -731,6 +742,16 @@ class AudioUnit():
         index = self._get_control_var_binding_entry_index(
                 binding_list, target_dev_id, target_var_name)
         binding_list[index][1] = new_target_name
+        self._set_control_var_binding_list(var_name, binding_list)
+
+    def change_control_var_binding_target_type(
+            self, var_name, target_dev_id, target_var_name, new_type):
+        new_type_name = self._get_control_var_format_type(new_type)
+
+        binding_list = self._get_control_var_binding_list(var_name)
+        index = self._get_control_var_binding_entry_index(
+                binding_list, target_dev_id, target_var_name)
+        binding_list[index][2] = new_type_name
         self._set_control_var_binding_list(var_name, binding_list)
 
     def change_control_var_binding_expression(
