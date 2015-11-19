@@ -25,6 +25,7 @@
 #include <devices/Device_params.h>
 #include <frame.h>
 #include <kunquat/limits.h>
+#include <mathnum/Random.h>
 #include <player/Device_states.h>
 #include <player/Work_buffers.h>
 #include <string/Streader.h>
@@ -45,8 +46,12 @@ typedef void Device_process_signal_func(
         double tempo);
 
 
-typedef void Device_set_control_var_float_func(
-        const Device*, Device_states*, const char* var_name, double value);
+typedef void Device_set_control_var_generic_func(
+        const Device*,
+        Device_states*,
+        Random*,
+        const char* var_name,
+        const Value* value);
 
 typedef void Device_slide_control_var_float_target_func(
         const Device*, Device_states*, const char* var_name, double value);
@@ -85,7 +90,7 @@ struct Device
     void (*reset)(const struct Device*, Device_states*);
     Device_process_signal_func* process_signal;
 
-    Device_set_control_var_float_func* set_control_var_float;
+    Device_set_control_var_generic_func* set_control_var_generic;
     Device_slide_control_var_float_target_func* slide_control_var_float_target;
     Device_slide_control_var_float_length_func* slide_control_var_float_length;
     Device_osc_speed_cv_float_func* osc_speed_cv_float;
@@ -260,13 +265,13 @@ void Device_set_process(Device* device, Device_process_signal_func* process_sign
 
 
 /**
- * Set function for setting floating-point control variables.
+ * Set function for setting control variables.
  *
  * \param device     The Device -- must not be \c NULL.
- * \param set_func   The float setting function -- must not be \c NULL.
+ * \param set_func   The generic Value setting function -- must not be \c NULL.
  */
-void Device_register_set_control_var_float(
-        Device* device, Device_set_control_var_float_func* set_float_func);
+void Device_register_set_control_var_generic(
+        Device* device, Device_set_control_var_generic_func* set_func);
 
 
 /**
@@ -439,15 +444,22 @@ void Device_process(
 
 
 /**
- * Set new value of a floating-point Device control variable.
+ * Set new value of a Device control variable.
  *
  * \param device     The Device -- must not be \c NULL.
  * \param dstates    The Device states -- must not be \c NULL.
+ * \param rand       The Random source -- must not be \c NULL.
  * \param var_name   The name of the control variable, or \c NULL.
- * \param value      The new floating-point value -- must be finite.
+ * \param value      The new value -- must not be \c NULL and must have a type
+ *                   of \c VALUE_TYPE_BOOL, \c VALUE_TYPE_INT,
+ *                   \c VALUE_TYPE_FLOAT or \c VALUE_TYPE_TSTAMP.
  */
-void Device_set_control_var_float(
-        const Device* device, Device_states* dstates, const char* var_name, double value);
+void Device_set_control_var_generic(
+        const Device* device,
+        Device_states* dstates,
+        Random* rand,
+        const char* var_name,
+        const Value* value);
 
 
 /**

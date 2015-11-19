@@ -21,7 +21,9 @@
 #include <containers/AAtree.h>
 #include <debug/assert.h>
 #include <devices/Au_control_vars.h>
+#include <expr.h>
 #include <mathnum/common.h>
+#include <mathnum/Random.h>
 #include <memory.h>
 #include <string/common.h>
 #include <string/Streader.h>
@@ -39,7 +41,7 @@ typedef enum
 {
     ITER_MODE_DEVICES,
     ITER_MODE_SET_GENERIC,
-    ITER_MODE_SET_FLOAT,
+    ITER_MODE_SLIDE_FLOAT,
     ITER_MODE_OSC_DEPTH_FLOAT,
 } Iter_mode;
 
@@ -165,6 +167,7 @@ static bool Au_control_binding_iter_init_common(
         return false;
 
     iter->iter_mode = iter_mode;
+    iter->rand = NULL;
 
     return true;
 }
@@ -191,10 +194,29 @@ static void Au_control_binding_iter_update(Au_control_binding_iter* iter)
 
         case ITER_MODE_SET_GENERIC:
         {
+            assert(iter->rand != NULL);
+
+            const char* expr = iter->iter->ext.expr_type.expression;
+            assert(expr != NULL);
+
+            Streader* sr = Streader_init(STREADER_AUTO, expr, strlen(expr));
+            Value* result = VALUE_AUTO;
+
+            if (evaluate_expr(sr, NULL, &iter->src_value, result, iter->rand))
+            {
+                if (!Value_convert(result, result, iter->iter->target_var_type))
+                    result->type = VALUE_TYPE_NONE;
+            }
+            else
+            {
+                result->type = VALUE_TYPE_NONE;
+            }
+
+            Value_copy(&iter->target_value, result);
         }
         break;
 
-        case ITER_MODE_SET_FLOAT:
+        case ITER_MODE_SLIDE_FLOAT:
         {
             assert(iter->src_value.type == VALUE_TYPE_FLOAT);
 
@@ -256,7 +278,86 @@ bool Au_control_binding_iter_init(
 }
 
 
-bool Au_control_binding_iter_init_set_float(
+static bool check_value_var_entry_type_compatible(
+        Value_type value_type, Var_entry_type var_entry_type)
+{
+    return (value_type == VALUE_TYPE_BOOL && var_entry_type == VAR_ENTRY_BOOL) ||
+        (value_type == VALUE_TYPE_INT && var_entry_type == VAR_ENTRY_INT) ||
+        (value_type == VALUE_TYPE_FLOAT &&
+            (var_entry_type == VAR_ENTRY_FLOAT ||
+             var_entry_type == VAR_ENTRY_FLOAT_SLIDE)) ||
+        (value_type == VALUE_TYPE_TSTAMP && var_entry_type == VAR_ENTRY_TSTAMP);
+}
+
+
+static double get_src_range_norm(double value, double min_value, double max_value)
+{
+    assert(isfinite(value));
+    assert(isfinite(min_value));
+    assert(isfinite(max_value));
+
+    const double clamped_src_value = clamp(value, min_value, max_value);
+    const double src_range = max_value - min_value;
+    const double src_range_norm =
+        (src_range > range_eps) ? (clamped_src_value - min_value) / src_range : 0.0;
+
+    return src_range_norm;
+}
+
+
+bool Au_control_binding_iter_init_set_generic(
+        Au_control_binding_iter* iter,
+        const Au_control_vars* aucv,
+        Random* rand,
+        const char* var_name,
+        const Value* value)
+{
+    assert(iter != NULL);
+    assert(aucv != NULL);
+    assert(var_name != NULL);
+    assert(value != NULL);
+    assert((value->type == VALUE_TYPE_BOOL) ||
+            (value->type == VALUE_TYPE_INT) ||
+            (value->type == VALUE_TYPE_FLOAT) ||
+            (value->type == VALUE_TYPE_TSTAMP));
+
+    iter->iter = NULL;
+    Value_copy(&iter->src_value, value);
+
+    if (!Au_control_binding_iter_init_common(
+            iter, aucv, var_name, ITER_MODE_SET_GENERIC))
+        return false;
+
+    const Var_entry* var_entry = AAtree_get_exact(aucv->vars, var_name);
+    assert(var_entry != NULL);
+    if (!check_value_var_entry_type_compatible(iter->src_value.type, var_entry->type))
+        return false;
+
+    if (var_entry->type == VAR_ENTRY_FLOAT_SLIDE)
+    {
+        iter->iter_mode = ITER_MODE_SLIDE_FLOAT;
+
+        iter->ext.set_float_type.src_range_norm = get_src_range_norm(
+                iter->src_value.value.float_type,
+                var_entry->ext.float_slide_type.min_value,
+                var_entry->ext.float_slide_type.max_value);
+    }
+    else
+    {
+        // We can only iterate sliding floats without Random source
+        if (rand == NULL)
+            return false;
+
+        iter->rand = rand;
+    }
+
+    Au_control_binding_iter_update(iter);
+
+    return true;
+}
+
+
+bool Au_control_binding_iter_init_slide_float(
         Au_control_binding_iter* iter,
         const Au_control_vars* aucv,
         const char* var_name,
@@ -271,19 +372,19 @@ bool Au_control_binding_iter_init_set_float(
     iter->src_value.type = VALUE_TYPE_FLOAT;
     iter->src_value.value.float_type = value;
 
-    if (!Au_control_binding_iter_init_common(iter, aucv, var_name, ITER_MODE_SET_FLOAT))
+    if (!Au_control_binding_iter_init_common(
+            iter, aucv, var_name, ITER_MODE_SLIDE_FLOAT))
         return false;
 
-    // Get normalised source value position in our source range
     const Var_entry* var_entry = AAtree_get_exact(aucv->vars, var_name);
     assert(var_entry != NULL);
+    if (var_entry->type != VAR_ENTRY_FLOAT_SLIDE)
+        return false;
 
-    const double min_value = var_entry->ext.float_slide_type.min_value;
-    const double max_value = var_entry->ext.float_slide_type.max_value;
-    const double clamped_src_value = clamp(value, min_value, max_value);
-    const double src_range = max_value - min_value;
-    iter->ext.set_float_type.src_range_norm =
-        (src_range > range_eps) ? (clamped_src_value - min_value) / src_range : 0.0;
+    iter->ext.set_float_type.src_range_norm = get_src_range_norm(
+            iter->src_value.value.float_type,
+            var_entry->ext.float_slide_type.min_value,
+            var_entry->ext.float_slide_type.max_value);
 
     Au_control_binding_iter_update(iter);
 
@@ -307,11 +408,13 @@ bool Au_control_binding_iter_init_osc_depth_float(
     iter->src_value.value.float_type = depth;
 
     if (!Au_control_binding_iter_init_common(
-                iter, aucv, var_name, ITER_MODE_OSC_DEPTH_FLOAT))
+            iter, aucv, var_name, ITER_MODE_OSC_DEPTH_FLOAT))
         return false;
 
     const Var_entry* var_entry = AAtree_get_exact(aucv->vars, var_name);
     assert(var_entry != NULL);
+    if (var_entry->type != VAR_ENTRY_FLOAT_SLIDE)
+        return false;
 
     const double min_value = var_entry->ext.float_slide_type.min_value;
     const double max_value = var_entry->ext.float_slide_type.max_value;

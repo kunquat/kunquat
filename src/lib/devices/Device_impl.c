@@ -722,51 +722,62 @@ static const Update_control_var_cb* get_update_control_var_cb(
 }
 
 
-#define SET_CV(type_name, type_upper, ctype)                        \
-    void Device_impl_set_cv_ ## type_name(                          \
-            const Device_impl* dimpl,                               \
-            Device_state* dstate,                                   \
-            const char* key,                                        \
-            ctype value)                                            \
-    {                                                               \
-        assert(dimpl != NULL);                                      \
-        assert(dstate != NULL);                                     \
-        assert(key != NULL);                                        \
-        assert(strlen(key) < KQT_KEY_LENGTH_MAX);                   \
-                                                                    \
-        Key_indices indices = { 0 };                                \
-        const Update_control_var_cb* update_cv_cb =                 \
-            get_update_control_var_cb(dimpl, key, indices);         \
-                                                                    \
-        if (update_cv_cb != NULL &&                                 \
-                update_cv_cb->type == VALUE_TYPE_ ## type_upper)    \
-            update_cv_cb->cb.set_cv_ ## type_name(                  \
-                    dimpl, dstate, indices, value);                 \
-                                                                    \
-        return;                                                     \
-    }
-
-SET_CV(bool, BOOL, bool)
-SET_CV(int, INT, int64_t)
-
-#undef SET_CV
-
-
-void Device_impl_set_cv_float(
-        const Device_impl* dimpl, Device_state* dstate, const char* key, double value)
+void Device_impl_set_cv_generic(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        const char* key,
+        const Value* value)
 {
     assert(dimpl != NULL);
     assert(dstate != NULL);
     assert(key != NULL);
     assert(strlen(key) < KQT_KEY_LENGTH_MAX);
-    assert(isfinite(value));
+    assert(value != NULL);
 
     Key_indices indices = { 0 };
     const Update_control_var_cb* update_cv_cb =
         get_update_control_var_cb(dimpl, key, indices);
 
-    if ((update_cv_cb != NULL) && (update_cv_cb->type == VALUE_TYPE_FLOAT))
-        update_cv_cb->cb.update_float.set_cv(dimpl, dstate, indices, value);
+    if ((update_cv_cb == NULL) || (value->type != update_cv_cb->type))
+        return;
+
+    switch (value->type)
+    {
+        case VALUE_TYPE_BOOL:
+        {
+            assert(update_cv_cb->cb.set_cv_bool != NULL);
+            update_cv_cb->cb.set_cv_bool(dimpl, dstate, indices, value->value.bool_type);
+        }
+        break;
+
+        case VALUE_TYPE_INT:
+        {
+            assert(update_cv_cb->cb.set_cv_int != NULL);
+            update_cv_cb->cb.set_cv_int(dimpl, dstate, indices, value->value.int_type);
+        }
+        break;
+
+        case VALUE_TYPE_FLOAT:
+        {
+            if (update_cv_cb->cb.update_float.set_cv != NULL)
+            {
+                update_cv_cb->cb.update_float.set_cv(
+                        dimpl, dstate, indices, value->value.float_type);
+            }
+        }
+        break;
+
+        case VALUE_TYPE_TSTAMP:
+        {
+            assert(update_cv_cb->cb.set_cv_tstamp != NULL);
+            update_cv_cb->cb.set_cv_tstamp(
+                    dimpl, dstate, indices, &value->value.Tstamp_type);
+        }
+        break;
+
+        default:
+            assert(false);
+    }
 
     return;
 }
@@ -909,33 +920,6 @@ void Device_impl_osc_depth_slide_cv_float(
             (update_cv_cb->type == VALUE_TYPE_FLOAT) &&
             (update_cv_cb->cb.update_float.osc_depth_sl != NULL))
         update_cv_cb->cb.update_float.osc_depth_sl(dimpl, dstate, indices, length);
-
-    return;
-}
-
-
-void Device_impl_set_cv_tstamp(
-        const Device_impl* dimpl,
-        Device_state* dstate,
-        const char* key,
-        const Tstamp* value)
-{
-    assert(dimpl != NULL);
-    assert(dstate != NULL);
-    assert(key != NULL);
-    assert(value != NULL);
-
-    assert(strlen(key) < KQT_KEY_LENGTH_MAX);
-    char keyp[KQT_KEY_LENGTH_MAX] = "";
-    Key_indices indices = { 0 };
-    memset(indices, '\xff', KEY_INDICES_MAX * sizeof(int32_t));
-
-    extract_key_pattern(key, keyp, indices);
-
-    const Update_control_var_cb* update_cv_cb =
-        AAtree_get_exact(dimpl->update_cv_cbs, keyp);
-    if (update_cv_cb != NULL && update_cv_cb->type == VALUE_TYPE_TSTAMP)
-        update_cv_cb->cb.set_cv_tstamp(dimpl, dstate, indices, value);
 
     return;
 }

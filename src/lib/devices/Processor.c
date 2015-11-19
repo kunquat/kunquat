@@ -47,8 +47,12 @@ static Device_state* Processor_create_state_plain(
 }
 
 
-static void Processor_set_control_var_float(
-        const Device* device, Device_states* dstates, const char* key, double value);
+static void Processor_set_control_var_generic(
+        const Device* device,
+        Device_states* dstates,
+        Random* rand,
+        const char* key,
+        const Value* value);
 
 static void Processor_slide_control_var_float_target(
         const Device* device, Device_states* dstates, const char* key, double value);
@@ -114,8 +118,8 @@ Processor* new_Processor(const Au_params* au_params)
             &proc->parent,
             Processor_create_state_plain);
 
-    Device_register_set_control_var_float(
-            &proc->parent, Processor_set_control_var_float);
+    Device_register_set_control_var_generic(
+            &proc->parent, Processor_set_control_var_generic);
 
     Device_register_slide_control_var_float(
             &proc->parent,
@@ -456,17 +460,22 @@ void Processor_process_vstate(
 }
 
 
-static void Processor_set_control_var_float(
-        const Device* device, Device_states* dstates, const char* key, double value)
+static void Processor_set_control_var_generic(
+        const Device* device,
+        Device_states* dstates,
+        Random* rand,
+        const char* key,
+        const Value* value)
 {
     assert(device != NULL);
     assert(dstates != NULL);
+    assert(rand != NULL);
     assert(key != NULL);
-    assert(isfinite(value));
+    assert(value != NULL);
 
     const Device_impl* dimpl = device->dimpl;
     Device_state* dstate = Device_states_get_state(dstates, Device_get_id(device));
-    Device_impl_set_cv_float(dimpl, dstate, key, value);
+    Device_impl_set_cv_generic(dimpl, dstate, key, value);
 
     return;
 }

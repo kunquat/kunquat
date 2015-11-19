@@ -124,7 +124,7 @@ bool Device_init(Device* device, bool req_impl)
     device->reset = Device_reset_default;
     device->process_signal = NULL;
 
-    device->set_control_var_float = NULL;
+    device->set_control_var_generic = NULL;
     device->slide_control_var_float_target = NULL;
     device->slide_control_var_float_length = NULL;
 
@@ -294,13 +294,13 @@ void Device_set_process(Device* device, Device_process_signal_func* process_sign
 }
 
 
-void Device_register_set_control_var_float(
-        Device* device, Device_set_control_var_float_func* set_float_func)
+void Device_register_set_control_var_generic(
+        Device* device, Device_set_control_var_generic_func* set_func)
 {
     assert(device != NULL);
-    assert(set_float_func != NULL);
+    assert(set_func != NULL);
 
-    device->set_control_var_float = set_float_func;
+    device->set_control_var_generic = set_func;
 
     return;
 }
@@ -545,16 +545,25 @@ void Device_process(
 }
 
 
-void Device_set_control_var_float(
-        const Device* device, Device_states* dstates, const char* var_name, double value)
+void Device_set_control_var_generic(
+        const Device* device,
+        Device_states* dstates,
+        Random* rand,
+        const char* var_name,
+        const Value* value)
 {
     assert(device != NULL);
     assert(dstates != NULL);
+    assert(rand != NULL);
     assert(var_name != NULL);
-    assert(isfinite(value));
+    assert(value != NULL);
+    assert((value->type == VALUE_TYPE_BOOL) ||
+            (value->type == VALUE_TYPE_INT) ||
+            (value->type == VALUE_TYPE_FLOAT) ||
+            (value->type == VALUE_TYPE_TSTAMP));
 
-    if (device->set_control_var_float != NULL)
-        device->set_control_var_float(device, dstates, var_name, value);
+    if (device->set_control_var_generic != NULL)
+        device->set_control_var_generic(device, dstates, rand, var_name, value);
 
     return;
 }

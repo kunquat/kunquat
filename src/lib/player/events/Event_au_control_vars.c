@@ -65,7 +65,7 @@ bool Event_au_set_cv_float_value_process(
         return true;
 
     const Device* dev = (const Device*)au;
-    Device_set_control_var_float(dev, dstates, var_name, value->value.float_type);
+    Device_set_control_var_generic(dev, dstates, channel->rand, var_name, value);
 
     return true;
 }

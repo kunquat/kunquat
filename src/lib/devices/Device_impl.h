@@ -565,27 +565,18 @@ bool Device_impl_set_state_key(
 
 
 /**
- * Set a boolean control variable in a Device state.
+ * Set a control variable in a Device state.
  *
  * \param dimpl    The Device implementation -- must not be \c NULL.
  * \param dstate   The Device state -- must not be \c NULL.
  * \param key      The key to be updated -- must not be \c NULL.
- * \param value    The value.
+ * \param value    The Value -- must not be \c NULL.
  */
-void Device_impl_set_cv_bool(
-        const Device_impl* dimpl, Device_state* dstate, const char* key, bool value);
-
-
-/**
- * Set a float control variable in a Device state.
- *
- * \param dimpl    The Device implementation -- must not be \c NULL.
- * \param dstate   The Device state -- must not be \c NULL.
- * \param key      The key to be updated -- must not be \c NULL.
- * \param value    The value.
- */
-void Device_impl_set_cv_float(
-        const Device_impl* dimpl, Device_state* dstate, const char* key, double value);
+void Device_impl_set_cv_generic(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        const char* key,
+        const Value* value);
 
 
 /**
@@ -673,33 +664,6 @@ void Device_impl_osc_depth_slide_cv_float(
         Device_state* dstate,
         const char* key,
         const Tstamp* length);
-
-
-/**
- * Set an integral control in a Device state.
- *
- * \param dimpl    The Device implementation -- must not be \c NULL.
- * \param dstate   The Device state -- must not be \c NULL.
- * \param key      The key to be updated -- must not be \c NULL.
- * \param value    The value.
- */
-void Device_impl_set_cv_int(
-        const Device_impl* dimpl, Device_state* dstate, const char* key, int64_t value);
-
-
-/**
- * Set a timestamp control in a Device state.
- *
- * \param dimpl    The Device implementation -- must not be \c NULL.
- * \param dstate   The Device state -- must not be \c NULL.
- * \param key      The key to be updated -- must not be \c NULL.
- * \param value    The value -- must not be \c NULL.
- */
-void Device_impl_set_cv_tstamp(
-        const Device_impl* dimpl,
-        Device_state* dstate,
-        const char* key,
-        const Tstamp* value);
 
 
 /**

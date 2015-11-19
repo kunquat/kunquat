@@ -19,6 +19,7 @@
 #include <stdlib.h>
 
 #include <kunquat/limits.h>
+#include <mathnum/Random.h>
 #include <string/Streader.h>
 #include <Value.h>
 
@@ -45,6 +46,7 @@ typedef struct Au_control_binding_iter
     const Au_control_bind_entry* iter;
     int iter_mode;
     Value src_value;
+    Random* rand;
     union
     {
         struct
@@ -88,7 +90,30 @@ bool Au_control_binding_iter_init(
 
 
 /**
- * Start iterating over results of setting floating-point control variable bindings.
+ * Start iterating over results of setting control variables.
+ *
+ * \param iter       The iterator -- must not be \c NULL.
+ * \param aucv       The Audio unit control variables -- must not be \c NULL.
+ * \param rand       The Random source -- must not be \c NULL unless the
+ *                   control variable is expected to be a sliding float.
+ * \param var_name   The name of the variable -- must not be \c NULL.
+ * \param value      The source Value -- must not be \c NULL.
+ *
+ * \return   \c true if at least one bound target is found, otherwise \c false.
+ *           NOTE: The target value may have type set to \c VALUE_TYPE_NONE
+ *           if expression evaluation fails or the result cannot be converted
+ *           to the type specified by the binding.
+ */
+bool Au_control_binding_iter_init_set_generic(
+        Au_control_binding_iter* iter,
+        const Au_control_vars* aucv,
+        Random* rand,
+        const char* var_name,
+        const Value* value);
+
+
+/**
+ * Start iterating over results of sliding bound floating-point control variables.
  *
  * \param iter       The iterator -- must not be \c NULL.
  * \param aucv       The Audio unit control variables -- must not be \c NULL.
@@ -97,7 +122,7 @@ bool Au_control_binding_iter_init(
  *
  * \return   \c true if at least one result is found, otherwise \c false.
  */
-bool Au_control_binding_iter_init_set_float(
+bool Au_control_binding_iter_init_slide_float(
         Au_control_binding_iter* iter,
         const Au_control_vars* aucv,
         const char* var_name,
@@ -105,7 +130,7 @@ bool Au_control_binding_iter_init_set_float(
 
 
 /**
- * Start iterating over floating-point control variable oscillation depth bindings.
+ * Start iterating over oscillation depths of bound floating-point control variables.
  *
  * \param iter       The iterator -- must not be \c NULL.
  * \param aucv       The Audio unit control variables -- must not be \c NULL.
