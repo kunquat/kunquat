@@ -1441,6 +1441,8 @@ class BindTargetExpressionEditor(QWidget):
                 SIGNAL('textChanged(QString)'),
                 self._change_expression)
 
+        self._update_expression()
+
     def unregister_updaters(self):
         self._updater.unregister_updater(self._perform_updates)
 
