@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2015
  *
  * This file is part of Kunquat.
  *
@@ -26,8 +26,7 @@
  * Evaluate an expression.
  *
  * \param sr       The expression reader -- must not be \c NULL.
- * \param estate   The Environment state -- must not be \c NULL.
- * \param state    The Read state -- must not be \c NULL.
+ * \param estate   The Environment state, or \c NULL if environment is not used.
  * \param meta     The meta variable, or \c NULL if not used.
  * \param res      A memory location for the result Value --
  *                 must not be \c NULL.

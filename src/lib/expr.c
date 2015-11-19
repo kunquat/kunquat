@@ -174,7 +174,6 @@ bool evaluate_expr(
         Random* rand)
 {
     assert(sr != NULL);
-    assert(estate != NULL);
     assert(res != NULL);
     assert(rand != NULL);
 
@@ -226,7 +225,6 @@ static bool evaluate_expr_(
         Random* rand)
 {
     assert(sr != NULL);
-    assert(estate != NULL);
     assert(val_stack != NULL);
     assert(vsi >= 0);
     assert(vsi <= STACK_SIZE);
@@ -571,7 +569,6 @@ static bool Value_from_token(
 {
     assert(val != NULL);
     assert(token != NULL);
-    assert(estate != NULL);
     assert(meta != NULL);
 
     if (isdigit(token[0]) || token[0] == '.')
@@ -636,7 +633,7 @@ static bool Value_from_token(
     }
     else if (strchr(KQT_VAR_INIT_CHARS, token[0]) != NULL)
     {
-        const Env_var* ev = Env_state_get_var(estate, token);
+        const Env_var* ev = (estate != NULL) ? Env_state_get_var(estate, token) : NULL;
         if (ev == NULL)
             return false;
 
