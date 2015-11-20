@@ -957,7 +957,7 @@ static bool op_eq(const Value* op1, const Value* op2, Value* res, Streader* sr)
         return false;
 
     // Eliminate testing of symmetric cases
-    if (op1->type < op2->type)
+    if (op1->type > op2->type)
     {
         const Value* tmp = op1;
         op1 = op2;
