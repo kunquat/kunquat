@@ -510,7 +510,7 @@ class AudioUnit():
         for i, entry in enumerate(binding_list):
             if (entry[0] == target_dev_id) and (entry[1] == target_var_name):
                 return i
-        raise ValueError('Binding target {} not in list'.format(target_name))
+        raise ValueError('Binding target {} not in list'.format(target_var_name))
 
     def _set_control_var_binding_list(self, var_name, binding_list):
         var_list = self._get_control_var_list()
@@ -551,10 +551,19 @@ class AudioUnit():
     def get_control_var_binding_target_types(self):
         return [bool, int, float, tstamp.Tstamp]
 
-    def add_control_var_float_slide(self, var_name, init_value, min_value, max_value):
+    def _get_unique_control_var_name(self, var_list):
+        names = set('var{:02d}'.format(i) for i in xrange(1, 100))
+        for entry in var_list:
+            used_name = entry[1]
+            names.discard(used_name)
+        unique_name = min(names)
+        return unique_name
+
+    def add_control_var_float_slide(self):
         var_list = self._get_control_var_list()
         type_name = self._get_control_var_format_type(FLOAT_SLIDE_TYPE)
-        new_entry = [type_name, var_name, init_value, [min_value, max_value], []]
+        var_name = self._get_unique_control_var_name(var_list)
+        new_entry = [type_name, var_name, 0.0, [0.0, 1.0], []]
         var_list.append(new_entry)
         self._set_control_var_list(var_list)
 
@@ -669,22 +678,32 @@ class AudioUnit():
         binding_list = self._get_control_var_binding_list(var_name)
         return [(entry[0], entry[1]) for entry in binding_list]
 
+    def _get_unique_binding_var_name(self, binding_list):
+        names = set('var{:02d}'.format(i) for i in xrange(1, 100))
+        for entry in binding_list:
+            used_name = entry[1]
+            names.discard(used_name)
+        unique_name = min(names)
+        return unique_name
+
     def add_control_var_binding(
-            self, var_name, target_dev_id, target_var_type, target_var_name):
+            self, var_name, target_dev_id, target_var_type):
         assert var_name
         assert target_dev_id
         binding_list = self._get_control_var_binding_list(var_name)
         type_name = self._get_control_var_format_type(target_var_type)
+        target_var_name = self._get_unique_binding_var_name(binding_list)
         binding_list.append([
             target_dev_id, target_var_name, type_name, '$'])
         self._set_control_var_binding_list(var_name, binding_list)
 
     def add_control_var_binding_float_slide(
-            self, var_name, target_dev_id, target_var_name, map_min_to, map_max_to):
+            self, var_name, target_dev_id, map_min_to, map_max_to):
         assert var_name
         assert target_dev_id
         binding_list = self._get_control_var_binding_list(var_name)
         type_name = self._get_control_var_format_type(float)
+        target_var_name = self._get_unique_binding_var_name(binding_list)
         binding_list.append([
             target_dev_id, target_var_name, type_name, map_min_to, map_max_to])
         self._set_control_var_binding_list(var_name, binding_list)

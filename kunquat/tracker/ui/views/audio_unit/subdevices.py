@@ -815,26 +815,15 @@ class ControlVariableFloatExtEditor(QWidget):
         self._max_value_editor.set_context(self._context)
 
 
-class Adder(QWidget):
+class ControlVariableAdder(QPushButton):
 
     def __init__(self):
-        QWidget.__init__(self)
+        QPushButton.__init__(self)
         self._au_id = None
         self._ui_model = None
         self._updater = None
 
-        self._name_editor = NewNameEditor()
-
-        self._add_button = QPushButton()
-        self._add_button.setText(self._get_add_text())
-        self._add_button.setEnabled(False)
-
-        h = QHBoxLayout()
-        h.setMargin(0)
-        h.setSpacing(4)
-        h.addWidget(self._name_editor)
-        h.addWidget(self._add_button)
-        self.setLayout(h)
+        self.setText('Add new variable')
 
     def set_au_id(self, au_id):
         self._au_id = au_id
@@ -842,91 +831,17 @@ class Adder(QWidget):
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
 
-        self._update_used_names()
-
-        QObject.connect(
-                self._name_editor, SIGNAL('textChanged(QString)'), self._text_changed)
-        QObject.connect(
-                self._name_editor, SIGNAL('returnPressed()'), self._add_new)
-        QObject.connect(
-                self._add_button, SIGNAL('clicked()'), self._add_new)
+        QObject.connect(self, SIGNAL('clicked()'), self._add_new_entry)
 
     def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
+        pass
 
-    def _perform_updates(self, signals):
-        if _get_update_signal_type(self._au_id) in signals:
-            self._update_used_names()
-
-    def _update_used_names(self):
-        used_names = self._get_used_names()
-        self._name_editor.set_used_names(used_names)
-
-        is_add_allowed = bool(self._name_editor.text())
-        self._add_button.setEnabled(is_add_allowed)
-
-    def _text_changed(self, text_qstring):
-        text = unicode(text_qstring)
-        used_names = self._get_used_names()
-
-        is_add_allowed = bool(text) and (text not in used_names)
-        self._add_button.setEnabled(is_add_allowed)
-
-    def _add_new(self):
-        text = unicode(self._name_editor.text())
-        assert text and (text not in self._get_used_names())
-
-        self._add_new_entry(text)
-
-        self._name_editor.setText('')
-
-    # Protected interface
-
-    def _get_add_text(self):
-        raise NotImplementedError
-
-    def _get_used_names(self):
-        raise NotImplementedError
-
-    def _add_new_entry(self, name):
-        raise NotImplementedError
-
-
-class NewNameEditor(QLineEdit):
-
-    def __init__(self):
-        QLineEdit.__init__(self)
-        self.setMaxLength(VAR_NAME_MAX - 1)
-        self._validator = VarNameValidator(set())
-        self.setValidator(self._validator)
-
-    def set_used_names(self, used_names):
-        self._validator = VarNameValidator(used_names)
-        self.setValidator(self._validator)
-
-
-class ControlVariableAdder(Adder):
-
-    def __init__(self):
-        Adder.__init__(self)
-
-    def _get_add_text(self):
-        return 'Add new variable'
-
-    def _get_used_names(self):
+    def _add_new_entry(self):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
 
-        used_names = set(au.get_control_var_names())
-        return used_names
-
-    def _add_new_entry(self, name):
-        module = self._ui_model.get_module()
-        au = module.get_audio_unit(self._au_id)
-
-        au.add_control_var_float_slide(name, 0.0, 0.0, 1.0)
+        au.add_control_var_float_slide()
         self._updater.signal_update(set([_get_update_signal_type(self._au_id)]))
 
 
@@ -1447,7 +1362,8 @@ class BindTargetExpressionEditor(QWidget):
         self._updater.unregister_updater(self._perform_updates)
 
     def _perform_updates(self, signals):
-        if _get_update_signal_type(self._au_id) in signals:
+        if (_get_update_signal_type(self._au_id) in signals and
+                _get_update_signal_type(self._au_id) not in signals):
             self._update_expression()
 
     def _update_expression(self):
@@ -1553,36 +1469,33 @@ class BindTargetRemoveButton(RemoveButton):
             _get_rebuild_signal_type(self._au_id)]))
 
 
-class BindTargetAdder(Adder):
+class BindTargetAdder(QPushButton):
 
     def __init__(self):
-        Adder.__init__(self)
-
+        QPushButton.__init__(self)
+        self._au_id = None
         self._context = None
+        self._ui_model = None
+        self._updater = None
+
+        self.setText('Add new binding')
+
+    def set_au_id(self, au_id):
+        self._au_id = au_id
 
     def set_context(self, context):
         self._context = context
 
-    def _get_add_text(self):
-        return 'Add new binding'
+    def set_ui_model(self, ui_model):
+        self._ui_model = ui_model
+        self._updater = ui_model.get_updater()
 
-    def _get_used_names(self):
-        if not self._context:
-            return set()
+        QObject.connect(self, SIGNAL('clicked()'), self._add_new_entry)
 
-        var_name = self._context
+    def unregister_updaters(self):
+        pass
 
-        module = self._ui_model.get_module()
-        au = module.get_audio_unit(self._au_id)
-
-        # Escape if we are being removed
-        if var_name not in au.get_control_var_names():
-            return set()
-
-        used_names = set(au.get_control_var_binding_targets(var_name))
-        return used_names
-
-    def _add_new_entry(self, name):
+    def _add_new_entry(self):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
 
@@ -1602,10 +1515,9 @@ class BindTargetAdder(Adder):
         internal_dev_id = dev_id.split('/')[-1]
 
         if var_type == FLOAT_SLIDE_TYPE:
-            au.add_control_var_binding_float_slide(
-                    var_name, internal_dev_id, name, 0.0, 1.0)
+            au.add_control_var_binding_float_slide(var_name, internal_dev_id, 0.0, 1.0)
         else:
-            au.add_control_var_binding(var_name, internal_dev_id, var_type, name)
+            au.add_control_var_binding(var_name, internal_dev_id, var_type)
 
         self._updater.signal_update(set([_get_update_signal_type(self._au_id)]))
 
