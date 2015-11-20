@@ -543,18 +543,32 @@ static bool handle_unary(
     }
 
     assert(found_minus);
-    if (val->type == VALUE_TYPE_INT)
+    switch (val->type)
     {
-        val->value.int_type = -val->value.int_type;
-    }
-    else if (val->type == VALUE_TYPE_FLOAT)
-    {
-        val->value.float_type = -val->value.float_type;
-    }
-    else
-    {
-        Streader_set_error(sr, "Non-number operand for unary minus");
-        return false;
+        case VALUE_TYPE_INT:
+        {
+            val->value.int_type = -val->value.int_type;
+        }
+        break;
+
+        case VALUE_TYPE_FLOAT:
+        {
+            val->value.float_type = -val->value.float_type;
+        }
+        break;
+
+        case VALUE_TYPE_TSTAMP:
+        {
+            const Tstamp* zero_ts = Tstamp_init(TSTAMP_AUTO);
+            Tstamp_sub(&val->value.Tstamp_type, zero_ts, &val->value.Tstamp_type);
+        }
+        break;
+
+        default:
+        {
+            Streader_set_error(sr, "Non-number operand for unary minus");
+            return false;
+        }
     }
 
     return true;
