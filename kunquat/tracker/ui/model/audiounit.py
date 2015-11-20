@@ -676,7 +676,7 @@ class AudioUnit():
         binding_list = self._get_control_var_binding_list(var_name)
         type_name = self._get_control_var_format_type(target_var_type)
         binding_list.append([
-            target_dev_id, target_var_name, type_name, ''])
+            target_dev_id, target_var_name, type_name, '$'])
         self._set_control_var_binding_list(var_name, binding_list)
 
     def add_control_var_binding_float_slide(
