@@ -148,6 +148,23 @@ void del_Var_entry(Var_entry* entry)
 }
 
 
+static Value_type get_value_type_from_var_entry_type(Var_entry_type var_entry_type)
+{
+    switch (var_entry_type)
+    {
+        case VAR_ENTRY_BOOL: return VALUE_TYPE_BOOL;
+        case VAR_ENTRY_INT:  return VALUE_TYPE_INT;
+        case VAR_ENTRY_FLOAT: case VAR_ENTRY_FLOAT_SLIDE: return VALUE_TYPE_FLOAT;
+        case VAR_ENTRY_TSTAMP: return VALUE_TYPE_TSTAMP;
+
+        default:
+            assert(false);
+    }
+
+    return VALUE_TYPE_NONE;
+}
+
+
 Au_control_var_iter* Au_control_var_iter_init(
         Au_control_var_iter* iter, const Au_control_vars* aucv)
 {
@@ -160,7 +177,7 @@ Au_control_var_iter* Au_control_var_iter_init(
     if (var_entry != NULL)
     {
         iter->next_var_name = var_entry->name;
-        iter->next_var_type = var_entry->type;
+        iter->next_var_type = get_value_type_from_var_entry_type(var_entry->type);
     }
     else
     {
@@ -189,7 +206,7 @@ void Au_control_var_iter_get_next_var_info(
         if (next_entry != NULL)
         {
             iter->next_var_name = next_entry->name;
-            iter->next_var_type = next_entry->type;
+            iter->next_var_type = get_value_type_from_var_entry_type(next_entry->type);
         }
         else
         {
