@@ -18,6 +18,7 @@
 
 #include <stdlib.h>
 
+#include <containers/AAtree.h>
 #include <kunquat/limits.h>
 #include <mathnum/Random.h>
 #include <string/Streader.h>
@@ -38,11 +39,22 @@ typedef enum
 } Target_dev_type;
 
 
-typedef struct Bind_entry Au_control_bind_entry;
+typedef struct Au_control_var_iter
+{
+    AAiter iter;
+    const char* next_var_name;
+    Value_type next_var_type;
+} Au_control_var_iter;
 
+#define AU_CONTROL_VAR_ITER_AUTO \
+    (&(Au_control_var_iter){ { .tree = NULL }, NULL, VALUE_TYPE_NONE })
+
+
+typedef struct Bind_entry Au_control_bind_entry;
 
 typedef struct Au_control_binding_iter
 {
+    // Internal state
     const Au_control_bind_entry* iter;
     int iter_mode;
     Value src_value;
@@ -60,15 +72,42 @@ typedef struct Au_control_binding_iter
         } osc_float_type;
     } ext;
 
+    // Data provided for the user
     Target_dev_type target_dev_type;
     int target_dev_index;
     const char* target_var_name;
     Value target_value;
 } Au_control_binding_iter;
 
-
 #define AU_CONTROL_BINDING_ITER_AUTO (&(Au_control_binding_iter){ \
         .iter = NULL, .iter_mode = -1, .target_dev_type = TARGET_DEV_NONE })
+
+
+/**
+ * Initialise an Audio unit control variable iterator.
+ *
+ * \param iter   The Audio unit control variable iterator -- must not be \c NULL.
+ * \param aucv   The Audio unit control variables -- must not be \c NULL.
+ *
+ * \return   The parameter \a iter.
+ */
+Au_control_var_iter* Au_control_var_iter_init(
+        Au_control_var_iter* iter, const Au_control_vars* aucv);
+
+
+/**
+ * Get the next Audio unit control variable name from the iterator.
+ *
+ * \param iter           The Audio unit control variable iterator --
+ *                       must not be \c NULL.
+ * \param out_var_name   The destination address of the variable name --
+ *                       must not be \c NULL. A \c NULL value will be stored if
+ *                       the end of iteration has been reached.
+ * \param out_var_type   The destination address of the variable type --
+ *                       must not be \c NULL.
+ */
+void Au_control_var_iter_get_next_var_info(
+        Au_control_var_iter* iter, const char** out_var_name, Value_type* out_var_type);
 
 
 /**

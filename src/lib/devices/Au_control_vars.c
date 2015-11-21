@@ -148,6 +148,60 @@ void del_Var_entry(Var_entry* entry)
 }
 
 
+Au_control_var_iter* Au_control_var_iter_init(
+        Au_control_var_iter* iter, const Au_control_vars* aucv)
+{
+    assert(iter != NULL);
+    assert(aucv != NULL);
+
+    // Get the first entry
+    AAiter_change_tree(&iter->iter, aucv->vars);
+    const Var_entry* var_entry = AAiter_get_at_least(&iter->iter, "");
+    if (var_entry != NULL)
+    {
+        iter->next_var_name = var_entry->name;
+        iter->next_var_type = var_entry->type;
+    }
+    else
+    {
+        iter->next_var_name = NULL;
+        iter->next_var_type = VALUE_TYPE_NONE;
+    }
+
+    return iter;
+}
+
+
+void Au_control_var_iter_get_next_var_info(
+        Au_control_var_iter* iter, const char** out_var_name, Value_type* out_var_type)
+{
+    assert(iter != NULL);
+    assert(out_var_name != NULL);
+    assert(out_var_type != NULL);
+
+    *out_var_name = iter->next_var_name;
+    *out_var_type = iter->next_var_type;
+
+    // Prepare for the next call
+    if (iter->next_var_name != NULL)
+    {
+        const Var_entry* next_entry = AAiter_get_next(&iter->iter);
+        if (next_entry != NULL)
+        {
+            iter->next_var_name = next_entry->name;
+            iter->next_var_type = next_entry->type;
+        }
+        else
+        {
+            iter->next_var_name = NULL;
+            iter->next_var_type = VALUE_TYPE_NONE;
+        }
+    }
+
+    return;
+}
+
+
 static bool Au_control_binding_iter_init_common(
         Au_control_binding_iter* iter,
         const Au_control_vars* aucv,
