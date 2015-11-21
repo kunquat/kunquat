@@ -55,6 +55,9 @@ def test_libkunquat(builder, options, cc):
         })
     finished_tests = set()
 
+    # Specify tests that should always run without memory debugging (for performance)
+    force_disable_mem_tests = set(['fast_sin'])
+
     echo = '\n   Testing libkunquat\n'
 
     source_paths = deque(glob.glob(os.path.join(src_dir, '*.c')))
@@ -86,7 +89,7 @@ def test_libkunquat(builder, options, cc):
         if cc.build_exe(builder, src_path, out_path, echo=echo):
             echo = ''
             run_prefix = 'env LD_LIBRARY_PATH={} '.format(libkunquat_dir)
-            if options.enable_tests_mem_debug:
+            if options.enable_tests_mem_debug and name not in force_disable_mem_tests:
                 mem_debug_path = os.path.join(src_dir, 'mem_debug_run.py')
                 run_prefix += mem_debug_path + ' '
 
