@@ -233,6 +233,37 @@ bool Player_alloc_channel_proc_state_keys(Player* player, Streader* sr)
 }
 
 
+bool Player_alloc_channel_cv_state(
+        Player* player, int au_index, const Au_control_vars* aucv)
+{
+    assert(player != NULL);
+    assert(au_index >= 0);
+    assert(au_index < KQT_AUDIO_UNITS_MAX);
+    assert(aucv != NULL);
+
+    for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
+        Channel_cv_state_remove_entries(player->channels[i]->cvstate, au_index);
+
+    Au_control_var_iter* iter = Au_control_var_iter_init(AU_CONTROL_VAR_ITER_AUTO, aucv);
+    const char* var_name = NULL;
+    Value_type var_type = VALUE_TYPE_NONE;
+    Au_control_var_iter_get_next_var_info(iter, &var_name, &var_type);
+    while (var_name != NULL)
+    {
+        for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
+        {
+            if (!Channel_cv_state_add_entry(
+                    player->channels[i]->cvstate, au_index, var_name, var_type))
+                return false;
+        }
+
+        Au_control_var_iter_get_next_var_info(iter, &var_name, &var_type);
+    }
+
+    return true;
+}
+
+
 bool Player_refresh_env_state(Player* player)
 {
     assert(player != NULL);

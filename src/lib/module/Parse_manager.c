@@ -844,6 +844,17 @@ static bool read_any_au_control_vars(
         }
 
         Audio_unit_set_control_vars(au, au_control_vars);
+
+        if (level == 0)
+        {
+            if (!Player_alloc_channel_cv_state(
+                        params->handle->player, index, au_control_vars))
+            {
+                Handle_set_error(params->handle, ERROR_MEMORY,
+                        "Could not allocate memory for audio unit control variables");
+                return false;
+            }
+        }
     }
     else
     {

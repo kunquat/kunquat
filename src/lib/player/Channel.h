@@ -23,6 +23,7 @@
 #include <mathnum/Random.h>
 #include <module/Au_table.h>
 #include <module/sheet/Channel_defaults.h>
+#include <player/Channel_cv_state.h>
 #include <player/Channel_proc_state.h>
 #include <player/Env_state.h>
 #include <player/Event_cache.h>
@@ -44,6 +45,7 @@ typedef struct Channel
     Channel_proc_state* cpstate;   ///< Channel-specific processor state.
     Random* rand;                  ///< Random source for this channel.
     Event_cache* event_cache;
+    Channel_cv_state* cvstate;
 
     Voice_pool* pool;              ///< All Voices.
     Voice* fg[KQT_PROCESSORS_MAX]; ///< Foreground Voices.
