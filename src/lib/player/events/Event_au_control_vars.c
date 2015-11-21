@@ -21,27 +21,6 @@
 #include <Value.h>
 
 
-bool Event_au_set_cv_bool_name_process(
-        const Audio_unit* au,
-        const Au_params* au_params,
-        Au_state* au_state,
-        Channel* channel,
-        Device_states* dstates,
-        const Value* value)
-{
-    assert(au != NULL);
-    assert(au_params != NULL);
-    assert(au_state != NULL);
-    assert(channel != NULL);
-    assert(dstates != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_STRING);
-
-    return set_active_name(
-            &channel->parent, ACTIVE_CAT_AU_CONTROL_VAR, ACTIVE_TYPE_BOOL, value);
-}
-
-
 bool Event_au_set_cv_bool_value_process(
         const Audio_unit* au,
         const Au_params* au_params,
@@ -71,27 +50,6 @@ bool Event_au_set_cv_bool_value_process(
 }
 
 
-bool Event_au_set_cv_int_name_process(
-        const Audio_unit* au,
-        const Au_params* au_params,
-        Au_state* au_state,
-        Channel* channel,
-        Device_states* dstates,
-        const Value* value)
-{
-    assert(au != NULL);
-    assert(au_params != NULL);
-    assert(au_state != NULL);
-    assert(channel != NULL);
-    assert(dstates != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_STRING);
-
-    return set_active_name(
-            &channel->parent, ACTIVE_CAT_AU_CONTROL_VAR, ACTIVE_TYPE_INT, value);
-}
-
-
 bool Event_au_set_cv_int_value_process(
         const Audio_unit* au,
         const Au_params* au_params,
@@ -118,27 +76,6 @@ bool Event_au_set_cv_int_value_process(
     Device_set_control_var_generic(dev, dstates, channel->rand, var_name, value);
 
     return true;
-}
-
-
-bool Event_au_set_cv_float_name_process(
-        const Audio_unit* au,
-        const Au_params* au_params,
-        Au_state* au_state,
-        Channel* channel,
-        Device_states* dstates,
-        const Value* value)
-{
-    assert(au != NULL);
-    assert(au_params != NULL);
-    assert(au_state != NULL);
-    assert(channel != NULL);
-    assert(dstates != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_STRING);
-
-    return set_active_name(
-            &channel->parent, ACTIVE_CAT_AU_CONTROL_VAR, ACTIVE_TYPE_FLOAT, value);
 }
 
 
@@ -348,27 +285,6 @@ bool Event_au_osc_depth_slide_cv_float_process(
             dev, dstates, var_name, &value->value.Tstamp_type);
 
     return true;
-}
-
-
-bool Event_au_set_cv_tstamp_name_process(
-        const Audio_unit* au,
-        const Au_params* au_params,
-        Au_state* au_state,
-        Channel* channel,
-        Device_states* dstates,
-        const Value* value)
-{
-    assert(au != NULL);
-    assert(au_params != NULL);
-    assert(au_state != NULL);
-    assert(channel != NULL);
-    assert(dstates != NULL);
-    assert(value != NULL);
-    assert(value->type == VALUE_TYPE_STRING);
-
-    return set_active_name(
-            &channel->parent, ACTIVE_CAT_AU_CONTROL_VAR, ACTIVE_TYPE_TSTAMP, value);
 }
 
 
