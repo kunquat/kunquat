@@ -67,10 +67,10 @@ EVENT_CHANNEL_DEF(".P",     set_panning,            FLOAT,          v_panning)
 EVENT_CHANNEL_DEF("/P",     slide_panning,          FLOAT,          v_panning)
 EVENT_CHANNEL_DEF("/=P",    slide_panning_length,   TSTAMP,         v_nonneg_ts)
 
-EVENT_CHANNEL_DEF(".Bn",    set_au_cv_bool_name,    STRING,         v_var_name)
-EVENT_CHANNEL_DEF(".In",    set_au_cv_int_name,     STRING,         v_var_name)
-EVENT_CHANNEL_DEF(".Fn",    set_au_cv_float_name,   STRING,         v_var_name)
-EVENT_CHANNEL_DEF(".Tn",    set_au_cv_tstamp_name,  STRING,         v_var_name)
+EVENT_CHANNEL_DEF(".Bn",    set_cv_bool_name,       STRING,         v_var_name)
+EVENT_CHANNEL_DEF(".In",    set_cv_int_name,        STRING,         v_var_name)
+EVENT_CHANNEL_DEF(".Fn",    set_cv_float_name,      STRING,         v_var_name)
+EVENT_CHANNEL_DEF(".Tn",    set_cv_tstamp_name,     STRING,         v_var_name)
 
 
 #undef EVENT_CHANNEL_DEF

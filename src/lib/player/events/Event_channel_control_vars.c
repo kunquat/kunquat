@@ -21,7 +21,7 @@
 #include <Value.h>
 
 
-bool Event_channel_set_au_cv_bool_name_process(
+bool Event_channel_set_cv_bool_name_process(
         Channel* ch, Device_states* dstates, const Value* value)
 {
     assert(ch != NULL);
@@ -34,7 +34,7 @@ bool Event_channel_set_au_cv_bool_name_process(
 }
 
 
-bool Event_channel_set_au_cv_int_name_process(
+bool Event_channel_set_cv_int_name_process(
         Channel* ch, Device_states* dstates, const Value* value)
 {
     assert(ch != NULL);
@@ -47,7 +47,7 @@ bool Event_channel_set_au_cv_int_name_process(
 }
 
 
-bool Event_channel_set_au_cv_float_name_process(
+bool Event_channel_set_cv_float_name_process(
         Channel* ch, Device_states* dstates, const Value* value)
 {
     assert(ch != NULL);
@@ -60,7 +60,7 @@ bool Event_channel_set_au_cv_float_name_process(
 }
 
 
-bool Event_channel_set_au_cv_tstamp_name_process(
+bool Event_channel_set_cv_tstamp_name_process(
         Channel* ch, Device_states* dstates, const Value* value)
 {
     assert(ch != NULL);
