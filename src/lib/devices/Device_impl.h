@@ -89,9 +89,9 @@ SET_VOICE_CV_FUNC_TYPE(Set_voice_cv_float_func,     double);
 SET_VOICE_CV_FUNC_TYPE(Set_voice_cv_tstamp_func,    const Tstamp*);
 #undef SET_VOICE_CV_FUNC_TYPE
 
-#define MOD_FLOAT_VOICE_CV_FUNC_TYPE(name, arg_type)                                \
-    typedef void (name)(                                                            \
-            const Device_impl*, Device_state*, Voice_state*, Key_indices, arg_type)
+#define MOD_FLOAT_VOICE_CV_FUNC_TYPE(name, arg_type)                                    \
+    typedef void (name)(                                                                \
+            const Device_impl*, const Device_state*, Voice_state*, Key_indices, arg_type)
 MOD_FLOAT_VOICE_CV_FUNC_TYPE(Slide_target_voice_cv_float_func,  double);
 MOD_FLOAT_VOICE_CV_FUNC_TYPE(Slide_length_voice_cv_float_func,  const Tstamp*);
 MOD_FLOAT_VOICE_CV_FUNC_TYPE(Osc_speed_voice_cv_float_func,     double);
