@@ -395,15 +395,24 @@ Pat_table* Module_get_pats(Module* module)
 }
 
 
-Audio_unit* Module_get_au_from_input(const Module* module, int32_t input)
+int32_t Module_get_au_index_from_input(const Module* module, int32_t input)
 {
     assert(module != NULL);
     assert(input >= 0);
 
     if (module->au_map == NULL)
-        return NULL;
+        return -1;
 
-    int32_t au_index = Input_map_get_device_index(module->au_map, input);
+    return Input_map_get_device_index(module->au_map, input);
+}
+
+
+Audio_unit* Module_get_au_from_input(const Module* module, int32_t input)
+{
+    assert(module != NULL);
+    assert(input >= 0);
+
+    const int32_t au_index = Module_get_au_index_from_input(module, input);
     if (au_index < 0)
         return NULL;
 
