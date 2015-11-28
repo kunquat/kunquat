@@ -159,6 +159,168 @@ bool Event_channel_set_cv_float_value_process(
 }
 
 
+bool Event_channel_slide_cv_float_target_process(
+        Channel* ch, Device_states* dstates, const Value* value)
+{
+    assert(ch != NULL);
+    assert(dstates != NULL);
+    assert(value != NULL);
+    assert(value->type == VALUE_TYPE_FLOAT);
+
+    const char* var_name = Active_names_get(
+            ch->parent.active_names, ACTIVE_CAT_AU_CONTROL_VAR, ACTIVE_TYPE_FLOAT);
+    const Audio_unit* au = Module_get_au_from_input(ch->parent.module, ch->au_input);
+    if ((var_name == NULL) || (au == NULL))
+        return true;
+
+    const Device* dev = (const Device*)au;
+    Device_slide_control_var_float_target(
+            dev,
+            dstates,
+            DEVICE_CONTROL_VAR_MODE_VOICE,
+            ch,
+            var_name,
+            value->value.float_type);
+
+    return true;
+}
+
+
+bool Event_channel_slide_cv_float_length_process(
+        Channel* ch, Device_states* dstates, const Value* value)
+{
+    assert(ch != NULL);
+    assert(dstates != NULL);
+    assert(value != NULL);
+    assert(value->type == VALUE_TYPE_TSTAMP);
+
+    const char* var_name = Active_names_get(
+            ch->parent.active_names, ACTIVE_CAT_AU_CONTROL_VAR, ACTIVE_TYPE_FLOAT);
+    const Audio_unit* au = Module_get_au_from_input(ch->parent.module, ch->au_input);
+    if ((var_name == NULL) || (au == NULL))
+        return true;
+
+    const Device* dev = (const Device*)au;
+    Device_slide_control_var_float_length(
+            dev,
+            dstates,
+            DEVICE_CONTROL_VAR_MODE_VOICE,
+            ch,
+            var_name,
+            &value->value.Tstamp_type);
+
+    return true;
+}
+
+
+bool Event_channel_osc_speed_cv_float_process(
+        Channel* ch, Device_states* dstates, const Value* value)
+{
+    assert(ch != NULL);
+    assert(dstates != NULL);
+    assert(value != NULL);
+    assert(value->type == VALUE_TYPE_FLOAT);
+
+    const char* var_name = Active_names_get(
+            ch->parent.active_names, ACTIVE_CAT_AU_CONTROL_VAR, ACTIVE_TYPE_FLOAT);
+    const Audio_unit* au = Module_get_au_from_input(ch->parent.module, ch->au_input);
+    if ((var_name == NULL) || (au == NULL))
+        return true;
+
+    const Device* dev = (const Device*)au;
+    Device_osc_speed_cv_float(
+            dev,
+            dstates,
+            DEVICE_CONTROL_VAR_MODE_VOICE,
+            ch,
+            var_name,
+            value->value.float_type);
+
+    return true;
+}
+
+
+bool Event_channel_osc_depth_cv_float_process(
+        Channel* ch, Device_states* dstates, const Value* value)
+{
+    assert(ch != NULL);
+    assert(dstates != NULL);
+    assert(value != NULL);
+    assert(value->type == VALUE_TYPE_FLOAT);
+
+    const char* var_name = Active_names_get(
+            ch->parent.active_names, ACTIVE_CAT_AU_CONTROL_VAR, ACTIVE_TYPE_FLOAT);
+    const Audio_unit* au = Module_get_au_from_input(ch->parent.module, ch->au_input);
+    if ((var_name == NULL) || (au == NULL))
+        return true;
+
+    const Device* dev = (const Device*)au;
+    Device_osc_depth_cv_float(
+            dev,
+            dstates,
+            DEVICE_CONTROL_VAR_MODE_VOICE,
+            ch,
+            var_name,
+            value->value.float_type);
+
+    return true;
+}
+
+
+bool Event_channel_osc_speed_slide_cv_float_process(
+        Channel* ch, Device_states* dstates, const Value* value)
+{
+    assert(ch != NULL);
+    assert(dstates != NULL);
+    assert(value != NULL);
+    assert(value->type == VALUE_TYPE_TSTAMP);
+
+    const char* var_name = Active_names_get(
+            ch->parent.active_names, ACTIVE_CAT_AU_CONTROL_VAR, ACTIVE_TYPE_FLOAT);
+    const Audio_unit* au = Module_get_au_from_input(ch->parent.module, ch->au_input);
+    if ((var_name == NULL) || (au == NULL))
+        return true;
+
+    const Device* dev = (const Device*)au;
+    Device_osc_speed_slide_cv_float(
+            dev,
+            dstates,
+            DEVICE_CONTROL_VAR_MODE_VOICE,
+            ch,
+            var_name,
+            &value->value.Tstamp_type);
+
+    return true;
+}
+
+
+bool Event_channel_osc_depth_slide_cv_float_process(
+        Channel* ch, Device_states* dstates, const Value* value)
+{
+    assert(ch != NULL);
+    assert(dstates != NULL);
+    assert(value != NULL);
+    assert(value->type == VALUE_TYPE_TSTAMP);
+
+    const char* var_name = Active_names_get(
+            ch->parent.active_names, ACTIVE_CAT_AU_CONTROL_VAR, ACTIVE_TYPE_FLOAT);
+    const Audio_unit* au = Module_get_au_from_input(ch->parent.module, ch->au_input);
+    if ((var_name == NULL) || (au == NULL))
+        return true;
+
+    const Device* dev = (const Device*)au;
+    Device_osc_depth_slide_cv_float(
+            dev,
+            dstates,
+            DEVICE_CONTROL_VAR_MODE_VOICE,
+            ch,
+            var_name,
+            &value->value.Tstamp_type);
+
+    return true;
+}
+
+
 bool Event_channel_set_cv_tstamp_name_process(
         Channel* ch, Device_states* dstates, const Value* value)
 {
