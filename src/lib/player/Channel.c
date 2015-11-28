@@ -221,6 +221,23 @@ void Channel_apply_defaults(Channel* ch, const Channel_defaults* ch_defaults)
 }
 
 
+Random* Channel_get_random_source(Channel* ch)
+{
+    assert(ch != NULL);
+    return ch->rand;
+}
+
+
+Voice* Channel_get_fg_voice(Channel* ch, int proc_index)
+{
+    assert(ch != NULL);
+    assert(proc_index >= 0);
+    assert(proc_index < KQT_PROCESSORS_MAX);
+
+    return ch->fg[proc_index];
+}
+
+
 double Channel_get_fg_force(Channel* ch, int proc_index)
 {
     assert(ch != NULL);

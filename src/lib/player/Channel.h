@@ -19,6 +19,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include <Decl.h>
 #include <kunquat/limits.h>
 #include <mathnum/Random.h>
 #include <module/Au_table.h>
@@ -38,7 +39,7 @@
  * This structure is used for transferring channel-specific settings to
  * Voices.
  */
-typedef struct Channel
+struct Channel
 {
     General_state parent;
     int num;                       ///< Channel number.
@@ -92,7 +93,7 @@ typedef struct Channel
     double arpeggio_speed;
     int arpeggio_edit_pos;
     double arpeggio_tones[KQT_ARPEGGIO_NOTES_MAX];
-} Channel;
+};
 
 
 /**
@@ -171,6 +172,28 @@ void Channel_reset(Channel* ch);
  * \param ch_defaults   The Channel defaults -- must not be \c NULL.
  */
 void Channel_apply_defaults(Channel* ch, const Channel_defaults* ch_defaults);
+
+
+/**
+ * Get the Channel Random source.
+ *
+ * \param ch   The Channel -- must not be \c NULL.
+ *
+ * \return   The Random source. This is never \c NULL.
+ */
+Random* Channel_get_random_source(Channel* ch);
+
+
+/**
+ * Get current foreground Voice of the Channel.
+ *
+ * \param ch           The Channel -- must not be \c NULL.
+ * \param proc_index   The Processor index -- must be >= \c 0 and
+ *                     < \c KQT_PROCESSORS_MAX.
+ *
+ * \return   The foreground Voice at \a proc_index if one exists, otherwise \c NULL.
+ */
+Voice* Channel_get_fg_voice(Channel* ch, int proc_index);
 
 
 /**
