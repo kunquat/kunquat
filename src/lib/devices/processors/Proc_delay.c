@@ -234,6 +234,7 @@ static bool Proc_delay_init(Device_impl* dimpl)
             Proc_delay_set_state_tap_volume);
 
     // TODO: register appropriate sliders and oscillators
+    /*
     reg_success &= Device_impl_register_updaters_cv_float(
             &delay->parent,
             "t_XX/d",
@@ -244,6 +245,7 @@ static bool Proc_delay_init(Device_impl* dimpl)
             "t_XX/v",
             Proc_delay_set_cv_tap_volume,
             NULL, NULL, NULL, NULL, NULL, NULL);
+    // */
 
     if (!reg_success)
         return false;

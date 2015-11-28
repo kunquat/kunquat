@@ -217,6 +217,7 @@ static bool Proc_chorus_init(Device_impl* dimpl)
             Proc_chorus_set_state_voice_ ## name);
 #include <devices/processors/Proc_chorus_params.h>
 
+    /*
 #define CHORUS_PARAM(name, dev_key, update_key, def_value)  \
     reg_success &= Device_impl_register_updaters_cv_float(  \
             &chorus->parent,                                \
@@ -224,8 +225,9 @@ static bool Proc_chorus_init(Device_impl* dimpl)
             Proc_chorus_set_cv_voice_ ## name,              \
             NULL, NULL, NULL, NULL, NULL, NULL);
 #include <devices/processors/Proc_chorus_params.h>
+    // */
 
-    // TODO: register appropriate sliders and oscillators
+    // TODO: register appropriate oscillators
 
     if (!reg_success)
         return false;

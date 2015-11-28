@@ -886,7 +886,7 @@ static Processor* add_processor(
         return proc;
 
     // Create new processor
-    proc = new_Processor(Audio_unit_get_params(au));
+    proc = new_Processor(proc_index, Audio_unit_get_params(au));
     if (proc == NULL || !Proc_table_set_proc(proc_table, proc_index, proc))
     {
         Handle_set_error(handle, ERROR_MEMORY, memory_error_str);

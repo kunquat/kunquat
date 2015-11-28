@@ -64,6 +64,11 @@ typedef struct Update_control_var_cb
 
     union
     {
+        Device_impl_cv_bool_callbacks bool_type;
+        Device_impl_cv_int_callbacks int_type;
+        Device_impl_cv_float_callbacks float_type;
+        Device_impl_cv_tstamp_callbacks Tstamp_type;
+        /*
         Set_cv_bool_func* set_cv_bool;
 
         Set_cv_int_func* set_cv_int;
@@ -79,6 +84,7 @@ typedef struct Update_control_var_cb
             Osc_speed_slide_cv_float_func* osc_speed_sl;
             Osc_depth_slide_cv_float_func* osc_depth_sl;
         } update_float;
+        // */
     } cb;
 
 } Update_control_var_cb;
@@ -339,6 +345,118 @@ bool Device_impl_register_set_num_list(
 }
 
 
+static Update_control_var_cb* Device_impl_create_update_cv_cb(
+        Device_impl* dimpl, const char* keyp, Value_type type)
+{
+    assert(dimpl != NULL);
+    assert(keyp != NULL);
+
+    Update_control_var_cb* update_cv_cb = memory_alloc_item(
+            Update_control_var_cb);
+    if ((update_cv_cb == NULL) || !AAtree_ins(dimpl->update_cv_cbs, update_cv_cb))
+    {
+        memory_free(update_cv_cb);
+        return NULL;
+    }
+
+    strcpy(update_cv_cb->key_pattern, keyp);
+    update_cv_cb->type = type;
+
+    return update_cv_cb;
+}
+
+
+Device_impl_cv_bool_callbacks* Device_impl_create_cv_bool(
+        Device_impl* dimpl, const char* keyp)
+{
+    assert(dimpl != NULL);
+    assert(keyp != NULL);
+
+    Update_control_var_cb* update_cv_cb =
+        Device_impl_create_update_cv_cb(dimpl, keyp, VALUE_TYPE_BOOL);
+    if (update_cv_cb == NULL)
+        return NULL;
+
+    Device_impl_cv_bool_callbacks* ret = &update_cv_cb->cb.bool_type;
+    ret->set_value = NULL;
+    ret->voice_set_value = NULL;
+
+    return ret;
+}
+
+
+Device_impl_cv_int_callbacks* Device_impl_create_cv_int(
+        Device_impl* dimpl, const char* keyp)
+{
+    assert(dimpl != NULL);
+    assert(keyp != NULL);
+
+    Update_control_var_cb* update_cv_cb =
+        Device_impl_create_update_cv_cb(dimpl, keyp, VALUE_TYPE_INT);
+    if (update_cv_cb == NULL)
+        return NULL;
+
+    Device_impl_cv_int_callbacks* ret = &update_cv_cb->cb.int_type;
+    ret->set_value = NULL;
+    ret->voice_set_value = NULL;
+
+    return ret;
+}
+
+
+Device_impl_cv_float_callbacks* Device_impl_create_cv_float(
+        Device_impl* dimpl, const char* keyp)
+{
+    assert(dimpl != NULL);
+    assert(keyp != NULL);
+
+    Update_control_var_cb* update_cv_cb =
+        Device_impl_create_update_cv_cb(dimpl, keyp, VALUE_TYPE_FLOAT);
+    if (update_cv_cb == NULL)
+        return NULL;
+
+    Device_impl_cv_float_callbacks* ret = &update_cv_cb->cb.float_type;
+
+    ret->set_value = NULL;
+    ret->slide_target = NULL;
+    ret->slide_length = NULL;
+    ret->osc_speed = NULL;
+    ret->osc_depth = NULL;
+    ret->osc_speed_sl = NULL;
+    ret->osc_depth_sl = NULL;
+
+    ret->voice_set_value = NULL;
+    ret->voice_slide_target = NULL;
+    ret->voice_slide_length = NULL;
+    ret->voice_osc_speed = NULL;
+    ret->voice_osc_depth = NULL;
+    ret->voice_osc_speed_sl = NULL;
+    ret->voice_osc_depth_sl = NULL;
+
+    return ret;
+}
+
+
+Device_impl_cv_tstamp_callbacks* Device_impl_create_cv_tstamp(
+        Device_impl* dimpl, const char* keyp)
+{
+    assert(dimpl != NULL);
+    assert(keyp != NULL);
+
+    Update_control_var_cb* update_cv_cb =
+        Device_impl_create_update_cv_cb(dimpl, keyp, VALUE_TYPE_TSTAMP);
+    if (update_cv_cb == NULL)
+        return NULL;
+
+    Device_impl_cv_tstamp_callbacks* ret = &update_cv_cb->cb.Tstamp_type;
+    ret->set_value = NULL;
+    ret->voice_set_value = NULL;
+
+    return ret;
+}
+
+
+#if 0
 #define REGISTER_SET_CV(type_name, TYPE, ctype)                    \
     bool Device_impl_register_set_cv_ ## type_name(                \
             Device_impl* dimpl,                                    \
@@ -437,6 +555,7 @@ bool Device_impl_register_set_cv_tstamp(
 
     return true;
 }
+#endif
 
 
 void Device_impl_reset_device_state(
@@ -725,6 +844,7 @@ static const Update_control_var_cb* get_update_control_var_cb(
 void Device_impl_set_cv_generic(
         const Device_impl* dimpl,
         Device_state* dstate,
+        Voice_state* vstate,
         const char* key,
         const Value* value)
 {
@@ -745,33 +865,69 @@ void Device_impl_set_cv_generic(
     {
         case VALUE_TYPE_BOOL:
         {
-            assert(update_cv_cb->cb.set_cv_bool != NULL);
-            update_cv_cb->cb.set_cv_bool(dimpl, dstate, indices, value->value.bool_type);
+            if (vstate != NULL)
+            {
+                if (update_cv_cb->cb.bool_type.voice_set_value != NULL)
+                    update_cv_cb->cb.bool_type.voice_set_value(
+                            dimpl, dstate, vstate, indices, value->value.bool_type);
+            }
+            else
+            {
+                if (update_cv_cb->cb.bool_type.set_value != NULL)
+                    update_cv_cb->cb.bool_type.set_value(
+                            dimpl, dstate, indices, value->value.bool_type);
+            }
         }
         break;
 
         case VALUE_TYPE_INT:
         {
-            assert(update_cv_cb->cb.set_cv_int != NULL);
-            update_cv_cb->cb.set_cv_int(dimpl, dstate, indices, value->value.int_type);
+            if (vstate != NULL)
+            {
+                if (update_cv_cb->cb.int_type.voice_set_value != NULL)
+                    update_cv_cb->cb.int_type.voice_set_value(
+                            dimpl, dstate, vstate, indices, value->value.int_type);
+            }
+            else
+            {
+                if (update_cv_cb->cb.int_type.set_value != NULL)
+                    update_cv_cb->cb.int_type.set_value(
+                            dimpl, dstate, indices, value->value.int_type);
+            }
         }
         break;
 
         case VALUE_TYPE_FLOAT:
         {
-            if (update_cv_cb->cb.update_float.set_cv != NULL)
+            if (vstate != NULL)
             {
-                update_cv_cb->cb.update_float.set_cv(
-                        dimpl, dstate, indices, value->value.float_type);
+                if (update_cv_cb->cb.float_type.voice_set_value != NULL)
+                    update_cv_cb->cb.float_type.voice_set_value(
+                            dimpl, dstate, vstate, indices, value->value.float_type);
+            }
+            else
+            {
+                if (update_cv_cb->cb.float_type.set_value != NULL)
+                    update_cv_cb->cb.float_type.set_value(
+                            dimpl, dstate, indices, value->value.float_type);
             }
         }
         break;
 
         case VALUE_TYPE_TSTAMP:
         {
-            assert(update_cv_cb->cb.set_cv_tstamp != NULL);
-            update_cv_cb->cb.set_cv_tstamp(
-                    dimpl, dstate, indices, &value->value.Tstamp_type);
+            if (vstate != NULL)
+            {
+                if (update_cv_cb->cb.Tstamp_type.voice_set_value != NULL)
+                    update_cv_cb->cb.Tstamp_type.voice_set_value(
+                            dimpl, dstate, vstate, indices, &value->value.Tstamp_type);
+            }
+            else
+            {
+                if (update_cv_cb->cb.Tstamp_type.set_value != NULL)
+                    update_cv_cb->cb.Tstamp_type.set_value(
+                            dimpl, dstate, indices, &value->value.Tstamp_type);
+            }
         }
         break;
 
@@ -784,7 +940,11 @@ void Device_impl_set_cv_generic(
 
 
 void Device_impl_slide_cv_float_target(
-        const Device_impl* dimpl, Device_state* dstate, const char* key, double value)
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        Voice_state* vstate,
+        const char* key,
+        double value)
 {
     assert(dimpl != NULL);
     assert(dstate != NULL);
@@ -796,10 +956,20 @@ void Device_impl_slide_cv_float_target(
     const Update_control_var_cb* update_cv_cb =
         get_update_control_var_cb(dimpl, key, indices);
 
-    if ((update_cv_cb != NULL) &&
-            (update_cv_cb->type == VALUE_TYPE_FLOAT) &&
-            (update_cv_cb->cb.update_float.slide_target != NULL))
-        update_cv_cb->cb.update_float.slide_target(dimpl, dstate, indices, value);
+    if ((update_cv_cb == NULL) || (update_cv_cb->type != VALUE_TYPE_FLOAT))
+        return;
+
+    if (vstate != NULL)
+    {
+        if (update_cv_cb->cb.float_type.voice_slide_target != NULL)
+            update_cv_cb->cb.float_type.voice_slide_target(
+                    dimpl, dstate, vstate, indices, value);
+    }
+    else
+    {
+        if (update_cv_cb->cb.float_type.slide_target != NULL)
+            update_cv_cb->cb.float_type.slide_target(dimpl, dstate, indices, value);
+    }
 
     return;
 }
@@ -808,6 +978,7 @@ void Device_impl_slide_cv_float_target(
 void Device_impl_slide_cv_float_length(
         const Device_impl* dimpl,
         Device_state* dstate,
+        Voice_state* vstate,
         const char* key,
         const Tstamp* length)
 {
@@ -820,10 +991,20 @@ void Device_impl_slide_cv_float_length(
     const Update_control_var_cb* update_cv_cb =
         get_update_control_var_cb(dimpl, key, indices);
 
-    if ((update_cv_cb != NULL) &&
-            (update_cv_cb->type == VALUE_TYPE_FLOAT) &&
-            (update_cv_cb->cb.update_float.slide_length != NULL))
-        update_cv_cb->cb.update_float.slide_length(dimpl, dstate, indices, length);
+    if ((update_cv_cb == NULL) || (update_cv_cb->type != VALUE_TYPE_FLOAT))
+        return;
+
+    if (vstate != NULL)
+    {
+        if (update_cv_cb->cb.float_type.voice_slide_length != NULL)
+            update_cv_cb->cb.float_type.voice_slide_length(
+                    dimpl, dstate, vstate, indices, length);
+    }
+    else
+    {
+        if (update_cv_cb->cb.float_type.slide_length != NULL)
+            update_cv_cb->cb.float_type.slide_length(dimpl, dstate, indices, length);
+    }
 
     return;
 }
@@ -832,6 +1013,7 @@ void Device_impl_slide_cv_float_length(
 void Device_impl_osc_speed_cv_float(
         const Device_impl* dimpl,
         Device_state* dstate,
+        Voice_state* vstate,
         const char* key,
         double speed)
 {
@@ -844,10 +1026,20 @@ void Device_impl_osc_speed_cv_float(
     const Update_control_var_cb* update_cv_cb =
         get_update_control_var_cb(dimpl, key, indices);
 
-    if ((update_cv_cb != NULL) &&
-            (update_cv_cb->type == VALUE_TYPE_FLOAT) &&
-            (update_cv_cb->cb.update_float.osc_speed != NULL))
-        update_cv_cb->cb.update_float.osc_speed(dimpl, dstate, indices, speed);
+    if ((update_cv_cb == NULL) || (update_cv_cb->type != VALUE_TYPE_FLOAT))
+        return;
+
+    if (vstate != NULL)
+    {
+        if (update_cv_cb->cb.float_type.voice_osc_speed != NULL)
+            update_cv_cb->cb.float_type.voice_osc_speed(
+                    dimpl, dstate, vstate, indices, speed);
+    }
+    else
+    {
+        if (update_cv_cb->cb.float_type.osc_speed != NULL)
+            update_cv_cb->cb.float_type.osc_speed(dimpl, dstate, indices, speed);
+    }
 
     return;
 }
@@ -856,6 +1048,7 @@ void Device_impl_osc_speed_cv_float(
 void Device_impl_osc_depth_cv_float(
         const Device_impl* dimpl,
         Device_state* dstate,
+        Voice_state* vstate,
         const char* key,
         double depth)
 {
@@ -868,10 +1061,20 @@ void Device_impl_osc_depth_cv_float(
     const Update_control_var_cb* update_cv_cb =
         get_update_control_var_cb(dimpl, key, indices);
 
-    if ((update_cv_cb != NULL) &&
-            (update_cv_cb->type == VALUE_TYPE_FLOAT) &&
-            (update_cv_cb->cb.update_float.osc_depth != NULL))
-        update_cv_cb->cb.update_float.osc_depth(dimpl, dstate, indices, depth);
+    if ((update_cv_cb == NULL) || (update_cv_cb->type != VALUE_TYPE_FLOAT))
+        return;
+
+    if (vstate != NULL)
+    {
+        if (update_cv_cb->cb.float_type.voice_osc_depth != NULL)
+            update_cv_cb->cb.float_type.voice_osc_depth(
+                    dimpl, dstate, vstate, indices, depth);
+    }
+    else
+    {
+        if (update_cv_cb->cb.float_type.osc_depth != NULL)
+            update_cv_cb->cb.float_type.osc_depth(dimpl, dstate, indices, depth);
+    }
 
     return;
 }
@@ -880,6 +1083,7 @@ void Device_impl_osc_depth_cv_float(
 void Device_impl_osc_speed_slide_cv_float(
         const Device_impl* dimpl,
         Device_state* dstate,
+        Voice_state* vstate,
         const char* key,
         const Tstamp* length)
 {
@@ -892,10 +1096,20 @@ void Device_impl_osc_speed_slide_cv_float(
     const Update_control_var_cb* update_cv_cb =
         get_update_control_var_cb(dimpl, key, indices);
 
-    if ((update_cv_cb != NULL) &&
-            (update_cv_cb->type == VALUE_TYPE_FLOAT) &&
-            (update_cv_cb->cb.update_float.osc_speed_sl != NULL))
-        update_cv_cb->cb.update_float.osc_speed_sl(dimpl, dstate, indices, length);
+    if ((update_cv_cb == NULL) || (update_cv_cb->type != VALUE_TYPE_FLOAT))
+        return;
+
+    if (vstate != NULL)
+    {
+        if (update_cv_cb->cb.float_type.voice_osc_speed_sl != NULL)
+            update_cv_cb->cb.float_type.voice_osc_speed_sl(
+                    dimpl, dstate, vstate, indices, length);
+    }
+    else
+    {
+        if (update_cv_cb->cb.float_type.osc_speed_sl != NULL)
+            update_cv_cb->cb.float_type.osc_speed_sl(dimpl, dstate, indices, length);
+    }
 
     return;
 }
@@ -904,6 +1118,7 @@ void Device_impl_osc_speed_slide_cv_float(
 void Device_impl_osc_depth_slide_cv_float(
         const Device_impl* dimpl,
         Device_state* dstate,
+        Voice_state* vstate,
         const char* key,
         const Tstamp* length)
 {
@@ -916,10 +1131,20 @@ void Device_impl_osc_depth_slide_cv_float(
     const Update_control_var_cb* update_cv_cb =
         get_update_control_var_cb(dimpl, key, indices);
 
-    if ((update_cv_cb != NULL) &&
-            (update_cv_cb->type == VALUE_TYPE_FLOAT) &&
-            (update_cv_cb->cb.update_float.osc_depth_sl != NULL))
-        update_cv_cb->cb.update_float.osc_depth_sl(dimpl, dstate, indices, length);
+    if ((update_cv_cb == NULL) || (update_cv_cb->type != VALUE_TYPE_FLOAT))
+        return;
+
+    if (vstate != NULL)
+    {
+        if (update_cv_cb->cb.float_type.voice_osc_depth_sl != NULL)
+            update_cv_cb->cb.float_type.voice_osc_depth_sl(
+                    dimpl, dstate, vstate, indices, length);
+    }
+    else
+    {
+        if (update_cv_cb->cb.float_type.osc_depth_sl != NULL)
+            update_cv_cb->cb.float_type.osc_depth_sl(dimpl, dstate, indices, length);
+    }
 
     return;
 }

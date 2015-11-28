@@ -23,6 +23,7 @@
 #include <devices/Processor.h>
 #include <devices/processors/Proc_utils.h>
 #include <devices/processors/Proc_volume.h>
+#include <devices/processors/Voice_state_volume.h>
 #include <mathnum/conversions.h>
 #include <player/Linear_controls.h>
 #include <player/Proc_state.h>
@@ -67,8 +68,13 @@ static Osc_depth_cv_float_func Proc_volume_osc_depth_cv_volume;
 static Osc_speed_slide_cv_float_func Proc_volume_osc_speed_slide_cv_volume;
 static Osc_depth_slide_cv_float_func Proc_volume_osc_depth_slide_cv_volume;
 
+static Set_voice_cv_float_func Proc_volume_set_voice_cv_volume;
+
 
 static bool Proc_volume_init(Device_impl* dimpl);
+
+static void Proc_volume_init_vstate(
+        const Processor* proc, const Proc_state* proc_state, Voice_state* vstate);
 
 static Proc_process_vstate_func Proc_volume_process_vstate;
 
@@ -114,6 +120,7 @@ static bool Proc_volume_init(Device_impl* dimpl)
     Device_impl_register_reset_device_state(&volume->parent, Proc_volume_reset);
 
     Processor* proc = (Processor*)volume->parent.device;
+    proc->init_vstate = Proc_volume_init_vstate;
     proc->process_vstate = Proc_volume_process_vstate;
 
     // Register key and control variable handlers
@@ -126,6 +133,7 @@ static bool Proc_volume_init(Device_impl* dimpl)
             Proc_volume_set_volume,
             Proc_volume_set_state_volume);
 
+    /*
     reg_success &= Device_impl_register_updaters_cv_float(
             &volume->parent,
             "v",
@@ -136,13 +144,62 @@ static bool Proc_volume_init(Device_impl* dimpl)
             Proc_volume_osc_depth_cv_volume,
             Proc_volume_osc_speed_slide_cv_volume,
             Proc_volume_osc_depth_slide_cv_volume);
+    // */
 
     if (!reg_success)
         return false;
 
+    Device_impl_cv_float_callbacks* vol_cbs =
+        Device_impl_create_cv_float(&volume->parent, "v");
+    if (vol_cbs == NULL)
+        return false;
+    vol_cbs->set_value = Proc_volume_set_cv_volume;
+    vol_cbs->slide_target = Proc_volume_slide_target_cv_volume;
+    vol_cbs->slide_length = Proc_volume_slide_length_cv_volume;
+    vol_cbs->osc_speed = Proc_volume_osc_speed_cv_volume;
+    vol_cbs->osc_depth = Proc_volume_osc_depth_cv_volume;
+    vol_cbs->osc_speed_sl = Proc_volume_osc_speed_slide_cv_volume;
+    vol_cbs->osc_depth_sl = Proc_volume_osc_depth_slide_cv_volume;
+    vol_cbs->voice_set_value = Proc_volume_set_voice_cv_volume;
+
     volume->scale = 1.0;
 
     return true;
+}
+
+
+const char* Proc_volume_property(const Processor* proc, const char* property_type)
+{
+    assert(proc != NULL);
+    assert(property_type != NULL);
+
+    if (string_eq(property_type, "voice_state_size"))
+    {
+        static char size_str[8] = "";
+        if (string_eq(size_str, ""))
+            snprintf(size_str, 8, "%zd", sizeof(Voice_state_volume));
+
+        return size_str;
+    }
+
+    return NULL;
+}
+
+
+static void Proc_volume_init_vstate(
+        const Processor* proc, const Proc_state* proc_state, Voice_state* vstate)
+{
+    assert(proc != NULL);
+    assert(proc_state != NULL);
+    assert(vstate != NULL);
+
+    const Volume_state* vol_state = (const Volume_state*)proc_state;
+    Voice_state_volume* vol_vstate = (Voice_state_volume*)vstate;
+
+    Linear_controls_copy(&vol_vstate->volume, &vol_state->volume);
+    Linear_controls_set_value(&vol_vstate->volume, 0.0);
+
+    return;
 }
 
 
@@ -246,6 +303,25 @@ static bool Proc_volume_set_state_volume(
     Proc_volume_set_cv_volume(dimpl, dstate, indices, value);
 
     return true;
+}
+
+
+static void Proc_volume_set_voice_cv_volume(
+        const Device_impl* dimpl,
+        const Device_state* dstate,
+        Voice_state* vstate,
+        Key_indices indices,
+        double value)
+{
+    assert(dimpl != NULL);
+    assert(dstate != NULL);
+    assert(vstate != NULL);
+    assert(indices != NULL);
+
+    Voice_state_volume* vol_vstate = (Voice_state_volume*)vstate;
+    Linear_controls_set_value(&vol_vstate->volume, value);
+
+    return;
 }
 
 
@@ -399,6 +475,17 @@ static uint32_t Proc_volume_process_vstate(
 
     const Proc_volume* vol = (const Proc_volume*)proc->parent.dimpl;
 
+    Voice_state_volume* vol_vstate = (Voice_state_volume*)vstate;
+
+    // Update real-time control
+    static const int CONTROL_WORK_BUFFER_VOLUME = WORK_BUFFER_IMPL_1;
+
+    const Work_buffer* control_wb =
+        Work_buffers_get_buffer(wbs, CONTROL_WORK_BUFFER_VOLUME);
+    Linear_controls_fill_work_buffer(
+            &vol_vstate->volume, control_wb, buf_start, buf_stop);
+    float* control_values = Work_buffer_get_contents_mut(control_wb);
+
     // Get buffers
     Audio_buffer* in_buffer = Proc_state_get_voice_buffer_mut(
             proc_state, DEVICE_PORT_TYPE_RECEIVE, 0);
@@ -410,6 +497,10 @@ static uint32_t Proc_volume_process_vstate(
         return buf_start;
     }
     assert(out_buffer != NULL);
+
+    // Convert real-time control values
+    for (int32_t i = buf_start; i < buf_stop; ++i)
+        control_values[i] = dB_to_scale(control_values[i]);
 
     // Scale
     for (int ch = 0; ch < 2; ++ch)
@@ -425,12 +516,13 @@ static uint32_t Proc_volume_process_vstate(
                     wbs, WORK_BUFFER_ACTUAL_FORCES);
 
             for (int32_t i = buf_start; i < buf_stop; ++i)
-                out_values[i] = in_values[i] * scale * actual_forces[i];
+                out_values[i] =
+                    in_values[i] * scale * actual_forces[i] * control_values[i];
         }
         else
         {
             for (int32_t i = buf_start; i < buf_stop; ++i)
-                out_values[i] = in_values[i] * scale;
+                out_values[i] = in_values[i] * scale * control_values[i];
         }
     }
 

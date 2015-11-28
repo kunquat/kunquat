@@ -50,7 +50,7 @@ static const Proc_type proc_types[] =
     { "noise", new_Proc_noise, Proc_noise_property },
     { "ringmod", new_Proc_ringmod, NULL },
     { "sample", new_Proc_sample, Proc_sample_property },
-    { "volume", new_Proc_volume, NULL },
+    { "volume", new_Proc_volume, Proc_volume_property },
     { NULL, NULL, NULL }
 };
 
