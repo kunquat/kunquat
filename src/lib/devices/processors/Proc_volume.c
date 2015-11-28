@@ -205,10 +205,9 @@ static void Proc_volume_init_vstate(
     assert(proc_state != NULL);
     assert(vstate != NULL);
 
-    const Volume_state* vol_state = (const Volume_state*)proc_state;
     Voice_state_volume* vol_vstate = (Voice_state_volume*)vstate;
 
-    Linear_controls_copy(&vol_vstate->volume, &vol_state->volume);
+    Linear_controls_init(&vol_vstate->volume, proc_state->parent.audio_rate, 120);
     Linear_controls_set_value(&vol_vstate->volume, 0.0);
 
     return;
