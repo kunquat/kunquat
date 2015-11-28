@@ -41,8 +41,6 @@ Channel_cv_state* new_Channel_cv_state(void);
  * Add a control variable entry to the Channel control variable state.
  *
  * \param state      The Channel control variable state -- must not be \c NULL.
- * \param au_index   The audio unit index -- must be >= \c 0 and
- *                   < \c KQT_AUDIO_UNITS_MAX.
  * \param var_name   The variable name -- must not be \c NULL and must be
  *                   shorter than \c KQT_VAR_NAME_MAX characters.
  * \param var_type   The variable type -- must be \c VALUE_TYPE_BOOL,
@@ -51,45 +49,27 @@ Channel_cv_state* new_Channel_cv_state(void);
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Channel_cv_state_add_entry(
-        Channel_cv_state* state,
-        int au_index,
-        const char* var_name,
-        Value_type var_type);
-
-
-/**
- * Remove all control variable entries associated with the given Audio unit index.
- *
- * \param state      The Channel control variable state -- must not be \c NULL.
- * \param au_index   The audio unit index -- must be >= \c 0 and
- *                   < \c KQT_AUDIO_UNITS_MAX.
- */
-void Channel_cv_state_remove_entries(Channel_cv_state* state, int au_index);
+        Channel_cv_state* state, const char* var_name, Value_type var_type);
 
 
 /**
  * Set a value of a control variable in the Channel control variable state.
  *
  * \param state      The Channel control variable state -- must not be \c NULL.
- * \param au_index   The audio unit index -- must be >= \c 0 and
- *                   < \c KQT_AUDIO_UNITS_MAX.
  * \param var_name   The variable name -- must not be \c NULL.
  * \param value      The new value -- must not be \c NULL.
  *
  * \return   \c true if the new value was actually set, or \c false if \a state
- *           does not contain an entry with matching Audio unit, variable name
- *           and value type.
+ *           does not contain an entry with matching variable name and value type.
  */
 bool Channel_cv_state_set_value(
-        Channel_cv_state* state, int au_index, const char* var_name, const Value* value);
+        Channel_cv_state* state, const char* var_name, const Value* value);
 
 
 /**
  * Get a value of a control variable in the Channel control variable state.
  *
  * \param state      The Channel control variable state -- must not be \c NULL.
- * \param au_index   The audio unit index -- must be >= \c 0 and
- *                   < \c KQT_AUDIO_UNITS_MAX.
  * \param var_name   The variable name -- must not be \c NULL.
  * \param var_type   The variable type -- must be \c VALUE_TYPE_BOOL,
  *                   \c VALUE_TYPE_INT, \c VALUE_TYPE_FLOAT or \c VALUE_TYPE_TSTAMP.
@@ -97,10 +77,7 @@ bool Channel_cv_state_set_value(
  * \return   The stored value if one exists, otherwise \c NULL.
  */
 const Value* Channel_cv_state_get_value(
-        const Channel_cv_state* state,
-        int au_index,
-        const char* var_name,
-        Value_type var_type);
+        const Channel_cv_state* state, const char* var_name, Value_type var_type);
 
 
 /**

@@ -215,16 +215,6 @@ Pat_table* Module_get_pats(Module* module);
 
 
 /**
- * Get the Audio unit index corresponding to an input index.
- *
- * \param module   The Module -- must not be \c NULL.
- *
- * \return   The Audio unit index if one exists, otherwise \c -1.
- */
-int32_t Module_get_au_index_from_input(const Module* module, int32_t input);
-
-
-/**
  * Get the Audio unit corresponding to an input index.
  *
  * \param module   The Module -- must not be \c NULL.

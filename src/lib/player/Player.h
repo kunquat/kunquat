@@ -98,14 +98,11 @@ bool Player_alloc_channel_proc_state_keys(Player* player, Streader* sr);
  * Allocate memory for Audio unit control variables.
  *
  * \param player     The Player -- must not be \c NULL.
- * \param au_index   The Audio unit index -- must be >= \c 0 and
- *                   < \c KQT_AUDIO_UNITS_MAX.
  * \param aucv       The Audio unit control variables -- must not be \c NULL.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Player_alloc_channel_cv_state(
-        Player* player, int au_index, const Au_control_vars* aucv);
+bool Player_alloc_channel_cv_state(Player* player, const Au_control_vars* aucv);
 
 
 /**

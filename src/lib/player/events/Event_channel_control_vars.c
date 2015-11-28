@@ -32,13 +32,8 @@ static bool try_update_cv(Channel* ch, const Value* value, Active_type active_ty
     if (var_name == NULL)
         return false;
 
-    const int32_t au_index =
-        Module_get_au_index_from_input(ch->parent.module, ch->au_input);
-    if (au_index < 0)
-        return false;
-
     const bool was_value_set =
-        Channel_cv_state_set_value(ch->cvstate, au_index, var_name, value);
+        Channel_cv_state_set_value(ch->cvstate, var_name, value);
 
     return was_value_set;
 }
@@ -68,7 +63,8 @@ static void set_cv_value_generic(Channel* ch, Device_states* dstates, const Valu
     assert(var_name != NULL);
 
     const Audio_unit* au = Module_get_au_from_input(ch->parent.module, ch->au_input);
-    assert(au != NULL);
+    if (au == NULL)
+        return;
 
     const Device* dev = (const Device*)au;
     Device_set_control_var_generic(

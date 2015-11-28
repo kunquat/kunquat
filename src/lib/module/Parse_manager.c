@@ -847,8 +847,7 @@ static bool read_any_au_control_vars(
 
         if (level == 0)
         {
-            if (!Player_alloc_channel_cv_state(
-                        params->handle->player, index, au_control_vars))
+            if (!Player_alloc_channel_cv_state(params->handle->player, au_control_vars))
             {
                 Handle_set_error(params->handle, ERROR_MEMORY,
                         "Could not allocate memory for audio unit control variables");
