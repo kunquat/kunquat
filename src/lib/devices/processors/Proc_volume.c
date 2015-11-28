@@ -69,6 +69,12 @@ static Osc_speed_slide_cv_float_func Proc_volume_osc_speed_slide_cv_volume;
 static Osc_depth_slide_cv_float_func Proc_volume_osc_depth_slide_cv_volume;
 
 static Set_voice_cv_float_func Proc_volume_set_voice_cv_volume;
+static Slide_target_voice_cv_float_func Proc_volume_slide_target_voice_cv_volume;
+static Slide_length_voice_cv_float_func Proc_volume_slide_length_voice_cv_volume;
+static Osc_speed_voice_cv_float_func Proc_volume_osc_speed_voice_cv_volume;
+static Osc_depth_voice_cv_float_func Proc_volume_osc_depth_voice_cv_volume;
+static Osc_speed_slide_voice_cv_float_func Proc_volume_osc_speed_slide_voice_cv_volume;
+static Osc_depth_slide_voice_cv_float_func Proc_volume_osc_depth_slide_voice_cv_volume;
 
 
 static bool Proc_volume_init(Device_impl* dimpl);
@@ -161,6 +167,12 @@ static bool Proc_volume_init(Device_impl* dimpl)
     vol_cbs->osc_speed_sl = Proc_volume_osc_speed_slide_cv_volume;
     vol_cbs->osc_depth_sl = Proc_volume_osc_depth_slide_cv_volume;
     vol_cbs->voice_set_value = Proc_volume_set_voice_cv_volume;
+    vol_cbs->voice_slide_target = Proc_volume_slide_target_voice_cv_volume;
+    vol_cbs->voice_slide_length = Proc_volume_slide_length_voice_cv_volume;
+    vol_cbs->voice_osc_speed = Proc_volume_osc_speed_voice_cv_volume;
+    vol_cbs->voice_osc_depth = Proc_volume_osc_depth_voice_cv_volume;
+    vol_cbs->voice_osc_speed_sl = Proc_volume_osc_speed_slide_voice_cv_volume;
+    vol_cbs->voice_osc_depth_sl = Proc_volume_osc_depth_slide_voice_cv_volume;
 
     volume->scale = 1.0;
 
@@ -317,9 +329,130 @@ static void Proc_volume_set_voice_cv_volume(
     assert(dstate != NULL);
     assert(vstate != NULL);
     assert(indices != NULL);
+    assert(isfinite(value));
 
     Voice_state_volume* vol_vstate = (Voice_state_volume*)vstate;
     Linear_controls_set_value(&vol_vstate->volume, value);
+
+    return;
+}
+
+
+static void Proc_volume_slide_target_voice_cv_volume(
+        const Device_impl* dimpl,
+        const Device_state* dstate,
+        Voice_state* vstate,
+        Key_indices indices,
+        double value)
+{
+    assert(dimpl != NULL);
+    assert(dstate != NULL);
+    assert(vstate != NULL);
+    assert(indices != NULL);
+    assert(isfinite(value));
+
+    Voice_state_volume* vol_vstate = (Voice_state_volume*)vstate;
+    Linear_controls_slide_value_target(&vol_vstate->volume, value);
+
+    return;
+}
+
+
+static void Proc_volume_slide_length_voice_cv_volume(
+        const Device_impl* dimpl,
+        const Device_state* dstate,
+        Voice_state* vstate,
+        Key_indices indices,
+        const Tstamp* length)
+{
+    assert(dimpl != NULL);
+    assert(dstate != NULL);
+    assert(vstate != NULL);
+    assert(indices != NULL);
+    assert(length != NULL);
+
+    Voice_state_volume* vol_vstate = (Voice_state_volume*)vstate;
+    Linear_controls_slide_value_length(&vol_vstate->volume, length);
+
+    return;
+}
+
+
+static void Proc_volume_osc_speed_voice_cv_volume(
+        const Device_impl* dimpl,
+        const Device_state* dstate,
+        Voice_state* vstate,
+        Key_indices indices,
+        double speed)
+{
+    assert(dimpl != NULL);
+    assert(dstate != NULL);
+    assert(vstate != NULL);
+    assert(indices != NULL);
+    assert(speed >= 0);
+
+    Voice_state_volume* vol_vstate = (Voice_state_volume*)vstate;
+    Linear_controls_osc_speed_value(&vol_vstate->volume, speed);
+
+    return;
+}
+
+
+static void Proc_volume_osc_depth_voice_cv_volume(
+        const Device_impl* dimpl,
+        const Device_state* dstate,
+        Voice_state* vstate,
+        Key_indices indices,
+        double depth)
+{
+    assert(dimpl != NULL);
+    assert(dstate != NULL);
+    assert(vstate != NULL);
+    assert(indices != NULL);
+    assert(isfinite(depth));
+
+    Voice_state_volume* vol_vstate = (Voice_state_volume*)vstate;
+    Linear_controls_osc_depth_value(&vol_vstate->volume, depth);
+
+    return;
+}
+
+
+static void Proc_volume_osc_speed_slide_voice_cv_volume(
+        const Device_impl* dimpl,
+        const Device_state* dstate,
+        Voice_state* vstate,
+        Key_indices indices,
+        const Tstamp* length)
+{
+    assert(dimpl != NULL);
+    assert(dstate != NULL);
+    assert(vstate != NULL);
+    assert(indices != NULL);
+    assert(length != NULL);
+
+    Voice_state_volume* vol_vstate = (Voice_state_volume*)vstate;
+    Linear_controls_osc_speed_slide_value(&vol_vstate->volume, length);
+
+    return;
+}
+
+
+static void Proc_volume_osc_depth_slide_voice_cv_volume(
+        const Device_impl* dimpl,
+        const Device_state* dstate,
+        Voice_state* vstate,
+        Key_indices indices,
+        const Tstamp* length)
+{
+    assert(dimpl != NULL);
+    assert(dstate != NULL);
+    assert(vstate != NULL);
+    assert(indices != NULL);
+    assert(length != NULL);
+
+    Voice_state_volume* vol_vstate = (Voice_state_volume*)vstate;
+    Linear_controls_osc_depth_slide_value(&vol_vstate->volume, length);
 
     return;
 }
@@ -482,6 +615,7 @@ static uint32_t Proc_volume_process_vstate(
 
     const Work_buffer* control_wb =
         Work_buffers_get_buffer(wbs, CONTROL_WORK_BUFFER_VOLUME);
+    Linear_controls_set_tempo(&vol_vstate->volume, tempo);
     Linear_controls_fill_work_buffer(
             &vol_vstate->volume, control_wb, buf_start, buf_stop);
     float* control_values = Work_buffer_get_contents_mut(control_wb);
