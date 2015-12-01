@@ -42,7 +42,7 @@ void Filter_controls_set_audio_rate(Filter_controls* fc, int32_t audio_rate)
     assert(audio_rate > 0);
 
     Slider_set_audio_rate(&fc->lowpass_slider, audio_rate);
-    LFO_set_mix_rate(&fc->autowah, audio_rate);
+    LFO_set_audio_rate(&fc->autowah, audio_rate);
 
     Slider_set_audio_rate(&fc->resonance_slider, audio_rate);
 

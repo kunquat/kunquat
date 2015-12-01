@@ -499,7 +499,7 @@ static bool Proc_chorus_set_audio_rate(
     for (int i = 0; i < CHORUS_VOICES_MAX; ++i)
     {
         Chorus_voice* voice = &cstate->voices[i];
-        LFO_set_mix_rate(&voice->delay_variance, audio_rate);
+        LFO_set_audio_rate(&voice->delay_variance, audio_rate);
     }
 
     return true;

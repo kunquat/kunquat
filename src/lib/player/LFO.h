@@ -36,7 +36,7 @@ typedef enum
 typedef struct LFO
 {
     LFO_mode mode;
-    uint32_t mix_rate;
+    int32_t audio_rate;
     double tempo;
 
     bool on;
@@ -75,12 +75,12 @@ LFO* LFO_copy(LFO* restrict dest, const LFO* restrict src);
 
 
 /**
- * Set the mixing rate in the LFO.
+ * Set the audio rate in the LFO.
  *
- * \param lfo        The LFO -- must not be \c NULL.
- * \param mix_rate   The mixing rate -- must be > \c 0.
+ * \param lfo          The LFO -- must not be \c NULL.
+ * \param audio_rate   The audio rate -- must be > \c 0.
  */
-void LFO_set_mix_rate(LFO* lfo, uint32_t mix_rate);
+void LFO_set_audio_rate(LFO* lfo, int32_t audio_rate);
 
 
 /**

@@ -26,10 +26,7 @@
 #include <player/Player.h>
 
 
-static void LFO_update_time(
-        LFO* lfo,
-        uint32_t mix_rate,
-        double tempo);
+static void LFO_update_time(LFO* lfo, int32_t audio_rate, double tempo);
 
 
 LFO* LFO_init(LFO* lfo, LFO_mode mode)
@@ -38,7 +35,7 @@ LFO* LFO_init(LFO* lfo, LFO_mode mode)
     assert(mode == LFO_MODE_LINEAR || mode == LFO_MODE_EXP);
 
     lfo->mode = mode;
-    lfo->mix_rate = DEFAULT_AUDIO_RATE;
+    lfo->audio_rate = DEFAULT_AUDIO_RATE;
     lfo->tempo = DEFAULT_TEMPO;
 
     lfo->on = false;
@@ -70,23 +67,23 @@ LFO* LFO_copy(LFO* restrict dest, const LFO* restrict src)
 }
 
 
-void LFO_set_mix_rate(LFO* lfo, uint32_t mix_rate)
+void LFO_set_audio_rate(LFO* lfo, int32_t audio_rate)
 {
     assert(lfo != NULL);
-    assert(mix_rate > 0);
+    assert(audio_rate > 0);
 
-    if (lfo->mix_rate == mix_rate)
+    if (lfo->audio_rate == audio_rate)
         return;
 
-    Slider_set_audio_rate(&lfo->speed_slider, mix_rate);
-    Slider_set_audio_rate(&lfo->depth_slider, mix_rate);
+    Slider_set_audio_rate(&lfo->speed_slider, audio_rate);
+    Slider_set_audio_rate(&lfo->depth_slider, audio_rate);
     if (!LFO_active(lfo))
     {
-        lfo->mix_rate = mix_rate;
+        lfo->audio_rate = audio_rate;
         return;
     }
 
-    LFO_update_time(lfo, mix_rate, lfo->tempo);
+    LFO_update_time(lfo, audio_rate, lfo->tempo);
 
     return;
 }
@@ -109,7 +106,7 @@ void LFO_set_tempo(LFO* lfo, double tempo)
         return;
     }
 
-    LFO_update_time(lfo, lfo->mix_rate, tempo);
+    LFO_update_time(lfo, lfo->audio_rate, tempo);
 
     return;
 }
@@ -184,7 +181,7 @@ void LFO_set_offset(LFO* lfo, double offset)
 void LFO_turn_on(LFO* lfo)
 {
     assert(lfo != NULL);
-    assert(lfo->mix_rate > 0);
+    assert(lfo->audio_rate > 0);
     assert(lfo->tempo > 0);
 
     if (!lfo->on)
@@ -205,7 +202,7 @@ void LFO_turn_on(LFO* lfo)
 void LFO_turn_off(LFO* lfo)
 {
     assert(lfo != NULL);
-    assert(lfo->mix_rate > 0);
+    assert(lfo->audio_rate > 0);
     assert(lfo->tempo > 0);
 
     lfo->on = false;
@@ -217,7 +214,7 @@ void LFO_turn_off(LFO* lfo)
 double LFO_step(LFO* lfo)
 {
     assert(lfo != NULL);
-    assert(lfo->mix_rate > 0);
+    assert(lfo->audio_rate > 0);
     assert(isfinite(lfo->tempo));
     assert(lfo->tempo > 0);
 
@@ -237,10 +234,10 @@ double LFO_step(LFO* lfo)
         double unit_len = Tstamp_toframes(
                 Tstamp_set(TSTAMP_AUTO, 1, 0),
                 lfo->tempo,
-                lfo->mix_rate);
+                lfo->audio_rate);
         lfo->update = (lfo->speed * (2 * PI)) / unit_len;
 #endif
-        lfo->update = (lfo->speed * (2 * PI)) / lfo->mix_rate;
+        lfo->update = (lfo->speed * (2 * PI)) / lfo->audio_rate;
     }
 
     if (Slider_in_progress(&lfo->depth_slider))
@@ -290,7 +287,7 @@ double LFO_skip(LFO* lfo, uint64_t steps)
     }
 
     lfo->speed = Slider_skip(&lfo->speed_slider, steps);
-    lfo->update = (lfo->speed * (2 * PI)) / lfo->mix_rate;
+    lfo->update = (lfo->speed * (2 * PI)) / lfo->audio_rate;
     lfo->depth = Slider_skip(&lfo->depth_slider, steps);
     lfo->phase = fmod(lfo->phase + (lfo->update * steps), 2 * PI);
 
@@ -303,22 +300,22 @@ double LFO_skip(LFO* lfo, uint64_t steps)
 }
 
 
-static void LFO_update_time(LFO* lfo, uint32_t mix_rate, double tempo)
+static void LFO_update_time(LFO* lfo, int32_t audio_rate, double tempo)
 {
     assert(lfo != NULL);
-    assert(mix_rate > 0);
+    assert(audio_rate > 0);
     assert(tempo > 0);
 
-    lfo->speed *= (double)mix_rate / lfo->mix_rate;
+    lfo->speed *= (double)audio_rate / lfo->audio_rate;
 //    lfo->speed *= lfo->tempo / tempo;
-    lfo->update *= (double)lfo->mix_rate / mix_rate;
+    lfo->update *= (double)lfo->audio_rate / audio_rate;
 //    lfo->update *= tempo / lfo->tempo;
-    Slider_set_audio_rate(&lfo->speed_slider, mix_rate);
+    Slider_set_audio_rate(&lfo->speed_slider, audio_rate);
     Slider_set_tempo(&lfo->speed_slider, tempo);
-    Slider_set_audio_rate(&lfo->depth_slider, mix_rate);
+    Slider_set_audio_rate(&lfo->depth_slider, audio_rate);
     Slider_set_tempo(&lfo->depth_slider, tempo);
 
-    lfo->mix_rate = mix_rate;
+    lfo->audio_rate = audio_rate;
     lfo->tempo = tempo;
 
     return;
