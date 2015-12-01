@@ -35,15 +35,19 @@ typedef enum
 typedef struct Slider
 {
     Slide_mode mode;
-    uint32_t mix_rate;
+    int32_t audio_rate;
     double tempo;
 
-    int dir;
     Tstamp length;
-    double current_value;
-    double target_value;
-    double steps_left;
-    double update;
+    double from;
+    double to;
+
+    // TODO: these values are part of a temporary solution;
+    //       internal slide progress should be a timestamp
+    double progress;
+    double progress_update;
+    double log2_from;
+    double log2_to;
 } Slider;
 
 
@@ -121,12 +125,12 @@ void Slider_set_length(Slider* slider, const Tstamp* length);
 
 
 /**
- * Set the mixing rate assumed by the Slider.
+ * Set the audio rate assumed by the Slider.
  *
- * \param slider     The Slider -- must not be \c NULL.
- * \param mix_rate   The mix rate -- must be > \c 0.
+ * \param slider       The Slider -- must not be \c NULL.
+ * \param audio_rate   The audio rate -- must be > \c 0.
  */
-void Slider_set_mix_rate(Slider* slider, uint32_t mix_rate);
+void Slider_set_mix_rate(Slider* slider, int32_t audio_rate);
 
 
 /**
