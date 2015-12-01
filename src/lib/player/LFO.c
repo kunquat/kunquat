@@ -78,8 +78,8 @@ void LFO_set_mix_rate(LFO* lfo, uint32_t mix_rate)
     if (lfo->mix_rate == mix_rate)
         return;
 
-    Slider_set_mix_rate(&lfo->speed_slider, mix_rate);
-    Slider_set_mix_rate(&lfo->depth_slider, mix_rate);
+    Slider_set_audio_rate(&lfo->speed_slider, mix_rate);
+    Slider_set_audio_rate(&lfo->depth_slider, mix_rate);
     if (!LFO_active(lfo))
     {
         lfo->mix_rate = mix_rate;
@@ -313,9 +313,9 @@ static void LFO_update_time(LFO* lfo, uint32_t mix_rate, double tempo)
 //    lfo->speed *= lfo->tempo / tempo;
     lfo->update *= (double)lfo->mix_rate / mix_rate;
 //    lfo->update *= tempo / lfo->tempo;
-    Slider_set_mix_rate(&lfo->speed_slider, mix_rate);
+    Slider_set_audio_rate(&lfo->speed_slider, mix_rate);
     Slider_set_tempo(&lfo->speed_slider, tempo);
-    Slider_set_mix_rate(&lfo->depth_slider, mix_rate);
+    Slider_set_audio_rate(&lfo->depth_slider, mix_rate);
     Slider_set_tempo(&lfo->depth_slider, tempo);
 
     lfo->mix_rate = mix_rate;

@@ -46,7 +46,7 @@ static void Player_update_sliders_and_lfos_audio_rate(Player* player)
     }
 
     Master_params* mp = &player->master_params;
-    Slider_set_mix_rate(&mp->volume_slider, rate);
+    Slider_set_audio_rate(&mp->volume_slider, rate);
 
     return;
 }

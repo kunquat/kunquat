@@ -257,7 +257,7 @@ static void adjust_relative_lengths(
         Force_controls_set_audio_rate(&vstate->force_controls, audio_rate);
         Force_controls_set_tempo(&vstate->force_controls, tempo);
 
-        Slider_set_mix_rate(&vstate->panning_slider, audio_rate);
+        Slider_set_audio_rate(&vstate->panning_slider, audio_rate);
         Slider_set_tempo(&vstate->panning_slider, tempo);
 
         Filter_controls_set_audio_rate(&vstate->filter_controls, audio_rate);

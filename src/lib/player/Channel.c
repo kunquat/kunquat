@@ -106,7 +106,7 @@ void Channel_set_audio_rate(Channel* ch, int32_t audio_rate)
 
     Force_controls_set_audio_rate(&ch->force_controls, audio_rate);
     Pitch_controls_set_audio_rate(&ch->pitch_controls, audio_rate);
-    Slider_set_mix_rate(&ch->panning_slider, audio_rate);
+    Slider_set_audio_rate(&ch->panning_slider, audio_rate);
     Filter_controls_set_audio_rate(&ch->filter_controls, audio_rate);
 
     return;

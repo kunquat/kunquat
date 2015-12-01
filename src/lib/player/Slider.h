@@ -130,7 +130,7 @@ void Slider_set_length(Slider* slider, const Tstamp* length);
  * \param slider       The Slider -- must not be \c NULL.
  * \param audio_rate   The audio rate -- must be > \c 0.
  */
-void Slider_set_mix_rate(Slider* slider, int32_t audio_rate);
+void Slider_set_audio_rate(Slider* slider, int32_t audio_rate);
 
 
 /**

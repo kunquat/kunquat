@@ -46,7 +46,7 @@ void Linear_controls_set_audio_rate(Linear_controls* lc, int32_t audio_rate)
     assert(lc != NULL);
     assert(audio_rate > 0);
 
-    Slider_set_mix_rate(&lc->slider, audio_rate);
+    Slider_set_audio_rate(&lc->slider, audio_rate);
     LFO_set_mix_rate(&lc->lfo, audio_rate);
 
     return;

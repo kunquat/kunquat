@@ -52,7 +52,7 @@ Voice_state* Voice_state_init(
     Pitch_controls_init(&state->pitch_controls, freq, tempo);
     Filter_controls_init(&state->filter_controls, freq, tempo);
 
-    Slider_set_mix_rate(&state->panning_slider, freq);
+    Slider_set_audio_rate(&state->panning_slider, freq);
     Slider_set_tempo(&state->panning_slider, tempo);
 
     return state;

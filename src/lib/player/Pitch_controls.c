@@ -41,7 +41,7 @@ void Pitch_controls_set_audio_rate(Pitch_controls* pc, int32_t audio_rate)
     assert(pc != NULL);
     assert(audio_rate > 0);
 
-    Slider_set_mix_rate(&pc->slider, audio_rate);
+    Slider_set_audio_rate(&pc->slider, audio_rate);
     LFO_set_mix_rate(&pc->vibrato, audio_rate);
 
     return;

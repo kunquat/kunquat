@@ -156,7 +156,7 @@ void Slider_set_length(Slider* slider, const Tstamp* length)
 }
 
 
-void Slider_set_mix_rate(Slider* slider, int32_t audio_rate)
+void Slider_set_audio_rate(Slider* slider, int32_t audio_rate)
 {
     assert(slider != NULL);
     assert(audio_rate > 0);
