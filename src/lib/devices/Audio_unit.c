@@ -289,7 +289,7 @@ static bool read_au_field(Streader* sr, const char* key, void* userdata)
     else
     {
         Streader_set_error(
-                sr, "Unsupported field in autrument information: %s", key);
+                sr, "Unsupported field in audio unit information: %s", key);
         return false;
     }
 
@@ -469,7 +469,7 @@ static void Audio_unit_reset(const Device* device, Device_states* dstates)
             Device_reset((const Device*)proc, dstates);
     }
 
-    // Reset internal autruments
+    // Reset internal audio units
     for (int i = 0; i < KQT_AUDIO_UNITS_MAX; ++i)
     {
         const Audio_unit* sub_au = Au_table_get(au->au_table, i);
@@ -477,7 +477,7 @@ static void Audio_unit_reset(const Device* device, Device_states* dstates)
             Device_reset((const Device*)sub_au, dstates);
     }
 
-    // Reset autrument state
+    // Reset audio unit state
     Au_state* au_state = (Au_state*)Device_states_get_state(
             dstates,
             Device_get_id(device));
