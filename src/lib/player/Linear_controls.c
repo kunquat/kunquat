@@ -29,6 +29,9 @@ void Linear_controls_init(Linear_controls* lc, int32_t audio_rate, double tempo)
     assert(audio_rate > 0);
     assert(tempo > 0);
 
+    Slider_init(&lc->slider, SLIDE_MODE_LINEAR);
+    LFO_init(&lc->lfo, LFO_MODE_LINEAR);
+
     Linear_controls_set_audio_rate(lc, audio_rate);
     Linear_controls_set_tempo(lc, tempo);
 
