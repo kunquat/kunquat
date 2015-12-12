@@ -21,6 +21,7 @@
 #include <stdlib.h>
 
 #include <Decl.h>
+#include <mathnum/Random.h>
 #include <player/Active_jumps.h>
 #include <player/Env_state.h>
 #include <player/General_state.h>
@@ -54,6 +55,8 @@ typedef struct Master_params
     Playback_state playback_state;
     bool is_infinite;
     bool pattern_playback_flag;
+
+    Random* random;
 
     Position cur_pos;
     int cur_ch;
@@ -132,7 +135,6 @@ void Master_params_set_starting_tempo(Master_params* params);
  * Reset the Master params.
  *
  * \param params   The Master params -- must not be \c NULL.
- * \param module   The Module -- must not be \c NULL.
  */
 void Master_params_reset(Master_params* params);
 

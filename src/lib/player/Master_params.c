@@ -13,6 +13,7 @@
 
 
 #include <debug/assert.h>
+#include <mathnum/Random.h>
 #include <module/Module.h>
 #include <module/sheet/Track_list.h>
 #include <player/Master_params.h>
@@ -30,6 +31,9 @@ static void Master_params_clear(Master_params* params)
     params->playback_state = PLAYBACK_SONG;
     params->is_infinite = false;
     params->pattern_playback_flag = false;
+
+    Random_set_context(params->random, "m");
+    Random_set_seed(params->random, params->parent.module->random_seed);
 
     Position_init(&params->cur_pos);
     params->cur_ch = 0;
@@ -74,6 +78,7 @@ Master_params* Master_params_preinit(Master_params* params)
 
     General_state_preinit(&params->parent);
 
+    params->random = NULL;
     params->active_jumps = NULL;
     params->jump_cache = NULL;
 
@@ -100,9 +105,12 @@ Master_params* Master_params_init(
         return NULL;
     }
 
+    params->random = new_Random();
     params->jump_cache = new_Jump_cache(KQT_JUMP_CONTEXTS_MAX);
     params->active_jumps = new_Active_jumps();
-    if (params->jump_cache == NULL || params->active_jumps == NULL)
+    if ((params->random == NULL) ||
+            (params->jump_cache == NULL) ||
+            (params->active_jumps == NULL))
     {
         Master_params_deinit(params);
         return NULL;

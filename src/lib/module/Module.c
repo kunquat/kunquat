@@ -29,20 +29,11 @@
 
 
 /**
- * Resets the Module.
+ * Reset the Module.
  *
  * \param device   The Module Device -- must not be \c NULL.
  */
 static void Module_reset(const Device* device, Device_states* dstates);
-
-
-/**
- * Sets the master random seed of the Module.
- *
- * \param module   The Module -- must not be \c NULL.
- * \param seed   The random seed.
- */
-static void Module_set_random_seed(Module* module, uint64_t seed);
 
 
 static bool Module_set_audio_rate(
@@ -88,7 +79,6 @@ Module* new_Module(void)
     module->au_controls = NULL;
     module->au_table = NULL;
     module->connections = NULL;
-    module->random = NULL;
     module->env = NULL;
     module->bind = NULL;
     module->album_is_existent = false;
@@ -100,13 +90,11 @@ Module* new_Module(void)
         module->scales[i] = NULL;
 
     // Create fields
-    module->random = new_Random();
     module->songs = new_Song_table();
     module->pats = new_Pat_table(KQT_PATTERNS_MAX);
     module->au_controls = new_Bit_array(KQT_CONTROLS_MAX);
     module->au_table = new_Au_table(KQT_AUDIO_UNITS_MAX);
-    if (module->random == NULL          ||
-            module->songs == NULL       ||
+    if (module->songs == NULL           ||
             module->pats == NULL        ||
             module->au_controls == NULL ||
             module->au_table == NULL)
@@ -161,7 +149,7 @@ Module* new_Module(void)
     module->mix_vol_dB = MODULE_DEFAULT_MIX_VOL;
     module->mix_vol = exp2(module->mix_vol_dB / 6);
     //module->init_subsong = SONG_DEFAULT_INIT_SUBSONG;
-    Module_set_random_seed(module, 0);
+    module->random_seed = 0;
 
     return module;
 }
@@ -250,7 +238,7 @@ bool Module_parse_random_seed(Module* module, Streader* sr)
         }
     }
 
-    Module_set_random_seed(module, seed);
+    module->random_seed = seed;
 
     return true;
 }
@@ -565,19 +553,6 @@ static void Module_reset(const Device* device, Device_states* dstates)
             Device_reset((const Device*)au, dstates);
     }
 
-    Random_reset(module->random);
-
-    return;
-}
-
-
-static void Module_set_random_seed(Module* module, uint64_t seed)
-{
-    assert(module != NULL);
-
-    module->random_seed = seed;
-    Random_set_seed(module->random, seed);
-
     return;
 }
 
@@ -671,7 +646,6 @@ void del_Module(Module* module)
     for (int i = 0; i < KQT_SCALES_MAX; ++i)
         del_Scale(module->scales[i]);
 
-    del_Random(module->random);
     del_Bind(module->bind);
 
     Device_deinit(&module->parent);
