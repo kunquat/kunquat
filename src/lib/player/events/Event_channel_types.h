@@ -69,8 +69,12 @@ EVENT_CHANNEL_DEF("/=P",    slide_panning_length,       TSTAMP,     v_nonneg_ts)
 
 EVENT_CHANNEL_DEF(".Bn",    set_cv_bool_name,           STRING,     v_var_name)
 EVENT_CHANNEL_DEF(".B",     set_cv_bool_value,          BOOL,       v_any_bool)
+EVENT_CHANNEL_DEF("->B+",   carry_cv_bool_on,           NONE,       NULL)
+EVENT_CHANNEL_DEF("->B-",   carry_cv_bool_off,          NONE,       NULL)
 EVENT_CHANNEL_DEF(".In",    set_cv_int_name,            STRING,     v_var_name)
 EVENT_CHANNEL_DEF(".I",     set_cv_int_value,           INT,        v_any_int)
+EVENT_CHANNEL_DEF("->I+",   carry_cv_int_on,            NONE,       NULL)
+EVENT_CHANNEL_DEF("->I-",   carry_cv_int_off,           NONE,       NULL)
 EVENT_CHANNEL_DEF(".Fn",    set_cv_float_name,          STRING,     v_var_name)
 EVENT_CHANNEL_DEF(".F",     set_cv_float_value,         FLOAT,      v_finite_float)
 EVENT_CHANNEL_DEF("/F",     slide_cv_float_target,      FLOAT,      v_finite_float)
@@ -79,8 +83,12 @@ EVENT_CHANNEL_DEF("osF",    osc_speed_cv_float,         FLOAT,      v_nonneg_flo
 EVENT_CHANNEL_DEF("odF",    osc_depth_cv_float,         FLOAT,      v_nonneg_float)
 EVENT_CHANNEL_DEF("o/=sF",  osc_speed_slide_cv_float,   TSTAMP,     v_nonneg_ts)
 EVENT_CHANNEL_DEF("o/=dF",  osc_depth_slide_cv_float,   TSTAMP,     v_nonneg_ts)
+EVENT_CHANNEL_DEF("->F+",   carry_cv_float_on,          NONE,       NULL)
+EVENT_CHANNEL_DEF("->F-",   carry_cv_float_off,         NONE,       NULL)
 EVENT_CHANNEL_DEF(".Tn",    set_cv_tstamp_name,         STRING,     v_var_name)
 EVENT_CHANNEL_DEF(".T",     set_cv_tstamp_value,        TSTAMP,     v_any_ts)
+EVENT_CHANNEL_DEF("->T+",   carry_cv_tstamp_on,         NONE,       NULL)
+EVENT_CHANNEL_DEF("->T-",   carry_cv_tstamp_off,        NONE,       NULL)
 
 
 #undef EVENT_CHANNEL_DEF
