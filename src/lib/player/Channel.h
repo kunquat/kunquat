@@ -210,6 +210,26 @@ double Channel_get_fg_force(Channel* ch, int proc_index);
 
 
 /**
+ * Get control variable state of the Channel.
+ *
+ * \param ch   The Channel -- must not be \c NULL.
+ *
+ * \return   The control variable state of the Channel. This is never \c NULL.
+ */
+const Channel_cv_state* Channel_get_cv_state(const Channel* ch);
+
+
+/**
+ * Get mutable control variable state of the Channel.
+ *
+ * \param ch   The Channel -- must not be \c NULL.
+ *
+ * \return   The mutable control variable state of the Channel. This is never \c NULL.
+ */
+Channel_cv_state* Channel_get_cv_state_mut(Channel* ch);
+
+
+/**
  * Deinitialise the Channel.
  *
  * \param ch   The Channel, or \c NULL.

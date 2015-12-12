@@ -28,8 +28,6 @@
 typedef struct Linear_controls
 {
     double value;
-    double osc_speed;
-    double osc_depth;
     Slider slider;
     LFO lfo;
 } Linear_controls;
@@ -39,10 +37,8 @@ typedef struct Linear_controls
  * Initialise Linear controls.
  *
  * \param lc           The Linear controls -- must not be \c NULL.
- * \param audio_rate   The audio rate -- must be positive.
- * \param tempo        The tempo -- must be positive.
  */
-void Linear_controls_init(Linear_controls* lc, int32_t audio_rate, double tempo);
+void Linear_controls_init(Linear_controls* lc);
 
 
 /**
@@ -61,14 +57,6 @@ void Linear_controls_set_audio_rate(Linear_controls* lc, int32_t audio_rate);
  * \param tempo   the tempo -- must be positive.
  */
 void Linear_controls_set_tempo(Linear_controls* lc, double tempo);
-
-
-/**
- * Reset the Linear controls.
- *
- * \param lc   The Linear controls -- must not be \c NULL.
- */
-void Linear_controls_reset(Linear_controls* lc);
 
 
 /**
@@ -150,6 +138,15 @@ void Linear_controls_fill_work_buffer(
 
 
 /**
+ * Update internal state of the Linear controls without storing results.
+ *
+ * \param lc           The Linear controls -- must not be \c NULL.
+ * \param step_count   The number of steps to skip.
+ */
+void Linear_controls_skip(Linear_controls* lc, uint64_t step_count);
+
+
+/**
  * Copy the current state of Linear controls.
  *
  * \param dest   The destination Linear controls -- must not be \c NULL.
@@ -157,6 +154,25 @@ void Linear_controls_fill_work_buffer(
  */
 void Linear_controls_copy(
         Linear_controls* restrict dest, const Linear_controls* restrict src);
+
+
+/**
+ * Get Linear controls converted to another range.
+ *
+ * \param dest         The destination Linear controls -- must not be \c NULL.
+ * \param map_min_to   The target value of source range lower bound -- must be finite.
+ * \param map_max_to   The target value of source range upper bound -- must be finite.
+ * \param src          The source Linear controls -- must not be \c NULL or \a dest.
+ * \param range_min    The source range lower bound -- must be finite.
+ * \param range_max    The source range upper bound -- must be finite.
+ */
+void Linear_controls_convert(
+        Linear_controls* restrict dest,
+        double map_min_to,
+        double map_max_to,
+        const Linear_controls* restrict src,
+        double range_min,
+        double range_max);
 
 
 #endif // K_LINEAR_CONTROLS_H

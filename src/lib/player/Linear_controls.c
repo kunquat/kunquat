@@ -17,25 +17,20 @@
 #include <stdlib.h>
 
 #include <debug/assert.h>
+#include <mathnum/common.h>
 #include <player/Linear_controls.h>
 #include <player/Slider.h>
 #include <player/Work_buffer.h>
 #include <Tstamp.h>
 
 
-void Linear_controls_init(Linear_controls* lc, int32_t audio_rate, double tempo)
+void Linear_controls_init(Linear_controls* lc)
 {
     assert(lc != NULL);
-    assert(audio_rate > 0);
-    assert(tempo > 0);
 
+    lc->value = NAN;
     Slider_init(&lc->slider, SLIDE_MODE_LINEAR);
     LFO_init(&lc->lfo, LFO_MODE_LINEAR);
-
-    Linear_controls_set_audio_rate(lc, audio_rate);
-    Linear_controls_set_tempo(lc, tempo);
-
-    Linear_controls_reset(lc);
 
     return;
 }
@@ -60,20 +55,6 @@ void Linear_controls_set_tempo(Linear_controls* lc, double tempo)
 
     Slider_set_tempo(&lc->slider, tempo);
     LFO_set_tempo(&lc->lfo, tempo);
-
-    return;
-}
-
-
-void Linear_controls_reset(Linear_controls* lc)
-{
-    assert(lc != NULL);
-
-    lc->value = NAN;
-    lc->osc_speed = NAN;
-    lc->osc_depth = NAN;
-    Slider_init(&lc->slider, SLIDE_MODE_LINEAR);
-    LFO_init(&lc->lfo, LFO_MODE_LINEAR);
 
     return;
 }
@@ -121,12 +102,10 @@ void Linear_controls_osc_speed_value(Linear_controls* lc, double speed)
     assert(lc != NULL);
     assert(speed >= 0);
 
-    lc->osc_speed = speed;
+    LFO_set_speed(&lc->lfo, speed);
 
-    LFO_set_speed(&lc->lfo, lc->osc_speed);
-
-    if (lc->osc_depth > 0)
-        LFO_set_depth(&lc->lfo, lc->osc_depth);
+    //if (lc->osc_depth > 0)
+    //    LFO_set_depth(&lc->lfo, lc->osc_depth);
 
     LFO_turn_on(&lc->lfo);
 
@@ -139,12 +118,10 @@ void Linear_controls_osc_depth_value(Linear_controls* lc, double depth)
     assert(lc != NULL);
     assert(isfinite(depth));
 
-    lc->osc_depth = depth;
+    //if (lc->osc_speed > 0)
+    //    LFO_set_speed(&lc->lfo, lc->osc_speed);
 
-    if (lc->osc_speed > 0)
-        LFO_set_speed(&lc->lfo, lc->osc_speed);
-
-    LFO_set_depth(&lc->lfo, lc->osc_depth);
+    LFO_set_depth(&lc->lfo, depth);
     LFO_turn_on(&lc->lfo);
 
     return;
@@ -211,6 +188,19 @@ void Linear_controls_fill_work_buffer(
 }
 
 
+void Linear_controls_skip(Linear_controls* lc, uint64_t step_count)
+{
+    assert(lc != NULL);
+
+    if (Slider_in_progress(&lc->slider))
+        lc->value = Slider_skip(&lc->slider, step_count);
+
+    LFO_skip(&lc->lfo, step_count);
+
+    return;
+}
+
+
 void Linear_controls_copy(
         Linear_controls* restrict dest, const Linear_controls* restrict src)
 {
@@ -221,6 +211,37 @@ void Linear_controls_copy(
     dest->value = src->value;
     Slider_copy(&dest->slider, &src->slider);
     LFO_copy(&dest->lfo, &src->lfo);
+
+    return;
+}
+
+
+void Linear_controls_convert(
+        Linear_controls* restrict dest,
+        double map_min_to,
+        double map_max_to,
+        const Linear_controls* restrict src,
+        double range_min,
+        double range_max)
+{
+    assert(dest != NULL);
+    assert(isfinite(map_min_to));
+    assert(isfinite(map_max_to));
+    assert(src != NULL);
+    assert(src != dest);
+    assert(isfinite(range_min));
+    assert(isfinite(range_max));
+
+    Linear_controls_copy(dest, src);
+
+    const double value_norm = get_range_norm(src->value, range_min, range_max);
+    dest->value = lerp(map_min_to, map_max_to, value_norm);
+
+    Slider_change_range(&dest->slider, range_min, range_max, map_min_to, map_max_to);
+
+    const double src_range_diff = range_max - range_min;
+    const double target_range_diff = map_max_to - map_min_to;
+    LFO_change_depth_range(&dest->lfo, src_range_diff, target_range_diff);
 
     return;
 }

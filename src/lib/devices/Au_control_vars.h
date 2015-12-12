@@ -21,6 +21,7 @@
 #include <containers/AAtree.h>
 #include <kunquat/limits.h>
 #include <mathnum/Random.h>
+#include <player/Linear_controls.h>
 #include <string/Streader.h>
 #include <Value.h>
 
@@ -70,6 +71,13 @@ typedef struct Au_control_binding_iter
         {
             double osc_range_norm;
         } osc_float_type;
+
+        struct
+        {
+            double range_min;
+            double range_max;
+            Linear_controls src_controls;
+        } init_float_type;
     } ext;
 
     // Data provided for the user
@@ -77,6 +85,7 @@ typedef struct Au_control_binding_iter
     int target_dev_index;
     const char* target_var_name;
     Value target_value;
+    Linear_controls target_controls;
 } Au_control_binding_iter;
 
 #define AU_CONTROL_BINDING_ITER_AUTO (&(Au_control_binding_iter){ \
@@ -186,6 +195,23 @@ bool Au_control_binding_iter_init_osc_depth_float(
 
 
 /**
+ * Start iterating over float controls of bound floating-point control variables.
+ *
+ * \param iter       The iterator -- must not be \c NULL.
+ * \param aucv       The Audio unit control variables -- must not be \c NULL.
+ * \param var_name   The name of the variable -- must not be \c NULL.
+ * \param controls   The source Linear controls -- must not be \c NULL.
+ *
+ * \return   \c true if at least one result is found, otherwise \c false.
+ */
+bool Au_control_binding_iter_init_float_controls(
+        Au_control_binding_iter* iter,
+        const Au_control_vars* aucv,
+        const char* var_name,
+        const Linear_controls* controls);
+
+
+/**
  * Get the next result of control variable bindings.
  *
  * \param iter   The iterator -- must not be \c NULL.
@@ -207,9 +233,49 @@ Au_control_vars* new_Au_control_vars(Streader* sr);
 
 
 /**
+ * Get the initial value of a control variable.
+ *
+ * \param aucv       The Audio unit control variables -- must not be \c NULL.
+ * \param var_name   The variable name -- must not be \c NULL and must exist
+ *                   in \a aucv.
+ *
+ * \return   The initial Value. This is never \c NULL.
+ */
+const Value* Au_control_vars_get_init_value(
+        const Au_control_vars* aucv, const char* var_name);
+
+
+/**
+ * Tell whether a control variable is of any floating type.
+ *
+ * \param aucv       The Audio unit control variables -- must not be \c NULL.
+ * \param var_name   The variable name -- must not be \c NULL and must exist
+ *                   in \a aucv.
+ *
+ * \return   \c true if \a var_name refers to a floating type (with or without
+ *           mapped range), otherwise \c false.
+ */
+bool Au_control_vars_in_entry_any_float(
+        const Au_control_vars* aucv, const char* var_name);
+
+
+/**
+ * Tell whether a control variable is of floating slide type.
+ *
+ * \param aucv       The Audio unit control variables -- must not be \c NULL.
+ * \param var_name   The variable name -- must not be \c NULL and must exist
+ *                   in \a aucv.
+ *
+ * \return   \c true if \a var_name refers to a floating slide type, otherwise \c false.
+ */
+bool Au_control_vars_is_entry_float_slide(
+        const Au_control_vars* aucv, const char* var_name);
+
+
+/**
  * Destroy existing Audio unit control variables.
  *
- * \param acv   The Audio unit control variables, or \c NULL.
+ * \param aucv   The Audio unit control variables, or \c NULL.
  */
 void del_Au_control_vars(Au_control_vars* aucv);
 

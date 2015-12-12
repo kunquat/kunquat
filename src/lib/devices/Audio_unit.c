@@ -139,6 +139,20 @@ static void Audio_unit_osc_depth_slide_cv_float(
         const char* var_name,
         const Tstamp* length);
 
+static void Audio_unit_init_control_vars(
+        const Device* device,
+        Device_states* dstates,
+        Device_control_var_mode mode,
+        Channel* channel);
+
+static void Audio_unit_init_control_var_float(
+        const Device* device,
+        Device_states* dstates,
+        Device_control_var_mode mode,
+        Channel* channel,
+        const char* var_name,
+        const Linear_controls* controls);
+
 
 Audio_unit* new_Audio_unit(void)
 {
@@ -189,6 +203,10 @@ Audio_unit* new_Audio_unit(void)
             Audio_unit_osc_depth_cv_float,
             Audio_unit_osc_speed_slide_cv_float,
             Audio_unit_osc_depth_slide_cv_float);
+
+    Device_register_init_control_vars(&au->parent, Audio_unit_init_control_vars);
+    Device_register_init_control_var_float(
+            &au->parent, Audio_unit_init_control_var_float);
 
     au->out_iface = new_Au_interface();
     au->in_iface = new_Au_interface();
@@ -666,6 +684,164 @@ static const Device* get_cv_target_device(
                 au->procs, iter->target_dev_index);
 
     return target_dev;
+}
+
+
+static void Audio_unit_init_control_var_generic(
+        const Audio_unit* au,
+        Device_states* dstates,
+        Device_control_var_mode mode,
+        Channel* channel,
+        const char* var_name,
+        Value_type var_type)
+{
+    assert(au != NULL);
+    assert(dstates != NULL);
+    assert(channel != NULL);
+    assert(var_name != NULL);
+
+    const Channel_cv_state* cvstate = Channel_get_cv_state(channel);
+
+    const bool carry =
+        (mode == DEVICE_CONTROL_VAR_MODE_VOICE) &&
+        Channel_cv_state_is_carrying_enabled(cvstate, var_name, var_type);
+    const Value* carried_value =
+        carry ? Channel_cv_state_get_value(cvstate, var_name, var_type) : NULL;
+
+    if (carry && (carried_value != NULL))
+    {
+        Audio_unit_set_control_var_generic(
+                &au->parent, dstates, mode, channel, var_name, carried_value);
+    }
+    else
+    {
+        const Value* init_value =
+            Au_control_vars_get_init_value(au->control_vars, var_name);
+        Audio_unit_set_control_var_generic(
+                &au->parent, dstates, mode, channel, var_name, init_value);
+    }
+
+    return;
+}
+
+
+static void Audio_unit_init_control_var_float(
+        const Device* device,
+        Device_states* dstates,
+        Device_control_var_mode mode,
+        Channel* channel,
+        const char* var_name,
+        const Linear_controls* controls)
+{
+    assert(device != NULL);
+    assert(dstates != NULL);
+    assert(channel != NULL);
+    assert(var_name != NULL);
+    assert(controls != NULL);
+
+    const Audio_unit* au = (const Audio_unit*)device;
+    if (au->control_vars == NULL)
+        return;
+
+    // Map controls to each bound target and
+    // call initialiser for corresponding subdevice
+    Au_control_binding_iter* iter = AU_CONTROL_BINDING_ITER_AUTO;
+    bool has_entry = Au_control_binding_iter_init_float_controls(
+            iter, au->control_vars, var_name, controls);
+    while (has_entry)
+    {
+        const Device* target_dev = get_cv_target_device(au, iter, mode);
+
+        if ((target_dev != NULL) && (iter->target_value.type == VALUE_TYPE_FLOAT))
+            Device_init_control_var_float(
+                    target_dev,
+                    dstates,
+                    mode,
+                    channel,
+                    iter->target_var_name,
+                    &iter->target_controls);
+
+        has_entry = Au_control_binding_iter_get_next_entry(iter);
+    }
+
+    return;
+}
+
+
+static void Audio_unit_init_control_var_float_slide(
+        const Audio_unit* au,
+        Device_states* dstates,
+        Device_control_var_mode mode,
+        Channel* channel,
+        const char* var_name)
+{
+    assert(au != NULL);
+    assert(dstates != NULL);
+    assert(channel != NULL);
+    assert(var_name != NULL);
+
+    Channel_cv_state* cvstate = Channel_get_cv_state_mut(channel);
+
+    const bool carry =
+        (mode == DEVICE_CONTROL_VAR_MODE_VOICE) &&
+        Channel_cv_state_is_carrying_enabled(cvstate, var_name, VALUE_TYPE_FLOAT);
+    const Linear_controls* controls =
+        carry ? Channel_cv_state_get_float_controls(cvstate, var_name) : NULL;
+
+    if (carry && (controls != NULL))
+    {
+        Device_init_control_var_float(
+                &au->parent, dstates, mode, channel, var_name, controls);
+    }
+    else
+    {
+        const Value* init_value =
+            Au_control_vars_get_init_value(au->control_vars, var_name);
+        assert(init_value->type == VALUE_TYPE_FLOAT);
+
+        const bool success = Channel_cv_state_set_value(cvstate, var_name, init_value);
+        assert(success);
+
+        Audio_unit_set_control_var_generic(
+                &au->parent, dstates, mode, channel, var_name, init_value);
+    }
+
+    return;
+}
+
+
+static void Audio_unit_init_control_vars(
+        const Device* device,
+        Device_states* dstates,
+        Device_control_var_mode mode,
+        Channel* channel)
+{
+    assert(device != NULL);
+    assert(dstates != NULL);
+    assert(channel != NULL);
+
+    const Audio_unit* au = (const Audio_unit*)device;
+    if (au->control_vars == NULL)
+        return;
+
+    Au_control_var_iter* var_iter =
+        Au_control_var_iter_init(AU_CONTROL_VAR_ITER_AUTO, au->control_vars);
+    const char* var_name = NULL;
+    Value_type var_type = VALUE_TYPE_NONE;
+    Au_control_var_iter_get_next_var_info(var_iter, &var_name, &var_type);
+    while (var_name != NULL)
+    {
+        if (Au_control_vars_is_entry_float_slide(au->control_vars, var_name))
+            Audio_unit_init_control_var_float_slide(
+                    au, dstates, mode, channel, var_name);
+        else
+            Audio_unit_init_control_var_generic(
+                    au, dstates, mode, channel, var_name, var_type);
+
+        Au_control_var_iter_get_next_var_info(var_iter, &var_name, &var_type);
+    }
+
+    return;
 }
 
 

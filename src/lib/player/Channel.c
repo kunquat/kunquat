@@ -108,6 +108,7 @@ void Channel_set_audio_rate(Channel* ch, int32_t audio_rate)
     Pitch_controls_set_audio_rate(&ch->pitch_controls, audio_rate);
     Slider_set_audio_rate(&ch->panning_slider, audio_rate);
     Filter_controls_set_audio_rate(&ch->filter_controls, audio_rate);
+    Channel_cv_state_set_audio_rate(ch->cvstate, audio_rate);
 
     return;
 }
@@ -122,6 +123,7 @@ void Channel_set_tempo(Channel* ch, double tempo)
     Pitch_controls_set_tempo(&ch->pitch_controls, tempo);
     Slider_set_tempo(&ch->panning_slider, tempo);
     Filter_controls_set_tempo(&ch->filter_controls, tempo);
+    Channel_cv_state_set_tempo(ch->cvstate, tempo);
 
     return;
 }
@@ -248,6 +250,20 @@ double Channel_get_fg_force(Channel* ch, int proc_index)
         return NAN;
 
     return Voice_get_actual_force(ch->fg[proc_index]);
+}
+
+
+const Channel_cv_state* Channel_get_cv_state(const Channel* ch)
+{
+    assert(ch != NULL);
+    return ch->cvstate;
+}
+
+
+Channel_cv_state* Channel_get_cv_state_mut(Channel* ch)
+{
+    assert(ch != NULL);
+    return ch->cvstate;
 }
 
 

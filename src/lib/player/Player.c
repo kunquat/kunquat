@@ -659,6 +659,8 @@ void Player_play(Player* player, int32_t nframes)
                 if (Slider_in_progress(&fc->resonance_slider))
                     fc->resonance = Slider_skip(&fc->resonance_slider, to_be_rendered);
             }
+
+            Channel_cv_state_update_float_controls(ch->cvstate, to_be_rendered);
         }
 
         // Update panning slides, TODO: revisit

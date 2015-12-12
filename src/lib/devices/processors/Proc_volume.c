@@ -76,6 +76,8 @@ static Osc_depth_voice_cv_float_func Proc_volume_osc_depth_voice_cv_volume;
 static Osc_speed_slide_voice_cv_float_func Proc_volume_osc_speed_slide_voice_cv_volume;
 static Osc_depth_slide_voice_cv_float_func Proc_volume_osc_depth_slide_voice_cv_volume;
 
+static Carry_voice_cv_float_func Proc_volume_carry_voice_cv_volume;
+
 
 static bool Proc_volume_init(Device_impl* dimpl);
 
@@ -173,6 +175,7 @@ static bool Proc_volume_init(Device_impl* dimpl)
     vol_cbs->voice_osc_depth = Proc_volume_osc_depth_voice_cv_volume;
     vol_cbs->voice_osc_speed_sl = Proc_volume_osc_speed_slide_voice_cv_volume;
     vol_cbs->voice_osc_depth_sl = Proc_volume_osc_depth_slide_voice_cv_volume;
+    vol_cbs->voice_carry = Proc_volume_carry_voice_cv_volume;
 
     volume->scale = 1.0;
 
@@ -207,7 +210,8 @@ static void Proc_volume_init_vstate(
 
     Voice_state_volume* vol_vstate = (Voice_state_volume*)vstate;
 
-    Linear_controls_init(&vol_vstate->volume, proc_state->parent.audio_rate, 120);
+    Linear_controls_init(&vol_vstate->volume);
+    Linear_controls_set_audio_rate(&vol_vstate->volume, proc_state->parent.audio_rate);
     Linear_controls_set_value(&vol_vstate->volume, 0.0);
 
     return;
@@ -231,7 +235,8 @@ static Device_state* Proc_volume_create_state(
         return NULL;
     }
 
-    Linear_controls_init(&vol_state->volume, audio_rate, 120.0);
+    Linear_controls_init(&vol_state->volume);
+    Linear_controls_set_audio_rate(&vol_state->volume, audio_rate);
     Linear_controls_set_value(&vol_state->volume, 0.0);
 
     return &vol_state->parent.parent;
@@ -275,7 +280,7 @@ static void Proc_volume_reset(const Device_impl* dimpl, Device_state* dstate)
 
     Volume_state* vol_state = (Volume_state*)dstate;
 
-    Linear_controls_reset(&vol_state->volume);
+    Linear_controls_init(&vol_state->volume);
 
     const double* vol_dB = Device_params_get_float(
             dimpl->device->dparams, "p_f_volume.json");
@@ -452,6 +457,25 @@ static void Proc_volume_osc_depth_slide_voice_cv_volume(
 
     Voice_state_volume* vol_vstate = (Voice_state_volume*)vstate;
     Linear_controls_osc_depth_slide_value(&vol_vstate->volume, length);
+
+    return;
+}
+
+
+static void Proc_volume_carry_voice_cv_volume(
+        const Device_impl* dimpl,
+        const Device_state* dstate,
+        Voice_state* vstate,
+        Key_indices indices,
+        const Linear_controls* controls)
+{
+    assert(dimpl != NULL);
+    assert(dstate != NULL);
+    assert(vstate != NULL);
+    assert(indices != NULL);
+
+    Voice_state_volume* vol_vstate = (Voice_state_volume*)vstate;
+    Linear_controls_copy(&vol_vstate->volume, controls);
 
     return;
 }
