@@ -105,6 +105,14 @@ static void Processor_osc_depth_slide_cv_float(
         const char* key,
         const Tstamp* length);
 
+static void Processor_init_control_var_float(
+        const Device* device,
+        Device_states* dstates,
+        Device_control_var_mode mode,
+        Channel* channel,
+        const char* key,
+        const Linear_controls* controls);
+
 
 Processor* new_Processor(int index, const Au_params* au_params)
 {
@@ -153,6 +161,9 @@ Processor* new_Processor(int index, const Au_params* au_params)
             Processor_osc_depth_cv_float,
             Processor_osc_speed_slide_cv_float,
             Processor_osc_depth_slide_cv_float);
+
+    Device_register_init_control_var_float(
+            &proc->parent, Processor_init_control_var_float);
 
     return proc;
 }
@@ -708,6 +719,39 @@ static void Processor_osc_depth_slide_cv_float(
         if (voice != NULL)
             Device_impl_osc_depth_slide_cv_float(
                     dimpl, dstate, voice->state, key, length);
+    }
+
+    return;
+}
+
+
+static void Processor_init_control_var_float(
+        const Device* device,
+        Device_states* dstates,
+        Device_control_var_mode mode,
+        Channel* channel,
+        const char* key,
+        const Linear_controls* controls)
+{
+    assert(device != NULL);
+    assert(dstates != NULL);
+    assert(channel != NULL);
+    assert(key != NULL);
+    assert(controls != NULL);
+
+    const Processor* proc = (const Processor*)device;
+    const Device_impl* dimpl = device->dimpl;
+    Device_state* dstate = Device_states_get_state(dstates, Device_get_id(device));
+
+    if (mode == DEVICE_CONTROL_VAR_MODE_MIXED)
+    {
+        assert(false); // TODO
+    }
+    else
+    {
+        Voice* voice = Channel_get_fg_voice(channel, proc->index);
+        if (voice != NULL)
+            Device_impl_carry_cv_float(dimpl, dstate, voice->state, key, controls);
     }
 
     return;
