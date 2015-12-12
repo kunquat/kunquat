@@ -28,6 +28,7 @@
 #include <devices/param_types/Num_list.h>
 #include <devices/param_types/Sample.h>
 #include <player/Device_state.h>
+#include <player/Linear_controls.h>
 #include <string/key_pattern.h>
 #include <Tstamp.h>
 
@@ -100,6 +101,13 @@ MOD_FLOAT_VOICE_CV_FUNC_TYPE(Osc_speed_slide_voice_cv_float_func,   const Tstamp
 MOD_FLOAT_VOICE_CV_FUNC_TYPE(Osc_depth_slide_voice_cv_float_func,   const Tstamp*);
 #undef MOD_FLOAT_VOICE_CV_FUNC_TYPE
 
+typedef void Carry_voice_cv_float_func(
+        const Device_impl*,
+        const Device_state*,
+        Voice_state*,
+        Key_indices,
+        const Linear_controls* controls);
+
 
 /**
  * The base class of a Processor implementation.
@@ -150,6 +158,7 @@ typedef struct Device_impl_cv_float_callbacks
     Osc_depth_voice_cv_float_func* voice_osc_depth;
     Osc_speed_slide_voice_cv_float_func* voice_osc_speed_sl;
     Osc_depth_slide_voice_cv_float_func* voice_osc_depth_sl;
+    Carry_voice_cv_float_func* voice_carry;
 } Device_impl_cv_float_callbacks;
 
 typedef struct Device_impl_cv_tstamp_callbacks
@@ -836,6 +845,23 @@ void Device_impl_osc_depth_slide_cv_float(
         Voice_state* vstate,
         const char* key,
         const Tstamp* length);
+
+
+/**
+ * Carry float control variable settings.
+ *
+ * \param dimpl      The Device implementation -- must not be \c NULL.
+ * \param dstate     The Device state -- must not be \c NULL.
+ * \param vstate     The Voice state, or \c NULL if updating \a dstate.
+ * \param key        The key to be updated -- must not be \c NULL.
+ * \param controls   The Linear controls to be applied -- must not be \c NULL.
+ */
+void Device_impl_carry_cv_float(
+        const Device_impl* dimpl,
+        const Device_state* dstate,
+        Voice_state* vstate,
+        const char* key,
+        const Linear_controls* controls);
 
 
 /**

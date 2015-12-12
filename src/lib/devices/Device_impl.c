@@ -432,6 +432,7 @@ Device_impl_cv_float_callbacks* Device_impl_create_cv_float(
     ret->voice_osc_depth = NULL;
     ret->voice_osc_speed_sl = NULL;
     ret->voice_osc_depth_sl = NULL;
+    ret->voice_carry = NULL;
 
     return ret;
 }
@@ -1144,6 +1145,40 @@ void Device_impl_osc_depth_slide_cv_float(
     {
         if (update_cv_cb->cb.float_type.osc_depth_sl != NULL)
             update_cv_cb->cb.float_type.osc_depth_sl(dimpl, dstate, indices, length);
+    }
+
+    return;
+}
+
+
+void Device_impl_carry_cv_float(
+        const Device_impl* dimpl,
+        const Device_state* dstate,
+        Voice_state* vstate,
+        const char* key,
+        const Linear_controls* controls)
+{
+    assert(dimpl != NULL);
+    assert(dstate != NULL);
+    assert(key != NULL);
+    assert(controls != NULL);
+
+    Key_indices indices = { 0 };
+    const Update_control_var_cb* update_cv_cb =
+        get_update_control_var_cb(dimpl, key, indices);
+
+    if ((update_cv_cb == NULL) || (update_cv_cb->type != VALUE_TYPE_FLOAT))
+        return;
+
+    if (vstate != NULL)
+    {
+        if (update_cv_cb->cb.float_type.voice_carry != NULL)
+            update_cv_cb->cb.float_type.voice_carry(
+                    dimpl, dstate, vstate, indices, controls);
+    }
+    else
+    {
+        assert(false); // TODO: implement
     }
 
     return;
