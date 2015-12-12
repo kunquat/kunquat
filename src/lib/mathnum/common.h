@@ -41,6 +41,9 @@
 #define undenormalise(x) (fpclassify((x)) != FP_SUBNORMAL ? (x) : 0.0)
 
 
+#define implies(antecedent, consequent) (!(antecedent) || (consequent))
+
+
 /**
  * Tell whether the given number is a power of 2.
  *
