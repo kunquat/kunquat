@@ -58,6 +58,7 @@ typedef void Device_set_control_var_generic_func(
         const Device*,
         Device_states*,
         Device_control_var_mode,
+        Random*,
         Channel*,
         const char* var_name,
         const Value* value);
@@ -114,6 +115,7 @@ typedef void Device_init_control_vars_func(
         const Device*,
         Device_states*,
         Device_control_var_mode,
+        Random*,
         Channel*);
 
 typedef void Device_init_control_var_float_func(
@@ -525,7 +527,9 @@ void Device_process(
  * \param device     The Device -- must not be \c NULL.
  * \param dstates    The Device states -- must not be \c NULL.
  * \param mode       The Device control variable mode.
- * \param channel    The Channel -- must not be \c NULL.
+ * \param random     The Random source -- must not be \c NULL.
+ * \param channel    The Channel -- must not be \c NULL if
+ *                   \a mode == \c DEVICE_CONTROL_VAR_MODE_VOICE.
  * \param var_name   The name of the control variable -- must not be \c NULL.
  * \param value      The new value -- must not be \c NULL and must have a type
  *                   of \c VALUE_TYPE_BOOL, \c VALUE_TYPE_INT,
@@ -535,6 +539,7 @@ void Device_set_control_var_generic(
         const Device* device,
         Device_states* dstates,
         Device_control_var_mode mode,
+        Random* random,
         Channel* channel,
         const char* var_name,
         const Value* value);
@@ -660,12 +665,16 @@ void Device_osc_depth_slide_cv_float(
  * \param device    The Device -- must not be \c NULL.
  * \param dstates   The Device states -- must not be \c NULL.
  * \param mode      The Device control variable mode.
- * \param channel   The Channel -- must not be \c NULL.
+ * \param random    Global Random source -- must not be \c NULL if
+ *                  \a mode == \c DEVICE_CONTROL_VAR_MODE_MIXED.
+ * \param channel   The Channel -- must not be \c NULL if
+ *                  \a mode == \c DEVICE_CONTROL_VAR_MODE_VOICE.
  */
 void Device_init_control_vars(
         const Device* device,
         Device_states* dstates,
         Device_control_var_mode mode,
+        Random* random,
         Channel* channel);
 
 

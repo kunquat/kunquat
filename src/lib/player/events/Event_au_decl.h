@@ -22,6 +22,7 @@
 #include <devices/Au_params.h>
 #include <player/Au_state.h>
 #include <player/Channel.h>
+#include <player/Master_params.h>
 #include <Value.h>
 
 
@@ -32,6 +33,7 @@
             const Audio_unit* au,                            \
             const Au_params* au_params,                      \
             Au_state* au_state,                              \
+            Master_params* master_params,                    \
             Channel* channel,                                \
             Device_states* dstates,                          \
             const Value* value);

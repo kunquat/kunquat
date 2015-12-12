@@ -59,6 +59,7 @@ struct Event_handler
             const Audio_unit*,
             const Au_params*,
             Au_state*,
+            Master_params*,
             Channel*,
             Device_states*,
             const Value*);
@@ -196,6 +197,7 @@ bool Event_handler_set_au_process(
             const Audio_unit*,
             const Au_params*,
             Au_state*,
+            Master_params*,
             Channel*,
             Device_states*,
             const Value*))
@@ -251,7 +253,13 @@ static bool Event_handler_handle(
                 Device_get_id((Device*)au));
 
         return eh->au_process[type](
-                au, au_params, au_state, eh->channels[index], eh->device_states, value);
+                au,
+                au_params,
+                au_state,
+                eh->master_params,
+                eh->channels[index],
+                eh->device_states,
+                value);
     }
     else if (Event_is_master(type))
     {

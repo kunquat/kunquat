@@ -27,6 +27,7 @@
 #include <devices/Proc_table.h>
 #include <devices/Processor.h>
 #include <mathnum/common.h>
+#include <mathnum/Random.h>
 #include <memory.h>
 #include <module/Au_table.h>
 #include <player/Au_state.h>
@@ -87,6 +88,7 @@ static void Audio_unit_set_control_var_generic(
         const Device* device,
         Device_states* dstates,
         Device_control_var_mode mode,
+        Random* random,
         Channel* channel,
         const char* var_name,
         const Value* value);
@@ -143,6 +145,7 @@ static void Audio_unit_init_control_vars(
         const Device* device,
         Device_states* dstates,
         Device_control_var_mode mode,
+        Random* random,
         Channel* channel);
 
 static void Audio_unit_init_control_var_float(
@@ -691,34 +694,57 @@ static void Audio_unit_init_control_var_generic(
         const Audio_unit* au,
         Device_states* dstates,
         Device_control_var_mode mode,
+        Random* random,
         Channel* channel,
         const char* var_name,
         Value_type var_type)
 {
     assert(au != NULL);
     assert(dstates != NULL);
-    assert(channel != NULL);
+    assert(random != NULL);
+    assert(implies(mode == DEVICE_CONTROL_VAR_MODE_VOICE, channel != NULL));
     assert(var_name != NULL);
 
-    const Channel_cv_state* cvstate = Channel_get_cv_state(channel);
+    bool carried = false;
 
-    const bool carry =
-        (mode == DEVICE_CONTROL_VAR_MODE_VOICE) &&
-        Channel_cv_state_is_carrying_enabled(cvstate, var_name, var_type);
-    const Value* carried_value =
-        carry ? Channel_cv_state_get_value(cvstate, var_name, var_type) : NULL;
-
-    if (carry && (carried_value != NULL))
+    if (mode == DEVICE_CONTROL_VAR_MODE_VOICE)
     {
-        Audio_unit_set_control_var_generic(
-                &au->parent, dstates, mode, channel, var_name, carried_value);
+        const Channel_cv_state* cvstate = Channel_get_cv_state(channel);
+        if (Channel_cv_state_is_carrying_enabled(cvstate, var_name, var_type))
+        {
+            const Value* carried_value =
+                Channel_cv_state_get_value(cvstate, var_name, var_type);
+            if (carried_value != NULL)
+            {
+                Audio_unit_set_control_var_generic(
+                        &au->parent,
+                        dstates,
+                        mode,
+                        random,
+                        channel,
+                        var_name,
+                        carried_value);
+
+                carried = true;
+            }
+        }
     }
-    else
+
+    if (!carried)
     {
         const Value* init_value =
             Au_control_vars_get_init_value(au->control_vars, var_name);
+
+        if (mode == DEVICE_CONTROL_VAR_MODE_VOICE)
+        {
+            Channel_cv_state* cvstate = Channel_get_cv_state_mut(channel);
+            const bool success =
+                Channel_cv_state_set_value(cvstate, var_name, init_value);
+            assert(success);
+        }
+
         Audio_unit_set_control_var_generic(
-                &au->parent, dstates, mode, channel, var_name, init_value);
+                &au->parent, dstates, mode, random, channel, var_name, init_value);
     }
 
     return;
@@ -772,38 +798,50 @@ static void Audio_unit_init_control_var_float_slide(
         const Audio_unit* au,
         Device_states* dstates,
         Device_control_var_mode mode,
+        Random* random,
         Channel* channel,
         const char* var_name)
 {
     assert(au != NULL);
     assert(dstates != NULL);
-    assert(channel != NULL);
+    assert(random != NULL);
+    assert(implies(mode == DEVICE_CONTROL_VAR_MODE_VOICE, channel != NULL));
     assert(var_name != NULL);
 
-    Channel_cv_state* cvstate = Channel_get_cv_state_mut(channel);
+    bool carried = false;
 
-    const bool carry =
-        (mode == DEVICE_CONTROL_VAR_MODE_VOICE) &&
-        Channel_cv_state_is_carrying_enabled(cvstate, var_name, VALUE_TYPE_FLOAT);
-    const Linear_controls* controls =
-        carry ? Channel_cv_state_get_float_controls(cvstate, var_name) : NULL;
-
-    if (carry && (controls != NULL))
+    if (mode == DEVICE_CONTROL_VAR_MODE_VOICE)
     {
-        Device_init_control_var_float(
-                &au->parent, dstates, mode, channel, var_name, controls);
+        const Channel_cv_state* cvstate = Channel_get_cv_state(channel);
+        if (Channel_cv_state_is_carrying_enabled(cvstate, var_name, VALUE_TYPE_FLOAT))
+        {
+            const Linear_controls* controls =
+                Channel_cv_state_get_float_controls(cvstate, var_name);
+            if (controls != NULL)
+            {
+                Device_init_control_var_float(
+                        &au->parent, dstates, mode, channel, var_name, controls);
+                carried = true;
+            }
+        }
     }
-    else
+
+    if (!carried)
     {
         const Value* init_value =
             Au_control_vars_get_init_value(au->control_vars, var_name);
         assert(init_value->type == VALUE_TYPE_FLOAT);
 
-        const bool success = Channel_cv_state_set_value(cvstate, var_name, init_value);
-        assert(success);
+        if (mode == DEVICE_CONTROL_VAR_MODE_VOICE)
+        {
+            Channel_cv_state* cvstate = Channel_get_cv_state_mut(channel);
+            const bool success =
+                Channel_cv_state_set_value(cvstate, var_name, init_value);
+            assert(success);
+        }
 
         Audio_unit_set_control_var_generic(
-                &au->parent, dstates, mode, channel, var_name, init_value);
+                &au->parent, dstates, mode, random, channel, var_name, init_value);
     }
 
     return;
@@ -814,11 +852,13 @@ static void Audio_unit_init_control_vars(
         const Device* device,
         Device_states* dstates,
         Device_control_var_mode mode,
+        Random* random,
         Channel* channel)
 {
     assert(device != NULL);
     assert(dstates != NULL);
-    assert(channel != NULL);
+    assert(random != NULL);
+    assert(implies(mode == DEVICE_CONTROL_VAR_MODE_VOICE, channel != NULL));
 
     const Audio_unit* au = (const Audio_unit*)device;
     if (au->control_vars == NULL)
@@ -833,10 +873,10 @@ static void Audio_unit_init_control_vars(
     {
         if (Au_control_vars_is_entry_float_slide(au->control_vars, var_name))
             Audio_unit_init_control_var_float_slide(
-                    au, dstates, mode, channel, var_name);
+                    au, dstates, mode, random, channel, var_name);
         else
             Audio_unit_init_control_var_generic(
-                    au, dstates, mode, channel, var_name, var_type);
+                    au, dstates, mode, random, channel, var_name, var_type);
 
         Au_control_var_iter_get_next_var_info(var_iter, &var_name, &var_type);
     }
@@ -849,13 +889,15 @@ static void Audio_unit_set_control_var_generic(
         const Device* device,
         Device_states* dstates,
         Device_control_var_mode mode,
+        Random* random,
         Channel* channel,
         const char* var_name,
         const Value* value)
 {
     assert(device != NULL);
     assert(dstates != NULL);
-    assert(channel != NULL);
+    assert(random != NULL);
+    assert(implies(mode == DEVICE_CONTROL_VAR_MODE_VOICE, channel != NULL));
     assert(var_name != NULL);
     assert(value != NULL);
 
@@ -867,7 +909,7 @@ static void Audio_unit_set_control_var_generic(
     // call control value setter for corresponding subdevice
     Au_control_binding_iter* iter = AU_CONTROL_BINDING_ITER_AUTO;
     bool has_entry = Au_control_binding_iter_init_set_generic(
-            iter, au->control_vars, Channel_get_random_source(channel), var_name, value);
+            iter, au->control_vars, random, var_name, value);
     while (has_entry)
     {
         const Device* target_dev = get_cv_target_device(au, iter, mode);
@@ -877,6 +919,7 @@ static void Audio_unit_set_control_var_generic(
                     target_dev,
                     dstates,
                     mode,
+                    random,
                     channel,
                     iter->target_var_name,
                     &iter->target_value);

@@ -53,6 +53,7 @@ static void Processor_set_control_var_generic(
         const Device* device,
         Device_states* dstates,
         Device_control_var_mode mode,
+        Random* random,
         Channel* channel,
         const char* key,
         const Value* value);
@@ -496,13 +497,14 @@ static void Processor_set_control_var_generic(
         const Device* device,
         Device_states* dstates,
         Device_control_var_mode mode,
+        Random* random,
         Channel* channel,
         const char* key,
         const Value* value)
 {
     assert(device != NULL);
     assert(dstates != NULL);
-    assert(channel != NULL);
+    assert(random != NULL);
     assert(key != NULL);
     assert(value != NULL);
 
@@ -526,6 +528,7 @@ static void Processor_set_control_var_generic(
     }
     else
     {
+        assert(channel != NULL);
         Voice* voice = Channel_get_fg_voice(channel, proc->index);
         if (voice != NULL)
         {

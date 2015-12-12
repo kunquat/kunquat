@@ -25,6 +25,7 @@ bool Event_au_set_cv_bool_value_process(
         const Audio_unit* au,
         const Au_params* au_params,
         Au_state* au_state,
+        Master_params* master_params,
         Channel* channel,
         Device_states* dstates,
         const Value* value)
@@ -32,6 +33,7 @@ bool Event_au_set_cv_bool_value_process(
     assert(au != NULL);
     assert(au_params != NULL);
     assert(au_state != NULL);
+    assert(master_params != NULL);
     assert(channel != NULL);
     assert(dstates != NULL);
     assert(value != NULL);
@@ -45,7 +47,13 @@ bool Event_au_set_cv_bool_value_process(
 
     const Device* dev = (const Device*)au;
     Device_set_control_var_generic(
-            dev, dstates, DEVICE_CONTROL_VAR_MODE_MIXED, channel, var_name, value);
+            dev,
+            dstates,
+            DEVICE_CONTROL_VAR_MODE_MIXED,
+            master_params->random,
+            NULL,
+            var_name,
+            value);
 
     return true;
 }
@@ -55,6 +63,7 @@ bool Event_au_set_cv_int_value_process(
         const Audio_unit* au,
         const Au_params* au_params,
         Au_state* au_state,
+        Master_params* master_params,
         Channel* channel,
         Device_states* dstates,
         const Value* value)
@@ -62,6 +71,7 @@ bool Event_au_set_cv_int_value_process(
     assert(au != NULL);
     assert(au_params != NULL);
     assert(au_state != NULL);
+    assert(master_params != NULL);
     assert(channel != NULL);
     assert(dstates != NULL);
     assert(value != NULL);
@@ -75,7 +85,13 @@ bool Event_au_set_cv_int_value_process(
 
     const Device* dev = (const Device*)au;
     Device_set_control_var_generic(
-            dev, dstates, DEVICE_CONTROL_VAR_MODE_MIXED, channel, var_name, value);
+            dev,
+            dstates,
+            DEVICE_CONTROL_VAR_MODE_MIXED,
+            master_params->random,
+            NULL,
+            var_name,
+            value);
 
     return true;
 }
@@ -85,6 +101,7 @@ bool Event_au_set_cv_float_value_process(
         const Audio_unit* au,
         const Au_params* au_params,
         Au_state* au_state,
+        Master_params* master_params,
         Channel* channel,
         Device_states* dstates,
         const Value* value)
@@ -92,6 +109,7 @@ bool Event_au_set_cv_float_value_process(
     assert(au != NULL);
     assert(au_params != NULL);
     assert(au_state != NULL);
+    assert(master_params != NULL);
     assert(channel != NULL);
     assert(dstates != NULL);
     assert(value != NULL);
@@ -105,7 +123,13 @@ bool Event_au_set_cv_float_value_process(
 
     const Device* dev = (const Device*)au;
     Device_set_control_var_generic(
-            dev, dstates, DEVICE_CONTROL_VAR_MODE_MIXED, channel, var_name, value);
+            dev,
+            dstates,
+            DEVICE_CONTROL_VAR_MODE_MIXED,
+            master_params->random,
+            NULL,
+            var_name,
+            value);
 
     return true;
 }
@@ -115,6 +139,7 @@ bool Event_au_slide_cv_float_target_process(
         const Audio_unit* au,
         const Au_params* au_params,
         Au_state* au_state,
+        Master_params* master_params,
         Channel* channel,
         Device_states* dstates,
         const Value* value)
@@ -122,6 +147,7 @@ bool Event_au_slide_cv_float_target_process(
     assert(au != NULL);
     assert(au_params != NULL);
     assert(au_state != NULL);
+    assert(master_params != NULL);
     assert(channel != NULL);
     assert(dstates != NULL);
     assert(value != NULL);
@@ -150,6 +176,7 @@ bool Event_au_slide_cv_float_length_process(
         const Audio_unit* au,
         const Au_params* au_params,
         Au_state* au_state,
+        Master_params* master_params,
         Channel* channel,
         Device_states* dstates,
         const Value* value)
@@ -157,6 +184,7 @@ bool Event_au_slide_cv_float_length_process(
     assert(au != NULL);
     assert(au_params != NULL);
     assert(au_state != NULL);
+    assert(master_params != NULL);
     assert(channel != NULL);
     assert(dstates != NULL);
     assert(value != NULL);
@@ -185,6 +213,7 @@ bool Event_au_osc_speed_cv_float_process(
         const Audio_unit* au,
         const Au_params* au_params,
         Au_state* au_state,
+        Master_params* master_params,
         Channel* channel,
         Device_states* dstates,
         const Value* value)
@@ -192,6 +221,7 @@ bool Event_au_osc_speed_cv_float_process(
     assert(au != NULL);
     assert(au_params != NULL);
     assert(au_state != NULL);
+    assert(master_params != NULL);
     assert(channel != NULL);
     assert(dstates != NULL);
     assert(value != NULL);
@@ -220,6 +250,7 @@ bool Event_au_osc_depth_cv_float_process(
         const Audio_unit* au,
         const Au_params* au_params,
         Au_state* au_state,
+        Master_params* master_params,
         Channel* channel,
         Device_states* dstates,
         const Value* value)
@@ -227,6 +258,7 @@ bool Event_au_osc_depth_cv_float_process(
     assert(au != NULL);
     assert(au_params != NULL);
     assert(au_state != NULL);
+    assert(master_params != NULL);
     assert(channel != NULL);
     assert(dstates != NULL);
     assert(value != NULL);
@@ -255,6 +287,7 @@ bool Event_au_osc_speed_slide_cv_float_process(
         const Audio_unit* au,
         const Au_params* au_params,
         Au_state* au_state,
+        Master_params* master_params,
         Channel* channel,
         Device_states* dstates,
         const Value* value)
@@ -262,6 +295,7 @@ bool Event_au_osc_speed_slide_cv_float_process(
     assert(au != NULL);
     assert(au_params != NULL);
     assert(au_state != NULL);
+    assert(master_params != NULL);
     assert(channel != NULL);
     assert(dstates != NULL);
     assert(value != NULL);
@@ -290,6 +324,7 @@ bool Event_au_osc_depth_slide_cv_float_process(
         const Audio_unit* au,
         const Au_params* au_params,
         Au_state* au_state,
+        Master_params* master_params,
         Channel* channel,
         Device_states* dstates,
         const Value* value)
@@ -297,6 +332,7 @@ bool Event_au_osc_depth_slide_cv_float_process(
     assert(au != NULL);
     assert(au_params != NULL);
     assert(au_state != NULL);
+    assert(master_params != NULL);
     assert(channel != NULL);
     assert(dstates != NULL);
     assert(value != NULL);
@@ -325,6 +361,7 @@ bool Event_au_set_cv_tstamp_value_process(
         const Audio_unit* au,
         const Au_params* au_params,
         Au_state* au_state,
+        Master_params* master_params,
         Channel* channel,
         Device_states* dstates,
         const Value* value)
@@ -332,6 +369,7 @@ bool Event_au_set_cv_tstamp_value_process(
     assert(au != NULL);
     assert(au_params != NULL);
     assert(au_state != NULL);
+    assert(master_params != NULL);
     assert(channel != NULL);
     assert(dstates != NULL);
     assert(value != NULL);
@@ -345,7 +383,13 @@ bool Event_au_set_cv_tstamp_value_process(
 
     const Device* dev = (const Device*)au;
     Device_set_control_var_generic(
-            dev, dstates, DEVICE_CONTROL_VAR_MODE_MIXED, channel, var_name, value);
+            dev,
+            dstates,
+            DEVICE_CONTROL_VAR_MODE_MIXED,
+            master_params->random,
+            channel,
+            var_name,
+            value);
 
     return true;
 }

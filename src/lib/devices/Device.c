@@ -580,13 +580,15 @@ void Device_set_control_var_generic(
         const Device* device,
         Device_states* dstates,
         Device_control_var_mode mode,
+        Random* random,
         Channel* channel,
         const char* var_name,
         const Value* value)
 {
     assert(device != NULL);
     assert(dstates != NULL);
-    assert(channel != NULL);
+    assert(random != NULL);
+    assert(implies(mode == DEVICE_CONTROL_VAR_MODE_VOICE, channel != NULL));
     assert(var_name != NULL);
     assert(value != NULL);
     assert((value->type == VALUE_TYPE_BOOL) ||
@@ -595,7 +597,8 @@ void Device_set_control_var_generic(
             (value->type == VALUE_TYPE_TSTAMP));
 
     if (device->set_control_var_generic != NULL)
-        device->set_control_var_generic(device, dstates, mode, channel, var_name, value);
+        device->set_control_var_generic(
+                device, dstates, mode, random, channel, var_name, value);
 
     return;
 }
@@ -736,14 +739,16 @@ void Device_init_control_vars(
         const Device* device,
         Device_states* dstates,
         Device_control_var_mode mode,
+        Random* random,
         Channel* channel)
 {
     assert(device != NULL);
     assert(dstates != NULL);
-    assert(channel != NULL);
+    assert(implies(mode == DEVICE_CONTROL_VAR_MODE_MIXED, random != NULL));
+    assert(implies(mode == DEVICE_CONTROL_VAR_MODE_VOICE, channel != NULL));
 
     if (device->init_control_vars != NULL)
-        device->init_control_vars(device, dstates, mode, channel);
+        device->init_control_vars(device, dstates, mode, random, channel);
 
     return;
 }

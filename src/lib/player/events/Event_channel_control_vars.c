@@ -70,7 +70,13 @@ static void set_cv_value_generic(Channel* ch, Device_states* dstates, const Valu
 
     const Device* dev = (const Device*)au;
     Device_set_control_var_generic(
-            dev, dstates, DEVICE_CONTROL_VAR_MODE_VOICE, ch, var_name, value);
+            dev,
+            dstates,
+            DEVICE_CONTROL_VAR_MODE_VOICE,
+            Channel_get_random_source(ch),
+            ch,
+            var_name,
+            value);
 
     return;
 }

@@ -25,6 +25,7 @@ bool Event_au_set_sustain_process(
         const Audio_unit* au,
         const Au_params* au_params,
         Au_state* au_state,
+        Master_params* master_params,
         Channel* channel,
         Device_states* dstates,
         const Value* value)
@@ -32,6 +33,7 @@ bool Event_au_set_sustain_process(
     assert(au != NULL);
     assert(au_params != NULL);
     assert(au_state != NULL);
+    assert(master_params != NULL);
     assert(channel != NULL);
     assert(dstates != NULL);
     assert(value != NULL);

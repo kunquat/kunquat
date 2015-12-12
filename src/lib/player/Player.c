@@ -307,6 +307,8 @@ void Player_reset(Player* player, int16_t track_num)
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
         Cgiter_reset(&player->cgiters[i], &player->master_params.cur_pos);
 
+    player->cgiters_accessed = false;
+
     Event_buffer_clear(player->event_buffer);
 
     player->audio_frames_processed = 0;
@@ -602,6 +604,22 @@ void Player_play(Player* player, int32_t nframes)
                         player->device_states,
                         player->master_params.tempo);
 
+                // Init control variables
+                {
+                    Au_table* aus = Module_get_au_table(player->module);
+                    for (int i = 0; i < KQT_AUDIO_UNITS_MAX; ++i)
+                    {
+                        const Audio_unit* au = Au_table_get(aus, i);
+                        if (au != NULL)
+                            Device_init_control_vars(
+                                    (const Device*)au,
+                                    player->device_states,
+                                    DEVICE_CONTROL_VAR_MODE_MIXED,
+                                    player->master_params.random,
+                                    NULL);
+                    }
+                }
+
                 Player_reset_channels(player);
 
                 for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
@@ -814,7 +832,8 @@ void Player_skip(Player* player, int64_t nframes)
 
     player->events_returned = false;
 
-    player->cgiters_accessed = true;
+    if (nframes > 0)
+        player->cgiters_accessed = true;
 
     return;
 }
