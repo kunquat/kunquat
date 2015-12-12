@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -106,6 +106,21 @@ double powi(double x, int n);
  */
 #define lerp(v1, v2, t) \
     (assert((t) >= 0), assert((t) <= 1), (v1) + ((v2) - (v1)) * (t))
+
+
+/**
+ * Get normalised position of a value inside a range.
+ *
+ * \param value         The input value -- must be finite.
+ * \param start_value   The range start -- must be finite.
+ * \param end_value     The range end -- must be finite.
+ *
+ * \return   The normalised value inside range [\a start_value, \a end_value]
+ *           if \a start_value < \a end_value, one minus the normalised value inside
+ *           range [\a end_value, \a start_value] if \a end_value < \a start_value,
+ *           or \c 0 if \a start_value = \a end_value.
+ */
+double get_range_norm(double value, double start_value, double end_value);
 
 
 /**
