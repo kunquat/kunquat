@@ -127,6 +127,13 @@ bool Device_init(Device* device, bool req_impl)
     device->set_control_var_generic = NULL;
     device->slide_control_var_float_target = NULL;
     device->slide_control_var_float_length = NULL;
+    device->osc_speed_cv_float = NULL;
+    device->osc_depth_cv_float = NULL;
+    device->osc_speed_slide_cv_float = NULL;
+    device->osc_depth_slide_cv_float = NULL;
+
+    device->init_control_vars = NULL;
+    device->init_control_var_float = NULL;
 
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
@@ -339,6 +346,30 @@ void Device_register_osc_cv_float(
     device->osc_depth_cv_float = depth_func;
     device->osc_speed_slide_cv_float = speed_slide_func;
     device->osc_depth_slide_cv_float = depth_slide_func;
+
+    return;
+}
+
+
+void Device_register_init_control_vars(
+        Device* device, Device_init_control_vars_func* init_func)
+{
+    assert(device != NULL);
+    assert(init_func != NULL);
+
+    device->init_control_vars = init_func;
+
+    return;
+}
+
+
+void Device_register_init_control_var_float(
+        Device* device, Device_init_control_var_float_func* init_func)
+{
+    assert(device != NULL);
+    assert(init_func != NULL);
+
+    device->init_control_var_float = init_func;
 
     return;
 }
@@ -696,6 +727,45 @@ void Device_osc_depth_slide_cv_float(
     if (device->osc_depth_slide_cv_float != NULL)
         device->osc_depth_slide_cv_float(
                 device, dstates, mode, channel, var_name, length);
+
+    return;
+}
+
+
+void Device_init_control_vars(
+        const Device* device,
+        Device_states* dstates,
+        Device_control_var_mode mode,
+        Channel* channel)
+{
+    assert(device != NULL);
+    assert(dstates != NULL);
+    assert(channel != NULL);
+
+    if (device->init_control_vars != NULL)
+        device->init_control_vars(device, dstates, mode, channel);
+
+    return;
+}
+
+
+void Device_init_control_var_float(
+        const Device* device,
+        Device_states* dstates,
+        Device_control_var_mode mode,
+        Channel* channel,
+        const char* var_name,
+        const Linear_controls* controls)
+{
+    assert(device != NULL);
+    assert(dstates != NULL);
+    assert(channel != NULL);
+    assert(var_name != NULL);
+    assert(controls != NULL);
+
+    if (device->init_control_var_float != NULL)
+        device->init_control_var_float(
+                device, dstates, mode, channel, var_name, controls);
 
     return;
 }

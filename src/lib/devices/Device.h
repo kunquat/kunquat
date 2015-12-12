@@ -27,6 +27,7 @@
 #include <kunquat/limits.h>
 #include <mathnum/Random.h>
 #include <player/Device_states.h>
+#include <player/Linear_controls.h>
 #include <player/Work_buffers.h>
 #include <string/Streader.h>
 #include <Tstamp.h>
@@ -109,6 +110,20 @@ typedef void Device_osc_depth_slide_cv_float_func(
         const char* var_name,
         const Tstamp* length);
 
+typedef void Device_init_control_vars_func(
+        const Device*,
+        Device_states*,
+        Device_control_var_mode,
+        Channel*);
+
+typedef void Device_init_control_var_float_func(
+        const Device*,
+        Device_states*,
+        Device_control_var_mode,
+        Channel*,
+        const char*,
+        const Linear_controls*);
+
 
 struct Device
 {
@@ -135,6 +150,9 @@ struct Device
     Device_osc_depth_cv_float_func* osc_depth_cv_float;
     Device_osc_speed_slide_cv_float_func* osc_speed_slide_cv_float;
     Device_osc_depth_slide_cv_float_func* osc_depth_slide_cv_float;
+
+    Device_init_control_vars_func* init_control_vars;
+    Device_init_control_var_float_func* init_control_var_float;
 
     bool existence[DEVICE_PORT_TYPES][KQT_DEVICE_PORTS_MAX];
 };
@@ -342,6 +360,26 @@ void Device_register_osc_cv_float(
         Device_osc_depth_cv_float_func* depth_func,
         Device_osc_speed_slide_cv_float_func* speed_slide_func,
         Device_osc_depth_slide_cv_float_func* depth_slide_func);
+
+
+/**
+ * Set function for initialising control variables.
+ *
+ * \param device      The Device -- must not be \c NULL.
+ * \param init_func   The initialisation function -- must not be \c NULL.
+ */
+void Device_register_init_control_vars(
+        Device* device, Device_init_control_vars_func* init_func);
+
+
+/**
+ * Set function for initialising a single float control variable.
+ *
+ * \param device      The Device -- must not be \c NULL.
+ * \param init_func   The initialisation function -- must not be \c NULL.
+ */
+void Device_register_init_control_var_float(
+        Device* device, Device_init_control_var_float_func* init_func);
 
 
 /**
@@ -614,6 +652,40 @@ void Device_osc_depth_slide_cv_float(
         Channel* channel,
         const char* var_name,
         const Tstamp* length);
+
+
+/**
+ * Initialise all control variables of the Device.
+ *
+ * \param device    The Device -- must not be \c NULL.
+ * \param dstates   The Device states -- must not be \c NULL.
+ * \param mode      The Device control variable mode.
+ * \param channel   The Channel -- must not be \c NULL.
+ */
+void Device_init_control_vars(
+        const Device* device,
+        Device_states* dstates,
+        Device_control_var_mode mode,
+        Channel* channel);
+
+
+/**
+ * Initialise a single float control variable of the Device.
+ *
+ * \param device     The Device -- must not be \c NULL.
+ * \param dstates    The Device states -- must not be \c NULL.
+ * \param mode       The Device control variable mode.
+ * \param channel    The Channel -- must not be \c NULL.
+ * \param var_name   The variable name -- must not be \c NULL.
+ * \param controls   The Linear controls of the float variable -- must not be \c NULL.
+ */
+void Device_init_control_var_float(
+        const Device* device,
+        Device_states* dstates,
+        Device_control_var_mode mode,
+        Channel* channel,
+        const char* var_name,
+        const Linear_controls* controls);
 
 
 /**
