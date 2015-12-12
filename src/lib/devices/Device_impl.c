@@ -416,7 +416,10 @@ Device_impl_cv_float_callbacks* Device_impl_create_cv_float(
         return NULL;
 
     Device_impl_cv_float_callbacks* ret = &update_cv_cb->cb.float_type;
+    ret->get_controls = NULL;
+    ret->get_voice_controls = NULL;
 
+    /*
     ret->set_value = NULL;
     ret->slide_target = NULL;
     ret->slide_length = NULL;
@@ -433,6 +436,7 @@ Device_impl_cv_float_callbacks* Device_impl_create_cv_float(
     ret->voice_osc_speed_sl = NULL;
     ret->voice_osc_depth_sl = NULL;
     ret->voice_carry = NULL;
+    // */
 
     return ret;
 }
@@ -854,6 +858,7 @@ void Device_impl_set_cv_generic(
     assert(key != NULL);
     assert(strlen(key) < KQT_KEY_LENGTH_MAX);
     assert(value != NULL);
+    assert(value->type != VALUE_TYPE_FLOAT);
 
     Key_indices indices = { 0 };
     const Update_control_var_cb* update_cv_cb =
@@ -898,6 +903,7 @@ void Device_impl_set_cv_generic(
         }
         break;
 
+        /*
         case VALUE_TYPE_FLOAT:
         {
             if (vstate != NULL)
@@ -914,6 +920,7 @@ void Device_impl_set_cv_generic(
             }
         }
         break;
+        // */
 
         case VALUE_TYPE_TSTAMP:
         {
@@ -940,6 +947,40 @@ void Device_impl_set_cv_generic(
 }
 
 
+Linear_controls* Device_impl_get_cv_float_controls_mut(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        Voice_state* vstate,
+        const char* key)
+{
+    assert(dimpl != NULL);
+    assert(dstate != NULL);
+    assert(key != NULL);
+
+    Key_indices indices = { 0 };
+    const Update_control_var_cb* update_cv_cb =
+        get_update_control_var_cb(dimpl, key, indices);
+
+    if ((update_cv_cb == NULL) || (update_cv_cb->type != VALUE_TYPE_FLOAT))
+        return NULL;
+
+    if (vstate != NULL)
+    {
+        if (update_cv_cb->cb.float_type.get_voice_controls != NULL)
+            return update_cv_cb->cb.float_type.get_voice_controls(
+                    dimpl, dstate, vstate, indices);
+    }
+    else
+    {
+        if (update_cv_cb->cb.float_type.get_controls != NULL)
+            return update_cv_cb->cb.float_type.get_controls(dimpl, dstate, indices);
+    }
+
+    return NULL;
+}
+
+
+#if 0
 void Device_impl_slide_cv_float_target(
         const Device_impl* dimpl,
         Device_state* dstate,
@@ -1183,6 +1224,7 @@ void Device_impl_carry_cv_float(
 
     return;
 }
+#endif
 
 
 void Device_impl_deinit(Device_impl* dimpl)

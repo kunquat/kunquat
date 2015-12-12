@@ -163,8 +163,10 @@ static Set_state_float_func Proc_delay_set_state_max_delay;
 static Set_state_float_func Proc_delay_set_state_tap_delay;
 static Set_state_float_func Proc_delay_set_state_tap_volume;
 
+/*
 static Set_cv_float_func Proc_delay_set_cv_tap_delay;
 static Set_cv_float_func Proc_delay_set_cv_tap_volume;
+// */
 
 static void Proc_delay_clear_history(
         const Device_impl* dimpl, Proc_state* proc_state);
@@ -398,8 +400,9 @@ static bool Proc_delay_set_state_tap_delay(
     assert(dimpl != NULL);
     assert(dstate != NULL);
     assert(indices != NULL);
+    assert(isfinite(value));
 
-    Proc_delay_set_cv_tap_delay(dimpl, dstate, indices, value);
+    //Proc_delay_set_cv_tap_delay(dimpl, dstate, indices, value);
 
     return true;
 }
@@ -414,13 +417,15 @@ static bool Proc_delay_set_state_tap_volume(
     assert(dimpl != NULL);
     assert(dstate != NULL);
     assert(indices != NULL);
+    assert(isfinite(value));
 
-    Proc_delay_set_cv_tap_volume(dimpl, dstate, indices, value);
+    //Proc_delay_set_cv_tap_volume(dimpl, dstate, indices, value);
 
     return true;
 }
 
 
+#if 0
 static void Proc_delay_set_cv_tap_delay(
         const Device_impl* dimpl,
         Device_state* dstate,
@@ -466,6 +471,7 @@ static void Proc_delay_set_cv_tap_volume(
 
     return;
 }
+#endif
 
 
 static void Proc_delay_reset(const Device_impl* dimpl, Device_state* dstate)

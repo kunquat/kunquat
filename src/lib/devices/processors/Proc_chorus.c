@@ -151,10 +151,15 @@ static Device_state* Proc_chorus_create_state(
 static void Proc_chorus_reset(const Device_impl* dimpl, Device_state* dstate);
 
 
+// TODO: Get rid of the obsolete set_cv_voice junk
 #define CHORUS_PARAM(name, dev_key, update_key, def_value)            \
     static Set_float_func Proc_chorus_set_voice_ ## name;             \
     static Set_state_float_func Proc_chorus_set_state_voice_ ## name; \
-    static Set_cv_float_func Proc_chorus_set_cv_voice_ ## name;
+    static void Proc_chorus_set_cv_voice_ ## name(                    \
+            const Device_impl* dimpl,                                 \
+            Device_state* dstate,                                     \
+            Key_indices indices,                                      \
+            double value);
 #include <devices/processors/Proc_chorus_params.h>
 
 
@@ -376,6 +381,7 @@ static double get_voice_volume(double value)
         assert(dimpl != NULL);                                              \
         assert(dstate != NULL);                                             \
         assert(indices != NULL);                                            \
+        assert(isfinite(value));                                            \
                                                                             \
         Proc_chorus_set_cv_voice_ ## name(dimpl, dstate, indices, value);   \
                                                                             \

@@ -57,12 +57,16 @@ SET_FUNC_TYPE(num_list,         const Num_list*);
     typedef void (name)(const Device_impl*, Device_state*, Key_indices, actual_type)
 SET_CV_FUNC_TYPE(Set_cv_bool_func,      bool);
 SET_CV_FUNC_TYPE(Set_cv_int_func,       int64_t);
-SET_CV_FUNC_TYPE(Set_cv_float_func,     double);
+//SET_CV_FUNC_TYPE(Set_cv_float_func,     double);
 SET_CV_FUNC_TYPE(Set_cv_tstamp_func,    const Tstamp*);
 #undef SET_CV_FUNC_TYPE
 
+typedef Linear_controls* Get_cv_float_controls_mut_func(
+        const Device_impl*, Device_state*, const Key_indices);
+
 // typedefs for float-specific control variable modifier callbacks
 
+/*
 #define MOD_FLOAT_CV_FUNC_TYPE(name, arg_type) \
     typedef void (name)(const Device_impl*, Device_state*, Key_indices, arg_type)
 
@@ -74,6 +78,7 @@ MOD_FLOAT_CV_FUNC_TYPE(Osc_speed_slide_cv_float_func, const Tstamp*);
 MOD_FLOAT_CV_FUNC_TYPE(Osc_depth_slide_cv_float_func, const Tstamp*);
 
 #undef MOD_FLOAT_CV_FUNC_TYPE
+// */
 
 // ... and corresponding voice control variable callbacks
 
@@ -86,10 +91,14 @@ MOD_FLOAT_CV_FUNC_TYPE(Osc_depth_slide_cv_float_func, const Tstamp*);
             actual_type)
 SET_VOICE_CV_FUNC_TYPE(Set_voice_cv_bool_func,      bool);
 SET_VOICE_CV_FUNC_TYPE(Set_voice_cv_int_func,       int64_t);
-SET_VOICE_CV_FUNC_TYPE(Set_voice_cv_float_func,     double);
+//SET_VOICE_CV_FUNC_TYPE(Set_voice_cv_float_func,     double);
 SET_VOICE_CV_FUNC_TYPE(Set_voice_cv_tstamp_func,    const Tstamp*);
 #undef SET_VOICE_CV_FUNC_TYPE
 
+typedef Linear_controls* Get_voice_cv_float_controls_mut_func(
+        const Device_impl*, const Device_state*, Voice_state*, const Key_indices);
+
+/*
 #define MOD_FLOAT_VOICE_CV_FUNC_TYPE(name, arg_type)                                    \
     typedef void (name)(                                                                \
             const Device_impl*, const Device_state*, Voice_state*, Key_indices, arg_type)
@@ -107,6 +116,7 @@ typedef void Carry_voice_cv_float_func(
         Voice_state*,
         Key_indices,
         const Linear_controls* controls);
+// */
 
 
 /**
@@ -143,6 +153,9 @@ typedef struct Device_impl_cv_int_callbacks
 
 typedef struct Device_impl_cv_float_callbacks
 {
+    Get_cv_float_controls_mut_func* get_controls;
+    Get_voice_cv_float_controls_mut_func* get_voice_controls;
+    /*
     Set_cv_float_func* set_value;
     Slide_target_cv_float_func* slide_target;
     Slide_length_cv_float_func* slide_length;
@@ -159,6 +172,7 @@ typedef struct Device_impl_cv_float_callbacks
     Osc_speed_slide_voice_cv_float_func* voice_osc_speed_sl;
     Osc_depth_slide_voice_cv_float_func* voice_osc_depth_sl;
     Carry_voice_cv_float_func* voice_carry;
+    // */
 } Device_impl_cv_float_callbacks;
 
 typedef struct Device_impl_cv_tstamp_callbacks
@@ -746,6 +760,25 @@ void Device_impl_set_cv_generic(
 
 
 /**
+ * Get modifiable floating-point controls from a Device or Voice state.
+ *
+ * \param dimpl    The Device implementation -- must not be \c NULL.
+ * \param dstate   The Device state -- must not be \c NULL.
+ * \param vstate   The Voice state, or \c NULL if getting controls from \a dstate.
+ * \param key      The key to be updated -- must not be \c NULL.
+ *
+ * \return   The Linear controls associated with \a key, or \c NULL if \a dimpl does
+ *           not support floating-point controls with \a key.
+ */
+Linear_controls* Device_impl_get_cv_float_controls_mut(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        Voice_state* vstate,
+        const char* key);
+
+
+#if 0
+/**
  * Slide float control variable to target value in a Device state.
  *
  * \param dimpl    The Device implementation -- must not be \c NULL.
@@ -862,6 +895,7 @@ void Device_impl_carry_cv_float(
         Voice_state* vstate,
         const char* key,
         const Linear_controls* controls);
+#endif
 
 
 /**
