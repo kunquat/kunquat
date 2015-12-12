@@ -197,6 +197,7 @@ class AudioEngine():
             ratio = 0
         else:
             ratio = float(output_avg) / float(render_avg)
+            ratio = min(max(0.0, ratio), 1.0)
         if self._ui_engine:
             self._ui_engine.update_output_speed(output_avg)
             self._ui_engine.update_render_speed(render_avg)

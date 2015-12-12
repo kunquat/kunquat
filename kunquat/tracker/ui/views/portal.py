@@ -139,7 +139,7 @@ class RenderLoadMeter(QWidget):
         self._load_norm = 0
 
     def set_load_norm(self, load_norm):
-        self._load_norm = load_norm
+        self._load_norm = min(max(0.0, load_norm), 1.0)
         self.update()
 
     def _get_colour(self, norm):
@@ -148,7 +148,7 @@ class RenderLoadMeter(QWidget):
             from_colour = self._config['colour_low']
             to_colour = self._config['colour_mid']
         else:
-            lerp_val = min((norm - 0.5) * 2.0, 1.0)
+            lerp_val = (norm - 0.5) * 2.0
             from_colour = self._config['colour_mid']
             to_colour = self._config['colour_high']
         return utils.lerp_colour(from_colour, to_colour, lerp_val)
