@@ -57,28 +57,11 @@ SET_FUNC_TYPE(num_list,         const Num_list*);
     typedef void (name)(const Device_impl*, Device_state*, Key_indices, actual_type)
 SET_CV_FUNC_TYPE(Set_cv_bool_func,      bool);
 SET_CV_FUNC_TYPE(Set_cv_int_func,       int64_t);
-//SET_CV_FUNC_TYPE(Set_cv_float_func,     double);
 SET_CV_FUNC_TYPE(Set_cv_tstamp_func,    const Tstamp*);
 #undef SET_CV_FUNC_TYPE
 
 typedef Linear_controls* Get_cv_float_controls_mut_func(
         const Device_impl*, Device_state*, const Key_indices);
-
-// typedefs for float-specific control variable modifier callbacks
-
-/*
-#define MOD_FLOAT_CV_FUNC_TYPE(name, arg_type) \
-    typedef void (name)(const Device_impl*, Device_state*, Key_indices, arg_type)
-
-MOD_FLOAT_CV_FUNC_TYPE(Slide_target_cv_float_func, double);
-MOD_FLOAT_CV_FUNC_TYPE(Slide_length_cv_float_func, const Tstamp*);
-MOD_FLOAT_CV_FUNC_TYPE(Osc_speed_cv_float_func, double);
-MOD_FLOAT_CV_FUNC_TYPE(Osc_depth_cv_float_func, double);
-MOD_FLOAT_CV_FUNC_TYPE(Osc_speed_slide_cv_float_func, const Tstamp*);
-MOD_FLOAT_CV_FUNC_TYPE(Osc_depth_slide_cv_float_func, const Tstamp*);
-
-#undef MOD_FLOAT_CV_FUNC_TYPE
-// */
 
 // ... and corresponding voice control variable callbacks
 
@@ -91,32 +74,11 @@ MOD_FLOAT_CV_FUNC_TYPE(Osc_depth_slide_cv_float_func, const Tstamp*);
             actual_type)
 SET_VOICE_CV_FUNC_TYPE(Set_voice_cv_bool_func,      bool);
 SET_VOICE_CV_FUNC_TYPE(Set_voice_cv_int_func,       int64_t);
-//SET_VOICE_CV_FUNC_TYPE(Set_voice_cv_float_func,     double);
 SET_VOICE_CV_FUNC_TYPE(Set_voice_cv_tstamp_func,    const Tstamp*);
 #undef SET_VOICE_CV_FUNC_TYPE
 
 typedef Linear_controls* Get_voice_cv_float_controls_mut_func(
         const Device_impl*, const Device_state*, Voice_state*, const Key_indices);
-
-/*
-#define MOD_FLOAT_VOICE_CV_FUNC_TYPE(name, arg_type)                                    \
-    typedef void (name)(                                                                \
-            const Device_impl*, const Device_state*, Voice_state*, Key_indices, arg_type)
-MOD_FLOAT_VOICE_CV_FUNC_TYPE(Slide_target_voice_cv_float_func,  double);
-MOD_FLOAT_VOICE_CV_FUNC_TYPE(Slide_length_voice_cv_float_func,  const Tstamp*);
-MOD_FLOAT_VOICE_CV_FUNC_TYPE(Osc_speed_voice_cv_float_func,     double);
-MOD_FLOAT_VOICE_CV_FUNC_TYPE(Osc_depth_voice_cv_float_func,     double);
-MOD_FLOAT_VOICE_CV_FUNC_TYPE(Osc_speed_slide_voice_cv_float_func,   const Tstamp*);
-MOD_FLOAT_VOICE_CV_FUNC_TYPE(Osc_depth_slide_voice_cv_float_func,   const Tstamp*);
-#undef MOD_FLOAT_VOICE_CV_FUNC_TYPE
-
-typedef void Carry_voice_cv_float_func(
-        const Device_impl*,
-        const Device_state*,
-        Voice_state*,
-        Key_indices,
-        const Linear_controls* controls);
-// */
 
 
 /**
@@ -155,24 +117,6 @@ typedef struct Device_impl_cv_float_callbacks
 {
     Get_cv_float_controls_mut_func* get_controls;
     Get_voice_cv_float_controls_mut_func* get_voice_controls;
-    /*
-    Set_cv_float_func* set_value;
-    Slide_target_cv_float_func* slide_target;
-    Slide_length_cv_float_func* slide_length;
-    Osc_speed_cv_float_func* osc_speed;
-    Osc_depth_cv_float_func* osc_depth;
-    Osc_speed_slide_cv_float_func* osc_speed_sl;
-    Osc_depth_slide_cv_float_func* osc_depth_sl;
-
-    Set_voice_cv_float_func* voice_set_value;
-    Slide_target_voice_cv_float_func* voice_slide_target;
-    Slide_length_voice_cv_float_func* voice_slide_length;
-    Osc_speed_voice_cv_float_func* voice_osc_speed;
-    Osc_depth_voice_cv_float_func* voice_osc_depth;
-    Osc_speed_slide_voice_cv_float_func* voice_osc_speed_sl;
-    Osc_depth_slide_voice_cv_float_func* voice_osc_depth_sl;
-    Carry_voice_cv_float_func* voice_carry;
-    // */
 } Device_impl_cv_float_callbacks;
 
 typedef struct Device_impl_cv_tstamp_callbacks
@@ -555,121 +499,6 @@ Device_impl_cv_tstamp_callbacks* Device_impl_create_cv_tstamp(
         Device_impl* dimpl, const char* keyp);
 
 
-#if 0
-/**
- * Register a boolean control variable set function.
- *
- * See \a Device_impl_register_set_bool for a detailed description of the
- * \a keyp argument.
- *
- * \param dimpl    The Device implementation -- must not be \c NULL.
- * \param keyp     The key pattern -- must not be \c NULL.
- * \param set_cv   The control variable set callback function
- *                 -- must not be \c NULL.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-bool Device_impl_register_set_cv_bool(
-        Device_impl* dimpl, const char* keyp, Set_cv_bool_func set_cv);
-
-
-/**
- * Register an integer control variable set function.
- *
- * See \a Device_impl_register_set_bool for a detailed description of the
- * \a keyp argument.
- *
- * \param dimpl    The Device implementation -- must not be \c NULL.
- * \param keyp     The key pattern -- must not be \c NULL.
- * \param set_cv   The control variable set callback function
- *                 -- must not be \c NULL.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-bool Device_impl_register_set_cv_int(
-        Device_impl* dimpl, const char* keyp, Set_cv_int_func set_cv);
-
-
-/**
- * Register floating-point control variable update functions.
- *
- * See \a Device_impl_register_set_bool for a detailed description of the
- * \a keyp argument.
- *
- * \param dimpl          The Device implementation -- must not be \c NULL.
- * \param keyp           The key pattern -- must not be \c NULL.
- * \param set_cv         The control variable set callback function, or \c NULL.
- * \param slide_target   The slide target function, or \c NULL.
- * \param slide_length   The slide length function, or \c NULL.
- * \param osc_speed      The oscillation speed function, or \c NULL.
- * \param osc_depth      The oscillation depth function, or \c NULL.
- * \param osc_speed_sl   The oscillation speed slide length function, or \c NULL.
- * \param osc_depth_sl   The oscillation depth slide length function, or \c NULL.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-bool Device_impl_register_updaters_cv_float(
-        Device_impl* dimpl,
-        const char* keyp,
-        Set_cv_float_func set_cv,
-        Slide_target_cv_float_func slide_target,
-        Slide_length_cv_float_func slide_length,
-        Osc_speed_cv_float_func osc_speed,
-        Osc_depth_cv_float_func osc_depth,
-        Osc_speed_slide_cv_float_func osc_speed_sl,
-        Osc_depth_slide_cv_float_func osc_depth_sl);
-
-
-/**
- * Register a timestamp control variable set function.
- *
- * See \a Device_impl_register_set_bool for a detailed description of the
- * \a keyp argument.
- *
- * \param dimpl    The Device implementation -- must not be \c NULL.
- * \param keyp     The key pattern -- must not be \c NULL.
- * \param set_cv   The control variable set callback function
- *                 -- must not be \c NULL.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-bool Device_impl_register_set_cv_tstamp(
-        Device_impl* dimpl, const char* keyp, Set_cv_tstamp_func set_cv);
-
-
-/**
- */
-bool Device_impl_register_set_voice_cv_bool(
-        Device_impl* dimpl, const char* keyp, Set_voice_cv_bool_func set_cv);
-
-
-/**
- */
-bool Device_impl_register_set_voice_cv_int(
-        Device_impl* dimpl, const char* keyp, Set_voice_cv_int_func set_cv);
-
-
-/**
- */
-bool Device_impl_register_updaters_voice_cv_float(
-        Device_impl* dimpl,
-        const char* keyp,
-        Set_voice_cv_float_func set_cv,
-        Slide_target_voice_cv_float_func slide_target,
-        Slide_length_voice_cv_float_func slide_length,
-        Osc_speed_voice_cv_float_func osc_speed,
-        Osc_depth_voice_cv_float_func osc_depth,
-        Osc_speed_slide_voice_cv_float_func osc_speed_sl,
-        Osc_depth_slide_voice_cv_float_func osc_depth_sl);
-
-
-/**
- */
-bool Device_impl_register_set_voice_cv_tstamp(
-        Device_impl* dimpl, const char* keyp, Set_voice_cv_tstamp_func set_cv);
-#endif
-
-
 /**
  * Reset a Device state.
  *
@@ -749,7 +578,8 @@ bool Device_impl_set_state_key(
  * \param dstate   The Device state -- must not be \c NULL.
  * \param vstate   The Voice state, or \c NULL if updating \a dstate.
  * \param key      The key to be updated -- must not be \c NULL.
- * \param value    The Value -- must not be \c NULL.
+ * \param value    The Value -- must not be \c NULL and must not have
+ *                 \c VALUE_TYPE_FLOAT as type.
  */
 void Device_impl_set_cv_generic(
         const Device_impl* dimpl,
@@ -775,127 +605,6 @@ Linear_controls* Device_impl_get_cv_float_controls_mut(
         Device_state* dstate,
         Voice_state* vstate,
         const char* key);
-
-
-#if 0
-/**
- * Slide float control variable to target value in a Device state.
- *
- * \param dimpl    The Device implementation -- must not be \c NULL.
- * \param dstate   The Device state -- must not be \c NULL.
- * \param vstate   The Voice state, or \c NULL if updating \a dstate.
- * \param key      The key to be updated -- must not be \c NULL.
- * \param value    The target value.
- */
-void Device_impl_slide_cv_float_target(
-        const Device_impl* dimpl,
-        Device_state* dstate,
-        Voice_state* vstate,
-        const char* key,
-        double value);
-
-
-/**
- * Set slide length of float control variable in a Device state.
- *
- * \param dimpl    The Device implementation -- must not be \c NULL.
- * \param dstate   The Device state -- must not be \c NULL.
- * \param vstate   The Voice state, or \c NULL if updating \a dstate.
- * \param key      The key to be updated -- must not be \c NULL.
- * \param length   The slide length -- must not be \c NULL.
- */
-void Device_impl_slide_cv_float_length(
-        const Device_impl* dimpl,
-        Device_state* dstate,
-        Voice_state* vstate,
-        const char* key,
-        const Tstamp* length);
-
-
-/**
- * Set oscillation speed of float control variable in a Device state.
- *
- * \param dimpl    The Device implementation -- must not be \c NULL.
- * \param dstate   The Device state -- must not be \c NULL.
- * \param vstate   The Voice state, or \c NULL if updating \a dstate.
- * \param key      The key to be updated -- must not be \c NULL.
- * \param speed    The oscillation speed -- must be >= \c 0.
- */
-void Device_impl_osc_speed_cv_float(
-        const Device_impl* dimpl,
-        Device_state* dstate,
-        Voice_state* vstate,
-        const char* key,
-        double speed);
-
-
-/**
- * Set oscillation depth of float control variable in a Device state.
- *
- * \param dimpl    The Device implementation -- must not be \c NULL.
- * \param dstate   The Device state -- must not be \c NULL.
- * \param vstate   The Voice state, or \c NULL if updating \a dstate.
- * \param key      The key to be updated -- must not be \c NULL.
- * \param depth    The oscillation depth -- must be >= \c 0.
- */
-void Device_impl_osc_depth_cv_float(
-        const Device_impl* dimpl,
-        Device_state* dstate,
-        Voice_state* vstate,
-        const char* key,
-        double depth);
-
-
-/**
- * Set oscillation speed slide of float control variable in a Device state.
- *
- * \param dimpl    The Device implementation -- must not be \c NULL.
- * \param dstate   The Device state -- must not be \c NULL.
- * \param vstate   The Voice state, or \c NULL if updating \a dstate.
- * \param key      The key to be updated -- must not be \c NULL.
- * \param length   The slide length -- must be >= \c 0.
- */
-void Device_impl_osc_speed_slide_cv_float(
-        const Device_impl* dimpl,
-        Device_state* dstate,
-        Voice_state* vstate,
-        const char* key,
-        const Tstamp* length);
-
-
-/**
- * Set oscillation depth slide of float control variable in a Device state.
- *
- * \param dimpl    The Device implementation -- must not be \c NULL.
- * \param dstate   The Device state -- must not be \c NULL.
- * \param vstate   The Voice state, or \c NULL if updating \a dstate.
- * \param key      The key to be updated -- must not be \c NULL.
- * \param length   The slide length -- must be >= \c 0.
- */
-void Device_impl_osc_depth_slide_cv_float(
-        const Device_impl* dimpl,
-        Device_state* dstate,
-        Voice_state* vstate,
-        const char* key,
-        const Tstamp* length);
-
-
-/**
- * Carry float control variable settings.
- *
- * \param dimpl      The Device implementation -- must not be \c NULL.
- * \param dstate     The Device state -- must not be \c NULL.
- * \param vstate     The Voice state, or \c NULL if updating \a dstate.
- * \param key        The key to be updated -- must not be \c NULL.
- * \param controls   The Linear controls to be applied -- must not be \c NULL.
- */
-void Device_impl_carry_cv_float(
-        const Device_impl* dimpl,
-        const Device_state* dstate,
-        Voice_state* vstate,
-        const char* key,
-        const Linear_controls* controls);
-#endif
 
 
 /**
