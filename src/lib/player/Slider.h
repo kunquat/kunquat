@@ -84,6 +84,16 @@ void Slider_start(Slider* slider, double target, double start);
 
 
 /**
+ * Get the current value in the Slider.
+ *
+ * \param slider   The Slider -- must not be \c NULL.
+ *
+ * \return   The current value.
+ */
+double Slider_get_value(const Slider* slider);
+
+
+/**
  * Perform a step in the Slider.
  *
  * It is OK to call this function repeatedly after a slide has finished; the
@@ -163,6 +173,23 @@ void Slider_change_target(Slider* slider, double target);
  * \return   \c true if a slide is in progress, otherwise \c false.
  */
 bool Slider_in_progress(const Slider* slider);
+
+
+/**
+ * Change Slider range without changing current progress.
+ *
+ * \param slider        The Slider -- must not be \c NULL.
+ * \param from_start    Assumed source range start -- must be finite.
+ * \param from_end      Assumed source range end -- must be finite.
+ * \param to_start      Assumed target range start -- must be finite.
+ * \param to_end        Assumed target range end -- must be finite.
+ */
+void Slider_change_range(
+        Slider* slider,
+        double from_start,
+        double from_end,
+        double to_start,
+        double to_end);
 
 
 #endif // K_SLIDER_H

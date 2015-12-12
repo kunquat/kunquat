@@ -86,7 +86,7 @@ void Slider_start(Slider* slider, double target, double start)
 }
 
 
-static double Slider_get_value(const Slider* slider)
+double Slider_get_value(const Slider* slider)
 {
     assert(slider != NULL);
 
@@ -204,6 +204,35 @@ bool Slider_in_progress(const Slider* slider)
 {
     assert(slider != NULL);
     return (slider->progress < 1);
+}
+
+
+void Slider_change_range(
+        Slider* slider,
+        double from_start,
+        double from_end,
+        double to_start,
+        double to_end)
+{
+    assert(slider != NULL);
+    assert(isfinite(from_start));
+    assert(isfinite(from_end));
+    assert(isfinite(to_start));
+    assert(isfinite(to_end));
+
+    const double start_norm = get_range_norm(slider->from, from_start, from_end);
+    const double target_norm = get_range_norm(slider->to, from_start, from_end);
+
+    slider->from = lerp(to_start, to_end, start_norm);
+    slider->to = lerp(to_start, to_end, target_norm);
+
+    if (slider->mode == SLIDE_MODE_EXP)
+    {
+        slider->log2_from = log2(slider->from);
+        slider->log2_to = log2(slider->to);
+    }
+
+    return;
 }
 
 
