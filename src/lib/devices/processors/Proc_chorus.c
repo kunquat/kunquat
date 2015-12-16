@@ -12,6 +12,7 @@
  */
 
 
+#include <math.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -25,6 +26,7 @@
 #include <devices/processors/Proc_chorus.h>
 #include <devices/processors/Proc_utils.h>
 #include <mathnum/common.h>
+#include <mathnum/conversions.h>
 #include <memory.h>
 #include <player/Linear_controls.h>
 #include <player/Player.h>
@@ -51,6 +53,7 @@ typedef struct Chorus_voice_params
 typedef struct Chorus_voice
 {
     Linear_controls delay_variance;
+    Linear_controls volume_controls;
     double delay;
     double range;
     double speed;
@@ -82,6 +85,12 @@ static void Chorus_voice_reset(
     voice->range = params->range;
     voice->speed = params->speed;
     voice->volume = params->volume;
+
+    Linear_controls_init(&voice->volume_controls);
+    Linear_controls_set_audio_rate(&voice->volume_controls, audio_rate);
+    Linear_controls_set_tempo(&voice->volume_controls, DEFAULT_TEMPO);
+    Linear_controls_set_range(&voice->volume_controls, -INFINITY, DB_MAX);
+    Linear_controls_set_value(&voice->volume_controls, voice->volume);
 
     if ((voice->delay < 0) || (voice->delay >= DELAY_MAX))
         return;
@@ -160,6 +169,7 @@ static void Proc_chorus_reset(const Device_impl* dimpl, Device_state* dstate);
 #include <devices/processors/Proc_chorus_params.h>
 
 static Get_cv_float_controls_mut_func Proc_chorus_get_delay_variance;
+static Get_cv_float_controls_mut_func Proc_chorus_get_volume;
 
 
 static void Proc_chorus_clear_history(const Device_impl* dimpl, Proc_state* proc_state);
@@ -224,11 +234,23 @@ static bool Proc_chorus_init(Device_impl* dimpl)
     if (!reg_success)
         return false;
 
-    Device_impl_cv_float_callbacks* cbs =
-        Device_impl_create_cv_float(&chorus->parent, "voice_XX/delay");
-    if (cbs == NULL)
-        return false;
-    cbs->get_controls = Proc_chorus_get_delay_variance;
+    // Delay control variable
+    {
+        Device_impl_cv_float_callbacks* cbs =
+            Device_impl_create_cv_float(&chorus->parent, "voice_XX/delay");
+        if (cbs == NULL)
+            return false;
+        cbs->get_controls = Proc_chorus_get_delay_variance;
+    }
+
+    // Volume control variable
+    {
+        Device_impl_cv_float_callbacks* cbs =
+            Device_impl_create_cv_float(&chorus->parent, "voice_XX/volume");
+        if (cbs == NULL)
+            return false;
+        cbs->get_controls = Proc_chorus_get_volume;
+    }
 
     Device_impl_register_set_audio_rate(
             &chorus->parent, Proc_chorus_set_audio_rate);
@@ -335,7 +357,7 @@ static double get_voice_speed(double value)
 
 static double get_voice_volume(double value)
 {
-    return (value <= DB_MAX) ? exp2(value / 6.0) : 1.0;
+    return (value <= DB_MAX) ? value : 0.0;
 }
 
 
@@ -459,14 +481,15 @@ static bool Proc_chorus_set_state_voice_volume(
     assert(indices != NULL);
     assert(isfinite(value));
 
-    const int index = indices[0];
-    if ((index < 0) || (index >= CHORUS_VOICES_MAX))
+    Linear_controls* controls = Proc_chorus_get_volume(dimpl, dstate, indices);
+    if (controls == NULL)
         return true;
 
     Chorus_state* cstate = (Chorus_state*)dstate;
     Chorus_voice* voice = &cstate->voices[indices[0]];
-
     voice->volume = get_voice_volume(value);
+
+    Linear_controls_set_value(controls, voice->volume);
 
     return true;
 }
@@ -492,6 +515,26 @@ static Linear_controls* Proc_chorus_get_delay_variance(
 }
 
 
+static Linear_controls* Proc_chorus_get_volume(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        const Key_indices indices)
+{
+    assert(dimpl != NULL);
+    assert(dstate != NULL);
+    assert(indices != NULL);
+
+    const int index = indices[0];
+    if ((index < 0) || (index >= CHORUS_VOICES_MAX))
+        return NULL;
+
+    Chorus_state* cstate = (Chorus_state*)dstate;
+    Chorus_voice* voice = &cstate->voices[index];
+
+    return &voice->volume_controls;
+}
+
+
 static bool Proc_chorus_set_audio_rate(
         const Device_impl* dimpl, Device_state* dstate, int32_t audio_rate)
 {
@@ -514,6 +557,7 @@ static bool Proc_chorus_set_audio_rate(
     {
         Chorus_voice* voice = &cstate->voices[i];
         Linear_controls_set_audio_rate(&voice->delay_variance, audio_rate);
+        Linear_controls_set_audio_rate(&voice->volume_controls, audio_rate);
     }
 
     return true;
@@ -558,6 +602,7 @@ static void Proc_chorus_process(
 
     static const int CHORUS_WORK_BUFFER_TOTAL_OFFSETS = WORK_BUFFER_IMPL_1;
     static const int CHORUS_WORK_BUFFER_DELAY = WORK_BUFFER_IMPL_2;
+    static const int CHORUS_WORK_BUFFER_VOLUME = WORK_BUFFER_IMPL_3;
 
     float* total_offsets = Work_buffers_get_buffer_contents_mut(
             wbs, CHORUS_WORK_BUFFER_TOTAL_OFFSETS);
@@ -565,6 +610,9 @@ static void Proc_chorus_process(
     const Work_buffer* delays_wb =
         Work_buffers_get_buffer(wbs, CHORUS_WORK_BUFFER_DELAY);
     float* delays = Work_buffer_get_contents_mut(delays_wb);
+
+    const Work_buffer* vols_wb = Work_buffers_get_buffer(wbs, CHORUS_WORK_BUFFER_VOLUME);
+    float* vols = Work_buffer_get_contents_mut(vols_wb);
 
     int32_t cur_cstate_buf_pos = cstate->buf_pos;
 
@@ -575,10 +623,14 @@ static void Proc_chorus_process(
         if ((voice->delay < 0) || (voice->delay >= DELAY_MAX))
             continue;
 
+        Linear_controls_set_tempo(&voice->delay_variance, tempo);
+        Linear_controls_set_tempo(&voice->volume_controls, tempo);
+
         Linear_controls_fill_work_buffer(
                 &voice->delay_variance, delays_wb, buf_start, buf_stop);
 
-        const double voice_volume = voice->volume;
+        Linear_controls_fill_work_buffer(
+                &voice->volume_controls, vols_wb, buf_start, buf_stop);
 
         // Get total offsets
         for (uint32_t i = buf_start, chunk_offset = 0; i < buf_stop; ++i, ++chunk_offset)
@@ -592,6 +644,7 @@ static void Proc_chorus_process(
         for (uint32_t i = buf_start; i < buf_stop; ++i)
         {
             const float total_offset = total_offsets[i];
+            const float volume = dB_to_scale(vols[i]);
 
             // Get buffer positions
             const int32_t cur_pos = (int32_t)floor(total_offset);
@@ -648,11 +701,9 @@ static void Proc_chorus_process(
             // Create output frame
             const double prev_scale = 1 - remainder;
             const kqt_frame val_l =
-                (prev_scale * voice_volume * cur_val_l) +
-                (remainder * voice_volume * next_val_l);
+                (prev_scale * volume * cur_val_l) + (remainder * volume * next_val_l);
             const kqt_frame val_r =
-                (prev_scale * voice_volume * cur_val_r) +
-                (remainder * voice_volume * next_val_r);
+                (prev_scale * volume * cur_val_r) + (remainder * volume * next_val_r);
 
             out_data[0][i] += val_l;
             out_data[1][i] += val_r;
