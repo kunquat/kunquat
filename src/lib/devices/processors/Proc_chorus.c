@@ -36,6 +36,7 @@
 #define DB_MAX 18
 
 #define DELAY_SCALE (1.0 / 1000.0) // delay parameter is in milliseconds
+#define DELAY_MAX (CHORUS_BUF_TIME * 1000.0 / 2.0)
 
 
 typedef struct Chorus_voice_params
@@ -82,7 +83,7 @@ static void Chorus_voice_reset(
     voice->speed = params->speed;
     voice->volume = params->volume;
 
-    if ((voice->delay < 0) || (voice->delay >= CHORUS_BUF_TIME / 2))
+    if ((voice->delay < 0) || (voice->delay >= DELAY_MAX))
         return;
 
     Linear_controls_set_value(&voice->delay_variance, voice->delay);
@@ -315,16 +316,14 @@ static void Proc_chorus_clear_history(const Device_impl* dimpl, Proc_state* proc
 
 static double get_voice_delay(double value)
 {
-    const double actual = value * DELAY_SCALE;
-    return (actual >= 0 && actual < CHORUS_BUF_TIME / 2) ? actual : -1.0;
+    return ((0 <= value) && (value < DELAY_MAX)) ? value : -1.0;
 }
 
 
 static double get_voice_range(double value)
 {
-    const double actual = value * DELAY_SCALE;
-    // The negation below flips the oscillation phase so that the pitch rises first
-    return (actual >= 0 && actual < CHORUS_BUF_TIME / 2) ? -actual : 0.0;
+    // The negation below flips the oscillation phase to make it more consistent
+    return ((0 <= value) && (value < DELAY_MAX)) ? -value : 0.0;
 }
 
 
@@ -573,7 +572,7 @@ static void Proc_chorus_process(
     for (int vi = 0; vi < CHORUS_VOICES_MAX; ++vi)
     {
         Chorus_voice* voice = &cstate->voices[vi];
-        if ((voice->delay < 0) || (voice->delay >= CHORUS_BUF_TIME / 2))
+        if ((voice->delay < 0) || (voice->delay >= DELAY_MAX))
             continue;
 
         Linear_controls_fill_work_buffer(
@@ -585,7 +584,7 @@ static void Proc_chorus_process(
         for (uint32_t i = buf_start, chunk_offset = 0; i < buf_stop; ++i, ++chunk_offset)
         {
             const double delay = delays[i];
-            double delay_frames = delay * audio_rate;
+            double delay_frames = delay * DELAY_SCALE * audio_rate;
             delay_frames = clamp(delay_frames, 0, delay_max);
             total_offsets[i] = chunk_offset - delay_frames;
         }
