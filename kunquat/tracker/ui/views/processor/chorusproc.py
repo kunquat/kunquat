@@ -276,10 +276,10 @@ class DelaySlider(VoiceParamSlider):
         self.set_number(0)
 
     def _get_value(self, chorus_params):
-        return chorus_params.get_voice_delay(self._index) * 1000.0
+        return chorus_params.get_voice_delay(self._index)
 
     def _set_value(self, chorus_params, value):
-        chorus_params.set_voice_delay(self._index, value / 1000.0)
+        chorus_params.set_voice_delay(self._index, value)
 
 
 class RangeSlider(VoiceParamSlider):
@@ -289,10 +289,10 @@ class RangeSlider(VoiceParamSlider):
         self.set_number(0)
 
     def _get_value(self, chorus_params):
-        return chorus_params.get_voice_range(self._index) * 1000.0
+        return chorus_params.get_voice_range(self._index)
 
     def _set_value(self, chorus_params, value):
-        chorus_params.set_voice_range(self._index, value / 1000.0)
+        chorus_params.set_voice_range(self._index, value)
 
 
 class SpeedSlider(VoiceParamSlider):
