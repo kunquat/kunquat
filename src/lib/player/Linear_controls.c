@@ -29,6 +29,8 @@ void Linear_controls_init(Linear_controls* lc)
     assert(lc != NULL);
 
     lc->value = NAN;
+    lc->min_value = -INFINITY;
+    lc->max_value = INFINITY;
     Slider_init(&lc->slider, SLIDE_MODE_LINEAR);
     LFO_init(&lc->lfo, LFO_MODE_LINEAR);
 
@@ -60,6 +62,19 @@ void Linear_controls_set_tempo(Linear_controls* lc, double tempo)
 }
 
 
+void Linear_controls_set_range(Linear_controls* lc, double min_value, double max_value)
+{
+    assert(lc != NULL);
+    assert(!isnan(min_value));
+    assert(max_value >= min_value);
+
+    lc->min_value = min_value;
+    lc->max_value = max_value;
+
+    return;
+}
+
+
 void Linear_controls_set_value(Linear_controls* lc, double value)
 {
     assert(lc != NULL);
@@ -75,7 +90,7 @@ void Linear_controls_set_value(Linear_controls* lc, double value)
 double Linear_controls_get_value(const Linear_controls* lc)
 {
     assert(lc != NULL);
-    return lc->value;
+    return clamp(lc->value, lc->min_value, lc->max_value);
 }
 
 
@@ -191,6 +206,18 @@ void Linear_controls_fill_work_buffer(
             values[i] += LFO_step(&lc->lfo);
     }
 
+    if (lc->min_value > -INFINITY)
+    {
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+            values[i] = max(lc->min_value, values[i]);
+    }
+
+    if (lc->max_value < INFINITY)
+    {
+        for (int32_t i = buf_start; i < buf_stop; ++i)
+            values[i] = min(lc->max_value, values[i]);
+    }
+
     return;
 }
 
@@ -249,6 +276,57 @@ void Linear_controls_convert(
     const double src_range_diff = range_max - range_min;
     const double target_range_diff = map_max_to - map_min_to;
     LFO_change_depth_range(&dest->lfo, src_range_diff, target_range_diff);
+
+    // Convert minimum/maximum values
+    {
+        const bool flip = (range_min <= range_max) != (map_min_to <= map_max_to);
+
+        const double src_range_min_value = min(range_min, range_max);
+        const double src_range_max_value = max(range_min, range_max);
+        const double src_range_width = src_range_max_value - src_range_min_value;
+
+        double new_min = flip ? src->min_value : src->max_value;
+        double new_max = flip ? src->max_value : src->min_value;
+
+        if (isfinite(new_min))
+        {
+            double norm_unclamped = 0;
+            if (src_range_width > 0)
+            {
+                norm_unclamped = (new_min - src_range_min_value) / src_range_width;
+                if (range_min > range_max)
+                    norm_unclamped = 1.0 - norm_unclamped;
+            }
+
+            new_min = map_min_to + ((map_max_to - map_min_to) * norm_unclamped);
+        }
+        else if (flip)
+        {
+            new_min = -new_min;
+        }
+
+        if (isfinite(new_max))
+        {
+            double norm_unclamped = 0;
+            if (src_range_width > 0)
+            {
+                norm_unclamped = (new_max - src_range_min_value) / src_range_width;
+                if (range_min > range_max)
+                    norm_unclamped = 1.0 - norm_unclamped;
+            }
+
+            new_max = map_min_to + ((map_max_to - map_min_to) * norm_unclamped);
+        }
+        else if (flip)
+        {
+            new_max = -new_max;
+        }
+
+        assert(new_min <= new_max);
+
+        dest->min_value = new_min;
+        dest->max_value = new_max;
+    }
 
     return;
 }

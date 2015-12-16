@@ -29,6 +29,8 @@
 typedef struct Linear_controls
 {
     double value;
+    double min_value;
+    double max_value;
     Slider slider;
     LFO lfo;
 } Linear_controls;
@@ -37,7 +39,7 @@ typedef struct Linear_controls
 /**
  * Initialise Linear controls.
  *
- * \param lc           The Linear controls -- must not be \c NULL.
+ * \param lc   The Linear controls -- must not be \c NULL.
  */
 void Linear_controls_init(Linear_controls* lc);
 
@@ -58,6 +60,16 @@ void Linear_controls_set_audio_rate(Linear_controls* lc, int32_t audio_rate);
  * \param tempo   the tempo -- must be positive.
  */
 void Linear_controls_set_tempo(Linear_controls* lc, double tempo);
+
+
+/**
+ * Set value range in the Linear controls.
+ *
+ * \param lc          The Linear controls -- must not be \c NULL.
+ * \param min_value   The minimum value -- must not be \c NAN.
+ * \param max_value   The maximum value -- must be >= \a min_value.
+ */
+void Linear_controls_set_range(Linear_controls* lc, double min_value, double max_value);
 
 
 /**
