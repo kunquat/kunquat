@@ -72,6 +72,13 @@ void Linear_controls_set_value(Linear_controls* lc, double value)
 }
 
 
+double Linear_controls_get_value(const Linear_controls* lc)
+{
+    assert(lc != NULL);
+    return lc->value;
+}
+
+
 void Linear_controls_slide_value_target(Linear_controls* lc, double value)
 {
     assert(lc != NULL);

@@ -16,6 +16,7 @@
 #define K_LINEAR_CONTROLS_H
 
 
+#include <math.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -66,6 +67,18 @@ void Linear_controls_set_tempo(Linear_controls* lc, double tempo);
  * \param value   The new value -- must be finite.
  */
 void Linear_controls_set_value(Linear_controls* lc, double value);
+
+
+/**
+ * Get the current value in the Linear controls.
+ *
+ * NOTE: The returned value does not have oscillation applied.
+ *
+ * \param lc   The Linear controls -- must not be \c NULL.
+ *
+ * \return   The current value, or \c NAN if unspecified.
+ */
+double Linear_controls_get_value(const Linear_controls* lc);
 
 
 /**
