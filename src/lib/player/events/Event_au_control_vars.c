@@ -40,7 +40,7 @@ bool Event_au_set_cv_bool_value_process(
     assert(value->type == VALUE_TYPE_BOOL);
 
     const char* var_name = Active_names_get(
-            channel->parent.active_names, ACTIVE_CAT_AU_CONTROL_VAR, ACTIVE_TYPE_BOOL);
+            channel->parent.active_names, ACTIVE_CAT_CONTROL_VAR, ACTIVE_TYPE_BOOL);
 
     if (var_name == NULL)
         return true;
@@ -78,7 +78,7 @@ bool Event_au_set_cv_int_value_process(
     assert(value->type == VALUE_TYPE_INT);
 
     const char* var_name = Active_names_get(
-            channel->parent.active_names, ACTIVE_CAT_AU_CONTROL_VAR, ACTIVE_TYPE_INT);
+            channel->parent.active_names, ACTIVE_CAT_CONTROL_VAR, ACTIVE_TYPE_INT);
 
     if (var_name == NULL)
         return true;
@@ -116,7 +116,7 @@ bool Event_au_set_cv_float_value_process(
     assert(value->type == VALUE_TYPE_FLOAT);
 
     const char* var_name = Active_names_get(
-            channel->parent.active_names, ACTIVE_CAT_AU_CONTROL_VAR, ACTIVE_TYPE_FLOAT);
+            channel->parent.active_names, ACTIVE_CAT_CONTROL_VAR, ACTIVE_TYPE_FLOAT);
 
     if (var_name == NULL)
         return true;
@@ -154,7 +154,7 @@ bool Event_au_slide_cv_float_target_process(
     assert(value->type == VALUE_TYPE_FLOAT);
 
     const char* var_name = Active_names_get(
-            channel->parent.active_names, ACTIVE_CAT_AU_CONTROL_VAR, ACTIVE_TYPE_FLOAT);
+            channel->parent.active_names, ACTIVE_CAT_CONTROL_VAR, ACTIVE_TYPE_FLOAT);
 
     if (var_name == NULL)
         return true;
@@ -191,7 +191,7 @@ bool Event_au_slide_cv_float_length_process(
     assert(value->type == VALUE_TYPE_TSTAMP);
 
     const char* var_name = Active_names_get(
-            channel->parent.active_names, ACTIVE_CAT_AU_CONTROL_VAR, ACTIVE_TYPE_FLOAT);
+            channel->parent.active_names, ACTIVE_CAT_CONTROL_VAR, ACTIVE_TYPE_FLOAT);
 
     if (var_name == NULL)
         return true;
@@ -228,7 +228,7 @@ bool Event_au_osc_speed_cv_float_process(
     assert(value->type == VALUE_TYPE_FLOAT);
 
     const char* var_name = Active_names_get(
-            channel->parent.active_names, ACTIVE_CAT_AU_CONTROL_VAR, ACTIVE_TYPE_FLOAT);
+            channel->parent.active_names, ACTIVE_CAT_CONTROL_VAR, ACTIVE_TYPE_FLOAT);
 
     if (var_name == NULL)
         return true;
@@ -265,7 +265,7 @@ bool Event_au_osc_depth_cv_float_process(
     assert(value->type == VALUE_TYPE_FLOAT);
 
     const char* var_name = Active_names_get(
-            channel->parent.active_names, ACTIVE_CAT_AU_CONTROL_VAR, ACTIVE_TYPE_FLOAT);
+            channel->parent.active_names, ACTIVE_CAT_CONTROL_VAR, ACTIVE_TYPE_FLOAT);
 
     if (var_name == NULL)
         return true;
@@ -302,7 +302,7 @@ bool Event_au_osc_speed_slide_cv_float_process(
     assert(value->type == VALUE_TYPE_TSTAMP);
 
     const char* var_name = Active_names_get(
-            channel->parent.active_names, ACTIVE_CAT_AU_CONTROL_VAR, ACTIVE_TYPE_FLOAT);
+            channel->parent.active_names, ACTIVE_CAT_CONTROL_VAR, ACTIVE_TYPE_FLOAT);
 
     if (var_name == NULL)
         return true;
@@ -339,7 +339,7 @@ bool Event_au_osc_depth_slide_cv_float_process(
     assert(value->type == VALUE_TYPE_TSTAMP);
 
     const char* var_name = Active_names_get(
-            channel->parent.active_names, ACTIVE_CAT_AU_CONTROL_VAR, ACTIVE_TYPE_FLOAT);
+            channel->parent.active_names, ACTIVE_CAT_CONTROL_VAR, ACTIVE_TYPE_FLOAT);
 
     if (var_name == NULL)
         return true;
@@ -376,7 +376,7 @@ bool Event_au_set_cv_tstamp_value_process(
     assert(value->type == VALUE_TYPE_TSTAMP);
 
     const char* var_name = Active_names_get(
-            channel->parent.active_names, ACTIVE_CAT_AU_CONTROL_VAR, ACTIVE_TYPE_TSTAMP);
+            channel->parent.active_names, ACTIVE_CAT_CONTROL_VAR, ACTIVE_TYPE_TSTAMP);
 
     if (var_name == NULL)
         return true;

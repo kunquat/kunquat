@@ -22,7 +22,7 @@
 typedef enum Active_cat
 {
     ACTIVE_CAT_ENV = 0,
-    ACTIVE_CAT_AU_CONTROL_VAR,
+    ACTIVE_CAT_CONTROL_VAR,
     ACTIVE_CAT_COUNT
 } Active_cat;
 
