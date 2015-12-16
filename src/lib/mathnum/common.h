@@ -35,7 +35,8 @@
 #define max(x,y) ((x) > (y) ? (x) : (y))
 
 
-#define clamp(val, min_val, max_val) min(max(min_val, val), max_val)
+// The order of arguments below allows val == NAN to propagate through
+#define clamp(val, min_val, max_val) min(max_val, max(min_val, val))
 
 
 #define undenormalise(x) (fpclassify((x)) != FP_SUBNORMAL ? (x) : 0.0)
