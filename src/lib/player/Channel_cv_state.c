@@ -233,6 +233,9 @@ bool Channel_cv_state_slide_target_float(
     if (entry == NULL)
         return false;
 
+    if (isnan(Linear_controls_get_value(&entry->float_controls)))
+        Linear_controls_set_value(&entry->float_controls, value);
+
     Linear_controls_slide_value_target(&entry->float_controls, value);
     entry->is_empty = false;
 
