@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -12,11 +12,11 @@
  */
 
 
-#include <stdlib.h>
+#include <debug/assert.h>
+
 #include <stdbool.h>
 #include <stdio.h>
-
-#include <debug/assert.h>
+#include <stdlib.h>
 
 
 static bool is_printing_enabled = true;
