@@ -13,16 +13,16 @@
  */
 
 
-#include <stdlib.h>
-#include <stdbool.h>
-#include <math.h>
-#include <stdarg.h>
-#include <string.h>
-#include <stdio.h>
+#include <Filter.h>
 
 #include <debug/assert.h>
-#include <Filter.h>
 #include <mathnum/common.h>
+
+#include <math.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 void simple_lowpass_fir_create(int n, double f, double* coeffs)

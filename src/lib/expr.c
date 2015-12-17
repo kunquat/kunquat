@@ -12,19 +12,20 @@
  */
 
 
-#include <stdlib.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <string.h>
-#include <ctype.h>
-#include <math.h>
-#include <stdio.h>
+#include <expr.h>
 
 #include <debug/assert.h>
-#include <expr.h>
 #include <mathnum/common.h>
 #include <Pat_inst_ref.h>
 #include <string/common.h>
+
+#include <ctype.h>
+#include <math.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 #define STACK_SIZE 32

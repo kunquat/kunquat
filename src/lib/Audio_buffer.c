@@ -12,15 +12,16 @@
  */
 
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-
 #include <Audio_buffer.h>
+
 #include <debug/assert.h>
 #include <kunquat/limits.h>
 #include <mathnum/common.h>
 #include <memory.h>
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
 
 struct Audio_buffer

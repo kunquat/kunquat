@@ -12,20 +12,21 @@
  */
 
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
+#include <Device_node.h>
 
 #include <Connections.h>
 #include <debug/assert.h>
-#include <Device_node.h>
 #include <devices/Audio_unit.h>
 #include <devices/Processor.h>
 #include <kunquat/limits.h>
 #include <memory.h>
 #include <player/Voice_group.h>
 #include <string/common.h>
+
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 typedef enum

@@ -12,15 +12,16 @@
  */
 
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
+#include <Value.h>
 
 #include <debug/assert.h>
 #include <mathnum/common.h>
 #include <string/serialise.h>
-#include <Value.h>
+
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 Value* Value_copy(Value* restrict dest, const Value* restrict src)

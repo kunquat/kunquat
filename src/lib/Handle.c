@@ -12,6 +12,17 @@
  */
 
 
+#include <Handle_private.h>
+
+#include <Connections.h>
+#include <debug/assert.h>
+#include <devices/Audio_unit.h>
+#include <kunquat/limits.h>
+#include <memory.h>
+#include <module/Module.h>
+#include <module/Parse_manager.h>
+#include <string/common.h>
+
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -21,16 +32,6 @@
 #include <math.h>
 #include <string.h>
 #include <stdarg.h>
-
-#include <Connections.h>
-#include <debug/assert.h>
-#include <devices/Audio_unit.h>
-#include <Handle_private.h>
-#include <kunquat/limits.h>
-#include <memory.h>
-#include <module/Module.h>
-#include <module/Parse_manager.h>
-#include <string/common.h>
 
 
 static Handle* handles[KQT_HANDLES_MAX] = { NULL };

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -16,10 +16,10 @@
 #define K_TSTAMP_H
 
 
+#include <kunquat/limits.h>
+
 #include <inttypes.h>
 #include <stdint.h>
-
-#include <kunquat/limits.h>
 
 
 /**

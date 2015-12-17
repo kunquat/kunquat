@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -12,11 +12,12 @@
  */
 
 
-#include <stdio.h>
-#include <string.h>
+#include <Error.h>
 
 #include <debug/assert.h>
-#include <Error.h>
+
+#include <stdio.h>
+#include <string.h>
 
 
 static const char* error_codes[ERROR_COUNT_] =

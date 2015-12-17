@@ -16,13 +16,14 @@
 #define KQT_HANDLE_PRIVATE_H
 
 
-#include <stdbool.h>
+#include <kunquat/Handle.h>
 
 #include <Error.h>
-#include <kunquat/Handle.h>
 #include <kunquat/Player.h>
 #include <module/Module.h>
 #include <player/Player.h>
+
+#include <stdbool.h>
 
 
 #define POSITION_LENGTH (64)

@@ -12,13 +12,14 @@
  */
 
 
-#include <stdlib.h>
-#include <stdbool.h>
-#include <inttypes.h>
-#include <stdio.h>
+#include <Tstamp.h>
 
 #include <debug/assert.h>
-#include <Tstamp.h>
+
+#include <inttypes.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 
 #ifndef NDEBUG

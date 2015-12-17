@@ -12,21 +12,22 @@
  */
 
 
-#include <stdlib.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <inttypes.h>
-#include <limits.h>
-#include <string.h>
-#include <math.h>
+#include <Connections.h>
 
 #include <containers/AAtree.h>
-#include <Connections.h>
 #include <debug/assert.h>
 #include <Device_node.h>
 #include <devices/Audio_unit.h>
 #include <memory.h>
 #include <string/common.h>
+
+#include <inttypes.h>
+#include <limits.h>
+#include <math.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 struct Connections

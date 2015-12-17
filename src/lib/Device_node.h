@@ -16,14 +16,14 @@
 #define K_DEVICE_NODE_H
 
 
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdio.h>
-
 #include <devices/Device.h>
 #include <module/Au_table.h>
 #include <player/Device_states.h>
 #include <player/Voice_group.h>
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
 
 
 /**

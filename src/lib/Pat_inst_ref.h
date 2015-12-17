@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2015
  *
  * This file is part of Kunquat.
  *
@@ -16,9 +16,9 @@
 #define K_PAT_INST_REF_H
 
 
-#include <stdint.h>
-
 #include <kunquat/limits.h>
+
+#include <stdint.h>
 
 
 // Pattern instance reference.
