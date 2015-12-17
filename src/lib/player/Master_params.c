@@ -196,8 +196,10 @@ void Master_params_deinit(Master_params* params)
 
     del_Active_jumps(params->active_jumps);
     del_Jump_cache(params->jump_cache);
+    del_Random(params->random);
     params->active_jumps = NULL;
     params->jump_cache = NULL;
+    params->random = NULL;
 
     General_state_deinit(&params->parent);
 
