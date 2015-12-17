@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -17,6 +17,7 @@
 
 
 #include <stdbool.h>
+#include <stdlib.h>
 
 
 /**
@@ -24,7 +25,7 @@
  * object as long as the user provides comparison and destructor functions for
  * the type.
  *
- * Without debug code, insertion, removal and search of an element take
+ * With debugging disabled, insertion, removal and search of an element take
  * O(log n) time where n is the total number of elements stored. In debug mode
  * these operations take O(n) time.
  */

@@ -12,13 +12,14 @@
  */
 
 
+#include <containers/Bit_array.h>
+
+#include <debug/assert.h>
+#include <memory.h>
+
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-
-#include <containers/Bit_array.h>
-#include <debug/assert.h>
-#include <memory.h>
 
 
 struct Bit_array
