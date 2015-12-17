@@ -23,7 +23,6 @@
 #include <devices/Processor.h>
 #include <Filter.h>
 #include <memory.h>
-#include <pitch_t.h>
 #include <player/Channel.h>
 #include <player/Voice.h>
 

@@ -25,7 +25,6 @@
 #include <devices/Device.h>
 #include <devices/Device_params.h>
 #include <kunquat/limits.h>
-#include <pitch_t.h>
 #include <player/Au_state.h>
 #include <player/Proc_state.h>
 #include <player/Voice_state.h>

@@ -29,7 +29,6 @@
 #include <devices/processors/Proc_utils.h>
 #include <devices/processors/Voice_state_sample.h>
 #include <memory.h>
-#include <pitch_t.h>
 #include <player/Work_buffers.h>
 #include <string/common.h>
 

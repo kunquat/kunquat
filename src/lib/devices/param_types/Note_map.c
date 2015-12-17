@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -18,7 +18,6 @@
 #include <debug/assert.h>
 #include <devices/param_types/Note_map.h>
 #include <memory.h>
-#include <pitch_t.h>
 
 
 struct Note_map
@@ -30,7 +29,7 @@ struct Note_map
 
 typedef struct Random_list
 {
-    pitch_t freq;
+    double freq;
     double cents;
     double force;
     int entry_count;

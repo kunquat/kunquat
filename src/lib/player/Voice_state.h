@@ -21,7 +21,6 @@
 
 #include <kunquat/limits.h>
 #include <mathnum/Random.h>
-#include <pitch_t.h>
 #include <player/Channel_proc_state.h>
 #include <player/Filter_controls.h>
 #include <player/Force_controls.h>
@@ -59,8 +58,8 @@ typedef struct Voice_state
     int hit_index;                 ///< The hit index (negative for normal notes).
     Pitch_controls pitch_controls;
     double orig_pitch_param;       ///< The original pitch parameter.
-    pitch_t actual_pitch;          ///< The actual frequency (includes vibrato).
-    pitch_t prev_actual_pitch;     ///< The actual frequency in the previous mixing cycle.
+    double actual_pitch;           ///< The actual frequency (includes vibrato).
+    double prev_actual_pitch;      ///< The actual frequency in the previous mixing cycle.
 
     bool arpeggio;                 ///< Arpeggio enabled.
     double arpeggio_ref;           ///< Arpeggio reference note in cents.
