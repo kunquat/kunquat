@@ -20,7 +20,6 @@
 #include <stdbool.h>
 
 #include <devices/param_types/Envelope.h>
-#include <frame.h>
 #include <module/Scale.h>
 #include <string/Streader.h>
 

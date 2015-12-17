@@ -19,8 +19,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <frame.h>
-
 
 #define KQT_INTERNAL_AUDIO_BUFFER_SIZE_MAX 67108864
 
@@ -122,7 +120,7 @@ void Audio_buffer_mix(
  *
  * \return   The internal buffer. This value must not be cached by the caller.
  */
-kqt_frame* Audio_buffer_get_buffer(Audio_buffer* buffer, int index);
+float* Audio_buffer_get_buffer(Audio_buffer* buffer, int index);
 
 
 /**

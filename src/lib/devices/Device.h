@@ -23,7 +23,6 @@
 #include <Audio_buffer.h>
 #include <Decl.h>
 #include <devices/Device_params.h>
-#include <frame.h>
 #include <kunquat/limits.h>
 #include <mathnum/Random.h>
 #include <player/Device_states.h>

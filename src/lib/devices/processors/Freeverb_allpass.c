@@ -24,8 +24,8 @@
 
 struct Freeverb_allpass
 {
-    kqt_frame feedback;
-    kqt_frame* buffer;
+    float feedback;
+    float* buffer;
     uint32_t buffer_size;
     uint32_t buffer_pos;
 };
@@ -43,7 +43,7 @@ Freeverb_allpass* new_Freeverb_allpass(uint32_t buffer_size)
     allpass->buffer = NULL;
     allpass->buffer_size = 0;
     allpass->buffer_pos = 0;
-    allpass->buffer = memory_alloc_items(kqt_frame, buffer_size);
+    allpass->buffer = memory_alloc_items(float, buffer_size);
     if (allpass->buffer == NULL)
     {
         del_Freeverb_allpass(allpass);
@@ -56,7 +56,7 @@ Freeverb_allpass* new_Freeverb_allpass(uint32_t buffer_size)
 }
 
 
-void Freeverb_allpass_set_feedback(Freeverb_allpass* allpass, kqt_frame feedback)
+void Freeverb_allpass_set_feedback(Freeverb_allpass* allpass, float feedback)
 {
     assert(allpass != NULL);
     assert(feedback > -1);
@@ -66,11 +66,11 @@ void Freeverb_allpass_set_feedback(Freeverb_allpass* allpass, kqt_frame feedback
 }
 
 
-kqt_frame Freeverb_allpass_process(Freeverb_allpass* allpass, kqt_frame input)
+float Freeverb_allpass_process(Freeverb_allpass* allpass, float input)
 {
     assert(allpass != NULL);
 
-    kqt_frame bufout = allpass->buffer[allpass->buffer_pos];
+    float bufout = allpass->buffer[allpass->buffer_pos];
     bufout = undenormalise(bufout);
     allpass->buffer[allpass->buffer_pos] = input + (bufout * allpass->feedback);
 
@@ -90,7 +90,7 @@ bool Freeverb_allpass_resize_buffer(Freeverb_allpass* allpass, uint32_t new_size
     if (new_size == allpass->buffer_size)
         return true;
 
-    kqt_frame* buffer = memory_realloc_items(kqt_frame, new_size, allpass->buffer);
+    float* buffer = memory_realloc_items(float, new_size, allpass->buffer);
     if (buffer == NULL)
         return false;
 

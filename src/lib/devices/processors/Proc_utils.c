@@ -59,7 +59,7 @@ void Proc_ramp_attack(
     assert((ab_count == 1) || (ab_count == 2));
     (void)proc;
 
-    kqt_frame* abufs[KQT_BUFFERS_MAX] =
+    float* abufs[KQT_BUFFERS_MAX] =
     {
         Audio_buffer_get_buffer(voice_out_buf, 0),
         Audio_buffer_get_buffer(voice_out_buf, 1),

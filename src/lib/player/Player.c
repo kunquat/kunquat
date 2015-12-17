@@ -713,7 +713,7 @@ void Player_play(Player* player, int32_t nframes)
 
             if (buffer != NULL)
             {
-                kqt_frame* bufs[] =
+                float* bufs[] =
                 {
                     Audio_buffer_get_buffer(buffer, 0),
                     Audio_buffer_get_buffer(buffer, 1),
@@ -754,7 +754,7 @@ void Player_play(Player* player, int32_t nframes)
         if (buffer != NULL)
         {
             // Apply render volume
-            kqt_frame* bufs[] =
+            float* bufs[] =
             {
                 Audio_buffer_get_buffer(buffer, 0),
                 Audio_buffer_get_buffer(buffer, 1),

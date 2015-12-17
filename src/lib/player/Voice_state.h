@@ -19,7 +19,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <frame.h>
 #include <kunquat/limits.h>
 #include <mathnum/Random.h>
 #include <pitch_t.h>

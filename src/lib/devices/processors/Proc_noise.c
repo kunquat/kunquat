@@ -204,8 +204,8 @@ static uint32_t Proc_noise_process_vstate(
     Audio_buffer* out_buffer = Proc_state_get_voice_buffer_mut(
             proc_state, DEVICE_PORT_TYPE_SEND, 0);
     assert(out_buffer != NULL);
-    kqt_frame* audio_l = Audio_buffer_get_buffer(out_buffer, 0);
-    kqt_frame* audio_r = Audio_buffer_get_buffer(out_buffer, 1);
+    float* audio_l = Audio_buffer_get_buffer(out_buffer, 0);
+    float* audio_r = Audio_buffer_get_buffer(out_buffer, 1);
 
     for (int32_t i = buf_start; i < buf_stop; ++i)
     {

@@ -25,7 +25,6 @@
 #include <devices/processors/Freeverb_comb.h>
 #include <devices/processors/Proc_freeverb.h>
 #include <devices/processors/Proc_utils.h>
-#include <frame.h>
 #include <mathnum/common.h>
 #include <memory.h>
 #include <string/common.h>
@@ -538,8 +537,8 @@ static void Proc_freeverb_process(
 
     Proc_freeverb* freeverb = (Proc_freeverb*)device->dimpl;
     //assert(string_eq(freeverb->parent.type, "freeverb"));
-    kqt_frame* in_data[] = { NULL, NULL };
-    kqt_frame* out_data[] = { NULL, NULL };
+    float* in_data[] = { NULL, NULL };
+    float* out_data[] = { NULL, NULL };
     get_raw_input(&fstate->parent.parent, 0, in_data);
     get_raw_output(&fstate->parent.parent, 0, out_data);
 
@@ -569,9 +568,9 @@ static void Proc_freeverb_process(
 
     for (uint32_t i = start; i < until; ++i)
     {
-        kqt_frame out_l = 0;
-        kqt_frame out_r = 0;
-        kqt_frame input = (in_data[0][i] + in_data[1][i]) * freeverb->gain;
+        float out_l = 0;
+        float out_r = 0;
+        float input = (in_data[0][i] + in_data[1][i]) * freeverb->gain;
 
         for (int comb = 0; comb < FREEVERB_COMBS; ++comb)
         {

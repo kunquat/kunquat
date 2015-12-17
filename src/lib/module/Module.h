@@ -21,7 +21,6 @@
 #include <Connections.h>
 #include <Decl.h>
 #include <devices/Device.h>
-#include <frame.h>
 #include <kunquat/limits.h>
 #include <module/Bind.h>
 #include <module/Environment.h>

@@ -241,7 +241,7 @@ static uint32_t Proc_add_process_vstate(
     assert(out_buffer != NULL);
     Audio_buffer_clear(out_buffer, buf_start, buf_stop);
 
-    kqt_frame* out_values[] =
+    float* out_values[] =
     {
         Audio_buffer_get_buffer(out_buffer, 0),
         Audio_buffer_get_buffer(out_buffer, 1),
@@ -264,7 +264,7 @@ static uint32_t Proc_add_process_vstate(
     {
         // Copy from the input voice buffer
         // XXX: not sure if the best way to handle this...
-        const kqt_frame* mod_in_values[] =
+        const float* mod_in_values[] =
         {
             Audio_buffer_get_buffer(mod_buffer, 0),
             Audio_buffer_get_buffer(mod_buffer, 1),
@@ -272,7 +272,7 @@ static uint32_t Proc_add_process_vstate(
 
         for (int ch = 0; ch < 2; ++ch)
         {
-            const kqt_frame* mod_in_values_ch = mod_in_values[ch];
+            const float* mod_in_values_ch = mod_in_values[ch];
             float* mod_values_ch = mod_values[ch];
 
             for (int32_t i = buf_start; i < buf_stop; ++i)

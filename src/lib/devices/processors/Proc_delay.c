@@ -495,11 +495,11 @@ static void Proc_delay_process(
 
     Proc_delay* delay = (Proc_delay*)device->dimpl;
     //assert(string_eq(delay->parent.type, "delay"));
-    kqt_frame* in_data[] = { NULL, NULL };
-    kqt_frame* out_data[] = { NULL, NULL };
+    float* in_data[] = { NULL, NULL };
+    float* out_data[] = { NULL, NULL };
     get_raw_input(&dlstate->parent.parent, 0, in_data);
     get_raw_output(&dlstate->parent.parent, 0, out_data);
-    kqt_frame* delay_data[] =
+    float* delay_data[] =
     {
         Audio_buffer_get_buffer(dlstate->buf, 0),
         Audio_buffer_get_buffer(dlstate->buf, 1)

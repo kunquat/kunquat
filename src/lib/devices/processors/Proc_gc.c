@@ -177,15 +177,15 @@ static void distort(
     {
         for (int ch = 0; ch < 2; ++ch)
         {
-            const kqt_frame* in_values = Audio_buffer_get_buffer(in_buffer, ch);
-            kqt_frame* out_values = Audio_buffer_get_buffer(out_buffer, ch);
+            const float* in_values = Audio_buffer_get_buffer(in_buffer, ch);
+            float* out_values = Audio_buffer_get_buffer(out_buffer, ch);
 
             for (int32_t i = buf_start; i < buf_stop; ++i)
             {
-                const kqt_frame in_value = in_values[i];
-                const kqt_frame abs_value = fabs(in_value);
+                const float in_value = in_values[i];
+                const float abs_value = fabs(in_value);
 
-                kqt_frame out_value = Envelope_get_value(gc->map, min(abs_value, 1));
+                float out_value = Envelope_get_value(gc->map, min(abs_value, 1));
                 if (in_value < 0)
                     out_value = -out_value;
 

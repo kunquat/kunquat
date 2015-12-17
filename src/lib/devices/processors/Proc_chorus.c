@@ -586,12 +586,12 @@ static void Proc_chorus_process(
 
     //assert(string_eq(chorus->parent.type, "chorus"));
 
-    const kqt_frame* in_data[] = { NULL, NULL };
-    kqt_frame* out_data[] = { NULL, NULL };
+    const float* in_data[] = { NULL, NULL };
+    float* out_data[] = { NULL, NULL };
     get_raw_input(&cstate->parent.parent, 0, in_data);
     get_raw_output(&cstate->parent.parent, 0, out_data);
 
-    kqt_frame* buf[] =
+    float* buf[] =
     {
         Audio_buffer_get_buffer(cstate->buf, 0),
         Audio_buffer_get_buffer(cstate->buf, 1),
@@ -700,9 +700,9 @@ static void Proc_chorus_process(
 
             // Create output frame
             const double prev_scale = 1 - remainder;
-            const kqt_frame val_l =
+            const float val_l =
                 (prev_scale * volume * cur_val_l) + (remainder * volume * next_val_l);
-            const kqt_frame val_r =
+            const float val_r =
                 (prev_scale * volume * cur_val_r) + (remainder * volume * next_val_r);
 
             out_data[0][i] += val_l;

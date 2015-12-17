@@ -23,7 +23,6 @@
 
 #include <Audio_buffer.h>
 #include <devices/Processor.h>
-#include <frame.h>
 #include <kunquat/limits.h>
 #include <player/Au_state.h>
 #include <player/Voice_state.h>

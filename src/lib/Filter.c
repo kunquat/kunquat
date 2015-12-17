@@ -269,8 +269,8 @@ void butterworth_bandpass_filter_create(
 
 
 void buffer(
-        kqt_frame* histbuf,
-        const kqt_frame* restrict sourcebuf,
+        float* histbuf,
+        const float* restrict sourcebuf,
         int n,
         int nframes)
 {
@@ -279,12 +279,12 @@ void buffer(
 
     if (nframes < n)
     {
-        memmove(histbuf, histbuf + nframes, (n - nframes) * sizeof(kqt_frame));
-        memcpy(histbuf + n - nframes, sourcebuf, nframes * sizeof(kqt_frame));
+        memmove(histbuf, histbuf + nframes, (n - nframes) * sizeof(float));
+        memcpy(histbuf + n - nframes, sourcebuf, nframes * sizeof(float));
     }
     else
     {
-        memcpy(histbuf, sourcebuf + nframes - n, n * sizeof(kqt_frame));
+        memcpy(histbuf, sourcebuf + nframes - n, n * sizeof(float));
     }
 
     return;
@@ -415,10 +415,10 @@ double nq_pole_filter(
 #if 0
 void fir_filter(int n,
                 double* coeffs,
-                kqt_frame* histbuf,
+                float* histbuf,
                 int nframes,
-                kqt_frame* inbuf,
-                kqt_frame* outbuf)
+                float* inbuf,
+                float* outbuf)
 {
     double temp;
 

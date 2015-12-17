@@ -94,9 +94,9 @@ static void multiply_signals(
 
     for (int ch = 0; ch < 2; ++ch)
     {
-        const kqt_frame* in1_values = Audio_buffer_get_buffer(in1_buffer, ch);
-        const kqt_frame* in2_values = Audio_buffer_get_buffer(in2_buffer, ch);
-        kqt_frame* out_values = Audio_buffer_get_buffer(out_buffer, ch);
+        const float* in1_values = Audio_buffer_get_buffer(in1_buffer, ch);
+        const float* in2_values = Audio_buffer_get_buffer(in2_buffer, ch);
+        float* out_values = Audio_buffer_get_buffer(out_buffer, ch);
 
         for (int32_t i = buf_start; i < buf_stop; ++i)
             out_values[i] = in1_values[i] * in2_values[i];

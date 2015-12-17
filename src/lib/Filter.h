@@ -18,7 +18,6 @@
 
 
 #include <debug/assert.h>
-#include <frame.h>
 
 
 /* #define dprod(buf0, buf1, i0, i1, limit0, limit1, var, oper)            \ */

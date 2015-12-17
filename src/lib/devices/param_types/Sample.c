@@ -136,7 +136,7 @@ uint32_t Sample_process_vstate(
             1,
             Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_FORCE));
 
-    kqt_frame* abufs[KQT_BUFFERS_MAX] =
+    float* abufs[KQT_BUFFERS_MAX] =
     {
         Audio_buffer_get_buffer(out_buffer, 0),
         Audio_buffer_get_buffer(out_buffer, 1),
