@@ -12,19 +12,20 @@
  */
 
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+#include <devices/Proc_common.h>
 
 #include <Audio_buffer.h>
 #include <debug/assert.h>
-#include <devices/Proc_common.h>
 #include <devices/Processor.h>
 #include <devices/processors/Proc_utils.h>
 #include <Filter.h>
 #include <kunquat/limits.h>
 #include <mathnum/common.h>
 #include <player/Work_buffers.h>
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 #define RAMP_RELEASE_TIME (200.0)

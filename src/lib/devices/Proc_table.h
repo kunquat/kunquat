@@ -16,9 +16,10 @@
 #define K_PROC_TABLE_H
 
 
-#include <stdbool.h>
-
 #include <devices/Processor.h>
+
+#include <stdbool.h>
+#include <stdlib.h>
 
 
 /**

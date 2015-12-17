@@ -16,8 +16,6 @@
 #define K_AUDIO_UNIT_H
 
 
-#include <stdbool.h>
-
 #include <Decl.h>
 #include <devices/Au_control_vars.h>
 #include <devices/Au_params.h>
@@ -28,6 +26,8 @@
 #include <module/Scale.h>
 #include <player/Voice_state.h>
 #include <string/Streader.h>
+
+#include <stdbool.h>
 
 
 #define AU_DEFAULT_GLOBAL_FORCE 0

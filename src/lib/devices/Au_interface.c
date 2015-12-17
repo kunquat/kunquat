@@ -12,12 +12,13 @@
  */
 
 
-#include <stdlib.h>
+#include <devices/Au_interface.h>
 
 #include <debug/assert.h>
-#include <devices/Au_interface.h>
 #include <devices/Device.h>
 #include <memory.h>
+
+#include <stdlib.h>
 
 
 Au_interface* new_Au_interface(void)

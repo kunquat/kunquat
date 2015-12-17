@@ -12,23 +12,24 @@
  */
 
 
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
-#include <stdio.h>
+#include <devices/Device_params.h>
 
 #include <containers/AAtree.h>
 #include <debug/assert.h>
 #include <devices/Device_field.h>
-#include <devices/Device_params.h>
 #include <memory.h>
 #include <string/common.h>
+
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 struct Device_params
 {
-    AAtree* implement;       ///< The implementation part of the device.
-    AAtree* config;          ///< The configuration part of the device.
+    AAtree* implement;  ///< The implementation part of the device.
+    AAtree* config;     ///< The configuration part of the device.
 };
 
 

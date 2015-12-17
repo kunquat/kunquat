@@ -16,10 +16,6 @@
 #define K_DEVICE_H
 
 
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdio.h>
-
 #include <Audio_buffer.h>
 #include <Decl.h>
 #include <devices/Device_params.h>
@@ -30,6 +26,10 @@
 #include <player/Work_buffers.h>
 #include <string/Streader.h>
 #include <Tstamp.h>
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
 
 
 typedef enum

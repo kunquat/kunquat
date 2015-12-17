@@ -12,13 +12,14 @@
  */
 
 
-#include <stdlib.h>
-#include <stdbool.h>
-#include <string.h>
+#include <devices/Au_params.h>
 
 #include <debug/assert.h>
-#include <devices/Au_params.h>
 #include <string/common.h>
+
+#include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 #define new_env_or_fail(env, nodes, xmin, xmax, xstep, ymin, ymax, ystep) \

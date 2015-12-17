@@ -16,10 +16,6 @@
 #define K_DEVICE_IMPL_H
 
 
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdlib.h>
-
 #include <containers/AAtree.h>
 #include <Decl.h>
 #include <devices/param_types/Envelope.h>
@@ -31,6 +27,10 @@
 #include <player/Linear_controls.h>
 #include <string/key_pattern.h>
 #include <Tstamp.h>
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 
 // typedefs for value setter callbacks

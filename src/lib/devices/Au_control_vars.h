@@ -16,14 +16,14 @@
 #define K_AU_CONTROL_VARS_H
 
 
-#include <stdlib.h>
-
 #include <containers/AAtree.h>
 #include <kunquat/limits.h>
 #include <mathnum/Random.h>
 #include <player/Linear_controls.h>
 #include <string/Streader.h>
 #include <Value.h>
+
+#include <stdlib.h>
 
 
 /**

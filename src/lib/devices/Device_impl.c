@@ -12,18 +12,19 @@
  */
 
 
-#include <ctype.h>
-#include <string.h>
+#include <devices/Device_impl.h>
 
 #include <debug/assert.h>
 #include <devices/Device.h>
 #include <devices/Device_field.h>
-#include <devices/Device_impl.h>
 #include <devices/Device_params.h>
 #include <memory.h>
 #include <string/common.h>
 #include <string/key_pattern.h>
 #include <Value.h>
+
+#include <ctype.h>
+#include <string.h>
 
 
 typedef struct Set_cb

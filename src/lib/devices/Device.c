@@ -12,16 +12,17 @@
  */
 
 
-#include <inttypes.h>
-#include <math.h>
-#include <stdlib.h>
+#include <devices/Device.h>
 
 #include <debug/assert.h>
 #include <Decl.h>
-#include <devices/Device.h>
 #include <devices/Device_impl.h>
 #include <mathnum/common.h>
 #include <string/common.h>
+
+#include <inttypes.h>
+#include <math.h>
+#include <stdlib.h>
 
 
 void Device_reset_default(const Device* device, Device_states* dstates)

@@ -12,19 +12,20 @@
  */
 
 
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-#include <inttypes.h>
+#include <devices/Processor.h>
 
 #include <debug/assert.h>
 #include <devices/Proc_common.h>
 #include <devices/Proc_type.h>
-#include <devices/Processor.h>
 #include <Filter.h>
 #include <memory.h>
 #include <player/Channel.h>
 #include <player/Voice.h>
+
+#include <inttypes.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 static Device_state* Processor_create_state_plain(

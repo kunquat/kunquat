@@ -12,14 +12,16 @@
  */
 
 
-#include <stdlib.h>
+#include <devices/Proc_table.h>
 
 #include <containers/Bit_array.h>
 #include <containers/Etable.h>
 #include <debug/assert.h>
-#include <devices/Proc_table.h>
 #include <devices/Processor.h>
 #include <memory.h>
+
+#include <stdbool.h>
+#include <stdlib.h>
 
 
 struct Proc_table
