@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2015
  *
  * This file is part of Kunquat.
  *
@@ -12,12 +12,13 @@
  */
 
 
-#include <stdlib.h>
-#include <stdint.h>
-#include <math.h>
+#include <devices/param_types/Sample_entry.h>
 
 #include <debug/assert.h>
-#include <devices/param_types/Sample_entry.h>
+
+#include <math.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 
 bool Sample_entry_parse(Sample_entry* entry, Streader* sr)

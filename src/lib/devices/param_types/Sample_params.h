@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -16,9 +16,10 @@
 #define K_SAMPLE_PARAMS_H
 
 
-#include <stdint.h>
-
 #include <string/Streader.h>
+
+#include <stdint.h>
+#include <stdlib.h>
 
 
 typedef enum

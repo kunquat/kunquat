@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2015
  *
  * This file is part of Kunquat.
  *
@@ -16,11 +16,11 @@
 #define K_HIT_MAP_H
 
 
-#include <stdlib.h>
-
 #include <devices/param_types/Sample_entry.h>
 #include <mathnum/Random.h>
 #include <string/Streader.h>
+
+#include <stdlib.h>
 
 
 #define HIT_MAP_RANDOMS_MAX 8

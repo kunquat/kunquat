@@ -16,16 +16,16 @@
 #define K_SAMPLE_H
 
 
-#include <stdlib.h>
-#include <stdint.h>
-#include <stdbool.h>
-
 #include <Audio_buffer.h>
 #include <Decl.h>
 #include <devices/param_types/Sample_params.h>
 #include <player/Proc_state.h>
 #include <player/Voice_state.h>
 #include <player/Work_buffer.h>
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 
 /**

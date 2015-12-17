@@ -16,10 +16,11 @@
 #define K_ENVELOPE_H
 
 
-#include <stdbool.h>
-#include <math.h>
-
 #include <string/Streader.h>
+
+#include <math.h>
+#include <stdbool.h>
+#include <stdlib.h>
 
 
 #define ENVELOPE_MARKS_MAX (4)

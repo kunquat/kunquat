@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -12,12 +12,14 @@
  */
 
 
-#include <stdlib.h>
-#include <string.h>
+#include <devices/param_types/Sample_params.h>
 
 #include <debug/assert.h>
-#include <devices/param_types/Sample_params.h>
 #include <string/common.h>
+
+#include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 Sample_params* Sample_params_init(Sample_params* params)

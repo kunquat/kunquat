@@ -12,12 +12,13 @@
  */
 
 
-#include <stdlib.h>
-#include <math.h>
+#include <devices/param_types/Note_map.h>
 
 #include <debug/assert.h>
-#include <devices/param_types/Note_map.h>
 #include <memory.h>
+
+#include <math.h>
+#include <stdlib.h>
 
 
 struct Note_map

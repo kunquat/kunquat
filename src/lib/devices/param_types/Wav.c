@@ -12,17 +12,18 @@
  */
 
 
+#include <devices/param_types/Wav.h>
+
+#include <debug/assert.h>
+#include <devices/param_types/Sample.h>
+#include <mathnum/common.h>
+#include <memory.h>
+#include <string/Streader.h>
+
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include <debug/assert.h>
-#include <devices/param_types/Sample.h>
-#include <devices/param_types/Wav.h>
-#include <mathnum/common.h>
-#include <memory.h>
-#include <string/Streader.h>
 
 
 #ifndef WITH_SNDFILE

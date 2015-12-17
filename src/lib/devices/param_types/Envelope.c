@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -12,15 +12,16 @@
  */
 
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
-#include <float.h>
+#include <devices/param_types/Envelope.h>
 
 #include <debug/assert.h>
-#include <devices/param_types/Envelope.h>
 #include <memory.h>
 #include <string/common.h>
+
+#include <float.h>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 
 struct Envelope
