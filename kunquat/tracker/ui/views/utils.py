@@ -16,11 +16,11 @@ from PyQt4.QtGui import *
 
 
 def lerp_val(v1, v2, t):
-    assert 0 <= t <= 1
+    assert 0 <= t <= 1, 'lerp value {} is not within valid range [0, 1]'.format(t)
     return v1 + (v2 - v1) * t
 
 def lerp_colour(c1, c2, t):
-    assert 0 <= t <= 1
+    assert 0 <= t <= 1, 'lerp value {} is not within valid range [0, 1]'.format(t)
     return QColor(
             lerp_val(c1.red(), c2.red(), t),
             lerp_val(c1.green(), c2.green(), t),

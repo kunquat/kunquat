@@ -18,6 +18,7 @@
 
 typedef struct Au_table Au_table;
 typedef struct Audio_unit Audio_unit;
+typedef struct Channel Channel;
 typedef struct Connections Connections;
 typedef struct Device Device;
 typedef struct Device_impl Device_impl;

@@ -177,16 +177,15 @@ extern "C" {
 
 
 /**
- * Maximum length of a name for an environment variable (including null
- * terminator).
+ * Maximum length of a variable name (including null terminator).
  */
-#define KQT_ENV_VAR_NAME_MAX 32
+#define KQT_VAR_NAME_MAX 32
 
 /**
- * Allowed characters in environment variable names.
+ * Allowed characters in variable names.
  */
-#define KQT_ENV_VAR_INIT_CHARS "abcdefghijklmnopqrstuvwxyz_"
-#define KQT_ENV_VAR_CHARS KQT_ENV_VAR_INIT_CHARS "0123456789"
+#define KQT_VAR_INIT_CHARS "abcdefghijklmnopqrstuvwxyz_"
+#define KQT_VAR_CHARS KQT_VAR_INIT_CHARS "0123456789"
 
 
 #ifdef __cplusplus

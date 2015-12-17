@@ -22,23 +22,14 @@
 #include <memory.h>
 #include <module/Env_var.h>
 #include <string/common.h>
+#include <string/var_name.h>
 
 
 struct Env_var
 {
-    char name[KQT_ENV_VAR_NAME_MAX];
+    char name[KQT_VAR_NAME_MAX];
     Value value;
 };
-
-
-static bool is_valid_name(const char* name)
-{
-    assert(name != NULL);
-
-    return strlen(name) < KQT_ENV_VAR_NAME_MAX &&
-        strspn(name, KQT_ENV_VAR_CHARS) == strlen(name) &&
-        strchr(KQT_ENV_VAR_INIT_CHARS, name[0]) != NULL;
-}
 
 
 Env_var* new_Env_var(Value_type type, const char* name)
@@ -46,7 +37,7 @@ Env_var* new_Env_var(Value_type type, const char* name)
     assert((type == VALUE_TYPE_BOOL) || (type == VALUE_TYPE_INT) ||
             (type == VALUE_TYPE_FLOAT) || (type == VALUE_TYPE_TSTAMP));
     assert(name != NULL);
-    assert(is_valid_name(name));
+    assert(is_valid_var_name(name));
 
     Env_var* var = memory_alloc_item(Env_var);
     if (var == NULL)
@@ -67,12 +58,12 @@ Env_var* new_Env_var_from_string(Streader* sr)
         return NULL;
 
     char type_name[16] = "";
-    char name[KQT_ENV_VAR_NAME_MAX] = "";
+    char name[KQT_VAR_NAME_MAX] = "";
 
-    if (!Streader_readf(sr, "[%s,%s,", 16, type_name, KQT_ENV_VAR_NAME_MAX, name))
+    if (!Streader_readf(sr, "[%s,%s,", 16, type_name, KQT_VAR_NAME_MAX, name))
         return NULL;
 
-    if (!is_valid_name(name))
+    if (!is_valid_var_name(name))
     {
         Streader_set_error(
                 sr,

@@ -823,6 +823,47 @@ static bool read_any_au_env_filter_release(
 }
 
 
+static bool read_any_au_control_vars(
+        Reader_params* params, Au_table* au_table, int level)
+{
+    assert(params != NULL);
+
+    int32_t index = -1;
+    acquire_au_index(index, params, level);
+
+    Audio_unit* au = NULL;
+    acquire_au(au, params->handle, au_table, index);
+
+    if (Streader_has_data(params->sr))
+    {
+        Au_control_vars* au_control_vars = new_Au_control_vars(params->sr);
+        if (au_control_vars == NULL)
+        {
+            set_error(params);
+            return false;
+        }
+
+        Audio_unit_set_control_vars(au, au_control_vars);
+
+        if (level == 0)
+        {
+            if (!Player_alloc_channel_cv_state(params->handle->player, au_control_vars))
+            {
+                Handle_set_error(params->handle, ERROR_MEMORY,
+                        "Could not allocate memory for audio unit control variables");
+                return false;
+            }
+        }
+    }
+    else
+    {
+        Audio_unit_set_control_vars(au, NULL);
+    }
+
+    return true;
+}
+
+
 static Processor* add_processor(
         Handle* handle,
         Audio_unit* au,
@@ -844,7 +885,7 @@ static Processor* add_processor(
         return proc;
 
     // Create new processor
-    proc = new_Processor(Audio_unit_get_params(au));
+    proc = new_Processor(proc_index, Audio_unit_get_params(au));
     if (proc == NULL || !Proc_table_set_proc(proc_table, proc_index, proc))
     {
         Handle_set_error(handle, ERROR_MEMORY, memory_error_str);

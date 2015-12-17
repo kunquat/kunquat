@@ -139,6 +139,13 @@ bool Event_channel_note_on_process(
         set_au_properties(voice, vs, ch, &force_var);
     }
 
+    Device_init_control_vars(
+            (const Device*)au,
+            dstates,
+            DEVICE_CONTROL_VAR_MODE_VOICE,
+            Channel_get_random_source(ch),
+            ch);
+
     return true;
 }
 
@@ -198,6 +205,13 @@ bool Event_channel_hit_process(
         vs->hit_index = value->value.int_type;
         set_au_properties(voice, vs, ch, &force_var);
     }
+
+    Device_init_control_vars(
+            (const Device*)au,
+            dstates,
+            DEVICE_CONTROL_VAR_MODE_VOICE,
+            Channel_get_random_source(ch),
+            ch);
 
     return true;
 }

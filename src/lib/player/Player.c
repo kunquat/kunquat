@@ -46,7 +46,7 @@ static void Player_update_sliders_and_lfos_audio_rate(Player* player)
     }
 
     Master_params* mp = &player->master_params;
-    Slider_set_mix_rate(&mp->volume_slider, rate);
+    Slider_set_audio_rate(&mp->volume_slider, rate);
 
     return;
 }
@@ -233,6 +233,31 @@ bool Player_alloc_channel_proc_state_keys(Player* player, Streader* sr)
 }
 
 
+bool Player_alloc_channel_cv_state(Player* player, const Au_control_vars* aucv)
+{
+    assert(player != NULL);
+    assert(aucv != NULL);
+
+    Au_control_var_iter* iter = Au_control_var_iter_init(AU_CONTROL_VAR_ITER_AUTO, aucv);
+    const char* var_name = NULL;
+    Value_type var_type = VALUE_TYPE_NONE;
+    Au_control_var_iter_get_next_var_info(iter, &var_name, &var_type);
+    while (var_name != NULL)
+    {
+        for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
+        {
+            if (!Channel_cv_state_add_entry(
+                    player->channels[i]->cvstate, var_name, var_type))
+                return false;
+        }
+
+        Au_control_var_iter_get_next_var_info(iter, &var_name, &var_type);
+    }
+
+    return true;
+}
+
+
 bool Player_refresh_env_state(Player* player)
 {
     assert(player != NULL);
@@ -281,6 +306,8 @@ void Player_reset(Player* player, int16_t track_num)
 
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
         Cgiter_reset(&player->cgiters[i], &player->master_params.cur_pos);
+
+    player->cgiters_accessed = false;
 
     Event_buffer_clear(player->event_buffer);
 
@@ -577,6 +604,22 @@ void Player_play(Player* player, int32_t nframes)
                         player->device_states,
                         player->master_params.tempo);
 
+                // Init control variables
+                {
+                    Au_table* aus = Module_get_au_table(player->module);
+                    for (int i = 0; i < KQT_AUDIO_UNITS_MAX; ++i)
+                    {
+                        const Audio_unit* au = Au_table_get(aus, i);
+                        if (au != NULL)
+                            Device_init_control_vars(
+                                    (const Device*)au,
+                                    player->device_states,
+                                    DEVICE_CONTROL_VAR_MODE_MIXED,
+                                    player->master_params.random,
+                                    NULL);
+                    }
+                }
+
                 Player_reset_channels(player);
 
                 for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
@@ -634,6 +677,8 @@ void Player_play(Player* player, int32_t nframes)
                 if (Slider_in_progress(&fc->resonance_slider))
                     fc->resonance = Slider_skip(&fc->resonance_slider, to_be_rendered);
             }
+
+            Channel_cv_state_update_float_controls(ch->cvstate, to_be_rendered);
         }
 
         // Update panning slides, TODO: revisit
@@ -787,7 +832,8 @@ void Player_skip(Player* player, int64_t nframes)
 
     player->events_returned = false;
 
-    player->cgiters_accessed = true;
+    if (nframes > 0)
+        player->cgiters_accessed = true;
 
     return;
 }
@@ -887,7 +933,7 @@ bool Player_fire(Player* player, int ch, Streader* event_reader)
         case VALUE_TYPE_STRING:
         {
             Streader_read_string(
-                    event_reader, KQT_ENV_VAR_NAME_MAX, value->value.string_type);
+                    event_reader, KQT_VAR_NAME_MAX, value->value.string_type);
         }
         break;
 

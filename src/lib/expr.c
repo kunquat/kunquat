@@ -174,7 +174,6 @@ bool evaluate_expr(
         Random* rand)
 {
     assert(sr != NULL);
-    assert(estate != NULL);
     assert(res != NULL);
     assert(rand != NULL);
 
@@ -226,7 +225,6 @@ static bool evaluate_expr_(
         Random* rand)
 {
     assert(sr != NULL);
-    assert(estate != NULL);
     assert(val_stack != NULL);
     assert(vsi >= 0);
     assert(vsi <= STACK_SIZE);
@@ -249,7 +247,7 @@ static bool evaluate_expr_(
 
     int orig_vsi = vsi;
     int orig_osi = osi;
-    char token[KQT_ENV_VAR_NAME_MAX + 4] = ""; // + 4 for delimiting \"s
+    char token[KQT_VAR_NAME_MAX + 4] = ""; // + 4 for delimiting \"s
     bool expect_operand = true;
     bool found_not = false;
     bool found_minus = false;
@@ -545,18 +543,32 @@ static bool handle_unary(
     }
 
     assert(found_minus);
-    if (val->type == VALUE_TYPE_INT)
+    switch (val->type)
     {
-        val->value.int_type = -val->value.int_type;
-    }
-    else if (val->type == VALUE_TYPE_FLOAT)
-    {
-        val->value.float_type = -val->value.float_type;
-    }
-    else
-    {
-        Streader_set_error(sr, "Non-number operand for unary minus");
-        return false;
+        case VALUE_TYPE_INT:
+        {
+            val->value.int_type = -val->value.int_type;
+        }
+        break;
+
+        case VALUE_TYPE_FLOAT:
+        {
+            val->value.float_type = -val->value.float_type;
+        }
+        break;
+
+        case VALUE_TYPE_TSTAMP:
+        {
+            const Tstamp* zero_ts = Tstamp_init(TSTAMP_AUTO);
+            Tstamp_sub(&val->value.Tstamp_type, zero_ts, &val->value.Tstamp_type);
+        }
+        break;
+
+        default:
+        {
+            Streader_set_error(sr, "Non-number operand for unary minus");
+            return false;
+        }
     }
 
     return true;
@@ -571,7 +583,6 @@ static bool Value_from_token(
 {
     assert(val != NULL);
     assert(token != NULL);
-    assert(estate != NULL);
     assert(meta != NULL);
 
     if (isdigit(token[0]) || token[0] == '.')
@@ -610,7 +621,7 @@ static bool Value_from_token(
         int i = 0;
         while (!string_has_prefix(&token[i], end_str))
         {
-            if (i >= KQT_ENV_VAR_NAME_MAX - 1)
+            if (i >= KQT_VAR_NAME_MAX - 1)
             {
                 return false;
             }
@@ -634,9 +645,9 @@ static bool Value_from_token(
         Value_copy(val, meta);
         return true;
     }
-    else if (strchr(KQT_ENV_VAR_INIT_CHARS, token[0]) != NULL)
+    else if (strchr(KQT_VAR_INIT_CHARS, token[0]) != NULL)
     {
-        const Env_var* ev = Env_state_get_var(estate, token);
+        const Env_var* ev = (estate != NULL) ? Env_state_get_var(estate, token) : NULL;
         if (ev == NULL)
             return false;
 
@@ -741,7 +752,7 @@ static bool get_token(Streader* sr, char* result)
         strcpy(result, ",");
         return true;
     }
-    else if (strchr(KQT_ENV_VAR_INIT_CHARS, *str) != NULL)
+    else if (strchr(KQT_VAR_INIT_CHARS, *str) != NULL)
     {
         return get_var_token(sr, result);
     }
@@ -774,7 +785,7 @@ static bool get_num_token(Streader* sr, char* result)
     assert(end_pos >= start_pos);
 
     const size_t len = end_pos - start_pos;
-    if (len >= KQT_ENV_VAR_NAME_MAX - 1)
+    if (len >= KQT_VAR_NAME_MAX - 1)
     {
         Streader_set_error(sr, "Exceeded maximum token length");
         return false;
@@ -803,7 +814,7 @@ static bool get_str_token(Streader* sr, char* result)
     int i = 1;
     while (!string_has_prefix(str, end_str))
     {
-        if (i >= KQT_ENV_VAR_NAME_MAX + 1) // + 1 includes compensation for \"
+        if (i >= KQT_VAR_NAME_MAX + 1) // + 1 includes compensation for \"
         {
             Streader_set_error(sr, "Exceeded maximum token length");
             return false;
@@ -830,8 +841,8 @@ static bool get_var_token(Streader* sr, char* result)
     // FIXME: ugly haxoring with Streader internals
     const char* str = &sr->str[sr->pos];
 
-    int len = strspn(str, KQT_ENV_VAR_CHARS);
-    if (len >= KQT_ENV_VAR_NAME_MAX)
+    int len = strspn(str, KQT_VAR_CHARS);
+    if (len >= KQT_VAR_NAME_MAX)
     {
         Streader_set_error(sr, "Exceeded maximum token length");
         return false;
@@ -857,7 +868,7 @@ static bool get_op_token(Streader* sr, char* result)
     const char* str = &sr->str[sr->pos];
 
     int len = strspn(str, op_chars);
-    if (len >= KQT_ENV_VAR_NAME_MAX)
+    if (len >= KQT_VAR_NAME_MAX)
     {
         Streader_set_error(sr, "Exceeded maximum token length");
         return false;
@@ -946,7 +957,7 @@ static bool op_eq(const Value* op1, const Value* op2, Value* res, Streader* sr)
         return false;
 
     // Eliminate testing of symmetric cases
-    if (op1->type < op2->type)
+    if (op1->type > op2->type)
     {
         const Value* tmp = op1;
         op1 = op2;

@@ -28,11 +28,12 @@
 #include <devices/param_types/Num_list.h>
 #include <devices/param_types/Sample.h>
 #include <player/Device_state.h>
+#include <player/Linear_controls.h>
 #include <string/key_pattern.h>
 #include <Tstamp.h>
 
 
-// typedefs for value setter/updater callbacks
+// typedefs for value setter callbacks
 
 #define SET_FUNC_TYPE(name, actual_type)                                          \
     typedef bool (Set_ ## name ## _func)(Device_impl*, Key_indices, actual_type); \
@@ -50,14 +51,34 @@ SET_FUNC_TYPE(hit_map,          const Hit_map*);
 SET_FUNC_TYPE(num_list,         const Num_list*);
 #undef SET_FUNC_TYPE
 
-#define UPDATE_FUNC_TYPE(name, actual_type)                              \
-    typedef void (Update_ ## name ## _func)(                             \
-            const Device_impl*, Device_state*, Key_indices, actual_type)
-UPDATE_FUNC_TYPE(bool,      bool);
-UPDATE_FUNC_TYPE(int,       int64_t);
-UPDATE_FUNC_TYPE(float,     double);
-UPDATE_FUNC_TYPE(tstamp,    const Tstamp*);
-#undef UPDATE_FUNC_TYPE
+// typedefs for control variable setter callbacks
+
+#define SET_CV_FUNC_TYPE(name, actual_type) \
+    typedef void (name)(const Device_impl*, Device_state*, Key_indices, actual_type)
+SET_CV_FUNC_TYPE(Set_cv_bool_func,      bool);
+SET_CV_FUNC_TYPE(Set_cv_int_func,       int64_t);
+SET_CV_FUNC_TYPE(Set_cv_tstamp_func,    const Tstamp*);
+#undef SET_CV_FUNC_TYPE
+
+typedef Linear_controls* Get_cv_float_controls_mut_func(
+        const Device_impl*, Device_state*, const Key_indices);
+
+// ... and corresponding voice control variable callbacks
+
+#define SET_VOICE_CV_FUNC_TYPE(name, actual_type) \
+    typedef void (name)(                          \
+            const Device_impl*,                   \
+            const Device_state*,                  \
+            Voice_state*,                         \
+            Key_indices,                          \
+            actual_type)
+SET_VOICE_CV_FUNC_TYPE(Set_voice_cv_bool_func,      bool);
+SET_VOICE_CV_FUNC_TYPE(Set_voice_cv_int_func,       int64_t);
+SET_VOICE_CV_FUNC_TYPE(Set_voice_cv_tstamp_func,    const Tstamp*);
+#undef SET_VOICE_CV_FUNC_TYPE
+
+typedef Linear_controls* Get_voice_cv_float_controls_mut_func(
+        const Device_impl*, const Device_state*, Voice_state*, const Key_indices);
 
 
 /**
@@ -67,7 +88,7 @@ struct Device_impl
 {
     Device* device;
     AAtree* set_cbs;
-    AAtree* update_state_cbs;
+    AAtree* update_cv_cbs;
 
     bool (*init)(Device_impl*);
     bool (*set_audio_rate)(const Device_impl*, Device_state*, int32_t);
@@ -76,6 +97,33 @@ struct Device_impl
     void (*reset)(const Device_impl*, Device_state*);
     void (*destroy)(Device_impl*);
 };
+
+
+// Containers of callback functions for control variable types.
+
+typedef struct Device_impl_cv_bool_callbacks
+{
+    Set_cv_bool_func* set_value;
+    Set_voice_cv_bool_func* voice_set_value;
+} Device_impl_cv_bool_callbacks;
+
+typedef struct Device_impl_cv_int_callbacks
+{
+    Set_cv_int_func* set_value;
+    Set_voice_cv_int_func* voice_set_value;
+} Device_impl_cv_int_callbacks;
+
+typedef struct Device_impl_cv_float_callbacks
+{
+    Get_cv_float_controls_mut_func* get_controls;
+    Get_voice_cv_float_controls_mut_func* get_voice_controls;
+} Device_impl_cv_float_callbacks;
+
+typedef struct Device_impl_cv_tstamp_callbacks
+{
+    Set_cv_tstamp_func* set_value;
+    Set_voice_cv_tstamp_func* voice_set_value;
+} Device_impl_cv_tstamp_callbacks;
 
 
 /**
@@ -392,71 +440,63 @@ bool Device_impl_register_set_num_list(
 
 
 /**
- * Register a boolean value state update function.
+ * Create a boolean control variable.
  *
- * See \a Device_impl_register_set_bool for a detailed description of the
- * \a keyp argument.
+ * \param dimpl    The Device implementation -- must not be \c NULL.
+ * \param keyp     The key pattern -- must not be \c NULL.
  *
- * \param dimpl          The Device implementation -- must not be \c NULL.
- * \param keyp           The key pattern -- must not be \c NULL.
- * \param update_state   The Device state update callback function
- *                       -- must not be \c NULL.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
+ * \return   A container for modifier callback functions that modify \a keyp,
+ *           or \c NULL if memory allocation failed. All the fields are
+ *           initialised to \c NULL. The Device implementation maintains
+ *           ownership of the container.
  */
-bool Device_impl_register_update_state_bool(
-        Device_impl* dimpl, const char* keyp, Update_bool_func update_state);
+Device_impl_cv_bool_callbacks* Device_impl_create_cv_bool(
+        Device_impl* dimpl, const char* keyp);
 
 
 /**
- * Register a float value state update function.
+ * Create an integer control variable.
  *
- * See \a Device_impl_register_set_bool for a detailed description of the
- * \a keyp argument.
+ * \param dimpl    The Device implementation -- must not be \c NULL.
+ * \param keyp     The key pattern -- must not be \c NULL.
  *
- * \param dimpl          The Device implementation -- must not be \c NULL.
- * \param keyp           The key pattern -- must not be \c NULL.
- * \param update_state   The Device state update callback function
- *                       -- must not be \c NULL.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
+ * \return   A container for modifier callback functions that modify \a keyp,
+ *           or \c NULL if memory allocation failed. All the fields are
+ *           initialised to \c NULL. The Device implementation maintains
+ *           ownership of the container.
  */
-bool Device_impl_register_update_state_float(
-        Device_impl* dimpl, const char* keyp, Update_float_func update_state);
+Device_impl_cv_int_callbacks* Device_impl_create_cv_int(
+        Device_impl* dimpl, const char* keyp);
 
 
 /**
- * Register an integer value state update function.
+ * Create a float control variable.
  *
- * See \a Device_impl_register_set_bool for a detailed description of the
- * \a keyp argument.
+ * \param dimpl    The Device implementation -- must not be \c NULL.
+ * \param keyp     The key pattern -- must not be \c NULL.
  *
- * \param dimpl          The Device implementation -- must not be \c NULL.
- * \param keyp           The key pattern -- must not be \c NULL.
- * \param update_state   The Device state update callback function
- *                       -- must not be \c NULL.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
+ * \return   A container for modifier callback functions that modify \a keyp,
+ *           or \c NULL if memory allocation failed. All the fields are
+ *           initialised to \c NULL. The Device implementation maintains
+ *           ownership of the container.
  */
-bool Device_impl_register_update_state_int(
-        Device_impl* dimpl, const char* keyp, Update_int_func update_state);
+Device_impl_cv_float_callbacks* Device_impl_create_cv_float(
+        Device_impl* dimpl, const char* keyp);
 
 
 /**
- * Register a timestamp value state update function.
+ * Create a tstamp control variable.
  *
- * See \a Device_impl_register_set_bool for a detailed description of the
- * \a keyp argument.
+ * \param dimpl    The Device implementation -- must not be \c NULL.
+ * \param keyp     The key pattern -- must not be \c NULL.
  *
- * \param dimpl          The Device implementation -- must not be \c NULL.
- * \param keyp           The key pattern -- must not be \c NULL.
- * \param update_state   The Device state update callback function
- *                       -- must not be \c NULL.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
+ * \return   A container for modifier callback functions that modify \a keyp,
+ *           or \c NULL if memory allocation failed. All the fields are
+ *           initialised to \c NULL. The Device implementation maintains
+ *           ownership of the container.
  */
-bool Device_impl_register_update_state_tstamp(
-        Device_impl* dimpl, const char* keyp, Update_tstamp_func update_state);
+Device_impl_cv_tstamp_callbacks* Device_impl_create_cv_tstamp(
+        Device_impl* dimpl, const char* keyp);
 
 
 /**
@@ -465,8 +505,7 @@ bool Device_impl_register_update_state_tstamp(
  * \param dimpl    The Device implementation -- must not be \c NULL.
  * \param dstate   The Device state -- must not be \c NULL.
  */
-void Device_impl_reset_device_state(
-        const Device_impl* dimpl, Device_state* dstate);
+void Device_impl_reset_device_state(const Device_impl* dimpl, Device_state* dstate);
 
 
 /**
@@ -533,54 +572,39 @@ bool Device_impl_set_state_key(
 
 
 /**
- * Update a boolean value in a Device state.
+ * Set a control variable in a Device or Voice state.
  *
  * \param dimpl    The Device implementation -- must not be \c NULL.
  * \param dstate   The Device state -- must not be \c NULL.
+ * \param vstate   The Voice state, or \c NULL if updating \a dstate.
  * \param key      The key to be updated -- must not be \c NULL.
- * \param value    The value.
+ * \param value    The Value -- must not be \c NULL and must not have
+ *                 \c VALUE_TYPE_FLOAT as type.
  */
-void Device_impl_update_state_bool(
-        const Device_impl* dimpl, Device_state* dstate, const char* key, bool value);
-
-
-/**
- * Update a float value in a Device state.
- *
- * \param dimpl    The Device implementation -- must not be \c NULL.
- * \param dstate   The Device state -- must not be \c NULL.
- * \param key      The key to be updated -- must not be \c NULL.
- * \param value    The value.
- */
-void Device_impl_update_state_float(
-        const Device_impl* dimpl, Device_state* dstate, const char* key, double value);
-
-
-/**
- * Update a integral value in a Device state.
- *
- * \param dimpl    The Device implementation -- must not be \c NULL.
- * \param dstate   The Device state -- must not be \c NULL.
- * \param key      The key to be updated -- must not be \c NULL.
- * \param value    The value.
- */
-void Device_impl_update_state_int(
-        const Device_impl* dimpl, Device_state* dstate, const char* key, int64_t value);
-
-
-/**
- * Update a timestamp value in a Device state.
- *
- * \param dimpl    The Device implementation -- must not be \c NULL.
- * \param dstate   The Device state -- must not be \c NULL.
- * \param key      The key to be updated -- must not be \c NULL.
- * \param value    The value -- must not be \c NULL.
- */
-void Device_impl_update_state_tstamp(
+void Device_impl_set_cv_generic(
         const Device_impl* dimpl,
         Device_state* dstate,
+        Voice_state* vstate,
         const char* key,
-        const Tstamp* value);
+        const Value* value);
+
+
+/**
+ * Get modifiable floating-point controls from a Device or Voice state.
+ *
+ * \param dimpl    The Device implementation -- must not be \c NULL.
+ * \param dstate   The Device state -- must not be \c NULL.
+ * \param vstate   The Voice state, or \c NULL if getting controls from \a dstate.
+ * \param key      The key to be updated -- must not be \c NULL.
+ *
+ * \return   The Linear controls associated with \a key, or \c NULL if \a dimpl does
+ *           not support floating-point controls with \a key.
+ */
+Linear_controls* Device_impl_get_cv_float_controls_mut(
+        const Device_impl* dimpl,
+        Device_state* dstate,
+        Voice_state* vstate,
+        const char* key);
 
 
 /**

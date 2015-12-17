@@ -36,14 +36,17 @@ typedef enum
 typedef struct LFO
 {
     LFO_mode mode;
-    uint32_t mix_rate;
+    int32_t audio_rate;
     double tempo;
 
     bool on;
 
-    double speed;
+    double target_speed;
+    double prev_speed;
     Slider speed_slider;
-    double depth;
+
+    double target_depth;
+    double prev_depth;
     Slider depth_slider;
 
     double offset;
@@ -75,12 +78,12 @@ LFO* LFO_copy(LFO* restrict dest, const LFO* restrict src);
 
 
 /**
- * Set the mixing rate in the LFO.
+ * Set the audio rate in the LFO.
  *
- * \param lfo        The LFO -- must not be \c NULL.
- * \param mix_rate   The mixing rate -- must be > \c 0.
+ * \param lfo          The LFO -- must not be \c NULL.
+ * \param audio_rate   The audio rate -- must be > \c 0.
  */
-void LFO_set_mix_rate(LFO* lfo, uint32_t mix_rate);
+void LFO_set_audio_rate(LFO* lfo, int32_t audio_rate);
 
 
 /**
@@ -117,7 +120,7 @@ void LFO_set_speed_slide(LFO* lfo, const Tstamp* length);
  * [-depth, depth].
  *
  * \param lfo     The LFO -- must not be \c NULL.
- * \param depth   The depth -- must be finite and >= \c 0.
+ * \param depth   The depth -- must be finite.
  */
 void LFO_set_depth(LFO* lfo, double depth);
 
@@ -189,8 +192,40 @@ double LFO_skip(LFO* lfo, uint64_t steps);
  * The LFO remains active for some time after turning it off.
  *
  * \param lfo   The LFO -- must not be \c NULL.
+ *
+ * \return   \c true if \a lfo is active, otherwise \c false.
  */
 bool LFO_active(const LFO* lfo);
+
+
+/**
+ * Return the current target speed of the LFO.
+ *
+ * \param lfo   The LFO -- must not be \c NULL.
+ *
+ * \return   The current target speed.
+ */
+double LFO_get_target_speed(const LFO* lfo);
+
+
+/**
+ * Return the current target depth of the LFO.
+ *
+ * \param lfo   The LFO -- must not be \c NULL.
+ *
+ * \return   The current target depth.
+ */
+double LFO_get_target_depth(const LFO* lfo);
+
+
+/**
+ * Change the depth range of the LFO without resetting internal progress.
+ *
+ * \param lfo          The LFO -- must not be \c NULL.
+ * \param from_depth   The source maximum depth -- must be finite.
+ * \param to_depth     The target maximum depth -- must be finite.
+ */
+void LFO_change_depth_range(LFO* lfo, double from_depth, double to_depth);
 
 
 #endif // K_LFO_H

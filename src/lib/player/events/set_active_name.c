@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2015
  *
  * This file is part of Kunquat.
  *
@@ -30,8 +30,8 @@ bool set_active_name(
         const Value* value)
 {
     assert(gstate != NULL);
-    assert(cat < ACTIVE_CAT_LAST);
-    assert(type < ACTIVE_TYPE_LAST);
+    assert(cat < ACTIVE_CAT_COUNT);
+    assert(type < ACTIVE_TYPE_COUNT);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_STRING);
 

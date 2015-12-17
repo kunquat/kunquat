@@ -22,7 +22,8 @@
 typedef enum Active_cat
 {
     ACTIVE_CAT_ENV = 0,
-    ACTIVE_CAT_LAST
+    ACTIVE_CAT_CONTROL_VAR,
+    ACTIVE_CAT_COUNT
 } Active_cat;
 
 
@@ -32,7 +33,7 @@ typedef enum Active_type
     ACTIVE_TYPE_INT,
     ACTIVE_TYPE_FLOAT,
     ACTIVE_TYPE_TSTAMP,
-    ACTIVE_TYPE_LAST
+    ACTIVE_TYPE_COUNT
 } Active_type;
 
 
@@ -63,10 +64,7 @@ Active_names* new_Active_names(void);
  *           many characters to fit the type.
  */
 bool Active_names_set(
-        Active_names* names,
-        Active_cat cat,
-        Active_type type,
-        const char* name);
+        Active_names* names, Active_cat cat, Active_type type, const char* name);
 
 
 /**

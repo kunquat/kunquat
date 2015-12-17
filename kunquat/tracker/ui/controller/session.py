@@ -72,6 +72,7 @@ class Session():
         self._playback_cursor_position = (0, 0, [0, 0])
         self._orderlist_selection = None
         self._track_selection = 0
+        self._expanded_au_vars = {}
         self._module_path = None
         self._is_saving = False
         self._active_var_names = defaultdict(lambda: {})
@@ -409,6 +410,17 @@ class Session():
 
     def get_default_grid_pattern_id(self):
         return self._default_grid_pattern_id
+
+    def set_au_var_expanded(self, au_id, var_name, expanded):
+        au_vars = self._expanded_au_vars.get(au_id, set())
+        if expanded:
+            au_vars.add(var_name)
+        else:
+            au_vars.discard(var_name)
+        self._expanded_au_vars[au_id] = au_vars
+
+    def is_au_var_expanded(self, au_id, var_name):
+        return (var_name in self._expanded_au_vars.get(au_id, set()))
 
     def set_module_path(self, path):
         self._module_path = path

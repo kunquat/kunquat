@@ -69,6 +69,7 @@ static_assert(
 struct Processor
 {
     Device parent;
+    int index;
     const Au_params* au_params;
     uint32_t voice_features[KQT_DEVICE_PORTS_MAX];
 
@@ -84,12 +85,14 @@ struct Processor
 /**
  * Create a new Processor of the specified type.
  *
+ * \param index       The Processor index in the containing Processor table
+ *                    -- must be >= \c 0 and < \c KQT_PROCESSORS_MAX.
  * \param au_params   The Audio unit parameters -- must not be \c NULL.
  *
  * \return   The new Processor if successful, or \c NULL if memory allocation
  *           failed.
  */
-Processor* new_Processor(const Au_params* au_params);
+Processor* new_Processor(int index, const Au_params* au_params);
 
 
 /**

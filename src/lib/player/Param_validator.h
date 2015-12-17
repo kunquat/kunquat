@@ -77,6 +77,8 @@ bool v_track(const char* param);
 
 bool v_tremolo_depth(const char* param);
 
+bool v_var_name(const char* param);
+
 bool v_volume(const char* param);
 
 

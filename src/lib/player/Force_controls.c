@@ -37,8 +37,8 @@ void Force_controls_set_audio_rate(Force_controls* fc, int32_t audio_rate)
     assert(fc != NULL);
     assert(audio_rate > 0);
 
-    Slider_set_mix_rate(&fc->slider, audio_rate);
-    LFO_set_mix_rate(&fc->tremolo, audio_rate);
+    Slider_set_audio_rate(&fc->slider, audio_rate);
+    LFO_set_audio_rate(&fc->tremolo, audio_rate);
 
     return;
 }

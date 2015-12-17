@@ -16,6 +16,7 @@ from kunquat.kunquat.kunquat import get_default_value
 from kunquat.kunquat.limits import *
 from connections import Connections
 from processor import Processor
+import tstamp
 
 
 # Default processor settings
@@ -32,6 +33,9 @@ _proc_defaults = {
 }
 
 
+FLOAT_SLIDE_TYPE = 'float_slide'
+
+
 class AudioUnit():
 
     def __init__(self, au_id):
@@ -40,6 +44,7 @@ class AudioUnit():
         self._au_id = au_id
         self._store = None
         self._controller = None
+        self._session = None
         self._ui_model = None
         self._au_number = None
         self._existence = None
@@ -47,6 +52,7 @@ class AudioUnit():
     def set_controller(self, controller):
         self._store = controller.get_store()
         self._controller = controller
+        self._session = controller.get_session()
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
@@ -470,5 +476,328 @@ class AudioUnit():
 
     def set_force_filter_envelope_enabled(self, enabled):
         self._set_force_filter_envelope_dict_value('enabled', enabled)
+
+    def _get_control_var_list(self):
+        key = self._get_key('p_control_vars.json')
+        ret = self._store.get(key, get_default_value(key))
+        return ret
+
+    def _get_control_var_dict(self):
+        var_list = self._get_control_var_list()
+        var_dict = {}
+        for entry in var_list:
+            type_name, var_name, init_value, ext, bindings = entry
+            var_dict[var_name] = (type_name, init_value, ext, bindings)
+        return var_dict
+
+    def _get_control_var_entry_index(self, var_list, var_name):
+        for i, entry in enumerate(var_list):
+            if entry[1] == var_name:
+                return i
+        raise ValueError('Variable name {} not in list'.format(var_name))
+
+    def _set_control_var_list(self, var_list):
+        key = self._get_key('p_control_vars.json')
+        self._store[key] = var_list
+
+    def _get_control_var_binding_list(self, var_name):
+        var_dict = self._get_control_var_dict()
+        var_entry = var_dict[var_name]
+        return var_entry[3]
+
+    def _get_control_var_binding_entry_index(
+            self, binding_list, target_dev_id, target_var_name):
+        for i, entry in enumerate(binding_list):
+            if (entry[0] == target_dev_id) and (entry[1] == target_var_name):
+                return i
+        raise ValueError('Binding target {} not in list'.format(target_var_name))
+
+    def _set_control_var_binding_list(self, var_name, binding_list):
+        var_list = self._get_control_var_list()
+        index = self._get_control_var_entry_index(var_list, var_name)
+        var_entry = var_list[index]
+
+        var_entry[4] = binding_list
+        var_list[index] = var_entry
+        self._set_control_var_list(var_list)
+
+    def _get_control_var_object_type(self, type_name):
+        type_map = {
+                'bool': bool,
+                'int': int,
+                'float': float,
+                'tstamp': tstamp.Tstamp,
+                FLOAT_SLIDE_TYPE: FLOAT_SLIDE_TYPE,
+            }
+        return type_map[type_name]
+
+    def _get_control_var_format_type(self, obj_type):
+        type_map = {
+                bool: 'bool',
+                int: 'int',
+                float: 'float',
+                tstamp.Tstamp: 'tstamp',
+                FLOAT_SLIDE_TYPE: FLOAT_SLIDE_TYPE,
+            }
+        return type_map[obj_type]
+
+    def get_control_var_names(self):
+        var_list = self._get_control_var_list()
+        return [var[1] for var in var_list]
+
+    def get_control_var_types(self):
+        return [bool, int, float, tstamp.Tstamp, FLOAT_SLIDE_TYPE]
+
+    def get_control_var_binding_target_types(self):
+        return [bool, int, float, tstamp.Tstamp]
+
+    def _get_unique_control_var_name(self, var_list):
+        names = set('var{:02d}'.format(i) for i in xrange(1, 100))
+        for entry in var_list:
+            used_name = entry[1]
+            names.discard(used_name)
+        unique_name = min(names)
+        return unique_name
+
+    def add_control_var_float_slide(self):
+        var_list = self._get_control_var_list()
+        type_name = self._get_control_var_format_type(FLOAT_SLIDE_TYPE)
+        var_name = self._get_unique_control_var_name(var_list)
+        new_entry = [type_name, var_name, 0.0, [0.0, 1.0], []]
+        var_list.append(new_entry)
+        self._set_control_var_list(var_list)
+
+    def remove_control_var(self, var_name):
+        var_list = self._get_control_var_list()
+        index = self._get_control_var_entry_index(var_list, var_name)
+        del var_list[index]
+
+        self._set_control_var_list(var_list)
+
+    def set_control_var_expanded(self, var_name, expanded):
+        self._session.set_au_var_expanded(self._au_id, var_name, expanded)
+
+    def is_control_var_expanded(self, var_name):
+        return self._session.is_au_var_expanded(self._au_id, var_name)
+
+    def get_control_var_type(self, var_name):
+        var_dict = self._get_control_var_dict()
+        var_entry = var_dict[var_name]
+        return self._get_control_var_object_type(var_entry[0])
+
+    def get_control_var_init_value(self, var_name):
+        var_dict = self._get_control_var_dict()
+        var_entry = var_dict[var_name]
+        var_type = self._get_control_var_object_type(var_entry[0])
+        if var_type == FLOAT_SLIDE_TYPE:
+            var_type = float
+        return var_type(var_entry[1])
+
+    def get_control_var_min_value(self, var_name):
+        var_dict = self._get_control_var_dict()
+        var_entry = var_dict[var_name]
+        assert self._get_control_var_object_type(var_entry[0]) == FLOAT_SLIDE_TYPE
+        ext = var_entry[2]
+        return ext[0]
+
+    def get_control_var_max_value(self, var_name):
+        var_dict = self._get_control_var_dict()
+        var_entry = var_dict[var_name]
+        assert self._get_control_var_object_type(var_entry[0]) == FLOAT_SLIDE_TYPE
+        ext = var_entry[2]
+        return ext[1]
+
+    def change_control_var_name(self, var_name, new_name):
+        var_list = self._get_control_var_list()
+        index = self._get_control_var_entry_index(var_list, var_name)
+        var_list[index][1] = new_name
+
+        self._set_control_var_list(var_list)
+
+    def change_control_var_type(self, var_name, new_type):
+        new_type_name = self._get_control_var_format_type(new_type)
+
+        cons = new_type if new_type != FLOAT_SLIDE_TYPE else float
+
+        var_list = self._get_control_var_list()
+        index = self._get_control_var_entry_index(var_list, var_name)
+        var_list[index][0] = new_type_name
+        var_list[index][2] = cons(0)
+
+        # Set default extended params as they are type-specific
+        if new_type in (bool, int, float, tstamp.Tstamp):
+            var_list[index][3] = []
+        elif new_type == FLOAT_SLIDE_TYPE:
+            var_list[index][3] = [0.0, 1.0]
+        else:
+            raise NotImplementedError
+
+        # Remove existing bindings as they are type-specific
+        var_list[index][4] = []
+
+        self._set_control_var_list(var_list)
+
+    def change_control_var_init_value(self, var_name, new_value):
+        var_list = self._get_control_var_list()
+        index = self._get_control_var_entry_index(var_list, var_name)
+        var_list[index][2] = new_value
+
+        var_type = self._get_control_var_object_type(var_list[index][0])
+        if var_type == FLOAT_SLIDE_TYPE:
+            ext = var_list[index][3]
+            var_list[index][2] = min(max(ext[0], new_value), ext[1])
+
+        self._set_control_var_list(var_list)
+
+    def change_control_var_min_value(self, var_name, new_value):
+        var_list = self._get_control_var_list()
+        index = self._get_control_var_entry_index(var_list, var_name)
+        assert self._get_control_var_object_type(var_list[index][0]) == FLOAT_SLIDE_TYPE
+        ext = var_list[index][3]
+        ext[0] = new_value
+
+        var_list[index][2] = max(var_list[index][2], new_value)
+        ext[1] = max(ext[1], new_value)
+
+        self._set_control_var_list(var_list)
+
+    def change_control_var_max_value(self, var_name, new_value):
+        var_list = self._get_control_var_list()
+        index = self._get_control_var_entry_index(var_list, var_name)
+        assert self._get_control_var_object_type(var_list[index][0]) == FLOAT_SLIDE_TYPE
+        ext = var_list[index][3]
+        ext[1] = new_value
+
+        var_list[index][2] = min(var_list[index][2], new_value)
+        ext[0] = min(ext[0], new_value)
+
+        self._set_control_var_list(var_list)
+
+    def get_control_var_binding_targets(self, var_name):
+        assert var_name
+        binding_list = self._get_control_var_binding_list(var_name)
+        return [(entry[0], entry[1]) for entry in binding_list]
+
+    def _get_unique_binding_var_name(self, binding_list):
+        names = set('var{:02d}'.format(i) for i in xrange(1, 100))
+        for entry in binding_list:
+            used_name = entry[1]
+            names.discard(used_name)
+        unique_name = min(names)
+        return unique_name
+
+    def add_control_var_binding(
+            self, var_name, target_dev_id, target_var_type):
+        assert var_name
+        assert target_dev_id
+        binding_list = self._get_control_var_binding_list(var_name)
+        type_name = self._get_control_var_format_type(target_var_type)
+        target_var_name = self._get_unique_binding_var_name(binding_list)
+        binding_list.append([
+            target_dev_id, target_var_name, type_name, '$'])
+        self._set_control_var_binding_list(var_name, binding_list)
+
+    def add_control_var_binding_float_slide(
+            self, var_name, target_dev_id, map_min_to, map_max_to):
+        assert var_name
+        assert target_dev_id
+        binding_list = self._get_control_var_binding_list(var_name)
+        type_name = self._get_control_var_format_type(float)
+        target_var_name = self._get_unique_binding_var_name(binding_list)
+        binding_list.append([
+            target_dev_id, target_var_name, type_name, map_min_to, map_max_to])
+        self._set_control_var_binding_list(var_name, binding_list)
+
+    def remove_control_var_binding(self, var_name, target_dev_id, target_var_name):
+        binding_list = self._get_control_var_binding_list(var_name)
+        index = self._get_control_var_binding_entry_index(
+                binding_list, target_dev_id, target_var_name)
+        del binding_list[index]
+        self._set_control_var_binding_list(var_name, binding_list)
+
+    def get_control_var_binding_target_type(
+            self, var_name, target_dev_id, target_var_name):
+        binding_list = self._get_control_var_binding_list(var_name)
+        index = self._get_control_var_binding_entry_index(
+                binding_list, target_dev_id, target_var_name)
+        entry = binding_list[index]
+        return self._get_control_var_object_type(entry[2])
+
+    def get_control_var_binding_expression(
+            self, var_name, target_dev_id, target_var_name):
+        binding_list = self._get_control_var_binding_list(var_name)
+        index = self._get_control_var_binding_entry_index(
+                binding_list, target_dev_id, target_var_name)
+        entry = binding_list[index]
+        return entry[3]
+
+    def get_control_var_binding_map_to_min(
+            self, var_name, target_dev_id, target_var_name):
+        binding_list = self._get_control_var_binding_list(var_name)
+        index = self._get_control_var_binding_entry_index(
+                binding_list, target_dev_id, target_var_name)
+        entry = binding_list[index]
+        return entry[3]
+
+    def get_control_var_binding_map_to_max(
+            self, var_name, target_dev_id, target_var_name):
+        binding_list = self._get_control_var_binding_list(var_name)
+        index = self._get_control_var_binding_entry_index(
+                binding_list, target_dev_id, target_var_name)
+        entry = binding_list[index]
+        return entry[4]
+
+    def change_control_var_binding_target_dev(
+            self, var_name, target_dev_id, target_var_name, new_target_dev_id):
+        binding_list = self._get_control_var_binding_list(var_name)
+        index = self._get_control_var_binding_entry_index(
+                binding_list, target_dev_id, target_var_name)
+        binding_list[index][0] = new_target_dev_id
+        self._set_control_var_binding_list(var_name, binding_list)
+
+    def change_control_var_binding_target_name(
+            self, var_name, target_dev_id, target_var_name, new_target_name):
+        binding_list = self._get_control_var_binding_list(var_name)
+        index = self._get_control_var_binding_entry_index(
+                binding_list, target_dev_id, target_var_name)
+        binding_list[index][1] = new_target_name
+        self._set_control_var_binding_list(var_name, binding_list)
+
+    def change_control_var_binding_target_type(
+            self, var_name, target_dev_id, target_var_name, new_type):
+        new_type_name = self._get_control_var_format_type(new_type)
+
+        binding_list = self._get_control_var_binding_list(var_name)
+        index = self._get_control_var_binding_entry_index(
+                binding_list, target_dev_id, target_var_name)
+        binding_list[index][2] = new_type_name
+        self._set_control_var_binding_list(var_name, binding_list)
+
+    def change_control_var_binding_expression(
+            self, var_name, target_dev_id, target_var_name, expr):
+        binding_list = self._get_control_var_binding_list(var_name)
+        index = self._get_control_var_binding_entry_index(
+                binding_list, target_dev_id, target_var_name)
+        entry = binding_list[index]
+        entry[3] = expr
+        self._set_control_var_binding_list(var_name, binding_list)
+
+    def change_control_var_binding_map_to_min(
+            self, var_name, target_dev_id, target_var_name, new_value):
+        binding_list = self._get_control_var_binding_list(var_name)
+        index = self._get_control_var_binding_entry_index(
+                binding_list, target_dev_id, target_var_name)
+        entry = binding_list[index]
+        entry[3] = new_value
+        self._set_control_var_binding_list(var_name, binding_list)
+
+    def change_control_var_binding_map_to_max(
+            self, var_name, target_dev_id, target_var_name, new_value):
+        binding_list = self._get_control_var_binding_list(var_name)
+        index = self._get_control_var_binding_entry_index(
+                binding_list, target_dev_id, target_var_name)
+        entry = binding_list[index]
+        entry[4] = new_value
+        self._set_control_var_binding_list(var_name, binding_list)
 
 

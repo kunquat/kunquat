@@ -20,6 +20,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include <devices/Au_control_vars.h>
 #include <kunquat/limits.h>
 #include <module/Module.h>
 #include <player/Event_handler.h>
@@ -91,6 +92,17 @@ bool Player_reserve_voice_state_space(Player* player, size_t size);
  * \return   \c true if successful, otherwise \c false.
  */
 bool Player_alloc_channel_proc_state_keys(Player* player, Streader* sr);
+
+
+/**
+ * Allocate memory for Audio unit control variables.
+ *
+ * \param player     The Player -- must not be \c NULL.
+ * \param aucv       The Audio unit control variables -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Player_alloc_channel_cv_state(Player* player, const Au_control_vars* aucv);
 
 
 /**

@@ -139,7 +139,7 @@ class RenderLoadMeter(QWidget):
         self._load_norm = 0
 
     def set_load_norm(self, load_norm):
-        self._load_norm = load_norm
+        self._load_norm = min(max(0.0, load_norm), 1.0)
         self.update()
 
     def _get_colour(self, norm):

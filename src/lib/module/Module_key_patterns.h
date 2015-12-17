@@ -96,6 +96,8 @@ MODULE_AU_KEYP(au_env_filter_release,   "au_XX/p_envelope_filter_release.json",
         ", \"envelope\": { \"nodes\": [ [0, 100], [1, 100] ] }"
         "}")
 
+MODULE_AU_KEYP(au_control_vars,         "au_XX/p_control_vars.json",            "[]")
+
 MODULE_AU_KEYP(proc_manifest,           "au_XX/proc_XX/p_manifest.json",        "")
 MODULE_AU_KEYP(proc_signal_type,        "au_XX/proc_XX/p_signal_type.json",     "\"voice\"")
 MODULE_AU_KEYP(proc_in_port_manifest,   "au_XX/proc_XX/in_XX/p_manifest.json",  "")

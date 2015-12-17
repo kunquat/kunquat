@@ -25,10 +25,23 @@
 #include <devices/Device_params.h>
 #include <frame.h>
 #include <kunquat/limits.h>
+#include <mathnum/Random.h>
 #include <player/Device_states.h>
+#include <player/Linear_controls.h>
 #include <player/Work_buffers.h>
 #include <string/Streader.h>
 #include <Tstamp.h>
+
+
+typedef enum
+{
+    DEVICE_CONTROL_VAR_MODE_MIXED,
+    DEVICE_CONTROL_VAR_MODE_VOICE,
+} Device_control_var_mode;
+
+
+typedef Device_state* Device_create_state_func(
+        const Device*, int32_t buffer_size, int32_t audio_rate);
 
 
 typedef void Device_process_signal_func(
@@ -39,6 +52,79 @@ typedef void Device_process_signal_func(
         uint32_t buf_stop,
         uint32_t audio_rate,
         double tempo);
+
+
+typedef void Device_set_control_var_generic_func(
+        const Device*,
+        Device_states*,
+        Device_control_var_mode,
+        Random*,
+        Channel*,
+        const char* var_name,
+        const Value* value);
+
+typedef void Device_slide_control_var_float_target_func(
+        const Device*,
+        Device_states*,
+        Device_control_var_mode,
+        Channel*,
+        const char* var_name,
+        double value);
+
+typedef void Device_slide_control_var_float_length_func(
+        const Device*,
+        Device_states*,
+        Device_control_var_mode,
+        Channel*,
+        const char* var_name,
+        const Tstamp* length);
+
+typedef void Device_osc_speed_cv_float_func(
+        const Device*,
+        Device_states*,
+        Device_control_var_mode,
+        Channel*,
+        const char* var_name,
+        double speed);
+
+typedef void Device_osc_depth_cv_float_func(
+        const Device*,
+        Device_states*,
+        Device_control_var_mode,
+        Channel*,
+        const char* var_name,
+        double depth);
+
+typedef void Device_osc_speed_slide_cv_float_func(
+        const Device*,
+        Device_states*,
+        Device_control_var_mode,
+        Channel*,
+        const char* var_name,
+        const Tstamp* length);
+
+typedef void Device_osc_depth_slide_cv_float_func(
+        const Device*,
+        Device_states*,
+        Device_control_var_mode,
+        Channel*,
+        const char* var_name,
+        const Tstamp* length);
+
+typedef void Device_init_control_vars_func(
+        const Device*,
+        Device_states*,
+        Device_control_var_mode,
+        Random*,
+        Channel*);
+
+typedef void Device_init_control_var_float_func(
+        const Device*,
+        Device_states*,
+        Device_control_var_mode,
+        Channel*,
+        const char*,
+        const Linear_controls*);
 
 
 struct Device
@@ -52,12 +138,23 @@ struct Device
     Device_params* dparams;
     Device_impl* dimpl;
 
-    Device_state* (*create_state)(const struct Device*, int32_t, int32_t);
+    Device_create_state_func* create_state;
     bool (*set_audio_rate)(const struct Device*, Device_states*, int32_t);
     bool (*set_buffer_size)(const struct Device*, Device_states*, int32_t);
     void (*update_tempo)(const struct Device*, Device_states*, double);
     void (*reset)(const struct Device*, Device_states*);
     Device_process_signal_func* process_signal;
+
+    Device_set_control_var_generic_func* set_control_var_generic;
+    Device_slide_control_var_float_target_func* slide_control_var_float_target;
+    Device_slide_control_var_float_length_func* slide_control_var_float_length;
+    Device_osc_speed_cv_float_func* osc_speed_cv_float;
+    Device_osc_depth_cv_float_func* osc_depth_cv_float;
+    Device_osc_speed_slide_cv_float_func* osc_speed_slide_cv_float;
+    Device_osc_depth_slide_cv_float_func* osc_depth_slide_cv_float;
+
+    Device_init_control_vars_func* init_control_vars;
+    Device_init_control_var_float_func* init_control_var_float;
 
     bool existence[DEVICE_PORT_TYPES][KQT_DEVICE_PORTS_MAX];
 };
@@ -226,6 +323,68 @@ void Device_set_process(Device* device, Device_process_signal_func* process_sign
 
 
 /**
+ * Set function for setting control variables.
+ *
+ * \param device     The Device -- must not be \c NULL.
+ * \param set_func   The generic Value setting function -- must not be \c NULL.
+ */
+void Device_register_set_control_var_generic(
+        Device* device, Device_set_control_var_generic_func* set_func);
+
+
+/**
+ * Set functions for sliding floating-point control variables.
+ *
+ * \param device              The Device -- must not be \c NULL.
+ * \param slide_target_func   The slide target function -- must not be \c NULL.
+ * \param slide_length_func   The slide length function -- must not be \c NULL.
+ */
+void Device_register_slide_control_var_float(
+        Device* device,
+        Device_slide_control_var_float_target_func* slide_target_func,
+        Device_slide_control_var_float_length_func* slide_length_func);
+
+
+/**
+ * Set functions for oscillating floating-point control variables.
+ *
+ * \param device             The Device -- must not be \c NULL.
+ * \param speed_func         The oscillation depth function -- must not be \c NULL.
+ * \param depth_func         The oscillation depth function -- must not be \c NULL.
+ * \param speed_slide_func   The oscillation depth slide function -- must
+ *                           not be \c NULL.
+ * \param depth_slide_func   The oscillation depth slide function -- must
+ *                           not be \c NULL.
+ */
+void Device_register_osc_cv_float(
+        Device* device,
+        Device_osc_speed_cv_float_func* speed_func,
+        Device_osc_depth_cv_float_func* depth_func,
+        Device_osc_speed_slide_cv_float_func* speed_slide_func,
+        Device_osc_depth_slide_cv_float_func* depth_slide_func);
+
+
+/**
+ * Set function for initialising control variables.
+ *
+ * \param device      The Device -- must not be \c NULL.
+ * \param init_func   The initialisation function -- must not be \c NULL.
+ */
+void Device_register_init_control_vars(
+        Device* device, Device_init_control_vars_func* init_func);
+
+
+/**
+ * Set function for initialising a single float control variable.
+ *
+ * \param device      The Device -- must not be \c NULL.
+ * \param init_func   The initialisation function -- must not be \c NULL.
+ */
+void Device_register_init_control_var_float(
+        Device* device, Device_init_control_var_float_func* init_func);
+
+
+/**
  * Set existence of a port in the Device.
  *
  * \param device   The Device -- must not be \c NULL.
@@ -339,19 +498,6 @@ bool Device_set_state_key(const Device* device, Device_states* dstates, const ch
 
 
 /**
- * Notify the Device state of a key change and updates the internal state.
- *
- * \param device    The Device -- must not be \c NULL.
- * \param dstates   The Device states -- must not be \c NULL.
- * \param key       The key that changed -- must not be \c NULL.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-bool Device_update_state_key(
-        const Device* device, Device_states* dstates, const char* key);
-
-
-/**
  * Process audio in the Device.
  *
  * \param device   The Device -- must not be \c NULL.
@@ -373,6 +519,182 @@ void Device_process(
         uint32_t until,
         uint32_t freq,
         double tempo);
+
+
+/**
+ * Set new value of a Device control variable.
+ *
+ * \param device     The Device -- must not be \c NULL.
+ * \param dstates    The Device states -- must not be \c NULL.
+ * \param mode       The Device control variable mode.
+ * \param random     The Random source -- must not be \c NULL.
+ * \param channel    The Channel -- must not be \c NULL if
+ *                   \a mode == \c DEVICE_CONTROL_VAR_MODE_VOICE.
+ * \param var_name   The name of the control variable -- must not be \c NULL.
+ * \param value      The new value -- must not be \c NULL and must have a type
+ *                   of \c VALUE_TYPE_BOOL, \c VALUE_TYPE_INT,
+ *                   \c VALUE_TYPE_FLOAT or \c VALUE_TYPE_TSTAMP.
+ */
+void Device_set_control_var_generic(
+        const Device* device,
+        Device_states* dstates,
+        Device_control_var_mode mode,
+        Random* random,
+        Channel* channel,
+        const char* var_name,
+        const Value* value);
+
+
+/**
+ * Slide to a new value of a floating-point Device control variable.
+ *
+ * \param device     The Device -- must not be \c NULL.
+ * \param dstates    The Device states -- must not be \c NULL.
+ * \param mode       The Device control variable mode.
+ * \param channel    The Channel -- must not be \c NULL.
+ * \param var_name   The name of the control variable, or \c NULL.
+ * \param value      The target value -- must be finite.
+ */
+void Device_slide_control_var_float_target(
+        const Device* device,
+        Device_states* dstates,
+        Device_control_var_mode mode,
+        Channel* channel,
+        const char* var_name,
+        double value);
+
+
+/**
+ * Set slide length of a floating-point Device control variable.
+ *
+ * \param device     The Device -- must not be \c NULL.
+ * \param dstates    The Device states -- must not be \c NULL.
+ * \param mode       The Device control variable mode.
+ * \param channel    The Channel -- must not be \c NULL.
+ * \param var_name   The name of the control variable, or \c NULL.
+ * \param length     The new slide length -- must not be \c NULL.
+ */
+void Device_slide_control_var_float_length(
+        const Device* device,
+        Device_states* dstates,
+        Device_control_var_mode mode,
+        Channel* channel,
+        const char* var_name,
+        const Tstamp* length);
+
+
+/**
+ * Set oscillation speed of a floating-point Device control variable.
+ *
+ * \param device     The Device -- must not be \c NULL.
+ * \param dstates    The Device states -- must not be \c NULL.
+ * \param mode       The Device control variable mode.
+ * \param channel    The Channel -- must not be \c NULL.
+ * \param var_name   The name of the control variable, or \c NULL.
+ * \param speed      The oscillation speed -- must be >= \c 0.
+ */
+void Device_osc_speed_cv_float(
+        const Device* device,
+        Device_states* dstates,
+        Device_control_var_mode mode,
+        Channel* channel,
+        const char* var_name,
+        double speed);
+
+
+/**
+ * Set oscillation depth of a floating-point Device control variable.
+ *
+ * \param device     The Device -- must not be \c NULL.
+ * \param dstates    The Device states -- must not be \c NULL.
+ * \param mode       The Device control variable mode.
+ * \param channel    The Channel -- must not be \c NULL.
+ * \param var_name   The name of the control variable, or \c NULL.
+ * \param depth      The oscillation depth -- must be finite.
+ */
+void Device_osc_depth_cv_float(
+        const Device* device,
+        Device_states* dstates,
+        Device_control_var_mode mode,
+        Channel* channel,
+        const char* var_name,
+        double depth);
+
+
+/**
+ * Set oscillation speed slide of a floating-point Device control variable.
+ *
+ * \param device     The Device -- must not be \c NULL.
+ * \param dstates    The Device states -- must not be \c NULL.
+ * \param mode       The Device control variable mode.
+ * \param channel    The Channel -- must not be \c NULL.
+ * \param var_name   The name of the control variable, or \c NULL.
+ * \param length     The slide length of the speed -- must not be \c NULL.
+ */
+void Device_osc_speed_slide_cv_float(
+        const Device* device,
+        Device_states* dstates,
+        Device_control_var_mode mode,
+        Channel* channel,
+        const char* var_name,
+        const Tstamp* length);
+
+
+/**
+ * Set oscillation depth slide of a floating-point Device control variable.
+ *
+ * \param device     The Device -- must not be \c NULL.
+ * \param dstates    The Device states -- must not be \c NULL.
+ * \param mode       The Device control variable mode.
+ * \param channel    The Channel -- must not be \c NULL.
+ * \param var_name   The name of the control variable, or \c NULL.
+ * \param length     The slide length of the depth -- must not be \c NULL.
+ */
+void Device_osc_depth_slide_cv_float(
+        const Device* device,
+        Device_states* dstates,
+        Device_control_var_mode mode,
+        Channel* channel,
+        const char* var_name,
+        const Tstamp* length);
+
+
+/**
+ * Initialise all control variables of the Device.
+ *
+ * \param device    The Device -- must not be \c NULL.
+ * \param dstates   The Device states -- must not be \c NULL.
+ * \param mode      The Device control variable mode.
+ * \param random    Global Random source -- must not be \c NULL if
+ *                  \a mode == \c DEVICE_CONTROL_VAR_MODE_MIXED.
+ * \param channel   The Channel -- must not be \c NULL if
+ *                  \a mode == \c DEVICE_CONTROL_VAR_MODE_VOICE.
+ */
+void Device_init_control_vars(
+        const Device* device,
+        Device_states* dstates,
+        Device_control_var_mode mode,
+        Random* random,
+        Channel* channel);
+
+
+/**
+ * Initialise a single float control variable of the Device.
+ *
+ * \param device     The Device -- must not be \c NULL.
+ * \param dstates    The Device states -- must not be \c NULL.
+ * \param mode       The Device control variable mode.
+ * \param channel    The Channel -- must not be \c NULL.
+ * \param var_name   The variable name -- must not be \c NULL.
+ * \param controls   The Linear controls of the float variable -- must not be \c NULL.
+ */
+void Device_init_control_var_float(
+        const Device* device,
+        Device_states* dstates,
+        Device_control_var_mode mode,
+        Channel* channel,
+        const char* var_name,
+        const Linear_controls* controls);
 
 
 /**

@@ -23,7 +23,6 @@
 #include <devices/Device.h>
 #include <frame.h>
 #include <kunquat/limits.h>
-#include <mathnum/Random.h>
 #include <module/Bind.h>
 #include <module/Environment.h>
 #include <module/Input_map.h>
@@ -41,7 +40,6 @@ struct Module
 {
     Device parent;
     uint64_t random_seed;               ///< The master random seed of the Module.
-    Random* random;                     ///< The source for random data in the Module.
     Song_table* songs;                  ///< The Songs.
     bool album_is_existent;             ///< Album existence status.
     Track_list* track_list;             ///< Track list.
@@ -219,7 +217,7 @@ Pat_table* Module_get_pats(Module* module);
  *
  * \param module   The Module -- must not be \c NULL.
  *
- * \return   The Audio unit.
+ * \return   The Audio unit if one exists, otherwise \c NULL.
  */
 Audio_unit* Module_get_au_from_input(const Module* module, int32_t input);
 

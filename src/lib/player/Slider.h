@@ -35,15 +35,19 @@ typedef enum
 typedef struct Slider
 {
     Slide_mode mode;
-    uint32_t mix_rate;
+    int32_t audio_rate;
     double tempo;
 
-    int dir;
     Tstamp length;
-    double current_value;
-    double target_value;
-    double steps_left;
-    double update;
+    double from;
+    double to;
+
+    // TODO: these values are part of a temporary solution;
+    //       internal slide progress should be a timestamp
+    double progress;
+    double progress_update;
+    double log2_from;
+    double log2_to;
 } Slider;
 
 
@@ -77,6 +81,16 @@ Slider* Slider_copy(Slider* restrict dest, const Slider* restrict src);
  * \param start    The starting value -- must be finite.
  */
 void Slider_start(Slider* slider, double target, double start);
+
+
+/**
+ * Get the current value in the Slider.
+ *
+ * \param slider   The Slider -- must not be \c NULL.
+ *
+ * \return   The current value.
+ */
+double Slider_get_value(const Slider* slider);
 
 
 /**
@@ -121,12 +135,12 @@ void Slider_set_length(Slider* slider, const Tstamp* length);
 
 
 /**
- * Set the mixing rate assumed by the Slider.
+ * Set the audio rate assumed by the Slider.
  *
- * \param slider     The Slider -- must not be \c NULL.
- * \param mix_rate   The mix rate -- must be > \c 0.
+ * \param slider       The Slider -- must not be \c NULL.
+ * \param audio_rate   The audio rate -- must be > \c 0.
  */
-void Slider_set_mix_rate(Slider* slider, uint32_t mix_rate);
+void Slider_set_audio_rate(Slider* slider, int32_t audio_rate);
 
 
 /**
@@ -159,6 +173,23 @@ void Slider_change_target(Slider* slider, double target);
  * \return   \c true if a slide is in progress, otherwise \c false.
  */
 bool Slider_in_progress(const Slider* slider);
+
+
+/**
+ * Change Slider range without changing current progress.
+ *
+ * \param slider        The Slider -- must not be \c NULL.
+ * \param from_start    Assumed source range start -- must be finite.
+ * \param from_end      Assumed source range end -- must be finite.
+ * \param to_start      Assumed target range start -- must be finite.
+ * \param to_end        Assumed target range end -- must be finite.
+ */
+void Slider_change_range(
+        Slider* slider,
+        double from_start,
+        double from_end,
+        double to_start,
+        double to_end);
 
 
 #endif // K_SLIDER_H

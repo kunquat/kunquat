@@ -19,10 +19,12 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include <Decl.h>
 #include <kunquat/limits.h>
 #include <mathnum/Random.h>
 #include <module/Au_table.h>
 #include <module/sheet/Channel_defaults.h>
+#include <player/Channel_cv_state.h>
 #include <player/Channel_proc_state.h>
 #include <player/Env_state.h>
 #include <player/Event_cache.h>
@@ -37,13 +39,14 @@
  * This structure is used for transferring channel-specific settings to
  * Voices.
  */
-typedef struct Channel
+struct Channel
 {
     General_state parent;
     int num;                       ///< Channel number.
     Channel_proc_state* cpstate;   ///< Channel-specific processor state.
     Random* rand;                  ///< Random source for this channel.
     Event_cache* event_cache;
+    Channel_cv_state* cvstate;
 
     Voice_pool* pool;              ///< All Voices.
     Voice* fg[KQT_PROCESSORS_MAX]; ///< Foreground Voices.
@@ -90,7 +93,7 @@ typedef struct Channel
     double arpeggio_speed;
     int arpeggio_edit_pos;
     double arpeggio_tones[KQT_ARPEGGIO_NOTES_MAX];
-} Channel;
+};
 
 
 /**
@@ -172,6 +175,28 @@ void Channel_apply_defaults(Channel* ch, const Channel_defaults* ch_defaults);
 
 
 /**
+ * Get the Channel Random source.
+ *
+ * \param ch   The Channel -- must not be \c NULL.
+ *
+ * \return   The Random source. This is never \c NULL.
+ */
+Random* Channel_get_random_source(Channel* ch);
+
+
+/**
+ * Get current foreground Voice of the Channel.
+ *
+ * \param ch           The Channel -- must not be \c NULL.
+ * \param proc_index   The Processor index -- must be >= \c 0 and
+ *                     < \c KQT_PROCESSORS_MAX.
+ *
+ * \return   The foreground Voice at \a proc_index if one exists, otherwise \c NULL.
+ */
+Voice* Channel_get_fg_voice(Channel* ch, int proc_index);
+
+
+/**
  * Return an actual force of a current foreground Voice.
  *
  * \param ch           The Channel -- must not be \c NULL.
@@ -182,6 +207,26 @@ void Channel_apply_defaults(Channel* ch, const Channel_defaults* ch_defaults);
  *           exists, otherwise NAN.
  */
 double Channel_get_fg_force(Channel* ch, int proc_index);
+
+
+/**
+ * Get control variable state of the Channel.
+ *
+ * \param ch   The Channel -- must not be \c NULL.
+ *
+ * \return   The control variable state of the Channel. This is never \c NULL.
+ */
+const Channel_cv_state* Channel_get_cv_state(const Channel* ch);
+
+
+/**
+ * Get mutable control variable state of the Channel.
+ *
+ * \param ch   The Channel -- must not be \c NULL.
+ *
+ * \return   The mutable control variable state of the Channel. This is never \c NULL.
+ */
+Channel_cv_state* Channel_get_cv_state_mut(Channel* ch);
 
 
 /**

@@ -11,8 +11,6 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-import string
-
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
@@ -20,6 +18,7 @@ from kunquat.kunquat.limits import *
 import kunquat.tracker.ui.model.tstamp as tstamp
 from editorlist import EditorList
 from headerline import HeaderLine
+from varnamevalidator import VarNameValidator
 from varvalidators import *
 
 
@@ -368,6 +367,8 @@ class VarRemoveButton(QPushButton):
 
         self._var_name = None
 
+        self.setToolTip('Remove')
+
         self.setStyleSheet('padding: 0 -2px;')
 
     def set_ui_model(self, ui_model):
@@ -462,37 +463,11 @@ class VariableAdder(QWidget):
         self._updater.signal_update(set(['signal_environment']))
 
 
-class VarNameValidator(QValidator):
-
-    def __init__(self, used_names):
-        QValidator.__init__(self)
-        self._used_names = used_names
-
-    def validate(self, contents, pos):
-        in_str = unicode(contents)
-        if not in_str:
-            return (QValidator.Intermediate, pos)
-
-        allowed_init_chars = '_' + string.ascii_lowercase
-        allowed_chars = allowed_init_chars + string.digits
-
-        if in_str[0] not in allowed_init_chars:
-            return (QValidator.Invalid, pos)
-
-        if all(ch in allowed_chars for ch in in_str):
-            if in_str not in self._used_names:
-                return (QValidator.Acceptable, pos)
-            else:
-                return (QValidator.Intermediate, pos)
-
-        return (QValidator.Invalid, pos)
-
-
 class NewVarNameEditor(QLineEdit):
 
     def __init__(self):
         QLineEdit.__init__(self)
-        self.setMaxLength(ENV_VAR_NAME_MAX - 1)
+        self.setMaxLength(VAR_NAME_MAX - 1)
         self._validator = VarNameValidator(set())
         self.setValidator(self._validator)
 

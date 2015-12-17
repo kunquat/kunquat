@@ -163,9 +163,6 @@ static Set_state_float_func Proc_delay_set_state_max_delay;
 static Set_state_float_func Proc_delay_set_state_tap_delay;
 static Set_state_float_func Proc_delay_set_state_tap_volume;
 
-static Update_float_func Proc_delay_update_state_tap_delay;
-static Update_float_func Proc_delay_update_state_tap_volume;
-
 static void Proc_delay_clear_history(
         const Device_impl* dimpl, Proc_state* proc_state);
 
@@ -211,7 +208,7 @@ static bool Proc_delay_init(Device_impl* dimpl)
 
     Device_impl_register_reset_device_state(&delay->parent, Proc_delay_reset);
 
-    // Register key set/update handlers
+    // Register key handlers
     bool reg_success = true;
 
     reg_success &= Device_impl_register_set_float(
@@ -233,17 +230,10 @@ static bool Proc_delay_init(Device_impl* dimpl)
             Proc_delay_set_tap_volume,
             Proc_delay_set_state_tap_volume);
 
-    reg_success &= Device_impl_register_update_state_float(
-            &delay->parent,
-            "t_XX/d",
-            Proc_delay_update_state_tap_delay);
-    reg_success &= Device_impl_register_update_state_float(
-            &delay->parent,
-            "t_XX/v",
-            Proc_delay_update_state_tap_volume);
-
     if (!reg_success)
         return false;
+
+    // TODO: add control variable accessors
 
     Processor_set_clear_history(
             (Processor*)delay->parent.device, Proc_delay_clear_history);
@@ -393,8 +383,20 @@ static bool Proc_delay_set_state_tap_delay(
     assert(dimpl != NULL);
     assert(dstate != NULL);
     assert(indices != NULL);
+    assert(isfinite(value));
 
-    Proc_delay_update_state_tap_delay(dimpl, dstate, indices, value);
+    if (indices[0] < 0 || indices[0] >= TAPS_MAX)
+        return true;
+
+    const Proc_delay* delay = (const Proc_delay*)dimpl;
+    Delay_state* dlstate = (Delay_state*)dstate;
+    Tap_state_set(
+            &dlstate->tap_states[indices[0]],
+            value,
+            delay->taps[indices[0]].scale,
+            dlstate->buf_pos,
+            Audio_buffer_get_size(dlstate->buf),
+            dstate->audio_rate);
 
     return true;
 }
@@ -409,57 +411,15 @@ static bool Proc_delay_set_state_tap_volume(
     assert(dimpl != NULL);
     assert(dstate != NULL);
     assert(indices != NULL);
-
-    Proc_delay_update_state_tap_volume(dimpl, dstate, indices, value);
-
-    return true;
-}
-
-
-static void Proc_delay_update_state_tap_delay(
-        const Device_impl* dimpl,
-        Device_state* dstate,
-        Key_indices indices,
-        double value)
-{
-    assert(dimpl != NULL);
-    assert(dstate != NULL);
-    assert(indices != NULL);
+    assert(isfinite(value));
 
     if (indices[0] < 0 || indices[0] >= TAPS_MAX)
-        return;
-
-    const Proc_delay* delay = (const Proc_delay*)dimpl;
-    Delay_state* dlstate = (Delay_state*)dstate;
-    Tap_state_set(
-            &dlstate->tap_states[indices[0]],
-            value,
-            delay->taps[indices[0]].scale,
-            dlstate->buf_pos,
-            Audio_buffer_get_size(dlstate->buf),
-            dstate->audio_rate);
-
-    return;
-}
-
-
-static void Proc_delay_update_state_tap_volume(
-        const Device_impl* dimpl,
-        Device_state* dstate,
-        Key_indices indices,
-        double value)
-{
-    assert(dimpl != NULL);
-    assert(dstate != NULL);
-    assert(indices != NULL);
-
-    if (indices[0] < 0 || indices[0] >= TAPS_MAX)
-        return;
+        return true;
 
     Delay_state* dlstate = (Delay_state*)dstate;
     dlstate->tap_states[indices[0]].scale = get_tap_volume(value);
 
-    return;
+    return true;
 }
 
 

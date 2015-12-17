@@ -185,6 +185,21 @@ START_TEST(Input_map_maintains_indices)
 END_TEST
 
 
+START_TEST(Read_audio_unit_control_vars)
+{
+    setup_single_pulse_without_instrument_manifest();
+    set_data("au_00/p_manifest.json", "{ \"type\": \"instrument\" }");
+    validate();
+    check_unexpected_error();
+
+    set_data(
+            "au_00/p_control_vars.json",
+            "[[\"float\", \"test\", 0.0, [0.0, 1.0],"
+                " [[\"proc_00\", \"target\", \"float\", 0.0, 1.0]]]]");
+}
+END_TEST
+
+
 Suite* Instrument_suite(void)
 {
     Suite* s = suite_create("Instrument");
@@ -200,6 +215,7 @@ Suite* Instrument_suite(void)
     tcase_add_test(tc_general, Adding_manifest_enables_instrument);
     //tcase_add_test(tc_general, Removing_manifest_disables_instrument);
     tcase_add_test(tc_general, Input_map_maintains_indices);
+    tcase_add_test(tc_general, Read_audio_unit_control_vars);
 
     return s;
 }

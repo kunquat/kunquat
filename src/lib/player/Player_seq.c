@@ -287,10 +287,7 @@ static void Player_process_expr_event(
                 VALUE_TYPE_STRING)
         {
             arg->type = VALUE_TYPE_STRING;
-            Streader_read_string(
-                    sr,
-                    KQT_ENV_VAR_NAME_MAX,
-                    arg->value.string_type);
+            Streader_read_string(sr, KQT_VAR_NAME_MAX, arg->value.string_type);
         }
         else
         {
@@ -786,6 +783,8 @@ static void update_tempo_slide(Master_params* master_params)
                     &master_params->tempo_slide_left);
         }
     }
+
+    return;
 }
 
 
@@ -796,14 +795,21 @@ void Player_update_sliders_and_lfos_tempo(Player* player)
     const double tempo = player->master_params.tempo;
     assert(isfinite(tempo));
 
+    Master_params* mp = &player->master_params;
+    Slider_set_tempo(&mp->volume_slider, tempo);
+
+    // Update channels
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
     {
         Channel* ch = player->channels[i];
         Channel_set_tempo(ch, tempo);
     }
 
-    Master_params* mp = &player->master_params;
-    Slider_set_tempo(&mp->volume_slider, tempo);
+    // Update devices
+    Device_update_tempo(
+            (const Device*)player->module,
+            player->device_states,
+            player->master_params.tempo);
 
     return;
 }

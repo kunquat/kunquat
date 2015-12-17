@@ -1,7 +1,7 @@
 
 
 /*
- * Authors: Tomi Jylhä-Ollila, Finland 2011-2014
+ * Authors: Tomi Jylhä-Ollila, Finland 2011-2015
  *          Ossi Saresoja, Finland 2009-2010
  *
  * This file is part of Kunquat.
@@ -80,6 +80,29 @@ double powi(double x, int n)
     }
 
     return ret;
+}
+
+
+double get_range_norm(double value, double start_value, double end_value)
+{
+    assert(isfinite(value));
+    assert(isfinite(start_value));
+    assert(isfinite(end_value));
+
+    if (start_value == end_value)
+        return 0;
+
+    const double min_value = min(start_value, end_value);
+    const double max_value = max(start_value, end_value);
+    const double range_width = max_value - min_value;
+
+    const double clamped_value = clamp(value, min_value, max_value);
+
+    double norm = (clamped_value - min_value) / range_width;
+    if (start_value > end_value)
+        norm = 1.0 - norm;
+
+    return norm;
 }
 
 

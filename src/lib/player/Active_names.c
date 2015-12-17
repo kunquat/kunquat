@@ -24,7 +24,7 @@
 
 struct Active_names
 {
-    char names[ACTIVE_CAT_LAST][ACTIVE_TYPE_LAST][KQT_KEY_LENGTH_MAX];
+    char names[ACTIVE_CAT_COUNT][ACTIVE_TYPE_COUNT][KQT_KEY_LENGTH_MAX];
 };
 
 
@@ -46,12 +46,12 @@ bool Active_names_set(
         const char* name)
 {
     assert(names != NULL);
-    assert(cat < ACTIVE_CAT_LAST);
-    assert(type < ACTIVE_TYPE_LAST);
+    assert(cat < ACTIVE_CAT_COUNT);
+    assert(type < ACTIVE_TYPE_COUNT);
     assert(name != NULL);
 
     if (strlen(name) >=
-            (cat == ACTIVE_CAT_ENV ? KQT_ENV_VAR_NAME_MAX : KQT_KEY_LENGTH_MAX))
+            (cat == ACTIVE_CAT_ENV ? KQT_VAR_NAME_MAX : KQT_KEY_LENGTH_MAX))
         return false;
 
     strcpy(names->names[cat][type], name);
@@ -64,8 +64,8 @@ const char* Active_names_get(
         const Active_names* names, Active_cat cat, Active_type type)
 {
     assert(names != NULL);
-    assert(cat < ACTIVE_CAT_LAST);
-    assert(type < ACTIVE_TYPE_LAST);
+    assert(cat < ACTIVE_CAT_COUNT);
+    assert(type < ACTIVE_TYPE_COUNT);
 
     return names->names[cat][type];
 }

@@ -41,9 +41,11 @@ static bool Channel_init(
 
     ch->cpstate = new_Channel_proc_state();
     ch->rand = new_Random();
-    if (ch->cpstate == NULL || ch->rand == NULL ||
+    ch->cvstate = new_Channel_cv_state();
+    if (ch->cpstate == NULL || ch->rand == NULL || ch->cvstate == NULL ||
             !General_state_init(&ch->parent, false, estate, module))
     {
+        del_Channel_cv_state(ch->cvstate);
         del_Channel_proc_state(ch->cpstate);
         del_Random(ch->rand);
         return false;
@@ -104,8 +106,9 @@ void Channel_set_audio_rate(Channel* ch, int32_t audio_rate)
 
     Force_controls_set_audio_rate(&ch->force_controls, audio_rate);
     Pitch_controls_set_audio_rate(&ch->pitch_controls, audio_rate);
-    Slider_set_mix_rate(&ch->panning_slider, audio_rate);
+    Slider_set_audio_rate(&ch->panning_slider, audio_rate);
     Filter_controls_set_audio_rate(&ch->filter_controls, audio_rate);
+    Channel_cv_state_set_audio_rate(ch->cvstate, audio_rate);
 
     return;
 }
@@ -120,6 +123,7 @@ void Channel_set_tempo(Channel* ch, double tempo)
     Pitch_controls_set_tempo(&ch->pitch_controls, tempo);
     Slider_set_tempo(&ch->panning_slider, tempo);
     Filter_controls_set_tempo(&ch->filter_controls, tempo);
+    Channel_cv_state_set_tempo(ch->cvstate, tempo);
 
     return;
 }
@@ -198,6 +202,8 @@ void Channel_reset(Channel* ch)
     ch->arpeggio_edit_pos = 1;
     ch->arpeggio_tones[0] = ch->arpeggio_tones[1] = NAN;
 
+    Channel_cv_state_reset(ch->cvstate);
+
     Random_reset(ch->rand);
     if (ch->event_cache != NULL)
         Event_cache_reset(ch->event_cache);
@@ -217,6 +223,23 @@ void Channel_apply_defaults(Channel* ch, const Channel_defaults* ch_defaults)
 }
 
 
+Random* Channel_get_random_source(Channel* ch)
+{
+    assert(ch != NULL);
+    return ch->rand;
+}
+
+
+Voice* Channel_get_fg_voice(Channel* ch, int proc_index)
+{
+    assert(ch != NULL);
+    assert(proc_index >= 0);
+    assert(proc_index < KQT_PROCESSORS_MAX);
+
+    return ch->fg[proc_index];
+}
+
+
 double Channel_get_fg_force(Channel* ch, int proc_index)
 {
     assert(ch != NULL);
@@ -227,6 +250,20 @@ double Channel_get_fg_force(Channel* ch, int proc_index)
         return NAN;
 
     return Voice_get_actual_force(ch->fg[proc_index]);
+}
+
+
+const Channel_cv_state* Channel_get_cv_state(const Channel* ch)
+{
+    assert(ch != NULL);
+    return ch->cvstate;
+}
+
+
+Channel_cv_state* Channel_get_cv_state_mut(Channel* ch)
+{
+    assert(ch != NULL);
+    return ch->cvstate;
 }
 
 
@@ -241,6 +278,8 @@ void Channel_deinit(Channel* ch)
     ch->cpstate = NULL;
     del_Random(ch->rand);
     ch->rand = NULL;
+    del_Channel_cv_state(ch->cvstate);
+    ch->cvstate = NULL;
     General_state_deinit(&ch->parent);
 
     return;

@@ -134,6 +134,8 @@ bool Event_handler_set_au_process(
             const Audio_unit*,
             const Au_params*,
             Au_state*,
+            Master_params*,
+            Channel*,
             Device_states*,
             const Value*));
 
