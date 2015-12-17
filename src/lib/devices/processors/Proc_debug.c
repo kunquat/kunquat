@@ -12,18 +12,19 @@
  */
 
 
-#include <stdlib.h>
-#include <stdint.h>
-#include <math.h>
+#include <devices/processors/Proc_debug.h>
 
 #include <Audio_buffer.h>
 #include <debug/assert.h>
 #include <devices/Device_params.h>
-#include <devices/processors/Proc_debug.h>
 #include <devices/processors/Proc_utils.h>
 #include <memory.h>
 #include <player/Work_buffers.h>
 #include <string/common.h>
+
+#include <math.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 
 typedef struct Proc_debug

@@ -12,18 +12,12 @@
  */
 
 
-#include <math.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
+#include <devices/processors/Proc_chorus.h>
 
 #include <Audio_buffer.h>
 #include <debug/assert.h>
 #include <devices/Device_impl.h>
 #include <devices/Processor.h>
-#include <devices/processors/Proc_chorus.h>
 #include <devices/processors/Proc_utils.h>
 #include <mathnum/common.h>
 #include <mathnum/conversions.h>
@@ -31,6 +25,13 @@
 #include <player/Linear_controls.h>
 #include <player/Player.h>
 #include <string/common.h>
+
+#include <math.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 #define CHORUS_BUF_TIME 0.25

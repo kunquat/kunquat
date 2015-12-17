@@ -12,17 +12,18 @@
  */
 
 
-#include <math.h>
-#include <stdlib.h>
+#include <devices/processors/Proc_ringmod.h>
 
 #include <Audio_buffer.h>
 #include <debug/assert.h>
 #include <devices/Device_impl.h>
 #include <devices/Processor.h>
-#include <devices/processors/Proc_ringmod.h>
 #include <devices/processors/Proc_utils.h>
 #include <memory.h>
 #include <player/Proc_state.h>
+
+#include <math.h>
+#include <stdlib.h>
 
 
 typedef struct Proc_ringmod

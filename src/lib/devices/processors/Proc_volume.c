@@ -12,23 +12,24 @@
  */
 
 
-#include <stdlib.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
+#include <devices/processors/Proc_volume.h>
 
 #include <debug/assert.h>
 #include <devices/Device_impl.h>
 #include <devices/Processor.h>
 #include <devices/processors/Proc_utils.h>
-#include <devices/processors/Proc_volume.h>
 #include <devices/processors/Voice_state_volume.h>
 #include <mathnum/conversions.h>
 #include <player/Linear_controls.h>
 #include <player/Proc_state.h>
 #include <string/common.h>
 #include <memory.h>
+
+#include <math.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 typedef struct Volume_state

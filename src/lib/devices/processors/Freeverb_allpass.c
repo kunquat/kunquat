@@ -12,14 +12,15 @@
  */
 
 
-#include <stdlib.h>
-#include <stdbool.h>
-#include <stdint.h>
+#include <devices/processors/Freeverb_allpass.h>
 
 #include <debug/assert.h>
-#include <devices/processors/Freeverb_allpass.h>
 #include <mathnum/common.h>
 #include <memory.h>
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 
 struct Freeverb_allpass

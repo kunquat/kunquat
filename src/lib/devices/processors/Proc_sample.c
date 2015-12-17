@@ -12,10 +12,7 @@
  */
 
 
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
-#include <stdio.h>
+#include <devices/processors/Proc_sample.h>
 
 #include <Audio_buffer.h>
 #include <containers/AAtree.h>
@@ -25,12 +22,16 @@
 #include <devices/param_types/Sample.h>
 #include <devices/param_types/Wavpack.h>
 #include <devices/Processor.h>
-#include <devices/processors/Proc_sample.h>
 #include <devices/processors/Proc_utils.h>
 #include <devices/processors/Voice_state_sample.h>
 #include <memory.h>
 #include <player/Work_buffers.h>
 #include <string/common.h>
+
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 typedef struct Proc_sample

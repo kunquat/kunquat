@@ -12,22 +12,23 @@
  */
 
 
-#include <stdlib.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
+#include <devices/processors/Proc_freeverb.h>
 
 #include <debug/assert.h>
 #include <devices/Device_impl.h>
 #include <devices/Processor.h>
 #include <devices/processors/Freeverb_allpass.h>
 #include <devices/processors/Freeverb_comb.h>
-#include <devices/processors/Proc_freeverb.h>
 #include <devices/processors/Proc_utils.h>
 #include <mathnum/common.h>
 #include <memory.h>
 #include <string/common.h>
+
+#include <math.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 #define FREEVERB_COMBS 8

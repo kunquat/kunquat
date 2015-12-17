@@ -12,20 +12,21 @@
  */
 
 
-#include <stdlib.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
+#include <devices/processors/Proc_delay.h>
 
 #include <Audio_buffer.h>
 #include <debug/assert.h>
 #include <devices/Device_impl.h>
 #include <devices/Processor.h>
-#include <devices/processors/Proc_delay.h>
 #include <devices/processors/Proc_utils.h>
 #include <mathnum/common.h>
 #include <memory.h>
 #include <string/common.h>
+
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 #define MAX_BUF_TIME 60

@@ -12,14 +12,15 @@
  */
 
 
-#include <stdlib.h>
+#include <devices/processors/Proc_utils.h>
 
 #include <debug/assert.h>
 #include <devices/Processor.h>
-#include <devices/processors/Proc_utils.h>
 #include <memory.h>
 #include <player/Proc_state.h>
 #include <player/Work_buffers.h>
+
+#include <stdlib.h>
 
 
 #define RAMP_ATTACK_TIME (500.0)

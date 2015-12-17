@@ -12,25 +12,25 @@
  */
 
 
-#include <stdlib.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
+#include <devices/processors/Proc_add.h>
 
 #include <Audio_buffer.h>
 #include <debug/assert.h>
 #include <devices/Processor.h>
-#include <devices/processors/Proc_add.h>
 #include <devices/processors/Proc_utils.h>
 #include <devices/processors/Voice_state_add.h>
-#include <devices/param_types/Num_list.h>
 #include <devices/param_types/Sample.h>
 #include <kunquat/limits.h>
 #include <mathnum/common.h>
 #include <memory.h>
 #include <player/Work_buffers.h>
 #include <string/common.h>
+
+#include <math.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 #define BASE_FUNC_SIZE 4096

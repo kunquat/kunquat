@@ -13,17 +13,12 @@
  */
 
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <string.h>
-#include <math.h>
+#include <devices/processors/Proc_noise.h>
 
 #include <Audio_buffer.h>
 #include <debug/assert.h>
 #include <devices/Device_params.h>
 #include <devices/Processor.h>
-#include <devices/processors/Proc_noise.h>
 #include <devices/processors/Proc_utils.h>
 #include <devices/processors/Voice_state_noise.h>
 #include <kunquat/limits.h>
@@ -31,6 +26,12 @@
 #include <memory.h>
 #include <player/Work_buffers.h>
 #include <string/common.h>
+
+#include <math.h>
+#include <stdio.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 typedef struct Noise_state

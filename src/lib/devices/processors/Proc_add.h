@@ -16,10 +16,11 @@
 #define K_PROC_ADD_H
 
 
-#include <stdint.h>
-
 #include <devices/Device_impl.h>
 #include <devices/Processor.h>
+
+#include <stdint.h>
+#include <stdlib.h>
 
 
 /**

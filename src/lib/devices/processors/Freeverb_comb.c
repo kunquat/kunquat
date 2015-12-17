@@ -12,13 +12,14 @@
  */
 
 
-#include <stdlib.h>
-#include <stdint.h>
+#include <devices/processors/Freeverb_comb.h>
 
 #include <debug/assert.h>
-#include <devices/processors/Freeverb_comb.h>
 #include <mathnum/common.h>
 #include <memory.h>
+
+#include <stdint.h>
+#include <stdlib.h>
 
 
 struct Freeverb_comb

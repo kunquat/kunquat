@@ -16,12 +16,10 @@
 #define K_PROC_SAMPLE_H
 
 
-#include <stdint.h>
-#include <math.h>
-
-#include <containers/AAtree.h>
 #include <devices/Device_impl.h>
 #include <devices/Processor.h>
+
+#include <stdlib.h>
 
 
 #define SAMPLES_MAX (512)

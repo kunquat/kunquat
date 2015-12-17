@@ -12,21 +12,22 @@
  */
 
 
-#include <stdlib.h>
-#include <string.h>
+#include <devices/processors/Proc_envgen.h>
 
 #include <Audio_buffer.h>
 #include <debug/assert.h>
 #include <devices/Device_impl.h>
 #include <devices/param_types/Envelope.h>
 #include <devices/Processor.h>
-#include <devices/processors/Proc_envgen.h>
 #include <devices/processors/Proc_utils.h>
 #include <mathnum/common.h>
 #include <memory.h>
 #include <player/Proc_state.h>
 #include <player/Time_env_state.h>
 #include <string/common.h>
+
+#include <stdlib.h>
+#include <string.h>
 
 
 typedef struct Voice_state_envgen

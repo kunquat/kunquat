@@ -20,6 +20,8 @@
 #include <devices/Device_impl.h>
 #include <devices/Processor.h>
 
+#include <stdlib.h>
+
 
 /**
  * Create a new Noise Processor.
