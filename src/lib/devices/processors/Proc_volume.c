@@ -130,7 +130,7 @@ static bool Proc_volume_init(Device_impl* dimpl)
         return false;
 
     Device_impl_cv_float_callbacks* vol_cbs =
-        Device_impl_create_cv_float(&volume->parent, "v");
+        Device_impl_create_cv_float(&volume->parent, "volume");
     if (vol_cbs == NULL)
         return false;
     vol_cbs->get_controls = Proc_volume_get_cv_controls_volume;
