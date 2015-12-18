@@ -16,9 +16,9 @@
 #define K_FAST_SIN_H
 
 
-#include <math.h>
-
 #include <mathnum/common.h>
+
+#include <math.h>
 
 
 /**

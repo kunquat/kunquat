@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2015
  *
  * This file is part of Kunquat.
  *
@@ -12,13 +12,14 @@
  */
 
 
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
+#include <mathnum/hmac.h>
 
 #include <debug/assert.h>
-#include <mathnum/hmac.h>
 #include <mathnum/md5.h>
+
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 void hmac_md5(uint64_t key, const char* msg, uint64_t* lower, uint64_t* upper)

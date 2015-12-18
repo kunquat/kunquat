@@ -12,10 +12,11 @@
  */
 
 
-#include <math.h>
+#include <mathnum/conversions.h>
 
 #include <debug/assert.h>
-#include <mathnum/conversions.h>
+
+#include <math.h>
 
 
 double dB_to_scale(double dB)
