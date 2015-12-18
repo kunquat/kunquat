@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -16,15 +16,15 @@
 #define K_PATTERN_H
 
 
-#include <stdint.h>
-
 #include <Connections.h>
 #include <containers/AAtree.h>
+#include <kunquat/limits.h>
 #include <module/sheet/Column.h>
 #include <Pat_inst_ref.h>
 #include <string/Streader.h>
 #include <Tstamp.h>
-#include <kunquat/limits.h>
+
+#include <stdlib.h>
 
 
 /**

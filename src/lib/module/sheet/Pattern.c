@@ -12,18 +12,19 @@
  */
 
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <inttypes.h>
-#include <math.h>
+#include <module/sheet/Pattern.h>
 
 #include <containers/Bit_array.h>
 #include <debug/assert.h>
 #include <memory.h>
-#include <module/sheet/Pattern.h>
 #include <string/common.h>
+
+#include <inttypes.h>
+#include <math.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 
 struct Pattern

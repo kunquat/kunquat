@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -16,11 +16,12 @@
 #define K_SONG_TABLE_H
 
 
-#include <stdint.h>
-#include <stdbool.h>
-
 #include <kunquat/limits.h>
 #include <module/sheet/Song.h>
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 
 /**

@@ -16,11 +16,11 @@
 #define K_CHANNEL_DEFAULTS_H
 
 
+#include <string/Streader.h>
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
-
-#include <string/Streader.h>
 
 
 /**

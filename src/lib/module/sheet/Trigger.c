@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -12,14 +12,14 @@
  */
 
 
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
+#include <module/sheet/Trigger.h>
 
 #include <debug/assert.h>
 #include <kunquat/limits.h>
 #include <memory.h>
-#include <module/sheet/Trigger.h>
+
+#include <stdlib.h>
+#include <string.h>
 
 
 Trigger* new_Trigger(Event_type type, Tstamp* pos)

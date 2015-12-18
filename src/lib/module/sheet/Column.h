@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -16,14 +16,15 @@
 #define K_COLUMN_H
 
 
-#include <stdbool.h>
-#include <stdint.h>
-
 #include <containers/AAtree.h>
 #include <module/sheet/Trigger.h>
 #include <player/Event_names.h>
 #include <string/Streader.h>
 #include <Tstamp.h>
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 
 typedef struct Trigger_list

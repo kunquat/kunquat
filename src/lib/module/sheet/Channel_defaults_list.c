@@ -12,14 +12,15 @@
  */
 
 
-#include <stdint.h>
-#include <stdlib.h>
+#include <module/sheet/Channel_defaults_list.h>
 
 #include <debug/assert.h>
 #include <memory.h>
 #include <module/sheet/Channel_defaults.h>
-#include <module/sheet/Channel_defaults_list.h>
 #include <string/Streader.h>
+
+#include <stdint.h>
+#include <stdlib.h>
 
 
 static bool read_ch_defaults_item(Streader* sr, int32_t index, void* userdata)

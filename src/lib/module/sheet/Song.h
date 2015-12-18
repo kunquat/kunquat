@@ -16,9 +16,10 @@
 #define K_SONG_H
 
 
-#include <stdint.h>
-
 #include <string/Streader.h>
+
+#include <stdint.h>
+#include <stdlib.h>
 
 
 #define KQT_SECTION_NONE (-1)
