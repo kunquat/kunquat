@@ -12,13 +12,14 @@
  */
 
 
-#include <stdbool.h>
-#include <stdlib.h>
-#include <string.h>
+#include <string/var_name.h>
 
 #include <debug/assert.h>
 #include <kunquat/limits.h>
-#include <string/var_name.h>
+
+#include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 static bool is_valid_var_name_with_length(const char* str, size_t length)

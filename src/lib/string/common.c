@@ -12,13 +12,14 @@
  */
 
 
-#include <stdlib.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <string.h>
+#include <string/common.h>
 
 #include <debug/assert.h>
-#include <string/common.h>
+
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 bool string_eq(const char* str1, const char* str2)

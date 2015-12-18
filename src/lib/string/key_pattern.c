@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2014
+ * Author: Tomi Jylhä-Ollila, Finland 2014-2015
  *
  * This file is part of Kunquat.
  *
@@ -12,13 +12,14 @@
  */
 
 
+#include <string/key_pattern.h>
+
+#include <debug/assert.h>
+
 #include <ctype.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include <debug/assert.h>
-#include <string/key_pattern.h>
 
 
 static int32_t extract_num(
