@@ -12,19 +12,20 @@
  */
 
 
-#include <stdlib.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
-#include <stdint.h>
-#include <inttypes.h>
+#include <module/Scale.h>
 
 #include <debug/assert.h>
 #include <mathnum/common.h>
 #include <memory.h>
-#include <module/Scale.h>
 #include <string/common.h>
+
+#include <inttypes.h>
+#include <math.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 typedef struct pitch_index

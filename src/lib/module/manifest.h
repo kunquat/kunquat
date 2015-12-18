@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -16,10 +16,10 @@
 #define K_MANIFEST_H
 
 
+#include <string/Streader.h>
+
 #include <stdbool.h>
 #include <stdlib.h>
-
-#include <string/Streader.h>
 
 
 /**

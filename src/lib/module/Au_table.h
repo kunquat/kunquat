@@ -16,9 +16,10 @@
 #define K_AU_TABLE_H
 
 
-#include <stdbool.h>
-
 #include <Decl.h>
+
+#include <stdbool.h>
+#include <stdlib.h>
 
 
 /**

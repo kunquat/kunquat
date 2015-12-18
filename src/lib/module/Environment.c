@@ -12,14 +12,15 @@
  */
 
 
-#include <stdlib.h>
-#include <string.h>
+#include <module/Environment.h>
 
 #include <containers/AAtree.h>
 #include <debug/assert.h>
 #include <memory.h>
 #include <module/Env_var.h>
-#include <module/Environment.h>
+
+#include <stdlib.h>
+#include <string.h>
 
 
 struct Environment

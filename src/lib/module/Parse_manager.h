@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -16,9 +16,10 @@
 #define K_PARSE_MANAGER_H
 
 
-#include <stdbool.h>
-
 #include <Handle_private.h>
+
+#include <stdbool.h>
+#include <stdlib.h>
 
 
 /**

@@ -12,10 +12,14 @@
  */
 
 
+#include <module/Input_map.h>
+
 #include <containers/AAtree.h>
 #include <debug/assert.h>
 #include <memory.h>
-#include <module/Input_map.h>
+
+#include <stdint.h>
+#include <stdlib.h>
 
 
 typedef struct Entry

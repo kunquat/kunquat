@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2015
  *
  * This file is part of Kunquat.
  *
@@ -23,6 +23,8 @@
 #include <player/Event_names.h>
 #include <string/Streader.h>
 #include <Value.h>
+
+#include <stdlib.h>
 
 
 /**

@@ -16,8 +16,6 @@
 #define K_MODULE_H
 
 
-#include <stdint.h>
-
 #include <Connections.h>
 #include <Decl.h>
 #include <devices/Device.h>
@@ -33,6 +31,10 @@
 #include <module/sheet/Song_table.h>
 #include <module/sheet/Track_list.h>
 #include <string/Streader.h>
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 
 struct Module

@@ -12,11 +12,7 @@
  */
 
 
-#include <stdlib.h>
-#include <stdbool.h>
-#include <string.h>
-#include <ctype.h>
-#include <inttypes.h>
+#include <module/Parse_manager.h>
 
 #include <Connections.h>
 #include <debug/assert.h>
@@ -28,11 +24,16 @@
 #include <module/Bind.h>
 #include <module/Environment.h>
 #include <module/manifest.h>
-#include <module/Parse_manager.h>
 #include <module/sheet/Channel_defaults_list.h>
 #include <string/common.h>
 #include <string/key_pattern.h>
 #include <string/Streader.h>
+
+#include <ctype.h>
+#include <inttypes.h>
+#include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 typedef struct Reader_params

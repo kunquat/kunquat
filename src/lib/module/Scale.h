@@ -21,6 +21,8 @@
 #include <mathnum/Real.h>
 #include <string/Streader.h>
 
+#include <stdlib.h>
+
 
 /**
  * This object contains the tuning specification.

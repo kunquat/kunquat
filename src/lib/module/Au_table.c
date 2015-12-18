@@ -12,13 +12,15 @@
  */
 
 
-#include <stdlib.h>
+#include <module/Au_table.h>
 
 #include <containers/Etable.h>
 #include <debug/assert.h>
 #include <devices/Audio_unit.h>
 #include <memory.h>
-#include <module/Au_table.h>
+
+#include <stdbool.h>
+#include <stdlib.h>
 
 
 struct Au_table
