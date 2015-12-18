@@ -12,13 +12,14 @@
  */
 
 
-#include <stdint.h>
-#include <stdlib.h>
+#include <player/Voice_group.h>
 
 #include <debug/assert.h>
 #include <devices/Device.h>
 #include <player/Voice.h>
-#include <player/Voice_group.h>
+
+#include <stdint.h>
+#include <stdlib.h>
 
 
 Voice_group* Voice_group_init(

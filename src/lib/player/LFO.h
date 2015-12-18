@@ -16,11 +16,12 @@
 #define K_LFO_H
 
 
-#include <stdbool.h>
-#include <stdint.h>
-
 #include <player/Slider.h>
 #include <Tstamp.h>
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 
 typedef enum

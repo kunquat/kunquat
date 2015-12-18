@@ -16,9 +16,6 @@
 #define K_CHANNEL_H
 
 
-#include <stdbool.h>
-#include <stdint.h>
-
 #include <Decl.h>
 #include <kunquat/limits.h>
 #include <mathnum/Random.h>
@@ -33,6 +30,10 @@
 #include <player/LFO.h>
 #include <player/Voice_pool.h>
 #include <Tstamp.h>
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 
 /**

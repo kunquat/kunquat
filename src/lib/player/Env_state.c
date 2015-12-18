@@ -12,12 +12,15 @@
  */
 
 
-#include <string.h>
+#include <player/Env_state.h>
 
 #include <containers/AAtree.h>
 #include <debug/assert.h>
 #include <memory.h>
-#include <player/Env_state.h>
+
+#include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 struct Env_state

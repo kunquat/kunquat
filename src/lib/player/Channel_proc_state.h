@@ -16,12 +16,13 @@
 #define K_CHANNEL_PROC_STATE_H
 
 
-#include <stdbool.h>
-#include <stdint.h>
-
 #include <string/Streader.h>
 #include <Tstamp.h>
 #include <Value.h>
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 
 /**

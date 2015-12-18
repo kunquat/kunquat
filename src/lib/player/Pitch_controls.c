@@ -12,12 +12,15 @@
  */
 
 
-#include <math.h>
+#include <player/Pitch_controls.h>
 
 #include <debug/assert.h>
 #include <player/LFO.h>
-#include <player/Pitch_controls.h>
 #include <player/Slider.h>
+
+#include <math.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 
 void Pitch_controls_init(Pitch_controls* pc, int32_t audio_rate, double tempo)

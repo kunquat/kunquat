@@ -12,11 +12,15 @@
  */
 
 
+#include <player/Master_params.h>
+
 #include <debug/assert.h>
 #include <mathnum/Random.h>
 #include <module/Module.h>
 #include <module/sheet/Track_list.h>
-#include <player/Master_params.h>
+
+#include <stdbool.h>
+#include <stdlib.h>
 
 
 #define KQT_JUMP_CONTEXTS_MAX 64

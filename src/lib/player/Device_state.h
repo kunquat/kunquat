@@ -16,13 +16,13 @@
 #define K_DEVICE_STATE_H
 
 
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdlib.h>
-
 #include <Audio_buffer.h>
 #include <Decl.h>
 #include <kunquat/limits.h>
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 
 // FIXME: Figure out where we should define this

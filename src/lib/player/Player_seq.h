@@ -16,12 +16,12 @@
 #define K_PLAYER_SEQ_H
 
 
+#include <player/Player_private.h>
+#include <string/Streader.h>
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
-
-#include <player/Player_private.h>
-#include <string/Streader.h>
 
 
 bool get_event_type_info(

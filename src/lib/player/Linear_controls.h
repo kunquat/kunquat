@@ -16,14 +16,14 @@
 #define K_LINEAR_CONTROLS_H
 
 
-#include <math.h>
-#include <stdint.h>
-#include <stdlib.h>
-
 #include <player/LFO.h>
 #include <player/Slider.h>
 #include <player/Work_buffer.h>
 #include <Tstamp.h>
+
+#include <math.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 
 typedef struct Linear_controls

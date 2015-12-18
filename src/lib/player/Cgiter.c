@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,13 @@
  */
 
 
-#include <debug/assert.h>
 #include <player/Cgiter.h>
+
+#include <debug/assert.h>
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 
 void Cgiter_init(Cgiter* cgiter, const Module* module, int col_index)

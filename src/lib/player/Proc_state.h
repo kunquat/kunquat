@@ -16,12 +16,13 @@
 #define K_PROC_STATE_H
 
 
-#include <stdbool.h>
-#include <stdlib.h>
-
 #include <Audio_buffer.h>
 #include <containers/Bit_array.h>
 #include <player/Device_state.h>
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 
 typedef struct Proc_state

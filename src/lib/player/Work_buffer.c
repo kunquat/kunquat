@@ -12,11 +12,15 @@
  */
 
 
-#include <string.h>
+#include <player/Work_buffer.h>
 
 #include <debug/assert.h>
 #include <memory.h>
-#include <player/Work_buffer.h>
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 #define WORK_BUFFER_ELEM_SIZE (sizeof(float))

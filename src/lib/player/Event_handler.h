@@ -16,8 +16,6 @@
 #define K_EVENT_HANDLER_H
 
 
-#include <stdbool.h>
-
 #include <devices/Processor.h>
 #include <player/Channel.h>
 #include <player/Event_names.h>
@@ -26,6 +24,9 @@
 #include <player/Au_state.h>
 #include <player/Master_params.h>
 #include <Value.h>
+
+#include <stdbool.h>
+#include <stdlib.h>
 
 
 typedef struct Event_handler Event_handler;

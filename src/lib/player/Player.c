@@ -12,10 +12,7 @@
  */
 
 
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
+#include <player/Player.h>
 
 #include <debug/assert.h>
 #include <Device_node.h>
@@ -25,12 +22,17 @@
 #include <memory.h>
 #include <module/sheet/Channel_defaults.h>
 #include <Pat_inst_ref.h>
-#include <player/Player.h>
 #include <player/Player_private.h>
 #include <player/Player_seq.h>
 #include <player/Position.h>
 #include <player/Voice_group.h>
 #include <string/common.h>
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 static void Player_update_sliders_and_lfos_audio_rate(Player* player)

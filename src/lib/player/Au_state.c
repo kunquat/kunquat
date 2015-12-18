@@ -12,8 +12,12 @@
  */
 
 
-#include <debug/assert.h>
 #include <player/Au_state.h>
+
+#include <debug/assert.h>
+
+#include <stdbool.h>
+#include <stdlib.h>
 
 
 void Au_state_reset(Au_state* au_state)

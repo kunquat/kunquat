@@ -12,16 +12,17 @@
  */
 
 
-#include <math.h>
-#include <stdint.h>
-#include <stdlib.h>
+#include <player/Linear_controls.h>
 
 #include <debug/assert.h>
 #include <mathnum/common.h>
-#include <player/Linear_controls.h>
 #include <player/Slider.h>
 #include <player/Work_buffer.h>
 #include <Tstamp.h>
+
+#include <math.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 
 void Linear_controls_init(Linear_controls* lc)

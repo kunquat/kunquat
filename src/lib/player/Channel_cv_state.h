@@ -16,13 +16,14 @@
 #define K_CHANNEL_CV_STATE_H
 
 
-#include <stdint.h>
-#include <stdlib.h>
-
 #include <kunquat/limits.h>
 #include <player/Linear_controls.h>
 #include <Tstamp.h>
 #include <Value.h>
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 
 /**

@@ -16,9 +16,6 @@
 #define K_PLAYER_PRIVATE_H
 
 
-#include <stdbool.h>
-#include <stdint.h>
-
 #include <module/Environment.h>
 #include <player/Cgiter.h>
 #include <player/Channel.h>
@@ -30,6 +27,9 @@
 #include <player/Player.h>
 #include <player/Voice_pool.h>
 #include <player/Work_buffers.h>
+
+#include <stdbool.h>
+#include <stdint.h>
 
 
 struct Player

@@ -12,18 +12,19 @@
  */
 
 
-#include <stdlib.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
+#include <player/LFO.h>
 
 #include <debug/assert.h>
 #include <mathnum/common.h>
 #include <mathnum/fast_sin.h>
-#include <player/LFO.h>
 #include <player/Player.h>
+
+#include <math.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 static void LFO_update_time(LFO* lfo, int32_t audio_rate, double tempo);

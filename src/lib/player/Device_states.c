@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -12,11 +12,16 @@
  */
 
 
+#include <player/Device_states.h>
+
 #include <containers/AAtree.h>
 #include <debug/assert.h>
 #include <player/Device_state.h>
-#include <player/Device_states.h>
 #include <memory.h>
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 
 struct Device_states

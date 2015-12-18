@@ -12,16 +12,17 @@
  */
 
 
-#include <float.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <math.h>
+#include <player/Voice_state.h>
 
 #include <debug/assert.h>
 #include <kunquat/limits.h>
 #include <player/Slider.h>
-#include <player/Voice_state.h>
 #include <Tstamp.h>
+
+#include <float.h>
+#include <math.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 
 Voice_state* Voice_state_init(

@@ -16,11 +16,11 @@
 #define K_WORK_BUFFERS_H
 
 
+#include <player/Work_buffer.h>
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
-
-#include <player/Work_buffer.h>
 
 
 typedef enum

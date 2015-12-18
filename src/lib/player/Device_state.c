@@ -12,11 +12,16 @@
  */
 
 
+#include <player/Device_state.h>
+
 #include <debug/assert.h>
 #include <devices/Device.h>
 #include <mathnum/common.h>
 #include <memory.h>
-#include <player/Device_state.h>
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 
 void Device_state_init(

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -16,10 +16,11 @@
 #define K_EVENT_NAMES_H
 
 
-#include <stdbool.h>
-
 #include <player/Event_type.h>
 #include <Value.h>
+
+#include <stdbool.h>
+#include <stdlib.h>
 
 
 #define EVENT_NAME_MAX 12 // includes "

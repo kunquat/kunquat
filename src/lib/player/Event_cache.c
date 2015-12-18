@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2015
  *
  * This file is part of Kunquat.
  *
@@ -12,16 +12,18 @@
  */
 
 
-#include <stdlib.h>
-#include <string.h>
+#include <player/Event_cache.h>
 
 #include <containers/AAtree.h>
 #include <debug/assert.h>
 #include <memory.h>
-#include <player/Event_cache.h>
 #include <player/Event_names.h>
 #include <player/Event_type.h>
 #include <Value.h>
+
+#include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 struct Event_cache

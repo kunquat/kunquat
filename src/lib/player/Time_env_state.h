@@ -19,6 +19,9 @@
 #include <devices/param_types/Envelope.h>
 #include <player/Work_buffers.h>
 
+#include <stdint.h>
+#include <stdlib.h>
+
 
 /**
  * A state for processing envelopes with a time axis.

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -16,11 +16,11 @@
 #define K_GENERAL_STATE_H
 
 
-#include <stdbool.h>
-
 #include <Decl.h>
 #include <player/Active_names.h>
 #include <player/Env_state.h>
+
+#include <stdbool.h>
 
 
 #define COND_LEVELS_MAX 32

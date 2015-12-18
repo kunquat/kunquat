@@ -12,16 +12,19 @@
  */
 
 
-#include <stdlib.h>
-#include <string.h>
+#include <player/Channel_proc_state.h>
 
 #include <containers/AAtree.h>
 #include <debug/assert.h>
 #include <kunquat/limits.h>
 #include <memory.h>
-#include <player/Channel_proc_state.h>
 #include <string/common.h>
 #include <Value.h>
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 typedef struct Entry

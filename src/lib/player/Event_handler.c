@@ -12,35 +12,34 @@
  */
 
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <inttypes.h>
-#include <math.h>
+#include <player/Event_handler.h>
 
 #include <debug/assert.h>
 #include <devices/Audio_unit.h>
 #include <devices/Processor.h>
 #include <kunquat/limits.h>
+#include <memory.h>
 #include <module/Au_table.h>
 #include <module/Bind.h>
 #include <module/Module.h>
 #include <player/Channel.h>
-#include <player/Event_handler.h>
 #include <player/Event_names.h>
 #include <player/Event_type.h>
-#include <player/General_state.h>
-#include <string/Streader.h>
-#include <string/common.h>
-#include <Value.h>
-
+#include <player/events/Event_au_decl.h>
+#include <player/events/Event_channel_decl.h>
 #include <player/events/Event_control_decl.h>
 #include <player/events/Event_general_decl.h>
 #include <player/events/Event_master_decl.h>
-#include <player/events/Event_channel_decl.h>
-#include <player/events/Event_au_decl.h>
+#include <player/General_state.h>
+#include <string/common.h>
+#include <string/Streader.h>
+#include <Value.h>
 
-#include <memory.h>
+#include <inttypes.h>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 struct Event_handler

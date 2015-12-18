@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2015
  *
  * This file is part of Kunquat.
  *
@@ -16,10 +16,10 @@
 #define K_EVENT_CACHE_H
 
 
-#include <stdlib.h>
-#include <stdbool.h>
-
 #include <Value.h>
+
+#include <stdbool.h>
+#include <stdlib.h>
 
 
 /**

@@ -12,16 +12,19 @@
  */
 
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <player/Channel_cv_state.h>
 
 #include <containers/AAtree.h>
 #include <debug/assert.h>
 #include <memory.h>
-#include <player/Channel_cv_state.h>
 #include <player/Linear_controls.h>
+
+#include <math.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 typedef struct Entry

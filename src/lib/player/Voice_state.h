@@ -16,9 +16,6 @@
 #define K_VOICE_STATE_H
 
 
-#include <stdbool.h>
-#include <stdint.h>
-
 #include <kunquat/limits.h>
 #include <mathnum/Random.h>
 #include <player/Channel_proc_state.h>
@@ -29,6 +26,10 @@
 #include <player/Slider.h>
 #include <player/Time_env_state.h>
 #include <Tstamp.h>
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 
 #define FILTER_ORDER (2)

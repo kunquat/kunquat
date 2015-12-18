@@ -12,13 +12,15 @@
  */
 
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdbool.h>
+#include <player/Voice_pool.h>
 
 #include <debug/assert.h>
 #include <memory.h>
-#include <player/Voice_pool.h>
+
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 
 Voice_pool* new_Voice_pool(uint16_t size)

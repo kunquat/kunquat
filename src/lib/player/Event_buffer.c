@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -12,14 +12,17 @@
  */
 
 
-#include <stdio.h>
-#include <string.h>
+#include <player/Event_buffer.h>
 
 #include <debug/assert.h>
 #include <mathnum/common.h>
 #include <memory.h>
-#include <player/Event_buffer.h>
 #include <string/common.h>
+
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 struct Event_buffer

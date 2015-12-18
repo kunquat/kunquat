@@ -12,15 +12,18 @@
  */
 
 
-#include <limits.h>
-#include <stdio.h>
-#include <string.h>
+#include <player/Player_seq.h>
 
 #include <debug/assert.h>
 #include <expr.h>
 #include <mathnum/common.h>
-#include <player/Player_seq.h>
 #include <string/common.h>
+
+#include <limits.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 bool get_event_type_info(

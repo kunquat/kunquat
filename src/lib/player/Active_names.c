@@ -12,14 +12,15 @@
  */
 
 
-#include <stdlib.h>
-#include <string.h>
+#include <player/Active_names.h>
 
 #include <debug/assert.h>
 #include <kunquat/limits.h>
 #include <memory.h>
 #include <module/Env_var.h>
-#include <player/Active_names.h>
+
+#include <stdlib.h>
+#include <string.h>
 
 
 struct Active_names

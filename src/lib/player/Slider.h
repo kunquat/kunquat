@@ -16,10 +16,11 @@
 #define K_SLIDER_H
 
 
+#include <Tstamp.h>
+
 #include <stdbool.h>
 #include <stdint.h>
-
-#include <Tstamp.h>
+#include <stdlib.h>
 
 
 typedef enum

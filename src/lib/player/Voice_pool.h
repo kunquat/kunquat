@@ -16,12 +16,13 @@
 #define K_VOICE_POOL_H
 
 
-#include <stdint.h>
-#include <stdbool.h>
-
 #include <player/Voice.h>
 #include <player/Voice_group.h>
 #include <player/Work_buffers.h>
+
+#include <stdint.h>
+#include <stdbool.h>
+#include <stdlib.h>
 
 
 /**

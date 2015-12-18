@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -16,10 +16,11 @@
 #define K_EVENT_BUFFER_H
 
 
-#include <stdlib.h>
-
 #include <kunquat/limits.h>
 #include <Value.h>
+
+#include <stdbool.h>
+#include <stdlib.h>
 
 
 typedef struct Event_buffer Event_buffer;

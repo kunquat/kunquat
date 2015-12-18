@@ -12,16 +12,17 @@
  */
 
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <inttypes.h>
+#include <player/Voice.h>
 
 #include <debug/assert.h>
 #include <mathnum/common.h>
 #include <memory.h>
-#include <player/Voice.h>
 #include <player/Voice_state.h>
+
+#include <inttypes.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 
 Voice* new_Voice(void)

@@ -16,15 +16,15 @@
 #define K_PLAYER_H
 
 
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdlib.h>
-
 #include <devices/Au_control_vars.h>
 #include <kunquat/limits.h>
 #include <module/Module.h>
 #include <player/Event_handler.h>
 #include <string/Streader.h>
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 
 #define DEFAULT_AUDIO_RATE 48000
