@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -16,10 +16,10 @@
 #define K_EVENT_GENERAL_DECL_H
 
 
-#include <stdbool.h>
-
 #include <player/General_state.h>
 #include <Value.h>
+
+#include <stdbool.h>
 
 
 // Process function declarations

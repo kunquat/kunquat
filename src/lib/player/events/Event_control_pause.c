@@ -12,16 +12,16 @@
  */
 
 
-#include <stdlib.h>
-#include <stdbool.h>
-#include <stdio.h>
+#include <player/events/Event_control_decl.h>
 
 #include <debug/assert.h>
 #include <player/Channel.h>
 #include <player/events/Event_common.h>
-#include <player/events/Event_control_decl.h>
 #include <player/General_state.h>
 #include <Value.h>
+
+#include <stdbool.h>
+#include <stdlib.h>
 
 
 bool Event_control_pause_process(

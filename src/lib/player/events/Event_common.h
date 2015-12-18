@@ -16,9 +16,10 @@
 #define K_EVENT_COMMON_H
 
 
-#include <stdbool.h>
-
 #include <Tstamp.h>
+
+#include <stdbool.h>
+#include <stdlib.h>
 
 
 #define Event_check_voice(ch_state, proc)              \

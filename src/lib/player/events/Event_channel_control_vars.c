@@ -12,15 +12,16 @@
  */
 
 
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <player/events/Event_channel_decl.h>
 
 #include <debug/assert.h>
 #include <module/Module.h>
-#include <player/events/Event_channel_decl.h>
 #include <player/events/set_active_name.h>
 #include <Value.h>
+
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 
 static const Active_type active_types[VALUE_TYPE_COUNT] =

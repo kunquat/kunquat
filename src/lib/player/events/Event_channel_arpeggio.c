@@ -12,16 +12,17 @@
  */
 
 
-#include <stdlib.h>
-#include <stdbool.h>
-#include <string.h>
-#include <math.h>
+#include <player/events/Event_channel_decl.h>
 
 #include <debug/assert.h>
-#include <player/events/Event_channel_decl.h>
 #include <player/events/Event_common.h>
 #include <player/Voice.h>
 #include <Value.h>
+
+#include <math.h>
+#include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 bool Event_channel_arpeggio_on_process(

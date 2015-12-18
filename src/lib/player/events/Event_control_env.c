@@ -12,8 +12,7 @@
  */
 
 
-#include <stdlib.h>
-#include <stdbool.h>
+#include <player/events/Event_control_decl.h>
 
 #include <debug/assert.h>
 #include <module/Env_var.h>
@@ -22,10 +21,12 @@
 #include <player/Channel.h>
 #include <player/Event_type.h>
 #include <player/events/Event_common.h>
-#include <player/events/Event_control_decl.h>
 #include <player/events/set_active_name.h>
 #include <player/General_state.h>
 #include <Value.h>
+
+#include <stdbool.h>
+#include <stdlib.h>
 
 
 bool Event_control_env_set_bool_process(

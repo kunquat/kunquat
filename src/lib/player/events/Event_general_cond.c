@@ -12,19 +12,20 @@
  */
 
 
-#include <stdlib.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
+#include <player/events/Event_general_decl.h>
 
 #include <debug/assert.h>
 #include <module/Env_var.h>
 #include <player/events/Event_common.h>
-#include <player/events/Event_general_decl.h>
 #include <player/General_state.h>
 #include <Value.h>
+
+#include <math.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 bool Event_general_cond_process(General_state* gstate, const Value* value)

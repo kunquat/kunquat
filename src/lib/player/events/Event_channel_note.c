@@ -12,22 +12,23 @@
  */
 
 
-#include <stdlib.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <float.h>
+#include <player/events/Event_channel_decl.h>
 
 #include <debug/assert.h>
 #include <kunquat/limits.h>
 #include <module/Input_map.h>
 #include <module/Module.h>
 #include <module/Scale.h>
-#include <player/events/Event_channel_decl.h>
 #include <player/events/Event_common.h>
 #include <player/events/note_setup.h>
 #include <player/Voice.h>
 #include <Tstamp.h>
 #include <Value.h>
+
+#include <float.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 
 bool Event_channel_note_on_process(

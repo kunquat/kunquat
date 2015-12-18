@@ -12,14 +12,16 @@
  */
 
 
-#include <stdlib.h>
+#include <player/events/note_setup.h>
 
 #include <debug/assert.h>
 #include <devices/Audio_unit.h>
 #include <kunquat/limits.h>
 #include <player/Channel.h>
-#include <player/events/note_setup.h>
 #include <player/Slider.h>
+
+#include <stdint.h>
+#include <stdlib.h>
 
 
 void reserve_voice(
