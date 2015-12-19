@@ -59,11 +59,6 @@ struct Module
 };
 
 
-#define MODULE_DEFAULT_BUF_COUNT 2
-#define MODULE_DEFAULT_MIX_VOL -8
-#define MODULE_DEFAULT_INIT_SONG 0
-
-
 /**
  * Create a new Module.
  *

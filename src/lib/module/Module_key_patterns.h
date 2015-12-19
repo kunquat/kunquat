@@ -12,9 +12,8 @@
  */
 
 
-#include <Decl.h>
-#include <module/sheet/Song.h>
-#include <module/Module.h>
+#include <module/comp_defaults.h>
+#include <module/sheet/song_defaults.h>
 
 
 #ifndef MODULE_KEYP
@@ -33,7 +32,7 @@
 
 
 MODULE_KEYP(composition, "p_composition.json",
-        "{ \"mix_vol\": " MAKE_STRING(MODULE_DEFAULT_MIX_VOL) " }")
+        "{ \"mix_vol\": " MAKE_STRING(COMP_DEFAULT_MIX_VOL) " }")
 MODULE_KEYP(out_port_manifest,      "out_XX/p_manifest.json",               "")
 MODULE_KEYP(connections,            "p_connections.json",                   "[]")
 MODULE_KEYP(control_map,            "p_control_map.json",                   "[]")

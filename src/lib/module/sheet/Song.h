@@ -16,6 +16,7 @@
 #define K_SONG_H
 
 
+#include <module/sheet/song_defaults.h>
 #include <string/Streader.h>
 
 #include <stdint.h>
@@ -37,11 +38,6 @@ typedef struct Song
     int res;           ///< Size reserved for the section list.
     int16_t* pats;     ///< Section list that contains the Pattern numbers.
 } Song;
-
-
-#define SONG_DEFAULT_TEMPO 120
-#define SONG_DEFAULT_GLOBAL_VOL -4
-#define SONG_DEFAULT_SCALE 0
 
 
 /**

@@ -18,6 +18,7 @@
 #include <mathnum/common.h>
 #include <mathnum/Real.h>
 #include <memory.h>
+#include <module/comp_defaults.h>
 #include <module/sheet/Channel_defaults_list.h>
 #include <string/common.h>
 
@@ -147,7 +148,7 @@ Module* new_Module(void)
         }
     }
 
-    module->mix_vol_dB = MODULE_DEFAULT_MIX_VOL;
+    module->mix_vol_dB = COMP_DEFAULT_MIX_VOL;
     module->mix_vol = exp2(module->mix_vol_dB / 6);
     //module->init_subsong = SONG_DEFAULT_INIT_SUBSONG;
     module->random_seed = 0;
@@ -201,7 +202,7 @@ bool Module_parse_composition(Module* module, Streader* sr)
 
     mod_params* mp = &(mod_params)
     {
-        .mix_vol = MODULE_DEFAULT_MIX_VOL,
+        .mix_vol = COMP_DEFAULT_MIX_VOL,
     };
 
     if (Streader_has_data(sr))
