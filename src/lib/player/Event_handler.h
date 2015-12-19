@@ -154,10 +154,7 @@ bool Event_handler_set_au_process(
  *           \c false.
  */
 bool Event_handler_trigger(
-        Event_handler* eh,
-        int ch_num,
-        const char* name,
-        const Value* arg);
+        Event_handler* eh, int ch_num, const char* name, const Value* arg);
 
 
 /**

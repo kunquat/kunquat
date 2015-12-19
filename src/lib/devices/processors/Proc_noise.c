@@ -50,14 +50,10 @@ typedef struct Proc_noise
 static bool Proc_noise_init(Device_impl* dimpl);
 
 static Device_state* Proc_noise_create_state(
-        const Device* device,
-        int32_t audio_rate,
-        int32_t audio_buffer_size);
+        const Device* device, int32_t audio_rate, int32_t audio_buffer_size);
 
 static void Proc_noise_init_vstate(
-        const Processor* proc,
-        const Proc_state* proc_state,
-        Voice_state* vstate);
+        const Processor* proc, const Proc_state* proc_state, Voice_state* vstate);
 
 static Proc_process_vstate_func Proc_noise_process_vstate;
 
@@ -118,9 +114,7 @@ const char* Proc_noise_property(const Processor* proc, const char* property_type
 
 
 static Device_state* Proc_noise_create_state(
-        const Device* device,
-        int32_t audio_rate,
-        int32_t audio_buffer_size)
+        const Device* device, int32_t audio_rate, int32_t audio_buffer_size)
 {
     assert(device != NULL);
     assert(audio_rate > 0);
@@ -143,9 +137,7 @@ static Device_state* Proc_noise_create_state(
 
 
 static void Proc_noise_init_vstate(
-        const Processor* proc,
-        const Proc_state* proc_state,
-        Voice_state* vstate)
+        const Processor* proc, const Proc_state* proc_state, Voice_state* vstate)
 {
     assert(proc != NULL);
     assert(proc_state != NULL);

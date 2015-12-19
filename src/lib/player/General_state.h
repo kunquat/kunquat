@@ -78,10 +78,7 @@ General_state* General_state_preinit(General_state* state);
  *           function fails.
  */
 General_state* General_state_init(
-        General_state* state,
-        bool global,
-        Env_state* estate,
-        const Module* module);
+        General_state* state, bool global, Env_state* estate, const Module* module);
 
 
 /**

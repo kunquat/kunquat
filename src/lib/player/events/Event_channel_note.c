@@ -151,10 +151,7 @@ bool Event_channel_note_on_process(
 }
 
 
-bool Event_channel_hit_process(
-        Channel* ch,
-        Device_states* dstates,
-        const Value* value)
+bool Event_channel_hit_process(Channel* ch, Device_states* dstates, const Value* value)
 {
     assert(ch != NULL);
     assert(ch->freq != NULL);
@@ -169,9 +166,7 @@ bool Event_channel_hit_process(
     ch->fg_count = 0;
 
     // Find our audio unit
-    Audio_unit* au = Module_get_au_from_input(
-            ch->parent.module,
-            ch->au_input);
+    Audio_unit* au = Module_get_au_from_input(ch->parent.module, ch->au_input);
     if (au == NULL)
         return true;
 
@@ -219,9 +214,7 @@ bool Event_channel_hit_process(
 
 
 bool Event_channel_note_off_process(
-        Channel* ch,
-        Device_states* dstates,
-        const Value* value)
+        Channel* ch, Device_states* dstates, const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
@@ -231,10 +224,7 @@ bool Event_channel_note_off_process(
     {
         if (ch->fg[i] != NULL)
         {
-            ch->fg[i] = Voice_pool_get_voice(
-                    ch->pool,
-                    ch->fg[i],
-                    ch->fg_id[i]);
+            ch->fg[i] = Voice_pool_get_voice(ch->pool, ch->fg[i], ch->fg_id[i]);
             if (ch->fg[i] == NULL)
             {
                 // The Voice has been given to another channel

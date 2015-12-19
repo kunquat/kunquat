@@ -124,10 +124,7 @@ bool Connections_init_buffers(Connections* graph, Device_states* states);
  *                 will be mixed.
  */
 void Connections_clear_buffers(
-        Connections* graph,
-        Device_states* states,
-        uint32_t start,
-        uint32_t until);
+        Connections* graph, Device_states* states, uint32_t start, uint32_t until);
 
 
 /**

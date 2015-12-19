@@ -55,7 +55,7 @@ bool Event_cache_add_event(Event_cache* cache, char* event_name);
  * \param event_name   The name of the Event -- must not be \c NULL.
  * \param value        The Event parameter -- must not be \c NULL.
  */
-void Event_cache_update(Event_cache* cache, const char* event_name, Value* value);
+void Event_cache_update(Event_cache* cache, const char* event_name, const Value* value);
 
 
 /**

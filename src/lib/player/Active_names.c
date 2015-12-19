@@ -41,10 +41,7 @@ Active_names* new_Active_names(void)
 
 
 bool Active_names_set(
-        Active_names* names,
-        Active_cat cat,
-        Active_type type,
-        const char* name)
+        Active_names* names, Active_cat cat, Active_type type, const char* name)
 {
     assert(names != NULL);
     assert(cat < ACTIVE_CAT_COUNT);

@@ -25,8 +25,7 @@
 
 
 bool Event_master_set_tempo_process(
-        Master_params* master_params,
-        const Value* value)
+        Master_params* master_params, const Value* value)
 {
     assert(master_params != NULL);
     assert(value != NULL);
@@ -57,8 +56,7 @@ static void set_tempo_slide_update(Master_params* master_params)
 
 
 bool Event_master_slide_tempo_process(
-        Master_params* master_params,
-        const Value* value)
+        Master_params* master_params, const Value* value)
 {
     assert(master_params != NULL);
     assert(value != NULL);
@@ -67,9 +65,7 @@ bool Event_master_slide_tempo_process(
     master_params->tempo_settings_changed = true;
 
     Tstamp_init(&master_params->tempo_slide_slice_left);
-    Tstamp_copy(
-            &master_params->tempo_slide_left,
-            &master_params->tempo_slide_length);
+    Tstamp_copy(&master_params->tempo_slide_left, &master_params->tempo_slide_length);
     master_params->tempo_slide_target = value->value.float_type;
 
     set_tempo_slide_update(master_params);
@@ -89,8 +85,7 @@ bool Event_master_slide_tempo_process(
 
 
 bool Event_master_slide_tempo_length_process(
-        Master_params* master_params,
-        const Value* value)
+        Master_params* master_params, const Value* value)
 {
     assert(master_params != NULL);
     assert(value != NULL);
@@ -98,16 +93,13 @@ bool Event_master_slide_tempo_length_process(
 
     master_params->tempo_settings_changed = true;
 
-    Tstamp_copy(
-            &master_params->tempo_slide_length,
-            &value->value.Tstamp_type);
+    Tstamp_copy(&master_params->tempo_slide_length, &value->value.Tstamp_type);
 
     if (master_params->tempo_slide != 0)
     {
         Tstamp_init(&master_params->tempo_slide_slice_left);
         Tstamp_copy(
-                &master_params->tempo_slide_left,
-                &master_params->tempo_slide_length);
+                &master_params->tempo_slide_left, &master_params->tempo_slide_length);
 
         set_tempo_slide_update(master_params);
     }

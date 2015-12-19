@@ -75,10 +75,7 @@ Song* Song_table_get(Song_table* table, uint16_t index);
  *                   < \c KQT_SONGS_MAX.
  * \param existent   The new existent status.
  */
-void Song_table_set_existent(
-        Song_table* table,
-        uint16_t index,
-        bool existent);
+void Song_table_set_existent(Song_table* table, uint16_t index, bool existent);
 
 
 /**

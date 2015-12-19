@@ -239,10 +239,7 @@ void del_Column_iter(Column_iter* iter)
 }
 
 
-static bool Column_parse(
-        Column* col,
-        Streader* sr,
-        const Event_names* event_names);
+static bool Column_parse(Column* col, Streader* sr, const Event_names* event_names);
 
 
 Column* new_Column(const Tstamp* len)
@@ -278,9 +275,7 @@ Column* new_Column(const Tstamp* len)
 
 
 Column* new_Column_from_string(
-        Streader* sr,
-        const Tstamp* len,
-        const Event_names* event_names)
+        Streader* sr, const Tstamp* len, const Event_names* event_names)
 {
     assert(sr != NULL);
     assert(event_names != NULL);
@@ -326,10 +321,7 @@ static bool read_trigger(Streader* sr, int32_t index, void* userdata)
     return true;
 }
 
-static bool Column_parse(
-        Column* col,
-        Streader* sr,
-        const Event_names* event_names)
+static bool Column_parse(Column* col, Streader* sr, const Event_names* event_names)
 {
     assert(col != NULL);
     assert(sr != NULL);

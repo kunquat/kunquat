@@ -30,9 +30,7 @@ struct Environment
 };
 
 
-Environment_iter* Environment_iter_init(
-        Environment_iter* iter,
-        const Environment* env)
+Environment_iter* Environment_iter_init(Environment_iter* iter, const Environment* env)
 {
     assert(iter != NULL);
     assert(env != NULL);

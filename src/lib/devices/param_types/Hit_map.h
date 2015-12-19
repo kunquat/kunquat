@@ -51,10 +51,7 @@ Hit_map* new_Hit_map_from_string(Streader* sr);
  *           entries for the given hit index.
  */
 const Sample_entry* Hit_map_get_entry(
-        const Hit_map* map,
-        int hit_index,
-        double force,
-        Random* random);
+        const Hit_map* map, int hit_index, double force, Random* random);
 
 
 /**

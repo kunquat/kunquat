@@ -32,8 +32,7 @@ void Device_reset_default(const Device* device, Device_states* dstates)
 
     if (device->dimpl != NULL)
     {
-        Device_state* dstate = Device_states_get_state(
-                dstates, Device_get_id(device));
+        Device_state* dstate = Device_states_get_state(dstates, Device_get_id(device));
         Device_impl_reset_device_state(device->dimpl, dstate);
     }
 
@@ -42,9 +41,7 @@ void Device_reset_default(const Device* device, Device_states* dstates)
 
 
 static bool Device_set_audio_rate_default(
-        const Device* device,
-        Device_states* dstates,
-        int32_t audio_rate)
+        const Device* device, Device_states* dstates, int32_t audio_rate)
 {
     assert(device != NULL);
     assert(dstates != NULL);
@@ -52,8 +49,7 @@ static bool Device_set_audio_rate_default(
 
     if (device->dimpl != NULL)
     {
-        Device_state* dstate = Device_states_get_state(
-                dstates, Device_get_id(device));
+        Device_state* dstate = Device_states_get_state(dstates, Device_get_id(device));
         return Device_impl_set_audio_rate(device->dimpl, dstate, audio_rate);
     }
 
@@ -62,9 +58,7 @@ static bool Device_set_audio_rate_default(
 
 
 static bool Device_set_buffer_size_default(
-        const Device* device,
-        Device_states* dstates,
-        int32_t buffer_size)
+        const Device* device, Device_states* dstates, int32_t buffer_size)
 {
     assert(device != NULL);
     assert(dstates != NULL);
@@ -72,8 +66,7 @@ static bool Device_set_buffer_size_default(
 
     if (device->dimpl != NULL)
     {
-        Device_state* dstate = Device_states_get_state(
-                dstates, Device_get_id(device));
+        Device_state* dstate = Device_states_get_state(dstates, Device_get_id(device));
         return Device_impl_set_buffer_size(device->dimpl, dstate, buffer_size);
     }
 
@@ -82,9 +75,7 @@ static bool Device_set_buffer_size_default(
 
 
 static void Device_update_tempo_default(
-        const Device* device,
-        Device_states* dstates,
-        double tempo)
+        const Device* device, Device_states* dstates, double tempo)
 {
     assert(device != NULL);
     assert(dstates != NULL);
@@ -93,8 +84,7 @@ static void Device_update_tempo_default(
 
     if (device->dimpl != NULL)
     {
-        Device_state* dstate = Device_states_get_state(
-                dstates, Device_get_id(device));
+        Device_state* dstate = Device_states_get_state(dstates, Device_get_id(device));
         Device_impl_update_tempo(device->dimpl, dstate, tempo);
     }
 
@@ -204,9 +194,7 @@ bool Device_set_impl(Device* device, Device_impl* dimpl)
 
 
 Device_state* Device_create_state(
-        const Device* device,
-        int32_t audio_rate,
-        int32_t buffer_size)
+        const Device* device, int32_t audio_rate, int32_t buffer_size)
 {
     assert(device != NULL);
     assert(device->create_state != NULL);
@@ -218,8 +206,7 @@ Device_state* Device_create_state(
 
 
 void Device_set_state_creator(
-        Device* device,
-        Device_state* (*creator)(const Device*, int32_t, int32_t))
+        Device* device, Device_state* (*creator)(const Device*, int32_t, int32_t))
 {
     assert(device != NULL);
 
@@ -233,8 +220,7 @@ void Device_set_state_creator(
 
 
 void Device_register_set_audio_rate(
-        Device* device,
-        bool (*set)(const Device*, Device_states*, int32_t))
+        Device* device, bool (*set)(const Device*, Device_states*, int32_t))
 {
     assert(device != NULL);
     assert(set != NULL);
@@ -246,8 +232,7 @@ void Device_register_set_audio_rate(
 
 
 void Device_register_set_buffer_size(
-        Device* device,
-        bool (*set)(const Device*, Device_states*, int32_t))
+        Device* device, bool (*set)(const Device*, Device_states*, int32_t))
 {
     assert(device != NULL);
     assert(set != NULL);
@@ -259,8 +244,7 @@ void Device_register_set_buffer_size(
 
 
 void Device_register_update_tempo(
-        Device* device,
-        void (*update)(const Device*, Device_states*, double))
+        Device* device, void (*update)(const Device*, Device_states*, double))
 {
     assert(device != NULL);
     assert(update != NULL);
@@ -401,10 +385,7 @@ bool Device_get_port_existence(const Device* device, Device_port_type type, int 
 }
 
 
-bool Device_set_audio_rate(
-        const Device* device,
-        Device_states* dstates,
-        int32_t rate)
+bool Device_set_audio_rate(const Device* device, Device_states* dstates, int32_t rate)
 {
     assert(device != NULL);
     assert(dstates != NULL);
@@ -415,10 +396,7 @@ bool Device_set_audio_rate(
 }
 
 
-bool Device_set_buffer_size(
-        const Device* device,
-        Device_states* dstates,
-        int32_t size)
+bool Device_set_buffer_size(const Device* device, Device_states* dstates, int32_t size)
 {
     assert(device != NULL);
     assert(dstates != NULL);
@@ -430,10 +408,7 @@ bool Device_set_buffer_size(
 }
 
 
-void Device_update_tempo(
-        const Device* device,
-        Device_states* dstates,
-        double tempo)
+void Device_update_tempo(const Device* device, Device_states* dstates, double tempo)
 {
     assert(device != NULL);
     assert(dstates != NULL);

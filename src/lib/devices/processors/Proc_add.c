@@ -62,11 +62,11 @@ static void Proc_add_init_vstate(
 
 static double sine(double phase, double modifier);
 
-static Set_sample_func      Proc_add_set_base;
-static Set_bool_func        Proc_add_set_ramp_attack;
-static Set_float_func       Proc_add_set_tone_pitch;
-static Set_float_func       Proc_add_set_tone_volume;
-static Set_float_func       Proc_add_set_tone_panning;
+static Set_sample_func  Proc_add_set_base;
+static Set_bool_func    Proc_add_set_ramp_attack;
+static Set_float_func   Proc_add_set_tone_pitch;
+static Set_float_func   Proc_add_set_tone_volume;
+static Set_float_func   Proc_add_set_tone_panning;
 
 static Proc_process_vstate_func Proc_add_process_vstate;
 

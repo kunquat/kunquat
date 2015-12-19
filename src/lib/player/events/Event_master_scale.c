@@ -40,8 +40,7 @@ bool Event_master_set_scale_process(Master_params* master_params, const Value* v
 
 
 bool Event_master_set_scale_fixed_point_process(
-        Master_params* master_params,
-        const Value* value)
+        Master_params* master_params, const Value* value)
 {
     assert(master_params != NULL);
     assert(value != NULL);
@@ -58,8 +57,7 @@ bool Event_master_set_scale_fixed_point_process(
 
 
 bool Event_master_set_scale_offset_process(
-        Master_params* master_params,
-        const Value* value)
+        Master_params* master_params, const Value* value)
 {
     assert(master_params != NULL);
     assert(value != NULL);
@@ -84,8 +82,7 @@ bool Event_master_set_scale_offset_process(
 
 
 bool Event_master_mimic_scale_process(
-        Master_params* master_params,
-        const Value* value)
+        Master_params* master_params, const Value* value)
 {
     assert(master_params != NULL);
     assert(value != NULL);
@@ -111,8 +108,7 @@ bool Event_master_mimic_scale_process(
 
 
 bool Event_master_shift_scale_intervals_process(
-        Master_params* master_params,
-        const Value* value)
+        Master_params* master_params, const Value* value)
 {
     assert(master_params != NULL);
     assert(value != NULL);

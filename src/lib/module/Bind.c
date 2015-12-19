@@ -47,10 +47,7 @@ static Constraint* new_Constraint(Streader* sr);
 
 
 static bool Constraint_match(
-        Constraint* constraint,
-        Event_cache* cache,
-        Env_state* estate,
-        Random* rand);
+        Constraint* constraint, Event_cache* cache, Env_state* estate, Random* rand);
 
 
 static void del_Constraint(Constraint* constraint);
@@ -106,8 +103,7 @@ static void del_Cblist(Cblist* list);
 static bool read_constraints(Streader* sr, Bind* map, Cblist_item* item);
 
 
-static bool read_events(
-        Streader* sr, Cblist_item* item, const Event_names* names);
+static bool read_events(Streader* sr, Cblist_item* item, const Event_names* names);
 
 
 static bool Bind_is_cyclic(Bind* map);
@@ -248,7 +244,7 @@ Target_event* Bind_get_first(
         Event_cache* cache,
         Env_state* estate,
         const char* event_name,
-        Value* value,
+        const Value* value,
         Random* rand)
 {
     assert(map != NULL);
@@ -602,10 +598,7 @@ static Constraint* new_Constraint(Streader* sr)
 
 
 static bool Constraint_match(
-        Constraint* constraint,
-        Event_cache* cache,
-        Env_state* estate,
-        Random* rand)
+        Constraint* constraint, Event_cache* cache, Env_state* estate, Random* rand)
 {
     assert(constraint != NULL);
     assert(cache != NULL);

@@ -47,9 +47,7 @@ typedef struct Environment_iter
  *
  * \return   The parameter \a iter.
  */
-Environment_iter* Environment_iter_init(
-        Environment_iter* iter,
-        const Environment* env);
+Environment_iter* Environment_iter_init(Environment_iter* iter, const Environment* env);
 
 
 /**

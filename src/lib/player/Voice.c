@@ -130,12 +130,7 @@ void Voice_init(
     Random_set_seed(voice->rand_s, seed);
 
     Voice_state_init(
-            voice->state,
-            cgstate,
-            voice->rand_p,
-            voice->rand_s,
-            freq,
-            tempo);
+            voice->state, cgstate, voice->rand_p, voice->rand_s, freq, tempo);
 
     if (proc->init_vstate != NULL)
         proc->init_vstate(proc, proc_state, voice->state);

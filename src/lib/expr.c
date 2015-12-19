@@ -56,11 +56,7 @@ static bool evaluate_expr_(
         Random* rand);
 
 
-static bool handle_unary(
-        Value* val,
-        bool found_not,
-        bool found_minus,
-        Streader* sr);
+static bool handle_unary(Value* val, bool found_not, bool found_minus, Streader* sr);
 
 
 static bool get_token(Streader* sr, char* result);
@@ -71,10 +67,7 @@ static bool get_op_token(Streader* sr, char* result);
 
 
 static bool Value_from_token(
-        Value* val,
-        char* token,
-        Env_state* estate,
-        const Value* meta);
+        Value* val, char* token, Env_state* estate, const Value* meta);
 
 //static void Value_print(Value* val);
 
@@ -87,24 +80,24 @@ static bool Operator_from_token(Operator* op, char* token);
 //static void Operator_print(Operator* op);
 
 
-#define OP_PROTO(name) static bool name(const Value*, const Value*, Value*, Streader* sr)
+#define OP_DECL(name) static bool name(const Value*, const Value*, Value*, Streader* sr)
 
-OP_PROTO(op_neq);
-OP_PROTO(op_leq);
-OP_PROTO(op_geq);
-OP_PROTO(op_or);
-OP_PROTO(op_and);
-OP_PROTO(op_eq);
-OP_PROTO(op_lt);
-OP_PROTO(op_gt);
-OP_PROTO(op_add);
-OP_PROTO(op_sub);
-OP_PROTO(op_mul);
-OP_PROTO(op_div);
-OP_PROTO(op_mod);
-OP_PROTO(op_pow);
+OP_DECL(op_neq);
+OP_DECL(op_leq);
+OP_DECL(op_geq);
+OP_DECL(op_or);
+OP_DECL(op_and);
+OP_DECL(op_eq);
+OP_DECL(op_lt);
+OP_DECL(op_gt);
+OP_DECL(op_add);
+OP_DECL(op_sub);
+OP_DECL(op_mul);
+OP_DECL(op_div);
+OP_DECL(op_mod);
+OP_DECL(op_pow);
 
-#undef OP_PROTO
+#undef OP_DECL
 
 
 static Operator operators[] =
@@ -128,11 +121,7 @@ static Operator operators[] =
 };
 
 
-typedef bool (*Func)(
-        const Value* args,
-        Value* res,
-        Random* rand,
-        Streader* sr);
+typedef bool (*Func)(const Value* args, Value* res, Random* rand, Streader* sr);
 
 
 #define FUNC_ARGS_MAX 4
@@ -148,14 +137,14 @@ typedef struct Func_desc
 } Func_desc;
 
 
-#define FUNC_PROTO(fn) static bool func_##fn( \
+#define FUNC_DECL(fn) static bool func_##fn( \
         const Value* args, Value* res, Random* rand, Streader* sr)
 
-FUNC_PROTO(ts);
-FUNC_PROTO(rand);
-FUNC_PROTO(pat);
+FUNC_DECL(ts);
+FUNC_DECL(rand);
+FUNC_DECL(pat);
 
-#undef FUNC_PROTO
+#undef FUNC_DECL
 
 
 static Func_desc funcs[] =
@@ -168,11 +157,7 @@ static Func_desc funcs[] =
 
 
 bool evaluate_expr(
-        Streader* sr,
-        Env_state* estate,
-        const Value* meta,
-        Value* res,
-        Random* rand)
+        Streader* sr, Env_state* estate, const Value* meta, Value* res, Random* rand)
 {
     assert(sr != NULL);
     assert(res != NULL);
@@ -515,11 +500,7 @@ static bool token_is_func(const char* token, Func* res)
 }
 
 
-static bool handle_unary(
-        Value* val,
-        bool found_not,
-        bool found_minus,
-        Streader* sr)
+static bool handle_unary(Value* val, bool found_not, bool found_minus, Streader* sr)
 {
     assert(val != NULL);
     assert(!(found_not && found_minus));
@@ -577,10 +558,7 @@ static bool handle_unary(
 
 
 static bool Value_from_token(
-        Value* val,
-        char* token,
-        Env_state* estate,
-        const Value* meta)
+        Value* val, char* token, Env_state* estate, const Value* meta)
 {
     assert(val != NULL);
     assert(token != NULL);

@@ -205,11 +205,7 @@ Note_map* new_Note_map_from_string(Streader* sr)
 }
 
 
-bool Note_map_add_entry(
-        Note_map* map,
-        double cents,
-        double force,
-        Sample_entry* entry)
+bool Note_map_add_entry(Note_map* map, double cents, double force, Sample_entry* entry)
 {
     assert(map != NULL);
     assert(isfinite(cents));
@@ -259,10 +255,7 @@ static double distance(Random_list* list, Random_list* key)
 
 
 const Sample_entry* Note_map_get_entry(
-        const Note_map* map,
-        double cents,
-        double force,
-        Random* random)
+        const Note_map* map, double cents, double force, Random* random)
 {
     assert(map != NULL);
     assert(isfinite(cents));

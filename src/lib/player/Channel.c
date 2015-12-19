@@ -26,11 +26,7 @@
 #include <string.h>
 
 
-static bool Channel_init(
-        Channel* ch,
-        int num,
-        Env_state* estate,
-        const Module* module)
+static bool Channel_init(Channel* ch, int num, Env_state* estate, const Module* module)
 {
     assert(ch != NULL);
     assert(num >= 0);

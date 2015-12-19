@@ -70,10 +70,7 @@ static bool Connections_is_cyclic(Connections* graph);
  * \return   The port number if the path is valid, otherwise \c -1.
  */
 static int validate_connection_path(
-        Streader* sr,
-        char* str,
-        Connection_level level,
-        Device_port_type type);
+        Streader* sr, char* str, Connection_level level, Device_port_type type);
 
 
 #define mem_error_if(expr, graph, node, sr)                           \
@@ -300,10 +297,7 @@ bool Connections_init_buffers(Connections* graph, Device_states* states)
 
 
 void Connections_clear_buffers(
-        Connections* graph,
-        Device_states* states,
-        uint32_t start,
-        uint32_t until)
+        Connections* graph, Device_states* states, uint32_t start, uint32_t until)
 {
     assert(graph != NULL);
     assert(states != NULL);
@@ -502,10 +496,7 @@ static int read_index(char* str)
 
 
 static int validate_connection_path(
-        Streader* sr,
-        char* str,
-        Connection_level level,
-        Device_port_type type)
+        Streader* sr, char* str, Connection_level level, Device_port_type type)
 {
     assert(sr != NULL);
     assert(str != NULL);

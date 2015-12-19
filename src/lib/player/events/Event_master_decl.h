@@ -26,8 +26,7 @@
 
 #define EVENT_MASTER_DEF(name, type_suffix, arg_type, validator) \
     bool Event_master_##type_suffix##_process(                   \
-            Master_params* master_params,                        \
-            const Value* value);
+            Master_params* master_params, const Value* value);
 #include <player/events/Event_master_types.h>
 
 

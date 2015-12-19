@@ -37,9 +37,7 @@ typedef struct Random_list
 } Random_list;
 
 
-static int Random_list_cmp(
-        const Random_list* list1,
-        const Random_list* list2);
+static int Random_list_cmp(const Random_list* list1, const Random_list* list2);
 
 
 static bool read_random_list_entry(Streader* sr, int32_t index, void* userdata)
@@ -176,10 +174,7 @@ Hit_map* new_Hit_map_from_string(Streader* sr)
 
 
 const Sample_entry* Hit_map_get_entry(
-        const Hit_map* map,
-        int hit_index,
-        double force,
-        Random* random)
+        const Hit_map* map, int hit_index, double force, Random* random)
 {
     assert(map != NULL);
     assert(hit_index >= 0);
@@ -230,9 +225,7 @@ void del_Hit_map(Hit_map* map)
 }
 
 
-static int Random_list_cmp(
-        const Random_list* list1,
-        const Random_list* list2)
+static int Random_list_cmp(const Random_list* list1, const Random_list* list2)
 {
     assert(list1 != NULL);
     assert(list2 != NULL);

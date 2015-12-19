@@ -66,10 +66,7 @@ Real* Real_init(Real* real);
  *
  * \return   The parameter \a real.
  */
-Real* Real_init_as_frac(
-        Real* real,
-        int64_t numerator,
-        int64_t denominator);
+Real* Real_init_as_frac(Real* real, int64_t numerator, int64_t denominator);
 
 
 /**

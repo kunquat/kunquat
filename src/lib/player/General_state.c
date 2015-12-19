@@ -33,10 +33,7 @@ General_state* General_state_preinit(General_state* state)
 
 
 General_state* General_state_init(
-        General_state* state,
-        bool global,
-        Env_state* estate,
-        const Module* module)
+        General_state* state, bool global, Env_state* estate, const Module* module)
 {
     assert(state != NULL);
     assert(state->active_names == NULL);

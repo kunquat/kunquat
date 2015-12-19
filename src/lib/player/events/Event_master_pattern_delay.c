@@ -25,8 +25,7 @@
 
 
 bool Event_master_pattern_delay_process(
-        Master_params* master_params,
-        const Value* value)
+        Master_params* master_params, const Value* value)
 {
     assert(master_params != NULL);
     assert(value != NULL);

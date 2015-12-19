@@ -35,11 +35,7 @@ void Player_reset_channels(Player* player);
 
 
 void Player_process_event(
-        Player* player,
-        int ch_num,
-        const char* event_name,
-        Value* arg,
-        bool skip);
+        Player* player, int ch_num, const char* event_name, const Value* arg, bool skip);
 
 
 bool Player_check_perform_goto(Player* player);

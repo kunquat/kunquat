@@ -122,11 +122,7 @@ const char* Event_buffer_get_events(const Event_buffer* ebuf)
 }
 
 
-void Event_buffer_add(
-        Event_buffer* ebuf,
-        int ch,
-        const char* name,
-        Value* arg)
+void Event_buffer_add(Event_buffer* ebuf, int ch, const char* name, const Value* arg)
 {
     assert(ebuf != NULL);
     assert(!Event_buffer_is_full(ebuf));
@@ -186,15 +182,10 @@ void Event_buffer_add(
     // Value
     const int max_value_bytes = EVENT_LEN_MAX - advance - strlen(closing_str);
     advance += Value_serialise(
-            arg,
-            max_value_bytes,
-            ebuf->buf + ebuf->write_pos + advance);
+            arg, max_value_bytes, ebuf->buf + ebuf->write_pos + advance);
 
     // Close the event
-    advance += sprintf(
-            ebuf->buf + ebuf->write_pos + advance,
-            "%s",
-            closing_str);
+    advance += sprintf(ebuf->buf + ebuf->write_pos + advance, "%s", closing_str);
 
     // Update the write position
     ebuf->write_pos += advance;

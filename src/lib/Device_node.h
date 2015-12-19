@@ -151,10 +151,7 @@ bool Device_node_init_effect_buffers(Device_node* node, Device_states* states);
  *                 will be cleared.
  */
 void Device_node_clear_buffers(
-        Device_node* node,
-        Device_states* states,
-        uint32_t start,
-        uint32_t until);
+        Device_node* node, Device_states* states, uint32_t start, uint32_t until);
 
 
 /**
@@ -257,10 +254,7 @@ Device_node_state Device_node_get_state(const Device_node* node);
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Device_node_connect(
-        Device_node* receiver,
-        int rec_port,
-        Device_node* sender,
-        int send_port);
+        Device_node* receiver, int rec_port, Device_node* sender, int send_port);
 
 
 /**
@@ -281,9 +275,7 @@ void Device_node_disconnect(Device_node* node, const Device* device);
  *                     \a old_device or in the connections of \a node.
  */
 void Device_node_replace(
-        Device_node* node,
-        const Device* old_device,
-        const Device* new_device);
+        Device_node* node, const Device* old_device, const Device* new_device);
 
 
 /**
@@ -297,10 +289,7 @@ void Device_node_replace(
  *
  * \return   The first sender if one exists, otherwise \c NULL.
  */
-Device_node* Device_node_get_sender(
-        Device_node* node,
-        int rec_port,
-        int* send_port);
+Device_node* Device_node_get_sender(Device_node* node, int rec_port, int* send_port);
 
 
 /**
@@ -314,10 +303,7 @@ Device_node* Device_node_get_sender(
  *
  * \return   The first receiver if one exists, otherwise \c NULL.
  */
-Device_node* Device_node_get_receiver(
-        Device_node* node,
-        int send_port,
-        int* rec_port);
+Device_node* Device_node_get_receiver(Device_node* node, int send_port, int* rec_port);
 
 
 /**

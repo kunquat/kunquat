@@ -119,8 +119,7 @@ typedef struct Proc_freeverb
 } Proc_freeverb;
 
 
-static void Freeverb_state_reset(
-        Freeverb_state* fstate, const Proc_freeverb* freeverb)
+static void Freeverb_state_reset(Freeverb_state* fstate, const Proc_freeverb* freeverb)
 {
     assert(fstate != NULL);
     assert(freeverb != NULL);

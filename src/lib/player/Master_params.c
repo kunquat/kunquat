@@ -91,9 +91,7 @@ Master_params* Master_params_preinit(Master_params* params)
 
 
 Master_params* Master_params_init(
-        Master_params* params,
-        const Module* module,
-        Env_state* estate)
+        Master_params* params, const Module* module, Env_state* estate)
 {
     assert(params != NULL);
     assert(module != NULL);

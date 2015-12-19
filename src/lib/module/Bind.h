@@ -84,7 +84,7 @@ Target_event* Bind_get_first(
         Event_cache* cache,
         Env_state* estate,
         const char* event_name,
-        Value* value,
+        const Value* value,
         Random* rand);
 
 

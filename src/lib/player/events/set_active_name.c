@@ -26,10 +26,7 @@
 
 
 bool set_active_name(
-        General_state* gstate,
-        Active_cat cat,
-        Active_type type,
-        const Value* value)
+        General_state* gstate, Active_cat cat, Active_type type, const Value* value)
 {
     assert(gstate != NULL);
     assert(cat < ACTIVE_CAT_COUNT);

@@ -40,9 +40,7 @@ bool Event_control_env_set_bool_process(
     Env_var* var = Env_state_get_var(
             global_state->estate,
             Active_names_get(
-                channel->parent.active_names,
-                ACTIVE_CAT_ENV,
-                ACTIVE_TYPE_BOOL));
+                channel->parent.active_names, ACTIVE_CAT_ENV, ACTIVE_TYPE_BOOL));
     if (var == NULL || Env_var_get_type(var) != VALUE_TYPE_BOOL)
         return true;
 
@@ -74,9 +72,7 @@ bool Event_control_env_set_float_process(
     Env_var* var = Env_state_get_var(
             global_state->estate,
             Active_names_get(
-                channel->parent.active_names,
-                ACTIVE_CAT_ENV,
-                ACTIVE_TYPE_FLOAT));
+                channel->parent.active_names, ACTIVE_CAT_ENV, ACTIVE_TYPE_FLOAT));
     if (var == NULL || Env_var_get_type(var) != VALUE_TYPE_FLOAT)
         return true;
 
@@ -108,9 +104,7 @@ bool Event_control_env_set_int_process(
     Env_var* var = Env_state_get_var(
             global_state->estate,
             Active_names_get(
-                channel->parent.active_names,
-                ACTIVE_CAT_ENV,
-                ACTIVE_TYPE_INT));
+                channel->parent.active_names, ACTIVE_CAT_ENV, ACTIVE_TYPE_INT));
     if (var == NULL || Env_var_get_type(var) != VALUE_TYPE_INT)
         return true;
 
@@ -142,9 +136,7 @@ bool Event_control_env_set_tstamp_process(
     Env_var* var = Env_state_get_var(
             global_state->estate,
             Active_names_get(
-                channel->parent.active_names,
-                ACTIVE_CAT_ENV,
-                ACTIVE_TYPE_TSTAMP));
+                channel->parent.active_names, ACTIVE_CAT_ENV, ACTIVE_TYPE_TSTAMP));
     if (var == NULL || Env_var_get_type(var) != VALUE_TYPE_TSTAMP)
         return true;
 

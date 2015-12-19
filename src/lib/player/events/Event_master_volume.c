@@ -24,8 +24,7 @@
 
 
 bool Event_master_set_volume_process(
-        Master_params* master_params,
-        const Value* value)
+        Master_params* master_params, const Value* value)
 {
     assert(master_params != NULL);
     assert(value != NULL);
@@ -39,8 +38,7 @@ bool Event_master_set_volume_process(
 
 
 bool Event_master_slide_volume_process(
-        Master_params* master_params,
-        const Value* value)
+        Master_params* master_params, const Value* value)
 {
     assert(master_params != NULL);
     assert(value != NULL);
@@ -51,26 +49,20 @@ bool Event_master_slide_volume_process(
     if (Slider_in_progress(&master_params->volume_slider))
         Slider_change_target(&master_params->volume_slider, target);
     else
-        Slider_start(
-                &master_params->volume_slider,
-                target,
-                master_params->volume);
+        Slider_start(&master_params->volume_slider, target, master_params->volume);
 
     return true;
 }
 
 
 bool Event_master_slide_volume_length_process(
-        Master_params* master_params,
-        const Value* value)
+        Master_params* master_params, const Value* value)
 {
     assert(master_params != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_TSTAMP);
 
-    Slider_set_length(
-            &master_params->volume_slider,
-            &value->value.Tstamp_type);
+    Slider_set_length(&master_params->volume_slider, &value->value.Tstamp_type);
 
     return true;
 }

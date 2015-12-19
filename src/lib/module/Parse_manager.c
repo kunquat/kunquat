@@ -205,11 +205,7 @@ static bool is_connection_possible(
 }
 
 
-bool parse_data(
-        Handle* handle,
-        const char* key,
-        const void* data,
-        long length)
+bool parse_data(Handle* handle, const char* key, const void* data, long length)
 {
 //    fprintf(stderr, "parsing %s\n", key);
     assert(handle != NULL);
@@ -659,7 +655,8 @@ static bool read_any_au(Reader_params* params, Au_table* au_table, int level)
 }
 
 
-static bool read_any_au_in_port_manifest(Reader_params* params, Au_table* au_table, int level)
+static bool read_any_au_in_port_manifest(
+        Reader_params* params, Au_table* au_table, int level)
 {
     assert(params != NULL);
 
@@ -687,7 +684,8 @@ static bool read_any_au_in_port_manifest(Reader_params* params, Au_table* au_tab
 }
 
 
-static bool read_any_au_out_port_manifest(Reader_params* params, Au_table* au_table, int level)
+static bool read_any_au_out_port_manifest(
+        Reader_params* params, Au_table* au_table, int level)
 {
     assert(params != NULL);
 
@@ -866,10 +864,7 @@ static bool read_any_au_control_vars(
 
 
 static Processor* add_processor(
-        Handle* handle,
-        Audio_unit* au,
-        Proc_table* proc_table,
-        int proc_index)
+        Handle* handle, Audio_unit* au, Proc_table* proc_table, int proc_index)
 {
     assert(handle != NULL);
     assert(au != NULL);
@@ -1282,10 +1277,7 @@ static bool read_any_proc_conf_key(
 
 
 static bool read_any_proc_voice_feature(
-        Reader_params* params,
-        Au_table* au_table,
-        int level,
-        Voice_feature feature)
+        Reader_params* params, Au_table* au_table, int level, Voice_feature feature)
 {
     assert(params != NULL);
     assert(au_table != NULL);

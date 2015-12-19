@@ -39,21 +39,15 @@ static void Module_reset(const Device* device, Device_states* dstates);
 
 
 static bool Module_set_audio_rate(
-        const Device* device,
-        Device_states* dstates,
-        int32_t audio_rate);
+        const Device* device, Device_states* dstates, int32_t audio_rate);
 
 
 static bool Module_set_buffer_size(
-        const Device* device,
-        Device_states* dstates,
-        int32_t size);
+        const Device* device, Device_states* dstates, int32_t size);
 
 
 static void Module_update_tempo(
-        const Device* device,
-        Device_states* dstates,
-        double tempo);
+        const Device* device, Device_states* dstates, double tempo);
 
 
 Module* new_Module(void)
@@ -560,9 +554,7 @@ static void Module_reset(const Device* device, Device_states* dstates)
 
 
 static bool Module_set_audio_rate(
-        const Device* device,
-        Device_states* dstates,
-        int32_t audio_rate)
+        const Device* device, Device_states* dstates, int32_t audio_rate)
 {
     assert(device != NULL);
     assert(dstates != NULL);
@@ -583,9 +575,7 @@ static bool Module_set_audio_rate(
 
 
 static void Module_update_tempo(
-        const Device* device,
-        Device_states* dstates,
-        double tempo)
+        const Device* device, Device_states* dstates, double tempo)
 {
     assert(device != NULL);
     assert(dstates != NULL);
@@ -606,9 +596,7 @@ static void Module_update_tempo(
 
 
 static bool Module_set_buffer_size(
-        const Device* device,
-        Device_states* dstates,
-        int32_t size)
+        const Device* device, Device_states* dstates, int32_t size)
 {
     assert(device != NULL);
     assert(dstates != NULL);

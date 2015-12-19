@@ -90,10 +90,7 @@ Song* Song_table_get(Song_table* table, uint16_t index)
 }
 
 
-void Song_table_set_existent(
-        Song_table* table,
-        uint16_t index,
-        bool existent)
+void Song_table_set_existent(Song_table* table, uint16_t index, bool existent)
 {
     assert(table != NULL);
     assert(index < KQT_SONGS_MAX);

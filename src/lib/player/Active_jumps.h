@@ -85,9 +85,7 @@ Jump_context* Active_jumps_get_next_context(
  *
  * \return   The Jump context handle.
  */
-AAnode* Active_jumps_remove_context(
-        Active_jumps* jumps,
-        const Jump_context* jc);
+AAnode* Active_jumps_remove_context(Active_jumps* jumps, const Jump_context* jc);
 
 
 /**

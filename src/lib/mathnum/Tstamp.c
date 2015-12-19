@@ -167,10 +167,7 @@ Tstamp* Tstamp_min(Tstamp* result, const Tstamp* ts1, const Tstamp* ts2)
 }
 
 
-double Tstamp_toframes(
-        const Tstamp* ts,
-        double tempo,
-        uint32_t rate)
+double Tstamp_toframes(const Tstamp* ts, double tempo, uint32_t rate)
 {
     Tstamp_validate(ts);
     assert(ts->beats >= 0);
@@ -182,11 +179,7 @@ double Tstamp_toframes(
 }
 
 
-Tstamp* Tstamp_fromframes(
-        Tstamp* ts,
-        uint32_t frames,
-        double tempo,
-        uint32_t rate)
+Tstamp* Tstamp_fromframes(Tstamp* ts, uint32_t frames, double tempo, uint32_t rate)
 {
     assert(ts != NULL);
     assert(tempo > 0);

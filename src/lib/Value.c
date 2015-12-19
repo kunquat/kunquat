@@ -136,7 +136,7 @@ bool Value_convert(Value* dest, const Value* src, Value_type new_type)
 }
 
 
-int Value_serialise(Value* value, int len, char* str)
+int Value_serialise(const Value* value, int len, char* str)
 {
     assert(value != NULL);
     assert(len > 0);

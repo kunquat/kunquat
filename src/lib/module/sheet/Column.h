@@ -144,9 +144,7 @@ Column* new_Column(const Tstamp* len);
  * \return   The new Column if successful, otherwise \c NULL.
  */
 Column* new_Column_from_string(
-        Streader* sr,
-        const Tstamp* len,
-        const Event_names* event_names);
+        Streader* sr, const Tstamp* len, const Event_names* event_names);
 
 
 /**

@@ -73,10 +73,7 @@ bool string_has_suffix(const char* str, const char* suffix);
  * \return   The extracted index, or \c -1 if the path is not valid.
  */
 int string_extract_index(
-        const char* path,
-        const char* prefix,
-        int digits,
-        const char* after);
+        const char* path, const char* prefix, int digits, const char* after);
 
 
 #endif // K_STRING_COMMON_H

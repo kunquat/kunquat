@@ -242,7 +242,7 @@ int serialise_float(char* dest, int size, double value)
 #undef SIGNIFICANT_MAX
 
 
-int serialise_Pat_inst_ref(char* dest, int size, Pat_inst_ref* value)
+int serialise_Pat_inst_ref(char* dest, int size, const Pat_inst_ref* value)
 {
     assert(dest != NULL);
     assert(size > 0);
@@ -260,7 +260,7 @@ int serialise_Pat_inst_ref(char* dest, int size, Pat_inst_ref* value)
 }
 
 
-int serialise_Real(char* dest, int size, Real* value)
+int serialise_Real(char* dest, int size, const Real* value)
 {
     assert(dest != NULL);
     assert(size > 0);
@@ -288,7 +288,7 @@ int serialise_Real(char* dest, int size, Real* value)
 }
 
 
-int serialise_Tstamp(char* dest, int size, Tstamp* value)
+int serialise_Tstamp(char* dest, int size, const Tstamp* value)
 {
     assert(dest != NULL);
     assert(size > 0);

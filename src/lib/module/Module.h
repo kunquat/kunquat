@@ -140,9 +140,7 @@ const Channel_defaults_list* Module_get_ch_defaults_list(const Module* module);
  *
  * \return   The pattern if one exists, otherwise \c NULL.
  */
-const Pattern* Module_get_pattern(
-        const Module* module,
-        const Pat_inst_ref* piref);
+const Pattern* Module_get_pattern(const Module* module, const Pat_inst_ref* piref);
 
 
 /**

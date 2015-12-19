@@ -108,8 +108,7 @@ static void Chorus_voice_reset(
 
 
 static void Chorus_state_reset(
-        Chorus_state* cstate,
-        const Chorus_voice_params voice_params[CHORUS_VOICES_MAX])
+        Chorus_state* cstate, const Chorus_voice_params voice_params[CHORUS_VOICES_MAX])
 {
     assert(cstate != NULL);
     assert(voice_params != NULL);

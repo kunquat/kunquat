@@ -25,9 +25,7 @@
 
 
 bool Event_channel_set_panning_process(
-        Channel* ch,
-        Device_states* dstates,
-        const Value* value)
+        Channel* ch, Device_states* dstates, const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
@@ -52,9 +50,7 @@ bool Event_channel_set_panning_process(
 
 
 bool Event_channel_slide_panning_process(
-        Channel* ch,
-        Device_states* dstates,
-        const Value* value)
+        Channel* ch, Device_states* dstates, const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
@@ -62,14 +58,9 @@ bool Event_channel_slide_panning_process(
     assert(value->type == VALUE_TYPE_FLOAT);
 
     if (Slider_in_progress(&ch->panning_slider))
-        Slider_change_target(
-                &ch->panning_slider,
-                value->value.float_type);
+        Slider_change_target(&ch->panning_slider, value->value.float_type);
     else
-        Slider_start(
-                &ch->panning_slider,
-                value->value.float_type,
-                ch->panning);
+        Slider_start(&ch->panning_slider, value->value.float_type, ch->panning);
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
@@ -83,18 +74,14 @@ bool Event_channel_slide_panning_process(
 
 
 bool Event_channel_slide_panning_length_process(
-        Channel* ch,
-        Device_states* dstates,
-        const Value* value)
+        Channel* ch, Device_states* dstates, const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
     assert(value != NULL);
     assert(value->type == VALUE_TYPE_TSTAMP);
 
-    Slider_set_length(
-            &ch->panning_slider,
-            &value->value.Tstamp_type);
+    Slider_set_length(&ch->panning_slider, &value->value.Tstamp_type);
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {

@@ -160,9 +160,7 @@ Player* new_Player(
     }
 
     if (Master_params_init(
-                &player->master_params,
-                player->module,
-                player->estate) == NULL)
+                &player->master_params, player->module, player->estate) == NULL)
     {
         del_Player(player);
         return NULL;
@@ -899,11 +897,7 @@ bool Player_fire(Player* player, int ch, Streader* event_reader)
     Event_type type = Event_NONE;
 
     // Get event name
-    if (!get_event_type_info(
-                event_reader,
-                event_names,
-                event_name,
-                &type))
+    if (!get_event_type_info(event_reader, event_names, event_name, &type))
         return false;
 
     // Get event argument
@@ -933,11 +927,9 @@ bool Player_fire(Player* player, int ch, Streader* event_reader)
             break;
 
         case VALUE_TYPE_STRING:
-        {
             Streader_read_string(
                     event_reader, KQT_VAR_NAME_MAX, value->value.string_type);
-        }
-        break;
+            break;
 
         case VALUE_TYPE_PAT_INST_REF:
             Streader_read_piref(event_reader, &value->value.Pat_inst_ref_type);
@@ -951,12 +943,7 @@ bool Player_fire(Player* player, int ch, Streader* event_reader)
         return false;
 
     // Fire
-    Player_process_event(
-        player,
-        ch,
-        event_name,
-        value,
-        false);
+    Player_process_event(player, ch, event_name, value, false);
 
     // Check and perform goto if needed
     Player_check_perform_goto(player);

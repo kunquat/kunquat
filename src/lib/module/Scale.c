@@ -36,8 +36,6 @@ typedef struct pitch_index
 } pitch_index;
 
 
-static int pitch_index_cmp(const pitch_index* pi1, const pitch_index* pi2);
-
 static int pitch_index_cmp(const pitch_index* pi1, const pitch_index* pi2)
 {
     assert(pi1 != NULL);
@@ -50,8 +48,6 @@ static int pitch_index_cmp(const pitch_index* pi1, const pitch_index* pi2)
     return 0;
 }
 
-
-static bool Scale_build_pitch_map(Scale* scale);
 
 static bool Scale_build_pitch_map(Scale* scale)
 {
@@ -75,9 +71,7 @@ static bool Scale_build_pitch_map(Scale* scale)
             }
 
             Real* scaled_ratio = Real_mul(
-                    REAL_AUTO,
-                    &scale->notes[note].ratio,
-                    &scale->oct_factors[octave]);
+                    REAL_AUTO, &scale->notes[note].ratio, &scale->oct_factors[octave]);
             double hertz = Real_mul_float(scaled_ratio, scale->ref_pitch);
             pi->cents = log2(hertz / 440) * 1200;
             pi->note = note;

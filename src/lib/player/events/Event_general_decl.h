@@ -26,8 +26,7 @@
 
 #define EVENT_GENERAL_DEF(name, type_suffix, arg_type, validator) \
     bool Event_general_##type_suffix##_process(                   \
-            General_state* gstate,                                \
-            const Value* value);
+            General_state* gstate, const Value* value);
 #include <player/events/Event_general_types.h>
 
 

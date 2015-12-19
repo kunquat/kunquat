@@ -239,8 +239,7 @@ static bool Proc_delay_init(Device_impl* dimpl)
     Processor_set_clear_history(
             (Processor*)delay->parent.device, Proc_delay_clear_history);
     Device_impl_register_set_audio_rate(
-            &delay->parent,
-            Proc_delay_set_audio_rate);
+            &delay->parent, Proc_delay_set_audio_rate);
 
     delay->max_delay = 2;
 

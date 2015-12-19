@@ -26,8 +26,7 @@
 
 
 bool Event_master_set_jump_counter_process(
-        Master_params* master_params,
-        const Value* value)
+        Master_params* master_params, const Value* value)
 {
     assert(master_params != NULL);
     assert(value != NULL);
@@ -40,8 +39,7 @@ bool Event_master_set_jump_counter_process(
 
 
 bool Event_master_set_jump_row_process(
-        Master_params* master_params,
-        const Value* value)
+        Master_params* master_params, const Value* value)
 {
     assert(master_params != NULL);
     assert(value != NULL);
@@ -54,8 +52,7 @@ bool Event_master_set_jump_row_process(
 
 
 bool Event_master_set_jump_pat_inst_process(
-        Master_params* master_params,
-        const Value* value)
+        Master_params* master_params, const Value* value)
 {
     assert(master_params != NULL);
     assert(value != NULL);

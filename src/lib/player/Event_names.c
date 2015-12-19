@@ -142,9 +142,7 @@ Event_type Event_names_get(const Event_names* names, const char* name)
 }
 
 
-Value_type Event_names_get_param_type(
-        const Event_names* names,
-        const char* name)
+Value_type Event_names_get_param_type(const Event_names* names, const char* name)
 {
     assert(names != NULL);
     assert(name != NULL);

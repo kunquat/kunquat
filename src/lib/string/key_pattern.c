@@ -23,9 +23,7 @@
 
 
 static int32_t extract_num(
-        const char* section,
-        size_t section_length,
-        size_t* digit_count)
+        const char* section, size_t section_length, size_t* digit_count)
 {
     assert(section != NULL);
     assert(digit_count != NULL);

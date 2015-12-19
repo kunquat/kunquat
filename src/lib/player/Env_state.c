@@ -100,8 +100,7 @@ void Env_state_reset(Env_state* estate)
 {
     assert(estate != NULL);
 
-    Environment_iter* iter = Environment_iter_init(
-            ENVIRONMENT_ITER_AUTO, estate->env);
+    Environment_iter* iter = Environment_iter_init(ENVIRONMENT_ITER_AUTO, estate->env);
 
     const char* name = Environment_iter_get_next_name(iter);
     while (name != NULL)

@@ -96,8 +96,7 @@ float Freeverb_comb_process(Freeverb_comb* comb, float input)
 
     float output = comb->buffer[comb->buffer_pos];
     output = undenormalise(output);
-    comb->filter_store = (output * comb->damp2) +
-                         (comb->filter_store * comb->damp1);
+    comb->filter_store = (output * comb->damp2) + (comb->filter_store * comb->damp1);
     comb->filter_store = undenormalise(comb->filter_store);
     comb->buffer[comb->buffer_pos] = input + (comb->filter_store * comb->feedback);
 

@@ -124,10 +124,7 @@ kqt_Handle kqt_new_Handle(void)
 
 
 int kqt_Handle_set_data(
-        kqt_Handle handle,
-        const char* key,
-        const void* data,
-        long length)
+        kqt_Handle handle, const char* key, const void* data, long length)
 {
     check_handle(handle, 0);
 
@@ -193,11 +190,7 @@ bool Handle_init(Handle* handle)
 
     // Create players
     handle->player = new_Player(
-            handle->module,
-            DEFAULT_AUDIO_RATE,
-            2048,
-            16384,
-            256);
+            handle->module, DEFAULT_AUDIO_RATE, 2048, 16384, 256);
     handle->length_counter = new_Player(handle->module, 1000000000L, 0, 0, 0);
     if (handle->player == NULL || handle->length_counter == NULL)
     {
