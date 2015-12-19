@@ -18,6 +18,7 @@
 
 #include <kunquat/limits.h>
 #include <mathnum/Random.h>
+#include <mathnum/Tstamp.h>
 #include <player/Channel_proc_state.h>
 #include <player/Filter_controls.h>
 #include <player/Force_controls.h>
@@ -25,7 +26,6 @@
 #include <player/Pitch_controls.h>
 #include <player/Slider.h>
 #include <player/Time_env_state.h>
-#include <Tstamp.h>
 
 #include <stdbool.h>
 #include <stdint.h>

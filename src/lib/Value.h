@@ -18,8 +18,8 @@
 
 #include <kunquat/limits.h>
 #include <mathnum/Real.h>
+#include <mathnum/Tstamp.h>
 #include <Pat_inst_ref.h>
-#include <Tstamp.h>
 
 #include <stdbool.h>
 #include <stdint.h>

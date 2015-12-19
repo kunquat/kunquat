@@ -16,9 +16,9 @@
 
 #include <debug/assert.h>
 #include <mathnum/common.h>
+#include <mathnum/Tstamp.h>
 #include <player/Slider.h>
 #include <player/Work_buffer.h>
-#include <Tstamp.h>
 
 #include <math.h>
 #include <stdint.h>

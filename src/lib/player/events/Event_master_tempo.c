@@ -16,8 +16,8 @@
 
 #include <debug/assert.h>
 #include <kunquat/limits.h>
+#include <mathnum/Tstamp.h>
 #include <player/events/Event_common.h>
-#include <Tstamp.h>
 #include <Value.h>
 
 #include <stdbool.h>

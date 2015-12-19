@@ -16,8 +16,8 @@
 
 #include <debug/assert.h>
 #include <kunquat/limits.h>
+#include <mathnum/Tstamp.h>
 #include <player/Slider.h>
-#include <Tstamp.h>
 
 #include <float.h>
 #include <math.h>

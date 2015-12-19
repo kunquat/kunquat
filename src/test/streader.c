@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -21,9 +21,9 @@
 
 #include <test_common.h>
 
+#include <mathnum/Tstamp.h>
 #include <Pat_inst_ref.h>
 #include <string/Streader.h>
-#include <Tstamp.h>
 
 
 #define init_with_cstr(s) Streader_init(STREADER_AUTO, (s), strlen((s)))

@@ -17,8 +17,8 @@
 
 
 #include <kunquat/limits.h>
+#include <mathnum/Tstamp.h>
 #include <player/Linear_controls.h>
-#include <Tstamp.h>
 #include <Value.h>
 
 #include <stdbool.h>

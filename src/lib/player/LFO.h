@@ -16,8 +16,8 @@
 #define K_LFO_H
 
 
+#include <mathnum/Tstamp.h>
 #include <player/Slider.h>
-#include <Tstamp.h>
 
 #include <stdbool.h>
 #include <stdint.h>

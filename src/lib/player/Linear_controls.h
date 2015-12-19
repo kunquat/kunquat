@@ -16,10 +16,10 @@
 #define K_LINEAR_CONTROLS_H
 
 
+#include <mathnum/Tstamp.h>
 #include <player/LFO.h>
 #include <player/Slider.h>
 #include <player/Work_buffer.h>
-#include <Tstamp.h>
 
 #include <math.h>
 #include <stdint.h>

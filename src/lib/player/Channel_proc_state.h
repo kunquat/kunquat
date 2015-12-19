@@ -16,8 +16,8 @@
 #define K_CHANNEL_PROC_STATE_H
 
 
+#include <mathnum/Tstamp.h>
 #include <string/Streader.h>
-#include <Tstamp.h>
 #include <Value.h>
 
 #include <stdbool.h>

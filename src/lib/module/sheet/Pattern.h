@@ -19,10 +19,10 @@
 #include <Connections.h>
 #include <containers/AAtree.h>
 #include <kunquat/limits.h>
+#include <mathnum/Tstamp.h>
 #include <module/sheet/Column.h>
 #include <Pat_inst_ref.h>
 #include <string/Streader.h>
-#include <Tstamp.h>
 
 #include <stdlib.h>
 

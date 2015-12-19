@@ -15,9 +15,9 @@
 #include <module/sheet/Column.h>
 
 #include <debug/assert.h>
+#include <mathnum/Tstamp.h>
 #include <memory.h>
 #include <player/Event_names.h>
-#include <Tstamp.h>
 
 #include <inttypes.h>
 #include <stdbool.h>

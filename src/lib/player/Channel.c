@@ -15,10 +15,10 @@
 #include <player/Channel.h>
 
 #include <debug/assert.h>
+#include <mathnum/Tstamp.h>
 #include <memory.h>
 #include <module/Environment.h>
 #include <module/sheet/Channel_defaults.h>
-#include <Tstamp.h>
 
 #include <math.h>
 #include <stdio.h>

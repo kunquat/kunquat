@@ -16,7 +16,7 @@
 #define K_SLIDER_H
 
 
-#include <Tstamp.h>
+#include <mathnum/Tstamp.h>
 
 #include <stdbool.h>
 #include <stdint.h>

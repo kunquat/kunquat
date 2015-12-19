@@ -18,8 +18,8 @@
 
 #include <devices/Device_field.h>
 #include <mathnum/Real.h>
+#include <mathnum/Tstamp.h>
 #include <string/Streader.h>
-#include <Tstamp.h>
 
 #include <stdbool.h>
 #include <stdint.h>

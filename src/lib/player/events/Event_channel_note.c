@@ -16,13 +16,13 @@
 
 #include <debug/assert.h>
 #include <kunquat/limits.h>
+#include <mathnum/Tstamp.h>
 #include <module/Input_map.h>
 #include <module/Module.h>
 #include <module/Scale.h>
 #include <player/events/Event_common.h>
 #include <player/events/note_setup.h>
 #include <player/Voice.h>
-#include <Tstamp.h>
 #include <Value.h>
 
 #include <float.h>

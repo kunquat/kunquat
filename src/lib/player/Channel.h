@@ -19,6 +19,7 @@
 #include <Decl.h>
 #include <kunquat/limits.h>
 #include <mathnum/Random.h>
+#include <mathnum/Tstamp.h>
 #include <module/Au_table.h>
 #include <module/sheet/Channel_defaults.h>
 #include <player/Channel_cv_state.h>
@@ -29,7 +30,6 @@
 #include <player/General_state.h>
 #include <player/LFO.h>
 #include <player/Voice_pool.h>
-#include <Tstamp.h>
 
 #include <stdbool.h>
 #include <stdint.h>
