@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2015
  *
  * This file is part of Kunquat.
  *
@@ -16,9 +16,9 @@
 #define KT_TEST_COMMON_H
 
 
-#include <stdlib.h>
-
 #include <check.h>
+
+#include <stdlib.h>
 
 
 #ifdef K_MEM_DEBUG

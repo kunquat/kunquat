@@ -12,17 +12,17 @@
  */
 
 
-#include <stdlib.h>
-#include <assert.h>
-#include <stdio.h>
-#include <signal.h>
-#include <stdint.h>
-#include <float.h>
-
 #include <test_common.h>
 
 #include <kunquat/testing.h>
 #include <mathnum/Tstamp.h>
+
+#include <assert.h>
+#include <float.h>
+#include <signal.h>
+#include <stdio.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 
 void silent_assert(void)

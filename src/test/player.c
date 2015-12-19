@@ -12,14 +12,14 @@
  */
 
 
-#include <stdint.h>
-#include <string.h>
-
 #include <handle_utils.h>
 #include <test_common.h>
 
 #include <kunquat/Handle.h>
 #include <string/Streader.h>
+
+#include <stdint.h>
+#include <string.h>
 
 
 #define buf_len 128

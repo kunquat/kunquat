@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -12,17 +12,17 @@
  */
 
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <float.h>
-#include <math.h>
-#include <signal.h>
-
 #include <test_common.h>
 
 #include <kunquat/testing.h>
 #include <mathnum/Real.h>
+
+#include <float.h>
+#include <math.h>
+#include <signal.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 
 void silent_assert(void)

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2015
  *
  * This file is part of Kunquat.
  *
@@ -12,17 +12,17 @@
  */
 
 
-#include <math.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include <handle_utils.h>
 #include <test_common.h>
 
 #include <kunquat/Handle.h>
 #include <kunquat/Player.h>
+
+#include <math.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 START_TEST(Handle_creation_prefers_unused_ids)

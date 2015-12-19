@@ -16,16 +16,16 @@
 #define KT_HANDLE_UTILS_H
 
 
+#include <test_common.h>
+
+#include <kunquat/Handle.h>
+#include <kunquat/Player.h>
+
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include <test_common.h>
-
-#include <kunquat/Handle.h>
-#include <kunquat/Player.h>
 
 
 static kqt_Handle handle = 0;

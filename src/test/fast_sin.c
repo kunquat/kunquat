@@ -12,14 +12,14 @@
  */
 
 
-#include <inttypes.h>
-#include <stdint.h>
-#include <stdio.h>
-
 #include <test_common.h>
 
 #include <mathnum/common.h>
 #include <mathnum/fast_sin.h>
+
+#include <inttypes.h>
+#include <stdint.h>
+#include <stdio.h>
 
 
 START_TEST(Sine_values_have_maximum_magnitude_of_one)

@@ -12,18 +12,18 @@
  */
 
 
+#include <test_common.h>
+
+#include <mathnum/Tstamp.h>
+#include <Pat_inst_ref.h>
+#include <string/Streader.h>
+
 #include <assert.h>
 #include <ctype.h>
 #include <inttypes.h>
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
-
-#include <test_common.h>
-
-#include <mathnum/Tstamp.h>
-#include <Pat_inst_ref.h>
-#include <string/Streader.h>
 
 
 #define init_with_cstr(s) Streader_init(STREADER_AUTO, (s), strlen((s)))
