@@ -21,7 +21,7 @@
 #include <devices/processors/Voice_state_volume.h>
 #include <mathnum/conversions.h>
 #include <player/Linear_controls.h>
-#include <player/Proc_state.h>
+#include <player/devices/Proc_state.h>
 #include <string/common.h>
 #include <memory.h>
 

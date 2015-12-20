@@ -17,7 +17,7 @@
 #include <debug/assert.h>
 #include <devices/Processor.h>
 #include <memory.h>
-#include <player/Proc_state.h>
+#include <player/devices/Proc_state.h>
 #include <player/Work_buffers.h>
 
 #include <stdlib.h>

@@ -12,7 +12,7 @@
  */
 
 
-#include <player/Device_state.h>
+#include <player/devices/Device_state.h>
 
 #include <debug/assert.h>
 #include <devices/Device.h>

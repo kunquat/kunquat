@@ -24,7 +24,7 @@
 #include <devices/param_types/Num_list.h>
 #include <devices/param_types/Sample.h>
 #include <mathnum/Tstamp.h>
-#include <player/Device_state.h>
+#include <player/devices/Device_state.h>
 #include <player/Linear_controls.h>
 #include <string/key_pattern.h>
 

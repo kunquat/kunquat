@@ -18,8 +18,8 @@
 
 #include <devices/Au_params.h>
 #include <devices/Audio_unit.h>
-#include <player/Au_state.h>
 #include <player/Channel.h>
+#include <player/devices/Au_state.h>
 #include <player/Master_params.h>
 #include <Value.h>
 

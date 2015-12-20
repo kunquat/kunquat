@@ -17,7 +17,7 @@
 
 
 #include <devices/Processor.h>
-#include <player/Device_state.h>
+#include <player/devices/Device_state.h>
 #include <player/Voice_state.h>
 #include <player/Work_buffers.h>
 

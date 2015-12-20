@@ -16,7 +16,7 @@
 
 #include <containers/AAtree.h>
 #include <debug/assert.h>
-#include <player/Device_state.h>
+#include <player/devices/Device_state.h>
 #include <memory.h>
 
 #include <stdbool.h>

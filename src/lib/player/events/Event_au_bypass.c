@@ -16,8 +16,8 @@
 
 #include <debug/assert.h>
 #include <devices/Processor.h>
+#include <player/devices/Proc_state.h>
 #include <player/events/Event_common.h>
-#include <player/Proc_state.h>
 #include <Value.h>
 
 #include <stdbool.h>

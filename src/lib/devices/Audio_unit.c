@@ -25,8 +25,8 @@
 #include <mathnum/Random.h>
 #include <memory.h>
 #include <module/Au_table.h>
-#include <player/Au_state.h>
 #include <player/Channel.h>
+#include <player/devices/Au_state.h>
 #include <player/Work_buffers.h>
 #include <string/common.h>
 

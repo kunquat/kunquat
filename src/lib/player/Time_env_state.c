@@ -18,7 +18,6 @@
 #include <devices/param_types/Envelope.h>
 #include <devices/processors/Proc_utils.h>
 #include <mathnum/common.h>
-#include <player/Proc_state.h>
 #include <player/Work_buffers.h>
 
 #include <math.h>

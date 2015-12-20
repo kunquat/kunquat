@@ -19,7 +19,7 @@
 #include <Audio_buffer.h>
 #include <Decl.h>
 #include <devices/param_types/Sample_params.h>
-#include <player/Proc_state.h>
+#include <player/devices/Proc_state.h>
 #include <player/Voice_state.h>
 #include <player/Work_buffer.h>
 

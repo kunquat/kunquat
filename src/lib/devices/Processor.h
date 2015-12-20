@@ -22,8 +22,8 @@
 #include <devices/Device.h>
 #include <devices/Device_params.h>
 #include <kunquat/limits.h>
-#include <player/Au_state.h>
-#include <player/Proc_state.h>
+#include <player/devices/Au_state.h>
+#include <player/devices/Proc_state.h>
 #include <player/Voice_state.h>
 #include <player/Work_buffers.h>
 

@@ -12,9 +12,10 @@
  */
 
 
-#include <player/Proc_state.h>
+#include <player/devices/Proc_state.h>
 
 #include <debug/assert.h>
+#include <player/devices/Device_state.h>
 
 #include <stdbool.h>
 #include <stdint.h>

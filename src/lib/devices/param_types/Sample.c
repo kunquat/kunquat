@@ -21,7 +21,7 @@
 #include <kunquat/limits.h>
 #include <mathnum/common.h>
 #include <memory.h>
-#include <player/Proc_state.h>
+#include <player/devices/Proc_state.h>
 #include <player/Work_buffers.h>
 
 #include <math.h>

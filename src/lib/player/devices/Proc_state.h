@@ -18,7 +18,7 @@
 
 #include <Audio_buffer.h>
 #include <containers/Bit_array.h>
-#include <player/Device_state.h>
+#include <player/devices/Device_state.h>
 
 #include <stdbool.h>
 #include <stdint.h>

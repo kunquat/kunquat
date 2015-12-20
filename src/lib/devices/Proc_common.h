@@ -19,7 +19,7 @@
 #include <Audio_buffer.h>
 #include <devices/Processor.h>
 #include <kunquat/limits.h>
-#include <player/Au_state.h>
+#include <player/devices/Au_state.h>
 #include <player/Voice_state.h>
 #include <player/Work_buffers.h>
 

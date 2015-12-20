@@ -18,10 +18,10 @@
 
 #include <devices/Processor.h>
 #include <player/Channel.h>
+#include <player/devices/Au_state.h>
 #include <player/Event_names.h>
 #include <player/Event_type.h>
 #include <player/General_state.h>
-#include <player/Au_state.h>
 #include <player/Master_params.h>
 #include <Value.h>
 
