@@ -16,12 +16,12 @@
 #define K_CHANNEL_DEFAULTS_LIST_H
 
 
-#include <stdint.h>
-#include <stdlib.h>
-
 #include <kunquat/limits.h>
 #include <module/sheet/Channel_defaults.h>
 #include <string/Streader.h>
+
+#include <stdint.h>
+#include <stdlib.h>
 
 
 /**

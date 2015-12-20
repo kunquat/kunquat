@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -12,11 +12,12 @@
  */
 
 
-#include <stdlib.h>
-#include <stdio.h>
+#include <player/General_state.h>
 
 #include <debug/assert.h>
-#include <player/General_state.h>
+
+#include <stdio.h>
+#include <stdlib.h>
 
 
 General_state* General_state_preinit(General_state* state)
@@ -32,10 +33,7 @@ General_state* General_state_preinit(General_state* state)
 
 
 General_state* General_state_init(
-        General_state* state,
-        bool global,
-        Env_state* estate,
-        const Module* module)
+        General_state* state, bool global, Env_state* estate, const Module* module)
 {
     assert(state != NULL);
     assert(state->active_names == NULL);

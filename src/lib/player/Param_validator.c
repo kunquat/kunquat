@@ -12,19 +12,20 @@
  */
 
 
-#include <stdlib.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <string.h>
-#include <ctype.h>
-#include <math.h>
+#include <player/Param_validator.h>
 
 #include <debug/assert.h>
 #include <kunquat/limits.h>
 #include <Pat_inst_ref.h>
-#include <player/Param_validator.h>
 #include <string/Streader.h>
 #include <string/var_name.h>
+
+#include <ctype.h>
+#include <math.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 #define init_c_streader(param) \

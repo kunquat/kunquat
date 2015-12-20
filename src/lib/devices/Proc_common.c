@@ -12,19 +12,20 @@
  */
 
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+#include <devices/Proc_common.h>
 
 #include <Audio_buffer.h>
 #include <debug/assert.h>
-#include <devices/Proc_common.h>
 #include <devices/Processor.h>
 #include <devices/processors/Proc_utils.h>
 #include <Filter.h>
 #include <kunquat/limits.h>
 #include <mathnum/common.h>
 #include <player/Work_buffers.h>
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 #define RAMP_RELEASE_TIME (200.0)
@@ -270,7 +271,7 @@ static void apply_filter_settings(
 
     assert(vstate->lowpass_state_used != vstate->lowpass_xfade_state_used);
 
-    kqt_frame* abufs[KQT_BUFFERS_MAX] =
+    float* abufs[KQT_BUFFERS_MAX] =
     {
         Audio_buffer_get_buffer(voice_out_buf, 0),
         Audio_buffer_get_buffer(voice_out_buf, 1),
@@ -719,7 +720,7 @@ int32_t Proc_common_ramp_release(
 
     if (do_ramp_release)
     {
-        kqt_frame* abufs[KQT_BUFFERS_MAX] =
+        float* abufs[KQT_BUFFERS_MAX] =
         {
             Audio_buffer_get_buffer(voice_out_buf, 0),
             Audio_buffer_get_buffer(voice_out_buf, 1),
@@ -774,8 +775,8 @@ void Proc_common_handle_panning(
             Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_PITCH));
     float* actual_pannings = Work_buffers_get_buffer_contents_mut(
             wbs, WORK_BUFFER_ACTUAL_PANNINGS);
-    kqt_frame* audio_l = Audio_buffer_get_buffer(voice_out_buf, 0);
-    kqt_frame* audio_r = Audio_buffer_get_buffer(voice_out_buf, 1);
+    float* audio_l = Audio_buffer_get_buffer(voice_out_buf, 0);
+    float* audio_r = Audio_buffer_get_buffer(voice_out_buf, 1);
 
     // Apply panning slide
     if (Slider_in_progress(&vstate->panning_slider))

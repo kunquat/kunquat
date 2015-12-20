@@ -16,12 +16,13 @@
 #define K_CHANNEL_PROC_STATE_H
 
 
+#include <mathnum/Tstamp.h>
+#include <string/Streader.h>
+#include <Value.h>
+
 #include <stdbool.h>
 #include <stdint.h>
-
-#include <string/Streader.h>
-#include <Tstamp.h>
-#include <Value.h>
+#include <stdlib.h>
 
 
 /**
@@ -61,9 +62,7 @@ bool Channel_proc_state_alloc_keys(Channel_proc_state* cpstate, Streader* sr);
  * \return   \c true if the value was modified, otherwise \c false.
  */
 bool Channel_proc_state_modify_value(
-        Channel_proc_state* cpstate,
-        const char* key,
-        const Value* value);
+        Channel_proc_state* cpstate, const char* key, const Value* value);
 
 
 /**
@@ -76,8 +75,7 @@ bool Channel_proc_state_modify_value(
  *           boolean entry.
  */
 const bool* Channel_proc_state_get_bool(
-        const Channel_proc_state* cpstate,
-        const char* key);
+        const Channel_proc_state* cpstate, const char* key);
 
 
 /**
@@ -90,8 +88,7 @@ const bool* Channel_proc_state_get_bool(
  *           integer entry.
  */
 const int64_t* Channel_proc_state_get_int(
-        const Channel_proc_state* cpstate,
-        const char* key);
+        const Channel_proc_state* cpstate, const char* key);
 
 
 /**
@@ -104,8 +101,7 @@ const int64_t* Channel_proc_state_get_int(
  *           float entry.
  */
 const double* Channel_proc_state_get_float(
-        const Channel_proc_state* cpstate,
-        const char* key);
+        const Channel_proc_state* cpstate, const char* key);
 
 
 /**
@@ -118,8 +114,7 @@ const double* Channel_proc_state_get_float(
  *           timestamp entry.
  */
 const Tstamp* Channel_proc_state_get_tstamp(
-        const Channel_proc_state* cpstate,
-        const char* key);
+        const Channel_proc_state* cpstate, const char* key);
 
 
 /**

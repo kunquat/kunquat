@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2015
  *
  * This file is part of Kunquat.
  *
@@ -16,11 +16,11 @@
 #define K_HIT_MAP_H
 
 
-#include <stdlib.h>
-
 #include <devices/param_types/Sample_entry.h>
 #include <mathnum/Random.h>
 #include <string/Streader.h>
+
+#include <stdlib.h>
 
 
 #define HIT_MAP_RANDOMS_MAX 8
@@ -51,10 +51,7 @@ Hit_map* new_Hit_map_from_string(Streader* sr);
  *           entries for the given hit index.
  */
 const Sample_entry* Hit_map_get_entry(
-        const Hit_map* map,
-        int hit_index,
-        double force,
-        Random* random);
+        const Hit_map* map, int hit_index, double force, Random* random);
 
 
 /**

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -16,9 +16,9 @@
 #define K_JUMP_CACHE_H
 
 
-#include <stdlib.h>
-
 #include <containers/AAtree.h>
+
+#include <stdlib.h>
 
 
 /**

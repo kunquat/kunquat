@@ -12,21 +12,22 @@
  */
 
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-
 #include <Audio_buffer.h>
+
 #include <debug/assert.h>
 #include <kunquat/limits.h>
 #include <mathnum/common.h>
 #include <memory.h>
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
 
 struct Audio_buffer
 {
     uint32_t size;
-    kqt_frame* bufs[KQT_BUFFERS_MAX];
+    float* bufs[KQT_BUFFERS_MAX];
 };
 
 
@@ -50,7 +51,7 @@ Audio_buffer* new_Audio_buffer(uint32_t size)
     {
         for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
         {
-            buffer->bufs[i] = memory_alloc_items(kqt_frame, size);
+            buffer->bufs[i] = memory_alloc_items(float, size);
             if (buffer->bufs[i] == NULL)
             {
                 //fprintf(stderr, "Calling destroy at %s:%d\n", __FILE__, __LINE__);
@@ -100,10 +101,7 @@ bool Audio_buffer_resize(Audio_buffer* buffer, uint32_t size)
     // Resize
     for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
     {
-        kqt_frame* new_buf = memory_realloc_items(
-                kqt_frame,
-                size,
-                buffer->bufs[i]);
+        float* new_buf = memory_realloc_items(float, size, buffer->bufs[i]);
         if (new_buf == NULL)
         {
             buffer->size = min(buffer->size, size);
@@ -152,12 +150,12 @@ void Audio_buffer_copy(
         return;
 
     const int32_t frame_count = buf_stop - buf_start;
-    const size_t byte_count = frame_count * sizeof(kqt_frame);
+    const size_t byte_count = frame_count * sizeof(float);
 
     for (int ch = 0; ch < KQT_BUFFERS_MAX; ++ch)
     {
-        kqt_frame* dest_values = &dest->bufs[ch][buf_start];
-        const kqt_frame* src_values = &src->bufs[ch][buf_start];
+        float* dest_values = &dest->bufs[ch][buf_start];
+        const float* src_values = &src->bufs[ch][buf_start];
         memcpy(dest_values, src_values, byte_count);
     }
 
@@ -196,7 +194,7 @@ void Audio_buffer_mix(
 }
 
 
-kqt_frame* Audio_buffer_get_buffer(Audio_buffer* buffer, int index)
+float* Audio_buffer_get_buffer(Audio_buffer* buffer, int index)
 {
     assert(buffer != NULL);
     assert(index >= 0);

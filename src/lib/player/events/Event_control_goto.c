@@ -12,16 +12,17 @@
  */
 
 
-#include <stdlib.h>
-#include <stdbool.h>
+#include <player/events/Event_control_decl.h>
 
 #include <debug/assert.h>
 #include <player/Channel.h>
 #include <player/events/Event_common.h>
-#include <player/events/Event_control_decl.h>
 #include <player/General_state.h>
 #include <player/Master_params.h>
 #include <Value.h>
+
+#include <stdbool.h>
+#include <stdlib.h>
 
 
 #define MAX_GOTOS_WITHOUT_AUDIO 1024

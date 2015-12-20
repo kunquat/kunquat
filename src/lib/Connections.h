@@ -16,10 +16,6 @@
 #define K_CONNECTIONS_H
 
 
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdio.h>
-
 #include <Decl.h>
 #include <Device_node.h>
 #include <devices/Device.h>
@@ -27,6 +23,10 @@
 #include <player/Device_states.h>
 #include <player/Voice_group.h>
 #include <string/Streader.h>
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
 
 
 /**
@@ -124,10 +124,7 @@ bool Connections_init_buffers(Connections* graph, Device_states* states);
  *                 will be mixed.
  */
 void Connections_clear_buffers(
-        Connections* graph,
-        Device_states* states,
-        uint32_t start,
-        uint32_t until);
+        Connections* graph, Device_states* states, uint32_t start, uint32_t until);
 
 
 /**

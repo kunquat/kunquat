@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2015
  *
  * This file is part of Kunquat.
  *
@@ -16,9 +16,10 @@
 #define K_TRACK_LIST_H
 
 
-#include <stdlib.h>
-
 #include <string/Streader.h>
+
+#include <stdint.h>
+#include <stdlib.h>
 
 
 /**

@@ -12,15 +12,10 @@
  */
 
 
-#include <math.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <devices/Au_control_vars.h>
 
 #include <containers/AAtree.h>
 #include <debug/assert.h>
-#include <devices/Au_control_vars.h>
 #include <expr.h>
 #include <mathnum/common.h>
 #include <mathnum/Random.h>
@@ -29,6 +24,12 @@
 #include <string/Streader.h>
 #include <string/var_name.h>
 #include <Value.h>
+
+#include <math.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 struct Au_control_vars

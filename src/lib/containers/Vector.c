@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2015
  *
  * This file is part of Kunquat.
  *
@@ -12,11 +12,12 @@
  */
 
 
-#include <string.h>
-
 #include <containers/Vector.h>
+
 #include <debug/assert.h>
 #include <memory.h>
+
+#include <string.h>
 
 
 struct Vector

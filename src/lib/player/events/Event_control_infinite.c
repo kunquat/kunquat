@@ -12,17 +12,18 @@
  */
 
 
-#include <stdlib.h>
-#include <stdbool.h>
+#include <player/events/Event_control_decl.h>
 
 #include <debug/assert.h>
 #include <player/Channel.h>
 #include <player/Event_type.h>
 #include <player/events/Event_common.h>
-#include <player/events/Event_control_decl.h>
 #include <player/General_state.h>
 #include <player/Master_params.h>
 #include <Value.h>
+
+#include <stdbool.h>
+#include <stdlib.h>
 
 
 bool Event_control_infinite_on_process(

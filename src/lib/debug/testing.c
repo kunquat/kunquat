@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -13,8 +13,9 @@
 
 
 #include <kunquat/testing.h>
-#include <memory.h>
+
 #include <debug/assert.h>
+#include <memory.h>
 
 
 void kqt_fake_out_of_memory(long steps)

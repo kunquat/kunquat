@@ -16,12 +16,12 @@
 #define K_PLAYER_SEQ_H
 
 
+#include <player/Player_private.h>
+#include <string/Streader.h>
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
-
-#include <player/Player_private.h>
-#include <string/Streader.h>
 
 
 bool get_event_type_info(
@@ -35,11 +35,7 @@ void Player_reset_channels(Player* player);
 
 
 void Player_process_event(
-        Player* player,
-        int ch_num,
-        const char* event_name,
-        Value* arg,
-        bool skip);
+        Player* player, int ch_num, const char* event_name, const Value* arg, bool skip);
 
 
 bool Player_check_perform_goto(Player* player);

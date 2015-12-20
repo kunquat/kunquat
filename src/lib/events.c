@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2014
+ * Author: Tomi Jylhä-Ollila, Finland 2014-2015
  *
  * This file is part of Kunquat.
  *
@@ -12,13 +12,14 @@
  */
 
 
-#include <stdlib.h>
+#include <kunquat/events.h>
 
 #include <debug/assert.h>
-#include <kunquat/events.h>
 #include <player/Param_validator.h>
 #include <string/common.h>
 #include <Value.h>
+
+#include <stdlib.h>
 
 
 static const char* event_names[] =

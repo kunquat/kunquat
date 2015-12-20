@@ -12,14 +12,15 @@
  */
 
 
-#include <stdlib.h>
+#include <devices/processors/Proc_utils.h>
 
 #include <debug/assert.h>
 #include <devices/Processor.h>
-#include <devices/processors/Proc_utils.h>
 #include <memory.h>
 #include <player/Proc_state.h>
 #include <player/Work_buffers.h>
+
+#include <stdlib.h>
 
 
 #define RAMP_ATTACK_TIME (500.0)
@@ -59,7 +60,7 @@ void Proc_ramp_attack(
     assert((ab_count == 1) || (ab_count == 2));
     (void)proc;
 
-    kqt_frame* abufs[KQT_BUFFERS_MAX] =
+    float* abufs[KQT_BUFFERS_MAX] =
     {
         Audio_buffer_get_buffer(voice_out_buf, 0),
         Audio_buffer_get_buffer(voice_out_buf, 1),

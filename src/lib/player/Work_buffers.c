@@ -12,14 +12,15 @@
  */
 
 
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdlib.h>
+#include <player/Work_buffers.h>
 
 #include <debug/assert.h>
 #include <memory.h>
 #include <player/Work_buffer.h>
-#include <player/Work_buffers.h>
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 
 struct Work_buffers

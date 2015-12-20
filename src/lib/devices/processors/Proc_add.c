@@ -12,25 +12,25 @@
  */
 
 
-#include <stdlib.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
+#include <devices/processors/Proc_add.h>
 
 #include <Audio_buffer.h>
 #include <debug/assert.h>
 #include <devices/Processor.h>
-#include <devices/processors/Proc_add.h>
 #include <devices/processors/Proc_utils.h>
 #include <devices/processors/Voice_state_add.h>
-#include <devices/param_types/Num_list.h>
 #include <devices/param_types/Sample.h>
 #include <kunquat/limits.h>
 #include <mathnum/common.h>
 #include <memory.h>
 #include <player/Work_buffers.h>
 #include <string/common.h>
+
+#include <math.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 #define BASE_FUNC_SIZE 4096
@@ -62,11 +62,11 @@ static void Proc_add_init_vstate(
 
 static double sine(double phase, double modifier);
 
-static Set_sample_func      Proc_add_set_base;
-static Set_bool_func        Proc_add_set_ramp_attack;
-static Set_float_func       Proc_add_set_tone_pitch;
-static Set_float_func       Proc_add_set_tone_volume;
-static Set_float_func       Proc_add_set_tone_panning;
+static Set_sample_func  Proc_add_set_base;
+static Set_bool_func    Proc_add_set_ramp_attack;
+static Set_float_func   Proc_add_set_tone_pitch;
+static Set_float_func   Proc_add_set_tone_volume;
+static Set_float_func   Proc_add_set_tone_panning;
 
 static Proc_process_vstate_func Proc_add_process_vstate;
 
@@ -241,7 +241,7 @@ static uint32_t Proc_add_process_vstate(
     assert(out_buffer != NULL);
     Audio_buffer_clear(out_buffer, buf_start, buf_stop);
 
-    kqt_frame* out_values[] =
+    float* out_values[] =
     {
         Audio_buffer_get_buffer(out_buffer, 0),
         Audio_buffer_get_buffer(out_buffer, 1),
@@ -264,7 +264,7 @@ static uint32_t Proc_add_process_vstate(
     {
         // Copy from the input voice buffer
         // XXX: not sure if the best way to handle this...
-        const kqt_frame* mod_in_values[] =
+        const float* mod_in_values[] =
         {
             Audio_buffer_get_buffer(mod_buffer, 0),
             Audio_buffer_get_buffer(mod_buffer, 1),
@@ -272,7 +272,7 @@ static uint32_t Proc_add_process_vstate(
 
         for (int ch = 0; ch < 2; ++ch)
         {
-            const kqt_frame* mod_in_values_ch = mod_in_values[ch];
+            const float* mod_in_values_ch = mod_in_values[ch];
             float* mod_values_ch = mod_values[ch];
 
             for (int32_t i = buf_start; i < buf_stop; ++i)

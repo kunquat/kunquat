@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -12,21 +12,20 @@
  */
 
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdbool.h>
-#include <limits.h>
+#include <player/events/Event_master_decl.h>
 
 #include <debug/assert.h>
 #include <kunquat/limits.h>
 #include <player/events/Event_common.h>
-#include <player/events/Event_master_decl.h>
 #include <Value.h>
+
+#include <limits.h>
+#include <stdbool.h>
+#include <stdlib.h>
 
 
 bool Event_master_pattern_delay_process(
-        Master_params* master_params,
-        const Value* value)
+        Master_params* master_params, const Value* value)
 {
     assert(master_params != NULL);
     assert(value != NULL);

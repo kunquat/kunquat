@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2015
  *
  * This file is part of Kunquat.
  *
@@ -16,10 +16,10 @@
 #define K_EVENT_CACHE_H
 
 
-#include <stdlib.h>
-#include <stdbool.h>
-
 #include <Value.h>
+
+#include <stdbool.h>
+#include <stdlib.h>
 
 
 /**
@@ -55,7 +55,7 @@ bool Event_cache_add_event(Event_cache* cache, char* event_name);
  * \param event_name   The name of the Event -- must not be \c NULL.
  * \param value        The Event parameter -- must not be \c NULL.
  */
-void Event_cache_update(Event_cache* cache, const char* event_name, Value* value);
+void Event_cache_update(Event_cache* cache, const char* event_name, const Value* value);
 
 
 /**

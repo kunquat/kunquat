@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2015
  *
  * This file is part of Kunquat.
  *
@@ -12,15 +12,18 @@
  */
 
 
-#include <inttypes.h>
-#include <stdint.h>
+#include <module/sheet/Order_list.h>
 
 #include <containers/AAtree.h>
 #include <containers/Vector.h>
 #include <debug/assert.h>
 #include <memory.h>
-#include <module/sheet/Order_list.h>
 #include <Pat_inst_ref.h>
+
+#include <inttypes.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 
 typedef struct Index_mapping

@@ -16,11 +16,11 @@
 #define K_WORK_BUFFER_H
 
 
+#include <kunquat/limits.h>
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
-
-#include <kunquat/limits.h>
 
 
 #define WORK_BUFFER_SIZE_MAX ((KQT_AUDIO_BUFFER_SIZE_MAX) + 2)

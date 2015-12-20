@@ -16,13 +16,13 @@
 #define K_VALUE_H
 
 
-#include <stdbool.h>
-#include <stdint.h>
-
 #include <kunquat/limits.h>
 #include <mathnum/Real.h>
+#include <mathnum/Tstamp.h>
 #include <Pat_inst_ref.h>
-#include <Tstamp.h>
+
+#include <stdbool.h>
+#include <stdint.h>
 
 
 typedef enum
@@ -93,7 +93,7 @@ bool Value_convert(Value* dest, const Value* src, Value_type new_type);
  * \return   The amount of bytes actually written to \a str, not including
  *           the terminating byte.
  */
-int Value_serialise(Value* value, int len, char* str);
+int Value_serialise(const Value* value, int len, char* str);
 
 
 #endif // K_VALUE_H

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -16,11 +16,11 @@
 #define K_JUMP_CONTEXT_H
 
 
+#include <mathnum/Tstamp.h>
+#include <Pat_inst_ref.h>
+
 #include <stdint.h>
 #include <stdlib.h>
-
-#include <Pat_inst_ref.h>
-#include <Tstamp.h>
 
 
 /**

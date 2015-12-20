@@ -12,11 +12,15 @@
  */
 
 
+#include <player/Master_params.h>
+
 #include <debug/assert.h>
 #include <mathnum/Random.h>
 #include <module/Module.h>
 #include <module/sheet/Track_list.h>
-#include <player/Master_params.h>
+
+#include <stdbool.h>
+#include <stdlib.h>
 
 
 #define KQT_JUMP_CONTEXTS_MAX 64
@@ -87,9 +91,7 @@ Master_params* Master_params_preinit(Master_params* params)
 
 
 Master_params* Master_params_init(
-        Master_params* params,
-        const Module* module,
-        Env_state* estate)
+        Master_params* params, const Module* module, Env_state* estate)
 {
     assert(params != NULL);
     assert(module != NULL);

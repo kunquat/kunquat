@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -12,14 +12,17 @@
  */
 
 
-#include <stdlib.h>
+#include <module/sheet/Song_table.h>
 
 #include <containers/Bit_array.h>
 #include <containers/Etable.h>
 #include <debug/assert.h>
 #include <memory.h>
 #include <module/sheet/Song.h>
-#include <module/sheet/Song_table.h>
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 
 struct Song_table
@@ -87,10 +90,7 @@ Song* Song_table_get(Song_table* table, uint16_t index)
 }
 
 
-void Song_table_set_existent(
-        Song_table* table,
-        uint16_t index,
-        bool existent)
+void Song_table_set_existent(Song_table* table, uint16_t index, bool existent)
 {
     assert(table != NULL);
     assert(index < KQT_SONGS_MAX);

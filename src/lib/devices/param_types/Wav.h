@@ -16,10 +16,10 @@
 #define K_WAV_H
 
 
-#include <stdbool.h>
-
 #include <devices/param_types/Sample.h>
 #include <string/Streader.h>
+
+#include <stdbool.h>
 
 
 bool Sample_parse_wav(Sample* sample, Streader* sr);

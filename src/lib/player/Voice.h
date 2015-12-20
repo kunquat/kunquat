@@ -16,15 +16,16 @@
 #define K_VOICE_H
 
 
-#include <stdbool.h>
-#include <stdint.h>
-
 #include <devices/Processor.h>
 #include <mathnum/Random.h>
 #include <player/Channel_proc_state.h>
 #include <player/Device_states.h>
 #include <player/Voice_state.h>
 #include <player/Work_buffers.h>
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 
 typedef enum

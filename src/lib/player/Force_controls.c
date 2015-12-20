@@ -12,12 +12,15 @@
  */
 
 
-#include <math.h>
+#include <player/Force_controls.h>
 
 #include <debug/assert.h>
-#include <player/Force_controls.h>
 #include <player/LFO.h>
 #include <player/Slider.h>
+
+#include <math.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 
 void Force_controls_init(Force_controls* fc, int32_t audio_rate, double tempo)

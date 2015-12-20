@@ -16,10 +16,10 @@
 #define K_PROC_TYPE_H
 
 
-#include <stdint.h>
-
 #include <devices/Device_impl.h>
 #include <devices/Processor.h>
+
+#include <stdlib.h>
 
 
 #define PROC_TYPE_LENGTH_MAX 128

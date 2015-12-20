@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -18,6 +18,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 
 /**
@@ -65,10 +66,7 @@ Real* Real_init(Real* real);
  *
  * \return   The parameter \a real.
  */
-Real* Real_init_as_frac(
-        Real* real,
-        int64_t numerator,
-        int64_t denominator);
+Real* Real_init_as_frac(Real* real, int64_t numerator, int64_t denominator);
 
 
 /**

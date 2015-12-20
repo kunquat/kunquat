@@ -12,14 +12,15 @@
  */
 
 
-#include <stdlib.h>
-#include <string.h>
+#include <module/Environment.h>
 
 #include <containers/AAtree.h>
 #include <debug/assert.h>
 #include <memory.h>
 #include <module/Env_var.h>
-#include <module/Environment.h>
+
+#include <stdlib.h>
+#include <string.h>
 
 
 struct Environment
@@ -29,9 +30,7 @@ struct Environment
 };
 
 
-Environment_iter* Environment_iter_init(
-        Environment_iter* iter,
-        const Environment* env)
+Environment_iter* Environment_iter_init(Environment_iter* iter, const Environment* env)
 {
     assert(iter != NULL);
     assert(env != NULL);

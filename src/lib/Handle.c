@@ -12,6 +12,17 @@
  */
 
 
+#include <Handle_private.h>
+
+#include <Connections.h>
+#include <debug/assert.h>
+#include <devices/Audio_unit.h>
+#include <kunquat/limits.h>
+#include <memory.h>
+#include <module/Module.h>
+#include <module/Parse_manager.h>
+#include <string/common.h>
+
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -21,16 +32,6 @@
 #include <math.h>
 #include <string.h>
 #include <stdarg.h>
-
-#include <Connections.h>
-#include <debug/assert.h>
-#include <devices/Audio_unit.h>
-#include <Handle_private.h>
-#include <kunquat/limits.h>
-#include <memory.h>
-#include <module/Module.h>
-#include <module/Parse_manager.h>
-#include <string/common.h>
 
 
 static Handle* handles[KQT_HANDLES_MAX] = { NULL };
@@ -123,10 +124,7 @@ kqt_Handle kqt_new_Handle(void)
 
 
 int kqt_Handle_set_data(
-        kqt_Handle handle,
-        const char* key,
-        const void* data,
-        long length)
+        kqt_Handle handle, const char* key, const void* data, long length)
 {
     check_handle(handle, 0);
 
@@ -192,11 +190,7 @@ bool Handle_init(Handle* handle)
 
     // Create players
     handle->player = new_Player(
-            handle->module,
-            DEFAULT_AUDIO_RATE,
-            2048,
-            16384,
-            256);
+            handle->module, DEFAULT_AUDIO_RATE, 2048, 16384, 256);
     handle->length_counter = new_Player(handle->module, 1000000000L, 0, 0, 0);
     if (handle->player == NULL || handle->length_counter == NULL)
     {

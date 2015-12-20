@@ -12,10 +12,13 @@
  */
 
 
-#include <stdbool.h>
+#include <player/Proc_state.h>
 
 #include <debug/assert.h>
-#include <player/Proc_state.h>
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 
 static bool Proc_state_add_buffer(

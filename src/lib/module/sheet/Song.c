@@ -12,18 +12,19 @@
  */
 
 
-#include <stdlib.h>
-#include <string.h>
-#include <stdint.h>
-#include <inttypes.h>
-#include <math.h>
+#include <module/sheet/Song.h>
 
 #include <debug/assert.h>
 #include <kunquat/limits.h>
 #include <memory.h>
-#include <module/sheet/Song.h>
 #include <string/common.h>
 #include <string/Streader.h>
+
+#include <inttypes.h>
+#include <math.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 static bool Song_parse(Song* song, Streader* sr);

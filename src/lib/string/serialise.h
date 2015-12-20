@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2015
  *
  * This file is part of Kunquat.
  *
@@ -12,12 +12,13 @@
  */
 
 
-#include <stdlib.h>
-#include <stdint.h>
-
 #include <mathnum/Real.h>
+#include <mathnum/Tstamp.h>
 #include <Pat_inst_ref.h>
-#include <Tstamp.h>
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 
 /**
@@ -73,7 +74,7 @@ int serialise_float(char* dest, int size, double value);
  * \return   The number of characters written to \a dest, not including the
  *           terminating byte.
  */
-int serialise_Pat_inst_ref(char* dest, int size, Pat_inst_ref* value);
+int serialise_Pat_inst_ref(char* dest, int size, const Pat_inst_ref* value);
 
 
 /**
@@ -87,7 +88,7 @@ int serialise_Pat_inst_ref(char* dest, int size, Pat_inst_ref* value);
  * \return   The number of characters written to \a dest, not including the
  *           terminating byte.
  */
-int serialise_Real(char* dest, int size, Real* value);
+int serialise_Real(char* dest, int size, const Real* value);
 
 
 /**
@@ -101,6 +102,6 @@ int serialise_Real(char* dest, int size, Real* value);
  * \return   The number of characters written to \a dest, not including the
  *           terminating byte.
  */
-int serialise_Tstamp(char* dest, int size, Tstamp* value);
+int serialise_Tstamp(char* dest, int size, const Tstamp* value);
 
 

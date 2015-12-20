@@ -12,16 +12,17 @@
  */
 
 
-#include <stdlib.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <string.h>
+#include <devices/param_types/Wavpack.h>
 
 #include <debug/assert.h>
 #include <devices/param_types/Sample.h>
-#include <devices/param_types/Wavpack.h>
 #include <mathnum/common.h>
 #include <memory.h>
+
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 #ifndef WITH_WAVPACK

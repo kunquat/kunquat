@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -16,18 +16,17 @@
 #define K_EVENT_GENERAL_DECL_H
 
 
-#include <stdbool.h>
-
 #include <player/General_state.h>
 #include <Value.h>
+
+#include <stdbool.h>
 
 
 // Process function declarations
 
 #define EVENT_GENERAL_DEF(name, type_suffix, arg_type, validator) \
     bool Event_general_##type_suffix##_process(                   \
-            General_state* gstate,                                \
-            const Value* value);
+            General_state* gstate, const Value* value);
 #include <player/events/Event_general_types.h>
 
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2015
  *
  * This file is part of Kunquat.
  *
@@ -12,23 +12,13 @@
  */
 
 
-#ifndef KQT_FRAME_H
-#define KQT_FRAME_H
+#ifndef K_COMP_DEFAULTS_H
+#define K_COMP_DEFAULTS_H
 
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#define COMP_DEFAULT_MIX_VOL -8
 
 
-typedef float kqt_frame;
-
-
-#ifdef __cplusplus
-}
-#endif
-
-
-#endif // KQT_FRAME_H
+#endif // K_COMP_DEFAULTS_H
 
 

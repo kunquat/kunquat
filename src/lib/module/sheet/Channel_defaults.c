@@ -12,15 +12,16 @@
  */
 
 
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdlib.h>
+#include <module/sheet/Channel_defaults.h>
 
 #include <debug/assert.h>
 #include <kunquat/limits.h>
-#include <module/sheet/Channel_defaults.h>
 #include <string/common.h>
 #include <string/Streader.h>
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 
 Channel_defaults* Channel_defaults_init(Channel_defaults* chd)

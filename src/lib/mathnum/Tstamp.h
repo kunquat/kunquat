@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -16,10 +16,10 @@
 #define K_TSTAMP_H
 
 
+#include <kunquat/limits.h>
+
 #include <inttypes.h>
 #include <stdint.h>
-
-#include <kunquat/limits.h>
 
 
 /**
@@ -189,10 +189,7 @@ Tstamp* Tstamp_min(Tstamp* result, const Tstamp* ts1, const Tstamp* ts2);
  *
  * \return   The number of frames.
  */
-double Tstamp_toframes(
-        const Tstamp* ts,
-        double tempo,
-        uint32_t rate);
+double Tstamp_toframes(const Tstamp* ts, double tempo, uint32_t rate);
 
 
 /**
@@ -203,13 +200,9 @@ double Tstamp_toframes(
  * \param tempo    The tempo -- must be > \c 0.
  * \param rate     The audio rate -- must be > \c 0.
  *
- * \return   The parameter \a r.
+ * \return   The parameter \a ts.
  */
-Tstamp* Tstamp_fromframes(
-        Tstamp* ts,
-        uint32_t frames,
-        double tempo,
-        uint32_t rate);
+Tstamp* Tstamp_fromframes(Tstamp* ts, uint32_t frames, double tempo, uint32_t rate);
 
 
 #endif // K_TSTAMP_H

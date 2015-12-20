@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2015
  *
  * This file is part of Kunquat.
  *
@@ -12,15 +12,16 @@
  */
 
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
-#include <inttypes.h>
+#include <string/serialise.h>
 
 #include <debug/assert.h>
 #include <mathnum/common.h>
-#include <string/serialise.h>
+
+#include <inttypes.h>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 #define INT_BUF_SIZE 32
@@ -241,7 +242,7 @@ int serialise_float(char* dest, int size, double value)
 #undef SIGNIFICANT_MAX
 
 
-int serialise_Pat_inst_ref(char* dest, int size, Pat_inst_ref* value)
+int serialise_Pat_inst_ref(char* dest, int size, const Pat_inst_ref* value)
 {
     assert(dest != NULL);
     assert(size > 0);
@@ -259,7 +260,7 @@ int serialise_Pat_inst_ref(char* dest, int size, Pat_inst_ref* value)
 }
 
 
-int serialise_Real(char* dest, int size, Real* value)
+int serialise_Real(char* dest, int size, const Real* value)
 {
     assert(dest != NULL);
     assert(size > 0);
@@ -287,7 +288,7 @@ int serialise_Real(char* dest, int size, Real* value)
 }
 
 
-int serialise_Tstamp(char* dest, int size, Tstamp* value)
+int serialise_Tstamp(char* dest, int size, const Tstamp* value)
 {
     assert(dest != NULL);
     assert(size > 0);

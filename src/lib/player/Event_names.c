@@ -12,17 +12,18 @@
  */
 
 
-#include <stdlib.h>
-#include <stdbool.h>
-#include <string.h>
+#include <player/Event_names.h>
 
 #include <containers/AAtree.h>
 #include <debug/assert.h>
 #include <memory.h>
-#include <player/Event_names.h>
 #include <player/Event_type.h>
 #include <player/Param_validator.h>
 #include <string/common.h>
+
+#include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 typedef struct Name_info
@@ -141,9 +142,7 @@ Event_type Event_names_get(const Event_names* names, const char* name)
 }
 
 
-Value_type Event_names_get_param_type(
-        const Event_names* names,
-        const char* name)
+Value_type Event_names_get_param_type(const Event_names* names, const char* name)
 {
     assert(names != NULL);
     assert(name != NULL);

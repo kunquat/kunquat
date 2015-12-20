@@ -12,10 +12,7 @@
  */
 
 
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
+#include <player/Player.h>
 
 #include <debug/assert.h>
 #include <Device_node.h>
@@ -25,12 +22,17 @@
 #include <memory.h>
 #include <module/sheet/Channel_defaults.h>
 #include <Pat_inst_ref.h>
-#include <player/Player.h>
 #include <player/Player_private.h>
 #include <player/Player_seq.h>
 #include <player/Position.h>
 #include <player/Voice_group.h>
 #include <string/common.h>
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 static void Player_update_sliders_and_lfos_audio_rate(Player* player)
@@ -158,9 +160,7 @@ Player* new_Player(
     }
 
     if (Master_params_init(
-                &player->master_params,
-                player->module,
-                player->estate) == NULL)
+                &player->master_params, player->module, player->estate) == NULL)
     {
         del_Player(player);
         return NULL;
@@ -713,7 +713,7 @@ void Player_play(Player* player, int32_t nframes)
 
             if (buffer != NULL)
             {
-                kqt_frame* bufs[] =
+                float* bufs[] =
                 {
                     Audio_buffer_get_buffer(buffer, 0),
                     Audio_buffer_get_buffer(buffer, 1),
@@ -754,7 +754,7 @@ void Player_play(Player* player, int32_t nframes)
         if (buffer != NULL)
         {
             // Apply render volume
-            kqt_frame* bufs[] =
+            float* bufs[] =
             {
                 Audio_buffer_get_buffer(buffer, 0),
                 Audio_buffer_get_buffer(buffer, 1),
@@ -897,11 +897,7 @@ bool Player_fire(Player* player, int ch, Streader* event_reader)
     Event_type type = Event_NONE;
 
     // Get event name
-    if (!get_event_type_info(
-                event_reader,
-                event_names,
-                event_name,
-                &type))
+    if (!get_event_type_info(event_reader, event_names, event_name, &type))
         return false;
 
     // Get event argument
@@ -931,11 +927,9 @@ bool Player_fire(Player* player, int ch, Streader* event_reader)
             break;
 
         case VALUE_TYPE_STRING:
-        {
             Streader_read_string(
                     event_reader, KQT_VAR_NAME_MAX, value->value.string_type);
-        }
-        break;
+            break;
 
         case VALUE_TYPE_PAT_INST_REF:
             Streader_read_piref(event_reader, &value->value.Pat_inst_ref_type);
@@ -949,12 +943,7 @@ bool Player_fire(Player* player, int ch, Streader* event_reader)
         return false;
 
     // Fire
-    Player_process_event(
-        player,
-        ch,
-        event_name,
-        value,
-        false);
+    Player_process_event(player, ch, event_name, value, false);
 
     // Check and perform goto if needed
     Player_check_perform_goto(player);

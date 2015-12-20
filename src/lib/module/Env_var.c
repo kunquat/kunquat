@@ -12,17 +12,18 @@
  */
 
 
-#include <stdlib.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <string.h>
+#include <module/Env_var.h>
 
 #include <debug/assert.h>
 #include <kunquat/limits.h>
 #include <memory.h>
-#include <module/Env_var.h>
 #include <string/common.h>
 #include <string/var_name.h>
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 struct Env_var

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -12,15 +12,15 @@
  */
 
 
-#include <ctype.h>
-#include <stdbool.h>
-#include <string.h>
-
 #include <handle_utils.h>
 #include <test_common.h>
 
 #include <kunquat/Handle.h>
 #include <kunquat/testing.h>
+
+#include <ctype.h>
+#include <stdbool.h>
+#include <string.h>
 
 
 // Case-sensitive substring search

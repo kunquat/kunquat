@@ -16,11 +16,11 @@
 #define K_PITCH_CONTROLS_H
 
 
-#include <stdint.h>
-#include <stdlib.h>
-
 #include <player/LFO.h>
 #include <player/Slider.h>
+
+#include <stdint.h>
+#include <stdlib.h>
 
 
 /**

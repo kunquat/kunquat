@@ -16,10 +16,6 @@
 #define K_MASTER_PARAMS_H
 
 
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdlib.h>
-
 #include <Decl.h>
 #include <mathnum/Random.h>
 #include <player/Active_jumps.h>
@@ -29,6 +25,10 @@
 #include <player/Master_params.h>
 #include <player/Position.h>
 #include <player/Slider.h>
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 
 typedef enum
@@ -116,9 +116,7 @@ Master_params* Master_params_preinit(Master_params* params);
  *           allocation failed.
  */
 Master_params* Master_params_init(
-        Master_params* params,
-        const Module* module,
-        Env_state* estate);
+        Master_params* params, const Module* module, Env_state* estate);
 
 
 /**

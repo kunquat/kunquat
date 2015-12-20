@@ -12,16 +12,10 @@
  */
 
 
-#include <stdlib.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
+#include <devices/param_types/Sample.h>
 
 #include <Audio_buffer.h>
 #include <debug/assert.h>
-#include <devices/param_types/Sample.h>
 #include <devices/param_types/Sample_params.h>
 #include <devices/processors/Proc_utils.h>
 #include <kunquat/limits.h>
@@ -29,6 +23,13 @@
 #include <memory.h>
 #include <player/Proc_state.h>
 #include <player/Work_buffers.h>
+
+#include <math.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 Sample* new_Sample(void)
@@ -136,7 +137,7 @@ uint32_t Sample_process_vstate(
             1,
             Processor_is_voice_feature_enabled(proc, 0, VOICE_FEATURE_FORCE));
 
-    kqt_frame* abufs[KQT_BUFFERS_MAX] =
+    float* abufs[KQT_BUFFERS_MAX] =
     {
         Audio_buffer_get_buffer(out_buffer, 0),
         Audio_buffer_get_buffer(out_buffer, 1),

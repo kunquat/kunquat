@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -16,18 +16,17 @@
 #define K_EVENT_MASTER_DECL_H
 
 
-#include <stdbool.h>
-
 #include <player/Master_params.h>
 #include <Value.h>
+
+#include <stdbool.h>
 
 
 // Process function declarations
 
 #define EVENT_MASTER_DEF(name, type_suffix, arg_type, validator) \
     bool Event_master_##type_suffix##_process(                   \
-            Master_params* master_params,                        \
-            const Value* value);
+            Master_params* master_params, const Value* value);
 #include <player/events/Event_master_types.h>
 
 

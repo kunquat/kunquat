@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -12,14 +12,15 @@
  */
 
 
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
+#include <mathnum/Random.h>
 
 #include <debug/assert.h>
 #include <mathnum/hmac.h>
-#include <mathnum/Random.h>
 #include <memory.h>
+
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 struct Random

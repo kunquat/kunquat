@@ -12,13 +12,14 @@
  */
 
 
-#include <stdbool.h>
-#include <stdlib.h>
+#include <player/events/Event_au_decl.h>
 
 #include <debug/assert.h>
-#include <player/events/Event_au_decl.h>
 #include <player/events/set_active_name.h>
 #include <Value.h>
+
+#include <stdbool.h>
+#include <stdlib.h>
 
 
 bool Event_au_set_cv_bool_value_process(

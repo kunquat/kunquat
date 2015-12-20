@@ -12,12 +12,15 @@
  */
 
 
-#include <math.h>
+#include <player/Filter_controls.h>
 
 #include <debug/assert.h>
-#include <player/Filter_controls.h>
 #include <player/LFO.h>
 #include <player/Slider.h>
+
+#include <math.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 
 void Filter_controls_init(Filter_controls* fc, int32_t audio_rate, double tempo)

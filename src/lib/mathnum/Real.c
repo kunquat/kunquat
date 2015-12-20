@@ -12,13 +12,14 @@
  */
 
 
-#include <stdlib.h>
-#include <stdbool.h>
-#include <inttypes.h>
-#include <math.h>
+#include <mathnum/Real.h>
 
 #include <debug/assert.h>
-#include <mathnum/Real.h>
+
+#include <inttypes.h>
+#include <math.h>
+#include <stdbool.h>
+#include <stdlib.h>
 
 
 /**

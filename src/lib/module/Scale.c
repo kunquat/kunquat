@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -12,19 +12,20 @@
  */
 
 
-#include <stdlib.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
-#include <stdint.h>
-#include <inttypes.h>
+#include <module/Scale.h>
 
 #include <debug/assert.h>
 #include <mathnum/common.h>
 #include <memory.h>
-#include <module/Scale.h>
 #include <string/common.h>
+
+#include <inttypes.h>
+#include <math.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 typedef struct pitch_index
@@ -34,8 +35,6 @@ typedef struct pitch_index
     int octave;
 } pitch_index;
 
-
-static int pitch_index_cmp(const pitch_index* pi1, const pitch_index* pi2);
 
 static int pitch_index_cmp(const pitch_index* pi1, const pitch_index* pi2)
 {
@@ -49,8 +48,6 @@ static int pitch_index_cmp(const pitch_index* pi1, const pitch_index* pi2)
     return 0;
 }
 
-
-static bool Scale_build_pitch_map(Scale* scale);
 
 static bool Scale_build_pitch_map(Scale* scale)
 {
@@ -74,9 +71,7 @@ static bool Scale_build_pitch_map(Scale* scale)
             }
 
             Real* scaled_ratio = Real_mul(
-                    REAL_AUTO,
-                    &scale->notes[note].ratio,
-                    &scale->oct_factors[octave]);
+                    REAL_AUTO, &scale->notes[note].ratio, &scale->oct_factors[octave]);
             double hertz = Real_mul_float(scaled_ratio, scale->ref_pitch);
             pi->cents = log2(hertz / 440) * 1200;
             pi->note = note;
@@ -143,7 +138,7 @@ static int Scale_set_note_cents(Scale* scale, int index, double cents);
     } else (void)0
 
 
-Scale* new_Scale(pitch_t ref_pitch, Real* octave_ratio)
+Scale* new_Scale(double ref_pitch, Real* octave_ratio)
 {
     assert(ref_pitch > 0);
     assert(octave_ratio != NULL);
@@ -473,7 +468,7 @@ int Scale_get_cur_ref_note(Scale* scale)
 }
 
 
-void Scale_set_ref_pitch(Scale* scale, pitch_t ref_pitch)
+void Scale_set_ref_pitch(Scale* scale, double ref_pitch)
 {
     assert(scale != NULL);
     assert(ref_pitch > 0);
@@ -484,7 +479,7 @@ void Scale_set_ref_pitch(Scale* scale, pitch_t ref_pitch)
 }
 
 
-pitch_t Scale_get_ref_pitch(Scale* scale)
+double Scale_get_ref_pitch(Scale* scale)
 {
     assert(scale != NULL);
     return scale->ref_pitch;
@@ -741,7 +736,7 @@ double Scale_get_cur_note_cents(Scale* scale, int index)
 }
 
 
-pitch_t Scale_get_pitch(Scale* scale, int index, int octave)
+double Scale_get_pitch(Scale* scale, int index, int octave)
 {
     octave -= KQT_SCALE_OCTAVE_BIAS;
     Real final_ratio;
@@ -765,7 +760,7 @@ pitch_t Scale_get_pitch(Scale* scale, int index, int octave)
 }
 
 
-pitch_t Scale_get_pitch_from_cents(Scale* scale, double cents)
+double Scale_get_pitch_from_cents(Scale* scale, double cents)
 {
     assert(scale != NULL);
     assert(isfinite(cents));

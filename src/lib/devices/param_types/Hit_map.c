@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2015
  *
  * This file is part of Kunquat.
  *
@@ -12,14 +12,15 @@
  */
 
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
+#include <devices/param_types/Hit_map.h>
 
 #include <containers/AAtree.h>
 #include <debug/assert.h>
-#include <devices/param_types/Hit_map.h>
 #include <memory.h>
+
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 
 struct Hit_map
@@ -36,9 +37,7 @@ typedef struct Random_list
 } Random_list;
 
 
-static int Random_list_cmp(
-        const Random_list* list1,
-        const Random_list* list2);
+static int Random_list_cmp(const Random_list* list1, const Random_list* list2);
 
 
 static bool read_random_list_entry(Streader* sr, int32_t index, void* userdata)
@@ -175,10 +174,7 @@ Hit_map* new_Hit_map_from_string(Streader* sr)
 
 
 const Sample_entry* Hit_map_get_entry(
-        const Hit_map* map,
-        int hit_index,
-        double force,
-        Random* random)
+        const Hit_map* map, int hit_index, double force, Random* random)
 {
     assert(map != NULL);
     assert(hit_index >= 0);
@@ -229,9 +225,7 @@ void del_Hit_map(Hit_map* map)
 }
 
 
-static int Random_list_cmp(
-        const Random_list* list1,
-        const Random_list* list2)
+static int Random_list_cmp(const Random_list* list1, const Random_list* list2)
 {
     assert(list1 != NULL);
     assert(list2 != NULL);

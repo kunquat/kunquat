@@ -16,18 +16,17 @@
 #define K_PROC_COMMON_H
 
 
-#include <stdlib.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <math.h>
-
 #include <Audio_buffer.h>
 #include <devices/Processor.h>
-#include <frame.h>
 #include <kunquat/limits.h>
 #include <player/Au_state.h>
 #include <player/Voice_state.h>
 #include <player/Work_buffers.h>
+
+#include <math.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 
 /**

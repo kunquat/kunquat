@@ -16,9 +16,6 @@
 #define K_DEVICE_FIELD_H
 
 
-#include <stdbool.h>
-#include <stdint.h>
-
 #include <devices/param_types/Envelope.h>
 #include <devices/param_types/Hit_map.h>
 #include <devices/param_types/Note_map.h>
@@ -26,8 +23,11 @@
 #include <devices/param_types/Sample.h>
 #include <devices/param_types/Sample_params.h>
 #include <mathnum/Real.h>
+#include <mathnum/Tstamp.h>
 #include <string/Streader.h>
-#include <Tstamp.h>
+
+#include <stdbool.h>
+#include <stdint.h>
 
 
 typedef enum

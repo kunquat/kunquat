@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -16,11 +16,12 @@
 #define K_SONG_TABLE_H
 
 
-#include <stdint.h>
-#include <stdbool.h>
-
 #include <kunquat/limits.h>
 #include <module/sheet/Song.h>
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 
 /**
@@ -74,10 +75,7 @@ Song* Song_table_get(Song_table* table, uint16_t index);
  *                   < \c KQT_SONGS_MAX.
  * \param existent   The new existent status.
  */
-void Song_table_set_existent(
-        Song_table* table,
-        uint16_t index,
-        bool existent);
+void Song_table_set_existent(Song_table* table, uint16_t index, bool existent);
 
 
 /**

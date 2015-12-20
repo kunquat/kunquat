@@ -12,24 +12,21 @@
  */
 
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
+#include <player/Channel.h>
 
 #include <debug/assert.h>
+#include <mathnum/Tstamp.h>
 #include <memory.h>
 #include <module/Environment.h>
 #include <module/sheet/Channel_defaults.h>
-#include <player/Channel.h>
-#include <Tstamp.h>
+
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 
-static bool Channel_init(
-        Channel* ch,
-        int num,
-        Env_state* estate,
-        const Module* module)
+static bool Channel_init(Channel* ch, int num, Env_state* estate, const Module* module)
 {
     assert(ch != NULL);
     assert(num >= 0);

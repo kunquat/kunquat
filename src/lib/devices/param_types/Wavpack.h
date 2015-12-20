@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -16,10 +16,10 @@
 #define K_WAVPACK_H
 
 
-#include <stdbool.h>
-
 #include <devices/param_types/Sample.h>
 #include <string/Streader.h>
+
+#include <stdbool.h>
 
 
 bool Sample_parse_wavpack(Sample* sample, Streader* sr);

@@ -12,23 +12,24 @@
  */
 
 
-#include <stdlib.h>
-#include <stdint.h>
+#include <devices/processors/Freeverb_comb.h>
 
 #include <debug/assert.h>
-#include <devices/processors/Freeverb_comb.h>
 #include <mathnum/common.h>
 #include <memory.h>
+
+#include <stdint.h>
+#include <stdlib.h>
 
 
 struct Freeverb_comb
 {
-    kqt_frame feedback;
-    kqt_frame damp1;
-    kqt_frame damp2;
+    float feedback;
+    float damp1;
+    float damp2;
 
-    kqt_frame filter_store;
-    kqt_frame* buffer;
+    float filter_store;
+    float* buffer;
     uint32_t buffer_size;
     uint32_t buffer_pos;
 };
@@ -51,7 +52,7 @@ Freeverb_comb* new_Freeverb_comb(uint32_t buffer_size)
     comb->buffer_size = 0;
     comb->buffer_pos = 0;
 
-    comb->buffer = memory_alloc_items(kqt_frame, buffer_size);
+    comb->buffer = memory_alloc_items(float, buffer_size);
     if (comb->buffer == NULL)
     {
         del_Freeverb_comb(comb);
@@ -64,7 +65,7 @@ Freeverb_comb* new_Freeverb_comb(uint32_t buffer_size)
 }
 
 
-void Freeverb_comb_set_damp(Freeverb_comb* comb, kqt_frame damp)
+void Freeverb_comb_set_damp(Freeverb_comb* comb, float damp)
 {
     assert(comb != NULL);
     assert(damp >= 0);
@@ -77,7 +78,7 @@ void Freeverb_comb_set_damp(Freeverb_comb* comb, kqt_frame damp)
 }
 
 
-void Freeverb_comb_set_feedback(Freeverb_comb* comb, kqt_frame feedback)
+void Freeverb_comb_set_feedback(Freeverb_comb* comb, float feedback)
 {
     assert(comb != NULL);
     assert(feedback >= 0);
@@ -89,14 +90,13 @@ void Freeverb_comb_set_feedback(Freeverb_comb* comb, kqt_frame feedback)
 }
 
 
-kqt_frame Freeverb_comb_process(Freeverb_comb* comb, kqt_frame input)
+float Freeverb_comb_process(Freeverb_comb* comb, float input)
 {
     assert(comb != NULL);
 
-    kqt_frame output = comb->buffer[comb->buffer_pos];
+    float output = comb->buffer[comb->buffer_pos];
     output = undenormalise(output);
-    comb->filter_store = (output * comb->damp2) +
-                         (comb->filter_store * comb->damp1);
+    comb->filter_store = (output * comb->damp2) + (comb->filter_store * comb->damp1);
     comb->filter_store = undenormalise(comb->filter_store);
     comb->buffer[comb->buffer_pos] = input + (comb->filter_store * comb->feedback);
 
@@ -116,7 +116,7 @@ bool Freeverb_comb_resize_buffer(Freeverb_comb* comb, uint32_t new_size)
     if (new_size == comb->buffer_size)
         return true;
 
-    kqt_frame* buffer = memory_realloc_items(kqt_frame, new_size, comb->buffer);
+    float* buffer = memory_realloc_items(float, new_size, comb->buffer);
     if (buffer == NULL)
         return false;
 

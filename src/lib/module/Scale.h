@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -19,8 +19,9 @@
 #include <containers/AAtree.h>
 #include <kunquat/limits.h>
 #include <mathnum/Real.h>
-#include <pitch_t.h>
 #include <string/Streader.h>
+
+#include <stdlib.h>
 
 
 /**
@@ -31,7 +32,7 @@ typedef struct Scale
     int note_count;
     int ref_note;
     int ref_note_retuned;
-    pitch_t ref_pitch;
+    double ref_pitch;
     double init_pitch_offset_cents;
     double pitch_offset;
     double pitch_offset_cents;
@@ -64,7 +65,7 @@ typedef struct Scale
  * \return   The new Scale if successful, or \c NULL if memory allocation
  *           fails.
  */
-Scale* new_Scale(pitch_t ref_pitch, Real* octave_ratio);
+Scale* new_Scale(double ref_pitch, Real* octave_ratio);
 
 
 /**
@@ -136,7 +137,7 @@ int Scale_get_cur_ref_note(Scale* scale);
  * \param scale       The Scale -- must not be \c NULL.
  * \param ref_pitch   The reference pitch -- must be > \c 0.
  */
-void Scale_set_ref_pitch(Scale* scale, pitch_t ref_pitch);
+void Scale_set_ref_pitch(Scale* scale, double ref_pitch);
 
 
 /**
@@ -146,7 +147,7 @@ void Scale_set_ref_pitch(Scale* scale, pitch_t ref_pitch);
  *
  * \return   The reference pitch.
  */
-pitch_t Scale_get_ref_pitch(Scale* scale);
+double Scale_get_ref_pitch(Scale* scale);
 
 
 /**
@@ -291,7 +292,7 @@ double Scale_get_cur_note_cents(Scale* scale, int index);
  *
  * \return   The pitch if the note exists, otherwise a negative value.
  */
-pitch_t Scale_get_pitch(Scale* scale, int index, int octave);
+double Scale_get_pitch(Scale* scale, int index, int octave);
 
 
 /**
@@ -302,7 +303,7 @@ pitch_t Scale_get_pitch(Scale* scale, int index, int octave);
  *
  * \return   The pitch, or a negative value if \a scale doesn't contain notes.
  */
-pitch_t Scale_get_pitch_from_cents(Scale* scale, double cents);
+double Scale_get_pitch_from_cents(Scale* scale, double cents);
 
 
 /**

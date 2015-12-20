@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2015
  *
  * This file is part of Kunquat.
  *
@@ -16,11 +16,11 @@
 #define K_ENVIRONMENT_H
 
 
-#include <stdlib.h>
-
 #include <containers/AAtree.h>
 #include <module/Env_var.h>
 #include <string/Streader.h>
+
+#include <stdlib.h>
 
 
 /**
@@ -47,9 +47,7 @@ typedef struct Environment_iter
  *
  * \return   The parameter \a iter.
  */
-Environment_iter* Environment_iter_init(
-        Environment_iter* iter,
-        const Environment* env);
+Environment_iter* Environment_iter_init(Environment_iter* iter, const Environment* env);
 
 
 /**

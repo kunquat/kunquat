@@ -16,13 +16,12 @@
 #define K_AU_PARAMS_H
 
 
-#include <stdint.h>
-#include <stdbool.h>
-
 #include <devices/param_types/Envelope.h>
-#include <frame.h>
 #include <module/Scale.h>
 #include <string/Streader.h>
+
+#include <stdbool.h>
+#include <stdint.h>
 
 
 typedef struct Au_params

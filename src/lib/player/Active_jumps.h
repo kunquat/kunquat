@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -16,14 +16,14 @@
 #define K_ACTIVE_JUMPS_H
 
 
-#include <stdlib.h>
-
 #include <containers/AAtree.h>
 #include <kunquat/limits.h>
+#include <mathnum/Tstamp.h>
 #include <player/Jump_cache.h>
 #include <player/Jump_context.h>
 #include <Pat_inst_ref.h>
-#include <Tstamp.h>
+
+#include <stdlib.h>
 
 
 /**
@@ -85,9 +85,7 @@ Jump_context* Active_jumps_get_next_context(
  *
  * \return   The Jump context handle.
  */
-AAnode* Active_jumps_remove_context(
-        Active_jumps* jumps,
-        const Jump_context* jc);
+AAnode* Active_jumps_remove_context(Active_jumps* jumps, const Jump_context* jc);
 
 
 /**

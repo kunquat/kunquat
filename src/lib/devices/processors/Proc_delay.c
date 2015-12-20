@@ -12,20 +12,21 @@
  */
 
 
-#include <stdlib.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
+#include <devices/processors/Proc_delay.h>
 
 #include <Audio_buffer.h>
 #include <debug/assert.h>
 #include <devices/Device_impl.h>
 #include <devices/Processor.h>
-#include <devices/processors/Proc_delay.h>
 #include <devices/processors/Proc_utils.h>
 #include <mathnum/common.h>
 #include <memory.h>
 #include <string/common.h>
+
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 #define MAX_BUF_TIME 60
@@ -238,8 +239,7 @@ static bool Proc_delay_init(Device_impl* dimpl)
     Processor_set_clear_history(
             (Processor*)delay->parent.device, Proc_delay_clear_history);
     Device_impl_register_set_audio_rate(
-            &delay->parent,
-            Proc_delay_set_audio_rate);
+            &delay->parent, Proc_delay_set_audio_rate);
 
     delay->max_delay = 2;
 
@@ -495,11 +495,11 @@ static void Proc_delay_process(
 
     Proc_delay* delay = (Proc_delay*)device->dimpl;
     //assert(string_eq(delay->parent.type, "delay"));
-    kqt_frame* in_data[] = { NULL, NULL };
-    kqt_frame* out_data[] = { NULL, NULL };
+    float* in_data[] = { NULL, NULL };
+    float* out_data[] = { NULL, NULL };
     get_raw_input(&dlstate->parent.parent, 0, in_data);
     get_raw_output(&dlstate->parent.parent, 0, out_data);
-    kqt_frame* delay_data[] =
+    float* delay_data[] =
     {
         Audio_buffer_get_buffer(dlstate->buf, 0),
         Audio_buffer_get_buffer(dlstate->buf, 1)

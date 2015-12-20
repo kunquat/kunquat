@@ -17,8 +17,9 @@
 #define K_VOICE_STATE_NOISE_H
 
 
-#include <player/Voice_state.h>
 #include <Filter.h>
+#include <player/Voice_state.h>
+
 
 #define NOISE_MAX 8
 

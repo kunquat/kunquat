@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -16,11 +16,12 @@
 #define K_CGITER_H
 
 
-#include <stdbool.h>
-
 #include <module/Module.h>
 #include <module/sheet/Column.h>
 #include <player/Position.h>
+
+#include <stdbool.h>
+#include <stdlib.h>
 
 
 // TODO: define proper interface in Column

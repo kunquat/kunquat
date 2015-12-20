@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -12,9 +12,12 @@
  */
 
 
+#include <player/Jump_context.h>
+
 #include <debug/assert.h>
 #include <memory.h>
-#include <player/Jump_context.h>
+
+#include <stdlib.h>
 
 
 Jump_context* new_Jump_context(void)

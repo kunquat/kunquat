@@ -12,22 +12,21 @@
  */
 
 
-#include <stdlib.h>
-#include <stdbool.h>
-#include <string.h>
-#include <math.h>
+#include <player/events/Event_channel_decl.h>
 
 #include <debug/assert.h>
-#include <player/events/Event_channel_decl.h>
 #include <player/events/Event_common.h>
 #include <player/Voice.h>
 #include <Value.h>
 
+#include <math.h>
+#include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
+
 
 bool Event_channel_arpeggio_on_process(
-        Channel* ch,
-        Device_states* dstates,
-        const Value* value)
+        Channel* ch, Device_states* dstates, const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
@@ -111,9 +110,7 @@ bool Event_channel_arpeggio_on_process(
         }
 #endif
         const double unit_len = Tstamp_toframes(
-                Tstamp_set(TSTAMP_AUTO, 1, 0),
-                *ch->tempo,
-                *ch->freq);
+                Tstamp_set(TSTAMP_AUTO, 1, 0), *ch->tempo, *ch->freq);
         vs->arpeggio_length = unit_len / ch->arpeggio_speed;
         vs->arpeggio_frames = 0;
         vs->arpeggio_note = 0;
@@ -125,9 +122,7 @@ bool Event_channel_arpeggio_on_process(
 
 
 bool Event_channel_arpeggio_off_process(
-        Channel* ch,
-        Device_states* dstates,
-        const Value* value)
+        Channel* ch, Device_states* dstates, const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
@@ -144,9 +139,7 @@ bool Event_channel_arpeggio_off_process(
 
 
 bool Event_channel_set_arpeggio_index_process(
-        Channel* ch,
-        Device_states* dstates,
-        const Value* value)
+        Channel* ch, Device_states* dstates, const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
@@ -160,9 +153,7 @@ bool Event_channel_set_arpeggio_index_process(
 
 
 bool Event_channel_set_arpeggio_note_process(
-        Channel* ch,
-        Device_states* dstates,
-        const Value* value)
+        Channel* ch, Device_states* dstates, const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
@@ -200,9 +191,7 @@ bool Event_channel_set_arpeggio_note_process(
 
 
 bool Event_channel_set_arpeggio_speed_process(
-        Channel* ch,
-        Device_states* dstates,
-        const Value* value)
+        Channel* ch, Device_states* dstates, const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);
@@ -210,10 +199,8 @@ bool Event_channel_set_arpeggio_speed_process(
     assert(value->type == VALUE_TYPE_FLOAT);
 
     ch->arpeggio_speed = value->value.float_type;
-    const double unit_len = Tstamp_toframes(
-            Tstamp_set(TSTAMP_AUTO, 1, 0),
-            *ch->tempo,
-            *ch->freq);
+    const double unit_len =
+        Tstamp_toframes(Tstamp_set(TSTAMP_AUTO, 1, 0), *ch->tempo, *ch->freq);
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
@@ -227,9 +214,7 @@ bool Event_channel_set_arpeggio_speed_process(
 
 
 bool Event_channel_reset_arpeggio_process(
-        Channel* ch,
-        Device_states* dstates,
-        const Value* value)
+        Channel* ch, Device_states* dstates, const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);

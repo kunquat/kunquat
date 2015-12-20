@@ -12,20 +12,22 @@
  */
 
 
-#include <stdlib.h>
-#include <string.h>
-#include <stdint.h>
-#include <inttypes.h>
-#include <stdio.h>
-#include <math.h>
+#include <module/Module.h>
 
 #include <debug/assert.h>
 #include <mathnum/common.h>
 #include <mathnum/Real.h>
 #include <memory.h>
-#include <module/Module.h>
+#include <module/comp_defaults.h>
 #include <module/sheet/Channel_defaults_list.h>
 #include <string/common.h>
+
+#include <inttypes.h>
+#include <math.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 /**
@@ -37,21 +39,15 @@ static void Module_reset(const Device* device, Device_states* dstates);
 
 
 static bool Module_set_audio_rate(
-        const Device* device,
-        Device_states* dstates,
-        int32_t audio_rate);
+        const Device* device, Device_states* dstates, int32_t audio_rate);
 
 
 static bool Module_set_buffer_size(
-        const Device* device,
-        Device_states* dstates,
-        int32_t size);
+        const Device* device, Device_states* dstates, int32_t size);
 
 
 static void Module_update_tempo(
-        const Device* device,
-        Device_states* dstates,
-        double tempo);
+        const Device* device, Device_states* dstates, double tempo);
 
 
 Module* new_Module(void)
@@ -146,7 +142,7 @@ Module* new_Module(void)
         }
     }
 
-    module->mix_vol_dB = MODULE_DEFAULT_MIX_VOL;
+    module->mix_vol_dB = COMP_DEFAULT_MIX_VOL;
     module->mix_vol = exp2(module->mix_vol_dB / 6);
     //module->init_subsong = SONG_DEFAULT_INIT_SUBSONG;
     module->random_seed = 0;
@@ -200,7 +196,7 @@ bool Module_parse_composition(Module* module, Streader* sr)
 
     mod_params* mp = &(mod_params)
     {
-        .mix_vol = MODULE_DEFAULT_MIX_VOL,
+        .mix_vol = COMP_DEFAULT_MIX_VOL,
     };
 
     if (Streader_has_data(sr))
@@ -558,9 +554,7 @@ static void Module_reset(const Device* device, Device_states* dstates)
 
 
 static bool Module_set_audio_rate(
-        const Device* device,
-        Device_states* dstates,
-        int32_t audio_rate)
+        const Device* device, Device_states* dstates, int32_t audio_rate)
 {
     assert(device != NULL);
     assert(dstates != NULL);
@@ -581,9 +575,7 @@ static bool Module_set_audio_rate(
 
 
 static void Module_update_tempo(
-        const Device* device,
-        Device_states* dstates,
-        double tempo)
+        const Device* device, Device_states* dstates, double tempo)
 {
     assert(device != NULL);
     assert(dstates != NULL);
@@ -604,9 +596,7 @@ static void Module_update_tempo(
 
 
 static bool Module_set_buffer_size(
-        const Device* device,
-        Device_states* dstates,
-        int32_t size)
+        const Device* device, Device_states* dstates, int32_t size)
 {
     assert(device != NULL);
     assert(dstates != NULL);

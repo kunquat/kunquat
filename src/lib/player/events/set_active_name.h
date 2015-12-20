@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2015
  *
  * This file is part of Kunquat.
  *
@@ -16,12 +16,13 @@
 #define K_SET_ACTIVE_NAME_H
 
 
-#include <stdbool.h>
-
 #include <player/Active_names.h>
 #include <player/Event_type.h>
 #include <player/General_state.h>
 #include <Value.h>
+
+#include <stdbool.h>
+#include <stdlib.h>
 
 
 /**
@@ -35,10 +36,7 @@
  * \return   \c true if and only if \a fields is valid.
  */
 bool set_active_name(
-        General_state* gstate,
-        Active_cat cat,
-        Active_type type,
-        const Value* value);
+        General_state* gstate, Active_cat cat, Active_type type, const Value* value);
 
 
 #endif // K_SET_ACTIVE_NAME_H

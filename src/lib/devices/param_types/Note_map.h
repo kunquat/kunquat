@@ -16,12 +16,12 @@
 #define K_NOTE_MAP_H
 
 
-#include <stdint.h>
-
 #include <containers/AAtree.h>
 #include <devices/param_types/Sample_entry.h>
 #include <mathnum/Random.h>
 #include <string/Streader.h>
+
+#include <stdint.h>
 
 
 #define NOTE_MAP_RANDOMS_MAX (8)
@@ -58,8 +58,7 @@ Note_map* new_Note_map_from_string(Streader* sr);
  *           or this mapping position (\a cents, \a force) already contains
  *           \c NOTE_MAP_RANDOMS_MAX entries.
  */
-bool Note_map_add_entry(
-        Note_map* map, double cents, double force, Sample_entry* entry);
+bool Note_map_add_entry(Note_map* map, double cents, double force, Sample_entry* entry);
 
 
 /**
@@ -73,10 +72,7 @@ bool Note_map_add_entry(
  * \return   The closest Sample entry, or \c NULL if the map is empty.
  */
 const Sample_entry* Note_map_get_entry(
-        const Note_map* map,
-        double cents,
-        double force,
-        Random* random);
+        const Note_map* map, double cents, double force, Random* random);
 
 
 /**

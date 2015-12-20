@@ -16,10 +16,10 @@
 #define K_VOICE_GROUP_H
 
 
+#include <player/Voice.h>
+
 #include <stdint.h>
 #include <stdlib.h>
-
-#include <player/Voice.h>
 
 
 /**

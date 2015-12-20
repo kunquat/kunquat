@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2015
  *
  * This file is part of Kunquat.
  *
@@ -12,14 +12,15 @@
  */
 
 
-#include <stdlib.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <string.h>
+#include <mathnum/md5.h>
 
 #include <debug/assert.h>
 #include <mathnum/common.h>
-#include <mathnum/md5.h>
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 static void add_length(unsigned char* p, uint64_t len);

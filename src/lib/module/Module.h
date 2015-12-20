@@ -16,12 +16,9 @@
 #define K_MODULE_H
 
 
-#include <stdint.h>
-
 #include <Connections.h>
 #include <Decl.h>
 #include <devices/Device.h>
-#include <frame.h>
 #include <kunquat/limits.h>
 #include <module/Bind.h>
 #include <module/Environment.h>
@@ -34,6 +31,10 @@
 #include <module/sheet/Song_table.h>
 #include <module/sheet/Track_list.h>
 #include <string/Streader.h>
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 
 struct Module
@@ -56,11 +57,6 @@ struct Module
     Environment* env;                   ///< Environment variables.
     Bind* bind;
 };
-
-
-#define MODULE_DEFAULT_BUF_COUNT 2
-#define MODULE_DEFAULT_MIX_VOL -8
-#define MODULE_DEFAULT_INIT_SONG 0
 
 
 /**
@@ -144,9 +140,7 @@ const Channel_defaults_list* Module_get_ch_defaults_list(const Module* module);
  *
  * \return   The pattern if one exists, otherwise \c NULL.
  */
-const Pattern* Module_get_pattern(
-        const Module* module,
-        const Pat_inst_ref* piref);
+const Pattern* Module_get_pattern(const Module* module, const Pat_inst_ref* piref);
 
 
 /**

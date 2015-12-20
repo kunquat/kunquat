@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -16,15 +16,13 @@
 #define K_TRIGGER_H
 
 
-#include <stdint.h>
-#include <stdbool.h>
-#include <stdio.h>
-
 #include <kunquat/limits.h>
+#include <mathnum/Tstamp.h>
 #include <player/Event_names.h>
 #include <player/Event_type.h>
 #include <string/Streader.h>
-#include <Tstamp.h>
+
+#include <stdlib.h>
 
 
 /**

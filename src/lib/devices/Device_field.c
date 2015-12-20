@@ -12,16 +12,17 @@
  */
 
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+#include <devices/Device_field.h>
 
 #include <debug/assert.h>
-#include <devices/Device_field.h>
 #include <devices/param_types/Wav.h>
 #include <devices/param_types/Wavpack.h>
 #include <memory.h>
 #include <string/common.h>
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 typedef union

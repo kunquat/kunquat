@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -16,10 +16,11 @@
 #define K_EVENT_BUFFER_H
 
 
-#include <stdlib.h>
-
 #include <kunquat/limits.h>
 #include <Value.h>
+
+#include <stdbool.h>
+#include <stdlib.h>
 
 
 typedef struct Event_buffer Event_buffer;
@@ -119,11 +120,7 @@ const char* Event_buffer_get_events(const Event_buffer* ebuf);
  * \param name   The event name -- must not be \c NULL.
  * \param arg    The event argument -- must not be \c NULL.
  */
-void Event_buffer_add(
-        Event_buffer* ebuf,
-        int ch,
-        const char* name,
-        Value* arg);
+void Event_buffer_add(Event_buffer* ebuf, int ch, const char* name, const Value* arg);
 
 
 /**

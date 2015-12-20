@@ -12,20 +12,21 @@
  */
 
 
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
-#include <math.h>
+#include <Handle_private.h>
 
 #include <Audio_buffer.h>
 #include <debug/assert.h>
-#include <Handle_private.h>
 #include <kunquat/Player.h>
 #include <kunquat/limits.h>
 #include <mathnum/common.h>
 #include <module/Env_var.h>
 #include <module/Module.h>
 #include <string/common.h>
+
+#include <math.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 int kqt_Handle_play(kqt_Handle handle, long nframes)

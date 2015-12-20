@@ -12,13 +12,14 @@
  */
 
 
-#include <stdlib.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <string.h>
+#include <string/common.h>
 
 #include <debug/assert.h>
-#include <string/common.h>
+
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 bool string_eq(const char* str1, const char* str2)
@@ -64,10 +65,7 @@ bool string_has_suffix(const char* str, const char* suffix)
 
 
 int string_extract_index(
-        const char* path,
-        const char* prefix,
-        int digits,
-        const char* after)
+        const char* path, const char* prefix, int digits, const char* after)
 {
     assert(path != NULL);
     assert(digits > 0);
@@ -85,9 +83,7 @@ int string_extract_index(
     {
         prefix_len = strcspn(path, hex_digits);
         if (path[prefix_len] == '\0')
-        {
             return -1;
-        }
     }
 
     const char* num_s = path + prefix_len;

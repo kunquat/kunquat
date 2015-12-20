@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -12,10 +12,13 @@
  */
 
 
+#include <player/Jump_cache.h>
+
 #include <debug/assert.h>
 #include <memory.h>
-#include <player/Jump_cache.h>
 #include <player/Jump_context.h>
+
+#include <stdlib.h>
 
 
 struct Jump_cache

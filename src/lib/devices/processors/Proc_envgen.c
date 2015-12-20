@@ -12,21 +12,22 @@
  */
 
 
-#include <stdlib.h>
-#include <string.h>
+#include <devices/processors/Proc_envgen.h>
 
 #include <Audio_buffer.h>
 #include <debug/assert.h>
 #include <devices/Device_impl.h>
 #include <devices/param_types/Envelope.h>
 #include <devices/Processor.h>
-#include <devices/processors/Proc_envgen.h>
 #include <devices/processors/Proc_utils.h>
 #include <mathnum/common.h>
 #include <memory.h>
 #include <player/Proc_state.h>
 #include <player/Time_env_state.h>
 #include <string/common.h>
+
+#include <stdlib.h>
+#include <string.h>
 
 
 typedef struct Voice_state_envgen
@@ -205,8 +206,8 @@ static uint32_t Proc_envgen_process_vstate(
     Audio_buffer* out_buffer = Proc_state_get_voice_buffer_mut(
             proc_state, DEVICE_PORT_TYPE_SEND, 0);
     assert(out_buffer != NULL);
-    kqt_frame* audio_l = Audio_buffer_get_buffer(out_buffer, 0);
-    kqt_frame* audio_r = Audio_buffer_get_buffer(out_buffer, 1);
+    float* audio_l = Audio_buffer_get_buffer(out_buffer, 0);
+    float* audio_r = Audio_buffer_get_buffer(out_buffer, 1);
 
     const bool is_time_env_enabled =
         egen->is_time_env_enabled && (egen->time_env != NULL);

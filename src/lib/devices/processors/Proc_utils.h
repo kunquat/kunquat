@@ -16,13 +16,13 @@
 #define K_PROC_UTILS_H
 
 
-#include <stdint.h>
-#include <stdlib.h>
-
 #include <devices/Processor.h>
 #include <player/Device_state.h>
 #include <player/Voice_state.h>
 #include <player/Work_buffers.h>
+
+#include <stdint.h>
+#include <stdlib.h>
 
 
 /**

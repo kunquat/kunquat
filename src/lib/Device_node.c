@@ -12,20 +12,21 @@
  */
 
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
+#include <Device_node.h>
 
 #include <Connections.h>
 #include <debug/assert.h>
-#include <Device_node.h>
 #include <devices/Audio_unit.h>
 #include <devices/Processor.h>
 #include <kunquat/limits.h>
 #include <memory.h>
 #include <player/Voice_group.h>
 #include <string/common.h>
+
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 typedef enum
@@ -65,8 +66,7 @@ struct Device_node
 Processor* Device_node_get_processor_mut(Device_node* node);
 
 
-Device_node* new_Device_node(
-        const char* name, Au_table* au_table, const Device* master)
+Device_node* new_Device_node(const char* name, Au_table* au_table, const Device* master)
 {
     assert(name != NULL);
     assert(au_table != NULL);
@@ -447,10 +447,7 @@ bool Device_node_init_effect_buffers(Device_node* node, Device_states* states)
 
 
 void Device_node_clear_buffers(
-        Device_node* node,
-        Device_states* states,
-        uint32_t start,
-        uint32_t until)
+        Device_node* node, Device_states* states, uint32_t start, uint32_t until)
 {
     assert(node != NULL);
     assert(states != NULL);
@@ -769,10 +766,7 @@ Device_node_state Device_node_get_state(const Device_node* node)
 
 
 bool Device_node_connect(
-        Device_node* receiver,
-        int rec_port,
-        Device_node* sender,
-        int send_port)
+        Device_node* receiver, int rec_port, Device_node* sender, int send_port)
 {
     assert(receiver != NULL);
     assert(rec_port >= 0);
@@ -806,10 +800,7 @@ bool Device_node_connect(
 }
 
 
-Device_node* Device_node_get_sender(
-        Device_node* node,
-        int rec_port,
-        int* send_port)
+Device_node* Device_node_get_sender(Device_node* node, int rec_port, int* send_port)
 {
     assert(node != NULL);
     assert(rec_port >= 0);
@@ -826,10 +817,7 @@ Device_node* Device_node_get_sender(
 }
 
 
-Device_node* Device_node_get_receiver(
-        Device_node* node,
-        int send_port,
-        int* rec_port)
+Device_node* Device_node_get_receiver(Device_node* node, int send_port, int* rec_port)
 {
     assert(node != NULL);
     assert(send_port >= 0);

@@ -12,29 +12,29 @@
  */
 
 
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
-#include <stdio.h>
+#include <devices/Device_params.h>
 
 #include <containers/AAtree.h>
 #include <debug/assert.h>
 #include <devices/Device_field.h>
-#include <devices/Device_params.h>
 #include <memory.h>
 #include <string/common.h>
+
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 struct Device_params
 {
-    AAtree* implement;       ///< The implementation part of the device.
-    AAtree* config;          ///< The configuration part of the device.
+    AAtree* implement;  ///< The implementation part of the device.
+    AAtree* config;     ///< The configuration part of the device.
 };
 
 
 Device_params_iter* Device_params_iter_init(
-        Device_params_iter* iter,
-        const Device_params* dparams)
+        Device_params_iter* iter, const Device_params* dparams)
 {
     assert(iter != NULL);
     assert(dparams != NULL);
@@ -178,8 +178,7 @@ Device_params* new_Device_params(void)
 }
 
 
-bool Device_params_parse_value(
-        Device_params* params, const char* key, Streader* sr)
+bool Device_params_parse_value(Device_params* params, const char* key, Streader* sr)
 {
     assert(params != NULL);
     assert(key != NULL);
@@ -245,8 +244,7 @@ bool Device_params_parse_value(
     }                                                                        \
     else (void)0
 
-const bool* Device_params_get_bool(
-        const Device_params* params, const char* key)
+const bool* Device_params_get_bool(const Device_params* params, const char* key)
 {
     assert(params != NULL);
     assert(key != NULL);
@@ -260,8 +258,7 @@ const bool* Device_params_get_bool(
 }
 
 
-const int64_t* Device_params_get_int(
-        const Device_params* params, const char* key)
+const int64_t* Device_params_get_int(const Device_params* params, const char* key)
 {
     assert(params != NULL);
     assert(key != NULL);
@@ -275,8 +272,7 @@ const int64_t* Device_params_get_int(
 }
 
 
-const double* Device_params_get_float(
-        const Device_params* params, const char* key)
+const double* Device_params_get_float(const Device_params* params, const char* key)
 {
     assert(params != NULL);
     assert(key != NULL);
@@ -290,8 +286,7 @@ const double* Device_params_get_float(
 }
 
 
-const Real* Device_params_get_real(
-        const Device_params* params, const char* key)
+const Real* Device_params_get_real(const Device_params* params, const char* key)
 {
     assert(params != NULL);
     assert(key != NULL);
@@ -305,8 +300,7 @@ const Real* Device_params_get_real(
 }
 
 
-const Tstamp* Device_params_get_tstamp(
-        const Device_params* params, const char* key)
+const Tstamp* Device_params_get_tstamp(const Device_params* params, const char* key)
 {
     assert(params != NULL);
     assert(key != NULL);
@@ -320,8 +314,7 @@ const Tstamp* Device_params_get_tstamp(
 }
 
 
-const Envelope* Device_params_get_envelope(
-        const Device_params* params, const char* key)
+const Envelope* Device_params_get_envelope(const Device_params* params, const char* key)
 {
     assert(params != NULL);
     assert(key != NULL);
@@ -335,8 +328,7 @@ const Envelope* Device_params_get_envelope(
 }
 
 
-const Sample* Device_params_get_sample(
-        const Device_params* params, const char* key)
+const Sample* Device_params_get_sample(const Device_params* params, const char* key)
 {
     assert(params != NULL);
     assert(key != NULL);
@@ -366,8 +358,7 @@ const Sample_params* Device_params_get_sample_params(
 }
 
 
-const Note_map* Device_params_get_note_map(
-        const Device_params* params, const char* key)
+const Note_map* Device_params_get_note_map(const Device_params* params, const char* key)
 {
     assert(params != NULL);
     assert(key != NULL);
@@ -381,8 +372,7 @@ const Note_map* Device_params_get_note_map(
 }
 
 
-const Hit_map* Device_params_get_hit_map(
-        const Device_params* params, const char* key)
+const Hit_map* Device_params_get_hit_map(const Device_params* params, const char* key)
 {
     assert(params != NULL);
     assert(key != NULL);
@@ -396,8 +386,7 @@ const Hit_map* Device_params_get_hit_map(
 }
 
 
-const Num_list* Device_params_get_num_list(
-        const Device_params* params, const char* key)
+const Num_list* Device_params_get_num_list(const Device_params* params, const char* key)
 {
     assert(params != NULL);
     assert(key != NULL);

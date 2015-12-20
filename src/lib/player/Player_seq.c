@@ -12,15 +12,18 @@
  */
 
 
-#include <limits.h>
-#include <stdio.h>
-#include <string.h>
+#include <player/Player_seq.h>
 
 #include <debug/assert.h>
 #include <expr.h>
 #include <mathnum/common.h>
-#include <player/Player_seq.h>
 #include <string/common.h>
+
+#include <limits.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 bool get_event_type_info(
@@ -80,12 +83,8 @@ static bool process_expr(
     }
     else
     {
-        evaluate_expr(
-                expr_reader,
-                estate,
-                meta,
-                ret_value,
-                random);
+        evaluate_expr(expr_reader, estate, meta, ret_value, random);
+
         Streader_match_char(expr_reader, '"');
 
         if (Streader_is_error_set(expr_reader))
@@ -111,11 +110,7 @@ static void Player_process_expr_event(
 
 
 void Player_process_event(
-        Player* player,
-        int ch_num,
-        const char* event_name,
-        Value* arg,
-        bool skip)
+        Player* player, int ch_num, const char* event_name, const Value* arg, bool skip)
 {
     assert(player != NULL);
     assert(!Event_buffer_is_full(player->event_buffer));
@@ -124,18 +119,13 @@ void Player_process_event(
     assert(event_name != NULL);
     assert(arg != NULL);
 
-    const Event_names* event_names = Event_handler_get_names(
-            player->event_handler);
+    const Event_names* event_names = Event_handler_get_names(player->event_handler);
     const Event_type type = Event_names_get(event_names, event_name);
     assert(type != Event_NONE);
 
     if (!Event_is_query(type) &&
             !Event_is_auto(type) &&
-            !Event_handler_trigger(
-                player->event_handler,
-                ch_num,
-                event_name,
-                arg))
+            !Event_handler_trigger(player->event_handler, ch_num, event_name, arg))
     {
         // FIXME: add a proper way of reporting event errors
         fprintf(stderr, "`%s` not fired\n", event_name);
@@ -265,26 +255,20 @@ static void Player_process_expr_event(
     assert(ch_num < KQT_CHANNELS_MAX);
     assert(trigger_desc != NULL);
 
-    Streader* sr = Streader_init(
-            STREADER_AUTO, trigger_desc, strlen(trigger_desc));
+    Streader* sr = Streader_init(STREADER_AUTO, trigger_desc, strlen(trigger_desc));
 
     const Event_names* event_names = Event_handler_get_names(player->event_handler);
 
     char event_name[EVENT_NAME_MAX + 1] = "";
     Event_type type = Event_NONE;
 
-    get_event_type_info(
-            sr,
-            event_names,
-            event_name,
-            &type);
+    get_event_type_info(sr, event_names, event_name, &type);
 
     Value* arg = VALUE_AUTO;
 
     if (string_has_suffix(event_name, "\""))
     {
-        if (Event_names_get_param_type(event_names, event_name) ==
-                VALUE_TYPE_STRING)
+        if (Event_names_get_param_type(event_names, event_name) == VALUE_TYPE_STRING)
         {
             arg->type = VALUE_TYPE_STRING;
             Streader_read_string(sr, KQT_VAR_NAME_MAX, arg->value.string_type);
@@ -366,7 +350,7 @@ static void Player_start_pattern_playback_mode(Player* player)
     int16_t track = -1;
     int16_t system = -1;
     Module_find_pattern_location(
-                player->module, &player->master_params.cur_pos.piref, &track, &system);
+            player->module, &player->master_params.cur_pos.piref, &track, &system);
     Player_reset_channels(player);
 
     // Move cgiters to the new pattern
@@ -424,9 +408,7 @@ static void Player_set_new_playback_position(
         }
 
         for (int k = 0; k < KQT_CHANNELS_MAX; ++k)
-            Cgiter_reset(
-                    &player->cgiters[k],
-                    &target_pos);
+            Cgiter_reset(&player->cgiters[k], &target_pos);
     }
 
     // Make sure all triggers are processed after the jump
@@ -746,17 +728,13 @@ static void update_tempo_slide(Master_params* master_params)
     if (master_params->tempo_slide == 0)
         return;
 
-    if (Tstamp_cmp(
-                &master_params->tempo_slide_left,
-                TSTAMP_AUTO) <= 0)
+    if (Tstamp_cmp(&master_params->tempo_slide_left, TSTAMP_AUTO) <= 0)
     {
         // Finish slide
         master_params->tempo = master_params->tempo_slide_target;
         master_params->tempo_slide = 0;
     }
-    else if (Tstamp_cmp(
-                &master_params->tempo_slide_slice_left,
-                TSTAMP_AUTO) <= 0)
+    else if (Tstamp_cmp(&master_params->tempo_slide_slice_left, TSTAMP_AUTO) <= 0)
     {
         // New tempo
         master_params->tempo += master_params->tempo_slide_update;
@@ -843,10 +821,7 @@ int32_t Player_move_forwards(Player* player, int32_t nframes, bool skip)
 
     // Get maximum duration to move forwards
     Tstamp* limit = Tstamp_fromframes(
-            TSTAMP_AUTO,
-            nframes,
-            player->master_params.tempo,
-            player->audio_rate);
+            TSTAMP_AUTO, nframes, player->master_params.tempo, player->audio_rate);
 
     if (player->master_params.tempo_slide != 0)
     {
@@ -876,10 +851,8 @@ int32_t Player_move_forwards(Player* player, int32_t nframes, bool skip)
     }
 
     // Get actual number of frames to be rendered
-    double dframes = Tstamp_toframes(
-            limit,
-            player->master_params.tempo,
-            player->audio_rate);
+    double dframes =
+        Tstamp_toframes(limit, player->master_params.tempo, player->audio_rate);
     assert(dframes >= 0.0);
 
     int32_t to_be_rendered = (int32_t)dframes;

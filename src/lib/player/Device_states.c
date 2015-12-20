@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -12,11 +12,16 @@
  */
 
 
+#include <player/Device_states.h>
+
 #include <containers/AAtree.h>
 #include <debug/assert.h>
 #include <player/Device_state.h>
-#include <player/Device_states.h>
 #include <memory.h>
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 
 struct Device_states
@@ -56,9 +61,7 @@ bool Device_states_add_state(Device_states* states, Device_state* state)
 }
 
 
-Device_state* Device_states_get_state(
-        const Device_states* states,
-        uint32_t id)
+Device_state* Device_states_get_state(const Device_states* states, uint32_t id)
 {
     assert(states != NULL);
     assert(id > 0);
@@ -149,9 +152,7 @@ bool Device_states_allocate_space(Device_states* states, char* key)
 
 
 void Device_states_clear_audio_buffers(
-        Device_states* states,
-        uint32_t start,
-        uint32_t stop)
+        Device_states* states, uint32_t start, uint32_t stop)
 {
     assert(states != NULL);
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -16,13 +16,13 @@
 #define K_STREADER_H
 
 
+#include <Error.h>
+#include <mathnum/Tstamp.h>
+#include <Pat_inst_ref.h>
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
-
-#include <Error.h>
-#include <Pat_inst_ref.h>
-#include <Tstamp.h>
 
 
 #define STREADER_DICT_KEY_LENGTH_MAX 128

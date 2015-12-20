@@ -16,10 +16,10 @@
 #define K_PROC_RINGMOD_H
 
 
-#include <stdlib.h>
-
 #include <devices/Device_impl.h>
 #include <devices/Processor.h>
+
+#include <stdlib.h>
 
 
 /**

@@ -16,9 +16,10 @@
 #define K_AU_STATE_H
 
 
-#include <stdlib.h>
-
 #include <player/Device_state.h>
+
+#include <stdbool.h>
+#include <stdlib.h>
 
 
 typedef struct Au_state

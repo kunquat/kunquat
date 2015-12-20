@@ -12,17 +12,19 @@
  */
 
 
-#include <math.h>
-#include <stdbool.h>
-#include <stdlib.h>
+#include <player/Time_env_state.h>
 
 #include <debug/assert.h>
 #include <devices/param_types/Envelope.h>
 #include <devices/processors/Proc_utils.h>
 #include <mathnum/common.h>
 #include <player/Proc_state.h>
-#include <player/Time_env_state.h>
 #include <player/Work_buffers.h>
+
+#include <math.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 
 void Time_env_state_init(Time_env_state* testate)

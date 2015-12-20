@@ -12,13 +12,12 @@
  */
 
 
-#include <stdlib.h>
+#include <devices/Proc_type.h>
 
 #include <debug/assert.h>
-#include <devices/Proc_type.h>
-#include <devices/processors/Proc_debug.h>
 #include <devices/processors/Proc_add.h>
 #include <devices/processors/Proc_chorus.h>
+#include <devices/processors/Proc_debug.h>
 #include <devices/processors/Proc_delay.h>
 #include <devices/processors/Proc_envgen.h>
 #include <devices/processors/Proc_freeverb.h>
@@ -28,6 +27,9 @@
 #include <devices/processors/Proc_sample.h>
 #include <devices/processors/Proc_volume.h>
 #include <string/common.h>
+
+#include <stdbool.h>
+#include <stdlib.h>
 
 
 struct Proc_type

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2015
  *
  * This file is part of Kunquat.
  *
@@ -12,13 +12,15 @@
  */
 
 
-#ifndef K_PITCH_T_H
-#define K_PITCH_T_H
+#ifndef K_SONG_DEFAULTS_H
+#define K_SONG_DEFAULTS_H
 
 
-typedef double pitch_t;
+#define SONG_DEFAULT_TEMPO 120
+#define SONG_DEFAULT_GLOBAL_VOL -4
+#define SONG_DEFAULT_SCALE 0
 
 
-#endif // K_PITCH_T_H
+#endif // K_SONG_DEFAULTS_H
 
 

@@ -12,17 +12,12 @@
  */
 
 
-#include <stdlib.h>
-#include <string.h>
-#include <stdint.h>
-#include <inttypes.h>
-#include <stdio.h>
+#include <devices/Audio_unit.h>
 
 #include <Connections.h>
 #include <debug/assert.h>
 #include <devices/Au_control_vars.h>
 #include <devices/Au_interface.h>
-#include <devices/Audio_unit.h>
 #include <devices/Device.h>
 #include <devices/Proc_table.h>
 #include <devices/Processor.h>
@@ -34,6 +29,12 @@
 #include <player/Channel.h>
 #include <player/Work_buffers.h>
 #include <string/common.h>
+
+#include <inttypes.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 struct Audio_unit

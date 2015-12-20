@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -12,9 +12,9 @@
  */
 
 
-#include <stdbool.h>
-
 #include <memory.h>
+
+#include <stdbool.h>
 
 
 static int32_t out_of_memory_error_steps = -1;

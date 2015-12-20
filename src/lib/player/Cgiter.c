@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,13 @@
  */
 
 
-#include <debug/assert.h>
 #include <player/Cgiter.h>
+
+#include <debug/assert.h>
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 
 void Cgiter_init(Cgiter* cgiter, const Module* module, int col_index)
@@ -40,9 +45,7 @@ void Cgiter_init(Cgiter* cgiter, const Module* module, int col_index)
 
 
 static const Pat_inst_ref* find_pat_inst_ref(
-        const Module* module,
-        int16_t track,
-        int16_t system)
+        const Module* module, int16_t track, int16_t system)
 {
     assert(module != NULL);
     assert(track >= 0);
@@ -130,16 +133,9 @@ const Trigger_row* Cgiter_get_trigger_row(Cgiter* cgiter)
     const Pattern* pattern = NULL;
     const Pat_inst_ref* piref = NULL;
     if (cgiter->is_pattern_playback_state)
-    {
         piref = &cgiter->pos.piref;
-    }
     else
-    {
-        piref = find_pat_inst_ref(
-            cgiter->module,
-            cgiter->pos.track,
-            cgiter->pos.system);
-    }
+        piref = find_pat_inst_ref(cgiter->module, cgiter->pos.track, cgiter->pos.system);
 
     if (piref != NULL)
         pattern = Module_get_pattern(cgiter->module, piref);
@@ -191,16 +187,9 @@ bool Cgiter_peek(Cgiter* cgiter, Tstamp* dist)
     const Pattern* pattern = NULL;
     const Pat_inst_ref* piref = NULL;
     if (cgiter->is_pattern_playback_state)
-    {
         piref = &cgiter->pos.piref;
-    }
     else
-    {
-        piref = find_pat_inst_ref(
-            cgiter->module,
-            cgiter->pos.track,
-            cgiter->pos.system);
-    }
+        piref = find_pat_inst_ref(cgiter->module, cgiter->pos.track, cgiter->pos.system);
 
     if (piref != NULL)
         pattern = Module_get_pattern(cgiter->module, piref);
@@ -210,10 +199,8 @@ bool Cgiter_peek(Cgiter* cgiter, Tstamp* dist)
 
     // Check pattern end
     const Tstamp* pat_length = Pattern_get_length(pattern);
-    const Tstamp* dist_to_end = Tstamp_sub(
-            TSTAMP_AUTO,
-            pat_length,
-            &cgiter->pos.pat_pos);
+    const Tstamp* dist_to_end =
+        Tstamp_sub(TSTAMP_AUTO, pat_length, &cgiter->pos.pat_pos);
 
     if (Tstamp_cmp(dist_to_end, TSTAMP_AUTO) <= 0)
     {
@@ -228,10 +215,7 @@ bool Cgiter_peek(Cgiter* cgiter, Tstamp* dist)
     Column_iter_change_col(&cgiter->citer, column);
 
     const Tstamp* epsilon = Tstamp_set(TSTAMP_AUTO, 0, 1);
-    Tstamp* next_pos_min = Tstamp_add(
-            TSTAMP_AUTO,
-            &cgiter->pos.pat_pos,
-            epsilon);
+    Tstamp* next_pos_min = Tstamp_add(TSTAMP_AUTO, &cgiter->pos.pat_pos, epsilon);
     Trigger_list* row = Column_iter_get_row(&cgiter->citer, next_pos_min);
 
     if (row != NULL)
@@ -265,10 +249,8 @@ static void Cgiter_go_to_next_system(Cgiter* cgiter)
 
     ++cgiter->pos.system;
     cgiter->pos.piref.pat = -1;
-    const Pat_inst_ref* piref = find_pat_inst_ref(
-            cgiter->module,
-            cgiter->pos.track,
-            cgiter->pos.system);
+    const Pat_inst_ref* piref =
+        find_pat_inst_ref(cgiter->module, cgiter->pos.track, cgiter->pos.system);
     if (piref != NULL)
         cgiter->pos.piref = *piref;
     else
@@ -288,9 +270,7 @@ void Cgiter_move(Cgiter* cgiter, const Tstamp* dist)
         return;
 
     // Find current pattern
-    const Pattern* pattern = Module_get_pattern(
-            cgiter->module,
-            &cgiter->pos.piref);
+    const Pattern* pattern = Module_get_pattern(cgiter->module, &cgiter->pos.piref);
     if (pattern == NULL)
     {
         cgiter->has_finished = true;

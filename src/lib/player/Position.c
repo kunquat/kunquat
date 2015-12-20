@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -12,8 +12,11 @@
  */
 
 
-#include <debug/assert.h>
 #include <player/Position.h>
+
+#include <debug/assert.h>
+
+#include <stdlib.h>
 
 
 void Position_init(Position* pos)

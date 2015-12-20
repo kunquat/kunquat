@@ -35,11 +35,7 @@
  * \return   \c true if successful, or \c false if evaluation failed.
  */
 bool evaluate_expr(
-        Streader* sr,
-        Env_state* estate,
-        const Value* meta,
-        Value* res,
-        Random* rand);
+        Streader* sr, Env_state* estate, const Value* meta, Value* res, Random* rand);
 
 
 #endif // K_EXPR_H

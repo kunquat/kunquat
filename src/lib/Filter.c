@@ -13,16 +13,16 @@
  */
 
 
-#include <stdlib.h>
-#include <stdbool.h>
-#include <math.h>
-#include <stdarg.h>
-#include <string.h>
-#include <stdio.h>
+#include <Filter.h>
 
 #include <debug/assert.h>
-#include <Filter.h>
 #include <mathnum/common.h>
+
+#include <math.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 void simple_lowpass_fir_create(int n, double f, double* coeffs)
@@ -36,11 +36,7 @@ void simple_lowpass_fir_create(int n, double f, double* coeffs)
 }
 
 
-void one_pole_filter_create(
-        double f,
-        int bandform,
-        double coeffs[1],
-        double* mul)
+void one_pole_filter_create(double f, int bandform, double coeffs[1], double* mul)
 {
     assert(0 < f);
     assert(f < 0.5);
@@ -63,10 +59,7 @@ void one_pole_filter_create(
 
 
 void two_pole_bandpass_filter_create(
-        double f1,
-        double f2,
-        double coeffs[2],
-        double* mul)
+        double f1, double f2, double coeffs[2], double* mul)
 {
     assert(0 < f1);
     assert(f1 < f2);
@@ -91,11 +84,7 @@ void two_pole_bandpass_filter_create(
 
 
 void two_pole_filter_create(
-        double f,
-        double q,
-        int bandform,
-        double coeffs[2],
-        double* mul)
+        double f, double q, int bandform, double coeffs[2], double* mul)
 {
     assert(0 < f);
     assert(f < 0.5);
@@ -121,11 +110,7 @@ void two_pole_filter_create(
 
 #define safe_sqrt(x) (sqrt(fmax(0.0, (x))))
 void four_pole_bandpass_filter_create(
-        double f1,
-        double f2,
-        double q,
-        double coeffs[4],
-        double* mul)
+        double f1, double f2, double q, double coeffs[4], double* mul)
 {
     assert(0  < f1);
     assert(f1 < f2);
@@ -164,11 +149,7 @@ void four_pole_bandpass_filter_create(
 
 
 void butterworth_filter_create(
-        int n,
-        double f,
-        int bandform,
-        double coeffs[n],
-        double* mul)
+        int n, double f, int bandform, double coeffs[n], double* mul)
 
 {
     assert(0 < f);
@@ -210,12 +191,7 @@ void butterworth_filter_create(
 
 
 void butterworth_bandpass_filter_create(
-        int n,
-        double f1,
-        double f2,
-        double coeffs[2*n],
-        double* mul)
-
+        int n, double f1, double f2, double coeffs[2*n], double* mul)
 {
     assert(0  < f1);
     assert(f1 < f2);
@@ -268,23 +244,19 @@ void butterworth_bandpass_filter_create(
 }
 
 
-void buffer(
-        kqt_frame* histbuf,
-        const kqt_frame* restrict sourcebuf,
-        int n,
-        int nframes)
+void buffer(float* histbuf, const float* restrict sourcebuf, int n, int nframes)
 {
     assert(histbuf != NULL);
     assert(sourcebuf != NULL);
 
     if (nframes < n)
     {
-        memmove(histbuf, histbuf + nframes, (n - nframes) * sizeof(kqt_frame));
-        memcpy(histbuf + n - nframes, sourcebuf, nframes * sizeof(kqt_frame));
+        memmove(histbuf, histbuf + nframes, (n - nframes) * sizeof(float));
+        memcpy(histbuf + n - nframes, sourcebuf, nframes * sizeof(float));
     }
     else
     {
-        memcpy(histbuf, sourcebuf + nframes - n, n * sizeof(kqt_frame));
+        memcpy(histbuf, sourcebuf + nframes - n, n * sizeof(float));
     }
 
     return;
@@ -292,10 +264,7 @@ void buffer(
 
 
 double iir_filter_strict_cascade(
-        int n,
-        const double coeffs[n],
-        double buf[n],
-        double var)
+        int n, const double coeffs[n], double buf[n], double var)
 {
     assert(coeffs != NULL);
     assert(buf != NULL);
@@ -319,10 +288,7 @@ double iir_filter_strict_cascade(
 
 
 double iir_filter_strict_transposed_cascade(
-        int n,
-        const double coeffs[n],
-        double buf[n],
-        double var)
+        int n, const double coeffs[n], double buf[n], double var)
 {
     assert(coeffs != NULL);
     assert(buf != NULL);
@@ -344,10 +310,7 @@ double iir_filter_strict_transposed_cascade(
 }
 
 
-double dc_zero_filter(
-        int n,
-        double buf[n],
-        double var)
+double dc_zero_filter(int n, double buf[n], double var)
 {
     assert(buf != NULL);
 
@@ -362,11 +325,7 @@ double dc_zero_filter(
 }
 
 
-double dc_nq_zero_filter(
-        int n,
-        double buf[2*n],
-        double var,
-        int* s)
+double dc_nq_zero_filter(int n, double buf[2*n], double var, int* s)
 {
     assert(buf != NULL);
     assert(s != NULL);
@@ -378,10 +337,7 @@ double dc_nq_zero_filter(
 }
 
 
-double dc_pole_filter(
-        int n,
-        double buf[n],
-        double var)
+double dc_pole_filter(int n, double buf[n], double var)
 {
     assert(buf != NULL);
 
@@ -395,10 +351,7 @@ double dc_pole_filter(
 }
 
 
-double nq_pole_filter(
-        int n,
-        double buf[n],
-        double var)
+double nq_pole_filter(int n, double buf[n], double var)
 {
     assert(buf != NULL);
 
@@ -413,12 +366,8 @@ double nq_pole_filter(
 
 
 #if 0
-void fir_filter(int n,
-                double* coeffs,
-                kqt_frame* histbuf,
-                int nframes,
-                kqt_frame* inbuf,
-                kqt_frame* outbuf)
+void fir_filter(
+        int n, double* coeffs, float* histbuf, int nframes, float* inbuf, float* outbuf)
 {
     double temp;
 

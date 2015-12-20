@@ -12,20 +12,19 @@
  */
 
 
-#include <stdlib.h>
-#include <stdbool.h>
+#include <player/events/Event_channel_decl.h>
 
 #include <debug/assert.h>
 #include <kunquat/limits.h>
-#include <player/events/Event_channel_decl.h>
 #include <player/events/Event_common.h>
 #include <Value.h>
 
+#include <stdbool.h>
+#include <stdlib.h>
+
 
 bool Event_channel_set_au_input_process(
-        Channel* ch,
-        Device_states* dstates,
-        const Value* value)
+        Channel* ch, Device_states* dstates, const Value* value)
 {
     assert(ch != NULL);
     assert(dstates != NULL);

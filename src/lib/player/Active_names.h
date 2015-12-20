@@ -17,6 +17,7 @@
 
 
 #include <stdbool.h>
+#include <stdlib.h>
 
 
 typedef enum Active_cat

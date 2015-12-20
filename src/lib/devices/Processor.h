@@ -16,20 +16,19 @@
 #define K_PROCESSOR_H
 
 
-#include <stdbool.h>
-#include <stdint.h>
-
 #include <debug/assert.h>
 #include <Decl.h>
 #include <devices/Au_params.h>
 #include <devices/Device.h>
 #include <devices/Device_params.h>
 #include <kunquat/limits.h>
-#include <pitch_t.h>
 #include <player/Au_state.h>
 #include <player/Proc_state.h>
 #include <player/Voice_state.h>
 #include <player/Work_buffers.h>
+
+#include <stdbool.h>
+#include <stdint.h>
 
 
 typedef uint32_t Proc_process_vstate_func(

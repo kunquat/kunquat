@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -16,10 +16,11 @@
 #define K_EVENT_NAMES_H
 
 
-#include <stdbool.h>
-
 #include <player/Event_type.h>
 #include <Value.h>
+
+#include <stdbool.h>
+#include <stdlib.h>
 
 
 #define EVENT_NAME_MAX 12 // includes "
@@ -81,9 +82,7 @@ Event_type Event_names_get(const Event_names* names, const char* name);
  *
  * \return   The parameter type.
  */
-Value_type Event_names_get_param_type(
-        const Event_names* names,
-        const char* name);
+Value_type Event_names_get_param_type(const Event_names* names, const char* name);
 
 
 /**

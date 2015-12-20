@@ -12,11 +12,12 @@
  */
 
 
-#include <stdlib.h>
+#include <kunquat/limits_foreign.h>
 
 #include <kunquat/limits.h>
-#include <kunquat/limits_foreign.h>
 #include <string/common.h>
+
+#include <stdlib.h>
 
 
 static const char* limit_names[] =

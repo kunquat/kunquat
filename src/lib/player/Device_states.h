@@ -18,6 +18,11 @@
 
 #include <player/Device_state.h>
 
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
+
+
 typedef struct Device_states Device_states;
 
 

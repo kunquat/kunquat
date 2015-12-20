@@ -12,15 +12,16 @@
  */
 
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
+#include <Value.h>
 
 #include <debug/assert.h>
 #include <mathnum/common.h>
 #include <string/serialise.h>
-#include <Value.h>
+
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 Value* Value_copy(Value* restrict dest, const Value* restrict src)
@@ -135,7 +136,7 @@ bool Value_convert(Value* dest, const Value* src, Value_type new_type)
 }
 
 
-int Value_serialise(Value* value, int len, char* str)
+int Value_serialise(const Value* value, int len, char* str)
 {
     assert(value != NULL);
     assert(len > 0);

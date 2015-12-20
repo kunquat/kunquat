@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -12,9 +12,12 @@
  */
 
 
+#include <player/Active_jumps.h>
+
 #include <debug/assert.h>
 #include <memory.h>
-#include <player/Active_jumps.h>
+
+#include <stdlib.h>
 
 
 struct Active_jumps
@@ -92,9 +95,7 @@ Jump_context* Active_jumps_get_next_context(
 }
 
 
-AAnode* Active_jumps_remove_context(
-        Active_jumps* jumps,
-        const Jump_context* jc)
+AAnode* Active_jumps_remove_context(Active_jumps* jumps, const Jump_context* jc)
 {
     assert(jumps != NULL);
     assert(jc != NULL);

@@ -12,16 +12,17 @@
  */
 
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <inttypes.h>
+#include <player/Voice.h>
 
 #include <debug/assert.h>
 #include <mathnum/common.h>
 #include <memory.h>
-#include <player/Voice.h>
 #include <player/Voice_state.h>
+
+#include <inttypes.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 
 Voice* new_Voice(void)
@@ -129,12 +130,7 @@ void Voice_init(
     Random_set_seed(voice->rand_s, seed);
 
     Voice_state_init(
-            voice->state,
-            cgstate,
-            voice->rand_p,
-            voice->rand_s,
-            freq,
-            tempo);
+            voice->state, cgstate, voice->rand_p, voice->rand_s, freq, tempo);
 
     if (proc->init_vstate != NULL)
         proc->init_vstate(proc, proc_state, voice->state);

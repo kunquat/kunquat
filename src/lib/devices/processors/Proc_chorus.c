@@ -12,18 +12,12 @@
  */
 
 
-#include <math.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
+#include <devices/processors/Proc_chorus.h>
 
 #include <Audio_buffer.h>
 #include <debug/assert.h>
 #include <devices/Device_impl.h>
 #include <devices/Processor.h>
-#include <devices/processors/Proc_chorus.h>
 #include <devices/processors/Proc_utils.h>
 #include <mathnum/common.h>
 #include <mathnum/conversions.h>
@@ -31,6 +25,13 @@
 #include <player/Linear_controls.h>
 #include <player/Player.h>
 #include <string/common.h>
+
+#include <math.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 #define CHORUS_BUF_TIME 0.25
@@ -107,8 +108,7 @@ static void Chorus_voice_reset(
 
 
 static void Chorus_state_reset(
-        Chorus_state* cstate,
-        const Chorus_voice_params voice_params[CHORUS_VOICES_MAX])
+        Chorus_state* cstate, const Chorus_voice_params voice_params[CHORUS_VOICES_MAX])
 {
     assert(cstate != NULL);
     assert(voice_params != NULL);
@@ -586,12 +586,12 @@ static void Proc_chorus_process(
 
     //assert(string_eq(chorus->parent.type, "chorus"));
 
-    const kqt_frame* in_data[] = { NULL, NULL };
-    kqt_frame* out_data[] = { NULL, NULL };
+    const float* in_data[] = { NULL, NULL };
+    float* out_data[] = { NULL, NULL };
     get_raw_input(&cstate->parent.parent, 0, in_data);
     get_raw_output(&cstate->parent.parent, 0, out_data);
 
-    kqt_frame* buf[] =
+    float* buf[] =
     {
         Audio_buffer_get_buffer(cstate->buf, 0),
         Audio_buffer_get_buffer(cstate->buf, 1),
@@ -700,9 +700,9 @@ static void Proc_chorus_process(
 
             // Create output frame
             const double prev_scale = 1 - remainder;
-            const kqt_frame val_l =
+            const float val_l =
                 (prev_scale * volume * cur_val_l) + (remainder * volume * next_val_l);
-            const kqt_frame val_r =
+            const float val_r =
                 (prev_scale * volume * cur_val_r) + (remainder * volume * next_val_r);
 
             out_data[0][i] += val_l;

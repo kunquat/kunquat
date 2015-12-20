@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -12,20 +12,20 @@
  */
 
 
-#include <stdlib.h>
-#include <stdbool.h>
+#include <player/events/Event_master_decl.h>
 
 #include <debug/assert.h>
 #include <kunquat/limits.h>
+#include <mathnum/Tstamp.h>
 #include <player/events/Event_common.h>
-#include <player/events/Event_master_decl.h>
-#include <Tstamp.h>
 #include <Value.h>
+
+#include <stdbool.h>
+#include <stdlib.h>
 
 
 bool Event_master_set_tempo_process(
-        Master_params* master_params,
-        const Value* value)
+        Master_params* master_params, const Value* value)
 {
     assert(master_params != NULL);
     assert(value != NULL);
@@ -56,8 +56,7 @@ static void set_tempo_slide_update(Master_params* master_params)
 
 
 bool Event_master_slide_tempo_process(
-        Master_params* master_params,
-        const Value* value)
+        Master_params* master_params, const Value* value)
 {
     assert(master_params != NULL);
     assert(value != NULL);
@@ -66,9 +65,7 @@ bool Event_master_slide_tempo_process(
     master_params->tempo_settings_changed = true;
 
     Tstamp_init(&master_params->tempo_slide_slice_left);
-    Tstamp_copy(
-            &master_params->tempo_slide_left,
-            &master_params->tempo_slide_length);
+    Tstamp_copy(&master_params->tempo_slide_left, &master_params->tempo_slide_length);
     master_params->tempo_slide_target = value->value.float_type;
 
     set_tempo_slide_update(master_params);
@@ -88,8 +85,7 @@ bool Event_master_slide_tempo_process(
 
 
 bool Event_master_slide_tempo_length_process(
-        Master_params* master_params,
-        const Value* value)
+        Master_params* master_params, const Value* value)
 {
     assert(master_params != NULL);
     assert(value != NULL);
@@ -97,16 +93,13 @@ bool Event_master_slide_tempo_length_process(
 
     master_params->tempo_settings_changed = true;
 
-    Tstamp_copy(
-            &master_params->tempo_slide_length,
-            &value->value.Tstamp_type);
+    Tstamp_copy(&master_params->tempo_slide_length, &value->value.Tstamp_type);
 
     if (master_params->tempo_slide != 0)
     {
         Tstamp_init(&master_params->tempo_slide_slice_left);
         Tstamp_copy(
-                &master_params->tempo_slide_left,
-                &master_params->tempo_slide_length);
+                &master_params->tempo_slide_left, &master_params->tempo_slide_length);
 
         set_tempo_slide_update(master_params);
     }

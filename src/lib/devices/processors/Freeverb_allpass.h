@@ -18,8 +18,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-
-#include <frame.h>
+#include <stdlib.h>
 
 
 /**
@@ -47,7 +46,7 @@ Freeverb_allpass* new_Freeverb_allpass(uint32_t buffer_size);
  * \param allpass    The Freeverb allpass filter -- must not be \c NULL.
  * \param feedback   The feedback value -- must be > \c -1 and < \c 1.
  */
-void Freeverb_allpass_set_feedback(Freeverb_allpass* allpass, kqt_frame feedback);
+void Freeverb_allpass_set_feedback(Freeverb_allpass* allpass, float feedback);
 
 
 /**
@@ -58,7 +57,7 @@ void Freeverb_allpass_set_feedback(Freeverb_allpass* allpass, kqt_frame feedback
  *
  * \return   The output frame.
  */
-kqt_frame Freeverb_allpass_process(Freeverb_allpass* allpass, kqt_frame input);
+float Freeverb_allpass_process(Freeverb_allpass* allpass, float input);
 
 
 /**

@@ -16,11 +16,11 @@
 #define K_MATHNUM_COMMON_H
 
 
+#include <debug/assert.h>
+
+#include <math.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <math.h>
-
-#include <debug/assert.h>
 
 
 #undef PI

@@ -19,6 +19,9 @@
 #include <devices/Audio_unit.h>
 #include <player/Channel.h>
 
+#include <stdint.h>
+#include <stdlib.h>
+
 
 /**
  * Reserve a Voice for a processor in an Audio unit.

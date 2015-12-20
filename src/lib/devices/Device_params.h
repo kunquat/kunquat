@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2015
  *
  * This file is part of Kunquat.
  *
@@ -16,13 +16,13 @@
 #define K_DEVICE_PARAMS_H
 
 
-#include <stdbool.h>
-#include <stdint.h>
-
 #include <devices/Device_field.h>
 #include <mathnum/Real.h>
+#include <mathnum/Tstamp.h>
 #include <string/Streader.h>
-#include <Tstamp.h>
+
+#include <stdbool.h>
+#include <stdint.h>
 
 
 typedef struct Device_params Device_params;
@@ -50,8 +50,7 @@ typedef struct Device_params_iter
  * \return   The parameter \a iter.
  */
 Device_params_iter* Device_params_iter_init(
-        Device_params_iter* iter,
-        const Device_params* dparams);
+        Device_params_iter* iter, const Device_params* dparams);
 
 
 /**
@@ -211,8 +210,7 @@ Device_params* new_Device_params(void);
  *
  * \return   \c true if successful, otherwise \c false.
  */
-bool Device_params_parse_value(
-        Device_params* params, const char* key, Streader* sr);
+bool Device_params_parse_value(Device_params* params, const char* key, Streader* sr);
 
 
 /**
@@ -254,8 +252,7 @@ bool Device_params_parse_value(
  *
  * \return   The boolean value, or \c NULL if \a key doesn't exist.
  */
-const bool* Device_params_get_bool(
-        const Device_params* params, const char* key);
+const bool* Device_params_get_bool(const Device_params* params, const char* key);
 
 
 /**
@@ -267,8 +264,7 @@ const bool* Device_params_get_bool(
  *
  * \return   The integer value, or \c NULL if \a key doesn't exist.
  */
-const int64_t* Device_params_get_int(
-        const Device_params* params, const char* key);
+const int64_t* Device_params_get_int(const Device_params* params, const char* key);
 
 
 /**
@@ -280,8 +276,7 @@ const int64_t* Device_params_get_int(
  *
  * \return   The floating point value, or \c NULL if \a key doesn't exist.
  */
-const double* Device_params_get_float(
-        const Device_params* params, const char* key);
+const double* Device_params_get_float(const Device_params* params, const char* key);
 
 
 /**
@@ -293,8 +288,7 @@ const double* Device_params_get_float(
  *
  * \return   The Real value, or \c NULL if \a key doesn't exist.
  */
-const Real* Device_params_get_real(
-        const Device_params* params, const char* key);
+const Real* Device_params_get_real(const Device_params* params, const char* key);
 
 
 /**
@@ -306,8 +300,7 @@ const Real* Device_params_get_real(
  *
  * \return   The Tstamp value, or \c NULL if \a key doesn't exist.
  */
-const Tstamp* Device_params_get_tstamp(
-        const Device_params* params, const char* key);
+const Tstamp* Device_params_get_tstamp(const Device_params* params, const char* key);
 
 
 /**
@@ -319,8 +312,7 @@ const Tstamp* Device_params_get_tstamp(
  *
  * \return   The Envelope value, or \c NULL if \a key doesn't exist.
  */
-const Envelope* Device_params_get_envelope(
-        const Device_params* params, const char* key);
+const Envelope* Device_params_get_envelope(const Device_params* params, const char* key);
 
 
 /**
@@ -332,8 +324,7 @@ const Envelope* Device_params_get_envelope(
  *
  * \return   The Sample, or \c NULL if \a key doesn't exist.
  */
-const Sample* Device_params_get_sample(
-        const Device_params* params, const char* key);
+const Sample* Device_params_get_sample(const Device_params* params, const char* key);
 
 
 /**
@@ -357,8 +348,7 @@ const Sample_params* Device_params_get_sample_params(
  *
  * \return   The Note map, or \c NULL if \a key doesn't exist.
  */
-const Note_map* Device_params_get_note_map(
-        const Device_params* params, const char* key);
+const Note_map* Device_params_get_note_map(const Device_params* params, const char* key);
 
 
 /**
@@ -370,8 +360,7 @@ const Note_map* Device_params_get_note_map(
  *
  * \return   The Hit map, or \c NULL if \a key doesn't exist.
  */
-const Hit_map* Device_params_get_hit_map(
-        const Device_params* params, const char* key);
+const Hit_map* Device_params_get_hit_map(const Device_params* params, const char* key);
 
 
 /**
@@ -383,8 +372,7 @@ const Hit_map* Device_params_get_hit_map(
  *
  * \return   The Number list, or \c NULL if \a key doesn't exist.
  */
-const Num_list* Device_params_get_num_list(
-        const Device_params* params, const char* key);
+const Num_list* Device_params_get_num_list(const Device_params* params, const char* key);
 
 
 /**

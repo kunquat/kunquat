@@ -16,10 +16,10 @@
 #define K_EVENT_CONTROL_DECL_H
 
 
-#include <stdbool.h>
-
 #include <player/General_state.h>
 #include <Value.h>
+
+#include <stdbool.h>
 
 
 // Process function declarations

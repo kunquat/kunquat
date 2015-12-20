@@ -18,8 +18,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-
-#include <frame.h>
+#include <stdlib.h>
 
 
 /**
@@ -45,7 +44,7 @@ Freeverb_comb* new_Freeverb_comb(uint32_t buffer_size);
  * \param comb   The Freeverb comb filter -- must not be \c NULL.
  * \param damp   The damp value -- must be >= \c 0 and <= \c 1.
  */
-void Freeverb_comb_set_damp(Freeverb_comb* comb, kqt_frame damp);
+void Freeverb_comb_set_damp(Freeverb_comb* comb, float damp);
 
 
 /**
@@ -54,7 +53,7 @@ void Freeverb_comb_set_damp(Freeverb_comb* comb, kqt_frame damp);
  * \param comb       The Freeverb comb filter -- must not be \c NULL.
  * \param feedback   The feedback value -- must be > \c -1 and < \c 1.
  */
-void Freeverb_comb_set_feedback(Freeverb_comb* comb, kqt_frame feedback);
+void Freeverb_comb_set_feedback(Freeverb_comb* comb, float feedback);
 
 
 /**
@@ -65,7 +64,7 @@ void Freeverb_comb_set_feedback(Freeverb_comb* comb, kqt_frame feedback);
  *
  * \return   The output frame.
  */
-kqt_frame Freeverb_comb_process(Freeverb_comb* comb, kqt_frame input);
+float Freeverb_comb_process(Freeverb_comb* comb, float input);
 
 
 /**

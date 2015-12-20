@@ -12,16 +12,17 @@
  */
 
 
-#include <stdlib.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <string.h>
-#include <math.h>
+#include <player/Slider.h>
 
 #include <debug/assert.h>
 #include <mathnum/common.h>
 #include <player/Player.h>
-#include <player/Slider.h>
+
+#include <math.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 static void Slider_update_time(Slider* slider, int32_t audio_rate, double tempo);

@@ -13,17 +13,12 @@
  */
 
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <string.h>
-#include <math.h>
+#include <devices/processors/Proc_noise.h>
 
 #include <Audio_buffer.h>
 #include <debug/assert.h>
 #include <devices/Device_params.h>
 #include <devices/Processor.h>
-#include <devices/processors/Proc_noise.h>
 #include <devices/processors/Proc_utils.h>
 #include <devices/processors/Voice_state_noise.h>
 #include <kunquat/limits.h>
@@ -31,6 +26,12 @@
 #include <memory.h>
 #include <player/Work_buffers.h>
 #include <string/common.h>
+
+#include <math.h>
+#include <stdio.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 typedef struct Noise_state
@@ -49,14 +50,10 @@ typedef struct Proc_noise
 static bool Proc_noise_init(Device_impl* dimpl);
 
 static Device_state* Proc_noise_create_state(
-        const Device* device,
-        int32_t audio_rate,
-        int32_t audio_buffer_size);
+        const Device* device, int32_t audio_rate, int32_t audio_buffer_size);
 
 static void Proc_noise_init_vstate(
-        const Processor* proc,
-        const Proc_state* proc_state,
-        Voice_state* vstate);
+        const Processor* proc, const Proc_state* proc_state, Voice_state* vstate);
 
 static Proc_process_vstate_func Proc_noise_process_vstate;
 
@@ -117,9 +114,7 @@ const char* Proc_noise_property(const Processor* proc, const char* property_type
 
 
 static Device_state* Proc_noise_create_state(
-        const Device* device,
-        int32_t audio_rate,
-        int32_t audio_buffer_size)
+        const Device* device, int32_t audio_rate, int32_t audio_buffer_size)
 {
     assert(device != NULL);
     assert(audio_rate > 0);
@@ -142,9 +137,7 @@ static Device_state* Proc_noise_create_state(
 
 
 static void Proc_noise_init_vstate(
-        const Processor* proc,
-        const Proc_state* proc_state,
-        Voice_state* vstate)
+        const Processor* proc, const Proc_state* proc_state, Voice_state* vstate)
 {
     assert(proc != NULL);
     assert(proc_state != NULL);
@@ -204,8 +197,8 @@ static uint32_t Proc_noise_process_vstate(
     Audio_buffer* out_buffer = Proc_state_get_voice_buffer_mut(
             proc_state, DEVICE_PORT_TYPE_SEND, 0);
     assert(out_buffer != NULL);
-    kqt_frame* audio_l = Audio_buffer_get_buffer(out_buffer, 0);
-    kqt_frame* audio_r = Audio_buffer_get_buffer(out_buffer, 1);
+    float* audio_l = Audio_buffer_get_buffer(out_buffer, 0);
+    float* audio_r = Audio_buffer_get_buffer(out_buffer, 1);
 
     for (int32_t i = buf_start; i < buf_stop; ++i)
     {

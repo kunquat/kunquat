@@ -12,10 +12,12 @@
  */
 
 
-#include <stdio.h>
+#include <module/manifest.h>
 
 #include <debug/assert.h>
-#include <module/manifest.h>
+#include <string/Streader.h>
+
+#include <stdlib.h>
 
 
 static bool read_manifest_entry(Streader* sr, const char* key, void* userdata)

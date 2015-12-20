@@ -12,12 +12,15 @@
  */
 
 
-#include <string.h>
+#include <player/Env_state.h>
 
 #include <containers/AAtree.h>
 #include <debug/assert.h>
 #include <memory.h>
-#include <player/Env_state.h>
+
+#include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 struct Env_state
@@ -97,8 +100,7 @@ void Env_state_reset(Env_state* estate)
 {
     assert(estate != NULL);
 
-    Environment_iter* iter = Environment_iter_init(
-            ENVIRONMENT_ITER_AUTO, estate->env);
+    Environment_iter* iter = Environment_iter_init(ENVIRONMENT_ITER_AUTO, estate->env);
 
     const char* name = Environment_iter_get_next_name(iter);
     while (name != NULL)

@@ -16,11 +16,10 @@
 #define K_ENV_VAR_H
 
 
-#include <stdbool.h>
-#include <stdint.h>
-
 #include <string/Streader.h>
 #include <Value.h>
+
+#include <stdlib.h>
 
 
 /**

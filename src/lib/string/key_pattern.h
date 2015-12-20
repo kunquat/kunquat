@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2014
+ * Author: Tomi Jylhä-Ollila, Finland 2014-2015
  *
  * This file is part of Kunquat.
  *
@@ -16,10 +16,11 @@
 #define K_KEY_PATTERN_H
 
 
+#include <kunquat/limits.h>
+
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
-
-#include <kunquat/limits.h>
 
 
 #define KEY_INDICES_MAX 16

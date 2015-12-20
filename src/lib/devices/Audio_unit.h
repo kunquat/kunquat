@@ -16,19 +16,18 @@
 #define K_AUDIO_UNIT_H
 
 
-#include <stdbool.h>
-
 #include <Decl.h>
 #include <devices/Au_control_vars.h>
 #include <devices/Au_params.h>
 #include <devices/param_types/Envelope.h>
 #include <devices/Proc_table.h>
 #include <devices/Processor.h>
-#include <frame.h>
 #include <kunquat/limits.h>
 #include <module/Scale.h>
 #include <player/Voice_state.h>
 #include <string/Streader.h>
+
+#include <stdbool.h>
 
 
 #define AU_DEFAULT_GLOBAL_FORCE 0

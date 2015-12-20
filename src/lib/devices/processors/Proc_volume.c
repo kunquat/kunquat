@@ -12,23 +12,24 @@
  */
 
 
-#include <stdlib.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
+#include <devices/processors/Proc_volume.h>
 
 #include <debug/assert.h>
 #include <devices/Device_impl.h>
 #include <devices/Processor.h>
 #include <devices/processors/Proc_utils.h>
-#include <devices/processors/Proc_volume.h>
 #include <devices/processors/Voice_state_volume.h>
 #include <mathnum/conversions.h>
 #include <player/Linear_controls.h>
 #include <player/Proc_state.h>
 #include <string/common.h>
 #include <memory.h>
+
+#include <math.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 typedef struct Volume_state
@@ -368,8 +369,8 @@ static uint32_t Proc_volume_process_vstate(
     // Scale
     for (int ch = 0; ch < 2; ++ch)
     {
-        const kqt_frame* in_values = Audio_buffer_get_buffer(in_buffer, ch);
-        kqt_frame* out_values = Audio_buffer_get_buffer(out_buffer, ch);
+        const float* in_values = Audio_buffer_get_buffer(in_buffer, ch);
+        float* out_values = Audio_buffer_get_buffer(out_buffer, ch);
 
         const float scale = vol->scale;
 
@@ -426,8 +427,8 @@ static void Proc_volume_process(
     const float* control_values = Work_buffer_get_contents(control_wb);
 
     // Get port buffers
-    kqt_frame* in_data[] = { NULL, NULL };
-    kqt_frame* out_data[] = { NULL, NULL };
+    float* in_data[] = { NULL, NULL };
+    float* out_data[] = { NULL, NULL };
     get_raw_input(&vol_state->parent.parent, 0, in_data);
     get_raw_output(&vol_state->parent.parent, 0, out_data);
 

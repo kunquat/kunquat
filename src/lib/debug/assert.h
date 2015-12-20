@@ -16,9 +16,9 @@
 #define K_ASSERT_H
 
 
-#include <stdlib.h>
-
 #include <common.h>
+
+#include <stdlib.h>
 
 
 /**

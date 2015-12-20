@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2014
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2015
  *
  * This file is part of Kunquat.
  *
@@ -16,11 +16,11 @@
 #define K_INPUT_MAP_H
 
 
-#include <stdint.h>
-#include <stdlib.h>
-
 #include <containers/Bit_array.h>
 #include <string/Streader.h>
+
+#include <stdint.h>
+#include <stdlib.h>
 
 
 /**
