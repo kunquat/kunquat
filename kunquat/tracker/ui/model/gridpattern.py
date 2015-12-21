@@ -307,6 +307,11 @@ class GridPattern():
             new_ts = (rel_ts + line_ts) % gp['length']
             new_line_tss.append(new_ts)
 
+        # Escape if we got any duplicate timestamps
+        total_line_count = len(new_line_tss) + len(cur_line_tss)
+        if len(set(new_line_tss) | set(cur_line_tss)) < total_line_count:
+            return
+
         # Merge new lines with the existing ones
         added_lines = [(list(ts), line_style) for ts in new_line_tss]
         new_lines = sorted(lines + added_lines)
