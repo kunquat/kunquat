@@ -119,10 +119,12 @@ typedef struct Proc_freeverb
 } Proc_freeverb;
 
 
-static void Freeverb_state_reset(Freeverb_state* fstate, const Proc_freeverb* freeverb)
+static void Freeverb_state_reset(Device_state* dstate)
 {
-    assert(fstate != NULL);
-    assert(freeverb != NULL);
+    assert(dstate != NULL);
+
+    Freeverb_state* fstate = (Freeverb_state*)dstate;
+    const Proc_freeverb* freeverb = (const Proc_freeverb*)dstate->device->dimpl;
 
     for (int i = 0; i < FREEVERB_COMBS; ++i)
     {
@@ -165,8 +167,6 @@ static bool Proc_freeverb_init(Device_impl* dimpl);
 
 static Device_state* Proc_freeverb_create_state(
         const Device* device, int32_t audio_rate, int32_t audio_buffer_size);
-
-static void Proc_freeverb_reset(const Device_impl* dimpl, Device_state* dstate);
 
 static void Proc_freeverb_clear_history(
         const Device_impl* dimpl, Proc_state* proc_state);
@@ -222,9 +222,6 @@ static bool Proc_freeverb_init(Device_impl* dimpl)
     Processor_set_clear_history(
             (Processor*)freeverb->parent.device, Proc_freeverb_clear_history);
 
-    Device_impl_register_reset_device_state(
-            &freeverb->parent, Proc_freeverb_reset);
-
     // Register key set/update handlers
     bool reg_success = true;
 
@@ -275,8 +272,6 @@ static Device_state* Proc_freeverb_create_state(
     assert(audio_rate > 0);
     assert(audio_buffer_size >= 0);
 
-    Proc_freeverb* freeverb = (Proc_freeverb*)device->dimpl;
-
     Freeverb_state* fstate = memory_alloc_item(Freeverb_state);
     if (fstate == NULL)
         return NULL;
@@ -288,6 +283,7 @@ static Device_state* Proc_freeverb_create_state(
     }
 
     fstate->parent.parent.deinit = Freeverb_state_deinit;
+    fstate->parent.reset = Freeverb_state_reset;
 
     fstate->active_reflect = initial_reflect;
     fstate->active_damp = initial_damp;
@@ -353,21 +349,7 @@ static Device_state* Proc_freeverb_create_state(
         }
     }
 
-    Freeverb_state_reset(fstate, freeverb);
-
     return &fstate->parent.parent;
-}
-
-
-static void Proc_freeverb_reset(const Device_impl* dimpl, Device_state* dstate)
-{
-    assert(dimpl != NULL);
-    assert(dstate != NULL);
-
-    Proc_state* proc_state = (Proc_state*)dstate;
-    Proc_freeverb_clear_history(dimpl, proc_state);
-
-    return;
 }
 
 
@@ -376,9 +358,7 @@ static void Proc_freeverb_clear_history(const Device_impl* dimpl, Proc_state* pr
     assert(dimpl != NULL);
     assert(proc_state != NULL);
 
-    Freeverb_state* fstate = (Freeverb_state*)proc_state;
-    const Proc_freeverb* freeverb = (const Proc_freeverb*)dimpl;
-    Freeverb_state_reset(fstate, freeverb);
+    Freeverb_state_reset((Device_state*)proc_state);
 
     return;
 }
@@ -427,7 +407,6 @@ static bool Proc_freeverb_set_audio_rate(
     assert(dstate != NULL);
     assert(audio_rate > 0);
 
-    const Proc_freeverb* freeverb = (const Proc_freeverb*)dimpl;
     Freeverb_state* fstate = (Freeverb_state*)dstate;
 
     for (int i = 0; i < FREEVERB_COMBS; ++i)
@@ -462,7 +441,7 @@ static bool Proc_freeverb_set_audio_rate(
             return false;
     }
 
-    Freeverb_state_reset(fstate, freeverb);
+    Freeverb_state_reset(dstate);
 
     return true;
 }

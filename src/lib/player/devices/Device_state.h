@@ -34,10 +34,13 @@ typedef enum
 } Device_port_type;
 
 
+typedef void Device_state_reset_func(Device_state*);
+
+
 /**
  * Transient state of a Device.
  */
-typedef struct Device_state
+struct Device_state
 {
     uint32_t device_id;
     const Device* device;
@@ -50,8 +53,9 @@ typedef struct Device_state
     // Protected interface
     bool (*add_buffer)(struct Device_state*, Device_port_type, int port);
     bool (*resize_buffers)(struct Device_state* ds, int32_t new_size);
+    Device_state_reset_func* reset;
     void (*deinit)(struct Device_state* ds);
-} Device_state;
+};
 
 
 #define DEVICE_STATE_KEY(id) &(Device_state){ .device_id = (id) }

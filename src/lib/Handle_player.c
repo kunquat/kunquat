@@ -239,7 +239,7 @@ int kqt_Handle_set_position(kqt_Handle handle, int track, long long nanoseconds)
     int64_t skip_frames = ((double)nanoseconds / 1000000000L) *
         Player_get_audio_rate(h->player);
 
-    Device_reset((Device*)h->module, Player_get_device_states(h->player));
+    Device_states_reset(Player_get_device_states(h->player));
 
     Player_reset(h->player, track);
     Player_skip(h->player, skip_frames);

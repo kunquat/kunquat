@@ -55,7 +55,7 @@ static bool Proc_volume_set_audio_rate(
 static void Proc_volume_update_tempo(
         const Device_impl* dimpl, Device_state* dstate, double tempo);
 
-static void Proc_volume_reset(const Device_impl* dimpl, Device_state* dstate);
+static void Proc_state_volume_reset(Device_state* dstate);
 
 static Set_float_func Proc_volume_set_volume;
 
@@ -111,7 +111,6 @@ static bool Proc_volume_init(Device_impl* dimpl)
 
     Device_impl_register_set_audio_rate(&volume->parent, Proc_volume_set_audio_rate);
     Device_impl_register_update_tempo(&volume->parent, Proc_volume_update_tempo);
-    Device_impl_register_reset_device_state(&volume->parent, Proc_volume_reset);
 
     Processor* proc = (Processor*)volume->parent.device;
     proc->init_vstate = Proc_volume_init_vstate;
@@ -195,6 +194,8 @@ static Device_state* Proc_volume_create_state(
         return NULL;
     }
 
+    vol_state->parent.reset = Proc_state_volume_reset;
+
     Linear_controls_init(&vol_state->volume);
     Linear_controls_set_audio_rate(&vol_state->volume, audio_rate);
     Linear_controls_set_value(&vol_state->volume, 0.0);
@@ -233,12 +234,12 @@ static void Proc_volume_update_tempo(
 }
 
 
-static void Proc_volume_reset(const Device_impl* dimpl, Device_state* dstate)
+static void Proc_state_volume_reset(Device_state* dstate)
 {
-    assert(dimpl != NULL);
     assert(dstate != NULL);
 
     Volume_state* vol_state = (Volume_state*)dstate;
+    const Device_impl* dimpl = dstate->device->dimpl;
 
     Linear_controls_init(&vol_state->volume);
 

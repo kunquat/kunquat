@@ -49,6 +49,7 @@ void Device_state_init(
 
     ds->add_buffer = NULL;
     ds->resize_buffers = NULL;
+    ds->reset = NULL;
     ds->deinit = NULL;
 
     return;
@@ -201,6 +202,10 @@ Audio_buffer* Device_state_get_audio_buffer(
 void Device_state_reset(Device_state* ds)
 {
     assert(ds != NULL);
+
+    if (ds->reset != NULL)
+        ds->reset(ds);
+
     return;
 }
 

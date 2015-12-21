@@ -84,7 +84,7 @@ static void Tap_state_set(
     assert(buf_size > 0);
     assert(audio_rate > 0);
 
-    if (!(delay >= 0))
+    if (!isfinite(delay) || (delay < 0))
     {
         tstate->enabled = false;
         return;
@@ -105,15 +105,14 @@ static void Tap_state_set(
 }
 
 
-static void Delay_state_reset(Delay_state* dlstate, const Tap taps[])
+static void Delay_state_reset(Device_state* dstate)
 {
-    assert(dlstate != NULL);
+    assert(dstate != NULL);
 
-    Proc_state_reset(&dlstate->parent);
+    Delay_state* dlstate = (Delay_state*)dstate;
+    const Proc_delay* delay = (const Proc_delay*)dstate->device->dimpl;
 
-    Audio_buffer_clear(
-            dlstate->buf,
-            0, Audio_buffer_get_size(dlstate->buf));
+    Audio_buffer_clear(dlstate->buf, 0, Audio_buffer_get_size(dlstate->buf));
     dlstate->buf_pos = 0;
 
     const int32_t audio_rate = dlstate->parent.parent.audio_rate;
@@ -121,7 +120,7 @@ static void Delay_state_reset(Delay_state* dlstate, const Tap taps[])
 
     for (int i = 0; i < TAPS_MAX; ++i)
     {
-        const Tap* tap = &taps[i];
+        const Tap* tap = &delay->taps[i];
         Tap_state* tstate = &dlstate->tap_states[i];
 
         Tap_state_set(
@@ -153,8 +152,6 @@ static bool Proc_delay_init(Device_impl* dimpl);
 
 static Device_state* Proc_delay_create_state(
         const Device* device, int32_t audio_rate, int32_t audio_buffer_size);
-
-static void Proc_delay_reset(const Device_impl* dimpl, Device_state* dstate);
 
 static Set_float_func Proc_delay_set_max_delay;
 static Set_float_func Proc_delay_set_tap_delay;
@@ -206,8 +203,6 @@ static bool Proc_delay_init(Device_impl* dimpl)
     Device_set_process(delay->parent.device, Proc_delay_process);
 
     Device_set_state_creator(delay->parent.device, Proc_delay_create_state);
-
-    Device_impl_register_reset_device_state(&delay->parent, Proc_delay_reset);
 
     // Register key handlers
     bool reg_success = true;
@@ -273,6 +268,7 @@ static Device_state* Proc_delay_create_state(
     const Proc_delay* delay = (Proc_delay*)device->dimpl;
 
     dlstate->parent.parent.deinit = Delay_state_deinit;
+    dlstate->parent.reset = Delay_state_reset;
     dlstate->buf = NULL;
 
     dlstate->buf = new_Audio_buffer(delay->max_delay * audio_rate + 1);
@@ -423,18 +419,6 @@ static bool Proc_delay_set_state_tap_volume(
 }
 
 
-static void Proc_delay_reset(const Device_impl* dimpl, Device_state* dstate)
-{
-    assert(dimpl != NULL);
-    assert(dstate != NULL);
-
-    Proc_state* proc_state = (Proc_state*)dstate;
-    Proc_delay_clear_history(dimpl, proc_state);
-
-    return;
-}
-
-
 static void Proc_delay_clear_history(
         const Device_impl* dimpl, Proc_state* proc_state)
 {
@@ -468,7 +452,7 @@ static bool Proc_delay_set_audio_rate(
     if (!Audio_buffer_resize(dlstate->buf, buf_len))
         return false;
 
-    Delay_state_reset(dlstate, delay->taps);
+    Delay_state_reset(dstate);
 
     return true;
 }

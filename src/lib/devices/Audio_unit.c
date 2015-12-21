@@ -63,8 +63,6 @@ struct Audio_unit
 static Device_state* Audio_unit_create_state(
         const Device* device, int32_t audio_rate, int32_t audio_buffer_size);
 
-static void Audio_unit_reset(const Device* device, Device_states* dstates);
-
 static bool Audio_unit_set_audio_rate(
         const Device* device, Device_states* dstates, int32_t mix_rate);
 
@@ -188,7 +186,6 @@ Audio_unit* new_Audio_unit(void)
     }
 
     Device_set_state_creator(&au->parent, Audio_unit_create_state);
-    Device_set_reset(&au->parent, Audio_unit_reset);
     Device_register_set_audio_rate(&au->parent, Audio_unit_set_audio_rate);
     Device_register_update_tempo(&au->parent, Audio_unit_update_tempo);
     Device_register_set_buffer_size(&au->parent, Audio_unit_set_buffer_size);
@@ -465,47 +462,13 @@ static Device_state* Audio_unit_create_state(
     assert(audio_rate > 0);
     assert(audio_buffer_size >= 0);
 
-    Au_state* is = memory_alloc_item(Au_state);
-    if (is == NULL)
+    Au_state* au_state = memory_alloc_item(Au_state);
+    if (au_state == NULL)
         return NULL;
 
-    Device_state_init(&is->parent, device, audio_rate, audio_buffer_size);
-    Au_state_reset(is);
+    Au_state_init(au_state, device, audio_rate, audio_buffer_size);
 
-    return &is->parent;
-}
-
-
-static void Audio_unit_reset(const Device* device, Device_states* dstates)
-{
-    assert(device != NULL);
-    assert(dstates != NULL);
-
-    const Audio_unit* au = (const Audio_unit*)device;
-
-    // Reset processors
-    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
-    {
-        const Processor* proc = Proc_table_get_proc(au->procs, i);
-        if (proc != NULL)
-            Device_reset((const Device*)proc, dstates);
-    }
-
-    // Reset internal audio units
-    for (int i = 0; i < KQT_AUDIO_UNITS_MAX; ++i)
-    {
-        const Audio_unit* sub_au = Au_table_get(au->au_table, i);
-        if (sub_au != NULL)
-            Device_reset((const Device*)sub_au, dstates);
-    }
-
-    // Reset audio unit state
-    Au_state* au_state = (Au_state*)Device_states_get_state(
-            dstates,
-            Device_get_id(device));
-    Au_state_reset(au_state);
-
-    return;
+    return &au_state->parent;
 }
 
 

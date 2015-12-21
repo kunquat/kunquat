@@ -30,14 +30,6 @@
 #include <string.h>
 
 
-/**
- * Reset the Module.
- *
- * \param device   The Module Device -- must not be \c NULL.
- */
-static void Module_reset(const Device* device, Device_states* dstates);
-
-
 static bool Module_set_audio_rate(
         const Device* device, Device_states* dstates, int32_t audio_rate);
 
@@ -63,7 +55,6 @@ Module* new_Module(void)
     }
 
     Device_set_existent(&module->parent, true);
-    Device_set_reset(&module->parent, Module_reset);
     Device_register_set_audio_rate(&module->parent, Module_set_audio_rate);
     Device_register_update_tempo(&module->parent, Module_update_tempo);
     Device_register_set_buffer_size(&module->parent, Module_set_buffer_size);
@@ -528,25 +519,6 @@ void Module_remove_scale(Module* module, int index)
     {
         del_Scale(module->scales[index]);
         module->scales[index] = NULL;
-    }
-
-    return;
-}
-
-
-static void Module_reset(const Device* device, Device_states* dstates)
-{
-    assert(device != NULL);
-    assert(dstates != NULL);
-
-    const Module* module = (const Module*)device;
-
-    // Reset audio units
-    for (int i = 0; i < KQT_AUDIO_UNITS_MAX; ++i)
-    {
-        const Audio_unit* au = Au_table_get(module->au_table, i);
-        if (au != NULL)
-            Device_reset((const Device*)au, dstates);
     }
 
     return;

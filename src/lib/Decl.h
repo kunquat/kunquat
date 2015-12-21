@@ -22,6 +22,7 @@ typedef struct Channel Channel;
 typedef struct Connections Connections;
 typedef struct Device Device;
 typedef struct Device_impl Device_impl;
+typedef struct Device_state Device_state;
 typedef struct Module Module;
 typedef struct Processor Processor;
 

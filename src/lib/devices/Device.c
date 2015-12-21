@@ -25,21 +25,6 @@
 #include <stdlib.h>
 
 
-void Device_reset_default(const Device* device, Device_states* dstates)
-{
-    assert(device != NULL);
-    assert(dstates != NULL);
-
-    if (device->dimpl != NULL)
-    {
-        Device_state* dstate = Device_states_get_state(dstates, Device_get_id(device));
-        Device_impl_reset_device_state(device->dimpl, dstate);
-    }
-
-    return;
-}
-
-
 static bool Device_set_audio_rate_default(
         const Device* device, Device_states* dstates, int32_t audio_rate)
 {
@@ -112,7 +97,6 @@ bool Device_init(Device* device, bool req_impl)
     device->set_audio_rate = Device_set_audio_rate_default;
     device->set_buffer_size = Device_set_buffer_size_default;
     device->update_tempo = Device_update_tempo_default;
-    device->reset = Device_reset_default;
     device->process_signal = NULL;
 
     device->set_control_var_generic = NULL;
@@ -251,14 +235,6 @@ void Device_register_update_tempo(
 
     device->update_tempo = update;
 
-    return;
-}
-
-
-void Device_set_reset(Device* device, void (*reset)(const Device*, Device_states*))
-{
-    assert(device != NULL);
-    device->reset = reset;
     return;
 }
 
@@ -417,17 +393,6 @@ void Device_update_tempo(const Device* device, Device_states* dstates, double te
 
     assert(device->update_tempo != NULL);
     device->update_tempo(device, dstates, tempo);
-
-    return;
-}
-
-
-void Device_reset(const Device* device, Device_states* dstates)
-{
-    assert(device != NULL);
-
-    if (device->reset != NULL)
-        device->reset(device, dstates);
 
     return;
 }

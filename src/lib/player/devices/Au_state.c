@@ -21,11 +21,31 @@
 #include <stdlib.h>
 
 
-void Au_state_reset(Au_state* au_state)
+static Device_state_reset_func Au_state_reset;
+
+
+void Au_state_init(
+        Au_state* au_state,
+        const Device* device,
+        int32_t audio_rate,
+        int32_t audio_buffer_size)
 {
     assert(au_state != NULL);
 
-    Device_state_reset(&au_state->parent);
+    Device_state_init(&au_state->parent, device, audio_rate, audio_buffer_size);
+    au_state->parent.reset = Au_state_reset;
+
+    Au_state_reset(&au_state->parent);
+
+    return;
+}
+
+
+void Au_state_reset(Device_state* dstate)
+{
+    assert(dstate != NULL);
+
+    Au_state* au_state = (Au_state*)dstate;
     au_state->bypass = false;
     au_state->sustain = 0.0;
 

@@ -141,7 +141,6 @@ struct Device
     bool (*set_audio_rate)(const struct Device*, Device_states*, int32_t);
     bool (*set_buffer_size)(const struct Device*, Device_states*, int32_t);
     void (*update_tempo)(const struct Device*, Device_states*, double);
-    void (*reset)(const struct Device*, Device_states*);
     Device_process_signal_func* process_signal;
 
     Device_set_control_var_generic_func* set_control_var_generic;
@@ -279,15 +278,6 @@ void Device_register_set_buffer_size(
  */
 void Device_register_update_tempo(
         Device* device, void (*update)(const Device*, Device_states*, double));
-
-
-/**
- * Set the playback reset function of the Device.
- *
- * \param device   The Device -- must not be \c NULL.
- * \param reset    The reset function -- must not be \c NULL.
- */
-void Device_set_reset(Device* device, void (*reset)(const Device*, Device_states*));
 
 
 /**
@@ -442,15 +432,6 @@ void Device_update_tempo(const Device* device, Device_states* dstates, double te
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Device_set_buffer_size(const Device* device, Device_states* dstates, int32_t size);
-
-
-/**
- * Reset the internal playback state of the Device.
- *
- * \param device    The Device -- must not be \c NULL.
- * \param dstates   The Device states -- must not be \c NULL.
- */
-void Device_reset(const Device* device, Device_states* dstates);
 
 
 /**

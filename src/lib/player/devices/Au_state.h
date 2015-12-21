@@ -19,6 +19,7 @@
 #include <player/devices/Device_state.h>
 
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 
@@ -32,11 +33,18 @@ typedef struct Au_state
 
 
 /**
- * Reset the Audio unit state.
+ * Initialise the Audio unit state.
  *
- * \param au_state   The Audio unit state -- must not be \c NULL.
+ * \param au_state            The Audio unit state -- must not be \c NULL.
+ * \param device              The Device -- must not be \c NULL.
+ * \param audio_rate          The audio rate -- must be > \c 0.
+ * \param audio_buffer_size   The audio buffer size -- must be >= \c 0.
  */
-void Au_state_reset(Au_state* au_state);
+void Au_state_init(
+        Au_state* au_state,
+        const Device* device,
+        int32_t audio_rate,
+        int32_t audio_buffer_size);
 
 
 #endif // K_AU_STATE_H

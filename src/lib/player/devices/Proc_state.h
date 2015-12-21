@@ -31,6 +31,8 @@ typedef struct Proc_state
 
     Audio_buffer* voice_buffers[DEVICE_PORT_TYPES][KQT_DEVICE_PORTS_MAX];
     Bit_array* voice_out_buffers_modified;
+
+    Device_state_reset_func* reset;
 } Proc_state;
 
 
@@ -49,14 +51,6 @@ bool Proc_state_init(
         const Device* device,
         int32_t audio_rate,
         int32_t audio_buffer_size);
-
-
-/**
- * Reset the Processor state.
- *
- * \param proc_state   The Processor state -- must not be \c NULL.
- */
-void Proc_state_reset(Proc_state* proc_state);
 
 
 /**

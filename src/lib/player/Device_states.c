@@ -57,7 +57,12 @@ bool Device_states_add_state(Device_states* states, Device_state* state)
     assert(state != NULL);
     assert(!AAtree_contains(states->states, state));
 
-    return AAtree_ins(states->states, state);
+    if (!AAtree_ins(states->states, state))
+        return false;
+
+    Device_state_reset(state);
+
+    return true;
 }
 
 
@@ -182,7 +187,6 @@ void Device_states_reset(Device_states* states)
     while (ds != NULL)
     {
         Device_state_reset(ds);
-
         ds = AAiter_get_next(iter);
     }
 }

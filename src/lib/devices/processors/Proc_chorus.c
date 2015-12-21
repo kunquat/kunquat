@@ -51,6 +51,14 @@ typedef struct Chorus_voice_params
 } Chorus_voice_params;
 
 
+typedef struct Proc_chorus
+{
+    Device_impl parent;
+
+    Chorus_voice_params voice_params[CHORUS_VOICES_MAX];
+} Proc_chorus;
+
+
 typedef struct Chorus_voice
 {
     Linear_controls delay_variance;
@@ -107,13 +115,12 @@ static void Chorus_voice_reset(
 }
 
 
-static void Chorus_state_reset(
-        Chorus_state* cstate, const Chorus_voice_params voice_params[CHORUS_VOICES_MAX])
+static void Chorus_state_reset(Device_state* dstate)
 {
-    assert(cstate != NULL);
-    assert(voice_params != NULL);
+    assert(dstate != NULL);
 
-    Proc_state_reset(&cstate->parent);
+    Chorus_state* cstate = (Chorus_state*)dstate;
+    const Proc_chorus* chorus = (Proc_chorus*)dstate->device->dimpl;
 
     const uint32_t delay_buf_size = Audio_buffer_get_size(cstate->buf);
     Audio_buffer_clear(cstate->buf, 0, delay_buf_size);
@@ -121,7 +128,7 @@ static void Chorus_state_reset(
 
     for (int i = 0; i < CHORUS_VOICES_MAX; ++i)
     {
-        const Chorus_voice_params* params = &voice_params[i];
+        const Chorus_voice_params* params = &chorus->voice_params[i];
         Chorus_voice* voice = &cstate->voices[i];
         Chorus_voice_reset(voice, params, cstate->parent.parent.audio_rate);
     }
@@ -147,20 +154,10 @@ static void Chorus_state_deinit(Device_state* dev_state)
 }
 
 
-typedef struct Proc_chorus
-{
-    Device_impl parent;
-
-    Chorus_voice_params voice_params[CHORUS_VOICES_MAX];
-} Proc_chorus;
-
-
 static bool Proc_chorus_init(Device_impl* dimpl);
 
 static Device_state* Proc_chorus_create_state(
         const Device* device, int32_t audio_rate, int32_t audio_buffer_size);
-
-static void Proc_chorus_reset(const Device_impl* dimpl, Device_state* dstate);
 
 
 #define CHORUS_PARAM(name, dev_key, update_key, def_value)            \
@@ -216,8 +213,6 @@ static bool Proc_chorus_init(Device_impl* dimpl)
 
     Processor_set_clear_history(
             (Processor*)chorus->parent.device, Proc_chorus_clear_history);
-
-    Device_impl_register_reset_device_state(&chorus->parent, Proc_chorus_reset);
 
     // Register key set/update handlers
     bool reg_success = true;
@@ -287,6 +282,7 @@ static Device_state* Proc_chorus_create_state(
     }
 
     cstate->parent.parent.deinit = Chorus_state_deinit;
+    cstate->parent.reset = Chorus_state_reset;
     cstate->buf = NULL;
     cstate->buf_pos = 0;
 
@@ -299,26 +295,7 @@ static Device_state* Proc_chorus_create_state(
         return NULL;
     }
 
-    Proc_chorus* chorus = (Proc_chorus*)device->dimpl;
-    Chorus_state_reset(cstate, chorus->voice_params);
-
     return &cstate->parent.parent;
-}
-
-
-static void Proc_chorus_reset(const Device_impl* dimpl, Device_state* dstate)
-{
-    assert(dimpl != NULL);
-    assert(dstate != NULL);
-
-    const Proc_chorus* chorus = (const Proc_chorus*)dimpl;
-    Chorus_state* cstate = (Chorus_state*)dstate;
-
-    Proc_chorus_clear_history(dimpl, &cstate->parent); // XXX: do we need this?
-
-    Chorus_state_reset(cstate, chorus->voice_params);
-
-    return;
 }
 
 

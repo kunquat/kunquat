@@ -27,6 +27,8 @@ static bool Proc_state_add_buffer(
 
 static bool Proc_state_resize_buffers(Device_state* dstate, int32_t new_size);
 
+static Device_state_reset_func Proc_state_reset;
+
 
 bool Proc_state_init(
         Proc_state* proc_state,
@@ -52,7 +54,10 @@ bool Proc_state_init(
 
     proc_state->parent.add_buffer = Proc_state_add_buffer;
     proc_state->parent.resize_buffers = Proc_state_resize_buffers;
+    proc_state->parent.reset = Proc_state_reset;
     proc_state->parent.deinit = Proc_state_deinit;
+
+    proc_state->reset = NULL;
 
     proc_state->voice_out_buffers_modified = new_Bit_array(KQT_DEVICE_PORTS_MAX);
     if (proc_state->voice_out_buffers_modified == NULL)
@@ -65,11 +70,13 @@ bool Proc_state_init(
 }
 
 
-void Proc_state_reset(Proc_state* proc_state)
+void Proc_state_reset(Device_state* dstate)
 {
-    assert(proc_state != NULL);
+    assert(dstate != NULL);
 
-    Device_state_reset(&proc_state->parent);
+    Proc_state* proc_state = (Proc_state*)dstate;
+    if (proc_state->reset != NULL)
+        proc_state->reset(dstate);
 
     return;
 }

@@ -94,7 +94,6 @@ struct Device_impl
     bool (*set_audio_rate)(const Device_impl*, Device_state*, int32_t);
     bool (*set_buffer_size)(const Device_impl*, Device_state*, int32_t);
     void (*update_tempo)(const Device_impl*, Device_state*, double);
-    void (*reset)(const Device_impl*, Device_state*);
     void (*destroy)(Device_impl*);
 };
 
@@ -185,17 +184,6 @@ void Device_impl_register_set_buffer_size(
 void Device_impl_register_update_tempo(
         Device_impl* dimpl,
         void (*update)(const Device_impl*, Device_state*, double));
-
-
-/**
- * Register a Device state reset function.
- *
- * \param dimpl   The Device implementation -- must not be \c NULL.
- * \param reset   The reset function -- must not be \c NULL.
- */
-void Device_impl_register_reset_device_state(
-        Device_impl* dimpl,
-        void (*reset)(const Device_impl*, Device_state*));
 
 
 /**
@@ -497,15 +485,6 @@ Device_impl_cv_float_callbacks* Device_impl_create_cv_float(
  */
 Device_impl_cv_tstamp_callbacks* Device_impl_create_cv_tstamp(
         Device_impl* dimpl, const char* keyp);
-
-
-/**
- * Reset a Device state.
- *
- * \param dimpl    The Device implementation -- must not be \c NULL.
- * \param dstate   The Device state -- must not be \c NULL.
- */
-void Device_impl_reset_device_state(const Device_impl* dimpl, Device_state* dstate);
 
 
 /**
