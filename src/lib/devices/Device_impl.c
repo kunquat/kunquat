@@ -337,14 +337,17 @@ static Update_control_var_cb* Device_impl_create_update_cv_cb(
 
     Update_control_var_cb* update_cv_cb = memory_alloc_item(
             Update_control_var_cb);
-    if ((update_cv_cb == NULL) || !AAtree_ins(dimpl->update_cv_cbs, update_cv_cb))
+    if (update_cv_cb == NULL)
+        return NULL;
+
+    strcpy(update_cv_cb->key_pattern, keyp);
+    update_cv_cb->type = type;
+
+    if (!AAtree_ins(dimpl->update_cv_cbs, update_cv_cb))
     {
         memory_free(update_cv_cb);
         return NULL;
     }
-
-    strcpy(update_cv_cb->key_pattern, keyp);
-    update_cv_cb->type = type;
 
     return update_cv_cb;
 }
