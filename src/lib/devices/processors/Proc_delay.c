@@ -131,6 +131,29 @@ static void Delay_state_reset(Device_state* dstate)
 }
 
 
+static bool Delay_state_set_audio_rate(Device_state* dstate, int32_t audio_rate)
+{
+    assert(dstate != NULL);
+    assert(audio_rate > 0);
+
+    Delay_state* dlstate = (Delay_state*)dstate;
+    const Proc_delay* delay = (const Proc_delay*)dstate->device->dimpl;
+
+    assert(dlstate->buf != NULL);
+    long buf_len =
+        max(Audio_buffer_get_size(dlstate->buf), delay->max_delay * audio_rate);
+    assert(buf_len > 0);
+    buf_len += 1; // so that the maximum delay will work
+
+    if (!Audio_buffer_resize(dlstate->buf, buf_len))
+        return false;
+
+    Delay_state_reset(dstate);
+
+    return true;
+}
+
+
 static void Delay_state_deinit(Device_state* dev_state)
 {
     assert(dev_state != NULL);
@@ -163,9 +186,6 @@ static Set_state_float_func Proc_delay_set_state_tap_volume;
 
 static void Proc_delay_clear_history(
         const Device_impl* dimpl, Proc_state* proc_state);
-
-static bool Proc_delay_set_audio_rate(
-        const Device_impl* dimpl, Device_state* dstate, int32_t audio_rate);
 
 static void Proc_delay_process(
         const Device* device,
@@ -233,8 +253,6 @@ static bool Proc_delay_init(Device_impl* dimpl)
 
     Processor_set_clear_history(
             (Processor*)delay->parent.device, Proc_delay_clear_history);
-    Device_impl_register_set_audio_rate(
-            &delay->parent, Proc_delay_set_audio_rate);
 
     delay->max_delay = 2;
 
@@ -268,6 +286,7 @@ static Device_state* Proc_delay_create_state(
     const Proc_delay* delay = (Proc_delay*)device->dimpl;
 
     dlstate->parent.parent.deinit = Delay_state_deinit;
+    dlstate->parent.set_audio_rate = Delay_state_set_audio_rate;
     dlstate->parent.reset = Delay_state_reset;
     dlstate->buf = NULL;
 
@@ -429,32 +448,6 @@ static void Proc_delay_clear_history(
     Audio_buffer_clear(dlstate->buf, 0, Audio_buffer_get_size(dlstate->buf));
 
     return;
-}
-
-
-static bool Proc_delay_set_audio_rate(
-        const Device_impl* dimpl, Device_state* dstate, int32_t audio_rate)
-{
-    assert(dimpl != NULL);
-    assert(dstate != NULL);
-    assert(audio_rate > 0);
-
-    const Proc_delay* delay = (const Proc_delay*)dimpl;
-    Delay_state* dlstate = (Delay_state*)dstate;
-
-    assert(dlstate->buf != NULL);
-    long buf_len = max(
-            Audio_buffer_get_size(dlstate->buf),
-            delay->max_delay * audio_rate);
-    assert(buf_len > 0);
-    buf_len += 1; // so that the maximum delay will work
-
-    if (!Audio_buffer_resize(dlstate->buf, buf_len))
-        return false;
-
-    Delay_state_reset(dstate);
-
-    return true;
 }
 
 

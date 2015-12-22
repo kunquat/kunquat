@@ -27,6 +27,8 @@ static bool Proc_state_add_buffer(
 
 static bool Proc_state_resize_buffers(Device_state* dstate, int32_t new_size);
 
+static Device_state_set_audio_rate_func Proc_state_set_audio_rate;
+
 static Device_state_reset_func Proc_state_reset;
 
 
@@ -54,9 +56,11 @@ bool Proc_state_init(
 
     proc_state->parent.add_buffer = Proc_state_add_buffer;
     proc_state->parent.resize_buffers = Proc_state_resize_buffers;
+    proc_state->parent.set_audio_rate = Proc_state_set_audio_rate;
     proc_state->parent.reset = Proc_state_reset;
     proc_state->parent.deinit = Proc_state_deinit;
 
+    proc_state->set_audio_rate = NULL;
     proc_state->reset = NULL;
 
     proc_state->voice_out_buffers_modified = new_Bit_array(KQT_DEVICE_PORTS_MAX);
@@ -65,6 +69,19 @@ bool Proc_state_init(
         Proc_state_deinit(&proc_state->parent);
         return false;
     }
+
+    return true;
+}
+
+
+bool Proc_state_set_audio_rate(Device_state* dstate, int32_t audio_rate)
+{
+    assert(dstate != NULL);
+    assert(audio_rate > 0);
+
+    Proc_state* proc_state = (Proc_state*)dstate;
+    if (proc_state->set_audio_rate != NULL)
+        return proc_state->set_audio_rate(dstate, audio_rate);
 
     return true;
 }

@@ -163,6 +163,51 @@ static void Freeverb_state_reset(Device_state* dstate)
 }
 
 
+static bool Freeverb_state_set_audio_rate(Device_state* dstate, int32_t audio_rate)
+{
+    assert(dstate != NULL);
+    assert(audio_rate > 0);
+
+    Freeverb_state* fstate = (Freeverb_state*)dstate;
+
+    for (int i = 0; i < FREEVERB_COMBS; ++i)
+    {
+        const uint32_t left_size = max(1, comb_tuning[i] * audio_rate);
+
+        if (!Freeverb_comb_resize_buffer(fstate->comb_left[i], left_size))
+            return false;
+
+        const uint32_t right_size = max(
+                1, (comb_tuning[i] + stereo_spread) * audio_rate);
+
+        if (!Freeverb_comb_resize_buffer(fstate->comb_right[i], right_size))
+            return false;
+    }
+
+    for (int i = 0; i < FREEVERB_ALLPASSES; ++i)
+    {
+        const uint32_t left_size = max(1, allpass_tuning[i] * audio_rate);
+
+        if (!Freeverb_allpass_resize_buffer(
+                    fstate->allpass_left[i],
+                    left_size))
+            return false;
+
+        const uint32_t right_size = max(
+                1, (allpass_tuning[i] + stereo_spread) * audio_rate);
+
+        if (!Freeverb_allpass_resize_buffer(
+                    fstate->allpass_right[i],
+                    right_size))
+            return false;
+    }
+
+    Freeverb_state_reset(dstate);
+
+    return true;
+}
+
+
 static bool Proc_freeverb_init(Device_impl* dimpl);
 
 static Device_state* Proc_freeverb_create_state(
@@ -173,9 +218,6 @@ static void Proc_freeverb_clear_history(
 
 static Set_float_func Proc_freeverb_set_refl;
 static Set_float_func Proc_freeverb_set_damp;
-
-static bool Proc_freeverb_set_audio_rate(
-        const Device_impl* dimpl, Device_state* dstate, int32_t audio_rate);
 
 static void Proc_freeverb_process(
         const Device* device,
@@ -241,9 +283,6 @@ static bool Proc_freeverb_init(Device_impl* dimpl)
     if (!reg_success)
         return false;
 
-    Device_impl_register_set_audio_rate(
-            &freeverb->parent, Proc_freeverb_set_audio_rate);
-
     freeverb->gain = 0;
     freeverb->reflect = 0;
     freeverb->reflect1 = 0;
@@ -283,6 +322,7 @@ static Device_state* Proc_freeverb_create_state(
     }
 
     fstate->parent.parent.deinit = Freeverb_state_deinit;
+    fstate->parent.set_audio_rate = Freeverb_state_set_audio_rate;
     fstate->parent.reset = Freeverb_state_reset;
 
     fstate->active_reflect = initial_reflect;
@@ -395,53 +435,6 @@ static bool Proc_freeverb_set_damp(Device_impl* dimpl, Key_indices indices, doub
         value = 0;
 
     Proc_freeverb_update_damp(freeverb, value);
-
-    return true;
-}
-
-
-static bool Proc_freeverb_set_audio_rate(
-        const Device_impl* dimpl, Device_state* dstate, int32_t audio_rate)
-{
-    assert(dimpl != NULL);
-    assert(dstate != NULL);
-    assert(audio_rate > 0);
-
-    Freeverb_state* fstate = (Freeverb_state*)dstate;
-
-    for (int i = 0; i < FREEVERB_COMBS; ++i)
-    {
-        const uint32_t left_size = max(1, comb_tuning[i] * audio_rate);
-
-        if (!Freeverb_comb_resize_buffer(fstate->comb_left[i], left_size))
-            return false;
-
-        const uint32_t right_size = max(
-                1, (comb_tuning[i] + stereo_spread) * audio_rate);
-
-        if (!Freeverb_comb_resize_buffer(fstate->comb_right[i], right_size))
-            return false;
-    }
-
-    for (int i = 0; i < FREEVERB_ALLPASSES; ++i)
-    {
-        const uint32_t left_size = max(1, allpass_tuning[i] * audio_rate);
-
-        if (!Freeverb_allpass_resize_buffer(
-                    fstate->allpass_left[i],
-                    left_size))
-            return false;
-
-        const uint32_t right_size = max(
-                1, (allpass_tuning[i] + stereo_spread) * audio_rate);
-
-        if (!Freeverb_allpass_resize_buffer(
-                    fstate->allpass_right[i],
-                    right_size))
-            return false;
-    }
-
-    Freeverb_state_reset(dstate);
 
     return true;
 }

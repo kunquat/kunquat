@@ -115,6 +115,33 @@ static void Chorus_voice_reset(
 }
 
 
+static bool Chorus_state_set_audio_rate(Device_state* dstate, int32_t audio_rate)
+{
+    assert(dstate != NULL);
+    assert(audio_rate > 0);
+
+    Chorus_state* cstate = (Chorus_state*)dstate;
+
+    const int32_t delay_buf_size = CHORUS_BUF_TIME * audio_rate + 1;
+
+    assert(cstate->buf != NULL);
+    if (!Audio_buffer_resize(cstate->buf, delay_buf_size))
+        return false;
+
+    Audio_buffer_clear(cstate->buf, 0, Audio_buffer_get_size(cstate->buf));
+    cstate->buf_pos = 0;
+
+    for (int i = 0; i < CHORUS_VOICES_MAX; ++i)
+    {
+        Chorus_voice* voice = &cstate->voices[i];
+        Linear_controls_set_audio_rate(&voice->delay_variance, audio_rate);
+        Linear_controls_set_audio_rate(&voice->volume_controls, audio_rate);
+    }
+
+    return true;
+}
+
+
 static void Chorus_state_reset(Device_state* dstate)
 {
     assert(dstate != NULL);
@@ -170,9 +197,6 @@ static Get_cv_float_controls_mut_func Proc_chorus_get_volume;
 
 
 static void Proc_chorus_clear_history(const Device_impl* dimpl, Proc_state* proc_state);
-
-static bool Proc_chorus_set_audio_rate(
-        const Device_impl* dimpl, Device_state* dstate, int32_t audio_rate);
 
 static void Proc_chorus_process(
         const Device* device,
@@ -247,9 +271,6 @@ static bool Proc_chorus_init(Device_impl* dimpl)
         cbs->get_controls = Proc_chorus_get_volume;
     }
 
-    Device_impl_register_set_audio_rate(
-            &chorus->parent, Proc_chorus_set_audio_rate);
-
     for (int i = 0; i < CHORUS_VOICES_MAX; ++i)
     {
         Chorus_voice_params* params = &chorus->voice_params[i];
@@ -282,6 +303,7 @@ static Device_state* Proc_chorus_create_state(
     }
 
     cstate->parent.parent.deinit = Chorus_state_deinit;
+    cstate->parent.set_audio_rate = Chorus_state_set_audio_rate;
     cstate->parent.reset = Chorus_state_reset;
     cstate->buf = NULL;
     cstate->buf_pos = 0;
@@ -509,35 +531,6 @@ static Linear_controls* Proc_chorus_get_volume(
     Chorus_voice* voice = &cstate->voices[index];
 
     return &voice->volume_controls;
-}
-
-
-static bool Proc_chorus_set_audio_rate(
-        const Device_impl* dimpl, Device_state* dstate, int32_t audio_rate)
-{
-    assert(dimpl != NULL);
-    assert(dstate != NULL);
-    assert(audio_rate > 0);
-
-    const int32_t delay_buf_size = CHORUS_BUF_TIME * audio_rate + 1;
-
-    Chorus_state* cstate = (Chorus_state*)dstate;
-
-    assert(cstate->buf != NULL);
-    if (!Audio_buffer_resize(cstate->buf, delay_buf_size))
-        return false;
-
-    Audio_buffer_clear(cstate->buf, 0, Audio_buffer_get_size(cstate->buf));
-    cstate->buf_pos = 0;
-
-    for (int i = 0; i < CHORUS_VOICES_MAX; ++i)
-    {
-        Chorus_voice* voice = &cstate->voices[i];
-        Linear_controls_set_audio_rate(&voice->delay_variance, audio_rate);
-        Linear_controls_set_audio_rate(&voice->volume_controls, audio_rate);
-    }
-
-    return true;
 }
 
 

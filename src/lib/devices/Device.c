@@ -25,23 +25,6 @@
 #include <stdlib.h>
 
 
-static bool Device_set_audio_rate_default(
-        const Device* device, Device_states* dstates, int32_t audio_rate)
-{
-    assert(device != NULL);
-    assert(dstates != NULL);
-    assert(audio_rate > 0);
-
-    if (device->dimpl != NULL)
-    {
-        Device_state* dstate = Device_states_get_state(dstates, Device_get_id(device));
-        return Device_impl_set_audio_rate(device->dimpl, dstate, audio_rate);
-    }
-
-    return true;
-}
-
-
 static bool Device_set_buffer_size_default(
         const Device* device, Device_states* dstates, int32_t buffer_size)
 {
@@ -94,7 +77,6 @@ bool Device_init(Device* device, bool req_impl)
     device->dimpl = NULL;
 
     device->create_state = new_Device_state_plain;
-    device->set_audio_rate = Device_set_audio_rate_default;
     device->set_buffer_size = Device_set_buffer_size_default;
     device->update_tempo = Device_update_tempo_default;
     device->process_signal = NULL;
@@ -198,18 +180,6 @@ void Device_set_state_creator(
         device->create_state = creator;
     else
         device->create_state = new_Device_state_plain;
-
-    return;
-}
-
-
-void Device_register_set_audio_rate(
-        Device* device, bool (*set)(const Device*, Device_states*, int32_t))
-{
-    assert(device != NULL);
-    assert(set != NULL);
-
-    device->set_audio_rate = set;
 
     return;
 }
@@ -358,17 +328,6 @@ bool Device_get_port_existence(const Device* device, Device_port_type type, int 
     assert(port < KQT_DEVICE_PORTS_MAX);
 
     return device->existence[type][port];
-}
-
-
-bool Device_set_audio_rate(const Device* device, Device_states* dstates, int32_t rate)
-{
-    assert(device != NULL);
-    assert(dstates != NULL);
-    assert(rate > 0);
-
-    assert(device->set_audio_rate != NULL);
-    return device->set_audio_rate(device, dstates, rate);
 }
 
 

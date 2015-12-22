@@ -332,6 +332,9 @@ bool Player_set_audio_rate(Player* player, int32_t rate)
     if (player->audio_rate == rate)
         return true;
 
+    if (!Device_states_set_audio_rate(player->device_states, rate))
+        return false;
+
     // Add current playback frame count to nanoseconds history
     player->nanoseconds_history +=
         player->audio_frames_processed * 1000000000LL / player->audio_rate;

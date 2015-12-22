@@ -88,11 +88,7 @@ int kqt_Handle_set_audio_rate(kqt_Handle handle, long rate)
         return 0;
     }
 
-    if (!Device_set_audio_rate(
-                (Device*)h->module,
-                Player_get_device_states(h->player),
-                rate) ||
-            !Player_set_audio_rate(h->player, rate))
+    if (!Player_set_audio_rate(h->player, rate))
     {
         Handle_set_error(h, ERROR_MEMORY,
                 "Couldn't allocate memory after change of audio rate.");

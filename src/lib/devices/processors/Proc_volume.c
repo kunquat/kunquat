@@ -49,8 +49,7 @@ typedef struct Proc_volume
 static Device_state* Proc_volume_create_state(
         const Device* device, int32_t audio_rate, int32_t audio_buffer_size);
 
-static bool Proc_volume_set_audio_rate(
-        const Device_impl* dimpl, Device_state* dstate, int32_t audio_rate);
+static bool Proc_state_volume_set_audio_rate(Device_state* dstate, int32_t audio_rate);
 
 static void Proc_volume_update_tempo(
         const Device_impl* dimpl, Device_state* dstate, double tempo);
@@ -109,7 +108,6 @@ static bool Proc_volume_init(Device_impl* dimpl)
 
     Device_set_state_creator(volume->parent.device, Proc_volume_create_state);
 
-    Device_impl_register_set_audio_rate(&volume->parent, Proc_volume_set_audio_rate);
     Device_impl_register_update_tempo(&volume->parent, Proc_volume_update_tempo);
 
     Processor* proc = (Processor*)volume->parent.device;
@@ -194,6 +192,7 @@ static Device_state* Proc_volume_create_state(
         return NULL;
     }
 
+    vol_state->parent.set_audio_rate = Proc_state_volume_set_audio_rate;
     vol_state->parent.reset = Proc_state_volume_reset;
 
     Linear_controls_init(&vol_state->volume);
@@ -204,10 +203,8 @@ static Device_state* Proc_volume_create_state(
 }
 
 
-static bool Proc_volume_set_audio_rate(
-        const Device_impl* dimpl, Device_state* dstate, int32_t audio_rate)
+static bool Proc_state_volume_set_audio_rate(Device_state* dstate, int32_t audio_rate)
 {
-    assert(dimpl != NULL);
     assert(dstate != NULL);
     assert(audio_rate > 0);
 

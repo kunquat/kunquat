@@ -32,6 +32,7 @@ typedef struct Proc_state
     Audio_buffer* voice_buffers[DEVICE_PORT_TYPES][KQT_DEVICE_PORTS_MAX];
     Bit_array* voice_out_buffers_modified;
 
+    Device_state_set_audio_rate_func* set_audio_rate;
     Device_state_reset_func* reset;
 } Proc_state;
 

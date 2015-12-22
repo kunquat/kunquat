@@ -154,17 +154,6 @@ bool Device_impl_init(Device_impl* dimpl);
 
 
 /**
- * Register an audio rate set function.
- *
- * \param dimpl   The Device implementation -- must not be \c NULL.
- * \param set     The audio rate set function, or \c NULL.
- */
-void Device_impl_register_set_audio_rate(
-        Device_impl* dimpl,
-        bool (*set)(const Device_impl*, Device_state*, int32_t));
-
-
-/**
  * Register a buffer size set function.
  *
  * \param dimpl   The Device implementation -- must not be \c NULL.
@@ -485,19 +474,6 @@ Device_impl_cv_float_callbacks* Device_impl_create_cv_float(
  */
 Device_impl_cv_tstamp_callbacks* Device_impl_create_cv_tstamp(
         Device_impl* dimpl, const char* keyp);
-
-
-/**
- * Set the audio rate of a Device state.
- *
- * \param dimpl        The Device implementation -- must not be \c NULL.
- * \param dstate       The Device state -- must not be \c NULL.
- * \param audio_rate   The audio rate -- must be > \c 0.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-bool Device_impl_set_audio_rate(
-        const Device_impl* dimpl, Device_state* dstate, int32_t audio_rate);
 
 
 /**

@@ -34,6 +34,7 @@ typedef enum
 } Device_port_type;
 
 
+typedef bool Device_state_set_audio_rate_func(Device_state*, int32_t audio_rate);
 typedef void Device_state_reset_func(Device_state*);
 
 
@@ -53,6 +54,7 @@ struct Device_state
     // Protected interface
     bool (*add_buffer)(struct Device_state*, Device_port_type, int port);
     bool (*resize_buffers)(struct Device_state* ds, int32_t new_size);
+    Device_state_set_audio_rate_func* set_audio_rate;
     Device_state_reset_func* reset;
     void (*deinit)(struct Device_state* ds);
 };
@@ -119,12 +121,12 @@ const Device* Device_state_get_device(const Device_state* ds);
 /**
  * Set the audio rate.
  *
- * \param ds     The Device state -- must not be \c NULL.
- * \param rate   The audio rate -- must be > \c 0.
+ * \param ds           The Device state -- must not be \c NULL.
+ * \param audio_rate   The audio rate -- must be > \c 0.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Device_state_set_audio_rate(Device_state* ds, int32_t rate);
+bool Device_state_set_audio_rate(Device_state* ds, int32_t audio_rate);
 
 
 /**

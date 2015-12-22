@@ -138,7 +138,6 @@ struct Device
     Device_impl* dimpl;
 
     Device_create_state_func* create_state;
-    bool (*set_audio_rate)(const struct Device*, Device_states*, int32_t);
     bool (*set_buffer_size)(const struct Device*, Device_states*, int32_t);
     void (*update_tempo)(const struct Device*, Device_states*, double);
     Device_process_signal_func* process_signal;
@@ -248,16 +247,6 @@ Device_state* Device_create_state(
  */
 void Device_set_state_creator(
         Device* device, Device_state* (*creator)(const Device*, int32_t, int32_t));
-
-
-/**
- * Register the audio rate set function of the Device.
- *
- * \param device   The Device -- must not be \c NULL.
- * \param set      The audio rate set function -- must not be \c NULL.
- */
-void Device_register_set_audio_rate(
-        Device* device, bool (*set)(const Device*, Device_states*, int32_t));
 
 
 /**
@@ -397,18 +386,6 @@ void Device_set_port_existence(
  * \return   \c true if the port exists, otherwise \c false.
  */
 bool Device_get_port_existence(const Device* device, Device_port_type type, int port);
-
-
-/**
- * Set the audio rate of Device states.
- *
- * \param device    The Device -- must not be \c NULL.
- * \param dstates   The Device states -- must not be \c NULL.
- * \param rate      The mixing rate -- must be > \c 0.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-bool Device_set_audio_rate(const Device* device, Device_states* dstates, int32_t rate);
 
 
 /**

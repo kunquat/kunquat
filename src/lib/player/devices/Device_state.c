@@ -49,6 +49,7 @@ void Device_state_init(
 
     ds->add_buffer = NULL;
     ds->resize_buffers = NULL;
+    ds->set_audio_rate = NULL;
     ds->reset = NULL;
     ds->deinit = NULL;
 
@@ -93,15 +94,18 @@ const Device* Device_state_get_device(const Device_state* ds)
 }
 
 
-bool Device_state_set_audio_rate(Device_state* ds, int32_t rate)
+bool Device_state_set_audio_rate(Device_state* ds, int32_t audio_rate)
 {
     assert(ds != NULL);
-    assert(rate > 0);
+    assert(audio_rate > 0);
 
-    if (ds->audio_rate == rate)
+    if (ds->audio_rate == audio_rate)
         return true;
 
-    ds->audio_rate = rate;
+    ds->audio_rate = audio_rate;
+
+    if (ds->set_audio_rate != NULL)
+        return ds->set_audio_rate(ds, audio_rate);
 
     return true;
 }
