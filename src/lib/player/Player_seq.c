@@ -784,10 +784,7 @@ void Player_update_sliders_and_lfos_tempo(Player* player)
     }
 
     // Update devices
-    Device_update_tempo(
-            (const Device*)player->module,
-            player->device_states,
-            player->master_params.tempo);
+    Device_states_set_tempo(player->device_states, player->master_params.tempo);
 
     return;
 }

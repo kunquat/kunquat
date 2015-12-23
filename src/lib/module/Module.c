@@ -30,10 +30,6 @@
 #include <string.h>
 
 
-static void Module_update_tempo(
-        const Device* device, Device_states* dstates, double tempo);
-
-
 Module* new_Module(void)
 {
     Module* module = memory_alloc_item(Module);
@@ -47,7 +43,6 @@ Module* new_Module(void)
     }
 
     Device_set_existent(&module->parent, true);
-    Device_register_update_tempo(&module->parent, Module_update_tempo);
 
     // Clear fields
     module->songs = NULL;
@@ -509,27 +504,6 @@ void Module_remove_scale(Module* module, int index)
     {
         del_Scale(module->scales[index]);
         module->scales[index] = NULL;
-    }
-
-    return;
-}
-
-
-static void Module_update_tempo(
-        const Device* device, Device_states* dstates, double tempo)
-{
-    assert(device != NULL);
-    assert(dstates != NULL);
-    assert(isfinite(tempo));
-    assert(tempo > 0);
-
-    const Module* module = (const Module*)device;
-
-    for (int i = 0; i < KQT_AUDIO_UNITS_MAX; ++i)
-    {
-        const Audio_unit* au = Au_table_get(module->au_table, i);
-        if (au != NULL)
-            Device_update_tempo((const Device*)au, dstates, tempo);
     }
 
     return;

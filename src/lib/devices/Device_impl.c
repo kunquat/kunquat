@@ -101,8 +101,6 @@ bool Device_impl_init(Device_impl* dimpl)
     dimpl->set_cbs = NULL;
     dimpl->update_cv_cbs = NULL;
 
-    dimpl->update_tempo = NULL;
-
     dimpl->set_cbs = new_AAtree(
             (int (*)(const void*, const void*))strcmp,
             memory_free);
@@ -118,16 +116,6 @@ bool Device_impl_init(Device_impl* dimpl)
     }
 
     return true;
-}
-
-
-void Device_impl_register_update_tempo(
-        Device_impl* dimpl,
-        void (*update)(const Device_impl*, Device_state*, double))
-{
-    assert(dimpl != NULL);
-    dimpl->update_tempo = update;
-    return;
 }
 
 
@@ -390,21 +378,6 @@ Device_impl_cv_tstamp_callbacks* Device_impl_create_cv_tstamp(
     ret->voice_set_value = NULL;
 
     return ret;
-}
-
-
-void Device_impl_update_tempo(
-        const Device_impl* dimpl, Device_state* dstate, double tempo)
-{
-    assert(dimpl != NULL);
-    assert(dstate != NULL);
-    assert(isfinite(tempo));
-    assert(tempo > 0);
-
-    if (dimpl->update_tempo != NULL)
-        dimpl->update_tempo(dimpl, dstate, tempo);
-
-    return;
 }
 
 

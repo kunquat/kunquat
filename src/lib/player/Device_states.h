@@ -103,6 +103,15 @@ void Device_states_clear_audio_buffers(
 
 
 /**
+ * Set the tempo in the Device states.
+ *
+ * \param states   The Device states -- must not be \c NULL.
+ * \param tempo    The new tempo -- must be finite and > \c 0.
+ */
+void Device_states_set_tempo(Device_states* states, double tempo);
+
+
+/**
  * Reset the Device states.
  *
  * \param states   The Device states -- must not be \c NULL.

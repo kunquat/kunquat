@@ -604,10 +604,8 @@ void Player_play(Player* player, int32_t nframes)
 
                 Master_params_set_starting_tempo(&player->master_params);
 
-                Device_update_tempo(
-                        (const Device*)player->module,
-                        player->device_states,
-                        player->master_params.tempo);
+                Device_states_set_tempo(
+                        player->device_states, player->master_params.tempo);
 
                 // Init control variables
                 {

@@ -34,6 +34,7 @@ typedef struct Proc_state
 
     Device_state_set_audio_rate_func* set_audio_rate;
     Device_state_set_audio_buffer_size_func* set_audio_buffer_size;
+    Device_state_set_tempo_func* set_tempo;
     Device_state_reset_func* reset;
 } Proc_state;
 

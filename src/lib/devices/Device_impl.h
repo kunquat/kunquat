@@ -91,7 +91,6 @@ struct Device_impl
     AAtree* update_cv_cbs;
 
     bool (*init)(Device_impl*);
-    void (*update_tempo)(const Device_impl*, Device_state*, double);
     void (*destroy)(Device_impl*);
 };
 
@@ -149,17 +148,6 @@ void Device_impl_register_destroy(Device_impl* dimpl, void (*destroy)(Device_imp
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Device_impl_init(Device_impl* dimpl);
-
-
-/**
- * Register a tempo update function.
- *
- * \param dimpl    The Device implementation -- must not be \c NULL.
- * \param update   The tempo update function, or \c NULL.
- */
-void Device_impl_register_update_tempo(
-        Device_impl* dimpl,
-        void (*update)(const Device_impl*, Device_state*, double));
 
 
 /**
@@ -461,17 +449,6 @@ Device_impl_cv_float_callbacks* Device_impl_create_cv_float(
  */
 Device_impl_cv_tstamp_callbacks* Device_impl_create_cv_tstamp(
         Device_impl* dimpl, const char* keyp);
-
-
-/**
- * Update the tempo of a Device state.
- *
- * \param dimpl    The Device implementation -- must not be \c NULL.
- * \param dstate   The Device state -- must not be \c NULL.
- * \param tempo    The new tempo -- must be finite and > \c 0.
- */
-void Device_impl_update_tempo(
-        const Device_impl* dimpl, Device_state* dstate, double tempo);
 
 
 /**

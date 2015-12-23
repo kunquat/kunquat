@@ -138,7 +138,6 @@ struct Device
     Device_impl* dimpl;
 
     Device_create_state_func* create_state;
-    void (*update_tempo)(const struct Device*, Device_states*, double);
     Device_process_signal_func* process_signal;
 
     Device_set_control_var_generic_func* set_control_var_generic;
@@ -246,16 +245,6 @@ Device_state* Device_create_state(
  */
 void Device_set_state_creator(
         Device* device, Device_state* (*creator)(const Device*, int32_t, int32_t));
-
-
-/**
- * Register the tempo update function of the Device.
- *
- * \param device   The Device -- must not be \c NULL.
- * \param update   The tempo update function -- must not be \c NULL.
- */
-void Device_register_update_tempo(
-        Device* device, void (*update)(const Device*, Device_states*, double));
 
 
 /**
@@ -375,16 +364,6 @@ void Device_set_port_existence(
  * \return   \c true if the port exists, otherwise \c false.
  */
 bool Device_get_port_existence(const Device* device, Device_port_type type, int port);
-
-
-/**
- * Update the tempo of the Device states.
- *
- * \param device    The Device -- must not be \c NULL.
- * \param dstates   The Device states -- must not be \c NULL.
- * \param tempo     The new tempo -- must be finite and > \c 0.
- */
-void Device_update_tempo(const Device* device, Device_states* dstates, double tempo);
 
 
 /**

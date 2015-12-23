@@ -36,6 +36,7 @@ typedef enum
 
 typedef bool Device_state_set_audio_rate_func(Device_state*, int32_t audio_rate);
 typedef bool Device_state_set_audio_buffer_size_func(Device_state*, int32_t buffer_size);
+typedef void Device_state_set_tempo_func(Device_state*, double tempo);
 typedef void Device_state_reset_func(Device_state*);
 
 
@@ -56,6 +57,7 @@ struct Device_state
     bool (*add_buffer)(struct Device_state*, Device_port_type, int port);
     Device_state_set_audio_rate_func* set_audio_rate;
     Device_state_set_audio_buffer_size_func* set_audio_buffer_size;
+    Device_state_set_tempo_func* set_tempo;
     Device_state_reset_func* reset;
     void (*deinit)(struct Device_state* ds);
 };
@@ -199,6 +201,15 @@ void Device_state_clear_audio_buffers(Device_state* ds, uint32_t start, uint32_t
  */
 Audio_buffer* Device_state_get_audio_buffer(
         const Device_state* ds, Device_port_type type, int port);
+
+
+/**
+ * Set the tempo of the Device state.
+ *
+ * \param ds      The Device state -- must not be \c NULL.
+ * \param tempo   The new tempo -- must be finite and > \c 0.
+ */
+void Device_state_set_tempo(Device_state* ds, double tempo);
 
 
 /**

@@ -19,6 +19,7 @@
 #include <mathnum/common.h>
 #include <memory.h>
 
+#include <math.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -50,6 +51,7 @@ void Device_state_init(
     ds->add_buffer = NULL;
     ds->set_audio_rate = NULL;
     ds->set_audio_buffer_size = NULL;
+    ds->set_tempo = NULL;
     ds->reset = NULL;
     ds->deinit = NULL;
 
@@ -200,6 +202,19 @@ Audio_buffer* Device_state_get_audio_buffer(
     assert(port < KQT_DEVICE_PORTS_MAX);
 
     return ds->buffers[type][port];
+}
+
+
+void Device_state_set_tempo(Device_state* ds, double tempo)
+{
+    assert(ds != NULL);
+    assert(isfinite(tempo));
+    assert(tempo > 0);
+
+    if (ds->set_tempo != NULL)
+        ds->set_tempo(ds, tempo);
+
+    return;
 }
 
 
