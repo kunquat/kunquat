@@ -131,11 +131,7 @@ int kqt_Handle_set_audio_buffer_size(kqt_Handle handle, long size)
         return 0;
     }
 
-    if (!Device_set_buffer_size(
-                (Device*)h->module,
-                Player_get_device_states(h->player),
-                size) ||
-            !Player_set_audio_buffer_size(h->player, size))
+    if (!Player_set_audio_buffer_size(h->player, size))
     {
         Handle_set_error(h, ERROR_MEMORY,
                 "Couldn't allocate memory for new buffers");

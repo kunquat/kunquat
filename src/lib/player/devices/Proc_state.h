@@ -33,6 +33,7 @@ typedef struct Proc_state
     Bit_array* voice_out_buffers_modified;
 
     Device_state_set_audio_rate_func* set_audio_rate;
+    Device_state_set_audio_buffer_size_func* set_audio_buffer_size;
     Device_state_reset_func* reset;
 } Proc_state;
 

@@ -48,8 +48,8 @@ void Device_state_init(
     }
 
     ds->add_buffer = NULL;
-    ds->resize_buffers = NULL;
     ds->set_audio_rate = NULL;
+    ds->set_audio_buffer_size = NULL;
     ds->reset = NULL;
     ds->deinit = NULL;
 
@@ -136,7 +136,7 @@ bool Device_state_set_audio_buffer_size(Device_state* ds, int32_t size)
         }
     }
 
-    if ((ds->resize_buffers != NULL) && !ds->resize_buffers(ds, size))
+    if ((ds->set_audio_buffer_size != NULL) && !ds->set_audio_buffer_size(ds, size))
         return false;
 
     ds->audio_buffer_size = size;

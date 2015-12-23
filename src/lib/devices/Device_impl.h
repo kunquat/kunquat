@@ -91,8 +91,6 @@ struct Device_impl
     AAtree* update_cv_cbs;
 
     bool (*init)(Device_impl*);
-    bool (*set_audio_rate)(const Device_impl*, Device_state*, int32_t);
-    bool (*set_buffer_size)(const Device_impl*, Device_state*, int32_t);
     void (*update_tempo)(const Device_impl*, Device_state*, double);
     void (*destroy)(Device_impl*);
 };
@@ -151,17 +149,6 @@ void Device_impl_register_destroy(Device_impl* dimpl, void (*destroy)(Device_imp
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Device_impl_init(Device_impl* dimpl);
-
-
-/**
- * Register a buffer size set function.
- *
- * \param dimpl   The Device implementation -- must not be \c NULL.
- * \param set     The buffer size set function, or \c NULL.
- */
-void Device_impl_register_set_buffer_size(
-        Device_impl* dimpl,
-        bool (*set)(const Device_impl*, Device_state*, int32_t));
 
 
 /**
@@ -474,19 +461,6 @@ Device_impl_cv_float_callbacks* Device_impl_create_cv_float(
  */
 Device_impl_cv_tstamp_callbacks* Device_impl_create_cv_tstamp(
         Device_impl* dimpl, const char* keyp);
-
-
-/**
- * Set the buffer size of a Device state.
- *
- * \param dimpl         The Device implementation -- must not be \c NULL.
- * \param dstate        The Device state -- must not be \c NULL.
- * \param buffer_size   The buffer size -- must be >= \c 0.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-bool Device_impl_set_buffer_size(
-        const Device_impl* dimpl, Device_state* dstate, int32_t buffer_size);
 
 
 /**

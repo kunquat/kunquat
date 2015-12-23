@@ -35,6 +35,7 @@ typedef enum
 
 
 typedef bool Device_state_set_audio_rate_func(Device_state*, int32_t audio_rate);
+typedef bool Device_state_set_audio_buffer_size_func(Device_state*, int32_t buffer_size);
 typedef void Device_state_reset_func(Device_state*);
 
 
@@ -53,8 +54,8 @@ struct Device_state
 
     // Protected interface
     bool (*add_buffer)(struct Device_state*, Device_port_type, int port);
-    bool (*resize_buffers)(struct Device_state* ds, int32_t new_size);
     Device_state_set_audio_rate_func* set_audio_rate;
+    Device_state_set_audio_buffer_size_func* set_audio_buffer_size;
     Device_state_reset_func* reset;
     void (*deinit)(struct Device_state* ds);
 };

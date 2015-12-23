@@ -25,23 +25,6 @@
 #include <stdlib.h>
 
 
-static bool Device_set_buffer_size_default(
-        const Device* device, Device_states* dstates, int32_t buffer_size)
-{
-    assert(device != NULL);
-    assert(dstates != NULL);
-    assert(buffer_size >= 0);
-
-    if (device->dimpl != NULL)
-    {
-        Device_state* dstate = Device_states_get_state(dstates, Device_get_id(device));
-        return Device_impl_set_buffer_size(device->dimpl, dstate, buffer_size);
-    }
-
-    return true;
-}
-
-
 static void Device_update_tempo_default(
         const Device* device, Device_states* dstates, double tempo)
 {
@@ -77,7 +60,6 @@ bool Device_init(Device* device, bool req_impl)
     device->dimpl = NULL;
 
     device->create_state = new_Device_state_plain;
-    device->set_buffer_size = Device_set_buffer_size_default;
     device->update_tempo = Device_update_tempo_default;
     device->process_signal = NULL;
 
@@ -180,18 +162,6 @@ void Device_set_state_creator(
         device->create_state = creator;
     else
         device->create_state = new_Device_state_plain;
-
-    return;
-}
-
-
-void Device_register_set_buffer_size(
-        Device* device, bool (*set)(const Device*, Device_states*, int32_t))
-{
-    assert(device != NULL);
-    assert(set != NULL);
-
-    device->set_buffer_size = set;
 
     return;
 }
@@ -328,18 +298,6 @@ bool Device_get_port_existence(const Device* device, Device_port_type type, int 
     assert(port < KQT_DEVICE_PORTS_MAX);
 
     return device->existence[type][port];
-}
-
-
-bool Device_set_buffer_size(const Device* device, Device_states* dstates, int32_t size)
-{
-    assert(device != NULL);
-    assert(dstates != NULL);
-    assert(size > 0);
-    assert(size <= KQT_AUDIO_BUFFER_SIZE_MAX);
-
-    assert(device->set_buffer_size != NULL);
-    return device->set_buffer_size(device, dstates, size);
 }
 
 

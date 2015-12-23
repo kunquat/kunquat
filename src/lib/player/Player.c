@@ -374,21 +374,23 @@ bool Player_set_audio_buffer_size(Player* player, int32_t size)
             memory_free(player->audio_buffers[i]);
             player->audio_buffers[i] = NULL;
         }
-        return true;
     }
-
-    // Reallocate buffers
-    for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
+    else
     {
-        float* new_buffer = memory_realloc_items(
-                float,
-                size,
-                player->audio_buffers[i]);
-        if (new_buffer == NULL)
-            return false;
+        for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
+        {
+            float* new_buffer =
+                memory_realloc_items(float, size, player->audio_buffers[i]);
+            if (new_buffer == NULL)
+                return false;
 
-        player->audio_buffers[i] = new_buffer;
+            player->audio_buffers[i] = new_buffer;
+        }
     }
+
+    // Update device state buffers
+    if (!Device_states_set_audio_buffer_size(player->device_states, size))
+        return false;
 
     // Update work buffers
     if (!Work_buffers_resize(player->work_buffers, size))

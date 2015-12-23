@@ -63,9 +63,6 @@ struct Audio_unit
 static Device_state* Audio_unit_create_state(
         const Device* device, int32_t audio_rate, int32_t audio_buffer_size);
 
-static bool Audio_unit_set_buffer_size(
-        const Device* device, Device_states* dstates, int32_t size);
-
 static void Audio_unit_update_tempo(
         const Device* device, Device_states* dstates, double tempo);
 
@@ -184,7 +181,6 @@ Audio_unit* new_Audio_unit(void)
 
     Device_set_state_creator(&au->parent, Audio_unit_create_state);
     Device_register_update_tempo(&au->parent, Audio_unit_update_tempo);
-    Device_register_set_buffer_size(&au->parent, Audio_unit_set_buffer_size);
     Device_set_mixed_signals(&au->parent, true);
     Device_set_process(&au->parent, Audio_unit_process_signal);
 
@@ -493,36 +489,6 @@ static void Audio_unit_update_tempo(
     }
 
     return;
-}
-
-
-static bool Audio_unit_set_buffer_size(
-        const Device* device, Device_states* dstates, int32_t size)
-{
-    assert(device != NULL);
-    assert(dstates != NULL);
-    assert(size > 0);
-    assert(size <= KQT_AUDIO_BUFFER_SIZE_MAX);
-
-    const Audio_unit* au = (const Audio_unit*)device;
-
-    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
-    {
-        const Processor* proc = Proc_table_get_proc(au->procs, i);
-        if (proc != NULL &&
-                !Device_set_buffer_size((const Device*)proc, dstates, size))
-            return false;
-    }
-
-    for (int i = 0; i < KQT_AUDIO_UNITS_MAX; ++i)
-    {
-        const Audio_unit* sub_au = Au_table_get(au->au_table, i);
-        if ((sub_au != NULL) &&
-                !Device_set_buffer_size((const Device*)sub_au, dstates, size))
-            return false;
-    }
-
-    return true;
 }
 
 
