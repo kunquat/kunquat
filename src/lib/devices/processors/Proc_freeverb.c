@@ -219,13 +219,11 @@ static void Proc_freeverb_clear_history(
 static Set_float_func Proc_freeverb_set_refl;
 static Set_float_func Proc_freeverb_set_damp;
 
-static void Proc_freeverb_process(
-        const Device* device,
-        Device_states* states,
+static void Freeverb_state_render_mixed(
+        Device_state* dstate,
         const Work_buffers* wbs,
-        uint32_t start,
-        uint32_t until,
-        uint32_t freq,
+        int32_t buf_start,
+        int32_t buf_stop,
         double tempo);
 
 static void Proc_freeverb_update_reflectivity(Proc_freeverb* freeverb, double reflect);
@@ -256,8 +254,6 @@ static bool Proc_freeverb_init(Device_impl* dimpl)
     assert(dimpl != NULL);
 
     Proc_freeverb* freeverb = (Proc_freeverb*)dimpl;
-
-    Device_set_process(freeverb->parent.device, Proc_freeverb_process);
 
     Device_set_state_creator(freeverb->parent.device, Proc_freeverb_create_state);
 
@@ -324,6 +320,7 @@ static Device_state* Proc_freeverb_create_state(
     fstate->parent.parent.deinit = Freeverb_state_deinit;
     fstate->parent.set_audio_rate = Freeverb_state_set_audio_rate;
     fstate->parent.reset = Freeverb_state_reset;
+    fstate->parent.render_mixed = Freeverb_state_render_mixed;
 
     fstate->active_reflect = initial_reflect;
     fstate->active_damp = initial_damp;
@@ -489,26 +486,22 @@ static void Proc_freeverb_update_wet(Proc_freeverb* freeverb, double wet)
 }
 
 
-static void Proc_freeverb_process(
-        const Device* device,
-        Device_states* states,
+static void Freeverb_state_render_mixed(
+        Device_state* dstate,
         const Work_buffers* wbs,
-        uint32_t start,
-        uint32_t until,
-        uint32_t freq,
+        int32_t buf_start,
+        int32_t buf_stop,
         double tempo)
 {
-    assert(device != NULL);
-    assert(states != NULL);
+    assert(dstate != NULL);
     assert(wbs != NULL);
-    assert(freq > 0);
+    assert(buf_start >= 0);
     assert(tempo > 0);
 
-    Freeverb_state* fstate = (Freeverb_state*)Device_states_get_state(
-            states, Device_get_id(device));
+    Freeverb_state* fstate = (Freeverb_state*)dstate;
 
-    Proc_freeverb* freeverb = (Proc_freeverb*)device->dimpl;
-    //assert(string_eq(freeverb->parent.type, "freeverb"));
+    Proc_freeverb* freeverb = (Proc_freeverb*)dstate->device->dimpl;
+
     float* in_data[] = { NULL, NULL };
     float* out_data[] = { NULL, NULL };
     get_raw_input(&fstate->parent.parent, 0, in_data);
@@ -538,11 +531,11 @@ static void Proc_freeverb_process(
         }
     }
 
-    for (uint32_t i = start; i < until; ++i)
+    for (int32_t i = buf_start; i < buf_stop; ++i)
     {
         float out_l = 0;
         float out_r = 0;
-        float input = (in_data[0][i] + in_data[1][i]) * freeverb->gain;
+        const float input = (in_data[0][i] + in_data[1][i]) * freeverb->gain;
 
         for (int comb = 0; comb < FREEVERB_COMBS; ++comb)
         {

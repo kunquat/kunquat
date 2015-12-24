@@ -70,13 +70,11 @@ static void Proc_volume_init_vstate(
 
 static Proc_process_vstate_func Proc_volume_process_vstate;
 
-static void Proc_volume_process(
-        const Device* device,
-        Device_states* states,
+static void Proc_state_volume_render_mixed(
+        Device_state* dstate,
         const Work_buffers* wbs,
-        uint32_t start,
-        uint32_t until,
-        uint32_t freq,
+        int32_t buf_start,
+        int32_t buf_stop,
         double tempo);
 
 static void del_Proc_volume(Device_impl* dimpl);
@@ -102,8 +100,6 @@ static bool Proc_volume_init(Device_impl* dimpl)
     assert(dimpl != NULL);
 
     Proc_volume* volume = (Proc_volume*)dimpl;
-
-    Device_set_process(volume->parent.device, Proc_volume_process);
 
     Device_set_state_creator(volume->parent.device, Proc_volume_create_state);
 
@@ -192,6 +188,7 @@ static Device_state* Proc_volume_create_state(
     vol_state->parent.set_audio_rate = Proc_state_volume_set_audio_rate;
     vol_state->parent.set_tempo = Proc_state_volume_set_tempo;
     vol_state->parent.reset = Proc_state_volume_reset;
+    vol_state->parent.render_mixed = Proc_state_volume_render_mixed;
 
     Linear_controls_init(&vol_state->volume);
     Linear_controls_set_audio_rate(&vol_state->volume, audio_rate);
@@ -391,25 +388,19 @@ static uint32_t Proc_volume_process_vstate(
 }
 
 
-static void Proc_volume_process(
-        const Device* device,
-        Device_states* states,
+static void Proc_state_volume_render_mixed(
+        Device_state* dstate,
         const Work_buffers* wbs,
-        uint32_t buf_start,
-        uint32_t buf_stop,
-        uint32_t freq,
+        int32_t buf_start,
+        int32_t buf_stop,
         double tempo)
 {
-    assert(device != NULL);
-    assert(states != NULL);
+    assert(dstate != NULL);
     assert(wbs != NULL);
-    assert(freq > 0);
     assert(isfinite(tempo));
     assert(tempo > 0);
 
-    Volume_state* vol_state = (Volume_state*)Device_states_get_state(
-            states, Device_get_id(device));
-    assert(vol_state != NULL);
+    Volume_state* vol_state = (Volume_state*)dstate;
 
     // Update real-time control
     static const int CONTROL_WORK_BUFFER_VOLUME = WORK_BUFFER_IMPL_1;
@@ -426,7 +417,7 @@ static void Proc_volume_process(
     get_raw_input(&vol_state->parent.parent, 0, in_data);
     get_raw_output(&vol_state->parent.parent, 0, out_data);
 
-    for (uint32_t frame = buf_start; frame < buf_stop; ++frame)
+    for (int32_t frame = buf_start; frame < buf_stop; ++frame)
     {
         const float scale = dB_to_scale(control_values[frame]);
         out_data[0][frame] += in_data[0][frame] * scale;

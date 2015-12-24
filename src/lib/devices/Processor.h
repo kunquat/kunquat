@@ -103,7 +103,6 @@ Processor* new_Processor(int index, const Au_params* au_params);
  * \param process_vstate   The Voice state process function of the Processor,
  *                         or \c NULL if not needed.
  * \param init_vstate      The Voice state initialiser, or \c NULL if not needed.
- * \param process_signal   The signal processing function, or \c NULL if not needed.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
@@ -111,8 +110,7 @@ bool Processor_init(
         Processor* proc,
         //void (*destroy)(Processor*),
         Proc_process_vstate_func process_vstate,
-        void (*init_vstate)(const Processor*, const Proc_state*, Voice_state*),
-        Device_process_signal_func* process_signal);
+        void (*init_vstate)(const Processor*, const Proc_state*, Voice_state*));
 
 
 /**

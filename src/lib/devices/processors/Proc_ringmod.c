@@ -36,13 +36,11 @@ static bool Proc_ringmod_init(Device_impl* dimpl);
 
 static Proc_process_vstate_func Proc_ringmod_process_vstate;
 
-static void Proc_ringmod_process_signal(
-        const Device* device,
-        Device_states* dstates,
+static void Ringmod_state_render_mixed(
+        Device_state* dstate,
         const Work_buffers* wbs,
-        uint32_t buf_start,
-        uint32_t buf_stop,
-        uint32_t audio_rate,
+        int32_t buf_start,
+        int32_t buf_stop,
         double tempo);
 
 static void del_Proc_ringmod(Device_impl* dimpl);
@@ -63,18 +61,34 @@ Device_impl* new_Proc_ringmod(Processor* proc)
 }
 
 
+static Device_state* Proc_ringmod_create_state(
+        const Device* device, int32_t audio_rate, int32_t audio_buffer_size)
+{
+    assert(device != NULL);
+    assert(audio_rate > 0);
+    assert(audio_buffer_size >= 0);
+
+    Proc_state* proc_state =
+        new_Proc_state_default(device, audio_rate, audio_buffer_size);
+    if (proc_state == NULL)
+        return NULL;
+
+    proc_state->render_mixed = Ringmod_state_render_mixed;
+
+    return (Device_state*)proc_state;
+}
+
+
 static bool Proc_ringmod_init(Device_impl* dimpl)
 {
     assert(dimpl != NULL);
 
     Proc_ringmod* ringmod = (Proc_ringmod*)dimpl;
 
-    Device_set_state_creator(ringmod->parent.device, new_Proc_state_default);
+    Device_set_state_creator(ringmod->parent.device, Proc_ringmod_create_state);
 
     Processor* proc = (Processor*)ringmod->parent.device;
     proc->process_vstate = Proc_ringmod_process_vstate;
-
-    Device_set_process(ringmod->parent.device, Proc_ringmod_process_signal);
 
     return true;
 }
@@ -155,36 +169,29 @@ static uint32_t Proc_ringmod_process_vstate(
 }
 
 
-static void Proc_ringmod_process_signal(
-        const Device* device,
-        Device_states* dstates,
+static void Ringmod_state_render_mixed(
+        Device_state* dstate,
         const Work_buffers* wbs,
-        uint32_t buf_start,
-        uint32_t buf_stop,
-        uint32_t audio_rate,
+        int32_t buf_start,
+        int32_t buf_stop,
         double tempo)
 {
-    assert(device != NULL);
-    assert(dstates != NULL);
-    assert(wbs != NULL);
-    assert(audio_rate > 0);
-    assert(tempo > 0);
-    assert(isfinite(tempo));
-
-    Device_state* dstate = Device_states_get_state(dstates, Device_get_id(device));
     assert(dstate != NULL);
+    assert(wbs != NULL);
+    assert(isfinite(tempo));
+    assert(tempo > 0);
 
     // Get inputs
-    Audio_buffer* in1_buffer = Device_state_get_audio_buffer(
-            dstate, DEVICE_PORT_TYPE_RECEIVE, 0);
-    Audio_buffer* in2_buffer = Device_state_get_audio_buffer(
-            dstate, DEVICE_PORT_TYPE_RECEIVE, 1);
+    Audio_buffer* in1_buffer =
+        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_RECEIVE, 0);
+    Audio_buffer* in2_buffer =
+        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_RECEIVE, 1);
     if ((in1_buffer == NULL) || (in2_buffer == NULL))
         return;
 
     // Get outputs
-    Audio_buffer* out_buffer = Device_state_get_audio_buffer(
-            dstate, DEVICE_PORT_TYPE_SEND, 0);
+    Audio_buffer* out_buffer =
+        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_SEND, 0);
     assert(out_buffer != NULL);
 
     // Multiply the signals

@@ -36,7 +36,7 @@
  * \return   The new Processor state if successful, or \c NULL if memory
  *           allocation failed.
  */
-Device_state* new_Proc_state_default(
+Proc_state* new_Proc_state_default(
         const Device* device, int32_t audio_rate, int32_t audio_buffer_size);
 
 

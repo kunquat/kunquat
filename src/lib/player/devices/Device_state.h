@@ -19,6 +19,7 @@
 #include <Audio_buffer.h>
 #include <Decl.h>
 #include <kunquat/limits.h>
+#include <player/Work_buffers.h>
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -38,6 +39,13 @@ typedef bool Device_state_set_audio_rate_func(Device_state*, int32_t audio_rate)
 typedef bool Device_state_set_audio_buffer_size_func(Device_state*, int32_t buffer_size);
 typedef void Device_state_set_tempo_func(Device_state*, double tempo);
 typedef void Device_state_reset_func(Device_state*);
+
+typedef void Device_state_render_mixed_func(
+        Device_state*,
+        const Work_buffers*,
+        int32_t buf_start,
+        int32_t buf_stop,
+        double tempo);
 
 
 /**
@@ -59,6 +67,7 @@ struct Device_state
     Device_state_set_audio_buffer_size_func* set_audio_buffer_size;
     Device_state_set_tempo_func* set_tempo;
     Device_state_reset_func* reset;
+    Device_state_render_mixed_func* render_mixed;
     void (*deinit)(struct Device_state* ds);
 };
 
@@ -218,6 +227,24 @@ void Device_state_set_tempo(Device_state* ds, double tempo);
  * \param ds   The Device state -- must not be \c NULL.
  */
 void Device_state_reset(Device_state* ds);
+
+
+/**
+ * Render mixed signal in the Device state.
+ *
+ * \param ds          The Device state -- must not be \c NULL.
+ * \param wbs         The Work buffers -- must not be \c NULL.
+ * \param buf_start   The start index of rendering -- must be >= \c 0.
+ * \param buf_stop    The stop index of rendering -- must be less than or equal
+ *                    to the audio buffer size.
+ * \param tempo       The current tempo -- must be finite and > \c 0.
+ */
+void Device_state_render_mixed(
+        Device_state* ds,
+        const Work_buffers* wbs,
+        int32_t buf_start,
+        int32_t buf_stop,
+        double tempo);
 
 
 /**

@@ -35,7 +35,20 @@ void Au_state_init(
     Device_state_init(&au_state->parent, device, audio_rate, audio_buffer_size);
     au_state->parent.reset = Au_state_reset;
 
+    au_state->dstates = NULL;
+
     Au_state_reset(&au_state->parent);
+
+    return;
+}
+
+
+void Au_state_set_device_states(Au_state* au_state, Device_states* dstates)
+{
+    assert(au_state != NULL);
+    assert(dstates != NULL);
+
+    au_state->dstates = dstates;
 
     return;
 }

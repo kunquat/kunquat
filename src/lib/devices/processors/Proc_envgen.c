@@ -113,8 +113,6 @@ static bool Proc_envgen_init(Device_impl* dimpl)
 
     Proc_envgen* egen = (Proc_envgen*)dimpl;
 
-    Device_set_state_creator(dimpl->device, new_Proc_state_default);
-
     Processor* proc = (Processor*)egen->parent.device;
     proc->init_vstate = Proc_envgen_init_vstate;
     proc->process_vstate = Proc_envgen_process_vstate;

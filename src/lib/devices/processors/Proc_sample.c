@@ -71,8 +71,6 @@ static bool Proc_sample_init(Device_impl* dimpl)
 
     Proc_sample* sample_p = (Proc_sample*)dimpl;
 
-    Device_set_state_creator(dimpl->device, new_Proc_state_default);
-
     Processor* proc = (Processor*)sample_p->parent.device;
     proc->init_vstate = Proc_sample_init_vstate;
     proc->process_vstate = Proc_sample_process_vstate;

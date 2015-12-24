@@ -173,14 +173,12 @@ Processor* new_Processor(int index, const Au_params* au_params)
 bool Processor_init(
         Processor* proc,
         Proc_process_vstate_func process_vstate,
-        void (*init_vstate)(const Processor*, const Proc_state*, Voice_state*),
-        Device_process_signal_func* process_signal)
+        void (*init_vstate)(const Processor*, const Proc_state*, Voice_state*))
 {
     assert(proc != NULL);
 
     proc->process_vstate = process_vstate;
     proc->init_vstate = init_vstate;
-    Device_set_process(&proc->parent, process_signal);
 
     return true;
 }
@@ -309,7 +307,7 @@ void Processor_set_signal_support(Processor* proc, bool enabled)
 bool Processor_get_signal_support(const Processor* proc)
 {
     assert(proc != NULL);
-    return (proc->parent.process_signal != NULL) && proc->enable_signal_support;
+    return proc->enable_signal_support;
 }
 
 

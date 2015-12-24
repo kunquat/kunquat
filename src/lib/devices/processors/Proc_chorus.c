@@ -198,13 +198,11 @@ static Get_cv_float_controls_mut_func Proc_chorus_get_volume;
 
 static void Proc_chorus_clear_history(const Device_impl* dimpl, Proc_state* proc_state);
 
-static void Proc_chorus_process(
-        const Device* device,
-        Device_states* dstates,
+static void Chorus_state_render_mixed(
+        Device_state* dstate,
         const Work_buffers* wbs,
-        uint32_t buf_start,
-        uint32_t buf_stop,
-        uint32_t audio_rate,
+        int32_t buf_start,
+        int32_t buf_stop,
         double tempo);
 
 static void del_Proc_chorus(Device_impl* dimpl);
@@ -230,8 +228,6 @@ static bool Proc_chorus_init(Device_impl* dimpl)
     assert(dimpl != NULL);
 
     Proc_chorus* chorus = (Proc_chorus*)dimpl;
-
-    Device_set_process(chorus->parent.device, Proc_chorus_process);
 
     Device_set_state_creator(chorus->parent.device, Proc_chorus_create_state);
 
@@ -305,6 +301,7 @@ static Device_state* Proc_chorus_create_state(
     cstate->parent.parent.deinit = Chorus_state_deinit;
     cstate->parent.set_audio_rate = Chorus_state_set_audio_rate;
     cstate->parent.reset = Chorus_state_reset;
+    cstate->parent.render_mixed = Chorus_state_render_mixed;
     cstate->buf = NULL;
     cstate->buf_pos = 0;
 
@@ -534,27 +531,19 @@ static Linear_controls* Proc_chorus_get_volume(
 }
 
 
-static void Proc_chorus_process(
-        const Device* device,
-        Device_states* dstates,
+static void Chorus_state_render_mixed(
+        Device_state* dstate,
         const Work_buffers* wbs,
-        uint32_t buf_start,
-        uint32_t buf_stop,
-        uint32_t audio_rate,
+        int32_t buf_start,
+        int32_t buf_stop,
         double tempo)
 {
-    assert(device != NULL);
-    assert(dstates != NULL);
+    assert(dstate != NULL);
     assert(wbs != NULL);
     assert(buf_start <= buf_stop);
-    assert(audio_rate > 0);
     assert(tempo > 0);
 
-    Chorus_state* cstate = (Chorus_state*)Device_states_get_state(
-            dstates, Device_get_id(device));
-    assert(cstate != NULL);
-
-    //assert(string_eq(chorus->parent.type, "chorus"));
+    Chorus_state* cstate = (Chorus_state*)dstate;
 
     const float* in_data[] = { NULL, NULL };
     float* out_data[] = { NULL, NULL };
@@ -586,6 +575,8 @@ static void Proc_chorus_process(
 
     int32_t cur_cstate_buf_pos = cstate->buf_pos;
 
+    const int32_t audio_rate = dstate->audio_rate;
+
     // Mix chorus voices
     for (int vi = 0; vi < CHORUS_VOICES_MAX; ++vi)
     {
@@ -603,7 +594,7 @@ static void Proc_chorus_process(
                 &voice->volume_controls, vols_wb, buf_start, buf_stop);
 
         // Get total offsets
-        for (uint32_t i = buf_start, chunk_offset = 0; i < buf_stop; ++i, ++chunk_offset)
+        for (int32_t i = buf_start, chunk_offset = 0; i < buf_stop; ++i, ++chunk_offset)
         {
             const double delay = delays[i];
             double delay_frames = delay * DELAY_SCALE * audio_rate;
@@ -611,7 +602,7 @@ static void Proc_chorus_process(
             total_offsets[i] = chunk_offset - delay_frames;
         }
 
-        for (uint32_t i = buf_start; i < buf_stop; ++i)
+        for (int32_t i = buf_start; i < buf_stop; ++i)
         {
             const float total_offset = total_offsets[i];
             const float volume = dB_to_scale(vols[i]);
@@ -681,7 +672,7 @@ static void Proc_chorus_process(
     }
 
     // Update the chorus state buffers
-    for (uint32_t i = buf_start; i < buf_stop; ++i)
+    for (int32_t i = buf_start; i < buf_stop; ++i)
     {
         buf[0][cur_cstate_buf_pos] = in_data[0][i];
         buf[1][cur_cstate_buf_pos] = in_data[1][i];

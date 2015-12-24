@@ -187,13 +187,11 @@ static Set_state_float_func Proc_delay_set_state_tap_volume;
 static void Proc_delay_clear_history(
         const Device_impl* dimpl, Proc_state* proc_state);
 
-static void Proc_delay_process(
-        const Device* device,
-        Device_states* states,
+static void Delay_state_render_mixed(
+        Device_state* dstate,
         const Work_buffers* wbs,
-        uint32_t start,
-        uint32_t until,
-        uint32_t freq,
+        int32_t buf_start,
+        int32_t buf_stop,
         double tempo);
 
 static void del_Proc_delay(Device_impl* dimpl);
@@ -219,8 +217,6 @@ static bool Proc_delay_init(Device_impl* dimpl)
     assert(dimpl != NULL);
 
     Proc_delay* delay = (Proc_delay*)dimpl;
-
-    Device_set_process(delay->parent.device, Proc_delay_process);
 
     Device_set_state_creator(delay->parent.device, Proc_delay_create_state);
 
@@ -288,6 +284,7 @@ static Device_state* Proc_delay_create_state(
     dlstate->parent.parent.deinit = Delay_state_deinit;
     dlstate->parent.set_audio_rate = Delay_state_set_audio_rate;
     dlstate->parent.reset = Delay_state_reset;
+    dlstate->parent.render_mixed = Delay_state_render_mixed;
     dlstate->buf = NULL;
 
     dlstate->buf = new_Audio_buffer(delay->max_delay * audio_rate + 1);
@@ -451,27 +448,24 @@ static void Proc_delay_clear_history(
 }
 
 
-static void Proc_delay_process(
-        const Device* device,
-        Device_states* dstates,
+static void Delay_state_render_mixed(
+        Device_state* dstate,
         const Work_buffers* wbs,
-        uint32_t start,
-        uint32_t until,
-        uint32_t freq,
+        int32_t buf_start,
+        int32_t buf_stop,
         double tempo)
 {
-    assert(device != NULL);
-    assert(dstates != NULL);
+    assert(dstate != NULL);
     assert(wbs != NULL);
-    assert(freq > 0);
+    assert(buf_start >= 0);
+    assert(buf_start <= buf_stop);
+    assert(isfinite(tempo));
     assert(tempo > 0);
 
-    Delay_state* dlstate = (Delay_state*)Device_states_get_state(
-            dstates,
-            Device_get_id(device));
+    Delay_state* dlstate = (Delay_state*)dstate;
 
-    Proc_delay* delay = (Proc_delay*)device->dimpl;
-    //assert(string_eq(delay->parent.type, "delay"));
+    const Proc_delay* delay = (const Proc_delay*)dstate->device->dimpl;
+
     float* in_data[] = { NULL, NULL };
     float* out_data[] = { NULL, NULL };
     get_raw_input(&dlstate->parent.parent, 0, in_data);
@@ -482,9 +476,8 @@ static void Proc_delay_process(
         Audio_buffer_get_buffer(dlstate->buf, 1)
     };
 
-    int32_t buf_size = Audio_buffer_get_size(dlstate->buf);
-    assert(start <= until);
-    int32_t nframes = until - start;
+    const int32_t buf_size = Audio_buffer_get_size(dlstate->buf);
+    const int32_t nframes = buf_stop - buf_start;
 
     for (int tap_index = 0; tap_index < TAPS_MAX; ++tap_index)
     {
@@ -502,13 +495,13 @@ static void Proc_delay_process(
         }
 
         tstate->frames_left = nframes;
-        int32_t mix_until = min(delay_frames, nframes);
+        const int32_t mix_until = min(delay_frames, nframes);
 
         for (int32_t i = 0; i < mix_until; ++i)
         {
-            out_data[0][start + i] +=
+            out_data[0][buf_start + i] +=
                 delay_data[0][tstate->buf_pos] * tap->scale;
-            out_data[1][start + i] +=
+            out_data[1][buf_start + i] +=
                 delay_data[1][tstate->buf_pos] * tap->scale;
 
             ++tstate->buf_pos;
@@ -524,7 +517,7 @@ static void Proc_delay_process(
 
     int32_t new_buf_pos = dlstate->buf_pos;
 
-    for (uint32_t i = start; i < until; ++i)
+    for (int32_t i = buf_start; i < buf_stop; ++i)
     {
         delay_data[0][new_buf_pos] = in_data[0][i];
         delay_data[1][new_buf_pos] = in_data[1][i];
@@ -539,7 +532,7 @@ static void Proc_delay_process(
 
     for (int tap_index = 0; tap_index < TAPS_MAX; ++tap_index)
     {
-        Tap* tap = &delay->taps[tap_index];
+        const Tap* tap = &delay->taps[tap_index];
         if (tap->delay > delay->max_delay)
             continue;
 
@@ -547,9 +540,9 @@ static void Proc_delay_process(
 
         for (int32_t i = nframes - tstate->frames_left; i < nframes; ++i)
         {
-            out_data[0][start + i] +=
+            out_data[0][buf_start + i] +=
                 delay_data[0][tstate->buf_pos] * tap->scale;
-            out_data[1][start + i] +=
+            out_data[1][buf_start + i] +=
                 delay_data[1][tstate->buf_pos] * tap->scale;
 
             ++tstate->buf_pos;

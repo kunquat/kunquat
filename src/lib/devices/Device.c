@@ -42,7 +42,6 @@ bool Device_init(Device* device, bool req_impl)
     device->dimpl = NULL;
 
     device->create_state = new_Device_state_plain;
-    device->process_signal = NULL;
 
     device->set_control_var_generic = NULL;
     device->slide_control_var_float_target = NULL;
@@ -160,14 +159,6 @@ bool Device_get_mixed_signals(const Device* device)
 {
     assert(device != NULL);
     return device->enable_signal_support;
-}
-
-
-void Device_set_process(Device* device, Device_process_signal_func* process_signal)
-{
-    assert(device != NULL);
-    device->process_signal = process_signal;
-    return;
 }
 
 
@@ -363,29 +354,6 @@ bool Device_set_state_key(
     }
 
     return true;
-}
-
-
-void Device_process(
-        const Device* device,
-        Device_states* states,
-        const Work_buffers* wbs,
-        uint32_t start,
-        uint32_t until,
-        uint32_t freq,
-        double tempo)
-{
-    assert(device != NULL);
-    assert(states != NULL);
-    assert(wbs != NULL);
-    assert(freq > 0);
-    assert(isfinite(tempo));
-    assert(tempo > 0);
-
-    if (device->enable_signal_support && (device->process_signal != NULL))
-        device->process_signal(device, states, wbs, start, until, freq, tempo);
-
-    return;
 }
 
 

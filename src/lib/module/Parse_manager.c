@@ -540,6 +540,15 @@ static Audio_unit* add_audio_unit(Handle* handle, Au_table* au_table, int index)
         }
     }
 
+    // Add Device states to the audio unit state for rendering purposes
+    // TODO: fix this mess, Au states should probably contain their own Device states
+    {
+        Device_states* dstates = Player_get_device_states(handle->player);
+        uint32_t au_id = Device_get_id((const Device*)au);
+        Au_state* au_state = (Au_state*)Device_states_get_state(dstates, au_id);
+        Au_state_set_device_states(au_state, dstates);
+    }
+
     return au;
 }
 

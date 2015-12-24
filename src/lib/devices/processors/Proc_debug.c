@@ -64,8 +64,6 @@ static bool Proc_debug_init(Device_impl* dimpl)
 
     Proc_debug* debug = (Proc_debug*)dimpl;
 
-    Device_set_state_creator(dimpl->device, new_Proc_state_default);
-
     Processor* proc = (Processor*)debug->parent.device;
     proc->process_vstate = Proc_debug_process_vstate;
 

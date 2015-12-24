@@ -633,9 +633,7 @@ void Device_node_mix(
 
     Device_node_set_state(node, DEVICE_NODE_STATE_REACHED);
     const Device* node_device = Device_node_get_device(node);
-    Device_state* ds = Device_states_get_state(
-            states,
-            Device_get_id(node_device));
+    Device_state* ds = Device_states_get_state(states, Device_get_id(node_device));
     if (node_device == NULL ||
             !Device_is_existent(node_device) ||
             ds == NULL)
@@ -704,8 +702,8 @@ void Device_node_mix(
         }
     }
 
-    //fprintf(stderr, "Calling Device_process on %p %s\n", (void*)node, node->name);
-    Device_process(node_device, states, wbs, start, until, freq, tempo);
+    //fprintf(stderr, "Rendering mixed on %p %s\n", (void*)node, node->name);
+    Device_state_render_mixed(ds, wbs, start, until, tempo);
     Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
     return;
 }

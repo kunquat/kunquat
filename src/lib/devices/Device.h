@@ -43,16 +43,6 @@ typedef Device_state* Device_create_state_func(
         const Device*, int32_t buffer_size, int32_t audio_rate);
 
 
-typedef void Device_process_signal_func(
-        const Device*,
-        Device_states*,
-        const Work_buffers*,
-        uint32_t buf_start,
-        uint32_t buf_stop,
-        uint32_t audio_rate,
-        double tempo);
-
-
 typedef void Device_set_control_var_generic_func(
         const Device*,
         Device_states*,
@@ -138,7 +128,6 @@ struct Device
     Device_impl* dimpl;
 
     Device_create_state_func* create_state;
-    Device_process_signal_func* process_signal;
 
     Device_set_control_var_generic_func* set_control_var_generic;
     Device_slide_control_var_float_target_func* slide_control_var_float_target;
@@ -270,15 +259,6 @@ bool Device_get_mixed_signals(const Device* device);
 
 
 /**
- * Set the signal process function of the Device.
- *
- * \param device           The Device -- must not be \c NULL.
- * \param process_signal   The signal process function, or \c NULL.
- */
-void Device_set_process(Device* device, Device_process_signal_func* process_signal);
-
-
-/**
  * Set function for setting control variables.
  *
  * \param device     The Device -- must not be \c NULL.
@@ -407,30 +387,6 @@ bool Device_set_key(Device* device, const char* key, Streader* sr);
  * \return   \c true if successful, or \c false if a fatal error occurred.
  */
 bool Device_set_state_key(const Device* device, Device_states* dstates, const char* key);
-
-
-/**
- * Process audio in the Device.
- *
- * \param device   The Device -- must not be \c NULL.
- * \param states   The Device states -- must not be \c NULL.
- * \param wbs      The Work buffers -- must not be \c NULL.
- * \param start    The first frame to be processed -- must be less than the
- *                 buffer size.
- * \param until    The first frame not to be processed -- must be less than or
- *                 equal to the buffer size. If \a until <= \a start, nothing
- *                 will be cleared.
- * \param freq     The mixing frequency -- must be > \c 0.
- * \param tempo    The tempo -- must be > \c 0 and finite.
- */
-void Device_process(
-        const Device* device,
-        Device_states* states,
-        const Work_buffers* wbs,
-        uint32_t start,
-        uint32_t until,
-        uint32_t freq,
-        double tempo);
 
 
 /**

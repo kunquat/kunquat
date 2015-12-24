@@ -26,7 +26,7 @@
 #define RAMP_ATTACK_TIME (500.0)
 
 
-Device_state* new_Proc_state_default(
+Proc_state* new_Proc_state_default(
         const Device* device, int32_t audio_rate, int32_t audio_buffer_size)
 {
     assert(device != NULL);
@@ -41,7 +41,7 @@ Device_state* new_Proc_state_default(
         return NULL;
     }
 
-    return &pstate->parent;
+    return pstate;
 }
 
 

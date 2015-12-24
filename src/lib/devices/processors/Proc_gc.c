@@ -47,13 +47,11 @@ static bool Proc_gc_init(Device_impl* dimpl);
 
 static Proc_process_vstate_func Proc_gc_process_vstate;
 
-static void Proc_gc_process_signal(
-        const Device* device,
-        Device_states* states,
+static void Gc_state_render_mixed(
+        Device_state* dstate,
         const Work_buffers* wbs,
-        uint32_t buf_start,
-        uint32_t buf_stop,
-        uint32_t freq,
+        int32_t buf_start,
+        int32_t buf_stop,
         double tempo);
 
 static void del_Proc_gc(Device_impl* dimpl);
@@ -74,18 +72,34 @@ Device_impl* new_Proc_gc(Processor* proc)
 }
 
 
+static Device_state* Proc_gc_create_state(
+        const Device* device, int32_t audio_rate, int32_t audio_buffer_size)
+{
+    assert(device != NULL);
+    assert(audio_rate > 0);
+    assert(audio_buffer_size >= 0);
+
+    Proc_state* proc_state =
+        new_Proc_state_default(device, audio_rate, audio_buffer_size);
+    if (proc_state == NULL)
+        return NULL;
+
+    proc_state->render_mixed = Gc_state_render_mixed;
+
+    return (Device_state*)proc_state;
+}
+
+
 static bool Proc_gc_init(Device_impl* dimpl)
 {
     assert(dimpl != NULL);
 
     Proc_gc* gc = (Proc_gc*)dimpl;
 
-    Device_set_state_creator(dimpl->device, new_Proc_state_default);
+    Device_set_state_creator(dimpl->device, Proc_gc_create_state);
 
     Processor* proc = (Processor*)gc->parent.device;
     proc->process_vstate = Proc_gc_process_vstate;
-
-    Device_set_process(gc->parent.device, Proc_gc_process_signal);
 
     gc->is_map_enabled = false;
     gc->map = NULL;
@@ -249,37 +263,31 @@ static uint32_t Proc_gc_process_vstate(
 }
 
 
-static void Proc_gc_process_signal(
-        const Device* device,
-        Device_states* states,
+static void Gc_state_render_mixed(
+        Device_state* dstate,
         const Work_buffers* wbs,
-        uint32_t buf_start,
-        uint32_t buf_stop,
-        uint32_t freq,
+        int32_t buf_start,
+        int32_t buf_stop,
         double tempo)
 {
-    assert(device != NULL);
-    assert(states != NULL);
+    assert(dstate != NULL);
     assert(wbs != NULL);
-    assert(freq > 0);
+    assert(buf_start >= 0);
     assert(tempo > 0);
 
-    Device_state* dstate = Device_states_get_state(states, Device_get_id(device));
-    assert(dstate != NULL);
-
     // Get input
-    Audio_buffer* in_buffer = Device_state_get_audio_buffer(
-            dstate, DEVICE_PORT_TYPE_RECEIVE, 0);
+    Audio_buffer* in_buffer =
+        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_RECEIVE, 0);
     if (in_buffer == NULL)
         return;
 
     // Get output
-    Audio_buffer* out_buffer = Device_state_get_audio_buffer(
-            dstate, DEVICE_PORT_TYPE_SEND, 0);
+    Audio_buffer* out_buffer =
+        Device_state_get_audio_buffer(dstate, DEVICE_PORT_TYPE_SEND, 0);
     assert(out_buffer != NULL);
 
     // Distort the signal
-    const Proc_gc* gc = (const Proc_gc*)device->dimpl;
+    const Proc_gc* gc = (const Proc_gc*)dstate->device->dimpl;
     distort(gc, in_buffer, out_buffer, buf_start, buf_stop);
 
     return;

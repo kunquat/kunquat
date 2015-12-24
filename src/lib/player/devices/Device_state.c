@@ -53,6 +53,7 @@ void Device_state_init(
     ds->set_audio_buffer_size = NULL;
     ds->set_tempo = NULL;
     ds->reset = NULL;
+    ds->render_mixed = NULL;
     ds->deinit = NULL;
 
     return;
@@ -224,6 +225,26 @@ void Device_state_reset(Device_state* ds)
 
     if (ds->reset != NULL)
         ds->reset(ds);
+
+    return;
+}
+
+
+void Device_state_render_mixed(
+        Device_state* ds,
+        const Work_buffers* wbs,
+        int32_t buf_start,
+        int32_t buf_stop,
+        double tempo)
+{
+    assert(ds != NULL);
+    assert(wbs != NULL);
+    assert(buf_start >= 0);
+    assert(isfinite(tempo));
+    assert(tempo > 0);
+
+    if (ds->render_mixed != NULL)
+        ds->render_mixed(ds, wbs, buf_start, buf_stop, tempo);
 
     return;
 }

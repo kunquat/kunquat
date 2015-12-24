@@ -94,8 +94,6 @@ static bool Proc_add_init(Device_impl* dimpl)
 
     Proc_add* add = (Proc_add*)dimpl;
 
-    Device_set_state_creator(dimpl->device, new_Proc_state_default);
-
     Processor* proc = (Processor*)add->parent.device;
     proc->init_vstate = Proc_add_init_vstate;
     proc->process_vstate = Proc_add_process_vstate;

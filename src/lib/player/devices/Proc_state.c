@@ -34,6 +34,8 @@ static Device_state_set_tempo_func Proc_state_set_tempo;
 
 static Device_state_reset_func Proc_state_reset;
 
+static Device_state_render_mixed_func Proc_state_render_mixed;
+
 
 bool Proc_state_init(
         Proc_state* proc_state,
@@ -62,12 +64,14 @@ bool Proc_state_init(
     proc_state->parent.set_audio_buffer_size = Proc_state_set_audio_buffer_size;
     proc_state->parent.set_tempo = Proc_state_set_tempo;
     proc_state->parent.reset = Proc_state_reset;
+    proc_state->parent.render_mixed = Proc_state_render_mixed;
     proc_state->parent.deinit = Proc_state_deinit;
 
     proc_state->set_audio_rate = NULL;
     proc_state->set_audio_buffer_size = NULL;
     proc_state->set_tempo = NULL;
     proc_state->reset = NULL;
+    proc_state->render_mixed = NULL;
 
     proc_state->voice_out_buffers_modified = new_Bit_array(KQT_DEVICE_PORTS_MAX);
     if (proc_state->voice_out_buffers_modified == NULL)
@@ -114,6 +118,27 @@ void Proc_state_reset(Device_state* dstate)
     Proc_state* proc_state = (Proc_state*)dstate;
     if (proc_state->reset != NULL)
         proc_state->reset(dstate);
+
+    return;
+}
+
+
+void Proc_state_render_mixed(
+        Device_state* dstate,
+        const Work_buffers* wbs,
+        int32_t buf_start,
+        int32_t buf_stop,
+        double tempo)
+{
+    assert(dstate != NULL);
+    assert(wbs != NULL);
+    assert(buf_start >= 0);
+    assert(isfinite(tempo));
+    assert(tempo > 0);
+
+    Proc_state* proc_state = (Proc_state*)dstate;
+    if (proc_state->render_mixed != NULL)
+        proc_state->render_mixed(dstate, wbs, buf_start, buf_stop, tempo);
 
     return;
 }
